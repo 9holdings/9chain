@@ -35,6 +35,21 @@ WSL update / cần đăng nhập lại), hoặc `wsl --update && wsl --shutdown`
 | H-3 | Có mở console đẻ chain ra Internet không | M4.5 |
 | H-4 | AAAA record `bootstrap-a1.9chain.org` (**DNS-only**, không mây cam) | M3.3 |
 | H-5 | URL Cosmos REST của C1 (`:1317`) | M7.3 (dashboard live) |
+| H-6 | 🔴 **Repo chưa có remote — code vẫn chỉ nằm trên MỘT ổ đĩa** | độ bền của mọi thứ |
+
+### Ghi chú H-6 — git đã có, nhưng chưa có bản thứ hai
+
+M0 đã đưa toàn bộ lớp chủ quyền vào git (2 repo, 5 commit gốc + patch series cứu hộ).
+Nhưng cả hai repo **chưa có remote** — chưa `push` được đi đâu. Ổ đĩa hỏng là mất hết,
+y như trước, chỉ khác là giờ có lịch sử để mất.
+
+Không tự làm vì đây là quyết định của David, không phải mặc định kỹ thuật: đây là
+**fork blockchain chủ quyền đang chạy testnet công khai**. Đưa lên GitHub công khai
+là công bố toàn bộ lớp identity, tham số kinh tế mạng và công cụ vận hành.
+
+**Cần David chọn:** nơi đặt (GitHub cá nhân / org / self-host) và **private hay public**.
+Xong thì `git remote add origin … && git push -u origin main` cho cả `9Chain-A1` và
+nhánh `9chain-a1` trong `upstream/avalanchego`.
 
 ### Ghi chú H-2 — vì sao ACP-77 không còn là việc để sau
 

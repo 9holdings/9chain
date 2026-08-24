@@ -167,7 +167,15 @@ Demo mạnh nhất của A1; tiêu chí "Interop" đang tự chấm 3/5 trong da
 
 ## M7 — An toàn vận hành (làm xen kẽ)
 
-- [ ] M7.1 — Backup `console-chains.json` (danh bạ L1 duy nhất, 1 bản trên server)
+- [x] M7.1 — `console-chains.json` ghi qua file tạm + rename, giữ `.bak`.
+      Ghi thẳng mà tiến trình chết giữa chừng là còn lại JSON cụt → `loadState()`
+      bắt lỗi rồi trả `{chains:[]}`, tức **danh bạ rỗng trông như hợp lệ**, và lượt
+      tạo kế tiếp ghi đè lên đó. Đã kiểm: mount của nó là **thư mục** nên `rename`
+      không dính bẫy inode (khác `chains-nginx/default.conf` — mount file đơn lẻ,
+      sửa file đó phải `cp` chứ không `mv`).
+- [x] M7.5 — Kiểm chứng hạn mức faucet nhìn đúng IP người dùng:
+      `/faucet/whoami` → `{"ip":"2.49.67.2","trustProxy":true}` — IP thật, không phải
+      IP Cloudflare. Hạn mức faucet lành mạnh, không cần sửa.
 - [ ] M7.2 — `ufw-cloudflare-only.sh` — giữ **9651 mở** (và 9651/tcp6 sau M3)
 - [ ] M7.3 — `/api/metrics` cho dashboard + 9Scan-A1 (chờ 9Scan chốt yêu cầu ở KICKOFF của họ)
 - [ ] M7.4 — `rmdir "C:\PROJECTS\MetaChain"`

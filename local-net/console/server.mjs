@@ -88,7 +88,30 @@ const run = promisify(execFile);
 if (!existsSync(TMP_DIR)) mkdirSync(TMP_DIR, { recursive: true });
 
 function loadState() { try { return JSON.parse(readFileSync(STATE, "utf8")); } catch { return { chains: [] }; } }
-function saveState(s) { writeFileSync(STATE, JSON.stringify(s, null, 2)); }
+
+/**
+ * Ghi state + giữ một bản sao trước đó.
+ *
+ * `console-chains.json` là danh bạ L1 DUY NHẤT và chỉ có một bản trên server.
+ * Mất nó thì các chain vẫn chạy nhưng **không ai tìm được chúng nữa**: tên,
+ * chủ sở hữu, chainId, URL RPC đều nằm trong đây và không dựng lại được từ
+ * P-Chain (P-Chain biết subnetID/blockchainID, không biết ai đặt tên gì).
+ *
+ * Ghi qua file tạm rồi rename: ghi thẳng mà tiến trình chết giữa chừng là còn
+ * lại JSON cụt — `loadState()` bắt lỗi rồi trả `{chains: []}`, tức là **danh bạ
+ * rỗng trông như hợp lệ**, và lượt tạo chain kế tiếp sẽ ghi đè lên đó.
+ */
+function saveState(s) {
+  const noiDung = JSON.stringify(s, null, 2);
+  try {
+    if (existsSync(STATE)) writeFileSync(STATE + ".bak", readFileSync(STATE));
+  } catch (e) {
+    console.warn(`  ⚠️  không sao lưu được state cũ: ${e.message}`);
+  }
+  const tmp = STATE + ".tmp";
+  writeFileSync(tmp, noiDung);
+  renameSync(tmp, STATE);
+}
 
 async function rpc(pathSeg, method, params = []) {
   const r = await fetch(API + pathSeg, {

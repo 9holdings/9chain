@@ -1,17 +1,27 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: 2026-08-24 (chốt phiên)
+Cập nhật: 2026-08-25 (phiên autopilot)
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
-**Sức khoẻ lúc chốt (đo thật):** 5/5 validator connected · C-Chain block `0x9` ·
-`/` `/faucet/` `/chains/` `/dashboard/` `/lite/` đều 200 · **2 L1** trong danh bạ
-(OmegaChain, OwnerTest).
+🔴 **ĐỌC `PROGRESS.md` TRƯỚC** — từ 2026-08-25 backlog nằm ở đó, không phải file này.
+Kèm `DECISIONS.md` (vì sao làm vậy) và `BLOCKERS.md` (đang chờ David cái gì).
 
-Repo này (**chain**) không còn việc nào đang dở. Việc còn lại đều nằm ở mục
-"Chưa làm, không chặn" bên dưới, và **phần lớn cần David quyết** (tokenomics, IPv6,
-ufw). Ba việc kỹ thuật làm được ngay nếu muốn: IPv6 cho node (để cộng đồng tự chạy
-node) · `ufw-cloudflare-only.sh` · URL Cosmos REST của C1 cho dashboard.
+**Sức khoẻ lúc chốt (đo thật):** 5/5 validator connected · **5 L1** trong danh bạ ·
+smoke test **20/20 đạt** · đẻ chain đầy đủ có gửi giao dịch thật, chốt sau 0.1s.
+
+**Phiên autopilot 2026-08-25 làm xong 3 mốc:**
+- **M0** — dự án nay **có git**. Trước đó toàn bộ lớp chủ quyền (6 file identity đã sửa
+  + 1079 dòng Go công cụ) là uncommitted/untracked, một lệnh `git checkout .` là mất sạch.
+- **M1** — có **bộ đo + smoke test E2E** (trước đây không có test tự động nào).
+- **M2** — đẻ 1 chain làm RPC công khai chết **6.0s → 0.5s** (đo thật, 12 lần tốt hơn).
+
+**Hai phát hiện đổi cách nghĩ về sản phẩm** — xem `DECISIONS.md` D-009 và `BLOCKERS.md` H-2:
+- 🔴 **Trần cứng 16 L1**: node track quá 16 subnet bị **mọi peer cắt kết nối** lúc bắt
+  tay P2P (`network/peer/peer.go:882`). Mạng vỡ, không phải chậm đi. Hiện **5/15**.
+  Console đã chặn. ⇒ **ACP-77 từ "việc tương lai" thành thứ duy nhất mở được trần.**
+- 🔴 **Repo chưa có remote** — code vẫn chỉ nằm trên một ổ đĩa (H-6, cần David chọn
+  nơi đặt + private/public).
 
 **Explorer là dự án KHÁC: `C:\PROJECTS\9Scan-A1`** — có backlog riêng đang chạy dở
 (M2 `/chains/`). Muốn làm explorer thì mở phiên ở thư mục đó và đọc `PROGRESS.md`,
@@ -126,6 +136,36 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 
 ## Gotchas
 
+### Thêm từ phiên 2026-08-25 (đều đo được, không suy đoán)
+- 🔴 **Trần cứng 16 subnet/node.** Peer khai >16 subnet lúc bắt tay P2P thì node nhận
+  gọi `p.StartClose()` — **cắt kết nối** (`network/peer/peer.go:882`), và bên gửi
+  KHÔNG cắt bớt danh sách (`message/outbound_msg_builder.go:266`). Track quá 16 L1 là
+  bị mọi peer ngắt: **mạng vỡ**, và vỡ kiểu khó đoán nhất — node vẫn chạy, log phía nó
+  vẫn sạch. Console đã chặn ở hai chỗ. Trần này là của **mô hình "mọi validator track
+  mọi L1"**, vượt qua phải đổi kiến trúc (ACP-77), không phải nới số.
+- 🔴 **Bind-mount MỘT FILE + `mv` = container thấy file CŨ vĩnh viễn.** Docker gắn theo
+  **inode**; `mv` tạo inode mới ở cùng đường dẫn. Ác ở chỗ mọi dấu hiệu đều báo thành
+  công: `grep` trên host thấy bản mới, `caddy validate` in "Valid configuration",
+  `caddy reload` không lỗi — **cả hai đều đọc file cũ**. Đo được: host inode `25045995`
+  vs container `25043225`. Phải `cp` (giữ inode) rồi **so md5sum host với trong
+  container**. Lỡ `mv` rồi thì chỉ còn recreate (đo được: Caddy recreate tốn **1.2s**).
+  Trong dự án này: `Caddyfile` và `chains-nginx/default.conf` là mount file đơn lẻ;
+  `9chain-a1-config/` và `local-net/chains/` là mount thư mục (an toàn).
+- 🔴 **KHÔNG chờ `health.health` trả `healthy:true` giữa đợt rollout subnet mới** — đó
+  là **deadlock theo thiết kế**. Node đầu tiên track subnet mới là node duy nhất trên
+  subnet đó → `connected to 20%; required at least 80%`; nó chỉ khoẻ khi các node khác
+  cũng restart, mà chúng chờ nó khoẻ. Và **không lọc bằng `?tag=` được**: check
+  `bootstrapped` đăng ký `ApplicationTag` (toàn cục) nên luôn có mặt. Điều kiện đúng:
+  đọc riêng `P`/`X`/`C`, đòi không có `error`.
+- **`/ext/health/liveness` là tín hiệu YẾU** — trả 200 ngay khi HTTP server lên, TRƯỚC
+  khi C-Chain sẵn sàng. Dùng nó cho health check của Caddy thì Caddy quay lại node
+  chưa sẵn sàng quá sớm. Cách chữa: để **passive thắng** (`fail_duration 30s`,
+  `max_fails 1`) — Caddy đòi cả hai điều kiện đạt nên liveness xanh sớm không kéo node về sớm.
+- **"Đã chép ≠ đang chạy".** Upload console rồi quên restart là bản cũ vẫn phục vụ, không
+  dấu hiệu nào. Dùng `console-deploy.sh` (gộp chép + restart + đối chiếu md5sum).
+- **`docker compose config --services` KHÔNG giữ thứ tự trong file** (trả node-4 trước
+  node-1). Thứ tự ngẫu nhiên làm sự cố không tái hiện được — phải tự sắp xếp.
+
 ### Bảo mật / hạ tầng
 - 🔴 **Docker publish cổng ĐI VÒNG QUA ufw.** `ports: "9650:9650"` = hở thẳng ra Internet dù `ufw status` báo chặn (ufw lọc `INPUT`, Docker dùng DNAT bảng `nat`). Kiểm tra thật bằng `sudo ss -tlnp | grep 9650`, **đừng tin `ufw status`**.
 - 🔴 **Ubuntu cloud image: sửa `PasswordAuthentication` trong `/etc/ssh/sshd_config` KHÔNG có tác dụng.** `Include sshd_config.d/*.conf` ở dòng 12 mà sshd lấy **giá trị gặp ĐẦU TIÊN** → `50-cloud-init.conf` thắng. Phải sửa đúng file đó + `/etc/cloud/cloud.cfg.d/99-disable-ssh-pwauth.cfg`. **Kiểm chứng bằng `sudo sshd -T | grep passwordauth`.**
@@ -194,12 +234,27 @@ curl -s -X POST -H 'content-type:application/json' --data '{"jsonrpc":"2.0","id"
 ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'docker exec 9chain-a1-caddy caddy reload --config /etc/caddy/Caddyfile'
 ```
 
-Đồng bộ console lên server rồi khởi động lại (ngoặc vuông trong `pkill` là BẮT BUỘC — xem Gotchas):
+Nghiệm thu tự động — **dùng cái này thay cho mở trang nhìn bằng mắt**:
 ```bash
-scp -i "$A1_SSH_KEY" local-net/console/server.mjs local-net/console/index.html "$A1_SSH_HOST":'~/9chain-a1/src/local-net/console/' && scp -i "$A1_SSH_KEY" local-net/lib/eip55.mjs "$A1_SSH_HOST":'~/9chain-a1/src/local-net/lib/'
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && node local-net/faucet/smoke-l1.mjs'
 ```
+Chế độ nhẹ chỉ đọc, không tốn tiền, chạy bao nhiêu lần cũng được. Thêm `--de-chain`
+để nghiệm thu đường đẻ chain đầy đủ (đẻ chain thật + giao dịch thật + đo gián đoạn)
+— **để lại một L1 vĩnh viễn trong danh bạ**, đừng chạy trong vòng lặp.
+
+Đo gián đoạn RPC trong lúc làm thao tác nặng:
 ```bash
-ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'pkill -f "[c]onsole/server.mjs"; sleep 2; cd ~/9chain-a1/src && set -a && . ~/9chain-a1/console.env && set +a && setsid node local-net/console/server.mjs >> ~/9chain-a1/console.log 2>&1 < /dev/null & sleep 4; ss -tlnp | grep 8091'
+node local-net/faucet/probe-net.mjs https://rpc-testnet-a1.9chain.org/ext/bc/C/rpc --giay 120
+```
+
+Đồng bộ console lên server (chép + khởi động lại + **tự kiểm chứng**, một lệnh):
+```bash
+bash local-net/deploy/console-deploy.sh
+```
+
+Đổi cấu hình Caddy (`cp` giữ inode + so md5sum + validate + reload, **không** recreate):
+```bash
+scp -i "$A1_SSH_KEY" local-net/deploy/Caddyfile "$A1_SSH_HOST":'~/9chain-a1/Caddyfile.new' && ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" '~/9chain-a1/caddy-deploy.sh'
 ```
 
 Đồng bộ trang danh bạ L1 (bind-mount → có hiệu lực ngay, không restart):
