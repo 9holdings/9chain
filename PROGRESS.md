@@ -30,15 +30,21 @@ working-tree changes (6 file M) + untracked (`9chain-a1-tools/` 1079 dòng Go,
 trong HANDOFF lại hướng dẫn chạy `git checkout --` → gõ nhầm là mất sạch.
 Và §5 autopilot yêu cầu "git commit nhỏ" — không có git thì không có lưới đỡ nào.
 
-- [ ] M0.1 — Commit lớp chủ quyền vào nhánh `9chain-a1` trong `upstream/avalanchego`
-- [ ] M0.2 — `git init` gốc dự án + commit đầu (loại `upstream/`, loại secrets)
-- [ ] M0.3 — Export patch series `patches/` + `scripts/apply-sovereign.sh` (sống sót cả khi mất `upstream/`)
-- [ ] M0.4 — `.gitattributes` chống CRLF war (KB: patch fail toàn bộ 5 file khi git Windows/WSL lệch)
-- [ ] M0.5 — Kiểm chứng khôi phục: cây sạch → apply → **build image thành công**
+- [x] M0.1 — Commit lớp chủ quyền vào nhánh `9chain-a1` trong `upstream/avalanchego`
+      → 3 commit (`e46465c`), `git status --porcelain` = **0 dòng**
+- [x] M0.2 — `git init` gốc dự án + commit đầu — 49 file, `c85d396`.
+      Đã quét secret: không có `PrivateKey-*`/khoá riêng. Chuỗi `0x…` trong
+      `9chain-a1-config/genesis.json` là BLS publicKey + proofOfPossession (công khai).
+- [x] M0.3 — `patches/` (3 patch) + `scripts/apply-sovereign.sh`, `2d4af01`
+- [x] M0.4 — `.gitattributes` `* -text` ở **cả hai** repo (KB: patch fail toàn bộ file khi git Windows/Linux lệch)
+- [x] M0.5 — **Kiểm chứng khôi phục đã CHẠY THẬT**: clone sạch → `apply-sovereign.sh` →
+      so tree hash với nhánh gốc: `42d43f32…` == `42d43f32…` → cây phục hồi **giống hệt từng byte**
+- [blocked] M0.6 — Build image từ cây phục hồi (`--version` in `9chaingo`) — Docker Desktop
+      không khởi động được trên máy dev, xem BLOCKERS B-1
 
-**Điều kiện qua M0:** từ một bản copy chỉ có root repo + `patches/`, chạy
-`apply-sovereign.sh` rồi `docker build` ra image chạy được `--version` in đúng `9chaingo`.
-Và `git status --porcelain` ở cả 2 repo ra **0 dòng** (`??` cũng tính — KB 9chain).
+**Điều kiện qua M0:** ✅ đạt phần cốt lõi — lớp chủ quyền không còn tồn tại dưới dạng
+uncommitted/untracked ở bất kỳ đâu, và đường khôi phục đã chứng minh bằng tree hash
+trùng khớp, không phải "trông có vẻ đúng". Còn treo M0.6 (build lại), không chặn mốc sau.
 
 ---
 

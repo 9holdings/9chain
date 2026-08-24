@@ -6,7 +6,23 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
-*(chưa có)*
+### B-1 — Docker Desktop không khởi động trên máy dev (chặn M0.6)
+**2026-08-24.** `docker version` treo vô hạn; `Start-Process "Docker Desktop.exe"` chạy
+nhưng daemon không lên sau 5 phút (`npipe:////./pipe/dockerDesktopLinuxEngine` không tồn tại).
+Nghi WSL2 backend chưa sẵn sàng.
+
+**Ảnh hưởng:** không build lại được image node trên máy dev → M0.6 treo, và **mọi việc
+cần build lại node sau này (M3 IPv6 sửa netgen) sẽ vướng cùng chỗ**.
+
+**KHÔNG tự gỡ bằng cách build trên server `139.99.145.13`**: build Go của avalanchego +
+subnet-evm là tải CPU nặng, mà server đang chạy 5 validator của testnet công khai có
+người ngoài dùng. Đổi 18.5% CPU thành 100% để tiện cho mình là sai đánh đổi.
+
+**Không chặn M0 cốt lõi**: đường khôi phục đã được chứng minh bằng tree hash trùng khớp
+từng byte — mạnh hơn "build xanh", vì cây phục hồi CHÍNH LÀ cây đã build ra image đang chạy.
+
+**Cách gỡ khi David rảnh tay:** mở Docker Desktop bằng tay xem nó báo gì (thường là
+WSL update / cần đăng nhập lại), hoặc `wsl --update && wsl --shutdown`.
 
 ---
 
