@@ -53,12 +53,18 @@ trùng khớp, không phải "trông có vẻ đúng". Còn treo M0.6 (build l�
 **Vì sao sớm:** hiện **không có test tự động nào**; mọi nghiệm thu là thủ công.
 Mọi mốc sau đều cần đo, nên xây thước trước khi cưa.
 
-- [ ] M1.1 — `probe-net.mjs`: poll C-Chain RPC liên tục, ghi nhận gián đoạn (ms) + tỉ lệ lỗi
-- [ ] M1.2 — `smoke-l1.mjs`: đẻ chain → probe giao dịch thật → kiểm `/chains/` → báo cáo
-- [ ] M1.3 — Chạy thật trên server: **đo gián đoạn C-Chain trong lúc đẻ 1 chain**
-- [ ] M1.4 — Ghi số đo vào DECISIONS (số này quyết định M2 làm hay không)
+- [x] M1.1 — `probe-net.mjs` — zero-dep, chạy được cả trên server. Đã chạy thật 20s
+      qua Cloudflare: 37 lượt, 0% hỏng, p50 458ms.
+- [x] M1.2 — `smoke-l1.mjs` hai chế độ (nhẹ chỉ-đọc / `--de-chain` đầy đủ).
+      Chạy thật: **18/18 ĐẠT** trên testnet công khai.
+- [x] M1.3 — **ĐO XONG trên mạng công khai** (2026-08-24, chain `Smoke7M7Q3D`, chainId 9102):
+      > đẻ 1 chain → **C-Chain RPC chết 6.0 giây · 12/25 lượt gọi hỏng (48%)** · 1 khoảng chết
+      Bằng chứng phụ: ngay sau đó cả 5 container đều `Up 25 seconds` — **cùng một con số**,
+      tức là chúng bị recreate đồng loạt, không phải lần lượt.
+      Giao dịch thật chốt sau **0.1s**, block 1, `0xd695ddcc…32b9be`.
+- [x] M1.4 — Ghi số đo vào DECISIONS (D-006). **Kết luận: M2 PHẢI LÀM.**
 
-**Điều kiện qua M1:** có con số thật "đẻ 1 chain làm C-Chain RPC chết N giây / M request lỗi".
+**Điều kiện qua M1:** ✅ đạt — có con số thật, không phải suy đoán.
 
 ---
 
