@@ -95,11 +95,23 @@ không xoá nó. Đổi lại, đẻ chain chậm gấp 13 lần.
 "hỏng thì dừng" đã chứng minh giá trị ngay lần chạy đầu (node-4 kẹt → dừng, node-1
 không bị đụng, **gián đoạn công khai = 0**). Đây là an toàn, không phải tốc độ.
 
-- [ ] M2.3 — **Cái sửa thật: RPC công khai không được là một node duy nhất.**
-      Cho node thứ hai mở API ra loopback + Caddy `reverse_proxy` nhiều upstream có
-      health check → node-1 restart thì Caddy chuyển sang node-2, người dùng không thấy gì.
-      Chỉ sau bước này gián đoạn mới về 0. **Phải vá compose TẠI CHỖ trên server —
-      chạy lại netgen sẽ sinh KHOÁ MỚI = đổi danh tính validator.**
+- [x] M2.3 — **Cái sửa thật: RPC công khai không còn là một node duy nhất.** ✅
+
+      node-2 mở API ra `127.0.0.1:9660` (chỉ loopback) · Caddy `reverse_proxy` hai
+      upstream, `lb_policy first` + health check chủ động lẫn bị động.
+
+| đo trên mạng công khai | gián đoạn C-Chain | lượt gọi hỏng |
+|---|---|---|
+| 1 upstream (nền) | 6.3s | 21 |
+| 2 upstream, `fail_duration 5s` | 1.8s | 6 |
+| 2 upstream, `fail_duration 30s` + `max_fails 1` | **0.3s** | **1** |
+| **đẻ 1 chain đầy đủ (restart cả 5 node)** | **0.5s** | **1** |
+
+      So với nền M1.3 (6.0s / 12 lượt hỏng): **tốt hơn 12 lần**. 20/20 smoke test đạt.
+      Đã vá cả `netgen` để mạng sinh sau này có sẵn (không chạy netgen trên mạng đang
+      chạy — nó sinh KHOÁ MỚI = đổi danh tính validator; server vá tại chỗ).
+
+**Điều kiện qua M2:** ✅ **đạt** — 6.0s → 0.5s, đo cùng một cách, táo với táo.
 
 ---
 

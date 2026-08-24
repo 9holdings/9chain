@@ -10,7 +10,7 @@
 // Chạy:  node local-net/console/server.mjs   (cwd = gốc dự án)  hoặc  9chain-a1 console
 import http from "node:http";
 import { execFile } from "node:child_process";
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from "node:fs";
 import { promisify } from "node:util";
 import path from "node:path";
 import { clientIp, rateLimit, requireToken, requireSecret, serialQueue } from "../lib/guard.mjs";
@@ -212,6 +212,36 @@ async function nodeSanSang(svc) {
  * nữa chỉ làm mạng mỏng đi trong khi vấn đề chưa rõ. Thà dừng với vài node chưa
  * track (báo lỗi rõ) còn hơn hạ cả mạng một cách âm thầm.
  */
+/**
+ * Ghim danh sách subnet vào `.env` cạnh file compose.
+ *
+ * Console truyền A1_TRACK_SUBNETS qua env lúc chạy, nên bản thân nó không cần
+ * file này. Nhưng BẤT KỲ ai sau đó gõ `docker compose up -d` bằng tay — để sửa
+ * một node, để nâng image — sẽ lấy giá trị rỗng và node đó **âm thầm thôi track
+ * mọi L1**. Chain vẫn "sống" theo mọi dấu hiệu bề ngoài, chỉ là mỏng đi một
+ * validator mà không ai biết. Dự án này đã dính đúng lớp lỗi đó một lần với
+ * `--http-allowed-hosts` (console `up` làm nó tụt về `*` trên node công khai).
+ *
+ * Ghi qua file tạm rồi rename: `.env` hỏng giữa chừng là MỌI lệnh compose chết,
+ * kể cả lệnh để sửa lỗi.
+ */
+function ghimTrackVaoEnv(trackList) {
+  const envPath = path.join(path.dirname(path.resolve(COMPOSE_FILE)), ".env");
+  try {
+    const cu = existsSync(envPath) ? readFileSync(envPath, "utf8") : "";
+    const giu = cu.split(/\r?\n/).filter(d => !/^\s*A1_TRACK_SUBNETS\s*=/.test(d));
+    while (giu.length && giu.at(-1).trim() === "") giu.pop();
+    giu.push(`A1_TRACK_SUBNETS=${trackList}`, "");
+    const tmp = envPath + ".tmp";
+    writeFileSync(tmp, giu.join("\n"));
+    renameSync(tmp, envPath);
+  } catch (e) {
+    // Không ghim được thì vẫn đi tiếp: console truyền env lúc chạy nên lượt tạo
+    // này vẫn đúng. Chỉ là lưới đỡ cho lần chạy tay sau bị thủng — phải kêu lên.
+    console.warn(`  ⚠️  không ghim được A1_TRACK_SUBNETS vào ${envPath}: ${e.message}`);
+  }
+}
+
 async function trackSubnetsLanLuot(trackList) {
   // `docker()` gộp stdout VỚI stderr, mà compose hay in cảnh báo kiểu
   //   WARN[0000] The "A1_TRACK_SUBNETS" variable is not set. Defaulting to ...
@@ -252,6 +282,10 @@ async function trackSubnetsLanLuot(trackList) {
     NODE_CONTAINER,
   ];
   const nhatKy = [];
+
+  // Ghim TRƯỚC khi restart: nếu console chết giữa chừng, người vào dọn bằng tay
+  // vẫn có danh sách đúng để dựng lại.
+  ghimTrackVaoEnv(trackList);
 
   for (const svc of thuTu) {
     const t0 = Date.now();

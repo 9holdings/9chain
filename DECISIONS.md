@@ -108,6 +108,30 @@ validator RIÊNG cho từng L1 — đúng thứ **ACP-77** sinh ra để giải 
 không còn là "việc tương lai chờ tokenomics"; nó là **thứ duy nhất mở được trần cho
 sản phẩm multi-L1**. Xem BLOCKERS H-2.
 
+### D-010 — Console tự ghim `A1_TRACK_SUBNETS` vào `net/.env`
+`.env` cạnh compose có mục đích ghi rõ trong chính nó: *"BẤT KỲ ai chạy — tay hay
+console bấm nút — đều tái lập đúng cấu hình đang chạy"*. Nhưng nó **không** ghim
+biến quan trọng nhất. Ai gõ `docker compose up -d` bằng tay (sửa một node, nâng
+image) sẽ đưa node đó về danh sách RỖNG → node **âm thầm thôi track mọi L1**. Chain
+vẫn "sống" theo mọi dấu hiệu bề ngoài, chỉ mỏng đi một validator mà không ai biết.
+Dự án đã dính đúng lớp lỗi này một lần với `--http-allowed-hosts`.
+
+Console nay ghi vào `.env` **trước** khi restart (console chết giữa chừng thì người
+vào dọn vẫn có danh sách đúng), qua file tạm rồi rename — `.env` hỏng là **mọi** lệnh
+compose chết, kể cả lệnh để sửa lỗi.
+
+### D-011 — Chọn `lb_policy first` chứ không phải round-robin
+Hai upstream nhưng **không** chia tải: node-1 nhận hết, node-2 chỉ là lưới đỡ.
+**Lý do:** giữ hành vi thường ngày không đổi — mọi request đi một đường, log dễ đọc,
+và không đẻ ra lớp "lúc thì node này lúc thì node kia" khi truy lỗi. Chia tải là bài
+toán khác (chưa có nhu cầu: p50 8ms). Đây là bài toán **sẵn sàng**.
+
+### D-012 — Giữ nguyên phần gofmt lệch có sẵn trong netgen
+`gofmt -l` liệt kê `netgen/main.go`. Kiểm bằng `git stash` → **đã lệch từ trước**
+khi tôi sửa (khác phiên bản gofmt về thụt lề comment), phần tôi thêm thì sạch.
+**Quyết định:** không chạy `gofmt -w`. Format lại cả file sẽ nhét nhiễu vào patch
+chủ quyền — patch càng to càng dễ chết khi rebase lên upstream mới.
+
 ### D-005 — Verify gate = giao dịch thật, không phải "RPC trả lời"
 Kế thừa luật đã trả giá trong HANDOFF: subnet có tập validator RỖNG vẫn trả `eth_chainId`,
 vẫn đọc được số dư, MetaMask vẫn kết nối — chỉ là giao dịch **không bao giờ chốt**.

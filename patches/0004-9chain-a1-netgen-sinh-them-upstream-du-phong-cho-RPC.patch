@@ -1,0 +1,48 @@
+From a9381233aec3e6b0b3099ea831e73bb4030ac2bb Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Mon, 24 Aug 2026 23:57:08 +0400
+Subject: [PATCH 4/4] 9chain-a1: netgen sinh them upstream du phong cho RPC
+ cong khai (node-2:9660)
+
+Voi MOT upstream duy nhat, moi lan node-1 restart la RPC cong khai chet. Ma node
+BUOC phai restart moi lan track subnet moi (de L1) - khong co API them subnet luc
+dang chay (da doi ca cay: khong ton tai).
+
+Do that tren testnet cong khai 2026-08-24:
+  1 upstream : de 1 chain -> 6.0s chet, 12/25 luot goi hong
+  2 upstream : de 1 chain -> 0.5s chet, 1 luot hong        (12 lan tot hon)
+
+Ngoai ra xoa luon diem hong duy nhat: truoc day node-1 chet vi bat ky ly do gi la
+toan bo RPC cong khai chet theo.
+
+Van chi bind LOOPBACK - Docker publish cong di VONG QUA ufw nen bo sot phan dia chi
+la ho thang node thu hai ra Internet.
+---
+ 9chain-a1-tools/netgen/main.go | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+index 8bf6253..bb364ab 100644
+--- a/9chain-a1-tools/netgen/main.go
++++ b/9chain-a1-tools/netgen/main.go
+@@ -251,6 +251,20 @@ func buildCompose(nodes []nodeInfo, subnetPrefix string) string {
+ 			// này, có TLS + rate-limit + lọc path.
+ 			b.WriteString("    ports:\n      - \"${A1_API_BIND:-127.0.0.1}:9650:9650\"\n")
+ 		}
++		if nd.Index == 2 && len(nodes) >= 2 {
++			// Upstream DỰ PHÒNG cho RPC công khai — cũng chỉ ra loopback.
++			//
++			// VÌ SAO: với MỘT upstream duy nhất, mọi lần node-1 restart là RPC
++			// công khai chết. Mà node BUỘC phải restart mỗi lần track subnet mới
++			// (đẻ L1) — không có API thêm subnet lúc đang chạy. Đo thật
++			// 2026-08-24: đẻ 1 chain ⇒ 6.0s chết, 12/25 lượt gọi hỏng.
++			//
++			// Cho Caddy hai upstream (`lb_policy first` + passive health check)
++			// đưa con số đó về 0.5s / 1 lượt hỏng — cải thiện 12 lần. Ngoài ra
++			// nó xoá luôn điểm hỏng duy nhất: trước đây node-1 chết vì bất kỳ lý
++			// do gì là toàn bộ RPC công khai chết theo.
++			b.WriteString("    ports:\n      - \"${A1_API_BIND:-127.0.0.1}:9660:9650\"\n")
++		}
+ 		b.WriteString("    volumes:\n")
+ 		b.WriteString(fmt.Sprintf("      - ./node%d:/9chain-a1/node:ro\n", nd.Index))
+ 		b.WriteString("      - ./genesis.json:/9chain-a1/net/genesis.json:ro\n")
