@@ -105,6 +105,180 @@ function scrub(s) {
   return String(s ?? "").split(CLI_KEY).join("<A1_CLI_KEY>");
 }
 
+// Subnet của Primary Network (P/X/C). `ids.Empty` in ra chuỗi này.
+const PRIMARY_SUBNET = "11111111111111111111111111111111LpoYY";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TRẦN CỨNG CỦA GIAO THỨC — KHÔNG PHẢI CON SỐ TỰ ĐẶT
+//
+// `network/peer/peer.go:882`: trong lúc BẮT TAY P2P, node nhận đếm số subnet mà
+// peer khai. Quá 16 thì nó ghi log "malformed message" rồi gọi `p.StartClose()`
+// — CẮT KẾT NỐI. Và `message/outbound_msg_builder.go:266` cho thấy bên gửi
+// KHÔNG cắt bớt danh sách: nó gửi nguyên si mọi subnet đang track.
+//
+// Hệ quả: node track quá 16 L1 sẽ bị MỌI peer ngắt kết nối ngay khi bắt tay.
+// Không phải chậm đi, không phải cảnh báo — mạng VỠ. Và hỏng theo kiểu khó đoán
+// nhất: node vẫn chạy, log vẫn sạch ở phía nó, chỉ là không ai nói chuyện với nó.
+//
+// Đây là trần của MÔ HÌNH HIỆN TẠI (mọi validator track mọi L1), không phải trần
+// của Avalanche. Muốn vượt qua thì phải đổi kiến trúc: tập validator riêng cho
+// từng L1 (đúng thứ ACP-77 sinh ra để giải quyết) hoặc chia node theo nhóm subnet.
+//
+// Để 15 chứ không phải 16: chừa một chỗ cho subnet đẻ ra ngoài luồng console
+// (ví dụ lượt tạo hỏng giữa chừng để lại subnet mồ côi không có trong state).
+const TRAN_SUBNET_GIAO_THUC = 16;
+const MAX_L1 = Math.min(Number(process.env.A1_MAX_L1 || 15), TRAN_SUBNET_GIAO_THUC);
+
+/**
+ * Node đã phục vụ lại được MẠNG CHÍNH chưa (P, X, C)?
+ *
+ * ═══ VÌ SAO KHÔNG DÙNG `healthy: true` ═══
+ * Cách hiển nhiên — chờ `health.health` trả `"healthy": true` — là DEADLOCK THEO
+ * THIẾT KẾ trong đúng tình huống này, và ta đã đo được nó chứ không suy đoán:
+ *
+ *   node-4 restart xong, track subnet mới, rồi kẹt 90s. Health trả:
+ *     "not connected to enough stake: connected to 20%; required at least 80%"
+ *     "bootstrapped": error "subnets not bootstrapped"
+ *
+ * Lý do: node đầu tiên track subnet mới là node DUY NHẤT trên subnet đó. Nó
+ * không thể đạt 80% stake cho tới khi các node còn lại cũng restart và track —
+ * mà chúng chỉ restart SAU khi node này khoẻ. Vòng chờ khép kín.
+ *
+ * Và không lọc bằng `tag` được: `bootstrapped` đăng ký với `health.ApplicationTag`
+ * (chains/manager.go:1481) = check TOÀN CỤC, luôn có mặt trong kết quả kể cả khi
+ * đã lọc theo subnetID. Xem `api/health/service.md`.
+ *
+ * ═══ ĐIỀU KIỆN ĐÚNG ═══
+ * Thứ ta thật sự cần trước khi hạ node kế tiếp: node này KHÔNG còn là gánh nặng
+ * cho mạng chính. Tức là P, X, C đều trả lời và không có `error`. Subnet mới chưa
+ * bootstrap là chuyện BÌNH THƯỜNG giữa đợt rollout — nó sẽ xong khi node cuối
+ * cùng track xong.
+ *
+ * Hỏi TỪ BÊN TRONG container: chỉ node-1 mở API ra host. Image có sẵn curl.
+ * KHÔNG dùng `docker ps` thay thế — nó báo UP trong khi node còn đang bootstrap.
+ */
+async function nodeSanSang(svc) {
+  let out;
+  try {
+    out = await docker([...COMPOSE, "exec", "-T", svc, "curl", "-sf", "-m", "5",
+      "-X", "POST", "-H", "content-type:application/json",
+      "--data", `{"jsonrpc":"2.0","id":1,"method":"health.health","params":{"tags":["${PRIMARY_SUBNET}"]}}`,
+      "http://127.0.0.1:9650/ext/health"]);
+  } catch {
+    return { ok: false, vi: "API chưa trả lời" };   // node còn đang khởi động
+  }
+  let checks;
+  try {
+    checks = JSON.parse(out.slice(out.indexOf("{"), out.lastIndexOf("}") + 1))?.result?.checks;
+  } catch {
+    return { ok: false, vi: "không parse được health" };
+  }
+  if (!checks) return { ok: false, vi: "health thiếu checks" };
+
+  // Đọc TỪNG check của mạng chính thay vì tin cờ tổng — cờ tổng gộp cả subnet mới.
+  for (const ten of ["P", "X", "C"]) {
+    const c = checks[ten];
+    if (!c) return { ok: false, vi: `chưa có check ${ten}` };
+    if (c.error) return { ok: false, vi: `${ten}: ${c.error}` };
+  }
+  return { ok: true, vi: "P/X/C sạch lỗi" };
+}
+
+/**
+ * Cho MỌI node track thêm subnet mới — LẦN LƯỢT từng node, không đồng loạt.
+ *
+ * ═══ VÌ SAO ═══
+ * Bản trước gọi thẳng `docker compose up -d` (không nêu tên service). Biến
+ * A1_TRACK_SUBNETS đổi ⇒ compose recreate MỌI container dùng biến đó = cả 5
+ * validator cùng lúc. Không còn node nào giữ mạng, consensus dừng, và RPC công
+ * khai (Caddy → node-1) chết theo.
+ *
+ * ĐO THẬT trên testnet công khai 2026-08-24, đẻ 1 chain:
+ *     C-Chain RPC chết 6.0 giây · 12/25 lượt gọi hỏng (48%)
+ *     ngay sau đó cả 5 container đều "Up 25 seconds" — CÙNG một con số
+ *
+ * MetaMask poll RPC mỗi ~4s nên cửa sổ 6s trúng ít nhất một nhịp poll của MỌI ví
+ * đang mở, và MetaMask GIỮ banner "Unable to connect" tới khi người dùng tự đổi
+ * mạng qua lại. Tức là một người lạ bấm nút để lại banner lỗi dính trên ví của
+ * tất cả người khác — chi phí O(số lượt bấm nút) giáng lên người không liên quan.
+ *
+ * ═══ NODE PHỤC VỤ RPC CÔNG KHAI ĐI CUỐI CÙNG ═══
+ * Chỉ node-1 mở API ra host, nên Caddy → node-1 → nó CHÍNH LÀ RPC công khai.
+ * Restart nó sau cùng nghĩa là: (1) 4 node kia đã track subnet mới và đang khoẻ,
+ * (2) node-1 quay lại một mạng đang sống để đồng bộ, thay vì cả 5 cùng lạnh máy.
+ *
+ * ═══ HỎNG THÌ DỪNG, KHÔNG ĐI TIẾP ═══
+ * Một node không khoẻ lại trong hạn ⇒ NÉM LỖI, không đụng node kế. Hạ thêm node
+ * nữa chỉ làm mạng mỏng đi trong khi vấn đề chưa rõ. Thà dừng với vài node chưa
+ * track (báo lỗi rõ) còn hơn hạ cả mạng một cách âm thầm.
+ */
+async function trackSubnetsLanLuot(trackList) {
+  // `docker()` gộp stdout VỚI stderr, mà compose hay in cảnh báo kiểu
+  //   WARN[0000] The "A1_TRACK_SUBNETS" variable is not set. Defaulting to ...
+  // Nhận nguyên si từng dòng làm tên service thì lệnh kế sẽ thành
+  // `compose up -d --no-deps WARN[0000]` — hỏng theo kiểu rất khó đoán.
+  // Nên lọc theo hình dạng tên service, rồi ĐỐI CHIẾU với node đã biết.
+  // Chốt chặn cuối, ngay TRƯỚC lúc đưa danh sách vào node. Kiểm ở đây chứ không
+  // chỉ ở createChain vì đây là chỗ con số thật sự đi vào giao thức — mọi đường
+  // gọi khác (CLI, lượt sửa tay) đều phải qua cửa này.
+  const soSubnet = trackList.split(",").filter(Boolean).length;
+  if (soSubnet > TRAN_SUBNET_GIAO_THUC) {
+    throw new Error(
+      `TỪ CHỐI: ${soSubnet} subnet vượt trần giao thức ${TRAN_SUBNET_GIAO_THUC}. ` +
+      `Node khai quá ${TRAN_SUBNET_GIAO_THUC} subnet lúc bắt tay sẽ bị MỌI peer cắt kết nối ` +
+      `(network/peer/peer.go:882) — mạng vỡ, không phải chậm đi.`
+    );
+  }
+
+  const raw = await docker([...COMPOSE, "config", "--services"]);
+  const services = raw.split("\n").map(s => s.trim())
+    .filter(s => /^[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(s));
+  if (!services.length) throw new Error("không đọc được danh sách service từ compose");
+  if (!services.includes(NODE_CONTAINER)) {
+    // Không có node phục vụ RPC công khai trong danh sách = ta đang hiểu sai
+    // compose. Dừng lại thay vì restart mò một loạt container lạ.
+    throw new Error(
+      `danh sách service (${services.join(", ")}) không chứa A1_NODE_CONTAINER=${NODE_CONTAINER} — ` +
+      `kiểm tra A1_COMPOSE_FILE có trỏ đúng compose không`
+    );
+  }
+
+  // Node phục vụ RPC công khai xuống CUỐI hàng; phần còn lại sắp xếp theo tên để
+  // thứ tự lặp lại được giữa các lần chạy. `compose config --services` KHÔNG giữ
+  // thứ tự trong file (lần đo đầu nó trả node-4 lên trước), mà thứ tự ngẫu nhiên
+  // làm sự cố không tái hiện được.
+  const thuTu = [
+    ...services.filter(s => s !== NODE_CONTAINER).sort(),
+    NODE_CONTAINER,
+  ];
+  const nhatKy = [];
+
+  for (const svc of thuTu) {
+    const t0 = Date.now();
+    // `--no-deps`: chỉ đụng đúng service này, không kéo theo service khác.
+    await docker([...COMPOSE, "up", "-d", "--no-deps", svc], { A1_TRACK_SUBNETS: trackList });
+
+    let sanSang = null;
+    for (let i = 0; i < 45; i++) {           // 45 × 2s = 90s cho mỗi node
+      sanSang = await nodeSanSang(svc);
+      if (sanSang.ok) break;
+      await new Promise(r => setTimeout(r, 2000));
+    }
+    const ms = Date.now() - t0;
+    if (!sanSang?.ok) {
+      throw new Error(
+        `${svc} chưa phục vụ lại được mạng chính sau 90s (${sanSang?.vi}) — ĐÃ DỪNG, ` +
+        `các node còn lại chưa bị đụng tới. ` +
+        `Đã xong: ${nhatKy.map(n => n.svc).join(", ") || "(chưa node nào)"}. ` +
+        `Kiểm tra: docker logs ${svc} --tail 50`
+      );
+    }
+    nhatKy.push({ svc, ms });
+    console.log(`  ✓ ${svc} track xong, mạng chính phục vụ lại sau ${(ms / 1000).toFixed(1)}s`);
+  }
+  return nhatKy;
+}
+
 async function docker(args, env = {}) {
   try {
     const { stdout, stderr } = await run("docker", args, { cwd: ROOT, env: { ...process.env, ...env }, maxBuffer: 1 << 24 });
@@ -139,6 +313,15 @@ async function createChain({ name, chainId, admin }) {
 
   const state = loadState();
   if (state.chains.some(c => c.name === name)) throw new Error("Tên đã tồn tại");
+
+  // Chặn SỚM, trước khi tiêu tiền và trước khi đụng vào node. Xem TRAN_SUBNET_GIAO_THUC.
+  if (state.chains.length >= MAX_L1) {
+    throw new Error(
+      `Đã đạt trần ${MAX_L1} L1. Mô hình hiện tại cho MỌI validator track MỌI L1, ` +
+      `mà giao thức P2P cắt kết nối node khai quá ${TRAN_SUBNET_GIAO_THUC} subnet. ` +
+      `Vượt trần phải đổi kiến trúc (tập validator riêng cho từng L1 / ACP-77), không phải nới số.`
+    );
+  }
 
   // chainId: chặn số không hợp lệ thay vì để nó lặng lẽ thành genesis hỏng.
   //
@@ -176,9 +359,9 @@ async function createChain({ name, chainId, admin }) {
   const blockchainID = (out.match(/BLOCKCHAIN_ID=([A-Za-z0-9]+)/) || [])[1];
   if (!subnetID || !blockchainID) throw new Error("Không parse được ID:\n" + out);
 
-  // 3) restart node track TẤT CẢ subnet đã tạo
+  // 3) cho node track TẤT CẢ subnet đã tạo — lần lượt, xem trackSubnetsLanLuot
   const allSubnets = [...state.chains.map(c => c.subnetID), subnetID];
-  await docker([...COMPOSE, "up", "-d"], { A1_TRACK_SUBNETS: allSubnets.join(",") });
+  const nhatKyRestart = await trackSubnetsLanLuot(allSubnets.join(","));
 
   // 4) chờ RPC L1 — và BÁO LỖI nếu không lên.
   //
@@ -209,7 +392,10 @@ async function createChain({ name, chainId, admin }) {
     rpc: `${rpcBase}${rpcPath}`, createdAt: Date.now(),
   };
   state.chains.push(chain); saveState(state);
-  return chain;
+  // Nhật ký restart trả cho người gọi làm bằng chứng, nhưng KHÔNG ghi vào state:
+  // `console-chains.json` là hợp đồng dữ liệu với trang /chains/ công khai, chỉ
+  // nên chứa thông tin về chain — không phải chi tiết vận hành của server.
+  return { ...chain, restart: nhatKyRestart };
 }
 
 const PAGE = readFileSync(path.join(ROOT, "local-net/console/index.html"), "utf8");

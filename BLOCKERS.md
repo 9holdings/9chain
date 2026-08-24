@@ -31,13 +31,40 @@ WSL update / cần đăng nhập lại), hoặc `wsl --update && wsl --shutdown`
 | # | Việc | Chặn mốc nào |
 |---|---|---|
 | H-1 | Tokenomics: supply cap 720M LOVE9 · tỉ lệ 40/20/20/5/15 + vesting · uptime 80%→90% | chốt genesis mainnet, ACP-77 |
-| H-2 | ACP-77 (`ConvertSubnetToL1Tx`) — quyết định kinh tế, chờ H-1 | — |
+| H-2 | 🔴 **ACP-77 — đã đổi bản chất, không còn chờ được**. Xem ghi chú dưới bảng | trần 16 L1 |
 | H-3 | Có mở console đẻ chain ra Internet không | M4.5 |
 | H-4 | AAAA record `bootstrap-a1.9chain.org` (**DNS-only**, không mây cam) | M3.3 |
 | H-5 | URL Cosmos REST của C1 (`:1317`) | M7.3 (dashboard live) |
+
+### Ghi chú H-2 — vì sao ACP-77 không còn là việc để sau
+
+Khi lập kế hoạch, ACP-77 được xếp "chờ chốt tokenomics" vì nó là quyết định kinh tế
+(L1 chuẩn có phí duy trì liên tục). Hôm nay đọc source phát hiện nó còn là **thứ duy
+nhất mở được trần kỹ thuật**:
+
+Mô hình hiện tại — **mọi validator track mọi L1** — đụng trần cứng ở **16 L1**.
+Quá 16, node bị mọi peer cắt kết nối lúc bắt tay P2P (`network/peer/peer.go:882`,
+`p.StartClose()`). Mạng vỡ chứ không phải chậm đi. Chi tiết: DECISIONS D-009.
+
+Hiện đang ở **4/15**. Console đã chặn không cho vượt.
+
+**Nghĩa là:** "multi-L1 as a service" theo kiến trúc hôm nay phục vụ được tối đa 15
+khách. Đủ cho demo và cho testnet, **không đủ cho một sản phẩm**. Muốn hơn thì phải
+cho mỗi L1 một tập validator riêng — chính là ACP-77.
+
+**Câu hỏi cho David:** A1 định bán "ai cũng đẻ được chain của mình" ở quy mô nào?
+- Dưới 15 chain → kiến trúc hôm nay đủ, ACP-77 vẫn chờ tokenomics được.
+- Trên 15 → ACP-77 là việc chặn, phải làm trước cả M4 (self-serve), vì mở self-serve
+  trên nền trần 15 là mời người dùng vào một cái cửa sẽ đóng sập.
 
 ---
 
 ## Đã gỡ
 
-*(chưa có)*
+### B-0 — Console chết im lặng sau khi đồng bộ code (2026-08-24)
+`pkill` giết được console nhưng lệnh khởi động lại trong cùng dòng ssh không chạy
+(exit 255), console nằm im. Nguy hiểm nhất: `tail console.log` sau đó trông **y hệt**
+một lần khởi động thành công vì đó là **banner cũ** còn nằm lại.
+**Gỡ bằng:** `local-net/deploy/console-restart.sh` — chờ cổng nhả hẳn, khởi động,
+rồi **tự kiểm chứng bằng `ss -tln`** và exit khác 0 nếu không lên. Không còn phải
+nhớ mẹo ngoặc vuông bằng tay.

@@ -75,10 +75,31 @@ gần như cùng lúc** mỗi lần đẻ chain. Nội bộ 2 chain không ai th
 người lạ bấm nút = cả mạng mất quorum. Đây là mắt xích gãy đầu tiên khi mở self-serve.
 **Chỉ làm nếu M1.3 cho thấy gián đoạn thật.**
 
-- [ ] M2.1 — Restart tuần tự từng node, chờ `health.health` xanh mới sang node kế
-- [ ] M2.2 — Chạy lại M1.3, so số trước/sau
+- [x] M2.1 — Restart tuần tự từng node, node phục vụ RPC công khai đi **cuối cùng**,
+      hỏng thì **dừng ngay** không đụng node kế. Đã chạy thật: 19/19 đạt.
+- [x] M2.2 — Đo lại. **KẾT QUẢ: KHÔNG ĐẠT ĐIỀU KIỆN QUA.**
 
-**Điều kiện qua M2:** gián đoạn C-Chain đo được **giảm rõ rệt** so với M1.3 (không phải "code trông đúng").
+| | đồng loạt (M1.3) | lần lượt (M2.2) |
+|---|---|---|
+| C-Chain chết | 6.0s | **6.5s** |
+| lượt gọi hỏng (tuyệt đối) | 12 | **13** |
+| tỉ lệ hỏng | 48% | 3.8% ← *chỉ vì cửa sổ đo dài gấp 13 lần* |
+| thời gian đẻ 1 chain | 12.3s | **168.8s** |
+
+**Đọc đúng số này:** tỉ lệ % giảm là ảo — **số lượt hỏng tuyệt đối gần như y hệt
+(12 vs 13)**. Gián đoạn công khai do **riêng node-1 restart** gây ra, mà node-1 thì
+buộc phải restart để track subnet mới. Restart lần lượt chỉ dời nó về cuối hàng chứ
+không xoá nó. Đổi lại, đẻ chain chậm gấp 13 lần.
+
+**Được gì thật:** 4 node giữ mạng sống suốt quá trình → consensus không đứt, và cơ chế
+"hỏng thì dừng" đã chứng minh giá trị ngay lần chạy đầu (node-4 kẹt → dừng, node-1
+không bị đụng, **gián đoạn công khai = 0**). Đây là an toàn, không phải tốc độ.
+
+- [ ] M2.3 — **Cái sửa thật: RPC công khai không được là một node duy nhất.**
+      Cho node thứ hai mở API ra loopback + Caddy `reverse_proxy` nhiều upstream có
+      health check → node-1 restart thì Caddy chuyển sang node-2, người dùng không thấy gì.
+      Chỉ sau bước này gián đoạn mới về 0. **Phải vá compose TẠI CHỖ trên server —
+      chạy lại netgen sẽ sinh KHOÁ MỚI = đổi danh tính validator.**
 
 ---
 
@@ -104,7 +125,8 @@ HANDOFF: *đừng quảng bá "chạy node cùng chúng tôi"* cho tới khi xon
 
 - [ ] M4.1 — Auth bằng chữ ký ví (SIWE) thay `A1_CONSOLE_TOKEN` tĩnh; địa chỉ ký **chính là** `admin`
 - [ ] M4.2 — Bật `A1_TRUST_PROXY=1` + hạn mức theo **địa chỉ ví**, không chỉ IP
-- [ ] M4.3 — Cap tổng số chain (mỗi chain = 1 slot track vĩnh viễn trên cả 5 node)
+- [x] M4.3 — Cap tổng số chain — **HOÁ RA LÀ TRẦN CỨNG CỦA GIAO THỨC, KHÔNG PHẢI
+      CON SỐ TUỲ CHỌN.** Đã chặn ở console (mặc định 15, trần tuyệt đối 16). Xem D-009.
 - [ ] M4.4 — Endpoint thu hồi chain (hiện không có đường lùi → rác tích luỹ một chiều)
 - [ ] M4.5 — [human] Caddy route console + Cloudflare Access / mTLS — **David duyệt trước khi mở**
 

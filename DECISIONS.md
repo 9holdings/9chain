@@ -64,6 +64,50 @@ nhẹ chỉ-đọc. Test chạy thường xuyên phải không có tác dụng p
 có chủ đích mới đẻ chain. Chi phí mỗi lượt: 0.000141468 LOVE9 (ví chain-factory còn
 ~9 LOVE9 ≈ 63.600 lượt) — tiền không phải ràng buộc, **rác trong danh bạ mới là**.
 
+### D-008 — Giữ rolling restart DÙ nó không giảm gián đoạn công khai
+Số đo M2.2 nói thẳng: gián đoạn 6.0s → 6.5s, số lượt hỏng tuyệt đối 12 → 13,
+đẻ chain 12.3s → 168.8s. Xét đúng mục tiêu đặt ra thì **M2.1 thất bại**.
+
+**Vẫn giữ, vì nó mua thứ khác — an toàn, không phải tốc độ:**
+- Đồng loạt = cả 5 validator xuống cùng lúc, consensus dừng hẳn. Lần lượt = luôn
+  còn 4 node giữ mạng.
+- "Hỏng thì dừng" đã tự chứng minh ngay lần chạy đầu: node-4 kẹt → dừng lại, node-1
+  chưa bị đụng → **gián đoạn công khai = 0** (205 lượt, 0 hỏng). Bản đồng loạt
+  trong cùng tình huống sẽ hạ cả 5 node rồi mới phát hiện có vấn đề.
+
+**Giá phải trả có thật:** 168.8s cho một lượt đẻ chain là tệ cho self-serve (M4).
+Người bấm nút chờ gần 3 phút. Chưa tối ưu — mỗi node tốn ~30s để P/X/C sạch lỗi.
+
+**Cái sửa thật là M2.3**, không phải chỗ này: chừng nào RPC công khai còn là MỘT
+node thì restart node đó còn nhìn thấy được. Caddy nhiều upstream mới đưa về 0.
+
+### D-009 — 🔴 Trần 16 L1: trần CỨNG của mô hình hiện tại, phát hiện khi đọc source
+Không phải suy đoán — hai chỗ trong code fork:
+- `network/peer/peer.go:882` — lúc **bắt tay P2P**, peer khai >16 subnet thì node
+  nhận ghi log `malformed message` rồi **`p.StartClose()` = cắt kết nối**.
+- `message/outbound_msg_builder.go:266` — bên gửi **không cắt bớt**, gửi nguyên si
+  mọi subnet đang track.
+
+⇒ Node track quá 16 L1 bị **mọi peer ngắt kết nối ngay khi bắt tay**. Không phải
+chậm đi, không phải cảnh báo — **mạng vỡ**. Và vỡ theo kiểu khó đoán nhất: node vẫn
+chạy, log phía nó vẫn sạch, chỉ là không ai nói chuyện với nó nữa.
+
+**Vì sao KHÔNG kiểm chứng bằng cách đẻ thử 17 chain:** làm vậy là cố tình phá mạng
+công khai đang có người dùng, tốn ~40 phút và để lại 13 chain rác vĩnh viễn trong
+danh bạ. Bằng chứng từ source ở đây là dứt khoát (`StartClose()`), đọc code LÀ cách
+kiểm chứng đúng cho loại khẳng định này.
+
+**Đã làm:** console từ chối lượt tạo thứ 16 trở đi (`A1_MAX_L1`, mặc định 15, trần
+tuyệt đối 16), chặn ở **hai chỗ**: sớm trong `createChain` (trước khi tiêu tiền) và
+ngay trước lúc đưa danh sách vào node (mọi đường gọi khác đều qua cửa này).
+Hiện có 4/15.
+
+**Điều này đổi bản chất một quyết định đang treo:** trần 16 là trần của **mô hình
+"mọi validator track mọi L1"**, không phải trần của Avalanche. Vượt qua nó đòi tập
+validator RIÊNG cho từng L1 — đúng thứ **ACP-77** sinh ra để giải quyết. Nên ACP-77
+không còn là "việc tương lai chờ tokenomics"; nó là **thứ duy nhất mở được trần cho
+sản phẩm multi-L1**. Xem BLOCKERS H-2.
+
 ### D-005 — Verify gate = giao dịch thật, không phải "RPC trả lời"
 Kế thừa luật đã trả giá trong HANDOFF: subnet có tập validator RỖNG vẫn trả `eth_chainId`,
 vẫn đọc được số dư, MetaMask vẫn kết nối — chỉ là giao dịch **không bao giờ chốt**.
