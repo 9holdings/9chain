@@ -1,0 +1,8 @@
+# Giảm build context: loại .git và các thứ nặng/không cần
+upstream/avalanchego/.git
+upstream/**/.git
+**/.git
+local-net/9chaingo.exe
+local-net/data
+docs
+*.md

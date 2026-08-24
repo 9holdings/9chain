@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>9Chain-A1 Explorer</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{font-family:system-ui,Segoe UI,Roboto,sans-serif;margin:0;background:#0b0f17;color:#e6edf3}
+header{display:flex;align-items:center;gap:12px;padding:16px 24px;border-bottom:1px solid #1c2637;background:#0e1420;position:sticky;top:0}
+.brand{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#e84142,#ff8a3d)}
+h1{font-size:1.15rem;margin:0}
+.wrap{max-width:1000px;margin:0 auto;padding:22px 24px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.stat{flex:1;min-width:150px;background:#131a26;border:1px solid #223049;border-radius:12px;padding:14px 16px}
+.stat .k{color:#8aa0b6;font-size:.8rem}.stat .v{font-size:1.3rem;font-weight:700;margin-top:3px}
+input{padding:11px;border-radius:9px;border:1px solid #2b3a54;background:#0e1420;color:#e6edf3;font-size:14px}
+#rpc{width:420px;max-width:100%}#q{flex:1;min-width:220px}
+button{padding:11px 16px;border:0;border-radius:9px;background:#e84142;color:#fff;font-weight:600;cursor:pointer}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #1c2637}
+th{color:#8aa0b6;font-weight:600}
+td.mono,code{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#cbd5e1}
+h2{font-size:1rem;color:#cbd5e1;margin:26px 0 6px}
+#result{background:#131a26;border:1px solid #223049;border-radius:12px;padding:14px;margin-top:10px;white-space:pre-wrap;word-break:break-all;font-family:ui-monospace,Consolas,monospace;font-size:12px;display:none}
+.muted{color:#66788d}
+</style></head><body>
+<header><div class="brand"></div><h1>9Chain-A1 Explorer</h1><span class="muted" id="netlabel"></span></header>
+<div class="wrap">
+  <div class="row" style="margin-bottom:16px">
+    <input id="rpc">
+    <button onclick="init()">Kết nối</button>
+    <button onclick="addChain()" style="background:#2b3a54">🦊 Thêm vào MetaMask</button>
+  </div>
+  <div id="mmout" class="muted" style="margin:-8px 0 12px;font-size:13px"></div>
+  <div id="rpcwarn" class="muted" style="display:none;margin:-8px 0 14px;color:#ffb35c"></div>
+  <div class="row">
+    <div class="stat"><div class="k">Chain ID</div><div class="v" id="s-chain">–</div></div>
+    <div class="stat"><div class="k">Block cao nhất</div><div class="v" id="s-height">–</div></div>
+    <div class="stat"><div class="k">Gas price (gwei)</div><div class="v" id="s-gas">–</div></div>
+    <div class="stat"><div class="k">Tổng tx (gần đây)</div><div class="v" id="s-tx">–</div></div>
+  </div>
+
+  <div class="row" style="margin-top:20px">
+    <input id="q" placeholder="Tìm: block number, tx hash (0x…), hoặc địa chỉ (0x…)">
+    <button onclick="search()">Tìm</button>
+  </div>
+  <div id="result"></div>
+
+  <h2>Block gần đây</h2>
+  <p class="muted" style="margin:-6px 0 12px;font-size:13px">
+    9Chain-A1 <b>không đẻ block rỗng</b> — block chỉ sinh ra khi có giao dịch (khác Ethereum
+    đều đặn ~12s/block). Số block đứng yên khi mạng nhàn là <b>bình thường</b>, không phải lỗi.
+    Muốn thấy block mới, hãy tạo một giao dịch — ví dụ nhận token ở
+    <a href="/faucet/">faucet</a>.
+  </p>
+  <table><thead><tr><th>#</th><th>Hash</th><th>Txs</th><th>Gas used</th><th>Thời gian</th></tr></thead>
+  <tbody id="blocks"><tr><td colspan="5" class="muted">Đang tải…</td></tr></tbody></table>
+</div>
+<script>
+// RPC mặc định phải suy ra TỪ NƠI TRANG ĐANG ĐƯỢC PHỤC VỤ.
+//
+// Trước đây giá trị cắm cứng là http://localhost:9650 — nghe thì hợp lý, nhưng khi
+// trang này chạy trên tên miền công khai, trình duyệt của người xem phân giải
+// "localhost" thành CHÍNH MÁY HỌ. Kết quả: trang tải từ server nhưng số liệu lấy
+// từ máy người xem. Ai có node chạy local sẽ thấy chain của mình và tưởng đó là
+// testnet; ai không có thì thấy trang chết. Cả hai đều gây hiểu nhầm.
+function defaultRpc(){
+  const h = location.hostname;
+  if (!h || h === 'localhost' || h === '127.0.0.1' || h === '[::1]') {
+    return 'http://localhost:9650/ext/bc/C/rpc';
+  }
+  // Quy ước tên miền: trang ở <host>, RPC ở rpc-<host>.
+  return location.protocol + '//rpc-' + h + '/ext/bc/C/rpc';
+}
+document.getElementById('rpc').value = defaultRpc();
+
+// Cảnh báo đúng cái bẫy ở trên: trang công khai mà lại trỏ RPC về localhost.
+function checkRpcMismatch(){
+  const el = document.getElementById('rpcwarn');
+  const isLocalPage = ['localhost','127.0.0.1','[::1]',''].includes(location.hostname);
+  const rpcIsLocal = /\/\/(localhost|127\.0\.0\.1|\[::1\])/.test(document.getElementById('rpc').value);
+  if (!isLocalPage && rpcIsLocal) {
+    el.textContent = '⚠️ RPC đang trỏ về localhost — đó là MÁY CỦA BẠN, không phải testnet. '
+                   + 'Số liệu bên dưới không phải của ' + location.hostname + '.';
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+let RPC = document.getElementById('rpc').value;
+let timer=null;
+async function call(method, params=[]){
+  const r=await fetch(RPC,{method:'POST',headers:{'content-type':'application/json'},
+    body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})});
+  const j=await r.json(); if(j.error) throw new Error(j.error.message); return j.result;
+}
+const hx=x=>parseInt(x,16);
+const ts=x=>new Date(hx(x)*1000).toLocaleTimeString();
+const short=s=>s.slice(0,10)+'…'+s.slice(-6);
+
+async function refresh(){
+  try{
+    const [cid,tip,gas]=await Promise.all([call('eth_chainId'),call('eth_blockNumber'),call('eth_gasPrice')]);
+    document.getElementById('s-chain').textContent=hx(cid);
+    document.getElementById('s-height').textContent=hx(tip);
+    document.getElementById('s-gas').textContent=(hx(gas)/1e9).toFixed(2);
+    document.getElementById('netlabel').textContent='chainId '+hx(cid)+' · '+RPC;
+    const top=hx(tip); let rows='',total=0;
+    for(let n=top;n>=Math.max(0,top-9);n--){
+      const blk=await call('eth_getBlockByNumber',['0x'+n.toString(16),false]);
+      total+=blk.transactions.length;
+      rows+=`<tr><td>${hx(blk.number)}</td><td class="mono">${short(blk.hash)}</td><td>${blk.transactions.length}</td><td>${hx(blk.gasUsed)}</td><td>${ts(blk.timestamp)}</td></tr>`;
+    }
+    document.getElementById('blocks').innerHTML=rows||'<tr><td colspan=5 class=muted>chưa có block</td></tr>';
+    document.getElementById('s-tx').textContent=total;
+  }catch(e){ document.getElementById('blocks').innerHTML='<tr><td colspan=5 class=muted>Lỗi: '+e.message+'</td></tr>'; }
+}
+async function search(){
+  const q=document.getElementById('q').value.trim(), out=document.getElementById('result');
+  out.style.display='block'; out.textContent='...';
+  try{
+    let res;
+    if(/^\d+$/.test(q)) res=await call('eth_getBlockByNumber',['0x'+Number(q).toString(16),true]);
+    else if(/^0x[0-9a-fA-F]{64}$/.test(q)) res=await call('eth_getTransactionByHash',[q]);
+    else if(/^0x[0-9a-fA-F]{40}$/.test(q)){
+      const [bal,cnt]=await Promise.all([call('eth_getBalance',[q,'latest']),call('eth_getTransactionCount',[q,'latest'])]);
+      res={address:q,balance_LOVE9:(BigInt(bal)/(10n**18n)).toString(),balance_wei:BigInt(bal).toString(),nonce:hx(cnt)};
+    } else throw new Error('định dạng không nhận diện');
+    out.textContent=JSON.stringify(res,null,2);
+  }catch(e){ out.textContent='Lỗi: '+e.message; }
+}
+// Thêm mạng vào ví bằng 1 cú bấm — dùng ĐÚNG RPC đang hiển thị ở ô trên, để cái
+// người dùng thêm vào ví khớp với cái họ đang xem.
+async function addChain(){
+  const out=document.getElementById('mmout');
+  if(!window.ethereum){
+    out.innerHTML='❌ Không thấy ví EVM. Cài <a href="https://metamask.io" target="_blank" rel="noopener">MetaMask</a> rồi thử lại.';
+    return;
+  }
+  try{
+    const cid=await call('eth_chainId'); // lấy từ chính chain đang xem, không cắm cứng
+    await window.ethereum.request({method:'wallet_addEthereumChain',params:[{
+      chainId:cid,   // đã là hex sẵn từ RPC — MetaMask chỉ nhận hex
+      chainName:'9Chain Testnet A1',
+      nativeCurrency:{name:'LOVE9',symbol:'LOVE9',decimals:18},
+      rpcUrls:[document.getElementById('rpc').value],
+      blockExplorerUrls:[location.origin],
+    }]});
+    out.textContent='✅ Đã thêm. Chọn mạng "9Chain Testnet A1" trong MetaMask.';
+  }catch(e){ out.textContent='❌ '+(e&&e.message?e.message:e); }
+}
+
+function init(){ RPC=document.getElementById('rpc').value; checkRpcMismatch(); clearInterval(timer); refresh(); timer=setInterval(refresh,4000); }
+init();
+</script></body></html>

@@ -1,0 +1,45 @@
+# 9Chain-A1 — mạng dev 1 node (PoC) + hỗ trợ chạy L1 EVM tuỳ chỉnh.
+#
+#   docker compose -f local-net/docker-compose.yml up -d --build
+#
+# API: http://localhost:9650   |   Health: http://localhost:9650/ext/health
+#
+# Sau khi tạo L1 bằng create-l1, đặt A1_TRACK_SUBNETS=<subnetID> rồi
+# `up -d` lại để node nạp VM love9evm và mở RPC của L1.
+services:
+  9chain-a1-node:
+    image: 9chain-a1/node:dev
+    build:
+      context: ..
+      dockerfile: local-net/Dockerfile
+    container_name: 9chain-a1-node
+    restart: unless-stopped
+    ports:
+      - "9650:9650"   # HTTP API (RPC)
+      - "9651:9651"   # P2P / staking
+    volumes:
+      - ../9chain-a1-config:/9chain-a1/config:ro   # genesis.json + l1-evm-genesis.json
+      - 9chain-a1-data:/root/.avalanchego
+    environment:
+      # avalanchego đọc flag qua biến AVAGO_*. Rỗng = không track subnet nào.
+      - AVAGO_TRACK_SUBNETS=${A1_TRACK_SUBNETS:-}
+    command:
+      - ./avalanchego
+      - --network-id=9001                              # mạng chủ quyền 9Chain-A1
+      - --genesis-file=/9chain-a1/config/genesis.json    # genesis 9Chain-A1 (token LOVE9)
+      - --plugin-dir=/9chain-a1/build/plugins            # nơi chứa VM plugin love9evm
+      - --sybil-protection-enabled=false                 # 1 node dev
+      - --http-host=0.0.0.0
+      - --http-allowed-hosts=*          # cho phép Blockscout/khách ngoài gọi (DEV)
+      - --public-ip=127.0.0.1
+      - --log-level=info
+    healthcheck:
+      # /ext/health trả 503 khi không khoẻ -> `curl -f` là đủ. (wget KHÔNG có trong debian-slim)
+      test: ["CMD", "sh", "-c", "curl -fsS http://localhost:9650/ext/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
+volumes:
+  9chain-a1-data:

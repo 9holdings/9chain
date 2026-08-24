@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+#
+# 9chain-a1 — CLI mặt tiền cho nền tảng 9Chain-A1 (rebrand, chuyên dụng mạng chủ quyền).
+# Bọc: docker compose (vòng đời mạng) + 9chain-a1-cli trong node (thao tác L1 qua API/wallet SDK).
+#
+#   9chain-a1 up                 # mạng dev 1 node
+#   9chain-a1 down
+#   9chain-a1 info               # phiên bản node + peers + validators
+#   9chain-a1 l1 create <ten>    # đẻ 1 L1 EVM (tạo + track + restart + chờ RPC)
+#   9chain-a1 l1 list
+#   9chain-a1 deploy <BLOCKCHAIN_ID>   # deploy contract kiểm thử
+#   9chain-a1 net up [N]         # mạng nhiều node THẬT (khoá mới), mặc định 5
+#   9chain-a1 net down
+#
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"   # dùng đường dẫn tương đối để tránh MSYS đổi /c/.. thành C:\c\..
+CU="docker compose -f local-net/docker-compose.yml"          # single-node dev
+CM="docker compose -f local-net/net/docker-compose.multinode.yml"  # multi-node
+API="http://localhost:9650"
+cli() { MSYS_NO_PATHCONV=1 $CU exec -T 9chain-a1-node /9chain-a1/build/9chain-a1-cli "$@"; }
+
+wait_health() {
+  for _ in $(seq 1 24); do
+    curl -s -m 3 -X POST --data '{"jsonrpc":"2.0","id":1,"method":"health.health"}' \
+      -H 'content-type:application/json' "$API/ext/health" 2>/dev/null | grep -q '"healthy":true' && return 0
+    sleep 5
+  done; return 1
+}
+
+case "${1:-}" in
+  up)        $CU up -d --build; echo "chờ node..."; wait_health && echo "✓ node healthy @ $API" ;;
+  down)      $CU down ;;
+  info)      cli info --uri "$API" ;;
+  deploy)
+    BID="${2:?cần BLOCKCHAIN_ID}"
+    ( cd "$ROOT/local-net/deploy-test" && node deploy.mjs "$API/ext/bc/$BID/rpc" ) ;;
+  l1)
+    case "${2:-}" in
+      list)   cli l1 list --uri "$API" ;;
+      create)
+        NAME="${3:-9ChainA1L1}"
+        echo "==> tạo L1 '$NAME'"
+        OUT=$(cli l1 create --uri "$API" --genesis /9chain-a1/config/l1-evm-genesis.json --name "$NAME")
+        echo "$OUT"
+        SUBNET=$(echo "$OUT" | grep -oE 'SUBNET_ID=[A-Za-z0-9]+' | cut -d= -f2)
+        BID=$(echo "$OUT"    | grep -oE 'BLOCKCHAIN_ID=[A-Za-z0-9]+' | cut -d= -f2)
+        [ -n "$SUBNET" ] && [ -n "$BID" ] || { echo "không parse được ID"; exit 1; }
+        echo "==> track subnet + restart"
+        A1_TRACK_SUBNETS="$SUBNET" $CU up -d >/dev/null
+        echo "==> chờ RPC L1"
+        RPC="$API/ext/bc/$BID/rpc"
+        for _ in $(seq 1 24); do
+          curl -s -m 3 -X POST --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+            -H 'content-type:application/json' "$RPC" 2>/dev/null | grep -q '"result"' && break
+          sleep 5
+        done
+        echo "✓ L1 '$NAME' sẵn sàng"
+        echo "  RPC: $RPC"
+        echo "  deploy: 9chain-a1 deploy $BID" ;;
+      *) echo "9chain-a1 l1 create <ten> | list"; exit 2 ;;
+    esac ;;
+  net)
+    case "${2:-}" in
+      up)   bash "$ROOT/local-net/gen-network.sh" "${3:-5}"; MSYS_NO_PATHCONV=1 $CM up -d --build ;;
+      down) MSYS_NO_PATHCONV=1 $CM down ;;
+      *)    echo "9chain-a1 net up [N] | down"; exit 2 ;;
+    esac ;;
+  faucet)
+    ( cd "$ROOT/local-net/faucet" && [ -d node_modules ] || npm install --silent >/dev/null 2>&1; \
+      echo "Faucet: http://localhost:8080"; \
+      FAUCET_RPC="${FAUCET_RPC:-$API/ext/bc/C/rpc}" node "$ROOT/local-net/faucet/server.mjs" ) ;;
+  explorer)
+    echo "Explorer nhẹ: http://localhost:8081"
+    ( cd "$ROOT/local-net/explorer" && python -m http.server 8081 ) ;;
+  explorer-full)
+    case "${2:-up}" in
+      up)   bash "$ROOT/explorer-full/setup.sh"; ( cd "$ROOT/explorer-full/blockscout/docker-compose" && MSYS_NO_PATHCONV=1 docker compose -f geth.yml up -d ); echo "Blockscout: http://localhost" ;;
+      down) ( cd "$ROOT/explorer-full/blockscout/docker-compose" && MSYS_NO_PATHCONV=1 docker compose -f geth.yml down ) ;;
+    esac ;;
+  dashboard)
+    echo "Bảng điểm A1/C1: http://localhost:8092"
+    docker rm -f 9chain-a1-dashboard >/dev/null 2>&1 || true
+    MSYS_NO_PATHCONV=1 docker run -d --name 9chain-a1-dashboard --restart unless-stopped -p 8092:80 -v "/$ROOT/local-net/dashboard":/usr/share/nginx/html:ro nginx:alpine >/dev/null && echo "OK" ;;
+  console)
+    echo "Console đẻ chain: http://localhost:8091"
+    ( cd "$ROOT" && PORT=8091 NODE_URI="${NODE_URI:-http://localhost:9650}" node local-net/console/server.mjs ) ;;
+  wallet)
+    echo "Ví X/P: http://localhost:8090  (ví DEV, khoá server-held, chỉ testnet)"
+    MSYS_NO_PATHCONV=1 docker run --rm -p 8090:8090 \
+      -v "/$ROOT/upstream/avalanchego":/src -w /src -v 9chain-a1-gomod:/go/pkg/mod \
+      -e GOWORK=off -e WALLET_URI="${WALLET_URI:-http://host.docker.internal:9650}" \
+      ${WALLET_KEY:+-e WALLET_KEY=$WALLET_KEY} \
+      golang:1.25.10-bookworm sh -c "go run ./9chain-a1-tools/xp-wallet" ;;
+  *)
+    cat <<EOF
+9Chain-A1 CLI
+  9chain-a1 up | down                  mạng dev 1 node
+  9chain-a1 info                       phiên bản node + peers + validators
+  9chain-a1 l1 create <ten> | list     đẻ / liệt kê L1 EVM
+  9chain-a1 deploy <BLOCKCHAIN_ID>     deploy contract kiểm thử
+  9chain-a1 net up [N] | down          mạng nhiều node THẬT (khoá mới)
+  9chain-a1 faucet                     chạy faucet (http://localhost:8080)
+  9chain-a1 explorer                   explorer nhẹ (http://localhost:8081)
+  9chain-a1 explorer-full up|down      Blockscout đầy đủ (http://localhost)
+  9chain-a1 wallet                     ví X/P (http://localhost:8090)
+  9chain-a1 console                    console đẻ chain (http://localhost:8091)
+  9chain-a1 dashboard                  bảng điểm A1/C1 (http://localhost:8092)
+EOF
+    ;;
+esac

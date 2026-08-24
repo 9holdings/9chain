@@ -1,0 +1,6 @@
+{
+  "name": "9chain-a1-l1-deploy-test",
+  "private": true,
+  "type": "module",
+  "dependencies": { "ethers": "^6.13.0", "solc": "^0.8.26" }
+}

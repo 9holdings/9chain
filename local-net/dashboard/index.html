@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>9Chain — Bảng điểm A1 vs C1</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}
+body{font-family:system-ui,Segoe UI,Roboto,sans-serif;margin:0;background:#0b0f17;color:#e6edf3}
+header{padding:16px 24px;border-bottom:1px solid #1c2637;background:#0e1420;display:flex;align-items:center;gap:12px}
+.brand{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#e84142,#ff8a3d)}
+h1{font-size:1.15rem;margin:0}.muted{color:#66788d;font-size:.85rem}
+.wrap{max-width:1080px;margin:0 auto;padding:22px 24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:#131a26;border:1px solid #223049;border-radius:14px;padding:18px}
+.card.a{border-color:#e8414255}.card.c{border-color:#7c5cff55}
+h2{font-size:1rem;margin:0 0 10px}.tag{font-size:.72rem;padding:2px 8px;border-radius:20px;margin-left:8px}
+.tag.a{background:#e8414222;color:#ff9d9d}.tag.c{background:#7c5cff22;color:#c3b6ff}
+.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1c2637;font-size:13px}
+.kv .v{font-weight:600;font-family:ui-monospace,Consolas,monospace}
+input[type=text]{width:100%;padding:9px;border-radius:8px;border:1px solid #2b3a54;background:#0e1420;color:#e6edf3;font-size:13px;margin-top:6px}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
+th,td{padding:8px 8px;border-bottom:1px solid #1c2637;text-align:left}
+th{color:#8aa0b6;font-weight:600}
+td.num{text-align:center;font-weight:700;font-family:ui-monospace,Consolas,monospace}
+.a-c{color:#ff9d9d}.c-c{color:#c3b6ff}
+input[type=range]{width:90px;vertical-align:middle}
+.bar{height:22px;border-radius:6px;display:flex;overflow:hidden;margin-top:6px;font-size:12px;font-weight:700}
+.bar .a{background:#e84142;display:flex;align-items:center;justify-content:center}
+.bar .c{background:#7c5cff;display:flex;align-items:center;justify-center}
+.total{display:flex;gap:20px;margin-top:14px}
+.total .box{flex:1;text-align:center;background:#0e1420;border:1px solid #223049;border-radius:10px;padding:12px}
+.total .box .n{font-size:1.8rem;font-weight:800}
+.small{font-size:.78rem;color:#66788d}
+.win{font-weight:800}
+</style></head><body>
+<header><div class="brand"></div><h1>9Chain — Bảng điểm A1 vs C1</h1>
+<span class="muted">Cộng đồng đặt trọng số → ra điểm. Metric sống + đặc tính kiến trúc.</span></header>
+<div class="wrap">
+
+  <div class="grid2">
+    <div class="card a"><h2>A1 — Avalanche<span class="tag a">LIVE</span></h2>
+      <div class="kv"><span>Node</span><span class="v" id="a-node">…</span></div>
+      <div class="kv"><span>C-Chain EVM chainId</span><span class="v" id="a-cid">…</span></div>
+      <div class="kv"><span>Block cao nhất (C-Chain)</span><span class="v" id="a-h">…</span></div>
+      <div class="kv"><span>Validator hiện tại</span><span class="v" id="a-val">…</span></div>
+      <div class="kv"><span>Số blockchain</span><span class="v" id="a-chains">…</span></div>
+      <label class="small">RPC A1 (node)</label>
+      <input type="text" id="a-rpc">
+    </div>
+    <div class="card c"><h2>C1 — Cosmos<span class="tag c" id="c-live">CẤU HÌNH</span></h2>
+      <div class="kv"><span>Chain-id</span><span class="v" id="c-cid">…</span></div>
+      <div class="kv"><span>EVM chainId</span><span class="v" id="c-evm">9000000000</span></div>
+      <div class="kv"><span>Block cao nhất</span><span class="v" id="c-h">…</span></div>
+      <div class="kv"><span>Validator hiện tại</span><span class="v" id="c-val">…</span></div>
+      <div class="kv"><span>Kênh IBC</span><span class="v" id="c-ibc">…</span></div>
+      <label class="small">C1 Cosmos REST (vd http://host:1317) — điền để kéo live</label>
+      <input type="text" id="c-rest" placeholder="http://<c1-host>:1317">
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h2>Bảng điểm có trọng số</h2>
+    <p class="small">Chỉnh trọng số (0–5) theo ưu tiên của bạn. Điểm A1/C1 mỗi tiêu chí 1–5 (mặc định từ phân tích; ô LIVE tự cập nhật). Tổng = Σ(điểm×trọng số).</p>
+    <table><thead><tr><th>#</th><th>Tiêu chí</th><th>Loại</th><th class="a-c num">A1</th><th class="c-c num">C1</th><th>Trọng số</th></tr></thead>
+    <tbody id="rows"></tbody></table>
+
+    <div class="total">
+      <div class="box"><div class="small">A1 — Avalanche</div><div class="n a-c" id="t-a">–</div></div>
+      <div class="box"><div class="small">C1 — Cosmos</div><div class="n c-c" id="t-c">–</div></div>
+      <div class="box"><div class="small">Dẫn đầu</div><div class="n win" id="t-win">–</div></div>
+    </div>
+    <div class="bar" id="bar"></div>
+    <p class="small" style="margin-top:10px">⚠️ Điểm mặc định là <b>quan điểm phân tích</b>, không phải chân lý — chỉnh theo bạn. Ô LIVE (block/validator/IBC) là số đo thật; các tiêu chí kiến trúc (phi tập trung tối đa, độ chín EVM…) là đặc tính nền, ghi rõ ở cột "Loại".</p>
+  </div>
+</div>
+
+<script>
+// Tiêu chí: a/c = điểm mặc định 1..5; w = trọng số mặc định; live = có đo sống không
+const CRIT = [
+  {k:'Phi tập trung (validator tối đa)', t:'kiến trúc', a:5, c:2, w:4, note:'Snowman ~nghìn vs CometBFT ~150'},
+  {k:'Finality', t:'kiến trúc', a:5, c:3, w:3, note:'~1–2s vs ~5–6s'},
+  {k:'Độ chín EVM', t:'kiến trúc', a:5, c:2, w:4, note:'coreth prod vs Cosmos EVM pre-v1'},
+  {k:'Tương thích ví/DeFi retail', t:'kiến trúc', a:5, c:3, w:4, note:'MetaMask/EVM đầy đủ'},
+  {k:'UX đẻ chain', t:'sống-ish', a:4, c:4, w:3, note:'cả hai có console'},
+  {k:'Interop rộng', t:'sống', a:3, c:5, w:4, note:'Warp nội hệ vs IBC rộng (C1 hiện 0 kênh)'},
+  {k:'Chi phí vận hành / chain', t:'kiến trúc', a:4, c:3, w:2, note:'node+plugin vs K8s operator'},
+  {k:'Bootstrap network-effect', t:'kiến trúc', a:2, c:4, w:3, note:'đảo riêng vs IBC cắm kinh tế'},
+  {k:'Bảo mật kinh tế public', t:'kiến trúc', a:4, c:3, w:3, note:'PoS token sẵn'},
+  {k:'Chi phí chuyển đổi (đội)', t:'kiến trúc', a:2, c:5, w:2, note:'A1 mới vs C1 đã có nhiều tháng'},
+];
+let liveIBC=null, liveIBCscore=null;
+
+function render(){
+  const tb=document.getElementById('rows'); tb.innerHTML='';
+  CRIT.forEach((c,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${i+1}</td><td>${c.k}<div class="small">${c.note}</div></td><td class="small">${c.t}</td>
+      <td class="num a-c">${c.a}</td><td class="num c-c">${c.c}</td>
+      <td><input type="range" min="0" max="5" step="1" value="${c.w}" data-i="${i}">
+      <span id="w${i}">${c.w}</span></td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('input[type=range]').forEach(r=>r.oninput=e=>{
+    const i=+e.target.dataset.i; CRIT[i].w=+e.target.value; document.getElementById('w'+i).textContent=e.target.value; compute();
+  });
+  compute();
+}
+function compute(){
+  let A=0,C=0,W=0;
+  CRIT.forEach(c=>{A+=c.a*c.w;C+=c.c*c.w;W+=5*c.w;});
+  document.getElementById('t-a').textContent=A;
+  document.getElementById('t-c').textContent=C;
+  const win = A>C?'A1 (Avalanche)':C>A?'C1 (Cosmos)':'Hoà';
+  const el=document.getElementById('t-win'); el.textContent=win;
+  el.className='n win '+(A>C?'a-c':C>A?'c-c':'');
+  const tot=A+C||1, ap=Math.round(A/tot*100);
+  document.getElementById('bar').innerHTML=`<div class="a" style="width:${ap}%">A1 ${ap}%</div><div class="c" style="width:${100-ap}%">C1 ${100-ap}%</div>`;
+}
+
+// Endpoint A1 phải suy ra TỪ NƠI TRANG ĐANG ĐƯỢC PHỤC VỤ, không cắm cứng localhost.
+// Cắm cứng "http://localhost:9650" thì khi trang chạy trên tên miền công khai, trình
+// duyệt người xem phân giải localhost thành MÁY HỌ — bảng điểm sẽ hiển thị chain của
+// người xem thay vì của testnet. Explorer đã dính đúng bẫy này (2026-08-24).
+function defaultA1Base(){
+  const h = location.hostname;
+  if (!h || h === 'localhost' || h === '127.0.0.1' || h === '[::1]') return 'http://localhost:9650';
+  // Quy ước tên miền: trang ở <host>, RPC ở rpc-<host>.
+  return location.protocol + '//rpc-' + h;
+}
+document.getElementById('a-rpc').value = defaultA1Base();
+
+async function rpc(base,path,method,params=[]){
+  const r=await fetch(base+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})});
+  const j=await r.json(); if(j.error) throw new Error(j.error.message); return j.result;
+}
+async function pollA1(){
+  const base=document.getElementById('a-rpc').value.replace(/\/$/,'');
+  try{
+    const ver=await rpc(base,'/ext/info','info.getNodeVersion'); document.getElementById('a-node').textContent=ver.version;
+    const cid=await rpc(base,'/ext/bc/C/rpc','eth_chainId'); document.getElementById('a-cid').textContent=parseInt(cid,16);
+    const h=await rpc(base,'/ext/bc/C/rpc','eth_blockNumber'); document.getElementById('a-h').textContent=parseInt(h,16);
+    const v=await rpc(base,'/ext/bc/P','platform.getCurrentValidators'); document.getElementById('a-val').textContent=(v.validators||[]).length;
+    const bc=await rpc(base,'/ext/bc/P','platform.getBlockchains'); document.getElementById('a-chains').textContent=(bc.blockchains||[]).length;
+  }catch(e){ document.getElementById('a-node').textContent='offline'; }
+}
+async function pollC1(){
+  const rest=document.getElementById('c-rest').value.replace(/\/$/,'');
+  const badge=document.getElementById('c-live');
+  if(!rest){ badge.textContent='CẤU HÌNH'; ['c-cid','c-h','c-val','c-ibc'].forEach(id=>document.getElementById(id).textContent='(điền REST)'); return; }
+  try{
+    const ni=await (await fetch(rest+'/cosmos/base/tendermint/v1beta1/node_info')).json();
+    document.getElementById('c-cid').textContent=ni.default_node_info?.network||'?';
+    const lb=await (await fetch(rest+'/cosmos/base/tendermint/v1beta1/blocks/latest')).json();
+    document.getElementById('c-h').textContent=lb.block?.header?.height||'?';
+    const vs=await (await fetch(rest+'/cosmos/staking/v1beta1/validators?pagination.count_total=true')).json();
+    document.getElementById('c-val').textContent=vs.pagination?.total||(vs.validators||[]).length;
+    const ch=await (await fetch(rest+'/ibc/core/channel/v1/channels')).json();
+    const n=ch.pagination?.total||(ch.channels||[]).length||0;
+    document.getElementById('c-ibc').textContent=n;
+    // cập nhật điểm interop C1 theo IBC sống (0 kênh -> hạ điểm)
+    const interop=CRIT.find(x=>x.k.startsWith('Interop'));
+    interop.c = (+n>0)?5:1; render();
+    badge.textContent='LIVE';
+  }catch(e){ badge.textContent='LỖI'; ['c-cid','c-h','c-val','c-ibc'].forEach(id=>document.getElementById(id).textContent='n/a'); }
+}
+document.getElementById('c-rest').addEventListener('change',pollC1);
+document.getElementById('a-rpc').addEventListener('change',pollA1);
+render(); pollA1(); pollC1(); setInterval(()=>{pollA1();if(document.getElementById('c-rest').value)pollC1();},6000);
+</script></body></html>

@@ -1,0 +1,38 @@
+# Override Blockscout cho SERVER công khai (đặt cạnh geth.yml khi chạy).
+#
+#   docker compose -f geth.yml -f 9chain-a1-server.override.yml up -d
+#
+# Sửa hai thứ mặc định của Blockscout không dùng được trên server này:
+#
+# 1. CỔNG. `services/nginx.yml` publish 80 và 8080 ra 0.0.0.0.
+#    - Đụng Caddy (đang giữ 80/443).
+#    - Publish ra 0.0.0.0 ĐI VÒNG QUA ufw (Docker viết DNAT thẳng vào bảng nat),
+#      nên tưởng bị chặn mà thực ra hở ra Internet.
+#    => Dời sang loopback: 127.0.0.1:8100 (UI) và 127.0.0.1:8101 (API).
+#       Caddy proxy tới 8100.
+#
+# 2. ĐƯỜNG TỚI NODE. Node bind 127.0.0.1:9650 trên host, mà `host.docker.internal`
+#    (host-gateway) trỏ vào IP bridge docker chứ KHÔNG phải loopback của host —
+#    container sẽ không bao giờ tới được.
+#    => Cho backend + user-ops-indexer vào thẳng mạng `net_a1net` của các node và
+#       gọi `172.28.0.11:9650` (node1). Không mở thêm cổng nào ra ngoài.
+services:
+  proxy:
+    ports: !override
+      - "127.0.0.1:8100:80"
+      - "127.0.0.1:8101:8080"
+
+  backend:
+    networks:
+      - default
+      - a1net
+
+  user-ops-indexer:
+    networks:
+      - default
+      - a1net
+
+networks:
+  a1net:
+    external: true
+    name: net_a1net

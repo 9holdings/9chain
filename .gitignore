@@ -1,0 +1,26 @@
+# Secrets & vật liệu mạng sinh ra (KHÔNG commit)
+local-net/net/
+local-net/net-*/
+local-net/9chaingo.exe
+local-net/deploy-test/node_modules/
+local-net/faucet/node_modules/
+local-net/deploy/node/
+local-net/deploy/genesis.json
+
+# Blockscout clone (nặng) — tái dựng bằng explorer-full/setup.sh
+explorer-full/blockscout/
+
+# Bản fork avalanchego là subtree/submodule riêng — quản lý qua remote của nó
+upstream/
+
+# Data dev
+**/.avalanchego/
+*.log
+
+# Quyền theo máy (khác nhau giữa các máy dev, không phải cấu hình dự án)
+.claude/settings.local.json
+
+# Console: state + genesis tạm sinh ra
+9chain-a1-config/console-tmp/
+9chain-a1-config/console-chains.json
+local-net/console/node_modules/

@@ -1,0 +1,6 @@
+# Xem giải thích đầy đủ ở `upstream/avalanchego/.gitattributes`.
+# Tóm tắt: repo này chứa script bash chạy TRONG Docker/Linux (gen-network.sh,
+# rebrand.sh, apply-sovereign.sh) nhưng được sửa từ Windows. Để git chuẩn hoá
+# xuống dòng là script mọc \r và bash báo lỗi kiểu `$'\r': command not found`
+# — lỗi khó đoán vì file nhìn hoàn toàn bình thường.
+* -text

@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>9Chain-A1 — Danh bạ L1</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}
+body{font-family:system-ui,Segoe UI,Roboto,sans-serif;margin:0;background:#0b0f17;color:#e6edf3}
+header{padding:16px 24px;border-bottom:1px solid #1c2637;background:#0e1420;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#e84142,#ff8a3d)}
+h1{font-size:1.15rem;margin:0}
+.muted{color:#66788d;font-size:.85rem}
+.wrap{max-width:1080px;margin:0 auto;padding:22px 24px 60px}
+.card{background:#131a26;border:1px solid #223049;border-radius:14px;padding:18px;margin-bottom:16px}
+.card.main{border-color:#e8414255}
+.card.dead{border-color:#ff6b6b66}
+.chead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+h2{font-size:1.02rem;margin:0}
+.badge{font-size:.72rem;padding:3px 9px;border-radius:20px;font-weight:700;letter-spacing:.02em}
+.b-live{background:#12331f;color:#5ce08a;border:1px solid #1e5c37}
+.b-dead{background:#3a1618;color:#ff9d9d;border:1px solid #7a2b2f}
+.b-wait{background:#2a2410;color:#e8c46a;border:1px solid #6b5a20}
+.b-main{background:#e8414222;color:#ff9d9d;border:1px solid #e8414255}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #1c2637;font-size:13px}
+.kv:last-of-type{border-bottom:0}
+.kv .k{color:#8aa0b6;white-space:nowrap}
+.kv .v{font-weight:600;font-family:ui-monospace,Consolas,monospace;text-align:right;word-break:break-all}
+.row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+button{padding:8px 12px;border-radius:9px;border:1px solid #2b3a54;background:#1a2434;color:#e6edf3;font-size:13px;cursor:pointer;font-family:inherit}
+button:hover{background:#22304a}
+button.primary{background:#e84142;border-color:#e84142;color:#fff;font-weight:600}
+button.primary:hover{background:#d13537}
+.small{font-size:.78rem;color:#66788d}
+.note{background:#0e1420;border:1px solid #223049;border-left:3px solid #e8c46a;border-radius:8px;padding:12px 14px;font-size:.84rem;color:#a9bacd;margin-bottom:18px;line-height:1.55}
+.note b{color:#e8c46a}
+.err{background:#2a1416;border:1px solid #7a2b2f;border-radius:8px;padding:12px 14px;font-size:.85rem;color:#ff9d9d;margin-bottom:16px}
+.out{font-size:.8rem;color:#8aa0b6;margin-top:8px;min-height:1.1em}
+.empty{text-align:center;color:#66788d;padding:40px 20px}
+a{color:#7fb4ff}
+/* Chủ sở hữu là điểm bán hàng, không phải một dòng metadata — cho nó màu riêng
+   để mắt bắt được ngay là chain có chủ, và chủ đó không phải Foundation. */
+.kv.own{border-bottom-color:#243a2c}
+.kv.own .v{color:#7ee0a4}
+.kv .v .dim{color:#66788d;font-weight:400;font-family:system-ui,Segoe UI,Roboto,sans-serif}
+</style></head><body>
+
+<header>
+  <div class="brand"></div>
+  <h1>9Chain-A1 — Danh bạ L1</h1>
+  <span class="muted">Mọi chain trên testnet A1 và tình trạng thật của nó.</span>
+</header>
+
+<div class="wrap">
+
+  <div class="note">
+    <b>Đọc bảng này thế nào.</b> Avalanche <b>không đẻ block rỗng</b> — chain chỉ sinh block khi có
+    giao dịch, nên “số block đứng yên” là <b>bình thường</b>, không phải chain chết.
+    Ngược lại, một chain <b>không có validator</b> vẫn trả lời RPC, vẫn cho đọc số dư, MetaMask vẫn
+    kết nối được — nhưng giao dịch <b>treo vô hạn</b>. Vì vậy dấu hiệu sống thật ở đây là
+    <b>số validator của subnet</b>, lấy trực tiếp từ P-Chain, chứ không phải chiều cao block.
+    <br><br>
+    <b>Chủ sở hữu (admin)</b> là địa chỉ người bấm nút đẻ chain khai báo lúc tạo: nó giữ toàn bộ
+    token genesis và quyền chỉnh phí của <i>chain đó</i> — chain thuộc về họ, không thuộc về quỹ.
+    Chain đẻ trước khi console có ô này hiện là <i>mặc định của hệ thống</i>.
+  </div>
+
+  <div id="err" class="err" style="display:none"></div>
+  <div id="list"></div>
+
+  <p class="small" id="foot">Đang tải…</p>
+</div>
+
+<script>
+// Endpoint suy từ tên miền đang xem, KHÔNG cắm cứng.
+//
+// Cắm cứng "localhost" là bẫy đã trả giá hai lần ở explorer và dashboard: trình
+// duyệt của người xem phân giải localhost thành MÁY HỌ, nên trang tải từ server
+// mà số liệu lại lấy từ máy khách. Quy ước: trang ở <host>, RPC ở rpc-<host>.
+function rpcBase(){
+  const h = location.hostname;
+  if (!h || h === 'localhost' || h === '127.0.0.1' || h === '[::1]') return 'http://localhost:9650';
+  return location.protocol + '//rpc-' + h;
+}
+const RPC = rpcBase();
+
+async function call(path, method, params){
+  const r = await fetch(RPC + path, {
+    method:'POST', headers:{'content-type':'application/json'},
+    body: JSON.stringify({jsonrpc:'2.0', id:1, method, params})
+  });
+  const j = await r.json();
+  if (j.error) throw new Error(j.error.message);
+  return j.result;
+}
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// Đếm validator của một subnet. Đây là phép đo phân biệt chain sống với chain
+// chết — RPC trả lời không chứng minh được gì.
+async function subnetValidators(subnetID){
+  const r = await call('/ext/bc/P', 'platform.getCurrentValidators', {subnetID});
+  return (r.validators || []).length;
+}
+
+async function probe(chain){
+  const path = '/ext/bc/' + chain.blockchainID + '/rpc';
+  const out = {rpc: RPC + path};
+  try {
+    const [cid, blk] = await Promise.all([
+      call(path, 'eth_chainId', []),
+      call(path, 'eth_blockNumber', []),
+    ]);
+    out.chainIdHex = cid;
+    out.chainId = parseInt(cid, 16);
+    out.blocks = parseInt(blk, 16);
+    out.rpcOk = true;
+  } catch (e) {
+    out.rpcOk = false;
+    out.rpcErr = e.message || String(e);
+  }
+  if (chain.subnetID) {
+    try { out.validators = await subnetValidators(chain.subnetID); }
+    catch (e) { out.validators = null; }
+  }
+  return out;
+}
+
+function verdict(p){
+  if (!p.rpcOk)               return ['b-dead', 'KHÔNG PHẢN HỒI', 'RPC không trả lời — node có thể chưa track subnet này.'];
+  if (p.validators === 0)     return ['b-dead', 'KHÔNG CHỐT ĐƯỢC BLOCK', 'Subnet không có validator nào. RPC vẫn trả lời nhưng mọi giao dịch sẽ treo vô hạn.'];
+  if (p.validators === null)  return ['b-wait', 'CHƯA RÕ', 'Không đọc được tập validator từ P-Chain.'];
+  return ['b-live', 'ĐANG CHẠY', p.validators + ' validator đang bỏ phiếu chốt block.'];
+}
+
+async function addToMetaMask(name, chainIdHex, rpcUrl, btn){
+  const out = btn.parentElement.parentElement.querySelector('.out');
+  if (!window.ethereum) { out.textContent = '❌ Không thấy MetaMask trong trình duyệt này.'; return; }
+  try {
+    // MetaMask CHỈ nhận chainId dạng hex — truyền số thập phân là lỗi.
+    await window.ethereum.request({method:'wallet_addEthereumChain', params:[{
+      chainId: chainIdHex,
+      chainName: name,
+      nativeCurrency: {name:'LOVE9', symbol:'LOVE9', decimals:18},
+      rpcUrls: [rpcUrl],
+    }]});
+    out.textContent = '✅ Đã thêm. Chọn mạng "' + name + '" trong MetaMask.';
+  } catch (e) { out.textContent = '❌ ' + (e && e.message ? e.message : e); }
+}
+
+function copy(text, btn){
+  const out = btn.parentElement.parentElement.querySelector('.out');
+  navigator.clipboard.writeText(text)
+    .then(() => out.textContent = '✅ Đã chép: ' + text)
+    .catch(() => out.textContent = '❌ Không chép được — bôi đen và copy thủ công.');
+}
+
+// Chủ sở hữu chain. Chain đẻ trước khi console có ô `admin` KHÔNG có khoá này —
+// phải hiện là "mặc định của hệ thống", tuyệt đối không để chữ undefined lọt ra
+// mặt người dùng (chuỗi rỗng cũng tính là không có).
+function ownerCell(chain){
+  const a = typeof chain.admin === 'string' ? chain.admin.trim() : '';
+  return a ? esc(a)
+           : '<span class="dim">mặc định của hệ thống (chain tạo trước khi có ô chủ sở hữu)</span>';
+}
+
+function card(chain, p, isMain){
+  const [cls, label, why] = isMain
+    ? ['b-main', 'MẠNG CHÍNH', 'C-Chain của testnet A1 — nơi faucet và explorer làm việc.']
+    : verdict(p);
+  const dead = cls === 'b-dead';
+  const el = document.createElement('div');
+  el.className = 'card' + (isMain ? ' main' : dead ? ' dead' : '');
+  el.innerHTML =
+    '<div class="chead"><h2>' + esc(chain.name) + '</h2>' +
+      '<span class="badge ' + cls + '">' + label + '</span></div>' +
+    '<div class="small" style="margin:-6px 0 12px">' + esc(why) + '</div>' +
+    (isMain ? '' :
+      '<div class="kv own"><span class="k">Chủ sở hữu (admin)</span><span class="v">' +
+        ownerCell(chain) + '</span></div>') +
+    '<div class="kv"><span class="k">EVM chainId</span><span class="v">' +
+      (p.chainId != null ? p.chainId + ' (' + p.chainIdHex + ')' : '—') + '</span></div>' +
+    '<div class="kv"><span class="k">Số block</span><span class="v">' +
+      (p.blocks != null ? p.blocks.toLocaleString('vi-VN') : '—') + '</span></div>' +
+    (isMain ? '' :
+      '<div class="kv"><span class="k">Validator của subnet</span><span class="v">' +
+        (p.validators == null ? '—' : p.validators) + '</span></div>' +
+      '<div class="kv"><span class="k">subnetID</span><span class="v">' + esc(chain.subnetID || '—') + '</span></div>' +
+      '<div class="kv"><span class="k">blockchainID</span><span class="v">' + esc(chain.blockchainID) + '</span></div>') +
+    '<div class="kv"><span class="k">RPC</span><span class="v">' + esc(p.rpc) + '</span></div>' +
+    (chain.createdAt ? '<div class="kv"><span class="k">Tạo lúc</span><span class="v">' +
+      new Date(chain.createdAt).toLocaleString('vi-VN') + '</span></div>' : '') +
+    '<div class="row"></div><div class="out"></div>';
+
+  const row = el.querySelector('.row');
+  if (p.rpcOk) {
+    const mm = document.createElement('button');
+    mm.className = 'primary';
+    mm.textContent = '🦊 Thêm vào MetaMask';
+    mm.onclick = () => addToMetaMask(chain.name, p.chainIdHex, p.rpc, mm);
+    row.appendChild(mm);
+  }
+  const cp = document.createElement('button');
+  cp.textContent = '📋 Chép URL RPC';
+  cp.onclick = () => copy(p.rpc, cp);
+  row.appendChild(cp);
+  const admin = !isMain && typeof chain.admin === 'string' ? chain.admin.trim() : '';
+  if (admin) {
+    const ad = document.createElement('button');
+    ad.textContent = '📋 Chép địa chỉ chủ sở hữu';
+    ad.onclick = () => copy(admin, ad);
+    row.appendChild(ad);
+  }
+  return el;
+}
+
+const MAIN = {name:'9Chain Testnet A1 (C-Chain)', blockchainID:'C', subnetID:null};
+
+async function refresh(){
+  const list = document.getElementById('list');
+  const err  = document.getElementById('err');
+  let chains = [];
+  try {
+    // Bản sao chỉ-đọc của state console (không chứa bí mật: tên, ID, chainId).
+    const r = await fetch('data/console-chains.json?t=' + Date.now(), {cache:'no-store'});
+    if (r.ok) chains = (await r.json()).chains || [];
+    else throw new Error('HTTP ' + r.status);
+    err.style.display = 'none';
+  } catch (e) {
+    err.textContent = '⚠️ Không đọc được danh sách chain (' + (e.message || e) + '). '
+                    + 'Vẫn hiển thị mạng chính bên dưới.';
+    err.style.display = 'block';
+  }
+
+  const all = [MAIN, ...chains];
+  const probes = await Promise.all(all.map(c => probe(c).catch(() => ({rpcOk:false, rpc:'—'}))));
+
+  const frag = document.createDocumentFragment();
+  probes.forEach((p, i) => frag.appendChild(card(all[i], p, i === 0)));
+  if (chains.length === 0) {
+    const e = document.createElement('div');
+    e.className = 'empty';
+    e.innerHTML = 'Chưa có L1 nào được tạo.<br><span class="small">Chain mới sẽ tự hiện ở đây.</span>';
+    frag.appendChild(e);
+  }
+  list.replaceChildren(frag);
+  document.getElementById('foot').textContent =
+    chains.length + ' L1 + mạng chính · cập nhật lúc ' + new Date().toLocaleTimeString('vi-VN')
+    + ' · RPC: ' + RPC;
+}
+
+refresh();
+setInterval(refresh, 10000);
+</script>
+</body></html>
