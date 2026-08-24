@@ -1,0 +1,28 @@
+From 2a56fec1c0841a935877a9a61dec6e0596a3f29e Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Mon, 24 Aug 2026 22:56:19 +0400
+Subject: [PATCH 1/3] 9chain-a1: tat chuan hoa xuong dong cho cay fork (chong
+ CRLF war khi apply patch) [skip ci]
+
+---
+ .gitattributes | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+ create mode 100644 .gitattributes
+
+diff --git a/.gitattributes b/.gitattributes
+new file mode 100644
+index 0000000..baa9441
+--- /dev/null
++++ b/.gitattributes
+@@ -0,0 +1,11 @@
++# 9Chain-A1 — TẮT hoàn toàn chuẩn hoá xuống dòng cho cây fork này.
++#
++# Vì sao: cây fork được dùng chung giữa git trên Windows (thao tác thường ngày) và
++# môi trường Linux (Docker build, và WSL nếu có). Nếu hai bên khác `core.autocrlf`,
++# git ở bên kia thấy TOÀN BỘ file là "modified" dù chưa ai đụng — và `git apply`
++# patch chủ quyền sẽ FAIL trên MỌI file dù patch hoàn toàn hợp lệ
++# (triệu chứng: "patch does not apply" cho tất cả file cùng lúc).
++#
++# Đã trả giá đúng lỗi này ở dự án 9chain (fork/evm, 5 file patch chết một lượt).
++# `* -text` khoá mọi file ở dạng byte nguyên bản, không phụ thuộc cấu hình máy.
++* -text

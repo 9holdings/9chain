@@ -1,0 +1,1322 @@
+From e46465cc1a587eb2f4de01cf82872a9dffb7df14 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Mon, 24 Aug 2026 22:56:58 +0400
+Subject: [PATCH 3/3] 9chain-a1: bo cong cu chu quyen (netgen, cli, create-l1,
+ xp-wallet, keygen)
+
+1079 dong Go, truoc commit nay la file UNTRACKED -> `git clean -fd` la mat sach.
+Day la thu dieu phoi toan bo vong doi mang A1, khong tai tao lai duoc tu upstream.
+
+- netgen/      : sinh mang N node that (khoa moi, genesis, compose). KHONG dung ewoq.
+- 9chain-a1-cli/: `l1 create` dang ky validator cho subnet moi de - thieu buoc nay
+                  subnet co tap validator RONG: RPC van song, giao dich treo vo han.
+- create-l1/   : ban PoC dung ewoq (chi dev local)
+- xp-wallet/   : vi X/P dev, khoa do server giu - KHONG BAO GIO public
+- keygen/      : sinh khoa
+
+BAY (da tra gia): validator subnet hau Durango phai dang la validator primary,
+thoi han >= 24h va khong vuot han primary. CLI tru hao 60s vi P-Chain tien
+timestamp luc dang ky.
+---
+ 9chain-a1-tools/9chain-a1-cli/main.go | 330 ++++++++++++++++++++++++++
+ 9chain-a1-tools/create-l1/main.go     |  96 ++++++++
+ 9chain-a1-tools/keygen/main.go        |  55 +++++
+ 9chain-a1-tools/netgen/allocation.go  | 173 ++++++++++++++
+ 9chain-a1-tools/netgen/main.go        | 306 ++++++++++++++++++++++++
+ 9chain-a1-tools/xp-wallet/main.go     | 292 +++++++++++++++++++++++
+ 6 files changed, 1252 insertions(+)
+ create mode 100644 9chain-a1-tools/9chain-a1-cli/main.go
+ create mode 100644 9chain-a1-tools/create-l1/main.go
+ create mode 100644 9chain-a1-tools/keygen/main.go
+ create mode 100644 9chain-a1-tools/netgen/allocation.go
+ create mode 100644 9chain-a1-tools/netgen/main.go
+ create mode 100644 9chain-a1-tools/xp-wallet/main.go
+
+diff --git a/9chain-a1-tools/9chain-a1-cli/main.go b/9chain-a1-tools/9chain-a1-cli/main.go
+new file mode 100644
+index 0000000..296da0a
+--- /dev/null
++++ b/9chain-a1-tools/9chain-a1-cli/main.go
+@@ -0,0 +1,330 @@
++// 9chain-a1-cli — CLI factory L1 cho nền tảng 9Chain-A1 (rebrand, chuyên dụng cho
++// mạng chủ quyền của 9Chain-A1, KHÔNG spin up mạng riêng như avalanche-cli).
++//
++// Lệnh:
++//   9chain-a1-cli version
++//   9chain-a1-cli info      --uri http://localhost:9650
++//   9chain-a1-cli l1 create --uri ... --genesis /path.json --name MyChain
++//   9chain-a1-cli l1 list   --uri ...
++//
++// Không thêm dependency mới (dùng flag + net/http + wallet SDK có sẵn).
++package main
++
++import (
++	"bytes"
++	"context"
++	"encoding/json"
++	"flag"
++	"fmt"
++	"io"
++	"net/http"
++	"os"
++	"strconv"
++	"time"
++
++	"github.com/ava-labs/avalanchego/genesis"
++	"github.com/ava-labs/avalanchego/ids"
++	"github.com/ava-labs/avalanchego/utils/cb58"
++	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
++	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
++	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
++	pwallet "github.com/ava-labs/avalanchego/wallet/chain/p/wallet"
++	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
++)
++
++const banner = "9Chain Testnet A1 CLI (Avalanche) — nền tảng multi-L1"
++
++// MinStakeDuration của mạng A1 (24h). Đăng ký ngắn hơn là tx bị từ chối.
++const minSubnetStakeSeconds = 24 * 60 * 60
++
++// parsePrivateKey đọc khoá dạng "PrivateKey-<cb58>" (định dạng chuẩn của
++// avalanchego, cũng là định dạng netgen ghi ra keys.txt) hoặc cb58 trần.
++func parsePrivateKey(s string) (*secp256k1.PrivateKey, error) {
++	raw := s
++	if len(s) > len(secp256k1.PrivateKeyPrefix) && s[:len(secp256k1.PrivateKeyPrefix)] == secp256k1.PrivateKeyPrefix {
++		raw = s[len(secp256k1.PrivateKeyPrefix):]
++	}
++	b, err := cb58.Decode(raw)
++	if err != nil {
++		return nil, fmt.Errorf("khoa khong phai dang PrivateKey-<cb58>: %w", err)
++	}
++	return secp256k1.ToPrivateKey(b)
++}
++
++func main() {
++	if len(os.Args) < 2 {
++		usage()
++	}
++	switch os.Args[1] {
++	case "version", "-v", "--version":
++		fmt.Println(banner)
++		fmt.Println("9chain-a1-cli/0.1.0 (node 9chaingo)")
++	case "info":
++		cmdInfo(os.Args[2:])
++	case "l1":
++		cmdL1(os.Args[2:])
++	case "help", "-h", "--help":
++		usage()
++	default:
++		fmt.Fprintf(os.Stderr, "Lệnh không rõ: %s\n", os.Args[1])
++		usage()
++	}
++}
++
++func usage() {
++	fmt.Fprintln(os.Stderr, banner)
++	fmt.Fprintln(os.Stderr, `
++Cách dùng:
++  9chain-a1-cli version
++  9chain-a1-cli info      --uri <node>
++  9chain-a1-cli l1 create --uri <node> --genesis <file> [--name <ten>] [--vmid <id>]
++                          [--validator-weight N] [--validator-duration 720h] [--no-validators]
++  9chain-a1-cli l1 list   --uri <node>`)
++	os.Exit(2)
++}
++
++// ---------- HTTP JSON-RPC helper ----------
++func rpc(uri, path, method string, params any) (json.RawMessage, error) {
++	body, _ := json.Marshal(map[string]any{
++		"jsonrpc": "2.0", "id": 1, "method": method, "params": params,
++	})
++	resp, err := http.Post(uri+path, "application/json", bytes.NewReader(body))
++	if err != nil {
++		return nil, err
++	}
++	defer resp.Body.Close()
++	raw, _ := io.ReadAll(resp.Body)
++	var out struct {
++		Result json.RawMessage `json:"result"`
++		Error  *struct {
++			Message string `json:"message"`
++		} `json:"error"`
++	}
++	if err := json.Unmarshal(raw, &out); err != nil {
++		return nil, fmt.Errorf("phản hồi không hợp lệ: %s", string(raw))
++	}
++	if out.Error != nil {
++		return nil, fmt.Errorf("%s", out.Error.Message)
++	}
++	return out.Result, nil
++}
++
++// ---------- info ----------
++func cmdInfo(args []string) {
++	fs := flag.NewFlagSet("info", flag.ExitOnError)
++	uri := fs.String("uri", "http://localhost:9650", "node API URI")
++	fs.Parse(args)
++
++	ver, err := rpc(*uri, "/ext/info", "info.getNodeVersion", nil)
++	fail(err, "info.getNodeVersion")
++	var v struct {
++		Version string `json:"version"`
++	}
++	json.Unmarshal(ver, &v)
++
++	peers, _ := rpc(*uri, "/ext/info", "info.peers", nil)
++	var p struct {
++		NumPeers string `json:"numPeers"`
++	}
++	json.Unmarshal(peers, &p)
++
++	vals, _ := rpc(*uri, "/ext/bc/P", "platform.getCurrentValidators", nil)
++	var vv struct {
++		Validators []json.RawMessage `json:"validators"`
++	}
++	json.Unmarshal(vals, &vv)
++
++	fmt.Println(banner)
++	fmt.Printf("  node       : %s\n", v.Version)
++	fmt.Printf("  peers      : %s\n", p.NumPeers)
++	fmt.Printf("  validators : %d\n", len(vv.Validators))
++	fmt.Printf("  uri        : %s\n", *uri)
++}
++
++// ---------- l1 ----------
++func cmdL1(args []string) {
++	if len(args) < 1 {
++		usage()
++	}
++	switch args[0] {
++	case "create":
++		l1Create(args[1:])
++	case "list":
++		l1List(args[1:])
++	default:
++		usage()
++	}
++}
++
++func l1List(args []string) {
++	fs := flag.NewFlagSet("l1 list", flag.ExitOnError)
++	uri := fs.String("uri", "http://localhost:9650", "node API URI")
++	fs.Parse(args)
++
++	res, err := rpc(*uri, "/ext/bc/P", "platform.getBlockchains", nil)
++	fail(err, "platform.getBlockchains")
++	var out struct {
++		Blockchains []struct {
++			ID       string `json:"id"`
++			Name     string `json:"name"`
++			SubnetID string `json:"subnetID"`
++			VMID     string `json:"vmID"`
++		} `json:"blockchains"`
++	}
++	json.Unmarshal(res, &out)
++	fmt.Printf("%-3s %-14s %-52s %s\n", "#", "NAME", "BLOCKCHAIN_ID", "VMID")
++	for i, b := range out.Blockchains {
++		fmt.Printf("%-3d %-14s %-52s %s\n", i+1, b.Name, b.ID, b.VMID)
++	}
++	fmt.Printf("Tổng: %d blockchain\n", len(out.Blockchains))
++}
++
++func l1Create(args []string) {
++	fs := flag.NewFlagSet("l1 create", flag.ExitOnError)
++	uri := fs.String("uri", "http://localhost:9650", "node API URI")
++	genesisPath := fs.String("genesis", "/9chain-a1/config/l1-evm-genesis.json", "genesis EVM cho L1")
++	name := fs.String("name", "9ChainA1L1", "tên L1 (chữ/số/space)")
++	vmid := fs.String("vmid", "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf", "VMID (love9evm)")
++	valWeight := fs.Uint64("validator-weight", 100, "trọng số mỗi validator của subnet")
++	valDuration := fs.Duration("validator-duration", 0, "thời hạn validate (0 = bám theo hạn của validator primary)")
++	noValidators := fs.Bool("no-validators", false, "KHÔNG đăng ký validator (chain sẽ không chốt được block)")
++	fs.Parse(args)
++
++	vmID, err := ids.FromString(*vmid)
++	fail(err, "parse vmid")
++	genesisBytes, err := os.ReadFile(*genesisPath)
++	fail(err, "đọc genesis")
++
++	// Khoá trả phí tạo subnet/chain trên P-Chain.
++	//
++	// Mặc định là ewoq — CHỈ dùng được cho mạng dev local, vì từ khi có phân bổ
++	// genesis thật (P0 #2) ewoq KHÔNG còn được cấp phát đồng nào. Trên testnet
++	// công khai phải truyền A1_CLI_KEY, nếu không mọi lệnh tạo chain đều lỗi
++	// "insufficient funds" mà thông báo lại chẳng nói gì về nguyên nhân.
++	//
++	// Khoá này cần LOVE9 THANH KHOẢN TRÊN P-CHAIN. Vật liệu genesis chỉ cấp
++	// thanh khoản trên X-Chain (InitialAmount) — phần P-Chain đều bị khoá
++	// (UnlockSchedule). Nên phải chuyển X→P trước bằng ví X/P.
++	key := genesis.EWOQKey
++	usingEwoq := true
++	if ks := os.Getenv("A1_CLI_KEY"); ks != "" {
++		k, err := parsePrivateKey(ks)
++		fail(err, "doc A1_CLI_KEY")
++		key = k
++		usingEwoq = false
++	}
++	if usingEwoq {
++		fmt.Fprintln(os.Stderr, "⚠️  dang dung khoa ewoq CONG KHAI (chi hop le tren mang dev local).")
++		fmt.Fprintln(os.Stderr, "    Tren testnet cong khai: dat A1_CLI_KEY=PrivateKey-... co LOVE9 tren P-Chain.")
++	}
++	kc := secp256k1fx.NewKeychain(key)
++	owner := &secp256k1fx.OutputOwners{Threshold: 1, Addrs: []ids.ShortID{key.Address()}}
++
++	ctx := context.Background()
++	fmt.Printf("→ đồng bộ ví P-Chain %s\n", *uri)
++	w, err := primary.MakePWallet(ctx, *uri, kc, primary.WalletConfig{})
++	fail(err, "ví")
++
++	t := time.Now()
++	subnetTx, err := w.IssueCreateSubnetTx(owner)
++	fail(err, "CreateSubnetTx")
++	subnetID := subnetTx.ID()
++	fmt.Printf("✓ subnet %s (%s)\n", subnetID, time.Since(t))
++
++	w, err = primary.MakePWallet(ctx, *uri, kc, primary.WalletConfig{SubnetIDs: []ids.ID{subnetID}})
++	fail(err, "đồng bộ lại ví")
++
++	// Đăng ký validator cho subnet. KHÔNG PHẢI tuỳ chọn: subnet mới đẻ ra có tập
++	// validator RỖNG, mà tập rỗng thì không ai bỏ phiếu nên chain không bao giờ
++	// chốt được block — RPC lên nhưng gửi giao dịch là treo. Chỉ `--track-subnets`
++	// thôi là chưa đủ; track là "tôi theo dõi", validate là "tôi bỏ phiếu".
++	if !*noValidators {
++		addSubnetValidators(*uri, w, subnetID, *valWeight, *valDuration)
++	} else {
++		fmt.Fprintln(os.Stderr, "⚠️  bỏ qua đăng ký validator — chain sẽ KHÔNG chốt được block.")
++	}
++
++	t = time.Now()
++	chainTx, err := w.IssueCreateChainTx(subnetID, genesisBytes, vmID, nil, *name)
++	fail(err, "CreateChainTx")
++	blockchainID := chainTx.ID()
++	fmt.Printf("✓ L1 EVM %s (%s)\n", blockchainID, time.Since(t))
++
++	fmt.Println("----------------------------------------------------------------")
++	fmt.Printf("SUBNET_ID=%s\n", subnetID)
++	fmt.Printf("BLOCKCHAIN_ID=%s\n", blockchainID)
++	fmt.Println("Kế tiếp: track subnet + restart node (dùng: 9chain-a1 l1 up <SUBNET_ID>)")
++}
++
++// addSubnetValidators đăng ký MỌI validator của primary network làm validator của
++// subnet vừa tạo. Đây là bước biến "subnet đã tồn tại trên P-Chain" thành "chain
++// chạy được".
++//
++// Ràng buộc của avalanchego (hậu Durango) đã trả giá để biết:
++//   - validator của subnet BẮT BUỘC đang là validator của primary network;
++//   - thời điểm bắt đầu bị bỏ qua (lấy timestamp của chain), nhưng thời hạn phải
++//     ≥ MinStakeDuration (24h) và KHÔNG được vượt quá hạn của chính validator đó
++//     trên primary network — vượt là tx bị từ chối.
++//
++// Nên mặc định lấy đúng hạn primary trừ hao 1 phút. Một node lỗi không được làm
++// hỏng cả lượt tạo chain: chỉ cần đủ số phiếu, nên lỗi lẻ chỉ cảnh báo.
++func addSubnetValidators(uri string, w pwallet.Wallet, subnetID ids.ID, weight uint64, duration time.Duration) {
++	res, err := rpc(uri, "/ext/bc/P", "platform.getCurrentValidators", map[string]any{})
++	fail(err, "platform.getCurrentValidators")
++	var cur struct {
++		Validators []struct {
++			NodeID  string `json:"nodeID"`
++			EndTime string `json:"endTime"`
++		} `json:"validators"`
++	}
++	fail(json.Unmarshal(res, &cur), "đọc danh sách validator")
++	if len(cur.Validators) == 0 {
++		fail(fmt.Errorf("primary network không có validator nào"), "validator")
++	}
++
++	added := 0
++	for _, v := range cur.Validators {
++		nodeID, err := ids.NodeIDFromString(v.NodeID)
++		if err != nil {
++			fmt.Fprintf(os.Stderr, "  bỏ qua %s: nodeID không đọc được: %v\n", v.NodeID, err)
++			continue
++		}
++		primaryEnd, err := strconv.ParseUint(v.EndTime, 10, 64)
++		if err != nil {
++			fmt.Fprintf(os.Stderr, "  bỏ qua %s: endTime không đọc được: %v\n", v.NodeID, err)
++			continue
++		}
++		// Trừ hao 1 phút: P-Chain tiến timestamp trong lúc ta còn đang ký, bằng
++		// đúng hạn primary là chạm biên và bị từ chối.
++		end := primaryEnd - 60
++		if duration > 0 {
++			if want := uint64(time.Now().Add(duration).Unix()); want < end {
++				end = want
++			}
++		}
++		if end <= uint64(time.Now().Unix())+minSubnetStakeSeconds {
++			fmt.Fprintf(os.Stderr, "  bỏ qua %s: hạn còn lại dưới 24h\n", v.NodeID)
++			continue
++		}
++		if _, err := w.IssueAddSubnetValidatorTx(&txs.SubnetValidator{
++			Validator: txs.Validator{NodeID: nodeID, End: end, Wght: weight},
++			Subnet:    subnetID,
++		}); err != nil {
++			fmt.Fprintf(os.Stderr, "  ⚠️  %s: %v\n", v.NodeID, err)
++			continue
++		}
++		added++
++		fmt.Printf("✓ validator %s (trọng số %d)\n", nodeID, weight)
++	}
++	if added == 0 {
++		fail(fmt.Errorf("không đăng ký được validator nào — chain sẽ không chốt được block"), "validator")
++	}
++	fmt.Printf("✓ %d/%d validator đã đăng ký cho subnet\n", added, len(cur.Validators))
++}
++
++func fail(err error, ctx string) {
++	if err != nil {
++		fmt.Fprintf(os.Stderr, "LỖI %s: %v\n", ctx, err)
++		os.Exit(1)
++	}
++}
+diff --git a/9chain-a1-tools/create-l1/main.go b/9chain-a1-tools/create-l1/main.go
+new file mode 100644
+index 0000000..c94c6f6
+--- /dev/null
++++ b/9chain-a1-tools/create-l1/main.go
+@@ -0,0 +1,96 @@
++// create-l1 — tạo 1 L1 EVM (subnet-evm/love9evm) trên mạng 9Chain-A1 đang chạy.
++//
++// Dùng khoá ewoq (test) để: (1) CreateSubnet, (2) CreateChain với genesis EVM.
++// In ra subnetID, blockchainID và RPC endpoint.
++//
++// Chạy (từ golang container gắn vào network của compose):
++//   A1_URI=http://9chain-a1-node:9650 \
++//   A1_L1_GENESIS=/l1-evm-genesis.json \
++//   go run ./9chain-a1-tools/create-l1
++//
++// ⚠️ ewoq là khoá test công khai — chỉ dùng cho PoC/dev.
++package main
++
++import (
++	"context"
++	"log"
++	"os"
++	"time"
++
++	"github.com/ava-labs/avalanchego/genesis"
++	"github.com/ava-labs/avalanchego/ids"
++	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
++	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
++)
++
++func env(k, def string) string {
++	if v := os.Getenv(k); v != "" {
++		return v
++	}
++	return def
++}
++
++func main() {
++	uri := env("A1_URI", "http://localhost:9650")
++	genesisPath := env("A1_L1_GENESIS", "/l1-evm-genesis.json")
++	vmIDStr := env("LOVE9EVM_VMID", "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf")
++	chainName := env("A1_L1_NAME", "9ChainA1L1") // tên chỉ nhận chữ/số/space
++
++	vmID, err := ids.FromString(vmIDStr)
++	if err != nil {
++		log.Fatalf("VMID không hợp lệ: %s", err)
++	}
++	genesisBytes, err := os.ReadFile(genesisPath)
++	if err != nil {
++		log.Fatalf("không đọc được genesis EVM %q: %s", genesisPath, err)
++	}
++
++	key := genesis.EWOQKey
++	kc := secp256k1fx.NewKeychain(key)
++	owner := &secp256k1fx.OutputOwners{
++		Threshold: 1,
++		Addrs:     []ids.ShortID{key.Address()},
++	}
++
++	ctx := context.Background()
++	log.Printf("đồng bộ ví P-Chain tại %s ...", uri)
++	wallet, err := primary.MakePWallet(ctx, uri, kc, primary.WalletConfig{})
++	if err != nil {
++		log.Fatalf("khởi tạo ví thất bại (ewoq có UTXO trên P-Chain không?): %s", err)
++	}
++
++	// 1) Tạo subnet do ewoq sở hữu.
++	t0 := time.Now()
++	createSubnetTx, err := wallet.IssueCreateSubnetTx(owner)
++	if err != nil {
++		log.Fatalf("CreateSubnetTx thất bại: %s", err)
++	}
++	subnetID := createSubnetTx.ID()
++	log.Printf("✓ subnet mới: %s (%s)", subnetID, time.Since(t0))
++
++	// Ví cần biết subnetID để ký CreateChainTx -> đồng bộ lại có đăng ký subnet.
++	wallet, err = primary.MakePWallet(ctx, uri, kc, primary.WalletConfig{
++		SubnetIDs: []ids.ID{subnetID},
++	})
++	if err != nil {
++		log.Fatalf("đồng bộ lại ví với subnet thất bại: %s", err)
++	}
++
++	// 2) Tạo blockchain EVM trên subnet đó.
++	t1 := time.Now()
++	createChainTx, err := wallet.IssueCreateChainTx(subnetID, genesisBytes, vmID, nil, chainName)
++	if err != nil {
++		log.Fatalf("CreateChainTx thất bại: %s", err)
++	}
++	blockchainID := createChainTx.ID()
++	log.Printf("✓ L1 EVM mới: %s (%s)", blockchainID, time.Since(t1))
++
++	log.Printf("========================================================")
++	log.Printf(" SUBNET_ID      = %s", subnetID)
++	log.Printf(" BLOCKCHAIN_ID  = %s", blockchainID)
++	log.Printf(" RPC (nội bộ)   = %s/ext/bc/%s/rpc", uri, blockchainID)
++	log.Printf(" RPC (host)     = http://localhost:9650/ext/bc/%s/rpc", blockchainID)
++	log.Printf("========================================================")
++	log.Printf("LƯU Ý: node phải track subnet này. Thêm vào cấu hình:")
++	log.Printf("  --track-subnets=%s  rồi khởi động lại node.", subnetID)
++}
+diff --git a/9chain-a1-tools/keygen/main.go b/9chain-a1-tools/keygen/main.go
+new file mode 100644
+index 0000000..0075af0
+--- /dev/null
++++ b/9chain-a1-tools/keygen/main.go
+@@ -0,0 +1,55 @@
++// keygen — sinh MỘT ví vận hành cho 9Chain-A1 (X/P/EVM từ cùng một khoá secp256k1).
++//
++// Vì sao tách khỏi netgen: netgen sinh cả một mạng (5 quỹ genesis + staker), dùng
++// nó chỉ để lấy một ví là đẻ ra bộ khoá genesis mới — trên mạng đang chạy thì đó
++// là thảm hoạ. Công cụ này chỉ sinh đúng một cặp khoá, không đụng gì tới genesis.
++//
++// Dùng cho các ví vận hành có khoá phải nằm trên server (faucet, chain-factory):
++// lộ ví đó chỉ mất phần đã nạp, không ảnh hưởng quỹ gốc.
++//
++//	keygen [--hrp love9] [--label chain-factory]
++//
++// In ra STDOUT. KHÔNG ghi file — người gọi tự quyết cất ở đâu, để khoá không
++// vô tình nằm lại trong thư mục dự án.
++package main
++
++import (
++	"flag"
++	"fmt"
++	"os"
++
++	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
++	"github.com/ava-labs/avalanchego/utils/formatting/address"
++)
++
++func main() {
++	hrp := flag.String("hrp", "love9", "HRP của mạng (9Chain-A1 dùng love9)")
++	label := flag.String("label", "vi-van-hanh", "nhãn mô tả ví (chỉ để in ra)")
++	flag.Parse()
++
++	key, err := secp256k1.NewPrivateKey()
++	if err != nil {
++		fmt.Fprintf(os.Stderr, "LỖI sinh khoá: %v\n", err)
++		os.Exit(1)
++	}
++
++	xAddr, err := address.Format("X", *hrp, key.Address().Bytes())
++	if err != nil {
++		fmt.Fprintf(os.Stderr, "LỖI định dạng địa chỉ X: %v\n", err)
++		os.Exit(1)
++	}
++	pAddr, err := address.Format("P", *hrp, key.Address().Bytes())
++	if err != nil {
++		fmt.Fprintf(os.Stderr, "LỖI định dạng địa chỉ P: %v\n", err)
++		os.Exit(1)
++	}
++
++	fmt.Printf("[%s] ví vận hành 9Chain-A1 (hrp=%s)\n", *label, *hrp)
++	fmt.Printf("  PrivateKey  : %s\n", key.String())
++	fmt.Printf("  X-addr      : %s\n", xAddr)
++	fmt.Printf("  P-addr      : %s\n", pAddr)
++	fmt.Printf("  EVM addr    : %s\n", key.EthAddress().Hex())
++	fmt.Printf("  EVM privkey : 0x%x\n", key.Bytes())
++	fmt.Println()
++	fmt.Println("Cất PrivateKey ở nơi an toàn. Ví vận hành chỉ nên giữ đúng số cần tiêu.")
++}
+diff --git a/9chain-a1-tools/netgen/allocation.go b/9chain-a1-tools/netgen/allocation.go
+new file mode 100644
+index 0000000..720a626
+--- /dev/null
++++ b/9chain-a1-tools/netgen/allocation.go
+@@ -0,0 +1,173 @@
++// Bảng phân bổ genesis 9Chain-A1 — codify của docs/TOKENOMICS.md mục 2.
++//
++// ⚠️ Sửa file này = đổi tokenomics = PHẢI re-genesis toàn mạng (wipe volume,
++// sinh lại genesis.json). Không thể sửa nóng.
++//
++// Đơn vị: nLOVE9 (1 LOVE9 = 1e9 nLOVE9) cho X/P-Chain.
++// C-Chain dùng wei (1e18) — netgen tự nhân thêm 1e9 khi dựng cChainGenesis.
++package main
++
++import (
++	"fmt"
++	"strings"
++
++	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
++	"github.com/ava-labs/avalanchego/utils/formatting/address"
++)
++
++const (
++	// love9 = 1 LOVE9 tính bằng nLOVE9.
++	unitLOVE9 = uint64(1_000_000_000)
++	// mega = 1,000,000 LOVE9.
++	mega = 1_000_000 * unitLOVE9
++
++	oneYear     = uint64(365 * 24 * 60 * 60)
++	twoYears    = 2 * oneYear
++	fourYears   = 4 * oneYear
++	oneYearLbl  = "1 nam"
++	twoYearLbl  = "2 nam"
++	fourYearLbl = "4 nam"
++)
++
++// Khoá định danh các quỹ.
++const (
++	bucketStaking    = "staking"
++	bucketFoundation = "foundation"
++	bucketEcosystem  = "ecosystem"
++	bucketFaucet     = "faucet"
++	bucketTeam       = "team"
++)
++
++// bucket = 1 quỹ trong bảng phân bổ genesis.
++type bucket struct {
++	Key     string
++	Name    string
++	Percent int
++	Purpose string
++
++	// LiquidXP  : mở khoá ngay, thành UTXO trên X-Chain.
++	// LockedXP  : khoá tới now+LockSeconds, thành UTXO khoá trên P-Chain.
++	// CChain    : số dư EVM trên C-Chain (luôn thanh khoản — EVM không có khoá native).
++	LiquidXP    uint64
++	LockedXP    uint64
++	LockSeconds uint64
++	LockLabel   string
++	CChain      uint64
++}
++
++func (b bucket) Total() uint64 { return b.LiquidXP + b.LockedXP + b.CChain }
++
++// buckets — TỔNG PHÁT HÀNH GENESIS = 400,000,000 LOVE9 (trần cung 720,000,000,
++// phần chênh 320,000,000 dành cho thưởng staking mint dần, xem A1Params).
++//
++// Thứ tự trong slice quyết định thứ tự allocation trong genesis.json — giữ ổn định.
++var buckets = []bucket{
++	{
++		Key: bucketStaking, Name: "Validators / Staking", Percent: 40,
++		Purpose: "Bao mat mang — chia deu cho N node genesis lam stake",
++		// Toàn bộ nằm ở phần khoá: avalanchego lấy đúng phần này chia thành
++		// stake của N validator genesis. Đặt LiquidXP > 0 ở đây là sai —
++		// tiền sẽ bị bỏ qua vì địa chỉ nằm trong InitialStakedFunds.
++		LockedXP: 160 * mega, LockSeconds: oneYear, LockLabel: oneYearLbl,
++	},
++	{
++		Key: bucketFoundation, Name: "Foundation / Treasury", Percent: 20,
++		Purpose: "Van hanh, grant, du phong; nhan thuong staking cua node genesis",
++		LockedXP: 60 * mega, LockSeconds: twoYears, LockLabel: twoYearLbl,
++		CChain: 20 * mega,
++	},
++	{
++		Key: bucketEcosystem, Name: "Ecosystem / Community", Percent: 20,
++		Purpose: "Airdrop, khuyen khich builder, thanh khoan L1 moi",
++		LiquidXP: 10 * mega,
++		CChain:   70 * mega,
++	},
++	{
++		Key: bucketFaucet, Name: "Faucet (testnet)", Percent: 5,
++		Purpose: "Cap token thu nghiem — vi NONG, chap nhan mat, KHONG dung treasury",
++		LiquidXP: 2 * mega,
++		CChain:   18 * mega,
++	},
++	{
++		Key: bucketTeam, Name: "Team", Percent: 15,
++		Purpose: "Doi ngu — cliff 1 nam roi vesting",
++		LockedXP: 60 * mega, LockSeconds: fourYears, LockLabel: fourYearLbl,
++	},
++}
++
++func totalGenesisSupply() uint64 {
++	t := uint64(0)
++	for _, b := range buckets {
++		t += b.Total()
++	}
++	return t
++}
++
++// fund = 1 quỹ đã có khoá + các dạng địa chỉ.
++type fund struct {
++	Bucket  bucket
++	Key     *secp256k1.PrivateKey
++	XAddr   string
++	PAddr   string
++	EthAddr string
++}
++
++func newFund(b bucket, hrp string) (*fund, error) {
++	k, err := secp256k1.NewPrivateKey()
++	if err != nil {
++		return nil, err
++	}
++	bech, err := address.FormatBech32(hrp, k.Address().Bytes())
++	if err != nil {
++		return nil, err
++	}
++	return &fund{
++		Bucket:  b,
++		Key:     k,
++		XAddr:   "X-" + bech,
++		PAddr:   "P-" + bech,
++		EthAddr: k.EthAddress().Hex(),
++	}, nil
++}
++
++// love9 in số nLOVE9 ra dạng người đọc được, có dấu phẩy hàng nghìn.
++func love9(n uint64) string {
++	whole := n / unitLOVE9
++	s := fmt.Sprintf("%d", whole)
++	var out []byte
++	for i, c := range []byte(s) {
++		if i > 0 && (len(s)-i)%3 == 0 {
++			out = append(out, ',')
++		}
++		out = append(out, c)
++	}
++	return string(out)
++}
++
++// allocationReport sinh bảng phân bổ CÔNG KHAI — chỉ địa chỉ, tuyệt đối không khoá.
++func allocationReport(funds map[string]*fund, networkID uint32, nodes int) string {
++	var b strings.Builder
++	fmt.Fprintf(&b, "# 9Chain-A1 — Phân bổ genesis (networkID %d, %d node)\n\n", networkID, nodes)
++	fmt.Fprintf(&b, "Tổng phát hành genesis: **%s LOVE9** · Trần cung: **720,000,000 LOVE9**\n\n", love9(totalGenesisSupply()))
++	b.WriteString("File này CÔNG KHAI được — chỉ chứa địa chỉ, không chứa khoá bí mật.\n\n")
++	b.WriteString("| Quỹ | % | Tổng (LOVE9) | X/P thanh khoản | X/P khoá | Mở khoá | C-Chain | Địa chỉ X | Địa chỉ EVM |\n")
++	b.WriteString("|---|--:|--:|--:|--:|---|--:|---|---|\n")
++	for _, bk := range buckets {
++		f := funds[bk.Key]
++		lock := bk.LockLabel
++		if bk.LockedXP == 0 {
++			lock = "—"
++		}
++		fmt.Fprintf(&b, "| %s | %d%% | %s | %s | %s | %s | %s | `%s` | `%s` |\n",
++			bk.Name, bk.Percent, love9(bk.Total()), love9(bk.LiquidXP), love9(bk.LockedXP),
++			lock, love9(bk.CChain), f.XAddr, f.EthAddr)
++	}
++	fmt.Fprintf(&b, "\n## Ghi chú\n")
++	fmt.Fprintf(&b, "- Quỹ **Staking** không có địa chỉ chi tiêu thường: toàn bộ %s LOVE9 được avalanchego chia đều thành stake của %d validator genesis (%s LOVE9/node).\n",
++		love9(buckets[0].LockedXP), nodes, love9(buckets[0].LockedXP/uint64(nodes)))
++	b.WriteString("- Thưởng staking của các node genesis chảy về quỹ **Foundation**.\n")
++	b.WriteString("- Quỹ **Faucet** là ví nóng, cố tình tách riêng — lộ khoá chỉ mất phần faucet, không ảnh hưởng các quỹ khác.\n")
++	b.WriteString("- C-Chain không có cơ chế khoá native: phần C-Chain của mọi quỹ đều thanh khoản ngay.\n")
++	b.WriteString("- Khoá bí mật nằm trong `keys.txt` (chmod 600, KHÔNG commit, KHÔNG đưa lên server).\n")
++	return b.String()
++}
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+new file mode 100644
+index 0000000..8bf6253
+--- /dev/null
++++ b/9chain-a1-tools/netgen/main.go
+@@ -0,0 +1,306 @@
++// netgen — Sinh toàn bộ vật liệu cho mạng 9Chain-A1 nhiều node THẬT:
++//   - 5 quỹ genesis, MỖI QUỸ MỘT KHOÁ RIÊNG (staking/foundation/ecosystem/faucet/team)
++//     theo bảng phân bổ trong allocation.go — codify của docs/TOKENOMICS.md
++//   - N bộ staking mỗi node: TLS cert+key (=> NodeID) và BLS signer key (=> PoP)
++//   - genesis.json (networkID 9001) với startTime ĐỘNG (tránh stake hết hạn)
++//   - docker-compose.multinode.yml gán static IP (avalanchego cần IP, không hostname)
++//   - keys.txt (TUYỆT MẬT) · faucet.env (chỉ khoá faucet) · allocation.md (công khai)
++//
++// KHÔNG dùng khoá ewoq công khai. Chạy trong golang container, ghi ra thư mục OUT.
++//
++// Env: N (số node, mặc định 5), OUT (thư mục ra, mặc định /out),
++//      NETWORK_ID (9001), SUBNET_PREFIX (172.28.0), BASE_OCTET (11)
++package main
++
++import (
++	"encoding/json"
++	"encoding/pem"
++	"fmt"
++	"math/big"
++	"os"
++	"path/filepath"
++	"strconv"
++	"strings"
++	"time"
++
++	"github.com/ava-labs/avalanchego/genesis"
++	"github.com/ava-labs/avalanchego/ids"
++	"github.com/ava-labs/avalanchego/staking"
++	"github.com/ava-labs/avalanchego/utils/constants"
++	"github.com/ava-labs/avalanchego/utils/crypto/bls/signer/localsigner"
++	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
++	"github.com/ava-labs/avalanchego/vms/platformvm/signer"
++)
++
++type nodeInfo struct {
++	Index  int
++	NodeID ids.NodeID
++	IP     string
++}
++
++func env(k, def string) string {
++	if v := os.Getenv(k); v != "" {
++		return v
++	}
++	return def
++}
++func atoi(s string, def int) int {
++	if n, err := strconv.Atoi(s); err == nil {
++		return n
++	}
++	return def
++}
++func must(err error, msg string) {
++	if err != nil {
++		fmt.Fprintf(os.Stderr, "FATAL %s: %v\n", msg, err)
++		os.Exit(1)
++	}
++}
++
++func main() {
++	n := atoi(env("N", "5"), 5)
++	out := env("OUT", "/out")
++	networkID := uint32(atoi(env("NETWORK_ID", "9001"), 9001))
++	subnetPrefix := env("SUBNET_PREFIX", "172.28.0")
++	baseOctet := atoi(env("BASE_OCTET", "11"), 11)
++	hrp := constants.GetHRP(networkID) // "love9" cho custom net
++
++	must(os.MkdirAll(out, 0o755), "mkdir out")
++
++	// ---- 1) Sinh 5 quỹ genesis, mỗi quỹ MỘT khoá riêng ----
++	//
++	// Trước đây chỉ có 1 khoá "treasury" ôm hết -> lộ 1 khoá là mất sạch, và
++	// faucet buộc phải xài chung khoá quỹ. Nay tách theo bảng phân bổ trong
++	// docs/TOKENOMICS.md để mỗi quỹ có vòng đời & mức rủi ro riêng.
++	funds := make(map[string]*fund, len(buckets))
++	for _, b := range buckets {
++		f, err := newFund(b, hrp)
++		must(err, "gen key quy "+b.Key)
++		funds[b.Key] = f
++	}
++	staking9 := funds[bucketStaking]
++	treasury := funds[bucketFoundation] // quỹ nhận thưởng staking của node genesis
++
++	// ---- 2) Staking material cho N node ----
++	nodes := make([]nodeInfo, 0, n)
++	stakers := make([]genesis.UnparsedStaker, 0, n)
++
++	for i := 1; i <= n; i++ {
++		nodeDir := filepath.Join(out, fmt.Sprintf("node%d", i))
++		must(os.MkdirAll(nodeDir, 0o755), "mkdir node dir")
++
++		certPEM, keyPEM, err := staking.NewCertAndKeyBytes()
++		must(err, "gen staking cert")
++		block, _ := pem.Decode(certPEM)
++		if block == nil {
++			must(fmt.Errorf("cert PEM decode nil"), "decode cert")
++		}
++		cert, err := staking.ParseCertificate(block.Bytes)
++		must(err, "parse cert")
++		nodeID := ids.NodeIDFromCert(cert)
++
++		ls, err := localsigner.New()
++		must(err, "gen bls signer")
++		pop, err := signer.NewProofOfPossession(ls)
++		must(err, "gen proof of possession")
++
++		must(os.WriteFile(filepath.Join(nodeDir, "staker.crt"), certPEM, 0o600), "write crt")
++		must(os.WriteFile(filepath.Join(nodeDir, "staker.key"), keyPEM, 0o600), "write key")
++		must(os.WriteFile(filepath.Join(nodeDir, "signer.key"), ls.ToBytes(), 0o600), "write signer")
++
++		ip := fmt.Sprintf("%s.%d", subnetPrefix, baseOctet+i-1)
++		nodes = append(nodes, nodeInfo{Index: i, NodeID: nodeID, IP: ip})
++		stakers = append(stakers, genesis.UnparsedStaker{
++			NodeID:        nodeID,
++			RewardAddress: treasury.XAddr, // thưởng staking chảy về quỹ Foundation
++			DelegationFee: 20000,          // 2%
++			Signer:        pop,
++		})
++		fmt.Printf("node%d  NodeID=%s  IP=%s\n", i, nodeID, ip)
++	}
++
++	// ---- 3) Genesis config (startTime động) ----
++	now := time.Now().Unix()
++
++	// Dựng allocation từ bảng phân bổ. Mỗi quỹ = 1 allocation:
++	//   InitialAmount  -> UTXO THANH KHOẢN trên X-Chain
++	//   UnlockSchedule -> UTXO KHOÁ trên P-Chain, mở tại Locktime
++	// Riêng quỹ Staking nằm trong InitialStakedFunds nên avalanchego BỎ QUA
++	// allocation thường của nó và chia toàn bộ phần khoá thành stake của N node.
++	allocs := make([]genesis.UnparsedAllocation, 0, len(buckets))
++	for _, b := range buckets {
++		f := funds[b.Key]
++		a := genesis.UnparsedAllocation{
++			ETHAddr:       f.EthAddr,
++			AVAXAddr:      f.XAddr,
++			InitialAmount: b.LiquidXP,
++		}
++		if b.LockedXP > 0 {
++			a.UnlockSchedule = []genesis.LockedAmount{
++				{Amount: b.LockedXP, Locktime: uint64(now) + b.LockSeconds},
++			}
++		}
++		allocs = append(allocs, a)
++	}
++
++	cfg := genesis.UnparsedConfig{
++		NetworkID:                  networkID,
++		Allocations:                allocs,
++		StartTime:                  uint64(now - 60),
++		InitialStakeDuration:       oneYear,
++		InitialStakeDurationOffset: 5400,
++		InitialStakedFunds:         []string{staking9.XAddr},
++		InitialStakers:             stakers,
++		CChainGenesis:              cChainGenesis(funds),
++		Message:                    "9Chain-A1 sovereign genesis",
++	}
++	gb, err := json.MarshalIndent(cfg, "", "  ")
++	must(err, "marshal genesis")
++	must(os.WriteFile(filepath.Join(out, "genesis.json"), gb, 0o644), "write genesis")
++
++	// ---- 4) docker-compose nhiều node (static IP) ----
++	compose := buildCompose(nodes, subnetPrefix)
++	must(os.WriteFile(filepath.Join(out, "docker-compose.multinode.yml"), []byte(compose), 0o644), "write compose")
++
++	// ---- 5) Xuất khoá của TỪNG quỹ (BÍ MẬT) ----
++	// keys.txt  = TẤT CẢ khoá -> giữ offline, KHÔNG BAO GIỜ lên server.
++	// faucet.env = CHỈ khoá faucet -> đây là file duy nhất được phép đưa lên server.
++	var keys strings.Builder
++	keys.WriteString("9Chain-A1 — KHOA CAC QUY GENESIS (TUYET MAT — giu offline/cold)\n")
++	keys.WriteString(fmt.Sprintf("networkID: %d | so node: %d | tong phat hanh: %s LOVE9\n\n", networkID, n, love9(totalGenesisSupply())))
++	for _, b := range buckets {
++		f := funds[b.Key]
++		keys.WriteString(fmt.Sprintf(`[%s] %s — %d%% = %s LOVE9
++  muc dich    : %s
++  PrivateKey  : %s
++  X-addr      : %s
++  P-addr      : %s
++  EVM addr    : %s
++  EVM privkey : 0x%s
++  X/P thanh khoan: %s | X/P khoa: %s (mo sau %s) | C-Chain: %s
++
++`, b.Key, b.Name, b.Percent, love9(b.Total()), b.Purpose,
++			f.Key.String(), f.XAddr, f.PAddr, f.EthAddr, hexOfECDSA(f.Key),
++			love9(b.LiquidXP), love9(b.LockedXP), b.LockLabel, love9(b.CChain)))
++	}
++	must(os.WriteFile(filepath.Join(out, "keys.txt"), []byte(keys.String()), 0o600), "write keys.txt")
++
++	fa := funds[bucketFaucet]
++	faucetEnv := fmt.Sprintf(`# 9Chain-A1 — cau hinh faucet. Vi RIENG, KHONG phai treasury.
++# Day la file DUY NHAT trong bo nay duoc phep dua len server.
++FAUCET_PK=0x%s
++FAUCET_ADDR=%s
++`, hexOfECDSA(fa.Key), fa.EthAddr)
++	must(os.WriteFile(filepath.Join(out, "faucet.env"), []byte(faucetEnv), 0o600), "write faucet.env")
++
++	// ---- 6) Bảng phân bổ công khai (KHÔNG chứa khoá) ----
++	must(os.WriteFile(filepath.Join(out, "allocation.md"), []byte(allocationReport(funds, networkID, n)), 0o644), "write allocation.md")
++
++	fmt.Printf("\n✓ Sinh xong %d node vào %s\n", n, out)
++	fmt.Printf("  genesis.json · docker-compose.multinode.yml · allocation.md (cong khai)\n")
++	fmt.Printf("  keys.txt (TUYET MAT) · faucet.env (chi khoa faucet)\n")
++	fmt.Printf("  Tong phat hanh genesis: %s LOVE9\n", love9(totalGenesisSupply()))
++}
++
++// EVM private key hex (32 bytes) từ secp256k1 key.
++func hexOfECDSA(k *secp256k1.PrivateKey) string {
++	b := k.Bytes()
++	return fmt.Sprintf("%x", b)
++}
++
++// cChainGenesis dựng alloc C-Chain từ các quỹ có phần C-Chain > 0.
++// Số dư EVM là wei (18 số 0), khác nLOVE9 của X/P (9 số 0) — nhân thêm 1e9.
++func cChainGenesis(funds map[string]*fund) string {
++	allocs := make([]string, 0, len(buckets))
++	for _, b := range buckets {
++		if b.CChain == 0 {
++			continue
++		}
++		wei := new(big.Int).Mul(new(big.Int).SetUint64(b.CChain), big.NewInt(1_000_000_000))
++		addr := strings.ToLower(strings.TrimPrefix(funds[b.Key].EthAddr, "0x"))
++		allocs = append(allocs, fmt.Sprintf(`"%s":{"balance":"0x%x"}`, addr, wei))
++	}
++	return `{"config":{"chainId":9000000009,"homesteadBlock":0,"eip150Block":0,"eip155Block":0,"eip158Block":0,"byzantiumBlock":0,"constantinopleBlock":0,"petersburgBlock":0,"istanbulBlock":0,"muirGlacierBlock":0,"apricotPhase1BlockTimestamp":0,"apricotPhase2BlockTimestamp":0},"nonce":"0x0","timestamp":"0x0","extraData":"0x00","gasLimit":"0x5f5e100","difficulty":"0x0","mixHash":"0x0000000000000000000000000000000000000000000000000000000000000000","coinbase":"0x0000000000000000000000000000000000000000","alloc":{` +
++		strings.Join(allocs, ",") +
++		`},"number":"0x0","gasUsed":"0x0","parentHash":"0x0000000000000000000000000000000000000000000000000000000000000000"}`
++}
++
++func buildCompose(nodes []nodeInfo, subnetPrefix string) string {
++	var b strings.Builder
++	b.WriteString("# 9Chain-A1 — mạng " + strconv.Itoa(len(nodes)) + " node thật (sinh bởi netgen).\n")
++	b.WriteString("# Chạy:  docker compose -f local-net/net/docker-compose.multinode.yml up -d\n")
++	b.WriteString("# node1 = beacon; node2.. bootstrap từ node1. Chỉ node1 mở API ra host (9650).\n")
++	b.WriteString("services:\n")
++	beaconID := nodes[0].NodeID.String()
++	beaconIP := nodes[0].IP
++	for _, nd := range nodes {
++		name := fmt.Sprintf("9chain-a1-node-%d", nd.Index)
++		b.WriteString("  " + name + ":\n")
++		b.WriteString("    image: 9chain-a1/node:dev\n")
++		b.WriteString("    container_name: " + name + "\n")
++		if nd.Index == 1 {
++			// CHỈ mở ra 127.0.0.1, KHÔNG phải 0.0.0.0.
++			//
++			// Docker publish cổng bằng luật DNAT trong bảng nat, ĐI VÒNG QUA ufw
++			// (ufw lọc chuỗi INPUT, Docker dùng FORWARD/DOCKER). Viết "9650:9650"
++			// là API node hở thẳng ra Internet dù `ufw status` báo cổng đó bị chặn
++			// — nhìn tưởng an toàn mà thực ra không. Đây là cổng có /ext/admin,
++			// ví, và toàn quyền RPC.
++			//
++			// Muốn public RPC thì đặt reverse proxy (Caddy) trước cổng 127.0.0.1
++			// này, có TLS + rate-limit + lọc path.
++			b.WriteString("    ports:\n      - \"${A1_API_BIND:-127.0.0.1}:9650:9650\"\n")
++		}
++		b.WriteString("    volumes:\n")
++		b.WriteString(fmt.Sprintf("      - ./node%d:/9chain-a1/node:ro\n", nd.Index))
++		b.WriteString("      - ./genesis.json:/9chain-a1/net/genesis.json:ro\n")
++		// Thư mục config của dự án, chứa genesis EVM mẫu + console-tmp/.
++		// Console chạy TRÊN HOST: nó ghi genesis của L1 mới ra host rồi bảo CLI
++		// TRONG container đọc `/9chain-a1/config/console-tmp/<file>`. Không mount
++		// thì đường dẫn đó không tồn tại và mọi lượt tạo chain chết ở bước đọc
++		// genesis. Chỉ đọc — mọi thao tác ghi đều do console làm phía host.
++		// Đường dẫn mặc định tính từ thư mục chứa compose (local-net/net/);
++		// bố cục khác (ví dụ trên server) thì đặt A1_CONFIG_DIR.
++		b.WriteString("      - ${A1_CONFIG_DIR:-../../9chain-a1-config}:/9chain-a1/config:ro\n")
++		b.WriteString(fmt.Sprintf("      - 9chain-a1-data-%d:/root/.avalanchego\n", nd.Index))
++		b.WriteString("    command:\n")
++		b.WriteString("      - ./avalanchego\n")
++		b.WriteString("      - --network-id=9001\n")
++		b.WriteString("      - --genesis-file=/9chain-a1/net/genesis.json\n")
++		b.WriteString("      - --plugin-dir=/9chain-a1/build/plugins\n")
++		b.WriteString("      - --staking-tls-cert-file=/9chain-a1/node/staker.crt\n")
++		b.WriteString("      - --staking-tls-key-file=/9chain-a1/node/staker.key\n")
++		b.WriteString("      - --staking-signer-key-file=/9chain-a1/node/signer.key\n")
++		b.WriteString("      - --http-host=0.0.0.0\n")
++		// Lọc Host header (chống DNS rebinding). Mặc định của avalanchego là
++		// ["localhost"] -> mọi dịch vụ gọi node qua tên khác (host.docker.internal
++		// của faucet/ví, hay tên miền công khai qua reverse proxy) đều bị chặn,
++		// mà lỗi hiện ra rất khó đoán. Local để "*"; trên server công khai đặt
++		// A1_HTTP_ALLOWED_HOSTS="rpc.tenmien.com" trước khi up.
++		b.WriteString("      - --http-allowed-hosts=${A1_HTTP_ALLOWED_HOSTS:-*}\n")
++		b.WriteString("      - --public-ip=" + nd.IP + "\n")
++		if nd.Index == 1 {
++			b.WriteString("      - --bootstrap-ids=\n")
++			b.WriteString("      - --bootstrap-ips=\n")
++		} else {
++			b.WriteString("      - --bootstrap-ids=" + beaconID + "\n")
++			b.WriteString("      - --bootstrap-ips=" + beaconIP + ":9651\n")
++		}
++		b.WriteString("      - --log-level=info\n")
++		// Danh sách subnet mà node theo dõi. PHẢI có ở MỌI node, không chỉ node1:
++		// console đẻ L1 xong sẽ `compose up -d` với A1_TRACK_SUBNETS=<danh sách> —
++		// nếu compose không đọc biến này thì subnet vừa tạo chẳng node nào track,
++		// chain không bao giờ lên RPC và console chỉ đứng chờ hết 150s rồi trả về
++		// một chain chết. Truyền qua env (avalanchego đọc tiền tố AVAGO_) chứ không
++		// qua cờ, vì cờ rỗng `--track-subnets=` cũng hợp lệ nhưng khó nối chuỗi.
++		b.WriteString("    environment:\n")
++		b.WriteString("      - AVAGO_TRACK_SUBNETS=${A1_TRACK_SUBNETS:-}\n")
++		b.WriteString("    networks:\n      a1net:\n        ipv4_address: " + nd.IP + "\n")
++	}
++	b.WriteString("networks:\n  a1net:\n    driver: bridge\n    ipam:\n      config:\n        - subnet: " + subnetPrefix + ".0/16\n")
++	b.WriteString("volumes:\n")
++	for _, nd := range nodes {
++		b.WriteString(fmt.Sprintf("  9chain-a1-data-%d:\n", nd.Index))
++	}
++	return b.String()
++}
+diff --git a/9chain-a1-tools/xp-wallet/main.go b/9chain-a1-tools/xp-wallet/main.go
+new file mode 100644
+index 0000000..e34a7ff
+--- /dev/null
++++ b/9chain-a1-tools/xp-wallet/main.go
+@@ -0,0 +1,292 @@
++// xp-wallet — ví DEV cho X-Chain & P-Chain của 9Chain-A1 (MetaMask chỉ lo EVM).
++// Xem số dư X/P, gửi LOVE9 trên X, và cross-chain X<->P.
++//
++// ⚠️ Ví DEV: khoá do server giữ (env WALLET_KEY, mặc định ewoq). CHỈ testnet.
++//
++// Env: WALLET_URI (mặc định http://localhost:9650), WALLET_KEY (PrivateKey-... ),
++//      PORT (8090)
++package main
++
++import (
++	"bytes"
++	"context"
++	"encoding/json"
++	"fmt"
++	"io"
++	"net/http"
++	"os"
++	"strconv"
++
++	"github.com/ava-labs/avalanchego/genesis"
++	"github.com/ava-labs/avalanchego/ids"
++	"github.com/ava-labs/avalanchego/utils/constants"
++	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
++	"github.com/ava-labs/avalanchego/utils/formatting/address"
++	"github.com/ava-labs/avalanchego/utils/units"
++	"github.com/ava-labs/avalanchego/vms/components/avax"
++	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
++	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
++)
++
++var (
++	uri         string
++	key         *secp256k1.PrivateKey
++	kc          *secp256k1fx.Keychain
++	hrp         string
++	xAddr       string
++	pAddr       string
++	avaxAssetID ids.ID
++)
++
++func env(k, d string) string {
++	if v := os.Getenv(k); v != "" {
++		return v
++	}
++	return d
++}
++
++func mkWallet(ctx context.Context) (*primary.Wallet, error) {
++	return primary.MakeWallet(ctx, uri, kc, kc, primary.WalletConfig{})
++}
++
++func rpc(path, method string, params any) (json.RawMessage, error) {
++	body, _ := json.Marshal(map[string]any{"jsonrpc": "2.0", "id": 1, "method": method, "params": params})
++	resp, err := http.Post(uri+path, "application/json", bytes.NewReader(body))
++	if err != nil {
++		return nil, err
++	}
++	defer resp.Body.Close()
++	raw, _ := io.ReadAll(resp.Body)
++	var out struct {
++		Result json.RawMessage `json:"result"`
++		Error  *struct{ Message string } `json:"error"`
++	}
++	if err := json.Unmarshal(raw, &out); err != nil {
++		return nil, fmt.Errorf("resp: %s", raw)
++	}
++	if out.Error != nil {
++		return nil, fmt.Errorf("%s", out.Error.Message)
++	}
++	return out.Result, nil
++}
++
++func send(w http.ResponseWriter, code int, obj any) {
++	w.Header().Set("content-type", "application/json")
++	w.WriteHeader(code)
++	json.NewEncoder(w).Encode(obj)
++}
++
++// LOVE9 (integer) -> nAVAX
++func toNano(s string) (uint64, error) {
++	f, err := strconv.ParseFloat(s, 64)
++	if err != nil || f <= 0 {
++		return 0, fmt.Errorf("số lượng không hợp lệ")
++	}
++	return uint64(f * float64(units.Avax)), nil
++}
++
++func toShortID(xOrPAddr string) (ids.ShortID, error) {
++	_, _, b, err := address.Parse(xOrPAddr)
++	if err != nil {
++		return ids.ShortID{}, err
++	}
++	return ids.ToShortID(b)
++}
++
++func main() {
++	uri = env("WALLET_URI", "http://localhost:9650")
++	keyStr := env("WALLET_KEY", "")
++	if keyStr == "" {
++		key = genesis.EWOQKey
++	} else {
++		key = &secp256k1.PrivateKey{}
++		if err := key.UnmarshalText([]byte(keyStr)); err != nil {
++			fmt.Fprintln(os.Stderr, "WALLET_KEY lỗi:", err)
++			os.Exit(1)
++		}
++	}
++	kc = secp256k1fx.NewKeychain(key)
++
++	// Lấy context (networkID, avaxAssetID) qua 1 lần sync ví.
++	ctx := context.Background()
++	w, err := mkWallet(ctx)
++	if err != nil {
++		fmt.Fprintln(os.Stderr, "không kết nối được node:", err)
++		os.Exit(1)
++	}
++	xctx := w.X().Builder().Context()
++	avaxAssetID = xctx.AVAXAssetID
++	hrp = constants.GetHRP(xctx.NetworkID)
++	bech, _ := address.FormatBech32(hrp, key.Address().Bytes())
++	xAddr, pAddr = "X-"+bech, "P-"+bech
++
++	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
++		rw.Header().Set("content-type", "text/html; charset=utf-8")
++		rw.Write([]byte(page))
++	})
++	http.HandleFunc("/api/info", handleInfo)
++	http.HandleFunc("/api/send-x", handleSendX)
++	http.HandleFunc("/api/x-to-p", handleXtoP)
++	http.HandleFunc("/api/p-to-x", handlePtoX)
++
++	port := env("PORT", "8090")
++	fmt.Printf("9Chain-A1 · Ví X/P @ http://localhost:%s\n  X=%s\n  P=%s\n  asset=%s\n", port, xAddr, pAddr, avaxAssetID)
++	http.ListenAndServe(":"+port, nil)
++}
++
++func handleInfo(rw http.ResponseWriter, r *http.Request) {
++	xb, _ := rpc("/ext/bc/X", "avm.getBalance", map[string]any{"address": xAddr, "assetID": avaxAssetID.String()})
++	pb, _ := rpc("/ext/bc/P", "platform.getBalance", map[string]any{"addresses": []string{pAddr}})
++	var xr struct{ Balance string `json:"balance"` }
++	var pr struct{ Balance string `json:"balance"` }
++	json.Unmarshal(xb, &xr)
++	json.Unmarshal(pb, &pr)
++	send(rw, 200, map[string]any{
++		"xAddr": xAddr, "pAddr": pAddr,
++		"xBalance": nanoToMeta(xr.Balance), "pBalance": nanoToMeta(pr.Balance),
++		"asset": avaxAssetID.String(),
++	})
++}
++
++func nanoToMeta(s string) string {
++	n, _ := strconv.ParseUint(s, 10, 64)
++	return strconv.FormatFloat(float64(n)/float64(units.Avax), 'f', -1, 64)
++}
++
++func readBody(r *http.Request) map[string]string {
++	m := map[string]string{}
++	b, _ := io.ReadAll(r.Body)
++	json.Unmarshal(b, &m)
++	return m
++}
++
++func handleSendX(rw http.ResponseWriter, r *http.Request) {
++	m := readBody(r)
++	amt, err := toNano(m["amount"])
++	if err != nil {
++		send(rw, 400, map[string]string{"error": err.Error()})
++		return
++	}
++	to, err := toShortID(m["to"])
++	if err != nil {
++		send(rw, 400, map[string]string{"error": "địa chỉ X không hợp lệ"})
++		return
++	}
++	w, err := mkWallet(context.Background())
++	if err != nil {
++		send(rw, 500, map[string]string{"error": err.Error()})
++		return
++	}
++	tx, err := w.X().IssueBaseTx([]*avax.TransferableOutput{{
++		Asset: avax.Asset{ID: avaxAssetID},
++		Out: &secp256k1fx.TransferOutput{
++			Amt:          amt,
++			OutputOwners: secp256k1fx.OutputOwners{Threshold: 1, Addrs: []ids.ShortID{to}},
++		},
++	}})
++	if err != nil {
++		send(rw, 500, map[string]string{"error": err.Error()})
++		return
++	}
++	send(rw, 200, map[string]string{"txID": tx.ID().String()})
++}
++
++func owner() *secp256k1fx.OutputOwners {
++	return &secp256k1fx.OutputOwners{Threshold: 1, Addrs: []ids.ShortID{key.Address()}}
++}
++
++func handleXtoP(rw http.ResponseWriter, r *http.Request) {
++	amt, err := toNano(readBody(r)["amount"])
++	if err != nil {
++		send(rw, 400, map[string]string{"error": err.Error()})
++		return
++	}
++	w, err := mkWallet(context.Background())
++	if err != nil {
++		send(rw, 500, map[string]string{"error": err.Error()})
++		return
++	}
++	exp, err := w.X().IssueExportTx(constants.PlatformChainID, []*avax.TransferableOutput{{
++		Asset: avax.Asset{ID: avaxAssetID},
++		Out:   &secp256k1fx.TransferOutput{Amt: amt, OutputOwners: *owner()},
++	}})
++	if err != nil {
++		send(rw, 500, map[string]string{"error": "export X: " + err.Error()})
++		return
++	}
++	xChainID := w.X().Builder().Context().BlockchainID
++	imp, err := w.P().IssueImportTx(xChainID, owner())
++	if err != nil {
++		send(rw, 500, map[string]string{"error": "import P: " + err.Error(), "exportTx": exp.ID().String()})
++		return
++	}
++	send(rw, 200, map[string]string{"exportTx": exp.ID().String(), "importTx": imp.ID().String()})
++}
++
++func handlePtoX(rw http.ResponseWriter, r *http.Request) {
++	amt, err := toNano(readBody(r)["amount"])
++	if err != nil {
++		send(rw, 400, map[string]string{"error": err.Error()})
++		return
++	}
++	w, err := mkWallet(context.Background())
++	if err != nil {
++		send(rw, 500, map[string]string{"error": err.Error()})
++		return
++	}
++	xChainID := w.X().Builder().Context().BlockchainID
++	exp, err := w.P().IssueExportTx(xChainID, []*avax.TransferableOutput{{
++		Asset: avax.Asset{ID: avaxAssetID},
++		Out:   &secp256k1fx.TransferOutput{Amt: amt, OutputOwners: *owner()},
++	}})
++	if err != nil {
++		send(rw, 500, map[string]string{"error": "export P: " + err.Error()})
++		return
++	}
++	imp, err := w.X().IssueImportTx(constants.PlatformChainID, owner())
++	if err != nil {
++		send(rw, 500, map[string]string{"error": "import X: " + err.Error(), "exportTx": exp.ID().String()})
++		return
++	}
++	send(rw, 200, map[string]string{"exportTx": exp.ID().String(), "importTx": imp.ID().String()})
++}
++
++const page = `<!doctype html><html lang="vi"><head><meta charset="utf-8">
++<meta name="viewport" content="width=device-width,initial-scale=1"><title>9Chain-A1 · Ví X/P</title>
++<style>
++:root{color-scheme:dark}body{font-family:system-ui,Segoe UI,Roboto,sans-serif;max-width:640px;margin:5vh auto;padding:0 20px;background:#0b0f17;color:#e6edf3}
++.brand{display:inline-block;width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#e84142,#ff8a3d);vertical-align:middle;margin-right:10px}
++h1{font-size:1.5rem;margin:0 0 2px}.warn{color:#e0a030;font-size:.85rem;margin:0 0 18px}
++.card{background:#131a26;border:1px solid #223049;border-radius:14px;padding:18px;margin-bottom:14px}
++.k{color:#8aa0b6;font-size:.8rem}.v{font-size:1.5rem;font-weight:700}.addr{font-family:ui-monospace,Consolas,monospace;font-size:11px;color:#7fd1ff;word-break:break-all}
++.grid{display:flex;gap:14px}.grid>.card{flex:1}
++input{width:100%;padding:11px;border-radius:9px;border:1px solid #2b3a54;background:#0e1420;color:#e6edf3;box-sizing:border-box;margin-top:6px}
++button{padding:11px 14px;border:0;border-radius:9px;background:#e84142;color:#fff;font-weight:600;cursor:pointer;margin-top:10px}
++.row{display:flex;gap:10px}.row button{flex:1;background:#2b3a54}
++h3{font-size:.95rem;margin:0 0 4px}#out{font-size:13px;margin-top:10px;word-break:break-all;color:#9fe6a0}
++label{font-size:.8rem;color:#8aa0b6}
++</style></head><body>
++<h1><span class="brand"></span>9Chain-A1 · Ví X/P</h1>
++<p class="warn">⚠️ Ví DEV — khoá do server giữ, chỉ dùng testnet.</p>
++<div class="grid">
++  <div class="card"><div class="k">X-Chain</div><div class="v"><span id="xb">–</span> LOVE9</div><div class="addr" id="xa"></div></div>
++  <div class="card"><div class="k">P-Chain</div><div class="v"><span id="pb">–</span> LOVE9</div><div class="addr" id="pa"></div></div>
++</div>
++<div class="card"><h3>Gửi LOVE9 trên X-Chain</h3>
++  <label>Địa chỉ nhận (X-love91…)</label><input id="to" placeholder="X-love91...">
++  <label>Số lượng (LOVE9)</label><input id="amt" type="number" placeholder="1">
++  <button onclick="sendX()">Gửi</button></div>
++<div class="card"><h3>Cross-chain</h3>
++  <label>Số lượng (LOVE9)</label><input id="camt" type="number" placeholder="1">
++  <div class="row"><button onclick="cross('x-to-p')">X → P</button><button onclick="cross('p-to-x')">P → X</button></div></div>
++<div id="out"></div>
++<script>
++async function refresh(){const j=await(await fetch('/api/info')).json();
++  xb.textContent=j.xBalance;pb.textContent=j.pBalance;xa.textContent=j.xAddr;pa.textContent=j.pAddr;}
++async function post(u,b){const r=await fetch(u,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});return{ok:r.ok,j:await r.json()};}
++async function sendX(){out.textContent='Đang gửi...';const{ok,j}=await post('/api/send-x',{to:to.value,amount:amt.value});
++  out.textContent=ok?'✅ X tx: '+j.txID:'❌ '+j.error;refresh();}
++async function cross(dir){out.textContent='Đang xử lý '+dir+'...';const{ok,j}=await post('/api/'+dir,{amount:camt.value});
++  out.textContent=ok?'✅ export '+j.exportTx+' | import '+j.importTx:'❌ '+j.error;refresh();}
++refresh();setInterval(refresh,5000);
++</script></body></html>`

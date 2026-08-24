@@ -1,0 +1,257 @@
+From 4dfb2ce48f863cdc6922a526136e9fea81c11182 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Mon, 24 Aug 2026 22:56:38 +0400
+Subject: [PATCH 2/3] 9chain-a1: lop identity + tham so mang chu quyen
+
+Lop lam 9Chain-A1 khac avalanchego. Truoc commit nay no ton tai duy nhat
+duoi dang uncommitted working-tree changes -> mot lenh `git checkout .` la mat sach.
+
+- version/constants.go            : client 9chaingo
+- utils/constants/network_ids.go  : networkID 9001 (uint32)
+- genesis/genesis.go, params.go   : token LOVE9, HRP love9
+- genesis/genesis_9chain_a1.go    : genesis + tham so kinh te mang A1 (file moi)
+- config/config.go                : getStakingConfig + getTxFeeConfig cho A1NetworkID
+- graft/subnet-evm/scripts/constants.sh : VM love9evm
+
+BAY: tham so kinh te KHONG doc tu genesis.GetStakingConfig. config/config.go chi
+khoa cung cho Mainnet/Fuji; moi networkID khac lay tu co CLI viper mac dinh
+LocalParams. Them case vao params.go la CHUA DU - phai va ca getStakingConfig
+va getTxFeeConfig. Kiem tra:
+  docker logs 9chain-a1-node-1 2>&1 | head -1 | grep -o '"maxValidatorStake":[0-9]*'
+  -> phai ra 50000000000000000
+---
+ config/config.go                      |  13 ++-
+ genesis/genesis.go                    |   4 +-
+ genesis/genesis_9chain_a1.go          | 112 ++++++++++++++++++++++++++
+ genesis/params.go                     |   4 +
+ graft/subnet-evm/scripts/constants.sh |   2 +-
+ utils/constants/network_ids.go        |   2 +-
+ version/constants.go                  |   2 +-
+ 7 files changed, 132 insertions(+), 7 deletions(-)
+ create mode 100644 genesis/genesis_9chain_a1.go
+
+diff --git a/config/config.go b/config/config.go
+index a4500ba..20237ad 100644
+--- a/config/config.go
++++ b/config/config.go
+@@ -801,7 +801,14 @@ func getStakingConfig(v *viper.Viper, networkID uint32) (node.StakingConfig, err
+ 		return node.StakingConfig{}, err
+ 	}
+ 
+-	if networkID != constants.MainnetID && networkID != constants.FujiID {
++	// Upstream chỉ khoá cứng tham số staking cho Mainnet/Fuji; mọi mạng khác
++	// (kể cả 9001) lấy từ cờ CLI, mà mặc định của các cờ đó là genesis.LocalParams.
++	// Với 9Chain-A1 điều đó SAI ở hai mặt:
++	//   1. A1Params trong genesis_9chain_a1.go sẽ không bao giờ được dùng;
++	//   2. mỗi node có thể tự đặt supply cap / trần stake khác nhau bằng cờ CLI
++	//      — tham số kinh tế phải đồng thuận toàn mạng, không phải tuỳ node.
++	// Nên A1 được xếp cùng nhóm Mainnet/Fuji: tham số chốt trong mã, cờ CLI vô hiệu.
++	if networkID != constants.MainnetID && networkID != constants.FujiID && networkID != genesis.A1NetworkID {
+ 		config.UptimeRequirement = v.GetFloat64(UptimeRequirementKey)
+ 		config.MinValidatorStake = v.GetUint64(MinValidatorStakeKey)
+ 		config.MaxValidatorStake = v.GetUint64(MaxValidatorStakeKey)
+@@ -870,7 +877,9 @@ func getStakingSignerConfig(v *viper.Viper) (node.StakingSignerConfig, error) {
+ }
+ 
+ func getTxFeeConfig(v *viper.Viper, networkID uint32) genesis.TxFeeConfig {
+-	if networkID != constants.MainnetID && networkID != constants.FujiID {
++	// 9Chain-A1: phí là tham số CHỦ QUYỀN, chốt trong mã (genesis.A1Params),
++	// KHÔNG cho từng node tự đặt bằng cờ CLI — xem ghi chú ở getStakingConfig.
++	if networkID != constants.MainnetID && networkID != constants.FujiID && networkID != genesis.A1NetworkID {
+ 		return genesis.TxFeeConfig{
+ 			CreateAssetTxFee: v.GetUint64(CreateAssetTxFeeKey),
+ 			TxFee:            v.GetUint64(TxFeeKey),
+diff --git a/genesis/genesis.go b/genesis/genesis.go
+index c4ded77..cb79e27 100644
+--- a/genesis/genesis.go
++++ b/genesis/genesis.go
+@@ -296,8 +296,8 @@ func FromConfig(config *Config) ([]byte, ids.ID, error) {
+ 
+ 	// Specify the genesis state of the AVM
+ 	avax := avm.AssetDefinition{
+-		Name:         "Avalanche",
+-		Symbol:       "AVAX",
++		Name:         "LOVE9 Coin",
++		Symbol:       "LOVE9",
+ 		Denomination: 9,
+ 		InitialState: avm.AssetInitialState{},
+ 	}
+diff --git a/genesis/genesis_9chain_a1.go b/genesis/genesis_9chain_a1.go
+new file mode 100644
+index 0000000..17086c9
+--- /dev/null
++++ b/genesis/genesis_9chain_a1.go
+@@ -0,0 +1,112 @@
++// 9Chain-A1 — tham số kinh tế CHỦ QUYỀN cho mạng LOVE9 (networkID 9001).
++//
++// Trước file này, mạng 9001 rơi vào nhánh `default:` của GetStakingConfig/GetTxFeeConfig
++// và mượn nguyên LocalParams của Avalanche — tức là 9Chain KHÔNG sở hữu tham số kinh tế
++// của chính mình. File này tách chúng ra thành A1Params để mọi thay đổi tokenomics
++// có một chỗ duy nhất, có chủ đích, và review được.
++//
++// ⚠️ MỌI số trong file này là CONSENSUS-CRITICAL: đổi = phải re-genesis toàn mạng
++// (wipe volume + sinh lại genesis.json). Không sửa nóng trên mạng đang chạy.
++//
++// File này KHÔNG bị scripts/rebrand.sh động tới (rebrand chỉ reset 4 file identity),
++// nên an toàn khi rebase upstream. Nhưng nhánh `case A1NetworkID:` trong params.go
++// thì phải kiểm tra lại sau mỗi lần rebase.
++package genesis
++
++import (
++	"time"
++
++	"github.com/ava-labs/avalanchego/utils/units"
++	"github.com/ava-labs/avalanchego/vms/components/gas"
++	"github.com/ava-labs/avalanchego/vms/platformvm/reward"
++	"github.com/ava-labs/avalanchego/vms/platformvm/validators/fee"
++)
++
++// A1NetworkID là networkID của 9Chain-A1.
++//
++// LƯU Ý: networkID Avalanche là uint32 (≤ 4,294,967,295) nên KHÔNG thể dùng
++// số nhận diện 9 tỷ của 9Chain ở đây. Số 9 tỷ (9000000009) là EVM chainId
++// của C-Chain, khai báo trong cChainGenesis của netgen — hai thứ khác nhau.
++const A1NetworkID uint32 = 9001
++
++// A1Params — tham số staking + phí của 9Chain-A1 (token LOVE9, 9 chữ số thập phân).
++//
++// Đơn vị: units.Avax = 1 LOVE9 = 1e9 nLOVE9 (nAVAX trong mã upstream).
++var A1Params = Params{
++	TxFeeConfig: TxFeeConfig{
++		// Phí cố định trên P/X-Chain: 0.001 LOVE9.
++		// Giữ thấp có chủ đích — A1 là mạng "đẻ L1", phí tạo subnet/chain
++		// không được là rào cản với builder.
++		CreateAssetTxFee: units.MilliAvax,
++		TxFee:            units.MilliAvax,
++
++		// Phí động (ACP-103). Giữ nguyên đường cong đã được Avalanche kiểm chứng:
++		// các hằng số này là kết quả tính toán consensus-critical, không tự chế.
++		DynamicFeeConfig: gas.Config{
++			Weights: gas.Dimensions{
++				gas.Bandwidth: 1,     // block tối đa ~1MB
++				gas.DBRead:    1_000, // tối đa 1,000 lượt đọc/block
++				gas.DBWrite:   1_000, // tối đa 1,000 lượt ghi/block
++				gas.Compute:   4,     // thời gian tính toán tối đa ~250ms/block
++			},
++			MaxCapacity:              1_000_000,
++			MaxPerSecond:             100_000, // nạp đầy lại sau 10s
++			TargetPerSecond:          50_000,  // mục tiêu = 1/2 max
++			MinPrice:                 1,
++			ExcessConversionConstant: 2_164_043, // gấp đôi mỗi 30s
++		},
++
++		// Phí duy trì validator L1 (ACP-77).
++		ValidatorFeeConfig: fee.Config{
++			Capacity:                 20_000,
++			Target:                   10_000,
++			MinPrice:                 gas.Price(1 * units.NanoAvax),
++			ExcessConversionConstant: 865_617, // gấp đôi mỗi phút
++		},
++	},
++
++	StakingConfig: StakingConfig{
++		// Uptime tối thiểu để được nhận thưởng.
++		// 80% — nới hơn mainnet Avalanche (ACP-267 dùng 90%) vì A1 là testnet
++		// công khai, validator cộng đồng chạy trên hạ tầng không chuyên.
++		// ⬅️ CHỐT LẠI THÀNH 0.9 TRƯỚC MAINNET.
++		UptimeRequirement: .8,
++
++		// Rào cản vào làm validator: 2,000 LOVE9.
++		// Cố tình thấp để cộng đồng tự chạy node được — đây là mục đích tồn tại của A1.
++		MinValidatorStake: 2 * units.KiloAvax,
++
++		// Trần stake mỗi validator: 50,000,000 LOVE9.
++		//
++		// KHÁC LocalParams (3,000,000). Lý do: mỗi node genesis nhận
++		// 160,000,000 / 5 = 32,000,000 LOVE9 tiền stake. Với trần 3M của
++		// LocalParams thì validator genesis vượt trần ~10 lần — genesis không
++		// kiểm tra nên vẫn chạy, nhưng tokenomics thành vô lý: không validator
++		// cộng đồng nào được phép stake ngang node genesis. Trần 50M vừa chứa
++		// được node genesis, vừa chặn tập trung quá mức (50M / 720M supply cap ≈ 7%).
++		MaxValidatorStake: 50 * units.MegaAvax,
++
++		// Rào cản uỷ quyền: 25 LOVE9 — người dùng thường tham gia được.
++		MinDelegatorStake: 25 * units.Avax,
++
++		// Phí uỷ quyền tối thiểu validator được thu: 2%.
++		MinDelegationFee: 20_000, // thang 1,000,000 = 100%
++
++		MinStakeDuration:        24 * time.Hour,
++		MaxStakeDuration:        365 * 24 * time.Hour,
++		HeliconMinStakeDuration: 1 * time.Hour,
++
++		RewardConfig: reward.Config{
++			// Lạm phát 10% → 12% theo độ dài thời gian stake (khuyến khích stake dài).
++			MaxConsumptionRate: .12 * reward.PercentDenominator,
++			MinConsumptionRate: .10 * reward.PercentDenominator,
++			MintingPeriod:      365 * 24 * time.Hour,
++
++			// Trần cung TUYỆT ĐỐI: 720,000,000 LOVE9. Không bao giờ mint vượt.
++			// Genesis phát hành 400,000,000 → còn 320,000,000 dành cho phần
++			// thưởng staking trong nhiều năm.
++			// ⬅️ ĐÂY LÀ SỐ CẦN DAVID CHỐT DỨT KHOÁT TRƯỚC MAINNET.
++			SupplyCap: 720 * units.MegaAvax,
++		},
++	},
++}
+diff --git a/genesis/params.go b/genesis/params.go
+index bc804b1..0d46fb8 100644
+--- a/genesis/params.go
++++ b/genesis/params.go
+@@ -62,6 +62,8 @@ func GetTxFeeConfig(networkID uint32) TxFeeConfig {
+ 		return FujiParams.TxFeeConfig
+ 	case constants.LocalID:
+ 		return LocalParams.TxFeeConfig
++	case A1NetworkID: // 9Chain-A1 (LOVE9) — xem genesis_9chain_a1.go
++		return A1Params.TxFeeConfig
+ 	default:
+ 		return LocalParams.TxFeeConfig
+ 	}
+@@ -75,6 +77,8 @@ func GetStakingConfig(networkID uint32) StakingConfig {
+ 		return FujiParams.StakingConfig
+ 	case constants.LocalID:
+ 		return LocalParams.StakingConfig
++	case A1NetworkID: // 9Chain-A1 (LOVE9) — xem genesis_9chain_a1.go
++		return A1Params.StakingConfig
+ 	default:
+ 		return LocalParams.StakingConfig
+ 	}
+diff --git a/graft/subnet-evm/scripts/constants.sh b/graft/subnet-evm/scripts/constants.sh
+index 8f418fd..330f4d4 100644
+--- a/graft/subnet-evm/scripts/constants.sh
++++ b/graft/subnet-evm/scripts/constants.sh
+@@ -25,7 +25,7 @@ source "$AVALANCHE_PATH"/scripts/image_tag.sh
+ GOPATH="$(go env GOPATH)"
+ DEFAULT_PLUGIN_DIR="${HOME}/.avalanchego/plugins"
+ DEFAULT_VM_NAME="subnet-evm"
+-DEFAULT_VM_ID="srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy"
++DEFAULT_VM_ID="pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf"
+ 
+ # Docker image names
+ # Defaults to local to avoid unintentional pushes.
+diff --git a/utils/constants/network_ids.go b/utils/constants/network_ids.go
+index 518b2b9..4e170a1 100644
+--- a/utils/constants/network_ids.go
++++ b/utils/constants/network_ids.go
+@@ -41,7 +41,7 @@ const (
+ 	FujiHRP     = "fuji"
+ 	UnitTestHRP = "testing"
+ 	LocalHRP    = "local"
+-	FallbackHRP = "custom"
++	FallbackHRP = "love9"
+ )
+ 
+ // Variables to be exported
+diff --git a/version/constants.go b/version/constants.go
+index e794614..4239590 100644
+--- a/version/constants.go
++++ b/version/constants.go
+@@ -11,7 +11,7 @@ import (
+ )
+ 
+ const (
+-	Client = "avalanchego"
++	Client = "9chaingo"
+ 	// RPCChainVMProtocol should be bumped anytime changes are made which
+ 	// require the plugin vm to upgrade to latest avalanchego release to be
+ 	// compatible.
