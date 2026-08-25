@@ -248,9 +248,23 @@ Docker Desktop đã lên lại (B-1 gỡ, 2026-08-25) — đây là lúc làm.
       thứ thật sự có thể sai — **không làm hỏng test nào**.
 - [ ] M8.3 — Chạy thử `go test ./...` toàn bộ một lần để biết **nền** là gì
       (upstream có thể vốn đã đỏ vài gói) — không có nền thì không đọc được kết quả M8.2
-- [ ] M8.4 — Diễn tập rebase: fetch upstream mới → `apply-sovereign.sh` → xem patch nào
-      trôi. `genesis_9chain_a1.go` tự ghi "nhánh `case A1NetworkID` trong params.go phải
-      kiểm tra lại sau mỗi lần rebase" — chưa có lần nào để kiểm.
+- [x] M8.4 — **Diễn tập rebase — ĐẠT, nhưng đọc kỹ giới hạn.** `scripts/rebase-drill.sh`
+      (mới): worktree tách rời → `git am` 4 patch lên upstream mới → kiểm 7 điểm chủ
+      quyền → dọn → **chốt chặn cuối xác nhận nhánh `9chain-a1` không đổi hash**.
+
+      Chạy thật lên `origin/master` (`0eb8166`): 4/4 patch áp sạch, **7/7 điểm chủ quyền
+      còn nguyên** (gồm 2 điều kiện `A1NetworkID` ở `config.go` và 2 nhánh `case` ở
+      `params.go` — đúng thứ `genesis_9chain_a1.go` dặn phải kiểm). Cây sau rebase lệch
+      so với nhánh thật **đúng bằng nội dung commit upstream mới**, không có gì trôi.
+
+      ⚠️ **Giới hạn phải nói rõ:** lúc thử, upstream mới **chỉ có 1 commit** và nó chạm
+      `vms/saevm/` — vùng patch ta không đụng tới. Nên đây chứng minh **cơ chế chạy**,
+      chưa chứng minh **chịu được xung đột**. Tín hiệu thật nằm ở lần upstream tái cấu
+      trúc `config/config.go` hoặc `genesis/`. Script đã in cảnh báo này ở cuối để lần
+      sau không ai đọc nhầm "đạt" thành "an toàn vĩnh viễn".
+
+      **KHÔNG dùng `apply-sovereign.sh` để diễn tập** — script đó kết thúc bằng
+      `git branch -f 9chain-a1 HEAD`, tức là ghi đè nhánh thật.
 
 **Điều kiện qua M8:** dựng lại được binary từ số 0, biết chắc fork không làm hỏng test
 nào của upstream, và đã đi qua đường rebase ít nhất một lần.
