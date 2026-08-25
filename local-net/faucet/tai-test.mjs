@@ -15,6 +15,12 @@
 // (mỗi khách một chain), Blockscout KHÔNG index L1 nên bộ index không gãy theo, và
 // nhờ M4.4 thì đo xong thu hồi được, không tốn slot vĩnh viễn.
 //
+// ═══ CHỐT AN TOÀN CHO CHÍNH BÀI ĐO (B-8, thêm 2026-08-25) ═══
+// Bài này có TRẦN THỜI GIAN TỔNG = `--phut/--gio` + 10 phút đệm, tính từ lúc khởi
+// động và bao **cả pha nạp ví**. Chạm trần thì nó tự cắt, vẫn in báo cáo và vẫn
+// **thu hồi chain** — không để một lượt chạy treo giữ slot L1 vô thời hạn.
+// Mọi lượt gửi/đọc nonce đều có hạn giờ riêng. Nạp ví chạy theo lô 40.
+//
 // ⚠️ NHƯNG L1 KHÔNG CÔ LẬP ĐƯỢC CPU. L1 và C-Chain chạy trong CÙNG 5 tiến trình
 // node. Tải nặng trên L1 vẫn ăn CPU của đúng những node đang phục vụ RPC công khai.
 // Vì vậy chốt an toàn dưới đây là BẮT BUỘC, không phải trang trí: bài tự ngắt khi
@@ -52,6 +58,42 @@ const TPS_MUC_TIEU = Number(opt("tps", 0));
 // lời sai câu hỏi. `--preset thong-luong-cao` là cách đo xem trần mới nằm ở đâu và
 // tới mức nào thì MÁY mới thành nút thắt (M9.4).
 const PRESET = opt("preset", "chuan");
+
+// ═══ TRẦN THỜI GIAN TỔNG — chốt an toàn cho CHÍNH BÀI ĐO (B-8) ═══
+//
+// 2026-08-25: `--phut 8 --vi 300` treo **2 giờ 59 phút**, CPU 0,1%, chain đứng ở
+// block 2. Bài đo tự nhận là "có chốt an toàn" nhưng chốt đó chỉ canh C-Chain, đĩa,
+// và độ trễ — **không canh chính nó**. Ba lỗ, cả ba đều dẫn tới treo im lặng vô hạn
+// trong khi vẫn giữ một slot L1 và một chain đang sống:
+//
+//   1. `setTimeout(THOI_LUONG_MS)` chỉ được đặt SAU pha nạp ví ⇒ nạp ví treo là
+//      treo ở chỗ **không có trần nào cả**. Đúng chỗ đã treo thật.
+//   2. Mọi lượt `sendTransaction` là `await` trần, không hạn giờ ⇒ một lượt không
+//      bao giờ trả lời là ví đó đứng vĩnh viễn.
+//   3. `dangChay = false` chỉ được đọc GIỮA hai vòng lặp ⇒ ví đang kẹt trong
+//      `await` không bao giờ thấy cờ dừng, và `Promise.all` chờ nó mãi mãi ⇒
+//      **đường thu hồi không bao giờ chạy tới**.
+//
+// Nên trần dưới đây bao TOÀN BỘ lượt chạy, tính từ lúc script khởi động, và khi nó
+// nổ thì bài vẫn đi tiếp tới phần báo cáo + thu hồi. Đệm 10 phút cho pha đẻ chain
+// (~170s) + nạp ví + thu hồi (~170s).
+const TRAN_TONG_MS = THOI_LUONG_MS + 10 * 60_000;
+const T_KHOI_DONG = Date.now();
+let canKiet = false;   // trần tổng đã nổ chưa
+
+/**
+ * Bọc một promise bằng hạn giờ. KHÔNG huỷ được request phía dưới (fetch đã bay đi),
+ * nhưng cắt được sợi dây chờ — đủ để vòng lặp đọc lại cờ dừng và thoát.
+ *
+ * Đây là thứ biến "treo vĩnh viễn" thành "một lượt hỏng, đếm vào `loiGui`, đi tiếp".
+ */
+function hanGio(promise, ms, nhan) {
+  let t;
+  return Promise.race([
+    promise,
+    new Promise((_, x) => { t = setTimeout(() => x(new Error(`quá hạn ${ms}ms: ${nhan}`)), ms); }),
+  ]).finally(() => clearTimeout(t));
+}
 
 // ═══ CHẾ ĐỘ C-CHAIN — ĐỌC KỸ TRƯỚC KHI DÙNG ═══
 // Bơm thẳng vào C-Chain công khai: mạng mà faucet, MetaMask và mọi ví đang cắm vào.
@@ -161,14 +203,32 @@ const NAP = C_CHAIN ? ethers.parseEther("1") : ethers.parseEther("100000");
 log(`nạp tiền cho ${SO_VI} ví gửi (${ethers.formatEther(NAP)} LOVE9/ví)…`);
 const vis = Array.from({ length: SO_VI }, () => ethers.Wallet.createRandom().connect(p));
 {
-  let nonce = await p.getTransactionCount(chu.address, "latest");
-  const cho = [];
-  for (const v of vis) {
-    cho.push(chu.sendTransaction({ to: v.address, value: NAP, nonce: nonce++, gasLimit: 100000n }));
+  // Nạp THEO LÔ, không phải một `Promise.all` 300 phần tử (B-8).
+  //
+  // Bản đầu bắn cả 300 lượt `sendTransaction` cùng lúc từ một tiến trình Node. Với
+  // 60 ví thì chạy trọn vẹn; với 300 thì treo. Không cần biết chính xác chỗ nghẽn
+  // (pool kết nối của undici, hàng đợi RPC, hay mempool) mới sửa được: bắn 300
+  // request đồng thời rồi chờ TẤT CẢ là một canh bạc không cần thiết, trong khi
+  // nạp ví vốn không phải phần được đo.
+  const LO = 40;
+  let nonce = await hanGio(p.getTransactionCount(chu.address, "latest"), 30_000, "đọc nonce ví nguồn");
+  let xong = 0, hongNap = 0, txCuoi = null;
+  for (let i = 0; i < vis.length; i += LO) {
+    const lo = vis.slice(i, i + LO);
+    const ket = await Promise.allSettled(lo.map(v =>
+      hanGio(chu.sendTransaction({ to: v.address, value: NAP, nonce: nonce++, gasLimit: 100000n }),
+             60_000, `nạp ví ${v.address.slice(0, 10)}`)));
+    for (const k of ket) {
+      if (k.status === "fulfilled") { xong++; txCuoi = k.value; } else hongNap++;
+    }
+    log(`  nạp ${xong}/${vis.length}${hongNap ? ` (hỏng ${hongNap})` : ""}…`);
   }
-  const txs = await Promise.all(cho);
-  await txs[txs.length - 1].wait(1);
-  log(`✓ đã nạp ${SO_VI} ví`);
+  // Chờ lượt CUỐI chốt là đủ: nonce tăng dần nên lượt cuối chốt ⇒ mọi lượt trước
+  // đã chốt. Có hạn giờ, vì đây cũng là một chỗ từng treo.
+  if (txCuoi) { try { await hanGio(txCuoi.wait(1), 120_000, "chờ lượt nạp cuối chốt"); } catch (e) { log(`  ⚠️ ${e.message}`); } }
+  if (hongNap) log(`⚠️ ${hongNap} ví KHÔNG nạp được — bài vẫn chạy với ${xong} ví, con số cuối tính theo số này`);
+  else log(`✓ đã nạp ${xong} ví`);
+  if (!xong) { console.log("✗ không nạp được ví nào — dừng"); process.exit(1); }
 }
 
 // ── Trạng thái chạy ────────────────────────────────────────────────────────
@@ -192,10 +252,14 @@ async function bom(v) {
   // một bộ điều phối chung: bộ điều phối chung là một điểm nghẽn nữa, và khi nó
   // trễ thì con số đo được là độ trễ của nó chứ không phải của chain.
   const nhipMs = TPS_MUC_TIEU ? (1000 * SO_VI) / TPS_MUC_TIEU : 0;
-  while (dangChay) {
+  while (dangChay && !canKiet) {
     const batDau = Date.now();
     try {
-      await v.sendTransaction({ to: dich, value: 1n, nonce: nonce++, gasLimit: 21000n });
+      // Hạn giờ 30s cho mỗi lượt gửi (B-8). Không có nó thì một lượt không bao giờ
+      // trả lời là ví này đứng vĩnh viễn, và `Promise.all` ở dưới chờ nó mãi mãi ⇒
+      // đường thu hồi chain không bao giờ chạy tới.
+      await hanGio(v.sendTransaction({ to: dich, value: 1n, nonce: nonce++, gasLimit: 21000n }),
+                   30_000, "gửi giao dịch");
       daGui++;
       if (nhipMs) {
         const con = nhipMs - (Date.now() - batDau);
@@ -204,7 +268,8 @@ async function bom(v) {
     } catch (e) {
       loiGui++;
       // Lệch nonce / đầy mempool: đồng bộ lại rồi nghỉ một nhịp để mempool thoát tải.
-      try { nonce = await p.getTransactionCount(v.address, "latest"); } catch { /* thử lại vòng sau */ }
+      try { nonce = await hanGio(p.getTransactionCount(v.address, "latest"), 20_000, "đọc lại nonce"); }
+      catch { /* thử lại vòng sau */ }
       await new Promise(r => setTimeout(r, 250));
     }
   }
@@ -282,8 +347,25 @@ log(`  chốt an toàn: dừng nếu C-Chain hỏng ${NGUONG_HONG_LIEN_TIEP} lư
 const hetGio = setTimeout(() => { dangChay = false; }, THOI_LUONG_MS);
 process.on("SIGINT", () => { dangChay = false; lyDoDung = "người dùng dừng (Ctrl-C)"; });
 
-await Promise.all([canhGac(), ...vis.map(v => bom(v))]);
+// ═══ ĐUA VỚI TRẦN TỔNG, KHÔNG CHỜ MỌI VÍ KẾT THÚC (B-8) ═══
+// `await Promise.all([...bơm])` trần là chỗ bài đo treo 3 tiếng: một ví kẹt trong
+// `await` là cả bài kẹt, và phần báo cáo + THU HỒI CHAIN không bao giờ chạy tới.
+// Đua với hạn chốt thì dù còn ví nào chưa chịu dừng, bài vẫn đi tiếp và trả lại slot.
+const conLai = Math.max(5_000, TRAN_TONG_MS - (Date.now() - T_KHOI_DONG));
+let chotCung;
+const hanChot = new Promise(r => { chotCung = setTimeout(() => {
+  canKiet = true; dangChay = false;
+  lyDoDung = `🔴 CHẠM TRẦN THỜI GIAN TỔNG (${(TRAN_TONG_MS / 60000).toFixed(0)} phút) — bài đo tự cắt, xem B-8`;
+  r();
+}, conLai); });
+
+await Promise.race([
+  Promise.all([canhGac(), ...vis.map(v => bom(v))]),
+  hanChot,
+]);
 clearTimeout(hetGio);
+clearTimeout(chotCung);
+if (canKiet) log("⚠️ có ví chưa dừng hẳn — vẫn đi tiếp để báo cáo và THU HỒI chain, không để nó giữ slot");
 
 // ── Báo cáo ────────────────────────────────────────────────────────────────
 const giayChay = (Date.now() - t0) / 1000;
