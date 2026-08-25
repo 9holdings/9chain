@@ -31,7 +31,7 @@ import { hex32ToCb58, cb58ToHex } from "../lib/cb58.mjs";
 import { CAU_TAI_SAN_ABI, CAU_TAI_SAN_BIN, CAU_TAI_SAN_VAN_TAY_NGUON } from "../lib/cau-tai-san.mjs";
 import {
   WARP, guiVoiNonce, chot, napHopDong, moBlock1,
-  goiPredicate, bocLogWarp, apiWarpDaBat, xinChuKy,
+  goiPredicate, bocLogWarp, apiWarpDaBat, xinChuKy, phaiRevert,
 } from "./warp-chung.mjs";
 
 const args = process.argv.slice(2);
@@ -80,17 +80,6 @@ async function dungChain(ten, vi, nhan, daDe) {
   return { chain, p, chu, hd, diaChi, idHex: cb58ToHex(chain.blockchainID) };
 }
 
-/** Gửi một giao dịch được KỲ VỌNG revert, và báo đỏ nếu nó lại chốt. */
-async function phaiRevert(ten, chu, tx) {
-  try {
-    const r = await (await guiVoiNonce(chu, tx)).wait(1);
-    kiem(ten, r?.status === 0, `status ${r?.status}`);
-  } catch (e) {
-    // Node từ chối ngay lúc nộp cũng là "bị chặn" — chỉ khác tầng chặn.
-    kiem(ten, true, "bị từ chối ngay lúc nộp: " + sach(e.shortMessage || e.message).slice(0, 60));
-  }
-}
-
 // ══════════════════════════════════════════════════════════════════════════
 if (!TOKEN) {
   console.log("✗ thiếu A1_CONSOLE_TOKEN — nạp console.env trước khi chạy");
@@ -113,7 +102,7 @@ try {
   const A = await dungChain(TEN_A, vi, "nguồn", daDe);
   const B = await dungChain(TEN_B, vi, "đích", daDe);
   {
-    const r = await apiWarpDaBat(A.p, hex32ToCb58("0x" + "11".repeat(32)));
+    const r = await apiWarpDaBat(A.chain.rpc, hex32ToCb58("0x" + "11".repeat(32)));
     kiem("API Warp đã bật trên chain nguồn", r.bat, r.viSao);
   }
 
@@ -166,18 +155,23 @@ try {
     tkTruoc - tkSau === SO_CHUYEN, `${ethers.formatEther(tkTruoc)} → ${ethers.formatEther(tkSau)}`);
 
   // ─────────────────────────────────────────────────── ba bài PHẢI ĐỎ
-  await phaiRevert("đối chứng: PHÁT LẠI đúng message đó ⇒ phải revert", B.chu, {
-    to: B.diaChi, data: goiNhan, gasLimit: 2000000n,
-    accessList: [{ address: WARP, storageKeys: predicate }],
-  });
-  await phaiRevert("đối chứng: khai SAI hợp đồng nguồn ⇒ phải revert", B.chu, {
-    to: B.diaChi, gasLimit: 2000000n,
-    data: B.hd.interface.encodeFunctionData("nhanVaTra", [0, A.idHex, vi.address]),
-    accessList: [{ address: WARP, storageKeys: predicate }],
-  });
-  await phaiRevert("đối chứng: BỎ predicate ⇒ phải revert", B.chu, {
-    to: B.diaChi, data: goiNhan, gasLimit: 2000000n,
-  });
+  for (const [ten, tx] of [
+    ["đối chứng: PHÁT LẠI đúng message đó ⇒ phải revert", {
+      to: B.diaChi, data: goiNhan, gasLimit: 2000000n,
+      accessList: [{ address: WARP, storageKeys: predicate }],
+    }],
+    ["đối chứng: khai SAI hợp đồng nguồn ⇒ phải revert", {
+      to: B.diaChi, gasLimit: 2000000n,
+      data: B.hd.interface.encodeFunctionData("nhanVaTra", [0, A.idHex, vi.address]),
+      accessList: [{ address: WARP, storageKeys: predicate }],
+    }],
+    ["đối chứng: BỎ predicate ⇒ phải revert", {
+      to: B.diaChi, data: goiNhan, gasLimit: 2000000n,
+    }],
+  ]) {
+    const r = await phaiRevert(B.chu, tx);
+    kiem(ten, r.chan, r.viSao);
+  }
 
   const nhanCuoi = await B.p.getBalance(nguoiNhan);
   kiem("sau ba lượt bị chặn, người nhận KHÔNG nhận thêm đồng nào",

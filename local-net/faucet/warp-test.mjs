@@ -32,7 +32,7 @@ import { hex32ToCb58, cb58ToHex } from "../lib/cb58.mjs";
 import { EXAMPLE_WARP_ABI, EXAMPLE_WARP_BIN } from "../lib/example-warp.mjs";
 import {
   WARP, guiVoiNonce, chot, napHopDong, moBlock1,
-  goiPredicate, bocLogWarp, apiWarpDaBat, xinChuKy,
+  goiPredicate, bocLogWarp, apiWarpDaBat, xinChuKy, phaiRevert,
 } from "./warp-chung.mjs";
 
 const args = process.argv.slice(2);
@@ -127,7 +127,7 @@ try {
 
   // API Warp có bật không — kiểm TRƯỚC khi gửi message, xem apiWarpDaBat().
   {
-    const r = await apiWarpDaBat(A.p, hex32ToCb58("0x" + "11".repeat(32)));
+    const r = await apiWarpDaBat(A.chain.rpc, hex32ToCb58("0x" + "11".repeat(32)));
     kiem("API Warp đã bật trên chain nguồn", r.bat, r.viSao);
   }
 
@@ -178,24 +178,28 @@ try {
   // ────────────────────────────────────────────── hai bài PHẢI ĐỎ (đối chứng)
   //
   // Không có hai bài này thì bài trên vô nghĩa: một hợp đồng không kiểm gì cũng
-  // trả status 1.
+  // trả status 1. Xem phaiRevert() — `wait()` NÉM LỖI khi status 0.
   {
     const bia = ethers.hexlify(ethers.toUtf8Bytes(`9Chain-A1 M6.2 ${hau} BIA`));
-    const r = await (await guiVoiNonce(B.chu, {
+    const r = await phaiRevert(B.chu, {
       to: B.diaChi,
       data: B.hd.interface.encodeFunctionData("validateWarpMessage", [0, A.idHex, A.diaChi, bia]),
       gasLimit: 2000000n,
       accessList: [{ address: WARP, storageKeys: predicate }],
-    })).wait(1);
-    kiem("đối chứng: payload bị sửa ⇒ PHẢI revert", r?.status === 0, `status ${r?.status}`);
+    });
+    kiem("đối chứng: payload bị sửa ⇒ PHẢI revert", r.chan, r.viSao);
   }
   {
-    const r = await (await guiVoiNonce(B.chu, {
-      to: B.diaChi,
-      data: goiHopLe,
-      gasLimit: 2000000n,          // KHÔNG kèm access list ⇒ không có predicate
-    })).wait(1);
-    kiem("đối chứng: bỏ predicate ⇒ PHẢI revert", r?.status === 0, `status ${r?.status}`);
+    const r = await phaiRevert(B.chu, { to: B.diaChi, data: goiHopLe, gasLimit: 2000000n });
+    kiem("đối chứng: bỏ predicate ⇒ PHẢI revert", r.chan, r.viSao);
+  }
+  {
+    const r = await phaiRevert(B.chu, {
+      to: B.diaChi, gasLimit: 2000000n,
+      data: B.hd.interface.encodeFunctionData("validateWarpMessage", [0, B.idHex, A.diaChi, payloadHex]),
+      accessList: [{ address: WARP, storageKeys: predicate }],
+    });
+    kiem("đối chứng: khai SAI chain nguồn ⇒ PHẢI revert", r.chan, r.viSao);
   }
 } catch (e) {
   kiem("bài chạy trọn vẹn", false, sach(e.message || e));

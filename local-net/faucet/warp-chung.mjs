@@ -124,18 +124,54 @@ export function bocLogWarp(receipt) {
 }
 
 /**
+ * Một giao dịch được KỲ VỌNG revert.
+ *
+ * 🔴 `tx.wait()` của ethers v6 **NÉM LỖI** khi receipt có `status: 0` — nó không trả
+ * receipt về cho ta đọc. Nên viết `const r = await tx.wait(1); kiem(..., r.status === 0)`
+ * là bài kiểm tự làm sập chính mình đúng lúc sản phẩm hoạt động ĐÚNG. Đã dính ở lượt
+ * chạy warp-test 2026-08-25: cả ba bài "phải đỏ" bị nuốt thành một dòng
+ * "bài chạy trọn vẹn: transaction execution reverted".
+ *
+ * Node từ chối ngay lúc nộp cũng tính là bị chặn — chỉ khác tầng chặn, và hai tầng
+ * này để lại nonce ở hai trạng thái khác nhau nên lượt gửi sau phải đọc nonce tươi.
+ */
+export async function phaiRevert(chu, tx) {
+  try {
+    const r = await (await guiVoiNonce(chu, tx)).wait(1);
+    return { chan: r?.status === 0, viSao: `status ${r?.status}` };
+  } catch (e) {
+    const m = String(e.shortMessage || e.message || e);
+    if (/reverted|CALL_EXCEPTION/i.test(m)) return { chan: true, viSao: "revert (status 0)" };
+    return { chan: true, viSao: "bị từ chối lúc nộp: " + m.slice(0, 60) };
+  }
+}
+
+/**
  * Kiểm API Warp có bật không — và phân biệt hai lỗi rất giống nhau khi đọc lướt:
- *   - "method warp_… not found"  ⇒ API TẮT (thiếu warp-api-enabled) ← lỗi cấu hình
- *   - "failed to get message"    ⇒ API BẬT, chỉ là ID bịa           ← đúng như mong
+ *   - JSON-RPC code **-32601** ⇒ API TẮT (thiếu warp-api-enabled) ← lỗi cấu hình
+ *   - lỗi bất kỳ khác          ⇒ API BẬT, chỉ là ID bịa           ← đúng như mong
  * Không tách hai thứ này thì một máy chủ thiếu cấu hình sẽ bị chẩn đoán thành "gọi
  * sai tên hàm" và người sửa đi tìm ở đúng chỗ không có gì.
+ *
+ * Gọi bằng `fetch` THÔ, không qua provider của ethers: ethers gộp lô rồi bọc lỗi
+ * lại thành `could not coalesce error`, làm mất cả mã lẫn câu chữ gốc — lượt chạy
+ * đầu (2026-08-25) xanh chỉ vì chuỗi đã bị bóp méo không khớp mẫu "not found" nữa,
+ * tức nó xanh vì lý do sai. Mã -32601 là tín hiệu duy nhất không mơ hồ ở đây.
  */
-export async function apiWarpDaBat(provider, idBiaCb58) {
-  let batDuoc = "";
-  try { await provider.send("warp_getMessage", [idBiaCb58]); }
-  catch (e) { batDuoc = String(e.shortMessage || e.message || e); }
-  const tat = /method .*not (found|exist)|does not exist\/is not available/i.test(batDuoc);
-  return { bat: batDuoc !== "" && !tat, viSao: tat ? "TẮT — thiếu warp-api-enabled trong chain config" : batDuoc.slice(0, 90) };
+export async function apiWarpDaBat(rpcUrl, idBiaCb58) {
+  let j;
+  try {
+    const r = await fetch(rpcUrl, {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "warp_getMessage", params: [idBiaCb58] }),
+    });
+    j = await r.json();
+  } catch (e) {
+    return { bat: false, viSao: "không gọi được RPC: " + String(e.message || e).slice(0, 70) };
+  }
+  if (j?.error?.code === -32601) return { bat: false, viSao: "TẮT — thiếu warp-api-enabled trong chain config (-32601)" };
+  if (j?.error) return { bat: true, viSao: `BẬT (lỗi mong đợi cho ID bịa: ${String(j.error.message).slice(0, 60)})` };
+  return { bat: false, viSao: "gọi ID bịa mà KHÔNG có lỗi nào — không hiểu đang đo gì" };
 }
 
 /**

@@ -358,32 +358,55 @@ Demo mạnh nhất của A1; tiêu chí "Interop" đang tự chấm 3/5 trong da
       - Quyết định còn treo: bật cho **mọi** chain (template) hay làm một preset?
         Nghiêng về template — ICM đòi CẢ HAI đầu có Warp, nên để nó thành lựa chọn
         là đẻ ra những cặp chain không nói chuyện được với nhau, mà genesis bất biến.
-- [ ] M6.2 — Chuyển tài sản giữa 2 L1 do người dùng đẻ ra, có bằng chứng giao dịch 2 đầu
+- [x] M6.2 — **Chuyển tài sản giữa 2 L1 — XONG, đo trên mạng công khai 2026-08-25.**
+      Hai bài, **21/21** và **20/20** ĐẠT. Cả hai tự thu hồi cả hai chain ⇒ chạy lại
+      được vô hạn. Cách chọn: D-034 (vì sao KHÔNG dựng ICTT).
 
-      **Ba thứ đã tra ở source (2026-08-25) để bước sau khỏi dò lại:**
+      **Việc chặn thật nằm ở cấu hình, không ở hợp đồng: API Warp TẮT MẶC ĐỊNH.**
+      `plugin/evm/vm.go:1179` chỉ đăng ký namespace `warp` khi `WarpAPIEnabled`, mà
+      `plugin/evm/config/config.go:38` không đặt mặc định ⇒ giá trị zero của Go ⇒
+      **false**. Đã đo trên chain thật: chain đẻ trước thay đổi này trả
+      **`-32601 the method warp_getMessage does not exist/is not available`**.
 
-      1. 🔴 **API Warp TẮT MẶC ĐỊNH.** `plugin/evm/vm.go:1179` chỉ đăng ký namespace
-         `warp` khi `vm.config.WarpAPIEnabled`, mà `plugin/evm/config/config.go:38`
-         không đặt mặc định ⇒ giá trị zero của Go ⇒ **false**. Không có API này thì
-         không tổng hợp được chữ ký BLS của validator, tức **không gửi được message
-         nào đi đâu** — bật Warp precompile (M6.1) mới là một nửa.
-         ⇒ Cần cấu hình theo từng chain: `{"warp-api-enabled": true}`.
-      2. **Chỗ đặt cấu hình đó.** Compose hiện KHÔNG có `--chain-config-dir`, nên
-         avalanchego rơi về `~/.avalanchego/configs/chains/<blockchainID>/config.json`
-         — nằm trong volume riêng của TỪNG node, tức phải ghi 5 lần qua `docker exec`.
-         Sạch hơn: thêm `--chain-config-dir=/9chain-a1/config/chains` vào netgen và
-         để console ghi ra host một lần — thư mục `9chain-a1-config` **đã được mount
-         sẵn vào cả 5 node** (`/9chain-a1/config`, ro), y hệt cách `console-tmp` hoạt
-         động. ⚠️ Mạng đang chạy phải vá compose tại chỗ, không chạy netgen.
-      3. **Đầu nhận vẫn cần một hợp đồng.** `getVerifiedWarpMessage` đọc từ
-         **predicate của giao dịch**, không phải từ storage — nên không thể chứng
-         minh bằng `eth_call` trần; phải có mã trên chain B gọi vào precompile.
+      Đường đã làm: netgen + compose khai `--chain-config-dir=/9chain-a1/config/chains`
+      (thư mục `9chain-a1-config` vốn đã mount ro vào cả 5 node), console ghi
+      `chains/<blockchainID>/config.json` **NGAY TRƯỚC** đợt rolling restart — node
+      đọc file đó đúng lúc dựng chain, tức trong chính đợt restart ấy, nên ghi muộn
+      một nhịp là cả 5 node dựng chain với cấu hình mặc định.
 
-      ⚠️ Cần **2 slot L1 cùng lúc** trong trần 15 — không thu hồi được giữa chừng.
+      **Bước 1 — `warp-test.mjs`, 21/21:** message đi từ L1 nguồn sang L1 đích và
+      **được xác minh** (block 3, gas 162.460). Chữ ký tổng hợp 200 byte, predicate 7 khối.
 
-      **Còn phải chọn (chưa quyết):** chứng minh bằng **Warp thô** (gửi → tổng hợp
-      chữ ký → đầu kia xác minh) hay dựng hẳn **Teleporter/ICTT**. Warp thô đủ chứng
-      minh *cơ chế*; nhưng M6.2 nói "chuyển **tài sản**", mà tài sản thì cần ICTT.
+      **Bước 2 — `cau-test.mjs`, 20/20:** tài sản thật sự chuyển, đo bằng **bốn số dư**:
+
+| | trước | sau |
+|---|---|---|
+| hợp đồng cầu ở chain NGUỒN | 0,0 | **7,0** (đã khoá) |
+| người nhận ở chain ĐÍCH (ví trắng) | 0,0 | **7,0** |
+| thanh khoản cầu ở chain ĐÍCH | 100,0 | **93,0** |
+| gas lượt nhận | | 219.012 |
+
+      Bằng chứng hai đầu: khoá `0xe02010cc…5ffe02` (chain 9135) · nhận
+      `0x9f23489d…5ef337` (chain 9136).
+
+      **Ba bài PHẢI ĐỎ, cả ba revert đúng** — không có chúng thì "status 1" không
+      chứng minh gì: phát lại đúng message · khai sai hợp đồng nguồn · bỏ predicate.
+      Kèm phép đo cuối: sau ba lượt bị chặn, số dư người nhận **vẫn đúng 7,0**.
+
+      🔴 **Còn lại, cần David biết — KHÔNG chặn mốc này:**
+      - **API Warp công khai được từ Internet.** Caddy lọc theo **path** chứ không
+        theo **method**, mà `/ext/bc/*/rpc` đã được cho phép ⇒ ai cũng gọi được
+        `warp_getMessageAggregateSignature` trên L1 bất kỳ. Gom chữ ký là thao tác
+        đắt (một vòng P2P tới 5 validator), nên đây là **điểm khuếch đại tải**.
+        Và chú thích đầu Caddyfile ghi *"LỌC PATH + hạn mức"* trong khi **không có
+        directive hạn mức nào** cho tên miền RPC — chữ và thực tế đã lệch từ trước.
+      - **Hai chain có sẵn (OmegaChain, OwnerTest) vẫn TẮT API Warp** — thay đổi chỉ
+        áp cho chain đẻ từ giờ. Bật cho chúng là ghi hai file config rồi chờ lượt
+        restart kế tiếp; chưa làm vì chúng không thuộc mốc này.
+      - `CauTaiSan.sol` là **bản chứng minh cơ chế, không phải cầu sản xuất** — cố ý
+        thiếu quản trị, tạm dừng khẩn cấp, hạn mức, phí, đường rút thanh khoản.
+
+      ⚠️ Bài kiểm cần **2 slot L1 cùng lúc** trong trần 15.
 
 ---
 

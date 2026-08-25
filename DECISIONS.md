@@ -656,3 +656,50 @@ mức tải hôm nay. Nó chỉ mở trần cho tương lai. `moTa` của preset
 đúng lời hứa hiện tại — *"gấp 5 lần số giao dịch mỗi block"* (đúng theo định nghĩa),
 **không** hứa gấp 5 lần TPS. Muốn TPS thật cao hơn thì phải làm ở phía node/máy chủ,
 không phải ở genesis — và đó là việc chưa ai đo tới đáy.
+
+---
+
+### D-034 — M6.2: chứng minh Warp bằng **cầu khoá/trả tự viết**, KHÔNG dựng ICTT
+
+**Câu hỏi treo từ phiên trước:** chứng minh M6.2 bằng *Warp thô* (gửi → gom chữ ký →
+đầu kia xác minh) hay dựng hẳn *Teleporter/ICTT*? Warp thô đủ chứng minh **cơ chế**,
+nhưng M6.2 nói "chuyển **tài sản**", mà tài sản thì cần một hợp đồng ở cả hai đầu.
+
+**Đã chọn: cả hai bước, nhưng bằng hợp đồng của mình — không dựng ICTT.**
+- Bước 1 `warp-test.mjs` — message qua được và **được xác minh** ở đầu kia.
+- Bước 2 `cau-test.mjs` — token gốc rời chain nguồn và xuất hiện ở chain đích, đo
+  bằng **bốn số dư** chứ không bằng "hàm không revert".
+
+**Vì sao KHÔNG ICTT.** ICTT là hệ hợp đồng nhiều lớp cộng một **relayer chạy liên
+tục** — tức thêm một tiến trình phải sống mãi, phải có khoá trả phí gas ở mọi chain
+đích, phải giám sát. Đó là một dịch vụ vận hành mới trên một hạ tầng đang có **một
+máy, một nhà cung cấp** và chưa có validator thứ sáu. Mốc này hỏi *"Warp có thật sự
+chuyển được tài sản giữa hai L1 do người dùng đẻ ra không"*; câu hỏi đó trả lời được
+trọn vẹn mà không cần thứ nào phải sống mãi — bài kiểm tự đóng vai relayer trong
+đúng một lượt chạy rồi thu hồi cả hai chain.
+
+**Điều này KHÔNG có nghĩa "ICTT không cần".** Cầu sản xuất thì cần: nó có chuẩn hoá
+token, xử lý decimal, đường nâng cấp, và quan trọng nhất là relayer để người dùng
+không phải tự gom chữ ký. `CauTaiSan.sol` cố ý **thiếu** quản trị, tạm dừng khẩn
+cấp, hạn mức, phí và đường rút thanh khoản — nó là bản chứng minh cơ chế, và phải
+được gọi đúng tên đó ở mọi chỗ nó xuất hiện.
+
+**Ba thứ đo được, mỗi thứ chặn một cách hỏng khác nhau:**
+
+| bài phải ĐỎ | chặn kiểu hỏng nào |
+|---|---|
+| phát lại đúng message đó | message đã ký thì ký **vĩnh viễn** — thiếu sổ chống phát lại là một lượt gửi rút cạn thanh khoản |
+| khai sai hợp đồng nguồn | chữ ký validator vẫn **hợp lệ hoàn toàn**; `getVerifiedWarpMessage` chứng minh "validator subnet nguồn đã ký", KHÔNG chứng minh **ai** gửi |
+| bỏ predicate | chữ ký đi bằng **access list**, không phải calldata — đặt nhầm chỗ thì `valid=false` mà giao dịch vẫn chốt bình thường |
+
+**Không đúc token ở đầu nhận, dù `tu-in-tien` có sẵn.** Đúc để trả cho một message
+là biến quyền đúc thành một hàm của cầu; lúc đó một lỗi ở khâu xác minh không còn là
+mất thanh khoản của cầu mà là **lạm phát vô hạn của cả chain**. Thanh khoản có trần
+tự nhiên; quyền đúc thì không.
+
+**Artifact hợp đồng commit vào repo, solc KHÔNG.** Bộ biên dịch là công cụ lúc dựng,
+không phải phụ thuộc lúc chạy. Bắt server có solc nghĩa là "hợp đồng đang chạy trên
+mạng công khai" trở thành thứ phụ thuộc vào một bản solc cài ở đó — không tái lập
+được. `local-net/contracts/bien-dich.mjs` sinh ra `local-net/lib/cau-tai-san.mjs`
+kèm **vân tay sha256 của file .sol**, để câu hỏi hay bị hỏi nhất ("artifact còn khớp
+nguồn không") trả lời được mà không cần dựng lại.

@@ -1,7 +1,7 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: 2026-08-25 (phiên thứ tư — **console ra công khai** · siết 443 về Cloudflare ·
-M5 đóng 40/40 · M6.1 · M9.4 đo xong · kế hoạch UI)
+Cập nhật: 2026-08-25 (phiên thứ năm — **M6.2 XONG: tài sản đi được giữa 2 L1** ·
+dọn 4 chain rác lấy lại slot · API Warp bật theo từng chain)
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
@@ -35,10 +35,10 @@ người muốn tham gia. Đo được: máy chủ có **/56 định tuyến**, 
 theo từng network, KHÔNG phải restart daemon). Khuyến nghị: IPv4 đa cổng cho node
 beacon. **Kéo theo H-4 có thể là bản ghi `A` chứ không phải `AAAA`.** Chi tiết: BLOCKERS H-7.
 
-**5. Mốc kỹ thuật lớn nhất còn lại: M6.2 (chuyển tài sản giữa 2 L1).**
-Không bị chặn bởi người, nhưng cần ba thứ đã tra sẵn ở `PROGRESS.md` mục M6.2 —
-đáng đọc trước khi bắt tay, nhất là: **API Warp TẮT MẶC ĐỊNH**
-(`warp-api-enabled`), nên bật Warp precompile ở M6.1 mới là một nửa.
+**5. Mốc kỹ thuật lớn nhất còn lại nay là M10 (giao diện), không phải Warp.**
+M6.2 đã xong (xem dưới) ⇒ **toàn bộ M6 đóng**. Việc không bị chặn bởi người mà làm
+được ngay: **M10.1** (dựng `web/`) và **M10.2** (faucet) — chỉ M10.3 mới cần David
+chọn biến thể. Kế tiếp: `docs/RUN-A-NODE.md` (M3.4) và ufw lớp hai (đuôi M7.2).
 
 ### ⏰ Hẹn giờ đã biết
 **Cả 5 validator hết hạn `2027-08-24`** (đo 2026-08-25, còn 364 ngày). Đúng ngày đó
@@ -59,6 +59,43 @@ tức ~**70 MB/giờ** ở 210 TPS — nhỏ hơn 30 lần. Dung lượng đĩa 
 
 ⚠️ **Đợt tải này KHÔNG tự thu hồi chain** (nó chạy trên chain có sẵn nên cố ý giữ lại):
 log ghi `giữ lại chain "(chain có sẵn)"`. L1 đó vẫn chiếm một slot.
+
+### Phiên 2026-08-25 (thứ NĂM) làm xong — tóm tắt để khỏi mở file
+
+🔴 **M6.2 XONG — TÀI SẢN ĐI ĐƯỢC GIỮA HAI L1.** Hai bài trên mạng công khai:
+`warp-test.mjs` **21/21** (message được xác minh ở đầu kia) và `cau-test.mjs`
+**20/20** (7 LOVE9 rời chain 9135, xuất hiện ở ví trắng trên chain 9136). Cả hai
+**tự thu hồi cả hai chain** ⇒ chạy lại được vô hạn. Xem D-034.
+
+🔴 **Việc chặn thật của M6.2 nằm ở CẤU HÌNH, không ở hợp đồng: API Warp TẮT MẶC
+ĐỊNH.** Đã đo: chain đẻ trước thay đổi này trả `-32601 the method warp_getMessage
+does not exist/is not available`. Đường đã làm: netgen + compose khai
+`--chain-config-dir=/9chain-a1/config/chains`, console ghi
+`chains/<blockchainID>/config.json` **NGAY TRƯỚC** đợt rolling restart (node đọc file
+đó đúng lúc dựng chain, tức trong chính đợt restart ấy).
+
+**Dọn 4 chain rác, lấy lại 4 slot.** `Smoke7M7Q3D/MLSCV/NJW7T` (smoke test đẻ trước
+khi M4.4 có tự-thu-hồi) + `Tai7OQB7` (soak bỏ lại). Đo trong lúc dọn: **4 lượt thu
+hồi → 3 lần gián đoạn, dài nhất 1s, tổng 2,4s, hỏng 4/2002 lượt (0,2%)**.
+Danh bạ nay **2 L1** (OmegaChain, OwnerTest) — còn **13 suất**.
+
+🔴 **Ba lần tôi tự bắt mình sai trong phiên này:**
+1. **Đặt module cần `ethers` vào `local-net/lib/`** ⇒ `ERR_MODULE_NOT_FOUND` trên
+   server. Đúng cái gotcha đã ghi sẵn trong file này (ethers chỉ có trong
+   `local-net/faucet/node_modules`) mà vẫn dẫm. Đã chuyển sang `faucet/warp-chung.mjs`.
+2. **`ContractFactory.deploy()` tự quản nonce** ⇒ đi vòng qua `guiVoiNonce` ⇒
+   `nonce too low: next nonce 1, tx nonce 0`. Bọc nonce cho "mọi lượt gửi" chỉ đúng
+   khi thật sự là mọi lượt. Và vì bài kiểm ghi tên chain vào sổ dọn **sau** bước đó,
+   lượt chạy hỏng để lại một **chain mồ côi** ăn một slot (đã dọn).
+3. **`pgrep -f "[t]ai-test"` vẫn tự khớp** — vì dòng lệnh của tôi có `echo "... tai-test ..."`
+   ở ngay cạnh. Mẹo ngoặc vuông chỉ che chuỗi TRONG mẫu, không che chuỗi ở chỗ khác
+   trên cùng dòng lệnh.
+
+**Cần David biết (không chặn gì):** API Warp nay **gọi được từ Internet** — Caddy
+lọc theo **path** chứ không theo **method**, mà `/ext/bc/*/rpc` đã cho phép. Gom chữ
+ký là một vòng P2P tới 5 validator ⇒ điểm khuếch đại tải. Và chú thích đầu Caddyfile
+ghi *"LỌC PATH + hạn mức"* trong khi **không có directive hạn mức nào** cho tên miền
+RPC — chữ và thực tế đã lệch từ trước phiên này.
 
 ### Phiên 2026-08-25 (thứ tư) làm xong — tóm tắt để khỏi mở file
 
@@ -180,11 +217,13 @@ smoke test **20/20 đạt** · đẻ chain đầy đủ có gửi giao dịch th
 **Testnet công khai ĐÃ LIVE**: https://testnet-a1.9chain.org · RPC https://rpc-testnet-a1.9chain.org
 5 validator chạy trên server nhà cung cấp `139.99.145.13`, Blockscout index đầy đủ, faucet + nút "Thêm vào MetaMask" hoạt động. **P0 #1/#2/#3 đều PASS.**
 
-🔴 **CONSOLE ĐẺ CHAIN ĐÃ CÔNG KHAI (2026-08-25): https://testnet-a1.9chain.org/console/** — đăng nhập bằng chữ ký ví, `admin` bị ép = địa chỉ đã ký. Người lạ đẻ được chain của chính họ. Còn **9 suất** trong trần 16 L1.
+🔴 **CONSOLE ĐẺ CHAIN ĐÃ CÔNG KHAI (2026-08-25): https://testnet-a1.9chain.org/console/** — đăng nhập bằng chữ ký ví, `admin` bị ép = địa chỉ đã ký. Người lạ đẻ được chain của chính họ. Còn **13 suất** (danh bạ 2 L1; trần mềm console 15, trần cứng giao thức 16).
 🔴 **Origin CHỈ phục vụ qua Cloudflare.** Nối thẳng vào `139.99.145.13:443` → **403** cho cả ba tên miền. Kiểm: `bash local-net/deploy/kiem-cong.sh`.
 
-**Nút "đẻ chain" CHẠY THẬT trên mạng công khai**, hiện **6 L1** trong danh bạ.
+**Nút "đẻ chain" CHẠY THẬT trên mạng công khai**, hiện **2 L1** trong danh bạ
+(OmegaChain, OwnerTest — 4 chain rác của bộ kiểm thử đã dọn ở phiên thứ năm).
 **6 kiểu chain (preset)** chọn được, cả 6 đã chứng minh bằng chain thật — xem M5.3.
+🔴 **Hai L1 giữa các L1 nói chuyện được với nhau (Warp/ICM) — M6.2 xong, 21/21 + 20/20.**
 Ví chain-factory: **9 LOVE9** trên P-Chain ≈ **63,600 lượt đẻ chain** (0.000141468 LOVE9/lượt).
 
 ⏱️ **Đẻ 1 chain nay mất ~170 giây, không phải 12s như trước — đây là CHỦ Ý, không phải lỗi.**
@@ -234,14 +273,16 @@ ssh -i "$A1_SSH_KEY" -L 8091:127.0.0.1:8091 -L 8090:127.0.0.1:8090 "$A1_SSH_HOST
 hai danh sách sẽ trôi lệch nhau. `BLOCKERS.md` liệt kê thứ đang chờ David.
 
 Tóm tắt để khỏi mở file (cập nhật hết phiên thứ tư):
-**Xong:** M0 git · M1 bộ đo + smoke E2E · M2 gián đoạn 6.0s→0.5s · M4.1–M4.4 (SIWE,
-hạn mức theo ví, thu hồi chain) · **M5 kiểu chain, 40/40** · M8 fork tự đứng được ·
-M9.1–M9.3 + M9.6 đo tải.
-**Làm một phần:** M3 (netgen xong, chờ H-7) · M6 (M6.1 Warp xong, M6.2 chưa) ·
-M7.2 (bài kiểm cổng xong, ufw chưa) · M9.4 (preset xong, phần đo chưa dứt).
+**Xong:** M0 git · M1 bộ đo + smoke E2E · M2 gián đoạn 6.0s→0.5s · M4.1–M4.5 (SIWE,
+hạn mức theo ví, thu hồi chain, console công khai) · **M5 kiểu chain, 40/40** ·
+**M6 đóng — Warp/ICM chuyển được tài sản giữa 2 L1 (21/21 + 20/20)** ·
+M8 fork tự đứng được · M9.1–M9.4 + M9.6 đo tải.
+**Làm một phần:** M3 (netgen xong, chờ H-7) · M7.2 (bài kiểm cổng xong, ufw chưa).
+**Chưa bắt đầu:** M10 giao diện (M10.1/M10.2 làm được ngay, không chờ ai).
 **Chờ David:** `keys.txt` bản thứ hai offline · validator thứ sáu khác nhà cung cấp ·
 **H-7 IPv6 hay IPv4** · trần 16 L1 ⇒ quy mô bán multi-L1 (H-2) · git remote (H-6) ·
-tokenomics (H-1) · mở console công khai (H-3) · bản ghi DNS bootstrap (H-4) ·
+tokenomics (H-1) · bản ghi DNS bootstrap (H-4) · hạn mức cho RPC công khai (mới:
+API Warp gọi được từ Internet, xem PROGRESS M6.2) ·
 tắt 2 service Blockscout (B-2) · có đưa số liệu đo tải lên trang công khai không (M9.5).
 
 ### Đã kiểm chứng trên mạng công khai (đừng làm lại)
@@ -275,6 +316,41 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ---
 
 ## Gotchas
+
+### Thêm từ phiên 2026-08-25 (thứ NĂM — Warp/ICM)
+- 🔴 **API Warp TẮT MẶC ĐỊNH, và nó hỏng ở ĐẦU KIA.** `sendWarpMessage` vẫn là giao
+  dịch thật, vẫn chốt, vẫn sinh log — mọi dấu hiệu ở đầu gửi đều xanh. Chỉ tới lúc
+  gom chữ ký mới lộ, và lỗi khi đó là `-32601 method does not exist`, **đọc như gọi
+  sai tên hàm chứ không như thiếu cấu hình**. Bật Warp precompile trong genesis mới
+  là một nửa; nửa kia là `{"warp-api-enabled": true}` trong chain config.
+- 🔴 **Chain config phải ghi TRƯỚC đợt rolling restart.** Node đọc nó đúng lúc *dựng
+  chain*, mà chain chỉ được dựng sau khi node track subnet — tức trong chính đợt
+  restart ấy. Ghi muộn một nhịp là cả 5 node dựng chain với cấu hình mặc định và
+  phải restart lần nữa mới sửa được.
+- 🔴 **`tx.wait()` của ethers v6 NÉM LỖI khi receipt có `status: 0`** — nó không trả
+  receipt về. Nên bài kiểm viết `const r = await tx.wait(1); kiem(..., r.status === 0)`
+  là **tự làm sập chính mình đúng lúc sản phẩm hoạt động ĐÚNG**. Cả ba bài "phải đỏ"
+  của warp-test bị nuốt thành một dòng "transaction execution reverted". Dùng
+  `phaiRevert()` trong `faucet/warp-chung.mjs`.
+- 🔴 **`ContractFactory.deploy()` tự quản nonce** ⇒ đi vòng qua mọi lớp bảo vệ nonce
+  của bài kiểm. Nạp hợp đồng phải qua `napHopDong()` (dựng tx bằng
+  `getDeployTransaction()` rồi gửi qua `guiVoiNonce`).
+- 🔴 **Bài kiểm phải ghi tên chain vào sổ dọn NGAY sau khi `/api/create` trả về**,
+  không phải sau khi mọi bước sau đó xong. Chain tồn tại từ giây đó; ghi muộn là một
+  lượt chạy hỏng để lại **chain mồ côi ăn một slot vĩnh viễn** trong trần 15.
+- 🔴 **Đừng đặt module cần `ethers` vào `local-net/lib/`.** Node phân giải
+  node_modules từ thư mục chứa FILE đi lên, mà trên server ethers **chỉ có** trong
+  `local-net/faucet/node_modules`. `lib/` là chỗ của module **zero-dep** (console
+  import từ đó, và gốc dự án trên server không có node_modules).
+- **Mẹo ngoặc vuông `pgrep -f "[t]ai-test"` chỉ che chuỗi TRONG MẪU.** Nếu cùng dòng
+  lệnh còn chỗ khác chứa chuỗi thật (ví dụ `echo "... tai-test ..."` ngay cạnh) thì
+  nó vẫn tự khớp. Đây là lần thứ ba dự án dính họ bẫy này, mỗi lần một cửa khác.
+- **Predicate ≠ calldata.** Chữ ký Warp đi vào giao dịch qua **access list**
+  (`{address: 0x02…05, storageKeys: <các khối 32 byte>}`), không phải calldata. Đặt
+  nhầm chỗ thì `getVerifiedWarpMessage` trả `valid=false` **mà giao dịch vẫn chốt
+  bình thường** — không có tín hiệu hỏng nào.
+- **API Warp nhận `ids.ID` dạng cb58, còn EVM đưa messageID dạng topic 32 byte hex.**
+  Cầu nối: `local-net/lib/cb58.mjs` (zero-dep, `--self-test` 8/8).
 
 ### Thêm từ phiên 2026-08-25 (thứ tư, đợt 2 — mở console + siết Cloudflare)
 - 🔴 **`A1_TRUST_PROXY=1` mà origin còn nhận kết nối thẳng = LỖ HỔNG, không phải bản
@@ -524,6 +600,21 @@ Kiểm có cổng nào hở ra Internet không — **đo TỪ NGOÀI**, không t
 (Docker publish đi vòng qua ufw; đây là cách B-5 lọt). Có đối chứng ngược:
 ```bash
 bash local-net/deploy/kiem-cong.sh
+```
+
+Nghiệm thu Warp/ICM (M6.2) — **đẻ 2 chain thật, mỗi bài ~13 phút, tự thu hồi cả hai**:
+```bash
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && set -a; . ~/9chain-a1/console.env; set +a; node local-net/faucet/warp-test.mjs'
+```
+```bash
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && set -a; . ~/9chain-a1/console.env; set +a; node local-net/faucet/cau-test.mjs'
+```
+Cần **2 slot L1 cùng lúc**. Thêm `--giu` để giữ chain lại soi tay.
+
+Dựng lại artifact hợp đồng cầu sau khi sửa `local-net/contracts/CauTaiSan.sol`
+(solc KHÔNG nằm trong repo — cài tạm ở đâu cũng được):
+```bash
+npm install solc@0.8.28 && node local-net/contracts/bien-dich.mjs --solc ./node_modules/solc
 ```
 
 Diễn tập rebase lớp chủ quyền lên upstream mới (worktree tách rời, không đụng nhánh thật):
