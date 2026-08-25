@@ -13,10 +13,10 @@
  */
 import { useEffect, useId, useState, type ReactNode, type ButtonHTMLAttributes, type InputHTMLAttributes } from 'react';
 import { vi } from '@/lib/i18n/vi';
-
-export function gop(...c: (string | false | null | undefined)[]): string {
-  return c.filter(Boolean).join(' ');
-}
+// `gop` sống ở `lib/gop.ts` (ngoài ranh giới client) và được xuất lại ở đây cho
+// tiện — xem chú thích trong file đó về vì sao không định nghĩa tại chỗ.
+import { gop } from '@/lib/gop';
+export { gop };
 
 /* ───────────────────────────────────────────────────────────────── Button */
 

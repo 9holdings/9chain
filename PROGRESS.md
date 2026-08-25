@@ -721,10 +721,34 @@ có thứ tự cao nhất.** Trong lúc chờ: nút chính trỏ vào trang "đa
 
       Trang chủ mới xem trước ở **`/moi/`** — gốc `/` vẫn là Blockscout, đổi gốc là
       việc của M10.3 (cần David chọn biến thể).
-- [ ] M10.3 — Trang chủ, **2–3 biến thể**, backup bản cũ → qua khi David chọn một.
-      Đối tượng ĐÃ CHỐT (người muốn chain riêng) ⇒ ba biến thể khác nhau ở **cách
-      dẫn**, không ở nhắm ai: dẫn bằng lời hứa · đặt thẳng màn đẻ chain lên trang chủ ·
-      dẫn bằng chain người khác đã đẻ.
+- [human] M10.3 — **Ba biến thể ĐÃ DỰNG XONG và chạy thật; còn đúng một việc: David chọn.**
+
+| bản | cách dẫn | xem tại |
+|---|---|---|
+| A | dẫn bằng **lời hứa** | `/moi/tc-a/` |
+| B | đặt thẳng **màn đẻ chain** lên trang chủ | `/moi/tc-b/` |
+| C | dẫn bằng **chain người khác đã đẻ** | `/moi/tc-c/` |
+
+      Trang so sánh: **https://testnet-a1.9chain.org/moi/** — mô tả mỗi bản nói cả
+      **điểm yếu**, vì một danh sách chỉ toàn điểm mạnh thì không giúp chọn được gì.
+
+      **Nghiệm thu thật qua Cloudflare (không phải `curl`):** dải số liệu sống trả
+      **5/5 validator · 2 L1 · block 113** — số thật, đọc một lần lúc mount. Bảng
+      chain của bản C hiện đúng cả chain thiếu khoá `admin` ("mặc định của hệ
+      thống", không để `undefined` lọt ra). Ô đặt tên của bản B: nút tắt khi trống,
+      báo lỗi đúng luật server khi tên xấu, bật khi tên hợp lệ; không tràn ngang ở
+      khổ điện thoại.
+
+      🔴 **Đọc MỘT LẦN lúc mount, KHÔNG poll.** Trang chủ không phải bảng điều khiển.
+      Kèm một lý do thực dụng: `refetchInterval` **không chạy** khi
+      `document.visibilityState === 'hidden'` — đúng trạng thái của mọi khung xem tự
+      động, nên nghiệm thu polling bằng công cụ hay ra **âm tính giả**. Đọc-một-lần
+      thì nghiệm thu bằng tải lại trang, không mơ hồ.
+
+      **Khi David chốt:** nội dung bản được chọn thay `web/app/page.tsx`, hai bản còn
+      lại + `components/ThanhChon.tsx` **bị gỡ**, rồi mới bàn chuyện đổi gốc `/`.
+      Để cả ba lại sau khi đã chốt là để một bộ điều khiển nội bộ nằm trên trang chủ
+      công khai. **Backup bản cũ:** chưa cần — gốc `/` vẫn là Blockscout, chưa thay gì.
 - [ ] M10.4 — 🔴 **Màn khó nhất: đẻ chain.** Một lượt mất **~170 giây** và đó là chủ
       ý (D-008) — spinner 170s đọc như "hỏng". Cần **tiến trình theo BƯỚC** (tạo
       subnet → genesis → node 1..5 track lần lượt → chờ RPC) và **bước soát lại
