@@ -230,3 +230,28 @@ hỏng ở chỗ khó đoán (genesis mismatch lúc bootstrap).
 
 **Cách đọc kết quả M8.2 ở lần rebase sau:** vẫn đúng 6 lỗi này = fork lành. **Nhiều hơn
 6, hoặc đỏ ở gói khác = upstream vừa đụng vào thứ ta có sửa** — đó mới là tín hiệu.
+
+### D-019 — Nền test: fork chịu trách nhiệm ĐÚNG 2 gói đỏ, không phải 7
+`go test ./...` cho 7 gói đỏ. Con số đó **vô nghĩa nếu không có nền** — upstream vốn
+đã đỏ sẵn vài chỗ, và không biết chỗ nào là của mình thì mỗi lần rebase sau này lại
+phải điều tra lại từ đầu.
+
+Đã quy trách nhiệm bằng thí nghiệm, không bằng suy luận "chắc không phải tại mình":
+chạy riêng `x/blockdb` và `vms/saevm/sae` với identity **hoàn nguyên về upstream**
+(giữ nguyên logic A1) → **vẫn đỏ y hệt** ⇒ nền upstream.
+3 gói `tests/*` báo `Ran 0 of 18 Specs — A BeforeSuite node failed` ⇒ chúng cần mạng
+thật, không phải unit test.
+
+**Nền chốt lại — dùng cái này để đọc mọi lần chạy sau:**
+```
+220 xanh · 204 không có test · 7 đỏ
+   ├─ 2 của FORK  : genesis, version   (100% do đổi tên, xem D-018)
+   ├─ 2 của UPSTREAM: x/blockdb, vms/saevm/sae
+   └─ 3 cần MẠNG  : tests/e2e, tests/fixture/bootstrapmonitor/e2e, tests/upgrade
+```
+**Lệch khỏi nền này = tín hiệu.** Đỏ ở gói thứ 8, hoặc `genesis`/`version` đỏ thêm
+test mới ⇒ upstream vừa đụng vào vùng ta có sửa. Bằng nền ⇒ fork lành.
+
+⚠️ `vms/saevm/sae` KHÔNG ổn định: đỏ sau 45.5s khi chạy cùng cả suite, nhưng **treo
+tới hết timeout 600s** khi chạy riêng. Không phải do fork (đã kiểm), và đừng tốn thời
+gian đuổi theo — chỉ cần biết nó vốn thế.

@@ -6,7 +6,40 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
-### B-1 — Docker Desktop không khởi động trên máy dev (chặn M0.6)
+### B-2 — Blockscout: `stats` crash-loop 807 lần, `backend` ngốn hơn cả 5 validator
+**2026-08-25, đo trên server lúc mạng tĩnh.**
+
+| container | CPU | vai trò |
+|---|---|---|
+| `backend` (Blockscout) | **50.65%** | index chain |
+| 5 node avalanchego **cộng lại** | ~37% | chạy cả testnet |
+| `stats` | 0.05% | biểu đồ, **807 restart** |
+| `user-ops-indexer` | 0.00% | ERC-4337, **315 restart** |
+
+**Đọc đúng số này — nó lật ngược phán đoán ban đầu của tôi.** Thấy 807 restart thì
+dễ kết luận "đang đốt CPU", nhưng đo ra 0.05%: crash-loop ở đây **không phải vấn đề
+tài nguyên**. Nó là vấn đề **nhiễu** — 807 lần restart chôn mất mọi sự cố thật trong
+`docker ps`, và một container flap mãi mãi thì không ai còn phân biệt được lần flap
+nào đáng quan tâm.
+
+Cái thật sự đắt là `backend`: **một mình nó nhiều hơn cả 5 validator cộng lại**, chỉ
+để index một mạng gần như không có giao dịch. Đây là số liệu cứng cho quyết định
+thay Blockscout bằng 9Scan-A1 (dự án `C:\PROJECTS\9Scan-A1`).
+
+**Nguyên nhân crash-loop** (đọc log): `user-ops-indexer` không kết nối được RPC rồi
+thoát code 0 → docker restart; `stats` chờ trạng thái index của user-ops, không hỏi
+được → thoát. Cả hai đều là **dịch vụ tuỳ chọn** mà 9Chain-A1 không dùng:
+`user-ops-indexer` là ERC-4337 (account abstraction — A1 không có), `stats` chỉ vẽ
+biểu đồ (`273 charts waiting_for_starting_condition`, tức chưa vẽ được gì).
+
+**Cần David quyết, không tự làm:** tắt hai dịch vụ này là **đổi cấu hình stack công
+khai đang phục vụ người ngoài**. Rẻ và gần như chắc chắn vô hại, nhưng vẫn là quyết
+định vận hành chứ không phải mặc định kỹ thuật — và explorer thuộc phạm vi 9Scan-A1.
+Gỡ khi được duyệt: bỏ 2 service khỏi compose Blockscout, `docker compose up -d --remove-orphans`.
+
+---
+
+### ~~B-1~~ — ĐÃ GỠ 2026-08-25: Docker Desktop không khởi động trên máy dev
 **2026-08-24.** `docker version` treo vô hạn; `Start-Process "Docker Desktop.exe"` chạy
 nhưng daemon không lên sau 5 phút (`npipe:////./pipe/dockerDesktopLinuxEngine` không tồn tại).
 Nghi WSL2 backend chưa sẵn sàng.

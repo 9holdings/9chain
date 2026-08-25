@@ -246,8 +246,23 @@ Docker Desktop đã lên lại (B-1 gỡ, 2026-08-25) — đây là lúc làm.
       `config.go:811,882` + `params.go:65,80`, cả `genesis_9chain_a1.go`) → **cả 4 gói
       xanh hết**. Nên 6 lỗi kia quy 100% về việc đổi tên, và phần logic chủ quyền —
       thứ thật sự có thể sai — **không làm hỏng test nào**.
-- [ ] M8.3 — Chạy thử `go test ./...` toàn bộ một lần để biết **nền** là gì
-      (upstream có thể vốn đã đỏ vài gói) — không có nền thì không đọc được kết quả M8.2
+- [x] M8.3 — **Nền toàn bộ `go test ./...` — 220 xanh · 204 không có test · 7 đỏ.**
+      Fork chỉ chịu trách nhiệm **2 trong 7**, và cả 2 đều là đổi tên. Xem D-019.
+
+| gói đỏ | nguyên nhân | của ai |
+|---|---|---|
+| `genesis` | hash genesis + `TestAVAXAssetID` đổi do đổi tên token | **fork** (chủ đích) |
+| `version` | `TestApplicationString` đòi `avalanchego/x.y.z` | **fork** (chủ đích) |
+| `x/blockdb` | `TestWriteBlock_Errors/writeBlockAt_-_failed_to_get_data_file` | upstream |
+| `vms/saevm/sae` | ~10 test RPC (`TestGetLogs`, `TestFilterAPIs`, …) | upstream |
+| `tests/e2e`, `tests/fixture/bootstrapmonitor/e2e`, `tests/upgrade` | `Ran 0 of 18 Specs — A BeforeSuite node failed` | cần mạng thật, không phải unit test |
+
+      **Cách quy trách nhiệm — không đoán:** chạy lại đúng 2 gói `x/blockdb` và
+      `vms/saevm/sae` với identity **hoàn nguyên về upstream** → **vẫn đỏ y hệt**.
+      Nên chúng là nền có sẵn của upstream, fork không đụng tới.
+
+      ⚠️ `vms/saevm/sae` **không ổn định**: đỏ sau 45.5s trong lượt chạy toàn bộ,
+      nhưng **treo tới hết timeout 600s** khi chạy riêng. Đừng đuổi theo nó.
 - [x] M8.4 — **Diễn tập rebase — ĐẠT, nhưng đọc kỹ giới hạn.** `scripts/rebase-drill.sh`
       (mới): worktree tách rời → `git am` 4 patch lên upstream mới → kiểm 7 điểm chủ
       quyền → dọn → **chốt chặn cuối xác nhận nhánh `9chain-a1` không đổi hash**.
