@@ -180,6 +180,9 @@ smoke test **20/20 đạt** · đẻ chain đầy đủ có gửi giao dịch th
 **Testnet công khai ĐÃ LIVE**: https://testnet-a1.9chain.org · RPC https://rpc-testnet-a1.9chain.org
 5 validator chạy trên server nhà cung cấp `139.99.145.13`, Blockscout index đầy đủ, faucet + nút "Thêm vào MetaMask" hoạt động. **P0 #1/#2/#3 đều PASS.**
 
+🔴 **CONSOLE ĐẺ CHAIN ĐÃ CÔNG KHAI (2026-08-25): https://testnet-a1.9chain.org/console/** — đăng nhập bằng chữ ký ví, `admin` bị ép = địa chỉ đã ký. Người lạ đẻ được chain của chính họ. Còn **9 suất** trong trần 16 L1.
+🔴 **Origin CHỈ phục vụ qua Cloudflare.** Nối thẳng vào `139.99.145.13:443` → **403** cho cả ba tên miền. Kiểm: `bash local-net/deploy/kiem-cong.sh`.
+
 **Nút "đẻ chain" CHẠY THẬT trên mạng công khai**, hiện **6 L1** trong danh bạ.
 **6 kiểu chain (preset)** chọn được, cả 6 đã chứng minh bằng chain thật — xem M5.3.
 Ví chain-factory: **9 LOVE9** trên P-Chain ≈ **63,600 lượt đẻ chain** (0.000141468 LOVE9/lượt).
@@ -273,7 +276,27 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 
 ## Gotchas
 
-### Thêm từ phiên 2026-08-25 (thứ tư)
+### Thêm từ phiên 2026-08-25 (thứ tư, đợt 2 — mở console + siết Cloudflare)
+- 🔴 **`A1_TRUST_PROXY=1` mà origin còn nhận kết nối thẳng = LỖ HỔNG, không phải bản
+  vá.** Cloudflare ghi đè `CF-Connecting-IP` ở biên nên **đi qua** Cloudflare thì
+  không giả được — nhưng **không đi qua thì không ai ghi đè cả**. Đo thật:
+  `curl -k --resolve <domain>:443:139.99.145.13 -H 'CF-Connecting-IP: 1.2.3.4' .../faucet/whoami`
+  → `{"ip":"1.2.3.4"}`. Hai thứ này phải bật **cùng lúc**, không bao giờ tách.
+- 🔴 **`caddy-deploy.sh` ghi đè TOÀN BỘ Caddyfile từ nguồn.** Bất kỳ site block nào
+  chỉ tồn tại trên server sẽ **biến mất không dấu hiệu**. Đã làm explorer chết 31
+  phút (B-6). Và nhìn từ phía chain thì mọi thứ vẫn xanh — RPC + `testnet-a1` cùng
+  file, vẫn sinh bình thường. Script nay tự kiểm mọi tên miền, **suy từ chính
+  Caddyfile vừa áp** chứ không cắm cứng danh sách.
+- **"Cổng 443 mở" ≠ "origin phục vụ cho bất kỳ ai".** Sau khi siết, TCP vẫn bắt tay
+  được (đúng), nhưng HTTP phải 403. Không tách hai tầng này thì bản vá trông như vô hiệu.
+- 🔴 **Đo tải qua URL công khai làm chậm NGƯỜI DÙNG THẬT.** p50 C-Chain công khai đi
+  22ms → 236ms → 1.720ms → **3.852ms** theo mức tải. Và ngưỡng chốt an toàn cũ
+  (4.000ms) cao tới mức **không bao giờ bắt được** điều đó; đã hạ về 1.500ms.
+- **Trần TPS KHÔNG phải tham số genesis** (đính chính M9.3). Nâng gasLimit 5 lần
+  không đổi thông lượng; block chỉ đầy 16%; nút thắt ở đường nạp giao dịch của node
+  ~230 tx/s. Xem D-033.
+
+### Thêm từ phiên 2026-08-25 (thứ tư, đợt 1)
 - 🔴 **`Verify()` của config subnet-evm KHÔNG phải hợp đồng về tính chạy được.** Nó
   kiểm **hình dạng**, không kiểm **hệ quả**. `minBaseFee: 0` qua sạch
   (`commontype/fee_config.go` chỉ từ chối số âm) rồi làm chain **không đẻ nổi block
