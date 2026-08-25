@@ -90,6 +90,8 @@ phẩm khác có auth, không phải "mở trang cũ ra ngoài".
 
 ## 4. Quyết định kiến trúc: Next.js App Router, **xuất tĩnh**
 
+✅ **DAVID ĐÃ DUYỆT (2026-08-25).** Chốt phương án này, không dùng đường lui zero-build.
+
 **Chọn:** một app duy nhất `web/` trong repo A1 — Next.js 15 App Router · React 19 ·
 Tailwind v4 · TypeScript · vitest · **bộ component tự viết** (`components/ui/`),
 **không** shadcn/MUI/Radix/Ant. Tức đúng chuẩn của David **và** đúng thứ 9Scan-A1
@@ -147,9 +149,29 @@ Mỗi màn **bắt buộc** đủ *loading (skeleton) · empty có nghĩa · err
 luật `ui-standard`. Dưới đây chỉ ghi phần **riêng của màn đó**.
 
 ### 6.1 Trang chủ — làm **2–3 biến thể để David chọn**
-Nói được trong một màn: A1 là gì, khác C1 chỗ nào, và **ba lối vào** (thử ví · đẻ
-chain · xem explorer). Có số liệu sống thật (chiều cao block, số validator, số L1) —
-số thật làm nó "trông như sản phẩm đang chạy", đúng đích cảm giác của chuẩn.
+
+✅ **DAVID ĐÃ CHỐT ĐỐI TƯỢNG (2026-08-25): người muốn có chain riêng.** Trung tâm màn
+là **"đẻ chain của bạn"** — đúng điểm bán hàng thật của A1 và là thứ C1 không có.
+Thử ví/faucet và explorer lùi xuống hàng hai.
+
+Cả 2–3 biến thể đều giữ đối tượng này; chúng khác nhau ở **cách dẫn**, không ở việc
+nhắm ai (ví dụ: dẫn bằng lời hứa · dẫn bằng chính màn đẻ chain đặt ngay trên trang
+chủ · dẫn bằng chain người khác đã đẻ). Đây mới là thứ đáng cho David chọn.
+
+🔴 **HỆ QUẢ PHẢI NÓI THẲNG: lựa chọn này gắn trang chủ vào H-3.** Console hôm nay chỉ
+nghe loopback (sau SSH tunnel). Một trang chủ lấy "đẻ chain" làm trung tâm mà nút đó
+không bấm được từ Internet thì nó **hứa một thứ chưa giao được** — tệ hơn cả trang
+chủ hiện tại, vì trang hiện tại không hứa gì.
+
+⇒ Chọn đối tượng này **là một tín hiệu mạnh rằng M4.5 nên mở**, nhưng nó **không thay
+David quyết H-3**: mở console ra Internet là quyết định an toàn (đưa endpoint GHI có
+tiêu tiền thật ra ngoài), không phải hệ quả tự động của một lựa chọn giao diện.
+**Xử lý trong lúc chờ:** dựng đủ màn, còn nút chính thì trỏ vào một trang *"đang mở
+dần"* thu địa chỉ ví để mời sau — thật thà, và không lãng phí gì khi H-3 được duyệt.
+Kèm việc này: M4.5 nay là **việc chặn có thứ tự cao nhất trong nhóm `[human]`**.
+
+Số liệu sống thật (chiều cao block, số validator, số L1) làm nó "trông như sản phẩm
+đang chạy", đúng đích cảm giác của chuẩn.
 ⚠️ Số sống phải có trạng thái *đang tải* và *không lấy được*; một con số trống ở
 trang chủ đọc như mạng chết.
 
@@ -252,8 +274,8 @@ nên `curl` chỉ thấy khung rỗng), ở **cả điện thoại lẫn desktop
 
 | # | việc | ảnh hưởng |
 |---|---|---|
-| U-1 | Duyệt **thêm bước build** (Next + Tailwind) vào repo đang zero-dependency ở tầng trang | §4 — có đường lui zero-build nếu không duyệt |
-| U-2 | **H-3/M4.5: có mở console ra công khai không** | Nếu không, §6.3 chỉ phục vụ người vận hành và trang chủ mất lối vào thứ ba — vẫn đáng làm, nhưng đổi thứ tự ưu tiên |
-| U-3 | Chọn 1 trong 2–3 biến thể trang chủ (M10.3) | — |
+| ✅ U-1 | ~~Duyệt thêm bước build~~ — **ĐÃ DUYỆT 2026-08-25: Next xuất tĩnh** | §4 chốt |
+| 🔴 U-2 | **H-3/M4.5: có mở console ra công khai không** — **nay là câu hỏi đắt nhất của cả mốc M10** | David đã chọn trang chủ nhắm "người muốn chain riêng" (§6.1). Nút chính của trang chủ đó chỉ bấm được nếu console mở. Chưa mở ⇒ trang chủ hứa thứ chưa giao được |
+| U-3 | Chọn 1 trong 2–3 biến thể trang chủ (M10.3) | Đối tượng đã chốt; biến thể khác nhau ở **cách dẫn**, không ở nhắm ai |
 | U-4 | Có design handoff gốc (file/Figma) mà `globals.css` dẫn nguồn không? | Có thì bám bản gốc; không thì `globals.css` **là** nguồn sự thật |
 | U-5 | Thống nhất với 9Scan-A1 ai giữ URL `/chains/` | §3 — không chặn M10.1–M10.6 |

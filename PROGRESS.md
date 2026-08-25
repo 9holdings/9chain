@@ -576,12 +576,24 @@ Ranh giới: A1 làm **bề mặt GHI** (đẻ chain, faucet, trang chủ, dashb
 sẽ bị THAY, không nâng cấp). 🔴 Ví X/P `:8090` **không có UI công khai trong mọi
 phương án** — nó giữ khoá và không có auth.
 
+✅ **David đã chốt 2026-08-25:** (1) **Next xuất tĩnh** — không dùng đường lui
+zero-build; (2) **trang chủ nhắm "người muốn có chain riêng"**, tức lấy *đẻ chain*
+làm trung tâm.
+🔴 **Hệ quả của (2):** trang chủ đó gắn chặt vào **H-3** — console hôm nay chỉ nghe
+loopback, nên nút chính sẽ hứa một thứ chưa bấm được từ Internet. Chọn đối tượng này
+là tín hiệu mạnh rằng M4.5 nên mở, **nhưng không thay David quyết H-3** (đưa endpoint
+GHI tiêu tiền thật ra Internet là quyết định an toàn). ⇒ **M4.5 nay là việc `[human]`
+có thứ tự cao nhất.** Trong lúc chờ: nút chính trỏ vào trang "đang mở dần" thu ví.
+
 - [ ] M10.1 — Dựng `web/` (Next 15 App Router · Tailwind v4 · TS, **xuất tĩnh**) +
       token + khung + bộ `components/ui/` tự viết + i18n vi-first + dark
       → qua khi: build tĩnh chạy · **axe-core sạch** · token khớp hash bản 9Scan
 - [ ] M10.2 — Faucet — **kéo khỏi template literal trong `faucet/server.mjs:54`**
       → qua khi: xin token thật trên mạng công khai **từ điện thoại**
-- [ ] M10.3 — Trang chủ, **2–3 biến thể**, backup bản cũ → qua khi David chọn một
+- [ ] M10.3 — Trang chủ, **2–3 biến thể**, backup bản cũ → qua khi David chọn một.
+      Đối tượng ĐÃ CHỐT (người muốn chain riêng) ⇒ ba biến thể khác nhau ở **cách
+      dẫn**, không ở nhắm ai: dẫn bằng lời hứa · đặt thẳng màn đẻ chain lên trang chủ ·
+      dẫn bằng chain người khác đã đẻ.
 - [ ] M10.4 — 🔴 **Màn khó nhất: đẻ chain.** Một lượt mất **~170 giây** và đó là chủ
       ý (D-008) — spinner 170s đọc như "hỏng". Cần **tiến trình theo BƯỚC** (tạo
       subnet → genesis → node 1..5 track lần lượt → chờ RPC) và **bước soát lại
@@ -596,10 +608,10 @@ phương án** — nó giữ khoá và không có auth.
 127.0.0.1` — trang render bằng JS nên curl chỉ thấy khung rỗng), **cả điện thoại lẫn
 desktop**, **cả sáng lẫn tối**.
 
-**Chờ David trước khi thi công:** U-1 duyệt thêm bước build · U-2 có mở console ra
-công khai không (H-3/M4.5) — nếu không thì trang chủ mất lối vào thứ ba · U-3 chọn
-biến thể trang chủ · U-4 có design handoff gốc không · U-5 thống nhất URL `/chains/`
-với 9Scan. Chi tiết: `docs/UI-PLAN.md` §9.
+**Còn chờ David:** 🔴 **U-2 = H-3/M4.5 (đắt nhất, xem trên)** · U-3 chọn biến thể
+trang chủ · U-4 có design handoff gốc (file/Figma) mà `globals.css` dẫn nguồn không —
+không có thì `globals.css` **là** nguồn sự thật · U-5 thống nhất URL `/chains/` với
+9Scan. (U-1 đã duyệt.) Chi tiết: `docs/UI-PLAN.md` §9.
 
 ---
 
