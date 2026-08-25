@@ -244,6 +244,61 @@ console.log("\n── 8. Request CHƯA XÁC THỰC không được tiêu quota c
   }
 }
 
+console.log("\n── 9. Hạn mức đếm theo VÍ, không phải theo IP ──");
+{
+  const PORT3 = PORT + 2;
+  const con3 = spawn(process.execPath, ["local-net/console/server.mjs"], {
+    cwd: process.cwd(),
+    env: {
+      ...process.env, PORT: String(PORT3), A1_CONSOLE_HOST: "127.0.0.1",
+      A1_CONSOLE_TOKEN: TOKEN_VAN_HANH,
+      A1_CLI_KEY: "PrivateKey-khoa-gia-chi-de-console-chiu-khoi-dong",
+      A1_COMPOSE_FILE: "/khong-ton-tai/an-toan-cho-bai-kiem.yml",
+      A1_LIMIT_REVOKE: "1",
+    },
+    stdio: ["ignore", "ignore", "ignore"],
+  });
+  const G = `http://127.0.0.1:${PORT3}`;
+  const g3 = async (duong, o = {}) => {
+    const headers = { "content-type": "application/json" };
+    if (o.token) headers.authorization = `Bearer ${o.token}`;
+    const r = await fetch(G + duong, {
+      method: o.method || "GET", headers,
+      body: o.body ? JSON.stringify(o.body) : undefined, signal: AbortSignal.timeout(10000),
+    });
+    return { status: r.status, j: await r.json().catch(() => null) };
+  };
+  const dangNhap = async () => {
+    const v = Wallet.createRandom();
+    const n = (await g3(`/api/siwe/nonce?address=${v.address}`)).j;
+    const l = await g3("/api/siwe/login", { method: "POST", body: { nonce: n.nonce, signature: await v.signMessage(n.message) } });
+    return l.j.token;
+  };
+  try {
+    for (let i = 0; i < 40; i++) {
+      try { await g3("/whoami"); break; } catch { await new Promise(r => setTimeout(r, 200)); }
+    }
+    const viA = await dangNhap();
+    const viB = await dangNhap();
+    const body = { method: "POST", body: { name: "ChainKhongCo", xacNhan: "ChainKhongCo" } };
+
+    const a1 = await g3("/api/revoke", { ...body, token: viA });
+    kiem("ví A dùng suất đầu tiên", a1.status !== 429, `HTTP ${a1.status}`);
+    const a2 = await g3("/api/revoke", { ...body, token: viA });
+    kiem("ví A hết suất → 429", a2.status === 429, `HTTP ${a2.status}`);
+
+    // ĐÂY là điều kiện qua của M4.2: hai ví này đi từ CÙNG MỘT IP (127.0.0.1).
+    // Nếu hạn mức còn khoá theo IP thì ví B đã bị ví A khoá mất — đúng kịch bản
+    // "cả văn phòng dùng chung một IP, một người xài hết phần của tất cả".
+    const b1 = await g3("/api/revoke", { ...body, token: viB });
+    kiem("ví B CÙNG IP vẫn còn nguyên suất của mình", b1.status !== 429, `HTTP ${b1.status}`);
+    const b2 = await g3("/api/revoke", { ...body, token: viB });
+    kiem("ví B cũng hết suất sau lượt của chính nó → 429", b2.status === 429, `HTTP ${b2.status}`);
+  } finally {
+    try { con3.kill(); } catch { /* đã chết */ }
+  }
+}
+
 dong();
 console.log(`\n════ ${dat}/${dat + hong} ĐẠT ════`);
 if (hong) console.log("Log console:\n" + logCon.split("\n").slice(0, 20).join("\n"));

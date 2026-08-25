@@ -655,9 +655,16 @@ function docBody(req, gioiHan = 256 * 1024) {
   });
 }
 
-/** Chặn nếu vượt hạn mức; trả true nghĩa là ĐÃ trả lời lỗi, caller dừng lại. */
-function blockedByRate(req, res, limiter) {
-  const r = limiter(clientIp(req, TRUST_PROXY));
+/**
+ * Chặn nếu vượt hạn mức; trả true nghĩa là ĐÃ trả lời lỗi, caller dừng lại.
+ *
+ * `khoa` cho phép đếm theo thứ khác IP. Với người đăng nhập bằng ví thì **địa chỉ
+ * ví mới là danh tính thật**, còn IP thì vừa quá rộng vừa quá hẹp cùng lúc: quá
+ * rộng vì cả một văn phòng / một nhà mạng di động dùng chung một IP nên họ chặn
+ * lẫn nhau; quá hẹp vì đổi IP là chuyện rẻ tiền nên kẻ muốn lách thì lách được.
+ */
+function blockedByRate(req, res, limiter, khoa = null) {
+  const r = limiter(khoa || clientIp(req, TRUST_PROXY));
   if (r.ok) return false;
   res.writeHead(429, { "content-type": "application/json", "retry-after": String(r.retryAfter) });
   res.end(JSON.stringify({ error: `vượt hạn mức (${r.name}), thử lại sau ${r.retryAfter}s` }));
@@ -766,7 +773,11 @@ const server = http.createServer(async (req, res) => {
       if (blockedByRate(req, res, limitFlood)) return;
       const ai = blockedByAuth(req, res);
       if (!ai) return;
-      if (blockedByRate(req, res, laThuHoi ? limitRevoke : limitCreate)) return;
+      // Đăng nhập bằng ví ⇒ đếm theo VÍ. Người vận hành thì vẫn theo IP (họ không
+      // có ví, và họ là một người duy nhất). Tiền tố `vi:` để hai không gian khoá
+      // không đụng nhau — một địa chỉ IPv6 và một địa chỉ EVM đều là chuỗi hex.
+      const khoaHanMuc = ai.kieu === "vi" ? `vi:${ai.diaChi}` : null;
+      if (blockedByRate(req, res, laThuHoi ? limitRevoke : limitCreate, khoaHanMuc)) return;
       try {
         const tham = JSON.parse((await docBody(req)) || "{}");
 
@@ -824,5 +835,12 @@ server.listen(PORT, HOST, () => {
     console.log(`  lưu ý : A1_TRUST_PROXY chưa bật -> rate-limit khoá theo IP TCP trực tiếp.`);
     console.log(`          Đứng sau Caddy/Cloudflare thì PHẢI đặt A1_TRUST_PROXY=1, nếu không mọi`);
     console.log(`          người dùng bị gom chung một khoá và chặn lẫn nhau.`);
+  } else if (HOST === "127.0.0.1") {
+    // Bật TRUST_PROXY khi CHƯA có proxy là đi lùi về mặt an toàn, không phải đi
+    // trước: console sẽ tin header `X-Forwarded-For` / `CF-Connecting-IP` do chính
+    // client đặt, tức là ai cũng tự khai IP của mình để thoát hạn mức. Chỉ bật
+    // ĐỒNG THỜI với lúc đặt Caddy ra trước (M4.5), không bật sớm "cho sẵn".
+    console.warn(`  ⚠️  A1_TRUST_PROXY=1 nhưng đang nghe loopback (chưa có proxy nào phía trước).`);
+    console.warn(`      Client tự đặt X-Forwarded-For là thoát được hạn mức. Kiểm bằng /whoami.`);
   }
 });

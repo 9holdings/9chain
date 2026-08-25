@@ -160,7 +160,17 @@ HANDOFF: *đừng quảng bá "chạy node cùng chúng tôi"* cho tới khi xon
 
       `console-deploy.sh` nay **chặn deploy nếu hai bài này trượt**, và chạy lại chúng
       trên server sau khi cài `node_modules`.
-- [ ] M4.2 — Bật `A1_TRUST_PROXY=1` + hạn mức theo **địa chỉ ví**, không chỉ IP
+- [x] M4.2 — **Hạn mức theo địa chỉ ví.** Đăng nhập bằng ví ⇒ đếm theo `vi:<địa chỉ>`
+      thay vì IP. Nghiệm thu: hai ví khác nhau **từ cùng một IP** giữ ngân sách riêng
+      (bài 9 của `auth-e2e-test.mjs`, 37/37) — đúng kịch bản "cả văn phòng chung một
+      IP, một người xài hết phần của tất cả". Kèm hạn mức hai tầng, xem D-022.
+
+      🔴 **`A1_TRUST_PROXY=1` CỐ Ý CHƯA BẬT — chuyển sang M4.5.** Bật khi chưa có proxy
+      là **đi lùi** về an toàn chứ không phải chuẩn bị trước: console sẽ tin header
+      `X-Forwarded-For`/`CF-Connecting-IP` do chính client đặt, tức ai cũng tự khai IP
+      để thoát hạn mức. Hôm nay console nghe loopback, không có Caddy phía trước.
+      Chỉ bật **đồng thời** với lúc đặt reverse proxy ra trước. Console nay cảnh báo
+      to nếu thấy `TRUST_PROXY=1` mà vẫn đang nghe loopback.
 - [x] M4.3 — Cap tổng số chain — **HOÁ RA LÀ TRẦN CỨNG CỦA GIAO THỨC, KHÔNG PHẢI
       CON SỐ TUỲ CHỌN.** Đã chặn ở console (mặc định 15, trần tuyệt đối 16). Xem D-009.
 - [x] M4.4 — **Endpoint thu hồi chain — trần 16 hết một chiều.** `POST /api/revoke`
@@ -192,7 +202,9 @@ HANDOFF: *đừng quảng bá "chạy node cùng chúng tôi"* cho tới khi xon
       Bằng chứng slot đã về: RPC chain đã thu hồi **im hẳn** (node hết định tuyến),
       danh bạ **5 → 5 L1** đúng mức trước khi chạy bài.
       Giao dịch thật trên L1 mới chốt 0.1s, block 1, `0xf4b0b992…aa5538`.
-- [ ] M4.5 — [human] Caddy route console + Cloudflare Access / mTLS — **David duyệt trước khi mở**
+- [ ] M4.5 — [human] Caddy route console + Cloudflare Access / mTLS — **David duyệt trước khi mở**.
+      Khi làm: bật `A1_TRUST_PROXY=1` **cùng lúc** đặt Caddy ra trước (không sớm hơn —
+      xem M4.2), rồi kiểm chứng bằng `/whoami` phải trả IP THẬT của người dùng.
 
 **Điều kiện qua M4:** một ví lạ, không có token, đẻ được chain của chính nó từ Internet.
 
