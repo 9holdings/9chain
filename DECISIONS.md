@@ -255,3 +255,38 @@ test mới ⇒ upstream vừa đụng vào vùng ta có sửa. Bằng nền ⇒ 
 ⚠️ `vms/saevm/sae` KHÔNG ổn định: đỏ sau 45.5s khi chạy cùng cả suite, nhưng **treo
 tới hết timeout 600s** khi chạy riêng. Không phải do fork (đã kiểm), và đừng tốn thời
 gian đuổi theo — chỉ cần biết nó vốn thế.
+
+### D-020 — M4.1 (SIWE) sẽ DÙNG ethers, không tự viết secp256k1
+Ghi chú cũ trong HANDOFF ("thư mục gốc trên server không có node_modules") đúng nhưng
+thiếu một vế, và vế thiếu đổi hẳn cách làm: **`local-net/faucet/` CÓ `package.json` +
+`node_modules` với ethers 6.17.0**. Đo được:
+
+```
+~/9chain-a1/src            : import ethers → ERR_MODULE_NOT_FOUND
+~/9chain-a1/src/local-net/faucet : import ethers → OK 6.17.0
+```
+
+Đó là lý do `smoke-l1.mjs` (nằm trong `faucet/`) `import { ethers }` chạy ngon trên
+server, trong khi `eip55.mjs` (dùng cho console) phải tự viết keccak-256.
+
+**Quyết định:** M4.1 cấp cho `local-net/console/` một `package.json` + `node_modules`
+riêng đúng theo khuôn `faucet/` đã có, rồi xác minh chữ ký bằng `ethers.verifyMessage`.
+
+**Vì sao KHÔNG tự viết:** SIWE cần **khôi phục khoá công khai từ chữ ký** (secp256k1
+ECDSA recovery) — không có trong `node:crypto`. Tự viết được, và dự án này đã tự viết
+keccak-256 nên có tiền lệ. Nhưng keccak sai thì địa chỉ sai và **hỏng ầm ĩ**; recovery
+sai thì **chấp nhận chữ ký giả và im lặng** — đó là cửa hậu, không phải lỗi. Tự viết
+mã mật mã cho đường xác thực để né một thư mục `node_modules` là đánh đổi sai hướng.
+
+**Đổi lại phải nhận:** console điều phối docker trên host, quyền cao hơn faucet, nên
+thêm cây phụ thuộc vào đúng nó là tăng bề mặt supply-chain. Chấp nhận vì ethers vốn
+đã nằm trên server rồi (faucet dùng), nên đây là rủi ro **biên**, không phải rủi ro mới.
+
+### D-021 — Làm M4.1 trước M3, tuy PROGRESS xếp M3 đứng trước
+Luật autopilot là không nhảy mốc. Lệch ở đây có lý do cụ thể: **"điều kiện qua" của M3
+là M3.5 — "kiểm chứng từ một VPS NGOÀI thấy node 9Chain-A1 là peer thật"** — mà dự án
+chỉ có đúng một VPS. Bắt đầu M3 là bắt đầu một mốc **không thể đóng** trong đêm nay.
+Còn M4 thì M4.3/M4.4 đã xong, và M4 mới là điểm bán hàng của A1.
+
+Chưa loại M3: máy dev chạy một node trong Docker rồi nối IPv6 tới server có thể thay
+được vai "node ngoài". Chưa kiểm, ghi lại để lần tới thử trước khi kết luận M3 kẹt.
