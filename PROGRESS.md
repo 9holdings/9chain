@@ -560,29 +560,46 @@ chủ quyền dày lên — đúng thứ giết fork lúc rebase. Đổi lấy c
       cộng 48 TPS trên C-Chain ⇒ ~308 TPS tổng, RPC công khai vẫn 13–62ms. Đây là
       dữ liệu tốt hơn tôi dự đoán — tôi từng cảnh báo hai tải dùng chung CPU sẽ đá
       nhau; ở mức tải này thì không.
-- [~] M9.4 — Preset **"thông lượng cao"** — hệ quả trực tiếp của M9.3.
-      **Preset XONG, phần ĐO còn treo.**
+- [x] M9.4 — Preset **"thông lượng cao"** + **ĐO XONG trần**. Kết quả **đính chính
+      M9.3**, xem D-033.
 
-      `thong-luong-cao`: `gasLimit` 12M → **60M**, `targetGas` 60M → **300M** (giữ
-      đúng tỉ lệ 5× của khuôn gốc — nâng gasLimit mà quên `targetGas` là chain vừa
-      dùng hết công suất mới đã bị coi là "trên mức mục tiêu" và **thuật toán phí tự
-      đẩy baseFee lên**, tức nâng trần rồi tự phạt người dùng vì đã dùng cái trần đó).
+      Preset: `gasLimit` 12M → **60M**, `targetGas` 60M → **300M** (giữ tỉ lệ 5× của
+      khuôn gốc — nâng gasLimit mà quên `targetGas` là chain vừa dùng hết công suất
+      mới đã bị coi là "trên mức mục tiêu" và thuật toán phí **tự đẩy baseFee lên**).
+      Kèm: `createChain` đồng bộ `gasLimit` ở gốc genesis từ `feeConfig` — subnet-evm
+      đòi hai chỗ bằng nhau (`core/genesis.go:456`).
 
-      Kèm một bản vá chung: `createChain` nay **đồng bộ `gasLimit` ở gốc genesis từ
-      `feeConfig`** — subnet-evm đòi hai chỗ bằng nhau (`core/genesis.go:456`), nên
-      trước đây preset nào đổi thông lượng cũng sẽ đẻ ra chain không khởi động nổi.
-      Nay `feeConfig` là nguồn sự thật duy nhất.
+      🔴 **KẾT QUẢ: nâng trần genesis 5 lần KHÔNG nâng thông lượng.**
 
-      **Nghiệm thu trên chain thật (9121):** `gasLimit` đọc từ **header block** =
-      60.000.000, chain vẫn chốt giao dịch bình thường. Đo trên header chứ không đọc
-      lại file genesis mình vừa ghi — đọc genesis chỉ chứng minh "ta viết đúng thứ ta
-      định viết", đúng loại bằng chứng vô giá trị mà cả mốc M5 sinh ra để chối bỏ.
+| chain | trần genesis lý thuyết | TPS đo được | block đầy |
+|---|---|---|---|
+| `chuan` 12M (M9.3) | 285 | 252–264 | gần đủ |
+| `thong-luong-cao` 60M | **1.428** | **207–230** | **~16%** |
 
-      🔴 **CÒN LẠI: chưa đo trần TPS thật.** Phép chia cho 1.428 TPS
-      (60M ÷ 21.000 ÷ 2s), nhưng ở mức đó **máy mới là thứ đụng trần** chứ không phải
-      genesis — M9.3 đã thấy máy ở 36% khi genesis đụng trần 260 TPS. Không có số đo
-      thì 1.428 vẫn là phép chia, không phải sự thật. `moTa` vì vậy chỉ hứa "gấp 5
-      lần số giao dịch mỗi block" (đúng theo định nghĩa), **không** hứa gấp 5 lần TPS.
+      Bậc thang 20→60→150→300→600 ví: **155 → 205 → 223 → 226 → 207** (giảm ở bậc
+      cuối). Đã loại trừ đường truyền (bơm qua Cloudflare vs thẳng `127.0.0.1:9650`:
+      **như nhau**) và gộp lô của ethers (**như nhau**) — cả hai đều là giả thuyết
+      của tôi và cả hai đều sai.
+
+      **Nút thắt: đường NẠP GIAO DỊCH CỦA NODE, ~230 tx/s.** Hai dấu hiệu đi cùng
+      nhau chỉ ra điều đó: nhịp block đứng **đúng 2,0s ở mọi mức tải** (khâu dựng
+      block không đuối) và block **không bao giờ đầy** (lúc dựng, mempool không có
+      thêm giao dịch) ⇒ nghẽn nằm TRƯỚC mempool.
+
+      🔴 **Phát hiện vận hành đắt nhất:** tăng tải không thành thông lượng mà thành
+      **độ trễ cho người dùng thật** — p50 C-Chain **công khai**: 22ms → 236ms →
+      1.720ms → **3.852ms**. Xác nhận cảnh báo M9.1 (L1 không cô lập được CPU).
+      ⇒ Đã hạ `NGUONG_CHAM_MS` **4000 → 1500**: ở 3.852ms chốt an toàn **không nổ**
+      vì 3.852 < 4.000, tức ngưỡng cũ được đặt cao tới mức không bao giờ bắt được
+      đúng thứ chú thích của nó mô tả.
+
+      **Hệ quả sản phẩm:** preset này **không** làm chain nhanh hơn ở mức tải hôm nay,
+      nó chỉ mở trần cho tương lai. `moTa` giữ đúng lời hứa: *"gấp 5 lần số giao dịch
+      mỗi block"*, **không** hứa gấp 5 lần TPS.
+
+      **Còn chưa đo tới đáy:** nút thắt phía node là gì (phục hồi chữ ký? validate?
+      chèn mempool?) và nó có mở được không. Cần nhiều tiến trình gửi độc lập +
+      đo CPU từng tiến trình node, không phải một script Node duy nhất.
 - [ ] M9.5 — [human] Có đưa số liệu này lên trang công khai không, và dưới dạng nào.
       **Khuyến nghị:** một **nhịp tim** chậm (1 giao dịch/10–60 giây, từ địa chỉ đặt
       tên rõ) để chiều cao block nhúc nhích — C-Chain công khai hiện mới ở **block
