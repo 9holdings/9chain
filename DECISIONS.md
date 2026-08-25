@@ -332,3 +332,37 @@ người đọc bỏ qua màu đỏ.
 Sửa: lấy tên chain **từ danh bạ đang chạy** qua `/api/chains`; danh bạ rỗng thì in
 `⏭️ bỏ qua` và **không tính là đạt**. Nay chạy giống hệt nhau ở cả hai nơi (33/33),
 nên `console-deploy.sh` mới dùng được nó làm cổng chặn — mà deploy chính là chỗ cần nó nhất.
+
+### D-025 — Bẫy gas ở giao dịch ĐẦU TIÊN của chain mới (tìm ra khi làm M5.3)
+`eth_estimateGas` **ước lượng thiếu** cho giao dịch đầu tiên của một L1 vừa đẻ. Đo có
+đối chứng trên **cùng một chain** (`Ptuintien3C7B`, chainId 9109):
+
+| | estimateGas | gasUsed | kết quả |
+|---|---|---|---|
+| block 1 (giao dịch đầu tiên) | 52037 | 52037 (cạn sạch) | ❌ revert, `status 0` |
+| block 2 trở đi | 54183 | 53388 | ✅ `status 1`, ví nhận đúng 777 token |
+
+Cùng calldata, cùng người gửi, cùng precompile. **Ba chain khác nhau** đều hỏng y hệt
+ở block 1 với đúng con số 52037.
+
+**Vì sao nó nguy hiểm hơn một lỗi gas thường:** nó **giả dạng "tính năng không tồn
+tại"**. Receipt chỉ có `status: 0` — lỗi của precompile là lỗi Go, không lọt vào
+receipt dưới dạng đọc được. Tôi đã đi đúng con đường sai: kiểm lại tên khoá genesis,
+kiểm registry precompile, kiểm chữ ký ABI — tất cả đều đúng, và mỗi vòng thử mất 5,5
+phút vì phải đẻ lại chain.
+
+**Ba phép đo tách được nguyên nhân — nay đã nằm sẵn trong bài kiểm:**
+1. `eth_call` cùng lời gọi đó. eth_call chạy với trần gas rất lớn nên nó **thành
+   công** trong khi tx thật revert. **"eth_call OK + tx revert" = vấn đề GAS**, không
+   phải vấn đề cấu hình. Đây là tín hiệu đã chỉ thẳng ra đáp án.
+2. Đọc `readAllowList` từ chính precompile: `0x` rỗng = precompile TẮT · `0` = bật
+   nhưng không quyền · `2` = Admin. Tách ba trạng thái nhìn bề ngoài giống hệt nhau.
+3. Gửi lại với `gasLimit` tường minh.
+
+**Quyết định:** mọi giao dịch trong `preset-test.mjs` đặt `gasLimit` tường minh, kèm
+cờ `--rpc/--khoa` để chạy lại bài kiểm trên chain đã có — vòng gỡ lỗi từ 5,5 phút
+xuống vài giây. Vòng lặp chậm là thứ đẩy người ta sang đoán mò thay vì đo.
+
+⚠️ **Ảnh hưởng người dùng thật, chưa xử lý:** ai vừa đẻ chain rồi gọi precompile lần
+đầu sẽ thấy "tính năng hỏng". Cần ghi vào tài liệu hướng dẫn cho người đẻ chain
+(và cân nhắc để console tự gửi một giao dịch mồi sau khi đẻ xong).
