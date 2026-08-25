@@ -77,7 +77,7 @@ Ghi riêng để không lẫn với B-3.
 | H-3 | Có mở console đẻ chain ra Internet không | M4.5 |
 | H-4 | AAAA record `bootstrap-a1.9chain.org` (**DNS-only**, không mây cam) | M3.3 |
 | H-5 | URL Cosmos REST của C1 (`:1317`) | M7.3 (dashboard live) |
-| H-6 | 🔴 **Repo chưa có remote — code vẫn chỉ nằm trên MỘT ổ đĩa** | độ bền của mọi thứ |
+| H-6 | 🟡 **Repo vẫn chưa có remote** — nhưng H-6b đã chạy, không còn là "một ổ đĩa" | nơi đặt repo lâu dài |
 
 ### Ghi chú H-6 — 🔴 ĐẮT HƠN HẲN sau phiên 2026-08-25
 
@@ -107,7 +107,33 @@ là công bố toàn bộ lớp identity, tham số kinh tế mạng và công c
 Xong thì `git remote add origin … && git push -u origin main` cho cả `9Chain-A1` và
 nhánh `9chain-a1` trong `upstream/avalanchego`.
 
-### Ghi chú H-6b — stopgap KHÔNG cần David chọn nơi đặt lâu dài (chờ duyệt 1 chữ)
+### ✅ H-6b — ĐÃ CHẠY 2026-08-25 (David duyệt trong phiên thứ ba)
+
+Bản thứ hai đã tồn tại thật, ở **139.99.145.13:~/9chain-a1/backup/20260825-064053/**:
+`9chain-a1.bundle` (42 commit, đã clone ngược thử → HEAD khớp) + `avalanchego-patches/`
+(4 patch, đã áp thử → tree khớp từng byte). 6/6 sha256 khớp hai đầu.
+Bundle **không chứa bí mật nào** — đã kiểm `git ls-files`: chỉ 2 file `.env` là cấu
+hình Blockscout công khai, không có khoá.
+
+Kèm backup đầy đủ ở máy dev: `C:\PROJECTS\9Chain-backups\9chain-a1-backup-20260825-064053\`
+(28 file, `sha256sum -c` 28/28 OK) — có MANIFEST.txt + RESTORE.md.
+
+🔴 **Bẫy đã dính, ghi lại để không mất giờ lần sau:** `git bundle` cho repo fork
+avalanchego **sinh ra backup GIẢ**. `git bundle verify` in "is okay" + "records a
+complete history", nhưng clone ngược chết ngay: `remote did not send all necessary
+objects`. Lý do: repo fork là **shallow clone** (ranh giới `1cf1fc3`), và bundle từ
+repo shallow luôn hỏng — kể cả khi chỉ bundle đúng một nhánh.
+⇒ **`git bundle verify` KHÔNG đủ để tin. Phép đo đúng là CLONE NGƯỢC.**
+⇒ Với fork: dùng **patch series** (`git format-patch <base>..9chain-a1`) + ghi lại
+commit upstream gốc. Lớp chủ quyền chỉ có 4 commit trên `1cf1fc3`, upstream lấy lại
+được từ ava-labs. Nghiệm thu bằng cách áp patch lên base rồi so **tree hash**
+(`05c37aa4636ec64a39f5e06a0a90926e57a3d7e3`), không so commit hash — `git am` ghi lại
+committer nên commit hash đổi mà cây mã nguồn vẫn đúng từng byte.
+
+**H-6 gốc vẫn mở** (nơi đặt repo lâu dài + private/public) nhưng đã hạ mức: code không
+còn nằm trên một ổ đĩa duy nhất.
+
+### Ghi chú H-6b (nguyên văn lúc còn chờ duyệt)
 
 Trong lúc chờ quyết định GitHub cá nhân/org/self-host + private/public, có một bước
 rẻ tạo được **bản thứ hai trên một máy khác** mà không công bố gì:

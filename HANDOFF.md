@@ -15,10 +15,16 @@ Kèm `DECISIONS.md` (vì sao làm vậy) và `BLOCKERS.md` (đang chờ David c�
 `blockscout/` — thư mục đó bị gitignore, vá ở đó thì `setup.sh` clone lại là mất.
 Chi tiết + phép chứng minh override tự đứng được: `BLOCKERS.md` mục "Đã gỡ" B-5.
 
-**2. Backup.** Không có backup nào tồn tại — không thư mục, không crontab, không
-systemd timer (đã kiểm). Toàn bộ lịch sử chain + 5 danh tính validator + danh bạ L1
-nằm trên **một ổ RAID1 duy nhất**. Mọi mốc khác mất giá trị bằng 0 nếu ổ hỏng.
-Kèm luôn H-6b (`git bundle` sang server) nếu David đã gật.
+**2. ✅ Backup — ĐÃ CÓ (2026-08-25, phiên thứ ba).** Bản đầu tiên của dự án:
+`C:\PROJECTS\9Chain-backups\9chain-a1-backup-20260825-064053\` — 28 file,
+`sha256sum -c` **28/28 OK**, kèm `MANIFEST.txt` + `RESTORE.md`.
+Gồm 5 danh tính validator, genesis, danh bạ L1, bí mật, và git (bundle repo chính +
+patch series lớp chủ quyền). **H-6b đã chạy**: bản thứ hai của git nằm ở
+`139.99.145.13:~/9chain-a1/backup/20260825-064053/`.
+🔴 **Còn thiếu 2 thứ, đừng tưởng đã đủ** — xem `MANIFEST.txt` mục "CÒN THIẾU":
+(a) **chain data** (7,7 GB) — cần dừng 1 node mới chụp nhất quán;
+(b) **`keys.txt`** vẫn chỉ có một nơi thật (ổ C: máy dev) vì quy tắc cứng cấm đưa lên
+server ⇒ bản thứ hai phải là phương tiện offline, **David quyết**.
 
 **3. Validator thứ sáu ở nhà cung cấp KHÁC.** `[human]` — tốn tiền hạ tầng.
 Cả 5 validator đang ở **một máy, một nhà cung cấp, một datacenter**: "testnet 5
@@ -232,6 +238,15 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
   được cache CHÍNH VÌ output trùng digest. Ba thứ khác nhau, phải đo thứ cuối: **bước
   build có chạy không ≠ layer có cache không ≠ binary có giống không.** Phép đo đúng
   là `sha256sum` chính binary trong image, so với binary đang chạy thật.
+- 🔴 **`git bundle` cho repo fork avalanchego sinh ra BACKUP GIẢ.** `git bundle verify`
+  in "is okay" **và** "The bundle records a complete history", nhưng clone ngược chết:
+  `remote did not send all necessary objects`. Repo fork là **shallow clone** (ranh giới
+  `1cf1fc3`); bundle từ repo shallow luôn hỏng, kể cả khi chỉ bundle một nhánh.
+  ⇒ **`git bundle verify` KHÔNG đủ để tin — phép đo đúng là CLONE NGƯỢC.**
+  ⇒ Sao lưu fork bằng **patch series**: `git format-patch 1cf1fc3..9chain-a1` (4 patch)
+  + ghi commit upstream gốc. Nghiệm thu bằng cách áp lên base rồi so **tree hash**
+  (`05c37aa4…`), **không so commit hash** — `git am` ghi lại committer nên commit hash
+  đổi trong khi cây mã nguồn vẫn đúng từng byte.
 - **Đừng dùng `apply-sovereign.sh` để diễn tập rebase** — nó kết thúc bằng
   `git branch -f 9chain-a1 HEAD`, tức là **ghi đè nhánh thật**. Dùng `rebase-drill.sh`
   (worktree tách rời + chốt chặn xác nhận nhánh thật không đổi hash).
