@@ -102,6 +102,60 @@ export async function goiConsole<T = unknown>(
   return j as T;
 }
 
+export type TienTrinh = {
+  dangChay: boolean;
+  loai: string | null;
+  ten: string | null;
+  buoc: { ma: string; nhan: string; trangThai: 'cho' | 'chay' | 'xong' | 'hong'; ms?: number }[];
+  loi: string | null;
+  uocConLaiGiay: number;
+};
+
+/**
+ * ═══ 🔴 ĐỪNG TIN CÁI POST DÀI — CLOUDFLARE CẮT NÓ Ở ~100 GIÂY ═══
+ *
+ * Đẻ và thu hồi chain đều mất **~170 giây**. Cloudflare (gói hiện dùng) đóng kết nối
+ * proxy ở khoảng **100 giây** và trả **HTTP 524**. Nên qua tên miền công khai, lượt
+ * POST **luôn luôn** hỏng — trong khi thao tác ở server vẫn **chạy tới cùng và
+ * thành công**.
+ *
+ * Đo thật 2026-08-25: thu hồi `ViThuTest` từ giao diện → trình duyệt nhận 524 →
+ * màn hình báo *"Không thu hồi được"*, trong khi `console-chains.json` đã ghi chain
+ * đó vào `retired`. Giao diện **nói dối theo hướng tệ nhất**: nó mời người dùng thử
+ * lại một việc đã xong, và với đẻ chain thì lần thử lại là một chain thừa ăn mất
+ * một slot trong trần 15.
+ *
+ * ⇒ Kết quả của POST là **KHÔNG KẾT LUẬN ĐƯỢC**. Sự thật nằm ở hai chỗ khác:
+ *   1. `/api/tien-trinh` — biết lượt chạy đã kết thúc chưa, và có lỗi không.
+ *   2. `/api/status` — danh bạ sau đó nói chain có thật sự tồn tại / biến mất không.
+ *
+ * Hàm này lo phần (1). Phần (2) do từng màn tự kiểm, vì "thành công" của đẻ và của
+ * thu hồi là hai mệnh đề ngược nhau.
+ */
+export async function choTienTrinhXong(
+  token: string,
+  { moiMs = 2000, tranGiay = 900 }: { moiMs?: number; tranGiay?: number } = {},
+): Promise<TienTrinh | null> {
+  const hetLuc = Date.now() + tranGiay * 1000;
+  let cuoi: TienTrinh | null = null;
+  let daThayChay = false;
+  while (Date.now() < hetLuc) {
+    try {
+      const t = await goiConsole<TienTrinh>('/api/tien-trinh', token);
+      cuoi = t;
+      if (t.dangChay) daThayChay = true;
+      // Chỉ kết luận "xong" SAU KHI đã thấy nó chạy: gọi quá sớm thì hàng đợi chưa
+      // kịp nhận việc và `dangChay` vẫn là false của lượt TRƯỚC — kết luận lúc đó
+      // là đọc kết quả của một thao tác khác.
+      if (daThayChay && !t.dangChay) return t;
+    } catch {
+      /* Một nhịp đọc hỏng không phải lý do bỏ cuộc — server vẫn đang làm việc. */
+    }
+    await new Promise((r) => setTimeout(r, moiMs));
+  }
+  return cuoi;
+}
+
 /** Thêm một L1 vừa đẻ vào ví người dùng, đúng khuôn EIP-3085. */
 export async function themL1VaoVi(p: {
   chainIdHex: string;

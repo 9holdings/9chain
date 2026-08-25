@@ -5,7 +5,8 @@ import { Nut, The, O, Nhan, Xuong, CoLoi, LuuY, ChepDuoc, CacBuoc, type MotBuoc 
 import { rutGon } from '@/lib/eip55';
 import { vi, dien } from '@/lib/i18n/vi';
 import {
-  layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, kichHoatChain, type PhienVi,
+  layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, kichHoatChain, choTienTrinhXong,
+  type PhienVi,
 } from '@/lib/ket-noi-vi';
 
 /**
@@ -116,15 +117,44 @@ export function ManDeChain() {
     if (!phien) return;
     datLoiDe(null);
     datPha('chay');
-    try {
-      const kq = await goiConsole<KetQua>('/api/create', phien.token, { name: ten.trim(), preset });
-      datKetQua(kq);
+
+    // 🔴 KHÔNG kết luận từ cái POST này. Đẻ chain mất ~170 giây; Cloudflare cắt kết
+    // nối ở ~100 giây và trả HTTP 524, nên qua tên miền công khai lượt POST **luôn**
+    // hỏng trong khi chain vẫn được đẻ xong. Báo "không đẻ được" lúc đó là mời người
+    // dùng bấm lại một việc đã xong — và chain thừa ăn mất một slot trong trần 15,
+    // vĩnh viễn giữ luôn tên và chainId. Xem `choTienTrinhXong`.
+    let kqPost: KetQua | null = null;
+    let loiPost: string | null = null;
+    const post = goiConsole<KetQua>('/api/create', phien.token, { name: ten.trim(), preset })
+      .then((k) => { kqPost = k; })
+      .catch((e) => { loiPost = String((e as Error).message ?? e); });
+
+    const tt2 = await choTienTrinhXong(phien.token);
+    await post.catch(() => {});
+
+    if (kqPost) {
+      datKetQua(kqPost);
       datPha('xong');
       void napTrangThai(phien.token);
-    } catch (e) {
-      datLoiDe(dien(vi.deChain.loiDe, { chiTiet: String((e as Error).message ?? e) }));
-      datPha('nhap');
+      return;
     }
+
+    // POST không về được ⇒ hỏi DANH BẠ xem chain có thật sự tồn tại không.
+    try {
+      const st = await goiConsole<{ chains: KetQua[] } & TrangThai>('/api/status', phien.token);
+      datTt(st);
+      const co = st.chains.find((c) => c.name === ten.trim());
+      if (co) {
+        // Danh bạ không mang `luuY` (nó do `/api/create` sinh ra), nên dựng lại lời
+        // dặn ở đây thay vì im lặng bỏ mất nó.
+        datKetQua({ ...co, luuY: { tieuDe: vi.deChain.luuYTieuDe, cachLam: vi.deChain.luuYCachLam } });
+        datPha('xong');
+        return;
+      }
+    } catch { /* đọc danh bạ hỏng — rơi xuống nhánh báo lỗi bên dưới */ }
+
+    datLoiDe(dien(vi.deChain.loiDe, { chiTiet: tt2?.loi ?? loiPost ?? vi.deChain.loiKhongRo }));
+    datPha('nhap');
   }
 
   /* ─────────────────────────────────────────────────────────────── giao diện */

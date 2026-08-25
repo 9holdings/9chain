@@ -794,7 +794,39 @@ có thứ tự cao nhất.** Trong lúc chờ: nút chính trỏ vào trang "đa
       nay đọc `/api/tien-trinh` và **từ chối restart** khi có lượt đang chạy.
       Kèm một lỗi cùng họ đã sửa: lượt thu hồi trước đây **ghi đè tiến trình của lượt
       đẻ vừa xong** (kéo bước `node-2` từ "xong" về "chay" ⇒ giao diện chạy lùi).
-- [ ] M10.5 — "Chain của tôi" + thu hồi → qua khi: thu hồi thật một chain từ giao diện
+- [x] M10.5 — **"Chain của tôi" + thu hồi — XONG, đã thu hồi THẬT một chain từ giao diện.**
+
+      **Nghiệm thu qua Cloudflare bằng đường THẬT** (chữ ký ví thật của
+      `0xa5D486…407D`, ký ngoài trình duyệt rồi đưa vào; nonce thật; `/api/siwe/login`,
+      `/api/status`, `/api/revoke` đều đi tới server thật):
+      danh sách **chỉ hiện chain của ví đang đăng nhập** (`ViThuTest#9139` — chain
+      của người khác bị ẩn đúng) · số validator **đo sống** (5) · hộp xác nhận nói đủ
+      hai điều người dùng không đoán được · nút thu hồi **tắt** cho tới khi gõ đúng
+      tên · thu hồi thật → **"Đã thu hồi ViThuHai. Còn 12/15 chỗ."**
+
+      🔴 **PHÁT HIỆN LỚN NHẤT CỦA MỐC NÀY — Cloudflare cắt POST ở ~100 giây (HTTP 524),
+      mà đẻ/thu hồi chain mất ~170 giây.** Nghĩa là qua tên miền công khai, lượt POST
+      **LUÔN LUÔN hỏng** trong khi server vẫn chạy tới cùng và **thành công**.
+      Đo thật: thu hồi `ViThuTest` từ giao diện → trình duyệt nhận **524** → màn hình
+      báo *"Không thu hồi được"*, trong khi `console-chains.json` **đã ghi chain đó
+      vào `retired`**. Giao diện nói dối theo hướng tệ nhất: nó mời người dùng làm
+      lại một việc đã xong — và với **đẻ chain** thì lần làm lại là một chain thừa ăn
+      mất một slot trong trần 15 **và giữ vĩnh viễn tên + chainId**.
+
+      **Cách sửa (áp cho CẢ hai màn):** kết quả của POST là **không kết luận được**.
+      Bắn POST rồi đọc `/api/tien-trinh` cho tới khi lượt chạy kết thúc, sau đó hỏi
+      **danh bạ** xem sự thật là gì — thu hồi thành công ⇔ chain không còn trong
+      `chains`; đẻ thành công ⇔ chain xuất hiện trong `chains`.
+      ⚠️ Chỉ kết luận "xong" **sau khi đã thấy `dangChay=true` ít nhất một lần**: gọi
+      quá sớm thì hàng đợi chưa nhận việc và ta đọc trúng kết quả của lượt TRƯỚC.
+
+      🔴 **Một lỗi nữa tự bắt được trong lúc viết màn này:** tôi dùng `0` làm giá trị
+      "đang đo" số validator. Nhưng **0 validator là một trạng thái THẬT và nguy
+      hiểm** — subnet track mà chưa có validator thì chain vẫn trả lời `eth_chainId`,
+      vẫn đọc được số dư, MetaMask vẫn kết nối, **chỉ là giao dịch không bao giờ
+      chốt**, và không có dấu hiệu bề ngoài nào khác. Dùng 0 làm sentinel là che đúng
+      cái trạng thái cần hiện. Nay sentinel là `'dang'`, và 0 validator hiện một cảnh
+      báo riêng.
 - [ ] M10.6 — Dashboard A1↔C1 → qua khi: chịu được C1 vắng mặt (H-5) mà không như hỏng
 - [ ] M10.7 — Dọn: `/lite/` redirect, gỡ trang cũ khi 9Scan `/chains/` lên
       → qua khi: không URL nào chết

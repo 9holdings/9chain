@@ -176,6 +176,61 @@ export const vi = {
     xongDangKichHoat: 'Đang chờ ví…',
     deTiep: 'Đẻ chain khác',
     loiDe: 'Không đẻ được chain. {chiTiet}',
+    loiKhongRo: 'Chain không xuất hiện trong danh bạ sau khi lượt chạy kết thúc.',
+    luuYTieuDe: 'Giao dịch đầu tiên của chain mới',
+    luuYCachLam:
+      'Đừng tin ước lượng gas cho giao dịch đầu. Cách rẻ nhất để mở block 1 là một ' +
+      'giao dịch chuyển tiền thường — bấm “Kích hoạt chain” bên dưới.',
+  },
+
+  chainCuaToi: {
+    tieuDe: 'Chain của tôi',
+    moTa: 'Các L1 do ví đang đăng nhập làm chủ. Thu hồi được, nhưng đọc kỹ phần cảnh báo.',
+    noiVi: 'Kết nối ví để xem chain của bạn',
+    trongTieuDe: 'Ví này chưa làm chủ chain nào',
+    trongMoTa: 'Đẻ một chain rồi quay lại — nó sẽ hiện ở đây ngay.',
+    trongNut: 'Đẻ chain của bạn',
+
+    cotChain: 'Chain',
+    cotKieu: 'Kiểu',
+    cotSong: 'Tình trạng',
+    cotViec: '',
+
+    songDo: '{so} validator',
+    songDangDo: 'đang đo',
+    songKhongDo: 'chưa đo được',
+    // Vì sao đo bằng validator chứ không bằng chiều cao block — xem chú thích trong mã.
+    songGiaiThich: 'Đo bằng số validator của subnet, không bằng chiều cao block.',
+    khongValidator: '0 validator',
+    khongValidatorMoTa:
+      'Chain này KHÔNG chốt được giao dịch nào: subnet chưa có validator. Nó vẫn trả lời ' +
+      'RPC và ví vẫn kết nối được, nên không có dấu hiệu nào khác để nhận ra.',
+
+    thongSo: 'Thông số cho ví',
+    themVaoVi: 'Thêm vào ví',
+    daThemVaoVi: 'Đã thêm',
+
+    thuHoi: 'Thu hồi',
+    thuHoiTieuDe: 'Thu hồi “{ten}”?',
+    thuHoiY1: 'Chain ngừng phục vụ RPC ngay lập tức và biến khỏi danh bạ công khai.',
+    thuHoiY2:
+      'Thu hồi KHÔNG xoá subnet trên P-Chain — thứ đã đẻ ra ở đó là vĩnh viễn. ' +
+      'Nó cũng không xoá mạng khỏi ví của những người đã thêm chain này.',
+    thuHoiY3:
+      'Tên và Chain ID bị giữ chỗ VĨNH VIỄN, không cấp lại cho ai. Cấp lại Chain ID ' +
+      'là để ví của người từng dùng chain cũ lặng lẽ trỏ vào chain của người khác.',
+    thuHoiY4: 'Đổi lại, một chỗ trong trần 15 L1 được trả về.',
+    thuHoiGoNhan: 'Gõ lại đúng tên chain để xác nhận',
+    thuHoiSaiTen: 'Chưa khớp tên chain.',
+    thuHoiXacNhan: 'Thu hồi vĩnh viễn',
+    thuHoiHuy: 'Hủy',
+    thuHoiDangChay: 'Đang thu hồi “{ten}” — khoảng ba phút',
+    thuHoiXong: 'Đã thu hồi “{ten}”. Còn {con}/{tong} chỗ.',
+    thuHoiLoi: 'Không thu hồi được. {chiTiet}',
+    thuHoiKhongRo: 'Chain vẫn còn trong danh bạ sau khi lượt chạy kết thúc.',
+
+    daThuHoi: 'Đã thu hồi',
+    daThuHoiMoTa: 'Giữ chỗ tên và Chain ID vĩnh viễn.',
   },
 
   faucet: {
