@@ -6,7 +6,19 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
-### B-7 — Explorer không phân biệt được "L1 đã thu hồi" với "L1 hết slot track"
+### ✅ B-7 — ĐÃ TRẢ LỜI (2026-08-25) — phân biệt được sẵn, không cần trường mới
+**Trả lời đầy đủ:** `docs/requests-from-9scan/2026-08-25-node-tracking-TRA-LOI.md`.
+Tóm tắt: `console-chains.json` đã tách bằng **cấu trúc** — mảng `chains` (6, đang
+track) và `retired` (**21**, đã thu hồi có chủ ý). **21 đó khớp chính xác con số "21
+không node nào track"** ⇒ toàn bộ nhóm đang bị gộp dưới `not served here` thực ra là
+chain đã thu hồi, không có chain nào "bình thường mà hết slot". Không thêm trường
+`status`: nó là nguồn sự thật thứ hai cho thứ cấu trúc đã nói. Mỗi bản ghi có
+`thuHoiLuc` để explorer viết "đã thu hồi lúc …".
+Phát hiện P-Chain của họ **đúng** (= D-013); đã xác nhận vế bổ sung cho D-005:
+tập validator là điều kiện **CẦN, không đủ**.
+
+(nguyên văn yêu cầu, giữ lại để đọc bối cảnh)
+### B-7 (yêu cầu gốc) — Explorer không phân biệt được "L1 đã thu hồi" với "L1 hết slot track"
 **Yêu cầu từ repo `9Scan-A1`, 2026-08-25.** Bản đầy đủ:
 `docs/requests-from-9scan/2026-08-25-node-tracking.md`. **Không phải báo lỗi** — trần 16
 và hướng ACP-77 đã quyết ở H-2/D-009, đây là hệ quả của D-013 nhìn từ ngoài.
@@ -29,26 +41,27 @@ một lời nói dối đã lên production).
 **Câu hỏi thực tế kèm theo:** 9 slot trống có định dùng cho L1 nào không? Chain được
 track là chain đó đọc được đầy đủ trên explorer và được `9index` index tự động.
 
-### B-6 — Caddyfile nguồn KHÔNG có site block của explorer ⇒ mỗi lần deploy Caddy là xoá nó
-**Yêu cầu từ repo `9Scan-A1`, 2026-08-25.** Bản đầy đủ + khối cấu hình dán được:
-`docs/requests-from-9scan/2026-08-25-caddy-site-block.md`.
+### B-8 — `tai-test.mjs` TREO khi số ví lớn (300), không có trần thời gian tổng
+**2026-08-25.** Chạy `--preset thong-luong-cao --phut 8 --vi 300`: chain đẻ xong,
+đến block 2 rồi **đứng im**. Đo lúc phát hiện: tiến trình đã sống **2 giờ 59 phút**
+cho một bài khai `--phut 8`, **CPU 0,1%**, chiều cao block không nhúc nhích.
 
-`grep -c 9scan local-net/deploy/Caddyfile` → **0**. Site block `testnet-a1.9scan.org`
-được áp thẳng lên server hồi M6 và chưa bao giờ vào nguồn.
+Với `--vi 60` thì chạy trọn vẹn (206,5 TPS). Nên nghi ngờ hàng đầu là **300 lượt
+`sendTransaction` song song từ một tiến trình Node**: một số lượt không bao giờ
+resolve ⇒ `Promise.all` treo vĩnh viễn.
 
-**Đã gây sự cố thật hôm nay:** `caddy-deploy.sh` chạy lúc 12:47 UTC (cùng đợt commit
-`cd34d43` M7.2) ⇒ Caddyfile mới chỉ khai hai domain zone `9chain.org` ⇒ Caddy hết cert
-cho zone `9scan.org` ⇒ Cloudflare bắt tay TLS thất bại ⇒ explorer trả **525 trong 31
-phút**. Bên explorer đã khôi phục tay trên server lúc 13:18 (`caddy validate` +
-`caddy reload` graceful, RPC không gián đoạn) — nhưng **bản khôi phục cũng chỉ nằm trên
-server**, nên lần deploy Caddy kế tiếp lại xoá tiếp.
+🔴 **Lỗi thật sự đáng sửa không phải chỗ treo — mà là bài đo KHÔNG CÓ TRẦN THỜI GIAN
+TỔNG.** `--phut 8` chỉ bó vòng bơm tải, không bó pha nạp ví. Nên khi treo, nó treo
+**im lặng và vô hạn**, giữ luôn một slot L1 và một chain đang sống. Bài đo tự nhận
+là có "chốt an toàn" mà chốt đó không bao gồm chính nó.
 
-🔴 **Vì sao nhìn từ bên chain không thấy gì:** RPC và `testnet-a1.9chain.org` không hề
-hấn — chúng cùng file Caddyfile và vẫn được sinh bình thường. M7.2 tự nó không sai.
+**Cần làm:** một `setTimeout` bao cả lượt chạy (vd `--phut` + 10 phút) ép thoát và
+**vẫn chạy đường thu hồi**; và nạp ví theo lô (vd 50 ví/lô) thay vì một `Promise.all`
+300 phần tử.
 
-**Việc cần:** dán khối site block vào `local-net/deploy/Caddyfile` (dùng sẵn snippet
-`(origintls)`/`(secheaders)`), và cân nhắc thêm một dòng `curl` tự kiểm zone explorer ở
-cuối `caddy-deploy.sh`.
+**Đã dọn tay:** giết tiến trình, thu hồi `TaiJA4YM` (còn 6/15 L1), smoke **17/17 đạt**.
+Đã loại trừ bản vá Cloudflare là nguyên nhân — server gọi tên miền công khai của
+chính nó vẫn **200 trong 77ms**.
 
 ### B-2 — Blockscout: `stats` crash-loop 807 lần, `backend` ngốn hơn cả 5 validator
 **2026-08-25, đo trên server lúc mạng tĩnh.**
@@ -235,6 +248,32 @@ cho mỗi L1 một tập validator riêng — chính là ACP-77.
 ---
 
 ## Đã gỡ
+
+### ✅ B-6 — ĐÃ GỠ (2026-08-25) — site block explorer nay nằm TRONG NGUỒN
+Deploy Caddy của phiên này (`cd34d43`, M7.2) **xoá mất site block
+`testnet-a1.9scan.org`** ⇒ Caddy hết cert cho zone `9scan.org` ⇒ Cloudflare bắt tay
+TLS thất bại ⇒ explorer trả **525 trong 31 phút**. Bên 9Scan khôi phục tay lúc 13:18.
+
+🔴 **Bản thân M7.2 không sai.** Gốc là site block đó được áp thẳng lên server hồi M6
+của bên explorer và **chưa bao giờ vào nguồn**, nên mọi lượt `caddy-deploy.sh` đều
+xoá nó — hôm nay chỉ là lần đầu bị bắt.
+
+**Đã làm:**
+1. Khối `testnet-a1.9scan.org` vào `local-net/deploy/Caddyfile` (kèm
+   `import chi_cloudflare` — đã **đo** cả ba tên miền đều phân giải về IP Cloudflare
+   trước khi siết, không tin lời khai), thêm deep-link `/validator/*` họ xin, dùng
+   `path_regexp` để **giữ nguyên hoa/thường** vì NodeID là base58.
+2. `caddy-deploy.sh` nay tự kiểm **MỌI tên miền**, danh sách **suy từ chính Caddyfile
+   vừa áp** chứ không cắm cứng — cắm cứng là đẻ ra danh sách thứ hai phải nhớ cập
+   nhật, mà quên cập nhật danh sách đúng là cách sự cố này xảy ra lần đầu. Nó gọi
+   tên riêng mã 52x: *"Cloudflare không bắt tay TLS được — site block còn không?"*
+3. Chạy thật: `✓ testnet-a1.9scan.org → 200`, và cả ba zone đều 200 qua Cloudflare,
+   403 khi nối thẳng vào origin.
+
+**Bài học, đã trả giá HAI lần trong dự án này** (lần trước là B-5, thư mục
+`blockscout/` bị gitignore): **vá thẳng trên server mà không vào nguồn thì không
+phải "đã sửa" — nó là quả mìn hẹn giờ tới lượt deploy sau.** Và lần này quả mìn nổ
+vào tay người khác, không phải người đặt nó.
 
 ### ✅ B-4 — ĐÃ GỠ (2026-08-25, phiên thứ tư) — ba lỗi của BÀI KIỂM, không phải của sản phẩm
 Chạy lại trọn bộ trên mạng công khai: **40/40 ĐẠT**. Xem D-029.
