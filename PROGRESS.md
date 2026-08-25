@@ -211,6 +211,40 @@ Demo mạnh nhất của A1; tiêu chí "Interop" đang tự chấm 3/5 trong da
 
 ---
 
+## M8 — Fork tự đứng được (mở khoá 2026-08-25 khi B-1 được gỡ)
+
+**Vì sao thành mốc riêng:** kiểm kê ngày 2026-08-25 cho thấy lớp chủ quyền chỉ là
+**~139 dòng sửa avalanchego** trên 7 file (1266 dòng còn lại trong diff là công cụ
+vận hành `9chain-a1-tools/`, không phải chain). Patch mỏng là **điểm mạnh** — nó giữ
+cho fork rebase được. Nhưng cả ba đường sống của một fork mỏng đều **chưa từng chạy
+lần nào**: chưa build lại, chưa chạy test, chưa rebase thử. Trước khi chạy được ba
+thứ đó, mọi khẳng định về độ bền của fork đều là suy đoán.
+
+Docker Desktop đã lên lại (B-1 gỡ, 2026-08-25) — đây là lúc làm.
+
+- [ ] M8.1 — Build image từ cây đã commit, `--version` in `9chaingo` (chính là M0.6)
+- [ ] M8.2 — Chạy test suite upstream cho **các gói fork có chạm**: `genesis`,
+      `config`, `utils/constants`, `version`. Đây là nơi rủi ro thật nằm — đổi
+      `FallbackHRP`, đổi symbol tài sản AVM, thêm nhánh `A1NetworkID` vào
+      `getStakingConfig`/`getTxFeeConfig` đều là loại thay đổi test upstream bắt được.
+      Chạy trong Docker (KB: avalanchego không build native trên Windows, `utils/ulimit`).
+- [ ] M8.3 — Chạy thử `go test ./...` toàn bộ một lần để biết **nền** là gì
+      (upstream có thể vốn đã đỏ vài gói) — không có nền thì không đọc được kết quả M8.2
+- [ ] M8.4 — Diễn tập rebase: fetch upstream mới → `apply-sovereign.sh` → xem patch nào
+      trôi. `genesis_9chain_a1.go` tự ghi "nhánh `case A1NetworkID` trong params.go phải
+      kiểm tra lại sau mỗi lần rebase" — chưa có lần nào để kiểm.
+
+**Điều kiện qua M8:** dựng lại được binary từ số 0, biết chắc fork không làm hỏng test
+nào của upstream, và đã đi qua đường rebase ít nhất một lần.
+
+**KHÔNG thuộc M8** (đã cân nhắc và loại): xoá nốt dấu vết upstream ở lớp vận hành —
+env prefix `avago` (`config/viper.go:18`), thư mục dữ liệu `~/.avalanchego`
+(`config/flags.go:46`), `DEFAULT_VM_NAME="subnet-evm"`, module path `ava-labs/avalanchego`,
+81 file `.go` còn chuỗi `AVAX`. Người dùng cuối không thấy chúng, còn sửa thì làm patch
+chủ quyền dày lên — đúng thứ giết fork lúc rebase. Đổi lấy cái không ai nhìn thấy.
+
+---
+
 ## Chờ David — KHÔNG code thay được
 
 - [human] **Tokenomics**: supply cap 720,000,000 LOVE9 (đang kế thừa từ Avalanche, chưa ai duyệt) ·
