@@ -281,8 +281,13 @@ Docker Desktop đã lên lại (B-1 gỡ, 2026-08-25) — đây là lúc làm.
       **KHÔNG dùng `apply-sovereign.sh` để diễn tập** — script đó kết thúc bằng
       `git branch -f 9chain-a1 HEAD`, tức là ghi đè nhánh thật.
 
-**Điều kiện qua M8:** dựng lại được binary từ số 0, biết chắc fork không làm hỏng test
-nào của upstream, và đã đi qua đường rebase ít nhất một lần.
+**Điều kiện qua M8:** ✅ **ĐẠT cả 4/4** (2026-08-25). Dựng lại được binary — và nó
+**trùng từng byte** với bản đang chạy công khai. Biết chắc fork chỉ làm đỏ 2 gói, cả
+hai đều do đổi tên. Đã đi qua đường rebase và biến nó thành script chạy lại được.
+
+**Câu trả lời cho "fork hoàn thiện chưa" sau M8:** ba lỗ hổng nêu ra sáng nay đã bịt.
+Còn lại **không phải chuyện fork** mà là chuyện kiến trúc sản phẩm: subnet cổ điển,
+trần 15 L1, ACP-77 (H-1/H-2).
 
 **KHÔNG thuộc M8** (đã cân nhắc và loại): xoá nốt dấu vết upstream ở lớp vận hành —
 env prefix `avago` (`config/viper.go:18`), thư mục dữ liệu `~/.avalanchego`

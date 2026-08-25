@@ -70,7 +70,21 @@ WSL update / cần đăng nhập lại), hoặc `wsl --update && wsl --shutdown`
 | H-5 | URL Cosmos REST của C1 (`:1317`) | M7.3 (dashboard live) |
 | H-6 | 🔴 **Repo chưa có remote — code vẫn chỉ nằm trên MỘT ổ đĩa** | độ bền của mọi thứ |
 
-### Ghi chú H-6 — git đã có, nhưng chưa có bản thứ hai
+### Ghi chú H-6 — 🔴 ĐẮT HƠN HẲN sau phiên 2026-08-25
+
+Kiểm lại lúc định push cuối phiên: repo `9Chain-A1` **không có remote nào**, còn repo
+fork chỉ có `origin` trỏ `github.com/ava-labs/avalanchego` — tức là upstream của người
+khác, không phải chỗ đẩy nhánh `9chain-a1` lên được. **Không có đường push nào tồn tại.**
+
+Phiên này đẻ thêm 7 commit gồm: endpoint thu hồi chain (đã nghiệm thu 29/29 trên mạng
+công khai), chứng minh build tái lập từng byte, nền test đầy đủ, và `rebase-drill.sh`.
+Toàn bộ vẫn nằm trên **một ổ đĩa**. Ổ hỏng đêm nay là mất, và mất kèm cả lý do — vì
+DECISIONS/BLOCKERS cũng ở đó.
+
+Đây là việc chặn có thật, không phải hình thức: **mọi mốc làm thêm chỉ làm số tiền
+mất đi khi ổ hỏng lớn lên.**
+
+### Ghi chú H-6 (cũ) — git đã có, nhưng chưa có bản thứ hai
 
 M0 đã đưa toàn bộ lớp chủ quyền vào git (2 repo, 5 commit gốc + patch series cứu hộ).
 Nhưng cả hai repo **chưa có remote** — chưa `push` được đi đâu. Ổ đĩa hỏng là mất hết,
@@ -116,3 +130,21 @@ một lần khởi động thành công vì đó là **banner cũ** còn nằm l
 **Gỡ bằng:** `local-net/deploy/console-restart.sh` — chờ cổng nhả hẳn, khởi động,
 rồi **tự kiểm chứng bằng `ss -tln`** và exit khác 0 nếu không lên. Không còn phải
 nhớ mẹo ngoặc vuông bằng tay.
+
+### H-6b — Stopgap KHÔNG cần David chọn nơi đặt lâu dài (chờ duyệt 1 chữ)
+
+Trong lúc chờ quyết định GitHub cá nhân/org/self-host + private/public, có một bước
+rẻ tạo được **bản thứ hai trên một máy khác** mà không công bố gì:
+
+```bash
+git bundle create /tmp/9chain-a1.bundle --all   # 1 file, đủ toàn bộ lịch sử
+scp -i "$A1_SSH_KEY" /tmp/9chain-a1.bundle "$A1_SSH_HOST":'~/9chain-a1/backup/'
+```
+
+Server `139.99.145.13` vốn đã giữ mã nguồn (`~/9chain-a1/src`), nên đây không phải
+đưa thứ gì mới ra ngoài — chỉ thêm **lịch sử git** cạnh mã đã có. Không phải publish,
+không phải chọn nhà cho repo, gỡ lúc nào cũng được.
+
+**Autopilot KHÔNG tự làm** vì H-6 là việc David đã nêu đích danh là quyết định của
+mình; tự đẩy repo sang máy khác dù private vẫn là lấn vào đúng chỗ đó. Cần một chữ
+"ừ" là chạy được ngay.
