@@ -83,6 +83,11 @@ const NODE_CONTAINER = process.env.A1_NODE_CONTAINER || "9chain-a1-node";
 const COMPOSE = ["compose", "-f", COMPOSE_FILE];
 const CFG_DIR = path.join(ROOT, "9chain-a1-config");
 const TMP_DIR = path.join(CFG_DIR, "console-tmp");
+// Cấu hình riêng của từng chain: `<CHAIN_CFG_DIR>/<blockchainID>/config.json`.
+// Compose mount thư mục cha vào cả 5 node ở `/9chain-a1/config` (ro) và mỗi node
+// chạy với `--chain-config-dir=/9chain-a1/config/chains`, nên ghi MỘT lần ở đây là
+// cả 5 node cùng đọc. Xem ghiChainConfig().
+const CHAIN_CFG_DIR = path.join(CFG_DIR, "chains");
 const STATE = path.join(CFG_DIR, "console-chains.json");
 // Khuôn genesis cho mọi L1. JSON không chứa được chú thích, mà trong đó có đúng một
 // con số không tự giải thích nổi — `warpConfig.blockTimestamp: 1607144400`:
@@ -131,6 +136,7 @@ const CLI_KEY = requireSecret("A1_CLI_KEY", {
 
 const run = promisify(execFile);
 if (!existsSync(TMP_DIR)) mkdirSync(TMP_DIR, { recursive: true });
+if (!existsSync(CHAIN_CFG_DIR)) mkdirSync(CHAIN_CFG_DIR, { recursive: true });
 
 /**
  * Đọc danh bạ + chuẩn hoá hình dạng.
@@ -464,6 +470,50 @@ export const LUU_Y_GIAO_DICH_DAU = {
 // Đây là thứ quyết định "người bấm nút có sở hữu chain của họ không" — nên nó
 // được kiểm tra kỹ (EIP-55) trước khi ghi vào genesis: genesis đã đẻ là bất biến,
 // gõ sai một ký tự là chain vĩnh viễn vô chủ.
+/**
+ * Ghi cấu hình VM cho MỘT chain — hiện chỉ để bật API Warp.
+ *
+ * ═══ VÌ SAO ĐÂY LÀ VIỆC BẮT BUỘC, KHÔNG PHẢI TUỲ CHỌN ═══
+ * Bật Warp precompile trong genesis (M6.1) mới là **một nửa**. Nửa còn lại là API:
+ * `plugin/evm/vm.go:1179` chỉ đăng ký namespace `warp` khi `vm.config.WarpAPIEnabled`,
+ * mà `plugin/evm/config/config.go:38` KHÔNG đặt mặc định ⇒ giá trị zero của Go ⇒
+ * **false**. Không có API đó thì không gọi được `warp_getMessageAggregateSignature`,
+ * tức không gom được chữ ký BLS của validator, tức message gửi đi **không bao giờ
+ * chứng minh được ở đầu kia**.
+ *
+ * Và nó hỏng đúng kiểu tệ nhất của dự án này: `sendWarpMessage` trên chain nguồn
+ * vẫn là giao dịch THẬT, vẫn chốt, vẫn sinh log. Mọi dấu hiệu ở đầu gửi đều xanh.
+ * Chỉ tới lúc đi tổng hợp chữ ký mới lộ ra, và lỗi khi đó là `method not found` —
+ * đọc như "gọi sai tên hàm" chứ không như "thiếu cấu hình".
+ *
+ * ═══ VÌ SAO GHI Ở HOST, TRƯỚC KHI RESTART ═══
+ * Node đọc file này lúc **dựng chain**, mà chain chỉ được dựng sau khi node track
+ * subnet — tức là trong đợt rolling restart ngay sau đây. Ghi muộn hơn một nhịp là
+ * cả 5 node dựng chain với cấu hình mặc định và phải restart lại lần nữa mới sửa.
+ *
+ * Thư mục `9chain-a1-config/` đã mount sẵn vào cả 5 node (ro) nên một lần ghi là
+ * đủ — khác hẳn đường mặc định `~/.avalanchego/configs/chains/` nằm trong volume
+ * RIÊNG của từng node (phải `docker exec` 5 lần).
+ *
+ * Ghi qua file tạm rồi rename, giống console-chains.json: mount này là **thư mục**
+ * nên rename không dính bẫy inode của bind-mount file đơn lẻ.
+ */
+function ghiChainConfig(blockchainID) {
+  const dir = path.join(CHAIN_CFG_DIR, blockchainID);
+  mkdirSync(dir, { recursive: true });
+  const cfg = {
+    // Tên khoá lấy từ source (`plugin/evm/config/config.go:38`), không gõ theo trí
+    // nhớ — cùng lý do với tên khoá precompile ở presets.mjs: khoá lạ bị bỏ qua
+    // TRONG IM LẶNG, nên gõ sai một chữ là API không bật mà không ai báo gì.
+    "warp-api-enabled": true,
+  };
+  const dich = path.join(dir, "config.json");
+  const tmp = dich + ".tmp";
+  writeFileSync(tmp, JSON.stringify(cfg, null, 2) + "\n");
+  renameSync(tmp, dich);
+  return dich;
+}
+
 async function createChain({ name, chainId, admin, preset }) {
   name = String(name || "").trim();
   if (!/^[A-Za-z0-9 ]{2,32}$/.test(name)) throw new Error("Tên chỉ gồm chữ/số/space (2–32 ký tự)");
@@ -558,6 +608,10 @@ async function createChain({ name, chainId, admin, preset }) {
   const subnetID = (out.match(/SUBNET_ID=([A-Za-z0-9]+)/) || [])[1];
   const blockchainID = (out.match(/BLOCKCHAIN_ID=([A-Za-z0-9]+)/) || [])[1];
   if (!subnetID || !blockchainID) throw new Error("Không parse được ID:\n" + out);
+
+  // 2b) cấu hình VM của chain — PHẢI ghi trước đợt restart ở bước 3, vì node đọc
+  //     nó đúng lúc dựng chain (tức là trong đợt restart đó). Xem ghiChainConfig.
+  ghiChainConfig(blockchainID);
 
   // 3) cho node track TẤT CẢ subnet đã tạo — lần lượt, xem trackSubnetsLanLuot
   const allSubnets = [...state.chains.map(c => c.subnetID), subnetID];

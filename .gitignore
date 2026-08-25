@@ -23,4 +23,8 @@ upstream/
 # Console: state + genesis tạm sinh ra
 9chain-a1-config/console-tmp/
 9chain-a1-config/console-chains.json
+# Cấu hình VM sinh ra theo TỪNG chain (`chains/<blockchainID>/config.json`, M6.2).
+# Là trạng thái của mạng đang chạy chứ không phải mã nguồn — nội dung do console
+# ghi, tên thư mục là blockchainID chỉ tồn tại sau khi chain đã đẻ.
+9chain-a1-config/chains/
 local-net/console/node_modules/
