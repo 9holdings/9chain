@@ -1,0 +1,9 @@
+{
+  "name": "9chain-a1-console",
+  "private": true,
+  "type": "module",
+  "comment": "Console cần ethers để xác minh chữ ký SIWE (secp256k1 recovery không có trong node:crypto). Xem DECISIONS D-020. Phiên bản GHIM CHÍNH XÁC, không dùng ^: đây là đường xác thực, và bản vá bất ngờ của thư viện không được phép tự vào máy chủ điều phối docker.",
+  "dependencies": {
+    "ethers": "6.17.0"
+  }
+}
