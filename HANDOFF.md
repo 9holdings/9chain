@@ -1,16 +1,43 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: 2026-08-25 (phiên autopilot thứ hai)
+Cập nhật: 2026-08-25 (phiên autopilot thứ hai — chốt lúc soak test còn đang chạy)
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
-🔴 **ĐỌC `PROGRESS.md` TRƯỚC** — từ 2026-08-25 backlog nằm ở đó, không phải file này.
+🔴 **ĐỌC `PROGRESS.md` TRƯỚC** — backlog nằm ở đó, không phải file này.
 Kèm `DECISIONS.md` (vì sao làm vậy) và `BLOCKERS.md` (đang chờ David cái gì).
 
-**Việc kế tiếp: M5 (template/precompile) hoặc M3 (IPv6).** M4 nay chỉ còn M4.5 —
-mà M4.5 là `[human]`, chờ David duyệt mở console ra Internet (H-3).
-Trước khi bắt đầu M3, thử xem máy dev chạy một node trong Docker rồi nối IPv6 tới
-server có thay được vai "VPS ngoài" của M3.5 không — xem D-021.
+### Việc đầu tiên của phiên sau — theo đúng thứ tự này
+
+**1. 🔴 B-5 — BỊT HAI CỔNG POSTGRES ĐANG MỞ RA INTERNET.** Làm trước mọi thứ khác.
+`db:7432` và `stats-db:7433` bind `0.0.0.0`; đã kiểm chứng **từ máy ngoài qua Internet:
+cả hai đều nhận kết nối**. `ufw status` nhìn sạch vì Docker publish đi vòng qua ufw.
+Sửa: đổi sang `127.0.0.1:7432:5432` / `127.0.0.1:7433:5432` trong compose Blockscout
+rồi **recreate đúng hai container đó** (đổi port mapping không reload được).
+Không đụng validator. Chi tiết + cách kiểm lại: `BLOCKERS.md` B-5.
+
+**2. Backup.** Không có backup nào tồn tại — không thư mục, không crontab, không
+systemd timer (đã kiểm). Toàn bộ lịch sử chain + 5 danh tính validator + danh bạ L1
+nằm trên **một ổ RAID1 duy nhất**. Mọi mốc khác mất giá trị bằng 0 nếu ổ hỏng.
+Kèm luôn H-6b (`git bundle` sang server) nếu David đã gật.
+
+**3. Validator thứ sáu ở nhà cung cấp KHÁC.** `[human]` — tốn tiền hạ tầng.
+Cả 5 validator đang ở **một máy, một nhà cung cấp, một datacenter**: "testnet 5
+validator" mà cả 5 chết cùng lúc thì nó là một máy chủ đội lốt một mạng. Đây cũng là
+điều kiện tiên quyết cho M3 (cộng đồng chạy node).
+
+### ⏰ Hẹn giờ đã biết
+**Cả 5 validator hết hạn `2027-08-24`** (đo 2026-08-25, còn 364 ngày). Đúng ngày đó
+mạng DỪNG nếu không gia hạn. Uptime hiện 99,96–100%.
+
+### Đang chạy lúc chốt phiên
+Bơm tải 3 giờ trên L1 `Tai7OQB7` (chạy `nohup`, vẫn tiếp tục sau khi phiên đóng).
+Xong lúc ~08:25 UTC và **tự thu hồi chain**. Xem kết quả:
+```bash
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'grep -A14 "KẾT QUẢ" /tmp/tai-3gio.txt'
+```
+Nếu nó không tự thu hồi được thì `Tai7OQB7` còn chiếm 1 slot — thu hồi tay qua
+`POST /api/revoke`.
 
 ### Phiên 2026-08-25 (thứ hai) làm xong — tóm tắt để khỏi mở file
 
@@ -26,6 +53,19 @@ danh bạ **5 → 5**. `smoke-l1.mjs --de-chain` nay **tự dọn chain nó đ�
   vì đổi tên. 2 gói khác là nền upstream (đã chứng minh bằng thí nghiệm), 3 gói cần
   mạng thật. Xem D-018/D-019.
 - **Rebase đã diễn tập** — `scripts/rebase-drill.sh`, 7/7 điểm chủ quyền còn nguyên.
+
+**M5 — kiểu chain (preset).** 5 preset, tên khoá + địa chỉ precompile **lấy từ source
+subnet-evm** (subnet-evm bỏ qua khoá lạ trong im lặng). M5.3 nghiệm thu bằng chain
+thật: 3/4 preset chứng minh được precompile bật đúng; `khong-phi` **chưa qua** (B-3).
+
+**M9 — đo năng lực bằng tải thật** (David yêu cầu). `local-net/faucet/tai-test.mjs`.
+- L1 riêng: **260 TPS** chốt, 0 lỗi. Trần là **tham số genesis** chứ không phải phần
+  cứng: `gasLimit 12M ÷ 21.000 gas ÷ 2s = 285 TPS lý thuyết`, đo được 90% trần, trong
+  khi máy mới ở load 2,92/8 luồng.
+- Đợt ngắn trên C-Chain (3 phút, 50 TPS): explorer từ **9 block/~0 tx → 113 block/9.004 tx**.
+  RPC công khai p50 **19ms**, hỏng 0/35. **Blockscout bám kịp, chậm 0,3 block.**
+  Chi phí ròng ~0,0000000004 LOVE9 (nạp 10 LOVE9 rồi **quét trả lại 9,9999999996**).
+- Đĩa khi tải: ~**2,2 GB/giờ** ở 252 TPS (số 0,86 GB/giờ đo lúc đầu là mẫu quá ngắn).
 
 **M4.1 + M4.2 — đăng nhập bằng ví.** `GET /api/siwe/nonce` → `POST /api/siwe/login`
 → token phiên. Đăng nhập bằng ví thì **`admin` bị ÉP = địa chỉ đã ký**, gỡ hẳn lớp lỗi
@@ -150,6 +190,29 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ## Gotchas
 
 ### Thêm từ phiên 2026-08-25 (thứ hai)
+- 🔴 **`docker stats --no-stream` KHÔNG dùng để kết luận được.** Cùng container
+  `backend` đo ba lần ra 50,65% · 4,20% · 39,46% — tôi đã kết luận rồi tự phản bác rồi
+  lại kết luận. Phép đo đúng là **CPU tích luỹ từ lúc container khởi động**:
+  `cat /sys/fs/cgroup/system.slice/docker-<id-đầy-đủ>.scope/cpu.stat` → `usage_usec`,
+  chia cho thời gian sống. Ra `backend` = **48,76% trung bình liên tục**, không mơ hồ.
+- 🔴 **`eth_estimateGas` ước lượng THIẾU cho giao dịch ĐẦU TIÊN của chain vừa đẻ.**
+  Đo có đối chứng trên cùng chain: block 1 → 52037 (hết gas, `status 0`); block 2 trở
+  đi → 54183 (chốt được). Nó **giả dạng "tính năng không tồn tại"** vì receipt chỉ có
+  `status: 0`, không lý do. Tín hiệu tách bạch: **`eth_call` cùng lời gọi đó THÀNH
+  CÔNG** (eth_call chạy trần gas rất lớn) ⇒ vấn đề GAS, không phải cấu hình. Xem D-025.
+- 🔴 **Phí gas KHÔNG bao giờ đúng bằng 0 trên subnet-evm.** `legacypool.go:158`
+  `PriceLimit` mặc định 1 wei và **dòng 195 tự ép về 1 nếu cấu hình thấp hơn**. Giao
+  dịch giá gas 0 bị node NHẬN rồi không bao giờ vào block — hỏng im lặng. Xem D-026.
+- **Precompile: phân biệt ba trạng thái bằng `readAllowList`** — trả `0x` RỖNG =
+  precompile TẮT · trả `0` = bật nhưng không quyền · trả `2` = Admin. Nhầm "0x rỗng"
+  với "0" là chẩn đoán sai hoàn toàn nguyên nhân.
+- **Bài nghiệm thu chạy console THẬT phải bị chặn cứng khỏi mạng thật**:
+  `A1_COMPOSE_FILE=/khong-ton-tai/...` để lệnh docker nào lọt qua cũng chết vì thiếu
+  file thay vì restart 5 validator của mạng công khai. Xem D-023.
+- **Bài nghiệm thu không được cắm cứng dữ liệu của một máy** — bản đầu cắm tên chain
+  chỉ có ở máy dev, chạy trên server thì báo đỏ ở chỗ code hoàn toàn đúng. Xem D-024.
+- **`cat >> BLOCKERS.md` đẩy mục mới xuống dưới "Đã gỡ".** Dính hai lần trong một
+  phiên. Dùng Edit chèn đúng chỗ, đừng append.
 - 🔴 **`ethers` CÓ trên server, nhưng chỉ ở `local-net/faucet/`.** Ghi chú cũ "thư mục
   gốc không có node_modules" đúng mà thiếu vế này, và vế thiếu suýt đẩy M4.1 sang
   hướng tự viết secp256k1. Đo: `~/9chain-a1/src` → `ERR_MODULE_NOT_FOUND`;
