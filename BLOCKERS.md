@@ -6,6 +6,27 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### B-6 — Caddyfile nguồn KHÔNG có site block của explorer ⇒ mỗi lần deploy Caddy là xoá nó
+**Yêu cầu từ repo `9Scan-A1`, 2026-08-25.** Bản đầy đủ + khối cấu hình dán được:
+`docs/requests-from-9scan/2026-08-25-caddy-site-block.md`.
+
+`grep -c 9scan local-net/deploy/Caddyfile` → **0**. Site block `testnet-a1.9scan.org`
+được áp thẳng lên server hồi M6 và chưa bao giờ vào nguồn.
+
+**Đã gây sự cố thật hôm nay:** `caddy-deploy.sh` chạy lúc 12:47 UTC (cùng đợt commit
+`cd34d43` M7.2) ⇒ Caddyfile mới chỉ khai hai domain zone `9chain.org` ⇒ Caddy hết cert
+cho zone `9scan.org` ⇒ Cloudflare bắt tay TLS thất bại ⇒ explorer trả **525 trong 31
+phút**. Bên explorer đã khôi phục tay trên server lúc 13:18 (`caddy validate` +
+`caddy reload` graceful, RPC không gián đoạn) — nhưng **bản khôi phục cũng chỉ nằm trên
+server**, nên lần deploy Caddy kế tiếp lại xoá tiếp.
+
+🔴 **Vì sao nhìn từ bên chain không thấy gì:** RPC và `testnet-a1.9chain.org` không hề
+hấn — chúng cùng file Caddyfile và vẫn được sinh bình thường. M7.2 tự nó không sai.
+
+**Việc cần:** dán khối site block vào `local-net/deploy/Caddyfile` (dùng sẵn snippet
+`(origintls)`/`(secheaders)`), và cân nhắc thêm một dòng `curl` tự kiểm zone explorer ở
+cuối `caddy-deploy.sh`.
+
 ### B-2 — Blockscout: `stats` crash-loop 807 lần, `backend` ngốn hơn cả 5 validator
 **2026-08-25, đo trên server lúc mạng tĩnh.**
 
