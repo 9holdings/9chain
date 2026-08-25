@@ -39,26 +39,6 @@ Gỡ khi được duyệt: bỏ 2 service khỏi compose Blockscout, `docker com
 
 ---
 
-### ~~B-1~~ — ĐÃ GỠ 2026-08-25: Docker Desktop không khởi động trên máy dev
-**2026-08-24.** `docker version` treo vô hạn; `Start-Process "Docker Desktop.exe"` chạy
-nhưng daemon không lên sau 5 phút (`npipe:////./pipe/dockerDesktopLinuxEngine` không tồn tại).
-Nghi WSL2 backend chưa sẵn sàng.
-
-**Ảnh hưởng:** không build lại được image node trên máy dev → M0.6 treo, và **mọi việc
-cần build lại node sau này (M3 IPv6 sửa netgen) sẽ vướng cùng chỗ**.
-
-**KHÔNG tự gỡ bằng cách build trên server `139.99.145.13`**: build Go của avalanchego +
-subnet-evm là tải CPU nặng, mà server đang chạy 5 validator của testnet công khai có
-người ngoài dùng. Đổi 18.5% CPU thành 100% để tiện cho mình là sai đánh đổi.
-
-**Không chặn M0 cốt lõi**: đường khôi phục đã được chứng minh bằng tree hash trùng khớp
-từng byte — mạnh hơn "build xanh", vì cây phục hồi CHÍNH LÀ cây đã build ra image đang chạy.
-
-**Cách gỡ khi David rảnh tay:** mở Docker Desktop bằng tay xem nó báo gì (thường là
-WSL update / cần đăng nhập lại), hoặc `wsl --update && wsl --shutdown`.
-
----
-
 ## Cần David quyết (không phải kẹt kỹ thuật — xem PROGRESS mục `[human]`)
 
 | # | Việc | Chặn mốc nào |
@@ -98,6 +78,24 @@ là công bố toàn bộ lớp identity, tham số kinh tế mạng và công c
 Xong thì `git remote add origin … && git push -u origin main` cho cả `9Chain-A1` và
 nhánh `9chain-a1` trong `upstream/avalanchego`.
 
+### Ghi chú H-6b — stopgap KHÔNG cần David chọn nơi đặt lâu dài (chờ duyệt 1 chữ)
+
+Trong lúc chờ quyết định GitHub cá nhân/org/self-host + private/public, có một bước
+rẻ tạo được **bản thứ hai trên một máy khác** mà không công bố gì:
+
+```bash
+git bundle create /tmp/9chain-a1.bundle --all   # 1 file, đủ toàn bộ lịch sử
+scp -i "$A1_SSH_KEY" /tmp/9chain-a1.bundle "$A1_SSH_HOST":'~/9chain-a1/backup/'
+```
+
+Server `139.99.145.13` vốn đã giữ mã nguồn (`~/9chain-a1/src`), nên đây không phải
+đưa thứ gì mới ra ngoài — chỉ thêm **lịch sử git** cạnh mã đã có. Không phải publish,
+không phải chọn nhà cho repo, gỡ lúc nào cũng được.
+
+**Autopilot KHÔNG tự làm** vì H-6 là việc David đã nêu đích danh là quyết định của
+mình; tự đẩy repo sang máy khác dù private vẫn là lấn vào đúng chỗ đó. Cần một chữ
+"ừ" là chạy được ngay.
+
 ### Ghi chú H-2 — vì sao ACP-77 không còn là việc để sau
 
 Khi lập kế hoạch, ACP-77 được xếp "chờ chốt tokenomics" vì nó là quyết định kinh tế
@@ -123,6 +121,17 @@ cho mỗi L1 một tập validator riêng — chính là ACP-77.
 
 ## Đã gỡ
 
+### B-1 — Docker Desktop không khởi động trên máy dev (2026-08-24 → gỡ 2026-08-25)
+`docker version` treo vô hạn, daemon không lên. **David mở lại Docker Desktop bằng tay
+là xong** — không cần can thiệp gì thêm; bản chạy sau đó là 4.84.0 (engine 29.6.2).
+
+Đã chặn M0.6 suốt một phiên. Gỡ xong thì M0.6 không những đạt mà còn cho kết quả mạnh
+hơn kỳ vọng: binary build lại **trùng từng byte** với bản đang chạy công khai (D-017).
+Nhân đó làm luôn cả M8.2/M8.3/M8.4 — **một việc của người thật mở được bốn task**.
+
+Ghi lại vì nó là bài học về xếp ưu tiên: một blocker "chỉ cần bấm một nút" mà nằm chặn
+bốn task thì nó đắt hơn vẻ ngoài rất nhiều, đáng escalate sớm thay vì đi vòng.
+
 ### B-0 — Console chết im lặng sau khi đồng bộ code (2026-08-24)
 `pkill` giết được console nhưng lệnh khởi động lại trong cùng dòng ssh không chạy
 (exit 255), console nằm im. Nguy hiểm nhất: `tail console.log` sau đó trông **y hệt**
@@ -130,21 +139,3 @@ một lần khởi động thành công vì đó là **banner cũ** còn nằm l
 **Gỡ bằng:** `local-net/deploy/console-restart.sh` — chờ cổng nhả hẳn, khởi động,
 rồi **tự kiểm chứng bằng `ss -tln`** và exit khác 0 nếu không lên. Không còn phải
 nhớ mẹo ngoặc vuông bằng tay.
-
-### H-6b — Stopgap KHÔNG cần David chọn nơi đặt lâu dài (chờ duyệt 1 chữ)
-
-Trong lúc chờ quyết định GitHub cá nhân/org/self-host + private/public, có một bước
-rẻ tạo được **bản thứ hai trên một máy khác** mà không công bố gì:
-
-```bash
-git bundle create /tmp/9chain-a1.bundle --all   # 1 file, đủ toàn bộ lịch sử
-scp -i "$A1_SSH_KEY" /tmp/9chain-a1.bundle "$A1_SSH_HOST":'~/9chain-a1/backup/'
-```
-
-Server `139.99.145.13` vốn đã giữ mã nguồn (`~/9chain-a1/src`), nên đây không phải
-đưa thứ gì mới ra ngoài — chỉ thêm **lịch sử git** cạnh mã đã có. Không phải publish,
-không phải chọn nhà cho repo, gỡ lúc nào cũng được.
-
-**Autopilot KHÔNG tự làm** vì H-6 là việc David đã nêu đích danh là quyết định của
-mình; tự đẩy repo sang máy khác dù private vẫn là lấn vào đúng chỗ đó. Cần một chữ
-"ừ" là chạy được ngay.
