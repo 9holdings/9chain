@@ -127,6 +127,55 @@ async function docVaiTro(p, precompile, ai) {
   return { bat: true, vai: n, vi: VAI_TRO[n] || `vai lạ ${n}` };
 }
 
+const nghi = ms => new Promise(r => setTimeout(r, ms));
+
+/**
+ * Gửi giao dịch với nonce ĐỌC TƯƠI mỗi lượt, thử lại khi node còn trả nonce cũ.
+ *
+ * VÌ SAO CẦN (B-4.2): `phaiChan` cố tình gửi một giao dịch bị từ chối. Có hai kiểu
+ * từ chối và chúng để lại nonce ở hai trạng thái KHÁC NHAU — `txAllowList` chặn
+ * ngay lúc nộp (nonce KHÔNG tiêu), `deployerAllowList` cho vào block rồi revert
+ * (nonce ĐÃ tiêu). Giao dịch kế tiếp của cùng ví đó đoán sai một trong hai đường là
+ * ăn `nonce has already been used`, và bài kiểm báo đỏ ở chỗ sản phẩm hoàn toàn đúng.
+ *
+ * Đọc `pending` cũng chưa đủ: node vừa nhận block xong có một nhịp ngắn còn trả số
+ * cũ. Nên vòng thử lại này chỉ bắt ĐÚNG lỗi nonce — mọi lỗi khác ném thẳng ra, vì
+ * `phaiChan` phải nhìn thấy lý do từ chối thật để phân biệt "bị chặn" với "hết tiền".
+ */
+async function guiVoiNonce(vi, tx, lan = 6) {
+  let cuoi;
+  for (let i = 0; i < lan; i++) {
+    const nonce = await vi.provider.getTransactionCount(vi.address, "pending");
+    try {
+      return await vi.sendTransaction({ ...tx, nonce });
+    } catch (e) {
+      cuoi = e;
+      if (!/nonce (has already been used|too low)|replacement transaction/i.test(String(e.message || e))) throw e;
+      await nghi(1000);
+    }
+  }
+  throw cuoi;
+}
+
+/**
+ * Đợi số dư đạt giá trị mong đợi, thử lại vài nhịp.
+ *
+ * VÌ SAO CẦN (B-4.1): `tx.wait(1)` trả về ngay khi receipt có mặt, nhưng lượt
+ * `eth_getBalance` NGAY SAU ĐÓ có thể đọc trạng thái trước block đó — đo được ở
+ * preset `tu-in-tien`: mint `status 1` ở block 1 mà số dư đọc ra `0.0`, trong khi
+ * thử tay trên đúng chain đó vài giây sau ra đúng `777.0`. Tin lần đọc đầu là kết
+ * luận "precompile không có hiệu lực" trong khi nó vừa chạy xong.
+ */
+async function doiSoDu(p, dc, mong, lan = 10) {
+  let du = 0n;
+  for (let i = 0; i < lan; i++) {
+    du = await p.getBalance(dc);
+    if (du === mong) return { du, nhip: i };
+    await nghi(1000);
+  }
+  return { du, nhip: lan };
+}
+
 /** Đợi giao dịch chốt, ném lỗi rõ ràng nếu treo (dấu hiệu subnet không có validator). */
 async function chot(tx, nhan) {
   const rc = await Promise.race([
@@ -140,13 +189,18 @@ async function chot(tx, nhan) {
 // Mỗi bài nhận (provider, ví chủ chain) và tự chứng minh preset có hiệu lực.
 const BAI = {
   "khong-phi": async (p, chu) => {
-    // Đo TRỰC TIẾP: baseFee của chain phải là 0. Trên chain chuẩn nó là 25 gwei.
+    // Đo TRỰC TIẾP: baseFee của chain phải là ĐÚNG 1 wei. Trên chain chuẩn nó là 25 gwei.
+    //
+    // Không phải 0 — và bài này đòi đúng 1 chứ không đòi "≤ 1" là có chủ ý: baseFee 0
+    // là trạng thái làm chain KHÔNG dựng nổi block nào (`VerifyBlockFee` từ chối
+    // `baseFee.Sign() <= 0` ngay trong `FinalizeAndAssemble`). Nếu ai đó sau này sửa
+    // preset về 0 vì thấy "0 mới đúng nghĩa không phí", bài này phải bắt được ngay ở
+    // dòng đầu thay vì để nó biểu hiện thành một chain câm. Xem D-027.
     const blk = await p.getBlock("latest");
-    kiem("baseFee = 0", blk.baseFeePerGas === 0n, `đo được ${blk.baseFeePerGas}`);
+    kiem("baseFee = 1 wei (KHÔNG phải 0 — xem D-027)", blk.baseFeePerGas === 1n, `đo được ${blk.baseFeePerGas}`);
     // Gửi với giá gas 1 wei — SÀN của mempool, không phải lựa chọn thẩm mỹ.
     // `legacypool.go:158,195`: `PriceLimit` mặc định 1 và **bị ép về 1 nếu cấu hình
-    // thấp hơn**, nên giá gas 0 là thứ subnet-evm không bao giờ nhận. Đã đo: node
-    // nhận giao dịch giá gas 0 rồi không bao giờ đưa nó vào block (D-026).
+    // thấp hơn**, nên giá gas 0 là thứ subnet-evm không bao giờ nhận (D-026).
     // Trên chain CHUẨN, 1 wei nằm dưới minBaseFee 25 gwei ⇒ giao dịch này bị từ
     // chối. Nó chốt được ở đây chính là bằng chứng preset có hiệu lực.
     const tx = await chu.sendTransaction({
@@ -190,8 +244,10 @@ const BAI = {
     }
     const rc = await chot(await chu.sendTransaction({ to: NATIVE_MINTER, data, gasLimit: GAS_AN_TOAN }), "mint");
     kiem("gọi precompile mintNativeCoin thành công", rc.status === 1, `block ${rc.blockNumber}`);
-    const sau = await p.getBalance(nhan);
-    kiem("ví lạ nhận đúng 777 token đúc mới", sau === ethers.parseEther("777"), ethers.formatEther(sau));
+    // Đọc lại nhiều nhịp, không tin lần đọc đầu — xem `doiSoDu` (B-4.1).
+    const { du: sau, nhip } = await doiSoDu(p, nhan, ethers.parseEther("777"));
+    kiem("ví lạ nhận đúng 777 token đúc mới", sau === ethers.parseEther("777"),
+      `${ethers.formatEther(sau)}${nhip ? ` (thấy sau ${nhip} nhịp)` : ""}`);
   },
 
   "chi-chu-deploy": async (p, chu) => {
@@ -206,9 +262,10 @@ const BAI = {
     const la = ethers.Wallet.createRandom().connect(p);
     await chot(await chu.sendTransaction({ to: la.address, value: ethers.parseEther("10"), gasLimit: 100000n }), "nạp cho ví lạ");
     kiem("ví lạ đã có tiền để trả gas", (await p.getBalance(la.address)) > 0n);
-    await phaiChan("ví lạ KHÔNG deploy được", () => la.sendTransaction({ data: MA_DEPLOY, gasLimit: 200000n }));
+    await phaiChan("ví lạ KHÔNG deploy được", () => guiVoiNonce(la, { data: MA_DEPLOY, gasLimit: 200000n }));
     // Nhưng nó vẫn phải GỬI được giao dịch thường — preset này chỉ chặn deploy.
-    const rc2 = await chot(await la.sendTransaction({ to: chu.address, value: 1n, gasLimit: 100000n }), "tx thường của ví lạ");
+    // Nonce tường minh: lượt trên vừa tiêu một nonce bằng đường revert-trong-block (B-4.2).
+    const rc2 = await chot(await guiVoiNonce(la, { to: chu.address, value: 1n, gasLimit: 100000n }), "tx thường của ví lạ");
     kiem("ví lạ VẪN gửi được giao dịch thường (chỉ chặn deploy)", rc2.status === 1, `block ${rc2.blockNumber}`);
   },
 
@@ -223,7 +280,7 @@ const BAI = {
     const la = ethers.Wallet.createRandom().connect(p);
     await chot(await chu.sendTransaction({ to: la.address, value: ethers.parseEther("10"), gasLimit: 100000n }), "nạp cho ví lạ");
     kiem("ví lạ đã có tiền", (await p.getBalance(la.address)) > 0n);
-    await phaiChan("ví lạ KHÔNG gửi được giao dịch nào", () => la.sendTransaction({ to: chu.address, value: 1n, gasLimit: 21000n }));
+    await phaiChan("ví lạ KHÔNG gửi được giao dịch nào", () => guiVoiNonce(la, { to: chu.address, value: 1n, gasLimit: 21000n }));
   },
 };
 

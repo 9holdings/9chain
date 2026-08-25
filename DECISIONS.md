@@ -400,3 +400,72 @@ thật ở đúng lúc cần nhất — lúc chạy kiểm thử, lúc dọn s�
 chịu **cửa ngoài chống lụt** (60/giờ). Vòng lặp chạy loạn vẫn bị chặn ở 60, và trần
 15 L1 chặn nốt phần còn lại. Bài kiểm nay khẳng định CẢ HAI chiều: ví bị siết đúng
 suất của mình, người vận hành thì không (auth-e2e 38/38).
+
+### D-028 — B-3 gỡ: `minBaseFee = 0` làm chain KHÔNG DỰNG NỔI BLOCK NÀO (không phải chuyện mempool)
+**Đây là bản đính chính cho D-026.** D-026 đúng kết luận ("phí bằng 0 không cấu hình
+được") nhưng **sai cơ chế**, và vì sai cơ chế nên bản vá của nó không đủ: preset
+`khong-phi` giữ nguyên `minBaseFee: 0`, chỉ đổi giá gas của bài kiểm từ 0 lên 1 wei.
+Đo lại trên chain `PkhongphiSQSW` (9111): vẫn hỏng y hệt. Đó là B-3.
+
+**Cơ chế thật, đọc từ source chứ không đoán** — bẫy nằm ở hai file mâu thuẫn nhau:
+
+| tầng | file | phán quyết về `minBaseFee = 0` |
+|---|---|---|
+| validate cấu hình | `commontype/fee_config.go` `Verify()` | **HỢP LỆ** — chỉ từ chối số âm (`errMinBaseFeeNegative`) |
+| dựng block, lúc chạy | `customheader/block_gas_cost.go:94` `VerifyBlockFee()` | **TỪ CHỐI** — `baseFee.Sign() <= 0` ⇒ `errInvalidBaseFee` |
+
+Ba mắt xích khoá lại thành chuỗi kín:
+1. `dynamic_fee_windower.go:32` trả thẳng `MinBaseFee` làm baseFee của block đầu;
+   dòng 109 kẹp sàn `selectBigWithinBounds(MinBaseFee, …)` cho mọi block sau
+   ⇒ khai 0 thì baseFee **chắc chắn** là 0, không phải "có thể".
+2. `consensus/dummy/consensus.go:299` gọi `VerifyBlockFee` từ trong
+   **`FinalizeAndAssemble`** — đường **dựng** block của chính node mình, không phải
+   chỉ đường kiểm block của người khác.
+3. Cái chốt `if requiredBlockGasCost.Sign() == 0 { return nil }` nằm ở dòng **101**,
+   tức **SAU** cái chốt baseFee ở dòng 94. Nên zero hoá `blockGasCost` — đúng giả
+   thuyết ghi trong B-3 — **không cứu được gì**. Giả thuyết đó sai.
+
+⇒ Chain khai `minBaseFee: 0` không phải "chain có giao dịch bị kẹt ngoài mempool".
+Nó là **chain không đẻ được block nào, kể từ block 1**.
+
+**Vì sao mất cả một mốc vào đây:** mọi dấu hiệu đều nói chain khoẻ. Node lên sạch,
+`eth_chainId` đúng, `eth_getBalance` trả đúng phần genesis, `baseFeePerGas` trả đúng
+0 y như đã khai. Chỉ có giao dịch là không bao giờ chốt — cùng một biểu hiện với
+"subnet chưa có validator", nên nó dẫn người đi chẩn đoán nhầm hẳn sang hướng khác.
+
+**Bản vá (đã áp):** `minBaseFee: 1` — 1 wei, số nhỏ nhất còn giữ `Sign() > 0`. Kèm
+`minBlockGasCost/maxBlockGasCost/blockGasCostStep = 0`, và lần này lý do là **tiền
+tip**: giao dịch trả đúng baseFee có tip = 0 ⇒ `totalBlockFee = 0` ⇒ `blockGas = 0`
+(`block_gas_cost.go:141`), nên `requiredBlockGasCost` bất kỳ > 0 vẫn chặn block.
+Zero hoá cả ba là điều kiện **cần thêm**, không phải điều kiện đủ như B-3 tưởng.
+
+Đổi lại chain này mất cơ chế chống đẻ-block-quá-nhanh. Chấp nhận: đúng chủ ý preset,
+và `moTa` đã nói "gần như không có chi phí nào cản spam".
+
+**Bài kiểm đòi baseFee ĐÚNG BẰNG 1, không đòi "≤ 1"** — cố ý. Nếu sau này có người
+sửa về 0 vì thấy "0 mới đúng nghĩa không phí", bài phải đỏ ngay ở dòng đầu thay vì
+để nó biểu hiện thành một chain câm mất thêm một mốc nữa để chẩn đoán.
+
+**Bài học tổng quát, đắt hơn bản vá:** trong subnet-evm, **`Verify()` của config
+KHÔNG phải hợp đồng về tính chạy được**. Nó kiểm hình dạng, không kiểm hệ quả. Với
+genesis — thứ bất biến — khoảng cách giữa "cấu hình hợp lệ" và "chain sống được" là
+chỗ để lọt những chain chết vĩnh viễn ngay lúc sinh ra.
+
+### D-029 — Ba lỗi B-4 là của BÀI KIỂM, và cả ba đều là "đọc quá sớm"
+Gom chung vì cùng một họ, không phải trùng hợp.
+
+1. **`tu-in-tien` đọc số dư ngay sau `tx.wait(1)`** ra `0.0` trong khi mint `status 1`.
+   `wait(1)` chỉ hứa receipt đã có, không hứa lượt `eth_getBalance` kế tiếp đọc trạng
+   thái sau block đó. Vá: `doiSoDu()` đọc lại tối đa 10 nhịp, và **in ra thấy sau bao
+   nhiêu nhịp** — số đó là dữ liệu, không phải chi tiết thừa.
+2. **`chi-chu-deploy` / `kin` ăn `nonce has already been used`.** Hai kiểu chặn để
+   lại nonce ở hai trạng thái khác nhau: `txAllowList` chặn lúc nộp (nonce **không**
+   tiêu), `deployerAllowList` cho vào block rồi revert (nonce **đã** tiêu). Đoán sai
+   một trong hai đường là bài đỏ ở chỗ sản phẩm hoàn toàn đúng. Vá: `guiVoiNonce()`
+   đọc nonce tươi mỗi lượt, thử lại **chỉ khi** lỗi đúng là lỗi nonce — mọi lỗi khác
+   ném thẳng, vì `phaiChan` cần nhìn thấy lý do từ chối thật để phân biệt "bị chặn"
+   với "hết tiền".
+
+Cả ba đều làm bài kiểm **nói dối theo hướng nguy hiểm hơn**: báo đỏ ở tính năng đang
+chạy đúng. Một bài kiểm hay báo đỏ giả thì người ta bắt đầu bỏ qua nó, và lúc đó nó
+mất sạch giá trị.

@@ -49,23 +49,52 @@ export const PRESETS = [
   {
     id: "khong-phi",
     ten: "Phí gần như bằng 0",
-    moTa: "baseFee = 0, giao dịch chỉ trả sàn 1 wei/gas (một lượt chuyển tiền tốn " +
-          "khoảng 0,000000000000021 LOVE9). Hợp cho game, thử nghiệm, chain nội bộ. " +
+    moTa: "baseFee = 1 wei, giao dịch trả đúng sàn đó (một lượt chuyển tiền tốn " +
+          "0,000000000000021 LOVE9). Hợp cho game, thử nghiệm, chain nội bộ. " +
           "Đổi lại gần như không có chi phí nào cản spam.",
     ap(cfg) {
-      // `minBaseFee = 0` hợp lệ: `commontype/fee_config.go` chỉ từ chối số ÂM
-      // (errMinBaseFeeNegative), không đòi lớn hơn 0.
+      // ═══ minBaseFee PHẢI LÀ 1, TUYỆT ĐỐI KHÔNG ĐƯỢC LÀ 0 ═══
       //
-      // ⚠️ NHƯNG PHÍ KHÔNG BAO GIỜ ĐÚNG BẰNG 0 — và không có cách nào làm nó bằng 0.
-      // `core/txpool/legacypool/legacypool.go:158` có `PriceLimit` (sàn giá gas để
-      // được nhận vào mempool), mặc định 1, và dòng 195 **tự ép về 1 nếu ai cấu
-      // hình thấp hơn**. Nên giao dịch giá gas 0 bị treo ngoài mempool: node NHẬN
-      // nó nhưng nó không bao giờ vào block — hỏng im lặng, không báo lỗi.
-      // Đã đo thật (chain PkhongphiE1LM, 2026-08-25): baseFee = 0 đúng như khai,
-      // giao dịch giá gas 0 không chốt sau 90 giây. Xem DECISIONS D-026.
+      // `minBaseFee = 0` **qua được validate nhưng làm chain KHÔNG ĐẺ NỔI BLOCK NÀO**.
+      // Đây là bẫy hai tầng, hai tầng nằm ở hai file khác nhau và mâu thuẫn nhau:
       //
-      // Vì vậy tên và mô tả preset nói "gần như bằng 0", không nói "không phí".
-      cfg.feeConfig = { ...cfg.feeConfig, minBaseFee: 0 };
+      //   tầng 1 — `commontype/fee_config.go` `Verify()`: chỉ từ chối minBaseFee ÂM
+      //            (`errMinBaseFeeNegative`). 0 hợp lệ, chain khởi động sạch sẽ.
+      //   tầng 2 — `customheader/block_gas_cost.go:94` `VerifyBlockFee()`:
+      //            `if baseFee == nil || baseFee.Sign() <= 0 { return errInvalidBaseFee }`
+      //            và nó nằm **TRƯỚC** cái early-return `requiredBlockGasCost == 0`.
+      //
+      // `consensus/dummy/consensus.go:299` gọi `VerifyBlockFee` từ trong
+      // `FinalizeAndAssemble` — tức là ở đường **dựng** block, không phải chỉ khi
+      // kiểm block của người khác. Nên baseFee = 0 ⇒ mọi lượt dựng block trả lỗi ⇒
+      // chain đứng im mãi mãi. Và baseFee = 0 là điều chắc chắn xảy ra:
+      // `customheader/dynamic_fee_windower.go:32` trả thẳng `MinBaseFee` cho block
+      // đầu, dòng 109 kẹp sàn `selectBigWithinBounds(MinBaseFee, …)` cho mọi block sau.
+      //
+      // Cách hỏng này ĐỘC vì mọi dấu hiệu đều nói chain khoẻ: RPC trả lời, `eth_chainId`
+      // đúng, `eth_getBalance` đúng, `baseFeePerGas` đúng bằng 0 y như khai — chỉ có
+      // giao dịch là không bao giờ chốt. Đã đốt cả B-3 vào việc này (chain
+      // PkhongphiE1LM rồi PkhongphiSQSW, 2026-08-25). Xem D-027.
+      //
+      // ═══ VÌ SAO PHẢI ZERO CẢ blockGasCost ═══
+      //
+      // Với baseFee = 1 wei, giao dịch trả đúng 1 wei/gas có **tiền tip = 0**, nên
+      // `totalBlockFee = 0` ⇒ `blockGas = 0` (`block_gas_cost.go:141`). Nếu
+      // `requiredBlockGasCost > 0` thì `blockGas < required` ⇒ vẫn không dựng được
+      // block (`ErrInsufficientBlockGas`). Mà `blockGasCostStep: 200000` của template
+      // làm chi phí đó leo lên mỗi khi block ra nhanh hơn `targetBlockRate`.
+      // Đặt cả ba về 0 ⇒ `blockgascost.BlockGasCost` luôn kẹp về 0 ⇒ `VerifyBlockFee`
+      // early-return ở dòng 101. Hợp lệ với `Verify()`: nó chỉ đòi min ≤ max.
+      //
+      // Đổi lại: chain này mất hẳn cơ chế chống đẻ-block-quá-nhanh. Đúng chủ ý của
+      // preset, và đã nói trong `moTa`.
+      cfg.feeConfig = {
+        ...cfg.feeConfig,
+        minBaseFee: 1,
+        minBlockGasCost: 0,
+        maxBlockGasCost: 0,
+        blockGasCostStep: 0,
+      };
     },
   },
   {
