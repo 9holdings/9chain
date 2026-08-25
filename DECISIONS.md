@@ -290,3 +290,45 @@ Còn M4 thì M4.3/M4.4 đã xong, và M4 mới là điểm bán hàng của A1.
 
 Chưa loại M3: máy dev chạy một node trong Docker rồi nối IPv6 tới server có thể thay
 được vai "node ngoài". Chưa kiểm, ghi lại để lần tới thử trước khi kết luận M3 kẹt.
+
+### D-022 — Hạn mức HAI TẦNG, ranh giới là chỗ xác thực
+Bài nghiệm thu end-to-end phơi ra một lỗ hổng mà unit test không thể thấy: hạn mức
+nghiêm ngặt (3 lượt/giờ/IP) đặt **trước** lúc xác thực, nên một request **không có
+token** cũng tiêu quota. Ai gửi 3 request rác là khoá được người dùng thật cùng IP
+suốt một giờ — hạn mức thành vũ khí thay vì lớp bảo vệ.
+
+Phát hiện tình cờ: bài kiểm gọi nhiều lượt thu hồi *bị từ chối* để kiểm cổng quyền,
+rồi **tự khoá chính mình** ở 429. Dễ chữa bằng cách sửa bài kiểm cho êm; nhưng bài
+kiểm chỉ đang mô phỏng đúng thứ một kẻ tấn công sẽ làm.
+
+**Quyết định:** tách hai tầng —
+```
+cửa ngoài (trước xác thực): 60 lượt/giờ/IP  — chỉ để chặn lụt request
+cửa trong (sau xác thực)  : 3 lượt/giờ/IP   — ngân sách thật cho thao tác nặng
+```
+Hôm nay console chỉ nghe loopback nên chưa khai thác được; M4.5 định mở ra Internet
+thì nó là lỗ hổng thật. Hạn mức nay đọc được từ env (`A1_LIMIT_CREATE`,
+`A1_LIMIT_REVOKE`) để chỉnh được mà không phải sửa mã — và để bài kiểm đo đúng ranh giới.
+
+Chưa phải lời giải cuối: khoá vẫn là IP. Hạn mức theo **địa chỉ ví** là M4.2.
+
+### D-023 — Bài nghiệm thu chạy console THẬT phải bị chặn cứng khỏi mạng thật
+`auth-e2e-test.mjs` dựng một console thật, và console đó đọc đúng
+`console-chains.json` thật — trên server thì đó là danh bạ của testnet công khai.
+Mọi lượt thu hồi trong bài **được thiết kế** để bị từ chối, nhưng "được thiết kế"
+không phải bảo đảm: một lỗ trong logic quyền sẽ làm bài kiểm restart lần lượt cả 5
+validator của mạng đang chạy — bài kiểm trở thành sự cố.
+
+**Quyết định:** tiến trình console của bài kiểm luôn chạy với
+`A1_COMPOSE_FILE=/khong-ton-tai/...`. Lệnh docker nào lọt qua cũng chết vì thiếu file
+thay vì đụng mạng thật. Rẻ, và biến "chắc là không xảy ra" thành "không thể xảy ra".
+
+### D-024 — Bài nghiệm thu không được cắm cứng dữ liệu của một máy
+Bản đầu của `auth-e2e-test.mjs` cắm cứng tên chain `DeltaChain` — chỉ có trong config
+máy dev. Trên server nó trượt 3 bài với lý do "không có L1 nào tên DeltaChain", tức là
+**báo hỏng ở chỗ code hoàn toàn đúng**. Đó là kiểu sai tệ hơn cả không có test: nó dạy
+người đọc bỏ qua màu đỏ.
+
+Sửa: lấy tên chain **từ danh bạ đang chạy** qua `/api/chains`; danh bạ rỗng thì in
+`⏭️ bỏ qua` và **không tính là đạt**. Nay chạy giống hệt nhau ở cả hai nơi (33/33),
+nên `console-deploy.sh` mới dùng được nó làm cổng chặn — mà deploy chính là chỗ cần nó nhất.

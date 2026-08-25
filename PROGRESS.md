@@ -144,7 +144,22 @@ HANDOFF: *đừng quảng bá "chạy node cùng chúng tôi"* cho tới khi xon
 
 **Phụ thuộc M2.** Đây là điểm bán hàng của cả A1 mà hiện chỉ chạy qua SSH tunnel.
 
-- [ ] M4.1 — Auth bằng chữ ký ví (SIWE) thay `A1_CONSOLE_TOKEN` tĩnh; địa chỉ ký **chính là** `admin`
+- [x] M4.1 — **Auth bằng chữ ký ví (SIWE); địa chỉ ký CHÍNH LÀ `admin`.** Đứng song
+      song với `A1_CONSOLE_TOKEN` chứ không thay thế (token vẫn là đường của người
+      vận hành + smoke test). Xem D-020, D-022.
+
+      `GET /api/siwe/nonce?address=` → `POST /api/siwe/login {nonce, signature}` → token phiên.
+      Đăng nhập bằng ví thì `admin` **bị ghi đè** bằng địa chỉ đã ký — gỡ hẳn lớp lỗi
+      tệ nhất của dự án (gõ nhầm 1 ký tự ⇒ genesis bất biến ⇒ chain vô chủ vĩnh viễn).
+      Thu hồi bằng ví chỉ đụng được chain của chính mình (403), token vận hành đụng được mọi chain.
+
+      **Nghiệm thu:** `siwe-test.mjs` **21/21** (phần lớn là bài PHẢI TRƯỢT: phát lại,
+      ký bằng ví khác, chữ ký của message khác, hết hạn, sai checksum, trần fail-closed)
+      · `auth-e2e-test.mjs` **33/33** chạy console thật qua HTTP — **đạt cả trên máy dev
+      lẫn trên server**. Mạng công khai sau khi deploy: smoke **16/16**.
+
+      `console-deploy.sh` nay **chặn deploy nếu hai bài này trượt**, và chạy lại chúng
+      trên server sau khi cài `node_modules`.
 - [ ] M4.2 — Bật `A1_TRUST_PROXY=1` + hạn mức theo **địa chỉ ví**, không chỉ IP
 - [x] M4.3 — Cap tổng số chain — **HOÁ RA LÀ TRẦN CỨNG CỦA GIAO THỨC, KHÔNG PHẢI
       CON SỐ TUỲ CHỌN.** Đã chặn ở console (mặc định 15, trần tuyệt đối 16). Xem D-009.
