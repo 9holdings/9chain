@@ -399,6 +399,12 @@ Chế độ nhẹ chỉ đọc, không tốn tiền, chạy bao nhiêu lần cũ
 + **tự thu hồi chain vừa đẻ**) — mất ~6 phút, **chạy lại được vô hạn** từ M4.4.
 Thêm `--giu` nếu muốn giữ chain lại soi bằng tay (khi đó nó ăn một slot vĩnh viễn).
 
+Kiểm có cổng nào hở ra Internet không — **đo TỪ NGOÀI**, không tin `ufw status`
+(Docker publish đi vòng qua ufw; đây là cách B-5 lọt). Có đối chứng ngược:
+```bash
+bash local-net/deploy/kiem-cong.sh
+```
+
 Diễn tập rebase lớp chủ quyền lên upstream mới (worktree tách rời, không đụng nhánh thật):
 ```bash
 bash scripts/rebase-drill.sh              # thử lên origin/master
