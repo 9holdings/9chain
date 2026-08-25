@@ -199,7 +199,17 @@ const chu = new ethers.Wallet(chuKhoa, p);
 // lần (khoá sinh trong bộ nhớ rồi mất) ⇒ nạp bao nhiêu là **mất** bấy nhiêu.
 // Nạp đúng mức đủ trả gas: 3 phút × 50 TPS ÷ 10 ví ≈ 900 giao dịch/ví, mỗi giao dịch
 // 21.000 gas × 2 wei ≈ 0,00000000004 LOVE9. 1 LOVE9 là dư gấp hàng chục triệu lần.
-const NAP = C_CHAIN ? ethers.parseEther("1") : ethers.parseEther("100000");
+// 100 LOVE9/ví, KHÔNG phải 100.000 như bản đầu.
+//
+// Ví gửi chỉ cần đủ trả gas: một lượt chuyển tiền tốn 21.000 gas × 25 gwei ≈
+// 0,000525 LOVE9. Kể cả bơm hết sức 8 phút (~3.000 giao dịch/ví) cũng chỉ hết ~1,6
+// LOVE9 ⇒ 100 là đã dư 60 lần.
+//
+// 100.000/ví thì **300 ví ăn 30 TRIỆU trong quỹ genesis 50 triệu**, nên một bậc
+// thang ba lượt trên cùng một chain sẽ cạn quỹ giữa chừng — và hỏng vì "hết tiền",
+// một lý do chẳng liên quan gì tới thông lượng đang đo. Đúng loại hỏng dẫn người ta
+// đi chẩn đoán nhầm chỗ.
+const NAP = C_CHAIN ? ethers.parseEther("1") : ethers.parseEther("100");
 log(`nạp tiền cho ${SO_VI} ví gửi (${ethers.formatEther(NAP)} LOVE9/ví)…`);
 const vis = Array.from({ length: SO_VI }, () => ethers.Wallet.createRandom().connect(p));
 {
