@@ -100,6 +100,21 @@ function token(){
   }
   return t;
 }
+// ═══ ĐƯỜNG GỐC CỦA API — suy ra từ chính URL của trang ═══
+//
+// Console phục vụ ở HAI chỗ cùng lúc và cả hai đều phải chạy:
+//   • qua SSH tunnel: http://127.0.0.1:8091/          ⇒ API ở /api/...
+//   • công khai qua Caddy: https://<domain>/console/  ⇒ API ở /console/api/...
+//     (Caddy dùng `handle_path` nên nó CẮT tiền tố trước khi chuyển lên console —
+//      server không biết gì về `/console`, và không cần biết.)
+//
+// Cắm cứng '/api/...' làm bản công khai gọi vào GỐC tên miền, tức rơi vào
+// Blockscout, và lỗi hiện ra là JSON parse error chứ không phải 404 — rất khó đoán.
+// Suy từ `location` thì một bản mã chạy đúng ở cả hai nơi, không cần cấu hình.
+//
+// `new URL('.', location.href)` cho thư mục chứa trang. Caddy đã có redirect
+// `/console` → `/console/` nên trường hợp thiếu dấu gạch chéo không tới được đây.
+const API = new URL('.', location.href).pathname.replace(/\/$/, '');
 function clearToken(){ sessionStorage.removeItem('a1_token'); location.reload(); }
 function authHeaders(extra){ return Object.assign({'authorization':'Bearer '+token()}, extra||{}); }
 
@@ -114,12 +129,12 @@ async function dangNhapVi(){
     const addr=acc&&acc[0];
     if(!addr) throw new Error('ví không trả về địa chỉ nào');
     out.innerHTML='<span class="spin"></span>Đang xin lời mời ký…';
-    const rn=await fetch('/api/siwe/nonce?address='+encodeURIComponent(addr));
+    const rn=await fetch(API+'/api/siwe/nonce?address='+encodeURIComponent(addr));
     const jn=await rn.json();
     if(!rn.ok) throw new Error(jn.error||'không xin được lời mời ký');
     out.innerHTML='<span class="spin"></span>Hãy ký trong ví — đọc kỹ nội dung trước khi ký.';
     const sig=await window.ethereum.request({method:'personal_sign',params:[jn.message,addr]});
-    const rl=await fetch('/api/siwe/login',{method:'POST',headers:{'content-type':'application/json'},
+    const rl=await fetch(API+'/api/siwe/login',{method:'POST',headers:{'content-type':'application/json'},
       body:JSON.stringify({nonce:jn.nonce,signature:sig})});
     const jl=await rl.json();
     if(!rl.ok) throw new Error(jl.error||'đăng nhập thất bại');
@@ -133,7 +148,7 @@ function thoatVi(){ sessionStorage.removeItem('a1_siwe'); sessionStorage.removeI
 
 async function refresh(){
   try{
-    const res=await fetch('/api/status',{headers:authHeaders()});
+    const res=await fetch(API+'/api/status',{headers:authHeaders()});
     if(res.status===401){
       sessionStorage.removeItem('a1_token');
       document.getElementById('out').innerHTML='<span class="err">❌ Token sai. Tải lại trang để nhập lại.</span>';
@@ -215,7 +230,7 @@ async function thuHoi(name){
   if(go.trim()!==name){ out.innerHTML='<span class="err">❌ Tên không khớp — đã huỷ, không đụng gì.</span>'; return; }
   out.innerHTML='<span class="spin"></span>Đang thu hồi (bỏ track → restart lần lượt 5 node, ~2–3 phút)…';
   try{
-    const r=await fetch('/api/revoke',{method:'POST',headers:authHeaders({'content-type':'application/json'}),
+    const r=await fetch(API+'/api/revoke',{method:'POST',headers:authHeaders({'content-type':'application/json'}),
       body:JSON.stringify({name,xacNhan:name})});
     const j=await r.json();
     if(r.status===401){ sessionStorage.removeItem('a1_token'); throw new Error('Token sai — tải lại trang để nhập lại.'); }
@@ -276,7 +291,7 @@ async function create(){
   out.innerHTML='<span class="spin"></span>Đang đẻ chain (tạo subnet → track → restart node → chờ RPC, ~1–2 phút)…';
   try{
     const preset=document.getElementById('preset').value;
-    const r=await fetch('/api/create',{method:'POST',headers:authHeaders({'content-type':'application/json'}),body:JSON.stringify({name,chainId,admin,preset})});
+    const r=await fetch(API+'/api/create',{method:'POST',headers:authHeaders({'content-type':'application/json'}),body:JSON.stringify({name,chainId,admin,preset})});
     const j=await r.json();
     if(r.status===401){ sessionStorage.removeItem('a1_token'); throw new Error('Token sai — tải lại trang để nhập lại.'); }
     if(r.status===429){ throw new Error(j.error||'vượt hạn mức, thử lại sau'); }
