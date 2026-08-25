@@ -41,6 +41,19 @@ const THOI_LUONG_MS = PHUT ? Number(PHUT) * 60_000 : Number(GIO || 3) * 3_600_00
 const GIU = co("giu");
 const CHAIN_CO_SAN = opt("chain-rpc", null);
 const KHOA_CO_SAN = opt("khoa", null);
+// Giới hạn tốc độ. 0 = bơm hết sức (dùng để tìm trần).
+const TPS_MUC_TIEU = Number(opt("tps", 0));
+
+// ═══ CHẾ ĐỘ C-CHAIN — ĐỌC KỸ TRƯỚC KHI DÙNG ═══
+// Bơm thẳng vào C-Chain công khai: mạng mà faucet, MetaMask và mọi ví đang cắm vào.
+// Chỉ dùng cho đợt NGẮN, có chủ đích — ví dụ để explorer có dữ liệu thật mà hiện,
+// vì Blockscout chỉ index C-Chain nên tải trên L1 riêng KHÔNG hiện ở đó.
+// Chế độ này KHÔNG đẻ chain và KHÔNG thu hồi gì; nó dùng ví đã có tiền sẵn.
+// Khoá lấy từ biến môi trường `A1_TAI_KHOA` — KHÔNG truyền qua dòng lệnh, vì dòng
+// lệnh lọt vào `ps`, vào log shell, và vào `err.message` của execFile.
+const C_CHAIN = co("c-chain");
+const C_CHAIN_RPC = `${RPC_GOC}/ext/bc/C/rpc`;
+const BLOCKSCOUT = opt("blockscout", "http://127.0.0.1:8100");
 
 // ═══ NGƯỠNG CHỐT AN TOÀN ═══
 // C-Chain hỏng liên tiếp bấy nhiêu lượt thì DỪNG. Đặt 3 chứ không phải 1: một lượt
@@ -90,8 +103,23 @@ async function diaTrongPhanTram() {
 // ══════════════════════════════════════════════════════════════════════════
 if (!TOKEN && !CHAIN_CO_SAN) { console.log("✗ thiếu A1_CONSOLE_TOKEN"); process.exit(1); }
 
+/** Chiều cao block Blockscout ĐÃ INDEX — để biết bộ index có bám kịp chain không. */
+async function blockscoutCao() {
+  try {
+    const r = await fetch(`${BLOCKSCOUT}/api/v2/main-page/blocks`, { signal: AbortSignal.timeout(8000) });
+    const j = await r.json();
+    return Array.isArray(j) && j.length ? j[0].height : null;
+  } catch { return null; }
+}
+
 let chain = null, chuKhoa = null;
-if (CHAIN_CO_SAN) {
+if (C_CHAIN) {
+  chuKhoa = process.env.A1_TAI_KHOA || KHOA_CO_SAN;
+  if (!chuKhoa) { console.log("✗ --c-chain cần khoá ví có tiền qua biến A1_TAI_KHOA"); process.exit(1); }
+  chain = { rpc: C_CHAIN_RPC, name: null };
+  log(`🔴 CHẾ ĐỘ C-CHAIN — bơm thẳng vào mạng công khai (${C_CHAIN_RPC})`);
+  log(`   không đẻ chain, không thu hồi. Chốt an toàn vẫn bật.`);
+} else if (CHAIN_CO_SAN) {
   if (!KHOA_CO_SAN) { console.log("✗ --chain-rpc phải đi kèm --khoa"); process.exit(1); }
   chain = { rpc: CHAIN_CO_SAN, name: "(chain có sẵn)" };
   chuKhoa = KHOA_CO_SAN;
@@ -113,16 +141,19 @@ const chu = new ethers.Wallet(chuKhoa, p);
 // ── Nạp tiền cho các ví gửi ────────────────────────────────────────────────
 // Một ví không bơm nhanh được: giao dịch của cùng một ví phải theo đúng thứ tự
 // nonce, nên nó tuần tự hoá mọi thứ. Nhiều ví chạy song song mới đẩy được tải.
-log(`nạp tiền cho ${SO_VI} ví gửi…`);
+// Trên L1 đo tải thì tiền là tiền chơi trên một chain sắp bị thu hồi — nạp thoải mái.
+// Trên C-CHAIN thì đây là quỹ THẬT của testnet công khai, và ví gửi là ví dùng một
+// lần (khoá sinh trong bộ nhớ rồi mất) ⇒ nạp bao nhiêu là **mất** bấy nhiêu.
+// Nạp đúng mức đủ trả gas: 3 phút × 50 TPS ÷ 10 ví ≈ 900 giao dịch/ví, mỗi giao dịch
+// 21.000 gas × 2 wei ≈ 0,00000000004 LOVE9. 1 LOVE9 là dư gấp hàng chục triệu lần.
+const NAP = C_CHAIN ? ethers.parseEther("1") : ethers.parseEther("100000");
+log(`nạp tiền cho ${SO_VI} ví gửi (${ethers.formatEther(NAP)} LOVE9/ví)…`);
 const vis = Array.from({ length: SO_VI }, () => ethers.Wallet.createRandom().connect(p));
 {
   let nonce = await p.getTransactionCount(chu.address, "latest");
   const cho = [];
   for (const v of vis) {
-    cho.push(chu.sendTransaction({
-      to: v.address, value: ethers.parseEther("100000"),
-      nonce: nonce++, gasLimit: 100000n,
-    }));
+    cho.push(chu.sendTransaction({ to: v.address, value: NAP, nonce: nonce++, gasLimit: 100000n }));
   }
   const txs = await Promise.all(cho);
   await txs[txs.length - 1].wait(1);
@@ -146,10 +177,19 @@ const blockDau = await p.getBlockNumber();
 async function bom(v) {
   let nonce = await p.getTransactionCount(v.address, "latest");
   const dich = ethers.Wallet.createRandom().address;
+  // Nhịp của TỪNG ví = tổng số ví ÷ TPS mục tiêu. Ghìm ở phía ví chứ không ghìm ở
+  // một bộ điều phối chung: bộ điều phối chung là một điểm nghẽn nữa, và khi nó
+  // trễ thì con số đo được là độ trễ của nó chứ không phải của chain.
+  const nhipMs = TPS_MUC_TIEU ? (1000 * SO_VI) / TPS_MUC_TIEU : 0;
   while (dangChay) {
+    const batDau = Date.now();
     try {
       await v.sendTransaction({ to: dich, value: 1n, nonce: nonce++, gasLimit: 21000n });
       daGui++;
+      if (nhipMs) {
+        const con = nhipMs - (Date.now() - batDau);
+        if (con > 0) await new Promise(r => setTimeout(r, con));
+      }
     } catch (e) {
       loiGui++;
       // Lệch nonce / đầy mempool: đồng bộ lại rồi nghỉ một nhịp để mempool thoát tải.
@@ -199,10 +239,19 @@ async function canhGac() {
       }
     } catch { /* bỏ qua một nhịp đọc hỏng */ }
 
-    mau.push({ luc: Date.now(), blockL1: blockNay, txTrongCua, cchainMs });
+    // Bộ index có bám kịp chain không? Chỉ hỏi khi bơm vào C-Chain, vì Blockscout
+    // KHÔNG index L1 — hỏi ở chế độ L1 chỉ đo được sự vắng mặt.
+    let bsCao = null, bsTre = null;
+    if (C_CHAIN) {
+      bsCao = await blockscoutCao();
+      if (bsCao != null) bsTre = blockNay - bsCao;
+    }
+
+    mau.push({ luc: Date.now(), blockL1: blockNay, txTrongCua, cchainMs, bsTre });
     const giay = (Date.now() - t0) / 1000;
-    log(`  ${giay.toFixed(0)}s · gửi ${daGui} (lỗi ${loiGui}) · block L1 ${blockNay} (+${blockNay - blockTruoc}) · ` +
-        `chốt ${txTrongCua} tx/5s = ${(txTrongCua / 5).toFixed(1)} TPS · C-Chain ${cchainMs ?? "HỎNG"}ms`);
+    log(`  ${giay.toFixed(0)}s · gửi ${daGui} (lỗi ${loiGui}) · block ${blockNay} (+${blockNay - blockTruoc}) · ` +
+        `chốt ${txTrongCua} tx/5s = ${(txTrongCua / 5).toFixed(1)} TPS · C-Chain ${cchainMs ?? "HỎNG"}ms` +
+        (C_CHAIN ? ` · Blockscout ${bsCao ?? "?"} (chậm ${bsTre ?? "?"} block)` : ""));
     blockTruoc = blockNay;
 
     // 3) Đĩa — bơm tải sinh dữ liệu ở cả 5 node.
@@ -248,7 +297,27 @@ if (cc.length) {
 }
 console.log(`đĩa còn trống      : ${await diaTrongPhanTram()}%`);
 
-if (!GIU && !CHAIN_CO_SAN) {
+if (C_CHAIN) {
+  const tre = mau.map(m => m.bsTre).filter(x => x != null);
+  if (tre.length) {
+    console.log(`Blockscout bám kịp : chậm trung bình ${(tre.reduce((a, b) => a + b, 0) / tre.length).toFixed(1)} block · ` +
+                `chậm nhất ${Math.max(...tre)} block`);
+  }
+  // Trả lại tiền thừa cho ví nguồn. Trên C-Chain đây là quỹ THẬT — ví gửi là ví
+  // dùng một lần, không quét lại thì số dư còn lại mất vĩnh viễn.
+  let traLai = 0n;
+  for (const v of vis) {
+    try {
+      const du = await p.getBalance(v.address);
+      const phi = 21000n * 3n;                    // gasPrice C-Chain ~2 wei, chừa dư
+      if (du > phi) {
+        await (await v.sendTransaction({ to: chu.address, value: du - phi, gasLimit: 21000n })).wait(1);
+        traLai += du - phi;
+      }
+    } catch { /* một ví không quét được không đáng dừng cả bài */ }
+  }
+  console.log(`đã trả lại ví nguồn: ${ethers.formatEther(traLai)} LOVE9`);
+} else if (!GIU && !CHAIN_CO_SAN && chain.name) {
   try {
     const r = await api("/api/revoke", { name: chain.name, xacNhan: chain.name });
     console.log(`\n✓ đã thu hồi chain đo tải — còn ${r.dangTrack}/${r.tran} L1`);
