@@ -15,6 +15,7 @@ import { promisify } from "node:util";
 import path from "node:path";
 import { clientIp, rateLimit, requireToken, requireSecret, serialQueue } from "../lib/guard.mjs";
 import { parseEvmAddress } from "../lib/eip55.mjs";
+import { siwe } from "./siwe.mjs";
 
 const PORT = Number(process.env.PORT || 8091);
 // Mặc định CHỈ nghe loopback. Console điều phối docker trên host — mở ra ngoài
@@ -33,12 +34,40 @@ const checkToken = requireToken(TOKEN);
 
 // Tạo chain là thao tác NẶNG (sinh genesis, chạy create-l1, restart node).
 // Giới hạn chặt hơn nhiều so với các endpoint chỉ đọc.
-const limitCreate = rateLimit({ max: 3, windowMs: 60 * 60 * 1000, name: "create" });
+// HAI TẦNG, và ranh giới giữa chúng là chỗ XÁC THỰC — không phải một con số duy nhất.
+//
+// Bài nghiệm thu end-to-end phơi ra vấn đề: đặt hạn mức nghiêm ngặt TRƯỚC lúc xác
+// thực nghĩa là một request **không có token** cũng tiêu quota của IP đó. Ai gửi 3
+// request rác là khoá được người dùng thật ở cùng IP suốt một giờ — hạn mức trở
+// thành vũ khí thay vì lớp bảo vệ. (Hôm nay console chỉ nghe loopback nên chưa
+// khai thác được; M4.5 định mở ra Internet thì nó thành lỗ hổng thật.)
+//
+//   cửa ngoài  (trước xác thực): rộng tay, chỉ để chặn lụt request
+//   cửa trong  (sau xác thực)  : ngân sách thật cho thao tác nặng
+const limitFlood = rateLimit({ max: 60, windowMs: 60 * 60 * 1000, name: "flood" });
+const limitCreate = rateLimit({ max: Number(process.env.A1_LIMIT_CREATE || 3), windowMs: 60 * 60 * 1000, name: "create" });
 const limitRead = rateLimit({ max: 120, windowMs: 60 * 1000, name: "read" });
 // Thu hồi cũng restart cả 5 node như lúc đẻ — nặng ngang nhau, nên hạn mức ngang nhau.
 // Hạn mức RIÊNG (không dùng chung khoá với create): gộp chung thì một người đẻ 3 chain
 // là hết quyền dọn chính mấy chain đó, tức là hạn mức tự khoá đường sửa sai.
-const limitRevoke = rateLimit({ max: 3, windowMs: 60 * 60 * 1000, name: "revoke" });
+const limitRevoke = rateLimit({ max: Number(process.env.A1_LIMIT_REVOKE || 3), windowMs: 60 * 60 * 1000, name: "revoke" });
+// Xin lời mời ký là thao tác RẺ nhưng chiếm chỗ trong kho nonce — hạn mức rộng tay
+// hơn create/revoke nhiều, nhưng không để mở toang.
+const limitNonce = rateLimit({ max: 30, windowMs: 10 * 60 * 1000, name: "nonce" });
+
+// ═══ ĐĂNG NHẬP BẰNG VÍ (M4.1) ═══
+// Đứng SONG SONG với A1_CONSOLE_TOKEN, không thay thế: token tĩnh là đường của
+// người vận hành (và của smoke test), chữ ký ví là đường của người dùng thật.
+// Khác biệt quan trọng nhất không phải "an toàn hơn" mà là **biết ai đang bấm nút**:
+// đăng nhập bằng ví thì `admin` được ÉP bằng địa chỉ đã ký, người dùng không gõ gì
+// cả — gỡ hẳn lớp lỗi "gõ nhầm một ký tự ⇒ chain vô chủ vĩnh viễn".
+const SIWE_DOMAIN = process.env.A1_CONSOLE_DOMAIN || "testnet-a1.9chain.org";
+const SIWE_URI = process.env.A1_CONSOLE_URI || `https://${SIWE_DOMAIN}/console`;
+const dangNhapVi = siwe({
+  domain: SIWE_DOMAIN,
+  uri: SIWE_URI,
+  chainId: Number(process.env.A1_EVM_CHAIN_ID || 9000000009),
+});
 
 // Hai lượt tạo chain chạy song song sẽ restart node giữa chừng nhau và hỏng cả
 // hai. Xếp hàng tuần tự — đây là ràng buộc đúng đắn, không phải tối ưu hoá.
@@ -635,13 +664,29 @@ function blockedByRate(req, res, limiter) {
   return true;
 }
 
-/** Chặn nếu thiếu/sai token. Trả true nghĩa là ĐÃ trả lời lỗi. */
+/**
+ * Ai đang gọi? Trả `{kieu:"vanHanh"}` · `{kieu:"vi", diaChi}` · hoặc `null`.
+ *
+ * Hai đường đi qua CÙNG một header `Authorization: Bearer`. Thử token vận hành
+ * trước vì nó là một phép so duy nhất; phiên ví phải duyệt kho nên đắt hơn.
+ */
+function danhTinh(req) {
+  if (checkToken(req)) return { kieu: "vanHanh" };
+  const diaChi = dangNhapVi.diaChiCuaPhien(req);
+  return diaChi ? { kieu: "vi", diaChi } : null;
+}
+
+/** Chặn nếu chưa xác thực. Trả `null` nghĩa là ĐÃ trả lời lỗi, caller dừng lại. */
 function blockedByAuth(req, res) {
-  if (checkToken(req)) return false;
+  const ai = danhTinh(req);
+  if (ai) return ai;
   // 401 kèm WWW-Authenticate để client biết cách gửi lại.
   res.writeHead(401, { "content-type": "application/json", "www-authenticate": "Bearer" });
-  res.end(JSON.stringify({ error: "thiếu hoặc sai token — gửi header 'Authorization: Bearer <A1_CONSOLE_TOKEN>'" }));
-  return true;
+  res.end(JSON.stringify({
+    error: "chưa xác thực — dùng token vận hành (Authorization: Bearer <A1_CONSOLE_TOKEN>) " +
+           "hoặc đăng nhập bằng ví qua /api/siwe/nonce → /api/siwe/login",
+  }));
+  return null;
 }
 
 const server = http.createServer(async (req, res) => {
@@ -660,7 +705,8 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "GET" && req.url === "/api/status") {
       if (blockedByRate(req, res, limitRead)) return;
-      if (blockedByAuth(req, res)) return;
+      const ai = blockedByAuth(req, res);
+      if (!ai) return;
       const [ver, cid] = await Promise.all([
         rpc("/ext/info", "info.getNodeVersion").then(v => v.version).catch(() => "?"),
         rpc("/ext/bc/C/rpc", "eth_chainId").then(x => parseInt(x, 16)).catch(() => null),
@@ -670,6 +716,10 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, {
         node: ver, cChainId: cid, defaultAdmin: L1_ADMIN,
         chains: st.chains, retired: st.retired,
+        // Giao diện phải nói rõ người dùng đang là AI. Đăng nhập bằng ví thì ô
+        // admin không còn ý nghĩa (bị ép bằng địa chỉ ký) — hiện nhầm là mời họ
+        // gõ một địa chỉ sẽ bị bỏ qua.
+        dangNhap: ai.kieu, viDangNhap: ai.diaChi || null,
         // Người vận hành cần thấy còn bao nhiêu chỗ TRƯỚC khi bấm nút, không phải
         // sau khi bị từ chối: trần này là trần giao thức, không nới được.
         tran: MAX_L1, tranGiaoThuc: TRAN_SUBNET_GIAO_THUC,
@@ -678,8 +728,33 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "GET" && req.url === "/api/chains") {
       if (blockedByRate(req, res, limitRead)) return;
-      if (blockedByAuth(req, res)) return;
+      if (!blockedByAuth(req, res)) return;
       return send(res, 200, loadState());
+    }
+
+    // ── Đăng nhập bằng ví ──────────────────────────────────────────────────
+    // Hai endpoint này KHÔNG cần xác thực (chúng chính là cửa xác thực), nên
+    // chúng là bề mặt công khai duy nhất của console — hạn mức là lớp bảo vệ duy nhất.
+    if (req.method === "GET" && req.url.startsWith("/api/siwe/nonce")) {
+      if (blockedByRate(req, res, limitNonce)) return;
+      const diaChi = new URL(req.url, "http://x").searchParams.get("address");
+      try {
+        return send(res, 200, dangNhapVi.moiKy(diaChi));
+      } catch (e) {
+        return send(res, 400, { error: String(e.message || e) });
+      }
+    }
+
+    if (req.method === "POST" && req.url === "/api/siwe/login") {
+      if (blockedByRate(req, res, limitNonce)) return;
+      try {
+        const { nonce, signature } = JSON.parse((await docBody(req)) || "{}");
+        // KHÔNG nhận `message` từ client — server dựng lại từ kho của mình.
+        // Xem ghi chú đầu siwe.mjs; đây là chỗ chặn kiểu tấn công "dụ ký chỗ khác".
+        return send(res, 200, dangNhapVi.xacThuc({ nonce, signature }));
+      } catch (e) {
+        return send(res, 401, { error: String(e.message || e) });
+      }
     }
 
     // Đẻ chain và thu hồi chain đi chung một cửa: cả hai đều restart lần lượt cả
@@ -687,10 +762,39 @@ const server = http.createServer(async (req, res) => {
     // là hai đợt rollout đá nhau giữa chừng và hỏng cả hai.
     if (req.method === "POST" && (req.url === "/api/create" || req.url === "/api/revoke")) {
       const laThuHoi = req.url === "/api/revoke";
+      // Cửa ngoài trước, cửa trong SAU xác thực — xem ghi chú ở limitFlood.
+      if (blockedByRate(req, res, limitFlood)) return;
+      const ai = blockedByAuth(req, res);
+      if (!ai) return;
       if (blockedByRate(req, res, laThuHoi ? limitRevoke : limitCreate)) return;
-      if (blockedByAuth(req, res)) return;
       try {
         const tham = JSON.parse((await docBody(req)) || "{}");
+
+        if (ai.kieu === "vi") {
+          // ═══ ĐÂY LÀ ĐIỂM CỦA CẢ M4.1 ═══
+          // Đăng nhập bằng ví ⇒ `admin` là địa chỉ ĐÃ KÝ, không phải thứ client
+          // gửi lên. Ghi đè, không phải kiểm rồi báo lỗi: không có kịch bản hợp lệ
+          // nào mà người ký lại muốn chain về tay địa chỉ khác, còn để họ tự gõ là
+          // giữ nguyên lớp lỗi tệ nhất của dự án — sai một ký tự, genesis bất biến,
+          // chain vô chủ vĩnh viễn, không lỗi, không dấu hiệu.
+          if (laThuHoi) {
+            // Thu hồi thì chỉ được đụng chain CỦA MÌNH. Token vận hành vẫn thu hồi
+            // được mọi chain (đó là vai trò của nó), nhưng một ví lạ thì không.
+            const ten = String(tham.name || "").trim();
+            const chain = loadState().chains.find(c => c.name === ten);
+            const chu = typeof chain?.admin === "string" ? chain.admin.trim() : "";
+            if (chain && chu !== ai.diaChi) {
+              return send(res, 403, {
+                error: chu
+                  ? `"${ten}" thuộc về ${chu}, không phải ví đang đăng nhập (${ai.diaChi}).`
+                  : `"${ten}" là chain mặc định của hệ thống — chỉ người vận hành thu hồi được.`,
+              });
+            }
+          } else {
+            tham.admin = ai.diaChi;
+          }
+        }
+
         const kq = await queue.run(() => laThuHoi ? thuHoiChain(tham) : createChain(tham));
         return send(res, 200, kq);
       } catch (e) {
@@ -703,7 +807,9 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, HOST, () => {
   console.log(`9Chain-A1 Console @ http://${HOST}:${PORT}  (điều phối node ${API})`);
-  console.log(`  auth   : BẬT (Authorization: Bearer <A1_CONSOLE_TOKEN>)`);
+  console.log(`  auth   : token vận hành (Bearer <A1_CONSOLE_TOKEN>) HOẶC chữ ký ví (SIWE)`);
+  console.log(`  ví     : /api/siwe/nonce → /api/siwe/login · domain ${SIWE_DOMAIN}`);
+  console.log(`           đăng nhập bằng ví thì admin bị ÉP = địa chỉ ký (không ai gõ tay)`);
   console.log(`  hạn mức: tạo chain 3 lượt/giờ/IP · thu hồi 3 lượt/giờ/IP · đọc 120 lượt/phút/IP`);
   console.log(`  trần L1: ${MAX_L1} (trần cứng giao thức ${TRAN_SUBNET_GIAO_THUC}) · thu hồi trả lại slot`);
   console.log(`  hàng đợi: tuần tự, tối đa 5 lượt chờ`);
