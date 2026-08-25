@@ -32,6 +32,13 @@ const CONSOLE = opt("console", "http://127.0.0.1:8091");
 const TOKEN = process.env.A1_CONSOLE_TOKEN || "";
 const GIU = co("giu");
 const CHI = opt("chi", null);
+// Chạy lại bài kiểm trên một chain ĐÃ CÓ, không đẻ chain mới.
+//
+// Mỗi lượt đẻ+thu hồi mất ~5,5 phút, nên gỡ lỗi bằng cách đẻ lại chain mỗi lần thử
+// là vòng lặp chậm đến mức người ta bắt đầu đoán thay vì đo. Hai cờ này cắt vòng
+// lặp xuống còn vài giây: đẻ MỘT chain với `--giu`, rồi thử bao nhiêu lần cũng được.
+const RPC_CO_SAN = opt("rpc", null);
+const KHOA = opt("khoa", null);
 
 const DEPLOYER_ALLOWLIST = "0x0200000000000000000000000000000000000000";
 const NATIVE_MINTER = "0x0200000000000000000000000000000000000001";
@@ -40,6 +47,19 @@ const TX_ALLOWLIST = "0x0200000000000000000000000000000000000002";
 // hợp đồng có runtime rỗng. Chỉ dùng PUSH1 nên KHÔNG dính PUSH0 (L1 EVM chưa bật
 // Durango — đã ghi trong HANDOFF).
 const MA_DEPLOY = "0x60006000f3";
+
+// ═══ VÌ SAO MỌI GIAO DỊCH Ở ĐÂY ĐẶT gasLimit TƯỜNG MINH ═══
+// `eth_estimateGas` ƯỚC LƯỢNG THIẾU cho GIAO DỊCH ĐẦU TIÊN của một chain vừa đẻ.
+// Đo được, có đối chứng, trên CÙNG một chain (Ptuintien3C7B, 2026-08-25):
+//     block 1 (giao dịch đầu): estimate 52037 → hết gas, revert, status 0
+//     block 2 trở đi        : estimate 54183 → gasUsed 53388, status 1
+// Cùng calldata, cùng người gửi, cùng precompile. Ba chain khác nhau đều hỏng y
+// hệt ở block 1 với đúng con số 52037.
+//
+// Cách hỏng này ĐỘC ở chỗ nó giả dạng "tính năng không tồn tại": receipt chỉ có
+// `status: 0`, không lý do, còn `eth_call` cùng lời gọi đó lại THÀNH CÔNG (vì
+// eth_call chạy với trần gas rất lớn). Suýt kết luận preset nativeMinter hỏng.
+const GAS_AN_TOAN = 300000n;
 
 const ket = [];
 let hong = 0;
@@ -143,11 +163,26 @@ const BAI = {
     const nhan = ethers.Wallet.createRandom().address;
     const truoc = await p.getBalance(nhan);
     kiem("ví nhận bắt đầu từ 0", truoc === 0n, `${truoc}`);
+
+    // Thử bằng eth_call TRƯỚC khi gửi giao dịch thật.
+    //
+    // Receipt status 0 chỉ nói "hỏng", không nói VÌ SAO — precompile trả lỗi Go và
+    // nó không lọt vào receipt dưới dạng đọc được. `eth_call` chạy đúng đoạn mã đó
+    // nhưng trả THẲNG chuỗi lỗi. Không có bước này thì chẩn đoán một lượt revert
+    // phải đẻ lại chain (5,5 phút) cho mỗi giả thuyết.
     // Đúc token bản địa từ hư không — việc KHÔNG thể làm nếu precompile không bật.
     // Đây là lý do preset này là bài kiểm sạch nhất: không có cách nào giả được.
     const data = new ethers.Interface(["function mintNativeCoin(address,uint256)"])
       .encodeFunctionData("mintNativeCoin", [nhan, ethers.parseEther("777")]);
-    const rc = await chot(await chu.sendTransaction({ to: NATIVE_MINTER, data }), "mint");
+    console.log(`      ↳ calldata ${data.length / 2 - 1} byte (selector ${data.slice(0, 10)})`);
+    try {
+      await p.call({ to: NATIVE_MINTER, data, from: chu.address });
+      kiem("eth_call mintNativeCoin không lỗi", true);
+    } catch (e) {
+      kiem("eth_call mintNativeCoin không lỗi", false, sach(e.shortMessage || e.message));
+      console.log(`      ↳ LÝ DO THẬT: ${sach(JSON.stringify(e.info || e.error || {})).slice(0, 300)}`);
+    }
+    const rc = await chot(await chu.sendTransaction({ to: NATIVE_MINTER, data, gasLimit: GAS_AN_TOAN }), "mint");
     kiem("gọi precompile mintNativeCoin thành công", rc.status === 1, `block ${rc.blockNumber}`);
     const sau = await p.getBalance(nhan);
     kiem("ví lạ nhận đúng 777 token đúc mới", sau === ethers.parseEther("777"), ethers.formatEther(sau));
@@ -158,16 +193,16 @@ const BAI = {
     kiem("precompile deployerAllowList ĐANG BẬT", vt.bat, vt.vi);
     kiem("chủ chain có vai Admin trên precompile", vt.vai === 2, vt.vi);
 
-    const rc = await chot(await chu.sendTransaction({ data: MA_DEPLOY }), "deploy của chủ chain");
+    const rc = await chot(await chu.sendTransaction({ data: MA_DEPLOY, gasLimit: GAS_AN_TOAN }), "deploy của chủ chain");
     kiem("chủ chain DEPLOY được hợp đồng", rc.status === 1 && !!rc.contractAddress, rc.contractAddress || "không có địa chỉ");
 
     // Ví lạ: nạp tiền trước để chắc chắn nó trượt vì KHÔNG CÓ QUYỀN, không phải vì hết tiền.
     const la = ethers.Wallet.createRandom().connect(p);
-    await chot(await chu.sendTransaction({ to: la.address, value: ethers.parseEther("10") }), "nạp cho ví lạ");
+    await chot(await chu.sendTransaction({ to: la.address, value: ethers.parseEther("10"), gasLimit: 100000n }), "nạp cho ví lạ");
     kiem("ví lạ đã có tiền để trả gas", (await p.getBalance(la.address)) > 0n);
     await phaiChan("ví lạ KHÔNG deploy được", () => la.sendTransaction({ data: MA_DEPLOY, gasLimit: 200000n }));
     // Nhưng nó vẫn phải GỬI được giao dịch thường — preset này chỉ chặn deploy.
-    const rc2 = await chot(await la.sendTransaction({ to: chu.address, value: 1n }), "tx thường của ví lạ");
+    const rc2 = await chot(await la.sendTransaction({ to: chu.address, value: 1n, gasLimit: 100000n }), "tx thường của ví lạ");
     kiem("ví lạ VẪN gửi được giao dịch thường (chỉ chặn deploy)", rc2.status === 1, `block ${rc2.blockNumber}`);
   },
 
@@ -176,11 +211,11 @@ const BAI = {
     kiem("precompile txAllowList ĐANG BẬT", vt.bat, vt.vi);
     kiem("chủ chain có vai Admin trên precompile", vt.vai === 2, vt.vi);
 
-    const rc = await chot(await chu.sendTransaction({ to: "0x000000000000000000000000000000000000dEaD", value: 1n }), "tx của chủ chain");
+    const rc = await chot(await chu.sendTransaction({ to: "0x000000000000000000000000000000000000dEaD", value: 1n, gasLimit: 100000n }), "tx của chủ chain");
     kiem("chủ chain giao dịch được (Admin bao hàm Enabled)", rc.status === 1, `block ${rc.blockNumber}`);
 
     const la = ethers.Wallet.createRandom().connect(p);
-    await chot(await chu.sendTransaction({ to: la.address, value: ethers.parseEther("10") }), "nạp cho ví lạ");
+    await chot(await chu.sendTransaction({ to: la.address, value: ethers.parseEther("10"), gasLimit: 100000n }), "nạp cho ví lạ");
     kiem("ví lạ đã có tiền", (await p.getBalance(la.address)) > 0n);
     await phaiChan("ví lạ KHÔNG gửi được giao dịch nào", () => la.sendTransaction({ to: chu.address, value: 1n, gasLimit: 21000n }));
   },
@@ -193,18 +228,36 @@ if (!TOKEN) {
 }
 
 const danhSach = CHI ? [CHI] : Object.keys(BAI);
+
+// Chế độ gỡ lỗi: dùng lại chain có sẵn. Chỉ hợp lệ với MỘT preset (`--chi`) vì mỗi
+// chain chỉ mang đúng một kiểu.
+if (RPC_CO_SAN) {
+  if (!CHI || !BAI[CHI]) { console.log("✗ --rpc phải đi kèm --chi <preset> hợp lệ"); process.exit(1); }
+  if (!KHOA) { console.log("✗ --rpc phải đi kèm --khoa <privkey của chủ chain>"); process.exit(1); }
+  console.log(`\n── chạy lại bài "${CHI}" trên chain có sẵn ──\n   ${RPC_CO_SAN}`);
+  const p = new ethers.JsonRpcProvider(RPC_CO_SAN, undefined, { staticNetwork: true });
+  const chu = new ethers.Wallet(KHOA, p);
+  console.log(`   chủ chain: ${chu.address}`);
+  try { await BAI[CHI](p, chu); }
+  catch (e) { kiem(`bài "${CHI}" chạy trọn vẹn`, false, sach(e.message)); }
+  console.log(`\n════ ${ket.length - hong}/${ket.length} ĐẠT ════`);
+  process.exit(hong ? 1 : 0);
+}
+
 for (const id of danhSach) {
   if (!BAI[id]) { console.log(`✗ không có bài cho preset "${id}"`); hong++; continue; }
   const ten = "P" + id.replace(/-/g, "").slice(0, 8) + Date.now().toString(36).slice(-4).toUpperCase();
   console.log(`\n── preset "${id}" → chain ${ten} ──`);
 
-  const vi = ethers.Wallet.createRandom();
+  const vi = KHOA ? new ethers.Wallet(KHOA) : ethers.Wallet.createRandom();
   let chain = null;
   try {
     const t0 = Date.now();
     chain = await api("/api/create", { name: ten, admin: vi.address, preset: id });
     kiem("đẻ được chain", true, `${((Date.now() - t0) / 1000).toFixed(1)}s · chainId ${chain.chainId}`);
     kiem("console khai đúng preset", chain.preset === id, String(chain.preset));
+    if (GIU) console.log(`      ↳ giữ lại để gỡ lỗi. Chạy lại nhanh:\n` +
+      `        node local-net/faucet/preset-test.mjs --chi ${id} --rpc ${chain.rpc} --khoa <privkey>`);
   } catch (e) {
     kiem("đẻ được chain", false, sach(e.message));
     continue;
