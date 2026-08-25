@@ -214,9 +214,28 @@ HANDOFF: *đừng quảng bá "chạy node cùng chúng tôi"* cho tới khi xon
 
 `l1-evm-genesis.json` hiện cố định, chỉ thay `chainId`/`alloc`/`feeManager`.
 
-- [ ] M5.1 — Chọn preset: gasless (fee=0) · native minter · deployer allowlist · tx allowlist
-- [ ] M5.2 — Giao diện console + validate preset
+- [x] M5.1 — **5 preset** trong `local-net/lib/presets.mjs`: `chuan` · `khong-phi`
+      (minBaseFee=0) · `tu-in-tien` (native minter) · `chi-chu-deploy` (deployer
+      allowlist) · `kin` (tx allowlist).
+
+      **Tên khoá JSON và địa chỉ precompile lấy TỪ SOURCE subnet-evm**
+      (`precompile/contracts/*/module.go`), không gõ theo trí nhớ — subnet-evm **bỏ
+      qua khoá lạ trong im lặng**, nên gõ sai một chữ là chain ra đời thiếu đúng thứ
+      người dùng chọn mà không lỗi, không cảnh báo.
+
+      Hai luật cứng: (1) chủ chain là admin của MỌI precompile được bật — bật mà
+      không ai quản được là đẻ ra công tắc không ai bấm được, genesis thì bất biến;
+      (2) không preset nào được làm chain không giao dịch nổi. Nguy hiểm nhất là
+      `kin`: chủ chain không nằm trong allowlist ⇒ **không ai gửi được giao dịch
+      nào, vĩnh viễn** (sửa allowlist cũng cần một giao dịch). Đã kiểm ở source chứ
+      không tin trực giác: `precompile/allowlist/role.go:51` — `IsEnabled()` trả true
+      cho AdminRole ⇒ để chủ chain vào `adminAddresses` là đủ.
+- [x] M5.2 — Ô chọn kiểu chain trên console (**danh sách do server cấp**, không cắm
+      cứng ở client), mô tả hiện ngay dưới ô chọn vì genesis bất biến — người dùng
+      chỉ có đúng một lần đọc. Danh bạ `/chains/` hiện "Kiểu chain"; chain đẻ trước M5
+      thiếu khoá `preset` ⇒ hiện "Chuẩn", không để `undefined` lọt ra.
 - [ ] M5.3 — Đẻ thật mỗi preset 1 chain, gửi giao dịch thật chứng minh preset có hiệu lực
+      → `local-net/faucet/preset-test.mjs` (đẻ → thử → **tự thu hồi**, nhờ M4.4).
 
 ---
 

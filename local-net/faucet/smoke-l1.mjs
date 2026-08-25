@@ -114,6 +114,13 @@ try {
     (typeof c.admin !== "string" || c.admin.trim() === "" || c.admin === "undefined"));
   kiem("không có admin rác (undefined/rỗng)", rac.length === 0, rac.map(c => c.name).join(", ") || "");
 
+  // `preset` là khoá THÊM (M5) — chain đẻ trước đó hợp lệ khi THIẾU HẲN, trang
+  // danh bạ hiện "Chuẩn". Cái không bao giờ được phép là chuỗi "undefined"/rỗng
+  // lọt ra mặt người dùng — đúng luật đã áp cho khoá `admin` khi nó mới thêm.
+  const presetRac = [...danhBa.chains, ...danhBa.retired].filter(c => "preset" in c &&
+    (typeof c.preset !== "string" || c.preset.trim() === "" || c.preset === "undefined"));
+  kiem("không có preset rác (undefined/rỗng)", presetRac.length === 0, presetRac.map(c => c.name).join(", ") || "");
+
   // Hai L1 trùng chainId là hố sụt: MetaMask coi chúng là MỘT mạng, và chữ ký
   // của chain này phát lại được trên chain kia.
   //

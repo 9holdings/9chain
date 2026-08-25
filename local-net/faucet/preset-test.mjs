@@ -33,7 +33,9 @@ const TOKEN = process.env.A1_CONSOLE_TOKEN || "";
 const GIU = co("giu");
 const CHI = opt("chi", null);
 
+const DEPLOYER_ALLOWLIST = "0x0200000000000000000000000000000000000000";
 const NATIVE_MINTER = "0x0200000000000000000000000000000000000001";
+const TX_ALLOWLIST = "0x0200000000000000000000000000000000000002";
 // Mã khởi tạo hợp đồng nhỏ nhất hợp lệ: PUSH1 0 PUSH1 0 RETURN — deploy ra một
 // hợp đồng có runtime rỗng. Chỉ dùng PUSH1 nên KHÔNG dính PUSH0 (L1 EVM chưa bật
 // Durango — đã ghi trong HANDOFF).
@@ -86,6 +88,25 @@ async function phaiChan(ten, gui) {
   }
 }
 
+// Vai trò trong allowlist, đọc THẲNG từ precompile.
+//
+// Đây là phép đo phân biệt ba trạng thái mà nhìn bề ngoài giống hệt nhau:
+//   • precompile KHÔNG bật      → gọi vào địa chỉ trống, trả về "0x" RỖNG
+//   • precompile bật, không quyền → trả 0 (NoRole)
+//   • precompile bật, có quyền    → trả 1/2/3
+// Bài học từ kho tri thức (Cosmos EVM 2026-08-23): "0x" rỗng và
+// "0x000…000" đọc gần giống nhau, và nhầm hai cái đó là chẩn đoán sai hoàn toàn
+// nguyên nhân. Nên ở đây phân biệt bằng ĐỘ DÀI dữ liệu trả về, không chỉ giá trị.
+const VAI_TRO = { 0: "KhôngCó", 1: "Enabled", 2: "Admin", 3: "Manager" };
+async function docVaiTro(p, precompile, ai) {
+  const data = new ethers.Interface(["function readAllowList(address) view returns (uint256)"])
+    .encodeFunctionData("readAllowList", [ai]);
+  const raw = await p.call({ to: precompile, data });
+  if (!raw || raw === "0x") return { bat: false, vai: null, vi: "precompile KHÔNG bật (trả về rỗng)" };
+  const n = Number(BigInt(raw));
+  return { bat: true, vai: n, vi: VAI_TRO[n] || `vai lạ ${n}` };
+}
+
 /** Đợi giao dịch chốt, ném lỗi rõ ràng nếu treo (dấu hiệu subnet không có validator). */
 async function chot(tx, nhan) {
   const rc = await Promise.race([
@@ -115,6 +136,10 @@ const BAI = {
   },
 
   "tu-in-tien": async (p, chu) => {
+    const vt = await docVaiTro(p, NATIVE_MINTER, chu.address);
+    kiem("precompile nativeMinter ĐANG BẬT", vt.bat, vt.vi);
+    kiem("chủ chain có vai Admin trên precompile", vt.vai === 2, vt.vi);
+
     const nhan = ethers.Wallet.createRandom().address;
     const truoc = await p.getBalance(nhan);
     kiem("ví nhận bắt đầu từ 0", truoc === 0n, `${truoc}`);
@@ -129,6 +154,10 @@ const BAI = {
   },
 
   "chi-chu-deploy": async (p, chu) => {
+    const vt = await docVaiTro(p, DEPLOYER_ALLOWLIST, chu.address);
+    kiem("precompile deployerAllowList ĐANG BẬT", vt.bat, vt.vi);
+    kiem("chủ chain có vai Admin trên precompile", vt.vai === 2, vt.vi);
+
     const rc = await chot(await chu.sendTransaction({ data: MA_DEPLOY }), "deploy của chủ chain");
     kiem("chủ chain DEPLOY được hợp đồng", rc.status === 1 && !!rc.contractAddress, rc.contractAddress || "không có địa chỉ");
 
@@ -143,6 +172,10 @@ const BAI = {
   },
 
   "kin": async (p, chu) => {
+    const vt = await docVaiTro(p, TX_ALLOWLIST, chu.address);
+    kiem("precompile txAllowList ĐANG BẬT", vt.bat, vt.vi);
+    kiem("chủ chain có vai Admin trên precompile", vt.vai === 2, vt.vi);
+
     const rc = await chot(await chu.sendTransaction({ to: "0x000000000000000000000000000000000000dEaD", value: 1n }), "tx của chủ chain");
     kiem("chủ chain giao dịch được (Admin bao hàm Enabled)", rc.status === 1, `block ${rc.blockNumber}`);
 
