@@ -188,7 +188,19 @@ if (C_CHAIN) {
   log(`  khoá chủ chain (ví dùng một lần, chain này sẽ bị thu hồi): ${chu.privateKey}`);
 }
 
-const p = new ethers.JsonRpcProvider(chain.rpc, undefined, { staticNetwork: true });
+// `batchMaxCount: 1` = TẮT gộp lô của ethers. Mặc định v6 gộp tới 100 request vào
+// một lời gọi HTTP (`batchStallTime` 10ms), nên **mọi ví đều chảy qua một hàng đợi
+// chung** dù chúng chạy song song trong mã.
+//
+// Đây là thứ đã giấu trần thật suốt M9.4: đo được 226–230 TPS bão hoà, trong khi
+// block chỉ đầy **16%** (455/2857 giao dịch) và nhịp block đúng bằng `targetBlockRate`
+// 2,0s — ba dấu hiệu của "chain đang rảnh, người gửi mới là nút thắt". Đã loại trừ
+// đường truyền bằng đối chứng: bơm qua Cloudflare và bơm thẳng vào 127.0.0.1:9650
+// cho ra **gần như cùng một con số** (229,6 vs 226,3 TPS ở 300 ví).
+//
+// Đổi lại: nhiều kết nối HTTP hơn hẳn. Với bài ĐO thì đó đúng là thứ ta muốn —
+// mục tiêu là làm người gửi hết là nút thắt, không phải tiết kiệm kết nối.
+const p = new ethers.JsonRpcProvider(chain.rpc, undefined, { staticNetwork: true, batchMaxCount: 1 });
 const chu = new ethers.Wallet(chuKhoa, p);
 
 // ── Nạp tiền cho các ví gửi ────────────────────────────────────────────────
