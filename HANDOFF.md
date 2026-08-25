@@ -7,8 +7,10 @@ Cập nhật: 2026-08-25 (phiên autopilot thứ hai)
 🔴 **ĐỌC `PROGRESS.md` TRƯỚC** — từ 2026-08-25 backlog nằm ở đó, không phải file này.
 Kèm `DECISIONS.md` (vì sao làm vậy) và `BLOCKERS.md` (đang chờ David cái gì).
 
-**Việc kế tiếp đã chọn: M4.1 (SIWE auth)** — xem D-020 (dùng ethers, đừng tự viết
-secp256k1) và D-021 (vì sao làm trước M3).
+**Việc kế tiếp: M5 (template/precompile) hoặc M3 (IPv6).** M4 nay chỉ còn M4.5 —
+mà M4.5 là `[human]`, chờ David duyệt mở console ra Internet (H-3).
+Trước khi bắt đầu M3, thử xem máy dev chạy một node trong Docker rồi nối IPv6 tới
+server có thay được vai "VPS ngoài" của M3.5 không — xem D-021.
 
 ### Phiên 2026-08-25 (thứ hai) làm xong — tóm tắt để khỏi mở file
 
@@ -24,6 +26,15 @@ danh bạ **5 → 5**. `smoke-l1.mjs --de-chain` nay **tự dọn chain nó đ�
   vì đổi tên. 2 gói khác là nền upstream (đã chứng minh bằng thí nghiệm), 3 gói cần
   mạng thật. Xem D-018/D-019.
 - **Rebase đã diễn tập** — `scripts/rebase-drill.sh`, 7/7 điểm chủ quyền còn nguyên.
+
+**M4.1 + M4.2 — đăng nhập bằng ví.** `GET /api/siwe/nonce` → `POST /api/siwe/login`
+→ token phiên. Đăng nhập bằng ví thì **`admin` bị ÉP = địa chỉ đã ký**, gỡ hẳn lớp lỗi
+tệ nhất của dự án (gõ nhầm 1 ký tự ⇒ genesis bất biến ⇒ chain vô chủ vĩnh viễn).
+Thu hồi bằng ví chỉ đụng được chain của mình. Hạn mức đếm theo **ví**, hai tầng
+(cửa ngoài trước xác thực / ngân sách thật sau xác thực — D-022).
+Nghiệm thu: **21/21** + **33/33→37/37**, đạt ở cả máy dev lẫn server; smoke **16/16**.
+`console-deploy.sh` nay **chặn deploy nếu test xác thực trượt**.
+🔴 `A1_TRUST_PROXY` **cố ý CHƯA bật** — bật khi chưa có proxy là đi lùi, xem M4.2.
 
 **B-1 đã gỡ** (David mở lại Docker Desktop). Một thao tác của người thật mở được 4 task.
 
