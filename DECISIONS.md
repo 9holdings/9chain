@@ -603,3 +603,56 @@ người ngoài Cloudflare không* (phải là 403). Không tách thì bản vá
 | giả `CF-Connecting-IP` khi nối thẳng | **tin IP bịa** | **403** |
 | qua Cloudflare: trang chủ · faucet · chains · RPC | 200 | **200** |
 | `/faucet/whoami` qua Cloudflare | — | IP **thật** của người dùng |
+
+### D-033 — M9.4 đo xong: nâng `gasLimit` KHÔNG nâng thông lượng. Đính chính M9.3.
+**M9.3 kết luận:** *"trần TPS là THAM SỐ GENESIS, không phải giới hạn phần cứng"* —
+dựa trên phép chia `gasLimit 12M ÷ 21.000 ÷ 2s = 285 TPS lý thuyết`, đo được 252–264,
+tức 90% trần, trong khi máy chỉ ở load ~36%.
+
+**M9.4 kiểm giả thuyết đó bằng cách nâng `gasLimit` lên 5 lần (60M). Nó SAI.**
+
+| chain | trần genesis lý thuyết | TPS đo được | block đầy |
+|---|---|---|---|
+| `chuan` 12M (M9.3) | 285 | 252–264 | ~gần đủ |
+| `thong-luong-cao` 60M | **1.428** | **207–230** | **~16%** |
+
+Nâng trần genesis 5 lần mà thông lượng **không tăng — thậm chí thấp hơn**. Và block
+chỉ chứa ~455 giao dịch trên 2.857 chỗ ⇒ **gasLimit không phải thứ đang chặn**.
+
+**Đã loại trừ ba nghi phạm, mỗi cái bằng một đối chứng — và HAI trong ba là giả
+thuyết của tôi, cả hai đều sai:**
+
+| nghi phạm | đối chứng | kết quả |
+|---|---|---|
+| đường truyền (Cloudflare) | bơm qua URL công khai **vs** thẳng vào `127.0.0.1:9650` | 229,6 vs 226,3 TPS — **như nhau**, giả thuyết SAI |
+| gộp lô của ethers | `batchMaxCount` mặc định **vs** `1` | 226,3 vs 224,6 TPS — **như nhau**, giả thuyết SAI |
+| thiếu người gửi | 20 → 60 → 150 → 300 → 600 ví | 155 → 205 → 223 → 226 → **207** (giảm) |
+
+**Nút thắt nằm ở đường NẠP GIAO DỊCH CỦA NODE, khoảng ~230 tx/s.** Chuỗi suy luận
+dựa trên hai dấu hiệu đi cùng nhau:
+- **Nhịp block đứng đúng 2,0s ở MỌI mức tải** ⇒ khâu *dựng block* không hề đuối.
+- **Block không bao giờ đầy** ⇒ lúc dựng block, mempool đơn giản là **không có** thêm
+  giao dịch để lấy.
+⇒ Chỗ nghẽn nằm TRƯỚC mempool: nhận request, phục hồi chữ ký, validate, chèn mempool.
+
+**Bằng chứng mạnh nhất, và cũng là phát hiện vận hành đắt nhất:** tăng tải không
+chuyển thành thông lượng mà chuyển thành **độ trễ cho người dùng thật**. p50 của
+C-Chain **công khai** theo mức tải: **22ms → 236ms → 1.720ms → 3.852ms**. Đây là dấu
+vân tay kinh điển của một máy chủ đã bão hoà. Nó cũng xác nhận cảnh báo M9.1 (*L1
+không cô lập được CPU — L1 và C-Chain chạy trong cùng 5 tiến trình node*) không phải
+lý thuyết.
+
+**Hai thay đổi theo sau, đã áp:**
+1. **Hoàn nguyên `batchMaxCount: 1`.** Nó không tăng TPS mà làm p50 công khai từ
+   236ms lên **1.720ms** ở cùng 300 ví — đổi trải nghiệm người ngoài lấy con số
+   không nhúc nhích.
+2. **Hạ `NGUONG_CHAM_MS` 4000 → 1500.** Ở bậc 600 ví, người dùng thật chờ **3,85
+   giây/lời gọi** mà chốt an toàn **không nổ**, vì 3.852 < 4.000. Chú thích của chính
+   ngưỡng đó nói "người dùng đã thấy lag là cái giá không nên trả" — nhưng nó được
+   đặt cao tới mức không bao giờ bắt được điều nó mô tả.
+
+**Hệ quả cho sản phẩm:** preset `thong-luong-cao` **không** làm chain nhanh hơn ở
+mức tải hôm nay. Nó chỉ mở trần cho tương lai. `moTa` của preset vì vậy phải giữ
+đúng lời hứa hiện tại — *"gấp 5 lần số giao dịch mỗi block"* (đúng theo định nghĩa),
+**không** hứa gấp 5 lần TPS. Muốn TPS thật cao hơn thì phải làm ở phía node/máy chủ,
+không phải ở genesis — và đó là việc chưa ai đo tới đáy.

@@ -113,7 +113,12 @@ const BLOCKSCOUT = opt("blockscout", "http://127.0.0.1:8100");
 const NGUONG_HONG_LIEN_TIEP = 3;
 // C-Chain trả lời chậm hơn ngưỡng này quá nhiều lần liên tiếp cũng dừng — mạng chưa
 // chết nhưng người dùng đã thấy nó lag, và đó đã là cái giá không nên trả.
-const NGUONG_CHAM_MS = 4000;
+// Hạ 4000 → 1500 sau khi ĐO được cái giá thật của ngưỡng cũ (2026-08-25):
+// ở bậc 600 ví, C-Chain công khai đạt p50 **3.852ms** mà chốt an toàn vẫn KHÔNG nổ,
+// vì 3.852 < 4.000. Người dùng thật lúc đó đang chờ gần 4 giây cho mỗi lời gọi RPC —
+// đúng thứ chú thích ngay trên đây gọi là "cái giá không nên trả", chỉ là ngưỡng cũ
+// đặt cao tới mức không bao giờ bắt được nó.
+const NGUONG_CHAM_MS = 1500;
 const NGUONG_CHAM_LIEN_TIEP = 5;
 // Đĩa còn dưới bấy nhiêu phần trăm thì dừng: bơm tải sinh dữ liệu ở CẢ 5 node.
 const NGUONG_DIA_TRONG = 15;
@@ -188,19 +193,22 @@ if (C_CHAIN) {
   log(`  khoá chủ chain (ví dùng một lần, chain này sẽ bị thu hồi): ${chu.privateKey}`);
 }
 
-// `batchMaxCount: 1` = TẮT gộp lô của ethers. Mặc định v6 gộp tới 100 request vào
-// một lời gọi HTTP (`batchStallTime` 10ms), nên **mọi ví đều chảy qua một hàng đợi
-// chung** dù chúng chạy song song trong mã.
+// ═══ ĐÃ THỬ TẮT GỘP LÔ CỦA ETHERS, VÀ ĐÃ HOÀN NGUYÊN — ghi lại để khỏi thử lại ═══
 //
-// Đây là thứ đã giấu trần thật suốt M9.4: đo được 226–230 TPS bão hoà, trong khi
-// block chỉ đầy **16%** (455/2857 giao dịch) và nhịp block đúng bằng `targetBlockRate`
-// 2,0s — ba dấu hiệu của "chain đang rảnh, người gửi mới là nút thắt". Đã loại trừ
-// đường truyền bằng đối chứng: bơm qua Cloudflare và bơm thẳng vào 127.0.0.1:9650
-// cho ra **gần như cùng một con số** (229,6 vs 226,3 TPS ở 300 ví).
+// Giả thuyết: ethers v6 gộp tới 100 request vào một lời gọi HTTP, nên mọi ví chảy
+// qua một hàng đợi chung ⇒ đó mới là trần, không phải chain. Đặt `batchMaxCount: 1`
+// để tắt. **Giả thuyết SAI**, đo được:
 //
-// Đổi lại: nhiều kết nối HTTP hơn hẳn. Với bài ĐO thì đó đúng là thứ ta muốn —
-// mục tiêu là làm người gửi hết là nút thắt, không phải tiết kiệm kết nối.
-const p = new ethers.JsonRpcProvider(chain.rpc, undefined, { staticNetwork: true, batchMaxCount: 1 });
+//   300 ví, có gộp lô : 226,3 TPS · C-Chain công khai p50   236ms
+//   300 ví, TẮT gộp lô: 224,6 TPS · C-Chain công khai p50 1.720ms
+//   600 ví, TẮT gộp lô: 207,0 TPS · C-Chain công khai p50 3.852ms
+//
+// Thông lượng KHÔNG đổi (thậm chí giảm ở 600 ví), còn độ trễ của **người dùng thật**
+// trên C-Chain công khai tăng **7 lần** rồi **16 lần**. Tức tắt gộp lô chỉ đổi trải
+// nghiệm của người ngoài lấy một con số không nhúc nhích — đánh đổi thuần lỗ.
+//
+// Giữ mặc định. Xem D-033 để biết nút thắt thật nằm ở đâu.
+const p = new ethers.JsonRpcProvider(chain.rpc, undefined, { staticNetwork: true });
 const chu = new ethers.Wallet(chuKhoa, p);
 
 // ── Nạp tiền cho các ví gửi ────────────────────────────────────────────────
