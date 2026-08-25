@@ -1,11 +1,35 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: 2026-08-25 (phiên autopilot)
+Cập nhật: 2026-08-25 (phiên autopilot thứ hai)
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
 🔴 **ĐỌC `PROGRESS.md` TRƯỚC** — từ 2026-08-25 backlog nằm ở đó, không phải file này.
 Kèm `DECISIONS.md` (vì sao làm vậy) và `BLOCKERS.md` (đang chờ David cái gì).
+
+**Việc kế tiếp đã chọn: M4.1 (SIWE auth)** — xem D-020 (dùng ethers, đừng tự viết
+secp256k1) và D-021 (vì sao làm trước M3).
+
+### Phiên 2026-08-25 (thứ hai) làm xong — tóm tắt để khỏi mở file
+
+**M4.4 — thu hồi chain.** Trần 16 L1 hết là bánh cóc một chiều. `POST /api/revoke`
+gỡ subnet khỏi `--track-subnets` mọi node rồi gỡ khỏi danh bạ. Nghiệm thu **29/29**
+trên mạng công khai: thu hồi 162.8s, gián đoạn C-Chain **0.5s** (bằng lúc đẻ chain),
+danh bạ **5 → 5**. `smoke-l1.mjs --de-chain` nay **tự dọn chain nó đẻ ra**.
+
+**M8 — "fork tự đứng được", xong 4/4.** Ba lỗ hổng nêu ra đầu phiên đã bịt:
+- **Build lại được** — và binary **trùng từng byte** với bản đang chạy công khai
+  (`40d5e8f6…`), plugin cũng vậy. Reproducible build, xem D-017.
+- **Test có nền** — 220 xanh / 7 đỏ; fork chịu trách nhiệm **đúng 2 gói**, cả hai chỉ
+  vì đổi tên. 2 gói khác là nền upstream (đã chứng minh bằng thí nghiệm), 3 gói cần
+  mạng thật. Xem D-018/D-019.
+- **Rebase đã diễn tập** — `scripts/rebase-drill.sh`, 7/7 điểm chủ quyền còn nguyên.
+
+**B-1 đã gỡ** (David mở lại Docker Desktop). Một thao tác của người thật mở được 4 task.
+
+🔴 **H-6 nay là việc chặn đắt nhất: repo KHÔNG CÓ REMOTE NÀO.** Đã kiểm lúc định push.
+Toàn bộ phiên này (10 commit) chỉ nằm trên một ổ đĩa. `BLOCKERS.md` có sẵn stopgap
+H-6b chỉ cần David gật một chữ.
 
 **Sức khoẻ lúc chốt (đo thật):** 5/5 validator connected · **5 L1** trong danh bạ ·
 smoke test **20/20 đạt** · đẻ chain đầy đủ có gửi giao dịch thật, chốt sau 0.1s.
@@ -114,7 +138,34 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 
 ## Gotchas
 
-### Thêm từ phiên 2026-08-25 (đều đo được, không suy đoán)
+### Thêm từ phiên 2026-08-25 (thứ hai)
+- 🔴 **`ethers` CÓ trên server, nhưng chỉ ở `local-net/faucet/`.** Ghi chú cũ "thư mục
+  gốc không có node_modules" đúng mà thiếu vế này, và vế thiếu suýt đẩy M4.1 sang
+  hướng tự viết secp256k1. Đo: `~/9chain-a1/src` → `ERR_MODULE_NOT_FOUND`;
+  `~/9chain-a1/src/local-net/faucet` → **OK 6.17.0**. Node phân giải từ thư mục chứa
+  FILE đi lên, nên `smoke-l1.mjs` (ở trong `faucet/`) import được còn console thì không.
+  Cần thư viện cho console ⇒ cấp `package.json` riêng theo đúng khuôn `faucet/`.
+- 🔴 **Thu hồi chain KHÔNG rút node khỏi tập validator P-Chain.** Nên
+  `platform.getCurrentValidators({subnetID})` **vẫn trả đủ 5 validator cho chain đã
+  chết hẳn** — đúng phép đo mà trang `/chains/` dùng để phân biệt sống/chết. Chain đã
+  thu hồi PHẢI vẽ từ mảng `retired` với nhãn riêng, tuyệt đối không đem đo bằng
+  heuristic chain sống: nó sẽ nói dối rất thuyết phục.
+- 🔴 **Chain đã thu hồi giữ chỗ `name` + `chainId` VĨNH VIỄN.** Thu hồi không xoá được
+  mạng khỏi ví người dùng; cấp lại chainId là để ví của người từng dùng chain cũ lặng
+  lẽ trỏ vào chain của người khác, chữ ký phát lại được. `createChain` kiểm trùng trên
+  `chains ∪ retired`.
+- **`COPY --from=builder … CACHED` KHÔNG có nghĩa là build giả.** Suýt kết luận M0.6
+  chưa đạt vì thấy dòng đó. Thực tế các bước build Go chạy tươi 68s/89s/65s; `COPY`
+  được cache CHÍNH VÌ output trùng digest. Ba thứ khác nhau, phải đo thứ cuối: **bước
+  build có chạy không ≠ layer có cache không ≠ binary có giống không.** Phép đo đúng
+  là `sha256sum` chính binary trong image, so với binary đang chạy thật.
+- **Đừng dùng `apply-sovereign.sh` để diễn tập rebase** — nó kết thúc bằng
+  `git branch -f 9chain-a1 HEAD`, tức là **ghi đè nhánh thật**. Dùng `rebase-drill.sh`
+  (worktree tách rời + chốt chặn xác nhận nhánh thật không đổi hash).
+- **`vms/saevm/sae` vốn đã đỏ và KHÔNG ổn định** ở upstream: đỏ sau 45.5s khi chạy cả
+  suite, treo tới hết timeout 600s khi chạy riêng. Không phải do fork. Đừng đuổi theo.
+
+### Thêm từ phiên 2026-08-25 (đầu tiên) — đều đo được, không suy đoán
 - 🔴 **Trần cứng 16 subnet/node.** Peer khai >16 subnet lúc bắt tay P2P thì node nhận
   gọi `p.StartClose()` — **cắt kết nối** (`network/peer/peer.go:882`), và bên gửi
   KHÔNG cắt bớt danh sách (`message/outbound_msg_builder.go:266`). Track quá 16 L1 là
@@ -217,8 +268,14 @@ Nghiệm thu tự động — **dùng cái này thay cho mở trang nhìn bằng
 ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && node local-net/faucet/smoke-l1.mjs'
 ```
 Chế độ nhẹ chỉ đọc, không tốn tiền, chạy bao nhiêu lần cũng được. Thêm `--de-chain`
-để nghiệm thu đường đẻ chain đầy đủ (đẻ chain thật + giao dịch thật + đo gián đoạn)
-— **để lại một L1 vĩnh viễn trong danh bạ**, đừng chạy trong vòng lặp.
+để nghiệm thu đường đẻ chain đầy đủ (đẻ chain thật + giao dịch thật + đo gián đoạn
++ **tự thu hồi chain vừa đẻ**) — mất ~6 phút, **chạy lại được vô hạn** từ M4.4.
+Thêm `--giu` nếu muốn giữ chain lại soi bằng tay (khi đó nó ăn một slot vĩnh viễn).
+
+Diễn tập rebase lớp chủ quyền lên upstream mới (worktree tách rời, không đụng nhánh thật):
+```bash
+bash scripts/rebase-drill.sh              # thử lên origin/master
+```
 
 Đo gián đoạn RPC trong lúc làm thao tác nặng:
 ```bash
