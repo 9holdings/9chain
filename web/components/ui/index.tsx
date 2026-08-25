@@ -269,3 +269,53 @@ export function LuuY({ kieu = 'thuong', children }: { kieu?: 'thuong' | 'canhBao
     </div>
   );
 }
+
+/* ───────────────────────────────────────────────────────────── Steps (Buoc) */
+
+export type TrangThaiBuoc = 'cho' | 'chay' | 'xong' | 'hong';
+export type MotBuoc = { ma: string; nhan: string; trangThai: TrangThaiBuoc; ms?: number };
+
+const DAU: Record<TrangThaiBuoc, string> = { cho: '○', chay: '◐', xong: '✓', hong: '✕' };
+const MAU: Record<TrangThaiBuoc, string> = {
+  cho: 'text-muted',
+  chay: 'text-gold-ink-strong',
+  xong: 'text-success-ink',
+  hong: 'text-danger',
+};
+
+/**
+ * Danh sách BƯỚC cho thao tác dài.
+ *
+ * 🔴 Vì sao không phải spinner: một lượt đẻ chain mất **~170 giây** và đó là CHỦ Ý
+ * (5 node restart lần lượt để mạng không mất quorum). Một vòng xoay 170 giây đọc là
+ * "hỏng rồi" — người dùng tải lại trang và bấm lại, và lần bấm thứ hai là một chain
+ * thừa ăn mất một slot trong trần 15.
+ *
+ * `aria-live="polite"` để người dùng trình đọc màn hình nghe được tiến trình mà
+ * không bị cắt ngang; `role="list"` giữ ngữ nghĩa danh sách khi đã bỏ dấu chấm.
+ */
+export function CacBuoc({ buoc, ghiChu }: { buoc: MotBuoc[]; ghiChu?: string }) {
+  return (
+    <div aria-live="polite">
+      <ol role="list" className="flex flex-col gap-2">
+        {buoc.map((b) => (
+          <li key={b.ma} className="flex items-baseline gap-3 text-sm">
+            <span aria-hidden="true" className={gop('w-4 shrink-0 font-mono', MAU[b.trangThai])}>
+              {DAU[b.trangThai]}
+            </span>
+            <span className={gop('flex-1', b.trangThai === 'cho' ? 'text-muted' : 'text-body')}>
+              {b.nhan}
+              {/* Trạng thái phải nằm trong CHỮ, không chỉ trong ký hiệu và màu:
+                  ký hiệu bị aria-hidden, còn màu thì người mù màu không đọc được. */}
+              <span className="sr-only">
+                {b.trangThai === 'xong' ? ' — xong' : b.trangThai === 'chay' ? ' — đang chạy' : b.trangThai === 'hong' ? ' — hỏng' : ' — chờ'}
+              </span>
+            </span>
+            {b.ms ? <span className="font-mono text-xs text-muted">{(b.ms / 1000).toFixed(1)}s</span> : null}
+          </li>
+        ))}
+      </ol>
+      {ghiChu && <p className="mt-3 text-sm text-muted">{ghiChu}</p>}
+    </div>
+  );
+}

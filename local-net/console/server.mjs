@@ -331,6 +331,85 @@ function ghimTrackVaoEnv(trackList) {
   }
 }
 
+/**
+ * ═══ TIẾN TRÌNH ĐANG CHẠY — vì sao cần một cái riêng ═══
+ *
+ * Một lượt đẻ chain mất **~170 giây**, và đó là CHỦ Ý: 5 node restart lần lượt để
+ * mạng không mất quorum, đổi lại RPC công khai chỉ gián đoạn 0,5s thay vì 6,0s
+ * (D-008). Nhưng với người bấm nút thì một vòng xoay 170 giây đọc là **"hỏng rồi"** —
+ * họ tải lại trang, bấm lại, và lần bấm thứ hai là một chain thừa ăn mất một slot
+ * trong trần 15.
+ *
+ * `/api/create` trả về nhật ký `restart` **sau khi xong**, tức đúng lúc không còn ai
+ * cần nó nữa. Cái thiếu là đọc được tiến trình **giữa chừng**.
+ *
+ * ═══ VÌ SAO MỘT BIẾN TOÀN CỤC LÀ ĐỦ (VÀ ĐÚNG) ═══
+ * Console chạy MỘT tiến trình, và `create`/`revoke` đi chung một **hàng đợi tuần
+ * tự** — theo thiết kế, vì hai đợt rollout chồng nhau sẽ restart giữa chừng nhau và
+ * hỏng cả hai. Nên tại mọi thời điểm có **nhiều nhất một** lượt đang chạy. Dựng một
+ * bảng job có id cho một thứ không bao giờ có hai là thêm trạng thái để giữ đồng bộ
+ * mà không mua được gì.
+ *
+ * Giữ lại lượt VỪA XONG (không xoá ngay) để người dùng tải lại trang muộn vài giây
+ * vẫn thấy kết quả thay vì một màn trống.
+ */
+const tienTrinh = {
+  dangChay: false,
+  loai: null,      // "tao" | "thuHoi"
+  ten: null,
+  batDau: 0,
+  buoc: [],        // [{ ma, nhan, trangThai: "cho"|"chay"|"xong"|"hong", ms }]
+  loi: null,
+};
+
+/**
+ * 🔴 BA HÀM DƯỚI ĐÂY ĐỀU IM LẶNG BỎ QUA KHI KHÔNG CÓ LƯỢT NÀO ĐANG CHẠY.
+ *
+ * Không có cửa chặn đó thì lượt **thu hồi** (cũng gọi `trackSubnetsLanLuot`) sẽ ghi
+ * đè lên tiến trình của lượt **đẻ vừa xong** — đo được 2026-08-25: ngay sau khi
+ * lượt đẻ đóng ở 8/8, lượt thu hồi kéo bước `node-2` từ "xong" về "chay" và giao
+ * diện của người vừa đẻ chain thấy tiến trình **chạy lùi**. Hỏng theo kiểu tệ: hai
+ * thao tác khác nhau dùng chung một bảng trạng thái mà không ai khai điều đó.
+ */
+function moTienTrinh(loai, ten, buoc) {
+  tienTrinh.dangChay = true;
+  tienTrinh.loai = loai;
+  tienTrinh.ten = ten;
+  tienTrinh.batDau = Date.now();
+  tienTrinh.loi = null;
+  tienTrinh.buoc = buoc.map(b => ({ ...b, trangThai: "cho", ms: 0 }));
+}
+
+/** Đánh dấu một bước bắt đầu chạy; bước trước đó (nếu còn "chay") coi như xong. */
+function buocChay(ma, nhan) {
+  if (!tienTrinh.dangChay) return;
+  const b = tienTrinh.buoc.find(x => x.ma === ma);
+  if (b) { b.trangThai = "chay"; b.batDau = Date.now(); if (nhan) b.nhan = nhan; }
+}
+
+function buocXong(ma, ms) {
+  if (!tienTrinh.dangChay) return;
+  const b = tienTrinh.buoc.find(x => x.ma === ma);
+  if (b) { b.trangThai = "xong"; b.ms = ms ?? (b.batDau ? Date.now() - b.batDau : 0); }
+}
+
+/** Thêm bước phát hiện lúc chạy (số node chỉ biết sau khi đọc compose). */
+function themBuoc(ma, nhan) {
+  if (!tienTrinh.dangChay) return;
+  if (!tienTrinh.buoc.some(x => x.ma === ma)) {
+    tienTrinh.buoc.push({ ma, nhan, trangThai: "cho", ms: 0 });
+  }
+}
+
+function dongTienTrinh(loi) {
+  tienTrinh.dangChay = false;
+  tienTrinh.loi = loi ? String(loi.message || loi) : null;
+  if (loi) {
+    const b = tienTrinh.buoc.find(x => x.trangThai === "chay");
+    if (b) b.trangThai = "hong";
+  }
+}
+
 async function trackSubnetsLanLuot(trackList) {
   // `docker()` gộp stdout VỚI stderr, mà compose hay in cảnh báo kiểu
   //   WARN[0000] The "A1_TRACK_SUBNETS" variable is not set. Defaulting to ...
@@ -376,8 +455,13 @@ async function trackSubnetsLanLuot(trackList) {
   // vẫn có danh sách đúng để dựng lại.
   ghimTrackVaoEnv(trackList);
 
+  // Số node chỉ biết được SAU khi đọc compose, nên các bước này thêm vào lúc chạy.
+  // Giao diện nhờ vậy hiện được "node 2/5" thay vì một vòng xoay không biết bao lâu.
+  for (const svc of thuTu) themBuoc(`node:${svc}`, svc);
+
   for (const svc of thuTu) {
     const t0 = Date.now();
+    buocChay(`node:${svc}`);
     // `--no-deps`: chỉ đụng đúng service này, không kéo theo service khác.
     await docker([...COMPOSE, "up", "-d", "--no-deps", svc], { A1_TRACK_SUBNETS: trackList });
 
@@ -397,6 +481,7 @@ async function trackSubnetsLanLuot(trackList) {
       );
     }
     nhatKy.push({ svc, ms });
+    buocXong(`node:${svc}`, ms);
     console.log(`  ✓ ${svc} track xong, mạng chính phục vụ lại sau ${(ms / 1000).toFixed(1)}s`);
   }
   return nhatKy;
@@ -574,6 +659,15 @@ async function createChain({ name, chainId, admin, preset }) {
     while (taken.has(chainId)) chainId++;
   }
 
+  // Mở tiến trình NGAY SAU khi mọi phép kiểm rẻ đã qua — trước đó mà hỏng thì
+  // người dùng nhận lỗi tức thì, không cần màn tiến trình nào.
+  moTienTrinh("tao", name, [
+    { ma: "genesis", nhan: "Dựng genesis" },
+    { ma: "subnet", nhan: "Đẻ subnet + blockchain trên P-Chain" },
+    { ma: "rpc", nhan: "Chờ RPC của L1 trả lời" },
+  ]);
+  buocChay("genesis");
+
   // 1) genesis EVM cho L1 này
   const tpl = JSON.parse(readFileSync(L1_TEMPLATE, "utf8"));
   tpl.config.chainId = chainId;
@@ -600,6 +694,9 @@ async function createChain({ name, chainId, admin, preset }) {
   writeFileSync(path.join(TMP_DIR, fname), JSON.stringify(tpl, null, 2));
   const inContainer = `/9chain-a1/config/console-tmp/${fname}`;
 
+  buocXong("genesis");
+  buocChay("subnet");
+
   // 2) đẻ subnet + chain qua 9chain-a1-cli (in SUBNET_ID=/BLOCKCHAIN_ID= ra stdout)
   const out = await docker([...COMPOSE, "exec", "-T",
     "-e", `A1_CLI_KEY=${CLI_KEY}`, NODE_CONTAINER,
@@ -608,6 +705,8 @@ async function createChain({ name, chainId, admin, preset }) {
   const subnetID = (out.match(/SUBNET_ID=([A-Za-z0-9]+)/) || [])[1];
   const blockchainID = (out.match(/BLOCKCHAIN_ID=([A-Za-z0-9]+)/) || [])[1];
   if (!subnetID || !blockchainID) throw new Error("Không parse được ID:\n" + out);
+
+  buocXong("subnet");
 
   // 2b) cấu hình VM của chain — PHẢI ghi trước đợt restart ở bước 3, vì node đọc
   //     nó đúng lúc dựng chain (tức là trong đợt restart đó). Xem ghiChainConfig.
@@ -622,11 +721,13 @@ async function createChain({ name, chainId, admin, preset }) {
   // Bản trước lặp 30 lần rồi đi tiếp bất kể kết quả, nên khi node không track
   // được subnet thì console vẫn trả về một chain trông hợp lệ (có đủ ID, có URL
   // RPC) mà thực ra chết. Người dùng thêm vào MetaMask rồi mới phát hiện.
+  buocChay("rpc");
   const rpcPath = `/ext/bc/${blockchainID}/rpc`;
   let live = false;
   for (let i = 0; i < 30; i++) {
     try { await rpc(rpcPath, "eth_chainId"); live = true; break; } catch { await new Promise(r => setTimeout(r, 5000)); }
   }
+  buocXong("rpc");
   if (!live) {
     throw new Error(
       `L1 ${blockchainID} không lên RPC sau 150s. Thường là node chưa track subnet — ` +
@@ -732,6 +833,9 @@ async function thuHoiChain({ name, xacNhan }) {
   // Danh sách track mới = mọi chain còn lại. Rỗng cũng hợp lệ (thu hồi chain cuối
   // cùng) — khi đó node chỉ chạy Primary Network, đúng như mạng lúc mới dựng.
   const conLai = state.chains.filter((_, i) => i !== idx).map(c => c.subnetID);
+  // Thu hồi cũng là một đợt rolling restart ~163 giây — cũng cần tiến trình theo
+  // bước, và cần tiến trình RIÊNG để không đụng vào lượt đẻ vừa xong.
+  moTienTrinh("thuHoi", name, []);
   const nhatKyRestart = await trackSubnetsLanLuot(conLai.join(","));
 
   // ═══ KIỂM CHỨNG, KHÔNG TIN ═══
@@ -879,6 +983,32 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    /**
+     * Tiến trình của lượt đang chạy (hoặc lượt vừa xong).
+     *
+     * Chỉ ĐỌC, và cố ý rẻ: giao diện gọi nó mỗi vài giây suốt ~170 giây, nên nó
+     * không được chạm vào docker hay RPC — chỉ trả lại thứ đã ghi sẵn trong bộ nhớ.
+     *
+     * `conLai` là ước lượng THÔ dựa trên số bước còn lại × nhịp thật đã đo
+     * (~33s/node). Có nó thì thanh tiến trình nói được "còn khoảng 2 phút" thay vì
+     * chỉ đếm bước — mà "còn bao lâu" mới là câu người bấm nút thật sự hỏi.
+     */
+    if (req.method === "GET" && req.url === "/api/tien-trinh") {
+      if (blockedByRate(req, res, limitRead)) return;
+      const ai = blockedByAuth(req, res);
+      if (!ai) return;
+      const conBuoc = tienTrinh.buoc.filter(b => b.trangThai === "cho" || b.trangThai === "chay").length;
+      return send(res, 200, {
+        dangChay: tienTrinh.dangChay,
+        loai: tienTrinh.loai,
+        ten: tienTrinh.ten,
+        giayDaChay: tienTrinh.batDau ? Math.round((Date.now() - tienTrinh.batDau) / 1000) : 0,
+        buoc: tienTrinh.buoc.map(({ ma, nhan, trangThai, ms }) => ({ ma, nhan, trangThai, ms })),
+        loi: tienTrinh.loi,
+        uocConLaiGiay: tienTrinh.dangChay ? conBuoc * 33 : 0,
+      });
+    }
+
     if (req.method === "GET" && req.url === "/api/chains") {
       if (blockedByRate(req, res, limitRead)) return;
       if (!blockedByAuth(req, res)) return;
@@ -959,7 +1089,17 @@ const server = http.createServer(async (req, res) => {
           }
         }
 
-        const kq = await queue.run(() => laThuHoi ? thuHoiChain(tham) : createChain(tham));
+        // Đóng tiến trình ở ĐÂY, không ở trong createChain: đường lỗi cũng phải
+        // đóng, mà lỗi có thể ném ra từ bất kỳ bước nào. Đóng ở một chỗ duy nhất
+        // thì không có nhánh nào để quên.
+        let kq;
+        try {
+          kq = await queue.run(() => laThuHoi ? thuHoiChain(tham) : createChain(tham));
+        } catch (e) {
+          dongTienTrinh(e);
+          throw e;
+        }
+        dongTienTrinh(null);
         return send(res, 200, kq);
       } catch (e) {
         return send(res, 400, { error: String(e.message || e) });

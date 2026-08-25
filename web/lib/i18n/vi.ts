@@ -115,6 +115,69 @@ export const vi = {
     luuYVang: 'Danh bạ hiện chỉ có {so} L1 — bản C sẽ mạnh dần khi có thêm chain.',
   },
 
+  deChain: {
+    tieuDe: 'Đẻ chain của bạn',
+    moTa:
+      'Một L1 riêng, do ví của bạn làm chủ. Bạn ký một lần để chứng minh mình là ai, ' +
+      'soát lại, rồi mạng dựng chain trong khoảng ba phút.',
+
+    // ── bước 1: ví
+    noiVi: 'Kết nối ví',
+    dangNoi: 'Đang kết nối…',
+    kyDeVao: 'Ký để đăng nhập',
+    dangKy: 'Đang chờ chữ ký…',
+    viCuaBan: 'Ví của bạn',
+    laChuChain: 'Chain sẽ thuộc về ví này. Địa chỉ lấy từ chữ ký — không ai gõ tay.',
+    khongCoVi: 'Không thấy ví trong trình duyệt. Cài MetaMask rồi tải lại trang.',
+    tuChoiKy: 'Bạn đã từ chối ký. Không có gì được tạo.',
+    doiVi: 'Dùng ví khác',
+
+    // ── bước 2: form
+    nhanTen: 'Tên chain',
+    goiYTen: 'Ví dụ: ChainCuaToi',
+    moTaTen: 'Chữ, số và dấu cách. 2–32 ký tự. Tên đã dùng thì không cấp lại, kể cả cho chain đã thu hồi.',
+    tenXau: 'Tên chỉ gồm chữ, số và dấu cách, dài 2–32 ký tự.',
+    nhanKieu: 'Kiểu chain',
+    moTaKieu: 'Chọn xong là cố định vĩnh viễn — genesis không sửa lại được.',
+    conCho: 'Còn {con}/{tong} chỗ',
+    hetCho: 'Đã hết chỗ',
+    hetChoMoTa:
+      'Mô hình hiện tại cho mọi validator track mọi L1, mà giao thức cắt kết nối node khai quá 16 subnet. ' +
+      'Đây là trần cứng, không nới được. Thu hồi một chain sẽ trả lại chỗ.',
+    soatLai: 'Soát lại trước khi gửi',
+
+    // ── bước 3: soát lại
+    soatTieuDe: 'Soát lại — đây là cửa một chiều',
+    soatMoTa:
+      'Genesis của một L1 đã đẻ là BẤT BIẾN. Sau bước này không sửa được tên, kiểu chain ' +
+      'hay chủ sở hữu — thu hồi cũng không trả lại tên và chain ID.',
+    soatTen: 'Tên chain',
+    soatKieu: 'Kiểu chain',
+    soatChu: 'Chủ sở hữu',
+    soatQuayLai: 'Quay lại sửa',
+    soatDongY: 'Tôi đã soát, đẻ chain',
+
+    // ── bước 4: tiến trình
+    dangDe: 'Đang đẻ chain “{ten}”',
+    dangDeMoTa:
+      'Năm node restart LẦN LƯỢT để mạng không mất quorum — vì vậy nó chậm, và đó là chủ ý. ' +
+      'Đừng đóng tab; nếu lỡ đóng, chain vẫn tiếp tục được dựng.',
+    conKhoang: 'Còn khoảng {phut} phút',
+    dangChuanBi: 'Đang chuẩn bị…',
+
+    // ── bước 5: xong
+    xongTieuDe: 'Xong — chain “{ten}” đang chạy',
+    xongChainId: 'Chain ID',
+    xongRpc: 'RPC',
+    xongThemVi: 'Thêm chain vào ví',
+    xongDaThem: 'Đã thêm vào ví',
+    xongKichHoat: 'Kích hoạt chain (mở block 1)',
+    xongDaKichHoat: 'Đã kích hoạt',
+    xongDangKichHoat: 'Đang chờ ví…',
+    deTiep: 'Đẻ chain khác',
+    loiDe: 'Không đẻ được chain. {chiTiet}',
+  },
+
   faucet: {
     tieuDe: 'Nhận token thử',
     moTa:

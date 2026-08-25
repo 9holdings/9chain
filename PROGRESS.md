@@ -749,11 +749,51 @@ có thứ tự cao nhất.** Trong lúc chờ: nút chính trỏ vào trang "đa
       lại + `components/ThanhChon.tsx` **bị gỡ**, rồi mới bàn chuyện đổi gốc `/`.
       Để cả ba lại sau khi đã chốt là để một bộ điều khiển nội bộ nằm trên trang chủ
       công khai. **Backup bản cũ:** chưa cần — gốc `/` vẫn là Blockscout, chưa thay gì.
-- [ ] M10.4 — 🔴 **Màn khó nhất: đẻ chain.** Một lượt mất **~170 giây** và đó là chủ
-      ý (D-008) — spinner 170s đọc như "hỏng". Cần **tiến trình theo BƯỚC** (tạo
-      subnet → genesis → node 1..5 track lần lượt → chờ RPC) và **bước soát lại
-      trước khi gửi**, vì genesis bất biến là cửa một chiều.
-      → qua khi: đẻ chain thật, thấy đủ 5 bước node, không có spinner trơ
+- [~] M10.4 — **Màn đẻ chain — phần mềm XONG; còn một việc chỉ người thật làm được.**
+
+      **Việc chặn đã gỡ: console nay có `GET /api/tien-trinh`.** Trước đó `/api/create`
+      chỉ trả nhật ký `restart` **sau khi xong**, tức đúng lúc không còn ai cần nó.
+      Endpoint mới cố ý rẻ — không chạm docker hay RPC, chỉ trả lại thứ đã ghi sẵn
+      trong bộ nhớ, vì giao diện gọi nó mỗi 2 giây suốt ~170 giây.
+
+      **Nghiệm thu phía SERVER — đẻ một chain THẬT (`BuocTest1951`, chainId 9137),
+      đọc tiến trình mỗi 3 giây suốt cả lượt:**
+
+| thời điểm | bước |
+|---|---|
+| 23s | 2/8 · đang `node-2` · còn ~198s |
+| 41s | 3/8 · đang `node-3` |
+| 71s | 4/8 · đang `node-4` |
+| 102s | 5/8 · đang `node-5` |
+| 138s | 6/8 · đang `node-1` |
+| xong | **8/8**, mỗi node 31–33s |
+
+      Đủ **5 bước node lần lượt** đúng thứ tự thiết kế (node phục vụ RPC công khai đi
+      CUỐI). Chain thử đã thu hồi.
+
+      **Nghiệm thu phía GIAO DIỆN** (trên trang đã deploy, ví + API giả với đúng
+      khuôn payload server trả — đường ký thật cần MetaMask, xem `[human]` dưới):
+      trần hiện **trước** khi bỏ công (`Còn 13/15 chỗ`) · ô chọn kiểu chain **do
+      server cấp** kèm mô tả ngay dưới · bước **soát lại** hiện đủ tên/kiểu/địa chỉ
+      ký + câu "BẤT BIẾN" + nút quay lại · màn tiến trình vẽ **8/8 bước** với trạng
+      thái đúng, ước thời gian, vùng `aria-live`, và **không có spinner trơ**.
+
+      Kèm: kết quả có nút **"Kích hoạt chain"** gửi một giao dịch chuyển tiền thường
+      (21.000 gas — hằng số EVM, không cần ước lượng) ⇒ `luuY` là một **việc bấm
+      được**, không phải đoạn văn cảnh báo. Và nút thêm chain vào ví.
+
+      - [human] **Bấm thử đường ký thật bằng MetaMask.** Công cụ tự động không có ví
+        trong trình duyệt nên không lái được `personal_sign`. Mở
+        `https://testnet-a1.9chain.org/moi/de-chain/` và đẻ một chain.
+
+      🔴 **Lỗi tôi gây ra trong lúc làm mốc này, đã sửa gốc:** deploy console **giữa
+      lúc một lượt thu hồi đang chạy**. Đợt rolling restart vẫn chạy tới cùng (docker
+      làm, không phải console), nhưng console chết **trước khi ghi danh bạ** ⇒ node
+      không còn track subnet đó trong khi `console-chains.json` vẫn khai chain còn
+      sống — **danh bạ nói dối một cách hoàn toàn thuyết phục**. `console-deploy.sh`
+      nay đọc `/api/tien-trinh` và **từ chối restart** khi có lượt đang chạy.
+      Kèm một lỗi cùng họ đã sửa: lượt thu hồi trước đây **ghi đè tiến trình của lượt
+      đẻ vừa xong** (kéo bước `node-2` từ "xong" về "chay" ⇒ giao diện chạy lùi).
 - [ ] M10.5 — "Chain của tôi" + thu hồi → qua khi: thu hồi thật một chain từ giao diện
 - [ ] M10.6 — Dashboard A1↔C1 → qua khi: chịu được C1 vắng mặt (H-5) mà không như hỏng
 - [ ] M10.7 — Dọn: `/lite/` redirect, gỡ trang cũ khi 9Scan `/chains/` lên
