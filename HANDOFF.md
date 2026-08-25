@@ -1,6 +1,6 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: 2026-08-25 (phiên autopilot thứ hai — chốt lúc soak test còn đang chạy)
+Cập nhật: 2026-08-25 (phiên thứ ba — B-5 gỡ · backup đầu tiên · soak 3 giờ đã xong)
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
@@ -15,34 +15,43 @@ Kèm `DECISIONS.md` (vì sao làm vậy) và `BLOCKERS.md` (đang chờ David c�
 `blockscout/` — thư mục đó bị gitignore, vá ở đó thì `setup.sh` clone lại là mất.
 Chi tiết + phép chứng minh override tự đứng được: `BLOCKERS.md` mục "Đã gỡ" B-5.
 
-**2. ✅ Backup — ĐÃ CÓ (2026-08-25, phiên thứ ba).** Bản đầu tiên của dự án:
-`C:\PROJECTS\9Chain-backups\9chain-a1-backup-20260825-064053\` — 28 file,
-`sha256sum -c` **28/28 OK**, kèm `MANIFEST.txt` + `RESTORE.md`.
-Gồm 5 danh tính validator, genesis, danh bạ L1, bí mật, và git (bundle repo chính +
-patch series lớp chủ quyền). **H-6b đã chạy**: bản thứ hai của git nằm ở
-`139.99.145.13:~/9chain-a1/backup/20260825-064053/`.
-🔴 **Còn thiếu 2 thứ, đừng tưởng đã đủ** — xem `MANIFEST.txt` mục "CÒN THIẾU":
-(a) **chain data** (7,7 GB) — cần dừng 1 node mới chụp nhất quán;
-(b) **`keys.txt`** vẫn chỉ có một nơi thật (ổ C: máy dev) vì quy tắc cứng cấm đưa lên
-server ⇒ bản thứ hai phải là phương tiện offline, **David quyết**.
+**2. ✅ Backup — ĐÃ CÓ, ĐẦY ĐỦ (2026-08-25, phiên thứ ba).** Bản đầu tiên của dự án:
+`C:\PROJECTS\9Chain-backups\9chain-a1-backup-20260825-064053\` — 652 MB, 29 file,
+`sha256sum -c` **29/29 OK**, kèm `MANIFEST.txt` + `RESTORE.md` (có quy trình phục hồi
+từng mục, đã chạy thử). Gồm: 5 danh tính validator · genesis · danh bạ L1 · bí mật ·
+git (bundle repo chính + patch series lớp chủ quyền) · **chain data 651 MB nén** (chụp
+nguội, đã dừng node-5 rồi mới tar).
+**H-6b đã chạy**: bản thứ hai của git ở `139.99.145.13:~/9chain-a1/backup/20260825-064053/`.
+🔴 **Còn đúng MỘT lỗ:** `local-net/net-public/keys.txt` (5 khoá quỹ testnet) vẫn chỉ có
+một nơi thật — ổ C: máy dev; thư mục backup nằm cùng ổ nên không tính bản thứ hai.
+Quy tắc cứng cấm đưa `keys.txt` lên server ⇒ bản thứ hai buộc phải là **phương tiện
+offline (USB/ổ ngoài)**, **David quyết**.
 
-**3. Validator thứ sáu ở nhà cung cấp KHÁC.** `[human]` — tốn tiền hạ tầng.
-Cả 5 validator đang ở **một máy, một nhà cung cấp, một datacenter**: "testnet 5
-validator" mà cả 5 chết cùng lúc thì nó là một máy chủ đội lốt một mạng. Đây cũng là
-điều kiện tiên quyết cho M3 (cộng đồng chạy node).
+**3. 🔴 VIỆC ĐỘ BỀN LỚN NHẤT CÒN LẠI — validator thứ sáu ở nhà cung cấp KHÁC.**
+`[human]`, tốn tiền hạ tầng. Cả 5 validator đang ở **một máy, một nhà cung cấp, một
+datacenter**: "testnet 5 validator" mà cả 5 chết cùng lúc thì nó là một máy chủ đội lốt
+một mạng. Backup nay cứu được **dữ liệu**, nhưng không cứu được **tính sẵn sàng**.
+Đây cũng là điều kiện tiên quyết cho M3 (cộng đồng chạy node).
 
 ### ⏰ Hẹn giờ đã biết
 **Cả 5 validator hết hạn `2027-08-24`** (đo 2026-08-25, còn 364 ngày). Đúng ngày đó
 mạng DỪNG nếu không gia hạn. Uptime hiện 99,96–100%.
 
-### Đang chạy lúc chốt phiên
-Bơm tải 3 giờ trên L1 `Tai7OQB7` (chạy `nohup`, vẫn tiếp tục sau khi phiên đóng).
-Xong lúc ~08:25 UTC và **tự thu hồi chain**. Xem kết quả:
-```bash
-ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'grep -A14 "KẾT QUẢ" /tmp/tai-3gio.txt'
-```
-Nếu nó không tự thu hồi được thì `Tai7OQB7` còn chiếm 1 slot — thu hồi tay qua
-`POST /api/revoke`.
+### ✅ Soak 3 giờ — ĐÃ XONG 2026-08-25 08:22 UTC, đạt
+| | |
+|---|---|
+| chốt vào block | **2.272.500 giao dịch** — **210,4 TPS** liên tục 180 phút |
+| lỗi gửi | **0** / 2.273.640 |
+| block sinh ra | 5.400 (420,8 tx/block) |
+| RPC C-Chain công khai trong suốt đợt tải | p50 **19ms** · p95 222ms · **hỏng 0/1830 lượt** |
+| đĩa | còn trống 91% |
+
+🔴 **Sửa một con số sai trong HANDOFF cũ:** "đĩa ~2,2 GB/giờ ở 252 TPS" là **ước lượng
+sai từ mẫu quá ngắn**. Đo thật cả 3 giờ: chain data một node đi từ **1,6 GB → 1,8 GB**,
+tức ~**70 MB/giờ** ở 210 TPS — nhỏ hơn 30 lần. Dung lượng đĩa **không** phải ràng buộc.
+
+⚠️ **Đợt tải này KHÔNG tự thu hồi chain** (nó chạy trên chain có sẵn nên cố ý giữ lại):
+log ghi `giữ lại chain "(chain có sẵn)"`. L1 đó vẫn chiếm một slot.
 
 ### Phiên 2026-08-25 (thứ hai) làm xong — tóm tắt để khỏi mở file
 
@@ -193,6 +202,21 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ---
 
 ## Gotchas
+
+### Thêm từ phiên 2026-08-25 (thứ ba)
+- 🔴 **`pgrep -f "<chuỗi>"` trong vòng lặp canh chừng TỰ THẤY CHÍNH NÓ** — cùng họ với
+  bẫy `pkill -f` đã ghi bên dưới, nhưng dính ở chỗ khác nên vẫn vấp. Lệnh
+  `while pgrep -f "tai-test.mjs"; do sleep 60; done` có chuỗi `tai-test.mjs` **trong
+  chính dòng lệnh của nó** ⇒ điều kiện luôn đúng ⇒ canh mãi không bao giờ kết thúc,
+  dù tiến trình thật đã xong từ lâu. Nó **không báo lỗi**, chỉ im lặng chờ.
+  Dùng mẹo ngoặc vuông: `pgrep -f "[t]ai-test.mjs"`. Áp dụng cho `pgrep`, `pkill`,
+  `ps | grep` — bất cứ thứ gì so khớp trên toàn bộ dòng lệnh.
+- 🔴 **Chụp chain data phải DỪNG node trước khi `tar`.** leveldb đang ghi thì bản chép
+  không nhất quán và hỏng **im lặng** — file có đủ, mở ra mới biết. Quy trình đã chạy
+  thật: `docker stop node-5` → `tar` → **`docker start` ngay** → kiểm `5/5 connected`
+  → mới kéo file về. Chỉ cần chụp **một** node (5 validator giữ cùng lịch sử).
+- **Đo dung lượng chain phải đo dài.** Xem mục soak ở đầu file: ước lượng từ mẫu ngắn
+  lệch **30 lần**. Với thứ tăng theo bậc thang (compaction định kỳ), mẫu vài phút nói dối.
 
 ### Thêm từ phiên 2026-08-25 (thứ hai)
 - 🔴 **`docker stats --no-stream` KHÔNG dùng để kết luận được.** Cùng container
@@ -396,6 +420,15 @@ scp -i "$A1_SSH_KEY" local-net/chains/index.html "$A1_SSH_HOST":'~/9chain-a1/src
 Đẻ thử một chain có chủ riêng (chạy TRÊN server; đổi `<0xADMIN>` thành ví của bạn):
 ```bash
 ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'set -a; . ~/9chain-a1/console.env; set +a; curl -sS -X POST http://127.0.0.1:8091/api/create -H "content-type: application/json" -H "authorization: Bearer $A1_CONSOLE_TOKEN" -d "{\"name\":\"TenChain\",\"admin\":\"<0xADMIN>\"}"'
+```
+
+Backup + phục hồi (đọc `RESTORE.md` trong đó, có quy trình từng mục đã chạy thử):
+```bash
+ls /c/PROJECTS/9Chain-backups/9chain-a1-backup-20260825-064053/
+```
+Kiểm toàn vẹn bản backup bất cứ lúc nào:
+```bash
+cd /c/PROJECTS/9Chain-backups/9chain-a1-backup-20260825-064053 && sha256sum -c <(grep -E '^[0-9a-f]{64} ' MANIFEST.txt)
 ```
 
 Tài liệu: `docs/PROGRESS.md` (nhật ký chi tiết) · `docs/DEPLOY-KSGAME.md` (runbook server) · `docs/TOKENOMICS.md` · `docs/DEPLOY-TESTNET.md` (đa VPS, đường lên mainnet) · `docs/ARCHITECTURE.md`.
