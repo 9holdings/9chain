@@ -400,6 +400,52 @@ async function docker(args, env = {}) {
   }
 }
 
+/**
+ * Lời dặn về GIAO DỊCH ĐẦU TIÊN của một chain vừa đẻ (M5.4).
+ *
+ * ═══ VẤN ĐỀ ═══
+ * `eth_estimateGas` **ước lượng THIẾU cho giao dịch đầu tiên** của chain mới. Đo có
+ * đối chứng trên cùng một chain (Ptuintien3C7B, 2026-08-25): cùng calldata, cùng
+ * người gửi, cùng precompile — block 1 ước lượng 52037 ⇒ hết gas ⇒ `status 0`;
+ * block 2 trở đi ước lượng 54183 ⇒ `gasUsed 53388` ⇒ chốt. Ba chain khác nhau đều
+ * hỏng y hệt ở block 1 với đúng con số 52037.
+ *
+ * Cách hỏng này ĐỘC vì nó **giả dạng "tính năng không tồn tại"**: receipt chỉ có
+ * `status: 0` và không có lý do (lỗi của precompile là lỗi Go, không vào receipt
+ * dưới dạng đọc được). Người vừa chọn kiểu chain "tự in tiền" rồi gọi mint lần đầu
+ * sẽ thấy nó hỏng và kết luận preset không có hiệu lực — chính tôi đã kết luận nhầm
+ * đúng như vậy khi làm M5.3. Xem D-025.
+ *
+ * ═══ VÌ SAO CONSOLE KHÔNG TỰ GỬI "GIAO DỊCH MỒI" (hướng đã cân nhắc và LOẠI) ═══
+ * Cách giấu hẳn vấn đề là để server tự gửi một giao dịch ngay sau khi đẻ chain, mở
+ * block 1 trước khi trao chain cho người dùng. Nhưng server **không có khoá nào
+ * tiêu được tiền trên chain đó**: genesis chỉ cấp phát cho `admin`, và đó là ví của
+ * người bấm nút. Muốn server gửi được thì genesis phải cấp thêm cho một địa chỉ do
+ * Foundation giữ — tức là mọi chain người dùng đẻ ra đều mang sẵn một tài khoản của
+ * chúng tôi, **vĩnh viễn**, vì genesis bất biến. Đó là phá đúng tính chất đắt nhất
+ * mà `OwnerTest` đã chứng minh (quỹ Foundation: số dư 0, vai None). Đổi một tính
+ * chất về quyền sở hữu lấy sự tiện lợi là cái giá sai. Xem D-030.
+ *
+ * ═══ CÁCH ĐÚNG ═══
+ * Nói thật, và chỉ cách rẻ nhất: một **giao dịch chuyển tiền thường** tốn đúng
+ * 21000 gas — con số cố định của EVM, **không cần ước lượng, nên không dính bẫy**.
+ * Gửi một lượt như thế là block 1 mở ra và từ đó ước lượng chuẩn trở lại.
+ * `probe-l1.mjs` vốn đã làm đúng việc này, nên ai chạy bài kiểm chứng theo hướng
+ * dẫn thì đã vô tình thoát bẫy — chỉ người đi thẳng vào precompile mới dính.
+ */
+export const LUU_Y_GIAO_DICH_DAU = {
+  tieuDe: "Giao dịch ĐẦU TIÊN trên chain mới: đừng tin ước lượng gas",
+  than:
+    "eth_estimateGas ước lượng THIẾU cho giao dịch đầu tiên của một chain vừa đẻ. " +
+    "Giao dịch sẽ hết gas và trả về status 0 KHÔNG KÈM LÝ DO — trông hệt như " +
+    "'tính năng không được bật'. Từ block 2 trở đi ước lượng chuẩn lại.",
+  cachLam:
+    "Mở block 1 bằng một giao dịch chuyển tiền thường (tốn đúng 21000 gas, cố định, " +
+    "không cần ước lượng). Sau đó gọi precompile hay deploy hợp đồng đều bình thường.",
+  lenh: "node local-net/faucet/probe-l1.mjs <RPC> <PRIVKEY>",
+  gasLimitAnToan: 300000,
+};
+
 // Tạo 1 L1: trả {name, subnetID, blockchainID, chainId, admin, rpc}
 //
 // `admin` = địa chỉ EVM sở hữu chain vừa đẻ: nhận toàn bộ phân bổ genesis VÀ là
@@ -531,7 +577,11 @@ async function createChain({ name, chainId, admin, preset }) {
   // Nhật ký restart trả cho người gọi làm bằng chứng, nhưng KHÔNG ghi vào state:
   // `console-chains.json` là hợp đồng dữ liệu với trang /chains/ công khai, chỉ
   // nên chứa thông tin về chain — không phải chi tiết vận hành của server.
-  return { ...chain, restart: nhatKyRestart };
+  //
+  // `luuY` cũng chỉ trả về, không ghi vào state, và cùng một lý do ở dạng khác: nó
+  // là lời dặn cho người VỪA đẻ chain và hết giá trị ngay khi chain có block đầu.
+  // Ghi vào danh bạ là để một cảnh báo nhất thời sống vĩnh viễn cạnh dữ liệu chain.
+  return { ...chain, restart: nhatKyRestart, luuY: LUU_Y_GIAO_DICH_DAU };
 }
 
 /**

@@ -74,7 +74,7 @@ export const PRESETS = [
       // Cách hỏng này ĐỘC vì mọi dấu hiệu đều nói chain khoẻ: RPC trả lời, `eth_chainId`
       // đúng, `eth_getBalance` đúng, `baseFeePerGas` đúng bằng 0 y như khai — chỉ có
       // giao dịch là không bao giờ chốt. Đã đốt cả B-3 vào việc này (chain
-      // PkhongphiE1LM rồi PkhongphiSQSW, 2026-08-25). Xem D-027.
+      // PkhongphiE1LM rồi PkhongphiSQSW, 2026-08-25). Xem D-028.
       //
       // ═══ VÌ SAO PHẢI ZERO CẢ blockGasCost ═══
       //

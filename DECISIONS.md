@@ -469,3 +469,46 @@ Gom chung vì cùng một họ, không phải trùng hợp.
 Cả ba đều làm bài kiểm **nói dối theo hướng nguy hiểm hơn**: báo đỏ ở tính năng đang
 chạy đúng. Một bài kiểm hay báo đỏ giả thì người ta bắt đầu bỏ qua nó, và lúc đó nó
 mất sạch giá trị.
+
+### D-030 — M5.4: console KHÔNG tự gửi "giao dịch mồi"; nó nói thật và chỉ cách rẻ nhất
+Bẫy: `eth_estimateGas` ước lượng thiếu cho giao dịch ĐẦU TIÊN của chain vừa đẻ, và
+receipt chỉ trả `status 0` không kèm lý do ⇒ **giả dạng "tính năng không được bật"**
+(D-025). Người vừa chọn kiểu chain "tự in tiền" rồi gọi mint lần đầu sẽ kết luận
+preset hỏng. Chính tôi đã kết luận nhầm đúng như vậy khi làm M5.3.
+
+PROGRESS nêu hai hướng và để ngỏ. Chọn được sau khi trả lời một câu hỏi mà hướng
+thứ nhất giấu bên trong: **server lấy tiền ở đâu để gửi giao dịch mồi?**
+
+`createChain` cấp phát genesis cho **đúng một địa chỉ**: `admin`, tức ví của người
+bấm nút — và server không giữ khoá đó. Muốn server gửi được một giao dịch trên chain
+mới thì genesis phải cấp phát thêm cho một địa chỉ do Foundation giữ. Genesis là
+**bất biến**, nên đó không phải "một tài khoản tạm": mọi chain người dùng đẻ ra sẽ
+mang sẵn một tài khoản của chúng tôi **vĩnh viễn**, không gỡ được.
+
+Đó chính là thứ `OwnerTest` đã đo để chứng minh điều ngược lại (quỹ Foundation: số dư
+**0**, vai **None**). Đánh đổi một tính chất về **quyền sở hữu** — thứ khó xây, dễ mất,
+và là lý do tồn tại của cả M4 — để lấy sự tiện lợi cho một lượt giao dịch, là cái giá
+sai. **Loại hướng "server tự gửi giao dịch mồi".**
+
+(Biến thể "cấp dust cho một khoá công khai ai cũng biết" cũng loại: nó chỉ đổi
+"tài khoản của Foundation" thành "tài khoản không ai sở hữu nhưng có tiền" nằm vĩnh
+viễn trong genesis — trông y hệt một cửa hậu, và là hố cho ai lỡ gửi tiền vào.)
+
+**Đã làm:** `LUU_Y_GIAO_DICH_DAU` trong `console/server.mjs`, trả kèm trong đáp án
+của `POST /api/create`, console vẽ nó ngay dưới kết quả đẻ chain. Nội dung: đừng tin
+ước lượng gas cho giao dịch đầu, và **cách rẻ nhất để mở block 1 là một giao dịch
+chuyển tiền thường** — 21000 gas là hằng số của EVM, **không cần ước lượng nên không
+dính bẫy**. Sau block 1 ước lượng chuẩn trở lại.
+
+Chữ nằm ở **một chỗ duy nhất** (server) và giao diện chỉ vẽ lại — cùng lý do danh
+sách preset do server cấp: hai bản chép tay sẽ trôi lệch, và bản sai là bản người
+dùng đọc.
+
+Đáng ghi: `probe-l1.mjs` — công cụ ta vẫn bảo người dùng chạy để kiểm chứng chain —
+vốn đã gửi đúng một giao dịch chuyển tiền thường. Nên ai làm theo hướng dẫn thì đã
+vô tình thoát bẫy; **chỉ người đi thẳng vào precompile mới dính**. Đó là lý do bẫy
+này sống sót qua nhiều lượt nghiệm thu xanh.
+
+`luuY` **không** ghi vào `console-chains.json`: nó là lời dặn cho người vừa đẻ chain
+và hết giá trị ngay khi chain có block đầu. Ghi vào danh bạ là để một cảnh báo nhất
+thời sống vĩnh viễn cạnh dữ liệu chain.

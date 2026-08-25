@@ -195,9 +195,9 @@ const BAI = {
     // là trạng thái làm chain KHÔNG dựng nổi block nào (`VerifyBlockFee` từ chối
     // `baseFee.Sign() <= 0` ngay trong `FinalizeAndAssemble`). Nếu ai đó sau này sửa
     // preset về 0 vì thấy "0 mới đúng nghĩa không phí", bài này phải bắt được ngay ở
-    // dòng đầu thay vì để nó biểu hiện thành một chain câm. Xem D-027.
+    // dòng đầu thay vì để nó biểu hiện thành một chain câm. Xem D-028.
     const blk = await p.getBlock("latest");
-    kiem("baseFee = 1 wei (KHÔNG phải 0 — xem D-027)", blk.baseFeePerGas === 1n, `đo được ${blk.baseFeePerGas}`);
+    kiem("baseFee = 1 wei (KHÔNG phải 0 — xem D-028)", blk.baseFeePerGas === 1n, `đo được ${blk.baseFeePerGas}`);
     // Gửi với giá gas 1 wei — SÀN của mempool, không phải lựa chọn thẩm mỹ.
     // `legacypool.go:158,195`: `PriceLimit` mặc định 1 và **bị ép về 1 nếu cấu hình
     // thấp hơn**, nên giá gas 0 là thứ subnet-evm không bao giờ nhận (D-026).
@@ -319,6 +319,13 @@ for (const id of danhSach) {
     chain = await api("/api/create", { name: ten, admin: vi.address, preset: id });
     kiem("đẻ được chain", true, `${((Date.now() - t0) / 1000).toFixed(1)}s · chainId ${chain.chainId}`);
     kiem("console khai đúng preset", chain.preset === id, String(chain.preset));
+    // M5.4: đáp án của /api/create phải mang theo lời dặn về giao dịch đầu tiên.
+    // Kiểm ở đây vì đây là chỗ DUY NHẤT trong toàn bộ bộ nghiệm thu thật sự gọi
+    // `/api/create` trên mạng công khai — và một lời cảnh báo không được gửi đi thì
+    // im lặng y hệt lúc chưa có nó.
+    kiem("đáp án kèm lời dặn giao dịch đầu (M5.4)",
+      !!(chain.luuY && chain.luuY.tieuDe && chain.luuY.cachLam),
+      chain.luuY ? chain.luuY.tieuDe : "THIẾU trường luuY");
     if (GIU) console.log(`      ↳ giữ lại để gỡ lỗi. Chạy lại nhanh:\n` +
       `        node local-net/faucet/preset-test.mjs --chi ${id} --rpc ${chain.rpc} --khoa <privkey>`);
   } catch (e) {

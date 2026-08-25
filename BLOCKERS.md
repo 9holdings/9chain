@@ -39,32 +39,15 @@ Gỡ khi được duyệt: bỏ 2 service khỏi compose Blockscout, `docker com
 
 ---
 
-### B-3 — `khong-phi`: giá gas 1 wei VẪN không vào được block (M5.3 chưa qua)
-**2026-08-25.** Sửa theo D-026 (gửi 1 wei thay vì 0) vẫn hỏng y hệt: chain
-`PkhongphiSQSW` (9111) có `baseFee = 0` đúng như khai, giao dịch giá gas 1 wei
-**không chốt sau 90 giây**.
-
-**Nghi vấn hàng đầu (chưa xác minh):** `blockGasCost` động của subnet-evm. Template
-có `minBlockGasCost: 0` nhưng cũng có `blockGasCostStep: 200000` và
-`targetBlockRate: 2` — khi block ra nhanh hơn nhịp mục tiêu, chi phí block tăng lên,
-và **tiền tip của các giao dịch trong block phải bù được chi phí đó**. Tip ~0 thì
-người dựng block không bù nổi nên nó không dựng.
-
-**Nếu đúng thì bản vá là** preset `khong-phi` đặt luôn `minBlockGasCost: 0`,
-`maxBlockGasCost: 0`, `blockGasCostStep: 0` — chứ không chỉ `minBaseFee: 0`.
-**Phải kiểm chứng bằng chain thật trước khi tin**, đúng lý do M5.3 tồn tại.
-
-Ba preset còn lại (`tu-in-tien`, `chi-chu-deploy`, `kin`) đều đã chứng minh precompile
-bật đúng và chủ chain có quyền Admin.
-
 ### B-4 — Ba lỗi của BÀI KIỂM preset, không phải của sản phẩm
-Ghi riêng để không lẫn với B-3.
+**Đã vá, đang chờ chạy lại để nghiệm thu** (2026-08-25, phiên thứ tư). Xem D-029.
 1. **`tu-in-tien`**: mint **thành công** (`status 1`, block 1) nhưng bài đọc số dư ra
-   `0.0`. Thử tay trên cùng chain trước đó ra đúng **777.0** ⇒ bài đọc số dư quá sớm,
-   phải đọc lại vài nhịp thay vì tin lần đọc đầu.
-2. **`chi-chu-deploy`** và **`kin`**: `nonce has already been used`. `phaiChan()` gửi
-   một giao dịch bị từ chối, ethers đã tăng nonce nội bộ, giao dịch kế dùng lại số cũ.
-   Sửa: quản nonce tường minh, đọc lại `getTransactionCount` sau mỗi lượt bị chặn.
+   `0.0`. Thử tay trên cùng chain trước đó ra đúng **777.0** ⇒ bài đọc số dư quá sớm.
+   Vá: `doiSoDu()` đọc lại tối đa 10 nhịp và in ra thấy sau bao nhiêu nhịp.
+2. **`chi-chu-deploy`** và **`kin`**: `nonce has already been used`. Hai kiểu chặn để
+   lại nonce ở hai trạng thái khác nhau (`txAllowList` chặn lúc nộp ⇒ nonce không
+   tiêu; `deployerAllowList` revert trong block ⇒ nonce đã tiêu). Vá: `guiVoiNonce()`
+   đọc nonce tươi mỗi lượt, chỉ thử lại khi lỗi đúng là lỗi nonce.
 
 ---
 
