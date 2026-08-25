@@ -250,14 +250,40 @@ HANDOFF: *đừng quảng bá "chạy node cùng chúng tôi"* cho tới khi xon
       cứng ở client), mô tả hiện ngay dưới ô chọn vì genesis bất biến — người dùng
       chỉ có đúng một lần đọc. Danh bạ `/chains/` hiện "Kiểu chain"; chain đẻ trước M5
       thiếu khoá `preset` ⇒ hiện "Chuẩn", không để `undefined` lọt ra.
-- [ ] M5.3 — Đẻ thật mỗi preset 1 chain, gửi giao dịch thật chứng minh preset có hiệu lực
+- [x] M5.3 — Đẻ thật mỗi preset 1 chain, gửi giao dịch thật chứng minh preset có hiệu lực
       → `local-net/faucet/preset-test.mjs` (đẻ → thử → **tự thu hồi**, nhờ M4.4).
-- [ ] M5.4 — 🔴 **Giao dịch ĐẦU TIÊN của chain mới hỏng vì ước lượng gas thiếu** (D-025).
-      Đây là lỗi **người dùng thật sẽ gặp**: vừa đẻ chain, gọi precompile lần đầu,
-      thấy `status 0` và kết luận tính năng hỏng. Hai hướng: console tự gửi một
-      **giao dịch mồi** ngay sau khi đẻ (rẻ, giấu hẳn vấn đề), và/hoặc ghi vào tài
-      liệu cho người đẻ chain. Chưa chọn — cần đo xem giao dịch mồi có làm lượt đẻ
-      chậm thêm đáng kể không.
+
+      **ĐẠT 40/40 trên mạng công khai, 2026-08-25 (phiên thứ tư)** — 4 chain thật
+      (9117–9120), mỗi chain một preset, mỗi chain **tự thu hồi** sau khi thử xong
+      nên bài chạy lại được vô hạn. Danh bạ trả về đúng 6/15 sau mỗi lượt.
+
+| preset | bằng chứng preset CÓ hiệu lực |
+|---|---|
+| `khong-phi` | baseFee **1 wei** · tx giá gas 1 wei chốt ở block 1 · phí thật **21.000 wei** |
+| `tu-in-tien` | đúc **777 token từ hư không** cho một ví lạ, số dư đọc lại đúng 777.0 |
+| `chi-chu-deploy` | chủ chain deploy được; ví lạ **có tiền** vẫn bị chặn deploy, nhưng **vẫn gửi được giao dịch thường** |
+| `kin` | chủ chain giao dịch được (Admin bao hàm Enabled); ví lạ **có tiền** bị chặn hoàn toàn |
+
+      Hai điều kiện bị chặn đều nghiệm thu bằng **ví đã được nạp tiền trước** —
+      không có bước đó thì "bị từ chối" và "hết tiền" trông giống hệt nhau, và bài
+      kiểm sẽ xanh vì lý do sai.
+
+      B-3 (`khong-phi` không chốt được giao dịch) gỡ bằng D-028; B-4 (ba lỗi của
+      chính bài kiểm) gỡ bằng D-029.
+- [x] M5.4 — 🔴 **Giao dịch ĐẦU TIÊN của chain mới hỏng vì ước lượng gas thiếu** (D-025).
+      **Đã chọn hướng và làm xong.** Console KHÔNG tự gửi giao dịch mồi — hướng đó
+      chết ở một câu hỏi mà nó giấu bên trong: *server lấy tiền ở đâu?* Genesis chỉ
+      cấp phát cho `admin` (ví người bấm nút), nên muốn server gửi được thì phải
+      cấp thêm cho một địa chỉ của Foundation **vĩnh viễn trong genesis bất biến** —
+      phá đúng tính chất `OwnerTest` đã đo (quỹ Foundation: 0, vai None). Xem D-030.
+
+      Thay vào đó `POST /api/create` trả kèm `luuY`, console vẽ ngay dưới kết quả:
+      đừng tin ước lượng gas cho giao dịch đầu, và **cách rẻ nhất mở block 1 là một
+      giao dịch chuyển tiền thường** (21.000 gas là hằng số EVM ⇒ không cần ước
+      lượng ⇒ không dính bẫy). Chữ nằm ở **một chỗ** (server), UI chỉ vẽ lại.
+
+      **Nghiệm thu trên mạng công khai:** 4/4 lượt đẻ chain thật đều có trường
+      `luuY` trong đáp án (bài `preset-test.mjs` kiểm ngay tại chỗ gọi `/api/create`).
 
 ---
 
@@ -266,7 +292,30 @@ HANDOFF: *đừng quảng bá "chạy node cùng chúng tôi"* cho tới khi xon
 Demo mạnh nhất của A1; tiêu chí "Interop" đang tự chấm 3/5 trong dashboard.
 
 - [ ] M6.1 — Bật Warp precompile trong genesis template
+
+      **Đã đọc source trước khi code (2026-08-25, phiên thứ tư) — hai điều phải biết:**
+
+      1. **Warp TỪ CHỐI bật trước Durango.** `precompile/contracts/warp/config.go:93`
+         → `errWarpCannotBeActivated`. Nghe như việc chặn, nhưng KHÔNG phải:
+         networkID 9001 không phải Mainnet/Fuji ⇒ `upgrade.GetConfig` trả `Default`,
+         ở đó `DurangoTime = InitiallyActiveTime` (2020-12-05) ⇒ **Durango bật sẵn**.
+         🔴 Kéo theo: gotcha trong HANDOFF *"L1 EVM chưa bật Durango → compile
+         evmVersion:'paris'"* **có vẻ là SAI**. Đã cắm phép đo PUSH0 (`0x5f5ff3`)
+         vào `preset-test.mjs` để kết luận bằng chain thật thay vì bằng đọc code.
+
+      2. 🔴 **`warpConfig.blockTimestamp: 0` sẽ TRƯỢT verify** — và đây là chỗ dễ
+         mất hàng giờ. Mọi precompile khác trong `presets.mjs` dùng
+         `blockTimestamp: 0` và chạy tốt, nên phản xạ tự nhiên là làm y hệt. Nhưng
+         Warp kiểm `IsDurango(c.Timestamp())`, tức so mốc bật Warp với mốc Durango
+         = **1607144400**, chứ không so với "genesis". `IsDurango(0)` là **false**.
+         Phải đặt `blockTimestamp` ≥ 1607144400.
+      - Tham số: `quorumNumerator` — 0 nghĩa là dùng mặc định 67; nếu khai thì phải
+        trong khoảng 33…100. `requirePrimaryNetworkSigners`: bool.
+      - Quyết định còn treo: bật cho **mọi** chain (template) hay làm một preset?
+        Nghiêng về template — ICM đòi CẢ HAI đầu có Warp, nên để nó thành lựa chọn
+        là đẻ ra những cặp chain không nói chuyện được với nhau, mà genesis bất biến.
 - [ ] M6.2 — Chuyển tài sản giữa 2 L1 do người dùng đẻ ra, có bằng chứng giao dịch 2 đầu
+      ⚠️ Cần **2 slot L1 cùng lúc** trong trần 15 — không thu hồi được giữa chừng.
 
 ---
 

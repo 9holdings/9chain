@@ -39,18 +39,6 @@ Gỡ khi được duyệt: bỏ 2 service khỏi compose Blockscout, `docker com
 
 ---
 
-### B-4 — Ba lỗi của BÀI KIỂM preset, không phải của sản phẩm
-**Đã vá, đang chờ chạy lại để nghiệm thu** (2026-08-25, phiên thứ tư). Xem D-029.
-1. **`tu-in-tien`**: mint **thành công** (`status 1`, block 1) nhưng bài đọc số dư ra
-   `0.0`. Thử tay trên cùng chain trước đó ra đúng **777.0** ⇒ bài đọc số dư quá sớm.
-   Vá: `doiSoDu()` đọc lại tối đa 10 nhịp và in ra thấy sau bao nhiêu nhịp.
-2. **`chi-chu-deploy`** và **`kin`**: `nonce has already been used`. Hai kiểu chặn để
-   lại nonce ở hai trạng thái khác nhau (`txAllowList` chặn lúc nộp ⇒ nonce không
-   tiêu; `deployerAllowList` revert trong block ⇒ nonce đã tiêu). Vá: `guiVoiNonce()`
-   đọc nonce tươi mỗi lượt, chỉ thử lại khi lỗi đúng là lỗi nonce.
-
----
-
 ## Cần David quyết (không phải kẹt kỹ thuật — xem PROGRESS mục `[human]`)
 
 | # | Việc | Chặn mốc nào |
@@ -203,6 +191,16 @@ cho mỗi L1 một tập validator riêng — chính là ACP-77.
 ---
 
 ## Đã gỡ
+
+### ✅ B-4 — ĐÃ GỠ (2026-08-25, phiên thứ tư) — ba lỗi của BÀI KIỂM, không phải của sản phẩm
+Chạy lại trọn bộ trên mạng công khai: **40/40 ĐẠT**. Xem D-029.
+1. **`tu-in-tien`**: mint **thành công** (`status 1`, block 1) nhưng bài đọc số dư ra
+   `0.0`. Thử tay trên cùng chain trước đó ra đúng **777.0** ⇒ bài đọc số dư quá sớm.
+   Vá: `doiSoDu()` đọc lại tối đa 10 nhịp và in ra thấy sau bao nhiêu nhịp.
+2. **`chi-chu-deploy`** và **`kin`**: `nonce has already been used`. Hai kiểu chặn để
+   lại nonce ở hai trạng thái khác nhau (`txAllowList` chặn lúc nộp ⇒ nonce không
+   tiêu; `deployerAllowList` revert trong block ⇒ nonce đã tiêu). Vá: `guiVoiNonce()`
+   đọc nonce tươi mỗi lượt, chỉ thử lại khi lỗi đúng là lỗi nonce.
 
 ### B-5 — Hai CSDL Postgres của Blockscout mở ra Internet (2026-08-25 → gỡ cùng ngày)
 David duyệt, gỡ trong phiên thứ ba. **Đo trước/sau từ máy dev qua Internet:**
