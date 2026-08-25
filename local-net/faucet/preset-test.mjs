@@ -210,11 +210,36 @@ async function kiemWarp(p, chu) {
     "function getBlockchainID() view returns (bytes32)",
     "function sendWarpMessage(bytes payload) returns (bytes32)",
   ]);
-  let raw = "0x";
-  try { raw = await p.call({ to: WARP, data: iface.encodeFunctionData("getBlockchainID", []) }); }
-  catch (e) { raw = "0x"; }
+  const doc = async () => {
+    try { return await p.call({ to: WARP, data: iface.encodeFunctionData("getBlockchainID", []) }); }
+    catch { return "0x"; }
+  };
+
+  // ═══ PHẢI MỞ BLOCK 1 TRƯỚC KHI ĐỌC — nếu không phép đo NÓI DỐI ═══
+  //
+  // Đã dính thật (2026-08-25): bài báo "Warp TẮT" trên chain vừa đẻ, trong khi
+  // `warpConfig` nằm đúng chỗ trong genesis và đã đối chiếu md5 với server.
+  //
+  // Lý do: precompile kích hoạt theo **thời gian của block**, và `warpConfig` buộc
+  // phải khai `blockTimestamp: 1607144400` (mốc Durango — xem D-031), trong khi
+  // genesis khai `"timestamp": "0x0"`. Nên ở **block 0, Warp chưa hoạt động**, và
+  // `eth_call` vào một precompile chưa hoạt động trả về `0x` RỖNG — **không phân
+  // biệt được với "khoá cấu hình bị bỏ qua"**, đúng cái trạng thái mà cả mốc M5
+  // sinh ra để chống. Từ block 1 (thời gian thật, 2026) trở đi nó hoạt động.
+  //
+  // Nên: đẩy chain qua block 0 bằng một giao dịch chuyển tiền thường (21.000 gas,
+  // hằng số, không cần ước lượng — cũng chính là "giao dịch mồi" của D-030), rồi
+  // mới đọc. Và báo cáo cả hai lần đọc, vì chênh lệch giữa chúng mới là bằng chứng.
+  const truoc = await doc();
+  if ((await p.getBlockNumber()) === 0) {
+    await chot(await guiVoiNonce(chu, { to: chu.address, value: 0n, gasLimit: 21000n }), "mở block 1");
+  }
+  const raw = await doc();
   const co = raw && raw !== "0x" && BigInt(raw) !== 0n;
-  kiem("Warp ĐANG BẬT (M6.1)", co, co ? `blockchainID ${raw.slice(0, 18)}…` : "trả về rỗng ⇒ precompile TẮT");
+  const doiTrang = (!truoc || truoc === "0x") && co;
+  kiem("Warp ĐANG BẬT (M6.1)", co,
+    co ? `blockchainID ${raw.slice(0, 18)}…` + (doiTrang ? " (block 0: rỗng → sau block 1: có ⇒ kích hoạt theo thời gian block, đúng như D-031)" : "")
+       : `trả về rỗng NGAY CẢ SAU block ${await p.getBlockNumber()} ⇒ khoá warpConfig thật sự bị bỏ qua`);
   if (!co) return;
   try {
     const rc = await chot(await guiVoiNonce(chu, {
