@@ -369,27 +369,32 @@ Demo mạnh nhất của A1; tiêu chí "Interop" đang tự chấm 3/5 trong da
 - [x] M7.5 — Kiểm chứng hạn mức faucet nhìn đúng IP người dùng:
       `/faucet/whoami` → `{"ip":"2.49.67.2","trustProxy":true}` — IP thật, không phải
       IP Cloudflare. Hạn mức faucet lành mạnh, không cần sửa.
-- [~] M7.2 — **Nền đã xong: `local-net/deploy/kiem-cong.sh`.** `ufw-cloudflare-only.sh`
-      còn treo, và cố ý treo — xem dưới.
+- [x] M7.2 — **Siết 443 về dải Cloudflare — XONG, đo được cả hai chiều.** Xem D-032.
 
-      🔴 **Vì sao làm bài kiểm TRƯỚC ufw, không phải sau:** bài học thật của B-5
-      không phải "thiếu ufw" mà là **`ufw status` nói dối**. Docker publish cổng bằng
-      DNAT ở bảng `nat`, ufw lọc chuỗi `INPUT` ⇒ container khai `ports: "7432:5432"`
-      hở thẳng ra Internet **trong khi `ufw status` báo cổng đó bị chặn**. Viết
-      `ufw-cloudflare-only.sh` rồi tin là xong sẽ tạo đúng thứ đã để lọt B-5: một
-      cảm giác an toàn có bằng chứng sai.
+      🔴 **Không phải việc dọn dẹp: nó vá một lỗ ĐANG MỞ.** Đo trước khi vá — nối
+      thẳng vào IP máy chủ kèm header giả thì `/faucet/whoami` trả
+      `{"ip":"1.2.3.4","trustProxy":true}`, tức **hạn mức faucet công khai vượt qua
+      được** bằng cách xoay IP giả. `A1_TRUST_PROXY=1` bảo dịch vụ tin
+      `CF-Connecting-IP`; Cloudflare ghi đè header đó ở biên nên qua Cloudflare thì
+      không giả được — **nhưng không đi qua Cloudflare thì không ai ghi đè cả**.
 
-      `kiem-cong.sh` đo **ba tầng**, và chỉ tầng cuối có thẩm quyền: (1) server khai
-      gì (`ss -tlnp`, lọc loopback) · (2) docker mapping nào thiếu `127.0.0.1` ·
-      (3) **bắt tay TCP thật từ máy dev qua Internet**. Kèm **đối chứng ngược** (thử
-      cổng 9): không có nó thì "mọi cổng đều đóng" có thể chỉ nghĩa là phép đo hỏng.
+      Làm ở **tầng Caddy** (`remote_ip`), không phải ufw — gỡ lại được trong vài
+      giây và có `caddy validate` chạy trước khi chạm server (D-032 ghi vì sao ufw
+      chưa làm, và vì sao nó vẫn sẽ chạy thật khi làm: Caddy dùng `network_mode: host`).
 
-      **Chạy thật 2026-08-25:** ngoài chỉ tới được **22 · 80 · 443**, không container
-      nào publish ra `0.0.0.0`, đối chứng đạt ⇒ B-5 vẫn đang đóng.
+      **Đo:** nối thẳng vào origin **200 → 403** (cả hai tên miền) · giả header
+      **tin IP bịa → 403** · qua Cloudflare **200 → 200** (trang chủ, faucet,
+      chains, RPC) · `/faucet/whoami` trả **IP thật** của người dùng.
+      Dải IP lấy bằng script từ `cloudflare.com/ips-v4`+`ips-v6` (22 dải),
+      **không gõ tay**.
 
-      Còn lại: siết 80/443 về dải Cloudflare. Phải làm cùng lúc với việc kiểm chứng
-      bằng `kiem-cong.sh` từ một IP **không phải** Cloudflare, nếu không thì không
-      phân biệt được "đã siết" với "ufw bị Docker đi vòng qua".
+      Kèm `kiem-cong.sh` **tầng 4 + tầng 5**: tầng 4 tách *cổng có mở* (vẫn mở, TCP
+      vẫn bắt tay) khỏi *origin có phục vụ người ngoài Cloudflare* (phải 403) —
+      không tách thì bản vá trông như vô hiệu; tầng 5 so dải trong Caddyfile với
+      bản chính chủ, vì Cloudflare thêm dải mới sẽ gây triệu chứng **"một số người
+      vào được, một số không"**, gần như không đoán ra nếu không nghi đúng chỗ.
+
+      Còn lại (không chặn): ufw như lớp thứ hai — làm cùng cửa sổ bảo trì có người trực.
 - [ ] M7.3 — `/api/metrics` cho dashboard + 9Scan-A1 (chờ 9Scan chốt yêu cầu ở KICKOFF của họ)
 - [x] M7.4 — `C:\PROJECTS\MetaChain` đã không còn tồn tại (kiểm 2026-08-25, `ls` báo
       No such file or directory). Không cần xoá gì.

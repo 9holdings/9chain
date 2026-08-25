@@ -553,3 +553,53 @@ chính subnet, không cần chữ ký của Primary Network.
 còn hai thứ chưa quyết, ghi ở PROGRESS: dùng **Warp thô** (gửi message, đầu kia
 `getVerifiedWarpMessage`) hay dựng hẳn **Teleporter/ICTT**; và nó cần **2 slot L1
 cùng lúc** trong trần 15 chứ không thu hồi được giữa chừng như bài preset.
+
+### D-032 — Siết 443 về Cloudflare bằng **Caddy**, không bằng ufw (và vì sao vẫn đủ)
+**Bối cảnh:** chuẩn bị mở console ra công khai (M4.5), phát hiện `A1_TRUST_PROXY=1`
+của **faucet** đang bị khai thác được. Đo thật, không suy:
+
+```
+curl -k --resolve testnet-a1.9chain.org:443:139.99.145.13 \
+     -H 'CF-Connecting-IP: 1.2.3.4' .../faucet/whoami
+→ {"ip":"1.2.3.4","trustProxy":true}
+```
+
+Faucet **tin đúng cái IP bịa** ⇒ hạn mức faucet công khai vượt qua được bằng cách
+xoay IP giả. Đây là lỗ **đang mở trên sản phẩm đang chạy**, không phải rủi ro tương
+lai của console. Gốc của nó: Cloudflare ghi đè `CF-Connecting-IP` ở biên nên đi qua
+Cloudflare thì không giả được — nhưng **không đi qua Cloudflare thì không ai ghi đè
+cả**. Niềm tin ấy chỉ đúng nếu origin từ chối mọi kết nối không từ Cloudflare.
+
+**Chọn tầng Caddy (`remote_ip`), không phải ufw.** M7.2 vốn đặt tên là
+`ufw-cloudflare-only.sh`, nhưng ba lý do đẩy sang Caddy:
+1. **Gỡ lại được trong vài giây** — xoá hai dòng `import chi_cloudflare` rồi
+   `caddy reload` (zero-downtime). Sai một dải IP trong ufw thì cách chữa là sửa
+   tường lửa của một máy đang phục vụ công khai, dưới áp lực.
+2. **Có cổng kiểm trước khi áp**: `caddy validate` chạy trong container ở máy dev đã
+   nói "Valid configuration" **trước khi** file chạm tới server.
+3. Cùng một kết quả cho đúng mối nguy đang chữa: header giả không còn được tin.
+
+**ufw KHÔNG làm, và ghi ra để lần sau khỏi cân nhắc lại:** nó chỉ thêm được hai thứ
+— tiết kiệm chi phí bắt tay TLS với máy quét, và giấu origin ở tầng mạng (máy quét
+thấy cổng đóng thay vì 403). Cả hai đều nhỏ so với rủi ro tự chặn nhầm mình. Đáng làm
+**cùng lúc** với một cửa sổ bảo trì có người trực, không phải làm thêm lúc này.
+(Đáng lưu: Caddy chạy `network_mode: host` nên ufw **sẽ** có tác dụng với 443 — khác
+hẳn cổng do Docker publish, thứ đi vòng qua ufw. Nên khi làm thì nó chạy thật.)
+
+**Cái bẫy mà bản vá này tự sinh ra, và cách đã bịt:** Cloudflare thỉnh thoảng thêm
+dải IP. Dải mới mà Caddyfile chưa có ⇒ người đi qua dải đó ăn 403, và triệu chứng là
+**"một số người vào được, một số không"** — gần như không thể đoán ra nếu không nghi
+đúng chỗ. Nên `kiem-cong.sh` có thêm **tầng 5**: tải danh sách chính chủ về và chỉ
+đích danh dải nào bị bỏ sót. Kèm **tầng 4** tách bạch hai chuyện khác nhau mà dễ lẫn:
+*cổng 443 có mở không* (vẫn mở, TCP vẫn bắt tay) ≠ *origin có phục vụ nội dung cho
+người ngoài Cloudflare không* (phải là 403). Không tách thì bản vá trông như vô hiệu.
+
+**Đo trước/sau, cùng một cách:**
+
+| phép thử | trước | sau |
+|---|---|---|
+| nối thẳng vào origin — `testnet-a1` | 200 | **403** |
+| nối thẳng vào origin — `rpc-testnet-a1` | 404 (tới được Caddy) | **403** |
+| giả `CF-Connecting-IP` khi nối thẳng | **tin IP bịa** | **403** |
+| qua Cloudflare: trang chủ · faucet · chains · RPC | 200 | **200** |
+| `/faucet/whoami` qua Cloudflare | — | IP **thật** của người dùng |
