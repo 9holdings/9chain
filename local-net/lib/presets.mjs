@@ -98,6 +98,48 @@ export const PRESETS = [
     },
   },
   {
+    id: "thong-luong-cao",
+    ten: "Thông lượng cao",
+    moTa: "Gấp 5 lần số giao dịch mỗi block (gasLimit 60 triệu thay vì 12 triệu). " +
+          "Hợp cho game, sàn, thứ gì cần nhiều giao dịch nhỏ liên tục. " +
+          "Đổi lại block nặng hơn, và ai chạy node cho chain này cần máy khoẻ hơn.",
+    ap(cfg) {
+      // ═══ VÌ SAO CÓ PRESET NÀY: TRẦN TPS LÀ THAM SỐ GENESIS, KHÔNG PHẢI PHẦN CỨNG ═══
+      //
+      // M9.3 đo trên máy chủ thật: bơm tải lên một L1 riêng chốt được **252–264 TPS**
+      // rồi không lên nữa, dù **máy chủ chỉ ở load 2,92/8 luồng (~36%)**. Tăng số ví
+      // gửi lên 3 lần chỉ đưa 174 → 258 TPS. Trần đó tính thẳng ra từ genesis:
+      //
+      //     gasLimit 12.000.000 ÷ 21.000 gas/tx = 571 tx/block
+      //     571 ÷ 2 giây (targetBlockRate)      = 285 TPS lý thuyết
+      //     đo được 252–264                     = 90% trần
+      //
+      // Nên "chain chạy nhanh hơn" là chuyện **sửa một con số**, không phải chuyện
+      // mua máy. Preset này là kết luận đó đóng thành sản phẩm.
+      //
+      // ═══ HAI THAM SỐ, ĐI CÙNG NHAU ═══
+      // `targetGas` giữ đúng tỉ lệ 5× gasLimit như template gốc (60M/12M). Nó là
+      // lượng gas mục tiêu trong cửa sổ trượt 10 giây; nâng gasLimit mà quên nó thì
+      // chain vừa dùng hết công suất mới đã bị coi là "trên mức mục tiêu" và
+      // **thuật toán phí tự đẩy baseFee lên** — tức là nâng trần rồi tự thu phí
+      // phạt người dùng vì đã dùng cái trần đó.
+      //
+      // `gasLimit` ở GỐC genesis do `createChain` đồng bộ lại từ đây — subnet-evm
+      // đòi hai chỗ bằng nhau (`core/genesis.go:456`).
+      //
+      // ⚠️ CHƯA ĐO TRẦN MỚI. Lý thuyết là 60M ÷ 21.000 ÷ 2 = **1.428 TPS**, gấp 5
+      // lần, nhưng ở mức đó **máy mới là thứ đụng trần** chứ không phải genesis —
+      // và không có số đo thì đó vẫn là phép chia, không phải sự thật. M9.4 phần
+      // đo còn treo; `moTa` vì vậy chỉ hứa "gấp 5 lần số giao dịch mỗi block"
+      // (đúng theo định nghĩa) chứ KHÔNG hứa gấp 5 lần TPS.
+      cfg.feeConfig = {
+        ...cfg.feeConfig,
+        gasLimit: 60000000,
+        targetGas: 300000000,
+      };
+    },
+  },
+  {
     id: "tu-in-tien",
     ten: "Tự in thêm token",
     moTa: "Chủ chain đúc thêm token bản địa bất cứ lúc nào qua precompile " +

@@ -215,6 +215,27 @@ const BAI = {
     kiem("phí thực trả gần như bằng 0 (< 1 gwei)", phi < 1000000000n, `${phi} wei`);
   },
 
+  "thong-luong-cao": async (p, chu) => {
+    // Đo THẲNG trên header block, không đọc lại file genesis mình vừa ghi.
+    //
+    // Đọc genesis chỉ chứng minh "ta đã viết đúng thứ ta định viết" — đúng loại
+    // bằng chứng vô giá trị mà cả mốc M5 sinh ra để chối bỏ (subnet-evm bỏ qua
+    // khoá lạ trong im lặng). `gasLimit` trong header là con số chain THẬT SỰ đang
+    // dùng để đóng block.
+    const blk = await p.getBlock("latest");
+    kiem("gasLimit của chain = 60.000.000 (gấp 5 lần chuẩn)", blk.gasLimit === 60000000n,
+      `đo được ${blk.gasLimit}`);
+    // Và chain phải vẫn giao dịch được — nâng trần mà chain không chạy nổi thì
+    // preset này tệ hơn `chuan`, không tốt hơn.
+    const rc = await chot(await chu.sendTransaction({
+      to: "0x000000000000000000000000000000000000dEaD", value: 1n, gasLimit: 21000n,
+    }), "tx trên chain thông lượng cao");
+    kiem("chain vẫn chốt giao dịch bình thường", rc.status === 1, `block ${rc.blockNumber}`);
+    // Trần lý thuyết in ra để bài đo tải sau này có mốc so, không phải để kết luận.
+    console.log(`      ↳ trần lý thuyết ${Number(blk.gasLimit) / 21000 / 2} TPS ` +
+      `(21.000 gas/tx, targetBlockRate 2s) — CHƯA đo thật, xem M9.4`);
+  },
+
   "tu-in-tien": async (p, chu) => {
     const vt = await docVaiTro(p, NATIVE_MINTER, chu.address);
     kiem("precompile nativeMinter ĐANG BẬT", vt.bat, vt.vi);

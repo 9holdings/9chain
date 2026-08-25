@@ -522,6 +522,17 @@ async function createChain({ name, chainId, admin, preset }) {
   // tiền và trước khi đụng node: subnet-evm bỏ qua khoá lạ trong im lặng, nên nếu
   // để lọt thì chain ra đời thiếu đúng thứ người dùng chọn mà không ai biết.
   const presetDaAp = apDungPreset(tpl.config, preset, ADMIN);
+  // `gasLimit` nằm ở HAI chỗ trong genesis và subnet-evm ĐÒI chúng bằng nhau:
+  // `core/genesis.go:456` `Genesis.Verify()` so `feeConfig.gasLimit` với `gasLimit`
+  // ở gốc và trả lỗi nếu lệch. Đồng bộ tại đây ⇒ **`feeConfig` là nguồn sự thật
+  // duy nhất**, và preset nào đổi thông lượng cũng chỉ cần sửa một chỗ.
+  //
+  // Không để preset tự lo hai chỗ: `apDungPreset` chỉ nhận phần `config`, nên một
+  // preset muốn đổi gasLimit sẽ hoặc không với tới gốc, hoặc phải được trao cả
+  // genesis — mở rộng quyền của preset lên toàn bộ thứ bất biến để giải một bài
+  // toán một dòng. (Lỗi này ít nhất báo TO: chain không khởi động được và câu lỗi
+  // nói thẳng hai con số — khác hẳn bẫy `minBaseFee` ở D-028.)
+  tpl.gasLimit = "0x" + BigInt(tpl.config.feeConfig.gasLimit).toString(16);
   // Khoá của `alloc` là hex TRẦN (không `0x`); dùng chữ thường cho đúng quy ước.
   tpl.alloc = { [ADMIN.slice(2).toLowerCase()]: { balance: "0x295BE96E64066972000000" } };
   const fname = `${name.replace(/ /g, "_")}.json`;

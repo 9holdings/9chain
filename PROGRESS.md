@@ -130,9 +130,25 @@ không bị đụng, **gián đoạn công khai = 0**). Đây là an toàn, khô
 9650 của node1, **không node nào publish 9651** → P2P sống trong bridge docker.
 HANDOFF: *đừng quảng bá "chạy node cùng chúng tôi"* cho tới khi xong.
 
-- [ ] M3.1 — netgen sinh compose có IPv6 network, mỗi node một GUA từ khối `/64`
-- [ ] M3.2 — `--public-ip` = IPv6 thật, publish `9651`, `--bootstrap-ips` IPv6
+- [x] M3.1 — netgen sinh compose có IPv6 network, mỗi node một GUA từ khối `/64`.
+      `A1_P2P_MODE=ipv6` + `A1_IPV6_SUBNET` + `A1_IPV6_BASE`; `enable_ipv6` đặt ở
+      **cấp network** nên không phải restart Docker daemon (đo: server chạy 29.7.2).
+- [x] M3.2 — `--public-ip` = IPv6 thật, `--bootstrap-ips` dạng `[addr]:9651`.
+      **KHÔNG publish 9651**: container có GUA riêng nên nó tự đến được từ Internet,
+      publish cổng là cơ chế của NAT và ở đây không có NAT.
+
+      **Nghiệm thu (đọc kỹ giới hạn):** sinh thật 5 node ⇒ mỗi node một GUA
+      (`…::b`…`::f`), `--public-ip` đúng GUA của chính nó, beacon vào
+      `--bootstrap-ips` đúng dạng ngoặc vuông, `docker compose config` **hợp lệ**.
+      Sinh lại ở chế độ mặc định và so: **0 dòng ipv6, `--public-ip` vẫn IPv4** —
+      hành vi cũ không đổi một dòng nào.
+
+      ⚠️ Đây là nghiệm thu **của bộ sinh**, không phải của mạng chạy thật: máy dev
+      Windows không định tuyến được GUA nên không dựng thử được. Tín hiệu thật nằm
+      ở M3.5. Và ⚠️ **áp lên mạng đang chạy KHÔNG phải hệ quả tự động** — netgen
+      sinh khoá mới, chạy nó trên mạng công khai là giết mạng; phải vá tại chỗ.
 - [ ] M3.3 — [human] AAAA record `bootstrap-a1.9chain.org` trên Cloudflare (**DNS-only**, không mây cam)
+      🔴 **Đọc H-7 TRƯỚC**: nếu David chọn IPv4-đa-cổng thì đây là bản ghi **A**, không phải AAAA.
 - [ ] M3.4 — `docs/RUN-A-NODE.md` + compose mẫu 1 node cho cộng đồng
 - [ ] M3.5 — Kiểm chứng từ VPS NGOÀI: bootstrap xong + `info.peers` thấy node 9Chain-A1
 
