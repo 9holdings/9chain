@@ -349,6 +349,51 @@ chủ quyền dày lên — đúng thứ giết fork lúc rebase. Đổi lấy c
 
 ---
 
+## M9 — Đo năng lực chain bằng tải thật (David yêu cầu 2026-08-25)
+
+`local-net/faucet/tai-test.mjs` — bơm tải lên **một L1 riêng**, không phải C-Chain.
+
+- [x] M9.1 — Bộ bơm tải + chốt an toàn. Tự ngắt nếu C-Chain công khai hỏng 3 lượt
+      liền, hoặc chậm >4s trong 5 lượt liền, hoặc đĩa còn <15%.
+
+      ⚠️ **L1 riêng KHÔNG cô lập được CPU** — L1 và C-Chain chạy trong **cùng 5 tiến
+      trình node**. Cái tách được là Blockscout (nó không index L1). Vì vậy chốt an
+      toàn là bắt buộc, không phải trang trí.
+
+      Bài báo cáo tách **gửi đi** khỏi **chốt vào block**: "gửi được bao nhiêu mỗi
+      giây" là năng lực của cái script, không phải của chain.
+- [x] M9.2 — **Đo thật, 20 ví, 3 phút:**
+
+| | |
+|---|---|
+| Chốt vào block | **173,8 TPS** (31.600 giao dịch) |
+| Gửi đi | 32.240 · **0 lỗi** |
+| Block | 347 giao dịch/block · 2,0 giây/block |
+| C-Chain công khai | p50 **72ms** · p95 113ms · xấu nhất 196ms · **hỏng 0/33** |
+| Đĩa | **0,24 MB/s** khi đang tải ≈ 0,9 GB/giờ |
+
+- [x] M9.3 — **Trần TPS là THAM SỐ GENESIS, không phải giới hạn phần cứng.** Nâng
+      lên 60 ví chỉ đưa 174 → ~258 TPS (tăng 3× số ví, TPS tăng 1,45×) ⇒ đã gần trần.
+      Trần đó tính ra được từ chính genesis:
+      ```
+      gasLimit 12.000.000 ÷ 21.000 gas/tx = 571 tx/block
+      571 ÷ 2 giây (targetBlockRate)      = 285 TPS lý thuyết
+      đo được 252–264 TPS                 = 90% trần
+      ```
+      Trong khi máy chủ ở **load 2,92/8 luồng (~36%)**. Muốn nhanh hơn thì **nâng
+      `gasLimit` trong genesis**, không cần thêm phần cứng.
+- [ ] M9.4 — Preset **"thông lượng cao"** (gasLimit lớn hơn) — hệ quả trực tiếp của
+      M9.3. Cần đo lại xem trần mới nằm ở đâu và khi nào thì máy mới là nút thắt.
+- [ ] M9.5 — [human] Có đưa số liệu này lên trang công khai không, và dưới dạng nào.
+      **Khuyến nghị:** một **nhịp tim** chậm (1 giao dịch/10–60 giây, từ địa chỉ đặt
+      tên rõ) để chiều cao block nhúc nhích — C-Chain công khai hiện mới ở **block
+      thứ 9**, người lạ mở trang sẽ tưởng chain chết. Cộng với **bài đo theo yêu
+      cầu** có nhãn rõ ràng. **KHÔNG** bơm giao dịch tự sinh liên tục rồi trình bày
+      như hoạt động thật: vừa là bịa số liệu, vừa phản tác dụng — một máy đếm
+      "9 TPS" chạy vĩnh viễn làm chain trông chậm hơn thực tế 30 lần.
+
+---
+
 ## Chờ David — KHÔNG code thay được
 
 - [human] **Tokenomics**: supply cap 720,000,000 LOVE9 (đang kế thừa từ Avalanche, chưa ai duyệt) ·
