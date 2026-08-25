@@ -1,6 +1,7 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: 2026-08-25 (phiên thứ tư — **M5 đóng 40/40** · B-3 + B-4 gỡ · M3.1/M3.2 · M6.1 · M9.4)
+Cập nhật: 2026-08-25 (phiên thứ tư — **console ra công khai** · siết 443 về Cloudflare ·
+M5 đóng 40/40 · M6.1 · M9.4 đo xong · kế hoạch UI)
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
@@ -22,7 +23,11 @@ datacenter**: "testnet 5 validator" mà cả 5 chết cùng lúc thì nó là m�
 một mạng. Backup cứu được **dữ liệu**, không cứu được **tính sẵn sàng**.
 Đây cũng là điều kiện tiên quyết cho M3 (cộng đồng chạy node).
 
-**3. 🔴 H-7 MỚI — M3 chờ một quyết định về ĐỐI TƯỢNG, không phải về kỹ thuật.**
+**3. 🔴 M10 — giao diện. Kế hoạch xong, chờ David chọn biến thể trang chủ.**
+`docs/UI-PLAN.md`. Đối tượng đã chốt (người muốn chain riêng), stack đã chốt (Next
+xuất tĩnh). Ba biến thể khác nhau ở **cách dẫn**, không ở nhắm ai.
+
+**4. 🔴 H-7 — M3 chờ một quyết định về ĐỐI TƯỢNG, không phải về kỹ thuật.**
 `[human]`. Phần code đã xong (netgen sinh được P2P IPv6, mặc định không đổi gì).
 Nhưng `--public-ip` của avalanchego nhận **một** địa chỉ, nên **IPv6-only sẽ loại mọi
 peer chỉ có IPv4** — với một testnet mời cộng đồng chạy node thì đó là loại phần lớn
@@ -30,7 +35,7 @@ người muốn tham gia. Đo được: máy chủ có **/56 định tuyến**, 
 theo từng network, KHÔNG phải restart daemon). Khuyến nghị: IPv4 đa cổng cho node
 beacon. **Kéo theo H-4 có thể là bản ghi `A` chứ không phải `AAAA`.** Chi tiết: BLOCKERS H-7.
 
-**4. Mốc kỹ thuật lớn nhất còn lại: M6.2 (chuyển tài sản giữa 2 L1).**
+**5. Mốc kỹ thuật lớn nhất còn lại: M6.2 (chuyển tài sản giữa 2 L1).**
 Không bị chặn bởi người, nhưng cần ba thứ đã tra sẵn ở `PROGRESS.md` mục M6.2 —
 đáng đọc trước khi bắt tay, nhất là: **API Warp TẮT MẶC ĐỊNH**
 (`warp-api-enabled`), nên bật Warp precompile ở M6.1 mới là một nửa.
@@ -57,40 +62,56 @@ log ghi `giữ lại chain "(chain có sẵn)"`. L1 đó vẫn chiếm một slo
 
 ### Phiên 2026-08-25 (thứ tư) làm xong — tóm tắt để khỏi mở file
 
-**M5 ĐÓNG — 40/40 trên mạng công khai.** 4 chain thật (9117–9120), mỗi preset một
-chain, mỗi chain **tự thu hồi** nên bài chạy lại được vô hạn.
+🔴 **CONSOLE ĐÃ CÔNG KHAI: https://testnet-a1.9chain.org/console/** (David duyệt).
+Đăng nhập bằng chữ ký ví. **H-3 đóng, M4.5 xong.** Ba việc phải làm CÙNG LÚC và thứ
+tự đó bắt buộc: route Caddy · `A1_TRUST_PROXY=1` · siết 443 về Cloudflare. Thiếu cái
+thứ ba thì cái thứ hai **là lỗ hổng chứ không phải bản vá**.
 
-**B-3 gỡ, và giả thuyết ghi trong BLOCKERS là SAI.** Nguyên nhân thật:
-`minBaseFee: 0` **qua được `Verify()` của config nhưng làm chain không dựng nổi
-block nào** — `VerifyBlockFee` từ chối `baseFee ≤ 0` **ngay trong
-`FinalizeAndAssemble`**, tức đường dựng block của chính node mình. Mọi dấu hiệu nói
-chain khoẻ (RPC trả lời, `baseFeePerGas` đúng bằng 0 y như khai), chỉ có giao dịch là
-không bao giờ chốt — trùng biểu hiện với "subnet chưa có validator". Vá: `minBaseFee: 1`.
-Xem D-028, **đọc cả phần tự đính chính trong đó**.
+🔴 **M7.2 — siết 443 về dải Cloudflare. Nó vá một lỗ ĐANG MỞ, không phải dọn dẹp.**
+Đo trước khi vá: nối thẳng vào IP máy chủ kèm `CF-Connecting-IP: 1.2.3.4` thì
+`/faucet/whoami` trả `{"ip":"1.2.3.4"}` — **faucet tin IP bịa**, hạn mức vượt qua được
+bằng cách xoay IP giả. Nay mọi kết nối không từ Cloudflare ăn 403. Xem D-032.
 
-**B-4 gỡ** — ba lỗi của *bài kiểm*, không phải sản phẩm. Đều là "đọc quá sớm" (D-029).
+🔴 **SỰ CỐ TÔI GÂY RA: explorer chết 31 phút.** Lượt deploy Caddy của M7.2 xoá mất
+site block `testnet-a1.9scan.org` (nó **chưa bao giờ vào nguồn**, chỉ áp thẳng lên
+server hồi M6 của bên explorer) ⇒ hết cert zone `9scan.org` ⇒ 525. Đã sửa gốc: khối
+vào nguồn, và `caddy-deploy.sh` nay tự kiểm **mọi tên miền**, danh sách suy từ chính
+Caddyfile vừa áp. B-6. **Lỗi của tôi là nghiệm thu thứ mình BIẾT có trong file, chứ
+không nghiệm thu thứ file THẬT SỰ phục vụ.**
 
-**M5.4** — console trả kèm `luuY` về bẫy gas giao dịch đầu. **Loại** hướng "server tự
-gửi giao dịch mồi": nó đòi một tài khoản Foundation nằm **vĩnh viễn** trong genesis
-bất biến, phá đúng tính chất `OwnerTest` đã đo. Xem D-030.
+**M5 đóng — 40/40** trên mạng công khai, 4 chain thật, mỗi chain tự thu hồi.
+**B-3 gỡ:** `minBaseFee: 0` qua được `Verify()` nhưng làm chain **không dựng nổi
+block nào** (D-028 — đọc cả phần tự đính chính trong đó). **B-4 gỡ** (D-029).
+**M5.4:** console trả `luuY`; **loại** hướng "server tự gửi giao dịch mồi" vì nó đòi
+một tài khoản Foundation nằm vĩnh viễn trong genesis bất biến (D-030).
 
-**M3.1/M3.2** — netgen sinh được P2P IPv6, **mặc định giữ nguyên hành vi cũ**.
-🔴 Nhưng M3 chạm một quyết định về **đối tượng người dùng**, không phải kỹ thuật —
-xem **H-7** trong BLOCKERS trước khi làm tiếp.
-
-**M6.1** — Warp vào khuôn genesis cho mọi chain (D-031). Bẫy: `blockTimestamp` phải
+**M6.1** — Warp vào khuôn genesis mọi chain (D-031). Bẫy: `blockTimestamp` phải
 **≥ 1607144400**, không được là 0 như mọi precompile khác.
 
-**M9.4** — preset `thong-luong-cao` (gasLimit 60M), đo trên header chain thật.
+**M9.4 đo xong, và nó ĐÍNH CHÍNH M9.3.** Nâng `gasLimit` 12M→60M (trần lý thuyết
+285→1.428 TPS) mà thông lượng **không tăng**: 207–230 TPS, block chỉ đầy **16%**.
+Nút thắt là **đường nạp giao dịch của node ~230 tx/s**, không phải genesis. Đã loại
+trừ Cloudflare và gộp-lô-ethers bằng đối chứng — cả hai đều là giả thuyết của tôi và
+cả hai đều sai. Xem D-033.
 
-**`kiem-cong.sh`** — bài kiểm cổng hở, **đo từ ngoài Internet** (nền cho M7.2). Chạy
-thật: ngoài chỉ tới được 22 · 80 · 443.
+**B-8 gỡ** — `tai-test.mjs` từng treo 3 tiếng giữ một slot L1; nay có trần thời gian
+tổng bao cả pha nạp ví, hạn giờ mỗi lượt gửi, nạp theo lô, và vòng chờ chính đua với
+hạn chốt để **đường thu hồi luôn chạy tới**.
 
-🔴 **Ba lần tôi tự bắt mình sai trong phiên này** — ghi ra vì cả ba đều là loại sai
-"đọc vẫn xuôi tai": (1) D-028 bản đầu quy công cho `blockGasCost`, trong khi **Granite
-bật sẵn** nên nó vốn đã bằng 0; (2) gotcha *"L1 chưa bật Durango"* trong chính file
-này là **sai**, đã đo và sửa; (3) phép đo PUSH0 đầu tiên đỏ vì đúng cái bẫy nonce tôi
-vừa đi vá — nó không nằm ở `phaiChan` mà ở **mọi giao dịch thứ hai của cùng một ví**.
+**`kiem-cong.sh`** — bài kiểm cổng hở, đo TỪ NGOÀI, 5 tầng (gồm: origin có đúng 403
+khi nối thẳng không, và dải IP Cloudflare có bị bỏ sót không).
+
+**Kế hoạch giao diện: `docs/UI-PLAN.md` + backlog M10.** Phát hiện nền: **không cần
+thiết kế mới** — 9Chain đã có hệ token (navy/gold, tương phản sửa đạt AA, dark mode
+wire thật) sống trong `9Scan-A1/app/globals.css`. David chốt: **Next xuất tĩnh**, và
+**trang chủ nhắm "người muốn có chain riêng"**.
+
+🔴 **Bốn lần tôi tự bắt mình sai trong phiên này** — ghi ra vì cả bốn đều "đọc xuôi
+tai": (1) D-028 bản đầu quy công cho `blockGasCost`, trong khi Granite bật sẵn nên nó
+vốn đã bằng 0; (2) gotcha *"L1 chưa bật Durango"* trong chính file này là **sai**, đã
+đo PUSH0 và sửa; (3) phép đo Warp báo "TẮT" trong khi cấu hình đúng — vì đọc ở block 0
+lúc precompile chưa kích hoạt; (4) hai giả thuyết về nút thắt TPS (Cloudflare, ethers)
+đều bị đối chứng bác bỏ.
 
 ### Phiên 2026-08-25 (thứ hai) làm xong — tóm tắt để khỏi mở file
 
