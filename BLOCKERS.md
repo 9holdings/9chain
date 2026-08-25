@@ -41,28 +41,6 @@ một lời nói dối đã lên production).
 **Câu hỏi thực tế kèm theo:** 9 slot trống có định dùng cho L1 nào không? Chain được
 track là chain đó đọc được đầy đủ trên explorer và được `9index` index tự động.
 
-### B-8 — `tai-test.mjs` TREO khi số ví lớn (300), không có trần thời gian tổng
-**2026-08-25.** Chạy `--preset thong-luong-cao --phut 8 --vi 300`: chain đẻ xong,
-đến block 2 rồi **đứng im**. Đo lúc phát hiện: tiến trình đã sống **2 giờ 59 phút**
-cho một bài khai `--phut 8`, **CPU 0,1%**, chiều cao block không nhúc nhích.
-
-Với `--vi 60` thì chạy trọn vẹn (206,5 TPS). Nên nghi ngờ hàng đầu là **300 lượt
-`sendTransaction` song song từ một tiến trình Node**: một số lượt không bao giờ
-resolve ⇒ `Promise.all` treo vĩnh viễn.
-
-🔴 **Lỗi thật sự đáng sửa không phải chỗ treo — mà là bài đo KHÔNG CÓ TRẦN THỜI GIAN
-TỔNG.** `--phut 8` chỉ bó vòng bơm tải, không bó pha nạp ví. Nên khi treo, nó treo
-**im lặng và vô hạn**, giữ luôn một slot L1 và một chain đang sống. Bài đo tự nhận
-là có "chốt an toàn" mà chốt đó không bao gồm chính nó.
-
-**Cần làm:** một `setTimeout` bao cả lượt chạy (vd `--phut` + 10 phút) ép thoát và
-**vẫn chạy đường thu hồi**; và nạp ví theo lô (vd 50 ví/lô) thay vì một `Promise.all`
-300 phần tử.
-
-**Đã dọn tay:** giết tiến trình, thu hồi `TaiJA4YM` (còn 6/15 L1), smoke **17/17 đạt**.
-Đã loại trừ bản vá Cloudflare là nguyên nhân — server gọi tên miền công khai của
-chính nó vẫn **200 trong 77ms**.
-
 ### B-2 — Blockscout: `stats` crash-loop 807 lần, `backend` ngốn hơn cả 5 validator
 **2026-08-25, đo trên server lúc mạng tĩnh.**
 
@@ -248,6 +226,28 @@ cho mỗi L1 một tập validator riêng — chính là ACP-77.
 ---
 
 ## Đã gỡ
+
+### ✅ B-8 — ĐÃ GỠ (2026-08-25) — `tai-test.mjs` treo ở 300 ví, không có trần thời gian tổng
+Triệu chứng: `--phut 8 --vi 300` treo **2 giờ 59 phút**, CPU 0,1%, chain đứng ở block 2,
+**giữ một slot L1** suốt thời gian đó. Với `--vi 60` thì chạy trọn vẹn.
+
+🔴 **Lỗi đáng sửa không phải chỗ treo — mà là bài đo tự nhận "có chốt an toàn" trong
+khi chốt đó canh C-Chain, canh đĩa, canh độ trễ, và KHÔNG canh chính nó.** Bốn lỗ:
+
+| # | lỗ | vá |
+|---|---|---|
+| 1 | `setTimeout(THOI_LUONG_MS)` chỉ đặt **sau** pha nạp ví ⇒ đúng chỗ treo thật lại **không có trần nào** | trần tổng tính từ lúc khởi động, bao cả pha nạp (`TRAN_TONG_MS`) |
+| 2 | mọi `sendTransaction` là `await` trần | `hanGio()` 30s mỗi lượt |
+| 3 | nạp ví bằng một `Promise.all` 300 phần tử | nạp theo lô 40, `allSettled`, chịu được ví hỏng |
+| 4 | `dangChay=false` chỉ đọc **giữa** hai vòng lặp ⇒ ví kẹt trong `await` không bao giờ thấy cờ dừng, `Promise.all` chờ mãi ⇒ **đường thu hồi không chạy tới** | vòng chờ chính **đua với hạn chốt** |
+
+Kèm một chỗ sẽ làm hỏng phép đo vì lý do chẳng liên quan: mỗi ví được nạp **100.000
+LOVE9** ⇒ 300 ví ăn **30 triệu** trong quỹ genesis 50 triệu, nên một bậc thang ba
+lượt cạn quỹ giữa chừng rồi hỏng vì "hết tiền". Hạ về **100** (vẫn dư 60 lần so với
+nhu cầu gas thật).
+
+**Nghiệm thu:** bậc thang 20→60→150→300 ví chạy trọn, **lỗi gửi 0** ở mọi bậc, nạp
+300 ví xong, đường thu hồi chạy tới (còn 6/15 L1).
 
 ### ✅ B-6 — ĐÃ GỠ (2026-08-25) — site block explorer nay nằm TRONG NGUỒN
 Deploy Caddy của phiên này (`cd34d43`, M7.2) **xoá mất site block
