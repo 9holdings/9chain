@@ -1,0 +1,120 @@
+// presets.mjs — các kiểu L1 mà console đẻ ra được (M5).
+//
+// Trước file này `l1-evm-genesis.json` là cố định: mọi chain giống hệt nhau, chỉ
+// khác `chainId` / `alloc` / `feeManagerConfig`. Nghĩa là "đẻ chain của riêng bạn"
+// mới đúng một nửa — chain là của bạn, nhưng nó không làm được gì mà chain khác
+// không làm.
+//
+// ═══ HAI LUẬT CỨNG CỦA MỌI PRESET ═══
+//
+// 1. **Chủ chain là admin của MỌI precompile được bật.** Bật một precompile mà
+//    không cho ai quyền quản nó nghĩa là đẻ ra một chain có cái công tắc không ai
+//    bấm được — và genesis là bất biến, không sửa lại được sau.
+//
+// 2. **Không preset nào được làm chain không giao dịch nổi.** Nguy hiểm nhất là
+//    `txAllowList`: nếu chủ chain không nằm trong danh sách thì **không ai gửi
+//    được giao dịch nào, vĩnh viễn** — chain chết ngay lúc sinh ra, và không có
+//    đường sửa vì sửa allowlist cũng phải bằng một giao dịch.
+//    Đã kiểm ở source thay vì tin trực giác: `precompile/allowlist/role.go:51`,
+//    `IsEnabled()` trả true cho AdminRole/EnabledRole/ManagerRole ⇒ để chủ chain
+//    vào `adminAddresses` là đủ để họ giao dịch được.
+//
+// Tên khoá JSON và địa chỉ precompile đều LẤY TỪ SOURCE subnet-evm
+// (`precompile/contracts/*/module.go`), không gõ theo trí nhớ: sai một chữ thì
+// subnet-evm **bỏ qua khoá lạ trong im lặng** và chain ra đời thiếu đúng thứ
+// người dùng đã chọn — không lỗi, không cảnh báo.
+
+/** Địa chỉ precompile — để giao diện và bài nghiệm thu tham chiếu, không đoán. */
+export const DIA_CHI = {
+  deployerAllowList: "0x0200000000000000000000000000000000000000",
+  nativeMinter:      "0x0200000000000000000000000000000000000001",
+  txAllowList:       "0x0200000000000000000000000000000000000002",
+  feeManager:        "0x0200000000000000000000000000000000000003",
+  rewardManager:     "0x0200000000000000000000000000000000000004",
+  warp:              "0x0200000000000000000000000000000000000005",
+};
+
+/**
+ * Mỗi preset nhận `(cfg, admin)` và sửa `cfg` (phần `config` của genesis) tại chỗ.
+ * `feeManagerConfig` do `createChain` đặt sẵn cho MỌI chain — preset không đụng vào,
+ * nên chủ chain luôn giữ quyền chỉnh phí bất kể chọn kiểu nào.
+ */
+export const PRESETS = [
+  {
+    id: "chuan",
+    ten: "Chuẩn",
+    moTa: "EVM thường. Chủ chain nhận toàn bộ token genesis và quyền chỉnh phí.",
+    ap() { /* không thêm gì — đây là hình dạng nền */ },
+  },
+  {
+    id: "khong-phi",
+    ten: "Không phí gas",
+    moTa: "Phí gas bằng 0 — hợp cho game, thử nghiệm, hoặc chain nội bộ. " +
+          "Đổi lại KHÔNG có chi phí nào cản spam: ai cũng bơm giao dịch rác miễn phí.",
+    ap(cfg) {
+      // `minBaseFee = 0` hợp lệ: `commontype/fee_config.go` chỉ từ chối số ÂM
+      // (errMinBaseFeeNegative), không đòi lớn hơn 0.
+      cfg.feeConfig = { ...cfg.feeConfig, minBaseFee: 0 };
+    },
+  },
+  {
+    id: "tu-in-tien",
+    ten: "Tự in thêm token",
+    moTa: "Chủ chain đúc thêm token bản địa bất cứ lúc nào qua precompile " +
+          DIA_CHI.nativeMinter + ". Nguồn cung KHÔNG cố định — người dùng chain này phải biết điều đó.",
+    ap(cfg, admin) {
+      cfg.contractNativeMinterConfig = { adminAddresses: [admin], blockTimestamp: 0 };
+    },
+  },
+  {
+    id: "chi-chu-deploy",
+    ten: "Chỉ chủ chain deploy được hợp đồng",
+    moTa: "Người khác vẫn gửi giao dịch và dùng hợp đồng đã có, nhưng không tự deploy được. " +
+          "Chủ chain cấp quyền cho ai tuỳ ý qua precompile " + DIA_CHI.deployerAllowList + ".",
+    ap(cfg, admin) {
+      cfg.contractDeployerAllowListConfig = { adminAddresses: [admin], blockTimestamp: 0 };
+    },
+  },
+  {
+    id: "kin",
+    ten: "Chain kín (chỉ ai được duyệt mới giao dịch)",
+    moTa: "Chỉ địa chỉ trong danh sách mới GỬI được giao dịch. Hợp cho chain nội bộ doanh nghiệp. " +
+          "⚠️ Đây là preset khắt khe nhất: ví lạ vào chain này sẽ không làm được gì cả.",
+    ap(cfg, admin) {
+      // Chủ chain BẮT BUỘC có mặt — xem luật cứng #2 ở đầu file.
+      cfg.txAllowListConfig = { adminAddresses: [admin], blockTimestamp: 0 };
+    },
+  },
+];
+
+const THEO_ID = new Map(PRESETS.map(p => [p.id, p]));
+
+/** Danh sách rút gọn cho giao diện / API — không lộ hàm `ap`. */
+export function danhSachPreset() {
+  return PRESETS.map(({ id, ten, moTa }) => ({ id, ten, moTa }));
+}
+
+/**
+ * Áp preset lên `config` của genesis.
+ *
+ * @param {object} cfg   phần `config` của genesis (SỬA TẠI CHỖ)
+ * @param {string} id    id preset; rỗng/thiếu ⇒ "chuan"
+ * @param {string} admin địa chỉ EIP-55 của chủ chain (đã validate ở tầng trên)
+ * @returns {{id:string, ten:string}} preset đã áp
+ */
+export function apDungPreset(cfg, id, admin) {
+  const key = String(id ?? "").trim() || "chuan";
+  const p = THEO_ID.get(key);
+  if (!p) {
+    // Liệt kê lựa chọn hợp lệ ngay trong lỗi: người gọi qua API không có giao diện
+    // để nhìn, và một lỗi "preset không hợp lệ" trống rỗng buộc họ đi đọc mã nguồn.
+    throw new Error(`Kiểu chain "${key}" không có. Chọn một trong: ${PRESETS.map(x => x.id).join(", ")}`);
+  }
+  if (!/^0x[0-9a-fA-F]{40}$/.test(String(admin || ""))) {
+    // Chốt chặn thừa: `createChain` đã validate EIP-55 trước khi tới đây. Giữ lại
+    // vì hàm này ghi thẳng vào genesis — thứ bất biến — nên thà từ chối hai lần.
+    throw new Error(`apDungPreset: địa chỉ admin không hợp lệ (${admin})`);
+  }
+  p.ap(cfg, admin);
+  return { id: p.id, ten: p.ten };
+}

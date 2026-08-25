@@ -161,6 +161,24 @@ function copy(text, btn){
 // Chủ sở hữu chain. Chain đẻ trước khi console có ô `admin` KHÔNG có khoá này —
 // phải hiện là "mặc định của hệ thống", tuyệt đối không để chữ undefined lọt ra
 // mặt người dùng (chuỗi rỗng cũng tính là không có).
+// Kiểu chain (preset, thêm từ M5). Chain đẻ TRƯỚC M5 không có khoá này — thiếu là
+// trạng thái HỢP LỆ, hiện "Chuẩn", tuyệt đối không để chữ undefined lọt ra. Đây là
+// đúng luật đã áp cho khoá `admin` khi nó mới thêm.
+const TEN_PRESET = {
+  'chuan': 'Chuẩn',
+  'khong-phi': 'Không phí gas',
+  'tu-in-tien': 'Tự in thêm token',
+  'chi-chu-deploy': 'Chỉ chủ chain deploy được hợp đồng',
+  'kin': 'Chain kín (chỉ ai được duyệt mới giao dịch)',
+};
+function presetCell(chain){
+  const p = typeof chain.preset === 'string' ? chain.preset.trim() : '';
+  if (!p) return '<span class="dim">Chuẩn</span>';
+  // Preset lạ (console mới hơn trang) vẫn phải hiện được — hiện thẳng id còn hơn
+  // hiện rỗng, vì rỗng làm người xem tưởng chain không có kiểu.
+  return esc(TEN_PRESET[p] || p);
+}
+
 function ownerCell(chain){
   const a = typeof chain.admin === 'string' ? chain.admin.trim() : '';
   return a ? esc(a)
@@ -180,7 +198,9 @@ function card(chain, p, isMain){
     '<div class="small" style="margin:-6px 0 12px">' + esc(why) + '</div>' +
     (isMain ? '' :
       '<div class="kv own"><span class="k">Chủ sở hữu (admin)</span><span class="v">' +
-        ownerCell(chain) + '</span></div>') +
+        ownerCell(chain) + '</span></div>' +
+      '<div class="kv"><span class="k">Kiểu chain</span><span class="v">' +
+        presetCell(chain) + '</span></div>') +
     '<div class="kv"><span class="k">EVM chainId</span><span class="v">' +
       (p.chainId != null ? p.chainId + ' (' + p.chainIdHex + ')' : '—') + '</span></div>' +
     '<div class="kv"><span class="k">Số block</span><span class="v">' +

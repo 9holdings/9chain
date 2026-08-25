@@ -15,6 +15,7 @@ import { promisify } from "node:util";
 import path from "node:path";
 import { clientIp, rateLimit, requireToken, requireSecret, serialQueue } from "../lib/guard.mjs";
 import { parseEvmAddress } from "../lib/eip55.mjs";
+import { apDungPreset, danhSachPreset } from "../lib/presets.mjs";
 import { siwe } from "./siwe.mjs";
 
 const PORT = Number(process.env.PORT || 8091);
@@ -406,7 +407,7 @@ async function docker(args, env = {}) {
 // Đây là thứ quyết định "người bấm nút có sở hữu chain của họ không" — nên nó
 // được kiểm tra kỹ (EIP-55) trước khi ghi vào genesis: genesis đã đẻ là bất biến,
 // gõ sai một ký tự là chain vĩnh viễn vô chủ.
-async function createChain({ name, chainId, admin }) {
+async function createChain({ name, chainId, admin, preset }) {
   name = String(name || "").trim();
   if (!/^[A-Za-z0-9 ]{2,32}$/.test(name)) throw new Error("Tên chỉ gồm chữ/số/space (2–32 ký tự)");
 
@@ -470,6 +471,11 @@ async function createChain({ name, chainId, admin }) {
   const tpl = JSON.parse(readFileSync(L1_TEMPLATE, "utf8"));
   tpl.config.chainId = chainId;
   tpl.config.feeManagerConfig = { adminAddresses: [ADMIN], blockTimestamp: 0 };
+  // Preset áp SAU feeManagerConfig và không đụng vào nó — chủ chain giữ quyền
+  // chỉnh phí ở mọi kiểu chain. Preset sai tên thì NÉM LỖI ở đây, trước khi tiêu
+  // tiền và trước khi đụng node: subnet-evm bỏ qua khoá lạ trong im lặng, nên nếu
+  // để lọt thì chain ra đời thiếu đúng thứ người dùng chọn mà không ai biết.
+  const presetDaAp = apDungPreset(tpl.config, preset, ADMIN);
   // Khoá của `alloc` là hex TRẦN (không `0x`); dùng chữ thường cho đúng quy ước.
   tpl.alloc = { [ADMIN.slice(2).toLowerCase()]: { balance: "0x295BE96E64066972000000" } };
   const fname = `${name.replace(/ /g, "_")}.json`;
@@ -515,6 +521,10 @@ async function createChain({ name, chainId, admin }) {
   const rpcBase = process.env.A1_PUBLIC_RPC_BASE || API;
   const chain = {
     name, subnetID, blockchainID, chainId, admin: ADMIN,
+    // `preset` là khoá THÊM vào hợp đồng dữ liệu với trang /chains/ (an toàn).
+    // Chain đẻ TRƯỚC M5 không có khoá này — trang phải coi thiếu là "Chuẩn", y như
+    // cách đã xử lý khoá `admin` thiếu, chứ không được để `undefined` lọt ra.
+    preset: presetDaAp.id,
     rpc: `${rpcBase}${rpcPath}`, createdAt: Date.now(),
   };
   state.chains.push(chain); saveState(state);
@@ -730,6 +740,7 @@ const server = http.createServer(async (req, res) => {
         // Người vận hành cần thấy còn bao nhiêu chỗ TRƯỚC khi bấm nút, không phải
         // sau khi bị từ chối: trần này là trần giao thức, không nới được.
         tran: MAX_L1, tranGiaoThuc: TRAN_SUBNET_GIAO_THUC,
+        presets: danhSachPreset(),
       });
     }
 
