@@ -183,3 +183,24 @@ cũng bắt gõ lại tên chứ không phải hộp thoại xác nhận. Nút t
 bảng với chain của người khác, cách nhau một dòng, và thao tác này gỡ chain khỏi
 danh bạ công khai + ngừng phục vụ RPC **ngay**. Một hộp thoại chỉ cần bấm OK bảo
 vệ đúng bằng không.
+
+### D-017 — Build lại cho ra binary TRÙNG TỪNG BYTE với bản đang chạy công khai
+M0.6 chỉ đòi `--version` in `9chaingo`. Kết quả thật mạnh hơn hẳn: dựng lại từ cây
+đã commit cho ra binary có **cùng SHA256 với binary node-1 đang phục vụ RPC công khai**
+(`40d5e8f6…7823f`), plugin `love9evm` cũng vậy (`f829711b…5e27`).
+
+**Vì sao nó xảy ra:** cùng `golang:1.25.10-bookworm` ghim trong Dockerfile, cùng cây
+nguồn, và `AVALANCHEGO_COMMIT` được truyền bằng ARG cố định (`9chain-a1-poc`) thay vì
+`git rev-parse` — nên không có timestamp/commit hash trôi vào binary. Go build tái lập
+được trong điều kiện đó. Việc ghim ARG vốn chỉ để né chuyện build context không có
+`.git`; tác dụng phụ là biến build thành reproducible.
+
+**Vì sao phải đo binary chứ không đọc log build:** log báo `#16 COPY --from=builder …
+CACHED` — nhìn qua giống hệt "build giả, toàn cache", và tôi suýt kết luận M0.6 chưa
+đạt. Thực tế #12/#13/#14 (build Go) đều chạy tươi 68s/89s/65s; `COPY` được cache CHÍNH
+LÀ VÌ output trùng digest. Ba thứ khác nhau, phải đo đúng thứ cuối: **bước build có
+chạy không ≠ layer có cache không ≠ binary có giống không**. Cùng họ với bẫy KB
+"docker images không chứng minh được binary prod build bằng base nào".
+
+**Nghĩa là gì:** đường khôi phục của dự án nay được chứng minh hai tầng — M0.5 khớp
+tree hash (nguồn), D-017 khớp SHA256 (nhị phân). Không còn chỗ nào phải tin.

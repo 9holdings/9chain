@@ -39,8 +39,17 @@ Và §5 autopilot yêu cầu "git commit nhỏ" — không có git thì không c
 - [x] M0.4 — `.gitattributes` `* -text` ở **cả hai** repo (KB: patch fail toàn bộ file khi git Windows/Linux lệch)
 - [x] M0.5 — **Kiểm chứng khôi phục đã CHẠY THẬT**: clone sạch → `apply-sovereign.sh` →
       so tree hash với nhánh gốc: `42d43f32…` == `42d43f32…` → cây phục hồi **giống hệt từng byte**
-- [blocked] M0.6 — Build image từ cây phục hồi (`--version` in `9chaingo`) — Docker Desktop
-      không khởi động được trên máy dev, xem BLOCKERS B-1
+- [x] M0.6 — **Build lại từ cây đã commit — ĐẠT Ở MỨC MẠNH NHẤT CÓ THỂ** (2026-08-25,
+      sau khi B-1 được gỡ). `--version` → `9chaingo/1.14.2 [database=v1.4.5,
+      rpcchainvm=45, commit=9chain-a1-poc, go=1.25.10]`.
+
+      Và hơn thế: binary build ra **trùng từng byte với binary đang chạy testnet công khai**.
+      ```
+      avalanchego : 40d5e8f69dcbc786143b1833e34a7f5aeb191fe37844eb15394d17b022a7823f
+      love9evm    : f829711b6cc3049a870eefa550e17c1af8b2c3130141c4b26eb279122aae5e27
+      ```
+      Ba chỗ cùng một hash: image dựng hôm nay · image `:dev` cũ · **node-1 trên
+      `139.99.145.13` đang phục vụ RPC công khai**. Xem D-017.
 
 **Điều kiện qua M0:** ✅ đạt phần cốt lõi — lớp chủ quyền không còn tồn tại dưới dạng
 uncommitted/untracked ở bất kỳ đâu, và đường khôi phục đã chứng minh bằng tree hash
@@ -222,7 +231,7 @@ thứ đó, mọi khẳng định về độ bền của fork đều là suy đo
 
 Docker Desktop đã lên lại (B-1 gỡ, 2026-08-25) — đây là lúc làm.
 
-- [ ] M8.1 — Build image từ cây đã commit, `--version` in `9chaingo` (chính là M0.6)
+- [x] M8.1 — Build image từ cây đã commit (= M0.6) — **xong, tái lập từng byte**
 - [ ] M8.2 — Chạy test suite upstream cho **các gói fork có chạm**: `genesis`,
       `config`, `utils/constants`, `version`. Đây là nơi rủi ro thật nằm — đổi
       `FallbackHRP`, đổi symbol tài sản AVM, thêm nhánh `A1NetworkID` vào
