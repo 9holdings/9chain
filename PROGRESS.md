@@ -382,6 +382,26 @@ chủ quyền dày lên — đúng thứ giết fork lúc rebase. Đổi lấy c
       ```
       Trong khi máy chủ ở **load 2,92/8 luồng (~36%)**. Muốn nhanh hơn thì **nâng
       `gasLimit` trong genesis**, không cần thêm phần cứng.
+- [x] M9.6 — **Đợt ngắn có kiểm soát trên C-CHAIN để explorer có dữ liệu thật**
+      (David duyệt 2026-08-25). 3 phút · 50 TPS · 10 ví · `--c-chain --tps 50`.
+
+| | trước | sau |
+|---|---|---|
+| Block C-Chain | **9** | **113** |
+| Giao dịch explorer index | ~0 | **9.004** |
+
+      Đo được: **48,0 TPS chốt** · 8.975 gửi **0 lỗi** · RPC công khai p50 **19ms**,
+      xấu nhất 42ms, **hỏng 0/35** · **Blockscout chậm trung bình 0,3 block** (bám kịp
+      thời gian thực) · đĩa vẫn 92% trống.
+
+      **Chi phí ròng ~0,0000000004 LOVE9**: nạp 10 LOVE9 cho ví gửi rồi **quét trả lại
+      9,999999999622** — ví gửi là ví dùng một lần, không quét lại là mất vĩnh viễn,
+      mà trên C-Chain đó là quỹ THẬT chứ không phải tiền chơi như trên L1 đo tải.
+
+      **Hai tải chạy chồng nhau không hại nhau:** lúc đó L1 vẫn đang bơm ~260 TPS,
+      cộng 48 TPS trên C-Chain ⇒ ~308 TPS tổng, RPC công khai vẫn 13–62ms. Đây là
+      dữ liệu tốt hơn tôi dự đoán — tôi từng cảnh báo hai tải dùng chung CPU sẽ đá
+      nhau; ở mức tải này thì không.
 - [ ] M9.4 — Preset **"thông lượng cao"** (gasLimit lớn hơn) — hệ quả trực tiếp của
       M9.3. Cần đo lại xem trần mới nằm ở đâu và khi nào thì máy mới là nút thắt.
 - [ ] M9.5 — [human] Có đưa số liệu này lên trang công khai không, và dưới dạng nào.
