@@ -232,11 +232,20 @@ thứ đó, mọi khẳng định về độ bền của fork đều là suy đo
 Docker Desktop đã lên lại (B-1 gỡ, 2026-08-25) — đây là lúc làm.
 
 - [x] M8.1 — Build image từ cây đã commit (= M0.6) — **xong, tái lập từng byte**
-- [ ] M8.2 — Chạy test suite upstream cho **các gói fork có chạm**: `genesis`,
-      `config`, `utils/constants`, `version`. Đây là nơi rủi ro thật nằm — đổi
-      `FallbackHRP`, đổi symbol tài sản AVM, thêm nhánh `A1NetworkID` vào
-      `getStakingConfig`/`getTxFeeConfig` đều là loại thay đổi test upstream bắt được.
-      Chạy trong Docker (KB: avalanchego không build native trên Windows, `utils/ulimit`).
+- [x] M8.2 — **Test các gói fork có chạm — 6 lỗi, TẤT CẢ là hệ quả có chủ đích của
+      việc đổi tên, KHÔNG có lỗi logic nào.** Xem D-018.
+
+| gói | kết quả |
+|---|---|
+| `config`, `config/node`, `utils/constants` | ✅ xanh |
+| `genesis` | ❌ 5 lỗi — hash genesis mainnet/fuji/local đổi + `TestAVAXAssetID` |
+| `version` | ❌ 1 lỗi — `TestApplicationString` đòi `avalanchego/x.y.z` |
+
+      **Thí nghiệm tách bạch (đây mới là phần đáng giá):** hoàn nguyên **đúng 4 chuỗi
+      identity** trong container, **giữ nguyên toàn bộ logic A1** (`A1NetworkID` ở
+      `config.go:811,882` + `params.go:65,80`, cả `genesis_9chain_a1.go`) → **cả 4 gói
+      xanh hết**. Nên 6 lỗi kia quy 100% về việc đổi tên, và phần logic chủ quyền —
+      thứ thật sự có thể sai — **không làm hỏng test nào**.
 - [ ] M8.3 — Chạy thử `go test ./...` toàn bộ một lần để biết **nền** là gì
       (upstream có thể vốn đã đỏ vài gói) — không có nền thì không đọc được kết quả M8.2
 - [ ] M8.4 — Diễn tập rebase: fetch upstream mới → `apply-sovereign.sh` → xem patch nào

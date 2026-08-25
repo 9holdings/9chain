@@ -204,3 +204,29 @@ chạy không ≠ layer có cache không ≠ binary có giống không**. Cùng 
 
 **Nghĩa là gì:** đường khôi phục của dự án nay được chứng minh hai tầng — M0.5 khớp
 tree hash (nguồn), D-017 khớp SHA256 (nhị phân). Không còn chỗ nào phải tin.
+
+### D-018 — 6 test đỏ là GIÁ CỦA CHỦ QUYỀN, không phải nợ kỹ thuật — không sửa
+Test các gói fork có chạm cho 6 lỗi. Câu hỏi đúng không phải "sửa thế nào" mà
+"chúng đỏ vì đổi tên, hay vì logic sai?". Đã tách bạch bằng thí nghiệm chứ không
+đoán: hoàn nguyên **đúng 4 chuỗi identity** (Client, token Name, token Symbol,
+FallbackHRP), **giữ nguyên logic A1** → cả 4 gói xanh. Kết luận chắc chắn:
+
+- 6 lỗi = 100% do đổi tên có chủ đích.
+- Phần logic chủ quyền (`A1Params`, nhánh `A1NetworkID` trong `getStakingConfig`/
+  `getTxFeeConfig`, `genesis_9chain_a1.go`) **không làm hỏng test nào**.
+
+**Quyết định: KHÔNG sửa 6 test đó.** Sửa nghĩa là đi vá `version/application_test.go`
+và `genesis/genesis_test.go` cho khớp tên mới — làm patch chủ quyền phình từ ~139 dòng
+sang chạm cả file test upstream, tức là đúng thứ giết fork lúc rebase, đổi lấy một
+màu xanh không nói thêm điều gì. Ta đã biết chính xác vì sao chúng đỏ.
+
+**Điều PHẢI ghi lại vì nó là hệ quả thật, không phải chi tiết vụn:**
+🔴 **Fork này không bao giờ sync được Avalanche Mainnet/Fuji nữa.** Đổi Name/Symbol
+trong `FromConfig` làm đổi byte genesis của MỌI mạng, nên hash mainnet/fuji tính ra
+khác hằng số upstream (`UUvXi6j7…` → `oXraYtvt…`). Với 9Chain đây là điều đúng đắn —
+mạng chủ quyền không việc gì phải chạy được mainnet của người khác — nhưng nếu sau này
+có ai định dùng binary `9chaingo` để chạy một node Avalanche thật thì nó sẽ hỏng, và
+hỏng ở chỗ khó đoán (genesis mismatch lúc bootstrap).
+
+**Cách đọc kết quả M8.2 ở lần rebase sau:** vẫn đúng 6 lỗi này = fork lành. **Nhiều hơn
+6, hoặc đỏ ở gói khác = upstream vừa đụng vào thứ ta có sửa** — đó mới là tín hiệu.
