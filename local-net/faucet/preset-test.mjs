@@ -234,6 +234,22 @@ const BAI = {
     // Trần lý thuyết in ra để bài đo tải sau này có mốc so, không phải để kết luận.
     console.log(`      ↳ trần lý thuyết ${Number(blk.gasLimit) / 21000 / 2} TPS ` +
       `(21.000 gas/tx, targetBlockRate 2s) — CHƯA đo thật, xem M9.4`);
+
+    // ═══ PUSH0 — kiểm chứng một GOTCHA CŨ, không liên quan preset ═══
+    // HANDOFF ghi: "L1 EVM chưa bật Durango → compile contract evmVersion:'paris'
+    // (không PUSH0)". Đọc source thì ngược lại: networkID 9001 không phải
+    // Mainnet/Fuji ⇒ `upgrade.GetConfig` trả `Default`, ở đó
+    // `DurangoTime = InitiallyActiveTime` (2020) ⇒ Durango bật từ genesis.
+    // Mâu thuẫn giữa tài liệu và source thì **đo**, đừng chọn bên nào.
+    // `0x5f5ff3` = PUSH0 PUSH0 RETURN. Nếu PUSH0 không tồn tại thì đó là opcode
+    // lạ ⇒ deploy revert. Bám vào bài này vì nó cần một chain thật mà thôi.
+    try {
+      const rcP = await chot(await chu.sendTransaction({ data: "0x5f5ff3", gasLimit: 200000n }), "deploy PUSH0");
+      kiem("PUSH0 chạy được ⇒ Durango ĐANG BẬT (HANDOFF cũ nói ngược)",
+        rcP.status === 1, `status ${rcP.status} · block ${rcP.blockNumber}`);
+    } catch (e) {
+      kiem("PUSH0 chạy được ⇒ Durango ĐANG BẬT (HANDOFF cũ nói ngược)", false, sach(e.message));
+    }
   },
 
   "tu-in-tien": async (p, chu) => {

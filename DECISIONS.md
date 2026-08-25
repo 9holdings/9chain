@@ -433,14 +433,24 @@ Nó là **chain không đẻ được block nào, kể từ block 1**.
 0 y như đã khai. Chỉ có giao dịch là không bao giờ chốt — cùng một biểu hiện với
 "subnet chưa có validator", nên nó dẫn người đi chẩn đoán nhầm hẳn sang hướng khác.
 
-**Bản vá (đã áp):** `minBaseFee: 1` — 1 wei, số nhỏ nhất còn giữ `Sign() > 0`. Kèm
-`minBlockGasCost/maxBlockGasCost/blockGasCostStep = 0`, và lần này lý do là **tiền
-tip**: giao dịch trả đúng baseFee có tip = 0 ⇒ `totalBlockFee = 0` ⇒ `blockGas = 0`
-(`block_gas_cost.go:141`), nên `requiredBlockGasCost` bất kỳ > 0 vẫn chặn block.
-Zero hoá cả ba là điều kiện **cần thêm**, không phải điều kiện đủ như B-3 tưởng.
+**Bản vá (đã áp):** `minBaseFee: 1` — 1 wei, số nhỏ nhất còn giữ `Sign() > 0`.
+**Đó là toàn bộ bản vá.** Kèm theo `minBlockGasCost/maxBlockGasCost/blockGasCostStep
+= 0`, nhưng phải nói rõ: **ba dòng đó không sửa gì cả trên mạng này.**
 
-Đổi lại chain này mất cơ chế chống đẻ-block-quá-nhanh. Chấp nhận: đúng chủ ý preset,
-và `moTa` đã nói "gần như không có chi phí nào cản spam".
+🔴 **Tự đính chính, đo sau khi đã viết bản đầu của D-028 này.** Bản đầu nói zero hoá
+`blockGasCost` là "điều kiện cần thêm". SAI — chúng đã bằng 0 sẵn:
+`customheader/block_gas_cost.go:41` trả thẳng 0 nếu `IsGranite`, mà networkID 9001
+không phải Mainnet/Fuji nên `upgrade.GetConfig` rơi vào `Default`, ở đó
+`GraniteTime = InitiallyActiveTime` (2020-12-05) ⇒ **Granite bật từ genesis** ⇒
+`requiredBlockGasCost` luôn 0 với mọi L1 của ta. Giữ ba dòng đó lại làm **đai an
+toàn** cho trường hợp Granite không còn hoạt động, không phải làm bản vá.
+
+Ghi cái tự đính chính này ra thay vì lặng lẽ sửa, vì B-3 tồn tại **chính vì** D-026
+kết luận đúng mà cơ chế sai — một câu chuyện nhân quả sai đọc vẫn xuôi tai, và lần
+sau người ta chữa đúng theo cái sai đó.
+
+Đổi lại chain này mất cơ chế chống đẻ-block-quá-nhanh (nếu Granite tắt). Chấp nhận:
+đúng chủ ý preset, và `moTa` đã nói "gần như không có chi phí nào cản spam".
 
 **Bài kiểm đòi baseFee ĐÚNG BẰNG 1, không đòi "≤ 1"** — cố ý. Nếu sau này có người
 sửa về 0 vì thấy "0 mới đúng nghĩa không phí", bài phải đỏ ngay ở dòng đầu thay vì

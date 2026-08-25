@@ -76,15 +76,24 @@ export const PRESETS = [
       // giao dịch là không bao giờ chốt. Đã đốt cả B-3 vào việc này (chain
       // PkhongphiE1LM rồi PkhongphiSQSW, 2026-08-25). Xem D-028.
       //
-      // ═══ VÌ SAO PHẢI ZERO CẢ blockGasCost ═══
+      // ═══ blockGasCost = 0: ĐAI AN TOÀN, KHÔNG PHẢI BẢN VÁ ═══
       //
-      // Với baseFee = 1 wei, giao dịch trả đúng 1 wei/gas có **tiền tip = 0**, nên
-      // `totalBlockFee = 0` ⇒ `blockGas = 0` (`block_gas_cost.go:141`). Nếu
-      // `requiredBlockGasCost > 0` thì `blockGas < required` ⇒ vẫn không dựng được
-      // block (`ErrInsufficientBlockGas`). Mà `blockGasCostStep: 200000` của template
-      // làm chi phí đó leo lên mỗi khi block ra nhanh hơn `targetBlockRate`.
-      // Đặt cả ba về 0 ⇒ `blockgascost.BlockGasCost` luôn kẹp về 0 ⇒ `VerifyBlockFee`
-      // early-return ở dòng 101. Hợp lệ với `Verify()`: nó chỉ đòi min ≤ max.
+      // Nói thẳng để người sau khỏi hiểu nhầm nhân quả: **ba dòng blockGasCost dưới
+      // đây không sửa được gì trên mạng 9Chain-A1 hôm nay.** Chúng đã bằng 0 sẵn.
+      //
+      // Lý do: `customheader/block_gas_cost.go:41` trả thẳng 0 nếu `IsGranite`. Mà
+      // networkID 9001 không phải Mainnet/Fuji nên `upgrade.GetConfig` rơi vào
+      // `Default`, ở đó `GraniteTime = InitiallyActiveTime` (2020-12-05) ⇒ **Granite
+      // bật từ genesis** ⇒ `requiredBlockGasCost` luôn 0 ⇒ `VerifyBlockFee`
+      // early-return ở dòng 101 với mọi chain của ta.
+      //
+      // Vậy vì sao vẫn đặt? Vì nếu Granite thôi hoạt động (ai đó ghim mốc upgrade,
+      // hay mạng mới cấu hình khác) thì cơ chế cũ sống lại: giao dịch trả đúng
+      // baseFee có **tip = 0** ⇒ `totalBlockFee = 0` ⇒ `blockGas = 0`
+      // (`block_gas_cost.go:141`), và `blockGasCostStep: 200000` của template đẩy
+      // `requiredBlockGasCost` lên mỗi khi block ra nhanh hơn `targetBlockRate` ⇒
+      // `ErrInsufficientBlockGas`. Ba dòng này làm preset đúng ngay cả khi đó.
+      // Hợp lệ với `Verify()`: nó chỉ đòi min ≤ max.
       //
       // Đổi lại: chain này mất hẳn cơ chế chống đẻ-block-quá-nhanh. Đúng chủ ý của
       // preset, và đã nói trong `moTa`.
