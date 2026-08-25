@@ -38,6 +38,14 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#7fd1ff;wo
     <div class="stat"><div class="k">Đã thu hồi</div><div class="v" id="s-gone">…</div></div>
   </div>
 
+  <div class="card" id="authCard">
+    <h2>Bạn đang là ai</h2>
+    <div id="whoami" class="hint">…</div>
+    <button id="btnVi" onclick="dangNhapVi()">🦊 Đăng nhập bằng ví</button>
+    <button id="btnThoat" onclick="thoatVi()" style="display:none;background:#2b3a54">Thoát</button>
+    <div id="outAuth"></div>
+  </div>
+
   <div class="card">
     <h2>Đẻ một blockchain EVM mới</h2>
     <label>Tên chain (chữ/số/space)</label>
@@ -75,16 +83,50 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#7fd1ff;wo
 // Token vận hành. Console tạo được L1 và restart node nên MỌI /api/* đều cần token.
 // Giữ trong sessionStorage: mất khi đóng tab (khác localStorage sống mãi) — token
 // vận hành không nên nằm lại trên máy dùng chung.
+// HAI cách đăng nhập, cùng đi qua header Authorization:
+//   • phiên ví (SIWE)   — người dùng thật; chain về tay địa chỉ đã ký
+//   • token vận hành    — người vận hành và smoke test
+// Ưu tiên phiên ví nếu có, để người đã ký không bị hỏi token.
 function token(){
+  const v=sessionStorage.getItem('a1_siwe');
+  if(v) return v;
   let t=sessionStorage.getItem('a1_token');
   if(!t){
-    t=prompt('Nhập A1_CONSOLE_TOKEN (token vận hành console):')||'';
+    t=prompt('Nhập A1_CONSOLE_TOKEN (token vận hành), hoặc bấm Huỷ để đăng nhập bằng ví:')||'';
     if(t) sessionStorage.setItem('a1_token',t);
   }
   return t;
 }
 function clearToken(){ sessionStorage.removeItem('a1_token'); location.reload(); }
 function authHeaders(extra){ return Object.assign({'authorization':'Bearer '+token()}, extra||{}); }
+
+// ═══ ĐĂNG NHẬP BẰNG VÍ ═══
+// Server KHÔNG nhận `message` từ đây — nó dựng lại từ nonce trong kho của nó. Nên
+// trang này chỉ chuyển tiếp chữ ký, không có cách nào ảnh hưởng tới nội dung được ký.
+async function dangNhapVi(){
+  const out=document.getElementById('outAuth');
+  if(!window.ethereum){ out.innerHTML='<span class="err">❌ Không thấy ví trong trình duyệt.</span>'; return; }
+  try{
+    const acc=await window.ethereum.request({method:'eth_requestAccounts'});
+    const addr=acc&&acc[0];
+    if(!addr) throw new Error('ví không trả về địa chỉ nào');
+    out.innerHTML='<span class="spin"></span>Đang xin lời mời ký…';
+    const rn=await fetch('/api/siwe/nonce?address='+encodeURIComponent(addr));
+    const jn=await rn.json();
+    if(!rn.ok) throw new Error(jn.error||'không xin được lời mời ký');
+    out.innerHTML='<span class="spin"></span>Hãy ký trong ví — đọc kỹ nội dung trước khi ký.';
+    const sig=await window.ethereum.request({method:'personal_sign',params:[jn.message,addr]});
+    const rl=await fetch('/api/siwe/login',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({nonce:jn.nonce,signature:sig})});
+    const jl=await rl.json();
+    if(!rl.ok) throw new Error(jl.error||'đăng nhập thất bại');
+    sessionStorage.setItem('a1_siwe',jl.token);
+    sessionStorage.removeItem('a1_token');
+    out.innerHTML='<span class="ok">✅ Đã đăng nhập bằng ví '+esc(jl.address)+'</span>';
+    refresh();
+  }catch(e){ out.innerHTML='<span class="err">❌ '+esc(e.message||e)+'</span>'; }
+}
+function thoatVi(){ sessionStorage.removeItem('a1_siwe'); sessionStorage.removeItem('a1_token'); location.reload(); }
 
 async function refresh(){
   try{
@@ -106,6 +148,25 @@ async function refresh(){
       `Còn <b>${Math.max(0,s.tran-chains.length)}</b> chỗ. Trần ${s.tran} bắt nguồn từ trần cứng `+
       `${s.tranGiaoThuc} subnet/node của giao thức P2P — <b>không nới được</b>, chỉ có thể `+
       `thu hồi chain cũ để lấy lại chỗ.`;
+    // ═══ Đã ký bằng ví ⇒ GIẤU ô admin ═══
+    // Server ép `admin` = địa chỉ đã ký, nên để ô đó hiện ra là mời người dùng gõ
+    // một giá trị sẽ bị bỏ qua — tệ hơn cả việc không có ô, vì nó tạo cảm giác
+    // mình đang chọn được thứ mình không chọn được.
+    const laVi = s.dangNhap==='vi';
+    document.getElementById('btnVi').style.display   = laVi?'none':'';
+    document.getElementById('btnThoat').style.display= laVi?'':'none';
+    document.getElementById('whoami').innerHTML = laVi
+      ? 'Đang đăng nhập bằng ví <code>'+esc(s.viDangNhap)+'</code>. Chain bạn đẻ ra sẽ '
+        +'<b>thuộc về chính địa chỉ này</b> — không phải gõ, không thể gõ nhầm.'
+      : 'Đang dùng <b>token vận hành</b>. Chain sẽ về địa chỉ bạn gõ ở ô admin bên dưới '
+        +'(bỏ trống = <code>'+esc(s.defaultAdmin||'?')+'</code>). '
+        +'Đăng nhập bằng ví để khỏi phải gõ địa chỉ.';
+    for(const el of document.querySelectorAll('#admin,#adminHint,#mm'))
+      el.style.display = laVi?'none':'';
+    // Nhãn của ô admin nằm ngay trước input — ẩn cả nhãn, không để nhãn mồ côi.
+    const lbAdmin=document.getElementById('admin').previousElementSibling;
+    if(lbAdmin&&lbAdmin.tagName==='LABEL') lbAdmin.style.display=laVi?'none':'';
+
     // Nói thẳng chain sẽ về tay ai nếu để trống, thay vì để người dùng đoán.
     if(s.defaultAdmin) document.getElementById('admin').placeholder='0x… (để trống = '+s.defaultAdmin+')';
     document.getElementById('rows').innerHTML=chains.map(c=>
