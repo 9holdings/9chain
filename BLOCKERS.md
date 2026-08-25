@@ -6,6 +6,27 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### B-5 — 🔴🔴 HAI CSDL POSTGRES CỦA BLOCKSCOUT ĐANG MỞ RA INTERNET
+**2026-08-25. Đã kiểm chứng TỪ NGOÀI, không phải suy đoán.**
+
+```
+db        0.0.0.0:7432->5432/tcp   ← Postgres chính của Blockscout
+stats-db  0.0.0.0:7433->5432/tcp   ← Postgres của stats
+```
+Thử kết nối từ máy dev qua Internet: **7432 MỞ · 7433 MỞ** (9650 thì đóng đúng).
+
+**ufw tưởng như đã chặn** — nó chỉ cho 22/80/443/9651 — nhưng đây đúng là cái bẫy
+đã ghi sẵn trong HANDOFF và vẫn dính: **Docker publish cổng đi vòng qua ufw** (ufw lọc
+`INPUT`, Docker dùng DNAT ở bảng `nat`). `ufw status` nhìn hoàn toàn sạch.
+
+**Bản vá:** đổi ánh xạ trong compose Blockscout từ `7432:5432` sang
+`127.0.0.1:7432:5432` (và tương tự 7433), rồi recreate đúng hai container đó. Cần
+recreate chứ không reload được — đổi port mapping là đổi cấu hình mạng của container.
+Blockscout sẽ gián đoạn vài giây; **không đụng tới 5 validator**.
+
+**Vì sao chưa tự làm:** đổi cấu hình stack công khai. Nhưng đây là lỗ hổng đang mở,
+nên nó nên được duyệt trước mọi việc khác trong backlog.
+
 ### B-2 — Blockscout: `stats` crash-loop 807 lần, `backend` ngốn hơn cả 5 validator
 **2026-08-25, đo trên server lúc mạng tĩnh.**
 
