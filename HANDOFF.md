@@ -31,9 +31,13 @@ smoke test **20/20 đạt** · đẻ chain đầy đủ có gửi giao dịch th
 **Testnet công khai ĐÃ LIVE**: https://testnet-a1.9chain.org · RPC https://rpc-testnet-a1.9chain.org
 5 validator chạy trên server nhà cung cấp `139.99.145.13`, Blockscout index đầy đủ, faucet + nút "Thêm vào MetaMask" hoạt động. **P0 #1/#2/#3 đều PASS.**
 
-**Nút "đẻ chain" nay CHẠY THẬT trên mạng công khai** (2026-08-24). L1 đầu tiên: **OmegaChain**, chainId 9101, đẻ trong **12.7s**, 5/5 validator, giao dịch thật **chốt sau 1.4s**:
-`https://rpc-testnet-a1.9chain.org/ext/bc/DCFT9G29xE94X4syYJQemTEGxrWx1ZnfH6Qea2dBZ8ujKfyXu/rpc`
+**Nút "đẻ chain" CHẠY THẬT trên mạng công khai**, hiện **5 L1** trong danh bạ (9100–9104).
 Ví chain-factory: **9 LOVE9** trên P-Chain ≈ **63,600 lượt đẻ chain** (0.000141468 LOVE9/lượt).
+
+⏱️ **Đẻ 1 chain nay mất ~170 giây, không phải 12s như trước — đây là CHỦ Ý, không phải lỗi.**
+Node restart lần lượt (mỗi node ~30s) thay vì đồng loạt, để mạng không mất quorum giữa chừng.
+Đổi lại RPC công khai chỉ gián đoạn **0.5s** thay vì 6.0s. Xem `DECISIONS.md` D-008.
+Với self-serve (M4) thì 170s là tệ cho người bấm nút — chưa tối ưu, biết và chấp nhận.
 
 A1 = 1 trong 2 testnet song song (A1=Avalanche, C1=Cosmos) để cộng đồng chọn hướng mainnet 9Chain (David chốt: **hướng public đại chúng**).
 Thư mục: A1 `C:\PROJECTS\9Chain-A1` · C1 `C:\PROJECTS\9Chain-C1` (đội khác vận hành, KHÔNG đụng).
@@ -70,53 +74,27 @@ ssh -i "$A1_SSH_KEY" -L 8091:127.0.0.1:8091 -L 8090:127.0.0.1:8090 "$A1_SSH_HOST
 
 ## Việc tiếp
 
-### ✅ Đẻ chain — ĐÃ XONG, đã kiểm chứng trên mạng công khai
-6 lỗi chồng nhau, không phải một (chi tiết đầy đủ: `docs/PROGRESS.md`). Tiền là mắt xích **cuối và rẻ nhất**.
+🔴 **Backlog nằm ở `PROGRESS.md`, không phải ở đây.** Đừng chép việc vào file này —
+hai danh sách sẽ trôi lệch nhau. `BLOCKERS.md` liệt kê thứ đang chờ David.
 
-| Lỗi | Đã sửa ở |
-|---|---|
-| compose 5 node không đọc `A1_TRACK_SUBNETS` → không node nào track subnet mới | `netgen` + vá tại chỗ 2 compose đã sinh |
-| subnet đẻ ra có tập validator **rỗng** → RPC sống, giao dịch treo vô hạn | `9chain-a1-cli l1 create` nay đăng ký validator |
-| console không truyền `A1_CLI_KEY` vào container (`compose exec` không mang env vào) | `console/server.mjs` + bọc chống rò khoá |
-| thư mục config không mount vào container → CLI không đọc được genesis | `netgen` + `~/9chain-a1/net/.env` |
-| console `up` làm `--http-allowed-hosts` tụt về `*` trên node công khai | ghim biến vào `~/9chain-a1/net/.env` |
-| Caddy không định tuyến L1 → chain đẻ xong không ai ngoài server gọi được | thêm `/ext/bc/*/rpc` + `/ext/bc/*/ws` |
+Tóm tắt để khỏi mở file: **M0–M2 xong** (git · smoke test E2E · gián đoạn 6.0s→0.5s).
+**Chưa làm, không bị chặn:** M3 IPv6 cho node · M4.1 SIWE auth · M5 template/precompile ·
+M6 Warp/ICM · M7.2 ufw. **Chờ David:** trần 16 L1 ⇒ quy mô bán multi-L1 (H-2) ·
+git remote (H-6) · tokenomics (H-1) · mở console công khai (H-3) · AAAA record (H-4).
 
-### ✅ Chain về tay người bấm nút — ĐÃ XONG (2026-08-24)
-Trước đây `A1_L1_ADMIN` là **một địa chỉ duy nhất cho MỌI L1** (quỹ Foundation) → người bấm nút không sở hữu chain của mình. Nay `POST /api/create` nhận thêm **`admin`** (địa chỉ EVM), dùng cho **cả** `alloc` genesis **và** `feeManagerConfig.adminAddresses`; bỏ trống mới rơi về `A1_L1_ADMIN`. Giao diện có ô nhập + nút "dùng ví MetaMask".
+### Đã kiểm chứng trên mạng công khai (đừng làm lại)
+- **Đẻ chain chạy thật** — 6 lỗi chồng nhau đã gỡ (chi tiết: `docs/PROGRESS.md`).
+  Tiền là mắt xích cuối và rẻ nhất: 0.000141468 LOVE9/lượt.
+- **Chain thuộc về người bấm nút** — `POST /api/create` nhận `admin`, dùng cho **cả**
+  `alloc` genesis **lẫn** `feeManagerConfig.adminAddresses`. Chứng minh bằng ví lạ trên
+  `OwnerTest`: ví đó 50M token + FeeManager **Admin**, quỹ Foundation **0** + **None**.
+- **Danh bạ `/chains/` hiện chủ sở hữu**, chain thiếu khoá `admin` hiện "mặc định của
+  hệ thống" — thiếu khoá là trạng thái **hợp lệ**, không phải lỗi.
 
-Kiểm chứng trên mạng công khai — L1 **OwnerTest**, chainId 9100, admin là ví lạ `0xa37681D3371Cd3aA7220e88ba98131Da57eE970E` (KHÔNG phải quỹ):
-| | ví lạ (người bấm nút) | quỹ Foundation |
-|---|---|---|
-| số dư genesis | 50.000.000 | **0** |
-| vai trò FeeManager (`readAllowList`) | **2 = Admin** | 0 = None |
-
-Giao dịch thật ký bằng khoá của ví lạ **chốt sau 2.2s** (block 1, status 1) — `2k5TFAvBWH2KyzmZxDpEWVhUo7KUQQraAwgsqNCyreRM9PHgHc`.
-
-Validate địa chỉ dùng **EIP-55** (`local-net/lib/eip55.mjs`, keccak-256 viết tay vì server không có node_modules) — hoa/thường lẫn lộn mà sai checksum thì bị chặn. Lý do khắt khe: genesis đã đẻ là bất biến, sai một ký tự hex là chain **vĩnh viễn vô chủ**, không có dấu hiệu báo lỗi. Tự kiểm chứng: `node local-net/lib/eip55.mjs --self-test`.
-
-**Nghiệm thu một L1 BẮT BUỘC gửi giao dịch thật** — RPC trả lời không chứng minh được gì:
-```bash
-node local-net/faucet/probe-l1.mjs https://rpc-testnet-a1.9chain.org/ext/bc/<BLOCKCHAIN_ID>/rpc <PRIVKEY>
-```
-
-### ✅ Danh bạ L1 hiện chủ sở hữu — ĐÃ XONG (2026-08-24)
-`/chains/` nay có dòng **"Chủ sở hữu (admin)"** trên mỗi card L1, đặt ngay dưới badge tình trạng (trước `chainId`), tô xanh riêng (`.kv.own`) để tách khỏi metadata kỹ thuật — đây là điểm bán hàng của multi-L1: ai cũng thấy chain là của người tạo, không phải của quỹ. Có nút "📋 Chép địa chỉ chủ sở hữu" khi chain có chủ. Card **MẠNG CHÍNH** (C-Chain) không có dòng này.
-
-Chain không khai `admin` hiện `mặc định của hệ thống (chain tạo trước khi có ô chủ sở hữu)` bằng chữ xám. Hàm `ownerCell()` kiểm cả `typeof === 'string'` lẫn `.trim()` → thiếu khoá / `undefined` / chuỗi rỗng đều rơi cùng một nhánh.
-
-Kiểm chứng **trên trang thật** https://testnet-a1.9chain.org/chains/ (không phải đọc file): `OmegaChain` → "mặc định của hệ thống"; `OwnerTest` → `0xa37681D3371Cd3aA7220e88ba98131Da57eE970E` nguyên dạng EIP-55; footer `2 L1 + mạng chính`.
-
-### Chưa làm, không chặn
-- **Cộng đồng chưa tự chạy node được** — P2P 9651 chỉ sống trong mạng docker, host không lắng nghe. **Đừng quảng bá "chạy node cùng chúng tôi"** cho tới khi gán IPv6 công khai cho từng node (server có sẵn khối `/64`).
-- `ufw-cloudflare-only.sh` (mượn từ C1) — khoá 80/443 chỉ cho dải IP Cloudflare. Chạy sau vài ngày theo dõi. **Giữ 9651 mở cho mọi nơi.**
-- Số cần chốt trước mainnet: **supply cap 720,000,000 LOVE9** (đang kế thừa từ Avalanche, chưa ai duyệt) · **tỉ lệ phân bổ 40/20/20/5/15 + lịch vesting** (chưa có phê duyệt kinh doanh/pháp lý) · uptime 80%→90%.
-- URL Cosmos REST của C1 (`:1317`) để dashboard kéo C1 live.
-- Console vẫn **chỉ loopback + token vận hành**. Muốn người ngoài tự đẻ chain thì cần Caddy route + chống lạm dụng thật (hạn mức hiện tại 3 lượt/giờ/IP tính theo IP TCP vì `A1_TRUST_PROXY` chưa bật trong `console.env`).
-- `rmdir "C:\PROJECTS\MetaChain"` (thư mục rỗng cũ).
-
-**P1:** demo DeFi · Warp/ICM cross-L1 · template+precompile · metric thật→dashboard · explorer X/P · IPv6 cho node.
-**P2:** docs onboarding · ví non-custodial · CI/E2E · chốt genesis mainnet.
+**Địa chỉ admin validate bằng EIP-55** (`local-net/lib/eip55.mjs`, keccak-256 viết tay vì
+thư mục gốc trên server không có node_modules). Khắt khe vì genesis đã đẻ là **bất biến**:
+sai một ký tự hex là chain **vĩnh viễn vô chủ**, không lỗi, không dấu hiệu.
+Tự kiểm: `node local-net/lib/eip55.mjs --self-test`.
 
 ---
 
