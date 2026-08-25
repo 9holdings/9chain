@@ -593,6 +593,15 @@ async function createChain({ name, chainId, admin, preset }) {
     // Chain đẻ TRƯỚC M5 không có khoá này — trang phải coi thiếu là "Chuẩn", y như
     // cách đã xử lý khoá `admin` thiếu, chứ không được để `undefined` lọt ra.
     preset: presetDaAp.id,
+    // Tên hiển thị đi KÈM bản ghi, không để trang danh bạ tự dịch id → tên.
+    //
+    // Trang `/chains/` là HTML tĩnh sau nginx, không gọi được console (loopback),
+    // nên nó từng giữ một bảng id→tên chép tay. Bảng đó **đã trôi lệch**: nó gọi
+    // `khong-phi` là "Không phí gas" trong khi preset đã đổi tên thành "Phí gần như
+    // bằng 0" từ D-026 — đúng cái lời hứa sai mà việc đổi tên sinh ra để bỏ. Ghi tên
+    // vào đây là ghi tại thời điểm đẻ chain, từ chính `presets.mjs`, nên hết trôi.
+    // Thêm khoá vào `console-chains.json` là thao tác AN TOÀN với trang danh bạ.
+    presetTen: presetDaAp.ten,
     rpc: `${rpcBase}${rpcPath}`, createdAt: Date.now(),
   };
   state.chains.push(chain); saveState(state);

@@ -164,9 +164,23 @@ function copy(text, btn){
 // Kiểu chain (preset, thêm từ M5). Chain đẻ TRƯỚC M5 không có khoá này — thiếu là
 // trạng thái HỢP LỆ, hiện "Chuẩn", tuyệt đối không để chữ undefined lọt ra. Đây là
 // đúng luật đã áp cho khoá `admin` khi nó mới thêm.
+// 🔴 BẢNG NÀY LÀ BẢN CHÉP TAY THỨ HAI CỦA `local-net/lib/presets.mjs` — và nó ĐÃ
+// TRÔI LỆCH một lần, theo hướng tệ nhất: nó gọi `khong-phi` là "Không phí gas" suốt
+// từ M5, trong khi D-026 đã đổi tên preset đó thành "Phí gần như bằng 0" **chính vì
+// "không phí" là lời hứa sai** (subnet-evm ép sàn 1 wei, không cấu hình về 0 được).
+// Tức trang công khai nói với người lạ một điều mà chúng tôi đã biết là sai.
+//
+// Vì sao vẫn còn bảng này: trang `/chains/` là HTML tĩnh do nginx phục vụ, nó chỉ
+// đọc `console-chains.json` chứ KHÔNG gọi được console (console nghe loopback).
+// Nên không có đường lấy tên trực tiếp từ nguồn.
+//
+// Cách chữa thật: console nay ghi kèm khoá `presetTen` vào mỗi bản ghi chain, và
+// hàm dưới **ưu tiên khoá đó**. Bảng này chỉ còn là đường lui cho chain đẻ TRƯỚC
+// thay đổi ấy — tức nó đóng băng, không cần cập nhật khi thêm preset mới nữa.
 const TEN_PRESET = {
   'chuan': 'Chuẩn',
-  'khong-phi': 'Không phí gas',
+  'khong-phi': 'Phí gần như bằng 0',
+  'thong-luong-cao': 'Thông lượng cao',
   'tu-in-tien': 'Tự in thêm token',
   'chi-chu-deploy': 'Chỉ chủ chain deploy được hợp đồng',
   'kin': 'Chain kín (chỉ ai được duyệt mới giao dịch)',
@@ -174,6 +188,10 @@ const TEN_PRESET = {
 function presetCell(chain){
   const p = typeof chain.preset === 'string' ? chain.preset.trim() : '';
   if (!p) return '<span class="dim">Chuẩn</span>';
+  // Tên do console ghi kèm là nguồn đúng nhất — nó sinh ra từ chính `presets.mjs`
+  // tại thời điểm đẻ chain, nên không trôi lệch được.
+  const ten = typeof chain.presetTen === 'string' ? chain.presetTen.trim() : '';
+  if (ten) return esc(ten);
   // Preset lạ (console mới hơn trang) vẫn phải hiện được — hiện thẳng id còn hơn
   // hiện rỗng, vì rỗng làm người xem tưởng chain không có kiểu.
   return esc(TEN_PRESET[p] || p);
