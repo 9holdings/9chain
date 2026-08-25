@@ -787,8 +787,15 @@ const server = http.createServer(async (req, res) => {
       // Đăng nhập bằng ví ⇒ đếm theo VÍ. Người vận hành thì vẫn theo IP (họ không
       // có ví, và họ là một người duy nhất). Tiền tố `vi:` để hai không gian khoá
       // không đụng nhau — một địa chỉ IPv6 và một địa chỉ EVM đều là chuỗi hex.
-      const khoaHanMuc = ai.kieu === "vi" ? `vi:${ai.diaChi}` : null;
-      if (blockedByRate(req, res, laThuHoi ? limitRevoke : limitCreate, khoaHanMuc)) return;
+      // Ngân sách nghiêm ngặt CHỈ áp cho ví. Token vận hành là người sở hữu chính
+      // cái máy chủ này — họ có shell, họ chạy được bộ nghiệm thu, họ dọn được sự
+      // cố. Siết 3 lượt/giờ với họ không chặn được ai mà lại **chặn đúng lúc cần
+      // dùng nhất**: bộ kiểm thử M5.3 (4 preset × 1 chain) tự khoá mình ở lượt thứ
+      // tư và 3/4 preset không bao giờ được nghiệm thu.
+      // Cửa ngoài chống lụt (60 lượt/giờ) vẫn áp cho MỌI người, nên vòng lặp chạy
+      // loạn vẫn bị chặn — và trần 15 L1 chặn nốt phần còn lại.
+      if (ai.kieu === "vi" &&
+          blockedByRate(req, res, laThuHoi ? limitRevoke : limitCreate, `vi:${ai.diaChi}`)) return;
       try {
         const tham = JSON.parse((await docBody(req)) || "{}");
 

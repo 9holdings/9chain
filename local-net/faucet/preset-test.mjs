@@ -143,16 +143,22 @@ const BAI = {
     // Đo TRỰC TIẾP: baseFee của chain phải là 0. Trên chain chuẩn nó là 25 gwei.
     const blk = await p.getBlock("latest");
     kiem("baseFee = 0", blk.baseFeePerGas === 0n, `đo được ${blk.baseFeePerGas}`);
-    // Và chứng minh bằng hành động: gửi giao dịch với giá gas BẰNG 0. Trên chain
-    // chuẩn giao dịch này bị từ chối vì dưới minBaseFee.
+    // Gửi với giá gas 1 wei — SÀN của mempool, không phải lựa chọn thẩm mỹ.
+    // `legacypool.go:158,195`: `PriceLimit` mặc định 1 và **bị ép về 1 nếu cấu hình
+    // thấp hơn**, nên giá gas 0 là thứ subnet-evm không bao giờ nhận. Đã đo: node
+    // nhận giao dịch giá gas 0 rồi không bao giờ đưa nó vào block (D-026).
+    // Trên chain CHUẨN, 1 wei nằm dưới minBaseFee 25 gwei ⇒ giao dịch này bị từ
+    // chối. Nó chốt được ở đây chính là bằng chứng preset có hiệu lực.
     const tx = await chu.sendTransaction({
       to: "0x000000000000000000000000000000000000dEaD", value: ethers.parseEther("1"),
-      gasPrice: 0n, gasLimit: 21000n,
+      gasPrice: 1n, gasLimit: 21000n,
     });
-    const rc = await chot(tx, "tx giá gas 0");
-    kiem("giao dịch với giá gas = 0 CHỐT được", rc.status === 1, `block ${rc.blockNumber} · ${rc.hash}`);
+    const rc = await chot(tx, "tx giá gas 1 wei");
+    kiem("giao dịch giá gas 1 wei CHỐT được", rc.status === 1, `block ${rc.blockNumber} · ${rc.hash}`);
     const phi = rc.gasUsed * (rc.gasPrice ?? 0n);
-    kiem("phí thực trả = 0", phi === 0n, `${phi}`);
+    // Ngưỡng: 1 gwei. Trên chain chuẩn cùng giao dịch này tốn 21000 × 25 gwei =
+    // 525.000 gwei — cách ngưỡng năm bậc độ lớn, nên phép so này không mơ hồ.
+    kiem("phí thực trả gần như bằng 0 (< 1 gwei)", phi < 1000000000n, `${phi} wei`);
   },
 
   "tu-in-tien": async (p, chu) => {

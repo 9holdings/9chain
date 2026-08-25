@@ -48,12 +48,23 @@ export const PRESETS = [
   },
   {
     id: "khong-phi",
-    ten: "Không phí gas",
-    moTa: "Phí gas bằng 0 — hợp cho game, thử nghiệm, hoặc chain nội bộ. " +
-          "Đổi lại KHÔNG có chi phí nào cản spam: ai cũng bơm giao dịch rác miễn phí.",
+    ten: "Phí gần như bằng 0",
+    moTa: "baseFee = 0, giao dịch chỉ trả sàn 1 wei/gas (một lượt chuyển tiền tốn " +
+          "khoảng 0,000000000000021 LOVE9). Hợp cho game, thử nghiệm, chain nội bộ. " +
+          "Đổi lại gần như không có chi phí nào cản spam.",
     ap(cfg) {
       // `minBaseFee = 0` hợp lệ: `commontype/fee_config.go` chỉ từ chối số ÂM
       // (errMinBaseFeeNegative), không đòi lớn hơn 0.
+      //
+      // ⚠️ NHƯNG PHÍ KHÔNG BAO GIỜ ĐÚNG BẰNG 0 — và không có cách nào làm nó bằng 0.
+      // `core/txpool/legacypool/legacypool.go:158` có `PriceLimit` (sàn giá gas để
+      // được nhận vào mempool), mặc định 1, và dòng 195 **tự ép về 1 nếu ai cấu
+      // hình thấp hơn**. Nên giao dịch giá gas 0 bị treo ngoài mempool: node NHẬN
+      // nó nhưng nó không bao giờ vào block — hỏng im lặng, không báo lỗi.
+      // Đã đo thật (chain PkhongphiE1LM, 2026-08-25): baseFee = 0 đúng như khai,
+      // giao dịch giá gas 0 không chốt sau 90 giây. Xem DECISIONS D-026.
+      //
+      // Vì vậy tên và mô tả preset nói "gần như bằng 0", không nói "không phí".
       cfg.feeConfig = { ...cfg.feeConfig, minBaseFee: 0 };
     },
   },

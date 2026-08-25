@@ -236,6 +236,12 @@ HANDOFF: *đừng quảng bá "chạy node cùng chúng tôi"* cho tới khi xon
       thiếu khoá `preset` ⇒ hiện "Chuẩn", không để `undefined` lọt ra.
 - [ ] M5.3 — Đẻ thật mỗi preset 1 chain, gửi giao dịch thật chứng minh preset có hiệu lực
       → `local-net/faucet/preset-test.mjs` (đẻ → thử → **tự thu hồi**, nhờ M4.4).
+- [ ] M5.4 — 🔴 **Giao dịch ĐẦU TIÊN của chain mới hỏng vì ước lượng gas thiếu** (D-025).
+      Đây là lỗi **người dùng thật sẽ gặp**: vừa đẻ chain, gọi precompile lần đầu,
+      thấy `status 0` và kết luận tính năng hỏng. Hai hướng: console tự gửi một
+      **giao dịch mồi** ngay sau khi đẻ (rẻ, giấu hẳn vấn đề), và/hoặc ghi vào tài
+      liệu cho người đẻ chain. Chưa chọn — cần đo xem giao dịch mồi có làm lượt đẻ
+      chậm thêm đáng kể không.
 
 ---
 

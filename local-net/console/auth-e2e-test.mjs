@@ -228,17 +228,34 @@ console.log("\n── 8. Request CHƯA XÁC THỰC không được tiêu quota c
     for (let i = 0; i < 5; i++) {
       await goi2("/api/revoke", { method: "POST", body: { name: "X", xacNhan: "X" } });
     }
+    // Người dùng thật ở đây là một VÍ (ngân sách nghiêm ngặt chỉ áp cho ví).
+    const v = Wallet.createRandom();
+    const n = (await goi2(`/api/siwe/nonce?address=${v.address}`)).j;
+    const phienVi = (await goi2("/api/siwe/login", {
+      method: "POST", body: { nonce: n.nonce, signature: await v.signMessage(n.message) },
+    })).j.token;
+
     const that = await goi2("/api/revoke", {
-      method: "POST", token: TOKEN_VAN_HANH, body: { name: "ChainKhongCo", xacNhan: "ChainKhongCo" },
+      method: "POST", token: phienVi, body: { name: "ChainKhongCo", xacNhan: "ChainKhongCo" },
     });
-    kiem("sau 5 lượt gõ cửa không token, người có token VẪN vào được",
+    kiem("sau 5 lượt gõ cửa không token, ví thật VẪN còn nguyên suất",
       that.status !== 429, `HTTP ${that.status}`);
 
-    // Và ngân sách thật vẫn siết đúng: lượt thứ hai CÓ token thì hết suất.
     const nua = await goi2("/api/revoke", {
+      method: "POST", token: phienVi, body: { name: "ChainKhongCo", xacNhan: "ChainKhongCo" },
+    });
+    kiem("ngân sách thật vẫn siết ví (lượt 2 → 429)", nua.status === 429, `HTTP ${nua.status}`);
+
+    // Người vận hành KHÔNG bị ngân sách nghiêm ngặt chặn — họ sở hữu chính máy này,
+    // và siết họ chỉ chặn đúng lúc cần dùng nhất (bộ nghiệm thu M5.3 tự khoá mình).
+    // Cửa ngoài chống lụt vẫn áp cho họ, nên vòng lặp chạy loạn vẫn bị chặn.
+    for (let i = 0; i < 4; i++) {
+      await goi2("/api/revoke", { method: "POST", token: TOKEN_VAN_HANH, body: { name: "ChainKhongCo", xacNhan: "ChainKhongCo" } });
+    }
+    const vh = await goi2("/api/revoke", {
       method: "POST", token: TOKEN_VAN_HANH, body: { name: "ChainKhongCo", xacNhan: "ChainKhongCo" },
     });
-    kiem("ngân sách thật vẫn siết (lượt 2 có token → 429)", nua.status === 429, `HTTP ${nua.status}`);
+    kiem("token vận hành KHÔNG bị ngân sách 1 lượt/giờ chặn", vh.status !== 429, `HTTP ${vh.status}`);
   } finally {
     try { con2.kill(); } catch { /* đã chết */ }
   }

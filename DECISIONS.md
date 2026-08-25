@@ -366,3 +366,37 @@ xuống vài giây. Vòng lặp chậm là thứ đẩy người ta sang đoán 
 ⚠️ **Ảnh hưởng người dùng thật, chưa xử lý:** ai vừa đẻ chain rồi gọi precompile lần
 đầu sẽ thấy "tính năng hỏng". Cần ghi vào tài liệu hướng dẫn cho người đẻ chain
 (và cân nhắc để console tự gửi một giao dịch mồi sau khi đẻ xong).
+
+### D-026 — "Phí bằng 0" là thứ subnet-evm KHÔNG cho phép; preset phải nói thật
+Preset `khong-phi` ban đầu đặt `minBaseFee = 0` và bài kiểm gửi giao dịch giá gas 0.
+Kết quả đo trên chain `PkhongphiE1LM` (chainId 9110): **baseFee = 0 đúng như khai**,
+nhưng giao dịch giá gas 0 **không bao giờ vào block** — node nhận nó rồi để đó,
+không lỗi, không từ chối. Đúng kiểu hỏng im lặng mà cả mốc M5 sinh ra để chặn.
+
+Nguyên nhân ở source: `core/txpool/legacypool/legacypool.go:158` có `PriceLimit`
+(sàn giá gas để được nhận vào mempool), mặc định 1, và **dòng 195 tự ép về 1 nếu
+cấu hình thấp hơn**. Nên phí đúng bằng 0 không phải "chưa cấu hình được" mà là
+**không cấu hình được**.
+
+**Quyết định: đổi tên và mô tả preset cho đúng sự thật**, không đổi kỳ vọng của bài
+kiểm để nó xanh. "Không phí gas" → **"Phí gần như bằng 0"**: baseFee = 0, giao dịch
+trả sàn 1 wei/gas ⇒ một lượt chuyển tiền tốn ~0,000000000000021 LOVE9.
+
+Cách khác — bỏ preset — là phản ứng quá tay: chênh lệch với chain chuẩn vẫn là **năm
+bậc độ lớn** (21.000 wei so với 525.000 gwei), tức giá trị thật cho game và chain nội
+bộ vẫn còn nguyên. Cái sai là **lời hứa**, không phải tính năng.
+
+Bài kiểm nay gửi giá gas 1 wei và đòi phí thực trả < 1 gwei — ngưỡng cách con số của
+chain chuẩn năm bậc độ lớn nên phép so không mơ hồ.
+
+### D-027 — Token vận hành KHÔNG chịu ngân sách nghiêm ngặt (chỉ chịu cửa chống lụt)
+Bộ nghiệm thu M5.3 chạy 4 preset × 1 chain và **tự khoá mình ở lượt thứ tư**: hạn mức
+3 lượt tạo/giờ tính cả người vận hành, nên 3/4 preset không bao giờ được nghiệm thu.
+
+Siết người vận hành là bảo vệ hình thức: họ có shell trên chính máy đó. Nhưng nó chặn
+thật ở đúng lúc cần nhất — lúc chạy kiểm thử, lúc dọn sự cố.
+
+**Quyết định:** ngân sách nghiêm ngặt (3/giờ) chỉ áp cho **ví**; token vận hành chỉ
+chịu **cửa ngoài chống lụt** (60/giờ). Vòng lặp chạy loạn vẫn bị chặn ở 60, và trần
+15 L1 chặn nốt phần còn lại. Bài kiểm nay khẳng định CẢ HAI chiều: ví bị siết đúng
+suất của mình, người vận hành thì không (auth-e2e 38/38).
