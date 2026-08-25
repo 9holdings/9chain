@@ -84,6 +84,17 @@ const COMPOSE = ["compose", "-f", COMPOSE_FILE];
 const CFG_DIR = path.join(ROOT, "9chain-a1-config");
 const TMP_DIR = path.join(CFG_DIR, "console-tmp");
 const STATE = path.join(CFG_DIR, "console-chains.json");
+// Khuôn genesis cho mọi L1. JSON không chứa được chú thích, mà trong đó có đúng một
+// con số không tự giải thích nổi — `warpConfig.blockTimestamp: 1607144400`:
+//
+//   Warp TỪ CHỐI bật trước Durango (`precompile/contracts/warp/config.go:93`), và
+//   phép kiểm là `IsDurango(<mốc bật Warp>)`, tức so với **mốc Durango của mạng**
+//   = 1607144400 (2020-12-05), KHÔNG phải so với "genesis". Nên `blockTimestamp: 0`
+//   — thứ mọi precompile khác trong `presets.mjs` dùng và chạy tốt — ở riêng Warp
+//   lại làm chain **không đẻ nổi**: `IsDurango(0)` là false.
+//
+// Đặt đúng mốc Durango nghĩa là Warp sống từ block thật đầu tiên (mọi block đều có
+// thời gian sau 2020), mà vẫn qua được phép kiểm. Xem D-031.
 const L1_TEMPLATE = path.join(CFG_DIR, "l1-evm-genesis.json");
 const VMID = process.env.LOVE9EVM_VMID || "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf";
 

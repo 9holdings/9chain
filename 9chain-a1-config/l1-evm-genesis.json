@@ -23,6 +23,11 @@
     "feeManagerConfig": {
       "adminAddresses": ["0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC"],
       "blockTimestamp": 0
+    },
+    "warpConfig": {
+      "blockTimestamp": 1607144400,
+      "quorumNumerator": 67,
+      "requirePrimaryNetworkSigners": false
     }
   },
   "alloc": {

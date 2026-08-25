@@ -522,3 +522,34 @@ này sống sót qua nhiều lượt nghiệm thu xanh.
 `luuY` **không** ghi vào `console-chains.json`: nó là lời dặn cho người vừa đẻ chain
 và hết giá trị ngay khi chain có block đầu. Ghi vào danh bạ là để một cảnh báo nhất
 thời sống vĩnh viễn cạnh dữ liệu chain.
+
+### D-031 — M6.1: Warp bật cho MỌI chain (khuôn genesis), không làm preset
+ICM đòi **cả hai đầu** có Warp. Để nó thành một lựa chọn trong danh sách preset là đẻ
+ra những cặp chain không bao giờ nói chuyện được với nhau — và genesis **bất biến**,
+nên "bật sau" không tồn tại: người dùng chọn nhầm một lần là mất khả năng đó vĩnh
+viễn, mà lúc chọn họ chưa biết sau này sẽ cần. Warp không tốn gì khi không dùng.
+
+⇒ `warpConfig` vào thẳng `9chain-a1-config/l1-evm-genesis.json`, mọi chain đều có.
+
+**Con số 1607144400 — chỗ dễ mất hàng giờ nhất:**
+`warp.Config.Verify()` (`precompile/contracts/warp/config.go:93`) từ chối nếu Warp
+bật **trước Durango**. Phản xạ tự nhiên là đặt `blockTimestamp: 0` — mọi precompile
+khác trong `presets.mjs` (`nativeMinter`, `deployerAllowList`, `txAllowList`) đều
+dùng 0 và chạy tốt. Nhưng phép kiểm của Warp là `IsDurango(c.Timestamp())`, tức so
+**mốc bật Warp** với **mốc Durango của mạng**, không phải với genesis. Mốc Durango
+của 9Chain-A1 là **1607144400** (2020-12-05): networkID 9001 không phải Mainnet/Fuji
+⇒ `upgrade.GetConfig` trả `Default` ⇒ `DurangoTime = InitiallyActiveTime`.
+`IsDurango(0)` là **false** ⇒ `blockTimestamp: 0` làm chain không đẻ nổi.
+
+Đặt đúng 1607144400 thì Warp sống từ block thật đầu tiên (mọi block đều có thời gian
+sau 2020) mà vẫn qua được phép kiểm.
+
+`quorumNumerator: 67` là mặc định của subnet-evm (`WarpDefaultQuorumNumerator`); hợp
+lệ là 0 (=dùng mặc định) hoặc 33…100. Với 5 validator, 67% ⇒ cần **4/5 chữ ký**.
+`requirePrimaryNetworkSigners: false` — hai L1 của ta dùng chung tập validator của
+chính subnet, không cần chữ ký của Primary Network.
+
+**Điều này KHÔNG đóng M6.** Nó mới là bật công tắc. M6.2 ("chuyển tài sản giữa 2 L1")
+còn hai thứ chưa quyết, ghi ở PROGRESS: dùng **Warp thô** (gửi message, đầu kia
+`getVerifiedWarpMessage`) hay dựng hẳn **Teleporter/ICTT**; và nó cần **2 slot L1
+cùng lúc** trong trần 15 chứ không thu hồi được giữa chừng như bài preset.
