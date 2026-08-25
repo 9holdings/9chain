@@ -6,6 +6,29 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### B-7 — Explorer không phân biệt được "L1 đã thu hồi" với "L1 hết slot track"
+**Yêu cầu từ repo `9Scan-A1`, 2026-08-25.** Bản đầy đủ:
+`docs/requests-from-9scan/2026-08-25-node-tracking.md`. **Không phải báo lỗi** — trần 16
+và hướng ACP-77 đã quyết ở H-2/D-009, đây là hệ quả của D-013 nhìn từ ngoài.
+
+Đo: **28 L1**, node track **7**, **21 không node nào track**, còn **9 slot** trống
+(trần 16). Explorer hiện cả 21 chain đó là `not served here` và không dám kết luận
+sống/chết — nhưng nhãn đó đang **gộp** "đã thu hồi có chủ ý" với "chain bình thường,
+chỉ hết slot". Xin **một trường `status` trong `console-chains.json`**, hoặc một câu xác
+nhận rằng không phân biệt được (explorer sẽ viết câu giải thích cho đúng thay vì đoán).
+
+🔴 **Kèm một phát hiện ảnh hưởng mọi client đọc P-Chain, không riêng explorer:**
+`platform.getCurrentValidators` cho subnet **đã bỏ track** vẫn trả **đủ 5 validator**
+(đo trên `Smoke7XWQ2M`). Đúng cơ chế của D-013 (bỏ track không xoá được đăng ký trên
+P-Chain), nhưng nó là bẫy cho ví/dashboard/console: dễ kết luận "có 5 validator ⇒ chốt
+được giao dịch". Tức luật D-005 cần một vế nữa: **tập validator trên P-Chain là điều
+kiện CẦN, không đủ** — phải cộng "có node thực sự track subnet đó".
+Explorer đã sửa phía mình (thẻ CAN SETTLE trước đó khẳng định 30/30 chain chốt được —
+một lời nói dối đã lên production).
+
+**Câu hỏi thực tế kèm theo:** 9 slot trống có định dùng cho L1 nào không? Chain được
+track là chain đó đọc được đầy đủ trên explorer và được `9index` index tự động.
+
 ### B-6 — Caddyfile nguồn KHÔNG có site block của explorer ⇒ mỗi lần deploy Caddy là xoá nó
 **Yêu cầu từ repo `9Scan-A1`, 2026-08-25.** Bản đầy đủ + khối cấu hình dán được:
 `docs/requests-from-9scan/2026-08-25-caddy-site-block.md`.
