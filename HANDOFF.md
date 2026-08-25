@@ -1,8 +1,8 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: 2026-08-25 (phiên thứ năm — **M6.2 XONG: tài sản đi được giữa 2 L1** ·
-dọn 4 chain rác · **M10.1 + M10.2 XONG: có `web/` và faucet thật, không còn HTML
-trong chuỗi JS**)
+Cập nhật: 2026-08-26 (phiên thứ năm — **M6 đóng** (tài sản đi được giữa 2 L1) ·
+**M10 gần đóng**: web/ · faucet · 3 biến thể trang chủ · màn đẻ chain có tiến trình
+theo bước · chain của tôi + thu hồi · bảng A1↔C1. Backlog phần mềm đã cạn.)
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
@@ -36,16 +36,20 @@ người muốn tham gia. Đo được: máy chủ có **/56 định tuyến**, 
 theo từng network, KHÔNG phải restart daemon). Khuyến nghị: IPv4 đa cổng cho node
 beacon. **Kéo theo H-4 có thể là bản ghi `A` chứ không phải `AAAA`.** Chi tiết: BLOCKERS H-7.
 
-**5. M10.1 + M10.2 đã xong ⇒ việc tiếp là M10.4 (màn đẻ chain), không chờ ai.**
-Khung `web/`, hệ token, bộ component, i18n, dark mode và trang faucet đã chạy thật.
-M10.3 (trang chủ, 2–3 biến thể) cần David chọn, nhưng **M10.4** — màn đẻ chain, màn
-khó nhất — thì không: nó cần **tiến trình theo BƯỚC** cho một lượt đẻ ~170 giây
-(spinner 170s đọc như "hỏng") và **bước soát lại trước khi gửi** vì genesis bất biến.
-Kế tiếp nữa: M10.5 (chain của tôi + thu hồi), `docs/RUN-A-NODE.md` (M3.4),
-ufw lớp hai (đuôi M7.2).
+**5. 🔴 BACKLOG PHẦN MỀM ĐÃ CẠN — việc còn lại đều `[human]` hoặc `[blocked]`.**
+M10.1/M10.2/M10.5/M10.6 xong; M10.4 xong phần mềm (còn bấm thử bằng MetaMask thật);
+M10.3 chỉ còn **David chọn một trong ba biến thể**; M10.7 chờ hai thứ bên ngoài.
 
-🔴 **Gốc `/` VẪN LÀ BLOCKSCOUT.** Trang chủ mới xem trước ở **`/moi/`**. Đổi gốc là
-việc của M10.3 vì nó gắn với biến thể David chọn — đừng đổi trước.
+**Việc `[human]` có thứ tự cao nhất bây giờ là U-3: chọn biến thể trang chủ.**
+Mở **https://testnet-a1.9chain.org/moi/** — ba bản A/B/C, mô tả mỗi bản nói cả điểm
+yếu. Chọn xong thì: nội dung bản đó thay `web/app/page.tsx`, hai bản kia +
+`components/ThanhChon.tsx` bị gỡ, rồi mới bàn đổi gốc `/`.
+
+🔴 **Gốc `/` VẪN LÀ BLOCKSCOUT** — và `/lite/` redirect (M10.7) phải làm SAU khi
+trang chủ mới chiếm gốc, nếu không là ném người dùng vào Blockscout.
+
+**Trang đang chạy công khai:** `/faucet/` · `/de-chain/` · `/chain-cua-toi/` ·
+`/bang/` · `/tc-a|b|c/` · `/moi/` (trang chọn).
 
 ### ⏰ Hẹn giờ đã biết
 **Cả 5 validator hết hạn `2027-08-24`** (đo 2026-08-25, còn 364 ngày). Đúng ngày đó
@@ -66,6 +70,38 @@ tức ~**70 MB/giờ** ở 210 TPS — nhỏ hơn 30 lần. Dung lượng đĩa 
 
 ⚠️ **Đợt tải này KHÔNG tự thu hồi chain** (nó chạy trên chain có sẵn nên cố ý giữ lại):
 log ghi `giữ lại chain "(chain có sẵn)"`. L1 đó vẫn chiếm một slot.
+
+### Phiên 2026-08-26 (autopilot — M10.3 → M10.7) làm xong
+
+**M10.3** ba biến thể trang chủ (`/tc-a|b|c/`, trang chọn ở `/moi/`) — mô tả mỗi bản
+nói cả **điểm yếu**. Số liệu sống thật: 5/5 validator · 2 L1 · block C-Chain.
+**M10.4** màn đẻ chain: console có `GET /api/tien-trinh`; nghiệm thu bằng chain THẬT
+→ 8/8 bước, **5 node lần lượt** đúng thứ tự, mỗi node 31–33s.
+**M10.5** "Chain của tôi" + thu hồi: **đã thu hồi THẬT một chain từ giao diện** bằng
+đường thật (chữ ký ví thật, mọi API thật).
+**M10.6** bảng A1↔C1: C1 vắng hiện ra như **vắng**, không như hỏng; có câu tự tố
+*"điểm là đội tự chấm"*.
+**M10.7** phần đo được: **10/10 liên kết sống**, kiểm tự động cuối `web-deploy.sh`.
+
+🔴 **PHÁT HIỆN ĐẮT NHẤT CỦA ĐỢT NÀY — Cloudflare cắt POST ở ~100 giây (HTTP 524),
+mà đẻ/thu hồi chain mất ~170 giây.** Qua tên miền công khai, lượt POST **LUÔN hỏng**
+trong khi server vẫn chạy tới cùng và **thành công**. Đo thật: thu hồi từ giao diện
+→ nhận 524 → màn hình báo *"Không thu hồi được"*, trong khi danh bạ **đã ghi chain
+vào `retired`**. Với đẻ chain thì tệ hơn: người dùng bấm lại một việc đã xong, chain
+thừa ăn mất một slot trong trần 15 **và giữ vĩnh viễn tên + chainId**.
+⇒ Cả hai màn nay coi kết quả POST là **không kết luận được**: đọc `/api/tien-trinh`
+tới khi lượt chạy kết thúc, rồi hỏi **danh bạ** xem sự thật là gì.
+
+🔴 **Bốn lỗi tôi tự gây rồi tự sửa trong đợt này** (chi tiết ở PROGRESS + Gotchas):
+1. **Deploy console giữa lúc đang thu hồi** ⇒ rollout xong nhưng console chết trước
+   khi ghi danh bạ ⇒ **danh bạ nói dối**. `console-deploy.sh` nay từ chối restart khi
+   có lượt đang chạy.
+2. **`rm -rf` chính thư mục đang bind-mount** ⇒ container thấy thư mục **rỗng vĩnh
+   viễn** trong khi host đủ file.
+3. **Bài kiểm liên kết chỉ đo mã HTTP** ⇒ **xanh giả**, vì Blockscout là SPA trả 200
+   kèm khung rỗng cho mọi đường lạ.
+4. **Đặt route `/faucet/*` trước `@faucet_api`** ⇒ API faucet 404 trong khi trang vẫn
+   hiện bình thường.
 
 ### Phiên 2026-08-25 (thứ NĂM, đợt 2 — giao diện) làm xong
 
@@ -357,6 +393,32 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ---
 
 ## Gotchas
+
+### Thêm từ phiên 2026-08-26 (autopilot — M10.3→M10.7)
+- 🔴 **Cloudflare cắt kết nối ở ~100 giây (HTTP 524).** Mọi thao tác dài (đẻ/thu hồi
+  chain: ~170s) đi qua tên miền công khai đều **hỏng ở phía trình duyệt** trong khi
+  server làm xong. Đừng kết luận từ mã HTTP của POST dài: bắn POST rồi đọc một
+  endpoint tiến trình rẻ, và khi nó kết thúc thì hỏi **trạng thái/danh bạ** xem sự
+  thật là gì. Và chỉ kết luận "xong" **sau khi đã thấy `dangChay=true` ít nhất một
+  lần** — gọi sớm quá là đọc trúng kết quả của lượt TRƯỚC.
+- 🔴 **`handle` của Caddy loại trừ lẫn nhau và xét THEO THỨ TỰ VIẾT.** Đặt
+  `@trangmoi` (có `/faucet/*`) trước `@faucet_api` là API faucet trả 404 **trong khi
+  trang faucet vẫn hiện ra bình thường** — nhìn bằng mắt không thấy gì.
+- 🔴 **Blockscout ở gốc là SPA: mọi đường dẫn lạ trả HTTP 200 kèm khung rỗng**, không
+  phải 404. Mọi bài kiểm URL vì thế phải đo **NỘI DUNG** (ví dụ `<title>` không
+  rỗng). Đo bằng mã trạng thái cho ra **xanh giả** — đã dính với `/tc-a/`.
+- 🔴 **Bản xuất tĩnh của Next dùng đường dẫn TUYỆT ĐỐI cho liên kết nội bộ**, nên
+  phục vụ cả site dưới một tiền tố (`/moi/`) là **mỗi cú bấm nhảy ra khỏi tiền tố**.
+  Mỗi trang phải có route thật.
+- 🔴 **Deploy console giữa lúc một lượt đẻ/thu hồi đang chạy làm DANH BẠ NÓI DỐI**:
+  rolling restart do docker làm nên nó chạy tới cùng, còn console chết trước khi ghi
+  trạng thái. Cửa sổ này rộng ~170 giây. `console-deploy.sh` nay đọc
+  `/api/tien-trinh` và từ chối restart khi `dangChay=true`.
+- 🔴 **`0 validator` là một TRẠNG THÁI THẬT, đừng dùng 0 làm sentinel "đang tải".**
+  Subnet track mà chưa có validator thì chain vẫn trả lời `eth_chainId`, ví vẫn kết
+  nối, **chỉ là giao dịch không bao giờ chốt** — và không có dấu hiệu nào khác.
+- **Server dùng chung cổng loopback với 9Scan-A1.** A1 đang giữ: 8082 · 8088 · 8090 ·
+  8091 · 8092 · 8093 · **8095** · 8100 · 8101 · 9650 · 9660. 8094 là của họ.
 
 ### Thêm từ phiên 2026-08-25 (thứ NĂM, đợt 2 — giao diện)
 - 🔴 **Bẫy inode của Docker CŨNG áp cho THƯ MỤC.** `rm -rf <thư-mục-đang-mount>` rồi
@@ -670,7 +732,8 @@ Kiểm có cổng nào hở ra Internet không — **đo TỪ NGOÀI**, không t
 bash local-net/deploy/kiem-cong.sh
 ```
 
-Dựng + deploy giao diện (M10) — `web-deploy.sh` **tự nghiệm chứng cả chunk JS**:
+Dựng + deploy giao diện (M10) — `web-deploy.sh` tự nghiệm chứng **chunk JS thật, API
+faucet, và mọi liên kết nội bộ (đo NỘI DUNG, không chỉ mã HTTP)**:
 ```bash
 cd web && pnpm build && cd .. && bash local-net/deploy/web-deploy.sh
 ```
