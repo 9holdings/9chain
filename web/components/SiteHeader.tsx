@@ -15,10 +15,18 @@ import { gop } from './ui';
 
 type Muc = { chu: string; href: string; ngoai?: boolean };
 
+// `/de-chain/`, `/chain-cua-toi/`, `/bang/` là trang của bản export.
+// `/chains/` do Caddy proxy sang container khác — vẫn là thẻ <a> thật như mọi mục
+// khác ở đây, nên không dính bẫy `next/link` trỏ vào đường không phải route Next.
+//
+// Console CŨ (`/console/`) vẫn sống và vẫn là đường của người vận hành; nó rời khỏi
+// thanh điều hướng khi M10.7 dọn, chứ không bị gỡ trong cùng một lượt.
 const MUC: Muc[] = [
   { chu: vi.dieuHuong.trangChu, href: '/' },
   { chu: vi.dieuHuong.faucet, href: '/faucet/' },
-  { chu: vi.dieuHuong.console, href: '/console/' },
+  { chu: vi.dieuHuong.console, href: '/de-chain/' },
+  { chu: vi.dieuHuong.chainCuaToi, href: '/chain-cua-toi/' },
+  { chu: vi.dieuHuong.bang, href: '/bang/' },
   { chu: vi.dieuHuong.danhBa, href: '/chains/' },
 ];
 

@@ -29,6 +29,8 @@ export const vi = {
     trangChu: 'Trang chủ',
     faucet: 'Nhận token thử',
     console: 'Đẻ chain',
+    chainCuaToi: 'Chain của tôi',
+    bang: 'A1 ↔ C1',
     danhBa: 'Danh bạ L1',
     explorer: 'Explorer',
     banGiao: 'Mở 9Scan-A1 ở tab mới',
@@ -231,6 +233,45 @@ export const vi = {
 
     daThuHoi: 'Đã thu hồi',
     daThuHoiMoTa: 'Giữ chỗ tên và Chain ID vĩnh viễn.',
+  },
+
+  bang: {
+    tieuDe: 'A1 ↔ C1 — bảng so sánh',
+    moTa:
+      '9Chain chạy HAI testnet song song của cùng một sản phẩm, khác nhau ở engine: ' +
+      'A1 trên Avalanche, C1 trên Cosmos. Bảng này để cộng đồng chọn hướng mainnet ' +
+      'bằng dữ liệu, không bằng tranh luận.',
+
+    // 🔴 Câu này KHÔNG được bỏ: điểm dưới đây do đội tự chấm.
+    tuChamTieuDe: 'Điểm dưới đây là ĐỘI TỰ CHẤM, không phải đo độc lập',
+    tuChamMoTa:
+      'Cột "đo thế nào" nói rõ mỗi tiêu chí kiểm bằng cách gì. Tiêu chí nào chưa có ' +
+      'phép đo có ngày thì đó là đánh giá kiến trúc, không phải số liệu. Trọng số do ' +
+      'bạn đặt — điểm đổi theo.',
+
+    cotSo: '#',
+    cotTieuChi: 'Tiêu chí',
+    cotLoai: 'Loại',
+    cotA1: 'A1',
+    cotC1: 'C1',
+    cotTrongSo: 'Trọng số',
+    loaiKienTruc: 'kiến trúc',
+    loaiSong: 'số sống',
+
+    tongDiem: 'Tổng điểm theo trọng số của bạn',
+    hoaNhau: 'Hoà nhau',
+    dangDan: 'đang dẫn',
+
+    soLieuTieuDe: 'Số liệu sống',
+    a1Validator: 'A1 — validator kết nối',
+    a1Chain: 'A1 — L1 đang sống',
+    a1Block: 'A1 — block C-Chain',
+    c1Vang: 'C1 — chưa nối được',
+    c1VangMoTa:
+      'Cần URL Cosmos REST của C1 (cổng 1317). Bảng vẫn dùng được: phần A1 là số ' +
+      'sống, phần C1 là đánh giá kiến trúc như các tiêu chí còn lại.',
+    dangDo: 'đang đo…',
+    khongDo: 'chưa đo được',
   },
 
   faucet: {

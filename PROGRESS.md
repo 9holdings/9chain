@@ -827,9 +827,46 @@ có thứ tự cao nhất.** Trong lúc chờ: nút chính trỏ vào trang "đa
       chốt**, và không có dấu hiệu bề ngoài nào khác. Dùng 0 làm sentinel là che đúng
       cái trạng thái cần hiện. Nay sentinel là `'dang'`, và 0 validator hiện một cảnh
       báo riêng.
-- [ ] M10.6 — Dashboard A1↔C1 → qua khi: chịu được C1 vắng mặt (H-5) mà không như hỏng
-- [ ] M10.7 — Dọn: `/lite/` redirect, gỡ trang cũ khi 9Scan `/chains/` lên
-      → qua khi: không URL nào chết
+- [x] M10.6 — **Bảng so sánh A1↔C1 — XONG.** `/bang/`
+
+      **Điều kiện qua đã đo:** C1 vắng mặt hiện ra **như VẮNG, không như HỎNG** —
+      một khối viền nét đứt nói thẳng *"C1 — chưa nối được"* kèm lý do (cần URL
+      Cosmos REST, H-5), phần A1 vẫn là số sống bình thường. Kèm: kéo trọng số thì
+      điểm **đổi theo** (chứng minh không phải số cắm cứng), 10 tiêu chí giữ nguyên
+      từ `docs/A1-vs-C1-SCORECARD.md`, không tràn ngang ở khổ điện thoại.
+
+      🔴 **Câu quan trọng nhất trên màn là câu tự tố:** *"Điểm dưới đây là ĐỘI TỰ
+      CHẤM, không phải đo độc lập."* A1 là bên đang trình bày; một bảng điểm không
+      khai điều đó thì nó không phải bằng chứng, nó là quảng cáo có bảng biểu.
+- [~] M10.7 — **Phần đo được đã làm: "không URL nào chết" — 10/10 liên kết sống.**
+      Phần còn lại chờ hai thứ bên ngoài.
+
+      `web/scripts/kiem-lien-ket.mjs`, chạy tự động ở cuối `web-deploy.sh`.
+
+      🔴 **Bài kiểm này phải đo NỘI DUNG, không đo mã HTTP** — và bản đầu của tôi
+      không làm thế nên nó cho **xanh giả**. Gốc `/` là Blockscout, một SPA trả
+      **HTTP 200 kèm khung rỗng** cho mọi đường lạ. `/tc-a/` và `/de-chain/` khi đó
+      "200 ✓" trong khi người dùng bấm vào chỉ thấy trang trắng. Nay phép đo đòi
+      `<title>` không rỗng.
+
+      **Kéo theo một sửa kiến trúc:** bỏ cách phục vụ cả site dưới tiền tố `/moi/`.
+      Bản xuất tĩnh của Next dùng đường dẫn **tuyệt đối** cho liên kết nội bộ, nên
+      dưới tiền tố thì **mỗi cú bấm nhảy ra khỏi tiền tố** và rơi xuống Blockscout.
+      Nay mỗi trang có route thật (`/de-chain/`, `/chain-cua-toi/`, `/bang/`,
+      `/tc-a|b|c/`); chỉ trang CHỌN BIẾN THỂ còn ở `/moi/` vì gốc `/` vẫn là
+      Blockscout tới khi M10.3 chốt.
+
+      🔴 **Và một lỗi tôi gây ra rồi sửa trong cùng lượt:** khối route mới có
+      `/faucet/*` bị đặt **trước** `@faucet_api`, mà `handle` của Caddy xét theo thứ
+      tự ⇒ `/faucet/api/thongtin` rơi vào container tĩnh và trả **404**. Trang faucet
+      vẫn hiện bình thường nên nhìn bằng mắt không thấy gì; `web-deploy.sh` bắt được
+      vì nó có phép kiểm API riêng.
+
+      - [blocked] `/lite/` redirect — phải làm **sau** khi trang chủ mới chiếm gốc
+        `/`, mà cái đó chờ David chọn biến thể (M10.3). Redirect `/lite/` về `/` bây
+        giờ là ném người dùng vào Blockscout.
+      - [blocked] Gỡ trang `/chains/` cũ — chờ 9Scan-A1 đưa `/chains/` của họ lên
+        (U-5, việc của dự án khác).
 
 **Nghiệm thu chung:** mở trên **trang công khai qua Cloudflare** (không `curl
 127.0.0.1` — trang render bằng JS nên curl chỉ thấy khung rỗng), **cả điện thoại lẫn
