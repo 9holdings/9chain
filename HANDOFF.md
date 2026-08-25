@@ -9,12 +9,11 @@ Kèm `DECISIONS.md` (vì sao làm vậy) và `BLOCKERS.md` (đang chờ David c�
 
 ### Việc đầu tiên của phiên sau — theo đúng thứ tự này
 
-**1. 🔴 B-5 — BỊT HAI CỔNG POSTGRES ĐANG MỞ RA INTERNET.** Làm trước mọi thứ khác.
-`db:7432` và `stats-db:7433` bind `0.0.0.0`; đã kiểm chứng **từ máy ngoài qua Internet:
-cả hai đều nhận kết nối**. `ufw status` nhìn sạch vì Docker publish đi vòng qua ufw.
-Sửa: đổi sang `127.0.0.1:7432:5432` / `127.0.0.1:7433:5432` trong compose Blockscout
-rồi **recreate đúng hai container đó** (đổi port mapping không reload được).
-Không đụng validator. Chi tiết + cách kiểm lại: `BLOCKERS.md` B-5.
+**1. ✅ B-5 — ĐÃ GỠ (2026-08-25, phiên thứ ba).** Hai cổng Postgres đã về loopback,
+đo lại từ máy ngoài: **7432 ĐÓNG · 7433 ĐÓNG**. Bản vá đặt ở
+`explorer-full/9chain-a1-server.override.yml` (**có trong git**) chứ không phải trong
+`blockscout/` — thư mục đó bị gitignore, vá ở đó thì `setup.sh` clone lại là mất.
+Chi tiết + phép chứng minh override tự đứng được: `BLOCKERS.md` mục "Đã gỡ" B-5.
 
 **2. Backup.** Không có backup nào tồn tại — không thư mục, không crontab, không
 systemd timer (đã kiểm). Toàn bộ lịch sử chain + 5 danh tính validator + danh bạ L1
@@ -270,6 +269,14 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
   node-1). Thứ tự ngẫu nhiên làm sự cố không tái hiện được — phải tự sắp xếp.
 
 ### Bảo mật / hạ tầng
+- 🔴 **Vá cấu hình trong `explorer-full/blockscout/` là VÁ TẠM — thư mục đó bị
+  `.gitignore`.** Nó là bản clone upstream; `setup.sh` clone lại là bản vá biến mất
+  không dấu hiệu. Mọi thay đổi compose Blockscout phải đặt ở
+  `explorer-full/9chain-a1-server.override.yml` (dùng `ports: !override`, `!override`
+  cần thiết vì upstream khai `ports` dạng dài và compose sẽ MERGE chứ không thay).
+  Kiểm chứng đúng cách: **hoàn nguyên file upstream về nguyên gốc** rồi chạy
+  `docker compose -f geth.yml -f ../../9chain-a1-server.override.yml config` — nếu vẫn
+  ra giá trị mình muốn thì override tự đứng được. Dính ở B-5.
 - 🔴 **Docker publish cổng ĐI VÒNG QUA ufw.** `ports: "9650:9650"` = hở thẳng ra Internet dù `ufw status` báo chặn (ufw lọc `INPUT`, Docker dùng DNAT bảng `nat`). Kiểm tra thật bằng `sudo ss -tlnp | grep 9650`, **đừng tin `ufw status`**.
 - 🔴 **Ubuntu cloud image: sửa `PasswordAuthentication` trong `/etc/ssh/sshd_config` KHÔNG có tác dụng.** `Include sshd_config.d/*.conf` ở dòng 12 mà sshd lấy **giá trị gặp ĐẦU TIÊN** → `50-cloud-init.conf` thắng. Phải sửa đúng file đó + `/etc/cloud/cloud.cfg.d/99-disable-ssh-pwauth.cfg`. **Kiểm chứng bằng `sudo sshd -T | grep passwordauth`.**
 - 🔴 **A1 và C1 dùng chung zone Cloudflare `9chain.org`.** SSL/TLS mode là thiết lập **cấp zone** — đổi sang `Full (strict)` là C1 chết ngay (lỗi 526, C1 dùng cert tự ký). **Trước khi đổi bất kỳ thiết lập cấp zone/tài khoản nào, kiểm tra ai khác đang dùng chung.**

@@ -6,27 +6,6 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
-### B-5 — 🔴🔴 HAI CSDL POSTGRES CỦA BLOCKSCOUT ĐANG MỞ RA INTERNET
-**2026-08-25. Đã kiểm chứng TỪ NGOÀI, không phải suy đoán.**
-
-```
-db        0.0.0.0:7432->5432/tcp   ← Postgres chính của Blockscout
-stats-db  0.0.0.0:7433->5432/tcp   ← Postgres của stats
-```
-Thử kết nối từ máy dev qua Internet: **7432 MỞ · 7433 MỞ** (9650 thì đóng đúng).
-
-**ufw tưởng như đã chặn** — nó chỉ cho 22/80/443/9651 — nhưng đây đúng là cái bẫy
-đã ghi sẵn trong HANDOFF và vẫn dính: **Docker publish cổng đi vòng qua ufw** (ufw lọc
-`INPUT`, Docker dùng DNAT ở bảng `nat`). `ufw status` nhìn hoàn toàn sạch.
-
-**Bản vá:** đổi ánh xạ trong compose Blockscout từ `7432:5432` sang
-`127.0.0.1:7432:5432` (và tương tự 7433), rồi recreate đúng hai container đó. Cần
-recreate chứ không reload được — đổi port mapping là đổi cấu hình mạng của container.
-Blockscout sẽ gián đoạn vài giây; **không đụng tới 5 validator**.
-
-**Vì sao chưa tự làm:** đổi cấu hình stack công khai. Nhưng đây là lỗ hổng đang mở,
-nên nó nên được duyệt trước mọi việc khác trong backlog.
-
 ### B-2 — Blockscout: `stats` crash-loop 807 lần, `backend` ngốn hơn cả 5 validator
 **2026-08-25, đo trên server lúc mạng tĩnh.**
 
@@ -170,6 +149,30 @@ cho mỗi L1 một tập validator riêng — chính là ACP-77.
 ---
 
 ## Đã gỡ
+
+### B-5 — Hai CSDL Postgres của Blockscout mở ra Internet (2026-08-25 → gỡ cùng ngày)
+David duyệt, gỡ trong phiên thứ ba. **Đo trước/sau từ máy dev qua Internet:**
+
+| cổng | trước | sau |
+|---|---|---|
+| 7432 (`db`) | **MỞ** | **ĐÓNG** |
+| 7433 (`stats-db`) | **MỞ** | **ĐÓNG** |
+| 443 (đối chứng) | mở | mở (đúng) |
+
+Trên server: `0.0.0.0:7432` + `[::]:7432` → còn đúng `127.0.0.1:7432`. Blockscout hồi
+lại sau vài giây (`/api/v2/stats` HTTP 200), trang công khai 200, **5/5 validator vẫn
+connected**, đợt bơm tải 3 giờ chạy xuyên suốt không sứt mẻ (`lỗi 0`, 252 TPS).
+
+🔴 **Bài học quan trọng hơn cả bản vá: vá ở `blockscout/` là vá TẠM.** Thư mục đó bị
+`.gitignore` (bản clone upstream) — `setup.sh` clone lại là mất vá, không dấu hiệu.
+Bản vá thật nằm ở `explorer-full/9chain-a1-server.override.yml` (**có trong git**),
+mục 3, dùng `ports: !override`. Đã chứng minh bằng cách **hoàn nguyên
+`services/db.yml` + `services/stats.yml` về nguyên gốc** rồi chạy lại
+`docker compose config`: vẫn ra `host_ip: 127.0.0.1`. Tức override một mình đủ sức.
+
+Đáng ghi thêm: hai Postgres này mang **mật khẩu mặc định của repo Blockscout công
+khai** (nằm nguyên văn trong `services/db.yml` trên GitHub), nên "mở cổng" ở đây gần
+như tương đương "mở cửa". Không có cách nào biết chắc đã có ai kết nối hay chưa.
 
 ### B-1 — Docker Desktop không khởi động trên máy dev (2026-08-24 → gỡ 2026-08-25)
 `docker version` treo vô hạn, daemon không lên. **David mở lại Docker Desktop bằng tay

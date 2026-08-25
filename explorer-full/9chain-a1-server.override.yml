@@ -16,11 +16,30 @@
 #    container sẽ không bao giờ tới được.
 #    => Cho backend + user-ops-indexer vào thẳng mạng `net_a1net` của các node và
 #       gọi `172.28.0.11:9650` (node1). Không mở thêm cổng nào ra ngoài.
+#
+# 3. HAI CSDL POSTGRES. `services/db.yml` publish 7432 và `services/stats.yml`
+#    publish 7433 — cả hai KHÔNG khai `host_ip`, nên Docker bind `0.0.0.0` (và
+#    `[::]`). Đúng cái bẫy ở mục 1, lần này với Postgres mang mật khẩu MẶC ĐỊNH
+#    của repo Blockscout công khai. Đã kiểm chứng từ máy ngoài qua Internet:
+#    2026-08-25 cả 7432 lẫn 7433 đều nhận kết nối, `ufw status` vẫn nhìn sạch.
+#    => Ép về loopback ở ĐÂY (file này nằm trong git), không chỉ sửa trong
+#       `blockscout/` — thư mục đó bị .gitignore và `setup.sh` clone lại là mất vá.
+#       Đổi ánh xạ cổng KHÔNG reload được, phải recreate đúng hai container:
+#         docker compose -f geth.yml -f ../../9chain-a1-server.override.yml \
+#           up -d --no-deps --force-recreate db stats-db
 services:
   proxy:
     ports: !override
       - "127.0.0.1:8100:80"
       - "127.0.0.1:8101:8080"
+
+  db:
+    ports: !override
+      - "127.0.0.1:7432:5432"
+
+  stats-db:
+    ports: !override
+      - "127.0.0.1:7433:5432"
 
   backend:
     networks:
