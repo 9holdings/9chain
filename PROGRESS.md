@@ -219,9 +219,38 @@ HANDOFF: *đừng quảng bá "chạy node cùng chúng tôi"* cho tới khi xon
       Bằng chứng slot đã về: RPC chain đã thu hồi **im hẳn** (node hết định tuyến),
       danh bạ **5 → 5 L1** đúng mức trước khi chạy bài.
       Giao dịch thật trên L1 mới chốt 0.1s, block 1, `0xf4b0b992…aa5538`.
-- [ ] M4.5 — [human] Caddy route console + Cloudflare Access / mTLS — **David duyệt trước khi mở**.
-      Khi làm: bật `A1_TRUST_PROXY=1` **cùng lúc** đặt Caddy ra trước (không sớm hơn —
-      xem M4.2), rồi kiểm chứng bằng `/whoami` phải trả IP THẬT của người dùng.
+- [x] M4.5 — **CONSOLE ĐÃ CÔNG KHAI** ở `https://testnet-a1.9chain.org/console/`
+      (David duyệt 2026-08-25, phiên thứ tư). H-3 đóng.
+
+      Ba thứ làm CÙNG LÚC, và thứ tự đó là bắt buộc:
+      1. Route Caddy `/console/` (`handle_path` cắt tiền tố) + `redir /console → /console/`.
+      2. `A1_TRUST_PROXY=1`. Bật sớm hơn là **đi lùi**: client tự khai IP để thoát
+         hạn mức. Bật muộn hơn cũng sai: hạn mức gom cả thế giới vào IP của Caddy.
+      3. **Siết 443 về dải Cloudflare (M7.2)** — nếu không, ai nối thẳng vào IP máy
+         chủ vẫn tự đặt `CF-Connecting-IP` được, và (2) trở thành lỗ hổng chứ không
+         phải bản vá. Đã đo: trước khi siết, faucet tin đúng IP bịa.
+
+      Trang console **tự suy đường gốc API** từ URL của chính nó, nên một bản mã chạy
+      đúng ở cả hai nơi: tunnel `:8091/` (đường người vận hành, bỏ qua Cloudflare) và
+      `/console/`. Cắm cứng `/api/...` sẽ làm bản công khai gọi vào gốc tên miền, rơi
+      vào Blockscout, và lỗi hiện ra là *JSON parse error* chứ không phải 404.
+
+      **Nghiệm thu từ ngoài Internet:**
+
+| phép thử | kết quả |
+|---|---|
+| `/console` → `/console/` | 301 → **200** |
+| `/console/whoami` | **IP THẬT của người dùng**, `trustProxy: true` |
+| `POST /console/api/create` không token | **401** (không phải lỗi JSON ⇒ định tuyến đúng) |
+| nối thẳng vào origin | **403** |
+
+      🔴 Điểm thứ hai là điểm đáng giá nhất: trả IP của Cloudflare thì hạn mức gom cả
+      thế giới vào một khoá, và **không có dấu hiệu nào khác cho biết điều đó**.
+
+      🔴 **Còn lại, không phải lỗ hổng mà là giới hạn quy mô:** trần 16 L1 nghĩa là
+      còn **9 suất cho toàn bộ Internet**. Console hiện "Còn N chỗ" kèm giải thích
+      trần giao thức, nên người dùng biết trước chứ không phát hiện lúc bị từ chối.
+      Vượt qua được chỉ bằng ACP-77 (H-2).
 
 **Điều kiện qua M4:** một ví lạ, không có token, đẻ được chain của chính nó từ Internet.
 

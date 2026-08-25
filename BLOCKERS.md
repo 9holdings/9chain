@@ -89,7 +89,7 @@ Gỡ khi được duyệt: bỏ 2 service khỏi compose Blockscout, `docker com
 |---|---|---|
 | H-1 | Tokenomics: supply cap 720M LOVE9 · tỉ lệ 40/20/20/5/15 + vesting · uptime 80%→90% | chốt genesis mainnet, ACP-77 |
 | H-2 | 🔴 **ACP-77 — đã đổi bản chất, không còn chờ được**. Xem ghi chú dưới bảng | trần 16 L1 |
-| H-3 | Có mở console đẻ chain ra Internet không | M4.5 |
+| ✅ H-3 | ~~Có mở console đẻ chain ra Internet không~~ — **DAVID DUYỆT 2026-08-25, ĐÃ MỞ** ở `/console/` | M4.5 xong |
 | H-4 | AAAA record `bootstrap-a1.9chain.org` (**DNS-only**, không mây cam) | M3.3 |
 | H-5 | URL Cosmos REST của C1 (`:1317`) | M7.3 (dashboard live) |
 | H-6 | 🟡 **Repo vẫn chưa có remote** — nhưng H-6b đã chạy, không còn là "một ổ đĩa" | nơi đặt repo lâu dài |
