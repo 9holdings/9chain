@@ -139,7 +139,35 @@ HANDOFF: *đừng quảng bá "chạy node cùng chúng tôi"* cho tới khi xon
 - [ ] M4.2 — Bật `A1_TRUST_PROXY=1` + hạn mức theo **địa chỉ ví**, không chỉ IP
 - [x] M4.3 — Cap tổng số chain — **HOÁ RA LÀ TRẦN CỨNG CỦA GIAO THỨC, KHÔNG PHẢI
       CON SỐ TUỲ CHỌN.** Đã chặn ở console (mặc định 15, trần tuyệt đối 16). Xem D-009.
-- [ ] M4.4 — Endpoint thu hồi chain (hiện không có đường lùi → rác tích luỹ một chiều)
+- [x] M4.4 — **Endpoint thu hồi chain — trần 16 hết một chiều.** `POST /api/revoke`
+      gỡ subnet khỏi `--track-subnets` của mọi node (rolling restart, chung hàng đợi
+      với create), rồi gỡ chain khỏi danh bạ. Xem D-013…D-016.
+
+      Xác minh ở source trước khi code, không suy đoán: trần 16 áp lên đúng danh
+      sách `TrackedSubnets` gửi lúc bắt tay (`network/peer/peer.go:882`), Primary
+      Network bị loại trừ tường minh (`network/network.go:208`) ⇒ **bỏ track thật
+      sự trả lại chỗ**, và 16 là 16 L1 chứ không phải 15+Primary.
+
+      Ba thứ đi kèm, không tách rời được:
+      - **Chain đã thu hồi giữ chỗ `name` + `chainId` vĩnh viễn** — thu hồi không
+        xoá được mạng khỏi ví người dùng, cấp lại chainId là để ví họ lặng lẽ trỏ
+        vào chain của người khác (D-014).
+      - **Trang `/chains/` vẽ chúng từ mảng `retired`, KHÔNG đo bằng heuristic chain
+        sống** — thu hồi không rút node khỏi tập validator P-Chain nên
+        `getCurrentValidators` vẫn trả đủ 5 validator cho chain đã chết (D-013).
+      - **`smoke-l1.mjs --de-chain` nay tự dọn chain nó đẻ ra** (D-015).
+
+      **Đo thật trên testnet công khai 2026-08-25, chain `Smoke7XWQ2M` — 29/29 ĐẠT:**
+
+| | đẻ chain | thu hồi |
+|---|---|---|
+| thời gian | 168.9s | **162.8s** |
+| gián đoạn C-Chain | 0.5s · 1/338 hỏng | **0.5s · 1/326 hỏng** |
+
+      Thu hồi KHÔNG đắt hơn đẻ — cùng cơ chế rolling restart, cùng con số.
+      Bằng chứng slot đã về: RPC chain đã thu hồi **im hẳn** (node hết định tuyến),
+      danh bạ **5 → 5 L1** đúng mức trước khi chạy bài.
+      Giao dịch thật trên L1 mới chốt 0.1s, block 1, `0xf4b0b992…aa5538`.
 - [ ] M4.5 — [human] Caddy route console + Cloudflare Access / mTLS — **David duyệt trước khi mở**
 
 **Điều kiện qua M4:** một ví lạ, không có token, đẻ được chain của chính nó từ Internet.
@@ -178,7 +206,8 @@ Demo mạnh nhất của A1; tiêu chí "Interop" đang tự chấm 3/5 trong da
       IP Cloudflare. Hạn mức faucet lành mạnh, không cần sửa.
 - [ ] M7.2 — `ufw-cloudflare-only.sh` — giữ **9651 mở** (và 9651/tcp6 sau M3)
 - [ ] M7.3 — `/api/metrics` cho dashboard + 9Scan-A1 (chờ 9Scan chốt yêu cầu ở KICKOFF của họ)
-- [ ] M7.4 — `rmdir "C:\PROJECTS\MetaChain"`
+- [x] M7.4 — `C:\PROJECTS\MetaChain` đã không còn tồn tại (kiểm 2026-08-25, `ls` báo
+      No such file or directory). Không cần xoá gì.
 
 ---
 

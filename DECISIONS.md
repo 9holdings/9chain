@@ -136,3 +136,50 @@ chủ quyền — patch càng to càng dễ chết khi rebase lên upstream mớ
 Kế thừa luật đã trả giá trong HANDOFF: subnet có tập validator RỖNG vẫn trả `eth_chainId`,
 vẫn đọc được số dư, MetaMask vẫn kết nối — chỉ là giao dịch **không bao giờ chốt**.
 Mọi `[x]` liên quan L1 bắt buộc kèm hash giao dịch thật.
+
+## 2026-08-25 · Phiên tiếp theo
+
+### D-013 — Thu hồi chain = bỏ track, KHÔNG phải xoá chain (M4.4)
+Không có cách nào xoá một subnet/blockchain khỏi P-Chain — đã đẻ là vĩnh viễn.
+Nên "thu hồi" chỉ có thể là: **gỡ subnet khỏi `--track-subnets` của mọi node** rồi
+gỡ chain khỏi danh bạ. Sau đó không node nào phục vụ RPC của nó và chain đứng im.
+
+**Vì sao thế là đủ:** thứ khan hiếm không phải subnet trên P-Chain, mà là **slot
+track**. Đã xác minh ở source, không suy đoán: trần 16 áp lên đúng danh sách
+`TrackedSubnets` gửi lúc bắt tay P2P (`network/peer/peer.go:882`), và Primary
+Network bị loại trừ tường minh khỏi danh sách đó (`network/network.go:208`,
+`errTrackingPrimaryNetwork`). Bỏ track thật sự trả lại chỗ, và 16 là 16 L1 chứ
+không phải 15+Primary.
+
+**Cái nó KHÔNG làm — và đây là chỗ dễ hiểu nhầm nhất:** thu hồi không rút node
+khỏi tập validator của subnet trên P-Chain. Nên `platform.getCurrentValidators
+({subnetID})` **vẫn trả đủ 5 validator cho một chain đã chết hẳn** — đúng phép đo
+mà trang `/chains/` dựa vào để phân biệt sống/chết. Vì vậy chain đã thu hồi phải
+được vẽ từ mảng `retired` với nhãn riêng, tuyệt đối **không** đem đo bằng heuristic
+của chain sống: nó sẽ nói dối rất thuyết phục.
+
+### D-014 — Chain đã thu hồi giữ chỗ `name` + `chainId` VĨNH VIỄN
+Cấp lại chainId của một chain đã thu hồi cho chain mới là hố sụt y hệt lỗi đã chặn
+ở D-của-`9100+đếm`: MetaMask coi hai chain cùng chainId là **một mạng**, và chữ ký
+ký cho chain cũ **phát lại được** trên chain mới.
+Khác biệt duy nhất — và nó làm mọi thứ tệ hơn: thu hồi **không xoá được mạng khỏi
+ví người dùng**. Ai từng thêm chain cũ vào MetaMask thì mạng đó vẫn nằm đó, và
+ngày chainId được cấp lại, ví của họ lặng lẽ trỏ vào một chain của người khác.
+**Quyết định:** `createChain` kiểm trùng trên `chains ∪ retired`. Slot track được
+trả lại; **con số nhận dạng thì không**.
+
+### D-015 — Bộ nghiệm thu tự dọn chain nó đẻ ra (đảo ngược D-007)
+D-007 chấp nhận `--de-chain` để lại chain vĩnh viễn vì "chưa có endpoint thu hồi".
+M4.4 gỡ đúng điều kiện đó, và lý do phải gỡ mạnh hơn chuyện rác: với trần cứng 15,
+một bài nghiệm thu ăn vĩnh viễn một chỗ mỗi lần chạy là **bộ kiểm thử tự đặt hạn
+dùng cho chính nó** — khoảng chục lần cho cả đời dự án. Test không chạy lại được
+thì không phải test, chỉ là một lần nghiệm thu thủ công có script.
+`--de-chain` nay đẻ → kiểm → thu hồi, và **khẳng định số L1 trở về đúng mức ban
+đầu**. `--giu` để tắt khi muốn giữ chain soi bằng tay.
+
+### D-016 — Thu hồi đòi gõ lại đúng tên chain, không phải OK/Cancel
+`POST /api/revoke` bắt buộc có `xacNhan` khớp chính xác `name`; nút trên console
+cũng bắt gõ lại tên chứ không phải hộp thoại xác nhận. Nút thu hồi nằm cùng một
+bảng với chain của người khác, cách nhau một dòng, và thao tác này gỡ chain khỏi
+danh bạ công khai + ngừng phục vụ RPC **ngay**. Một hộp thoại chỉ cần bấm OK bảo
+vệ đúng bằng không.
