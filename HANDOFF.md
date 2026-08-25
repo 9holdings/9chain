@@ -159,7 +159,8 @@ smoke test **20/20 đạt** · đẻ chain đầy đủ có gửi giao dịch th
 **Testnet công khai ĐÃ LIVE**: https://testnet-a1.9chain.org · RPC https://rpc-testnet-a1.9chain.org
 5 validator chạy trên server nhà cung cấp `139.99.145.13`, Blockscout index đầy đủ, faucet + nút "Thêm vào MetaMask" hoạt động. **P0 #1/#2/#3 đều PASS.**
 
-**Nút "đẻ chain" CHẠY THẬT trên mạng công khai**, hiện **5 L1** trong danh bạ (9100–9104).
+**Nút "đẻ chain" CHẠY THẬT trên mạng công khai**, hiện **6 L1** trong danh bạ.
+**6 kiểu chain (preset)** chọn được, cả 6 đã chứng minh bằng chain thật — xem M5.3.
 Ví chain-factory: **9 LOVE9** trên P-Chain ≈ **63,600 lượt đẻ chain** (0.000141468 LOVE9/lượt).
 
 ⏱️ **Đẻ 1 chain nay mất ~170 giây, không phải 12s như trước — đây là CHỦ Ý, không phải lỗi.**
@@ -205,10 +206,16 @@ ssh -i "$A1_SSH_KEY" -L 8091:127.0.0.1:8091 -L 8090:127.0.0.1:8090 "$A1_SSH_HOST
 🔴 **Backlog nằm ở `PROGRESS.md`, không phải ở đây.** Đừng chép việc vào file này —
 hai danh sách sẽ trôi lệch nhau. `BLOCKERS.md` liệt kê thứ đang chờ David.
 
-Tóm tắt để khỏi mở file: **M0–M2 xong** (git · smoke test E2E · gián đoạn 6.0s→0.5s).
-**Chưa làm, không bị chặn:** M3 IPv6 cho node · M4.1 SIWE auth · M5 template/precompile ·
-M6 Warp/ICM · M7.2 ufw. **Chờ David:** trần 16 L1 ⇒ quy mô bán multi-L1 (H-2) ·
-git remote (H-6) · tokenomics (H-1) · mở console công khai (H-3) · AAAA record (H-4).
+Tóm tắt để khỏi mở file (cập nhật hết phiên thứ tư):
+**Xong:** M0 git · M1 bộ đo + smoke E2E · M2 gián đoạn 6.0s→0.5s · M4.1–M4.4 (SIWE,
+hạn mức theo ví, thu hồi chain) · **M5 kiểu chain, 40/40** · M8 fork tự đứng được ·
+M9.1–M9.3 + M9.6 đo tải.
+**Làm một phần:** M3 (netgen xong, chờ H-7) · M6 (M6.1 Warp xong, M6.2 chưa) ·
+M7.2 (bài kiểm cổng xong, ufw chưa) · M9.4 (preset xong, phần đo chưa dứt).
+**Chờ David:** `keys.txt` bản thứ hai offline · validator thứ sáu khác nhà cung cấp ·
+**H-7 IPv6 hay IPv4** · trần 16 L1 ⇒ quy mô bán multi-L1 (H-2) · git remote (H-6) ·
+tokenomics (H-1) · mở console công khai (H-3) · bản ghi DNS bootstrap (H-4) ·
+tắt 2 service Blockscout (B-2) · có đưa số liệu đo tải lên trang công khai không (M9.5).
 
 ### Đã kiểm chứng trên mạng công khai (đừng làm lại)
 - **Đẻ chain chạy thật** — 6 lỗi chồng nhau đã gỡ (chi tiết: `docs/PROGRESS.md`).
