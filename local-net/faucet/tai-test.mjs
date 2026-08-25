@@ -6,6 +6,8 @@
 //     node local-net/faucet/tai-test.mjs --phut 5            # hiệu chỉnh, chạy ngắn
 //     node local-net/faucet/tai-test.mjs --gio 3             # chạy dài
 //     node local-net/faucet/tai-test.mjs --gio 3 --vi 40     # nhiều ví gửi hơn
+//     node local-net/faucet/tai-test.mjs --phut 10 --vi 60 --preset thong-luong-cao
+//                                                            # đo trần của gasLimit 60M (M9.4)
 //
 // ═══ VÌ SAO ĐẺ MỘT L1 RIÊNG, KHÔNG BƠM THẲNG VÀO C-CHAIN ═══
 // C-Chain là thứ faucet, MetaMask và mọi ví đang cắm vào. Bơm tải lên đó là lấy
@@ -43,6 +45,13 @@ const CHAIN_CO_SAN = opt("chain-rpc", null);
 const KHOA_CO_SAN = opt("khoa", null);
 // Giới hạn tốc độ. 0 = bơm hết sức (dùng để tìm trần).
 const TPS_MUC_TIEU = Number(opt("tps", 0));
+// Kiểu chain đem ra đo. Mặc định `chuan` để mọi số cũ vẫn so được với nhau.
+//
+// Có cờ này vì M9.3 chứng minh **trần TPS là tham số genesis, không phải phần cứng**
+// — nên "đo năng lực chain" mà chỉ đo được đúng một bộ tham số genesis thì nó trả
+// lời sai câu hỏi. `--preset thong-luong-cao` là cách đo xem trần mới nằm ở đâu và
+// tới mức nào thì MÁY mới thành nút thắt (M9.4).
+const PRESET = opt("preset", "chuan");
 
 // ═══ CHẾ ĐỘ C-CHAIN — ĐỌC KỸ TRƯỚC KHI DÙNG ═══
 // Bơm thẳng vào C-Chain công khai: mạng mà faucet, MetaMask và mọi ví đang cắm vào.
@@ -131,8 +140,8 @@ if (C_CHAIN) {
   chuKhoa = chu.privateKey;
   const ten = "Tai" + Date.now().toString(36).slice(-5).toUpperCase();
   log(`đẻ chain đo tải "${ten}" (mất ~170s vì restart lần lượt 5 node)…`);
-  chain = await api("/api/create", { name: ten, admin: chu.address, preset: "chuan" });
-  log(`✓ chain ${ten} · chainId ${chain.chainId}`);
+  chain = await api("/api/create", { name: ten, admin: chu.address, preset: PRESET });
+  log(`✓ chain ${ten} · chainId ${chain.chainId} · kiểu "${chain.preset}"`);
   log(`  RPC  ${chain.rpc}`);
   log(`  khoá chủ chain (ví dùng một lần, chain này sẽ bị thu hồi): ${chu.privateKey}`);
 }
