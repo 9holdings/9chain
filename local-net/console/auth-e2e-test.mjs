@@ -46,6 +46,15 @@ const con = spawn(process.execPath, ["local-net/console/server.mjs"], {
     A1_CONSOLE_HOST: "127.0.0.1",
     A1_CONSOLE_TOKEN: TOKEN_VAN_HANH,
     A1_CLI_KEY: "PrivateKey-khoa-gia-chi-de-console-chiu-khoi-dong",
+    // ═══ CHỐT CHẶN AN TOÀN — ĐỪNG BỎ ═══
+    // Bài này chạy console THẬT, đọc ĐÚNG `console-chains.json` thật, và trên
+    // server thì đó là danh bạ của testnet công khai. Mọi lượt thu hồi ở đây đều
+    // ĐƯỢC THIẾT KẾ để bị từ chối — nhưng "được thiết kế" không phải là bảo đảm.
+    // Một lượt lọt qua sẽ restart lần lượt cả 5 validator của mạng đang chạy.
+    // Trỏ compose vào đường dẫn không tồn tại: nếu logic quyền có lỗ, lệnh docker
+    // sẽ chết vì thiếu file thay vì đụng vào mạng thật. Rẻ, và biến một rủi ro
+    // "chắc là không xảy ra" thành "không thể xảy ra".
+    A1_COMPOSE_FILE: "/khong-ton-tai/an-toan-cho-bai-kiem.yml",
     A1_CONSOLE_DOMAIN: "testnet-a1.9chain.org",
     // Nới hạn mức cho bài kiểm: nó cố tình gọi nhiều lượt thu hồi BỊ TỪ CHỐI để
     // kiểm cổng quyền. Với mặc định 3/giờ thì chính bài kiểm tự khoá mình lại —
@@ -132,13 +141,26 @@ console.log("\n── 4. Địa chỉ hỏng checksum bị chặn ở cửa ─�
   kiem("thiếu address → 400", r.status === 400, `HTTP ${r.status}`);
 }
 
+// Tên chain lấy TỪ DANH BẠ ĐANG CHẠY, không cắm cứng.
+//
+// Bản đầu cắm cứng "DeltaChain" — chain chỉ có trong config máy dev. Chạy trên
+// server thì 3 bài trượt với lý do "không có L1 nào tên DeltaChain", tức là bài
+// kiểm báo hỏng ở chỗ code hoàn toàn đúng. Một bài nghiệm thu chỉ chạy được trên
+// đúng một máy thì không dùng được trong deploy — mà deploy mới là chỗ cần nó nhất.
+const dsChain = (await goi("/api/chains", { token: TOKEN_VAN_HANH })).j?.chains || [];
+const chainThat = dsChain[0]?.name || null;
+
 console.log("\n── 5. Ví lạ KHÔNG thu hồi được chain của người khác ──");
-{
-  // `DeltaChain` trong state cục bộ không có khoá `admin` (chain đẻ trước khi có ô
-  // đó) ⇒ nó là "mặc định của hệ thống", ví lạ tuyệt đối không được đụng.
-  const a = await goi("/api/revoke", { method: "POST", token: phien, body: { name: "DeltaChain", xacNhan: "DeltaChain" } });
-  kiem("ví lạ thu hồi chain không phải của mình → 403", a.status === 403, `HTTP ${a.status}`);
+if (!chainThat) {
+  console.log("  ⏭️  danh bạ rỗng — bỏ qua (KHÔNG tính là đạt)");
+} else {
+  const chuSoHuu = typeof dsChain[0].admin === "string" ? dsChain[0].admin.trim() : "";
+  const a = await goi("/api/revoke", { method: "POST", token: phien, body: { name: chainThat, xacNhan: chainThat } });
+  kiem(`ví lạ thu hồi "${chainThat}" (không phải của nó) → 403`, a.status === 403, `HTTP ${a.status}`);
   kiem("lỗi nói rõ vì sao", /mặc định của hệ thống|thuộc về/.test(a.j?.error || ""), a.j?.error);
+  kiem("lỗi nêu đúng loại chủ sở hữu",
+    chuSoHuu ? (a.j?.error || "").includes(chuSoHuu) : /mặc định của hệ thống/.test(a.j?.error || ""),
+    chuSoHuu || "(không có admin)");
 
   // Chain không tồn tại: phải rơi vào lỗi "không có chain" của thuHoiChain (400),
   // KHÔNG phải 403 — nhầm mã ở đây làm người dùng tưởng mình thiếu quyền.
@@ -147,10 +169,12 @@ console.log("\n── 5. Ví lạ KHÔNG thu hồi được chain của người
 }
 
 console.log("\n── 6. Thu hồi vẫn đòi xác nhận đúng tên ──");
-{
-  const a = await goi("/api/revoke", { method: "POST", token: TOKEN_VAN_HANH, body: { name: "DeltaChain" } });
+if (!chainThat) {
+  console.log("  ⏭️  danh bạ rỗng — bỏ qua (KHÔNG tính là đạt)");
+} else {
+  const a = await goi("/api/revoke", { method: "POST", token: TOKEN_VAN_HANH, body: { name: chainThat } });
   kiem("thiếu xacNhan → từ chối", a.status === 400 && /xacNhan/.test(a.j?.error || ""), a.j?.error);
-  const b = await goi("/api/revoke", { method: "POST", token: TOKEN_VAN_HANH, body: { name: "DeltaChain", xacNhan: "sai" } });
+  const b = await goi("/api/revoke", { method: "POST", token: TOKEN_VAN_HANH, body: { name: chainThat, xacNhan: "sai" } });
   kiem("xacNhan sai → từ chối", b.status === 400, `HTTP ${b.status}`);
 }
 
@@ -173,6 +197,15 @@ console.log("\n── 8. Request CHƯA XÁC THỰC không được tiêu quota c
       ...process.env, PORT: String(PORT2), A1_CONSOLE_HOST: "127.0.0.1",
       A1_CONSOLE_TOKEN: TOKEN_VAN_HANH,
       A1_CLI_KEY: "PrivateKey-khoa-gia-chi-de-console-chiu-khoi-dong",
+    // ═══ CHỐT CHẶN AN TOÀN — ĐỪNG BỎ ═══
+    // Bài này chạy console THẬT, đọc ĐÚNG `console-chains.json` thật, và trên
+    // server thì đó là danh bạ của testnet công khai. Mọi lượt thu hồi ở đây đều
+    // ĐƯỢC THIẾT KẾ để bị từ chối — nhưng "được thiết kế" không phải là bảo đảm.
+    // Một lượt lọt qua sẽ restart lần lượt cả 5 validator của mạng đang chạy.
+    // Trỏ compose vào đường dẫn không tồn tại: nếu logic quyền có lỗ, lệnh docker
+    // sẽ chết vì thiếu file thay vì đụng vào mạng thật. Rẻ, và biến một rủi ro
+    // "chắc là không xảy ra" thành "không thể xảy ra".
+    A1_COMPOSE_FILE: "/khong-ton-tai/an-toan-cho-bai-kiem.yml",
       A1_LIMIT_REVOKE: "1",
     },
     stdio: ["ignore", "ignore", "ignore"],
