@@ -1,0 +1,95 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* =====================================================================
+   Nền chung. Mọi MÀU nằm ở `tokens.css` (chép từ 9Scan-A1) — file này chỉ
+   dựng hành vi nền, không khai một mã hex nào.
+   ===================================================================== */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-surface-alt);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-navy);
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* 🔴 VÒNG FOCUS ĐI QUA MỘT BIẾN RIÊNG, ĐỔI THEO NỀN CHỨ KHÔNG THEO THƯƠNG HIỆU.
+     Vàng gốc `#ffcb24` trên nền trắng chỉ đạt **1,52:1**, trong khi WCAG 2.2
+     (1.4.11 Non-text Contrast) đòi **3:1** cho chỉ báo giao diện — tức người đi
+     bằng bàn phím trên bản sáng gần như không thấy mình đang ở đâu, mà đó là công
+     dụng duy nhất của vòng focus. Bản sáng dùng `gold-ink-strong`, bản tối dùng
+     vàng gốc (tokens.css lật biến).
+
+     Trước M10, bốn trang viết tay của A1 có **0 vòng focus** — đi bằng bàn phím là
+     đi trong bóng tối. Đây là chỗ đang bằng 0, nên nó phải là luật nền, không phải
+     việc nhớ thêm ở từng nút. */
+  :focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Vùng NỀN TỐI nằm bên trong bản sáng (header navy, dải hero): ở đó
+     `gold-ink-strong` còn tệ hơn vàng. Lật biến cho cả cây con — đi bằng biến CSS
+     nên không phải sửa từng nút, và không dính bẫy Tailwind v4 nội suy `@theme`
+     (đây là CSS thường, `var()` thật, giải lúc chạy). */
+  .bg-navy,
+  .bg-navy-deep,
+  .bg-navy-panel {
+    --color-focus-ring: var(--color-gold);
+  }
+}
+
+@layer components {
+  /* Khối nội dung chuẩn — mọi trang dùng chung một bề ngang và một lề. */
+  .khung {
+    width: 100%;
+    max-width: var(--content-max);
+    margin-inline: auto;
+    padding-inline: var(--content-pad);
+  }
+}
+
+/* Khung hình đổi theme: tắt sạch transition/animation, nếu không mục nav đang chọn
+   kẹt ở màu bản sáng thành navy-trên-navy. Ngoài mọi @layer để thắng utility. */
+html[data-theme-switching] *,
+html[data-theme-switching] *::before,
+html[data-theme-switching] *::after {
+  transition: none !important;
+}
+
+/* =====================================================================
+   Reduced motion — tôn trọng tuyệt đối
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

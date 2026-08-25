@@ -1,0 +1,29 @@
+{
+  "name": "9chain-a1-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3901",
+    "build": "next build",
+    "postbuild": "node scripts/kiem-a11y.mjs && node scripts/kiem-ngan-sach.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "next": "15.5.23",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.1.13",
+    "@types/node": "24.3.0",
+    "@types/react": "19.1.9",
+    "@types/react-dom": "19.1.7",
+    "axe-core": "4.10.2",
+    "jsdom": "25.0.1",
+    "tailwindcss": "4.1.13",
+    "typescript": "5.9.2",
+    "vitest": "2"
+  },
+  "packageManager": "pnpm@9.15.9+sha512.68046141893c66fad01c079231128e9afb89ef87e2691d69e4d40eee228988295fd4682181bae55b58418c3a253bde65a505ec7c5f9403ece5cc3cd37dcf2531"
+}

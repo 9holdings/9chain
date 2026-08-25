@@ -1,7 +1,8 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
 Cập nhật: 2026-08-25 (phiên thứ năm — **M6.2 XONG: tài sản đi được giữa 2 L1** ·
-dọn 4 chain rác lấy lại slot · API Warp bật theo từng chain)
+dọn 4 chain rác · **M10.1 + M10.2 XONG: có `web/` và faucet thật, không còn HTML
+trong chuỗi JS**)
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
@@ -35,10 +36,16 @@ người muốn tham gia. Đo được: máy chủ có **/56 định tuyến**, 
 theo từng network, KHÔNG phải restart daemon). Khuyến nghị: IPv4 đa cổng cho node
 beacon. **Kéo theo H-4 có thể là bản ghi `A` chứ không phải `AAAA`.** Chi tiết: BLOCKERS H-7.
 
-**5. Mốc kỹ thuật lớn nhất còn lại nay là M10 (giao diện), không phải Warp.**
-M6.2 đã xong (xem dưới) ⇒ **toàn bộ M6 đóng**. Việc không bị chặn bởi người mà làm
-được ngay: **M10.1** (dựng `web/`) và **M10.2** (faucet) — chỉ M10.3 mới cần David
-chọn biến thể. Kế tiếp: `docs/RUN-A-NODE.md` (M3.4) và ufw lớp hai (đuôi M7.2).
+**5. M10.1 + M10.2 đã xong ⇒ việc tiếp là M10.4 (màn đẻ chain), không chờ ai.**
+Khung `web/`, hệ token, bộ component, i18n, dark mode và trang faucet đã chạy thật.
+M10.3 (trang chủ, 2–3 biến thể) cần David chọn, nhưng **M10.4** — màn đẻ chain, màn
+khó nhất — thì không: nó cần **tiến trình theo BƯỚC** cho một lượt đẻ ~170 giây
+(spinner 170s đọc như "hỏng") và **bước soát lại trước khi gửi** vì genesis bất biến.
+Kế tiếp nữa: M10.5 (chain của tôi + thu hồi), `docs/RUN-A-NODE.md` (M3.4),
+ufw lớp hai (đuôi M7.2).
+
+🔴 **Gốc `/` VẪN LÀ BLOCKSCOUT.** Trang chủ mới xem trước ở **`/moi/`**. Đổi gốc là
+việc của M10.3 vì nó gắn với biến thể David chọn — đừng đổi trước.
 
 ### ⏰ Hẹn giờ đã biết
 **Cả 5 validator hết hạn `2027-08-24`** (đo 2026-08-25, còn 364 ngày). Đúng ngày đó
@@ -59,6 +66,40 @@ tức ~**70 MB/giờ** ở 210 TPS — nhỏ hơn 30 lần. Dung lượng đĩa 
 
 ⚠️ **Đợt tải này KHÔNG tự thu hồi chain** (nó chạy trên chain có sẵn nên cố ý giữ lại):
 log ghi `giữ lại chain "(chain có sẵn)"`. L1 đó vẫn chiếm một slot.
+
+### Phiên 2026-08-25 (thứ NĂM, đợt 2 — giao diện) làm xong
+
+🔴 **M10.1 + M10.2 XONG.** Có `web/` (Next 15 xuất tĩnh · Tailwind v4 · TS · bộ
+component TỰ VIẾT, không shadcn/MUI/Radix). `pnpm build` sạch · **axe-core 3/3
+trang** · `pnpm test` **12/12** · typecheck sạch · JS **149,7 KB gzip/trần 160**.
+
+🔴 **Không thiết kế mới — token CHÉP từ 9Scan-A1** bằng
+`web/scripts/dong-bo-token.mjs`, kèm test bắt trôi lệch (vân tay `535cbf6329efb6d0`).
+
+🔴 **Faucet đã ra khỏi chuỗi JS.** `faucet/server.mjs` nay chỉ còn API. Nghiệm thu
+**bằng trình duyệt thật, khổ 375×812, qua Cloudflare**: xin được **10 LOVE9 thật**,
+đối chứng `eth_getBalance` = 10,0. Hạn mức trên màn đi 5/5 → 4/5.
+Mới: `GET /faucet/api/thongtin` hiện hạn mức **TRƯỚC khi bấm** (trước đó người dùng
+chỉ biết khi ăn lỗi 429), dùng `rateLimit().peek()` để **không tiêu suất khi đọc**.
+
+🔴 **SỰ CỐ TÔI GÂY RA (đã sửa trong ~2 phút): tên miền 9scan trỏ nhầm sang trang
+A1.** Một lệnh thay-hàng-loạt `8094→8095` (đổi cổng cho container mới của A1) kéo
+theo cả dòng `reverse_proxy` của khối `testnet-a1.9scan.org` — cổng 8094 là của
+`9scan-a1-web`, **dự án khác trên cùng máy chủ**. Tệ hơn: `caddy-deploy.sh` vẫn in
+**"✓ testnet-a1.9scan.org → 200"**, vì nó chỉ đo **MÃ HTTP**, không đo **AI đang
+phục vụ**. Cùng họ với B-6 và cùng bài học: nghiệm thu phải chạm vào NỘI DUNG.
+
+🔴 **Hai lần tôi tự bắt mình sai trong đợt này:**
+1. **`rm -rf` chính thư mục đang bind-mount** ⇒ Docker giữ inode cũ ⇒ container
+   thấy **thư mục rỗng vĩnh viễn** trong khi host đủ file. Bẫy inode đã ghi trong
+   file này, nhưng ghi cho **file đơn lẻ**; ở dạng **thư mục** thì không ai ngờ.
+   `web-deploy.sh` nay xoá NỘI DUNG (giữ thư mục) và **đếm số tệp hai bên** để bắt.
+2. **Đọc DOM ngay sau `.click()`** rồi tưởng ngăn kéo mobile hỏng — React cập nhật
+   state bất đồng bộ, nên phép đo đọc trạng thái TRƯỚC render. Gọi thẳng handler
+   của React mới tách bạch được "lỗi ở sản phẩm" với "lỗi ở phép đo". Sản phẩm đúng.
+
+**Cổng trên máy chủ này là tài nguyên DÙNG CHUNG với 9Scan-A1** và không có bảng
+nào ghi ai giữ cổng nào. Trước khi thêm dịch vụ: `sudo ss -tlnp | grep 127.0.0.1`.
 
 ### Phiên 2026-08-25 (thứ NĂM) làm xong — tóm tắt để khỏi mở file
 
@@ -316,6 +357,33 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ---
 
 ## Gotchas
+
+### Thêm từ phiên 2026-08-25 (thứ NĂM, đợt 2 — giao diện)
+- 🔴 **Bẫy inode của Docker CŨNG áp cho THƯ MỤC.** `rm -rf <thư-mục-đang-mount>` rồi
+  tạo lại ở cùng đường dẫn sinh inode MỚI; container vẫn nhìn inode cũ (đã xoá) và
+  thấy **rỗng vĩnh viễn**, trong khi `ls` trên host ra đủ file. Xoá **nội dung**
+  (`find dir -mindepth 1 -delete`), đừng xoá thư mục. Phép bắt rẻ nhất: đếm số tệp
+  ở host và trong container rồi so.
+- 🔴 **"HTTP 200" KHÔNG chứng minh đúng site đang phục vụ.** Đổi nhầm một dòng
+  `reverse_proxy` làm tên miền 9scan trỏ sang trang A1, mà `caddy-deploy.sh` vẫn báo
+  xanh vì nó chỉ đo mã HTTP. Phép kiểm tên miền phải chạm **nội dung** (ví dụ
+  `<title>`), không chỉ mã trạng thái.
+- 🔴 **Next xuất tĩnh tham chiếu chunk bằng đường TUYỆT ĐỐI `/_next/...`**, không
+  theo tiền tố trang. Đặt trang ở `/faucet/` mà quên route `/_next/*` thì HTML vẫn
+  **200** còn CSS/JS **404** — trang hiện ra không style, không tương tác, và mọi
+  phép kiểm bằng `curl` vẫn xanh. `web-deploy.sh` nay bốc một đường JS **ra khỏi
+  chính HTML vừa tải** rồi gọi thử.
+- 🔴 **Cổng loopback trên máy chủ này DÙNG CHUNG với 9Scan-A1.** 8094 là của họ
+  (`9scan-a1-web`). Không có bảng cổng nào — xem `sudo ss -tlnp | grep 127.0.0.1`
+  trước khi chọn. A1 đang giữ: 8082 · 8088 · 8090 · 8091 · 8092 · 8093 · **8095** ·
+  8100 · 8101 · 9650 · 9660.
+- **Đọc DOM ngay sau `.click()` là đọc trạng thái TRƯỚC render** — React cập nhật
+  state bất đồng bộ. Chờ một nhịp, hoặc gọi thẳng handler qua `__reactProps` để tách
+  bạch lỗi sản phẩm với lỗi phép đo.
+- **axe-core trong jsdom phải khai `runScripts: 'outside-only'`**, nếu không
+  `window.eval(axe.source)` im lặng không làm gì và lỗi hiện ra ở tận dòng
+  `.run()` — đọc như axe hỏng chứ không như thiếu cờ. Và **tắt `color-contrast`**:
+  jsdom không có layout engine nên nó cho cả dương tính giả lẫn âm tính giả.
 
 ### Thêm từ phiên 2026-08-25 (thứ NĂM — Warp/ICM)
 - 🔴 **API Warp TẮT MẶC ĐỊNH, và nó hỏng ở ĐẦU KIA.** `sendWarpMessage` vẫn là giao
@@ -600,6 +668,11 @@ Kiểm có cổng nào hở ra Internet không — **đo TỪ NGOÀI**, không t
 (Docker publish đi vòng qua ufw; đây là cách B-5 lọt). Có đối chứng ngược:
 ```bash
 bash local-net/deploy/kiem-cong.sh
+```
+
+Dựng + deploy giao diện (M10) — `web-deploy.sh` **tự nghiệm chứng cả chunk JS**:
+```bash
+cd web && pnpm build && cd .. && bash local-net/deploy/web-deploy.sh
 ```
 
 Nghiệm thu Warp/ICM (M6.2) — **đẻ 2 chain thật, mỗi bài ~13 phút, tự thu hồi cả hai**:

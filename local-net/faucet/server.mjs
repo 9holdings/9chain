@@ -51,83 +51,22 @@ const provider = new ethers.JsonRpcProvider(RPC);
 const wallet = new ethers.NonceManager(new ethers.Wallet(PK, provider));
 const lastDrip = new Map(); // address -> timestamp
 
-const PAGE = `<!doctype html><html lang="vi"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>9Chain Testnet A1 Faucet</title>
-<style>
-:root{color-scheme:light dark}
-body{font-family:system-ui,Segoe UI,Roboto,sans-serif;max-width:560px;margin:8vh auto;padding:0 20px;background:#0b0f17;color:#e6edf3}
-.card{background:#131a26;border:1px solid #223049;border-radius:16px;padding:28px}
-h1{margin:0 0 4px;font-size:1.6rem}.sub{color:#8aa0b6;margin:0 0 22px}
-.brand{display:inline-block;width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#e84142,#ff8a3d);vertical-align:middle;margin-right:10px}
-input{width:100%;padding:13px;border-radius:10px;border:1px solid #2b3a54;background:#0e1420;color:#e6edf3;font-size:15px;box-sizing:border-box}
-button{width:100%;margin-top:14px;padding:13px;border:0;border-radius:10px;background:#e84142;color:#fff;font-weight:600;font-size:15px;cursor:pointer}
-button:disabled{opacity:.5}
-#out{margin-top:16px;font-size:14px;word-break:break-all}
-a{color:#ff8a3d}
-</style></head><body>
-<div class="card">
-<h1><span class="brand"></span>9Chain Testnet A1 Faucet</h1>
-<p class="sub">Nhận <b>${AMOUNT} LOVE9</b> testnet để thử nghiệm. Mỗi địa chỉ chờ ${Math.round(COOLDOWN/1000)}s giữa 2 lần.</p>
-<input id="addr" placeholder="0x... (địa chỉ EVM của bạn)" autocomplete="off">
-<button id="btn" onclick="drip()">Nhận ${AMOUNT} LOVE9</button>
-<button id="mm" onclick="addChain()" style="background:#2b3a54;margin-top:10px">🦊 Thêm 9Chain-A1 vào MetaMask</button>
-<div id="out"></div>
-<div id="mmout" style="margin-top:10px;font-size:13px;color:#8aa0b6"></div>
-</div>
-<script>
-// --- Thêm mạng vào ví bằng 1 cú bấm ---
-// Trước đây trang chỉ IN RA thông số để người dùng tự gõ tay vào MetaMask: chainId,
-// RPC, symbol, decimals. Với testnet hướng đại chúng thì đó là rào cản lớn nhất —
-// gõ sai một ký tự là mạng không chạy mà không hiểu vì sao.
-function rpcUrl(){
-  const h = location.hostname;
-  if (!h || h === 'localhost' || h === '127.0.0.1') return 'http://localhost:9650/ext/bc/C/rpc';
-  return location.protocol + '//rpc-' + h + '/ext/bc/C/rpc';
-}
-function explorerUrl(){
-  const h = location.hostname;
-  if (!h || h === 'localhost' || h === '127.0.0.1') return 'http://localhost';
-  return location.protocol + '//' + h;
-}
-async function addChain(){
-  const out = document.getElementById('mmout');
-  if (!window.ethereum) {
-    out.innerHTML = '❌ Không thấy ví EVM nào trong trình duyệt. Cài <a href="https://metamask.io" target="_blank" rel="noopener">MetaMask</a> rồi thử lại.';
-    return;
-  }
-  try {
-    await window.ethereum.request({
-      method: 'wallet_addEthereumChain',
-      params: [{
-        // 9000000009 dạng hex. MetaMask CHỈ nhận hex, truyền số thập phân sẽ lỗi.
-        chainId: '0x218711a09',
-        chainName: '9Chain Testnet A1',
-        nativeCurrency: { name: 'LOVE9', symbol: 'LOVE9', decimals: 18 },
-        rpcUrls: [rpcUrl()],
-        blockExplorerUrls: [explorerUrl()],
-      }],
-    });
-    out.textContent = '✅ Đã thêm. Chọn mạng "9Chain Testnet A1" trong MetaMask.';
-  } catch (e) {
-    out.textContent = '❌ ' + (e && e.message ? e.message : e);
-  }
-}
-async function drip(){
-  const a=document.getElementById('addr').value.trim();
-  const btn=document.getElementById('btn'),out=document.getElementById('out');
-  btn.disabled=true;out.textContent='Đang gửi...';
-  try{
-    // Đường dẫn TƯƠNG ĐỐI: faucet được gắn ở gốc khi chạy local, nhưng dưới
-    // /faucet/ khi ra public (chỉ có 1 tên miền cho nhiều dịch vụ). Dùng '/api/drip'
-    // tuyệt đối sẽ trượt sang dịch vụ khác khi gắn dưới đường dẫn con.
-    const r=await fetch('api/drip',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({address:a})});
-    const j=await r.json();
-    out.innerHTML = r.ok ? '✅ Đã gửi. Tx: '+j.txHash : '❌ '+(j.error||'lỗi');
-  }catch(e){out.textContent='❌ '+e.message}
-  btn.disabled=false;
-}
-</script></body></html>`;
+/**
+ * ═══ TRANG FAUCET NAY LA MOT TRANG THAT, KHONG PHAI CHUOI JS ═══
+ *
+ * Trước M10.2, toàn bộ HTML của faucet là một template literal ngay tại đây: không
+ * lint được, không format được, không tách component được, không có điểm ngắt
+ * responsive nào, không dark mode, không một vòng focus nào. Nay nó là
+ * `web/app/faucet/page.tsx` — xuất tĩnh và do Caddy phục vụ.
+ *
+ * Tiến trình này giữ đúng phần việc của nó: **API**. Đường `/` chỉ còn là một tấm
+ * biển chỉ chỗ cho ai gọi thẳng qua tunnel — trả HTML ở hai nơi là hai bản sẽ trôi
+ * lệch nhau, và bản trôi lệch sẽ là bản người dùng thật nhìn thấy.
+ */
+const CHI_CHO = {
+  luuY: "Giao dien faucet nay o /faucet/ (trang tinh, Caddy phuc vu). Tien trinh nay chi con API.",
+  api: ["GET /health", "GET /whoami", "GET /api/thongtin", "POST /api/drip {address}"],
+};
 
 function send(res, code, obj, retryAfter) {
   const h = { "content-type": "application/json" };
@@ -137,15 +76,36 @@ function send(res, code, obj, retryAfter) {
 }
 
 const server = http.createServer(async (req, res) => {
-  if (req.method === "GET" && req.url === "/") {
-    res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-    return res.end(PAGE);
-  }
+  if (req.method === "GET" && req.url === "/") return send(res, 200, CHI_CHO);
   if (req.method === "GET" && req.url === "/health") return send(res, 200, { ok: true });
   // Chẩn đoán: xác nhận faucet nhìn thấy ĐÚNG IP người dùng. Nếu ở đây luôn ra IP
   // của Caddy thì hạn mức theo IP vô dụng — mọi người bị gom chung một khoá.
   if (req.method === "GET" && req.url === "/whoami")
     return send(res, 200, { ip: clientIp(req, TRUST_PROXY), trustProxy: TRUST_PROXY });
+
+  /**
+   * Hạn mức + thông số, ĐỌC KHÔNG TIÊU SUẤT.
+   *
+   * Vì sao có: trước M10.2 người dùng chỉ biết mình hết suất **sau khi** đã điền
+   * địa chỉ và bấm gửi — lỗi 429 là thứ đầu tiên nói cho họ biết luật chơi. Hiện
+   * số trước khi bấm rẻ hơn nhiều so với một lượt thất bại.
+   *
+   * 🔴 Dùng `peek()` chứ KHÔNG gọi `limitIp(ip)`: gọi hàm kiểm là **tiêu một
+   * suất**, nên mỗi lần mở trang lại mất một lượt và người dùng hết suất mà chưa
+   * xin được gì. Xem `rateLimit` trong lib/guard.mjs.
+   */
+  if (req.method === "GET" && req.url === "/api/thongtin") {
+    const ip = clientIp(req, TRUST_PROXY);
+    const p = limitIp.peek(ip);
+    const g = limitGlobal.peek(":global:");
+    return send(res, 200, {
+      soTien: AMOUNT,
+      kyHieu: "LOVE9",
+      choGiay: Math.round(COOLDOWN / 1000),
+      viIp: { conLai: p.remaining, toiDa: p.max, cuaSoGio: p.windowMs / 3600_000, thuLaiSau: p.retryAfter },
+      toanCuc: { conLai: g.remaining, toiDa: g.max },
+    });
+  }
 
   if (req.method === "POST" && req.url === "/api/drip") {
     const ip = clientIp(req, TRUST_PROXY);

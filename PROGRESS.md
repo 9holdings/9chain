@@ -659,11 +659,68 @@ là tín hiệu mạnh rằng M4.5 nên mở, **nhưng không thay David quyết
 GHI tiêu tiền thật ra Internet là quyết định an toàn). ⇒ **M4.5 nay là việc `[human]`
 có thứ tự cao nhất.** Trong lúc chờ: nút chính trỏ vào trang "đang mở dần" thu ví.
 
-- [ ] M10.1 — Dựng `web/` (Next 15 App Router · Tailwind v4 · TS, **xuất tĩnh**) +
-      token + khung + bộ `components/ui/` tự viết + i18n vi-first + dark
-      → qua khi: build tĩnh chạy · **axe-core sạch** · token khớp hash bản 9Scan
-- [ ] M10.2 — Faucet — **kéo khỏi template literal trong `faucet/server.mjs:54`**
-      → qua khi: xin token thật trên mạng công khai **từ điện thoại**
+- [x] M10.1 — **Dựng `web/` — XONG 2026-08-25, đủ cả ba điều kiện qua.**
+
+| điều kiện qua | kết quả |
+|---|---|
+| build tĩnh chạy | ✅ `pnpm build` → `out/` (3 trang) |
+| axe-core sạch | ✅ **3/3 trang**, đo trên HTML THẬT đã xuất, không phải bản render giả |
+| token khớp bản 9Scan | ✅ vân tay `535cbf6329efb6d0`, có test bắt trôi lệch |
+
+      Kèm: `pnpm test` **12/12** · `pnpm typecheck` sạch · ngân sách JS
+      **149,7 KB gzip / trần 160** (trang nặng nhất).
+
+      **Không thiết kế mới** — `web/app/tokens.css` sinh bằng
+      `web/scripts/dong-bo-token.mjs` từ `9Scan-A1/app/globals.css`. Băm **khối
+      token** chứ không băm cả file: 9Scan sửa animation/layer liên tục, băm cả file
+      thì phép đo kêu tới lúc không ai nghe nữa.
+
+      Có: khung (`SiteHeader`/`SiteFooter`, ngăn kéo mobile, Esc trả tiêu điểm về
+      nút), `ThemeScript` đặt `data-theme` **trước khung hình đầu** (không chớp
+      trắng), bộ `components/ui` tự viết (không shadcn/MUI/Radix), i18n vi-first
+      (`lib/i18n/vi.ts`) + test chặn chuỗi viết thẳng vào JSX, `lib/eip55.ts` +
+      test đối chiếu 200 vector với bản `.mjs` đang chạy trên server.
+
+      🔴 **Ba phép đo tôi cố ý đặt khác thói quen, vì thói quen ở đây đo sai:**
+      - **axe chạy ở `postbuild` trên `out/**.html`**, không trong vitest. Dự án này
+        đã trả giá nhiều lần cho việc nghiệm thu thứ mình dựng thay vì thứ thật sự
+        được phục vụ. ⚠️ Giới hạn: đây là ảnh chụp TĨNH trước hydrate — không bắt
+        được trạng thái sau tương tác. "axe sạch" ≠ "a11y xong".
+      - **Tắt `color-contrast` trong axe**: jsdom không có layout engine nên nó cho
+        cả dương tính giả lẫn âm tính giả. Tương phản được bảo đảm ở tầng TOKEN.
+      - **Ngân sách JS đo theo TỪNG TRANG, sau khi gzip.** Hai cách đo sai đã thử và
+        bỏ: cộng mọi file trong `chunks/` (ra 800 KB — không ai tải chừng đó) và đo
+        chưa nén (cao gấp ~5 lần thứ đi qua đường truyền).
+- [x] M10.2 — **Faucet — XONG 2026-08-25, đã xin token THẬT trên mạng công khai.**
+
+      Nghiệm thu bằng trình duyệt thật ở **khổ điện thoại 375×812, qua Cloudflare**
+      (không phải `curl`: trang render bằng JS): gõ địa chỉ → bấm gửi →
+      **`Đã gửi 10 LOVE9`**, và đối chứng trên chain: `eth_getBalance` của ví trắng
+      `0x1eC3A1…459C` = **10,0 LOVE9**. Hạn mức trên màn tự đi **5/5 → 4/5**.
+      ⚠️ Là **giả lập thiết bị di động**, không phải máy điện thoại vật lý.
+
+      Đo thêm ở 380px: **không tràn ngang**, kể cả khi ép **chữ lớn 1,25×**; không
+      phần tử bấm được nào lọt ra ngoài khung. Nền tối wire thật
+      (`data-theme=dark` → nền `#0a1122`, chữ `#e9eefa`). Ngăn kéo mobile: mở/đóng
+      đúng, `aria-expanded` đổi theo, **Esc đóng và trả tiêu điểm về nút**.
+
+      **HTML đã ra khỏi chuỗi JS.** `faucet/server.mjs` nay chỉ còn API; đường `/`
+      trả một tấm biển chỉ chỗ. Trả HTML ở hai nơi là hai bản sẽ trôi lệch, và bản
+      trôi lệch sẽ là bản người dùng thật nhìn thấy.
+
+      **Mới: `GET /api/thongtin` — hạn mức hiện TRƯỚC khi bấm.** Trước đó người dùng
+      chỉ biết mình hết suất **sau khi** đã điền địa chỉ và ăn lỗi 429.
+      🔴 Nó dùng `rateLimit(...).peek()` (mới, trong `lib/guard.mjs`) chứ KHÔNG gọi
+      hàm kiểm: gọi hàm kiểm là **tiêu một suất**, tức mỗi lần mở trang lại mất một
+      lượt và người dùng hết suất mà chưa xin được gì.
+
+      **Caddy tách hai đường** (`local-net/deploy/Caddyfile`): `/faucet/api/*`,
+      `/faucet/whoami`, `/faucet/health` → tiến trình node; `/faucet/*` và
+      `/_next/*` → container tĩnh `9chain-a1-web` (nginx, `127.0.0.1:8095`).
+      Deploy + tự nghiệm chứng: `bash local-net/deploy/web-deploy.sh`.
+
+      Trang chủ mới xem trước ở **`/moi/`** — gốc `/` vẫn là Blockscout, đổi gốc là
+      việc của M10.3 (cần David chọn biến thể).
 - [ ] M10.3 — Trang chủ, **2–3 biến thể**, backup bản cũ → qua khi David chọn một.
       Đối tượng ĐÃ CHỐT (người muốn chain riêng) ⇒ ba biến thể khác nhau ở **cách
       dẫn**, không ở nhắm ai: dẫn bằng lời hứa · đặt thẳng màn đẻ chain lên trang chủ ·

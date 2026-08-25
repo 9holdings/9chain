@@ -61,7 +61,7 @@ export function rateLimit({ max, windowMs, name = "rl" }) {
   }, Math.max(windowMs, 60_000));
   sweep.unref?.();
 
-  return function check(key) {
+  function check(key) {
     const now = Date.now();
     const cutoff = now - windowMs;
     const arr = (hits.get(key) || []).filter(t => t > cutoff);
@@ -74,7 +74,33 @@ export function rateLimit({ max, windowMs, name = "rl" }) {
     arr.push(now);
     hits.set(key, arr);
     return { ok: true, retryAfter: 0, remaining: max - arr.length, name };
+  }
+
+  /**
+   * Xem còn bao nhiêu lượt mà KHÔNG tiêu một lượt nào.
+   *
+   * Vì sao cần: giao diện muốn hiện "còn 3/5 lượt" **trước khi** người dùng bấm,
+   * thay vì để họ bỏ công điền rồi ăn lỗi 429. Gọi `check()` để lấy con số đó là
+   * tự tiêu mất đúng cái suất mình đang đếm — mỗi lần mở trang lại mất một lượt,
+   * và người dùng hết suất mà chưa xin được gì.
+   *
+   * `max`/`windowMs` trả kèm để phía hiển thị không phải chép cứng hai con số này
+   * lần thứ hai ở chỗ khác rồi trôi lệch.
+   */
+  check.peek = function peek(key) {
+    const now = Date.now();
+    const arr = (hits.get(key) || []).filter(t => t > now - windowMs);
+    const conLai = Math.max(0, max - arr.length);
+    return {
+      remaining: conLai,
+      max,
+      windowMs,
+      retryAfter: conLai > 0 || !arr.length ? 0 : Math.ceil((arr[0] + windowMs - now) / 1000),
+      name,
+    };
   };
+
+  return check;
 }
 
 /**
