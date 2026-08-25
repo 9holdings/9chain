@@ -3,7 +3,8 @@
 Backlog autopilot. Explorer là dự án khác (`C:\PROJECTS\9Scan-A1`) — **không làm ở đây**.
 Nhật ký chi tiết lịch sử: `docs/PROGRESS.md`. Bàn giao: `HANDOFF.md`.
 
-Trạng thái: `[ ]` chưa làm · `[x]` xong **và đã verify end-to-end thật** · `[blocked]` kẹt · `[human]` cần David.
+Trạng thái: `[ ]` chưa làm · `[x]` xong **và đã verify end-to-end thật** · `[~]` làm một
+phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[human]` cần David.
 
 ---
 
@@ -467,8 +468,29 @@ chủ quyền dày lên — đúng thứ giết fork lúc rebase. Đổi lấy c
       cộng 48 TPS trên C-Chain ⇒ ~308 TPS tổng, RPC công khai vẫn 13–62ms. Đây là
       dữ liệu tốt hơn tôi dự đoán — tôi từng cảnh báo hai tải dùng chung CPU sẽ đá
       nhau; ở mức tải này thì không.
-- [ ] M9.4 — Preset **"thông lượng cao"** (gasLimit lớn hơn) — hệ quả trực tiếp của
-      M9.3. Cần đo lại xem trần mới nằm ở đâu và khi nào thì máy mới là nút thắt.
+- [~] M9.4 — Preset **"thông lượng cao"** — hệ quả trực tiếp của M9.3.
+      **Preset XONG, phần ĐO còn treo.**
+
+      `thong-luong-cao`: `gasLimit` 12M → **60M**, `targetGas` 60M → **300M** (giữ
+      đúng tỉ lệ 5× của khuôn gốc — nâng gasLimit mà quên `targetGas` là chain vừa
+      dùng hết công suất mới đã bị coi là "trên mức mục tiêu" và **thuật toán phí tự
+      đẩy baseFee lên**, tức nâng trần rồi tự phạt người dùng vì đã dùng cái trần đó).
+
+      Kèm một bản vá chung: `createChain` nay **đồng bộ `gasLimit` ở gốc genesis từ
+      `feeConfig`** — subnet-evm đòi hai chỗ bằng nhau (`core/genesis.go:456`), nên
+      trước đây preset nào đổi thông lượng cũng sẽ đẻ ra chain không khởi động nổi.
+      Nay `feeConfig` là nguồn sự thật duy nhất.
+
+      **Nghiệm thu trên chain thật (9121):** `gasLimit` đọc từ **header block** =
+      60.000.000, chain vẫn chốt giao dịch bình thường. Đo trên header chứ không đọc
+      lại file genesis mình vừa ghi — đọc genesis chỉ chứng minh "ta viết đúng thứ ta
+      định viết", đúng loại bằng chứng vô giá trị mà cả mốc M5 sinh ra để chối bỏ.
+
+      🔴 **CÒN LẠI: chưa đo trần TPS thật.** Phép chia cho 1.428 TPS
+      (60M ÷ 21.000 ÷ 2s), nhưng ở mức đó **máy mới là thứ đụng trần** chứ không phải
+      genesis — M9.3 đã thấy máy ở 36% khi genesis đụng trần 260 TPS. Không có số đo
+      thì 1.428 vẫn là phép chia, không phải sự thật. `moTa` vì vậy chỉ hứa "gấp 5
+      lần số giao dịch mỗi block" (đúng theo định nghĩa), **không** hứa gấp 5 lần TPS.
 - [ ] M9.5 — [human] Có đưa số liệu này lên trang công khai không, và dưới dạng nào.
       **Khuyến nghị:** một **nhịp tim** chậm (1 giao dịch/10–60 giây, từ địa chỉ đặt
       tên rõ) để chiều cao block nhúc nhích — C-Chain công khai hiện mới ở **block
