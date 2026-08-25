@@ -35,6 +35,10 @@ const checkToken = requireToken(TOKEN);
 // Giới hạn chặt hơn nhiều so với các endpoint chỉ đọc.
 const limitCreate = rateLimit({ max: 3, windowMs: 60 * 60 * 1000, name: "create" });
 const limitRead = rateLimit({ max: 120, windowMs: 60 * 1000, name: "read" });
+// Thu hồi cũng restart cả 5 node như lúc đẻ — nặng ngang nhau, nên hạn mức ngang nhau.
+// Hạn mức RIÊNG (không dùng chung khoá với create): gộp chung thì một người đẻ 3 chain
+// là hết quyền dọn chính mấy chain đó, tức là hạn mức tự khoá đường sửa sai.
+const limitRevoke = rateLimit({ max: 3, windowMs: 60 * 60 * 1000, name: "revoke" });
 
 // Hai lượt tạo chain chạy song song sẽ restart node giữa chừng nhau và hỏng cả
 // hai. Xếp hàng tuần tự — đây là ràng buộc đúng đắn, không phải tối ưu hoá.
@@ -87,7 +91,22 @@ const CLI_KEY = requireSecret("A1_CLI_KEY", {
 const run = promisify(execFile);
 if (!existsSync(TMP_DIR)) mkdirSync(TMP_DIR, { recursive: true });
 
-function loadState() { try { return JSON.parse(readFileSync(STATE, "utf8")); } catch { return { chains: [] }; } }
+/**
+ * Đọc danh bạ + chuẩn hoá hình dạng.
+ *
+ * `retired` là khoá THÊM (2026-08-25, M4.4) chứa các L1 đã thu hồi. Chuẩn hoá ở
+ * đây để mọi chỗ dùng khỏi phải `|| []` rải rác — thiếu một chỗ là ném
+ * `undefined.map` giữa lúc đang restart node, tức là hỏng ở đúng đoạn đắt nhất.
+ * File cũ (chưa có khoá này) vẫn hợp lệ: thêm khoá là an toàn với hợp đồng dữ liệu.
+ */
+function loadState() {
+  let s;
+  try { s = JSON.parse(readFileSync(STATE, "utf8")); } catch { s = {}; }
+  if (!s || typeof s !== "object") s = {};
+  if (!Array.isArray(s.chains)) s.chains = [];
+  if (!Array.isArray(s.retired)) s.retired = [];
+  return s;
+}
 
 /**
  * Ghi state + giữ một bản sao trước đó.
@@ -369,7 +388,22 @@ async function createChain({ name, chainId, admin }) {
   const ADMIN = adminGiven ? parseEvmAddress(admin, "Địa chỉ admin") : L1_ADMIN;
 
   const state = loadState();
-  if (state.chains.some(c => c.name === name)) throw new Error("Tên đã tồn tại");
+  // Chain ĐÃ THU HỒI vẫn giữ chỗ tên và chainId của nó.
+  //
+  // Thu hồi chỉ gỡ chain khỏi danh bạ và khỏi danh sách track — nó KHÔNG xoá được
+  // gì trên P-Chain (subnet/blockchain đã đẻ là vĩnh viễn), và cũng không xoá được
+  // mạng mà người dùng đã thêm vào MetaMask. Cấp lại chainId 9102 cho một chain
+  // KHÁC nghĩa là ví của người từng dùng chain cũ nay trỏ vào một chain lạ dưới
+  // cùng một chainId: MetaMask coi hai chain là MỘT mạng, và chữ ký ký cho chain
+  // cũ phát lại được trên chain mới. Chỗ trống thu hồi trả lại là **slot track**
+  // (trần 16 của giao thức), không phải con số nhận dạng.
+  const daDung = [...state.chains, ...state.retired];
+  const trung = daDung.find(c => c.name === name);
+  if (trung) {
+    throw new Error(state.chains.includes(trung)
+      ? "Tên đã tồn tại"
+      : `Tên "${name}" từng thuộc một L1 đã thu hồi — chọn tên khác để lịch sử không bị nhập nhằng`);
+  }
 
   // Chặn SỚM, trước khi tiêu tiền và trước khi đụng vào node. Xem TRAN_SUBNET_GIAO_THUC.
   if (state.chains.length >= MAX_L1) {
@@ -386,11 +420,17 @@ async function createChain({ name, chainId, admin }) {
   // lượt trước đó tự chọn chainId là công thức đếm đó đâm trúng số đã dùng. Hai
   // L1 trùng chainId là hố sụt — MetaMask coi chúng là một mạng, và chữ ký của
   // chain này phát lại được trên chain kia.
-  const taken = new Set(state.chains.map(c => c.chainId));
+  const taken = new Set(daDung.map(c => c.chainId));
   if (chainId !== undefined && chainId !== null && String(chainId).trim() !== "") {
     const n = Number(chainId);
     if (!Number.isSafeInteger(n) || n <= 0) throw new Error("Chain ID EVM phải là số nguyên dương");
-    if (taken.has(n)) throw new Error(`Chain ID ${n} đã dùng cho chain khác`);
+    if (taken.has(n)) {
+      const cu = daDung.find(c => c.chainId === n);
+      throw new Error(state.chains.includes(cu)
+        ? `Chain ID ${n} đã dùng cho chain khác (${cu.name})`
+        : `Chain ID ${n} thuộc về "${cu.name}" — L1 đã thu hồi. Số nhận dạng KHÔNG được cấp lại: ` +
+          `ví của người từng dùng chain cũ sẽ coi chain mới là cùng một mạng.`);
+    }
     chainId = n;
   } else {
     chainId = 9100;
@@ -455,8 +495,136 @@ async function createChain({ name, chainId, admin }) {
   return { ...chain, restart: nhatKyRestart };
 }
 
+/**
+ * Thu hồi một L1 — trả lại SLOT TRACK, không xoá chain.
+ *
+ * ═══ THU HỒI THẬT SỰ LÀM GÌ ═══
+ * Gỡ subnet của chain khỏi `--track-subnets` của MỌI node, rồi gỡ chain khỏi danh
+ * bạ công khai. Sau đó không node nào phục vụ RPC của nó nữa và chain đứng im.
+ *
+ * ═══ NÓ KHÔNG LÀM GÌ (đọc kỹ, đây là chỗ dễ hiểu nhầm nhất) ═══
+ * • KHÔNG xoá subnet/blockchain trên P-Chain — đã đẻ là vĩnh viễn, không có
+ *   giao dịch nào xoá được. Dữ liệu chain cũng còn nguyên trên đĩa node.
+ * • KHÔNG rút 5 node khỏi tập validator của subnet đó. Chúng vẫn là validator đã
+ *   đăng ký cho tới hết hạn, chỉ là không còn chạy subnet nữa.
+ *   ⚠️ Hệ quả: `platform.getCurrentValidators({subnetID})` vẫn trả 5 validator cho
+ *   chain đã thu hồi. Tức là phép đo "sống = có validator" mà trang /chains/ dùng
+ *   sẽ NÓI DỐI với chain đã thu hồi. Vì vậy chain thu hồi phải được vẽ từ mảng
+ *   `retired` với nhãn riêng, KHÔNG được đem đi đo bằng heuristic của chain sống.
+ * • KHÔNG lấy lại được token của ai. Người dùng đã thêm mạng vào MetaMask thì
+ *   mạng đó vẫn nằm trong ví họ, chỉ là gọi RPC không ai trả lời.
+ *
+ * ═══ VÌ SAO CẦN ═══
+ * Trần 16 subnet của giao thức (xem TRAN_SUBNET_GIAO_THUC) là bánh cóc một chiều
+ * nếu không có đường lùi: mỗi lượt đẻ chain — kể cả chain rác của bài kiểm thử —
+ * ăn vĩnh viễn một trong 15 chỗ. Không có endpoint này thì bộ nghiệm thu đầy đủ
+ * (`smoke-l1.mjs --de-chain`) chỉ chạy được tối đa ~10 lần trong cả đời dự án.
+ *
+ * ═══ THỨ TỰ GHI STATE ═══
+ * Đánh dấu `thuHoi` vào state TRƯỚC khi đụng node, gỡ hẳn SAU khi node đã bỏ track.
+ * Chết giữa chừng thì state vẫn liệt chain là đang sống ⇒ lượt đẻ chain kế tiếp
+ * tính nó vào danh sách track và **track lại** — lùi về trạng thái nhất quán, chứ
+ * không để lại một chain nửa sống nửa chết. Dấu `thuHoi.batDau` còn lại là bằng
+ * chứng cho người vào dọn biết chuyện gì đã xảy ra.
+ */
+async function thuHoiChain({ name, xacNhan }) {
+  name = String(name || "").trim();
+  if (!name) throw new Error("Thiếu tên chain cần thu hồi");
+
+  const state = loadState();
+  const idx = state.chains.findIndex(c => c.name === name);
+  if (idx < 0) {
+    throw new Error(state.retired.some(c => c.name === name)
+      ? `"${name}" đã được thu hồi trước đó — không còn gì để làm.`
+      : `Không có L1 nào tên "${name}" trong danh bạ.`);
+  }
+
+  // Bắt gõ lại đúng tên chain. Thu hồi làm một chain biến mất khỏi danh bạ công
+  // khai và ngừng phục vụ RPC NGAY, mà nó chỉ khác lượt đọc bình thường đúng một
+  // chữ trong URL. Một cú bấm nhầm / một dòng curl copy sai không được phép đủ
+  // để giết chain của người khác.
+  if (String(xacNhan ?? "") !== name) {
+    throw new Error(
+      `Thu hồi "${name}" sẽ gỡ nó khỏi danh bạ công khai và ngừng phục vụ RPC ngay lập tức. ` +
+      `Gửi kèm "xacNhan":"${name}" để xác nhận.`
+    );
+  }
+
+  const chain = state.chains[idx];
+
+  state.chains[idx] = { ...chain, thuHoi: { batDau: Date.now() } };
+  saveState(state);
+
+  // Danh sách track mới = mọi chain còn lại. Rỗng cũng hợp lệ (thu hồi chain cuối
+  // cùng) — khi đó node chỉ chạy Primary Network, đúng như mạng lúc mới dựng.
+  const conLai = state.chains.filter((_, i) => i !== idx).map(c => c.subnetID);
+  const nhatKyRestart = await trackSubnetsLanLuot(conLai.join(","));
+
+  // ═══ KIỂM CHỨNG, KHÔNG TIN ═══
+  // "Đã restart" không chứng minh "đã bỏ track". Bằng chứng duy nhất đáng tin là
+  // RPC của chain THÔI trả lời: node còn track thì nó còn định tuyến /ext/bc/<id>/rpc.
+  // Không kiểm chỗ này thì một lượt thu hồi hỏng vẫn báo thành công, chain biến
+  // mất khỏi danh bạ nhưng slot track thì không được trả lại — đúng kiểu hỏng mà
+  // dự án này đã trả giá vài lần: mọi dấu hiệu bề ngoài đều xanh.
+  const rpcPath = `/ext/bc/${chain.blockchainID}/rpc`;
+  let conPhucVu = true;
+  for (let i = 0; i < 10 && conPhucVu; i++) {
+    try {
+      await rpc(rpcPath, "eth_chainId");
+      await new Promise(r => setTimeout(r, 2000));
+    } catch {
+      conPhucVu = false;
+    }
+  }
+  if (conPhucVu) {
+    throw new Error(
+      `Đã restart hết node nhưng ${chain.blockchainID} VẪN phục vụ RPC sau 20s — node chưa bỏ track. ` +
+      `Slot track chưa được trả lại. State đang giữ dấu "thuHoi" cho "${name}"; ` +
+      `kiểm tra A1_TRACK_SUBNETS trong .env cạnh ${COMPOSE_FILE} rồi chạy lại.`
+    );
+  }
+
+  // Chuyển sang `retired`, bỏ dấu tiến trình. Giữ nguyên mọi khoá cũ (name,
+  // subnetID, blockchainID, chainId, admin, rpc, createdAt) — đây là bản ghi lịch
+  // sử, và là thứ giữ chỗ chainId cho `createChain`.
+  const { thuHoi: _bo, ...goc } = state.chains[idx];
+  state.chains.splice(idx, 1);
+  state.retired.push({ ...goc, thuHoiLuc: Date.now() });
+  saveState(state);
+
+  console.log(`  ✓ thu hồi "${name}" — còn ${state.chains.length}/${MAX_L1} L1 đang track`);
+  return {
+    name, subnetID: chain.subnetID, blockchainID: chain.blockchainID, chainId: chain.chainId,
+    thuHoi: true, dangTrack: state.chains.length, tran: MAX_L1,
+    restart: nhatKyRestart,
+  };
+}
+
 const PAGE = readFileSync(path.join(ROOT, "local-net/console/index.html"), "utf8");
-function send(res, code, obj) { res.writeHead(code, { "content-type": "application/json" }); res.end(JSON.stringify(obj)); }
+function send(res, code, obj) {
+  // Socket có thể đã bị huỷ (vd body vượt hạn -> req.destroy()). Ghi tiếp lên đó
+  // ném lỗi ở tầng ngoài và biến một request rác thành một stack trace lạ.
+  if (res.writableEnded || res.destroyed) return;
+  res.writeHead(code, { "content-type": "application/json" });
+  res.end(JSON.stringify(obj));
+}
+
+/** Đọc body JSON, chặn body khổng lồ trước cả khi parse (cạn RAM). */
+function docBody(req, gioiHan = 256 * 1024) {
+  return new Promise((resolve, reject) => {
+    let body = "", qua = false;
+    req.on("data", c => {
+      body += c;
+      if (body.length > gioiHan && !qua) {
+        qua = true;
+        req.destroy();
+        reject(new Error(`body vượt ${gioiHan} byte`));
+      }
+    });
+    req.on("end", () => { if (!qua) resolve(body); });
+    req.on("error", e => { if (!qua) reject(e); });
+  });
+}
 
 /** Chặn nếu vượt hạn mức; trả true nghĩa là ĐÃ trả lời lỗi, caller dừng lại. */
 function blockedByRate(req, res, limiter) {
@@ -498,7 +666,14 @@ const server = http.createServer(async (req, res) => {
         rpc("/ext/bc/C/rpc", "eth_chainId").then(x => parseInt(x, 16)).catch(() => null),
       ]);
       // defaultAdmin để giao diện nói rõ chain sẽ về tay ai nếu bỏ trống ô admin.
-      return send(res, 200, { node: ver, cChainId: cid, defaultAdmin: L1_ADMIN, chains: loadState().chains });
+      const st = loadState();
+      return send(res, 200, {
+        node: ver, cChainId: cid, defaultAdmin: L1_ADMIN,
+        chains: st.chains, retired: st.retired,
+        // Người vận hành cần thấy còn bao nhiêu chỗ TRƯỚC khi bấm nút, không phải
+        // sau khi bị từ chối: trần này là trần giao thức, không nới được.
+        tran: MAX_L1, tranGiaoThuc: TRAN_SUBNET_GIAO_THUC,
+      });
     }
 
     if (req.method === "GET" && req.url === "/api/chains") {
@@ -507,25 +682,20 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, loadState());
     }
 
-    if (req.method === "POST" && req.url === "/api/create") {
-      if (blockedByRate(req, res, limitCreate)) return;
+    // Đẻ chain và thu hồi chain đi chung một cửa: cả hai đều restart lần lượt cả
+    // 5 node, nên cả hai PHẢI đi qua cùng một hàng đợi tuần tự. Chạy chồng nhau
+    // là hai đợt rollout đá nhau giữa chừng và hỏng cả hai.
+    if (req.method === "POST" && (req.url === "/api/create" || req.url === "/api/revoke")) {
+      const laThuHoi = req.url === "/api/revoke";
+      if (blockedByRate(req, res, laThuHoi ? limitRevoke : limitCreate)) return;
       if (blockedByAuth(req, res)) return;
-      let body = "";
-      let tooBig = false;
-      req.on("data", c => {
-        body += c;
-        // Chặn body khổng lồ làm cạn RAM trước cả khi parse.
-        if (body.length > 256 * 1024 && !tooBig) { tooBig = true; req.destroy(); }
-      });
-      req.on("end", async () => {
-        if (tooBig) return;
-        try {
-          // Xếp hàng: không cho hai lượt tạo chain chồng nhau.
-          const chain = await queue.run(() => createChain(JSON.parse(body || "{}")));
-          send(res, 200, chain);
-        } catch (e) { send(res, 400, { error: String(e.message || e) }); }
-      });
-      return;
+      try {
+        const tham = JSON.parse((await docBody(req)) || "{}");
+        const kq = await queue.run(() => laThuHoi ? thuHoiChain(tham) : createChain(tham));
+        return send(res, 200, kq);
+      } catch (e) {
+        return send(res, 400, { error: String(e.message || e) });
+      }
     }
     send(res, 404, { error: "not found" });
   } catch (e) { send(res, 500, { error: String(e.message || e) }); }
@@ -534,7 +704,8 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`9Chain-A1 Console @ http://${HOST}:${PORT}  (điều phối node ${API})`);
   console.log(`  auth   : BẬT (Authorization: Bearer <A1_CONSOLE_TOKEN>)`);
-  console.log(`  hạn mức: tạo chain 3 lượt/giờ/IP · đọc 120 lượt/phút/IP`);
+  console.log(`  hạn mức: tạo chain 3 lượt/giờ/IP · thu hồi 3 lượt/giờ/IP · đọc 120 lượt/phút/IP`);
+  console.log(`  trần L1: ${MAX_L1} (trần cứng giao thức ${TRAN_SUBNET_GIAO_THUC}) · thu hồi trả lại slot`);
   console.log(`  hàng đợi: tuần tự, tối đa 5 lượt chờ`);
   console.log(`  admin  : mỗi lượt tạo tự mang địa chỉ riêng (trường "admin"); bỏ trống -> ${L1_ADMIN}`);
   if (L1_ADMIN === EWOQ) {

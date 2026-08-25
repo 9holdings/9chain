@@ -34,7 +34,8 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#7fd1ff;wo
   <div class="card">
     <div class="stat"><div class="k">Node</div><div class="v" id="s-node">…</div></div>
     <div class="stat"><div class="k">C-Chain ID</div><div class="v" id="s-cid">…</div></div>
-    <div class="stat"><div class="k">Số chain đã đẻ</div><div class="v" id="s-count">…</div></div>
+    <div class="stat"><div class="k">L1 đang chạy</div><div class="v" id="s-count">…</div></div>
+    <div class="stat"><div class="k">Đã thu hồi</div><div class="v" id="s-gone">…</div></div>
   </div>
 
   <div class="card">
@@ -54,9 +55,20 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#7fd1ff;wo
   </div>
 
   <div class="card">
-    <h2>Các chain đã đẻ</h2>
-    <table><thead><tr><th>Tên</th><th>Chain ID</th><th>Admin (chủ sở hữu)</th><th>RPC (MetaMask)</th><th>Blockchain ID</th></tr></thead>
+    <h2>Các chain đang chạy</h2>
+    <div class="hint" id="tranHint"></div>
+    <table><thead><tr><th>Tên</th><th>Chain ID</th><th>Admin (chủ sở hữu)</th><th>RPC (MetaMask)</th><th></th></tr></thead>
     <tbody id="rows"><tr><td colspan="5" class="muted">—</td></tr></tbody></table>
+    <div id="out2"></div>
+  </div>
+
+  <div class="card" id="goneCard" style="display:none">
+    <h2>Đã thu hồi</h2>
+    <div class="hint">Không node nào còn chạy các chain này nên slot track đã được trả lại.
+      Subnet trên P-Chain thì <b>không xoá được</b> — nên tên và chainId của chúng
+      <b>giữ chỗ vĩnh viễn</b>, không cấp lại cho chain mới.</div>
+    <table><thead><tr><th>Tên</th><th>Chain ID</th><th>Admin</th><th>Thu hồi lúc</th></tr></thead>
+    <tbody id="goneRows"></tbody></table>
   </div>
 </div>
 <script>
@@ -85,15 +97,58 @@ async function refresh(){
     const s=await res.json();
     document.getElementById('s-node').textContent=s.node;
     document.getElementById('s-cid').textContent=s.cChainId;
-    document.getElementById('s-count').textContent=(s.chains||[]).length;
+    const chains=s.chains||[], gone=s.retired||[];
+    document.getElementById('s-count').textContent=chains.length+(s.tran?' / '+s.tran:'');
+    document.getElementById('s-gone').textContent=gone.length;
+    // Trần là trần GIAO THỨC (node khai quá 16 subnet bị mọi peer cắt kết nối),
+    // không phải hạn mức tự đặt — nói rõ để không ai đi tìm chỗ nới nó.
+    if(s.tran) document.getElementById('tranHint').innerHTML=
+      `Còn <b>${Math.max(0,s.tran-chains.length)}</b> chỗ. Trần ${s.tran} bắt nguồn từ trần cứng `+
+      `${s.tranGiaoThuc} subnet/node của giao thức P2P — <b>không nới được</b>, chỉ có thể `+
+      `thu hồi chain cũ để lấy lại chỗ.`;
     // Nói thẳng chain sẽ về tay ai nếu để trống, thay vì để người dùng đoán.
     if(s.defaultAdmin) document.getElementById('admin').placeholder='0x… (để trống = '+s.defaultAdmin+')';
-    document.getElementById('rows').innerHTML=(s.chains||[]).map(c=>
+    document.getElementById('rows').innerHTML=chains.map(c=>
       `<tr><td>${esc(c.name)}</td><td>${esc(c.chainId)}</td>`+
       `<td><code>${c.admin?esc(c.admin):'<span class="muted">mặc định</span>'}</code></td>`+
-      `<td><code>${esc(c.rpc)}</code></td><td><code>${esc(c.blockchainID)}</code></td></tr>`
+      `<td><code>${esc(c.rpc)}</code></td>`+
+      `<td><button class="link" data-thuhoi="${esc(c.name)}">thu hồi</button></td></tr>`
     ).join('')||'<tr><td colspan=5 class=muted>chưa có chain nào</td></tr>';
+    for(const b of document.querySelectorAll('[data-thuhoi]'))
+      b.onclick=()=>thuHoi(b.getAttribute('data-thuhoi'));
+
+    document.getElementById('goneCard').style.display=gone.length?'':'none';
+    document.getElementById('goneRows').innerHTML=gone.map(c=>
+      `<tr><td>${esc(c.name)}</td><td>${esc(c.chainId)}</td>`+
+      `<td><code>${c.admin?esc(c.admin):'<span class="muted">mặc định</span>'}</code></td>`+
+      `<td>${c.thuHoiLuc?esc(new Date(c.thuHoiLuc).toLocaleString('vi-VN')):'—'}</td></tr>`
+    ).join('');
   }catch(e){}
+}
+
+// Bắt gõ lại đúng tên chain — không phải OK/Cancel.
+//
+// Thu hồi gỡ chain khỏi danh bạ công khai và ngừng phục vụ RPC ngay. Nút này nằm
+// cùng một bảng với chain của người khác, cách nhau một dòng; một hộp thoại chỉ
+// cần bấm OK là bảo vệ đúng bằng không. Server cũng đòi trường `xacNhan` khớp tên,
+// nên đây là cùng một điều kiện chứ không phải lớp trang trí ở client.
+async function thuHoi(name){
+  const out=document.getElementById('out2');
+  const go=prompt('Thu hồi "'+name+'" sẽ gỡ nó khỏi danh bạ công khai và ngừng phục vụ RPC NGAY.\n'+
+                  'Subnet trên P-Chain không xoá được, và chainId của nó sẽ không bao giờ được cấp lại.\n\n'+
+                  'Gõ đúng tên chain để xác nhận:');
+  if(go===null) return;
+  if(go.trim()!==name){ out.innerHTML='<span class="err">❌ Tên không khớp — đã huỷ, không đụng gì.</span>'; return; }
+  out.innerHTML='<span class="spin"></span>Đang thu hồi (bỏ track → restart lần lượt 5 node, ~2–3 phút)…';
+  try{
+    const r=await fetch('/api/revoke',{method:'POST',headers:authHeaders({'content-type':'application/json'}),
+      body:JSON.stringify({name,xacNhan:name})});
+    const j=await r.json();
+    if(r.status===401){ sessionStorage.removeItem('a1_token'); throw new Error('Token sai — tải lại trang để nhập lại.'); }
+    if(!r.ok) throw new Error(j.error||'lỗi');
+    out.innerHTML=`<span class="ok">✅ Đã thu hồi <b>${esc(j.name)}</b> — còn ${esc(j.dangTrack)}/${esc(j.tran)} L1 đang track.</span>`;
+  }catch(e){ out.innerHTML='<span class="err">❌ '+esc(e.message||e)+'</span>'; }
+  refresh();
 }
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 

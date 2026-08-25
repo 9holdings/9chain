@@ -20,6 +20,11 @@ h2{font-size:1.02rem;margin:0}
 .b-dead{background:#3a1618;color:#ff9d9d;border:1px solid #7a2b2f}
 .b-wait{background:#2a2410;color:#e8c46a;border:1px solid #6b5a20}
 .b-main{background:#e8414222;color:#ff9d9d;border:1px solid #e8414255}
+.b-gone{background:#1a1f2a;color:#8aa0b6;border:1px solid #2b3a54}
+.card.gone{border-color:#243049;opacity:.72}
+.card.gone h2{color:#8aa0b6;text-decoration:line-through;text-decoration-color:#3d4a5f}
+h3.sec{font-size:.9rem;color:#8aa0b6;margin:28px 0 10px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em}
 .kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #1c2637;font-size:13px}
 .kv:last-of-type{border-bottom:0}
 .kv .k{color:#8aa0b6;white-space:nowrap}
@@ -212,17 +217,49 @@ function card(chain, p, isMain){
   return el;
 }
 
+// Thẻ cho L1 ĐÃ THU HỒI.
+//
+// KHÔNG dùng probe() + verdict() cho nhóm này, và đây không phải chuyện thẩm mỹ:
+// thu hồi chỉ gỡ subnet khỏi danh sách track của node, nó KHÔNG rút node khỏi tập
+// validator trên P-Chain. Nên `platform.getCurrentValidators({subnetID})` vẫn trả
+// đủ 5 validator cho một chain đã chết hẳn — đúng phép đo mà cả trang này dựa vào
+// để phân biệt sống/chết. Đem heuristic đó áp lên chain thu hồi là để nó nói dối
+// một cách rất thuyết phục. Trạng thái ở đây lấy từ danh bạ, không đo.
+function cardGone(chain){
+  const el = document.createElement('div');
+  el.className = 'card gone';
+  el.innerHTML =
+    '<div class="chead"><h2>' + esc(chain.name) + '</h2>' +
+      '<span class="badge b-gone">ĐÃ THU HỒI</span></div>' +
+    '<div class="small" style="margin:-6px 0 12px">Chain này đã ngừng phục vụ: không node nào ' +
+      'còn chạy nó, RPC không còn trả lời. Nếu bạn từng thêm mạng này vào ví, hãy xoá nó đi — ' +
+      'để lại chỉ khiến ví báo lỗi kết nối.</div>' +
+    '<div class="kv own"><span class="k">Chủ sở hữu (admin)</span><span class="v">' +
+      ownerCell(chain) + '</span></div>' +
+    '<div class="kv"><span class="k">EVM chainId</span><span class="v">' + esc(chain.chainId) +
+      ' <span class="dim">(không cấp lại cho chain khác)</span></span></div>' +
+    '<div class="kv"><span class="k">blockchainID</span><span class="v">' + esc(chain.blockchainID) + '</span></div>' +
+    (chain.createdAt ? '<div class="kv"><span class="k">Tạo lúc</span><span class="v">' +
+      new Date(chain.createdAt).toLocaleString('vi-VN') + '</span></div>' : '') +
+    (chain.thuHoiLuc ? '<div class="kv"><span class="k">Thu hồi lúc</span><span class="v">' +
+      new Date(chain.thuHoiLuc).toLocaleString('vi-VN') + '</span></div>' : '');
+  return el;
+}
+
 const MAIN = {name:'9Chain Testnet A1 (C-Chain)', blockchainID:'C', subnetID:null};
 
 async function refresh(){
   const list = document.getElementById('list');
   const err  = document.getElementById('err');
-  let chains = [];
+  let chains = [], retired = [];
   try {
     // Bản sao chỉ-đọc của state console (không chứa bí mật: tên, ID, chainId).
     const r = await fetch('data/console-chains.json?t=' + Date.now(), {cache:'no-store'});
-    if (r.ok) chains = (await r.json()).chains || [];
-    else throw new Error('HTTP ' + r.status);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    chains = d.chains || [];
+    // `retired` là khoá THÊM — file cũ không có nó, và thiếu là trạng thái HỢP LỆ.
+    retired = d.retired || [];
     err.style.display = 'none';
   } catch (e) {
     err.textContent = '⚠️ Không đọc được danh sách chain (' + (e.message || e) + '). '
@@ -241,10 +278,22 @@ async function refresh(){
     e.innerHTML = 'Chưa có L1 nào được tạo.<br><span class="small">Chain mới sẽ tự hiện ở đây.</span>';
     frag.appendChild(e);
   }
+
+  // Chain đã thu hồi vẫn hiện — im lặng xoá chúng khỏi trang là để người từng
+  // thêm mạng đó vào ví tự đoán vì sao ví báo lỗi.
+  if (retired.length) {
+    const h = document.createElement('h3');
+    h.className = 'sec';
+    h.textContent = 'Đã thu hồi (' + retired.length + ')';
+    frag.appendChild(h);
+    retired.forEach(c => frag.appendChild(cardGone(c)));
+  }
+
   list.replaceChildren(frag);
   document.getElementById('foot').textContent =
-    chains.length + ' L1 + mạng chính · cập nhật lúc ' + new Date().toLocaleTimeString('vi-VN')
-    + ' · RPC: ' + RPC;
+    chains.length + ' L1 đang chạy + mạng chính'
+    + (retired.length ? ' · ' + retired.length + ' đã thu hồi' : '')
+    + ' · cập nhật lúc ' + new Date().toLocaleTimeString('vi-VN') + ' · RPC: ' + RPC;
 }
 
 refresh();

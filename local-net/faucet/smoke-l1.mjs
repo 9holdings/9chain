@@ -15,10 +15,13 @@
 //
 //   node local-net/faucet/smoke-l1.mjs --de-chain
 //       Đầy đủ: đẻ MỘT chain mới, gửi giao dịch thật trên đó, đo gián đoạn
-//       C-Chain trong lúc đẻ. Chạy TRÊN SERVER (console chỉ nghe loopback).
+//       C-Chain trong lúc đẻ, RỒI THU HỒI chain vừa đẻ. Chạy TRÊN SERVER
+//       (console chỉ nghe loopback). Mất ~5–6 phút vì restart lần lượt hai lượt.
 //
-// ⚠️ `--de-chain` để lại một L1 VĨNH VIỄN trong danh bạ công khai: hiện chưa có
-//    endpoint thu hồi (PROGRESS M4.4). Đừng chạy trong vòng lặp.
+//       Tự dọn là điều kiện để bài này CHẠY LẠI ĐƯỢC. Giao thức chặn cứng 16
+//       subnet/node, nên nếu mỗi lần nghiệm thu ăn vĩnh viễn một chỗ thì cả dự án
+//       chỉ nghiệm thu đầy đủ được khoảng chục lần — bộ kiểm thử tự đặt ra hạn
+//       dùng cho chính nó. Thêm `--giu` nếu muốn giữ lại chain để soi bằng tay.
 //
 //   Trên server:
 //     set -a; . ~/9chain-a1/console.env; set +a
@@ -34,6 +37,7 @@ const RPC_GOC = opt("rpc", "https://rpc-testnet-a1.9chain.org");
 const CONSOLE = opt("console", "http://127.0.0.1:8091");
 const TOKEN = process.env.A1_CONSOLE_TOKEN || "";
 const DE_CHAIN = co("de-chain");
+const GIU = co("giu");            // giữ lại chain vừa đẻ, không thu hồi
 const CHAIN_ID_C = 9000000009;
 
 const ket = [];
@@ -79,14 +83,24 @@ try {
   kiem("đọc được validator", false, sach(e.message));
 }
 
+/** Bản danh bạ công khai (qua Cloudflare) — nguồn sự thật mà người dùng thật thấy. */
+async function docDanhBa() {
+  const rd = await fetch(`${TRANG}/chains/data/console-chains.json?t=${Date.now()}`,
+    { cache: "no-store", signal: AbortSignal.timeout(20000) });
+  if (!rd.ok) throw new Error(`HTTP ${rd.status}`);
+  const d = await rd.json();
+  return { chains: d.chains || [], retired: d.retired || [] };
+}
+
 console.log("\n── 3. Danh bạ L1 (hợp đồng dữ liệu) ──");
-let danhBa = { chains: [] };
+let danhBa = { chains: [], retired: [] };
 try {
   const r = await fetch(`${TRANG}/chains/`, { signal: AbortSignal.timeout(20000) });
   kiem("trang /chains/ trả 200", r.status === 200, `HTTP ${r.status}`);
   const rd = await fetch(`${TRANG}/chains/data/console-chains.json`, { signal: AbortSignal.timeout(20000) });
   kiem("đọc được console-chains.json", rd.ok, `HTTP ${rd.status}`);
   danhBa = await rd.json();
+  danhBa.retired = danhBa.retired || [];   // khoá THÊM — thiếu là hợp lệ
   kiem("JSON có mảng chains", Array.isArray(danhBa.chains), `${danhBa.chains?.length} mục`);
 
   // Hợp đồng dữ liệu: THÊM khoá thì an toàn, ĐỔI/BỎ khoá cũ là làm hỏng trang.
@@ -102,11 +116,33 @@ try {
 
   // Hai L1 trùng chainId là hố sụt: MetaMask coi chúng là MỘT mạng, và chữ ký
   // của chain này phát lại được trên chain kia.
-  const ids = danhBa.chains.map(c => c.chainId);
-  kiem("chainId không trùng nhau", new Set(ids).size === ids.length, ids.join(", "));
+  //
+  // Tính CẢ chain đã thu hồi. Thu hồi không xoá được mạng khỏi ví người dùng, nên
+  // cấp lại chainId của một chain đã thu hồi cho chain mới đẻ ra đúng cái hố đó —
+  // chỉ khác là nạn nhân không có cách nào nhận ra.
+  const song = danhBa.chains.map(c => c.chainId);
+  const ids = [...song, ...danhBa.retired.map(c => c.chainId)];
+  kiem("chainId không trùng nhau (kể cả chain đã thu hồi)",
+    new Set(ids).size === ids.length, ids.join(", "));
+
+  // Một cái tên nằm ở CẢ hai mảng nghĩa là lượt thu hồi dừng giữa chừng: hoặc
+  // chain còn sống mà bị liệt là đã thu hồi, hoặc ngược lại. Cả hai đều làm trang
+  // danh bạ hiện cùng một chain hai lần với hai trạng thái đối nhau.
+  const tenSong = new Set(danhBa.chains.map(c => c.name));
+  const kep = danhBa.retired.filter(c => tenSong.has(c.name)).map(c => c.name);
+  kiem("không chain nào vừa sống vừa đã thu hồi", kep.length === 0, kep.join(", ") || "");
+
+  // Trần cứng của giao thức: node khai quá 16 subnet lúc bắt tay bị mọi peer cắt
+  // kết nối. Chỉ chain ĐANG TRACK mới tính — đó chính là điều thu hồi mua về.
+  kiem("số L1 đang track dưới trần giao thức", danhBa.chains.length <= 16,
+    `${danhBa.chains.length}/16` + (danhBa.retired.length ? ` · đã trả lại ${danhBa.retired.length} chỗ` : ""));
 } catch (e) {
   kiem("đọc được danh bạ", false, sach(e.message));
 }
+
+// Mốc so sánh cho `--de-chain`: đọc TRƯỚC khi đẻ. Bài nghiệm thu phải trả mạng về
+// đúng trạng thái nó nhận được, nếu không thì chính nó là thứ làm cạn 15 chỗ.
+const soL1BanDau = danhBa.chains.length;
 
 console.log("\n── 4. Mỗi L1 trong danh bạ còn sống ──");
 for (const c of danhBa.chains) {
@@ -205,14 +241,86 @@ if (DE_CHAIN) {
 
       // Danh bạ công khai phải thấy chain mới — đây là chặng nối console ↔ trang.
       try {
-        const rd = await fetch(`${TRANG}/chains/data/console-chains.json`, { signal: AbortSignal.timeout(20000) });
-        const d = await rd.json();
+        const d = await docDanhBa();
         const m = d.chains.find(c => c.name === ten);
         kiem("danh bạ công khai đã có chain mới", !!m, m ? `admin ${m.admin}` : "không thấy");
         if (m) kiem("danh bạ ghi đúng admin", m.admin === vi.address, m.admin);
       } catch (e) {
         kiem("danh bạ công khai đã có chain mới", false, sach(e.message));
       }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    if (chain && !GIU) {
+      console.log("\n── 6. Thu hồi chain vừa đẻ (trả lại slot track) ──");
+
+      // Đo C-Chain trong lúc thu hồi. Thu hồi cũng restart cả 5 node y như lúc đẻ,
+      // nên nó có đúng nguy cơ giáng gián đoạn lên ví của người ngoài — phải đo
+      // chứ không giả định "chỉ là dọn dẹp nên chắc nhẹ".
+      let dungDo2 = false;
+      const doC2 = (async () => {
+        const t0 = Date.now(), mau = [];
+        let dangDut = null, dutDaiNhat = 0;
+        while (Date.now() - t0 < 300000 && !dungDo2) {
+          const ts = Date.now();
+          let ok = false;
+          try { await rpc(`${RPC_GOC}/ext/bc/C/rpc`, "eth_blockNumber"); ok = true; } catch { /* đếm dưới */ }
+          mau.push(ok);
+          if (!ok) { if (dangDut === null) dangDut = ts; }
+          else if (dangDut !== null) { dutDaiNhat = Math.max(dutDaiNhat, Date.now() - dangDut); dangDut = null; }
+          const con = 500 - (Date.now() - ts);
+          if (con > 0) await new Promise(s => setTimeout(s, con));
+        }
+        if (dangDut !== null) dutDaiNhat = Math.max(dutDaiNhat, Date.now() - dangDut);
+        return { luot: mau.length, hong: mau.filter(x => !x).length, dutDaiNhatGiay: +(dutDaiNhat / 1000).toFixed(1) };
+      })();
+
+      let thuHoi = null;
+      const tr = Date.now();
+      try {
+        const r = await fetch(`${CONSOLE}/api/revoke`, {
+          method: "POST",
+          headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}` },
+          body: JSON.stringify({ name: ten, xacNhan: ten }),
+          signal: AbortSignal.timeout(300000),
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
+        thuHoi = j;
+        kiem("console thu hồi được chain", true, `${((Date.now() - tr) / 1000).toFixed(1)}s`);
+      } catch (e) {
+        kiem("console thu hồi được chain", false, sach(e.message));
+      }
+      dungDo2 = true;
+      const do2 = await doC2;
+      console.log(`\n  ▸ GIÁN ĐOẠN C-CHAIN trong lúc thu hồi:`);
+      console.log(`    ${do2.luot} lượt · hỏng ${do2.hong} · dài nhất ${do2.dutDaiNhatGiay}s`);
+      ket.push({ ten: "đo gián đoạn C-Chain (thu hồi)", dat: true, chiTiet: JSON.stringify(do2) });
+
+      if (thuHoi) {
+        // ĐÂY là bằng chứng slot đã được trả lại, không phải con số console tự khai:
+        // node còn track thì nó còn định tuyến /ext/bc/<id>/rpc. RPC im hẳn nghĩa là
+        // subnet đã rời khỏi danh sách track — thứ mà trần 16 của giao thức đếm.
+        let conSong = true;
+        try { await rpc(chain.rpc, "eth_chainId"); } catch { conSong = false; }
+        kiem("RPC của chain đã thu hồi THÔI trả lời", !conSong,
+          conSong ? "vẫn trả lời — slot CHƯA được trả lại" : "im hẳn");
+
+        try {
+          const d = await docDanhBa();
+          kiem("danh bạ công khai không còn liệt chain đó là đang chạy",
+            !d.chains.some(c => c.name === ten), `${d.chains.length} L1 đang chạy`);
+          kiem("chain nằm trong mục đã thu hồi", d.retired.some(c => c.name === ten),
+            `${d.retired.length} mục`);
+          // Điều kiện qua của M4.4: chạy bài này n lần thì danh bạ vẫn n lần y như cũ.
+          kiem("số L1 đang chạy trở về đúng mức trước khi chạy bài này",
+            d.chains.length === soL1BanDau, `${soL1BanDau} → ${d.chains.length}`);
+        } catch (e) {
+          kiem("danh bạ công khai phản ánh việc thu hồi", false, sach(e.message));
+        }
+      }
+    } else if (chain && GIU) {
+      console.log(`\n  ℹ️  --giu: KHÔNG thu hồi. "${ten}" ở lại danh bạ và giữ một slot track vĩnh viễn.`);
     }
   }
 }
