@@ -141,6 +141,14 @@ const nghi = ms => new Promise(r => setTimeout(r, ms));
  * Đọc `pending` cũng chưa đủ: node vừa nhận block xong có một nhịp ngắn còn trả số
  * cũ. Nên vòng thử lại này chỉ bắt ĐÚNG lỗi nonce — mọi lỗi khác ném thẳng ra, vì
  * `phaiChan` phải nhìn thấy lý do từ chối thật để phân biệt "bị chặn" với "hết tiền".
+ *
+ * 🔴 **MỌI lượt gửi trong file này đi qua đây, không riêng `phaiChan`.** Bản đầu chỉ
+ * bọc `phaiChan` vì tưởng bẫy nằm ở "giao dịch bị từ chối". Sai: ngay lượt chạy sau
+ * đó, bài `thong-luong-cao` đỏ với `nonce too low: next nonce 1, tx nonce 0` ở hai
+ * giao dịch **đều thành công** của cùng một ví — `tx.wait(1)` đã trả về mà lượt
+ * `getTransactionCount("pending")` kế tiếp vẫn đọc ra số cũ. Bẫy nằm ở **mọi giao
+ * dịch thứ hai trở đi của cùng một ví**, và nó chỉ cắn khi hai lượt gần nhau đủ.
+ * Đó là loại lỗi đỏ ngẫu nhiên — thứ làm người ta mất niềm tin vào bài kiểm.
  */
 async function guiVoiNonce(vi, tx, lan = 6) {
   let cuoi;
@@ -176,6 +184,45 @@ async function doiSoDu(p, dc, mong, lan = 10) {
   return { du, nhip: lan };
 }
 
+const WARP = "0x0200000000000000000000000000000000000005";
+
+/**
+ * Warp có THẬT SỰ bật không (M6.1) — chạy cho MỌI preset, vì Warp nay nằm trong
+ * khuôn genesis chứ không phải một lựa chọn.
+ *
+ * Hai bậc, cố ý không dừng ở bậc một:
+ *   1. `getBlockchainID()` — `eth_call` trả 32 byte khác 0 ⇒ precompile có mặt.
+ *      Bậc này một mình KHÔNG đủ: nó chỉ chứng minh có thứ gì đó ở địa chỉ đó.
+ *   2. `sendWarpMessage(payload)` — GIAO DỊCH THẬT phải chốt **và sinh log**.
+ *      Đây mới là thay đổi trạng thái quan sát được, đúng chuẩn mà cả mốc M5 đặt ra
+ *      (bài học Cosmos EVM: staticcall trả SUCCESS + dữ liệu RỖNG, không revert).
+ *
+ * ⚠️ KHÔNG chứng minh được ICM ở đây — gửi một message chỉ là **đầu gửi**. Đầu nhận
+ * (chain khác xác minh chữ ký) cần 2 L1 sống cùng lúc, đó là M6.2.
+ */
+async function kiemWarp(p, chu) {
+  const iface = new ethers.Interface([
+    "function getBlockchainID() view returns (bytes32)",
+    "function sendWarpMessage(bytes payload) returns (bytes32)",
+  ]);
+  let raw = "0x";
+  try { raw = await p.call({ to: WARP, data: iface.encodeFunctionData("getBlockchainID", []) }); }
+  catch (e) { raw = "0x"; }
+  const co = raw && raw !== "0x" && BigInt(raw) !== 0n;
+  kiem("Warp ĐANG BẬT (M6.1)", co, co ? `blockchainID ${raw.slice(0, 18)}…` : "trả về rỗng ⇒ precompile TẮT");
+  if (!co) return;
+  try {
+    const rc = await chot(await guiVoiNonce(chu, {
+      to: WARP, gasLimit: GAS_AN_TOAN,
+      data: iface.encodeFunctionData("sendWarpMessage", [ethers.toUtf8Bytes("9chain-a1 warp probe")]),
+    }), "sendWarpMessage");
+    kiem("gửi được Warp message thật (chốt + có log)", rc.status === 1 && rc.logs.length > 0,
+      `status ${rc.status} · ${rc.logs.length} log · block ${rc.blockNumber}`);
+  } catch (e) {
+    kiem("gửi được Warp message thật (chốt + có log)", false, sach(e.message));
+  }
+}
+
 /** Đợi giao dịch chốt, ném lỗi rõ ràng nếu treo (dấu hiệu subnet không có validator). */
 async function chot(tx, nhan) {
   const rc = await Promise.race([
@@ -203,7 +250,7 @@ const BAI = {
     // thấp hơn**, nên giá gas 0 là thứ subnet-evm không bao giờ nhận (D-026).
     // Trên chain CHUẨN, 1 wei nằm dưới minBaseFee 25 gwei ⇒ giao dịch này bị từ
     // chối. Nó chốt được ở đây chính là bằng chứng preset có hiệu lực.
-    const tx = await chu.sendTransaction({
+    const tx = await guiVoiNonce(chu, {
       to: "0x000000000000000000000000000000000000dEaD", value: ethers.parseEther("1"),
       gasPrice: 1n, gasLimit: 21000n,
     });
@@ -227,7 +274,7 @@ const BAI = {
       `đo được ${blk.gasLimit}`);
     // Và chain phải vẫn giao dịch được — nâng trần mà chain không chạy nổi thì
     // preset này tệ hơn `chuan`, không tốt hơn.
-    const rc = await chot(await chu.sendTransaction({
+    const rc = await chot(await guiVoiNonce(chu, {
       to: "0x000000000000000000000000000000000000dEaD", value: 1n, gasLimit: 21000n,
     }), "tx trên chain thông lượng cao");
     kiem("chain vẫn chốt giao dịch bình thường", rc.status === 1, `block ${rc.blockNumber}`);
@@ -244,7 +291,12 @@ const BAI = {
     // `0x5f5ff3` = PUSH0 PUSH0 RETURN. Nếu PUSH0 không tồn tại thì đó là opcode
     // lạ ⇒ deploy revert. Bám vào bài này vì nó cần một chain thật mà thôi.
     try {
-      const rcP = await chot(await chu.sendTransaction({ data: "0x5f5ff3", gasLimit: 200000n }), "deploy PUSH0");
+      // `guiVoiNonce`, KHÔNG phải `sendTransaction` trần: lượt chạy đầu của bài này
+      // (2026-08-25) đỏ với `nonce too low: next nonce 1, tx nonce 0` — đúng cái bẫy
+      // B-4.2 vừa vá ở chỗ khác, tôi lặp lại nó ngay trong bài đi vá nó. Ghi lại vì
+      // nó cho thấy bẫy nonce không nằm ở `phaiChan`: nó nằm ở **mọi giao dịch thứ
+      // hai trở đi của cùng một ví trong cùng một bài**.
+      const rcP = await chot(await guiVoiNonce(chu, { data: "0x5f5ff3", gasLimit: 200000n }), "deploy PUSH0");
       kiem("PUSH0 chạy được ⇒ Durango ĐANG BẬT (HANDOFF cũ nói ngược)",
         rcP.status === 1, `status ${rcP.status} · block ${rcP.blockNumber}`);
     } catch (e) {
@@ -279,7 +331,7 @@ const BAI = {
       kiem("eth_call mintNativeCoin không lỗi", false, sach(e.shortMessage || e.message));
       console.log(`      ↳ LÝ DO THẬT: ${sach(JSON.stringify(e.info || e.error || {})).slice(0, 300)}`);
     }
-    const rc = await chot(await chu.sendTransaction({ to: NATIVE_MINTER, data, gasLimit: GAS_AN_TOAN }), "mint");
+    const rc = await chot(await guiVoiNonce(chu, { to: NATIVE_MINTER, data, gasLimit: GAS_AN_TOAN }), "mint");
     kiem("gọi precompile mintNativeCoin thành công", rc.status === 1, `block ${rc.blockNumber}`);
     // Đọc lại nhiều nhịp, không tin lần đọc đầu — xem `doiSoDu` (B-4.1).
     const { du: sau, nhip } = await doiSoDu(p, nhan, ethers.parseEther("777"));
@@ -292,12 +344,12 @@ const BAI = {
     kiem("precompile deployerAllowList ĐANG BẬT", vt.bat, vt.vi);
     kiem("chủ chain có vai Admin trên precompile", vt.vai === 2, vt.vi);
 
-    const rc = await chot(await chu.sendTransaction({ data: MA_DEPLOY, gasLimit: GAS_AN_TOAN }), "deploy của chủ chain");
+    const rc = await chot(await guiVoiNonce(chu, { data: MA_DEPLOY, gasLimit: GAS_AN_TOAN }), "deploy của chủ chain");
     kiem("chủ chain DEPLOY được hợp đồng", rc.status === 1 && !!rc.contractAddress, rc.contractAddress || "không có địa chỉ");
 
     // Ví lạ: nạp tiền trước để chắc chắn nó trượt vì KHÔNG CÓ QUYỀN, không phải vì hết tiền.
     const la = ethers.Wallet.createRandom().connect(p);
-    await chot(await chu.sendTransaction({ to: la.address, value: ethers.parseEther("10"), gasLimit: 100000n }), "nạp cho ví lạ");
+    await chot(await guiVoiNonce(chu, { to: la.address, value: ethers.parseEther("10"), gasLimit: 100000n }), "nạp cho ví lạ");
     kiem("ví lạ đã có tiền để trả gas", (await p.getBalance(la.address)) > 0n);
     await phaiChan("ví lạ KHÔNG deploy được", () => guiVoiNonce(la, { data: MA_DEPLOY, gasLimit: 200000n }));
     // Nhưng nó vẫn phải GỬI được giao dịch thường — preset này chỉ chặn deploy.
@@ -311,11 +363,11 @@ const BAI = {
     kiem("precompile txAllowList ĐANG BẬT", vt.bat, vt.vi);
     kiem("chủ chain có vai Admin trên precompile", vt.vai === 2, vt.vi);
 
-    const rc = await chot(await chu.sendTransaction({ to: "0x000000000000000000000000000000000000dEaD", value: 1n, gasLimit: 100000n }), "tx của chủ chain");
+    const rc = await chot(await guiVoiNonce(chu, { to: "0x000000000000000000000000000000000000dEaD", value: 1n, gasLimit: 100000n }), "tx của chủ chain");
     kiem("chủ chain giao dịch được (Admin bao hàm Enabled)", rc.status === 1, `block ${rc.blockNumber}`);
 
     const la = ethers.Wallet.createRandom().connect(p);
-    await chot(await chu.sendTransaction({ to: la.address, value: ethers.parseEther("10"), gasLimit: 100000n }), "nạp cho ví lạ");
+    await chot(await guiVoiNonce(chu, { to: la.address, value: ethers.parseEther("10"), gasLimit: 100000n }), "nạp cho ví lạ");
     kiem("ví lạ đã có tiền", (await p.getBalance(la.address)) > 0n);
     await phaiChan("ví lạ KHÔNG gửi được giao dịch nào", () => guiVoiNonce(la, { to: chu.address, value: 1n, gasLimit: 21000n }));
   },
