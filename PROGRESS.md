@@ -559,6 +559,50 @@ chủ quyền dày lên — đúng thứ giết fork lúc rebase. Đổi lấy c
 
 ---
 
+## M10 — Giao diện người dùng (kế hoạch đầy đủ: `docs/UI-PLAN.md`)
+
+**Vì sao thành mốc riêng:** đếm thật trên 4 trang HTML viết tay (963 dòng) —
+**0 điểm ngắt responsive · 0 dark mode · 0 vòng focus** trên cả bốn. Trong khi
+9Scan-A1, trang người dùng bấm sang ngay sau đó, có đủ cả ba. Hai bề mặt của cùng
+một sản phẩm lệch nhau ở đúng thứ nhìn thấy đầu tiên.
+
+🔴 **KHÔNG thiết kế mới.** 9Chain **đã có** hệ token (navy/gold, tương phản đã sửa
+đạt AA kèm lý do, dark mode wire thật) sống trong `9Scan-A1/app/globals.css`, tự nhận
+là "nguồn sự thật duy nhất". Việc của M10 là **dọn 4 trang viết tay về đúng hệ đó**.
+Vẽ một hệ thứ hai là tự tạo ra đúng sự thiếu nhất quán mà mốc này sinh ra để xoá.
+
+Ranh giới: A1 làm **bề mặt GHI** (đẻ chain, faucet, trang chủ, dashboard);
+**9Scan-A1 làm phần đọc**, gồm cả danh bạ `/chains/` (họ đang làm — trang cũ của A1
+sẽ bị THAY, không nâng cấp). 🔴 Ví X/P `:8090` **không có UI công khai trong mọi
+phương án** — nó giữ khoá và không có auth.
+
+- [ ] M10.1 — Dựng `web/` (Next 15 App Router · Tailwind v4 · TS, **xuất tĩnh**) +
+      token + khung + bộ `components/ui/` tự viết + i18n vi-first + dark
+      → qua khi: build tĩnh chạy · **axe-core sạch** · token khớp hash bản 9Scan
+- [ ] M10.2 — Faucet — **kéo khỏi template literal trong `faucet/server.mjs:54`**
+      → qua khi: xin token thật trên mạng công khai **từ điện thoại**
+- [ ] M10.3 — Trang chủ, **2–3 biến thể**, backup bản cũ → qua khi David chọn một
+- [ ] M10.4 — 🔴 **Màn khó nhất: đẻ chain.** Một lượt mất **~170 giây** và đó là chủ
+      ý (D-008) — spinner 170s đọc như "hỏng". Cần **tiến trình theo BƯỚC** (tạo
+      subnet → genesis → node 1..5 track lần lượt → chờ RPC) và **bước soát lại
+      trước khi gửi**, vì genesis bất biến là cửa một chiều.
+      → qua khi: đẻ chain thật, thấy đủ 5 bước node, không có spinner trơ
+- [ ] M10.5 — "Chain của tôi" + thu hồi → qua khi: thu hồi thật một chain từ giao diện
+- [ ] M10.6 — Dashboard A1↔C1 → qua khi: chịu được C1 vắng mặt (H-5) mà không như hỏng
+- [ ] M10.7 — Dọn: `/lite/` redirect, gỡ trang cũ khi 9Scan `/chains/` lên
+      → qua khi: không URL nào chết
+
+**Nghiệm thu chung:** mở trên **trang công khai qua Cloudflare** (không `curl
+127.0.0.1` — trang render bằng JS nên curl chỉ thấy khung rỗng), **cả điện thoại lẫn
+desktop**, **cả sáng lẫn tối**.
+
+**Chờ David trước khi thi công:** U-1 duyệt thêm bước build · U-2 có mở console ra
+công khai không (H-3/M4.5) — nếu không thì trang chủ mất lối vào thứ ba · U-3 chọn
+biến thể trang chủ · U-4 có design handoff gốc không · U-5 thống nhất URL `/chains/`
+với 9Scan. Chi tiết: `docs/UI-PLAN.md` §9.
+
+---
+
 ## Chờ David — KHÔNG code thay được
 
 - [human] **Tokenomics**: supply cap 720,000,000 LOVE9 (đang kế thừa từ Avalanche, chưa ai duyệt) ·
