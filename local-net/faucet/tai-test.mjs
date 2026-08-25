@@ -101,7 +101,9 @@ async function diaTrongPhanTram() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-if (!TOKEN && !CHAIN_CO_SAN) { console.log("✗ thiếu A1_CONSOLE_TOKEN"); process.exit(1); }
+// Token console CHỈ cần khi phải đẻ/thu hồi chain. Hai chế độ dùng chain có sẵn
+// (`--chain-rpc`, `--c-chain`) không đụng tới console nên không đòi token.
+if (!TOKEN && !CHAIN_CO_SAN && !C_CHAIN) { console.log("✗ thiếu A1_CONSOLE_TOKEN"); process.exit(1); }
 
 /** Chiều cao block Blockscout ĐÃ INDEX — để biết bộ index có bám kịp chain không. */
 async function blockscoutCao() {
