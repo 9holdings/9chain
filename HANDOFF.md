@@ -1,6 +1,6 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: 2026-08-25 (phiên thứ ba — B-5 gỡ · backup đầu tiên · soak 3 giờ đã xong)
+Cập nhật: 2026-08-25 (phiên thứ tư — **M5 đóng 40/40** · B-3 + B-4 gỡ · M3.1/M3.2 · M6.1 · M9.4)
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
@@ -52,6 +52,43 @@ tức ~**70 MB/giờ** ở 210 TPS — nhỏ hơn 30 lần. Dung lượng đĩa 
 
 ⚠️ **Đợt tải này KHÔNG tự thu hồi chain** (nó chạy trên chain có sẵn nên cố ý giữ lại):
 log ghi `giữ lại chain "(chain có sẵn)"`. L1 đó vẫn chiếm một slot.
+
+### Phiên 2026-08-25 (thứ tư) làm xong — tóm tắt để khỏi mở file
+
+**M5 ĐÓNG — 40/40 trên mạng công khai.** 4 chain thật (9117–9120), mỗi preset một
+chain, mỗi chain **tự thu hồi** nên bài chạy lại được vô hạn.
+
+**B-3 gỡ, và giả thuyết ghi trong BLOCKERS là SAI.** Nguyên nhân thật:
+`minBaseFee: 0` **qua được `Verify()` của config nhưng làm chain không dựng nổi
+block nào** — `VerifyBlockFee` từ chối `baseFee ≤ 0` **ngay trong
+`FinalizeAndAssemble`**, tức đường dựng block của chính node mình. Mọi dấu hiệu nói
+chain khoẻ (RPC trả lời, `baseFeePerGas` đúng bằng 0 y như khai), chỉ có giao dịch là
+không bao giờ chốt — trùng biểu hiện với "subnet chưa có validator". Vá: `minBaseFee: 1`.
+Xem D-028, **đọc cả phần tự đính chính trong đó**.
+
+**B-4 gỡ** — ba lỗi của *bài kiểm*, không phải sản phẩm. Đều là "đọc quá sớm" (D-029).
+
+**M5.4** — console trả kèm `luuY` về bẫy gas giao dịch đầu. **Loại** hướng "server tự
+gửi giao dịch mồi": nó đòi một tài khoản Foundation nằm **vĩnh viễn** trong genesis
+bất biến, phá đúng tính chất `OwnerTest` đã đo. Xem D-030.
+
+**M3.1/M3.2** — netgen sinh được P2P IPv6, **mặc định giữ nguyên hành vi cũ**.
+🔴 Nhưng M3 chạm một quyết định về **đối tượng người dùng**, không phải kỹ thuật —
+xem **H-7** trong BLOCKERS trước khi làm tiếp.
+
+**M6.1** — Warp vào khuôn genesis cho mọi chain (D-031). Bẫy: `blockTimestamp` phải
+**≥ 1607144400**, không được là 0 như mọi precompile khác.
+
+**M9.4** — preset `thong-luong-cao` (gasLimit 60M), đo trên header chain thật.
+
+**`kiem-cong.sh`** — bài kiểm cổng hở, **đo từ ngoài Internet** (nền cho M7.2). Chạy
+thật: ngoài chỉ tới được 22 · 80 · 443.
+
+🔴 **Ba lần tôi tự bắt mình sai trong phiên này** — ghi ra vì cả ba đều là loại sai
+"đọc vẫn xuôi tai": (1) D-028 bản đầu quy công cho `blockGasCost`, trong khi **Granite
+bật sẵn** nên nó vốn đã bằng 0; (2) gotcha *"L1 chưa bật Durango"* trong chính file
+này là **sai**, đã đo và sửa; (3) phép đo PUSH0 đầu tiên đỏ vì đúng cái bẫy nonce tôi
+vừa đi vá — nó không nằm ở `phaiChan` mà ở **mọi giao dịch thứ hai của cùng một ví**.
 
 ### Phiên 2026-08-25 (thứ hai) làm xong — tóm tắt để khỏi mở file
 
@@ -202,6 +239,34 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ---
 
 ## Gotchas
+
+### Thêm từ phiên 2026-08-25 (thứ tư)
+- 🔴 **`Verify()` của config subnet-evm KHÔNG phải hợp đồng về tính chạy được.** Nó
+  kiểm **hình dạng**, không kiểm **hệ quả**. `minBaseFee: 0` qua sạch
+  (`commontype/fee_config.go` chỉ từ chối số âm) rồi làm chain **không đẻ nổi block
+  nào** vì `customheader/block_gas_cost.go:94` từ chối `baseFee.Sign() <= 0`, và chỗ
+  gọi nó là `FinalizeAndAssemble` — đường **dựng** block, không phải đường kiểm block
+  của người khác. Với genesis (bất biến), khoảng cách giữa "cấu hình hợp lệ" và
+  "chain sống được" là chỗ lọt những chain chết vĩnh viễn ngay lúc sinh ra.
+- 🔴 **Precompile khai `blockTimestamp > 0` thì ở BLOCK 0 nó CHƯA hoạt động, và
+  `eth_call` lúc đó trả `0x` RỖNG — không phân biệt được với "khoá cấu hình bị bỏ
+  qua".** Dính đúng thế với Warp: bài kiểm báo "Warp TẮT" trên chain mà `warpConfig`
+  nằm đúng chỗ trong genesis (đã đối chiếu md5 với server, và đọc lại file console
+  đưa cho CLI). Genesis khai `"timestamp": "0x0"` nên block 0 có thời gian 0, trong
+  khi Warp buộc phải bật ở ≥ mốc Durango. **Phải đẩy chain qua block 0 rồi mới đọc**,
+  và báo cáo cả hai lần đọc — chênh lệch giữa chúng mới là bằng chứng.
+- 🔴 **Bẫy nonce không nằm ở "giao dịch bị từ chối" — nó nằm ở MỌI giao dịch thứ hai
+  của cùng một ví.** `tx.wait(1)` đã trả về mà lượt `getTransactionCount("pending")`
+  kế tiếp vẫn đọc ra số cũ ⇒ `nonce too low`. Chỉ cắn khi hai lượt gần nhau đủ, nên
+  nó biểu hiện thành **đỏ ngẫu nhiên** — thứ làm người ta mất niềm tin vào bài kiểm.
+  Cách chữa: mọi lượt gửi đi qua một hàm đọc nonce tươi + thử lại **chỉ với lỗi nonce**.
+- **Trần TPS chuyển nút thắt sang BỘ BƠM khi nâng gasLimit.** Mỗi ví gửi tuần tự
+  (`await` một vòng RPC mỗi giao dịch, ~290ms) ⇒ **~3,45 tx/s mỗi ví**. Nên "đo trần
+  chain" mà giữ nguyên số ví là đang đo cái script. Xem M9.4.
+- **`docker compose config` không đủ để tin là file đã lên server.** `console-deploy.sh`
+  bản đầu chỉ đối chiếu md5 của `server.mjs`, nên một thay đổi nằm trọn trong
+  `presets.mjs` hay `9chain-a1-config/l1-evm-genesis.json` có thể **không lên** mà
+  script vẫn in "✓ khớp" rồi restart. Nay nó đối chiếu **mọi** file đã chép.
 
 ### Thêm từ phiên 2026-08-25 (thứ ba)
 - 🔴 **`pgrep -f "<chuỗi>"` trong vòng lặp canh chừng TỰ THẤY CHÍNH NÓ** — cùng họ với
