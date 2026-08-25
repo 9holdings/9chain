@@ -9,29 +9,31 @@ Kèm `DECISIONS.md` (vì sao làm vậy) và `BLOCKERS.md` (đang chờ David c�
 
 ### Việc đầu tiên của phiên sau — theo đúng thứ tự này
 
-**1. ✅ B-5 — ĐÃ GỠ (2026-08-25, phiên thứ ba).** Hai cổng Postgres đã về loopback,
-đo lại từ máy ngoài: **7432 ĐÓNG · 7433 ĐÓNG**. Bản vá đặt ở
-`explorer-full/9chain-a1-server.override.yml` (**có trong git**) chứ không phải trong
-`blockscout/` — thư mục đó bị gitignore, vá ở đó thì `setup.sh` clone lại là mất.
-Chi tiết + phép chứng minh override tự đứng được: `BLOCKERS.md` mục "Đã gỡ" B-5.
+**1. 🔴 `keys.txt` — CHỖ HỎNG DUY NHẤT CÒN LẠI CỦA DỮ LIỆU.** `[human]`.
+`local-net/net-public/keys.txt` (5 khoá quỹ testnet công khai) vẫn chỉ có **một nơi
+thật**: ổ C: máy dev. Thư mục backup nằm **cùng ổ** nên không tính là bản thứ hai.
+Quy tắc cứng cấm đưa file này lên server ⇒ bản thứ hai buộc phải là **phương tiện
+offline (USB/ổ ngoài)**. Mọi thứ khác đã có bản thứ hai (backup 652 MB, 29/29 sha256,
++ git ở `139.99.145.13:~/9chain-a1/backup/20260825-064053/`).
 
-**2. ✅ Backup — ĐÃ CÓ, ĐẦY ĐỦ (2026-08-25, phiên thứ ba).** Bản đầu tiên của dự án:
-`C:\PROJECTS\9Chain-backups\9chain-a1-backup-20260825-064053\` — 652 MB, 29 file,
-`sha256sum -c` **29/29 OK**, kèm `MANIFEST.txt` + `RESTORE.md` (có quy trình phục hồi
-từng mục, đã chạy thử). Gồm: 5 danh tính validator · genesis · danh bạ L1 · bí mật ·
-git (bundle repo chính + patch series lớp chủ quyền) · **chain data 651 MB nén** (chụp
-nguội, đã dừng node-5 rồi mới tar).
-**H-6b đã chạy**: bản thứ hai của git ở `139.99.145.13:~/9chain-a1/backup/20260825-064053/`.
-🔴 **Còn đúng MỘT lỗ:** `local-net/net-public/keys.txt` (5 khoá quỹ testnet) vẫn chỉ có
-một nơi thật — ổ C: máy dev; thư mục backup nằm cùng ổ nên không tính bản thứ hai.
-Quy tắc cứng cấm đưa `keys.txt` lên server ⇒ bản thứ hai buộc phải là **phương tiện
-offline (USB/ổ ngoài)**, **David quyết**.
-
-**3. 🔴 VIỆC ĐỘ BỀN LỚN NHẤT CÒN LẠI — validator thứ sáu ở nhà cung cấp KHÁC.**
+**2. 🔴 VIỆC ĐỘ BỀN LỚN NHẤT CÒN LẠI — validator thứ sáu ở nhà cung cấp KHÁC.**
 `[human]`, tốn tiền hạ tầng. Cả 5 validator đang ở **một máy, một nhà cung cấp, một
 datacenter**: "testnet 5 validator" mà cả 5 chết cùng lúc thì nó là một máy chủ đội lốt
-một mạng. Backup nay cứu được **dữ liệu**, nhưng không cứu được **tính sẵn sàng**.
+một mạng. Backup cứu được **dữ liệu**, không cứu được **tính sẵn sàng**.
 Đây cũng là điều kiện tiên quyết cho M3 (cộng đồng chạy node).
+
+**3. 🔴 H-7 MỚI — M3 chờ một quyết định về ĐỐI TƯỢNG, không phải về kỹ thuật.**
+`[human]`. Phần code đã xong (netgen sinh được P2P IPv6, mặc định không đổi gì).
+Nhưng `--public-ip` của avalanchego nhận **một** địa chỉ, nên **IPv6-only sẽ loại mọi
+peer chỉ có IPv4** — với một testnet mời cộng đồng chạy node thì đó là loại phần lớn
+người muốn tham gia. Đo được: máy chủ có **/56 định tuyến**, Docker 29.7.2 (bật IPv6
+theo từng network, KHÔNG phải restart daemon). Khuyến nghị: IPv4 đa cổng cho node
+beacon. **Kéo theo H-4 có thể là bản ghi `A` chứ không phải `AAAA`.** Chi tiết: BLOCKERS H-7.
+
+**4. Mốc kỹ thuật lớn nhất còn lại: M6.2 (chuyển tài sản giữa 2 L1).**
+Không bị chặn bởi người, nhưng cần ba thứ đã tra sẵn ở `PROGRESS.md` mục M6.2 —
+đáng đọc trước khi bắt tay, nhất là: **API Warp TẮT MẶC ĐỊNH**
+(`warp-api-enabled`), nên bật Warp precompile ở M6.1 mới là một nửa.
 
 ### ⏰ Hẹn giờ đã biết
 **Cả 5 validator hết hạn `2027-08-24`** (đo 2026-08-25, còn 364 ngày). Đúng ngày đó
