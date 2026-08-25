@@ -316,7 +316,31 @@ Demo mạnh nhất của A1; tiêu chí "Interop" đang tự chấm 3/5 trong da
         Nghiêng về template — ICM đòi CẢ HAI đầu có Warp, nên để nó thành lựa chọn
         là đẻ ra những cặp chain không nói chuyện được với nhau, mà genesis bất biến.
 - [ ] M6.2 — Chuyển tài sản giữa 2 L1 do người dùng đẻ ra, có bằng chứng giao dịch 2 đầu
+
+      **Ba thứ đã tra ở source (2026-08-25) để bước sau khỏi dò lại:**
+
+      1. 🔴 **API Warp TẮT MẶC ĐỊNH.** `plugin/evm/vm.go:1179` chỉ đăng ký namespace
+         `warp` khi `vm.config.WarpAPIEnabled`, mà `plugin/evm/config/config.go:38`
+         không đặt mặc định ⇒ giá trị zero của Go ⇒ **false**. Không có API này thì
+         không tổng hợp được chữ ký BLS của validator, tức **không gửi được message
+         nào đi đâu** — bật Warp precompile (M6.1) mới là một nửa.
+         ⇒ Cần cấu hình theo từng chain: `{"warp-api-enabled": true}`.
+      2. **Chỗ đặt cấu hình đó.** Compose hiện KHÔNG có `--chain-config-dir`, nên
+         avalanchego rơi về `~/.avalanchego/configs/chains/<blockchainID>/config.json`
+         — nằm trong volume riêng của TỪNG node, tức phải ghi 5 lần qua `docker exec`.
+         Sạch hơn: thêm `--chain-config-dir=/9chain-a1/config/chains` vào netgen và
+         để console ghi ra host một lần — thư mục `9chain-a1-config` **đã được mount
+         sẵn vào cả 5 node** (`/9chain-a1/config`, ro), y hệt cách `console-tmp` hoạt
+         động. ⚠️ Mạng đang chạy phải vá compose tại chỗ, không chạy netgen.
+      3. **Đầu nhận vẫn cần một hợp đồng.** `getVerifiedWarpMessage` đọc từ
+         **predicate của giao dịch**, không phải từ storage — nên không thể chứng
+         minh bằng `eth_call` trần; phải có mã trên chain B gọi vào precompile.
+
       ⚠️ Cần **2 slot L1 cùng lúc** trong trần 15 — không thu hồi được giữa chừng.
+
+      **Còn phải chọn (chưa quyết):** chứng minh bằng **Warp thô** (gửi → tổng hợp
+      chữ ký → đầu kia xác minh) hay dựng hẳn **Teleporter/ICTT**. Warp thô đủ chứng
+      minh *cơ chế*; nhưng M6.2 nói "chuyển **tài sản**", mà tài sản thì cần ICTT.
 
 ---
 
