@@ -61,6 +61,51 @@ Gỡ khi được duyệt: bỏ 2 service khỏi compose Blockscout, `docker com
 | H-4 | AAAA record `bootstrap-a1.9chain.org` (**DNS-only**, không mây cam) | M3.3 |
 | H-5 | URL Cosmos REST của C1 (`:1317`) | M7.3 (dashboard live) |
 | H-6 | 🟡 **Repo vẫn chưa có remote** — nhưng H-6b đã chạy, không còn là "một ổ đĩa" | nơi đặt repo lâu dài |
+| H-7 | 🔴 **P2P ra Internet: IPv6-only hay IPv4 đa cổng?** Quyết định về ĐỐI TƯỢNG, xem dưới | M3.2, M3.3, M3.5 |
+
+### Ghi chú H-7 — M3 chạm trần "chọn ai được vào", không phải trần kỹ thuật
+
+**Đo thật trên `139.99.145.13`, 2026-08-25 (phiên thứ tư):**
+
+| | |
+|---|---|
+| khối IPv6 của máy | `(không công bố)/**56**` — **256 khối /64**, dư sức mỗi node một địa chỉ |
+| đường ra IPv6 | có default route, **ra Internet được** (đã curl thật qua v6) |
+| IPv6 của Docker | **TẮT** (`bridge.EnableIPv6 = false`) |
+| cổng P2P 9651 | **KHÔNG node nào publish** — đúng tiền đề của M3 |
+| Docker Engine | **29.7.2** ⇒ bật IPv6 được **theo từng network**, KHÔNG phải restart daemon |
+
+Dòng cuối là tin tốt nhất: restart Docker daemon là restart **mọi** container, tức
+hạ cả testnet công khai lẫn Blockscout. Bản 29.7.2 tránh được việc đó.
+
+**Nhưng có một cái bẫy về sản phẩm, không phải về kỹ thuật.** `--public-ip` của
+avalanchego là **MỘT** địa chỉ, không phải danh sách (`config/config.go` →
+`ips.ParseAddrPort`). Nên hai đường loại trừ nhau:
+
+| | IPv6, mỗi node một GUA (kế hoạch M3.1 hiện tại) | IPv4, mỗi node một `--staking-port` |
+|---|---|---|
+| ai gọi VÀO được | **chỉ peer có IPv6** | **100% Internet** |
+| cổng | 9651 tiêu chuẩn cho mọi node | 9651…9655, phải publish từng cái |
+| NAT | không có | 5 node cùng máy phải vòng lại qua IP công khai |
+| DNS David cần tạo | **AAAA** `bootstrap-a1` (H-4) | **A** `bootstrap-a1`, DNS-only |
+
+Kế hoạch cũ chọn IPv6 và điều đó **sạch hơn về kỹ thuật**. Nhưng mục tiêu M3 là
+*"cộng đồng tự chạy node"* — và một người muốn tham gia mà nhà mạng của họ chỉ có
+IPv4 thì **không vào được**, trong khi họ chẳng làm gì sai. Ở Việt Nam tỉ lệ đó
+không nhỏ. Đây là chọn tập người dùng, nên không tự quyết.
+
+**Khuyến nghị:** IPv4 đa cổng cho **node beacon** (thứ cộng đồng cần chạm tới),
+IPv6 cho phần còn lại nếu muốn. Nhưng David chốt.
+
+**Đã làm sẵn, không chờ:** `netgen` nay sinh được cả hai hình dạng —
+`A1_P2P_MODE=ipv6` + `A1_IPV6_SUBNET` + `A1_IPV6_BASE`. **Mặc định giữ nguyên hành
+vi cũ** (đã kiểm bằng cách sinh lại và so: 0 dòng ipv6, `--public-ip` vẫn IPv4).
+Đường IPv4-đa-cổng chưa viết vì viết cả hai rồi bỏ một là phí.
+
+⚠️ **Áp lên mạng ĐANG CHẠY là việc riêng, không phải hệ quả tự động của M3.1/M3.2.**
+`netgen` sinh **khoá mới** ⇒ chạy nó trên mạng công khai là đổi danh tính cả 5
+validator = giết mạng. Mạng đang chạy phải **vá tại chỗ** compose (y như M2.3 đã
+làm với cổng 9660), và cần một cửa sổ bảo trì vì container phải recreate.
 
 ### Ghi chú H-6 — 🔴 ĐẮT HƠN HẲN sau phiên 2026-08-25
 

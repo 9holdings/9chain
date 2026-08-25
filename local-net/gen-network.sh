@@ -24,6 +24,7 @@ MSYS_NO_PATHCONV=1 docker run --rm \
   -v "/$OUT":/out \
   -v 9chain-a1-gomod:/go/pkg/mod \
   -e GOWORK=off -e N="$N" -e OUT=/out \
+  -e A1_P2P_MODE -e A1_IPV6_SUBNET -e A1_IPV6_BASE \
   golang:1.25.10-bookworm sh -c "go run ./9chain-a1-tools/netgen"
 
 cat <<EOF
