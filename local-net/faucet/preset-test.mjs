@@ -44,8 +44,13 @@ const DEPLOYER_ALLOWLIST = "0x0200000000000000000000000000000000000000";
 const NATIVE_MINTER = "0x0200000000000000000000000000000000000001";
 const TX_ALLOWLIST = "0x0200000000000000000000000000000000000002";
 // Mã khởi tạo hợp đồng nhỏ nhất hợp lệ: PUSH1 0 PUSH1 0 RETURN — deploy ra một
-// hợp đồng có runtime rỗng. Chỉ dùng PUSH1 nên KHÔNG dính PUSH0 (L1 EVM chưa bật
-// Durango — đã ghi trong HANDOFF).
+// hợp đồng có runtime rỗng.
+//
+// Giữ PUSH1 (không PUSH0) là **chủ ý, nhưng KHÔNG phải vì lý do ghi trong HANDOFF cũ**.
+// Ghi chú cũ nói "L1 EVM chưa bật Durango nên không có PUSH0" — đã đo và **sai**:
+// chain 9122 deploy `0x5f5ff3` (có PUSH0) ra `status 1`. Lý do thật để giữ PUSH1 ở
+// đây là bài này kiểm **quyền deploy**, nên mã deploy phải là thứ chạy được trên mọi
+// cấu hình EVM có thể có; dùng opcode mới ở đây là trộn hai câu hỏi vào một phép đo.
 const MA_DEPLOY = "0x60006000f3";
 
 // ═══ VÌ SAO MỌI GIAO DỊCH Ở ĐÂY ĐẶT gasLimit TƯỜNG MINH ═══
@@ -427,6 +432,10 @@ for (const id of danhSach) {
     const chu = vi.connect(p);
     const du = await p.getBalance(vi.address);
     kiem("genesis cấp phát cho chủ chain", du > 0n, ethers.formatEther(du));
+    // Warp nằm trong KHUÔN genesis (M6.1), không phải trong preset ⇒ kiểm cho MỌI
+    // preset, ở đây chứ không ở trong từng bài. Đặt TRƯỚC `BAI[id]` để nó cũng là
+    // phép mở block 1 (giao dịch mồi tự nhiên) cho các bài phía sau.
+    await kiemWarp(p, chu);
     await BAI[id](p, chu);
   } catch (e) {
     kiem(`bài "${id}" chạy trọn vẹn`, false, sach(e.message));

@@ -350,7 +350,14 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 - **Bind loopback làm container mất đường tới node**: `host.docker.internal` trỏ IP bridge, không phải loopback host. Cách đúng: `--network net_a1net` + `http://172.28.0.11:9650`.
 - netgen `--public-ip` = IP nội bộ docker → node NGOÀI không join P2P được.
 - networkID Avalanche là **uint32** — không thể là 9000000009; chỉ EVM chainId mới là số 9 tỷ.
-- L1 EVM chưa bật Durango → compile contract `evmVersion:"paris"` (không PUSH0).
+- 🔴 **"L1 EVM chưa bật Durango → compile `evmVersion:'paris'`" là SAI — đã đo, đã bỏ.**
+  Durango **ĐANG BẬT** trên mọi L1 của ta. Phép đo: deploy `0x5f5ff3` (PUSH0 PUSH0
+  RETURN) trên chain 9122 → **status 1**, block 2. Nếu PUSH0 không tồn tại thì đó là
+  opcode lạ và deploy phải revert.
+  Lý do ở source: networkID 9001 không phải Mainnet/Fuji ⇒ `upgrade.GetConfig` trả
+  `Default`, ở đó `DurangoTime = InitiallyActiveTime` (2020-12-05) — cùng lý do
+  Etna/Granite cũng bật sẵn. ⇒ **Compile contract bằng EVM version mặc định, đừng hạ
+  xuống `paris`.** Ghi chú cũ khiến người ta tự trói vào một EVM cũ hơn cần thiết.
 
 ### Blockscout
 - 🔴 **`dets`/`logs` sai đường dẫn VÀ sai UID** → backend crash-loop `{:file_error, "./dets/queue_storage", :eacces}` chôn trong stack trace Erlang. Compose giải `./dets/` tương đối theo **thư mục chứa file khai** (`services/backend.yml`) → là `services/dets`. Process chạy UID **10001**, không phải 1000. Đã đóng gói vào `explorer-full/9chain-a1-server.env.sh`.
