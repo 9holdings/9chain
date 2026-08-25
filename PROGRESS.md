@@ -292,7 +292,21 @@ HANDOFF: *đừng quảng bá "chạy node cùng chúng tôi"* cho tới khi xon
 
 Demo mạnh nhất của A1; tiêu chí "Interop" đang tự chấm 3/5 trong dashboard.
 
-- [ ] M6.1 — Bật Warp precompile trong genesis template
+- [x] M6.1 — Bật Warp precompile trong genesis template. **Vào KHUÔN, không làm preset**
+      — ICM đòi cả hai đầu có Warp, để nó thành lựa chọn là đẻ ra những cặp chain
+      không bao giờ nói chuyện được với nhau, mà genesis bất biến (D-031).
+
+      **Nghiệm thu trên chain thật 9125:** `getBlockchainID()` trả
+      `0xcb6347a337236e48…`, và **`sendWarpMessage` là giao dịch THẬT chốt ở block 2
+      với 1 log** — thay đổi trạng thái quan sát được, không phải "gọi được thì coi
+      là bật".
+
+      🔴 **Lượt đo đầu báo "Warp TẮT" và đó là PHÉP ĐO SAI, không phải cấu hình sai.**
+      Đáng ghi vì nó là một họ bẫy mới: precompile khai `blockTimestamp > 0` thì ở
+      **block 0 nó chưa hoạt động**, và `eth_call` lúc đó trả `0x` rỗng —
+      **không phân biệt được với "khoá cấu hình bị bỏ qua"**, đúng trạng thái mà cả
+      mốc M5 sinh ra để chống. Bài kiểm nay đọc **hai lần** (trước và sau khi mở
+      block 1) và báo cáo chênh lệch, nên lần sau nó tự phân biệt hộ.
 
       **Đã đọc source trước khi code (2026-08-25, phiên thứ tư) — hai điều phải biết:**
 
