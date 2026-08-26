@@ -44,26 +44,37 @@ vào git.
 
 ---
 
-## Cần David chốt trước khi làm — P1-3
+## ✅ P1-3 — ĐÃ CHỐT (David: hướng B) VÀ ĐÃ LÀM
 
-Trang `/console/` công khai vẫn `await fetch('/api/create')` rồi kết luận từ `r.ok`.
-Đẻ chain ~170s, Cloudflare cắt ~100s ⇒ **POST luôn hỏng trong khi chain đẻ xong** ⇒
-người dùng bấm lại ⇒ chain thừa ăn một slot trong trần 15 và **giữ tên + chainId
-vĩnh viễn**. Trang `/create-chain/` mới đã xử đúng; trang console cũ thì chưa.
+Gỡ giao diện console cũ khỏi Internet. Ba lỗi của nó nằm trọn trong
+`console/index.html` và biến mất cùng nó: **P2-1** (vòng lặp `prompt()` 5 giây),
+**P2-5** (hai chỗ `innerHTML` không `esc()`), và chính P1-3 (kết luận từ `r.ok` của
+một POST mà Cloudflare luôn cắt ở ~100s).
 
-| | Hướng A — port logic sang `console/index.html` | Hướng B — bỏ route `/console/*` công khai |
-|---|---|---|
-| Việc | Chép logic `choTienTrinhXong` (đọc `/api/progress` tới khi kết thúc rồi hỏi danh bạ) | Xoá khối `handle_path /console/*` khỏi Caddyfile |
-| Được | Giữ một đường vào cho người quen dùng console cũ | Bớt hẳn một bề mặt công khai: bớt P2-1, P2-5, P2-6 cùng lúc |
-| Mất | Duy trì **hai** giao diện làm cùng một việc, và chúng sẽ trôi lệch — P2-3 đã là bằng chứng | Người vận hành phải qua SSH tunnel |
-| Rủi ro còn lại | Vẫn còn prompt-loop P2-1 và innerHTML P2-5 | ~0 |
+🔴 **NHƯNG "bỏ route `/console/*`" theo đúng nghĩa đen sẽ giết tính năng chủ lực.**
+`/create-chain/` và `/my-chains/` gọi console **qua chính đường đó** (`consoleGoc()`
+trong `web/lib/wallet.ts` trả `<origin>/console`). Xoá cả khối là giết đăng nhập ví,
+đẻ chain và thu hồi — mà trang vẫn tải bình thường, chỉ hỏng lúc người dùng bấm nút.
 
-**Khuyến nghị: hướng B.** Trang `/create-chain/` đã thay thế đủ chức năng và làm
-đúng hơn; giữ console cũ công khai là giữ một bản sao kém hơn của cùng một tính năng,
-mà mọi lỗi P2 còn lại đều nằm đúng trong bản sao đó. Đường vận hành qua SSH tunnel
-vẫn còn nguyên và vẫn là đường được khuyến nghị trong Caddyfile.
+⇒ Thực thi đúng là **API đi tiếp, giao diện thì không**:
+- `@console_api path /console/api/*` → `uri strip_prefix /console` → `:8091`
+- `@console_cu path /console /console/*` → **301** sang `/create-chain/`
+- Thứ tự hai khối là **bắt buộc** (`handle` loại trừ lẫn nhau, xét theo thứ tự
+  viết). Đảo lại thì `/console/api/*` bị nuốt, và triệu chứng là ví đăng nhập xong
+  thì mọi lượt gọi API biến thành 301 sang một trang HTML — cùng họ với lỗi
+  `@faucet_api` đã dính 2026-08-25.
 
----
+**Điều kiện qua — đã đạt:**
+| | |
+|---|---|
+| `/console`, `/console/`, `/console/index.html` | **301** → `/create-chain/` |
+| `/console/api/siwe/nonce?address=…` | **200**, trả message SIWE thật |
+| `/console/api/progress`, `/console/api/status` | **401** (sống, đòi xác thực) |
+
+Đường vận hành **không đổi**: `ssh -L 8091:127.0.0.1:8091`.
+
+⚠️ Còn lại từ nhóm này: **P2-6** (`frame-ancestors`, HSTS cho tên miền RPC) vẫn phải
+làm — nó áp cho trang MỚI, không phải cho console cũ. Nằm ở Đợt 4.
 
 ## Các đợt còn lại
 
@@ -93,7 +104,8 @@ mỗi lần thử là một lần phải canh cửa sổ ~170 giây.
 | P3-3 | `createChain` chỉ `saveState` ở dòng cuối ⇒ hỏng giữa chừng để lại **subnet mồ côi vĩnh viễn** trên P-Chain. Ghi `{name, subnetID, dangDe:true}` ngay sau khi `l1 create` trả ID (cùng khuôn `thuHoi.batDau` đã làm đúng). | Bài kiểm giết tiến trình giữa chừng rồi khởi động lại: danh bạ phải có bản ghi `dangDe` |
 | P2-2 | `tienTrinh` toàn cục nhưng hàng đợi nhận 5 lượt ⇒ ví B đọc tiến trình của ví A rồi **báo lỗi cho lượt còn chưa chạy**. Sửa rẻ: client bỏ qua tiến trình có `name` ≠ tên mình (`/api/progress` đã trả `name`). | Hai lượt chồng nhau: lượt sau không kết luận từ lượt trước |
 | P2-3 | Server trả `notes:{title,body,how,command}`, client đọc `luuY:{tieuDe,cachLam}` ⇒ cảnh báo D-025 **không bao giờ hiện** trên nhánh POST thành công. | Đọc `/api/create` thật, thấy khối cảnh báo hiện ra |
-| P2-1, P2-5, P2-7 | Chỉ làm nếu David chọn **hướng A** ở P1-3; hướng B xoá luôn bề mặt chứa chúng | — |
+| ~~P2-1, P2-5~~ | ✅ ĐÓNG — David chọn hướng B, bề mặt chứa chúng đã gỡ khỏi Internet | — |
+| P2-7 | `/api/progress` lộ `name` chain của người khác. Nhỏ, và nó là thứ P2-2 cần — giới hạn lại khi thêm `jobId` | — |
 
 🔴 **P2-3 đang bị P1-3 che.** POST luôn 524 nên client luôn rơi vào nhánh dự phòng
 tự dựng `luuY` từ i18n — sửa P1-3 mà quên P2-3 là **làm lộ ra một lỗi thứ hai** đúng
