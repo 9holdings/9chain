@@ -1,8 +1,9 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: 2026-08-26 (phiên thứ năm — **M6 đóng** (tài sản đi được giữa 2 L1) ·
-**M10 gần đóng**: web/ · faucet · 3 biến thể trang chủ · màn đẻ chain có tiến trình
-theo bước · chain của tôi + thu hồi · bảng A1↔C1. Backlog phần mềm đã cạn.)
+Cập nhật: 2026-08-26 — **M6 đóng** (tài sản đi được giữa 2 L1) · **M10 đóng phần
+mềm**: A1 nay có trang chủ thật ở gốc `/` (bản C, David chọn), faucet · màn đẻ chain
+có tiến trình theo bước · chain của tôi + thu hồi · bảng A1↔C1.
+**Backlog phần mềm đã cạn — mọi việc còn lại đều `[human]` hoặc `[blocked]`.**
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
@@ -24,9 +25,11 @@ datacenter**: "testnet 5 validator" mà cả 5 chết cùng lúc thì nó là m�
 một mạng. Backup cứu được **dữ liệu**, không cứu được **tính sẵn sàng**.
 Đây cũng là điều kiện tiên quyết cho M3 (cộng đồng chạy node).
 
-**3. 🔴 M10 — giao diện. Kế hoạch xong, chờ David chọn biến thể trang chủ.**
-`docs/UI-PLAN.md`. Đối tượng đã chốt (người muốn chain riêng), stack đã chốt (Next
-xuất tĩnh). Ba biến thể khác nhau ở **cách dẫn**, không ở nhắm ai.
+**3. 🔴 BẤM THỬ MÀN ĐẺ CHAIN BẰNG METAMASK THẬT.** `[human]`, ~5 phút.
+Đây là mảnh duy nhất của M10 mà công cụ tự động không chạm tới được: pane trình
+duyệt không có ví nên không lái được `personal_sign`. Mọi thứ khác của màn đó đã
+nghiệm thu (server: đẻ chain thật, 8/8 bước; giao diện: form + soát lại + tiến trình,
+lái bằng ví giả). Mở **https://testnet-a1.9chain.org/de-chain/** và đẻ một chain.
 
 **4. 🔴 H-7 — M3 chờ một quyết định về ĐỐI TƯỢNG, không phải về kỹ thuật.**
 `[human]`. Phần code đã xong (netgen sinh được P2P IPv6, mặc định không đổi gì).
@@ -36,9 +39,9 @@ người muốn tham gia. Đo được: máy chủ có **/56 định tuyến**, 
 theo từng network, KHÔNG phải restart daemon). Khuyến nghị: IPv4 đa cổng cho node
 beacon. **Kéo theo H-4 có thể là bản ghi `A` chứ không phải `AAAA`.** Chi tiết: BLOCKERS H-7.
 
-**5. 🔴 M10 GẦN ĐÓNG — backlog phần mềm đã cạn, việc còn lại đều `[human]`/`[blocked]`.**
-M10.1–M10.3, M10.5, M10.6 xong; M10.4 xong phần mềm (còn bấm thử bằng MetaMask
-thật); M10.7 xong phần đo được, còn một mục chờ 9Scan.
+**5. Backlog phần mềm ĐÃ CẠN.** M10.1–M10.6 xong, M10.7 xong phần đo được (còn
+một mục chờ 9Scan đưa `/chains/` của họ lên). Không còn task nào chạy được mà không
+cần người. Muốn nạp việc mới thì dùng skill `feed-autopilot`.
 
 🔴 **GỐC `/` NAY LÀ TRANG CHỦ THẬT (bản C, David chọn 2026-08-26), KHÔNG còn là
 Blockscout.** Caddy khớp **đúng `/`** chứ không phải `/*` — Blockscout vẫn phục vụ
@@ -48,6 +51,7 @@ Blockscout.** Caddy khớp **đúng `/`** chứ không phải `/*` — Blockscou
 **Trang công khai:** `/` (trang chủ) · `/faucet/` · `/de-chain/` · `/chain-cua-toi/`
 · `/bang/` · `/chains/` · `/console/` (console cũ, không còn trong thanh điều hướng).
 URL cũ: `/lite/` → `/` và `/dashboard/` → `/bang/`, đều 301.
+Đã TẮT (không xoá): `9chain-a1-explorer` :8082 · `9chain-a1-dashboard` :8092.
 
 ### ⏰ Hẹn giờ đã biết
 **Cả 5 validator hết hạn `2027-08-24`** (đo 2026-08-25, còn 364 ngày). Đúng ngày đó
