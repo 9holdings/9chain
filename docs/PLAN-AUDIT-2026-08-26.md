@@ -124,7 +124,7 @@ lúc tưởng vừa sửa xong. Hai mục này phải đi **cùng một đợt**
 |---|---|---|
 | P2-6 | `(secheaders)` thiếu `Content-Security-Policy "frame-ancestors 'none'"` ⇒ `/console/` (trang ký ví) iframe được. Và `rpc-a1.9chain.org` **không import `secheaders`** — không cả HSTS. | `curl -I` thấy header ở cả hai tên miền; **KHÔNG** áp `script-src` lên gốc Blockscout khi chưa đo |
 | P3-5 | Caddyfile ghi "gỡ nhanh: xoá hai dòng `import chi_cloudflare`" — ai làm đúng câu đó lúc gỡ sự cố sẽ **vô hiệu hoá toàn bộ hạn mức** console + faucet, không dấu hiệu. Cần cảnh báo chéo ở cả hai tệp. | `check-ports.sh` chạy **sau mỗi** `caddy-deploy.sh` |
-| P1-3 | Nếu David chọn hướng B: xoá `handle_path /console/*` | `curl /console/` → 404; SSH tunnel vẫn vào được `:8091` |
+| ~~P1-3~~ | ✅ ĐÓNG — đã làm ở lượt reload 2026-08-26. **Không phải 404 và không xoá cả khối**: `/console/api/*` giữ nguyên (trang mới sống nhờ nó), giao diện cũ 301 sang `/create-chain/`. Xem mục P1-3 ở đầu file. | — |
 
 ### Không làm — có chủ ý
 
