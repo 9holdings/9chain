@@ -22,9 +22,89 @@ export type ViTrinhDuyet = {
   request(a: { method: string; params?: unknown[] }): Promise<unknown>;
 };
 
+export type ThongTinVi = { uuid: string; name: string; rdns: string; icon?: string };
+type ViDaKhai = { info: ThongTinVi; provider: ViTrinhDuyet };
+
+/**
+ * ═══ VÌ SAO KHÔNG DÙNG THẲNG `window.ethereum` ═══
+ *
+ * 🔴 ĐÃ TRẢ GIÁ 2026-08-26. Người dùng cài nhiều extension ví cùng lúc thì chúng
+ * **tranh nhau ghi đè cùng một biến** `window.ethereum`, và kẻ thắng là kẻ nạp
+ * sau — không ai chọn cả. Máy của David có ~10 ví, và kẻ thắng hôm đó là một ví
+ * KHÔNG cài `wallet_addEthereumChain`.
+ *
+ * Triệu chứng đọc cực kỳ lệch hướng: ví trả về
+ *     -32601 the method wallet_addEthereumChain does not exist/is not available
+ * — đọc y như "MetaMask bỏ hàm này" hoặc "ta gọi sai tên hàm", trong khi sự thật
+ * là **ta đang nói chuyện với nhầm ví**. (Cùng một cái bẫy -32601 mà dự án đã dính
+ * một lần ở API Warp: mã lỗi nói về TÊN HÀM, còn nguyên nhân nằm ở NGƯỜI NGHE.)
+ *
+ * Và nó không chỉ hỏng cái nút thêm mạng: `layVi()` là đường đăng nhập SIWE của
+ * `/create-chain/` lẫn `/my-chains/`, nên "nhầm ví" nghĩa là ký bằng ví khác với
+ * ví người dùng tưởng — mà `admin` của chain thì bị ÉP theo địa chỉ đã ký.
+ *
+ * ⇒ Dùng **EIP-6963**: ví tự khai danh tính qua sự kiện thay vì giành một biến
+ * toàn cục. Ta gom hết rồi CHỌN, thay vì nhận bừa kẻ nạp sau cùng.
+ *
+ * Nghe suốt đời trang chứ không nghe một nhịp: ví nạp muộn (hoặc người dùng mở
+ * khoá extension giữa chừng) vẫn khai, và khai lúc nào ta cũng nhận.
+ */
+const viDaKhai = new Map<string, ViDaKhai>();
+let viChonTay: string | null = null;
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('eip6963:announceProvider', (e: Event) => {
+    const d = (e as CustomEvent<ViDaKhai>).detail;
+    if (d?.info?.rdns && d.provider) viDaKhai.set(d.info.rdns, d);
+  });
+  window.dispatchEvent(new Event('eip6963:requestProvider'));
+}
+
+/** Mọi ví đã tự khai. Rỗng nghĩa là không ví nào theo EIP-6963 (hoặc chưa kịp khai). */
+export function dsVi(): ThongTinVi[] {
+  return [...viDaKhai.values()].map((v) => v.info);
+}
+
+/** Người dùng chọn ví theo `rdns`. Không kiểm tồn tại — `layVi()` tự rơi về mặc định. */
+export function chonVi(rdns: string | null): void {
+  viChonTay = rdns;
+}
+
+/** Tên ví đang thật sự được dùng, để giao diện nói rõ chứ không để người dùng đoán. */
+export function tenViDangDung(): string | null {
+  const chon = viChonTay ? viDaKhai.get(viChonTay) : null;
+  if (chon) return chon.info.name;
+  const mm = [...viDaKhai.values()].find((v) => v.info.rdns === 'io.metamask');
+  if (mm) return mm.info.name;
+  const dau = [...viDaKhai.values()][0];
+  return dau ? dau.info.name : null;
+}
+
 export function layVi(): ViTrinhDuyet | null {
   if (typeof window === 'undefined') return null;
-  return (window as unknown as { ethereum?: ViTrinhDuyet }).ethereum ?? null;
+
+  // 1. Người dùng đã chọn tay thì tôn trọng tuyệt đối.
+  if (viChonTay) {
+    const v = viDaKhai.get(viChonTay);
+    if (v) return v.provider;
+  }
+  // 2. Ưu tiên MetaMask: nó là ví dự án hướng dẫn khắp nơi (nút "Thêm vào MetaMask",
+  //    mọi ảnh chụp, mọi tài liệu), nên mặc định phải khớp với thứ ta đã dạy.
+  const mm = [...viDaKhai.values()].find((v) => v.info.rdns === 'io.metamask');
+  if (mm) return mm.provider;
+  // 3. Bất kỳ ví nào đã khai theo chuẩn — vẫn hơn hẳn việc bốc bừa biến toàn cục.
+  const dau = [...viDaKhai.values()][0];
+  if (dau) return dau.provider;
+
+  // 4. Đường lui cho ví CŨ chưa hỗ trợ EIP-6963. `window.ethereum.providers` là quy
+  //    ước cũ của MetaMask khi có nhiều ví; tìm MetaMask trong đó trước khi chịu
+  //    nhận bừa `window.ethereum`.
+  const w = window as unknown as {
+    ethereum?: ViTrinhDuyet & { isMetaMask?: boolean; providers?: (ViTrinhDuyet & { isMetaMask?: boolean })[] };
+  };
+  const ds = w.ethereum?.providers;
+  if (Array.isArray(ds)) return ds.find((p) => p.isMetaMask) ?? ds[0] ?? null;
+  return w.ethereum ?? null;
 }
 
 /** Gốc API console. Cùng tên miền với trang ⇒ đường tương đối là đủ và đúng. */
