@@ -190,10 +190,17 @@ function presetCell(chain){
   if (!p) return '<span class="dim">Chuẩn</span>';
   // Tên do console ghi kèm là nguồn đúng nhất — nó sinh ra từ chính `presets.mjs`
   // tại thời điểm đẻ chain, nên không trôi lệch được.
-  // `presetTen` = khoa CU (truoc chuan hoa 2026-08-26); ban ghi cu khong duoc viet lai.
-  const p = chain.presetName ?? chain.presetTen;
-  const ten = typeof p === 'string' ? p.trim() : '';
-  if (ten) return esc(ten);
+  //
+  // 🔴 HAI BIẾN, KHÔNG PHẢI MỘT. `p` là **id** preset (dùng cho bảng đường lui bên
+  // dưới), `tenHienThi` là **tên** console đã ghi. Gộp chúng vào một biến thì bảng
+  // `TEN_PRESET[...]` bị tra bằng tên hiển thị chứ không phải id ⇒ đường lui mất tác
+  // dụng trong im lặng. Đã dẫm đúng thế 2026-08-26 lúc đổi `presetTen`→`presetName`.
+  //
+  // `presetTen` = khoá CŨ (trước chuẩn hoá 2026-08-26); bản ghi đã đẻ không bao giờ
+  // được console viết lại, và bản phục hồi từ backup cũ cũng mang nó.
+  const tenGoc = chain.presetName ?? chain.presetTen;
+  const tenHienThi = typeof tenGoc === 'string' ? tenGoc.trim() : '';
+  if (tenHienThi) return esc(tenHienThi);
   // Preset lạ (console mới hơn trang) vẫn phải hiện được — hiện thẳng id còn hơn
   // hiện rỗng, vì rỗng làm người xem tưởng chain không có kiểu.
   return esc(TEN_PRESET[p] || p);

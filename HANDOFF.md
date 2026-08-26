@@ -98,11 +98,17 @@ Viết thẳng thì `caddy reload` là đủ. Hai biến đó trong `caddy.env` 
 **Icon LOVE9 đã có** (David đưa bộ logo kit): `web/public/brand/` — SVG + PNG
 24→512px, đồng navy/gold với hệ token. Dùng ở hai chỗ: `iconUrls` của
 `wallet_addEthereumChain`, và favicon (trước đó trang **không có favicon nào**).
-⚠️ **CHƯA đo được MetaMask có thật sự vẽ icon cho token GỐC hay không** — icon token
-gốc của mạng tuỳ chỉnh xưa nay lấy từ registry của chính MetaMask (chainid.network),
-không lấy từ site. Đừng ghi "đã có icon" vào đâu cho tới khi nhìn thấy nó trong ví
-thật. Đường lui nếu ví bỏ qua: đưa chain vào `ethereum-lists/chains` — nhưng đó là PR
-công khai và **công bố vĩnh viễn chainId 9000000009**, cần David quyết.
+🔴 **ĐÃ ĐO XONG 2026-08-26 — `iconUrls` KHÔNG ĂN VỚI TOKEN GỐC. ĐỪNG THỬ LẠI.**
+Tham số này có trong chuẩn EIP-3085 **và** trong ví dụ của chính tài liệu MetaMask,
+nên đọc tài liệu thì tưởng làm được. Đo thật: thêm mạng thành công (màn xác nhận
+"Update 9Chain Testnet A1" hiện đúng Network + RPC, **không hiện icon nào**), mở tab
+Tokens — LOVE9 **vẫn là vòng tròn xám chữ "L9"**. MetaMask không cho đặt icon cho
+token **GỐC**. Dòng `iconUrls` GIỮ LẠI (đúng chuẩn, không tốn gì, ăn ngay nếu ví nào
+chịu vẽ) — cái đắt là phép đo, đã ghi ở `web/lib/chain.ts`.
+Đường còn lại, cả hai đều tệ hơn cái được: ERC-20 thì `wallet_watchAsset` nhận `image`
+thật, nhưng LOVE9 là coin gốc nên phải đẻ bản wrap (WLOVE9) — đổi kiến trúc token chỉ
+để lấy một icon; còn registry của MetaMask thực tế chỉ dành cho mainnet.
+⇒ Chỗ ta THẬT SỰ kiểm soát nhận diện là trang của mình + explorer 9Scan-A1.
 
 **Đã đổi theo:** console (domain SIWE) · Blockscout (`NEXT_PUBLIC_*` + nút "Add
 network to MetaMask" nay trỏ `rpc-a1`) · 12 file nguồn · HANDOFF + memory.

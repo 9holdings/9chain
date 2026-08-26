@@ -85,13 +85,26 @@ export function bieuTuongLove9(): string {
 /**
  * Tham số để thêm mạng vào ví — đúng khuôn EIP-3085.
  *
- * ⚠️ `iconUrls` là tham số CÓ TRONG chuẩn và có trong tài liệu MetaMask, nhưng
- * **chưa đo được là MetaMask có thật sự vẽ nó cho token GỐC hay không** — icon của
- * token gốc trên mạng tuỳ chỉnh xưa nay lấy từ registry mạng của chính MetaMask
- * (chainid.network), không lấy từ site. Gửi lên thì không mất gì; nếu ví bỏ qua,
- * đường còn lại là đưa chain vào `ethereum-lists/chains` — nhưng đó là PR công
- * khai và **công bố vĩnh viễn chainId 9000000009**, nên phải David quyết.
- * Đừng ghi vào tài liệu là "đã có icon" cho tới khi nhìn thấy nó trong ví thật.
+ * 🔴 `iconUrls` — ĐÃ ĐO 2026-08-26, VÀ NÓ KHÔNG ĂN. ĐỪNG THỬ LẠI.
+ *
+ * Tham số này CÓ trong chuẩn EIP-3085 và CÓ trong ví dụ của chính tài liệu
+ * MetaMask, nên nhìn vào tài liệu thì tưởng là làm được. Đo thật: thêm mạng thành
+ * công qua MetaMask (màn xác nhận "Update 9Chain Testnet A1" hiện đúng Network +
+ * RPC, **không hiện icon nào**), rồi mở tab Tokens — LOVE9 vẫn là **vòng tròn xám
+ * chữ "L9"**. MetaMask không cho đặt icon cho **token GỐC**, dù chuẩn khai có.
+ *
+ * GIỮ LẠI dòng này chứ không xoá: nó đúng chuẩn, không tốn gì, và ăn ngay nếu ví
+ * nào đó (hoặc MetaMask bản sau) chịu vẽ. Cái đắt là **phép đo**, nên ghi ở đây để
+ * không ai điều tra lại từ đầu.
+ *
+ * Đường CÒN LẠI nếu một ngày thật sự cần icon trong ví:
+ *   • Token ERC-20 thì `wallet_watchAsset` (EIP-747) nhận thẳng `image` — chạy được.
+ *     Nhưng LOVE9 là coin GỐC, nên muốn vậy phải đẻ một bản wrap (WLOVE9); đổi
+ *     kiến trúc token chỉ để lấy một cái icon là món hời tồi.
+ *   • Vào registry của chính MetaMask: thực tế chỉ dành cho mainnet, và với một
+ *     testnet mang chainId tự chọn thì gần như chắc chắn không được nhận.
+ * ⇒ Chỗ ta THẬT SỰ kiểm soát nhận diện là trang của mình và explorer 9Scan-A1 —
+ *   cả hai đã dùng dấu LOVE9 (favicon + `/brand/`).
  */
 export function thamSoThemMang() {
   return {
