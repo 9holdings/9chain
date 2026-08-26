@@ -237,6 +237,47 @@ export async function choTienTrinhXong(
 }
 
 /** Thêm một L1 vừa đẻ vào ví người dùng, đúng khuôn EIP-3085. */
+/**
+ * Đọc một lỗi EIP-1193 ra chữ người đọc được — MỘT khuôn cho cả site.
+ *
+ * ═══ VÌ SAO HÀM NÀY TỒN TẠI ═══
+ * Khuôn này vốn nằm trong `FaucetForm`, viết rất kỹ sau khi trả giá thật
+ * `2026-08-26`. Ba nút khác (`Thêm chain vào ví`, `Kích hoạt chain` ở màn đẻ chain,
+ * `Thêm vào ví` ở màn chain của tôi) thì `catch {}` TRẮNG — cùng một thao tác, cùng
+ * một sản phẩm, hai chuẩn xử lý. Chỗ nào nuốt lỗi thì nút hỏng mà không một chữ nào
+ * hiện ra, và người dùng bấm lại vô hạn.
+ *
+ * 🔴 `4001` = NGƯỜI DÙNG TỪ CHỐI. Đó là hành vi bình thường, KHÔNG phải sự cố ⇒
+ * `tuChoi: true`, không có chữ đỏ nào. Gộp nó vào lỗi thật là dạy người dùng bỏ qua
+ * cảnh báo.
+ *
+ * 🔴 `-32601` = ví ĐANG NGHE không có hàm này. Đọc như "sai tên hàm", thật ra là
+ * "NHẦM VÍ" — nên câu trả lời phải nói RÕ ví nào đang nghe và còn ví nào khác đang
+ * cài. Đã trả giá `2026-08-26`: máy có ~10 extension ví, kẻ thắng `window.ethereum`
+ * là một ví không thêm được mạng EVM.
+ *
+ * Mọi mã khác: hiện NGUYÊN VĂN mã + thông điệp của ví. Đó là thứ duy nhất phân biệt
+ * "tham số của ta sai" với "ví không chịu".
+ */
+export type LoiVi = { tuChoi: boolean; chu: string | null };
+
+export function docLoiVi(e: unknown): LoiVi {
+  const err = e as { code?: number; message?: string };
+  if (err?.code === 4001) return { tuChoi: true, chu: null };
+  if ((e as Error)?.message === 'KHONG_CO_VI') {
+    return { tuChoi: false, chu: 'Không thấy ví trong trình duyệt.' };
+  }
+  const ten = tenViDangDung();
+  const khac = dsVi()
+    .map((x) => x.name)
+    .filter((n) => n !== ten);
+  const them =
+    err?.code === -32601
+      ? ` — ví đang dùng: ${ten ?? 'không rõ'}${khac.length ? `; ví khác đang cài: ${khac.join(', ')}` : ''}`
+      : '';
+  return { tuChoi: false, chu: `${err?.code ?? '?'} · ${err?.message ?? String(e)}${them}` };
+}
+
 export async function themL1VaoVi(p: {
   chainIdHex: string;
   name: string;

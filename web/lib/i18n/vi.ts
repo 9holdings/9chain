@@ -200,6 +200,12 @@ export const vi = {
     xongKichHoat: 'Kích hoạt chain (mở block 1)',
     xongDaKichHoat: 'Đã kích hoạt',
     xongDangKichHoat: 'Đang chờ ví…',
+    // Ba chuỗi này lấp đúng chỗ trước đây `catch {}` trắng — nút hỏng mà không một
+    // chữ nào hiện ra, người dùng bấm lại vô hạn.
+    xongThemViLoi: 'Không thêm được chain vào ví. {chiTiet} [?]',
+    xongKichHoatLoi: 'Không kích hoạt được chain. {chiTiet} [?]',
+    viTuChoi: 'Bạn đã từ chối trong ví. Chưa có gì thay đổi. [?]',
+
     deTiep: 'Đẻ chain khác',
     loiDe: 'Không đẻ được chain. {chiTiet}',
     loiKhongRo: 'Chain không xuất hiện trong danh bạ sau khi lượt chạy kết thúc.',
@@ -235,6 +241,8 @@ export const vi = {
     thongSo: 'Thông số cho ví',
     themVaoVi: 'Thêm vào ví',
     daThemVaoVi: 'Đã thêm',
+    themViLoi: 'Không thêm được vào ví. {chiTiet} [?]',
+    themViTuChoi: 'Bạn đã từ chối trong ví. Chưa có gì thay đổi. [?]',
 
     thuHoi: 'Thu hồi',
     thuHoiTieuDe: 'Thu hồi “{ten}”?',

@@ -5,7 +5,7 @@ import { Nut, The, O, Nhan, Xuong, CoLoi, ChepDuoc, LuuY } from '@/components/ui
 import { kiemDiaChi, rutGon } from '@/lib/eip55';
 import { CHAIN, faucetGoc, rpcCChain, explorerGoc, thamSoThemMang } from '@/lib/chain';
 import { vi, dien } from '@/lib/i18n/vi';
-import { layVi, dsVi, tenViDangDung } from '@/lib/wallet';
+import { layVi, docLoiVi } from '@/lib/wallet';
 
 type ThongTin = {
   amount: string;
@@ -58,13 +58,10 @@ export function FaucetForm() {
    * 🔴 KHÔNG `catch {}` Ở ĐÂY. Bản trước nuốt sạch lỗi rồi hiện đúng một câu
    * "Ví từ chối hoặc chưa cài" — gộp hai nguyên nhân khác hẳn nhau vào một chữ
    * "hoặc", nên khi nút này hỏng thật thì cả người dùng lẫn người sửa đều không có
-   * gì để lần. Đã trả giá 2026-08-26: nút báo lỗi, và không ai biết là ví từ chối,
-   * ví đang khoá, hay tham số mình gửi sai.
+   * gì để lần. Đã trả giá 2026-08-26.
    *
-   * EIP-1193 quy định `4001` = NGƯỜI DÙNG TỪ CHỐI — đó là hành vi bình thường,
-   * không phải sự cố, nên nó có câu riêng. Mọi mã khác là lỗi thật và phải hiện
-   * NGUYÊN VĂN mã + thông điệp của ví: đó là thứ duy nhất phân biệt được
-   * "tham số của ta sai" với "ví không chịu".
+   * Cách đọc mã lỗi đã rút sang `docLoiVi()` trong `lib/wallet.ts` — ba nút khác
+   * trong site cần đúng khuôn này, và trước đó chúng `catch {}` trắng.
    */
   async function themMang() {
     const v = layVi();
@@ -74,24 +71,9 @@ export function FaucetForm() {
       datViTrangThai('xong');
       datViLoi(null);
     } catch (e) {
-      const err = e as { code?: number; message?: string };
-      if (err?.code === 4001) {
-        datViTrangThai('tuChoi');
-        datViLoi(null);
-      } else {
-        datViTrangThai('loi');
-        // 🔴 `-32601` = ví ĐANG NGHE không có hàm này. Đọc như "sai tên hàm", thật ra
-        // là "nhầm ví" — nên câu trả lời phải nói RÕ ví nào đang nghe và còn ví nào
-        // khác. Đã trả giá 2026-08-26: máy có ~10 extension ví, kẻ thắng
-        // `window.ethereum` là một ví không thêm được mạng EVM.
-        const ten = tenViDangDung();
-        const khac = dsVi().map((x) => x.name).filter((n) => n !== ten);
-        const them =
-          err?.code === -32601
-            ? ` — ví đang dùng: ${ten ?? 'không rõ'}${khac.length ? `; ví khác đang cài: ${khac.join(', ')}` : ''}`
-            : '';
-        datViLoi(`${err?.code ?? '?'} · ${err?.message ?? String(e)}${them}`);
-      }
+      const l = docLoiVi(e);
+      datViTrangThai(l.tuChoi ? 'tuChoi' : 'loi');
+      datViLoi(l.chu);
     }
   }
 

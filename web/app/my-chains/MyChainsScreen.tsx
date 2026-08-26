@@ -5,7 +5,7 @@ import { Nut, The, O, Nhan, Xuong, CoLoi, LuuY, ChepDuoc, TrongRong, CacBuoc, ty
 import { rutGon } from '@/lib/eip55';
 import { rpcGoc } from '@/lib/chain';
 import { vi, dien } from '@/lib/i18n/vi';
-import { layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, choTienTrinhXong, type PhienVi } from '@/lib/wallet';
+import { layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, choTienTrinhXong, docLoiVi, type PhienVi } from '@/lib/wallet';
 
 type Chain = {
   name: string; chainId: number; subnetID: string; blockchainID: string;
@@ -47,6 +47,11 @@ export function MyChainsScreen() {
   const [tt, datTt] = useState<TrangThai | null>(null);
   const [loiTai, datLoiTai] = useState(false);
   const [vld, datVld] = useState<Record<string, number | 'dang' | 'loi'>>({});
+
+  // Kết quả bấm "Thêm vào ví", THEO TỪNG CHAIN — màn này vẽ nhiều chain một lúc, nên
+  // một ô lỗi dùng chung sẽ dán lỗi của chain này lên thẻ của chain khác.
+  // Bản trước `catch {}` trắng: bấm xong không có gì đổi, cả lúc được lẫn lúc hỏng.
+  const [themVi, datThemVi] = useState<Record<number, { xong: true } | { xong: false; chu: string }>>({});
 
   const [dangThuHoi, datDangThuHoi] = useState<Chain | null>(null);
   const [goTen, datGoTen] = useState('');
@@ -281,11 +286,32 @@ export function MyChainsScreen() {
                         onClick={async () => {
                           try {
                             await themL1VaoVi({ chainIdHex: '0x' + c.chainId.toString(16), name: c.name, rpc: c.rpc!, kyHieu: 'LOVE9' });
-                          } catch { /* ví từ chối — người dùng bấm lại được */ }
+                            datThemVi((s) => ({ ...s, [c.chainId]: { xong: true } }));
+                          } catch (e) {
+                            const l = docLoiVi(e);
+                            datThemVi((s) => ({
+                              ...s,
+                              [c.chainId]: {
+                                xong: false,
+                                chu: l.tuChoi
+                                  ? vi.chainCuaToi.themViTuChoi
+                                  : dien(vi.chainCuaToi.themViLoi, { chiTiet: l.chu ?? '' }),
+                              },
+                            }));
+                          }
                         }}
                       >
-                        {vi.chainCuaToi.themVaoVi}
+                        {themVi[c.chainId]?.xong ? vi.chainCuaToi.daThemVaoVi : vi.chainCuaToi.themVaoVi}
                       </Nut>
+                      {/* Vùng live thường trú cho TỪNG thẻ chain — xem chú thích cùng
+                          loại ở CreateChainScreen. */}
+                      <div role="status" aria-live="polite" className="mt-2 empty:hidden">
+                        {themVi[c.chainId]?.xong === false && (
+                          <p className="text-sm text-danger">
+                            {(themVi[c.chainId] as { chu: string }).chu}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )}
                 </The>
