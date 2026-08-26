@@ -51,12 +51,22 @@ Kèm `DECISIONS.md` (vì sao làm vậy) và `BLOCKERS.md` (đang chờ David c�
 - 🔴 **`keys.txt` mới là điểm hỏng duy nhất** — D-044 chốt giữ sơ đồ cũ, **bản thứ hai
   do David tự cất**. Mất máy dev = mất khoá của cả 5 quỹ, không có đường khôi phục.
 
-### Việc CHƯA làm lại sau re-genesis (mạng mới chưa từng chạy các đường này)
+### ✅ Đã nghiệm thu lại TOÀN BỘ đường sản phẩm trên mạng mới (2026-08-26)
 
-- **Đẻ L1 qua console** — chưa thử lần nào trên mạng mới. Chạy
-  `smoke-l1.mjs --create-chain` (~6 phút, tự thu hồi) để đóng.
-- **Warp/ICM** (`warp-test.mjs`, `bridge-test.mjs`) — cần 2 slot L1, mỗi bài ~13 phút.
-- **9Scan-A1** đọc chuỗi này — **họ chưa được báo**; dữ liệu cũ của họ nay vô nghĩa.
+| bài | kết quả |
+|---|---|
+| `smoke-l1.mjs --create-chain` | **25/25 ĐẠT** — đẻ chain thật 305,5s · giao dịch chốt 4,2s · tự thu hồi 293,4s |
+| `warp-test.mjs` | **21/21 ĐẠT** — 2 L1 (9102↔9103), Warp precompile sống, API Warp bật |
+| `bridge-test.mjs` | **27/27 ĐẠT** — **7 LOVE9 rời chain 9104, xuất hiện ở ví trắng trên 9105** |
+| danh bạ sau cùng | **0 sống · 6 đã thu hồi** — mọi bài tự dọn, không chain mồ côi |
+| gián đoạn C-Chain | đẻ: 611 lượt/hỏng 1/**dài nhất 0,5s** · thu hồi: 587 lượt/hỏng 1/**0,5s** |
+
+Ba đòn tấn công của `bridge-test` vẫn bị chặn đúng trên mạng mới: phát lại message
+⇒ revert · bỏ predicate ⇒ revert · **đòn rút sạch của bản cũ** ⇒ revert
+`sai hop dong nguon`, và **không một đồng nào rời thanh khoản**.
+
+⚠️ **9Scan-A1 đã có ghi chú báo** ở `docs/requests-from-9scan/2026-08-26-A1-da-re-genesis-BAO-CHO-9SCAN.md`
+nhưng **chưa ai gửi cho họ** — David hoặc phiên sau phải báo thật.
 
 🔴 **Nhớ: đây mới là DIỄN TẬP.** 01/09 sinh lại lần nữa. Khoá hiện tại sống tới ngày G.
 
@@ -632,6 +642,22 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ## Gotchas
 
 ### Thêm từ phiên 2026-08-26 (đợt 9 — re-genesis mạng công khai)
+- 🔴 **`fetch` CỦA NODE CÓ HẠN GIỜ ẨN 300 GIÂY, VÀ `AbortSignal.timeout()` KHÔNG NỚI
+  ĐƯỢC NÓ.** undici đặt `headersTimeout` mặc định đúng 300.000ms; muốn khác phải đổi
+  dispatcher. Mã nguồn **không ghi một con số nào** nên đọc code không thấy. Với 9 node,
+  đẻ chain mất ~305s ⇒ vượt ngưỡng. Đo thật: `warp-test` in
+  *"POST không kết luận được (fetch failed), sự thật lấy từ danh bạ"* ở giây **305,8**.
+- 🔴 **HẠN GIỜ CẮM CỨNG LÀ MỘT GIẢ ĐỊNH VỀ QUY MÔ MẠNG.** `smoke-l1` cắm 300s — vừa đủ
+  cho 5 node, hỏng ngay ở 9 node. Bất cứ hạn giờ nào bao một thao tác *tỉ lệ với số node*
+  đều phải **suy từ số node**, không được là hằng số. Nay: `60s + 60s/node`.
+- 🔴 **BÀI KIỂM PHẢI THEO ĐÚNG LUẬT MÀ SẢN PHẨM ĐÃ THEO.** Giao diện coi kết quả POST dài
+  là *không kết luận được* từ M10.4/M10.5, nhưng bộ kiểm thử thì chưa — nên nó **báo đỏ
+  cho một sản phẩm hoạt động đúng** và bỏ lại **chain mồ côi ăn một slot**. Nay cả ba bài
+  đi qua `thaoTacDai()` trong `warp-common.mjs`: bắn POST → đọc `/api/progress` tới khi
+  **lượt của chính mình** kết thúc (khớp `name`+`kind`) → hỏi **danh bạ** xem sự thật.
+- **Dấu nháy đơn trong đoạn `python3 -c '...'` nhúng trong chuỗi ssh sẽ ĐÓNG chuỗi ssh.**
+  Lỗi hiện ra là `thu: command not found` — đọc như lỗi trên server, thực ra là shell
+  máy dev. Script dài thì `scp` lên rồi chạy, đừng nhồi vào một dòng ssh.
 - 🔴 **BẪY `pgrep`/`ps|awk` — LẦN THỨ NĂM, cửa mới: MẪU QUÁ HẸP.** Bốn lần trước là
   mẫu **tự khớp chính nó**; lần này ngược lại — mẫu
   `/faucet\/(smoke|warp|bridge)-?[a-z]*\.mjs/` **không khớp `smoke-l1.mjs`** vì tên tệp
