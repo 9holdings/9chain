@@ -896,3 +896,67 @@ trong netgen, và `allocation.md`. Không có thay đổi consensus-critical nà
 mang ý nghĩa `9×10`. Đổi sang 9 tỷ giữ được biểu tượng số 9 và **C1 phải chỉnh theo** —
 mục tiêu "hai nhánh cùng một con số" chỉ đạt khi C1 cũng đổi. **A1 không tự làm được
 phần đó.**
+
+### D-040 — Bảng phân bổ genesis 9 tỷ: **40 staking · 30 con người · 20 hệ sinh thái · 10 team**
+
+**David chốt 2026-08-26.** Thay bảng đang chạy `40/20/20/5/15` (staking/foundation/
+ecosystem/faucet/team).
+
+| Quỹ | % | LOVE9 | Dạng |
+|---|--:|--:|---|
+| Staking + validator | 40 | 3.600.000.000 | self-bond genesis **900.000.000** (180 tr/node × 5, khoá 1 năm) + **2.700.000.000** để mint dần |
+| Con người | 30 | 2.700.000.000 | faucet **nóng** 250.000.000 (thanh khoản) + **2.450.000.000 khoá 2 năm** |
+| Hệ sinh thái | 20 | 1.800.000.000 | 225.000.000 thanh khoản X/P + 1.575.000.000 C-Chain |
+| Team | 10 | 900.000.000 | khoá 4 năm |
+
+**Phát hành genesis 6.300.000.000** (70,0% trần) · **để mint 2.700.000.000** (30,0%).
+Tổng phần chia nhỏ khớp đúng 6,3 tỷ — đã đối chiếu.
+
+**Vì sao bảng này thay vì bảng BOD đề (`đội 10 · hệ sinh thái 20 · staking 30 ·
+con người 40`):** nó **đổi ít nhất** so với mạng đang chạy — Staking giữ nguyên 40%,
+Hệ sinh thái giữ nguyên 20%. Với một lượt re-genesis thì "đổi ít biến hơn" là ưu điểm
+thật: hỏng thì biết ngay do đâu.
+
+**Team 10% — David chốt, và chốt có chủ đích.** Lý do anh nêu: ngang Avalanche, và
+thấp hơn nhiều dự án khác.
+⚠️ **Tôi KHÔNG kiểm chứng được con số "Avalanche team 10%" từ mã trong repo** —
+genesis mainnet trong `avalanchego` chỉ là danh sách địa chỉ + số tiền, không nhãn quỹ.
+Ghi lại theo lời David, và ghi rõ đó là nguồn duy nhất.
+🔴 **Biết trước để không bị hỏi bất ngờ:** C1 khai **Team 0%** trong
+`9chain/docs/SPEC-TOKENOMICS.md` (*"KHÔNG có allocation, KHÔNG có vesting account nào
+trong genesis. Team đào như mọi người — fair launch tuyệt đối"*). Hai nhánh vì thế kể
+hai câu chuyện công bằng khác nhau, và đó là thứ người ngoài so sánh sẽ thấy trước
+tiên. **David chốt A1 làm chuẩn ⇒ C1 sẽ sửa theo** (xem D-041).
+
+**Hai điều tôi đề nghị và David không phản đối, đã áp:**
+1. **Quỹ "Con người" KHOÁ 2 năm** thay vì để trần. Ở C1 quỹ tương đương là module
+   account có luật mở 0,09%/ngày **cưỡng chế trên chain**; ở A1 nếu để trần thì nó chỉ
+   là một cái khoá — ai giữ khoá chuyển hết được bất cứ lúc nào. Dùng `unlockSchedule`
+   (cơ chế đã dùng cho Foundation 2 năm / Team 4 năm) thì **genesis cưỡng chế**, không
+   phụ thuộc người giữ khoá. Chừa 250 tr thanh khoản cho faucet.
+2. **self-bond 900 tr (180 tr/node) thay vì 1,2 tỷ.** self-bond lớn siết ngân sách
+   thưởng: 1,2 tỷ ⇒ chỉ còn 26,7% trần để mint; 900 tr ⇒ 30,0%. (Bản đang chạy: 44,4%
+   — vẫn thấp hơn, đây là đánh đổi có ý thức của việc nâng tỷ trọng phát hành genesis.)
+   Dư địa nhận uỷ quyền mỗi node: **71%** của trần 625 tr.
+
+**Ghi ra vì nó không tự hiện ra ở đâu:** validator genesis giữ 180 tr, validator cộng
+đồng vào ở mức tối thiểu 25.000 ⇒ **chênh 7.200 lần** (0,003% trọng số). Với M3
+(*"cộng đồng chạy node"*) thì node cộng đồng gần như không có tiếng nói consensus trừ
+khi được cấp vốn. **Đường cấp vốn là quỹ Hệ sinh thái 1,8 tỷ** — ghi ở đây để sau
+không ai hỏi "tiền đó để làm gì".
+
+### D-041 — **A1 làm chuẩn tokenomics, C1 follow theo.** Đảo chiều so với kế hoạch BOD
+
+**David chốt 2026-08-26.**
+
+Kế hoạch BOD đang đặt **C1 làm nguồn** — rõ nhất ở phần khắc chữ: *"C1 sinh trước, A1
+lấy byte đó, không gõ lại"*, và phần tokenomics mô tả A1 "đồng nhất **theo** C1".
+Nay ngược lại cho **phần phân bổ**: A1 chốt trước, C1 sửa theo.
+
+🔴 **Phải báo BOD và C1 ngay, vì hai bên có thể đang chờ nhau.** Nếu C1 vẫn coi mình là
+nguồn thì cả hai cùng đứng, và mốc 01/09 mất ngày trong lúc không ai làm gì.
+
+⚠️ **Đảo chiều này CHỈ áp cho phân bổ/tokenomics.** Phần **khắc chữ** (bản Hebrew, 9
+tài liệu, bản ASV 1901 phải khớp từng byte) vẫn theo chiều cũ — C1 sinh, A1 chép byte.
+Trộn hai chiều là chỗ đẻ ra hai bản văn khác nhau trên hai chain, và đó là thứ không
+sửa được sau khi khắc.
