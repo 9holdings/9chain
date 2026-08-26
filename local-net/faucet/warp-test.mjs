@@ -33,6 +33,7 @@ import { EXAMPLE_WARP_ABI, EXAMPLE_WARP_BIN } from "../lib/example-warp.mjs";
 import {
   WARP, guiVoiNonce, chot, napHopDong, moBlock1,
   goiPredicate, bocLogWarp, apiWarpDaBat, xinChuKy, phaiRevert,
+  thaoTacDai,
 } from "./warp-common.mjs";
 
 const args = process.argv.slice(2);
@@ -73,7 +74,11 @@ async function api(duong, body) {
  */
 async function dungChain(ten, vi, nhan, daDe) {
   const t0 = Date.now();
-  const chain = await api("/api/create", { name: ten, admin: vi.address });
+  const chain = await thaoTacDai({
+    consoleUrl: CONSOLE, token: TOKEN,
+    danhBaUrl: "https://a1.9chain.org/chains/data/console-chains.json",
+    loai: "create", ten, body: { name: ten, admin: vi.address },
+  });   // POST dài KHÔNG kết luận được — xem thaoTacDai() trong warp-common.mjs
   // GHI VÀO SỔ DỌN NGAY, trước mọi bước có thể ném lỗi.
   //
   // Bản đầu ghi ở chỗ gọi, SAU khi hàm này trả về — nên lượt chạy đầu tiên vấp bẫy
@@ -211,8 +216,12 @@ if (GIU) {
 } else {
   for (const ten of daDe) {
     try {
-      const r = await api("/api/revoke", { name: ten, xacNhan: ten });
-      kiem(`thu hồi ${ten}, trả lại slot`, true, `còn ${r.dangTrack}/${r.tran} L1`);
+      const r = await thaoTacDai({
+        consoleUrl: CONSOLE, token: TOKEN,
+        danhBaUrl: "https://a1.9chain.org/chains/data/console-chains.json",
+        loai: "revoke", ten, body: { name: ten, xacNhan: ten },
+      });
+      kiem(`thu hồi ${ten}, trả lại slot`, true, r.dangTrack !== undefined ? `còn ${r.dangTrack}/${r.tran} L1` : "xác nhận qua danh bạ");
     } catch (e) {
       kiem(`thu hồi ${ten}, trả lại slot`, false, sach(e.message));
     }

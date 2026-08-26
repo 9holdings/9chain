@@ -72,15 +72,52 @@ try {
 }
 
 console.log("\n── 2. Validator ──");
+let soNode = 0;
 try {
   const v = await rpc(`${RPC_GOC}/ext/bc/P`, "platform.getCurrentValidators");
   const tong = v.validators.length;
   const noi = v.validators.filter(x => x.connected).length;
+  soNode = tong;
   // Không cắm cứng "phải là 5": mạng có thể mở rộng. Điều kiện thật là KHÔNG
   // validator nào rớt — một node im lặng làm mỏng quorum mà bề ngoài không đổi.
   kiem("mọi validator đang kết nối", noi === tong && tong > 0, `${noi}/${tong}`);
 } catch (e) {
   kiem("đọc được validator", false, sach(e.message));
+}
+
+// 🔴 HẠN GIỜ PHẢI SUY TỪ SỐ NODE, KHÔNG ĐƯỢC CẮM CỨNG.
+// Đẻ/thu hồi chain restart node LẦN LƯỢT (~31s/node, D-008). Bản cũ cắm cứng
+// 300s — vừa đủ cho 5 node, và **hỏng ngay khi mạng lên 9 node**: đo thật
+// 2026-08-26 là **355s**, client bỏ cuộc trong khi server làm xong.
+// 60s nền + 60s/node ⇒ 9 node = 600s, còn gấp rưỡi dư địa so với số đo.
+const HAN_THAO_TAC = 60_000 + Math.max(soNode, 5) * 60_000;
+
+/**
+ * Chờ một lượt đẻ/thu hồi kết thúc bằng cách đọc /api/progress.
+ *
+ * 🔴 Vì sao tồn tại: kết quả của lượt POST dài là **không kết luận được**.
+ * Cloudflare cắt ở ~100s, hạn giờ client có thể ngắn hơn thao tác, mạng có thể
+ * đứt — cả ba đều làm POST hỏng TRONG KHI SERVER CHẠY TỚI CÙNG VÀ THÀNH CÔNG.
+ * Giao diện đã theo luật này từ M10.4/M10.5; bài kiểm thì chưa, nên nó báo đỏ
+ * cho một sản phẩm hoạt động đúng — và tệ hơn, bỏ lại chain mồ côi ăn một slot.
+ *
+ * Chỉ tin khi lượt đang đọc ĐÚNG LÀ LƯỢT CỦA MÌNH (khớp name + kind): gọi sớm
+ * quá là đọc trúng kết quả của lượt TRƯỚC.
+ */
+async function choThaoTacXong(ten, loai, hanGio) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < hanGio) {
+    try {
+      const r = await fetch(`${CONSOLE}/api/progress`, {
+        headers: { authorization: `Bearer ${TOKEN}` },
+        signal: AbortSignal.timeout(15000),
+      });
+      const j = await r.json();
+      if (j && j.name === ten && j.kind === loai && j.running === false) return j;
+    } catch { /* console có thể đang bận giữa đợt restart — thử lại */ }
+    await new Promise(s => setTimeout(s, 5000));
+  }
+  return null;
 }
 
 /** Bản danh bạ công khai (qua Cloudflare) — nguồn sự thật mà người dùng thật thấy. */
@@ -188,7 +225,7 @@ if (DE_CHAIN) {
     const doC = (async () => {
       const t0 = Date.now(), mau = [];
       let dut = 0, dangDut = null, dutDaiNhat = 0;
-      while (Date.now() - t0 < 300000 && !dungDo) {
+      while (Date.now() - t0 < HAN_THAO_TAC && !dungDo) {
         const ts = Date.now();
         let ok = false;
         try { await rpc(`${RPC_GOC}/ext/bc/C/rpc`, "eth_blockNumber"); ok = true; } catch { /* đếm bên dưới */ }
@@ -209,14 +246,21 @@ if (DE_CHAIN) {
         method: "POST",
         headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}` },
         body: JSON.stringify({ name: ten, admin: vi.address }),
-        signal: AbortSignal.timeout(300000),
+        signal: AbortSignal.timeout(HAN_THAO_TAC),
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
       chain = j;
       kiem("console đẻ được chain", true, `${((Date.now() - t0) / 1000).toFixed(1)}s`);
     } catch (e) {
-      kiem("console đẻ được chain", false, sach(e.message));
+      // POST hỏng ≠ server hỏng. Đi hỏi tiến trình rồi hỏi DANH BẠ xem sự thật là gì.
+      await choThaoTacXong(ten, "create", HAN_THAO_TAC);
+      let m = null;
+      try { m = (await docDanhBa()).chains.find(c => c.name === ten) || null; } catch { /* dưới báo */ }
+      chain = m;
+      kiem("console đẻ được chain", !!m,
+        m ? `${((Date.now() - t0) / 1000).toFixed(1)}s — POST không kết luận được (${sach(e.message)}), sự thật lấy từ danh bạ`
+          : sach(e.message));
     }
     dungDo = true;
     const doDuoc = await doC;
@@ -268,7 +312,7 @@ if (DE_CHAIN) {
       const doC2 = (async () => {
         const t0 = Date.now(), mau = [];
         let dangDut = null, dutDaiNhat = 0;
-        while (Date.now() - t0 < 300000 && !dungDo2) {
+        while (Date.now() - t0 < HAN_THAO_TAC && !dungDo2) {
           const ts = Date.now();
           let ok = false;
           try { await rpc(`${RPC_GOC}/ext/bc/C/rpc`, "eth_blockNumber"); ok = true; } catch { /* đếm dưới */ }
@@ -289,14 +333,25 @@ if (DE_CHAIN) {
           method: "POST",
           headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}` },
           body: JSON.stringify({ name: ten, xacNhan: ten }),
-          signal: AbortSignal.timeout(300000),
+          signal: AbortSignal.timeout(HAN_THAO_TAC),
         });
         const j = await r.json();
         if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
         thuHoi = j;
         kiem("console thu hồi được chain", true, `${((Date.now() - tr) / 1000).toFixed(1)}s`);
       } catch (e) {
-        kiem("console thu hồi được chain", false, sach(e.message));
+        // Y như lúc đẻ: POST hỏng không kết luận được. Sự thật nằm ở danh bạ —
+        // chain phải RỜI mảng `chains` và xuất hiện trong `retired`.
+        await choThaoTacXong(ten, "revoke", HAN_THAO_TAC);
+        let daThuHoi = false;
+        try {
+          const d = await docDanhBa();
+          daThuHoi = !d.chains.some(c => c.name === ten) && d.retired.some(c => c.name === ten);
+        } catch { /* dưới báo */ }
+        if (daThuHoi) thuHoi = { name: ten };
+        kiem("console thu hồi được chain", daThuHoi,
+          daThuHoi ? `${((Date.now() - tr) / 1000).toFixed(1)}s — POST không kết luận được (${sach(e.message)}), sự thật lấy từ danh bạ`
+            : sach(e.message));
       }
       dungDo2 = true;
       const do2 = await doC2;

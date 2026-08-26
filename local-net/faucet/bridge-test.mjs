@@ -32,6 +32,7 @@ import { CAU_TAI_SAN_ABI, CAU_TAI_SAN_BIN, CAU_TAI_SAN_VAN_TAY_NGUON } from "../
 import {
   WARP, guiVoiNonce, chot, napHopDong, moBlock1,
   goiPredicate, bocLogWarp, apiWarpDaBat, xinChuKy, phaiRevert,
+  thaoTacDai,
 } from "./warp-common.mjs";
 
 const args = process.argv.slice(2);
@@ -68,7 +69,11 @@ async function api(duong, body) {
 /** Đẻ chain, mở block 1, nạp hợp đồng cầu. Ghi tên vào sổ dọn NGAY sau khi đẻ. */
 async function dungChain(ten, vi, nhan, daDe) {
   const t0 = Date.now();
-  const chain = await api("/api/create", { name: ten, admin: vi.address });
+  const chain = await thaoTacDai({
+    consoleUrl: CONSOLE, token: TOKEN,
+    danhBaUrl: "https://a1.9chain.org/chains/data/console-chains.json",
+    loai: "create", ten, body: { name: ten, admin: vi.address },
+  });   // POST dài KHÔNG kết luận được — xem thaoTacDai() trong warp-common.mjs
   daDe.push(ten);
   kiem(`${nhan}: đẻ được chain`, true, `${((Date.now() - t0) / 1000).toFixed(1)}s · chainId ${chain.chainId}`);
 
@@ -250,8 +255,12 @@ if (GIU) {
 } else {
   for (const ten of daDe) {
     try {
-      const r = await api("/api/revoke", { name: ten, xacNhan: ten });
-      kiem(`thu hồi ${ten}, trả lại slot`, true, `còn ${r.dangTrack}/${r.tran} L1`);
+      const r = await thaoTacDai({
+        consoleUrl: CONSOLE, token: TOKEN,
+        danhBaUrl: "https://a1.9chain.org/chains/data/console-chains.json",
+        loai: "revoke", ten, body: { name: ten, xacNhan: ten },
+      });
+      kiem(`thu hồi ${ten}, trả lại slot`, true, r.dangTrack !== undefined ? `còn ${r.dangTrack}/${r.tran} L1` : "xác nhận qua danh bạ");
     } catch (e) {
       kiem(`thu hồi ${ten}, trả lại slot`, false, sach(e.message));
     }

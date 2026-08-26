@@ -192,3 +192,68 @@ export async function xinChuKy(providerNguon, messageId58, lan = 20) {
   }
   return { signed: null, loi };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+/**
+ * Gọi một thao tác DÀI của console (đẻ / thu hồi chain) rồi xác định sự thật
+ * bằng TIẾN TRÌNH + DANH BẠ, không bằng kết quả của lượt POST.
+ *
+ * 🔴 VÌ SAO KHÔNG THỂ TIN LƯỢT POST — ba tầng cắt, không tầng nào báo rõ:
+ *   1. Cloudflare cắt ở ~100s (HTTP 524) nếu đi qua tên miền công khai.
+ *   2. `fetch` của Node (undici) có `headersTimeout` MẶC ĐỊNH **300 giây**, và
+ *      `AbortSignal.timeout()` KHÔNG nới được nó — phải đổi dispatcher. Đây là
+ *      hạn giờ ẩn: mã nguồn không hề ghi một con số nào.
+ *   3. Bản thân mạng có thể đứt.
+ * Trong khi đó thao tác nay mất ~355 giây với 9 node (restart lần lượt ~31s/node,
+ * D-008) và SERVER VẪN CHẠY TỚI CÙNG. Đo thật 2026-08-26: smoke-l1 báo
+ * "The operation was aborted due to timeout" trong khi chain đã đẻ xong, vào
+ * danh bạ, node đã track subnet — và bài kiểm bỏ lại một chain mồ côi ăn 1 slot.
+ *
+ * Chỉ tin lượt tiến trình ĐÚNG LÀ LƯỢT CỦA MÌNH (khớp `name` + `kind`): đọc sớm
+ * quá là trúng kết quả của lượt TRƯỚC.
+ *
+ * @returns bản ghi chain trong danh bạ (khi tạo) hoặc `{name}` (khi thu hồi);
+ *          ném lỗi nếu danh bạ nói thao tác KHÔNG xảy ra.
+ */
+export async function thaoTacDai({ consoleUrl, token, danhBaUrl, loai, ten, body, hanGio = 900_000 }) {
+  const duong = loai === "create" ? "/api/create" : "/api/revoke";
+  let loiPost = null;
+  try {
+    const r = await fetch(consoleUrl + duong, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+    const t = await r.text();
+    let j; try { j = JSON.parse(t); } catch { throw new Error(`đáp án không phải JSON (HTTP ${r.status})`); }
+    if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
+    return j;                       // đường thuận: POST về kịp
+  } catch (e) {
+    loiPost = e;                    // KHÔNG kết luận hỏng — đi hỏi tiến trình
+  }
+
+  const t0 = Date.now();
+  while (Date.now() - t0 < hanGio) {
+    try {
+      const r = await fetch(consoleUrl + "/api/progress", {
+        headers: { authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(15_000),
+      });
+      const j = await r.json();
+      if (j && j.name === ten && j.kind === loai && j.running === false) break;
+    } catch { /* console bận giữa đợt restart — thử lại */ }
+    await new Promise(s => setTimeout(s, 5_000));
+  }
+
+  const rd = await fetch(`${danhBaUrl}?t=${Date.now()}`, { cache: "no-store", signal: AbortSignal.timeout(20_000) });
+  const d = await rd.json();
+  const chains = d.chains || [], retired = d.retired || [];
+  if (loai === "create") {
+    const m = chains.find(c => c.name === ten);
+    if (m) return m;
+    throw new Error(`POST hỏng (${loiPost?.message}) VÀ danh bạ không có "${ten}" — thao tác thật sự không thành`);
+  }
+  const daThuHoi = !chains.some(c => c.name === ten) && retired.some(c => c.name === ten);
+  if (daThuHoi) return { name: ten };
+  throw new Error(`POST hỏng (${loiPost?.message}) VÀ danh bạ vẫn còn "${ten}" — chưa thu hồi được`);
+}
