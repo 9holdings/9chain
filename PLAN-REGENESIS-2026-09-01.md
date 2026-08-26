@@ -1,0 +1,343 @@
+# KẾ HOẠCH — 9Chain Testnet A1 sinh lại mạng `2026-09-01`
+
+> **Bản nháp `2026-08-26` do 9Chain-BOD dựng theo chỉ đạo chủ dự án.** Đối chiếu bản C1:
+> `C:\PROJECTS\9Chain-C1\internal\PLAN-REGENESIS-2026-09-01.md`.
+> Quyết định gốc: `C:\PROJECTS\9Chain-BOD\DECISIONS.md` (Đ5 · Đ6 · Đ7 · Đ9 · Đ10 · Đ11).
+>
+> 🔴 **Bản này CHƯA được xác minh trên máy.** Mọi ô "Điều kiện qua" là đề xuất; phiên A1 phải
+> kiểm lại từng đường dẫn/tên hàm trước khi coi nó là runbook. Chỗ nào tôi không đo được thì
+> đánh **`[cần verify]`** thay vì đoán.
+
+## Vì sao sinh lại mạng
+
+Không phải vì A1 hỏng. Vì **`A1-vs-C1-SCORECARD.md` đặt cuộc thi là *"khác nhau ở engine"*** —
+mà tokenomics hai bên đang khác nhau gần như mọi chiều. Để nguyên thì cộng đồng chấm bảng phân
+bổ chứ không chấm engine, và cuộc thi hỏng trước khi bắt đầu. Xem
+`9Chain-BOD/docs/DONG-NHAT-A1-C1-2026-08-26.md`.
+
+## ⏱️ Ngân sách thời gian — đọc trước khi hứa gì
+
+| | |
+|---|---|
+| Hôm nay | `2026-08-26` |
+| **Ngày làm việc thật trước GO/NO-GO** | **3** (26 · 27 · 28/08) — *C1 có 5, A1 có 3* |
+| `29/08` | GO/NO-GO |
+| `30–31/08` | Diễn tập trên đúng topology nhiều máy |
+| **G** | `2026-09-01` |
+
+🔴 **ĐÍNH CHÍNH `26/08` — bản nháp đầu của tài liệu này viết:** *"A1 không khắc Block Adam… nên
+`01/09` là mong muốn, không phải ràng buộc… duyệt sàn trượt rộng tới `08/09` hoặc xa hơn."*
+**Sai kể từ khi chủ dự án chốt A1 khắc block 1 / Adam / Eva y như C1.**
+
+**Block Adam = block đầu tiên vượt `2026-09-09T06:09:09Z`.** Một chain sinh SAU mốc đó thì
+**không thể có Block Adam** — nó đã trôi qua trước khi chain tồn tại. Nên:
+
+| | |
+|---|---|
+| **Sàn trượt cứng của A1** | **`2026-09-06`** — cần biên vài ngày để block 1 sống trước mốc Adam |
+| Trượt quá đó | **mất Block Adam vĩnh viễn**, hoặc phải quyết lại mốc Adam cho A1 (lệch C1) |
+
+⇒ A1 nay bị trói **ngang C1**. Không còn "trượt thoải mái". Bù lại, chủ dự án đã chốt
+**cài lại mạng vài lần trước `01/09`** — tức phần diễn tập tự có, xem §Luật nhiều lần cài.
+
+---
+
+## 🚦 Luật phân loại — mọi việc phải rơi vào đúng một nhóm
+
+Nhóm của A1 **khác C1** vì tham số kinh tế của A1 nằm trong **binary**, không nằm trong genesis file.
+
+| Nhóm | Ở đâu | Lỡ ngày G thì sao |
+|---|---|---|
+| **G** | `9chain-a1-config/genesis.json` / `netgen/allocation.go` → alloc | **mất tới lần sinh mạng sau** |
+| **I** | biên dịch vào binary (`genesis/genesis_9chain_a1.go` `A1Params`, `patches/`) | dựng lại image + khởi động lại đồng loạt — **làm lại được**, nhưng đổi param kinh tế trên mạng đang chạy là **vỡ đồng thuận** ⇒ thực tế phải đi cùng ngày G |
+| **D** | web · explorer · docs · Caddy | deploy sau ngày G, không mất gì |
+| **O** | runbook · backup · custody · giám sát · diễn tập | không có thì **ngày G không chạy được** |
+
+⚠️ **Cổng cân sổ:** tổng mục của 4 nhóm phải bằng tổng bản kê. Một mục rơi ngoài mọi nhóm là một
+mục sẽ đi qua ngày G mà không ai chạm.
+
+---
+
+## 🔴 NHÓM G — chỉ vào được lúc sinh mạng
+
+| # | Mục | Trạng thái `26/08` | Điều kiện qua |
+|---|---|---|---|
+| **G1** | **Bảng phân bổ 10–20–30–40** thay bảng 40/20/20/5/15 | Chưa làm. Nguồn: `upstream/avalanchego/9chain-a1-tools/netgen/allocation.go` | `local-net/net/allocation.md` sinh ra khai đúng: đội xây dựng 10% · hệ sinh thái 20% · staking+validator 30% · con người 40%. Tổng genesis + phần để mint = **90.000.000.000** |
+| **G2** | **Lát self-bond của validator genesis**, trích từ ô staking 30% | Chưa quyết số. Bảng cũ: 160M chia đều 5 node = 32M/node | Mỗi validator genesis có self-bond **≤ `maxValidatorStake` mới** (xem I3). Đây đúng là lỗi đã xảy ra một lần — bảng cũ ghi trần 3M trong khi node genesis nhận 32M |
+| **G3** | **Số dư genesis ≈ 64 tỷ, phần để mint ≈ 26 tỷ** | Suy từ G1 | `SupplyCap − tổng alloc genesis` = phần mint, và nó **bằng ô staking 30% trừ lát self-bond** |
+| **G4** | **Kiểm lại `networkID 9001` + EVM chainId `9000000009` không trùng** | `9000000009` đã dùng ở mạng hiện tại; **chưa tra lại `chainid.network`** `[cần verify]` | Tra `chains.json` **ngay trước bước sinh genesis**, không tin lần tra hôm nay. C1 có tiền lệ: `9chain-c1/scripts/check-chain-id.py`, số cũ `999999999` bị Zora chiếm |
+| **G5** | ✅ **CHỐT: A1 khắc y như C1** — block 1 · Block Adam · Block Eva | **Đo `26/08`: khắc ĐƯỢC, có sẵn ba chỗ.** Không còn là điểm trừ engine | Xem `G5a–G5e` ngay dưới |
+
+### G5 — ba chỗ khắc chữ trong genesis A1 (đã đo, không suy)
+
+| # | Chỗ | Hiện tại | Dùng cho | Điều kiện qua |
+|---|---|---|---|---|
+| **G5a** | `message` → **P-CHAIN genesis** (đo: `genesis/genesis.go:449-458`, `config.Message` truyền vào `pChainGenesis`, **không phải X-Chain**). Nguồn: `9chain-a1-config/genesis.json:95`, netgen điền ở `netgen/main.go:209` | `"{{ fun_quote }}"` → `"9Chain-A1 sovereign genesis"` | **Sáng Thế Ký 1:1 nguyên ngữ Hebrew** | Đọc lại từ P-Chain genesis ra đúng byte, khớp `sha256` bản C1 |
+| **G5b** | `cChainGenesis.extraData` | `"0x00"` | Chỗ khắc kinh điển (Bitcoin coinbase / Ethereum genesis). Đề xuất: dòng đề tặng ngắn | ⚠️ **Phải thử giới hạn độ dài trước** — coreth có thể chặn > 32 byte. `[cần verify]` |
+| **G5c** | `cChainGenesis.alloc` — account có `code`/`storage` | chỉ 1 account có `balance` | **TOÀN VĂN LOVE Paper (bản EN)** dưới dạng **hợp đồng dữ liệu** ở địa chỉ cố định | `eth_getCode` trả đúng toàn văn; **`sha256` khớp `PAPER/CHECKSUMS-FREEZE-LOVEPAPER.txt` của C1** |
+| **G5d** | Block Adam / Eva | chưa có | Văn bản đề tặng vào genesis; **block được CHỈ ĐỊNH bằng luật thời gian**, không ghi gì vào chính block đó — đúng cách C1 làm | Luật khai rõ: *"block đầu tiên vượt `2026-09-09T06:09:09Z`"*. 🔴 **Phải chốt: Block Adam nằm trên CHAIN NÀO?** A1 có P/X/C + L1 người dùng, không như C1 chỉ một chuỗi block. **Khuyến nghị: C-Chain** — đó là thứ explorer hiện và người dùng trích dẫn |
+| **G5e** | 🔑 **Đối chiếu chéo hai chain** | — | Cùng một LOVE Paper, cùng một `sha256`, khắc trên cả A1 lẫn C1 | Đây là **vật chứng đồng nhất kiểm được bằng một lệnh** — mạnh hơn mọi lời tuyên bố về "cùng một sản phẩm". Nên đưa vào scorecard như một ô ✓/✗ |
+
+### G5f — ✅ **CHỐT `26/08`: chỉ khắc P-CHAIN**
+
+Chủ dự án: *"vậy chỉ cần 1 chain P Chain thôi là được"*. Đo lại thì lựa chọn này **chạy được trọn
+vẹn**, không phải thoả hiệp:
+
+| Phép đo | Kết quả |
+|---|---|
+| `platformvm/block/codec.go:44` · `txs/codec.go:56` | `GenesisCodec = codec.NewManager(math.MaxInt32)` — **không phải codec mặc định**; genesis cố ý không giới hạn thực tế |
+| `platformvm/genesis/genesis.go:51` | `Message string` — một trường, kiểu chuỗi |
+
+⇒ **Một trường `Message` chứa được cả 9 tài liệu của C1**: Sáng Thế Ký 1:1 Hebrew · toàn văn
+LOVE Paper (EN) · đề tặng Adam · đề tặng Eva. Không cần `extraData`, không cần hợp đồng dữ liệu,
+không cần đụng X-Chain.
+
+**Và P-Chain là chỗ ĐÚNG về mặt ý nghĩa, không chỉ tiện:** `genesis.go:441-446` cho thấy X-Chain
+và C-Chain nằm trong mảng `chains` được truyền **vào** `pChainGenesis` — P-Chain genesis là thứ
+**khai sinh ra hai chain kia**. Khắc ở gốc, không khắc ở nhánh.
+
+⇒ **`G5b` (extraData) và `G5c` (hợp đồng dữ liệu C-Chain) HUỶ.** Đường găng ngắn lại.
+
+### 🔴 Ba hệ quả của "chỉ P-Chain" — phải xử, không được bỏ qua
+
+**1. Chữ có đó nhưng gần như không ai đọc được.**
+P-Chain genesis không phải thứ ví hay người dùng thường chạm; C-Chain thì `eth_getCode` là ai
+cũng đọc. Đổi lấy sự gọn gàng thì mất tính hiển thị.
+⇒ **Việc bù, rẻ:** gửi yêu cầu qua `docs/requests-from-9scan/` để **9Scan-A1 phơi nội dung
+`Message` của P-Chain genesis ra một trang công khai**, kèm `sha256`. Không có bước này thì chữ
+khắc chỉ tồn tại trên lý thuyết.
+
+**2. C1 khắc 9 tài liệu RIÊNG, mỗi cái một `sha256`; A1 sẽ chỉ có MỘT chuỗi.**
+Muốn giữ được `G5e` (đối chiếu chéo hai chain) thì nội dung `Message` phải là **JSON chính tắc
+của đúng 9 tài liệu đó**, thứ tự cố định, để `sha256` **từng tài liệu** vẫn tính ra và **khớp
+`PAPER/CHECKSUMS-FREEZE-LOVEPAPER.txt` của C1**. Nhét thành một khối văn bản trộn là mất vật
+chứng đồng nhất mạnh nhất đang có.
+
+**3. 🔴 Block Adam trên P-Chain có thể KHÔNG TỒN TẠI đúng lúc — và đây là bẫy dễ mất nhất.**
+C1 chạy CometBFT nên sinh block **liên tục mỗi vài giây** ⇒ *"block đầu tiên vượt
+`2026-09-09T06:09:09Z`"* rơi trong vòng vài giây, chắc chắn có.
+Avalanche **không sinh block rỗng** — P-Chain chỉ ra block khi có giao dịch nền tảng
+(`[cần verify]` mức chính xác, nhưng hướng là vậy). Trên một testnet yên tĩnh, block đầu tiên sau
+mốc Adam có thể tới **hàng giờ hoặc hàng ngày sau**, hoặc do một giao dịch vô nghĩa nào đó tạo ra.
+
+⇒ **Đối sách, và nó lại hợp nghi thức:** **hẹn sẵn hai giao dịch nền tảng nghi lễ** chạy đúng
+`2026-09-09T06:09:09Z` và ngay sau đó — để Block Adam và Block Eva **được sinh ra bởi một hành
+động có chủ đích**, không phó mặc may rủi. Phải diễn tập trước trên bản tập.
+🔴 Nếu không làm gì, thứ xảy ra ngày `09/09` là: không ai biết Block Adam là block nào, hoặc nó
+là một block tình cờ cách mốc nhiều giờ.
+
+### ✅ `G5g` — CHỐT `26/08`: **L1 người dùng KHÔNG khắc. Gốc là đủ.**
+
+Chủ dự án: *"L1 người dùng cũng không cần khắc, gốc là đủ."* Khuôn `l1-evm-genesis.json` giữ
+nguyên `extraData: "0x00"`. Hệ quả tốt kèm theo: **vướng mắc thương mại với chain permissioned
+B2B (`QĐ #10`) biến mất** — doanh nghiệp tạo chain trên 9Chain không mang theo văn bản tôn giáo nào.
+
+### ✅ `G5h` — CHỐT `26/08`: **C-Chain khắc thêm, bằng TIẾNG ANH**
+
+Chủ dự án: *"tôi muốn làm thêm cho C Chain nhưng bằng tiếng Anh thay vì Hebrew, ngụ ý là gốc và
+hiện tại phổ biến."*
+
+**Thiết kế:**
+
+| | Ngôn ngữ | Ý nghĩa | Ai đọc |
+|---|---|---|---|
+| **P-Chain** `Message` | **Hebrew nguyên ngữ** + 9 tài liệu | **GỐC** — nơi khai sinh cả X lẫn C | công cụ chuyên, 9Scan-A1 phơi ra |
+| **C-Chain** hợp đồng dữ liệu | **TIẾNG ANH** | **HIỆN TẠI PHỔ BIẾN** — nơi thế giới đứng | `eth_getCode`, ai cũng đọc |
+
+⇒ **`G5c` được BẬT LẠI** (đã huỷ ở `G5f`), nhưng đổi nội dung sang tiếng Anh.
+✅ Và nó **giải luôn hệ quả #1 của `G5f`** — chữ khắc không còn chỉ tồn tại trên lý thuyết.
+
+**Khuyến nghị nội dung C-Chain: trọn bộ tiếng Anh, không chỉ một câu.**
+LOVE Paper vốn đã **chỉ có bản tiếng Anh** (`SPEC` mục 5, chủ dự án chốt 08/08) và hai dòng đề
+tặng Adam/Eva cũng đã là tiếng Anh. Nên thứ duy nhất phải *dịch* là Sáng Thế Ký 1:1.
+⇒ C-Chain mang: **Genesis 1:1 (EN) · LOVE Paper (EN) · Adam · Eva**.
+Lợi ích cộng thêm: LOVE Paper khi đó có **cùng byte trên ba mặt** — P-Chain A1, C-Chain A1, và
+genesis C1 ⇒ `G5e` mạnh hơn, kiểm được ở ba chỗ thay vì hai.
+
+## 🔴 `G5h-1` — BẪY BẢN QUYỀN, phải chặn trước khi khắc
+
+**Bản dịch tiếng Anh của Kinh Thánh KHÔNG phải đều thuộc phạm vi công cộng.**
+`ESV` · `NIV` · `NASB` · `NLT` đều **đang có bản quyền**, và `NIV` có giới hạn trích dẫn nghiêm.
+Khắc một bản dịch có bản quyền **vĩnh viễn, bất biến, vào một chain công khai** là thứ **không
+gỡ lại được** nếu bên giữ quyền phản đối.
+
+**Chọn bản thuộc phạm vi công cộng. Hai ứng viên:**
+
+| Bản | Nguyên văn Genesis 1:1 | Ghi chú |
+|---|---|---|
+| **KJV (1611)** | *"In the beginning God created the heaven and the earth."* | Phạm vi công cộng. Văn phong cổ, hợp một văn bản nền móng. **"heaven" số ít** |
+| **ASV (1901)** ⭐ | *"In the beginning God created the heavens and the earth."* | Phạm vi công cộng. **"heavens" số nhiều — sát tiếng Hebrew `שָׁמַיִם` hơn**, và tiếng Anh hiện đại hơn KJV |
+
+✅ **CHỐT `26/08`: `ASV 1901`.** Phạm vi công cộng, `"heavens"` số nhiều sát nguyên ngữ.
+
+🔴 **Và bản đó phải khớp TỪNG BYTE với tài liệu thứ 10 của C1.** Chủ dự án đã chốt C1 cũng thêm
+bản EN (9 → **10 tài liệu**) ⇒ *"gốc và hiện tại phổ biến"* nay là **nguyên tắc chung của cả hệ**,
+không còn là đặc trưng riêng của A1. Yêu cầu đã gửi:
+`C:\PROJECTS\9Chain-C1\request\2026-08-26-tai-lieu-thu-10-genesis-EN.md`.
+
+⇒ **Một câu, hai chain, một `sha256`.** Lấy byte từ bản C1 sinh ra, **đừng gõ lại** — dấu chấm
+cuối câu, kiểu nháy, ký tự xuống dòng, BOM: mỗi thứ đổi một byte là đổi cả hash, và số đó rồi sẽ
+nằm trong genesis không sửa được. Đóng băng vào `PAPER/CHECKSUMS-FREEZE-*` giống mọi văn bản khác.
+
+## `G5h-2` — chi tiết thi hành
+
+| # | Việc | Ghi chú |
+|---|---|---|
+| a | `extraData` = **`sha256` của bản EN, đúng 32 byte** | 32 byte là trần kinh điển của EVM ⇒ chắc chắn vừa, không phụ thuộc coreth có nới hay không. Nó là **con dấu** |
+| b | `alloc` = **hợp đồng dữ liệu** chứa toàn văn EN | Không giới hạn độ dài. Mã hợp đồng mở đầu bằng opcode `STOP` (`0x00`) rồi tới byte thô ⇒ không chạy được, chỉ để đọc bằng `eth_getCode` |
+| c | **Chốt địa chỉ cố định** cho hợp đồng đó | Khắc vĩnh viễn. Gợi ý theo tiền lệ C1 (precompile emission ở `0x…0901`): chọn một địa chỉ có ý nghĩa và ghi vào tài liệu công bố |
+| d | 🔴 **KHÔNG sửa tay** `9chain-a1-config/genesis.json` | C-Chain genesis nằm ở **dòng 94 dưới dạng chuỗi JSON đã escape**. Thêm một `alloc` lớn nghĩa là một dòng escape rất dài — **phải để `netgen` sinh**, sửa tay là hỏng escape và không ai thấy cho tới lúc boot |
+
+## ✅ Đã giải: C1 CŨNG khắc bản tiếng Anh (9 → 10 tài liệu)
+
+Chủ dự án chốt `26/08`. Bất đối xứng biến mất — cả hai testnet mang Sáng Thế Ký 1:1 ở **hai
+ngôn ngữ**, cùng `sha256` cho mỗi bản. Đây là vật chứng đồng nhất thứ hai, cạnh LOVE Paper (`G5e`).
+
+**Thứ tự thi hành bắt buộc:** C1 sinh bản EN chính tắc **trước** → A1 lấy đúng byte đó nhét vào
+hợp đồng dữ liệu C-Chain. **Không làm song song, không gõ lại hai lần.** Hai bản gõ độc lập gần
+như chắc chắn lệch nhau ở một chỗ vô hình, và tới lúc đối chiếu thì genesis đã khắc.
+
+### ~~G5f cũ — khắc trên cả ba chain P/X/C?~~ *(giữ để đối chiếu)*
+
+Ba chain **không đối xứng**. Đo được, không suy:
+
+| Chain | Chỗ khắc | Kết luận |
+|---|---|---|
+| **P-Chain** | `config.Message` (`genesis.go:457`) | ✅ **Được.** Và đây **không phải "một trong ba"** — `genesis.go:441-446` cho thấy P-Chain genesis là nơi **khai sinh ra X-Chain và C-Chain** (cả hai nằm trong mảng `chains` truyền vào `pChainGenesis`). Khắc ở P-Chain = khắc ở **gốc của cả mạng** |
+| **C-Chain** | `extraData` + `alloc` (hợp đồng dữ liệu) | ✅ **Được, hai chỗ.** Đây cũng là nơi explorer và người dùng thật sự đọc |
+| **X-Chain** | 🔴 **không có ô trống** | Trường `Message` cấp UTXO **đã bị dùng** để mang địa chỉ ETH (`genesis.go:372` và `:404`). Không có trường message cấp chain |
+
+**Ba lối cho X-Chain, phải chọn:**
+- **(a)** Thêm một UTXO genesis đánh dấu (giá trị 0 hoặc bụi, tới địa chỉ đốt) mang chữ Hebrew
+  trong trường `Message` của nó. Chạy được về nguyên tắc — **`[cần verify]`** giới hạn độ dài và
+  việc AVM có chấp nhận UTXO giá trị 0 không.
+- **(b)** ⭐ **Không khắc trên X-Chain, và nói thẳng lý do:** P-Chain là gốc sinh ra X, nên chữ đã
+  ở trên cao hơn X một bậc. X-Chain là chuỗi tài sản UTXO gần như không ai soi. **Khuyến nghị** —
+  đơn giản, trung thực, không phải hack.
+- **(c)** Ép ba chỗ cho bằng được ⇒ nhận thêm một `[cần verify]` vào đường găng, đổi lấy một
+  dòng chữ trên chain ít người đọc nhất.
+
+### G5g — MỌI L1 người dùng tạo trên A1 đều khắc Sáng Thế Ký 1:1? (chủ dự án hỏi `26/08`)
+
+✅ **Được.** Khuôn `9chain-a1-config/l1-evm-genesis.json` đã có **cả hai ô**: `alloc` (dòng 33) và
+`extraData` (dòng 40, nay là `"0x00"`).
+
+📌 **Có tiền lệ đúng ngay trong repo:** `D-031` chốt *"Warp bật cho MỌI chain (khuôn genesis),
+**không làm preset**"*, lý do: *"để nó thành một lựa chọn trong danh sách preset là đẻ ra một lớp
+chain vĩnh viễn thiếu"*. Cùng lập luận áp được ở đây — vào **khuôn**, không vào **preset**.
+
+**Thiết kế đề xuất — giải luôn bài toán giới hạn độ dài:**
+
+| Ô | Nội dung | Vì sao |
+|---|---|---|
+| `extraData` | **`sha256` của bản Hebrew = đúng 32 byte** | 32 byte là đúng trần kinh điển của EVM (`MaximumExtraDataSize`) ⇒ **không bao giờ vượt**, không phụ thuộc subnet-evm có nới hay không. Nó là **con dấu** |
+| `alloc` | **hợp đồng dữ liệu** chứa toàn văn Hebrew ở địa chỉ cố định | Không giới hạn độ dài. Nó là **bản văn**. Đọc bằng `eth_getCode` |
+
+Chữ Hebrew UTF-8 dài ~60 byte (không niqqud) tới ~130 byte (có niqqud) ⇒ **nhét thẳng vào
+`extraData` là canh bạc**; nhét hash thì chắc chắn vừa. Và hash phải khớp `sha256` đóng băng của
+C1 (`PAPER/CHECKSUMS-FREEZE-LOVEPAPER.txt`) — cùng một dòng chữ, cùng một con dấu, trên mọi chain
+của cả hai testnet.
+
+🔴 **Phải chốt kèm: bản Hebrew CÓ hay KHÔNG có niqqud.** Hai bản cho ra hai `sha256` khác nhau, và
+số đó rồi sẽ nằm trong hàng trăm genesis không sửa lại được. C1 khai *"7 từ"* — phải lấy **đúng
+byte của C1**, không gõ lại.
+
+⚠️ **Một hệ quả thương mại phải quyết có ý thức, không để nó tự xảy ra:** vào khuôn nghĩa là
+**mọi** chain sinh trên A1 mang câu Kinh Thánh vĩnh viễn — kể cả chain permissioned của doanh
+nghiệp, mà `QĐ #10` xếp **SaaS B2B chain con** là một nguồn doanh thu chính. Ở một số thị trường
+đó là phản đối thật. Ba lựa chọn: bắt buộc tuyệt đối · bắt buộc con dấu (`extraData`) nhưng cho
+gỡ bản văn ở chain permissioned · chỉ khắc trên ba chain chính. **Không có lựa chọn "không nghĩ tới".**
+
+---
+
+## 🟠 NHÓM I — phải vào binary trước ngày G
+
+| # | Mục | Trạng thái | Điều kiện qua |
+|---|---|---|---|
+| **I1** | `SupplyCap` **720.000.000 → 90.000.000.000** | Chưa làm. `genesis/genesis_9chain_a1.go` (`A1Params`). *Số cũ vốn đã được đánh dấu "chưa chốt" ở `docs/TOKENOMICS.md:77`* | `platform.getCurrentSupply` + reward calc dùng số mới; test xanh |
+| **I2** | **Rescale ×125 mọi tham số ghi bằng LOVE9 tuyệt đối** | Chưa làm | min validator stake `2.000 → 270.000` · max `50.000.000 → 6.300.000.000` · min delegator `25 → 2.700` · phí P/X `0,001 → 0,09`. *Cột gợi ý — chủ dự án chốt số cuối* |
+| **I3** | **Tính lại `maxValidatorStake` theo self-bond genesis THẬT** | Chưa làm | Trần phải chứa nổi self-bond của node genesis **và** vẫn chặn tập trung. Đây là ô dễ lặp lại lỗi cũ nhất |
+| **I4** | **Consumption rate: GIỮ NGUYÊN 10–12%** | ✅ Không phải làm gì (Đ11 lối b) | A1 giữ đường cong riêng ⇒ **không bước ra ngoài vùng upstream đã kiểm chứng**; bỏ luôn rủi ro nhánh Helicon/ACP-285 |
+| **I5** | Build tái lập được sau khi đổi số | M0.6 đã chứng minh build byte-identical | `apply-sovereign.sh` từ clone sạch → hash khớp |
+
+---
+
+## 🔵 NHÓM O — vận hành, phải sẵn TRƯỚC ngày G
+
+| # | Mục | Ghi chú |
+|---|---|---|
+| **O1** ⭐ | 🔑 **Custody cho bộ khoá quỹ MỚI — cơ hội chỉ đến một lần** | Sinh lại mạng ⇒ **sinh bộ khoá quỹ mới**. Nghĩa là bài toán `keys.txt` (*"chỗ hỏng duy nhất còn lại của dữ liệu"*, `HANDOFF.md:18`) **không phải đi sao lưu — mà đi thiết kế lại từ đầu**. Chốt sơ đồ custody (multisig? phân mảnh? phương tiện offline nào?) **TRƯỚC** khi bấm sinh khoá. Sau ngày G thì lại về đúng thế kẹt cũ |
+| **O2** | Bản export + `sha256` của mạng đang chết, công bố trước khi xoá | Tiền lệ C1: *"trước mỗi lần như vậy, bản export trọn chain + sha256 được công bố để dấu vết còn truy được"* |
+| **O3** 🔴 | **28 L1 người dùng đã tạo sẽ MẤT** (6 đang track, 21 đã thu hồi, + chain "David Do" `9141`) | Chưa ai quyết. Phải chọn: (a) công bố thẳng là mất + xuất bản ghi, hay (b) dựng lại. **Đây là thứ duy nhất trong toàn kế hoạch chạm tới người dùng thật đã bấm nút.** Không nói trước là mất niềm tin đúng nhóm người mình vừa mời |
+| **O4** 🔴 | **Validator ở nhà cung cấp thứ hai** — `[human]`, tốn tiền | 5 node đang ở *"một máy, một nhà cung cấp, một datacenter"* (`HANDOFF.md:25`). **Chưa đạt thì không được gọi `01/09` là "chạy chính thức"** |
+| **O5** 🔴 | **Gỡ `H-7`** — IPv4 đa cổng cho node beacon | Chặn `M3` (cộng đồng chạy node). Không gỡ thì mời cộng đồng vào một mạng họ không join được |
+| **O6** | **Cổng nhất quán cho A1** | A1 **chưa có** thứ tương đương `9chain-c1/scripts/check-consistency.py`. Đổi `720.000.000 → 90.000.000.000` mà không có cổng thì không ai biết sót chỗ nào. **Làm TRƯỚC I1**, không phải sau |
+| **O7** | Diễn tập trọn kịch bản trên topology nhiều máy | `30–31/08` |
+
+---
+
+## 🟢 NHÓM D — deploy lúc nào cũng được
+
+- `9chain-web` / trang chủ / faucet: số mới
+- **Báo `9Scan-A1`** qua kênh `docs/requests-from-9scan/` — explorer phải đổi `max supply`,
+  và theo Đ7 phải công bố **`max supply` + `circulating` cùng định nghĩa với 9Scan bên C1**
+- `docs/TOKENOMICS.md`: viết lại mục 1 và 2 theo số mới
+- Caddy / tên miền: không đổi
+
+---
+
+---
+
+## 🔁 Luật nhiều lần cài — chủ dự án chốt `26/08`: **cài lại mạng vài lần trước ngày G**
+
+Tin tốt: phần diễn tập tự có, và nhóm G được chạy thật nhiều lượt thay vì một lượt duy nhất.
+Ba cái bẫy đi kèm, phải chặn bằng luật chứ không bằng trí nhớ:
+
+**1. 🔴 Bản tập KHÔNG được phép biến thành bản thật.**
+Dùng đúng kỷ luật C1 đã có (`DECISIONS` 25/08): bản tập đặt
+`genesisTime = bây giờ + 120s`; **chỉ bản thật mới mang mốc thiêng**. Mốc thời gian tự nó là dấu
+phân biệt — không cần nhớ, không cần nhãn dán. Thêm một cổng: script từ chối sinh mạng mang mốc
+thiêng nếu không có cờ xác nhận tường minh.
+
+**2. 🔴 Sơ đồ custody (`O1`) phải được DIỄN TẬP, không chỉ được chốt.**
+Bản tập dùng khoá vứt đi là hợp lý. Nhưng chạy 5 lượt bằng khoá vứt đi rồi lượt cuối mới làm
+custody thật, trong lúc vội, là công thức hỏng. ⇒ **ít nhất MỘT lượt tập phải chạy trọn sơ đồ
+custody thật**, kể cả phần cất phương tiện offline.
+
+**3. 🔴 Mỗi lần cài lại **xoá sạch L1 người dùng đã tạo** — và `26/08` là ngày mời người mới.**
+Đây là mục `O3`, nhưng lặp nhiều lần thì nó đổi tính chất: không còn là "một lần mất" mà là
+"mất đi mất lại đúng nhóm người vừa được mời".
+⇒ **Đợt mời `26/08` KHÔNG được dẫn người vào tính năng "đẻ chain" của A1 mà không nói trước.**
+Câu bắt buộc: *"A1 và C1 đang trong giai đoạn sinh lại; mọi thứ tạo trước `01/09` sẽ bị xoá."*
+Việc này thuộc repo `Web9Chain`, không thuộc A1 — nhưng nguyên nhân nằm ở đây nên ghi ở đây.
+
+## ✅ Điều kiện GO/NO-GO `29/08`
+
+Đủ **cả 7** mới GO:
+
+1. G1 xong — `allocation.md` khai đúng 10–20–30–40, tổng ra 90 tỷ
+2. G2 xong — self-bond genesis ≤ `maxValidatorStake` mới, có phép đo
+3. G4 xong — tra lại `chains.json`, không trùng
+4. **G5a–G5e xong** — chữ khắc đọc lại được từ chain; `sha256` LOVE Paper **khớp bản C1**; đã chốt
+   Block Adam nằm trên chain nào
+5. I1 + I2 + I3 xong, build tái lập được, test xanh
+6. **O1 xong** — sơ đồ custody đã chốt **và đã diễn tập trọn ít nhất một lượt**
+7. **O3 đã có quyết định** về L1 người dùng, và câu cảnh báo đã lên `Web9Chain`
+
+🔴 **NO-GO thì trượt, nhưng sàn cứng là `06/09`** — sau đó Block Adam (`2026-09-09T06:09:09Z`)
+trôi qua trước khi chain kịp sống, và **mất vĩnh viễn**. Đây không còn là ngày mềm như bản nháp
+đầu ghi nhầm.
+
+---
+
+## Việc chủ dự án phải quyết (không agent nào thay được)
+
+| # | Việc | Hạn |
+|---|---|---|
+| A1-G2 | Lát self-bond genesis trích bao nhiêu từ ô staking 27 tỷ? | `27/08` |
+| A1-I2 | Duyệt cột số rescale ×125, hay tự chốt số khác? | `27/08` |
+| A1-G5 | A1 có khắc LOVE Paper / Sáng Thế Ký vào genesis không? | `28/08` |
+| A1-O1 | Sơ đồ custody cho bộ khoá quỹ mới | **`28/08`** — sau ngày G là hết cơ hội |
+| A1-O3 | 28 L1 người dùng: công bố mất, hay dựng lại? | `28/08` |
+| A1-O4 | Chi tiền cho validator ở nhà cung cấp thứ hai? | `29/08` |
+| A1-slip | **Duyệt trước sàn trượt rộng cho A1 (tới `08/09`+)?** | **hôm nay** |
