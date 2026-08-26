@@ -1,0 +1,145 @@
+From 765b8746f19893de86b9e7c238aad2f647000cd2 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Wed, 26 Aug 2026 17:52:28 +0400
+Subject: [PATCH 7/7] netgen: sua loi BIEN DICH cua ban tokenomics 9 ty
+ (b.Percent khong con ton tai)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Commit cf5a54b doi truong `Percent` -> `Nhom`/`NhomPct` nhung bo sot HAI cho
+dung: allocation.go:182 va main.go:242. Ca goi netgen KHONG BIEN DICH DUOC.
+`go build ./9chain-a1-tools/netgen` truoc ban va:
+  allocation.go:182:16: bk.Percent undefined (type bucket has no field or method Percent)
+
+=> Buoc "gen-network.sh 9" cua ke hoach re-genesis se chet ngay dong dau,
+truoc khi lam bat cu gi. May la `gen-network.sh` chay `go run` chu khong dung
+binary co san, nen no HONG TO chu khong lang le sinh ra mang bang tokenomics cu.
+
+Vi sao cong chan khong bat duoc: `scripts/check-consistency.mjs` khong doc mot
+dong Go nao — no giu bang so rieng bang JS. 17 dat + 6/6 doi chung nguoc chung
+minh cac CON SO David chot la nhat quan voi nhau, KHONG chung minh gi ve ma se
+sinh ra genesis. Dung ho "phep kiem do sai dai luong".
+
+Sua kem trong cung luot, deu la he qua cua cf5a54b:
+- allocation.md con in "Tran cung: 720,000,000 LOVE9" (hang so chet trong chuoi).
+  Nay la hang `supplyCapLOVE9`, co chu thich noi ro day la ban CHEP TAY thu hai
+  cua SupplyCap va check-consistency.mjs giu ban thu ba.
+- Bang trong allocation.md: header 10 cot, dong du lieu 9 (thieu cot Hang muc).
+  Markdown van render nen khong ai thay — nhan lech mot cot.
+- keys.txt in "<Ten> — 12%" cho ca Foundation lan self-bond (hai dia chi cung
+  mot hang muc) => cong don ra 111%. Nay in "hang muc Foundation (12%)".
+- Chu thich main.go noi avalanchego "BO QUA allocation thuong" cua quy self-bond.
+  Chi vong P-Chain bo qua (genesis.go:358); vong X-Chain khong bo qua ai.
+
+Nghiem thu: `go build ./9chain-a1-tools/netgen` sach trong golang:1.25.10-bookworm,
+va chay that N=9 ra thu muc nhap: tong phat hanh 5,400,000,000 LOVE9, bang phan bo
+khop D-042 tung dong (12/30/9/9 + self-bond 8,999,991 = 9 x 999,999).
+---
+ 9chain-a1-tools/netgen/allocation.go | 19 +++++++++++++++----
+ 9chain-a1-tools/netgen/main.go       | 26 ++++++++++++++++----------
+ 2 files changed, 31 insertions(+), 14 deletions(-)
+
+diff --git a/9chain-a1-tools/netgen/allocation.go b/9chain-a1-tools/netgen/allocation.go
+index 1e66c9a..48b4d63 100644
+--- a/9chain-a1-tools/netgen/allocation.go
++++ b/9chain-a1-tools/netgen/allocation.go
+@@ -21,6 +21,14 @@ const (
+ 	// mega = 1,000,000 LOVE9.
+ 	mega = 1_000_000 * unitLOVE9
+ 
++	// supplyCapLOVE9 = trần cung, chỉ để IN RA báo cáo. Nguồn sự thật là
++	// `genesis/genesis_9chain_a1.go` (`A1Params…SupplyCap`) — netgen không đọc được
++	// hằng đó vì nó nằm trong package `genesis`, nên con số ở đây là bản CHÉP TAY.
++	// 🔴 Đổi SupplyCap thì phải đổi cả đây; `scripts/check-consistency.mjs` giữ bản
++	// chép thứ ba. Ba bản này đã trôi lệch một lần (báo cáo còn in 720 triệu sau khi
++	// trần lên 9 tỷ) — đó là lý do con số được đặt tên thay vì nằm rải trong chuỗi.
++	supplyCapLOVE9 = uint64(9_000_000_000)
++
+ 	oneYear     = uint64(365 * 24 * 60 * 60)
+ 	twoYears    = 2 * oneYear
+ 	fourYears   = 4 * oneYear
+@@ -168,18 +176,21 @@ func love9(n uint64) string {
+ func allocationReport(funds map[string]*fund, networkID uint32, nodes int) string {
+ 	var b strings.Builder
+ 	fmt.Fprintf(&b, "# 9Chain-A1 — Phân bổ genesis (networkID %d, %d node)\n\n", networkID, nodes)
+-	fmt.Fprintf(&b, "Tổng phát hành genesis: **%s LOVE9** · Trần cung: **720,000,000 LOVE9**\n\n", love9(totalGenesisSupply()))
++	fmt.Fprintf(&b, "Tổng phát hành genesis: **%s LOVE9** · Trần cung: **%s LOVE9**\n\n",
++		love9(totalGenesisSupply()), love9(supplyCapLOVE9*unitLOVE9))
+ 	b.WriteString("File này CÔNG KHAI được — chỉ chứa địa chỉ, không chứa khoá bí mật.\n\n")
++	// 10 cột: header, dòng ngăn và dòng dữ liệu PHẢI cùng số cột. Bản trước header 10
++	// mà dòng dữ liệu 9 (thiếu cột Hạng mục) — markdown vẫn render, chỉ là lệch nhãn.
+ 	b.WriteString("| Hạng mục | Quỹ | % | Tổng (LOVE9) | X/P thanh khoản | X/P khoá | Mở khoá | C-Chain | Địa chỉ X | Địa chỉ EVM |\n")
+-	b.WriteString("|---|--:|--:|--:|--:|---|--:|---|---|\n")
++	b.WriteString("|---|---|--:|--:|--:|--:|---|--:|---|---|\n")
+ 	for _, bk := range buckets {
+ 		f := funds[bk.Key]
+ 		lock := bk.LockLabel
+ 		if bk.LockedXP == 0 {
+ 			lock = "—"
+ 		}
+-		fmt.Fprintf(&b, "| %s | %d%% | %s | %s | %s | %s | %s | `%s` | `%s` |\n",
+-			bk.Name, bk.Percent, love9(bk.Total()), love9(bk.LiquidXP), love9(bk.LockedXP),
++		fmt.Fprintf(&b, "| %s | %s | %d%% | %s | %s | %s | %s | %s | `%s` | `%s` |\n",
++			bk.Nhom, bk.Name, bk.NhomPct, love9(bk.Total()), love9(bk.LiquidXP), love9(bk.LockedXP),
+ 			lock, love9(bk.CChain), f.XAddr, f.EthAddr)
+ 	}
+ 	fmt.Fprintf(&b, "\n## Ghi chú\n")
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+index 3fef653..12925af 100644
+--- a/9chain-a1-tools/netgen/main.go
++++ b/9chain-a1-tools/netgen/main.go
+@@ -179,8 +179,11 @@ func main() {
+ 	// Dựng allocation từ bảng phân bổ. Mỗi quỹ = 1 allocation:
+ 	//   InitialAmount  -> UTXO THANH KHOẢN trên X-Chain
+ 	//   UnlockSchedule -> UTXO KHOÁ trên P-Chain, mở tại Locktime
+-	// Riêng quỹ Staking nằm trong InitialStakedFunds nên avalanchego BỎ QUA
+-	// allocation thường của nó và chia toàn bộ phần khoá thành stake của N node.
++	// Riêng quỹ self-bond nằm trong InitialStakedFunds. 🔴 Chỉ vòng dựng UTXO
++	// **P-Chain** bỏ qua nó (`genesis/genesis.go:358`) rồi `splitAllocations` chia
++	// phần KHOÁ thành stake của N node; vòng **X-Chain** KHÔNG bỏ qua ai cả. Nên đặt
++	// `LiquidXP > 0` cho quỹ này là in thêm tiền thanh khoản chứ không phải "bị bỏ
++	// qua" — giữ nó bằng 0. (Chú thích cũ nói avalanchego bỏ qua cả allocation, sai.)
+ 	allocs := make([]genesis.UnparsedAllocation, 0, len(buckets))
+ 	for _, b := range buckets {
+ 		f := funds[b.Key]
+@@ -202,12 +205,12 @@ func main() {
+ 		Allocations:                allocs,
+ 		StartTime:                  uint64(now - 60),
+ 		InitialStakeDuration:       oneYear,
+-		// 🔴 SO LE NHIỆM KỲ — 7 ngày giữa các node (D-042).
+-		// Bản cũ để 5400 giây (1,5 giờ): với 9 node thì cả mạng hết hạn trong vòng
+-		// 12 tiếng, tức vẫn là "chết cùng một lúc" chứ không phải cảnh báo.
+-		// 7 ngày × 8 khoảng = trải 56 ngày: node đầu rụng ở ~ngày 309, và đó là
+-		// LỜI CẢNH BÁO SỚM với 8 node vẫn chạy, thay vì một dấu chấm hết đột ngột.
+-		// Ràng buộc: offset × (số node − 1) phải < InitialStakeDuration.
++		// 🔴 SO LE NHIỆM KỲ — 7 ngày giữa các node (D-042).
++		// Bản cũ để 5400 giây (1,5 giờ): với 9 node thì cả mạng hết hạn trong vòng
++		// 12 tiếng, tức vẫn là "chết cùng một lúc" chứ không phải cảnh báo.
++		// 7 ngày × 8 khoảng = trải 56 ngày: node đầu rụng ở ~ngày 309, và đó là
++		// LỜI CẢNH BÁO SỚM với 8 node vẫn chạy, thay vì một dấu chấm hết đột ngột.
++		// Ràng buộc: offset × (số node − 1) phải < InitialStakeDuration.
+ 		InitialStakeDurationOffset: 7 * 24 * 60 * 60,
+ 		InitialStakedFunds:         []string{staking9.XAddr},
+ 		InitialStakers:             stakers,
+@@ -230,7 +233,10 @@ func main() {
+ 	keys.WriteString(fmt.Sprintf("networkID: %d | so node: %d | tong phat hanh: %s LOVE9\n\n", networkID, n, love9(totalGenesisSupply())))
+ 	for _, b := range buckets {
+ 		f := funds[b.Key]
+-		keys.WriteString(fmt.Sprintf(`[%s] %s — %d%% = %s LOVE9
++		// % là của HẠNG MỤC công bố, không phải của riêng bucket này: Foundation và
++		// self-bond là hai địa chỉ trong cùng một hạng mục 12%, Community và faucet
++		// trong cùng 30%. In kèm tên hạng mục để không ai cộng dồn nhầm thành 111%.
++		keys.WriteString(fmt.Sprintf(`[%s] %s — hang muc %s (%d%%) = %s LOVE9
+   muc dich    : %s
+   PrivateKey  : %s
+   X-addr      : %s
+@@ -239,7 +245,7 @@ func main() {
+   EVM privkey : 0x%s
+   X/P thanh khoan: %s | X/P khoa: %s (mo sau %s) | C-Chain: %s
+ 
+-`, b.Key, b.Name, b.Percent, love9(b.Total()), b.Purpose,
++`, b.Key, b.Name, b.Nhom, b.NhomPct, love9(b.Total()), b.Purpose,
+ 			f.Key.String(), f.XAddr, f.PAddr, f.EthAddr, hexOfECDSA(f.Key),
+ 			love9(b.LiquidXP), love9(b.LockedXP), b.LockLabel, love9(b.CChain)))
+ 	}
