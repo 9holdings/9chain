@@ -76,6 +76,50 @@ Gỡ khi được duyệt: bỏ 2 service khỏi compose Blockscout, `docker com
 
 ## Cần David quyết (không phải kẹt kỹ thuật — xem PROGRESS mục `[human]`)
 
+### 🔴🔴 H-9 — **SUPPLYCAP 90 TỶ KHÔNG BIÊN DỊCH ĐƯỢC.** Chặn cứng kế hoạch re-genesis
+
+**Đo được 2026-08-26, có đối chứng ngược. Đây không phải ý kiến.**
+
+`SupplyCap` là **`uint64`** (`vms/platformvm/reward/config.go:33`). LOVE9 có **9 chữ số
+thập phân**, nên mọi số lượng token trên P/X-Chain được đếm bằng nano.
+
+```
+uint64 max          = 18,446,744,073,709,551,615
+720 triệu  (hiện tại) =        720,000,000,000,000,000   ← 3,9% của uint64, vừa
+ 90 tỷ     (kế hoạch) = 90,000,000,000,000,000,000       ← 4,88 LẦN uint64
+```
+
+Thử biên dịch thật bằng Go 1.26.4, đúng khuôn hằng số của `units`:
+```
+90_000 * MegaAvax → LỖI: constant 90000000000000000000 of type uint64 overflows uint64
+18_000 * MegaAvax → build sạch          ← đối chứng ngược: phép thử phân biệt được
+```
+
+⇒ **Trần lý thuyết với 9 chữ số thập phân là 18,447 tỷ LOVE9.** Con số 90 tỷ không
+"khó" — nó **không tồn tại** trong kiểu dữ liệu của avalanchego.
+
+🔴 **VÀ NÓ CHẶN CẢ GENESIS, KHÔNG CHỈ CÁI TRẦN.** Nếu phát hành genesis cũng ×125 thì
+400 triệu → 50 tỷ → `5e19` — cũng tràn. Toàn bộ bảng tokenomics phải dẫn lại dưới trần
+18,447 tỷ, không chỉ sửa mỗi dòng `SupplyCap`.
+
+**Vì sao con số này đi lọt tới đây:** nó đến từ C1. **Cosmos SDK đếm bằng `big.Int`
+nên 90 tỷ ở đó hoàn toàn bình thường.** Avalanche đếm bằng `uint64`. Cùng một con số,
+một bên chạy được một bên không — và "đồng nhất tokenomics giữa hai nhánh" chính là
+chỗ giả định đó không được phép ngầm.
+
+**Ba đường ra, cần David chọn — A1 không tự chọn hộ:**
+| | Cách | Được | Mất |
+|---|---|---|---|
+| **(a)** | Hạ trần xuống ≤ 18 tỷ (hệ số ×25 thay vì ×125) | Không đụng gì khác; build được ngay | Hai nhánh **không còn cùng một con số** — đúng thứ ngày G sinh ra để đạt |
+| **(b)** | Giảm LOVE9 còn **8 chữ số thập phân** (90 tỷ = `9e18`, vừa uint64) | Giữ đúng 90 tỷ cho cả hai nhánh | Đụng vào **bản sắc**: "9 chữ số" đi cùng LOVE9/love9/9001; đổi là đổi mọi con số, mọi hiển thị ví, mọi tài liệu đã in |
+| **(c)** | Giữ 90 tỷ làm con số **công bố** trên C-Chain (18 chữ số, `big.Int`), P-Chain giữ trần thấp hơn | Không đổi bản sắc | **Hai chain khai hai tổng cung khác nhau** — tệ hơn cả hai đường trên |
+
+**Khuyến nghị: (b) nếu 90 tỷ là con số bất di bất dịch; (a) nếu không.** Tránh (c).
+
+🔴 **VIỆC NÀY CHẶN ĐƯỜNG GĂNG.** Mọi con số khác trong kế hoạch (phân bổ 10-20-30-40,
+×125 staking, `maxValidatorStake` theo self-bond) đều **dẫn xuất từ trần này**. Tính
+chúng trước khi chốt trần là tính lại lần thứ hai.
+
 ### 🔴 H-8 — SINH LẠI GENESIS 01/09/2026: MỐC NÀY CHƯA ĐƯỢC XÁC NHẬN VỚI DAVID
 
 **Nguồn:** phiên `9Chain-BOD` nhắn sang 2026-08-26 và đặt bản nháp
