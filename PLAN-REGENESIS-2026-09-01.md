@@ -69,9 +69,12 @@ mục sẽ đi qua ngày G mà không ai chạm.
 
 | # | Mục | Trạng thái `26/08` | Điều kiện qua |
 |---|---|---|---|
-| **G1** | 🔴 **BẢNG PHÂN BỔ — ĐANG XUNG ĐỘT, chưa được thi hành** | `9chain-a1-26` báo `26/08` (D-039–041) một bảng **khác** bảng đã chốt ở BOD Đ14 | Xem khối 🔴 ngay dưới. **Đừng khắc bảng nào cho tới khi chủ dự án phân xử.** Tổng cung thì đã thống nhất: **9.000.000.000** |
+| **G1** | ✅ **PHÂN XỬ XONG `27/08` — GIỮ BẢNG ĐANG CHẠY 40/30/12/9/9** (D-045) | Chủ dự án chốt trực tiếp với A1 | Bảng **5 hạng mục**: Staking Rewards 40 (không cấp ở genesis) · Community 30 · Foundation 12 · Private Sale 9 · Team 9. Tổng **9.000.000.000**, phát hành genesis **5.400.000.000**. **Không phải sửa dòng mã nào** — `netgen/allocation.go` đã codify đúng nó. Khối xung đột dưới giữ để đối chiếu, **đã hết hiệu lực** |
 
-> 🔴 **XUNG ĐỘT G1 — hai bảng, cùng ngày, cùng người chốt**
+> ~~🔴 **XUNG ĐỘT G1 — hai bảng, cùng ngày, cùng người chốt**~~ ✅ **ĐÃ PHÂN XỬ `27/08`, xem G1 ngay trên.**
+> *(giữ nguyên khối dưới để đối chiếu — nhưng A1 thẩm định lại thì có **BA** bảng, không phải hai:
+> bảng ĐANG CHẠY quy về 4 nhóm là **40/30/21/9**, không khớp bảng nào ở đây. Chi tiết: D-045.)*
+>
 >
 > | Ô | **BOD Đ14** (`CANON.md` §1) | **A1 D-039** |
 > |---|---:|---:|
@@ -89,9 +92,9 @@ mục sẽ đi qua ngày G mà không ai chạm.
 > · Câu nền móng **Đ25** *"1 LOVE9 cho mỗi con người"*: ở 40% mỗi người **0,44**; ở 30% chỉ **0,33**
 >
 > ⚠️ Theo `PROTOCOL.md` §Ranh giới thẩm quyền, **BOD không tự hoà giải** — có thể chủ dự án đã đổi
-> ý khi nói trực tiếp với A1. **Đang chờ anh phân xử.**
-| **G2** | **Lát self-bond của validator genesis**, trích từ ô staking 30% | Chưa quyết số. Bảng cũ: 160M chia đều 5 node = 32M/node | Mỗi validator genesis có self-bond **≤ `maxValidatorStake` mới** (xem I3). Đây đúng là lỗi đã xảy ra một lần — bảng cũ ghi trần 3M trong khi node genesis nhận 32M |
-| **G3** | **Số dư genesis ≈ 64 tỷ, phần để mint ≈ 26 tỷ** | Suy từ G1 | `SupplyCap − tổng alloc genesis` = phần mint, và nó **bằng ô staking 30% trừ lát self-bond** |
+> ý khi nói trực tiếp với A1. ~~**Đang chờ anh phân xử.**~~ ✅ **Đã phân xử `27/08`: giữ bảng đang chạy.**
+| **G2** | ✅ **XONG `27/08` — dẫn xuất từ G1: self-bond 8.999.991, nằm trong Foundation 12%** (KHÔNG trích từ ô staking như bản nháp ghi) | Ở 9 node = **999.999/node**. Đã đo: ≤ `maxValidatorStake` 625.000.000, còn ~624 triệu dư địa nhận uỷ quyền. 🔴 **8.999.991 = 9 × 999.999 chỉ chia hết ở N=9** — đổi số node là sinh số lẻ, xem D-045 | Mỗi validator genesis có self-bond **≤ `maxValidatorStake` mới** (xem I3). Đây đúng là lỗi đã xảy ra một lần — bảng cũ ghi trần 3M trong khi node genesis nhận 32M |
+| **G3** | ~~Số dư genesis ≈ 64 tỷ, phần để mint ≈ 26 tỷ~~ ✅ **CHỐT `27/08` (D-045): phát hành genesis 5.400.000.000 · phần để mint 3.600.000.000** | Dẫn xuất từ G1 đã phân xử | 🔴 Số cũ SAI, và **không phải chia 10**: 64/26 suy từ bảng BOD Đ14 (staking 30%) ở thang 90 tỷ. Bảng được chốt cho staking **40%** ⇒ tỷ lệ đổi chứ không chỉ thang đổi. Phần mint = ô Staking Rewards 40%, **không cấp ở genesis** |
 | **G4** | **Kiểm lại `networkID 9001` + EVM chainId `9000000009` không trùng** | `9000000009` đã dùng ở mạng hiện tại; **chưa tra lại `chainid.network`** `[cần verify]` | Tra `chains.json` **ngay trước bước sinh genesis**, không tin lần tra hôm nay. C1 có tiền lệ: `9chain-c1/scripts/check-chain-id.py`, số cũ `999999999` bị Zora chiếm |
 | **G5** | ✅ **CHỐT: A1 khắc y như C1** — block 1 · Block Adam · Block Eva | **Đo `26/08`: khắc ĐƯỢC, có sẵn ba chỗ.** Không còn là điểm trừ engine | Xem `G5a–G5e` ngay dưới |
 
@@ -312,7 +315,7 @@ tên/chainId cũ, và lỗ hổng đóng lại với chi phí gần bằng khôn
 🔴 BOD suy từ `B-7`, **chưa đo** — A1 xác nhận hoặc bác trước khi đưa vào runbook.
 | **O4** 🔴 | **Validator ở nhà cung cấp thứ hai** — `[human]`, tốn tiền | 5 node đang ở *"một máy, một nhà cung cấp, một datacenter"* (`HANDOFF.md:25`). **Chưa đạt thì không được gọi `01/09` là "chạy chính thức"** |
 | **O5** 🔴 | **Gỡ `H-7`** — IPv4 đa cổng cho node beacon | Chặn `M3` (cộng đồng chạy node). Không gỡ thì mời cộng đồng vào một mạng họ không join được |
-| **O6** | **Cổng nhất quán cho A1** | A1 **chưa có** thứ tương đương `9chain-c1/scripts/check-consistency.py`. Đổi `720.000.000 → 90.000.000.000` mà không có cổng thì không ai biết sót chỗ nào. **Làm TRƯỚC I1**, không phải sau |
+| **O6** | **Cổng nhất quán cho A1** | A1 **chưa có** thứ tương đương `9chain-c1/scripts/check-consistency.py`. ~~Đổi `720.000.000 → 90.000.000.000`~~ **→ `9.000.000.000`** (Đ24/D-039; 90 tỷ không tồn tại trong `uint64`) mà không có cổng thì không ai biết sót chỗ nào. ✅ **BẢN NHÁP SAI: A1 ĐÃ CÓ** `scripts/check-consistency.mjs` từ `26/08` — nhưng nó **không đọc một dòng Go nào**, nên là cổng **một phần** |
 | **O7** | Diễn tập trọn kịch bản trên topology nhiều máy | `30–31/08` |
 
 ---
@@ -356,7 +359,8 @@ Việc này thuộc repo `Web9Chain`, không thuộc A1 — nhưng nguyên nhân
 
 Đủ **cả 7** mới GO:
 
-1. G1 xong — `allocation.md` khai đúng 10–20–30–40, tổng ra 90 tỷ
+1. ✅ **G1 XONG `27/08` (D-045)** — ~~khai đúng 10–20–30–40, tổng ra 90 tỷ~~ → `allocation.md` khai đúng **40/30/12/9/9, tổng ra 9.000.000.000**, phát hành genesis 5.400.000.000.
+   🔴 Điều kiện cũ **không thoả mãn được**: 90 tỷ không tồn tại trong `uint64` (H-9).
 2. G2 xong — self-bond genesis ≤ `maxValidatorStake` mới, có phép đo
 3. G4 xong — tra lại `chains.json`, không trùng
 4. **G5a–G5e xong** — chữ khắc đọc lại được từ chain; `sha256` LOVE Paper **khớp bản C1**; đã chốt
