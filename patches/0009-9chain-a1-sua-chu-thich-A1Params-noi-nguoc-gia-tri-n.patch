@@ -1,0 +1,86 @@
+From 72dbf662b4eb27d7d8088db56a7d2e335f0d9936 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Wed, 26 Aug 2026 23:13:55 +0400
+Subject: [PATCH 9/9] 9chain-a1: sua chu thich A1Params noi nguoc gia tri ngay
+ canh no
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Ban tokenomics 9 ty (cf5a54b) doi GIA TRI nhung bo sot CHU THICH, nen ba cho
+mo ta mot con so trong khi dong ma ngay duoi la con so khac:
+
+  :75  "Rao can vao lam validator: 2,000 LOVE9"     / that la 25.000
+  :79  "Tran stake moi validator: 50,000,000"       / that la 625.000.000
+       + "50M / 720M supply cap ~ 7%"               / nay la 625M / 9.000M
+       + "moi node genesis nhan 160,000,000 / 5"    / nay self-bond 999.999 x 9
+  :89  "Rao can uy quyen: 25 LOVE9"                 / that la 312,5
+
+Day khong phai loi hinh thuc. Chu thich la thu nguoi doc TIN, va o file nay no
+duoc doc dung luc nguoi ta chuan bi doi mot so consensus-critical. Ai lap luan
+tu "tran 50M" se ket luan sai ve du dia uy quyen.
+
+Them vao, khong chi sua:
+- Uy quyen TINH VAO MaxValidatorStake (proposal_tx_executor.go:801), nen tran
+  cung la du dia nhan uy quyen: self-bond 999.999 => con ~624 trieu cho trong.
+- Vi sao MinDelegatorStake khai bang MilliAvax chu khong phai Avax: 312,5 khong
+  phai so nguyen LOVE9, viet 312.5*units.Avax la bieu thuc float, khong bien
+  dich duoc o hang uint64.
+
+CHI DOI CHU THICH — khong dong mot gia tri nao. Da chung minh, khong suy luan:
+  gofmt sach · go build OK · go vet OK
+  binary: go build ./main co/khong co thay doi -> sha256 TRUNG, buildid TRUNG,
+          cmp -l dem duoc 0 byte khac (do bang go build -overlay, nguon khong
+          bi dung toi). Doi chung nguoc: build cung nguon hai lan ra trung hash,
+          nen phep do phan biet duoc.
+  => D-017 (build tai lap tung byte) va hash image a850a016 van nguyen gia tri.
+  Luu y cho lan sau: o tang ARCHIVE (.a) thi hash CO doi, vi actionID cua Go bam
+  ca van ban nguon (ke ca chu thich). Nhung contentID trung, nen binary trung.
+  Dung ket luan tu hash cua .a.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ genesis/genesis_9chain_a1.go | 24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
+
+diff --git a/genesis/genesis_9chain_a1.go b/genesis/genesis_9chain_a1.go
+index 964ec86..4fd82d9 100644
+--- a/genesis/genesis_9chain_a1.go
++++ b/genesis/genesis_9chain_a1.go
+@@ -72,21 +72,27 @@ var A1Params = Params{
+ 		// ⬅️ CHỐT LẠI THÀNH 0.9 TRƯỚC MAINNET.
+ 		UptimeRequirement: .8,
+ 
+-		// Rào cản vào làm validator: 2,000 LOVE9.
++		// Rào cản vào làm validator: 25,000 LOVE9.
+ 		// Cố tình thấp để cộng đồng tự chạy node được — đây là mục đích tồn tại của A1.
++		// (Thời trần 720 triệu con số này là 2,000; D-042 nhân ×12,5 cùng cả bảng.)
+ 		MinValidatorStake: 25 * units.KiloAvax, // 25.000 LOVE9 — D-042 (x12,5)
+ 
+-		// Trần stake mỗi validator: 50,000,000 LOVE9.
++		// Trần stake mỗi validator: 625,000,000 LOVE9.
+ 		//
+-		// KHÁC LocalParams (3,000,000). Lý do: mỗi node genesis nhận
+-		// 160,000,000 / 5 = 32,000,000 LOVE9 tiền stake. Với trần 3M của
+-		// LocalParams thì validator genesis vượt trần ~10 lần — genesis không
+-		// kiểm tra nên vẫn chạy, nhưng tokenomics thành vô lý: không validator
+-		// cộng đồng nào được phép stake ngang node genesis. Trần 50M vừa chứa
+-		// được node genesis, vừa chặn tập trung quá mức (50M / 720M supply cap ≈ 7%).
++		// KHÁC LocalParams (3,000,000). Lý do gốc vẫn nguyên: validator genesis
++		// không được phép vượt trần, vì genesis KHÔNG kiểm tra nên mạng vẫn chạy
++		// và tokenomics thành vô lý — không validator cộng đồng nào được stake
++		// ngang node genesis. Trần này vừa chứa được node genesis, vừa chặn tập
++		// trung quá mức: 625M / 9.000M supply cap ≈ 7%.
++		//
++		// 🔴 Uỷ quyền TÍNH VÀO trần này (`proposal_tx_executor.go:801`), nên trần
++		// cũng là dư địa nhận uỷ quyền. Ở self-bond 999.999/node (D-042) thì mỗi
++		// node genesis còn ~624 triệu chỗ trống — thoải mái.
+ 		MaxValidatorStake: 625 * units.MegaAvax, // 625.000.000 LOVE9 — D-042 (x12,5)
+ 
+-		// Rào cản uỷ quyền: 25 LOVE9 — người dùng thường tham gia được.
++		// Rào cản uỷ quyền: 312,5 LOVE9 — người dùng thường vẫn tham gia được.
++		// Khai bằng MilliAvax vì 312,5 KHÔNG phải số nguyên LOVE9; viết
++		// `312.5 * units.Avax` là biểu thức float, không biên dịch được ở hằng uint64.
+ 		MinDelegatorStake: 312_500 * units.MilliAvax, // 312,5 LOVE9 — D-042 (x12,5)
+ 
+ 		// Phí uỷ quyền tối thiểu validator được thu: 2%.

@@ -133,8 +133,10 @@ console · Warp/ICM · faucet HTTP · Blockscout index lại từ đầu.
 **Đã kiểm được (không phải "trông có vẻ đúng"):**
 - `node scripts/check-consistency.mjs --tu-kiem` → **17 đạt · 6/6 đối chứng ngược bắt được**
   🔴 nhưng xem cảnh báo ngay dưới: cổng này **không đọc một dòng Go nào**.
-- Patch series tái lập đúng cây nguồn: tree **`3886ca7d`** (8 patch tính tới
-  2026-08-26; nhớ **`git am --keep-cr`**)
+- Patch series tái lập đúng cây nguồn: tree **`4820ac22`** (**9 patch** tính tới
+  2026-08-26; nhớ **`git am --keep-cr`**). Đã nghiệm thu lại sau patch 0009: áp đủ
+  9 patch lên `1cf1fc3` trong worktree tách rời → tree ra **khớp tuyệt đối**.
+  *(Tree trước patch 0009 là `3886ca7d` — patch 0009 chỉ sửa chú thích.)*
 
 🔴 **CỔNG `check-consistency.mjs` KHÔNG BAO TRÙM MÃ — nó giữ bảng số riêng bằng JS.**
 "17 đạt" chứng minh các CON SỐ David chốt nhất quán với nhau, **không** chứng minh
@@ -667,6 +669,27 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 
 ## Gotchas
 
+### Thêm từ phiên 2026-08-26 (đợt 10 — vá tài liệu lệch)
+
+- 🔴 **HASH CỦA `.a` KHÔNG PHẢI HASH CỦA BINARY — đừng kết luận tái lập từ nó.**
+  Sửa **chỉ chú thích** trong `genesis_9chain_a1.go` rồi đo: `go build -o x.a ./genesis/`
+  ra hash **KHÁC**, đọc y như "build không còn tái lập". Sai. Build ID của Go có hai
+  nửa `actionID/contentID`: **actionID băm cả văn bản nguồn** (chú thích tính vào),
+  **contentID băm kết quả biên dịch**. Đo thật: actionID lệch, **contentID trùng tuyệt
+  đối** — và binary cuối `go build ./main` ra **sha256 trùng, buildid trùng, `cmp -l`
+  đếm 0 byte khác**. ⇒ Đo tái lập thì đo **binary**, không đo artifact trung gian.
+  Đây là lần thứ tư dự án dính họ "đo sai đại lượng" (trước đó: mã HTTP thay vì nội
+  dung · `docker stats` thay vì CPU tích luỹ · cổng JS không đọc mã Go).
+- **Thay file để đối chứng thì dùng `go build -overlay`, đừng sửa nguồn rồi khôi phục.**
+  Ghi bản cũ ra chỗ khác + `{"Replace":{"<đường dẫn trong container>":"<bản cũ>"}}`, mount
+  nguồn `:ro`. Nguồn không bị đụng một byte, và không có cửa nào để quên khôi phục.
+  (Cùng bài học với bẫy `sed -i` trong container đã ghi ở đợt 8.)
+- **Chú thích nói ngược giá trị ngay cạnh nó là lỗi thật, không phải lỗi hình thức.**
+  `cf5a54b` đổi giá trị sang bản 9 tỷ nhưng bỏ sót chú thích, để lại ba chỗ mô tả số cũ
+  (2,000 / 50,000,000 / 25) đúng ở file mà người ta đọc **ngay trước khi đổi một số
+  consensus-critical**. Đã vá ở patch 0009. Đổi hằng số thì đọc lại cả khối chú thích bao
+  quanh — trình biên dịch không bao giờ bắt được loại lệch này.
+
 ### Thêm từ phiên 2026-08-26 (đợt 9 — re-genesis mạng công khai)
 - 🔴 **`fetch` CỦA NODE CÓ HẠN GIỜ ẨN 300 GIÂY, VÀ `AbortSignal.timeout()` KHÔNG NỚI
   ĐƯỢC NÓ.** undici đặt `headersTimeout` mặc định đúng 300.000ms; muốn khác phải đổi
@@ -1097,11 +1120,13 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
   (thứ mở đường bật API Warp, M6.2) **chưa bao giờ được xuất ra**. Nó sẽ bốc hơi ở lượt
   `apply-sovereign.sh` kế tiếp, im lặng. **Commit vào cây fork xong PHẢI chạy lại**
   `git format-patch 1cf1fc3..9chain-a1 -o patches/ --no-signature` và commit `patches/`.
-  ⇒ Sao lưu fork bằng **patch series**: `git format-patch 1cf1fc3..9chain-a1` (**6 patch**
+  ⇒ Sao lưu fork bằng **patch series**: `git format-patch 1cf1fc3..9chain-a1` (**9 patch**
   tính tới 2026-08-26; con số này TĂNG theo mỗi commit chủ quyền — xem `patches/`)
   + ghi commit upstream gốc. Nghiệm thu bằng cách áp lên base rồi so **tree hash**
-  (`04c59acf…` tính tới 2026-08-26), **không so commit hash** — `git am` ghi lại committer nên commit hash
+  (**`4820ac22`** tính tới 2026-08-26), **không so commit hash** — `git am` ghi lại committer nên commit hash
   đổi trong khi cây mã nguồn vẫn đúng từng byte.
+  ⚠️ **Hai con số này đã trôi lệch một lần** (chỗ này còn ghi "6 patch / `04c59acf`" trong
+  khi đầu file ghi 8 — sửa 2026-08-26). Đổi patch series thì phải sửa **cả hai chỗ**.
 - **Đừng dùng `apply-sovereign.sh` để diễn tập rebase** — nó kết thúc bằng
   `git branch -f 9chain-a1 HEAD`, tức là **ghi đè nhánh thật**. Dùng `rebase-drill.sh`
   (worktree tách rời + chốt chặn xác nhận nhánh thật không đổi hash).
