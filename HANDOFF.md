@@ -30,16 +30,75 @@ và nó **cần David xác nhận** — phiên trước đã dừng đúng ở �
 Phát hành genesis **5.400.000.000** (60%) · **9 node** × self-bond **999.999** ·
 nhiệm kỳ 365 ngày, so le 7 ngày/node.
 
+### ✅ DIỄN TẬP CỤC BỘ ĐÃ CHẠY THẬT 2026-08-26 (David duyệt) — ĐẠT
+
+Dựng **9 node trên máy dev**, mạng riêng `net-drill9`, không đụng server. Kết quả:
+
+| Đo | Kết quả |
+|---|---|
+| binary có tham số mới | `supplyCap` **9e18** · `maxValidatorStake` 625e15 · `minValidatorStake` 25e12 · `minDelegatorStake` 312,5 |
+| validator | **9/9 connected** ngay lượt đo đầu |
+| self-bond | **999.999 LOVE9 × 9 = 8.999.991**, chín node bằng nhau tuyệt đối |
+| nhiệm kỳ so le | 2027-07-01 → 2027-08-26, **đúng 7,0 ngày/bậc**, trải 56 ngày |
+| khoá genesis cưỡng chế | quỹ Team 810.000.000 → `unlocked: 0`, `lockedStakeable: 810.000.000` |
+| C-Chain | chainId 9000000009 · Foundation 1.000.000.000 · faucet 99.999.999 |
+| giao dịch thật | `probe-l1.mjs` → **chốt 0,1s, block 1, status 1** |
+| log 9 node | **0 ERROR · 0 WARN**, `/ext/health` healthy=true |
+
+🔴 **`platform.getCurrentSupply` = 4.301.076.227 LOVE9, KHÔNG phải 4.300.000.001** —
+lệch **+1.076.226**. Đừng tưởng sai: đó là **tổng thưởng dự kiến của 9 validator
+genesis**, avalanchego cộng thẳng vào supply lúc thêm validator. Đã đối chiếu từng
+node bằng trường `potentialReward` → khớp **tuyệt đối tới đơn vị cuối**
+(1.076.226.149.636.784 nLOVE9). `InitialSupply()` (`genesis/config.go:146`) chỉ cộng
+X/P, **không** cộng C-Chain — nên đừng so nó với tổng phát hành 5,4 tỷ.
+
+⚠️ **D-042 ước "mỗi năm chỉ đúc cỡ 700 nghìn LOVE9" — đo thật cao hơn ~50%.**
+Thưởng dự kiến năm đầu là **1.076.226 LOVE9** cho 9 node (nhiệm kỳ trung bình ~330
+ngày; quy về 365 ngày là ~1,19 triệu). Cùng bậc độ lớn, kết luận của D-042 (cung
+thật sẽ nằm quanh 5,4 tỷ chứ không phải 9 tỷ) **không đổi** — chỉ con số minh hoạ sai.
+
+**Chưa chứng minh được ở diễn tập cục bộ** (phải chờ mạng công khai): đẻ L1 qua
+console · Warp/ICM · faucet HTTP · Blockscout index lại từ đầu.
+
 **Đã kiểm được (không phải "trông có vẻ đúng"):**
 - `node scripts/check-consistency.mjs --tu-kiem` → **17 đạt · 6/6 đối chứng ngược bắt được**
-- Biểu thức hằng số kiểm bằng chính Go → SupplyCap 9e9, genesis 5,4e9, mint 3,6e9,
-  self-bond/node 999.999, không tràn `uint64` (48,79%)
-- Patch series tái lập đúng cây nguồn: tree `04c59acf` (nhớ **`git am --keep-cr`**)
+  🔴 nhưng xem cảnh báo ngay dưới: cổng này **không đọc một dòng Go nào**.
+- Patch series tái lập đúng cây nguồn: tree **`3886ca7d`** (8 patch tính tới
+  2026-08-26; nhớ **`git am --keep-cr`**)
 
-**Bước còn lại — CHƯA CHẠY, cần David gật:**
+🔴 **CỔNG `check-consistency.mjs` KHÔNG BAO TRÙM MÃ — nó giữ bảng số riêng bằng JS.**
+"17 đạt" chứng minh các CON SỐ David chốt nhất quán với nhau, **không** chứng minh
+gì về mã sẽ sinh ra genesis. Bằng chứng: bản tokenomics 9 tỷ đi qua cổng này sạch
+trong khi **netgen không biên dịch được** (`bk.Percent undefined` — cf5a54b đổi tên
+trường mà bỏ sót hai nơi dùng). Đã vá; nay netgen đọc `SupplyCap` thẳng từ
+`genesis.A1Params` và có cổng `mustFitSupplyCap()` riêng.
+
+## 🔴 1b. KẾ HOẠCH CŨ THIẾU MỘT BƯỚC — PHẢI BUILD LẠI IMAGE NODE
+
+Bản HANDOFF trước ghi bước còn lại chỉ có netgen + `down -v`. **Thiếu.** `SupplyCap`
+là hằng số **biên dịch vào binary**, không đọc từ `genesis.json` (fork cố ý xếp 9001
+cùng nhóm Mainnet/Fuji ở `config/config.go:807` để cờ `--stake-supply-cap` vô hiệu).
+Server hiện chạy binary cũ — đo được: `"supplyCap":720000000000000000`.
+
+Nạp genesis 5,4 tỷ lên binary đó thì `reward/calculator.go:56`
+`remainingSupply := c.supplyCap - currentSupply` trừ `uint64` **thô**, tràn ngược
+thành **13.766.744.073 LOVE9** (lớn hơn cả trần 9 tỷ), và
+`SetCurrentSupply(currentSupply + reward)` vượt luôn `uint64`. Lập luận của D-039
+*"cộng `uint64` thô không thể tràn"* chỉ đúng **khi `currentSupply ≤ supplyCap`**.
+**Không tầng nào bắt được**: avalanchego không kiểm `initialSupply ≤ supplyCap` ở
+bất kỳ đâu — node khởi động sạch, RPC xanh, smoke xanh, sai lệch chỉ lộ ở phần
+thưởng staking nhiều ngày sau.
+
+**Bước còn lại — CHƯA CHẠY TRÊN SERVER, cần David gật:**
 ```bash
-A1_NET_DIR=... bash local-net/gen-network.sh 9   # netgen sinh mạng 9 node + keys.txt MỚI
-# rồi: docker compose ... down -v && up -d  + nạp lại faucet.env, ví chain-factory
+# 0) BẮT BUỘC TRƯỚC TIÊN — build lại image node có SupplyCap 9 tỷ, rồi deploy
+docker build -f local-net/Dockerfile -t 9chain-a1/node:dev .
+# 1) sinh mạng 9 node + keys.txt MỚI
+A1_NET_DIR=local-net/net-public bash local-net/gen-network.sh 9
+# 2) rồi: docker compose ... down -v && up -d + nạp lại faucet.env, ví chain-factory
+# 3) đối chứng NGAY sau khi node lên, trước khi mở cho ai dùng:
+#    docker logs 9chain-a1-node-1 | head -1 | grep -o '"supplyCap":[0-9]*'
+#    -> PHẢI ra 9000000000000000000, không phải 720000000000000000
 ```
 🔴 **Nó xoá:** chain data 9 node · **DB Blockscout** · 3 L1 hiện có (David đã duyệt
 D-037) · và sinh **bộ khoá quỹ MỚI** ⇒ `keys.txt` cũ vô dụng. Mạng công khai đứng rồi
@@ -529,6 +588,33 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ---
 
 ## Gotchas
+
+### Thêm từ phiên 2026-08-26 (đợt 8 — diễn tập re-genesis cục bộ)
+- 🔴 **Tham số kinh tế nằm trong BINARY, không trong `genesis.json`.** Đổi
+  `SupplyCap`/`MaxValidatorStake`/… trong `genesis_9chain_a1.go` là **phải build lại
+  image node và deploy**, không chỉ sinh lại genesis. Chi tiết + hậu quả tràn ngược:
+  mục 1b đầu file. Đối chứng rẻ nhất sau mỗi lần deploy:
+  `docker logs <node> 2>&1 | head -1 | grep -o '"supplyCap":[0-9]*'`.
+- 🔴 **Cổng chặn viết bằng ngôn ngữ khác với thứ nó canh thì nó canh cái khác.**
+  `check-consistency.mjs` (JS) không đọc mã Go, nên bản tokenomics **không biên dịch
+  được** vẫn qua cổng 17/17 + 6/6 đối chứng ngược. Lần thứ ba dự án dính họ này
+  (trước đó: đo mã HTTP thay vì nội dung; đo `docker stats` thay vì CPU tích luỹ).
+  ⇒ Cổng phải chạm **chính artifact** sẽ chạy thật. netgen nay đọc `SupplyCap` thẳng
+  từ `genesis.A1Params` — hết bản chép tay, hết đường trôi lệch.
+- 🔴 **`sed -i` TRONG CONTAINER SỬA CHÍNH FILE NGUỒN ĐANG BIND-MOUNT.** Tôi chạy một
+  ca đối chứng ngược "hạ trần về 720 triệu" bằng `sed -i` trên `/src` và nó **ghi
+  thẳng vào repo** — `git checkout` mới lấy lại được. Cách đúng: mount `:ro` và thay
+  file bằng `go build -overlay <json>` (Go nhận bản đồ thay tệp, nguồn không đụng).
+- 🔴 **`platform.getCurrentSupply` > tổng allocation X/P là BÌNH THƯỜNG.** Nó đã cộng
+  sẵn `potentialReward` của mọi validator genesis. Và `InitialSupply()` **không** tính
+  C-Chain. Muốn đối chiếu tổng phát hành thì cộng tay X/P + C-Chain từ `genesis.json`,
+  đừng hỏi P-Chain.
+- **Subnet docker `172.28.0.0/16` đã bị bộ dev-local chiếm** (`net_a1net`, còn sống vì
+  `9chain-a1-faucet` bám vào). Dựng bộ thứ hai song song phải đổi dải — `sed` trên
+  compose là đủ, `genesis.json` **không chứa IP** nên không phải sinh lại khoá.
+- **`container_name` do netgen sinh ra là cố định `9chain-a1-node-N`**, không mang tên
+  project ⇒ hai bộ mạng không chạy song song được. Volume thì CÓ mang tên project
+  (`net_…` vs `net-drill9_…`), nên `docker rm` container cũ **không mất dữ liệu** bộ cũ.
 
 ### Thêm từ phiên 2026-08-26 (đợt 7 — tokenomics 9 tỷ)
 - 🔴 **`SupplyCap` là `uint64`, và LOVE9 có 9 chữ số ⇒ TRẦN THẬT LÀ 18,447 TỶ LOVE9.**
