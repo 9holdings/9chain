@@ -814,6 +814,12 @@ self-bond = 50 tỷ × tỷ-lệ-staking ÷ 5 node. Với **mọi** khả năng 
   gian; chỉ đầu vào/ra là `uint64`.
 - Cầu nối P/X↔C là **đúng một hằng số** `X2CRateUint64` (`coreth/plugin/evm/atomic/tx.go:33`).
 
+📄 **Soát rủi ro đầy đủ: `docs/RUI-RO-THANG-1E7.md`** — 6 rủi ro có vị trí cụ thể
+trong mã, 7 thứ đã kiểm và KHÔNG phải rủi ro, và 3 thứ chưa đo. Hai điều nặng nhất:
+thang `1e9` nằm ở **BA chỗ độc lập** (netgen `unitLOVE9`, netgen `cChainGenesis`,
+coreth `X2CRateUint64`) và lệch nhau thì **không gây lỗi nào**; và mọi `units.*` còn
+sót trong `A1Params` trở thành **sai số 100 lần với chú thích khẳng định điều ngược lại**.
+
 🔴 **RỦI RO CHƯA ĐÓNG — phải có bài kiểm trước ngày G.** `X2CRate` là hằng số
 **consensus-critical cho chuyển tài sản X/P ↔ C-Chain**. A1 hiện **không có bài
 nghiệm thu nào chạm đường đó**. Đổi nó mà không có bài kiểm là đúng loại thay đổi
