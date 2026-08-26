@@ -803,9 +803,20 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
   `remote did not send all necessary objects`. Repo fork là **shallow clone** (ranh giới
   `1cf1fc3`); bundle từ repo shallow luôn hỏng, kể cả khi chỉ bundle một nhánh.
   ⇒ **`git bundle verify` KHÔNG đủ để tin — phép đo đúng là CLONE NGƯỢC.**
-  ⇒ Sao lưu fork bằng **patch series**: `git format-patch 1cf1fc3..9chain-a1` (4 patch)
+- 🔴 **`git am` PHẢI có `--keep-cr` khi áp patch series của cây fork.** Thiếu nó thì mọi
+  tệp CRLF (ví dụ `netgen/main.go`) bị đổi hết xuống dòng ⇒ tree hash LỆCH ⇒ "sao lưu"
+  khôi phục ra một cây khác. `apply-sovereign.sh` và `rebase-drill.sh` **đã** có cờ này;
+  cái bẫy nằm ở chỗ ai đó gõ tay `git am` để kiểm chứng rồi kết luận series hỏng.
+  Đã dính đúng thế 2026-08-26 và suýt báo động nhầm là dự án có lỗi.
+- 🔴 **`patches/` KHÔNG tự cập nhật.** Đo 2026-08-26: nhánh `9chain-a1` có **5** commit
+  chủ quyền nhưng `patches/` chỉ có **4** — commit `netgen: khai --chain-config-dir`
+  (thứ mở đường bật API Warp, M6.2) **chưa bao giờ được xuất ra**. Nó sẽ bốc hơi ở lượt
+  `apply-sovereign.sh` kế tiếp, im lặng. **Commit vào cây fork xong PHẢI chạy lại**
+  `git format-patch 1cf1fc3..9chain-a1 -o patches/ --no-signature` và commit `patches/`.
+  ⇒ Sao lưu fork bằng **patch series**: `git format-patch 1cf1fc3..9chain-a1` (**6 patch**
+  tính tới 2026-08-26; con số này TĂNG theo mỗi commit chủ quyền — xem `patches/`)
   + ghi commit upstream gốc. Nghiệm thu bằng cách áp lên base rồi so **tree hash**
-  (`05c37aa4…`), **không so commit hash** — `git am` ghi lại committer nên commit hash
+  (`04c59acf…` tính tới 2026-08-26), **không so commit hash** — `git am` ghi lại committer nên commit hash
   đổi trong khi cây mã nguồn vẫn đúng từng byte.
 - **Đừng dùng `apply-sovereign.sh` để diễn tập rebase** — nó kết thúc bằng
   `git branch -f 9chain-a1 HEAD`, tức là **ghi đè nhánh thật**. Dùng `rebase-drill.sh`

@@ -1,0 +1,194 @@
+From cf5a54bfa6bc56f83e5750736c93e576714b2ec4 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Wed, 26 Aug 2026 17:29:50 +0400
+Subject: [PATCH 6/6] 9chain-a1: tokenomics 9 ty LOVE9 (DECISIONS D-039/D-042)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+SupplyCap 720tr -> 9.000.000.000. MinValidatorStake 2.000 -> 25.000.
+MaxValidatorStake 50tr -> 625.000.000. MinDelegatorStake 25 -> 312,5.
+
+Bang phan bo moi: 6 bucket gop thanh 5 hang muc cong bo.
+  Foundation 12% = self-bond 8.999.991 (dia chi RIENG) + 1.071.000.009
+  Community  30% = faucet nong 99.999.999 (100% C-Chain) + 2.600.000.001
+  Private Sale 9% (moi) · Team 9% · Staking Rewards 40% khong cap o genesis
+Phat hanh genesis 5.400.000.000, quy mint 3.600.000.000.
+
+InitialStakeDurationOffset 5400s -> 7 ngay: voi 9 node thi offset cu lam
+ca mang het han trong 12 tieng, van la 'chet cung mot luc'.
+---
+ 9chain-a1-tools/netgen/allocation.go | 74 ++++++++++++++++++----------
+ 9chain-a1-tools/netgen/main.go       |  8 ++-
+ genesis/genesis_9chain_a1.go         |  8 +--
+ 3 files changed, 58 insertions(+), 32 deletions(-)
+
+diff --git a/9chain-a1-tools/netgen/allocation.go b/9chain-a1-tools/netgen/allocation.go
+index 720a626..1e66c9a 100644
+--- a/9chain-a1-tools/netgen/allocation.go
++++ b/9chain-a1-tools/netgen/allocation.go
+@@ -36,13 +36,18 @@ const (
+ 	bucketEcosystem  = "ecosystem"
+ 	bucketFaucet     = "faucet"
+ 	bucketTeam       = "team"
++	bucketPrivate    = "private-sale"
+ )
+ 
+ // bucket = 1 quỹ trong bảng phân bổ genesis.
+ type bucket struct {
+-	Key     string
+-	Name    string
+-	Percent int
++	Key  string
++	Name string
++	// Nhom = hạng mục CÔNG BỐ (5 hạng mục), NhomPct = % của hạng mục đó.
++	// Nhiều bucket có thể cùng một Nhom khi chúng cần ĐỊA CHỈ riêng nhưng thuộc
++	// cùng một dòng trong bảng công bố.
++	Nhom    string
++	NhomPct int
+ 	Purpose string
+ 
+ 	// LiquidXP  : mở khoá ngay, thành UTXO trên X-Chain.
+@@ -57,41 +62,56 @@ type bucket struct {
+ 
+ func (b bucket) Total() uint64 { return b.LiquidXP + b.LockedXP + b.CChain }
+ 
+-// buckets — TỔNG PHÁT HÀNH GENESIS = 400,000,000 LOVE9 (trần cung 720,000,000,
+-// phần chênh 320,000,000 dành cho thưởng staking mint dần, xem A1Params).
++// buckets — TỔNG PHÁT HÀNH GENESIS = 5,400,000,000 LOVE9 (trần cung 9,000,000,000;
++// phần chênh 3,600,000,000 là quỹ **Staking Rewards**, KHÔNG cấp ở genesis mà mint dần).
++//
++// Nguồn số: DECISIONS.md **D-039** (tổng cung 9 tỷ) và **D-042** (bảng phân bổ).
++// 🔴 Đổi số ở đây thì PHẢI chạy `node scripts/check-consistency.mjs --tu-kiem` TRƯỚC —
++// cổng đó khẳng định tổng %, tổng quỹ, chia nhỏ khớp quỹ, và trần uint64.
++//
++// ⚠️ 6 bucket ở đây gộp thành 5 HẠNG MỤC công bố (`Nhom`): Foundation và self-bond là
++// hai ĐỊA CHỈ riêng nhưng cùng một hạng mục 12%; Community và faucet cũng vậy (30%).
++// Tách địa chỉ là có chủ ý — xem chú thích ở từng bucket.
+ //
+ // Thứ tự trong slice quyết định thứ tự allocation trong genesis.json — giữ ổn định.
+ var buckets = []bucket{
+ 	{
+-		Key: bucketStaking, Name: "Validators / Staking", Percent: 40,
+-		Purpose: "Bao mat mang — chia deu cho N node genesis lam stake",
+-		// Toàn bộ nằm ở phần khoá: avalanchego lấy đúng phần này chia thành
+-		// stake của N validator genesis. Đặt LiquidXP > 0 ở đây là sai —
+-		// tiền sẽ bị bỏ qua vì địa chỉ nằm trong InitialStakedFunds.
+-		LockedXP: 160 * mega, LockSeconds: oneYear, LockLabel: oneYearLbl,
++		Key: bucketStaking, Name: "Self-bond validator genesis", Nhom: "Foundation", NhomPct: 12,
++		Purpose: "Stake cua N node genesis — avalanchego chia deu tu dia chi nay",
++		// 🔴 ĐỊA CHỈ RIÊNG, KHÔNG dùng chung với Foundation. Phần KHOÁ của địa chỉ nằm
++		// trong InitialStakedFunds **chính là** stake validator; trộn chung thì sau này
++		// đổi lịch khoá Foundation sẽ ÂM THẦM đổi trọng số validator.
++		// 8,999,991 = 9 node × 999,999 (D-042). Chia hết, không dư.
++		LockedXP: 8_999_991 * unitLOVE9, LockSeconds: oneYear, LockLabel: oneYearLbl,
++	},
++	{
++		Key: bucketFoundation, Name: "Foundation", Nhom: "Foundation", NhomPct: 12,
++		Purpose: "Van hanh, grant, nap lai faucet; nhan thuong staking cua node genesis",
++		LiquidXP: 71_000_009 * unitLOVE9,
++		CChain:   1_000 * mega,
+ 	},
+ 	{
+-		Key: bucketFoundation, Name: "Foundation / Treasury", Percent: 20,
+-		Purpose: "Van hanh, grant, du phong; nhan thuong staking cua node genesis",
+-		LockedXP: 60 * mega, LockSeconds: twoYears, LockLabel: twoYearLbl,
+-		CChain: 20 * mega,
++		Key: bucketEcosystem, Name: "Community (khoá)", Nhom: "Community", NhomPct: 30,
++		Purpose: "Quy con nguoi — phan phoi cho cong dong, khoa 2 nam",
++		LockedXP: 2_600_000_001 * unitLOVE9, LockSeconds: twoYears, LockLabel: twoYearLbl,
+ 	},
+ 	{
+-		Key: bucketEcosystem, Name: "Ecosystem / Community", Percent: 20,
+-		Purpose: "Airdrop, khuyen khich builder, thanh khoan L1 moi",
+-		LiquidXP: 10 * mega,
+-		CChain:   70 * mega,
++		Key: bucketFaucet, Name: "Faucet (ví NÓNG)", Nhom: "Community", NhomPct: 30,
++		Purpose: "Cap token thu nghiem — vi NONG, chap nhan mat, nap lai tu Foundation",
++		// 🔴 100% trên C-Chain: faucet/server.mjs dùng ethers và chỉ tiêu trên C-Chain.
++		// Bản cũ cấp 2,000,000 LOVE9 phần X/P — CHƯA BAO GIỜ được tiêu, chỉ làm rộng
++		// bề mặt rủi ro của một ví nóng. Xem D-042.
++		CChain: 99_999_999 * unitLOVE9,
+ 	},
+ 	{
+-		Key: bucketFaucet, Name: "Faucet (testnet)", Percent: 5,
+-		Purpose: "Cap token thu nghiem — vi NONG, chap nhan mat, KHONG dung treasury",
+-		LiquidXP: 2 * mega,
+-		CChain:   18 * mega,
++		Key: bucketPrivate, Name: "Private Sale", Nhom: "Private Sale", NhomPct: 9,
++		Purpose: "Phan bo ban rieng — khoa 2 nam",
++		LockedXP: 810 * mega, LockSeconds: twoYears, LockLabel: twoYearLbl,
+ 	},
+ 	{
+-		Key: bucketTeam, Name: "Team", Percent: 15,
+-		Purpose: "Doi ngu — cliff 1 nam roi vesting",
+-		LockedXP: 60 * mega, LockSeconds: fourYears, LockLabel: fourYearLbl,
++		Key: bucketTeam, Name: "Team", Nhom: "Team", NhomPct: 9,
++		Purpose: "Doi ngu — cliff roi vesting",
++		LockedXP: 810 * mega, LockSeconds: fourYears, LockLabel: fourYearLbl,
+ 	},
+ }
+ 
+@@ -150,7 +170,7 @@ func allocationReport(funds map[string]*fund, networkID uint32, nodes int) strin
+ 	fmt.Fprintf(&b, "# 9Chain-A1 — Phân bổ genesis (networkID %d, %d node)\n\n", networkID, nodes)
+ 	fmt.Fprintf(&b, "Tổng phát hành genesis: **%s LOVE9** · Trần cung: **720,000,000 LOVE9**\n\n", love9(totalGenesisSupply()))
+ 	b.WriteString("File này CÔNG KHAI được — chỉ chứa địa chỉ, không chứa khoá bí mật.\n\n")
+-	b.WriteString("| Quỹ | % | Tổng (LOVE9) | X/P thanh khoản | X/P khoá | Mở khoá | C-Chain | Địa chỉ X | Địa chỉ EVM |\n")
++	b.WriteString("| Hạng mục | Quỹ | % | Tổng (LOVE9) | X/P thanh khoản | X/P khoá | Mở khoá | C-Chain | Địa chỉ X | Địa chỉ EVM |\n")
+ 	b.WriteString("|---|--:|--:|--:|--:|---|--:|---|---|\n")
+ 	for _, bk := range buckets {
+ 		f := funds[bk.Key]
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+index ade224d..3fef653 100644
+--- a/9chain-a1-tools/netgen/main.go
++++ b/9chain-a1-tools/netgen/main.go
+@@ -202,7 +202,13 @@ func main() {
+ 		Allocations:                allocs,
+ 		StartTime:                  uint64(now - 60),
+ 		InitialStakeDuration:       oneYear,
+-		InitialStakeDurationOffset: 5400,
++		// 🔴 SO LE NHIỆM KỲ — 7 ngày giữa các node (D-042).
++		// Bản cũ để 5400 giây (1,5 giờ): với 9 node thì cả mạng hết hạn trong vòng
++		// 12 tiếng, tức vẫn là "chết cùng một lúc" chứ không phải cảnh báo.
++		// 7 ngày × 8 khoảng = trải 56 ngày: node đầu rụng ở ~ngày 309, và đó là
++		// LỜI CẢNH BÁO SỚM với 8 node vẫn chạy, thay vì một dấu chấm hết đột ngột.
++		// Ràng buộc: offset × (số node − 1) phải < InitialStakeDuration.
++		InitialStakeDurationOffset: 7 * 24 * 60 * 60,
+ 		InitialStakedFunds:         []string{staking9.XAddr},
+ 		InitialStakers:             stakers,
+ 		CChainGenesis:              cChainGenesis(funds),
+diff --git a/genesis/genesis_9chain_a1.go b/genesis/genesis_9chain_a1.go
+index 17086c9..58ecf90 100644
+--- a/genesis/genesis_9chain_a1.go
++++ b/genesis/genesis_9chain_a1.go
+@@ -74,7 +74,7 @@ var A1Params = Params{
+ 
+ 		// Rào cản vào làm validator: 2,000 LOVE9.
+ 		// Cố tình thấp để cộng đồng tự chạy node được — đây là mục đích tồn tại của A1.
+-		MinValidatorStake: 2 * units.KiloAvax,
++		MinValidatorStake: 25 * units.KiloAvax, // 25.000 LOVE9 — D-042 (x12,5)
+ 
+ 		// Trần stake mỗi validator: 50,000,000 LOVE9.
+ 		//
+@@ -84,10 +84,10 @@ var A1Params = Params{
+ 		// kiểm tra nên vẫn chạy, nhưng tokenomics thành vô lý: không validator
+ 		// cộng đồng nào được phép stake ngang node genesis. Trần 50M vừa chứa
+ 		// được node genesis, vừa chặn tập trung quá mức (50M / 720M supply cap ≈ 7%).
+-		MaxValidatorStake: 50 * units.MegaAvax,
++		MaxValidatorStake: 625 * units.MegaAvax, // 625.000.000 LOVE9 — D-042 (x12,5)
+ 
+ 		// Rào cản uỷ quyền: 25 LOVE9 — người dùng thường tham gia được.
+-		MinDelegatorStake: 25 * units.Avax,
++		MinDelegatorStake: 312_500 * units.MilliAvax, // 312,5 LOVE9 — D-042 (x12,5)
+ 
+ 		// Phí uỷ quyền tối thiểu validator được thu: 2%.
+ 		MinDelegationFee: 20_000, // thang 1,000,000 = 100%
+@@ -106,7 +106,7 @@ var A1Params = Params{
+ 			// Genesis phát hành 400,000,000 → còn 320,000,000 dành cho phần
+ 			// thưởng staking trong nhiều năm.
+ 			// ⬅️ ĐÂY LÀ SỐ CẦN DAVID CHỐT DỨT KHOÁT TRƯỚC MAINNET.
+-			SupplyCap: 720 * units.MegaAvax,
++			SupplyCap: 9_000 * units.MegaAvax, // 9.000.000.000 LOVE9 — D-039
+ 		},
+ 	},
+ }
