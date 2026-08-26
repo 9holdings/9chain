@@ -191,6 +191,49 @@ các chain trong `chains` còn sống trên một mạng chúng không tồn t�
 ⇒ **43 tên + chainId cũ nay dùng lại được**. Bản cũ còn ở `docs/archive/console-chains-pre-regenesis-2026-08-26.json`,
 nên **khôi phục được** — nhưng phải có người quyết là có khôi phục hay không.
 
+### 5c — 🔴 Lỗ chống phát lại KHÔNG còn là lý thuyết: **6 chainId cũ đã bị cấp lại trong 24 giờ**
+
+Đo `27/08`, so sổ lưu trữ với sổ đang chạy:
+
+| | |
+|---|---|
+| Sổ cũ (trước `26/08`) | **46 bản ghi** — 3 sống, 43 đã thu hồi · chainId **9100–9145**, không trùng nhau |
+| Sổ hiện tại | **0 sống · 6 đã thu hồi** · chainId **9100–9105** |
+| **Đâm nhau** | **chainId: 9100 · 9101 · 9102 · 9103 · 9104 · 9105** — cả sáu. Tên: **không cái nào** |
+
+Trong sáu số đó, **9100 (`OwnerTest`) và 9101 (`OmegaChain`) là chain ĐANG SỐNG** lúc re-genesis.
+
+**Hôm nay thiệt hại thực tế ~0** — cả 6 chain mới ở dải đó đều đã thu hồi, nên không có gì đang
+phục vụ dưới các số ấy. **Nhưng lỗ vẫn mở, và nó mở đúng chỗ đắt nhất:**
+
+🔴 **chainId 9106–9145 hiện ĐANG TRỐNG và sẽ được cấp cho 40 chain kế tiếp** — console tự cấp
+bằng `chainId = 9100; while (taken) chainId++` (`server.mjs:659`). Trong dải đó có **`9141` =
+chain `David Do`**. Đẻ thêm ~36 chain nữa là số đó được cấp lại, và **ví của David lặng lẽ trỏ
+vào chain của người lạ**.
+
+**Nếu khôi phục** (trả lời câu phiên web hỏi):
+- **Không** làm `createChain` từ chối nhầm gì đáng kể: nó chặn thêm 46 số, và tự cấp chỉ việc
+  bắt đầu từ **9146**. Không gian chainId là số nguyên, **không khan hiếm**.
+- **Không** đâm tên: 46 tên cũ khác hoàn toàn 6 tên mới.
+- ⚠️ **Nhưng KHÔNG phải thuần lợi như tưởng:** 6 chainId `9100–9105` sẽ xuất hiện **hai lần**
+  trong `retired` với **hai tên khác nhau**. Không sập (chặn hai lần vẫn là chặn), nhưng trang
+  `/chains/` sẽ vẽ hai bản ghi cùng số — phải chốt luật gộp trước khi làm.
+
+### 5d — chainId `9000000009` ở ngày G: **chưa có quyết định nào tồn tại**
+
+Phiên web nêu ba lý do nên đổi. Đo lại thì **một lý do đổ, hai lý do đứng**:
+
+| Lý do | Thẩm định |
+|---|---|
+| chữ ký **SIWE** cũ phát lại được | 🔴 **ĐỔ.** `siwe.mjs:113` — server **không bao giờ nhận `message` từ client**, nó tra message từ kho của chính mình theo nonce ⇒ chữ ký mạng cũ **không có đường trình lên**. Cộng thêm: `khoNonce` là `Map` **trong bộ nhớ** (mất khi restart), nonce **dùng một lần**, xoá ngay cả khi xác minh hỏng. Chặn **độc lập với chainId** |
+| ví còn cấu hình cũ nối vào mạng mới **không cảnh báo gì** | ✅ **Đứng.** Cùng chainId + cùng RPC + cùng tên ⇒ người dùng thấy số dư 0 và không hiểu vì sao. Đây là vế người dùng thật sự va phải |
+| giao dịch đã ký **chưa phát** của mạng cũ phát lại được | ✅ **Đứng, nhưng hẹp.** EIP-155 buộc chữ ký vào chainId, nonce đếm lại từ 0. Hẹp vì sau re-genesis mọi địa chỉ có số dư 0 ⇒ tx phát lại chết vì thiếu tiền; cửa còn mở là người đó **xin faucet trên mạng mới** rồi tx cũ nonce 0 mới chạy |
+
+**Khuyến nghị: GIỮ `9000000009`.** Chân trụ mạnh nhất của phía "đổi" (SIWE) đã đổ, trong khi
+cái giá của việc đổi là thật: mọi tài liệu/ví/hướng dẫn đã phát ra ngoài đều sai, và
+`9000000009` nằm trong **chuẩn đặt tên chốt `24/08`** — tức nó là bản sắc, không phải tham số.
+⇒ Hai vế còn lại xử bằng **câu chữ trên trang**, không bằng đổi số.
+
 ### Bẫy "bản tập biến thành bản thật" — A1 **không** dùng được kỷ luật của C1
 
 Bản nháp đề xuất: bản tập đặt `genesisTime = bây giờ + 120s`, chỉ bản thật mang mốc thiêng.
@@ -210,7 +253,8 @@ phải thiết kế trước lượt tập đầu tiên**, không phải trướ
 | **2** | 🔴 **Sơ đồ custody khoá quỹ mới** (O1) | Sinh lại mạng là **cơ hội một lần**; sau ngày G lại kẹt y cũ | **`28/08`** |
 | **3** | **Block Adam nằm trên chain nào** (khuyến nghị C-Chain) | Khắc vĩnh viễn | `28/08` |
 | **4** | **L1 người dùng + câu cảnh báo khi mời người** (O3) | Chạm người thật ngoài dự án | `28/08` |
-| **5** | **Có khôi phục 43 bản ghi `retired` đã mất không** (O3b) | Chống phát lại cho ví của người dùng cũ | `28/08` |
+| **5** 🔴 | **Có khôi phục sổ `retired` cũ không** (O3b) — **KHÔNG còn là rủi ro lý thuyết**, xem §5c | Chống phát lại cho ví người dùng cũ · **chain `David Do` 9141 nằm trong vùng đang hở** | `28/08` |
+| **7b** 🆕 | **chainId `9000000009`: giữ hay đổi ở ngày G?** **Chưa có quyết định nào tồn tại** | Khuyến nghị **GIỮ** — xem §5d | `29/08` |
 | **6** | 🔴 **Chi tiền cho validator nhà cung cấp thứ hai** (O4) | Tiền | `29/08` |
 | **7** | **H-7: IPv4 đa cổng hay IPv6** (O5) | Chọn **tập người dùng**, không phải chọn kỹ thuật | `29/08` |
 
