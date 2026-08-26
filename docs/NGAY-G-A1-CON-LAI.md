@@ -48,7 +48,25 @@ thứ chưa ai chạm tới**, thay vì trải đều trên nhiều việc đã 
 
 ---
 
-## 2. 🔴 Việc chặn số một: bảng phân bổ có **BA** bản, không phải hai
+## 2. ✅ ĐÃ PHÂN XỬ `27/08` — giữ bảng ĐANG CHẠY 40/30/12/9/9 (D-045)
+
+**David chốt: giữ nguyên bảng đang chạy.** Không phải sửa một dòng mã nào —
+`netgen/allocation.go` đã codify đúng nó (đã đối chiếu `27/08`).
+⇒ **Mở khoá G1 · G2 · G3** và điều kiện GO/NO-GO số 1. G2 và G3 **không còn phải quyết riêng**:
+self-bond **8.999.991** nằm trong Foundation 12% (không trích từ ô staking như bản nháp BOD
+ghi), phần để mint = **3.600.000.000** = ô Staking Rewards 40%.
+
+🔴 **Một ràng buộc mới lộ ra khi chốt — SỐ NODE Ở NGÀY G PHẢI LÀ 9.** `allocation.go` khai
+self-bond là **tổng cố định** `8.999.991`, avalanchego chia đều cho N. `8.999.991 = 9 × 999.999`
+chỉ chia hết ở **N = 9**: N=10 → 899.999 **dư 1** · N=12 → 749.999 **dư 3**.
+⚠️ **Giao thoa với O4** (validator nhà cung cấp thứ hai): thêm một node trước ngày G là mất
+bộ "toàn số 9" và sinh số lẻ. Muốn cả hai thì phải nâng tổng self-bond — tức lại đổi bảng phân
+bổ. **Đừng để nó tự xảy ra ở phút chót.**
+
+<details>
+<summary>Bối cảnh xung đột (giữ để đối chiếu)</summary>
+
+### Việc chặn số một cũ: bảng phân bổ có **BA** bản, không phải hai
 
 Bản nháp BOD nêu xung đột giữa hai bảng. Đo lại thì có **ba**, và bản **đang chạy thật** không
 khớp bảng nào:
@@ -71,6 +89,8 @@ mint) đều **dẫn xuất** từ ô này — tính trước là tính lại l�
 *"`allocation.md` khai đúng 10–20–30–40, tổng ra **90 tỷ**"*. 90 tỷ **không tồn tại** trong
 `uint64` — đã chứng minh bằng biên dịch có đối chứng ngược (BLOCKERS H-9). Điều kiện đó phải
 viết lại theo trần 9 tỷ.
+
+</details>
 
 ---
 
@@ -185,7 +205,8 @@ phải thiết kế trước lượt tập đầu tiên**, không phải trướ
 
 | # | Việc | Vì sao không tự quyết được | Hạn |
 |---|---|---|---|
-| **1** | 🔴 **Phân xử bảng phân bổ** (§2) — ba bản, bản đang chạy khớp không bản nào | Chặn G2 + G3 + toàn bộ genesis | **`27/08`** |
+| ~~1~~ | ✅ **XONG `27/08`** — ~~phân xử bảng phân bổ~~ → **giữ bảng đang chạy 40/30/12/9/9** (D-045). G1+G2+G3 mở khoá, không phải sửa mã | — | — |
+| **1b** 🆕 | 🔴 **Số node ở ngày G có giữ là 9 không?** Hệ quả trực tiếp của mục 1: self-bond `8.999.991` chỉ chia hết ở N=9. Giao thoa với O4 | Đổi N là đổi self-bond mỗi node, và mất bộ "toàn số 9" | **`29/08`**, cùng lúc với O4 |
 | **2** | 🔴 **Sơ đồ custody khoá quỹ mới** (O1) | Sinh lại mạng là **cơ hội một lần**; sau ngày G lại kẹt y cũ | **`28/08`** |
 | **3** | **Block Adam nằm trên chain nào** (khuyến nghị C-Chain) | Khắc vĩnh viễn | `28/08` |
 | **4** | **L1 người dùng + câu cảnh báo khi mời người** (O3) | Chạm người thật ngoài dự án | `28/08` |

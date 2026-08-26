@@ -1047,3 +1047,62 @@ genesis bất biến, không có multisig, không có social recovery. Bản th�
 phải diễn tập rebase lại) cho một mạng sẽ re-genesis lần nữa vào 01/09.
 ⚠️ **Điều kiện để nó còn đúng:** khi A1 chuyển sang thứ có giá trị thật (hoặc trước
 mainnet), mục này **phải quyết lại** — lúc đó "một ổ đĩa" không còn là rủi ro chấp nhận được.
+
+
+### D-045 — PHÂN XỬ XUNG ĐỘT BẢNG PHÂN BỔ: **giữ bảng ĐANG CHẠY 40/30/12/9/9**
+
+**David chốt 2026-08-27**, trả lời trực tiếp việc chặn số một của ngày G.
+
+`PLAN-REGENESIS-2026-09-01.md` §G1 để ngỏ một xung đột và ghi *"đừng khắc bảng nào cho
+tới khi chủ dự án phân xử"*. A1 thẩm định lại thì hoá ra có **BA** bảng, không phải hai —
+và bảng **đang chạy thật** không khớp bảng nào trong hai bảng đang tranh chấp:
+
+| Ô (ngôn ngữ 4 nhóm của BOD) | BOD Đ14 | A1 D-039 (như BOD chép) | **ĐANG CHẠY (D-042)** |
+|---|--:|--:|--:|
+| Staking + validator | 30% | 40% | **40%** |
+| Con người / Community | 40% | 30% | **30%** |
+| Hệ sinh thái | 20% | 20% | **21%** |
+| Team | 10% | 10% | **9%** |
+
+**Chốt: giữ nguyên bảng đang chạy.** Nó là bảng **5 hạng mục**, không phải 4:
+
+| Hạng mục | % | LOVE9 |
+|---|--:|--:|
+| Staking Rewards | 40 | 3.600.000.000 — **KHÔNG cấp ở genesis**, mint dần |
+| Community | 30 | 2.700.000.000 (faucet nóng 99.999.999 + khoá 2 năm 2.600.000.001) |
+| Foundation | 12 | 1.080.000.000 (self-bond 8.999.991 + 1.071.000.009) |
+| Private Sale | 9 | 810.000.000 — khoá 2 năm |
+| Team | 9 | 810.000.000 — khoá 4 năm |
+
+Tổng cung **9.000.000.000** · phát hành genesis **5.400.000.000** (60%).
+
+**Vì sao đây là lựa chọn rẻ nhất:** bảng này **đã thi hành thật** trên mạng công khai từ
+26/08 và đã qua nghiệm thu đầy đủ. Chọn nó nghĩa là **không phải sửa một dòng mã nào** —
+`netgen/allocation.go` đã codify đúng nó (đã đối chiếu 27/08). Hai bảng kia đều đòi sinh
+lại bảng, tính lại lát self-bond, và chạy lại toàn bộ nghiệm thu, đổi lấy một khác biệt
+mà chưa ai nêu được lý do kỹ thuật.
+
+⇒ **Mở khoá:** G1 · G2 (lát self-bond) · G3 (phần để mint) trong kế hoạch ngày G, và
+điều kiện GO/NO-GO số 1. Xem `docs/NGAY-G-A1-CON-LAI.md`.
+
+**Hệ quả kèm theo, đã tính sẵn (G2/G3 không còn phải quyết riêng):**
+- **G2** — self-bond **8.999.991** nằm trong Foundation 12% (KHÔNG trích từ ô staking như
+  bản nháp BOD ghi). Ở 9 node = **999.999/node**. Đã đo: ≤ `maxValidatorStake` 625.000.000,
+  còn ~624 triệu dư địa nhận uỷ quyền mỗi node.
+- **G3** — phần để mint = **3.600.000.000**, chính là ô Staking Rewards 40%, không cấp ở
+  genesis. `SupplyCap − tổng alloc genesis` = 9,0 tỷ − 5,4 tỷ ✓.
+
+🔴 **MỘT RÀNG BUỘC CHƯA AI NÊU — SỐ NODE Ở NGÀY G PHẢI LÀ 9.**
+`allocation.go` khai self-bond là một **TỔNG cố định** (`8_999_991`), rồi avalanchego chia
+đều cho N node. `8.999.991 = 9 × 999.999` — bộ chín số 9 chỉ ra đúng ở **N = 9**:
+
+| N | LOVE9/node | |
+|--:|--:|---|
+| 9 | **999.999** | chia hết — bản sắc "toàn số 9" |
+| 10 | 899.999 | **dư 1** |
+| 12 | 749.999 | **dư 3** |
+
+⚠️ Điều này **giao thoa với O4** (validator ở nhà cung cấp thứ hai). Thêm một node trước
+ngày G ⇒ N = 10 ⇒ self-bond mỗi node thành **899.999 và lẻ 1 đơn vị**, mất luôn ý nghĩa
+"toàn số 9". Muốn cả hai thì phải **nâng tổng self-bond** cho chia hết cho N mới — và đó là
+đổi bảng phân bổ, tức lại là việc của David. **Đừng để nó tự xảy ra ở phút chót.**
