@@ -859,9 +859,19 @@ có thứ tự cao nhất.** Trong lúc chờ: nút chính trỏ vào trang "đa
         chứ **không xoá**: chúng có thể đã nằm trong tài liệu hay tin nhắn của ai đó,
         và một URL chết thì không nói được nó đã đi đâu. 301 vì đây là chuyển nhà
         vĩnh viễn.
-        ⚠️ Hai container cũ (`:8082` explorer nhẹ, `:8092` dashboard) nay **không còn
-        đường vào** nhưng vẫn đang chạy — dừng chúng là việc dọn tài nguyên, chưa làm
-        vì nó đụng tới thứ đang chạy mà không ai yêu cầu.
+      - [x] **Đã TẮT hai container cũ** `9chain-a1-explorer` (:8082) và
+        `9chain-a1-dashboard` (:8092) — chúng không còn đường vào nào sau khi
+        `/lite/` và `/dashboard/` thành redirect (David duyệt 2026-08-26).
+        Dùng `docker stop`, **không `rm`**: `unless-stopped` nghĩa là chúng ở yên
+        sau khi dừng tường minh, còn dữ liệu và cấu hình vẫn nguyên.
+        Bật lại: `docker start 9chain-a1-explorer 9chain-a1-dashboard`.
+
+        🔴 **Phải kiểm một thứ TRƯỚC khi tắt, và nó suýt là bẫy:** Caddyfile có
+        đường lui `A1_ROOT_UPSTREAM` cho gốc, và chú thích cũ ghi giá trị mẫu là
+        `127.0.0.1:8082` — tức đúng container sắp tắt. Đo `caddy.env` thật thì nó
+        đang là `127.0.0.1:8100` (Blockscout), nên tắt an toàn. Đã sửa chú thích:
+        để nguyên là để lại một đường lui **trỏ vào thứ đã chết**, và nó chỉ lộ ra
+        đúng lúc có sự cố cần dùng tới nó.
       - [blocked] Gỡ trang `/chains/` cũ — chờ 9Scan-A1 đưa `/chains/` của họ lên
         (U-5, việc của dự án khác).
 

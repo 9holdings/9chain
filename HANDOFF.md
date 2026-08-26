@@ -76,9 +76,13 @@ log ghi `giữ lại chain "(chain có sẵn)"`. L1 đó vẫn chiếm một slo
 mọi đường dẫn sâu. Đối chứng sau khi đổi: `/blocks` vẫn là HTML Blockscout 76 KB.
 **M10.7 mở khoá thêm một mục**: `/lite/` → `/`, `/dashboard/` → `/bang/`, cả hai 301.
 
-⚠️ Hai container cũ (`:8082` explorer nhẹ, `:8092` dashboard) nay **không còn đường
-vào** nhưng vẫn chạy. Dừng chúng là dọn tài nguyên — chưa làm vì nó đụng thứ đang
-chạy mà không ai yêu cầu.
+**Đã TẮT hai container cũ** `9chain-a1-explorer` (:8082) và `9chain-a1-dashboard`
+(:8092) — không còn đường vào nào sau khi `/lite/`, `/dashboard/` thành redirect.
+`docker stop`, KHÔNG `rm`; bật lại bằng `docker start <tên>`.
+🔴 Kiểm trước khi tắt: Caddyfile có đường lui `A1_ROOT_UPSTREAM` cho gốc và chú thích
+cũ ghi mẫu là `:8082` — đúng container sắp tắt. `caddy.env` thật đang là `:8100`
+(Blockscout) nên an toàn. Đã sửa chú thích, vì một đường lui trỏ vào thứ đã chết chỉ
+lộ ra đúng lúc có sự cố cần dùng tới nó.
 
 ### Phiên 2026-08-26 (autopilot — M10.3 → M10.7) làm xong
 
