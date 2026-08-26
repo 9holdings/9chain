@@ -133,10 +133,10 @@ console · Warp/ICM · faucet HTTP · Blockscout index lại từ đầu.
 **Đã kiểm được (không phải "trông có vẻ đúng"):**
 - `node scripts/check-consistency.mjs --tu-kiem` → **17 đạt · 6/6 đối chứng ngược bắt được**
   🔴 nhưng xem cảnh báo ngay dưới: cổng này **không đọc một dòng Go nào**.
-- Patch series tái lập đúng cây nguồn: tree **`76a714ea`** (**10 patch** tính tới
+- Patch series tái lập đúng cây nguồn: tree **`09c74a2a`** (**11 patch** tính tới
   2026-08-26; nhớ **`git am --keep-cr`**). Đã nghiệm thu lại sau patch 0009: áp đủ
-  10 patch lên `1cf1fc3` trong worktree tách rời → tree ra **khớp tuyệt đối**.
-  *(Tree trước patch 0010 là `4820ac22`; patch 0010 = cơ chế khắc chữ, xem `docs/KHAC-CHU-NGAY-G.md`.)*
+  11 patch lên `1cf1fc3` trong worktree tách rời → tree ra **khớp tuyệt đối**.
+  *(Patch 0010 = cơ chế khắc chữ · 0011 = `engrave-verify` đọc ngược. Xem `docs/KHAC-CHU-NGAY-G.md`.)*
 
 🔴 **CỔNG `check-consistency.mjs` KHÔNG BAO TRÙM MÃ — nó giữ bảng số riêng bằng JS.**
 "17 đạt" chứng minh các CON SỐ David chốt nhất quán với nhau, **không** chứng minh
@@ -669,6 +669,30 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 
 ## Gotchas
 
+### Thêm từ phiên 2026-08-27 (đợt 11 — cơ chế khắc chữ)
+
+- 🔴 **TRÊN MÁY DEV, TAG `9chain-a1/node:dev` LÀ BINARY CŨ 720 TRIỆU.** Đo lúc dựng mạng
+  tập: `"supplyCap":720000000000000000`. Bản 9 tỷ trên máy dev nằm ở tag
+  **`9chain-a1/node:drill9`**; `:dev` của **server** mới là bản 9 tỷ. **Cùng một tag, hai
+  máy, hai binary khác nhau.** Ai làm theo runbook trên máy dev mà tin `:dev` là bản hiện
+  hành sẽ nạp genesis 5,4 tỷ lên binary trần 720 triệu — đúng cái bẫy tràn ngược `uint64`
+  ở mục 1b, và **node vẫn khởi động sạch**. Luôn đối chứng:
+  `docker logs <node> 2>&1 | head -1 | grep -o '"supplyCap":[0-9]*'`.
+- 🔴 **TRƯỜNG `Message` CỦA P-CHAIN GENESIS LÀ TRƯỜNG CHỈ GHI.** Nó được serialize vào
+  genesis blob nhưng **không chỗ nào trong avalanchego đọc lại**, và `platformvm` **không
+  có API `getGenesis`**. ⇒ *"đọc chữ khắc từ chain"* theo nghĩa đen **không làm được**.
+  Đường vòng chặt hơn: `state.go:2382` đặt `genesisID = sha256(genesisBytes)` và block 0
+  lấy nó làm **`parentID`** ⇒ mạng đang chạy mang sẵn **cam kết mật mã cho toàn bộ genesis
+  blob**, đọc bằng `platform.getBlockByHeight(0)`. Nó chứng minh được thứ mạnh hơn: **mạng
+  này sinh ra từ đúng tệp genesis kia**. `9chain-a1-tools/engrave-verify` dùng đúng mỏ neo đó.
+- **Mount đè lên `/dev` của container là giết container.** `-v <host>:/dev:ro` ⇒
+  `can't mask paths: open /dev/null: no such file or directory`. Đặt tên điểm mount khác
+  (`/devnet`). Lỗi đọc như hỏng Docker chứ không như đặt tên sai.
+- **Compose do netgen sinh dùng bind-mount TƯƠNG ĐỐI** (`../../9chain-a1-config`). Chạy
+  `docker compose` từ thư mục khác ⇒ node chết với
+  `couldn't read chain configs: cannot read directory`. Có sẵn đường ra: đặt
+  **`A1_CONFIG_DIR`** trỏ đường tuyệt đối.
+
 ### Thêm từ phiên 2026-08-26 (đợt 10 — vá tài liệu lệch)
 
 - 🔴 **HASH CỦA `.a` KHÔNG PHẢI HASH CỦA BINARY — đừng kết luận tái lập từ nó.**
@@ -1120,10 +1144,10 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
   (thứ mở đường bật API Warp, M6.2) **chưa bao giờ được xuất ra**. Nó sẽ bốc hơi ở lượt
   `apply-sovereign.sh` kế tiếp, im lặng. **Commit vào cây fork xong PHẢI chạy lại**
   `git format-patch 1cf1fc3..9chain-a1 -o patches/ --no-signature` và commit `patches/`.
-  ⇒ Sao lưu fork bằng **patch series**: `git format-patch 1cf1fc3..9chain-a1` (**10 patch**
+  ⇒ Sao lưu fork bằng **patch series**: `git format-patch 1cf1fc3..9chain-a1` (**11 patch**
   tính tới 2026-08-26; con số này TĂNG theo mỗi commit chủ quyền — xem `patches/`)
   + ghi commit upstream gốc. Nghiệm thu bằng cách áp lên base rồi so **tree hash**
-  (**`76a714ea`** tính tới 2026-08-26), **không so commit hash** — `git am` ghi lại committer nên commit hash
+  (**`09c74a2a`** tính tới 2026-08-27), **không so commit hash** — `git am` ghi lại committer nên commit hash
   đổi trong khi cây mã nguồn vẫn đúng từng byte.
   ⚠️ **Hai con số này đã trôi lệch một lần** (chỗ này còn ghi "6 patch / `04c59acf`" trong
   khi đầu file ghi 8 — sửa 2026-08-26). Đổi patch series thì phải sửa **cả hai chỗ**.

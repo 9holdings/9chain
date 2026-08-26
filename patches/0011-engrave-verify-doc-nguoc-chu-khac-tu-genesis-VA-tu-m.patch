@@ -1,0 +1,424 @@
+From 04eefc33288fee3231e112f27d147ad01360d43b Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Thu, 27 Aug 2026 00:04:17 +0400
+Subject: [PATCH 11/11] engrave-verify: doc nguoc chu khac tu genesis VA tu
+ mang dang chay
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Vi sao can cong cu rieng thay vi tin engraving.md cua netgen: bao cao la thu netgen
+TU NOI ve minh. Bo nay di duong nguoc lai — tu tep genesis va tu chain that — roi
+doi chieu. Hai duong gap nhau moi la bang chung.
+
+MO NEO — phat hien lam bai kiem nay kha thi:
+🔴 Truong `Message` la truong CHI GHI. Da soi ca cay nguon: no duoc serialize vao
+genesis blob nhung KHONG cho nao doc lai, va platformvm KHONG co API getGenesis.
+Nen "doc Message tu chain" theo nghia den la KHONG LAM DUOC — ai hua dieu do la
+chua do. (PLAN-REGENESIS de xuat 9Scan-A1 "phoi noi dung Message ra trang cong
+khai"; ho cung khong doc duoc tu chain, phai doc tu tep genesis.)
+
+Nhung state.go:2382 cho mot duong vong CHAT HON ca doc thang:
+  genesisID := hashing.ComputeHash256Array(genesisBytes)
+  genesisBlock, _ := block.NewApricotCommitBlock(genesisID, 0)
+=> parentID cua block 0 tren P-Chain CHINH LA sha256 cua toan bo genesis blob, ma
+blob chua Message. Doi mot byte cua bat ky tai lieu nao => parentID doi.
+Manh hon doc thang: doc thang chi chung minh "tep co chu"; cai nay chung minh
+"MANG DANG CHAY duoc sinh ra tu dung tep do".
+
+C-Chain thi doc thang duoc: eth_getCode o dia chi hop dong du lieu.
+
+Tu tim hop dong du lieu bang cach quet alloc nao co `code`, khong bat khai dia chi:
+genesis la nguon su that, va mot tham so phai go tay la mot cho go sai.
+
+NGHIEM THU TREN CHAIN SONG (mang tap 3 node, image :drill9, dai 172.31.0/16 de
+khong dam vao net_a1net cua faucet):  17 DAT / 0 HONG
+  block 0 P-Chain: parentID == sha256(genesisBytes)     khop
+  eth_getCode tra ve hop dong du lieu                    332 byte
+  ban van TREN MANG == ban van TRONG TEP                 khop
+  extraData TREN MANG == extraData TRONG TEP             khop
+  P-Chain va C-Chain cung byte cho cung tai lieu         3/3
+  doi chieu ban dong bang cua C1                         4/4
+
+DOI CHUNG NGUOC (phep do co phan biet duoc khong):
+  genesis bo DEV LOCAL do vao mang CONG KHAI    -> DO dung cho
+  genesis mang thu do vao mang CONG KHAI        -> DO dung cho
+  mang cong khai that (chua khac)               -> noi ro "CHUA KHAC CHU", va van
+                                                   chay mo neo: 2 dat / 0 hong
+Ca DO-A tien the bat luon cai bay "hai bo mang" da lam 9Scan ket luan sai — nay
+no la mot phep do co hoc chu khong con la mot luat phai nho.
+
+Chua khac chu KHONG phai loi (do la trang thai cua moi ban tap), nen muc [2][3][4]
+bao "bo qua" con muc [5] VAN CHAY: mo neo tep<->mang co gia tri rieng, doc lap voi
+viec co khac hay khong.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ 9chain-a1-tools/engrave-verify/main.go | 358 +++++++++++++++++++++++++
+ 1 file changed, 358 insertions(+)
+ create mode 100644 9chain-a1-tools/engrave-verify/main.go
+
+diff --git a/9chain-a1-tools/engrave-verify/main.go b/9chain-a1-tools/engrave-verify/main.go
+new file mode 100644
+index 0000000..c98893a
+--- /dev/null
++++ b/9chain-a1-tools/engrave-verify/main.go
+@@ -0,0 +1,358 @@
++// engrave-verify — ĐỌC NGƯỢC chữ khắc ra khỏi genesis và khỏi MẠNG ĐANG CHẠY.
++//
++// Vì sao cần một công cụ riêng thay vì tin `engraving.md` của netgen: báo cáo là thứ
++// netgen TỰ NÓI về mình. Bộ này đi đường ngược lại — từ tệp genesis và từ chain thật —
++// rồi đối chiếu. Hai đường gặp nhau mới là bằng chứng.
++//
++// # Mỏ neo: vì sao đọc được chữ khắc P-Chain từ một node đang chạy
++//
++// 🔴 **Trường `Message` là trường CHỈ GHI.** Nó được serialize vào genesis blob nhưng
++// KHÔNG chỗ nào trong avalanchego đọc lại, và **không có API nào phơi nó ra** (đã soi
++// cả cây nguồn: `platformvm` không có `getGenesis`). Nên "đọc `Message` từ chain" theo
++// nghĩa đen là **không làm được** — ai hứa điều đó là chưa đo.
++//
++// Nhưng có một đường vòng chặt hơn cả đọc thẳng. `state.go:2382`:
++//
++//	genesisID := hashing.ComputeHash256Array(genesisBytes)
++//	genesisBlock, err := block.NewApricotCommitBlock(genesisID, 0 /*height*/)
++//
++// ⇒ **`parentID` của block 0 trên P-Chain CHÍNH LÀ `sha256` của toàn bộ genesis blob**,
++// và genesis blob chứa `Message`. Đổi một byte của bất kỳ tài liệu nào ⇒ blob đổi ⇒
++// `parentID` đổi. Mạng đang chạy vì thế mang sẵn một **cam kết mật mã cho chữ khắc**,
++// đọc được bằng `platform.getBlockByHeight(0)`.
++//
++// Nó mạnh hơn đọc thẳng: đọc thẳng chỉ chứng minh "tệp có chữ"; cái này chứng minh
++// **mạng đang chạy được sinh ra từ đúng tệp đó**.
++//
++// C-Chain thì đọc thẳng được: `eth_getCode` ở địa chỉ hợp đồng dữ liệu.
++//
++// Dùng:
++//
++//	engrave-verify --genesis <genesis.json> [--rpc <base>] [--checksums <file>]
++//
++// `--rpc` là gốc RPC, ví dụ https://rpc-a1.9chain.org — thiếu nó thì chỉ kiểm được
++// phần tệp, và công cụ NÓI RÕ là nó chưa chạm vào mạng nào.
++package main
++
++import (
++	"bytes"
++	"crypto/sha256"
++	"encoding/hex"
++	"encoding/json"
++	"flag"
++	"fmt"
++	"io"
++	"net/http"
++	"os"
++	"strings"
++	"time"
++
++	"github.com/ava-labs/avalanchego/genesis"
++	"github.com/ava-labs/avalanchego/ids"
++	pgenesis "github.com/ava-labs/avalanchego/vms/platformvm/genesis"
++)
++
++var (
++	dat, hong int
++	verbose   = flag.Bool("v", false, "in them chi tiet")
++)
++
++func kiem(ten string, ok bool, chiTiet string) {
++	if ok {
++		dat++
++		fmt.Printf("  ✓ %-52s %s\n", ten, chiTiet)
++		return
++	}
++	hong++
++	fmt.Printf("  ✗ %-52s %s\n", ten, chiTiet)
++}
++
++// bundle — khuôn JSON chính tắc mà netgen/engrave.go sinh ra.
++type bundle struct {
++	V       int    `json:"v"`
++	Chain   string `json:"chain"`
++	Surface string `json:"surface"`
++	Docs    []struct {
++		ID   string `json:"id"`
++		Lang string `json:"lang"`
++		Text string `json:"text"`
++	} `json:"docs"`
++}
++
++func main() {
++	genesisPath := flag.String("genesis", "", "duong dan genesis.json (bat buoc)")
++	rpcBase := flag.String("rpc", "", "goc RPC, vd https://rpc-a1.9chain.org")
++	checksums := flag.String("checksums", "", "ban dong bang CHECKSUMS cua C1")
++	flag.Parse()
++
++	if *genesisPath == "" {
++		fmt.Fprintln(os.Stderr, "thieu --genesis")
++		os.Exit(2)
++	}
++
++	fmt.Println("engrave-verify — doc nguoc chu khac")
++	fmt.Println(strings.Repeat("=", 74))
++
++	// ---- 1) Nạp genesis bằng CHÍNH mã node dùng lúc khởi động ----
++	raw, err := os.ReadFile(*genesisPath)
++	fatal(err, "doc genesis.json")
++
++	var meta struct {
++		NetworkID     uint32 `json:"networkID"`
++		CChainGenesis string `json:"cChainGenesis"`
++	}
++	fatal(json.Unmarshal(raw, &meta), "phan tich genesis.json")
++
++	stakingCfg := genesis.A1Params.StakingConfig
++	genesisBytes, _, err := genesis.FromFile(meta.NetworkID, *genesisPath, &stakingCfg)
++	fatal(err, "genesis.FromFile TU CHOI tep nay")
++
++	sum := sha256.Sum256(genesisBytes)
++	genesisID := ids.ID(sum)
++
++	fmt.Printf("\n[1] Genesis (networkID %d)\n", meta.NetworkID)
++	kiem("genesis.FromFile chap nhan", true, fmt.Sprintf("%d byte", len(genesisBytes)))
++	fmt.Printf("      sha256(genesisBytes) = %s\n", genesisID)
++
++	// ---- 2) Bóc Message ra khỏi blob ----
++	pg, err := pgenesis.Parse(genesisBytes)
++	fatal(err, "phan tich P-Chain genesis blob")
++
++	fmt.Println("\n[2] Chu khac tren P-Chain (truong Message)")
++	var pb bundle
++	daKhac := json.Unmarshal([]byte(pg.Message), &pb) == nil
++	pHashes := map[string]string{}
++	if daKhac {
++		kiem("Message la bo tai lieu JSON", true,
++			fmt.Sprintf("v%d · surface=%s · %d tai lieu", pb.V, pb.Surface, len(pb.Docs)))
++		pHashes = hashDocs(pb, "P-Chain")
++	} else {
++		// KHÔNG phải lỗi — đây là trạng thái hợp lệ của mọi bản tập. Nhưng phải nói
++		// thẳng, và **vẫn chạy tiếp mục [5]**: mỏ neo tệp↔mạng có giá trị riêng, độc
++		// lập với việc có khắc chữ hay không.
++		fmt.Printf("  · CHUA KHAC CHU — Message = %q\n", truncate(pg.Message, 60))
++		fmt.Println("    (trang thai hop le cua ban tap; muc [3][4] bo qua, muc [5] van chay)")
++	}
++
++	// ---- 3) Đối chiếu bản đóng băng của C1 ----
++	if !daKhac {
++		fmt.Println("\n[3] Doi chieu ban dong bang cua C1: BO QUA (chua khac chu)")
++	} else if *checksums != "" {
++		fmt.Println("\n[3] Doi chieu ban dong bang cua C1")
++		cb, err := os.ReadFile(*checksums)
++		fatal(err, "doc CHECKSUMS")
++		body := strings.ToLower(string(cb))
++		for id, h := range pHashes {
++			kiem("C1 cong nhan "+id, strings.Contains(body, h), h[:24]+"…")
++		}
++	} else {
++		fmt.Println("\n[3] Doi chieu ban dong bang cua C1: BO QUA (khong khai --checksums)")
++	}
++
++	// ---- 4) Hợp đồng dữ liệu C-Chain, đọc từ CHÍNH genesis ----
++	fmt.Println("\n[4] Hop dong du lieu C-Chain (trong genesis)")
++	dataAddr, code, extraData := findDataContract(meta.CChainGenesis)
++	if dataAddr == "" && !daKhac {
++		fmt.Println("  · CHUA KHAC — khong alloc nao co `code`, extraData = " + extraData)
++	} else if dataAddr == "" {
++		// P-Chain đã khắc mà C-Chain thì không: đây LÀ lỗi, không phải bản tập.
++		kiem("tim thay hop dong du lieu", false, "P-Chain da khac nhung C-Chain thi KHONG")
++	} else {
++		fmt.Printf("      dia chi = 0x%s\n", dataAddr)
++		payload, ok := stripStop(code)
++		kiem("ma mo dau bang opcode STOP (0x00)", ok, "khong chay duoc, chi de doc")
++		if ok {
++			pSum := sha256.Sum256(payload)
++			pHex := hex.EncodeToString(pSum[:])
++			kiem("extraData = sha256(payload)", strings.EqualFold(extraData, "0x"+pHex), extraData)
++			edBytes, _ := hex.DecodeString(strings.TrimPrefix(extraData, "0x"))
++			kiem("extraData dung 32 byte", len(edBytes) == 32, fmt.Sprintf("%d byte", len(edBytes)))
++
++			var cbun bundle
++			if err := json.Unmarshal(payload, &cbun); err != nil {
++				kiem("payload la bo tai lieu JSON", false, err.Error())
++			} else {
++				kiem("payload la bo tai lieu JSON", true,
++					fmt.Sprintf("surface=%s · %d tai lieu", cbun.Surface, len(cbun.Docs)))
++				cHashes := hashDocs(cbun, "C-Chain")
++				// Cùng một tài liệu trên hai mặt phải là CÙNG MỘT BYTE.
++				for id, h := range cHashes {
++					if ph, co := pHashes[id]; co {
++						kiem("P-Chain va C-Chain cung byte: "+id, ph == h, h[:24]+"…")
++					}
++				}
++			}
++		}
++	}
++
++	// ---- 5) MẠNG ĐANG CHẠY ----
++	if *rpcBase == "" {
++		fmt.Println("\n[5] Mang dang chay: BO QUA (khong khai --rpc)")
++		fmt.Println("    🔴 Mọi thu tren day moi chi chung minh TEP co chu khac.")
++		fmt.Println("       Chua cham vao mang nao — chua biet mang dang chay co sinh ra tu tep nay khong.")
++		ketLuan(false)
++		return
++	}
++
++	fmt.Println("\n[5] Mang dang chay")
++	base := strings.TrimRight(*rpcBase, "/")
++
++	// 5a — MỎ NEO: parentID của block 0 P-Chain = sha256(genesisBytes).
++	var blk struct {
++		Result struct {
++			Block struct {
++				ParentID string `json:"parentID"`
++				Height   uint64 `json:"height"`
++			} `json:"block"`
++		} `json:"result"`
++	}
++	err = rpc(base+"/ext/bc/P", `{"jsonrpc":"2.0","id":1,"method":"platform.getBlockByHeight","params":{"height":0,"encoding":"json"}}`, &blk)
++	if err != nil {
++		kiem("doc block 0 cua P-Chain", false, err.Error())
++	} else {
++		got := blk.Result.Block.ParentID
++		kiem("block 0 P-Chain: parentID == sha256(genesisBytes)", got == genesisID.String(), got)
++		if got != genesisID.String() && *verbose {
++			fmt.Printf("      mong doi %s\n", genesisID)
++		}
++	}
++
++	// 5b — C-Chain: đọc THẲNG bản văn ra.
++	if dataAddr != "" {
++		var codeRes struct {
++			Result string `json:"result"`
++		}
++		err = rpc(base+"/ext/bc/C/rpc",
++			fmt.Sprintf(`{"jsonrpc":"2.0","id":1,"method":"eth_getCode","params":["0x%s","latest"]}`, dataAddr), &codeRes)
++		if err != nil {
++			kiem("eth_getCode tren mang", false, err.Error())
++		} else {
++			live, ok := stripStop(codeRes.Result)
++			kiem("eth_getCode tra ve hop dong du lieu", ok && len(live) > 0, fmt.Sprintf("%d byte", len(live)))
++			if ok {
++				want, _ := stripStop(code)
++				kiem("ban van tren MANG == ban van trong TEP", bytes.Equal(live, want),
++					fmt.Sprintf("sha256 %s…", hexSum(live)[:24]))
++				var lb bundle
++				if json.Unmarshal(live, &lb) == nil {
++					fmt.Printf("      doc tu chain: %d tai lieu\n", len(lb.Docs))
++					for _, d := range lb.Docs {
++						fmt.Printf("        %-22s %s %s\n", d.ID, d.Lang, hexSum([]byte(d.Text))[:24]+"…")
++					}
++				}
++			}
++		}
++
++		// 5c — extraData của block 0 C-Chain, đọc từ chain.
++		var ethBlk struct {
++			Result struct {
++				ExtraData string `json:"extraData"`
++			} `json:"result"`
++		}
++		err = rpc(base+"/ext/bc/C/rpc", `{"jsonrpc":"2.0","id":1,"method":"eth_getBlockByNumber","params":["0x0",false]}`, &ethBlk)
++		if err != nil {
++			kiem("doc block 0 cua C-Chain", false, err.Error())
++		} else {
++			kiem("extraData tren MANG == extraData trong TEP",
++				strings.EqualFold(ethBlk.Result.ExtraData, extraData), ethBlk.Result.ExtraData)
++		}
++	}
++
++	ketLuan(true)
++}
++
++func hashDocs(b bundle, mat string) map[string]string {
++	out := make(map[string]string, len(b.Docs))
++	for _, d := range b.Docs {
++		h := hexSum([]byte(d.Text))
++		out[d.ID] = h
++		if *verbose {
++			fmt.Printf("      %-10s %-22s %s %d byte\n", mat, d.ID, h, len(d.Text))
++		}
++	}
++	return out
++}
++
++// findDataContract tìm alloc DUY NHẤT có `code` trong C-Chain genesis.
++// Tự tìm thay vì bắt khai địa chỉ: genesis là nguồn sự thật, và một tham số phải gõ
++// tay là một chỗ gõ sai.
++func findDataContract(cChainGenesis string) (addr, code, extraData string) {
++	var g struct {
++		ExtraData string                     `json:"extraData"`
++		Alloc     map[string]json.RawMessage `json:"alloc"`
++	}
++	if json.Unmarshal([]byte(cChainGenesis), &g) != nil {
++		return "", "", ""
++	}
++	extraData = g.ExtraData
++	for a, v := range g.Alloc {
++		var acc struct {
++			Code string `json:"code"`
++		}
++		if json.Unmarshal(v, &acc) == nil && acc.Code != "" {
++			return a, acc.Code, extraData
++		}
++	}
++	return "", "", extraData
++}
++
++// stripStop bỏ "0x" và byte STOP đầu tiên, trả phần bản văn.
++func stripStop(code string) ([]byte, bool) {
++	h := strings.TrimPrefix(strings.TrimPrefix(code, "0x"), "0X")
++	if len(h) < 2 || !strings.HasPrefix(h, "00") {
++		return nil, false
++	}
++	b, err := hex.DecodeString(h[2:])
++	if err != nil {
++		return nil, false
++	}
++	return b, true
++}
++
++func hexSum(b []byte) string {
++	s := sha256.Sum256(b)
++	return hex.EncodeToString(s[:])
++}
++
++func rpc(url, body string, out any) error {
++	cl := &http.Client{Timeout: 30 * time.Second}
++	resp, err := cl.Post(url, "application/json", strings.NewReader(body))
++	if err != nil {
++		return err
++	}
++	defer resp.Body.Close()
++	b, err := io.ReadAll(resp.Body)
++	if err != nil {
++		return err
++	}
++	if resp.StatusCode != 200 {
++		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, truncate(string(b), 120))
++	}
++	return json.Unmarshal(b, out)
++}
++
++func truncate(s string, n int) string {
++	if len(s) <= n {
++		return s
++	}
++	return s[:n] + "…"
++}
++
++func fatal(err error, msg string) {
++	if err != nil {
++		fmt.Fprintf(os.Stderr, "FATAL %s: %v\n", msg, err)
++		os.Exit(2)
++	}
++}
++
++func ketLuan(chamMang bool) {
++	fmt.Println("\n" + strings.Repeat("=", 74))
++	fmt.Printf("%d dat · %d hong", dat, hong)
++	if !chamMang {
++		fmt.Print("   (CHUA cham vao mang nao)")
++	}
++	fmt.Println()
++	if hong > 0 {
++		os.Exit(1)
++	}
++}

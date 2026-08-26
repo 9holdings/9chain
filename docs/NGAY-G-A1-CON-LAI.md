@@ -235,15 +235,22 @@ Xếp theo thứ tự đường găng:
 1. ✅ **XONG `26/08`** — **Tham số hoá `Message` + hợp đồng dữ liệu C-Chain trong netgen.**
    Cơ chế dựng sẵn, nội dung nhét vào sau khi C1 giao byte. Patch 0010, cây fork tree
    `76a714ea`. Cách dùng + bảng nghiệm thu: [`KHAC-CHU-NGAY-G.md`](KHAC-CHU-NGAY-G.md).
-2. 🟡 **Bài kiểm đọc ngược chữ khắc** — đã chạy **thủ công** và đạt (đọc `Message` từ
-   `genesis.json` + payload `eth_getCode`, băm lại từng tài liệu, khớp hết; genesis được
-   **chính `genesis.FromFile` của node** chấp nhận). **Chưa đóng gói thành một lệnh chạy
-   trên chain thật** — đó mới là thứ dùng được ngày G.
+2. ✅ **XONG `26-27/08`** — **Bài kiểm đọc ngược chữ khắc**: `9chain-a1-tools/engrave-verify`,
+   một lệnh, chạy được vào chain thật. **17 đạt/0 hỏng trên mạng tập 3 node dựng thật**, ba ca
+   đối chứng ngược đều đỏ đúng chỗ. Patch 0011, tree `09c74a2a`.
+   🔴 Phát hiện nền: `Message` là **trường chỉ ghi**, không API nào đọc được — nhưng `parentID`
+   của block 0 P-Chain **chính là `sha256` của toàn bộ genesis blob**, nên mạng đang chạy mang
+   sẵn cam kết mật mã cho chữ khắc. Xem [`KHAC-CHU-NGAY-G.md`](KHAC-CHU-NGAY-G.md).
 3. ✅ **XONG `26/08`** — **Cổng "bản tập ≠ bản thật"** (§5): mặc định KHÔNG khắc, bật khắc thì
    bắt buộc `A1_ENGRAVE_CONFIRM` khớp vân tay bộ tài liệu, và netgen **luôn in ra** mình có
    khắc hay không. Đã có đối chứng ngược: vân tay lệch ⇒ từ chối sinh mạng.
 4. **Diễn tập giao dịch nghi lễ Block Adam** trên bản tập.
 5. **Quy trình O2** (export + `sha256` + công bố) — thứ đã bỏ lỡ ở `26/08`.
+5b. 🆕 **Báo 9Scan-A1 một ràng buộc họ chưa biết.** `PLAN-REGENESIS` giao họ *"phơi nội dung
+   `Message` của P-Chain genesis ra một trang công khai"* — **họ không đọc được từ chain**:
+   `Message` là trường chỉ ghi, không API nào trả về. Họ phải đọc từ **tệp genesis** và nói rõ
+   nguồn là tệp; thứ đọc được **từ chain** chỉ là `parentID` của block 0 (= `sha256` của cả
+   blob) để đối chứng. Nếu không báo, họ sẽ đi tìm một endpoint không tồn tại.
 6. **G4** — tra `chainid.network`.
 7. **I1b** — phơi trần cung ra endpoint đọc được, hoặc ghi rõ trên trang rằng nguồn là **tham số
    genesis**. Luật cứng của 9Scan-A1 là *"số công bố phải đọc từ chain thật"*; in trần mà không có

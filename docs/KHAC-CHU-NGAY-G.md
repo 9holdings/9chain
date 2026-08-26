@@ -106,7 +106,73 @@ lượng C1 đóng băng, nên đối chiếu chéo hai chain mới có nghĩa.
 **chuỗi JSON đã escape** trên một dòng. Thêm `alloc` mang toàn văn tài liệu là một dòng escape
 rất dài — sửa tay là hỏng escape, và không ai thấy cho tới lúc node boot.
 
-## Kiểm lại — đừng tin `engraving.md`
+## Đọc ngược — `engrave-verify`
+
+`engraving.md` là thứ netgen **tự nói về mình**. `9chain-a1-tools/engrave-verify` đi đường
+ngược lại — từ tệp genesis và từ **chain thật** — rồi đối chiếu. Hai đường gặp nhau mới là
+bằng chứng.
+
+```bash
+docker run --rm --network host -v /c/PROJECTS/9Chain-A1/upstream/avalanchego:/src:ro -w /src \
+  -e GOWORK=off golang:1.25.10-bookworm \
+  go run ./9chain-a1-tools/engrave-verify \
+    --genesis <genesis.json> --rpc https://rpc-a1.9chain.org --checksums <CHECKSUMS cua C1>
+```
+
+Không khai `--rpc` thì nó **nói rõ là chưa chạm vào mạng nào**. Chưa khắc chữ **không phải
+lỗi** (đó là trạng thái của mọi bản tập) — mục [2][3][4] báo "bỏ qua", mục [5] vẫn chạy.
+
+### 🔴 Mỏ neo: vì sao đọc được chữ khắc P-Chain từ node đang chạy
+
+**Trường `Message` là trường CHỈ GHI.** Đã soi cả cây nguồn: nó được serialize vào genesis
+blob nhưng **không chỗ nào đọc lại**, và `platformvm` **không có API `getGenesis`**. Nên
+*"đọc `Message` từ chain"* theo nghĩa đen là **không làm được** — ai hứa điều đó là chưa đo.
+
+> ⚠️ Hệ quả cho **9Scan-A1**: `PLAN-REGENESIS` đề xuất họ *"phơi nội dung `Message` của
+> P-Chain genesis ra một trang công khai"*. Họ **không đọc được từ chain** — phải đọc từ tệp
+> genesis, và nói rõ nguồn là tệp. Việc này cần báo sang cho họ.
+
+Nhưng `state.go:2382` cho một đường vòng **chặt hơn cả đọc thẳng**:
+
+```go
+genesisID := hashing.ComputeHash256Array(genesisBytes)
+genesisBlock, _ := block.NewApricotCommitBlock(genesisID, 0 /*height*/)
+```
+
+⇒ **`parentID` của block 0 trên P-Chain chính là `sha256` của toàn bộ genesis blob**, mà blob
+chứa `Message`. Đổi một byte của bất kỳ tài liệu nào ⇒ `parentID` đổi. Đọc bằng
+`platform.getBlockByHeight(0)`.
+
+Nó **mạnh hơn** đọc thẳng: đọc thẳng chỉ chứng minh *"tệp có chữ"*; cái này chứng minh
+**mạng đang chạy được sinh ra từ đúng tệp đó**.
+
+### Nghiệm thu `2026-08-26/27`
+
+Mạng tập 3 node dựng thật (image `:drill9`, dải `172.31.0.0/16` để không đâm vào `net_a1net`
+của faucet), genesis có khắc chữ:
+
+| | |
+|---|---|
+| **17 đạt · 0 hỏng trên CHAIN SỐNG** | |
+| block 0 P-Chain: `parentID == sha256(genesisBytes)` | khớp |
+| `eth_getCode` trả về hợp đồng dữ liệu | 332 byte |
+| bản văn **trên MẠNG** == bản văn **trong TỆP** | khớp |
+| `extraData` trên mạng == trong tệp | khớp |
+| P-Chain và C-Chain cùng byte cho cùng tài liệu | 3/3 |
+| đối chiếu bản đóng băng của C1 | 4/4 |
+
+**Đối chứng ngược — phép đo có phân biệt được không:**
+
+| Ca | Kết quả |
+|---|---|
+| genesis bộ **dev local** đo vào mạng **công khai** | **ĐỎ** đúng chỗ |
+| genesis mạng thử đo vào mạng công khai | **ĐỎ** đúng chỗ |
+| mạng công khai thật (chưa khắc) | nói rõ *"CHƯA KHẮC CHỮ"*, mỏ neo vẫn khớp — 2 đạt/0 hỏng |
+
+Ca đầu tiện thể bắt luôn cái bẫy **"hai bộ mạng"** đã làm 9Scan kết luận sai — nay nó là một
+**phép đo cơ học**, không còn là một luật phải nhớ.
+
+## Kiểm bằng tay — đừng tin `engraving.md`
 
 Mã hợp đồng mở đầu bằng opcode `STOP` (`0x00`) rồi tới byte thô ⇒ không chạy được, chỉ để đọc.
 Bỏ 1 byte đầu là ra JSON; giải escape `text` rồi băm lại phải ra đúng cột `sha256`:
