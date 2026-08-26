@@ -30,7 +30,9 @@ export function FaucetForm() {
   const [ketQua, datKetQua] = useState<{ txHash: string; amount: string } | null>(null);
   const [loiGui, datLoiGui] = useState<string | null>(null);
   const [tin, datTin] = useState<TrangThaiTin>({ pha: 'tai' });
-  const [viTrangThai, datViTrangThai] = useState<'chua' | 'xong' | 'loi' | 'khongCo'>('chua');
+  const [viTrangThai, datViTrangThai] = useState<'chua' | 'xong' | 'loi' | 'tuChoi' | 'khongCo'>('chua');
+  // Nguyên văn mã + thông điệp của ví. Hiện ra chứ không nuốt — xem chú thích ở `themMang`.
+  const [viLoi, datViLoi] = useState<string | null>(null);
 
   // Chỉ kiểm khi người dùng đã gõ gì đó — báo đỏ vào một ô trống mà họ chưa chạm
   // tới là mắng trước khi hỏi.
@@ -54,14 +56,34 @@ export function FaucetForm() {
     void napTin();
   }, [napTin]);
 
+  /**
+   * 🔴 KHÔNG `catch {}` Ở ĐÂY. Bản trước nuốt sạch lỗi rồi hiện đúng một câu
+   * "Ví từ chối hoặc chưa cài" — gộp hai nguyên nhân khác hẳn nhau vào một chữ
+   * "hoặc", nên khi nút này hỏng thật thì cả người dùng lẫn người sửa đều không có
+   * gì để lần. Đã trả giá 2026-08-26: nút báo lỗi, và không ai biết là ví từ chối,
+   * ví đang khoá, hay tham số mình gửi sai.
+   *
+   * EIP-1193 quy định `4001` = NGƯỜI DÙNG TỪ CHỐI — đó là hành vi bình thường,
+   * không phải sự cố, nên nó có câu riêng. Mọi mã khác là lỗi thật và phải hiện
+   * NGUYÊN VĂN mã + thông điệp của ví: đó là thứ duy nhất phân biệt được
+   * "tham số của ta sai" với "ví không chịu".
+   */
   async function themMang() {
     const v = layVi();
     if (!v) return datViTrangThai('khongCo');
     try {
       await v.request({ method: 'wallet_addEthereumChain', params: [thamSoThemMang()] });
       datViTrangThai('xong');
-    } catch {
-      datViTrangThai('loi');
+      datViLoi(null);
+    } catch (e) {
+      const err = e as { code?: number; message?: string };
+      if (err?.code === 4001) {
+        datViTrangThai('tuChoi');
+        datViLoi(null);
+      } else {
+        datViTrangThai('loi');
+        datViLoi(`${err?.code ?? '?'} · ${err?.message ?? String(e)}`);
+      }
     }
   }
 
@@ -102,7 +124,13 @@ export function FaucetForm() {
           <Nut kieu="vien" onClick={themMang}>
             {viTrangThai === 'xong' ? vi.faucet.themMangXong : vi.faucet.themMang}
           </Nut>
-          {viTrangThai === 'loi' && <p className="text-sm text-body-2">{vi.faucet.themMangLoi}</p>}
+          {viTrangThai === 'tuChoi' && <p className="text-sm text-body-2">{vi.faucet.themMangTuChoi}</p>}
+          {viTrangThai === 'loi' && (
+            <div className="text-sm text-body-2">
+              <p>{vi.faucet.themMangLoi}</p>
+              {viLoi && <p className="mt-1 break-words font-mono text-xs text-muted">{viLoi}</p>}
+            </div>
+          )}
           {viTrangThai === 'khongCo' && <p className="text-sm text-body-2">{vi.faucet.khongCoVi}</p>}
         </div>
 
