@@ -7,11 +7,11 @@ import { CHAIN, faucetGoc, rpcCChain, explorerGoc, thamSoThemMang } from '@/lib/
 import { vi, dien } from '@/lib/i18n/vi';
 
 type ThongTin = {
-  soTien: string;
-  kyHieu: string;
-  choGiay: number;
-  viIp: { conLai: number; toiDa: number; cuaSoGio: number; thuLaiSau: number };
-  toanCuc: { conLai: number; toiDa: number };
+  amount: string;
+  symbol: string;
+  cooldownSeconds: number;
+  perIp: { remaining: number; max: number; windowHours: number; retryAfter: number };
+  global: { remaining: number; max: number };
 };
 
 type TrangThaiTin = { pha: 'tai' } | { pha: 'xong'; tin: ThongTin } | { pha: 'hong' };
@@ -40,7 +40,7 @@ export function FaucetForm() {
   const napTin = useCallback(async () => {
     datTin({ pha: 'tai' });
     try {
-      const r = await fetch(`${faucetGoc()}/api/thongtin`, { cache: 'no-store' });
+      const r = await fetch(`${faucetGoc()}/api/info`, { cache: 'no-store' });
       if (!r.ok) throw new Error(String(r.status));
       datTin({ pha: 'xong', tin: (await r.json()) as ThongTin });
     } catch {
@@ -88,7 +88,7 @@ export function FaucetForm() {
     }
   }
 
-  const hetSuat = tin.pha === 'xong' && tin.tin.viIp.conLai === 0;
+  const hetSuat = tin.pha === 'xong' && tin.tin.perIp.remaining === 0;
 
   return (
     <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -125,7 +125,7 @@ export function FaucetForm() {
           <div className="mt-4">
             <LuuY kieu="canhBao">
               {dien(vi.faucet.hanMucHet, {
-                phut: Math.max(1, Math.ceil((tin.pha === 'xong' ? tin.tin.viIp.thuLaiSau : 60) / 60)),
+                phut: Math.max(1, Math.ceil((tin.pha === 'xong' ? tin.tin.perIp.retryAfter : 60) / 60)),
               })}
             </LuuY>
           </div>
@@ -190,12 +190,12 @@ function HanMuc({ tin, thuLai }: { tin: TrangThaiTin; thuLai: () => void }) {
       </button>
     );
   }
-  const { viIp } = tin.tin;
+  const { perIp } = tin.tin;
   return (
     <span className="flex items-center gap-2 text-sm text-body-2">
       {vi.faucet.hanMucConLai}
-      <Nhan kieu={viIp.conLai > 0 ? 'tot' : 'canhBao'}>
-        {dien(vi.faucet.hanMucCachDoc, { con: viIp.conLai, tong: viIp.toiDa, gio: viIp.cuaSoGio })}
+      <Nhan kieu={perIp.remaining > 0 ? 'tot' : 'canhBao'}>
+        {dien(vi.faucet.hanMucCachDoc, { con: perIp.remaining, tong: perIp.max, gio: perIp.windowHours })}
       </Nhan>
     </span>
   );

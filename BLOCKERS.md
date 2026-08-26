@@ -227,7 +227,7 @@ cho mỗi L1 một tập validator riêng — chính là ACP-77.
 
 ## Đã gỡ
 
-### ✅ B-8 — ĐÃ GỠ (2026-08-25) — `tai-test.mjs` treo ở 300 ví, không có trần thời gian tổng
+### ✅ B-8 — ĐÃ GỠ (2026-08-25) — `load-test.mjs` treo ở 300 ví, không có trần thời gian tổng
 Triệu chứng: `--phut 8 --vi 300` treo **2 giờ 59 phút**, CPU 0,1%, chain đứng ở block 2,
 **giữ một slot L1** suốt thời gian đó. Với `--vi 60` thì chạy trọn vẹn.
 

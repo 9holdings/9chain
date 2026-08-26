@@ -9,17 +9,23 @@ import { vi } from '@/lib/i18n/vi';
  * Danh sách L1 đã có, đọc từ hợp đồng dữ liệu `console-chains.json`.
  *
  * 🔴 KHOÁ THIẾU LÀ TRẠNG THÁI HỢP LỆ, KHÔNG PHẢI LỖI. Chain đẻ trước khi console có
- * trường `admin`/`presetTen` sẽ không có hai khoá đó (OmegaChain là một). Bản chép
+ * trường `admin`/`presetName` sẽ không có hai khoá đó (OmegaChain là một). Bản chép
  * tay cũ của trang danh bạ từng để `undefined` lọt ra mặt người dùng. Ở đây: thiếu
  * chủ ⇒ "mặc định của hệ thống"; thiếu kiểu ⇒ để trống, không bịa.
  *
  * ⚠️ Trang này CHỈ ĐỌC. Danh bạ đầy đủ (đo sống/chết bằng số validator của subnet)
  * là của 9Scan-A1 — A1 không lấn sân, chỉ mượn dữ liệu để dẫn người dùng.
  */
-type Chain = { name: string; chainId: number; admin?: string; presetTen?: string };
+/**
+ * `presetTen` là khoá CŨ, viết bởi console trước lần chuẩn hoá tên tiếng Anh
+ * (2026-08-26). Bản ghi đẻ trước mốc đó vẫn mang nó, và bản ghi ĐÃ ĐẺ thì không
+ * viết lại — nên đọc cả hai. Bỏ nhánh cũ đi được khi không còn bản ghi nào trước
+ * mốc, nhưng nhớ rằng phục hồi từ backup cũ sẽ mang chúng quay lại.
+ */
+type Chain = { name: string; chainId: number; admin?: string; presetName?: string; presetTen?: string };
 type TT = { pha: 'tai' } | { pha: 'xong'; ds: Chain[] } | { pha: 'hong' };
 
-export function BangChain() {
+export function ChainTable() {
   const [tt, datTt] = useState<TT>({ pha: 'tai' });
   const [lan, datLan] = useState(0);
 
@@ -90,7 +96,7 @@ export function BangChain() {
                   <span className="ms-2 font-mono text-xs font-normal text-muted">#{c.chainId}</span>
                 </th>
                 <td className="px-4 py-3 text-body-2">
-                  {c.presetTen ? <Nhan>{c.presetTen}</Nhan> : <span className="text-muted">—</span>}
+                  {(c.presetName ?? c.presetTen) ? <Nhan>{c.presetName ?? c.presetTen}</Nhan> : <span className="text-muted">—</span>}
                 </td>
                 <td className="px-4 py-3 font-mono text-xs text-body-2">
                   {typeof c.admin === 'string' && c.admin.trim() ? (

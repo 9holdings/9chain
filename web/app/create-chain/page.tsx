@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { vi } from '@/lib/i18n/vi';
-import { ManDeChain } from './ManDeChain';
+import { CreateChainScreen } from './CreateChainScreen';
 
 export const metadata: Metadata = {
   title: `${vi.deChain.tieuDe} — ${vi.chung.tenSanPham}`,
   description: vi.deChain.moTa,
-  alternates: { canonical: '/de-chain/' },
+  alternates: { canonical: '/create-chain/' },
 };
 
 export default function TrangDeChain() {
@@ -15,7 +15,7 @@ export default function TrangDeChain() {
         <h1 className="font-display text-2xl font-extrabold text-ink md:text-3xl">{vi.deChain.tieuDe}</h1>
         <p className="mt-3 text-base text-body">{vi.deChain.moTa}</p>
       </header>
-      <ManDeChain />
+      <CreateChainScreen />
     </div>
   );
 }

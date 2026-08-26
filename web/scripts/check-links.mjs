@@ -1,16 +1,16 @@
 /**
- * kiem-lien-ket.mjs — mọi liên kết nội bộ trên trang đã deploy phải sống.
+ * check-links.mjs — mọi liên kết nội bộ trên trang đã deploy phải sống.
  *
  * ═══ VÌ SAO CẦN MỘT PHÉP ĐO RIÊNG ═══
  * Trang này trỏ sang ba loại đích khác nhau, và chỉ MỘT loại được Next kiểm:
- *   1. route của chính bản export (`/faucet/`, `/de-chain/`) — build sẽ đỏ nếu thiếu;
+ *   1. route của chính bản export (`/faucet/`, `/create-chain/`) — build sẽ đỏ nếu thiếu;
  *   2. đường do **Caddy** phục vụ từ dịch vụ khác (`/console/`, `/chains/`) — Next
  *      không biết chúng tồn tại, nên gõ sai là **404 im lặng**;
  *   3. tên miền ngoài (9Scan) — đổi bên kia thì bên này không hay biết.
  * Loại (2) là chỗ nguy hiểm: nó trông y hệt loại (1) trong mã.
  *
  * Chạy SAU khi deploy, đo qua tên miền công khai:
- *   node web/scripts/kiem-lien-ket.mjs [https://a1.9chain.org]
+ *   node web/scripts/check-links.mjs [https://a1.9chain.org]
  *
  * ⚠️ Trang mới hiện phục vụ dưới tiền tố `/moi/` (gốc `/` vẫn là Blockscout cho tới
  * khi M10.3 chốt). Nên đường dẫn tuyệt đối trong HTML được thử ở CẢ hai chỗ: nguyên
@@ -58,7 +58,7 @@ for (const f of quet(RA)) {
  * Gốc `/` là Blockscout, và nó là SPA: mọi đường dẫn lạ đều trả **HTTP 200** kèm
  * khung rỗng, không phải 404. Nên một bài kiểm liên kết chỉ nhìn mã sẽ **toàn màu
  * xanh** trong khi người dùng bấm vào và thấy trang trắng — đã ra xanh giả đúng thế
- * 2026-08-25 với `/tc-a/` và `/de-chain/`.
+ * 2026-08-25 với `/tc-a/` và `/create-chain/`.
  *
  * Dấu hiệu "đúng trang": có `<title>` KHÔNG rỗng. Trang của ta luôn có; khung rỗng
  * của Blockscout thì không.

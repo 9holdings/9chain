@@ -56,7 +56,7 @@ export function faucetGoc(): string {
 
 /** Explorer (9Scan-A1) — dự án khác, chỉ liên kết sang. */
 export function explorerGoc(): string {
-  return 'https://testnet-a1.9scan.org';
+  return 'https://a1.9scan.org';
 }
 
 /**

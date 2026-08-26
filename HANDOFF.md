@@ -52,9 +52,10 @@ Blockscout.** Caddy khớp **đúng `/`** chứ không phải `/*` — Blockscou
 `/tx/…`, `/address/…`, `/blocks`, `/api/…` như cũ (đã đối chứng sau khi đổi).
 **Gỡ nhanh:** xoá khối `@trangchu` trong Caddyfile rồi `caddy reload`.
 
-**Trang công khai:** `/` (trang chủ) · `/faucet/` · `/de-chain/` · `/chain-cua-toi/`
-· `/bang/` · `/chains/` · `/console/` (console cũ, không còn trong thanh điều hướng).
-URL cũ: `/lite/` → `/` và `/dashboard/` → `/bang/`, đều 301.
+**Trang công khai:** `/` (trang chủ) · `/faucet/` · `/create-chain/` · `/my-chains/`
+· `/compare/` · `/chains/` · `/console/` (console cũ, không còn trong thanh điều hướng).
+URL cũ, tất cả 301: `/lite/` → `/` · `/dashboard/` → `/compare/` · `/de-chain/` →
+`/create-chain/` · `/chain-cua-toi/` → `/my-chains/` · `/bang/` → `/compare/`.
 Đã TẮT (không xoá): `9chain-a1-explorer` :8082 · `9chain-a1-dashboard` :8092.
 
 ### ⏰ Hẹn giờ đã biết
@@ -117,6 +118,52 @@ host đó trong khi tên cũ vẫn tới. Tôi kết luận "Cloudflare trỏ t�
 David phải sửa DNS" — **và đã lùi cả lượt deploy về**. Sai. Vài phút sau nó tự lên 200
 mà không ai đụng gì. Xem gotcha ngay dưới.
 
+### Phiên 2026-08-26 (đợt 5) — CHUẨN HOÁ TIẾNG ANH
+
+🔴 **David chốt: URL, tên tệp và KHOÁ JSON phải bằng tiếng Anh.** Định danh mã nguồn
+(hàm, component, prop, khoá i18n) **vẫn tiếng Việt** — đó là nếp nhà, và đổi hết là
+một cuộc mổ khác hẳn mà David không yêu cầu.
+
+**Bảng đổi tên — tra khi đọc mục cũ trong file này hay trong `PROGRESS.md`:**
+
+| Cũ | Mới |
+|---|---|
+| `/de-chain/` · `/chain-cua-toi/` · `/bang/` | `/create-chain/` · `/my-chains/` · `/compare/` (301) |
+| `/thuong-hieu/` | `/brand/` |
+| `GET /api/tien-trinh` | `GET /api/progress` |
+| `GET /faucet/api/thongtin` | `GET /faucet/api/info` |
+| `kiem-cong.sh` · `kiem-lien-ket.mjs` · `kiem-a11y.mjs` · `kiem-ngan-sach.mjs` · `kiem-xuat-tinh.mjs` | `check-ports.sh` · `check-links.mjs` · `check-a11y.mjs` · `check-budget.mjs` · `check-static-export.mjs` |
+| `tai-test.mjs` · `cau-test.mjs` · `warp-chung.mjs` | `load-test.mjs` · `bridge-test.mjs` · `warp-common.mjs` |
+| `cau-tai-san.mjs` · `CauTaiSan.sol` · `bien-dich.mjs` | `asset-bridge.mjs` · `AssetBridge.sol` · `compile.mjs` |
+| `ket-noi-vi.ts` · `soLieu.ts` · `dong-bo-token.mjs` | `wallet.ts` · `stats.ts` · `sync-tokens.mjs` |
+| `ManDeChain` · `ManChainCuaToi` · `BangSoSanh` · `BangChain` · `SoLieuMang` | `CreateChainScreen` · `MyChainsScreen` · `ComparisonTable` · `ChainTable` · `NetworkStats` |
+| khoá JSON `dangChay` `loai` `ten` `buoc` `ma` `nhan` `trangThai` `loi` `giayDaChay` `uocConLaiGiay` `luuY` `presetTen` | `running` `kind` `name` `steps` `code` `label` `status` `error` `secondsElapsed` `etaSeconds` `notes` `presetName` |
+| giá trị enum `"tao"/"thuHoi"` · `"cho"/"chay"/"xong"/"hong"` | `"create"/"revoke"` · `"pending"/"running"/"done"/"failed"` |
+
+🔴 **Contract Solidity đổi CẢ tên tệp lẫn tên contract, và artifact đã sinh lại.**
+Vân tay nguồn đi từ `62971b14e79720e0` → **`51b44e1f3f29f762`**. Trong Solidity tên tệp
+và tên contract gắn với nhau (`compile.mjs` tra `contracts["<tệp>.sol"]["<Contract>"]`),
+nên đổi một nửa là để lại một cái bẫy. Tên export trong artifact (`CAU_TAI_SAN_*`) giữ
+nguyên — đó là định danh mã nguồn, không phải tên tệp.
+
+🔴 **DI TRÚ DỮ LIỆU ĐÃ CHẠY, đừng làm lại:** `console-chains.json` trên server có
+**17 bản ghi** mang khoá cũ `presetTen`; đã đổi sang `presetName` (có `.bak-<epoch>`
+cạnh file). Bản ghi ĐÃ ĐẺ không bao giờ được console viết lại, nên đổi khoá bên sinh
+mà không di trú là **nhãn preset biến mất khỏi danh bạ** — không lỗi, chỉ mất chữ.
+Hai nơi đọc vẫn giữ nhánh `presetName ?? presetTen` làm bảo hiểm cho trường hợp phục
+hồi từ backup cũ hơn mốc này.
+
+**Nghiệm thu:** typecheck sạch · web 12/12 · SIWE 21/21 · auth-e2e 38/38 ·
+build a11y 6/6 · web-deploy 6/6 liên kết sống · smoke-l1 **14/14** · `check-ports.sh`
+sạch · 3 route cũ đều 301 · `/api/tien-trinh` nay **404** đúng như mong đợi.
+
+⚠️ **9Scan-A1 cũng đổi tên miền trong cùng đợt** (yêu cầu của họ ở
+`docs/requests-from-9scan/2026-08-26-doi-ten-mien-a1.md`): `testnet-a1.9scan.org` →
+**`a1.9scan.org`**, tên cũ 308. Khối site của họ nằm trong Caddyfile của repo NÀY, nên
+lượt `caddy-deploy.sh` của A1 áp luôn cả phần đó — đã đối chứng bằng `<title>` là trang
+9Scan thật, không phải trang A1 (đúng chỗ B-6 từng gãy). `explorerGoc()` bên A1 nay
+trỏ thẳng tên mới thay vì đi qua redirect.
+
 ### Phiên 2026-08-26 (đợt 3) — David chọn bản C, trang chủ lên gốc
 
 **M10.3 đóng.** Bản C thay `web/app/page.tsx`; bản A, bản B và `ThanhChon.tsx` đã gỡ.
@@ -171,7 +218,7 @@ component TỰ VIẾT, không shadcn/MUI/Radix). `pnpm build` sạch · **axe-co
 trang** · `pnpm test` **12/12** · typecheck sạch · JS **149,7 KB gzip/trần 160**.
 
 🔴 **Không thiết kế mới — token CHÉP từ 9Scan-A1** bằng
-`web/scripts/dong-bo-token.mjs`, kèm test bắt trôi lệch (vân tay `535cbf6329efb6d0`).
+`web/scripts/sync-tokens.mjs`, kèm test bắt trôi lệch (vân tay `535cbf6329efb6d0`).
 
 🔴 **Faucet đã ra khỏi chuỗi JS.** `faucet/server.mjs` nay chỉ còn API. Nghiệm thu
 **bằng trình duyệt thật, khổ 375×812, qua Cloudflare**: xin được **10 LOVE9 thật**,
@@ -201,7 +248,7 @@ nào ghi ai giữ cổng nào. Trước khi thêm dịch vụ: `sudo ss -tlnp | 
 ### Phiên 2026-08-25 (thứ NĂM) làm xong — tóm tắt để khỏi mở file
 
 🔴 **M6.2 XONG — TÀI SẢN ĐI ĐƯỢC GIỮA HAI L1.** Hai bài trên mạng công khai:
-`warp-test.mjs` **21/21** (message được xác minh ở đầu kia) và `cau-test.mjs`
+`warp-test.mjs` **21/21** (message được xác minh ở đầu kia) và `bridge-test.mjs`
 **20/20** (7 LOVE9 rời chain 9135, xuất hiện ở ví trắng trên chain 9136). Cả hai
 **tự thu hồi cả hai chain** ⇒ chạy lại được vô hạn. Xem D-034.
 
@@ -220,7 +267,7 @@ Danh bạ nay **2 L1** (OmegaChain, OwnerTest) — còn **13 suất**.
 🔴 **Ba lần tôi tự bắt mình sai trong phiên này:**
 1. **Đặt module cần `ethers` vào `local-net/lib/`** ⇒ `ERR_MODULE_NOT_FOUND` trên
    server. Đúng cái gotcha đã ghi sẵn trong file này (ethers chỉ có trong
-   `local-net/faucet/node_modules`) mà vẫn dẫm. Đã chuyển sang `faucet/warp-chung.mjs`.
+   `local-net/faucet/node_modules`) mà vẫn dẫm. Đã chuyển sang `faucet/warp-common.mjs`.
 2. **`ContractFactory.deploy()` tự quản nonce** ⇒ đi vòng qua `guiVoiNonce` ⇒
    `nonce too low: next nonce 1, tx nonce 0`. Bọc nonce cho "mọi lượt gửi" chỉ đúng
    khi thật sự là mọi lượt. Và vì bài kiểm ghi tên chain vào sổ dọn **sau** bước đó,
@@ -269,11 +316,11 @@ Nút thắt là **đường nạp giao dịch của node ~230 tx/s**, không ph�
 trừ Cloudflare và gộp-lô-ethers bằng đối chứng — cả hai đều là giả thuyết của tôi và
 cả hai đều sai. Xem D-033.
 
-**B-8 gỡ** — `tai-test.mjs` từng treo 3 tiếng giữ một slot L1; nay có trần thời gian
+**B-8 gỡ** — `load-test.mjs` từng treo 3 tiếng giữ một slot L1; nay có trần thời gian
 tổng bao cả pha nạp ví, hạn giờ mỗi lượt gửi, nạp theo lô, và vòng chờ chính đua với
 hạn chốt để **đường thu hồi luôn chạy tới**.
 
-**`kiem-cong.sh`** — bài kiểm cổng hở, đo TỪ NGOÀI, 5 tầng (gồm: origin có đúng 403
+**`check-ports.sh`** — bài kiểm cổng hở, đo TỪ NGOÀI, 5 tầng (gồm: origin có đúng 403
 khi nối thẳng không, và dải IP Cloudflare có bị bỏ sót không).
 
 **Kế hoạch giao diện: `docs/UI-PLAN.md` + backlog M10.** Phát hiện nền: **không cần
@@ -307,7 +354,7 @@ danh bạ **5 → 5**. `smoke-l1.mjs --de-chain` nay **tự dọn chain nó đ�
 subnet-evm** (subnet-evm bỏ qua khoá lạ trong im lặng). M5.3 nghiệm thu bằng chain
 thật: 3/4 preset chứng minh được precompile bật đúng; `khong-phi` **chưa qua** (B-3).
 
-**M9 — đo năng lực bằng tải thật** (David yêu cầu). `local-net/faucet/tai-test.mjs`.
+**M9 — đo năng lực bằng tải thật** (David yêu cầu). `local-net/faucet/load-test.mjs`.
 - L1 riêng: **260 TPS** chốt, 0 lỗi. Trần là **tham số genesis** chứ không phải phần
   cứng: `gasLimit 12M ÷ 21.000 gas ÷ 2s = 285 TPS lý thuyết`, đo được 90% trần, trong
   khi máy mới ở load 2,92/8 luồng.
@@ -356,7 +403,7 @@ smoke test **20/20 đạt** · đẻ chain đầy đủ có gửi giao dịch th
 5 validator chạy trên server nhà cung cấp `139.99.145.13`, Blockscout index đầy đủ, faucet + nút "Thêm vào MetaMask" hoạt động. **P0 #1/#2/#3 đều PASS.**
 
 🔴 **CONSOLE ĐẺ CHAIN ĐÃ CÔNG KHAI (2026-08-25): https://a1.9chain.org/console/** — đăng nhập bằng chữ ký ví, `admin` bị ép = địa chỉ đã ký. Người lạ đẻ được chain của chính họ. Còn **13 suất** (danh bạ 2 L1; trần mềm console 15, trần cứng giao thức 16).
-🔴 **Origin CHỈ phục vụ qua Cloudflare.** Nối thẳng vào `139.99.145.13:443` → **403** cho cả ba tên miền. Kiểm: `bash local-net/deploy/kiem-cong.sh`.
+🔴 **Origin CHỈ phục vụ qua Cloudflare.** Nối thẳng vào `139.99.145.13:443` → **403** cho cả ba tên miền. Kiểm: `bash local-net/deploy/check-ports.sh`.
 
 **Nút "đẻ chain" CHẠY THẬT trên mạng công khai**, hiện **2 L1** trong danh bạ
 (OmegaChain, OwnerTest — 4 chain rác của bộ kiểm thử đã dọn ở phiên thứ năm).
@@ -454,6 +501,35 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ---
 
 ## Gotchas
+
+### Thêm từ phiên 2026-08-26 (đợt 5 — chuẩn hoá tiếng Anh)
+- 🔴 **ĐỔI TÊN HÀNG LOẠT BẰNG `sed` LÀ SAI CÁCH Ở REPO NÀY — mã nguồn tiếng Việt làm
+  tên khoá JSON TRÙNG với thứ khác.** Đã bắt được bốn lần trong một phiên:
+  `dangChay` vừa là khoá API vừa là **prop của `<Nut>`**; `kyHieu` vừa là khoá API vừa
+  là hằng `CHAIN.kyHieu`; `'xong'`/`'chay'` vừa là trạng thái bước vừa là state UI
+  (`Pha`, `kichHoat`); và `ten:` trong `dien(vi.X, { ten })` là **khoá nội suy i18n** —
+  đổi nó thì **không có lỗi biên dịch nào**, chỉ là chữ hiện ra sai.
+  ⇒ Đổi có ngữ cảnh (`tienTrinh.dangChay`, `dangChay: boolean`), đừng đổi theo từ.
+- 🔴 **TypeScript là trọng tài, nhưng nó KHÔNG bắt được khoá i18n.** `tsc --noEmit`
+  bắt sạch mọi chỗ lệch giữa type và cách dùng — đổi type trước rồi để nó chỉ chỗ là
+  cách rẻ nhất. Nhưng `dien(chuoi, {ten})` chỉ là `Record<string,...>`, nên chỗ đó
+  phải soi bằng `git diff`, không tin trình biên dịch được.
+- 🔴 **Dịch ở RANH GIỚI, đừng dịch cả tầng.** State nội bộ (`tienTrinh`) giữ tên tiếng
+  Việt; chỗ `send(res, 200, {...})` mới map sang tiếng Anh. Một chỗ sửa thay vì hai
+  chục, và mã nguồn không bị nửa Việt nửa Anh.
+- 🔴 **Đổi khoá JSON là ĐỔI HỢP ĐỒNG DỮ LIỆU — hỏi ai đang đọc TRƯỚC.** `9Scan-A1`
+  đọc `console-chains.json` thật (`components/explorer/chains.tsx`). May là họ chỉ
+  dùng khoá vốn đã tiếng Anh (`chains`, `name`, `chainId`, `blockchainID`, `subnetID`,
+  `rpc`, `retired`) nên không gãy. Lần sau vẫn phải kiểm trước, không phải đoán.
+- 🔴 **Bản ghi đã ghi thì không bao giờ được viết lại — đổi khoá bên sinh là phải DI
+  TRÚ.** 17 bản ghi mang `presetTen` sẽ lặng lẽ mất nhãn preset. Không lỗi, không dấu
+  hiệu, chỉ là một cột trống mà không ai nhớ là nó từng có chữ.
+- **Solidity: tên tệp và tên contract là một cặp.** `compile.mjs` tra
+  `contracts["<tệp>.sol"]["<Contract>"]`. Đổi tệp mà không đổi contract (hay ngược
+  lại) thì lượt biên dịch sau ném lỗi `undefined`, và nó ném ở chỗ trông như lỗi solc.
+- **Đổi route tĩnh thì Caddy phải đi TRƯỚC web.** `web-deploy.sh` tự kiểm liên kết qua
+  tên miền công khai ở bước cuối, nên deploy web trước là script tự báo đỏ vì Caddy
+  chưa định tuyến đường mới. Thứ tự đúng: Caddy → faucet → console → danh bạ → web.
 
 ### Thêm từ phiên 2026-08-26 (đợt 4 — đổi tên miền)
 - 🔴 **HTTP 525 CÓ THỂ LÀ TIẾNG VỌNG CỦA LẦN THỬ TRƯỚC, KHÔNG PHẢI TRẠNG THÁI HIỆN
@@ -564,7 +640,7 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
   receipt về. Nên bài kiểm viết `const r = await tx.wait(1); kiem(..., r.status === 0)`
   là **tự làm sập chính mình đúng lúc sản phẩm hoạt động ĐÚNG**. Cả ba bài "phải đỏ"
   của warp-test bị nuốt thành một dòng "transaction execution reverted". Dùng
-  `phaiRevert()` trong `faucet/warp-chung.mjs`.
+  `phaiRevert()` trong `faucet/warp-common.mjs`.
 - 🔴 **`ContractFactory.deploy()` tự quản nonce** ⇒ đi vòng qua mọi lớp bảo vệ nonce
   của bài kiểm. Nạp hợp đồng phải qua `napHopDong()` (dựng tx bằng
   `getDeployTransaction()` rồi gửi qua `guiVoiNonce`).
@@ -636,7 +712,7 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ### Thêm từ phiên 2026-08-25 (thứ ba)
 - 🔴 **`pgrep -f "<chuỗi>"` trong vòng lặp canh chừng TỰ THẤY CHÍNH NÓ** — cùng họ với
   bẫy `pkill -f` đã ghi bên dưới, nhưng dính ở chỗ khác nên vẫn vấp. Lệnh
-  `while pgrep -f "tai-test.mjs"; do sleep 60; done` có chuỗi `tai-test.mjs` **trong
+  `while pgrep -f "load-test.mjs"; do sleep 60; done` có chuỗi `load-test.mjs` **trong
   chính dòng lệnh của nó** ⇒ điều kiện luôn đúng ⇒ canh mãi không bao giờ kết thúc,
   dù tiến trình thật đã xong từ lâu. Nó **không báo lỗi**, chỉ im lặng chờ.
   Dùng mẹo ngoặc vuông: `pgrep -f "[t]ai-test.mjs"`. Áp dụng cho `pgrep`, `pkill`,
@@ -824,7 +900,7 @@ Nghiệm thu tự động — **dùng cái này thay cho mở trang nhìn bằng
 ```bash
 ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && node local-net/faucet/smoke-l1.mjs'
 ```
-Chế độ nhẹ chỉ đọc, không tốn tiền, chạy bao nhiêu lần cũng được. Thêm `--de-chain`
+Chế độ nhẹ chỉ đọc, không tốn tiền, chạy bao nhiêu lần cũng được. Thêm `--create-chain`
 để nghiệm thu đường đẻ chain đầy đủ (đẻ chain thật + giao dịch thật + đo gián đoạn
 + **tự thu hồi chain vừa đẻ**) — mất ~6 phút, **chạy lại được vô hạn** từ M4.4.
 Thêm `--giu` nếu muốn giữ chain lại soi bằng tay (khi đó nó ăn một slot vĩnh viễn).
@@ -832,7 +908,7 @@ Thêm `--giu` nếu muốn giữ chain lại soi bằng tay (khi đó nó ăn m�
 Kiểm có cổng nào hở ra Internet không — **đo TỪ NGOÀI**, không tin `ufw status`
 (Docker publish đi vòng qua ufw; đây là cách B-5 lọt). Có đối chứng ngược:
 ```bash
-bash local-net/deploy/kiem-cong.sh
+bash local-net/deploy/check-ports.sh
 ```
 
 Dựng + deploy giao diện (M10) — `web-deploy.sh` tự nghiệm chứng **chunk JS thật, API
@@ -846,14 +922,14 @@ Nghiệm thu Warp/ICM (M6.2) — **đẻ 2 chain thật, mỗi bài ~13 phút, t
 ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && set -a; . ~/9chain-a1/console.env; set +a; node local-net/faucet/warp-test.mjs'
 ```
 ```bash
-ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && set -a; . ~/9chain-a1/console.env; set +a; node local-net/faucet/cau-test.mjs'
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && set -a; . ~/9chain-a1/console.env; set +a; node local-net/faucet/bridge-test.mjs'
 ```
 Cần **2 slot L1 cùng lúc**. Thêm `--giu` để giữ chain lại soi tay.
 
-Dựng lại artifact hợp đồng cầu sau khi sửa `local-net/contracts/CauTaiSan.sol`
+Dựng lại artifact hợp đồng cầu sau khi sửa `local-net/contracts/AssetBridge.sol`
 (solc KHÔNG nằm trong repo — cài tạm ở đâu cũng được):
 ```bash
-npm install solc@0.8.28 && node local-net/contracts/bien-dich.mjs --solc ./node_modules/solc
+npm install solc@0.8.28 && node local-net/contracts/compile.mjs --solc ./node_modules/solc
 ```
 
 Diễn tập rebase lớp chủ quyền lên upstream mới (worktree tách rời, không đụng nhánh thật):

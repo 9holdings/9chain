@@ -272,15 +272,15 @@ export function LuuY({ kieu = 'thuong', children }: { kieu?: 'thuong' | 'canhBao
 
 /* ───────────────────────────────────────────────────────────── Steps (Buoc) */
 
-export type TrangThaiBuoc = 'cho' | 'chay' | 'xong' | 'hong';
-export type MotBuoc = { ma: string; nhan: string; trangThai: TrangThaiBuoc; ms?: number };
+export type TrangThaiBuoc = 'pending' | 'running' | 'done' | 'failed';
+export type MotBuoc = { code: string; label: string; status: TrangThaiBuoc; ms?: number };
 
-const DAU: Record<TrangThaiBuoc, string> = { cho: '○', chay: '◐', xong: '✓', hong: '✕' };
+const DAU: Record<TrangThaiBuoc, string> = { pending: '○', running: '◐', done: '✓', failed: '✕' };
 const MAU: Record<TrangThaiBuoc, string> = {
-  cho: 'text-muted',
-  chay: 'text-gold-ink-strong',
-  xong: 'text-success-ink',
-  hong: 'text-danger',
+  pending: 'text-muted',
+  running: 'text-gold-ink-strong',
+  done: 'text-success-ink',
+  failed: 'text-danger',
 };
 
 /**
@@ -299,16 +299,16 @@ export function CacBuoc({ buoc, ghiChu }: { buoc: MotBuoc[]; ghiChu?: string }) 
     <div aria-live="polite">
       <ol role="list" className="flex flex-col gap-2">
         {buoc.map((b) => (
-          <li key={b.ma} className="flex items-baseline gap-3 text-sm">
-            <span aria-hidden="true" className={gop('w-4 shrink-0 font-mono', MAU[b.trangThai])}>
-              {DAU[b.trangThai]}
+          <li key={b.code} className="flex items-baseline gap-3 text-sm">
+            <span aria-hidden="true" className={gop('w-4 shrink-0 font-mono', MAU[b.status])}>
+              {DAU[b.status]}
             </span>
-            <span className={gop('flex-1', b.trangThai === 'cho' ? 'text-muted' : 'text-body')}>
-              {b.nhan}
+            <span className={gop('flex-1', b.status === 'pending' ? 'text-muted' : 'text-body')}>
+              {b.label}
               {/* Trạng thái phải nằm trong CHỮ, không chỉ trong ký hiệu và màu:
                   ký hiệu bị aria-hidden, còn màu thì người mù màu không đọc được. */}
               <span className="sr-only">
-                {b.trangThai === 'xong' ? ' — xong' : b.trangThai === 'chay' ? ' — đang chạy' : b.trangThai === 'hong' ? ' — hỏng' : ' — chờ'}
+                {b.status === 'done' ? ' — xong' : b.status === 'running' ? ' — đang chạy' : b.status === 'failed' ? ' — hỏng' : ' — chờ'}
               </span>
             </span>
             {b.ms ? <span className="font-mono text-xs text-muted">{(b.ms / 1000).toFixed(1)}s</span> : null}

@@ -1,5 +1,5 @@
 /**
- * dong-bo-token.mjs — chép hệ token từ 9Scan-A1 sang `web/app/tokens.css`.
+ * sync-tokens.mjs — chép hệ token từ 9Scan-A1 sang `web/app/tokens.css`.
  *
  * ═══ VÌ SAO CHÉP CHỨ KHÔNG DÙNG PACKAGE CHUNG ═══
  * 9Chain **đã có** hệ thiết kế đang chạy thật, tự nhận là "nguồn sự thật duy nhất
@@ -17,7 +17,7 @@
  * kêu mỗi lần họ đụng bất cứ gì, tức là kêu tới lúc không ai nghe nữa. Băm đúng hai
  * khối `@theme` + `html[data-theme='dark']` thì nó chỉ kêu khi **màu thật sự đổi**.
  *
- * Chạy:  node web/scripts/dong-bo-token.mjs [--nguon <đường dẫn globals.css>]
+ * Chạy:  node web/scripts/sync-tokens.mjs [--nguon <đường dẫn globals.css>]
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -70,7 +70,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 
    Nguồn : 9Scan-A1/app/globals.css  (khối @theme + html[data-theme='dark'])
    Vân tay: ${van}
-   Dựng lại: node web/scripts/dong-bo-token.mjs
+   Dựng lại: node web/scripts/sync-tokens.mjs
 
    Sửa màu ở đây là làm hai bề mặt của cùng một sản phẩm lệch nhau — đúng thứ
    mốc M10 sinh ra để xoá. Muốn đổi màu thì đổi ở 9Scan rồi chạy lại script này.

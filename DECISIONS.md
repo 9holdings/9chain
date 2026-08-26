@@ -589,7 +589,7 @@ hẳn cổng do Docker publish, thứ đi vòng qua ufw. Nên khi làm thì nó 
 **Cái bẫy mà bản vá này tự sinh ra, và cách đã bịt:** Cloudflare thỉnh thoảng thêm
 dải IP. Dải mới mà Caddyfile chưa có ⇒ người đi qua dải đó ăn 403, và triệu chứng là
 **"một số người vào được, một số không"** — gần như không thể đoán ra nếu không nghi
-đúng chỗ. Nên `kiem-cong.sh` có thêm **tầng 5**: tải danh sách chính chủ về và chỉ
+đúng chỗ. Nên `check-ports.sh` có thêm **tầng 5**: tải danh sách chính chủ về và chỉ
 đích danh dải nào bị bỏ sót. Kèm **tầng 4** tách bạch hai chuyện khác nhau mà dễ lẫn:
 *cổng 443 có mở không* (vẫn mở, TCP vẫn bắt tay) ≠ *origin có phục vụ nội dung cho
 người ngoài Cloudflare không* (phải là 403). Không tách thì bản vá trông như vô hiệu.
@@ -667,7 +667,7 @@ nhưng M6.2 nói "chuyển **tài sản**", mà tài sản thì cần một hợ
 
 **Đã chọn: cả hai bước, nhưng bằng hợp đồng của mình — không dựng ICTT.**
 - Bước 1 `warp-test.mjs` — message qua được và **được xác minh** ở đầu kia.
-- Bước 2 `cau-test.mjs` — token gốc rời chain nguồn và xuất hiện ở chain đích, đo
+- Bước 2 `bridge-test.mjs` — token gốc rời chain nguồn và xuất hiện ở chain đích, đo
   bằng **bốn số dư** chứ không bằng "hàm không revert".
 
 **Vì sao KHÔNG ICTT.** ICTT là hệ hợp đồng nhiều lớp cộng một **relayer chạy liên
@@ -700,6 +700,6 @@ tự nhiên; quyền đúc thì không.
 **Artifact hợp đồng commit vào repo, solc KHÔNG.** Bộ biên dịch là công cụ lúc dựng,
 không phải phụ thuộc lúc chạy. Bắt server có solc nghĩa là "hợp đồng đang chạy trên
 mạng công khai" trở thành thứ phụ thuộc vào một bản solc cài ở đó — không tái lập
-được. `local-net/contracts/bien-dich.mjs` sinh ra `local-net/lib/cau-tai-san.mjs`
+được. `local-net/contracts/compile.mjs` sinh ra `local-net/lib/asset-bridge.mjs`
 kèm **vân tay sha256 của file .sol**, để câu hỏi hay bị hỏi nhất ("artifact còn khớp
 nguồn không") trả lời được mà không cần dựng lại.

@@ -272,11 +272,11 @@ async function fillFromWallet(){
 // bản sai là bản người dùng đọc. Thiếu trường thì không vẽ gì, không để "undefined"
 // lọt ra mặt người dùng (đúng luật đã áp cho `admin` và `preset` thiếu).
 function luuYHtml(l,rpc){
-  if(!l||!l.tieuDe) return '';
+  if(!l||!l.title) return '';
   return `<div class="hint" style="margin-top:10px;border-left:3px solid #b58900;padding-left:10px">
-    <b>⚠️ ${esc(l.tieuDe)}</b><br>${esc(l.than||'')}
-    ${l.cachLam?'<br><b>Cách làm:</b> '+esc(l.cachLam):''}
-    ${l.lenh?'<br><code>'+esc(String(l.lenh).replace('<RPC>',rpc||'<RPC>'))+'</code>':''}
+    <b>⚠️ ${esc(l.title)}</b><br>${esc(l.body||'')}
+    ${l.how?'<br><b>Cách làm:</b> '+esc(l.how):''}
+    ${l.command?'<br><code>'+esc(String(l.command).replace('<RPC>',rpc||'<RPC>'))+'</code>':''}
   </div>`;
 }
 async function create(){
@@ -304,7 +304,7 @@ async function create(){
       <div class="hint">Chủ sở hữu chain: <code>${esc(j.admin)}</code> — địa chỉ này giữ 50.000.000 token genesis
       và quyền chỉnh phí. Kiểm chứng chain chốt được giao dịch:
       <code>node local-net/faucet/probe-l1.mjs ${esc(j.rpc)} &lt;PRIVKEY&gt;</code></div>
-      ${luuYHtml(j.luuY,j.rpc)}`;
+      ${luuYHtml(j.notes,j.rpc)}`;
       document.getElementById('name').value='';document.getElementById('chainId').value='';
     } else out.innerHTML='<span class="err">❌ '+(j.error||'lỗi')+'</span>';
   }catch(e){ out.innerHTML='<span class="err">❌ '+e.message+'</span>'; }

@@ -15,7 +15,7 @@ import { gop } from './ui';
 
 type Muc = { chu: string; href: string; ngoai?: boolean };
 
-// `/de-chain/`, `/chain-cua-toi/`, `/bang/` là trang của bản export.
+// `/create-chain/`, `/my-chains/`, `/compare/` là trang của bản export.
 // `/chains/` do Caddy proxy sang container khác — vẫn là thẻ <a> thật như mọi mục
 // khác ở đây, nên không dính bẫy `next/link` trỏ vào đường không phải route Next.
 //
@@ -24,9 +24,9 @@ type Muc = { chu: string; href: string; ngoai?: boolean };
 const MUC: Muc[] = [
   { chu: vi.dieuHuong.trangChu, href: '/' },
   { chu: vi.dieuHuong.faucet, href: '/faucet/' },
-  { chu: vi.dieuHuong.console, href: '/de-chain/' },
-  { chu: vi.dieuHuong.chainCuaToi, href: '/chain-cua-toi/' },
-  { chu: vi.dieuHuong.bang, href: '/bang/' },
+  { chu: vi.dieuHuong.console, href: '/create-chain/' },
+  { chu: vi.dieuHuong.chainCuaToi, href: '/my-chains/' },
+  { chu: vi.dieuHuong.bang, href: '/compare/' },
   { chu: vi.dieuHuong.danhBa, href: '/chains/' },
 ];
 

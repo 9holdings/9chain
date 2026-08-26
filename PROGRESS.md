@@ -377,7 +377,7 @@ Demo mạnh nhất của A1; tiêu chí "Interop" đang tự chấm 3/5 trong da
       **Bước 1 — `warp-test.mjs`, 21/21:** message đi từ L1 nguồn sang L1 đích và
       **được xác minh** (block 3, gas 162.460). Chữ ký tổng hợp 200 byte, predicate 7 khối.
 
-      **Bước 2 — `cau-test.mjs`, 20/20:** tài sản thật sự chuyển, đo bằng **bốn số dư**:
+      **Bước 2 — `bridge-test.mjs`, 20/20:** tài sản thật sự chuyển, đo bằng **bốn số dư**:
 
 | | trước | sau |
 |---|---|---|
@@ -440,7 +440,7 @@ Demo mạnh nhất của A1; tiêu chí "Interop" đang tự chấm 3/5 trong da
       Dải IP lấy bằng script từ `cloudflare.com/ips-v4`+`ips-v6` (22 dải),
       **không gõ tay**.
 
-      Kèm `kiem-cong.sh` **tầng 4 + tầng 5**: tầng 4 tách *cổng có mở* (vẫn mở, TCP
+      Kèm `check-ports.sh` **tầng 4 + tầng 5**: tầng 4 tách *cổng có mở* (vẫn mở, TCP
       vẫn bắt tay) khỏi *origin có phục vụ người ngoài Cloudflare* (phải 403) —
       không tách thì bản vá trông như vô hiệu; tầng 5 so dải trong Caddyfile với
       bản chính chủ, vì Cloudflare thêm dải mới sẽ gây triệu chứng **"một số người
@@ -532,7 +532,7 @@ chủ quyền dày lên — đúng thứ giết fork lúc rebase. Đổi lấy c
 
 ## M9 — Đo năng lực chain bằng tải thật (David yêu cầu 2026-08-25)
 
-`local-net/faucet/tai-test.mjs` — bơm tải lên **một L1 riêng**, không phải C-Chain.
+`local-net/faucet/load-test.mjs` — bơm tải lên **một L1 riêng**, không phải C-Chain.
 
 - [x] M9.1 — Bộ bơm tải + chốt an toàn. Tự ngắt nếu C-Chain công khai hỏng 3 lượt
       liền, hoặc chậm >4s trong 5 lượt liền, hoặc đĩa còn <15%.
@@ -671,7 +671,7 @@ có thứ tự cao nhất.** Trong lúc chờ: nút chính trỏ vào trang "đa
       **149,7 KB gzip / trần 160** (trang nặng nhất).
 
       **Không thiết kế mới** — `web/app/tokens.css` sinh bằng
-      `web/scripts/dong-bo-token.mjs` từ `9Scan-A1/app/globals.css`. Băm **khối
+      `web/scripts/sync-tokens.mjs` từ `9Scan-A1/app/globals.css`. Băm **khối
       token** chứ không băm cả file: 9Scan sửa animation/layer liên tục, băm cả file
       thì phép đo kêu tới lúc không ai nghe nữa.
 
@@ -833,7 +833,7 @@ có thứ tự cao nhất.** Trong lúc chờ: nút chính trỏ vào trang "đa
 - [~] M10.7 — **Phần đo được đã làm: "không URL nào chết" — 10/10 liên kết sống.**
       Phần còn lại chờ hai thứ bên ngoài.
 
-      `web/scripts/kiem-lien-ket.mjs`, chạy tự động ở cuối `web-deploy.sh`.
+      `web/scripts/check-links.mjs`, chạy tự động ở cuối `web-deploy.sh`.
 
       🔴 **Bài kiểm này phải đo NỘI DUNG, không đo mã HTTP** — và bản đầu của tôi
       không làm thế nên nó cho **xanh giả**. Gốc `/` là Blockscout, một SPA trả

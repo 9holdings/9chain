@@ -174,7 +174,7 @@ function copy(text, btn){
 // đọc `console-chains.json` chứ KHÔNG gọi được console (console nghe loopback).
 // Nên không có đường lấy tên trực tiếp từ nguồn.
 //
-// Cách chữa thật: console nay ghi kèm khoá `presetTen` vào mỗi bản ghi chain, và
+// Cách chữa thật: console nay ghi kèm khoá `presetName` vào mỗi bản ghi chain, và
 // hàm dưới **ưu tiên khoá đó**. Bảng này chỉ còn là đường lui cho chain đẻ TRƯỚC
 // thay đổi ấy — tức nó đóng băng, không cần cập nhật khi thêm preset mới nữa.
 const TEN_PRESET = {
@@ -190,7 +190,9 @@ function presetCell(chain){
   if (!p) return '<span class="dim">Chuẩn</span>';
   // Tên do console ghi kèm là nguồn đúng nhất — nó sinh ra từ chính `presets.mjs`
   // tại thời điểm đẻ chain, nên không trôi lệch được.
-  const ten = typeof chain.presetTen === 'string' ? chain.presetTen.trim() : '';
+  // `presetTen` = khoa CU (truoc chuan hoa 2026-08-26); ban ghi cu khong duoc viet lai.
+  const p = chain.presetName ?? chain.presetTen;
+  const ten = typeof p === 'string' ? p.trim() : '';
   if (ten) return esc(ten);
   // Preset lạ (console mới hơn trang) vẫn phải hiện được — hiện thẳng id còn hơn
   // hiện rỗng, vì rỗng làm người xem tưởng chain không có kiểu.

@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 // `allowJs` cho TS suy kiểu thẳng từ file .mjs — không cần khai báo kiểu riêng.
-import { catKhoi, bam } from '../scripts/dong-bo-token.mjs';
+import { catKhoi, bam } from '../scripts/sync-tokens.mjs';
 
 /**
  * Bắt TRÔI LỆCH hệ token giữa A1 và 9Scan-A1.
  *
  * Hai repo cố tình độc lập (không gom vào package chung — xem đầu
- * `scripts/dong-bo-token.mjs`), nên "cùng một hệ màu" là một lời hứa không có gì
+ * `scripts/sync-tokens.mjs`), nên "cùng một hệ màu" là một lời hứa không có gì
  * bảo đảm ngoài phép đo này. Không có nó, hai bề mặt của cùng một sản phẩm sẽ lệch
  * nhau dần và không ai phát hiện cho tới lúc người dùng bấm qua lại giữa hai bên.
  *
@@ -43,7 +43,7 @@ describe('hệ token', () => {
     const vanChep = /Vân tay: ([0-9a-f]{16})/.exec(readFileSync(TOKENS, 'utf8'))?.[1];
     expect(
       vanChep,
-      'token đã trôi lệch — chạy `node web/scripts/dong-bo-token.mjs` rồi soi lại giao diện',
+      'token đã trôi lệch — chạy `node web/scripts/sync-tokens.mjs` rồi soi lại giao diện',
     ).toBe(vanGoc);
   });
 });

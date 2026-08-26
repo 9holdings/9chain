@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { vi } from '@/lib/i18n/vi';
-import { ManChainCuaToi } from './ManChainCuaToi';
+import { MyChainsScreen } from './MyChainsScreen';
 
 export const metadata: Metadata = {
   title: `${vi.chainCuaToi.tieuDe} — ${vi.chung.tenSanPham}`,
   description: vi.chainCuaToi.moTa,
-  alternates: { canonical: '/chain-cua-toi/' },
+  alternates: { canonical: '/my-chains/' },
 };
 
 export default function TrangChainCuaToi() {
@@ -17,7 +17,7 @@ export default function TrangChainCuaToi() {
         </h1>
         <p className="mt-3 text-base text-body">{vi.chainCuaToi.moTa}</p>
       </header>
-      <ManChainCuaToi />
+      <MyChainsScreen />
     </div>
   );
 }

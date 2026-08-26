@@ -1,5 +1,5 @@
 /**
- * kiem-a11y.mjs — chạy axe-core trên **HTML THẬT đã xuất ra**, không trên bản render giả.
+ * check-a11y.mjs — chạy axe-core trên **HTML THẬT đã xuất ra**, không trên bản render giả.
  *
  * ═══ VÌ SAO ĐO Ở ĐÂY CHỨ KHÔNG PHẢI TRONG VITEST ═══
  * Cách thông thường là render component trong jsdom rồi soi. Nhưng dự án này đã trả

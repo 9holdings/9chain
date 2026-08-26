@@ -28,3 +28,8 @@ upstream/
 # ghi, tên thư mục là blockchainID chỉ tồn tại sau khi chain đã đẻ.
 9chain-a1-config/chains/
 local-net/console/node_modules/
+
+# node_modules o GOC du an — chi xuat hien khi cai tam mot cong cu
+# (vi du `npm install --no-save solc` de sinh lai artifact hop dong).
+# Khong co dong nay thi mot lan cai tam la 9,4 MB vendor di thang vao git.
+node_modules/

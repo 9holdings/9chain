@@ -536,16 +536,16 @@ async function docker(args, env = {}) {
  * dẫn thì đã vô tình thoát bẫy — chỉ người đi thẳng vào precompile mới dính.
  */
 export const LUU_Y_GIAO_DICH_DAU = {
-  tieuDe: "Giao dịch ĐẦU TIÊN trên chain mới: đừng tin ước lượng gas",
-  than:
+  title: "Giao dịch ĐẦU TIÊN trên chain mới: đừng tin ước lượng gas",
+  body:
     "eth_estimateGas ước lượng THIẾU cho giao dịch đầu tiên của một chain vừa đẻ. " +
     "Giao dịch sẽ hết gas và trả về status 0 KHÔNG KÈM LÝ DO — trông hệt như " +
     "'tính năng không được bật'. Từ block 2 trở đi ước lượng chuẩn lại.",
-  cachLam:
+  how:
     "Mở block 1 bằng một giao dịch chuyển tiền thường (tốn đúng 21000 gas, cố định, " +
     "không cần ước lượng). Sau đó gọi precompile hay deploy hợp đồng đều bình thường.",
-  lenh: "node local-net/faucet/probe-l1.mjs <RPC> <PRIVKEY>",
-  gasLimitAnToan: 300000,
+  command: "node local-net/faucet/probe-l1.mjs <RPC> <PRIVKEY>",
+  safeGasLimit: 300000,
 };
 
 // Tạo 1 L1: trả {name, subnetID, blockchainID, chainId, admin, rpc}
@@ -756,7 +756,7 @@ async function createChain({ name, chainId, admin, preset }) {
     // bằng 0" từ D-026 — đúng cái lời hứa sai mà việc đổi tên sinh ra để bỏ. Ghi tên
     // vào đây là ghi tại thời điểm đẻ chain, từ chính `presets.mjs`, nên hết trôi.
     // Thêm khoá vào `console-chains.json` là thao tác AN TOÀN với trang danh bạ.
-    presetTen: presetDaAp.ten,
+    presetName: presetDaAp.ten,
     rpc: `${rpcBase}${rpcPath}`, createdAt: Date.now(),
   };
   state.chains.push(chain); saveState(state);
@@ -767,7 +767,7 @@ async function createChain({ name, chainId, admin, preset }) {
   // `luuY` cũng chỉ trả về, không ghi vào state, và cùng một lý do ở dạng khác: nó
   // là lời dặn cho người VỪA đẻ chain và hết giá trị ngay khi chain có block đầu.
   // Ghi vào danh bạ là để một cảnh báo nhất thời sống vĩnh viễn cạnh dữ liệu chain.
-  return { ...chain, restart: nhatKyRestart, luuY: LUU_Y_GIAO_DICH_DAU };
+  return { ...chain, restart: nhatKyRestart, notes: LUU_Y_GIAO_DICH_DAU };
 }
 
 /**
@@ -793,7 +793,7 @@ async function createChain({ name, chainId, admin, preset }) {
  * Trần 16 subnet của giao thức (xem TRAN_SUBNET_GIAO_THUC) là bánh cóc một chiều
  * nếu không có đường lùi: mỗi lượt đẻ chain — kể cả chain rác của bài kiểm thử —
  * ăn vĩnh viễn một trong 15 chỗ. Không có endpoint này thì bộ nghiệm thu đầy đủ
- * (`smoke-l1.mjs --de-chain`) chỉ chạy được tối đa ~10 lần trong cả đời dự án.
+ * (`smoke-l1.mjs --create-chain`) chỉ chạy được tối đa ~10 lần trong cả đời dự án.
  *
  * ═══ THỨ TỰ GHI STATE ═══
  * Đánh dấu `thuHoi` vào state TRƯỚC khi đụng node, gỡ hẳn SAU khi node đã bỏ track.
@@ -993,19 +993,35 @@ const server = http.createServer(async (req, res) => {
      * (~33s/node). Có nó thì thanh tiến trình nói được "còn khoảng 2 phút" thay vì
      * chỉ đếm bước — mà "còn bao lâu" mới là câu người bấm nút thật sự hỏi.
      */
-    if (req.method === "GET" && req.url === "/api/tien-trinh") {
+    /**
+     * 🔴 RANH GIỚI DỊCH THUẬT — KHOÁ JSON TIẾNG ANH, ĐỊNH DANH MÃ NGUỒN TIẾNG VIỆT.
+     *
+     * David chốt 2026-08-26: URL, tên tệp và **khoá JSON** phải là tiếng Anh. Nhưng
+     * `tienTrinh` là state NỘI BỘ, và mã nguồn dự án này vốn đặt tên bằng tiếng Việt
+     * — đổi hết định danh là một cuộc mổ khác hẳn, rủi ro hơn nhiều, và David không
+     * yêu cầu. Nên chỗ dịch nằm ĐÚNG ở đây, một chỗ duy nhất: state giữ tên cũ, thứ
+     * đi ra dây là tiếng Anh.
+     *
+     * Giá trị enum cũng dịch, không chỉ khoá: `"cho"|"chay"|"xong"|"hong"` là thứ
+     * client `switch` lên, để nguyên thì hợp đồng vẫn nửa Việt nửa Anh.
+     */
+    if (req.method === "GET" && req.url === "/api/progress") {
       if (blockedByRate(req, res, limitRead)) return;
       const ai = blockedByAuth(req, res);
       if (!ai) return;
       const conBuoc = tienTrinh.buoc.filter(b => b.trangThai === "cho" || b.trangThai === "chay").length;
+      const KIND = { tao: "create", thuHoi: "revoke" };
+      const STATUS = { cho: "pending", chay: "running", xong: "done", hong: "failed" };
       return send(res, 200, {
-        dangChay: tienTrinh.dangChay,
-        loai: tienTrinh.loai,
-        ten: tienTrinh.ten,
-        giayDaChay: tienTrinh.batDau ? Math.round((Date.now() - tienTrinh.batDau) / 1000) : 0,
-        buoc: tienTrinh.buoc.map(({ ma, nhan, trangThai, ms }) => ({ ma, nhan, trangThai, ms })),
-        loi: tienTrinh.loi,
-        uocConLaiGiay: tienTrinh.dangChay ? conBuoc * 33 : 0,
+        running: tienTrinh.dangChay,
+        kind: tienTrinh.loai ? (KIND[tienTrinh.loai] ?? tienTrinh.loai) : null,
+        name: tienTrinh.ten,
+        secondsElapsed: tienTrinh.batDau ? Math.round((Date.now() - tienTrinh.batDau) / 1000) : 0,
+        steps: tienTrinh.buoc.map(({ ma, nhan, trangThai, ms }) => ({
+          code: ma, label: nhan, status: STATUS[trangThai] ?? trangThai, ms,
+        })),
+        error: tienTrinh.loi,
+        etaSeconds: tienTrinh.dangChay ? conBuoc * 33 : 0,
       });
     }
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { The, Nhan, Xuong, LuuY, gop } from '@/components/ui';
-import { useSoLieu } from '@/lib/soLieu';
+import { useSoLieu } from '@/lib/stats';
 import { vi } from '@/lib/i18n/vi';
 
 /**
@@ -38,7 +38,7 @@ const GOC: TieuChi[] = [
   { k: 'Chi phí chuyển đổi (đội)', loai: 'kienTruc', a: 2, c: 5, w: 2, note: 'A1 mới vs C1 đã chạy nhiều tháng' },
 ];
 
-export function BangSoSanh() {
+export function ComparisonTable() {
   const [ts, datTs] = useState<number[]>(GOC.map((c) => c.w));
   const { tt } = useSoLieu();
 

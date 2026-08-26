@@ -33,7 +33,7 @@ import { EXAMPLE_WARP_ABI, EXAMPLE_WARP_BIN } from "../lib/example-warp.mjs";
 import {
   WARP, guiVoiNonce, chot, napHopDong, moBlock1,
   goiPredicate, bocLogWarp, apiWarpDaBat, xinChuKy, phaiRevert,
-} from "./warp-chung.mjs";
+} from "./warp-common.mjs";
 
 const args = process.argv.slice(2);
 const co = t => args.includes("--" + t);

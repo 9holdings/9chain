@@ -1,5 +1,5 @@
 /**
- * kiem-xuat-tinh.mjs — bẫy RIÊNG của `output: 'export'`, thứ build vẫn xanh mà trang chết.
+ * check-static-export.mjs — bẫy RIÊNG của `output: 'export'`, thứ build vẫn xanh mà trang chết.
  *
  * Cả hai bẫy dưới đây đều **không làm build đỏ** và **không làm `curl` đỏ** — chúng
  * chỉ hiện ra trong trình duyệt thật, nên nếu không có phép đo tự động thì chúng chỉ

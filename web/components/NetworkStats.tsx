@@ -1,6 +1,6 @@
 'use client';
 
-import { useSoLieu } from '@/lib/soLieu';
+import { useSoLieu } from '@/lib/stats';
 import { Xuong, Nhan } from './ui';
 import { gop } from '@/lib/gop';
 import { vi } from '@/lib/i18n/vi';
@@ -13,7 +13,7 @@ import { vi } from '@/lib/i18n/vi';
  * là phần trang trí của sự thật, không phải đường đi của người dùng — hỏng thì lùi
  * xuống một dòng chữ nhạt, đừng dựng một màn lỗi.
  */
-export function SoLieuMang({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
+export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
   const { tt, napLai } = useSoLieu();
   const toi = tren === 'toi';
 

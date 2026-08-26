@@ -65,7 +65,7 @@ const lastDrip = new Map(); // address -> timestamp
  */
 const CHI_CHO = {
   luuY: "Giao dien faucet nay o /faucet/ (trang tinh, Caddy phuc vu). Tien trinh nay chi con API.",
-  api: ["GET /health", "GET /whoami", "GET /api/thongtin", "POST /api/drip {address}"],
+  api: ["GET /health", "GET /whoami", "GET /api/info", "POST /api/drip {address}"],
 };
 
 function send(res, code, obj, retryAfter) {
@@ -94,16 +94,18 @@ const server = http.createServer(async (req, res) => {
    * suất**, nên mỗi lần mở trang lại mất một lượt và người dùng hết suất mà chưa
    * xin được gì. Xem `rateLimit` trong lib/guard.mjs.
    */
-  if (req.method === "GET" && req.url === "/api/thongtin") {
+  // Khoá JSON bằng tiếng Anh (David chốt 2026-08-26). Định danh mã nguồn trong dự
+  // án này vẫn là tiếng Việt — chỗ dịch nằm đúng ở ranh giới đi ra dây.
+  if (req.method === "GET" && req.url === "/api/info") {
     const ip = clientIp(req, TRUST_PROXY);
     const p = limitIp.peek(ip);
     const g = limitGlobal.peek(":global:");
     return send(res, 200, {
-      soTien: AMOUNT,
-      kyHieu: "LOVE9",
-      choGiay: Math.round(COOLDOWN / 1000),
-      viIp: { conLai: p.remaining, toiDa: p.max, cuaSoGio: p.windowMs / 3600_000, thuLaiSau: p.retryAfter },
-      toanCuc: { conLai: g.remaining, toiDa: g.max },
+      amount: AMOUNT,
+      symbol: "LOVE9",
+      cooldownSeconds: Math.round(COOLDOWN / 1000),
+      perIp: { remaining: p.remaining, max: p.max, windowHours: p.windowMs / 3600_000, retryAfter: p.retryAfter },
+      global: { remaining: g.remaining, max: g.max },
     });
   }
 

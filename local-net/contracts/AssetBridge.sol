@@ -31,7 +31,7 @@ import "./IWarpMessenger.sol";
  *    `sourceChainID` + `originSenderAddress` thì bất kỳ hợp đồng nào trên bất kỳ
  *    L1 nào cũng bịa được một payload và rút sạch — chữ ký vẫn hợp lệ hoàn toàn.
  */
-contract CauTaiSan {
+contract AssetBridge {
     IWarpMessenger constant WARP = IWarpMessenger(0x0200000000000000000000000000000000000005);
 
     /// Số thứ tự lượt gửi của CHÍNH hợp đồng này (chỉ tăng). Vào payload để mỗi

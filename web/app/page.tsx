@@ -1,7 +1,7 @@
 import { vi } from '@/lib/i18n/vi';
 import { Nhan } from '@/components/ui';
-import { SoLieuMang } from '@/components/SoLieuMang';
-import { BangChain } from './BangChain';
+import { NetworkStats } from '@/components/NetworkStats';
+import { ChainTable } from './ChainTable';
 
 /**
  * TRANG CHỦ — **David chọn bản C ngày 2026-08-26** (M10.3, U-3).
@@ -13,7 +13,7 @@ import { BangChain } from './BangChain';
  *
  * 🔴 **Điểm yếu đã biết của bản này, ghi ra để đừng ai ngạc nhiên:** nó mạnh dần
  * theo số chain trong danh bạ, mà hôm nay danh bạ đang **vắng** (2 L1, cả hai của hệ
- * thống). Vì vậy `BangChain` có trạng thái rỗng viết như một **lời mời** ("bạn sẽ là
+ * thống). Vì vậy `ChainTable` có trạng thái rỗng viết như một **lời mời** ("bạn sẽ là
  * người đầu tiên"), không phải một ô trống — chọn bản C là đặt cược vào việc danh bạ
  * sẽ đầy lên, và màn phải chịu được quãng chờ đó mà không trông như hỏng.
  */
@@ -27,15 +27,15 @@ export default function TrangChu() {
             {vi.trangChu.cTieuDe}
           </h1>
           <p className="mt-4 max-w-2xl text-base text-on-dark-2 md:text-lg">{vi.trangChu.cPhu}</p>
-          <SoLieuMang tren="toi" />
+          <NetworkStats tren="toi" />
         </div>
       </section>
 
       <section className="khung py-10 md:py-14">
-        <BangChain />
+        <ChainTable />
         <div className="mt-8 flex flex-wrap gap-3">
           <a
-            href="/de-chain/"
+            href="/create-chain/"
             className="inline-flex h-13 items-center justify-center rounded-btn-lg bg-gold px-6 text-base font-semibold text-navy shadow-cta hover:bg-gold-hover"
           >
             {vi.trangChu.nutChinh}

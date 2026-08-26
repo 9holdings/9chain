@@ -1,5 +1,5 @@
 /**
- * warp-chung.mjs — phần dùng chung của mọi bài kiểm Warp (M6.2).
+ * warp-common.mjs — phần dùng chung của mọi bài kiểm Warp (M6.2).
  *
  * Tách ra vì có HAI bài kiểm cùng đi qua đúng một chuỗi thao tác (đẻ chain → mở
  * block 1 → nạp hợp đồng → gửi message → gom chữ ký → nộp kèm predicate), và dự án

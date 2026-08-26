@@ -1,12 +1,12 @@
-// tai-test.mjs — bơm tải thật lên một L1 riêng để đo năng lực chain.
+// load-test.mjs — bơm tải thật lên một L1 riêng để đo năng lực chain.
 //
 //   Trên server:
 //     set -a; . ~/9chain-a1/console.env; set +a
 //     cd ~/9chain-a1/src
-//     node local-net/faucet/tai-test.mjs --phut 5            # hiệu chỉnh, chạy ngắn
-//     node local-net/faucet/tai-test.mjs --gio 3             # chạy dài
-//     node local-net/faucet/tai-test.mjs --gio 3 --vi 40     # nhiều ví gửi hơn
-//     node local-net/faucet/tai-test.mjs --phut 10 --vi 60 --preset thong-luong-cao
+//     node local-net/faucet/load-test.mjs --phut 5            # hiệu chỉnh, chạy ngắn
+//     node local-net/faucet/load-test.mjs --gio 3             # chạy dài
+//     node local-net/faucet/load-test.mjs --gio 3 --vi 40     # nhiều ví gửi hơn
+//     node local-net/faucet/load-test.mjs --phut 10 --vi 60 --preset thong-luong-cao
 //                                                            # đo trần của gasLimit 60M (M9.4)
 //
 // ═══ VÌ SAO ĐẺ MỘT L1 RIÊNG, KHÔNG BƠM THẲNG VÀO C-CHAIN ═══

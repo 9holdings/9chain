@@ -103,12 +103,12 @@ export async function goiConsole<T = unknown>(
 }
 
 export type TienTrinh = {
-  dangChay: boolean;
-  loai: string | null;
-  ten: string | null;
-  buoc: { ma: string; nhan: string; trangThai: 'cho' | 'chay' | 'xong' | 'hong'; ms?: number }[];
-  loi: string | null;
-  uocConLaiGiay: number;
+  running: boolean;
+  kind: string | null;
+  name: string | null;
+  steps: { code: string; label: string; status: 'pending' | 'running' | 'done' | 'failed'; ms?: number }[];
+  error: string | null;
+  etaSeconds: number;
 };
 
 /**
@@ -126,7 +126,7 @@ export type TienTrinh = {
  * một slot trong trần 15.
  *
  * ⇒ Kết quả của POST là **KHÔNG KẾT LUẬN ĐƯỢC**. Sự thật nằm ở hai chỗ khác:
- *   1. `/api/tien-trinh` — biết lượt chạy đã kết thúc chưa, và có lỗi không.
+ *   1. `/api/progress` — biết lượt chạy đã kết thúc chưa, và có lỗi không.
  *   2. `/api/status` — danh bạ sau đó nói chain có thật sự tồn tại / biến mất không.
  *
  * Hàm này lo phần (1). Phần (2) do từng màn tự kiểm, vì "thành công" của đẻ và của
@@ -141,13 +141,13 @@ export async function choTienTrinhXong(
   let daThayChay = false;
   while (Date.now() < hetLuc) {
     try {
-      const t = await goiConsole<TienTrinh>('/api/tien-trinh', token);
+      const t = await goiConsole<TienTrinh>('/api/progress', token);
       cuoi = t;
-      if (t.dangChay) daThayChay = true;
+      if (t.running) daThayChay = true;
       // Chỉ kết luận "xong" SAU KHI đã thấy nó chạy: gọi quá sớm thì hàng đợi chưa
-      // kịp nhận việc và `dangChay` vẫn là false của lượt TRƯỚC — kết luận lúc đó
+      // kịp nhận việc và `running` vẫn là false của lượt TRƯỚC — kết luận lúc đó
       // là đọc kết quả của một thao tác khác.
-      if (daThayChay && !t.dangChay) return t;
+      if (daThayChay && !t.running) return t;
     } catch {
       /* Một nhịp đọc hỏng không phải lý do bỏ cuộc — server vẫn đang làm việc. */
     }
@@ -159,7 +159,7 @@ export async function choTienTrinhXong(
 /** Thêm một L1 vừa đẻ vào ví người dùng, đúng khuôn EIP-3085. */
 export async function themL1VaoVi(p: {
   chainIdHex: string;
-  ten: string;
+  name: string;
   rpc: string;
   kyHieu: string;
 }): Promise<void> {
@@ -170,7 +170,7 @@ export async function themL1VaoVi(p: {
     params: [
       {
         chainId: p.chainIdHex,
-        chainName: p.ten,
+        chainName: p.name,
         nativeCurrency: { name: p.kyHieu, symbol: p.kyHieu, decimals: 18 },
         rpcUrls: [p.rpc],
       },

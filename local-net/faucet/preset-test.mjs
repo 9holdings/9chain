@@ -443,8 +443,8 @@ for (const id of danhSach) {
     // `/api/create` trên mạng công khai — và một lời cảnh báo không được gửi đi thì
     // im lặng y hệt lúc chưa có nó.
     kiem("đáp án kèm lời dặn giao dịch đầu (M5.4)",
-      !!(chain.luuY && chain.luuY.tieuDe && chain.luuY.cachLam),
-      chain.luuY ? chain.luuY.tieuDe : "THIẾU trường luuY");
+      !!(chain.notes && chain.notes.title && chain.notes.how),
+      chain.notes ? chain.notes.title : "THIẾU trường notes");
     if (GIU) console.log(`      ↳ giữ lại để gỡ lỗi. Chạy lại nhanh:\n` +
       `        node local-net/faucet/preset-test.mjs --chi ${id} --rpc ${chain.rpc} --khoa <privkey>`);
   } catch (e) {

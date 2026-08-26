@@ -13,7 +13,7 @@
 //       Kiểm: C-Chain · validator · hợp đồng dữ liệu của danh bạ · MỌI L1 trong
 //       danh bạ có còn trả lời đúng chainId nó khai không.
 //
-//   node local-net/faucet/smoke-l1.mjs --de-chain
+//   node local-net/faucet/smoke-l1.mjs --create-chain
 //       Đầy đủ: đẻ MỘT chain mới, gửi giao dịch thật trên đó, đo gián đoạn
 //       C-Chain trong lúc đẻ, RỒI THU HỒI chain vừa đẻ. Chạy TRÊN SERVER
 //       (console chỉ nghe loopback). Mất ~5–6 phút vì restart lần lượt hai lượt.
@@ -25,7 +25,7 @@
 //
 //   Trên server:
 //     set -a; . ~/9chain-a1/console.env; set +a
-//     cd ~/9chain-a1/src && node local-net/faucet/smoke-l1.mjs --de-chain
+//     cd ~/9chain-a1/src && node local-net/faucet/smoke-l1.mjs --create-chain
 import { ethers } from "ethers";
 
 const args = process.argv.slice(2);
@@ -36,7 +36,7 @@ const TRANG = opt("trang", "https://a1.9chain.org");
 const RPC_GOC = opt("rpc", "https://rpc-a1.9chain.org");
 const CONSOLE = opt("console", "http://127.0.0.1:8091");
 const TOKEN = process.env.A1_CONSOLE_TOKEN || "";
-const DE_CHAIN = co("de-chain");
+const DE_CHAIN = co("create-chain");
 const GIU = co("giu");            // giữ lại chain vừa đẻ, không thu hồi
 const CHAIN_ID_C = 9000000009;
 
@@ -147,7 +147,7 @@ try {
   kiem("đọc được danh bạ", false, sach(e.message));
 }
 
-// Mốc so sánh cho `--de-chain`: đọc TRƯỚC khi đẻ. Bài nghiệm thu phải trả mạng về
+// Mốc so sánh cho `--create-chain`: đọc TRƯỚC khi đẻ. Bài nghiệm thu phải trả mạng về
 // đúng trạng thái nó nhận được, nếu không thì chính nó là thứ làm cạn 15 chỗ.
 const soL1BanDau = danhBa.chains.length;
 
@@ -162,7 +162,7 @@ for (const c of danhBa.chains) {
   }
 }
 if (danhBa.chains.length) {
-  console.log("  ℹ️  RPC trả lời KHÔNG chứng minh chain chốt được block — xem --de-chain.");
+  console.log("  ℹ️  RPC trả lời KHÔNG chứng minh chain chốt được block — xem --create-chain.");
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -338,5 +338,5 @@ if (hong) {
   console.log("HỎNG:");
   for (const k of ket.filter(k => !k.dat)) console.log(`  ✗ ${k.ten}${k.chiTiet ? " — " + k.chiTiet : ""}`);
 }
-if (!DE_CHAIN) console.log("(chế độ nhẹ — thêm --de-chain để nghiệm thu đường đẻ chain đầy đủ)");
+if (!DE_CHAIN) console.log("(chế độ nhẹ — thêm --create-chain để nghiệm thu đường đẻ chain đầy đủ)");
 process.exit(hong ? 1 : 0);

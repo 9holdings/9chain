@@ -1,5 +1,5 @@
 /**
- * kiem-ngan-sach.mjs — trần dung lượng JS **cho MỘT trang, đo sau khi nén**.
+ * check-budget.mjs — trần dung lượng JS **cho MỘT trang, đo sau khi nén**.
  *
  * Vì sao có: đây là trang testnet, người xem có thể ở đường truyền yếu, và cái giá
  * của việc thêm một bước build (M10.1) là bundle có thể phình lên mà không ai để ý
