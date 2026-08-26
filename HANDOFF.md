@@ -632,6 +632,14 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ## Gotchas
 
 ### Thêm từ phiên 2026-08-26 (đợt 9 — re-genesis mạng công khai)
+- 🔴 **BẪY `pgrep`/`ps|awk` — LẦN THỨ NĂM, cửa mới: MẪU QUÁ HẸP.** Bốn lần trước là
+  mẫu **tự khớp chính nó**; lần này ngược lại — mẫu
+  `/faucet\/(smoke|warp|bridge)-?[a-z]*\.mjs/` **không khớp `smoke-l1.mjs`** vì tên tệp
+  có **chữ số**. Vòng canh kết luận "không còn tiến trình" trong khi bài kiểm đang chạy
+  bình thường (đo lại: sống 86s). Nếu tin nó mà chạy bài tiếp theo thì hai lượt đẻ chain
+  chồng nhau trên cùng một console.
+  ⇒ Vòng canh phải có **cả hai chiều đối chứng**: mẫu rộng (`grep -c "[f]aucet/"`) và
+  một dấu hiệu độc lập (kích thước log tăng). Một dấu hiệu duy nhất về sự sống là không đủ.
 - 🔴 **`docker compose down -v` KHÔNG xoá DB Blockscout — nó là BIND MOUNT.** Volume
   khai trong compose thì `-v` xoá; Blockscout để dữ liệu ở
   `docker-compose/services/{blockscout,stats}-db-data` trên đĩa host. Hậu quả đo được:
