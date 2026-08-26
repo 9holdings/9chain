@@ -106,6 +106,30 @@ try {
     kiem("API Warp đã bật trên chain nguồn", r.bat, r.viSao);
   }
 
+  // ─────────────────────────────────── GHIM DANH TÍNH HAI ĐẦU (bắt buộc từ 2026-08-26)
+  // Trước đây `nhanVaTra` nhận `chainNguon`/`hopDongNguon` từ NGƯỜI GỌI rồi `require`
+  // so message với chính hai giá trị đó — một phép so luôn đúng, tức không chốt gì.
+  // Nay danh tính là trạng thái của hợp đồng, ghim đúng một lần. Vòng gà-trứng (mỗi
+  // bên cần địa chỉ của bên kia) giải bằng cách nạp cả hai rồi mới ghim.
+  await chot(await guiVoiNonce(A.chu, {
+    to: A.diaChi, gasLimit: 200000n,
+    data: A.hd.interface.encodeFunctionData("ghimNguon", [B.idHex, B.diaChi]),
+  }), "ghim nguồn cho đầu A");
+  await chot(await guiVoiNonce(B.chu, {
+    to: B.diaChi, gasLimit: 200000n,
+    data: B.hd.interface.encodeFunctionData("ghimNguon", [A.idHex, A.diaChi]),
+  }), "ghim nguồn cho đầu B");
+  kiem("đầu đích đã ghim đúng chain nguồn", (await B.hd.chainNguon()) === A.idHex, A.idHex);
+  kiem("đầu đích đã ghim đúng hợp đồng nguồn",
+    (await B.hd.hopDongNguon()).toLowerCase() === A.diaChi.toLowerCase(), A.diaChi);
+  {
+    const r = await phaiRevert(B.chu, {
+      to: B.diaChi, gasLimit: 200000n,
+      data: B.hd.interface.encodeFunctionData("ghimNguon", [A.idHex, A.diaChi]),
+    });
+    kiem("đối chứng: ghim LẦN HAI ⇒ phải revert", r.chan, r.viSao);
+  }
+
   // ───────────────────────────────────────────── nạp thanh khoản cho đầu nhận
   await chot(await guiVoiNonce(B.chu, { to: B.diaChi, value: THANH_KHOAN, gasLimit: 100000n }), "nạp thanh khoản");
   const tkTruoc = await B.p.getBalance(B.diaChi);
@@ -140,7 +164,7 @@ try {
   const predicate = goiPredicate(signed);
 
   // ──────────────────────────────────────────────── nhận tài sản ở chain đích
-  const goiNhan = B.hd.interface.encodeFunctionData("nhanVaTra", [0, A.idHex, A.diaChi]);
+  const goiNhan = B.hd.interface.encodeFunctionData("nhanVaTra", [0]);
   const rNhan = await (await guiVoiNonce(B.chu, {
     to: B.diaChi, data: goiNhan, gasLimit: 2000000n,
     accessList: [{ address: WARP, storageKeys: predicate }],
@@ -154,15 +178,10 @@ try {
   kiem("thanh khoản đầu nhận giảm đúng bấy nhiêu",
     tkTruoc - tkSau === SO_CHUYEN, `${ethers.formatEther(tkTruoc)} → ${ethers.formatEther(tkSau)}`);
 
-  // ─────────────────────────────────────────────────── ba bài PHẢI ĐỎ
+  // ─────────────────────────────────────────────────── các bài PHẢI ĐỎ
   for (const [ten, tx] of [
     ["đối chứng: PHÁT LẠI đúng message đó ⇒ phải revert", {
       to: B.diaChi, data: goiNhan, gasLimit: 2000000n,
-      accessList: [{ address: WARP, storageKeys: predicate }],
-    }],
-    ["đối chứng: khai SAI hợp đồng nguồn ⇒ phải revert", {
-      to: B.diaChi, gasLimit: 2000000n,
-      data: B.hd.interface.encodeFunctionData("nhanVaTra", [0, A.idHex, vi.address]),
       accessList: [{ address: WARP, storageKeys: predicate }],
     }],
     ["đối chứng: BỎ predicate ⇒ phải revert", {
@@ -173,8 +192,54 @@ try {
     kiem(ten, r.chan, r.viSao);
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 🔴 ĐỐI CHỨNG QUAN TRỌNG NHẤT: TÁI HIỆN ĐÚNG ĐÒN RÚT SẠCH CỦA BẢN CŨ
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Bản cũ nhận `chainNguon`/`hopDongNguon` từ người gọi rồi so message với chính
+  // hai giá trị đó. Kẻ tấn công nạp một bản sao hợp đồng cầu trên chain mà họ kiểm
+  // soát, gửi message tuỳ ý, rồi gọi `nhanVaTra(index, chainCuaHo, hopDongCuaHo)` —
+  // cả hai `require` đều qua, vì chúng LUÔN qua.
+  //
+  // Bài này dựng đúng kịch bản đó: một hợp đồng KHÁC, trên chính chain nguồn, gửi
+  // một message hoàn toàn hợp lệ (validator subnet ký thật). Chỉ có một thứ sai:
+  // nó không phải hợp đồng mà đầu đích đã GHIM.
+  //
+  // ⚠️ Bài đối chứng CŨ ("khai SAI hợp đồng nguồn") ĐÃ BỊ GỠ và không được đưa lại:
+  // nó truyền một giá trị *sai* nên rơi khỏi phép so lặp thừa và revert — nhìn như
+  // chứng minh chốt danh tính, thật ra chứng minh đúng số không. Nó xanh suốt trong
+  // khi lỗ hổng đang mở.
+  {
+    const X = await napHopDong(A.chu, CAU_TAI_SAN_ABI, CAU_TAI_SAN_BIN, "kẻ tấn công nạp bản sao cầu trên chain nguồn");
+    kiem("dựng được hợp đồng 'kẻ tấn công' trên chain nguồn",
+      /^0x[0-9a-fA-F]{40}$/.test(X.diaChi) && X.diaChi.toLowerCase() !== A.diaChi.toLowerCase(), X.diaChi);
+
+    const rX = await chot(await guiVoiNonce(A.chu, {
+      to: X.diaChi, value: SO_CHUYEN,
+      data: X.hd.interface.encodeFunctionData("khoaVaGui", [nguoiNhan]),
+      gasLimit: 500000n,
+    }), "kẻ tấn công gửi warp message");
+
+    const tinX = bocLogWarp(rX);
+    kiem("message của kẻ tấn công CÓ được validator ký (chữ ký hợp lệ hoàn toàn)", !!tinX);
+    if (tinX) {
+      const { signed: kyX } = await xinChuKy(A.p, hex32ToCb58(tinX.messageIdHex));
+      kiem("gom được chữ ký cho message của kẻ tấn công", !!kyX);
+      if (kyX) {
+        const truocDon = await B.p.getBalance(nguoiNhan);
+        const r = await phaiRevert(B.chu, {
+          to: B.diaChi, gasLimit: 2000000n,
+          data: B.hd.interface.encodeFunctionData("nhanVaTra", [0]),
+          accessList: [{ address: WARP, storageKeys: goiPredicate(kyX) }],
+        });
+        kiem("🔴 ĐÒN RÚT SẠCH CỦA BẢN CŨ ⇒ nay phải revert 'sai hop dong nguon'", r.chan, r.viSao);
+        kiem("và không một đồng nào rời khỏi thanh khoản",
+          (await B.p.getBalance(nguoiNhan)) === truocDon, ethers.formatEther(truocDon));
+      }
+    }
+  }
+
   const nhanCuoi = await B.p.getBalance(nguoiNhan);
-  kiem("sau ba lượt bị chặn, người nhận KHÔNG nhận thêm đồng nào",
+  kiem("sau mọi lượt bị chặn, người nhận KHÔNG nhận thêm đồng nào",
     nhanCuoi === nhanSau, ethers.formatEther(nhanCuoi));
 } catch (e) {
   kiem("bài chạy trọn vẹn", false, sach(e.message || e));

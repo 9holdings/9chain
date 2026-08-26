@@ -30,9 +30,57 @@ import "./IWarpMessenger.sol";
  *    của subnet nguồn đã ký message này", KHÔNG chứng minh ai gửi. Không so
  *    `sourceChainID` + `originSenderAddress` thì bất kỳ hợp đồng nào trên bất kỳ
  *    L1 nào cũng bịa được một payload và rút sạch — chữ ký vẫn hợp lệ hoàn toàn.
+ *
+ * ═══ 🔴 LỖ HỔNG ĐÃ SỬA 2026-08-26 — ĐỌC TRƯỚC KHI "ĐƠN GIẢN HOÁ" LẠI ═══
+ * Bản đầu có đủ hai thứ trên, nhưng thứ (2) là **một phép so lặp thừa**:
+ *
+ *     function nhanVaTra(uint32 index, bytes32 chainNguon, address hopDongNguon)
+ *         require(m.sourceChainID     == chainNguon);      // ← người gọi truyền vào
+ *         require(m.originSenderAddress == hopDongNguon);  // ← người gọi truyền vào
+ *
+ * Hợp đồng so message với **chính thứ người gọi vừa đưa cho nó**. Kẻ tấn công nạp
+ * một bản sao trên L1 của chính họ, gửi warp message với payload tuỳ ý, rồi gọi
+ * `nhanVaTra(index, chainCuaHo, hopDongCuaHo)` — cả hai `require` đều qua, vì chúng
+ * luôn qua. Rút sạch `address(this).balance`.
+ *
+ * Ác ở chỗ mã trông **giống hệt** một bản chốt danh tính đúng, và chú thích ngay
+ * phía trên mô tả đúng kịch bản tấn công rồi tin rằng hai dòng đó chặn được nó.
+ * Đúng chẩn đoán, sai thuốc.
+ *
+ * ⇒ Danh tính nguồn nay là **TRẠNG THÁI CỦA HỢP ĐỒNG**, ghim một lần, không phải
+ * tham số. Người gọi không còn chỗ nào để nói dối.
  */
 contract AssetBridge {
     IWarpMessenger constant WARP = IWarpMessenger(0x0200000000000000000000000000000000000005);
+
+    // ═══ DANH TÍNH ĐẦU GỬI — GHIM MỘT LẦN, KHÔNG BAO GIỜ ĐỔI ═══
+    //
+    // Vì sao không đặt trong constructor (dạng `immutable` sạch nhất): hai đầu cầu
+    // cần địa chỉ của nhau, mà cái nạp trước không thể biết địa chỉ của cái nạp sau
+    // — vòng gà-trứng. Nên: nạp cả hai, rồi mỗi bên ghim đúng một lần.
+    //
+    // `NGUOI_GHIM` là `immutable` (ghi lúc nạp, không sửa được) và chỉ có đúng một
+    // quyền: ghim, một lần. Đây không phải quản trị viên — nó không dừng được cầu,
+    // không rút được tiền, và hết quyền ngay sau lượt gọi đầu tiên.
+    address public immutable NGUOI_GHIM;
+    bytes32 public chainNguon;
+    address public hopDongNguon;
+    bool public daGhim;
+
+    constructor() {
+        NGUOI_GHIM = msg.sender;
+    }
+
+    /// Ghim danh tính đầu gửi. Gọi được ĐÚNG MỘT LẦN, bởi đúng ví đã nạp hợp đồng.
+    function ghimNguon(bytes32 _chainNguon, address _hopDongNguon) external {
+        require(msg.sender == NGUOI_GHIM, "khong phai nguoi nap hop dong");
+        require(!daGhim, "da ghim roi");
+        require(_chainNguon != bytes32(0), "chain nguon rong");
+        require(_hopDongNguon != address(0), "hop dong nguon rong");
+        chainNguon = _chainNguon;
+        hopDongNguon = _hopDongNguon;
+        daGhim = true;
+    }
 
     /// Số thứ tự lượt gửi của CHÍNH hợp đồng này (chỉ tăng). Vào payload để mỗi
     /// message có một khoá chống phát lại riêng.
@@ -60,13 +108,21 @@ contract AssetBridge {
      * Đầu NHẬN: đọc message đã được xác minh trong predicate của chính giao dịch này
      * rồi trả tiền ra.
      *
-     * `chainNguon` và `hopDongNguon` do người gọi truyền vào và được so bằng
-     * `require` — đây là chỗ chốt danh tính, xem ghi chú đầu file.
+     * 🔴 KHÔNG NHẬN `chainNguon`/`hopDongNguon` TỪ NGƯỜI GỌI NỮA — xem khối "LỖ HỔNG
+     * ĐÃ SỬA" ở đầu file. Chúng đọc từ trạng thái đã ghim, nên người gọi không có
+     * chỗ nào để nói dối. Ai gọi cũng được (message tự mang chữ ký của nó); thứ duy
+     * nhất quyết định tiền đi đâu là payload đã được validator nguồn ký.
      */
-    function nhanVaTra(uint32 index, bytes32 chainNguon, address hopDongNguon)
+    function nhanVaTra(uint32 index)
         external
         returns (address nguoiNhan, uint256 soTien)
     {
+        // Chưa ghim thì cầu CHƯA SẴN SÀNG. Từ chối thẳng còn hơn nhận một message
+        // rồi so với `bytes32(0)` — so với số 0 là một phép so luôn trượt, và nó sẽ
+        // hiện ra dưới dạng "sai chain nguon", đọc như bị tấn công chứ không như
+        // chưa cấu hình.
+        require(daGhim, "cau chua ghim nguon");
+
         (WarpMessage memory m, bool hopLe) = WARP.getVerifiedWarpMessage(index);
         require(hopLe, "message khong hop le");
         require(m.sourceChainID == chainNguon, "sai chain nguon");
