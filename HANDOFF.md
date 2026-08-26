@@ -1,47 +1,69 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: 2026-08-26 — 🔴 **TÊN MIỀN ĐỔI: `a1.9chain.org` + `rpc-a1.9chain.org`**
-(tên cũ vẫn sống — trang 308 sang tên mới, RPC cũ phục vụ song song). **M6 đóng**
-(tài sản đi được giữa 2 L1) · **M10 ĐÓNG HOÀN TOÀN**: trang chủ thật ở gốc `/`,
-faucet, màn đẻ chain có tiến trình, chain của tôi + thu hồi, bảng A1↔C1 —
-và David đã bấm thử bằng MetaMask thật (chain "David Do", 9141).
-LOVE9 nay có bộ nhận diện: `web/public/brand/`.
-**Backlog phần mềm đã cạn — mọi việc còn lại đều `[human]` hoặc `[blocked]`.**
+Cập nhật: **2026-08-26** — 🔴 **NGÀY G: 01/09/2026 sinh lại mạng, tổng cung 9 TỶ LOVE9.**
+Tokenomics mới **đã vào mã và đã kiểm**, nhưng **CHƯA chạy** — dừng ngay trước bước phá huỷ,
+chờ David xác nhận. Tên miền nay là `a1.9chain.org` / `rpc-a1.9chain.org` (tên cũ vẫn sống).
+M6 + M10 đóng. Mọi URL/tên tệp/khoá JSON đã chuẩn hoá tiếng Anh.
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
 🔴 **ĐỌC `PROGRESS.md` TRƯỚC** — backlog nằm ở đó, không phải file này.
 Kèm `DECISIONS.md` (vì sao làm vậy) và `BLOCKERS.md` (đang chờ David cái gì).
 
-### Việc đầu tiên của phiên sau — theo đúng thứ tự này
+### Việc đầu tiên của phiên sau — ĐỌC MỤC NÀY TRƯỚC MỌI THỨ
 
-**1. 🔴 `keys.txt` — CHỖ HỎNG DUY NHẤT CÒN LẠI CỦA DỮ LIỆU.** `[human]`.
-`local-net/net-public/keys.txt` (5 khoá quỹ testnet công khai) vẫn chỉ có **một nơi
-thật**: ổ C: máy dev. Thư mục backup nằm **cùng ổ** nên không tính là bản thứ hai.
-Quy tắc cứng cấm đưa file này lên server ⇒ bản thứ hai buộc phải là **phương tiện
-offline (USB/ổ ngoài)**. Mọi thứ khác đã có bản thứ hai (backup 652 MB, 29/29 sha256,
-+ git ở `139.99.145.13:~/9chain-a1/backup/20260825-064053/`).
+## 🔴 1. RE-GENESIS 9 TỶ — MÃ XONG, DỪNG TRƯỚC BƯỚC PHÁ HUỶ
 
-**2. 🔴 VIỆC ĐỘ BỀN LỚN NHẤT CÒN LẠI — validator thứ sáu ở nhà cung cấp KHÁC.**
-`[human]`, tốn tiền hạ tầng. Cả 5 validator đang ở **một máy, một nhà cung cấp, một
-datacenter**: "testnet 5 validator" mà cả 5 chết cùng lúc thì nó là một máy chủ đội lốt
-một mạng. Backup cứu được **dữ liệu**, không cứu được **tính sẵn sàng**.
-Đây cũng là điều kiện tiên quyết cho M3 (cộng đồng chạy node).
+**Tất cả quyết định đã chốt** (`DECISIONS.md` D-036 → D-043). **Mã đã sửa, đã kiểm,
+đã commit, đã vào patch series.** Việc còn lại là **một bước không hoàn nguyên được**
+và nó **cần David xác nhận** — phiên trước đã dừng đúng ở đó, cố ý.
 
-**3. ✅ XONG 2026-08-26 — BẤM THỬ MÀN ĐẺ CHAIN BẰNG METAMASK THẬT.** David tự làm.
-Bằng chứng trong danh bạ, không phải lời kể: chain **"David Do"** chainId **9141**,
-preset "Phí gần như bằng 0", `admin` = `0x09A6F8…605Db` — **đúng ví MetaMask của
-David**. Mà `admin` bị console ÉP bằng địa chỉ đã ký, nên bản ghi đó chỉ ra đời được
-nếu đường `personal_sign` chạy thật từ đầu tới cuối. Đây là mảnh cuối của M10 mà công
-cụ tự động không chạm tới được (pane trình duyệt không có ví). **M10 đóng hoàn toàn.**
+**Bảng phân bổ (D-042), tổng 9.000.000.000 LOVE9:**
+| Hạng mục | % | LOVE9 |
+|---|--:|--:|
+| Staking Rewards | 40 | 3.600.000.000 — **KHÔNG cấp ở genesis**, mint dần |
+| Community | 30 | 2.700.000.000 — faucet nóng 99.999.999 (100% C-Chain) + 2.600.000.001 khoá 2 năm |
+| Foundation | 12 | 1.080.000.000 — self-bond 8.999.991 (**địa chỉ riêng**) + 1.071.000.009 |
+| Private Sale | 9 | 810.000.000 — khoá 2 năm |
+| Team | 9 | 810.000.000 — khoá 4 năm |
 
-**4. 🔴 H-7 — M3 chờ một quyết định về ĐỐI TƯỢNG, không phải về kỹ thuật.**
-`[human]`. Phần code đã xong (netgen sinh được P2P IPv6, mặc định không đổi gì).
-Nhưng `--public-ip` của avalanchego nhận **một** địa chỉ, nên **IPv6-only sẽ loại mọi
-peer chỉ có IPv4** — với một testnet mời cộng đồng chạy node thì đó là loại phần lớn
-người muốn tham gia. Đo được: máy chủ có **/56 định tuyến**, Docker 29.7.2 (bật IPv6
-theo từng network, KHÔNG phải restart daemon). Khuyến nghị: IPv4 đa cổng cho node
-beacon. **Kéo theo H-4 có thể là bản ghi `A` chứ không phải `AAAA`.** Chi tiết: BLOCKERS H-7.
+Phát hành genesis **5.400.000.000** (60%) · **9 node** × self-bond **999.999** ·
+nhiệm kỳ 365 ngày, so le 7 ngày/node.
+
+**Đã kiểm được (không phải "trông có vẻ đúng"):**
+- `node scripts/check-consistency.mjs --tu-kiem` → **17 đạt · 6/6 đối chứng ngược bắt được**
+- Biểu thức hằng số kiểm bằng chính Go → SupplyCap 9e9, genesis 5,4e9, mint 3,6e9,
+  self-bond/node 999.999, không tràn `uint64` (48,79%)
+- Patch series tái lập đúng cây nguồn: tree `04c59acf` (nhớ **`git am --keep-cr`**)
+
+**Bước còn lại — CHƯA CHẠY, cần David gật:**
+```bash
+A1_NET_DIR=... bash local-net/gen-network.sh 9   # netgen sinh mạng 9 node + keys.txt MỚI
+# rồi: docker compose ... down -v && up -d  + nạp lại faucet.env, ví chain-factory
+```
+🔴 **Nó xoá:** chain data 9 node · **DB Blockscout** · 3 L1 hiện có (David đã duyệt
+D-037) · và sinh **bộ khoá quỹ MỚI** ⇒ `keys.txt` cũ vô dụng. Mạng công khai đứng rồi
+quay lại là **một mạng khác**: cùng `chainId 9000000009` nhưng số dư/nonce mọi ví reset.
+
+⚠️ **Lượt này là DIỄN TẬP.** 01/09 vẫn phải sinh lại lần nữa (khắc chữ + Block Adam
+chưa sẵn). Nên khoá sinh ra lần này chỉ sống tới ngày G — nhưng **vẫn là khoá của mạng
+công khai trong 6 ngày**. D-036: sinh lại mạng là **cơ hội một lần** chốt sơ đồ custody.
+
+## 🔴 2. BLOCK ADAM CÓ THỂ KHÔNG TỒN TẠI — đã đo, chưa có đối sách
+
+A1 khắc Block Adam = block đầu tiên vượt `2026-09-09T06:09:09Z`. **Đo 10 mẫu/5 phút
+trên mạng công khai lúc rảnh: P-Chain đứng yên ở 330, C-Chain 0x73 — không một block
+nào.** Avalanche không đẻ block rỗng, và điều đó đúng **cả với P-Chain**.
+⇒ Luật "block đầu tiên vượt mốc" có thể **không có block nào để trỏ vào** hàng giờ.
+**Phải diễn tập giao dịch nghi lễ trước 09/09**, nếu không sai lầm chỉ lộ đúng ngày đó.
+Xem `BLOCKERS.md` H-8.
+
+## 3. Việc `[human]` cũ vẫn còn nguyên
+- **validator thứ sáu ở nhà cung cấp KHÁC** — 9 node vẫn trên **một máy, một nhà cung
+  cấp**. Câu "một máy chủ đội lốt một mạng" áp y nguyên cho 9 node như cho 5.
+- **H-7 IPv6 hay IPv4 đa cổng** cho node beacon (M3).
+- `keys.txt` bản thứ hai offline — **sẽ đổi bản chất sau re-genesis**: khoá cũ thành
+  vô dụng, nên đây là bài toán **thiết kế custody** chứ không phải sao lưu (D-036).
 
 **5. Backlog phần mềm ĐÃ CẠN.** M10.1–M10.6 xong, M10.7 xong phần đo được (còn
 một mục chờ 9Scan đưa `/chains/` của họ lên). Không còn task nào chạy được mà không
@@ -507,6 +529,45 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ---
 
 ## Gotchas
+
+### Thêm từ phiên 2026-08-26 (đợt 7 — tokenomics 9 tỷ)
+- 🔴 **`SupplyCap` là `uint64`, và LOVE9 có 9 chữ số ⇒ TRẦN THẬT LÀ 18,447 TỶ LOVE9.**
+  90 tỷ (số trong kế hoạch BOD) = `9e19` = **4,88 lần** `uint64` max. Đã thử biên dịch
+  thật, có đối chứng ngược: `90_000 * MegaAvax` → *"constant … overflows uint64"*;
+  `18_000 * MegaAvax` → build sạch. **Con số đó đến từ C1, nơi Cosmos SDK đếm bằng
+  `big.Int` nên 90 tỷ hoàn toàn bình thường.** Bài học tổng quát: **mọi đại lượng chép
+  từ C1 sang A1 phải hỏi "kiểu dữ liệu bên kia chứa nổi không" TRƯỚC khi chép.**
+- 🔴 **Số chữ số thập phân KHÔNG phải bản sắc — tôi từng nói sai và suýt lái quyết định
+  đi đường đắt.** Danh sách bản sắc (client/token/HRP/VM/networkID/chainId) **không có**
+  nó, và **người dùng đã luôn thấy 18 chữ số** (`web/lib/chain.ts` `thapPhan: 18`; C1
+  cũng 18). `1e9` chỉ là đơn vị kế toán nội bộ của P/X-Chain.
+- 🔴 **48,79% `uint64` KHÔNG phải rủi ro.** `reward/calculator.go:69` kết thúc bằng
+  `return min(remainingSupply, finalReward)` ⇒ phép cộng `uint64` thô ở
+  `standard_tx_executor.go:1533` **không thể tràn**, bất kể `supplyCap` chiếm bao nhiêu
+  phần dải. Đó là dư địa để NÂNG trần sau này, không phải biên an toàn số học.
+- 🔴 **Nếu có ngày phải đổi thang đơn vị: `1e9` nằm ở BA chỗ độc lập** —
+  `netgen/allocation.go` `unitLOVE9` · `netgen/main.go:273` (P/X→wei trong
+  `cChainGenesis`) · `coreth/plugin/evm/atomic/tx.go:33` `X2CRateUint64`. Lệch nhau
+  **không gây lỗi nào**: đổi (1) quên (2) ⇒ số dư C-Chain genesis sai 100 lần, mạng vẫn
+  khởi động. Chi tiết + 6 rủi ro: `docs/RUI-RO-THANG-1E7.md`.
+  (Quyết định cuối là **KHÔNG đổi thang** — xem D-039, nên bảng rủi ro đó hiện là dự phòng.)
+- 🔴 **Chú thích trong `allocation.go` SAI và đã sửa:** nó ghi *"đặt LiquidXP > 0 cho quỹ
+  staking là sai — tiền sẽ bị bỏ qua"*. Mã thật: vòng dựng UTXO **X-Chain**
+  (`genesis.go:305-320`) lấy **mọi** allocation có `InitialAmount > 0`, **không** bỏ qua
+  địa chỉ staked; chỉ vòng **P-Chain** mới bỏ qua.
+- 🔴 **`patches/` KHÔNG tự cập nhật, và nó ĐÃ lệch.** Nhánh có 5 commit chủ quyền,
+  `patches/` chỉ có 4 — commit mở đường bật API Warp chưa bao giờ được xuất. Nay 6.
+  **Commit vào cây fork xong PHẢI chạy lại** `git format-patch 1cf1fc3..9chain-a1 -o patches/`.
+- 🔴 **`git am` PHẢI có `--keep-cr`** khi kiểm chứng patch series. Thiếu nó thì mọi tệp
+  CRLF (`netgen/main.go`) đổi hết xuống dòng ⇒ tree lệch ⇒ **kết luận nhầm là series
+  hỏng**. `apply-sovereign.sh:72` và `rebase-drill.sh:57` đã có cờ; cái bẫy nằm ở người
+  gõ tay để kiểm. Đã dính đúng thế 2026-08-26.
+- **Uỷ quyền tính vào `MaxValidatorStake`** (`proposal_tx_executor.go:801`). Self-bond
+  lớn ⇒ validator genesis gần hết chỗ nhận uỷ quyền. Ở 999.999/node thì dư địa còn 624
+  triệu — thoải mái.
+- **`InitialStakeDurationOffset` là cách so le nhiệm kỳ, có sẵn trong avalanchego.**
+  Ràng buộc: `offset × (số node − 1) < InitialStakeDuration`. `MaxStakeDuration` = 365
+  ngày là **trần**, nên nhiệm kỳ 1 năm không phải lựa chọn.
 
 ### Thêm từ phiên 2026-08-26 (đợt 6 — vá cổng chặn + Đợt 1 audit)
 - 🔴 **BÀI KIỂM DÀI PHẢI CHẠY BẰNG `nohup` + LOG TRÊN SERVER, KHÔNG QUA SSH TIỀN CẢNH.**
