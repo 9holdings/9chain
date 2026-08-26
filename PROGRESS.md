@@ -721,34 +721,26 @@ có thứ tự cao nhất.** Trong lúc chờ: nút chính trỏ vào trang "đa
 
       Trang chủ mới xem trước ở **`/moi/`** — gốc `/` vẫn là Blockscout, đổi gốc là
       việc của M10.3 (cần David chọn biến thể).
-- [human] M10.3 — **Ba biến thể ĐÃ DỰNG XONG và chạy thật; còn đúng một việc: David chọn.**
+- [x] M10.3 — **XONG. David chọn BẢN C ngày 2026-08-26, và nó đã chiếm gốc `/`.**
 
-| bản | cách dẫn | xem tại |
-|---|---|---|
-| A | dẫn bằng **lời hứa** | `/moi/tc-a/` |
-| B | đặt thẳng **màn đẻ chain** lên trang chủ | `/moi/tc-b/` |
-| C | dẫn bằng **chain người khác đã đẻ** | `/moi/tc-c/` |
+      Bản C dẫn bằng **bằng chứng trước, lời mời sau**: cho thấy L1 có thật đang
+      chạy, có chủ thật, rồi mới mời đẻ chain. Hai bản còn lại (A — dẫn bằng lời
+      hứa; B — đặt thẳng ô đặt tên lên trang chủ) và `components/ThanhChon.tsx`
+      **đã gỡ khỏi mã nguồn** — để cả ba lại sau khi đã chốt là để một bộ điều khiển
+      nội bộ nằm trên trang chủ công khai. Lịch sử nằm trong git (commit `4ed0b01`).
 
-      Trang so sánh: **https://testnet-a1.9chain.org/moi/** — mô tả mỗi bản nói cả
-      **điểm yếu**, vì một danh sách chỉ toàn điểm mạnh thì không giúp chọn được gì.
+      🔴 **Gốc `/` KHÔNG còn là Blockscout.** Caddy khớp **đúng `/`** chứ không phải
+      `/*`: Blockscout dùng rất nhiều đường dẫn ở gốc (`/tx/…`, `/address/…`,
+      `/blocks`, `/api/…`) và **tất cả vẫn chạy** — chỉ riêng trang chủ trần đổi chủ.
+      Viết `/*` ở đó là nuốt luôn cả explorer. Đã đối chứng sau khi đổi: `/blocks`
+      vẫn trả về HTML của Blockscout (76 KB, có chuỗi "Blockscout").
+      **Gỡ nhanh nếu cần:** xoá khối `@trangchu` trong Caddyfile rồi `caddy reload`.
 
-      **Nghiệm thu thật qua Cloudflare (không phải `curl`):** dải số liệu sống trả
-      **5/5 validator · 2 L1 · block 113** — số thật, đọc một lần lúc mount. Bảng
-      chain của bản C hiện đúng cả chain thiếu khoá `admin` ("mặc định của hệ
-      thống", không để `undefined` lọt ra). Ô đặt tên của bản B: nút tắt khi trống,
-      báo lỗi đúng luật server khi tên xấu, bật khi tên hợp lệ; không tràn ngang ở
-      khổ điện thoại.
+      **Điểm yếu đã biết của bản C, ghi lại để không ai ngạc nhiên:** nó mạnh dần
+      theo số chain trong danh bạ, mà hôm nay danh bạ đang **vắng** (2 L1, cả hai của
+      hệ thống). Vì thế trạng thái rỗng của bảng viết như một **lời mời** ("bạn sẽ là
+      người đầu tiên"), không phải một ô trống.
 
-      🔴 **Đọc MỘT LẦN lúc mount, KHÔNG poll.** Trang chủ không phải bảng điều khiển.
-      Kèm một lý do thực dụng: `refetchInterval` **không chạy** khi
-      `document.visibilityState === 'hidden'` — đúng trạng thái của mọi khung xem tự
-      động, nên nghiệm thu polling bằng công cụ hay ra **âm tính giả**. Đọc-một-lần
-      thì nghiệm thu bằng tải lại trang, không mơ hồ.
-
-      **Khi David chốt:** nội dung bản được chọn thay `web/app/page.tsx`, hai bản còn
-      lại + `components/ThanhChon.tsx` **bị gỡ**, rồi mới bàn chuyện đổi gốc `/`.
-      Để cả ba lại sau khi đã chốt là để một bộ điều khiển nội bộ nằm trên trang chủ
-      công khai. **Backup bản cũ:** chưa cần — gốc `/` vẫn là Blockscout, chưa thay gì.
 - [~] M10.4 — **Màn đẻ chain — phần mềm XONG; còn một việc chỉ người thật làm được.**
 
       **Việc chặn đã gỡ: console nay có `GET /api/tien-trinh`.** Trước đó `/api/create`
@@ -862,9 +854,14 @@ có thứ tự cao nhất.** Trong lúc chờ: nút chính trỏ vào trang "đa
       vẫn hiện bình thường nên nhìn bằng mắt không thấy gì; `web-deploy.sh` bắt được
       vì nó có phép kiểm API riêng.
 
-      - [blocked] `/lite/` redirect — phải làm **sau** khi trang chủ mới chiếm gốc
-        `/`, mà cái đó chờ David chọn biến thể (M10.3). Redirect `/lite/` về `/` bây
-        giờ là ném người dùng vào Blockscout.
+      - [x] **`/lite/` → `/` và `/dashboard/` → `/bang/`, cả hai 301.** Mở khoá được
+        vì gốc `/` nay là trang chủ thật (M10.3 đã chốt). Giữ URL cũ bằng redirect
+        chứ **không xoá**: chúng có thể đã nằm trong tài liệu hay tin nhắn của ai đó,
+        và một URL chết thì không nói được nó đã đi đâu. 301 vì đây là chuyển nhà
+        vĩnh viễn.
+        ⚠️ Hai container cũ (`:8082` explorer nhẹ, `:8092` dashboard) nay **không còn
+        đường vào** nhưng vẫn đang chạy — dừng chúng là việc dọn tài nguyên, chưa làm
+        vì nó đụng tới thứ đang chạy mà không ai yêu cầu.
       - [blocked] Gỡ trang `/chains/` cũ — chờ 9Scan-A1 đưa `/chains/` của họ lên
         (U-5, việc của dự án khác).
 

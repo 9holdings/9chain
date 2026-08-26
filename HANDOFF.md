@@ -36,20 +36,18 @@ người muốn tham gia. Đo được: máy chủ có **/56 định tuyến**, 
 theo từng network, KHÔNG phải restart daemon). Khuyến nghị: IPv4 đa cổng cho node
 beacon. **Kéo theo H-4 có thể là bản ghi `A` chứ không phải `AAAA`.** Chi tiết: BLOCKERS H-7.
 
-**5. 🔴 BACKLOG PHẦN MỀM ĐÃ CẠN — việc còn lại đều `[human]` hoặc `[blocked]`.**
-M10.1/M10.2/M10.5/M10.6 xong; M10.4 xong phần mềm (còn bấm thử bằng MetaMask thật);
-M10.3 chỉ còn **David chọn một trong ba biến thể**; M10.7 chờ hai thứ bên ngoài.
+**5. 🔴 M10 GẦN ĐÓNG — backlog phần mềm đã cạn, việc còn lại đều `[human]`/`[blocked]`.**
+M10.1–M10.3, M10.5, M10.6 xong; M10.4 xong phần mềm (còn bấm thử bằng MetaMask
+thật); M10.7 xong phần đo được, còn một mục chờ 9Scan.
 
-**Việc `[human]` có thứ tự cao nhất bây giờ là U-3: chọn biến thể trang chủ.**
-Mở **https://testnet-a1.9chain.org/moi/** — ba bản A/B/C, mô tả mỗi bản nói cả điểm
-yếu. Chọn xong thì: nội dung bản đó thay `web/app/page.tsx`, hai bản kia +
-`components/ThanhChon.tsx` bị gỡ, rồi mới bàn đổi gốc `/`.
+🔴 **GỐC `/` NAY LÀ TRANG CHỦ THẬT (bản C, David chọn 2026-08-26), KHÔNG còn là
+Blockscout.** Caddy khớp **đúng `/`** chứ không phải `/*` — Blockscout vẫn phục vụ
+`/tx/…`, `/address/…`, `/blocks`, `/api/…` như cũ (đã đối chứng sau khi đổi).
+**Gỡ nhanh:** xoá khối `@trangchu` trong Caddyfile rồi `caddy reload`.
 
-🔴 **Gốc `/` VẪN LÀ BLOCKSCOUT** — và `/lite/` redirect (M10.7) phải làm SAU khi
-trang chủ mới chiếm gốc, nếu không là ném người dùng vào Blockscout.
-
-**Trang đang chạy công khai:** `/faucet/` · `/de-chain/` · `/chain-cua-toi/` ·
-`/bang/` · `/tc-a|b|c/` · `/moi/` (trang chọn).
+**Trang công khai:** `/` (trang chủ) · `/faucet/` · `/de-chain/` · `/chain-cua-toi/`
+· `/bang/` · `/chains/` · `/console/` (console cũ, không còn trong thanh điều hướng).
+URL cũ: `/lite/` → `/` và `/dashboard/` → `/bang/`, đều 301.
 
 ### ⏰ Hẹn giờ đã biết
 **Cả 5 validator hết hạn `2027-08-24`** (đo 2026-08-25, còn 364 ngày). Đúng ngày đó
@@ -70,6 +68,17 @@ tức ~**70 MB/giờ** ở 210 TPS — nhỏ hơn 30 lần. Dung lượng đĩa 
 
 ⚠️ **Đợt tải này KHÔNG tự thu hồi chain** (nó chạy trên chain có sẵn nên cố ý giữ lại):
 log ghi `giữ lại chain "(chain có sẵn)"`. L1 đó vẫn chiếm một slot.
+
+### Phiên 2026-08-26 (đợt 3) — David chọn bản C, trang chủ lên gốc
+
+**M10.3 đóng.** Bản C thay `web/app/page.tsx`; bản A, bản B và `ThanhChon.tsx` đã gỡ.
+**Gốc `/` đổi chủ**: Caddy khớp đúng `/` (không phải `/*`), nên Blockscout giữ nguyên
+mọi đường dẫn sâu. Đối chứng sau khi đổi: `/blocks` vẫn là HTML Blockscout 76 KB.
+**M10.7 mở khoá thêm một mục**: `/lite/` → `/`, `/dashboard/` → `/bang/`, cả hai 301.
+
+⚠️ Hai container cũ (`:8082` explorer nhẹ, `:8092` dashboard) nay **không còn đường
+vào** nhưng vẫn chạy. Dừng chúng là dọn tài nguyên — chưa làm vì nó đụng thứ đang
+chạy mà không ai yêu cầu.
 
 ### Phiên 2026-08-26 (autopilot — M10.3 → M10.7) làm xong
 

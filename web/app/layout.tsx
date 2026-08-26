@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://testnet-a1.9chain.org'),
   applicationName: vi.chung.tenSanPham,
   title: `${vi.chung.tenSanPham} — ${vi.chung.moTaNgan}`,
-  description: vi.trangChu.moTa,
+  description: vi.trangChu.cPhu,
   alternates: { canonical: '/' },
 };
 

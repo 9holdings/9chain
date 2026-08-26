@@ -38,44 +38,10 @@ export const vi = {
 
   trangChu: {
     nhanTestnet: 'Testnet — token không có giá trị thật',
-    tieuDe: 'Chain của riêng bạn, đẻ ra trong ba phút',
-    moTa:
-      'A1 là testnet công khai của 9Chain chạy trên Avalanche. Bạn bấm một nút, ' +
-      'nhận về một L1 do chính ví bạn làm chủ — genesis, phí, quyền deploy đều là của bạn.',
     nutChinh: 'Đẻ chain của bạn',
     nutPhu: 'Nhận token thử trước đã',
-    /* Trang chủ đầy đủ (2–3 biến thể để David chọn) là M10.3 — mục này chỉ đủ để
-       khung đứng được và mọi liên kết có đích thật. */
-    dangDung: 'Trang chủ đầy đủ đang dựng',
-    dangDungMoTa:
-      'Ba biến thể trang chủ sẽ được dựng ở mốc M10.3 để David chọn. Trong lúc đó, ' +
-      'mọi cửa vào bên dưới đều đã chạy thật.',
-    cuaVaoFaucet: 'Xin LOVE9 để trả phí gas khi thử.',
-    cuaVaoConsole: 'Đẻ một L1 do chính ví bạn làm chủ.',
-    cuaVaoDanhBa: 'Các L1 đã có trên mạng và tình trạng thật.',
 
-    // ── Bản A: dẫn bằng lời hứa
-    aTieuDe: 'Chain của riêng bạn, đẻ ra trong ba phút',
-    aPhu:
-      'Không dựng máy chủ, không xin phép ai. Bấm một nút, nhận về một L1 mà ví ' +
-      'của bạn là chủ: genesis, phí gas, quyền deploy đều do bạn đặt.',
-    aY1Ten: 'Chain thuộc về ví đã ký',
-    aY1: 'Đăng nhập bằng chữ ký ví. Địa chỉ chủ chain lấy từ chữ ký, không ai gõ tay — gõ sai một ký tự là chain vô chủ vĩnh viễn.',
-    aY2Ten: 'Sáu kiểu chain chọn sẵn',
-    aY2: 'Phí gần như bằng 0, tự in thêm token, chỉ chủ chain deploy, chain kín, thông lượng cao — hoặc bản chuẩn.',
-    aY3Ten: 'Nói chuyện được với L1 khác',
-    aY3: 'Warp/ICM bật sẵn trong genesis mọi chain, nên tài sản đi được giữa hai L1.',
-
-    // ── Bản B: đặt thẳng màn đẻ chain
-    bTieuDe: 'Đặt tên cho chain của bạn',
-    bPhu: 'Một lượt đẻ mất khoảng ba phút. Bạn cần một ví để ký — chain sẽ thuộc về ví đó.',
-    bNhanTen: 'Tên chain',
-    bGoiYTen: 'Ví dụ: ChainCuaToi',
-    bBatDau: 'Bắt đầu đẻ chain',
-    bLuuY: 'Bấm sẽ mở màn đẻ chain, nơi bạn ký bằng ví và soát lại trước khi gửi. Chưa có gì được tạo ở bước này.',
-    bTenXau: 'Tên chỉ gồm chữ, số và dấu cách, dài 2–32 ký tự.',
-
-    // ── Bản C: dẫn bằng chain đã có
+    // ── Trang chủ — David chọn BẢN C ngày 2026-08-26 (M10.3, U-3).
     cTieuDe: 'Những L1 này do người dùng đẻ ra',
     cPhu: 'Mỗi dòng là một chain thật đang chạy trên A1, có chủ riêng. Bản của bạn mất khoảng ba phút.',
     cCot: 'Chain',
@@ -94,27 +60,6 @@ export const vi = {
     dangDo: 'Đang đo mạng…',
     khongDo: 'Chưa đọc được số liệu mạng',
     khongDoMoTa: 'Trang vẫn dùng được — đây chỉ là phần hiển thị tình trạng.',
-  },
-
-  bienThe: {
-    tieuDe: 'Ba biến thể trang chủ — chọn một',
-    moTa:
-      'Đối tượng đã chốt: người muốn có chain riêng. Ba bản dưới đây khác nhau ở ' +
-      'CÁCH DẪN, không ở nhắm ai. Mở từng bản rồi chọn.',
-    xemBan: 'Xem bản này',
-    aTen: 'A — dẫn bằng lời hứa',
-    aMoTa:
-      'Nói thẳng bạn nhận được gì, rồi mới mời bấm. Ít thứ trên màn nhất, ' +
-      'đọc nhanh nhất, nhưng bắt người ta tin trước khi thấy.',
-    bTen: 'B — đặt thẳng màn đẻ chain lên trang chủ',
-    bMoTa:
-      'Ô nhập tên chain nằm ngay dưới tiêu đề. Ngắn đường nhất tới hành động, ' +
-      'nhưng hỏi người lạ một câu (đặt tên) trước khi họ hiểu mình đang mua gì.',
-    cTen: 'C — dẫn bằng chain người khác đã đẻ',
-    cMoTa:
-      'Cho thấy L1 có thật đang chạy rồi mới mời. Thuyết phục nhất khi danh bạ ' +
-      'có nhiều chain, yếu nhất khi danh bạ vắng — mà hôm nay nó đang vắng.',
-    luuYVang: 'Danh bạ hiện chỉ có {so} L1 — bản C sẽ mạnh dần khi có thêm chain.',
   },
 
   deChain: {
