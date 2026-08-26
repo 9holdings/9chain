@@ -1018,3 +1018,32 @@ hạn"*). Đây không phải sửa con số mà là đảo một nguyên tắc 
 A1 đề xuất phương án gỡ (thu hẹp phạm vi: C1 chỉ follow tổng cung + cấu trúc pool, phân
 bổ nội bộ mỗi nhánh tự quyết) — **David không chọn**. Ghi lại cả đề xuất lẫn việc nó bị
 bỏ qua, vì đó là thông tin cần cho người quyết sau này.
+
+### D-044 — Custody khoá quỹ: **GIỮ NGUYÊN SƠ ĐỒ CŨ** (một `keys.txt` offline, David tự cất bản thứ hai)
+
+**David chốt 2026-08-26**, sau khi A1 nêu ba đường: giữ nguyên · tách theo mức rủi ro
+(giấy + bản mã hoá, hai nơi) · multisig P-Chain ở genesis.
+
+D-036 đặt điều kiện **chốt sơ đồ custody TRƯỚC khi bấm sinh khoá**, vì sinh lại mạng
+là cơ hội một lần — sau ngày G thì đổi sơ đồ nghĩa là phải re-genesis lần nữa. Mục này
+là câu trả lời cho điều kiện đó, nên nó **mở khoá** bước sinh khoá của re-genesis.
+
+**Sơ đồ được chốt** (y như đang chạy, không thêm gì):
+- `local-net/net-public/keys.txt` giữ **offline trên máy dev**, `.gitignore` sẵn,
+  **không bao giờ** lên server.
+- File duy nhất được phép lên server: `faucet.env` (ví nóng 99.999.999 LOVE9,
+  **được thiết kế để chấp nhận mất** và nạp lại được từ Foundation).
+- Bản sao thứ hai: **David tự cất**, ngoài phạm vi repo và ngoài phạm vi của A1.
+
+🔴 **Rủi ro còn lại, chấp nhận có ý thức — ghi ra để sau không ai bảo là không ai biết:**
+mất máy dev = mất **toàn bộ** khoá của 5 quỹ genesis (Foundation 1,08 tỷ · Community
+2,7 tỷ · Private Sale 810 triệu · Team 810 triệu). Không có đường khôi phục nào khác:
+genesis bất biến, không có multisig, không có social recovery. Bản thứ hai của David
+**là** kế hoạch dự phòng duy nhất — nếu bản đó không tồn tại thì sơ đồ này chỉ có một
+điểm hỏng, và điểm đó là một ổ đĩa.
+
+**Vì sao vẫn hợp lý hôm nay:** A1 là **testnet**, token không có giá, và hai đường kia
+đều đắt hơn cái được ở giai đoạn này — multisig phải sửa netgen (thêm điểm chủ quyền,
+phải diễn tập rebase lại) cho một mạng sẽ re-genesis lần nữa vào 01/09.
+⚠️ **Điều kiện để nó còn đúng:** khi A1 chuyển sang thứ có giá trị thật (hoặc trước
+mainnet), mục này **phải quyết lại** — lúc đó "một ổ đĩa" không còn là rủi ro chấp nhận được.
