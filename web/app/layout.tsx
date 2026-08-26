@@ -10,6 +10,18 @@ import { vi } from '@/lib/i18n/vi';
 // Cùng ba font và cùng tên biến với 9Scan-A1 — `tokens.css` trỏ vào
 // `--font-sora/--font-instrument/--font-jetbrains`, đổi tên ở đây là chữ rơi hết về
 // font hệ thống mà không có lỗi nào báo.
+// 🔴 ĐÃ ĐO 2026-08-27, ĐỪNG THỬ LẠI: `subsets: ['latin','vietnamese']` KHÔNG chạy.
+// `next/font` báo thẳng: "Unknown subset `vietnamese` for font `Sora` / `Instrument
+// Sans`. Available subsets: `latin`, `latin-ext`". Hai bộ chữ này KHÔNG CÓ bản tiếng
+// Việt trên Google Fonts — đây không phải lỗi khai thiếu, mà là bộ chữ không phủ.
+//
+// Hệ quả đang chạy thật: `latin-ext` phủ 1e00–1e9f và 1ef2–1eff nhưng HỤT 1ea0–1ef1,
+// đúng dải chứa ạ ả ấ ầ ậ ắ ẻ ế ề ệ ị ọ ố ồ ộ ớ ờ ợ ụ ứ ừ ự. Trình duyệt thay từng ký
+// tự một ⇒ chữ LẪN FONT NGAY GIỮA MỘT TỪ, trên mọi tiêu đề của mọi trang.
+// Chỉ JetBrains Mono có dải này (đo bằng: grep 1ea0 trong CSS đã xuất).
+//
+// ⇒ Vá được thì phải ĐỔI BỘ CHỮ, mà ba font này dùng chung với 9Scan-A1 (xem chú
+// thích dưới) nên đó là quyết định thương hiệu hai dự án, không sửa một mình ở đây.
 const sora = Sora({ subsets: ['latin'], weight: ['600', '700', '800'], variable: '--font-sora', display: 'swap' });
 const instrument = Instrument_Sans({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-instrument', display: 'swap' });
 const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jetbrains', display: 'swap' });
