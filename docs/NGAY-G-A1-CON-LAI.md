@@ -232,10 +232,16 @@ Bản nháp BOD có 7 điều kiện, trong đó **điều 1 không thoả mãn 
 
 Xếp theo thứ tự đường găng:
 
-1. **Tham số hoá `Message` + hợp đồng dữ liệu C-Chain trong netgen** — dựng sẵn cơ chế, nội dung
-   nhét vào sau khi C1 giao byte. Đây là phần code duy nhất còn lại của ngày G.
-2. **Bài kiểm đọc ngược chữ khắc** — một lệnh, đối chiếu `sha256` từng tài liệu.
-3. **Cổng "bản tập ≠ bản thật"** (§5) — phải có trước lượt tập đầu.
+1. ✅ **XONG `26/08`** — **Tham số hoá `Message` + hợp đồng dữ liệu C-Chain trong netgen.**
+   Cơ chế dựng sẵn, nội dung nhét vào sau khi C1 giao byte. Patch 0010, cây fork tree
+   `76a714ea`. Cách dùng + bảng nghiệm thu: [`KHAC-CHU-NGAY-G.md`](KHAC-CHU-NGAY-G.md).
+2. 🟡 **Bài kiểm đọc ngược chữ khắc** — đã chạy **thủ công** và đạt (đọc `Message` từ
+   `genesis.json` + payload `eth_getCode`, băm lại từng tài liệu, khớp hết; genesis được
+   **chính `genesis.FromFile` của node** chấp nhận). **Chưa đóng gói thành một lệnh chạy
+   trên chain thật** — đó mới là thứ dùng được ngày G.
+3. ✅ **XONG `26/08`** — **Cổng "bản tập ≠ bản thật"** (§5): mặc định KHÔNG khắc, bật khắc thì
+   bắt buộc `A1_ENGRAVE_CONFIRM` khớp vân tay bộ tài liệu, và netgen **luôn in ra** mình có
+   khắc hay không. Đã có đối chứng ngược: vân tay lệch ⇒ từ chối sinh mạng.
 4. **Diễn tập giao dịch nghi lễ Block Adam** trên bản tập.
 5. **Quy trình O2** (export + `sha256` + công bố) — thứ đã bỏ lỡ ở `26/08`.
 6. **G4** — tra `chainid.network`.

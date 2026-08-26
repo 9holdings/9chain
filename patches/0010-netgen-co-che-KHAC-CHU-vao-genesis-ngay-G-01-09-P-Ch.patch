@@ -1,0 +1,578 @@
+From 5e99a82740b75055026c1e92e719a3c1c1989a98 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Wed, 26 Aug 2026 23:48:50 +0400
+Subject: [PATCH 10/10] =?UTF-8?q?netgen:=20co=20che=20KHAC=20CHU=20vao=20g?=
+ =?UTF-8?q?enesis=20(ngay=20G=2001/09)=20=E2=80=94=20P-Chain=20+=20C-Chain?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Hai mat khac, theo PLAN-REGENESIS G5f/G5h:
+  P-Chain `Message`            GOC — noi khai sinh ca X lan C. Tron bo tai lieu.
+  C-Chain alloc + extraData    HIEN TAI PHO BIEN — eth_getCode ai cung doc.
+X-Chain khong khac: truong Message cap UTXO o do da bi dung mang dia chi ETH.
+
+MAC DINH LA KHONG KHAC. Khong dat A1_ENGRAVE thi netgen sinh mang y nhu cu.
+Day la cong "ban tap != ban that" cua A1: C1 phan biet bang genesisTime mang moc
+thieng, A1 KHONG dung duoc cach do (StartTime luon dong, now-60). Nen dau phan
+biet cua A1 la chinh viec co khac hay khong + mot co xac nhan phai khop van tay
+noi dung. netgen LUON in ra minh co khac hay khong, ke ca khi khong.
+
+BA LUAT CUNG (vi pham la hong VINH VIEN):
+1. Byte lay tu C1, KHONG go lai. Doc byte tho: khong trim, khong doi xuong dong,
+   khong them newline cuoi. Co BOM thi CANH BAO chu khong tu go — go ho la lam
+   lech hash so voi ban C1 da dong bang.
+2. sha256 bam BYTE CUA TEP, khong bam chuoi da escape trong JSON — cung mot dai
+   luong voi ban dong bang cua C1.
+3. Khong giu ban chep tay cua bat ky hash nao; moi so tinh tuoi tu byte.
+   (Va canonicalBundle co y KHONG nhet sha256 vao noi dung khac: no dan xuat duoc
+   tu `text`, giu gia tri dan xuat canh nguon la de ra nguon su that thu hai.)
+
+CONG CHAN:
+- van tay bo tai lieu lech -> tu choi (bat ca "quen xac nhan" lan "tai lieu doi
+  sau khi duyet")
+- doi chieu ban dong bang cua C1 (A1_ENGRAVE_CHECKSUMS) -> bat vu "go lai tai lieu
+  thay vi chep byte": noi dung trong giong het ma hash khac
+- dia chi hop dong: tu choi 0x0 va vung precompile < 0x100 (EVM uu tien precompile
+  => ban van khong doc ra duoc)
+- tai lieu khong phai UTF-8 hop le -> tu choi (json.Marshal se lang le thay bang
+  U+FFFD, doi mot ky tu la doi sha256)
+- khoa la trong manifest -> loi, khong bo qua im lang
+
+NGHIEM THU (bo tai lieu THU, khong phai byte that cua C1):
+  4 hash netgen bao == sha256sum tinh doc lap tren host           4/4
+  doc nguoc Message tu genesis.json, bam lai tung tai lieu        4/4
+  eth_getCode payload: bo byte STOP, bam lai                      3/3
+  extraData == sha256(payload), dung 32 byte                      khop
+  Hebrew qua vong JSON->hex->giai ma                              trung tung byte
+  nap bang CHINH genesis.FromFile cua node + A1Params             CHAP NHAN
+  DO: van tay lech / tai lieu go lai / dia chi 0x0,0x01,0xff      bat duoc het
+  XANH: dia chi 0x0100, 0x0909                                    di qua
+  khong bat khac -> sinh binh thuong, in "Chu khac: KHONG"        dat
+
+CHUA NGHIEM THU DUOC: cong chan dia chi hop dong dam vao dia chi mot quy. Dia chi
+quy sinh ngau nhien moi luot nen khong dung duoc ca dam tu ngoai (~2^-160). Cong
+van giu vi hau qua la quy mat sach tien khong dau hieu (trung khoa JSON), nhung
+phai ghi ro: no chua tung chay that.
+
+Chi tiet + cach dung: docs/KHAC-CHU-NGAY-G.md
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ 9chain-a1-tools/netgen/engrave.go | 394 ++++++++++++++++++++++++++++++
+ 9chain-a1-tools/netgen/main.go    |  67 ++++-
+ 2 files changed, 456 insertions(+), 5 deletions(-)
+ create mode 100644 9chain-a1-tools/netgen/engrave.go
+
+diff --git a/9chain-a1-tools/netgen/engrave.go b/9chain-a1-tools/netgen/engrave.go
+new file mode 100644
+index 0000000..b1ab0eb
+--- /dev/null
++++ b/9chain-a1-tools/netgen/engrave.go
+@@ -0,0 +1,394 @@
++// 9Chain-A1 — cơ chế KHẮC CHỮ vào genesis (ngày G, 2026-09-01).
++//
++// Hai mặt khắc, theo quyết định 26/08 (PLAN-REGENESIS §G5f/G5h):
++//
++//	P-Chain  `Message`            — GỐC: nơi khai sinh ra cả X-Chain lẫn C-Chain.
++//	                                Mang TRỌN BỘ tài liệu (gồm bản Hebrew nguyên ngữ).
++//	C-Chain  `alloc` + extraData  — HIỆN TẠI PHỔ BIẾN: nơi `eth_getCode` đọc được.
++//	                                Mang các tài liệu đánh dấu `"c"` (bản tiếng Anh).
++//
++// 🔴 BA LUẬT CỨNG, vi phạm cái nào cũng là hỏng VĨNH VIỄN (genesis bất biến):
++//
++//  1. **Byte lấy từ C1, KHÔNG gõ lại.** Dấu chấm cuối câu, kiểu nháy, BOM, CRLF, niqqud
++//     có hay không — mỗi thứ đổi một byte là đổi cả `sha256`, và số đó nằm trong genesis
++//     không sửa được. Vì thế module này đọc **byte thô từ tệp**, không chuẩn hoá gì cả:
++//     không trim, không đổi xuống dòng, không thêm newline cuối.
++//
++//  2. **`sha256` băm BYTE CỦA TỆP**, không băm chuỗi đã escape trong JSON. Đó là thứ
++//     C1 đóng băng trong `PAPER/CHECKSUMS-FREEZE-*`, nên phải cùng một đại lượng thì
++//     đối chiếu chéo hai chain mới có nghĩa. Người kiểm đọc JSON ra, giải escape, băm
++//     lại — ra đúng số đó.
++//
++//  3. **Không giữ bản chép tay của bất kỳ hash nào.** Mọi số trong báo cáo đều tính
++//     tươi từ byte. Dự án này đã trôi lệch vì bản chép tay ba lần rồi.
++//
++// ⚠️ **MẶC ĐỊNH LÀ KHÔNG KHẮC.** Không đặt `A1_ENGRAVE` thì netgen sinh mạng y như cũ.
++// Đây chính là cổng "bản tập ≠ bản thật" của A1: C1 phân biệt bằng `genesisTime` mang
++// mốc thiêng, nhưng A1 **không dùng được cách đó** — `StartTime` của netgen luôn động
++// (`now-60`). Nên dấu phân biệt của A1 là **chính việc có khắc hay không**, cộng một
++// cờ xác nhận phải khớp vân tay nội dung.
++package main
++
++import (
++	"crypto/sha256"
++	"encoding/hex"
++	"encoding/json"
++	"fmt"
++	"os"
++	"path/filepath"
++	"regexp"
++	"sort"
++	"strings"
++	"unicode/utf8"
++)
++
++// engraveVersion đi vào chính nội dung khắc. Đổi nó là đổi mọi hash ⇒ chỉ đổi khi
++// định dạng thật sự đổi, và khi đó phải báo C1.
++const engraveVersion = 1
++
++// surfaceP / surfaceC — hai mặt khắc. Một tài liệu có thể nằm trên cả hai.
++const (
++	surfaceP = "p"
++	surfaceC = "c"
++)
++
++// engraveDoc — một tài liệu trong bộ khắc.
++type engraveDoc struct {
++	ID   string   `json:"id"`   // định danh ổn định, đi vào nội dung khắc
++	Lang string   `json:"lang"` // "he" | "en" | …
++	File string   `json:"file"` // đường dẫn TƯƠNG ĐỐI so với tệp manifest
++	On   []string `json:"on"`   // mặt khắc: ["p"] hoặc ["p","c"]
++
++	raw []byte // byte thô, đọc verbatim
++	sum string // sha256 của `raw`
++}
++
++// engraveManifest — tệp khai bộ tài liệu. Thứ tự trong `Docs` là THỨ TỰ KHẮC và nó
++// đi vào hash gốc ⇒ đảo thứ tự là đổi vân tay, cố ý.
++type engraveManifest struct {
++	Version int    `json:"version"`
++	Source  string `json:"source"` // ghi rõ byte đến từ đâu, ví dụ "9Chain-C1 PAPER/ freeze 2026-08-27"
++	// CChainAddress — địa chỉ cố định của hợp đồng dữ liệu trên C-Chain.
++	// 🔴 BẮT BUỘC khai tường minh: nó khắc vĩnh viễn, nên phải là lựa chọn có ý thức
++	// của chủ dự án, không phải mặc định của công cụ.
++	CChainAddress string       `json:"cChainAddress"`
++	Docs          []engraveDoc `json:"docs"`
++}
++
++// engraving — kết quả đã tính, sẵn sàng nhét vào genesis.
++type engraving struct {
++	manifest engraveManifest
++	docs     []engraveDoc
++
++	PMessage   string // nội dung trường Message của P-Chain genesis
++	CPayload   []byte // JSON chính tắc của các tài liệu mặt "c"
++	CCode      string // "0x00" + hex(CPayload) — mã hợp đồng dữ liệu
++	CExtraData string // "0x" + sha256(CPayload), ĐÚNG 32 byte
++	Root       string // vân tay cả bộ, dùng cho cờ xác nhận
++}
++
++var reHexAddr = regexp.MustCompile(`^0x[0-9a-fA-F]{40}$`)
++
++// loadEngraving đọc manifest + toàn bộ tài liệu và tính mọi thứ dẫn xuất.
++// Trả về nil khi không bật khắc chữ (đường mặc định, dùng cho mọi lượt tập).
++func loadEngraving() *engraving {
++	path := env("A1_ENGRAVE", "")
++	if path == "" {
++		return nil
++	}
++
++	mb, err := os.ReadFile(path)
++	must(err, "doc manifest khac chu "+path)
++
++	var m engraveManifest
++	// DisallowUnknownFields: khoá lạ trong manifest là lỗi đánh máy, và một khoá
++	// đánh máy sai bị bỏ qua trong im lặng ở đây nghĩa là một tài liệu không được
++	// khắc mà không ai biết. subnet-evm đã dạy dự án này đúng bài đó.
++	dec := json.NewDecoder(strings.NewReader(string(mb)))
++	dec.DisallowUnknownFields()
++	must(dec.Decode(&m), "phan tich manifest khac chu")
++
++	if m.Version != engraveVersion {
++		engraveFatal(fmt.Sprintf("manifest version=%d nhung netgen chi biet version=%d", m.Version, engraveVersion))
++	}
++	if len(m.Docs) == 0 {
++		engraveFatal("manifest khong co tai lieu nao")
++	}
++	if !reHexAddr.MatchString(m.CChainAddress) {
++		engraveFatal("cChainAddress phai la dia chi hex 20 byte (0x + 40 ky tu), dang co: " + m.CChainAddress)
++	}
++	mustUsableDataAddr(m.CChainAddress)
++
++	base := filepath.Dir(path)
++	seen := make(map[string]bool, len(m.Docs))
++	docs := make([]engraveDoc, 0, len(m.Docs))
++
++	for i, d := range m.Docs {
++		where := fmt.Sprintf("docs[%d]", i)
++		if d.ID == "" {
++			engraveFatal(where + ": thieu `id`")
++		}
++		if seen[d.ID] {
++			// Trùng id là mơ hồ: người kiểm không biết hash nào ứng với tài liệu nào.
++			engraveFatal(where + ": id trung — " + d.ID)
++		}
++		seen[d.ID] = true
++		if d.Lang == "" {
++			engraveFatal(where + " (" + d.ID + "): thieu `lang`")
++		}
++		if len(d.On) == 0 {
++			engraveFatal(where + " (" + d.ID + "): `on` rong — phai khai mat khac")
++		}
++		for _, s := range d.On {
++			if s != surfaceP && s != surfaceC {
++				engraveFatal(where + " (" + d.ID + "): mat khac la — " + s)
++			}
++		}
++
++		// 🔴 ĐỌC BYTE THÔ. Không trim, không đổi xuống dòng, không thêm gì.
++		raw, err := os.ReadFile(filepath.Join(base, d.File))
++		must(err, where+" ("+d.ID+"): doc tai lieu "+d.File)
++		if len(raw) == 0 {
++			engraveFatal(where + " (" + d.ID + "): tai lieu RONG")
++		}
++		// JSON chỉ chứa được UTF-8 hợp lệ. Bắt ở đây thay vì để `json.Marshal` lặng
++		// lẽ thay ký tự hỏng bằng U+FFFD — thay một ký tự là đổi sha256.
++		if !utf8.Valid(raw) {
++			engraveFatal(where + " (" + d.ID + "): tai lieu KHONG phai UTF-8 hop le")
++		}
++		// BOM là byte thật và nó đi vào hash. Không tự gỡ — chỉ cảnh báo, vì gỡ hộ
++		// là làm lệch hash so với bản C1 đã đóng băng.
++		if len(raw) >= 3 && raw[0] == 0xEF && raw[1] == 0xBB && raw[2] == 0xBF {
++			fmt.Fprintf(os.Stderr, "CANH BAO %s (%s): tai lieu co BOM UTF-8 — BOM DI VAO sha256. Doi chieu voi C1 truoc khi khac.\n", where, d.ID)
++		}
++
++		d.raw = raw
++		d.sum = sha256Hex(raw)
++		docs = append(docs, d)
++	}
++
++	e := &engraving{manifest: m, docs: docs}
++	e.PMessage = canonicalBundle(docs, surfaceP)
++
++	cDocs := filterSurface(docs, surfaceC)
++	if len(cDocs) == 0 {
++		// Không có tài liệu mặt "c" thì hợp đồng dữ liệu rỗng và extraData vô nghĩa.
++		// Đây gần như chắc chắn là lỗi manifest, không phải ý định.
++		engraveFatal("khong tai lieu nao khai mat `c` — C-Chain se khong co gi de khac")
++	}
++	e.CPayload = []byte(canonicalBundle(docs, surfaceC))
++	e.CCode = "0x00" + hex.EncodeToString(e.CPayload)
++	e.CExtraData = "0x" + sha256Hex(e.CPayload)
++	e.Root = engraveRoot(docs, m.CChainAddress)
++
++	verifyAgainstC1(docs)
++	requireConfirm(e)
++	return e
++}
++
++// canonicalBundle dựng JSON CHÍNH TẮC của các tài liệu thuộc một mặt khắc.
++//
++// Dựng bằng tay chứ không `json.Marshal` cả struct, vì thứ tự khoá phải cố định
++// tuyệt đối và không phụ thuộc phiên bản Go. Mỗi giá trị chuỗi vẫn đi qua
++// `json.Marshal` để escape đúng chuẩn.
++//
++// 🔴 KHÔNG nhét `sha256` vào đây: nó dẫn xuất được từ `text`, và giữ một giá trị
++// dẫn xuất cạnh nguồn của nó là đẻ ra nguồn sự thật thứ hai — đúng thứ dự án này
++// đã trôi lệch vì nó nhiều lần. Hash nằm ở báo cáo cho người đọc, và người kiểm
++// tính lại từ `text`.
++func canonicalBundle(docs []engraveDoc, surface string) string {
++	var b strings.Builder
++	fmt.Fprintf(&b, `{"v":%d,"chain":"9Chain-A1","surface":%s,"docs":[`, engraveVersion, jsonStr(surface))
++	first := true
++	for _, d := range docs {
++		if !hasSurface(d, surface) {
++			continue
++		}
++		if !first {
++			b.WriteString(",")
++		}
++		first = false
++		fmt.Fprintf(&b, `{"id":%s,"lang":%s,"text":%s}`, jsonStr(d.ID), jsonStr(d.Lang), jsonStr(string(d.raw)))
++	}
++	b.WriteString("]}")
++	return b.String()
++}
++
++// engraveRoot — vân tay CẢ BỘ: thứ tự tài liệu, id, ngôn ngữ, mặt khắc, hash từng
++// tài liệu, và địa chỉ hợp đồng. Đổi bất cứ thứ nào trong đó là đổi vân tay ⇒ cờ
++// xác nhận không khớp ⇒ netgen từ chối sinh mạng.
++//
++// Cố ý KHÔNG băm nội dung nối lại: băm-của-các-hash thì khi lệch, báo cáo chỉ ra
++// được NGAY tài liệu nào lệch, thay vì chỉ nói "cả bộ khác".
++func engraveRoot(docs []engraveDoc, cAddr string) string {
++	var b strings.Builder
++	fmt.Fprintf(&b, "9chain-a1-engrave-v%d\n", engraveVersion)
++	fmt.Fprintf(&b, "cchain %s\n", strings.ToLower(cAddr))
++	for _, d := range docs {
++		on := append([]string(nil), d.On...)
++		sort.Strings(on) // thứ tự khai trong `on` không mang ý nghĩa
++		fmt.Fprintf(&b, "%s %s %s %s\n", d.ID, d.Lang, strings.Join(on, "+"), d.sum)
++	}
++	return sha256Hex([]byte(b.String()))
++}
++
++// requireConfirm — CỔNG "BẢN TẬP ≠ BẢN THẬT".
++//
++// Bật khắc chữ thì bắt buộc phải khai `A1_ENGRAVE_CONFIRM` bằng đúng vân tay bộ
++// tài liệu. Hai thứ nó chặn:
++//   - lỡ tay bật khắc trong một lượt tập ⇒ không có cờ ⇒ dừng;
++//   - ai đó đổi/thay một tài liệu sau khi đã duyệt ⇒ vân tay đổi ⇒ dừng.
++func requireConfirm(e *engraving) {
++	want := strings.TrimSpace(strings.ToLower(env("A1_ENGRAVE_CONFIRM", "")))
++	if want == e.Root {
++		return
++	}
++	fmt.Fprintln(os.Stderr, "")
++	fmt.Fprintln(os.Stderr, "==================== KHAC CHU: CHUA XAC NHAN ====================")
++	fmt.Fprintf(os.Stderr, "Van tay bo tai lieu : %s\n", e.Root)
++	fmt.Fprintf(os.Stderr, "Dia chi hop dong    : %s\n", e.manifest.CChainAddress)
++	fmt.Fprintf(os.Stderr, "So tai lieu         : %d (P) / %d (C)\n",
++		len(filterSurface(e.docs, surfaceP)), len(filterSurface(e.docs, surfaceC)))
++	for _, d := range e.docs {
++		fmt.Fprintf(os.Stderr, "  %-28s %-4s [%s]  %s\n", d.ID, d.Lang, strings.Join(d.On, "+"), d.sum)
++	}
++	if want == "" {
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "Genesis la BAT BIEN. Doi chieu tung sha256 tren voi ban dong bang cua C1")
++		fmt.Fprintln(os.Stderr, "TRUOC khi xac nhan, roi chay lai voi:")
++		fmt.Fprintf(os.Stderr, "  A1_ENGRAVE_CONFIRM=%s\n", e.Root)
++	} else {
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintf(os.Stderr, "🔴 CO KHAI XAC NHAN NHUNG LECH: %s\n", want)
++		fmt.Fprintln(os.Stderr, "   Bo tai lieu DA DOI ke tu luot duyet truoc. Dung xac nhan lai theo phan xa —")
++		fmt.Fprintln(os.Stderr, "   di tim xem tai lieu nao doi va vi sao.")
++	}
++	fmt.Fprintln(os.Stderr, "================================================================")
++	os.Exit(1)
++}
++
++// verifyAgainstC1 — đối chiếu với bản đóng băng của C1, nếu có.
++//
++// C1 sinh bản chính tắc TRƯỚC, A1 lấy đúng byte đó. Cổng này bắt trường hợp ai đó
++// gõ lại tài liệu thay vì chép byte: nội dung "trông giống hệt" mà hash khác.
++// Định dạng chấp nhận: mỗi dòng có một chuỗi sha256 64 ký tự hex ở đâu đó
++// (khớp `sha256sum`, và khớp cả bảng markdown).
++func verifyAgainstC1(docs []engraveDoc) {
++	path := env("A1_ENGRAVE_CHECKSUMS", "")
++	if path == "" {
++		fmt.Fprintln(os.Stderr, "CANH BAO: khong khai A1_ENGRAVE_CHECKSUMS — KHONG doi chieu duoc voi ban dong bang cua C1.")
++		fmt.Fprintln(os.Stderr, "          Vat chung dong nhat hai chain la thu manh nhat dang co; dung bo qua o luot THAT.")
++		return
++	}
++	b, err := os.ReadFile(path)
++	must(err, "doc CHECKSUMS cua C1 "+path)
++	body := strings.ToLower(string(b))
++
++	missing := make([]string, 0)
++	for _, d := range docs {
++		if !strings.Contains(body, d.sum) {
++			missing = append(missing, fmt.Sprintf("  %-28s %s", d.ID, d.sum))
++		}
++	}
++	if len(missing) > 0 {
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "🔴 KHAC CHU: co tai lieu KHONG khop ban dong bang cua C1")
++		fmt.Fprintln(os.Stderr, strings.Join(missing, "\n"))
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "Gan nhu chac chan la ai do GO LAI tai lieu thay vi chep byte tu C1.")
++		fmt.Fprintln(os.Stderr, "Noi dung trong giong het ma hash khac: dau cham, kieu nhay, BOM, CRLF, niqqud.")
++		os.Exit(1)
++	}
++	fmt.Fprintf(os.Stderr, "✓ khac chu: %d/%d tai lieu khop ban dong bang cua C1\n", len(docs), len(docs))
++}
++
++// report — bảng công khai để đối chiếu chéo với C1 và để 9Scan-A1 phơi ra.
++// KHÔNG chứa bí mật: chỉ id, ngôn ngữ, mặt khắc, hash, độ dài.
++func (e *engraving) report(networkID uint32) string {
++	var b strings.Builder
++	b.WriteString("# 9Chain-A1 — chữ khắc trong genesis\n\n")
++	b.WriteString("<!-- netgen sinh. KHÔNG sửa tay: mọi số ở đây tính tươi từ byte tài liệu. -->\n\n")
++	fmt.Fprintf(&b, "networkID **%d** · định dạng khắc **v%d** · nguồn byte: **%s**\n\n", networkID, engraveVersion, e.manifest.Source)
++	fmt.Fprintf(&b, "**Vân tay bộ tài liệu:** `%s`\n\n", e.Root)
++	b.WriteString("## Tài liệu\n\n")
++	b.WriteString("| # | id | ngôn ngữ | mặt khắc | byte | sha256 |\n|--:|---|---|---|--:|---|\n")
++	for i, d := range e.docs {
++		fmt.Fprintf(&b, "| %d | `%s` | %s | %s | %d | `%s` |\n", i+1, d.ID, d.Lang, strings.Join(d.On, "+"), len(d.raw), d.sum)
++	}
++	b.WriteString("\n## Hai mặt khắc\n\n")
++	b.WriteString("| Mặt | Ở đâu | Đọc bằng | Kích thước |\n|---|---|---|--:|\n")
++	fmt.Fprintf(&b, "| **P-Chain** | `Message` của P-Chain genesis — **gốc**, nơi khai sinh X và C | `platform.getGenesis` hoặc chính `genesis.json` | %d byte |\n", len(e.PMessage))
++	fmt.Fprintf(&b, "| **C-Chain** | hợp đồng dữ liệu tại `%s` | `eth_getCode` | %d byte |\n", e.manifest.CChainAddress, len(e.CPayload))
++	b.WriteString("\n")
++	fmt.Fprintf(&b, "`extraData` của C-Chain genesis = `sha256` của bản C-Chain, **đúng 32 byte**:\n\n    %s\n\n", e.CExtraData)
++	b.WriteString("## Kiểm lại (không cần tin bảng này)\n\n")
++	b.WriteString("Mã hợp đồng mở đầu bằng opcode `STOP` (`0x00`) rồi tới byte thô ⇒ **không chạy được**, chỉ để đọc.\n")
++	b.WriteString("Bỏ 1 byte đầu của `eth_getCode` là ra đúng JSON dưới đây, giải escape `text` rồi băm lại sẽ ra đúng cột `sha256`:\n\n")
++	fmt.Fprintf(&b, "```bash\ncast code %s --rpc-url https://rpc-a1.9chain.org/ext/bc/C/rpc \\\n  | cut -c5- | xxd -r -p | sha256sum   # -> %s\n```\n\n", e.manifest.CChainAddress, sha256Hex(e.CPayload))
++	b.WriteString("🔴 `sha256` băm **byte của tệp tài liệu**, không băm chuỗi đã escape trong JSON — cùng một đại lượng với bản đóng băng của C1, nên đối chiếu chéo hai chain mới có nghĩa.\n")
++	return b.String()
++}
++
++// mustUsableDataAddr — địa chỉ hợp đồng dữ liệu phải là chỗ ĐẶT ĐƯỢC mã.
++//
++// Hai vùng cấm, và cả hai đều hỏng theo kiểu **không có dấu hiệu**: genesis nạp sạch,
++// node lên bình thường, chỉ có `eth_getCode` trả về thứ không phải bản văn của mình.
++//
++//	0x0000…0000  — địa chỉ số 0. Nhiều công cụ coi nó là "chưa đặt"; và đây cũng là
++//	               giá trị một trường bị bỏ trống vô tình sẽ mang.
++//	0x0000…0001 → 0x0000…00ff — vùng precompile kinh điển của EVM (ecrecover,
++//	               sha256, ripemd160, identity, modexp, bn256, blake2f…). Đặt mã vào
++//	               đó là ghi đè một hàm dựng sẵn: EVM ưu tiên precompile, nên bản văn
++//	               vừa không đọc ra được vừa có thể làm hỏng thứ khác.
++//
++// ⚠️ **Vùng riêng của Avalanche (`0x0200…0000` trở lên) KHÔNG chặn ở đây** — đó là
++// precompile có trạng thái của subnet-evm/coreth và danh sách của nó đổi theo phiên
++// bản. Chặn cứng một danh sách sẽ trôi lệch. Nhưng người chọn địa chỉ phải biết mà
++// tránh; xem `docs/KHAC-CHU-NGAY-G.md`.
++func mustUsableDataAddr(addr string) {
++	h := strings.ToLower(strings.TrimPrefix(addr, "0x"))
++	if strings.Trim(h, "0") == "" {
++		engraveFatal("cChainAddress la dia chi SO 0 — khong dat ma vao do duoc")
++	}
++	// 19 byte đầu bằng 0 ⇒ giá trị < 0x100 ⇒ nằm trong vùng precompile kinh điển.
++	if h[:38] == strings.Repeat("0", 38) {
++		engraveFatal("cChainAddress nam trong vung precompile kinh dien (< 0x100): 0x" + h +
++			" — EVM uu tien precompile, ban van se KHONG doc ra duoc")
++	}
++}
++
++func filterSurface(docs []engraveDoc, surface string) []engraveDoc {
++	out := make([]engraveDoc, 0, len(docs))
++	for _, d := range docs {
++		if hasSurface(d, surface) {
++			out = append(out, d)
++		}
++	}
++	return out
++}
++
++func hasSurface(d engraveDoc, surface string) bool {
++	for _, s := range d.On {
++		if s == surface {
++			return true
++		}
++	}
++	return false
++}
++
++func sha256Hex(b []byte) string {
++	s := sha256.Sum256(b)
++	return hex.EncodeToString(s[:])
++}
++
++// jsonStr escape một chuỗi theo đúng chuẩn JSON.
++func jsonStr(s string) string {
++	b, err := json.Marshal(s)
++	must(err, "escape JSON")
++	return string(b)
++}
++
++func engraveFatal(msg string) {
++	fmt.Fprintln(os.Stderr, "FATAL khac chu: "+msg)
++	os.Exit(1)
++}
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+index 068d879..a86e127 100644
+--- a/9chain-a1-tools/netgen/main.go
++++ b/9chain-a1-tools/netgen/main.go
+@@ -114,6 +114,11 @@ func main() {
+ 	// binary này biên dịch vào. Xem `mustFitSupplyCap` trong allocation.go.
+ 	mustFitSupplyCap()
+ 
++	// Chữ khắc — cũng chặn TRƯỚC khi sinh khoá. Lượt khắc hỏng mà đã sinh khoá là
++	// để lại một bộ khoá quỹ nửa vời trên đĩa, và không ai chắc bộ nào là bộ nào.
++	// nil = KHÔNG khắc (mặc định, dùng cho mọi lượt tập). Xem engrave.go.
++	eng := loadEngraving()
++
+ 	must(os.MkdirAll(out, 0o755), "mkdir out")
+ 
+ 	// ---- 1) Sinh 5 quỹ genesis, mỗi quỹ MỘT khoá riêng ----
+@@ -218,8 +223,8 @@ func main() {
+ 		InitialStakeDurationOffset: 7 * 24 * 60 * 60,
+ 		InitialStakedFunds:         []string{staking9.XAddr},
+ 		InitialStakers:             stakers,
+-		CChainGenesis:              cChainGenesis(funds),
+-		Message:                    "9Chain-A1 sovereign genesis",
++		CChainGenesis:              cChainGenesis(funds, eng),
++		Message:                    pChainMessage(eng),
+ 	}
+ 	gb, err := json.MarshalIndent(cfg, "", "  ")
+ 	must(err, "marshal genesis")
+@@ -266,10 +271,25 @@ FAUCET_ADDR=%s
+ 	// ---- 6) Bảng phân bổ công khai (KHÔNG chứa khoá) ----
+ 	must(os.WriteFile(filepath.Join(out, "allocation.md"), []byte(allocationReport(funds, networkID, n)), 0o644), "write allocation.md")
+ 
++	// ---- 7) Báo cáo chữ khắc (công khai, chỉ có khi bật khắc) ----
++	if eng != nil {
++		must(os.WriteFile(filepath.Join(out, "engraving.md"), []byte(eng.report(networkID)), 0o644), "write engraving.md")
++	}
++
+ 	fmt.Printf("\n✓ Sinh xong %d node vào %s\n", n, out)
+ 	fmt.Printf("  genesis.json · docker-compose.multinode.yml · allocation.md (cong khai)\n")
+ 	fmt.Printf("  keys.txt (TUYET MAT) · faucet.env (chi khoa faucet)\n")
+ 	fmt.Printf("  Tong phat hanh genesis: %s LOVE9\n", love9(totalGenesisSupply()))
++	if eng == nil {
++		// In cả khi KHÔNG khắc. Im lặng ở đây là cách một lượt "thật" đi qua mà
++		// không ai nhận ra nó thiếu chữ khắc.
++		fmt.Printf("  Chu khac: KHONG (ban tap). Bat bang A1_ENGRAVE=<manifest>.\n")
++	} else {
++		fmt.Printf("  Chu khac: CO — %d tai lieu · van tay %s\n", len(eng.docs), eng.Root)
++		fmt.Printf("    P-Chain Message : %d byte\n", len(eng.PMessage))
++		fmt.Printf("    C-Chain %s : %d byte, extraData %s\n", eng.manifest.CChainAddress, len(eng.CPayload), eng.CExtraData)
++		fmt.Printf("    Bang doi chieu  : engraving.md\n")
++	}
+ }
+ 
+ // EVM private key hex (32 bytes) từ secp256k1 key.
+@@ -278,10 +298,29 @@ func hexOfECDSA(k *secp256k1.PrivateKey) string {
+ 	return fmt.Sprintf("%x", b)
+ }
+ 
++// pChainMessage — nội dung trường `Message` của P-Chain genesis.
++//
++// P-Chain là GỐC: `genesis/genesis.go:441-446` cho thấy X-Chain và C-Chain nằm trong
++// mảng `chains` được truyền VÀO `pChainGenesis`. Khắc ở đây là khắc ở nơi khai sinh
++// cả mạng, không phải "một trong ba chỗ".
++//
++// Không bật khắc chữ ⇒ giữ nguyên chuỗi cũ. Đó là đường của mọi lượt tập.
++func pChainMessage(e *engraving) string {
++	if e == nil {
++		return "9Chain-A1 sovereign genesis"
++	}
++	return e.PMessage
++}
++
+ // cChainGenesis dựng alloc C-Chain từ các quỹ có phần C-Chain > 0.
+ // Số dư EVM là wei (18 số 0), khác nLOVE9 của X/P (9 số 0) — nhân thêm 1e9.
+-func cChainGenesis(funds map[string]*fund) string {
+-	allocs := make([]string, 0, len(buckets))
++//
++// 🔴 HÀM NÀY LÀ LÝ DO KHÔNG ĐƯỢC SỬA TAY `9chain-a1-config/genesis.json`: C-Chain
++// genesis nằm trong đó dưới dạng **chuỗi JSON đã escape** trên một dòng. Thêm một
++// `alloc` mang toàn văn tài liệu nghĩa là một dòng escape rất dài — sửa tay là hỏng
++// escape, và không ai thấy cho tới lúc node boot.
++func cChainGenesis(funds map[string]*fund, e *engraving) string {
++	allocs := make([]string, 0, len(buckets)+1)
+ 	for _, b := range buckets {
+ 		if b.CChain == 0 {
+ 			continue
+@@ -290,7 +329,25 @@ func cChainGenesis(funds map[string]*fund) string {
+ 		addr := strings.ToLower(strings.TrimPrefix(funds[b.Key].EthAddr, "0x"))
+ 		allocs = append(allocs, fmt.Sprintf(`"%s":{"balance":"0x%x"}`, addr, wei))
+ 	}
+-	return `{"config":{"chainId":9000000009,"homesteadBlock":0,"eip150Block":0,"eip155Block":0,"eip158Block":0,"byzantiumBlock":0,"constantinopleBlock":0,"petersburgBlock":0,"istanbulBlock":0,"muirGlacierBlock":0,"apricotPhase1BlockTimestamp":0,"apricotPhase2BlockTimestamp":0},"nonce":"0x0","timestamp":"0x0","extraData":"0x00","gasLimit":"0x5f5e100","difficulty":"0x0","mixHash":"0x0000000000000000000000000000000000000000000000000000000000000000","coinbase":"0x0000000000000000000000000000000000000000","alloc":{` +
++
++	// Mặc định: y như cũ, không khắc gì.
++	extraData := "0x00"
++	if e != nil {
++		// Hợp đồng dữ liệu: `balance` 0, `code` = STOP + byte thô. Không chạy được,
++		// chỉ để `eth_getCode` đọc ra.
++		dataAddr := strings.ToLower(strings.TrimPrefix(e.manifest.CChainAddress, "0x"))
++		for _, a := range allocs {
++			// Đâm vào địa chỉ của một quỹ thì quỹ đó mất sạch tiền và không có dấu
++			// hiệu nào — bắt ở đây, không để genesis đẻ ra rồi mới biết.
++			if strings.HasPrefix(a, `"`+dataAddr+`"`) {
++				engraveFatal("dia chi hop dong du lieu TRUNG voi mot dia chi quy: 0x" + dataAddr)
++			}
++		}
++		allocs = append(allocs, fmt.Sprintf(`"%s":{"balance":"0x0","code":"%s"}`, dataAddr, e.CCode))
++		extraData = e.CExtraData
++	}
++
++	return `{"config":{"chainId":9000000009,"homesteadBlock":0,"eip150Block":0,"eip155Block":0,"eip158Block":0,"byzantiumBlock":0,"constantinopleBlock":0,"petersburgBlock":0,"istanbulBlock":0,"muirGlacierBlock":0,"apricotPhase1BlockTimestamp":0,"apricotPhase2BlockTimestamp":0},"nonce":"0x0","timestamp":"0x0","extraData":"` + extraData + `","gasLimit":"0x5f5e100","difficulty":"0x0","mixHash":"0x0000000000000000000000000000000000000000000000000000000000000000","coinbase":"0x0000000000000000000000000000000000000000","alloc":{` +
+ 		strings.Join(allocs, ",") +
+ 		`},"number":"0x0","gasUsed":"0x0","parentHash":"0x0000000000000000000000000000000000000000000000000000000000000000"}`
+ }
