@@ -247,6 +247,13 @@ cái giá của việc đổi là thật: mọi tài liệu/ví/hướng dẫn �
 `9000000009` nằm trong **chuẩn đặt tên chốt `24/08`** — tức nó là bản sắc, không phải tham số.
 ⇒ Hai vế còn lại xử bằng **câu chữ trên trang**, không bằng đổi số.
 
+🔴 **MỨC KHẨN — ĐỪNG GHI VÀO RUNBOOK NHƯ RỦI RO ĐANG MỞ** (phiên web chỉnh `27/08`, và đúng):
+chu kỳ này **chỉ David** có ví mang cấu hình cũ, vì anh chốt **không mời ai trước ngày G** ⇒
+người được mời **sau** ngày G đến với ví sạch, không có gì để trỏ nhầm. Vế (b) còn hẹp hơn nữa:
+cần người từng ký tx trên mạng cũ mà **chưa phát**.
+⇒ Câu chữ vẫn phải viết, nhưng lý do là **nó đúng, và trang này sẽ dùng lại cho những lần sinh
+lại sau** — lúc đó mới có người thật để bảo vệ. **Không phải vì nó gấp cho `01/09`.**
+
 ### Bẫy "bản tập biến thành bản thật" — A1 **không** dùng được kỷ luật của C1
 
 Bản nháp đề xuất: bản tập đặt `genesisTime = bây giờ + 120s`, chỉ bản thật mang mốc thiêng.
