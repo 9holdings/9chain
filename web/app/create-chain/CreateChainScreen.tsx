@@ -6,7 +6,7 @@ import { rutGon } from '@/lib/eip55';
 import { vi, dien } from '@/lib/i18n/vi';
 import {
   layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, kichHoatChain, choTienTrinhXong,
-  type PhienVi,
+  docLoiVi, type PhienVi,
 } from '@/lib/wallet';
 
 /**
@@ -53,6 +53,10 @@ export function CreateChainScreen() {
 
   const [daThemVi, datDaThemVi] = useState(false);
   const [kichHoat, datKichHoat] = useState<'chua' | 'dang' | 'xong'>('chua');
+  // Hai ô lỗi này thay cho `catch {}` trắng của bản trước. Giữ RIÊNG cho từng nút:
+  // gộp chung thì bấm nút này lại xoá lời giải thích của nút kia.
+  const [loiThemVi, datLoiThemVi] = useState<string | null>(null);
+  const [loiKichHoat, datLoiKichHoat] = useState<string | null>(null);
 
   // Tên gợi ý từ trang chủ bản B (`/console/?ten=…`) — nhận cả ở đây để hai bản
   // dùng chung một đường. Không tự điền nếu tên xấu: điền một giá trị sai rồi bắt
@@ -365,6 +369,7 @@ export function CreateChainScreen() {
               <Nut
                 kieu="vien"
                 onClick={async () => {
+                  datLoiThemVi(null);
                   try {
                     await themL1VaoVi({
                       chainIdHex: '0x' + ketQua.chainId.toString(16),
@@ -373,7 +378,12 @@ export function CreateChainScreen() {
                       kyHieu: 'LOVE9',
                     });
                     datDaThemVi(true);
-                  } catch { /* ví từ chối — không có gì hỏng, để người dùng thử lại */ }
+                  } catch (e) {
+                    const l = docLoiVi(e);
+                    datLoiThemVi(
+                      l.tuChoi ? vi.deChain.viTuChoi : dien(vi.deChain.xongThemViLoi, { chiTiet: l.chu ?? '' }),
+                    );
+                  }
                 }}
               >
                 {daThemVi ? vi.deChain.xongDaThem : vi.deChain.xongThemVi}
@@ -385,11 +395,16 @@ export function CreateChainScreen() {
                 onClick={async () => {
                   if (!phien) return;
                   datKichHoat('dang');
+                  datLoiKichHoat(null);
                   try {
                     await kichHoatChain('0x' + ketQua.chainId.toString(16), phien.diaChi);
                     datKichHoat('xong');
-                  } catch {
+                  } catch (e) {
                     datKichHoat('chua');
+                    const l = docLoiVi(e);
+                    datLoiKichHoat(
+                      l.tuChoi ? vi.deChain.viTuChoi : dien(vi.deChain.xongKichHoatLoi, { chiTiet: l.chu ?? '' }),
+                    );
                   }
                 }}
               >
@@ -406,11 +421,22 @@ export function CreateChainScreen() {
                   datTen('');
                   datDaThemVi(false);
                   datKichHoat('chua');
+                  datLoiThemVi(null);
+                  datLoiKichHoat(null);
                   datPha('nhap');
                 }}
               >
                 {vi.deChain.deTiep}
               </Nut>
+            </div>
+
+            {/* 🔴 Vùng live THƯỜNG TRÚ, không phải sinh ra cùng nội dung. Trình đọc
+                màn hình chỉ theo dõi vùng live đã có sẵn trong DOM — chèn cả vùng
+                lẫn chữ vào cùng lúc thì nó không đọc gì. Đây là khuôn `ChepDuoc`
+                đang làm đúng, và là khuôn `CacBuoc` đang làm sai. */}
+            <div role="status" aria-live="polite" className="mt-4 flex flex-col gap-2 empty:hidden">
+              {loiThemVi && <p className="text-sm text-danger">{loiThemVi}</p>}
+              {loiKichHoat && <p className="text-sm text-danger">{loiKichHoat}</p>}
             </div>
           </>
         )}
