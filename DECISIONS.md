@@ -774,3 +774,54 @@ ký phát lại được. Chấp nhận được **chỉ vì** mọi chain hiệ
 không ai ngoài đội đang dùng. **Điều kiện để nó vẫn đúng: mời người dùng thật vào
 TRƯỚC 01/09 thì rủi ro này quay lại và không còn rẻ.** Nếu có đợt mời trước ngày G,
 phải quyết lại mục này.
+
+### D-038 — Giữ đúng 90 tỷ LOVE9 bằng cách đổi **thang đơn vị nội bộ P/X**, không đổi thứ người dùng thấy
+
+**David chốt 2026-08-26: `1e7`.** — `1 LOVE9 = 10.000.000 đơn vị` trên P/X-Chain
+(trước là `1e9`), và `X2CRateUint64` đổi `1e9 → 1e11` để C-Chain **vẫn 18 chữ số**.
+
+**Bài toán (H-9).** `SupplyCap` là `uint64`; 90 tỷ × `1e9` = `9e19`, **tràn 4,88 lần**.
+Trần lý thuyết với `1e9` là 18,447 tỷ LOVE9. Đo bằng biên dịch thật, có đối chứng ngược.
+
+🔴 **Đính chính một câu tôi đã nói sai lúc đầu.** Tôi bảo đổi số thập phân là "đụng
+bản sắc, vì 9 chữ số đi cùng LOVE9/love9/9001". **Sai.** Số chữ số thập phân KHÔNG có
+trong danh sách bản sắc, và **người dùng đã luôn thấy 18 chữ số** (`web/lib/chain.ts`
+khai `thapPhan: 18`; C1 cũng 18). Con số `1e9` chỉ là đơn vị kế toán nội bộ của
+P/X-Chain (nAVAX), người dùng không bao giờ nhìn thấy. Cái sai đó suýt đẩy quyết định
+sang hướng đắt hơn nhiều (hạ trần xuống 18 tỷ, tức bỏ mục tiêu đồng nhất hai nhánh).
+
+**Vì sao `1e7` chứ không phải `1e6` hay `1e8`:** nó giữ gần nguyên **hồ sơ rủi ro của
+mạng đang chạy và đã chứng minh được** — 720 triệu ở `1e9` chiếm 3,90% `uint64`;
+90 tỷ ở `1e7` chiếm **4,88%**. `1e8` thì 48,79% (một nửa dải kiểu dữ liệu, chặn mọi
+đường nâng cung sau này); `1e6` dư dả hơn nhưng bỏ xa mốc đã kiểm chứng.
+
+**Con số dẫn xuất (×125 từ bảng hiện tại):**
+| | LOVE9 | đơn vị P/X | % `uint64` |
+|---|--:|--:|--:|
+| SupplyCap | 90.000.000.000 | 900.000.000.000.000.000 | 4,879% |
+| Phát hành genesis | 50.000.000.000 | 500.000.000.000.000.000 | 2,711% |
+| MaxValidatorStake | 6.250.000.000 | 62.500.000.000.000.000 | 0,339% |
+| MinValidatorStake | 250.000 | 2.500.000.000.000 | ~0% |
+| MinDelegatorStake | 3.125 | 31.250.000.000 | ~0% |
+
+✅ **Cổng G2 của kế hoạch (`self-bond genesis ≤ maxValidatorStake`) — ĐẠT, đã tính:**
+self-bond = 50 tỷ × tỷ-lệ-staking ÷ 5 node. Với **mọi** khả năng của phân bổ
+10-20-30-40 (10%→1 tỷ · 20%→2 tỷ · 30%→3 tỷ · 40%→4 tỷ mỗi node) đều ≤ 6,25 tỷ.
+⇒ G2 không còn là ẩn số, **bất kể bucket nào là staking**.
+
+**Cơ sở kỹ thuật khiến lời giải này an toàn:**
+- `reward/calculator.go:46-60` tính bằng **`big.Int`** ⇒ không có tràn ở bước trung
+  gian; chỉ đầu vào/ra là `uint64`.
+- Cầu nối P/X↔C là **đúng một hằng số** `X2CRateUint64` (`coreth/plugin/evm/atomic/tx.go:33`).
+
+🔴 **RỦI RO CHƯA ĐÓNG — phải có bài kiểm trước ngày G.** `X2CRate` là hằng số
+**consensus-critical cho chuyển tài sản X/P ↔ C-Chain**. A1 hiện **không có bài
+nghiệm thu nào chạm đường đó**. Đổi nó mà không có bài kiểm là đúng loại thay đổi
+"mọi thứ xanh cho tới lúc có người rút tiền".
+
+**Đã loại, ghi ra để không ai đề xuất lại:**
+- *Hạ trần xuống ≤18 tỷ*: bỏ đúng mục tiêu ngày G (hai nhánh cùng một con số).
+- *Giữ `1e9`, phần dư để ngoài P-Chain*: đường cong thưởng tính theo `supplyCap` nên
+  sẽ phát thưởng sai, và mạng khai **hai tổng cung khác nhau**.
+- *Vá avalanchego dùng `big.Int` cho supply*: viết lại kế toán consensus-critical toàn
+  codebase và **phá khả năng rebase** mà dự án cố ý giữ (`rebase-drill.sh`, M8).
