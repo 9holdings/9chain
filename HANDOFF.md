@@ -1,6 +1,6 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-26** — 🟢 **RE-GENESIS 9 TỶ LOVE9 ĐÃ CHẠY XONG TRÊN MẠNG CÔNG KHAI.**
+Cập nhật: **2026-08-26** (chốt phiên) — 🟢 **RE-GENESIS 9 TỶ LOVE9 ĐÃ CHẠY XONG TRÊN MẠNG CÔNG KHAI.**
 Mạng nay **9 node**, `supplyCap` **9.000.000.000**, phát hành genesis 5.400.000.000.
 Đây là **lượt diễn tập** — 01/09 vẫn sinh lại lần nữa (khắc chữ + Block Adam chưa sẵn).
 Tên miền `a1.9chain.org` / `rpc-a1.9chain.org` (tên cũ vẫn sống). M6 + M10 đóng.
@@ -65,8 +65,23 @@ Ba đòn tấn công của `bridge-test` vẫn bị chặn đúng trên mạng m
 ⇒ revert · bỏ predicate ⇒ revert · **đòn rút sạch của bản cũ** ⇒ revert
 `sai hop dong nguon`, và **không một đồng nào rời thanh khoản**.
 
-⚠️ **9Scan-A1 đã có ghi chú báo** ở `docs/requests-from-9scan/2026-08-26-A1-da-re-genesis-BAO-CHO-9SCAN.md`
-nhưng **chưa ai gửi cho họ** — David hoặc phiên sau phải báo thật.
+✅ **9Scan-A1 ĐÃ ĐƯỢC BÁO THẬT** (David uỷ quyền ghi thẳng vào repo họ): commit
+`5be74f7` trong `C:\PROJECTS\9Scan-A1` — toàn văn ở `docs/requests/2026-08-26-A1-da-re-genesis.md`
+của họ, kèm con trỏ ở **đầu `HANDOFF.md`** của họ. Bản bên mình giữ ở
+`docs/requests-from-9scan/2026-08-26-A1-da-re-genesis-BAO-CHO-9SCAN.md`.
+
+🔴 **Trong lúc báo, phát hiện một kết luận SAI của 9Scan đang chặn họ — đã đính chính.**
+`HANDOFF.md` của họ khẳng định *"108 triệu mà tài liệu khai không tồn tại trên chain"*
+và tự đặt luật *"explorer TUYỆT ĐỐI không in con số nào từ `TOKENOMICS.md`"*. Ba địa chỉ
+họ đo lấy từ **`local-net/net/allocation.md` = bộ DEV LOCAL**, không phải mạng công khai
+(`net-public/`). Bằng chứng: họ tìm thấy 18.000.000 ở `0x574849d4…` và ghi *"không phải
+địa chỉ faucet"* — đó **chính là ví faucet mạng công khai cũ**, đúng cả địa chỉ lẫn số tiền
+(đối chiếu `docs/archive/allocation-pre-regenesis-2026-08-26.md`).
+⚠️ **Lỗi ở cách bày file BÊN MÌNH:** luật "đừng lẫn hai bộ" có trong HANDOFF này nhưng nằm
+ở mục *Bí mật*, nên người đi tìm bảng phân bổ mở nhầm file gần như chắc chắn. Cân nhắc
+đưa cảnh báo đó lên cạnh mọi chỗ nhắc `allocation.md`.
+⚠️ Phần **số dư 20M/70M có thật hay không thì KHÔNG còn kiểm lại được** — chuỗi cũ và DB
+Blockscout đều đã xoá. Đã ghi rõ mức tin cậy đó cho họ.
 
 🔴 **Nhớ: đây mới là DIỄN TẬP.** 01/09 sinh lại lần nữa. Khoá hiện tại sống tới ngày G.
 
