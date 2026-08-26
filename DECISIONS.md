@@ -703,3 +703,37 @@ mạng công khai" trở thành thứ phụ thuộc vào một bản solc cài �
 được. `local-net/contracts/compile.mjs` sinh ra `local-net/lib/asset-bridge.mjs`
 kèm **vân tay sha256 của file .sol**, để câu hỏi hay bị hỏi nhất ("artifact còn khớp
 nguồn không") trả lời được mà không cần dựng lại.
+
+### D-035 — Mọi cổng chặn phải trả lời được câu "làm sao tôi biết mày vừa chạy?"
+
+**Bối cảnh.** Ngày 2026-08-26, một phiên soát nguồn tìm ra 6 phép kiểm cùng mắc một
+lỗi, và lỗi đó không phải "đo sai chỗ" mà là **không phân biệt nổi *đã kiểm và đạt*
+với *chưa kiểm gì*.** Ba ví dụ đắt nhất, tất cả đều tái hiện được:
+
+| Phép kiểm | Nó đo | Thứ ta cần biết | Hậu quả |
+|---|---|---|---|
+| `caddy-deploy.sh` | md5 host ↔ container **khớp nhau không** | bản MỚI đã vào chưa | `cp` hỏng ⇒ cũ-với-cũ khớp ⇒ **deploy thất bại báo thành công hoàn toàn** |
+| `check-ports.sh` | từng cổng có hở không | có quét được cổng nào không | tầng 1 rỗng ⇒ quét **0 cổng** ⇒ vẫn in "✓ không cổng nào hở" |
+| `console-restart.sh` | có ai nghe cổng 8091 không | bản MỚI có đang nghe không | `pkill` trượt ⇒ tiến trình **cũ** giữ cổng ⇒ in "✓ ĐANG NGHE" |
+
+Cùng họ với `check-links.mjs` đo `<title>` (xanh cho một trang đã chết) và
+`check-a11y.mjs` in "sạch trên 6 trang" trong khi 2 trang xuất ra **0 input**.
+
+**Quyết định.** Mọi cổng chặn trong repo này phải mang **ít nhất một** trong hai thứ:
+
+1. **Đối chứng ngược** — một trường hợp mà nó *phải* đỏ, chạy cùng lúc.
+   `check-ports.sh` thử cổng 9 (chắc chắn đóng); `check-html.mjs` có bài chèn lỗi
+   thật. Nếu đối chứng không đỏ thì phép đo đang hỏng, bất kể kết quả chính.
+2. **In ra CON SỐ nó vừa đo**, không chỉ in ✓ — bao nhiêu cổng, bao nhiêu khối
+   script, bao nhiêu tên miền, bao nhiêu ô nhập. Đây là bản rẻ tiền của đối chứng
+   ngược: *"đã quét 0 cổng"* đọc khác hẳn *"✓"*, và khác ngay từ dòng đầu.
+
+**Vì sao đáng thành luật chứ không phải mẹo.** Cả 6 lỗi đều lọt qua mọi bài kiểm
+đang có, và lọt vì chúng **không sai** — chúng trả lời đúng một câu hỏi khác với câu
+ta tưởng đang hỏi. Không đọc kỹ từng dòng thì không thấy. Luật này biến thứ chỉ phát
+hiện được bằng cách đọc mã thành thứ phát hiện được bằng cách **nhìn đầu ra**.
+
+**Không bao trùm cái gì.** Nó chỉ đảm bảo phép kiểm *có chạy*, hoàn toàn độc lập với
+việc nó có đo *đúng đại lượng* hay không. `check-html.mjs` in đủ số khối và vẫn không
+biết gì về logic sai. Đừng để bảng xanh thay cho việc đọc mã — P0-1 (trang `/chains/`
+chết trên production) do một người đọc mã tìm ra, không do cổng chặn nào.

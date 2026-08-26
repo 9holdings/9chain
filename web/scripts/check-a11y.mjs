@@ -83,7 +83,18 @@ for (const f of files) {
       for (const n of v.nodes.slice(0, 3)) console.log(`      ${n.html.slice(0, 120)}`);
     }
   } else {
-    console.log(`  ✓ ${ten}`);
+    // 🔴 IN RA SỐ ĐIỀU KHIỂN THẬT SỰ ĐƯỢC SOI, không chỉ in ✓.
+    // Hai trang sau cửa ví (`create-chain`, `my-chains`) xuất ra HTML chỉ có khung
+    // site: 3 nút (đổi nền, mở menu, "Kết nối ví"), **0 input, 0 select**. Nghĩa là
+    // axe-core CHƯA TỪNG soi ô nhập tên chain, `<select>` kiểu chain, màn soát lại,
+    // thanh tiến trình — và ô "gõ lại tên chain" ở màn thu hồi, thứ duy nhất đứng
+    // giữa một cú bấm và việc giết một chain.
+    // In con số ra thì khoảng trống đó tự lộ mỗi lần chạy, thay vì nấp sau một dấu ✓.
+    const d = window.document;
+    const dem = ['button', 'input', 'select', 'a[href]', '[role]']
+      .map((k) => `${k}=${d.querySelectorAll(k).length}`)
+      .join(' ');
+    console.log(`  ✓ ${ten}  · ${dem}`);
   }
   window.close();
 }
