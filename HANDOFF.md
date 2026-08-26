@@ -508,6 +508,30 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 
 ## Gotchas
 
+### Thêm từ phiên 2026-08-26 (đợt 6 — vá cổng chặn + Đợt 1 audit)
+- 🔴 **BÀI KIỂM DÀI PHẢI CHẠY BẰNG `nohup` + LOG TRÊN SERVER, KHÔNG QUA SSH TIỀN CẢNH.**
+  Công cụ cắt lệnh tiền cảnh ở **600 giây** rồi đẩy sang nền — ssh đứt, tiến trình
+  `node` ở đầu kia nhận SIGHUP và **chết giữa chừng**. `bridge-test.mjs` mất ~13
+  phút nên nó *luôn* dính. Hậu quả không phải "mất kết quả": bài này tự thu hồi hai
+  chain nó đẻ ra, chết trước bước đó là để lại **2 chain mồ côi ăn 2 slot** trong
+  trần 15. Sổ dọn của bài kiểm không cứu được, vì cả tiến trình bị giết.
+  ⇒ Cách đúng:
+  ```
+  ssh … 'nohup bash -c "cd ~/9chain-a1/src && node local-net/faucet/bridge-test.mjs" > ~/bt.log 2>&1 &'
+  ```
+  rồi đọc `~/bt.log`. Áp cho **mọi** bài đụng mạng thật: `bridge-test`, `warp-test`,
+  `load-test`, `smoke-l1 --create-chain`.
+- 🔴 **TỆP LOG 0 BYTE KHÔNG PHẢI "ĐANG CHẠY, CHƯA XẢ ĐỆM".** Tôi coi nó là vậy trong
+  ~15 phút. 0 byte sau vài phút của một bài in ra liên tục nghĩa là **chưa bao giờ
+  có gì** — đi hỏi tiến trình, đừng chờ thêm.
+- 🔴 **BẪY `pgrep` NGOẶC VUÔNG — LẦN THỨ TƯ.** `pgrep -af "[b]ridge-test"` báo "còn
+  sống" trong khi tiến trình đã chết, vì dòng lệnh của tôi có `echo "… bridge-test …"`
+  ngay cạnh và pgrep khớp **chính nó**. Mẹo ngoặc vuông chỉ che chuỗi TRONG MẪU.
+  Phép đo không tự khớp được: `ps -eo pid,etimes,cmd | awk '/faucet\/bridge/ && !/awk/'`.
+- **`POST /api/revoke` đòi `xacNhan` khớp đúng tên chain.** Thiếu nó thì trả JSON
+  `error` chứ không thu hồi gì — và nếu chỉ nhìn "có phản hồi" thì tưởng đã dọn xong.
+  Cửa này là cố ý (cùng vai với ô "gõ lại tên chain" trên giao diện).
+
 ### Thêm từ phiên 2026-08-26 (đợt 5 — chuẩn hoá tiếng Anh)
 - 🔴 **ĐỔI TÊN HÀNG LOẠT BẰNG `sed` LÀ SAI CÁCH Ở REPO NÀY — mã nguồn tiếng Việt làm
   tên khoá JSON TRÙNG với thứ khác.** Đã bắt được bốn lần trong một phiên:
