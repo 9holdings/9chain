@@ -246,11 +246,13 @@ Xếp theo thứ tự đường găng:
    khắc hay không. Đã có đối chứng ngược: vân tay lệch ⇒ từ chối sinh mạng.
 4. **Diễn tập giao dịch nghi lễ Block Adam** trên bản tập.
 5. **Quy trình O2** (export + `sha256` + công bố) — thứ đã bỏ lỡ ở `26/08`.
-5b. 🆕 **Báo 9Scan-A1 một ràng buộc họ chưa biết.** `PLAN-REGENESIS` giao họ *"phơi nội dung
-   `Message` của P-Chain genesis ra một trang công khai"* — **họ không đọc được từ chain**:
-   `Message` là trường chỉ ghi, không API nào trả về. Họ phải đọc từ **tệp genesis** và nói rõ
-   nguồn là tệp; thứ đọc được **từ chain** chỉ là `parentID` của block 0 (= `sha256` của cả
-   blob) để đối chứng. Nếu không báo, họ sẽ đi tìm một endpoint không tồn tại.
+5b. ✅ **ĐÃ BÁO `27/08`** — 9Scan-A1 nay biết `Message` là trường chỉ ghi, không API nào trả về;
+   bản văn phải đọc từ **tệp genesis** (nói rõ nguồn là tệp), còn thứ đọc **từ chain** là
+   `parentID` block 0 (= `sha256` cả blob) làm ô đối chứng, cộng `eth_getCode` cho mặt C-Chain.
+   Commit `7e3b579` trong `C:\PROJECTS\9Scan-A1`; bản sao bên mình ở
+   `docs/requests-from-9scan/2026-08-27-chu-khac-BAO-CHO-9SCAN.md` (đối chứng `sha256` khớp).
+   🟡 **Chờ họ trả lời một câu**: thiết kế đó có đủ cho luật cứng #2 của họ không, hay họ cần
+   endpoint mới trên node — nếu cần thì phải biết **trước ngày G**.
 6. **G4** — tra `chainid.network`.
 7. **I1b** — phơi trần cung ra endpoint đọc được, hoặc ghi rõ trên trang rằng nguồn là **tham số
    genesis**. Luật cứng của 9Scan-A1 là *"số công bố phải đọc từ chain thật"*; in trần mà không có
