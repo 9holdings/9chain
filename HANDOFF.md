@@ -671,6 +671,25 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 
 ### Thêm từ phiên 2026-08-27 (đợt 11 — cơ chế khắc chữ)
 
+- 🔴 **SỐ CHÉP SANG THANG KHÁC PHẢI KIỂM LẠI TỶ LỆ, KHÔNG CHỈ KIỂM THANG.** Phiên web bắt
+  được: `PLAN` ghi *"số dư genesis ≈64 tỷ, phần để mint ≈26 tỷ"* — số của thang 90 tỷ. Phản
+  xạ là chia 10 ra 6,4/2,6, và nó **đọc rất hợp lý**. Sai: 64/26 suy từ bảng BOD Đ14 (staking
+  **30%**), còn bảng được chốt là staking **40%** ⇒ số đúng là **5,4 / 3,6**. Đổi thang và đổi
+  tỷ lệ là **hai** thay đổi; sửa một cái là giữ nguyên cái sai còn lại. Cùng họ với
+  [[a1-tran-uint64]] — mọi đại lượng chép từ nơi khác phải hỏi **cả** "kiểu dữ liệu chứa nổi
+  không" **lẫn** "tỷ lệ có còn đúng không".
+- 🔴 **SỔ CHỐNG PHÁT LẠI ĐÃ HỞ THẬT, KHÔNG CÒN LÀ RỦI RO.** Lượt `26/08` reset
+  `console-chains.json` về rỗng ⇒ chainId cũ dùng lại được. Đo `27/08`: **6 số đã bị cấp lại
+  ngay trong 24 giờ** (9100–9105, trong đó 9100/9101 là chain **đang sống** lúc re-genesis).
+  Chỗ đắt: **9106–9145 còn trống**, mà console tự cấp bằng `chainId=9100; while(taken)
+  chainId++` — trong dải đó có **9141 = chain `David Do`**. Chi tiết + cách xử:
+  `docs/NGAY-G-A1-CON-LAI.md` §5c.
+- **SIWE của console KHÔNG dính đòn phát lại khi re-genesis, và nó chặn ĐỘC LẬP với chainId.**
+  `siwe.mjs:113`: `xacThuc` **không bao giờ nhận `message` từ client**, server tra message từ
+  kho của chính nó theo nonce ⇒ chữ ký của mạng cũ không có đường trình lên. Thêm hai lớp:
+  `khoNonce` là `Map` **trong bộ nhớ** (mất khi restart), và nonce **dùng một lần**, xoá ngay
+  cả khi xác minh hỏng bên dưới. ⇒ Đừng dùng "phát lại SIWE" làm lý do đổi chainId.
+
 - 🔴 **TRÊN MÁY DEV, TAG `9chain-a1/node:dev` LÀ BINARY CŨ 720 TRIỆU.** Đo lúc dựng mạng
   tập: `"supplyCap":720000000000000000`. Bản 9 tỷ trên máy dev nằm ở tag
   **`9chain-a1/node:drill9`**; `:dev` của **server** mới là bản 9 tỷ. **Cùng một tag, hai
