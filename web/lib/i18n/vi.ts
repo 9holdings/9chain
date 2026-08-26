@@ -25,6 +25,80 @@ export const vi = {
     boQuaToiNoiDung: 'Bỏ qua, tới nội dung chính',
   },
 
+  /**
+   * Re-genesis — xem `PLAN-REGENESIS-2026-09-01.md`, mục O3 và luật "nhiều lần cài".
+   *
+   * 🔴 NGÀY NẰM Ở ĐÚNG MỘT CHỖ (`ngay`), mọi chuỗi khác nội suy `{ngay}` qua `dien()`.
+   * Cổng GO/NO-GO là 29/08 và sàn cứng là 06/09 — ngày này TRƯỢT ĐƯỢC. Chép ngày ra
+   * nhiều chuỗi là tự đặt bẫy: lúc trượt sẽ sửa được chỗ này, sót chỗ kia, và trang
+   * lại nói hai ngày khác nhau ở hai màn.
+   *
+   * 🔴 Vì sao các chuỗi cảnh báo bên dưới KHÔNG được làm nhẹ đi: chúng nói "vĩnh viễn"
+   * là để chặn người dùng tưởng thu hồi thì lấy lại được tên. Sửa cho đúng sự thật
+   * nghĩa là THU PHẠM VI ("trên mạng này"), không phải hạ giọng ("tạm thời").
+   */
+  reGenesis: {
+    ngay: '01/09/2026',
+    bang: 'Mạng A1 sinh lại ngày {ngay} — mọi chain, số dư và lịch sử tạo trước ngày đó sẽ bị xoá. [?]',
+    bangNut: 'Chi tiết [?]',
+    nhan: 'Sắp sinh lại [?]',
+
+    tieuDe: 'A1 sinh lại ngày {ngay} [?]',
+    moTa:
+      'Toàn bộ mạng thử nghiệm A1 sẽ được dựng lại từ block 0. Mọi thứ tạo ra trước ngày ' +
+      'đó sẽ không còn — không phải bị ẩn đi, mà là không còn tồn tại. Trang này nói rõ ' +
+      'cái gì mất và bạn cần làm gì. [?]',
+
+    viSaoTieuDe: 'Vì sao phải sinh lại [?]',
+    viSao1:
+      'Genesis của một mạng là bất biến. Đó chính là thứ làm nó đáng tin — không ai, kể cả ' +
+      'người dựng ra nó, sửa được con số đã khắc vào block 0. [?]',
+    viSao2:
+      'Cái giá của điều đó: muốn đổi một con số nằm trong genesis thì không có đường nào ' +
+      'khác ngoài dựng lại mạng từ đầu. A1 đổi tổng cung lên 9.000.000.000 LOVE9, kéo theo ' +
+      'cả dải tham số staking phải tính lại cho khớp. [?]',
+    viSao3:
+      'Đây là testnet, và sinh lại là việc testnet được phép làm. Thực ra đó là lý do ' +
+      'testnet tồn tại: để những thay đổi kiểu này xảy ra ở đây, chứ không xảy ra trên ' +
+      'mainnet. [?]',
+
+    matTieuDe: 'Cái gì sẽ mất [?]',
+    matMoTa: 'Tất cả, không có ngoại lệ: [?]',
+    mat1: 'Mọi L1 người dùng đã đẻ, kể cả chain đang chạy tốt. [?]',
+    mat2: 'Mọi số dư LOVE9, gồm cả token nhận từ faucet. [?]',
+    mat3: 'Mọi giao dịch, mọi block, toàn bộ lịch sử của C-Chain, P-Chain và X-Chain. [?]',
+    mat4: 'Mọi validator và mọi khoản uỷ quyền. [?]',
+
+    conTieuDe: 'Cái gì giữ lại [?]',
+    conMoTa:
+      'Trước khi xoá, toàn bộ mạng đang chết sẽ được xuất ra kèm mã băm và công bố, để dấu ' +
+      'vết còn truy lại được. Cái đã xảy ra vẫn kiểm chứng được, kể cả khi mạng chạy nó ' +
+      'không còn. Đường dẫn bản lưu sẽ đăng ở đây trong ngày sinh lại. [?]',
+
+    lamTieuDe: 'Bạn cần làm gì [?]',
+    lamTruoc: 'Trước ngày sinh lại: [?]',
+    lam1:
+      'Đừng xây thứ gì cần dữ liệu sống lâu trên A1 lúc này. Nếu bạn đang thử một ý tưởng ' +
+      'thì cứ tự nhiên — chỉ đừng coi chain hiện tại là chỗ cất giữ. [?]',
+    lamSau: 'Sau ngày sinh lại: [?]',
+    lam2:
+      'Gỡ mọi mạng A1 cũ khỏi ví, gồm cả mạng chính lẫn từng L1 riêng bạn đã thêm. Việc này ' +
+      'không ai làm thay được — ví nằm trên máy bạn. [?]',
+    lam3: 'Thêm lại mạng mới bằng nút trên trang này, đừng chép lại thông số cũ. [?]',
+    lam4: 'Xin lại token từ faucet, và đẻ lại chain nếu bạn muốn. [?]',
+
+    lapTieuDe: 'Chuyện này còn xảy ra nữa không [?]',
+    lapMoTa:
+      'Có thể. A1 vẫn là testnet, và cho tới khi cộng đồng chọn hướng mainnet giữa A1 và ' +
+      'C1, chúng tôi vẫn giữ quyền sinh lại mạng khi cần đổi thứ nằm trong genesis. Điều ' +
+      'chúng tôi cam kết là sẽ báo trước, và nói thẳng cái gì mất. [?]',
+
+    ngayLuuY: 'Ngày có thể trượt [?]',
+    ngayLuuYMoTa:
+      'Ngày {ngay} phụ thuộc một cổng kiểm trước đó. Nếu trượt, chúng tôi sẽ đổi ngày trên ' +
+      'trang này thay vì im lặng. [?]',
+  },
+
   dieuHuong: {
     trangChu: 'Trang chủ',
     faucet: 'Nhận token thử',
@@ -82,10 +156,12 @@ export const vi = {
     // ── bước 2: form
     nhanTen: 'Tên chain',
     goiYTen: 'Ví dụ: ChainCuaToi',
-    moTaTen: 'Chữ, số và dấu cách. 2–32 ký tự. Tên đã dùng thì không cấp lại, kể cả cho chain đã thu hồi.',
+    moTaTen:
+      'Chữ, số và dấu cách. 2–32 ký tự. Trên mạng này, tên đã dùng thì không cấp lại — ' +
+      'kể cả cho chain đã thu hồi.',
     tenXau: 'Tên chỉ gồm chữ, số và dấu cách, dài 2–32 ký tự.',
     nhanKieu: 'Kiểu chain',
-    moTaKieu: 'Chọn xong là cố định vĩnh viễn — genesis không sửa lại được.',
+    moTaKieu: 'Chọn xong là cố định — genesis của chain không sửa lại được.',
     conCho: 'Còn {con}/{tong} chỗ',
     hetCho: 'Đã hết chỗ',
     hetChoMoTa:
@@ -98,6 +174,9 @@ export const vi = {
     soatMoTa:
       'Genesis của một L1 đã đẻ là BẤT BIẾN. Sau bước này không sửa được tên, kiểu chain ' +
       'hay chủ sở hữu — thu hồi cũng không trả lại tên và chain ID.',
+    soatReGenesis:
+      'Và một điều nữa phải biết trước khi bấm: A1 sinh lại toàn mạng ngày {ngay}. ' +
+      'Chain bạn đẻ hôm nay sẽ bị xoá cùng mạng cũ — không phải ẩn đi, mà là không còn. [?]',
     soatTen: 'Tên chain',
     soatKieu: 'Kiểu chain',
     soatChu: 'Chủ sở hữu',
@@ -161,10 +240,11 @@ export const vi = {
     thuHoiTieuDe: 'Thu hồi “{ten}”?',
     thuHoiY1: 'Chain ngừng phục vụ RPC ngay lập tức và biến khỏi danh bạ công khai.',
     thuHoiY2:
-      'Thu hồi KHÔNG xoá subnet trên P-Chain — thứ đã đẻ ra ở đó là vĩnh viễn. ' +
-      'Nó cũng không xoá mạng khỏi ví của những người đã thêm chain này.',
+      'Thu hồi KHÔNG xoá subnet trên P-Chain — thứ đã đẻ ra ở đó thì không gỡ được, ' +
+      'chừng nào mạng này còn chạy. Nó cũng không xoá mạng khỏi ví của những người đã ' +
+      'thêm chain này.',
     thuHoiY3:
-      'Tên và Chain ID bị giữ chỗ VĨNH VIỄN, không cấp lại cho ai. Cấp lại Chain ID ' +
+      'Tên và Chain ID bị giữ chỗ và KHÔNG cấp lại cho ai trên mạng này. Cấp lại Chain ID ' +
       'là để ví của người từng dùng chain cũ lặng lẽ trỏ vào chain của người khác.',
     thuHoiY4: 'Đổi lại, một chỗ trong trần 15 L1 được trả về.',
     thuHoiGoNhan: 'Gõ lại đúng tên chain để xác nhận',
@@ -177,7 +257,7 @@ export const vi = {
     thuHoiKhongRo: 'Chain vẫn còn trong danh bạ sau khi lượt chạy kết thúc.',
 
     daThuHoi: 'Đã thu hồi',
-    daThuHoiMoTa: 'Giữ chỗ tên và Chain ID vĩnh viễn.',
+    daThuHoiMoTa: 'Giữ chỗ tên và Chain ID trên mạng này.',
   },
 
   bang: {
