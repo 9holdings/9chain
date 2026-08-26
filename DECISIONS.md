@@ -775,7 +775,9 @@ không ai ngoài đội đang dùng. **Điều kiện để nó vẫn đúng: m�
 TRƯỚC 01/09 thì rủi ro này quay lại và không còn rẻ.** Nếu có đợt mời trước ngày G,
 phải quyết lại mục này.
 
-### D-038 — Giữ đúng 90 tỷ LOVE9 bằng cách đổi **thang đơn vị nội bộ P/X**, không đổi thứ người dùng thấy
+### ~~D-038~~ — ĐÃ THAY BẰNG **D-039**. Giữ lại để tra vì phần đo đạc vẫn đúng và vẫn dùng được.
+
+### ~~D-038~~ — Giữ đúng 90 tỷ LOVE9 bằng cách đổi **thang đơn vị nội bộ P/X**, không đổi thứ người dùng thấy
 
 **David chốt 2026-08-26: `1e7`.** — `1 LOVE9 = 10.000.000 đơn vị` trên P/X-Chain
 (trước là `1e9`), và `X2CRateUint64` đổi `1e9 → 1e11` để C-Chain **vẫn 18 chữ số**.
@@ -831,3 +833,66 @@ nghiệm thu nào chạm đường đó**. Đổi nó mà không có bài kiểm
   sẽ phát thưởng sai, và mạng khai **hai tổng cung khác nhau**.
 - *Vá avalanchego dùng `big.Int` cho supply*: viết lại kế toán consensus-critical toàn
   codebase và **phá khả năng rebase** mà dự án cố ý giữ (`rebase-drill.sh`, M8).
+
+
+### D-039 — **Tổng cung 9 tỷ LOVE9, GIỮ NGUYÊN thang `1e9`.** Thay D-038.
+
+**David chốt 2026-08-26** sau khi xem ba phương án: *"đổi hết sang 9 tỷ LOVE9 để tối
+ưu nhất"*. Đây là **PA-3** — không đụng máy móc, đổi chính con số. C1 chỉnh theo.
+
+**Hệ số nhân từ bản hiện tại: ×12,5** (720 triệu → 9 tỷ).
+
+| | LOVE9 | đơn vị P/X | % `uint64` |
+|---|--:|--:|--:|
+| SupplyCap | 9.000.000.000 | 9.000.000.000.000.000.000 | 48,79% |
+| Phát hành genesis | 5.000.000.000 | 5.000.000.000.000.000.000 | 27,11% |
+| MaxValidatorStake | 625.000.000 | 625.000.000.000.000.000 | 3,39% |
+| MinValidatorStake | 25.000 | 25.000.000.000.000 | ~0% |
+| MinDelegatorStake | **312,5** ⚠️ | 312.500.000.000 | ~0% |
+
+✅ **G2 đạt** với mọi mapping của phân bổ 10-20-30-40: self-bond 100/200/300/400 triệu
+mỗi node, trần 625 triệu.
+
+⚠️ **`MinDelegatorStake` ra số lẻ** (25 × 12,5 = 312,5 LOVE9). Phải chốt làm tròn —
+đề xuất **300** cho tròn, hoặc giữ **25** nếu muốn rào cản uỷ quyền thấp hơn theo tỷ lệ.
+Đây là mục nhỏ duy nhất còn treo trong bảng số.
+
+---
+
+#### 🔴 48,79% `uint64` KHÔNG phải rủi ro — đã kiểm, đừng lo lại
+
+Tôi từng gọi 9 tỷ là "sát hơn nhiều" và ngụ ý rủi ro. **Đo lại thì không.**
+
+`reward/calculator.go:69` kết thúc bằng `return min(remainingSupply, finalReward)` —
+phần thưởng bị **kẹp cứng** vào `supplyCap - currentSupply`. Nên phép cộng `uint64`
+thô ở `txs/executor/standard_tx_executor.go:1533`
+(`SetCurrentSupply(subnetID, currentSupply+potentialReward)`) **không thể tràn**, bất
+kể `supplyCap` chiếm bao nhiêu phần trăm dải kiểu dữ liệu. Toàn bộ phần nhân trung
+gian chạy bằng `big.Int` (`calculator.go:46-62`).
+
+⇒ 48,79% là **dư địa để NÂNG trần sau này**, không phải biên an toàn số học. Muốn nâng
+trần quá ~18,4 tỷ thì mới phải quay lại bài toán thang đơn vị.
+
+---
+
+#### Vì sao phương án này tối ưu — nó **xoá** gần hết bảng rủi ro
+
+`docs/RUI-RO-THANG-1E7.md` liệt kê 6 rủi ro của việc đổi thang. Giữ nguyên `1e9` làm
+chúng **biến mất**, không phải giảm nhẹ:
+
+| | Rủi ro của PA-1/PA-2 | Ở D-039 |
+|---|---|---|
+| R1 | thang `1e9` nằm ở **3 chỗ độc lập**, lệch nhau không gây lỗi | **Không đổi chỗ nào** ⇒ tan |
+| R2 | mọi `units.*` còn sót thành sai số 100 lần, chú thích vẫn ghi số cũ | `units.*` **vẫn đúng nghĩa cũ**; chỉ đổi hệ số (`50 * units.MegaAvax` → `625 * units.MegaAvax`) ⇒ tan |
+| R3 | không có bài kiểm nào chạm X/P↔C, mà `X2CRate` là consensus-critical | **`X2CRate` không đụng tới** ⇒ tan |
+| R4 | `coreth` thành điểm chủ quyền MỚI (7→8), phải diễn tập rebase lại | **Không chạm `coreth`** ⇒ tan. (Vẫn phải qua patch series cho `0002`/`0003`) |
+| R5 | `X2CRate` là hằng toàn cục ⇒ test upstream đỏ thêm, không rollout từng node được | ⇒ tan |
+| R6 | 9Scan-A1 hiển thị số dư P-Chain **sai 100 lần** | **Ý nghĩa đơn vị không đổi** ⇒ tan |
+
+**Việc còn lại rút xuống:** sửa ~6 con số trong `genesis_9chain_a1.go`, bảng phân bổ
+trong netgen, và `allocation.md`. Không có thay đổi consensus-critical nào.
+
+**Cái giá, ghi ra cho sòng phẳng:** 90 tỷ là con số đã xuất hiện trong kế hoạch BOD và
+mang ý nghĩa `9×10`. Đổi sang 9 tỷ giữ được biểu tượng số 9 và **C1 phải chỉnh theo** —
+mục tiêu "hai nhánh cùng một con số" chỉ đạt khi C1 cũng đổi. **A1 không tự làm được
+phần đó.**
