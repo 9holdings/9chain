@@ -1,5 +1,12 @@
 # KẾ HOẠCH — 9Chain Testnet A1 sinh lại mạng `2026-09-01`
 
+> 🔴 **A1 ĐÃ THẨM ĐỊNH BẢN NÀY `2026-08-26` — ĐỌC [`docs/NGAY-G-A1-CON-LAI.md`](docs/NGAY-G-A1-CON-LAI.md) TRƯỚC.**
+> File này là **bối cảnh + quyết định**; file kia là thứ A1 **thi hành**. Mâu thuẫn thì file kia
+> thắng, vì nó đo trên máy. Ba chỗ bản này sai đã ghi rõ ở đó: **O6** (A1 đã có cổng nhất quán) ·
+> **điều kiện GO/NO-GO số 1** (đòi 90 tỷ — con số không tồn tại trong `uint64`) · **G1** (có **ba**
+> bảng phân bổ, không phải hai, và bảng đang chạy thật không khớp bảng nào).
+> Nhóm **I** thì **đã xong hết** từ lượt re-genesis `26/08` — bản này viết trước lượt đó.
+
 > **Bản nháp `2026-08-26` do 9Chain-BOD dựng theo chỉ đạo chủ dự án.** Đối chiếu bản C1:
 > `C:\PROJECTS\9Chain-C1\internal\PLAN-REGENESIS-2026-09-01.md`.
 > Quyết định gốc: `C:\PROJECTS\9Chain-BOD\DECISIONS.md` (Đ5 · Đ6 · Đ7 · Đ9 · Đ10 · Đ11).
