@@ -737,3 +737,40 @@ hiện được bằng cách đọc mã thành thứ phát hiện được bằn
 việc nó có đo *đúng đại lượng* hay không. `check-html.mjs` in đủ số khối và vẫn không
 biết gì về logic sai. Đừng để bảng xanh thay cho việc đọc mã — P0-1 (trang `/chains/`
 chết trên production) do một người đọc mã tìm ra, không do cổng chặn nào.
+
+### D-036 — Ngày G **01/09/2026**: sinh lại genesis A1 để đồng nhất tokenomics với C1
+
+**David chốt trực tiếp 2026-08-26** (trả lời câu hỏi ở BLOCKERS H-8). Trước đó mốc này
+đến qua phiên `9Chain-BOD`, và A1 **không nhận** vì một phiên ngang hàng không truyền
+được thẩm quyền — BOD tự đính chính đúng điểm đó. Nay có xác nhận của chính David nên
+nó là mốc ràng buộc.
+
+**Hệ quả trực tiếp lên mọi việc đang mở:**
+- Genesis hiện tại **sẽ bị bỏ**. Mọi thứ khắc vào nó là tạm.
+- **Sàn trượt cứng là 06/09**, không phải "trượt bao nhiêu cũng được": A1 khắc Block
+  Adam = block đầu tiên vượt `2026-09-09T06:09:09Z`. Chain sinh sau mốc đó thì **không
+  thể có Block Adam** — mất vĩnh viễn, không sửa được bằng bất kỳ thao tác nào sau này.
+- `keys.txt` (H-8 cũ gọi là "chỗ hỏng duy nhất còn lại của dữ liệu") **đổi bản chất**:
+  sinh lại mạng là sinh bộ khoá quỹ MỚI, nên đây không còn là bài toán đi sao lưu mà là
+  bài toán **thiết kế custody**. Chốt sơ đồ TRƯỚC khi bấm sinh khoá; sau ngày G là về
+  đúng thế kẹt cũ và cơ hội không quay lại.
+
+### D-037 — Chấp nhận MẤT toàn bộ L1 đã tạo khi sinh lại mạng
+
+**David chốt 2026-08-26:** *"các chain đang test đều xóa được, mất được"* — gồm cả
+chain `David Do` 9141 của chính anh.
+
+**Vì sao ghi lại thay vì coi là hiển nhiên.** Bản kế hoạch của BOD xếp mục này (`O3`)
+là *"thứ duy nhất trong toàn kế hoạch chạm tới người dùng thật đã bấm nút"* và ghi
+**28 L1 sẽ mất**. A1 đo lại: **3 L1 sống · 43 đã thu hồi**, và trong 3 chain sống chỉ
+**một** thuộc người dùng thật — chain của chính David. Quyết định vì thế rẻ hơn hẳn
+thứ kế hoạch mô tả, và nó chỉ rẻ **hôm nay**.
+
+⚠️ **Rủi ro còn lại, đã chấp nhận có ý thức, không phải bỏ sót:** 43 bản ghi `retired`
+giữ `name` + `chainId` **vĩnh viễn** để chống phát lại — đó là lý do `createChain` kiểm
+trùng trên `chains ∪ retired`. Sinh lại mạng xoá sổ đó ⇒ những tên và chainId ấy dùng
+lại được ⇒ ví nào còn lưu mạng cũ sẽ lặng lẽ trỏ vào **chain của người khác**, và chữ
+ký phát lại được. Chấp nhận được **chỉ vì** mọi chain hiện tại đều là chain thử và
+không ai ngoài đội đang dùng. **Điều kiện để nó vẫn đúng: mời người dùng thật vào
+TRƯỚC 01/09 thì rủi ro này quay lại và không còn rẻ.** Nếu có đợt mời trước ngày G,
+phải quyết lại mục này.

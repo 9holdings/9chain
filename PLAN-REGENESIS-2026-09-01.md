@@ -116,9 +116,14 @@ chứng đồng nhất mạnh nhất đang có.
 **3. 🔴 Block Adam trên P-Chain có thể KHÔNG TỒN TẠI đúng lúc — và đây là bẫy dễ mất nhất.**
 C1 chạy CometBFT nên sinh block **liên tục mỗi vài giây** ⇒ *"block đầu tiên vượt
 `2026-09-09T06:09:09Z`"* rơi trong vòng vài giây, chắc chắn có.
-Avalanche **không sinh block rỗng** — P-Chain chỉ ra block khi có giao dịch nền tảng
-(`[cần verify]` mức chính xác, nhưng hướng là vậy). Trên một testnet yên tĩnh, block đầu tiên sau
-mốc Adam có thể tới **hàng giờ hoặc hàng ngày sau**, hoặc do một giao dịch vô nghĩa nào đó tạo ra.
+Avalanche **không sinh block rỗng**. ✅ **ĐÃ ĐO — `9chain-a1-26`, `26/08`, 10 lượt lấy mẫu trong
+5 phút trên mạng công khai lúc rảnh: P-Chain đứng nguyên ở `330`, C-Chain ở `0x73`.** Và điều đó
+đúng cho **cả P-Chain** — dự án trước đây mới chỉ ghi gotcha này cho C-Chain.
+⚠️ **Giới hạn của phép đo, đừng trích mạnh hơn nó cho phép:** nó chứng minh block **không sinh
+theo nhịp thời gian**; nó **không** chứng minh P-Chain đứng yên tuyệt đối — sự kiện
+staking/validator vẫn đẻ block. Nên *"không có block đúng mốc"* là **rủi ro thật, không phải điều
+chắc chắn**. `9scan-a1-ec` xác nhận độc lập: explorer cố ý **không** có cảnh báo "chain đứng" dựa
+trên chiều cao block, đúng vì lý do này.
 
 ⇒ **Đối sách, và nó lại hợp nghi thức:** **hẹn sẵn hai giao dịch nền tảng nghi lễ** chạy đúng
 `2026-09-09T06:09:09Z` và ngay sau đó — để Block Adam và Block Eva **được sinh ra bởi một hành
@@ -269,7 +274,15 @@ gỡ bản văn ở chain permissioned · chỉ khắc trên ba chain chính. **
 |---|---|---|
 | **O1** ⭐ | 🔑 **Custody cho bộ khoá quỹ MỚI — cơ hội chỉ đến một lần** | Sinh lại mạng ⇒ **sinh bộ khoá quỹ mới**. Nghĩa là bài toán `keys.txt` (*"chỗ hỏng duy nhất còn lại của dữ liệu"*, `HANDOFF.md:18`) **không phải đi sao lưu — mà đi thiết kế lại từ đầu**. Chốt sơ đồ custody (multisig? phân mảnh? phương tiện offline nào?) **TRƯỚC** khi bấm sinh khoá. Sau ngày G thì lại về đúng thế kẹt cũ |
 | **O2** | Bản export + `sha256` của mạng đang chết, công bố trước khi xoá | Tiền lệ C1: *"trước mỗi lần như vậy, bản export trọn chain + sha256 được công bố để dấu vết còn truy được"* |
-| **O3** 🔴 | **28 L1 người dùng đã tạo sẽ MẤT** (6 đang track, 21 đã thu hồi, + chain "David Do" `9141`) | Chưa ai quyết. Phải chọn: (a) công bố thẳng là mất + xuất bản ghi, hay (b) dựng lại. **Đây là thứ duy nhất trong toàn kế hoạch chạm tới người dùng thật đã bấm nút.** Không nói trước là mất niềm tin đúng nhóm người mình vừa mời |
+| **O3** | ~~28 L1 người dùng sẽ mất (6 track, 21 thu hồi)~~ 🔴 **SỐ SAI — `9chain-a1-26` đo lại `26/08`: 3 L1 SỐNG · 43 ĐÃ THU HỒI.** Cả hai vế lệch, ngược chiều — bản chụp của BOD đã cũ | **Và khung của mục này cũng sai.** Trong 3 chain sống, **chỉ MỘT thuộc người dùng thật, và đó là chain của chính David** (`OwnerTest` là chain kiểm thử M4; `OmegaChain` không có admin). ⇒ Hôm nay đây **KHÔNG** phải bài toán "báo tin xấu cho người lạ". Việc quyết vẫn thật, nhưng lý do là **kế hoạch mời thêm người TRƯỚC `01/09`** — rủi ro nằm ở người sắp mời, không ở người đã có |
+| **O3b** 🔴 🆕 | **Re-genesis XOÁ SỔ CHỐNG PHÁT LẠI** — `9chain-a1-26` nêu, BOD bỏ sót hoàn toàn | 43 bản ghi `retired` giữ `name` + `chainId` **vĩnh viễn**; đó là lý do `createChain` kiểm trùng trên `chains ∪ retired`. Sinh lại mạng ⇒ sổ trống ⇒ tên và chainId **dùng lại được** ⇒ ví của người từng dùng chain cũ **lặng lẽ trỏ vào chain của người khác**, chữ ký phát lại được. Hố sụt này đã có trong `HANDOFF.md` của A1 |
+
+**Lối xử `O3b` — BOD đề xuất, cần A1 thẩm định:** theo `B-7`, sổ `retired` nằm trong
+`console-chains.json` (trạng thái phía **operator**, không phải trạng thái **chain**). Nếu đúng vậy
+thì nó **sống sót qua re-genesis chỉ bằng cách giữ nguyên file** — `createChain` tiếp tục từ chối
+tên/chainId cũ, và lỗ hổng đóng lại với chi phí gần bằng không.
+⇒ **(a)** giữ nguyên `console-chains.json` qua ngày G ⭐ · **(b)** chấp nhận và công bố.
+🔴 BOD suy từ `B-7`, **chưa đo** — A1 xác nhận hoặc bác trước khi đưa vào runbook.
 | **O4** 🔴 | **Validator ở nhà cung cấp thứ hai** — `[human]`, tốn tiền | 5 node đang ở *"một máy, một nhà cung cấp, một datacenter"* (`HANDOFF.md:25`). **Chưa đạt thì không được gọi `01/09` là "chạy chính thức"** |
 | **O5** 🔴 | **Gỡ `H-7`** — IPv4 đa cổng cho node beacon | Chặn `M3` (cộng đồng chạy node). Không gỡ thì mời cộng đồng vào một mạng họ không join được |
 | **O6** | **Cổng nhất quán cho A1** | A1 **chưa có** thứ tương đương `9chain-c1/scripts/check-consistency.py`. Đổi `720.000.000 → 90.000.000.000` mà không có cổng thì không ai biết sót chỗ nào. **Làm TRƯỚC I1**, không phải sau |
