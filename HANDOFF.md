@@ -78,8 +78,11 @@ họ đo lấy từ **`local-net/net/allocation.md` = bộ DEV LOCAL**, không p
 địa chỉ faucet"* — đó **chính là ví faucet mạng công khai cũ**, đúng cả địa chỉ lẫn số tiền
 (đối chiếu `docs/archive/allocation-pre-regenesis-2026-08-26.md`).
 ⚠️ **Lỗi ở cách bày file BÊN MÌNH:** luật "đừng lẫn hai bộ" có trong HANDOFF này nhưng nằm
-ở mục *Bí mật*, nên người đi tìm bảng phân bổ mở nhầm file gần như chắc chắn. Cân nhắc
-đưa cảnh báo đó lên cạnh mọi chỗ nhắc `allocation.md`.
+ở mục *Bí mật*, nên người đi tìm bảng phân bổ mở nhầm file gần như chắc chắn.
+✅ **ĐÃ SỬA 2026-08-26:** cảnh báo nay đứng cạnh **mọi** chỗ nhắc `allocation.md`
+(`docs/ALLOCATION-PUBLIC.md` · `docs/TOKENOMICS.md` · `docs/VI-VAN-HANH.md` ·
+`local-net/gen-network.sh` in ra lúc sinh mạng), và `docs/TOKENOMICS.md` nay mở đầu bằng
+banner "file này đã cũ" trỏ sang nguồn sự thật.
 ⚠️ Phần **số dư 20M/70M có thật hay không thì KHÔNG còn kiểm lại được** — chuỗi cũ và DB
 Blockscout đều đã xoá. Đã ghi rõ mức tin cậy đó cho họ.
 
@@ -593,7 +596,10 @@ khỏi phải tự dịch id → tên và trôi lệch — bản chép tay cũ �
 | SSH | `ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST"` (key không passphrase, mật khẩu đã tắt) |
 | DNS | 2 A record → `139.99.145.13`, Cloudflare **Proxied**, SSL/TLS mode **Full** |
 
-**Ví chain-factory** (khoá trên server, `console.env`): P-Chain `P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj` · **9 LOVE9** · khoá gốc ở `local-net/net-public/chain-factory-key.txt` (chỉ máy dev). Hết tiền thì nạp lại từ quỹ Ecosystem theo cách ghi ở `local-net/net-public/allocation.md`.
+**Ví chain-factory** (khoá trên server, `console.env`): P-Chain `P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj` · **9 LOVE9** · khoá gốc ở `local-net/net-public/chain-factory-key.txt` (chỉ máy dev). Hết tiền thì nạp lại từ quỹ Foundation theo cách ghi ở `docs/VI-VAN-HANH.md`.
+🔴 **`net-public/allocation.md` (mạng công khai) ≠ `net/allocation.md` (dev local)** — hai
+mạng khác nhau, khoá khác, số khác; đọc nhầm không có dấu hiệu gì. Bản chép công khai của
+mạng thật: `docs/ALLOCATION-PUBLIC.md`.
 
 **Loopback-only (SSH tunnel, KHÔNG public):**
 ```bash
@@ -643,7 +649,12 @@ Tự kiểm: `node local-net/lib/eip55.mjs --self-test`.
 ## Bí mật — quy tắc cứng
 - `local-net/net-public/keys.txt` = **khoá thật của 5 quỹ testnet công khai**. Giữ offline, `.gitignore` sẵn, **KHÔNG BAO GIỜ** lên server.
 - File duy nhất được phép lên server: `faucet.env`.
-- `local-net/net/` = bộ **dev local** (genesis khác `net-public/`). Đừng lẫn hai bộ.
+- 🔴 `local-net/net/` = bộ **dev local** (genesis khác `net-public/`). **Đừng lẫn hai bộ.**
+  Luật này trước đây **chỉ** nằm ở đây, trong mục *Bí mật* — nên người đi tìm bảng phân bổ
+  không bao giờ đọc tới, và 9Scan-A1 đã mở nhầm `net/allocation.md` rồi đăng một kết luận
+  sai (2026-08-26). Nay cảnh báo đã đứng cạnh **mọi** chỗ nhắc `allocation.md`:
+  `docs/ALLOCATION-PUBLIC.md` · `docs/TOKENOMICS.md` · `docs/VI-VAN-HANH.md` ·
+  `local-net/gen-network.sh` (in ra lúc sinh mạng). **Thêm chỗ nhắc mới thì thêm cảnh báo.**
 
 ---
 

@@ -9,6 +9,12 @@ do công cụ sinh ra**; `allocation.md` chỉ là bảng địa chỉ, mọi th
 Bản `allocation.md` của mạng trước re-genesis lưu ở
 `docs/archive/allocation-pre-regenesis-2026-08-26.md`.
 
+> 🔴 **HAI BỘ MẠNG, HAI `allocation.md` KHÁC NHAU — đọc nhầm là ra số của một mạng khác.**
+> `local-net/net/` = bộ **dev local** · `local-net/net-public/` = **mạng công khai**.
+> Số của mạng công khai **chỉ** nằm ở `net-public/`; bản chép công khai được là
+> `docs/ALLOCATION-PUBLIC.md`. Nhầm hai bộ **không gây lỗi, không có dấu hiệu nào** —
+> 9Scan-A1 đã dính đúng thế 2026-08-26 và đăng một kết luận sai.
+
 ---
 
 ## Ví chain-factory

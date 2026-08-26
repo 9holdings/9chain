@@ -1,8 +1,27 @@
 # 9Chain-A1 Tokenomics (LOVE9)
 
+> 🔴🔴 **FILE NÀY ĐÃ CŨ TỪ 2026-08-26 — MỤC 1 VÀ MỤC 2 KHÔNG CÒN ĐÚNG VỚI MẠNG ĐANG CHẠY.**
+> Nó mô tả thời **720 triệu · 40/20/20/5/15**. Mạng công khai đã re-genesis sang
+> **9.000.000.000 LOVE9 · 40/30/12/9/9** (D-039 + D-042).
+>
+> **Nguồn sự thật, theo thứ tự tin cậy:**
+> 1. Binary đang chạy — `docker logs <node> 2>&1 | head -1 | grep -o '"supplyCap":[0-9]*'`
+> 2. Mã: [`genesis/genesis_9chain_a1.go`](../upstream/avalanchego/genesis/genesis_9chain_a1.go) ·
+>    [`netgen/allocation.go`](../upstream/avalanchego/9chain-a1-tools/netgen/allocation.go)
+> 3. Bảng phân bổ mạng công khai: [`docs/ALLOCATION-PUBLIC.md`](ALLOCATION-PUBLIC.md)
+> 4. Vì sao: `DECISIONS.md` D-039 (trần) · D-042 (phân bổ) · D-041 (A1 làm chuẩn cho C1)
+>
+> ⚠️ **Đừng trích số từ file này.** 9Scan-A1 đã tự đặt luật *"explorer tuyệt đối không in
+> con số nào từ `TOKENOMICS.md`"* — luật đó **đúng chừng nào banner này còn ở đây**.
+> Phần dưới giữ lại làm hồ sơ thiết kế thời 720 triệu, không phải tham số hiện hành.
+
 > Trạng thái: **bản thiết kế + tham số hiện hành**. Con số dưới đây là điểm khởi đầu để chốt trước testnet công khai — sai là khó sửa sau mainnet.
 
-## 1. Tham số ĐANG chạy — `A1Params` (đã codify 2026-08-24, kiểm chứng trên mạng 5-node)
+## 1. ~~Tham số ĐANG chạy~~ — ⚠️ **HẾT HẠN**: `A1Params` thời 720 triệu (2026-08-24, mạng 5-node)
+
+> Giá trị **hiện hành** (D-042, ×12,5): supply cap **9.000.000.000** · min validator stake
+> **25.000** · max validator stake **625.000.000** · min delegator stake **312,5** ·
+> uptime 80% (chưa đổi) · minting period 1 năm (chưa đổi).
 
 Mạng 9001 nay dùng **tham số của chính nó**: [`genesis/genesis_9chain_a1.go`](../upstream/avalanchego/genesis/genesis_9chain_a1.go).
 
@@ -24,11 +43,21 @@ Mạng 9001 nay dùng **tham số của chính nó**: [`genesis/genesis_9chain_a
 
 **Sửa kèm — lỗ hổng kiến trúc đã vá:** upstream chỉ khoá cứng tham số staking/phí cho Mainnet/Fuji; mọi mạng khác (kể cả 9001) lấy từ **cờ CLI**, mà mặc định các cờ đó lại là `LocalParams`. Hệ quả: (1) `A1Params` sẽ không bao giờ được dùng, và (2) **mỗi node có thể tự đặt supply cap / trần stake khác nhau bằng cờ CLI** — tham số kinh tế phải đồng thuận toàn mạng chứ không tuỳ node. Đã xếp 9001 vào cùng nhóm Mainnet/Fuji trong [`config/config.go`](../upstream/avalanchego/config/config.go) → tham số chốt trong mã, cờ CLI vô hiệu.
 
-## 2. Phân bổ genesis — ĐÃ CODIFY (2026-08-24)
+## 2. ~~Phân bổ genesis~~ — ⚠️ **HẾT HẠN**: bảng thời 720 triệu (codify 2026-08-24)
+
+> Bảng **hiện hành** (D-042): phát hành genesis **5.400.000.000** / trần **9.000.000.000** —
+> Staking Rewards 40% (không cấp ở genesis, mint dần) · Community 30% · Foundation 12% ·
+> Private Sale 9% · Team 9%. Địa chỉ thật: [`docs/ALLOCATION-PUBLIC.md`](ALLOCATION-PUBLIC.md).
 
 Tổng phát hành genesis: **400,000,000 LOVE9** (trần cung 720,000,000 → còn 320,000,000 để mint dần làm thưởng staking).
 
-Bảng nguồn: [`9chain-a1-tools/netgen/allocation.go`](../upstream/avalanchego/9chain-a1-tools/netgen/allocation.go). Mỗi lần sinh mạng, netgen xuất bảng địa chỉ thật ra `local-net/net/allocation.md`.
+Bảng nguồn: [`9chain-a1-tools/netgen/allocation.go`](../upstream/avalanchego/9chain-a1-tools/netgen/allocation.go). Mỗi lần sinh mạng, netgen xuất bảng địa chỉ thật ra `<NET_DIR>/allocation.md`.
+
+> 🔴 **HAI BỘ MẠNG, HAI `allocation.md` KHÁC NHAU — đọc nhầm là ra số của một mạng khác.**
+> `local-net/net/` = bộ **dev local** · `local-net/net-public/` = **mạng công khai**.
+> Số của mạng công khai **chỉ** nằm ở `net-public/`; bản chép công khai được là
+> [`docs/ALLOCATION-PUBLIC.md`](ALLOCATION-PUBLIC.md). Nhầm hai bộ **không gây lỗi, không
+> có dấu hiệu nào** — 9Scan-A1 đã dính đúng thế 2026-08-26 và đăng một kết luận sai.
 
 | Nhóm | % | LOVE9 | X/P thanh khoản | X/P khoá | Mở khoá | C-Chain |
 |---|--:|--:|--:|--:|---|--:|
@@ -64,8 +93,16 @@ Quỹ **Faucet** là ví nóng, tách riêng có chủ đích — lộ khoá ch�
 - [x] **B. Phân bổ genesis** → `9chain-a1-tools/netgen/allocation.go`: 5 quỹ, mỗi quỹ 1 khoá, có `unlockSchedule`.
 - [ ] **C. Phí EVM mỗi L1** — chỉnh `feeConfig` trong `l1-evm-genesis.json` (gasLimit, minBaseFee, targetGas…). **Chưa làm.**
 
-### Đã kiểm chứng trên mạng 5-node (2026-08-24)
-| Kiểm tra | Kết quả |
+### ⚠️ HỒ SƠ CŨ — đã kiểm chứng trên mạng **5-node thời 720 triệu** (2026-08-24)
+
+> 🔴 **Bảng dưới đây nói về một mạng KHÔNG CÒN TỒN TẠI** — mạng công khai đã re-genesis
+> 2026-08-26 (9 node, 9 tỷ). Chuỗi cũ và DB Blockscout của nó **đã xoá**, nên các con số
+> này **không còn kiểm lại được**, kể cả bởi chính chúng ta.
+> Đây chính là bảng đã làm 9Scan-A1 kết luận nhầm *"108 triệu mà tài liệu khai không tồn
+> tại trên chain"*: họ đo trên chuỗi mới bằng địa chỉ lấy từ bộ **dev local**.
+> Nghiệm thu của **mạng đang chạy** nằm ở `HANDOFF.md` mục 1, không phải ở đây.
+
+| Kiểm tra (mạng 5-node, ĐÃ CHẾT) | Kết quả khi đó |
 |---|---|
 | Tổng stake genesis | 160,000,000 LOVE9 = 5 × 32,000,000 ✓ |
 | Số dư C-Chain từng quỹ | foundation 20M · ecosystem 70M · faucet 18M · staking 0 · team 0 ✓ |
@@ -74,8 +111,13 @@ Quỹ **Faucet** là ví nóng, tách riêng có chủ đích — lộ khoá ch�
 | Faucet drip thật | 10 LOVE9 từ ví faucet riêng, tx thành công ✓ |
 
 ## 4. Việc còn lại trước testnet công khai
-- [ ] **Chốt supply cap 720,000,000** — số quan trọng nhất còn treo. Đổi sau mainnet là không thể.
-- [ ] **Chốt % phân bổ + lịch vesting** (pháp lý/kinh doanh) — hiện đang chạy theo bảng đề xuất ở mục 2, chưa có ai ký duyệt.
+- [x] ~~**Chốt supply cap 720,000,000**~~ → **CHỐT 9,000,000,000** (D-039, David duyệt
+  2026-08-26; đã chạy thật trên mạng công khai). Trần cứng của kiểu dữ liệu là
+  **18,447 tỷ** — `SupplyCap` là `uint64` và LOVE9 có 9 chữ số thập phân.
+- [x] ~~**Chốt % phân bổ + lịch vesting**~~ → **CHỐT 40/30/12/9/9** (D-042). Vesting:
+  Community 2 năm · Private Sale 2 năm · Team 4 năm · self-bond 1 năm.
+  ⚠️ Phần **ký duyệt pháp lý/kinh doanh** thì vẫn chưa có ai ký — bảng này là quyết định
+  kỹ thuật đã thi hành, không phải văn bản đã phê duyệt.
 - [ ] Nâng uptime yêu cầu 80% → 90% trước mainnet (ACP-267).
 - [ ] Hợp đồng vesting trên C-Chain (phần EVM hiện thanh khoản ngay, không khoá được).
 - [ ] Mô phỏng lạm phát/áp lực bán qua vài kịch bản staking.

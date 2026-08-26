@@ -3,6 +3,17 @@
 
 # 9Chain-A1 — Phân bổ genesis (networkID 9001, 9 node)
 
+> ✅ **ĐÂY LÀ BẢNG CỦA MẠNG CÔNG KHAI** (`local-net/net-public/`), tính tới re-genesis
+> 2026-08-26. Nếu đang đi tìm "bảng phân bổ của 9Chain-A1" thì **dừng ở đây** — đừng đọc
+> `local-net/net/allocation.md`, đó là bộ **dev local**, một mạng khác, khoá khác, số khác.
+> Nhầm hai bộ **không gây lỗi và không có dấu hiệu nào**; 9Scan-A1 đã dính đúng thế
+> 2026-08-26 (họ tìm thấy 18.000.000 ở `0x574849d4…` và kết luận "không phải địa chỉ
+> faucet" — đó chính là ví faucet của **mạng công khai cũ**, xem
+> `docs/archive/allocation-pre-regenesis-2026-08-26.md`).
+>
+> Mạng **trước** re-genesis: `docs/archive/allocation-pre-regenesis-2026-08-26.md`.
+> Ví vận hành (không thuộc genesis): `docs/VI-VAN-HANH.md`.
+
 Tổng phát hành genesis: **5,400,000,000 LOVE9** · Trần cung: **9,000,000,000 LOVE9**
 
 File này CÔNG KHAI được — chỉ chứa địa chỉ, không chứa khoá bí mật.

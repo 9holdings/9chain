@@ -38,6 +38,9 @@ cat <<EOF
       -H 'content-type:application/json' http://localhost:9650/ext/bc/P
 
 ==> Phân bổ genesis (công khai được): $NET_DIR/allocation.md
+    🔴 Bảng này là CỦA RIÊNG bộ "$NET_DIR", không phải của mạng nào khác.
+       local-net/net = dev local · local-net/net-public = MẠNG CÔNG KHAI.
+       Số của mạng công khai chỉ ở net-public/ (bản chép: docs/ALLOCATION-PUBLIC.md).
 
 ⚠️  $NET_DIR/keys.txt chứa KHOÁ CỦA CẢ 5 QUỸ — giữ OFFLINE, KHÔNG commit,
     KHÔNG BAO GIỜ đưa lên server. File duy nhất được phép lên server: faucet.env

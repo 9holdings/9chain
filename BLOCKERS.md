@@ -76,7 +76,26 @@ Gỡ khi được duyệt: bỏ 2 service khỏi compose Blockscout, `docker com
 
 ## Cần David quyết (không phải kẹt kỹ thuật — xem PROGRESS mục `[human]`)
 
-### 🔴🔴 H-9 — **SUPPLYCAP 90 TỶ KHÔNG BIÊN DỊCH ĐƯỢC.** Chặn cứng kế hoạch re-genesis
+### ✅ H-9 — ĐÃ CHỐT VÀ ĐÃ CHẠY (2026-08-26) — David chọn đường (a), trần **9 tỷ**
+
+**Không còn chặn gì.** David chốt hệ số **×12,5** (720 triệu → **9.000.000.000 LOVE9**),
+tức đường **(a)** trong bảng dưới: hạ trần xuống dưới `uint64`, **giữ nguyên 9 chữ số
+thập phân** (đường (b) bị loại — xem D-039: đổi thang đơn vị là đụng ba chỗ độc lập mà
+lệch nhau không gây lỗi nào).
+
+- Quyết định: `DECISIONS.md` **D-039** (trần) → **D-042** (bảng phân bổ 40/30/12/9/9).
+- Mã: `genesis/genesis_9chain_a1.go:116` `SupplyCap: 9_000 * units.MegaAvax`.
+- **Đã chạy thật trên mạng công khai 2026-08-26**, đo trên binary đang chạy:
+  `"supplyCap":9000000000000000000`. Genesis phát hành 5.400.000.000 (60%).
+- Hệ quả kèm theo mà mục này chưa lường: `SupplyCap` **biên dịch vào binary**, nên đổi nó
+  bắt buộc **build lại image node** — không chỉ sinh lại genesis. Xem HANDOFF mục 1b.
+
+⚠️ **Vế "hai nhánh không còn cùng một con số" thì vẫn đúng và vẫn còn đó** — A1 chạy
+9 tỷ, con số 90 tỷ của C1 không tồn tại được trong `uint64`. D-041 chốt **A1 làm chuẩn,
+C1 sửa theo**; nếu C1 chưa sửa thì đó là việc của ngày G, không phải việc kỹ thuật của A1.
+
+(nguyên văn phần thẩm định, giữ lại vì phép đo và bài học vẫn nguyên giá trị)
+### H-9 (nguyên văn) — SUPPLYCAP 90 TỶ KHÔNG BIÊN DỊCH ĐƯỢC
 
 **Đo được 2026-08-26, có đối chứng ngược. Đây không phải ý kiến.**
 
@@ -107,7 +126,7 @@ nên 90 tỷ ở đó hoàn toàn bình thường.** Avalanche đếm bằng `ui
 một bên chạy được một bên không — và "đồng nhất tokenomics giữa hai nhánh" chính là
 chỗ giả định đó không được phép ngầm.
 
-**Ba đường ra, cần David chọn — A1 không tự chọn hộ:**
+**Ba đường ra, cần David chọn — A1 không tự chọn hộ:** *(đã chọn **(a)**, xem đầu mục)*
 | | Cách | Được | Mất |
 |---|---|---|---|
 | **(a)** | Hạ trần xuống ≤ 18 tỷ (hệ số ×25 thay vì ×125) | Không đụng gì khác; build được ngay | Hai nhánh **không còn cùng một con số** — đúng thứ ngày G sinh ra để đạt |
@@ -116,9 +135,10 @@ chỗ giả định đó không được phép ngầm.
 
 **Khuyến nghị: (b) nếu 90 tỷ là con số bất di bất dịch; (a) nếu không.** Tránh (c).
 
-🔴 **VIỆC NÀY CHẶN ĐƯỜNG GĂNG.** Mọi con số khác trong kế hoạch (phân bổ 10-20-30-40,
-×125 staking, `maxValidatorStake` theo self-bond) đều **dẫn xuất từ trần này**. Tính
-chúng trước khi chốt trần là tính lại lần thứ hai.
+~~🔴 **VIỆC NÀY CHẶN ĐƯỜNG GĂNG.**~~ *(đã gỡ — trần chốt ở 9 tỷ, D-039.)* Mọi con số
+khác trong kế hoạch (phân bổ, hệ số staking, `maxValidatorStake` theo self-bond) đều
+**dẫn xuất từ trần này** — nên chúng được tính **sau** khi trần chốt, và kết quả là
+bảng D-042: 40/30/12/9/9, `maxValidatorStake` 625.000.000, self-bond 999.999/node.
 
 ### 🔴 H-8 — SINH LẠI GENESIS 01/09/2026: MỐC NÀY CHƯA ĐƯỢC XÁC NHẬN VỚI DAVID
 
@@ -170,7 +190,7 @@ nhận vì mạng mới không còn ai dùng chain cũ".
 
 | # | Việc | Chặn mốc nào |
 |---|---|---|
-| H-1 | Tokenomics: supply cap 720M LOVE9 · tỉ lệ 40/20/20/5/15 + vesting · uptime 80%→90% | chốt genesis mainnet, ACP-77 |
+| 🟡 H-1 | ~~supply cap 720M · tỉ lệ 40/20/20/5/15~~ **ĐÃ CHỐT (D-039/D-042): 9 tỷ · 40/30/12/9/9 · đã chạy thật**. Còn lại: **uptime 80%→90%** trước mainnet | chốt genesis mainnet, ACP-77 |
 | H-2 | 🔴 **ACP-77 — đã đổi bản chất, không còn chờ được**. Xem ghi chú dưới bảng | trần 16 L1 |
 | ✅ H-3 | ~~Có mở console đẻ chain ra Internet không~~ — **DAVID DUYỆT 2026-08-25, ĐÃ MỞ** ở `/console/` | M4.5 xong |
 | H-4 | AAAA record `bootstrap-a1.9chain.org` (**DNS-only**, không mây cam) | M3.3 |
