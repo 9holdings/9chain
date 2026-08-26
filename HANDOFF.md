@@ -133,9 +133,9 @@ console · Warp/ICM · faucet HTTP · Blockscout index lại từ đầu.
 **Đã kiểm được (không phải "trông có vẻ đúng"):**
 - `node scripts/check-consistency.mjs --tu-kiem` → **17 đạt · 6/6 đối chứng ngược bắt được**
   🔴 nhưng xem cảnh báo ngay dưới: cổng này **không đọc một dòng Go nào**.
-- Patch series tái lập đúng cây nguồn: tree **`09c74a2a`** (**11 patch** tính tới
+- Patch series tái lập đúng cây nguồn: tree **`ac260a38`** (**12 patch** tính tới
   2026-08-26; nhớ **`git am --keep-cr`**). Đã nghiệm thu lại sau patch 0009: áp đủ
-  11 patch lên `1cf1fc3` trong worktree tách rời → tree ra **khớp tuyệt đối**.
+  12 patch lên `1cf1fc3` trong worktree tách rời → tree ra **khớp tuyệt đối**.
   *(Patch 0010 = cơ chế khắc chữ · 0011 = `engrave-verify` đọc ngược. Xem `docs/KHAC-CHU-NGAY-G.md`.)*
 
 🔴 **CỔNG `check-consistency.mjs` KHÔNG BAO TRÙM MÃ — nó giữ bảng số riêng bằng JS.**
@@ -1163,10 +1163,10 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
   (thứ mở đường bật API Warp, M6.2) **chưa bao giờ được xuất ra**. Nó sẽ bốc hơi ở lượt
   `apply-sovereign.sh` kế tiếp, im lặng. **Commit vào cây fork xong PHẢI chạy lại**
   `git format-patch 1cf1fc3..9chain-a1 -o patches/ --no-signature` và commit `patches/`.
-  ⇒ Sao lưu fork bằng **patch series**: `git format-patch 1cf1fc3..9chain-a1` (**11 patch**
+  ⇒ Sao lưu fork bằng **patch series**: `git format-patch 1cf1fc3..9chain-a1` (**12 patch**
   tính tới 2026-08-26; con số này TĂNG theo mỗi commit chủ quyền — xem `patches/`)
   + ghi commit upstream gốc. Nghiệm thu bằng cách áp lên base rồi so **tree hash**
-  (**`09c74a2a`** tính tới 2026-08-27), **không so commit hash** — `git am` ghi lại committer nên commit hash
+  (**`ac260a38`** tính tới 2026-08-27), **không so commit hash** — `git am` ghi lại committer nên commit hash
   đổi trong khi cây mã nguồn vẫn đúng từng byte.
   ⚠️ **Hai con số này đã trôi lệch một lần** (chỗ này còn ghi "6 patch / `04c59acf`" trong
   khi đầu file ghi 8 — sửa 2026-08-26). Đổi patch series thì phải sửa **cả hai chỗ**.

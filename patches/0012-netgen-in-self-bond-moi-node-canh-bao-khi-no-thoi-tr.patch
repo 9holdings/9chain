@@ -1,0 +1,88 @@
+From b0c07cb916b5b40392861bd83065bb724ff194a2 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Thu, 27 Aug 2026 00:32:01 +0400
+Subject: [PATCH 12/12] netgen: in self-bond moi node + canh bao khi no thoi
+ tron LOVE9 (D-046)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+David chot 27/08: so node o ngay G GIU 9. Self-bond khai la TONG co dinh 8.999.991,
+avalanchego chia deu cho N; 8.999.991 = 9 x 999.999 nen chi o N=9 moi node moi nhan
+dung bo chin so 9.
+
+🔴 DINH CHINH MOT CON SO CUA CHINH TOI: hom qua toi ghi "N=10 du 1, N=12 du 3". SAI,
+va sai kieu DO NHAM DAI LUONG — do la chia theo don vi LOVE9, con avalanchego chia
+theo NANO, ma tong co san thua so 1e9 nen KHONG N nao de lai du. Da do lai:
+N = 3,5,7,9,10,11,12,15 -> du nano = 0 het.
+=> Rang buoc N=9 la chuyen BAN SAC, khong phai chuyen SO HOC. O N khac khong mat dong
+nao, chi la self-bond moi node thoi tron LOVE9 (N=10 -> 899.999,1).
+
+Vi the cong nay CO Y CHI CANH BAO, KHONG CHAN. Chan cung se giet duong dev quen thuoc
+`gen-network.sh 5` ma khong duoc gi — no la so thich, khong phai dung/sai.
+
+In ca phan le trong canh bao: love9() cat cut, nen neu chi in no thi con so TRONG TRON
+va canh bao doc nhu tu mau thuan. Da do: N=10 in ra "899999,100000000".
+
+Nghiem thu: N=9 va N=3 im lang (tron); N=5 va N=10 canh bao. gofmt khong cham dong moi
+(loi gofmt cua allocation.go la cai co san, can le struct). vet OK.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ 9chain-a1-tools/netgen/allocation.go | 30 ++++++++++++++++++++++++++++
+ 9chain-a1-tools/netgen/main.go       |  1 +
+ 2 files changed, 31 insertions(+)
+
+diff --git a/9chain-a1-tools/netgen/allocation.go b/9chain-a1-tools/netgen/allocation.go
+index 7dd12c4..700ba0b 100644
+--- a/9chain-a1-tools/netgen/allocation.go
++++ b/9chain-a1-tools/netgen/allocation.go
+@@ -161,6 +161,36 @@ func mustFitSupplyCap() {
+ 	os.Exit(1)
+ }
+ 
++// canhBaoSelfBond — in ra self-bond MỖI NODE, và cảnh báo khi nó thôi tròn LOVE9.
++//
++// Self-bond khai trong `buckets` là một **TỔNG cố định** (8.999.991), avalanchego chia
++// đều cho N validator genesis. `8.999.991 = 9 × 999.999` ⇒ **chỉ ở N = 9** thì mỗi node
++// nhận đúng bộ chín số 9 — đó là bản sắc, D-046 chốt giữ N = 9 ở ngày G.
++//
++// 🔴 **CỐ Ý CHỈ CẢNH BÁO, KHÔNG CHẶN.** Đây là chuyện BẢN SẮC, không phải chuyện số học:
++// phép chia thật diễn ra ở **nano**, và tổng có sẵn thừa số 1e9 nên **không N nào để lại
++// dư** (đã đo: N = 3·5·7·9·10·11·12·15 đều chia hết tới nano). Chặn cứng sẽ giết luôn
++// đường dev quen thuộc `gen-network.sh 5` mà không được gì.
++//
++// ⚠️ Đừng đọc "899.999,1" thành "lỗi tràn/mất tiền" — không mất đồng nào, chỉ là số lẻ.
++func canhBaoSelfBond(n int) {
++	tong := buckets[0].LockedXP
++	moiNode := tong / uint64(n)
++	fmt.Fprintf(os.Stderr, "self-bond: %s LOVE9 / %d node = %s LOVE9 mỗi node\n",
++		love9(tong), n, love9(moiNode))
++	if moiNode%unitLOVE9 == 0 {
++		return
++	}
++	// In cả phần lẻ: `love9()` cắt cụt, nên nếu chỉ in nó thì con số TRÔNG tròn và
++	// cảnh báo đọc như tự mâu thuẫn.
++	fmt.Fprintf(os.Stderr,
++		"⚠️  self-bond mỗi node KHÔNG tròn LOVE9 ở N=%d — thật ra là %d,%09d LOVE9\n"+
++			"    (chỉ tròn ở N=9: 999.999). Không mất đồng nào: phép chia ở NANO vẫn hết,\n"+
++			"    tổng có sẵn thừa số 1e9. Nhưng mạng CÔNG KHAI ngày G phải là N=9 (D-046) —\n"+
++			"    N khác là mất bộ chín số 9 trong self-bond.\n",
++		n, moiNode/unitLOVE9, moiNode%unitLOVE9)
++}
++
+ // fund = 1 quỹ đã có khoá + các dạng địa chỉ.
+ type fund struct {
+ 	Bucket  bucket
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+index a86e127..098179f 100644
+--- a/9chain-a1-tools/netgen/main.go
++++ b/9chain-a1-tools/netgen/main.go
+@@ -113,6 +113,7 @@ func main() {
+ 	// Chặn TRƯỚC khi sinh khoá: bảng phân bổ phải nằm trong trần cung mà chính
+ 	// binary này biên dịch vào. Xem `mustFitSupplyCap` trong allocation.go.
+ 	mustFitSupplyCap()
++	canhBaoSelfBond(n)
+ 
+ 	// Chữ khắc — cũng chặn TRƯỚC khi sinh khoá. Lượt khắc hỏng mà đã sinh khoá là
+ 	// để lại một bộ khoá quỹ nửa vời trên đĩa, và không ai chắc bộ nào là bộ nào.

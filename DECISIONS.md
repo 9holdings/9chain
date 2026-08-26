@@ -1098,11 +1098,58 @@ mà chưa ai nêu được lý do kỹ thuật.
 
 | N | LOVE9/node | |
 |--:|--:|---|
-| 9 | **999.999** | chia hết — bản sắc "toàn số 9" |
-| 10 | 899.999 | **dư 1** |
-| 12 | 749.999 | **dư 3** |
+| 9 | **999.999** | tròn — bản sắc "toàn số 9" |
+| 10 | 899.999,1 | **thôi tròn LOVE9** |
+| 12 | 749.999,25 | **thôi tròn LOVE9** |
+
+🔴 **ĐÍNH CHÍNH `27/08` — bản đầu của mục này ghi "dư 1 / dư 3". SAI, và sai kiểu đo nhầm
+đại lượng.** Đó là chia theo đơn vị **LOVE9**; avalanchego chia theo **nano**, mà tổng có
+sẵn thừa số `1e9` nên **không N nào để lại dư** (đã đo N = 3·5·7·9·10·11·12·15, dư nano
+= 0 hết). ⇒ Ràng buộc N=9 là chuyện **BẢN SẮC**, không phải chuyện **số học** — không mất
+đồng nào ở N khác, chỉ là self-bond mỗi node thôi tròn LOVE9. Đừng lấy mục này làm bằng
+chứng cho một rủi ro mất tiền.
 
 ⚠️ Điều này **giao thoa với O4** (validator ở nhà cung cấp thứ hai). Thêm một node trước
 ngày G ⇒ N = 10 ⇒ self-bond mỗi node thành **899.999 và lẻ 1 đơn vị**, mất luôn ý nghĩa
 "toàn số 9". Muốn cả hai thì phải **nâng tổng self-bond** cho chia hết cho N mới — và đó là
 đổi bảng phân bổ, tức lại là việc của David. **Đừng để nó tự xảy ra ở phút chót.**
+
+### D-046 — **Số node ở ngày G: GIỮ 9.** Và điều đó ĐỔI BẢN CHẤT của O4
+
+**David chốt 2026-08-27.** Hệ quả trực tiếp của D-045: self-bond khai là **tổng cố định**
+8.999.991, chia đều cho N ⇒ `8.999.991 = 9 × 999.999` chỉ cho mỗi node đúng bộ chín số 9
+**ở N = 9**.
+
+⚠️ **Đây là ràng buộc BẢN SẮC, không phải ràng buộc số học** — xem phần đính chính trong
+D-045. Ở N khác **không mất đồng nào**; chỉ là self-bond mỗi node thôi tròn LOVE9.
+
+🔴 **Hệ quả phải nói ra, vì nó đổi một việc đang mở:** O4 (validator ở nhà cung cấp thứ hai)
+**không còn là "thêm một node thứ 10"** — thêm là thành N=10. Nó phải là **DỜI một trong 9
+node sang nhà cung cấp khác**. Điều đó **tốt hơn** cho chính mục tiêu của O4: vẫn 9 node,
+vẫn giữ bảng phân bổ, mà gỡ được đúng cái rủi ro "một máy, một nhà cung cấp". Chi phí thì
+khác hẳn: dời node là **đổi `--public-ip` + cửa P2P**, không phải đẻ thêm khoá staking.
+
+**Thi hành:** `netgen` nay **luôn in** self-bond mỗi node, và **cảnh báo** khi nó thôi tròn
+LOVE9 (`canhBaoSelfBond`). **Cố ý chỉ cảnh báo, không chặn** — chặn cứng sẽ giết đường dev
+quen thuộc `gen-network.sh 5` mà không được gì, vì đây là chuyện bản sắc chứ không phải
+chuyện đúng/sai.
+
+### D-047 — **chainId `9000000009`: GIỮ ở ngày G**
+
+**David chốt 2026-08-27.** Trước mục này **không có quyết định nào tồn tại** về việc giữ hay
+đổi — phiên web đi tìm và không thấy, đúng vì nó chưa từng được quyết.
+
+Phiên web nêu ba lý do nên đổi. Đo lại: **một đổ, hai đứng**.
+
+| Lý do | Thẩm định |
+|---|---|
+| chữ ký **SIWE** cũ phát lại được | 🔴 **ĐỔ.** `siwe.mjs:113` — server **không bao giờ nhận `message` từ client**, nó tra message từ kho của chính nó theo nonce ⇒ chữ ký mạng cũ **không có đường trình lên**. Thêm hai lớp: `khoNonce` là `Map` trong bộ nhớ (mất khi restart) và nonce **dùng một lần**, xoá ngay cả khi xác minh hỏng. Chặn **độc lập với chainId** |
+| ví còn cấu hình cũ nối vào mạng mới không cảnh báo | ✅ **Đứng** — cùng chainId + cùng RPC + cùng tên ⇒ số dư 0 mà người dùng không hiểu vì sao |
+| tx đã ký **chưa phát** của mạng cũ phát lại được | ✅ **Đứng, nhưng hẹp** — sau re-genesis mọi địa chỉ số dư 0 nên tx phát lại chết vì thiếu tiền; cửa còn mở là người đó xin faucet rồi tx cũ nonce 0 mới chạy |
+
+**Vì sao GIỮ:** chân trụ mạnh nhất của phía "đổi" đã đổ, trong khi giá của việc đổi là thật —
+mọi tài liệu/ví/hướng dẫn đã phát ra ngoài đều sai, và `9000000009` nằm trong **chuẩn đặt tên
+chốt 24/08** cùng `LOVE9`/`love9`/`9001`, tức nó là **bản sắc**, không phải tham số.
+
+⇒ **Hai vế còn lại xử bằng CÂU CHỮ trên trang, không bằng đổi số.** Việc thuộc `Web9Chain` /
+phiên web: nói thẳng "ví cũ sẽ thấy số dư 0, hãy thêm lại mạng", và một câu cho vế tx chưa phát.

@@ -56,12 +56,25 @@ thứ chưa ai chạm tới**, thay vì trải đều trên nhiều việc đã 
 self-bond **8.999.991** nằm trong Foundation 12% (không trích từ ô staking như bản nháp BOD
 ghi), phần để mint = **3.600.000.000** = ô Staking Rewards 40%.
 
-🔴 **Một ràng buộc mới lộ ra khi chốt — SỐ NODE Ở NGÀY G PHẢI LÀ 9.** `allocation.go` khai
-self-bond là **tổng cố định** `8.999.991`, avalanchego chia đều cho N. `8.999.991 = 9 × 999.999`
-chỉ chia hết ở **N = 9**: N=10 → 899.999 **dư 1** · N=12 → 749.999 **dư 3**.
-⚠️ **Giao thoa với O4** (validator nhà cung cấp thứ hai): thêm một node trước ngày G là mất
-bộ "toàn số 9" và sinh số lẻ. Muốn cả hai thì phải nâng tổng self-bond — tức lại đổi bảng phân
-bổ. **Đừng để nó tự xảy ra ở phút chót.**
+✅ **SỐ NODE Ở NGÀY G: GIỮ 9** — David chốt `27/08` (D-046). `allocation.go` khai self-bond là
+**tổng cố định** `8.999.991`, avalanchego chia đều cho N; `8.999.991 = 9 × 999.999` nên chỉ ở
+**N = 9** mỗi node mới nhận đúng bộ chín số 9.
+
+🔴 **ĐÍNH CHÍNH `27/08` — bản đầu mục này ghi "N=10 dư 1 · N=12 dư 3". SAI, đo nhầm đại lượng.**
+Đó là chia theo **LOVE9**; avalanchego chia theo **nano**, mà tổng có sẵn thừa số `1e9` nên
+**không N nào để lại dư** (đã đo N = 3·5·7·9·10·11·12·15, dư nano = 0 hết). Ở N khác **không mất
+đồng nào** — chỉ là self-bond mỗi node thôi tròn LOVE9 (N=10 → 899.999,1). ⇒ Ràng buộc N=9 là
+chuyện **bản sắc**, không phải chuyện **số học**; đừng trích nó như một rủi ro mất tiền.
+
+🔴 **Và nó ĐỔI BẢN CHẤT của O4** (validator ở nhà cung cấp thứ hai): không còn là *"thêm một node
+thứ 10"* — thêm là thành N=10. Nó phải là **DỜI một trong 9 node** sang nhà cung cấp khác. Điều
+đó **tốt hơn** cho chính mục tiêu của O4 (vẫn 9 node, vẫn giữ bảng phân bổ, mà gỡ được rủi ro
+"một máy một nhà cung cấp"), nhưng **chi phí khác hẳn**: dời node là đổi `--public-ip` + cửa P2P
+và cần một cửa sổ bảo trì, không phải đẻ thêm khoá staking.
+
+**Thi hành:** `netgen` nay **luôn in** self-bond mỗi node và **cảnh báo** khi nó thôi tròn LOVE9
+(`canhBaoSelfBond`). Cố ý **chỉ cảnh báo, không chặn** — chặn cứng sẽ giết đường dev quen thuộc
+`gen-network.sh 5` mà không được gì.
 
 <details>
 <summary>Bối cảnh xung đột (giữ để đối chiếu)</summary>
@@ -229,7 +242,7 @@ Phiên web nêu ba lý do nên đổi. Đo lại thì **một lý do đổ, hai 
 | ví còn cấu hình cũ nối vào mạng mới **không cảnh báo gì** | ✅ **Đứng.** Cùng chainId + cùng RPC + cùng tên ⇒ người dùng thấy số dư 0 và không hiểu vì sao. Đây là vế người dùng thật sự va phải |
 | giao dịch đã ký **chưa phát** của mạng cũ phát lại được | ✅ **Đứng, nhưng hẹp.** EIP-155 buộc chữ ký vào chainId, nonce đếm lại từ 0. Hẹp vì sau re-genesis mọi địa chỉ có số dư 0 ⇒ tx phát lại chết vì thiếu tiền; cửa còn mở là người đó **xin faucet trên mạng mới** rồi tx cũ nonce 0 mới chạy |
 
-**Khuyến nghị: GIỮ `9000000009`.** Chân trụ mạnh nhất của phía "đổi" (SIWE) đã đổ, trong khi
+✅ **CHỐT `27/08` (D-047): GIỮ `9000000009`.** Chân trụ mạnh nhất của phía "đổi" (SIWE) đã đổ, trong khi
 cái giá của việc đổi là thật: mọi tài liệu/ví/hướng dẫn đã phát ra ngoài đều sai, và
 `9000000009` nằm trong **chuẩn đặt tên chốt `24/08`** — tức nó là bản sắc, không phải tham số.
 ⇒ Hai vế còn lại xử bằng **câu chữ trên trang**, không bằng đổi số.
@@ -249,12 +262,12 @@ phải thiết kế trước lượt tập đầu tiên**, không phải trướ
 | # | Việc | Vì sao không tự quyết được | Hạn |
 |---|---|---|---|
 | ~~1~~ | ✅ **XONG `27/08`** — ~~phân xử bảng phân bổ~~ → **giữ bảng đang chạy 40/30/12/9/9** (D-045). G1+G2+G3 mở khoá, không phải sửa mã | — | — |
-| **1b** 🆕 | 🔴 **Số node ở ngày G có giữ là 9 không?** Hệ quả trực tiếp của mục 1: self-bond `8.999.991` chỉ chia hết ở N=9. Giao thoa với O4 | Đổi N là đổi self-bond mỗi node, và mất bộ "toàn số 9" | **`29/08`**, cùng lúc với O4 |
+| ~~1b~~ | ✅ **XONG `27/08` — GIỮ N = 9** (D-046). 🔴 **Đổi bản chất O4**: không còn là "thêm node thứ 10" mà là **DỜI một trong 9 node** sang nhà cung cấp khác — tốt hơn, và chi phí khác hẳn | — | — |
 | **2** | 🔴 **Sơ đồ custody khoá quỹ mới** (O1) | Sinh lại mạng là **cơ hội một lần**; sau ngày G lại kẹt y cũ | **`28/08`** |
 | **3** | **Block Adam nằm trên chain nào** (khuyến nghị C-Chain) | Khắc vĩnh viễn | `28/08` |
 | **4** | **L1 người dùng + câu cảnh báo khi mời người** (O3) | Chạm người thật ngoài dự án | `28/08` |
 | **5** 🔴 | **Có khôi phục sổ `retired` cũ không** (O3b) — **KHÔNG còn là rủi ro lý thuyết**, xem §5c | Chống phát lại cho ví người dùng cũ · **chain `David Do` 9141 nằm trong vùng đang hở** | `28/08` |
-| **7b** 🆕 | **chainId `9000000009`: giữ hay đổi ở ngày G?** **Chưa có quyết định nào tồn tại** | Khuyến nghị **GIỮ** — xem §5d | `29/08` |
+| ~~7b~~ | ✅ **XONG `27/08` — GIỮ `9000000009`** (D-047). Hai vế rủi ro còn lại xử bằng **câu chữ trên trang**, không bằng đổi số | — | — |
 | **6** | 🔴 **Chi tiền cho validator nhà cung cấp thứ hai** (O4) | Tiền | `29/08` |
 | **7** | **H-7: IPv4 đa cổng hay IPv6** (O5) | Chọn **tập người dùng**, không phải chọn kỹ thuật | `29/08` |
 
