@@ -1,7 +1,7 @@
 From 765b8746f19893de86b9e7c238aad2f647000cd2 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Wed, 26 Aug 2026 17:52:28 +0400
-Subject: [PATCH 7/7] netgen: sua loi BIEN DICH cua ban tokenomics 9 ty
+Subject: [PATCH 7/8] netgen: sua loi BIEN DICH cua ban tokenomics 9 ty
  (b.Percent khong con ton tai)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

@@ -1,0 +1,172 @@
+From 02b94a6d36ea7837515e689901ecc1966fc70d3c Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Wed, 26 Aug 2026 18:03:01 +0400
+Subject: [PATCH 8/8] netgen: chan sinh mang khi phat hanh genesis vuot tran
+ cung (tran nguoc uint64)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Phat hien khi soat buoc re-genesis: HANDOFF ghi buoc con lai la "gen-network.sh 9
++ down -v && up -d", KHONG nhac build lai image node. Nhung SupplyCap la hang so
+BIEN DICH VAO BINARY (config/config.go xep 9001 cung nhom Mainnet/Fuji nen co CLI
+--stake-supply-cap bi vo hieu — dung y do, xem chu thich tai cho).
+
+Server dang chay binary co: do that
+  docker logs 9chain-a1-node-1 | head -1  ->  "supplyCap":720000000000000000
+Nap genesis moi (phat hanh 5,4 ty) len binary do thi reward/calculator.go:56
+  remainingSupply := c.supplyCap - currentSupply
+tru uint64 THO, khong kiem dau => tran nguoc:
+  720.000.000.000.000.000 - 5.400.000.000.000.000.000 mod 2^64
+  = 13.766.744.073.709.551.616  (= 13.766.744.073 LOVE9)
+Lon hon ca tran 9 ty dinh dat. Va buoc SetCurrentSupply(currentSupply + reward)
+khi do len 19.166.744.073.709.551.616 > uint64 max — tuc lap luan cua D-039
+("cong uint64 tho khong the tran") chi dung KHI currentSupply <= supplyCap.
+
+Khong tang nao khac bat duoc: avalanchego KHONG kiem initialSupply <= supplyCap
+o bat ky dau (grep SupplyCap toan repo). Node khoi dong sach, RPC xanh, smoke test
+xanh — sai lech chi lo o phan thuong staking, nhieu ngay sau khi mang da cong khai.
+
+Sua:
+- netgen doc SupplyCap THANG tu genesis.A1Params (cung module, khong co ly do chep
+  tay). Bo hang so chep tay vua them o commit truoc.
+- `mustFitSupplyCap()` chay TRUOC khi sinh khoa, chet han neu vuot tran.
+- Chu thich tai cho SupplyCap noi ro: doi no = phai build lai image, khong chi sinh
+  lai genesis. Chu thich cu con mo ta 720 trieu / phat hanh 400 trieu.
+
+⚠️ Cong nay chi doi chieu bang phan bo voi binary DANG BIEN DICH RA NETGEN. No
+KHONG nhin thay image chay tren server — deploy genesis moi len image cu van lot.
+Do la viec cua quy trinh deploy.
+
+Nghiem thu (golang:1.25.10-bookworm, /src mount read-only, thay file bang -overlay):
+  ca thuan (tran 9 ty)      -> exit 0, 14 tep, "Tong phat hanh 5,400,000,000 LOVE9"
+  doi chung nguoc (720 tr)  -> exit 1, 0 tep sinh ra, in dung so tran nguoc
+---
+ 9chain-a1-tools/netgen/allocation.go | 48 ++++++++++++++++++++++------
+ 9chain-a1-tools/netgen/main.go       |  4 +++
+ genesis/genesis_9chain_a1.go         | 15 ++++++---
+ 3 files changed, 54 insertions(+), 13 deletions(-)
+
+diff --git a/9chain-a1-tools/netgen/allocation.go b/9chain-a1-tools/netgen/allocation.go
+index 48b4d63..7dd12c4 100644
+--- a/9chain-a1-tools/netgen/allocation.go
++++ b/9chain-a1-tools/netgen/allocation.go
+@@ -9,8 +9,10 @@ package main
+ 
+ import (
+ 	"fmt"
++	"os"
+ 	"strings"
+ 
++	"github.com/ava-labs/avalanchego/genesis"
+ 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
+ 	"github.com/ava-labs/avalanchego/utils/formatting/address"
+ )
+@@ -21,14 +23,6 @@ const (
+ 	// mega = 1,000,000 LOVE9.
+ 	mega = 1_000_000 * unitLOVE9
+ 
+-	// supplyCapLOVE9 = trần cung, chỉ để IN RA báo cáo. Nguồn sự thật là
+-	// `genesis/genesis_9chain_a1.go` (`A1Params…SupplyCap`) — netgen không đọc được
+-	// hằng đó vì nó nằm trong package `genesis`, nên con số ở đây là bản CHÉP TAY.
+-	// 🔴 Đổi SupplyCap thì phải đổi cả đây; `scripts/check-consistency.mjs` giữ bản
+-	// chép thứ ba. Ba bản này đã trôi lệch một lần (báo cáo còn in 720 triệu sau khi
+-	// trần lên 9 tỷ) — đó là lý do con số được đặt tên thay vì nằm rải trong chuỗi.
+-	supplyCapLOVE9 = uint64(9_000_000_000)
+-
+ 	oneYear     = uint64(365 * 24 * 60 * 60)
+ 	twoYears    = 2 * oneYear
+ 	fourYears   = 4 * oneYear
+@@ -131,6 +125,42 @@ func totalGenesisSupply() uint64 {
+ 	return t
+ }
+ 
++// supplyCap đọc THẲNG từ `genesis.A1Params` — chính hằng số mà node biên dịch vào
++// binary. Trước đây báo cáo in một bản chép tay và nó đã trôi lệch (còn ghi 720
++// triệu sau khi trần lên 9 tỷ). netgen nằm trong cùng module với avalanchego nên
++// không có lý do gì để chép.
++func supplyCap() uint64 { return genesis.A1Params.RewardConfig.SupplyCap }
++
++// mustFitSupplyCap chặn lượt sinh mạng khi phát hành genesis vượt trần cung.
++//
++// 🔴 VÌ SAO PHẢI CHẶT: `reward/calculator.go:56` tính
++// `remainingSupply := c.supplyCap - currentSupply` bằng phép trừ `uint64` THÔ,
++// không kiểm dấu. Phát hành genesis > trần ⇒ TRÀN NGƯỢC thành một số gần 2^64.
++// Đo với trần cũ 720 triệu và phát hành 5,4 tỷ: remainingSupply hoá
++// 13,766,744,073 LOVE9 — lớn hơn cả trần định đặt — và bước
++// `SetCurrentSupply(currentSupply + potentialReward)` khi đó vượt luôn `uint64`.
++//
++// Không có tầng nào khác bắt việc này: avalanchego KHÔNG kiểm `initialSupply ≤
++// supplyCap` ở bất kỳ đâu, node vẫn khởi động sạch, mọi phép đo vẫn xanh — sai lệch
++// chỉ hiện ra ở phần thưởng staking, tức nhiều ngày sau khi mạng đã công khai.
++//
++// ⚠️ Cổng này chỉ đối chiếu bảng phân bổ với binary ĐANG BIÊN DỊCH RA NETGEN.
++// Nó KHÔNG biết node trên server chạy image nào. Deploy genesis mới lên image cũ
++// vẫn lọt — đó là việc của quy trình deploy, xem `docs/PROGRESS.md`.
++func mustFitSupplyCap() {
++	total, cap_ := totalGenesisSupply(), supplyCap()
++	if total <= cap_ {
++		return
++	}
++	fmt.Fprintf(os.Stderr,
++		"FATAL phát hành genesis %s LOVE9 VƯỢT trần cung %s LOVE9.\n"+
++			"       Trần lấy từ genesis.A1Params (biên dịch vào binary này).\n"+
++			"       Sinh mạng như vậy làm remainingSupply tràn ngược uint64 ở\n"+
++			"       reward/calculator.go — mạng chạy bình thường nhưng phát thưởng sai.\n",
++		love9(total), love9(cap_))
++	os.Exit(1)
++}
++
+ // fund = 1 quỹ đã có khoá + các dạng địa chỉ.
+ type fund struct {
+ 	Bucket  bucket
+@@ -177,7 +207,7 @@ func allocationReport(funds map[string]*fund, networkID uint32, nodes int) strin
+ 	var b strings.Builder
+ 	fmt.Fprintf(&b, "# 9Chain-A1 — Phân bổ genesis (networkID %d, %d node)\n\n", networkID, nodes)
+ 	fmt.Fprintf(&b, "Tổng phát hành genesis: **%s LOVE9** · Trần cung: **%s LOVE9**\n\n",
+-		love9(totalGenesisSupply()), love9(supplyCapLOVE9*unitLOVE9))
++		love9(totalGenesisSupply()), love9(supplyCap()))
+ 	b.WriteString("File này CÔNG KHAI được — chỉ chứa địa chỉ, không chứa khoá bí mật.\n\n")
+ 	// 10 cột: header, dòng ngăn và dòng dữ liệu PHẢI cùng số cột. Bản trước header 10
+ 	// mà dòng dữ liệu 9 (thiếu cột Hạng mục) — markdown vẫn render, chỉ là lệch nhãn.
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+index 12925af..068d879 100644
+--- a/9chain-a1-tools/netgen/main.go
++++ b/9chain-a1-tools/netgen/main.go
+@@ -110,6 +110,10 @@ func main() {
+ 	}
+ 	hrp := constants.GetHRP(networkID) // "love9" cho custom net
+ 
++	// Chặn TRƯỚC khi sinh khoá: bảng phân bổ phải nằm trong trần cung mà chính
++	// binary này biên dịch vào. Xem `mustFitSupplyCap` trong allocation.go.
++	mustFitSupplyCap()
++
+ 	must(os.MkdirAll(out, 0o755), "mkdir out")
+ 
+ 	// ---- 1) Sinh 5 quỹ genesis, mỗi quỹ MỘT khoá riêng ----
+diff --git a/genesis/genesis_9chain_a1.go b/genesis/genesis_9chain_a1.go
+index 58ecf90..964ec86 100644
+--- a/genesis/genesis_9chain_a1.go
++++ b/genesis/genesis_9chain_a1.go
+@@ -102,10 +102,17 @@ var A1Params = Params{
+ 			MinConsumptionRate: .10 * reward.PercentDenominator,
+ 			MintingPeriod:      365 * 24 * time.Hour,
+ 
+-			// Trần cung TUYỆT ĐỐI: 720,000,000 LOVE9. Không bao giờ mint vượt.
+-			// Genesis phát hành 400,000,000 → còn 320,000,000 dành cho phần
+-			// thưởng staking trong nhiều năm.
+-			// ⬅️ ĐÂY LÀ SỐ CẦN DAVID CHỐT DỨT KHOÁT TRƯỚC MAINNET.
++			// Trần cung TUYỆT ĐỐI: 9,000,000,000 LOVE9. Không bao giờ mint vượt.
++			// Genesis phát hành 5,400,000,000 (60%) → 3,600,000,000 còn lại là quỹ
++			// Staking Rewards, mint dần theo mức stake thực tế (D-042).
++			//
++			// 🔴 HẰNG SỐ NÀY BIÊN DỊCH VÀO BINARY, KHÔNG ĐỌC TỪ genesis.json.
++			// Đổi nó = phải build lại image node và deploy, không chỉ sinh lại genesis.
++			// Chạy genesis phát hành 5,4 tỷ trên binary còn trần 720 triệu thì
++			// `reward/calculator.go:56` trừ `uint64` thô và TRÀN NGƯỢC — node khởi
++			// động sạch, sai lệch chỉ lộ ở phần thưởng staking. netgen có cổng chặn
++			// phía nó (`mustFitSupplyCap`) nhưng cổng đó không nhìn thấy image trên
++			// server; đối chiếu bằng `docker logs <node> | head -1 | grep supplyCap`.
+ 			SupplyCap: 9_000 * units.MegaAvax, // 9.000.000.000 LOVE9 — D-039
+ 		},
+ 	},
