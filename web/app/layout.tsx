@@ -23,13 +23,13 @@ export const metadata: Metadata = {
   description: vi.trangChu.cPhu,
   alternates: { canonical: '/' },
   // Trước đây trang KHÔNG có favicon nào. Dùng luôn dấu LOVE9 David đưa.
-  // Đường dẫn tuyệt đối theo gốc site — `/thuong-hieu/*` có route riêng trong Caddy.
+  // Đường dẫn tuyệt đối theo gốc site — `/brand/*` có route riêng trong Caddy.
   icons: {
     icon: [
-      { url: '/thuong-hieu/love9-navy-inverse-32px.png', sizes: '32x32', type: 'image/png' },
-      { url: '/thuong-hieu/love9-navy-inverse.svg', type: 'image/svg+xml' },
+      { url: '/brand/love9-navy-inverse-32px.png', sizes: '32x32', type: 'image/png' },
+      { url: '/brand/love9-navy-inverse.svg', type: 'image/svg+xml' },
     ],
-    apple: '/thuong-hieu/love9-navy-inverse-256px.png',
+    apple: '/brand/love9-navy-inverse-256px.png',
   },
 };
 

@@ -63,18 +63,18 @@ export function explorerGoc(): string {
  * Biểu tượng LOVE9 — URL TUYỆT ĐỐI, và bắt buộc phải tuyệt đối.
  *
  * Ví đọc URL này ở tiến trình của NÓ, không ở ngữ cảnh trang, nên đường dẫn tương
- * đối (`/thuong-hieu/…`) là vô nghĩa với ví — nó không có gốc nào để giải ra.
+ * đối (`/brand/…`) là vô nghĩa với ví — nó không có gốc nào để giải ra.
  *
- * 🔴 Đường `/thuong-hieu/*` phải có route riêng trong Caddy. Gốc `/` là Blockscout,
+ * 🔴 Đường `/brand/*` phải có route riêng trong Caddy. Gốc `/` là Blockscout,
  * mà Blockscout là SPA trả **HTTP 200 kèm khung rỗng** cho mọi đường lạ — nên quên
  * route thì ảnh "tải được" 200, ví chỉ hiện ô trống, và mọi phép kiểm bằng mã
  * trạng thái vẫn xanh. Đo bằng `content-type` chứ đừng đo bằng mã HTTP.
  */
 export function bieuTuongGoc(): string {
-  if (typeof window === 'undefined') return `https://${HOST_MAC_DINH}/thuong-hieu`;
+  if (typeof window === 'undefined') return `https://${HOST_MAC_DINH}/brand`;
   const h = host();
-  if (h === 'localhost' || h === '127.0.0.1') return `https://${HOST_MAC_DINH}/thuong-hieu`;
-  return `${window.location.protocol}//${h}/thuong-hieu`;
+  if (h === 'localhost' || h === '127.0.0.1') return `https://${HOST_MAC_DINH}/brand`;
+  return `${window.location.protocol}//${h}/brand`;
 }
 
 /** PNG 256px của LOVE9 — cỡ ví hay dùng nhất, và có nền nên không lẫn vào theme tối. */

@@ -5,7 +5,7 @@ Cập nhật: 2026-08-26 — 🔴 **TÊN MIỀN ĐỔI: `a1.9chain.org` + `rpc-a
 (tài sản đi được giữa 2 L1) · **M10 ĐÓNG HOÀN TOÀN**: trang chủ thật ở gốc `/`,
 faucet, màn đẻ chain có tiến trình, chain của tôi + thu hồi, bảng A1↔C1 —
 và David đã bấm thử bằng MetaMask thật (chain "David Do", 9141).
-LOVE9 nay có bộ nhận diện: `web/public/thuong-hieu/`.
+LOVE9 nay có bộ nhận diện: `web/public/brand/`.
 **Backlog phần mềm đã cạn — mọi việc còn lại đều `[human]` hoặc `[blocked]`.**
 
 ## ▶ Phiên sau bắt đầu từ đâu
@@ -94,7 +94,7 @@ chết hẳn. Tên miền TRANG thì ngược lại, **phải** redirect — xem
 (Caddy chết vài giây, MetaMask hiện "Unable to connect" và **giữ nguyên banner**).
 Viết thẳng thì `caddy reload` là đủ. Hai biến đó trong `caddy.env` nay **vô tác dụng**.
 
-**Icon LOVE9 đã có** (David đưa bộ logo kit): `web/public/thuong-hieu/` — SVG + PNG
+**Icon LOVE9 đã có** (David đưa bộ logo kit): `web/public/brand/` — SVG + PNG
 24→512px, đồng navy/gold với hệ token. Dùng ở hai chỗ: `iconUrls` của
 `wallet_addEthereumChain`, và favicon (trước đó trang **không có favicon nào**).
 ⚠️ **CHƯA đo được MetaMask có thật sự vẽ icon cho token GỐC hay không** — icon token
