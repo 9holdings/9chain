@@ -1,4 +1,4 @@
-From 02b94a6d36ea7837515e689901ecc1966fc70d3c Mon Sep 17 00:00:00 2001
+From 72643e1493417c8d5b7779aa789ea58eb291e814 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Wed, 26 Aug 2026 18:03:01 +0400
 Subject: [PATCH 8/8] netgen: chan sinh mang khi phat hanh genesis vuot tran
@@ -41,6 +41,8 @@ Do la viec cua quy trinh deploy.
 Nghiem thu (golang:1.25.10-bookworm, /src mount read-only, thay file bang -overlay):
   ca thuan (tran 9 ty)      -> exit 0, 14 tep, "Tong phat hanh 5,400,000,000 LOVE9"
   doi chung nguoc (720 tr)  -> exit 1, 0 tep sinh ra, in dung so tran nguoc
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 ---
  9chain-a1-tools/netgen/allocation.go | 48 ++++++++++++++++++++++------
  9chain-a1-tools/netgen/main.go       |  4 +++
