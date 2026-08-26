@@ -272,8 +272,14 @@ export function CreateChainScreen() {
         {pha === 'soat' && (
           <>
             <h2 className="font-display text-lg font-bold text-ink">{vi.deChain.soatTieuDe}</h2>
-            <div className="mt-3">
+            <div className="mt-3 flex flex-col gap-3">
               <LuuY kieu="canhBao">{vi.deChain.soatMoTa}</LuuY>
+              {/* Cảnh báo re-genesis đặt ở ĐÂY chứ không chỉ ở dải trên đầu trang:
+                  đây là giây cuối trước cửa một chiều, và là chỗ duy nhất chắc chắn
+                  người dùng đang đọc. Gỡ cùng lúc với dải banner sau ngày G. */}
+              <LuuY kieu="canhBao">
+                {dien(vi.deChain.soatReGenesis, { ngay: vi.reGenesis.ngay })}
+              </LuuY>
             </div>
             <dl className="mt-5 flex flex-col gap-3">
               {[

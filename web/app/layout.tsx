@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Sora, Instrument_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { SiteHeader } from '@/components/SiteHeader';
+import { ReGenesisBanner } from '@/components/ReGenesisBanner';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ThemeScript } from '@/components/ThemeScript';
 import { vi } from '@/lib/i18n/vi';
@@ -57,6 +58,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           {vi.chung.boQuaToiNoiDung}
         </a>
+        {/* Dải cảnh báo đứng SAU lối tắt bàn phím, TRƯỚC header: người đi bàn phím
+            vẫn nhảy thẳng được vào nội dung, còn người đọc bằng mắt thì thấy nó
+            trước mọi thứ khác. Gỡ dải này sau ngày G — xem chú thích trong file. */}
+        <ReGenesisBanner />
         <SiteHeader />
         <main id="noi-dung" className="flex-1">
           {children}
