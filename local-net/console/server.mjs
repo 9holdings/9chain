@@ -62,7 +62,7 @@ const limitNonce = rateLimit({ max: 30, windowMs: 10 * 60 * 1000, name: "nonce" 
 // Khác biệt quan trọng nhất không phải "an toàn hơn" mà là **biết ai đang bấm nút**:
 // đăng nhập bằng ví thì `admin` được ÉP bằng địa chỉ đã ký, người dùng không gõ gì
 // cả — gỡ hẳn lớp lỗi "gõ nhầm một ký tự ⇒ chain vô chủ vĩnh viễn".
-const SIWE_DOMAIN = process.env.A1_CONSOLE_DOMAIN || "testnet-a1.9chain.org";
+const SIWE_DOMAIN = process.env.A1_CONSOLE_DOMAIN || "a1.9chain.org";
 const SIWE_URI = process.env.A1_CONSOLE_URI || `https://${SIWE_DOMAIN}/console`;
 const dangNhapVi = siwe({
   domain: SIWE_DOMAIN,
@@ -740,7 +740,7 @@ async function createChain({ name, chainId, admin, preset }) {
   // nguyên nó ra giao diện là lặp lại đúng lỗi đã trả giá ở explorer và dashboard:
   // trình duyệt người xem phân giải `localhost` thành MÁY HỌ, nên URL dán vào
   // MetaMask trỏ về chính máy người dùng và không bao giờ chạy.
-  // Đặt A1_PUBLIC_RPC_BASE=https://rpc-testnet-a1.9chain.org trên server.
+  // Đặt A1_PUBLIC_RPC_BASE=https://rpc-a1.9chain.org trên server.
   const rpcBase = process.env.A1_PUBLIC_RPC_BASE || API;
   const chain = {
     name, subnetID, blockchainID, chainId, admin: ADMIN,

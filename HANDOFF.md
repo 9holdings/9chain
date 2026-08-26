@@ -1,8 +1,11 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: 2026-08-26 — **M6 đóng** (tài sản đi được giữa 2 L1) · **M10 đóng phần
-mềm**: A1 nay có trang chủ thật ở gốc `/` (bản C, David chọn), faucet · màn đẻ chain
-có tiến trình theo bước · chain của tôi + thu hồi · bảng A1↔C1.
+Cập nhật: 2026-08-26 — 🔴 **TÊN MIỀN ĐỔI: `a1.9chain.org` + `rpc-a1.9chain.org`**
+(tên cũ vẫn sống — trang 308 sang tên mới, RPC cũ phục vụ song song). **M6 đóng**
+(tài sản đi được giữa 2 L1) · **M10 ĐÓNG HOÀN TOÀN**: trang chủ thật ở gốc `/`,
+faucet, màn đẻ chain có tiến trình, chain của tôi + thu hồi, bảng A1↔C1 —
+và David đã bấm thử bằng MetaMask thật (chain "David Do", 9141).
+LOVE9 nay có bộ nhận diện: `web/public/thuong-hieu/`.
 **Backlog phần mềm đã cạn — mọi việc còn lại đều `[human]` hoặc `[blocked]`.**
 
 ## ▶ Phiên sau bắt đầu từ đâu
@@ -25,11 +28,12 @@ datacenter**: "testnet 5 validator" mà cả 5 chết cùng lúc thì nó là m�
 một mạng. Backup cứu được **dữ liệu**, không cứu được **tính sẵn sàng**.
 Đây cũng là điều kiện tiên quyết cho M3 (cộng đồng chạy node).
 
-**3. 🔴 BẤM THỬ MÀN ĐẺ CHAIN BẰNG METAMASK THẬT.** `[human]`, ~5 phút.
-Đây là mảnh duy nhất của M10 mà công cụ tự động không chạm tới được: pane trình
-duyệt không có ví nên không lái được `personal_sign`. Mọi thứ khác của màn đó đã
-nghiệm thu (server: đẻ chain thật, 8/8 bước; giao diện: form + soát lại + tiến trình,
-lái bằng ví giả). Mở **https://testnet-a1.9chain.org/de-chain/** và đẻ một chain.
+**3. ✅ XONG 2026-08-26 — BẤM THỬ MÀN ĐẺ CHAIN BẰNG METAMASK THẬT.** David tự làm.
+Bằng chứng trong danh bạ, không phải lời kể: chain **"David Do"** chainId **9141**,
+preset "Phí gần như bằng 0", `admin` = `0x09A6F8…605Db` — **đúng ví MetaMask của
+David**. Mà `admin` bị console ÉP bằng địa chỉ đã ký, nên bản ghi đó chỉ ra đời được
+nếu đường `personal_sign` chạy thật từ đầu tới cuối. Đây là mảnh cuối của M10 mà công
+cụ tự động không chạm tới được (pane trình duyệt không có ví). **M10 đóng hoàn toàn.**
 
 **4. 🔴 H-7 — M3 chờ một quyết định về ĐỐI TƯỢNG, không phải về kỹ thuật.**
 `[human]`. Phần code đã xong (netgen sinh được P2P IPv6, mặc định không đổi gì).
@@ -72,6 +76,46 @@ tức ~**70 MB/giờ** ở 210 TPS — nhỏ hơn 30 lần. Dung lượng đĩa 
 
 ⚠️ **Đợt tải này KHÔNG tự thu hồi chain** (nó chạy trên chain có sẵn nên cố ý giữ lại):
 log ghi `giữ lại chain "(chain có sẵn)"`. L1 đó vẫn chiếm một slot.
+
+### Phiên 2026-08-26 (đợt 4) — ĐỔI TÊN MIỀN + icon LOVE9
+
+🔴 **TÊN MIỀN NAY LÀ `a1.9chain.org` / `rpc-a1.9chain.org`** (David chốt: ngắn cho
+người dùng đỡ gõ). Tên cũ **KHÔNG chết**:
+- `testnet-a1.9chain.org` → **308** sang tên mới, giữ nguyên đường dẫn.
+- `rpc-testnet-a1.9chain.org` → **phục vụ y hệt** tên mới, cùng một site block.
+
+🔴 **RPC cũ PHỤC VỤ chứ không REDIRECT — có chủ ý.** Ví gọi RPC bằng POST, mà
+redirect trên POST thì mỗi client xử lý một kiểu và MetaMask chỉ báo "Unable to
+connect", không nói vì sao. Một tên RPC đã phát ra ngoài thì phải phục vụ thật, hoặc
+chết hẳn. Tên miền TRANG thì ngược lại, **phải** redirect — xem gotcha SIWE bên dưới.
+
+**Tên miền nay VIẾT THẲNG trong Caddyfile, bỏ `{$DOMAIN}`/`{$RPC_DOMAIN}`.** Caddy chỉ
+đọc env lúc container khởi động ⇒ đổi tên miền bằng env là buộc `--force-recreate`
+(Caddy chết vài giây, MetaMask hiện "Unable to connect" và **giữ nguyên banner**).
+Viết thẳng thì `caddy reload` là đủ. Hai biến đó trong `caddy.env` nay **vô tác dụng**.
+
+**Icon LOVE9 đã có** (David đưa bộ logo kit): `web/public/thuong-hieu/` — SVG + PNG
+24→512px, đồng navy/gold với hệ token. Dùng ở hai chỗ: `iconUrls` của
+`wallet_addEthereumChain`, và favicon (trước đó trang **không có favicon nào**).
+⚠️ **CHƯA đo được MetaMask có thật sự vẽ icon cho token GỐC hay không** — icon token
+gốc của mạng tuỳ chỉnh xưa nay lấy từ registry của chính MetaMask (chainid.network),
+không lấy từ site. Đừng ghi "đã có icon" vào đâu cho tới khi nhìn thấy nó trong ví
+thật. Đường lui nếu ví bỏ qua: đưa chain vào `ethereum-lists/chains` — nhưng đó là PR
+công khai và **công bố vĩnh viễn chainId 9000000009**, cần David quyết.
+
+**Đã đổi theo:** console (domain SIWE) · Blockscout (`NEXT_PUBLIC_*` + nút "Add
+network to MetaMask" nay trỏ `rpc-a1`) · 12 file nguồn · HANDOFF + memory.
+
+**Nghiệm thu:** 5/5 tên miền đúng vai · smoke-l1 **14/14** · web-deploy **6/6 liên kết
+sống** · ảnh thương hiệu trả đúng `image/png`+`image/svg+xml` · Blockscout `/blocks`
+76 KB + `/api/v2/stats` JSON · SIWE khai `a1.9chain.org`.
+
+🔴 **MỘT KẾT LUẬN SAI CỦA TÔI, ĐÃ TỰ SỬA — đáng nhớ vì nó đọc rất xuôi tai.** Thêm
+site block xong: `a1.9chain.org` lên ngay (525→200) nhưng `rpc-a1.9chain.org` **vẫn
+525**, ổn định qua nhiều lượt đo. Cộng thêm: log Caddy đếm được **0** request mang
+host đó trong khi tên cũ vẫn tới. Tôi kết luận "Cloudflare trỏ tên đó đi chỗ khác,
+David phải sửa DNS" — **và đã lùi cả lượt deploy về**. Sai. Vài phút sau nó tự lên 200
+mà không ai đụng gì. Xem gotcha ngay dưới.
 
 ### Phiên 2026-08-26 (đợt 3) — David chọn bản C, trang chủ lên gốc
 
@@ -193,7 +237,7 @@ RPC — chữ và thực tế đã lệch từ trước phiên này.
 
 ### Phiên 2026-08-25 (thứ tư) làm xong — tóm tắt để khỏi mở file
 
-🔴 **CONSOLE ĐÃ CÔNG KHAI: https://testnet-a1.9chain.org/console/** (David duyệt).
+🔴 **CONSOLE ĐÃ CÔNG KHAI: https://a1.9chain.org/console/** (David duyệt).
 Đăng nhập bằng chữ ký ví. **H-3 đóng, M4.5 xong.** Ba việc phải làm CÙNG LÚC và thứ
 tự đó bắt buộc: route Caddy · `A1_TRUST_PROXY=1` · siết 443 về Cloudflare. Thiếu cái
 thứ ba thì cái thứ hai **là lỗ hổng chứ không phải bản vá**.
@@ -308,10 +352,10 @@ smoke test **20/20 đạt** · đẻ chain đầy đủ có gửi giao dịch th
 đừng làm từ repo này.
 
 ## TL;DR
-**Testnet công khai ĐÃ LIVE**: https://testnet-a1.9chain.org · RPC https://rpc-testnet-a1.9chain.org
+**Testnet công khai ĐÃ LIVE**: https://a1.9chain.org · RPC https://rpc-a1.9chain.org
 5 validator chạy trên server nhà cung cấp `139.99.145.13`, Blockscout index đầy đủ, faucet + nút "Thêm vào MetaMask" hoạt động. **P0 #1/#2/#3 đều PASS.**
 
-🔴 **CONSOLE ĐẺ CHAIN ĐÃ CÔNG KHAI (2026-08-25): https://testnet-a1.9chain.org/console/** — đăng nhập bằng chữ ký ví, `admin` bị ép = địa chỉ đã ký. Người lạ đẻ được chain của chính họ. Còn **13 suất** (danh bạ 2 L1; trần mềm console 15, trần cứng giao thức 16).
+🔴 **CONSOLE ĐẺ CHAIN ĐÃ CÔNG KHAI (2026-08-25): https://a1.9chain.org/console/** — đăng nhập bằng chữ ký ví, `admin` bị ép = địa chỉ đã ký. Người lạ đẻ được chain của chính họ. Còn **13 suất** (danh bạ 2 L1; trần mềm console 15, trần cứng giao thức 16).
 🔴 **Origin CHỈ phục vụ qua Cloudflare.** Nối thẳng vào `139.99.145.13:443` → **403** cho cả ba tên miền. Kiểm: `bash local-net/deploy/kiem-cong.sh`.
 
 **Nút "đẻ chain" CHẠY THẬT trên mạng công khai**, hiện **2 L1** trong danh bạ
@@ -337,12 +381,12 @@ Mục tiêu của 9Scan-A1 là **thay Blockscout**: đo trên server, Blockscout
 
 | | |
 |---|---|
-| Trang testnet | https://testnet-a1.9chain.org — Blockscout ở gốc · `/faucet/` · `/chains/` · `/dashboard/` · `/lite/` |
+| Trang testnet | https://a1.9chain.org — Blockscout ở gốc · `/faucet/` · `/chains/` · `/dashboard/` · `/lite/` |
 | Danh bạ L1 | `/chains/` — mọi chain do console đẻ ra + tình trạng thật. Container `9chain-a1-chains` (nginx, `127.0.0.1:8093`), đọc `console-chains.json` qua alias — URL thật là **`/chains/data/console-chains.json`**
 (trang fetch bằng đường dẫn TƯƠNG ĐỐI `data/…`; gõ `/data/…` ra 404, đã dính).
 Mỗi bản ghi nay có thêm `presetTen` (tên kiểu chain do console ghi lúc đẻ, để trang
 khỏi phải tự dịch id → tên và trôi lệch — bản chép tay cũ đã trôi một lần). **Dấu hiệu sống là SỐ VALIDATOR của subnet**, không phải chiều cao block. Mỗi L1 hiện thêm **Chủ sở hữu (admin)**; chain đẻ trước khi có ô này (OmegaChain) hiện "mặc định của hệ thống", không được để lọt `undefined`. |
-| RPC công khai | https://rpc-testnet-a1.9chain.org/ext/bc/C/rpc |
+| RPC công khai | https://rpc-a1.9chain.org/ext/bc/C/rpc |
 | MetaMask | Chain ID `9000000009` · Symbol `LOVE9` (có nút 1 cú bấm ở `/faucet/` và `/lite/`) |
 | Server | `139.99.145.13` (`(không công bố)`), Ubuntu LTS, 8 luồng / 62GB / RAID1 410GB |
 | SSH | `ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST"` (key không passphrase, mật khẩu đã tắt) |
@@ -410,6 +454,48 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ---
 
 ## Gotchas
+
+### Thêm từ phiên 2026-08-26 (đợt 4 — đổi tên miền)
+- 🔴 **HTTP 525 CÓ THỂ LÀ TIẾNG VỌNG CỦA LẦN THỬ TRƯỚC, KHÔNG PHẢI TRẠNG THÁI HIỆN
+  TẠI.** Cloudflare giữ trạng thái "origin không bắt tay TLS được" **theo từng
+  hostname** một lúc. Thử một tên miền TRƯỚC khi Caddy có site block cho nó ⇒ CF ghi
+  nhớ hỏng ⇒ sau khi thêm site block, CF **vẫn trả 525 và không thèm gọi tới origin**.
+  Triệu chứng đọc y hệt "DNS trỏ sai chỗ", kể cả phép đo tưởng là dứt điểm: log origin
+  đếm được **0 request** mang host đó. Nó tự hết sau vài phút.
+  ⇒ **Đừng đo một tên miền trước khi cấu hình cho nó tồn tại** — lượt đo đó không vô
+  hại, nó **tạo ra** cái trạng thái mình sẽ chẩn đoán nhầm sau đó.
+  ⇒ Phép tách bạch đúng: thử TỪ CHÍNH SERVER qua loopback
+  (`curl -k --resolve <ten>:443:127.0.0.1`). TLS bắt tay được + trả 403 nghĩa là
+  **origin lành**, mọi thứ còn lại là chuyện của Cloudflare và phần lớn là chuyện tự hết.
+- 🔴 **Caddy chỉ đọc biến môi trường lúc container KHỞI ĐỘNG.** Để tên miền trong
+  `{$DOMAIN}` là mỗi lần đổi tên phải `--force-recreate` (Caddy chết vài giây, và ví
+  đang mở sẽ **giữ nguyên banner "Unable to connect"** cho tới khi người dùng tự đổi
+  mạng qua lại). Viết thẳng tên miền vào Caddyfile thì `caddy reload` là đủ.
+- 🔴 **Trộn biến với literal trên cùng một dòng địa chỉ site đẻ ra "duplicate site
+  address"** khi biến tình cờ bằng literal — và Caddy từ chối **CẢ file**, tức sập
+  toàn bộ web chứ không hỏng riêng một tên.
+- 🔴 **`caddy-deploy.sh` từng MÙ với site có nhiều tên.** Regex cũ khớp cả dòng nên
+  `rpc-a1.9chain.org, rpc-testnet-a1.9chain.org {` **không khớp gì cả** ⇒ mất phép
+  kiểm cho **cả hai** tên, mà script vẫn in "✓ xong". Đã sửa: cắt `{` → tách dấu phẩy
+  → lọc. Và nó nay **thất bại** nếu không rút được tên miền nào, thay vì bỏ qua.
+- 🔴 **Probe phải hợp với thứ đang đo.** Tên miền RPC cố ý lọc path nên `GET /` trả
+  **404 đúng thiết kế**; đo nó bằng `GET /` là báo động giả, mà nới 404 thành "đạt"
+  cho mọi tên miền là mất khả năng bắt lỗi định tuyến. Tên `rpc-*` nay đo bằng một
+  lượt `eth_chainId` thật.
+- 🔴 **Đổi tên miền TRANG mà giữ cả hai tên cùng phục vụ là làm hỏng bảo đảm của
+  SIWE — im lặng, không lỗi nào.** Thông điệp SIWE do **server** dựng nên nó luôn ghi
+  một domain duy nhất, trong khi trang gọi console theo `location.hostname`. Người vào
+  bằng tên cũ sẽ ký thông điệp nói "a1.9chain.org wants you to sign in" trong khi đang
+  đứng ở tên khác. Server vẫn nhận (nó đối chiếu với chính nó), nên **không có dấu
+  hiệu hỏng** — nhưng ô `domain` của EIP-4361 tồn tại đúng để người ký thấy mình đang
+  ký cho site nào. Vì thế tên miền trang **phải** redirect, không được phục vụ song song.
+- **Ảnh/asset tĩnh cần route Caddy RIÊNG, và phải nghiệm thu bằng `content-type`.**
+  Gốc `/` là Blockscout — SPA trả **200 kèm HTML rỗng** cho mọi đường lạ, nên quên
+  route thì ảnh "200" mà ví hiện ô trống. Đo `content-type` phải là `image/*`.
+- **`A1_HTTP_ALLOWED_HOSTS` KHÔNG liên quan tới tên miền công khai** (chú thích cũ
+  trong `caddy.compose.yml` bảo đặt nó bằng tên miền RPC — sai từ lúc Caddyfile có
+  `header_up Host {upstream_hostport}`, và sai theo kiểu vô hại nên không ai phát
+  hiện). Node chỉ thấy `127.0.0.1:9650`. Đổi tên miền **không** phải restart validator.
 
 ### Thêm từ phiên 2026-08-26 (autopilot — M10.3→M10.7)
 - 🔴 **Cloudflare cắt kết nối ở ~100 giây (HTTP 524).** Mọi thao tác dài (đẻ/thu hồi
@@ -727,7 +813,7 @@ ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'docker ps --format "{{.Names}}\t{{.Status}}
 ```
 
 ```bash
-curl -s -X POST -H 'content-type:application/json' --data '{"jsonrpc":"2.0","id":1,"method":"platform.getCurrentValidators"}' https://rpc-testnet-a1.9chain.org/ext/bc/P | python -c "import json,sys; v=json.load(sys.stdin)['result']['validators']; print(len(v),'validators,',sum(1 for x in v if x.get('connected')),'connected')"
+curl -s -X POST -H 'content-type:application/json' --data '{"jsonrpc":"2.0","id":1,"method":"platform.getCurrentValidators"}' https://rpc-a1.9chain.org/ext/bc/P | python -c "import json,sys; v=json.load(sys.stdin)['result']['validators']; print(len(v),'validators,',sum(1 for x in v if x.get('connected')),'connected')"
 ```
 
 ```bash
@@ -777,7 +863,7 @@ bash scripts/rebase-drill.sh              # thử lên origin/master
 
 Đo gián đoạn RPC trong lúc làm thao tác nặng:
 ```bash
-node local-net/faucet/probe-net.mjs https://rpc-testnet-a1.9chain.org/ext/bc/C/rpc --giay 120
+node local-net/faucet/probe-net.mjs https://rpc-a1.9chain.org/ext/bc/C/rpc --giay 120
 ```
 
 Đồng bộ console lên server (chép + khởi động lại + **tự kiểm chứng**, một lệnh):

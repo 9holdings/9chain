@@ -40,7 +40,7 @@ const co = t => args.includes("--" + t);
 const opt = (t, mac) => { const i = args.indexOf("--" + t); return i >= 0 && args[i + 1] ? args[i + 1] : mac; };
 
 const CONSOLE = opt("console", "http://127.0.0.1:8091");
-const RPC_GOC = opt("rpc-goc", "https://rpc-testnet-a1.9chain.org");
+const RPC_GOC = opt("rpc-goc", "https://rpc-a1.9chain.org");
 const TOKEN = process.env.A1_CONSOLE_TOKEN || "";
 const SO_VI = Number(opt("vi", 20));
 const PHUT = opt("phut", null);

@@ -3,7 +3,7 @@
 # Áp cấu hình Blockscout dành riêng cho SERVER công khai.
 # Chạy SAU `setup.sh` (setup.sh áp bản local), TRƯỚC khi `docker compose up`.
 #
-#   A1_PUBLIC_HOST=testnet-a1.9chain.org bash 9chain-a1-server.env.sh
+#   A1_PUBLIC_HOST=a1.9chain.org bash 9chain-a1-server.env.sh
 #
 # Vì sao cần bản riêng: bản local trỏ RPC qua `host.docker.internal` và giả định
 # frontend chạy ở http://localhost. Trên server thì:
@@ -14,7 +14,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-HOST="${A1_PUBLIC_HOST:?dat A1_PUBLIC_HOST=testnet-a1.9chain.org}"
+HOST="${A1_PUBLIC_HOST:?dat A1_PUBLIC_HOST=a1.9chain.org}"
 RPC_HOST="${A1_RPC_HOST:-rpc-$HOST}"
 NODE="${A1_NODE_ADDR:-172.28.0.11:9650}"
 BS="blockscout/docker-compose"

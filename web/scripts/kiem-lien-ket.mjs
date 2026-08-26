@@ -10,7 +10,7 @@
  * Loại (2) là chỗ nguy hiểm: nó trông y hệt loại (1) trong mã.
  *
  * Chạy SAU khi deploy, đo qua tên miền công khai:
- *   node web/scripts/kiem-lien-ket.mjs [https://testnet-a1.9chain.org]
+ *   node web/scripts/kiem-lien-ket.mjs [https://a1.9chain.org]
  *
  * ⚠️ Trang mới hiện phục vụ dưới tiền tố `/moi/` (gốc `/` vẫn là Blockscout cho tới
  * khi M10.3 chốt). Nên đường dẫn tuyệt đối trong HTML được thử ở CẢ hai chỗ: nguyên
@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RA = path.join(GOC, 'out');
-const NEN = (process.argv[2] || 'https://testnet-a1.9chain.org').replace(/\/$/, '');
+const NEN = (process.argv[2] || 'https://a1.9chain.org').replace(/\/$/, '');
 const TIEN_TO = process.env.A1_TIEN_TO ?? '/moi';
 
 if (!existsSync(RA)) {

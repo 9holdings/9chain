@@ -24,7 +24,7 @@ async function phaiNem(ten, fn, chuaChuoi = "") {
   }
 }
 
-const CAU_HINH = { domain: "testnet-a1.9chain.org", uri: "https://testnet-a1.9chain.org/console", chainId: 9000000009 };
+const CAU_HINH = { domain: "a1.9chain.org", uri: "https://a1.9chain.org/console", chainId: 9000000009 };
 
 console.log("\n── 1. Đường thuận ──");
 {

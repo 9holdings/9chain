@@ -32,8 +32,8 @@ const args = process.argv.slice(2);
 const co = t => args.includes("--" + t);
 function opt(t, mac) { const i = args.indexOf("--" + t); return i >= 0 && args[i + 1] ? args[i + 1] : mac; }
 
-const TRANG = opt("trang", "https://testnet-a1.9chain.org");
-const RPC_GOC = opt("rpc", "https://rpc-testnet-a1.9chain.org");
+const TRANG = opt("trang", "https://a1.9chain.org");
+const RPC_GOC = opt("rpc", "https://rpc-a1.9chain.org");
 const CONSOLE = opt("console", "http://127.0.0.1:8091");
 const TOKEN = process.env.A1_CONSOLE_TOKEN || "";
 const DE_CHAIN = co("de-chain");

@@ -13,7 +13,7 @@
 //   node local-net/faucet/probe-net.mjs <RPC_URL> [--giay 180] [--nhip 250] [--ra bao-cao.json]
 //
 // Ví dụ — đo từ MÁY DEV qua Cloudflare (thứ người dùng thật trải nghiệm):
-//   node local-net/faucet/probe-net.mjs https://rpc-testnet-a1.9chain.org/ext/bc/C/rpc --giay 300
+//   node local-net/faucet/probe-net.mjs https://rpc-a1.9chain.org/ext/bc/C/rpc --giay 300
 //
 // Ví dụ — đo TRÊN SERVER, bỏ qua CDN (tách lỗi node khỏi lỗi Cloudflare):
 //   node probe-net.mjs http://127.0.0.1:9650/ext/bc/C/rpc --giay 300

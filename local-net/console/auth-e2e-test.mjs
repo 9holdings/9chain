@@ -55,7 +55,7 @@ const con = spawn(process.execPath, ["local-net/console/server.mjs"], {
     // sẽ chết vì thiếu file thay vì đụng vào mạng thật. Rẻ, và biến một rủi ro
     // "chắc là không xảy ra" thành "không thể xảy ra".
     A1_COMPOSE_FILE: "/khong-ton-tai/an-toan-cho-bai-kiem.yml",
-    A1_CONSOLE_DOMAIN: "testnet-a1.9chain.org",
+    A1_CONSOLE_DOMAIN: "a1.9chain.org",
     // Nới hạn mức cho bài kiểm: nó cố tình gọi nhiều lượt thu hồi BỊ TỪ CHỐI để
     // kiểm cổng quyền. Với mặc định 3/giờ thì chính bài kiểm tự khoá mình lại —
     // và đó là cách phát hiện ra hạn mức đang bị tiêu bởi request không làm gì cả.
@@ -111,7 +111,7 @@ let phien = null;
 {
   const n = await goi(`/api/siwe/nonce?address=${vi.address}`);
   kiem("xin được lời mời ký", n.status === 200 && !!n.j?.nonce, `HTTP ${n.status}`);
-  kiem("message nêu đúng domain", (n.j?.message || "").startsWith("testnet-a1.9chain.org wants you to sign in"));
+  kiem("message nêu đúng domain", (n.j?.message || "").startsWith("a1.9chain.org wants you to sign in"));
   kiem("message nêu đúng địa chỉ", (n.j?.message || "").includes(vi.address));
 
   const chuKy = await vi.signMessage(n.j.message);
