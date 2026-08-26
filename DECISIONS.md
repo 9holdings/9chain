@@ -960,3 +960,61 @@ nguồn thì cả hai cùng đứng, và mốc 01/09 mất ngày trong lúc khô
 tài liệu, bản ASV 1901 phải khớp từng byte) vẫn theo chiều cũ — C1 sinh, A1 chép byte.
 Trộn hai chiều là chỗ đẻ ra hai bản văn khác nhau trên hai chain, và đó là thứ không
 sửa được sau khi khắc.
+
+### D-042 — BẢNG PHÂN BỔ CHỐT CUỐI (thay bảng ở D-040)
+
+**David chốt 2026-08-26.** Tổng **9.000.000.000 LOVE9**, đúng 100%.
+
+| Hạng mục | % | LOVE9 | Dạng |
+|---|--:|--:|---|
+| Team | 9 | 810.000.000 | khoá 4 năm |
+| Private Sale | 9 | 810.000.000 | khoá 2 năm |
+| Foundation | 12 | 1.080.000.000 | thanh khoản; **chứa self-bond 8.999.991** và nhận thưởng staking |
+| Community | 30 | 2.700.000.000 | faucet **nóng** 99.999.999 + **2.600.000.001 khoá 2 năm** |
+| Staking Rewards | 40 | 3.600.000.000 | **KHÔNG cấp ở genesis** — quỹ mint dần |
+
+**Phát hành genesis = 5.400.000.000 (60%)** · **quỹ mint = 3.600.000.000 (40%)**.
+
+**"Staking Rewards" là tên trung thực** — các bản nháp trước gọi "Staking + validator 40%"
+làm người đọc tưởng 40% được cấp ở genesis. Nó là quỹ **mint theo mức staking thực tế**;
+với ~9 triệu đang stake thì mỗi năm chỉ đúc cỡ **700 nghìn LOVE9**, tức trần 9 tỷ trên
+thực tế là trần danh nghĩa và cung thật sẽ nằm quanh 5,4 tỷ. Ghi ra để tài liệu không
+nói một đằng chain nói một nẻo.
+
+**Bốn mục A1 đề xuất, David duyệt cùng lượt:**
+1. **Faucet lấy từ Community** — ví nóng 99.999.999 (**100% trên C-Chain**; faucet chỉ
+   tiêu trên C-Chain, phần X/P ở bảng cũ chưa bao giờ được dùng), phần còn lại khoá.
+   Ví nóng nhỏ vì nó *được thiết kế để chấp nhận mất* và **nạp lại được**.
+   🔴 Đây cũng là sửa một khiếm khuyết đang tồn tại: hiện **toàn bộ** quỹ faucet nằm
+   trong một ví nóng (18/20 triệu), không có dự trữ lạnh.
+2. **self-bond 9 × 999.999 = 8.999.991 lấy từ Foundation** (0,83% quỹ đó) — Foundation
+   cũng là nơi nhận thưởng staking ⇒ quỹ nuôi validator nhận lại thưởng, vòng khép kín.
+   Dùng **địa chỉ RIÊNG**, không dùng chung địa chỉ Foundation: phần **khoá** của địa chỉ
+   nằm trong `initialStakedFunds` **chính là** stake validator, nên trộn chung thì sau này
+   đổi lịch khoá Foundation sẽ **âm thầm đổi trọng số validator**.
+3. **Lịch khoá:** Team 4 năm · Private Sale 2 năm · Community (phần lạnh) 2 năm ·
+   Foundation thanh khoản.
+4. **Nhiệm kỳ validator 365 ngày, SO LE giữa 9 node.** 9 node cùng hết hạn một ngày là
+   mạng chết im lặng (HANDOFF đã ghi mốc `2027-08-24` cho bản 5 node). So le thì node
+   đầu rụng trở thành **cảnh báo sớm** thay vì dấu chấm hết. 365 ngày là **trần**
+   (`MaxStakeDuration`), không phải lựa chọn.
+
+### D-043 — C1 sửa theo A1 **kể cả phần phân bổ nội bộ**, gồm Team 9% + Private Sale 9%
+
+**David chốt 2026-08-26**, sau khi A1 nêu rõ cái giá. Mở rộng D-041 (vốn chỉ nói
+"tokenomics") thành: **C1 follow A1 cả bảng phân bổ.**
+
+🔴 **A1 đã cảnh báo và David vẫn chốt — ghi lại để sau không ai bảo là không ai biết:**
+`9chain/docs/SPEC-TOKENOMICS.md` của C1 khai **Team / Investor = 0%**, *"KHÔNG có
+allocation, KHÔNG có vesting account nào trong genesis — fair launch tuyệt đối, Điều
+luật 51%"*, và cột lịch sử ghi *"Cũ: team 150M ContinuousVesting — **XOÁ** khỏi
+`render.go`/`mainnet-genesis.sh`"*. Tức **C1 đã từng có phân bổ team và cố ý xoá đi**.
+
+⇒ Với D-043, C1 phải **đặt lại thứ họ vừa xoá, cộng thêm 9% Private Sale** — tổng 18%
+cho nội bộ, ngược hẳn nguyên tắc họ đã ghi vào Paper (thứ họ gọi là *"hiến pháp vô thời
+hạn"*). Đây không phải sửa con số mà là đảo một nguyên tắc nền, và nó sẽ là **câu hỏi
+đầu tiên người ngoài đặt ra khi so hai nhánh**.
+
+A1 đề xuất phương án gỡ (thu hẹp phạm vi: C1 chỉ follow tổng cung + cấu trúc pool, phân
+bổ nội bộ mỗi nhánh tự quyết) — **David không chọn**. Ghi lại cả đề xuất lẫn việc nó bị
+bỏ qua, vì đó là thông tin cần cho người quyết sau này.

@@ -62,7 +62,27 @@ mục sẽ đi qua ngày G mà không ai chạm.
 
 | # | Mục | Trạng thái `26/08` | Điều kiện qua |
 |---|---|---|---|
-| **G1** | **Bảng phân bổ 10–20–30–40** thay bảng 40/20/20/5/15 | Chưa làm. Nguồn: `upstream/avalanchego/9chain-a1-tools/netgen/allocation.go` | `local-net/net/allocation.md` sinh ra khai đúng: đội xây dựng 10% · hệ sinh thái 20% · staking+validator 30% · con người 40%. Tổng genesis + phần để mint = **90.000.000.000** |
+| **G1** | 🔴 **BẢNG PHÂN BỔ — ĐANG XUNG ĐỘT, chưa được thi hành** | `9chain-a1-26` báo `26/08` (D-039–041) một bảng **khác** bảng đã chốt ở BOD Đ14 | Xem khối 🔴 ngay dưới. **Đừng khắc bảng nào cho tới khi chủ dự án phân xử.** Tổng cung thì đã thống nhất: **9.000.000.000** |
+
+> 🔴 **XUNG ĐỘT G1 — hai bảng, cùng ngày, cùng người chốt**
+>
+> | Ô | **BOD Đ14** (`CANON.md` §1) | **A1 D-039** |
+> |---|---:|---:|
+> | Staking + validator | **30%** | **40%** |
+> | Con người | **40%** | **30%** |
+> | Hệ sinh thái | 20% | 20% |
+> | Team | 10% | 10% |
+>
+> Hai ô đầu **đảo nhau**. Lý lẽ A1: bảng của họ **đổi ít nhất** so với mạng đang chạy
+> (Staking vốn đã 40%, Hệ sinh thái vốn đã 20%).
+>
+> 🔴 **Hệ quả BOD đo được, để chủ dự án cân:**
+> · Tỷ lệ đầu người validator : con người **xấu đi 1,8×** — `135 triệu : 1` so với `76 triệu : 1`
+>   *(81 validator; dân số 8,2 tỷ)*
+> · Câu nền móng **Đ25** *"1 LOVE9 cho mỗi con người"*: ở 40% mỗi người **0,44**; ở 30% chỉ **0,33**
+>
+> ⚠️ Theo `PROTOCOL.md` §Ranh giới thẩm quyền, **BOD không tự hoà giải** — có thể chủ dự án đã đổi
+> ý khi nói trực tiếp với A1. **Đang chờ anh phân xử.**
 | **G2** | **Lát self-bond của validator genesis**, trích từ ô staking 30% | Chưa quyết số. Bảng cũ: 160M chia đều 5 node = 32M/node | Mỗi validator genesis có self-bond **≤ `maxValidatorStake` mới** (xem I3). Đây đúng là lỗi đã xảy ra một lần — bảng cũ ghi trần 3M trong khi node genesis nhận 32M |
 | **G3** | **Số dư genesis ≈ 64 tỷ, phần để mint ≈ 26 tỷ** | Suy từ G1 | `SupplyCap − tổng alloc genesis` = phần mint, và nó **bằng ô staking 30% trừ lát self-bond** |
 | **G4** | **Kiểm lại `networkID 9001` + EVM chainId `9000000009` không trùng** | `9000000009` đã dùng ở mạng hiện tại; **chưa tra lại `chainid.network`** `[cần verify]` | Tra `chains.json` **ngay trước bước sinh genesis**, không tin lần tra hôm nay. C1 có tiền lệ: `9chain-c1/scripts/check-chain-id.py`, số cũ `999999999` bị Zora chiếm |
@@ -259,9 +279,9 @@ gỡ bản văn ở chain permissioned · chỉ khắc trên ba chain chính. **
 
 | # | Mục | Trạng thái | Điều kiện qua |
 |---|---|---|---|
-| **I1** | `SupplyCap` **720.000.000 → 90.000.000.000** | Chưa làm. `genesis/genesis_9chain_a1.go` (`A1Params`). *Số cũ vốn đã được đánh dấu "chưa chốt" ở `docs/TOKENOMICS.md:77`* | `platform.getCurrentSupply` + reward calc dùng số mới; test xanh |
-| **I1b** 🆕 | 🔴 **Phơi TRẦN CUNG ra một endpoint đọc được** | Chưa có. `9scan-a1-ec` báo `2026-08-26`: **P-Chain không có `getMaxSupply`**, chỉ có `getCurrentSupply` (đo production: **318.456.024,405 LOVE9**) | Luật cứng #2 của 9Scan-A1: *"số công bố phải đọc từ chain thật"* ⇒ in "max supply 90 tỷ" mà không có endpoint là **gõ một hằng số vào giao diện**. Hai lối: **(a)** node phơi trần ra RPC ⭐ · **(b)** trang ghi rõ nguồn là *tham số genesis*, không phải số đo. ⚠️ **Bất đối xứng với C1:** bên C1 `bank/supply` trả thẳng 90 tỷ vì đã đúc sẵn — nên chỉ A1 có vấn đề này, và lối (a) **không** "giải luôn cho C1" như 9Scan-A1 nghĩ |
-| **I2** | **Rescale ×125 mọi tham số ghi bằng LOVE9 tuyệt đối** | Chưa làm | min validator stake `2.000 → 270.000` · max `50.000.000 → 6.300.000.000` · min delegator `25 → 2.700` · phí P/X `0,001 → 0,09`. *Cột gợi ý — chủ dự án chốt số cuối* |
+| **I1** | `SupplyCap` **720.000.000 → 9.000.000.000** | 🔄 **SỬA `26/08`: 9 tỷ, KHÔNG phải 90 tỷ** (Đ24). `genesis/genesis_9chain_a1.go` (`A1Params`) | ✅ 9 tỷ @ thang `1e9` hiện tại = `9e18`, **vừa** (48,8% `uint64`, dư 2,05×) ⇒ **KHÔNG phải đổi thang đơn vị**, `x2cRate` không phải đụng, `docs/RUI-RO-THANG-1E7.md` R1–R6 **tan hết** |
+| **I1b** | 🔴 **Phơi TRẦN CUNG ra một endpoint đọc được** | Chưa có. **P-Chain không có `getMaxSupply`**, chỉ `getCurrentSupply` (đo production `26/08`: **318.456.024,405**) | Luật cứng #2 của 9Scan-A1: *"số công bố phải đọc từ chain thật"* ⇒ in trần mà không có endpoint là **gõ hằng số vào giao diện**. **(a)** node phơi trần ra RPC ⭐ · **(b)** trang ghi rõ nguồn là *tham số genesis*. ⚠️ Bất đối xứng thật với C1 (`bank/supply` bên đó trả số đo), nên (a) **không** giải luôn cho C1 |
+| **I2** | **Rescale mọi tham số ghi bằng LOVE9 tuyệt đối** | 🔄 **SỬA: hệ số là ×12,5, KHÔNG phải ×125** (720 triệu → 9 tỷ) | min validator `2.000 → 25.000` · max `50.000.000 → 625.000.000` · min delegator `25 → ~270` · phí P/X `0,001 → ~0,0125`. *Gợi ý — chủ dự án chốt số cuối.* 🔑 **Uỷ quyền tính vào `MaxValidatorStake`** (A1 nêu `26/08`) ⇒ self-bond lớn thì validator genesis gần hết chỗ nhận uỷ quyền. Phải kiểm dư địa, không chỉ kiểm trần |
 | **I3** | **Tính lại `maxValidatorStake` theo self-bond genesis THẬT** | Chưa làm | Trần phải chứa nổi self-bond của node genesis **và** vẫn chặn tập trung. Đây là ô dễ lặp lại lỗi cũ nhất |
 | **I4** | **Consumption rate: GIỮ NGUYÊN 10–12%** | ✅ Không phải làm gì (Đ11 lối b) | A1 giữ đường cong riêng ⇒ **không bước ra ngoài vùng upstream đã kiểm chứng**; bỏ luôn rủi ro nhánh Helicon/ACP-285 |
 | **I5** | Build tái lập được sau khi đổi số | M0.6 đã chứng minh build byte-identical | `apply-sovereign.sh` từ clone sạch → hash khớp |
