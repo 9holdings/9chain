@@ -1,9 +1,9 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-26** — 🔴 **NGÀY G: 01/09/2026 sinh lại mạng, tổng cung 9 TỶ LOVE9.**
-Tokenomics mới **đã vào mã và đã kiểm**, nhưng **CHƯA chạy** — dừng ngay trước bước phá huỷ,
-chờ David xác nhận. Tên miền nay là `a1.9chain.org` / `rpc-a1.9chain.org` (tên cũ vẫn sống).
-M6 + M10 đóng. Mọi URL/tên tệp/khoá JSON đã chuẩn hoá tiếng Anh.
+Cập nhật: **2026-08-26** — 🟢 **RE-GENESIS 9 TỶ LOVE9 ĐÃ CHẠY XONG TRÊN MẠNG CÔNG KHAI.**
+Mạng nay **9 node**, `supplyCap` **9.000.000.000**, phát hành genesis 5.400.000.000.
+Đây là **lượt diễn tập** — 01/09 vẫn sinh lại lần nữa (khắc chữ + Block Adam chưa sẵn).
+Tên miền `a1.9chain.org` / `rpc-a1.9chain.org` (tên cũ vẫn sống). M6 + M10 đóng.
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
@@ -12,11 +12,53 @@ Kèm `DECISIONS.md` (vì sao làm vậy) và `BLOCKERS.md` (đang chờ David c�
 
 ### Việc đầu tiên của phiên sau — ĐỌC MỤC NÀY TRƯỚC MỌI THỨ
 
-## 🔴 1. RE-GENESIS 9 TỶ — MÃ XONG, DỪNG TRƯỚC BƯỚC PHÁ HUỶ
+## 🟢 1. RE-GENESIS 9 TỶ — ĐÃ CHẠY XONG 2026-08-26 (David duyệt chạy thẳng 1→6)
 
-**Tất cả quyết định đã chốt** (`DECISIONS.md` D-036 → D-043). **Mã đã sửa, đã kiểm,
-đã commit, đã vào patch series.** Việc còn lại là **một bước không hoàn nguyên được**
-và nó **cần David xác nhận** — phiên trước đã dừng đúng ở đó, cố ý.
+**Quyết định:** `DECISIONS.md` D-036 → D-044. Mạng công khai **đã sinh lại**.
+
+### Nghiệm thu sau cutover (đo trên mạng công khai)
+
+| Đo | Kết quả |
+|---|---|
+| tham số binary đang chạy | `supplyCap` **9000000000000000000** (cũ: 720000000000000000) |
+| node | **9/9** chạy · **9/9 connected** qua Cloudflare |
+| self-bond | **999.999 LOVE9/node**, cả 9 bằng nhau (đúng 1 mức giá trị) |
+| `currentSupply ≤ supplyCap` | 4.301.076.227 ≤ 9.000.000.000 ✓ |
+| giao dịch thật C-Chain | chốt **1,7s** rồi **2,2s**, status 1 |
+| `smoke-l1.mjs` | **12/12 đạt** |
+| faucet | ví mới, **99.999.999 LOVE9**, API sống, hạn mức 300/300 |
+| chain-factory | nạp lại **8,99999173 LOVE9** trên P-Chain |
+| 6 trang công khai | 200 hết |
+| Blockscout | DB xoá sạch, index lại từ block 0 của chuỗi MỚI |
+
+### Cái gì đã thay đổi trên server
+
+- Image: `9chain-a1/node:dev` nay là bản 9 tỷ (`a850a016…`). Bản cũ giữ tag
+  **`9chain-a1/node:pre-regen9-720m`** (`40d5e8f6…`, bản M8).
+- `~/9chain-a1/net` = bộ 9 node mới · `~/9chain-a1/net-old-720m` = bộ 5 node cũ (giữ).
+- `~/9chain-a1/net/.env`: **`A1_TRACK_SUBNETS` để RỖNG** (3 subnet cũ chết theo).
+- `console.env`: `A1_L1_ADMIN` → `0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C`
+  (Foundation MỚI). Bản cũ ở `console.env.bak-720m`.
+- Danh bạ L1 reset về `{"chains":[],"retired":[]}`; bản cũ ở
+  `console-chains.json.bak-pre-regenesis` và trong repo tại `docs/archive/`.
+- `9chain-a1-config/chains/`: xoá 16 thư mục config của chain đã chết.
+
+### Trên máy dev
+
+- `local-net/net-public` = **bộ đang chạy** (9 node, khoá mới, có `chain-factory-key.txt`).
+- `local-net/net-public-dead-720m` = bộ mạng cũ, **giữ lại**, khoá đã vô dụng.
+- Bảng địa chỉ công khai: `docs/ALLOCATION-PUBLIC.md`.
+- 🔴 **`keys.txt` mới là điểm hỏng duy nhất** — D-044 chốt giữ sơ đồ cũ, **bản thứ hai
+  do David tự cất**. Mất máy dev = mất khoá của cả 5 quỹ, không có đường khôi phục.
+
+### Việc CHƯA làm lại sau re-genesis (mạng mới chưa từng chạy các đường này)
+
+- **Đẻ L1 qua console** — chưa thử lần nào trên mạng mới. Chạy
+  `smoke-l1.mjs --create-chain` (~6 phút, tự thu hồi) để đóng.
+- **Warp/ICM** (`warp-test.mjs`, `bridge-test.mjs`) — cần 2 slot L1, mỗi bài ~13 phút.
+- **9Scan-A1** đọc chuỗi này — **họ chưa được báo**; dữ liệu cũ của họ nay vô nghĩa.
+
+🔴 **Nhớ: đây mới là DIỄN TẬP.** 01/09 sinh lại lần nữa. Khoá hiện tại sống tới ngày G.
 
 **Bảng phân bổ (D-042), tổng 9.000.000.000 LOVE9:**
 | Hạng mục | % | LOVE9 |
@@ -588,6 +630,41 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 ---
 
 ## Gotchas
+
+### Thêm từ phiên 2026-08-26 (đợt 9 — re-genesis mạng công khai)
+- 🔴 **`docker compose down -v` KHÔNG xoá DB Blockscout — nó là BIND MOUNT.** Volume
+  khai trong compose thì `-v` xoá; Blockscout để dữ liệu ở
+  `docker-compose/services/{blockscout,stats}-db-data` trên đĩa host. Hậu quả đo được:
+  sau re-genesis explorer vẫn phục vụ **115 block / 9.008 tx của chuỗi đã chết**, API
+  trả 200, trang vẫn đẹp — không dấu hiệu nào. Phải xoá **NỘI DUNG** hai thư mục đó
+  (`sudo find <dir> -mindepth 1 -delete`), **đừng `rm -rf` chính thư mục** (bẫy inode).
+- 🔴 **`explorer-full/9chain-a1-server.env.sh` là SCRIPT ÁP CẤU HÌNH, không phải file
+  env.** `. file.sh` trong script khác là tự sát: nó có `set -euo pipefail` và
+  `${A1_PUBLIC_HOST:?}` nên shell gọi nó **thoát ngay tại dòng đó**, các lệnh sau
+  không chạy. Tên đuôi `.env.sh` đọc như file env — đó là cái bẫy.
+- 🔴 **Faucet nướng `FAUCET_PK` vào ENV LÚC TẠO CONTAINER, và container đó không có
+  định nghĩa nào trong repo** (dựng bằng `docker run` tay). Đổi `faucet.env` trên đĩa
+  **không có tác dụng** — phải `docker rm` rồi `docker run` lại. Cấu hình thật moi ra
+  bằng `docker inspect`; đã ghi lại trong `docs/VI-VAN-HANH.md`.
+  Điểm sáng: faucet **tự chẩn đoán đúng** — *"VÍ FAUCET RỖNG trên chain này. Sai khoá,
+  hay genesis khác?"*. Thông báo lỗi nói ra giả thuyết đáng giá hơn một dòng stack trace.
+- 🔴 **RPC công khai KHÔNG phục vụ `/ext/bc/C/avax`** (Caddy lọc path, chỉ mở
+  `/ext/bc/*/rpc`). Ví X/P của avalanchego cần endpoint đó ⇒ **mọi thao tác X↔P↔C phải
+  đi qua SSH tunnel tới `127.0.0.1:9650`**, không qua tên miền. Đừng mở thêm path công
+  khai chỉ để tiện — đó là quyết định bảo mật.
+- 🔴 **Tunnel xong vẫn 403 nếu Host header sai.** Node khai
+  `--http-allowed-hosts=localhost,127.0.0.1`; container gọi qua
+  `host.docker.internal:19650` bị **403**. Cách chạy được: đặt **ssh tunnel NẰM TRONG
+  chính container** rồi trỏ `WALLET_URI=http://127.0.0.1:9650`. Lợi ích kèm theo: khoá
+  quỹ không bao giờ rời máy dev.
+- 🔴 **Lệnh rsync trong `docs/DEPLOY-KSGAME.md` sẽ ĐẨY `keys.txt` LÊN SERVER.** Nó chỉ
+  loại trừ `local-net/net`, trong khi khoá quỹ nằm ở `local-net/net-public/`. Phải là
+  `--exclude 'local-net/net-*'`. Máy dev này **không có rsync** nên tôi dùng
+  `tar -czf - --exclude=.git | ssh 'tar -xzf -'` — cũng an toàn hơn vì liệt kê rõ.
+- **`down -v` không xoá được network nếu còn container lạ bám vào.** `9chain-a1-faucet`
+  bám `net_a1net` nên network sống sót; may là thư mục mới cũng tên `net` ⇒ cùng tên
+  project ⇒ 9 node mới vào đúng network cũ và IP `172.28.0.11` giữ nguyên, faucet không
+  phải đổi `FAUCET_RPC`. **Đây là may, không phải thiết kế** — đổi tên thư mục là gãy.
 
 ### Thêm từ phiên 2026-08-26 (đợt 8 — diễn tập re-genesis cục bộ)
 - 🔴 **Tham số kinh tế nằm trong BINARY, không trong `genesis.json`.** Đổi
