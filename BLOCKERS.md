@@ -76,6 +76,54 @@ Gỡ khi được duyệt: bỏ 2 service khỏi compose Blockscout, `docker com
 
 ## Cần David quyết (không phải kẹt kỹ thuật — xem PROGRESS mục `[human]`)
 
+### 🔴 H-8 — SINH LẠI GENESIS 01/09/2026: MỐC NÀY CHƯA ĐƯỢC XÁC NHẬN VỚI DAVID
+
+**Nguồn:** phiên `9Chain-BOD` nhắn sang 2026-08-26 và đặt bản nháp
+`PLAN-REGENESIS-2026-09-01.md` vào repo này. Tin đầu mở bằng *"chủ dự án uỷ quyền BOD
+phát chỉ đạo tổng quát"*; **chính BOD đã tự đính chính** rằng một phiên ngang hàng
+không truyền được thẩm quyền, và dặn: *"đừng nhận mốc từ tôi"*.
+
+⇒ **A1 KHÔNG coi 01/09 là mốc ràng buộc, và KHÔNG ghi gì vào `DECISIONS.md` dựa trên
+tin nhắn đó.** Cần David nói trực tiếp. Việc này chạm hai thứ mất vĩnh viễn — genesis
+bất biến và custody khoá quỹ — nên mức chắc chắn "được nhắn" là không đủ.
+
+**A1 đã thẩm định phần kỹ thuật (làm được mà không cần thẩm quyền):**
+
+🔴 **XÁC NHẬN mối lo Block Adam của BOD — đo được, không suy.** Lấy mẫu 10 lượt
+trong 5 phút trên mạng công khai lúc rảnh:
+```
+t=30s … t=300s   P-Chain = 330 (không đổi)   C-Chain = 0x73 (không đổi)
+```
+Avalanche **không đẻ block rỗng**, và điều này đúng cho **cả P-Chain** chứ không chỉ
+C-Chain như gotcha cũ đã ghi. Nên luật *"block đầu tiên vượt `2026-09-09T06:09:09Z`"*
+có thể **không có block nào để trỏ vào** trong hàng giờ sau mốc, cho tới khi có ai đó
+bấm một việc gì. Đối sách "hẹn sẵn giao dịch nghi lễ" của BOD là đúng hướng, và
+**phải diễn tập** — nếu không, sai lầm chỉ lộ ra đúng ngày 09/09.
+⚠️ Giới hạn của phép đo: nó chứng minh block **không sinh theo nhịp thời gian**. Nó
+không chứng minh P-Chain đứng yên tuyệt đối (sự kiện staking/validator vẫn đẻ block).
+
+🔴 **MỘT CON SỐ TRONG PLAN SAI, ĐÚNG Ở CHỖ CHẠM NGƯỜI DÙNG THẬT.** Mục `O3` ghi
+*"28 L1 người dùng sẽ mất (6 đang track, 21 đã thu hồi, + David Do 9141)"*.
+Đo lúc 2026-08-26: **3 L1 sống · 43 đã thu hồi**. Cả hai vế lệch, và lệch ngược chiều.
+Quan trọng hơn con số: trong 3 chain sống, **chỉ MỘT thuộc về người dùng thật, và đó
+là chain của chính David** (`David Do` 9141) — `OwnerTest` là chain kiểm thử M4,
+`OmegaChain` không có admin. O3 hôm nay **không phải** bài toán báo tin xấu cho người
+lạ. (Việc quyết vẫn thật vì kế hoạch định mời thêm người trước 01/09.)
+
+🔴 **MỘT HỆ QUẢ CHƯA AI NÊU: re-genesis XOÁ SỔ CHỐNG PHÁT LẠI.** 43 bản ghi `retired`
+giữ `name` + `chainId` **vĩnh viễn** — đó là lý do `createChain` kiểm trùng trên
+`chains ∪ retired`. Sinh lại mạng là xoá sổ đó ⇒ những tên và chainId đó **dùng lại
+được** ⇒ ví của người từng dùng chain cũ sẽ lặng lẽ trỏ vào **chain của người khác**,
+và chữ ký phát lại được. Đây đúng là hố sụt đã ghi trong `HANDOFF` khi giải thích vì
+sao thu hồi không giải phóng chainId. Kế hoạch phải khai cách xử lý, dù chỉ là "chấp
+nhận vì mạng mới không còn ai dùng chain cũ".
+
+**Cần David trả lời hai câu, theo thứ tự:**
+1. 01/09 có đúng là anh chốt không? (Nếu không thì cả mục này đóng.)
+2. Nếu đúng: chain `David Do` 9141 và 43 chỗ tên/chainId đã giữ — chấp nhận mất, hay
+   phải dựng lại?
+
+
 | # | Việc | Chặn mốc nào |
 |---|---|---|
 | H-1 | Tokenomics: supply cap 720M LOVE9 · tỉ lệ 40/20/20/5/15 + vesting · uptime 80%→90% | chốt genesis mainnet, ACP-77 |
