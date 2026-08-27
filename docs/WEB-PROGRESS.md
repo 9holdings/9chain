@@ -83,10 +83,39 @@ qua 3 vòng phản biện. **Hạn:** ngày G `01/09/2026`.
       ⚠️ Mục "liên hệ / báo lỗi" **cố ý bỏ trống** — chặn ở **D2**. Bịa một địa chỉ
       cho chân trang trông đầy đủ là thứ tệ nhất ở đây.
 
-- [ ] **Đ1-8 · Lưới an toàn mạng** — hạn giờ cho GET, kiểm `r.ok`, `allSettled`.
-      🔴 **KHÔNG** đặt `AbortSignal.timeout` cho `/api/create` và `/api/revoke` —
-      Cloudflare cắt ở ~100s còn thao tác mất ~170s.
-      *Điều kiện qua:* bài kiểm giả lập API chết/chậm/trả rác, màn hình không treo.
+- [x] **Đ1-8 · Lưới an toàn mạng** — XONG `2026-08-28`.
+      `lib/mang.ts` mới: `docJson()` phân biệt **4 kiểu hỏng** (`hetGio` ·`http` ·
+      `khongPhaiJson` · `dutMang`) thay vì gộp thành "không tải được".
+      `stats.ts`: `Promise.all` → **`allSettled`**, mỗi ô vắng riêng được.
+      `NetworkStats` + `ComparisonTable`: **3 trạng thái MỖI Ô** (đang đo · có số ·
+      ô vắng). Ô vắng là **gạch ngang, không phải `0`** — "0 validator" đọc như mạng
+      chết trong khi sự thật là ta chưa hỏi được; kèm `sr-only` để trình đọc màn hình
+      **nghe được** sự khác nhau giữa "—" và một con số.
+      Hạn giờ cho mọi lượt ĐỌC ngắn: `ChainTable` · faucet `/api/info` · RPC đếm
+      validator của `/my-chains/` · console `/api/status` + `/api/progress`.
+
+      🔴 **Ràng buộc số một, và chiều an toàn đã chọn:** `goiConsole()` **mặc định
+      KHÔNG hạn giờ**; hạn giờ phải **bật ra**. Quên bật thì cùng lắm chậm như hôm
+      nay; **quên tắt thì gãy một đường không sửa lại được** (huỷ giữa chừng ⇒ server
+      vẫn đẻ chain xong, người dùng tưởng hỏng rồi bấm lại — mà tên đã dùng thì mạng
+      này KHÔNG BAO GIỜ cấp lại).
+      Kèm: hết giờ ném `LoiConsole` với `status 0` ⇒ `laTuChoiThat = false` ⇒ màn hình
+      **chờ tiếp** thay vì kết luận "bị từ chối". Nhầm chiều đó là bỏ cuộc giữa một
+      việc đang chạy đúng.
+
+      *Điều kiện qua — đạt:* `test/mang.test.ts` giả lập **chết / chậm / trả rác /
+      đứt mạng**, màn hình không treo.
+      *Cổng đọc MÃ NGUỒN canh `/api/create` + `/api/revoke` không có tham số thứ tư* —
+      bắt buộc vì lớp lỗi này **không tái hiện được bằng bài kiểm chạy được**: muốn
+      tái hiện phải có một thao tác 170 giây thật.
+      🔴 **Cổng đó BÁO OAN ngay lần chạy đầu** (regex đếm dấu phẩy, mà
+      `{ name, xacNhan }` có dấu phẩy bên trong). Đã đổi sang **cân ngoặc thật** —
+      *một cổng báo oan còn nguy hơn cổng không có, vì người ta học cách bỏ qua nó.*
+      *Đối chứng ngược:* cố tình đặt hạn giờ 30s vào `/api/create` ⇒ **ĐỎ**, đúng tệp
+      đúng đường; khôi phục ⇒ xanh.
+      *Verify Chrome thật:* localhost không có `console-chains.json` — đúng kịch bản
+      "một nguồn chết". Kết quả: **validator 9/9** (thật, từ P-Chain công khai) ·
+      **L1 "—"** kèm lời khai · **block 1**. Trước lượt vá, cả ba ô cùng biến mất.
 
 - [ ] **Đ1-9 · A11y ngoài tầm axe** — axe bắt được ~30% và `color-contrast` đang TẮT.
       Thứ tự tiêu đề · bẫy tiêu điểm · thao tác chỉ dùng bàn phím · `aria-live` khi
