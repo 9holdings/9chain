@@ -448,3 +448,141 @@ chain sống); **nội dung 0%**. Trễ quá `28/08` thì đường găng gãy �
 | Hạn validator | **chắc chắn** — đọc từ P-Chain, không tính tay |
 | Clickjacking khai thác được trên `/console/` | **CHƯA THỬ** — header vắng mặt là chắc chắn; dựng PoC thì chưa |
 | "9 node 1 host" nhìn ra từ ngoài | **chắc chắn** — `info.peers` trả `172.28.0.x` cho cả 8 peer |
+
+---
+
+## 12. Đề xuất hướng đi — A1 khuyến nghị, David chốt
+
+> David hỏi *"đề xuất hướng tối ưu"*. Mục này **khuyến nghị**, không liệt kê lựa chọn. Chỗ nào
+> A1 không đủ thẩm quyền thì nói rõ đang khuyến nghị cái gì và vì sao.
+
+### 12.1 🔴 Caddyfile hai nhánh → **GỘP `web-home` vào `main`, xoá nhánh dài hạn**
+
+Đo `27/08`: `web-home` đi trước **12 commit**, `main` đi trước **2**. Nhưng con số ấy không phải
+vấn đề — **hướng phân kỳ** mới là:
+
+| Tệp dùng chung | Phân kỳ |
+|---|---|
+| `local-net/deploy/Caddyfile` | web-home **+175 dòng** |
+| `local-net/deploy/caddy-deploy.sh` | main **+37 dòng** (cổng D-075) |
+| `DECISIONS.md` | main **+83 dòng** (D-073/074/075) |
+| `docs/NGAY-G-A1-CON-LAI.md` · `docs/SOAT-TOAN-DIEN` | **cả hai chiều** |
+
+🔴 **Nhánh này không cô lập được gì.** Cả hai phiên đều sửa **cùng một bộ tệp hạ tầng và cùng
+một sổ quyết định**. Một nhánh chỉ có ích khi hai bên chạm hai vùng khác nhau — ở đây thì không,
+và hệ quả là **`DECISIONS.md` — sổ quyết định của dự án — đang tồn tại ở hai bản khác nhau.**
+Đó là thứ đắt hơn Caddyfile nhiều.
+
+**Bằng chứng nó đang gây hại thật, đo trong chính phiên này:**
+1. Suýt deploy từ `main` ⇒ xoá **168 dòng** cấu hình của phiên web. Bắt được **bằng tay**.
+2. Cổng D-075 **chạy trên server** nhưng trên `web-home` — **nhánh deploy** — nó **chưa được
+   commit**. Tôi tự dẫm đúng cái bẫy vừa dựng cổng để chặn, trong vòng hai mươi phút.
+
+⚠️ **Luật *"chỉ MỘT phiên được deploy"* KHÔNG cần nhánh để thi hành.** Nó là giao ước giữa người
+với người. Nhánh không ngăn được hai phiên cùng deploy — nó chỉ làm **mờ** việc bản nào là bản
+thật.
+
+**Khuyến nghị:**
+1. Gộp `web-home` → `main` (12 commit, đã qua cổng riêng của phiên web: typecheck · test · build
+   · a11y · budget).
+2. Worktree `C:\PROJECTS\9Chain-A1-web` trỏ thẳng vào `main`; nhánh dài hạn **xoá**.
+3. Cần tách việc thì dùng nhánh **ngắn hạn** — sống vài giờ, merge rồi xoá.
+
+⏰ **Làm TRƯỚC ngày G.** Mang một nhánh phân kỳ vào lượt re-genesis là mời đúng lớp lỗi này quay
+lại vào ngày tệ nhất để nó quay lại.
+
+*(Đường thay thế — tách Caddyfile ra một nhà thứ ba — A1 **không** khuyến nghị: nó đẻ thêm một
+nơi phải nhớ, và **không chữa** phân kỳ của `DECISIONS.md`.)*
+
+### 12.2 🔴 O1 custody — **KHÔNG phải quyết định đang chờ. Là một PHÉP KIỂM chưa chạy.**
+
+Đọc kỹ: **David đã chốt O1 ở D-044 (`26/08`)** — giữ sơ đồ cũ, bản thứ hai David tự cất. Thứ
+`NGAY-G-A1-CON-LAI` ghi là *"chưa ai **xác nhận** có"*.
+
+⇒ Câu đúng không phải *"anh chọn sơ đồ nào"* mà **"bản thứ hai có thật không, và khôi phục được
+không"**. Đó là việc mười lăm phút, không phải một quyết định.
+
+🔴 **Và có một dịp diễn tập HOÀN HẢO đang trôi qua:** bộ khoá hiện tại **sẽ bị vứt bỏ ngày
+`01/09`**. Diễn tập khôi phục trên chính nó là **rủi ro bằng không** — hỏng cũng không mất gì, vì
+nó sắp chết. Đây là cửa sổ duy nhất trong năm để thử một quy trình custody mà không đánh cược.
+
+**Khuyến nghị — phép kiểm phải CÓ THỂ ĐỎ, không phải "mở ra xem có file không":**
+
+1. David lấy **bản thứ hai** (bản anh tự cất), khôi phục vào một thư mục tạm — **không đụng máy dev**.
+2. Suy địa chỉ từ khoá đó, so với `docs/ALLOCATION-PUBLIC.md`.
+3. **Đạt** = ra đúng địa chỉ Foundation đã công bố. **Đỏ** = khác, hoặc không mở được, hoặc không
+   tìm thấy.
+4. Ngày G sinh khoá mới ⇒ **chạy lại đúng quy trình đó ngay trong ngày**, lúc còn nhớ.
+
+A1 viết được bài kiểm bước 2 (đọc khoá → in địa chỉ, **không gửi đi đâu**). **Bước 1 chỉ David
+làm được** — và nếu bước 1 không thực hiện được thì đó chính là câu trả lời cần biết trước ngày G.
+
+### 12.3 🔴 O4 — **cách rẻ nhất không phải tiền, mà là chữ "chính thức"**
+
+`NGAY-G-A1-CON-LAI` §7 tự đặt điều kiện: *"O4 không đạt thì `01/09` KHÔNG nên gọi là chạy chính
+thức"*. Bản soát này **củng cố** điều đó bằng phép đo: `info.peers` phơi `172.28.0.x` cho cả 8
+peer ⇒ ai cũng bác được tuyên bố "9 node" bằng **một lệnh curl**.
+
+Nhưng ba việc đang bị gộp làm một, và tách ra thì rẻ hơn nhiều:
+
+| | Việc | Chi phí | Chặn ngày G? |
+|---|---|---|---|
+| **a** | **Khai thật trên trang** — *"9 validator, hiện chạy trên một hạ tầng; phi tập trung hoá là mốc M3"* | vài câu | **không** |
+| **b** | **Đổi tên `01/09`** — *"sinh lại mạng"* thay vì *"chạy chính thức"* | 0 đồng | **không** |
+| **c** | **Dời một node** sang nhà cung cấp thứ hai | tiền + thời gian + O7 phải tập lại | **có**, nếu giữ chữ "chính thức" |
+
+**Khuyến nghị: làm (a) và (b) trước ngày G; đẩy (c) sang tháng 9.**
+
+Lý do không phải tiếc tiền: **(c) làm vội trong năm ngày còn tệ hơn (c) làm tử tế trong tháng 9.**
+Dời một validator sang nhà cung cấp khác kéo theo P2P phải ra Internet (H-7 chưa quyết), kéo theo
+khoá staking, và kéo theo O7 phải diễn tập lại trên **topology nhiều máy — chưa lượt nào tập**.
+Nhồi cả cụm đó vào tuần có re-genesis là cách chắc nhất để hỏng cả hai.
+
+🔴 **Và (a)+(b) làm cho lời tuyên bố thành ĐÚNG ngay hôm nay** — đó mới là thứ `info.peers` đang
+đe doạ, chứ không phải kiến trúc. Một testnet khai thật *"một hạ tầng, đang đi tới nhiều"* thì
+không còn gì để ai bác.
+
+### 12.4 B-9 `#e84142` — **sửa, và sửa TRONG lượt regen tới**
+
+**Khuyến nghị: sửa.** Ba lý do, xếp theo sức nặng:
+
+1. Một sovereign fork tự khai *"không dùng nhãn hiệu Avalanche cho branding"* (`README`, `NOTICE`)
+   mà mang **đúng đỏ thương hiệu của họ** trong công cụ chủ quyền là **rủi ro nhận diện**, không
+   phải chuyện thẩm mỹ.
+2. Chi phí **nay gần bằng không**: quy trình sinh lại cả bộ patch vừa chạy trong ngày, có đối
+   chứng ngược (áp 16/17 → ra đúng tree cũ). Thêm một lượt là một lệnh + một phép so tree.
+3. Để sau ngày G thì nó nằm trong `patches/` mà **mọi lần dựng lại fork đều áp**, và **không cổng
+   nào canh màu cắm cứng**.
+
+⏰ Làm **trước** lượt `docker build` ngày G — sau đó tree hash đã đi vào image.
+
+### 12.5 B-10 `robots.txt` — **làm luôn, một phút**
+
+Không có gì để cân nhắc. Tệp có, route có, đã deploy; chỉ Cloudflare đang che. Dashboard →
+Settings → Content Signals / robots.txt management → tắt. Đo lại bằng **nội dung**, không bằng mã
+HTTP.
+
+### 12.6 H-7 IPv4 vs IPv6 — **đừng quyết vội, nó KHÔNG chặn ngày G**
+
+Khuyến nghị cũ giữ nguyên: **IPv4 đa cổng cho node beacon** (thứ cộng đồng cần chạm tới), IPv6 cho
+phần còn lại. Lý do: ở Việt Nam tỉ lệ người chỉ có IPv4 không nhỏ, và họ *"chẳng làm gì sai"*.
+
+Nhưng nó **không chặn `01/09`** — cổng P2P hôm nay đóng và mạng vẫn chạy. Gộp vào cùng cụm với
+O4(c) sau ngày G, vì hai việc đó **chạm nhau**: dời node sang nhà cung cấp thứ hai buộc P2P phải
+ra Internet, tức H-7 phải xong trước.
+
+### 12.7 Thứ tự năm ngày tới
+
+| Ngày | Việc | Ai |
+|---|---|---|
+| **28/08** | Diễn tập khôi phục custody trên bộ khoá **sắp bị vứt** (§12.2) · tắt robots.txt ở CF · gộp `web-home` → `main` | David + A1 |
+| **28/08** | Chốt B-9 ⇒ A1 sinh lại bộ patch **lần cuối** trước ngày G | David → A1 |
+| **28/08** | Câu khai thật về hạ tầng + đổi tên `01/09` (§12.3 a+b) | David + phiên web |
+| **29/08** | **GO/NO-GO** — mười điều §7 | — |
+| **01/09** | Ngày G. Runbook thêm: O2 **trước** khi xoá · tra lại G4 · `restart policy = unless-stopped × 9` sau `up -d` | A1 |
+| **ngay sau** | Đo hạn 9 validator → lịch nhắc (B-12) · đo lệch đồng hồ → `--bu-ms` (B-13b) · dựng cron backup + giám sát | A1 |
+| **tháng 9** | O4(c) dời node + H-7 + O7 tập trên nhiều máy — **cụm này đi cùng nhau** | David + A1 |
+
+🔴 **Thứ duy nhất A1 không tự cứu được vẫn không đổi:** chữ khắc chờ **C1 đóng băng byte**. Nếu
+`28/08` C1 chưa có byte thì đó là câu phải đưa vào **GO/NO-GO `29/08`**, không phải câu để lại tới
+`01/09`.
