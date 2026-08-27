@@ -60,6 +60,8 @@ const BO_NAP: Record<string, () => Promise<{ default: Tu }>> = {
   zh: () => import('./dicts/zh'),
   hi: () => import('./dicts/hi'),
   es: () => import('./dicts/es'),
+  ar: () => import('./dicts/ar'),
+  fr: () => import('./dicts/fr'),
   vi: () => import('./dicts/vi'),
 };
 
