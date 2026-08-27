@@ -1,6 +1,6 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-27** (đợt 13 — **SOÁT CORE BLOCKCHAIN**) — mạng công khai vẫn là bản
+Cập nhật: **2026-08-27** (đợt 14 — **AUTOPILOT 5/5 MỐC ĐƯỜNG GĂNG NGÀY G**) — mạng công khai vẫn là bản
 re-genesis của `26/08` (**9 node**, phát hành genesis 5.400.000.000, **lượt diễn tập**).
 Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
 
@@ -9,17 +9,64 @@ Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
 C-Chain — xem ngay mục dưới. Binary trên server **vẫn là bản cũ**; patch 0013 lên cùng lượt
 sinh lại mạng ngày G.
 
-## ▶ Phiên sau: **CHẠY AUTOPILOT** (David chốt `2026-08-27`)
+## ✅ ĐỢT AUTOPILOT 14 (`2026-08-27`) — **5/5 MỐC ĐẠT**
 
 🔴 **ĐỌC [`docs/NGAY-G-A1-CON-LAI.md`](docs/NGAY-G-A1-CON-LAI.md) TRƯỚC.** Đó là bản A1 thẩm
 định kế hoạch ngày G `01/09` và là **danh sách còn-lại thật**. `PLAN-REGENESIS-2026-09-01.md`
 là bối cảnh của BOD, mâu thuẫn thì file kia thắng.
-`DECISIONS.md` (vì sao) · `BLOCKERS.md` (chờ David) · `PROGRESS.md` (backlog cũ).
+`DECISIONS.md` (vì sao) · `BLOCKERS.md` (chờ David) · `PROGRESS.md` (backlog).
 
-### Backlog autopilot — 5 mốc, KHÔNG mốc nào cần David
+| # | Mốc | Kết quả |
+|---|---|---|
+| **A-1** | Diễn tập nghi lễ **Block Adam** | ✅ 4 lượt · [`DIEN-TAP-BLOCK-ADAM-2026-08-27.md`](docs/DIEN-TAP-BLOCK-ADAM-2026-08-27.md) |
+| **A-2** | **Quy trình O2** — xuất + `sha256` trước khi xoá | ✅ 3 ĐCN · [`QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md`](docs/QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md) |
+| **A-3** | **G4** — tra `chainid.network` | ✅ 3 ĐCN · [`G4-TRA-CHAINID-2026-08-27.md`](docs/G4-TRA-CHAINID-2026-08-27.md) |
+| **A-4** | **C-4** — cổng chainId (đóng nốt **B-11**) | ✅ 7 ca/3 ĐCN · [`CONG-CHAINID-2026-08-27.md`](docs/CONG-CHAINID-2026-08-27.md) |
+| **A-5** | **I1b** — cung có nguồn | ✅ 2 ĐCN · [`I1B-CUNG-CO-NGUON-2026-08-27.md`](docs/I1B-CUNG-CO-NGUON-2026-08-27.md) |
 
-Xếp theo đường găng ngày G. Mỗi mốc có **điều kiện qua đo được**; không đạt thì ghi `BLOCKERS`
-rồi sang mốc kế, **đừng dừng chờ**.
+**Cây fork: tree `c9226d9c` · 16 patch trên `1cf1fc3`** (patch 0015 cổng chainId · 0016
+`cung.json`), tái lập khớp từng byte, đối chứng ngược 14/15 patch ⇒ tree khác.
+⚠️ **Không cần build lại image node** — cả hai patch chỉ đụng `netgen`, chạy bằng `go run` lúc
+sinh mạng. Ràng buộc `down -v` của D-050 (patch 0013) **không đổi**.
+
+### 🔴 Ba phát hiện đắt nhất của đợt này
+
+**1. Bắn ĐÚNG mốc thì Block Adam là block của EVA, không phải của Adam.**
+`block.timestamp` rơi vào **đúng giây bấm gửi**, mà luật khắc đòi **vượt** mốc (`> T`). Lượt đầu:
+block #1 (chứa Adam) `ts = mốc + 0` — **không vượt**; block #2 (Eva) `ts = mốc + 2` — vượt.
+⇒ **luật khắc và hành động nghi lễ trỏ vào hai block khác nhau**, và toàn bộ khoảng cách là một
+phép so sánh chặt hay không chặt. Bù **+3s** thì 9/9.
+🔴 Nhưng +3s đo trên **1 node dùng chung đồng hồ với máy bắn**; trên bộ 9 node `block.timestamp`
+là đồng hồ của **node đề xuất block**. ⇒ **B-13**.
+🔴 Và sâu hơn: luật *"block ĐẦU TIÊN vượt mốc"* nói về **toàn chuỗi** — nghi lễ chỉ điều khiển
+được **giao dịch của mình**. **Không tự bảo đảm được.**
+
+**2. `9000000009` trống ✓ — nhưng `9100` là **Genesis Coin**, một chuỗi có thật.**
+`9100` là số **đầu tiên** console cấp cho L1 người dùng, và nó **đã được cấp hai lần** rồi
+(`OwnerTest`). Kế hoạch G4 chỉ nêu `9000000009` — chainId **của A1** — bỏ sót chainId **A1 phát
+cho người khác**, nhóm đông hơn và chạm người thật nhiều hơn. ⇒ **B-14**.
+*(Đã vá phần không cần quyết: console có danh sách chặn 51 số, tự cấp nay ra `9101`.)*
+
+**3. Ba lần đối chứng ngược bắt lỗi trong CHÍNH công cụ vừa viết.**
+Bộ xuất O2 khai *"kèm 1 L1"* trong khi L1 đó gọi hỏng và không có một byte nào — **công cụ chống
+nói dối suýt nói dối**. Nay khai `xin N · XUẤT ĐƯỢC M`.
+*(Cùng họ với lỗi `Fprintf` thiếu tham số mà đợt 13 bắt được.)*
+
+### Việc sinh ra — xem `BLOCKERS.md`
+
+| | Việc | Ai |
+|---|---|---|
+| **B-13 (a)** | 🔴 **Block Adam NEO VÀO CÁI GÌ** — khuyến nghị **hash giao dịch nghi lễ**. Khắc vĩnh viễn ⇒ không tự quyết. Gộp vào `NGAY-G-A1-CON-LAI` §6 mục 3, hạn `28/08` | **David** |
+| **B-13 (b)** | Đo **lệch đồng hồ 9 node** rồi chọn `--bu-ms`. Chỉ làm được **sau khi mạng ngày G lên** | A1 |
+| **B-14** | Gốc dải chainId L1 (`9100` hay `9146`) — vướng đúng mục quyết §5c *"có khôi phục sổ `retired` cũ không"* | **David** |
+| — | `cung.json` phải lên server **cùng `faucet.env`** (quên ⇒ `/api/supply` 503) | vận hành |
+| — | Câu khai nguồn cung trên trang — `web/` thuộc worktree `9Chain-A1-web`, **câu chữ đã soạn sẵn** | phiên web |
+| — | Chạy O2 **một lượt trên mạng công khai** để biết thời gian thật | A1 |
+
+### Backlog cũ (giữ để đối chiếu điều kiện qua)
+
+<details>
+<summary>5 mốc và điều kiện qua như đã giao</summary>
 
 | # | Mốc | Điều kiện qua |
 |---|---|---|
@@ -29,20 +76,25 @@ rồi sang mốc kế, **đừng dừng chờ**.
 | **A-4** | **C-4 — cổng "bản tập ≠ bản thật" cho chainId** (B-11). A1 có cổng rất kỹ cho **chữ khắc** mà **không có cổng nào cho chainId** — thứ ví người dùng thật sự đọc. Không chạm binary | netgen từ chối/cảnh báo khi sinh mạng tập mang chainId của mạng thật; **có đối chứng ngược** |
 | **A-5** | **I1b** — phơi trần cung ra endpoint đọc được, **hoặc** ghi rõ trên trang rằng nguồn là *tham số genesis*. Luật cứng của 9Scan-A1: *"số công bố phải đọc từ chain thật"*; in trần mà không có endpoint là **gõ hằng số vào giao diện** | Số trên trang truy được về một lệnh RPC, hoặc trang tự khai nguồn là tham số genesis |
 
+</details>
+
 ⚠️ **Luật cứng cho autopilot ở repo này** *(đã trả giá để học)*:
 1. **Không tin mã HTTP.** Thang đo từ yếu tới mạnh: mã HTTP → `content-type` → **nội dung** →
    header tầng trước (`cf-cache-status`). Cổng chỉ biết xanh **không chứng minh gì**.
 2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một nửa.
 3. **Đụng `patches/` là đụng đường tái lập fork** — sinh bằng `--no-signature`, nghiệm thu bằng
-   `git am --keep-cr` + so tree. Tree hiện tại: **`4c5d5b1e`** / **14 patch** / gốc `1cf1fc3`.
+   `git am --keep-cr` + so tree. Tree hiện tại: **`c9226d9c`** / **16 patch** / gốc `1cf1fc3`.
+   ⚠️ Sinh lại **cả bộ**, đừng thêm lẻ: tới `27/08` các patch 0013/0014 vẫn mang tiêu đề
+   `[PATCH nn/12]` vì được thêm vào chứ không sinh cùng lượt — một bộ tái lập **tự đếm sai
+   chính mình** (D-065).
 4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)
    — báo trước khi merge/deploy, xem `WORKTREE-WEB.md` bên đó.
 
 ### 🔴 Chờ David — autopilot KHÔNG tự làm được, đừng đoán thay
 
-`BLOCKERS.md`: **B-12** lịch gia hạn validator (làm ngay sau ngày G) · **B-11/C-4** *(A-4 chuẩn
-bị được cổng, nhưng chốt số là của David)* · **B-9** `#e84142` trong `patches/0003` · **B-10**
-tắt Managed robots.txt ở dashboard Cloudflare.
+`BLOCKERS.md`: 🆕 **B-13(a)** Block Adam **neo vào cái gì** · 🆕 **B-14** gốc dải chainId L1 ·
+**B-12** lịch gia hạn validator (làm ngay sau ngày G) · **B-9** `#e84142` trong `patches/0003` ·
+**B-10** tắt Managed robots.txt ở dashboard Cloudflare. *(**B-11 ĐÃ ĐÓNG HẲN** — C-4 xong `27/08`.)*
 `NGAY-G-A1-CON-LAI.md` §6: **O1 custody khoá quỹ** (hạn `28/08`, cơ hội một lần) · **Block Adam
 nằm trên chain nào** · **O3** chính sách L1 người dùng · **có khôi phục sổ `retired` cũ không**
 (chain `David Do` 9141 nằm trong vùng đang hở) · **O4** validator nhà cung cấp thứ hai (tiền) ·

@@ -354,7 +354,9 @@ Bản nháp BOD có 7 điều kiện, trong đó **điều 1 không thoả mãn 
 9. ✅ **Giao dịch nghi lễ Block Adam đã diễn tập trên bản tập** — xong `27/08`, 9/9 + 2 ca đối
    chứng ngược. 🔴 **Còn hai vế chưa đạt, và cả hai đã lộ ra nhờ chính lượt tập:** (a) đã **đo
    lệch đồng hồ 9 node** và chọn được con số bù · (b) David đã chốt Block Adam **neo vào cái gì**
-10. 🆕 **Cổng "bản tập ≠ bản thật" đã tồn tại và đã bắt được ít nhất một ca đối chứng ngược**
+10. ✅ **Cổng "bản tập ≠ bản thật" đã tồn tại và đã bắt được ít nhất một ca đối chứng ngược** —
+    **hai cổng**: chữ khắc (patch 0010, `26/08`) và **chainId** (patch 0015, `27/08`, C-4).
+    Cổng chainId: 7 ca nghiệm thu, **3 ca đỏ đúng chỗ**. Xem [`CONG-CHAINID-2026-08-27.md`](CONG-CHAINID-2026-08-27.md)
 
 ---
 
@@ -413,7 +415,13 @@ Xếp theo thứ tự đường găng:
    🔴 Bài tra rộng hơn kế hoạch (thêm trọn dải L1 `9100–9199`) và bắt được **`9100` = Genesis
    Coin** — số console cấp **đầu tiên**. ⇒ B-14, gộp vào mục quyết §5c.
    🔴 **Vẫn phải tra LẠI ngay trước bước sinh genesis** — lượt này chỉ nói về hôm nay.
-7. **I1b** — phơi trần cung ra endpoint đọc được, hoặc ghi rõ trên trang rằng nguồn là **tham số
-   genesis**. Luật cứng của 9Scan-A1 là *"số công bố phải đọc từ chain thật"*; in trần mà không có
-   endpoint là **gõ hằng số vào giao diện**.
+7. ✅ **XONG `27/08`** — **I1b**: `GET /api/supply` trên faucet + `netgen/cung.json` (patch 0016).
+   🔴 **Và nó phải giải một mâu thuẫn thật:** tổng cung 9 tỷ **không đọc được từ lệnh RPC nào** —
+   `getCurrentSupply` chỉ đếm X/P, `SupplyCap` là hằng số binary. Nên endpoint **không giả vờ**:
+   mỗi trường mang `source` riêng (`measured` kèm tên lệnh · `binary-constant` · `derived` kèm
+   công thức). Nó **tự đo rồi so lại** bản khai (`manifestMatchesChain` + `mismatches`), và
+   `totalSupply` suy từ **số đo được** nên sửa bản khai không đẩy được con số công bố lên.
+   2 ca đối chứng ngược. Bản đầy đủ: [`I1B-CUNG-CO-NGUON-2026-08-27.md`](I1B-CUNG-CO-NGUON-2026-08-27.md).
+   🔴 Còn: `cung.json` **phải lên server cùng `faucet.env`** (quên ⇒ 503), và câu khai nguồn trên
+   trang (`web/` thuộc worktree `9Chain-A1-web` — câu chữ đã soạn sẵn ở §5b bản trên).
 8. **Dồn `chains` → `retired`, giữ tệp** (O3b) — chờ David quyết có khôi phục 43 bản ghi cũ không.
