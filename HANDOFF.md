@@ -1,6 +1,7 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-27** (đợt 14 — **AUTOPILOT 5/5 MỐC ĐƯỜNG GĂNG NGÀY G**) — mạng công khai vẫn là bản
+Cập nhật: **2026-08-27** (phiên phân tích định danh — **D-072 chốt bộ số ngày G**; trước đó đợt 14
+AUTOPILOT 5/5 mốc) — mạng công khai vẫn là bản
 re-genesis của `26/08` (**9 node**, phát hành genesis 5.400.000.000, **lượt diễn tập**).
 Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
 
@@ -8,6 +9,62 @@ Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
 Đó là hằng số trong binary, và nó phải nhỏ hơn tổng cung đúng bằng phần phát hành thẳng trên
 C-Chain — xem ngay mục dưới. Binary trên server **vẫn là bản cũ**; patch 0013 lên cùng lượt
 sinh lại mạng ngày G.
+
+## 🆕 CHỐT `2026-08-27` — **BỘ ĐỊNH DANH MỚI CHO NGÀY G** (D-072)
+
+| | Chốt | Đổi từ |
+|---|---|---|
+| `networkID` | **`999999999`** | `9001` |
+| `chainId` chain mẹ | **`9000000009`** — chốt cứng MỌI thế hệ | (giữ) |
+| dải `chainId` L1 | **`9000000010` – `9999999999`** (~1 tỷ số) | trần cũ `9000009999` |
+
+**Đã tra `chainid.network` `2026-08-27T13:11Z`** (2726 mục · sha256 `7a122fb15423a595…`): dải L1
+**TRỐNG HOÀN TOÀN 0/2726** · `9000000009` trống · hàng xóm gần nhất cách **308 triệu** (dưới sàn,
+ONFA) và **1,3 tỷ** (trên trần, Palm). Sổ qua phép kiểm lành, 2 đối chứng ngược đỏ đúng chỗ.
+Vật chứng: [`docs/vat-chung/g4-2026-08-27-c-dai-moi/`](docs/vat-chung/g4-2026-08-27-c-dai-moi/) (chains.json + KET-QUA-TRA.json).
+
+**Vì sao đổi `networkID`** *(ghi lại để không ai "sửa cho gọn" về sau)*: netgen **ép mọi mạng**
+dùng chung `9001` (dev, drill, public, và mạng sau ngày G), mà bắt tay P2P **chỉ kiểm `networkID`,
+không có bước nào so genesis** (`network/peer/peer.go:825`) và P-Chain mang cùng `ids.Empty` trên
+mọi mạng ⇒ **node mạng cũ bắt tay được node mạng mới; node dev bắt tay được mạng công khai.**
+`networkID` nằm trong genesis ⇒ **ngày G là cửa duy nhất**.
+🔴 `uint32` (trần 4.294.967.295) ⇒ **không thể** dùng `9000000009` làm `networkID`. Đừng thử.
+
+⚠️ `999999999` ở **thang chainId** là *Zora Sepolia Testnet*. **Không** phải va chạm kỹ thuật —
+đo trên mạng thật: C-Chain A1 trả `net_version` = **`9000000009`**, tức `networkID` của Avalanche
+không rò ra ví/công cụ EVM nào. Hệ quả duy nhất: **footer đừng in `networkID` như thông số ngang
+hàng để chép** (`web/lib/chain.ts:23` · `SiteFooter.tsx:15`).
+
+**Đã giao phiên `9chain-a1-af`** — bản chuyển giao đầy đủ 7 mục, kèm số dòng từng điểm sửa
+(`constants/network_ids.go` · `genesis/params.go` → kiểm theo DẢI · `genesis/genesis.go:330` ·
+`netgen/main.go:126` · `lib/chainid.mjs` · `check-chainid.mjs` · `chainid-da-chiem.json`).
+
+### 🔴 Hai lỗi độc lập tìm được trong lúc soát — sửa được NGAY, không chờ ngày G
+
+**1. `local-net/lib/cb58.mjs:113` neo vào một C-Chain ID ĐÃ CHẾT, mà self-test vẫn XANH.**
+Neo cắm cứng `2s5pikvm…` kèm chú thích *"cố định vĩnh viễn"*. Mạng công khai hôm nay trả
+**`JPWKwpGCwSQpXNy8HUb1TFcGh57MY7B6vC7K6mzLGLpBCX4Zx`**. Tệp commit `ad2f029` (25/08), chết ở
+re-genesis 26/08. Ca đó chỉ kiểm checksum, **không đối chiếu mạng nào** ⇒ xanh giả.
+*Mô hình sai:* C-Chain ID = `tx.ID()` của `CreateChainTx` trong genesis, mà tx đó **không có
+input/credential** ⇒ ID là hàm của `networkID` + **toàn văn byte `cChainGenesis`**, mà netgen dựng
+nó từ địa chỉ 5 quỹ **sinh khoá mới mỗi lượt** ⇒ **mỗi re-genesis là một C-Chain ID mới.**
+**Đề xuất:** đổi neo sang P-Chain `11111111111111111111111111111111LpoYY` (= `ids.Empty`, hằng
+vĩnh viễn của **mọi** mạng Avalanche) — còn là ca kiểm **mạnh hơn**: bắt đúng bẫy byte-0-dẫn-đầu.
+
+**2. Bí danh tài sản trên X-Chain vẫn là `"AVAX"`.** `genesis/genesis.go:299-301` đã đổi
+`Name`/`Symbol` thành `LOVE9 Coin`/`LOVE9`, nhưng **khoá map** ở dòng `:330` vẫn `"AVAX"` — và
+khoá đó là `Alias` **được đăng ký thật** trên X-Chain (`vms/avm/vm.go:515`). Nằm trong byte genesis
+X-Chain ⇒ **chỉ đổi được ngày G, không có lần sau.**
+
+### Còn mở — chờ David
+
+| | |
+|---|---|
+| **(a)** | Có chia dải L1 thành **KHỐI THẾ HỆ** không (chữ số thứ 2 = thế hệ: `9.0xx…` = thế hệ 0 … `9.9xx…` = thế hệ 9; **đã tra cả 10 khối, trống**). **Không chia** ⇒ sau ngày G lần sau L1 đầu tiên lại nhận `9000000010`, **trùng số với L1 thế hệ trước**, và chống-cấp-lại **treo lên `console-chains.json` phải sống sót mọi lần re-genesis** ⇒ nó thành tài sản ngang khoá quỹ, phải vào quy trình O2 |
+| **(b)** | Tên mạng cụ thể (`9chain-a1-g0`?) — ràng vào **đường dẫn DB**, xem D-050 |
+| **(c)** | Có làm **khối `networkID` riêng cho mạng tập** không (để node dev không bắt tay được mạng thật). Nếu có ⇒ `genesis/params.go` **phải** chuyển sang kiểm theo dải, nếu không networkID lạ rơi vào `default:` → LocalParams 720 triệu → **tràn ngược uint64** (đúng bẫy patch 0013) |
+
+---
 
 ## ▶ Phiên sau bắt đầu ở đâu
 

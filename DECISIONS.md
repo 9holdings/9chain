@@ -1805,3 +1805,109 @@ cổng chainId: chặn cứng một đường hợp lệ chỉ đẻ ra thói qu
 đến từ `web-home`. Cổng chỉ chặn hậu quả, không chữa nguyên nhân. Nguyên nhân là **hạ tầng dùng
 chung không có một nhà duy nhất** — việc đó cần David quyết (gộp `web-home` vào `main`, hay tách
 Caddyfile ra khỏi cả hai).
+
+---
+
+### D-072 — **Bộ định danh cho mạng ngày G: `networkID 999999999` · `chainId 9000000009` · dải L1 `9000000010–9999999999`**
+
+**David chốt `2026-08-27`.** Thay phần trần dải của D-069 (sàn `9000000010` **giữ nguyên**).
+
+| | Chốt | Trước |
+|---|---|---|
+| `networkID` (Avalanche, uint32) | **`999999999`** | `9001` |
+| `chainId` chain mẹ (EVM) | **`9000000009`** — chốt cứng MỌI thế hệ | (giữ, D-047) |
+| dải `chainId` L1 | **`9000000010` – `9999999999`** | trần `9000009999` |
+
+#### Vì sao đổi `networkID` — không phải thẩm mỹ
+
+netgen **ép mọi mạng nó sinh dùng chung `9001`** (`netgen/main.go:126`, exit 1 nếu khác): mạng dev,
+`net-drill9`, `net-bak`, mạng công khai, **và mạng sau ngày G**. Mà:
+
+- bắt tay P2P **CHỈ kiểm `networkID`** — đọc hết hàm xử lý `Handshake`, `network/peer/peer.go:825`,
+  **không có bước nào so genesis**;
+- P-Chain mang **cùng** `blockchainID` = `ids.Empty` trên **mọi** mạng Avalanche
+  (`utils/constants/network_ids.go:88`);
+- bootstrap IP không đổi qua các thế hệ (cùng VPS).
+
+⇒ **node của mạng A1 CŨ bắt tay được node của mạng A1 MỚI, và node dev bắt tay được mạng công
+khai.** `networkID` nằm trong genesis ⇒ **chỉ đổi được vào lượt re-genesis; ngày G là cửa duy nhất.**
+
+🔴 **`uint32` (trần 4.294.967.295) ⇒ KHÔNG thể dùng `9000000009` làm `networkID`.** Số 9 chữ số
+toàn 9 là trần thực tế của mọi phương án mang bản sắc 9.
+
+#### Vì sao trần dải L1 nới từ `9000009999` lên `9999999999`
+
+D-069 chọn trần cho một console có **trần 16 L1** (giới hạn P2P: node khai quá 16 subnet bị cắt
+kết nối). Nhưng trần 16 là **kiến trúc hiện tại**, sẽ mất khi có tập validator riêng cho từng L1
+(ACP-77) — và **bó hẹp dải số là cửa MỘT CHIỀU** (số đã cấp cho một L1 thì không đổi, không thu
+hồi được), trong khi **nới rộng thì miễn phí, nhưng chỉ miễn phí lúc chưa cấp số nào.**
+
+#### Ba tính chất an toàn tự có — đừng phá khi refactor
+
+- `networkID` **9 chữ số** vs `chainId` L1 **10 chữ số** ⇒ không nhìn nhầm nhau.
+- `999999999` nằm **dưới sàn** dải L1 (`9000000010`) ⇒ chép nhầm sang ô `chainId` **rơi ngoài dải
+  A1 đã khai**, cổng console bắt được.
+- **Toàn bộ** dải L1 (`≥ 9.000.000.010`) **vượt trần uint32** ⇒ chép nhầm chiều ngược lại thì node
+  **không khởi động được**. Không số nào trong dải lọt qua được cả hai ô.
+
+#### Phép đo — `chainid.network`, `2026-08-27T13:11:47Z`
+
+`2726 mục · 1.162.288 byte · sha256 7a122fb15423a595324f6a95d82077adacaef89c8492036bdb88707b9cd493ff`
+
+| | |
+|---|---|
+| Sổ qua phép kiểm **lành** | neo `chainId 1` = "Ethereum Mainnet" · `43114` = "Avalanche C-Chain" |
+| Đối chứng ngược | `1` và `43114` **ĐỎ đúng chỗ** |
+| `9000000009` | ✓ trống |
+| **`9000000010`–`9999999999`** | ✓ **TRỐNG HOÀN TOÀN — 0/2726** |
+| Hàng xóm gần nhất dưới sàn | `8.691.942.025` (ONFA Chain Testnet) — cách **308 triệu** |
+| Hàng xóm gần nhất trên trần | `11.297.108.099` (Palm Testnet) — cách **1,3 tỷ** |
+| ±10 triệu quanh chain mẹ | ✓ trống — tái lập phép đo G4 `27/08`, **vẫn đúng hôm nay** |
+| `LOVE9` · `9Chain` · `9Scan` | ✓ không chuỗi nào dùng tên/ký hiệu này |
+
+**Vật chứng:** `docs/vat-chung/g4-2026-08-27-c-dai-moi/` — `chains.json` + `KET-QUA-TRA.json` (kèm bảng 10 khối thế hệ).
+⚠️ **Luật cũ giữ nguyên: tra LẠI ngay trước bước sinh genesis `01/09`, với dải mới.**
+
+#### `999999999` trùng Zora Sepolia ở thang `chainId` — và vì sao vẫn chốt
+
+Sổ ghi `999999999` = **Zora Sepolia Testnet** (cả `chainId` lẫn trường `networkId`).
+**Không phải va chạm kỹ thuật.** Đo trên mạng thật: C-Chain A1 trả `net_version` = **`9000000009`**,
+không phải `9001` ⇒ `networkID` của Avalanche **không rò ra bất kỳ ví hay công cụ EVM nào**.
+
+⚠️ Nhưng *vai trò* của `networkId` (devp2p) và `networkID` (avalanchego) là **giống hệt** — cùng là
+"số tách mạng ở tầng P2P", chỉ khác là hai hệ sinh thái giữ và **không có sổ chung**. Nói "khác
+namespace nên vô hại" là nói nhẹ hơn thực tế.
+
+⇒ Đường phơi bày duy nhất là **chữ trong footer**. Điều kiện kèm theo của D-072:
+**footer không được in `networkID` như một thông số ngang hàng để chép**
+(`web/lib/chain.ts:23` · `web/components/SiteFooter.tsx:15`).
+
+#### Bối cảnh: `networkID` ≠ `chainId`, và vì sao chuỗi khác dùng chung một số
+
+| | Avalanche `networkID` | EVM `chainId` |
+|---|---|---|
+| Tầng | node / P2P | máy ảo EVM |
+| Phạm vi | **cả MẠNG** — P + X + C + mọi L1 dùng **một** giá trị | **một CHUỖI** |
+| Kiểu | `uint32` | ≤ `2⁵³−1` (EIP-2294) |
+| Việc | cắt bắt tay giữa node khác mạng | buộc chữ ký vào chuỗi (EIP-155) |
+| Sổ đăng ký | **không tồn tại** | `chainid.network` |
+
+Tỷ lệ **1 : N** là điểm cốt lõi — A1 có **một** `networkID` phủ **nhiều** `chainId`, nên hai đại
+lượng **buộc phải khác nhau**. Gần như mọi chuỗi EVM là *một chuỗi = một mạng* nên đặt chúng bằng
+nhau (**2.678/2.726 = 98,2%** trong sổ). 1,8% lệch nhau gồm đúng hai nhóm: tàn dư chia tách DAO
+(Ethereum Classic `61`/`1`, Callisto, Expanse) — **và fork avalanchego**: **Camino C-Chain
+`chainId 500` / `networkId 1000`**, Columbus Testnet `501`/`1001`. **A1 nằm đúng nhóm mà cấu trúc
+bắt buộc phải lệch, không đi lệch chuẩn.**
+
+#### Còn mở — chờ David, đừng đoán thay
+
+- **(a) Có chia dải L1 thành KHỐI THẾ HỆ không** (chữ số thứ 2 = thế hệ: thế hệ 0 =
+  `9.000.000.010–9.099.999.999` … thế hệ 9 = `9.900.000.000–9.999.999.999`; **đã tra cả 10 khối,
+  trống**). Không chia ⇒ sau lần re-genesis sau, L1 đầu tiên **lại nhận `9000000010`**, trùng số
+  với một L1 của thế hệ trước, và bảo đảm "không cấp lại" khi đó **treo lên `console-chains.json`
+  (cả mục `retired`) phải sống sót qua mọi lần sinh lại mạng** — tức nó thành tài sản ngang hàng
+  khoá quỹ và phải vào quy trình O2.
+- **(b) Tên mạng cụ thể** (`9chain-a1-g0`?) — `A1Name` đi vào **đường dẫn DB** (D-050).
+- **(c) Có làm khối `networkID` riêng cho MẠNG TẬP không.** Nếu có ⇒ `genesis/params.go` **phải**
+  chuyển từ `case A1NetworkID` sang kiểm **theo DẢI**: networkID lạ rơi vào `default:` là mượn
+  `LocalParams` (trần cung 720 triệu) ⇒ **tràn ngược uint64** — đúng bẫy patch 0013 dựng ra để chặn.

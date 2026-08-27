@@ -1,0 +1,37 @@
+{
+  "muc_dich": "D-072 — tra dai chainId L1 MOI (9000000010-9999999999) + chain me 9000000009",
+  "nguon": "https://chainid.network/chains.json",
+  "ngay_tra": "2026-08-27T13:11:47.862Z",
+  "sha256": "7a122fb15423a595324f6a95d82077adacaef89c8492036bdb88707b9cd493ff",
+  "so_byte": 1162288,
+  "so_muc": 2726,
+  "so_lanh": {
+    "neo_chainId_1": "Ethereum Mainnet",
+    "neo_chainId_43114": "Avalanche C-Chain"
+  },
+  "doi_chung_nguoc": {
+    "1": true,
+    "43114": true
+  },
+  "ket_qua": {
+    "chain_me_9000000009": "TRONG",
+    "dai_L1_9000000010_9999999999": "TRONG HOAN TOAN",
+    "quanh_chain_me_pm10trieu": "TRONG",
+    "hang_xom_duoi_san": "8691942025 ONFA Chain Testnet (cach 308 trieu)",
+    "hang_xom_tren_tran": "11297108099 Palm Testnet (cach 1,3 ty)",
+    "networkID_999999999_o_thang_chainId": "BI CHIEM — Zora Sepolia Testnet (KHONG phai va cham ky thuat, xem D-072)"
+  },
+  "khoi_the_he": {
+    "the_he_0": "9000000010-9099999999 : TRONG",
+    "the_he_1": "9100000000-9199999999 : TRONG",
+    "the_he_2": "9200000000-9299999999 : TRONG",
+    "the_he_3": "9300000000-9399999999 : TRONG",
+    "the_he_4": "9400000000-9499999999 : TRONG",
+    "the_he_5": "9500000000-9599999999 : TRONG",
+    "the_he_6": "9600000000-9699999999 : TRONG",
+    "the_he_7": "9700000000-9799999999 : TRONG",
+    "the_he_8": "9800000000-9899999999 : TRONG",
+    "the_he_9": "9900000000-9999999999 : TRONG"
+  },
+  "luu_y": "Anh chup HOM NAY khong chung minh ngay G. Phai tra LAI ngay truoc buoc sinh genesis 01/09."
+}

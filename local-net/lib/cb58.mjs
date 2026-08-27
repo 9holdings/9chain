@@ -110,17 +110,49 @@ function selfTest() {
   const zero = new Uint8Array(32);
   ok("32 byte 0 giữ đủ độ dài", cb58Decode(cb58Encode(zero)).length === 32);
 
-  // 3) ID THẬT của mạng 9Chain-A1 (C-Chain, cố định vĩnh viễn) — đối chứng độc lập
-  const cChain = "2s5pikvmRzazmG22kBDvvVsz9HtB8pt3DfsvUvAW6LsyQT2mTt";
+  // 3) ID THẬT do avalanchego sinh — đối chứng độc lập
+  //
+  // 🔴 NEO NÀY TỪNG LÀ C-CHAIN, VÀ ĐÓ LÀ MỘT CA XANH GIẢ ĐÃ SỐNG NHIỀU NGÀY.
+  //
+  // Bản trước cắm cứng `2s5pikvmRzazmG22kBDvvVsz9HtB8pt3DfsvUvAW6LsyQT2mTt` kèm chú thích
+  // *"cố định vĩnh viễn"*. Cả hai vế đều sai:
+  //   · Số đó **đã chết** ở lượt re-genesis `26/08`. Đo `27/08` trên mạng công khai:
+  //     `info.getBlockchainID{alias:"C"}` → `JPWKwpGCwSQpXNy8HUb1TFcGh57MY7B6vC7K6mzLGLpBCX4Zx`.
+  //   · Bài `--self-test` vẫn **8/8 ĐẠT** suốt thời gian đó, vì ca này chỉ kiểm **checksum
+  //     của chính chuỗi được cắm vào**, không đối chiếu mạng nào. Một hằng số sai vẫn có
+  //     checksum đúng — nên bài xanh mãi mãi.
+  //
+  // **Vì sao mô hình "cố định vĩnh viễn" sai từ gốc:** C-Chain ID = `tx.ID()` của
+  // `CreateChainTx` trong genesis, mà tx đó không có input/credential ⇒ ID là hàm của
+  // `networkID` **+ toàn văn byte `cChainGenesis`**. netgen dựng `cChainGenesis` từ địa chỉ
+  // 5 quỹ **sinh khoá mới mỗi lượt** ⇒ **mỗi lần re-genesis là một C-Chain ID mới.**
+  // ⇒ Đừng cắm cứng C-Chain ID ở bất kỳ đâu. URL bền là `/ext/bc/C/rpc` (alias), không phải cb58.
+  //
+  // Neo mới: **P-Chain**. Nó là `ids.Empty` — hằng số của **MỌI** mạng Avalanche
+  // (`utils/constants/network_ids.go`), nên nó không chết theo re-genesis, không chết theo
+  // đổi `networkID`, không chết theo bất cứ thứ gì ta còn đổi được.
+  //
+  // ⚠️ Và nó là ca **MẠNH HƠN**, không chỉ bền hơn: `ids.Empty` = **32 byte 0**, nên nó
+  // kiểm thẳng đúng cái bẫy kinh điển của base58 — *nuốt byte 0 dẫn đầu*. Ca (2) ở trên
+  // kiểm điều đó bằng dữ liệu ta tự sinh; ca này kiểm bằng **chuỗi thật avalanchego in ra**.
+  const P_CHAIN_ID = "11111111111111111111111111111111LpoYY"; // ids.Empty, mọi mạng Avalanche
   let hex = "";
-  try { hex = cb58ToHex(cChain); } catch (e) { hex = "LỖI: " + e.message; }
-  ok("giải được blockchainID thật của C-Chain (checksum khớp)", /^0x[0-9a-f]{64}$/.test(hex), hex);
+  try { hex = cb58ToHex(P_CHAIN_ID); } catch (e) { hex = "LỖI: " + e.message; }
+  ok("giải được blockchainID thật của P-Chain (checksum khớp)", /^0x[0-9a-f]{64}$/.test(hex), hex);
   ok("mã hoá ngược ra đúng chuỗi ban đầu", (() => {
-    try { return cb58Encode(cb58Decode(cChain)) === cChain; } catch { return false; }
+    try { return cb58Encode(cb58Decode(P_CHAIN_ID)) === P_CHAIN_ID; } catch { return false; }
   })());
+  // 🔴 Ô mạnh nhất: P-Chain ID PHẢI giải ra đúng 32 byte 0. Một bộ giải nuốt byte 0 dẫn đầu
+  // vẫn qua được hai ô trên (round-trip tự nhất quán), nhưng chết ở đây.
+  ok("P-Chain ID giải ra ĐÚNG 32 byte 0 (bẫy nuốt byte 0 dẫn đầu)", (() => {
+    try {
+      const b = cb58Decode(P_CHAIN_ID);
+      return b.length === 32 && b.every(x => x === 0);
+    } catch { return false; }
+  })(), hex);
 
   // 4) hỏng một ký tự thì PHẢI ném lỗi — nếu không, mọi ID gõ sai sẽ đi tiếp âm thầm
-  const hong = cChain.slice(0, -1) + (cChain.at(-1) === "t" ? "u" : "t");
+  const hong = P_CHAIN_ID.slice(0, -1) + (P_CHAIN_ID.at(-1) === "Y" ? "Z" : "Y");
   let daNem = false;
   try { cb58Decode(hong); } catch { daNem = true; }
   ok("ID sai một ký tự bị từ chối", daNem);
