@@ -1,56 +1,121 @@
 <!doctype html>
 <html lang="vi"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>9Chain-A1 — Danh bạ L1</title>
+<title>Danh bạ L1 — 9Chain Testnet A1</title>
 <style>
-:root{color-scheme:dark}*{box-sizing:border-box}
-body{font-family:system-ui,Segoe UI,Roboto,sans-serif;margin:0;background:#0b0f17;color:#e6edf3}
-header{padding:16px 24px;border-bottom:1px solid #1c2637;background:#0e1420;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.brand{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#e84142,#ff8a3d)}
+/* ═══════════════════════════════════════════════════════════════════════════
+   HỆ MÀU: chép từ web/app/tokens.css (vân tay 535cbf6329efb6d0), nhánh TỐI.
+   Trang này là HTML tự viết, không qua Tailwind, nên token được khai tay ở
+   :root dưới đây. Tên biến giữ ĐÚNG tên bên tokens.css để đối chiếu được.
+
+   🔴 SỬA MÀU Ở ĐÂY LÀ LÀM HAI BỀ MẶT CỦA CÙNG MỘT SẢN PHẨM LỆCH NHAU.
+   Muốn đổi thì đổi ở 9Scan-A1 → chạy web/scripts/sync-tokens.mjs → chép sang đây.
+
+   ⚠️ CỐ Ý CHƯA DÙNG BA FONT THƯƠNG HIỆU (Sora/Instrument/JetBrains).
+   Chúng hiện KHÔNG chạy trên chính web/ — `@theme` đổ --font-sans vào :root
+   (<html>) trong khi biến của next/font nằm ở <body>, nên var() không giải được
+   và cả khai báo thành guaranteed-invalid. Chép sơ đồ đó sang đây là chép luôn
+   cái lỗi. Giữ system-ui cho tới khi cụm B1+B2 được chốt.
+   Xem docs/BRAND-AUDIT-2026-08-27.md mục B.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{
+  color-scheme:dark;
+  --color-navy-deep:#070d1d; --color-navy:#0d1733; --color-navy-panel:#101b3e;
+  --color-navy-lit:#16224a; --color-navy-hover:#1a2a55;
+  --color-line-dark:#24304d; --color-line-dark-2:#3a4665; --color-hairline:#1a2440;
+  --color-gold:#ffcb24; --color-gold-hover:#f0bc0e; --color-gold-muted:#d4ad2c;
+  /* 🔴 SẮC VÀNG THỨ HAI, CÓ CHỦ Ý — David chốt 2026-08-27.
+     `--color-brand-gold` là vàng của DẤU LOGO, lấy nguyên từ https://9chain.org
+     (`icon-9chain.svg` khai `stroke="#F5C542"`). `--color-gold` ở trên là vàng
+     của GIAO DIỆN, đến từ tokens.css và đồng bộ với 9Scan-A1 qua vân tay.
+     Hai màu này GẦN NHAU NHƯNG KHÔNG BẰNG NHAU. Đừng "dọn dẹp" bằng cách hoà
+     chúng về một — đó là hai vai khác nhau, và bên token có phép đo bắt trôi lệch.
+     Xem docs/BRAND-AUDIT-2026-08-27.md. */
+  --color-brand-gold:#F5C542;
+  --color-on-dark:#e7ecf6; --color-on-dark-2:#a9b3c9; --color-on-dark-3:#7c89a6;
+  --color-success-on-dark:#6ee7a8; --color-danger-on-dark:#ff8589;
+  --radius-card:16px; --radius-btn:10px; --radius-chip:6px;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,Segoe UI,Roboto,sans-serif;margin:0;
+  background:var(--color-navy-deep);color:var(--color-on-dark)}
+header{padding:16px 24px;border-bottom:1px solid var(--color-line-dark);
+  background:var(--color-navy);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+/* Dấu 9Chain — ba tam giác xoay, lấy nguyên từ https://9chain.org/icon-9chain.svg.
+   Nội tuyến (384 byte) nên không thêm một request nào. Dùng `--color-brand-gold`
+   (#F5C542, sắc vàng THẬT của trang chính) chứ không phải `--color-gold` của
+   giao diện — David chốt giữ dấu trung thành với tài sản gốc. */
+.brand{width:28px;height:28px;color:var(--color-brand-gold);flex:none;display:block}
 h1{font-size:1.15rem;margin:0}
-.muted{color:#66788d;font-size:.85rem}
+.muted{color:var(--color-on-dark-3);font-size:.85rem}
 .wrap{max-width:1080px;margin:0 auto;padding:22px 24px 60px}
-.card{background:#131a26;border:1px solid #223049;border-radius:14px;padding:18px;margin-bottom:16px}
-.card.main{border-color:#e8414255}
-.card.dead{border-color:#ff6b6b66}
+.card{background:var(--color-navy-panel);border:1px solid var(--color-line-dark);
+  border-radius:var(--radius-card);padding:18px;margin-bottom:16px}
+.card.main{border-color:color-mix(in srgb,var(--color-gold) 34%,transparent)}
+.card.dead{border-color:color-mix(in srgb,var(--color-danger-on-dark) 40%,transparent)}
 .chead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 h2{font-size:1.02rem;margin:0}
 .badge{font-size:.72rem;padding:3px 9px;border-radius:20px;font-weight:700;letter-spacing:.02em}
-.b-live{background:#12331f;color:#5ce08a;border:1px solid #1e5c37}
-.b-dead{background:#3a1618;color:#ff9d9d;border:1px solid #7a2b2f}
-.b-wait{background:#2a2410;color:#e8c46a;border:1px solid #6b5a20}
-.b-main{background:#e8414222;color:#ff9d9d;border:1px solid #e8414255}
-.b-gone{background:#1a1f2a;color:#8aa0b6;border:1px solid #2b3a54}
-.card.gone{border-color:#243049;opacity:.72}
-.card.gone h2{color:#8aa0b6;text-decoration:line-through;text-decoration-color:#3d4a5f}
-h3.sec{font-size:.9rem;color:#8aa0b6;margin:28px 0 10px;font-weight:600;
+.b-live{background:#0c2418;color:var(--color-success-on-dark);border:1px solid #1d4a33}
+.b-dead{background:#2a1113;color:var(--color-danger-on-dark);border:1px solid #5a2427}
+.b-wait{background:#241e08;color:var(--color-gold-muted);border:1px solid #4a3d10}
+/* Mạng chính không phải trạng thái xấu — nó là chain gốc. Dùng sắc VÀNG thương
+   hiệu, không dùng đỏ: đỏ ở bảng này đã có nghĩa "chết". */
+.b-main{background:color-mix(in srgb,var(--color-gold) 13%,transparent);
+  color:var(--color-gold);border:1px solid color-mix(in srgb,var(--color-gold) 34%,transparent)}
+.b-gone{background:var(--color-navy-lit);color:var(--color-on-dark-3);
+  border:1px solid var(--color-line-dark-2)}
+.card.gone{border-color:var(--color-line-dark);opacity:.72}
+.card.gone h2{color:var(--color-on-dark-3);text-decoration:line-through;
+  text-decoration-color:var(--color-line-dark-2)}
+h3.sec{font-size:.9rem;color:var(--color-on-dark-3);margin:28px 0 10px;font-weight:600;
   text-transform:uppercase;letter-spacing:.06em}
-.kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #1c2637;font-size:13px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;
+  border-bottom:1px solid var(--color-hairline);font-size:13px}
 .kv:last-of-type{border-bottom:0}
-.kv .k{color:#8aa0b6;white-space:nowrap}
-.kv .v{font-weight:600;font-family:ui-monospace,Consolas,monospace;text-align:right;word-break:break-all}
+.kv .k{color:var(--color-on-dark-3);white-space:nowrap}
+.kv .v{font-weight:600;font-family:ui-monospace,Consolas,monospace;text-align:right;
+  word-break:break-all;font-variant-numeric:tabular-nums}
 .row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-button{padding:8px 12px;border-radius:9px;border:1px solid #2b3a54;background:#1a2434;color:#e6edf3;font-size:13px;cursor:pointer;font-family:inherit}
-button:hover{background:#22304a}
-button.primary{background:#e84142;border-color:#e84142;color:#fff;font-weight:600}
-button.primary:hover{background:#d13537}
-.small{font-size:.78rem;color:#66788d}
-.note{background:#0e1420;border:1px solid #223049;border-left:3px solid #e8c46a;border-radius:8px;padding:12px 14px;font-size:.84rem;color:#a9bacd;margin-bottom:18px;line-height:1.55}
-.note b{color:#e8c46a}
-.err{background:#2a1416;border:1px solid #7a2b2f;border-radius:8px;padding:12px 14px;font-size:.85rem;color:#ff9d9d;margin-bottom:16px}
-.out{font-size:.8rem;color:#8aa0b6;margin-top:8px;min-height:1.1em}
-.empty{text-align:center;color:#66788d;padding:40px 20px}
-a{color:#7fb4ff}
+button{padding:8px 12px;border-radius:var(--radius-btn);border:1px solid var(--color-line-dark-2);
+  background:var(--color-navy-lit);color:var(--color-on-dark);font-size:13px;cursor:pointer;
+  font-family:inherit}
+button:hover{background:var(--color-navy-hover)}
+/* Nút chính mang sắc vàng thương hiệu, chữ navy — đúng cặp tương phản của hệ
+   token (gold trên navy đạt AA). Trước đây nút này là #e84142 = ĐỎ THƯƠNG HIỆU
+   AVALANCHE, sót lại từ bản dựng đầu. */
+button.primary{background:var(--color-gold);border-color:var(--color-gold);
+  color:var(--color-navy);font-weight:700}
+button.primary:hover{background:var(--color-gold-hover);border-color:var(--color-gold-hover)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--color-gold);outline-offset:2px}
+.small{font-size:.78rem;color:var(--color-on-dark-3)}
+.note{background:var(--color-navy);border:1px solid var(--color-line-dark);
+  border-left:3px solid var(--color-gold);border-radius:var(--radius-chip);padding:12px 14px;
+  font-size:.84rem;color:var(--color-on-dark-2);margin-bottom:18px;line-height:1.55}
+.note b{color:var(--color-gold)}
+.err{background:#2a1113;border:1px solid #5a2427;border-radius:var(--radius-chip);
+  padding:12px 14px;font-size:.85rem;color:var(--color-danger-on-dark);margin-bottom:16px}
+.out{font-size:.8rem;color:var(--color-on-dark-3);margin-top:8px;min-height:1.1em}
+.empty{text-align:center;color:var(--color-on-dark-3);padding:40px 20px}
+a{color:var(--color-gold-muted)}
+a:hover{color:var(--color-gold)}
 /* Chủ sở hữu là điểm bán hàng, không phải một dòng metadata — cho nó màu riêng
    để mắt bắt được ngay là chain có chủ, và chủ đó không phải Foundation. */
-.kv.own{border-bottom-color:#243a2c}
-.kv.own .v{color:#7ee0a4}
-.kv .v .dim{color:#66788d;font-weight:400;font-family:system-ui,Segoe UI,Roboto,sans-serif}
+.kv.own{border-bottom-color:#1d4a33}
+.kv.own .v{color:var(--color-success-on-dark)}
+.kv .v .dim{color:var(--color-on-dark-3);font-weight:400;
+  font-family:system-ui,Segoe UI,Roboto,sans-serif}
 </style></head><body>
 
 <header>
-  <div class="brand"></div>
-  <h1>9Chain-A1 — Danh bạ L1</h1>
+  <svg class="brand" viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+    <g fill="none" stroke="currentColor" stroke-width="6.5">
+      <polygon points="48,14 77.4,65 18.6,65" transform="rotate(20 48 48)"/>
+      <polygon points="48,14 77.4,65 18.6,65" transform="rotate(60 48 48)"/>
+      <polygon points="48,14 77.4,65 18.6,65" transform="rotate(100 48 48)"/>
+    </g>
+  </svg>
+  <h1>Danh bạ L1 — 9Chain Testnet A1</h1>
   <span class="muted">Mọi chain trên testnet A1 và tình trạng thật của nó.</span>
 </header>
 
