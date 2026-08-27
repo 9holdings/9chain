@@ -57,6 +57,9 @@ const Ctx = createContext<BoiCanh | null>(null);
  * **không lỗi, không cảnh báo**, chỉ có họ chịu. `kiemBoNap()` bên dưới bắt việc đó.
  */
 const BO_NAP: Record<string, () => Promise<{ default: Tu }>> = {
+  zh: () => import('./dicts/zh'),
+  hi: () => import('./dicts/hi'),
+  es: () => import('./dicts/es'),
   vi: () => import('./dicts/vi'),
 };
 
