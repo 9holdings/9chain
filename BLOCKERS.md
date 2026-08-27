@@ -6,6 +6,27 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### 🔴 B-11 — BỐN MỤC CORE CẦN DAVID, BA MỤC CHẠM BINARY (2026-08-27)
+
+Từ bản soát core [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md) §7. Ba mục
+đầu **chạm binary** ⇒ phải quyết **trước lượt `docker build` của ngày G**, nếu không thì kẹt
+tới lần sinh mạng sau.
+
+| | Việc | Vì sao A1 không tự quyết | Binary? |
+|---|---|---|---|
+| **C-1** | `UptimeRequirement` đang là **`.8`**; chính file tự ghi *"⬅️ CHỐT LẠI THÀNH 0.9 TRƯỚC MAINNET"*. Avalanche mainnet dùng .9 (ACP-267) | mức khắt khe với validator cộng đồng chạy hạ tầng không chuyên — đánh đổi giữa "dễ tham gia" và "mạng đáng tin" | ✅ |
+| **C-2** | `MaxStakeDuration: 365 ngày`. Cộng `initialStakeDuration` 365 + so le 7 ngày ⇒ **cả 9 node hết hạn trong cửa sổ 56 ngày kể từ `2027-08-24`, mạng DỪNG**. Avalanche mainnet cũng 365 nên không phải lỗi — nhưng với chain sắp khắc chữ "vĩnh viễn" thì đó là **nghĩa vụ gia hạn hằng năm chưa có quy trình** | hai đường khác hẳn chi phí: nâng trần (chạm binary, lệch upstream) hay dựng quy trình gia hạn (không chạm mã, nhưng phải có người) | ✅ nếu nâng trần |
+| **C-3** | **Phí C-Chain = vanilla Avalanche.** `A1Params` phủ P/X (`TxFee` hạ xuống `MilliAvax` cho builder), nhưng C-Chain — nơi người dùng **thật sự** giao dịch (faucet 100% C-Chain, MetaMask, Blockscout, soak 210 TPS) — không có một ô nào. Hiện là **im lặng**, mà im lặng không phân biệt được với bỏ sót | đổi số, hay khai "giữ đường cong Avalanche, có chủ đích" | ✅ nếu đổi |
+| **C-4** | **chainId `9000000009` cắm cứng** trong `cChainGenesis` (`netgen/main.go:351`) trong khi `networkID` là tham số ⇒ **mạng tập và mạng thật cùng chainId**. MetaMask không phân biệt được; EIP-155 buộc chữ ký vào chainId chứ không vào networkID | A1 đã dựng cổng *"bản tập ≠ bản thật"* rất kỹ cho **chữ khắc** mà **không có cổng nào cho chainId** — bất đối xứng thiết kế, cần chủ dự án phân xử | ❌ |
+
+⚠️ **C-4 hôm nay rủi ro thấp**: netgen sinh khoá mới mỗi lượt nên địa chỉ hai mạng khác nhau;
+cửa duy nhất là người tự import cùng một khoá vào cả hai. Đừng trích nó mạnh hơn thế.
+
+🔴 **Kèm theo, KHÔNG cần quyết nhưng phải nhớ khi deploy:** patch 0013 khai
+`constants.A1Name`, mà `config/config.go:1008` dựng đường dẫn DB từ tên mạng ⇒ **binary này
+CHỈ được lên cùng một lượt sinh lại mạng** (`down -v`). Ngày G thoả. Chi tiết + đường lui một
+dòng: D-050.
+
 ### 🔴 B-9 — MÀU ĐỎ THƯƠNG HIỆU AVALANCHE CÒN TRONG `patches/0003` (2026-08-27)
 
 `#e84142` là **đúng đỏ thương hiệu của Avalanche**. Soát `27/08` tìm thấy nó ở 4 tệp

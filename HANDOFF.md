@@ -1,9 +1,13 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-27** (chốt phiên đợt 12 — chuẩn hoá thương hiệu) — mạng công khai vẫn là
-bản re-genesis 9 tỷ của `26/08` (**9 node**, `supplyCap` 9.000.000.000, phát hành genesis
-5.400.000.000, **lượt diễn tập**). Genesis **không đụng**; đợt này chỉ chạm **lớp trình bày**
-+ Caddy. Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
+Cập nhật: **2026-08-27** (đợt 13 — **SOÁT CORE BLOCKCHAIN**) — mạng công khai vẫn là bản
+re-genesis của `26/08` (**9 node**, phát hành genesis 5.400.000.000, **lượt diễn tập**).
+Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
+
+🔴 **`supplyCap` ĐÃ ĐỔI: 9.000.000.000 → 7.900.000.001** (D-048). **Tổng cung vẫn 9 tỷ.**
+Đó là hằng số trong binary, và nó phải nhỏ hơn tổng cung đúng bằng phần phát hành thẳng trên
+C-Chain — xem ngay mục dưới. Binary trên server **vẫn là bản cũ**; patch 0013 lên cùng lượt
+sinh lại mạng ngày G.
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
@@ -11,6 +15,87 @@ bản re-genesis 9 tỷ của `26/08` (**9 node**, `supplyCap` 9.000.000.000, ph
 định kế hoạch ngày G `01/09` và là **danh sách còn-lại thật**. `PLAN-REGENESIS-2026-09-01.md`
 là bối cảnh của BOD, mâu thuẫn thì file kia thắng.
 Backlog phần mềm cũ nằm ở `PROGRESS.md`; `DECISIONS.md` (vì sao) · `BLOCKERS.md` (chờ David).
+
+---
+
+### Phiên 2026-08-27 (đợt 13 — SOÁT CORE) — tóm tắt để khỏi mở file
+
+**Bản soát đầy đủ: [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md).**
+Đợt 12 soát **lớp da**; đợt này soát **lớp xương**. Đã vá bằng **patch 0013**, nghiệm thu
+bằng tree hash + đối chứng ngược.
+
+#### 🔴 Phát hiện P0 — trần cung THẬT là 10.099.999.999, không phải 9 tỷ
+
+`InitialSupply()` (`genesis/config.go:146`) cộng **duy nhất** `Allocations` (X/P);
+`CChainGenesis` là trường string riêng, **nằm ngoài vòng lặp** ⇒ **1.099.999.999 LOVE9** phát
+hành thẳng trên C-Chain **tồn tại thật mà `currentSupply` không bao giờ đếm tới**.
+
+| | LOVE9 |
+|---|--:|
+| dư địa mint với `SupplyCap` 9 tỷ | **4.699.999.999** |
+| D-042 định mint | 3.600.000.000 |
+| **thừa** | **1.099.999.999** — *đúng bằng phần C-Chain* |
+| ⇒ tổng LOVE9 tối đa từng tồn tại | **10.099.999.999** (vượt lời hứa **12,2%**) |
+
+**Sửa:** `SupplyCap = 7_900_000_001 * units.Avax`. Rồi 7.900.000.001 + 1.099.999.999 =
+**9.000.000.000** ✓, và dư địa mint = **3.600.000.000** = đúng ô Staking Rewards. Con số sửa
+rơi trúng ý định D-042 tới từng đơn vị.
+
+**Ba đường xác nhận:** đọc mã · `getCurrentSupply` đo `26/08` = 4.301.076.227 (phần C-Chain
+vắng mặt) · Mainnet **và** Fuji đều có **đúng một** mục `balance` trong `cChainGenesis` và giá
+trị là **`0x0`** ⇒ upstream không phát hành gì ở C-Chain genesis, **A1 phá một bất biến upstream
+không canh**.
+
+🔴 **Quan sát này đã ghi BA LẦN** (`HANDOFF:240` cũ · `HANDOFF:932` · `TOKENOMICS`) và cả ba
+dừng ở *"đừng so hai số đó với nhau"*. **Một chú thích giải thích tại sao hai con số khác
+nhau, mà không nói con số nào mới đúng, là chú thích chưa hoàn thành.**
+
+#### Năm mục còn lại của patch 0013
+
+| | |
+|---|---|
+| **P1** | `mustFitSupplyCap` đọc thẳng `A1Params`, **bỏ qua `networkID`** ⇒ `NETWORK_ID=9002` (env!) đối chiếu với trần 9 tỷ trong khi node dùng `LocalParams` 720 triệu ⇒ tràn ngược. **Cổng chống tràn cho qua đúng cái nó sinh ra để chặn.** Nay đọc qua `GetStakingConfig(networkID)` + netgen từ chối mọi ID ≠ 9001 |
+| **P1** | `upgrade.GetConfig` chỉ tách Mainnet/Fuji ⇒ 9001 dùng `Default` của Ava Labs. Khi họ lên lịch Helicon, **lượt rebase kế tiếp nuốt một hard fork không qua quyết định nào**. Thêm `upgrade.A1` (D-049) |
+| **P1** | HRP `love9` sống bằng **`FallbackHRP`**, không bằng khai báo — rebase sót là đổi tiền tố **mọi địa chỉ P/X đã phát ra ngoài**. Và `NetworkName(9001)` = `"network-9001"`. Khai `A1ID`/`A1Name`/`A1HRP` (D-050) |
+| **P2** | `verifyAgainstC1` chỉ `strings.Contains` cả tệp ⇒ chứng minh *"byte thuộc bộ của C1"*, **không** *"đúng tài liệu nào"*. Manifest trỏ `doc-hebrew` sang tệp tiếng Anh **vẫn qua sạch**. Nay khớp theo từng tài liệu |
+| **P2** | Thiếu `A1_ENGRAVE_CHECKSUMS` chỉ **cảnh báo** rồi khắc tiếp · không cổng nào canh mặt `p` ⇒ manifest thiếu mặt gốc thì khắc **bó rỗng** vào P-Chain, im lặng. Cả hai nay CHẶN |
+
+#### Nghiệm thu
+
+| | |
+|---|---|
+| Tái lập | 13 patch lên `1cf1fc3` → tree **`a8edf74a`** = cây fork, **khớp từng byte** |
+| Biên dịch | `go vet` + `go build` sạch (container `golang:1.25.10`) |
+| netgen N=9 | X/P 4.300.000.001 ≤ trần 7.900.000.001 · trần + C-Chain = 9 tỷ · dư địa mint 3,6 tỷ |
+| genesis sinh ra | phân tích lại **độc lập** bằng Python: 6 alloc · 9 staker · offset 604800 · X/P + C-Chain = 5.400.000.000 ✓ |
+| Đối chứng ngược | **5/5 đỏ đúng chỗ** (xem §9.3 bản soát) |
+| `check-consistency` | **21 đạt · 9/9 đối chứng ngược** |
+
+🔴 **Đối chứng ngược bắt được một lỗi trong CHÍNH bản vá này:** thông báo của cổng kế toán
+thiếu tham số `networkID` trong `Fprintf` ⇒ `%!d(string=…)` và mọi cột lệch một chỗ. Cổng vẫn
+**chặn đúng**, nhưng người đọc nó — người đang đứng trước một lượt sinh mạng — sẽ bị dẫn sai.
+`go vet` cũng bắt được. ⇒ **Một cổng chưa được nhìn thấy lúc nó ĐỎ thì mới kiểm được một nửa:
+nửa "có chặn không", chưa kiểm nửa "chặn xong nó nói gì".**
+
+🔴 **`check-consistency.mjs` NAY ĐỌC Go, KHÔNG CHÉP Go.** Nó vẫn khẳng định `SupplyCap = 9 tỷ`
+sau khi binary đã đổi — bản chép tay bằng JS **đã trôi lệch thật**, đúng điều HANDOFF từng
+cảnh báo về chính cổng này. Nay `readFileSync` thẳng `genesis_9chain_a1.go`.
+
+#### 🔴 Việc sinh ra từ đợt này
+
+- **B-11** — bốn mục cần David: `UptimeRequirement` .8→.9 · `MaxStakeDuration` 365 ngày ·
+  phí C-Chain (vanilla, đang im lặng) · chainId mạng tập ≡ mạng thật. **Ba mục đầu chạm
+  binary** ⇒ quyết trước lượt `docker build` ngày G.
+- **Không cần quyết nhưng phải nhớ:** `A1Name` đổi **đường dẫn DB** (`config.go:1008`) ⇒
+  binary patch 0013 **chỉ được lên cùng lượt `down -v`**. Ngày G thoả. Đường lui: xoá một
+  dòng, xem D-050.
+- **Runbook ngày G thêm một dòng đối chứng:** `grep -o '"supplyCap":[0-9]*'` phải ra
+  **`7900000001000000000`**.
+- **Chưa làm, không chạm binary:** gỡ `9chain-a1-config/genesis.json` khỏi đường boot của
+  `local-net/docker-compose.yml` (nó là `genesis_local.json` của Avalanche — khoá ewoq công
+  khai giữ 50 triệu, địa chỉ `X-local1…`, stake hết hạn `2025-07-15`), và **sửa con trỏ khắc
+  chữ** trong `NGAY-G-A1-CON-LAI.md` + `PLAN-REGENESIS` — cả hai đang trỏ vào `:95
+  "{{ fun_quote }}"` của tệp đó, trong khi ô khắc thật ở `netgen/engrave.go`.
 
 ---
 
@@ -53,10 +138,39 @@ lập luận. Đo trên cùng một bản build:
 `var(--font-instrument), ui-sans-serif…` **không phải fallback của `var()`** — nó phân tách họ
 chữ) ⇒ guaranteed-invalid ⇒ rơi về font hệ thống. `--font-sans` đọc ra **chuỗi rỗng**.
 
-🔴 **B1 (vá nối biến) và B2 (đổi bộ chữ) BUỘC đi cùng một lượt.** Vá B1 một mình là làm site
-**xấu đi**: hôm nay font thương hiệu không chạy nên lỗi thiếu tiếng Việt chưa hại ai; bật lên
-trước khi chốt bộ chữ là đúng lúc đó dải `1ea0–1ef1` mới thật sự rơi về font hệ thống.
+🔴 **B1 không được LÊN TRƯỚC B2 — ràng buộc là THỨ TỰ, không phải QUYỀN QUYẾT.** Vá B1 một
+mình là làm site **xấu đi**: hôm nay font thương hiệu không chạy nên lỗi thiếu tiếng Việt chưa
+hại ai; bật lên trước khi chốt bộ chữ là đúng lúc đó chữ có dấu mới thật sự rơi.
 ⚠️ Outfit sống **không** nghĩa là bẫy đã hết — nó chỉ **né** được bẫy.
+⚠️ B1 lên là phải **chỉnh lại trần `check-budget.mjs`**: 128,1 KB + font sẽ vượt trần 160.
+
+🔴 **ĐÍNH CHÍNH `27/08` (phiên web đo, tôi ghi sai) — hai chỗ:**
+
+**(a) "9Scan-A1 dính y hệt lỗi nối biến" là SAI.** Họ gắn lớp `__variable_*` ở **`<html>`**
+(`app/layout.tsx:168`) — **đúng**; A1 gắn ở `<body>` — **sai**. Đo trên site họ bằng Chrome:
+**9/29 mặt chữ loaded**, `--font-sans` ở `:root` giải ra `"Instrument Sans", …`. Bên A1: 0/24,
+biến rỗng. ⇒ **Lỗi nối biến là của RIÊNG A1.** Tôi suy từ "cùng bộ chữ ⇒ cùng lỗi" mà không mở
+`layout.tsx` của họ ra xem — đúng lớp lỗi file này cấm. **Khi vá B1, chép sơ đồ `<html>` của họ.**
+⇒ Hệ quả: lập luận *"chuẩn chung sai nên phải quyết bộ chữ chung với 9Scan"* **đã đổ**. B1
+không cần ai gật; chỉ không được lên trước B2.
+
+**(b) Phạm vi ký tự rộng hơn `1ea0–1ef1`.** Đo trên site 9Scan (nơi font CHẠY thật): **mọi ký
+tự riêng của tiếng Việt** rơi khỏi Instrument Sans — 14/14 mẫu, **gồm cả `ă đ ơ ư` nằm NGOÀI
+dải đó** (họ khai `subsets:['latin']`). Chỉ `á à â é` (Latin-1) trụ lại. ⇒ Viết **"mọi ký tự
+riêng của tiếng Việt"**, đừng viết "dải `1ea0–1ef1`" — hẹp hơn thật.
+
+**(c) B2 chỉ còn 2 họ chữ, không phải 3.** **JetBrains Mono ĐÃ CÓ `vietnamese`** (đo bằng
+`font-data.json` của next/font, không đọc tài liệu) — chỉ đang không được yêu cầu ⇒ **một dòng
+config**, không phải quyết định thương hiệu. Sora và Instrument Sans thì đúng là chỉ có
+`latin`/`latin-ext`. ⚠️ **Outfit cũng không có `vietnamese`** — chữ logo toàn ASCII nên không
+sao, nhưng **đừng dùng Outfit cho chữ chạy**.
+
+⚠️ **Mức tin cậy, đừng trích mạnh hơn:** ký tự rơi về `Instrument Sans Fallback` — font lui do
+next/font tự sinh, **đã khớp thước** (`size-adjust`, `ascent-override`) — nên chênh bề rộng chỉ
+~0,7–1,4%, không phải cú nhảy nhìn ra ngay. **Có rơi font: chắc chắn** (vân tay bề rộng).
+**Người dùng có nhận ra hay không: CHƯA ĐO** — không ai chụp được màn hình. Đừng viết "đang
+chịu lỗi hàng ngày". ⇒ Việc phải làm không đổi (vẫn phải đổi bộ chữ), **mức khẩn thì hạ**: nợ
+chất lượng chữ, không phải sự cố đang chảy máu.
 
 **2. `#e84142` = ĐỎ THƯƠNG HIỆU AVALANCHE trong 4 tệp HTML + `patches/0003`.** Bản soát đầu
 kết luận *"lớp rebrand sạch"* — đúng cho **CHUỖI**, sai cho **MÀU** (tôi chỉ grep chuỗi). Đã sửa

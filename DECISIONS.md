@@ -1153,3 +1153,84 @@ chốt 24/08** cùng `LOVE9`/`love9`/`9001`, tức nó là **bản sắc**, khô
 
 ⇒ **Hai vế còn lại xử bằng CÂU CHỮ trên trang, không bằng đổi số.** Việc thuộc `Web9Chain` /
 phiên web: nói thẳng "ví cũ sẽ thấy số dư 0, hãy thêm lại mạng", và một câu cho vế tx chưa phát.
+
+### D-048 — **`SupplyCap` = 7.900.000.001, KHÔNG phải 9 tỷ.** Tổng cung vẫn là 9 tỷ
+
+**A1 quyết 2026-08-27, từ phép đo, không phải từ ý muốn.** Bản soát core
+([`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md) §2) đo được:
+`Config.InitialSupply()` (`genesis/config.go:146`) cộng **duy nhất** `Allocations` (X/P);
+trường `CChainGenesis` nằm ngoài vòng lặp ⇒ **1.099.999.999 LOVE9 phát hành thẳng trên
+C-Chain tồn tại thật mà `currentSupply` không bao giờ đếm tới.**
+
+Với `SupplyCap` 9 tỷ, dư địa mint là **4.699.999.999** thay vì 3.600.000.000 như D-042 định,
+và **tổng LOVE9 tối đa từng tồn tại là 10.099.999.999** — vượt lời hứa 9 tỷ **12,2%**.
+
+| | LOVE9 |
+|---|--:|
+| trần cung P/X (hằng số trong binary) | **7.900.000.001** |
+| + phát hành thẳng C-Chain | 1.099.999.999 |
+| **= tổng cung công bố (D-039, KHÔNG đổi)** | **9.000.000.000** |
+| dư địa mint = 7.900.000.001 − 4.300.000.001 | **3.600.000.000** = ô Staking Rewards 40% ✓ |
+
+🔴 **D-039 và D-042 KHÔNG đổi.** Tổng cung vẫn 9 tỷ, bảng phân bổ vẫn 40/30/12/9/9, phát hành
+genesis vẫn 5,4 tỷ. Cái đổi là **một hằng số kỹ thuật trong binary** để hành vi khớp với lời
+hứa đã có. Đừng trích D-048 như một lần "hạ tổng cung".
+
+**Bất biến mới**, cưỡng chế ở `netgen/allocation.go` (`mustFitSupplyCap`) và
+`scripts/check-consistency.mjs`:
+
+```
+SupplyCap + Σ(bucket.CChain) == 9.000.000.000
+```
+
+**Vì sao A1 tự quyết chứ không hỏi David:** đây không phải lựa chọn giữa hai đường — con số
+cũ làm mã **nói khác tài liệu**, và con số mới rơi trúng ý định gốc của D-042 tới từng đơn vị.
+Không có phương án B nào giữ nguyên cả D-039 lẫn D-042. Cái cần David biết là **hệ quả**: nó
+chạm binary ⇒ phải nằm trong lượt `docker build` của ngày G, và bước 0 của runbook nay đối
+chứng `"supplyCap":7900000001000000000`.
+
+⚠️ **Nếu sau này đổi cột `CChain` trong bảng phân bổ thì PHẢI đổi `SupplyCap` theo.** Cổng sẽ
+đỏ nếu quên — nhưng nhớ rằng cái đỏ đó nói "kế toán lệch", không nói "bạn vừa in thêm tiền".
+
+### D-049 — **A1 sở hữu lịch nâng cấp của chính mình** (`upgrade.A1`)
+
+**A1 quyết 2026-08-27.** `upgrade.GetConfig` chỉ tách Mainnet/Fuji; 9001 rơi vào `Default` —
+bảng của Ava Labs, thay đổi theo mỗi lượt phát hành của họ. Lịch kích hoạt hard fork
+consensus-critical **ngang `SupplyCap`**, nên để nó đi theo upstream nghĩa là: khi Ava Labs
+lên lịch Helicon, **lượt rebase kế tiếp của A1 nuốt trọn một hard fork không qua quyết định
+nào**.
+
+Thêm `upgrade.A1` — **chép tường minh từ `Default`, giá trị y hệt**. Đây là lượt đổi **quyền**,
+không đổi **hành vi**: mạng đang chạy trên `Default` nên chép nguyên là giữ nguyên mọi thứ
+đang đúng.
+
+⚠️ **Sau mỗi lượt rebase phải đối chiếu `A1` với `Default` bằng mắt.** Nếu `upgrade.Config`
+mọc thêm trường, Go **không báo lỗi** — trường thiếu nhận `time.Time{}` zero là **năm 1**,
+tức "đã kích hoạt từ lâu". Không cổng nào canh hộ.
+
+**`HeliconTime` giữ `UnscheduledActivationTime`** — bật nó là một hard fork của 9Chain và
+phải có một mục DECISIONS riêng.
+
+### D-050 — mạng có TÊN ở lớp giao thức, và HRP thôi sống bằng fallback
+
+**A1 quyết 2026-08-27.** Khai tường minh `constants.A1ID` / `A1Name` = `"9chain-a1"` /
+`A1HRP` = `"love9"`, và đưa cả ba vào `NetworkIDToNetworkName`, `NetworkNameToNetworkID`,
+`NetworkIDToHRP`.
+
+- **HRP:** trước đây 9001 không có trong map, `GetHRP` rơi xuống `FallbackHRP`. Tiền tố địa
+  chỉ của mạng công khai sống bằng **nhánh dự phòng**. Một lượt rebase đặt lại `FallbackHRP`
+  về `"custom"` là **đổi tiền tố mọi địa chỉ P/X đã phát ra ngoài**, và không cổng nào bắt.
+  Giá trị **không đổi** (`"love9"` cả trước lẫn sau) — chỉ chuyển từ *rơi vào* thành *khai ra*.
+- **Tên:** `NetworkName(9001)` trước đây là `"network-9001"` — chuỗi `info.getNetworkName` trả
+  ra, thứ 9Scan-A1 và ví đọc.
+
+🔴 **HỆ QUẢ PHẢI ĐỌC TRƯỚC KHI DEPLOY:** `config/config.go:1008` dựng đường dẫn DB là
+`<db-dir>/<NetworkName(networkID)>`. Đổi tên mạng ⇒ node đi tìm `<db-dir>/9chain-a1/` thay vì
+`<db-dir>/network-9001/` — **thư mục rỗng**.
+
+⇒ **Binary mang patch 0013 CHỈ được lên cùng một lượt sinh lại mạng** (`down -v`). Ngày G
+thoả điều đó. Đưa nó lên mạng đang chạy mà không wipe thì cả 9 node cùng lúc thấy DB trống và
+bootstrap lại từ đầu — dữ liệu cũ **vẫn còn trên đĩa** ở thư mục cũ, nhưng mạng đứng.
+
+Muốn bỏ vế tên để gỡ hẳn rủi ro này: xoá đúng dòng `A1ID: A1Name` trong
+`NetworkIDToNetworkName`. Phần HRP và `A1ID` độc lập, giữ nguyên được.

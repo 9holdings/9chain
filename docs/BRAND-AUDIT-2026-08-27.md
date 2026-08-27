@@ -224,26 +224,51 @@ tiếp), hệ token **chữ** chết câm.
 `pnpm test` 12/12 · `check-budget` xanh · `web-deploy.sh` 6/6 liên kết sống.
 Cùng họ với bài học *"phép kiểm đo sai đại lượng"* — bộ đo xanh trong lúc thứ được đo đã chết.
 
-### 🔴 Hai việc BUỘC đi cùng một lượt — không được tách
+### 🔴 B1 không được LÊN TRƯỚC B2 — ràng buộc là THỨ TỰ, không phải quyền quyết
+
+> **ĐÍNH CHÍNH `2026-08-27`.** Mục này ban đầu viết *"hai việc BUỘC đi cùng một lượt"* và lý
+> do chính là *"chuẩn chung sai, phải quyết bộ chữ chung với 9Scan-A1"*. **Lý do đó đã đổ** —
+> xem đính chính (a) ngay dưới. Ràng buộc thứ tự thì vẫn nguyên.
 
 | | Việc | Ghi chú |
 |---|---|---|
-| **B1** | Vá nối biến: đưa `.variable` lên `<html>`, hoặc cho `var()` một giá trị lui thật | ~15′ |
-| **B2** | Đổi sang bộ chữ phủ `1ea0–1ef1` | Cần David + 9Scan-A1 |
+| **B1** | Vá nối biến: đưa `.variable` lên `<html>` — **chép sơ đồ của 9Scan** | ~15′, **không cần ai gật** |
+| **B2** | Đổi sang bộ chữ phủ **mọi ký tự riêng của tiếng Việt** | Cần David; **2 họ chữ**, không phải 3 |
 
 **Vá B1 một mình là làm site XẤU ĐI.** Hôm nay font thương hiệu không chạy, nên lỗi thiếu
 tiếng Việt **chưa gây thiệt hại nào**. Bật nó lên trước khi chốt bộ chữ là đúng lúc đó
-`Sora` + `Instrument Sans` mới thật sự hiển thị — và **lúc đó** dải
-`1ea0–1ef1` (ạ ả ấ ầ ậ ắ ẻ ế ề ệ ị ọ ố ồ ộ ớ ờ ợ ụ ứ ừ ự) mới thật sự rơi về font hệ thống.
+`Sora` + `Instrument Sans` mới thật sự hiển thị — và **lúc đó** chữ có dấu mới thật sự rơi.
 
-⚠️ **Tiền đề cũ vẫn đúng, chỉ kết luận là sai:** `Sora` và `Instrument Sans` **thật sự
-không có subset `vietnamese`** (`next/font` báo: *Available subsets: `latin`, `latin-ext`*).
-Đừng xoá vế đó khỏi `HANDOFF` khi sửa gotcha — nếu không, lượt vá B1 sau này sẽ bật lại
-đúng lỗi ấy mà không ai nhớ vì sao.
+⚠️ **B1 kéo theo một lượt chỉnh trần `check-budget.mjs`**: trang nặng nhất 128,1 KB, cộng font
+là vượt trần 160.
+
+#### 🔴 Ba đính chính `27/08` — phiên web đo bằng Chrome trên site 9Scan
+
+**(a) "9Scan-A1 dính y hệt" là SAI, và đó là lỗi của bản soát này.** Họ gắn `__variable_*` ở
+**`<html>`** (`app/layout.tsx:168`) — **đúng**; A1 gắn ở `<body>` — **sai**. Đo: site họ
+**9/29 mặt chữ loaded**, `--font-sans` ở `:root` giải ra `"Instrument Sans", …`; A1 **0/24**,
+biến rỗng. ⇒ **Lỗi nối biến là của RIÊNG A1.** Bản soát suy từ *"cùng bộ chữ ⇒ cùng lỗi"* mà
+không mở `layout.tsx` của họ — cùng họ với mọi lỗi khác trong tệp này: **kết luận từ tiền đề
+chung thay vì đo tại chỗ.**
+
+**(b) Phạm vi rộng hơn `1ea0–1ef1`.** Trên site 9Scan (nơi font chạy thật), **mọi ký tự riêng
+của tiếng Việt** rơi khỏi Instrument Sans — 14/14 mẫu, **gồm cả `ă đ ơ ư` nằm NGOÀI dải đó**.
+Chỉ `á à â é` (Latin-1) trụ lại. ⇒ Viết **"mọi ký tự riêng của tiếng Việt"**.
+
+**(c) Chỉ 2 họ chữ phải thay.** **JetBrains Mono đã có `vietnamese`** — chỉ đang không được
+yêu cầu ⇒ **một dòng config**. `Sora` và `Instrument Sans` thì đúng là chỉ có
+`latin`/`latin-ext`. ⚠️ **Outfit (font logo kit) cũng không có `vietnamese`** — chữ logo toàn
+ASCII nên không sao, nhưng **đừng dùng Outfit cho chữ chạy**.
+
+⚠️ **Mức tin cậy — đừng trích mạnh hơn:** ký tự rơi về `Instrument Sans Fallback`, font lui do
+next/font tự sinh **đã khớp thước**, nên chênh bề rộng chỉ ~0,7–1,4%. **Có rơi font: chắc
+chắn.** **Người dùng có nhận ra: CHƯA ĐO** (không chụp được màn hình). ⇒ Việc phải làm không
+đổi; **mức khẩn hạ xuống**: nợ chất lượng chữ, không phải sự cố đang chảy máu.
 
 **Ứng viên đủ phủ:** `Be Vietnam Pro` · `Nunito Sans` · `Lexend`.
-Phải đổi **cùng lượt với 9Scan-A1** rồi chạy lại `sync-tokens.mjs` — `tokens.css` mang vân
-tay chống trôi lệch, đổi một bên là làm hai bề mặt của cùng một sản phẩm lệch nhau.
+Vẫn nên đổi **cùng lượt với 9Scan-A1** rồi chạy lại `sync-tokens.mjs` — `tokens.css` mang vân
+tay chống trôi lệch, đổi một bên là làm hai bề mặt của cùng một sản phẩm lệch nhau. Nhưng nay
+đó là lý do **đồng bộ thương hiệu**, không còn là lý do **kỹ thuật bắt buộc**.
 
 ---
 

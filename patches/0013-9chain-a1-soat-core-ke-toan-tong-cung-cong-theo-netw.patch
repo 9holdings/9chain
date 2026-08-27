@@ -1,0 +1,666 @@
+From 07bc36d15ab012b290a67155ed7cd8c68d1c6d9b Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Thu, 27 Aug 2026 10:14:11 +0400
+Subject: [PATCH] =?UTF-8?q?9chain-a1:=20soat=20core=20=E2=80=94=20ke=20toa?=
+ =?UTF-8?q?n=20tong=20cung,=20cong=20theo=20networkID,=20lich=20nang=20cap?=
+ =?UTF-8?q?=20chu=20quyen?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+P0 — TRAN CUNG THAT LA 10,1 TY, KHONG PHAI 9 TY.
+`Config.InitialSupply()` (genesis/config.go:146) chi cong `Allocations` (X/P);
+truong `CChainGenesis` nam ngoai vong lap do. A1 phat hanh 1.099.999.999 LOVE9
+thang tren C-Chain nen so token do TON TAI nhung `currentSupply` khong bao gio
+dem toi. Voi SupplyCap 9e9, du dia mint la 4.699.999.999 thay vi 3.600.000.000
+nhu D-042 dinh, va tong LOVE9 toi da tung ton tai la 10.099.999.999 (vuot loi
+hua 9 ty 12,2%). Upstream khong vap phai vi Mainnet va Fuji co dung MOT muc
+balance trong cChainGenesis, gia tri 0x0 — moi AVAX vao qua X/P.
+=> SupplyCap = 7.900.000.001 LOVE9. Bat bien moi:
+   SupplyCap + tong(bucket.CChain) == 9.000.000.000
+
+P1 — mustFitSupplyCap tu vo hieu o dung noi no can nhat.
+`supplyCap()` doc thang `genesis.A1Params`, bo qua networkID, trong khi
+NETWORK_ID la tham so env. NETWORK_ID=9002 cho ra mot genesis doi chieu voi tran
+9 ty cua A1 nhung node chay mang 9002 lai dung LocalParams (720 trieu) — tran
+nguoc uint64 o reward/calculator.go. Nay doc qua
+`genesis.GetStakingConfig(networkID)`, va netgen tu choi thang moi networkID
+khac 9001.
+
+P1 — A1 khong so huu lich nang cap.
+`upgrade.GetConfig` chi tach Mainnet va Fuji; 9001 roi vao `Default` cua Ava
+Labs. Hom nay vo hai, nhung khi upstream len lich Helicon thi luot rebase ke
+tiep se nuot tron mot hard fork khong qua quyet dinh nao. Them `upgrade.A1`,
+chep tuong minh tu Default — GIA TRI Y HET, cai doi la QUYEN chu khong phai
+hanh vi.
+
+P1 — HRP song bang FALLBACK, va mang khong co ten.
+9001 khong co trong `NetworkIDToHRP` nen `GetHRP` roi xuong `FallbackHRP`. Mot
+luot rebase dat lai no ve "custom" la doi tien to MOI dia chi P/X da phat ra
+ngoai, va khong cong nao bat duoc. Nay khai tuong minh `A1HRP`, them `A1Name`
+va `A1ID`.
+[!] `A1Name` DOI DUONG DAN DB (config/config.go dung NetworkName de dung
+`<db-dir>/<ten mang>`): binary mang ten nay CHI duoc dua len cung mot luot sinh
+lai mang. Dua len mang dang chay ma khong wipe thi ca 9 node cung luc thay DB
+trong.
+
+P2 — ba cong khac chu lech chinh chuan cua no.
+  - `verifyAgainstC1` chi `strings.Contains` ca tep, nen chung minh duoc "byte
+    thuoc bo cua C1" chu khong phai "dung tai lieu nao". Nay doi chieu theo TUNG
+    tai lieu: hash phai cung dong voi ten tep hoac id.
+  - thieu `A1_ENGRAVE_CHECKSUMS` chi CANH BAO roi khac tiep. Nay CHAN; luot tap
+    khai `A1_ENGRAVE_NO_CHECKSUMS=toi-biet-day-la-ban-tap`.
+  - khong cong nao canh mat `p`: manifest thieu mat goc thi khac mot BO RONG vao
+    P-Chain, im lang. Nay chan.
+
+Nghiem thu (container golang, mount fork):
+  go vet + go build  : sach
+  netgen N=9 9001    : X/P 4.300.000.001 <= tran 7.900.000.001 ·
+                       tran + C-Chain = 9.000.000.000 · du dia mint 3.600.000.000
+  genesis sinh ra    : 6 alloc · 9 staker · offset 604800 · chainId 9000000009 ·
+                       X/P 4.300.000.001 + C-Chain 1.099.999.999 = 5.400.000.000
+
+Doi chung nguoc — 5/5 do dung cho:
+  NETWORK_ID=9002              -> FATAL
+  SupplyCap dat lai 9e9        -> FATAL ke toan, in ra 10.099.999.999
+  thieu CHECKSUMS              -> FATAL (truoc: chi canh bao)
+  CHECKSUMS gan nham ten tep   -> FATAL (truoc: CHO QUA)
+  manifest khong co mat 'p'    -> FATAL (truoc: khac bo rong)
+
+[!] Doi chung nguoc bat duoc mot loi trong chinh thong bao moi: thieu tham so
+`networkID` trong Fprintf, ra "%!d(string=...)" va cac con so in lech cot. Cong
+van CHAN dung, nhung nguoi doc no se bi dan sai. Da sua; `go vet` cung bat duoc
+— nen tu nay chay vet truoc khi tin mot thong bao loi.
+
+Chi tiet: docs/CORE-AUDIT-2026-08-27.md
+---
+ 9chain-a1-tools/netgen/allocation.go | 134 ++++++++++++++++++++++-----
+ 9chain-a1-tools/netgen/engrave.go    |  92 ++++++++++++++++--
+ 9chain-a1-tools/netgen/main.go       |  28 +++++-
+ genesis/genesis_9chain_a1.go         |  68 ++++++++++++--
+ upgrade/upgrade.go                   |  49 ++++++++++
+ utils/constants/network_ids.go       |  41 ++++++++
+ 6 files changed, 372 insertions(+), 40 deletions(-)
+
+diff --git a/9chain-a1-tools/netgen/allocation.go b/9chain-a1-tools/netgen/allocation.go
+index 700ba0b..8d2f1e3 100644
+--- a/9chain-a1-tools/netgen/allocation.go
++++ b/9chain-a1-tools/netgen/allocation.go
+@@ -125,15 +125,61 @@ func totalGenesisSupply() uint64 {
+ 	return t
+ }
+ 
+-// supplyCap đọc THẲNG từ `genesis.A1Params` — chính hằng số mà node biên dịch vào
+-// binary. Trước đây báo cáo in một bản chép tay và nó đã trôi lệch (còn ghi 720
+-// triệu sau khi trần lên 9 tỷ). netgen nằm trong cùng module với avalanchego nên
+-// không có lý do gì để chép.
+-func supplyCap() uint64 { return genesis.A1Params.RewardConfig.SupplyCap }
++// totalXPSupply — phần phát hành genesis NẰM TRONG SỔ của P-Chain.
++//
++// 🔴 ĐÂY MỚI LÀ ĐẠI LƯỢNG PHẢI SO VỚI `SupplyCap`, không phải `totalGenesisSupply()`.
++// `Config.InitialSupply()` (`genesis/config.go:146`) cộng đúng `InitialAmount` +
++// `UnlockSchedule` của các allocation — tức LiquidXP + LockedXP. Trường
++// `CChainGenesis` là một chuỗi riêng, nằm NGOÀI vòng lặp đó.
++func totalXPSupply() uint64 {
++	t := uint64(0)
++	for _, b := range buckets {
++		t += b.LiquidXP + b.LockedXP
++	}
++	return t
++}
++
++// totalCChainSupply — token phát hành thẳng trên C-Chain. Tồn tại thật, nhưng
++// `currentSupply` của P-Chain KHÔNG BAO GIỜ đếm tới nó. Xem `a1TotalSupplyTarget`.
++func totalCChainSupply() uint64 {
++	t := uint64(0)
++	for _, b := range buckets {
++		t += b.CChain
++	}
++	return t
++}
+ 
+-// mustFitSupplyCap chặn lượt sinh mạng khi phát hành genesis vượt trần cung.
++// a1TotalSupplyTarget — TỔNG CUNG 9Chain theo D-039: 9,000,000,000 LOVE9.
++//
++// Đây là con số đi vào tài liệu công bố và (từ ngày G) vào chữ khắc. Nó KHÁC
++// `SupplyCap` của binary, và sự khác nhau đó là có chủ ý:
++//
++//	SupplyCap (trần của currentSupply, chỉ P/X)  +  phần C-Chain  ==  tổng cung
+ //
+-// 🔴 VÌ SAO PHẢI CHẶT: `reward/calculator.go:56` tính
++// Xem khối chú thích dài ở `genesis/genesis_9chain_a1.go` → `SupplyCap`.
++const a1TotalSupplyTarget = 9_000_000_000 * unitLOVE9
++
++// supplyCap đọc trần cung ĐÚNG THEO networkID sắp sinh — cùng một hàm mà node sẽ
++// gọi lúc khởi động (`genesis/params.go` → `GetStakingConfig`). netgen nằm trong
++// cùng module với avalanchego nên không có lý do gì để chép số.
++//
++// 🔴 TRƯỚC PATCH 0013 HÀM NÀY ĐỌC THẲNG `genesis.A1Params` VÀ BỎ QUA networkID.
++// Đó là một cổng tự vô hiệu ở đúng nơi nó cần nhất: `NETWORK_ID` là tham số env
++// (`main.go`), nên `NETWORK_ID=9002` cho ra một genesis được đối chiếu với trần
++// **9 tỷ của A1** trong khi node chạy mạng 9002 lại rơi vào nhánh `default:` và
++// dùng `LocalParams.SupplyCap` = **720 triệu** (`genesis/genesis_local.go:85`).
++// Phát hành 4,3 tỷ trên trần 720 triệu ⇒ `reward/calculator.go:56` trừ `uint64`
++// thô ⇒ TRÀN NGƯỢC. Tức cổng chống tràn cho qua đúng cái nó sinh ra để chặn.
++func supplyCap(networkID uint32) uint64 {
++	return genesis.GetStakingConfig(networkID).RewardConfig.SupplyCap
++}
++
++// mustFitSupplyCap — HAI cổng, chặn lượt sinh mạng trước khi sinh một khoá nào.
++//
++//	(1) chống TRÀN NGƯỢC uint64   — X/P ≤ SupplyCap
++//	(2) kế toán TỔNG CUNG         — SupplyCap + C-Chain == 9,000,000,000
++//
++// 🔴 VÌ SAO CỔNG (1) PHẢI CHẶT: `reward/calculator.go:56` tính
+ // `remainingSupply := c.supplyCap - currentSupply` bằng phép trừ `uint64` THÔ,
+ // không kiểm dấu. Phát hành genesis > trần ⇒ TRÀN NGƯỢC thành một số gần 2^64.
+ // Đo với trần cũ 720 triệu và phát hành 5,4 tỷ: remainingSupply hoá
+@@ -144,21 +190,60 @@ func supplyCap() uint64 { return genesis.A1Params.RewardConfig.SupplyCap }
+ // supplyCap` ở bất kỳ đâu, node vẫn khởi động sạch, mọi phép đo vẫn xanh — sai lệch
+ // chỉ hiện ra ở phần thưởng staking, tức nhiều ngày sau khi mạng đã công khai.
+ //
+-// ⚠️ Cổng này chỉ đối chiếu bảng phân bổ với binary ĐANG BIÊN DỊCH RA NETGEN.
+-// Nó KHÔNG biết node trên server chạy image nào. Deploy genesis mới lên image cũ
++// ⚠️ Cả hai cổng chỉ đối chiếu bảng phân bổ với binary ĐANG BIÊN DỊCH RA NETGEN.
++// Chúng KHÔNG biết node trên server chạy image nào. Deploy genesis mới lên image cũ
+ // vẫn lọt — đó là việc của quy trình deploy, xem `docs/PROGRESS.md`.
+-func mustFitSupplyCap() {
+-	total, cap_ := totalGenesisSupply(), supplyCap()
+-	if total <= cap_ {
+-		return
++//
++// CỔNG (2), patch 0013: `SupplyCap + Σ(bucket.CChain) == tổng cung công bố`.
++// Vi phạm nó không làm hỏng mạng — mạng chạy hoàn hảo — nó chỉ làm **lời hứa về
++// tổng cung sai**, và sai theo hướng in thêm tiền. Đó là loại lỗi không cổng kỹ
++// thuật nào bắt, nên phải khai thành bất biến ở đây.
++func mustFitSupplyCap(networkID uint32) {
++	xp, cChain, cap_ := totalXPSupply(), totalCChainSupply(), supplyCap(networkID)
++
++	// ---- (1) chống tràn ngược uint64 ----
++	//
++	// So `totalXPSupply()` chứ KHÔNG phải `totalGenesisSupply()`: thứ trở thành
++	// `currentSupply` là InitialSupply, mà InitialSupply chỉ cộng X/P. Bản trước
++	// patch 0013 so tổng-cả-C-Chain — chặt hơn cần thiết theo một hướng, và **mù
++	// hoàn toàn** theo hướng còn lại (cổng (2) dưới đây).
++	if xp > cap_ {
++		fmt.Fprintf(os.Stderr,
++			"FATAL phát hành genesis X/P %s LOVE9 VƯỢT trần cung %s LOVE9 (networkID %d).\n"+
++				"       Trần lấy từ genesis.GetStakingConfig(%d) — chính hàm node sẽ gọi.\n"+
++				"       Sinh mạng như vậy làm remainingSupply tràn ngược uint64 ở\n"+
++				"       reward/calculator.go — mạng chạy bình thường nhưng phát thưởng sai.\n",
++			love9(xp), love9(cap_), networkID, networkID)
++		os.Exit(1)
++	}
++
++	// ---- (2) kế toán tổng cung ----
++	//
++	// Cộng bằng uint64 an toàn ở mọi giá trị thật (9e18 < 1,8e19), nhưng kiểm tràn
++	// vẫn rẻ hơn là tin vào "chắc không ai đặt số to thế".
++	if cap_ > ^uint64(0)-cChain {
++		fmt.Fprintf(os.Stderr, "FATAL trần cung + phần C-Chain tràn uint64 — bảng phân bổ vô lý.\n")
++		os.Exit(1)
++	}
++	if tong := cap_ + cChain; tong != a1TotalSupplyTarget {
++		fmt.Fprintf(os.Stderr,
++			"FATAL kế toán tổng cung KHÔNG khớp (networkID %d):\n"+
++				"         trần cung P/X (binary)   %s LOVE9\n"+
++				"       + phát hành C-Chain        %s LOVE9   <- KHÔNG vào currentSupply\n"+
++				"       = %s LOVE9, nhưng tổng cung công bố là %s LOVE9 (D-039).\n\n"+
++				"       `Config.InitialSupply()` (genesis/config.go:146) chỉ cộng X/P; phần\n"+
++				"       C-Chain tồn tại thật mà P-Chain không bao giờ đếm tới. Nên trần cung\n"+
++				"       phải nhỏ hơn tổng cung ĐÚNG BẰNG phần C-Chain, nếu không staking sẽ\n"+
++				"       mint quá tay đúng bằng phần chênh — mạng vẫn xanh, chỉ có lời hứa sai.\n"+
++				"       Sửa `SupplyCap` trong genesis/genesis_9chain_a1.go, hoặc sửa cột\n"+
++				"       CChain trong bảng phân bổ. Đổi cái nào cũng là re-genesis.\n",
++			networkID, love9(cap_), love9(cChain), love9(tong), love9(a1TotalSupplyTarget))
++		os.Exit(1)
+ 	}
++
+ 	fmt.Fprintf(os.Stderr,
+-		"FATAL phát hành genesis %s LOVE9 VƯỢT trần cung %s LOVE9.\n"+
+-			"       Trần lấy từ genesis.A1Params (biên dịch vào binary này).\n"+
+-			"       Sinh mạng như vậy làm remainingSupply tràn ngược uint64 ở\n"+
+-			"       reward/calculator.go — mạng chạy bình thường nhưng phát thưởng sai.\n",
+-		love9(total), love9(cap_))
+-	os.Exit(1)
++		"✓ cung: X/P %s ≤ trần %s · trần + C-Chain %s = tổng cung %s LOVE9 (dư địa mint %s)\n",
++		love9(xp), love9(cap_), love9(cChain), love9(a1TotalSupplyTarget), love9(cap_-xp))
+ }
+ 
+ // canhBaoSelfBond — in ra self-bond MỖI NODE, và cảnh báo khi nó thôi tròn LOVE9.
+@@ -236,8 +321,15 @@ func love9(n uint64) string {
+ func allocationReport(funds map[string]*fund, networkID uint32, nodes int) string {
+ 	var b strings.Builder
+ 	fmt.Fprintf(&b, "# 9Chain-A1 — Phân bổ genesis (networkID %d, %d node)\n\n", networkID, nodes)
+-	fmt.Fprintf(&b, "Tổng phát hành genesis: **%s LOVE9** · Trần cung: **%s LOVE9**\n\n",
+-		love9(totalGenesisSupply()), love9(supplyCap()))
++	// 🔴 BA con số, không phải hai — và đây là chỗ người đọc dễ nhầm nhất.
++	// `Trần cung P/X` (7,900,000,001) KHÁC `Tổng cung` (9,000,000,000) đúng bằng
++	// phần C-Chain, vì `currentSupply` của P-Chain không đếm C-Chain. In cả ba để
++	// không ai phải tự suy — bản trước in một mình trần cung và nó đọc như thể
++	// tổng cung của 9Chain là 7,9 tỷ.
++	fmt.Fprintf(&b, "Tổng phát hành genesis: **%s LOVE9** · Tổng cung: **%s LOVE9** "+
++		"(trần cung P/X **%s** + phát hành thẳng trên C-Chain **%s**)\n\n",
++		love9(totalGenesisSupply()), love9(a1TotalSupplyTarget),
++		love9(supplyCap(networkID)), love9(totalCChainSupply()))
+ 	b.WriteString("File này CÔNG KHAI được — chỉ chứa địa chỉ, không chứa khoá bí mật.\n\n")
+ 	// 10 cột: header, dòng ngăn và dòng dữ liệu PHẢI cùng số cột. Bản trước header 10
+ 	// mà dòng dữ liệu 9 (thiếu cột Hạng mục) — markdown vẫn render, chỉ là lệch nhãn.
+diff --git a/9chain-a1-tools/netgen/engrave.go b/9chain-a1-tools/netgen/engrave.go
+index b1ab0eb..211fba5 100644
+--- a/9chain-a1-tools/netgen/engrave.go
++++ b/9chain-a1-tools/netgen/engrave.go
+@@ -168,6 +168,18 @@ func loadEngraving() *engraving {
+ 	}
+ 
+ 	e := &engraving{manifest: m, docs: docs}
++
++	// 🔴 CỔNG CHO MẶT `p` — patch 0013. Bản trước CHỈ canh mặt `c`.
++	//
++	// Không tài liệu nào khai `"p"` thì `canonicalBundle` vẫn chạy trơn và trả về
++	// `{"v":1,"chain":"9Chain-A1","surface":"p","docs":[]}` — một bó RỖNG, khắc
++	// vĩnh viễn vào P-Chain, tức vào đúng thứ file này gọi là "GỐC: nơi khai sinh
++	// ra cả X-Chain lẫn C-Chain". Không một tiếng động. Bất đối xứng đó là lỗi:
++	// mặt gốc phải được canh CHẶT HƠN mặt phái sinh, không phải lỏng hơn.
++	pDocs := filterSurface(docs, surfaceP)
++	if len(pDocs) == 0 {
++		engraveFatal("khong tai lieu nao khai mat `p` — P-Chain la MAT GOC, khong duoc khac bo rong")
++	}
+ 	e.PMessage = canonicalBundle(docs, surfaceP)
+ 
+ 	cDocs := filterSurface(docs, surfaceC)
+@@ -273,23 +285,78 @@ func requireConfirm(e *engraving) {
+ // gõ lại tài liệu thay vì chép byte: nội dung "trông giống hệt" mà hash khác.
+ // Định dạng chấp nhận: mỗi dòng có một chuỗi sha256 64 ký tự hex ở đâu đó
+ // (khớp `sha256sum`, và khớp cả bảng markdown).
++// engraveDrillOptOut — giá trị phải khai để BỎ QUA đối chiếu với C1.
++//
++// Cố ý là một câu tiếng Việt dài, không phải `1`/`true`: nó xuất hiện trong lịch sử
++// shell và trong log CI, nên người đọc lại thấy ngay đây là lượt TẬP. Một cờ mà gõ
++// nhầm cũng bật được là một cờ sẽ bị bật nhầm.
++const engraveDrillOptOut = "toi-biet-day-la-ban-tap"
++
+ func verifyAgainstC1(docs []engraveDoc) {
+ 	path := env("A1_ENGRAVE_CHECKSUMS", "")
+ 	if path == "" {
+-		fmt.Fprintln(os.Stderr, "CANH BAO: khong khai A1_ENGRAVE_CHECKSUMS — KHONG doi chieu duoc voi ban dong bang cua C1.")
+-		fmt.Fprintln(os.Stderr, "          Vat chung dong nhat hai chain la thu manh nhat dang co; dung bo qua o luot THAT.")
+-		return
++		// 🔴 PATCH 0013: TỪ CẢNH BÁO THÀNH CHẶN.
++		//
++		// Bản trước in cảnh báo rồi khắc tiếp. Bất đối xứng ở đúng chỗ đắt nhất:
++		// cổng chống lỗi CỦA CHÍNH MÌNH (`A1_ENGRAVE_CONFIRM`) thì cứng, còn cổng
++		// chống lệch VỚI C1 — thứ không sửa được sau, và là vật chứng đồng nhất
++		// mạnh nhất dự án đang có — thì mềm. Chú thích cũ tự viết "dung bo qua o
++		// luot THAT" mà không có gì cưỡng chế; một lời dặn không phải một cổng.
++		if strings.TrimSpace(env("A1_ENGRAVE_NO_CHECKSUMS", "")) == engraveDrillOptOut {
++			fmt.Fprintln(os.Stderr, "⚠️  KHAC CHU: BO QUA doi chieu C1 (ban tap, da khai A1_ENGRAVE_NO_CHECKSUMS).")
++			fmt.Fprintln(os.Stderr, "    Mang sinh ra tu luot nay KHONG duoc dung lam mang that.")
++			return
++		}
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "🔴 KHAC CHU: thieu A1_ENGRAVE_CHECKSUMS — khong doi chieu duoc voi ban dong bang cua C1.")
++		fmt.Fprintln(os.Stderr, "   Genesis la BAT BIEN. Khac byte khong khop C1 la mat vinh vien vat chung")
++		fmt.Fprintln(os.Stderr, "   dong nhat giua hai chain, va khong co lan thu hai.")
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "   Luot THAT : A1_ENGRAVE_CHECKSUMS=<duong dan CHECKSUMS-FREEZE cua C1>")
++		fmt.Fprintf(os.Stderr, "   Luot TAP  : A1_ENGRAVE_NO_CHECKSUMS=%s\n", engraveDrillOptOut)
++		os.Exit(1)
+ 	}
+ 	b, err := os.ReadFile(path)
+ 	must(err, "doc CHECKSUMS cua C1 "+path)
+-	body := strings.ToLower(string(b))
+ 
+-	missing := make([]string, 0)
++	// 🔴 PATCH 0013: DOI CHIEU THEO TUNG TAI LIEU, khong phai `strings.Contains`
++	// tren ca tep.
++	//
++	// Ban truoc chi hoi "hash nay co nam dau do trong tep khong". Cau tra loi "co"
++	// chung minh *byte thuoc bo cua C1*, KHONG chung minh *dung tai lieu nao*: mot
++	// manifest tro `doc-hebrew` sang tep tieng Anh van qua sach, vi ca hai hash deu
++	// co trong CHECKSUMS-FREEZE. Voi mot cong ma toan bo gia tri la doi ung byte
++	// THEO TUNG tai lieu, do la lo dung cho.
++	//
++	// Nay: dong mang hash phai mang KEM ten tep hoac id cua chinh tai lieu do.
++	// Chap nhan ca `sha256sum` (`<hash>  <ten tep>`) lan bang markdown.
++	lines := strings.Split(strings.ToLower(string(b)), "\n")
++
++	missing := make([]string, 0)  // hash khong co trong tep
++	mismatch := make([]string, 0) // hash co, nhung khong gan voi tai lieu nay
++
+ 	for _, d := range docs {
+-		if !strings.Contains(body, d.sum) {
++		base := strings.ToLower(filepath.Base(d.File))
++		id := strings.ToLower(d.ID)
++		found, tied := false, false
++		for _, ln := range lines {
++			if !strings.Contains(ln, d.sum) {
++				continue
++			}
++			found = true
++			if strings.Contains(ln, base) || strings.Contains(ln, id) {
++				tied = true
++				break
++			}
++		}
++		switch {
++		case !found:
+ 			missing = append(missing, fmt.Sprintf("  %-28s %s", d.ID, d.sum))
++		case !tied:
++			mismatch = append(mismatch, fmt.Sprintf("  %-28s %s  (tep: %s)", d.ID, d.sum, base))
+ 		}
+ 	}
++
+ 	if len(missing) > 0 {
+ 		fmt.Fprintln(os.Stderr, "")
+ 		fmt.Fprintln(os.Stderr, "🔴 KHAC CHU: co tai lieu KHONG khop ban dong bang cua C1")
+@@ -299,7 +366,18 @@ func verifyAgainstC1(docs []engraveDoc) {
+ 		fmt.Fprintln(os.Stderr, "Noi dung trong giong het ma hash khac: dau cham, kieu nhay, BOM, CRLF, niqqud.")
+ 		os.Exit(1)
+ 	}
+-	fmt.Fprintf(os.Stderr, "✓ khac chu: %d/%d tai lieu khop ban dong bang cua C1\n", len(docs), len(docs))
++	if len(mismatch) > 0 {
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "🔴 KHAC CHU: hash CO trong ban dong bang, nhung KHONG gan voi tai lieu nay")
++		fmt.Fprintln(os.Stderr, strings.Join(mismatch, "\n"))
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "Nghia la byte den tu C1 that, nhung manifest cua A1 dang GAN NHAM tai lieu")
++		fmt.Fprintln(os.Stderr, "vao id/ngon ngu khac — vi du `id: doc-hebrew` tro vao tep tieng Anh.")
++		fmt.Fprintln(os.Stderr, "Doi chieu cot `file` trong manifest voi ten tep trong CHECKSUMS cua C1.")
++		fmt.Fprintln(os.Stderr, "(Neu C1 dat ten tep khac han, sua `id` cua A1 cho khop, dung sua hash.)")
++		os.Exit(1)
++	}
++	fmt.Fprintf(os.Stderr, "✓ khac chu: %d/%d tai lieu khop ban dong bang cua C1 (hash VA ten tep)\n", len(docs), len(docs))
+ }
+ 
+ // report — bảng công khai để đối chiếu chéo với C1 và để 9Scan-A1 phơi ra.
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+index 098179f..0f022a6 100644
+--- a/9chain-a1-tools/netgen/main.go
++++ b/9chain-a1-tools/netgen/main.go
+@@ -110,9 +110,33 @@ func main() {
+ 	}
+ 	hrp := constants.GetHRP(networkID) // "love9" cho custom net
+ 
++	// 🔴 CHẶN networkID LẠ — patch 0013.
++	//
++	// `NETWORK_ID` là env, mà tham số kinh tế của 9Chain chỉ gắn vào **9001**
++	// (`genesis/params.go` → `case A1NetworkID`). Mọi networkID khác rơi vào nhánh
++	// `default:` và mượn `LocalParams`: trần cung 720 TRIỆU. Sinh một genesis phát
++	// hành 4,3 tỷ rồi chạy nó trên mạng đó là tràn ngược `uint64` ở
++	// `reward/calculator.go` — mạng lên sạch, RPC xanh, sai lệch chỉ lộ ở phần
++	// thưởng staking nhiều ngày sau.
++	//
++	// Cổng `mustFitSupplyCap` nay đọc trần theo networkID nên nó đã bắt được ca này.
++	// Cổng ở đây là lớp thứ hai và nó nói rõ hơn: vấn đề không phải "số không vừa"
++	// mà là "netgen không sinh mạng nào ngoài 9Chain-A1". Muốn một mạng khác thì
++	// phải khai tham số kinh tế cho nó trước, ở `genesis/params.go`.
++	if networkID != genesis.A1NetworkID {
++		fmt.Fprintf(os.Stderr,
++			"FATAL NETWORK_ID=%d — netgen chỉ sinh được mạng 9Chain-A1 (%d).\n"+
++				"      Tham số kinh tế (trần cung, mức stake, phí) chỉ gắn vào %d trong\n"+
++				"      genesis/params.go; mọi networkID khác mượn LocalParams của Avalanche\n"+
++				"      (trần cung 720 triệu) và genesis này sẽ TRÀN NGƯỢC uint64 khi phát thưởng.\n",
++			networkID, genesis.A1NetworkID, genesis.A1NetworkID)
++		os.Exit(1)
++	}
++
+ 	// Chặn TRƯỚC khi sinh khoá: bảng phân bổ phải nằm trong trần cung mà chính
+-	// binary này biên dịch vào. Xem `mustFitSupplyCap` trong allocation.go.
+-	mustFitSupplyCap()
++	// binary này biên dịch vào, VÀ kế toán tổng cung phải khớp lời hứa công bố.
++	// Xem `mustFitSupplyCap` trong allocation.go.
++	mustFitSupplyCap(networkID)
+ 	canhBaoSelfBond(n)
+ 
+ 	// Chữ khắc — cũng chặn TRƯỚC khi sinh khoá. Lượt khắc hỏng mà đã sinh khoá là
+diff --git a/genesis/genesis_9chain_a1.go b/genesis/genesis_9chain_a1.go
+index 4fd82d9..f0f1679 100644
+--- a/genesis/genesis_9chain_a1.go
++++ b/genesis/genesis_9chain_a1.go
+@@ -16,6 +16,7 @@ package genesis
+ import (
+ 	"time"
+ 
++	"github.com/ava-labs/avalanchego/utils/constants"
+ 	"github.com/ava-labs/avalanchego/utils/units"
+ 	"github.com/ava-labs/avalanchego/vms/components/gas"
+ 	"github.com/ava-labs/avalanchego/vms/platformvm/reward"
+@@ -27,7 +28,12 @@ import (
+ // LƯU Ý: networkID Avalanche là uint32 (≤ 4,294,967,295) nên KHÔNG thể dùng
+ // số nhận diện 9 tỷ của 9Chain ở đây. Số 9 tỷ (9000000009) là EVM chainId
+ // của C-Chain, khai báo trong cChainGenesis của netgen — hai thứ khác nhau.
+-const A1NetworkID uint32 = 9001
++//
++// Từ patch 0013 đây là BÍ DANH của `constants.A1ID`, không còn là một hằng
++// độc lập: gói `upgrade` cũng cần số này để định tuyến lịch nâng cấp, mà nó
++// không import được `genesis` (vòng import). Hai bản chép tay của cùng một số
++// là đúng thứ dự án này đã trôi lệch vì nó nhiều lần.
++const A1NetworkID = constants.A1ID
+ 
+ // A1Params — tham số staking + phí của 9Chain-A1 (token LOVE9, 9 chữ số thập phân).
+ //
+@@ -108,18 +114,60 @@ var A1Params = Params{
+ 			MinConsumptionRate: .10 * reward.PercentDenominator,
+ 			MintingPeriod:      365 * 24 * time.Hour,
+ 
+-			// Trần cung TUYỆT ĐỐI: 9,000,000,000 LOVE9. Không bao giờ mint vượt.
+-			// Genesis phát hành 5,400,000,000 (60%) → 3,600,000,000 còn lại là quỹ
+-			// Staking Rewards, mint dần theo mức stake thực tế (D-042).
++			// ═══════════════════════════════════════════════════════════════════
++			// TRẦN CUNG P/X — 7,900,000,001 LOVE9.  ĐỌC HẾT KHỐI NÀY TRƯỚC KHI SỬA.
++			// ═══════════════════════════════════════════════════════════════════
++			//
++			// 🔴 ĐÂY KHÔNG PHẢI TỔNG CUNG CỦA 9CHAIN. Tổng cung là 9,000,000,000
++			// (D-039). Số ở đây nhỏ hơn ĐÚNG BẰNG phần token phát hành thẳng trên
++			// C-Chain, và đó là chủ ý — xem vì sao ngay dưới. Đừng "dọn dẹp" nó về
++			// 9 tỷ cho khớp tài liệu: làm thế là in thêm 1,1 tỷ LOVE9.
++			//
++			// VÌ SAO. `SupplyCap` là trần của `currentSupply` trên P-Chain, mà
++			// `currentSupply` khởi tạo từ `Config.InitialSupply()`
++			// (`genesis/config.go:146`) — hàm đó cộng **duy nhất** `Allocations`
++			// (X/P). Trường `CChainGenesis` nằm ngoài vòng lặp ⇒ token phát hành
++			// thẳng trên C-Chain **TỒN TẠI NHƯNG KHÔNG BAO GIỜ VÀO SỔ**.
++			//
++			// Upstream không vấp phải điều này vì upstream không phát hành gì ở
++			// C-Chain genesis: cả Mainnet lẫn Fuji có đúng MỘT mục `balance` trong
++			// `cChainGenesis` và giá trị là `0x0` (stub precompile ở 0x0100…00).
++			// Mọi AVAX vào qua X/P ⇒ bất biến "currentSupply = toàn bộ token đang
++			// tồn tại" luôn đúng với họ. 9Chain-A1 phá bất biến đó khi đặt
++			// 1,099,999,999 LOVE9 vào `cChainGenesis` (Foundation 1e9 + faucet
++			// 99,999,999 — xem `netgen/allocation.go`).
++			//
++			// SỐ HỌC (nLOVE9 quy về LOVE9):
++			//	InitialSupply (X/P)          4,300,000,001
++			//	C-Chain, ngoài sổ            1,099,999,999
++			//	                             ─────────────
++			//	tổng phát hành genesis       5,400,000,000  ✓ D-042
++			//
++			//	trần P/X (hằng này)          7,900,000,001
++			//	− InitialSupply              4,300,000,001
++			//	                             ─────────────
++			//	dư địa mint                  3,600,000,000  ✓ = ô Staking Rewards 40%
++			//
++			//	trần P/X 7,900,000,001 + C-Chain 1,099,999,999 = 9,000,000,000 ✓ D-039
++			//
++			// Đặt 9,000,000,000 ở đây (bản trước patch 0013) cho dư địa mint
++			// 4,699,999,999 — thừa đúng 1,099,999,999 — và tổng LOVE9 tối đa từng
++			// tồn tại sẽ là **10,099,999,999**, vượt lời hứa 9 tỷ 12,2%.
++			//
++			// 🔴 ĐỔI BẢNG PHÂN BỔ LÀ PHẢI ĐỔI SỐ NÀY THEO. Ràng buộc bất biến:
++			//	SupplyCap + Σ(bucket.CChain) == 9,000,000,000
++			// `netgen` cưỡng chế nó ở `mustFitSupplyCap()` (allocation.go) và
++			// `scripts/check-consistency.mjs` kiểm lại từ phía tài liệu.
+ 			//
+ 			// 🔴 HẰNG SỐ NÀY BIÊN DỊCH VÀO BINARY, KHÔNG ĐỌC TỪ genesis.json.
+ 			// Đổi nó = phải build lại image node và deploy, không chỉ sinh lại genesis.
+-			// Chạy genesis phát hành 5,4 tỷ trên binary còn trần 720 triệu thì
+-			// `reward/calculator.go:56` trừ `uint64` thô và TRÀN NGƯỢC — node khởi
+-			// động sạch, sai lệch chỉ lộ ở phần thưởng staking. netgen có cổng chặn
+-			// phía nó (`mustFitSupplyCap`) nhưng cổng đó không nhìn thấy image trên
+-			// server; đối chiếu bằng `docker logs <node> | head -1 | grep supplyCap`.
+-			SupplyCap: 9_000 * units.MegaAvax, // 9.000.000.000 LOVE9 — D-039
++			// Chạy genesis phát hành vượt trần thì `reward/calculator.go:56` trừ
++			// `uint64` thô và TRÀN NGƯỢC — node khởi động sạch, sai lệch chỉ lộ ở
++			// phần thưởng staking. netgen có cổng chặn phía nó nhưng cổng đó không
++			// nhìn thấy image trên server; đối chiếu bằng
++			// `docker logs <node> | head -1 | grep supplyCap` ⇒ phải ra
++			// **7900000001000000000**.
++			SupplyCap: 7_900_000_001 * units.Avax, // D-039 (9 tỷ) − C-Chain (1,099,999,999)
+ 		},
+ 	},
+ }
+diff --git a/upgrade/upgrade.go b/upgrade/upgrade.go
+index be6bca1..74e620f 100644
+--- a/upgrade/upgrade.go
++++ b/upgrade/upgrade.go
+@@ -85,6 +85,53 @@ var (
+ 		HeliconTime:                  UnscheduledActivationTime,
+ 	}
+ 
++	// A1 — lịch nâng cấp CHỦ QUYỀN của 9Chain-A1 (networkID 9001).
++	//
++	// VÌ SAO PHẢI CÓ (patch 0013). Trước file này, `GetConfig` chỉ tách Mainnet và
++	// Fuji; 9001 rơi vào `Default`. Nghĩa là 9Chain sở hữu tham số KINH TẾ
++	// (`genesis.A1Params`) nhưng KHÔNG sở hữu **lịch kích hoạt hard fork** — mà hai
++	// thứ đó consensus-critical ngang nhau. Cụ thể chỗ hỏng:
++	//
++	//	`Default` là bảng của Ava Labs và nó THAY ĐỔI theo mỗi lượt phát hành. Hôm
++	//	nay `HeliconTime` ở đó là `UnscheduledActivationTime` (năm 9999). Khi Ava Labs
++	//	lên lịch Helicon, họ sửa `Default` — và lượt rebase kế tiếp của A1 sẽ **nuốt
++	//	trọn một hard fork mà không qua một quyết định nào**: không DECISIONS, không
++	//	ai duyệt, không một dòng log khác thường. Đó đúng là lập luận patch 0002 đã
++	//	dùng để tách `config.go` khỏi cờ CLI, chỉ là hồi đó dừng trước `upgrade.go`.
++	//
++	// 🔴 GIÁ TRỊ HÔM NAY BẰNG ĐÚNG `Default` — cố ý. Đây là một lượt chép TƯỜNG MINH,
++	// không phải một lượt đổi hành vi: mạng công khai đang chạy với `Default` nên
++	// chép nguyên là giữ nguyên mọi thứ đang đúng (Warp, ACP-77/Etna, Granite đều
++	// đang sống). Cái thay đổi là **quyền**: từ nay đổi lịch fork của 9Chain là sửa
++	// bảng NÀY, và một lượt rebase upstream không tự làm được điều đó nữa.
++	//
++	// ⚠️ SAU MỖI LẦN REBASE: nếu `Config` mọc thêm trường mới, Go KHÔNG báo lỗi —
++	// trường thiếu nhận giá trị zero, mà `time.Time{}` zero là **năm 1**, tức
++	// "đã kích hoạt từ lâu". Phải đối chiếu bảng này với `Default` bằng mắt sau mỗi
++	// lượt rebase. `upgrade_test.go` không canh hộ việc đó.
++	A1 = Config{
++		ApricotPhase1Time:            InitiallyActiveTime,
++		ApricotPhase2Time:            InitiallyActiveTime,
++		ApricotPhase3Time:            InitiallyActiveTime,
++		ApricotPhase4Time:            InitiallyActiveTime,
++		ApricotPhase4MinPChainHeight: 0,
++		ApricotPhase5Time:            InitiallyActiveTime,
++		ApricotPhasePre6Time:         InitiallyActiveTime,
++		ApricotPhase6Time:            InitiallyActiveTime,
++		ApricotPhasePost6Time:        InitiallyActiveTime,
++		BanffTime:                    InitiallyActiveTime,
++		CortinaTime:                  InitiallyActiveTime,
++		CortinaXChainStopVertexID:    ids.Empty,
++		DurangoTime:                  InitiallyActiveTime,
++		EtnaTime:                     InitiallyActiveTime,
++		FortunaTime:                  InitiallyActiveTime,
++		GraniteTime:                  InitiallyActiveTime,
++		GraniteEpochDuration:         30 * time.Second,
++		// Helicon CHƯA lên lịch cho 9Chain-A1 — quyết định của 9Chain, không phải
++		// của upstream. Đổi số này là một hard fork: phải qua DECISIONS trước.
++		HeliconTime: UnscheduledActivationTime,
++	}
++
+ 	ErrInvalidUpgradeTimes = errors.New("invalid upgrade configuration")
+ )
+ 
+@@ -207,6 +254,8 @@ func GetConfig(networkID uint32) Config {
+ 		return Mainnet
+ 	case constants.FujiID:
+ 		return Fuji
++	case constants.A1ID: // 9Chain-A1 — lịch nâng cấp chủ quyền, xem `A1` ở trên
++		return A1
+ 	default:
+ 		return Default
+ 	}
+diff --git a/utils/constants/network_ids.go b/utils/constants/network_ids.go
+index 4e170a1..0af95e0 100644
+--- a/utils/constants/network_ids.go
++++ b/utils/constants/network_ids.go
+@@ -25,6 +25,12 @@ const (
+ 	UnitTestID uint32 = 10
+ 	LocalID    uint32 = 12345
+ 
++	// A1ID — networkID của 9Chain-A1. Đặt Ở ĐÂY chứ không chỉ ở
++	// `genesis.A1NetworkID` vì gói `upgrade` cần nó để định tuyến lịch nâng cấp,
++	// mà `upgrade` KHÔNG import được `genesis` (vòng import: genesis → upgrade).
++	// `genesis.A1NetworkID` nay là bí danh của hằng này — một nguồn sự thật.
++	A1ID uint32 = 9001
++
+ 	MainnetName  = "mainnet"
+ 	CascadeName  = "cascade"
+ 	DenaliName   = "denali"
+@@ -34,6 +40,21 @@ const (
+ 	UnitTestName = "testing"
+ 	LocalName    = "local"
+ 
++	// A1Name — tên mạng của 9Chain-A1.
++	//
++	// 🔴 TÊN NÀY ĐI VÀO ĐƯỜNG DẪN DB CỦA NODE: `config/config.go` dựng
++	// `Path: filepath.Join(<db-dir>, constants.NetworkName(networkID))`. Trước khi
++	// khai tên này, `NetworkName(9001)` trả về `"network-9001"` (nhánh mặc định)
++	// nên dữ liệu chain nằm ở `<db-dir>/network-9001/`. Sau khi khai, node đi tìm
++	// `<db-dir>/9chain-a1/` — THƯ MỤC RỖNG.
++	//
++	// ⇒ **Binary mang tên này CHỈ được đưa lên cùng một lượt sinh lại mạng**
++	// (`docker compose down -v` xoá volume). Đưa nó lên một mạng ĐANG CHẠY mà không
++	// wipe thì cả 9 node cùng lúc thấy DB trống và bootstrap lại từ đầu — dữ liệu cũ
++	// vẫn còn trên đĩa ở thư mục cũ, nhưng mạng đứng cho tới khi có người đổi tên
++	// thư mục về. Xem `docs/CORE-AUDIT-2026-08-27.md` §4.
++	A1Name = "9chain-a1"
++
+ 	MainnetHRP  = "avax"
+ 	CascadeHRP  = "cascade"
+ 	DenaliHRP   = "denali"
+@@ -41,6 +62,23 @@ const (
+ 	FujiHRP     = "fuji"
+ 	UnitTestHRP = "testing"
+ 	LocalHRP    = "local"
++
++	// A1HRP — tiền tố bech32 của địa chỉ P/X trên 9Chain-A1 (`P-love9…`).
++	//
++	// 🔴 KHAI TƯỜNG MINH, và đó là cả điểm của hằng này. Trước patch 0013, 9001
++	// KHÔNG có mặt trong `NetworkIDToHRP` nên `GetHRP(9001)` rơi xuống
++	// `FallbackHRP` — tức tiền tố địa chỉ của mạng công khai sống bằng NHÁNH DỰ
++	// PHÒNG chứ không bằng khai báo. Một lượt rebase đặt lại `FallbackHRP` về
++	// `"custom"` của upstream là ĐỔI TIỀN TỐ MỌI ĐỊA CHỈ P/X đã phát ra ngoài, và
++	// không cổng nào bắt được. Nay 9001 nằm trong map ⇒ `FallbackHRP` không còn
++	// chịu lực.
++	A1HRP = "love9"
++
++	// FallbackHRP giữ nguyên `"love9"` (không trả về `"custom"` của upstream) —
++	// CỐ Ý, và nay chỉ là dây bảo hiểm thứ hai chứ không phải đường sống: mọi
++	// đường dùng thật đều đi qua `NetworkIDToHRP[A1ID]` ở trên. Đổi nó không còn
++	// ảnh hưởng 9001, nhưng vẫn ảnh hưởng các networkID lạ nên đừng đụng vào
++	// trong cùng lượt với việc khác.
+ 	FallbackHRP = "love9"
+ )
+ 
+@@ -57,6 +95,7 @@ var (
+ 		FujiID:     FujiName,
+ 		UnitTestID: UnitTestName,
+ 		LocalID:    LocalName,
++		A1ID:       A1Name, // 🔴 đổi đường dẫn DB — xem chú thích ở A1Name
+ 	}
+ 	NetworkNameToNetworkID = map[string]uint32{
+ 		MainnetName:  MainnetID,
+@@ -67,6 +106,7 @@ var (
+ 		TestnetName:  TestnetID,
+ 		UnitTestName: UnitTestID,
+ 		LocalName:    LocalID,
++		A1Name:       A1ID, // cho phép `--network-id=9chain-a1`, không chỉ số trần
+ 	}
+ 
+ 	NetworkIDToHRP = map[uint32]string{
+@@ -77,6 +117,7 @@ var (
+ 		FujiID:     FujiHRP,
+ 		UnitTestID: UnitTestHRP,
+ 		LocalID:    LocalHRP,
++		A1ID:       A1HRP, // KHÔNG đổi hành vi: trước đây cũng ra "love9", nhưng qua FallbackHRP
+ 	}
+ 	ProductionNetworkIDs = set.Of(MainnetID, FujiID)
+ 
