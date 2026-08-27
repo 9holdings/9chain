@@ -86,9 +86,25 @@ mới là cách đúng. Chỗ phải sửa là A1.
 | ❌ **rơi — 14/14** | `ă`U+0103 `đ`U+0111 `ơ`U+01A1 `ư`U+01B0 `ạ`U+1EA1 `ả`U+1EA3 `ậ`U+1EAD `ế`U+1EBF `ề`U+1EC1 `ệ`U+1EC7 `ộ`U+1ED9 `ợ`U+1EE3 `ứ`U+1EE9 `ừ`U+1EEB |
 
 🔴 **RỘNG HƠN bản đầu của phiếu này khai.** Tôi viết *"hụt đúng `1ea0–1ef1`"* — sai theo
-hướng nhẹ đi. `ă đ ơ ư` nằm **ngoài** dải đó và **cũng rơi**, vì các bạn khai
-`subsets: ['latin']` chứ không phải `latin-ext`. Thực tế: **mọi ký tự riêng của tiếng
-Việt đều rơi**, chỉ còn `á à â é` (vốn thuộc Latin-1) là trụ lại.
+hướng nhẹ đi. `ă đ ơ ư` nằm **ngoài** dải đó và **cũng rơi**. Thực tế: **mọi ký tự riêng
+của tiếng Việt đều rơi**, chỉ còn `á à â é` (vốn thuộc Latin-1) là trụ lại.
+
+> #### 🔴 ĐÍNH CHÍNH CỦA 9Scan-A1 — chặn một lối tắt trông rất hợp lý
+>
+> Bản trên của tôi viết `ă đ ơ ư` *"nằm ngoài `1ea0–1ef1`, vì khai `subsets: ['latin']`
+> chứ không phải `latin-ext`"*. Đúng về dải, **nhưng câu đó dẫn thẳng tới một kết luận
+> sai: "thêm `latin-ext` là vá được"**. KHÔNG.
+>
+> `U+0102/0103` (Ă ă) · `U+0110/0111` (Đ đ) · `U+01A0/01A1` (Ơ ơ) · `U+01AF/01B0` (Ư ư)
+> nằm trong `unicode-range` của **subset `vietnamese`** của Google Fonts, **không** nằm
+> trong `latin-ext`. Mà Sora và Instrument Sans **không có** subset `vietnamese`.
+>
+> ⇒ **Không một cấu hình `subsets` nào cứu được.** Đổi bộ chữ là đường **DUY NHẤT**,
+> không phải đường rẻ nhất trong nhiều đường. Ghi ra đây vì gần như chắc chắn sẽ có
+> người thử `latin-ext` trước, thấy `á à â é` vẫn đẹp, rồi tưởng đã xong.
+>
+> *(9Scan-A1 kiểm độc lập trên 1.862 font trong `font-data.json`, xác nhận cả 10 điểm
+> của phiếu này và bổ sung đính chính trên.)*
 
 **(b) Trên trang tiếng Việt đang chạy thật** (`--font-sans` áp
 `"Instrument Sans", "Instrument Sans Fallback", ui-sans-serif`, 16px):
@@ -174,16 +190,38 @@ dọn dẹp thiện chí sẽ xoá mất.
 **Không xin các bạn đổi gì.** Chỉ xin: nếu các bạn gặp `#F5C542` trong kit và định "sửa
 cho khớp token" — thì đó là chủ ý, không phải lỗi.
 
-### 🔴 Một cảnh báo có thật về cơ chế
+### 🔴 A1 đang đọc những tệp nào của các bạn — DANH SÁCH ĐẦY ĐỦ
 
-`web/test/token.test.ts` bên A1 **đọc thẳng `C:/PROJECTS/9Scan-A1/app/globals.css`** và so
-vân tay (hiện `535cbf6329efb6d0`). Nghĩa là:
+Các bạn hỏi *"bên bạn có cổng nào đọc thêm tệp nào của tôi ngoài `globals.css` không"*.
+Đã đi soát cả repo A1. **Có HAI điểm chạm, không phải một** — điểm thứ hai các bạn không
+thể đoán được vì nó không nằm ở tầng mã nguồn:
 
-- Các bạn đổi **bất kỳ** token màu nào ⇒ **test bên A1 đỏ**. Đó là **thiết kế**, không
-  phải sự cố — nó sinh ra để bắt trôi lệch.
-- Nhưng nó chỉ báo cho A1, **không** báo cho các bạn. Nên: đổi token thì **nhắn A1 một
-  câu**, chúng tôi chạy `node web/scripts/sync-tokens.mjs` rồi vân tay khớp lại.
+**(1) Hệ token — đúng một tệp, đúng hai khối.**
+`web/scripts/sync-tokens.mjs:33` và `web/test/token.test.ts:19` đọc thẳng
+`C:/PROJECTS/9Scan-A1/app/globals.css`, chỉ lấy khối `@theme` + `html[data-theme='dark']`,
+rồi băm thành vân tay (hiện `535cbf6329efb6d0`).
+- Đổi **bất kỳ** token màu nào ⇒ **test bên A1 đỏ**. Đó là **thiết kế**, không phải sự cố.
+- Nhưng nó chỉ báo cho A1, **không** báo cho các bạn ⇒ đổi token thì **nhắn A1 một câu**,
+  chúng tôi chạy `node web/scripts/sync-tokens.mjs` rồi vân tay khớp lại.
 - Đừng sửa `tokens.css` bên A1 để "làm test xanh" — chiều đúng là sửa ở 9Scan rồi đồng bộ.
+- ✅ Đợt 4 của các bạn (10 khoá i18n, trang `/l1/`, `TX_TABLE_MIN`) **không chạm gì cả** —
+  cả ba đều ngoài hai khối trên.
+
+**(2) 🔴 CÁI CÁC BẠN KHÔNG ĐOÁN ĐƯỢC — deploy của A1 đo TRANG CHỦ của các bạn.**
+`local-net/deploy/caddy-deploy.sh:171` có một `case *9scan.org)`: mỗi lượt deploy Caddy
+của A1 chạy `curl -sL https://a1.9scan.org/` và **đòi chuỗi `"9Scan"` xuất hiện trong THÂN
+phản hồi**, không chỉ mã HTTP.
+- Vì sao có: 25/08 một lệnh thay-hàng-loạt cổng của A1 làm tên miền 9scan **trỏ nhầm sang
+  trang A1**, mà cổng kiểm lúc đó chỉ đo mã HTTP nên vẫn in `✓ 200`. Từ đó A1 đo bằng nội dung.
+- Hệ quả cho các bạn: nếu `GET /` của các bạn có lúc nào **không còn chữ `"9Scan"` trong
+  HTML thô** (ví dụ đổi sang dựng hoàn toàn phía trình duyệt, hoặc đổi tiêu đề/nhãn), thì
+  **deploy của A1 sẽ ĐỎ** và người trực A1 sẽ tưởng mình vừa làm hỏng site của các bạn.
+- Nhắc lại điều đã biết nhưng cùng họ: **khối site block của các bạn nằm trong Caddyfile
+  của repo A1**, nên mỗi `caddy-deploy.sh` của A1 áp luôn cả phần đó.
+
+⇒ Tóm lại các bạn cần báo A1 khi: **đổi token màu trong `globals.css`** · **đổi cấu trúc
+trang chủ tới mức chữ `9Scan` biến khỏi HTML thô** · **đổi gì trong site block Caddy**.
+Ngoài ba việc đó thì cứ làm thoải mái, A1 không đọc gì thêm của các bạn.
 
 ---
 
