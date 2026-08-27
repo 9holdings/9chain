@@ -176,6 +176,13 @@ try {
   console.log(`[chainId]    node scripts/sinh-chainid-da-cap.mjs --ghi`);
 }
 
+// ═══ CỔNG ĐẺ CHAIN: MẶC ĐỊNH ĐÓNG (D-087) ═══
+//
+// Chỉ `A1_DE_CHAIN_MO=1` mới mở. Mọi giá trị khác — thiếu biến, `0`, `true`, `yes`, chuỗi
+// rỗng — đều là ĐÓNG. Cố ý hẹp: một cổng an toàn mà nhận nhiều cách nói "bật" là một cổng
+// bật nhầm, và ở đây bật nhầm nghĩa là hứa với người lạ một thứ sắp bị xoá.
+const DE_CHAIN_MO = process.env.A1_DE_CHAIN_MO === "1";
+
 // Hai lượt tạo chain chạy song song sẽ restart node giữa chừng nhau và hỏng cả
 // hai. Xếp hàng tuần tự — đây là ràng buộc đúng đắn, không phải tối ưu hoá.
 const queue = serialQueue({ maxPending: 5 });
@@ -706,6 +713,25 @@ function ghiChainConfig(blockchainID) {
 }
 
 async function createChain({ name, chainId, admin, preset }) {
+  // 🔴 CỔNG ĐẺ CHAIN — MẶC ĐỊNH ĐÓNG (D-087).
+  //
+  // Ngày G `01/09` **xoá sạch mọi L1 người dùng**. Mở cửa từ giờ tới đó nghĩa là mỗi chain
+  // người lạ đẻ ra là một lời hứa ta **biết chắc** sẽ nuốt lời sau vài ngày — và họ không
+  // biết điều đó. Sau ngày G thì đúng chính sách ấy lại trung thực, vì mạng mới sống lâu hơn.
+  //
+  // 🔴 MỞ BẰNG TAY, KHÔNG MỞ BẰNG ĐỒNG HỒ. Một cổng tự mở theo mốc thời gian sẽ mở **kể cả
+  // khi ngày G trượt** — tức đúng lúc điều kiện nó đang canh chưa thoả. Ngày tháng không
+  // biết mạng đã sinh lại hay chưa; người thì biết.
+  //
+  // Đặt ở ĐẦU `createChain`, trước mọi phép kiểm khác: nó là câu trả lời rẻ nhất và không
+  // phụ thuộc gì. `thuHoiChain` KHÔNG bị chặn — đóng cửa vào không được nhốt người đã ở trong.
+  if (!DE_CHAIN_MO) {
+    throw new Error(
+      "Đẻ chain đang TẠM ĐÓNG. Mạng công khai sẽ được sinh lại vào ngày G (01/09) và mọi L1 " +
+      "người dùng sẽ biến mất theo — nên mở cửa lúc này là hứa một thứ chúng tôi biết chắc " +
+      "sẽ không giữ được. Cửa mở lại sau ngày G. (Vận hành: đặt A1_DE_CHAIN_MO=1.)");
+  }
+
   name = String(name || "").trim();
   if (!/^[A-Za-z0-9 ]{2,32}$/.test(name)) throw new Error("Tên chỉ gồm chữ/số/space (2–32 ký tự)");
 
@@ -1259,6 +1285,11 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, HOST, () => {
   console.log(`9Chain-A1 Console @ http://${HOST}:${PORT}  (điều phối node ${API})`);
+  // In TRẠNG THÁI CỔNG, không chỉ in khi nó đóng. Một chính sách chặn người dùng mà im
+  // lặng ở log là một chính sách không ai biết mình đang chạy — kể cả lúc nó chạy SAI.
+  console.log(DE_CHAIN_MO
+    ? `  đẻ chain: 🔓 MỞ (A1_DE_CHAIN_MO=1)`
+    : `  đẻ chain: 🔒 ĐÓNG — mọi lượt tạo bị từ chối. Mở sau ngày G bằng A1_DE_CHAIN_MO=1 (D-087)`);
   console.log(`  auth   : token vận hành (Bearer <A1_CONSOLE_TOKEN>) HOẶC chữ ký ví (SIWE)`);
   console.log(`  ví     : /api/siwe/nonce → /api/siwe/login · domain ${SIWE_DOMAIN}`);
   console.log(`           đăng nhập bằng ví thì admin bị ÉP = địa chỉ ký (không ai gõ tay)`);

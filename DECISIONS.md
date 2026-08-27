@@ -2475,3 +2475,77 @@ sổ vào thì phải ra `9100`, chứng minh chính việc truyền sổ tạo 
 ⚠️ Sổ này chỉ nhớ được thứ **có trong repo**. Một lượt re-genesis mà không lưu `console-chains.json`
 vào `docs/archive/` trước khi xoá là **mất vĩnh viễn** phần đó — và không có gì báo. ⇒ Việc lưu
 sổ phải nằm trong **runbook re-genesis**, cùng chỗ với quy trình O2.
+
+---
+
+### D-087 — Đẻ chain **TẠM ĐÓNG** tới sau ngày G. Và: console sống đã lạc hậu **3 commit**
+
+#### Phần quyết định (David chốt `27/08`, O3)
+
+Ngày G `01/09` **xoá sạch mọi L1 người dùng**. Mở cửa từ giờ tới đó nghĩa là mỗi chain người lạ
+đẻ ra là **một lời hứa ta biết chắc sẽ nuốt lời sau vài ngày** — và họ không biết điều đó. Sau
+ngày G thì đúng chính sách ấy lại trung thực, vì mạng mới sống lâu hơn.
+
+⇒ `A1_DE_CHAIN_MO` mặc định **ĐÓNG**. Chỉ đúng chuỗi `"1"` mới mở.
+
+| | |
+|---|---|
+| 🔴 Mở **bằng tay**, không bằng đồng hồ | Cổng tự mở theo mốc thời gian sẽ mở **kể cả khi ngày G trượt** — đúng lúc điều kiện nó canh chưa thoả. Ngày tháng không biết mạng đã sinh lại chưa; người thì biết |
+| Nhận đúng một cách nói "bật" | `true`/`yes`/`0`/rỗng đều là ĐÓNG. Một cổng an toàn mà nhận nhiều cách bật là một cổng **bật nhầm** |
+| `thuHoiChain` **không** bị chặn | Đóng cửa vào không được nhốt người đã ở trong |
+| Trạng thái in ra log **cả khi mở** | Một chính sách chặn người dùng mà im lặng ở log là chính sách không ai biết mình đang chạy — kể cả lúc nó chạy sai |
+
+**Nghiệm thu:** 3 ca trên console thật, mỗi ca một tiến trình sạch, **có chốt chống
+`EADDRINUSE`** — biến rỗng ⇒ chặn · `=1` ⇒ đi qua cổng · `="true"` ⇒ chặn.
+🔴 Chốt đó cần thật: lượt đo đầu tiên **vô hiệu** vì `pkill` không giết được tiến trình node
+trên Windows, nên cả hai ca đều bắn vào **bản cũ** và cho ra kết quả giống nhau. *Một phép đo
+mà ca đỏ và ca xanh ra cùng kết quả thì thứ hỏng là phép đo, không phải sản phẩm.*
+
+---
+
+#### 🔴 Phần đắt hơn: **B-14 ghi "ĐÃ ĐÓNG" trong repo, nhưng ngoài đời vẫn hở**
+
+Lúc chuẩn bị deploy, so `sha256` bản trên server với git:
+
+```
+local-net/lib/chainid.mjs           THIẾU trên server
+local-net/console/chainid-da-chiem.json   THIẾU trên server
+local-net/console/server.mjs        = commit 69c80ce (2026-08-26)
+```
+
+**Console công khai đang chạy đứng ở `69c80ce`, và ba commit sau nó chưa bao giờ lên:**
+
+| | |
+|---|---|
+| `6500e03` `27/08` | cổng "bản tập ≠ bản thật" cho chainId — mục đóng **B-11** |
+| `b53c8f5` `27/08` | **B-14: gốc dải `9000000010`** — mục David đích thân chốt |
+| `20b2790` `28/08` | D-086 sổ xuyên thế hệ |
+
+⇒ Tới `28/08`, console sống **vẫn cấp chainId từ `9100`** — đúng con số trùng **Genesis Coin** mà
+B-14 sinh ra để tránh — và **không có danh sách chặn nào**. `BLOCKERS.md` ghi B-14 *"ĐÃ ĐÓNG
+27/08"*; điều đóng là **quyết định**, không phải **lỗ**.
+
+🔴 **Bài học, và nó không mới — nó là bài cũ ở một tầng chưa ai canh:** repo đã có luật *"cổng
+chỉ chứng minh được đường mà chính nó đi"* và *"phải đo trên node đang chạy"*. Cả hai nói về
+**cùng một máy**. Lớp này ở giữa **hai máy**: mã đúng, bài kiểm xanh, quyết định đã chốt, tài
+liệu đã ghi "đóng" — và **không byte nào của nó tồn tại ở nơi người dùng chạm vào**.
+*Không có cổng nào canh khoảng cách giữa repo và server.*
+
+⚠️ **Thiệt hại thực tế hôm nay ~0** — đẻ chain đòi token/SIWE và chưa có người thật nào dùng
+(`docs` ghi rõ). Cái đang hở là **cửa**, không phải vết thương. Đừng trích mạnh hơn thế.
+
+#### Đã vá cùng lượt
+
+Đồng bộ 4 tệp (`server.mjs` · `lib/chainid.mjs` · hai sổ chặn), `sha256` khớp 4/4,
+`node --check` sạch, restart bằng **đúng** môi trường cũ đọc từ `console.env`, cwd
+`~/9chain-a1/src`, log nối vào `console.log`. Sao lưu bản cũ tại
+`server.mjs.bak-pre-D087-*`.
+
+**Nghiệm thu trên console CÔNG KHAI đang chạy:**
+
+```
+[chainId] danh sách chặn: 51 số (dải 9100–9999 · 9000000010–9999999999)
+[chainId] sổ A1 đã cấp: 47 chainId · 53 tên
+  đẻ chain: 🔒 ĐÓNG
+```
+· không token ⇒ **401** (cổng auth còn nguyên) · có token ⇒ **vấp đúng cổng đẻ chain đóng**.

@@ -979,9 +979,10 @@ phải chạy thật đường đó — test xanh không đủ.
 | M11.5 | Bí danh `LOVE9` dứt khoát + hỏng ra tiếng | `[x]` | D-084 · patch 0022 · 6 ca, 3 đối chứng |
 | M11.6 | O1 bước 1 — khoá g0 rời server + `kiem-khoa` | `[x]` | D-085 · patch 0023 · khôi phục 6/6, `shred -u` |
 | M11.7 | §5c — sổ "A1 đã cấp", chặn xuyên thế hệ | `[x]` | D-086 · 35 đạt/0 hỏng · **verify trên API thật** |
-| M11.8 | Khoá đẻ chain cho người ngoài tới sau ngày G (O3) | `[ ]` | — |
+| M11.8 | Khoá đẻ chain cho người ngoài tới sau ngày G (O3) | `[x]` | D-087 · 3 ca · **đã deploy + nghiệm thu trên console công khai** |
 | M11.9 | H-7 — IPv4 đa cổng cho P2P (mở khoá O4) | `[ ]` | — |
 | M11.10 | O1 bước 2 — ví ký từ máy dev qua hầm SSH trong container | `[ ]` | ràng buộc đã đo, xem D-085 |
+| M11.11 | 🔴 **Cổng canh khoảng cách repo ↔ server** — không có gì canh lớp này, và nó vừa để lọt B-14 suốt 2 ngày | `[ ]` | sinh từ D-087 |
 
 🔴 **Chờ người, autopilot không làm thay được:** bản thứ hai của bộ khoá (O1) · ký SIWE để chạy
 phép kiểm đẻ chain đầu-cuối · B-10 tắt robots.txt ở dashboard Cloudflare · O4 tiền cho nhà cung
