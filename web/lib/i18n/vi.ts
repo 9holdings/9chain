@@ -382,6 +382,32 @@ export const vi = {
     khongKetNoiMoTa: 'Có thể mạng đang bận hoặc đường truyền của bạn bị gián đoạn.',
     trongRong: 'Chưa có gì ở đây',
   },
+
+  /**
+   * Trang 404 (Đ1-2, 2026-08-27).
+   *
+   * Trước lượt này, mọi URL sai rơi vào vỏ 404 của Blockscout: 75.964 byte, tiếng
+   * Anh, `<title>` rỗng, `grep -ci 9chain` = 0, không một liên kết nào về site.
+   *
+   * Giọng: KHÔNG xin lỗi, KHÔNG đùa. Nói đúng ba việc — chuyện gì đã xảy ra, vì sao
+   * nó có thể xảy ra, và đi tiếp bằng đường nào. Người tới đây đang lạc, không đang
+   * cần được giải trí.
+   */
+  khongThay: {
+    ma: '404',
+    tieuDe: 'Không có trang này [?]',
+    moTa:
+      'Đường dẫn bạn mở không tồn tại trên 9Chain Testnet A1. ' +
+      'Có thể nó đã được đổi tên, hoặc URL bị thiếu vài ký tự lúc sao chép. [?]',
+    dayLaGi: 'Ba đường dùng nhiều nhất: [?]',
+    veTrangChu: 'Về trang chủ',
+    diFaucet: 'Nhận token thử',
+    diDeChain: 'Đẻ chain của bạn',
+    // Ghi chú cho người đọc mã, KHÔNG hiện ra: explorer nằm ở tên miền khác
+    // (9Scan-A1) và Blockscout phục vụ `/tx/`, `/address/` ngay trên tên miền này —
+    // nên nếu người dùng đang tìm một giao dịch, họ KHÔNG lạc, họ chỉ gõ sai băm.
+    timGiaoDich: 'Đang tìm một giao dịch hay một địa chỉ? Kiểm lại mã băm rồi thử lại. [?]',
+  },
 } as const;
 
 export type Tu = typeof vi;

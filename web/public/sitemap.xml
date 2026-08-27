@@ -8,8 +8,16 @@
   vẫn nằm đây. /console/ KHÔNG nằm đây: nó đã là 308 sang /create-chain/.
 
   ⚠️ Tệp này ở GỐC site nên cần route riêng trong Caddyfile — xem robots.txt.
+
+  🔴 NAMESPACE PHẢI LÀ `sitemaps.org` — CÓ CHỮ "s" (sửa 2026-08-27, Đ1-5).
+  Bản trước khai `www.sitemap.org` (thiếu "s"). Namespace sai không làm tệp hỏng
+  cú pháp XML, nên mọi phép đo bằng mã HTTP và bằng "tải về có phải XML không"
+  đều xanh — trong khi bộ máy tìm kiếm nhiều khả năng **bỏ qua CẢ TỆP** vì nó
+  không nhận ra đây là sitemap. Đúng họ với lỗi `og:*` dùng chung: hỏng ở tầng
+  ngữ nghĩa, không hỏng ở tầng vận chuyển.
+  `test/seo.test.ts` khoá chuỗi này lại để không tái diễn.
 -->
-<urlset xmlns="http://www.sitemap.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://a1.9chain.org/</loc>
     <changefreq>daily</changefreq>

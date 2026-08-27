@@ -4,6 +4,7 @@ import { LuuY } from '@/components/ui';
 // Chain ID lấy từ NGUỒN SỰ THẬT của mã, không gõ tay vào từ điển: nếu ngày nào đó
 // số này đổi thật thì câu chữ trên trang đổi theo, không có đường để hai chỗ lệch.
 import { CHAIN } from '@/lib/chain';
+import { trangMeta } from '@/lib/seo';
 
 /**
  * Trang re-genesis — nói trước cái sắp mất.
@@ -23,11 +24,17 @@ import { CHAIN } from '@/lib/chain';
  * nên hai hệ quả (số dư 0, và tx đã ký chưa phát) phải được nói ra bằng chữ.
  * Đừng gỡ mục đó nếu chưa đọc D-047.
  */
-export const metadata: Metadata = {
-  title: `${dien(vi.reGenesis.tieuDe, { ngay: vi.reGenesis.ngay }).replace(' [?]', '')} — ${vi.chung.tenSanPham}`,
-  description: vi.reGenesis.moTa.replace(' [?]', ''),
-  alternates: { canonical: '/re-genesis/' },
-};
+// 🔴 TRANG NÀY LÀ TRANG CẦN THẺ CHIA SẺ RIÊNG NHẤT TRONG CẢ SITE (Đ1-5).
+// Trước lượt vá: dán liên kết này vào một nhóm chat thì thứ hiện lên là `og:*` của
+// trang chủ — lời mời *"đẻ chain của bạn mất khoảng ba phút"*, ngược hẳn điều trang
+// muốn nói, đúng tuần cần nó nhất. `title` thì đã riêng từ lâu, nên mọi cổng đo
+// `<title>` vẫn xanh suốt thời gian đó.
+// `trangMeta` tự cắt dấu `[?]` — không gọi `.replace()` ở đây nữa.
+export const metadata: Metadata = trangMeta({
+  tieuDe: dien(vi.reGenesis.tieuDe, { ngay: vi.reGenesis.ngay }),
+  moTa: vi.reGenesis.moTa,
+  duong: '/re-genesis/',
+});
 
 function Muc({ tieuDe, children }: { tieuDe: string; children: React.ReactNode }) {
   return (

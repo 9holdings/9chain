@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import { vi } from '@/lib/i18n/vi';
+import { trangMeta } from '@/lib/seo';
 import { CreateChainScreen } from './CreateChainScreen';
 
-export const metadata: Metadata = {
-  title: `${vi.deChain.tieuDe} — ${vi.chung.tenSanPham}`,
-  description: vi.deChain.moTa,
-  alternates: { canonical: '/create-chain/' },
-};
+export const metadata: Metadata = trangMeta({
+  tieuDe: vi.deChain.tieuDe,
+  moTa: vi.deChain.moTa,
+  duong: '/create-chain/',
+});
 
 export default function TrangDeChain() {
   return (

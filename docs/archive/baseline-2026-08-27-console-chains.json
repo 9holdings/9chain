@@ -1,0 +1,77 @@
+{
+  "chains": [],
+  "retired": [
+    {
+      "name": "SmokeA8ER40",
+      "subnetID": "2pTRuP9RHp1VNQmxyugUSzdRjTfUVhEtLPFaJAToDKj2CZ7JwJ",
+      "blockchainID": "2jjAArGQQz7rkvzPjCW2MkFZMyaEysgqiSp4MYfo2C4gUFHBNJ",
+      "chainId": 9100,
+      "admin": "0xc83a3D2FcAE383C6296BC0751f5916F89Af9ef8A",
+      "preset": "chuan",
+      "presetName": "Chuẩn",
+      "rpc": "https://rpc-testnet-a1.9chain.org/ext/bc/2jjAArGQQz7rkvzPjCW2MkFZMyaEysgqiSp4MYfo2C4gUFHBNJ/rpc",
+      "createdAt": 1787757388974,
+      "thuHoiLuc": 1787758084129
+    },
+    {
+      "name": "SmokeA906G2",
+      "subnetID": "s65j8oqHxBuxP67YMwhkSKeE5sRMb5as4ZYkQ79FLxZiiDkpG",
+      "blockchainID": "23uUXtbt338ensjnmEuhE415bW7B3bg494vZjcrPzVbM3v33KY",
+      "chainId": 9101,
+      "admin": "0xd948700B6C8f1A767de34Aac94f8a40b523F4681",
+      "preset": "chuan",
+      "presetName": "Chuẩn",
+      "rpc": "https://rpc-testnet-a1.9chain.org/ext/bc/23uUXtbt338ensjnmEuhE415bW7B3bg494vZjcrPzVbM3v33KY/rpc",
+      "createdAt": 1787758388111,
+      "thuHoiLuc": 1787758687799
+    },
+    {
+      "name": "WarpNguonD46U",
+      "subnetID": "27nqjFHhGBYsBxmB38vj5jrk38bLpY13MzdEGccEtiQsyDP7AF",
+      "blockchainID": "2HmN5cSvVu73sZ1dZTKULrdFLPAnx6v171LVSRRZMUfBjdetEz",
+      "chainId": 9102,
+      "admin": "0x9Cb488306B62d3d08e184452681a1a03f5a823f0",
+      "preset": "chuan",
+      "presetName": "Chuẩn",
+      "rpc": "https://rpc-testnet-a1.9chain.org/ext/bc/2HmN5cSvVu73sZ1dZTKULrdFLPAnx6v171LVSRRZMUfBjdetEz/rpc",
+      "createdAt": 1787758991483,
+      "thuHoiLuc": 1787759637670
+    },
+    {
+      "name": "WarpDichD46U",
+      "subnetID": "SjaGcMETphr6NppFtngK1GNjXsLQZgdAW7EmZQNzQ24L51tBb",
+      "blockchainID": "zzzJBpZYcc38KdDjtyyq7HTGqJV5zGjMcH4kE3oEFRnS8Ci6d",
+      "chainId": 9103,
+      "admin": "0x9Cb488306B62d3d08e184452681a1a03f5a823f0",
+      "preset": "chuan",
+      "presetName": "Chuẩn",
+      "rpc": "https://rpc-testnet-a1.9chain.org/ext/bc/zzzJBpZYcc38KdDjtyyq7HTGqJV5zGjMcH4kE3oEFRnS8Ci6d/rpc",
+      "createdAt": 1787759305814,
+      "thuHoiLuc": 1787759932798
+    },
+    {
+      "name": "CauNguon3SP4",
+      "subnetID": "2sFwTUkYe75iACfm3CBnQs64JKXtJFiKPEWjQWjhXvNrF7o1sn",
+      "blockchainID": "29D22zTUyKH5hdmRZwJhXyHRggwZyyANC5L8XXHc9dn8QvQzos",
+      "chainId": 9104,
+      "admin": "0x97c8DE332C1632251175641784c9713Eb51ef457",
+      "preset": "chuan",
+      "presetName": "Chuẩn",
+      "rpc": "https://rpc-testnet-a1.9chain.org/ext/bc/29D22zTUyKH5hdmRZwJhXyHRggwZyyANC5L8XXHc9dn8QvQzos/rpc",
+      "createdAt": 1787760236440,
+      "thuHoiLuc": 1787760952393
+    },
+    {
+      "name": "CauDich3SP4",
+      "subnetID": "2jmwoegGdWFLVckJYZ6Q1Ku55vTKm8wkcUyPDVYuCUHpceQrR2",
+      "blockchainID": "HEnRuapED9MQzPrgWdsS1QKmqSLpJDkKYqTPkepwYU2uRMym3",
+      "chainId": 9105,
+      "admin": "0x97c8DE332C1632251175641784c9713Eb51ef457",
+      "preset": "chuan",
+      "presetName": "Chuẩn",
+      "rpc": "https://rpc-testnet-a1.9chain.org/ext/bc/HEnRuapED9MQzPrgWdsS1QKmqSLpJDkKYqTPkepwYU2uRMym3/rpc",
+      "createdAt": 1787760550970,
+      "thuHoiLuc": 1787761248316
+    }
+  ]
+}

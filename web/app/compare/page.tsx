@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import { vi } from '@/lib/i18n/vi';
+import { trangMeta } from '@/lib/seo';
 import { ComparisonTable } from './ComparisonTable';
 
-export const metadata: Metadata = {
-  title: `${vi.bang.tieuDe} — ${vi.chung.tenSanPham}`,
-  description: vi.bang.moTa,
-  alternates: { canonical: '/compare/' },
-};
+export const metadata: Metadata = trangMeta({
+  tieuDe: vi.bang.tieuDe,
+  moTa: vi.bang.moTa,
+  duong: '/compare/',
+});
 
 export default function TrangBang() {
   return (

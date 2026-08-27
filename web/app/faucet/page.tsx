@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import { vi } from '@/lib/i18n/vi';
+import { trangMeta } from '@/lib/seo';
 import { FaucetForm } from './FaucetForm';
 
-export const metadata: Metadata = {
-  title: `${vi.faucet.tieuDe} — ${vi.chung.tenSanPham}`,
-  description: vi.faucet.moTa,
-  alternates: { canonical: '/faucet/' },
-};
+export const metadata: Metadata = trangMeta({
+  tieuDe: vi.faucet.tieuDe,
+  moTa: vi.faucet.moTa,
+  duong: '/faucet/',
+});
 
 export default function TrangFaucet() {
   return (

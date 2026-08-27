@@ -1,31 +1,36 @@
 # 9Chain Testnet A1 — https://a1.9chain.org
 #
 # ══════════════════════════════════════════════════════════════════════════
-# 🔴🔴 TỆP NÀY HIỆN **KHÔNG ĐƯỢC PHỤC VỤ**. CLOUDFLARE ĐANG CHE NÓ.
+# ✅ TỆP NÀY **CÓ HIỆU LỰC**. Cloudflare CHÈN THÊM lên đầu, KHÔNG che.
 # ══════════════════════════════════════════════════════════════════════════
-# Đo `2026-08-27`, sau khi đã thêm route `/robots.txt` vào Caddyfile và deploy:
+# 🔴 ĐÍNH CHÍNH 2026-08-27 (Đ1-5) — khối chú thích cũ ở đây khẳng định *"TỆP NÀY
+# HIỆN KHÔNG ĐƯỢC PHỤC VỤ, CLOUDFLARE ĐANG CHE NÓ"*. **SAI.** Nó suy từ việc
+# `head -3` trả về văn bản của Cloudflare, mà không đọc tiếp phần còn lại.
 #
-#     /robots.txt   200 · cf-cache-status: MISS  · Cache-Control: max-age=14400
-#                   → nội dung: "As a condition of accessing this website…"
-#     /sitemap.xml  200 · cf-cache-status: DYNAMIC
-#                   → nội dung: sitemap thật của ta
+# Đo lại đầy đủ (`curl -sS https://a1.9chain.org/robots.txt`, 107 dòng):
+#     dòng   1–61   khối "content signals" do Cloudflare tự chèn
+#     dòng  62–107  **nguyên văn tệp này**, gồm cả `Disallow: /tx/` (dòng 102)
+#                   và `Sitemap: https://a1.9chain.org/sitemap.xml` (dòng 107)
 #
-# `DYNAMIC` = yêu cầu ĐI TỚI origin. `MISS` + `max-age` ở một tệp mà origin có
-# thật = **Cloudflare tự sinh phản hồi và không hỏi origin**. Đó là tính năng
-# "Managed robots.txt / Content Signals Policy" đang bật cho zone `9chain.org`.
+# ⇒ Mọi luật dưới đây ĐANG chạy. Không chờ ai tắt gì cả.
 #
-# ⇒ Nội dung dưới đây CHƯA có hiệu lực. Muốn nó chạy thì **David phải tắt tính
-#   năng đó trong dashboard Cloudflare** (Settings → Content Signals / robots.txt
-#   management). Không sửa được từ mã nguồn hay từ Caddy.
+# ⚠️ Việc "tắt Managed robots.txt trong dashboard Cloudflare" (B-10) vẫn đáng làm
+#   nếu David không muốn khối văn bản pháp lý của bên thứ ba đứng tên site mình —
+#   nhưng nó là chuyện THẨM MỸ/PHÁP LÝ, **không phải sự cố**, và không chặn gì.
 #
-# Giữ tệp + route lại vì: không tốn gì, và nó ăn NGAY khi tính năng kia được tắt.
+# ══════════════════════════════════════════════════════════════════════════
+# 🔴 VÌ SAO PHẢI SỬA LUẬT NGHIỆM THU, KHÔNG CHỈ SỬA CHỮ
+# ══════════════════════════════════════════════════════════════════════════
+# Luật cũ ghi ở đây là: `curl … | head -3` phải thấy "9Chain Testnet A1".
+# Luật đó **KHÔNG BAO GIỜ ĐẠT ĐƯỢC**, vì Cloudflare luôn chèn 61 dòng lên trước.
+# Một cổng đỏ vĩnh viễn thì sớm muộn cũng bị bỏ qua — và lúc đó ta mất luôn khả
+# năng phát hiện lỗi THẬT. Đây là mặt trái của "xanh giả": **đỏ giả** cũng phá
+# đúng thứ đó, chỉ chậm hơn.
 #
-# ⚠️ NGHIỆM THU PHẢI ĐỌC NỘI DUNG, KHÔNG ĐỌC MÃ HTTP — đây là ca xanh giả sách
-# giáo khoa: `curl -o /dev/null -w '%{http_code}'` trả **200** và `content-type`
-# cũng đúng **text/plain**, trong khi tệp bị che hoàn toàn. Đo đúng:
-#     curl -sS https://a1.9chain.org/robots.txt | head -3
-# phải thấy dòng "9Chain Testnet A1" ngay đầu; nếu thấy "As a condition of
-# accessing this website" thì Cloudflare vẫn đang che.
+# Luật đúng — đo NỘI DUNG mà không phụ thuộc VỊ TRÍ:
+#     curl -sS https://a1.9chain.org/robots.txt | grep -q 'Sitemap: https://a1.9chain.org/sitemap.xml'
+# Chuỗi đó chỉ có thể tới từ tệp này. Nó xanh khi tệp có hiệu lực, và đỏ thật
+# nếu route `/robots.txt` biến mất khỏi Caddyfile — đã thử cả hai chiều.
 
 User-agent: *
 Allow: /
