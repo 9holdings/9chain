@@ -2305,3 +2305,65 @@ giấu .env  →  --http-allowed-hosts=*          ← đúng sự cố suýt x�
 
 **Tái lập:** 20 patch → tree **`6879819f`** · đối chứng ngược **19/20 → `bc8b634b`** ✓.
 `.env` đang chạy trên server khớp **đúng 4 biến** netgen nay tự sinh — không phải sửa gì.
+
+---
+
+### D-084 — 🔴 Bí danh tài sản là **`LOVE9`, DỨT KHOÁT**. B-15 đóng, không chờ ngày G
+
+**David chốt `27/08`:** *"tuyệt đối không được, chỉnh hết về `LOVE9`."*
+
+A1 đưa ba đường. Đường thứ ba tưởng là "cả hai cùng thắng" — `ids.Aliaser` cho phép **nhiều bí
+danh trỏ cùng một assetID**, và `PrimaryAlias` trả về cái **đăng ký đầu tiên**
+([ids/aliases.go:74](upstream/avalanchego/ids/aliases.go:74)) ⇒ genesis giữ `LOVE9`, node đăng
+ký thêm `AVAX`, RPC vẫn hiện `LOVE9`, SDK upstream vẫn chạy, **không đụng byte genesis nên
+không cần chờ ngày G**. **BỊ LOẠI.**
+
+🔴 **Và loại là đúng lớp:** phương án đó mua tương thích bằng cách để tài sản gốc **có hai
+tên**, trong đó một tên là tên của mạng khác. Chủ quyền ở lớp máy ĐỌC không phải thứ đem đổi
+lấy tiện nghi cho công cụ bên thứ ba. Đây cũng là quyết định **có giá đã biết trước**, không
+phải quyết định thiếu thông tin:
+
+> **Mọi công cụ dựng trên SDK avalanchego gốc — hỏi cứng `"AVAX"` ở
+> `wallet/chain/{x,c}/context.go` — KHÔNG nói chuyện được với 9Chain-A1.** Ví, explorer,
+> bridge, indexer của bên thứ ba đều phải dùng bí danh `LOVE9` hoặc assetID trần.
+
+#### Việc còn lại: đã chọn cho nó hỏng, thì bắt nó **hỏng RA TIẾNG**
+
+Patch 0022 — `vms/avm/vm.go` `lookupAssetID`: khi ai đó hỏi `AVAX` **trên mạng thuộc băng A1**,
+câu lỗi nói ra lý do thay vì `asset 'AVAX' not found` trần trụi.
+
+🔴 **Nó KHÔNG làm `AVAX` chạy được.** Nó chỉ làm việc *không chạy* mang theo lời giải thích.
+Chính A1 mất nửa ngày vì câu lỗi trần đó (D-082) — **và A1 có cả `DECISIONS.md` để tra.**
+Người ngoài gặp đúng câu đó thì không có gì cả.
+
+Câu lỗi viết **tiếng Anh, cố ý**: người đọc nó là lập trình viên bên thứ ba.
+
+⚠️ **Phạm vi cần David biết:** chạm `vms/avm` — gói `rebrand.sh` khai *"tuyệt đối không chạm"*.
+Đây là một nhánh trong **hàm tra tên**: không đụng đồng thuận, không đụng trạng thái, không đụng
+byte genesis. Nếu David thấy lằn ranh đó không nên có ngoại lệ thì **gỡ đúng commit `b904317`**,
+phần còn lại không phụ thuộc vào nó.
+
+#### Nghiệm thu — 6 ca, **ba ca đối chứng mới là phần đáng giá**
+
+| Ca | Kết quả |
+|---|---|
+| A1 mạng THẬT + `AVAX` | có giải thích |
+| A1 mạng TẬP + `AVAX` | có giải thích |
+| **A1 + tên khác** | **lỗi TRẦN** — lời giải thích không được vãi ra mọi lỗi tra tên, thế thì nó thôi mang tin |
+| **UnitTest + `AVAX`** | **lỗi TRẦN** — nhánh theo **BĂNG**, không theo chuỗi |
+| **mainnet + `AVAX`** | **lỗi TRẦN** |
+| A1 + tên có thật | vẫn tra được — nhánh thêm vào không chắn đường sống |
+
+Toàn bộ gói `vms/avm`: xanh, 0 `FAIL`. Tree `17dd3b3f` → **`f29d8c87`**, 22 patch; đối chứng
+ngược 21/22 → `17dd3b3f` ✓.
+
+⚠️ **Câu lỗi chỉ tới tay người dùng khi dựng lại image node** — lượt build ngày G. Không dựng
+lại image chỉ vì việc này: restart 9 node công khai đắt hơn giá trị nó mang lại hôm nay.
+
+#### Đã soát: A1 **không còn** chỗ nào giả định `AVAX` lúc chạy
+
+Quét `local-net/` · `scripts/` · `docs/` · `README.md`: mọi kết quả đều là **tên biến Go**
+(`units.Avax` — không đổi theo triết lý rebrand *"chỉ đổi giá trị, không đổi định danh"*) hoặc
+tài liệu **mô tả** việc đổi tên. `constants.UpstreamAssetAlias = "AVAX"` giữ nguyên vì nó chỉ
+phục vụ **mạng ngoài băng A1** (mainnet/fuji/local) — nếu bỏ, fork mất khả năng dựng lại genesis
+upstream **và** bảng kiểm mất sạch ca đỏ.

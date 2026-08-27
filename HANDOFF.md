@@ -12,12 +12,12 @@ dịch thật đã chốt. **Bốn patch cuối lần đầu chạy trên mạng
 chốt 90, không phải 9). Nhưng để nạp được phải vá một lỗi chưa ai biết: **bí danh tài sản
 X-Chain đổi sang `LOVE9` ở lượt g0 mà SDK ví của chính fork vẫn hỏi `"AVAX"`** ⇒ mọi công cụ
 dùng ví X/C chết câm. Patch **0019** (D-082). Cùng phiên: patch **0020** cho netgen (D-083)
-⇒ tree `f4615e73` → **`17dd3b3f`**, **21 patch** (0021 = B-9, gỡ đỏ Avalanche khỏi ví X/P).
+⇒ tree `f4615e73` → **`f29d8c87`**, **22 patch** (0021 = B-9 · 0022 = D-084, câu lỗi bí danh).
 🔴 **Vẫn CHƯA chứng minh đẻ chain chạy được** — ví có tiền ≠ đường đẻ chain thông. Xem #1.
 
-⚠️ **Image `9chain-a1/node:g0` đang chạy vẫn là bản 18 patch.** Patch 0019–0021 chỉ sống ở nguồn
+⚠️ **Image `9chain-a1/node:g0` đang chạy vẫn là bản 18 patch.** Patch 0019–0022 chỉ sống ở nguồn
 (`~/9chain-a1/src`, nơi `xp-wallet` chạy bằng `go run`). Node không dùng SDK ví nên **không cần
-dựng lại image**; nó sẽ vào image ở lượt build ngày G. Đừng đọc `17dd3b3f` thành "mạng đang
+dựng lại image**; nó sẽ vào image ở lượt build ngày G. Đừng đọc `f29d8c87` thành "mạng đang
 chạy có 19 patch".
 
 ⚠️ **Ngày G `2026-09-01` VẪN phải sinh lại lần nữa** (chữ khắc vào genesis, C1 chưa đóng băng
@@ -32,7 +32,7 @@ chainId L1 `9001000000–9001999999`.
 |---|---|---|---|
 | **1** | ✅ ~~Nạp `chain-factory`~~ **XONG `27/08`** — 89,99999173 LOVE9 trên P. 🔴 **Còn nợ phép kiểm:** đẻ **một** L1 rồi thu hồi để chứng minh đường đẻ chain thông (cần David ký SIWE, và nó tạo chain THẬT trên mạng công khai) | A1 + **David** | D-082. Khoá Foundation lấy từ `net/keys.txt` **trên server** — không phải "khoá máy dev" như dự tính, xem O1 |
 | **2** | 🔴 **O1 custody khoá 5 quỹ** — **quá hạn `28/08`**, cơ hội một lần ở ngày G. 🔴 **NẶNG HƠN TÀI LIỆU GIẢ ĐỊNH:** `~/9chain-a1/net/keys.txt` (khoá **cả 5 quỹ** + privkey EVM của g0) **đang nằm trên server**, trong khi dòng đầu chính tệp đó ghi *"TUYỆT MẬT — giữ offline/cold"* và `allocation.md` cạnh nó ghi *"KHÔNG đưa lên server"*. netgen chạy trên server nên đẻ nó ra ngay tại đó | **David** | Không phải "chọn sơ đồ" (đã chốt D-044) mà là **PHÉP KIỂM chưa chạy**: bản thứ hai có thật không. Cách kiểm: `docs/SOAT-TOAN-DIEN-2026-08-27.md` §12.2 |
-| **2b** | 🔴 **B-15 — bí danh tài sản ở ngày G.** Giữ `LOVE9` (chủ quyền) hay đổi về `AVAX` (mọi công cụ Avalanche bên thứ ba nói chuyện được)? Chỉ đổi được ở lượt sinh lại `01/09` | **David** | D-082 |
+| **2b** | ✅ ~~B-15 bí danh tài sản~~ **CHỐT `27/08` — `LOVE9`, DỨT KHOÁT** (D-084). 🔴 Giá đã biết trước và chấp nhận: **công cụ dựng trên SDK avalanchego gốc KHÔNG nói chuyện được với A1**. Patch 0022 bắt nó hỏng ra tiếng | — | D-084 |
 | **3** | ✅ ~~netgen sinh `.env`~~ **XONG `27/08`** — patch 0020, kèm **cổng chặn mạng THẬT sinh ra ở tư thế phơi trần** và `NETWORK_ID` nay bắt buộc | A1 | D-083. Đo đầu-cuối bằng `docker compose config`: có `.env` → `localhost,127.0.0.1`, giấu đi → `*` |
 | **4** | ✅ ~~**B-9** `#e84142`~~ **XONG `27/08`** — patch 0021, vàng 9Chain trên navy | A1 | 🔴 Còn một chỗ NGOÀI phạm vi B-9: `local-net/console/index.html` **trên server** vẫn có 3 lần `#e84142` và lệch 12 byte so với git — thuộc worktree web, phiên này không đụng |
 | **5** | **O4** — dời 1 node sang nhà cung cấp thứ hai, **hoặc** khai thật + đổi tên `01/09` | **David** | §12.3: cách rẻ nhất không phải tiền mà là chữ *"chính thức"* |
@@ -121,7 +121,7 @@ node local-net/console/chainid-test.mjs
 node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs
 
-# Tái lập cây fork (21 patch → tree 17dd3b3f)
+# Tái lập cây fork (22 patch → tree f29d8c87)
 cd upstream/avalanchego && git worktree add --detach /tmp/tl 1cf1fc3
 cd /tmp/tl && git am --keep-cr ../../patches/*.patch && git rev-parse HEAD^{tree}
 
@@ -135,8 +135,8 @@ curl -s -X POST -H 'content-type:application/json' \
 1. **Không tin mã HTTP.** Thang đo: mã HTTP → `content-type` → **nội dung** → header tầng trước.
 2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một nửa.
 3. **Đụng `patches/` là đụng đường tái lập fork** — sinh `--no-signature`, nghiệm thu
-   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`17dd3b3f`** / **21 patch**
-   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **20/21** phải ra đúng tree cũ `6879819f`.
+   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`f29d8c87`** / **22 patch**
+   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **21/22** phải ra đúng tree cũ `17dd3b3f`.
    ⚠️ **Image node đang chạy vẫn là 18 patch** — 0019 đụng SDK ví, 0020 đụng netgen; cả hai là
    CÔNG CỤ, không đụng node. Tree của repo ≠ tree trong image cho tới lượt build ngày G.
 4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)

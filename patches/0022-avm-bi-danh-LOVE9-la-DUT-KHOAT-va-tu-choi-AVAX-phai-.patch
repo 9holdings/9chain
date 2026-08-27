@@ -1,0 +1,192 @@
+From b904317ce7efcf807c61014e8996b2994d34aeb0 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Thu, 27 Aug 2026 23:46:19 +0400
+Subject: [PATCH 22/22] =?UTF-8?q?avm:=20bi=20danh=20LOVE9=20la=20DUT=20KHO?=
+ =?UTF-8?q?AT=20=E2=80=94=20va=20tu=20choi=20`AVAX`=20phai=20NOI=20RA=20LY?=
+ =?UTF-8?q?=20DO=20(D-084)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+David chot 27/08: bi danh tai san goc cua A1 la LOVE9, va TUYET DOI KHONG dang ky them AVAX
+tro cung assetID. Da can nhac phuong an dang ky hai bi danh (ids.Aliaser cho phep, va
+PrimaryAlias van tra LOVE9 vi no dang ky truoc) — BI LOAI. Chu quyen o lop may DOC, khong chi
+lop nguoi NHIN.
+
+Luot nay KHONG lam AVAX chay duoc. No chi lam viec *khong chay* noi ra ly do.
+
+VI SAO CAN: chinh A1 mat nua ngay vi cau `asset 'AVAX' not found` tran trui (D-082) — va A1
+co ca DECISIONS.md de tra. Nguoi ngoai gap dung cau do khong co gi ca. Da chon mot duong lam
+cong cu ben thu ba hong, thi cai gia toi thieu la hong RA TIENG.
+
+Cau loi viet bang tieng Anh, CO Y: nguoi doc no la lap trinh vien ben thu ba, khong phai
+nguoi dung trang tieng Viet.
+
+PHAM VI: cham vms/avm — goi ma rebrand.sh khai "tuyet doi khong cham". Day la mot nhanh trong
+ham TRA TEN, khong dung dong thuan, khong dung trang thai, khong dung byte genesis. Neu David
+thay lan ranh do khong nen co ngoai le thi go dung commit nay ra, phan con lai khong phu thuoc.
+
+NGHIEM THU — 6 ca, trong do BA CA DOI CHUNG moi la phan dang gia:
+  A1 that + AVAX          -> co giai thich
+  A1 tap  + AVAX          -> co giai thich
+  A1      + ten khac      -> loi TRAN   (loi giai thich khong duoc vai ra moi loi tra ten)
+  UnitTest + AVAX         -> loi TRAN   (nhanh theo BANG, khong theo chuoi)
+  mainnet  + AVAX         -> loi TRAN
+  A1      + ten co that   -> van tra duoc (nhanh them vao khong chan duong song)
+Toan bo goi vms/avm: xanh, 0 FAIL.
+
+⚠️ Cau loi nay chi den tay nguoi dung khi dung lai image node — luot build ngay G.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ vms/avm/vm.go               | 25 ++++++++++
+ vms/avm/vm_a1_alias_test.go | 97 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 122 insertions(+)
+ create mode 100644 vms/avm/vm_a1_alias_test.go
+
+diff --git a/vms/avm/vm.go b/vms/avm/vm.go
+index d10d3cd..1d8feac 100644
+--- a/vms/avm/vm.go
++++ b/vms/avm/vm.go
+@@ -24,6 +24,7 @@ import (
+ 	"github.com/ava-labs/avalanchego/snow/consensus/snowstorm"
+ 	"github.com/ava-labs/avalanchego/snow/engine/avalanche/vertex"
+ 	"github.com/ava-labs/avalanchego/snow/engine/common"
++	"github.com/ava-labs/avalanchego/utils/constants"
+ 	"github.com/ava-labs/avalanchego/utils/json"
+ 	"github.com/ava-labs/avalanchego/utils/linked"
+ 	"github.com/ava-labs/avalanchego/utils/timer/mockable"
+@@ -555,6 +556,30 @@ func (vm *VM) lookupAssetID(asset string) (ids.ID, error) {
+ 	if assetID, err := ids.FromString(asset); err == nil {
+ 		return assetID, nil
+ 	}
++
++	// 🔴 9CHAIN-A1 — HỎNG RA TIẾNG, KHÔNG HỎNG CÂM (D-084).
++	//
++	// David chốt `27/08`: bí danh tài sản gốc của A1 là **`LOVE9`**, và **tuyệt đối
++	// không** đăng ký thêm `AVAX` trỏ cùng assetID. Đó là quyết định về chủ quyền, đã
++	// cân nhắc và đã trả giá biết trước: **mọi công cụ dựng trên SDK avalanchego gốc
++	// hỏi cứng `"AVAX"` sẽ không nói chuyện được với A1.**
++	//
++	// Khối này KHÔNG làm `AVAX` chạy được — nó chỉ làm cho việc *không chạy* nói ra lý
++	// do. Chính A1 đã mất nửa ngày vì câu `asset 'AVAX' not found` trần trụi (xem
++	// D-082); người ngoài gặp nó sẽ không có cả `DECISIONS.md` để tra.
++	//
++	// Câu này viết bằng tiếng Anh, CỐ Ý: nó là lỗi API mà người đọc là lập trình viên
++	// bên thứ ba, không phải người dùng trang tiếng Việt.
++	if asset == constants.UpstreamAssetAlias && constants.LaMangA1(vm.ctx.NetworkID) {
++		return ids.Empty, fmt.Errorf(
++			"asset '%s' not found: this is 9Chain-A1 (networkID %d), whose native asset is "+
++				"registered under the alias '%s', not '%s'. This is deliberate, not a bug. "+
++				"Tools built on upstream avalanchego hard-code '%s' in wallet/chain/{x,c}/context.go "+
++				"and will not work against 9Chain-A1 unless they ask for '%s' or pass the raw assetID",
++			asset, vm.ctx.NetworkID, constants.A1AssetAlias, constants.UpstreamAssetAlias,
++			constants.UpstreamAssetAlias, constants.A1AssetAlias)
++	}
++
+ 	return ids.Empty, fmt.Errorf("asset '%s' not found", asset)
+ }
+ 
+diff --git a/vms/avm/vm_a1_alias_test.go b/vms/avm/vm_a1_alias_test.go
+new file mode 100644
+index 0000000..c4d7a74
+--- /dev/null
++++ b/vms/avm/vm_a1_alias_test.go
+@@ -0,0 +1,97 @@
++// Copyright (C) 2019, Ava Labs, Inc. All rights reserved.
++// See the file LICENSE for licensing terms.
++
++package avm
++
++import (
++	"strings"
++	"testing"
++
++	"github.com/stretchr/testify/require"
++
++	"github.com/ava-labs/avalanchego/upgrade/upgradetest"
++	"github.com/ava-labs/avalanchego/utils/constants"
++)
++
++// TestA1LookupAssetIDGiaiThich — 9Chain-A1, D-084.
++//
++// David chốt: bí danh tài sản gốc là `LOVE9`, và **tuyệt đối không** đăng ký thêm
++// `AVAX`. Hệ quả đã biết trước: công cụ dựng trên SDK avalanchego gốc không nói
++// chuyện được với A1. Việc còn lại là làm cho nó **hỏng ra tiếng**.
++//
++// 🔴 BẢNG NÀY CÓ BA CA ĐỐI CHỨNG, và chúng mới là phần đáng giá:
++//   - hỏi một tên bất kỳ khác trên A1  ⇒ PHẢI là câu lỗi trần (lời giải thích không
++//     được vãi ra mọi lỗi tra tên — thế thì nó thôi mang tin)
++//   - hỏi `AVAX` trên mạng NGOÀI băng A1 ⇒ PHẢI là câu lỗi trần (nhánh phải theo BĂNG)
++//   - tra tên có thật ⇒ PHẢI vẫn chạy (nhánh thêm vào không được chắn đường sống)
++func TestA1LookupAssetIDGiaiThich(t *testing.T) {
++	env := setup(t, &envConfig{fork: upgradetest.Latest})
++	env.vm.ctx.Lock.Unlock()
++
++	// Alias có thật trong genesis của bộ test là "asset1" (xem environment_test.go),
++	// nên "AVAX" KHÔNG tra được — đó là điều làm ca đỏ dưới đây có thật.
++	const aliasCoThat = "asset1"
++
++	tests := []struct {
++		ten       string
++		networkID uint32
++		hoi       string
++		giaiThich bool // câu lỗi có mang lời giải thích của A1 không
++	}{
++		{
++			ten:       "A1 mạng thật + AVAX ⇒ phải giải thích",
++			networkID: constants.A1ID,
++			hoi:       constants.UpstreamAssetAlias,
++			giaiThich: true,
++		},
++		{
++			ten:       "A1 mạng tập + AVAX ⇒ cũng phải giải thích",
++			networkID: constants.A1IDTap,
++			hoi:       constants.UpstreamAssetAlias,
++			giaiThich: true,
++		},
++		{
++			ten:       "ĐỐI CHỨNG — A1 + tên khác ⇒ lỗi TRẦN",
++			networkID: constants.A1ID,
++			hoi:       "KHONG-TON-TAI",
++			giaiThich: false,
++		},
++		{
++			ten:       "ĐỐI CHỨNG — ngoài băng A1 + AVAX ⇒ lỗi TRẦN",
++			networkID: constants.UnitTestID,
++			hoi:       constants.UpstreamAssetAlias,
++			giaiThich: false,
++		},
++		{
++			ten:       "ĐỐI CHỨNG — mainnet + AVAX ⇒ lỗi TRẦN",
++			networkID: constants.MainnetID,
++			hoi:       constants.UpstreamAssetAlias,
++			giaiThich: false,
++		},
++	}
++
++	for _, tc := range tests {
++		t.Run(tc.ten, func(t *testing.T) {
++			require := require.New(t)
++			env.vm.ctx.NetworkID = tc.networkID
++
++			_, err := env.vm.lookupAssetID(tc.hoi)
++			require.Error(err)
++
++			coGiaiThich := strings.Contains(err.Error(), constants.A1AssetAlias) &&
++				strings.Contains(err.Error(), "deliberate")
++			require.Equal(tc.giaiThich, coGiaiThich,
++				"networkID %d hỏi %q ⇒ câu lỗi: %s", tc.networkID, tc.hoi, err)
++		})
++	}
++
++	// Đường sống vẫn phải sống, kể cả trên networkID của A1.
++	t.Run("tên có thật vẫn tra được trên A1", func(t *testing.T) {
++		require := require.New(t)
++		env.vm.ctx.NetworkID = constants.A1ID
++
++		got, err := env.vm.lookupAssetID(aliasCoThat)
++		require.NoError(err)
++		require.Equal(env.genesisTx.ID(), got)
++	})
++}

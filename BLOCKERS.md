@@ -24,6 +24,18 @@ worktree web.
 
 ---
 
+### ✅ B-15 — **ĐÃ ĐÓNG `2026-08-27`** — David chốt **`LOVE9`, dứt khoát** (D-084)
+
+*"Tuyệt đối không được, chỉnh hết về LOVE9."* Kể cả phương án đăng ký **hai** bí danh cùng trỏ
+một assetID (khả thi thật, không đụng byte genesis, RPC vẫn hiện `LOVE9`) — **bị loại**: nó mua
+tương thích bằng cách để tài sản gốc mang thêm tên của mạng khác.
+
+**Giá đã biết trước và chấp nhận:** mọi công cụ dựng trên SDK avalanchego gốc không nói chuyện
+được với A1. Việc còn lại đã làm — patch 0022 bắt nó **hỏng ra tiếng** thay vì hỏng câm.
+
+<details>
+<summary>Nguyên văn lúc còn mở</summary>
+
 ### 🔴 B-15 — BÍ DANH TÀI SẢN X-CHAIN Ở NGÀY G: `LOVE9` hay `AVAX`? (2026-08-27, sinh từ D-082)
 
 **Cần David quyết TRƯỚC `01/09`.** Bí danh nằm trong **byte genesis của X-Chain** ⇒ chỉ đổi được
@@ -42,6 +54,8 @@ hay muốn họ phải dùng fork của A1?*
 
 ⚠️ Câu hỏi này **không** đối xứng với `A1HRP`/`A1Name`: hai thứ kia upstream đọc bằng tham số,
 còn bí danh tài sản upstream **hỏi bằng hằng số cứng**.
+
+</details>
 
 ---
 

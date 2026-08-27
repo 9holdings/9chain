@@ -1,7 +1,7 @@
 From 72643e1493417c8d5b7779aa789ea58eb291e814 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Wed, 26 Aug 2026 18:03:01 +0400
-Subject: [PATCH 08/21] netgen: chan sinh mang khi phat hanh genesis vuot tran
+Subject: [PATCH 08/22] netgen: chan sinh mang khi phat hanh genesis vuot tran
  cung (tran nguoc uint64)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
