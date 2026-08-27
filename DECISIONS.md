@@ -1722,3 +1722,86 @@ mục đó thì ca 4 **đi lọt sạch**.
 
 ⚠️ Bộ xuất khai `L1 người dùng: xin 0 · XUẤT ĐƯỢC 0` — đúng (0 L1 đang sống). Ngày G nếu có L1
 thì **bắt buộc** dùng `--them-evm`, không thì chúng biến mất không dấu vết (D-057).
+
+### D-073 — Header chống nhúng là snippet RIÊNG, KHÔNG nhét vào `(secheaders)`
+
+**Đã deploy `2026-08-27`** (P2-1 của bản soát vận hành). `a1.9chain.org` và
+`testnet-a1.9chain.org` nay gửi `Content-Security-Policy: frame-ancestors 'self'` +
+`X-Frame-Options: SAMEORIGIN`.
+
+**Vì sao cần ở đúng site này**, chứ không phải *"site nào cũng nên có"*: `/console/` đăng
+nhập bằng **chữ ký ví** và đẻ ra L1 thật. Nhúng nó trong iframe trong suốt rồi phủ nút mồi
+thì người dùng ký mà tưởng bấm thứ khác — chữ ký đó không rút lại được.
+
+🔴 **Vì sao KHÔNG dùng `(secheaders)` — suýt làm site của đội khác KÉM AN TOÀN ĐI.**
+Bản vá đầu đặt hai dòng đó vào `(secheaders)`, mà snippet ấy được import bởi **cả bốn** tên
+miền, trong đó hai là của **9Scan**. Đo trước khi deploy:
+
+```
+a1.9scan.org → content-security-policy: frame-ancestors 'none'; base-uri 'none';
+                                        form-action 'self'; object-src 'none'
+               x-frame-options: DENY
+```
+
+**Chính sách của họ CHẶT HƠN của ta.** Áp thêm ở tầng Caddy thì hoặc **nới lỏng** nó, hoặc đẻ
+ra header **trùng lặp** — mà hai `X-Frame-Options` lệch nhau khiến trình duyệt **bỏ qua cả
+hai**. Cả hai kết cục đều là làm site người khác kém an toàn đi, **nhân danh một bản vá bảo
+mật**.
+
+⇒ Snippet `(chongnhung)` riêng, chỉ import ở hai tên miền `9chain.org`.
+
+**Nghiệm thu — đo từ ngoài, không tin lời kịch bản deploy:**
+
+| | |
+|---|---|
+| `a1.9chain.org` | `frame-ancestors 'self'` + `SAMEORIGIN` ✓ **mới** |
+| `a1.9scan.org` | **đúng 1** dòng `x-frame-options`, vẫn `DENY`, CSP của họ **nguyên vẹn** ✓ |
+
+### D-074 — RPC: `defer` + gỡ tường minh `Allow-Credentials`; Caddy phải THẬT SỰ cầm lái
+
+Đo `27/08` trên cùng một URL: `OPTIONS` (Caddy tự trả 204) ra đúng 3 header khai trong
+Caddyfile; `POST` (qua `reverse_proxy`) ra 3 header đó **+ `Access-Control-Allow-Credentials:
+true` + `Vary: Origin`** — **hai cái thêm không có ở đâu trong Caddyfile**, chúng của chính
+avalanchego. Tức ở đường POST, thứ tới trình duyệt là header của **node**.
+
+Cùng bẫy đã trả giá với `.webmanifest`: `header` không `defer` ghi **trước** khi `reverse_proxy`
+chạy. Và `Allow-Origin: *` + `Allow-Credentials: true` là tổ hợp **trình duyệt từ chối** theo
+đặc tả ⇒ dapp gửi kèm credential sẽ hỏng mà không ai hiểu vì sao.
+
+🔴 **`defer` một mình KHÔNG đủ** — nó làm ta *ghi sau*, nó **không tự xoá** thứ upstream đã
+thêm. Phải có dòng `-Access-Control-Allow-Credentials`.
+
+**Sau deploy:** `allow-credentials` **biến mất**; `eth_chainId` vẫn trả `0x218711a09`; preflight
+vẫn 204.
+
+### D-075 — `caddy-deploy.sh` TỪ CHỐI bản mới ít dòng cấu hình hơn bản đang chạy
+
+Cổng mới. Đếm **dòng không-phải-chú-thích**; giảm ≥ 10 ⇒ **chặn**, giảm ít ⇒ cảnh báo, gỡ thật
+thì `A1_CHO_PHEP_TEO=1`.
+
+**Vì sao:** bài học B-6 (deploy xoá site block của 9Scan ⇒ explorer 525 trong 31 phút) **suýt
+lặp lại y hệt hôm nay**. Caddyfile **đang chạy** đến từ nhánh `web-home` — trang 404 thương
+hiệu, `Cache-Control: no-cache` cho HTML, `handle /api/*` — còn bản vá bảo mật nằm ở `main`.
+Deploy thẳng từ `main` sẽ xoá sạch chúng. Bắt được nhờ **so tay trước khi deploy**, nhưng
+*"nhờ nhớ so tay"* không phải một cổng.
+
+⚠️ **Đo bằng số dòng đặc, không bằng `diff` hay số byte:** tệp này 2/3 là chú thích và chú
+thích đổi liên tục, nên một cổng dựa trên `diff` sẽ kêu mọi lượt và **bị bỏ qua ngay tuần
+đầu**. Số dòng không-chú-thích chỉ tụt khi có **cấu hình thật** biến mất.
+
+⚠️ **Cảnh báo khi giảm ít, chặn khi giảm nhiều — cố ý**, cùng lý lẽ với `canhBaoSelfBond` và
+cổng chainId: chặn cứng một đường hợp lệ chỉ đẻ ra thói quen đi vòng.
+
+**🔴 Nghiệm thu: đã bắn ĐÚNG CA SUÝT XẢY RA vào cổng, trên server thật.**
+
+| | |
+|---|---|
+| Đẩy bản `main` lên (ca thật) | `253 → 185` dòng · **✗ ít hơn 68 dòng — DỪNG** · exit 1 |
+| Bản đang chạy sau đó | vân tay `61640093…` **không đổi** |
+| `Caddyfile.new` | **còn nguyên** — cổng dừng **trước** khi xoá bằng chứng |
+| Site | `a1.9chain.org` 200 · `a1.9scan.org` 200 |
+
+⚠️ **Còn một chỗ hở mà cổng này KHÔNG bịt:** Caddyfile sống ở **hai nhánh**, và bản đang chạy
+đến từ `web-home`. Cổng chỉ chặn hậu quả, không chữa nguyên nhân. Nguyên nhân là **hạ tầng dùng
+chung không có một nhà duy nhất** — việc đó cần David quyết (gộp `web-home` vào `main`, hay tách
+Caddyfile ra khỏi cả hai).
