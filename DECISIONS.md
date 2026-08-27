@@ -2068,3 +2068,24 @@ băng tập đi qua · **`999999998`** (số của thế hệ SAU) bị chặn *
 18 patch lên `1cf1fc3` → tree **`f4615e73`**, khớp cây fork từng byte.
 🔴 **Đối chứng ngược:** áp **17/18** → tree **`f8458b33`** = **đúng tree đã ghi trước đó** ⇒ lượt
 sinh lại **không âm thầm đổi gì** ở 17 patch cũ.
+
+### D-080 — 🔴 GỐC của mạng công khai thế hệ trước, công bố TRƯỚC khi xoá
+
+Lượt O2 cuối cùng của mạng `networkID 9001` (sinh `2026-08-26`, xoá `2026-08-27`).
+Vật chứng: `docs/vat-chung/o2-truoc-khi-xoa-2026-08-27/`.
+
+| | |
+|---|--:|
+| P-Chain · X-Chain · C-Chain | 68 · 3 · **7** block |
+| Tệp · byte | 9 · 126.717 |
+| Thời gian | **42 giây** |
+| 🔴 **`GỐC` CÔNG BỐ** | **`c92ad73cf6cdcf44ef32bf4bb6475d282fb76878c553f690533bfa6c476ce066`** |
+
+**Con số đó nằm ở ĐÂY, ngoài thư mục nó bảo vệ.** Để nó nằm cạnh dữ liệu thì nó không bảo vệ gì.
+
+⚠️ **Phải xuất LẠI ngay trước khi xoá, không dùng bản xuất cũ trong ngày.** Bản lúc `11:22Z`
+(D-072, `GỐC a22dfc55…`) đã lạc hậu: C-Chain lúc đó **4 block**, lúc xoá **7 block**. Hai giao
+dịch trong khoảng giữa sẽ biến mất không dấu vết nếu tin bản cũ.
+
+*(Lượt `26/08` bỏ lỡ bước này ⇒ câu hỏi "20M/70M có thật trên chain cũ không" vĩnh viễn không
+trả lời được. Đây là lần đầu A1 xoá một mạng mà có vật chứng.)*
