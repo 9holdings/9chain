@@ -1,7 +1,7 @@
 From a3183c360bcd887d2c3aeb2777558e7a22997bce Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Thu, 27 Aug 2026 13:47:53 +0400
-Subject: [PATCH 15/18] =?UTF-8?q?netgen:=20cong=20'ban=20tap=20!=3D=20ban?=
+Subject: [PATCH 15/19] =?UTF-8?q?netgen:=20cong=20'ban=20tap=20!=3D=20ban?=
  =?UTF-8?q?=20that'=20cho=20chainId=20=E2=80=94=20C-4=20(B-11)?=
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

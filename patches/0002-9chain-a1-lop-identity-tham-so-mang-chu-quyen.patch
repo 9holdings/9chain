@@ -1,7 +1,7 @@
 From 4dfb2ce48f863cdc6922a526136e9fea81c11182 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Mon, 24 Aug 2026 22:56:38 +0400
-Subject: [PATCH 02/18] 9chain-a1: lop identity + tham so mang chu quyen
+Subject: [PATCH 02/19] 9chain-a1: lop identity + tham so mang chu quyen
 
 Lop lam 9Chain-A1 khac avalanchego. Truoc commit nay no ton tai duy nhat
 duoi dang uncommitted working-tree changes -> mot lenh `git checkout .` la mat sach.

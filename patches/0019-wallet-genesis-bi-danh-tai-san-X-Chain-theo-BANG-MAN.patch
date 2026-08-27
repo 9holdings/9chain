@@ -1,0 +1,230 @@
+From e3b255595f4edf069db4ae0c253dcf2218648644 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Thu, 27 Aug 2026 22:46:12 +0400
+Subject: [PATCH 19/19] =?UTF-8?q?wallet+genesis:=20bi=20danh=20tai=20san?=
+ =?UTF-8?q?=20X-Chain=20theo=20BANG=20MANG=20=E2=80=94=20vi=20X/C=20song?=
+ =?UTF-8?q?=20lai=20tren=20g0?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+TRIEU CHUNG: nap vi chain-factory that bai ngay o buoc dau. xp-wallet — dung cong cu
+runbook chi dinh — khong khoi dong duoc tren mang cong khai g0:
+
+    khong ket noi duoc node: failed to decode client response: asset 'AVAX' not found
+
+GOC: luot g0 doi KHOA MAP tai san trong genesis.FromConfig tu "AVAX" sang "LOVE9"
+(co chu y, co chu thich). Khoa map do la BI DANH DUOC DANG KY THAT tren X-Chain. Nhung
+wallet/chain/x/context.go:35 va wallet/chain/c/context.go:46 van hoi cung "AVAX", va
+rebrand.sh KHONG cham hai tep do (pham vi cua no dung o 4 chuoi: Client, token Name,
+token Symbol, FallbackHRP).
+
+=> Moi cong cu dung vi X hoac C chet ngay luc mang len the he moi. Cung ho voi
+FallbackHRP: ban sac song bang thu khong ai canh — nhung lan nay nguoc chieu, la
+NGUOI HOI chet vi NGUOI DAT da doi ten.
+
+VI SAO KHONG CONG NAO BAT DUOC: 9chain-a1-cli l1 create — duong de chain that su chay —
+dung MakePWallet, lay assetID qua platform.getStakingAssetID, KHONG hoi bi danh. Nen
+cong cu tren duong chinh van xanh trong khi duong nap tien chet cam.
+
+SUA: mot hang, hai noi doc.
+  - constants.A1AssetAlias = "LOVE9" · UpstreamAssetAlias = "AVAX"
+  - constants.GetAssetAlias(networkID) quyet theo BANG (LaMangA1), dung o ca ba cho:
+    genesis.FromConfig (noi DAT ten) + wallet/chain/{x,c} (noi HOI ten).
+  - CO Y KHONG co nhanh du phong "thu LOVE9, hong thi thu AVAX": mot duong lui nhu the
+    bien "hoi sai ten" thanh xanh va giau luon cai sai — dung lop loi /moi/ che 404 that.
+
+NGHIEM THU (co ca DO, khong chi xanh):
+  - sha256 byte genesis truoc/sau, 5 networkID:
+      999999999 (g0 that) + 899999999 (tap)  -> KHOP TUNG BIT  ⇒ mang dang chay khong doi
+      1 / 5 / 12345 (mainnet/fuji/local)     -> DOI            ⇒ phep so nay phan biet duoc
+    (assetID khong doi o dau ca: bi danh nam trong byte genesis nhung KHONG trong assetID,
+     vi assetID = ID cua CreateAssetTx, khong bao gom truong Alias.)
+  - go build + go vet sach trong golang:1.25.10-bookworm.
+  - TestGetAssetAlias: 11 ca, trong do 6 ca DO that (mainnet/fuji/local/ngoai bang phai
+    ra "AVAX"), cong mot khang dinh hai bi danh khong duoc hoa ve mot.
+  - genesis/TestAVAXAssetID: DA DO SAN 3/3 tu truoc luot nay (do rebrand Name/Symbol,
+    patch 0002; tep test la ban upstream chua patch nao cham). Do o moc goc c1ef307 de
+    doi chung — luot nay khong lam no xau di, va ba gia tri "actual" khong doi.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ genesis/genesis.go                  | 14 ++++++++---
+ utils/constants/network_ids.go      | 37 +++++++++++++++++++++++++++
+ utils/constants/network_ids_test.go | 39 +++++++++++++++++++++++++++++
+ wallet/chain/c/context.go           |  3 ++-
+ wallet/chain/x/context.go           |  6 ++++-
+ 5 files changed, 93 insertions(+), 6 deletions(-)
+
+diff --git a/genesis/genesis.go b/genesis/genesis.go
+index 1c9e15a..e45cd9a 100644
+--- a/genesis/genesis.go
++++ b/genesis/genesis.go
+@@ -328,17 +328,23 @@ func FromConfig(config *Config) ([]byte, ids.ID, error) {
+ 	// hiển thị. `vms/avm/vm.go` lấy chính khoá này rồi gọi `RegisterAlias` cho assetID,
+ 	// nên nó là tên mà mọi công cụ hỏi X-Chain đọc được.
+ 	//
+-	// `Name`/`Symbol` ở trên đã là `LOVE9 Coin`/`LOVE9` từ lâu (patch 0002), nhưng **khoá
+-	// map vẫn là `"AVAX"`** — tức lớp rebrand dừng ở chỗ người NHÌN thấy và không tới chỗ
+-	// máy ĐỌC. Cùng họ với `FallbackHRP`: bản sắc sống bằng thứ không ai canh.
++	// `Name`/`Symbol` ở trên đã là `LOVE9 Coin`/`LOVE9` từ lâu (patch 0002), còn khoá map
++	// mới đổi ở thế hệ g0 — trước đó lớp rebrand dừng ở chỗ người NHÌN thấy và không tới
++	// chỗ máy ĐỌC. Cùng họ với `FallbackHRP`: bản sắc sống bằng thứ không ai canh.
+ 	//
+ 	// ⚠️ Nó nằm trong **byte genesis của X-Chain** ⇒ đổi được **duy nhất** ở một lượt sinh
+ 	// lại mạng, và đổi là **đổi assetID** (assetID = tx.ID của tx tạo tài sản). Không có
+ 	// đường vá nóng, không có lần thứ hai trong cùng một thế hệ.
++	//
++	// 🔴 LẤY TỪ `constants.GetAssetAlias`, KHÔNG viết chuỗi trần ở đây. Chuỗi trần là thứ
++	// đã sinh ra sự cố: nơi ĐẶT tên (tệp này) và nơi HỎI tên (`wallet/chain/{x,c}`) là hai
++	// chuỗi rời nhau, đổi một bên thì bên kia im lặng gãy. Nay một hằng, hai nơi đọc.
++	// Với mạng A1 hàm trả đúng `"LOVE9"` ⇒ **byte genesis của g0 không đổi một bit nào**.
+ 	avmGenesis, err := avm.NewGenesis(
+ 		config.NetworkID,
+ 		map[string]avm.AssetDefinition{
+-			"LOVE9": avax, // X-Chain khởi đầu với đúng một tài sản: LOVE9
++			// X-Chain khởi đầu với đúng một tài sản: LOVE9 trên A1, AVAX trên mạng upstream.
++			constants.GetAssetAlias(config.NetworkID): avax,
+ 		},
+ 	)
+ 	if err != nil {
+diff --git a/utils/constants/network_ids.go b/utils/constants/network_ids.go
+index 3c681ae..f57c43b 100644
+--- a/utils/constants/network_ids.go
++++ b/utils/constants/network_ids.go
+@@ -127,6 +127,27 @@ const (
+ 	// chịu lực.
+ 	A1HRP = "love9"
+ 
++	// A1AssetAlias — BÍ DANH tài sản gốc trên X-Chain của 9Chain-A1.
++	//
++	// 🔴 KHÔNG phải nhãn hiển thị. `genesis.FromConfig` lấy chuỗi này làm KHOÁ MAP
++	// tài sản, `vms/avm` đăng ký chính khoá đó làm alias thật, nên nó là cái tên mà
++	// **mọi công cụ hỏi X-Chain phải gọi đúng** (`avm.getAssetDescription`).
++	// Upstream dùng `"AVAX"`; A1 dùng `"LOVE9"` từ thế hệ g0.
++	//
++	// 🔴 NẰM TRONG BYTE GENESIS CỦA X-CHAIN ⇒ đổi được duy nhất ở một lượt sinh lại
++	// mạng, và đổi là đổi luôn assetID (assetID = ID của tx tạo tài sản).
++	//
++	// 🔴 VÌ SAO CÓ HẰNG NÀY: lượt g0 đổi khoá map sang `"LOVE9"` mà `wallet/chain/x`
++	// và `wallet/chain/c` vẫn hỏi cứng `"AVAX"` — `rebrand.sh` không chạm hai tệp đó.
++	// Hệ quả: **mọi công cụ dùng ví X hoặc C chết ngay khi mạng công khai lên g0**
++	// (`xp-wallet` báo `asset 'AVAX' not found`), và không cổng nào bắt được vì
++	// `9chain-a1-cli` đi đường P-Chain (`platform.getStakingAssetID`) nên vẫn xanh.
++	// Cùng họ với `FallbackHRP`: bản sắc sống bằng thứ không ai canh.
++	A1AssetAlias = "LOVE9"
++
++	// UpstreamAssetAlias — bí danh của mọi mạng KHÔNG thuộc A1 (mainnet/fuji/local).
++	UpstreamAssetAlias = "AVAX"
++
+ 	// FallbackHRP giữ nguyên `"love9"` (không trả về `"custom"` của upstream) —
+ 	// CỐ Ý, và nay chỉ là dây bảo hiểm thứ hai chứ không phải đường sống: mọi
+ 	// đường dùng thật đều đi qua `NetworkIDToHRP[A1ID]` ở trên. Đổi nó không còn
+@@ -205,6 +226,22 @@ func LaMangA1(networkID uint32) bool {
+ 		(networkID <= A1IDGocTap && networkID > A1IDGocTap-bienDo-1)
+ }
+ 
++// GetAssetAlias trả BÍ DANH tài sản gốc trên X-Chain của `networkID`.
++//
++// 🔴 CỐ Ý KHÔNG CÓ NHÁNH DỰ PHÒNG kiểu "thử LOVE9, hỏng thì thử AVAX". Một đường lui
++// như thế biến "hỏi sai tên" thành xanh và giấu luôn cái sai — đúng lớp lỗi đã trả giá
++// (`/moi/` che một trang 404 THẬT nhiều ngày). Ở đây tên được QUYẾT theo networkID:
++// sai băng thì hỏng ngay, và hỏng ở chỗ đọc được.
++//
++// Dùng `LaMangA1` chứ không dùng map như `NetworkIDToHRP`: bí danh phải đúng ở MỌI thế
++// hệ, kể cả thế hệ mà binary này chưa biết tên.
++func GetAssetAlias(networkID uint32) string {
++	if LaMangA1(networkID) {
++		return A1AssetAlias
++	}
++	return UpstreamAssetAlias
++}
++
+ // GetHRP returns the Human-Readable-Part of bech32 addresses for a networkID
+ func GetHRP(networkID uint32) string {
+ 	if hrp, ok := NetworkIDToHRP[networkID]; ok {
+diff --git a/utils/constants/network_ids_test.go b/utils/constants/network_ids_test.go
+index 212c41a..117e383 100644
+--- a/utils/constants/network_ids_test.go
++++ b/utils/constants/network_ids_test.go
+@@ -132,3 +132,42 @@ func TestNetworkID(t *testing.T) {
+ 		})
+ 	}
+ }
++
++// TestGetAssetAlias — bí danh tài sản gốc trên X-Chain phải theo BĂNG MẠNG, không theo
++// một hằng đơn. Sinh ra sau sự cố g0: khoá map trong `genesis.FromConfig` đổi sang
++// `"LOVE9"` mà `wallet/chain/{x,c}` vẫn hỏi `"AVAX"` ⇒ mọi ví X/C chết lặng.
++//
++// 🔴 Bảng này có ca ĐỎ thật, không chỉ ca xanh: mạng upstream PHẢI ra `"AVAX"`. Nếu ai
++// đó "dọn dẹp" bằng cách trả `A1AssetAlias` cho mọi networkID thì fork mất khả năng
++// dựng lại genesis của mainnet/fuji, và không có gì khác báo điều đó.
++func TestGetAssetAlias(t *testing.T) {
++	tests := []struct {
++		name  string
++		id    uint32
++		alias string
++	}{
++		// Băng A1 — thế hệ hiện tại và các thế hệ chưa tồn tại.
++		{name: "A1 g0 (mạng thật)", id: A1IDGoc, alias: A1AssetAlias},
++		{name: "A1 g0 (mạng tập)", id: A1IDGocTap, alias: A1AssetAlias},
++		{name: "A1 thế hệ hiện tại", id: A1ID, alias: A1AssetAlias},
++		{name: "A1 g1 — chưa tồn tại", id: A1IDGoc - 1, alias: A1AssetAlias},
++		{name: "A1 g999 — đáy băng thật", id: A1IDGoc - 999, alias: A1AssetAlias},
++
++		// Ca ĐỎ: ngoài băng ⇒ phải là bí danh upstream.
++		{name: "mainnet", id: MainnetID, alias: UpstreamAssetAlias},
++		{name: "fuji", id: FujiID, alias: UpstreamAssetAlias},
++		{name: "local", id: LocalID, alias: UpstreamAssetAlias},
++		{name: "ngay dưới đáy băng thật", id: A1IDGoc - 1000, alias: UpstreamAssetAlias},
++		{name: "ngay dưới đáy băng tập", id: A1IDGocTap - 1000, alias: UpstreamAssetAlias},
++		{name: "9001 — networkID thế hệ TRƯỚC bộ định danh", id: 9001, alias: UpstreamAssetAlias},
++	}
++	for _, test := range tests {
++		t.Run(test.name, func(t *testing.T) {
++			require.Equal(t, test.alias, GetAssetAlias(test.id))
++		})
++	}
++
++	// Hai bí danh KHÔNG được hoà về một — nếu bằng nhau thì mọi ca trên đều xanh mà
++	// bảng chẳng chứng minh gì.
++	require.NotEqual(t, A1AssetAlias, UpstreamAssetAlias)
++}
+diff --git a/wallet/chain/c/context.go b/wallet/chain/c/context.go
+index 6254f08..da2032e 100644
+--- a/wallet/chain/c/context.go
++++ b/wallet/chain/c/context.go
+@@ -43,7 +43,8 @@ func NewContextFromClients(
+ 		return nil, err
+ 	}
+ 
+-	avaxAsset, err := xChainClient.GetAssetDescription(ctx, "AVAX")
++	// 🔴 Xem chú thích cùng chỗ ở `wallet/chain/x/context.go`: bí danh theo mạng.
++	avaxAsset, err := xChainClient.GetAssetDescription(ctx, constants.GetAssetAlias(networkID))
+ 	if err != nil {
+ 		return nil, err
+ 	}
+diff --git a/wallet/chain/x/context.go b/wallet/chain/x/context.go
+index 1f0585f..120f651 100644
+--- a/wallet/chain/x/context.go
++++ b/wallet/chain/x/context.go
+@@ -7,6 +7,7 @@ import (
+ 	"context"
+ 
+ 	"github.com/ava-labs/avalanchego/api/info"
++	"github.com/ava-labs/avalanchego/utils/constants"
+ 	"github.com/ava-labs/avalanchego/vms/avm"
+ 	"github.com/ava-labs/avalanchego/wallet/chain/x/builder"
+ )
+@@ -32,7 +33,10 @@ func NewContextFromClients(
+ 		return nil, err
+ 	}
+ 
+-	asset, err := xChainClient.GetAssetDescription(ctx, "AVAX")
++	// 🔴 BÍ DANH THEO MẠNG, không phải hằng `"AVAX"` của upstream. Trên 9Chain-A1 tài
++	// sản gốc đăng ký alias `LOVE9` (xem `constants.A1AssetAlias`); hỏi `"AVAX"` thì
++	// node trả `asset 'AVAX' not found` và MỌI ví X/C chết ngay lúc mạng lên thế hệ mới.
++	asset, err := xChainClient.GetAssetDescription(ctx, constants.GetAssetAlias(networkID))
+ 	if err != nil {
+ 		return nil, err
+ 	}

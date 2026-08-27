@@ -25,7 +25,8 @@ Ví trả phí đẻ L1 và đăng ký subnet validator. **Khoá nằm TRÊN SER
 | | |
 |---|---|
 | Mục đích | trả phí `createSubnet` / `createChain` / `addSubnetValidator` |
-| Số dư nhắm tới | **9 LOVE9** trên P-Chain |
+| Số dư nhắm tới | **90 LOVE9** trên P-Chain *(David nâng từ 9 lên 90 ở lượt g0, D-082)* |
+| Đang có (g0, đo `27/08`) | **89,99999173 LOVE9** `unlocked` |
 | Khoá gốc | `local-net/net-public/chain-factory-key.txt` — gitignored, **chỉ máy dev** |
 | Chi phí thật | **0,000141468 LOVE9/lượt đẻ chain** ⇒ 9 LOVE9 ≈ **63.600 lượt** |
 
@@ -56,6 +57,30 @@ thuộc genesis nên không bị đổi; chỉ số dư mất theo mạng cũ). 
 
 Công cụ: `upstream/avalanchego/9chain-a1-tools/xp-wallet` (ví X/P, chạy loopback
 `:8090` trên server — **không có auth, tuyệt đối không public**).
+
+### 🔴 Ba cái bẫy đã trả giá ở lượt nạp g0 (`27/08`)
+
+**1. `xp-wallet` chết sau mỗi lượt re-genesis nếu bí danh tài sản đổi.** Lượt g0 đổi bí danh
+X-Chain sang `LOVE9` mà SDK ví vẫn hỏi `"AVAX"` ⇒ `asset 'AVAX' not found`, ví **không khởi
+động nổi**. Đã vá bằng patch 0019 (D-082). Nguồn trên server ở `~/9chain-a1/src` là **bản chép,
+không phải git repo** — vá ở máy dev rồi phải `scp` sang, và **so `sha256` hai đầu**.
+
+**2. Container `9chain-a1-xpwallet` giữ khoá trong env ⇒ `docker restart` KHÔNG nạp lại.**
+Phải `docker rm -f` rồi `docker run`. Cùng bẫy với faucet ở D-081.
+
+**3. Khoá Foundation KHÔNG được để nằm lâu trong một ví HTTP không auth.** Lượt này chạy một
+container **tạm** (`a1-fund-tmp`, không publish cổng ra host, gọi bằng `docker exec`), gửi xong
+`docker rm -f` ngay. Container `9chain-a1-xpwallet` thường trực chỉ giữ khoá **chain-factory** —
+ví nóng, chấp nhận mất.
+
+### Đường nạp đã chạy thật (g0, `27/08`) — hai giao dịch
+
+| | |
+|---|---|
+| TX1 | khoá **Foundation**, X-Chain gửi `90,01` → `X-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj` |
+| TX2 | khoá **chain-factory**, `X→P` `90` (export + import) |
+| Phí | X txFee `0,001` LOVE9/tx · phí import P lấy thẳng từ phần chuyển sang |
+| Đối chứng | Foundation X giảm **đúng** `90,011`; số dư P đọc lại bằng **RPC công khai**, không qua chính cái ví vừa vá |
 
 ## Ví faucet
 

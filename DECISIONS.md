@@ -2164,3 +2164,82 @@ Bản sao trên máy chủ: `net-pre-g0-20260827-152109/` · `console.env.bak-pr
    `9001000000–9001999999`.
 4. **B-9** (`#e84142` trong `patches/0003`) **chưa làm** — David đã gật nhưng lượt này không gộp.
    Gộp vào lượt regen của ngày G.
+
+---
+
+### D-082 — 🔴 Bí danh tài sản X-Chain: một hằng, hai nơi đọc. Và ví `chain-factory` đã có tiền
+
+**Triệu chứng ban đầu chỉ là "đẻ chain chưa dùng được vì thiếu tiền".** Nạp tiền thì phải chạy
+`xp-wallet` — đúng công cụ `docs/VI-VAN-HANH.md` chỉ định. Nó **không khởi động nổi**:
+
+```
+khong ket noi duoc node: failed to decode client response: asset 'AVAX' not found
+```
+
+#### Gốc
+
+Lượt g0 đổi **khoá map tài sản** trong `genesis.FromConfig` từ `"AVAX"` sang `"LOVE9"` — có chủ
+ý, có chú thích dài giải thích rằng khoá đó là **bí danh được đăng ký thật** trên X-Chain chứ
+không phải nhãn hiển thị. Đúng. Nhưng `wallet/chain/x/context.go:35` và
+`wallet/chain/c/context.go:46` **vẫn hỏi cứng `"AVAX"`**, và `rebrand.sh` không chạm hai tệp đó
+(phạm vi nó dừng ở 4 chuỗi: `Client`, token `Name`, token `Symbol`, `FallbackHRP`).
+
+⇒ **Mọi công cụ dùng ví X hoặc C chết ngay lúc mạng lên thế hệ mới.** Cùng họ với `FallbackHRP`
+— bản sắc sống bằng thứ không ai canh — nhưng **ngược chiều**: lần này nơi ĐẶT tên đã đổi, còn
+nơi HỎI tên thì không, và chính người đặt tên chết vì cái tên mình đặt.
+
+🔴 **Vì sao không cổng nào bắt được.** `9chain-a1-cli l1 create` — đường đẻ chain thật sự chạy —
+dùng `MakePWallet`, lấy assetID qua `platform.getStakingAssetID`, **không hỏi bí danh**. Nên công
+cụ trên đường chính vẫn xanh trong khi đường nạp tiền chết câm. Lại đúng luật đã trả giá:
+**cổng chỉ chứng minh được đường mà chính nó đi.**
+
+#### Sửa (patch 0019, tree `f4615e73` → **`bc8b634b`**, 19 patch trên `1cf1fc3`)
+
+- `constants.A1AssetAlias = "LOVE9"` · `constants.UpstreamAssetAlias = "AVAX"`
+- `constants.GetAssetAlias(networkID)` quyết theo **BĂNG** (`LaMangA1`), dùng ở **cả ba** chỗ:
+  `genesis.FromConfig` (nơi ĐẶT tên) + `wallet/chain/{x,c}` (nơi HỎI tên).
+- 🔴 **CỐ Ý KHÔNG có nhánh dự phòng** *"thử LOVE9, hỏng thì thử AVAX"*. Đường lui như thế biến
+  "hỏi sai tên" thành xanh và giấu luôn cái sai — đúng lớp lỗi `/moi/` che một trang 404 THẬT.
+
+#### Nghiệm thu — có ca ĐỎ, không chỉ ca xanh
+
+| Phép đo | Kết quả |
+|---|---|
+| `sha256` byte genesis, 5 networkID, trước/sau | `999999999` (g0 thật) + `899999999` (tập) **khớp từng bit** ⇒ mạng đang chạy không đổi; `1`/`5`/`12345` **đổi** ⇒ phép so này phân biệt được |
+| assetID | **không đổi ở đâu cả** — bí danh nằm trong byte genesis nhưng KHÔNG trong assetID (`assetID` = ID của `CreateAssetTx`, không gồm trường `Alias`) |
+| `TestGetAssetAlias` | 11 ca, **6 ca đỏ thật** (ngoài băng phải ra `"AVAX"`) + khẳng định hai bí danh không được hoà về một |
+| `go build` + `go vet` | sạch (`golang:1.25.10-bookworm`) |
+| Tái lập cây fork | 19 patch → **`bc8b634b`** ✓ · **đối chứng ngược 18/19 → `f4615e73`** đúng tree cũ |
+| 🔴 Trên mạng ĐANG CHẠY | `xp-wallet` khởi động lại được, tự đọc ra `assetID v5fAh1Cz…` **trùng** giá trị RPC công khai trả cho `LOVE9` |
+
+⚠️ `genesis/TestAVAXAssetID` **đã đỏ sẵn 3/3 từ trước lượt này** (do rebrand `Name`/`Symbol`,
+patch 0002; tệp test là bản upstream chưa patch nào chạm). Đã đo ở mốc gốc `c1ef307` để đối
+chứng — lượt này không làm nó xấu đi, ba giá trị `actual` không đổi.
+
+#### Nạp ví `chain-factory` — David chốt **90 LOVE9**, không phải 9
+
+Tài liệu nhắm 9 LOVE9 (≈63.600 lượt đẻ chain). David chọn nạp **gấp 10** trong phiên.
+
+| | |
+|---|---|
+| TX1 (khoá Foundation, X-Chain) | `BxdRjAQcCoTUjKSxD3A2YwVK9oMUc9LtCn1NUnuE2g8BTNYqq` — 90,01 LOVE9 |
+| TX2 (khoá chain-factory, X→P) | export `23z2i36HqtVsQqcfPFS1VJPbcTxWE4SSRJGDM2FJLphEaVxQDT` · import `FPCP5meMVFWwjUX5cRcetXmHgpEXoexZxktk8Q7yqjBwXpUrJ` |
+| Foundation X | 71.000.009 → **70.999.918,989** = đúng −90,011 (90,01 + phí 0,001) |
+| **chain-factory P** | **89,99999173 LOVE9, `unlocked`** — đọc lại bằng RPC CÔNG KHAI, không qua chính cái ví vừa vá |
+| chain-factory X | 0,009 (phần thừa sau phí) |
+
+🔴 **CHƯA CHỨNG MINH: đẻ chain chạy được.** Ví có tiền ≠ đường đẻ chain thông. Phép kiểm thật
+là đẻ **một** L1 rồi thu hồi — cần David ký SIWE trên console, và nó tạo một chain THẬT trên
+mạng công khai. Đừng đọc "ví đã có tiền" thành "mục #1 đã xong hết".
+
+#### Việc sinh ra
+
+- 🔴 **B-15 — bí danh tài sản ở ngày G.** Giữ `LOVE9` là chủ quyền, nhưng **mọi công cụ Avalanche
+  của bên thứ ba** (dựng trên SDK upstream hỏi `"AVAX"`) sẽ chết khi nói chuyện với A1 — hôm nay
+  chính A1 vừa dính. Đổi về `"AVAX"` chỉ làm được ở **lượt sinh lại `01/09`**, sau đó khoá vĩnh
+  viễn trong thế hệ. **Cần David quyết trước ngày G.**
+- 🔴 **O1 nặng hơn tài liệu giả định.** `~/9chain-a1/net/keys.txt` (khoá bí mật **cả 5 quỹ** +
+  private key EVM của g0) **đang nằm trên server công khai**, trong khi dòng đầu chính tệp đó ghi
+  *"TUYỆT MẬT — giữ offline/cold"* và `allocation.md` cạnh nó ghi *"KHÔNG đưa lên server"*.
+  netgen chạy trên server nên đẻ nó ra ngay tại đó. Không phải *"chưa có bản thứ hai"* mà là
+  **bản thứ nhất đang ở nơi tự nó cấm**.

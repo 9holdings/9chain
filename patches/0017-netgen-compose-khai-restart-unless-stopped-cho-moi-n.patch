@@ -1,7 +1,7 @@
 From 15c940e04e614d888149cfef40f331a9280323fb Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Thu, 27 Aug 2026 16:12:50 +0400
-Subject: [PATCH 17/18] =?UTF-8?q?netgen:=20compose=20khai=20restart:=20unl?=
+Subject: [PATCH 17/19] =?UTF-8?q?netgen:=20compose=20khai=20restart:=20unl?=
  =?UTF-8?q?ess-stopped=20cho=20moi=20node=20=E2=80=94=20D-071?=
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

@@ -6,6 +6,27 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### 🔴 B-15 — BÍ DANH TÀI SẢN X-CHAIN Ở NGÀY G: `LOVE9` hay `AVAX`? (2026-08-27, sinh từ D-082)
+
+**Cần David quyết TRƯỚC `01/09`.** Bí danh nằm trong **byte genesis của X-Chain** ⇒ chỉ đổi được
+ở một lượt sinh lại mạng. Chọn xong là khoá vĩnh viễn trong thế hệ đó.
+
+| | Giữ `LOVE9` (đang chạy ở g0) | Đổi về `AVAX` |
+|---|---|---|
+| Bản sắc | tài sản gốc mang tên riêng ở **chỗ máy đọc**, không chỉ chỗ người nhìn | chỉ còn `Name`/`Symbol` mang tên riêng |
+| Công cụ bên thứ ba | 🔴 **mọi thứ dựng trên SDK avalanchego upstream đều chết** — SDK hỏi cứng `"AVAX"` | chạy được ngay, không cần biết A1 là fork |
+| Chi phí đã trả | **chính A1 vừa dính hôm nay** — `xp-wallet` chết câm, phải vá patch 0019 để nạp được ví | — |
+
+🔴 **Đừng đọc "A1 đã vá xong nên không sao".** Patch 0019 chỉ sửa SDK **trong fork của A1**. Ví
+của người dùng, explorer bên thứ ba, và bất kỳ ai `go get` avalanchego bản gốc đều **không có
+bản vá đó**. Câu hỏi thật là: *A1 muốn người ngoài nói chuyện được với mình bằng công cụ sẵn có,
+hay muốn họ phải dùng fork của A1?*
+
+⚠️ Câu hỏi này **không** đối xứng với `A1HRP`/`A1Name`: hai thứ kia upstream đọc bằng tham số,
+còn bí danh tài sản upstream **hỏi bằng hằng số cứng**.
+
+---
+
 ### ✅ B-14 — **ĐÃ ĐÓNG `2026-08-27`** — David chốt gốc dải **`9000000010`** (D-069)
 
 David không chọn đường nào trong ba đường A1 đưa (9146 / 9100 / "dải khác") mà đưa ra một
