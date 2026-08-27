@@ -11,12 +11,13 @@ dịch thật đã chốt. **Bốn patch cuối lần đầu chạy trên mạng
 ✅ **Ví `chain-factory` ĐÃ NẠP `27/08`** — **89,99999173 LOVE9 unlocked** trên P-Chain (David
 chốt 90, không phải 9). Nhưng để nạp được phải vá một lỗi chưa ai biết: **bí danh tài sản
 X-Chain đổi sang `LOVE9` ở lượt g0 mà SDK ví của chính fork vẫn hỏi `"AVAX"`** ⇒ mọi công cụ
-dùng ví X/C chết câm. Patch **0019**, tree `f4615e73` → **`bc8b634b`** (D-082).
+dùng ví X/C chết câm. Patch **0019** (D-082). Cùng phiên: patch **0020** cho netgen (D-083)
+⇒ tree `f4615e73` → **`6879819f`**, **20 patch**.
 🔴 **Vẫn CHƯA chứng minh đẻ chain chạy được** — ví có tiền ≠ đường đẻ chain thông. Xem #1.
 
-⚠️ **Image `9chain-a1/node:g0` đang chạy vẫn là bản 18 patch.** Patch 0019 chỉ sống ở nguồn
+⚠️ **Image `9chain-a1/node:g0` đang chạy vẫn là bản 18 patch.** Patch 0019+0020 chỉ sống ở nguồn
 (`~/9chain-a1/src`, nơi `xp-wallet` chạy bằng `go run`). Node không dùng SDK ví nên **không cần
-dựng lại image**; nó sẽ vào image ở lượt build ngày G. Đừng đọc `bc8b634b` thành "mạng đang
+dựng lại image**; nó sẽ vào image ở lượt build ngày G. Đừng đọc `6879819f` thành "mạng đang
 chạy có 19 patch".
 
 ⚠️ **Ngày G `2026-09-01` VẪN phải sinh lại lần nữa** (chữ khắc vào genesis, C1 chưa đóng băng
@@ -32,7 +33,7 @@ chainId L1 `9001000000–9001999999`.
 | **1** | ✅ ~~Nạp `chain-factory`~~ **XONG `27/08`** — 89,99999173 LOVE9 trên P. 🔴 **Còn nợ phép kiểm:** đẻ **một** L1 rồi thu hồi để chứng minh đường đẻ chain thông (cần David ký SIWE, và nó tạo chain THẬT trên mạng công khai) | A1 + **David** | D-082. Khoá Foundation lấy từ `net/keys.txt` **trên server** — không phải "khoá máy dev" như dự tính, xem O1 |
 | **2** | 🔴 **O1 custody khoá 5 quỹ** — **quá hạn `28/08`**, cơ hội một lần ở ngày G. 🔴 **NẶNG HƠN TÀI LIỆU GIẢ ĐỊNH:** `~/9chain-a1/net/keys.txt` (khoá **cả 5 quỹ** + privkey EVM của g0) **đang nằm trên server**, trong khi dòng đầu chính tệp đó ghi *"TUYỆT MẬT — giữ offline/cold"* và `allocation.md` cạnh nó ghi *"KHÔNG đưa lên server"*. netgen chạy trên server nên đẻ nó ra ngay tại đó | **David** | Không phải "chọn sơ đồ" (đã chốt D-044) mà là **PHÉP KIỂM chưa chạy**: bản thứ hai có thật không. Cách kiểm: `docs/SOAT-TOAN-DIEN-2026-08-27.md` §12.2 |
 | **2b** | 🔴 **B-15 — bí danh tài sản ở ngày G.** Giữ `LOVE9` (chủ quyền) hay đổi về `AVAX` (mọi công cụ Avalanche bên thứ ba nói chuyện được)? Chỉ đổi được ở lượt sinh lại `01/09` | **David** | D-082 |
-| **3** | 🔴 **netgen PHẢI sinh `.env`** trước ngày G | A1 | Thiếu nó ⇒ `--http-allowed-hosts=*` trên node công khai. Suýt xảy ra hôm nay — xem Gotcha #2 |
+| **3** | ✅ ~~netgen sinh `.env`~~ **XONG `27/08`** — patch 0020, kèm **cổng chặn mạng THẬT sinh ra ở tư thế phơi trần** và `NETWORK_ID` nay bắt buộc | A1 | D-083. Đo đầu-cuối bằng `docker compose config`: có `.env` → `localhost,127.0.0.1`, giấu đi → `*` |
 | **4** | **B-9** `#e84142` trong `patches/0003` — David **đã gật**, chưa làm | A1 | Gộp vào lượt regen ngày G |
 | **5** | **O4** — dời 1 node sang nhà cung cấp thứ hai, **hoặc** khai thật + đổi tên `01/09` | **David** | §12.3: cách rẻ nhất không phải tiền mà là chữ *"chính thức"* |
 | **6** | **B-10** tắt Managed robots.txt ở dashboard Cloudflare | **David** | 1 phút, đo lại bằng NỘI DUNG |
@@ -69,9 +70,14 @@ Ba bản soát mới: `docs/SOAT-TOAN-DIEN-2026-08-27.md` (lớp vận hành) ·
 1. **`net/` do container netgen sinh ⇒ thuộc `root`.** `sed` sửa `docker-compose.multinode.yml`
    **thất bại lặng lẽ** ⇒ mạng lên bằng image CŨ. `sudo chown -R ubuntu:ubuntu ~/9chain-a1/net`
    trước khi sửa.
-2. 🔴 **netgen KHÔNG sinh `.env`.** Tệp đó đặt `A1_CONFIG_DIR` · `A1_API_BIND` ·
-   **`A1_HTTP_ALLOWED_HOSTS=localhost,127.0.0.1`**. Thiếu ⇒ compose lấy mặc định
-   **`--http-allowed-hosts=*`** trên node CÔNG KHAI. **Chép `.env` từ `net-pre-*` sang.**
+2. ✅ ~~**netgen KHÔNG sinh `.env`**~~ — **ĐÃ VÁ `27/08`** (patch 0020, D-083). Nay netgen tự
+   sinh, **và từ chối sinh mạng THẬT** với `A1_HTTP_ALLOWED_HOSTS=*` hoặc `A1_API_BIND=0.0.0.0`.
+   ⚠️ **Vẫn phải chép `.env` khi chép mạng sang máy khác**, và **vẫn phải `--env-file` khi chạy
+   compose từ thư mục khác** — cổng chỉ canh lúc SINH, không canh lúc CHẠY.
+   ⚠️ `A1_CONFIG_DIR` netgen **không kiểm được** (nó giải trên máy chủ). Bố cục server hiện tại:
+   `/home/ubuntu/9chain-a1/src/9chain-a1-config` — khai bằng biến cùng tên lúc chạy netgen.
+2b. 🔴 **`NETWORK_ID` của netgen NAY BẮT BUỘC.** Trước đó mặc định `9001` — số của thế hệ đã
+   chết. Lệnh cũ không khai `NETWORK_ID` sẽ dừng, và đó là chủ ý: chọn băng là một quyết định.
 3. **`docker restart` KHÔNG nạp lại env.** Faucet giữ khoá thế hệ cũ ⇒ `insufficient funds`.
    Phải **`docker rm -f` rồi `docker run`** lại (lệnh đầy đủ trong D-081).
 4. 🔴 **Cổng chỉ chứng minh được đường mà CHÍNH NÓ đi.** Cổng netgen xanh + `go test` xanh, mà
@@ -115,7 +121,7 @@ node local-net/console/chainid-test.mjs
 node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs
 
-# Tái lập cây fork (19 patch → tree bc8b634b)
+# Tái lập cây fork (20 patch → tree 6879819f)
 cd upstream/avalanchego && git worktree add --detach /tmp/tl 1cf1fc3
 cd /tmp/tl && git am --keep-cr ../../patches/*.patch && git rev-parse HEAD^{tree}
 
@@ -129,10 +135,10 @@ curl -s -X POST -H 'content-type:application/json' \
 1. **Không tin mã HTTP.** Thang đo: mã HTTP → `content-type` → **nội dung** → header tầng trước.
 2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một nửa.
 3. **Đụng `patches/` là đụng đường tái lập fork** — sinh `--no-signature`, nghiệm thu
-   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`bc8b634b`** / **19 patch**
-   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **18/19** phải ra đúng tree cũ `f4615e73`.
-   ⚠️ **Image node đang chạy vẫn là 18 patch** — patch 0019 chỉ đụng SDK ví (công cụ), không đụng
-   node. Tree của repo ≠ tree trong image cho tới lượt build ngày G.
+   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`6879819f`** / **20 patch**
+   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **19/20** phải ra đúng tree cũ `bc8b634b`.
+   ⚠️ **Image node đang chạy vẫn là 18 patch** — 0019 đụng SDK ví, 0020 đụng netgen; cả hai là
+   CÔNG CỤ, không đụng node. Tree của repo ≠ tree trong image cho tới lượt build ngày G.
 4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)
    — 🔴 **Caddyfile ĐANG CHẠY đến từ nhánh đó**, không phải `main`. Deploy từ `main` sẽ xoá công
    việc của phiên web (cổng D-075 nay chặn, nhưng đừng dựa vào nó).

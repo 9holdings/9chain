@@ -2243,3 +2243,65 @@ mạng công khai. Đừng đọc "ví đã có tiền" thành "mục #1 đã xo
   *"TUYỆT MẬT — giữ offline/cold"* và `allocation.md` cạnh nó ghi *"KHÔNG đưa lên server"*.
   netgen chạy trên server nên đẻ nó ra ngay tại đó. Không phải *"chưa có bản thứ hai"* mà là
   **bản thứ nhất đang ở nơi tự nó cấm**.
+
+---
+
+### D-083 — `netgen` tự sinh `.env`, và **chặn mạng THẬT sinh ra ở tư thế phơi trần**
+
+`netgen` sinh `docker-compose.multinode.yml` nhưng **không sinh `.env`**. Compose tự nạp `.env`
+từ thư mục chứa tệp compose, và mọi biến trong đó đều khai kèm **giá trị mặc định kém an toàn
+hơn**:
+
+```
+--http-allowed-hosts=${A1_HTTP_ALLOWED_HOSTS:-*}
+ports: "${A1_API_BIND:-127.0.0.1}:9650:9650"
+```
+
+⇒ Thiếu `.env` thì mạng vẫn lên, **9/9 node xanh, không một dòng lỗi nào** — nhưng bộ lọc Host
+của node CÔNG KHAI mở thành `*`. Lượt g0 `27/08` thoát **chỉ vì có người nhớ chép tay `.env`**
+từ thư mục mạng cũ sang. 🔴 **Trí nhớ không phải một cổng.**
+
+⚠️ Nặng hơn `FallbackHRP` một bậc: ở đó nhánh dự phòng chỉ là *một giá trị khác*; ở đây nhánh
+dự phòng là **nhánh kém an toàn hơn**. Mặc định của compose đang làm việc ngược với ý định.
+
+#### Ba thứ patch 0020 thêm
+
+| | |
+|---|---|
+| **1** | netgen sinh `<out>/.env` — `A1_CONFIG_DIR` · `A1_API_BIND` · `A1_HTTP_ALLOWED_HOSTS` · `A1_TRACK_SUBNETS`. Ba biến đầu đọc từ chính môi trường netgen, **cùng tên** với biến nó ghi ra. Mặc định **trùng** mặc định của compose, để việc sinh `.env` tự nó không thành một thay đổi hành vi âm thầm |
+| **2** | **Cổng `kiemPhoiTran`** — mạng THẬT không được sinh với `A1_HTTP_ALLOWED_HOSTS=*` hoặc `A1_API_BIND=0.0.0.0`: **dừng cứng**. Mạng TẬP cho qua kèm cảnh báo. **Không có cờ "tôi biết tôi đang làm gì"**: mở thật thì mở lúc `up` bằng `--env-file` của riêng lượt đó, đừng nướng vào vật liệu sinh mạng |
+| **3** | `NETWORK_ID` nay **bắt buộc**. Trước đó mặc định `"9001"` — networkID của **thế hệ đã chết**, mà chính cổng bộ định danh từ chối |
+
+🔴 **Mục 3 là loại lỗi khó thấy nhất trong ba.** Hành vi *"chạy netgen trần thì dừng"* đang
+**đúng, nhưng đúng do TAI NẠN** — và thông báo lỗi nói về một con số người dùng chưa từng gõ.
+Tệ hơn: chú thích đầu tệp khai mặc định là `constants.A1ID`, tức **tài liệu mô tả một hành vi
+mà nếu ai đó "sửa cho khớp tài liệu" thì `netgen` trần sẽ lặng lẽ sinh ra MẠNG THẬT.**
+
+⚠️ **CỐ Ý KHÔNG kiểm `A1_CONFIG_DIR`**, và nói rõ vì sao ngay trong mã: netgen chạy trong
+container ghi ra `/out`, còn đường dẫn đó do compose giải **trên máy chủ**. Nó chỉ chép lại giá
+trị và **in to ra**. Thêm một phép kiểm ở đây là thêm một cổng chỉ chứng minh được đường của
+chính nó.
+
+#### Nghiệm thu — 6 ca, 3 đỏ 3 xanh, cặp đỏ/xanh **đối xứng**
+
+| # | Ca | Kết quả |
+|---|---|---|
+| 1 | mạng THẬT, mặc định | ✓ `.env` đủ 4 biến |
+| 2 | mạng THẬT + `allowed-hosts=*` | ✗ FATAL — **và không ghi `.env` nào cả** |
+| 3 | mạng THẬT + `api-bind=0.0.0.0` | ✗ FATAL |
+| 4 | **mạng TẬP + đúng tham số của ca 2** | ✓ cho qua, có cảnh báo |
+| 5 | không khai `NETWORK_ID` | ✗ FATAL |
+| 6 | `A1_CONFIG_DIR` tường minh | ✓ chép đúng vào `.env` |
+
+🔴 **Ca 2 và ca 4 dùng CÙNG một tham số, chỉ khác băng mạng** — đó là thứ chứng minh cổng đang
+canh *băng*, không phải canh *chuỗi ký tự*.
+
+#### Và phép đo ĐẦU-CUỐI, bằng `docker compose config` chứ không bằng đọc mã
+
+```
+có .env    →  --http-allowed-hosts=localhost,127.0.0.1
+giấu .env  →  --http-allowed-hosts=*          ← đúng sự cố suýt xảy ra 27/08
+```
+
+**Tái lập:** 20 patch → tree **`6879819f`** · đối chứng ngược **19/20 → `bc8b634b`** ✓.
+`.env` đang chạy trên server khớp **đúng 4 biến** netgen nay tự sinh — không phải sửa gì.
