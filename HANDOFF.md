@@ -50,7 +50,8 @@ là bối cảnh của BOD, mâu thuẫn thì file kia thắng.
 | **A-4** | **C-4** — cổng chainId (đóng nốt **B-11**) | ✅ 7 ca/3 ĐCN · [`CONG-CHAINID-2026-08-27.md`](docs/CONG-CHAINID-2026-08-27.md) |
 | **A-5** | **I1b** — cung có nguồn | ✅ 2 ĐCN · [`I1B-CUNG-CO-NGUON-2026-08-27.md`](docs/I1B-CUNG-CO-NGUON-2026-08-27.md) |
 
-**Cây fork: tree `c9226d9c` · 16 patch trên `1cf1fc3`** (patch 0015 cổng chainId · 0016
+**Cây fork: tree `f8458b33` · 17 patch trên `1cf1fc3`** *(patch 0017 = `restart:` của D-071,
+thêm `27/08` sau bản soát vận hành)*. Trước đó: `c9226d9c` / 16 patch (patch 0015 cổng chainId · 0016
 `cung.json`), tái lập khớp từng byte, đối chứng ngược 14/15 patch ⇒ tree khác.
 ⚠️ **Không cần build lại image node** — cả hai patch chỉ đụng `netgen`, chạy bằng `go run` lúc
 sinh mạng. Ràng buộc `down -v` của D-050 (patch 0013) **không đổi**.
@@ -109,10 +110,12 @@ nói dối suýt nói dối**. Nay khai `xin N · XUẤT ĐƯỢC M`.
    header tầng trước (`cf-cache-status`). Cổng chỉ biết xanh **không chứng minh gì**.
 2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một nửa.
 3. **Đụng `patches/` là đụng đường tái lập fork** — sinh bằng `--no-signature`, nghiệm thu bằng
-   `git am --keep-cr` + so tree. Tree hiện tại: **`c9226d9c`** / **16 patch** / gốc `1cf1fc3`.
-   ⚠️ Sinh lại **cả bộ**, đừng thêm lẻ: tới `27/08` các patch 0013/0014 vẫn mang tiêu đề
-   `[PATCH nn/12]` vì được thêm vào chứ không sinh cùng lượt — một bộ tái lập **tự đếm sai
-   chính mình** (D-065).
+   `git am --keep-cr` + so tree. Tree hiện tại: **`f8458b33`** / **17 patch** / gốc `1cf1fc3`.
+   ✅ **D-065 ĐÃ HẾT `27/08`:** bộ patch sinh lại cả lượt ⇒ tiêu đề nay là `01/17`…`17/17`,
+   không còn `[PATCH nn/12]` lạc. Sinh lại **cả bộ**, đừng bao giờ thêm lẻ.
+   🔴 **Nghiệm thu phải có ĐỐI CHỨNG NGƯỢC, và có một ca rẻ mà mạnh:** áp **16/17** patch phải
+   ra **đúng tree cũ `c9226d9c`**. Nó chứng minh hai thứ cùng lúc — phép so tree *phân biệt
+   được* bản đủ với bản thiếu, **và** lượt sinh lại không âm thầm đổi gì ở các patch cũ.
 4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)
    — báo trước khi merge/deploy, xem `WORKTREE-WEB.md` bên đó.
 

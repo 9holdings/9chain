@@ -62,6 +62,51 @@ khoá `restart:`** ⇒ Docker mặc định `no`. Không phải ai đó chọn `
 **không cãi lại** cơ chế rolling-restart của M2 (`docker stop` tường minh vẫn giữ nguyên trạng
 thái dừng).
 
+### ✅ ĐÃ ÁP `2026-08-27` — David duyệt trong phiên
+
+`9/9` đổi từ `no` → `unless-stopped`. Container **không bị restart** (`Up 20 hours` giữ nguyên
+sau lệnh). Docker daemon đã `enabled` lúc boot (`systemctl is-enabled docker` → `enabled`), nên
+bản vá có đường tác dụng thật.
+
+#### 🔴 Phép kiểm ĐẦU TIÊN của tôi ĐO SAI ĐẠI LƯỢNG — ghi lại vì nó tốn một node
+
+`docker kill 9chain-a1-node-9` ⇒ node **không dậy lại**, `numPeers` tụt 8 → 7. Suýt kết luận
+*"bản vá không ăn"*.
+
+**Sai ở phép kiểm, không ở bản vá.** `docker stop` **và** `docker kill` đều là *người dùng chủ
+động dừng*, và `unless-stopped` **cố ý không** dậy lại sau đó — đó chính là điều phân biệt nó
+với `always`. Phép kiểm đó đo một trường hợp mà chính sách **được thiết kế để loại trừ**.
+*(Đã `docker start` lại ngay; chờ tới khi `numPeers` = 8 mới đi tiếp.)*
+
+⚠️ **Bài học vận hành, không phải bài học Docker:** muốn dừng hẳn một node thì `docker stop` —
+`unless-stopped` sẽ tôn trọng. Muốn thử chính sách thì phải để tiến trình **tự chết**.
+
+#### Phép kiểm ĐÚNG — hai ca, kèm đối chứng ngược
+
+Chạy trên container nháp, **không đụng validator nào**:
+
+| Ca | Lệnh | Kết quả |
+|---|---|---|
+| **A** | `--restart=unless-stopped`, tiến trình `exit 1` tự chết | **1 → 3 lần restart · `running`** ✓ |
+| **B** 🔴 đối chứng ngược | `--restart=no`, cùng tiến trình đó | **0 lần restart · `exited`** ✓ |
+
+Ca B đắt hơn ca A: nó **tái hiện đúng trạng thái 9 validator trước bản vá** và cho thấy chúng
+nằm im. Phép đo phân biệt được hai trạng thái, không chỉ biết in ✓.
+
+#### ⚠️ Nửa "reboot máy chủ" thì CHƯA chứng minh được trên máy này
+
+Định đối chiếu giờ boot với giờ container khởi động, nhưng:
+
+```
+boot của máy    2026-08-24 11:23:57
+container       2026-08-26 15:05 (Blockscout) · 2026-08-26 16:17-16:20 (9 node)
+```
+
+**Mọi container đều dựng ngày 26/08, sau re-genesis** — không lượt nào đi qua một lần boot, nên
+lịch sử máy **không làm chứng được**. Vế đó vẫn đứng ở mức *"hành vi Docker đã biết + daemon
+`enabled`"*, và phép kiểm kết luận duy nhất là **reboot thật** — không làm trên mạng công khai
+đang phục vụ người ngoài.
+
 ---
 
 ## 2. 🔴 P0-2 — KHÔNG CÓ GIÁM SÁT, CẢNH BÁO, HAY BACKUP TỰ ĐỘNG CHO A1
@@ -299,16 +344,21 @@ RAM dùng 2 GB, đĩa 9% — nhưng `backend` vừa chứng minh một container
 
 | # | Việc | Ai | Chi phí |
 |---|---|---|---|
-| 1 | 🔴 **`docker update --restart=unless-stopped` cho 9 node** | A1 (cần David gật — chạm hệ thống công khai) | 1 lệnh, 0 downtime |
+| ~~1~~ | ✅ **XONG `27/08`** — `docker update --restart=unless-stopped`, **9/9**, 0 downtime, 2 ca nghiệm thu + đối chứng ngược | — | — |
+| ~~8~~ | ✅ **XONG `27/08`** — netgen ghi `restart:`; **17 patch**, tree **`f8458b33`**, đối chứng ngược 16/17 → `c9226d9c` | — | — |
 | 2 | 🔴 **O1 custody khoá 5 quỹ** — hạn `28/08`, cơ hội một lần | **David** | quyết định |
 | 3 | 🔴 **O4** — dời 1 node sang nhà cung cấp thứ hai, **hoặc** khai thật trên trang | **David** | tiền / câu chữ |
 | 4 | **H-7** IPv4 đa cổng hay IPv6 | **David** | quyết định |
 | 5 | **B-10** tắt Managed robots.txt ở dashboard Cloudflare | **David** | 1 phút |
-| 6 | **B-9** `#e84142` — gộp cùng lượt sinh lại patch với việc #8 | **David** duyệt | — |
+| 6 | **B-9** `#e84142` — nếu chốt sửa thì sinh lại bộ patch **một lần nữa** | **David** duyệt | — |
 | 7 | Chạy **O2** một lượt trên mạng công khai để biết thời gian thật | A1 | không chặn |
-| 8 | **netgen ghi `restart:`** vào compose sinh ra ⇒ sinh lại cả bộ patch, nghiệm thu `git am` + so tree | A1 | đụng tree hash |
 | 9 | **GO/NO-GO `29/08`** theo `NGAY-G-A1-CON-LAI` §7 | — | — |
 | 10 | Vá `(secheaders)`: thêm `frame-ancestors` + quyết ai cầm CORS của RPC | A1 | nhỏ |
+
+🔴 **Runbook ngày G thêm một dòng đối chứng:** sau `up -d`, chạy
+`docker inspect $(docker ps -q --filter name=9chain-a1-node-) --format '{{.HostConfig.RestartPolicy.Name}}'`
+— phải ra **`unless-stopped` × 9**. Nếu ra `no` thì image/compose ngày G **không phải bản có
+patch 0017**, và không có gì khác báo cho ta biết điều đó.
 
 ### Ngay sau ngày G
 

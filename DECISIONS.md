@@ -1587,3 +1587,80 @@ vẫn phải đúng, và nó vẫn phụ thuộc đồng hồ của **node đề
 đồng hồ 9 node **sau khi mạng ngày G lên**. Câu chữ chốt cùng lượt C1 đóng băng byte.
 
 ⚠️ **Nếu David đổi sang P-Chain thì phải diễn tập lại** — D-055 không đổi.
+
+### D-071 — 9 validator mang `restart: unless-stopped`, KHÔNG phải `always`
+
+**David duyệt `2026-08-27`** (P0-1 của `SOAT-TOAN-DIEN-2026-08-27.md`). Đã áp trên mạng công
+khai: `9/9` từ `no` → `unless-stopped`, container **không bị restart**.
+
+**Vì sao trước đó là `no`:** không ai chọn nó. `netgen` sinh `docker-compose.multinode.yml` mà
+**không bao giờ ghi khoá `restart:`** ⇒ Docker lấy mặc định. Hệ quả: máy chủ reboot thì Caddy,
+trang web, faucet và **Blockscout** đều dậy, còn **9 validator nằm im** — trạng thái mà mọi dấu
+hiệu bên ngoài vẫn xanh.
+
+**Vì sao `unless-stopped` chứ không `always`:**
+- khớp quy ước Caddy/faucet/web đang dùng trên chính máy đó;
+- **không cãi lại rolling-restart của M2** — `docker stop` tường minh vẫn giữ nguyên trạng thái
+  dừng, tức người vận hành vẫn hạ được một node để bảo trì mà nó không tự bật lên.
+
+🔴 **VÀ NÓ NGƯỢC LẠI LÀ MỘT CÁI BẪY VẬN HÀNH.** Chính vế "tôn trọng lệnh dừng" làm cho
+`docker kill` **không** kích hoạt chính sách: cả `stop` lẫn `kill` đều là *người dùng chủ động
+dừng*. Phép kiểm đầu tiên của phiên này dùng `docker kill` ⇒ node không dậy ⇒ **suýt kết luận
+sai rằng bản vá không ăn**. Cùng lớp lỗi với *"phép kiểm đo sai đại lượng"* đã ghi trong
+HANDOFF, lần này do chính người kiểm gây ra.
+
+⇒ **Muốn dừng hẳn một node: `docker stop`. Muốn thử chính sách: để tiến trình TỰ CHẾT.**
+
+**Nghiệm thu (container nháp, không đụng validator):**
+
+| Ca | Cấu hình | Kết quả |
+|---|---|---|
+| A | `unless-stopped` + tiến trình `exit 1` | **1 → 3 lần restart · running** ✓ |
+| B 🔴 **đối chứng ngược** | `restart=no` + cùng tiến trình | **0 lần restart · exited** ✓ |
+
+Ca B tái hiện **đúng trạng thái 9 validator trước bản vá**, nên phép đo phân biệt được hai
+trạng thái chứ không chỉ biết in ✓.
+
+⚠️ **Vế "reboot máy chủ" CHƯA chứng minh được trên máy này.** Mọi container đều dựng `26/08`
+(sau re-genesis) còn máy boot `24/08` ⇒ không lượt nào đi qua một lần boot. Vế đó đứng ở mức
+*"hành vi Docker đã biết + `systemctl is-enabled docker` = enabled"*. Phép kiểm kết luận duy
+nhất là reboot thật — **không làm trên mạng công khai đang phục vụ người ngoài**.
+
+🔴 **Bản vá này là TẠM cho tới ngày G.** Nó nằm trên container đang chạy, không nằm trong nguồn.
+Lượt `down -v` ngày G dựng container mới từ compose do netgen sinh ⇒ **mất sạch**, quay về `no`,
+không dấu hiệu nào. Cùng lớp lỗi với B-6 (*"vá thẳng trên server mà không vào nguồn là quả mìn
+hẹn giờ tới lượt deploy sau"*) — nên bản vá netgen **phải lên cùng lượt ngày G**, không để sau.
+
+### D-071b — Bản vá `restart:` PHẢI vào netgen, không dừng ở `docker update`
+
+`docker update --restart=unless-stopped` áp `27/08` là **bản vá tạm**, nằm trên container đang
+chạy chứ không nằm trong nguồn.
+
+🔴 **Lượt `down -v` ngày G dựng container MỚI từ compose do netgen sinh ⇒ bản vá biến mất, quay
+về `no`, không dấu hiệu nào.** Đó đúng là bài học đã trả giá hai lần trong dự án này (B-5 thư
+mục `blockscout/` bị gitignore · B-6 site block Caddy chưa vào nguồn): *"vá thẳng trên server mà
+không vào nguồn thì không phải đã sửa — nó là quả mìn hẹn giờ tới lượt deploy sau."*
+
+Và lần này quả mìn nổ vào **đúng ngày G**, lúc không ai còn để ý tới cấu hình Docker.
+
+**Đã làm cùng ngày:** `netgen/main.go` ghi `restart: unless-stopped` cho mọi node, kèm khối chú
+thích mang theo cả phép đo lẫn cái bẫy `docker kill`.
+
+**Nghiệm thu — sinh lại CẢ BỘ patch (luật cứng #3):**
+
+| | |
+|---|---|
+| `go vet` + `go build` | sạch (`golang:1.25.10`) |
+| netgen N=3 | compose sinh ra có **3/3** dòng `restart: unless-stopped` |
+| Bộ patch | **17 patch**, tiêu đề `01/17`…`17/17` ⇒ **D-065 đã hết**, không còn `[PATCH nn/12]` lạc |
+| Tái lập | `git am --keep-cr` 17 patch lên `1cf1fc3` → tree **`f8458b33f2b18c53d01959d0d77ca8568241181b`**, khớp cây fork từng byte |
+| 🔴 **Đối chứng ngược** | áp **16/17** → tree **`c9226d9c`** = **đúng tree cũ HANDOFF ghi** |
+
+⚠️ Ca đối chứng ngược ở đây mạnh hơn thường lệ vì nó chứng minh **hai** mệnh đề bằng một phép
+đo: phép so tree *phân biệt được* bản đủ với bản thiếu, **và** lượt sinh lại **không âm thầm đổi
+gì** ở 16 patch cũ — thứ mà một lượt `format-patch` toàn bộ rất dễ làm hỏng mà không ai thấy.
+
+⚠️ **B-9 vẫn chưa quyết** (`#e84142` trong `patches/0003`). Nếu David chốt sửa thì phải sinh lại
+bộ patch **một lần nữa**. Đã cân nhắc chờ để gộp; không chờ vì bản vá `restart:` là **bắt buộc
+cho ngày G** còn B-9 thì không, và để bản vá tạm sống một mình qua ngày G là đúng cái bẫy D-071b
+nói tới.
