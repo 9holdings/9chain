@@ -68,11 +68,20 @@ qua 3 vòng phản biện. **Hạn:** ngày G `01/09/2026`.
       hai dòng tự tố có tương phản **7,87:1** (vượt AAA; đáng đo vì `color-contrast`
       đang TẮT trong cổng axe nên không gì khác bắt được).
 
-- [ ] **Đ1-13 · Gói việc rẻ** (mỗi việc ≤ 30 phút, gộp một vé)
-      `/re-genesis/` nhắc faucet 3 lần mà **0 `href`** · chân trang **0 liên kết** ·
-      `TrongRong` có nền **trùng byte** với nền trang ở cả hai chủ đề.
-      *Điều kiện qua:* đếm `href` trên `/re-genesis/` ≥ 3 · chân trang có liên kết
-      THẬT (chỗ chưa có trang thì để trống, **không đặt liên kết chết**).
+- [x] **Đ1-13 · Gói việc rẻ** — ĐÃ LÊN CÔNG KHAI.
+      Chân trang **0 → 8 liên kết**, 3 cột, `<nav>` có nhãn, liên kết ngoài mang
+      `rel="noopener noreferrer"`. `/re-genesis/` thân trang **0 → 3 `href`** (trước
+      nhắc chữ "faucet" **13 lần** mà không chỉ đường; hai `href` duy nhất trong HTML
+      đều là của thanh điều hướng). `TrongRong` đổi nền + `<p>`→`<h2>` (làm ở Đ1-4).
+      *Đo từng liên kết chân trang, cả 8 đều 200.*
+      🔴 **Đo được một thứ ngoài kế hoạch:** `https://9chain.org/docs/` trả **404 ở
+      cả ba dạng** ⇒ CỐ Ý không có mục tài liệu trong chân trang. Trang chủ 9Scan-A1
+      đang có đúng hai liên kết chết vào đó — đã báo họ.
+      🔴 **Cổng a11y bắt được một lỗi tôi vừa gây ra:** `<nav>` mới ở chân trang đụng
+      `<nav>` của trang 404 ⇒ hai landmark cùng vai, không cái nào có tên
+      (`landmark-unique`). Đã đặt `aria-label` cho cả hai.
+      ⚠️ Mục "liên hệ / báo lỗi" **cố ý bỏ trống** — chặn ở **D2**. Bịa một địa chỉ
+      cho chân trang trông đầy đủ là thứ tệ nhất ở đây.
 
 - [ ] **Đ1-8 · Lưới an toàn mạng** — hạn giờ cho GET, kiểm `r.ok`, `allSettled`.
       🔴 **KHÔNG** đặt `AbortSignal.timeout` cho `/api/create` và `/api/revoke` —
@@ -150,6 +159,11 @@ một câu mình không tin ra cho người lạ đọc.
 | `trangChu.blockDungYen` | Avalanche không đẻ block rỗng, nên số block đứng yên khi chưa ai giao dịch là bình thường. Phép đo sống/chết là số validator ở ô bên cạnh. |
 | `bang.moTa` (đổi vế cuối) | …Bảng này ghi lại các đánh đổi giữa hai hướng, công khai để ai cũng phản bác được — phần C1 hiện chưa có số đo sống. |
 | `ComparisonTable` dòng "Phi tập trung" | Trần GIAO THỨC: Snowman ~nghìn node vs CometBFT ~150. **A1 HÔM NAY: 9 node, một máy, một nhà cung cấp** |
+| `chanTrang.dungThu` / `.kham` / `.veDuAn` | Dùng thử · Xem mạng · Về dự án *(tiêu đề 3 cột)* |
+| `chanTrang.explorer` / `.trangChinh` | Explorer 9Scan-A1 · Trang chính 9Chain |
+| `chanTrang.reGenesis` | Kế hoạch sinh lại mạng *(KHÔNG dùng lại "Chi tiết" của banner — tách khỏi ngữ cảnh thì vô nghĩa)* |
+| `chanTrang.nhanNav` / `khongThay.nhanNav` | Liên kết chân trang · Đường đi tiếp *(nhãn a11y, không hiện ra)* |
+| `chanTrang.moTabMoi` | (mở tab mới) *(chỉ trình đọc màn hình nghe)* |
 | *(trang 404, David đã duyệt)* | Không có trang này · Đường dẫn bạn mở không tồn tại… · Đang tìm một giao dịch hay một địa chỉ?… |
 
 ---

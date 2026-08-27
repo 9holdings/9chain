@@ -98,6 +98,24 @@ export default function TrangReGenesis() {
           <li>{vi.reGenesis.lam3}</li>
           <li>{vi.reGenesis.lam4}</li>
         </ul>
+        {/* 🔴 ĐƯỜNG ĐI, KHÔNG PHẢI NÚT GỌI VÍ (Đ1-13, 2026-08-27).
+            Đo `27/08`: trang này nhắc chữ "faucet" **13 lần** mà thân trang có
+            **0 `href`** — hai liên kết `/faucet/` duy nhất trong HTML đều là của
+            thanh điều hướng. Trang bảo người ta đi làm một việc rồi không chỉ đường.
+            ⚠️ CỐ Ý chỉ thêm thẻ `<a>`, KHÔNG chép nút "Thêm mạng vào ví" sang đây.
+            Luật cũ ở `vi.ts` đúng và giữ nguyên: trang này là trang ĐỌC, mọi thao
+            tác gọi ví phải nằm ở màn có ngữ cảnh xử lý lỗi của nó. */}
+        <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-base">
+          <a href="/faucet/" className="font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
+            {vi.dieuHuong.faucet}
+          </a>
+          <a href="/create-chain/" className="font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
+            {vi.dieuHuong.console}
+          </a>
+          <a href="/my-chains/" className="font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
+            {vi.dieuHuong.chainCuaToi}
+          </a>
+        </p>
       </Muc>
 
       {/* Đứng NGAY SAU "Bạn cần làm gì": mục trên nói việc phải làm, mục này nói

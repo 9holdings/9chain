@@ -211,6 +211,43 @@ export const vi = {
       'trang này thay vì im lặng.',
   },
 
+  /**
+   * Chân trang (Đ1-13, 2026-08-27).
+   *
+   * Trước lượt này chân trang có **0 liên kết** — chỉ logo + hai dòng chữ. Với một
+   * site mà mọi đường đi đều nằm ở thanh điều hướng trên cùng, chân trang rỗng là
+   * một nửa màn hình không làm gì.
+   *
+   * 🔴 LUẬT CỦA MỤC NÀY: chỉ đặt liên kết đã ĐO LÀ SỐNG. Chỗ chưa có trang thì
+   * **để trống**, không đặt liên kết chết — một chân trang đầy liên kết hỏng còn tệ
+   * hơn một chân trang rỗng, vì nó hứa rồi nuốt lời ngay tại chỗ.
+   * Đo `27/08`: `a1.9scan.org` 200 · `9chain.org` 200 ·
+   * 🔴 `9chain.org/docs/` **404 ở cả ba dạng** ⇒ CỐ Ý không có mục tài liệu ở đây.
+   *
+   * ⚠️ Mục "liên hệ / báo lỗi" cũng CỐ Ý chưa có: kênh liên hệ thật là câu hỏi **D2**
+   * David chưa trả lời. Bịa một địa chỉ email để chân trang trông đầy đủ là thứ tệ
+   * nhất trong cả mục này — người ta sẽ viết vào đó và không ai đọc.
+   */
+  chanTrang: {
+    dungThu: 'Dùng thử',
+    kham: 'Xem mạng',
+    veDuAn: 'Về dự án',
+    explorer: 'Explorer 9Scan-A1',
+    trangChinh: 'Trang chính 9Chain',
+    moTabMoi: '(mở tab mới)',
+    // 🔴 `aria-label` cho <nav> chân trang. Thiếu nó thì trang 404 (vốn có <nav>
+    // riêng cho ba đường ra) có HAI landmark cùng vai, không cái nào có tên —
+    // axe bắt đúng: `landmark-unique`. Trình đọc màn hình đọc ra "navigation,
+    // navigation" và người dùng không biết cái nào là cái nào.
+    nhanNav: 'Liên kết chân trang',
+    // 🔴 KHÔNG dùng lại `reGenesis.bangNut` ("Chi tiết") ở đây. Chuỗi đó viết cho dải
+    // banner, nơi câu ngay trước nó đã nói rõ chuyện gì; tách ra khỏi ngữ cảnh thì
+    // chân trang đọc thành "Về dự án → Chi tiết" — không nói được gì cả.
+    // Cùng lớp lỗi với việc dùng chung `og:*`: một chuỗi đúng ở chỗ này không tự
+    // động đúng ở chỗ khác.
+    reGenesis: 'Kế hoạch sinh lại mạng',
+  },
+
   dieuHuong: {
     trangChu: 'Trang chủ',
     faucet: 'Nhận token thử',
@@ -508,6 +545,7 @@ export const vi = {
       'Đường dẫn bạn mở không tồn tại trên 9Chain Testnet A1. ' +
       'Có thể nó đã được đổi tên, hoặc URL bị thiếu vài ký tự lúc sao chép.',
     dayLaGi: 'Ba đường dùng nhiều nhất:',
+    nhanNav: 'Đường đi tiếp',
     veTrangChu: 'Về trang chủ',
     diFaucet: 'Nhận token thử',
     diDeChain: 'Đẻ chain của bạn',
