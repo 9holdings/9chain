@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { EN, type Tu } from './en';
 export { dien } from './dien';
-import { KHOA_LUU, laMaHopLe, MAC_DINH, NGON_NGU, tra, type NgonNgu } from './ngonNgu';
+import { doanNgonNgu, KHOA_LUU, laMaHopLe, MAC_DINH, NGON_NGU, tra, type NgonNgu } from './ngonNgu';
 
 /**
  * Bộ máy đa ngôn ngữ của a1.9chain.org — 30 ngôn ngữ, tiếng Anh mặc định.
@@ -90,21 +90,31 @@ export function kiemBoNap(): string[] {
   ];
 }
 
-/** Đọc lựa chọn đã lưu. Không có thì đoán theo ngôn ngữ trình duyệt, rồi mới về EN. */
+/**
+ * Đọc lựa chọn đã lưu. Không có thì đoán theo ngôn ngữ trình duyệt, rồi mới về EN.
+ *
+ * 🔴 LỌC QUA `coTuDien()` Ở CẢ HAI ĐƯỜNG — bug này bắt được lúc viết test, không
+ * phải lúc chạy. `laMaHopLe()` chỉ hỏi "sổ có mã này không", mà sổ khai đủ 30 trong
+ * khi mới 2 từ điển tồn tại. Không lọc thì:
+ *   • người dùng trình duyệt tiếng Nhật ⇒ `ma = 'ja'` ⇒ `BO_NAP['ja']` không có ⇒
+ *     chữ rơi về tiếng Anh, NHƯNG `<html lang>` vẫn bị đặt thành `ja`.
+ *   • trình đọc màn hình đọc **tiếng Anh bằng ngữ âm tiếng Nhật** — không lỗi, không
+ *     cảnh báo, và người dùng bằng mắt không thấy gì bất thường để báo lại.
+ * Cùng lớp lỗi với `lang="undefined"` mà `tra()` sinh ra để chặn.
+ *
+ * Áp cho cả giá trị đã LƯU: một ngôn ngữ có thể bị gỡ khỏi `BO_NAP` về sau, và lúc
+ * đó `localStorage` của người dùng vẫn còn trỏ vào nó.
+ */
 function maBanDau(): string {
   if (typeof window === 'undefined') return MAC_DINH;
   try {
     const luu = window.localStorage.getItem(KHOA_LUU);
-    if (luu && laMaHopLe(luu)) return luu;
+    if (luu && laMaHopLe(luu) && coTuDien(luu)) return luu;
   } catch {
     /* Chế độ riêng tư / chặn cookie: không đọc được thì coi như chưa chọn bao giờ. */
   }
-  // `navigator.languages` cho cả 'vi-VN' — cắt lấy phần trước dấu gạch.
-  for (const uaLang of navigator.languages ?? [navigator.language]) {
-    const goc = (uaLang || '').split('-')[0].toLowerCase();
-    if (laMaHopLe(goc)) return goc;
-  }
-  return MAC_DINH;
+  const doan = doanNgonNgu(navigator.languages ?? [navigator.language]);
+  return coTuDien(doan) ? doan : MAC_DINH;
 }
 
 export function NhaCungCapNgonNgu({ children }: { children: ReactNode }) {
@@ -164,7 +174,10 @@ export function NhaCungCapNgonNgu({ children }: { children: ReactNode }) {
   }, [ma]);
 
   const datNgonNgu = useCallback((moi: string) => {
-    if (!laMaHopLe(moi)) return;
+    // Bộ chọn đã vô hiệu hoá mục không có từ điển, nhưng chặn ở đây nữa: một lời
+    // gọi từ chỗ khác (deep link, console) không được đặt site vào trạng thái
+    // `lang` nói một đằng, chữ một nẻo.
+    if (!laMaHopLe(moi) || !coTuDien(moi)) return;
     datMa(moi);
     try {
       window.localStorage.setItem(KHOA_LUU, moi);

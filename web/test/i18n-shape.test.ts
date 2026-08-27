@@ -133,3 +133,50 @@ describe('hình dạng từ điển', () => {
     });
   }
 });
+
+describe('đoán ngôn ngữ cho người mới', () => {
+  it('trình duyệt tiếng Việt ⇒ tiếng Việt, KHÔNG phải mặc định', async () => {
+    // 🔴 Đây là phép đo bảo vệ người dùng hiện tại. Đổi mặc định sang tiếng Anh mà
+    // cơ chế này hỏng thì mọi người Việt đang dùng site đột nhiên thấy tiếng Anh —
+    // một thay đổi họ không yêu cầu và không hiểu vì sao.
+    const { doanNgonNgu } = await import('../lib/i18n/ngonNgu');
+    expect(doanNgonNgu(['vi-VN', 'vi', 'en'])).toBe('vi');
+    expect(doanNgonNgu(['vi'])).toBe('vi');
+  });
+
+  it('lấy ngôn ngữ ĐẦU TIÊN mà site có, không phải cái khớp cuối', async () => {
+    const { doanNgonNgu } = await import('../lib/i18n/ngonNgu');
+    // Người đặt tiếng Nhật trước tiếng Anh thì phải nhận tiếng Nhật — nhưng `ja`
+    // chưa có từ điển nên sổ vẫn khai nó, và provider sẽ rơi về EN khi nạp hỏng.
+    // Ở TẦNG NÀY chỉ hỏi "sổ có mã đó không", đúng phạm vi của hàm.
+    expect(doanNgonNgu(['ja-JP', 'en-US'])).toBe('ja');
+    expect(doanNgonNgu(['xx-YY', 'vi-VN'])).toBe('vi');
+  });
+
+  it('không khớp gì hoặc danh sách rỗng ⇒ mặc định', async () => {
+    const { doanNgonNgu, MAC_DINH } = await import('../lib/i18n/ngonNgu');
+    expect(doanNgonNgu(['xx', 'yy'])).toBe(MAC_DINH);
+    expect(doanNgonNgu([])).toBe(MAC_DINH);
+    expect(doanNgonNgu(undefined)).toBe(MAC_DINH);
+  });
+});
+
+describe('chặn ngôn ngữ chưa có từ điển', () => {
+  it('coTuDien() nói ĐÚNG cái gì nạp được, không nói cái gì có trong sổ', async () => {
+    // 🔴 Bug bắt được lúc viết test, không phải lúc chạy: sổ khai đủ 30 ngôn ngữ
+    // trong khi mới 2 từ điển tồn tại. Nếu `maBanDau()` chỉ lọc qua `laMaHopLe()`
+    // thì người dùng trình duyệt tiếng Nhật nhận `ma = 'ja'`, chữ rơi về tiếng Anh,
+    // NHƯNG `<html lang>` bị đặt thành `ja` ⇒ trình đọc màn hình đọc tiếng Anh bằng
+    // ngữ âm tiếng Nhật. Không lỗi, không cảnh báo, người dùng bằng mắt không thấy.
+    const { coTuDien } = await import('../lib/i18n');
+    const { laMaHopLe } = await import('../lib/i18n/ngonNgu');
+
+    expect(coTuDien('en'), 'mặc định luôn nạp được').toBe(true);
+    expect(coTuDien('vi'), 'đã có từ điển').toBe(true);
+    // Hai khẳng định này CÙNG NHAU mới là phép đo: mã hợp lệ theo sổ NHƯNG chưa nạp
+    // được. Khi `ja` có từ điển thì vế dưới đổi sang `true` — sửa test lúc đó, đừng
+    // xoá nó, vì lớp lỗi vẫn còn với những ngôn ngữ chưa làm.
+    expect(laMaHopLe('ja'), 'sổ CÓ khai tiếng Nhật').toBe(true);
+    expect(coTuDien('ja'), 'nhưng CHƯA nạp được ⇒ không được chọn').toBe(false);
+  });
+});

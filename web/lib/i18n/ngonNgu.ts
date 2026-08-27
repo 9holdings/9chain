@@ -108,3 +108,26 @@ export function laMaHopLe(ma: string | null | undefined): boolean {
 export function tra(ma: string | null | undefined): NgonNgu {
   return (ma && THEO_MA.get(ma)) || THEO_MA.get(MAC_DINH)!;
 }
+
+/**
+ * Đoán ngôn ngữ cho NGƯỜI MỚI — người chưa từng chọn gì.
+ *
+ * 🔴 HÀM THUẦN, TÁCH KHỎI REACT CÓ CHỦ Ý. Đây là logic quyết định thứ tiếng mà mọi
+ * người lạ nhìn thấy đầu tiên; để nó nằm trong một `useEffect` thì không kiểm được
+ * bằng test, và cách duy nhất để thử là giả lập `navigator` trên trình duyệt — mà
+ * tải lại trang là mất giả lập. Đã thử và không đo được.
+ *
+ * Luật: lấy ngôn ngữ đầu tiên trong danh sách của trình duyệt mà site có trong sổ.
+ * `vi-VN` khớp `vi` (cắt phần sau dấu gạch). Không khớp gì thì về mặc định.
+ *
+ * ⚠️ Với `output: 'export'`, HTML luôn ship ở tiếng Anh rồi mới lật sau khi hydrate.
+ * Người đọc tiếng Việt vì thế thấy MỘT NHÁY tiếng Anh. Đó là cái giá của xuất tĩnh,
+ * đã biết trước, không phải lỗi — muốn hết thì phải có URL riêng cho từng ngôn ngữ.
+ */
+export function doanNgonNgu(cuaTrinhDuyet: readonly string[] | undefined): string {
+  for (const l of cuaTrinhDuyet ?? []) {
+    const goc = (l || '').split('-')[0].toLowerCase();
+    if (laMaHopLe(goc)) return goc;
+  }
+  return MAC_DINH;
+}
