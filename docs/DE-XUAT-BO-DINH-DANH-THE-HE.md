@@ -207,3 +207,70 @@ regen thay vì hai.
 **Thế hệ 0 giữ NGUYÊN VẸN ba con số David đã chốt.** Đề xuất này không đổi con số nào của ngày G —
 nó chỉ trả lời câu *"ngày G lần sau lấy số ở đâu"*, và trả lời bằng số học thay vì bằng một tệp phải
 sống sót.
+
+---
+
+## 8. CHỐT — năm mục để David gật, và A1 làm trọn trong MỘT lượt
+
+### 8.1 Bảng số cuối cùng
+
+| Đại lượng | Quy tắc | **Ngày G (thế hệ 0)** |
+|---|---|---|
+| `A1Gen` | số nguyên `0…999` — **nguồn sự thật duy nhất** | **`0`** |
+| `A1ID` mạng thật | `999_999_999 − A1Gen` | **`999999999`** |
+| `A1ID` mạng tập | `899_999_999 − A1Gen` | `899999999` |
+| `A1Name` | `9chain-a1-g<A1Gen>` | **`9chain-a1-g0`** |
+| `chainId` chain mẹ | **`9_000_000_009` — CỐ ĐỊNH mọi thế hệ** | **`9000000009`** |
+| Khối `chainId` L1 | `9_000_000_000 + A1Gen×1_000_000` … `+999_999` | **`9000000010 – 9000999999`** |
+
+**Ba con số David đã chốt nằm nguyên trong bảng này.** Không đổi gì của ngày G.
+
+### 8.2 🔴 Một BẤT ĐỐI XỨNG CÓ CHỦ Ý — đừng "dọn cho nhất quán"
+
+Nhìn vào bảng sẽ thấy một chỗ trông sai: **L1 được chia theo thế hệ, chain mẹ thì KHÔNG.**
+Nó có chủ ý, và lý do khác nhau ở hai bên:
+
+| | Chain mẹ `9000000009` | L1 `9,00n,xxx,xxx` |
+|---|---|---|
+| Qua một lượt re-genesis | **giữ nguyên số** | **đổi khối** |
+| URL người dùng đã lưu | `rpc-a1.9chain.org` — **không đổi** | `/ext/bc/<blockchainID>/rpc` — **chết theo mạng cũ** |
+| Ví cấu hình sẵn | **vẫn nối được**, sang mạng mới | báo *"không nối được"* |
+| Vì sao chọn thế | `9000000009` **LÀ bản sắc**. Đổi nó mỗi thế hệ là bắt mọi người dùng cấu hình lại, và xoá luôn thứ chữ "9Chain" trỏ vào | Không ai lưu sẵn L1 của người khác. Ở đây **nguồn gốc** đáng giá hơn tiện lợi |
+
+⚠️ **Cái giá của vế trái đã biết và đã ghi từ D-047 §5d:** ví còn cấu hình cũ nối vào mạng mới
+**không cảnh báo gì**. Đó là đánh đổi đã chấp nhận có ý thức, không phải chỗ sót.
+
+### 8.3 Năm mục để gật
+
+| # | Mục | Khuyến nghị |
+|---|---|---|
+| **1** | Chia dải L1 theo thế hệ | **CÓ — 3 chữ số** (1000 thế hệ × 1 triệu), không phải 10 × 100 triệu |
+| **2** | Tên mạng | **`9chain-a1-g0`** |
+| **3** | Băng `networkID` riêng cho mạng tập | **CÓ — `899_999_999 − n`**, kèm `params.go` chuyển sang kiểm **theo dải** |
+| **4** | 🆕 Thế hệ nằm **cả trong `networkID`** (`999_999_999 − n`) | **CÓ** — nếu không, bản vá hôm nay **hết hạn ở lượt re-genesis kế tiếp** |
+| **5** | **B-9** — gỡ `#e84142` khỏi `patches/0003` | **CÓ, gộp cùng lượt** — chi phí gần bằng không khi đã phải regen |
+
+### 8.4 Gật xong thì A1 làm gì — MỘT lượt sinh lại patch
+
+1. `utils/constants/network_ids.go` — `A1Gen` · `A1ID` · `A1Name` suy ra; cập nhật **cả ba** map,
+   🔴 **gồm `NetworkIDToHRP`** (đúng lỗi `FallbackHRP` patch 0013 đã vá).
+2. `genesis/params.go` — `case A1NetworkID` → **kiểm theo dải** phủ cả hai băng.
+   🔴 Quên chỗ này = mạng tập rơi `default:` → `LocalParams` 720 triệu → **tràn ngược `uint64`**.
+3. `genesis/genesis.go:330` — khoá map bí danh tài sản `"AVAX"` → `"LOVE9"`.
+   *(Name/Symbol đã là LOVE9 từ trước; **khoá map** mới là thứ đăng ký thật trên X-Chain, và nó nằm
+   trong byte genesis ⇒ chỉ đổi được ngày G.)*
+4. `netgen` — **cổng năm-thứ-phải-khớp**: `A1Gen` ↔ `A1ID` ↔ `A1Name` ↔ khối `chainId` ↔ có mặt
+   trong `NetworkIDToHRP`.
+5. `patches/0003` — gỡ `#e84142` (mục 5).
+6. `local-net/lib/chainid.mjs` — khối `chainId` theo `A1Gen`; `check-chainid.mjs` tra khối đó.
+7. **Sinh lại CẢ BỘ patch**, nghiệm thu `git am --keep-cr` + so tree; đối chứng ngược áp thiếu một
+   patch phải ra tree khác.
+8. 🔴 **Bài cắt-kết-nối:** dựng một mạng `networkID` khác, chĩa node vào bootstrap của mạng mới ⇒
+   log **phải** có dòng cắt kết nối. *Không có bài này thì việc đổi số chỉ là niềm tin.*
+
+### 8.5 Không thuộc lượt này — vẫn chờ David
+
+**O1 custody** (hạn `28/08`, cơ hội một lần) · **O4** khai thật + đổi tên `01/09` · **H-7** ·
+**B-10** robots.txt · **gộp `web-home` → `main`**.
+
+🔴 Và thứ A1 không tự cứu được vẫn không đổi: **chữ khắc chờ C1 đóng băng byte.**
