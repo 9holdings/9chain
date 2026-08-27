@@ -10,8 +10,18 @@ import { trangMeta } from '@/lib/seo';
  * Trang re-genesis — nói trước cái sắp mất.
  *
  * 🔴 HÔM NAY TRANG NÀY VIẾT Ở THÌ TƯƠNG LAI. Đúng ngày G nó phải được thay bằng bản
- * công bố ở thì quá khứ ("đã sinh lại"), kèm đường dẫn bản lưu và mã băm. Bản nháp
- * công bố đã viết sẵn — đừng viết lại từ đầu.
+ * công bố ở thì quá khứ ("đã sinh lại"), kèm đường dẫn bản lưu và mã băm.
+ *
+ * ✅ BẢN CÔNG BỐ ĐÃ VIẾT SẴN — ở khối `vi.reGenesisXong` trong `lib/i18n/vi.ts`.
+ * Ngày G chỉ phải: đổi trang này đọc `reGenesisXong` thay cho `reGenesis`, rồi điền
+ * `luuUrl` + `luuSha256`. KHÔNG phải viết văn.
+ * Quy trình đầy đủ (điều kiện vào, thứ tự, cách nghiệm thu): mục **D-web** trong
+ * `docs/NGAY-G-A1-CON-LAI.md`.
+ *
+ * ⚠️ Chú thích cũ ở đây từng ghi *"Bản nháp công bố đã viết sẵn — đừng viết lại từ
+ * đầu"* trong khi **nó không tồn tại ở đâu cả** (`grep` toàn repo ra 0 kết quả).
+ * Một con trỏ trỏ vào hư không còn tệ hơn không có con trỏ: người tiếp nhận sẽ đi
+ * tìm, không thấy, rồi phải viết mới trong lúc vội. Đã sửa 2026-08-27.
  *
  * 🔴 MỘT ĐIỀU TRANG NÀY CỐ Ý KHÔNG NÓI, vì chưa ai đo:
  *   • Sổ giữ chỗ tên + Chain ID có sống sót qua ngày G không (mục O3b). Nói "còn"

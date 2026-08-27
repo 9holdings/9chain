@@ -153,6 +153,38 @@ export async function dangNhapSiwe(diaChi: string): Promise<PhienVi> {
   return { diaChi, token: jl.token };
 }
 
+/**
+ * Lỗi từ console, CÓ MANG mã HTTP (Đ1-6, 2026-08-27).
+ *
+ * ═══ VÌ SAO CẦN MÃ, KHÔNG CHỈ CẦN CÂU CHỮ ═══
+ * Với hai đường dài (`/api/create`, `/api/revoke`) có **ba** kiểu hỏng trông y hệt
+ * nhau ở tầng `catch`, nhưng đòi ba cách xử khác hẳn:
+ *
+ *   401/400/409…  server TỪ CHỐI THẬT, việc **chưa hề bắt đầu**  → dừng NGAY
+ *   524 / 5xx     Cloudflare cắt ở ~100s, server **vẫn đang làm** → PHẢI chờ tiếp
+ *   lỗi mạng      không biết gì cả                                → PHẢI chờ tiếp
+ *
+ * Trước lượt này cả ba đều thành `new Error(chuỗi)`, nên nơi gọi không phân biệt
+ * được và phải chọn một cách xử cho cả ba. Nó chọn "chờ tiếp" — đúng cho hai ca
+ * sau, nhưng với ca đầu thì màn hình đứng im tới **900 giây** sau một cú từ chối
+ * mất **0,83 giây**.
+ *
+ * 🔴 `status = 0` nghĩa là KHÔNG CÓ phản hồi HTTP (đứt mạng, DNS, CORS). Đừng coi
+ * `0` như 4xx — đó đúng là ca "không biết gì cả", và im lặng chờ mới là đúng.
+ */
+export class LoiConsole extends Error {
+  readonly status: number;
+  constructor(thongDiep: string, status: number) {
+    super(thongDiep);
+    this.name = 'LoiConsole';
+    this.status = status;
+  }
+  /** Server đã trả lời và trả lời là "không" ⇒ việc chưa bắt đầu, dừng được. */
+  get laTuChoiThat(): boolean {
+    return this.status >= 400 && this.status < 500;
+  }
+}
+
 export async function goiConsole<T = unknown>(
   duong: string,
   token: string,
@@ -176,9 +208,9 @@ export async function goiConsole<T = unknown>(
     // proxy sai) thì request rơi vào Blockscout ở gốc và ta nhận về HTML. Không nói
     // rõ thì lỗi hiện ra là "JSON parse error" — đọc như lỗi dữ liệu chứ không như
     // lỗi định tuyến, và người sửa đi tìm ở đúng chỗ không có gì.
-    throw new Error(`đáp án không phải JSON (HTTP ${r.status}) — kiểm tra đường dẫn console`);
+    throw new LoiConsole(`đáp án không phải JSON (HTTP ${r.status}) — kiểm tra đường dẫn console`, r.status);
   }
-  if (!r.ok) throw new Error((j as { error?: string }).error || `HTTP ${r.status}`);
+  if (!r.ok) throw new LoiConsole((j as { error?: string }).error || `HTTP ${r.status}`, r.status);
   return j as T;
 }
 
@@ -214,7 +246,21 @@ export type TienTrinh = {
  */
 export async function choTienTrinhXong(
   token: string,
-  { moiMs = 2000, tranGiay = 900 }: { moiMs?: number; tranGiay?: number } = {},
+  {
+    moiMs = 2000,
+    tranGiay = 420,
+    tuChoiSom,
+  }: {
+    moiMs?: number;
+    tranGiay?: number;
+    /**
+     * Trả `true` khi lượt POST đã bị server TỪ CHỐI THẬT (4xx) ⇒ việc chưa hề bắt
+     * đầu ⇒ không có gì để chờ. Chỉ được nhìn tới khi **chưa** thấy `running` lần
+     * nào: đã thấy chạy rồi thì server đang làm thật, và lúc đó một mã 4xx muộn
+     * (token hết hạn giữa chừng chẳng hạn) KHÔNG có nghĩa là việc bị huỷ.
+     */
+    tuChoiSom?: () => boolean;
+  } = {},
 ): Promise<TienTrinh | null> {
   const hetLuc = Date.now() + tranGiay * 1000;
   let cuoi: TienTrinh | null = null;
@@ -231,6 +277,11 @@ export async function choTienTrinhXong(
     } catch {
       /* Một nhịp đọc hỏng không phải lý do bỏ cuộc — server vẫn đang làm việc. */
     }
+    // 🔴 ĐẶT SAU lượt đọc, KHÔNG đặt đầu vòng. Có một khoảng đua thật: POST bị từ
+    // chối trong ~0,8s trong khi lượt đọc tiến trình đầu tiên có thể đã thấy
+    // `running` của một việc HỢP LỆ mà người khác vừa khởi động. Đọc trước rồi mới
+    // xét `tuChoiSom` là để `daThayChay` có cơ hội đúng.
+    if (!daThayChay && tuChoiSom?.()) return cuoi;
     await new Promise((r) => setTimeout(r, moiMs));
   }
   return cuoi;

@@ -122,4 +122,53 @@ if (chiSongOAlias) {
   );
 }
 console.log(hong ? `\n✗ ${hong}/${dich.size} liên kết chết` : `\n✓ ${dich.size}/${dich.size} liên kết sống`);
-process.exit(hong ? 1 : 0);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CỔNG NGÀY G — chỉ bật bằng `A1_SAU_NGAY_G=1` (Đ1-12, 2026-08-27)
+
+   🔴 VÌ SAO PHẢI CÓ, DÙ ĐÃ CÓ RUNBOOK: bộ đo hiện tại chỉ đòi `<title>` khác rỗng.
+   Sau `01/09`, title `A1 sinh lại ngày 01/09/2026` **vẫn khác rỗng** — nên nó xanh
+   trên một trang nói ở THÌ TƯƠNG LAI về một việc ĐÃ XẢY RA. Xanh giả, đúng lúc đắt
+   nhất, và không ai nhìn ra vì con số cổng vẫn đẹp.
+
+   Cổng này đo NỘI DUNG, và đo ở HAI trang khác nhau có chủ ý: dải banner nằm trong
+   layout gốc, nên "trang này đúng, trang kia còn bản cũ" là dấu hiệu `web/out` chép
+   thiếu — đúng bẫy inode bind-mount đã cắn `25/08`. Đo một trang thì không thấy.
+
+   Bật bằng biến môi trường chứ không bật mặc định: hôm nay nó PHẢI đỏ (trang đang
+   đúng ở thì tương lai), và một cổng đỏ mặc định trong 5 ngày sẽ bị bỏ qua.
+   Chạy thử hôm nay để xác nhận nó biết đỏ:
+       A1_SAU_NGAY_G=1 node scripts/check-links.mjs
+   ═══════════════════════════════════════════════════════════════════════════ */
+let hongNgayG = 0;
+if (process.env.A1_SAU_NGAY_G === '1') {
+  console.log('\n── CỔNG SAU NGÀY G (A1_SAU_NGAY_G=1) ──');
+  const doNoiDung = async (duong, chuoi, phaiCo) => {
+    let html = '';
+    try {
+      const r = await fetch(`${NEN}${duong}`, { redirect: 'follow', signal: AbortSignal.timeout(20000) });
+      html = await r.text();
+    } catch (e) {
+      console.log(`  ✗ ${duong} — không tải được: ${e.message}`);
+      hongNgayG++;
+      return;
+    }
+    const co = html.includes(chuoi);
+    if (co === phaiCo) {
+      console.log(`  ✓ ${duong.padEnd(16)} ${phaiCo ? 'CÓ' : 'KHÔNG có'} "${chuoi}"`);
+    } else {
+      console.log(
+        `  ✗ ${duong.padEnd(16)} ${phaiCo ? 'THIẾU' : 'VẪN CÒN'} "${chuoi}"` +
+          (phaiCo ? ' — trang chưa được thay bằng bản công bố' : ' — dải banner cũ chưa gỡ'),
+      );
+      hongNgayG++;
+    }
+  };
+  // Bản công bố đã lên: trang re-genesis nói ở thì QUÁ KHỨ…
+  await doNoiDung('/re-genesis/', 'đã sinh lại', true);
+  // …và ĐỐI CHỨNG NGƯỢC: dải cảnh báo thì tương lai không còn ở trang khác.
+  await doNoiDung('/faucet/', 'sẽ bị xoá', false);
+  console.log(hongNgayG ? `\n✗ cổng ngày G: ${hongNgayG} phép đo chưa đạt` : '\n✓ cổng ngày G đạt');
+}
+
+process.exit(hong || hongNgayG ? 1 : 0);

@@ -29,7 +29,45 @@ tokenomics đã thi hành thật trên mạng công khai. Nên bức tranh đổ
 | **I** (vào binary) | I1 · I2 · I3 · I5 phải làm | ✅ **XONG HẾT** — 9 tỷ, ×12,5, trần 625M, build tái lập. Đang chạy thật |
 | **G** (chỉ vào được lúc sinh mạng) | G1–G5 | 🔴 **G5 khắc chữ CHƯA LÀM MỘT DÒNG NÀO.** G1 xung đột. G4 chưa tra |
 | **O** (vận hành) | O1–O7 | 🟡 O6 đã có (bản nháp nói chưa) · O7 tập rồi · **O1/O2/O4/O5 chưa** |
-| **D** (deploy) | web/explorer/docs | 🟡 làm được bất cứ lúc nào, không chặn |
+| **D** (deploy) | web/explorer/docs | 🟡 explorer + docs: làm được bất cứ lúc nào · 🔴 **web thì KHÔNG — xem D-web bên dưới** |
+
+### 🔴 D-web — website KHÔNG thuộc nhóm "deploy lúc nào cũng được" (thêm 2026-08-27)
+
+**Phân loại cũ sai, và cái sai không nằm ở mức độ mà ở chỗ nó lấy mất quyền được ưu tiên.**
+Nhóm D không có giờ, không có thứ tự, không có ai đứng tên.
+
+**Đo `27/08`: cả 6/6 trang công khai đang mang dải cảnh báo**
+*"Mạng A1 sinh lại ngày 01/09/2026 — mọi chain, số dư và lịch sử… sẽ bị xoá"* —
+dải đó nằm trong layout gốc nên nó ở trên **mọi** trang, gồm cả faucet và trang đẻ chain.
+
+⇒ Từ block 1 của mạng mới trở đi, **mỗi phút chưa deploy là cổng vào chính thức hứa với
+người lạ rằng một việc ĐÃ xảy ra thì SẮP xảy ra.** Không phải lỗi thẩm mỹ — nó dạy người
+dùng một điều sai về trạng thái tài sản của họ.
+
+🔴 **Và không ai được giao chạy lệnh deploy.** `PLAN-REGENESIS:325` chỉ có đúng một dòng
+nhắc tới trang: tên `9chain-web` — **không tồn tại ở đâu** (`grep` toàn repo ra đúng dòng đó).
+Ba tên thật là: thư mục `web/`, container `9chain-a1-web`, và repo marketing riêng
+`Web9Chain` (**đội khác**). `web-deploy.sh` xuất hiện **0 lần** trong PLAN.
+Cả hai lối đọc `9chain-web` đều dẫn về cùng một chỗ: không ai cầm việc này.
+
+| Bước | Việc | Điều kiện vào / nghiệm thu |
+|---|---|---|
+| **W0** | *(làm trước 01/09, không chặn ai)* Khối `vi.reGenesisXong` đã có trong `web/lib/i18n/vi.ts` — **David duyệt giọng trước GO/NO-GO** | `pnpm typecheck && pnpm test` xanh trên `web-home` |
+| **W1** | Mở https://a1.9chain.org/ tải lại, thấy **đủ 3 số** ⇒ RPC mạng mới đã sống → `cd web && pnpm build` | ⚠️ Trước khi cả P-Chain lẫn C-Chain nhận RPC, trang chủ vào trạng thái `hong` — **CÓ CHỦ Ý** (`stats.ts`), đừng nhầm là site hỏng |
+| **W2** | `node local-net/deploy/check-routes.mjs` rồi `bash local-net/deploy/web-deploy.sh` | cổng route phải xanh TRƯỚC khi chép |
+| **W3** | Nghiệm thu — **ĐỌC NỘI DUNG, KHÔNG ĐỌC MÃ HTTP** | `curl -s .../re-genesis/ \| grep -q 'đã sinh lại'` phải ĐẠT · `curl -s .../faucet/ \| grep -q 'sẽ bị xoá'` phải **KHÔNG** đạt |
+| **W4** | Báo 9Scan-A1 qua `docs/requests-from-9scan/` | |
+
+🔴 **W3 cố ý đo ở HAI trang khác nhau.** Dải banner nằm trong layout gốc, nên một trang
+đúng mà trang kia còn bản cũ là dấu hiệu `web/out` chép thiếu — đúng bẫy inode bind-mount
+mà `web-deploy.sh` đã phải đi bắt riêng hồi `25/08`. Đo một trang thì không thấy.
+
+**Chủ:** phiên web (`web-home`). **Mốc:** ngay sau khi block 1 mạng mới sống.
+
+**Đề nghị thêm điều 8 vào GO/NO-GO:** *"D-web sẵn sàng — `reGenesisXong` đã có và David đã
+duyệt giọng; `pnpm typecheck && pnpm test` xanh trên `web-home`."*
+Bảy điều hiện có **không điều nào nhắc `a1.9chain.org`**; điều duy nhất chạm web lại trỏ
+sang repo `Web9Chain` của đội khác.
 
 ⇒ **Ngày G tồn tại gần như chỉ để khắc chữ và bắt kịp Block Adam.** Mọi thứ khác đã chạy.
 Đây là tin tốt cho lịch, và là tin xấu cho rủi ro: đường găng nay **mỏng và tập trung vào đúng

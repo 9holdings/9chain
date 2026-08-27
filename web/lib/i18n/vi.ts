@@ -37,6 +37,62 @@ export const vi = {
    * là để chặn người dùng tưởng thu hồi thì lấy lại được tên. Sửa cho đúng sự thật
    * nghĩa là THU PHẠM VI ("trên mạng này"), không phải hạ giọng ("tạm thời").
    */
+  /**
+   * ═══ BẢN CÔNG BỐ SAU NGÀY G — VIẾT SẴN 2026-08-27, DÙNG NGÀY 01/09 ═══
+   * (Đ1-12 W0. Đây chính là "bản nháp công bố" mà chú thích đầu `re-genesis/page.tsx`
+   * từng nhắc tới trong khi nó KHÔNG TỒN TẠI ở đâu cả — `grep` toàn repo ra 0 kết quả.)
+   *
+   * 🔴 VÌ SAO PHẢI VIẾT TRƯỚC, KHÔNG PHẢI VIẾT ĐÚNG HÔM ĐÓ:
+   * Ngày G là ngày sinh lại mạng — người trực sẽ bận, và luật `[?]` bắt mọi chuỗi mới
+   * phải qua David duyệt giọng. Không ai duyệt giọng được vào lúc đang sinh mạng.
+   * Viết trước nghĩa là hôm đó chỉ phải **dán 2 giá trị** (`luuUrl`, `luuSha256`),
+   * không phải viết hơn chục đoạn văn về mất mát tài sản trong lúc vội.
+   *
+   * 🔴 KHỐI RIÊNG, KHÔNG SỬA ĐÈ `reGenesis`. Bản tương lai phải còn nguyên tới đúng
+   * phút chuyển — nếu ngày G bị hoãn, gỡ khối này ra là xong, không phải khôi phục.
+   *
+   * `luuUrl` / `luuSha256` để RỖNG có chủ ý: trang tự ẩn mục đó khi rỗng, nên bản
+   * viết sẵn này an toàn để commit ngay hôm nay mà không hứa một đường dẫn chưa có.
+   */
+  reGenesisXong: {
+    /** Điền vào ngày G. Rỗng ⇒ trang ẩn mục "bản lưu". */
+    luuUrl: '',
+    luuSha256: '',
+
+    bang: 'A1 đã sinh lại ngày {ngay}. Mọi số dư và chain tạo trước ngày đó không còn tồn tại. [?]',
+    bangNut: 'Điều này nghĩa là gì [?]',
+    nhan: 'Đã sinh lại [?]',
+
+    tieuDe: 'A1 đã sinh lại ngày {ngay} [?]',
+    moTa:
+      'Mạng thử nghiệm A1 đã được dựng lại từ block 0. Chain, số dư và lịch sử giao dịch ' +
+      'tạo trước ngày đó không còn tồn tại — không phải bị ẩn, mà là không còn. ' +
+      'Trang này nói bạn đang thấy gì và cần làm gì. [?]',
+
+    thayGiTieuDe: 'Bạn sẽ thấy gì [?]',
+    thayGi1:
+      'Ví của bạn vẫn kết nối được, vẫn hiện đúng tên mạng và đúng Chain ID {chainId} — ' +
+      'vì Chain ID được giữ nguyên có chủ ý. Nhưng số dư sẽ là 0. [?]',
+    thayGi2:
+      'Mọi L1 bạn từng đẻ đã biến mất khỏi danh bạ. Tên và Chain ID của chúng nay trống, ' +
+      'ai cũng đăng ký lại được. [?]',
+    thayGi3:
+      'Giao dịch bạn đã ký nhưng chưa phát đi thì đừng phát nữa — chúng thuộc về một mạng ' +
+      'không còn tồn tại. [?]',
+
+    lamGiTieuDe: 'Bạn cần làm gì [?]',
+    lamGi1: 'Xin lại token thử ở trang faucet. Hạn mức đã được đặt lại cho mọi người. [?]',
+    lamGi2:
+      'Gỡ từng L1 cũ khỏi ví — chúng có Chain ID riêng và nay trỏ vào chỗ trống. ' +
+      'Mạng A1 chính thì KHÔNG cần gỡ, vì thông số của nó không đổi. [?]',
+    lamGi3: 'Đẻ lại chain của bạn nếu cần. Tên cũ có thể đã có người khác lấy. [?]',
+
+    luuTieuDe: 'Bản lưu của mạng cũ [?]',
+    luuMoTa:
+      'Trạng thái cuối cùng của mạng trước khi sinh lại đã được lưu lại và công bố mã băm, ' +
+      'để ai muốn đối chiếu đều kiểm được. [?]',
+  },
+
   reGenesis: {
     ngay: '01/09/2026',
     bang: 'Mạng A1 sinh lại ngày {ngay} — mọi chain, số dư và lịch sử tạo trước ngày đó sẽ bị xoá. [?]',

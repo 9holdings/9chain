@@ -5,7 +5,7 @@ import { Nut, The, O, Nhan, Xuong, CoLoi, LuuY, ChepDuoc, TrongRong, CacBuoc, ty
 import { rutGon } from '@/lib/eip55';
 import { rpcGoc } from '@/lib/chain';
 import { vi, dien } from '@/lib/i18n/vi';
-import { layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, choTienTrinhXong, docLoiVi, type PhienVi } from '@/lib/wallet';
+import { layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, choTienTrinhXong, docLoiVi, LoiConsole, type PhienVi } from '@/lib/wallet';
 
 type Chain = {
   name: string; chainId: number; subnetID: string; blockchainID: string;
@@ -133,11 +133,19 @@ export function MyChainsScreen() {
     // 🔴 KHÔNG `await` cái POST này để kết luận. Thao tác mất ~170 giây, Cloudflare
     // cắt kết nối ở ~100 giây (HTTP 524) ⇒ qua tên miền công khai, POST **luôn**
     // hỏng trong khi server vẫn làm xong. Xem `choTienTrinhXong`.
+    // 🔴 Nhưng 4xx thì KHÁC 524 — xem chú thích dài ở `CreateChainScreen.de()` và ở
+    // `LoiConsole`. Server trả lời "không" (token hết hạn, tên không khớp xác nhận…)
+    // nghĩa là việc chưa bắt đầu, và bắt người dùng nhìn thanh tiến trình thêm vài
+    // phút cho một việc không tồn tại là nói dối theo một kiểu khác.
     let loiPost: string | null = null;
+    let biTuChoi = false;
     const post = goiConsole('/api/revoke', phien.token, { name: c.name, xacNhan: c.name })
-      .catch((e) => { loiPost = String((e as Error).message ?? e); });
+      .catch((e) => {
+        loiPost = String((e as Error).message ?? e);
+        if (e instanceof LoiConsole && e.laTuChoiThat) biTuChoi = true;
+      });
 
-    const kq = await choTienTrinhXong(phien.token);
+    const kq = await choTienTrinhXong(phien.token, { tuChoiSom: () => biTuChoi });
     await post.catch(() => {});
 
     // Sự thật nằm ở DANH BẠ, không ở mã HTTP: thu hồi thành công ⇔ chain không còn

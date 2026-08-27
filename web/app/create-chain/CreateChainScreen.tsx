@@ -5,7 +5,7 @@ import { Nut, The, O, Nhan, Xuong, CoLoi, LuuY, ChepDuoc, CacBuoc, type MotBuoc 
 import { rutGon } from '@/lib/eip55';
 import { vi, dien } from '@/lib/i18n/vi';
 import {
-  layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, kichHoatChain, choTienTrinhXong,
+  layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, kichHoatChain, choTienTrinhXong, LoiConsole,
   docLoiVi, type PhienVi,
 } from '@/lib/wallet';
 
@@ -127,13 +127,25 @@ export function CreateChainScreen() {
     // hỏng trong khi chain vẫn được đẻ xong. Báo "không đẻ được" lúc đó là mời người
     // dùng bấm lại một việc đã xong — và chain thừa ăn mất một slot trong trần 15,
     // vĩnh viễn giữ luôn tên và chainId. Xem `choTienTrinhXong`.
+    //
+    // 🔴 NHƯNG "không kết luận được" ≠ "chờ tới cùng trong mọi trường hợp".
+    // Đo 2026-08-27: POST với token hỏng bị từ chối **401 trong 0,831 giây**, mà màn
+    // hình vẫn đứng im tới trần chờ, vì `choTienTrinhXong` chỉ thoát khi đã thấy
+    // `running` rồi lại thấy hết chạy — mà từ chối sớm thì `running` không bao giờ
+    // bật. Người dùng nhìn một thanh tiến trình cho một việc **chưa hề bắt đầu**.
+    // `tuChoiSom` vá đúng ca đó và CHỈ ca đó: 4xx = server đã trả lời và trả lời
+    // "không". 524/5xx/đứt mạng vẫn chờ tới cùng, vì đó mới là ca Cloudflare cắt.
     let kqPost: KetQua | null = null;
     let loiPost: string | null = null;
+    let biTuChoi = false;
     const post = goiConsole<KetQua>('/api/create', phien.token, { name: ten.trim(), preset })
       .then((k) => { kqPost = k; })
-      .catch((e) => { loiPost = String((e as Error).message ?? e); });
+      .catch((e) => {
+        loiPost = String((e as Error).message ?? e);
+        if (e instanceof LoiConsole && e.laTuChoiThat) biTuChoi = true;
+      });
 
-    const tt2 = await choTienTrinhXong(phien.token);
+    const tt2 = await choTienTrinhXong(phien.token, { tuChoiSom: () => biTuChoi });
     await post.catch(() => {});
 
     if (kqPost) {
