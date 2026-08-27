@@ -1,0 +1,8 @@
+{
+  "rpc": "/ext/bc/C/rpc",
+  "chainId": "0x218711a09",
+  "chainIdThập": 9000000009,
+  "blockNumber": "0x4",
+  "blockNumberThập": 4,
+  "hashBlockCuoi": "0xfc09f40c8b3b83ed7c43288b73575eb868db46b26ff031cda6ea6bfae2016e68"
+}

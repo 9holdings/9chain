@@ -1664,3 +1664,61 @@ gì** ở 16 patch cũ — thứ mà một lượt `format-patch` toàn bộ r�
 bộ patch **một lần nữa**. Đã cân nhắc chờ để gộp; không chờ vì bản vá `restart:` là **bắt buộc
 cho ngày G** còn B-9 thì không, và để bản vá tạm sống một mình qua ngày G là đúng cái bẫy D-071b
 nói tới.
+
+### D-072 — O2 đã chạy THẬT trên mạng công khai; `GỐC` neo một THỜI ĐIỂM, không neo một chuỗi
+
+Lượt O2 đầu tiên trên mạng công khai, `2026-08-27`. Vật chứng:
+`docs/vat-chung/o2-mang-cong-khai-2026-08-27/`.
+
+| | |
+|---|--:|
+| **Thời gian thật** | **37–54 giây** (3 lượt đo; biến thiên do độ trễ mạng) |
+| Quy mô | P-Chain 68 block · X-Chain 3 · C-Chain 5 · 9 tệp · 121.771 byte |
+| 🔴 **`GỐC` công bố** | **`a22dfc55d7bf57725f07567f1546568a437d3be19d8c71806706573777f43b23`** |
+
+**Con số đó chính là "công bố"** — nó nằm ở đây, trong `DECISIONS.md`, **ngoài** thư mục nó
+bảo vệ. Để nó nằm cạnh dữ liệu thì nó không bảo vệ gì cả.
+
+⇒ **Runbook ngày G:** O2 tốn ~1 phút cho một mạng cỡ này. Không có lý do gì để bỏ qua nó lần
+nữa (lượt `26/08` đã bỏ lỡ, và câu hỏi *"20M/70M có thật trên chain cũ không"* vĩnh viễn không
+trả lời được vì thế).
+⚠️ Thời gian **tỉ lệ thuận với số block** — bài lấy từng block một. Mạng ngày G nếu có nhiều
+giao dịch hơn thì phải đo lại, đừng chép con số 53s sang thang khác.
+
+#### 🔴 Phát hiện: hai lượt xuất cùng một mạng KHÔNG BAO GIỜ ra cùng `GỐC`
+
+Đo được, không suy: hai lượt cách nhau vài phút, **mạng không đẻ thêm block nào**, vẫn ra hai
+`GỐC` khác nhau. Khác nhau **duy nhất** ở `p-chain/tip.json`, và trong đó **duy nhất** ở trường
+`uptime` của validator — `99.8756` → `99.8758`.
+
+`uptime` trôi liên tục, và sâu hơn: **nó không phải thuộc tính của chuỗi.** Nó là ý kiến của
+**node đang được hỏi** về peer của nó, nên hỏi node khác ra số khác.
+
+**Giữ nó lại là CỐ Ý** — đó là dữ liệu pháp y (*mạng lúc chết có khoẻ không*). Nhưng cái giá là
+bộ xuất **không tái lập được**, và điều đó phải được **khai ra** chứ không để người sau tự vấp:
+
+| `GỐC` chứng minh | `GỐC` KHÔNG chứng minh |
+|---|---|
+| *"đây đúng là bộ byte tôi lấy lúc T"* | *"chuỗi lúc đó là thế này, ai xuất cũng ra thế"* |
+| chống sửa đổi **sau** khi xuất | hai người xuất cùng lúc ra hai `GỐC`, **cả hai đều đúng** |
+
+🔴 ⇒ **Thấy hai `GỐC` lệch thì ĐỪNG kết luận có người sửa.** So từng tệp trước; chỉ lệch ở
+`tip.json` là bình thường. Đã ghi thành chữ ở **hai** chỗ: đầu `export-chain.mjs` và trong
+`00-DOC-TRUOC.md` mà chính bộ xuất sinh ra — chỗ thứ hai quan trọng hơn, vì người kiểm lại bộ
+xuất ba năm nữa sẽ đọc tệp đó chứ không mở mã nguồn.
+
+#### Nghiệm thu — 4 ca, 2 ca đối chứng ngược
+
+| # | Ca | Kết quả |
+|---|---|---|
+| 1 | `--kiem` bản lành | **9 tệp khớp · 0 lệch · gốc khớp** · exit 0 |
+| 2 | `sha256sum -c MANIFEST.txt` — **công cụ chuẩn, không cần tin bài này** | tất cả `OK` · exit 0 |
+| 3 | 🔴 sửa **đúng một byte** trong `c-chain/blocks.jsonl` | **1 lệch byte** · exit 1 |
+| 4 | 🔴 **sửa cả `MANIFEST` để che ca 3** | *"9 tệp khớp · 0 lệch byte · **gốc LỆCH**"* · exit 1 |
+
+⚠️ Ca 4 là ca đắt nhất và là **lý do `GOC.txt` tồn tại**: kẻ sửa dữ liệu rồi sửa luôn bản kê để
+che vẫn bị bắt — **miễn là con số gốc đã được công bố ra ngoài**. Nếu `GỐC` chỉ nằm trong thư
+mục đó thì ca 4 **đi lọt sạch**.
+
+⚠️ Bộ xuất khai `L1 người dùng: xin 0 · XUẤT ĐƯỢC 0` — đúng (0 L1 đang sống). Ngày G nếu có L1
+thì **bắt buộc** dùng `--them-evm`, không thì chúng biến mất không dấu vết (D-057).

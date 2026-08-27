@@ -350,10 +350,20 @@ RAM dùng 2 GB, đĩa 9% — nhưng `backend` vừa chứng minh một container
 | 3 | 🔴 **O4** — dời 1 node sang nhà cung cấp thứ hai, **hoặc** khai thật trên trang | **David** | tiền / câu chữ |
 | 4 | **H-7** IPv4 đa cổng hay IPv6 | **David** | quyết định |
 | 5 | **B-10** tắt Managed robots.txt ở dashboard Cloudflare | **David** | 1 phút |
+| ~~7~~ | ✅ **XONG `27/08`** — O2 chạy thật: **37–54s**, `GỐC` công bố ở D-072, 4 ca nghiệm thu (2 đối chứng ngược) | — | — |
+| ~~10~~ | ✅ **XONG `27/08` (nguồn)** — `frame-ancestors 'self'` + `X-Frame-Options`; CORS thêm `defer` + gỡ `Allow-Credentials`. 🔴 **CHƯA DEPLOY** — xem dưới | — | — |
 | 6 | **B-9** `#e84142` — nếu chốt sửa thì sinh lại bộ patch **một lần nữa** | **David** duyệt | — |
-| 7 | Chạy **O2** một lượt trên mạng công khai để biết thời gian thật | A1 | không chặn |
 | 9 | **GO/NO-GO `29/08`** theo `NGAY-G-A1-CON-LAI` §7 | — | — |
-| 10 | Vá `(secheaders)`: thêm `frame-ancestors` + quyết ai cầm CORS của RPC | A1 | nhỏ |
+| 11 | 🔴 **Deploy Caddyfile** — cần David gật + nên báo 9Scan trước | **David** | 1 lệnh |
+
+🔴 **Vì sao bản vá Caddy chưa deploy dù đã `caddy validate` sạch:** `(secheaders)` được import
+bởi **cả bốn** tên miền, trong đó `a1.9scan.org` và `testnet-a1.9scan.org` là **sản phẩm của
+đội 9Scan**. Repo này đã có tiền lệ đúng loại — **B-6**: một lượt `caddy-deploy` xoá mất site
+block của họ, explorer trả **525 trong 31 phút**, và *"quả mìn nổ vào tay người khác, không
+phải người đặt nó"*.
+*(Rủi ro đã đo, không đoán: không repo nào — `web/` của A1 lẫn `9Scan-A1` — dùng `iframe` thật,
+nên `frame-ancestors 'self'` không làm hỏng gì. Cái chờ là **phép lịch sự với đội khác**, không
+phải nỗi sợ kỹ thuật.)*
 
 🔴 **Runbook ngày G thêm một dòng đối chứng:** sau `up -d`, chạy
 `docker inspect $(docker ps -q --filter name=9chain-a1-node-) --format '{{.HostConfig.RestartPolicy.Name}}'`
