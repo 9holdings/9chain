@@ -181,10 +181,26 @@ export function Xuong({ className }: { className?: string }) {
 
 /* ─────────────────────────────────────────────────────── Empty / Error state */
 
+/**
+ * Trạng thái rỗng — phải đọc như một LỜI MỜI, không như một ô trống.
+ *
+ * 🔴 SỬA 2026-08-27 (Đ1-4), hai chỗ, cả hai đều đo được:
+ *
+ * 1. `bg-surface-alt` **trùng byte với nền trang** ở CẢ HAI chủ đề
+ *    (sáng `#f5f7fb` / tối `#0a1122`). Nghĩa là khối này trước đây không có nền —
+ *    chỉ có một đường gạch đứt lơ lửng. Đổi sang `bg-surface` (thẻ) + `shadow-card`
+ *    để nó nổi lên như một thẻ thật. Giữ `border-dashed` vì nét đứt là thứ nói
+ *    "chỗ này sẽ có nội dung", khác với thẻ đặc = "nội dung đây rồi".
+ *
+ * 2. Tiêu đề là `<p>`. Trong `ChainTable` nó đứng đúng chỗ một tiêu đề mục phải
+ *    đứng, nên trình đọc màn hình nhảy qua nó khi duyệt theo cấu trúc. Đổi thành
+ *    `<h2>` — đây là thứ `axe-core` KHÔNG bắt được (nó không biết một `<p>` *đáng
+ *    lẽ* phải là heading), nên nó nằm trong nhóm "a11y ngoài tầm axe" của Đ1-9.
+ */
 export function TrongRong({ tieuDe, moTa, hanhDong }: { tieuDe: string; moTa?: string; hanhDong?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-card border border-dashed border-line-strong bg-surface-alt px-6 py-10 text-center">
-      <p className="font-display text-lg font-semibold text-ink">{tieuDe}</p>
+    <div className="flex flex-col items-center gap-3 rounded-card border border-dashed border-line-strong bg-surface px-6 py-10 text-center shadow-card">
+      <h2 className="font-display text-lg font-semibold text-ink">{tieuDe}</h2>
       {moTa && <p className="max-w-prose text-sm text-body-2">{moTa}</p>}
       {hanhDong}
     </div>

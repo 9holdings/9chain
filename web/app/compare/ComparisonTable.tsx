@@ -26,7 +26,7 @@ type TieuChi = { k: string; loai: 'kienTruc' | 'song'; a: number; c: number; w: 
 // và của `docs/A1-vs-C1-SCORECARD.md`. KHÔNG chấm lại ở đây: đổi điểm là một quyết
 // định về sản phẩm, phải đi qua tài liệu, không lẫn vào một lượt dựng giao diện.
 const GOC: TieuChi[] = [
-  { k: 'Phi tập trung (validator tối đa)', loai: 'kienTruc', a: 5, c: 2, w: 4, note: 'Snowman ~nghìn node vs CometBFT ~150' },
+  { k: 'Phi tập trung (validator tối đa)', loai: 'kienTruc', a: 5, c: 2, w: 4, note: 'Trần GIAO THỨC: Snowman ~nghìn node vs CometBFT ~150. A1 HÔM NAY: 9 node, một máy, một nhà cung cấp' },
   { k: 'Finality', loai: 'kienTruc', a: 5, c: 3, w: 3, note: '~1–2s vs ~5–6s' },
   { k: 'Độ chín EVM', loai: 'kienTruc', a: 5, c: 2, w: 4, note: 'coreth production vs Cosmos EVM pre-v1' },
   { k: 'Tương thích ví/DeFi retail', loai: 'kienTruc', a: 5, c: 3, w: 4, note: 'MetaMask/EVM đầy đủ' },

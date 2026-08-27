@@ -228,14 +228,40 @@ export const vi = {
     nutPhu: 'Nhận token thử trước đã',
 
     // ── Trang chủ — David chọn BẢN C ngày 2026-08-26 (M10.3, U-3).
-    cTieuDe: 'Những L1 này do người dùng đẻ ra',
-    cPhu: 'Mỗi dòng là một chain thật đang chạy trên A1, có chủ riêng. Bản của bạn mất khoảng ba phút.',
+    //
+    // 🔴 SỬA 2026-08-27 (Đ1-4). Bản cũ CHỈ TRỎ vào bảng bên dưới:
+    //   cTieuDe: 'Những L1 này do người dùng đẻ ra'
+    //   cPhu:    'Mỗi dòng là một chain thật đang chạy trên A1, có chủ riêng…'
+    // Đo `27/08`: danh bạ có **0 chain sống**, cả 6 bản ghi đều nằm trong `retired`
+    // và đều là chain smoke-test do MÁY sinh (`SmokeA8ER40`, `WarpNguonD46U`…).
+    // ⇒ Hai câu đó trỏ vào những dòng KHÔNG TỒN TẠI. Không phải nói quá — nói sai.
+    //
+    // Cách sửa theo đúng luật đã dùng cho khối `reGenesis`: **THU PHẠM VI cho đúng
+    // sự thật, KHÔNG hạ giọng**. Tiêu đề nay là một câu về SẢN PHẨM (đúng ở cả
+    // trạng thái đầy lẫn rỗng); câu "mỗi dòng là một chain thật" hạ xuống làm chú
+    // thích NGAY TRÊN bảng, nơi nó chỉ xuất hiện khi bảng có dòng.
+    cTieuDe: 'Đẻ chain riêng của bạn trên A1',
+    cPhu: 'Một L1 của riêng bạn, có chủ là ví bạn ký, chạy thật trên mạng thử nghiệm. Mất khoảng ba phút.',
+    // Chỉ hiện khi bảng CÓ dòng — xem `ChainTable`.
+    cBangChuThich: 'Mỗi dòng là một chain thật đang chạy trên A1, có chủ riêng.',
     cCot: 'Chain',
     cCotKieu: 'Kiểu',
     cCotChu: 'Chủ sở hữu',
     cMacDinh: 'mặc định của hệ thống',
-    cTrong: 'Chưa có L1 nào ngoài chain hệ thống',
+    // Bản cũ: 'Chưa có L1 nào ngoài chain hệ thống' — khẳng định có một chain hệ
+    // thống, mà bảng KHÔNG hề hiện chain nào. Câu mới không hứa thứ không thấy.
+    cTrong: 'Chưa có L1 nào đang chạy',
     cTrongMoTa: 'Bạn sẽ là người đầu tiên. Danh bạ cập nhật ngay sau khi chain của bạn lên.',
+
+    // ── Tự tố, đứng ngay dưới khối số liệu (Đ1-4) ────────────────────────────
+    // 🔴 Vì sao câu này phải có: 9 validator, 9/9 connected — đúng, và đó là một chỉ
+    // số kỹ thuật THẬT. Nhưng cả 9 chạy trên **một máy, một nhà cung cấp**
+    // (`139.99.145.13`, cùng máy chạy Caddy + faucet + console). Để một con số đúng
+    // đứng ở vị trí gợi ra kết luận sai thì site không nói dối bằng câu chữ, nhưng
+    // vẫn để người đọc tự rút ra điều không đúng. Đây là chỗ rẻ nhất để nói thẳng.
+    tuTo: '9 validator hiện chạy trên cùng một máy chủ, cùng một nhà cung cấp — phân tán về giao thức, chưa phân tán về hạ tầng.',
+    // Đo 10 mẫu/5 phút: P-Chain đứng yên, C-Chain đứng yên. Đây là BÌNH THƯỜNG.
+    blockDungYen: 'Avalanche không đẻ block rỗng, nên số block đứng yên khi chưa ai giao dịch là bình thường. Phép đo sống/chết là số validator ở ô bên cạnh.',
   },
 
   soLieu: {
@@ -380,10 +406,16 @@ export const vi = {
 
   bang: {
     tieuDe: 'A1 ↔ C1 — bảng so sánh',
+    // 🔴 SỬA 2026-08-27 (Đ1-4). Bản cũ kết bằng "…chọn hướng mainnet bằng dữ liệu,
+    // không bằng tranh luận" — rồi khối NGAY DƯỚI tự bác lại: điểm là đội tự chấm,
+    // 8/10 tiêu chí là `kienTruc` (suy từ thiết kế, không phải đo), và **cả 2 tiêu
+    // chí `song` cũng chưa có số C1**. Hứa "bằng dữ liệu" ở câu mở đầu rồi đính
+    // chính ở khối kế là tự làm hỏng uy tín của chính bảng.
+    // Câu mới nói đúng thứ bảng này LÀ: một bản ghi công khai các đánh đổi.
     moTa:
       '9Chain chạy HAI testnet song song của cùng một sản phẩm, khác nhau ở engine: ' +
-      'A1 trên Avalanche, C1 trên Cosmos. Bảng này để cộng đồng chọn hướng mainnet ' +
-      'bằng dữ liệu, không bằng tranh luận.',
+      'A1 trên Avalanche, C1 trên Cosmos. Bảng này ghi lại các đánh đổi giữa hai hướng, ' +
+      'công khai để ai cũng phản bác được — phần C1 hiện chưa có số đo sống.',
 
     // 🔴 Câu này KHÔNG được bỏ: điểm dưới đây do đội tự chấm.
     tuChamTieuDe: 'Điểm dưới đây là ĐỘI TỰ CHẤM, không phải đo độc lập',

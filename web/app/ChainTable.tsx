@@ -65,16 +65,35 @@ export function ChainTable() {
   if (tt.pha === 'hong') return <CoLoi thuLai={() => datLan((n) => n + 1)} />;
 
   if (!tt.ds.length) {
-    return <TrongRong tieuDe={vi.trangChu.cTrong} moTa={vi.trangChu.cTrongMoTa} />;
+    return (
+      <TrongRong
+        tieuDe={vi.trangChu.cTrong}
+        moTa={vi.trangChu.cTrongMoTa}
+        hanhDong={
+          <a
+            href="/create-chain/"
+            className="inline-flex h-11 items-center justify-center rounded-btn-lg bg-gold px-5 text-sm font-semibold text-navy shadow-cta hover:bg-gold-hover"
+          >
+            {vi.trangChu.nutChinh}
+          </a>
+        }
+      />
+    );
   }
 
   return (
-    <The className="overflow-hidden">
+    <>
+      {/* 🔴 CHÚ THÍCH NÀY CHỈ HIỆN KHI BẢNG CÓ DÒNG (Đ1-4).
+          Trước 2026-08-27 câu "Mỗi dòng là một chain thật đang chạy" nằm ở `<p>` dưới
+          `<h1>` — tức nó hiện ra KỂ CẢ khi bảng rỗng, và lúc đó nó trỏ vào những dòng
+          không tồn tại. Đặt ở đây thì câu chỉ tồn tại cùng lúc với thứ nó mô tả. */}
+      <p className="mb-3 text-sm text-body">{vi.trangChu.cBangChuThich}</p>
+      <The className="overflow-hidden">
       {/* Bảng rộng phải cuộn TRONG khung của nó — để cả trang cuộn ngang là hỏng
           bố cục ở điện thoại, và đó là lỗi hay gặp nhất với bảng. */}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[34rem] border-collapse text-sm">
-          <caption className="sr-only">{vi.trangChu.cTieuDe}</caption>
+          <caption className="sr-only">{vi.trangChu.cBangChuThich}</caption>
           <thead>
             <tr className="border-b border-line bg-surface-alt text-left">
               <th scope="col" className="px-4 py-3 font-semibold text-ink">
@@ -110,6 +129,7 @@ export function ChainTable() {
           </tbody>
         </table>
       </div>
-    </The>
+      </The>
+    </>
   );
 }
