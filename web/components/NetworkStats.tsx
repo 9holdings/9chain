@@ -3,7 +3,8 @@
 import { useSoLieu } from '@/lib/stats';
 import { Xuong, Nhan } from './ui';
 import { gop } from '@/lib/gop';
-import { useT } from '@/lib/i18n';
+import { useT, useNgonNgu } from '@/lib/i18n';
+import { dinhDangSo } from '@/lib/so';
 
 /**
  * Dải số liệu sống — thứ làm trang "trông như sản phẩm đang chạy" thay vì mockup.
@@ -15,6 +16,7 @@ import { useT } from '@/lib/i18n';
  */
 export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
   const t = useT();
+  const { ma } = useNgonNgu();
   const { tt, napLai } = useSoLieu();
   const toi = tren === 'toi';
 
@@ -40,7 +42,7 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
     { nhan: t.soLieu.soL1, gt: tt.pha === 'xong' ? String(tt.so.soL1) : null },
     {
       nhan: t.soLieu.chieuCao,
-      gt: tt.pha === 'xong' ? tt.so.chieuCaoBlock.toLocaleString('vi-VN') : null,
+      gt: tt.pha === 'xong' ? dinhDangSo(tt.so.chieuCaoBlock, ma) : null,
     },
   ];
 

@@ -129,6 +129,44 @@ qua 3 vòng phản biện. **Hạn:** ngày G `01/09/2026`.
 
 ## Quyết định tự chủ trong autopilot
 
+### D-web-1 · Dải cảnh báo mang HAI mốc, mốc ĐÃ QUA đứng trước *(2026-08-27)*
+
+Dải trên mọi trang chỉ nói về `01/09` (tương lai). Nhưng mạng **đã sinh lại hôm nay**
+(D-081, thế hệ g0) ⇒ người mở ví thấy số dư 0 **không có lời giải nào trên trang họ
+đang đứng**; câu giải thích nằm ở `/re-genesis/`, sau một cú bấm.
+
+**Chọn:** đưa `reGenesis.daXayRaTieuDe` lên đầu dải, câu về `01/09` lùi xuống sau.
+**Không sinh chuỗi mới** — khoá đó đã có sẵn trong cả 11 từ điển ⇒ không chạm luật
+`[?]`, không đẻ nợ dịch thuật.
+
+*Vì sao đây là quyết định chứ không phải sửa lặt vặt:* nó đảo thứ tự nhấn mạnh của
+phần tử được nhìn nhiều nhất site. Căn cứ: đúng bài học **Đ1-4** đã ghi trong
+`NoiDungTrangChu.tsx` — đặt lời giải ở trang riêng là để nó vắng mặt ở chỗ người ta
+thật sự đọc. Bài học đó đã áp cho "block đứng yên", chưa ai áp cho "đã sinh lại".
+
+🔴 **Ngày G phải sửa lại:** `daXayRaTieuDe` khi đó nói về một lượt sinh lại đã cũ hai
+đời. Đổi ngày sang `01/09` hoặc gỡ cùng lúc gỡ dải.
+
+### D-web-2 · Số theo ngôn ngữ người đọc, nhưng GIỮ chữ số Latin *(2026-08-27)*
+
+`toLocaleString('vi-VN')` cắm cứng ở `NetworkStats.tsx` và `ComparisonTable.tsx` —
+viết từ thời site chỉ có tiếng Việt. Sau khi lên 30 ngôn ngữ, chiều cao block hiện
+kiểu Việt (`1.234.567`) cho **mọi** người đọc; với người đọc tiếng Anh dấu chấm đó
+đọc ra thành số thập phân.
+
+**Chọn:** `lib/so.ts` → `dinhDangSo(n, ma)`, lấy dấu phân cách theo ngôn ngữ nhưng ép
+`-u-nu-latn` để **giữ chữ số Latin**. Lý do không để `ar` ra `٤٬٣٠٠`: chiều cao block
+là thứ để **đối chiếu** với explorer, ví và phản hồi RPC — cả ba in chữ số Latin. Một
+con số không đối chiếu được thì không còn là số liệu. Lấy cái giúp ĐỌC, giữ cái giúp
+ĐỐI CHIẾU.
+
+🔴 **Vì sao không cổng nào bắt được, và vì sao nó sẽ còn ẩn tiếp:** mạng vừa sinh lại
+nên `eth_blockNumber` = **1** — một chữ số thì không có dấu phân cách, mọi ngôn ngữ in
+ra y hệt nhau, **triệu chứng bằng 0**. `01/09` mạng lại về 1, cửa sổ ẩn mở thêm lượt
+nữa. Đây là lớp lỗi mà **chính phép reset mạng làm triệu chứng biến mất trong khi
+khuyết tật ở nguyên đó**. ⇒ `test/so.test.ts` đo **thẳng hàm** với số đủ lớn, KHÔNG đo
+qua mạng; kèm cổng quét mã chặn tái phát.
+
 ### A-1 · Chuỗi mới viết trong autopilot KHÔNG mang `[?]`, nhưng phải ghi vào đây
 
 **Mâu thuẫn phải gỡ:** luật `[?]` bắt chuỗi mới chờ David duyệt; cổng

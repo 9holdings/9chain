@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { The, Nhan, Xuong, LuuY, gop } from '@/components/ui';
 import { useSoLieu } from '@/lib/stats';
-import { useT } from '@/lib/i18n';
+import { useT, useNgonNgu } from '@/lib/i18n';
+import { dinhDangSo } from '@/lib/so';
 
 /**
  * Bảng so sánh A1 ↔ C1.
@@ -40,6 +41,7 @@ const GOC: TieuChi[] = [
 
 export function ComparisonTable() {
   const t = useT();
+  const { ma } = useNgonNgu();
   const [ts, datTs] = useState<number[]>(GOC.map((c) => c.w));
   const { tt } = useSoLieu();
 
@@ -60,7 +62,7 @@ export function ComparisonTable() {
           {[
             { n: t.bang.a1Validator, v: tt.pha === 'xong' ? `${tt.so.validatorKetNoi}/${tt.so.validatorTong}` : null },
             { n: t.bang.a1Chain, v: tt.pha === 'xong' ? String(tt.so.soL1) : null },
-            { n: t.bang.a1Block, v: tt.pha === 'xong' ? tt.so.chieuCaoBlock.toLocaleString('vi-VN') : null },
+            { n: t.bang.a1Block, v: tt.pha === 'xong' ? dinhDangSo(tt.so.chieuCaoBlock, ma) : null },
           ].map((x) => (
             <div key={x.n}>
               <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{x.n}</dt>
