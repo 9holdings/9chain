@@ -366,7 +366,14 @@ export const vi = {
     thongSoRpc: 'RPC',
     thongSoChainId: 'Chain ID',
     thongSoKyHieu: 'Ký hiệu',
+    thongSoThapPhan: 'Số thập phân [?]',
     thongSoExplorer: 'Explorer',
+    // Người đọc TOKENOMICS thấy "9 chữ số" rồi mở ví thấy 18 sẽ kết luận tài liệu
+    // sai — và họ không có cách nào tự biết là không. Cả hai đều đúng, ở hai chỗ
+    // khác nhau. Xem `docs/TOKENOMICS.md` §0.
+    thapPhanGiaiThich:
+      'Ví hiện 18 chữ số vì C-Chain chạy EVM. Trên P/X-Chain, LOVE9 đếm bằng 9 chữ số. ' +
+      'Cùng một đồng, hai thang đo — không phải hai loại token. [?]',
     loiChung: 'Không gửi được. {chiTiet}',
   },
 

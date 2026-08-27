@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Chỉ liệt kê TRANG SẢN PHẨM. Cố ý KHÔNG liệt kê đường của Blockscout
+  (/tx/, /address/, /block/) — chúng là vô hạn theo từng giao dịch và đã bị
+  chặn trong robots.txt.
+
+  /chains/ do container khác phục vụ nhưng vẫn là một trang thật của site nên
+  vẫn nằm đây. /console/ KHÔNG nằm đây: nó đã là 308 sang /create-chain/.
+
+  ⚠️ Tệp này ở GỐC site nên cần route riêng trong Caddyfile — xem robots.txt.
+-->
+<urlset xmlns="http://www.sitemap.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://a1.9chain.org/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://a1.9chain.org/faucet/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://a1.9chain.org/create-chain/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://a1.9chain.org/my-chains/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://a1.9chain.org/compare/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://a1.9chain.org/chains/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://a1.9chain.org/re-genesis/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>

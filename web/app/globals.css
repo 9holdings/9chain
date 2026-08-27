@@ -2,8 +2,34 @@
 @import './tokens.css';
 
 /* =====================================================================
+   MÀU CHỮ CỦA LOGO — ngoại lệ có chủ ý với luật "file này không khai hex".
+
+   🔴 VÌ SAO KHÔNG ĐẶT TRONG `tokens.css`: file đó mang **vân tay
+   `535cbf6329efb6d0`** và `web/test/token.test.ts` so vân tay với 9Scan-A1 để
+   bắt trôi lệch. Thêm một biến vào đó là làm hỏng phép đo — mà biến này KHÔNG
+   thuộc hệ token: nó là màu của **tài sản thương hiệu**, do bộ kit của David
+   quy định, không phải màu giao diện.
+
+   Bộ kit ra hai bản lockup khác nhau ĐÚNG một chỗ là màu chữ:
+       nền SÁNG → #0D1733     nền TỐI → #FFFFFF
+   Dùng đúng hai màu đó theo theme chính là cách dùng đúng của kit.
+   ⚠️ #FFFFFF ở đây KHÔNG phải `--color-on-dark` (#e7ecf6). Đừng thay bằng token
+   cho "nhất quán" — đó là đổi màu logo. Xem `components/BrandLockup.tsx`.
+
+   Khối này để NGOÀI mọi `@layer`, cùng lý do với khối bản tối trong
+   `tokens.css`: CSS không-layer luôn thắng CSS có layer.
+   ===================================================================== */
+:root {
+  --mau-chu-logo: #0d1733;
+}
+
+html[data-theme='dark'] {
+  --mau-chu-logo: #ffffff;
+}
+
+/* =====================================================================
    Nền chung. Mọi MÀU nằm ở `tokens.css` (chép từ 9Scan-A1) — file này chỉ
-   dựng hành vi nền, không khai một mã hex nào.
+   dựng hành vi nền, không khai một mã hex nào (trừ khối logo ngay trên).
    ===================================================================== */
 @layer base {
   html {

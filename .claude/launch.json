@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-out",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/serve-out.mjs"],
+      "port": 3902
+    }
+  ]
+}

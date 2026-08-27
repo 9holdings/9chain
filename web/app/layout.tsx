@@ -6,6 +6,7 @@ import { ReGenesisBanner } from '@/components/ReGenesisBanner';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ThemeScript } from '@/components/ThemeScript';
 import { vi } from '@/lib/i18n/vi';
+import { CHAIN } from '@/lib/chain';
 
 // Cùng ba font và cùng tên biến với 9Scan-A1 — `tokens.css` trỏ vào
 // `--font-sora/--font-instrument/--font-jetbrains`, đổi tên ở đây là chữ rơi hết về
@@ -43,6 +44,41 @@ export const metadata: Metadata = {
       { url: '/brand/love9-navy-inverse.svg', type: 'image/svg+xml' },
     ],
     apple: '/brand/love9-navy-inverse-256px.png',
+  },
+  // 🔴 MANIFEST NẰM TRONG `/brand/`, KHÔNG Ở GỐC — CÓ CHỦ Ý.
+  // Gốc `/` là Blockscout, nên mọi tệp đặt ở gốc `public/` đều cần MỘT DÒNG RIÊNG
+  // trong Caddyfile, và quên dòng đó là 404 câm. `/brand/*` đã có route sẵn ⇒
+  // đặt manifest ở đây là không phải đụng vào hạ tầng. `scope` và `start_url`
+  // khai tường minh `/` vì mặc định chúng sẽ ăn theo THƯ MỤC CHỨA manifest.
+  // (`robots.txt` và `sitemap.xml` thì buộc ở gốc theo chuẩn — hai tệp đó ĐÃ được
+  //  thêm vào `@trangmoi` trong Caddyfile.)
+  manifest: '/brand/manifest.webmanifest',
+  openGraph: {
+    type: 'website',
+    locale: 'vi_VN',
+    url: '/',
+    siteName: vi.chung.tenSanPham,
+    title: `${vi.chung.tenSanPham} — ${vi.chung.moTaNgan}`,
+    description: vi.trangChu.cPhu,
+    // 🔴 PHẢI LÀ PNG THẬT. Telegram, X, Zalo và Facebook đều KHÔNG render SVG
+    // trong thẻ preview — khai SVG ở đây là thẻ chia sẻ trống trơn, và không có
+    // lỗi nào báo. Ảnh sinh bằng `node web/scripts/gen-og.mjs` (chainId đọc
+    // thẳng từ `lib/chain.ts` nên không có con số chép tay nào nằm lại).
+    images: [
+      {
+        url: '/brand/og-9chain-a1.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: `${vi.chung.tenSanPham} — chainId ${CHAIN.chainId}, ${CHAIN.kyHieu}`,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${vi.chung.tenSanPham} — ${vi.chung.moTaNgan}`,
+    description: vi.trangChu.cPhu,
+    images: ['/brand/og-9chain-a1.png'],
   },
 };
 
