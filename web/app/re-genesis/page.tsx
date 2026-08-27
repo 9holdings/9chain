@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { vi, dien } from '@/lib/i18n/vi';
 import { LuuY } from '@/components/ui';
+// Chain ID lấy từ NGUỒN SỰ THẬT của mã, không gõ tay vào từ điển: nếu ngày nào đó
+// số này đổi thật thì câu chữ trên trang đổi theo, không có đường để hai chỗ lệch.
+import { CHAIN } from '@/lib/chain';
 
 /**
  * Trang re-genesis — nói trước cái sắp mất.
@@ -9,12 +12,16 @@ import { LuuY } from '@/components/ui';
  * công bố ở thì quá khứ ("đã sinh lại"), kèm đường dẫn bản lưu và mã băm. Bản nháp
  * công bố đã viết sẵn — đừng viết lại từ đầu.
  *
- * 🔴 HAI ĐIỀU TRANG NÀY CỐ Ý KHÔNG NÓI, vì chưa ai đo:
+ * 🔴 MỘT ĐIỀU TRANG NÀY CỐ Ý KHÔNG NÓI, vì chưa ai đo:
  *   • Sổ giữ chỗ tên + Chain ID có sống sót qua ngày G không (mục O3b). Nói "còn"
  *     rồi hoá ra mất là đẩy người dùng vào đúng cái bẫy ví-trỏ-nhầm-chain.
- *   • Chain ID của mạng mới có đổi không. Kế hoạch mới chỉ hỏi số cũ có bị chiếm
- *     chưa, chưa quyết đổi hay giữ.
- * Khi hai câu đó có lời đáp thì bổ sung, đừng đoán trước.
+ * Khi câu đó có lời đáp thì bổ sung, đừng đoán trước.
+ *
+ * ✅ Câu thứ hai ĐÃ CÓ LỜI ĐÁP: **D-047 chốt GIỮ chainId `9000000009`.** Mục
+ * "Ví của bạn sẽ không báo gì cả" bên dưới chính là phần trang phải gánh vì quyết
+ * định đó — giữ số nghĩa là ví không còn dấu hiệu nào để tự nhận ra mạng đã đổi,
+ * nên hai hệ quả (số dư 0, và tx đã ký chưa phát) phải được nói ra bằng chữ.
+ * Đừng gỡ mục đó nếu chưa đọc D-047.
  */
 export const metadata: Metadata = {
   title: `${dien(vi.reGenesis.tieuDe, { ngay: vi.reGenesis.ngay }).replace(' [?]', '')} — ${vi.chung.tenSanPham}`,
@@ -73,6 +80,17 @@ export default function TrangReGenesis() {
           <li>{vi.reGenesis.lam2}</li>
           <li>{vi.reGenesis.lam3}</li>
           <li>{vi.reGenesis.lam4}</li>
+        </ul>
+      </Muc>
+
+      {/* Đứng NGAY SAU "Bạn cần làm gì": mục trên nói việc phải làm, mục này nói
+          cái sẽ thấy nếu không làm. Đảo thứ tự là bắt người đọc nhớ một cảnh báo
+          trừu tượng trước khi biết nó dẫn tới thao tác nào. */}
+      <Muc tieuDe={vi.reGenesis.imLangTieuDe}>
+        <p>{dien(vi.reGenesis.imLangMoTa, { chainId: CHAIN.chainId })}</p>
+        <ul className="flex list-disc flex-col gap-2 pl-5">
+          <li>{vi.reGenesis.imLang1}</li>
+          <li>{vi.reGenesis.imLang2}</li>
         </ul>
       </Muc>
 
