@@ -93,12 +93,35 @@ qua 3 vòng phản biện. **Hạn:** ngày G `01/09/2026`.
       trạng thái đổi · chữ phóng 200% · `prefers-reduced-motion`.
       *Điều kiện qua:* đi hết luồng faucet **chỉ bằng bàn phím**, quan sát được.
 
-- [ ] **Đ1-11b · Quy trình phát hành** — `version.txt` làm mỏ neo phiên bản · kiểm
-      **TẤT CẢ** chunk (lấy danh sách từ bản VỪA DỰNG, không từ HTML tải về) · chạy
-      `pnpm test` trong script · `web-rollback.sh`.
-      🔴 **TUYỆT ĐỐI không `mv out.new out`** — bẫy inode bind-mount, đã cắn 25/08.
-      *Điều kiện qua:* cố tình xoá một chunk trên server ⇒ script `exit 1` ·
-      `curl .../version.txt` khớp `cat web/out/version.txt`.
+- [ ] **Đ1-11b · Quy trình phát hành** — **PHẦN 1 XONG, phần 2–3 còn treo.**
+
+  - [x] **Phần 1 · mỏ neo `version.txt` + cổng hai chiều** *(2026-08-27)*
+        🔴 **Đóng một lỗi ĐANG SỐNG trên mạng công khai**, không phải việc dự phòng:
+        `curl https://a1.9chain.org/version.txt` → **404, nginx, `content-type:
+        text/html`**. Route vào `@trangmoi` từ **Đ1-1**, nhưng thứ sinh ra tệp thì nằm
+        ở đây — **route lên trước sản phẩm**.
+        `web/scripts/gen-version.mjs` (đầu `postbuild`): `commit` · `nhanh` ·
+        **`con-sua-chua-commit`** · `dung-luc` · `so-chunk-js`, ghi LF tường minh.
+        *Vì sao có trường `dirty`:* mỏ neo chỉ mang SHA sẽ nói dối rất tự tin khi ai
+        đó dựng từ cây còn sửa dở — SHA trỏ vào một commit KHÔNG chứa thứ đang lên
+        sóng. **Đã chứng minh sống:** lượt dựng trong phiên này khai `co`, đúng.
+        `check-routes.mjs` nay đo **CHIỀU NGƯỢC LẠI**: mọi mẫu trong `@trangmoi` phải
+        trỏ vào thứ có thật. Cổng cũ xanh suốt vì nó chỉ hỏi *"mọi tệp đã có route
+        chưa?"* — một chiều của quan hệ hai chiều.
+        *Đối chứng ngược, cả hai chiều, đều đã nhìn thấy lúc ĐỎ:*
+        thiếu `out/version.txt` ⇒ đỏ **(tái hiện đúng lỗi vừa đo bằng `curl`)** ·
+        gỡ `/re-genesis/*` khỏi Caddyfile ⇒ đỏ (tái hiện sự cố lịch sử) · khôi phục
+        cả hai ⇒ xanh. Dòng báo xanh đã viết lại cho khai đúng **hai** chiều.
+
+  - [ ] **Phần 2 · kiểm TẤT CẢ chunk** — lấy danh sách từ bản VỪA DỰNG, không từ HTML
+        tải về. *(`so-chunk-js` hiện chỉ là số ĐẾM — hai bộ tệp khác nhau vẫn có thể
+        cùng số đếm. Phải so DANH SÁCH.)*
+  - [ ] **Phần 3 · `pnpm test` trong script deploy + `web-rollback.sh`**
+        🔴 **TUYỆT ĐỐI không `mv out.new out`** — bẫy inode bind-mount, đã cắn 25/08.
+
+  *Điều kiện qua còn lại:* cố tình xoá một chunk trên server ⇒ script `exit 1` ·
+  `curl .../version.txt` khớp `cat web/out/version.txt` **(chỉ kiểm được sau lượt
+  deploy kế tiếp — hôm nay đường đó còn 404 trên mạng)**.
 
 - [ ] **Đ1-7 · Đường ra khỏi phiên ví** — hôm nay không có đường nào.
       *Điều kiện qua:* có nút thoát phiên, bấm xong trạng thái về `vi`.
