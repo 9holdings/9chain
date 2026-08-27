@@ -1,0 +1,46 @@
+# 9Chain Testnet A1 — https://a1.9chain.org
+#
+# ══════════════════════════════════════════════════════════════════════════
+# 🔴🔴 TỆP NÀY HIỆN **KHÔNG ĐƯỢC PHỤC VỤ**. CLOUDFLARE ĐANG CHE NÓ.
+# ══════════════════════════════════════════════════════════════════════════
+# Đo `2026-08-27`, sau khi đã thêm route `/robots.txt` vào Caddyfile và deploy:
+#
+#     /robots.txt   200 · cf-cache-status: MISS  · Cache-Control: max-age=14400
+#                   → nội dung: "As a condition of accessing this website…"
+#     /sitemap.xml  200 · cf-cache-status: DYNAMIC
+#                   → nội dung: sitemap thật của ta
+#
+# `DYNAMIC` = yêu cầu ĐI TỚI origin. `MISS` + `max-age` ở một tệp mà origin có
+# thật = **Cloudflare tự sinh phản hồi và không hỏi origin**. Đó là tính năng
+# "Managed robots.txt / Content Signals Policy" đang bật cho zone `9chain.org`.
+#
+# ⇒ Nội dung dưới đây CHƯA có hiệu lực. Muốn nó chạy thì **David phải tắt tính
+#   năng đó trong dashboard Cloudflare** (Settings → Content Signals / robots.txt
+#   management). Không sửa được từ mã nguồn hay từ Caddy.
+#
+# Giữ tệp + route lại vì: không tốn gì, và nó ăn NGAY khi tính năng kia được tắt.
+#
+# ⚠️ NGHIỆM THU PHẢI ĐỌC NỘI DUNG, KHÔNG ĐỌC MÃ HTTP — đây là ca xanh giả sách
+# giáo khoa: `curl -o /dev/null -w '%{http_code}'` trả **200** và `content-type`
+# cũng đúng **text/plain**, trong khi tệp bị che hoàn toàn. Đo đúng:
+#     curl -sS https://a1.9chain.org/robots.txt | head -3
+# phải thấy dòng "9Chain Testnet A1" ngay đầu; nếu thấy "As a condition of
+# accessing this website" thì Cloudflare vẫn đang che.
+
+User-agent: *
+Allow: /
+
+# Đường của máy, không phải của người đọc — cho index cũng không được gì.
+Disallow: /faucet/api/
+Disallow: /console/api/
+Disallow: /api/
+
+# Explorer (Blockscout) ở gốc đẻ ra vô số URL theo từng giao dịch và từng địa
+# chỉ. Để bot bò hết là tốn băng thông của mình mà không ai tìm thấy gì hữu ích;
+# thứ đáng được tìm thấy là các trang sản phẩm ở trên.
+Disallow: /tx/
+Disallow: /address/
+Disallow: /block/
+Disallow: /token/
+
+Sitemap: https://a1.9chain.org/sitemap.xml
