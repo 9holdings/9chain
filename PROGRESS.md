@@ -62,9 +62,23 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       *Genesis Coin* · tự cấp trên sổ rỗng ⇒ **9101** (đọc từ genesis vừa dựng) · xoá tệp ⇒
       console **tự khai cổng đang TẮT**. Bản đầy đủ: `docs/CONG-CHAINID-2026-08-27.md`.
       🔴 **Còn lại (cần David):** gốc dải vẫn là 9100 — vướng mục quyết §5c.
-- [ ] **A-5 — I1b**: phơi trần cung ra endpoint đọc được, **hoặc** ghi rõ trên trang rằng
-      nguồn là *tham số genesis*.
-      *Điều kiện qua:* số trên trang truy được về một lệnh RPC, hoặc trang tự khai nguồn.
+- [x] **A-5 — I1b**: phơi cung ra endpoint — **ĐẠT `27/08` bằng đường mạnh hơn (endpoint)**.
+      `GET /api/supply` (faucet) + `netgen/cung.json` (patch **0016**, tree fork **`c9226d9c`**,
+      **16 patch**, tái lập khớp từng byte).
+      🔴 **Sự thật không chiều theo luật được:** tổng cung 9 tỷ **không đọc được từ RPC nào** —
+      `getCurrentSupply` chỉ đếm X/P, `SupplyCap` là hằng số binary. Nên endpoint **không giả
+      vờ**: mỗi trường mang `source` riêng (`measured` / `binary-constant` / `derived` kèm công
+      thức / `genesis-parameter`).
+      Đo thật: `xpCurrentSupply` 4.300.883.914 (`platform.getCurrentSupply`) · `cChainGenesis`
+      1.099.999.999 (`eth_getBalance` ở **block 0**, không phải `latest`) · `xpSupplyCap`
+      7.900.000.001 · `totalSupply` 9.000.000.000 (suy). **Phát hiện P0 nay nằm ngay trong
+      phản hồi**, không nằm trong một tài liệu ai đó phải nhớ đi đọc.
+      Endpoint **tự đo rồi SO LẠI** bản khai ⇒ `manifestMatchesChain` + `mismatches`.
+      **2 ca đối chứng ngược:** sửa bản khai ⇒ nêu đích danh địa chỉ lệch, và `totalSupply`
+      **vẫn đúng** (suy từ số đo, không từ số khai) · xoá bản khai ⇒ **503, không bịa số**,
+      `/api/info` vẫn 200 (hỏng có phạm vi). Bản đầy đủ: `docs/I1B-CUNG-CO-NGUON-2026-08-27.md`.
+      🔴 **Còn lại (không chặn):** (a) `cung.json` phải lên server cùng `faucet.env` ·
+      (b) câu khai nguồn trên trang — `web/` thuộc worktree `9Chain-A1-web`, câu chữ đã soạn sẵn.
 
 ---
 

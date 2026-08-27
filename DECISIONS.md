@@ -1452,3 +1452,38 @@ diff: chỉ đúng dòng `Subject` của 14 tệp), nhưng một bộ vật li�
 thứ người sau sẽ tin nhầm.
 **Nghiệm thu:** 15 patch lên `1cf1fc3` → tree **`df68a7d7`**, khớp cây fork từng byte; đối chứng
 ngược áp **14/15** → tree `4c5d5b1e` ≠ ⇒ phép đo phân biệt được bản đủ với bản thiếu.
+
+### D-066 — Endpoint cung KHÔNG giả vờ mọi con số đều đo được: mỗi trường mang `source` riêng
+
+`GET /api/supply` gắn cho từng trường một trong bốn nguồn: `measured` (kèm tên lệnh RPC) ·
+`binary-constant` · `derived` (kèm công thức) · `genesis-parameter`.
+
+**Lý do:** luật cứng của 9Scan-A1 là *"số công bố phải đọc từ chain thật"*, nhưng **tổng cung
+9.000.000.000 không đọc được từ bất kỳ lệnh RPC nào** — `platform.getCurrentSupply` chỉ đếm X/P
+(phát hiện P0, đã đo trên node đang chạy), và `SupplyCap` là hằng số biên dịch vào binary.
+Một endpoint trả `totalSupply: 9000000000` rồi im lặng về xuất xứ sẽ **đúng số nhưng sai bản
+chất**: nó dựng lên vẻ ngoài *"đọc từ chain"* cho một **phép cộng** của hằng số binary với một
+số đo được. Khai nguồn ra là cách duy nhất vừa phục vụ được luật đó vừa không nói dối nó.
+
+**Hệ quả tốt ngoài dự tính:** phát hiện P0 nay nằm **ngay trong phản hồi** — hai con số đứng
+cạnh nhau kèm câu *"cái này không đếm cái kia"* — thay vì nằm trong một tài liệu ai đó phải nhớ.
+
+### D-067 — `cung.json` là BẢN KHAI, không phải nguồn sự thật; endpoint phải tự đo rồi SO LẠI
+
+**Lý do:** một endpoint đọc tệp JSON rồi in lại thì **vẫn chỉ là gõ hằng số vào giao diện**,
+chỉ khác là hằng số nay đi qua một tệp. Nên `cung.json` chỉ nói *"đo cái gì, ở đâu"*; endpoint
+đo `eth_getBalance` từng địa chỉ ở **block 0** và trả `manifestMatchesChain` + `mismatches`.
+**Và `totalSupply` suy từ số ĐO ĐƯỢC, không từ số khai** ⇒ sửa `cung.json` không đẩy được con
+số công bố lên, chỉ làm cổng đỏ. Đã đối chứng ngược: sửa bản khai ⇒ nêu đích danh địa chỉ lệch,
+`totalSupply` vẫn đúng.
+
+⚠️ Đo ở **block 0**, không phải `latest`: ta hỏi *"genesis đã phát hành bao nhiêu"*, không hỏi
+*"bây giờ còn bao nhiêu"*. Hai câu khác nhau ngay khi có người tiêu tiền, và trộn chúng là cách
+một trang tokenomics từ từ thành một trang số dư ví.
+
+### D-068 — Thiếu bản khai ⇒ `/api/supply` trả **503**, KHÔNG dùng số mặc định
+
+**Lý do:** đường dễ hơn là *"thiếu tệp thì lấy hằng số dự phòng"*. **Một endpoint cung trả về
+số bịa còn tệ hơn một endpoint không trả gì** — số bịa sẽ được chép đi, và không ai biết nó
+không phải số đo. Hỏng **có phạm vi**: `/api/info` và `/api/drip` vẫn chạy bình thường, đã đối
+chứng.
