@@ -319,7 +319,35 @@ là công bố toàn bộ lớp identity, tham số kinh tế mạng và công c
 Xong thì `git remote add origin … && git push -u origin main` cho cả `9Chain-A1` và
 nhánh `9chain-a1` trong `upstream/avalanchego`.
 
-### ✅ H-6b — ĐÃ CHẠY 2026-08-25 (David duyệt trong phiên thứ ba)
+### ✅ H-6b — CHẠY LẠI 2026-08-27 (David duyệt), bản `25/08` đã cũ 25 tệp
+
+Bản mới ở **`139.99.145.13:~/9chain-a1/backup/20260827-051507/`** và bản thứ ba ở
+`C:\PROJECTS\9Chain-backups\9chain-a1-backup-20260827-051507\`.
+
+| | |
+|---|---|
+| repo `9Chain-A1` | `9chain-a1.bundle` — HEAD `dd053d8` · **165 commit** · **182 tệp** |
+| lớp chủ quyền | `avalanchego-patches/` — **12 patch** trên base `1cf1fc3` |
+| tổng | 1,5 MB · 14 tệp · **14/14 sha256 khớp hai đầu** |
+
+**Nghiệm thu — đo đúng đại lượng, không khai suông:**
+- ✅ **Clone ngược bundle NGAY TRÊN SERVER** → tree khớp tuyệt đối
+  `ae796a156fce14ea95bf182b6b66919a199218cd`, đủ 165 commit / 182 tệp.
+- ✅ **Áp 12 patch lên `1cf1fc3` sạch trong worktree tách rời** → tree ra
+  **`ac260a385443a2685e5dd0032fae67d636cf267e`**, khớp cây fork **từng byte**.
+- ✅ 12 patch **trùng từng byte** với `patches/` trong repo (sinh bằng `--no-signature`).
+- ✅ **Đối chứng ngược:** bundle cắt cụt bị từ chối đúng ⇒ phép đo **phân biệt được**
+  bản lành với bản hỏng, không chỉ biết in ✓.
+
+🔴 **VÀ BẢN SAO LƯU NÀY KHÔNG CỨU ĐƯỢC THỨ ĐẮT NHẤT.** Nó **không chứa khoá 5 quỹ**
+(`local-net/net-public/keys.txt` bị `.gitignore`, cố ý). Mất máy dev vẫn = mất khoá cả
+5 quỹ. Xem D-044 và `NGAY-G-A1-CON-LAI.md` O1 — bản thứ hai do David tự cất, **chưa ai
+xác nhận là có**. Đây vẫn là mục quyết số 1 trước ngày G.
+
+⚠️ Bản ở `C:\PROJECTS\9Chain-backups\` nằm **cùng ổ đĩa** với repo ⇒ nó không phải bản
+thứ hai thật. Bản thứ hai thật là bản trên server.
+
+### ✅ H-6b — bản đầu, ĐÃ CHẠY 2026-08-25 (David duyệt trong phiên thứ ba)
 
 Bản thứ hai đã tồn tại thật, ở **139.99.145.13:~/9chain-a1/backup/20260825-064053/**:
 `9chain-a1.bundle` (42 commit, đã clone ngược thử → HEAD khớp) + `avalanchego-patches/`
