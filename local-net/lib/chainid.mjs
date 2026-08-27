@@ -104,3 +104,47 @@ export function capChainIdTuDong(daDungTrongNha, daChiemSoCongKhai, goc = GOC_DA
   }
   return chainId;
 }
+
+// ═══ SỔ "A1 ĐÃ TỪNG CẤP" — nhớ XUYÊN THẾ HỆ (D-086) ═══
+//
+// 🔴 `console-chains.json` bị xoá sạch mỗi lượt re-genesis. Đo `2026-08-27` sau lượt g0: sổ
+// đang chạy đúng **27 byte**. Tức `chains ∪ retired` — thứ `createChain` dựa vào để chặn
+// trùng — quay về RỖNG, và mọi chainId/tên từng cấp cho người dùng **tự do trở lại**.
+//
+// Hai hàm dưới đặt ở ĐÂY chứ không ở `server.mjs`, cùng lý do đã tách `capChainIdTuDong`:
+// bài kiểm phải đọc được **mã thật**. Một phép kiểm sống trong `server.mjs` chỉ chạy được
+// khi có node, có SIWE, có mạng — nên thực tế nó không bao giờ được kiểm.
+
+/**
+ * chainId này A1 đã cấp ở một thế hệ trước chưa? Trả câu lỗi, hoặc `null` nếu sạch.
+ *
+ * @param {number} n
+ * @param {Set<number>} daCap
+ * @returns {string|null}
+ */
+export function loiChainIdDaCap(n, daCap) {
+  if (!daCap.has(n)) return null;
+  return `Chain ID ${n} đã được 9Chain-A1 cấp cho một L1 ở một thế hệ mạng TRƯỚC. ` +
+    `Số nhận dạng không được cấp lại kể cả khi mạng cũ đã biến mất: ví của người từng dùng ` +
+    `chain đó vẫn giữ mạng, và EIP-155 buộc chữ ký vào chainId — chữ ký cũ sẽ PHÁT LẠI được ` +
+    `trên chain mới của bạn. Chọn số khác.`;
+}
+
+/**
+ * Tên này A1 đã cấp ở một thế hệ trước chưa? So **không phân biệt hoa/thường**.
+ *
+ * 🔴 So thường hoá là cố ý: `"david do"` và `"David Do"` là cùng một lời hứa với cùng một
+ * người. Chặn theo byte thì chỉ cần đổi một chữ hoa là lách được, và người lách không nhất
+ * thiết cố ý — họ chỉ gõ lại tên họ nhớ.
+ *
+ * @param {string} ten
+ * @param {Map<string,string>} tenDaCap  tên thường hoá -> tên gốc
+ * @returns {string|null}
+ */
+export function loiTenDaCap(ten, tenDaCap) {
+  const goc = tenDaCap.get(String(ten).trim().toLowerCase());
+  if (!goc) return null;
+  return `Tên "${goc}" đã được 9Chain-A1 cấp cho một L1 ở một thế hệ mạng TRƯỚC. Tên không được ` +
+    `cấp lại, kể cả khi mạng cũ đã biến mất: người từng dùng chain đó vẫn còn nó trong ví và ` +
+    `trong tài liệu của họ. Chọn tên khác.`;
+}

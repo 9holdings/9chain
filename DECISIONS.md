@@ -2417,3 +2417,61 @@ lại đây để lượt ngày G không phải dò lại từ đầu.
 
 ⚠️ Và đây là một tin tốt đọc ngược: **bộ lọc Host chặn đúng một thứ đáng chặn**, trong một tình
 huống không ai dựng ra để thử nó.
+
+---
+
+### D-086 — §5c: **không khôi phục sổ cũ**, mà rút `chainId` + **TÊN** ra thành sổ chặn xuyên thế hệ
+
+David chốt `27/08`: câu hỏi *"có khôi phục sổ `retired` cũ không"* là câu hỏi nhị phân sai — **cả
+hai đường đều dở**. Khôi phục là kéo **trạng thái** của một mạng đã chết vào mạng mới
+(`subnetID`/`blockchainID` trong đó không còn tồn tại, và mọi phép đo chain sống sẽ vấp phải
+chúng). Không khôi phục là để hở đường **người dùng tự nhập**.
+
+⇒ Giữ lại **lời hứa**, bỏ **trạng thái**: con số này, cái tên này, đã phát ra ngoài rồi.
+
+#### 🔴 Lỗ đo được, không phải suy luận
+
+`console-chains.json` **bị xoá sạch mỗi lượt re-genesis**. Đo `27/08` sau lượt g0: sổ đang chạy
+đúng **27 byte**. Tức `chains ∪ retired` — thứ `createChain` dựa vào để chặn trùng — **rỗng**, và
+**47 chainId + 53 tên** từng cấp cho người dùng đã tự do trở lại, gồm `9141 "David Do"`.
+
+Hậu quả không phải "hai chain trùng tên": cấp lại `9102` cho một chain KHÁC là để ví của người
+từng dùng chain cũ trỏ vào chain lạ **dưới cùng một chainId** — MetaMask coi hai chain là MỘT
+mạng, EIP-155 buộc chữ ký vào chainId, nên **chữ ký cũ phát lại được**.
+
+#### Đã làm
+
+| | |
+|---|---|
+| `scripts/sinh-chainid-da-cap.mjs` | gộp **mọi sổ console trong repo** → `local-net/console/chainid-da-cap.json`. Có `--kiem` (thoát 1 khi tệp trôi lệch khỏi nguồn) |
+| `docs/archive/console-chains-pre-g0-2026-08-27.json` | sổ `26/08→27/08` **chỉ còn trên server** — nay vào repo, để danh sách chặn **tái lập được** mà không phụ thuộc máy chủ |
+| `local-net/lib/chainid.mjs` | `loiChainIdDaCap()` · `loiTenDaCap()` — **hàm thuần**, đặt ở lib theo đúng tiền lệ `capChainIdTuDong`: một phép kiểm sống trong `server.mjs` chỉ chạy được khi có node + SIWE + mạng, nên thực tế nó không bao giờ được kiểm |
+| `server.mjs` | nạp sổ thứ hai (rỗng ≡ cổng tắt, thiếu tệp ≡ cổng tắt — **nói to cả hai**) · chặn TÊN · chặn chainId tự nhập · đường **tự cấp** nhận HỢP hai sổ |
+
+🔴 **Chặn tên so THƯỜNG HOÁ.** `"david do"` và `"David Do"` là cùng một lời hứa với cùng một
+người. Chặn theo byte thì đổi một chữ hoa là lách được — và người lách **không nhất thiết cố ý**,
+họ chỉ gõ lại cái tên họ nhớ.
+
+⚠️ **`9201` (DeltaChain) nằm NGOÀI dải liền `9100–9145`.** Nếu suy danh sách từ "dải" thay vì gộp
+từ sổ thật thì số đó lọt. Đây là lý do bộ sinh đọc tệp chứ không đọc dải.
+
+#### Nghiệm thu
+
+`chainid-test.mjs`: **35 đạt · 0 hỏng** (mục 8 mới: 13 ca, trong đó **5 ca đối chứng ngược** —
+`9146` và gốc dải phải KHÔNG bị chặn, sổ rỗng phải không chặn gì, và cùng một dải mà không truyền
+sổ vào thì phải ra `9100`, chứng minh chính việc truyền sổ tạo ra khác biệt).
+
+🔴 **Và cổng verify chạy trên API THẬT** — dựng console thật trong một gốc giả, gọi `POST /api/create`:
+
+| Ca | Kết quả |
+|---|---|
+| `chainId 9141` | chặn, đúng câu lỗi mới |
+| tên `"david do"` | chặn — so thường hoá chạy đúng trên đường thật |
+| `chainId 9100` | chặn bởi cổng **sổ công khai** (bắn trước) ⇒ hai cổng tách bạch, đúng thứ tự |
+| **đối chứng**: tên + số chưa ai dùng | **đi qua hết mọi cổng**, chỉ hỏng ở bước gọi docker ⇒ cổng không chặn bừa |
+
+#### Còn hở, nói thẳng
+
+⚠️ Sổ này chỉ nhớ được thứ **có trong repo**. Một lượt re-genesis mà không lưu `console-chains.json`
+vào `docs/archive/` trước khi xoá là **mất vĩnh viễn** phần đó — và không có gì báo. ⇒ Việc lưu
+sổ phải nằm trong **runbook re-genesis**, cùng chỗ với quy trình O2.

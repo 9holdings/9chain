@@ -16,7 +16,7 @@ import path from "node:path";
 import { clientIp, rateLimit, requireToken, requireSecret, serialQueue } from "../lib/guard.mjs";
 import { parseEvmAddress } from "../lib/eip55.mjs";
 import { apDungPreset, danhSachPreset } from "../lib/presets.mjs";
-import { capChainIdTuDong, GOC_DAI_CHAINID } from "../lib/chainid.mjs";
+import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID } from "../lib/chainid.mjs";
 import { siwe } from "./siwe.mjs";
 
 const PORT = Number(process.env.PORT || 8091);
@@ -138,6 +138,42 @@ try {
   console.log(`[chainId] 🔴 KHÔNG đọc được ${CHAINID_CHIEM_FILE} (${e.message})`);
   console.log(`[chainId] 🔴 CỔNG CHẶN chainId ĐÃ BỊ CHIẾM ĐANG TẮT. Sinh lại bằng:`);
   console.log(`[chainId]    node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-da-chiem.json`);
+}
+
+// ═══ SỔ THỨ HAI: chainId + TÊN CHÍNH A1 ĐÃ TỪNG CẤP (D-086) ═══
+//
+// 🔴 Sổ ở trên canh thế giới đã chiếm gì. Sổ này canh **chính A1 đã phát gì ra ngoài** —
+// và nó tồn tại vì `console-chains.json` **bị xoá sạch mỗi lượt re-genesis**. Đo `27/08`
+// sau lượt g0: sổ đang chạy đúng **27 byte**. Tức `chains ∪ retired` — thứ `createChain`
+// dựa vào để chặn trùng — quay về RỖNG, và mọi chainId/tên từng cấp **tự do trở lại**.
+//
+// Hậu quả không phải "hai chain trùng tên". Cấp lại `9102` cho một chain KHÁC nghĩa là ví
+// của người từng dùng chain cũ nay trỏ vào một chain lạ **dưới cùng một chainId**: MetaMask
+// coi hai chain là MỘT mạng, và chữ ký ký cho chain cũ **phát lại được**. Thu hồi không gỡ
+// được mạng khỏi ví ai — xem `thuHoiChain`.
+//
+// ⚠️ Đây KHÔNG phải "khôi phục sổ retired cũ" (§5c). Khôi phục sổ là kéo **trạng thái** của
+// một mạng đã chết vào mạng mới — `subnetID`/`blockchainID` trong đó không còn tồn tại. Thứ
+// giữ lại chỉ là **lời hứa**: con số này, cái tên này, đã phát ra ngoài rồi.
+//
+// Sinh lại: `node scripts/sinh-chainid-da-cap.mjs --ghi`
+const CHAINID_DACAP_FILE = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "chainid-da-cap.json");
+const chainIdDaCap = new Set();
+const tenDaCap = new Map(); // tên thường hoá -> tên gốc (để câu lỗi đọc được)
+try {
+  const j = JSON.parse(readFileSync(CHAINID_DACAP_FILE, "utf8"));
+  for (const n of j.chainIds ?? []) chainIdDaCap.add(Number(n));
+  for (const t of j.tens ?? []) tenDaCap.set(String(t).toLowerCase(), String(t));
+  console.log(`[chainId] sổ A1 đã cấp: ${chainIdDaCap.size} chainId · ${tenDaCap.size} tên ` +
+    `(gộp từ ${(j.nguon ?? []).length} sổ console trong repo)`);
+  // Rỗng ≡ cổng tắt. Cùng luật với sổ trên: một tệp đọc được mà rỗng vẫn là xanh giả.
+  if (chainIdDaCap.size === 0) {
+    console.log(`[chainId] 🔴 sổ "A1 đã cấp" RỖNG ⇒ CỔNG ĐANG TẮT. Sinh lại bằng sinh-chainid-da-cap.mjs.`);
+  }
+} catch (e) {
+  console.log(`[chainId] 🔴 KHÔNG đọc được ${CHAINID_DACAP_FILE} (${e.message})`);
+  console.log(`[chainId] 🔴 CỔNG CHẶN "A1 đã từng cấp" ĐANG TẮT. Sinh lại bằng:`);
+  console.log(`[chainId]    node scripts/sinh-chainid-da-cap.mjs --ghi`);
 }
 
 // Hai lượt tạo chain chạy song song sẽ restart node giữa chừng nhau và hỏng cả
@@ -696,6 +732,11 @@ async function createChain({ name, chainId, admin, preset }) {
       ? "Tên đã tồn tại"
       : `Tên "${name}" từng thuộc một L1 đã thu hồi — chọn tên khác để lịch sử không bị nhập nhằng`);
   }
+  // 🔴 Sổ NHÀ ở trên chỉ nhớ được **thế hệ mạng hiện tại** — nó bị xoá sạch mỗi lượt
+  // re-genesis. Sổ "A1 đã từng cấp" nhớ xuyên thế hệ. Không có nó thì sau mỗi lượt sinh
+  // lại mạng, mọi tên cũ đều "còn trống" và người mới nhận đúng cái tên người cũ từng có.
+  const loiTen = loiTenDaCap(name, tenDaCap);
+  if (loiTen) throw new Error(loiTen);
 
   // Chặn SỚM, trước khi tiêu tiền và trước khi đụng vào node. Xem TRAN_SUBNET_GIAO_THUC.
   if (state.chains.length >= MAX_L1) {
@@ -731,13 +772,23 @@ async function createChain({ name, chainId, admin, preset }) {
         `(chainid.network, tra ${chainIdChiemNgayTra}). Ví đọc chainId chứ không đọc tên mạng, ` +
         `nên chain của bạn sẽ không phân biệt được với chuỗi đó trong MetaMask. Chọn số khác.`);
     }
+    // 🔴 SỔ THỨ BA, và là lỗ mà §5c để hở: chính A1 đã cấp số này ở một thế hệ TRƯỚC.
+    // Sổ nhà bên trên không bắt được vì nó bị xoá mỗi lượt re-genesis. Đây đúng là đường
+    // người dùng **tự nhập** — D-069 dời gốc dải nên đường TỰ CẤP không còn chạm 9100–9145,
+    // nhưng gõ tay thì vẫn tới được.
+    const loiCap = loiChainIdDaCap(n, chainIdDaCap);
+    if (loiCap) throw new Error(loiCap);
     chainId = n;
   } else {
     // Bỏ qua CẢ hai sổ. Bản trước chỉ bỏ qua sổ nhà, nên số đầu tiên nó cấp — 9100 —
     // trùng "Genesis Coin" trong sổ công khai. Xem khối chú thích ở `chainIdDaChiem`.
     // Gốc dải nay là 9000000010 (D-069). Phép cấp + cổng trần EIP-2294 ở `lib/chainid.mjs`,
     // nơi bài kiểm với tới được.
-    chainId = capChainIdTuDong(taken, chainIdDaChiem, GOC_DAI_CHAINID);
+    // Sổ nhà truyền vào là HỢP của sổ thế hệ này và sổ mọi thế hệ trước. Hôm nay gốc dải
+    // 9000000010 nằm cách 9100–9201 rất xa nên hợp này không đổi kết quả — nhưng phép cấp
+    // không được phụ thuộc vào khoảng cách đó: đổi `A1_GEN` là khối dải dịch đi, và một
+    // cổng chỉ đúng nhờ "may là chưa chạm" thì không phải cổng.
+    chainId = capChainIdTuDong(new Set([...taken, ...chainIdDaCap]), chainIdDaChiem, GOC_DAI_CHAINID);
   }
 
   // Mở tiến trình NGAY SAU khi mọi phép kiểm rẻ đã qua — trước đó mà hỏng thì
