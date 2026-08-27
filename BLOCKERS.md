@@ -61,6 +61,13 @@ còn bí danh tài sản upstream **hỏi bằng hằng số cứng**.
 
 ### ✅ B-14 — **ĐÃ ĐÓNG `2026-08-27`** — David chốt gốc dải **`9000000010`** (D-069)
 
+> 🔴 **ĐÍNH CHÍNH `2026-08-28`:** dòng "ĐÃ ĐÓNG" ở trên **đúng về quyết định và về mã, sai về
+> thế giới** cho tới `28/08`. `console-deploy.sh` không chép `lib/chainid.mjs` lẫn hai sổ chặn,
+> nên **console công khai vẫn cấp chainId từ `9100` suốt hai ngày** và giao diện còn gợi ý đúng
+> con số đó. Nay đã deploy + có cổng canh (`scripts/check-deploy-drift.mjs`). Xem **D-088**.
+> ⇒ **Bài học chung cho mọi mục "ĐÃ ĐÓNG" trong tệp này: đóng ở repo ≠ đóng ở nơi người dùng
+> chạm vào.** Mục nào chạm đường sản phẩm thì phải kèm một phép đo **trên sản phẩm**.
+
 David không chọn đường nào trong ba đường A1 đưa (9146 / 9100 / "dải khác") mà đưa ra một
 đường thứ tư **tốt hơn cả ba**: gốc dải = chainId của A1 **+1**.
 

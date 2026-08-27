@@ -93,6 +93,12 @@ Ba bản soát mới: `docs/SOAT-TOAN-DIEN-2026-08-27.md` (lớp vận hành) ·
    compose Docker từ chối.
 9. **Heredoc bash + Python nuốt dấu gạch chéo** — sửa mã Go có `\n` trong chuỗi thì dùng công cụ
    sửa tệp, đừng `python <<'PY'` với `str.replace`.
+10b. 🔴 **"ĐÃ ĐÓNG" trong `BLOCKERS.md` chỉ nói về REPO.** `28/08` phát hiện console công khai
+    đứng ở `69c80ce` (26/08): **B-14 đóng trên giấy, hở ngoài đời suốt hai ngày**, và faucet
+    thiếu `/api/supply` của I1b. Gốc rễ: `console-deploy.sh` liệt kê tệp **thẳng trong script**,
+    nên việc tách `lib/chainid.mjs` ra *cho dễ kiểm* đã làm nó **không được deploy**. Nay danh
+    sách nằm ở `manifest-deploy.json`, hai nơi đọc chung. **Chạy `check-deploy-drift.mjs` trước
+    khi tin một mục đã đóng.**
 10. 🔴 **`rebrand.sh` KHÔNG phủ hết lớp bản sắc — và chỗ nó bỏ sót là chỗ MÁY đọc.** Phạm vi nó
     đúng 4 chuỗi (`Client`, token `Name`, token `Symbol`, `FallbackHRP`). Bí danh tài sản X-Chain
     — thứ **mọi công cụ hỏi X-Chain phải gọi đúng** — nằm ngoài. Đổi nó ở `genesis.go` mà không
@@ -115,8 +121,12 @@ curl -s -X POST -H 'content-type: application/json' \
 ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" \
   'docker logs 9chain-a1-node-1 2>&1 | grep -oE "\"supplyCap\":[0-9]+" | head -1'
 
+# 🔴 Cổng canh khoảng cách REPO ↔ SERVER (D-088) — chạy TRƯỚC khi tin bất kỳ mục "ĐÃ ĐÓNG" nào
+node scripts/check-deploy-drift.mjs
+
 # Cổng repo
 node scripts/check-consistency.mjs --tu-kiem
+node scripts/sinh-chainid-da-cap.mjs --kiem
 node local-net/console/chainid-test.mjs
 node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs
