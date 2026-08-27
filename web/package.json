@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3901",
     "build": "next build",
-    "postbuild": "node scripts/check-static-export.mjs && node scripts/check-a11y.mjs && node scripts/check-budget.mjs",
+    "postbuild": "node scripts/check-static-export.mjs && node scripts/check-no-marker.mjs && node scripts/check-a11y.mjs && node scripts/check-budget.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

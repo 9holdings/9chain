@@ -8,11 +8,33 @@
  *
  * 🔴 Khoá mới đánh dấu `[?]` ở cuối để David duyệt giọng. Đừng bỏ dấu đó hộ — nó là
  * cách duy nhất phân biệt "chữ đã được duyệt" với "chữ tôi tự nghĩ ra".
+ *
+ * ═══ 2026-08-27 — DAVID ĐÃ DUYỆT TOÀN BỘ 57 CHUỖI ĐANG TỒN, LUẬT VẪN NGUYÊN ═══
+ * Luật `[?]` KHÔNG bị bãi bỏ. Chuỗi MỚI viết từ nay vẫn phải mang dấu.
+ *
+ * 🔴 VÌ SAO ĐỢT DUYỆT NÀY GẤP: 57 dấu đó không nằm im trong mã — chúng **đang hiển
+ * thị ra cho người đọc** trên mạng công khai. Đo `27/08`: `/re-genesis/` mang **64**
+ * dấu (gồm cả `<h1>` và mọi `<h2>`), 5 trang còn lại mỗi trang 6 dấu từ dải banner.
+ * `/re-genesis/` là trang nói với người lạ rằng tài sản của họ sắp bị xoá — dấu
+ * ngoặc-hỏi sau mỗi câu cảnh báo đọc đúng nghĩa đen của nó: đội chưa chắc về chính
+ * lời mình nói.
+ *
+ * 🔴 NAY CÓ CỔNG CHẶN: `scripts/check-no-marker.mjs` chạy trong `postbuild`, đọc
+ * thư mục `out/` và **làm ĐỎ bản dựng** nếu còn một dấu nào. Chốt ở `out/` chứ
+ * không chốt ở tệp này, vì nó phải đo THỨ ĐÃ XUẤT RA.
+ * ⚠️ TUYỆT ĐỐI KHÔNG cắt dấu ở tầng render để "cho sạch màn hình" — làm thế là
+ * giấu khỏi mắt David, tức phá đúng cơ chế mà chú thích này dựng ra. Chỗ duy nhất
+ * được phép cắt là thẻ meta (`lib/seo.ts`), vì chữ ở đó bị máy khác đọc và hiện
+ * lại nguyên văn, ngoài tầm với của mọi lượt sửa sau.
  */
 export const vi = {
   chung: {
     tenSanPham: '9Chain Testnet A1',
     moTaNgan: 'Testnet công khai của 9Chain, chạy trên Avalanche',
+    // Một câu cho MỌI nút gọi ví. Trước 2026-08-27 câu này tồn tại HAI bản trùng
+    // nguyên văn (`deChain.viTuChoi` và `chainCuaToi.themViTuChoi`) — hai bản của
+    // cùng một câu là hai chỗ để chúng lệch nhau về sau mà không ai thấy.
+    viTuChoi: 'Bạn đã từ chối trong ví. Chưa có gì thay đổi.',
     dangTai: 'Đang tải…',
     thuLai: 'Thử lại',
     saoChep: 'Sao chép',
@@ -25,18 +47,6 @@ export const vi = {
     boQuaToiNoiDung: 'Bỏ qua, tới nội dung chính',
   },
 
-  /**
-   * Re-genesis — xem `PLAN-REGENESIS-2026-09-01.md`, mục O3 và luật "nhiều lần cài".
-   *
-   * 🔴 NGÀY NẰM Ở ĐÚNG MỘT CHỖ (`ngay`), mọi chuỗi khác nội suy `{ngay}` qua `dien()`.
-   * Cổng GO/NO-GO là 29/08 và sàn cứng là 06/09 — ngày này TRƯỢT ĐƯỢC. Chép ngày ra
-   * nhiều chuỗi là tự đặt bẫy: lúc trượt sẽ sửa được chỗ này, sót chỗ kia, và trang
-   * lại nói hai ngày khác nhau ở hai màn.
-   *
-   * 🔴 Vì sao các chuỗi cảnh báo bên dưới KHÔNG được làm nhẹ đi: chúng nói "vĩnh viễn"
-   * là để chặn người dùng tưởng thu hồi thì lấy lại được tên. Sửa cho đúng sự thật
-   * nghĩa là THU PHẠM VI ("trên mạng này"), không phải hạ giọng ("tạm thời").
-   */
   /**
    * ═══ BẢN CÔNG BỐ SAU NGÀY G — VIẾT SẴN 2026-08-27, DÙNG NGÀY 01/09 ═══
    * (Đ1-12 W0. Đây chính là "bản nháp công bố" mà chú thích đầu `re-genesis/page.tsx`
@@ -59,84 +69,96 @@ export const vi = {
     luuUrl: '',
     luuSha256: '',
 
-    bang: 'A1 đã sinh lại ngày {ngay}. Mọi số dư và chain tạo trước ngày đó không còn tồn tại. [?]',
-    bangNut: 'Điều này nghĩa là gì [?]',
-    nhan: 'Đã sinh lại [?]',
+    bang: 'A1 đã sinh lại ngày {ngay}. Mọi số dư và chain tạo trước ngày đó không còn tồn tại.',
+    bangNut: 'Điều này nghĩa là gì',
+    nhan: 'Đã sinh lại',
 
-    tieuDe: 'A1 đã sinh lại ngày {ngay} [?]',
+    tieuDe: 'A1 đã sinh lại ngày {ngay}',
     moTa:
       'Mạng thử nghiệm A1 đã được dựng lại từ block 0. Chain, số dư và lịch sử giao dịch ' +
       'tạo trước ngày đó không còn tồn tại — không phải bị ẩn, mà là không còn. ' +
-      'Trang này nói bạn đang thấy gì và cần làm gì. [?]',
+      'Trang này nói bạn đang thấy gì và cần làm gì.',
 
-    thayGiTieuDe: 'Bạn sẽ thấy gì [?]',
+    thayGiTieuDe: 'Bạn sẽ thấy gì',
     thayGi1:
       'Ví của bạn vẫn kết nối được, vẫn hiện đúng tên mạng và đúng Chain ID {chainId} — ' +
-      'vì Chain ID được giữ nguyên có chủ ý. Nhưng số dư sẽ là 0. [?]',
+      'vì Chain ID được giữ nguyên có chủ ý. Nhưng số dư sẽ là 0.',
     thayGi2:
       'Mọi L1 bạn từng đẻ đã biến mất khỏi danh bạ. Tên và Chain ID của chúng nay trống, ' +
-      'ai cũng đăng ký lại được. [?]',
+      'ai cũng đăng ký lại được.',
     thayGi3:
       'Giao dịch bạn đã ký nhưng chưa phát đi thì đừng phát nữa — chúng thuộc về một mạng ' +
-      'không còn tồn tại. [?]',
+      'không còn tồn tại.',
 
-    lamGiTieuDe: 'Bạn cần làm gì [?]',
-    lamGi1: 'Xin lại token thử ở trang faucet. Hạn mức đã được đặt lại cho mọi người. [?]',
+    lamGiTieuDe: 'Bạn cần làm gì',
+    lamGi1: 'Xin lại token thử ở trang faucet. Hạn mức đã được đặt lại cho mọi người.',
     lamGi2:
       'Gỡ từng L1 cũ khỏi ví — chúng có Chain ID riêng và nay trỏ vào chỗ trống. ' +
-      'Mạng A1 chính thì KHÔNG cần gỡ, vì thông số của nó không đổi. [?]',
-    lamGi3: 'Đẻ lại chain của bạn nếu cần. Tên cũ có thể đã có người khác lấy. [?]',
+      'Mạng A1 chính thì KHÔNG cần gỡ, vì thông số của nó không đổi.',
+    lamGi3: 'Đẻ lại chain của bạn nếu cần. Tên cũ có thể đã có người khác lấy.',
 
-    luuTieuDe: 'Bản lưu của mạng cũ [?]',
+    luuTieuDe: 'Bản lưu của mạng cũ',
     luuMoTa:
       'Trạng thái cuối cùng của mạng trước khi sinh lại đã được lưu lại và công bố mã băm, ' +
-      'để ai muốn đối chiếu đều kiểm được. [?]',
+      'để ai muốn đối chiếu đều kiểm được.',
   },
 
+  /**
+   * Re-genesis — xem `PLAN-REGENESIS-2026-09-01.md`, mục O3 và luật "nhiều lần cài".
+   *
+   * 🔴 NGÀY NẰM Ở ĐÚNG MỘT CHỖ (`ngay`), mọi chuỗi khác nội suy `{ngay}` qua `dien()`.
+   * Cổng GO/NO-GO là 29/08 và sàn cứng là 06/09 — ngày này TRƯỢT ĐƯỢC. Chép ngày ra
+   * nhiều chuỗi là tự đặt bẫy: lúc trượt sẽ sửa được chỗ này, sót chỗ kia, và trang
+   * lại nói hai ngày khác nhau ở hai màn.
+   *
+   * 🔴 Vì sao các chuỗi cảnh báo bên dưới KHÔNG được làm nhẹ đi: chúng nói "vĩnh viễn"
+   * là để chặn người dùng tưởng thu hồi thì lấy lại được tên. Sửa cho đúng sự thật
+   * nghĩa là THU PHẠM VI ("trên mạng này"), không phải hạ giọng ("tạm thời").
+   */
   reGenesis: {
     ngay: '01/09/2026',
-    bang: 'Mạng A1 sinh lại ngày {ngay} — mọi chain, số dư và lịch sử tạo trước ngày đó sẽ bị xoá. [?]',
-    bangNut: 'Chi tiết [?]',
-    nhan: 'Sắp sinh lại [?]',
+    bang: 'Mạng A1 sinh lại ngày {ngay} — mọi chain, số dư và lịch sử tạo trước ngày đó sẽ bị xoá.',
+    bangNut: 'Chi tiết',
+    nhan: 'Sắp sinh lại',
 
-    tieuDe: 'A1 sinh lại ngày {ngay} [?]',
+    tieuDe: 'A1 sinh lại ngày {ngay}',
     moTa:
       'Toàn bộ mạng thử nghiệm A1 sẽ được dựng lại từ block 0. Mọi thứ tạo ra trước ngày ' +
       'đó sẽ không còn — không phải bị ẩn đi, mà là không còn tồn tại. Trang này nói rõ ' +
-      'cái gì mất và bạn cần làm gì. [?]',
+      'cái gì mất và bạn cần làm gì.',
 
-    viSaoTieuDe: 'Vì sao phải sinh lại [?]',
+    viSaoTieuDe: 'Vì sao phải sinh lại',
     viSao1:
       'Genesis của một mạng là bất biến. Đó chính là thứ làm nó đáng tin — không ai, kể cả ' +
-      'người dựng ra nó, sửa được con số đã khắc vào block 0. [?]',
+      'người dựng ra nó, sửa được con số đã khắc vào block 0.',
     viSao2:
       'Cái giá của điều đó: muốn đổi một con số nằm trong genesis thì không có đường nào ' +
       'khác ngoài dựng lại mạng từ đầu. A1 đổi tổng cung lên 9.000.000.000 LOVE9, kéo theo ' +
-      'cả dải tham số staking phải tính lại cho khớp. [?]',
+      'cả dải tham số staking phải tính lại cho khớp.',
     viSao3:
       'Đây là testnet, và sinh lại là việc testnet được phép làm. Thực ra đó là lý do ' +
       'testnet tồn tại: để những thay đổi kiểu này xảy ra ở đây, chứ không xảy ra trên ' +
-      'mainnet. [?]',
+      'mainnet.',
 
-    matTieuDe: 'Cái gì sẽ mất [?]',
-    matMoTa: 'Tất cả, không có ngoại lệ: [?]',
-    mat1: 'Mọi L1 người dùng đã đẻ, kể cả chain đang chạy tốt. [?]',
-    mat2: 'Mọi số dư LOVE9, gồm cả token nhận từ faucet. [?]',
-    mat3: 'Mọi giao dịch, mọi block, toàn bộ lịch sử của C-Chain, P-Chain và X-Chain. [?]',
-    mat4: 'Mọi validator và mọi khoản uỷ quyền. [?]',
+    matTieuDe: 'Cái gì sẽ mất',
+    matMoTa: 'Tất cả, không có ngoại lệ:',
+    mat1: 'Mọi L1 người dùng đã đẻ, kể cả chain đang chạy tốt.',
+    mat2: 'Mọi số dư LOVE9, gồm cả token nhận từ faucet.',
+    mat3: 'Mọi giao dịch, mọi block, toàn bộ lịch sử của C-Chain, P-Chain và X-Chain.',
+    mat4: 'Mọi validator và mọi khoản uỷ quyền.',
 
-    conTieuDe: 'Cái gì giữ lại [?]',
+    conTieuDe: 'Cái gì giữ lại',
     conMoTa:
       'Trước khi xoá, toàn bộ mạng đang chết sẽ được xuất ra kèm mã băm và công bố, để dấu ' +
       'vết còn truy lại được. Cái đã xảy ra vẫn kiểm chứng được, kể cả khi mạng chạy nó ' +
-      'không còn. Đường dẫn bản lưu sẽ đăng ở đây trong ngày sinh lại. [?]',
+      'không còn. Đường dẫn bản lưu sẽ đăng ở đây trong ngày sinh lại.',
 
-    lamTieuDe: 'Bạn cần làm gì [?]',
-    lamTruoc: 'Trước ngày sinh lại: [?]',
+    lamTieuDe: 'Bạn cần làm gì',
+    lamTruoc: 'Trước ngày sinh lại:',
     lam1:
       'Đừng xây thứ gì cần dữ liệu sống lâu trên A1 lúc này. Nếu bạn đang thử một ý tưởng ' +
-      'thì cứ tự nhiên — chỉ đừng coi chain hiện tại là chỗ cất giữ. [?]',
-    lamSau: 'Sau ngày sinh lại: [?]',
+      'thì cứ tự nhiên — chỉ đừng coi chain hiện tại là chỗ cất giữ.',
+    lamSau: 'Sau ngày sinh lại:',
     // 🔴 BA CHUỖI NÀY ĐÃ SỬA SAU D-047, ĐỪNG LÙI VỀ BẢN CŨ. Bản cũ bảo người dùng
     // "gỡ mạng chính rồi thêm lại, đừng chép thông số cũ" — lời khuyên đó chỉ đúng
     // cho kịch bản chainId ĐỔI. D-047 chốt GIỮ `9000000009`, nên thông số mạng mới
@@ -146,10 +168,10 @@ export const vi = {
     // bản sang kịch bản mà tiền đề của nó không còn đúng.
     lam2:
       'Gỡ khỏi ví từng L1 riêng bạn đã thêm — những chain đó không còn tồn tại, và ví trỏ ' +
-      'vào chúng sẽ chỉ nằm im. Mạng A1 chính thì không phải gỡ: thông số của nó không đổi. [?]',
+      'vào chúng sẽ chỉ nằm im. Mạng A1 chính thì không phải gỡ: thông số của nó không đổi.',
     lam3:
-      'Nếu ví bạn chưa có mạng A1, thêm bằng nút ở trang faucet thay vì gõ tay thông số. [?]',
-    lam4: 'Xin lại token từ faucet, và đẻ lại chain nếu bạn muốn. [?]',
+      'Nếu ví bạn chưa có mạng A1, thêm bằng nút ở trang faucet thay vì gõ tay thông số.',
+    lam4: 'Xin lại token từ faucet, và đẻ lại chain nếu bạn muốn.',
 
     // ── Hai vế D-047 giao lại cho câu chữ ────────────────────────────────────
     // D-047 giữ chainId `9000000009` sau khi lý do mạnh nhất của phía "đổi" (phát
@@ -159,34 +181,34 @@ export const vi = {
     // 🔴 KHÔNG thêm nút "thêm lại mạng" vào trang này. Nút đó đã có ở faucet
     // (`FaucetForm.tsx:114`); nhân đôi một nút gọi ví là nhân đôi chỗ để hai bản
     // lệch nhau, mà đây đúng là loại nút không được phép lệch.
-    imLangTieuDe: 'Ví của bạn sẽ không báo gì cả [?]',
+    imLangTieuDe: 'Ví của bạn sẽ không báo gì cả',
     imLangMoTa:
       'Mạng mới giữ nguyên Chain ID {chainId}, cùng địa chỉ RPC và cùng tên với mạng cũ. Đó ' +
       'là chủ ý — để mọi tài liệu và hướng dẫn đã phát ra ngoài không thành sai. Cái giá là ' +
       'ví không có một dấu hiệu nào để nhận ra nó vừa nối vào một mạng khác. Hai chuyện dưới ' +
-      'đây vì thế sẽ xảy ra trong im lặng. [?]',
+      'đây vì thế sẽ xảy ra trong im lặng.',
     imLang1:
       'Ví còn cấu hình cũ vẫn nối được, vẫn hiện đúng tên mạng, và sẽ báo số dư 0. Con số đó ' +
       'ĐÚNG: token cũ của bạn không còn tồn tại, chứ không phải bị ẩn đi. Bạn không cần thêm ' +
       'lại mạng — chỉ cần xin token mới ở trang faucet. Nếu ví báo giao dịch kẹt hoặc sai số ' +
       'thứ tự, hãy xoá dữ liệu hoạt động của mạng đó trong ví: ví còn nhớ số đếm giao dịch ' +
-      'của chuỗi đã chết, trong khi chuỗi mới đếm lại từ 0. [?]',
+      'của chuỗi đã chết, trong khi chuỗi mới đếm lại từ 0.',
     imLang2:
       'Nếu bạn còn giao dịch đã ký mà chưa phát lên mạng, hãy bỏ nó đi. Chữ ký vẫn hợp lệ ' +
       'trên mạng mới, vì Chain ID không đổi. Nó sẽ chết vì ví không còn tiền — nhưng đúng ' +
       'lúc bạn xin token từ faucet thì nó chạy được, và có thể tự chạy vào một thời điểm ' +
-      'bạn không ngờ. [?]',
+      'bạn không ngờ.',
 
-    lapTieuDe: 'Chuyện này còn xảy ra nữa không [?]',
+    lapTieuDe: 'Chuyện này còn xảy ra nữa không',
     lapMoTa:
       'Có thể. A1 vẫn là testnet, và cho tới khi cộng đồng chọn hướng mainnet giữa A1 và ' +
       'C1, chúng tôi vẫn giữ quyền sinh lại mạng khi cần đổi thứ nằm trong genesis. Điều ' +
-      'chúng tôi cam kết là sẽ báo trước, và nói thẳng cái gì mất. [?]',
+      'chúng tôi cam kết là sẽ báo trước, và nói thẳng cái gì mất.',
 
-    ngayLuuY: 'Ngày có thể trượt [?]',
+    ngayLuuY: 'Ngày có thể trượt',
     ngayLuuYMoTa:
       'Ngày {ngay} phụ thuộc một cổng kiểm trước đó. Nếu trượt, chúng tôi sẽ đổi ngày trên ' +
-      'trang này thay vì im lặng. [?]',
+      'trang này thay vì im lặng.',
   },
 
   dieuHuong: {
@@ -266,7 +288,7 @@ export const vi = {
       'hay chủ sở hữu — thu hồi cũng không trả lại tên và chain ID.',
     soatReGenesis:
       'Và một điều nữa phải biết trước khi bấm: A1 sinh lại toàn mạng ngày {ngay}. ' +
-      'Chain bạn đẻ hôm nay sẽ bị xoá cùng mạng cũ — không phải ẩn đi, mà là không còn. [?]',
+      'Chain bạn đẻ hôm nay sẽ bị xoá cùng mạng cũ — không phải ẩn đi, mà là không còn.',
     soatTen: 'Tên chain',
     soatKieu: 'Kiểu chain',
     soatChu: 'Chủ sở hữu',
@@ -292,9 +314,8 @@ export const vi = {
     xongDangKichHoat: 'Đang chờ ví…',
     // Ba chuỗi này lấp đúng chỗ trước đây `catch {}` trắng — nút hỏng mà không một
     // chữ nào hiện ra, người dùng bấm lại vô hạn.
-    xongThemViLoi: 'Không thêm được chain vào ví. {chiTiet} [?]',
-    xongKichHoatLoi: 'Không kích hoạt được chain. {chiTiet} [?]',
-    viTuChoi: 'Bạn đã từ chối trong ví. Chưa có gì thay đổi. [?]',
+    xongThemViLoi: 'Không thêm được chain vào ví. {chiTiet}',
+    xongKichHoatLoi: 'Không kích hoạt được chain. {chiTiet}',
 
     deTiep: 'Đẻ chain khác',
     loiDe: 'Không đẻ được chain. {chiTiet}',
@@ -331,8 +352,7 @@ export const vi = {
     thongSo: 'Thông số cho ví',
     themVaoVi: 'Thêm vào ví',
     daThemVaoVi: 'Đã thêm',
-    themViLoi: 'Không thêm được vào ví. {chiTiet} [?]',
-    themViTuChoi: 'Bạn đã từ chối trong ví. Chưa có gì thay đổi. [?]',
+    themViLoi: 'Không thêm được vào ví. {chiTiet}',
 
     thuHoi: 'Thu hồi',
     thuHoiTieuDe: 'Thu hồi “{ten}”?',
@@ -422,14 +442,14 @@ export const vi = {
     thongSoRpc: 'RPC',
     thongSoChainId: 'Chain ID',
     thongSoKyHieu: 'Ký hiệu',
-    thongSoThapPhan: 'Số thập phân [?]',
+    thongSoThapPhan: 'Số thập phân',
     thongSoExplorer: 'Explorer',
     // Người đọc TOKENOMICS thấy "9 chữ số" rồi mở ví thấy 18 sẽ kết luận tài liệu
     // sai — và họ không có cách nào tự biết là không. Cả hai đều đúng, ở hai chỗ
     // khác nhau. Xem `docs/TOKENOMICS.md` §0.
     thapPhanGiaiThich:
       'Ví hiện 18 chữ số vì C-Chain chạy EVM. Trên P/X-Chain, LOVE9 đếm bằng 9 chữ số. ' +
-      'Cùng một đồng, hai thang đo — không phải hai loại token. [?]',
+      'Cùng một đồng, hai thang đo — không phải hai loại token.',
     loiChung: 'Không gửi được. {chiTiet}',
   },
 
@@ -451,18 +471,18 @@ export const vi = {
    */
   khongThay: {
     ma: '404',
-    tieuDe: 'Không có trang này [?]',
+    tieuDe: 'Không có trang này',
     moTa:
       'Đường dẫn bạn mở không tồn tại trên 9Chain Testnet A1. ' +
-      'Có thể nó đã được đổi tên, hoặc URL bị thiếu vài ký tự lúc sao chép. [?]',
-    dayLaGi: 'Ba đường dùng nhiều nhất: [?]',
+      'Có thể nó đã được đổi tên, hoặc URL bị thiếu vài ký tự lúc sao chép.',
+    dayLaGi: 'Ba đường dùng nhiều nhất:',
     veTrangChu: 'Về trang chủ',
     diFaucet: 'Nhận token thử',
     diDeChain: 'Đẻ chain của bạn',
     // Ghi chú cho người đọc mã, KHÔNG hiện ra: explorer nằm ở tên miền khác
     // (9Scan-A1) và Blockscout phục vụ `/tx/`, `/address/` ngay trên tên miền này —
     // nên nếu người dùng đang tìm một giao dịch, họ KHÔNG lạc, họ chỉ gõ sai băm.
-    timGiaoDich: 'Đang tìm một giao dịch hay một địa chỉ? Kiểm lại mã băm rồi thử lại. [?]',
+    timGiaoDich: 'Đang tìm một giao dịch hay một địa chỉ? Kiểm lại mã băm rồi thử lại.',
   },
 } as const;
 

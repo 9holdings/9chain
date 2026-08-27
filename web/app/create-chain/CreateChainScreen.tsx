@@ -393,7 +393,7 @@ export function CreateChainScreen() {
                   } catch (e) {
                     const l = docLoiVi(e);
                     datLoiThemVi(
-                      l.tuChoi ? vi.deChain.viTuChoi : dien(vi.deChain.xongThemViLoi, { chiTiet: l.chu ?? '' }),
+                      l.tuChoi ? vi.chung.viTuChoi : dien(vi.deChain.xongThemViLoi, { chiTiet: l.chu ?? '' }),
                     );
                   }
                 }}
@@ -415,7 +415,7 @@ export function CreateChainScreen() {
                     datKichHoat('chua');
                     const l = docLoiVi(e);
                     datLoiKichHoat(
-                      l.tuChoi ? vi.deChain.viTuChoi : dien(vi.deChain.xongKichHoatLoi, { chiTiet: l.chu ?? '' }),
+                      l.tuChoi ? vi.chung.viTuChoi : dien(vi.deChain.xongKichHoatLoi, { chiTiet: l.chu ?? '' }),
                     );
                   }
                 }}

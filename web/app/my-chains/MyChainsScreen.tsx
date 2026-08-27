@@ -302,7 +302,7 @@ export function MyChainsScreen() {
                               [c.chainId]: {
                                 xong: false,
                                 chu: l.tuChoi
-                                  ? vi.chainCuaToi.themViTuChoi
+                                  ? vi.chung.viTuChoi
                                   : dien(vi.chainCuaToi.themViLoi, { chiTiet: l.chu ?? '' }),
                               },
                             }));
