@@ -8,6 +8,37 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 
 ---
 
+## 🔴 ĐỢT AUTOPILOT 14 (2026-08-27) — 5 mốc đường găng ngày G
+
+Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
+**Không mốc nào cần David.** Không đạt ⇒ ghi `BLOCKERS.md` rồi sang mốc kế, đừng dừng chờ.
+
+- [x] **A-1 — Diễn tập giao dịch nghi lễ Block Adam** (§4 `NGAY-G-A1-CON-LAI`) — **ĐẠT `27/08`**
+      Bài `local-net/faucet/block-adam-drill.mjs` + mạng tập `local-net/docker-compose.drill.yml`
+      (1 node, cổng 9750, binary đã vá — `supplyCap` 7900000001000000000 trong log đầu).
+      **4 lượt chạy:** bù 0 ⇒ 🔴 **7 đạt/1 hỏng** · bù +3s ⇒ ✅ **9 đạt/0 hỏng** · đối chứng
+      ngược *không gửi gì* ⇒ 3/3 đúng (0 block) · đối chứng ngược *hẹn sai giờ* ⇒ 5/5 đúng.
+      Hẹn giờ lệch **0 ms** cả 3 lượt. Bản đầy đủ: `docs/DIEN-TAP-BLOCK-ADAM-2026-08-27.md`.
+      🔴 **Lượt bắn ĐÚNG mốc HỎNG** — `block.timestamp` rơi vào đúng giây bấm gửi ⇒ block chứa
+      Adam mang `ts = mốc`, không **vượt** mốc; block vượt mốc lại là block của Eva. Luật khắc
+      và hành động nghi lễ trỏ vào **hai block khác nhau**. ⇒ sinh ra **B-13** (a: David chốt
+      neo vào cái gì · b: đo lệch đồng hồ 9 node rồi chọn `--bu-ms`), D-052…D-055.
+      ⚠️ Chỉ phủ **C-Chain**; 1 node ⇒ **không chứng minh được đồng thuận**.
+- [ ] **A-2 — Quy trình O2**: export + `sha256` mạng sắp chết, công bố **trước** khi xoá.
+      *Điều kiện qua:* chạy thử được **một lệnh**, ra tệp + `sha256`; đối chứng ngược:
+      sửa 1 byte ⇒ hash đổi.
+- [ ] **A-3 — G4**: tra `chainid.network` xem `9000000009` có bị chiếm không.
+      *Điều kiện qua:* có bản chụp/JSON của `chains.json` kèm ngày tra. 🔴 Phải tra **LẠI**
+      ngay trước bước sinh genesis ngày G.
+- [ ] **A-4 — C-4**: cổng "bản tập ≠ bản thật" cho **chainId** (B-11). Không chạm binary.
+      *Điều kiện qua:* netgen từ chối/cảnh báo khi sinh mạng tập mang chainId của mạng thật;
+      **có đối chứng ngược**.
+- [ ] **A-5 — I1b**: phơi trần cung ra endpoint đọc được, **hoặc** ghi rõ trên trang rằng
+      nguồn là *tham số genesis*.
+      *Điều kiện qua:* số trên trang truy được về một lệnh RPC, hoặc trang tự khai nguồn.
+
+---
+
 ## ✅ Đã xong trước autopilot (kiểm kê 2026-08-24)
 
 - [x] Fork avalanchego → identity 9Chain-A1 (LOVE9/love9/9001/love9evm, chainId 9000000009)

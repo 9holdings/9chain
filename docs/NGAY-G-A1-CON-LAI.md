@@ -186,10 +186,43 @@ phải xử.
 chạy đúng `2026-09-09T06:09:09Z` và ngay sau đó, để Block Adam / Eva **được sinh ra bởi một hành
 động có chủ đích**.
 
-🔴 **Phải diễn tập trước.** Không diễn tập thì sai lầm chỉ lộ ra đúng ngày `09/09`, và ngày đó
-không có lần thứ hai.
-🔴 **Còn phải chốt: Block Adam nằm trên CHAIN NÀO.** A1 có P/X/C, không như C1 chỉ một chuỗi.
-Khuyến nghị **C-Chain** — đó là thứ explorer hiện và người dùng trích dẫn.
+✅ **ĐÃ DIỄN TẬP `27/08`** — bản đầy đủ: [`DIEN-TAP-BLOCK-ADAM-2026-08-27.md`](DIEN-TAP-BLOCK-ADAM-2026-08-27.md).
+Bài: `local-net/faucet/block-adam-drill.mjs`, mạng tập 1 node trên cổng 9750.
+
+🔴 **Và nó bắt được một lỗi trong CHÍNH đối sách này, ngay lượt chạy đầu.** Bắn **đúng** mốc —
+y như câu trên đang viết — thì:
+
+```
+block #1  ts = mốc + 0s   ← chứa giao dịch ADAM.  KHÔNG vượt mốc
+block #2  ts = mốc + 2s   ← chứa giao dịch EVA.   vượt mốc
+```
+
+`block.timestamp` rơi vào **đúng giây ta bấm gửi**, mà `T > T` là sai. ⇒ theo đúng chữ *"block
+đầu tiên **vượt** mốc"*, **Block Adam sẽ là block của Eva.** Luật khắc và hành động nghi lễ trỏ
+vào hai block khác nhau, và toàn bộ khoảng cách là **một phép so sánh chặt hay không chặt**.
+
+Bù **+3s** thì đạt 9/9 (block chứa Adam *là* block đầu tiên vượt mốc). Hai ca đối chứng ngược
+đều đỏ đúng chỗ — trong đó ca *"hẹn sai giờ"* là ca đắt nhất: hai giao dịch `status 1`, chuỗi
+đẻ ra block, **mọi dấu hiệu thành công đều xanh, mà vẫn không có Block Adam**.
+
+**Ba việc còn lại, xếp theo mức mất mát:**
+
+1. 🔴 **Con số bù phải suy từ ĐO, không từ +3s của lượt tập.** Lượt tập chạy 1 node dùng chung
+   đồng hồ với máy bắn. Trên bộ 9 node, `block.timestamp` là đồng hồ của **node đề xuất block**.
+   Node đó chậm 5 giây thì bù +3s vẫn trượt. ⇒ **trước ngày G phải đo lệch đồng hồ cả 9 node**
+   rồi chọn bù lớn hơn độ lệch âm lớn nhất.
+2. 🔴 **Luật *"block ĐẦU TIÊN vượt mốc"* là thứ nghi lễ KHÔNG tự bảo đảm được.** Bù dương chỉ vá
+   phần ta điều khiển — giao dịch của ta. Mệnh đề *"đầu tiên"* nói về **toàn chuỗi**: ai gửi một
+   giao dịch vào khoảng giữa mốc và lúc ta bắn đều chiếm mất ô đó. *"Đo thấy đứng yên"* ≠ *"được
+   bảo đảm đứng yên"*, và ngày G là ngày đông người nhất từ trước tới nay. ⇒ luật chắc chắn đúng
+   phải neo vào **hash giao dịch nghi lễ** hoặc **số block chốt sau khi nó đã sinh ra**.
+3. **Bài này chỉ phủ C-Chain.** Chọn P-Chain là **phải diễn tập lại** — giao dịch nghi lễ trên
+   P-Chain là cơ chế khác hẳn (export/import hoặc thao tác staking), không phải một
+   `eth_sendRawTransaction`. Phải tính thời gian cho việc đó trước `09/09`.
+
+🔴 **Còn phải chốt: Block Adam nằm trên CHAIN NÀO — và NEO VÀO CÁI GÌ.** A1 có P/X/C, không như
+C1 chỉ một chuỗi. Khuyến nghị **C-Chain** — đó là thứ explorer hiện và người dùng trích dẫn.
+Vế *"neo vào cái gì"* là do lượt diễn tập `27/08` sinh ra, xem mục 2 ngay trên.
 
 ---
 
@@ -288,7 +321,7 @@ phải thiết kế trước lượt tập đầu tiên**, không phải trướ
 | ~~1~~ | ✅ **XONG `27/08`** — ~~phân xử bảng phân bổ~~ → **giữ bảng đang chạy 40/30/12/9/9** (D-045). G1+G2+G3 mở khoá, không phải sửa mã | — | — |
 | ~~1b~~ | ✅ **XONG `27/08` — GIỮ N = 9** (D-046). 🔴 **Đổi bản chất O4**: không còn là "thêm node thứ 10" mà là **DỜI một trong 9 node** sang nhà cung cấp khác — tốt hơn, và chi phí khác hẳn | — | — |
 | **2** | 🔴 **Sơ đồ custody khoá quỹ mới** (O1) | Sinh lại mạng là **cơ hội một lần**; sau ngày G lại kẹt y cũ | **`28/08`** |
-| **3** | **Block Adam nằm trên chain nào** (khuyến nghị C-Chain) | Khắc vĩnh viễn | `28/08` |
+| **3** | **Block Adam: (a) nằm trên chain nào** (khuyến nghị C-Chain) · 🆕 **(b) NEO VÀO CÁI GÌ** — *"block đầu tiên vượt mốc"* là mệnh đề về **toàn chuỗi**, nghi lễ không tự bảo đảm được; khuyến nghị neo vào **hash giao dịch nghi lễ**. Xem §4 | Khắc vĩnh viễn | `28/08` |
 | **4** | **L1 người dùng + câu cảnh báo khi mời người** (O3) | Chạm người thật ngoài dự án | `28/08` |
 | **5** 🔴 | **Có khôi phục sổ `retired` cũ không** (O3b) — **KHÔNG còn là rủi ro lý thuyết**, xem §5c | Chống phát lại cho ví người dùng cũ · **chain `David Do` 9141 nằm trong vùng đang hở** | `28/08` |
 | ~~7b~~ | ✅ **XONG `27/08` — GIỮ `9000000009`** (D-047). Hai vế rủi ro còn lại xử bằng **câu chữ trên trang**, không bằng đổi số | — | — |
@@ -313,7 +346,9 @@ Bản nháp BOD có 7 điều kiện, trong đó **điều 1 không thoả mãn 
 6. **O1** — custody đã chốt **và đã diễn tập trọn ít nhất một lượt bằng phương tiện thật**
 7. **O2** — quy trình export + `sha256` đã chạy thử được (đừng lặp lại lỗ hổng `26/08`)
 8. **O3** — đã có quyết định, và câu cảnh báo đã lên `Web9Chain`
-9. 🆕 **Giao dịch nghi lễ Block Adam đã diễn tập trên bản tập**
+9. ✅ **Giao dịch nghi lễ Block Adam đã diễn tập trên bản tập** — xong `27/08`, 9/9 + 2 ca đối
+   chứng ngược. 🔴 **Còn hai vế chưa đạt, và cả hai đã lộ ra nhờ chính lượt tập:** (a) đã **đo
+   lệch đồng hồ 9 node** và chọn được con số bù · (b) David đã chốt Block Adam **neo vào cái gì**
 10. 🆕 **Cổng "bản tập ≠ bản thật" đã tồn tại và đã bắt được ít nhất một ca đối chứng ngược**
 
 ---
@@ -346,7 +381,13 @@ Xếp theo thứ tự đường găng:
 3. ✅ **XONG `26/08`** — **Cổng "bản tập ≠ bản thật"** (§5): mặc định KHÔNG khắc, bật khắc thì
    bắt buộc `A1_ENGRAVE_CONFIRM` khớp vân tay bộ tài liệu, và netgen **luôn in ra** mình có
    khắc hay không. Đã có đối chứng ngược: vân tay lệch ⇒ từ chối sinh mạng.
-4. **Diễn tập giao dịch nghi lễ Block Adam** trên bản tập.
+4. ✅ **XONG `27/08`** — **Diễn tập giao dịch nghi lễ Block Adam** trên bản tập:
+   `local-net/faucet/block-adam-drill.mjs` + `local-net/docker-compose.drill.yml`.
+   4 lượt chạy, **lượt bắn đúng mốc HỎNG** (block của Adam không vượt mốc), bù +3s đạt 9/9,
+   2 ca đối chứng ngược đỏ đúng chỗ. Bản đầy đủ:
+   [`DIEN-TAP-BLOCK-ADAM-2026-08-27.md`](DIEN-TAP-BLOCK-ADAM-2026-08-27.md).
+   🔴 Sinh ra 2 việc: **đo lệch đồng hồ 9 node** (A1 làm được, sau khi mạng ngày G lên) và
+   **neo Block Adam vào cái gì** (David, §6 mục 3).
 5. **Quy trình O2** (export + `sha256` + công bố) — thứ đã bỏ lỡ ở `26/08`.
 5b. ✅ **ĐÃ BÁO `27/08`** — 9Scan-A1 nay biết `Message` là trường chỉ ghi, không API nào trả về;
    bản văn phải đọc từ **tệp genesis** (nói rõ nguồn là tệp), còn thứ đọc **từ chain** là

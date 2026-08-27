@@ -1296,3 +1296,52 @@ lại từ đầu để tới cùng một chỗ. Nay khai thành chữ trong `ge
 
 **chainId `9000000009` cắm cứng** trong `cChainGenesis` ⇒ mạng tập và mạng thật không phân
 biệt được. **Không chạm binary** nên không chặn ngày G. Vẫn ở `BLOCKERS.md` B-11.
+
+---
+
+## 2026-08-27 · Đợt autopilot 14 (5 mốc đường găng ngày G)
+
+### D-052 — Mạng tập diễn tập có tệp compose RIÊNG, cổng 9750, KHÔNG dùng lại cổng 9650
+
+`local-net/docker-compose.drill.yml` (project `a1-drill`, volume riêng, image mặc định
+`9chain-a1/node:boottest`).
+
+**Lý do:** Blockscout local trỏ vào **9650**. Cho một mạng tập lên đó là để explorer index
+một chuỗi rồi chuỗi đó biến mất lúc `down -v` — DB explorer giữ lại block của một mạng
+không còn tồn tại, **và không có gì báo lỗi**. Bản soát core `27/08` (§9.6) đã dựng tay đúng
+sơ đồ này để boot thử patch 0013; tệp này chỉ codify lại để lần sau không phải nhớ.
+
+**Đánh đổi:** thêm một tệp compose phải giữ đồng bộ với `docker-compose.yml`. Chấp nhận, và
+giảm rủi ro bằng cách chỉ cho lệch **đúng ba chỗ** (cổng · volume · biến image); mọi tham số
+avalanchego giữ y nguyên — mạng tập lệch tham số so với mạng thật thì nó thôi là bài tập.
+
+### D-053 — Bài diễn tập Block Adam chấm bằng "quét chuỗi", KHÔNG chấm bằng "giao dịch có receipt"
+
+`local-net/faucet/block-adam-drill.mjs` chấm đạt/hỏng bằng cách **quét chuỗi tìm block đầu
+tiên có `timestamp` vượt mốc**, rồi hỏi block đó có đúng là block của giao dịch nghi lễ không.
+
+**Lý do — có số đo, không phải cẩn thận suông.** Ca đối chứng ngược "hẹn sai giờ" (bắn sớm
+12s) cho: hai giao dịch `status 1`, chuỗi đẻ ra 2 block, không lỗi ở đâu — **mà vẫn không có
+Block Adam**. Một bài kiểm hỏi *"giao dịch có chốt không"* sẽ báo ĐẠT ở đúng ca hỏng. Mệnh đề
+sẽ được khắc là mệnh đề về **chuỗi**, nên phép đo phải hỏi **chuỗi**.
+
+### D-054 — Nghi lễ bắn ở `mốc + bù`, bù > 0; con số bù là THAM SỐ, không cắm cứng
+
+Cờ `--bu-ms`, mặc định **0** (tức mặc định là hành vi *sai* đã đo được — cố ý, để ai chạy
+mặc định thì gặp đúng cái bẫy trong môi trường tập chứ không phải ngày `09/09`).
+
+**Lý do:** đo `27/08`, bắn tại giây `T` ⇒ `block.timestamp = T`, mà luật khắc đòi **vượt** mốc
+(`> T`). Bù 0 làm luật khắc và hành động nghi lễ trỏ vào **hai block khác nhau**.
+
+**Giả định phải bác được, và A1 KHÔNG tự chốt con số:** +3s đạt trên mạng tập **1 node dùng
+chung đồng hồ với máy bắn**. Trên bộ 9 node, `block.timestamp` là đồng hồ của **node đề xuất
+block**. ⇒ con số bù thật phải suy từ phép **đo lệch đồng hồ cả 9 node**, làm sau khi mạng
+ngày G lên. Cắm +3s vào runbook bây giờ là chép một con số ra khỏi thang đo của nó.
+
+### D-055 — Diễn tập chỉ phủ C-Chain; KHÔNG suy sang P-Chain
+
+**Lý do:** khuyến nghị hiện tại là C-Chain (§4 `NGAY-G-A1-CON-LAI`) và bài đo đúng chuỗi đó.
+Giao dịch nghi lễ trên P-Chain là **cơ chế khác hẳn** — export/import hoặc thao tác staking,
+không phải một `eth_sendRawTransaction`. Viết sẵn cả hai rồi bỏ một là phí, mà suy từ chuỗi
+này sang chuỗi kia là đúng lớp lỗi repo này cấm.
+**Hệ quả:** David chọn P-Chain ⇒ **phải diễn tập lại**, và phải tính thời gian trước `09/09`.

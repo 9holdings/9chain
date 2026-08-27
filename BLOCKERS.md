@@ -6,6 +6,26 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### 🔴 B-13 — BLOCK ADAM: NEO VÀO CÁI GÌ, VÀ BÙ BAO NHIÊU (2026-08-27, sinh từ diễn tập A-1)
+
+Diễn tập `27/08` đạt (9/9 + 2 đối chứng ngược) — bản đầy đủ
+[`docs/DIEN-TAP-BLOCK-ADAM-2026-08-27.md`](docs/DIEN-TAP-BLOCK-ADAM-2026-08-27.md). Nhưng nó
+đẻ ra hai việc **không đóng được trong cùng lượt**.
+
+| | Việc | Ai | Vì sao không tự quyết/tự làm được |
+|---|---|---|---|
+| **(a)** | 🔴 **Block Adam NEO VÀO CÁI GÌ** | **David** | Luật đang định khắc — *"block **đầu tiên** vượt `2026-09-09T06:09:09Z`"* — là mệnh đề về **TOÀN CHUỖI**, mà nghi lễ chỉ điều khiển được **giao dịch của mình**. Ai gửi một giao dịch vào khoảng giữa mốc và lúc ta bắn là chiếm mất ô đó, không giành lại được. **Khắc vĩnh viễn** ⇒ không tự quyết. *Khuyến nghị: neo vào **hash giao dịch nghi lễ**, hoặc số block chốt SAU khi nó đã sinh ra.* Hạn `28/08`, gộp vào `NGAY-G-A1-CON-LAI.md` §6 mục 3 |
+| **(b)** | **Đo lệch đồng hồ 9 node** rồi chọn `--bu-ms` | A1 | Làm được, nhưng **chỉ sau khi mạng ngày G lên** — số phải đo trên chính bộ node sẽ chạy nghi lễ |
+
+🔴 **Vì sao (b) không phải là "chép +3s vào runbook":** +3s đạt trên mạng tập **1 node dùng
+chung đồng hồ với máy bắn**. Trên bộ 9 node, `block.timestamp` là đồng hồ của **node đề xuất
+block**; node đó chậm 5 giây thì bù +3s **vẫn trượt**. Chép con số ra khỏi thang đo của nó là
+đúng lớp lỗi đã ghi trong `HANDOFF` (*"số chép sang thang khác"*).
+
+⚠️ **Và nếu David chọn P-Chain thay C-Chain thì phải DIỄN TẬP LẠI** — giao dịch nghi lễ trên
+P-Chain là cơ chế khác hẳn (export/import hoặc thao tác staking), bài `block-adam-drill.mjs`
+không phủ được. Phải tính thời gian cho việc đó **trước `09/09`**, xem D-055.
+
 ### 🟡 B-11 — BA MỤC CHẠM BINARY **ĐÃ ĐÓNG** `27/08`, CÒN C-4 (2026-08-27)
 
 Từ bản soát core [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md) §7.
