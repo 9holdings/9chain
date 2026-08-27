@@ -548,6 +548,14 @@ export const vi: Tu = {
     loiChung: 'Không gửi được. {chiTiet}',
   },
 
+  /** Bộ chọn ngôn ngữ. Xem `components/ChonNgonNgu.tsx` cho lý do từng nhãn. */
+  chonNgonNgu: {
+    nhan: 'Ngôn ngữ',
+    mayDich: 'máy dịch',
+    mayDichGiaiThich: 'Chỉ bản tiếng Việt có người soát. Các bản còn lại là máy dịch và có thể sai — bản tiếng Anh là nguồn chuẩn.',
+    chuaCo: 'chưa có',
+  },
+
   loi: {
     khongKetNoi: 'Không kết nối được tới mạng',
     khongKetNoiMoTa: 'Có thể mạng đang bận hoặc đường truyền của bạn bị gián đoạn.',

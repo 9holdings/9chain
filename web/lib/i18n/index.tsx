@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import { EN, type Tu } from './en';
+export { dien } from './dien';
 import { KHOA_LUU, laMaHopLe, MAC_DINH, NGON_NGU, tra, type NgonNgu } from './ngonNgu';
 
 /**
@@ -56,36 +57,25 @@ const Ctx = createContext<BoiCanh | null>(null);
  * **không lỗi, không cảnh báo**, chỉ có họ chịu. `kiemBoNap()` bên dưới bắt việc đó.
  */
 const BO_NAP: Record<string, () => Promise<{ default: Tu }>> = {
-  zh: () => import('./dicts/zh'),
-  hi: () => import('./dicts/hi'),
-  es: () => import('./dicts/es'),
-  ar: () => import('./dicts/ar'),
-  fr: () => import('./dicts/fr'),
-  bn: () => import('./dicts/bn'),
-  pt: () => import('./dicts/pt'),
   vi: () => import('./dicts/vi'),
-  ru: () => import('./dicts/ru'),
-  ur: () => import('./dicts/ur'),
-  id: () => import('./dicts/id'),
-  de: () => import('./dicts/de'),
-  ja: () => import('./dicts/ja'),
-  mr: () => import('./dicts/mr'),
-  te: () => import('./dicts/te'),
-  tr: () => import('./dicts/tr'),
-  ta: () => import('./dicts/ta'),
-  ko: () => import('./dicts/ko'),
-  it: () => import('./dicts/it'),
-  th: () => import('./dicts/th'),
-  gu: () => import('./dicts/gu'),
-  fa: () => import('./dicts/fa'),
-  pl: () => import('./dicts/pl'),
-  uk: () => import('./dicts/uk'),
-  ms: () => import('./dicts/ms'),
-  nl: () => import('./dicts/nl'),
-  tl: () => import('./dicts/tl'),
-  sw: () => import('./dicts/sw'),
-  ha: () => import('./dicts/ha'),
 };
+
+/**
+ * 🔴 ĐANG DỰNG DỞ CÓ CHỦ Ý — 28 từ điển còn lại chưa có (2026-08-27).
+ *
+ * Sổ khai 30 ngôn ngữ; `BO_NAP` mới có 2 (EN trong bundle + VI). Đó KHÔNG phải lỗi
+ * quên: làm lát cắt dọc EN+VI chạy trước rồi mới sinh 28 bản còn lại là để nếu bộ
+ * máy sai thì phát hiện sau HAI từ điển, không phải sau ba mươi.
+ *
+ * ⚠️ Trong lúc dở dang, ngôn ngữ chưa có từ điển PHẢI hiện ra là **chưa có** trong
+ * bộ chọn — `coTuDien()` bên dưới là thứ bộ chọn dùng để biết. Để chúng trông như
+ * đã dùng được rồi lặng lẽ rơi về tiếng Anh là đúng kiểu hỏng tệ nhất: người dùng
+ * chọn tiếng của mình, thấy tiếng Anh, và không có gì nói cho họ biết vì sao.
+ */
+export function coTuDien(ma: string): boolean {
+  return ma === MAC_DINH || ma in BO_NAP;
+}
+
 
 /**
  * Cổng chặn LỆCH SỔ: mọi ngôn ngữ trong sổ (trừ EN) phải có một dòng trong `BO_NAP`,
@@ -211,10 +201,4 @@ export function useNgonNgu() {
     dangNap: c?.dangNap ?? false,
     datNgonNgu: c?.datNgonNgu ?? (() => {}),
   };
-}
-
-/** Thay `{khoa}` trong chuỗi bằng giá trị. Giữ nguyên dấu ngoặc khi thiếu khoá —
- *  một chỗ trống lặng lẽ đọc như dữ liệu bị mất, còn `{so}` lộ ra thì sửa được ngay. */
-export function dien(mau: string, gt: Record<string, string | number>): string {
-  return mau.replace(/\{(\w+)\}/g, (nguyen, k) => (k in gt ? String(gt[k]) : nguyen));
 }

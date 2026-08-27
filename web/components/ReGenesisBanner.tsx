@@ -1,4 +1,6 @@
-import { vi, dien } from '@/lib/i18n/vi';
+'use client';
+
+import { dien, useT } from '@/lib/i18n';
 
 /**
  * Dải cảnh báo re-genesis — nằm TRÊN header, ở mọi trang.
@@ -17,21 +19,22 @@ import { vi, dien } from '@/lib/i18n/vi';
  * sẽ tắt sai ở mọi máy đặt sai giờ.
  */
 export function ReGenesisBanner() {
+  const t = useT();
   // 🔴 `text-ink`, KHÔNG phải `text-navy`. Bản tối lật `--color-gold-tint` thành nâu
   // sẫm `#2b2410`, mà `--color-navy` ở bản tối là `#1b2748` — tối trên tối, gần như
   // không đọc được. `--color-ink` lật theo nền (`#e9eefa`) nên đọc được ở CẢ HAI bản.
   // Đúng lớp lỗi chỉ lộ ra khi đổi theme, không lộ lúc viết.
   return (
-    <aside aria-label={vi.reGenesis.nhan} className="border-b border-gold-line bg-gold-tint text-ink">
+    <aside aria-label={t.reGenesis.nhan} className="border-b border-gold-line bg-gold-tint text-ink">
       <div className="khung flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2.5 text-sm">
         <span className="font-semibold">
-          {dien(vi.reGenesis.bang, { ngay: vi.reGenesis.ngay })}
+          {dien(t.reGenesis.bang, { ngay: t.reGenesis.ngay })}
         </span>
         <a
           href="/re-genesis/"
           className="font-semibold text-gold-ink-strong underline underline-offset-2 hover:no-underline"
         >
-          {vi.reGenesis.bangNut}
+          {t.reGenesis.bangNut}
         </a>
       </div>
     </aside>

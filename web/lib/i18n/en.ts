@@ -405,6 +405,14 @@ export const EN = {
     loiChung: 'Could not send. {chiTiet}',
   },
 
+  /** Bộ chọn ngôn ngữ. Xem `components/ChonNgonNgu.tsx` cho lý do từng nhãn. */
+  chonNgonNgu: {
+    nhan: 'Language',
+    mayDich: 'machine',
+    mayDichGiaiThich: 'Only Vietnamese has been reviewed by a person. The other translations are machine-made and may be wrong — the English version is the source of truth.',
+    chuaCo: 'not yet available',
+  },
+
   loi: {
     khongKetNoi: 'Could not reach the network',
     khongKetNoiMoTa: 'The network may be busy, or your connection may have dropped.',

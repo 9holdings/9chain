@@ -1,14 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { vi, dien } from '../lib/i18n/vi';
+import { dien } from '../lib/i18n';
+import vi from '../lib/i18n/dicts/vi';
 
 /**
  * Giữ cho việc tách chuỗi KHÔNG bị bào mòn.
  *
- * Tiếng Anh làm sau, nhưng gom chuỗi lại sau thì đắt gấp nhiều lần — và cách nó bị
- * bào mòn luôn giống nhau: một người thêm một chuỗi thẳng vào JSX vì "chỉ một chữ
- * thôi". Bài này bắt đúng lúc đó, chứ không phải lúc đi dịch.
+ * Cách nó bị bào mòn luôn giống nhau: một người thêm một chuỗi thẳng vào JSX vì
+ * "chỉ một chữ thôi". Bài này bắt đúng lúc đó, chứ không phải lúc đi dịch.
+ *
+ * 🔴 TỪ 2026-08-27 LUẬT NÀY ĐẮT HƠN TRƯỚC, KHÔNG RẺ ĐI.
+ * Trước đây site chỉ có tiếng Việt, nên một chuỗi lọt vào JSX chỉ là chuyện dọn dẹp.
+ * Nay site có **30 ngôn ngữ**: một chuỗi viết thẳng trong JSX là một câu **không bao
+ * giờ dịch được**, và nó sẽ đứng nguyên tiếng Việt giữa một trang tiếng Ả Rập —
+ * không lỗi, không cảnh báo, chỉ người đọc chịu.
+ * Bài này vẫn quét chữ có dấu tiếng Việt vì đó là thứ dễ nhận nhất; nó KHÔNG bắt
+ * được chuỗi tiếng Anh viết thẳng. Cổng thật cho chuyện đó là `useT()` — mã không
+ * lấy chữ từ đâu khác được.
  */
 
 const GOC = path.resolve(__dirname, '..');

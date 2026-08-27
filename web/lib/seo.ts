@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { vi } from '@/lib/i18n/vi';
+import { EN } from '@/lib/i18n/en';
 
 /**
  * Thẻ chia sẻ cho từng trang (Đ1-5, 2026-08-27).
@@ -25,6 +25,15 @@ import { vi } from '@/lib/i18n/vi';
  * cặp ký tự đó đóng luôn khối chú thích, và lỗi hiện ra ở tận dòng dưới nên rất
  * khó lần. Bản đầu của tệp này dính đúng thế.
  *
+ * 🔴 DÙNG `EN` TĨNH, KHÔNG DÙNG `useT()` — và đó KHÔNG phải thiếu sót.
+ * `metadata` được Next sinh lúc BUILD, trước khi có trình duyệt, nên ở đó không có
+ * ngôn ngữ nào "đang chọn" cả. Với `output: 'export'` mỗi trang chỉ có MỘT bản HTML,
+ * nên thẻ meta buộc phải ở một thứ tiếng — và đó là tiếng Anh, ngôn ngữ mặc định.
+ * ⚠️ Hệ quả đã biết, ghi ra để không ai tưởng là lỗi: người đọc tiếng Việt dán liên
+ * kết vào nhóm chat vẫn thấy thẻ chia sẻ tiếng Anh. Muốn thẻ theo ngôn ngữ thì phải
+ * có URL riêng cho từng ngôn ngữ (`/vi/faucet/`…) — một quyết định kiến trúc khác,
+ * đắt hơn nhiều, chưa làm.
+ *
  * Dùng: `export const metadata = trangMeta({ tieuDe, moTa, duong })`.
  * Không gõ lại chuỗi ở lời gọi — truyền đúng biến đã dùng cho `title`.
  */
@@ -44,14 +53,14 @@ export function trangMeta({
   // ngoài tầm với của mọi lượt sửa sau này. Cắt ở ĐÂY là hợp lệ; cắt ở tầng render
   // của trang thì KHÔNG — xem mục "cố ý không làm" số 15 trong lộ trình.
   const sach = (s: string) => s.replace(/ \[\?\]/g, '');
-  const t = `${sach(tieuDe)} — ${vi.chung.tenSanPham}`;
+  const t = `${sach(tieuDe)} — ${EN.chung.tenSanPham}`;
   const d = sach(moTa);
 
   return {
     title: t,
     description: d,
     alternates: { canonical: duong },
-    openGraph: { type: 'website', siteName: vi.chung.tenSanPham, title: t, description: d, url: duong },
+    openGraph: { type: 'website', siteName: EN.chung.tenSanPham, title: t, description: d, url: duong },
     twitter: { card: 'summary_large_image', title: t, description: d },
   };
 }

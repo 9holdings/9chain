@@ -1,4 +1,6 @@
-import { vi } from '@/lib/i18n/vi';
+'use client';
+
+import { useT } from '@/lib/i18n';
 import { CHAIN, explorerGoc } from '@/lib/chain';
 import { BrandLockup } from './BrandLockup';
 
@@ -27,37 +29,39 @@ import { BrandLockup } from './BrandLockup';
 
 /** Một liên kết ngoài: luôn `rel` an toàn, và nói cho trình đọc màn hình biết nó mở tab mới. */
 function NgoaiTrang({ href, children }: { href: string; children: React.ReactNode }) {
+  const t = useT();
   return (
     <a href={href} target="_blank" rel="noopener noreferrer" className="hover:text-ink hover:underline">
       {children}
-      <span className="sr-only"> {vi.chanTrang.moTabMoi}</span>
+      <span className="sr-only"> {t.chanTrang.moTabMoi}</span>
     </a>
   );
 }
 
 export function SiteFooter() {
+  const t = useT();
   const cot = [
     {
-      tieuDe: vi.chanTrang.dungThu,
+      tieuDe: t.chanTrang.dungThu,
       muc: [
-        { href: '/faucet/', nhan: vi.dieuHuong.faucet },
-        { href: '/create-chain/', nhan: vi.dieuHuong.console },
-        { href: '/my-chains/', nhan: vi.dieuHuong.chainCuaToi },
+        { href: '/faucet/', nhan: t.dieuHuong.faucet },
+        { href: '/create-chain/', nhan: t.dieuHuong.console },
+        { href: '/my-chains/', nhan: t.dieuHuong.chainCuaToi },
       ],
     },
     {
-      tieuDe: vi.chanTrang.kham,
+      tieuDe: t.chanTrang.kham,
       muc: [
-        { href: '/chains/', nhan: vi.dieuHuong.danhBa },
-        { href: '/compare/', nhan: vi.dieuHuong.bang },
-        { href: explorerGoc(), nhan: vi.chanTrang.explorer, ngoai: true },
+        { href: '/chains/', nhan: t.dieuHuong.danhBa },
+        { href: '/compare/', nhan: t.dieuHuong.bang },
+        { href: explorerGoc(), nhan: t.chanTrang.explorer, ngoai: true },
       ],
     },
     {
-      tieuDe: vi.chanTrang.veDuAn,
+      tieuDe: t.chanTrang.veDuAn,
       muc: [
-        { href: 'https://9chain.org/', nhan: vi.chanTrang.trangChinh, ngoai: true },
-        { href: '/re-genesis/', nhan: vi.chanTrang.reGenesis },
+        { href: 'https://9chain.org/', nhan: t.chanTrang.trangChinh, ngoai: true },
+        { href: '/re-genesis/', nhan: t.chanTrang.reGenesis },
       ],
     },
   ];
@@ -70,11 +74,11 @@ export function SiteFooter() {
             {/* Chân trang dùng `bg-surface` — nền ĐỔI theo theme (trắng ở bản sáng,
                 #131c33 ở bản tối) ⇒ logo phải đổi theo, nên `nen="theo-theme"`.
                 Khác header: header luôn navy nên luôn dùng bản nền tối. */}
-            <BrandLockup nen="theo-theme" cao={26} nhan={vi.chung.tenSanPham} />
-            <p className="max-w-xs">{vi.chung.moTaNgan}</p>
+            <BrandLockup nen="theo-theme" cao={26} nhan={t.chung.tenSanPham} />
+            <p className="max-w-xs">{t.chung.moTaNgan}</p>
           </div>
 
-          <nav aria-label={vi.chanTrang.nhanNav} className="grid grid-cols-2 gap-x-10 gap-y-7 sm:grid-cols-3">
+          <nav aria-label={t.chanTrang.nhanNav} className="grid grid-cols-2 gap-x-10 gap-y-7 sm:grid-cols-3">
             {cot.map((c) => (
               <div key={c.tieuDe} className="flex flex-col gap-2">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-muted">{c.tieuDe}</h2>

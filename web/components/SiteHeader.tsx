@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ThemeToggle } from './ThemeToggle';
+import { ChonNgonNgu } from './ChonNgonNgu';
 import { BrandLockup } from './BrandLockup';
-import { vi } from '@/lib/i18n/vi';
+import { useT } from '@/lib/i18n';
+import type { Tu } from '@/lib/i18n/en';
 import { explorerGoc } from '@/lib/chain';
 import { gop } from './ui';
 
@@ -22,16 +24,27 @@ type Muc = { chu: string; href: string; ngoai?: boolean };
 //
 // Console CŨ (`/console/`) vẫn sống và vẫn là đường của người vận hành; nó rời khỏi
 // thanh điều hướng khi M10.7 dọn, chứ không bị gỡ trong cùng một lượt.
-const MUC: Muc[] = [
-  { chu: vi.dieuHuong.trangChu, href: '/' },
-  { chu: vi.dieuHuong.faucet, href: '/faucet/' },
-  { chu: vi.dieuHuong.console, href: '/create-chain/' },
-  { chu: vi.dieuHuong.chainCuaToi, href: '/my-chains/' },
-  { chu: vi.dieuHuong.bang, href: '/compare/' },
-  { chu: vi.dieuHuong.danhBa, href: '/chains/' },
-];
+// 🔴 ĐỔI TỪ HẰNG SỐ MODULE THÀNH HÀM (đa ngôn ngữ, 2026-08-27).
+// Bản cũ dựng mảng này ở PHẠM VI MODULE, tức nó bị đóng băng với từ điển có mặt lúc
+// tệp được nạp. Với một từ điển tĩnh thì không sao; với `useT()` thì đó là một cái
+// bẫy im lặng: đổi ngôn ngữ xong CẢ TRANG lật, riêng thanh điều hướng đứng nguyên
+// tiếng Anh — và không có lỗi nào báo, vì mã vẫn chạy đúng.
+// Đường dẫn thì KHÔNG đổi theo ngôn ngữ (mỗi trang chỉ có một URL), nên chỉ phần
+// chữ nhận `t`.
+function dungMuc(t: Tu): Muc[] {
+  return [
+    { chu: t.dieuHuong.trangChu, href: '/' },
+    { chu: t.dieuHuong.faucet, href: '/faucet/' },
+    { chu: t.dieuHuong.console, href: '/create-chain/' },
+    { chu: t.dieuHuong.chainCuaToi, href: '/my-chains/' },
+    { chu: t.dieuHuong.bang, href: '/compare/' },
+    { chu: t.dieuHuong.danhBa, href: '/chains/' },
+  ];
+}
 
 export function SiteHeader() {
+  const t = useT();
+  const MUC = dungMuc(t);
   const [moNgan, datMoNgan] = useState(false);
   const nutRef = useRef<HTMLButtonElement>(null);
   const nganRef = useRef<HTMLDivElement>(null);
@@ -70,13 +83,13 @@ export function SiteHeader() {
             Thanh này luôn `bg-navy` ở CẢ HAI theme ⇒ luôn dùng bản nền tối.
             Chip "A1" giữ nguyên: nó là nhãn phiên bản mạng, không thuộc logo. */}
         <a href="/" className="flex items-center gap-2">
-          <BrandLockup nen="toi" cao={28} nhan={vi.chung.tenSanPham} className="flex-none" />
+          <BrandLockup nen="toi" cao={28} nhan={t.chung.tenSanPham} className="flex-none" />
           <span className="rounded-chip border border-line-dark-2 px-1.5 py-0.5 font-sans text-[11px] font-semibold text-gold-muted">
             A1
           </span>
         </a>
 
-        <nav aria-label={vi.dieuHuong.trangChu} className="hidden items-center gap-1 md:flex">
+        <nav aria-label={t.dieuHuong.trangChu} className="hidden items-center gap-1 md:flex">
           {MUC.map((m) => (
             <a
               key={m.href}
@@ -90,15 +103,16 @@ export function SiteHeader() {
             href={explorerGoc()}
             target="_blank"
             rel="noreferrer"
-            aria-label={vi.dieuHuong.banGiao}
+            aria-label={t.dieuHuong.banGiao}
             className="rounded-btn px-3 py-2 text-sm font-semibold text-on-dark-2 hover:bg-navy-hover hover:text-on-dark"
           >
-            {vi.dieuHuong.explorer}
+            {t.dieuHuong.explorer}
             <span aria-hidden="true"> ↗</span>
           </a>
         </nav>
 
         <div className="flex items-center gap-2">
+          <ChonNgonNgu />
           <ThemeToggle />
           <button
             ref={nutRef}
@@ -106,7 +120,7 @@ export function SiteHeader() {
             onClick={() => datMoNgan((v) => !v)}
             aria-expanded={moNgan}
             aria-controls="ngan-dieu-huong"
-            aria-label={moNgan ? vi.chung.dongMenu : vi.chung.moMenu}
+            aria-label={moNgan ? t.chung.dongMenu : t.chung.moMenu}
             className="inline-flex h-10 w-10 items-center justify-center rounded-btn border border-line-dark text-on-dark-2 hover:bg-navy-hover md:hidden"
           >
             <span aria-hidden="true">{moNgan ? '✕' : '☰'}</span>
@@ -122,7 +136,7 @@ export function SiteHeader() {
         hidden={!moNgan}
         className={gop('border-t border-line-dark bg-navy-panel md:hidden')}
       >
-        <nav aria-label={vi.chung.moMenu} className="khung flex flex-col py-2">
+        <nav aria-label={t.chung.moMenu} className="khung flex flex-col py-2">
           {MUC.map((m) => (
             <a
               key={m.href}
@@ -138,7 +152,7 @@ export function SiteHeader() {
             rel="noreferrer"
             className="rounded-btn px-3 py-3 text-base font-semibold text-on-dark hover:bg-navy-hover"
           >
-            {vi.dieuHuong.explorer}
+            {t.dieuHuong.explorer}
             <span aria-hidden="true"> ↗</span>
           </a>
         </nav>

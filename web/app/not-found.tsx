@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { vi } from '@/lib/i18n/vi';
+import { EN } from '@/lib/i18n/en';
+import { NoiDungKhongThay } from './NoiDungKhongThay';
 
 /**
  * 🔴 `noindex` LÀ PHẦN QUAN TRỌNG NHẤT CỦA KHỐI NÀY, KHÔNG PHẢI TIÊU ĐỀ.
@@ -12,14 +13,14 @@ import { vi } from '@/lib/i18n/vi';
  * `test/seo.test.ts` bắt đúng — `/` và `/404/` dùng chung một `og:title`.
  */
 export const metadata: Metadata = {
-  title: `${vi.khongThay.tieuDe.replace(' [?]', '')} — ${vi.chung.tenSanPham}`,
-  description: vi.khongThay.moTa.replace(/ \[\?\]/g, ''),
+  title: `${EN.khongThay.tieuDe.replace(' [?]', '')} — ${EN.chung.tenSanPham}`,
+  description: EN.khongThay.moTa.replace(/ \[\?\]/g, ''),
   robots: { index: false, follow: true },
   openGraph: {
     type: 'website',
-    siteName: vi.chung.tenSanPham,
-    title: `${vi.khongThay.tieuDe.replace(' [?]', '')} — ${vi.chung.tenSanPham}`,
-    description: vi.khongThay.moTa.replace(/ \[\?\]/g, ''),
+    siteName: EN.chung.tenSanPham,
+    title: `${EN.khongThay.tieuDe.replace(' [?]', '')} — ${EN.chung.tenSanPham}`,
+    description: EN.khongThay.moTa.replace(/ \[\?\]/g, ''),
   },
 };
 
@@ -47,37 +48,5 @@ export const metadata: Metadata = {
  * mọi đường do edge phục vụ đều đi bằng thẻ `<a>` — và đây đúng là một trong số đó.
  */
 export default function KhongThay() {
-  const t = vi.khongThay;
-  return (
-    <div className="khung flex min-h-[60vh] flex-col justify-center py-14 md:py-20">
-      <div className="max-w-xl">
-        <p className="font-mono text-sm font-bold tracking-[0.18em] text-muted">{t.ma}</p>
-        <h1 className="mt-3 font-display text-2xl font-extrabold text-ink md:text-3xl">{t.tieuDe}</h1>
-        <p className="mt-4 text-base text-body">{t.moTa}</p>
-        <p className="mt-2 text-base text-body">{t.timGiaoDich}</p>
-
-        <p className="mt-8 text-sm font-semibold text-muted">{t.dayLaGi}</p>
-        <nav aria-label={t.nhanNav} className="mt-3 flex flex-wrap gap-3">
-          <a
-            href="/"
-            className="tap-target inline-flex items-center rounded-[10px] bg-gold px-4 py-2.5 font-semibold text-navy transition-colors hover:bg-gold-hover"
-          >
-            {t.veTrangChu}
-          </a>
-          <a
-            href="/faucet/"
-            className="tap-target inline-flex items-center rounded-[10px] border border-line px-4 py-2.5 font-semibold text-ink transition-colors hover:border-gold"
-          >
-            {t.diFaucet}
-          </a>
-          <a
-            href="/create-chain/"
-            className="tap-target inline-flex items-center rounded-[10px] border border-line px-4 py-2.5 font-semibold text-ink transition-colors hover:border-gold"
-          >
-            {t.diDeChain}
-          </a>
-        </nav>
-      </div>
-    </div>
-  );
+  return <NoiDungKhongThay />;
 }

@@ -5,7 +5,9 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { ReGenesisBanner } from '@/components/ReGenesisBanner';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ThemeScript } from '@/components/ThemeScript';
-import { vi } from '@/lib/i18n/vi';
+import { EN } from '@/lib/i18n/en';
+import { NhaCungCapNgonNgu } from '@/lib/i18n';
+import { BoQuaToiNoiDung } from '@/components/BoQuaToiNoiDung';
 import { CHAIN } from '@/lib/chain';
 
 // Cùng ba font và cùng tên biến với 9Scan-A1 — `tokens.css` trỏ vào
@@ -32,9 +34,9 @@ export const metadata: Metadata = {
   // `<link rel="canonical">` THẬT trong HTML đã xuất, nên trỏ nó vào một tên miền
   // chưa phục vụ là ghi một điều sai vào sản phẩm đang chạy.
   metadataBase: new URL('https://a1.9chain.org'),
-  applicationName: vi.chung.tenSanPham,
-  title: `${vi.chung.tenSanPham} — ${vi.chung.tagTitle}`,
-  description: vi.trangChu.cPhu,
+  applicationName: EN.chung.tenSanPham,
+  title: `${EN.chung.tenSanPham} — ${EN.chung.tagTitle}`,
+  description: EN.trangChu.cPhu,
   alternates: { canonical: '/' },
   // Trước đây trang KHÔNG có favicon nào. Dùng luôn dấu LOVE9 David đưa.
   // Đường dẫn tuyệt đối theo gốc site — `/brand/*` có route riêng trong Caddy.
@@ -57,9 +59,9 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'vi_VN',
     url: '/',
-    siteName: vi.chung.tenSanPham,
-    title: `${vi.chung.tenSanPham} — ${vi.chung.tagTitle}`,
-    description: vi.trangChu.cPhu,
+    siteName: EN.chung.tenSanPham,
+    title: `${EN.chung.tenSanPham} — ${EN.chung.tagTitle}`,
+    description: EN.trangChu.cPhu,
     // 🔴 PHẢI LÀ PNG THẬT. Telegram, X, Zalo và Facebook đều KHÔNG render SVG
     // trong thẻ preview — khai SVG ở đây là thẻ chia sẻ trống trơn, và không có
     // lỗi nào báo. Ảnh sinh bằng `node web/scripts/gen-og.mjs` (chainId đọc
@@ -70,14 +72,14 @@ export const metadata: Metadata = {
         width: 1200,
         height: 630,
         type: 'image/png',
-        alt: `${vi.chung.tenSanPham} — chainId ${CHAIN.chainId}, ${CHAIN.kyHieu}`,
+        alt: `${EN.chung.tenSanPham} — chainId ${CHAIN.chainId}, ${CHAIN.kyHieu}`,
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${vi.chung.tenSanPham} — ${vi.chung.tagTitle}`,
-    description: vi.trangChu.cPhu,
+    title: `${EN.chung.tenSanPham} — ${EN.chung.tagTitle}`,
+    description: EN.trangChu.cPhu,
     images: ['/brand/og-9chain-a1.png'],
   },
 };
@@ -90,31 +92,36 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    // `lang="vi"` là bắt buộc, không phải trang trí: trình đọc màn hình chọn giọng
-    // theo thuộc tính này. Thiếu nó thì tiếng Việt bị đọc bằng ngữ âm tiếng Anh.
-    <html lang="vi" suppressHydrationWarning>
+    // 🔴 `lang` là bắt buộc, không phải trang trí: trình đọc màn hình chọn giọng
+    // theo thuộc tính này. Thiếu nó, hoặc để sai, thì cả trang bị đọc bằng ngữ âm
+    // của một thứ tiếng khác.
+    //
+    // Giá trị ở ĐÂY là `en` vì với `output: 'export'` mỗi trang chỉ có MỘT bản HTML,
+    // sinh lúc build, và mặc định của site là tiếng Anh. `NhaCungCapNgonNgu` ghi đè
+    // cả `lang` lẫn `dir` trên `<html>` ngay sau khi hydrate xong, theo lựa chọn đã
+    // lưu của người đọc. `suppressHydrationWarning` đã có sẵn ở đây (vốn cho theme)
+    // nên việc ghi đè đó không đẻ ra cảnh báo lệch.
+    <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
         <ThemeScript />
       </head>
       <body className={`${sora.variable} ${instrument.variable} ${jetbrains.variable} flex min-h-dvh flex-col`}>
-        {/* Liên kết bỏ qua điều hướng — thứ đầu tiên nhận tiêu điểm khi bấm Tab.
-            Ẩn cho tới khi được focus. Người đi bằng bàn phím không phải đi qua cả
-            thanh nav ở mỗi trang. */}
-        <a
-          href="#noi-dung"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-btn focus:bg-gold focus:px-4 focus:py-2 focus:font-semibold focus:text-navy"
-        >
-          {vi.chung.boQuaToiNoiDung}
-        </a>
-        {/* Dải cảnh báo đứng SAU lối tắt bàn phím, TRƯỚC header: người đi bàn phím
-            vẫn nhảy thẳng được vào nội dung, còn người đọc bằng mắt thì thấy nó
-            trước mọi thứ khác. Gỡ dải này sau ngày G — xem chú thích trong file. */}
-        <ReGenesisBanner />
-        <SiteHeader />
-        <main id="noi-dung" className="flex-1">
-          {children}
-        </main>
-        <SiteFooter />
+        {/* 🔴 PROVIDER BỌC TOÀN BỘ <body>, KHÔNG BỌC TỪNG PHẦN.
+            Nếu mỗi vùng tự nạp từ điển thì chúng đổi trạng thái ở những nhịp khác
+            nhau, và người dùng thấy một trang NỬA ANH NỬA VIỆT trong vài khung
+            hình. Cả cây phải lật cùng một lúc — xem `lib/i18n/index.tsx`. */}
+        <NhaCungCapNgonNgu>
+          <BoQuaToiNoiDung />
+          {/* Dải cảnh báo đứng SAU lối tắt bàn phím, TRƯỚC header: người đi bàn phím
+              vẫn nhảy thẳng được vào nội dung, còn người đọc bằng mắt thì thấy nó
+              trước mọi thứ khác. Gỡ dải này sau ngày G — xem chú thích trong file. */}
+          <ReGenesisBanner />
+          <SiteHeader />
+          <main id="noi-dung" className="flex-1">
+            {children}
+          </main>
+          <SiteFooter />
+        </NhaCungCapNgonNgu>
       </body>
     </html>
   );
