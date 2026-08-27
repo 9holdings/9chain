@@ -9,6 +9,24 @@ Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
 C-Chain — xem ngay mục dưới. Binary trên server **vẫn là bản cũ**; patch 0013 lên cùng lượt
 sinh lại mạng ngày G.
 
+## ▶ Phiên sau bắt đầu ở đâu
+
+**Backlog autopilot đã CẠN** — 5/5 mốc đóng, phần còn lại đều chờ David. Đừng mở autopilot mới
+khi chưa có quyết định; nó sẽ đi hoang.
+
+| Thứ tự | Việc | Điều kiện |
+|---|---|---|
+| **1** | Hỏi David **B-13(a)** (Block Adam neo vào cái gì) + **B-14** (gốc dải chainId L1, gộp vào mục quyết §5c) — hạn `2026-08-28` | chặn ngày G |
+| **2** | Chạy **O2 một lượt trên MẠNG CÔNG KHAI** để biết thời gian thật *(bài lấy block từng cái một)* — A1 tự làm được | không chặn |
+| **3** | GO/NO-GO `2026-08-29` theo `NGAY-G-A1-CON-LAI.md` §7 (10 điều) | — |
+| **4** | Ngày G `2026-09-01`: build lại image (patch 0013 ⇒ **bắt buộc cùng lượt `down -v`**) · O2 trước khi xoá · tra lại G4 · `cung.json` lên server cùng `faucet.env` | — |
+
+🔴 **Đường găng lớn nhất vẫn KHÔNG nằm trong repo này:** chữ khắc chờ **C1 đóng băng byte**.
+Cơ chế A1 xong 100%; **nội dung 0%**. C1 trễ quá `28/08` thì đường găng gãy ở chỗ A1 không tự
+cứu được.
+
+---
+
 ## ✅ ĐỢT AUTOPILOT 14 (`2026-08-27`) — **5/5 MỐC ĐẠT**
 
 🔴 **ĐỌC [`docs/NGAY-G-A1-CON-LAI.md`](docs/NGAY-G-A1-CON-LAI.md) TRƯỚC.** Đó là bản A1 thẩm
@@ -335,6 +353,28 @@ cụ mà mọi lần dựng lại fork đều áp. `BLOCKERS.md` **B-9**.
 **David chốt trong phiên:** giữ **`#F5C542`** của trang chính cho dấu logo, **không** hoà về
 token `#ffcb24` ⇒ A1 nay có **hai sắc vàng cùng tồn tại, có chủ ý** (`--color-brand-gold` vs
 `--color-gold`). Chú thích "đừng dọn dẹp bằng cách hoà chúng về một" đã dán tại chỗ ở cả 3 nơi.
+
+### Gotchas mới (đợt 14) — thứ sẽ tốn giờ nếu không biết trước
+
+- 🔴 **`block.timestamp` ≠ giờ bạn bấm gửi, và cũng ≠ đồng hồ máy bạn.** Nó là đồng hồ của
+  **node đề xuất block**. Mọi phép tính *"đã qua mốc chưa"* phải nằm **trọn trong một đồng hồ**;
+  hẹn giờ thì bằng `Date.now`, nghiệm thu thì bằng `block.timestamp`, và **phải đo độ lệch**
+  chứ không giả định chúng khớp.
+- 🔴 **Avalanche C-Chain: hai giao dịch phát cách nhau vài mili-giây vẫn vào HAI block**, cách
+  nhau tới 2 giây. Đừng viết kịch bản dựa trên *"hai giao dịch một block"*.
+- 🔴 **Mạng tập phải lên cổng KHÁC 9650.** Blockscout local trỏ vào 9650; cho mạng tập lên đó là
+  để explorer index một chuỗi rồi chuỗi đó biến mất lúc `down -v`, **không có gì báo lỗi**. Nay
+  đã codify: `local-net/docker-compose.drill.yml`, project `a1-drill`, cổng 9750.
+- **`sha256sum -c` đòi LF và khuôn `<hash><2 khoảng trắng><đường dẫn>`.** Repo chạy trên Windows
+  ⇒ CRLF vừa đổi hash vừa làm hỏng `-c`. Ghi LF tường minh.
+- **`git format-patch` phải sinh LẠI CẢ BỘ.** 0013/0014 vẫn mang `[PATCH nn/12]` vì được thêm
+  lẻ — bộ tái lập **tự đếm sai chính mình**. (Kèm `--no-signature`, nghiệm thu `git am --keep-cr`.)
+- ⚠️ **Cẩn thận cwd của shell sau `cd upstream/avalanchego`.** Một lệnh `cat >> DECISIONS.md`
+  trong phiên này đã tạo tệp lạc **trong repo fork** và làm đổi tree — phát hiện vì tree không
+  còn khớp. Dùng đường dẫn tuyệt đối khi làm việc bắc cầu hai repo.
+- **Console đọc `9chain-a1-config/` và `local-net/console/index.html` theo `process.cwd()`**, còn
+  `../lib/*.mjs` theo đường dẫn module. Muốn chạy thử trên sổ rỗng thì phải dựng cả hai thứ đầu
+  trong thư mục gốc giả.
 
 ### Gotchas mới (đợt 12)
 
