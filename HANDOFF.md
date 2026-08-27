@@ -1,9 +1,9 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-27** (chốt phiên) — mạng công khai vẫn là bản re-genesis 9 tỷ của `26/08`
-(**9 node**, `supplyCap` 9.000.000.000, phát hành genesis 5.400.000.000, **lượt diễn tập**).
-Phiên `27/08` **không đụng mạng** — làm cơ chế ngày G + đóng 4 mục quyết.
-Tên miền `a1.9chain.org` / `rpc-a1.9chain.org` (tên cũ vẫn sống). M6 + M10 đóng.
+Cập nhật: **2026-08-27** (chốt phiên đợt 12 — chuẩn hoá thương hiệu) — mạng công khai vẫn là
+bản re-genesis 9 tỷ của `26/08` (**9 node**, `supplyCap` 9.000.000.000, phát hành genesis
+5.400.000.000, **lượt diễn tập**). Genesis **không đụng**; đợt này chỉ chạm **lớp trình bày**
++ Caddy. Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
@@ -11,6 +11,95 @@ Tên miền `a1.9chain.org` / `rpc-a1.9chain.org` (tên cũ vẫn sống). M6 + 
 định kế hoạch ngày G `01/09` và là **danh sách còn-lại thật**. `PLAN-REGENESIS-2026-09-01.md`
 là bối cảnh của BOD, mâu thuẫn thì file kia thắng.
 Backlog phần mềm cũ nằm ở `PROGRESS.md`; `DECISIONS.md` (vì sao) · `BLOCKERS.md` (chờ David).
+
+---
+
+### Phiên 2026-08-27 (đợt 12 — CHUẨN HOÁ THƯƠNG HIỆU) — tóm tắt để khỏi mở file
+
+**Bản soát đầy đủ: [`docs/BRAND-AUDIT-2026-08-27.md`](docs/BRAND-AUDIT-2026-08-27.md)** (157 tệp,
+13 phát hiện). David duyệt làm **7 việc trước ngày G** — xong hết, đã lên công khai.
+
+**Kết luận của bản soát:** đọc code thì có đầu tư rõ (vân tay chống trôi lệch token, cổng số
+học có đối chứng ngược, chú thích mang theo phép đo); nhìn từ ngoài thì chưa — cái hỏng gần
+như toàn bộ ở **lớp da**, và phần lớn rẻ.
+
+| Đã làm | |
+|---|---|
+| **Logo** | Bộ kit chuẩn David đưa (14 tệp, `web/public/brand/`) lên header + chân trang, thay ký tự `◆`. `BrandLockup.tsx` |
+| **Chia sẻ** | og-image (PNG thật, sinh bằng `web/scripts/gen-og.mjs`) · manifest · sitemap |
+| **Giấy phép** | `LICENSE` (BSD-3) + `NOTICE` — repo trước đó **không có tệp giấy phép nào** |
+| **README** | viết lại; bản cũ không có `web/`, còn liệt kê 2 container đã tắt, khai "testnet local" |
+| **9 vs 18** | `TOKENOMICS.md §0` + trang faucet |
+| **`/chains/`** | áp token thương hiệu, đổi tiêu đề, **gỡ màu đỏ Avalanche** |
+| **Caddy** | vá `/re-genesis/` đang **404 thật** + route robots/sitemap + content-type manifest |
+
+**Sao lưu:** H-6b chạy lại — `139.99.145.13:~/9chain-a1/backup/20260827-051507/`,
+HEAD `94e150b` · 166 commit · 182 tệp · 14/14 sha256. Nghiệm thu bằng **clone ngược trên
+server** + áp 12 patch → tree `ac260a38` khớp từng byte, **kèm đối chứng ngược** (bundle cắt
+cụt bị từ chối đúng). 🔴 **Không chứa khoá 5 quỹ** — O1 vẫn là mục quyết số 1.
+
+### 🔴 Hai phát hiện đắt nhất của đợt này
+
+**1. KHÔNG MỘT FONT THƯƠNG HIỆU NÀO ĐANG CHẠY** — và giờ có **nhóm đối sánh**, không còn là
+lập luận. Đo trên cùng một bản build:
+
+| | `@font-face` khai | tải được | đường nạp |
+|---|--:|--:|---|
+| Sora · Instrument · JetBrains | 24 | **0** | qua `--font-*` ở `:root` |
+| **Outfit** (font logo, nạp đợt này) | 2 | **1 ✓** | **thẳng vào `style` phần tử** |
+
+`@theme` đổ `--font-sans: var(--font-instrument)` vào `:root` (`<html>`) trong khi lớp
+`__variable_*` của `next/font` nằm ở `<body>` ⇒ `var()` không giải được (dấu phẩy trong
+`var(--font-instrument), ui-sans-serif…` **không phải fallback của `var()`** — nó phân tách họ
+chữ) ⇒ guaranteed-invalid ⇒ rơi về font hệ thống. `--font-sans` đọc ra **chuỗi rỗng**.
+
+🔴 **B1 (vá nối biến) và B2 (đổi bộ chữ) BUỘC đi cùng một lượt.** Vá B1 một mình là làm site
+**xấu đi**: hôm nay font thương hiệu không chạy nên lỗi thiếu tiếng Việt chưa hại ai; bật lên
+trước khi chốt bộ chữ là đúng lúc đó dải `1ea0–1ef1` mới thật sự rơi về font hệ thống.
+⚠️ Outfit sống **không** nghĩa là bẫy đã hết — nó chỉ **né** được bẫy.
+
+**2. `#e84142` = ĐỎ THƯƠNG HIỆU AVALANCHE trong 4 tệp HTML + `patches/0003`.** Bản soát đầu
+kết luận *"lớp rebrand sạch"* — đúng cho **CHUỖI**, sai cho **MÀU** (tôi chỉ grep chuỗi). Đã sửa
+`/chains/`; ba tệp kia không còn phục vụ. 🔴 **`patches/0003` mới là chỗ đắt** — nó đi vào công
+cụ mà mọi lần dựng lại fork đều áp. `BLOCKERS.md` **B-9**.
+
+### 🔴 Việc của David sinh ra từ đợt này
+
+| | | Ở đâu |
+|---|---|---|
+| **B-10** | Tắt **Managed robots.txt / Content Signals** cho zone `9chain.org` trong dashboard Cloudflare | không sửa được từ mã |
+| **B-9** | Quyết có sửa `#e84142` trong `patches/0003` không | đổi patch = đổi tree hash |
+| **B1+B2** | Chốt cụm vá nối biến + đổi bộ chữ, **cùng lượt với 9Scan-A1** | `tokens.css` có vân tay |
+
+**David chốt trong phiên:** giữ **`#F5C542`** của trang chính cho dấu logo, **không** hoà về
+token `#ffcb24` ⇒ A1 nay có **hai sắc vàng cùng tồn tại, có chủ ý** (`--color-brand-gold` vs
+`--color-gold`). Chú thích "đừng dọn dẹp bằng cách hoà chúng về một" đã dán tại chỗ ở cả 3 nơi.
+
+### Gotchas mới (đợt 12)
+
+- 🔴 **`cf-cache-status` phân biệt được AI đang trả lời.** `robots.txt` có tệp, có route, đã
+  deploy — vẫn trả bản của Cloudflare. `DYNAMIC` = tới origin; **`MISS` + `max-age` ở đường mà
+  origin CÓ tệp thật = CF tự sinh, không hỏi origin**. Mạnh hơn "đo bằng nội dung" vì nó không
+  đòi biết trước nội dung đúng. Thang đo từ yếu tới mạnh: **mã HTTP → content-type → nội dung
+  → header tầng trước**.
+- 🔴 **`.webmanifest` → nginx mặc định trả `application/octet-stream`** (200, đủ byte, JSON hợp
+  lệ, trình duyệt vẫn từ chối). Vá bằng `header … { defer }` trong Caddy — **`defer` bắt buộc**,
+  không có nó thì `header` ghi trước `reverse_proxy` rồi bị nginx đè lại.
+- 🔴 **Thêm trang vào `web/` thì PHẢI thêm route vào `@trangmoi`.** `/re-genesis/` sinh ở
+  `0d65eca` mà không ai thêm ⇒ **404 thật nhiều ngày**, trong khi dải `ReGenesisBanner` trên
+  **mọi** trang trỏ thẳng vào đó.
+- **Tệp lockup trong kit KHÔNG phải logo trần** — nó là một *thẻ*: nền `#0D1733`, viền 2px
+  `#1C2A4D`, bo góc. Dán lên canvas navy thì viền nổi thành khung mờ. `.trim()` một mình không
+  đủ (nó lấy màu tham chiếu từ pixel góc trên-trái, mà góc đó **trong suốt**) — phải `extract`
+  cắt lề trước, rồi `trim` với nền khai tường minh.
+- **Logo có `<text>` mà không nạp font là logo sai font, im lặng.** Kit khai
+  `font-family="Outfit, Arial, sans-serif"`; Outfit không có trên máy đa số người dùng ⇒ rơi về
+  Arial, trông vẫn "ổn". `<img src="....svg">` **không** với tới được font của trang.
+- **`git format-patch` mặc định thêm chữ ký git** (`-- \n2.54.0.windows.1`). Bộ `patches/` trong
+  repo sinh bằng `--no-signature` — thiếu cờ đó thì 12/12 patch báo "khác" dù nội dung y hệt.
+- **`Times New Roman ×N` khi đo `getComputedStyle` thường là `HTML/HEAD/META/TITLE/STYLE`** —
+  phần tử không hiển thị, kế thừa từ `<html>` chưa được đặt font. **Không phải lỗi sản phẩm.**
+  Lọc theo phần tử trong `<body>` trước khi kết luận.
 
 ### Phiên 2026-08-27 làm xong — tóm tắt để khỏi mở file
 
