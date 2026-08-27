@@ -11,7 +11,7 @@
 // (luật cứng #1/#2 của repo).
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { capChainIdTuDong, GOC_DAI_CHAINID, TRAN_DAI_CHAINID, TRAN_EIP2294 } from "../lib/chainid.mjs";
+import { capChainIdTuDong, A1_GEN, GOC_DAI_CHAINID, TRAN_DAI_CHAINID, TRAN_TOAN_DAI, TRAN_EIP2294 } from "../lib/chainid.mjs";
 
 const THU_MUC = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const chan = JSON.parse(readFileSync(path.join(THU_MUC, "chainid-da-chiem.json"), "utf8"));
@@ -24,7 +24,8 @@ const ok = (nhan, dieuKien, chiTiet = "") => {
 };
 
 console.log("═══ CẤP chainId — D-069 ═══");
-console.log(`gốc dải : ${GOC_DAI_CHAINID}`);
+console.log(`thế hệ  : ${A1_GEN}`);
+console.log(`khối    : ${GOC_DAI_CHAINID} – ${TRAN_DAI_CHAINID}`);
 console.log(`chặn    : ${daChiem.size} số · tra ${chan.ngayTra} · nguồn ${chan.nguon}`);
 
 // ─── 1. Danh sách chặn phải LÀNH ─────────────────────────────────────────────
@@ -84,9 +85,11 @@ ok("gốc dải < trần", GOC_DAI_CHAINID < TRAN_EIP2294,
 
 // ─── 7. TRẦN DẢI — David chốt cùng bộ định danh ngày G ───────────────────────
 console.log("\n─── 7. Trần dải: cạn thì DỪNG CỨNG, không tự tràn ───");
-ok("trần dải = 9.999.999.999", TRAN_DAI_CHAINID === 9_999_999_999, String(TRAN_DAI_CHAINID));
-ok("dải rộng ~1 tỷ số", TRAN_DAI_CHAINID - GOC_DAI_CHAINID + 1 === 999_999_990,
+ok("trần KHỐI THẾ HỆ 0 = 9.000.999.999", TRAN_DAI_CHAINID === 9_000_999_999, String(TRAN_DAI_CHAINID));
+ok("khối thế hệ 0 rộng 999.990 số", TRAN_DAI_CHAINID - GOC_DAI_CHAINID + 1 === 999_990,
   (TRAN_DAI_CHAINID - GOC_DAI_CHAINID + 1).toLocaleString("vi-VN"));
+ok("🔴 khối thế hệ nằm TRỌN trong dải David chốt", TRAN_DAI_CHAINID <= TRAN_TOAN_DAI);
+ok("🔴 khối thế hệ KHÔNG chạm chainId chain mẹ 9000000009", GOC_DAI_CHAINID > 9_000_000_009);
 
 // Ba tính chất an toàn sinh ra từ ĐỘ DÀI CHỮ SỐ — tràn khỏi dải là mất cả ba, im lặng.
 ok("mọi số trong dải có ĐÚNG 10 chữ số",

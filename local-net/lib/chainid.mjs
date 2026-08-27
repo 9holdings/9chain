@@ -17,7 +17,18 @@
 //
 // Gốc mới = chainId của A1 (`9000000009`) **+1**. Đo trên sổ `27/08` (2.725 mục): **không một
 // chuỗi nào trong bán kính 10 triệu** quanh 9000000009.
-export const GOC_DAI_CHAINID = 9_000_000_010;
+// ─── Thế hệ mạng — PHẢI khớp `constants.A1Gen` bên Go ───
+//
+// 🔴 Đây là bản chép, và bản chép thì trôi lệch. Cổng `netgen/identity.go` in ra khối
+// chainId nó tính được ở MỖI lượt sinh mạng, và runbook ngày G đối chiếu dòng đó với
+// `chainid-test.mjs`. Đừng sửa số này một mình.
+export const A1_GEN = 0;
+
+// Khối chainId của thế hệ: `[9_000_000_000 + gen×1_000_000 , +999_999]`.
+// Thế hệ 0 nâng sàn lên `…010` để chừa chain mẹ `…009` và chín số đệm.
+export const GOC_DAI_CHAINID = A1_GEN === 0
+  ? 9_000_000_010
+  : 9_000_000_000 + A1_GEN * 1_000_000;
 
 // ─── Trần dải — David chốt `2026-08-27` cùng bộ định danh ngày G ───
 //
@@ -36,7 +47,17 @@ export const GOC_DAI_CHAINID = 9_000_000_010;
 //
 // ⇒ Cạn dải thì **DỪNG CỨNG**, không tự tràn. Cạn dải là chuyện của một tỷ L1 sau — nếu nó
 // xảy ra thật thì đó là lúc cần một quyết định, không phải lúc cần một `chainId++`.
-export const TRAN_DAI_CHAINID = 9_999_999_999;
+// 🔴 TRẦN CỦA **KHỐI THẾ HỆ**, không phải trần của cả dải.
+//
+// David chốt dải L1 là `9000000010–9999999999`. Đó là **toàn bộ không gian**; thế hệ chia
+// ngăn bên trong nó (1000 thế hệ × 1 triệu). Console của thế hệ `n` **chỉ cấp trong ngăn
+// của mình** — nếu không thì thế hệ sau lại nhận đúng những số thế hệ này đã phát, và bảo
+// đảm *"không cấp lại"* quay về chỗ treo lên `console-chains.json` phải sống sót qua mọi
+// lượt wipe. Đó là đặt bảo đảm lên đúng chỗ yếu nhất của A1.
+export const TRAN_DAI_CHAINID = 9_000_000_000 + A1_GEN * 1_000_000 + 999_999;
+
+// Trần của TOÀN dải — chỉ để kiểm khối thế hệ không tràn ra ngoài nó.
+export const TRAN_TOAN_DAI = 9_999_999_999;
 
 // Trần EIP-2294 = `2^53-1`, đúng bằng `Number.MAX_SAFE_INTEGER`. Sau khi có `TRAN_DAI_CHAINID`
 // thì trần này **không còn là ràng buộc thực tế** cho đường tự cấp (dải kết thúc sớm hơn rất

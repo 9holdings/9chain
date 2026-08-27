@@ -1,0 +1,1645 @@
+From c1ef307262a32278c3805b4b2b6da8cd7e209dcb Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Thu, 27 Aug 2026 19:03:21 +0400
+Subject: [PATCH 18/18] =?UTF-8?q?9chain-a1:=20bo=20dinh=20danh=20theo=20TH?=
+ =?UTF-8?q?E=20HE=20=E2=80=94=20A1Gen=20la=20nguon=20su=20that,=203=20cho?=
+ =?UTF-8?q?=20kiem=20THEO=20DAI?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+David chot 27/08 (D-076 + de xuat the he). The he 0 giu dung ba con so da chot:
+  A1Gen 0 · A1ID 999999999 · A1Name 9chain-a1-g0 · chainId me 9000000009
+  khoi chainId L1: 9000000010-9000999999
+Bang mang TAP: A1IDTap = 899999999 - A1Gen, ten 9chain-a1-tap-g0.
+
+VI SAO PHAI CO THE HE, khong chi doi 9001 -> 999999999 mot lan:
+bat tay P2P so DUY NHAT networkID (peer.go:825; tu "genesis" xuat hien 0 lan trong ca
+tep do). Neu the he sau CUNG lay 999999999 thi lo do quay lai nguyen ven, va luc do te
+hon — 9001 la "trung do khong ai chon", con luc do la "trung do ta da chon va da ghi".
+
+BA CHO PHAI KIEM THEO DAI, va chung nam o ba goi khong import duoc nhau:
+  genesis/params.go   tham so kinh te
+  config/config.go    node lap cau hinh staking + phi   (x2 cho)
+  upgrade/upgrade.go  lich nang cap — goi nay KHONG import duoc genesis
+=> dat constants.LaMangA1 o `constants` cho ca ba dung chung.
+
+🔴 BAI HOC DAT NHAT CUA LUOT NAY — cong xanh ma node van sai:
+netgen da co cong kiem bo dinh danh (identity.go), cong do XANH, va
+GetStakingConfig(899999999) tra dung 7.900.000.001. Nhung node khoi dong lai log
+supplyCap = 720000000000000000 (LocalParams, tran 720 TRIEU) — vi config/config.go lap
+cau hinh bang DUONG KHAC voi thu cong kiem. Cong kiem cai NETGEN thay; chi BOOT MOT NODE
+THAT moi kiem duoc cai NODE thay.
+Neu khong boot thu, ngay G se sinh mot mang phat hanh 4,3 ty chay tren tran 720 trieu =>
+TRAN NGUOC uint64 khi phat thuong, lo ra nhieu ngay sau.
+
+upgrade.go: `case constants.A1ID` -> kiem theo dai. Truoc do dung MOT networkID nhan lich
+nang cap chu quyen, con bang mang tap va MOI THE HE SAU roi xuong Default cua Ava Labs —
+D-049 bi vo hieu trong im lang.
+
+genesis/genesis.go: khoa map bi danh tai san "AVAX" -> "LOVE9". Day la bi danh DUOC DANG KY
+THAT tren X-Chain (vm.go RegisterAlias), khong phai nhan hien thi. Name/Symbol da la LOVE9
+tu patch 0002 nhung khoa map thi chua — lop rebrand dung o cho nguoi NHIN thay, khong toi
+cho may DOC. Nam trong byte genesis X-Chain => chi doi duoc o luot sinh lai.
+
+netgen: cong `!= 9001` -> cong NAM-THU-PHAI-KHOP (identity.go): A1Gen / networkID / ten /
+co mat trong NetworkIDToHRP / khoi chainId. Va compose thoi cam cung --network-id=9001
+(no lam node tu choi khoi dong khi genesis mang so khac — loi hien, nhung phoi ra rang
+netgen tung co HAI nguon su that cho cung mot con so).
+
+NGHIEM THU — mang tap 3 node THAT (a1tap, networkID 899999999):
+  networkID 899999999 · networkName 9chain-a1-tap-g0 · eth_chainId 9000000909
+  supplyCap 7900000001000000000 · numPeers 2 · 0 ERROR
+  X-Chain: avm.getAssetDescription{assetID:"LOVE9"} tra ve dung => alias da vao chain that
+  DB path: /root/.avalanchego/db/9chain-a1-g0 => the he da vao duong dan DB
+
+🔴 BAI CAT-KET-NOI, kem DOI CHUNG DUONG:
+  ke xam nhap  networkID 999999999 (lech bang) -> numPeers 0   BI CAT
+  doi chung    networkID 899999999 (khop)      -> numPeers 3   VAO DUOC LUOI
+  log: peer.go:826 malformed message {"field":"networkID","peerNetworkID":899999999,
+       "ourNetworkID":999999999}
+Khong co doi chung duong thi "numPeers 0" khong phan biet duoc voi "node hong".
+
+Cong netgen doi chung nguoc 3 ca: bang tap di qua · 999999998 (so cua the he sau) bi chan
+kem dung canh bao HRP · 9001 cu bi tu choi.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ 9chain-a1-tools/netgen/identity.go |  137 ++++
+ 9chain-a1-tools/netgen/main.go     | 1152 ++++++++++++++--------------
+ config/config.go                   |   10 +-
+ genesis/genesis.go                 |   13 +-
+ genesis/params.go                  |   25 +-
+ upgrade/upgrade.go                 |   10 +-
+ utils/constants/network_ids.go     |   89 ++-
+ 7 files changed, 849 insertions(+), 587 deletions(-)
+ create mode 100644 9chain-a1-tools/netgen/identity.go
+
+diff --git a/9chain-a1-tools/netgen/identity.go b/9chain-a1-tools/netgen/identity.go
+new file mode 100644
+index 0000000..2cd962d
+--- /dev/null
++++ b/9chain-a1-tools/netgen/identity.go
+@@ -0,0 +1,137 @@
++package main
++
++// ═══════════════════════════════════════════════════════════════════════════════
++// CỔNG BỘ ĐỊNH DANH — `A1Gen` là nguồn sự thật, bốn thứ còn lại phải suy đúng từ nó
++// ═══════════════════════════════════════════════════════════════════════════════
++//
++// David chốt bộ định danh `2026-08-27` (D-076). Vấn đề nó giải **không phải** "chọn số
++// nào" — mà là: `networkID`, tên mạng, và khối `chainId` của L1 **phải đổi cùng nhau ở
++// mỗi thế hệ**, và trước lượt này **không có gì bắt chúng đổi cùng nhau**.
++//
++// Ba lần trong ngày `27/08` dự án này vấp đúng lớp lỗi *"hai thứ phải khớp mà không ai
++// bắt chúng khớp"*: nhánh `web-home` lệch `main` 168 dòng ở tệp đang chạy · cổng deploy
++// chạy trên server mà chưa vào nguồn · hai phiên cùng đánh số một quyết định. Cổng này
++// tồn tại để lớp lỗi đó **không** lặp lại ở chỗ đắt nhất — lớp genesis, nơi không có
++// lần thứ hai.
++//
++// 🔴 Ô đắt nhất là ô `NetworkIDToHRP`. Trước patch 0013, `9001` KHÔNG có trong map đó
++// nên `GetHRP(9001)` rơi xuống `FallbackHRP` — tiền tố `love9` của MỌI địa chỉ P/X đã
++// phát ra ngoài **sống bằng nhánh dự phòng**, và không cổng nào bắt được. Đổi `A1ID` mà
++// quên cập nhật map là **dựng lại đúng lỗi đó**, ở đúng lượt không sửa lại được.
++
++import (
++	"fmt"
++	"os"
++
++	"github.com/ava-labs/avalanchego/genesis"
++	"github.com/ava-labs/avalanchego/utils/constants"
++)
++
++// Khối chainId của một thế hệ: [9_000_000_000 + gen×1_000_000 , +999_999].
++// Thế hệ 0 nâng sàn lên …010 để chừa chain mẹ …009 và chín số đệm.
++const (
++	chainIdGocKhoi = 9_000_000_000
++	chainIdMoiKhoi = 1_000_000
++	chainIdMe      = 9_000_000_009
++	chainIdSanGen0 = 9_000_000_010
++	chainIdTranHet = 9_999_999_999
++	theHeToiDa     = 999
++)
++
++func khoiChainIdCuaTheHe(gen uint32) (san, tran uint64) {
++	san = uint64(chainIdGocKhoi) + uint64(gen)*chainIdMoiKhoi
++	tran = san + chainIdMoiKhoi - 1
++	if gen == 0 {
++		san = chainIdSanGen0
++	}
++	return san, tran
++}
++
++// kiemBoDinhDanh dừng netgen nếu bất kỳ giá trị suy ra nào không khớp `A1Gen`.
++//
++// Nó KHÔNG cảnh báo rồi chạy tiếp: mọi thứ nó canh đều đi thẳng vào genesis, tức thứ
++// bất biến. Cái sửa được thì cảnh báo; cái khắc vĩnh viễn thì chặn — cùng lý lẽ với
++// cổng chainId của C-4.
++func kiemBoDinhDanh(networkID uint32) {
++	var loi []string
++	them := func(f string, a ...any) { loi = append(loi, fmt.Sprintf(f, a...)) }
++
++	gen := constants.A1Gen
++	laTap := networkID == constants.A1IDTap
++
++	if gen > theHeToiDa {
++		them("A1Gen = %d, vượt trần %d (dải chainId chỉ đủ %d thế hệ)", gen, theHeToiDa, theHeToiDa+1)
++	}
++
++	// 1) networkID phải suy đúng từ thế hệ, ở đúng băng.
++	muon := constants.A1IDGoc - gen
++	nhan := "mạng THẬT"
++	if laTap {
++		muon = constants.A1IDGocTap - gen
++		nhan = "mạng TẬP"
++	}
++	if networkID != muon {
++		them("networkID %d không khớp thế hệ: %s thế hệ %d phải là %d", networkID, nhan, gen, muon)
++	}
++
++	// 2) Tên mạng phải mang đúng thế hệ. Tên đi vào ĐƯỜNG DẪN DB — sai tên thì node
++	//    bootstrap vào một thư mục rỗng và KHÔNG báo lỗi.
++	tenMuon := fmt.Sprintf("9chain-a1-g%d", gen)
++	if laTap {
++		tenMuon = fmt.Sprintf("9chain-a1-tap-g%d", gen)
++	}
++	if ten := constants.NetworkName(networkID); ten != tenMuon {
++		them("NetworkName(%d) = %q, phải là %q", networkID, ten, tenMuon)
++	}
++
++	// 3) 🔴 networkID PHẢI có mặt trong NetworkIDToHRP — xem khối đầu tệp.
++	if _, co := constants.NetworkIDToHRP[networkID]; !co {
++		them("networkID %d KHÔNG có trong NetworkIDToHRP ⇒ HRP sẽ sống bằng FallbackHRP "+
++			"(đúng lỗi patch 0013 đã vá cho 9001). Thêm nó vào map.", networkID)
++	}
++	if hrp := constants.GetHRP(networkID); hrp != constants.A1HRP {
++		them("GetHRP(%d) = %q, phải là %q", networkID, hrp, constants.A1HRP)
++	}
++
++	// 4) Tham số kinh tế phải là của A1, không phải LocalParams mượn qua `default:`.
++	//    Đây là ô chống TRÀN NGƯỢC uint64 — xem genesis.LaMangA1.
++	if !genesis.LaMangA1(networkID) {
++		them("networkID %d không nằm trong dải A1 ⇒ genesis/params.go sẽ mượn LocalParams "+
++			"(trần cung 720 triệu) và genesis 4,3 tỷ sẽ TRÀN NGƯỢC uint64 khi phát thưởng", networkID)
++	}
++
++	// 5) Khối chainId của thế hệ phải nằm trọn trong dải David chốt, và không chạm chain mẹ.
++	san, tran := khoiChainIdCuaTheHe(gen)
++	if san <= chainIdMe {
++		them("khối chainId thế hệ %d có sàn %d ≤ chainId chain mẹ %d", gen, san, chainIdMe)
++	}
++	if tran > chainIdTranHet {
++		them("khối chainId thế hệ %d có trần %d, vượt dải %d", gen, tran, chainIdTranHet)
++	}
++	// Ba tính chất an toàn của D-076 — kiểm bằng số, không bằng niềm tin.
++	if len(fmt.Sprint(networkID)) != 9 {
++		them("networkID %d có %d chữ số, phải là 9 (để không nhìn nhầm với chainId 10 chữ số)",
++			networkID, len(fmt.Sprint(networkID)))
++	}
++	if uint64(networkID) >= san {
++		them("networkID %d KHÔNG nằm dưới sàn khối chainId %d ⇒ mất cổng bắt lỗi chép nhầm",
++			networkID, san)
++	}
++	if san <= 4_294_967_295 {
++		them("sàn khối chainId %d KHÔNG vượt trần uint32 ⇒ chép nhầm sang ô networkID sẽ đi lọt", san)
++	}
++
++	if len(loi) > 0 {
++		fmt.Fprintf(os.Stderr, "\nFATAL — BỘ ĐỊNH DANH KHÔNG KHỚP (A1Gen = %d)\n", gen)
++		for _, l := range loi {
++			fmt.Fprintf(os.Stderr, "  ✗ %s\n", l)
++		}
++		fmt.Fprintf(os.Stderr,
++			"\n  A1Gen là nguồn sự thật duy nhất. Sửa `utils/constants/network_ids.go`\n"+
++				"  cho mọi giá trị suy đúng từ nó, đừng sửa riêng một chỗ.\n\n")
++		os.Exit(1)
++	}
++
++	fmt.Printf("bộ định danh: thế hệ %d · networkID %d (%s) · tên %s · HRP %s · khối chainId L1 %d–%d\n",
++		gen, networkID, nhan, constants.NetworkName(networkID), constants.GetHRP(networkID), san, tran)
++}
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+index 7ff43e4..c74a7ce 100644
+--- a/9chain-a1-tools/netgen/main.go
++++ b/9chain-a1-tools/netgen/main.go
+@@ -1,573 +1,579 @@
+-// netgen — Sinh toàn bộ vật liệu cho mạng 9Chain-A1 nhiều node THẬT:
+-//   - 5 quỹ genesis, MỖI QUỸ MỘT KHOÁ RIÊNG (staking/foundation/ecosystem/faucet/team)
+-//     theo bảng phân bổ trong allocation.go — codify của docs/TOKENOMICS.md
+-//   - N bộ staking mỗi node: TLS cert+key (=> NodeID) và BLS signer key (=> PoP)
+-//   - genesis.json (networkID 9001) với startTime ĐỘNG (tránh stake hết hạn)
+-//   - docker-compose.multinode.yml gán static IP (avalanchego cần IP, không hostname)
+-//   - keys.txt (TUYỆT MẬT) · faucet.env (chỉ khoá faucet) · allocation.md (công khai)
+-//
+-// KHÔNG dùng khoá ewoq công khai. Chạy trong golang container, ghi ra thư mục OUT.
+-//
+-// Env: N (số node, mặc định 5), OUT (thư mục ra, mặc định /out),
+-//      NETWORK_ID (9001), SUBNET_PREFIX (172.28.0), BASE_OCTET (11)
+-package main
+-
+-import (
+-	"encoding/json"
+-	"encoding/pem"
+-	"fmt"
+-	"math/big"
+-	"os"
+-	"path/filepath"
+-	"strconv"
+-	"strings"
+-	"time"
+-
+-	"github.com/ava-labs/avalanchego/genesis"
+-	"github.com/ava-labs/avalanchego/ids"
+-	"github.com/ava-labs/avalanchego/staking"
+-	"github.com/ava-labs/avalanchego/utils/constants"
+-	"github.com/ava-labs/avalanchego/utils/crypto/bls/signer/localsigner"
+-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
+-	"github.com/ava-labs/avalanchego/vms/platformvm/signer"
+-)
+-
+-type nodeInfo struct {
+-	Index  int
+-	NodeID ids.NodeID
+-	IP     string // IPv4 nội bộ docker (luôn có — mọi node vẫn nói chuyện qua a1net)
+-	IP6    string // GUA IPv6 công khai; RỖNG khi không bật chế độ ipv6 (M3)
+-}
+-
+-// ═══ P2P RA INTERNET (M3) ═══
+-//
+-// Mặc định (`A1_P2P_MODE` không đặt) netgen sinh y hệt như trước: `--public-ip` là
+-// IP nội bộ docker (172.28.0.1x) và KHÔNG node nào publish 9651. Nghĩa là P2P sống
+-// trọn trong bridge docker — 5 node thấy nhau, **không máy nào ngoài Internet vào
+-// được**. Đó là lý do HANDOFF cấm quảng bá "chạy node cùng chúng tôi".
+-//
+-// Bật `A1_P2P_MODE=ipv6` thì mỗi node nhận một địa chỉ IPv6 toàn cục (GUA) cắt ra
+-// từ khối của máy chủ, khai đúng địa chỉ đó làm `--public-ip`, và **không cần
+-// publish cổng**: container có địa chỉ công khai của riêng nó nên nó tự đến được
+-// từ Internet. Đây chính là điểm mạnh của IPv6 ở đây — 5 node trên một máy mà vẫn
+-// mỗi node một địa chỉ, cổng 9651 tiêu chuẩn, không NAT, không giành cổng.
+-//
+-// 🔴 CÁI GIÁ PHẢI NÓI RÕ: `--public-ip` của avalanchego là MỘT địa chỉ, không phải
+-// một danh sách (`config/config.go` → `ips.ParseAddrPort`, một giá trị). Khai IPv6
+-// nghĩa là **peer chỉ có IPv4 không kết nối vào được**. Ta vẫn gọi RA họ được,
+-// nhưng họ không gọi VÀO được — với một testnet mời cộng đồng chạy node thì đó là
+-// loại bỏ phần lớn người muốn tham gia. Lựa chọn thay thế (IPv4 + mỗi node một
+-// `--staking-port` 9651..965N + publish từng cổng) đến được 100% Internet nhưng
+-// phải chịu NAT vòng lại giữa 5 node cùng máy. Đây là quyết định về ĐỐI TƯỢNG
+-// người dùng, không phải về kỹ thuật — xem BLOCKERS H-7, David chọn.
+-const (
+-	p2pDocker = "docker" // mặc định: P2P chỉ trong bridge docker (như trước M3)
+-	p2pIPv6   = "ipv6"   // mỗi node một GUA IPv6, ra thẳng Internet
+-)
+-
+-func env(k, def string) string {
+-	if v := os.Getenv(k); v != "" {
+-		return v
+-	}
+-	return def
+-}
+-func atoi(s string, def int) int {
+-	if n, err := strconv.Atoi(s); err == nil {
+-		return n
+-	}
+-	return def
+-}
+-func must(err error, msg string) {
+-	if err != nil {
+-		fmt.Fprintf(os.Stderr, "FATAL %s: %v\n", msg, err)
+-		os.Exit(1)
+-	}
+-}
+-
+-func main() {
+-	n := atoi(env("N", "5"), 5)
+-	out := env("OUT", "/out")
+-	networkID := uint32(atoi(env("NETWORK_ID", "9001"), 9001))
+-	subnetPrefix := env("SUBNET_PREFIX", "172.28.0")
+-	baseOctet := atoi(env("BASE_OCTET", "11"), 11)
+-	// M3 — xem khối chú thích ở `p2pDocker`. Mặc định giữ nguyên hành vi cũ.
+-	p2pMode := env("A1_P2P_MODE", p2pDocker)
+-	// Khối /64 cắt ra cho mạng docker. Máy chủ hiện tại (139.99.145.13) được cấp
+-	// nguyên một **/56** (`2402:1f00:8100:10d::/56`, đo 2026-08-25), nên cắt một /64
+-	// cho docker là chuyện chia trong phần đã thuộc về mình — không đụng gì tới địa
+-	// chỉ máy chủ đang dùng, và KHÔNG cần proxy NDP vì cả khối đã được định tuyến tới máy.
+-	ipv6Subnet := env("A1_IPV6_SUBNET", "")
+-	// Tiền tố để đánh địa chỉ từng node: node i ⇒ <base><baseOctet+i-1> (hệ 16).
+-	// Tách khỏi `A1_IPV6_SUBNET` để địa chỉ node là số ĐỌC ĐƯỢC (…::b, ::c, …)
+-	// thay vì để docker tự cấp — địa chỉ node phải ổn định vì nó đi vào
+-	// `--bootstrap-ips` của các node khác và vào bản ghi DNS công khai.
+-	ipv6Base := env("A1_IPV6_BASE", "")
+-	if p2pMode == p2pIPv6 && (ipv6Subnet == "" || ipv6Base == "") {
+-		// Chết ngay thay vì sinh ra một compose "gần đúng": mạng sinh sai địa chỉ
+-		// P2P là loại lỗi chỉ lộ ra khi có người ngoài thử join, tức là muộn nhất.
+-		fmt.Fprintln(os.Stderr, "FATAL A1_P2P_MODE=ipv6 đòi cả A1_IPV6_SUBNET và A1_IPV6_BASE")
+-		os.Exit(1)
+-	}
+-	hrp := constants.GetHRP(networkID) // "love9" cho custom net
+-
+-	// 🔴 CHẶN networkID LẠ — patch 0013.
+-	//
+-	// `NETWORK_ID` là env, mà tham số kinh tế của 9Chain chỉ gắn vào **9001**
+-	// (`genesis/params.go` → `case A1NetworkID`). Mọi networkID khác rơi vào nhánh
+-	// `default:` và mượn `LocalParams`: trần cung 720 TRIỆU. Sinh một genesis phát
+-	// hành 4,3 tỷ rồi chạy nó trên mạng đó là tràn ngược `uint64` ở
+-	// `reward/calculator.go` — mạng lên sạch, RPC xanh, sai lệch chỉ lộ ở phần
+-	// thưởng staking nhiều ngày sau.
+-	//
+-	// Cổng `mustFitSupplyCap` nay đọc trần theo networkID nên nó đã bắt được ca này.
+-	// Cổng ở đây là lớp thứ hai và nó nói rõ hơn: vấn đề không phải "số không vừa"
+-	// mà là "netgen không sinh mạng nào ngoài 9Chain-A1". Muốn một mạng khác thì
+-	// phải khai tham số kinh tế cho nó trước, ở `genesis/params.go`.
+-	if networkID != genesis.A1NetworkID {
+-		fmt.Fprintf(os.Stderr,
+-			"FATAL NETWORK_ID=%d — netgen chỉ sinh được mạng 9Chain-A1 (%d).\n"+
+-				"      Tham số kinh tế (trần cung, mức stake, phí) chỉ gắn vào %d trong\n"+
+-				"      genesis/params.go; mọi networkID khác mượn LocalParams của Avalanche\n"+
+-				"      (trần cung 720 triệu) và genesis này sẽ TRÀN NGƯỢC uint64 khi phát thưởng.\n",
+-			networkID, genesis.A1NetworkID, genesis.A1NetworkID)
+-		os.Exit(1)
+-	}
+-
+-	// Chặn TRƯỚC khi sinh khoá: bảng phân bổ phải nằm trong trần cung mà chính
+-	// binary này biên dịch vào, VÀ kế toán tổng cung phải khớp lời hứa công bố.
+-	// Xem `mustFitSupplyCap` trong allocation.go.
+-	mustFitSupplyCap(networkID)
+-	canhBaoSelfBond(n)
+-
+-	// Chữ khắc — cũng chặn TRƯỚC khi sinh khoá. Lượt khắc hỏng mà đã sinh khoá là
+-	// để lại một bộ khoá quỹ nửa vời trên đĩa, và không ai chắc bộ nào là bộ nào.
+-	// nil = KHÔNG khắc (mặc định, dùng cho mọi lượt tập). Xem engrave.go.
+-	eng := loadEngraving()
+-
+-	// Cổng "bản tập ≠ bản thật" cho chainId — C-4. Cũng chặn TRƯỚC khi sinh khoá, cùng
+-	// lý do với cổng chữ khắc. Xem chainid.go.
+-	chainID := resolveChainID(eng != nil)
+-
+-	must(os.MkdirAll(out, 0o755), "mkdir out")
+-
+-	// ---- 1) Sinh 5 quỹ genesis, mỗi quỹ MỘT khoá riêng ----
+-	//
+-	// Trước đây chỉ có 1 khoá "treasury" ôm hết -> lộ 1 khoá là mất sạch, và
+-	// faucet buộc phải xài chung khoá quỹ. Nay tách theo bảng phân bổ trong
+-	// docs/TOKENOMICS.md để mỗi quỹ có vòng đời & mức rủi ro riêng.
+-	funds := make(map[string]*fund, len(buckets))
+-	for _, b := range buckets {
+-		f, err := newFund(b, hrp)
+-		must(err, "gen key quy "+b.Key)
+-		funds[b.Key] = f
+-	}
+-	staking9 := funds[bucketStaking]
+-	treasury := funds[bucketFoundation] // quỹ nhận thưởng staking của node genesis
+-
+-	// ---- 2) Staking material cho N node ----
+-	nodes := make([]nodeInfo, 0, n)
+-	stakers := make([]genesis.UnparsedStaker, 0, n)
+-
+-	for i := 1; i <= n; i++ {
+-		nodeDir := filepath.Join(out, fmt.Sprintf("node%d", i))
+-		must(os.MkdirAll(nodeDir, 0o755), "mkdir node dir")
+-
+-		certPEM, keyPEM, err := staking.NewCertAndKeyBytes()
+-		must(err, "gen staking cert")
+-		block, _ := pem.Decode(certPEM)
+-		if block == nil {
+-			must(fmt.Errorf("cert PEM decode nil"), "decode cert")
+-		}
+-		cert, err := staking.ParseCertificate(block.Bytes)
+-		must(err, "parse cert")
+-		nodeID := ids.NodeIDFromCert(cert)
+-
+-		ls, err := localsigner.New()
+-		must(err, "gen bls signer")
+-		pop, err := signer.NewProofOfPossession(ls)
+-		must(err, "gen proof of possession")
+-
+-		must(os.WriteFile(filepath.Join(nodeDir, "staker.crt"), certPEM, 0o600), "write crt")
+-		must(os.WriteFile(filepath.Join(nodeDir, "staker.key"), keyPEM, 0o600), "write key")
+-		must(os.WriteFile(filepath.Join(nodeDir, "signer.key"), ls.ToBytes(), 0o600), "write signer")
+-
+-		ip := fmt.Sprintf("%s.%d", subnetPrefix, baseOctet+i-1)
+-		ip6 := ""
+-		if p2pMode == p2pIPv6 {
+-			// Hệ 16 để địa chỉ IPv6 đọc ra đúng con số của node (node1 ⇒ …::b).
+-			ip6 = fmt.Sprintf("%s%x", ipv6Base, baseOctet+i-1)
+-		}
+-		nodes = append(nodes, nodeInfo{Index: i, NodeID: nodeID, IP: ip, IP6: ip6})
+-		stakers = append(stakers, genesis.UnparsedStaker{
+-			NodeID:        nodeID,
+-			RewardAddress: treasury.XAddr, // thưởng staking chảy về quỹ Foundation
+-			DelegationFee: 20000,          // 2%
+-			Signer:        pop,
+-		})
+-		if ip6 != "" {
+-			fmt.Printf("node%d  NodeID=%s  IP=%s  IPv6=%s\n", i, nodeID, ip, ip6)
+-		} else {
+-			fmt.Printf("node%d  NodeID=%s  IP=%s\n", i, nodeID, ip)
+-		}
+-	}
+-
+-	// ---- 3) Genesis config (startTime động) ----
+-	now := time.Now().Unix()
+-
+-	// Dựng allocation từ bảng phân bổ. Mỗi quỹ = 1 allocation:
+-	//   InitialAmount  -> UTXO THANH KHOẢN trên X-Chain
+-	//   UnlockSchedule -> UTXO KHOÁ trên P-Chain, mở tại Locktime
+-	// Riêng quỹ self-bond nằm trong InitialStakedFunds. 🔴 Chỉ vòng dựng UTXO
+-	// **P-Chain** bỏ qua nó (`genesis/genesis.go:358`) rồi `splitAllocations` chia
+-	// phần KHOÁ thành stake của N node; vòng **X-Chain** KHÔNG bỏ qua ai cả. Nên đặt
+-	// `LiquidXP > 0` cho quỹ này là in thêm tiền thanh khoản chứ không phải "bị bỏ
+-	// qua" — giữ nó bằng 0. (Chú thích cũ nói avalanchego bỏ qua cả allocation, sai.)
+-	allocs := make([]genesis.UnparsedAllocation, 0, len(buckets))
+-	for _, b := range buckets {
+-		f := funds[b.Key]
+-		a := genesis.UnparsedAllocation{
+-			ETHAddr:       f.EthAddr,
+-			AVAXAddr:      f.XAddr,
+-			InitialAmount: b.LiquidXP,
+-		}
+-		if b.LockedXP > 0 {
+-			a.UnlockSchedule = []genesis.LockedAmount{
+-				{Amount: b.LockedXP, Locktime: uint64(now) + b.LockSeconds},
+-			}
+-		}
+-		allocs = append(allocs, a)
+-	}
+-
+-	cfg := genesis.UnparsedConfig{
+-		NetworkID:                  networkID,
+-		Allocations:                allocs,
+-		StartTime:                  uint64(now - 60),
+-		InitialStakeDuration:       oneYear,
+-		// 🔴 SO LE NHIỆM KỲ — 7 ngày giữa các node (D-042).
+-		// Bản cũ để 5400 giây (1,5 giờ): với 9 node thì cả mạng hết hạn trong vòng
+-		// 12 tiếng, tức vẫn là "chết cùng một lúc" chứ không phải cảnh báo.
+-		// 7 ngày × 8 khoảng = trải 56 ngày: node đầu rụng ở ~ngày 309, và đó là
+-		// LỜI CẢNH BÁO SỚM với 8 node vẫn chạy, thay vì một dấu chấm hết đột ngột.
+-		// Ràng buộc: offset × (số node − 1) phải < InitialStakeDuration.
+-		InitialStakeDurationOffset: 7 * 24 * 60 * 60,
+-		InitialStakedFunds:         []string{staking9.XAddr},
+-		InitialStakers:             stakers,
+-		CChainGenesis:              cChainGenesis(funds, eng, chainID),
+-		Message:                    pChainMessage(eng),
+-	}
+-	gb, err := json.MarshalIndent(cfg, "", "  ")
+-	must(err, "marshal genesis")
+-	must(os.WriteFile(filepath.Join(out, "genesis.json"), gb, 0o644), "write genesis")
+-
+-	// ---- 4) docker-compose nhiều node (static IP) ----
+-	compose := buildCompose(nodes, subnetPrefix, ipv6Subnet)
+-	must(os.WriteFile(filepath.Join(out, "docker-compose.multinode.yml"), []byte(compose), 0o644), "write compose")
+-
+-	// ---- 5) Xuất khoá của TỪNG quỹ (BÍ MẬT) ----
+-	// keys.txt  = TẤT CẢ khoá -> giữ offline, KHÔNG BAO GIỜ lên server.
+-	// faucet.env = CHỈ khoá faucet -> đây là file duy nhất được phép đưa lên server.
+-	var keys strings.Builder
+-	keys.WriteString("9Chain-A1 — KHOA CAC QUY GENESIS (TUYET MAT — giu offline/cold)\n")
+-	keys.WriteString(fmt.Sprintf("networkID: %d | so node: %d | tong phat hanh: %s LOVE9\n\n", networkID, n, love9(totalGenesisSupply())))
+-	for _, b := range buckets {
+-		f := funds[b.Key]
+-		// % là của HẠNG MỤC công bố, không phải của riêng bucket này: Foundation và
+-		// self-bond là hai địa chỉ trong cùng một hạng mục 12%, Community và faucet
+-		// trong cùng 30%. In kèm tên hạng mục để không ai cộng dồn nhầm thành 111%.
+-		keys.WriteString(fmt.Sprintf(`[%s] %s — hang muc %s (%d%%) = %s LOVE9
+-  muc dich    : %s
+-  PrivateKey  : %s
+-  X-addr      : %s
+-  P-addr      : %s
+-  EVM addr    : %s
+-  EVM privkey : 0x%s
+-  X/P thanh khoan: %s | X/P khoa: %s (mo sau %s) | C-Chain: %s
+-
+-`, b.Key, b.Name, b.Nhom, b.NhomPct, love9(b.Total()), b.Purpose,
+-			f.Key.String(), f.XAddr, f.PAddr, f.EthAddr, hexOfECDSA(f.Key),
+-			love9(b.LiquidXP), love9(b.LockedXP), b.LockLabel, love9(b.CChain)))
+-	}
+-	must(os.WriteFile(filepath.Join(out, "keys.txt"), []byte(keys.String()), 0o600), "write keys.txt")
+-
+-	fa := funds[bucketFaucet]
+-	faucetEnv := fmt.Sprintf(`# 9Chain-A1 — cau hinh faucet. Vi RIENG, KHONG phai treasury.
+-# Day la file DUY NHAT trong bo nay duoc phep dua len server.
+-FAUCET_PK=0x%s
+-FAUCET_ADDR=%s
+-`, hexOfECDSA(fa.Key), fa.EthAddr)
+-	must(os.WriteFile(filepath.Join(out, "faucet.env"), []byte(faucetEnv), 0o600), "write faucet.env")
+-
+-	// ---- 6) Bảng phân bổ công khai (KHÔNG chứa khoá) ----
+-	must(os.WriteFile(filepath.Join(out, "allocation.md"), []byte(allocationReport(funds, networkID, n)), 0o644), "write allocation.md")
+-
+-	// ---- 6b) Bản khai cung MÁY ĐỌC ĐƯỢC (I1b) ----
+-	//
+-	// `allocation.md` là markdown cho người đọc; không dịch vụ nào phân tích nổi nó. Hệ quả:
+-	// mọi con số cung xuất hiện ngoài trang công khai đều là **gõ tay lại**, và không có
+-	// đường nào truy ngược về lượt sinh mạng đã đẻ ra chúng. Đó đúng là điều luật cứng của
+-	// 9Scan-A1 cấm (*"số công bố phải đọc từ chain thật"*).
+-	//
+-	// 🔴 Tệp này KHÔNG phải nguồn sự thật — nó là **bản khai**. Nguồn sự thật là chain.
+-	// Dịch vụ đọc nó phải dùng nó để biết **đo cái gì, ở đâu**, rồi tự đo, rồi **so lại**.
+-	// Xem `local-net/faucet/server.mjs` → `/api/supply`.
+-	must(os.WriteFile(filepath.Join(out, "cung.json"), []byte(supplyManifest(funds, networkID, chainID)), 0o644), "write cung.json")
+-
+-	// ---- 7) Báo cáo chữ khắc (công khai, chỉ có khi bật khắc) ----
+-	if eng != nil {
+-		must(os.WriteFile(filepath.Join(out, "engraving.md"), []byte(eng.report(networkID)), 0o644), "write engraving.md")
+-	}
+-
+-	fmt.Printf("\n✓ Sinh xong %d node vào %s\n", n, out)
+-	fmt.Printf("  genesis.json · docker-compose.multinode.yml · allocation.md (cong khai)\n")
+-	fmt.Printf("  keys.txt (TUYET MAT) · faucet.env (chi khoa faucet)\n")
+-	fmt.Printf("  Tong phat hanh genesis: %s LOVE9\n", love9(totalGenesisSupply()))
+-	// In chainId LUÔN LUÔN. Tới `27/08` netgen không in con số này ở đâu cả — nên không
+-	// lượt sinh mạng nào để lại dấu vết về bản sắc mà nó vừa phát ra. Im lặng ở đây là
+-	// cách một mạng tập đi ra ngoài dưới tên mạng thật mà không ai nhận ra.
+-	if chainID == chainIDThat {
+-		fmt.Printf("  C-Chain chainId: %d  <-- SO CUA MANG THAT\n", chainID)
+-	} else {
+-		fmt.Printf("  C-Chain chainId: %d  (mang TAP; so that la %d)\n", chainID, chainIDThat)
+-	}
+-	if eng == nil {
+-		// In cả khi KHÔNG khắc. Im lặng ở đây là cách một lượt "thật" đi qua mà
+-		// không ai nhận ra nó thiếu chữ khắc.
+-		fmt.Printf("  Chu khac: KHONG (ban tap). Bat bang A1_ENGRAVE=<manifest>.\n")
+-	} else {
+-		fmt.Printf("  Chu khac: CO — %d tai lieu · van tay %s\n", len(eng.docs), eng.Root)
+-		fmt.Printf("    P-Chain Message : %d byte\n", len(eng.PMessage))
+-		fmt.Printf("    C-Chain %s : %d byte, extraData %s\n", eng.manifest.CChainAddress, len(eng.CPayload), eng.CExtraData)
+-		fmt.Printf("    Bang doi chieu  : engraving.md\n")
+-	}
+-}
+-
+-// EVM private key hex (32 bytes) từ secp256k1 key.
+-func hexOfECDSA(k *secp256k1.PrivateKey) string {
+-	b := k.Bytes()
+-	return fmt.Sprintf("%x", b)
+-}
+-
+-// pChainMessage — nội dung trường `Message` của P-Chain genesis.
+-//
+-// P-Chain là GỐC: `genesis/genesis.go:441-446` cho thấy X-Chain và C-Chain nằm trong
+-// mảng `chains` được truyền VÀO `pChainGenesis`. Khắc ở đây là khắc ở nơi khai sinh
+-// cả mạng, không phải "một trong ba chỗ".
+-//
+-// Không bật khắc chữ ⇒ giữ nguyên chuỗi cũ. Đó là đường của mọi lượt tập.
+-func pChainMessage(e *engraving) string {
+-	if e == nil {
+-		return "9Chain-A1 sovereign genesis"
+-	}
+-	return e.PMessage
+-}
+-
+-// cChainGenesis dựng alloc C-Chain từ các quỹ có phần C-Chain > 0.
+-// Số dư EVM là wei (18 số 0), khác nLOVE9 của X/P (9 số 0) — nhân thêm 1e9.
+-//
+-// 🔴 HÀM NÀY LÀ LÝ DO KHÔNG ĐƯỢC SỬA TAY GENESIS ĐÃ SINH (`local-net/net*/genesis.json`):
+-// C-Chain genesis nằm trong đó dưới dạng **chuỗi JSON đã escape** trên một dòng. Thêm
+-// một `alloc` mang toàn văn tài liệu nghĩa là một dòng escape rất dài — sửa tay là hỏng
+-// escape, và không ai thấy cho tới lúc node boot.
+-//
+-// ⚠️ Chú thích này (và patch 0010) trước đây trỏ vào `9chain-a1-config/genesis.json`.
+-// Sai, và tệp đó **đã xoá `2026-08-27`**: netgen KHÔNG đọc tệp cấu hình nào — nó dựng
+-// `genesis.UnparsedConfig` thẳng ở đây trong Go. Tệp kia là `genesis_local.json` gốc của
+-// Avalanche (khoá ewoq công khai giữ 50 triệu) còn sót trong đường boot của node dev.
+-// Ai đi theo con trỏ cũ để sửa chữ khắc sẽ sửa một tệp không ai đọc, **và không có gì
+-// báo lỗi**. Xem `docs/CORE-AUDIT-2026-08-27.md` §7b.
+-func cChainGenesis(funds map[string]*fund, e *engraving, chainID uint64) string {
+-	allocs := make([]string, 0, len(buckets)+1)
+-	for _, b := range buckets {
+-		if b.CChain == 0 {
+-			continue
+-		}
+-		wei := new(big.Int).Mul(new(big.Int).SetUint64(b.CChain), big.NewInt(1_000_000_000))
+-		addr := strings.ToLower(strings.TrimPrefix(funds[b.Key].EthAddr, "0x"))
+-		allocs = append(allocs, fmt.Sprintf(`"%s":{"balance":"0x%x"}`, addr, wei))
+-	}
+-
+-	// Mặc định: y như cũ, không khắc gì.
+-	extraData := "0x00"
+-	if e != nil {
+-		// Hợp đồng dữ liệu: `balance` 0, `code` = STOP + byte thô. Không chạy được,
+-		// chỉ để `eth_getCode` đọc ra.
+-		dataAddr := strings.ToLower(strings.TrimPrefix(e.manifest.CChainAddress, "0x"))
+-		for _, a := range allocs {
+-			// Đâm vào địa chỉ của một quỹ thì quỹ đó mất sạch tiền và không có dấu
+-			// hiệu nào — bắt ở đây, không để genesis đẻ ra rồi mới biết.
+-			if strings.HasPrefix(a, `"`+dataAddr+`"`) {
+-				engraveFatal("dia chi hop dong du lieu TRUNG voi mot dia chi quy: 0x" + dataAddr)
+-			}
+-		}
+-		allocs = append(allocs, fmt.Sprintf(`"%s":{"balance":"0x0","code":"%s"}`, dataAddr, e.CCode))
+-		extraData = e.CExtraData
+-	}
+-
+-	// chainId KHÔNG còn cắm cứng ở đây — nó đi qua cổng `resolveChainID` (chainid.go).
+-	// Cắm cứng là lý do tới `27/08` mọi mạng tập đều mang bản sắc của mạng thật.
+-	return `{"config":{"chainId":` + strconv.FormatUint(chainID, 10) + `,"homesteadBlock":0,"eip150Block":0,"eip155Block":0,"eip158Block":0,"byzantiumBlock":0,"constantinopleBlock":0,"petersburgBlock":0,"istanbulBlock":0,"muirGlacierBlock":0,"apricotPhase1BlockTimestamp":0,"apricotPhase2BlockTimestamp":0},"nonce":"0x0","timestamp":"0x0","extraData":"` + extraData + `","gasLimit":"0x5f5e100","difficulty":"0x0","mixHash":"0x0000000000000000000000000000000000000000000000000000000000000000","coinbase":"0x0000000000000000000000000000000000000000","alloc":{` +
+-		strings.Join(allocs, ",") +
+-		`},"number":"0x0","gasUsed":"0x0","parentHash":"0x0000000000000000000000000000000000000000000000000000000000000000"}`
+-}
+-
+-func buildCompose(nodes []nodeInfo, subnetPrefix, ipv6Subnet string) string {
+-	var b strings.Builder
+-	b.WriteString("# 9Chain-A1 — mạng " + strconv.Itoa(len(nodes)) + " node thật (sinh bởi netgen).\n")
+-	b.WriteString("# Chạy:  docker compose -f local-net/net/docker-compose.multinode.yml up -d\n")
+-	b.WriteString("# node1 = beacon; node2.. bootstrap từ node1. Chỉ node1 mở API ra host (9650).\n")
+-	b.WriteString("services:\n")
+-	beaconID := nodes[0].NodeID.String()
+-	// Địa chỉ beacon dùng trong `--bootstrap-ips` phải là địa chỉ beacon KHAI với
+-	// peer (`--public-ip`), không phải địa chỉ nội bộ: node khác lấy nó làm điểm
+-	// chạm đầu tiên, và ở chế độ ipv6 thì địa chỉ docker nội bộ vô nghĩa với họ.
+-	beaconAddr := nodes[0].IP
+-	if nodes[0].IP6 != "" {
+-		beaconAddr = "[" + nodes[0].IP6 + "]"
+-	}
+-	for _, nd := range nodes {
+-		name := fmt.Sprintf("9chain-a1-node-%d", nd.Index)
+-		b.WriteString("  " + name + ":\n")
+-		b.WriteString("    image: 9chain-a1/node:dev\n")
+-		b.WriteString("    container_name: " + name + "\n")
+-		// VÌ SAO CÓ DÒNG NÀY (D-071, soát vận hành 2026-08-27):
+-		//
+-		// Thiếu nó thì Docker lấy mặc định `no`, và mặc định đó KHÔNG PHẢI một lựa
+-		// chọn ai đó đã cân nhắc — nó là chỗ không ai điền. Đo trên mạng công khai
+-		// `27/08`: cả 9 validator mang `restart=no`, trong khi Blockscout mang
+-		// `always` và Caddy/faucet/web mang `unless-stopped`.
+-		//
+-		// 🔴 Nghĩa là máy chủ reboot ⇒ trang web dậy, faucet dậy, EXPLORER dậy, và
+-		// chuỗi nằm im. Đó là dạng hỏng tệ nhất: trang chủ 200, faucet trả `ok`,
+-		// explorer mở được — chỉ chuỗi là không tồn tại. Không cổng nào báo gì.
+-		//
+-		// `unless-stopped` chứ không `always`: nó TÔN TRỌNG lệnh dừng tường minh,
+-		// nên rolling-restart của M2 (hạ một node để track subnet mới) vẫn hạ được
+-		// node xuống mà nó không tự bật lên giữa chừng.
+-		//
+-		// ⚠️ Mặt trái của chính vế đó: `docker stop` VÀ `docker kill` đều là "người
+-		// dùng chủ động dừng" nên KHÔNG kích hoạt chính sách. Thử bằng `docker kill`
+-		// sẽ thấy node không dậy và tưởng cấu hình hỏng — đã suýt kết luận sai đúng
+-		// thế lúc nghiệm thu D-071. Muốn thử thì để tiến trình TỰ CHẾT.
+-		b.WriteString("    restart: unless-stopped\n")
+-		if nd.Index == 1 {
+-			// CHỈ mở ra 127.0.0.1, KHÔNG phải 0.0.0.0.
+-			//
+-			// Docker publish cổng bằng luật DNAT trong bảng nat, ĐI VÒNG QUA ufw
+-			// (ufw lọc chuỗi INPUT, Docker dùng FORWARD/DOCKER). Viết "9650:9650"
+-			// là API node hở thẳng ra Internet dù `ufw status` báo cổng đó bị chặn
+-			// — nhìn tưởng an toàn mà thực ra không. Đây là cổng có /ext/admin,
+-			// ví, và toàn quyền RPC.
+-			//
+-			// Muốn public RPC thì đặt reverse proxy (Caddy) trước cổng 127.0.0.1
+-			// này, có TLS + rate-limit + lọc path.
+-			b.WriteString("    ports:\n      - \"${A1_API_BIND:-127.0.0.1}:9650:9650\"\n")
+-		}
+-		if nd.Index == 2 && len(nodes) >= 2 {
+-			// Upstream DỰ PHÒNG cho RPC công khai — cũng chỉ ra loopback.
+-			//
+-			// VÌ SAO: với MỘT upstream duy nhất, mọi lần node-1 restart là RPC
+-			// công khai chết. Mà node BUỘC phải restart mỗi lần track subnet mới
+-			// (đẻ L1) — không có API thêm subnet lúc đang chạy. Đo thật
+-			// 2026-08-24: đẻ 1 chain ⇒ 6.0s chết, 12/25 lượt gọi hỏng.
+-			//
+-			// Cho Caddy hai upstream (`lb_policy first` + passive health check)
+-			// đưa con số đó về 0.5s / 1 lượt hỏng — cải thiện 12 lần. Ngoài ra
+-			// nó xoá luôn điểm hỏng duy nhất: trước đây node-1 chết vì bất kỳ lý
+-			// do gì là toàn bộ RPC công khai chết theo.
+-			b.WriteString("    ports:\n      - \"${A1_API_BIND:-127.0.0.1}:9660:9650\"\n")
+-		}
+-		b.WriteString("    volumes:\n")
+-		b.WriteString(fmt.Sprintf("      - ./node%d:/9chain-a1/node:ro\n", nd.Index))
+-		b.WriteString("      - ./genesis.json:/9chain-a1/net/genesis.json:ro\n")
+-		// Thư mục config của dự án, chứa genesis EVM mẫu + console-tmp/.
+-		// Console chạy TRÊN HOST: nó ghi genesis của L1 mới ra host rồi bảo CLI
+-		// TRONG container đọc `/9chain-a1/config/console-tmp/<file>`. Không mount
+-		// thì đường dẫn đó không tồn tại và mọi lượt tạo chain chết ở bước đọc
+-		// genesis. Chỉ đọc — mọi thao tác ghi đều do console làm phía host.
+-		// Đường dẫn mặc định tính từ thư mục chứa compose (local-net/net/);
+-		// bố cục khác (ví dụ trên server) thì đặt A1_CONFIG_DIR.
+-		b.WriteString("      - ${A1_CONFIG_DIR:-../../9chain-a1-config}:/9chain-a1/config:ro\n")
+-		b.WriteString(fmt.Sprintf("      - 9chain-a1-data-%d:/root/.avalanchego\n", nd.Index))
+-		b.WriteString("    command:\n")
+-		b.WriteString("      - ./avalanchego\n")
+-		b.WriteString("      - --network-id=9001\n")
+-		b.WriteString("      - --genesis-file=/9chain-a1/net/genesis.json\n")
+-		b.WriteString("      - --plugin-dir=/9chain-a1/build/plugins\n")
+-		// Cấu hình RIÊNG cho từng chain — `<dir>/<blockchainID>/config.json`.
+-		//
+-		// VÌ SAO CẦN: API Warp **tắt mặc định**. `plugin/evm/config/config.go:38`
+-		// khai `WarpAPIEnabled` mà không đặt mặc định ⇒ giá trị zero của Go ⇒ false,
+-		// và `plugin/evm/vm.go:1179` chỉ đăng ký namespace `warp` khi cờ đó bật.
+-		// Không có API ấy thì không tổng hợp được chữ ký BLS của validator, tức
+-		// **không gửi được message nào đi đâu** — bật Warp precompile trong genesis
+-		// (M6.1) mới là một nửa việc.
+-		//
+-		// KHÔNG khai cờ này thì avalanchego rơi về
+-		// `~/.avalanchego/configs/chains/` — nằm trong volume RIÊNG của từng node,
+-		// tức phải ghi 5 lần qua `docker exec`. Trỏ vào thư mục config đã mount sẵn
+-		// cho cả 5 node thì console ghi MỘT lần trên host là xong.
+-		//
+-		// Thư mục rỗng/thiếu không làm node chết (nó chỉ log "no chain configs"),
+-		// nên cờ này an toàn cả với mạng chưa có L1 nào.
+-		b.WriteString("      - --chain-config-dir=/9chain-a1/config/chains\n")
+-		b.WriteString("      - --staking-tls-cert-file=/9chain-a1/node/staker.crt\n")
+-		b.WriteString("      - --staking-tls-key-file=/9chain-a1/node/staker.key\n")
+-		b.WriteString("      - --staking-signer-key-file=/9chain-a1/node/signer.key\n")
+-		b.WriteString("      - --http-host=0.0.0.0\n")
+-		// Lọc Host header (chống DNS rebinding). Mặc định của avalanchego là
+-		// ["localhost"] -> mọi dịch vụ gọi node qua tên khác (host.docker.internal
+-		// của faucet/ví, hay tên miền công khai qua reverse proxy) đều bị chặn,
+-		// mà lỗi hiện ra rất khó đoán. Local để "*"; trên server công khai đặt
+-		// A1_HTTP_ALLOWED_HOSTS="rpc.tenmien.com" trước khi up.
+-		b.WriteString("      - --http-allowed-hosts=${A1_HTTP_ALLOWED_HOSTS:-*}\n")
+-		// `--public-ip` = địa chỉ node KHAI VỚI PEER, không phải địa chỉ nó lắng nghe.
+-		// Khai sai thì node vẫn chạy, log vẫn sạch, chỉ là không ai gọi vào được.
+-		if nd.IP6 != "" {
+-			b.WriteString("      - --public-ip=" + nd.IP6 + "\n")
+-		} else {
+-			b.WriteString("      - --public-ip=" + nd.IP + "\n")
+-		}
+-		if nd.Index == 1 {
+-			b.WriteString("      - --bootstrap-ids=\n")
+-			b.WriteString("      - --bootstrap-ips=\n")
+-		} else {
+-			b.WriteString("      - --bootstrap-ids=" + beaconID + "\n")
+-			// IPv6 PHẢI viết trong ngoặc vuông. `config/config.go:642` đưa chuỗi này
+-			// cho `ips.ParseAddrPort` → `netip.ParseAddrPort`, và hàm đó đòi dạng
+-			// `[addr]:port` cho IPv6. Thiếu ngoặc thì node chết ngay lúc khởi động
+-			// với một lỗi parse — đây là chỗ hiếm hoi trong dự án mà lỗi lộ ra SỚM,
+-			// nên viết đúng ở đây là xong, không cần phòng thủ thêm.
+-			b.WriteString("      - --bootstrap-ips=" + beaconAddr + ":9651\n")
+-		}
+-		b.WriteString("      - --log-level=info\n")
+-		// Danh sách subnet mà node theo dõi. PHẢI có ở MỌI node, không chỉ node1:
+-		// console đẻ L1 xong sẽ `compose up -d` với A1_TRACK_SUBNETS=<danh sách> —
+-		// nếu compose không đọc biến này thì subnet vừa tạo chẳng node nào track,
+-		// chain không bao giờ lên RPC và console chỉ đứng chờ hết 150s rồi trả về
+-		// một chain chết. Truyền qua env (avalanchego đọc tiền tố AVAGO_) chứ không
+-		// qua cờ, vì cờ rỗng `--track-subnets=` cũng hợp lệ nhưng khó nối chuỗi.
+-		b.WriteString("    environment:\n")
+-		b.WriteString("      - AVAGO_TRACK_SUBNETS=${A1_TRACK_SUBNETS:-}\n")
+-		b.WriteString("    networks:\n      a1net:\n        ipv4_address: " + nd.IP + "\n")
+-		if nd.IP6 != "" {
+-			b.WriteString("        ipv6_address: " + nd.IP6 + "\n")
+-		}
+-	}
+-	b.WriteString("networks:\n  a1net:\n    driver: bridge\n")
+-	if ipv6Subnet != "" {
+-		// `enable_ipv6` ở CẤP NETWORK, không cần bật IPv6 cho cả docker daemon.
+-		// Đo trên server 2026-08-25: Docker 29.7.2 — bản này hỗ trợ per-network,
+-		// nên KHÔNG phải restart daemon (restart daemon là restart mọi container,
+-		// tức là hạ cả testnet công khai lẫn Blockscout).
+-		b.WriteString("    enable_ipv6: true\n")
+-	}
+-	b.WriteString("    ipam:\n      config:\n        - subnet: " + subnetPrefix + ".0/16\n")
+-	if ipv6Subnet != "" {
+-		b.WriteString("        - subnet: " + ipv6Subnet + "\n")
+-	}
+-	b.WriteString("volumes:\n")
+-	for _, nd := range nodes {
+-		b.WriteString(fmt.Sprintf("  9chain-a1-data-%d:\n", nd.Index))
+-	}
+-	return b.String()
+-}
++// netgen — Sinh toàn bộ vật liệu cho mạng 9Chain-A1 nhiều node THẬT:
++//   - 5 quỹ genesis, MỖI QUỸ MỘT KHOÁ RIÊNG (staking/foundation/ecosystem/faucet/team)
++//     theo bảng phân bổ trong allocation.go — codify của docs/TOKENOMICS.md
++//   - N bộ staking mỗi node: TLS cert+key (=> NodeID) và BLS signer key (=> PoP)
++//   - genesis.json (networkID theo thế hệ, xem identity.go) với startTime ĐỘNG
++//   - docker-compose.multinode.yml gán static IP (avalanchego cần IP, không hostname)
++//   - keys.txt (TUYỆT MẬT) · faucet.env (chỉ khoá faucet) · allocation.md (công khai)
++//
++// KHÔNG dùng khoá ewoq công khai. Chạy trong golang container, ghi ra thư mục OUT.
++//
++// Env: N (số node, mặc định 5), OUT (thư mục ra, mặc định /out),
++//
++//	NETWORK_ID (mặc định = constants.A1ID), SUBNET_PREFIX (172.28.0 — PHẢI kết
++//	thúc bằng .0), BASE_OCTET (11)
++package main
++
++import (
++	"encoding/json"
++	"encoding/pem"
++	"fmt"
++	"math/big"
++	"os"
++	"path/filepath"
++	"strconv"
++	"strings"
++	"time"
++
++	"github.com/ava-labs/avalanchego/genesis"
++	"github.com/ava-labs/avalanchego/ids"
++	"github.com/ava-labs/avalanchego/staking"
++	"github.com/ava-labs/avalanchego/utils/constants"
++	"github.com/ava-labs/avalanchego/utils/crypto/bls/signer/localsigner"
++	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
++	"github.com/ava-labs/avalanchego/vms/platformvm/signer"
++)
++
++type nodeInfo struct {
++	Index  int
++	NodeID ids.NodeID
++	IP     string // IPv4 nội bộ docker (luôn có — mọi node vẫn nói chuyện qua a1net)
++	IP6    string // GUA IPv6 công khai; RỖNG khi không bật chế độ ipv6 (M3)
++}
++
++// ═══ P2P RA INTERNET (M3) ═══
++//
++// Mặc định (`A1_P2P_MODE` không đặt) netgen sinh y hệt như trước: `--public-ip` là
++// IP nội bộ docker (172.28.0.1x) và KHÔNG node nào publish 9651. Nghĩa là P2P sống
++// trọn trong bridge docker — 5 node thấy nhau, **không máy nào ngoài Internet vào
++// được**. Đó là lý do HANDOFF cấm quảng bá "chạy node cùng chúng tôi".
++//
++// Bật `A1_P2P_MODE=ipv6` thì mỗi node nhận một địa chỉ IPv6 toàn cục (GUA) cắt ra
++// từ khối của máy chủ, khai đúng địa chỉ đó làm `--public-ip`, và **không cần
++// publish cổng**: container có địa chỉ công khai của riêng nó nên nó tự đến được
++// từ Internet. Đây chính là điểm mạnh của IPv6 ở đây — 5 node trên một máy mà vẫn
++// mỗi node một địa chỉ, cổng 9651 tiêu chuẩn, không NAT, không giành cổng.
++//
++// 🔴 CÁI GIÁ PHẢI NÓI RÕ: `--public-ip` của avalanchego là MỘT địa chỉ, không phải
++// một danh sách (`config/config.go` → `ips.ParseAddrPort`, một giá trị). Khai IPv6
++// nghĩa là **peer chỉ có IPv4 không kết nối vào được**. Ta vẫn gọi RA họ được,
++// nhưng họ không gọi VÀO được — với một testnet mời cộng đồng chạy node thì đó là
++// loại bỏ phần lớn người muốn tham gia. Lựa chọn thay thế (IPv4 + mỗi node một
++// `--staking-port` 9651..965N + publish từng cổng) đến được 100% Internet nhưng
++// phải chịu NAT vòng lại giữa 5 node cùng máy. Đây là quyết định về ĐỐI TƯỢNG
++// người dùng, không phải về kỹ thuật — xem BLOCKERS H-7, David chọn.
++const (
++	p2pDocker = "docker" // mặc định: P2P chỉ trong bridge docker (như trước M3)
++	p2pIPv6   = "ipv6"   // mỗi node một GUA IPv6, ra thẳng Internet
++)
++
++func env(k, def string) string {
++	if v := os.Getenv(k); v != "" {
++		return v
++	}
++	return def
++}
++func atoi(s string, def int) int {
++	if n, err := strconv.Atoi(s); err == nil {
++		return n
++	}
++	return def
++}
++func must(err error, msg string) {
++	if err != nil {
++		fmt.Fprintf(os.Stderr, "FATAL %s: %v\n", msg, err)
++		os.Exit(1)
++	}
++}
++
++func main() {
++	n := atoi(env("N", "5"), 5)
++	out := env("OUT", "/out")
++	networkID := uint32(atoi(env("NETWORK_ID", "9001"), 9001))
++	subnetPrefix := env("SUBNET_PREFIX", "172.28.0")
++	baseOctet := atoi(env("BASE_OCTET", "11"), 11)
++	// M3 — xem khối chú thích ở `p2pDocker`. Mặc định giữ nguyên hành vi cũ.
++	p2pMode := env("A1_P2P_MODE", p2pDocker)
++	// Khối /64 cắt ra cho mạng docker. Máy chủ hiện tại (139.99.145.13) được cấp
++	// nguyên một **/56** (`2402:1f00:8100:10d::/56`, đo 2026-08-25), nên cắt một /64
++	// cho docker là chuyện chia trong phần đã thuộc về mình — không đụng gì tới địa
++	// chỉ máy chủ đang dùng, và KHÔNG cần proxy NDP vì cả khối đã được định tuyến tới máy.
++	ipv6Subnet := env("A1_IPV6_SUBNET", "")
++	// Tiền tố để đánh địa chỉ từng node: node i ⇒ <base><baseOctet+i-1> (hệ 16).
++	// Tách khỏi `A1_IPV6_SUBNET` để địa chỉ node là số ĐỌC ĐƯỢC (…::b, ::c, …)
++	// thay vì để docker tự cấp — địa chỉ node phải ổn định vì nó đi vào
++	// `--bootstrap-ips` của các node khác và vào bản ghi DNS công khai.
++	ipv6Base := env("A1_IPV6_BASE", "")
++	if p2pMode == p2pIPv6 && (ipv6Subnet == "" || ipv6Base == "") {
++		// Chết ngay thay vì sinh ra một compose "gần đúng": mạng sinh sai địa chỉ
++		// P2P là loại lỗi chỉ lộ ra khi có người ngoài thử join, tức là muộn nhất.
++		fmt.Fprintln(os.Stderr, "FATAL A1_P2P_MODE=ipv6 đòi cả A1_IPV6_SUBNET và A1_IPV6_BASE")
++		os.Exit(1)
++	}
++	hrp := constants.GetHRP(networkID) // "love9" cho custom net
++
++	// 🔴 CỔNG BỘ ĐỊNH DANH — thay cổng `!= 9001` cũ. Xem `identity.go`.
++	//
++	// Cổng cũ canh đúng MỘT điều: networkID có phải hằng A1 không. Sau D-076 thì bản sắc
++	// là **năm thứ phải khớp nhau** (thế hệ · networkID · tên · HRP · khối chainId), và
++	// canh một trong năm là để bốn cái kia trôi lệch trong im lặng — đúng lớp lỗi đã ba
++	// lần vấp trong ngày `27/08`.
++	if !genesis.LaMangA1(networkID) {
++		fmt.Fprintf(os.Stderr,
++			"FATAL NETWORK_ID=%d — netgen chỉ sinh được mạng 9Chain-A1.\n"+
++				"      Tham số kinh tế (trần cung, mức stake, phí) chỉ gắn vào dải A1 trong\n"+
++				"      genesis/params.go; mọi networkID khác mượn LocalParams của Avalanche\n"+
++				"      (trần cung 720 triệu) và genesis này sẽ TRÀN NGƯỢC uint64 khi phát thưởng.\n"+
++				"      Mạng thật: %d · mạng tập: %d (thế hệ %d).\n",
++			networkID, constants.A1ID, constants.A1IDTap, constants.A1Gen)
++		os.Exit(1)
++	}
++	kiemBoDinhDanh(networkID)
++
++	// Chặn TRƯỚC khi sinh khoá: bảng phân bổ phải nằm trong trần cung mà chính
++	// binary này biên dịch vào, VÀ kế toán tổng cung phải khớp lời hứa công bố.
++	// Xem `mustFitSupplyCap` trong allocation.go.
++	mustFitSupplyCap(networkID)
++	canhBaoSelfBond(n)
++
++	// Chữ khắc — cũng chặn TRƯỚC khi sinh khoá. Lượt khắc hỏng mà đã sinh khoá là
++	// để lại một bộ khoá quỹ nửa vời trên đĩa, và không ai chắc bộ nào là bộ nào.
++	// nil = KHÔNG khắc (mặc định, dùng cho mọi lượt tập). Xem engrave.go.
++	eng := loadEngraving()
++
++	// Cổng "bản tập ≠ bản thật" cho chainId — C-4. Cũng chặn TRƯỚC khi sinh khoá, cùng
++	// lý do với cổng chữ khắc. Xem chainid.go.
++	chainID := resolveChainID(eng != nil)
++
++	must(os.MkdirAll(out, 0o755), "mkdir out")
++
++	// ---- 1) Sinh 5 quỹ genesis, mỗi quỹ MỘT khoá riêng ----
++	//
++	// Trước đây chỉ có 1 khoá "treasury" ôm hết -> lộ 1 khoá là mất sạch, và
++	// faucet buộc phải xài chung khoá quỹ. Nay tách theo bảng phân bổ trong
++	// docs/TOKENOMICS.md để mỗi quỹ có vòng đời & mức rủi ro riêng.
++	funds := make(map[string]*fund, len(buckets))
++	for _, b := range buckets {
++		f, err := newFund(b, hrp)
++		must(err, "gen key quy "+b.Key)
++		funds[b.Key] = f
++	}
++	staking9 := funds[bucketStaking]
++	treasury := funds[bucketFoundation] // quỹ nhận thưởng staking của node genesis
++
++	// ---- 2) Staking material cho N node ----
++	nodes := make([]nodeInfo, 0, n)
++	stakers := make([]genesis.UnparsedStaker, 0, n)
++
++	for i := 1; i <= n; i++ {
++		nodeDir := filepath.Join(out, fmt.Sprintf("node%d", i))
++		must(os.MkdirAll(nodeDir, 0o755), "mkdir node dir")
++
++		certPEM, keyPEM, err := staking.NewCertAndKeyBytes()
++		must(err, "gen staking cert")
++		block, _ := pem.Decode(certPEM)
++		if block == nil {
++			must(fmt.Errorf("cert PEM decode nil"), "decode cert")
++		}
++		cert, err := staking.ParseCertificate(block.Bytes)
++		must(err, "parse cert")
++		nodeID := ids.NodeIDFromCert(cert)
++
++		ls, err := localsigner.New()
++		must(err, "gen bls signer")
++		pop, err := signer.NewProofOfPossession(ls)
++		must(err, "gen proof of possession")
++
++		must(os.WriteFile(filepath.Join(nodeDir, "staker.crt"), certPEM, 0o600), "write crt")
++		must(os.WriteFile(filepath.Join(nodeDir, "staker.key"), keyPEM, 0o600), "write key")
++		must(os.WriteFile(filepath.Join(nodeDir, "signer.key"), ls.ToBytes(), 0o600), "write signer")
++
++		ip := fmt.Sprintf("%s.%d", subnetPrefix, baseOctet+i-1)
++		ip6 := ""
++		if p2pMode == p2pIPv6 {
++			// Hệ 16 để địa chỉ IPv6 đọc ra đúng con số của node (node1 ⇒ …::b).
++			ip6 = fmt.Sprintf("%s%x", ipv6Base, baseOctet+i-1)
++		}
++		nodes = append(nodes, nodeInfo{Index: i, NodeID: nodeID, IP: ip, IP6: ip6})
++		stakers = append(stakers, genesis.UnparsedStaker{
++			NodeID:        nodeID,
++			RewardAddress: treasury.XAddr, // thưởng staking chảy về quỹ Foundation
++			DelegationFee: 20000,          // 2%
++			Signer:        pop,
++		})
++		if ip6 != "" {
++			fmt.Printf("node%d  NodeID=%s  IP=%s  IPv6=%s\n", i, nodeID, ip, ip6)
++		} else {
++			fmt.Printf("node%d  NodeID=%s  IP=%s\n", i, nodeID, ip)
++		}
++	}
++
++	// ---- 3) Genesis config (startTime động) ----
++	now := time.Now().Unix()
++
++	// Dựng allocation từ bảng phân bổ. Mỗi quỹ = 1 allocation:
++	//   InitialAmount  -> UTXO THANH KHOẢN trên X-Chain
++	//   UnlockSchedule -> UTXO KHOÁ trên P-Chain, mở tại Locktime
++	// Riêng quỹ self-bond nằm trong InitialStakedFunds. 🔴 Chỉ vòng dựng UTXO
++	// **P-Chain** bỏ qua nó (`genesis/genesis.go:358`) rồi `splitAllocations` chia
++	// phần KHOÁ thành stake của N node; vòng **X-Chain** KHÔNG bỏ qua ai cả. Nên đặt
++	// `LiquidXP > 0` cho quỹ này là in thêm tiền thanh khoản chứ không phải "bị bỏ
++	// qua" — giữ nó bằng 0. (Chú thích cũ nói avalanchego bỏ qua cả allocation, sai.)
++	allocs := make([]genesis.UnparsedAllocation, 0, len(buckets))
++	for _, b := range buckets {
++		f := funds[b.Key]
++		a := genesis.UnparsedAllocation{
++			ETHAddr:       f.EthAddr,
++			AVAXAddr:      f.XAddr,
++			InitialAmount: b.LiquidXP,
++		}
++		if b.LockedXP > 0 {
++			a.UnlockSchedule = []genesis.LockedAmount{
++				{Amount: b.LockedXP, Locktime: uint64(now) + b.LockSeconds},
++			}
++		}
++		allocs = append(allocs, a)
++	}
++
++	cfg := genesis.UnparsedConfig{
++		NetworkID:            networkID,
++		Allocations:          allocs,
++		StartTime:            uint64(now - 60),
++		InitialStakeDuration: oneYear,
++		// 🔴 SO LE NHIỆM KỲ — 7 ngày giữa các node (D-042).
++		// Bản cũ để 5400 giây (1,5 giờ): với 9 node thì cả mạng hết hạn trong vòng
++		// 12 tiếng, tức vẫn là "chết cùng một lúc" chứ không phải cảnh báo.
++		// 7 ngày × 8 khoảng = trải 56 ngày: node đầu rụng ở ~ngày 309, và đó là
++		// LỜI CẢNH BÁO SỚM với 8 node vẫn chạy, thay vì một dấu chấm hết đột ngột.
++		// Ràng buộc: offset × (số node − 1) phải < InitialStakeDuration.
++		InitialStakeDurationOffset: 7 * 24 * 60 * 60,
++		InitialStakedFunds:         []string{staking9.XAddr},
++		InitialStakers:             stakers,
++		CChainGenesis:              cChainGenesis(funds, eng, chainID),
++		Message:                    pChainMessage(eng),
++	}
++	gb, err := json.MarshalIndent(cfg, "", "  ")
++	must(err, "marshal genesis")
++	must(os.WriteFile(filepath.Join(out, "genesis.json"), gb, 0o644), "write genesis")
++
++	// ---- 4) docker-compose nhiều node (static IP) ----
++	compose := buildCompose(nodes, subnetPrefix, ipv6Subnet, networkID)
++	must(os.WriteFile(filepath.Join(out, "docker-compose.multinode.yml"), []byte(compose), 0o644), "write compose")
++
++	// ---- 5) Xuất khoá của TỪNG quỹ (BÍ MẬT) ----
++	// keys.txt  = TẤT CẢ khoá -> giữ offline, KHÔNG BAO GIỜ lên server.
++	// faucet.env = CHỈ khoá faucet -> đây là file duy nhất được phép đưa lên server.
++	var keys strings.Builder
++	keys.WriteString("9Chain-A1 — KHOA CAC QUY GENESIS (TUYET MAT — giu offline/cold)\n")
++	keys.WriteString(fmt.Sprintf("networkID: %d | so node: %d | tong phat hanh: %s LOVE9\n\n", networkID, n, love9(totalGenesisSupply())))
++	for _, b := range buckets {
++		f := funds[b.Key]
++		// % là của HẠNG MỤC công bố, không phải của riêng bucket này: Foundation và
++		// self-bond là hai địa chỉ trong cùng một hạng mục 12%, Community và faucet
++		// trong cùng 30%. In kèm tên hạng mục để không ai cộng dồn nhầm thành 111%.
++		keys.WriteString(fmt.Sprintf(`[%s] %s — hang muc %s (%d%%) = %s LOVE9
++  muc dich    : %s
++  PrivateKey  : %s
++  X-addr      : %s
++  P-addr      : %s
++  EVM addr    : %s
++  EVM privkey : 0x%s
++  X/P thanh khoan: %s | X/P khoa: %s (mo sau %s) | C-Chain: %s
++
++`, b.Key, b.Name, b.Nhom, b.NhomPct, love9(b.Total()), b.Purpose,
++			f.Key.String(), f.XAddr, f.PAddr, f.EthAddr, hexOfECDSA(f.Key),
++			love9(b.LiquidXP), love9(b.LockedXP), b.LockLabel, love9(b.CChain)))
++	}
++	must(os.WriteFile(filepath.Join(out, "keys.txt"), []byte(keys.String()), 0o600), "write keys.txt")
++
++	fa := funds[bucketFaucet]
++	faucetEnv := fmt.Sprintf(`# 9Chain-A1 — cau hinh faucet. Vi RIENG, KHONG phai treasury.
++# Day la file DUY NHAT trong bo nay duoc phep dua len server.
++FAUCET_PK=0x%s
++FAUCET_ADDR=%s
++`, hexOfECDSA(fa.Key), fa.EthAddr)
++	must(os.WriteFile(filepath.Join(out, "faucet.env"), []byte(faucetEnv), 0o600), "write faucet.env")
++
++	// ---- 6) Bảng phân bổ công khai (KHÔNG chứa khoá) ----
++	must(os.WriteFile(filepath.Join(out, "allocation.md"), []byte(allocationReport(funds, networkID, n)), 0o644), "write allocation.md")
++
++	// ---- 6b) Bản khai cung MÁY ĐỌC ĐƯỢC (I1b) ----
++	//
++	// `allocation.md` là markdown cho người đọc; không dịch vụ nào phân tích nổi nó. Hệ quả:
++	// mọi con số cung xuất hiện ngoài trang công khai đều là **gõ tay lại**, và không có
++	// đường nào truy ngược về lượt sinh mạng đã đẻ ra chúng. Đó đúng là điều luật cứng của
++	// 9Scan-A1 cấm (*"số công bố phải đọc từ chain thật"*).
++	//
++	// 🔴 Tệp này KHÔNG phải nguồn sự thật — nó là **bản khai**. Nguồn sự thật là chain.
++	// Dịch vụ đọc nó phải dùng nó để biết **đo cái gì, ở đâu**, rồi tự đo, rồi **so lại**.
++	// Xem `local-net/faucet/server.mjs` → `/api/supply`.
++	must(os.WriteFile(filepath.Join(out, "cung.json"), []byte(supplyManifest(funds, networkID, chainID)), 0o644), "write cung.json")
++
++	// ---- 7) Báo cáo chữ khắc (công khai, chỉ có khi bật khắc) ----
++	if eng != nil {
++		must(os.WriteFile(filepath.Join(out, "engraving.md"), []byte(eng.report(networkID)), 0o644), "write engraving.md")
++	}
++
++	fmt.Printf("\n✓ Sinh xong %d node vào %s\n", n, out)
++	fmt.Printf("  genesis.json · docker-compose.multinode.yml · allocation.md (cong khai)\n")
++	fmt.Printf("  keys.txt (TUYET MAT) · faucet.env (chi khoa faucet)\n")
++	fmt.Printf("  Tong phat hanh genesis: %s LOVE9\n", love9(totalGenesisSupply()))
++	// In chainId LUÔN LUÔN. Tới `27/08` netgen không in con số này ở đâu cả — nên không
++	// lượt sinh mạng nào để lại dấu vết về bản sắc mà nó vừa phát ra. Im lặng ở đây là
++	// cách một mạng tập đi ra ngoài dưới tên mạng thật mà không ai nhận ra.
++	if chainID == chainIDThat {
++		fmt.Printf("  C-Chain chainId: %d  <-- SO CUA MANG THAT\n", chainID)
++	} else {
++		fmt.Printf("  C-Chain chainId: %d  (mang TAP; so that la %d)\n", chainID, chainIDThat)
++	}
++	if eng == nil {
++		// In cả khi KHÔNG khắc. Im lặng ở đây là cách một lượt "thật" đi qua mà
++		// không ai nhận ra nó thiếu chữ khắc.
++		fmt.Printf("  Chu khac: KHONG (ban tap). Bat bang A1_ENGRAVE=<manifest>.\n")
++	} else {
++		fmt.Printf("  Chu khac: CO — %d tai lieu · van tay %s\n", len(eng.docs), eng.Root)
++		fmt.Printf("    P-Chain Message : %d byte\n", len(eng.PMessage))
++		fmt.Printf("    C-Chain %s : %d byte, extraData %s\n", eng.manifest.CChainAddress, len(eng.CPayload), eng.CExtraData)
++		fmt.Printf("    Bang doi chieu  : engraving.md\n")
++	}
++}
++
++// EVM private key hex (32 bytes) từ secp256k1 key.
++func hexOfECDSA(k *secp256k1.PrivateKey) string {
++	b := k.Bytes()
++	return fmt.Sprintf("%x", b)
++}
++
++// pChainMessage — nội dung trường `Message` của P-Chain genesis.
++//
++// P-Chain là GỐC: `genesis/genesis.go:441-446` cho thấy X-Chain và C-Chain nằm trong
++// mảng `chains` được truyền VÀO `pChainGenesis`. Khắc ở đây là khắc ở nơi khai sinh
++// cả mạng, không phải "một trong ba chỗ".
++//
++// Không bật khắc chữ ⇒ giữ nguyên chuỗi cũ. Đó là đường của mọi lượt tập.
++func pChainMessage(e *engraving) string {
++	if e == nil {
++		return "9Chain-A1 sovereign genesis"
++	}
++	return e.PMessage
++}
++
++// cChainGenesis dựng alloc C-Chain từ các quỹ có phần C-Chain > 0.
++// Số dư EVM là wei (18 số 0), khác nLOVE9 của X/P (9 số 0) — nhân thêm 1e9.
++//
++// 🔴 HÀM NÀY LÀ LÝ DO KHÔNG ĐƯỢC SỬA TAY GENESIS ĐÃ SINH (`local-net/net*/genesis.json`):
++// C-Chain genesis nằm trong đó dưới dạng **chuỗi JSON đã escape** trên một dòng. Thêm
++// một `alloc` mang toàn văn tài liệu nghĩa là một dòng escape rất dài — sửa tay là hỏng
++// escape, và không ai thấy cho tới lúc node boot.
++//
++// ⚠️ Chú thích này (và patch 0010) trước đây trỏ vào `9chain-a1-config/genesis.json`.
++// Sai, và tệp đó **đã xoá `2026-08-27`**: netgen KHÔNG đọc tệp cấu hình nào — nó dựng
++// `genesis.UnparsedConfig` thẳng ở đây trong Go. Tệp kia là `genesis_local.json` gốc của
++// Avalanche (khoá ewoq công khai giữ 50 triệu) còn sót trong đường boot của node dev.
++// Ai đi theo con trỏ cũ để sửa chữ khắc sẽ sửa một tệp không ai đọc, **và không có gì
++// báo lỗi**. Xem `docs/CORE-AUDIT-2026-08-27.md` §7b.
++func cChainGenesis(funds map[string]*fund, e *engraving, chainID uint64) string {
++	allocs := make([]string, 0, len(buckets)+1)
++	for _, b := range buckets {
++		if b.CChain == 0 {
++			continue
++		}
++		wei := new(big.Int).Mul(new(big.Int).SetUint64(b.CChain), big.NewInt(1_000_000_000))
++		addr := strings.ToLower(strings.TrimPrefix(funds[b.Key].EthAddr, "0x"))
++		allocs = append(allocs, fmt.Sprintf(`"%s":{"balance":"0x%x"}`, addr, wei))
++	}
++
++	// Mặc định: y như cũ, không khắc gì.
++	extraData := "0x00"
++	if e != nil {
++		// Hợp đồng dữ liệu: `balance` 0, `code` = STOP + byte thô. Không chạy được,
++		// chỉ để `eth_getCode` đọc ra.
++		dataAddr := strings.ToLower(strings.TrimPrefix(e.manifest.CChainAddress, "0x"))
++		for _, a := range allocs {
++			// Đâm vào địa chỉ của một quỹ thì quỹ đó mất sạch tiền và không có dấu
++			// hiệu nào — bắt ở đây, không để genesis đẻ ra rồi mới biết.
++			if strings.HasPrefix(a, `"`+dataAddr+`"`) {
++				engraveFatal("dia chi hop dong du lieu TRUNG voi mot dia chi quy: 0x" + dataAddr)
++			}
++		}
++		allocs = append(allocs, fmt.Sprintf(`"%s":{"balance":"0x0","code":"%s"}`, dataAddr, e.CCode))
++		extraData = e.CExtraData
++	}
++
++	// chainId KHÔNG còn cắm cứng ở đây — nó đi qua cổng `resolveChainID` (chainid.go).
++	// Cắm cứng là lý do tới `27/08` mọi mạng tập đều mang bản sắc của mạng thật.
++	return `{"config":{"chainId":` + strconv.FormatUint(chainID, 10) + `,"homesteadBlock":0,"eip150Block":0,"eip155Block":0,"eip158Block":0,"byzantiumBlock":0,"constantinopleBlock":0,"petersburgBlock":0,"istanbulBlock":0,"muirGlacierBlock":0,"apricotPhase1BlockTimestamp":0,"apricotPhase2BlockTimestamp":0},"nonce":"0x0","timestamp":"0x0","extraData":"` + extraData + `","gasLimit":"0x5f5e100","difficulty":"0x0","mixHash":"0x0000000000000000000000000000000000000000000000000000000000000000","coinbase":"0x0000000000000000000000000000000000000000","alloc":{` +
++		strings.Join(allocs, ",") +
++		`},"number":"0x0","gasUsed":"0x0","parentHash":"0x0000000000000000000000000000000000000000000000000000000000000000"}`
++}
++
++func buildCompose(nodes []nodeInfo, subnetPrefix, ipv6Subnet string, networkID uint32) string {
++	var b strings.Builder
++	b.WriteString("# 9Chain-A1 — mạng " + strconv.Itoa(len(nodes)) + " node thật (sinh bởi netgen).\n")
++	b.WriteString("# Chạy:  docker compose -f local-net/net/docker-compose.multinode.yml up -d\n")
++	b.WriteString("# node1 = beacon; node2.. bootstrap từ node1. Chỉ node1 mở API ra host (9650).\n")
++	b.WriteString("services:\n")
++	beaconID := nodes[0].NodeID.String()
++	// Địa chỉ beacon dùng trong `--bootstrap-ips` phải là địa chỉ beacon KHAI với
++	// peer (`--public-ip`), không phải địa chỉ nội bộ: node khác lấy nó làm điểm
++	// chạm đầu tiên, và ở chế độ ipv6 thì địa chỉ docker nội bộ vô nghĩa với họ.
++	beaconAddr := nodes[0].IP
++	if nodes[0].IP6 != "" {
++		beaconAddr = "[" + nodes[0].IP6 + "]"
++	}
++	for _, nd := range nodes {
++		name := fmt.Sprintf("9chain-a1-node-%d", nd.Index)
++		b.WriteString("  " + name + ":\n")
++		b.WriteString("    image: 9chain-a1/node:dev\n")
++		b.WriteString("    container_name: " + name + "\n")
++		// VÌ SAO CÓ DÒNG NÀY (D-071, soát vận hành 2026-08-27):
++		//
++		// Thiếu nó thì Docker lấy mặc định `no`, và mặc định đó KHÔNG PHẢI một lựa
++		// chọn ai đó đã cân nhắc — nó là chỗ không ai điền. Đo trên mạng công khai
++		// `27/08`: cả 9 validator mang `restart=no`, trong khi Blockscout mang
++		// `always` và Caddy/faucet/web mang `unless-stopped`.
++		//
++		// 🔴 Nghĩa là máy chủ reboot ⇒ trang web dậy, faucet dậy, EXPLORER dậy, và
++		// chuỗi nằm im. Đó là dạng hỏng tệ nhất: trang chủ 200, faucet trả `ok`,
++		// explorer mở được — chỉ chuỗi là không tồn tại. Không cổng nào báo gì.
++		//
++		// `unless-stopped` chứ không `always`: nó TÔN TRỌNG lệnh dừng tường minh,
++		// nên rolling-restart của M2 (hạ một node để track subnet mới) vẫn hạ được
++		// node xuống mà nó không tự bật lên giữa chừng.
++		//
++		// ⚠️ Mặt trái của chính vế đó: `docker stop` VÀ `docker kill` đều là "người
++		// dùng chủ động dừng" nên KHÔNG kích hoạt chính sách. Thử bằng `docker kill`
++		// sẽ thấy node không dậy và tưởng cấu hình hỏng — đã suýt kết luận sai đúng
++		// thế lúc nghiệm thu D-071. Muốn thử thì để tiến trình TỰ CHẾT.
++		b.WriteString("    restart: unless-stopped\n")
++		if nd.Index == 1 {
++			// CHỈ mở ra 127.0.0.1, KHÔNG phải 0.0.0.0.
++			//
++			// Docker publish cổng bằng luật DNAT trong bảng nat, ĐI VÒNG QUA ufw
++			// (ufw lọc chuỗi INPUT, Docker dùng FORWARD/DOCKER). Viết "9650:9650"
++			// là API node hở thẳng ra Internet dù `ufw status` báo cổng đó bị chặn
++			// — nhìn tưởng an toàn mà thực ra không. Đây là cổng có /ext/admin,
++			// ví, và toàn quyền RPC.
++			//
++			// Muốn public RPC thì đặt reverse proxy (Caddy) trước cổng 127.0.0.1
++			// này, có TLS + rate-limit + lọc path.
++			b.WriteString("    ports:\n      - \"${A1_API_BIND:-127.0.0.1}:9650:9650\"\n")
++		}
++		if nd.Index == 2 && len(nodes) >= 2 {
++			// Upstream DỰ PHÒNG cho RPC công khai — cũng chỉ ra loopback.
++			//
++			// VÌ SAO: với MỘT upstream duy nhất, mọi lần node-1 restart là RPC
++			// công khai chết. Mà node BUỘC phải restart mỗi lần track subnet mới
++			// (đẻ L1) — không có API thêm subnet lúc đang chạy. Đo thật
++			// 2026-08-24: đẻ 1 chain ⇒ 6.0s chết, 12/25 lượt gọi hỏng.
++			//
++			// Cho Caddy hai upstream (`lb_policy first` + passive health check)
++			// đưa con số đó về 0.5s / 1 lượt hỏng — cải thiện 12 lần. Ngoài ra
++			// nó xoá luôn điểm hỏng duy nhất: trước đây node-1 chết vì bất kỳ lý
++			// do gì là toàn bộ RPC công khai chết theo.
++			b.WriteString("    ports:\n      - \"${A1_API_BIND:-127.0.0.1}:9660:9650\"\n")
++		}
++		b.WriteString("    volumes:\n")
++		b.WriteString(fmt.Sprintf("      - ./node%d:/9chain-a1/node:ro\n", nd.Index))
++		b.WriteString("      - ./genesis.json:/9chain-a1/net/genesis.json:ro\n")
++		// Thư mục config của dự án, chứa genesis EVM mẫu + console-tmp/.
++		// Console chạy TRÊN HOST: nó ghi genesis của L1 mới ra host rồi bảo CLI
++		// TRONG container đọc `/9chain-a1/config/console-tmp/<file>`. Không mount
++		// thì đường dẫn đó không tồn tại và mọi lượt tạo chain chết ở bước đọc
++		// genesis. Chỉ đọc — mọi thao tác ghi đều do console làm phía host.
++		// Đường dẫn mặc định tính từ thư mục chứa compose (local-net/net/);
++		// bố cục khác (ví dụ trên server) thì đặt A1_CONFIG_DIR.
++		b.WriteString("      - ${A1_CONFIG_DIR:-../../9chain-a1-config}:/9chain-a1/config:ro\n")
++		b.WriteString(fmt.Sprintf("      - 9chain-a1-data-%d:/root/.avalanchego\n", nd.Index))
++		b.WriteString("    command:\n")
++		b.WriteString("      - ./avalanchego\n")
++		// 🔴 networkID LẤY TỪ THAM SỐ, không cắm cứng.
++		//
++		// Cắm cứng `9001` ở đây trong khi genesis mang số khác thì node **từ chối khởi
++		// động**: `conflicting networkIDs: expected 9001 but config contains …`.
++		// Bắt được đúng thế lúc dựng mạng tập thế hệ 0 (`899999999`) ngày `27/08`.
++		//
++		// ⚠️ Đây là lỗi HIỀN — nó nổ to và chỉ đúng chỗ. Nhưng nó phơi ra rằng netgen
++		// từng có **HAI nguồn sự thật** cho cùng một con số: genesis và cờ dòng lệnh.
++		// Nay còn một. Cùng lớp lỗi với `A1Gen` — xem `identity.go`.
++		b.WriteString(fmt.Sprintf("      - --network-id=%d\n", networkID))
++		b.WriteString("      - --genesis-file=/9chain-a1/net/genesis.json\n")
++		b.WriteString("      - --plugin-dir=/9chain-a1/build/plugins\n")
++		// Cấu hình RIÊNG cho từng chain — `<dir>/<blockchainID>/config.json`.
++		//
++		// VÌ SAO CẦN: API Warp **tắt mặc định**. `plugin/evm/config/config.go:38`
++		// khai `WarpAPIEnabled` mà không đặt mặc định ⇒ giá trị zero của Go ⇒ false,
++		// và `plugin/evm/vm.go:1179` chỉ đăng ký namespace `warp` khi cờ đó bật.
++		// Không có API ấy thì không tổng hợp được chữ ký BLS của validator, tức
++		// **không gửi được message nào đi đâu** — bật Warp precompile trong genesis
++		// (M6.1) mới là một nửa việc.
++		//
++		// KHÔNG khai cờ này thì avalanchego rơi về
++		// `~/.avalanchego/configs/chains/` — nằm trong volume RIÊNG của từng node,
++		// tức phải ghi 5 lần qua `docker exec`. Trỏ vào thư mục config đã mount sẵn
++		// cho cả 5 node thì console ghi MỘT lần trên host là xong.
++		//
++		// Thư mục rỗng/thiếu không làm node chết (nó chỉ log "no chain configs"),
++		// nên cờ này an toàn cả với mạng chưa có L1 nào.
++		b.WriteString("      - --chain-config-dir=/9chain-a1/config/chains\n")
++		b.WriteString("      - --staking-tls-cert-file=/9chain-a1/node/staker.crt\n")
++		b.WriteString("      - --staking-tls-key-file=/9chain-a1/node/staker.key\n")
++		b.WriteString("      - --staking-signer-key-file=/9chain-a1/node/signer.key\n")
++		b.WriteString("      - --http-host=0.0.0.0\n")
++		// Lọc Host header (chống DNS rebinding). Mặc định của avalanchego là
++		// ["localhost"] -> mọi dịch vụ gọi node qua tên khác (host.docker.internal
++		// của faucet/ví, hay tên miền công khai qua reverse proxy) đều bị chặn,
++		// mà lỗi hiện ra rất khó đoán. Local để "*"; trên server công khai đặt
++		// A1_HTTP_ALLOWED_HOSTS="rpc.tenmien.com" trước khi up.
++		b.WriteString("      - --http-allowed-hosts=${A1_HTTP_ALLOWED_HOSTS:-*}\n")
++		// `--public-ip` = địa chỉ node KHAI VỚI PEER, không phải địa chỉ nó lắng nghe.
++		// Khai sai thì node vẫn chạy, log vẫn sạch, chỉ là không ai gọi vào được.
++		if nd.IP6 != "" {
++			b.WriteString("      - --public-ip=" + nd.IP6 + "\n")
++		} else {
++			b.WriteString("      - --public-ip=" + nd.IP + "\n")
++		}
++		if nd.Index == 1 {
++			b.WriteString("      - --bootstrap-ids=\n")
++			b.WriteString("      - --bootstrap-ips=\n")
++		} else {
++			b.WriteString("      - --bootstrap-ids=" + beaconID + "\n")
++			// IPv6 PHẢI viết trong ngoặc vuông. `config/config.go:642` đưa chuỗi này
++			// cho `ips.ParseAddrPort` → `netip.ParseAddrPort`, và hàm đó đòi dạng
++			// `[addr]:port` cho IPv6. Thiếu ngoặc thì node chết ngay lúc khởi động
++			// với một lỗi parse — đây là chỗ hiếm hoi trong dự án mà lỗi lộ ra SỚM,
++			// nên viết đúng ở đây là xong, không cần phòng thủ thêm.
++			b.WriteString("      - --bootstrap-ips=" + beaconAddr + ":9651\n")
++		}
++		b.WriteString("      - --log-level=info\n")
++		// Danh sách subnet mà node theo dõi. PHẢI có ở MỌI node, không chỉ node1:
++		// console đẻ L1 xong sẽ `compose up -d` với A1_TRACK_SUBNETS=<danh sách> —
++		// nếu compose không đọc biến này thì subnet vừa tạo chẳng node nào track,
++		// chain không bao giờ lên RPC và console chỉ đứng chờ hết 150s rồi trả về
++		// một chain chết. Truyền qua env (avalanchego đọc tiền tố AVAGO_) chứ không
++		// qua cờ, vì cờ rỗng `--track-subnets=` cũng hợp lệ nhưng khó nối chuỗi.
++		b.WriteString("    environment:\n")
++		b.WriteString("      - AVAGO_TRACK_SUBNETS=${A1_TRACK_SUBNETS:-}\n")
++		b.WriteString("    networks:\n      a1net:\n        ipv4_address: " + nd.IP + "\n")
++		if nd.IP6 != "" {
++			b.WriteString("        ipv6_address: " + nd.IP6 + "\n")
++		}
++	}
++	b.WriteString("networks:\n  a1net:\n    driver: bridge\n")
++	if ipv6Subnet != "" {
++		// `enable_ipv6` ở CẤP NETWORK, không cần bật IPv6 cho cả docker daemon.
++		// Đo trên server 2026-08-25: Docker 29.7.2 — bản này hỗ trợ per-network,
++		// nên KHÔNG phải restart daemon (restart daemon là restart mọi container,
++		// tức là hạ cả testnet công khai lẫn Blockscout).
++		b.WriteString("    enable_ipv6: true\n")
++	}
++	b.WriteString("    ipam:\n      config:\n        - subnet: " + subnetPrefix + ".0/16\n")
++	if ipv6Subnet != "" {
++		b.WriteString("        - subnet: " + ipv6Subnet + "\n")
++	}
++	b.WriteString("volumes:\n")
++	for _, nd := range nodes {
++		b.WriteString(fmt.Sprintf("  9chain-a1-data-%d:\n", nd.Index))
++	}
++	return b.String()
++}
+diff --git a/config/config.go b/config/config.go
+index 20237ad..0f84e71 100644
+--- a/config/config.go
++++ b/config/config.go
+@@ -808,7 +808,10 @@ func getStakingConfig(v *viper.Viper, networkID uint32) (node.StakingConfig, err
+ 	//   2. mỗi node có thể tự đặt supply cap / trần stake khác nhau bằng cờ CLI
+ 	//      — tham số kinh tế phải đồng thuận toàn mạng, không phải tuỳ node.
+ 	// Nên A1 được xếp cùng nhóm Mainnet/Fuji: tham số chốt trong mã, cờ CLI vô hiệu.
+-	if networkID != constants.MainnetID && networkID != constants.FujiID && networkID != genesis.A1NetworkID {
++	// 🔴 KIỂM THEO DẢI, không so một hằng — xem constants.LaMangA1.
++	// Bắt được `27/08` bằng cách BOOT một node mạng tập: cổng netgen xanh,
++	// GetStakingConfig đúng, mà node vẫn log supplyCap 720 triệu vì dòng này.
++	if networkID != constants.MainnetID && networkID != constants.FujiID && !constants.LaMangA1(networkID) {
+ 		config.UptimeRequirement = v.GetFloat64(UptimeRequirementKey)
+ 		config.MinValidatorStake = v.GetUint64(MinValidatorStakeKey)
+ 		config.MaxValidatorStake = v.GetUint64(MaxValidatorStakeKey)
+@@ -879,7 +882,10 @@ func getStakingSignerConfig(v *viper.Viper) (node.StakingSignerConfig, error) {
+ func getTxFeeConfig(v *viper.Viper, networkID uint32) genesis.TxFeeConfig {
+ 	// 9Chain-A1: phí là tham số CHỦ QUYỀN, chốt trong mã (genesis.A1Params),
+ 	// KHÔNG cho từng node tự đặt bằng cờ CLI — xem ghi chú ở getStakingConfig.
+-	if networkID != constants.MainnetID && networkID != constants.FujiID && networkID != genesis.A1NetworkID {
++	// 🔴 KIỂM THEO DẢI, không so một hằng — xem constants.LaMangA1.
++	// Bắt được `27/08` bằng cách BOOT một node mạng tập: cổng netgen xanh,
++	// GetStakingConfig đúng, mà node vẫn log supplyCap 720 triệu vì dòng này.
++	if networkID != constants.MainnetID && networkID != constants.FujiID && !constants.LaMangA1(networkID) {
+ 		return genesis.TxFeeConfig{
+ 			CreateAssetTxFee: v.GetUint64(CreateAssetTxFeeKey),
+ 			TxFee:            v.GetUint64(TxFeeKey),
+diff --git a/genesis/genesis.go b/genesis/genesis.go
+index cb79e27..1c9e15a 100644
+--- a/genesis/genesis.go
++++ b/genesis/genesis.go
+@@ -324,10 +324,21 @@ func FromConfig(config *Config) ([]byte, ids.ID, error) {
+ 	}
+ 	avax.Memo = memoBytes
+ 
++	// 🔴 KHOÁ MAP NÀY LÀ **BÍ DANH ĐƯỢC ĐĂNG KÝ THẬT** TRÊN X-CHAIN, không phải nhãn
++	// hiển thị. `vms/avm/vm.go` lấy chính khoá này rồi gọi `RegisterAlias` cho assetID,
++	// nên nó là tên mà mọi công cụ hỏi X-Chain đọc được.
++	//
++	// `Name`/`Symbol` ở trên đã là `LOVE9 Coin`/`LOVE9` từ lâu (patch 0002), nhưng **khoá
++	// map vẫn là `"AVAX"`** — tức lớp rebrand dừng ở chỗ người NHÌN thấy và không tới chỗ
++	// máy ĐỌC. Cùng họ với `FallbackHRP`: bản sắc sống bằng thứ không ai canh.
++	//
++	// ⚠️ Nó nằm trong **byte genesis của X-Chain** ⇒ đổi được **duy nhất** ở một lượt sinh
++	// lại mạng, và đổi là **đổi assetID** (assetID = tx.ID của tx tạo tài sản). Không có
++	// đường vá nóng, không có lần thứ hai trong cùng một thế hệ.
+ 	avmGenesis, err := avm.NewGenesis(
+ 		config.NetworkID,
+ 		map[string]avm.AssetDefinition{
+-			"AVAX": avax, // The AVM starts out with one asset: AVAX
++			"LOVE9": avax, // X-Chain khởi đầu với đúng một tài sản: LOVE9
+ 		},
+ 	)
+ 	if err != nil {
+diff --git a/genesis/params.go b/genesis/params.go
+index 0d46fb8..1f25ff1 100644
+--- a/genesis/params.go
++++ b/genesis/params.go
+@@ -54,6 +54,21 @@ type Params struct {
+ 	TxFeeConfig
+ }
+ 
++// LaMangA1 — networkID này có thuộc 9Chain-A1 không (băng mạng THẬT hoặc băng mạng TẬP,
++// mọi thế hệ)?
++//
++// 🔴 VÌ SAO KIỂM THEO DẢI, KHÔNG PHẢI `case A1NetworkID`:
++// trước lượt này hai hàm dưới phân nhánh bằng đúng MỘT hằng. Bộ định danh theo thế hệ
++// (D-076) đẻ ra networkID thứ hai (mạng tập) và sẽ đẻ thêm một cặp nữa ở mỗi thế hệ —
++// mà mọi networkID không khớp `case` đều rơi vào `default:` và **mượn `LocalParams`**:
++// trần cung **720 TRIỆU**. Sinh một genesis phát hành 4,3 tỷ rồi chạy nó trên tham số
++// đó là **TRÀN NGƯỢC `uint64`** ở `reward/calculator.go` — mạng lên sạch, RPC xanh, sai
++// lệch chỉ lộ ra ở phần thưởng staking nhiều ngày sau.
++//
++// Đó **đúng là cái bẫy patch 0013 dựng ra để chặn**, và một `case` cứng là dựng lại nó
++// ở mỗi thế hệ. Kiểm theo dải thì thế hệ mới **tự động** đúng tham số.
++func LaMangA1(networkID uint32) bool { return constants.LaMangA1(networkID) }
++
+ func GetTxFeeConfig(networkID uint32) TxFeeConfig {
+ 	switch networkID {
+ 	case constants.MainnetID:
+@@ -62,9 +77,10 @@ func GetTxFeeConfig(networkID uint32) TxFeeConfig {
+ 		return FujiParams.TxFeeConfig
+ 	case constants.LocalID:
+ 		return LocalParams.TxFeeConfig
+-	case A1NetworkID: // 9Chain-A1 (LOVE9) — xem genesis_9chain_a1.go
+-		return A1Params.TxFeeConfig
+ 	default:
++		if LaMangA1(networkID) { // 9Chain-A1 mọi thế hệ — xem LaMangA1
++			return A1Params.TxFeeConfig
++		}
+ 		return LocalParams.TxFeeConfig
+ 	}
+ }
+@@ -77,9 +93,10 @@ func GetStakingConfig(networkID uint32) StakingConfig {
+ 		return FujiParams.StakingConfig
+ 	case constants.LocalID:
+ 		return LocalParams.StakingConfig
+-	case A1NetworkID: // 9Chain-A1 (LOVE9) — xem genesis_9chain_a1.go
+-		return A1Params.StakingConfig
+ 	default:
++		if LaMangA1(networkID) { // 9Chain-A1 mọi thế hệ — xem LaMangA1
++			return A1Params.StakingConfig
++		}
+ 		return LocalParams.StakingConfig
+ 	}
+ }
+diff --git a/upgrade/upgrade.go b/upgrade/upgrade.go
+index 74e620f..4aa6259 100644
+--- a/upgrade/upgrade.go
++++ b/upgrade/upgrade.go
+@@ -254,9 +254,15 @@ func GetConfig(networkID uint32) Config {
+ 		return Mainnet
+ 	case constants.FujiID:
+ 		return Fuji
+-	case constants.A1ID: // 9Chain-A1 — lịch nâng cấp chủ quyền, xem `A1` ở trên
+-		return A1
+ 	default:
++		// 🔴 KIỂM THEO DẢI, không so một hằng. Trước lượt này đây là
++		// `case constants.A1ID:` — tức đúng MỘT networkID nhận lịch nâng cấp chủ
++		// quyền, còn mọi networkID A1 khác (băng mạng tập, và MỌI THẾ HỆ SAU) rơi
++		// xuống `Default` của Ava Labs. Đó là D-049 bị vô hiệu trong im lặng: lượt
++		// rebase kế tiếp nuốt một hard fork mà không qua quyết định nào.
++		if constants.LaMangA1(networkID) {
++			return A1
++		}
+ 		return Default
+ 	}
+ }
+diff --git a/utils/constants/network_ids.go b/utils/constants/network_ids.go
+index 0af95e0..3c681ae 100644
+--- a/utils/constants/network_ids.go
++++ b/utils/constants/network_ids.go
+@@ -25,11 +25,54 @@ const (
+ 	UnitTestID uint32 = 10
+ 	LocalID    uint32 = 12345
+ 
++	// ═══════════════════════════════════════════════════════════════════════
++	// BỘ ĐỊNH DANH 9CHAIN-A1 — SUY RA TỪ MỘT SỐ NGUYÊN `A1Gen`
++	// ═══════════════════════════════════════════════════════════════════════
++	//
++	// David chốt `2026-08-27`. Ba giá trị — `networkID`, tên mạng, khối `chainId`
++	// của L1 — **phải đổi cùng nhau ở mỗi thế hệ**, và trước lượt này **không có
++	// gì bắt chúng đổi cùng nhau**. Nay cả ba suy ra từ `A1Gen`, và netgen có cổng
++	// bắt chúng khớp (`netgen/identity.go`).
++	//
++	// 🔴 VÌ SAO ĐỔI KHỎI `9001` — không phải thẩm mỹ:
++	// Bắt tay P2P so **DUY NHẤT** `networkID` (`network/peer/peer.go:825`); từ
++	// `genesis` xuất hiện **0 lần** trong cả tệp đó. Cộng thêm: P-Chain mang cùng
++	// `blockchainID` = `ids.Empty` trên **mọi** mạng Avalanche, và netgen ép mọi
++	// mạng nó sinh dùng chung một `networkID`. ⇒ node của mạng cũ **bắt tay được**
++	// với mạng mới, node dev bắt tay được mạng công khai — cùng bootstrap IP.
++	//
++	// 🔴 VÌ SAO PHẢI CÓ THẾ HỆ, chứ không chỉ đổi `9001` → `999999999` một lần:
++	// nếu thế hệ sau **cũng** lấy `999999999` thì lỗ trên **quay lại nguyên vẹn**,
++	// và lúc đó tệ hơn — hôm nay `9001` là *trùng do không ai chọn*, lúc đó là
++	// *trùng do ta đã chọn và đã ghi vào DECISIONS.md*.
++	//
++	// Ba tính chất an toàn, đúng ở MỌI thế hệ (`A1Gen` 0…999):
++	//   1. `networkID` luôn **9** chữ số (999.999.000–999.999.999) vs `chainId` L1
++	//      luôn **10** chữ số ⇒ không nhìn nhầm nhau.
++	//   2. `networkID` luôn **DƯỚI** sàn dải `chainId` ⇒ chép nhầm sang ô chainId
++	//      thì cổng console bắt.
++	//   3. **Toàn bộ** dải `chainId` (≥ 9.000.000.010) **vượt trần `uint32`** ⇒
++	//      chép nhầm chiều ngược lại thì node **không khởi động được** — lỗi TO,
++	//      không im lặng.
++	//
++	// A1Gen — thế hệ mạng. Tăng đúng MỘT lần cho mỗi lượt re-genesis.
++	A1Gen uint32 = 0
++
++	// A1IDGoc / A1IDGocTap — đỉnh của hai băng. Thế hệ đếm **xuống** từ đây, để
++	// thế hệ 0 giữ đúng con số David chốt (`999999999`).
++	A1IDGoc    uint32 = 999_999_999 // mạng THẬT
++	A1IDGocTap uint32 = 899_999_999 // mạng TẬP — không bao giờ bắt tay được mạng thật
++
+ 	// A1ID — networkID của 9Chain-A1. Đặt Ở ĐÂY chứ không chỉ ở
+ 	// `genesis.A1NetworkID` vì gói `upgrade` cần nó để định tuyến lịch nâng cấp,
+ 	// mà `upgrade` KHÔNG import được `genesis` (vòng import: genesis → upgrade).
+ 	// `genesis.A1NetworkID` nay là bí danh của hằng này — một nguồn sự thật.
+-	A1ID uint32 = 9001
++	A1ID uint32 = A1IDGoc - A1Gen
++
++	// A1IDTap — networkID của MẠNG TẬP cùng thế hệ. Tồn tại để node mạng tập
++	// **không bắt tay được** với mạng thật: hôm nay cả hai dùng chung `9001`, nên
++	// một node dev chĩa vào bootstrap của mạng công khai là vào được.
++	A1IDTap uint32 = A1IDGocTap - A1Gen
+ 
+ 	MainnetName  = "mainnet"
+ 	CascadeName  = "cascade"
+@@ -53,7 +96,17 @@ const (
+ 	// wipe thì cả 9 node cùng lúc thấy DB trống và bootstrap lại từ đầu — dữ liệu cũ
+ 	// vẫn còn trên đĩa ở thư mục cũ, nhưng mạng đứng cho tới khi có người đổi tên
+ 	// thư mục về. Xem `docs/CORE-AUDIT-2026-08-27.md` §4.
+-	A1Name = "9chain-a1"
++	//
++	// 🔴 THẾ HỆ NẰM TRONG TÊN, và đó biến ràng buộc trên thành **thứ tự thi hành**:
++	// thế hệ mới ⇒ tên mới ⇒ đường dẫn DB mới ⇒ **bắt buộc wipe**. Không cần ai nhớ.
++	//
++	// ⚠️ Mặt trái phải biết: đường dẫn DB mới thì node **không báo lỗi**, nó chỉ
++	// bootstrap vào một thư mục rỗng. Nếu tên là thứ **duy nhất** mang thế hệ thì
++	// một lượt nâng cấp nhầm sẽ **im lặng**. Đó chính là lý do thế hệ phải nằm **cả
++	// trong `networkID`** — lúc đó node thế hệ sai không bắt tay được với ai, và lỗi
++	// trở nên TO.
++	A1Name    = "9chain-a1-g0" // ⇦ PHẢI khớp A1Gen — netgen có cổng kiểm
++	A1NameTap = "9chain-a1-tap-g0"
+ 
+ 	MainnetHRP  = "avax"
+ 	CascadeHRP  = "cascade"
+@@ -95,7 +148,8 @@ var (
+ 		FujiID:     FujiName,
+ 		UnitTestID: UnitTestName,
+ 		LocalID:    LocalName,
+-		A1ID:       A1Name, // 🔴 đổi đường dẫn DB — xem chú thích ở A1Name
++		A1ID:       A1Name,    // 🔴 đổi đường dẫn DB — xem chú thích ở A1Name
++		A1IDTap:    A1NameTap, // mạng TẬP — băng riêng, xem A1IDGocTap
+ 	}
+ 	NetworkNameToNetworkID = map[string]uint32{
+ 		MainnetName:  MainnetID,
+@@ -106,7 +160,8 @@ var (
+ 		TestnetName:  TestnetID,
+ 		UnitTestName: UnitTestID,
+ 		LocalName:    LocalID,
+-		A1Name:       A1ID, // cho phép `--network-id=9chain-a1`, không chỉ số trần
++		A1Name:       A1ID, // cho phép `--network-id=9chain-a1-g0`, không chỉ số trần
++		A1NameTap:    A1IDTap,
+ 	}
+ 
+ 	NetworkIDToHRP = map[uint32]string{
+@@ -117,7 +172,11 @@ var (
+ 		FujiID:     FujiHRP,
+ 		UnitTestID: UnitTestHRP,
+ 		LocalID:    LocalHRP,
+-		A1ID:       A1HRP, // KHÔNG đổi hành vi: trước đây cũng ra "love9", nhưng qua FallbackHRP
++		// 🔴 CẢ HAI băng PHẢI có mặt ở đây. Thiếu một dòng là HRP của băng đó rơi xuống
++		// `FallbackHRP` — tức tiền tố địa chỉ sống bằng NHÁNH DỰ PHÒNG chứ không bằng
++		// khai báo, đúng lỗi patch 0013 đã vá cho 9001. netgen có cổng kiểm điều này.
++		A1ID:    A1HRP,
++		A1IDTap: A1HRP, // mạng tập dùng CHUNG hrp: địa chỉ phải nhìn y hệt, nếu không nó thôi là bài tập
+ 	}
+ 	ProductionNetworkIDs = set.Of(MainnetID, FujiID)
+ 
+@@ -126,6 +185,26 @@ var (
+ 	ErrParseNetworkName = errors.New("failed to parse network name")
+ )
+ 
++// LaMangA1 — networkID này có thuộc 9Chain-A1 không (băng THẬT hoặc băng TẬP, mọi thế hệ)?
++//
++// 🔴 ĐẶT Ở `constants` CHỨ KHÔNG Ở `genesis`, và đó là cả điểm của nó.
++// Ba nơi trong nguồn phân nhánh theo "có phải mạng A1 không", và chúng nằm ở ba gói
++// không import được nhau: `genesis/params.go` (tham số kinh tế) · `config/config.go`
++// (node lắp cấu hình staking/phí) · `upgrade/upgrade.go` (lịch nâng cấp — gói này
++// KHÔNG import được `genesis`, vòng import). Trước lượt này cả ba so với **một hằng
++// số đơn**, nên bộ định danh theo thế hệ làm cả ba cùng sai một kiểu.
++//
++// 🔴 VÀ ĐÂY LÀ BÀI HỌC ĐẮT NHẤT CỦA LƯỢT `27/08`: netgen đã có cổng kiểm bộ định danh,
++// cổng đó **xanh**, `GetStakingConfig(899999999)` trả đúng `7.900.000.001` — nhưng node
++// khởi động lại log `supplyCap: 720000000000000000`. Vì `config/config.go` lắp cấu hình
++// bằng **đường khác** với thứ cổng kiểm. Cổng kiểm cái netgen thấy; chỉ **boot một node
++// thật** mới kiểm được cái NODE thấy.
++func LaMangA1(networkID uint32) bool {
++	const bienDo = 999 // A1Gen chạy 0…999
++	return (networkID <= A1IDGoc && networkID > A1IDGoc-bienDo-1) ||
++		(networkID <= A1IDGocTap && networkID > A1IDGocTap-bienDo-1)
++}
++
+ // GetHRP returns the Human-Readable-Part of bech32 addresses for a networkID
+ func GetHRP(networkID uint32) string {
+ 	if hrp, ok := NetworkIDToHRP[networkID]; ok {

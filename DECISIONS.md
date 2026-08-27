@@ -1982,3 +1982,89 @@ chứng ngược**: bịt kín tới trần ⇒ ném lỗi; chừa đúng một 
 `(-9.007.189.254.740.991 số)` — khi ca kiểm gọi với `goc > tran`. Cổng **chặn đúng**, nhưng người
 đọc nó bị dẫn sai. Cùng lớp lỗi với `Fprintf` thiếu tham số mà patch 0013 đã trả giá: **một cổng mới
 kiểm được nửa "có chặn không", chưa kiểm nửa "chặn xong nó nói gì".** Nay tách hai câu.
+
+### D-079 — Bộ định danh theo thế hệ ĐÃ HIỆN THỰC. Và một cổng xanh vẫn để lọt một lỗi 720 triệu
+
+Thi hành D-076 + đề xuất thế hệ (`docs/DE-XUAT-BO-DINH-DANH-THE-HE.md`). Cây fork: **18 patch**,
+tree **`f4615e73`**.
+
+| | Thế hệ 0 |
+|---|---|
+| `A1Gen` | **0** |
+| `A1ID` · `A1Name` | **`999999999`** · **`9chain-a1-g0`** |
+| Băng mạng TẬP | **`899999999`** · `9chain-a1-tap-g0` |
+| `chainId` mẹ · khối L1 | `9000000009` · **`9000000010–9000999999`** |
+
+#### 🔴 Ba chỗ phải kiểm THEO DẢI, và chúng ở ba gói không import được nhau
+
+| Gói | Chuyện gì nếu quên |
+|---|---|
+| `genesis/params.go` | tham số kinh tế mượn `LocalParams` |
+| `config/config.go` (**2 chỗ**) | node lắp cấu hình staking/phí từ cờ CLI |
+| `upgrade/upgrade.go` | 🔴 **`upgrade` KHÔNG import được `genesis`** — vòng import |
+
+⇒ `LaMangA1` đặt ở **`constants`** cho cả ba dùng chung. Trước lượt này cả ba so với **một hằng
+số đơn**, nên bộ định danh theo thế hệ làm cả ba cùng sai một kiểu — và `upgrade.go` là chỗ đắt
+nhất: mọi thế hệ sau và cả băng mạng tập sẽ rơi xuống `Default` của Ava Labs, tức **D-049 bị vô
+hiệu trong im lặng**.
+
+#### 🔴 BÀI HỌC ĐẮT NHẤT: cổng XANH mà node vẫn SAI
+
+netgen đã có cổng kiểm bộ định danh (`identity.go`) — **năm thứ phải khớp**. Cổng đó **xanh**.
+`GetStakingConfig(899999999)` trả đúng **7.900.000.001** (đã kiểm bằng `go test`).
+
+**Và node khởi động lại log `supplyCap: 720000000000000000`.**
+
+Vì `config/config.go` lắp cấu hình bằng **đường khác** với thứ cổng kiểm. Cổng kiểm cái **netgen**
+thấy; chỉ **boot một node thật** mới kiểm được cái **NODE** thấy.
+
+⚠️ Nếu không boot thử thì ngày G sinh ra một mạng **phát hành 4,3 tỷ chạy trên trần 720 triệu** ⇒
+**tràn ngược `uint64`** khi phát thưởng, lộ ra nhiều ngày sau, trên một genesis bất biến.
+
+⇒ **Luật mới cho repo:** một cổng chỉ chứng minh được đường mà chính nó đi. Thứ đi vào genesis
+phải được nghiệm thu **trên một node đang chạy**, không phải trên hàm thư viện.
+
+#### Hai chỗ khác lộ ra khi boot, không lộ ra khi đọc mã
+
+- **`--network-id=9001` cắm cứng** trong compose netgen sinh ra ⇒ node **từ chối khởi động**:
+  `conflicting networkIDs: expected 9001 but config contains 899999999`. Lỗi hiền (nổ to, chỉ
+  đúng chỗ) nhưng nó phơi ra rằng netgen từng có **hai nguồn sự thật** cho cùng một con số.
+- **`SUBNET_PREFIX` phải kết thúc bằng `.0`** — netgen nhận `172.31.9` im lặng rồi sinh compose
+  Docker từ chối. Chưa vá, đã ghi vào chú thích đầu netgen.
+
+#### Nghiệm thu — mạng tập 3 node THẬT (`a1tap`, `networkID 899999999`)
+
+| | |
+|---|---|
+| `info.getNetworkID` · `getNetworkName` | `899999999` · `9chain-a1-tap-g0` |
+| `eth_chainId` | `0x218711d8d` = **9000000909** (số của mạng tập) |
+| `supplyCap` (log node) | **7900000001000000000** |
+| `numPeers` · lỗi | **2** · **0 ERROR** |
+| X-Chain | `avm.getAssetDescription{assetID:"LOVE9"}` **trả về đúng** ⇒ khoá map đã vào chain thật |
+| Đường dẫn DB | `/root/.avalanchego/db/**9chain-a1-g0**` ⇒ thế hệ đã vào đường dẫn |
+
+#### 🔴 Bài cắt-kết-nối, kèm ĐỐI CHỨNG DƯƠNG
+
+| Node | `networkID` | `numPeers` |
+|---|---|---|
+| **kẻ xâm nhập** | `999999999` (lệch băng) | **0** — bị cắt |
+| **đối chứng** | `899999999` (khớp) | **3** — vào được lưới |
+
+```
+peer.go:826 malformed message
+  {"field":"networkID","peerNetworkID":899999999,"ourNetworkID":999999999}
+```
+
+⚠️ **Không có đối chứng dương thì `numPeers 0` không phân biệt được với "node hỏng"** — và đó
+mới là điều bài này phải chứng minh.
+
+#### Cổng netgen — 3 ca đối chứng ngược
+
+băng tập đi qua · **`999999998`** (số của thế hệ SAU) bị chặn **kèm đúng cảnh báo `NetworkIDToHRP`**
+· `9001` cũ bị từ chối.
+
+#### Tái lập
+
+18 patch lên `1cf1fc3` → tree **`f4615e73`**, khớp cây fork từng byte.
+🔴 **Đối chứng ngược:** áp **17/18** → tree **`f8458b33`** = **đúng tree đã ghi trước đó** ⇒ lượt
+sinh lại **không âm thầm đổi gì** ở 17 patch cũ.

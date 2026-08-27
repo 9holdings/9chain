@@ -1,7 +1,7 @@
 From 2a56fec1c0841a935877a9a61dec6e0596a3f29e Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Mon, 24 Aug 2026 22:56:19 +0400
-Subject: [PATCH 01/17] 9chain-a1: tat chuan hoa xuong dong cho cay fork (chong
+Subject: [PATCH 01/18] 9chain-a1: tat chuan hoa xuong dong cho cay fork (chong
  CRLF war khi apply patch) [skip ci]
 
 ---
