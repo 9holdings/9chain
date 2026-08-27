@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { The, Xuong, CoLoi, TrongRong, Nhan } from '@/components/ui';
 import { rutGon } from '@/lib/eip55';
-import { vi } from '@/lib/i18n/vi';
+import { useT } from '@/lib/i18n';
 
 /**
  * Danh sách L1 đã có, đọc từ hợp đồng dữ liệu `console-chains.json`.
@@ -26,6 +26,7 @@ type Chain = { name: string; chainId: number; admin?: string; presetName?: strin
 type TT = { pha: 'tai' } | { pha: 'xong'; ds: Chain[] } | { pha: 'hong' };
 
 export function ChainTable() {
+  const t = useT();
   const [tt, datTt] = useState<TT>({ pha: 'tai' });
   const [lan, datLan] = useState(0);
 
@@ -52,7 +53,7 @@ export function ChainTable() {
   if (tt.pha === 'tai') {
     return (
       <The className="p-5">
-        <span className="sr-only">{vi.chung.dangTai}</span>
+        <span className="sr-only">{t.chung.dangTai}</span>
         <div className="flex flex-col gap-3">
           {[0, 1, 2].map((i) => (
             <Xuong key={i} className="h-10 w-full" />
@@ -67,14 +68,14 @@ export function ChainTable() {
   if (!tt.ds.length) {
     return (
       <TrongRong
-        tieuDe={vi.trangChu.cTrong}
-        moTa={vi.trangChu.cTrongMoTa}
+        tieuDe={t.trangChu.cTrong}
+        moTa={t.trangChu.cTrongMoTa}
         hanhDong={
           <a
             href="/create-chain/"
             className="inline-flex h-11 items-center justify-center rounded-btn-lg bg-gold px-5 text-sm font-semibold text-navy shadow-cta hover:bg-gold-hover"
           >
-            {vi.trangChu.nutChinh}
+            {t.trangChu.nutChinh}
           </a>
         }
       />
@@ -87,23 +88,23 @@ export function ChainTable() {
           Trước 2026-08-27 câu "Mỗi dòng là một chain thật đang chạy" nằm ở `<p>` dưới
           `<h1>` — tức nó hiện ra KỂ CẢ khi bảng rỗng, và lúc đó nó trỏ vào những dòng
           không tồn tại. Đặt ở đây thì câu chỉ tồn tại cùng lúc với thứ nó mô tả. */}
-      <p className="mb-3 text-sm text-body">{vi.trangChu.cBangChuThich}</p>
+      <p className="mb-3 text-sm text-body">{t.trangChu.cBangChuThich}</p>
       <The className="overflow-hidden">
       {/* Bảng rộng phải cuộn TRONG khung của nó — để cả trang cuộn ngang là hỏng
           bố cục ở điện thoại, và đó là lỗi hay gặp nhất với bảng. */}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[34rem] border-collapse text-sm">
-          <caption className="sr-only">{vi.trangChu.cBangChuThich}</caption>
+          <caption className="sr-only">{t.trangChu.cBangChuThich}</caption>
           <thead>
             <tr className="border-b border-line bg-surface-alt text-left">
               <th scope="col" className="px-4 py-3 font-semibold text-ink">
-                {vi.trangChu.cCot}
+                {t.trangChu.cCot}
               </th>
               <th scope="col" className="px-4 py-3 font-semibold text-ink">
-                {vi.trangChu.cCotKieu}
+                {t.trangChu.cCotKieu}
               </th>
               <th scope="col" className="px-4 py-3 font-semibold text-ink">
-                {vi.trangChu.cCotChu}
+                {t.trangChu.cCotChu}
               </th>
             </tr>
           </thead>
@@ -121,7 +122,7 @@ export function ChainTable() {
                   {typeof c.admin === 'string' && c.admin.trim() ? (
                     rutGon(c.admin)
                   ) : (
-                    <span className="font-sans text-muted">{vi.trangChu.cMacDinh}</span>
+                    <span className="font-sans text-muted">{t.trangChu.cMacDinh}</span>
                   )}
                 </td>
               </tr>

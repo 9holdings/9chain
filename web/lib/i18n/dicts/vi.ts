@@ -27,7 +27,9 @@
  * được phép cắt là thẻ meta (`lib/seo.ts`), vì chữ ở đó bị máy khác đọc và hiện
  * lại nguyên văn, ngoài tầm với của mọi lượt sửa sau.
  */
-export const vi = {
+import type { Tu } from '../en';
+
+export const vi: Tu = {
   chung: {
     tenSanPham: '9Chain Testnet A1',
     // 🔴 "chạy trên Avalanche" ĐÃ BỊ GỠ 2026-08-27 — nó SAI, và sai tốn kém.
@@ -578,12 +580,6 @@ export const vi = {
     // nên nếu người dùng đang tìm một giao dịch, họ KHÔNG lạc, họ chỉ gõ sai băm.
     timGiaoDich: 'Đang tìm một giao dịch hay một địa chỉ? Kiểm lại mã băm rồi thử lại.',
   },
-} as const;
+};
 
-export type Tu = typeof vi;
-
-/** Thay `{khoa}` trong chuỗi bằng giá trị. Thiếu khoá thì GIỮ NGUYÊN dấu ngoặc —
- *  một chỗ trống lặng lẽ đọc như dữ liệu bị mất, còn `{so}` lộ ra thì sửa được ngay. */
-export function dien(mau: string, gt: Record<string, string | number>): string {
-  return mau.replace(/\{(\w+)\}/g, (nguyen, k) => (k in gt ? String(gt[k]) : nguyen));
-}
+export default vi;

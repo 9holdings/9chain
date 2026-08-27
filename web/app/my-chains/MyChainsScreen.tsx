@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Nut, The, O, Nhan, Xuong, CoLoi, LuuY, ChepDuoc, TrongRong, CacBuoc, type MotBuoc } from '@/components/ui';
 import { rutGon } from '@/lib/eip55';
 import { rpcGoc } from '@/lib/chain';
-import { vi, dien } from '@/lib/i18n/vi';
+import { dien, useT } from '@/lib/i18n';
 import { layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, choTienTrinhXong, docLoiVi, LoiConsole, type PhienVi } from '@/lib/wallet';
 
 type Chain = {
@@ -40,6 +40,7 @@ async function demValidator(subnetID: string): Promise<number> {
 }
 
 export function MyChainsScreen() {
+  const t = useT();
   const [phien, datPhien] = useState<PhienVi | null>(null);
   const [dangNoi, datDangNoi] = useState(false);
   const [loiVi, datLoiVi] = useState<string | null>(null);
@@ -79,7 +80,7 @@ export function MyChainsScreen() {
       await nap(p.token);
     } catch (e) {
       const m = String((e as Error).message ?? e);
-      datLoiVi(m === 'KHONG_CO_VI' ? vi.deChain.khongCoVi : /rejected|denied|4001/i.test(m) ? vi.deChain.tuChoiKy : m);
+      datLoiVi(m === 'KHONG_CO_VI' ? t.deChain.khongCoVi : /rejected|denied|4001/i.test(m) ? t.deChain.tuChoiKy : m);
     } finally {
       datDangNoi(false);
     }
@@ -156,7 +157,7 @@ export function MyChainsScreen() {
       datTt(st);
       conSong = st.chains.some((x) => x.name === c.name);
       if (!conSong) {
-        datXong(dien(vi.chainCuaToi.thuHoiXong, {
+        datXong(dien(t.chainCuaToi.thuHoiXong, {
           ten: c.name, con: st.tran - st.chains.length, tong: st.tran,
         }));
       }
@@ -164,8 +165,8 @@ export function MyChainsScreen() {
       datLoiTai(true);
     }
     if (conSong) {
-      datLoiThuHoi(dien(vi.chainCuaToi.thuHoiLoi, {
-        chiTiet: kq?.error ?? loiPost ?? vi.chainCuaToi.thuHoiKhongRo,
+      datLoiThuHoi(dien(t.chainCuaToi.thuHoiLoi, {
+        chiTiet: kq?.error ?? loiPost ?? t.chainCuaToi.thuHoiKhongRo,
       }));
     }
 
@@ -179,14 +180,14 @@ export function MyChainsScreen() {
   if (!phien) {
     return (
       <The className="mt-8 max-w-xl p-5 md:p-6">
-        <h2 className="font-display text-lg font-bold text-ink">{vi.chainCuaToi.noiVi}</h2>
+        <h2 className="font-display text-lg font-bold text-ink">{t.chainCuaToi.noiVi}</h2>
         <div className="mt-4">
           <Nut co="to" onClick={vao} dangChay={dangNoi}>
-            {dangNoi ? vi.deChain.dangKy : vi.deChain.noiVi}
+            {dangNoi ? t.deChain.dangKy : t.deChain.noiVi}
           </Nut>
         </div>
         {loiVi && <div className="mt-4"><CoLoi tieuDe={loiVi} moTa="" thuLai={vao} /></div>}
-        {!layVi() && <div className="mt-4"><LuuY kieu="canhBao">{vi.deChain.khongCoVi}</LuuY></div>}
+        {!layVi() && <div className="mt-4"><LuuY kieu="canhBao">{t.deChain.khongCoVi}</LuuY></div>}
       </The>
     );
   }
@@ -195,18 +196,18 @@ export function MyChainsScreen() {
     return (
       <The className="mt-8 max-w-2xl p-5 md:p-6">
         <h2 className="font-display text-lg font-bold text-ink">
-          {dien(vi.chainCuaToi.thuHoiDangChay, { ten: chay.ten })}
+          {dien(t.chainCuaToi.thuHoiDangChay, { ten: chay.ten })}
         </h2>
         <div className="mt-4">
           {tienTrinh?.steps?.length ? (
             <CacBuoc
               buoc={tienTrinh.steps}
               ghiChu={tienTrinh.etaSeconds
-                ? dien(vi.deChain.conKhoang, { phut: Math.max(1, Math.ceil(tienTrinh.etaSeconds / 60)) })
+                ? dien(t.deChain.conKhoang, { phut: Math.max(1, Math.ceil(tienTrinh.etaSeconds / 60)) })
                 : undefined}
             />
           ) : (
-            <p className="text-sm text-muted">{vi.deChain.dangChuanBi}</p>
+            <p className="text-sm text-muted">{t.deChain.dangChuanBi}</p>
           )}
         </div>
       </The>
@@ -217,7 +218,7 @@ export function MyChainsScreen() {
   if (!tt) {
     return (
       <The className="mt-8 p-5">
-        <span className="sr-only">{vi.chung.dangTai}</span>
+        <span className="sr-only">{t.chung.dangTai}</span>
         <div className="flex flex-col gap-3">{[0, 1].map((i) => <Xuong key={i} className="h-12 w-full" />)}</div>
       </The>
     );
@@ -234,11 +235,11 @@ export function MyChainsScreen() {
 
       {!cuaToi.length && !cuaToiDaThuHoi.length ? (
         <TrongRong
-          tieuDe={vi.chainCuaToi.trongTieuDe}
-          moTa={vi.chainCuaToi.trongMoTa}
+          tieuDe={t.chainCuaToi.trongTieuDe}
+          moTa={t.chainCuaToi.trongMoTa}
           hanhDong={
             <a href="/create-chain/" className="inline-flex h-11 items-center rounded-btn bg-gold px-4 text-sm font-semibold text-navy hover:bg-gold-hover">
-              {vi.chainCuaToi.trongNut}
+              {t.chainCuaToi.trongNut}
             </a>
           }
         />
@@ -258,29 +259,29 @@ export function MyChainsScreen() {
                       <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                         {(c.presetName ?? c.presetTen) && <Nhan>{c.presetName ?? c.presetTen}</Nhan>}
                         {v === undefined || v === 'dang' ? (
-                          <span className="text-muted">{vi.chainCuaToi.songDangDo}</span>
+                          <span className="text-muted">{t.chainCuaToi.songDangDo}</span>
                         ) : v === 'loi' ? (
-                          <span className="text-muted">{vi.chainCuaToi.songKhongDo}</span>
+                          <span className="text-muted">{t.chainCuaToi.songKhongDo}</span>
                         ) : v === 0 ? (
-                          <Nhan kieu="canhBao">{vi.chainCuaToi.khongValidator}</Nhan>
+                          <Nhan kieu="canhBao">{t.chainCuaToi.khongValidator}</Nhan>
                         ) : (
-                          <Nhan kieu="tot">{dien(vi.chainCuaToi.songDo, { so: v })}</Nhan>
+                          <Nhan kieu="tot">{dien(t.chainCuaToi.songDo, { so: v })}</Nhan>
                         )}
                       </p>
-                      <p className="mt-1 text-xs text-muted">{vi.chainCuaToi.songGiaiThich}</p>
+                      <p className="mt-1 text-xs text-muted">{t.chainCuaToi.songGiaiThich}</p>
                       {v === 0 && (
                         <p className="mt-2 max-w-prose text-sm font-semibold text-dev-ink">
-                          {vi.chainCuaToi.khongValidatorMoTa}
+                          {t.chainCuaToi.khongValidatorMoTa}
                         </p>
                       )}
                     </div>
                     <Nut kieu="vien" onClick={() => { datDangThuHoi(c); datGoTen(''); }}>
-                      {vi.chainCuaToi.thuHoi}
+                      {t.chainCuaToi.thuHoi}
                     </Nut>
                   </div>
 
                   <dl className="mt-4 flex flex-col gap-2">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{vi.chainCuaToi.thongSo}</dt>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{t.chainCuaToi.thongSo}</dt>
                     <dd className="flex flex-wrap gap-2">
                       {c.rpc && <ChepDuoc giaTri={c.rpc} nhan="RPC" />}
                       <ChepDuoc giaTri={String(c.chainId)} nhan="Chain ID" />
@@ -302,14 +303,14 @@ export function MyChainsScreen() {
                               [c.chainId]: {
                                 xong: false,
                                 chu: l.tuChoi
-                                  ? vi.chung.viTuChoi
-                                  : dien(vi.chainCuaToi.themViLoi, { chiTiet: l.chu ?? '' }),
+                                  ? t.chung.viTuChoi
+                                  : dien(t.chainCuaToi.themViLoi, { chiTiet: l.chu ?? '' }),
                               },
                             }));
                           }
                         }}
                       >
-                        {themVi[c.chainId]?.xong ? vi.chainCuaToi.daThemVaoVi : vi.chainCuaToi.themVaoVi}
+                        {themVi[c.chainId]?.xong ? t.chainCuaToi.daThemVaoVi : t.chainCuaToi.themVaoVi}
                       </Nut>
                       {/* Vùng live thường trú cho TỪNG thẻ chain — xem chú thích cùng
                           loại ở CreateChainScreen. */}
@@ -337,8 +338,8 @@ export function MyChainsScreen() {
                   <span className="ms-2 font-mono text-xs font-normal">#{c.chainId}</span>
                 </h2>
                 <p className="mt-1 text-sm">
-                  <Nhan kieu="xau">{vi.chainCuaToi.daThuHoi}</Nhan>
-                  <span className="ms-2 text-muted">{vi.chainCuaToi.daThuHoiMoTa}</span>
+                  <Nhan kieu="xau">{t.chainCuaToi.daThuHoi}</Nhan>
+                  <span className="ms-2 text-muted">{t.chainCuaToi.daThuHoiMoTa}</span>
                 </p>
               </The>
             </li>
@@ -349,34 +350,34 @@ export function MyChainsScreen() {
       {dangThuHoi && (
         <The className="border-dev-line p-5">
           <h2 className="font-display text-lg font-bold text-ink">
-            {dien(vi.chainCuaToi.thuHoiTieuDe, { ten: dangThuHoi.name })}
+            {dien(t.chainCuaToi.thuHoiTieuDe, { ten: dangThuHoi.name })}
           </h2>
           <ul className="mt-3 flex list-disc flex-col gap-2 ps-5 text-sm text-body">
-            <li>{vi.chainCuaToi.thuHoiY1}</li>
+            <li>{t.chainCuaToi.thuHoiY1}</li>
             {/* Hai điều người dùng KHÔNG đoán được — phải nói thẳng, không rút gọn. */}
-            <li className="font-semibold">{vi.chainCuaToi.thuHoiY2}</li>
-            <li className="font-semibold">{vi.chainCuaToi.thuHoiY3}</li>
-            <li>{vi.chainCuaToi.thuHoiY4}</li>
+            <li className="font-semibold">{t.chainCuaToi.thuHoiY2}</li>
+            <li className="font-semibold">{t.chainCuaToi.thuHoiY3}</li>
+            <li>{t.chainCuaToi.thuHoiY4}</li>
           </ul>
           <div className="mt-4 max-w-sm">
             {/* Gõ lại tên: cùng luật với đường API (`xacNhan`). Một nút "Xoá" bấm
                 nhầm được thì cửa một chiều trở thành một cú trượt tay. */}
             <O
-              nhan={vi.chainCuaToi.thuHoiGoNhan}
+              nhan={t.chainCuaToi.thuHoiGoNhan}
               placeholder={dangThuHoi.name}
               value={goTen}
               onChange={(e) => datGoTen(e.target.value)}
               autoComplete="off"
               spellCheck={false}
-              loi={goTen && goTen !== dangThuHoi.name ? vi.chainCuaToi.thuHoiSaiTen : undefined}
+              loi={goTen && goTen !== dangThuHoi.name ? t.chainCuaToi.thuHoiSaiTen : undefined}
             />
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <Nut disabled={goTen !== dangThuHoi.name} onClick={() => thucHienThuHoi(dangThuHoi)}>
-              {vi.chainCuaToi.thuHoiXacNhan}
+              {t.chainCuaToi.thuHoiXacNhan}
             </Nut>
             <Nut kieu="tron" onClick={() => { datDangThuHoi(null); datGoTen(''); }}>
-              {vi.chainCuaToi.thuHoiHuy}
+              {t.chainCuaToi.thuHoiHuy}
             </Nut>
           </div>
         </The>

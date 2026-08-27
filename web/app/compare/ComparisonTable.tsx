@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { The, Nhan, Xuong, LuuY, gop } from '@/components/ui';
 import { useSoLieu } from '@/lib/stats';
-import { vi } from '@/lib/i18n/vi';
+import { useT } from '@/lib/i18n';
 
 /**
  * Bảng so sánh A1 ↔ C1.
@@ -39,6 +39,7 @@ const GOC: TieuChi[] = [
 ];
 
 export function ComparisonTable() {
+  const t = useT();
   const [ts, datTs] = useState<number[]>(GOC.map((c) => c.w));
   const { tt } = useSoLieu();
 
@@ -49,47 +50,47 @@ export function ComparisonTable() {
   return (
     <div className="mt-8 flex flex-col gap-6">
       <LuuY kieu="canhBao">
-        <strong className="block font-semibold">{vi.bang.tuChamTieuDe}</strong>
-        <span className="mt-1 block">{vi.bang.tuChamMoTa}</span>
+        <strong className="block font-semibold">{t.bang.tuChamTieuDe}</strong>
+        <span className="mt-1 block">{t.bang.tuChamMoTa}</span>
       </LuuY>
 
       <The className="p-5">
-        <h2 className="font-display text-base font-bold text-ink">{vi.bang.soLieuTieuDe}</h2>
+        <h2 className="font-display text-base font-bold text-ink">{t.bang.soLieuTieuDe}</h2>
         <dl className="mt-4 grid gap-4 sm:grid-cols-3">
           {[
-            { n: vi.bang.a1Validator, v: tt.pha === 'xong' ? `${tt.so.validatorKetNoi}/${tt.so.validatorTong}` : null },
-            { n: vi.bang.a1Chain, v: tt.pha === 'xong' ? String(tt.so.soL1) : null },
-            { n: vi.bang.a1Block, v: tt.pha === 'xong' ? tt.so.chieuCaoBlock.toLocaleString('vi-VN') : null },
+            { n: t.bang.a1Validator, v: tt.pha === 'xong' ? `${tt.so.validatorKetNoi}/${tt.so.validatorTong}` : null },
+            { n: t.bang.a1Chain, v: tt.pha === 'xong' ? String(tt.so.soL1) : null },
+            { n: t.bang.a1Block, v: tt.pha === 'xong' ? tt.so.chieuCaoBlock.toLocaleString('vi-VN') : null },
           ].map((x) => (
             <div key={x.n}>
               <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{x.n}</dt>
               <dd className="font-display text-2xl font-extrabold text-ink">
                 {x.v ?? (tt.pha === 'hong'
-                  ? <span className="font-sans text-sm font-normal text-muted">{vi.bang.khongDo}</span>
-                  : <><span className="sr-only">{vi.bang.dangDo}</span><Xuong className="h-8 w-16" /></>)}
+                  ? <span className="font-sans text-sm font-normal text-muted">{t.bang.khongDo}</span>
+                  : <><span className="sr-only">{t.bang.dangDo}</span><Xuong className="h-8 w-16" /></>)}
               </dd>
             </div>
           ))}
         </dl>
         {/* C1 vắng mặt: nói thẳng là VẮNG, không vẽ khối lỗi. */}
         <div className="mt-5 rounded-card border border-dashed border-line-strong bg-surface-alt px-4 py-3">
-          <p className="text-sm font-semibold text-body">{vi.bang.c1Vang}</p>
-          <p className="mt-1 text-sm text-body-2">{vi.bang.c1VangMoTa}</p>
+          <p className="text-sm font-semibold text-body">{t.bang.c1Vang}</p>
+          <p className="mt-1 text-sm text-body-2">{t.bang.c1VangMoTa}</p>
         </div>
       </The>
 
       <The className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[46rem] border-collapse text-sm">
-            <caption className="sr-only">{vi.bang.tieuDe}</caption>
+            <caption className="sr-only">{t.bang.tieuDe}</caption>
             <thead>
               <tr className="border-b border-line bg-surface-alt text-left">
-                <th scope="col" className="px-3 py-3 font-semibold text-ink">{vi.bang.cotSo}</th>
-                <th scope="col" className="px-3 py-3 font-semibold text-ink">{vi.bang.cotTieuChi}</th>
-                <th scope="col" className="px-3 py-3 font-semibold text-ink">{vi.bang.cotLoai}</th>
-                <th scope="col" className="px-3 py-3 text-center font-semibold text-ink">{vi.bang.cotA1}</th>
-                <th scope="col" className="px-3 py-3 text-center font-semibold text-ink">{vi.bang.cotC1}</th>
-                <th scope="col" className="px-3 py-3 font-semibold text-ink">{vi.bang.cotTrongSo}</th>
+                <th scope="col" className="px-3 py-3 font-semibold text-ink">{t.bang.cotSo}</th>
+                <th scope="col" className="px-3 py-3 font-semibold text-ink">{t.bang.cotTieuChi}</th>
+                <th scope="col" className="px-3 py-3 font-semibold text-ink">{t.bang.cotLoai}</th>
+                <th scope="col" className="px-3 py-3 text-center font-semibold text-ink">{t.bang.cotA1}</th>
+                <th scope="col" className="px-3 py-3 text-center font-semibold text-ink">{t.bang.cotC1}</th>
+                <th scope="col" className="px-3 py-3 font-semibold text-ink">{t.bang.cotTrongSo}</th>
               </tr>
             </thead>
             <tbody>
@@ -102,7 +103,7 @@ export function ComparisonTable() {
                   </th>
                   <td className="px-3 py-3">
                     <Nhan kieu={c.loai === 'song' ? 'tot' : 'trungTinh'}>
-                      {c.loai === 'song' ? vi.bang.loaiSong : vi.bang.loaiKienTruc}
+                      {c.loai === 'song' ? t.bang.loaiSong : t.bang.loaiKienTruc}
                     </Nhan>
                   </td>
                   <td className="px-3 py-3 text-center font-mono font-bold text-ink">{c.a}</td>
@@ -111,7 +112,7 @@ export function ComparisonTable() {
                     <label className="flex items-center gap-2">
                       {/* Nhãn ẩn: một thanh trượt không nhãn thì trình đọc màn hình
                           chỉ đọc "slider" — trong bảng 10 dòng là vô nghĩa. */}
-                      <span className="sr-only">{`${vi.bang.cotTrongSo}: ${c.k}`}</span>
+                      <span className="sr-only">{`${t.bang.cotTrongSo}: ${c.k}`}</span>
                       <input
                         type="range" min={0} max={5} step={1} value={ts[i]}
                         onChange={(e) => datTs((v) => v.map((x, j) => (j === i ? +e.target.value : x)))}
@@ -128,7 +129,7 @@ export function ComparisonTable() {
       </The>
 
       <The className="p-5">
-        <h2 className="font-display text-base font-bold text-ink">{vi.bang.tongDiem}</h2>
+        <h2 className="font-display text-base font-bold text-ink">{t.bang.tongDiem}</h2>
         <div className="mt-4 flex flex-wrap items-baseline gap-6">
           {[
             { t: 'A1', d: diemA, mau: 'text-gold-ink-strong' },
@@ -140,7 +141,7 @@ export function ComparisonTable() {
             </p>
           ))}
           <p className="text-sm font-semibold text-body">
-            {diemA === diemC ? vi.bang.hoaNhau : `${diemA > diemC ? 'A1' : 'C1'} ${vi.bang.dangDan}`}
+            {diemA === diemC ? t.bang.hoaNhau : `${diemA > diemC ? 'A1' : 'C1'} ${t.bang.dangDan}`}
           </p>
         </div>
         {/* Thanh tỉ lệ chỉ là hình minh hoạ cho hai con số ĐÃ hiện ở trên — nên nó

@@ -3,7 +3,7 @@
 import { useSoLieu } from '@/lib/stats';
 import { Xuong, Nhan } from './ui';
 import { gop } from '@/lib/gop';
-import { vi } from '@/lib/i18n/vi';
+import { useT } from '@/lib/i18n';
 
 /**
  * Dải số liệu sống — thứ làm trang "trông như sản phẩm đang chạy" thay vì mockup.
@@ -14,6 +14,7 @@ import { vi } from '@/lib/i18n/vi';
  * xuống một dòng chữ nhạt, đừng dựng một màn lỗi.
  */
 export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
+  const t = useT();
   const { tt, napLai } = useSoLieu();
   const toi = tren === 'toi';
 
@@ -24,21 +25,21 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
     return (
       <div className={gop('mt-8 text-sm', toi ? 'text-on-dark-3' : 'text-muted')}>
         <button type="button" onClick={napLai} className="underline">
-          {vi.soLieu.khongDo}
+          {t.soLieu.khongDo}
         </button>
-        <span className="ms-2">{vi.soLieu.khongDoMoTa}</span>
+        <span className="ms-2">{t.soLieu.khongDoMoTa}</span>
       </div>
     );
   }
 
   const o = [
     {
-      nhan: vi.soLieu.validator,
+      nhan: t.soLieu.validator,
       gt: tt.pha === 'xong' ? `${tt.so.validatorKetNoi}/${tt.so.validatorTong}` : null,
     },
-    { nhan: vi.soLieu.soL1, gt: tt.pha === 'xong' ? String(tt.so.soL1) : null },
+    { nhan: t.soLieu.soL1, gt: tt.pha === 'xong' ? String(tt.so.soL1) : null },
     {
-      nhan: vi.soLieu.chieuCao,
+      nhan: t.soLieu.chieuCao,
       gt: tt.pha === 'xong' ? tt.so.chieuCaoBlock.toLocaleString('vi-VN') : null,
     },
   ];
@@ -46,7 +47,7 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
   return (
     <div className="mt-8">
       <div className="flex items-center gap-2">
-        <Nhan kieu="tot">{vi.soLieu.tieuDe}</Nhan>
+        <Nhan kieu="tot">{t.soLieu.tieuDe}</Nhan>
       </div>
       <dl className="mt-3 grid grid-cols-3 gap-4 sm:max-w-lg">
         {o.map((x) => (
@@ -57,7 +58,7 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
                 <>
                   {/* Khung xương có nhãn cho trình đọc màn hình — nếu không, người
                       dùng nghe một danh sách rỗng và không biết đang chờ gì. */}
-                  <span className="sr-only">{vi.soLieu.dangDo}</span>
+                  <span className="sr-only">{t.soLieu.dangDo}</span>
                   <Xuong className="h-8 w-16" />
                 </>
               )}

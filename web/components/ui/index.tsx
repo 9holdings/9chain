@@ -12,7 +12,7 @@
  * một vòng mở thư mục — mà đó chính là lúc người ta bỏ cuộc và viết style rời rạc.
  */
 import { useEffect, useId, useState, type ReactNode, type ButtonHTMLAttributes, type InputHTMLAttributes } from 'react';
-import { vi } from '@/lib/i18n/vi';
+import { useT } from '@/lib/i18n';
 // `gop` sống ở `lib/gop.ts` (ngoài ranh giới client) và được xuất lại ở đây cho
 // tiện — xem chú thích trong file đó về vì sao không định nghĩa tại chỗ.
 import { gop } from '@/lib/gop';
@@ -208,16 +208,17 @@ export function TrongRong({ tieuDe, moTa, hanhDong }: { tieuDe: string; moTa?: s
 }
 
 export function CoLoi({ tieuDe, moTa, thuLai }: { tieuDe?: string; moTa?: string; thuLai?: () => void }) {
+  const t = useT();
   return (
     <div
       role="alert"
       className="flex flex-col items-start gap-3 rounded-card border border-line-strong bg-surface px-5 py-4"
     >
-      <p className="font-semibold text-ink">{tieuDe ?? vi.loi.khongKetNoi}</p>
-      <p className="text-sm text-body-2">{moTa ?? vi.loi.khongKetNoiMoTa}</p>
+      <p className="font-semibold text-ink">{tieuDe ?? t.loi.khongKetNoi}</p>
+      <p className="text-sm text-body-2">{moTa ?? t.loi.khongKetNoiMoTa}</p>
       {thuLai && (
         <Nut kieu="vien" onClick={thuLai}>
-          {vi.chung.thuLai}
+          {t.chung.thuLai}
         </Nut>
       )}
     </div>
@@ -227,6 +228,7 @@ export function CoLoi({ tieuDe, moTa, thuLai }: { tieuDe?: string; moTa?: string
 /* ───────────────────────────────────────────────────────────────── Copyable */
 
 export function ChepDuoc({ giaTri, nhan, className }: { giaTri: string; nhan?: string; className?: string }) {
+  const t = useT();
   const [daChep, datDaChep] = useState(false);
   useEffect(() => {
     if (!daChep) return;
@@ -239,7 +241,7 @@ export function ChepDuoc({ giaTri, nhan, className }: { giaTri: string; nhan?: s
       type="button"
       // Nhãn phải nói RÕ chép cái gì — "Sao chép" một mình thì trong danh sách 5 nút
       // giống hệt nhau, người dùng trình đọc màn hình không biết mình đang ở nút nào.
-      aria-label={`${vi.chung.saoChep} ${nhan ?? giaTri}`}
+      aria-label={`${t.chung.saoChep} ${nhan ?? giaTri}`}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(giaTri);
@@ -263,7 +265,7 @@ export function ChepDuoc({ giaTri, nhan, className }: { giaTri: string; nhan?: s
       {/* Thông báo cho trình đọc màn hình — vùng live riêng, không phụ thuộc vào
           việc dấu ✓ có được đọc hay không. */}
       <span className="sr-only" role="status">
-        {daChep ? vi.chung.daChep : ''}
+        {daChep ? t.chung.daChep : ''}
       </span>
     </button>
   );

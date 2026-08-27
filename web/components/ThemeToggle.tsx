@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { vi } from '@/lib/i18n/vi';
+import { useT } from '@/lib/i18n';
 
 /**
  * Nút chuyển sáng/tối.
@@ -11,6 +11,7 @@ import { vi } from '@/lib/i18n/vi';
  * navy, tương phản 1,05:1) suốt thời gian transition chạy.
  */
 export function ThemeToggle() {
+  const t = useT();
   const [toi, datToi] = useState<boolean | null>(null);
 
   // Đọc trạng thái THẬT từ DOM (ThemeScript đã đặt trước khi vẽ), không tự đoán lại
@@ -36,7 +37,7 @@ export function ThemeToggle() {
 
   // Trước khi biết trạng thái, vẽ nút với nhãn trung tính thay vì không vẽ gì:
   // nút biến mất rồi hiện lại làm nhảy bố cục thanh điều hướng.
-  const nhan = toi === null ? vi.chung.chuyenSangToi : toi ? vi.chung.chuyenSangSang : vi.chung.chuyenSangToi;
+  const nhan = toi === null ? t.chung.chuyenSangToi : toi ? t.chung.chuyenSangSang : t.chung.chuyenSangToi;
 
   return (
     <button

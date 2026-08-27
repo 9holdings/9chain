@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Nut, The, O, Nhan, Xuong, CoLoi, ChepDuoc, LuuY } from '@/components/ui';
 import { kiemDiaChi, rutGon } from '@/lib/eip55';
 import { CHAIN, faucetGoc, rpcCChain, explorerGoc, thamSoThemMang } from '@/lib/chain';
-import { vi, dien } from '@/lib/i18n/vi';
+import { dien, useT } from '@/lib/i18n';
 import { layVi, docLoiVi } from '@/lib/wallet';
 
 type ThongTin = {
@@ -23,6 +23,7 @@ type TrangThaiTin = { pha: 'tai' } | { pha: 'xong'; tin: ThongTin } | { pha: 'ho
 // kia, và không màn nào nói cho người dùng biết. Một nguồn duy nhất, xem lib/wallet.
 
 export function FaucetForm() {
+  const t = useT();
   const [diaChi, datDiaChi] = useState('');
   const [dangGui, datDangGui] = useState(false);
   const [ketQua, datKetQua] = useState<{ txHash: string; amount: string } | null>(null);
@@ -34,7 +35,7 @@ export function FaucetForm() {
 
   // Chỉ kiểm khi người dùng đã gõ gì đó — báo đỏ vào một ô trống mà họ chưa chạm
   // tới là mắng trước khi hỏi.
-  const kq = diaChi.trim() ? kiemDiaChi(diaChi, vi.faucet.nhanDiaChi) : null;
+  const kq = diaChi.trim() ? kiemDiaChi(diaChi, t.faucet.nhanDiaChi) : null;
   const hopLe = kq?.ok === true;
 
   const napTin = useCallback(async () => {
@@ -94,7 +95,7 @@ export function FaucetForm() {
       // Xin xong thì hạn mức đã đổi — đọc lại để con số trên màn khớp sự thật.
       void napTin();
     } catch (e) {
-      datLoiGui(dien(vi.faucet.loiChung, { chiTiet: String((e as Error).message ?? e) }));
+      datLoiGui(dien(t.faucet.loiChung, { chiTiet: String((e as Error).message ?? e) }));
     } finally {
       datDangGui(false);
     }
@@ -106,29 +107,29 @@ export function FaucetForm() {
     <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <The className="p-5 md:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display text-lg font-bold text-ink">{vi.faucet.tieuDe}</h2>
+          <h2 className="font-display text-lg font-bold text-ink">{t.faucet.tieuDe}</h2>
           <HanMuc tin={tin} thuLai={napTin} />
         </div>
 
         <div className="mt-5 flex flex-col gap-2">
           <Nut kieu="vien" onClick={themMang}>
-            {viTrangThai === 'xong' ? vi.faucet.themMangXong : vi.faucet.themMang}
+            {viTrangThai === 'xong' ? t.faucet.themMangXong : t.faucet.themMang}
           </Nut>
-          {viTrangThai === 'tuChoi' && <p className="text-sm text-body-2">{vi.faucet.themMangTuChoi}</p>}
+          {viTrangThai === 'tuChoi' && <p className="text-sm text-body-2">{t.faucet.themMangTuChoi}</p>}
           {viTrangThai === 'loi' && (
             <div className="text-sm text-body-2">
-              <p>{vi.faucet.themMangLoi}</p>
+              <p>{t.faucet.themMangLoi}</p>
               {viLoi && <p className="mt-1 break-words font-mono text-xs text-muted">{viLoi}</p>}
             </div>
           )}
-          {viTrangThai === 'khongCo' && <p className="text-sm text-body-2">{vi.faucet.khongCoVi}</p>}
+          {viTrangThai === 'khongCo' && <p className="text-sm text-body-2">{t.faucet.khongCoVi}</p>}
         </div>
 
         <div className="mt-6">
           <O
-            nhan={vi.faucet.nhanDiaChi}
-            moTa={vi.faucet.danChoDiaChi}
-            placeholder={vi.faucet.goiYDiaChi}
+            nhan={t.faucet.nhanDiaChi}
+            moTa={t.faucet.danChoDiaChi}
+            placeholder={t.faucet.goiYDiaChi}
             value={diaChi}
             onChange={(e) => datDiaChi(e.target.value)}
             spellCheck={false}
@@ -142,7 +143,7 @@ export function FaucetForm() {
         {hetSuat && (
           <div className="mt-4">
             <LuuY kieu="canhBao">
-              {dien(vi.faucet.hanMucHet, {
+              {dien(t.faucet.hanMucHet, {
                 phut: Math.max(1, Math.ceil((tin.pha === 'xong' ? tin.tin.perIp.retryAfter : 60) / 60)),
               })}
             </LuuY>
@@ -151,7 +152,7 @@ export function FaucetForm() {
 
         <div className="mt-5">
           <Nut co="to" onClick={gui} dangChay={dangGui} disabled={!hopLe || hetSuat}>
-            {dangGui ? vi.faucet.dangGui : vi.faucet.nutXin}
+            {dangGui ? t.faucet.dangGui : t.faucet.nutXin}
           </Nut>
         </div>
 
@@ -163,7 +164,7 @@ export function FaucetForm() {
             className="mt-5 rounded-card border border-success-line bg-success-bg px-4 py-3"
           >
             <p className="text-sm font-semibold text-success-ink">
-              {dien(vi.faucet.thanhCong, {
+              {dien(t.faucet.thanhCong, {
                 so: ketQua.amount,
                 kyHieu: CHAIN.kyHieu,
                 diaChi: rutGon(kq?.ok ? kq.diaChi : diaChi),
@@ -175,7 +176,7 @@ export function FaucetForm() {
               target="_blank"
               rel="noreferrer"
             >
-              {vi.faucet.xemGiaoDich} ↗
+              {t.faucet.xemGiaoDich} ↗
             </a>
           </div>
         )}
@@ -193,10 +194,11 @@ export function FaucetForm() {
 }
 
 function HanMuc({ tin, thuLai }: { tin: TrangThaiTin; thuLai: () => void }) {
+  const t = useT();
   if (tin.pha === 'tai') {
     return (
       <span className="flex items-center gap-2">
-        <span className="sr-only">{vi.chung.dangTai}</span>
+        <span className="sr-only">{t.chung.dangTai}</span>
         <Xuong className="h-6 w-32" />
       </span>
     );
@@ -204,22 +206,23 @@ function HanMuc({ tin, thuLai }: { tin: TrangThaiTin; thuLai: () => void }) {
   if (tin.pha === 'hong') {
     return (
       <button type="button" onClick={thuLai} className="text-sm text-muted underline">
-        {vi.faucet.hanMucKhongDoc}
+        {t.faucet.hanMucKhongDoc}
       </button>
     );
   }
   const { perIp } = tin.tin;
   return (
     <span className="flex items-center gap-2 text-sm text-body-2">
-      {vi.faucet.hanMucConLai}
+      {t.faucet.hanMucConLai}
       <Nhan kieu={perIp.remaining > 0 ? 'tot' : 'canhBao'}>
-        {dien(vi.faucet.hanMucCachDoc, { con: perIp.remaining, tong: perIp.max, gio: perIp.windowHours })}
+        {dien(t.faucet.hanMucCachDoc, { con: perIp.remaining, tong: perIp.max, gio: perIp.windowHours })}
       </Nhan>
     </span>
   );
 }
 
 function ThongSoMang() {
+  const t = useT();
   // Suy từ `location` lúc chạy — KHÔNG cắm cứng. Trang public cắm `localhost` là
   // trình duyệt người xem phân giải thành máy họ; explorer và dashboard của dự án
   // này đều đã dính đúng lỗi đó.
@@ -227,15 +230,15 @@ function ThongSoMang() {
   useEffect(() => datRpc(rpcCChain()), []);
 
   const dong = [
-    { nhan: vi.faucet.thongSoRpc, gt: rpc },
-    { nhan: vi.faucet.thongSoChainId, gt: `${CHAIN.chainId} (${CHAIN.chainIdHex})` },
-    { nhan: vi.faucet.thongSoKyHieu, gt: CHAIN.kyHieu },
-    { nhan: vi.faucet.thongSoThapPhan, gt: String(CHAIN.thapPhan) },
+    { nhan: t.faucet.thongSoRpc, gt: rpc },
+    { nhan: t.faucet.thongSoChainId, gt: `${CHAIN.chainId} (${CHAIN.chainIdHex})` },
+    { nhan: t.faucet.thongSoKyHieu, gt: CHAIN.kyHieu },
+    { nhan: t.faucet.thongSoThapPhan, gt: String(CHAIN.thapPhan) },
   ];
 
   return (
     <The className="h-max p-5">
-      <h2 className="font-display text-base font-bold text-ink">{vi.faucet.thongSoMang}</h2>
+      <h2 className="font-display text-base font-bold text-ink">{t.faucet.thongSoMang}</h2>
       <dl className="mt-4 flex flex-col gap-3">
         {dong.map((d) => (
           <div key={d.nhan} className="flex flex-col gap-1">
@@ -247,7 +250,7 @@ function ThongSoMang() {
         ))}
         <div className="flex flex-col gap-1">
           <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
-            {vi.faucet.thongSoExplorer}
+            {t.faucet.thongSoExplorer}
           </dt>
           <dd>
             <a
@@ -266,7 +269,7 @@ function ThongSoMang() {
           Cả hai đều đúng — P/X-Chain đếm nano, C-Chain là EVM — nhưng không ai tự
           suy ra được điều đó. Một câu ở đây rẻ hơn một hiểu nhầm về tokenomics. */}
       <p className="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-muted">
-        {vi.faucet.thapPhanGiaiThich}
+        {t.faucet.thapPhanGiaiThich}
       </p>
     </The>
   );
