@@ -1,14 +1,43 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-26** (chốt phiên) — 🟢 **RE-GENESIS 9 TỶ LOVE9 ĐÃ CHẠY XONG TRÊN MẠNG CÔNG KHAI.**
-Mạng nay **9 node**, `supplyCap` **9.000.000.000**, phát hành genesis 5.400.000.000.
-Đây là **lượt diễn tập** — 01/09 vẫn sinh lại lần nữa (khắc chữ + Block Adam chưa sẵn).
+Cập nhật: **2026-08-27** (chốt phiên) — mạng công khai vẫn là bản re-genesis 9 tỷ của `26/08`
+(**9 node**, `supplyCap` 9.000.000.000, phát hành genesis 5.400.000.000, **lượt diễn tập**).
+Phiên `27/08` **không đụng mạng** — làm cơ chế ngày G + đóng 4 mục quyết.
 Tên miền `a1.9chain.org` / `rpc-a1.9chain.org` (tên cũ vẫn sống). M6 + M10 đóng.
 
 ## ▶ Phiên sau bắt đầu từ đâu
 
-🔴 **ĐỌC `PROGRESS.md` TRƯỚC** — backlog nằm ở đó, không phải file này.
-Kèm `DECISIONS.md` (vì sao làm vậy) và `BLOCKERS.md` (đang chờ David cái gì).
+🔴 **ĐỌC [`docs/NGAY-G-A1-CON-LAI.md`](docs/NGAY-G-A1-CON-LAI.md) TRƯỚC.** Đó là bản A1 thẩm
+định kế hoạch ngày G `01/09` và là **danh sách còn-lại thật**. `PLAN-REGENESIS-2026-09-01.md`
+là bối cảnh của BOD, mâu thuẫn thì file kia thắng.
+Backlog phần mềm cũ nằm ở `PROGRESS.md`; `DECISIONS.md` (vì sao) · `BLOCKERS.md` (chờ David).
+
+### Phiên 2026-08-27 làm xong — tóm tắt để khỏi mở file
+
+**Cơ chế ngày G, cả hai chiều, đã nghiệm thu trên chain sống:**
+- **Khắc chữ** — `netgen/engrave.go` (patch 0010). P-Chain `Message` (trọn bộ, gốc) +
+  C-Chain hợp đồng dữ liệu `eth_getCode` + `extraData` = `sha256` 32 byte. **Mặc định KHÔNG
+  khắc** — đó là cổng "bản tập ≠ bản thật" của A1. Cách dùng: `docs/KHAC-CHU-NGAY-G.md`.
+- **Đọc ngược** — `9chain-a1-tools/engrave-verify` (patch 0011), một lệnh. Dựng mạng tập
+  3 node thật: **17 đạt/0 hỏng**; 3 ca đối chứng ngược đều đỏ đúng chỗ.
+- 🔴 **Nội dung thật CHƯA CÓ** — chờ **C1 đóng băng byte trước**, A1 lấy đúng byte. Manifest
+  hiện chưa trỏ vào tài liệu nào.
+
+**Bốn mục David chốt `27/08`:** D-045 bảng phân bổ **giữ bảng đang chạy 40/30/12/9/9** (⇒ G1+G2+G3
+mở khoá, **không phải sửa mã**) · D-046 **giữ N = 9** · D-047 **giữ chainId 9000000009**.
+
+**Đã báo 9Scan-A1** (commit `7e3b579` bên họ): `Message` là **trường chỉ ghi**, không API nào
+đọc được — họ phải đọc bản văn từ **tệp** genesis, còn thứ đọc **từ chain** là `parentID` block 0.
+
+### 🔴 Ba việc còn chặn ngày G — đều cần David (hạn 28–29/08)
+
+| | |
+|---|---|
+| **O1 custody** khoá quỹ mới | Cơ hội **một lần**; sau ngày G lại kẹt y cũ |
+| **Có khôi phục sổ `retired` cũ không** | Lỗ **đã hở thật**, xem `NGAY-G-A1-CON-LAI.md` §5c |
+| **O4** — nay là **DỜI một node**, không phải thêm (D-046) | Không đạt thì `01/09` không nên gọi là "chạy chính thức" |
+
+Kèm **H-7 IPv4 hay IPv6** (O5), và **O2** export+`sha256` mạng sắp chết (đã **bỏ lỡ** ở `26/08`).
 
 ### Việc đầu tiên của phiên sau — ĐỌC MỤC NÀY TRƯỚC MỌI THỨ
 
@@ -196,7 +225,9 @@ Xem `BLOCKERS.md` H-8.
 - `keys.txt` bản thứ hai offline — **sẽ đổi bản chất sau re-genesis**: khoá cũ thành
   vô dụng, nên đây là bài toán **thiết kế custody** chứ không phải sao lưu (D-036).
 
-**5. Backlog phần mềm ĐÃ CẠN.** M10.1–M10.6 xong, M10.7 xong phần đo được (còn
+**5.** ~~Backlog phần mềm ĐÃ CẠN.~~ ⚠️ **HẾT ĐÚNG từ `27/08`** — backlog ngày G đã nạp lại,
+xem `docs/NGAY-G-A1-CON-LAI.md` §9. Phần dưới là bối cảnh M10.
+M10.1–M10.6 xong, M10.7 xong phần đo được (còn
 một mục chờ 9Scan đưa `/chains/` của họ lên). Không còn task nào chạy được mà không
 cần người. Muốn nạp việc mới thì dùng skill `feed-autopilot`.
 
