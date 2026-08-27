@@ -39,8 +39,34 @@ X↔C của avalanchego tự đổi thang khi tài sản đi qua; không có đ�
   → **thang 9**, và trần kiểu dữ liệu là **18,447 tỷ LOVE9** (`uint64` max ÷ `1e9`).
 - Số dư ví, `eth_getBalance`, faucet, mọi thứ hiện trên MetaMask và Blockscout
   → **thang 18**.
-- ⚠️ **`platform.getCurrentSupply` KHÔNG cộng C-Chain** (`genesis/config.go:146`
-  `InitialSupply()` chỉ cộng X/P) — nên đừng so nó với tổng phát hành genesis.
+- 🔴 **`platform.getCurrentSupply` KHÔNG cộng C-Chain** (`genesis/config.go:146`
+  `InitialSupply()` chỉ cộng `Allocations`, tức X/P; `CChainGenesis` nằm ngoài vòng lặp).
+  Nên đừng so nó với tổng phát hành genesis — **và đừng dừng ở đó**, xem ngay dưới.
+
+### 🔴 `SupplyCap` (7.900.000.001) ≠ tổng cung (9.000.000.000) — có chủ ý
+
+Vì `currentSupply` không đếm C-Chain, **trần cung trong binary phải nhỏ hơn tổng cung công bố
+đúng bằng phần phát hành thẳng trên C-Chain**, nếu không staking sẽ mint thừa đúng bằng phần
+chênh — mạng vẫn chạy hoàn hảo, chỉ có **lời hứa sai**.
+
+| | LOVE9 |
+|---|--:|
+| `SupplyCap` — hằng số **biên dịch vào binary**, trần của `currentSupply` (P/X) | **7.900.000.001** |
+| + phát hành thẳng C-Chain (Foundation 1.000.000.000 + faucet 99.999.999) | 1.099.999.999 |
+| **= TỔNG CUNG (D-039)** | **9.000.000.000** |
+| dư địa mint = 7.900.000.001 − genesis X/P 4.300.000.001 | 3.600.000.000 = ô Staking Rewards |
+
+⚠️ **Đừng "dọn dẹp" `SupplyCap` về 9 tỷ cho khớp bảng.** Làm thế là in thêm **1.099.999.999
+LOVE9**: trần cung P/X thành 9 tỷ trong khi C-Chain vẫn giữ 1,1 tỷ ngoài sổ ⇒ tổng thật
+**10.099.999.999**. Đó là lỗi đã có thật trong mã tới `2026-08-27` — D-048 và
+[`CORE-AUDIT-2026-08-27.md`](CORE-AUDIT-2026-08-27.md) §2.
+
+Bất biến, cưỡng chế bằng máy ở `netgen` (`mustFitSupplyCap`) và
+`scripts/check-consistency.mjs` (đọc `SupplyCap` **thẳng từ Go**, không chép):
+
+```
+SupplyCap + Σ(bucket.CChain) == 9.000.000.000
+```
 
 ⚠️ **Đây là đúng chỗ một con số chép sang thang khác sẽ đi lọt.** Cùng họ với vụ
 `SupplyCap` 90 tỷ đến từ C1 (Cosmos đếm bằng `big.Int` nên 90 tỷ bình thường ở đó,

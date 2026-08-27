@@ -1,0 +1,151 @@
+From e31b1a89c4c341919ecd2f7bd6945c14e367cb84 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Thu, 27 Aug 2026 10:55:06 +0400
+Subject: [PATCH 14/16] =?UTF-8?q?9chain-a1:=20khai=20B-11=20thanh=20chu=20?=
+ =?UTF-8?q?trong=20ma=20=E2=80=94=20D-051=20(uptime=20.8,=20stake=20365,?=
+ =?UTF-8?q?=20C-Chain=20co=20y)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+David chot 2026-08-27 ba muc chua tung duoc quyet, deu la tham so BIEN DICH VAO
+BINARY nen phai dong bang truoc luot `docker build` cua ngay G.
+
+Patch nay KHONG doi mot gia tri nao — chi doi CHU. Do la ca diem cua no: ba cho
+duoi day truoc gio dung o trang thai "chua ai quyet", ma trong ma thi mot tham so
+chua ai quyet trong y het mot tham so da quyet.
+
+1) UptimeRequirement GIU 0.8
+   Chu thich cu ghi "<- CHOT LAI THANH 0.9 TRUOC MAINNET" — mot viec nam trong
+   comment va KHONG nam trong DECISIONS.md, tuc khong ai canh. Nay la quyet dinh
+   co ngay thang, va moc xet lai la MAINNET chu khong phai ngay G: A1 van dung la
+   testnet cong khai moi cong dong chay node, ma 0.9 tren ha tang khong chuyen la
+   cat thuong cua nguoi chay that.
+
+2) MaxStakeDuration GIU 365 ngay (bang Avalanche mainnet)
+   [!] He qua phai co NGUOI canh, khong phai ma canh: tran nay + InitialStakeDuration
+   365 + offset 7 ngay => 9 validator genesis het han lan luot trong mot cua so 56
+   ngay, bat dau ~365 ngay sau ngay G. Node cuoi rung la mang DUNG; avalanchego
+   khong co co che tu gia han.
+   Khong phai loi — tran dai hon nghia la khoa staking bi giam lau hon, tuc danh
+   doi chu khong phai cai thien. Cai thieu la QUY TRINH gia han, ma quy trinh khong
+   song trong ma.
+   So le 7 ngay la CO Y va chinh la he thong canh bao: node dau rung o ~ngay 309,
+   luc do 8 node con chay => co ~56 ngay de phan ung. Dung "don dep" offset ve 0.
+
+3) Phi C-Chain GIU nguyen duong cong Avalanche — KHAI RA LA CO Y
+   Ban soat 27/08 doi chieu thay A1 ha TxFee xuong MilliAvax cho P/X ("mang de L1,
+   phi khong duoc la rao can voi builder") nhung KHONG cham mot tham so nao cua
+   C-Chain — trong khi C-Chain moi la noi nguoi dung that su giao dich: faucet cap
+   100% tren C-Chain, MetaMask noi chuyen voi C-Chain, Blockscout index C-Chain,
+   soak 210 TPS chay tren C-Chain. Tuc A1 ha phi o dung lop nguoi dung it cham nhat.
+   Su im lang do KHONG phan biet duoc voi bo sot => nay khai thanh chu, kem ly do
+   giu (ACP-176 la duong cong dong da kiem chung o quy mo mainnet; soak 25/08 do
+   2.272.500 tx / 210,4 TPS / 0 loi gui nen phi hien tai khong chan ai; A1 la testnet,
+   token xin o faucet) va kem DIEU KIEN XET LAI (co mainnet that, hoac do duoc mot
+   tai ma ACP-176 xu ly kem).
+   Kem con tro: muon doi thi cho doi KHONG phai file nay.
+
+Nghiem thu: gofmt sach · go vet sach · go build sach.
+Khong doi gia tri nao => hanh vi node khong doi; da doi chieu bang cach doc lai
+`A1Params` sau khi build.
+---
+ genesis/genesis_9chain_a1.go | 71 ++++++++++++++++++++++++++++++++++--
+ 1 file changed, 68 insertions(+), 3 deletions(-)
+
+diff --git a/genesis/genesis_9chain_a1.go b/genesis/genesis_9chain_a1.go
+index f0f1679..894977b 100644
+--- a/genesis/genesis_9chain_a1.go
++++ b/genesis/genesis_9chain_a1.go
+@@ -38,6 +38,43 @@ const A1NetworkID = constants.A1ID
+ // A1Params — tham số staking + phí của 9Chain-A1 (token LOVE9, 9 chữ số thập phân).
+ //
+ // Đơn vị: units.Avax = 1 LOVE9 = 1e9 nLOVE9 (nAVAX trong mã upstream).
++//
++// ═══════════════════════════════════════════════════════════════════════════════
++// 🔴 PHẠM VI: FILE NÀY CHỈ PHỦ P-CHAIN VÀ X-CHAIN. C-CHAIN KHÔNG NẰM Ở ĐÂY.
++// ═══════════════════════════════════════════════════════════════════════════════
++//
++// ✅ **D-051, David chốt `2026-08-27`: C-Chain GIỮ NGUYÊN đường cong phí của
++// Avalanche, và đó là một QUYẾT ĐỊNH, không phải một chỗ bỏ sót.**
++//
++// Vì sao phải khai ra thành chữ: bản soát core `27/08` đối chiếu thì thấy A1 hạ
++// `TxFee` xuống `MilliAvax` cho P/X (lập luận: "mạng đẻ L1, phí không được là rào
++// cản với builder") nhưng **không chạm một tham số nào của C-Chain** — trong khi
++// C-Chain mới là nơi người dùng thật sự giao dịch: faucet cấp 100% trên C-Chain,
++// ví MetaMask nói chuyện với C-Chain, Blockscout index C-Chain, đợt soak 210 TPS
++// chạy trên C-Chain. Tức A1 hạ phí ở đúng lớp người dùng ít chạm nhất.
++//
++// Sự im lặng đó **không phân biệt được với bỏ sót**, và một người soát lần sau sẽ
++// phải điều tra lại từ đầu để tới cùng một chỗ. Nên nó được khai ở đây.
++//
++// LÝ DO GIỮ:
++//   - Phí C-Chain đi theo **ACP-176** (đường cong động của coreth), không phải một
++//     hằng số để chỉnh. Đổi nó là rời khỏi một cơ chế đã được kiểm chứng ở quy mô
++//     mainnet, để đổi lấy một con số chưa ai đo trên A1.
++//   - Đợt soak `25/08` đo **2.272.500 giao dịch / 210,4 TPS liên tục 180 phút, 0 lỗi
++//     gửi**, RPC p50 19ms. Phí hiện tại **không phải** thứ đang chặn ai.
++//   - A1 là testnet: token xin ở faucet, nên phí C-Chain không phải rào cản kinh tế
++//     thật với người dùng.
++//
++// ⚠️ ĐIỀU NÀY SẼ PHẢI XÉT LẠI KHI: có mainnet thật (phí trở thành kinh tế thật), hoặc
++// khi A1 đo được một tải mà đường cong ACP-176 xử lý kém. Cả hai đều chưa xảy ra.
++//
++// 🔴 MUỐN ĐỔI THÌ CHỖ ĐỔI **KHÔNG PHẢI FILE NÀY.** Hai chỗ, hai chi phí khác hẳn:
++//   - `<chain-config-dir>/<blockchainID>/config.json` — cờ `--chain-config-dir` do
++//     `netgen` khai cho mỗi node (`buildCompose` trong `netgen/main.go`; cùng cơ chế
++//     đã dùng để bật `WarpAPIEnabled`). Đây là cấu hình **runtime**, đổi được không
++//     cần re-genesis, nhưng phải đồng bộ trên MỌI node hoặc mạng lệch cấu hình.
++//   - `cChainGenesis` trong `netgen/main.go` — phần nằm trong genesis, **bất biến**;
++//     chạm là re-genesis toàn mạng.
+ var A1Params = Params{
+ 	TxFeeConfig: TxFeeConfig{
+ 		// Phí cố định trên P/X-Chain: 0.001 LOVE9.
+@@ -75,7 +112,15 @@ var A1Params = Params{
+ 		// Uptime tối thiểu để được nhận thưởng.
+ 		// 80% — nới hơn mainnet Avalanche (ACP-267 dùng 90%) vì A1 là testnet
+ 		// công khai, validator cộng đồng chạy trên hạ tầng không chuyên.
+-		// ⬅️ CHỐT LẠI THÀNH 0.9 TRƯỚC MAINNET.
++		//
++		// ✅ **D-051, David chốt `2026-08-27`: GIỮ 0.8 qua ngày G.**
++		// Chú thích cũ ở đây ghi *"⬅️ CHỐT LẠI THÀNH 0.9 TRƯỚC MAINNET"* — một việc
++		// nằm trong comment và **không nằm trong `DECISIONS.md`**, tức không ai canh.
++		// Nay nó là quyết định có ngày tháng, và mốc xét lại là **MAINNET**, không
++		// phải ngày G: A1 vẫn đúng là testnet công khai mời cộng đồng chạy node, mà
++		// 0.9 trên hạ tầng không chuyên là cắt thưởng của người chạy thật.
++		// 🔴 Đổi số này = re-genesis (biên dịch vào binary), nên nếu mainnet dùng
++		// bảng tham số riêng thì đây là chỗ nó phải tách ra, không phải chỗ sửa nóng.
+ 		UptimeRequirement: .8,
+ 
+ 		// Rào cản vào làm validator: 25,000 LOVE9.
+@@ -104,8 +149,28 @@ var A1Params = Params{
+ 		// Phí uỷ quyền tối thiểu validator được thu: 2%.
+ 		MinDelegationFee: 20_000, // thang 1,000,000 = 100%
+ 
+-		MinStakeDuration:        24 * time.Hour,
+-		MaxStakeDuration:        365 * 24 * time.Hour,
++		MinStakeDuration: 24 * time.Hour,
++
++		// ✅ **D-051, David chốt `2026-08-27`: GIỮ 365 ngày.** Bằng Avalanche mainnet.
++		//
++		// 🔴 HỆ QUẢ PHẢI CÓ NGƯỜI CANH, KHÔNG PHẢI MÃ CANH. Trần này cộng với
++		// `InitialStakeDuration` 365 ngày và `InitialStakeDurationOffset` 7 ngày
++		// (`netgen/main.go`) nghĩa là **9 validator genesis hết hạn lần lượt trong một
++		// cửa sổ 56 ngày, bắt đầu ~365 ngày sau ngày G**. Node cuối rụng là mạng
++		// DỪNG — không có cơ chế tự gia hạn nào trong avalanchego.
++		//
++		// Đây **không phải lỗi**: Avalanche mainnet cũng 365, và trần dài hơn nghĩa là
++		// khoá staking bị giam lâu hơn, tức đánh đổi chứ không phải cải thiện. Cái
++		// thiếu là **quy trình gia hạn**, và quy trình thì không sống trong mã.
++		//
++		// ⚠️ So le 7 ngày là CỐ Ý và nó chính là hệ thống cảnh báo: node đầu rụng ở
++		// ~ngày 309 của nhiệm kỳ, lúc đó 8 node còn chạy ⇒ có ~56 ngày để phản ứng,
++		// thay vì cả mạng tắt cùng một lúc. Đừng "dọn dẹp" offset về 0 cho đều.
++		//
++		// Ngày hết hạn THẬT chỉ biết sau khi sinh genesis ngày G — đọc bằng
++		// `platform.getCurrentValidators` → `endTime`, đừng tính tay.
++		MaxStakeDuration: 365 * 24 * time.Hour,
++
+ 		HeliconMinStakeDuration: 1 * time.Hour,
+ 
+ 		RewardConfig: reward.Config{

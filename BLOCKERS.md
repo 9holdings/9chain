@@ -6,6 +6,164 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### ✅ B-14 — **ĐÃ ĐÓNG `2026-08-27`** — David chốt gốc dải **`9000000010`** (D-069)
+
+David không chọn đường nào trong ba đường A1 đưa (9146 / 9100 / "dải khác") mà đưa ra một
+đường thứ tư **tốt hơn cả ba**: gốc dải = chainId của A1 **+1**.
+
+| | |
+|---|---|
+| Vùng trống | **không một chuỗi nào trong bán kính 10 triệu** quanh 9000000009 (sổ `27/08`, 2.725 mục) |
+| Bản sắc | mọi chain thuộc A1 cùng mở đầu `9000000…` |
+| 🔴 Ngoài dự tính | dải cũ `9100–9145` **không bao giờ được tự cấp lại** ⇒ lỗ phát lại mà §5c định vá **bằng sổ** nay đóng **bằng kiến trúc** |
+
+⚠️ **§5c CHƯA đóng.** Chỉ đóng nửa `chainId` và chỉ đường **tự cấp**: người dùng vẫn tự nhập
+được `9102` (chặn vẫn dựa `state.retired`), và trùng **TÊN** không đụng tới.
+
+**Đã vá + nghiệm thu:** `local-net/lib/chainid.mjs` (tách khỏi `server.mjs` để bài kiểm đọc
+được mã thật) · `chainid-test.mjs` **13 đạt/0 hỏng** · `check-chainid.mjs` tra dải MỚI, 4 ca
+đối chứng ngược đỏ đúng chỗ · danh sách chặn giữ cả hai dải (D-069b: rỗng ≡ hỏng).
+
+<details>
+<summary>Nguyên văn lúc còn mở</summary>
+
+### 🔴 B-14 — GỐC DẢI chainId CHO L1 NGƯỜI DÙNG: `9100` TRÙNG MỘT CHUỖI CÓ THẬT (2026-08-27, sinh từ G4)
+
+Tra sổ công khai `27/08` ([`docs/G4-TRA-CHAINID-2026-08-27.md`](docs/G4-TRA-CHAINID-2026-08-27.md)):
+`9000000009` **trống** ✓ — nhưng trong dải console tự cấp cho L1 người dùng có **4 số bị chiếm**,
+và một trong đó là số **đầu tiên** console cấp:
+
+| chainId | Bị chiếm bởi |
+|--:|---|
+| **9100** | **Genesis Coin** (`GENEC`) — 🔴 số console cấp đầu tiên |
+| 9108 · 9134 · 9170 | Destra Dubai Testnet · GIWA · Rinia Testnet Old |
+
+`server.mjs:659` cấp bằng `chainId = 9100; while (taken) chainId++`, mà `taken` chỉ tra **sổ
+của chính mình**. ⇒ người đầu tiên bấm "đẻ chain" nhận `9100`, và ví của họ trỏ vào một số mà
+sổ công khai gọi là Genesis Coin. **Đã xảy ra rồi** — `9100` được A1 cấp hai lần (`OwnerTest`).
+
+⚠️ **Thiệt hại thực tế hôm nay ~0**: 0 L1 đang sống, 6 chain dải `9100–9105` đều đã thu hồi.
+Cái đang mở là **cửa**, không phải vết thương. Đừng trích mạnh hơn thế.
+
+🔴 **Cần David — vì nó vướng đúng câu §5c đang chờ:** *"có khôi phục sổ `retired` cũ không"*.
+- Khôi phục ⇒ số tự cấp bắt đầu từ **9146**.
+- Không khôi phục ⇒ bắt đầu từ **9100**.
+
+Chọn gốc dải trước khi vá, không thì vá hai lần. **Gộp câu này vào cùng mục quyết số 5.**
+
+✅ **Phần KHÔNG cần quyết đã làm (A-4):** console có **danh sách chặn tĩnh** các chainId đã bị
+chiếm trong sổ công khai — đúng dù gốc dải là 9100 hay 9146.
+
+</details>
+
+### 🟡 B-13 — **(a) ĐÃ ĐÓNG `2026-08-27`** · (b) còn mở, đã HẠ MỨC
+
+✅ **(a) David chốt: neo vào HASH GIAO DỊCH NGHI LỄ** (D-070). Luật cũ *"block đầu tiên vượt
+mốc"* là mệnh đề về toàn chuỗi — nghi lễ không tự bảo đảm được; hash giao dịch là thứ nghi lễ
+cầm được.
+
+Bài diễn tập đã đổi cách chấm và **chạy thật lại trên mạng tập `27/08`**:
+
+| lượt | kết quả |
+|---|---|
+| `--bu-ms 3000` | 10 đạt · 0 hỏng · 2 lưu ý (0 không đạt) |
+| 🔴 `--bu-ms 0` — ca bản cũ chấm **✗** | 10 đạt · 0 hỏng · **2 lưu ý KHÔNG đạt**, exit **0**. Block đầu tiên vượt mốc là của **Eva `#4`**; neo vẫn trỏ đúng Adam `#3` |
+| `--khong-gui` | 2 đạt · 0 hỏng |
+
+Ô cũ **xuống hạng "lưu ý"**, không bị xoá: xoá là mất phép đo lệch đồng hồ mà (b) cần; giữ ở
+hạng ✗ là để bài **kêu oan**, mà cổng kêu oan sẽ bị bỏ qua đúng lúc nó kêu thật.
+
+🔴 **(b) VẪN MỞ, nhưng đổi tính chất.** D-070 hạ nó từ *"neo sai thì hỏng"* xuống *"câu chữ
+sai thì không trung thực"*: nếu bản khắc còn **câu chữ** khẳng định block vượt mốc
+`2026-09-09T06:09:09Z` thì câu đó vẫn phải đúng, và nó vẫn phụ thuộc đồng hồ **node đề xuất
+block**. ⇒ vẫn phải đo lệch đồng hồ 9 node **sau khi mạng ngày G lên**, rồi chọn `--bu-ms`.
+Câu chữ chốt cùng lượt **C1 đóng băng byte**.
+
+<details>
+<summary>Nguyên văn lúc còn mở cả hai vế</summary>
+
+### 🔴 B-13 — BLOCK ADAM: NEO VÀO CÁI GÌ, VÀ BÙ BAO NHIÊU (2026-08-27, sinh từ diễn tập A-1)
+
+Diễn tập `27/08` đạt (9/9 + 2 đối chứng ngược) — bản đầy đủ
+[`docs/DIEN-TAP-BLOCK-ADAM-2026-08-27.md`](docs/DIEN-TAP-BLOCK-ADAM-2026-08-27.md). Nhưng nó
+đẻ ra hai việc **không đóng được trong cùng lượt**.
+
+| | Việc | Ai | Vì sao không tự quyết/tự làm được |
+|---|---|---|---|
+| **(a)** | 🔴 **Block Adam NEO VÀO CÁI GÌ** | **David** | Luật đang định khắc — *"block **đầu tiên** vượt `2026-09-09T06:09:09Z`"* — là mệnh đề về **TOÀN CHUỖI**, mà nghi lễ chỉ điều khiển được **giao dịch của mình**. Ai gửi một giao dịch vào khoảng giữa mốc và lúc ta bắn là chiếm mất ô đó, không giành lại được. **Khắc vĩnh viễn** ⇒ không tự quyết. *Khuyến nghị: neo vào **hash giao dịch nghi lễ**, hoặc số block chốt SAU khi nó đã sinh ra.* Hạn `28/08`, gộp vào `NGAY-G-A1-CON-LAI.md` §6 mục 3 |
+| **(b)** | **Đo lệch đồng hồ 9 node** rồi chọn `--bu-ms` | A1 | Làm được, nhưng **chỉ sau khi mạng ngày G lên** — số phải đo trên chính bộ node sẽ chạy nghi lễ |
+
+🔴 **Vì sao (b) không phải là "chép +3s vào runbook":** +3s đạt trên mạng tập **1 node dùng
+chung đồng hồ với máy bắn**. Trên bộ 9 node, `block.timestamp` là đồng hồ của **node đề xuất
+block**; node đó chậm 5 giây thì bù +3s **vẫn trượt**. Chép con số ra khỏi thang đo của nó là
+đúng lớp lỗi đã ghi trong `HANDOFF` (*"số chép sang thang khác"*).
+
+⚠️ **Và nếu David chọn P-Chain thay C-Chain thì phải DIỄN TẬP LẠI** — giao dịch nghi lễ trên
+P-Chain là cơ chế khác hẳn (export/import hoặc thao tác staking), bài `block-adam-drill.mjs`
+không phủ được. Phải tính thời gian cho việc đó **trước `09/09`**, xem D-055.
+
+</details>
+
+### ✅ B-11 — **ĐÃ ĐÓNG HẲN `27/08`** (ba mục chạm binary + C-4)
+
+Từ bản soát core [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md) §7.
+
+✅ **David chốt `27/08` (D-051, patch 0014, tree `4c5d5b1e`):** cả ba mục chạm binary đều
+**GIỮ NGUYÊN GIÁ TRỊ** — patch chỉ đổi **chữ**, không đổi số. ⇒ **Không còn gì chặn lượt
+`docker build` của ngày G.**
+
+| | Việc | Chốt |
+|---|---|---|
+| ~~**C-1**~~ | `UptimeRequirement` | ✅ **GIỮ `.8`**. Mốc xét lại là **MAINNET**, không phải ngày G — A1 vẫn là testnet mời cộng đồng chạy node trên hạ tầng không chuyên. Chú thích cũ *"⬅️ CHỐT LẠI THÀNH 0.9"* nằm trong comment nên **không ai canh**; nay có ngày tháng |
+| ~~**C-2**~~ | `MaxStakeDuration` | ✅ **GIỮ 365 ngày**, bằng Avalanche mainnet. Trần dài hơn = khoá staking giam lâu hơn, tức đánh đổi chứ không phải cải thiện ⇒ **sinh ra B-12** (quy trình gia hạn) |
+| ~~**C-3**~~ | Phí C-Chain | ✅ **GIỮ đường cong Avalanche, KHAI RA LÀ CỐ Ý** trong `genesis_9chain_a1.go`, kèm lý do + điều kiện xét lại + con trỏ tới chỗ đổi thật (không phải file đó) |
+| ~~**C-4**~~ | **chainId `9000000009` cắm cứng** trong `cChainGenesis` ⇒ **mạng tập và mạng thật cùng chainId** | ✅ **ĐÓNG `27/08`** — patch **0015**, tree **`df68a7d7`**, 15 patch. `netgen/chainid.go` |
+
+✅ **C-4 đã đóng `2026-08-27` (A-4).** `chainId` nay đi qua `resolveChainID` (`netgen/chainid.go`),
+đọc `A1_CHAIN_ID`, mặc định vẫn là số thật:
+
+| | khắc chữ **BẬT** (lượt THẬT) | khắc chữ **TẮT** (lượt TẬP) |
+|---|---|---|
+| chainId = `9000000009` | ✓ im lặng — đúng bản sắc | ⚠️ **CẢNH BÁO LỚN** (hoặc `A1_CHAIN_ID_KHAI_NHAN`) |
+| chainId ≠ `9000000009` | 🔴 **CHẶN** — lượt thật phải mang bản sắc thật | ✓ in ra, đường đúng cho mạng tập |
+
+Kèm trần **EIP-2294**, và netgen nay **luôn in chainId** ở dòng tổng kết — trước đó nó không in
+con số này ở đâu cả, nên không lượt sinh mạng nào để lại dấu vết về bản sắc vừa phát ra.
+**7 ca nghiệm thu, 3 ca đỏ đúng chỗ.** Chi tiết: [`docs/CONG-CHAINID-2026-08-27.md`](docs/CONG-CHAINID-2026-08-27.md).
+
+⚠️ **Bất đối xứng "cảnh báo vs chặn" là CỐ Ý**, không phải làm dở: chặn cứng đường dev quen
+thuộc `gen-network.sh 5` chỉ tạo ra thói quen đi vòng (đúng lý lẽ đã dùng cho `canhBaoSelfBond`).
+Cái sửa được thì cảnh báo; cái **khắc vĩnh viễn không sửa được** thì chặn.
+
+⚠️ **Rủi ro C-4 vốn thấp và vẫn thấp**: netgen sinh khoá mới mỗi lượt nên địa chỉ hai mạng khác
+nhau; cửa duy nhất là người tự import cùng một khoá vào cả hai. Cái được vá là **bất đối xứng
+thiết kế** — A1 dựng cổng *"bản tập ≠ bản thật"* rất kỹ cho **chữ khắc** mà không có cổng nào
+cho **chainId**, thứ ví người dùng thật sự đọc.
+
+### 🔴 B-12 — CHƯA CÓ QUY TRÌNH GIA HẠN VALIDATOR (2026-08-27, sinh từ D-051b)
+
+Hệ quả trực tiếp của quyết định giữ `MaxStakeDuration` 365 ngày. **Không phải việc mã** —
+avalanchego không có cơ chế tự gia hạn, và không cổng nào cảnh báo được.
+
+**9 validator genesis hết hạn lần lượt trong một cửa sổ 56 ngày, bắt đầu ~365 ngày sau ngày G.
+Node cuối rụng là mạng DỪNG.**
+
+⚠️ **So le 7 ngày là CỐ Ý và chính nó là hệ thống cảnh báo** — node đầu rụng ở ~ngày 309, lúc
+đó 8 node còn chạy ⇒ có ~56 ngày để phản ứng. **Đừng "dọn dẹp" `InitialStakeDurationOffset` về
+0 cho đều.**
+
+🔴 **Cần David:** dựng lịch nhắc + người chịu trách nhiệm. Ngày hết hạn **thật** chỉ biết sau
+khi sinh genesis ngày G — đọc bằng `platform.getCurrentValidators` → `endTime`, **đừng tính
+tay**. Việc này nên làm **ngay sau ngày G**, lúc số còn tươi.
+
+*(Mục "⏰ Hẹn giờ đã biết" trong `HANDOFF.md` ghi `2027-08-24` cho 5 validator — đó là của mạng
+TRƯỚC re-genesis `26/08`, đã cũ hai lần.)*
+
+🔴 **Kèm theo, KHÔNG cần quyết nhưng phải nhớ khi deploy:** patch 0013 khai
+`constants.A1Name`, mà `config/config.go:1008` dựng đường dẫn DB từ tên mạng ⇒ **binary này
+CHỈ được lên cùng một lượt sinh lại mạng** (`down -v`). Ngày G thoả. Chi tiết + đường lui một
+dòng: D-050.
+
 ### 🔴 B-9 — MÀU ĐỎ THƯƠNG HIỆU AVALANCHE CÒN TRONG `patches/0003` (2026-08-27)
 
 `#e84142` là **đúng đỏ thương hiệu của Avalanche**. Soát `27/08` tìm thấy nó ở 4 tệp

@@ -1,0 +1,122 @@
+From 9d7022d3a3ea9d56cb004b30097c17ae8e81e6ca Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Thu, 27 Aug 2026 13:59:28 +0400
+Subject: [PATCH 16/16] =?UTF-8?q?netgen:=20sinh=20cung.json=20=E2=80=94=20?=
+ =?UTF-8?q?ban=20khai=20cung=20MAY=20DOC=20DUOC=20(I1b)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+allocation.md la markdown cho NGUOI doc; khong dich vu nao phan tich noi no. He qua:
+moi con so cung xuat hien ngoai ma nguon deu la go tay lai, khong truy nguoc duoc ve
+luot sinh mang da de ra chung — dung dieu luat cung cua 9Scan-A1 cam.
+
+cung.json khai: xpSupplyCap (binary-constant) · cChainGenesis (do lai duoc bang
+eth_getBalance o block 0) · totalSupply (derived, kem cong thuc) · genesisIssued ·
+xpGenesisIssued · danh sach dia chi C-Chain kem so du khai.
+
+Moi truong mang theo 'source' cua no. KHONG phai nguon su that — nguon su that la
+chain; dich vu doc no phai TU DO roi SO LAI. Xem local-net/faucet/server.mjs /api/supply.
+
+Don vi khai tuong minh ca hai thang: nLOVE9 (9) cho X/P va wei (18) cho C-Chain.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ 9chain-a1-tools/netgen/allocation.go | 56 ++++++++++++++++++++++++++++
+ 9chain-a1-tools/netgen/main.go       | 12 ++++++
+ 2 files changed, 68 insertions(+)
+
+diff --git a/9chain-a1-tools/netgen/allocation.go b/9chain-a1-tools/netgen/allocation.go
+index 8d2f1e3..11d48fb 100644
+--- a/9chain-a1-tools/netgen/allocation.go
++++ b/9chain-a1-tools/netgen/allocation.go
+@@ -9,6 +9,7 @@ package main
+ 
+ import (
+ 	"fmt"
++	"math/big"
+ 	"os"
+ 	"strings"
+ 
+@@ -354,3 +355,58 @@ func allocationReport(funds map[string]*fund, networkID uint32, nodes int) strin
+ 	b.WriteString("- Khoá bí mật nằm trong `keys.txt` (chmod 600, KHÔNG commit, KHÔNG đưa lên server).\n")
+ 	return b.String()
+ }
++
++// supplyManifest — bản khai cung MÁY ĐỌC ĐƯỢC (I1b).
++//
++// 🔴 ĐÂY KHÔNG PHẢI NGUỒN SỰ THẬT. Nguồn sự thật là chain. Tệp này chỉ nói **đo cái gì,
++// ở đâu, và số khai là bao nhiêu** — dịch vụ đọc nó phải tự đo rồi **so lại**, và phải
++// nói ra khi lệch. Một tệp JSON được in thẳng lên trang thì vẫn chỉ là gõ hằng số vào
++// giao diện, chỉ khác là hằng số nay đi qua một tệp.
++//
++// Vì sao cần: `allocation.md` là markdown cho NGƯỜI đọc; không dịch vụ nào phân tích nổi
++// nó. Nên tới `2026-08-27`, mọi con số cung xuất hiện ngoài mã nguồn đều là **gõ tay lại**,
++// không truy ngược được về lượt sinh mạng đã đẻ ra chúng.
++//
++// Đơn vị: **nLOVE9** (9 chữ số thập phân) cho X/P — đúng đơn vị avalanchego đếm. Phần
++// C-Chain khai KÈM cả wei vì EVM đếm 18 chữ số; hai thang này lệch 1e9 và đó là chỗ đã
++// suýt sai một lần (xem chú thích `cChainGenesis` trong main.go).
++//
++// Khoá JSON bằng tiếng Anh — ranh giới đi ra dây, cùng quy ước với API faucet.
++func supplyManifest(funds map[string]*fund, networkID uint32, chainID uint64) string {
++	var b strings.Builder
++	b.WriteString("{\n")
++	b.WriteString(`  "_doc": "Ban khai cung 9Chain-A1. SINH TU DONG boi netgen. KHONG phai nguon su that — nguon su that la chain. Dich vu doc tep nay phai TU DO roi SO LAI, va phai noi ra khi lech.",` + "\n")
++	fmt.Fprintf(&b, "  \"networkID\": %d,\n", networkID)
++	fmt.Fprintf(&b, "  \"cChainId\": %d,\n", chainID)
++	b.WriteString("  \"unit\": { \"xp\": \"nLOVE9 (9 decimals)\", \"cChain\": \"wei (18 decimals)\" },\n")
++
++	// Ba con số, và chúng KHÁC NHAU. Đây là chỗ người đọc nhầm nhiều nhất trong dự án.
++	fmt.Fprintf(&b, "  \"xpSupplyCap\": { \"nLove9\": \"%d\", \"love9\": \"%s\", \"source\": \"binary-constant\", \"where\": \"genesis/genesis_9chain_a1.go A1Params.RewardConfig.SupplyCap\", \"note\": \"tran cua platform.getCurrentSupply. CHI dem X/P. KHONG doc duoc tu RPC nao.\" },\n",
++		supplyCap(networkID), love9(supplyCap(networkID)))
++	fmt.Fprintf(&b, "  \"cChainGenesis\": { \"nLove9\": \"%d\", \"love9\": \"%s\", \"source\": \"genesis-parameter\", \"measurable\": \"eth_getBalance(addr, \\\"0x0\\\") cong theo cChainAllocations\", \"note\": \"ton tai that tren chain nhung currentSupply KHONG BAO GIO dem toi.\" },\n",
++		totalCChainSupply(), love9(totalCChainSupply()))
++	fmt.Fprintf(&b, "  \"totalSupply\": { \"nLove9\": \"%d\", \"love9\": \"%s\", \"source\": \"derived\", \"formula\": \"xpSupplyCap + cChainGenesis\", \"note\": \"con so cong bo (D-039). KHONG mot lenh RPC nao tra ve no.\" },\n",
++		a1TotalSupplyTarget, love9(a1TotalSupplyTarget))
++	fmt.Fprintf(&b, "  \"genesisIssued\": { \"nLove9\": \"%d\", \"love9\": \"%s\", \"source\": \"genesis-parameter\", \"note\": \"X/P + C-Chain phat hanh luc block 0.\" },\n",
++		totalGenesisSupply(), love9(totalGenesisSupply()))
++	fmt.Fprintf(&b, "  \"xpGenesisIssued\": { \"nLove9\": \"%d\", \"love9\": \"%s\", \"source\": \"genesis-parameter\", \"measurable\": \"platform.getCurrentSupply (se LON HON vi cong them thuong du kien cua validator genesis)\" },\n",
++		totalXPSupply(), love9(totalXPSupply()))
++
++	// Danh sách địa chỉ C-Chain: thứ làm phần C-Chain ĐO ĐƯỢC thay vì phải tin.
++	b.WriteString("  \"cChainAllocations\": [\n")
++	first := true
++	for _, bk := range buckets {
++		if bk.CChain == 0 {
++			continue
++		}
++		if !first {
++			b.WriteString(",\n")
++		}
++		first = false
++		wei := new(big.Int).Mul(new(big.Int).SetUint64(bk.CChain), big.NewInt(1_000_000_000))
++		fmt.Fprintf(&b, "    { \"bucket\": %q, \"name\": %q, \"address\": %q, \"nLove9\": \"%d\", \"wei\": \"%s\" }",
++			bk.Key, bk.Name, funds[bk.Key].EthAddr, bk.CChain, wei.String())
++	}
++	b.WriteString("\n  ]\n}\n")
++	return b.String()
++}
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+index c29b0de..905bb20 100644
+--- a/9chain-a1-tools/netgen/main.go
++++ b/9chain-a1-tools/netgen/main.go
+@@ -300,6 +300,18 @@ FAUCET_ADDR=%s
+ 	// ---- 6) Bảng phân bổ công khai (KHÔNG chứa khoá) ----
+ 	must(os.WriteFile(filepath.Join(out, "allocation.md"), []byte(allocationReport(funds, networkID, n)), 0o644), "write allocation.md")
+ 
++	// ---- 6b) Bản khai cung MÁY ĐỌC ĐƯỢC (I1b) ----
++	//
++	// `allocation.md` là markdown cho người đọc; không dịch vụ nào phân tích nổi nó. Hệ quả:
++	// mọi con số cung xuất hiện ngoài trang công khai đều là **gõ tay lại**, và không có
++	// đường nào truy ngược về lượt sinh mạng đã đẻ ra chúng. Đó đúng là điều luật cứng của
++	// 9Scan-A1 cấm (*"số công bố phải đọc từ chain thật"*).
++	//
++	// 🔴 Tệp này KHÔNG phải nguồn sự thật — nó là **bản khai**. Nguồn sự thật là chain.
++	// Dịch vụ đọc nó phải dùng nó để biết **đo cái gì, ở đâu**, rồi tự đo, rồi **so lại**.
++	// Xem `local-net/faucet/server.mjs` → `/api/supply`.
++	must(os.WriteFile(filepath.Join(out, "cung.json"), []byte(supplyManifest(funds, networkID, chainID)), 0o644), "write cung.json")
++
+ 	// ---- 7) Báo cáo chữ khắc (công khai, chỉ có khi bật khắc) ----
+ 	if eng != nil {
+ 		must(os.WriteFile(filepath.Join(out, "engraving.md"), []byte(eng.report(networkID)), 0o644), "write engraving.md")

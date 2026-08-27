@@ -1,0 +1,53 @@
+# 9Chain-A1 — MẠNG TẬP dùng để diễn tập, KHÔNG phải mạng dev thường ngày.
+#
+#   docker compose -p a1-drill -f local-net/docker-compose.drill.yml up -d
+#   docker compose -p a1-drill -f local-net/docker-compose.drill.yml down -v
+#
+# API: http://localhost:9750   |   Health: http://localhost:9750/ext/health
+#
+# 🔴 VÌ SAO CÓ TỆP RIÊNG THAY VÌ DÙNG `docker-compose.yml`:
+# `docker-compose.yml` chiếm cổng **9650**, mà Blockscout local đang trỏ đúng vào đó. Cho một
+# mạng tập lên 9650 là để explorer index một chuỗi rồi chuỗi đó biến mất lúc `down -v` — DB
+# explorer giữ lại block của một mạng không còn tồn tại, và không có gì báo lỗi. Bản soát
+# `27/08` (§9.6) đã dựng tay đúng sơ đồ này để boot thử patch 0013; tệp này chỉ codify lại nó
+# để lần sau không phải nhớ.
+#
+# Khác `docker-compose.yml` đúng ba chỗ: cổng 9750/9751 · volume riêng · `A1_DRILL_IMAGE`.
+# Mọi thứ khác GIỮ NGUYÊN, cố ý — mạng tập lệch tham số so với mạng thật thì nó thôi là bài tập.
+#
+# ⚠️ `--sybil-protection-enabled=false` (1 node) **không chứng minh được đồng thuận**. Bài nào
+# cần đồng thuận thật thì phải chạy trên bộ nhiều node, không phải ở đây.
+services:
+  drill-node:
+    # Mặc định là bản đã vá của patch 0013/0014 (`:boottest`). Đổi bằng A1_DRILL_IMAGE.
+    image: ${A1_DRILL_IMAGE:-9chain-a1/node:boottest}
+    container_name: a1-drill-node
+    restart: unless-stopped
+    ports:
+      - "9750:9650"   # HTTP API (RPC)
+      - "9751:9651"   # P2P / staking
+    volumes:
+      - ../9chain-a1-config:/9chain-a1/config:ro
+      - ./net:/9chain-a1/net:ro
+      - a1-drill-data:/root/.avalanchego
+    environment:
+      - AVAGO_TRACK_SUBNETS=${A1_TRACK_SUBNETS:-}
+    command:
+      - ./avalanchego
+      - --network-id=9001
+      - --genesis-file=/9chain-a1/net/genesis.json
+      - --plugin-dir=/9chain-a1/build/plugins
+      - --sybil-protection-enabled=false
+      - --http-host=0.0.0.0
+      - --http-allowed-hosts=*
+      - --public-ip=127.0.0.1
+      - --log-level=info
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -fsS http://localhost:9650/ext/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+volumes:
+  a1-drill-data:

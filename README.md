@@ -108,8 +108,10 @@ dự án explorer kết luận sai suốt một phiên.
 | HRP địa chỉ | `utils/constants/network_ids.go` | `custom` | `love9` |
 | VMID L1 EVM | `graft/subnet-evm/scripts/constants.sh` | `subnetevm` | `love9evm` |
 | Tham số kinh tế | `genesis/genesis_9chain_a1.go` | LocalParams | `A1Params` (9 tỷ) |
-| Network ID | `9chain-a1-config/genesis.json` | `12345` | `9001` |
-| C-Chain chainId | `9chain-a1-config/genesis.json` | `43112` | `9000000009` |
+| Network ID | `utils/constants/network_ids.go` (`A1ID`) | `12345` | `9001` |
+| Tên mạng | `utils/constants/network_ids.go` (`A1Name`) | `local` | `9chain-a1` |
+| C-Chain chainId | `9chain-a1-tools/netgen/main.go` (`cChainGenesis`) | `43112` | `9000000009` |
+| Lịch nâng cấp | `upgrade/upgrade.go` (`A1`) | `Default` của Ava Labs | `A1` |
 
 **Không đụng:** `snow/` (consensus), `vms/` (VM), `chains/`. Đó là core, giữ nguyên.
 

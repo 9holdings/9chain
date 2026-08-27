@@ -55,7 +55,7 @@ Nhóm của A1 **khác C1** vì tham số kinh tế của A1 nằm trong **binar
 
 | Nhóm | Ở đâu | Lỡ ngày G thì sao |
 |---|---|---|
-| **G** | `9chain-a1-config/genesis.json` / `netgen/allocation.go` → alloc | **mất tới lần sinh mạng sau** |
+| **G** | `netgen/allocation.go` → alloc · `netgen/engrave.go` → chữ khắc *(bản gốc ghi `9chain-a1-config/genesis.json`; **sai, tệp đó đã xoá `27/08`** — xem đính chính ở G5a)* | **mất tới lần sinh mạng sau** |
 | **I** | biên dịch vào binary (`genesis/genesis_9chain_a1.go` `A1Params`, `patches/`) | dựng lại image + khởi động lại đồng loạt — **làm lại được**, nhưng đổi param kinh tế trên mạng đang chạy là **vỡ đồng thuận** ⇒ thực tế phải đi cùng ngày G |
 | **D** | web · explorer · docs · Caddy | deploy sau ngày G, không mất gì |
 | **O** | runbook · backup · custody · giám sát · diễn tập | không có thì **ngày G không chạy được** |
@@ -100,9 +100,23 @@ mục sẽ đi qua ngày G mà không ai chạm.
 
 ### G5 — ba chỗ khắc chữ trong genesis A1 (đã đo, không suy)
 
+> 🔴 **ĐÍNH CHÍNH `2026-08-27` — con trỏ trong bảng dưới đây từng SAI.** Bản gốc trỏ chỗ khắc
+> vào `9chain-a1-config/genesis.json:95` `"{{ fun_quote }}"`. **Tệp đó không có vai trò nhân quả
+> nào** — `netgen` dựng `genesis.UnparsedConfig` thẳng trong Go, không đọc tệp cấu hình nào —
+> và nó là `genesis_local.json` gốc của Avalanche (khoá **ewoq** công khai giữ 50 triệu, địa chỉ
+> `X-local1…`, stake hết hạn `2025-07-15`) còn sót trong đường boot của node dev. **Đã xoá
+> `27/08`.** Chỗ khắc thật nằm ở `netgen/engrave.go` + `netgen/main.go`.
+>
+> ⚠️ Ai đi theo con trỏ cũ sẽ sửa một tệp không ai đọc, **và không có gì báo lỗi** — lượt sinh
+> mạng vẫn chạy, genesis vẫn hợp lệ, chữ khắc vẫn là chuỗi mặc định. Cùng họ với "đường lui
+> alias = xanh giả". Xem [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md) §7b.
+>
+> ✅ **Cơ chế nay đã XONG** (patch 0010 khắc, 0011 đọc ngược) — bảng dưới giữ lại làm bối cảnh
+> quyết định. Cách dùng thật: [`docs/KHAC-CHU-NGAY-G.md`](docs/KHAC-CHU-NGAY-G.md).
+
 | # | Chỗ | Hiện tại | Dùng cho | Điều kiện qua |
 |---|---|---|---|---|
-| **G5a** | `message` → **P-CHAIN genesis** (đo: `genesis/genesis.go:449-458`, `config.Message` truyền vào `pChainGenesis`, **không phải X-Chain**). Nguồn: `9chain-a1-config/genesis.json:95`, netgen điền ở `netgen/main.go:209` | `"{{ fun_quote }}"` → `"9Chain-A1 sovereign genesis"` | **Sáng Thế Ký 1:1 nguyên ngữ Hebrew** | Đọc lại từ P-Chain genesis ra đúng byte, khớp `sha256` bản C1 |
+| **G5a** | `message` → **P-CHAIN genesis** (đo: `genesis/genesis.go:449-458`, `config.Message` truyền vào `pChainGenesis`, **không phải X-Chain**). Sinh ở `netgen/main.go` → `pChainMessage()`, nội dung từ `netgen/engrave.go` → `canonicalBundle(docs, "p")` | mặc định `"9Chain-A1 sovereign genesis"` (không bật khắc) | **Sáng Thế Ký 1:1 nguyên ngữ Hebrew** | Đọc lại từ P-Chain genesis ra đúng byte, khớp `sha256` bản C1 — một lệnh: `9chain-a1-tools/engrave-verify` |
 | **G5b** | `cChainGenesis.extraData` | `"0x00"` | Chỗ khắc kinh điển (Bitcoin coinbase / Ethereum genesis). Đề xuất: dòng đề tặng ngắn | ⚠️ **Phải thử giới hạn độ dài trước** — coreth có thể chặn > 32 byte. `[cần verify]` |
 | **G5c** | `cChainGenesis.alloc` — account có `code`/`storage` | chỉ 1 account có `balance` | **TOÀN VĂN LOVE Paper (bản EN)** dưới dạng **hợp đồng dữ liệu** ở địa chỉ cố định | `eth_getCode` trả đúng toàn văn; **`sha256` khớp `PAPER/CHECKSUMS-FREEZE-LOVEPAPER.txt` của C1** |
 | **G5d** | Block Adam / Eva | chưa có | Văn bản đề tặng vào genesis; **block được CHỈ ĐỊNH bằng luật thời gian**, không ghi gì vào chính block đó — đúng cách C1 làm | Luật khai rõ: *"block đầu tiên vượt `2026-09-09T06:09:09Z`"*. 🔴 **Phải chốt: Block Adam nằm trên CHAIN NÀO?** A1 có P/X/C + L1 người dùng, không như C1 chỉ một chuỗi block. **Khuyến nghị: C-Chain** — đó là thứ explorer hiện và người dùng trích dẫn |
@@ -221,7 +235,7 @@ nằm trong genesis không sửa được. Đóng băng vào `PAPER/CHECKSUMS-FR
 | a | `extraData` = **`sha256` của bản EN, đúng 32 byte** | 32 byte là trần kinh điển của EVM ⇒ chắc chắn vừa, không phụ thuộc coreth có nới hay không. Nó là **con dấu** |
 | b | `alloc` = **hợp đồng dữ liệu** chứa toàn văn EN | Không giới hạn độ dài. Mã hợp đồng mở đầu bằng opcode `STOP` (`0x00`) rồi tới byte thô ⇒ không chạy được, chỉ để đọc bằng `eth_getCode` |
 | c | **Chốt địa chỉ cố định** cho hợp đồng đó | Khắc vĩnh viễn. Gợi ý theo tiền lệ C1 (precompile emission ở `0x…0901`): chọn một địa chỉ có ý nghĩa và ghi vào tài liệu công bố |
-| d | 🔴 **KHÔNG sửa tay** `9chain-a1-config/genesis.json` | C-Chain genesis nằm ở **dòng 94 dưới dạng chuỗi JSON đã escape**. Thêm một `alloc` lớn nghĩa là một dòng escape rất dài — **phải để `netgen` sinh**, sửa tay là hỏng escape và không ai thấy cho tới lúc boot |
+| d | 🔴 **KHÔNG sửa tay genesis đã sinh** (`local-net/net*/genesis.json`) | C-Chain genesis nằm trong đó dưới dạng **chuỗi JSON đã escape trên một dòng**. Thêm một `alloc` mang toàn văn tài liệu nghĩa là một dòng escape rất dài — **phải để `netgen` sinh**, sửa tay là hỏng escape và không ai thấy cho tới lúc boot. *(Bản gốc mục này ghi `9chain-a1-config/genesis.json` — sai, xem đính chính ở đầu §G5.)* |
 
 ## ✅ Đã giải: C1 CŨNG khắc bản tiếng Anh (9 → 10 tài liệu)
 

@@ -89,5 +89,10 @@ patch "$REPO/graft/subnet-evm/scripts/constants.sh" \
 
 echo "==> Xong. Xác minh nhanh:"
 grep -n "Client = " "$REPO/version/constants.go" | head -1
-grep -n "FallbackHRP" "$REPO/utils/constants/network_ids.go" | head -1
+# Neo vào ĐẦU DÒNG: từ patch 0013 network_ids.go còn nhắc `FallbackHRP` trong chú
+# thích của A1HRP, nên `grep -n "FallbackHRP" | head -1` in ra một dòng chú thích
+# và làm log build đọc như thể rebrand không áp được.
+grep -nE '^[[:space:]]*FallbackHRP =' "$REPO/utils/constants/network_ids.go" | head -1
+# Từ patch 0013: HRP của 9001 khai TƯỜNG MINH, không còn sống bằng FallbackHRP.
+grep -nE '^[[:space:]]*A1HRP =' "$REPO/utils/constants/network_ids.go" | head -1
 grep -nE 'Symbol:|Name:         "' "$REPO/genesis/genesis.go" | head -2

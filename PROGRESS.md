@@ -8,6 +8,80 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 
 ---
 
+## 🔴 ĐỢT AUTOPILOT 14 (2026-08-27) — 5 mốc đường găng ngày G
+
+Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
+**Không mốc nào cần David.** Không đạt ⇒ ghi `BLOCKERS.md` rồi sang mốc kế, đừng dừng chờ.
+
+- [x] **A-1 — Diễn tập giao dịch nghi lễ Block Adam** (§4 `NGAY-G-A1-CON-LAI`) — **ĐẠT `27/08`**
+      Bài `local-net/faucet/block-adam-drill.mjs` + mạng tập `local-net/docker-compose.drill.yml`
+      (1 node, cổng 9750, binary đã vá — `supplyCap` 7900000001000000000 trong log đầu).
+      **4 lượt chạy:** bù 0 ⇒ 🔴 **7 đạt/1 hỏng** · bù +3s ⇒ ✅ **9 đạt/0 hỏng** · đối chứng
+      ngược *không gửi gì* ⇒ 3/3 đúng (0 block) · đối chứng ngược *hẹn sai giờ* ⇒ 5/5 đúng.
+      Hẹn giờ lệch **0 ms** cả 3 lượt. Bản đầy đủ: `docs/DIEN-TAP-BLOCK-ADAM-2026-08-27.md`.
+      🔴 **Lượt bắn ĐÚNG mốc HỎNG** — `block.timestamp` rơi vào đúng giây bấm gửi ⇒ block chứa
+      Adam mang `ts = mốc`, không **vượt** mốc; block vượt mốc lại là block của Eva. Luật khắc
+      và hành động nghi lễ trỏ vào **hai block khác nhau**. ⇒ sinh ra **B-13** (a: David chốt
+      neo vào cái gì · b: đo lệch đồng hồ 9 node rồi chọn `--bu-ms`), D-052…D-055.
+      ⚠️ Chỉ phủ **C-Chain**; 1 node ⇒ **không chứng minh được đồng thuận**.
+- [x] **A-2 — Quy trình O2**: export + `sha256` mạng sắp chết, công bố **trước** khi xoá —
+      **ĐẠT `27/08`**. Bài `scripts/export-chain.mjs` (một lệnh, không phụ thuộc gói ngoài).
+      Chạy trên mạng tập: 10 tệp · 33.973 byte · gốc `081d2550…`. Kiểm lại được **hai đường**:
+      bằng bài, **và** bằng `sha256sum -c MANIFEST.txt` chuẩn (10/10 OK) — bộ vật chứng chỉ
+      kiểm được bằng công cụ sinh ra nó thì yếu.
+      **3 ca đối chứng ngược đỏ đúng chỗ:** sửa 1 byte ⇒ `LỆCH BYTE` · sửa 1 byte **và sửa
+      luôn manifest** ⇒ `GỐC LỆCH` (ca chứng minh vì sao phải công bố ra **ngoài**) · xoá tệp
+      ⇒ `THIẾU TỆP`. Quy trình: `docs/QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md`.
+      🔴 Đối chứng ngược bắt một lỗi trong **chính công cụ này**: tờ đầu đếm L1 *được xin* thay
+      vì *xuất được* ⇒ khai "kèm 1 L1" trong khi không có byte nào. Đã sửa thành `xin N · XUẤT
+      ĐƯỢC M`.
+      🔴 **Còn lại (không chặn):** chạy một lượt trên **mạng công khai** để biết thời gian thật;
+      nhớ `--them-evm` cho từng L1 còn sống.
+- [x] **A-3 — G4**: tra `chainid.network` — **ĐẠT `27/08`**. Bài `scripts/check-chainid.mjs`,
+      vật chứng `docs/vat-chung/g4-2026-08-27/` (`chains.json` 1.161.063 byte · sha256
+      `583b67a2…` · 2.723 chuỗi · tra lúc `2026-08-27T09:32:38Z`).
+      ✅ **`9000000009` TRỐNG**, và không có chuỗi nào trong bán kính 1 triệu quanh nó.
+      🔴 **Nhưng bài tra rộng hơn kế hoạch và bắt được 4 số bị chiếm trong dải console tự cấp
+      cho L1 người dùng: `9100` = Genesis Coin (số console cấp ĐẦU TIÊN) · 9108 · 9134 · 9170.**
+      Kế hoạch chỉ nêu `9000000009` — tức chainId *của A1*, bỏ sót chainId *A1 phát cho người
+      khác*. ⇒ **B-14** (gốc dải, cần David — gộp vào mục quyết §5c).
+      3 ca đối chứng ngược: `--them 1` ⇒ bắt được Ethereum Mainnet (exit 1) · sổ cắt cụt và sổ
+      `[]` rỗng ⇒ **từ chối kết luận** (exit 2). Mã thoát phân biệt *"bị chiếm"* với *"không tra
+      được"*. Bản đầy đủ: `docs/G4-TRA-CHAINID-2026-08-27.md`.
+      🔴 **Phải tra LẠI ngay trước bước sinh genesis ngày G** — sổ đổi hàng ngày.
+- [x] **A-4 — C-4**: cổng "bản tập ≠ bản thật" cho **chainId** — **ĐẠT `27/08`**, đóng nốt B-11.
+      `netgen/chainid.go` (patch **0015**, tree fork **`df68a7d7`**, **15 patch** trên `1cf1fc3`,
+      tái lập khớp từng byte; đối chứng ngược 14/15 patch ⇒ tree khác).
+      Luật: lượt **thật** (có khắc) + chainId thật ⇒ im lặng · lượt **tập** + chainId thật ⇒
+      **cảnh báo lớn** · lượt **thật** + chainId lạ ⇒ **CHẶN** (khắc vĩnh viễn bản sắc sai) ·
+      lượt tập + chainId riêng ⇒ đường đúng. Kèm trần EIP-2294 + **luôn in chainId**.
+      **7 ca nghiệm thu, 3 ca đỏ đúng chỗ**; ca 1/ca 2 chấm bằng **nội dung genesis**, không
+      bằng log. ⚠️ Không cần build lại image node (netgen chạy `go run` lúc sinh mạng).
+      ✅ **Phần thứ hai — console (B-14):** nạp `chainid-da-chiem.json` (51 số bị chiếm dải
+      9100–9999) và bỏ qua ở **cả hai** đường. Nghiệm thu thật: xin `9100` ⇒ từ chối nêu tên
+      *Genesis Coin* · tự cấp trên sổ rỗng ⇒ **9101** (đọc từ genesis vừa dựng) · xoá tệp ⇒
+      console **tự khai cổng đang TẮT**. Bản đầy đủ: `docs/CONG-CHAINID-2026-08-27.md`.
+      🔴 **Còn lại (cần David):** gốc dải vẫn là 9100 — vướng mục quyết §5c.
+- [x] **A-5 — I1b**: phơi cung ra endpoint — **ĐẠT `27/08` bằng đường mạnh hơn (endpoint)**.
+      `GET /api/supply` (faucet) + `netgen/cung.json` (patch **0016**, tree fork **`c9226d9c`**,
+      **16 patch**, tái lập khớp từng byte).
+      🔴 **Sự thật không chiều theo luật được:** tổng cung 9 tỷ **không đọc được từ RPC nào** —
+      `getCurrentSupply` chỉ đếm X/P, `SupplyCap` là hằng số binary. Nên endpoint **không giả
+      vờ**: mỗi trường mang `source` riêng (`measured` / `binary-constant` / `derived` kèm công
+      thức / `genesis-parameter`).
+      Đo thật: `xpCurrentSupply` 4.300.883.914 (`platform.getCurrentSupply`) · `cChainGenesis`
+      1.099.999.999 (`eth_getBalance` ở **block 0**, không phải `latest`) · `xpSupplyCap`
+      7.900.000.001 · `totalSupply` 9.000.000.000 (suy). **Phát hiện P0 nay nằm ngay trong
+      phản hồi**, không nằm trong một tài liệu ai đó phải nhớ đi đọc.
+      Endpoint **tự đo rồi SO LẠI** bản khai ⇒ `manifestMatchesChain` + `mismatches`.
+      **2 ca đối chứng ngược:** sửa bản khai ⇒ nêu đích danh địa chỉ lệch, và `totalSupply`
+      **vẫn đúng** (suy từ số đo, không từ số khai) · xoá bản khai ⇒ **503, không bịa số**,
+      `/api/info` vẫn 200 (hỏng có phạm vi). Bản đầy đủ: `docs/I1B-CUNG-CO-NGUON-2026-08-27.md`.
+      🔴 **Còn lại (không chặn):** (a) `cung.json` phải lên server cùng `faucet.env` ·
+      (b) câu khai nguồn trên trang — `web/` thuộc worktree `9Chain-A1-web`, câu chữ đã soạn sẵn.
+
+---
+
 ## ✅ Đã xong trước autopilot (kiểm kê 2026-08-24)
 
 - [x] Fork avalanchego → identity 9Chain-A1 (LOVE9/love9/9001/love9evm, chainId 9000000009)
@@ -36,6 +110,11 @@ Và §5 autopilot yêu cầu "git commit nhỏ" — không có git thì không c
 - [x] M0.2 — `git init` gốc dự án + commit đầu — 49 file, `c85d396`.
       Đã quét secret: không có `PrivateKey-*`/khoá riêng. Chuỗi `0x…` trong
       `9chain-a1-config/genesis.json` là BLS publicKey + proofOfPossession (công khai).
+      ⚠️ **Tệp đó đã XOÁ `27/08`** — nó là `genesis_local.json` gốc của Avalanche (khoá
+      ewoq công khai giữ 50 triệu, địa chỉ `X-local1…`, stake hết hạn `2025-07-15`), và
+      vẫn nằm trong đường boot của node dev. Quét secret hồi đó **đúng** — khoá công khai
+      của người khác không phải secret của mình; cái sai là **dùng nó làm genesis**.
+      Xem `docs/CORE-AUDIT-2026-08-27.md` §7b.
 - [x] M0.3 — `patches/` (3 patch) + `scripts/apply-sovereign.sh`, `2d4af01`
 - [x] M0.4 — `.gitattributes` `* -text` ở **cả hai** repo (KB: patch fail toàn bộ file khi git Windows/Linux lệch)
 - [x] M0.5 — **Kiểm chứng khôi phục đã CHẠY THẬT**: clone sạch → `apply-sovereign.sh` →

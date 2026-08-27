@@ -1,16 +1,275 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-27** (chốt phiên đợt 12 — chuẩn hoá thương hiệu) — mạng công khai vẫn là
-bản re-genesis 9 tỷ của `26/08` (**9 node**, `supplyCap` 9.000.000.000, phát hành genesis
-5.400.000.000, **lượt diễn tập**). Genesis **không đụng**; đợt này chỉ chạm **lớp trình bày**
-+ Caddy. Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
+Cập nhật: **2026-08-27** (đợt 14 — **AUTOPILOT 5/5 MỐC ĐƯỜNG GĂNG NGÀY G**) — mạng công khai vẫn là bản
+re-genesis của `26/08` (**9 node**, phát hành genesis 5.400.000.000, **lượt diễn tập**).
+Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
 
-## ▶ Phiên sau bắt đầu từ đâu
+🔴 **`supplyCap` ĐÃ ĐỔI: 9.000.000.000 → 7.900.000.001** (D-048). **Tổng cung vẫn 9 tỷ.**
+Đó là hằng số trong binary, và nó phải nhỏ hơn tổng cung đúng bằng phần phát hành thẳng trên
+C-Chain — xem ngay mục dưới. Binary trên server **vẫn là bản cũ**; patch 0013 lên cùng lượt
+sinh lại mạng ngày G.
+
+## ▶ Phiên sau bắt đầu ở đâu
+
+✅ **David đã chốt B-13(a) + B-14 (`2026-08-27`) — cả hai ĐÃ VÁ VÀ NGHIỆM THU trong phiên.**
+
+| | Chốt | Ghi ở |
+|---|---|---|
+| **B-13(a)** | Block Adam **neo vào HASH GIAO DỊCH NGHI LỄ** | **D-070** |
+| **B-14** | Gốc dải chainId L1: `9100` → **`9000000010`** (= chainId A1 **+1**) | **D-069** |
+
+| Thứ tự | Việc | Điều kiện |
+|---|---|---|
+| **1** | 🔴 **O1 custody khoá 5 quỹ** — hạn `28/08`, **cơ hội một lần**. Vẫn là mục quyết số 1 | **David** |
+| **2** | Chạy **O2 một lượt trên MẠNG CÔNG KHAI** để biết thời gian thật *(bài lấy block từng cái một)* — A1 tự làm được | không chặn |
+| **3** | GO/NO-GO `2026-08-29` theo `NGAY-G-A1-CON-LAI.md` §7 (10 điều) | — |
+| **4** | Ngày G `2026-09-01`: build lại image (patch 0013 ⇒ **bắt buộc cùng lượt `down -v`**) · O2 trước khi xoá · tra lại G4 · `cung.json` lên server cùng `faucet.env` | — |
+| **5** | **Ngay SAU ngày G:** đo lệch đồng hồ 9 node → chọn `--bu-ms` (**B-13(b)**, đã hạ mức) · lịch gia hạn validator (**B-12**) | — |
+
+**Backlog autopilot vẫn CẠN.** Phần còn lại đều chờ David hoặc chờ mạng ngày G lên. Đừng mở
+autopilot mới khi chưa có quyết định; nó sẽ đi hoang.
+
+🔴 **Đường găng lớn nhất vẫn KHÔNG nằm trong repo này:** chữ khắc chờ **C1 đóng băng byte**.
+Cơ chế A1 xong 100%; **nội dung 0%**. C1 trễ quá `28/08` thì đường găng gãy ở chỗ A1 không tự
+cứu được.
+
+---
+
+## ✅ ĐỢT AUTOPILOT 14 (`2026-08-27`) — **5/5 MỐC ĐẠT**
 
 🔴 **ĐỌC [`docs/NGAY-G-A1-CON-LAI.md`](docs/NGAY-G-A1-CON-LAI.md) TRƯỚC.** Đó là bản A1 thẩm
 định kế hoạch ngày G `01/09` và là **danh sách còn-lại thật**. `PLAN-REGENESIS-2026-09-01.md`
 là bối cảnh của BOD, mâu thuẫn thì file kia thắng.
-Backlog phần mềm cũ nằm ở `PROGRESS.md`; `DECISIONS.md` (vì sao) · `BLOCKERS.md` (chờ David).
+`DECISIONS.md` (vì sao) · `BLOCKERS.md` (chờ David) · `PROGRESS.md` (backlog).
+
+| # | Mốc | Kết quả |
+|---|---|---|
+| **A-1** | Diễn tập nghi lễ **Block Adam** | ✅ 4 lượt · [`DIEN-TAP-BLOCK-ADAM-2026-08-27.md`](docs/DIEN-TAP-BLOCK-ADAM-2026-08-27.md) |
+| **A-2** | **Quy trình O2** — xuất + `sha256` trước khi xoá | ✅ 3 ĐCN · [`QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md`](docs/QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md) |
+| **A-3** | **G4** — tra `chainid.network` | ✅ 3 ĐCN · [`G4-TRA-CHAINID-2026-08-27.md`](docs/G4-TRA-CHAINID-2026-08-27.md) |
+| **A-4** | **C-4** — cổng chainId (đóng nốt **B-11**) | ✅ 7 ca/3 ĐCN · [`CONG-CHAINID-2026-08-27.md`](docs/CONG-CHAINID-2026-08-27.md) |
+| **A-5** | **I1b** — cung có nguồn | ✅ 2 ĐCN · [`I1B-CUNG-CO-NGUON-2026-08-27.md`](docs/I1B-CUNG-CO-NGUON-2026-08-27.md) |
+
+**Cây fork: tree `c9226d9c` · 16 patch trên `1cf1fc3`** (patch 0015 cổng chainId · 0016
+`cung.json`), tái lập khớp từng byte, đối chứng ngược 14/15 patch ⇒ tree khác.
+⚠️ **Không cần build lại image node** — cả hai patch chỉ đụng `netgen`, chạy bằng `go run` lúc
+sinh mạng. Ràng buộc `down -v` của D-050 (patch 0013) **không đổi**.
+
+### 🔴 Ba phát hiện đắt nhất của đợt này
+
+**1. Bắn ĐÚNG mốc thì Block Adam là block của EVA, không phải của Adam.**
+`block.timestamp` rơi vào **đúng giây bấm gửi**, mà luật khắc đòi **vượt** mốc (`> T`). Lượt đầu:
+block #1 (chứa Adam) `ts = mốc + 0` — **không vượt**; block #2 (Eva) `ts = mốc + 2` — vượt.
+⇒ **luật khắc và hành động nghi lễ trỏ vào hai block khác nhau**, và toàn bộ khoảng cách là một
+phép so sánh chặt hay không chặt. Bù **+3s** thì 9/9.
+🔴 Nhưng +3s đo trên **1 node dùng chung đồng hồ với máy bắn**; trên bộ 9 node `block.timestamp`
+là đồng hồ của **node đề xuất block**. ⇒ **B-13**.
+🔴 Và sâu hơn: luật *"block ĐẦU TIÊN vượt mốc"* nói về **toàn chuỗi** — nghi lễ chỉ điều khiển
+được **giao dịch của mình**. **Không tự bảo đảm được.**
+
+**2. `9000000009` trống ✓ — nhưng `9100` là **Genesis Coin**, một chuỗi có thật.**
+`9100` là số **đầu tiên** console cấp cho L1 người dùng, và nó **đã được cấp hai lần** rồi
+(`OwnerTest`). Kế hoạch G4 chỉ nêu `9000000009` — chainId **của A1** — bỏ sót chainId **A1 phát
+cho người khác**, nhóm đông hơn và chạm người thật nhiều hơn. ⇒ **B-14**.
+*(Đã vá phần không cần quyết: console có danh sách chặn 51 số, tự cấp nay ra `9101`.)*
+
+**3. Ba lần đối chứng ngược bắt lỗi trong CHÍNH công cụ vừa viết.**
+Bộ xuất O2 khai *"kèm 1 L1"* trong khi L1 đó gọi hỏng và không có một byte nào — **công cụ chống
+nói dối suýt nói dối**. Nay khai `xin N · XUẤT ĐƯỢC M`.
+*(Cùng họ với lỗi `Fprintf` thiếu tham số mà đợt 13 bắt được.)*
+
+### Việc sinh ra — xem `BLOCKERS.md`
+
+| | Việc | Ai |
+|---|---|---|
+| ~~**B-13 (a)**~~ | ✅ **ĐÓNG `27/08`** — David chốt **neo vào hash giao dịch nghi lễ** (D-070). Bài diễn tập đã đổi cách chấm + chạy lại thật, kèm ca `--bu-ms 0` mà bản cũ chấm ✗ | — |
+| **B-13 (b)** | Đo **lệch đồng hồ 9 node** rồi chọn `--bu-ms`. Chỉ làm được **sau khi mạng ngày G lên**. 🔴 **D-070 HẠ MỨC, không đóng**: bù thôi quyết định "neo đúng/sai", nhưng nếu bản khắc có **câu chữ** "vượt mốc" thì câu đó vẫn phải đúng | A1 |
+| ~~**B-14**~~ | ✅ **ĐÓNG `27/08`** — David chốt gốc dải **`9000000010`**, đường thứ tư ngoài ba đường A1 đưa (D-069) | — |
+| — | `cung.json` phải lên server **cùng `faucet.env`** (quên ⇒ `/api/supply` 503) | vận hành |
+| — | Câu khai nguồn cung trên trang — `web/` thuộc worktree `9Chain-A1-web`, **câu chữ đã soạn sẵn** | phiên web |
+| — | Chạy O2 **một lượt trên mạng công khai** để biết thời gian thật | A1 |
+
+### Backlog cũ (giữ để đối chiếu điều kiện qua)
+
+<details>
+<summary>5 mốc và điều kiện qua như đã giao</summary>
+
+| # | Mốc | Điều kiện qua |
+|---|---|---|
+| **A-1** | **Diễn tập giao dịch nghi lễ Block Adam** (§4 `NGAY-G-A1-CON-LAI`). Đo `26/08`: P-Chain đứng ở 330, C-Chain `0x73` — **Avalanche không đẻ block rỗng**, nên "block đầu tiên vượt mốc" có thể **không có block nào**. Hẹn sẵn 2 giao dịch chạy đúng `2026-09-09T06:09:09Z` | Trên mạng tập: hẹn giờ chạy đúng giây đã định, block sinh ra, đọc lại được `blockNumber`+`timestamp`. **Kèm 1 ca đối chứng ngược** (hẹn sai giờ ⇒ không có block) |
+| **A-2** | **Quy trình O2** — export + `sha256` mạng sắp chết, công bố **trước** khi xoá. 🔴 Đã **BỎ LỠ** ở lượt `26/08`: chain data + DB Blockscout xoá không có bản công bố nào | Chạy thử được **một lệnh**, ra tệp + `sha256`; đối chứng ngược: sửa 1 byte ⇒ hash đổi |
+| **A-3** | **G4 — tra `chainid.network`** xem `9000000009` có bị chiếm không | Có ảnh chụp/JSON của `chains.json` kèm ngày tra. 🔴 Phải tra **LẠI ngay trước bước sinh genesis** ngày G, đừng tin lần tra này |
+| **A-4** | **C-4 — cổng "bản tập ≠ bản thật" cho chainId** (B-11). A1 có cổng rất kỹ cho **chữ khắc** mà **không có cổng nào cho chainId** — thứ ví người dùng thật sự đọc. Không chạm binary | netgen từ chối/cảnh báo khi sinh mạng tập mang chainId của mạng thật; **có đối chứng ngược** |
+| **A-5** | **I1b** — phơi trần cung ra endpoint đọc được, **hoặc** ghi rõ trên trang rằng nguồn là *tham số genesis*. Luật cứng của 9Scan-A1: *"số công bố phải đọc từ chain thật"*; in trần mà không có endpoint là **gõ hằng số vào giao diện** | Số trên trang truy được về một lệnh RPC, hoặc trang tự khai nguồn là tham số genesis |
+
+</details>
+
+⚠️ **Luật cứng cho autopilot ở repo này** *(đã trả giá để học)*:
+1. **Không tin mã HTTP.** Thang đo từ yếu tới mạnh: mã HTTP → `content-type` → **nội dung** →
+   header tầng trước (`cf-cache-status`). Cổng chỉ biết xanh **không chứng minh gì**.
+2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một nửa.
+3. **Đụng `patches/` là đụng đường tái lập fork** — sinh bằng `--no-signature`, nghiệm thu bằng
+   `git am --keep-cr` + so tree. Tree hiện tại: **`c9226d9c`** / **16 patch** / gốc `1cf1fc3`.
+   ⚠️ Sinh lại **cả bộ**, đừng thêm lẻ: tới `27/08` các patch 0013/0014 vẫn mang tiêu đề
+   `[PATCH nn/12]` vì được thêm vào chứ không sinh cùng lượt — một bộ tái lập **tự đếm sai
+   chính mình** (D-065).
+4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)
+   — báo trước khi merge/deploy, xem `WORKTREE-WEB.md` bên đó.
+
+### 🔴 Chờ David — autopilot KHÔNG tự làm được, đừng đoán thay
+
+`BLOCKERS.md`: **B-12** lịch gia hạn validator (làm ngay sau ngày G) · **B-9** `#e84142` trong
+`patches/0003` · **B-10** tắt Managed robots.txt ở dashboard Cloudflare.
+*(**B-11** đóng hẳn `27/08` · **B-13(a)** và **B-14** đóng `27/08` — David chốt trong phiên.
+**B-13(b)** còn mở nhưng chỉ làm được sau khi mạng ngày G lên.)*
+`NGAY-G-A1-CON-LAI.md` §6: **O1 custody khoá quỹ** (hạn `28/08`, cơ hội một lần) · **Block Adam
+nằm trên chain nào** · **O3** chính sách L1 người dùng · **có khôi phục sổ `retired` cũ không**
+(chain `David Do` 9141 nằm trong vùng đang hở) · **O4** validator nhà cung cấp thứ hai (tiền) ·
+**O5/H-7** IPv4 đa cổng hay IPv6.
+
+🔴 **Và đường găng lớn nhất không nằm ở đây:** chữ khắc chờ **C1 đóng băng byte**. Cơ chế A1 đã
+xong (patch 0010/0011); **nội dung 0%**. C1 trễ thì đường găng gãy ở chỗ A1 không tự cứu được.
+
+---
+
+### Phiên 2026-08-27 (đợt 13 — SOÁT CORE) — tóm tắt để khỏi mở file
+
+**Bản soát đầy đủ: [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md).**
+Đợt 12 soát **lớp da**; đợt này soát **lớp xương**. Đã vá bằng **patch 0013**, nghiệm thu
+bằng tree hash + đối chứng ngược.
+
+#### 🔴 Phát hiện P0 — trần cung THẬT là 10.099.999.999, không phải 9 tỷ
+
+`InitialSupply()` (`genesis/config.go:146`) cộng **duy nhất** `Allocations` (X/P);
+`CChainGenesis` là trường string riêng, **nằm ngoài vòng lặp** ⇒ **1.099.999.999 LOVE9** phát
+hành thẳng trên C-Chain **tồn tại thật mà `currentSupply` không bao giờ đếm tới**.
+
+| | LOVE9 |
+|---|--:|
+| dư địa mint với `SupplyCap` 9 tỷ | **4.699.999.999** |
+| D-042 định mint | 3.600.000.000 |
+| **thừa** | **1.099.999.999** — *đúng bằng phần C-Chain* |
+| ⇒ tổng LOVE9 tối đa từng tồn tại | **10.099.999.999** (vượt lời hứa **12,2%**) |
+
+**Sửa:** `SupplyCap = 7_900_000_001 * units.Avax`. Rồi 7.900.000.001 + 1.099.999.999 =
+**9.000.000.000** ✓, và dư địa mint = **3.600.000.000** = đúng ô Staking Rewards. Con số sửa
+rơi trúng ý định D-042 tới từng đơn vị.
+
+**Ba đường xác nhận:** đọc mã · `getCurrentSupply` đo `26/08` = 4.301.076.227 (phần C-Chain
+vắng mặt) · Mainnet **và** Fuji đều có **đúng một** mục `balance` trong `cChainGenesis` và giá
+trị là **`0x0`** ⇒ upstream không phát hành gì ở C-Chain genesis, **A1 phá một bất biến upstream
+không canh**.
+
+🔴 **Quan sát này đã ghi BA LẦN** (`HANDOFF:240` cũ · `HANDOFF:932` · `TOKENOMICS`) và cả ba
+dừng ở *"đừng so hai số đó với nhau"*. **Một chú thích giải thích tại sao hai con số khác
+nhau, mà không nói con số nào mới đúng, là chú thích chưa hoàn thành.**
+
+#### Năm mục còn lại của patch 0013
+
+| | |
+|---|---|
+| **P1** | `mustFitSupplyCap` đọc thẳng `A1Params`, **bỏ qua `networkID`** ⇒ `NETWORK_ID=9002` (env!) đối chiếu với trần 9 tỷ trong khi node dùng `LocalParams` 720 triệu ⇒ tràn ngược. **Cổng chống tràn cho qua đúng cái nó sinh ra để chặn.** Nay đọc qua `GetStakingConfig(networkID)` + netgen từ chối mọi ID ≠ 9001 |
+| **P1** | `upgrade.GetConfig` chỉ tách Mainnet/Fuji ⇒ 9001 dùng `Default` của Ava Labs. Khi họ lên lịch Helicon, **lượt rebase kế tiếp nuốt một hard fork không qua quyết định nào**. Thêm `upgrade.A1` (D-049) |
+| **P1** | HRP `love9` sống bằng **`FallbackHRP`**, không bằng khai báo — rebase sót là đổi tiền tố **mọi địa chỉ P/X đã phát ra ngoài**. Và `NetworkName(9001)` = `"network-9001"`. Khai `A1ID`/`A1Name`/`A1HRP` (D-050) |
+| **P2** | `verifyAgainstC1` chỉ `strings.Contains` cả tệp ⇒ chứng minh *"byte thuộc bộ của C1"*, **không** *"đúng tài liệu nào"*. Manifest trỏ `doc-hebrew` sang tệp tiếng Anh **vẫn qua sạch**. Nay khớp theo từng tài liệu |
+| **P2** | Thiếu `A1_ENGRAVE_CHECKSUMS` chỉ **cảnh báo** rồi khắc tiếp · không cổng nào canh mặt `p` ⇒ manifest thiếu mặt gốc thì khắc **bó rỗng** vào P-Chain, im lặng. Cả hai nay CHẶN |
+
+#### Nghiệm thu
+
+| | |
+|---|---|
+| Tái lập | 13 patch lên `1cf1fc3` → tree **`0f497b37`** = cây fork, **khớp từng byte** |
+| Biên dịch | `go vet` + `go build` sạch (container `golang:1.25.10`) |
+| netgen N=9 | X/P 4.300.000.001 ≤ trần 7.900.000.001 · trần + C-Chain = 9 tỷ · dư địa mint 3,6 tỷ |
+| genesis sinh ra | phân tích lại **độc lập** bằng Python: 6 alloc · 9 staker · offset 604800 · X/P + C-Chain = 5.400.000.000 ✓ |
+| Đối chứng ngược | **5/5 đỏ đúng chỗ** (xem §9.3 bản soát) |
+| `check-consistency` | **21 đạt · 9/9 đối chứng ngược** |
+
+🔴 **Đối chứng ngược bắt được một lỗi trong CHÍNH bản vá này:** thông báo của cổng kế toán
+thiếu tham số `networkID` trong `Fprintf` ⇒ `%!d(string=…)` và mọi cột lệch một chỗ. Cổng vẫn
+**chặn đúng**, nhưng người đọc nó — người đang đứng trước một lượt sinh mạng — sẽ bị dẫn sai.
+`go vet` cũng bắt được. ⇒ **Một cổng chưa được nhìn thấy lúc nó ĐỎ thì mới kiểm được một nửa:
+nửa "có chặn không", chưa kiểm nửa "chặn xong nó nói gì".**
+
+🔴 **`check-consistency.mjs` NAY ĐỌC Go, KHÔNG CHÉP Go.** Nó vẫn khẳng định `SupplyCap = 9 tỷ`
+sau khi binary đã đổi — bản chép tay bằng JS **đã trôi lệch thật**, đúng điều HANDOFF từng
+cảnh báo về chính cổng này. Nay `readFileSync` thẳng `genesis_9chain_a1.go`.
+
+#### 🔴 Việc sinh ra từ đợt này
+
+- ✅ **B-11 ĐÃ ĐÓNG BA MỤC CHẠM BINARY — David chốt `27/08` (D-051, patch 0014, tree
+  `4c5d5b1e`).** `UptimeRequirement` **giữ .8** (mốc xét lại là **mainnet**, không phải ngày G)
+  · `MaxStakeDuration` **giữ 365** · phí C-Chain **giữ, khai ra là CỐ Ý**.
+  🔴 **Không đổi một giá trị nào — chỉ đổi CHỮ**, vì trong mã một tham số *chưa ai quyết*
+  trông y hệt một tham số *đã quyết*. ⇒ **không còn gì chặn lượt `docker build` ngày G.**
+  🟡 Còn **C-4** (chainId mạng tập ≡ mạng thật) — không chạm binary, không chặn ngày G.
+  🔴 Sinh ra **B-12**: quy trình gia hạn validator — xem mục ⏰ bên dưới.
+- **Không cần quyết nhưng phải nhớ:** `A1Name` đổi **đường dẫn DB** (`config.go:1008`) ⇒
+  binary patch 0013 **chỉ được lên cùng lượt `down -v`**. Ngày G thoả. Đường lui: xoá một
+  dòng, xem D-050.
+- **Runbook ngày G thêm một dòng đối chứng:** `grep -o '"supplyCap":[0-9]*'` phải ra
+  **`7900000001000000000`**.
+#### ✅ XONG `27/08` — gỡ genesis cũ khỏi đường boot + sửa con trỏ khắc chữ
+
+🔴 **`9chain-a1-config/genesis.json` ĐÃ XOÁ.** Nó là `genesis_local.json` **gốc của
+Avalanche**, đổi đúng một trường `networkID`: khoá **ewoq** công khai giữ **50.000.000** trên
+C-Chain · 3 địa chỉ `X-local1…` khoá riêng nằm trong repo avalanchego ·
+`NodeID-7Xhw2mDxuDS44j42TCB6U5579esbSt3Lg` · HRP `local` trong khi binary phục vụ `love9` ·
+stake **hết hạn `2025-07-15`**.
+
+Mạng công khai **chưa bao giờ** dùng nó (netgen dựng genesis trong Go). Nhưng **node dev thì
+có** — và tệ hơn: `up-all.sh` lấy khoá faucet từ `local-net/net/faucet.env` do netgen sinh,
+tức **node dev và ví faucet dev thuộc hai mạng khác nhau, ví luôn rỗng**. Mâu thuẫn đó nay hết.
+
+| Đường boot | Trước | Sau |
+|---|---|---|
+| `local-net/docker-compose.yml` | `/9chain-a1/config/genesis.json` | **`/9chain-a1/net/genesis.json`** (netgen sinh) |
+| `up-all.sh` · `create-l1.sh` · `9chain-a1 up` | boot thẳng | **dừng + chỉ chạy `gen-network.sh`** nếu thiếu `net/genesis.json` |
+
+⚠️ `9chain-a1-config/` **vẫn còn và vẫn mount** — nó giữ `l1-evm-genesis.json` (khuôn genesis
+cho L1 EVM, `create-l1` đọc). Chỉ `genesis.json` của **mạng** là biến mất.
+
+**Con trỏ khắc chữ đã sửa ở 5 chỗ** — `NGAY-G-A1-CON-LAI.md` §3 · `PLAN-REGENESIS` §G5 +
+G5a + mục (d) · `KHAC-CHU-NGAY-G.md` luật 3 · `README.md` bảng identity ·
+`netgen/main.go` (chú thích trong mã). Cả năm từng trỏ vào `:95 "{{ fun_quote }}"` của tệp đã
+xoá, trong khi **netgen không đọc tệp cấu hình nào** — nó dựng `UnparsedConfig` thẳng trong Go.
+🔴 **Ai đi theo con trỏ cũ sẽ sửa một tệp không ai đọc, và KHÔNG có gì báo lỗi**: lượt sinh
+mạng vẫn chạy, genesis vẫn hợp lệ, chữ khắc vẫn là chuỗi mặc định. Cùng họ với *"đường lui
+alias = xanh giả"*.
+
+*(Chú thích trong `netgen/main.go` nằm trong patch 0013 ⇒ tree đổi sang **`0f497b37`**, đã
+nghiệm thu lại bằng `git am --keep-cr` 13 patch.)*
+
+#### ✅ ĐÃ BOOT THẬT `27/08` — node chạy từ nguồn đã vá (§9.6 bản soát)
+
+Build qua `local-net/Dockerfile` thật ⇒ `rebrand.sh` chạy trên `network_ids.go` **đã vá**
+(bước dễ gãy nhất, chưa từng kiểm): **idempotent, không lệch**.
+
+| | |
+|---|---|
+| `"supplyCap"` dòng log đầu | **`7900000001000000000`** ✓ |
+| `info.getNetworkName` | **`9chain-a1`** ✓ *(trước D-050: `network-9001`)* |
+| HRP | `P-love91ytgll0…` ✓ · đối chứng ngược `P-avax1…` bị từ chối *"invalid checksum"* ✓ |
+| `eth_chainId` · Foundation C-Chain | `9000000009` · **1.000.000.000 LOVE9** đúng từng đơn vị |
+| log | **0 ERROR** · 9 WARN đều của mạng 1 node |
+
+🔴 **Bằng chứng SỐNG của P0** — đo trên node đang chạy:
+
+```
+currentSupply    4,300,863,905    X/P genesis 4,300,000,001 + thưởng 863,904
+C-Chain genesis  1,099,999,999    ← KHÔNG có trong currentSupply
+dư địa mint      3,599,136,096    (mục tiêu 3,600,000,000)
+nếu cap 9 tỷ     4,699,136,095    ← thừa ~1,1 tỷ
+```
+
+⚠️ **Đã dựng lại `local-net/net/` bằng netgen mới** (bản cũ là 720M-era, tổng 400 triệu — không
+khớp binary nào còn tồn tại). Bản cũ giữ ở **`local-net/net-bak-20260827/`**. Container
+`9chain-a1-faucet` đang chạy vẫn giữ khoá faucet CŨ trong env ⇒ chạy lại `up-all.sh` để nó
+lấy khoá mới.
+⚠️ Image `9chain-a1/node:boottest` giữ lại trên máy dev (bản build đầu của patch 0013). Xoá:
+`docker rmi 9chain-a1/node:boottest`. Tag `:dev` **không đụng tới**.
+⚠️ Chưa đo: đẻ L1 · Warp/ICM · faucet HTTP · giao dịch thật. Mạng 1 node
+`--sybil-protection-enabled=false` **không** chứng minh được đồng thuận.
 
 ---
 
@@ -53,10 +312,39 @@ lập luận. Đo trên cùng một bản build:
 `var(--font-instrument), ui-sans-serif…` **không phải fallback của `var()`** — nó phân tách họ
 chữ) ⇒ guaranteed-invalid ⇒ rơi về font hệ thống. `--font-sans` đọc ra **chuỗi rỗng**.
 
-🔴 **B1 (vá nối biến) và B2 (đổi bộ chữ) BUỘC đi cùng một lượt.** Vá B1 một mình là làm site
-**xấu đi**: hôm nay font thương hiệu không chạy nên lỗi thiếu tiếng Việt chưa hại ai; bật lên
-trước khi chốt bộ chữ là đúng lúc đó dải `1ea0–1ef1` mới thật sự rơi về font hệ thống.
+🔴 **B1 không được LÊN TRƯỚC B2 — ràng buộc là THỨ TỰ, không phải QUYỀN QUYẾT.** Vá B1 một
+mình là làm site **xấu đi**: hôm nay font thương hiệu không chạy nên lỗi thiếu tiếng Việt chưa
+hại ai; bật lên trước khi chốt bộ chữ là đúng lúc đó chữ có dấu mới thật sự rơi.
 ⚠️ Outfit sống **không** nghĩa là bẫy đã hết — nó chỉ **né** được bẫy.
+⚠️ B1 lên là phải **chỉnh lại trần `check-budget.mjs`**: 128,1 KB + font sẽ vượt trần 160.
+
+🔴 **ĐÍNH CHÍNH `27/08` (phiên web đo, tôi ghi sai) — hai chỗ:**
+
+**(a) "9Scan-A1 dính y hệt lỗi nối biến" là SAI.** Họ gắn lớp `__variable_*` ở **`<html>`**
+(`app/layout.tsx:168`) — **đúng**; A1 gắn ở `<body>` — **sai**. Đo trên site họ bằng Chrome:
+**9/29 mặt chữ loaded**, `--font-sans` ở `:root` giải ra `"Instrument Sans", …`. Bên A1: 0/24,
+biến rỗng. ⇒ **Lỗi nối biến là của RIÊNG A1.** Tôi suy từ "cùng bộ chữ ⇒ cùng lỗi" mà không mở
+`layout.tsx` của họ ra xem — đúng lớp lỗi file này cấm. **Khi vá B1, chép sơ đồ `<html>` của họ.**
+⇒ Hệ quả: lập luận *"chuẩn chung sai nên phải quyết bộ chữ chung với 9Scan"* **đã đổ**. B1
+không cần ai gật; chỉ không được lên trước B2.
+
+**(b) Phạm vi ký tự rộng hơn `1ea0–1ef1`.** Đo trên site 9Scan (nơi font CHẠY thật): **mọi ký
+tự riêng của tiếng Việt** rơi khỏi Instrument Sans — 14/14 mẫu, **gồm cả `ă đ ơ ư` nằm NGOÀI
+dải đó** (họ khai `subsets:['latin']`). Chỉ `á à â é` (Latin-1) trụ lại. ⇒ Viết **"mọi ký tự
+riêng của tiếng Việt"**, đừng viết "dải `1ea0–1ef1`" — hẹp hơn thật.
+
+**(c) B2 chỉ còn 2 họ chữ, không phải 3.** **JetBrains Mono ĐÃ CÓ `vietnamese`** (đo bằng
+`font-data.json` của next/font, không đọc tài liệu) — chỉ đang không được yêu cầu ⇒ **một dòng
+config**, không phải quyết định thương hiệu. Sora và Instrument Sans thì đúng là chỉ có
+`latin`/`latin-ext`. ⚠️ **Outfit cũng không có `vietnamese`** — chữ logo toàn ASCII nên không
+sao, nhưng **đừng dùng Outfit cho chữ chạy**.
+
+⚠️ **Mức tin cậy, đừng trích mạnh hơn:** ký tự rơi về `Instrument Sans Fallback` — font lui do
+next/font tự sinh, **đã khớp thước** (`size-adjust`, `ascent-override`) — nên chênh bề rộng chỉ
+~0,7–1,4%, không phải cú nhảy nhìn ra ngay. **Có rơi font: chắc chắn** (vân tay bề rộng).
+**Người dùng có nhận ra hay không: CHƯA ĐO** — không ai chụp được màn hình. Đừng viết "đang
+chịu lỗi hàng ngày". ⇒ Việc phải làm không đổi (vẫn phải đổi bộ chữ), **mức khẩn thì hạ**: nợ
+chất lượng chữ, không phải sự cố đang chảy máu.
 
 **2. `#e84142` = ĐỎ THƯƠNG HIỆU AVALANCHE trong 4 tệp HTML + `patches/0003`.** Bản soát đầu
 kết luận *"lớp rebrand sạch"* — đúng cho **CHUỖI**, sai cho **MÀU** (tôi chỉ grep chuỗi). Đã sửa
@@ -74,6 +362,28 @@ cụ mà mọi lần dựng lại fork đều áp. `BLOCKERS.md` **B-9**.
 **David chốt trong phiên:** giữ **`#F5C542`** của trang chính cho dấu logo, **không** hoà về
 token `#ffcb24` ⇒ A1 nay có **hai sắc vàng cùng tồn tại, có chủ ý** (`--color-brand-gold` vs
 `--color-gold`). Chú thích "đừng dọn dẹp bằng cách hoà chúng về một" đã dán tại chỗ ở cả 3 nơi.
+
+### Gotchas mới (đợt 14) — thứ sẽ tốn giờ nếu không biết trước
+
+- 🔴 **`block.timestamp` ≠ giờ bạn bấm gửi, và cũng ≠ đồng hồ máy bạn.** Nó là đồng hồ của
+  **node đề xuất block**. Mọi phép tính *"đã qua mốc chưa"* phải nằm **trọn trong một đồng hồ**;
+  hẹn giờ thì bằng `Date.now`, nghiệm thu thì bằng `block.timestamp`, và **phải đo độ lệch**
+  chứ không giả định chúng khớp.
+- 🔴 **Avalanche C-Chain: hai giao dịch phát cách nhau vài mili-giây vẫn vào HAI block**, cách
+  nhau tới 2 giây. Đừng viết kịch bản dựa trên *"hai giao dịch một block"*.
+- 🔴 **Mạng tập phải lên cổng KHÁC 9650.** Blockscout local trỏ vào 9650; cho mạng tập lên đó là
+  để explorer index một chuỗi rồi chuỗi đó biến mất lúc `down -v`, **không có gì báo lỗi**. Nay
+  đã codify: `local-net/docker-compose.drill.yml`, project `a1-drill`, cổng 9750.
+- **`sha256sum -c` đòi LF và khuôn `<hash><2 khoảng trắng><đường dẫn>`.** Repo chạy trên Windows
+  ⇒ CRLF vừa đổi hash vừa làm hỏng `-c`. Ghi LF tường minh.
+- **`git format-patch` phải sinh LẠI CẢ BỘ.** 0013/0014 vẫn mang `[PATCH nn/12]` vì được thêm
+  lẻ — bộ tái lập **tự đếm sai chính mình**. (Kèm `--no-signature`, nghiệm thu `git am --keep-cr`.)
+- ⚠️ **Cẩn thận cwd của shell sau `cd upstream/avalanchego`.** Một lệnh `cat >> DECISIONS.md`
+  trong phiên này đã tạo tệp lạc **trong repo fork** và làm đổi tree — phát hiện vì tree không
+  còn khớp. Dùng đường dẫn tuyệt đối khi làm việc bắc cầu hai repo.
+- **Console đọc `9chain-a1-config/` và `local-net/console/index.html` theo `process.cwd()`**, còn
+  `../lib/*.mjs` theo đường dẫn module. Muốn chạy thử trên sổ rỗng thì phải dựng cả hai thứ đầu
+  trong thư mục gốc giả.
 
 ### Gotchas mới (đợt 12)
 
@@ -331,9 +641,24 @@ URL cũ, tất cả 301: `/lite/` → `/` · `/dashboard/` → `/compare/` · `/
 `/create-chain/` · `/chain-cua-toi/` → `/my-chains/` · `/bang/` → `/compare/`.
 Đã TẮT (không xoá): `9chain-a1-explorer` :8082 · `9chain-a1-dashboard` :8092.
 
-### ⏰ Hẹn giờ đã biết
-**Cả 5 validator hết hạn `2027-08-24`** (đo 2026-08-25, còn 364 ngày). Đúng ngày đó
-mạng DỪNG nếu không gia hạn. Uptime hiện 99,96–100%.
+### ⏰ Hẹn giờ đã biết — **B-12**, và con số dưới đây ĐÃ CŨ HAI LẦN
+
+🔴 **`2027-08-24` / "5 validator" là của mạng TRƯỚC re-genesis `26/08`. Đừng trích.**
+Mạng đó đã chết; ngày G `01/09` còn sinh lại lần nữa. Bản gốc giữ lại để thấy con số cũ:
+~~Cả 5 validator hết hạn `2027-08-24` (đo 2026-08-25, còn 364 ngày)~~.
+
+**Luật thì không đổi, và D-051b vừa chốt giữ nguyên nó:** `MaxStakeDuration` 365 ngày +
+`InitialStakeDuration` 365 + `InitialStakeDurationOffset` 7 ngày ⇒ **9 validator genesis hết
+hạn lần lượt trong một cửa sổ 56 ngày, bắt đầu ~365 ngày sau ngày G. Node cuối rụng là mạng
+DỪNG.** avalanchego **không có cơ chế tự gia hạn**, và không cổng nào cảnh báo.
+
+⚠️ **So le 7 ngày là CỐ Ý và chính nó là hệ thống cảnh báo** — node đầu rụng ở ~ngày 309 của
+nhiệm kỳ, lúc đó 8 node còn chạy ⇒ có ~56 ngày để phản ứng, thay vì cả mạng tắt cùng lúc.
+**Đừng "dọn dẹp" offset về 0 cho đều.**
+
+🔴 **Ngày hết hạn THẬT chỉ biết sau khi sinh genesis ngày G.** Đọc bằng
+`platform.getCurrentValidators` → `endTime`, **đừng tính tay**. Việc đầu tiên sau ngày G:
+ghi 9 mốc đó vào **B-12** lúc số còn tươi.
 
 ### ✅ Soak 3 giờ — ĐÃ XONG 2026-08-25 08:22 UTC, đạt
 | | |

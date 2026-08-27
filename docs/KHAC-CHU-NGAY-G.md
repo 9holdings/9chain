@@ -102,9 +102,14 @@ gỡ hộ là làm lệch hash so với bản C1.
 **2. `sha256` băm BYTE CỦA TỆP**, không băm chuỗi đã escape trong JSON. Đó là cùng một đại
 lượng C1 đóng băng, nên đối chiếu chéo hai chain mới có nghĩa.
 
-**3. KHÔNG sửa tay `9chain-a1-config/genesis.json`.** C-Chain genesis nằm trong đó dưới dạng
-**chuỗi JSON đã escape** trên một dòng. Thêm `alloc` mang toàn văn tài liệu là một dòng escape
-rất dài — sửa tay là hỏng escape, và không ai thấy cho tới lúc node boot.
+**3. KHÔNG sửa tay genesis đã sinh** (`local-net/net*/genesis.json`). C-Chain genesis nằm trong
+đó dưới dạng **chuỗi JSON đã escape** trên một dòng. Thêm `alloc` mang toàn văn tài liệu là một
+dòng escape rất dài — sửa tay là hỏng escape, và không ai thấy cho tới lúc node boot.
+
+> ⚠️ **Bản trước của mục này ghi `9chain-a1-config/genesis.json`. Sai, và tệp đó đã xoá `27/08`.**
+> `netgen` **không đọc tệp cấu hình nào** — nó dựng `genesis.UnparsedConfig` thẳng trong Go. Tệp
+> kia là `genesis_local.json` gốc của Avalanche còn sót trong đường boot của node dev.
+> Xem [`CORE-AUDIT-2026-08-27.md`](CORE-AUDIT-2026-08-27.md) §7b.
 
 ## Đọc ngược — `engrave-verify`
 

@@ -12,7 +12,7 @@ Cập nhật: 2026-08-24
 | Build node đầy đủ (Docker/Linux) | ✅ | image `9chain-a1/node:dev` (282MB) |
 | Node chạy, báo `9chaingo/1.14.2` | ✅ | `info.getNodeVersion` |
 | Địa chỉ mang HRP `love9` | ✅ | `networkID 9001 => X-love91...` |
-| Genesis 9Chain-A1 (netID 9001, chainId 9000000009) | ✅ | `9chain-a1-config/genesis.json` |
+| Genesis 9Chain-A1 (netID 9001, chainId 9000000009) | ✅ | `9chain-a1-tools/netgen` sinh ra `local-net/net*/genesis.json` |
 
 **Kết luận:** giữ core 100%, chỉ đổi lớp identity — mô hình sovereign fork chạy được.
 

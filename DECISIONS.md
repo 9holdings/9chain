@@ -1153,3 +1153,437 @@ chốt 24/08** cùng `LOVE9`/`love9`/`9001`, tức nó là **bản sắc**, khô
 
 ⇒ **Hai vế còn lại xử bằng CÂU CHỮ trên trang, không bằng đổi số.** Việc thuộc `Web9Chain` /
 phiên web: nói thẳng "ví cũ sẽ thấy số dư 0, hãy thêm lại mạng", và một câu cho vế tx chưa phát.
+
+### D-048 — **`SupplyCap` = 7.900.000.001, KHÔNG phải 9 tỷ.** Tổng cung vẫn là 9 tỷ
+
+**A1 quyết 2026-08-27, từ phép đo, không phải từ ý muốn.** Bản soát core
+([`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md) §2) đo được:
+`Config.InitialSupply()` (`genesis/config.go:146`) cộng **duy nhất** `Allocations` (X/P);
+trường `CChainGenesis` nằm ngoài vòng lặp ⇒ **1.099.999.999 LOVE9 phát hành thẳng trên
+C-Chain tồn tại thật mà `currentSupply` không bao giờ đếm tới.**
+
+Với `SupplyCap` 9 tỷ, dư địa mint là **4.699.999.999** thay vì 3.600.000.000 như D-042 định,
+và **tổng LOVE9 tối đa từng tồn tại là 10.099.999.999** — vượt lời hứa 9 tỷ **12,2%**.
+
+| | LOVE9 |
+|---|--:|
+| trần cung P/X (hằng số trong binary) | **7.900.000.001** |
+| + phát hành thẳng C-Chain | 1.099.999.999 |
+| **= tổng cung công bố (D-039, KHÔNG đổi)** | **9.000.000.000** |
+| dư địa mint = 7.900.000.001 − 4.300.000.001 | **3.600.000.000** = ô Staking Rewards 40% ✓ |
+
+🔴 **D-039 và D-042 KHÔNG đổi.** Tổng cung vẫn 9 tỷ, bảng phân bổ vẫn 40/30/12/9/9, phát hành
+genesis vẫn 5,4 tỷ. Cái đổi là **một hằng số kỹ thuật trong binary** để hành vi khớp với lời
+hứa đã có. Đừng trích D-048 như một lần "hạ tổng cung".
+
+**Bất biến mới**, cưỡng chế ở `netgen/allocation.go` (`mustFitSupplyCap`) và
+`scripts/check-consistency.mjs`:
+
+```
+SupplyCap + Σ(bucket.CChain) == 9.000.000.000
+```
+
+**Vì sao A1 tự quyết chứ không hỏi David:** đây không phải lựa chọn giữa hai đường — con số
+cũ làm mã **nói khác tài liệu**, và con số mới rơi trúng ý định gốc của D-042 tới từng đơn vị.
+Không có phương án B nào giữ nguyên cả D-039 lẫn D-042. Cái cần David biết là **hệ quả**: nó
+chạm binary ⇒ phải nằm trong lượt `docker build` của ngày G, và bước 0 của runbook nay đối
+chứng `"supplyCap":7900000001000000000`.
+
+⚠️ **Nếu sau này đổi cột `CChain` trong bảng phân bổ thì PHẢI đổi `SupplyCap` theo.** Cổng sẽ
+đỏ nếu quên — nhưng nhớ rằng cái đỏ đó nói "kế toán lệch", không nói "bạn vừa in thêm tiền".
+
+### D-049 — **A1 sở hữu lịch nâng cấp của chính mình** (`upgrade.A1`)
+
+**A1 quyết 2026-08-27.** `upgrade.GetConfig` chỉ tách Mainnet/Fuji; 9001 rơi vào `Default` —
+bảng của Ava Labs, thay đổi theo mỗi lượt phát hành của họ. Lịch kích hoạt hard fork
+consensus-critical **ngang `SupplyCap`**, nên để nó đi theo upstream nghĩa là: khi Ava Labs
+lên lịch Helicon, **lượt rebase kế tiếp của A1 nuốt trọn một hard fork không qua quyết định
+nào**.
+
+Thêm `upgrade.A1` — **chép tường minh từ `Default`, giá trị y hệt**. Đây là lượt đổi **quyền**,
+không đổi **hành vi**: mạng đang chạy trên `Default` nên chép nguyên là giữ nguyên mọi thứ
+đang đúng.
+
+⚠️ **Sau mỗi lượt rebase phải đối chiếu `A1` với `Default` bằng mắt.** Nếu `upgrade.Config`
+mọc thêm trường, Go **không báo lỗi** — trường thiếu nhận `time.Time{}` zero là **năm 1**,
+tức "đã kích hoạt từ lâu". Không cổng nào canh hộ.
+
+**`HeliconTime` giữ `UnscheduledActivationTime`** — bật nó là một hard fork của 9Chain và
+phải có một mục DECISIONS riêng.
+
+### D-050 — mạng có TÊN ở lớp giao thức, và HRP thôi sống bằng fallback
+
+**A1 quyết 2026-08-27.** Khai tường minh `constants.A1ID` / `A1Name` = `"9chain-a1"` /
+`A1HRP` = `"love9"`, và đưa cả ba vào `NetworkIDToNetworkName`, `NetworkNameToNetworkID`,
+`NetworkIDToHRP`.
+
+- **HRP:** trước đây 9001 không có trong map, `GetHRP` rơi xuống `FallbackHRP`. Tiền tố địa
+  chỉ của mạng công khai sống bằng **nhánh dự phòng**. Một lượt rebase đặt lại `FallbackHRP`
+  về `"custom"` là **đổi tiền tố mọi địa chỉ P/X đã phát ra ngoài**, và không cổng nào bắt.
+  Giá trị **không đổi** (`"love9"` cả trước lẫn sau) — chỉ chuyển từ *rơi vào* thành *khai ra*.
+- **Tên:** `NetworkName(9001)` trước đây là `"network-9001"` — chuỗi `info.getNetworkName` trả
+  ra, thứ 9Scan-A1 và ví đọc.
+
+🔴 **HỆ QUẢ PHẢI ĐỌC TRƯỚC KHI DEPLOY:** `config/config.go:1008` dựng đường dẫn DB là
+`<db-dir>/<NetworkName(networkID)>`. Đổi tên mạng ⇒ node đi tìm `<db-dir>/9chain-a1/` thay vì
+`<db-dir>/network-9001/` — **thư mục rỗng**.
+
+⇒ **Binary mang patch 0013 CHỈ được lên cùng một lượt sinh lại mạng** (`down -v`). Ngày G
+thoả điều đó. Đưa nó lên mạng đang chạy mà không wipe thì cả 9 node cùng lúc thấy DB trống và
+bootstrap lại từ đầu — dữ liệu cũ **vẫn còn trên đĩa** ở thư mục cũ, nhưng mạng đứng.
+
+Muốn bỏ vế tên để gỡ hẳn rủi ro này: xoá đúng dòng `A1ID: A1Name` trong
+`NetworkIDToNetworkName`. Phần HRP và `A1ID` độc lập, giữ nguyên được.
+
+### D-051 — **B-11: giữ `UptimeRequirement` 0.8 · giữ `MaxStakeDuration` 365 ngày · phí C-Chain giữ nguyên, KHAI LÀ CỐ Ý**
+
+**David chốt `2026-08-27`.** Ba mục do bản soát core nêu
+([`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md) §7, `BLOCKERS.md` B-11).
+Cả ba **biên dịch vào binary** ⇒ phải đóng băng trước lượt `docker build` của ngày G.
+
+Thi hành: **patch 0014**, tree `4c5d5b1e`. 🔴 **Không đổi một giá trị nào — chỉ đổi CHỮ.**
+Đó là cả điểm của nó: trong mã, một tham số **chưa ai quyết** trông y hệt một tham số **đã
+quyết**, và ba chỗ này đang ở trạng thái thứ nhất.
+
+#### (a) `UptimeRequirement` giữ **0.8**
+
+Chú thích cũ ghi *"⬅️ CHỐT LẠI THÀNH 0.9 TRƯỚC MAINNET"* — một việc nằm trong **comment** và
+không nằm trong file này, tức **không ai canh**. Nay nó có ngày tháng, và **mốc xét lại là
+MAINNET, không phải ngày G**: A1 vẫn đúng là testnet công khai mời cộng đồng chạy node, mà
+0.9 trên hạ tầng không chuyên là cắt thưởng của người chạy thật.
+*(Avalanche mainnet dùng 0.9 theo ACP-267.)*
+
+#### (b) `MaxStakeDuration` giữ **365 ngày** — bằng Avalanche mainnet
+
+🔴 **Hệ quả phải có NGƯỜI canh, không phải mã canh.** Trần này + `InitialStakeDuration` 365
+ngày + `InitialStakeDurationOffset` 7 ngày ⇒ **9 validator genesis hết hạn lần lượt trong một
+cửa sổ 56 ngày, bắt đầu ~365 ngày sau ngày G**. Node cuối rụng là **mạng DỪNG**; avalanchego
+không có cơ chế tự gia hạn.
+
+**Không phải lỗi.** Trần dài hơn nghĩa là khoá staking bị giam lâu hơn — đánh đổi, không phải
+cải thiện. Cái thiếu là **quy trình gia hạn**, mà quy trình không sống trong mã.
+
+⚠️ **So le 7 ngày là CỐ Ý và chính nó là hệ thống cảnh báo:** node đầu rụng ở ~ngày 309 của
+nhiệm kỳ, lúc đó 8 node còn chạy ⇒ có ~56 ngày để phản ứng, thay vì cả mạng tắt cùng lúc.
+**Đừng "dọn dẹp" offset về 0 cho đều.**
+
+⇒ Sinh ra một việc vận hành, **không** phải việc mã: dựng lịch gia hạn validator. Ngày hết hạn
+thật chỉ biết sau khi sinh genesis ngày G — đọc bằng `platform.getCurrentValidators` →
+`endTime`, **đừng tính tay**.
+
+#### (c) Phí C-Chain giữ nguyên đường cong Avalanche — và **khai ra là cố ý**
+
+Bản soát đối chiếu thì thấy A1 hạ `TxFee` xuống `MilliAvax` cho P/X (*"mạng đẻ L1, phí không
+được là rào cản với builder"*) nhưng **không chạm một tham số nào của C-Chain** — trong khi
+C-Chain mới là nơi người dùng **thật sự** giao dịch: faucet cấp 100% trên C-Chain, MetaMask
+nói chuyện với C-Chain, Blockscout index C-Chain, soak 210 TPS chạy trên C-Chain. Tức A1 hạ
+phí ở đúng lớp người dùng **ít chạm nhất**.
+
+🔴 **Sự im lặng đó không phân biệt được với bỏ sót** — và người soát lần sau sẽ phải điều tra
+lại từ đầu để tới cùng một chỗ. Nay khai thành chữ trong `genesis_9chain_a1.go`, kèm:
+
+- **Lý do giữ:** phí C-Chain đi theo **ACP-176** (đường cong động của coreth), không phải hằng
+  số để chỉnh — đổi là rời khỏi cơ chế đã kiểm chứng ở quy mô mainnet để lấy một con số chưa
+  ai đo trên A1 · soak `25/08` đo **2.272.500 tx / 210,4 TPS / 0 lỗi gửi**, p50 19ms ⇒ phí
+  hiện tại **không chặn ai** · A1 là testnet, token xin ở faucet nên phí không phải rào cản
+  kinh tế thật.
+- **Điều kiện xét lại:** có mainnet thật (phí thành kinh tế thật), **hoặc** đo được một tải mà
+  ACP-176 xử lý kém. Cả hai đều chưa xảy ra.
+- **Con trỏ:** muốn đổi thì chỗ đổi **không phải `genesis_9chain_a1.go`** — nó nằm trong chain
+  config của C-Chain (`--chain-config-dir`), và là re-genesis nếu chạm phần trong `cChainGenesis`.
+
+#### Còn mở: C-4
+
+**chainId `9000000009` cắm cứng** trong `cChainGenesis` ⇒ mạng tập và mạng thật không phân
+biệt được. **Không chạm binary** nên không chặn ngày G. Vẫn ở `BLOCKERS.md` B-11.
+
+---
+
+## 2026-08-27 · Đợt autopilot 14 (5 mốc đường găng ngày G)
+
+### D-052 — Mạng tập diễn tập có tệp compose RIÊNG, cổng 9750, KHÔNG dùng lại cổng 9650
+
+`local-net/docker-compose.drill.yml` (project `a1-drill`, volume riêng, image mặc định
+`9chain-a1/node:boottest`).
+
+**Lý do:** Blockscout local trỏ vào **9650**. Cho một mạng tập lên đó là để explorer index
+một chuỗi rồi chuỗi đó biến mất lúc `down -v` — DB explorer giữ lại block của một mạng
+không còn tồn tại, **và không có gì báo lỗi**. Bản soát core `27/08` (§9.6) đã dựng tay đúng
+sơ đồ này để boot thử patch 0013; tệp này chỉ codify lại để lần sau không phải nhớ.
+
+**Đánh đổi:** thêm một tệp compose phải giữ đồng bộ với `docker-compose.yml`. Chấp nhận, và
+giảm rủi ro bằng cách chỉ cho lệch **đúng ba chỗ** (cổng · volume · biến image); mọi tham số
+avalanchego giữ y nguyên — mạng tập lệch tham số so với mạng thật thì nó thôi là bài tập.
+
+### D-053 — Bài diễn tập Block Adam chấm bằng "quét chuỗi", KHÔNG chấm bằng "giao dịch có receipt"
+
+`local-net/faucet/block-adam-drill.mjs` chấm đạt/hỏng bằng cách **quét chuỗi tìm block đầu
+tiên có `timestamp` vượt mốc**, rồi hỏi block đó có đúng là block của giao dịch nghi lễ không.
+
+**Lý do — có số đo, không phải cẩn thận suông.** Ca đối chứng ngược "hẹn sai giờ" (bắn sớm
+12s) cho: hai giao dịch `status 1`, chuỗi đẻ ra 2 block, không lỗi ở đâu — **mà vẫn không có
+Block Adam**. Một bài kiểm hỏi *"giao dịch có chốt không"* sẽ báo ĐẠT ở đúng ca hỏng. Mệnh đề
+sẽ được khắc là mệnh đề về **chuỗi**, nên phép đo phải hỏi **chuỗi**.
+
+### D-054 — Nghi lễ bắn ở `mốc + bù`, bù > 0; con số bù là THAM SỐ, không cắm cứng
+
+Cờ `--bu-ms`, mặc định **0** (tức mặc định là hành vi *sai* đã đo được — cố ý, để ai chạy
+mặc định thì gặp đúng cái bẫy trong môi trường tập chứ không phải ngày `09/09`).
+
+**Lý do:** đo `27/08`, bắn tại giây `T` ⇒ `block.timestamp = T`, mà luật khắc đòi **vượt** mốc
+(`> T`). Bù 0 làm luật khắc và hành động nghi lễ trỏ vào **hai block khác nhau**.
+
+**Giả định phải bác được, và A1 KHÔNG tự chốt con số:** +3s đạt trên mạng tập **1 node dùng
+chung đồng hồ với máy bắn**. Trên bộ 9 node, `block.timestamp` là đồng hồ của **node đề xuất
+block**. ⇒ con số bù thật phải suy từ phép **đo lệch đồng hồ cả 9 node**, làm sau khi mạng
+ngày G lên. Cắm +3s vào runbook bây giờ là chép một con số ra khỏi thang đo của nó.
+
+### D-055 — Diễn tập chỉ phủ C-Chain; KHÔNG suy sang P-Chain
+
+**Lý do:** khuyến nghị hiện tại là C-Chain (§4 `NGAY-G-A1-CON-LAI`) và bài đo đúng chuỗi đó.
+Giao dịch nghi lễ trên P-Chain là **cơ chế khác hẳn** — export/import hoặc thao tác staking,
+không phải một `eth_sendRawTransaction`. Viết sẵn cả hai rồi bỏ một là phí, mà suy từ chuỗi
+này sang chuỗi kia là đúng lớp lỗi repo này cấm.
+**Hệ quả:** David chọn P-Chain ⇒ **phải diễn tập lại**, và phải tính thời gian trước `09/09`.
+
+### D-056 — Bộ xuất O2 giữ đúng khuôn `sha256sum`, và neo bằng một GỐC tách rời
+
+`MANIFEST.txt` = `<sha256><2 khoảng trắng><đường dẫn>` (khuôn `sha256sum`), LF tường minh.
+`GOC.txt` = `sha256` của chính `MANIFEST.txt` — **đó là con số duy nhất phải công bố**.
+
+**Lý do khuôn chuẩn:** kiểm lại được bằng `sha256sum -c` mà **không cần tin bài xuất**. Một
+bộ vật chứng chỉ kiểm được bằng chính công cụ sinh ra nó thì yếu — nó đòi người kiểm tin đúng
+thứ đang cần chứng minh. Đã chạy cả hai đường `27/08`, khớp.
+
+**Lý do có GỐC tách rời:** đối chứng ngược số 2 — sửa 1 byte **và sửa luôn manifest cho khớp**
+— cho `10 tệp khớp · 0 lệch byte`. Chỉ GỐC bắt được. Và GỐC chỉ có tác dụng khi nó **nằm
+ngoài** thư mục nó bảo vệ, nên quy trình bắt buộc bước "công bố" **trước** bước "xoá".
+
+**LF tường minh vì:** repo chạy trên Windows; CRLF đổi hash **và** làm hỏng `sha256sum -c`.
+
+### D-057 — Bộ xuất phải TỰ KHAI chỗ nó thiếu, và đếm cái ĐÃ XUẤT chứ không đếm cái ĐÃ XIN
+
+`00-DOC-TRUOC.md` liệt kê: không khôi phục được mạng · không có LevelDB/Blockscout/khoá ·
+số L1 dạng `xin N · XUẤT ĐƯỢC M` + cờ đỏ khi lệch · mọi lời gọi RPC hỏng · mọi chỗ bị
+`--toi-da-block` cắt.
+
+**Lý do — có ca thật, không phải phòng xa.** Bản đầu đếm L1 bằng **số được xin**; chạy với một
+`blockchainID` không tồn tại thì tờ đầu khai *"kèm 1 L1"* trong khi bộ xuất không có một byte
+nào của nó. **Công cụ chống nói dối suýt nói dối ở đúng chỗ nó không được phép.**
+Cùng họ với *"đường lui alias = xanh giả"* và với bài học H-6b (`git bundle verify` in "is
+okay" cho một bundle clone ngược chết ngay).
+
+### D-058 — G4 tra CẢ dải chainId của L1 người dùng, không chỉ `9000000009`
+
+`scripts/check-chainid.mjs` tra **101 số**: `9000000009` + trọn dải `9100–9199`.
+
+**Lý do:** kế hoạch (`NGAY-G-A1-CON-LAI` §7 điều 3, `HANDOFF` A-3) chỉ nêu `9000000009` — đó là
+chainId **của A1**. Nhưng console còn **phát chainId cho người khác** (`9100+`), và đó cũng là
+chainId EVM thật, cũng nằm trong ví người dùng, cũng bị EIP-155 buộc chữ ký vào.
+Nhóm thứ hai **đông hơn và chạm người thật nhiều hơn**, mà không cổng nào canh.
+**Đo ra ngay:** `9100` (số console cấp **đầu tiên**) trùng **Genesis Coin** trong sổ công khai.
+
+### D-059 — Mã thoát của G4 phân biệt "bị chiếm" với "không tra được"
+
+`1` = có chainId bị chiếm · `2` = **sổ không đáng tin, đừng kết luận gì**.
+
+**Lý do:** luật cứng #1 của repo. Trang chặn bot, bản tải cắt cụt, lỗi CDN — tất cả trả **200**,
+và khi đó *"9000000009 không thấy trong sổ"* đúng y hệt lúc sổ rỗng. Bài neo vào một mục **phải
+có** (chainId 1 = Ethereum Mainnet) + ngưỡng số mục trước khi tin bất cứ kết luận nào.
+**Đối chứng ngược:** sổ `[]` — JSON **hợp lệ hoàn hảo** — bị từ chối đúng, không ra "trống".
+Gộp hai mã thoát làm một là mất đúng thông tin cần cho ngày G.
+
+### D-060 — Giữ `chains.json` (1,1 MB) trong repo làm vật chứng, không chỉ giữ `sha256`
+
+`docs/vat-chung/g4-2026-08-27/chains.json`.
+
+**Lý do:** sổ đổi **hàng ngày**, nên chỉ giữ `sha256` là giữ một con số **không ai kiểm lại
+được** — bản gốc để đối chiếu sẽ không còn tồn tại. Vật chứng cho một quyết định **khắc vĩnh
+viễn** thì 1,1 MB một lần là rẻ, và nó làm lượt tra **tái lập được từng byte** (`--tep`).
+**Đánh đổi:** repo phình. Chấp nhận; các lượt tra sau chỉ thêm khi có phát hiện mới.
+
+### D-061 — "Lượt THẬT" = "lượt có khắc chữ"; KHÔNG thêm cờ khai báo thứ hai
+
+Cổng chainId (`netgen/chainid.go`) suy trạng thái tập/thật từ `loadEngraving() != nil`.
+
+**Lý do:** A1 đã có đúng **một** thứ chỉ xuất hiện ở lượt thật — chữ khắc, với cổng xác nhận
+vân tay + đối chiếu C1. Bắt người vận hành khai lần thứ hai cùng một sự thật là đẻ ra chỗ để
+**hai lời khai lệch nhau**, và lúc đó không cổng nào biết tin lời khai nào.
+**Đánh đổi:** một lượt sinh mạng thật **không khắc chữ** sẽ bị coi là lượt tập ⇒ ăn cảnh báo.
+Chấp nhận: theo kế hoạch ngày G, lượt thật **luôn** khắc chữ; và cảnh báo thừa rẻ hơn cổng câm.
+
+### D-062 — chainId: lượt tập chỉ CẢNH BÁO, lượt thật thì CHẶN
+
+**Lý do — bất đối xứng có chủ ý, không phải làm dở:**
+- Chặn cứng lượt tập sẽ giết đường dev quen thuộc `gen-network.sh 5`, và đổi chainId mặc định
+  của mạng dev là đổi cấu hình MetaMask/faucet/explorer của mọi người đang làm việc. Một cổng
+  chặn mà không được gì chỉ tạo ra **thói quen đi vòng** (đúng lý lẽ của `canhBaoSelfBond`).
+- Khắc chữ lên mạng mang chainId lạ là khắc **vĩnh viễn** một bản sắc sai — **không sửa được**,
+  và không ai phát hiện cho tới khi có người thật thêm mạng vào ví.
+
+⇒ **Cái sửa được thì cảnh báo. Cái không sửa được thì chặn.**
+
+### D-063 — netgen LUÔN in `chainId`, kể cả khi nó đúng
+
+**Lý do:** tới `27/08` netgen không in con số này ở đâu cả ⇒ **không lượt sinh mạng nào để lại
+dấu vết về bản sắc nó vừa phát ra**. Im lặng ở đây là cách một mạng tập đi ra ngoài dưới tên
+mạng thật mà không ai nhận ra — cùng lý lẽ đã dùng cho dòng `Chu khac: KHONG (ban tap)`.
+
+### D-064 — Console chặn chainId đã bị chiếm bằng ẢNH CHỤP, không tra mạng lúc đẻ chain
+
+`local-net/console/chainid-da-chiem.json`, sinh bằng `check-chainid.mjs --sinh-danh-sach-chan`.
+
+**Lý do:** một lời gọi HTTP ra Internet nằm **giữa đường người dùng bấm nút** là thêm một chỗ
+hỏng ngoài tầm kiểm soát — và hỏng lúc đó thì hoặc **chặn oan** một chain hợp lệ, hoặc **bỏ qua
+trong im lặng**. Cả hai đều tệ hơn một ảnh chụp cũ vài tuần.
+**Cái giá, đã trả bằng cách khai ra:** ảnh chụp cũ dần ⇒ tệp mang `ngayTra`, console **in tuổi
+của nó** lúc khởi động và cảnh báo khi quá 90 ngày.
+**Và thiếu tệp thì console KHÔNG chạy tiếp trong im lặng** — nó in `🔴 CỔNG ĐANG TẮT` kèm cách
+sinh lại. Một cổng biến mất mà chương trình vẫn chạy như thường là đúng kiểu *"xanh giả"*, và
+nó chỉ lộ ra khi có người thật nhận chainId trùng.
+
+### D-065 — Sinh lại TOÀN BỘ patch series, không chỉ thêm patch mới
+
+Lượt `27/08` regenerate cả 15 patch bằng `git format-patch --no-signature 1cf1fc3..9chain-a1`.
+
+**Lý do:** 0013 và 0014 trên đĩa vẫn mang tiêu đề `[PATCH nn/12]` — tức chúng được **thêm vào**
+chứ không sinh cùng bộ, nên bộ tự khai sai số lượng của chính mình. Nội dung không đổi (đã so
+diff: chỉ đúng dòng `Subject` của 14 tệp), nhưng một bộ vật liệu tái lập mà **tự đếm sai** là
+thứ người sau sẽ tin nhầm.
+**Nghiệm thu:** 15 patch lên `1cf1fc3` → tree **`df68a7d7`**, khớp cây fork từng byte; đối chứng
+ngược áp **14/15** → tree `4c5d5b1e` ≠ ⇒ phép đo phân biệt được bản đủ với bản thiếu.
+
+### D-066 — Endpoint cung KHÔNG giả vờ mọi con số đều đo được: mỗi trường mang `source` riêng
+
+`GET /api/supply` gắn cho từng trường một trong bốn nguồn: `measured` (kèm tên lệnh RPC) ·
+`binary-constant` · `derived` (kèm công thức) · `genesis-parameter`.
+
+**Lý do:** luật cứng của 9Scan-A1 là *"số công bố phải đọc từ chain thật"*, nhưng **tổng cung
+9.000.000.000 không đọc được từ bất kỳ lệnh RPC nào** — `platform.getCurrentSupply` chỉ đếm X/P
+(phát hiện P0, đã đo trên node đang chạy), và `SupplyCap` là hằng số biên dịch vào binary.
+Một endpoint trả `totalSupply: 9000000000` rồi im lặng về xuất xứ sẽ **đúng số nhưng sai bản
+chất**: nó dựng lên vẻ ngoài *"đọc từ chain"* cho một **phép cộng** của hằng số binary với một
+số đo được. Khai nguồn ra là cách duy nhất vừa phục vụ được luật đó vừa không nói dối nó.
+
+**Hệ quả tốt ngoài dự tính:** phát hiện P0 nay nằm **ngay trong phản hồi** — hai con số đứng
+cạnh nhau kèm câu *"cái này không đếm cái kia"* — thay vì nằm trong một tài liệu ai đó phải nhớ.
+
+### D-067 — `cung.json` là BẢN KHAI, không phải nguồn sự thật; endpoint phải tự đo rồi SO LẠI
+
+**Lý do:** một endpoint đọc tệp JSON rồi in lại thì **vẫn chỉ là gõ hằng số vào giao diện**,
+chỉ khác là hằng số nay đi qua một tệp. Nên `cung.json` chỉ nói *"đo cái gì, ở đâu"*; endpoint
+đo `eth_getBalance` từng địa chỉ ở **block 0** và trả `manifestMatchesChain` + `mismatches`.
+**Và `totalSupply` suy từ số ĐO ĐƯỢC, không từ số khai** ⇒ sửa `cung.json` không đẩy được con
+số công bố lên, chỉ làm cổng đỏ. Đã đối chứng ngược: sửa bản khai ⇒ nêu đích danh địa chỉ lệch,
+`totalSupply` vẫn đúng.
+
+⚠️ Đo ở **block 0**, không phải `latest`: ta hỏi *"genesis đã phát hành bao nhiêu"*, không hỏi
+*"bây giờ còn bao nhiêu"*. Hai câu khác nhau ngay khi có người tiêu tiền, và trộn chúng là cách
+một trang tokenomics từ từ thành một trang số dư ví.
+
+### D-068 — Thiếu bản khai ⇒ `/api/supply` trả **503**, KHÔNG dùng số mặc định
+
+**Lý do:** đường dễ hơn là *"thiếu tệp thì lấy hằng số dự phòng"*. **Một endpoint cung trả về
+số bịa còn tệ hơn một endpoint không trả gì** — số bịa sẽ được chép đi, và không ai biết nó
+không phải số đo. Hỏng **có phạm vi**: `/api/info` và `/api/drip` vẫn chạy bình thường, đã đối
+chứng.
+
+### D-069 — **Gốc dải chainId cho L1 người dùng: `9100` → `9000000010`**
+
+**David chốt `2026-08-27`** (đóng B-14). Console tự cấp chainId bắt đầu từ **`9000000010`** =
+chainId của A1 (`9000000009`) **+ 1**. `local-net/lib/chainid.mjs`.
+
+**Vì sao dải cũ phải bỏ:** tra sổ công khai `27/08` cho thấy **`9100` = Genesis Coin** — số
+console cấp **ĐẦU TIÊN** trùng một chuỗi có thật, và điều đó **đã xảy ra rồi** (chain
+`OwnerTest` nhận 9100 hai lần). Trong 100 số đầu của dải cũ còn `9108` · `9134` · `9170`.
+
+**Vì sao gốc mới tốt hơn cả ba đường A1 đề xuất** (9146 / 9100 / "dải khác"):
+
+| | |
+|---|---|
+| **Vùng trống** | đo trên sổ `27/08` (2.725 mục): **không một chuỗi nào trong bán kính 10 triệu** quanh 9000000009. Dải cũ có 4/100 số đầu đã có chủ |
+| **Bản sắc** | mọi chain thuộc A1 cùng mở đầu `9000000…` |
+| **Trần EIP-2294** | `2^53-1` = 9.007.199.254.740.991 ⇒ còn **9.007.190.254.740.981** số trống trên gốc dải |
+
+🔴 **Cái được lớn nhất, và nó KHÔNG nằm trong câu hỏi ban đầu:** dải cũ `9100–9145` từ nay
+**không bao giờ được tự cấp lại**, nên ví của người từng dùng L1 cũ không thể lặng lẽ trỏ vào
+L1 của người mới. Lỗ phát lại mà §5c định vá **bằng sổ** nay được đóng **bằng kiến trúc**.
+
+⚠️ **Đừng đọc thành "§5c đã đóng".** Chỉ đóng **nửa `chainId`, và chỉ đường TỰ CẤP**:
+- người dùng vẫn **tự nhập** được `9102` — chặn nó vẫn dựa vào `state.retired`;
+- trùng **TÊN** thì hoàn toàn không đụng tới (`createChain` kiểm tên trên `chains ∪ retired`).
+
+⚠️ **Đánh đổi đã biết, có chủ ý:** `9000000010` và `9000000009` khác nhau **đúng một chữ số
+cuối** ⇒ người ĐỌC dễ lẫn. Ví thì không lẫn (EIP-155 buộc chữ ký vào đúng số). Hư hại tối đa
+là nối nhầm mạng và thấy số dư lạ — **không** mất tiền, **không** phát lại được chữ ký.
+
+**Nghiệm thu:** `local-net/console/chainid-test.mjs` — **13 đạt / 0 hỏng**, bài `import` mã
+thật (`lib/chainid.mjs`) và đọc danh sách chặn thật, **không chép công thức**. Bốn ca đối
+chứng ngược trên `check-chainid.mjs` đỏ đúng chỗ (`--them 9100` · `--them 1` · sổ cắt cụt ·
+danh sách chặn rỗng).
+
+### D-069b — Danh sách chặn giữ **CẢ dải cũ** `9100–9999`, cố ý
+
+Sinh mặc định trên **hai dải**: `9100–9999` + `9000000010–9000009999`.
+
+**Lý do 1 — vẫn cần thật:** người dùng tự nhập được số trong dải cũ.
+**Lý do 2, đắt hơn:** dải mới **trống hoàn toàn** ⇒ sinh riêng nó ra tệp `daBiChiem: []`. Một
+danh sách chặn **RỖNG không phân biệt được với một bộ sinh HỎNG** — cả hai cho ra cùng một
+tệp, và console nạp xong in "0 số" ở cả hai trường hợp. Giữ dải cũ cho tệp một **nội dung
+khác rỗng đã biết trước** (51 số, trong đó `9100 = Genesis Coin` làm neo) ⇒ **tệp rỗng từ nay
+là tín hiệu HỎNG**, không phải trạng thái bình thường.
+
+⇒ Kèm hai cổng: bộ sinh **từ chối ghi** tệp rỗng (exit 2); console **kêu to** nếu nạp phải
+danh sách rỗng. Đã đối chứng ngược cả hai.
+
+### D-069c — `check-chainid.mjs` bỏ dải cũ khỏi `CAN_TRA`, KHÔNG phải vì nó sạch
+
+`CAN_TRA` nay là `9000000009` + `9000000010–9000000109`. Dải cũ ra ngoài **dù nó có 4 số bị
+chiếm thật**.
+
+**Lý do:** `CAN_TRA` mang nghĩa *"số A1 định dùng — bị chiếm là ĐỎ"*. Sau D-069 console không
+cấp trong dải đó nữa, nên để lại là làm bài **luôn luôn đỏ**, mà **một cổng đỏ vĩnh viễn là
+một cổng không ai còn đọc**. Dải cũ đổi vai sang **danh sách chặn**: thông tin, không phải
+báo động. Trước lượt này bài thoát `1` ở mọi lần chạy bình thường; nay thoát `0`, tức mã
+thoát lấy lại được nghĩa cho ngày G.
+
+### D-070 — **Block Adam neo vào HASH GIAO DỊCH NGHI LỄ**, không vào "block đầu tiên vượt mốc"
+
+**David chốt `2026-08-27`** (đóng B-13(a)).
+
+**Lý do:** luật cũ — *"block **đầu tiên** vượt `2026-09-09T06:09:09Z`"* — là mệnh đề về
+**TOÀN CHUỖI**, mà nghi lễ chỉ điều khiển được **giao dịch của mình**. Ai gửi một giao dịch
+vào khoảng giữa mốc và lúc ta bắn là **chiếm mất ô đó, không giành lại được** — và thứ đã
+khắc thì vĩnh viễn. Hash giao dịch là thứ nghi lễ **cầm được**.
+
+**Hệ quả lên bài diễn tập** (`local-net/faucet/block-adam-drill.mjs`):
+
+| | trước | sau |
+|---|---|---|
+| ô mạnh nhất | "block đầu tiên vượt mốc CHÍNH LÀ block của Adam" | 🔴 **"đưa hash cho chuỗi, chuỗi trả lại đúng giao dịch đó"** |
+| ô cũ | ✓/✗ | **⚠️ lưu ý** — không tính đạt/hỏng |
+
+🔴 **Neo phải nghiệm thu bằng đường NGƯỢC.** Đọc `rcAdam.hash` từ biến trong tay mình rồi
+khai *"neo đọc được"* là **tự hỏi chính mình**. Bài nay đưa hash cho chuỗi và bắt chuỗi trả
+lại giao dịch. Cùng lớp lỗi với bộ xuất O2 khai *"kèm 1 L1"* khi không có byte nào (D-057).
+
+**Vì sao ô cũ xuống hạng chứ không bị xoá:** xoá là mất luôn phép đo độ lệch đồng hồ mà
+B-13(b) cần; giữ ở hạng ✗ là để bài **báo đỏ ở một lượt không có gì sai**, mà một cổng kêu
+oan là một cổng sẽ bị bỏ qua đúng lúc nó kêu thật.
+
+**Nghiệm thu — chạy thật trên mạng tập `27/08`** (`a1-drill`, cổng 9750, chainId 9000000009):
+
+| lượt | kết quả |
+|---|---|
+| `--bu-ms 3000` | **10 đạt · 0 hỏng · 2 lưu ý (0 không đạt)** |
+| 🔴 `--bu-ms 0` — **ca mà bản cũ chấm ✗** | **10 đạt · 0 hỏng · 2 lưu ý (2 KHÔNG đạt)**, exit 0. Block đầu tiên vượt mốc là của **Eva `#4`**, Adam ở `#3` — neo vẫn trỏ đúng `#3` |
+| `--khong-gui` (đối chứng ngược gốc) | 2 đạt · 0 hỏng, exit 0 |
+
+Vật chứng: `docs/vat-chung/block-adam-neo-2026-08-27.json` + `…-bu0-2026-08-27.json`.
+
+🔴 **D-070 HẠ MỨC B-13(b), KHÔNG ĐÓNG NÓ.** Bù `--bu-ms` thôi quyết định *"neo đúng hay sai"*,
+nhưng nếu bản khắc còn **CÂU CHỮ** khẳng định block vượt mốc `2026-09-09T06:09:09Z` thì câu đó
+vẫn phải đúng, và nó vẫn phụ thuộc đồng hồ của **node đề xuất block**. ⇒ vẫn phải đo lệch
+đồng hồ 9 node **sau khi mạng ngày G lên**. Câu chữ chốt cùng lượt C1 đóng băng byte.
+
+⚠️ **Nếu David đổi sang P-Chain thì phải diễn tập lại** — D-055 không đổi.

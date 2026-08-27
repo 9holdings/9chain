@@ -1,7 +1,7 @@
 From e46465cc1a587eb2f4de01cf82872a9dffb7df14 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Mon, 24 Aug 2026 22:56:58 +0400
-Subject: [PATCH 03/12] 9chain-a1: bo cong cu chu quyen (netgen, cli,
+Subject: [PATCH 03/16] 9chain-a1: bo cong cu chu quyen (netgen, cli,
  create-l1, xp-wallet, keygen)
 
 1079 dong Go, truoc commit nay la file UNTRACKED -> `git clean -fd` la mat sach.

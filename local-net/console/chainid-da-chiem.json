@@ -1,0 +1,224 @@
+{
+  "_doc": "Danh sách chainId ĐÃ BỊ CHIẾM trong sổ công khai, dùng cho console lúc cấp chainId cho L1 người dùng. SINH TỰ ĐỘNG — đừng sửa tay, chạy lại scripts/check-chainid.mjs --sinh-danh-sach-chan.",
+  "nguon": "https://chainid.network/chains.json",
+  "ngayTra": "2026-08-27T11:22:10.304Z",
+  "sha256Nguon": "455782264d74b7d4cba4a9f6531280ecb3e74c63d9190d5a283e1ef1def67693",
+  "soMucTrongSo": 2725,
+  "dais": [
+    [
+      9100,
+      9999
+    ],
+    [
+      9000000010,
+      9000009999
+    ]
+  ],
+  "soBiChiem": 51,
+  "daBiChiem": [
+    {
+      "chainId": 9100,
+      "ten": "Genesis Coin"
+    },
+    {
+      "chainId": 9108,
+      "ten": "Destra Dubai Testnet"
+    },
+    {
+      "chainId": 9134,
+      "ten": "GIWA"
+    },
+    {
+      "chainId": 9170,
+      "ten": "Rinia Testnet Old"
+    },
+    {
+      "chainId": 9223,
+      "ten": "Codefin Mainnet"
+    },
+    {
+      "chainId": 9302,
+      "ten": "Galactica-Reticulum"
+    },
+    {
+      "chainId": 9339,
+      "ten": "Dogcoin Testnet"
+    },
+    {
+      "chainId": 9369,
+      "ten": "Z Chain"
+    },
+    {
+      "chainId": 9372,
+      "ten": "Oasys Testnet"
+    },
+    {
+      "chainId": 9393,
+      "ten": "Dela Sepolia Testnet"
+    },
+    {
+      "chainId": 9395,
+      "ten": "Evoke Mainnet"
+    },
+    {
+      "chainId": 9496,
+      "ten": "Load Alphanet"
+    },
+    {
+      "chainId": 9511,
+      "ten": "Colossus Sepolia Testnet"
+    },
+    {
+      "chainId": 9527,
+      "ten": "Rangers Protocol Testnet Robin"
+    },
+    {
+      "chainId": 9528,
+      "ten": "QEasyWeb3 Testnet"
+    },
+    {
+      "chainId": 9559,
+      "ten": "Neonlink Testnet"
+    },
+    {
+      "chainId": 9696,
+      "ten": "Rebus Mainnet"
+    },
+    {
+      "chainId": 9700,
+      "ten": "Oort MainnetDev"
+    },
+    {
+      "chainId": 9728,
+      "ten": "Boba BNB Testnet"
+    },
+    {
+      "chainId": 9745,
+      "ten": "Plasma Mainnet"
+    },
+    {
+      "chainId": 9746,
+      "ten": "Plasma Testnet"
+    },
+    {
+      "chainId": 9747,
+      "ten": "Plasma Devnet"
+    },
+    {
+      "chainId": 9768,
+      "ten": "MainnetZ Testnet"
+    },
+    {
+      "chainId": 9770,
+      "ten": "Nepachain"
+    },
+    {
+      "chainId": 9779,
+      "ten": "PepeNetwork Mainnet"
+    },
+    {
+      "chainId": 9788,
+      "ten": "Tabi Testnetv2"
+    },
+    {
+      "chainId": 9789,
+      "ten": "Tabi Testnet"
+    },
+    {
+      "chainId": 9790,
+      "ten": "Carbon EVM"
+    },
+    {
+      "chainId": 9792,
+      "ten": "Carbon EVM Testnet"
+    },
+    {
+      "chainId": 9797,
+      "ten": "OptimusZ7 Mainnet"
+    },
+    {
+      "chainId": 9818,
+      "ten": "IMPERIUM TESTNET"
+    },
+    {
+      "chainId": 9819,
+      "ten": "IMPERIUM MAINNET"
+    },
+    {
+      "chainId": 9876,
+      "ten": "BinaryChain Testnet"
+    },
+    {
+      "chainId": 9888,
+      "ten": "Dogelayer Mainnet"
+    },
+    {
+      "chainId": 9889,
+      "ten": "pointledger"
+    },
+    {
+      "chainId": 9897,
+      "ten": "arena-z-testnet-deprecated"
+    },
+    {
+      "chainId": 9898,
+      "ten": "Larissa Chain"
+    },
+    {
+      "chainId": 9899,
+      "ten": "Arena-Z-Testnet"
+    },
+    {
+      "chainId": 9901,
+      "ten": "Zytron Linea Mainnet"
+    },
+    {
+      "chainId": 9911,
+      "ten": "Espento Mainnet"
+    },
+    {
+      "chainId": 9922,
+      "ten": "JingleX L2"
+    },
+    {
+      "chainId": 9966,
+      "ten": "UXER TESTNET NETWORK"
+    },
+    {
+      "chainId": 9977,
+      "ten": "Mind Smart Chain Testnet"
+    },
+    {
+      "chainId": 9980,
+      "ten": "Combo Mainnet"
+    },
+    {
+      "chainId": 9981,
+      "ten": "Volley Mainnet"
+    },
+    {
+      "chainId": 9982,
+      "ten": "MFEV CHAIN MAINNET"
+    },
+    {
+      "chainId": 9990,
+      "ten": "Agung Network"
+    },
+    {
+      "chainId": 9996,
+      "ten": "Mind Smart Chain Mainnet"
+    },
+    {
+      "chainId": 9997,
+      "ten": "AltLayer Testnet"
+    },
+    {
+      "chainId": 9998,
+      "ten": "Ztc Mainnet"
+    },
+    {
+      "chainId": 9999,
+      "ten": "myOwn Testnet"
+    }
+  ]
+}

@@ -8,6 +8,7 @@
 //   FAUCET_COOLDOWN_MS  chống spam mỗi địa chỉ (mặc định 60000)
 //   PORT         (mặc định 8080)
 import http from "node:http";
+import { readFileSync } from "node:fs";
 import { ethers } from "ethers";
 import { clientIp, rateLimit, serialQueue } from "../lib/guard.mjs";
 
@@ -75,6 +76,116 @@ function send(res, code, obj, retryAfter) {
   res.end(JSON.stringify(obj));
 }
 
+// ═══════════════════ I1b — cung, kèm nguồn của từng con số ═══════════════════
+//
+// Bản khai do netgen sinh (`<net>/cung.json`). KHÔNG phải nguồn sự thật — nó chỉ nói
+// **đo cái gì, ở đâu**. Chỗ nào đo được thì dưới đây đo lại và **so**.
+const CUNG_FILE = process.env.A1_CUNG_FILE ||
+  new URL("../net/cung.json", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
+// P-Chain suy từ RPC của C-Chain. Cho phép ghi đè: faucet của một L1 trỏ vào chuỗi khác,
+// và lúc đó suy ra sẽ sai.
+const PCHAIN_RPC = process.env.A1_PCHAIN_RPC ||
+  (RPC.includes("/ext/bc/") ? RPC.replace(/\/ext\/bc\/.*$/, "/ext/bc/P") : null);
+
+let cungKhai = null, cungLoi = null;
+try {
+  cungKhai = JSON.parse(readFileSync(CUNG_FILE, "utf8"));
+  console.log(`[cung] bản khai: ${CUNG_FILE} — networkID ${cungKhai.networkID}, ${cungKhai.cChainAllocations?.length ?? 0} địa chỉ C-Chain`);
+} catch (e) {
+  // 🔴 KHÔNG im lặng, và KHÔNG bịa số thay. Thiếu bản khai thì `/api/supply` trả 503 —
+  // một endpoint cung trả về số bịa còn tệ hơn một endpoint không trả gì.
+  cungLoi = String(e?.message ?? e);
+  console.log(`[cung] 🔴 KHÔNG đọc được ${CUNG_FILE} (${cungLoi})`);
+  console.log(`[cung] 🔴 /api/supply sẽ trả 503. Bản khai do netgen sinh cùng genesis —`);
+  console.log(`[cung]    sinh lại: bash local-net/gen-network.sh <N>, rồi mount cả cung.json.`);
+}
+
+async function rpcP(method, params = {}) {
+  const r = await fetch(PCHAIN_RPC, {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+  });
+  const j = await r.json();
+  if (j.error) throw new Error(`${method}: ${j.error.message ?? JSON.stringify(j.error)}`);
+  return j.result;
+}
+
+/** nLOVE9 (chuỗi) -> "9,000,000,000" phần nguyên. Không làm tròn, không dùng Number:
+ *  9e18 vượt MAX_SAFE_INTEGER, và làm tròn im lặng ở đây là đúng lớp lỗi trang này canh. */
+function love9(nLove9) {
+  const n = BigInt(nLove9) / 1_000_000_000n;
+  return n.toLocaleString("en-US");
+}
+
+async function doCung() {
+  if (!cungKhai) throw new Error(`thiếu bản khai cung (${cungLoi})`);
+  if (!PCHAIN_RPC) throw new Error("không suy được RPC của P-Chain từ FAUCET_RPC; đặt A1_PCHAIN_RPC");
+
+  const lech = [];
+
+  // ── ĐO 1: X/P đang lưu hành. Đây là con số DUY NHẤT về cung mà RPC trả về thẳng.
+  const cs = await rpcP("platform.getCurrentSupply", { subnetID: "11111111111111111111111111111111LpoYY" });
+  const xpHienTai = BigInt(cs.supply);
+
+  // ── ĐO 2: phần C-Chain, đọc SỐ DƯ TẠI BLOCK 0 của từng địa chỉ trong bản khai.
+  // Block 0 chứ không phải "latest": ta hỏi *"genesis đã phát hành bao nhiêu"*, không hỏi
+  // *"bây giờ còn bao nhiêu"*. Hai câu đó khác nhau ngay khi có người tiêu tiền.
+  const dsC = cungKhai.cChainAllocations ?? [];
+  let cTong = 0n;
+  const cChiTiet = [];
+  for (const a of dsC) {
+    const soDuWei = await provider.getBalance(a.address, 0);
+    const khaiWei = BigInt(a.wei);
+    if (soDuWei !== khaiWei) lech.push(`${a.bucket} (${a.address}): khai ${khaiWei} wei, đo ${soDuWei} wei`);
+    cTong += soDuWei;
+    cChiTiet.push({ bucket: a.bucket, name: a.name, address: a.address, weiAtBlock0: soDuWei.toString(), matchesManifest: soDuWei === khaiWei });
+  }
+  const cTongNLove9 = cTong / 1_000_000_000n; // wei (18) -> nLOVE9 (9)
+  if (cTongNLove9.toString() !== String(cungKhai.cChainGenesis?.nLove9)) {
+    lech.push(`cChainGenesis: khai ${cungKhai.cChainGenesis?.nLove9}, đo ${cTongNLove9}`);
+  }
+
+  // ── SUY: tổng cung. KHÔNG có RPC nào trả về nó.
+  const tranXP = BigInt(cungKhai.xpSupplyCap.nLove9);
+  const tongCung = tranXP + cTongNLove9;
+  if (tongCung.toString() !== String(cungKhai.totalSupply?.nLove9)) {
+    lech.push(`totalSupply: khai ${cungKhai.totalSupply?.nLove9}, suy ra ${tongCung}`);
+  }
+
+  return {
+    unit: "nLOVE9 (9 decimals)",
+    measuredAt: new Date().toISOString(),
+    rpc: { cChain: RPC, pChain: PCHAIN_RPC },
+
+    xpCurrentSupply: {
+      nLove9: xpHienTai.toString(), love9: love9(xpHienTai),
+      source: "measured", method: "platform.getCurrentSupply",
+      note: "CHI dem X/P. KHONG dem phan phat hanh thang tren C-Chain — xem cChainGenesis.",
+    },
+    cChainGenesis: {
+      nLove9: cTongNLove9.toString(), love9: love9(cTongNLove9),
+      source: "measured", method: `eth_getBalance(addr, "0x0") cong theo ${dsC.length} dia chi`,
+      note: "Ton tai that tren chain, nhung platform.getCurrentSupply KHONG BAO GIO dem toi.",
+      addresses: cChiTiet,
+    },
+    xpSupplyCap: {
+      nLove9: tranXP.toString(), love9: love9(tranXP),
+      source: "binary-constant", where: cungKhai.xpSupplyCap.where,
+      note: "Hang so bien dich vao binary. KHONG mot lenh RPC nao tra ve no.",
+    },
+    totalSupply: {
+      nLove9: tongCung.toString(), love9: love9(tongCung),
+      source: "derived", formula: "xpSupplyCap + cChainGenesis",
+      note: "Con so cong bo. KHONG mot lenh RPC nao tra ve no — no la mot PHEP CONG cua mot hang so binary voi mot so do duoc.",
+    },
+
+    // 🔴 Ô quan trọng nhất của endpoint này.
+    manifestMatchesChain: lech.length === 0,
+    mismatches: lech,
+    manifest: { networkID: cungKhai.networkID, cChainId: cungKhai.cChainId, file: CUNG_FILE },
+  };
+}
+
 const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && req.url === "/") return send(res, 200, CHI_CHO);
   if (req.method === "GET" && req.url === "/health") return send(res, 200, { ok: true });
@@ -107,6 +218,32 @@ const server = http.createServer(async (req, res) => {
       perIp: { remaining: p.remaining, max: p.max, windowHours: p.windowMs / 3600_000, retryAfter: p.retryAfter },
       global: { remaining: g.remaining, max: g.max },
     });
+  }
+
+  // ═══ I1b — CUNG, VÀ MỖI CON SỐ MANG THEO NGUỒN CỦA NÓ ═══
+  //
+  // Luật cứng của 9Scan-A1: *"số công bố phải đọc từ chain thật"*. In trần một con số mà
+  // không có endpoint là **gõ hằng số vào giao diện**.
+  //
+  // 🔴 Nhưng có một sự thật không thể chiều theo luật đó: **tổng cung 9.000.000.000 KHÔNG
+  // đọc được từ bất kỳ lệnh RPC nào.** `platform.getCurrentSupply` chỉ đếm X/P — nó **không
+  // bao giờ** đếm 1.099.999.999 LOVE9 phát hành thẳng trên C-Chain (phát hiện P0, bản soát
+  // core `27/08`, đã đo trên node đang chạy). Và `SupplyCap` là **hằng số biên dịch vào
+  // binary**, không có endpoint nào trả về nó.
+  //
+  // ⇒ Endpoint này **không giả vờ** mọi con số đều đo được. Mỗi trường mang `source`:
+  //     measured          — vừa đo bằng RPC, kèm tên lệnh
+  //     genesis-parameter — tham số genesis; đo lại được, và ở đây ĐÃ đo lại
+  //     binary-constant   — hằng số trong binary, KHÔNG đo được từ RPC
+  //     derived           — suy ra, kèm công thức
+  // Và nó **so bản khai với phép đo**, rồi nói ra khi lệch. Một endpoint đọc tệp JSON rồi
+  // in lại thì vẫn chỉ là gõ hằng số, chỉ khác là hằng số nay đi qua một tệp.
+  if (req.method === "GET" && req.url === "/api/supply") {
+    try {
+      return send(res, 200, await doCung());
+    } catch (e) {
+      return send(res, 503, { error: "khong doc duoc cung", detail: String(e?.message ?? e) });
+    }
   }
 
   if (req.method === "POST" && req.url === "/api/drip") {

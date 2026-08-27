@@ -1,11 +1,31 @@
 # 9Chain-A1 — mạng dev 1 node (PoC) + hỗ trợ chạy L1 EVM tuỳ chỉnh.
 #
+#   bash local-net/gen-network.sh 5        # BẮT BUỘC chạy trước, sinh local-net/net/
 #   docker compose -f local-net/docker-compose.yml up -d --build
 #
 # API: http://localhost:9650   |   Health: http://localhost:9650/ext/health
 #
 # Sau khi tạo L1 bằng create-l1, đặt A1_TRACK_SUBNETS=<subnetID> rồi
 # `up -d` lại để node nạp VM love9evm và mở RPC của L1.
+#
+# ═══ 🔴 GENESIS ĐẾN TỪ NETGEN, KHÔNG CÒN TỪ `9chain-a1-config/` ═══
+#
+# Tới `2026-08-27` tệp này boot bằng `9chain-a1-config/genesis.json` — mà tệp đó là
+# `genesis_local.json` GỐC CỦA AVALANCHE, chỉ đổi đúng một trường `networkID`:
+#   · 3 địa chỉ `X-local1…` là địa chỉ local chuẩn, KHOÁ RIÊNG NẰM TRONG REPO avalanchego
+#   · `cChainGenesis.alloc` cấp **50.000.000** cho khoá **ewoq** công khai
+#   · `NodeID-7Xhw2mDxuDS44j42TCB6U5579esbSt3Lg` — node local gốc, khoá cũng công khai
+#   · HRP `local` trong khi binary nay phục vụ `love9`
+#   · stake hết hạn `2025-07-15`
+# Mạng công khai KHÔNG dùng nó (netgen dựng genesis trong Go), nhưng đường dev thì có
+# — và tệ hơn: `up-all.sh` lấy khoá faucet từ `local-net/net/faucet.env` do netgen sinh,
+# tức node dev và ví faucet dev **thuộc hai mạng khác nhau**, ví luôn rỗng.
+#
+# Nay cả hai lấy từ CÙNG một bộ `local-net/net/`. Xem docs/CORE-AUDIT-2026-08-27.md §7b.
+#
+# ⚠️ `local-net/net/` KHÔNG được commit (`.gitignore`) — khoá 5 quỹ nằm trong đó. Thiếu
+# nó thì `up-all.sh` / `create-l1.sh` dừng và bảo chạy `gen-network.sh`, thay vì boot
+# một mạng lạ.
 services:
   9chain-a1-node:
     image: 9chain-a1/node:dev
@@ -18,7 +38,12 @@ services:
       - "9650:9650"   # HTTP API (RPC)
       - "9651:9651"   # P2P / staking
     volumes:
-      - ../9chain-a1-config:/9chain-a1/config:ro   # genesis.json + l1-evm-genesis.json
+      # CHỈ còn l1-evm-genesis.json (khuôn genesis cho L1 EVM, create-l1 đọc).
+      # genesis.json của mạng KHÔNG còn ở đây — xem khối chú thích đầu tệp.
+      - ../9chain-a1-config:/9chain-a1/config:ro
+      # Bộ vật liệu do netgen sinh. Chỉ cần genesis.json cho node 1-node dev;
+      # staker.key không cần vì --sybil-protection-enabled=false.
+      - ./net:/9chain-a1/net:ro
       - 9chain-a1-data:/root/.avalanchego
     environment:
       # avalanchego đọc flag qua biến AVAGO_*. Rỗng = không track subnet nào.
@@ -26,7 +51,7 @@ services:
     command:
       - ./avalanchego
       - --network-id=9001                              # mạng chủ quyền 9Chain-A1
-      - --genesis-file=/9chain-a1/config/genesis.json    # genesis 9Chain-A1 (token LOVE9)
+      - --genesis-file=/9chain-a1/net/genesis.json       # do netgen sinh — KHÔNG phải config/
       - --plugin-dir=/9chain-a1/build/plugins            # nơi chứa VM plugin love9evm
       - --sybil-protection-enabled=false                 # 1 node dev
       - --http-host=0.0.0.0

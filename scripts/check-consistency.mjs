@@ -26,7 +26,48 @@
  *   node scripts/check-consistency.mjs --tu-kiem  # đối chứng ngược
  */
 
+import { readFileSync } from "node:fs";
+
 const U64_MAX = (1n << 64n) - 1n;
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ĐỌC `SupplyCap` THẲNG TỪ GO — patch 0013.
+//
+// 🔴 VÌ SAO: HANDOFF đã cảnh báo cổng này "giữ bảng số riêng bằng JS, không đọc
+// một dòng Go nào". Đúng, và tới `27/08` bản chép tay đó ĐÃ TRÔI LỆCH THẬT: cổng
+// vẫn khẳng định `SupplyCap = 9,000,000,000` trong khi binary đã đổi sang
+// 7,900,000,001. Một cổng khẳng định một hằng số không còn tồn tại thì tệ hơn là
+// không có cổng — nó cho người ta niềm tin sai.
+//
+// Nay số này KHÔNG còn được chép: đọc từ chính tệp mà node biên dịch. Bảng JS
+// bên dưới giữ những thứ Go không khai (tổng cung công bố, %, chia nhỏ) — đó là
+// phần cổng này thật sự có việc để làm.
+// ═════════════════════════════════════════════════════════════════════════════
+const HE_SO_UNITS = { Avax: 1n, KiloAvax: 1_000n, MegaAvax: 1_000_000n };
+const GO_SUPPLY_CAP = new URL(
+  "../upstream/avalanchego/genesis/genesis_9chain_a1.go",
+  import.meta.url,
+);
+
+function docSupplyCapTuGo() {
+  let src;
+  try {
+    src = readFileSync(GO_SUPPLY_CAP, "utf8");
+  } catch (e) {
+    return { love9: null, vi: `không đọc được ${GO_SUPPLY_CAP.pathname}: ${e.code ?? e.message}` };
+  }
+  // Chỉ khớp DÒNG GÁN, không khớp chú thích: neo `SupplyCap:` ở đầu dòng (sau
+  // khoảng trắng) và đòi dấu phẩy cuối. Khối chú thích phía trên nhắc `SupplyCap`
+  // nhiều lần; khớp nhầm vào đó là đọc ra số của một ví dụ.
+  const m = src.match(/^\s*SupplyCap:\s*([0-9_]+)\s*\*\s*units\.(Avax|KiloAvax|MegaAvax)\s*,/m);
+  if (!m) {
+    return { love9: null, vi: "không tìm thấy dòng gán `SupplyCap: <số> * units.<đơn vị>,`" };
+  }
+  const so = BigInt(m[1].replace(/_/g, ""));
+  return { love9: so * HE_SO_UNITS[m[2]], vi: `${m[1]} * units.${m[2]}` };
+}
+
+const SUPPLY_CAP_GO = docSupplyCapTuGo();
 
 // ═════════════════════════════════════════════════════════════════════════════
 // BẢNG SỐ — nguồn duy nhất. Sửa ở đây rồi mới sửa Go, và chạy cổng này trước.
@@ -35,24 +76,35 @@ const U64_MAX = (1n << 64n) - 1n;
 export const THANG = 1_000_000_000n; // 1 LOVE9 = 1e9 đơn vị P/X (D-039: GIỮ NGUYÊN)
 
 export const BANG = {
-  tongCung: 9_000_000_000n, // D-039
+  tongCung: 9_000_000_000n, // D-039 — TỔNG CUNG CÔNG BỐ, khác `supplyCap` bên dưới
+  // `supplyCap` = trần của `currentSupply` trên P-Chain, ĐỌC TỪ GO, không chép.
+  // Nó nhỏ hơn `tongCung` đúng bằng phần phát hành thẳng trên C-Chain — xem
+  // ràng buộc 6b và khối chú thích ở `genesis/genesis_9chain_a1.go`.
+  supplyCap: SUPPLY_CAP_GO.love9,
+  supplyCapNguon: SUPPLY_CAP_GO.vi,
   quy: [
-    { ten: "Team", pct: 9, love9: 810_000_000n, capOGenesis: true },
-    { ten: "Private Sale", pct: 9, love9: 810_000_000n, capOGenesis: true },
+    { ten: "Team", pct: 9, love9: 810_000_000n, capOGenesis: true, cChain: 0n },
+    { ten: "Private Sale", pct: 9, love9: 810_000_000n, capOGenesis: true, cChain: 0n },
     { ten: "Foundation", pct: 12, love9: 1_080_000_000n, capOGenesis: true },
     { ten: "Community", pct: 30, love9: 2_700_000_000n, capOGenesis: true },
     // 🔴 KHÔNG cấp ở genesis — đây là quỹ mint dần. Xem D-042.
-    { ten: "Staking Rewards", pct: 40, love9: 3_600_000_000n, capOGenesis: false },
+    { ten: "Staking Rewards", pct: 40, love9: 3_600_000_000n, capOGenesis: false, cChain: 0n },
   ],
   // Chia nhỏ bên trong một quỹ. Tổng phải khớp đúng số của quỹ đó.
+  //
+  // 🔴 `cChain` = phần phát hành THẲNG trên C-Chain. Bắt buộc khai ở MỌI mục, kể
+  // cả khi bằng 0: `Config.InitialSupply()` không đếm phần này, nên nó là đại
+  // lượng quyết định `supplyCap` phải là bao nhiêu. Quên khai một mục là bảng
+  // cộng thiếu và ràng buộc 6b sẽ đỏ — đúng như mong muốn.
   chiaNho: {
     Community: [
-      { ten: "faucet (ví NÓNG, C-Chain)", love9: 99_999_999n },
-      { ten: "quỹ Community (khoá 2 năm)", love9: 2_600_000_001n },
+      { ten: "faucet (ví NÓNG, C-Chain)", love9: 99_999_999n, cChain: 99_999_999n },
+      { ten: "quỹ Community (khoá 2 năm)", love9: 2_600_000_001n, cChain: 0n },
     ],
     Foundation: [
-      { ten: "self-bond 9 node (địa chỉ RIÊNG)", love9: 8_999_991n },
-      { ten: "Foundation vận hành", love9: 1_071_000_009n },
+      { ten: "self-bond 9 node (địa chỉ RIÊNG)", love9: 8_999_991n, cChain: 0n },
+      // 1,071,000,009 = 71,000,009 thanh khoản X/P + 1,000,000,000 trên C-Chain
+      { ten: "Foundation vận hành", love9: 1_071_000_009n, cChain: 1_000_000_000n },
     ],
   },
   soNode: 9,
@@ -110,7 +162,40 @@ function chay(b, thang) {
       `${ten} = ${K(dv)} đơn vị (${pct.toFixed(3)}% uint64)${dv <= U64_MAX ? "" : " ← TRÀN uint64"}`,
     );
   };
-  kiemU64("SupplyCap", b.tongCung);
+  // 6b. 🔴 KẾ TOÁN TỔNG CUNG — ràng buộc quan trọng nhất của cổng này.
+  //
+  //	supplyCap (trần P/X, trong binary)  +  phát hành thẳng C-Chain  ==  tổng cung
+  //
+  // `Config.InitialSupply()` (genesis/config.go:146) chỉ cộng `Allocations` (X/P);
+  // `CChainGenesis` nằm ngoài vòng lặp ⇒ token trên C-Chain TỒN TẠI mà
+  // `currentSupply` không bao giờ đếm tới. Nên đặt `supplyCap = tổng cung` là cho
+  // staking mint thừa đúng bằng phần C-Chain — mạng vẫn xanh, chỉ lời hứa sai.
+  // Đây là lỗi đã có thật trong mã tới `2026-08-27`; xem docs/CORE-AUDIT-2026-08-27.md.
+  const cChainCuaQuy = (q) =>
+    b.chiaNho[q.ten] ? b.chiaNho[q.ten].reduce((s, p) => s + (p.cChain ?? 0n), 0n) : (q.cChain ?? 0n);
+  const tongCChain = b.quy.reduce((s, q) => s + cChainCuaQuy(q), 0n);
+
+  if (b.supplyCap == null) {
+    loi.push(`KHÔNG đọc được SupplyCap từ Go — ${b.supplyCapNguon}`);
+  } else {
+    ok.push(`SupplyCap đọc TỪ GO: ${K(b.supplyCap)} LOVE9 (\`${b.supplyCapNguon}\`) — không chép tay`);
+    (b.supplyCap + tongCChain === b.tongCung ? ok : loi).push(
+      `SupplyCap ${K(b.supplyCap)} + C-Chain ${K(tongCChain)} = ${K(b.supplyCap + tongCChain)} ` +
+        `(tổng cung ${K(b.tongCung)})`,
+    );
+    // Dư địa mint thực tế PHẢI bằng ô Staking Rewards, nếu không thì bảng công bố
+    // và hành vi của `reward/calculator.go` nói hai chuyện khác nhau.
+    const genXP = gen - tongCChain;
+    const duDiaMint = b.supplyCap - genXP;
+    const oMint = b.quy.find((q) => !q.capOGenesis)?.love9 ?? 0n;
+    (duDiaMint === oMint ? ok : loi).push(
+      `dư địa mint = SupplyCap ${K(b.supplyCap)} − genesis X/P ${K(genXP)} = ${K(duDiaMint)} ` +
+        `(ô mint khai ${K(oMint)})`,
+    );
+  }
+
+  kiemU64("SupplyCap", b.supplyCap ?? b.tongCung);
+  kiemU64("tổng cung công bố", b.tongCung);
   kiemU64("phát hành genesis", gen);
   kiemU64("MaxValidatorStake", b.maxValidatorStake);
 
@@ -160,6 +245,10 @@ function tuKiem() {
     }],
     ["self-bond/node dưới MinValidatorStake", (b) => { b.selfBondMoiNode = 1n; }],
     ["self-bond/node vượt MaxValidatorStake", (b) => { b.selfBondMoiNode = 999_999_999n; }],
+    // 🔴 Ba ca dưới đây là LỖI CÓ THẬT trong mã tới 2026-08-27, không phải giả định.
+    ["SupplyCap = tổng cung (bỏ quên phần C-Chain)", (b) => { b.supplyCap = b.tongCung; }],
+    ["quên khai cChain của một mục", (b) => { b.chiaNho.Foundation[1].cChain = 0n; }],
+    ["không đọc được SupplyCap từ Go", (b) => { b.supplyCap = null; b.supplyCapNguon = "ca thử"; }],
   ];
   let hong = 0;
   console.log("\n══ ĐỐI CHỨNG NGƯỢC — mỗi ca dưới đây PHẢI ra đỏ ══");

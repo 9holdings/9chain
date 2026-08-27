@@ -16,6 +16,7 @@ import path from "node:path";
 import { clientIp, rateLimit, requireToken, requireSecret, serialQueue } from "../lib/guard.mjs";
 import { parseEvmAddress } from "../lib/eip55.mjs";
 import { apDungPreset, danhSachPreset } from "../lib/presets.mjs";
+import { capChainIdTuDong, GOC_DAI_CHAINID } from "../lib/chainid.mjs";
 import { siwe } from "./siwe.mjs";
 
 const PORT = Number(process.env.PORT || 8091);
@@ -69,6 +70,75 @@ const dangNhapVi = siwe({
   uri: SIWE_URI,
   chainId: Number(process.env.A1_EVM_CHAIN_ID || 9000000009),
 });
+
+// ═══ GỐC DẢI chainId CHO L1 NGƯỜI DÙNG — David chốt `2026-08-27` (D-069, B-14) ═══
+//
+// Dải cũ bắt đầu ở **9100**, và tra sổ công khai `27/08` phát hiện **9100 = Genesis Coin**:
+// số console cấp ĐẦU TIÊN trùng một chuỗi có thật, và điều đó đã xảy ra rồi (chain
+// `OwnerTest` nhận 9100 hai lần). Trong dải cũ còn 9108 · 9134 · 9170 bị chiếm nữa.
+//
+// Gốc mới **9000000010** = chainId của A1 (`9000000009`) **+1**. Ba cái được:
+//   1. **Vùng trống rộng** — đo trên ảnh chụp `27/08` (2.723 mục): không một chuỗi nào
+//      trong **bán kính 10 triệu** quanh 9000000009. Dải cũ thì 4/100 số đầu đã có chủ.
+//   2. **Bản sắc đọc được** — mọi chain thuộc A1 cùng mở đầu `9000000…`.
+//   3. 🔴 **Đóng lỗ phát lại của sổ `retired` bằng KIẾN TRÚC, không bằng sổ.** Dải cũ
+//      9100–9145 từ nay **không bao giờ được tự cấp lại**, nên ví của người từng dùng L1
+//      cũ không thể lặng lẽ trỏ vào L1 của người mới. Điều đó gỡ nửa `chainId` của câu
+//      hỏi §5c *"có khôi phục sổ retired cũ không"*.
+//      ⚠️ **Chỉ nửa `chainId`, và chỉ đường TỰ CẤP.** Người dùng vẫn tự nhập được 9102 ở
+//      nhánh trên; chặn nó vẫn dựa vào `state.retired`. Và trùng **TÊN** thì hoàn toàn
+//      không đụng tới. Đừng đọc mục này thành "§5c đã đóng".
+//
+// ⚠️ **Đánh đổi đã biết, có chủ ý:** `9000000010` và `9000000009` khác nhau đúng một chữ
+// số cuối, nên người ĐỌC dễ lẫn (ví thì không — EIP-155 buộc chữ ký vào đúng số). Hư hại
+// tối đa là nối nhầm mạng và thấy số dư lạ, không phải mất tiền hay phát lại chữ ký.
+//
+// Con số + phép cấp nằm ở `../lib/chainid.mjs` — tách ra để bài kiểm đọc được mã thật mà
+// không phải dựng cổng 8091 (`server.listen` chạy ở mức module tại đây).
+
+// ═══ chainId ĐÃ BỊ CHIẾM TRONG SỔ CÔNG KHAI (B-14) ═══
+//
+// Đổi gốc dải KHÔNG thay được cổng này: sổ công khai đổi hàng ngày, nên vùng hôm nay
+// trống có thể mai có người. Cổng tra ảnh chụp vẫn phải đứng đó.
+// Cùng chainId là cùng một mạng dưới mắt MetaMask, và EIP-155 buộc chữ ký vào chainId.
+//
+// 🔴 Đây là **ảnh chụp**, không phải tra trực tiếp. Cố ý: một lời gọi HTTP ra Internet nằm
+// giữa đường người dùng bấm nút là thêm một chỗ hỏng ngoài tầm kiểm soát — hỏng lúc đó thì
+// hoặc chặn oan, hoặc bỏ qua trong im lặng. Cái giá là ảnh chụp **cũ dần**, nên nó mang theo
+// ngày tra và console in tuổi của nó ra lúc khởi động.
+//
+// Sinh lại: `node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-da-chiem.json`
+const CHAINID_CHIEM_FILE = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "chainid-da-chiem.json");
+const chainIdDaChiem = new Map();
+let chainIdChiemNgayTra = null;
+try {
+  const j = JSON.parse(readFileSync(CHAINID_CHIEM_FILE, "utf8"));
+  for (const m of j.daBiChiem ?? []) chainIdDaChiem.set(m.chainId, m.ten);
+  chainIdChiemNgayTra = j.ngayTra ?? null;
+  const tuổiNgày = chainIdChiemNgayTra
+    ? Math.floor((Date.now() - Date.parse(chainIdChiemNgayTra)) / 86_400_000) : null;
+  // `dais` = nhiều dải (D-069). `dai` = một dải, khuôn cũ — giữ đường đọc ngược để một tệp
+  // chưa sinh lại không làm console im lặng mất thông tin dải.
+  const môTảDải = Array.isArray(j.dais)
+    ? j.dais.map((d) => d.join("–")).join(" · ")
+    : (j.dai ?? []).join("–");
+  console.log(`[chainId] danh sách chặn: ${chainIdDaChiem.size} số (dải ${môTảDải}), ` +
+    `tra ${chainIdChiemNgayTra}${tuổiNgày !== null ? ` — ${tuổiNgày} ngày trước` : ""}`);
+  // 🔴 Danh sách rỗng = cổng đang TẮT, dù tệp đọc được. Bộ sinh nay từ chối ghi tệp rỗng,
+  // nhưng một tệp cũ / sửa tay vẫn có thể rỗng — và im lặng ở đây là xanh giả.
+  if (chainIdDaChiem.size === 0) {
+    console.log(`[chainId] 🔴 danh sách chặn RỖNG ⇒ CỔNG ĐANG TẮT. Sinh lại bằng check-chainid.mjs.`);
+  }
+  if (tuổiNgày !== null && tuổiNgày > 90) {
+    console.log(`[chainId] ⚠️  ảnh chụp đã ${tuổiNgày} ngày. Sổ công khai đổi hàng ngày — sinh lại.`);
+  }
+} catch (e) {
+  // 🔴 KHÔNG im lặng. Thiếu tệp mà console vẫn chạy như thường là đúng kiểu "xanh giả":
+  // cổng biến mất, không ai biết, và nó chỉ lộ ra khi có người thật nhận chainId trùng.
+  console.log(`[chainId] 🔴 KHÔNG đọc được ${CHAINID_CHIEM_FILE} (${e.message})`);
+  console.log(`[chainId] 🔴 CỔNG CHẶN chainId ĐÃ BỊ CHIẾM ĐANG TẮT. Sinh lại bằng:`);
+  console.log(`[chainId]    node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-da-chiem.json`);
+}
 
 // Hai lượt tạo chain chạy song song sẽ restart node giữa chừng nhau và hỏng cả
 // hai. Xếp hàng tuần tự — đây là ràng buộc đúng đắn, không phải tối ưu hoá.
@@ -653,10 +723,21 @@ async function createChain({ name, chainId, admin, preset }) {
         : `Chain ID ${n} thuộc về "${cu.name}" — L1 đã thu hồi. Số nhận dạng KHÔNG được cấp lại: ` +
           `ví của người từng dùng chain cũ sẽ coi chain mới là cùng một mạng.`);
     }
+    // Câu lỗi tách riêng khỏi câu trên: hai chỗ trùng là hai thứ khác nhau và cách gỡ
+    // cũng khác. Trùng sổ NHÀ ⇒ đổi số hoặc hỏi chủ cũ. Trùng sổ CÔNG KHAI ⇒ không ai
+    // hỏi được ai, chỉ có đường chọn số khác.
+    if (chainIdDaChiem.has(n)) {
+      throw new Error(`Chain ID ${n} đã thuộc về "${chainIdDaChiem.get(n)}" trong sổ chainId công khai ` +
+        `(chainid.network, tra ${chainIdChiemNgayTra}). Ví đọc chainId chứ không đọc tên mạng, ` +
+        `nên chain của bạn sẽ không phân biệt được với chuỗi đó trong MetaMask. Chọn số khác.`);
+    }
     chainId = n;
   } else {
-    chainId = 9100;
-    while (taken.has(chainId)) chainId++;
+    // Bỏ qua CẢ hai sổ. Bản trước chỉ bỏ qua sổ nhà, nên số đầu tiên nó cấp — 9100 —
+    // trùng "Genesis Coin" trong sổ công khai. Xem khối chú thích ở `chainIdDaChiem`.
+    // Gốc dải nay là 9000000010 (D-069). Phép cấp + cổng trần EIP-2294 ở `lib/chainid.mjs`,
+    // nơi bài kiểm với tới được.
+    chainId = capChainIdTuDong(taken, chainIdDaChiem, GOC_DAI_CHAINID);
   }
 
   // Mở tiến trình NGAY SAU khi mọi phép kiểm rẻ đã qua — trước đó mà hỏng thì
