@@ -18,6 +18,20 @@
 // `sha256` của chính `MANIFEST.txt` — **đó là con số duy nhất phải công bố**, và nó neo toàn
 // bộ phần còn lại.
 //
+// 🔴 **`GỐC` NEO MỘT THỜI ĐIỂM, KHÔNG NEO MỘT CHUỖI** (đo `2026-08-27`, lượt chạy thật đầu
+// tiên trên mạng công khai). Hai lượt xuất cùng một mạng, cách nhau vài phút, **không đẻ thêm
+// block nào**, vẫn ra hai `GỐC` khác nhau. Khác nhau **duy nhất** ở `p-chain/tip.json`, và
+// trong đó **duy nhất** ở `uptime` của validator: `99.8756` → `99.8758`.
+//
+// `uptime` trôi liên tục, và nó **không phải thuộc tính của chuỗi** — nó là ý kiến của **node
+// đang được hỏi** về peer của nó, nên hỏi node khác cũng ra số khác. Giữ nó lại là cố ý (nó
+// là dữ liệu pháp y: mạng lúc chết có khoẻ không), nhưng **cái giá là bộ xuất không tái lập
+// được**, và điều đó phải được khai ra chứ không để người sau tự vấp.
+//
+// ⇒ Thấy hai `GỐC` lệch thì **đừng kết luận có người sửa**. So từng tệp trước.
+// ⇒ `GỐC` **vẫn** chống được sửa đổi SAU khi xuất — đó mới là việc của nó, và đã đối chứng
+//    ngược: sửa 1 byte ⇒ đỏ; sửa cả `MANIFEST` để che ⇒ `GỐC` vẫn đỏ.
+//
 //   node scripts/export-chain.mjs --rpc http://127.0.0.1:9750 --ra ./xuat-2026-09-01 \
 //        --tep local-net/net-public/genesis.json --tep docs/ALLOCATION-PUBLIC.md
 //   node scripts/export-chain.mjs --kiem ./xuat-2026-09-01     # kiểm lại, exit≠0 nếu lệch
@@ -260,6 +274,24 @@ còn lại, nên công bố một dòng đó là đủ.
 - **Không có DB Blockscout** (chỉ số phái sinh; nguồn gốc là block, đã có ở đây).
 - **Không có trạng thái ví ở từng thời điểm** — chỉ có block. Số dư suy lại được từ block,
   nhưng phải tự dựng lại, bộ này không tính hộ.
+
+## 🔴 \`GỐC\` neo một THỜI ĐIỂM, không neo một chuỗi
+
+**Hai lượt xuất cùng một mạng KHÔNG bao giờ ra cùng \`GỐC\`** — kể cả khi mạng không đẻ thêm
+block nào. Đo được: hai lượt cách nhau vài phút trên mạng công khai \`2026-08-27\` ra hai
+\`GỐC\` khác nhau, khác nhau **duy nhất** ở \`p-chain/tip.json\`, và trong đó **duy nhất** ở
+trường \`uptime\` của validator (\`99.8756\` → \`99.8758\`).
+
+\`uptime\` là số đo **trôi liên tục**, và sâu hơn: **nó không phải thuộc tính của chuỗi** — nó
+là *ý kiến của node đang được hỏi* về các peer của nó, nên hỏi node khác sẽ ra số khác.
+
+**Nghĩa là gì, đọc cho đúng:**
+- \`GỐC\` chứng minh *"đây đúng là bộ byte tôi lấy lúc T"* — nó **có** chống được sửa đổi sau
+  khi xuất (đã đối chứng ngược: sửa 1 byte ⇒ đỏ; sửa cả MANIFEST để che ⇒ \`GỐC\` vẫn đỏ).
+- Nó **không** chứng minh *"chuỗi lúc đó là như thế này và ai xuất cũng ra thế"*. Hai người
+  xuất cùng lúc sẽ ra hai \`GỐC\` khác nhau, và **cả hai đều đúng**.
+- ⇒ Thấy hai \`GỐC\` lệch thì **đừng kết luận có người sửa**. So từng tệp trước; nếu chỉ lệch
+  ở \`tip.json\` thì đó là chuyện bình thường.
 ${cắtGì.length ? `\n🔴 **BỘ NÀY BỊ CẮT** ở: ${cắtGì.join(", ")} (\`--toi-da-block\`). Nó KHÔNG đầy đủ.\n` : ""}
 ${cảnhBáo.length ? `\n## ⚠️ Chỗ không lấy được\n\n${cảnhBáo.map((c) => `- ${c}`).join("\n")}\n` : ""}
 `);

@@ -1587,3 +1587,138 @@ vẫn phải đúng, và nó vẫn phụ thuộc đồng hồ của **node đề
 đồng hồ 9 node **sau khi mạng ngày G lên**. Câu chữ chốt cùng lượt C1 đóng băng byte.
 
 ⚠️ **Nếu David đổi sang P-Chain thì phải diễn tập lại** — D-055 không đổi.
+
+### D-071 — 9 validator mang `restart: unless-stopped`, KHÔNG phải `always`
+
+**David duyệt `2026-08-27`** (P0-1 của `SOAT-TOAN-DIEN-2026-08-27.md`). Đã áp trên mạng công
+khai: `9/9` từ `no` → `unless-stopped`, container **không bị restart**.
+
+**Vì sao trước đó là `no`:** không ai chọn nó. `netgen` sinh `docker-compose.multinode.yml` mà
+**không bao giờ ghi khoá `restart:`** ⇒ Docker lấy mặc định. Hệ quả: máy chủ reboot thì Caddy,
+trang web, faucet và **Blockscout** đều dậy, còn **9 validator nằm im** — trạng thái mà mọi dấu
+hiệu bên ngoài vẫn xanh.
+
+**Vì sao `unless-stopped` chứ không `always`:**
+- khớp quy ước Caddy/faucet/web đang dùng trên chính máy đó;
+- **không cãi lại rolling-restart của M2** — `docker stop` tường minh vẫn giữ nguyên trạng thái
+  dừng, tức người vận hành vẫn hạ được một node để bảo trì mà nó không tự bật lên.
+
+🔴 **VÀ NÓ NGƯỢC LẠI LÀ MỘT CÁI BẪY VẬN HÀNH.** Chính vế "tôn trọng lệnh dừng" làm cho
+`docker kill` **không** kích hoạt chính sách: cả `stop` lẫn `kill` đều là *người dùng chủ động
+dừng*. Phép kiểm đầu tiên của phiên này dùng `docker kill` ⇒ node không dậy ⇒ **suýt kết luận
+sai rằng bản vá không ăn**. Cùng lớp lỗi với *"phép kiểm đo sai đại lượng"* đã ghi trong
+HANDOFF, lần này do chính người kiểm gây ra.
+
+⇒ **Muốn dừng hẳn một node: `docker stop`. Muốn thử chính sách: để tiến trình TỰ CHẾT.**
+
+**Nghiệm thu (container nháp, không đụng validator):**
+
+| Ca | Cấu hình | Kết quả |
+|---|---|---|
+| A | `unless-stopped` + tiến trình `exit 1` | **1 → 3 lần restart · running** ✓ |
+| B 🔴 **đối chứng ngược** | `restart=no` + cùng tiến trình | **0 lần restart · exited** ✓ |
+
+Ca B tái hiện **đúng trạng thái 9 validator trước bản vá**, nên phép đo phân biệt được hai
+trạng thái chứ không chỉ biết in ✓.
+
+⚠️ **Vế "reboot máy chủ" CHƯA chứng minh được trên máy này.** Mọi container đều dựng `26/08`
+(sau re-genesis) còn máy boot `24/08` ⇒ không lượt nào đi qua một lần boot. Vế đó đứng ở mức
+*"hành vi Docker đã biết + `systemctl is-enabled docker` = enabled"*. Phép kiểm kết luận duy
+nhất là reboot thật — **không làm trên mạng công khai đang phục vụ người ngoài**.
+
+🔴 **Bản vá này là TẠM cho tới ngày G.** Nó nằm trên container đang chạy, không nằm trong nguồn.
+Lượt `down -v` ngày G dựng container mới từ compose do netgen sinh ⇒ **mất sạch**, quay về `no`,
+không dấu hiệu nào. Cùng lớp lỗi với B-6 (*"vá thẳng trên server mà không vào nguồn là quả mìn
+hẹn giờ tới lượt deploy sau"*) — nên bản vá netgen **phải lên cùng lượt ngày G**, không để sau.
+
+### D-071b — Bản vá `restart:` PHẢI vào netgen, không dừng ở `docker update`
+
+`docker update --restart=unless-stopped` áp `27/08` là **bản vá tạm**, nằm trên container đang
+chạy chứ không nằm trong nguồn.
+
+🔴 **Lượt `down -v` ngày G dựng container MỚI từ compose do netgen sinh ⇒ bản vá biến mất, quay
+về `no`, không dấu hiệu nào.** Đó đúng là bài học đã trả giá hai lần trong dự án này (B-5 thư
+mục `blockscout/` bị gitignore · B-6 site block Caddy chưa vào nguồn): *"vá thẳng trên server mà
+không vào nguồn thì không phải đã sửa — nó là quả mìn hẹn giờ tới lượt deploy sau."*
+
+Và lần này quả mìn nổ vào **đúng ngày G**, lúc không ai còn để ý tới cấu hình Docker.
+
+**Đã làm cùng ngày:** `netgen/main.go` ghi `restart: unless-stopped` cho mọi node, kèm khối chú
+thích mang theo cả phép đo lẫn cái bẫy `docker kill`.
+
+**Nghiệm thu — sinh lại CẢ BỘ patch (luật cứng #3):**
+
+| | |
+|---|---|
+| `go vet` + `go build` | sạch (`golang:1.25.10`) |
+| netgen N=3 | compose sinh ra có **3/3** dòng `restart: unless-stopped` |
+| Bộ patch | **17 patch**, tiêu đề `01/17`…`17/17` ⇒ **D-065 đã hết**, không còn `[PATCH nn/12]` lạc |
+| Tái lập | `git am --keep-cr` 17 patch lên `1cf1fc3` → tree **`f8458b33f2b18c53d01959d0d77ca8568241181b`**, khớp cây fork từng byte |
+| 🔴 **Đối chứng ngược** | áp **16/17** → tree **`c9226d9c`** = **đúng tree cũ HANDOFF ghi** |
+
+⚠️ Ca đối chứng ngược ở đây mạnh hơn thường lệ vì nó chứng minh **hai** mệnh đề bằng một phép
+đo: phép so tree *phân biệt được* bản đủ với bản thiếu, **và** lượt sinh lại **không âm thầm đổi
+gì** ở 16 patch cũ — thứ mà một lượt `format-patch` toàn bộ rất dễ làm hỏng mà không ai thấy.
+
+⚠️ **B-9 vẫn chưa quyết** (`#e84142` trong `patches/0003`). Nếu David chốt sửa thì phải sinh lại
+bộ patch **một lần nữa**. Đã cân nhắc chờ để gộp; không chờ vì bản vá `restart:` là **bắt buộc
+cho ngày G** còn B-9 thì không, và để bản vá tạm sống một mình qua ngày G là đúng cái bẫy D-071b
+nói tới.
+
+### D-072 — O2 đã chạy THẬT trên mạng công khai; `GỐC` neo một THỜI ĐIỂM, không neo một chuỗi
+
+Lượt O2 đầu tiên trên mạng công khai, `2026-08-27`. Vật chứng:
+`docs/vat-chung/o2-mang-cong-khai-2026-08-27/`.
+
+| | |
+|---|--:|
+| **Thời gian thật** | **37–54 giây** (3 lượt đo; biến thiên do độ trễ mạng) |
+| Quy mô | P-Chain 68 block · X-Chain 3 · C-Chain 5 · 9 tệp · 121.771 byte |
+| 🔴 **`GỐC` công bố** | **`a22dfc55d7bf57725f07567f1546568a437d3be19d8c71806706573777f43b23`** |
+
+**Con số đó chính là "công bố"** — nó nằm ở đây, trong `DECISIONS.md`, **ngoài** thư mục nó
+bảo vệ. Để nó nằm cạnh dữ liệu thì nó không bảo vệ gì cả.
+
+⇒ **Runbook ngày G:** O2 tốn ~1 phút cho một mạng cỡ này. Không có lý do gì để bỏ qua nó lần
+nữa (lượt `26/08` đã bỏ lỡ, và câu hỏi *"20M/70M có thật trên chain cũ không"* vĩnh viễn không
+trả lời được vì thế).
+⚠️ Thời gian **tỉ lệ thuận với số block** — bài lấy từng block một. Mạng ngày G nếu có nhiều
+giao dịch hơn thì phải đo lại, đừng chép con số 53s sang thang khác.
+
+#### 🔴 Phát hiện: hai lượt xuất cùng một mạng KHÔNG BAO GIỜ ra cùng `GỐC`
+
+Đo được, không suy: hai lượt cách nhau vài phút, **mạng không đẻ thêm block nào**, vẫn ra hai
+`GỐC` khác nhau. Khác nhau **duy nhất** ở `p-chain/tip.json`, và trong đó **duy nhất** ở trường
+`uptime` của validator — `99.8756` → `99.8758`.
+
+`uptime` trôi liên tục, và sâu hơn: **nó không phải thuộc tính của chuỗi.** Nó là ý kiến của
+**node đang được hỏi** về peer của nó, nên hỏi node khác ra số khác.
+
+**Giữ nó lại là CỐ Ý** — đó là dữ liệu pháp y (*mạng lúc chết có khoẻ không*). Nhưng cái giá là
+bộ xuất **không tái lập được**, và điều đó phải được **khai ra** chứ không để người sau tự vấp:
+
+| `GỐC` chứng minh | `GỐC` KHÔNG chứng minh |
+|---|---|
+| *"đây đúng là bộ byte tôi lấy lúc T"* | *"chuỗi lúc đó là thế này, ai xuất cũng ra thế"* |
+| chống sửa đổi **sau** khi xuất | hai người xuất cùng lúc ra hai `GỐC`, **cả hai đều đúng** |
+
+🔴 ⇒ **Thấy hai `GỐC` lệch thì ĐỪNG kết luận có người sửa.** So từng tệp trước; chỉ lệch ở
+`tip.json` là bình thường. Đã ghi thành chữ ở **hai** chỗ: đầu `export-chain.mjs` và trong
+`00-DOC-TRUOC.md` mà chính bộ xuất sinh ra — chỗ thứ hai quan trọng hơn, vì người kiểm lại bộ
+xuất ba năm nữa sẽ đọc tệp đó chứ không mở mã nguồn.
+
+#### Nghiệm thu — 4 ca, 2 ca đối chứng ngược
+
+| # | Ca | Kết quả |
+|---|---|---|
+| 1 | `--kiem` bản lành | **9 tệp khớp · 0 lệch · gốc khớp** · exit 0 |
+| 2 | `sha256sum -c MANIFEST.txt` — **công cụ chuẩn, không cần tin bài này** | tất cả `OK` · exit 0 |
+| 3 | 🔴 sửa **đúng một byte** trong `c-chain/blocks.jsonl` | **1 lệch byte** · exit 1 |
+| 4 | 🔴 **sửa cả `MANIFEST` để che ca 3** | *"9 tệp khớp · 0 lệch byte · **gốc LỆCH**"* · exit 1 |
+
+⚠️ Ca 4 là ca đắt nhất và là **lý do `GOC.txt` tồn tại**: kẻ sửa dữ liệu rồi sửa luôn bản kê để
+che vẫn bị bắt — **miễn là con số gốc đã được công bố ra ngoài**. Nếu `GỐC` chỉ nằm trong thư
+mục đó thì ca 4 **đi lọt sạch**.
+
+⚠️ Bộ xuất khai `L1 người dùng: xin 0 · XUẤT ĐƯỢC 0` — đúng (0 L1 đang sống). Ngày G nếu có L1
+thì **bắt buộc** dùng `--them-evm`, không thì chúng biến mất không dấu vết (D-057).

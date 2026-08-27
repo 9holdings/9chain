@@ -1,0 +1,63 @@
+From 15c940e04e614d888149cfef40f331a9280323fb Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Thu, 27 Aug 2026 16:12:50 +0400
+Subject: [PATCH 17/17] =?UTF-8?q?netgen:=20compose=20khai=20restart:=20unl?=
+ =?UTF-8?q?ess-stopped=20cho=20moi=20node=20=E2=80=94=20D-071?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Thieu khoa nay thi Docker lay mac dinh `no`, va mac dinh do KHONG PHAI mot lua chon
+ai do da can nhac — no la cho khong ai dien.
+
+Do tren mang cong khai 27/08: ca 9 validator mang restart=no, trong khi Blockscout
+mang `always` va Caddy/faucet/web mang `unless-stopped`. Nghia la may chu reboot thi
+trang web day, faucet day, EXPLORER day, va chuoi nam im — dang hong te nhat, moi dau
+hieu ben ngoai van xanh.
+
+unless-stopped chu khong always: no TON TRONG lenh dung tuong minh, nen rolling-restart
+cua M2 van ha duoc mot node xuong ma no khong tu bat len giua chung.
+
+Mat trai cua chinh ve do, da ghi thanh chu trong ma: docker stop VA docker kill deu la
+"nguoi dung chu dong dung" nen KHONG kich hoat chinh sach. Thu bang docker kill se thay
+node khong day va tuong cau hinh hong — da suyt ket luan sai dung the luc nghiem thu.
+
+Nghiem thu: go vet + go build sach (golang:1.25.10); chay netgen N=3 => compose sinh ra
+co 3/3 dong `restart: unless-stopped`.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ 9chain-a1-tools/netgen/main.go | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+index 905bb20..7ff43e4 100644
+--- a/9chain-a1-tools/netgen/main.go
++++ b/9chain-a1-tools/netgen/main.go
+@@ -429,6 +429,26 @@ func buildCompose(nodes []nodeInfo, subnetPrefix, ipv6Subnet string) string {
+ 		b.WriteString("  " + name + ":\n")
+ 		b.WriteString("    image: 9chain-a1/node:dev\n")
+ 		b.WriteString("    container_name: " + name + "\n")
++		// VÌ SAO CÓ DÒNG NÀY (D-071, soát vận hành 2026-08-27):
++		//
++		// Thiếu nó thì Docker lấy mặc định `no`, và mặc định đó KHÔNG PHẢI một lựa
++		// chọn ai đó đã cân nhắc — nó là chỗ không ai điền. Đo trên mạng công khai
++		// `27/08`: cả 9 validator mang `restart=no`, trong khi Blockscout mang
++		// `always` và Caddy/faucet/web mang `unless-stopped`.
++		//
++		// 🔴 Nghĩa là máy chủ reboot ⇒ trang web dậy, faucet dậy, EXPLORER dậy, và
++		// chuỗi nằm im. Đó là dạng hỏng tệ nhất: trang chủ 200, faucet trả `ok`,
++		// explorer mở được — chỉ chuỗi là không tồn tại. Không cổng nào báo gì.
++		//
++		// `unless-stopped` chứ không `always`: nó TÔN TRỌNG lệnh dừng tường minh,
++		// nên rolling-restart của M2 (hạ một node để track subnet mới) vẫn hạ được
++		// node xuống mà nó không tự bật lên giữa chừng.
++		//
++		// ⚠️ Mặt trái của chính vế đó: `docker stop` VÀ `docker kill` đều là "người
++		// dùng chủ động dừng" nên KHÔNG kích hoạt chính sách. Thử bằng `docker kill`
++		// sẽ thấy node không dậy và tưởng cấu hình hỏng — đã suýt kết luận sai đúng
++		// thế lúc nghiệm thu D-071. Muốn thử thì để tiến trình TỰ CHẾT.
++		b.WriteString("    restart: unless-stopped\n")
+ 		if nd.Index == 1 {
+ 			// CHỈ mở ra 127.0.0.1, KHÔNG phải 0.0.0.0.
+ 			//
