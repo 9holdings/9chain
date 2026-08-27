@@ -1487,3 +1487,103 @@ một trang tokenomics từ từ thành một trang số dư ví.
 số bịa còn tệ hơn một endpoint không trả gì** — số bịa sẽ được chép đi, và không ai biết nó
 không phải số đo. Hỏng **có phạm vi**: `/api/info` và `/api/drip` vẫn chạy bình thường, đã đối
 chứng.
+
+### D-069 — **Gốc dải chainId cho L1 người dùng: `9100` → `9000000010`**
+
+**David chốt `2026-08-27`** (đóng B-14). Console tự cấp chainId bắt đầu từ **`9000000010`** =
+chainId của A1 (`9000000009`) **+ 1**. `local-net/lib/chainid.mjs`.
+
+**Vì sao dải cũ phải bỏ:** tra sổ công khai `27/08` cho thấy **`9100` = Genesis Coin** — số
+console cấp **ĐẦU TIÊN** trùng một chuỗi có thật, và điều đó **đã xảy ra rồi** (chain
+`OwnerTest` nhận 9100 hai lần). Trong 100 số đầu của dải cũ còn `9108` · `9134` · `9170`.
+
+**Vì sao gốc mới tốt hơn cả ba đường A1 đề xuất** (9146 / 9100 / "dải khác"):
+
+| | |
+|---|---|
+| **Vùng trống** | đo trên sổ `27/08` (2.725 mục): **không một chuỗi nào trong bán kính 10 triệu** quanh 9000000009. Dải cũ có 4/100 số đầu đã có chủ |
+| **Bản sắc** | mọi chain thuộc A1 cùng mở đầu `9000000…` |
+| **Trần EIP-2294** | `2^53-1` = 9.007.199.254.740.991 ⇒ còn **9.007.190.254.740.981** số trống trên gốc dải |
+
+🔴 **Cái được lớn nhất, và nó KHÔNG nằm trong câu hỏi ban đầu:** dải cũ `9100–9145` từ nay
+**không bao giờ được tự cấp lại**, nên ví của người từng dùng L1 cũ không thể lặng lẽ trỏ vào
+L1 của người mới. Lỗ phát lại mà §5c định vá **bằng sổ** nay được đóng **bằng kiến trúc**.
+
+⚠️ **Đừng đọc thành "§5c đã đóng".** Chỉ đóng **nửa `chainId`, và chỉ đường TỰ CẤP**:
+- người dùng vẫn **tự nhập** được `9102` — chặn nó vẫn dựa vào `state.retired`;
+- trùng **TÊN** thì hoàn toàn không đụng tới (`createChain` kiểm tên trên `chains ∪ retired`).
+
+⚠️ **Đánh đổi đã biết, có chủ ý:** `9000000010` và `9000000009` khác nhau **đúng một chữ số
+cuối** ⇒ người ĐỌC dễ lẫn. Ví thì không lẫn (EIP-155 buộc chữ ký vào đúng số). Hư hại tối đa
+là nối nhầm mạng và thấy số dư lạ — **không** mất tiền, **không** phát lại được chữ ký.
+
+**Nghiệm thu:** `local-net/console/chainid-test.mjs` — **13 đạt / 0 hỏng**, bài `import` mã
+thật (`lib/chainid.mjs`) và đọc danh sách chặn thật, **không chép công thức**. Bốn ca đối
+chứng ngược trên `check-chainid.mjs` đỏ đúng chỗ (`--them 9100` · `--them 1` · sổ cắt cụt ·
+danh sách chặn rỗng).
+
+### D-069b — Danh sách chặn giữ **CẢ dải cũ** `9100–9999`, cố ý
+
+Sinh mặc định trên **hai dải**: `9100–9999` + `9000000010–9000009999`.
+
+**Lý do 1 — vẫn cần thật:** người dùng tự nhập được số trong dải cũ.
+**Lý do 2, đắt hơn:** dải mới **trống hoàn toàn** ⇒ sinh riêng nó ra tệp `daBiChiem: []`. Một
+danh sách chặn **RỖNG không phân biệt được với một bộ sinh HỎNG** — cả hai cho ra cùng một
+tệp, và console nạp xong in "0 số" ở cả hai trường hợp. Giữ dải cũ cho tệp một **nội dung
+khác rỗng đã biết trước** (51 số, trong đó `9100 = Genesis Coin` làm neo) ⇒ **tệp rỗng từ nay
+là tín hiệu HỎNG**, không phải trạng thái bình thường.
+
+⇒ Kèm hai cổng: bộ sinh **từ chối ghi** tệp rỗng (exit 2); console **kêu to** nếu nạp phải
+danh sách rỗng. Đã đối chứng ngược cả hai.
+
+### D-069c — `check-chainid.mjs` bỏ dải cũ khỏi `CAN_TRA`, KHÔNG phải vì nó sạch
+
+`CAN_TRA` nay là `9000000009` + `9000000010–9000000109`. Dải cũ ra ngoài **dù nó có 4 số bị
+chiếm thật**.
+
+**Lý do:** `CAN_TRA` mang nghĩa *"số A1 định dùng — bị chiếm là ĐỎ"*. Sau D-069 console không
+cấp trong dải đó nữa, nên để lại là làm bài **luôn luôn đỏ**, mà **một cổng đỏ vĩnh viễn là
+một cổng không ai còn đọc**. Dải cũ đổi vai sang **danh sách chặn**: thông tin, không phải
+báo động. Trước lượt này bài thoát `1` ở mọi lần chạy bình thường; nay thoát `0`, tức mã
+thoát lấy lại được nghĩa cho ngày G.
+
+### D-070 — **Block Adam neo vào HASH GIAO DỊCH NGHI LỄ**, không vào "block đầu tiên vượt mốc"
+
+**David chốt `2026-08-27`** (đóng B-13(a)).
+
+**Lý do:** luật cũ — *"block **đầu tiên** vượt `2026-09-09T06:09:09Z`"* — là mệnh đề về
+**TOÀN CHUỖI**, mà nghi lễ chỉ điều khiển được **giao dịch của mình**. Ai gửi một giao dịch
+vào khoảng giữa mốc và lúc ta bắn là **chiếm mất ô đó, không giành lại được** — và thứ đã
+khắc thì vĩnh viễn. Hash giao dịch là thứ nghi lễ **cầm được**.
+
+**Hệ quả lên bài diễn tập** (`local-net/faucet/block-adam-drill.mjs`):
+
+| | trước | sau |
+|---|---|---|
+| ô mạnh nhất | "block đầu tiên vượt mốc CHÍNH LÀ block của Adam" | 🔴 **"đưa hash cho chuỗi, chuỗi trả lại đúng giao dịch đó"** |
+| ô cũ | ✓/✗ | **⚠️ lưu ý** — không tính đạt/hỏng |
+
+🔴 **Neo phải nghiệm thu bằng đường NGƯỢC.** Đọc `rcAdam.hash` từ biến trong tay mình rồi
+khai *"neo đọc được"* là **tự hỏi chính mình**. Bài nay đưa hash cho chuỗi và bắt chuỗi trả
+lại giao dịch. Cùng lớp lỗi với bộ xuất O2 khai *"kèm 1 L1"* khi không có byte nào (D-057).
+
+**Vì sao ô cũ xuống hạng chứ không bị xoá:** xoá là mất luôn phép đo độ lệch đồng hồ mà
+B-13(b) cần; giữ ở hạng ✗ là để bài **báo đỏ ở một lượt không có gì sai**, mà một cổng kêu
+oan là một cổng sẽ bị bỏ qua đúng lúc nó kêu thật.
+
+**Nghiệm thu — chạy thật trên mạng tập `27/08`** (`a1-drill`, cổng 9750, chainId 9000000009):
+
+| lượt | kết quả |
+|---|---|
+| `--bu-ms 3000` | **10 đạt · 0 hỏng · 2 lưu ý (0 không đạt)** |
+| 🔴 `--bu-ms 0` — **ca mà bản cũ chấm ✗** | **10 đạt · 0 hỏng · 2 lưu ý (2 KHÔNG đạt)**, exit 0. Block đầu tiên vượt mốc là của **Eva `#4`**, Adam ở `#3` — neo vẫn trỏ đúng `#3` |
+| `--khong-gui` (đối chứng ngược gốc) | 2 đạt · 0 hỏng, exit 0 |
+
+Vật chứng: `docs/vat-chung/block-adam-neo-2026-08-27.json` + `…-bu0-2026-08-27.json`.
+
+🔴 **D-070 HẠ MỨC B-13(b), KHÔNG ĐÓNG NÓ.** Bù `--bu-ms` thôi quyết định *"neo đúng hay sai"*,
+nhưng nếu bản khắc còn **CÂU CHỮ** khẳng định block vượt mốc `2026-09-09T06:09:09Z` thì câu đó
+vẫn phải đúng, và nó vẫn phụ thuộc đồng hồ của **node đề xuất block**. ⇒ vẫn phải đo lệch
+đồng hồ 9 node **sau khi mạng ngày G lên**. Câu chữ chốt cùng lượt C1 đóng băng byte.
+
+⚠️ **Nếu David đổi sang P-Chain thì phải diễn tập lại** — D-055 không đổi.

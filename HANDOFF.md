@@ -11,15 +11,23 @@ sinh lại mạng ngày G.
 
 ## ▶ Phiên sau bắt đầu ở đâu
 
-**Backlog autopilot đã CẠN** — 5/5 mốc đóng, phần còn lại đều chờ David. Đừng mở autopilot mới
-khi chưa có quyết định; nó sẽ đi hoang.
+✅ **David đã chốt B-13(a) + B-14 (`2026-08-27`) — cả hai ĐÃ VÁ VÀ NGHIỆM THU trong phiên.**
+
+| | Chốt | Ghi ở |
+|---|---|---|
+| **B-13(a)** | Block Adam **neo vào HASH GIAO DỊCH NGHI LỄ** | **D-070** |
+| **B-14** | Gốc dải chainId L1: `9100` → **`9000000010`** (= chainId A1 **+1**) | **D-069** |
 
 | Thứ tự | Việc | Điều kiện |
 |---|---|---|
-| **1** | Hỏi David **B-13(a)** (Block Adam neo vào cái gì) + **B-14** (gốc dải chainId L1, gộp vào mục quyết §5c) — hạn `2026-08-28` | chặn ngày G |
+| **1** | 🔴 **O1 custody khoá 5 quỹ** — hạn `28/08`, **cơ hội một lần**. Vẫn là mục quyết số 1 | **David** |
 | **2** | Chạy **O2 một lượt trên MẠNG CÔNG KHAI** để biết thời gian thật *(bài lấy block từng cái một)* — A1 tự làm được | không chặn |
 | **3** | GO/NO-GO `2026-08-29` theo `NGAY-G-A1-CON-LAI.md` §7 (10 điều) | — |
 | **4** | Ngày G `2026-09-01`: build lại image (patch 0013 ⇒ **bắt buộc cùng lượt `down -v`**) · O2 trước khi xoá · tra lại G4 · `cung.json` lên server cùng `faucet.env` | — |
+| **5** | **Ngay SAU ngày G:** đo lệch đồng hồ 9 node → chọn `--bu-ms` (**B-13(b)**, đã hạ mức) · lịch gia hạn validator (**B-12**) | — |
+
+**Backlog autopilot vẫn CẠN.** Phần còn lại đều chờ David hoặc chờ mạng ngày G lên. Đừng mở
+autopilot mới khi chưa có quyết định; nó sẽ đi hoang.
 
 🔴 **Đường găng lớn nhất vẫn KHÔNG nằm trong repo này:** chữ khắc chờ **C1 đóng băng byte**.
 Cơ chế A1 xong 100%; **nội dung 0%**. C1 trễ quá `28/08` thì đường găng gãy ở chỗ A1 không tự
@@ -74,9 +82,9 @@ nói dối suýt nói dối**. Nay khai `xin N · XUẤT ĐƯỢC M`.
 
 | | Việc | Ai |
 |---|---|---|
-| **B-13 (a)** | 🔴 **Block Adam NEO VÀO CÁI GÌ** — khuyến nghị **hash giao dịch nghi lễ**. Khắc vĩnh viễn ⇒ không tự quyết. Gộp vào `NGAY-G-A1-CON-LAI` §6 mục 3, hạn `28/08` | **David** |
-| **B-13 (b)** | Đo **lệch đồng hồ 9 node** rồi chọn `--bu-ms`. Chỉ làm được **sau khi mạng ngày G lên** | A1 |
-| **B-14** | Gốc dải chainId L1 (`9100` hay `9146`) — vướng đúng mục quyết §5c *"có khôi phục sổ `retired` cũ không"* | **David** |
+| ~~**B-13 (a)**~~ | ✅ **ĐÓNG `27/08`** — David chốt **neo vào hash giao dịch nghi lễ** (D-070). Bài diễn tập đã đổi cách chấm + chạy lại thật, kèm ca `--bu-ms 0` mà bản cũ chấm ✗ | — |
+| **B-13 (b)** | Đo **lệch đồng hồ 9 node** rồi chọn `--bu-ms`. Chỉ làm được **sau khi mạng ngày G lên**. 🔴 **D-070 HẠ MỨC, không đóng**: bù thôi quyết định "neo đúng/sai", nhưng nếu bản khắc có **câu chữ** "vượt mốc" thì câu đó vẫn phải đúng | A1 |
+| ~~**B-14**~~ | ✅ **ĐÓNG `27/08`** — David chốt gốc dải **`9000000010`**, đường thứ tư ngoài ba đường A1 đưa (D-069) | — |
 | — | `cung.json` phải lên server **cùng `faucet.env`** (quên ⇒ `/api/supply` 503) | vận hành |
 | — | Câu khai nguồn cung trên trang — `web/` thuộc worktree `9Chain-A1-web`, **câu chữ đã soạn sẵn** | phiên web |
 | — | Chạy O2 **một lượt trên mạng công khai** để biết thời gian thật | A1 |
@@ -110,9 +118,10 @@ nói dối suýt nói dối**. Nay khai `xin N · XUẤT ĐƯỢC M`.
 
 ### 🔴 Chờ David — autopilot KHÔNG tự làm được, đừng đoán thay
 
-`BLOCKERS.md`: 🆕 **B-13(a)** Block Adam **neo vào cái gì** · 🆕 **B-14** gốc dải chainId L1 ·
-**B-12** lịch gia hạn validator (làm ngay sau ngày G) · **B-9** `#e84142` trong `patches/0003` ·
-**B-10** tắt Managed robots.txt ở dashboard Cloudflare. *(**B-11 ĐÃ ĐÓNG HẲN** — C-4 xong `27/08`.)*
+`BLOCKERS.md`: **B-12** lịch gia hạn validator (làm ngay sau ngày G) · **B-9** `#e84142` trong
+`patches/0003` · **B-10** tắt Managed robots.txt ở dashboard Cloudflare.
+*(**B-11** đóng hẳn `27/08` · **B-13(a)** và **B-14** đóng `27/08` — David chốt trong phiên.
+**B-13(b)** còn mở nhưng chỉ làm được sau khi mạng ngày G lên.)*
 `NGAY-G-A1-CON-LAI.md` §6: **O1 custody khoá quỹ** (hạn `28/08`, cơ hội một lần) · **Block Adam
 nằm trên chain nào** · **O3** chính sách L1 người dùng · **có khôi phục sổ `retired` cũ không**
 (chain `David Do` 9141 nằm trong vùng đang hở) · **O4** validator nhà cung cấp thứ hai (tiền) ·

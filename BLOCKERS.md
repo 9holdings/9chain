@@ -6,6 +6,27 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### ✅ B-14 — **ĐÃ ĐÓNG `2026-08-27`** — David chốt gốc dải **`9000000010`** (D-069)
+
+David không chọn đường nào trong ba đường A1 đưa (9146 / 9100 / "dải khác") mà đưa ra một
+đường thứ tư **tốt hơn cả ba**: gốc dải = chainId của A1 **+1**.
+
+| | |
+|---|---|
+| Vùng trống | **không một chuỗi nào trong bán kính 10 triệu** quanh 9000000009 (sổ `27/08`, 2.725 mục) |
+| Bản sắc | mọi chain thuộc A1 cùng mở đầu `9000000…` |
+| 🔴 Ngoài dự tính | dải cũ `9100–9145` **không bao giờ được tự cấp lại** ⇒ lỗ phát lại mà §5c định vá **bằng sổ** nay đóng **bằng kiến trúc** |
+
+⚠️ **§5c CHƯA đóng.** Chỉ đóng nửa `chainId` và chỉ đường **tự cấp**: người dùng vẫn tự nhập
+được `9102` (chặn vẫn dựa `state.retired`), và trùng **TÊN** không đụng tới.
+
+**Đã vá + nghiệm thu:** `local-net/lib/chainid.mjs` (tách khỏi `server.mjs` để bài kiểm đọc
+được mã thật) · `chainid-test.mjs` **13 đạt/0 hỏng** · `check-chainid.mjs` tra dải MỚI, 4 ca
+đối chứng ngược đỏ đúng chỗ · danh sách chặn giữ cả hai dải (D-069b: rỗng ≡ hỏng).
+
+<details>
+<summary>Nguyên văn lúc còn mở</summary>
+
 ### 🔴 B-14 — GỐC DẢI chainId CHO L1 NGƯỜI DÙNG: `9100` TRÙNG MỘT CHUỖI CÓ THẬT (2026-08-27, sinh từ G4)
 
 Tra sổ công khai `27/08` ([`docs/G4-TRA-CHAINID-2026-08-27.md`](docs/G4-TRA-CHAINID-2026-08-27.md)):
@@ -33,6 +54,34 @@ Chọn gốc dải trước khi vá, không thì vá hai lần. **Gộp câu nà
 ✅ **Phần KHÔNG cần quyết đã làm (A-4):** console có **danh sách chặn tĩnh** các chainId đã bị
 chiếm trong sổ công khai — đúng dù gốc dải là 9100 hay 9146.
 
+</details>
+
+### 🟡 B-13 — **(a) ĐÃ ĐÓNG `2026-08-27`** · (b) còn mở, đã HẠ MỨC
+
+✅ **(a) David chốt: neo vào HASH GIAO DỊCH NGHI LỄ** (D-070). Luật cũ *"block đầu tiên vượt
+mốc"* là mệnh đề về toàn chuỗi — nghi lễ không tự bảo đảm được; hash giao dịch là thứ nghi lễ
+cầm được.
+
+Bài diễn tập đã đổi cách chấm và **chạy thật lại trên mạng tập `27/08`**:
+
+| lượt | kết quả |
+|---|---|
+| `--bu-ms 3000` | 10 đạt · 0 hỏng · 2 lưu ý (0 không đạt) |
+| 🔴 `--bu-ms 0` — ca bản cũ chấm **✗** | 10 đạt · 0 hỏng · **2 lưu ý KHÔNG đạt**, exit **0**. Block đầu tiên vượt mốc là của **Eva `#4`**; neo vẫn trỏ đúng Adam `#3` |
+| `--khong-gui` | 2 đạt · 0 hỏng |
+
+Ô cũ **xuống hạng "lưu ý"**, không bị xoá: xoá là mất phép đo lệch đồng hồ mà (b) cần; giữ ở
+hạng ✗ là để bài **kêu oan**, mà cổng kêu oan sẽ bị bỏ qua đúng lúc nó kêu thật.
+
+🔴 **(b) VẪN MỞ, nhưng đổi tính chất.** D-070 hạ nó từ *"neo sai thì hỏng"* xuống *"câu chữ
+sai thì không trung thực"*: nếu bản khắc còn **câu chữ** khẳng định block vượt mốc
+`2026-09-09T06:09:09Z` thì câu đó vẫn phải đúng, và nó vẫn phụ thuộc đồng hồ **node đề xuất
+block**. ⇒ vẫn phải đo lệch đồng hồ 9 node **sau khi mạng ngày G lên**, rồi chọn `--bu-ms`.
+Câu chữ chốt cùng lượt **C1 đóng băng byte**.
+
+<details>
+<summary>Nguyên văn lúc còn mở cả hai vế</summary>
+
 ### 🔴 B-13 — BLOCK ADAM: NEO VÀO CÁI GÌ, VÀ BÙ BAO NHIÊU (2026-08-27, sinh từ diễn tập A-1)
 
 Diễn tập `27/08` đạt (9/9 + 2 đối chứng ngược) — bản đầy đủ
@@ -52,6 +101,8 @@ block**; node đó chậm 5 giây thì bù +3s **vẫn trượt**. Chép con s�
 ⚠️ **Và nếu David chọn P-Chain thay C-Chain thì phải DIỄN TẬP LẠI** — giao dịch nghi lễ trên
 P-Chain là cơ chế khác hẳn (export/import hoặc thao tác staking), bài `block-adam-drill.mjs`
 không phủ được. Phải tính thời gian cho việc đó **trước `09/09`**, xem D-055.
+
+</details>
 
 ### ✅ B-11 — **ĐÃ ĐÓNG HẲN `27/08`** (ba mục chạm binary + C-4)
 

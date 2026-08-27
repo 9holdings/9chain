@@ -16,8 +16,9 @@
 //   node scripts/check-chainid.mjs --them 1              # ⇦ ĐỐI CHỨNG NGƯỢC: 1 = Ethereum
 //                                                        #    Mainnet, PHẢI ra "bị chiếm"
 //   node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-da-chiem.json
-//        # sinh danh sách chặn TĨNH cho console (dải 9100–9999). Console không gọi mạng lúc
-//        # đẻ chain — nó đọc ảnh chụp này. Ảnh chụp CŨ DẦN, nên tệp mang theo ngày tra.
+//        # sinh danh sách chặn TĨNH cho console (mặc định HAI dải: 9100–9999 cũ +
+//        # 9000000010–9000009999 mới). Console không gọi mạng lúc đẻ chain — nó đọc ảnh chụp
+//        # này. Ảnh chụp CŨ DẦN, nên tệp mang theo ngày tra. Thêm dải: `--dai lo-hi` (lặp lại).
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -35,15 +36,28 @@ function cờNhiều(tên) {
 }
 
 // ─── Số A1 quan tâm ───
-// Không chỉ có 9000000009. Console tự cấp chainId cho L1 người dùng bằng
-// `chainId = 9100; while (taken) chainId++` (`local-net/console/server.mjs`), và **đó cũng là
-// chainId EVM thật** — người dùng thêm nó vào MetaMask y như mọi mạng khác. Sổ cũ chạy tới
-// 9145; dải cấp tiếp theo còn đi xa hơn. Bản kế hoạch G4 chỉ nêu 9000000009; thiếu dải L1 là
-// bỏ sót đúng chỗ có người thật.
+// Không chỉ có 9000000009. Console tự cấp chainId cho L1 người dùng, và **đó cũng là chainId
+// EVM thật** — người dùng thêm nó vào MetaMask y như mọi mạng khác. Bản kế hoạch G4 chỉ nêu
+// 9000000009; thiếu dải L1 là bỏ sót đúng chỗ có người thật.
+//
+// 🔴 **Gốc dải đã ĐỔI `2026-08-27`: 9100 → 9000000010** (D-069, David chốt). Danh sách dưới
+// đây phải đi theo, nếu không thì ngày G bài G4 tra một dải mà console không còn cấp — xanh
+// đúng ở chỗ không ai đứng.
+const GOC_DAI = 9_000_000_010;
+const SO_TRA_TRONG_DAI = 100;
 const CAN_TRA = [
   { id: 9000000009, vaiTrò: "C-Chain của 9Chain-A1 — bản sắc, chốt ở D-047" },
-  ...Array.from({ length: 100 }, (_, i) => ({ id: 9100 + i, vaiTrò: `dải console tự cấp cho L1 người dùng (9100+${i})` })),
+  ...Array.from({ length: SO_TRA_TRONG_DAI }, (_, i) => ({
+    id: GOC_DAI + i,
+    vaiTrò: `dải console tự cấp cho L1 người dùng (${GOC_DAI}+${i}, D-069)`,
+  })),
 ];
+
+// ⚠️ Dải CŨ `9100–9999` **cố ý KHÔNG nằm trong `CAN_TRA`**, dù nó có 4 số bị chiếm thật.
+// Lý do: `CAN_TRA` là *"số A1 định dùng — bị chiếm là ĐỎ"*. Sau D-069 console không cấp trong
+// dải đó nữa, nên để nó lại là làm bài **luôn luôn đỏ**, và một cổng đỏ vĩnh viễn thì không ai
+// còn đọc. Dải cũ chuyển vai: nó vào **danh sách chặn** (người dùng vẫn TỰ NHẬP được số trong
+// đó), tức thông tin, không phải báo động.
 
 // ═════════════════════════════ lấy sổ ═════════════════════════════
 const TEP = cờ("--tep");
@@ -101,7 +115,7 @@ for (const mục of cầnTra) {
 }
 
 console.log("\n─── Kết quả ───");
-console.log(`  tra ${cầnTra.length} chainId: 9000000009 · dải L1 9100–9199` +
+console.log(`  tra ${cầnTra.length} chainId: 9000000009 · dải L1 ${GOC_DAI}–${GOC_DAI + SO_TRA_TRONG_DAI - 1} (D-069)` +
   (cờNhiều("--them").length ? ` · thêm ${cờNhiều("--them").join(", ")}` : ""));
 
 if (bịChiếm.length === 0) {
@@ -114,8 +128,11 @@ if (bịChiếm.length === 0) {
 }
 
 // Cận: số gần nhất trong sổ quanh 9000000009 — để biết vùng đó có ai lai vãng không.
-const gần = [...theoId.keys()].filter((k) => Math.abs(k - 9000000009) < 1_000_000).sort((a, b) => a - b);
-console.log(`  · hàng xóm trong bán kính 1 triệu quanh 9000000009: ${gần.length ? gần.join(", ") : "không có"}`);
+// 🔴 Sau D-069 phép đo này **đắt hơn hẳn**: nó không còn chỉ nói về bản sắc A1 mà nói về
+// **cả dải cấp cho người dùng**, vì dải đó nay bắt đầu ngay cạnh 9000000009. Vùng thưa =
+// dải còn đi được xa mà không va ai. Đo `27/08`: trống trong bán kính 10 triệu.
+const gần = [...theoId.keys()].filter((k) => Math.abs(k - 9000000009) < 10_000_000).sort((a, b) => a - b);
+console.log(`  · hàng xóm trong bán kính 10 triệu quanh 9000000009: ${gần.length ? gần.join(", ") : "không có"}`);
 
 // ─── Lưu vật chứng ───
 const LUU = cờ("--luu");
@@ -139,17 +156,49 @@ if (LUU) {
 // mang theo `ngayTra` và console **in ra tuổi của nó**.
 const SINH = cờ("--sinh-danh-sach-chan");
 if (SINH) {
-  const [lo, hi] = (cờ("--dai", "9100-9999")).split("-").map(Number);
+  // 🔴 HAI dải, không phải một — và dải CŨ ở lại là CÓ CHỦ Ý (D-069).
+  //
+  // Sau khi gốc dải đổi sang 9000000010, dải mới **trống hoàn toàn** trong bán kính 10 triệu.
+  // Sinh danh sách chặn chỉ cho dải mới ⇒ tệp có `daBiChiem: []`. Một danh sách chặn RỖNG
+  // không phân biệt được với một bộ sinh HỎNG: cả hai cho ra cùng một tệp, và console nạp
+  // xong sẽ in "0 số" ở cả hai trường hợp. Đó đúng là "xanh giả" mà luật cứng #2 của repo
+  // cấm — cổng chưa từng được nhìn thấy lúc nó ĐỎ.
+  //
+  // Giữ dải cũ 9100–9999 giải cả hai việc cùng lúc:
+  //   · nó **thật sự vẫn cần chặn** — người dùng tự nhập số trong dải đó được;
+  //   · nó cho tệp một **nội dung khác rỗng đã biết trước** (4 số trong 9100–9199), nên
+  //     tệp rỗng từ nay là **tín hiệu HỎNG**, không phải trạng thái bình thường.
+  const dảiThô = cờNhiều("--dai");
+  const dải = (dảiThô.length ? dảiThô : ["9100-9999", "9000000010-9000009999"])
+    .map((s) => s.split("-").map(Number));
+  for (const [lo, hi] of dải) {
+    if (!Number.isSafeInteger(lo) || !Number.isSafeInteger(hi) || lo > hi) {
+      console.error(`🔴 --dai không hợp lệ: ${lo}-${hi}`); process.exit(2);
+    }
+  }
   const trongDải = sổ
-    .filter((c) => typeof c.chainId === "number" && c.chainId >= lo && c.chainId <= hi)
+    .filter((c) => typeof c.chainId === "number" && dải.some(([lo, hi]) => c.chainId >= lo && c.chainId <= hi))
     .sort((a, b) => a.chainId - b.chainId)
     .map((c) => ({ chainId: c.chainId, ten: c.name ?? "?" }));
+
+  if (trongDải.length === 0) {
+    console.error("\n🔴 Danh sách chặn sinh ra RỖNG. Không ghi tệp.");
+    console.error("   Rỗng không phân biệt được với 'bộ sinh hỏng' — xem khối chú thích ở đây.");
+    console.error(`   Dải đã quét: ${dải.map(([l, h]) => `${l}-${h}`).join(", ")}`);
+    process.exit(2);
+  }
+
   writeFileSync(SINH, JSON.stringify({
     _doc: "Danh sách chainId ĐÃ BỊ CHIẾM trong sổ công khai, dùng cho console lúc cấp chainId cho L1 người dùng. SINH TỰ ĐỘNG — đừng sửa tay, chạy lại scripts/check-chainid.mjs --sinh-danh-sach-chan.",
-    nguon: NGUON, ngayTra: ngàyTra, sha256Nguon: hash, soMucTrongSo: sổ.length,
-    dai: [lo, hi], soBiChiem: trongDải.length, daBiChiem: trongDải,
+    // 🔴 `nguồnMôTả`, KHÔNG phải `NGUON`. Chạy với `--tep` mà vẫn khai URL là tệp tự khai
+    // rằng nó vừa hỏi Internet trong khi nó đọc một ảnh chụp trên đĩa — có thể là ảnh chụp
+    // từ năm ngoái. Cùng lớp lỗi với bộ xuất O2 khai "kèm 1 L1" khi không có byte nào
+    // (D-057): công cụ dựng ra để chống nói dối thì chỗ nó tự khai phải đúng trước nhất.
+    nguon: nguồnMôTả, ngayTra: ngàyTra, sha256Nguon: hash, soMucTrongSo: sổ.length,
+    dais: dải, soBiChiem: trongDải.length, daBiChiem: trongDải,
   }, null, 2) + "\n");
-  console.log(`\ndanh sách chặn: ${SINH} — ${trongDải.length} số bị chiếm trong dải ${lo}–${hi}`);
+  console.log(`\ndanh sách chặn: ${SINH} — ${trongDải.length} số bị chiếm trong dải ` +
+    dải.map(([l, h]) => `${l}–${h}`).join(" · "));
 }
 
 console.log(`\n${bịChiếm.length === 0 ? "✅ trống" : "🔴 CÓ SỐ BỊ CHIẾM"} — tra lúc ${ngàyTra}`);

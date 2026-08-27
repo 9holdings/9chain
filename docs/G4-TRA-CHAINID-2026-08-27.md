@@ -60,15 +60,36 @@ Bài `check-chainid.mjs` nay tra **101 số**: `9000000009` + trọn dải `9100
 
 ---
 
-## 3. 🔴 Việc sinh ra — xem `BLOCKERS.md` B-14
+## 3. ✅ ĐÃ ĐÓNG CÙNG NGÀY — David chốt gốc dải **`9000000010`** (D-069)
 
-Không sửa trong lượt này vì nó **vướng vào một quyết định đang chờ David**: §5c hỏi *"có khôi
-phục sổ `retired` cũ không"*. Khôi phục thì số tự cấp bắt đầu từ **9146**; không khôi phục thì
-từ **9100**. Hai đường ra hai chỗ khác nhau, nên chọn gốc dải trước khi vá là làm hai lần.
+Lượt tra này để ngỏ việc vá vì nó vướng §5c (*"có khôi phục sổ `retired` cũ không"* — khôi
+phục thì gốc dải **9146**, không thì **9100**). **David chọn đường thứ tư:** gốc dải =
+chainId của A1 (`9000000009`) **+ 1**.
 
-**Phần KHÔNG cần quyết đã làm luôn ở A-4:** console nay có **danh sách chặn tĩnh** các chainId
-đã bị chiếm trong sổ công khai — dù gốc dải là 9100 hay 9146, bỏ qua số của người khác vẫn
-đúng.
+| | |
+|---|---|
+| Vùng trống | **không một chuỗi nào trong bán kính 10 triệu** quanh 9000000009 (đo lại trên chính ảnh chụp này) |
+| So với dải cũ | dải cũ có **4/100** số đầu đã có chủ |
+| Trần EIP-2294 | còn **9.007.190.254.740.981** số trống trên gốc dải |
+
+🔴 **Cái được nằm ngoài câu hỏi ban đầu:** dải cũ `9100–9145` từ nay **không bao giờ được tự
+cấp lại** ⇒ nửa `chainId` của lỗ phát lại §5c đóng **bằng kiến trúc**, không cần khôi phục sổ.
+⚠️ Chỉ **nửa `chainId`, và chỉ đường tự cấp** — người dùng vẫn tự nhập được số cũ, và trùng
+**TÊN** không đụng tới. Đừng đọc thành "§5c đã đóng".
+
+**Đã vá + nghiệm thu cùng ngày:** `local-net/lib/chainid.mjs` · `chainid-test.mjs` **13 đạt/0
+hỏng** · `check-chainid.mjs` nay tra dải MỚI (`CAN_TRA` bỏ dải cũ — D-069c, để mã thoát lấy
+lại nghĩa) · danh sách chặn giữ **cả hai dải** (D-069b: một danh sách rỗng không phân biệt
+được với một bộ sinh hỏng).
+
+**Phần KHÔNG cần quyết đã làm ở A-4:** console có **danh sách chặn tĩnh** — đúng dù gốc dải là
+số nào.
+
+🔴 **Lỗi bắt được trong CHÍNH bộ sinh, lúc vá:** khối ghi danh sách chặn khai
+`nguon: NGUON` (hằng số URL) **kể cả khi chạy với `--tep`** — tệp tự khai vừa hỏi Internet
+trong khi nó đọc một ảnh chụp trên đĩa, có thể là ảnh chụp từ năm ngoái. (Khối ghi vật chứng
+ngay bên trên thì khai đúng.) **Cùng lớp lỗi với bộ xuất O2 khai *"kèm 1 L1"* khi không có
+byte nào — D-057.** Đã sửa; bài kiểm nay có ô canh trường `nguon`.
 
 ---
 

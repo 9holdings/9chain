@@ -211,11 +211,22 @@ Bù **+3s** thì đạt 9/9 (block chứa Adam *là* block đầu tiên vượt 
    đồng hồ với máy bắn. Trên bộ 9 node, `block.timestamp` là đồng hồ của **node đề xuất block**.
    Node đó chậm 5 giây thì bù +3s vẫn trượt. ⇒ **trước ngày G phải đo lệch đồng hồ cả 9 node**
    rồi chọn bù lớn hơn độ lệch âm lớn nhất.
-2. 🔴 **Luật *"block ĐẦU TIÊN vượt mốc"* là thứ nghi lễ KHÔNG tự bảo đảm được.** Bù dương chỉ vá
-   phần ta điều khiển — giao dịch của ta. Mệnh đề *"đầu tiên"* nói về **toàn chuỗi**: ai gửi một
-   giao dịch vào khoảng giữa mốc và lúc ta bắn đều chiếm mất ô đó. *"Đo thấy đứng yên"* ≠ *"được
-   bảo đảm đứng yên"*, và ngày G là ngày đông người nhất từ trước tới nay. ⇒ luật chắc chắn đúng
-   phải neo vào **hash giao dịch nghi lễ** hoặc **số block chốt sau khi nó đã sinh ra**.
+2. ✅ **ĐÃ CHỐT `27/08` (D-070): neo vào HASH GIAO DỊCH NGHI LỄ.**
+   *(Nguyên văn lý do:)* luật *"block ĐẦU TIÊN vượt mốc"* là thứ nghi lễ **không tự bảo đảm
+   được**. Bù dương chỉ vá phần ta điều khiển — giao dịch của ta. Mệnh đề *"đầu tiên"* nói về
+   **toàn chuỗi**: ai gửi một giao dịch vào khoảng giữa mốc và lúc ta bắn đều chiếm mất ô đó.
+   *"Đo thấy đứng yên"* ≠ *"được bảo đảm đứng yên"*, và ngày G là ngày đông người nhất từ
+   trước tới nay.
+
+   **Bài diễn tập đã đổi theo và chạy lại thật `27/08`:** ô mạnh nhất nay là *"đưa hash cho
+   chuỗi, chuỗi trả lại đúng giao dịch đó"* (đường **ngược** — đọc hash từ biến của mình rồi
+   khai "neo đọc được" là tự hỏi chính mình). Ô cũ **xuống hạng lưu ý**, không bị xoá.
+   Ca `--bu-ms 0` — ca mà bản cũ chấm ✗ — nay: **10 đạt · 0 hỏng · 2 lưu ý không đạt**, block
+   đầu tiên vượt mốc là của **Eva `#4`** trong khi neo trỏ đúng Adam `#3`.
+
+   🔴 **Điều đó HẠ MỨC mục 1 ở trên, KHÔNG xoá nó.** Nếu bản khắc còn **câu chữ** khẳng định
+   block vượt mốc `2026-09-09T06:09:09Z` thì câu đó vẫn phải đúng ⇒ vẫn phải đo lệch đồng hồ
+   9 node sau khi mạng ngày G lên.
 3. **Bài này chỉ phủ C-Chain.** Chọn P-Chain là **phải diễn tập lại** — giao dịch nghi lễ trên
    P-Chain là cơ chế khác hẳn (export/import hoặc thao tác staking), không phải một
    `eth_sendRawTransaction`. Phải tính thời gian cho việc đó trước `09/09`.
@@ -321,9 +332,9 @@ phải thiết kế trước lượt tập đầu tiên**, không phải trướ
 | ~~1~~ | ✅ **XONG `27/08`** — ~~phân xử bảng phân bổ~~ → **giữ bảng đang chạy 40/30/12/9/9** (D-045). G1+G2+G3 mở khoá, không phải sửa mã | — | — |
 | ~~1b~~ | ✅ **XONG `27/08` — GIỮ N = 9** (D-046). 🔴 **Đổi bản chất O4**: không còn là "thêm node thứ 10" mà là **DỜI một trong 9 node** sang nhà cung cấp khác — tốt hơn, và chi phí khác hẳn | — | — |
 | **2** | 🔴 **Sơ đồ custody khoá quỹ mới** (O1) | Sinh lại mạng là **cơ hội một lần**; sau ngày G lại kẹt y cũ | **`28/08`** |
-| **3** | **Block Adam: (a) nằm trên chain nào** (khuyến nghị C-Chain) · 🆕 **(b) NEO VÀO CÁI GÌ** — *"block đầu tiên vượt mốc"* là mệnh đề về **toàn chuỗi**, nghi lễ không tự bảo đảm được; khuyến nghị neo vào **hash giao dịch nghi lễ**. Xem §4 | Khắc vĩnh viễn | `28/08` |
+| **3** | **Block Adam: (a) nằm trên chain nào** (khuyến nghị C-Chain) · ~~(b) neo vào cái gì~~ ✅ **XONG `27/08` — neo vào HASH GIAO DỊCH NGHI LỄ** (D-070). Bài diễn tập đã đổi cách chấm + chạy lại thật | Khắc vĩnh viễn | `28/08` |
 | **4** | **L1 người dùng + câu cảnh báo khi mời người** (O3) | Chạm người thật ngoài dự án | `28/08` |
-| **5** 🔴 | **Có khôi phục sổ `retired` cũ không** (O3b) — **KHÔNG còn là rủi ro lý thuyết**, xem §5c | Chống phát lại cho ví người dùng cũ · **chain `David Do` 9141 nằm trong vùng đang hở** | `28/08` |
+| **5** 🟡 | **Có khôi phục sổ `retired` cũ không** (O3b) — 🔴 **ĐÃ HẠ MỨC `27/08`**: D-069 dời gốc dải sang `9000000010`, nên dải cũ `9100–9145` **không bao giờ được tự cấp lại** ⇒ nửa `chainId` của lỗ đóng **bằng kiến trúc**. Còn lại: người dùng **tự nhập** số cũ, và trùng **TÊN**. Xem §5c | Chống phát lại cho ví người dùng cũ · **chain `David Do` 9141** | `28/08` |
 | ~~7b~~ | ✅ **XONG `27/08` — GIỮ `9000000009`** (D-047). Hai vế rủi ro còn lại xử bằng **câu chữ trên trang**, không bằng đổi số | — | — |
 | **6** | 🔴 **Chi tiền cho validator nhà cung cấp thứ hai** (O4) | Tiền | `29/08` |
 | **7** | **H-7: IPv4 đa cổng hay IPv6** (O5) | Chọn **tập người dùng**, không phải chọn kỹ thuật | `29/08` |
@@ -339,9 +350,12 @@ Bản nháp BOD có 7 điều kiện, trong đó **điều 1 không thoả mãn 
 
 1. **G1** — David đã phân xử bảng phân bổ; `allocation.md` khớp, tổng ra **9.000.000.000**
 2. **G2** — self-bond genesis ≤ `maxValidatorStake`, **có phép đo**, và còn dư địa nhận uỷ quyền
-3. **G4** — tra lại `chainid.network` **ngay trước bước sinh genesis**, `9000000009` không trùng.
-   *(Tra `27/08`: **trống** ✓ — nhưng lượt đó bắt được **`9100` = Genesis Coin**, tức số console
-   cấp đầu tiên cho L1 người dùng đang trùng một chuỗi có thật. Xem B-14 + `G4-TRA-CHAINID-2026-08-27.md`.)*
+3. **G4** — tra lại `chainid.network` **ngay trước bước sinh genesis**: `9000000009` **và trọn
+   dải L1 `9000000010–9000000109`** không trùng. Bài **thoát `0`** mới là đạt.
+   *(Tra `27/08`: cả hai **trống** ✓. Lượt đó bắt được **`9100` = Genesis Coin** ⇒ B-14 ⇒
+   **David dời gốc dải sang `9000000010`**, D-069. Xem `G4-TRA-CHAINID-2026-08-27.md`.)*
+   🔴 **Sổ đổi trong CÙNG một ngày** — hai lượt tra `27/08` cách nhau ~2 giờ đã lệch: 2.723 →
+   2.725 mục, `sha256` khác hẳn. Đây là số đo, không phải lo xa.
    Một lệnh: `node scripts/check-chainid.mjs --luu docs/vat-chung/g4-<ngày>`
 4. **G5** — chữ khắc **đọc ngược lại được từ chain**, `sha256` từng tài liệu **khớp bản đóng băng
    của C1**, và đã chốt Block Adam nằm trên chain nào

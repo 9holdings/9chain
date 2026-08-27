@@ -1,0 +1,64 @@
+{
+  "moc": "2026-08-27T11:30:37Z",
+  "mocGiay": 1787830237,
+  "rpc": "http://127.0.0.1:9750/ext/bc/C/rpc",
+  "khongGui": false,
+  "buMs": 0,
+  "doiChungNguoc": false,
+  "chainId": "9000000009",
+  "caoTruoc": 2,
+  "tsBlockCuoiTruoc": 1787830162,
+  "lechDongHoGiay": -30,
+  "nonce": 2,
+  "maxFeePerGas": "2000000004",
+  "banLucMs": 1787830237000,
+  "lechSoVoiMocMs": 0,
+  "txAdam": "0xcbd00203d5b6ea1fdf8cea2b5c4543c323d18c288f05dfeed764114ae5a643b3",
+  "txEva": "0xe7aef62074e388e87f18e30a93a6d786fb59baed705a6e06bc21e3972d67a390",
+  "caoSau": 4,
+  "blockDauVuotMoc": {
+    "number": 4,
+    "timestamp": 1787830239,
+    "hash": "0xc1909b21d3a767b443714da2096eedbe170a66ea1105a0d8067fa51458742fd0"
+  },
+  "blockCuaAdam": {
+    "number": 3,
+    "timestamp": 1787830237
+  },
+  "neo": {
+    "hashGiaoDich": "0xcbd00203d5b6ea1fdf8cea2b5c4543c323d18c288f05dfeed764114ae5a643b3",
+    "blockNumber": 3,
+    "blockTimestamp": 1787830237
+  },
+  "blockAdam": {
+    "number": 4,
+    "timestamp": 1787830239,
+    "hash": "0xc1909b21d3a767b443714da2096eedbe170a66ea1105a0d8067fa51458742fd0"
+  },
+  "cachMocGiay": 2,
+  "đạt": [
+    "trước mốc: chưa có block nào vượt mốc",
+    "ví nghi lễ có tiền",
+    "giao dịch Adam chốt được",
+    "giao dịch Eva chốt được",
+    "mốc trôi qua và chuỗi ĐẺ RA block",
+    "tồn tại block đầu tiên vượt mốc",
+    "🔴 NEO: đưa hash cho chuỗi, chuỗi trả lại đúng giao dịch đó",
+    "NEO trỏ về đúng block của receipt",
+    "block mà NEO trỏ tới đọc lại được (number + timestamp)",
+    "đọc lại được blockNumber + timestamp từ chuỗi"
+  ],
+  "hỏng": [],
+  "lưuÝ": [
+    {
+      "nhãn": "block CHỨA giao dịch Adam tự nó vượt mốc",
+      "ok": false,
+      "chiTiết": "#3 ts=1787830237, mốc=1787830237, cách +0s"
+    },
+    {
+      "nhãn": "block đầu tiên vượt mốc CHÍNH LÀ block của Adam",
+      "ok": false,
+      "chiTiết": "#4 vs #3"
+    }
+  ]
+}

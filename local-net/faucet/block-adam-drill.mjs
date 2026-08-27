@@ -18,10 +18,21 @@
 // giả định chúng khớp — nếu đồng hồ node chạy chậm, block nghi lễ có thể mang timestamp
 // **chưa vượt mốc**, và lúc đó nó không đủ tư cách làm Block Adam theo đúng luật đã công bố.
 //
-// ═══ Cách chấm ═══
-// Ô ✓ mạnh nhất KHÔNG phải "giao dịch của tôi có receipt". Nó là: **quét chuỗi tìm block đầu
-// tiên có `timestamp` vượt mốc, và block đó đúng là block nghi lễ.** Đó mới là mệnh đề sẽ
-// được khắc.
+// ═══ Cách chấm — ĐỔI `2026-08-27` theo D-070 ═══
+// Ô ✓ mạnh nhất KHÔNG phải "giao dịch của tôi có receipt", và **cũng không còn là** "block
+// đầu tiên vượt mốc đúng là block nghi lễ".
+//
+// David chốt `27/08`: chữ khắc **neo vào hash giao dịch nghi lễ**. Lý do — luật cũ *"block
+// đầu tiên vượt mốc"* là mệnh đề về **toàn chuỗi**, mà nghi lễ chỉ điều khiển được **giao
+// dịch của mình**; ai gửi một giao dịch vào khoảng giữa mốc và lúc ta bắn là chiếm mất ô đó,
+// không giành lại được, và thứ đã khắc thì vĩnh viễn.
+//
+// ⇒ Ô mạnh nhất nay là: **đưa hash cho chuỗi, chuỗi trả lại đúng giao dịch đó** (đường NGƯỢC
+// — đọc `rcAdam.hash` từ biến trong tay mình rồi khai "neo đọc được" là tự hỏi chính mình).
+//
+// Ô cũ **không bị xoá**, nó xuống hạng **lưu ý** (`lưuÝRa`): nó thôi quyết định đúng/sai của
+// chữ khắc, nhưng vẫn là phép đo độ lệch đồng hồ mà B-13(b) cần, và vẫn nói cho ta biết câu
+// chữ "vượt mốc" trong bản khắc có trung thực hay không.
 //
 //   node local-net/faucet/block-adam-drill.mjs --moc 2026-09-09T06:09:09Z
 //
@@ -94,9 +105,25 @@ async function chờTới(mốcMs) {
 
 const đạt = [];
 const hỏng = [];
+const lưuÝ = [];
 function chấm(ok, nhãn, chiTiết = "") {
   (ok ? đạt : hỏng).push(nhãn);
   console.log(`  ${ok ? "✓" : "✗"} ${nhãn}${chiTiết ? "  — " + chiTiết : ""}`);
+}
+
+// ═══ Hạng thứ ba: LƯU Ý — không tính vào đạt/hỏng ═══
+//
+// Sinh ra sau D-070 (neo chữ khắc = **hash giao dịch nghi lễ**). Trước đó, ô *"block đầu tiên
+// vượt mốc CHÍNH LÀ block của Adam"* là điều kiện ĐÚNG/SAI của chữ khắc. Sau D-070 nó không
+// còn là thế: neo nằm ở hash giao dịch, thứ ta cầm được, nên một lượt mà ai đó chen mất ô
+// "đầu tiên" **vẫn là một lượt ĐÚNG**.
+//
+// 🔴 Nhưng xoá hẳn ô đó thì mất luôn phép đo độ lệch đồng hồ — thứ B-13(b) cần. Và giữ nó ở
+// hạng ✗ thì bài **báo đỏ ở một lượt không có gì sai**, mà một cổng kêu oan là một cổng sẽ bị
+// bỏ qua đúng lúc nó kêu thật. Nên: giữ phép đo, hạ hạng thông báo.
+function lưuÝRa(ok, nhãn, chiTiết = "") {
+  lưuÝ.push({ nhãn, ok, chiTiết });
+  console.log(`  ${ok ? "✓" : "⚠️"} ${nhãn}${chiTiết ? "  — " + chiTiết : ""}  [lưu ý, không chấm]`);
 }
 
 // ───────────────────────────── vào việc ─────────────────────────────
@@ -243,13 +270,45 @@ if (NGUOC) {
   const bAdam = rcAdam ? await p.getBlock(rcAdam.blockNumber) : null;
   if (bAdam) {
     số.blockCuaAdam = { number: bAdam.number, timestamp: bAdam.timestamp };
-    chấm(bAdam.timestamp > MOC_GIAY, "block CHỨA giao dịch Adam tự nó vượt mốc",
+    // Sau D-070: lưu ý, không chấm. Neo là hash giao dịch — block chứa nó là Block Adam dù
+    // timestamp có vượt mốc hay không. Ô này nay trả lời một câu KHÁC và vẫn cần: *"câu chữ
+    // 'vượt mốc' trong bản khắc có trung thực không"*, và nó là đầu vào của B-13(b).
+    lưuÝRa(bAdam.timestamp > MOC_GIAY, "block CHỨA giao dịch Adam tự nó vượt mốc",
       `#${bAdam.number} ts=${bAdam.timestamp}, mốc=${MOC_GIAY}, cách ${bAdam.timestamp - MOC_GIAY >= 0 ? "+" : ""}${bAdam.timestamp - MOC_GIAY}s`);
   }
 
+  // ═══ Ô MẠNH NHẤT sau D-070: NEO = HASH GIAO DỊCH NGHI LỄ ═══
+  //
+  // David chốt `27/08`: chữ khắc neo vào **hash giao dịch nghi lễ**, không vào mệnh đề
+  // "block đầu tiên vượt mốc". Nên thứ phải nghiệm thu là: hash đó có thật, đọc NGƯỢC được
+  // từ chuỗi, và trỏ về đúng một block đọc lại được.
+  //
+  // 🔴 `rcAdam.hash` là hash ta CÓ SẴN trong tay từ lúc gửi — đọc nó rồi khai "neo đọc được"
+  // là tự hỏi chính mình. Phải đi ĐƯỜNG NGƯỢC: đưa hash cho chuỗi, bắt chuỗi trả lại giao
+  // dịch. Cùng lớp lỗi với bộ xuất O2 khai "kèm 1 L1" khi không có byte nào (D-057).
+  if (rcAdam?.hash) {
+    const txĐọcNgược = await p.getTransaction(rcAdam.hash);
+    số.neo = { hashGiaoDich: rcAdam.hash, blockNumber: rcAdam.blockNumber };
+    chấm(txĐọcNgược !== null && txĐọcNgược.hash === rcAdam.hash,
+      "🔴 NEO: đưa hash cho chuỗi, chuỗi trả lại đúng giao dịch đó",
+      txĐọcNgược ? `${rcAdam.hash.slice(0, 18)}… → block #${txĐọcNgược.blockNumber}` : "🔴 chuỗi KHÔNG biết hash này");
+    chấm(txĐọcNgược?.blockNumber === rcAdam.blockNumber,
+      "NEO trỏ về đúng block của receipt",
+      `#${txĐọcNgược?.blockNumber} vs #${rcAdam.blockNumber}`);
+    const bNeo = txĐọcNgược ? await p.getBlock(txĐọcNgược.blockNumber) : null;
+    chấm(bNeo !== null && Number.isFinite(bNeo.timestamp),
+      "block mà NEO trỏ tới đọc lại được (number + timestamp)",
+      bNeo ? `#${bNeo.number} ts=${bNeo.timestamp} (${kýGiây(bNeo.timestamp)})` : "🔴 không đọc được");
+    if (bNeo) số.neo.blockTimestamp = bNeo.timestamp;
+  } else {
+    chấm(false, "🔴 NEO: không có hash giao dịch nghi lễ để neo vào", "receipt vắng mặt");
+  }
+
   if (đầuVượt) {
-    // Ô mạnh nhất: block được khắc có ĐÚNG là block nghi lễ không.
-    chấm(đầuVượt.number === rcAdam.blockNumber, "block đầu tiên vượt mốc CHÍNH LÀ block của Adam",
+    // ⚠️ Ô này TỪNG là ô mạnh nhất; sau D-070 nó xuống hạng lưu ý. Nó không còn quyết định
+    // chữ khắc đúng hay sai — nhưng nó vẫn là **phép đo độ lệch đồng hồ** mà B-13(b) cần,
+    // và nó vẫn nói cho ta biết câu chữ "vượt mốc" có trung thực hay không.
+    lưuÝRa(đầuVượt.number === rcAdam.blockNumber, "block đầu tiên vượt mốc CHÍNH LÀ block của Adam",
       `#${đầuVượt.number} vs #${rcAdam.blockNumber}`);
     // Đọc lại được — điều kiện qua của HANDOFF.
     const đọcLại = await p.getBlock(đầuVượt.number);
@@ -294,14 +353,33 @@ console.log(`  Trên bộ nhiều node, block do node KHÁC đề xuất mang đ
 // cho thấy mạng công khai đứng yên lúc rảnh, nhưng "đo thấy đứng yên" ≠ "được bảo đảm đứng
 // yên". Một nghi lễ **không thể tự bảo đảm** mệnh đề "đầu tiên trong toàn chuỗi".
 // ⇒ Luật khắc chắc chắn đúng phải neo vào thứ ta cầm được: **hash giao dịch nghi lễ**, hoặc
-//   số block chốt SAU khi đã sinh ra. Đây là việc của David (`NGAY-G-A1-CON-LAI.md` §6 mục 3).
+//   số block chốt SAU khi đã sinh ra.
+//
+// ✅ **ĐÃ CHỐT `2026-08-27` (D-070): neo vào HASH GIAO DỊCH NGHI LỄ.** Vì thế ô *"block đầu
+// tiên vượt mốc CHÍNH LÀ block của Adam"* xuống hạng **lưu ý** — xem `lưuÝRa`.
+// 🔴 Nhưng `--bu-ms` **chưa hết việc**: nếu bản khắc còn CÂU CHỮ khẳng định block vượt mốc
+// `2026-09-09T06:09:09Z`, thì câu đó vẫn phải đúng, và nó vẫn phụ thuộc đồng hồ node đề xuất.
+// D-070 hạ B-13(b) từ *"neo sai thì hỏng"* xuống *"câu chữ sai thì không trung thực"* —
+// **hạ mức, không phải đóng**. Câu chữ chốt cùng lượt C1 đóng băng byte.
+
+// 🔴 Lưu ý KHÔNG làm đỏ lượt chạy, nên nó dễ trôi qua mắt. In gộp lại một chỗ ở cuối.
+if (lưuÝ.length) {
+  const cảnh = lưuÝ.filter((l) => !l.ok);
+  console.log(`\n═══ LƯU Ý (${lưuÝ.length}) — không tính đạt/hỏng ═══`);
+  for (const l of lưuÝ) console.log(`  ${l.ok ? "✓" : "⚠️"} ${l.nhãn}${l.chiTiết ? `  — ${l.chiTiết}` : ""}`);
+  if (cảnh.length) {
+    console.log(`  🔴 ${cảnh.length} lưu ý KHÔNG đạt. Không phải lỗi của neo (D-070), NHƯNG nếu`);
+    console.log(`     bản khắc có câu "vượt mốc" thì câu đó đang KHÔNG trung thực. Xem B-13(b).`);
+  }
+}
 
 if (RA_JSON) {
-  số.đạt = đạt; số.hỏng = hỏng;
+  số.đạt = đạt; số.hỏng = hỏng; số.lưuÝ = lưuÝ;
   writeFileSync(RA_JSON, JSON.stringify(số, null, 2));
   console.log(`\nvật chứng: ${RA_JSON}`);
 }
 
-console.log(`\n${hỏng.length === 0 ? "✅" : "🔴"} ${đạt.length} đạt · ${hỏng.length} hỏng`);
+console.log(`\n${hỏng.length === 0 ? "✅" : "🔴"} ${đạt.length} đạt · ${hỏng.length} hỏng` +
+  (lưuÝ.length ? ` · ${lưuÝ.length} lưu ý (${lưuÝ.filter((l) => !l.ok).length} không đạt)` : ""));
 if (hỏng.length) console.log("hỏng: " + hỏng.join(" · "));
 process.exit(hỏng.length === 0 ? 0 : 1);
