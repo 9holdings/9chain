@@ -351,19 +351,58 @@ RAM dùng 2 GB, đĩa 9% — nhưng `backend` vừa chứng minh một container
 | 4 | **H-7** IPv4 đa cổng hay IPv6 | **David** | quyết định |
 | 5 | **B-10** tắt Managed robots.txt ở dashboard Cloudflare | **David** | 1 phút |
 | ~~7~~ | ✅ **XONG `27/08`** — O2 chạy thật: **37–54s**, `GỐC` công bố ở D-072, 4 ca nghiệm thu (2 đối chứng ngược) | — | — |
-| ~~10~~ | ✅ **XONG `27/08` (nguồn)** — `frame-ancestors 'self'` + `X-Frame-Options`; CORS thêm `defer` + gỡ `Allow-Credentials`. 🔴 **CHƯA DEPLOY** — xem dưới | — | — |
+| ~~10~~ | ✅ **ĐÃ DEPLOY `27/08`** — `frame-ancestors 'self'` + `X-Frame-Options` (chỉ site A1); CORS `defer` + gỡ `Allow-Credentials`. Kèm **cổng D-075** | — | — |
+| ~~11~~ | ✅ **XONG** — deploy sạch, 6 tên miền còn sống, đo từ ngoài | — | — |
 | 6 | **B-9** `#e84142` — nếu chốt sửa thì sinh lại bộ patch **một lần nữa** | **David** duyệt | — |
 | 9 | **GO/NO-GO `29/08`** theo `NGAY-G-A1-CON-LAI` §7 | — | — |
 | 11 | 🔴 **Deploy Caddyfile** — cần David gật + nên báo 9Scan trước | **David** | 1 lệnh |
 
-🔴 **Vì sao bản vá Caddy chưa deploy dù đã `caddy validate` sạch:** `(secheaders)` được import
-bởi **cả bốn** tên miền, trong đó `a1.9scan.org` và `testnet-a1.9scan.org` là **sản phẩm của
-đội 9Scan**. Repo này đã có tiền lệ đúng loại — **B-6**: một lượt `caddy-deploy` xoá mất site
-block của họ, explorer trả **525 trong 31 phút**, và *"quả mìn nổ vào tay người khác, không
-phải người đặt nó"*.
-*(Rủi ro đã đo, không đoán: không repo nào — `web/` của A1 lẫn `9Scan-A1` — dùng `iframe` thật,
-nên `frame-ancestors 'self'` không làm hỏng gì. Cái chờ là **phép lịch sự với đội khác**, không
-phải nỗi sợ kỹ thuật.)*
+### 🔴 Lượt deploy này suýt gây HAI thiệt hại — cả hai bắt được bằng phép đo TRƯỚC khi đẩy
+
+**1. Suýt xoá công việc của phiên web.** Caddyfile **đang chạy** đến từ nhánh `web-home`, đi
+trước `main` **168 dòng** ở chính tệp đó: trang **404 thương hiệu**, `Cache-Control: no-cache`
+cho HTML, `handle /api/*`, khối robots. Deploy thẳng từ `main` sẽ xoá sạch — đúng lớp lỗi
+**B-6** (deploy xoá site block của 9Scan ⇒ explorer 525 trong 31 phút).
+⇒ Merge `main` vào `web-home` rồi deploy **từ đó**.
+
+**2. Suýt làm site của 9Scan KÉM AN TOÀN ĐI.** Bản vá đầu đặt header chống nhúng vào
+`(secheaders)` — snippet mà **cả bốn** tên miền import. Đo trước khi deploy:
+
+```
+a1.9scan.org → content-security-policy: frame-ancestors 'none'; base-uri 'none';
+                                        form-action 'self'; object-src 'none'
+               x-frame-options: DENY
+```
+
+**Chính sách của họ CHẶT HƠN của ta.** Áp thêm ở tầng Caddy thì hoặc nới lỏng nó, hoặc đẻ
+header **trùng lặp** — hai `X-Frame-Options` lệch nhau khiến trình duyệt **bỏ qua cả hai**.
+⇒ Snippet `(chongnhung)` riêng, chỉ import ở hai tên miền của A1.
+
+### ✅ Nghiệm thu sau deploy — đo từ ngoài, không tin lời kịch bản
+
+| | |
+|---|---|
+| `a1.9chain.org` | `frame-ancestors 'self'` + `SAMEORIGIN` ✓ mới |
+| `a1.9scan.org` | **đúng 1** dòng `x-frame-options`, vẫn `DENY`, CSP nguyên vẹn ✓ |
+| RPC POST | `allow-credentials` **biến mất** · `eth_chainId` = `0x218711a09` · preflight 204 |
+| Việc của phiên web | 404 thương hiệu trả **đúng mã 404** + `<title>` tiếng Việt · `no-cache` còn |
+| 6 trang công khai | **200** hết · faucet `{"ok":true}` · console API từ chối đúng cách |
+
+### 🔴 Và dựng một CỔNG cho đúng lớp lỗi vừa suýt dẫm (D-075)
+
+*"Nhờ nhớ so tay"* không phải một cổng. `caddy-deploy.sh` nay **từ chối** bản mới ít dòng cấu
+hình hơn bản đang chạy (≥10 dòng ⇒ chặn; ít hơn ⇒ cảnh báo; `A1_CHO_PHEP_TEO=1` để gỡ thật).
+
+Đo bằng **dòng không-phải-chú-thích**, không bằng `diff`: tệp này 2/3 là chú thích và chú thích
+đổi liên tục, nên cổng dựa trên `diff` sẽ kêu mọi lượt và **bị bỏ qua ngay tuần đầu**.
+
+**Đã bắn đúng ca suýt xảy ra vào cổng, trên server thật:** đẩy bản `main` lên ⇒ `253 → 185`,
+*"ít hơn 68 dòng — DỪNG"*, exit 1, vân tay bản đang chạy **không đổi**, `Caddyfile.new` **còn
+nguyên** (cổng dừng trước khi xoá bằng chứng), site vẫn 200.
+
+⚠️ **Cổng này chặn hậu quả, không chữa nguyên nhân.** Nguyên nhân là Caddyfile sống ở **hai
+nhánh** và bản đang chạy đến từ `web-home` — hạ tầng dùng chung **không có một nhà duy nhất**.
+Việc đó cần David quyết: gộp `web-home` vào `main`, hay tách Caddyfile ra khỏi cả hai.
 
 🔴 **Runbook ngày G thêm một dòng đối chứng:** sau `up -d`, chạy
 `docker inspect $(docker ps -q --filter name=9chain-a1-node-) --format '{{.HostConfig.RestartPolicy.Name}}'`
