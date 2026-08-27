@@ -20,8 +20,13 @@
 export const EN = {
   chung: {
     tenSanPham: '9Chain Testnet A1',
-    // "running ON Avalanche" was WRONG and removed 2026-08-27 — A1 is networkID 9001,
-    // a separate network, not a subnet of Avalanche. See `vi.ts` for the measurement.
+    // "running ON Avalanche" was WRONG and removed 2026-08-27 — A1 is a separate
+    // network, not a subnet of Avalanche. See `vi.ts` for the measurement.
+    // ⚠️ This comment used to name networkID `9001`. That number died the same day
+    // the sentence was written: the public network was rebuilt into generation g0
+    // (D-081) and now answers `999999999`. A comment that carries a live constant
+    // rots silently — `lib/chain.ts` is the single source, and
+    // `check-chain-id.mjs` is what actually holds it to the running network.
     moTaNgan: "9Chain's public testnet — an independent network running the Avalanche engine",
     tagTitle: 'an independent network on the Avalanche engine',
     viTuChoi: 'You rejected the request in your wallet. Nothing has changed.',

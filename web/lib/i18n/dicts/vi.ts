@@ -33,7 +33,13 @@ export const vi: Tu = {
   chung: {
     tenSanPham: '9Chain Testnet A1',
     // 🔴 "chạy trên Avalanche" ĐÃ BỊ GỠ 2026-08-27 — nó SAI, và sai tốn kém.
-    // Đo: `info.getNetworkID` → **9001**, `getNetworkName` → `network-9001`.
+    // Đo (2026-08-28, mạng công khai): `info.getNetworkID` → **999999999**,
+    // `getNetworkName` → **`9chain-a1-g0`**.
+    // ⚠️ Chú thích này từng ghi `9001` / `network-9001`. CẢ HAI ĐỀU CHẾT: `9001` mất
+    // khi mạng sinh lại sang thế hệ g0 (D-081), còn `network-9001` chưa bao giờ đúng
+    // sau D-050 — lúc đó tên đã là `9chain-a1`. Một chú thích chép hằng số của mạng
+    // sẽ mục đi lặng lẽ, vì không cổng nào đọc chú thích. Nguồn duy nhất là
+    // `lib/chain.ts`, và thứ giữ nó khớp mạng thật là `check-chain-id.mjs`.
     // Avalanche mainnet là 1, Fuji là 5 ⇒ A1 là **mạng riêng biệt**, không nối vào
     // mạng Avalanche nào. README gọi đúng từ đầu ("sovereign fork của avalanchego");
     // chỉ câu quảng bá công khai là nói khác.
