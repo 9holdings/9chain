@@ -30,7 +30,31 @@
 export const vi = {
   chung: {
     tenSanPham: '9Chain Testnet A1',
-    moTaNgan: 'Testnet công khai của 9Chain, chạy trên Avalanche',
+    // 🔴 "chạy trên Avalanche" ĐÃ BỊ GỠ 2026-08-27 — nó SAI, và sai tốn kém.
+    // Đo: `info.getNetworkID` → **9001**, `getNetworkName` → `network-9001`.
+    // Avalanche mainnet là 1, Fuji là 5 ⇒ A1 là **mạng riêng biệt**, không nối vào
+    // mạng Avalanche nào. README gọi đúng từ đầu ("sovereign fork của avalanchego");
+    // chỉ câu quảng bá công khai là nói khác.
+    // Người đọc hiểu "chạy TRÊN X" = chạy trên MẠNG X, rồi suy ra ba điều đều sai:
+    // tra được LOVE9 trên Snowtrace · được validator Avalanche bảo vệ · có cầu sẵn
+    // sang C-Chain. Không điều nào đúng — A1 có 9 node trên một máy.
+    //
+    // 🔴 VÀ ĐỪNG ĐỔI THÀNH "dựng từ mã nguồn Avalanche" (bản tôi đề xuất đầu tiên,
+    // David bác): câu đó nói về GỐC GÁC — thì quá khứ, cố định — nên nó ngầm đặt
+    // trần rằng 9Chain mãi là bên tiêu thụ mã của người khác. Hôm nay A1 đã có 16
+    // patch, netgen riêng, cơ chế khắc chữ; và sẽ còn đi xa hơn, như mọi dự án theo
+    // mô hình này. Chữ phải mô tả CÁI ĐANG VẬN HÀNH, không phải NƠI XUẤT PHÁT.
+    //
+    // "engine" là từ dự án đã dùng ở `/compare/` — giữ một từ vựng cho cả hai bề mặt.
+    moTaNgan: 'Testnet công khai của 9Chain, mạng riêng chạy engine Avalanche',
+    // 🔴 BẢN NGẮN CHO <title>, KHÔNG PHẢI BẢN DƯ THỪA (2026-08-27).
+    // Ghép `tenSanPham — moTaNgan` ra: "9Chain Testnet A1 — Testnet công khai của
+    // 9Chain, mạng riêng chạy engine Avalanche" = **82 ký tự**, lặp cả "9Chain" lẫn
+    // "Testnet", và kết quả tìm kiếm cắt ở khoảng 60 ⇒ đúng vế mang thông tin mới
+    // ("mạng riêng chạy engine Avalanche") là vế bị cắt mất.
+    // Bản ngắn bỏ phần đã có trong tên sản phẩm, giữ lại đúng phần người đọc chưa
+    // biết. `moTaNgan` vẫn dùng nguyên cho câu văn (dòng dẫn trang chủ, chân trang).
+    tagTitle: 'mạng riêng chạy engine Avalanche',
     // Một câu cho MỌI nút gọi ví. Trước 2026-08-27 câu này tồn tại HAI bản trùng
     // nguyên văn (`deChain.viTuChoi` và `chainCuaToi.themViTuChoi`) — hai bản của
     // cùng một câu là hai chỗ để chúng lệch nhau về sau mà không ai thấy.
@@ -451,7 +475,7 @@ export const vi = {
     // Câu mới nói đúng thứ bảng này LÀ: một bản ghi công khai các đánh đổi.
     moTa:
       '9Chain chạy HAI testnet song song của cùng một sản phẩm, khác nhau ở engine: ' +
-      'A1 trên Avalanche, C1 trên Cosmos. Bảng này ghi lại các đánh đổi giữa hai hướng, ' +
+      'A1 engine Avalanche, C1 engine Cosmos. Bảng này ghi lại các đánh đổi giữa hai hướng, ' +
       'công khai để ai cũng phản bác được — phần C1 hiện chưa có số đo sống.',
 
     // 🔴 Câu này KHÔNG được bỏ: điểm dưới đây do đội tự chấm.

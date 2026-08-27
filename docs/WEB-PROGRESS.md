@@ -164,6 +164,9 @@ một câu mình không tin ra cho người lạ đọc.
 | `chanTrang.reGenesis` | Kế hoạch sinh lại mạng *(KHÔNG dùng lại "Chi tiết" của banner — tách khỏi ngữ cảnh thì vô nghĩa)* |
 | `chanTrang.nhanNav` / `khongThay.nhanNav` | Liên kết chân trang · Đường đi tiếp *(nhãn a11y, không hiện ra)* |
 | `chanTrang.moTabMoi` | (mở tab mới) *(chỉ trình đọc màn hình nghe)* |
+| `chung.moTaNgan` 🔴 | Testnet công khai của 9Chain, **mạng riêng chạy engine Avalanche** *(cũ: "chạy trên Avalanche" — SAI)* |
+| `chung.tagTitle` | mạng riêng chạy engine Avalanche *(bản ngắn cho `<title>`)* |
+| `bang.moTa` | …A1 **engine** Avalanche, C1 **engine** Cosmos… *(cũ: "A1 trên Avalanche")* |
 | *(trang 404, David đã duyệt)* | Không có trang này · Đường dẫn bạn mở không tồn tại… · Đang tìm một giao dịch hay một địa chỉ?… |
 
 ---

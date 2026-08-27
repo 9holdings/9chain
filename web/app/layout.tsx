@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   // chưa phục vụ là ghi một điều sai vào sản phẩm đang chạy.
   metadataBase: new URL('https://a1.9chain.org'),
   applicationName: vi.chung.tenSanPham,
-  title: `${vi.chung.tenSanPham} — ${vi.chung.moTaNgan}`,
+  title: `${vi.chung.tenSanPham} — ${vi.chung.tagTitle}`,
   description: vi.trangChu.cPhu,
   alternates: { canonical: '/' },
   // Trước đây trang KHÔNG có favicon nào. Dùng luôn dấu LOVE9 David đưa.
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     locale: 'vi_VN',
     url: '/',
     siteName: vi.chung.tenSanPham,
-    title: `${vi.chung.tenSanPham} — ${vi.chung.moTaNgan}`,
+    title: `${vi.chung.tenSanPham} — ${vi.chung.tagTitle}`,
     description: vi.trangChu.cPhu,
     // 🔴 PHẢI LÀ PNG THẬT. Telegram, X, Zalo và Facebook đều KHÔNG render SVG
     // trong thẻ preview — khai SVG ở đây là thẻ chia sẻ trống trơn, và không có
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${vi.chung.tenSanPham} — ${vi.chung.moTaNgan}`,
+    title: `${vi.chung.tenSanPham} — ${vi.chung.tagTitle}`,
     description: vi.trangChu.cPhu,
     images: ['/brand/og-9chain-a1.png'],
   },
