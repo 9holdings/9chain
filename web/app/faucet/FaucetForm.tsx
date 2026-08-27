@@ -230,6 +230,7 @@ function ThongSoMang() {
     { nhan: vi.faucet.thongSoRpc, gt: rpc },
     { nhan: vi.faucet.thongSoChainId, gt: `${CHAIN.chainId} (${CHAIN.chainIdHex})` },
     { nhan: vi.faucet.thongSoKyHieu, gt: CHAIN.kyHieu },
+    { nhan: vi.faucet.thongSoThapPhan, gt: String(CHAIN.thapPhan) },
   ];
 
   return (
@@ -260,6 +261,13 @@ function ThongSoMang() {
           </dd>
         </div>
       </dl>
+      {/* Vì sao dòng này đáng chỗ trên màn: người đọc `docs/TOKENOMICS.md` thấy
+          "LOVE9 có 9 chữ số thập phân" rồi mở ví thấy 18 sẽ kết luận tài liệu sai.
+          Cả hai đều đúng — P/X-Chain đếm nano, C-Chain là EVM — nhưng không ai tự
+          suy ra được điều đó. Một câu ở đây rẻ hơn một hiểu nhầm về tokenomics. */}
+      <p className="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-muted">
+        {vi.faucet.thapPhanGiaiThich}
+      </p>
     </The>
   );
 }

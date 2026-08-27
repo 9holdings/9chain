@@ -4,7 +4,14 @@ pragma solidity ^0.8.24;
 import "./IWarpMessenger.sol";
 
 /**
- * CauTaiSan — chuyển TÀI SẢN (token gốc) từ L1 này sang L1 kia bằng Warp.
+ * AssetBridge — chuyển TÀI SẢN (token gốc) từ L1 này sang L1 kia bằng Warp.
+ *
+ * 🔴 TÊN TỆP VÀ TÊN CONTRACT GẮN VỚI NHAU — đổi một nửa là để lại một cái bẫy.
+ * `compile.mjs` tra `contracts["AssetBridge.sol"]["AssetBridge"]`, nên đổi tên
+ * contract mà không đổi tên tệp (hoặc ngược lại) làm bước biên dịch không tìm
+ * thấy gì, và lỗi đọc như "hợp đồng không tồn tại" chứ không như "đặt tên sai".
+ * Tên export trong artifact (`CAU_TAI_SAN_*`) GIỮ NGUYÊN tiếng Việt — đó là định
+ * danh mã nguồn, không phải tên tệp. Xem bảng đổi tên trong HANDOFF (đợt 26/08).
  *
  * ═══ MÔ HÌNH: KHOÁ Ở ĐẦU GỬI · TRẢ TỪ THANH KHOẢN Ở ĐẦU NHẬN ═══
  * Cùng một mã nguồn nạp lên CẢ HAI chain. Đầu gửi nhận tiền và khoá nó lại trong

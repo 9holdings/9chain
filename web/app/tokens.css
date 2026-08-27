@@ -3,7 +3,7 @@
 
    Nguồn : 9Scan-A1/app/globals.css  (khối @theme + html[data-theme='dark'])
    Vân tay: 535cbf6329efb6d0
-   Dựng lại: node web/scripts/dong-bo-token.mjs
+   Dựng lại: node web/scripts/sync-tokens.mjs
 
    Sửa màu ở đây là làm hai bề mặt của cùng một sản phẩm lệch nhau — đúng thứ
    mốc M10 sinh ra để xoá. Muốn đổi màu thì đổi ở 9Scan rồi chạy lại script này.

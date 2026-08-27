@@ -15,6 +15,45 @@
 > con số nào từ `TOKENOMICS.md`"* — luật đó **đúng chừng nào banner này còn ở đây**.
 > Phần dưới giữ lại làm hồ sơ thiết kế thời 720 triệu, không phải tham số hiện hành.
 
+---
+
+## 0. LOVE9 có MẤY chữ số thập phân? — **9 trên P/X-Chain, 18 trên C-Chain**
+
+> ✅ **Mục này KHÔNG cũ.** Nó là bản chất kiến trúc của Avalanche, không phải tham số
+> của lượt re-genesis nào — đúng trước `26/08` và đúng sau. Banner phía trên không áp
+> vào đây.
+
+Người đọc tài liệu này thấy **9 chữ số**, rồi mở MetaMask thấy **18**, và kết luận tài
+liệu sai. Không phải. **Cả hai đều đúng, ở hai chỗ khác nhau:**
+
+| Chain | Chữ số | Đơn vị nhỏ nhất | Vì sao |
+|---|--:|---|---|
+| **P-Chain · X-Chain** | **9** | `nLOVE9` (nano) | Số lượng token là `uint64` trong avalanchego. Đây là thang của `SupplyCap`, self-bond, phần thưởng staking |
+| **C-Chain** (EVM) | **18** | `wei` | C-Chain là EVM; mọi công cụ EVM — ví, `ethers`, explorer — mặc định 18 chữ số |
+
+**Cùng một đồng LOVE9.** 1 LOVE9 = `1e9` nLOVE9 trên P/X = `1e18` wei trên C. Cầu nối
+X↔C của avalanchego tự đổi thang khi tài sản đi qua; không có đồng nào sinh ra hay mất đi.
+
+🔴 **Hệ quả phải nhớ khi đọc số ở bất kỳ đâu:**
+- `SupplyCap`, `maxValidatorStake`, `minValidatorStake`, self-bond, `potentialReward`
+  → **thang 9**, và trần kiểu dữ liệu là **18,447 tỷ LOVE9** (`uint64` max ÷ `1e9`).
+- Số dư ví, `eth_getBalance`, faucet, mọi thứ hiện trên MetaMask và Blockscout
+  → **thang 18**.
+- ⚠️ **`platform.getCurrentSupply` KHÔNG cộng C-Chain** (`genesis/config.go:146`
+  `InitialSupply()` chỉ cộng X/P) — nên đừng so nó với tổng phát hành genesis.
+
+⚠️ **Đây là đúng chỗ một con số chép sang thang khác sẽ đi lọt.** Cùng họ với vụ
+`SupplyCap` 90 tỷ đến từ C1 (Cosmos đếm bằng `big.Int` nên 90 tỷ bình thường ở đó,
+còn avalanchego đếm bằng `uint64` nên nó **không tồn tại**) — xem `BLOCKERS.md` H-9.
+Mọi đại lượng chép từ nơi khác phải hỏi **cả** *"kiểu dữ liệu chứa nổi không"* **lẫn**
+*"đang ở thang nào"*.
+
+Khai trong mã: `web/lib/chain.ts` (`thapPhan: 18`, kèm chú thích `networkId` là `uint32`
+chứ không phải số 9 tỷ) · `explorer-full/9chain-a1-overrides.frontend.env`
+(`NEXT_PUBLIC_NETWORK_CURRENCY_DECIMALS=18`).
+
+---
+
 > Trạng thái: **bản thiết kế + tham số hiện hành**. Con số dưới đây là điểm khởi đầu để chốt trước testnet công khai — sai là khó sửa sau mainnet.
 
 ## 1. ~~Tham số ĐANG chạy~~ — ⚠️ **HẾT HẠN**: `A1Params` thời 720 triệu (2026-08-24, mạng 5-node)
