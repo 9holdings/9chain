@@ -965,6 +965,28 @@ không có thì `globals.css` **là** nguồn sự thật · U-5 thống nhất 
 
 ---
 
+## M11 — Chốt trước ngày G `01/09` (autopilot `2026-08-28`, David duyệt từng mục `27/08`)
+
+Điều kiện qua chung: **mỗi mục phải có ca ĐỎ đã nhìn thấy**, và mục nào chạm đường sản phẩm thì
+phải chạy thật đường đó — test xanh không đủ.
+
+| # | Việc | Trạng thái | Bằng chứng |
+|---|---|---|---|
+| M11.1 | Nạp ví `chain-factory` | `[x]` | D-082 · P = 89,99999173 LOVE9, đọc bằng RPC công khai |
+| M11.2 | Vá bí danh tài sản (SDK ví chết trên g0) | `[x]` | D-082 · patch 0019 · sha256 genesis g0 khớp từng bit trước/sau |
+| M11.3 | netgen sinh `.env` + cổng chặn phơi trần | `[x]` | D-083 · patch 0020 · `docker compose config` đo đầu-cuối |
+| M11.4 | B-9 — gỡ đỏ Avalanche khỏi ví X/P | `[x]` | D-084 · patch 0021 |
+| M11.5 | Bí danh `LOVE9` dứt khoát + hỏng ra tiếng | `[x]` | D-084 · patch 0022 · 6 ca, 3 đối chứng |
+| M11.6 | O1 bước 1 — khoá g0 rời server + `kiem-khoa` | `[x]` | D-085 · patch 0023 · khôi phục 6/6, `shred -u` |
+| M11.7 | §5c — sổ "A1 đã cấp", chặn xuyên thế hệ | `[x]` | D-086 · 35 đạt/0 hỏng · **verify trên API thật** |
+| M11.8 | Khoá đẻ chain cho người ngoài tới sau ngày G (O3) | `[ ]` | — |
+| M11.9 | H-7 — IPv4 đa cổng cho P2P (mở khoá O4) | `[ ]` | — |
+| M11.10 | O1 bước 2 — ví ký từ máy dev qua hầm SSH trong container | `[ ]` | ràng buộc đã đo, xem D-085 |
+
+🔴 **Chờ người, autopilot không làm thay được:** bản thứ hai của bộ khoá (O1) · ký SIWE để chạy
+phép kiểm đẻ chain đầu-cuối · B-10 tắt robots.txt ở dashboard Cloudflare · O4 tiền cho nhà cung
+cấp thứ hai · gộp `web-home` → `main`.
+
 ## Chờ David — KHÔNG code thay được
 
 - [human] **Tokenomics**: supply cap 720,000,000 LOVE9 (đang kế thừa từ Avalanche, chưa ai duyệt) ·

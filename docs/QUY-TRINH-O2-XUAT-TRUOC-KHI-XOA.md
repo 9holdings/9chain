@@ -71,6 +71,25 @@ sha256(MANIFEST.txt) = <64 hex>
 🔴 **Để nó nằm cạnh dữ liệu nó bảo vệ thì nó không bảo vệ gì cả** — ai sửa được dữ liệu thì
 cũng sửa được nó. Đây chính là ca đối chứng ngược số 2 dưới đây.
 
+### Bước 2b — 🔴 LƯU SỔ CONSOLE VÀO REPO (D-086)
+
+```bash
+cp <net>/../9chain-a1-config/console-chains.json \
+   docs/archive/console-chains-pre-<the-he>-<ngay>.json
+node scripts/sinh-chainid-da-cap.mjs --ghi     # gộp lại danh sách chặn
+node local-net/console/chainid-test.mjs         # phải vẫn xanh
+```
+
+**Vì sao đứng ở đây, giữa "công bố" và "`down -v`":** `console-chains.json` **bị xoá sạch** ở
+lượt sinh lại, và cùng với nó là mọi `chainId`/**tên** A1 đã phát cho người dùng. Đo `27/08`
+sau lượt g0: sổ đang chạy đúng **27 byte**. Không lưu trước khi xoá là **mất vĩnh viễn**, và
+hệ quả không lộ ra ngay — nó lộ ra lúc một người lạ nhận đúng `chainId` của người cũ, tức là
+lúc ví người cũ coi chain mới là cùng một mạng.
+
+⚠️ **Sổ này khác với `GỐC` của bước 2.** Bước 2 công bố *trạng thái chuỗi*; bước này giữ *lời
+hứa đã phát ra ngoài*. Làm bước 2 mà quên bước này thì chuỗi cũ được ghi nhận đầy đủ, còn
+**người dùng cũ thì không**.
+
 ### Bước 3 — rồi mới `down -v`
 
 ---
