@@ -6,6 +6,24 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### ✅ B-9 — **ĐÃ ĐÓNG `2026-08-27`** — đỏ Avalanche đã ra khỏi ví X/P (patch 0021)
+
+`#e84142` ở hai chỗ trong `9chain-a1-tools/xp-wallet` (dấu thương hiệu + nút chính) → **vàng
+9Chain trên navy**, đúng cặp tương phản của hệ token. Chữ nút đổi từ trắng sang navy: trắng
+trên vàng **không đạt AA**. Tree `6879819f` → **`17dd3b3f`**, đối chứng ngược 20/21 đạt.
+
+⚠️ Giữ lại **một** lần xuất hiện của chuỗi `#e84142` trong **chú thích**, cố ý — nó ghi lại
+màu cũ để lần sau không ai "dọn dẹp" ngược lại. Không cổng nào grep màu này nên không sinh
+báo động giả.
+
+🔴 **NGOÀI phạm vi B-9, nhưng phải ghi:** `local-net/console/index.html` **trên server** còn
+**3 lần** `#e84142`, và bản đó **lệch 12 byte** so với cả `main` lẫn `web-home` ⇒ có sửa tay
+trên server chưa quay về git. Trang `/console/` **sống** thì sạch (đo: 35.983 byte, 0 lần) —
+tức tệp kia đang **không phục vụ đường đó**, nhưng nó vẫn nằm trên máy và vẫn lệch. Thuộc
+worktree web.
+
+---
+
 ### 🔴 B-15 — BÍ DANH TÀI SẢN X-CHAIN Ở NGÀY G: `LOVE9` hay `AVAX`? (2026-08-27, sinh từ D-082)
 
 **Cần David quyết TRƯỚC `01/09`.** Bí danh nằm trong **byte genesis của X-Chain** ⇒ chỉ đổi được

@@ -1,0 +1,51 @@
+From 586fdb0ff76c556e8c2e6255d61a209b320d9b25 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Thu, 27 Aug 2026 23:15:39 +0400
+Subject: [PATCH 21/21] =?UTF-8?q?xp-wallet:=20go=20DO=20THUONG=20HIEU=20AV?=
+ =?UTF-8?q?ALANCHE=20khoi=20vi=20X/P=20=E2=80=94=20B-9,=20David=20da=20gat?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+#e84142 (do Avalanche) o hai cho trong trang vi: dau thuong hieu (gradient #e84142 -> #ff8a3d)
+va nut chinh. Doi sang vang 9Chain tren navy — dung cap tuong phan cua he token, giong nut
+chinh cua /chains/ da sua o dot 12. Chu tren nut doi tu trang sang navy: trang tren vang KHONG
+dat AA.
+
+Vi sao no dat: mau nay nam trong patches/0003, tuc MOI luot dung lai fork deu ap lai no. Ban
+soat thuong hieu (dot 12) ket luan "lop rebrand sach" — dung cho CHUOI, sai cho MAU.
+
+Giu lai mot lan xuat hien cua chuoi "#e84142" trong CHU THICH, co y: no ghi lai mau cu de lan
+sau khong ai "don dep" nguoc lai. Khong cong nao grep mau nay nen khong sinh bao dong gia.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ 9chain-a1-tools/xp-wallet/main.go | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/9chain-a1-tools/xp-wallet/main.go b/9chain-a1-tools/xp-wallet/main.go
+index e34a7ff..3cdccf8 100644
+--- a/9chain-a1-tools/xp-wallet/main.go
++++ b/9chain-a1-tools/xp-wallet/main.go
+@@ -255,13 +255,19 @@ const page = `<!doctype html><html lang="vi"><head><meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1"><title>9Chain-A1 · Ví X/P</title>
+ <style>
+ :root{color-scheme:dark}body{font-family:system-ui,Segoe UI,Roboto,sans-serif;max-width:640px;margin:5vh auto;padding:0 20px;background:#0b0f17;color:#e6edf3}
+-.brand{display:inline-block;width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#e84142,#ff8a3d);vertical-align:middle;margin-right:10px}
++/* B-9 — dấu thương hiệu: vàng 9Chain trên navy. TRƯỚC ĐÂY là gradient
++   #e84142 → #ff8a3d, tức ĐỎ THƯƠNG HIỆU AVALANCHE, sót từ bản dựng đầu.
++   🔴 Nó nằm trong patches/0003 nên MỌI lượt dựng lại fork đều áp lại nó. */
++.brand{display:inline-block;width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#ffcb24,#d4ad2c);vertical-align:middle;margin-right:10px}
+ h1{font-size:1.5rem;margin:0 0 2px}.warn{color:#e0a030;font-size:.85rem;margin:0 0 18px}
+ .card{background:#131a26;border:1px solid #223049;border-radius:14px;padding:18px;margin-bottom:14px}
+ .k{color:#8aa0b6;font-size:.8rem}.v{font-size:1.5rem;font-weight:700}.addr{font-family:ui-monospace,Consolas,monospace;font-size:11px;color:#7fd1ff;word-break:break-all}
+ .grid{display:flex;gap:14px}.grid>.card{flex:1}
+ input{width:100%;padding:11px;border-radius:9px;border:1px solid #2b3a54;background:#0e1420;color:#e6edf3;box-sizing:border-box;margin-top:6px}
+-button{padding:11px 14px;border:0;border-radius:9px;background:#e84142;color:#fff;font-weight:600;cursor:pointer;margin-top:10px}
++/* Vàng trên navy — đúng cặp tương phản của hệ token (đạt AA), giống nút chính
++   của /chains/. Chữ trắng trên vàng KHÔNG đạt, nên chữ phải là navy. */
++button{padding:11px 14px;border:0;border-radius:9px;background:#ffcb24;color:#0d1733;font-weight:700;cursor:pointer;margin-top:10px}
++button:hover{background:#f0bc0e}
+ .row{display:flex;gap:10px}.row button{flex:1;background:#2b3a54}
+ h3{font-size:.95rem;margin:0 0 4px}#out{font-size:13px;margin-top:10px;word-break:break-all;color:#9fe6a0}
+ label{font-size:.8rem;color:#8aa0b6}
