@@ -2,8 +2,21 @@
 
 **Từ:** phiên 9Chain-A1 (worktree `web-home`)
 **Cần ở các bạn:** **một quyết định thương hiệu** (đổi bộ chữ) + **một tin cần biết** (sắc vàng).
-**Không cần ở các bạn:** vá gì gấp trong đêm. Nhưng mục 1 **đang hiển thị lỗi trên trang
-công khai của các bạn ngay hôm nay**, còn bên A1 thì chưa — nên phiếu này đi từ A1 sang.
+**Không cần ở các bạn:** vá gì gấp trong đêm.
+
+> ## 🔴 ĐÍNH CHÍNH CỦA CHÍNH PHIẾU NÀY — thêm 2026-08-27, sau khi gửi
+>
+> **Bản đầu của phiếu này viết *"đang hiển thị lỗi trên trang công khai của các bạn ngay
+> hôm nay"* và *"các bạn mới là bên đang chịu lỗi thật"*. Lúc viết, tôi CHƯA ĐO trên site
+> các bạn** — tôi suy từ mã nguồn (biến gắn ở `<html>` + `subsets: ['latin']` + `vi.ts`
+> có 332 dòng có dấu). Phiên A1 khác bắt được chỗ này trước khi nó kịp đi xa hơn.
+>
+> **Nay đã đo thật trên `https://a1.9scan.org` bằng Chrome, ở `lang="vi"`.** Kết quả:
+> **cơ chế thì ĐÚNG, mức độ thì TÔI ĐÃ NÓI QUÁ.** Chi tiết ở [mục 1b](#1b) — đọc mục đó
+> trước khi quyết, vì nó đổi mức độ khẩn chứ không đổi việc phải làm.
+>
+> Xin lỗi vì đã đưa một khẳng định chưa đo vào tài liệu của nhóm khác. Phần đo được thì
+> giữ nguyên và còn **rộng hơn** bản đầu — xem 1b.
 
 ---
 
@@ -19,14 +32,15 @@ Sự thật đo được hôm nay:
 | Lớp `__variable_*` của `next/font` gắn ở | **`<body>`** ([`layout.tsx:99`]) | **`<html>`** ([`app/layout.tsx:168`]) |
 | `@theme` đổ `--font-sans` vào | `:root` = `<html>` | `:root` = `<html>` |
 | Hai chỗ đó có gặp nhau không | **KHÔNG** ⇒ `var()` không giải được | **CÓ** ⇒ giải được |
-| Font thương hiệu có tải không | **0 / 24 mặt chữ** | **có tải** |
-| Chữ tiếng Việt hụt dải `1ea0–1ef1` | **chưa ai thấy** (vì font không chạy) | 🔴 **đang thấy, hàng ngày** |
+| Font thương hiệu có tải không | **0 / 24 mặt chữ** | ✅ **9 / 29 mặt chữ tải thật** |
+| `--font-sans` đọc ở `:root` | **(rỗng)** | `"Instrument Sans", "Instrument Sans Fallback", …` |
+| Chữ tiếng Việt rơi khỏi bộ chữ thương hiệu | **chưa ai thấy** (vì font không chạy) | **có xảy ra** — mức độ ở [1b](#1b) |
 
 ⇒ **Lỗi nối biến CSS là của riêng A1, không phải của các bạn.** Chúng tôi đã dán nhầm nhãn
 lên repo các bạn trong ghi chép nội bộ; xin lỗi, và đây là bản đính chính.
 
-⇒ Nhưng hệ quả thì ngược đời: **vì font của các bạn CHẠY, các bạn mới là bên đang chịu
-lỗi thật.** A1 hôm nay được che lỗi bởi một bug khác của chính mình.
+⇒ Hệ quả ngược đời và vẫn đúng sau khi đo: **vì font của các bạn CHẠY, chỉ bên các bạn mới
+có thể quan sát được lỗi này.** A1 hôm nay được che bởi một bug khác của chính mình.
 
 ⚠️ **Và vì thế: đừng chép sơ đồ `<body>` của A1 sang.** Cách các bạn đang làm (`<html>`)
 mới là cách đúng. Chỗ phải sửa là A1.
@@ -54,10 +68,60 @@ mới là cách đúng. Chỗ phải sửa là A1.
 - `app/layout.tsx:15,22,29` khai `subsets: ['latin']` — hẹp hơn cả `latin-ext`.
 - `lib/i18n/explorer/dicts/vi.ts` có **332 dòng** chứa ký tự dải `1ea0–1ef1`
   (ạ ả ấ ầ ậ ắ ẻ ế ề ệ ị ọ ố ồ ộ ớ ờ ợ ụ ứ ừ ự).
-- Font tải được ⇒ mọi ký tự **có** trong subset vẽ bằng Sora/Instrument, mọi ký tự
-  **không có** rơi về font hệ thống ⇒ **lẫn font ngay giữa một từ**, khác nét và khác
-  cả chiều cao chữ. Đây là kiểu lỗi người Việt thấy ngay còn người không đọc tiếng Việt
-  duyệt qua mười lần cũng không thấy.
+- Font tải được ⇒ ký tự **có** trong subset vẽ bằng Instrument/Sora, ký tự **không có**
+  rơi sang font khác — **ngay giữa một từ**. Mức độ thấy được: xem 1b.
+
+<a id="1b"></a>
+### 1b. 🔴 ĐO THẬT trên `a1.9scan.org` (Chrome, `lang="vi"`) — 2026-08-27
+
+**Phép đo:** so bề rộng cùng một chuỗi dưới ba ngăn xếp font. Luật: nếu
+`rộng("Instrument Sans", monospace) == rộng(monospace)` **đúng tới 0,01px** thì ký tự đó
+**không được Instrument vẽ**. Đối chứng bằng ký tự latin trong cùng lượt đo.
+
+**(a) Ký tự nào rơi khỏi Instrument Sans — 20 mẫu:**
+
+| | ký tự |
+|---|---|
+| ✅ Instrument vẽ được | `a e á é à â` (U+0061…U+00E2) |
+| ❌ **rơi — 14/14** | `ă`U+0103 `đ`U+0111 `ơ`U+01A1 `ư`U+01B0 `ạ`U+1EA1 `ả`U+1EA3 `ậ`U+1EAD `ế`U+1EBF `ề`U+1EC1 `ệ`U+1EC7 `ộ`U+1ED9 `ợ`U+1EE3 `ứ`U+1EE9 `ừ`U+1EEB |
+
+🔴 **RỘNG HƠN bản đầu của phiếu này khai.** Tôi viết *"hụt đúng `1ea0–1ef1`"* — sai theo
+hướng nhẹ đi. `ă đ ơ ư` nằm **ngoài** dải đó và **cũng rơi**, vì các bạn khai
+`subsets: ['latin']` chứ không phải `latin-ext`. Thực tế: **mọi ký tự riêng của tiếng
+Việt đều rơi**, chỉ còn `á à â é` (vốn thuộc Latin-1) là trụ lại.
+
+**(b) Trên trang tiếng Việt đang chạy thật** (`--font-sans` áp
+`"Instrument Sans", "Instrument Sans Fallback", ui-sans-serif`, 16px):
+
+| chuỗi | ngăn xếp thật | chỉ Instrument | không Instrument | kết luận |
+|---|--:|--:|--:|---|
+| `Overview` | 68,94 | **68,94** | 68,48 | Instrument vẽ trọn |
+| `Transaction` | 85,98 | **85,98** | 85,23 | Instrument vẽ trọn |
+| `address` | 57,95 | **57,95** | 58,45 | Instrument vẽ trọn |
+| `Tổng quan` | **79,16** | 78,03 | 78,58 | 🔴 **không khớp bên nào ⇒ vẽ LẪN** |
+| `địa chỉ` | **46,84** | 48,44 | 47,50 | 🔴 **vẽ LẪN** |
+| `Giao dịch` | **68,61** | 69,39 | 69,42 | 🔴 **vẽ LẪN** |
+
+Chuỗi thuần ASCII khớp **tuyệt đối** với bản chỉ-Instrument; chuỗi có dấu tiếng Việt
+**không khớp bên nào** — đó chính là dấu vân của việc rơi font **theo từng ký tự**.
+⇒ **Hiện tượng CÓ THẬT trên trang công khai của các bạn.**
+
+### ⚠️ Nhưng mức độ thì tôi đã nói quá — và đây là phần các bạn nên cân
+
+Ký tự rơi **không** rơi về "font hệ thống bất kỳ". Nó rơi về **`Instrument Sans Fallback`**
+— font lui cục bộ do `next/font` tự sinh, đã được **khớp thước** (`size-adjust`,
+`ascent-override`). Đó là lý do chênh lệch bề rộng chỉ **~0,7–1,4%**, không phải một cú
+nhảy nhìn ra ngay.
+
+🔴 **Tôi KHÔNG chụp được màn hình trong lượt đo này, nên tôi KHÔNG khẳng định nó xấu tới
+mức nào bằng mắt.** Cái tôi chứng minh được là *có rơi font*; cái tôi **không** chứng minh
+được là *người dùng có nhận ra không*. Bản đầu của phiếu này viết như thể hai điều đó là
+một — đó là chỗ tôi sai.
+
+**Việc phải làm không đổi** (đổi bộ chữ vẫn là đường đúng, vì `next/font` không cho khai
+`vietnamese` cho hai họ này). **Mức khẩn thì hạ**: đây là nợ chất lượng chữ, không phải
+sự cố. Nếu các bạn muốn số cuối cùng trước khi quyết, phép đo còn thiếu **đúng một bước**:
+mở trang ở `lang="vi"` và nhìn bằng mắt — các bạn làm rẻ hơn A1 nhiều.
 
 ### ✅ Tin tốt: `--font-mono` KHÔNG phải đổi họ chữ
 
