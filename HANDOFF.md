@@ -122,6 +122,37 @@ alias = xanh giả"*.
 *(Chú thích trong `netgen/main.go` nằm trong patch 0013 ⇒ tree đổi sang **`0f497b37`**, đã
 nghiệm thu lại bằng `git am --keep-cr` 13 patch.)*
 
+#### ✅ ĐÃ BOOT THẬT `27/08` — node chạy từ nguồn đã vá (§9.6 bản soát)
+
+Build qua `local-net/Dockerfile` thật ⇒ `rebrand.sh` chạy trên `network_ids.go` **đã vá**
+(bước dễ gãy nhất, chưa từng kiểm): **idempotent, không lệch**.
+
+| | |
+|---|---|
+| `"supplyCap"` dòng log đầu | **`7900000001000000000`** ✓ |
+| `info.getNetworkName` | **`9chain-a1`** ✓ *(trước D-050: `network-9001`)* |
+| HRP | `P-love91ytgll0…` ✓ · đối chứng ngược `P-avax1…` bị từ chối *"invalid checksum"* ✓ |
+| `eth_chainId` · Foundation C-Chain | `9000000009` · **1.000.000.000 LOVE9** đúng từng đơn vị |
+| log | **0 ERROR** · 9 WARN đều của mạng 1 node |
+
+🔴 **Bằng chứng SỐNG của P0** — đo trên node đang chạy:
+
+```
+currentSupply    4,300,863,905    X/P genesis 4,300,000,001 + thưởng 863,904
+C-Chain genesis  1,099,999,999    ← KHÔNG có trong currentSupply
+dư địa mint      3,599,136,096    (mục tiêu 3,600,000,000)
+nếu cap 9 tỷ     4,699,136,095    ← thừa ~1,1 tỷ
+```
+
+⚠️ **Đã dựng lại `local-net/net/` bằng netgen mới** (bản cũ là 720M-era, tổng 400 triệu — không
+khớp binary nào còn tồn tại). Bản cũ giữ ở **`local-net/net-bak-20260827/`**. Container
+`9chain-a1-faucet` đang chạy vẫn giữ khoá faucet CŨ trong env ⇒ chạy lại `up-all.sh` để nó
+lấy khoá mới.
+⚠️ Image `9chain-a1/node:boottest` giữ lại trên máy dev (bản build đầu của patch 0013). Xoá:
+`docker rmi 9chain-a1/node:boottest`. Tag `:dev` **không đụng tới**.
+⚠️ Chưa đo: đẻ L1 · Warp/ICM · faucet HTTP · giao dịch thật. Mạng 1 node
+`--sybil-protection-enabled=false` **không** chứng minh được đồng thuận.
+
 ---
 
 ### Phiên 2026-08-27 (đợt 12 — CHUẨN HOÁ THƯƠNG HIỆU) — tóm tắt để khỏi mở file

@@ -456,6 +456,61 @@ Ba ca đối chứng mới — *"SupplyCap = tổng cung"*, *"quên khai cChain 
 
 ⚠️ Phạm vi của cổng này vẫn không đổi: nó là cổng **số học**, không phải cổng **hành vi**.
 
+### 9.6 ✅ BOOT THẬT — `27/08`, node chạy từ nguồn đã vá
+
+Mọi phép đo ở §9.1–§9.5 là **tĩnh** (biên dịch, tree hash, netgen). Đây là lượt **chạy thật**.
+
+**Cách dựng để không đụng máy đang làm việc:** image tag `:boottest` (giữ nguyên `:dev`),
+project `a1-boottest`, cổng **9750/9751** thay 9650/9651 — Blockscout local đang trỏ 9650, để
+node thật lên đó là nó index một chain rồi chain đó biến mất khi tắt. Xoá sạch sau khi đo
+(`down -v`).
+
+**Build đi qua `local-net/Dockerfile` thật**, tức `scripts/rebrand.sh` chạy trên
+`network_ids.go` **đã vá** — bước này chưa từng được kiểm và là chỗ patch 0013 dễ gãy nhất:
+
+```
+= đã rebrand sẵn: utils/constants/network_ids.go: FallbackHRP -> love9
+82:	FallbackHRP = "love9"
+75:	A1HRP = "love9"
+```
+
+Idempotent, không lệch. *(Hai dòng cuối là bộ xác minh của `rebrand.sh` — nay neo `^\s*<tên> =`
+nên in ra **dòng gán**; bản cũ `grep "FallbackHRP"` sẽ in nhầm một dòng chú thích của `A1HRP`
+và làm log build đọc như thể rebrand không áp được.)*
+
+| Đo | Kết quả |
+|---|---|
+| `"supplyCap"` dòng log đầu | **`7900000001000000000`** ✓ |
+| `uptimeRequirement` · `maxValidatorStake` · `minValidatorStake` · `minDelegatorStake` | `0.8` · `625e15` · `25e12` · `312.5e9` — khớp `A1Params` |
+| `health.health` | `healthy: true` |
+| **`info.getNetworkName`** | **`9chain-a1`** ✓ *(trước D-050: `network-9001`)* |
+| `info.getNetworkID` · `getNodeVersion` | `9001` · `9chaingo/1.14.2` |
+| **HRP** | `P-love91ytgll0…` ✓ · đối chứng ngược: `P-avax1…` bị từ chối *"invalid checksum"* ✓ |
+| validator | 5/5, weight bằng nhau `1.799.998,2` LOVE9 — khớp cảnh báo N≠9 của netgen |
+| C-Chain | `eth_chainId` = `0x218711a09` = **9.000.000.009** ✓ |
+| Foundation trên C-Chain | **1.000.000.000 LOVE9** đúng từng đơn vị |
+| log | **0 ERROR** · 9 WARN, đều là của mạng 1 node (`sybil control is not enforced`, `P2P IP is private`, nâng version DB, sinh lại snapshot, 5 dòng `node has the correct BLS key`) |
+
+#### 🔴 Và đây là bằng chứng SỐNG của phát hiện P0
+
+```
+currentSupply (node đang chạy) :  4,300,863,905 LOVE9
+X/P trong genesis              :  4,300,000,001 LOVE9
+chênh (thưởng dự kiến)         :        863,904 LOVE9
+C-Chain trong genesis          :  1,099,999,999 LOVE9   ← KHÔNG có trong currentSupply
+
+dư địa mint = cap − supply     =  3,599,136,096 LOVE9   (mục tiêu 3,600,000,000)
+nếu cap còn là 9 tỷ            =  4,699,136,095 LOVE9   ← thừa ~1,1 tỷ
+```
+
+`platform.getCurrentSupply` trên một node đang chạy **không đếm 1.099.999.999 LOVE9 đang có
+thật trên C-Chain**. §2 suy ra điều này từ mã và từ một phép đo cũ; đây là lần nó được đo
+trực tiếp, trên chính binary mang bản vá.
+
+⚠️ Chưa đo ở lượt này: đẻ L1, Warp/ICM, faucet HTTP, giao dịch thật. Mạng 1 node
+`--sybil-protection-enabled=false` **không** chứng minh được đồng thuận. Những bài đó thuộc
+lượt nghiệm thu ngày G trên mạng 9 node.
+
 ---
 
 ## 10. Việc còn lại trước ngày G
