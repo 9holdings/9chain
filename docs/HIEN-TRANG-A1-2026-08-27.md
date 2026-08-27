@@ -1,0 +1,229 @@
+# HIỆN TRẠNG 9CHAIN TESTNET A1 — `2026-08-27`
+
+> David hỏi *"phân tích lại toàn diện hiện trạng của A1 hiện tại"*. Bản này trả lời **A1 đang
+> LÀ cái gì**, không phải *"còn thiếu gì"* — câu đó ở [`SOAT-TOAN-DIEN-2026-08-27.md`](SOAT-TOAN-DIEN-2026-08-27.md).
+>
+> Mọi con số đo trực tiếp trên `rpc-a1.9chain.org` và `139.99.145.13` lúc `2026-08-27 ~12:15Z`.
+> Không chép lại từ tài liệu cũ.
+
+---
+
+## 0. Kết luận: A1 hiện tồn tại ở **HAI BẢN**, và bản đang phục vụ người ngoài là bản **CŨ**
+
+Đây là sự thật trung tâm về hiện trạng, và nó không nằm trong bất kỳ bản soát nào trước đó:
+
+| | Bản **ĐANG CHẠY** công khai | Bản trong **NGUỒN** |
+|---|---|---|
+| `supplyCap` | **9.000.000.000** | **7.900.000.001** (D-048) |
+| `info.getNetworkName` | **`network-9001`** | **`9chain-a1`** (D-050) |
+| HRP | `love9` qua **`FallbackHRP`** | `A1HRP` khai tường minh |
+| Lịch nâng cấp | **`Default` của Ava Labs** | `upgrade.A1` riêng (D-049) |
+| Patch series | ~12 | **17** (tree `f8458b33`) |
+| Image | `9chain-a1/node:dev` (`25286fc8`, 23 giờ trước) | chưa build |
+
+🔴 **Hệ quả kinh tế, đo được trên mạng đang chạy:**
+
+```
+supplyCap đang chạy         9.000.000.000
+currentSupply (P-Chain)     4.301.076.227      ← đo thật
+C-Chain genesis             1.099.999.999      ← currentSupply KHÔNG đếm
+dư địa mint còn lại         4.698.923.773
+⇒ tổng LOVE9 có thể tồn tại 10.099.999.999     ← vượt lời hứa 9 tỷ 12,2%
+```
+
+⚠️ **Đừng trích mạnh hơn phép đo.** Mạng này là **bản diễn tập** và sẽ bị xoá `01/09`; dư địa
+mint chỉ hiện thực hoá qua nhiều năm thưởng staking. Thiệt hại thực tế hôm nay **bằng không**.
+Nhưng câu *"A1 đang chạy trần cung 9 tỷ"* là **đúng**, và bản vá cho nó **chưa lên**.
+
+⇒ **Toàn bộ giá trị của bốn patch cuối (0013–0017) đang nằm trên đĩa, không nằm trên mạng.**
+Chúng chỉ lên cùng lượt `down -v` ngày G — đó là ràng buộc D-050 (`A1Name` đổi đường dẫn DB).
+
+---
+
+## 1. Chuỗi — nó thật sự đang ở đâu
+
+| | |
+|---|--:|
+| networkID | 9001 |
+| C-Chain `eth_chainId` | 9000000009 |
+| Chiều cao P-Chain | **67** |
+| Chiều cao X-Chain | **2** |
+| Chiều cao C-Chain | **4** |
+| Validator | **9/9 connected**, uptime 99,98–100% |
+| Node client | `9chaingo/1.14.2` |
+
+### Bảng phân bổ — đo trên chain, không đọc tài liệu
+
+`eth_getBalance` tại **block 0** (phát hành genesis) và **latest**:
+
+| Địa chỉ | Vai trò | Genesis | Nay |
+|---|---|--:|--:|
+| `0xcD0D354A…` | Foundation | **1.000.000.000** | 1.000.000.000 |
+| `0xC15822D4…` | **Faucet** | **99.999.999** | **99.999.977** ⬅ đã tiêu 22 |
+| 4 địa chỉ còn lại | Staking · Community khoá · Private · Team | **0 trên C-Chain** | 0 |
+
+**Tổng C-Chain genesis = 1.099.999.999** — khớp chính xác phát hiện P0 của bản soát core.
+Bốn quỹ kia nằm trên X/P, nên chúng nằm trong `currentSupply` còn hai quỹ trên **không**.
+
+---
+
+## 2. Dùng thật — bốn giao dịch, cả bốn của chính mình
+
+```
+block 0   0 tx   (genesis)
+block 1   1 tx   2026-08-26 15:03:22Z
+block 2   1 tx   2026-08-26 15:06:26Z
+block 3   1 tx   2026-08-27 04:15:27Z
+block 4   1 tx   2026-08-27 04:16:28Z
+
+nonce ví faucet = 4   ⇒ CẢ BỐN giao dịch là của ví faucet
+```
+
+🔴 **C-Chain công khai của A1 có đúng bốn giao dịch trong cả đời nó, và không giao dịch nào đến
+từ người ngoài.** Cộng với memory dự án (*"console mở ra Internet từ 25/08 nhưng tới 27/08 chỉ
+David tự test"*), bức tranh nhất quán: **hạ tầng đã sẵn sàng, người dùng thì chưa có.**
+
+⚠️ Đây **không phải lời chê**. Một testnet 2 ngày tuổi chưa quảng bá thì đúng ra phải như vậy.
+Nhưng nó đổi cách đọc mọi rủi ro khác: hầu hết chúng là **cửa đang mở**, chưa phải vết thương —
+và đó cũng là lý do **bây giờ là lúc rẻ nhất để sửa**.
+
+### Sổ L1: P-Chain khai **8**, console khai **0**
+
+```
+platform.getBlockchains → 8: C-Chain · X-Chain · SmokeA8ER40 · SmokeA906G2
+                             WarpNguonD46U · WarpDichD46U · CauNguon3SP4 · CauDich3SP4
+console-chains.json    → {"chains": [], "retired": [6 bản ghi]}
+A1_TRACK_SUBNETS       → RỖNG
+```
+
+Sáu chuỗi kia là **rác của chính bộ kiểm** (`smoke-l1`, `warp-test`, `bridge-test` chạy `26/08`).
+Chúng **đăng ký vĩnh viễn trên P-Chain** — thu hồi không xoá được gì ở đó (D-013) — nhưng không
+node nào track, nên **không chuỗi nào chốt được giao dịch**.
+
+🔴 **Bản ghi thu hồi ĐẦU TIÊN mang `chainId 9100`** — đúng con số trùng **Genesis Coin** đã đẻ ra
+B-14. Bằng chứng nằm ngay trong sổ, không phải suy đoán.
+
+---
+
+## 3. Cái gì ĐÃ chứng minh, cái gì CHƯA
+
+### ✅ Đã nghiệm thu **trên mạng công khai thật** (`26/08`)
+
+| Bài | Kết quả |
+|---|---|
+| `smoke-l1 --create-chain` | **25/25** — đẻ chain thật 305,5s · thu hồi 293,4s |
+| `warp-test` | **21/21** — 2 L1, Warp precompile sống |
+| `bridge-test` | **27/27** — 7 LOVE9 rời chain 9104, xuất hiện ở ví trắng trên 9105 |
+| Ba đòn tấn công cầu tài sản | **bị chặn đúng cả ba**, không đồng nào rời thanh khoản |
+| Gián đoạn C-Chain khi đẻ chain | 611 lượt/hỏng 1/**dài nhất 0,5s** |
+
+### ✅ Đã nghiệm thu trên mạng TẬP (không phải công khai)
+
+| | |
+|---|---|
+| Khắc chữ + đọc ngược | `engrave-verify` **17 đạt/0 hỏng**, 3 đối chứng ngược, mạng tập **3 node** |
+| Nghi lễ Block Adam | 10 đạt/0 hỏng, 2 lưu ý, mạng tập **1 node** — neo = hash giao dịch (D-070) |
+| Boot binary đã vá | 0 ERROR, HRP `P-love91…`, `getNetworkName` = `9chain-a1`, mạng **1 node** |
+| Cấp chainId | **13 đạt/0 hỏng** (D-069) |
+| Tái lập fork | 17 patch → tree `f8458b33` **khớp từng byte**; 16/17 → `c9226d9c` |
+| Xuất O2 | **37–54s** trên mạng công khai, `GỐC` đã công bố, 2 đối chứng ngược |
+
+### 🔴 CHƯA chứng minh — và đây là danh sách quan trọng nhất trong bản này
+
+| Chưa chứng minh | Vì sao nó quan trọng |
+|---|---|
+| **Đồng thuận trên nhiều MÁY** | 9 node cùng một host, cùng một đồng hồ, cùng một mạng Docker. `--sybil-protection-enabled=false` ở mạng tập lại càng không chứng minh gì |
+| **Binary đã vá chạy công khai** | 0013–0017 chỉ mới boot **1 node** trên máy dev. Ngày G là lần đầu chúng gặp 9 node thật |
+| **Máy chủ reboot rồi mạng tự dậy** | Bản vá `restart` đã áp và đã kiểm ở mức tiến trình, nhưng **chưa reboot thật lần nào** |
+| **Người ngoài chạm vào** | 4/4 giao dịch là của chính ta; 0 người dùng thật |
+| **Cộng đồng chạy node** | Cổng P2P 9651–9659 **đóng hết** từ Internet ⇒ mức 0% |
+| **Nghi lễ trên P-Chain** | Nếu David đổi Block Adam sang P-Chain thì **phải diễn tập lại** (D-055) |
+
+---
+
+## 4. Hạ tầng — sau các bản vá hôm nay
+
+| | Trạng thái |
+|---|---|
+| Cổng mở ra Internet | **22 · 80 · 443** — đúng như phải thế |
+| SSH | **chỉ nhận khoá** |
+| API quản trị (`/ext/admin`, `/ext/keystore`, `/ext/metrics`) | **404** |
+| Phương thức RPC nguy hiểm | **6/6 tắt** |
+| Khoá `ewoq` công khai | số dư **`0x0`** — genesis cũ đã gỡ THẬT |
+| 9 validator tự dậy | ✅ **`unless-stopped` × 9** *(vá `27/08`, D-071; vào nguồn ở patch 0017)* |
+| Chống nhúng iframe | ✅ `frame-ancestors 'self'` cho site A1 *(D-073)* |
+| CORS của RPC | ✅ Caddy thật sự cầm lái *(D-074)* |
+| Cổng chặn deploy làm teo cấu hình | ✅ *(D-075, đã thấy nó đỏ)* |
+| **Giám sát / cảnh báo / backup tự động** | 🔴 **KHÔNG CÓ** — cron duy nhất trên máy là của 9Scan |
+| **CI** | 🔴 **KHÔNG CÓ** — 27 bộ kiểm, không cái nào tự chạy |
+| Explorer (Blockscout) | 🟠 `backend` **57,5% CPU** vs 9 node cộng lại 26,1% · `stats` restart **1.477 lần** |
+| Đĩa / RAM | 35G/410G (9%) · 2G/62G — rộng rãi |
+
+---
+
+## 5. Sổ sách — và một mâu thuẫn trong chính nó
+
+| | |
+|---|--:|
+| Quyết định đã ghi | **77** (D-001 → D-075) |
+| Mốc PROGRESS xong | **59** · chưa: **5** |
+| Bộ kiểm / cổng trong repo | **27 tệp** |
+| Trang công khai | **6** |
+| Patch chủ quyền | **17** trên `1cf1fc3` |
+
+### Blocker đang mở
+
+| | Việc | Ai |
+|---|---|---|
+| **B-9** | `#e84142` đỏ Avalanche trong `patches/0003` | David |
+| **B-10** | Cloudflare che `robots.txt` — **đo lại hôm nay, vẫn nguyên** | David |
+| **B-12** | Chưa có lịch gia hạn validator. Đo thật: node đầu rụng `2027-07-01`, **mạng dừng `2027-08-26`** | David |
+| **B-13(b)** | Đo lệch đồng hồ 9 node → chọn `--bu-ms`. Chỉ làm được **sau** ngày G | A1 |
+| **H-4/5/6/7** | DNS · URL C1 · nhà cho repo · IPv4-vs-IPv6 | David |
+
+✅ Đã đóng: B-1…B-8 · **B-11** · **B-13(a)** · **B-14**.
+
+### 🔴 Mâu thuẫn: mốc trung tâm vẫn đang được ghi là CHƯA XÁC NHẬN
+
+`BLOCKERS.md` giữ **H-8** ở trạng thái 🔴 — *"SINH LẠI GENESIS 01/09/2026: MỐC NÀY CHƯA ĐƯỢC XÁC
+NHẬN VỚI DAVID"*, kèm hai câu hỏi chưa có dòng trả lời nào.
+
+Trong khi đó `DECISIONS.md` **nhắc tới ngày G ở 33 chỗ**, và David đã duyệt hàng loạt việc *cho*
+ngày G (D-045 · D-046 · D-047 · D-051 · D-069 · D-070…).
+
+⚠️ **Đây gần như chắc chắn là nợ sổ sách, không phải nghi ngờ thật** — hành vi của David đã trả
+lời H-8 từ lâu. Nhưng một danh sách blocker nói *"mốc trung tâm chưa được xác nhận"* trong khi cả
+dự án chạy theo mốc đó là **một cổng đang báo sai**, và cổng báo sai thì lần sau không ai đọc.
+
+⇒ **Cần một dòng của David đóng H-8**, hoặc A1 đóng nó và ghi rõ *"đóng theo hành vi, không theo
+lời"*. Nên là cách thứ nhất — nó chạm hai thứ mất vĩnh viễn (genesis bất biến, custody khoá).
+
+---
+
+## 6. Rủi ro — xếp theo *"mất gì nếu nó xảy ra"*, không theo xác suất
+
+| # | Rủi ro | Trạng thái |
+|---|---|---|
+| 1 | **Mất khoá 5 quỹ** — `keys.txt` một ổ đĩa, bản thứ hai chưa ai xác nhận có | 🔴 **O1, hạn `28/08`** |
+| 2 | **Chữ khắc không có nội dung** — C1 chưa đóng băng byte | 🔴 **ngoài tầm A1** |
+| 3 | **Binary đã vá lần đầu gặp 9 node thật đúng ngày G** | 🟠 không có đường lui ngoài `down -v` lần nữa |
+| 4 | **Mạng dừng `2027-08-26`** nếu không gia hạn validator | 🟠 còn 364 ngày, nhưng chưa ai chịu trách nhiệm |
+| 5 | **"9 node" bị bác bằng một lệnh curl** | 🟠 rủi ro **lời tuyên bố**, không phải kỹ thuật |
+| 6 | **Không ai biết khi mạng chết** | 🟠 không giám sát, không cảnh báo |
+| 7 | **27 cổng chỉ chạy khi có người nhớ** | 🟡 hệ quả của H-6 (chưa có remote ⇒ chưa có CI) |
+
+🔴 **Điểm chung của 1, 2, 4, 6, 7: không cái nào là lỗi kỹ thuật.** Chúng là **chỗ chưa có người
+chịu trách nhiệm hoặc chưa có máy nhắc**. Lớp kỹ thuật của A1 hôm nay khoẻ hơn lớp tổ chức quanh
+nó — và ngày G không sửa được điều đó, vì ngày G là một sự kiện kỹ thuật.
+
+---
+
+## 7. Một câu tóm tắt trung thực về A1 hôm nay
+
+**A1 là một fork blockchain chủ quyền đã chạy được, đã tự chứng minh phần lớn tính năng bằng phép
+đo thật, và đang chờ hai thứ nó không tự làm được: một quyết định về custody, và một tệp byte từ
+C1.**
+
+Phần kỹ thuật còn lại đều **đã biết, đã lượng hoá, và không cái nào chặn `01/09`**. Phần chưa
+biết nằm ở chỗ khác: **chưa một người ngoài nào chạm vào mạng này**, nên mọi lời khẳng định về độ
+bền của nó vẫn là lời khẳng định về một hệ thống **chưa bị ai làm phiền**.
