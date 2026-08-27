@@ -171,6 +171,21 @@ một câu mình không tin ra cho người lạ đọc.
 
 ---
 
+## Đa ngôn ngữ — 11/30, còn 19 (chốt phiên 2026-08-27)
+
+**Đã có:** `en` (mặc định, trong bundle) · `zh hi es ar fr pt vi ru de ja` (chunk lười).
+**Còn:** `bn ur id mr te tr ta ko it th gu fa pl uk ms nl tl sw ha`.
+
+Việc lặp thuần, khuôn đã chứng minh qua 10 bản. Mỗi từ điển:
+1. `web/lib/i18n/dicts/<ma>.ts` — chép hình dạng từ `en.ts`, **dịch từ EN** (không từ `vi.ts`).
+2. Thêm một dòng vào `BO_NAP` trong `web/lib/i18n/index.tsx`.
+3. `pnpm typecheck && pnpm vitest run test/i18n-shape.test.ts`.
+
+🔴 Không làm nhẹ `reGenesis.*` · `deChain.soatMoTa` · `chainCuaToi.thuHoiY*`.
+🔴 Mở đầu tệp phải khai: máy dịch · chưa có người soát · nguồn là tiếng Anh.
+
+---
+
 ## ĐỢT 2 — sau ngày G (chưa mở)
 
 Xem `docs/WEB-UPGRADE-2026-08-27.md` §2. Mục đắt nhất: **B1+B2 (cụm font)** — B1 không
