@@ -1,96 +1,123 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-27** (phiên phân tích định danh — **D-076 chốt bộ số ngày G**; trước đó đợt 14
-AUTOPILOT 5/5 mốc) — mạng công khai vẫn là bản
-re-genesis của `26/08` (**9 node**, phát hành genesis 5.400.000.000, **lượt diễn tập**).
-Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
+Cập nhật: **2026-08-27** (phiên soát vận hành + **RE-GENESIS THẾ HỆ g0**).
 
-🔴 **`supplyCap` ĐÃ ĐỔI: 9.000.000.000 → 7.900.000.001** (D-048). **Tổng cung vẫn 9 tỷ.**
-Đó là hằng số trong binary, và nó phải nhỏ hơn tổng cung đúng bằng phần phát hành thẳng trên
-C-Chain — xem ngay mục dưới. Binary trên server **vẫn là bản cũ**; patch 0013 lên cùng lượt
-sinh lại mạng ngày G.
+## TL;DR
 
-## 🆕 CHỐT `2026-08-27` — **BỘ ĐỊNH DANH MỚI CHO NGÀY G** (D-076)
+🔴 **Mạng công khai ĐÃ SINH LẠI hôm nay** thành **thế hệ `g0`** — `networkID 999999999`,
+`9chain-a1-g0`, `supplyCap 7.900.000.001`, 18 patch (tree `f4615e73`). 9/9 node, 0 lỗi, giao
+dịch thật đã chốt. **Bốn patch cuối lần đầu chạy trên mạng công khai.**
 
-| | Chốt | Đổi từ |
-|---|---|---|
-| `networkID` | **`999999999`** | `9001` |
-| `chainId` chain mẹ | **`9000000009`** — chốt cứng MỌI thế hệ | (giữ) |
-| dải `chainId` L1 | **`9000000010` – `9999999999`** (~1 tỷ số) | trần cũ `9000009999` |
+⚠️ **Đẻ chain CHƯA DÙNG ĐƯỢC** — ví `chain-factory` chưa nạp P-Chain (xem "Việc tiếp" #1).
 
-**Đã tra `chainid.network` `2026-08-27T13:11Z`** (2726 mục · sha256 `7a122fb15423a595…`): dải L1
-**TRỐNG HOÀN TOÀN 0/2726** · `9000000009` trống · hàng xóm gần nhất cách **308 triệu** (dưới sàn,
-ONFA) và **1,3 tỷ** (trên trần, Palm). Sổ qua phép kiểm lành, 2 đối chứng ngược đỏ đúng chỗ.
-Vật chứng: [`docs/vat-chung/g4-2026-08-27-c-dai-moi/`](docs/vat-chung/g4-2026-08-27-c-dai-moi/) (chains.json + KET-QUA-TRA.json).
-
-**Vì sao đổi `networkID`** *(ghi lại để không ai "sửa cho gọn" về sau)*: netgen **ép mọi mạng**
-dùng chung `9001` (dev, drill, public, và mạng sau ngày G), mà bắt tay P2P **chỉ kiểm `networkID`,
-không có bước nào so genesis** (`network/peer/peer.go:825`) và P-Chain mang cùng `ids.Empty` trên
-mọi mạng ⇒ **node mạng cũ bắt tay được node mạng mới; node dev bắt tay được mạng công khai.**
-`networkID` nằm trong genesis ⇒ **ngày G là cửa duy nhất**.
-🔴 `uint32` (trần 4.294.967.295) ⇒ **không thể** dùng `9000000009` làm `networkID`. Đừng thử.
-
-⚠️ `999999999` ở **thang chainId** là *Zora Sepolia Testnet*. **Không** phải va chạm kỹ thuật —
-đo trên mạng thật: C-Chain A1 trả `net_version` = **`9000000009`**, tức `networkID` của Avalanche
-không rò ra ví/công cụ EVM nào. Hệ quả duy nhất: **footer đừng in `networkID` như thông số ngang
-hàng để chép** (`web/lib/chain.ts:23` · `SiteFooter.tsx:15`).
-
-**Đã giao phiên `9chain-a1-af`** — bản chuyển giao đầy đủ 7 mục, kèm số dòng từng điểm sửa
-(`constants/network_ids.go` · `genesis/params.go` → kiểm theo DẢI · `genesis/genesis.go:330` ·
-`netgen/main.go:126` · `lib/chainid.mjs` · `check-chainid.mjs` · `chainid-da-chiem.json`).
-
-### 🔴 Hai lỗi độc lập tìm được trong lúc soát — sửa được NGAY, không chờ ngày G
-
-**1. `local-net/lib/cb58.mjs:113` neo vào một C-Chain ID ĐÃ CHẾT, mà self-test vẫn XANH.**
-Neo cắm cứng `2s5pikvm…` kèm chú thích *"cố định vĩnh viễn"*. Mạng công khai hôm nay trả
-**`JPWKwpGCwSQpXNy8HUb1TFcGh57MY7B6vC7K6mzLGLpBCX4Zx`**. Tệp commit `ad2f029` (25/08), chết ở
-re-genesis 26/08. Ca đó chỉ kiểm checksum, **không đối chiếu mạng nào** ⇒ xanh giả.
-*Mô hình sai:* C-Chain ID = `tx.ID()` của `CreateChainTx` trong genesis, mà tx đó **không có
-input/credential** ⇒ ID là hàm của `networkID` + **toàn văn byte `cChainGenesis`**, mà netgen dựng
-nó từ địa chỉ 5 quỹ **sinh khoá mới mỗi lượt** ⇒ **mỗi re-genesis là một C-Chain ID mới.**
-**Đề xuất:** đổi neo sang P-Chain `11111111111111111111111111111111LpoYY` (= `ids.Empty`, hằng
-vĩnh viễn của **mọi** mạng Avalanche) — còn là ca kiểm **mạnh hơn**: bắt đúng bẫy byte-0-dẫn-đầu.
-
-**2. Bí danh tài sản trên X-Chain vẫn là `"AVAX"`.** `genesis/genesis.go:299-301` đã đổi
-`Name`/`Symbol` thành `LOVE9 Coin`/`LOVE9`, nhưng **khoá map** ở dòng `:330` vẫn `"AVAX"` — và
-khoá đó là `Alias` **được đăng ký thật** trên X-Chain (`vms/avm/vm.go:515`). Nằm trong byte genesis
-X-Chain ⇒ **chỉ đổi được ngày G, không có lần sau.**
-
-### Còn mở — chờ David
-
-| | |
-|---|---|
-| **(a)** | Có chia dải L1 thành **KHỐI THẾ HỆ** không (chữ số thứ 2 = thế hệ: `9.0xx…` = thế hệ 0 … `9.9xx…` = thế hệ 9; **đã tra cả 10 khối, trống**). **Không chia** ⇒ sau ngày G lần sau L1 đầu tiên lại nhận `9000000010`, **trùng số với L1 thế hệ trước**, và chống-cấp-lại **treo lên `console-chains.json` phải sống sót mọi lần re-genesis** ⇒ nó thành tài sản ngang khoá quỹ, phải vào quy trình O2 |
-| **(b)** | Tên mạng cụ thể (`9chain-a1-g0`?) — ràng vào **đường dẫn DB**, xem D-050 |
-| **(c)** | Có làm **khối `networkID` riêng cho mạng tập** không (để node dev không bắt tay được mạng thật). Nếu có ⇒ `genesis/params.go` **phải** chuyển sang kiểm theo dải, nếu không networkID lạ rơi vào `default:` → LocalParams 720 triệu → **tràn ngược uint64** (đúng bẫy patch 0013) |
+⚠️ **Ngày G `2026-09-01` VẪN phải sinh lại lần nữa** (chữ khắc vào genesis, C1 chưa đóng băng
+byte) ⇒ lượt đó là **thế hệ 1**: `A1Gen 1` · `networkID 999999998` · `9chain-a1-g1` · khối
+chainId L1 `9001000000–9001999999`.
 
 ---
 
-## ▶ Phiên sau bắt đầu ở đâu
+## ▶ Việc tiếp — theo thứ tự
 
-✅ **David đã chốt B-13(a) + B-14 (`2026-08-27`) — cả hai ĐÃ VÁ VÀ NGHIỆM THU trong phiên.**
+| # | Việc | Ai | Ghi chú |
+|---|---|---|---|
+| **1** | 🔴 **Nạp `chain-factory`** 9 LOVE9 P-Chain, nếu không **đẻ chain chết câm** | A1 + khoá máy dev | Từ Foundation X `X-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g` → X→P. Xem `docs/VI-VAN-HANH.md` |
+| **2** | 🔴 **O1 custody khoá 5 quỹ** — **quá hạn `28/08`**, cơ hội một lần ở ngày G | **David** | Không phải "chọn sơ đồ" (đã chốt D-044) mà là **PHÉP KIỂM chưa chạy**: bản thứ hai có thật không. Cách kiểm: `docs/SOAT-TOAN-DIEN-2026-08-27.md` §12.2 |
+| **3** | 🔴 **netgen PHẢI sinh `.env`** trước ngày G | A1 | Thiếu nó ⇒ `--http-allowed-hosts=*` trên node công khai. Suýt xảy ra hôm nay — xem Gotcha #2 |
+| **4** | **B-9** `#e84142` trong `patches/0003` — David **đã gật**, chưa làm | A1 | Gộp vào lượt regen ngày G |
+| **5** | **O4** — dời 1 node sang nhà cung cấp thứ hai, **hoặc** khai thật + đổi tên `01/09` | **David** | §12.3: cách rẻ nhất không phải tiền mà là chữ *"chính thức"* |
+| **6** | **B-10** tắt Managed robots.txt ở dashboard Cloudflare | **David** | 1 phút, đo lại bằng NỘI DUNG |
+| **7** | **H-7** IPv4 đa cổng hay IPv6 | **David** | Không chặn ngày G |
+| **8** | **Gộp `web-home` → `main`** | **David** | `DECISIONS.md` đang tồn tại ở hai bản — xem §12.1 |
+| **9** | GO/NO-GO `2026-08-29` · Ngày G `2026-09-01` | — | `docs/NGAY-G-A1-CON-LAI.md` §7 |
 
-| | Chốt | Ghi ở |
-|---|---|---|
-| **B-13(a)** | Block Adam **neo vào HASH GIAO DỊCH NGHI LỄ** | **D-070** |
-| **B-14** | Gốc dải chainId L1: `9100` → **`9000000010`** (= chainId A1 **+1**) | **D-069** |
-
-| Thứ tự | Việc | Điều kiện |
-|---|---|---|
-| **1** | 🔴 **O1 custody khoá 5 quỹ** — hạn `28/08`, **cơ hội một lần**. Vẫn là mục quyết số 1 | **David** |
-| **2** | Chạy **O2 một lượt trên MẠNG CÔNG KHAI** để biết thời gian thật *(bài lấy block từng cái một)* — A1 tự làm được | không chặn |
-| **3** | GO/NO-GO `2026-08-29` theo `NGAY-G-A1-CON-LAI.md` §7 (10 điều) | — |
-| **4** | Ngày G `2026-09-01`: build lại image (patch 0013 ⇒ **bắt buộc cùng lượt `down -v`**) · O2 trước khi xoá · tra lại G4 · `cung.json` lên server cùng `faucet.env` | — |
-| **5** | **Ngay SAU ngày G:** đo lệch đồng hồ 9 node → chọn `--bu-ms` (**B-13(b)**, đã hạ mức) · lịch gia hạn validator (**B-12**) | — |
-
-**Backlog autopilot vẫn CẠN.** Phần còn lại đều chờ David hoặc chờ mạng ngày G lên. Đừng mở
-autopilot mới khi chưa có quyết định; nó sẽ đi hoang.
-
-🔴 **Đường găng lớn nhất vẫn KHÔNG nằm trong repo này:** chữ khắc chờ **C1 đóng băng byte**.
-Cơ chế A1 xong 100%; **nội dung 0%**. C1 trễ quá `28/08` thì đường găng gãy ở chỗ A1 không tự
-cứu được.
+🔴 **Đường găng lớn nhất vẫn ngoài tầm A1:** chữ khắc chờ **C1 đóng băng byte**. Cơ chế xong
+100%, nội dung 0%.
 
 ---
+
+## ✅ Đã xong hôm nay (`2026-08-27`) — đều đã chạy thật, không phải "đã viết"
+
+| | Việc | Nghiệm thu |
+|---|---|---|
+| **D-069** | Gốc dải chainId L1 `9100` → `9000000010` | `chainid-test` 22 đạt · 4 ca đối chứng ngược |
+| **D-070** | Block Adam neo vào **hash giao dịch nghi lễ** | Diễn tập lại: `--bu-ms 0` (ca bản cũ chấm ✗) nay 10 đạt/0 hỏng |
+| **D-071** | 9 validator `restart=no` → `unless-stopped` | Ca A/B trên container nháp; **chưa reboot thật** |
+| **D-072** | O2 chạy thật trên mạng công khai | 37–54s · 4 ca, 2 đối chứng ngược |
+| **D-073/074/075** | Chống nhúng iframe · CORS · cổng chặn deploy làm teo cấu hình | Đã deploy · cổng đã thấy **ĐỎ** (chặn 68 dòng) |
+| **D-077** | `cb58.mjs` neo C-Chain → P-Chain | Neo cũ **đã chết từ 26/08 mà bài vẫn 8/8 xanh** |
+| **D-079** | Bộ định danh theo thế hệ, 18 patch, tree `f4615e73` | Mạng tập 3 node + **bài cắt-kết-nối có đối chứng dương** |
+| **D-080** | `GỐC` mạng thế hệ trước, công bố **trước khi xoá** | `c92ad73cf6cdcf44ef32bf4bb6475d282fb76878c553f690533bfa6c476ce066` |
+| **D-081** | **Re-genesis mạng công khai → g0** | 9/9 node · drip `0x635f2183…` đọc lại từ chain = 10 LOVE9 |
+
+Ba bản soát mới: `docs/SOAT-TOAN-DIEN-2026-08-27.md` (lớp vận hành) ·
+`docs/HIEN-TRANG-A1-2026-08-27.md` · `docs/DE-XUAT-BO-DINH-DANH-THE-HE.md`.
+
+---
+
+## 🔴 GOTCHAS — thứ sẽ tốn giờ nếu không biết trước
+
+1. **`net/` do container netgen sinh ⇒ thuộc `root`.** `sed` sửa `docker-compose.multinode.yml`
+   **thất bại lặng lẽ** ⇒ mạng lên bằng image CŨ. `sudo chown -R ubuntu:ubuntu ~/9chain-a1/net`
+   trước khi sửa.
+2. 🔴 **netgen KHÔNG sinh `.env`.** Tệp đó đặt `A1_CONFIG_DIR` · `A1_API_BIND` ·
+   **`A1_HTTP_ALLOWED_HOSTS=localhost,127.0.0.1`**. Thiếu ⇒ compose lấy mặc định
+   **`--http-allowed-hosts=*`** trên node CÔNG KHAI. **Chép `.env` từ `net-pre-*` sang.**
+3. **`docker restart` KHÔNG nạp lại env.** Faucet giữ khoá thế hệ cũ ⇒ `insufficient funds`.
+   Phải **`docker rm -f` rồi `docker run`** lại (lệnh đầy đủ trong D-081).
+4. 🔴 **Cổng chỉ chứng minh được đường mà CHÍNH NÓ đi.** Cổng netgen xanh + `go test` xanh, mà
+   node vẫn log `supplyCap 720 triệu` — vì `config/config.go` lắp cấu hình bằng đường khác. Thứ
+   đi vào genesis phải nghiệm thu **trên node đang chạy**.
+5. **`docker stop` VÀ `docker kill` đều KHÔNG kích hoạt `restart: unless-stopped`** (cả hai là
+   "người dùng chủ động dừng"). Muốn thử chính sách thì để tiến trình **tự chết**.
+6. **`git add -A` trong repo này nguy hiểm** — có phiên khác đang làm việc. Commit bằng đường
+   dẫn tường minh. *(Đã nuốt nhầm việc của phiên `eb` một lần.)*
+7. **Hai phiên đánh số quyết định độc lập ⇒ va chạm.** Bộ định danh được phiên `eb` gọi `D-072`
+   nhưng trong repo nó là **`D-076`**. `DECISIONS.md` là nguồn sự thật.
+8. **`SUBNET_PREFIX` của netgen PHẢI kết thúc bằng `.0`** — nhận `172.31.9` im lặng rồi sinh
+   compose Docker từ chối.
+9. **Heredoc bash + Python nuốt dấu gạch chéo** — sửa mã Go có `\n` trong chuỗi thì dùng công cụ
+   sửa tệp, đừng `python <<'PY'` với `str.replace`.
+10. **Cổng C-4 có một ca chưa lường:** *"khắc chữ TẮT ⇒ bản tập"* sai với **mạng THẬT ở thế hệ
+    trước lượt khắc chữ**. Nó chỉ cảnh báo, không chặn — nhưng đừng đọc cảnh báo đó thành lỗi.
+
+---
+
+## Lệnh hữu ích
+
+```bash
+# Đo bộ định danh mạng công khai
+curl -s -X POST -H 'content-type: application/json' \
+  --data '{"jsonrpc":"2.0","id":1,"method":"info.getNetworkName","params":{}}' \
+  https://rpc-a1.9chain.org/ext/info
+
+# supplyCap ĐANG CHẠY (đừng đọc mã — đọc node)
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" \
+  'docker logs 9chain-a1-node-1 2>&1 | grep -oE "\"supplyCap\":[0-9]+" | head -1'
+
+# Cổng repo
+node scripts/check-consistency.mjs --tu-kiem
+node local-net/console/chainid-test.mjs
+node local-net/lib/cb58.mjs --self-test
+node scripts/check-chainid.mjs
+
+# Tái lập cây fork (18 patch → tree f4615e73)
+cd upstream/avalanchego && git worktree add --detach /tmp/tl 1cf1fc3
+cd /tmp/tl && git am --keep-cr ../../patches/*.patch && git rev-parse HEAD^{tree}
+```
+
+⚠️ **Luật cứng của repo** *(đã trả giá để học)*:
+1. **Không tin mã HTTP.** Thang đo: mã HTTP → `content-type` → **nội dung** → header tầng trước.
+2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một nửa.
+3. **Đụng `patches/` là đụng đường tái lập fork** — sinh `--no-signature`, nghiệm thu
+   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`f4615e73`** / **18 patch**
+   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **17/18** phải ra đúng tree cũ `f8458b33`.
+4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)
+   — 🔴 **Caddyfile ĐANG CHẠY đến từ nhánh đó**, không phải `main`. Deploy từ `main` sẽ xoá công
+   việc của phiên web (cổng D-075 nay chặn, nhưng đừng dựa vào nó).
+
+---
+
+## Lịch sử các đợt trước (giữ để đối chiếu — không cần đọc nếu chỉ tiếp việc)
 
 ## ✅ ĐỢT AUTOPILOT 14 (`2026-08-27`) — **5/5 MỐC ĐẠT**
 
