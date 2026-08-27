@@ -1,10 +1,15 @@
 # SOÁT CORE BLOCKCHAIN — 9Chain-A1, `2026-08-27`
 
 > **Phạm vi:** fork `avalanchego` v1.14.2 trong `upstream/avalanchego/`, bộ công cụ chủ
-> quyền `9chain-a1-tools/`, và 12 patch tái lập. **Không** soát lớp web, console, faucet.
+> quyền `9chain-a1-tools/`, và **12 patch** tái lập *(tại thời điểm soát; nay là 14 — xem §11)*.
+> **Không** soát lớp web, console, faucet.
 >
 > **Kết quả:** 1 lỗi P0 (sai con số sẽ khắc vào genesis ngày G), 3 lỗi P1, 3 lệch chuẩn P2.
-> Tất cả đã vá trong **patch 0013**, trừ bốn mục cần David quyết (§7).
+> Vá trong **patch 0013**; bốn mục cần David nêu ở §7 nay **đã phân xử ba** (D-051, patch
+> 0014), còn **C-4** — không chạm binary, không chặn ngày G.
+>
+> **Nghiệm thu:** tree hash tái lập · `go vet`/`go build` · đối chứng ngược 5/5 · cổng nhất
+> quán 21 đạt/9-9 · và **boot thật một node từ nguồn đã vá** (§9.6).
 >
 > Bản soát trước — [`BRAND-AUDIT-2026-08-27.md`](BRAND-AUDIT-2026-08-27.md) — soát **lớp da**.
 > Bản này soát **lớp xương**.
@@ -26,6 +31,10 @@ Liệt kê mọi tệp `avalanchego` mà 12 patch chạm tới:
 
 **Hết.** Chín patch còn lại nằm trong `9chain-a1-tools/` — công cụ mới, không chạm core.
 Consensus, VM, mạng, `reward/calculator.go`, `proposal_tx_executor.go`: **vanilla**.
+
+*(Patch 0013 thêm `upgrade/upgrade.go` và `utils/constants/network_ids.go` vào danh sách trên;
+patch 0014 chỉ đổi chú thích trong `genesis_9chain_a1.go`. Bề mặt chủ quyền sau cùng: **6 tệp
+core + 1 tệp mới**.)*
 
 Kiến trúc này đúng — lớp chủ quyền mỏng thì rebase rẻ. Vấn đề là nó **mỏng chưa đều**, và
 ba chỗ mỏng nhất rơi đúng vào thứ ngày G sẽ đóng băng vĩnh viễn.
@@ -267,18 +276,29 @@ cả X-Chain lẫn C-Chain"*. Không một tiếng động.
 
 ---
 
-## 7. Chưa sửa — cần David quyết
+## 7. ✅ ĐÃ PHÂN XỬ `27/08` — ba mục chạm binary đóng, còn C-4
 
-| # | Việc | Vì sao không tự quyết | Chạm binary? |
+**David chốt (D-051, patch 0014, tree `4c5d5b1e`): cả ba mục chạm binary GIỮ NGUYÊN GIÁ TRỊ.**
+Patch chỉ đổi **chữ**, không đổi số — vì trong mã, một tham số *chưa ai quyết* trông y hệt một
+tham số *đã quyết*. ⇒ **không còn gì chặn lượt `docker build` của ngày G.**
+
+| # | Việc | Chốt | Binary? |
 |---|---|---|---|
-| **C-1** | `UptimeRequirement: .8` — file tự ghi *"⬅️ CHỐT LẠI THÀNH 0.9 TRƯỚC MAINNET"* | quyết định về mức khắt khe với validator cộng đồng | ✅ |
-| **C-2** | `MaxStakeDuration: 365 ngày` ⇒ 9 node hết hạn trong cửa sổ 56 ngày từ `2027-08-24`, **mạng dừng**. Avalanche mainnet cũng 365, nên không phải lỗi — nhưng với chain khắc chữ "vĩnh viễn" thì đó là **nghĩa vụ gia hạn hằng năm chưa có quy trình** | nâng trần hay dựng quy trình gia hạn — hai đường khác hẳn về chi phí | ✅ nếu nâng trần |
-| **C-3** | **Phí C-Chain = vanilla Avalanche.** `A1Params` phủ P/X; C-Chain — nơi người dùng **thật sự** giao dịch (faucet 100% C-Chain, MetaMask, Blockscout) — không có ô nào. Hiện là **im lặng**, mà im lặng không phân biệt được với bỏ sót | đổi số, hay khai là cố ý | ✅ nếu đổi |
-| **C-4** | **chainId `9000000009` cắm cứng** trong `cChainGenesis` (`netgen/main.go:351`) trong khi `networkID` là tham số ⇒ **mạng tập và mạng thật cùng chainId**. MetaMask không phân biệt được; EIP-155 buộc chữ ký vào chainId chứ không vào networkID | A1 đã dựng cổng *"bản tập ≠ bản thật"* rất kỹ cho **chữ khắc**, mà **không có cổng nào cho chainId** | ❌ |
+| ~~**C-1**~~ | `UptimeRequirement: .8` — file tự ghi *"⬅️ CHỐT LẠI THÀNH 0.9 TRƯỚC MAINNET"* | ✅ **GIỮ `.8`**. Mốc xét lại là **mainnet**, không phải ngày G: A1 vẫn là testnet mời cộng đồng chạy node trên hạ tầng không chuyên, mà `.9` là cắt thưởng của người chạy thật. Việc cũ nằm trong **comment** nên không ai canh; nay có ngày tháng | ✅ |
+| ~~**C-2**~~ | `MaxStakeDuration: 365 ngày` ⇒ 9 node hết hạn trong cửa sổ 56 ngày, **mạng dừng** | ✅ **GIỮ 365**, bằng Avalanche mainnet. Trần dài hơn = khoá staking giam lâu hơn ⇒ **đánh đổi, không phải cải thiện**. Cái thiếu là **quy trình**, mà quy trình không sống trong mã ⇒ sinh **B-12** | ✅ |
+| ~~**C-3**~~ | **Phí C-Chain = vanilla Avalanche**, và đang **im lặng** — không phân biệt được với bỏ sót | ✅ **GIỮ, KHAI RA LÀ CỐ Ý** trong `genesis_9chain_a1.go`: lý do giữ (ACP-176 đã kiểm chứng ở quy mô mainnet · soak 210 TPS / 0 lỗi gửi ⇒ phí không chặn ai · testnet, token xin faucet) + **điều kiện xét lại** + **con trỏ tới chỗ đổi thật** (không phải file đó) | ✅ |
+| 🟡 **C-4** | **chainId `9000000009` cắm cứng** trong `cChainGenesis` (`netgen/main.go:351`) trong khi `networkID` là tham số ⇒ **mạng tập và mạng thật cùng chainId**. MetaMask không phân biệt được; EIP-155 buộc chữ ký vào chainId chứ không vào networkID | 🔴 **CHƯA** — nhưng **không chạm binary**, không chặn ngày G | ❌ |
 
 Rủi ro thực tế của **C-4** hôm nay thấp: netgen sinh khoá mới mỗi lượt nên địa chỉ khác nhau;
-cửa duy nhất là người tự import cùng một khoá vào cả hai mạng. Nhưng bất đối xứng thiết kế
-thì có thật.
+cửa duy nhất là người tự import cùng một khoá vào cả hai mạng. Cái đắt là **bất đối xứng thiết
+kế** — A1 dựng cổng *"bản tập ≠ bản thật"* rất kỹ cho **chữ khắc**, mà không có cổng nào cho
+**chainId**, thứ ví người dùng thật sự đọc.
+
+🔴 **B-12 sinh ra từ C-2:** chưa có quy trình gia hạn validator. Ngày hết hạn thật chỉ biết sau
+khi sinh genesis ngày G (`platform.getCurrentValidators` → `endTime`, **đừng tính tay**), nên
+việc đầu tiên sau ngày G là ghi 9 mốc đó lại lúc số còn tươi.
+⚠️ `InitialStakeDurationOffset` 7 ngày **là hệ thống cảnh báo, không phải rác** — nó cho ~56
+ngày phản ứng thay vì tắt đồng loạt. Đừng dọn về 0.
 
 ### 7b. ✅ ĐÃ SỬA `27/08` — genesis gốc của Avalanche còn trong đường boot
 
@@ -521,9 +541,13 @@ lượt nghiệm thu ngày G trên mạng 9 node.
 **✅ Xong `27/08`, không chạm binary:** gỡ `9chain-a1-config/genesis.json` khỏi đường boot và
 sửa con trỏ khắc chữ ở 5 chỗ — §7c.
 
-**Cần David:** C-1 `UptimeRequirement` · C-2 `MaxStakeDuration` · C-3 phí C-Chain · C-4
-chainId mạng tập. C-1 → C-3 chạm binary ⇒ **quyết trước lượt `docker build` của ngày G**, nếu
-không thì kẹt tới lần sinh mạng sau.
+**✅ Xong `27/08` (patch 0014, D-051):** C-1 `UptimeRequirement` giữ `.8` · C-2
+`MaxStakeDuration` giữ 365 · C-3 phí C-Chain giữ, **khai ra là cố ý**. Cả ba **giữ nguyên giá
+trị**, patch chỉ đổi chữ ⇒ **không còn gì chạm binary đang chờ quyết.**
+
+**Còn mở, KHÔNG chặn ngày G:** 🟡 **C-4** chainId mạng tập ≡ mạng thật (không chạm binary) ·
+🔴 **B-12** quy trình gia hạn validator (không phải việc mã — cần người, làm **ngay sau** ngày
+G lúc `endTime` còn tươi).
 
 🔴 **Và bước 0 của runbook ngày G nay có thêm một dòng đối chứng:**
 
@@ -531,3 +555,18 @@ không thì kẹt tới lần sinh mạng sau.
 docker logs 9chain-a1-node-1 | head -1 | grep -o '"supplyCap":[0-9]*'
 # -> PHẢI ra 7900000001000000000, KHÔNG phải 9000000000000000000
 ```
+
+*(Đã đo thật `27/08` trên node dev boot từ nguồn đã vá — §9.6.)*
+
+---
+
+## 11. Trạng thái sau cùng — patch series
+
+| | |
+|---|---|
+| Gốc | `1cf1fc3` |
+| Số patch | **14** (`0013` = soát core · `0014` = D-051 khai B-11 thành chữ) |
+| Tree sau khi áp đủ 14 patch | **`4c5d5b1e22774748f1b9840d77c939d6145f4868`** |
+| Cây fork đang làm việc | **`4c5d5b1e22774748f1b9840d77c939d6145f4868`** — khớp từng byte |
+
+*(Nhớ `git am --keep-cr`, và `git format-patch --no-signature` khi sinh patch mới.)*

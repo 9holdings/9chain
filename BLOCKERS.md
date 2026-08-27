@@ -6,21 +6,44 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
-### 🔴 B-11 — BỐN MỤC CORE CẦN DAVID, BA MỤC CHẠM BINARY (2026-08-27)
+### 🟡 B-11 — BA MỤC CHẠM BINARY **ĐÃ ĐÓNG** `27/08`, CÒN C-4 (2026-08-27)
 
-Từ bản soát core [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md) §7. Ba mục
-đầu **chạm binary** ⇒ phải quyết **trước lượt `docker build` của ngày G**, nếu không thì kẹt
-tới lần sinh mạng sau.
+Từ bản soát core [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md) §7.
 
-| | Việc | Vì sao A1 không tự quyết | Binary? |
-|---|---|---|---|
-| **C-1** | `UptimeRequirement` đang là **`.8`**; chính file tự ghi *"⬅️ CHỐT LẠI THÀNH 0.9 TRƯỚC MAINNET"*. Avalanche mainnet dùng .9 (ACP-267) | mức khắt khe với validator cộng đồng chạy hạ tầng không chuyên — đánh đổi giữa "dễ tham gia" và "mạng đáng tin" | ✅ |
-| **C-2** | `MaxStakeDuration: 365 ngày`. Cộng `initialStakeDuration` 365 + so le 7 ngày ⇒ **cả 9 node hết hạn trong cửa sổ 56 ngày kể từ `2027-08-24`, mạng DỪNG**. Avalanche mainnet cũng 365 nên không phải lỗi — nhưng với chain sắp khắc chữ "vĩnh viễn" thì đó là **nghĩa vụ gia hạn hằng năm chưa có quy trình** | hai đường khác hẳn chi phí: nâng trần (chạm binary, lệch upstream) hay dựng quy trình gia hạn (không chạm mã, nhưng phải có người) | ✅ nếu nâng trần |
-| **C-3** | **Phí C-Chain = vanilla Avalanche.** `A1Params` phủ P/X (`TxFee` hạ xuống `MilliAvax` cho builder), nhưng C-Chain — nơi người dùng **thật sự** giao dịch (faucet 100% C-Chain, MetaMask, Blockscout, soak 210 TPS) — không có một ô nào. Hiện là **im lặng**, mà im lặng không phân biệt được với bỏ sót | đổi số, hay khai "giữ đường cong Avalanche, có chủ đích" | ✅ nếu đổi |
-| **C-4** | **chainId `9000000009` cắm cứng** trong `cChainGenesis` (`netgen/main.go:351`) trong khi `networkID` là tham số ⇒ **mạng tập và mạng thật cùng chainId**. MetaMask không phân biệt được; EIP-155 buộc chữ ký vào chainId chứ không vào networkID | A1 đã dựng cổng *"bản tập ≠ bản thật"* rất kỹ cho **chữ khắc** mà **không có cổng nào cho chainId** — bất đối xứng thiết kế, cần chủ dự án phân xử | ❌ |
+✅ **David chốt `27/08` (D-051, patch 0014, tree `4c5d5b1e`):** cả ba mục chạm binary đều
+**GIỮ NGUYÊN GIÁ TRỊ** — patch chỉ đổi **chữ**, không đổi số. ⇒ **Không còn gì chặn lượt
+`docker build` của ngày G.**
+
+| | Việc | Chốt |
+|---|---|---|
+| ~~**C-1**~~ | `UptimeRequirement` | ✅ **GIỮ `.8`**. Mốc xét lại là **MAINNET**, không phải ngày G — A1 vẫn là testnet mời cộng đồng chạy node trên hạ tầng không chuyên. Chú thích cũ *"⬅️ CHỐT LẠI THÀNH 0.9"* nằm trong comment nên **không ai canh**; nay có ngày tháng |
+| ~~**C-2**~~ | `MaxStakeDuration` | ✅ **GIỮ 365 ngày**, bằng Avalanche mainnet. Trần dài hơn = khoá staking giam lâu hơn, tức đánh đổi chứ không phải cải thiện ⇒ **sinh ra B-12** (quy trình gia hạn) |
+| ~~**C-3**~~ | Phí C-Chain | ✅ **GIỮ đường cong Avalanche, KHAI RA LÀ CỐ Ý** trong `genesis_9chain_a1.go`, kèm lý do + điều kiện xét lại + con trỏ tới chỗ đổi thật (không phải file đó) |
+| 🟡 **C-4** | **chainId `9000000009` cắm cứng** trong `cChainGenesis` (`netgen/main.go:351`) trong khi `networkID` là tham số ⇒ **mạng tập và mạng thật cùng chainId**. MetaMask không phân biệt được; EIP-155 buộc chữ ký vào chainId chứ không vào networkID | 🔴 **CHƯA** — nhưng **không chạm binary**, nên **không chặn ngày G** |
 
 ⚠️ **C-4 hôm nay rủi ro thấp**: netgen sinh khoá mới mỗi lượt nên địa chỉ hai mạng khác nhau;
-cửa duy nhất là người tự import cùng một khoá vào cả hai. Đừng trích nó mạnh hơn thế.
+cửa duy nhất là người tự import cùng một khoá vào cả hai. Đừng trích nó mạnh hơn thế. Cái đắt
+là **bất đối xứng thiết kế**: A1 dựng cổng *"bản tập ≠ bản thật"* rất kỹ cho **chữ khắc**, mà
+không có cổng nào cho **chainId** — thứ ví người dùng thật sự đọc.
+
+### 🔴 B-12 — CHƯA CÓ QUY TRÌNH GIA HẠN VALIDATOR (2026-08-27, sinh từ D-051b)
+
+Hệ quả trực tiếp của quyết định giữ `MaxStakeDuration` 365 ngày. **Không phải việc mã** —
+avalanchego không có cơ chế tự gia hạn, và không cổng nào cảnh báo được.
+
+**9 validator genesis hết hạn lần lượt trong một cửa sổ 56 ngày, bắt đầu ~365 ngày sau ngày G.
+Node cuối rụng là mạng DỪNG.**
+
+⚠️ **So le 7 ngày là CỐ Ý và chính nó là hệ thống cảnh báo** — node đầu rụng ở ~ngày 309, lúc
+đó 8 node còn chạy ⇒ có ~56 ngày để phản ứng. **Đừng "dọn dẹp" `InitialStakeDurationOffset` về
+0 cho đều.**
+
+🔴 **Cần David:** dựng lịch nhắc + người chịu trách nhiệm. Ngày hết hạn **thật** chỉ biết sau
+khi sinh genesis ngày G — đọc bằng `platform.getCurrentValidators` → `endTime`, **đừng tính
+tay**. Việc này nên làm **ngay sau ngày G**, lúc số còn tươi.
+
+*(Mục "⏰ Hẹn giờ đã biết" trong `HANDOFF.md` ghi `2027-08-24` cho 5 validator — đó là của mạng
+TRƯỚC re-genesis `26/08`, đã cũ hai lần.)*
 
 🔴 **Kèm theo, KHÔNG cần quyết nhưng phải nhớ khi deploy:** patch 0013 khai
 `constants.A1Name`, mà `config/config.go:1008` dựng đường dẫn DB từ tên mạng ⇒ **binary này

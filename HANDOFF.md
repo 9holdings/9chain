@@ -83,9 +83,13 @@ cảnh báo về chính cổng này. Nay `readFileSync` thẳng `genesis_9chain_
 
 #### 🔴 Việc sinh ra từ đợt này
 
-- **B-11** — bốn mục cần David: `UptimeRequirement` .8→.9 · `MaxStakeDuration` 365 ngày ·
-  phí C-Chain (vanilla, đang im lặng) · chainId mạng tập ≡ mạng thật. **Ba mục đầu chạm
-  binary** ⇒ quyết trước lượt `docker build` ngày G.
+- ✅ **B-11 ĐÃ ĐÓNG BA MỤC CHẠM BINARY — David chốt `27/08` (D-051, patch 0014, tree
+  `4c5d5b1e`).** `UptimeRequirement` **giữ .8** (mốc xét lại là **mainnet**, không phải ngày G)
+  · `MaxStakeDuration` **giữ 365** · phí C-Chain **giữ, khai ra là CỐ Ý**.
+  🔴 **Không đổi một giá trị nào — chỉ đổi CHỮ**, vì trong mã một tham số *chưa ai quyết*
+  trông y hệt một tham số *đã quyết*. ⇒ **không còn gì chặn lượt `docker build` ngày G.**
+  🟡 Còn **C-4** (chainId mạng tập ≡ mạng thật) — không chạm binary, không chặn ngày G.
+  🔴 Sinh ra **B-12**: quy trình gia hạn validator — xem mục ⏰ bên dưới.
 - **Không cần quyết nhưng phải nhớ:** `A1Name` đổi **đường dẫn DB** (`config.go:1008`) ⇒
   binary patch 0013 **chỉ được lên cùng lượt `down -v`**. Ngày G thoả. Đường lui: xoá một
   dòng, xem D-050.
@@ -501,9 +505,24 @@ URL cũ, tất cả 301: `/lite/` → `/` · `/dashboard/` → `/compare/` · `/
 `/create-chain/` · `/chain-cua-toi/` → `/my-chains/` · `/bang/` → `/compare/`.
 Đã TẮT (không xoá): `9chain-a1-explorer` :8082 · `9chain-a1-dashboard` :8092.
 
-### ⏰ Hẹn giờ đã biết
-**Cả 5 validator hết hạn `2027-08-24`** (đo 2026-08-25, còn 364 ngày). Đúng ngày đó
-mạng DỪNG nếu không gia hạn. Uptime hiện 99,96–100%.
+### ⏰ Hẹn giờ đã biết — **B-12**, và con số dưới đây ĐÃ CŨ HAI LẦN
+
+🔴 **`2027-08-24` / "5 validator" là của mạng TRƯỚC re-genesis `26/08`. Đừng trích.**
+Mạng đó đã chết; ngày G `01/09` còn sinh lại lần nữa. Bản gốc giữ lại để thấy con số cũ:
+~~Cả 5 validator hết hạn `2027-08-24` (đo 2026-08-25, còn 364 ngày)~~.
+
+**Luật thì không đổi, và D-051b vừa chốt giữ nguyên nó:** `MaxStakeDuration` 365 ngày +
+`InitialStakeDuration` 365 + `InitialStakeDurationOffset` 7 ngày ⇒ **9 validator genesis hết
+hạn lần lượt trong một cửa sổ 56 ngày, bắt đầu ~365 ngày sau ngày G. Node cuối rụng là mạng
+DỪNG.** avalanchego **không có cơ chế tự gia hạn**, và không cổng nào cảnh báo.
+
+⚠️ **So le 7 ngày là CỐ Ý và chính nó là hệ thống cảnh báo** — node đầu rụng ở ~ngày 309 của
+nhiệm kỳ, lúc đó 8 node còn chạy ⇒ có ~56 ngày để phản ứng, thay vì cả mạng tắt cùng lúc.
+**Đừng "dọn dẹp" offset về 0 cho đều.**
+
+🔴 **Ngày hết hạn THẬT chỉ biết sau khi sinh genesis ngày G.** Đọc bằng
+`platform.getCurrentValidators` → `endTime`, **đừng tính tay**. Việc đầu tiên sau ngày G:
+ghi 9 mốc đó vào **B-12** lúc số còn tươi.
 
 ### ✅ Soak 3 giờ — ĐÃ XONG 2026-08-25 08:22 UTC, đạt
 | | |

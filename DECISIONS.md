@@ -1234,3 +1234,65 @@ bootstrap lại từ đầu — dữ liệu cũ **vẫn còn trên đĩa** ở t
 
 Muốn bỏ vế tên để gỡ hẳn rủi ro này: xoá đúng dòng `A1ID: A1Name` trong
 `NetworkIDToNetworkName`. Phần HRP và `A1ID` độc lập, giữ nguyên được.
+
+### D-051 — **B-11: giữ `UptimeRequirement` 0.8 · giữ `MaxStakeDuration` 365 ngày · phí C-Chain giữ nguyên, KHAI LÀ CỐ Ý**
+
+**David chốt `2026-08-27`.** Ba mục do bản soát core nêu
+([`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md) §7, `BLOCKERS.md` B-11).
+Cả ba **biên dịch vào binary** ⇒ phải đóng băng trước lượt `docker build` của ngày G.
+
+Thi hành: **patch 0014**, tree `4c5d5b1e`. 🔴 **Không đổi một giá trị nào — chỉ đổi CHỮ.**
+Đó là cả điểm của nó: trong mã, một tham số **chưa ai quyết** trông y hệt một tham số **đã
+quyết**, và ba chỗ này đang ở trạng thái thứ nhất.
+
+#### (a) `UptimeRequirement` giữ **0.8**
+
+Chú thích cũ ghi *"⬅️ CHỐT LẠI THÀNH 0.9 TRƯỚC MAINNET"* — một việc nằm trong **comment** và
+không nằm trong file này, tức **không ai canh**. Nay nó có ngày tháng, và **mốc xét lại là
+MAINNET, không phải ngày G**: A1 vẫn đúng là testnet công khai mời cộng đồng chạy node, mà
+0.9 trên hạ tầng không chuyên là cắt thưởng của người chạy thật.
+*(Avalanche mainnet dùng 0.9 theo ACP-267.)*
+
+#### (b) `MaxStakeDuration` giữ **365 ngày** — bằng Avalanche mainnet
+
+🔴 **Hệ quả phải có NGƯỜI canh, không phải mã canh.** Trần này + `InitialStakeDuration` 365
+ngày + `InitialStakeDurationOffset` 7 ngày ⇒ **9 validator genesis hết hạn lần lượt trong một
+cửa sổ 56 ngày, bắt đầu ~365 ngày sau ngày G**. Node cuối rụng là **mạng DỪNG**; avalanchego
+không có cơ chế tự gia hạn.
+
+**Không phải lỗi.** Trần dài hơn nghĩa là khoá staking bị giam lâu hơn — đánh đổi, không phải
+cải thiện. Cái thiếu là **quy trình gia hạn**, mà quy trình không sống trong mã.
+
+⚠️ **So le 7 ngày là CỐ Ý và chính nó là hệ thống cảnh báo:** node đầu rụng ở ~ngày 309 của
+nhiệm kỳ, lúc đó 8 node còn chạy ⇒ có ~56 ngày để phản ứng, thay vì cả mạng tắt cùng lúc.
+**Đừng "dọn dẹp" offset về 0 cho đều.**
+
+⇒ Sinh ra một việc vận hành, **không** phải việc mã: dựng lịch gia hạn validator. Ngày hết hạn
+thật chỉ biết sau khi sinh genesis ngày G — đọc bằng `platform.getCurrentValidators` →
+`endTime`, **đừng tính tay**.
+
+#### (c) Phí C-Chain giữ nguyên đường cong Avalanche — và **khai ra là cố ý**
+
+Bản soát đối chiếu thì thấy A1 hạ `TxFee` xuống `MilliAvax` cho P/X (*"mạng đẻ L1, phí không
+được là rào cản với builder"*) nhưng **không chạm một tham số nào của C-Chain** — trong khi
+C-Chain mới là nơi người dùng **thật sự** giao dịch: faucet cấp 100% trên C-Chain, MetaMask
+nói chuyện với C-Chain, Blockscout index C-Chain, soak 210 TPS chạy trên C-Chain. Tức A1 hạ
+phí ở đúng lớp người dùng **ít chạm nhất**.
+
+🔴 **Sự im lặng đó không phân biệt được với bỏ sót** — và người soát lần sau sẽ phải điều tra
+lại từ đầu để tới cùng một chỗ. Nay khai thành chữ trong `genesis_9chain_a1.go`, kèm:
+
+- **Lý do giữ:** phí C-Chain đi theo **ACP-176** (đường cong động của coreth), không phải hằng
+  số để chỉnh — đổi là rời khỏi cơ chế đã kiểm chứng ở quy mô mainnet để lấy một con số chưa
+  ai đo trên A1 · soak `25/08` đo **2.272.500 tx / 210,4 TPS / 0 lỗi gửi**, p50 19ms ⇒ phí
+  hiện tại **không chặn ai** · A1 là testnet, token xin ở faucet nên phí không phải rào cản
+  kinh tế thật.
+- **Điều kiện xét lại:** có mainnet thật (phí thành kinh tế thật), **hoặc** đo được một tải mà
+  ACP-176 xử lý kém. Cả hai đều chưa xảy ra.
+- **Con trỏ:** muốn đổi thì chỗ đổi **không phải `genesis_9chain_a1.go`** — nó nằm trong chain
+  config của C-Chain (`--chain-config-dir`), và là re-genesis nếu chạm phần trong `cChainGenesis`.
+
+#### Còn mở: C-4
+
+**chainId `9000000009` cắm cứng** trong `cChainGenesis` ⇒ mạng tập và mạng thật không phân
+biệt được. **Không chạm binary** nên không chặn ngày G. Vẫn ở `BLOCKERS.md` B-11.
