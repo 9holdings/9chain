@@ -28,12 +28,26 @@ describe('hệ token', () => {
   it('không hardcode hex ngoài khối token', () => {
     // Mọi mã màu phải nằm trong tokens.css. Một hex lọt vào component là chỗ đầu
     // tiên hai bề mặt bắt đầu lệch nhau, và nó không bao giờ tự lộ ra.
+    //
+    // 🔴 NỚI 2026-08-27, và nói rõ vì sao để lần sau không ai nới thêm:
+    // bài này đọc CẢ CHÚ THÍCH, nên một chú thích ghi lại phép đo — ví dụ
+    // *"`bg-surface-alt` trùng byte với nền trang: sáng #f5f7fb / tối #0a1122"* —
+    // cũng làm nó đỏ. Nhưng hex trong chú thích là **bằng chứng của một phép đo**,
+    // không phải màu đang được vẽ ra; nó không thể trôi lệch vì nó không chạy.
+    // Cấm nó là dạy người ta viết chú thích mơ hồ ("màu nền hơi giống nhau"), tức
+    // làm hỏng đúng thứ dự án này dựa vào.
+    // ⇒ Cắt chú thích TRƯỚC khi soi. Ý định của bài không đổi: hex trong **MÃ** vẫn cấm.
+    const boChuThich = (s: string) =>
+      s.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+
     const duong = ['components/ui/index.tsx', 'components/SiteHeader.tsx', 'app/faucet/FaucetForm.tsx'];
     for (const d of duong) {
       const p = path.resolve(__dirname, '..', d);
       if (!existsSync(p)) continue;
-      const noi = readFileSync(p, 'utf8');
-      expect(noi, `${d} không được chứa mã hex`).not.toMatch(/#[0-9a-fA-F]{6}\b/);
+      const ma = boChuThich(readFileSync(p, 'utf8'));
+      expect(ma, `${d} không được chứa mã hex trong MÃ (chú thích thì được)`).not.toMatch(
+        /#[0-9a-fA-F]{6}\b/,
+      );
     }
   });
 
