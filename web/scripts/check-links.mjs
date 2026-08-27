@@ -12,10 +12,24 @@
  * Chạy SAU khi deploy, đo qua tên miền công khai:
  *   node web/scripts/check-links.mjs [https://a1.9chain.org]
  *
- * ⚠️ Trang mới hiện phục vụ dưới tiền tố `/moi/` (gốc `/` vẫn là Blockscout cho tới
- * khi M10.3 chốt). Nên đường dẫn tuyệt đối trong HTML được thử ở CẢ hai chỗ: nguyên
- * gốc và có tiền tố. Chỉ cần một trong hai sống là đủ — bỏ vế thứ hai thì mọi liên
- * kết nội bộ sẽ báo đỏ oan.
+ * 🔴 ĐƯỜNG LUI `/moi/` ĐÃ TỪNG BIẾN BÀI NÀY THÀNH BÀI KIỂM VÔ DỤNG — 2026-08-27.
+ *
+ * Bản cũ: thử `/x/`, hỏng thì thử `/moi/x/`, đạt một trong hai là **in ra đường dẫn
+ * gốc** kèm ✓. Đường lui đó có từ thời gốc `/` còn là Blockscout và site sống dưới
+ * `/moi/`. M10.3 đã đưa site lên gốc, nhưng đường lui ở lại — và `/moi/*` vẫn phục
+ * vụ TOÀN BỘ site tĩnh, nên nó **luôn luôn đạt**. Hệ quả: một trang chết ở đường
+ * canonical vẫn được báo ✓ kèm đúng `<title>`, vì cái title đó lấy từ alias.
+ *
+ * Đã trả giá thật: `/re-genesis/` **404 trên mạng công khai** (rơi xuống Blockscout,
+ * bị strip trailing slash rồi 404) suốt từ lúc trang ra đời, trong khi mọi lượt
+ * `web-deploy.sh` đều in `✓ /re-genesis/ 200`. Dải cảnh báo ngày G nằm trên MỌI
+ * trang và trỏ vào đúng đường đó. Nguyên nhân gốc ở `Caddyfile:328` — danh sách
+ * `@trangmoi` không có `/re-genesis/*`.
+ *
+ * Nay: **đường canonical là thứ được chấm.** Alias chỉ dùng để CHẨN ĐOÁN — sống ở
+ * alias mà chết ở canonical là một loại hỏng RIÊNG, và nó được gọi đúng tên như
+ * vậy, vì nó chỉ thẳng vào một route còn thiếu trong Caddyfile.
+ * Đặt `A1_TIEN_TO=` (rỗng) để tắt hẳn phần chẩn đoán này.
  */
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
@@ -76,22 +90,36 @@ async function thu(url) {
 }
 
 let hong = 0;
+let chiSongOAlias = 0;
 for (const [d, nguon] of [...dich].sort()) {
-  const thuCac = [`${NEN}${d}`, ...(TIEN_TO && !d.startsWith(TIEN_TO) ? [`${NEN}${TIEN_TO}${d}`] : [])];
-  let dat = null;
-  const daThu = [];
-  for (const u of thuCac) {
-    const kq = await thu(u);
-    daThu.push(`${kq.ma}${kq.ok ? '' : kq.ma === 200 ? '(khung rỗng)' : ''}`);
-    if (kq.ok) { dat = kq; break; }
+  const goc = await thu(`${NEN}${d}`);
+  const tuDau = [...new Set(nguon)].join(', ');
+
+  if (goc.ok) {
+    console.log(`  ✓ ${d.padEnd(18)} ${goc.ma}  · ${goc.tieuDe.slice(0, 46)}`);
+    continue;
   }
-  if (dat) {
-    console.log(`  ✓ ${d.padEnd(18)} ${dat.ma}  · ${dat.tieuDe.slice(0, 46)}`);
+
+  // Canonical đã chết. Hỏi alias MỘT câu duy nhất: đây là "chưa deploy" hay là
+  // "thiếu route"? Hai thứ đó sửa ở hai nơi khác nhau, nên phải phân biệt được —
+  // nhưng cả hai đều là HỎNG, alias sống không cứu được đường canonical.
+  const alias = TIEN_TO && !d.startsWith(TIEN_TO) ? await thu(`${NEN}${TIEN_TO}${d}`) : null;
+  hong++;
+  const maGoc = `${goc.ma}${goc.ma === 200 ? '(khung rỗng)' : ''}`;
+  if (alias?.ok) {
+    chiSongOAlias++;
+    console.log(`  ✗ ${d.padEnd(18)} ${maGoc}  · SỐNG ở ${TIEN_TO}${d} — THIẾU ROUTE, không phải thiếu tệp`);
   } else {
-    hong++;
-    console.log(`  ✗ ${d.padEnd(18)} ${daThu.join(' / ')}  · dẫn từ: ${[...new Set(nguon)].join(', ')}`);
+    console.log(`  ✗ ${d.padEnd(18)} ${maGoc}  · dẫn từ: ${tuDau}`);
   }
 }
 
+if (chiSongOAlias) {
+  console.log(
+    `\n🔴 ${chiSongOAlias} đường sống ở "${TIEN_TO}" nhưng chết ở đường canonical.\n` +
+      `   Tệp ĐÃ lên server — thiếu là dòng route. Xem \`@trangmoi\` trong Caddyfile:\n` +
+      `   danh sách đó phải lớn lên theo mỗi trang mới, và đó đúng là chỗ hay bị quên.`,
+  );
+}
 console.log(hong ? `\n✗ ${hong}/${dich.size} liên kết chết` : `\n✓ ${dich.size}/${dich.size} liên kết sống`);
 process.exit(hong ? 1 : 0);
