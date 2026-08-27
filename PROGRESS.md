@@ -24,9 +24,19 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       và hành động nghi lễ trỏ vào **hai block khác nhau**. ⇒ sinh ra **B-13** (a: David chốt
       neo vào cái gì · b: đo lệch đồng hồ 9 node rồi chọn `--bu-ms`), D-052…D-055.
       ⚠️ Chỉ phủ **C-Chain**; 1 node ⇒ **không chứng minh được đồng thuận**.
-- [ ] **A-2 — Quy trình O2**: export + `sha256` mạng sắp chết, công bố **trước** khi xoá.
-      *Điều kiện qua:* chạy thử được **một lệnh**, ra tệp + `sha256`; đối chứng ngược:
-      sửa 1 byte ⇒ hash đổi.
+- [x] **A-2 — Quy trình O2**: export + `sha256` mạng sắp chết, công bố **trước** khi xoá —
+      **ĐẠT `27/08`**. Bài `scripts/export-chain.mjs` (một lệnh, không phụ thuộc gói ngoài).
+      Chạy trên mạng tập: 10 tệp · 33.973 byte · gốc `081d2550…`. Kiểm lại được **hai đường**:
+      bằng bài, **và** bằng `sha256sum -c MANIFEST.txt` chuẩn (10/10 OK) — bộ vật chứng chỉ
+      kiểm được bằng công cụ sinh ra nó thì yếu.
+      **3 ca đối chứng ngược đỏ đúng chỗ:** sửa 1 byte ⇒ `LỆCH BYTE` · sửa 1 byte **và sửa
+      luôn manifest** ⇒ `GỐC LỆCH` (ca chứng minh vì sao phải công bố ra **ngoài**) · xoá tệp
+      ⇒ `THIẾU TỆP`. Quy trình: `docs/QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md`.
+      🔴 Đối chứng ngược bắt một lỗi trong **chính công cụ này**: tờ đầu đếm L1 *được xin* thay
+      vì *xuất được* ⇒ khai "kèm 1 L1" trong khi không có byte nào. Đã sửa thành `xin N · XUẤT
+      ĐƯỢC M`.
+      🔴 **Còn lại (không chặn):** chạy một lượt trên **mạng công khai** để biết thời gian thật;
+      nhớ `--them-evm` cho từng L1 còn sống.
 - [ ] **A-3 — G4**: tra `chainid.network` xem `9000000009` có bị chiếm không.
       *Điều kiện qua:* có bản chụp/JSON của `chains.json` kèm ngày tra. 🔴 Phải tra **LẠI**
       ngay trước bước sinh genesis ngày G.

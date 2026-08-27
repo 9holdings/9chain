@@ -231,7 +231,7 @@ Vế *"neo vào cái gì"* là do lượt diễn tập `27/08` sinh ra, xem mụ
 | # | Việc | Trạng thái thật | Ai làm |
 |---|---|---|---|
 | **O1** ⭐ | **Custody bộ khoá quỹ MỚI** | 🔴 **CHƯA.** D-044 giữ nguyên sơ đồ cũ; bản thứ hai David tự cất, **chưa ai xác nhận có**. Mất máy dev = mất khoá cả 5 quỹ | **David** |
-| **O2** | Export + `sha256` mạng sắp chết, công bố trước khi xoá | 🔴 **CHƯA — và đã BỎ LỠ ở lượt `26/08`.** Chain data + DB Blockscout đã xoá không có bản công bố nào | A1 |
+| **O2** | Export + `sha256` mạng sắp chết, công bố trước khi xoá | 🟡 **QUY TRÌNH ĐÃ CÓ VÀ ĐÃ CHẠY THỬ `27/08`** — [`QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md`](QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md), bài `scripts/export-chain.mjs`, 3 ca đối chứng ngược đỏ đúng chỗ. **Còn lại: chạy một lượt trên MẠNG CÔNG KHAI để biết thời gian thật, rồi chạy thật ở ngày G.** *(Lượt `26/08` đã BỎ LỠ — chain data + DB Blockscout xoá không có bản công bố nào)* | A1 |
 | **O3** | Chính sách với L1 người dùng | 🟡 **Đã đổi hình dạng**: sau `26/08` danh bạ là **0 sống / 6 đã thu hồi** — chain `David Do` 9141 **đã mất rồi**. Rủi ro nay nằm ở người được mời **từ nay tới 01/09** | **David** + `Web9Chain` |
 | **O3b** | Sổ chống phát lại | ✅ **A1 XÁC NHẬN giả thuyết BOD đúng** — xem dưới | A1 |
 | **O4** 🔴 | Validator ở nhà cung cấp **thứ hai** | 🔴 **CHƯA.** 9 node vẫn *một máy, một nhà cung cấp*. Tốn tiền | **David** |
@@ -344,7 +344,9 @@ Bản nháp BOD có 7 điều kiện, trong đó **điều 1 không thoả mãn 
    của C1**, và đã chốt Block Adam nằm trên chain nào
 5. **I** — ✅ đã xong từ `26/08`; chỉ cần đối chứng lại `supplyCap` trên binary sau khi build
 6. **O1** — custody đã chốt **và đã diễn tập trọn ít nhất một lượt bằng phương tiện thật**
-7. **O2** — quy trình export + `sha256` đã chạy thử được (đừng lặp lại lỗ hổng `26/08`)
+7. ✅ **O2** — quy trình export + `sha256` **đã chạy thử được `27/08`** (đừng lặp lại lỗ hổng
+   `26/08`). 🔴 Còn vế **chạy thật**: xuất → **công bố con số ra chỗ ngoài** → rồi mới `down -v`.
+   Thứ tự đó là toàn bộ giá trị của quy trình
 8. **O3** — đã có quyết định, và câu cảnh báo đã lên `Web9Chain`
 9. ✅ **Giao dịch nghi lễ Block Adam đã diễn tập trên bản tập** — xong `27/08`, 9/9 + 2 ca đối
    chứng ngược. 🔴 **Còn hai vế chưa đạt, và cả hai đã lộ ra nhờ chính lượt tập:** (a) đã **đo
@@ -388,7 +390,14 @@ Xếp theo thứ tự đường găng:
    [`DIEN-TAP-BLOCK-ADAM-2026-08-27.md`](DIEN-TAP-BLOCK-ADAM-2026-08-27.md).
    🔴 Sinh ra 2 việc: **đo lệch đồng hồ 9 node** (A1 làm được, sau khi mạng ngày G lên) và
    **neo Block Adam vào cái gì** (David, §6 mục 3).
-5. **Quy trình O2** (export + `sha256` + công bố) — thứ đã bỏ lỡ ở `26/08`.
+5. 🟡 **CHẠY THỬ XONG `27/08`** — **Quy trình O2** (export + `sha256` + công bố), thứ đã bỏ lỡ
+   ở `26/08`: `scripts/export-chain.mjs`, một lệnh, kiểm lại được **cả bằng `sha256sum -c`
+   chuẩn** chứ không chỉ bằng chính nó. 3 ca đối chứng ngược đỏ đúng chỗ — trong đó ca *"sửa
+   1 byte VÀ sửa luôn manifest"* là ca chứng minh vì sao **phải công bố con số ra chỗ NGOÀI**.
+   [`QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md`](QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md).
+   🔴 **Còn lại:** chạy một lượt trên **mạng công khai** để biết thời gian thật (bài lấy block
+   từng cái một), và nhớ `--them-evm` cho **từng L1 còn sống** — thiếu cờ đó thì L1 người dùng
+   biến mất không dấu vết.
 5b. ✅ **ĐÃ BÁO `27/08`** — 9Scan-A1 nay biết `Message` là trường chỉ ghi, không API nào trả về;
    bản văn phải đọc từ **tệp genesis** (nói rõ nguồn là tệp), còn thứ đọc **từ chain** là
    `parentID` block 0 (= `sha256` cả blob) làm ô đối chứng, cộng `eth_getCode` cho mặt C-Chain.

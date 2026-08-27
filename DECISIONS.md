@@ -1345,3 +1345,30 @@ Giao dịch nghi lễ trên P-Chain là **cơ chế khác hẳn** — export/imp
 không phải một `eth_sendRawTransaction`. Viết sẵn cả hai rồi bỏ một là phí, mà suy từ chuỗi
 này sang chuỗi kia là đúng lớp lỗi repo này cấm.
 **Hệ quả:** David chọn P-Chain ⇒ **phải diễn tập lại**, và phải tính thời gian trước `09/09`.
+
+### D-056 — Bộ xuất O2 giữ đúng khuôn `sha256sum`, và neo bằng một GỐC tách rời
+
+`MANIFEST.txt` = `<sha256><2 khoảng trắng><đường dẫn>` (khuôn `sha256sum`), LF tường minh.
+`GOC.txt` = `sha256` của chính `MANIFEST.txt` — **đó là con số duy nhất phải công bố**.
+
+**Lý do khuôn chuẩn:** kiểm lại được bằng `sha256sum -c` mà **không cần tin bài xuất**. Một
+bộ vật chứng chỉ kiểm được bằng chính công cụ sinh ra nó thì yếu — nó đòi người kiểm tin đúng
+thứ đang cần chứng minh. Đã chạy cả hai đường `27/08`, khớp.
+
+**Lý do có GỐC tách rời:** đối chứng ngược số 2 — sửa 1 byte **và sửa luôn manifest cho khớp**
+— cho `10 tệp khớp · 0 lệch byte`. Chỉ GỐC bắt được. Và GỐC chỉ có tác dụng khi nó **nằm
+ngoài** thư mục nó bảo vệ, nên quy trình bắt buộc bước "công bố" **trước** bước "xoá".
+
+**LF tường minh vì:** repo chạy trên Windows; CRLF đổi hash **và** làm hỏng `sha256sum -c`.
+
+### D-057 — Bộ xuất phải TỰ KHAI chỗ nó thiếu, và đếm cái ĐÃ XUẤT chứ không đếm cái ĐÃ XIN
+
+`00-DOC-TRUOC.md` liệt kê: không khôi phục được mạng · không có LevelDB/Blockscout/khoá ·
+số L1 dạng `xin N · XUẤT ĐƯỢC M` + cờ đỏ khi lệch · mọi lời gọi RPC hỏng · mọi chỗ bị
+`--toi-da-block` cắt.
+
+**Lý do — có ca thật, không phải phòng xa.** Bản đầu đếm L1 bằng **số được xin**; chạy với một
+`blockchainID` không tồn tại thì tờ đầu khai *"kèm 1 L1"* trong khi bộ xuất không có một byte
+nào của nó. **Công cụ chống nói dối suýt nói dối ở đúng chỗ nó không được phép.**
+Cùng họ với *"đường lui alias = xanh giả"* và với bài học H-6b (`git bundle verify` in "is
+okay" cho một bundle clone ngược chết ngay).
