@@ -126,6 +126,84 @@ qua 3 vòng phản biện. **Hạn:** ngày G `01/09/2026`.
 - [ ] **Đ1-7 · Đường ra khỏi phiên ví** — hôm nay không có đường nào.
       *Điều kiện qua:* có nút thoát phiên, bấm xong trạng thái về `vi`.
 
+---
+
+## ĐỐI CHIẾU SITE ↔ MẠNG g0 (`2026-08-28`) — phát hiện còn mở
+
+Sinh ra từ một lượt **đo mạng công khai trước, rồi mới đọc mã** (không đọc hằng số rồi
+tin nó). Ba mục A đã đóng trong phiên; phần dưới là phần còn lại.
+
+**Phép đo nền (mạng thật, `28/08`):** `networkID 999999999` ✓ khớp site ·
+`networkName 9chain-a1-g0` · `eth_chainId 0x218711a09` ✓ khớp · C-Chain block `0x1` ·
+**9/9 validator connected** · danh bạ 0 sống/0 thu hồi · `currentSupply` (X/P)
+4.300.824.365 LOVE9 · CORS `*` trên cả C và P ✓ · HTML `no-cache` ✓.
+⇒ **Hằng số danh tính KHÔNG phải vấn đề** — `check-chain-id.mjs` xanh thật.
+
+- [x] **A1 · Dải cảnh báo nói cả mốc ĐÃ QUA** — xong, xem **D-web-1**.
+- [x] **A3 · Bỏ `toLocaleString('vi-VN')` cắm cứng** — xong, xem **D-web-2**.
+- [x] **B1 · Cổng route đo hai chiều + `version.txt`** — xong, xem **Đ1-11b phần 1**.
+
+- [ ] **A2 · "Takes about three minutes" — số đo mới nhất là 305,5s (~5 phút)**
+      Câu này ở **3 chỗ** trong `en.ts` (`:198` `cPhu` → cũng là **`og:description`**,
+      `:225`, `:335`), tức nó nằm trong câu được đọc nhiều nhất khi ai đó dán liên kết.
+      [`HANDOFF.md:489`](../HANDOFF.md) đo trên mạng **9 node** (`26/08`): đẻ chain
+      **305,5s**, thu hồi 293,4s. Con số ~170s ([`HANDOFF.md:1021`](../HANDOFF.md)) là
+      thời mạng **5 node** — lượt lên 9 node gần như **gấp đôi** thời gian, và câu chữ
+      không ai sửa.
+      🔴 **Mâu thuẫn nội bộ xác nhận:** `web/lib/wallet.ts:251` đặt `tranGiay = 420`
+      — **mã chờ 7 phút trong khi chữ hứa 3**.
+      ⚠️ **Mức tin cậy:** 305,5s đo trên mạng `26/08`, **chưa đo lại trên g0**. Cùng 9
+      node nên kỳ vọng giữ, nhưng phải đo.
+      *Điều kiện qua:* đẻ một chain thật trên mạng công khai, ghi giây, rồi sửa câu
+      theo số đo — **không đoán**. (Trùng mục #2 của `HANDOFF.md`.)
+
+- [ ] **B2 · Cổng danh tính không canh THẾ HỆ** — `check-chain-id.mjs` chặn theo
+      `eth_chainId` + `networkID`; `networkName` chỉ in dòng `ℹ`.
+      Đã tra `network_ids.go`: ngày G `A1Gen 0→1` ⇒ `A1ID = 999999999 − 1 =`
+      **`999999998`** và `A1Name = 9chain-a1-g1`. ⇒ **cổng SẼ bắt được** — nhưng nhờ
+      *kiến trúc của chain* (thế hệ nằm trong ID), **không nhờ cổng có ý canh thế hệ**.
+      Ai sau này đổi sang sơ đồ thế-hệ-chỉ-trong-tên thì cổng im lặng.
+      *Điều kiện qua:* nâng dòng `ℹ` thành phép so thật + đối chứng ngược.
+
+### Chờ phiên khác / chờ David
+
+- [human] **C1 · I1b `/faucet/api/supply` đang 404 trên mạng** — đo `28/08`:
+      `a1.9chain.org/faucet/api/supply` → **404** `{"error":"not found"}`. Đó là 404 của
+      **chính faucet** (vì `/faucet/api/info` sống ⇒ Caddy cắt tiền tố đúng), trong khi
+      repo **có** route ở `local-net/faucet/server.mjs:241` ⇒ **bản faucet đang chạy cũ
+      hơn đợt 14.**
+      🔴 **Chặn thẳng việc HANDOFF giao cho phiên này** ("câu khai nguồn cung trên
+      trang"): câu đó trỏ vào `/faucet/api/supply` là trỏ vào đường chết.
+      ⇒ **Quyết:** deploy faucet trước, **hay** viết theo đường (b) của A-5 (khai nguồn
+      là *tham số genesis*)?
+      ⚠️ **Bẫy khi kiểm:** `/api/supply` ở **gốc** (không có `/faucet`) do **Blockscout**
+      trả lời — HTTP 400 + JSON của họ. Ai kiểm nhầm đường đó sẽ kết luận sai hoàn toàn.
+
+- [human] **C2 · Explorer site trỏ sang vẫn công bố `networkID 9001`** — đo `28/08`
+      trên `a1.9scan.org`: `<title>9Scan A1 — 9Chain block explorer · **9001**</title>`,
+      **12 lần** chuỗi `9001` trong HTML, gồm meta description.
+      Repo của họ **ĐÃ CÓ** commit `2a84d95` sửa `9001 → 999999999` ⇒ **đây là độ trễ
+      deploy, không phải họ chưa biết.**
+      Ảnh hưởng thật: site đưa `blockExplorerUrls: ['https://a1.9scan.org']` vào ví qua
+      EIP-3085, và trang faucet in "Explorer" trong bảng thông số ⇒ người dùng thêm mạng
+      xong bấm sang explorer thì gặp con số **mâu thuẫn với chân trang A1**.
+      🔴 **Bài học kiến trúc:** `check-chain-id.mjs` chỉ chứng minh hằng số **CỦA A1**;
+      nó **không đo thứ A1 trỏ người dùng tới**. Lại đúng lớp *"cổng chỉ chứng minh
+      đường của nó"*. ⇒ Có dựng cổng đo cả explorer không?
+
+- [ ] **D · Nợ nhỏ hơn** (không chặn ai)
+      - `stats.ts` ghép 3 nguồn bằng `Promise.all`: `console-chains.json` chết ⇒ **mất
+        luôn ô validator**, đúng lúc site cần nhất để nói "9/9 còn sống". Và không fetch
+        nào có hạn giờ ⇒ RPC treo thì trang chủ ở khung xương vĩnh viễn. **Cả hai nằm
+        trong Đ1-8.**
+      - `trangChu.cTrongMoTa` — *"You would be the first."* đúng cho thế hệ g0, nhưng
+        đọc như *"chưa ai từng thử"* trong khi sự thật là *"mọi thứ vừa bị xoá có chủ
+        ý"*. Lệch giọng so với chuẩn tự-tố của phần còn lại.
+      - `/faucet/health` trả `{ok:true}` **cứng** (`server.mjs:191`) — không kiểm số dư
+        ví, không kiểm RPC. Ngay sau một lượt re-genesis (ví faucet sinh khoá mới) đó
+        đúng là lúc "health" cần có nghĩa. *Không khẳng định faucet hỏng — khẳng định
+        cổng này không chứng minh được nó không hỏng.*
+
 ### Chờ người `[human]`
 
 - [human] **Đ1-10 mục 1 · Cloudflare Analytics** — David mở dashboard zone
@@ -232,18 +310,45 @@ một câu mình không tin ra cho người lạ đọc.
 
 ---
 
-## Đa ngôn ngữ — 11/30, còn 19 (chốt phiên 2026-08-27)
+## ✅ Đa ngôn ngữ — **30/30 XONG** (`2026-08-28`)
 
-**Đã có:** `en` (mặc định, trong bundle) · `zh hi es ar fr pt vi ru de ja` (chunk lười).
-**Còn:** `bn ur id mr te tr ta ko it th gu fa pl uk ms nl tl sw ha`.
+**Tất cả:** `en` (mặc định, trong bundle) + **29 chunk lười**.
+Lô 5–11 của phiên này thêm 19 bản: `bn ur id · mr tr it · ko pl nl · th uk ms ·
+fa tl · sw ha · te ta gu`.
 
-Việc lặp thuần, khuôn đã chứng minh qua 10 bản. Mỗi từ điển:
+3 bản RTL (`ar ur fa`) — bộ component vốn dùng **thuộc tính logic** nên **không phải
+sửa một dòng nào** cho hướng viết.
+
+**Điều kiện qua — đã đo end-to-end, không chỉ test xanh:**
+
+| | |
+|---|---|
+| Bài "mọi ngôn ngữ trong sổ đều có từ điển" | **NAY ĐẠT** — bộ đếm 19 → 0 |
+| Toàn bộ test | **131/132** *(bài đỏ duy nhất còn lại: vân tay token, chờ 9Scan)* |
+| `tsc` · cổng nhiễm hệ chữ · axe 7 trang | sạch |
+| **Ngân sách** | **134,3 → 135,3 KB gz** cho **19 bộ từ điển thêm** (trần 160) |
+| Chrome thật | bộ chọn có **30 nút, 0 nút bị vô hiệu hoá** (trước: 19 nút "chưa có") |
+| Nạp lười | bấm Tamil ⇒ `lang=ta`, dải lật, và **đúng MỘT chunk mới** tải ở `t=14735ms` — tức đúng lúc bấm |
+
+🔴 **+1,0 KB cho 19 bộ từ điển là bằng chứng nạp lười chạy thật**, không phải may:
+trần chỉ đếm thứ tải **vô điều kiện**, mà chunk từ điển không nằm trong đó.
+⇒ **i18n KHÔNG phải rủi ro ngân sách. Font (B1+B2) mới là.**
+
+⚠️ **Bài `i18n-shape` đổi vai:** trước đây nó là **bộ đếm tiến độ** (đỏ có chủ ý);
+nay nó là **cổng thật** — thêm ngôn ngữ vào `ngonNgu.ts` mà quên từ điển sẽ đỏ.
+Đừng gỡ nó vì "đã xong rồi".
+
+Khuôn cho bản tương lai (nếu sổ ngôn ngữ mở rộng):
 1. `web/lib/i18n/dicts/<ma>.ts` — chép hình dạng từ `en.ts`, **dịch từ EN** (không từ `vi.ts`).
-2. Thêm một dòng vào `BO_NAP` trong `web/lib/i18n/index.tsx`.
+2. Thêm một dòng vào `BO_NAP` trong `web/lib/i18n/index.tsx` — **viết tay, không dùng biến**.
 3. `pnpm typecheck && pnpm vitest run test/i18n-shape.test.ts`.
 
 🔴 Không làm nhẹ `reGenesis.*` · `deChain.soatMoTa` · `chainCuaToi.thuHoiY*`.
 🔴 Mở đầu tệp phải khai: máy dịch · chưa có người soát · nguồn là tiếng Anh.
+
+⚠️ **Việc còn lại của i18n, và nó là việc của NGƯỜI:** 29/30 bản chưa ai đọc được để
+soát. Trường `soat: 'may'` trong `ngonNgu.ts` là **lời khai**, không phải tinh chỉnh —
+nâng lên `'nguoi'` chỉ khi có người đọc được thứ tiếng đó soát xong.
 
 ---
 
