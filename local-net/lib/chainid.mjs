@@ -19,9 +19,28 @@
 // chuỗi nào trong bán kính 10 triệu** quanh 9000000009.
 export const GOC_DAI_CHAINID = 9_000_000_010;
 
-// Trần EIP-2294 = `2^53-1`, đúng bằng `Number.MAX_SAFE_INTEGER`. Không phải ràng buộc thực tế
-// ở đây (còn ~9.007.190 tỷ số trống trên gốc dải) nhưng vắng nó thì vượt trần là `chainId++`
-// mất độ chính xác và vòng lặp treo **trong im lặng**.
+// ─── Trần dải — David chốt `2026-08-27` cùng bộ định danh ngày G ───
+//
+// Dải L1 là **`9000000010` – `9999999999`** (~1 tỷ số). Sàn giữ nguyên D-069; chỉ trần được
+// khai tường minh.
+//
+// 🔴 **Vì sao phải có trần, chứ không để `chainId++` chạy tới `MAX_SAFE_INTEGER`:** ba tính
+// chất an toàn của bộ định danh này đều sinh ra từ **độ dài chữ số**, và tràn khỏi dải là mất
+// cả ba trong im lặng —
+//   1. `networkID` 9 chữ số vs chainId L1 **10 chữ số** ⇒ không nhìn nhầm nhau;
+//   2. `networkID` (`999999999`) nằm **DƯỚI** sàn dải ⇒ chép nhầm sang ô chainId thì cổng
+//      console bắt;
+//   3. **toàn bộ** dải L1 (≥ 9.000.000.010) **vượt trần `uint32`** (4.294.967.295) ⇒ chép
+//      nhầm chiều ngược lại thì node **không khởi động được** — lỗi to, không im lặng.
+// Số thứ 1.000.000.001 sẽ là `10000000010`: **11 chữ số**, và tính chất (1) tan biến.
+//
+// ⇒ Cạn dải thì **DỪNG CỨNG**, không tự tràn. Cạn dải là chuyện của một tỷ L1 sau — nếu nó
+// xảy ra thật thì đó là lúc cần một quyết định, không phải lúc cần một `chainId++`.
+export const TRAN_DAI_CHAINID = 9_999_999_999;
+
+// Trần EIP-2294 = `2^53-1`, đúng bằng `Number.MAX_SAFE_INTEGER`. Sau khi có `TRAN_DAI_CHAINID`
+// thì trần này **không còn là ràng buộc thực tế** cho đường tự cấp (dải kết thúc sớm hơn rất
+// nhiều), nhưng nó vẫn canh **đường người dùng TỰ NHẬP** ở `server.mjs`.
 export const TRAN_EIP2294 = Number.MAX_SAFE_INTEGER;
 
 /**
@@ -34,11 +53,31 @@ export const TRAN_EIP2294 = Number.MAX_SAFE_INTEGER;
  * @param {number} goc  gốc dải, mặc định `GOC_DAI_CHAINID`.
  * @returns {number}
  */
-export function capChainIdTuDong(daDungTrongNha, daChiemSoCongKhai, goc = GOC_DAI_CHAINID) {
+export function capChainIdTuDong(daDungTrongNha, daChiemSoCongKhai, goc = GOC_DAI_CHAINID, tran = TRAN_DAI_CHAINID) {
   // Lấy số CÒN TRỐNG, không phải `goc + số chain`: chỉ cần một lượt trước đó tự chọn chainId
   // là công thức đếm đó đâm trúng số đã dùng.
   let chainId = goc;
-  while (daDungTrongNha.has(chainId) || daChiemSoCongKhai.has(chainId)) chainId++;
+  while (chainId <= tran && (daDungTrongNha.has(chainId) || daChiemSoCongKhai.has(chainId))) chainId++;
+  // 🔴 DỪNG CỨNG ở trần dải — xem khối chú thích ở `TRAN_DAI_CHAINID`. Tràn khỏi dải là mất
+  // cả ba tính chất an toàn của bộ định danh, và mất chúng **trong im lặng**.
+  if (chainId > tran) {
+    // 🔴 Câu lỗi phải ĐÚNG cả khi tham số vô lý (`goc > tran`). Bản đầu in thẳng
+    // `tran - goc + 1` nên một ca gọi với `goc` trên `tran` ra **số âm**: *"(-9.007.189.254.740.991
+    // số)"*. Cổng vẫn **chặn đúng**, nhưng người đọc nó — người đang đứng trước một lượt đẻ chain
+    // hỏng — bị dẫn sai. Cùng lớp lỗi với `Fprintf` thiếu tham số mà patch 0013 đã trả giá:
+    // **một cổng mới kiểm được nửa "có chặn không", chưa kiểm nửa "chặn xong nó nói gì".**
+    const rong = tran - goc + 1;
+    throw new Error(
+      rong > 0
+        ? `Đã cấp hết dải chainId ${goc}–${tran} (${rong.toLocaleString("vi-VN")} số). ` +
+          `KHÔNG tự tràn ra ngoài dải: chainId 11 chữ số làm mất tính chất "nhìn là phân biệt ` +
+          `được với networkID". Đây là lúc cần một quyết định, không phải một chainId++.`
+        : `Dải chainId vô lý: gốc ${goc} nằm TRÊN trần ${tran} ⇒ không có số nào để cấp. ` +
+          `Đây là lỗi tham số của người gọi, không phải dải đã cạn.`
+    );
+  }
+  // Trần EIP-2294 nay không với tới được từ đường này (trần dải chặn sớm hơn), nhưng hàm còn
+  // nhận `goc`/`tran` tuỳ ý nên cổng vẫn phải đứng đó.
   if (!Number.isSafeInteger(chainId)) {
     throw new Error(`Không còn chainId trống dưới trần EIP-2294 (${TRAN_EIP2294}) từ gốc dải ${goc}`);
   }

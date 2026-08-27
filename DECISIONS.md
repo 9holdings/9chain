@@ -1808,7 +1808,7 @@ Caddyfile ra khỏi cả hai).
 
 ---
 
-### D-072 — **Bộ định danh cho mạng ngày G: `networkID 999999999` · `chainId 9000000009` · dải L1 `9000000010–9999999999`**
+### D-076 — **Bộ định danh cho mạng ngày G: `networkID 999999999` · `chainId 9000000009` · dải L1 `9000000010–9999999999`**
 
 **David chốt `2026-08-27`.** Thay phần trần dải của D-069 (sàn `9000000010` **giữ nguyên**).
 
@@ -1878,7 +1878,7 @@ không phải `9001` ⇒ `networkID` của Avalanche **không rò ra bất kỳ 
 "số tách mạng ở tầng P2P", chỉ khác là hai hệ sinh thái giữ và **không có sổ chung**. Nói "khác
 namespace nên vô hại" là nói nhẹ hơn thực tế.
 
-⇒ Đường phơi bày duy nhất là **chữ trong footer**. Điều kiện kèm theo của D-072:
+⇒ Đường phơi bày duy nhất là **chữ trong footer**. Điều kiện kèm theo của D-076:
 **footer không được in `networkID` như một thông số ngang hàng để chép**
 (`web/lib/chain.ts:23` · `web/components/SiteFooter.tsx:15`).
 
@@ -1911,3 +1911,74 @@ bắt buộc phải lệch, không đi lệch chuẩn.**
 - **(c) Có làm khối `networkID` riêng cho MẠNG TẬP không.** Nếu có ⇒ `genesis/params.go` **phải**
   chuyển từ `case A1NetworkID` sang kiểm **theo DẢI**: networkID lạ rơi vào `default:` là mượn
   `LocalParams` (trần cung 720 triệu) ⇒ **tràn ngược uint64** — đúng bẫy patch 0013 dựng ra để chặn.
+
+### D-077 — Neo tự kiểm của `cb58.mjs`: C-Chain → **P-Chain**. Và neo mới MẠNH hơn, không chỉ bền hơn
+
+Sinh từ bản chuyển giao của phiên phân tích `9chain-a1-eb`; **A1 đo lại trước khi vá**, không nhận
+kết luận suông.
+
+**Bản cũ cắm cứng** `2s5pikvmRzazmG22kBDvvVsz9HtB8pt3DfsvUvAW6LsyQT2mTt` kèm chú thích *"cố định
+vĩnh viễn"*. **Cả hai vế đều sai:**
+
+| | |
+|---|---|
+| Số đó đã chết | Đo `27/08` trên mạng công khai: `info.getBlockchainID{alias:"C"}` = **`JPWKwpGCwSQpXNy8HUb1TFcGh57MY7B6vC7K6mzLGLpBCX4Zx`**. Số cũ chết từ re-genesis `26/08` |
+| Bài vẫn xanh | `--self-test` **8/8 ĐẠT** suốt thời gian đó |
+
+🔴 **Vì sao nó xanh trong khi neo đã chết:** ca đó chỉ kiểm **checksum của chính chuỗi được cắm
+vào**, không đối chiếu mạng nào. **Một hằng số SAI vẫn có checksum ĐÚNG** — nên bài xanh mãi mãi.
+
+**Vì sao mô hình *"cố định vĩnh viễn"* sai từ gốc:** C-Chain ID = `tx.ID()` của `CreateChainTx`
+trong genesis, mà tx đó **không có input/credential** ⇒ ID là hàm của `networkID` **+ toàn văn byte
+`cChainGenesis`**. netgen dựng `cChainGenesis` từ địa chỉ 5 quỹ **sinh khoá mới mỗi lượt** ⇒ **mỗi
+lần re-genesis là một C-Chain ID mới.**
+⇒ **Đừng cắm cứng C-Chain ID ở bất kỳ đâu.** URL bền là `/ext/bc/C/rpc` (alias), không phải cb58.
+
+**Neo mới:** P-Chain = `11111111111111111111111111111111LpoYY` = `ids.Empty` — hằng số của **mọi**
+mạng Avalanche. Không chết theo re-genesis, không chết theo đổi `networkID`.
+
+#### 🔴 Và nó MẠNH hơn — đo được, không lập luận
+
+Cấy đúng con bug kinh điển (**bộ giải nuốt byte 0 dẫn đầu**) vào bản sao rồi chạy `--self-test`:
+
+| Neo | Kết quả dưới cùng con bug |
+|---|---|
+| **cũ** — C-Chain, hex `0xf56a800e…` | **1/8 ô đỏ.** Ô *"ID thật"* vẫn **XANH** |
+| **mới** — P-Chain, `ids.Empty` = 32 byte 0 | **4/9 ô đỏ**, kể cả ô dùng chuỗi thật |
+
+⚠️ **Bốn ô `round-trip` xanh ở CẢ HAI** — vì dữ liệu tự sinh thì tự nhất quán. Đó đúng là lớp lỗi
+mà một neo **THẬT** sinh ra để bắt, và là lý do neo phải là chuỗi do avalanchego in ra chứ không
+phải chuỗi ta tự dựng.
+
+Thêm một ô mới: *"P-Chain ID giải ra ĐÚNG 32 byte 0"*. Bản lành: **9/9**.
+
+---
+
+### D-078 — Dải chainId L1 có TRẦN, và cạn dải thì **DỪNG CỨNG**
+
+Thi hành phần trần của D-076. `local-net/lib/chainid.mjs`: `TRAN_DAI_CHAINID = 9_999_999_999`.
+
+🔴 **Vì sao phải dừng cứng thay vì `chainId++` tới `MAX_SAFE_INTEGER`:** ba tính chất an toàn của
+bộ định danh D-076 **đều sinh ra từ ĐỘ DÀI CHỮ SỐ**, và tràn khỏi dải là mất cả ba **trong im lặng**:
+
+| | Tính chất | Mất khi tràn |
+|---|---|---|
+| 1 | `networkID` **9** chữ số vs chainId L1 **10** chữ số ⇒ không nhìn nhầm | số kế tiếp là `10000000010` — **11** chữ số |
+| 2 | `networkID` (`999999999`) nằm **DƯỚI** sàn dải ⇒ chép nhầm sang ô chainId thì cổng bắt | — |
+| 3 | **Toàn bộ** dải ≥ `9.000.000.010` **vượt trần `uint32`** ⇒ chép nhầm chiều ngược lại thì node **không khởi động được** (lỗi to, không im lặng) | — |
+
+Cạn một tỷ số là chuyện của rất xa. Nếu nó xảy ra thật thì **đó là lúc cần một quyết định, không
+phải một `chainId++`**.
+
+**Kèm:** `check-chainid.mjs` chuyển từ *liệt kê 100 số đầu* sang **quét TRỌN dải bằng lọc ngược sổ**
+— tra 100 số trong một dải 1 tỷ là **xanh đúng ở chỗ không ai đứng**. Lọc ngược là `O(số mục sổ)`
+(2.7k) thay vì `O(độ rộng dải)`, và nó **phủ trọn dải**. Đo `27/08`: **999.999.990 số, 0 mục**.
+
+**Nghiệm thu:** `chainid-test.mjs` **20 đạt / 0 hỏng**, trong đó 5 ô mới cho trần dải và **hai ô đối
+chứng ngược**: bịt kín tới trần ⇒ ném lỗi; chừa đúng một chỗ ⇒ vẫn cấp được *(phép đo phân biệt được
+"cạn" với "không cạn")*.
+
+🔴 **Và một lỗi bắt được trong CHÍNH bản vá này:** câu lỗi in ra **số âm** —
+`(-9.007.189.254.740.991 số)` — khi ca kiểm gọi với `goc > tran`. Cổng **chặn đúng**, nhưng người
+đọc nó bị dẫn sai. Cùng lớp lỗi với `Fprintf` thiếu tham số mà patch 0013 đã trả giá: **một cổng mới
+kiểm được nửa "có chặn không", chưa kiểm nửa "chặn xong nó nói gì".** Nay tách hai câu.

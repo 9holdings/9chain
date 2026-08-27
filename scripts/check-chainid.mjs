@@ -43,14 +43,18 @@ function cờNhiều(tên) {
 // 🔴 **Gốc dải đã ĐỔI `2026-08-27`: 9100 → 9000000010** (D-069, David chốt). Danh sách dưới
 // đây phải đi theo, nếu không thì ngày G bài G4 tra một dải mà console không còn cấp — xanh
 // đúng ở chỗ không ai đứng.
+// 🔴 TRA THEO **DẢI**, KHÔNG LIỆT KÊ N SỐ ĐẦU.
+//
+// Bản trước liệt kê 100 số đầu của dải. Điều đó đúng khi dải rộng 100; sau khi David chốt trần
+// `9999999999` thì dải rộng **~1 tỷ số**, và tra 100 số đầu là **xanh đúng ở chỗ không ai
+// đứng**: nó không nói gì về 999.999.900 số còn lại mà console vẫn sẽ cấp.
+//
+// Cách đúng rẻ hơn hẳn: **lọc ngược** — quét toàn bộ sổ (2.7k mục) tìm mục nào rơi vào dải.
+// O(số mục) thay vì O(độ rộng dải), và nó **phủ trọn dải** thay vì phủ một mẫu đầu.
 const GOC_DAI = 9_000_000_010;
-const SO_TRA_TRONG_DAI = 100;
+const TRAN_DAI = 9_999_999_999;
 const CAN_TRA = [
   { id: 9000000009, vaiTrò: "C-Chain của 9Chain-A1 — bản sắc, chốt ở D-047" },
-  ...Array.from({ length: SO_TRA_TRONG_DAI }, (_, i) => ({
-    id: GOC_DAI + i,
-    vaiTrò: `dải console tự cấp cho L1 người dùng (${GOC_DAI}+${i}, D-069)`,
-  })),
 ];
 
 // ⚠️ Dải CŨ `9100–9999` **cố ý KHÔNG nằm trong `CAN_TRA`**, dù nó có 4 số bị chiếm thật.
@@ -114,9 +118,24 @@ for (const mục of cầnTra) {
   if (hit) bịChiếm.push({ ...mục, boi: hit.map((c) => `${c.name} (${c.shortName ?? "?"}, ${c.chain ?? "?"})`) });
 }
 
+// ─── Quét TRỌN dải L1 bằng cách lọc ngược sổ ───
+const trongDảiL1 = [...theoId.entries()]
+  .filter(([id]) => id >= GOC_DAI && id <= TRAN_DAI)
+  .sort((a, b) => a[0] - b[0]);
+for (const [id, cs] of trongDảiL1) {
+  bịChiếm.push({
+    id,
+    vaiTrò: `NẰM TRONG dải console tự cấp cho L1 người dùng (${GOC_DAI}–${TRAN_DAI})`,
+    boi: cs.map((c) => `${c.name} (${c.shortName ?? "?"}, ${c.chain ?? "?"})`),
+  });
+}
+
 console.log("\n─── Kết quả ───");
-console.log(`  tra ${cầnTra.length} chainId: 9000000009 · dải L1 ${GOC_DAI}–${GOC_DAI + SO_TRA_TRONG_DAI - 1} (D-069)` +
+console.log(`  tra ${cầnTra.length} chainId đích danh (9000000009) + QUÉT TRỌN dải L1 ` +
+  `${GOC_DAI.toLocaleString("vi-VN")}–${TRAN_DAI.toLocaleString("vi-VN")} ` +
+  `(${(TRAN_DAI - GOC_DAI + 1).toLocaleString("vi-VN")} số)` +
   (cờNhiều("--them").length ? ` · thêm ${cờNhiều("--them").join(", ")}` : ""));
+console.log(`  · trong dải L1: ${trongDảiL1.length === 0 ? "KHÔNG mục nào" : `🔴 ${trongDảiL1.length} mục`}`);
 
 if (bịChiếm.length === 0) {
   console.log("  ✓ KHÔNG số nào bị chiếm trong sổ tại thời điểm tra");
@@ -169,7 +188,7 @@ if (SINH) {
   //   · nó cho tệp một **nội dung khác rỗng đã biết trước** (4 số trong 9100–9199), nên
   //     tệp rỗng từ nay là **tín hiệu HỎNG**, không phải trạng thái bình thường.
   const dảiThô = cờNhiều("--dai");
-  const dải = (dảiThô.length ? dảiThô : ["9100-9999", "9000000010-9000009999"])
+  const dải = (dảiThô.length ? dảiThô : ["9100-9999", `${GOC_DAI}-${TRAN_DAI}`])
     .map((s) => s.split("-").map(Number));
   for (const [lo, hi] of dải) {
     if (!Number.isSafeInteger(lo) || !Number.isSafeInteger(hi) || lo > hi) {

@@ -1,9 +1,9 @@
 {
   "_doc": "Danh sách chainId ĐÃ BỊ CHIẾM trong sổ công khai, dùng cho console lúc cấp chainId cho L1 người dùng. SINH TỰ ĐỘNG — đừng sửa tay, chạy lại scripts/check-chainid.mjs --sinh-danh-sach-chan.",
   "nguon": "https://chainid.network/chains.json",
-  "ngayTra": "2026-08-27T11:22:10.304Z",
-  "sha256Nguon": "455782264d74b7d4cba4a9f6531280ecb3e74c63d9190d5a283e1ef1def67693",
-  "soMucTrongSo": 2725,
+  "ngayTra": "2026-08-27T13:35:27.232Z",
+  "sha256Nguon": "7a122fb15423a595324f6a95d82077adacaef89c8492036bdb88707b9cd493ff",
+  "soMucTrongSo": 2726,
   "dais": [
     [
       9100,
@@ -11,7 +11,7 @@
     ],
     [
       9000000010,
-      9000009999
+      9999999999
     ]
   ],
   "soBiChiem": 51,

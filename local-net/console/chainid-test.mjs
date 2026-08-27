@@ -11,7 +11,7 @@
 // (luật cứng #1/#2 của repo).
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { capChainIdTuDong, GOC_DAI_CHAINID, TRAN_EIP2294 } from "../lib/chainid.mjs";
+import { capChainIdTuDong, GOC_DAI_CHAINID, TRAN_DAI_CHAINID, TRAN_EIP2294 } from "../lib/chainid.mjs";
 
 const THU_MUC = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const chan = JSON.parse(readFileSync(path.join(THU_MUC, "chainid-da-chiem.json"), "utf8"));
@@ -81,6 +81,39 @@ ok("🔴 bịt 500 số liên tiếp ⇒ phải nhảy đúng 500",
 console.log("\n─── 6. Gốc dải nằm dưới trần EIP-2294 ───");
 ok("gốc dải < trần", GOC_DAI_CHAINID < TRAN_EIP2294,
   `còn ${(TRAN_EIP2294 - GOC_DAI_CHAINID).toLocaleString("vi-VN")} số`);
+
+// ─── 7. TRẦN DẢI — David chốt cùng bộ định danh ngày G ───────────────────────
+console.log("\n─── 7. Trần dải: cạn thì DỪNG CỨNG, không tự tràn ───");
+ok("trần dải = 9.999.999.999", TRAN_DAI_CHAINID === 9_999_999_999, String(TRAN_DAI_CHAINID));
+ok("dải rộng ~1 tỷ số", TRAN_DAI_CHAINID - GOC_DAI_CHAINID + 1 === 999_999_990,
+  (TRAN_DAI_CHAINID - GOC_DAI_CHAINID + 1).toLocaleString("vi-VN"));
+
+// Ba tính chất an toàn sinh ra từ ĐỘ DÀI CHỮ SỐ — tràn khỏi dải là mất cả ba, im lặng.
+ok("mọi số trong dải có ĐÚNG 10 chữ số",
+  String(GOC_DAI_CHAINID).length === 10 && String(TRAN_DAI_CHAINID).length === 10,
+  `${String(GOC_DAI_CHAINID).length} … ${String(TRAN_DAI_CHAINID).length}`);
+ok("🔴 networkID 999999999 (9 chữ số) nằm DƯỚI sàn dải ⇒ chép nhầm thì cổng bắt",
+  999_999_999 < GOC_DAI_CHAINID);
+ok("🔴 TOÀN BỘ dải vượt trần uint32 ⇒ chép nhầm chiều ngược lại thì node CHẾT TO, không im lặng",
+  GOC_DAI_CHAINID > 4_294_967_295);
+
+// 🔴 Ca đắt nhất: bịt kín tới trần rồi xin thêm một số ⇒ PHẢI ném lỗi, KHÔNG được trả
+// 10000000010 (11 chữ số — mất tính chất "nhìn là phân biệt được với networkID").
+const dảiNhỏ = { lo: 9_000_000_010, hi: 9_000_000_012 };
+const bitKin = new Set([dảiNhỏ.lo, dảiNhỏ.lo + 1, dảiNhỏ.hi]);
+let nemCanDai = null;
+try {
+  capChainIdTuDong(bitKin, new Map(), dảiNhỏ.lo, dảiNhỏ.hi);
+} catch (e) { nemCanDai = e.message; }
+ok("🔴 cạn dải ⇒ NÉM LỖI, không tràn ra ngoài dải",
+  nemCanDai !== null && /cấp hết dải/i.test(nemCanDai),
+  nemCanDai ? nemCanDai.slice(0, 72) + "…" : "KHÔNG ném — SAI");
+
+// Đối chứng ngược cho chính ca trên: chừa đúng MỘT chỗ trống thì phải cấp được.
+const conMotCho = new Set([dảiNhỏ.lo, dảiNhỏ.lo + 1]);
+ok("chừa một chỗ trong dải ⇒ vẫn cấp được (phép đo phân biệt được cạn với không cạn)",
+  capChainIdTuDong(conMotCho, new Map(), dảiNhỏ.lo, dảiNhỏ.hi) === dảiNhỏ.hi,
+  String(capChainIdTuDong(conMotCho, new Map(), dảiNhỏ.lo, dảiNhỏ.hi)));
 
 console.log(`\n${hong === 0 ? "✅" : "🔴"} ${dat} đạt · ${hong} hỏng`);
 process.exit(hong === 0 ? 0 : 1);
