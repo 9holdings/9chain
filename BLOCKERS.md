@@ -6,6 +6,33 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### 🔴 B-14 — GỐC DẢI chainId CHO L1 NGƯỜI DÙNG: `9100` TRÙNG MỘT CHUỖI CÓ THẬT (2026-08-27, sinh từ G4)
+
+Tra sổ công khai `27/08` ([`docs/G4-TRA-CHAINID-2026-08-27.md`](docs/G4-TRA-CHAINID-2026-08-27.md)):
+`9000000009` **trống** ✓ — nhưng trong dải console tự cấp cho L1 người dùng có **4 số bị chiếm**,
+và một trong đó là số **đầu tiên** console cấp:
+
+| chainId | Bị chiếm bởi |
+|--:|---|
+| **9100** | **Genesis Coin** (`GENEC`) — 🔴 số console cấp đầu tiên |
+| 9108 · 9134 · 9170 | Destra Dubai Testnet · GIWA · Rinia Testnet Old |
+
+`server.mjs:659` cấp bằng `chainId = 9100; while (taken) chainId++`, mà `taken` chỉ tra **sổ
+của chính mình**. ⇒ người đầu tiên bấm "đẻ chain" nhận `9100`, và ví của họ trỏ vào một số mà
+sổ công khai gọi là Genesis Coin. **Đã xảy ra rồi** — `9100` được A1 cấp hai lần (`OwnerTest`).
+
+⚠️ **Thiệt hại thực tế hôm nay ~0**: 0 L1 đang sống, 6 chain dải `9100–9105` đều đã thu hồi.
+Cái đang mở là **cửa**, không phải vết thương. Đừng trích mạnh hơn thế.
+
+🔴 **Cần David — vì nó vướng đúng câu §5c đang chờ:** *"có khôi phục sổ `retired` cũ không"*.
+- Khôi phục ⇒ số tự cấp bắt đầu từ **9146**.
+- Không khôi phục ⇒ bắt đầu từ **9100**.
+
+Chọn gốc dải trước khi vá, không thì vá hai lần. **Gộp câu này vào cùng mục quyết số 5.**
+
+✅ **Phần KHÔNG cần quyết đã làm (A-4):** console có **danh sách chặn tĩnh** các chainId đã bị
+chiếm trong sổ công khai — đúng dù gốc dải là 9100 hay 9146.
+
 ### 🔴 B-13 — BLOCK ADAM: NEO VÀO CÁI GÌ, VÀ BÙ BAO NHIÊU (2026-08-27, sinh từ diễn tập A-1)
 
 Diễn tập `27/08` đạt (9/9 + 2 đối chứng ngược) — bản đầy đủ

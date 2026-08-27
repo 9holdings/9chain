@@ -339,7 +339,10 @@ Bản nháp BOD có 7 điều kiện, trong đó **điều 1 không thoả mãn 
 
 1. **G1** — David đã phân xử bảng phân bổ; `allocation.md` khớp, tổng ra **9.000.000.000**
 2. **G2** — self-bond genesis ≤ `maxValidatorStake`, **có phép đo**, và còn dư địa nhận uỷ quyền
-3. **G4** — tra lại `chainid.network` **ngay trước bước sinh genesis**, `9000000009` không trùng
+3. **G4** — tra lại `chainid.network` **ngay trước bước sinh genesis**, `9000000009` không trùng.
+   *(Tra `27/08`: **trống** ✓ — nhưng lượt đó bắt được **`9100` = Genesis Coin**, tức số console
+   cấp đầu tiên cho L1 người dùng đang trùng một chuỗi có thật. Xem B-14 + `G4-TRA-CHAINID-2026-08-27.md`.)*
+   Một lệnh: `node scripts/check-chainid.mjs --luu docs/vat-chung/g4-<ngày>`
 4. **G5** — chữ khắc **đọc ngược lại được từ chain**, `sha256` từng tài liệu **khớp bản đóng băng
    của C1**, và đã chốt Block Adam nằm trên chain nào
 5. **I** — ✅ đã xong từ `26/08`; chỉ cần đối chứng lại `supplyCap` trên binary sau khi build
@@ -405,7 +408,11 @@ Xếp theo thứ tự đường găng:
    `docs/requests-from-9scan/2026-08-27-chu-khac-BAO-CHO-9SCAN.md` (đối chứng `sha256` khớp).
    🟡 **Chờ họ trả lời một câu**: thiết kế đó có đủ cho luật cứng #2 của họ không, hay họ cần
    endpoint mới trên node — nếu cần thì phải biết **trước ngày G**.
-6. **G4** — tra `chainid.network`.
+6. ✅ **XONG `27/08`** — **G4, tra `chainid.network`**: `scripts/check-chainid.mjs`, vật chứng
+   `docs/vat-chung/g4-2026-08-27/`. **`9000000009` trống** ✓.
+   🔴 Bài tra rộng hơn kế hoạch (thêm trọn dải L1 `9100–9199`) và bắt được **`9100` = Genesis
+   Coin** — số console cấp **đầu tiên**. ⇒ B-14, gộp vào mục quyết §5c.
+   🔴 **Vẫn phải tra LẠI ngay trước bước sinh genesis** — lượt này chỉ nói về hôm nay.
 7. **I1b** — phơi trần cung ra endpoint đọc được, hoặc ghi rõ trên trang rằng nguồn là **tham số
    genesis**. Luật cứng của 9Scan-A1 là *"số công bố phải đọc từ chain thật"*; in trần mà không có
    endpoint là **gõ hằng số vào giao diện**.

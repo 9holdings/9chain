@@ -1372,3 +1372,32 @@ số L1 dạng `xin N · XUẤT ĐƯỢC M` + cờ đỏ khi lệch · mọi l�
 nào của nó. **Công cụ chống nói dối suýt nói dối ở đúng chỗ nó không được phép.**
 Cùng họ với *"đường lui alias = xanh giả"* và với bài học H-6b (`git bundle verify` in "is
 okay" cho một bundle clone ngược chết ngay).
+
+### D-058 — G4 tra CẢ dải chainId của L1 người dùng, không chỉ `9000000009`
+
+`scripts/check-chainid.mjs` tra **101 số**: `9000000009` + trọn dải `9100–9199`.
+
+**Lý do:** kế hoạch (`NGAY-G-A1-CON-LAI` §7 điều 3, `HANDOFF` A-3) chỉ nêu `9000000009` — đó là
+chainId **của A1**. Nhưng console còn **phát chainId cho người khác** (`9100+`), và đó cũng là
+chainId EVM thật, cũng nằm trong ví người dùng, cũng bị EIP-155 buộc chữ ký vào.
+Nhóm thứ hai **đông hơn và chạm người thật nhiều hơn**, mà không cổng nào canh.
+**Đo ra ngay:** `9100` (số console cấp **đầu tiên**) trùng **Genesis Coin** trong sổ công khai.
+
+### D-059 — Mã thoát của G4 phân biệt "bị chiếm" với "không tra được"
+
+`1` = có chainId bị chiếm · `2` = **sổ không đáng tin, đừng kết luận gì**.
+
+**Lý do:** luật cứng #1 của repo. Trang chặn bot, bản tải cắt cụt, lỗi CDN — tất cả trả **200**,
+và khi đó *"9000000009 không thấy trong sổ"* đúng y hệt lúc sổ rỗng. Bài neo vào một mục **phải
+có** (chainId 1 = Ethereum Mainnet) + ngưỡng số mục trước khi tin bất cứ kết luận nào.
+**Đối chứng ngược:** sổ `[]` — JSON **hợp lệ hoàn hảo** — bị từ chối đúng, không ra "trống".
+Gộp hai mã thoát làm một là mất đúng thông tin cần cho ngày G.
+
+### D-060 — Giữ `chains.json` (1,1 MB) trong repo làm vật chứng, không chỉ giữ `sha256`
+
+`docs/vat-chung/g4-2026-08-27/chains.json`.
+
+**Lý do:** sổ đổi **hàng ngày**, nên chỉ giữ `sha256` là giữ một con số **không ai kiểm lại
+được** — bản gốc để đối chiếu sẽ không còn tồn tại. Vật chứng cho một quyết định **khắc vĩnh
+viễn** thì 1,1 MB một lần là rẻ, và nó làm lượt tra **tái lập được từng byte** (`--tep`).
+**Đánh đổi:** repo phình. Chấp nhận; các lượt tra sau chỉ thêm khi có phát hiện mới.

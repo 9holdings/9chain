@@ -37,9 +37,18 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       ĐƯỢC M`.
       🔴 **Còn lại (không chặn):** chạy một lượt trên **mạng công khai** để biết thời gian thật;
       nhớ `--them-evm` cho từng L1 còn sống.
-- [ ] **A-3 — G4**: tra `chainid.network` xem `9000000009` có bị chiếm không.
-      *Điều kiện qua:* có bản chụp/JSON của `chains.json` kèm ngày tra. 🔴 Phải tra **LẠI**
-      ngay trước bước sinh genesis ngày G.
+- [x] **A-3 — G4**: tra `chainid.network` — **ĐẠT `27/08`**. Bài `scripts/check-chainid.mjs`,
+      vật chứng `docs/vat-chung/g4-2026-08-27/` (`chains.json` 1.161.063 byte · sha256
+      `583b67a2…` · 2.723 chuỗi · tra lúc `2026-08-27T09:32:38Z`).
+      ✅ **`9000000009` TRỐNG**, và không có chuỗi nào trong bán kính 1 triệu quanh nó.
+      🔴 **Nhưng bài tra rộng hơn kế hoạch và bắt được 4 số bị chiếm trong dải console tự cấp
+      cho L1 người dùng: `9100` = Genesis Coin (số console cấp ĐẦU TIÊN) · 9108 · 9134 · 9170.**
+      Kế hoạch chỉ nêu `9000000009` — tức chainId *của A1*, bỏ sót chainId *A1 phát cho người
+      khác*. ⇒ **B-14** (gốc dải, cần David — gộp vào mục quyết §5c).
+      3 ca đối chứng ngược: `--them 1` ⇒ bắt được Ethereum Mainnet (exit 1) · sổ cắt cụt và sổ
+      `[]` rỗng ⇒ **từ chối kết luận** (exit 2). Mã thoát phân biệt *"bị chiếm"* với *"không tra
+      được"*. Bản đầy đủ: `docs/G4-TRA-CHAINID-2026-08-27.md`.
+      🔴 **Phải tra LẠI ngay trước bước sinh genesis ngày G** — sổ đổi hàng ngày.
 - [ ] **A-4 — C-4**: cổng "bản tập ≠ bản thật" cho **chainId** (B-11). Không chạm binary.
       *Điều kiện qua:* netgen từ chối/cảnh báo khi sinh mạng tập mang chainId của mạng thật;
       **có đối chứng ngược**.
