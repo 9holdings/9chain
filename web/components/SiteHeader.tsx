@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ThemeToggle } from './ThemeToggle';
+import { BrandLockup } from './BrandLockup';
 import { vi } from '@/lib/i18n/vi';
 import { explorerGoc } from '@/lib/chain';
 import { gop } from './ui';
@@ -63,11 +64,13 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-line-dark bg-navy">
       <div className="khung flex h-16 items-center justify-between gap-4">
-        <a href="/" className="flex items-center gap-2 font-display text-lg font-extrabold text-on-dark">
-          <span aria-hidden="true" className="text-gold">
-            ◆
-          </span>
-          9Chain
+        {/* Logo NGUYÊN BẢN từ bộ kit — dấu + chữ "9Chain" đã nằm trong lockup, nên
+            KHÔNG viết lại chữ "9Chain" bằng font giao diện cạnh nó nữa (trước đây
+            header ghép tay `◆` + chữ; đó là chế lại logo).
+            Thanh này luôn `bg-navy` ở CẢ HAI theme ⇒ luôn dùng bản nền tối.
+            Chip "A1" giữ nguyên: nó là nhãn phiên bản mạng, không thuộc logo. */}
+        <a href="/" className="flex items-center gap-2">
+          <BrandLockup nen="toi" cao={28} nhan={vi.chung.tenSanPham} className="flex-none" />
           <span className="rounded-chip border border-line-dark-2 px-1.5 py-0.5 font-sans text-[11px] font-semibold text-gold-muted">
             A1
           </span>
