@@ -132,6 +132,14 @@ export const fr: Tu = {
       'de mainnet entre A1 et C1, nous nous réservons le droit de reconstruire le réseau lorsqu’un ' +
       'élément du genesis doit changer. Ce que nous nous engageons à faire, c’est prévenir à l’avance ' +
       'et dire clairement ce qui est perdu.',
+    // 🔴 Thêm 2026-08-27 (D-081). Mạng công khai ĐÃ sinh lại một lượt HÔM NAY,
+    // trước ngày G. Cảnh báo về 01/09 vẫn đúng và vẫn cần — sẽ còn một lượt nữa —
+    // nhưng người có token trước hôm nay quay lại sẽ thấy số dư 0 mà trang không
+    // giải thích gì. Đường cơ sở sáng nay chứng minh KHÔNG ai mất chain; faucet thì
+    // KHÔNG có sổ bền nên không chứng minh được là không ai mất token.
+    daXayRaTieuDe: 'Déjà reconstruit une fois le 2026-08-27',
+    daXayRaMoTa:
+      'A1 a déjà été reconstruit une fois le 2026-08-27, avant la date indiquée ci-dessous. Si vous déteniez des jetons de test auparavant, votre solde est désormais de 0 — c’est correct, ce n’est pas une panne de votre portefeuille. Aucune chaîne d’utilisateur n’a été perdue : l’annuaire ne contenait que des chaînes de test automatisées. Redemandez des jetons au robinet.',
     ngayLuuY: 'La date peut glisser',
     ngayLuuYMoTa:
       'La date du {ngay} dépend d’un contrôle préalable. En cas de report, nous modifierons la date ' +

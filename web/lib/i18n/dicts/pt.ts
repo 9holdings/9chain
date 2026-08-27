@@ -129,6 +129,14 @@ export const pt: Tu = {
       'É possível. A A1 ainda é uma testnet e, até a comunidade escolher uma direção de mainnet entre ' +
       'A1 e C1, mantemos o direito de reconstruir a rede quando algo dentro do genesis precisar mudar. ' +
       'O que assumimos é avisar com antecedência e dizer claramente o que se perde.',
+    // 🔴 Thêm 2026-08-27 (D-081). Mạng công khai ĐÃ sinh lại một lượt HÔM NAY,
+    // trước ngày G. Cảnh báo về 01/09 vẫn đúng và vẫn cần — sẽ còn một lượt nữa —
+    // nhưng người có token trước hôm nay quay lại sẽ thấy số dư 0 mà trang không
+    // giải thích gì. Đường cơ sở sáng nay chứng minh KHÔNG ai mất chain; faucet thì
+    // KHÔNG có sổ bền nên không chứng minh được là không ai mất token.
+    daXayRaTieuDe: 'Já foi reconstruída uma vez em 2026-08-27',
+    daXayRaMoTa:
+      'A A1 já foi reconstruída uma vez em 2026-08-27, antes da data abaixo. Se você tinha tokens de teste antes disso, seu saldo agora é 0 — isso está correto, não é falha da sua carteira. Nenhuma cadeia de usuário foi perdida: o diretório continha apenas cadeias de teste automatizadas. Peça tokens na torneira de novo.',
     ngayLuuY: 'A data pode escorregar',
     ngayLuuYMoTa:
       'A data {ngay} depende de uma verificação anterior. Se ela atrasar, mudaremos a data nesta ' +

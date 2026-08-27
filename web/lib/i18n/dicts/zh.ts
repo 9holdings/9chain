@@ -111,6 +111,14 @@ export const zh: Tu = {
       '有可能。A1 仍然是测试网，在社区于 A1 与 C1 之间选定主网方向之前，' +
       '当创世区块内的内容需要变更时，我们保留重建网络的权利。我们承诺的是提前告知，' +
       '并明确说明会失去什么。',
+    // 🔴 Thêm 2026-08-27 (D-081). Mạng công khai ĐÃ sinh lại một lượt HÔM NAY,
+    // trước ngày G. Cảnh báo về 01/09 vẫn đúng và vẫn cần — sẽ còn một lượt nữa —
+    // nhưng người có token trước hôm nay quay lại sẽ thấy số dư 0 mà trang không
+    // giải thích gì. Đường cơ sở sáng nay chứng minh KHÔNG ai mất chain; faucet thì
+    // KHÔNG có sổ bền nên không chứng minh được là không ai mất token.
+    daXayRaTieuDe: '已于 2026-08-27 重建过一次',
+    daXayRaMoTa:
+      'A1 已在 2026-08-27 重建过一次，早于下方的日期。如果您在那之前持有测试代币，现在余额为 0 —— 这是正确的，不是您的钱包出了问题。没有用户的链丢失：当时目录中只有自动化测试链。请到水龙头重新领取代币。',
     ngayLuuY: '日期可能推迟',
     ngayLuuYMoTa: '{ngay} 这一日期取决于之前的一道放行检查。若推迟，我们会更改本页的日期，而不是保持沉默。',
   },

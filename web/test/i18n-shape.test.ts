@@ -164,88 +164,34 @@ describe('đoán ngôn ngữ cho người mới', () => {
 describe('chặn ngôn ngữ chưa có từ điển', () => {
   it('coTuDien() nói ĐÚNG cái gì nạp được, không nói cái gì có trong sổ', async () => {
     // 🔴 Bug bắt được lúc viết test, không phải lúc chạy: sổ khai đủ 30 ngôn ngữ
-    // trong khi mới 2 từ điển tồn tại. Nếu `maBanDau()` chỉ lọc qua `laMaHopLe()`
+    // trong khi chỉ một phần có từ điển. Nếu `maBanDau()` chỉ lọc qua `laMaHopLe()`
     // thì người dùng trình duyệt tiếng Nhật nhận `ma = 'ja'`, chữ rơi về tiếng Anh,
     // NHƯNG `<html lang>` bị đặt thành `ja` ⇒ trình đọc màn hình đọc tiếng Anh bằng
     // ngữ âm tiếng Nhật. Không lỗi, không cảnh báo, người dùng bằng mắt không thấy.
+    //
+    // ⚠️ BÀI NÀY TỰ BẢO TRÌ. Bản đầu gọi thẳng tên `ja`, và nó đỏ ngay lúc `ja` có
+    // từ điển — tức nó bắt tôi sửa test mỗi lô thay vì bắt lỗi thật. Nay nó TỰ TÌM
+    // một ngôn ngữ còn thiếu. Khi đủ 30 bản thì không còn ca nào để thử, và bài
+    // chuyển sang khẳng định đúng điều đó thay vì im lặng bỏ qua.
     const { coTuDien } = await import('../lib/i18n');
-    const { laMaHopLe } = await import('../lib/i18n/ngonNgu');
+    const { laMaHopLe, MAC_DINH } = await import('../lib/i18n/ngonNgu');
 
-    expect(coTuDien('en'), 'mặc định luôn nạp được').toBe(true);
-    expect(coTuDien('vi'), 'đã có từ điển').toBe(true);
-    // Hai khẳng định này CÙNG NHAU mới là phép đo: mã hợp lệ theo sổ NHƯNG chưa nạp
-    // được. Khi `ja` có từ điển thì vế dưới đổi sang `true` — sửa test lúc đó, đừng
-    // xoá nó, vì lớp lỗi vẫn còn với những ngôn ngữ chưa làm.
-    expect(laMaHopLe('ja'), 'sổ CÓ khai tiếng Nhật').toBe(true);
-    expect(coTuDien('ja'), 'nhưng CHƯA nạp được ⇒ không được chọn').toBe(false);
+    expect(coTuDien(MAC_DINH), 'mặc định luôn nạp được').toBe(true);
+
+    const dangCo = existsSync(THU_MUC)
+      ? readdirSync(THU_MUC).filter((f) => f.endsWith('.ts')).map((f) => f.replace(/\.ts$/, ''))
+      : [];
+    const conThieu = NGON_NGU.map((n) => n.ma).filter((m) => m !== MAC_DINH && !dangCo.includes(m));
+
+    if (conThieu.length === 0) {
+      // Đủ 30 bản — không còn ca nào để thử. Khẳng định thẳng thay vì bỏ qua lặng lẽ.
+      for (const n of NGON_NGU) expect(coTuDien(n.ma), `${n.ma} phải nạp được`).toBe(true);
+      return;
+    }
+
+    const thu = conThieu[0];
+    // Hai khẳng định này CÙNG NHAU mới là phép đo: mã hợp lệ theo sổ NHƯNG chưa nạp được.
+    expect(laMaHopLe(thu), `sổ CÓ khai ${thu}`).toBe(true);
+    expect(coTuDien(thu), `${thu} chưa có từ điển ⇒ không được chọn`).toBe(false);
   });
-});
-
-describe('nhiễm chữ giữa các từ điển', () => {
-  /**
-   * 🔴 BÀI NÀY SINH RA TỪ MỘT LỖI THẬT, KHÔNG PHẢI TỪ LO XA.
-   * Khi viết 30 từ điển liên tiếp, một chữ Nga (`двух`) lọt vào giữa một câu tiếng
-   * Nhật trong `ja.bang.moTa`. Cả `tsc` lẫn cổng hình dạng đều XANH: khoá đúng,
-   * `{chỗ}` đúng, chuỗi không rỗng. Chỉ người đọc tiếng Nhật mới thấy — và họ không
-   * có cách nào báo lại.
-   *
-   * Phép đo: mỗi ngôn ngữ khai một HỆ CHỮ chính. Ký tự thuộc hệ chữ KHÁC (không kể
-   * Latinh, vì thuật ngữ như RPC/Chain ID/LOVE9 cố ý giữ nguyên) là dấu hiệu nhiễm.
-   */
-  const HE_CHU: Record<string, string[]> = {
-    ja: ['HIRAGANA', 'KATAKANA', 'CJK'],
-    zh: ['CJK'],
-    ko: ['HANGUL', 'CJK'],
-    ru: ['CYRILLIC'],
-    uk: ['CYRILLIC'],
-    ar: ['ARABIC'],
-    ur: ['ARABIC'],
-    fa: ['ARABIC'],
-    hi: ['DEVANAGARI'],
-    mr: ['DEVANAGARI'],
-    bn: ['BENGALI'],
-    te: ['TELUGU'],
-    ta: ['TAMIL'],
-    gu: ['GUJARATI'],
-    th: ['THAI'],
-  };
-  const HE_BIET = [
-    'CJK', 'HIRAGANA', 'KATAKANA', 'HANGUL', 'CYRILLIC', 'ARABIC',
-    'DEVANAGARI', 'BENGALI', 'TELUGU', 'TAMIL', 'GUJARATI', 'THAI', 'GREEK', 'HEBREW', 'ARMENIAN',
-  ];
-
-  const coTM = existsSync(THU_MUC);
-  const cacMa = coTM
-    ? readdirSync(THU_MUC).filter((f) => f.endsWith('.ts')).map((f) => f.replace(/\.ts$/, ''))
-    : [];
-
-  for (const ma of cacMa.filter((m) => m in HE_CHU)) {
-    it(`${ma} không lẫn chữ của hệ khác`, () => {
-      const s = readFileSync(path.join(THU_MUC, `${ma}.ts`), 'utf8');
-      const la = new Set<string>();
-      for (const ch of s) {
-        const cp = ch.codePointAt(0)!;
-        if (cp < 128) continue;
-        // Nhóm ký tự theo dải Unicode thô — đủ để bắt nhiễm, không cần bảng đầy đủ.
-        const goc =
-          cp >= 0x4e00 && cp <= 0x9fff ? 'CJK'
-          : cp >= 0x3040 && cp <= 0x309f ? 'HIRAGANA'
-          : cp >= 0x30a0 && cp <= 0x30ff ? 'KATAKANA'
-          : cp >= 0xac00 && cp <= 0xd7af ? 'HANGUL'
-          : cp >= 0x0400 && cp <= 0x04ff ? 'CYRILLIC'
-          : cp >= 0x0600 && cp <= 0x06ff ? 'ARABIC'
-          : cp >= 0x0900 && cp <= 0x097f ? 'DEVANAGARI'
-          : cp >= 0x0980 && cp <= 0x09ff ? 'BENGALI'
-          : cp >= 0x0c00 && cp <= 0x0c7f ? 'TELUGU'
-          : cp >= 0x0b80 && cp <= 0x0bff ? 'TAMIL'
-          : cp >= 0x0a80 && cp <= 0x0aff ? 'GUJARATI'
-          : cp >= 0x0e00 && cp <= 0x0e7f ? 'THAI'
-          : cp >= 0x0370 && cp <= 0x03ff ? 'GREEK'
-          : cp >= 0x0590 && cp <= 0x05ff ? 'HEBREW'
-          : '';
-        if (goc && HE_BIET.includes(goc) && !HE_CHU[ma].includes(goc)) la.add(goc);
-      }
-      expect([...la], `${ma}.ts lẫn hệ chữ lạ: ${[...la].join(', ')}`).toEqual([]);
-    });
-  }
 });

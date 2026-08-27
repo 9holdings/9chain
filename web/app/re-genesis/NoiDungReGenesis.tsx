@@ -33,6 +33,22 @@ export function NoiDungReGenesis() {
         <p className="mt-3 text-base text-body">{t.reGenesis.moTa}</p>
       </header>
 
+      {/* 🔴 ĐỨNG TRƯỚC MỌI THỨ, KỂ CẢ "vì sao" (D-081, 2026-08-27).
+          Mạng công khai ĐÃ sinh lại một lượt HÔM NAY, trước ngày G. Cảnh báo về
+          01/09 bên dưới vẫn đúng và vẫn cần — sẽ còn một lượt nữa — nhưng người có
+          token trước hôm nay quay lại sẽ thấy số dư 0 và trang chỉ nói chuyện tương
+          lai. Họ sẽ kết luận ví mình hỏng.
+          ⚠️ Đường cơ sở sáng nay chứng minh KHÔNG chain người dùng nào mất. Faucet
+          thì KHÔNG có sổ bền (chỉ `Map` trong bộ nhớ) nên KHÔNG chứng minh được là
+          không ai mất token — vì thế câu chữ nói "nếu bạn có token trước đó", không
+          nói "không ai mất gì". */}
+      <div className="mt-6">
+        <LuuY kieu="canhBao">
+          <p className="font-semibold">{t.reGenesis.daXayRaTieuDe}</p>
+          <p className="mt-1">{t.reGenesis.daXayRaMoTa}</p>
+        </LuuY>
+      </div>
+
       <Muc tieuDe={t.reGenesis.viSaoTieuDe}>
         <p>{t.reGenesis.viSao1}</p>
         <p>{t.reGenesis.viSao2}</p>

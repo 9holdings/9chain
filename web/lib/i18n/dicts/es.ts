@@ -130,6 +130,14 @@ export const es: Tu = {
       'mainnet entre A1 y C1, nos reservamos el derecho de reconstruir la red cuando algo dentro del ' +
       'génesis tenga que cambiar. Lo que sí prometemos es avisarte con antelación y decir claramente ' +
       'qué se pierde.',
+    // 🔴 Thêm 2026-08-27 (D-081). Mạng công khai ĐÃ sinh lại một lượt HÔM NAY,
+    // trước ngày G. Cảnh báo về 01/09 vẫn đúng và vẫn cần — sẽ còn một lượt nữa —
+    // nhưng người có token trước hôm nay quay lại sẽ thấy số dư 0 mà trang không
+    // giải thích gì. Đường cơ sở sáng nay chứng minh KHÔNG ai mất chain; faucet thì
+    // KHÔNG có sổ bền nên không chứng minh được là không ai mất token.
+    daXayRaTieuDe: 'Ya se reconstruyó una vez el 2026-08-27',
+    daXayRaMoTa:
+      'A1 ya se reconstruyó una vez el 2026-08-27, antes de la fecha indicada abajo. Si tenías tokens de prueba antes de eso, tu saldo ahora es 0: eso es correcto, no es un fallo de tu monedero. No se perdió ninguna cadena de usuario: el directorio solo contenía cadenas de prueba automatizadas. Vuelve a pedir tokens en el grifo.',
     ngayLuuY: 'La fecha puede moverse',
     ngayLuuYMoTa:
       'La fecha {ngay} depende de una comprobación previa. Si se retrasa, cambiaremos la fecha en ' +

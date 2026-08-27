@@ -129,6 +129,14 @@ export const de: Tu = {
       'Möglich. A1 ist weiterhin ein Testnetz, und solange die Community zwischen A1 und C1 keine ' +
       'Mainnet-Richtung gewählt hat, behalten wir uns vor, das Netzwerk neu aufzubauen, wenn etwas im ' +
       'Genesis geändert werden muss. Wir sagen zu, vorher zu informieren und klar zu benennen, was verloren geht.',
+    // 🔴 Thêm 2026-08-27 (D-081). Mạng công khai ĐÃ sinh lại một lượt HÔM NAY,
+    // trước ngày G. Cảnh báo về 01/09 vẫn đúng và vẫn cần — sẽ còn một lượt nữa —
+    // nhưng người có token trước hôm nay quay lại sẽ thấy số dư 0 mà trang không
+    // giải thích gì. Đường cơ sở sáng nay chứng minh KHÔNG ai mất chain; faucet thì
+    // KHÔNG có sổ bền nên không chứng minh được là không ai mất token.
+    daXayRaTieuDe: 'Am 2026-08-27 bereits einmal neu aufgebaut',
+    daXayRaMoTa:
+      'A1 wurde am 2026-08-27 bereits einmal neu aufgebaut, vor dem unten genannten Datum. Wenn Sie davor Test-Token hatten, ist Ihr Guthaben jetzt 0 — das ist richtig und kein Fehler Ihrer Wallet. Es ging keine Nutzer-Chain verloren: im Verzeichnis standen damals nur automatisierte Test-Chains. Fordern Sie beim Faucet erneut Token an.',
     ngayLuuY: 'Das Datum kann sich verschieben',
     ngayLuuYMoTa:
       'Das Datum {ngay} hängt von einer vorgelagerten Freigabeprüfung ab. Verschiebt es sich, ändern ' +

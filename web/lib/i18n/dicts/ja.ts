@@ -129,6 +129,14 @@ export const ja: Tu = {
       'メインネットの方向とするか決めるまで、ジェネシス内の何かを変える必要が生じたときには' +
       'ネットワークを再構築する権利を保持します。約束するのは、事前に知らせること、そして' +
       '何が失われるかをはっきり述べることです。',
+    // 🔴 Thêm 2026-08-27 (D-081). Mạng công khai ĐÃ sinh lại một lượt HÔM NAY,
+    // trước ngày G. Cảnh báo về 01/09 vẫn đúng và vẫn cần — sẽ còn một lượt nữa —
+    // nhưng người có token trước hôm nay quay lại sẽ thấy số dư 0 mà trang không
+    // giải thích gì. Đường cơ sở sáng nay chứng minh KHÔNG ai mất chain; faucet thì
+    // KHÔNG có sổ bền nên không chứng minh được là không ai mất token.
+    daXayRaTieuDe: '2026-08-27 に一度すでに再構築済み',
+    daXayRaMoTa:
+      'A1 は下記の日付より前、2026-08-27 に一度すでに再構築されています。それ以前にテスト用トークンをお持ちだった場合、残高は現在 0 です。これは正しい表示であり、ウォレットの不具合ではありません。ユーザーのチェーンは失われていません。当時ディレクトリにあったのは自動テスト用のチェーンだけでした。フォーセットからトークンを取り直してください。',
     ngayLuuY: '日付はずれる可能性があります',
     ngayLuuYMoTa:
       '{ngay} という日付は、その前段のチェックに依存します。ずれた場合、黙っているのではなく' +

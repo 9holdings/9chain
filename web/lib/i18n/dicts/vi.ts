@@ -231,6 +231,14 @@ export const vi: Tu = {
       'C1, chúng tôi vẫn giữ quyền sinh lại mạng khi cần đổi thứ nằm trong genesis. Điều ' +
       'chúng tôi cam kết là sẽ báo trước, và nói thẳng cái gì mất.',
 
+    // 🔴 Thêm 2026-08-27 (D-081). Mạng công khai ĐÃ sinh lại một lượt HÔM NAY,
+    // trước ngày G. Cảnh báo về 01/09 vẫn đúng và vẫn cần — sẽ còn một lượt nữa —
+    // nhưng người có token trước hôm nay quay lại sẽ thấy số dư 0 mà trang không
+    // giải thích gì. Đường cơ sở sáng nay chứng minh KHÔNG ai mất chain; faucet thì
+    // KHÔNG có sổ bền nên không chứng minh được là không ai mất token.
+    daXayRaTieuDe: 'Đã sinh lại một lượt ngày 27/08/2026',
+    daXayRaMoTa:
+      'A1 đã sinh lại một lượt ngày 27/08/2026, trước ngày ghi bên dưới. Nếu bạn có token thử trước đó thì số dư nay là 0 — con số đó đúng, không phải ví bạn hỏng. Không chain nào của người dùng bị mất: danh bạ khi ấy chỉ có chain do máy kiểm thử sinh ra. Hãy xin lại token ở trang faucet.',
     ngayLuuY: 'Ngày có thể trượt',
     ngayLuuYMoTa:
       'Ngày {ngay} phụ thuộc một cổng kiểm trước đó. Nếu trượt, chúng tôi sẽ đổi ngày trên ' +

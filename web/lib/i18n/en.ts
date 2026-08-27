@@ -153,6 +153,14 @@ export const EN = {
       'A1 and C1, we keep the right to rebuild the network when something inside genesis has to ' +
       'change. What we commit to is telling you in advance, and saying plainly what is lost.',
 
+    // 🔴 Thêm 2026-08-27 (D-081). Mạng công khai ĐÃ sinh lại một lượt HÔM NAY,
+    // trước ngày G. Cảnh báo về 01/09 vẫn đúng và vẫn cần — sẽ còn một lượt nữa —
+    // nhưng người có token trước hôm nay quay lại sẽ thấy số dư 0 mà trang không
+    // giải thích gì. Đường cơ sở sáng nay chứng minh KHÔNG ai mất chain; faucet thì
+    // KHÔNG có sổ bền nên không chứng minh được là không ai mất token.
+    daXayRaTieuDe: 'Already rebuilt once on 2026-08-27',
+    daXayRaMoTa:
+      'A1 was already rebuilt once on 2026-08-27, before the date below. If you held test tokens before then, your balance is now 0 — that is correct, not a fault in your wallet. No user chain was lost: the directory held only automated test chains. Request tokens again from the faucet.',
     ngayLuuY: 'The date can slip',
     ngayLuuYMoTa:
       'The date {ngay} depends on an earlier go/no-go check. If it slips, we will change the date ' +

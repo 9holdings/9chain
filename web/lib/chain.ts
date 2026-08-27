@@ -19,8 +19,23 @@ export const CHAIN = {
   kyHieu: 'LOVE9',
   tenDayDu: 'LOVE9',
   thapPhan: 18,
-  /** networkID của avalanchego là uint32 — KHÔNG phải số 9 tỷ ở trên. */
-  networkId: 9001,
+  /**
+   * networkID của avalanchego là uint32 — KHÔNG phải số 9 tỷ ở trên.
+   *
+   * 🔴 ĐỔI 2026-08-27: `9001` → `999999999` (D-081, thế hệ **g0**).
+   * David yêu cầu chạy lại mạng công khai "để các chỉ số từ bây giờ là chuẩn nhất".
+   * Mạng mới khai `info.getNetworkName` = `9chain-a1-g0` và `networkID` = 999999999.
+   *
+   * ⚠️ Site ĐÃ HIỂN THỊ SAI số này một quãng: chân trang in "networkID 9001" trong
+   * khi mạng thật đã là 999999999. Không cổng nào bắt được, vì đây là một HẰNG SỐ
+   * chép tay — nó không sai về cú pháp, không sai về kiểu, chỉ sai về sự thật.
+   * ⇒ Nay có `local-net/deploy/check-chain-id.mjs`: đối chiếu khối này với mạng
+   *   ĐANG CHẠY trước mỗi lượt deploy. Đừng gỡ nó khi dọn dẹp.
+   *
+   * `eth_chainId` thì KHÔNG đổi (D-047 giữ 9000000009) — hai số này độc lập nhau,
+   * và đó chính là chỗ dễ nhầm: mạng đổi danh tính mà ví không thấy gì khác.
+   */
+  networkId: 999999999,
 } as const;
 
 /** Tên miền mặc định khi không đọc được `location` (lúc build tĩnh). */
