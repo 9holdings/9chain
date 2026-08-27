@@ -81,11 +81,45 @@ export const vi = {
       'Đừng xây thứ gì cần dữ liệu sống lâu trên A1 lúc này. Nếu bạn đang thử một ý tưởng ' +
       'thì cứ tự nhiên — chỉ đừng coi chain hiện tại là chỗ cất giữ. [?]',
     lamSau: 'Sau ngày sinh lại: [?]',
+    // 🔴 BA CHUỖI NÀY ĐÃ SỬA SAU D-047, ĐỪNG LÙI VỀ BẢN CŨ. Bản cũ bảo người dùng
+    // "gỡ mạng chính rồi thêm lại, đừng chép thông số cũ" — lời khuyên đó chỉ đúng
+    // cho kịch bản chainId ĐỔI. D-047 chốt GIỮ `9000000009`, nên thông số mạng mới
+    // y hệt cũ: gỡ rồi thêm lại là một thao tác không đổi gì cả. Cái THẬT SỰ cần gỡ
+    // là từng L1 riêng (những chain đó biến mất), và cái thật sự cần làm là xin lại
+    // token. Cùng họ lỗi với "số chép sang thang khác": bê lời khuyên từ một kịch
+    // bản sang kịch bản mà tiền đề của nó không còn đúng.
     lam2:
-      'Gỡ mọi mạng A1 cũ khỏi ví, gồm cả mạng chính lẫn từng L1 riêng bạn đã thêm. Việc này ' +
-      'không ai làm thay được — ví nằm trên máy bạn. [?]',
-    lam3: 'Thêm lại mạng mới bằng nút trên trang này, đừng chép lại thông số cũ. [?]',
+      'Gỡ khỏi ví từng L1 riêng bạn đã thêm — những chain đó không còn tồn tại, và ví trỏ ' +
+      'vào chúng sẽ chỉ nằm im. Mạng A1 chính thì không phải gỡ: thông số của nó không đổi. [?]',
+    lam3:
+      'Nếu ví bạn chưa có mạng A1, thêm bằng nút ở trang faucet thay vì gõ tay thông số. [?]',
     lam4: 'Xin lại token từ faucet, và đẻ lại chain nếu bạn muốn. [?]',
+
+    // ── Hai vế D-047 giao lại cho câu chữ ────────────────────────────────────
+    // D-047 giữ chainId `9000000009` sau khi lý do mạnh nhất của phía "đổi" (phát
+    // lại chữ ký SIWE) bị đo là ĐỔ. Hai lý do còn lại thì ĐỨNG, và quyết định ghi
+    // rõ chúng "xử bằng CÂU CHỮ trên trang, không bằng đổi số" — tức là hai chuỗi
+    // dưới đây LÀ phần thực thi của D-047, không phải trang trí.
+    // 🔴 KHÔNG thêm nút "thêm lại mạng" vào trang này. Nút đó đã có ở faucet
+    // (`FaucetForm.tsx:114`); nhân đôi một nút gọi ví là nhân đôi chỗ để hai bản
+    // lệch nhau, mà đây đúng là loại nút không được phép lệch.
+    imLangTieuDe: 'Ví của bạn sẽ không báo gì cả [?]',
+    imLangMoTa:
+      'Mạng mới giữ nguyên Chain ID {chainId}, cùng địa chỉ RPC và cùng tên với mạng cũ. Đó ' +
+      'là chủ ý — để mọi tài liệu và hướng dẫn đã phát ra ngoài không thành sai. Cái giá là ' +
+      'ví không có một dấu hiệu nào để nhận ra nó vừa nối vào một mạng khác. Hai chuyện dưới ' +
+      'đây vì thế sẽ xảy ra trong im lặng. [?]',
+    imLang1:
+      'Ví còn cấu hình cũ vẫn nối được, vẫn hiện đúng tên mạng, và sẽ báo số dư 0. Con số đó ' +
+      'ĐÚNG: token cũ của bạn không còn tồn tại, chứ không phải bị ẩn đi. Bạn không cần thêm ' +
+      'lại mạng — chỉ cần xin token mới ở trang faucet. Nếu ví báo giao dịch kẹt hoặc sai số ' +
+      'thứ tự, hãy xoá dữ liệu hoạt động của mạng đó trong ví: ví còn nhớ số đếm giao dịch ' +
+      'của chuỗi đã chết, trong khi chuỗi mới đếm lại từ 0. [?]',
+    imLang2:
+      'Nếu bạn còn giao dịch đã ký mà chưa phát lên mạng, hãy bỏ nó đi. Chữ ký vẫn hợp lệ ' +
+      'trên mạng mới, vì Chain ID không đổi. Nó sẽ chết vì ví không còn tiền — nhưng đúng ' +
+      'lúc bạn xin token từ faucet thì nó chạy được, và có thể tự chạy vào một thời điểm ' +
+      'bạn không ngờ. [?]',
 
     lapTieuDe: 'Chuyện này còn xảy ra nữa không [?]',
     lapMoTa:
