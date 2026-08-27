@@ -2367,3 +2367,53 @@ Quét `local-net/` · `scripts/` · `docs/` · `README.md`: mọi kết quả đ
 tài liệu **mô tả** việc đổi tên. `constants.UpstreamAssetAlias = "AVAX"` giữ nguyên vì nó chỉ
 phục vụ **mạng ngoài băng A1** (mainnet/fuji/local) — nếu bỏ, fork mất khả năng dựng lại genesis
 upstream **và** bảng kiểm mất sạch ca đỏ.
+
+---
+
+### D-085 — O1 bước 1 XONG: khoá g0 đã rời server, và O1 nay là **một lệnh chạy được**
+
+David duyệt quy trình ba bước `27/08`. Bước 1 đã chạy.
+
+#### Trước lượt này
+
+🔴 **Khoá của mạng công khai đang chạy tồn tại ở ĐÚNG MỘT NƠI: server.** `local-net/net-public/`
+trên máy dev là bộ `26/08` — **thế hệ đã chết** (đối chứng: ví Foundation của bộ đó đọc ra
+**rỗng** trên chain). Nên thứ tự bắt buộc là **chép về trước, xoá sau** — làm ngược là mất sạch.
+
+#### Đã làm
+
+| | |
+|---|---|
+| Chép về máy dev | `C:\Users\abc\9chain-a1-keys\g0\` — `keys.txt` · `allocation.md` · `genesis.json`, **ngoài repo, ngoài đường git** |
+| Đối chứng byte | `sha256` **3/3 khớp** hai đầu |
+| 🔴 Phép kiểm khôi phục | `kiem-khoa` — **6/6 quỹ**, mọi X/P/EVM suy lại từ khoá đều khớp thứ tệp tự khai · đối chiếu chéo `allocation.md` **6/6** |
+| Kiểm phụ thuộc | không container nào mount `keys.txt` (node chỉ mount `node1/` + `genesis.json`) · `gen-network.sh` chỉ **nhắc tên** trong một dòng cảnh báo |
+| Xoá | `shred -u -n 3` trên server. Sau đó: `find ~/9chain-a1 -name keys.txt` ⇒ **0** |
+| Đối chứng sau | mạng vẫn `9chain-a1-g0`, số dư `chain-factory` P vẫn đọc được ⇒ không tệp nào đang chạy phụ thuộc vào nó |
+
+#### 🔴 Trạng thái mới, nói thẳng
+
+**Khoá 5 quỹ của g0 nay tồn tại ở ĐÚNG MỘT nơi: một ổ đĩa máy dev.** Đó là sơ đồ D-044 đã chốt,
+được **khôi phục** chứ không phải được cải thiện — đổi rủi ro *lộ* lấy rủi ro *mất*. Bản thứ hai
+vẫn là việc của David, và nay **có công cụ để kiểm nó**:
+
+```bash
+kiem-khoa -allocation allocation.md keys.txt
+```
+
+#### Bước 2 gặp một ràng buộc chưa ai lường
+
+Ý định: ngày G chạy netgen ở máy dev, nạp ví từ máy dev qua RPC công khai ⇒ khoá không bao giờ
+chạm server. Đo thật thì **không đi thẳng được**, hai lớp chặn, **cả hai đều đúng**:
+
+| Lớp | Đo được |
+|---|---|
+| RPC công khai | `/ext/info` · `/ext/bc/X` · `/ext/bc/P` · `/ext/bc/C/rpc` = **200**, nhưng **`/ext/bc/C/avax` = 404** — đúng đường `primary.MakeWallet` cần cho ví C |
+| Hầm SSH tới `127.0.0.1:9650` | mở được, `/ext/bc/C/avax` = **200**. Nhưng ví trong container gửi `Host: host.docker.internal` ⇒ node trả **403** — chính bộ lọc `A1_HTTP_ALLOWED_HOSTS` của D-083 |
+
+⇒ **Không mở thêm cổng công khai.** Cách đúng cho ngày G: **hầm SSH chạy TRONG cùng container
+với ví**, để ví gọi `127.0.0.1` và header `Host` nằm trong danh sách cho phép. Chưa dựng — ghi
+lại đây để lượt ngày G không phải dò lại từ đầu.
+
+⚠️ Và đây là một tin tốt đọc ngược: **bộ lọc Host chặn đúng một thứ đáng chặn**, trong một tình
+huống không ai dựng ra để thử nó.

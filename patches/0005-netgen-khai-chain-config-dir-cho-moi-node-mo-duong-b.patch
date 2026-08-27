@@ -1,7 +1,7 @@
 From f40601aeb7c13aed49355b7b2fa2d9da3439e010 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Tue, 25 Aug 2026 19:57:08 +0400
-Subject: [PATCH 05/22] netgen: khai --chain-config-dir cho moi node (mo duong
+Subject: [PATCH 05/23] netgen: khai --chain-config-dir cho moi node (mo duong
  bat API Warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

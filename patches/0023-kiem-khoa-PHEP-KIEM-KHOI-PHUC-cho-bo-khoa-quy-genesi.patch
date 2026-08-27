@@ -1,0 +1,363 @@
+From 80cf33ee2aab2874cd782b5137e2c705bbacb3e0 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Fri, 28 Aug 2026 00:03:16 +0400
+Subject: [PATCH 23/23] =?UTF-8?q?kiem-khoa:=20PHEP=20KIEM=20KHOI=20PHUC=20?=
+ =?UTF-8?q?cho=20bo=20khoa=20quy=20genesis=20=E2=80=94=20bien=20O1=20thanh?=
+ =?UTF-8?q?=20mot=20lenh?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+O1 nam mo nhieu ngay duoi dang cau hoi "ban thu hai co ton tai khong". Do la cau hoi SAI, va
+sai theo cach khong ai phat hien duoc: mot tep co mat, dung ten, dung kich thuoc, van co the
+la tep KHONG KHOI PHUC DUOC — hong mot byte, chep nham the he, hoac la ban cua mang da chet.
+Cau hoi dung: "da co ai khoi phuc thu tu no chua".
+
+Mot ban sao chua tung duoc khoi phuc thi chua phai mot ban sao.
+
+kiem-khoa doc keys.txt, SUY LAI X-addr · P-addr · dia chi EVM · privkey EVM tu chinh khoa bi
+mat trong do, roi so voi thu tep TU KHAI. Them -allocation de doi chieu CHEO: bang CONG KHAI
+co khai dung nhung dia chi ma bo khoa BI MAT that su mo duoc khong (chieu allocation ⊆ keys —
+mot dia chi duoc CONG BO ma khong ai giu khoa la mot loi hua rong).
+
+HOAN TOAN OFFLINE, co y: thu dang kiem la mot ban sao LANH, mang no toi cho co mang de kiem la
+lam hong dung tinh chat khien no dang gia. Va KHONG in khoa bi mat ra man hinh, ke ca khi lech
+— chi in vi tri dong.
+
+NGHIEM THU tren bo khoa g0 THAT (vua cuu ve may dev, sha256 khop server):
+  XANH  6/6 quy khoi phuc dung + doi chieu cheo 6/6 dia chi trong allocation.md
+  DO    doi 1 ky tu trong THAN khoa cb58 cua foundation -> "invalid input checksum", exit 1
+  DO    bang cong khai khai mot dia chi khong ai giu khoa -> exit 1
+  DO    tep rong -> "tep rong ≡ tep hong", exit 1  (bo kiem 0 muc ma thoat 0 la bo kiem noi doi)
+  DO    co dat SAU duong dan -> exit 2
+
+HAI LOI CHINH CONG CU NAY MAC PHAI, giu lai trong chu thich vi ca hai la lop loi cua repo:
+  1. regex ten truong viet [A-Za-z ] nen nuot duoc "EVM addr" ma roi mat "X-addr"/"P-addr".
+     Hau qua khong phai "bo qua": truong rong so voi dia chi suy ra thi LECH => bo kiem bao DO
+     tren mot bo khoa HOAN TOAN DUNG. Mot cong bao dong gia se bi bo qua dung luc no keu that.
+     => tach "THIEU TRUONG" ra khoi "TRUONG LECH".
+  2. `flag` dung phan tich o doi so khong phai co dau tien, nen `kiem-khoa keys.txt -allocation
+     x.md` chay tron tru va BO QUA -allocation trong im lang. Chi thoat vi dong canh bao cuoi
+     bai noi ra la no chua chay. Nay chan thang: mot phep kiem bi bo qua phai on hon mot phep
+     kiem that bai.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ 9chain-a1-tools/kiem-khoa/main.go | 308 ++++++++++++++++++++++++++++++
+ 1 file changed, 308 insertions(+)
+ create mode 100644 9chain-a1-tools/kiem-khoa/main.go
+
+diff --git a/9chain-a1-tools/kiem-khoa/main.go b/9chain-a1-tools/kiem-khoa/main.go
+new file mode 100644
+index 0000000..3abd52e
+--- /dev/null
++++ b/9chain-a1-tools/kiem-khoa/main.go
+@@ -0,0 +1,308 @@
++// kiem-khoa — PHÉP KIỂM KHÔI PHỤC cho bộ khoá quỹ genesis (O1).
++//
++// 🔴 VÌ SAO CÓ CÔNG CỤ NÀY. O1 nằm mở nhiều ngày dưới dạng câu hỏi *"bản thứ hai có
++// tồn tại không"*. Đó là câu hỏi sai, và sai theo cách không ai phát hiện được: một
++// tệp có mặt, đúng tên, đúng kích thước, vẫn có thể là một tệp **không khôi phục
++// được** — hỏng một byte, chép nhầm thế hệ, hoặc là bản của mạng đã chết. Câu hỏi
++// đúng là *"đã có ai khôi phục thử từ nó chưa"*.
++//
++// **Một bản sao chưa từng được khôi phục thì chưa phải một bản sao.**
++//
++// Công cụ này lấy `keys.txt`, **suy lại** X-addr · P-addr · địa chỉ EVM · khoá riêng
++// EVM từ chính khoá bí mật trong đó, rồi so với những gì tệp TỰ KHAI. Lệch một chỗ
++// là thoát khác 0.
++//
++// 🔴 HOÀN TOÀN OFFLINE — không gọi node, không cần mạng. Cố ý: thứ ta đang kiểm là
++// một bản sao LẠNH, và kiểm nó bằng cách mang nó tới chỗ có mạng là làm hỏng đúng
++// tính chất khiến nó đáng giá.
++//
++// ⚠️ KHÔNG in khoá bí mật ra màn hình — kể cả khi lệch. Nó in **vị trí dòng**.
++//
++// Dùng:
++//
++//	kiem-khoa <keys.txt> [-allocation allocation.md] [-network-id N]
++//
++// `-allocation` bật thêm phép đối chiếu **chéo**: bảng CÔNG KHAI có khai đúng những
++// địa chỉ mà bộ khoá BÍ MẬT thật sự mở được không. Thiếu vế này thì hai tệp có thể
++// trôi lệch nhau mà cả hai vẫn "tự nhất quán".
++package main
++
++import (
++	"bufio"
++	"flag"
++	"fmt"
++	"os"
++	"regexp"
++	"sort"
++	"strconv"
++	"strings"
++
++	"github.com/ava-labs/avalanchego/utils/cb58"
++	"github.com/ava-labs/avalanchego/utils/constants"
++	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
++	"github.com/ava-labs/avalanchego/utils/formatting/address"
++)
++
++type khoi struct {
++	ten     string
++	dong    int // dòng của `PrivateKey` — để chỉ chỗ mà không in khoá
++	key     string
++	xAddr   string
++	pAddr   string
++	evmAddr string
++	evmPriv string
++}
++
++var (
++	reKhoi    = regexp.MustCompile(`^\[([a-zA-Z0-9_-]+)\]`)
++	// 🔴 Lớp ký tự PHẢI có dấu gạch: tên trường thật là `X-addr` · `P-addr` · `EVM addr`.
++	// Bản đầu viết `[A-Za-z ]` nên nuốt được `EVM addr` mà rơi mất `X-addr`/`P-addr` —
++	// và hậu quả không phải là "bỏ qua": trường rỗng so với địa chỉ suy ra thì LỆCH, nên
++	// bộ kiểm báo ĐỎ trên một bộ khoá HOÀN TOÀN ĐÚNG. Một cổng báo động giả bị bỏ qua
++	// đúng vào lúc nó kêu thật.
++	reTruong = regexp.MustCompile(`^\s+([A-Za-z][A-Za-z /-]*?)\s*:\s*(\S+)\s*$`)
++	reNetwork = regexp.MustCompile(`networkID\s*:\s*(\d+)`)
++	reXAddr   = regexp.MustCompile(`X-love9[a-z0-9]+`)
++)
++
++func main() {
++	fs := flag.NewFlagSet("kiem-khoa", flag.ExitOnError)
++	allocPath := fs.String("allocation", "", "đối chiếu chéo với allocation.md (bảng công khai)")
++	networkID := fs.Uint("network-id", 0, "networkID để suy HRP (0 = đọc từ đầu keys.txt)")
++	fs.Parse(os.Args[1:])
++
++	if fs.NArg() < 1 {
++		fmt.Fprintln(os.Stderr, "Dùng: kiem-khoa <keys.txt> [-allocation allocation.md] [-network-id N]")
++		os.Exit(2)
++	}
++	duongDan := fs.Arg(0)
++
++	// 🔴 `flag` DỪNG PHÂN TÍCH ở đối số không phải cờ đầu tiên. Nên
++	// `kiem-khoa keys.txt -allocation x.md` chạy **trơn tru và bỏ qua `-allocation`** —
++	// tức bỏ luôn phép đối chiếu chéo, và bỏ trong im lặng. Đã dính đúng thế ở lượt
++	// chạy đầu tiên; chỉ thoát vì dòng cảnh báo cuối bài nói ra là nó chưa chạy.
++	// Nay chặn thẳng: một phép kiểm bị bỏ qua phải ồn hơn một phép kiểm thất bại.
++	for _, thua := range fs.Args()[1:] {
++		if strings.HasPrefix(thua, "-") {
++			fmt.Fprintf(os.Stderr,
++				"FATAL cờ %q đứng SAU đường dẫn nên bị bỏ qua.\n"+
++					"      Dùng: kiem-khoa [cờ...] <keys.txt>\n", thua)
++			os.Exit(2)
++		}
++	}
++
++	khois, netFromFile, err := docKeys(duongDan)
++	if err != nil {
++		fmt.Fprintf(os.Stderr, "FATAL không đọc được %s: %v\n", duongDan, err)
++		os.Exit(1)
++	}
++	if len(khois) == 0 {
++		// Tệp rỗng ≡ tệp hỏng. Một bộ kiểm 0 mục mà thoát 0 là bộ kiểm nói dối.
++		fmt.Fprintf(os.Stderr, "FATAL %s không có khối quỹ nào — tệp rỗng ≡ tệp hỏng.\n", duongDan)
++		os.Exit(1)
++	}
++
++	nid := uint32(*networkID)
++	if nid == 0 {
++		nid = netFromFile
++	}
++	if nid == 0 {
++		fmt.Fprintln(os.Stderr, "FATAL không suy được networkID (không có ở đầu tệp, không truyền -network-id)")
++		os.Exit(1)
++	}
++	hrp := constants.GetHRP(nid)
++
++	fmt.Printf("kiem-khoa — %s\n", duongDan)
++	fmt.Printf("  networkID %d · mạng %q · HRP %q · %d quỹ\n\n", nid, constants.NetworkName(nid), hrp, len(khois))
++	if !constants.LaMangA1(nid) {
++		// Cảnh báo, không chặn: có thể ai đó đang kiểm một bộ khoá cũ một cách có ý thức.
++		fmt.Printf("  ⚠️  networkID %d KHÔNG thuộc băng 9Chain-A1 — chắc chắn đây là bộ khoá muốn kiểm?\n\n", nid)
++	}
++
++	var loi []string
++	for _, k := range khois {
++		them := func(f string, a ...any) {
++			loi = append(loi, fmt.Sprintf("[%s] dòng %d: ", k.ten, k.dong)+fmt.Sprintf(f, a...))
++		}
++
++		// 🔴 THIẾU TRƯỜNG ≠ TRƯỜNG LỆCH. Bản đầu của công cụ này không phân biệt hai
++		// thứ đó: một trường không đọc được biến thành chuỗi rỗng, rồi rỗng ≠ địa chỉ
++		// suy ra, và bộ kiểm hô "bộ khoá không khôi phục đúng" trên một bộ khoá đúng.
++		// Khai riêng ra để câu lỗi chỉ vào KHUÔN TỆP, không vu cho khoá.
++		var thieu []string
++		for ten, v := range map[string]string{"PrivateKey": k.key, "X-addr": k.xAddr, "P-addr": k.pAddr, "EVM addr": k.evmAddr} {
++			if v == "" {
++				thieu = append(thieu, ten)
++			}
++		}
++		if len(thieu) > 0 {
++			sort.Strings(thieu)
++			them("tệp THIẾU trường %s — sai khuôn keys.txt, chưa kết luận được gì về khoá", strings.Join(thieu, ", "))
++			fmt.Printf("  ✗ %-12s sai khuôn tệp (thiếu %s)\n", k.ten, strings.Join(thieu, ", "))
++			continue
++		}
++
++		priv, err := doiKhoa(k.key)
++		if err != nil {
++			them("khoá KHÔNG giải mã được: %v", err)
++			fmt.Printf("  ✗ %-12s khoá không giải mã được\n", k.ten)
++			continue
++		}
++
++		bech, err := address.FormatBech32(hrp, priv.Address().Bytes())
++		if err != nil {
++			them("không dựng được bech32: %v", err)
++			continue
++		}
++		xMuon, pMuon := "X-"+bech, "P-"+bech
++		evmMuon := priv.EthAddress().Hex()
++		evmPrivMuon := fmt.Sprintf("0x%x", priv.Bytes())
++
++		ok := true
++		if k.xAddr != xMuon {
++			them("X-addr tệp khai %s, khoá suy ra %s", k.xAddr, xMuon)
++			ok = false
++		}
++		if k.pAddr != pMuon {
++			them("P-addr tệp khai %s, khoá suy ra %s", k.pAddr, pMuon)
++			ok = false
++		}
++		// So không phân biệt hoa/thường: `EthAddress().Hex()` trả dạng EIP-55, còn
++		// tệp có thể được chép qua chỗ khác rồi mất hoa/thường.
++		if !strings.EqualFold(k.evmAddr, evmMuon) {
++			them("EVM addr tệp khai %s, khoá suy ra %s", k.evmAddr, evmMuon)
++			ok = false
++		}
++		if k.evmPriv != "" && !strings.EqualFold(k.evmPriv, evmPrivMuon) {
++			// KHÔNG in giá trị nào của hai khoá — chỉ báo lệch.
++			them("EVM privkey trong tệp KHÔNG khớp khoá X/P cùng khối")
++			ok = false
++		}
++
++		dau := "✓"
++		if !ok {
++			dau = "✗"
++		}
++		fmt.Printf("  %s %-12s %s · %s\n", dau, k.ten, xMuon, evmMuon)
++	}
++
++	if *allocPath != "" {
++		loi = append(loi, doiChieuAllocation(*allocPath, khois)...)
++	}
++
++	fmt.Println()
++	if len(loi) > 0 {
++		fmt.Fprintf(os.Stderr, "FATAL — BỘ KHOÁ KHÔNG KHÔI PHỤC ĐÚNG (%d lệch)\n", len(loi))
++		for _, l := range loi {
++			fmt.Fprintf(os.Stderr, "  ✗ %s\n", l)
++		}
++		fmt.Fprintln(os.Stderr, "\n  Một bản sao chưa từng được khôi phục thì chưa phải một bản sao.")
++		os.Exit(1)
++	}
++	fmt.Printf("✓ %d/%d quỹ khôi phục đúng — mọi địa chỉ suy lại từ khoá đều khớp thứ tệp tự khai.\n",
++		len(khois), len(khois))
++	if *allocPath == "" {
++		fmt.Println("⚠️  CHƯA đối chiếu chéo với bảng công khai. Thêm -allocation allocation.md.")
++	}
++}
++
++func doiKhoa(s string) (*secp256k1.PrivateKey, error) {
++	raw := strings.TrimPrefix(s, secp256k1.PrivateKeyPrefix)
++	b, err := cb58.Decode(raw)
++	if err != nil {
++		return nil, fmt.Errorf("không phải dạng PrivateKey-<cb58>: %w", err)
++	}
++	return secp256k1.ToPrivateKey(b)
++}
++
++func docKeys(p string) ([]khoi, uint32, error) {
++	f, err := os.Open(p)
++	if err != nil {
++		return nil, 0, err
++	}
++	defer f.Close()
++
++	var (
++		out     []khoi
++		cur     *khoi
++		net     uint32
++		soDong  int
++		scanner = bufio.NewScanner(f)
++	)
++	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
++
++	for scanner.Scan() {
++		soDong++
++		line := scanner.Text()
++
++		if net == 0 {
++			if m := reNetwork.FindStringSubmatch(line); m != nil {
++				if n, err := strconv.ParseUint(m[1], 10, 32); err == nil {
++					net = uint32(n)
++				}
++			}
++		}
++		if m := reKhoi.FindStringSubmatch(line); m != nil {
++			if cur != nil {
++				out = append(out, *cur)
++			}
++			cur = &khoi{ten: m[1]}
++			continue
++		}
++		if cur == nil {
++			continue
++		}
++		m := reTruong.FindStringSubmatch(line)
++		if m == nil {
++			continue
++		}
++		switch strings.TrimSpace(m[1]) {
++		case "PrivateKey":
++			cur.key, cur.dong = m[2], soDong
++		case "X-addr":
++			cur.xAddr = m[2]
++		case "P-addr":
++			cur.pAddr = m[2]
++		case "EVM addr":
++			cur.evmAddr = m[2]
++		case "EVM privkey":
++			cur.evmPriv = m[2]
++		}
++	}
++	if cur != nil {
++		out = append(out, *cur)
++	}
++	return out, net, scanner.Err()
++}
++
++// doiChieuAllocation — bảng CÔNG KHAI có khai đúng những địa chỉ mà bộ khoá BÍ MẬT
++// thật sự mở được không.
++//
++// 🔴 Chiều kiểm là **allocation ⊆ keys**: mọi địa chỉ X xuất hiện trong bảng công khai
++// phải có một khoá mở được nó. Chiều ngược lại KHÔNG kiểm, cố ý — một khoá không xuất
++// hiện trong bảng công khai là chuyện bình thường (ví vận hành), còn một địa chỉ được
++// CÔNG BỐ mà không ai giữ khoá là một lời hứa rỗng.
++func doiChieuAllocation(p string, khois []khoi) []string {
++	raw, err := os.ReadFile(p)
++	if err != nil {
++		return []string{fmt.Sprintf("không đọc được %s: %v", p, err)}
++	}
++	co := map[string]bool{}
++	for _, k := range khois {
++		co[k.xAddr] = true
++	}
++	thay := reXAddr.FindAllString(string(raw), -1)
++	if len(thay) == 0 {
++		return []string{fmt.Sprintf("%s không có địa chỉ X nào — bảng rỗng ≡ bảng hỏng", p)}
++	}
++	var loi []string
++	daBao := map[string]bool{}
++	for _, a := range thay {
++		if !co[a] && !daBao[a] {
++			daBao[a] = true
++			loi = append(loi, fmt.Sprintf("bảng công khai khai %s nhưng KHÔNG khoá nào trong keys.txt mở được", a))
++		}
++	}
++	fmt.Printf("  ✓ đối chiếu chéo: %d địa chỉ trong %s đều có khoá\n", len(thay)-len(loi), p)
++	return loi
++}
