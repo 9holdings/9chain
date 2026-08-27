@@ -1,0 +1,100 @@
+9Chain-A1 — third-party notices
+================================
+
+9Chain-A1 is a sovereign fork of avalanchego. It keeps the consensus and VM core
+unchanged and replaces only the identity layer (client name, token name/symbol,
+address HRP, VM ID, network ID, chain ID). See scripts/rebrand.sh for the exact
+surface that is changed.
+
+This file lists everything in or around this repository that is NOT covered by
+the BSD-3-Clause grant in LICENSE.
+
+--------------------------------------------------------------------------------
+1. avalanchego — BSD-3-Clause
+--------------------------------------------------------------------------------
+
+    Copyright (C) 2019, Ava Labs, Inc. All rights reserved.
+    https://github.com/ava-labs/avalanchego
+
+The fork itself lives at `upstream/avalanchego/` and is a separate git
+repository; it carries its own LICENSE file with the full BSD-3-Clause text.
+
+IMPORTANT — this repository carries avalanchego-derived code directly:
+
+    patches/*.patch
+
+Those patch files contain fragments of avalanchego source. They are derivative
+works of BSD-3-Clause code and remain under BSD-3-Clause with the Ava Labs
+copyright intact. Redistributing this repository redistributes them.
+
+The Docker image built from `local-net/Dockerfile` links the avalanchego code
+and is likewise subject to these terms.
+
+--------------------------------------------------------------------------------
+2. coreth and subnet-evm — LGPL-3.0 (and GPL-3.0 for some files)
+--------------------------------------------------------------------------------
+
+    upstream/avalanchego/graft/coreth/
+    upstream/avalanchego/graft/subnet-evm/
+
+Both contain code derived from go-ethereum and ship COPYING (GPL-3.0),
+COPYING.LESSER (LGPL-3.0) and LICENSE files of their own. 9Chain-A1 does not
+modify their Go source; the only change in this area is a build-time constant:
+
+    graft/subnet-evm/scripts/constants.sh   VM ID "subnetevm" -> "love9evm"
+
+The L1 EVM plugin distributed in the node image is built from subnet-evm and is
+covered by those licenses, not by LICENSE in this repository. Anyone
+redistributing the node image must honour the LGPL obligations, including
+providing the corresponding source for the EVM components.
+
+--------------------------------------------------------------------------------
+3. Solidity contracts — MIT
+--------------------------------------------------------------------------------
+
+    local-net/contracts/AssetBridge.sol
+    local-net/contracts/IWarpMessenger.sol
+
+These declare `SPDX-License-Identifier: MIT` in their headers. That declaration
+governs, not LICENSE.
+
+`IWarpMessenger.sol` mirrors the Warp precompile interface published by Ava Labs.
+
+--------------------------------------------------------------------------------
+4. Runtime dependencies
+--------------------------------------------------------------------------------
+
+Not vendored into this repository; each keeps its own license.
+
+    ethers            MIT      faucet, console, deploy-test
+    solc              MIT      contract compilation
+    Next.js, React    MIT      web/
+    Tailwind CSS      MIT      web/
+    Blockscout        GPL-3.0  explorer-full/ (upstream stack, run as-is)
+    Caddy             Apache-2.0
+    PostgreSQL, Redis PostgreSQL / BSD-3
+
+`explorer-full/blockscout/` is a clone of the upstream Blockscout repository and
+is NOT tracked here — only the override files that configure it are.
+
+--------------------------------------------------------------------------------
+5. Trademarks
+--------------------------------------------------------------------------------
+
+"Avalanche" and "AvalancheGo" are marks of Ava Labs, Inc. 9Chain-A1 does not use
+them for branding. Where they appear in this repository they identify the
+upstream software the project is built on — an accurate statement of origin, not
+a claim of affiliation or endorsement.
+
+9Chain-A1 is an independent project. It is not affiliated with, sponsored by, or
+endorsed by Ava Labs, Inc.
+
+--------------------------------------------------------------------------------
+6. Brand assets
+--------------------------------------------------------------------------------
+
+    web/public/brand/*
+
+The 9Chain and LOVE9 marks and logo files are property of the 9Chain project and
+are NOT covered by the BSD-3-Clause grant in LICENSE. The code license does not
+grant permission to use the marks.

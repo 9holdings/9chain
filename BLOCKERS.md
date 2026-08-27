@@ -6,6 +6,55 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### 🔴 B-9 — MÀU ĐỎ THƯƠNG HIỆU AVALANCHE CÒN TRONG `patches/0003` (2026-08-27)
+
+`#e84142` là **đúng đỏ thương hiệu của Avalanche**. Soát `27/08` tìm thấy nó ở 4 tệp
+HTML tự viết + **`patches/0003-9chain-a1-bo-cong-cu-chu-quyen-netgen-cli-create-l1-.patch`**.
+
+| Chỗ | Trạng thái |
+|---|---|
+| `local-net/chains/index.html` (4 lần) — **công khai** | ✅ **đã sửa `27/08`** |
+| `console/` (3) · `dashboard/` (4) · `explorer/` (2) | ⚫ không còn phục vụ — chưa sửa, không gấp |
+| 🔴 **`patches/0003-*.patch`** | 🔴 **CHƯA — và đây mới là chỗ đắt** |
+
+**Vì sao patch khác ba tệp kia:** nó là một trong **12 patch tái lập lớp chủ quyền**, tức
+màu đó **đi vào công cụ mà mọi lần dựng lại fork đều áp**. Không phải rác để dọn.
+
+⚠️ Và một sovereign fork tự khai *"không dùng nhãn hiệu Avalanche cho branding"*
+(`README.md`, `NOTICE`) mà mang màu thương hiệu của họ trong công cụ chủ quyền là **rủi
+ro nhận diện/pháp lý**, không phải chuyện thẩm mỹ.
+
+🔴 **Cần David quyết:** sửa patch (⇒ đổi tree hash, phải sinh lại patch series và nghiệm
+thu lại bằng `git am --keep-cr` + so tree), hay để sau ngày G. **A1 không tự quyết** vì
+đụng patch series là đụng đường tái lập fork, mà ngày G phụ thuộc vào nó.
+
+⚠️ Không cổng nào bắt được lớp lỗi này: `check-consistency.mjs` canh SỐ,
+`web/test/token.test.ts` canh MÀU CỦA HỆ TOKEN — **không cái nào canh màu cắm cứng trong
+HTML tự viết hay trong patch**. Chi tiết: `docs/BRAND-AUDIT-2026-08-27.md` mục M.
+
+### 🔴 B-10 — CLOUDFLARE ĐANG CHE `robots.txt` CỦA CHÍNH MÌNH (2026-08-27)
+
+`web/public/robots.txt` **đã có tệp, đã có route trong Caddyfile, đã deploy** — và vẫn
+không tới được người đọc. Đo `27/08`:
+
+| | `cf-cache-status` | Nội dung trả về |
+|---|---|---|
+| `/sitemap.xml` | `DYNAMIC` → **tới origin** | sitemap thật của ta ✅ |
+| `/robots.txt` | **`MISS` + `Cache-Control: max-age=14400`** | *"As a condition of accessing this website…"* 🔴 |
+
+`DYNAMIC` = yêu cầu đi tới origin. `MISS` + `max-age` **ở một đường mà origin có tệp
+thật** = Cloudflare tự sinh phản hồi và **không hỏi origin**. Zone `9chain.org` đang bật
+**Managed robots.txt / Content Signals Policy**.
+
+🔴 **Cần David:** tắt tính năng đó trong **dashboard Cloudflare** (Settings → Content
+Signals / robots.txt management). **Không sửa được từ mã nguồn hay từ Caddy** — đừng ngồi
+thử thêm một vòng route nữa. Tệp + route đã giữ nguyên, nó ăn ngay khi tính năng kia tắt.
+
+⚠️ **Ca xanh giả sách giáo khoa:** `curl -o /dev/null -w '%{http_code}'` trả **200** và
+`content-type` cũng đúng **text/plain**. Chỉ đọc **nội dung** — hoặc đọc **header
+`cf-cache-status`** — mới thấy. Cảnh báo đã ghi vào chính `web/public/robots.txt` và
+Caddyfile để người sau không tưởng nó đang chạy.
+
 ### ✅ B-7 — ĐÃ TRẢ LỜI (2026-08-25) — phân biệt được sẵn, không cần trường mới
 **Trả lời đầy đủ:** `docs/requests-from-9scan/2026-08-25-node-tracking-TRA-LOI.md`.
 Tóm tắt: `console-chains.json` đã tách bằng **cấu trúc** — mảng `chains` (6, đang
