@@ -2089,3 +2089,78 @@ dịch trong khoảng giữa sẽ biến mất không dấu vết nếu tin bả
 
 *(Lượt `26/08` bỏ lỡ bước này ⇒ câu hỏi "20M/70M có thật trên chain cũ không" vĩnh viễn không
 trả lời được. Đây là lần đầu A1 xoá một mạng mà có vật chứng.)*
+
+### D-081 — 🔴 MẠNG CÔNG KHAI ĐÃ SINH LẠI `2026-08-27` — thế hệ **g0**
+
+David yêu cầu: *"chạy lại mạng công khai để các chỉ số từ bây giờ là chuẩn nhất, không còn
+những chỉ số cũ"*. Đã chạy. **9/9 node lên, 0 lỗi.**
+
+| | Thế hệ trước | **Thế hệ 0 (nay)** |
+|---|---|---|
+| `networkID` | `9001` | **`999999999`** |
+| `info.getNetworkName` | `network-9001` | **`9chain-a1-g0`** |
+| `supplyCap` | **9.000.000.000** ❌ | **7.900.000.001** ✓ |
+| Lịch nâng cấp | `Default` của Ava Labs | `upgrade.A1` |
+| HRP | qua `FallbackHRP` | khai tường minh trong `NetworkIDToHRP` |
+| Đường dẫn DB | `db/network-9001` | **`db/9chain-a1-g0`** |
+| `eth_chainId` | `9000000009` | **`9000000009`** — GIỮ, xem §8.2 đề xuất |
+| Patch trong image | ~12 | **18** (tree `f4615e73`) |
+
+**Bốn patch cuối (0013–0018) nay đã chạy trên mạng công khai** — trước lượt này chúng chỉ nằm
+trên đĩa. Đó là điều đắt nhất lượt này mua được, hơn cả việc sửa con số.
+
+#### Kế toán, đo trên chuỗi mới
+
+```
+trần cung P/X        7.900.000.001
+C-Chain genesis      1.099.999.999   (currentSupply KHÔNG đếm — cố ý, D-048)
+                     ─────────────
+tổng cung             9.000.000.000  ✓ đúng lời hứa công bố
+currentSupply đo      4.300.824.365
+dư địa mint           3.599.175.636  (mục tiêu 3.600.000.000)
+```
+
+Faucet **99.999.999** · Foundation C-Chain **1.000.000.000** — đo bằng `eth_getBalance`.
+🔴 **Địa chỉ faucet thế hệ trước trả `0x0`** ⇒ chứng minh đây là chuỗi thật sự mới, không phải
+cùng một chuỗi đổi tên.
+
+#### Nghiệm thu đường sản phẩm
+
+| | |
+|---|---|
+| 6 trang công khai | **200** hết |
+| RPC | `eth_chainId` = `0x218711a09` |
+| Console API không token | từ chối đúng cách |
+| Header chống nhúng (D-073) | `frame-ancestors 'self'` + `SAMEORIGIN` **còn nguyên** |
+| 🔴 **Giao dịch thật** | faucet drip `0x635f2183…` ⇒ đọc lại **từ chain**: `0x…dEaD` có **10 LOVE9** |
+
+#### 🔴 Ba thứ hỏng khi cutover — không cái nào đọc mã ra được
+
+| # | Hỏng | Vì sao đắt |
+|---|---|---|
+| 1 | `net/` do container sinh ⇒ thuộc `root` ⇒ `sed` sửa compose **thất bại lặng lẽ** | Mạng lên bằng image **CŨ** (`:dev`, `A1ID = 9001`) trong khi genesis mang `999999999`. Nếu binary cũ chấp nhận thì mạng lên với **trần 720 triệu** — im lặng |
+| 2 | 🔴 **netgen KHÔNG sinh `.env`** | Tệp đó đặt `A1_CONFIG_DIR`, `A1_API_BIND`, **`A1_HTTP_ALLOWED_HOSTS=localhost,127.0.0.1`**. Thiếu nó thì compose lấy mặc định **`--http-allowed-hosts=*`** — *nới lỏng bộ lọc Host trên node công khai*. **Chú thích trong chính tệp đó đã cảnh báo trước điều này**, và nó vẫn suýt xảy ra |
+| 3 | `docker restart` **không nạp lại env** | Faucet giữ khoá thế hệ trước ⇒ `insufficient funds`. Phải **tạo lại** container, không phải restart |
+
+⚠️ **Cả ba chỉ lộ ra khi CHẠY.** Không phép đọc mã nào bắt được, kể cả cổng năm-thứ-phải-khớp
+của netgen. Cùng bài học với D-079: **cổng chỉ chứng minh được đường mà chính nó đi.**
+
+⇒ **Việc phải làm trước ngày G:** netgen **phải sinh `.env`**, hoặc runbook phải có một dòng
+đối chứng `grep A1_HTTP_ALLOWED_HOSTS net/.env`. Hiện tại nó là thứ sống bằng trí nhớ.
+
+#### Vật chứng thế hệ trước
+
+`docs/vat-chung/o2-truoc-khi-xoa-2026-08-27/` · `GỐC` ở **D-080**.
+Bản sao trên máy chủ: `net-pre-g0-20260827-152109/` · `console.env.bak-pre-g0-*` ·
+`faucet.env.bak-pre-g0-*` · cây fork cũ ở `src/upstream/avalanchego.bak-pre-g0`.
+
+#### 🔴 Còn lại, KHÔNG được quên
+
+1. **`chain-factory` chưa nạp tiền P-Chain** ⇒ **đẻ chain chưa dùng được**. Nạp từ Foundation
+   X-Chain (`X-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g`) → X→P 9 LOVE9. Xem `VI-VAN-HANH.md`.
+2. **Blockscout đang index lại từ block 0** của chuỗi mới.
+3. **Ngày G `01/09` vẫn phải sinh lại lần nữa** — chữ khắc đi vào genesis, C1 chưa đóng băng byte.
+   ⇒ Lượt đó là **thế hệ 1**: `A1Gen 1` · `networkID 999999998` · `9chain-a1-g1` · khối chainId
+   `9001000000–9001999999`.
+4. **B-9** (`#e84142` trong `patches/0003`) **chưa làm** — David đã gật nhưng lượt này không gộp.
+   Gộp vào lượt regen của ngày G.
