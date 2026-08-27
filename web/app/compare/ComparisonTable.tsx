@@ -59,17 +59,33 @@ export function ComparisonTable() {
       <The className="p-5">
         <h2 className="font-display text-base font-bold text-ink">{t.bang.soLieuTieuDe}</h2>
         <dl className="mt-4 grid gap-4 sm:grid-cols-3">
-          {[
-            { n: t.bang.a1Validator, v: tt.pha === 'xong' ? `${tt.so.validatorKetNoi}/${tt.so.validatorTong}` : null },
-            { n: t.bang.a1Chain, v: tt.pha === 'xong' ? String(tt.so.soL1) : null },
-            { n: t.bang.a1Block, v: tt.pha === 'xong' ? dinhDangSo(tt.so.chieuCaoBlock, ma) : null },
-          ].map((x) => (
+          {/* Ba trạng thái MỖI Ô (Đ1-8): `undefined` đang đo · `string` đo được ·
+              `null` ô này vắng. Xem `lib/stats.ts` cho vì sao một nguồn hỏng không
+              còn kéo theo hai ô kia. */}
+          {(() => {
+            const s = tt.pha === 'xong' ? tt.so : null;
+            return [
+              {
+                n: t.bang.a1Validator,
+                v: !s ? undefined : s.validatorTong === null ? null : `${s.validatorKetNoi}/${s.validatorTong}`,
+              },
+              { n: t.bang.a1Chain, v: !s ? undefined : s.soL1 === null ? null : String(s.soL1) },
+              {
+                n: t.bang.a1Block,
+                v: !s ? undefined : s.chieuCaoBlock === null ? null : dinhDangSo(s.chieuCaoBlock, ma),
+              },
+            ];
+          })().map((x) => (
             <div key={x.n}>
               <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{x.n}</dt>
               <dd className="font-display text-2xl font-extrabold text-ink">
-                {x.v ?? (tt.pha === 'hong'
-                  ? <span className="font-sans text-sm font-normal text-muted">{t.bang.khongDo}</span>
-                  : <><span className="sr-only">{t.bang.dangDo}</span><Xuong className="h-8 w-16" /></>)}
+                {x.v !== undefined && x.v !== null ? (
+                  x.v
+                ) : x.v === null || tt.pha === 'hong' ? (
+                  <span className="font-sans text-sm font-normal text-muted">{t.bang.khongDo}</span>
+                ) : (
+                  <><span className="sr-only">{t.bang.dangDo}</span><Xuong className="h-8 w-16" /></>
+                )}
               </dd>
             </div>
           ))}

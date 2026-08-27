@@ -5,7 +5,8 @@ import { Nut, The, O, Nhan, Xuong, CoLoi, LuuY, ChepDuoc, TrongRong, CacBuoc, ty
 import { rutGon } from '@/lib/eip55';
 import { rpcGoc } from '@/lib/chain';
 import { dien, useT } from '@/lib/i18n';
-import { layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, choTienTrinhXong, docLoiVi, LoiConsole, type PhienVi } from '@/lib/wallet';
+import { docJson, HAN_DOC_MS } from '@/lib/mang';
+import { layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, choTienTrinhXong, docLoiVi, LoiConsole, type PhienVi, HAN_CONSOLE_GIAY} from '@/lib/wallet';
 
 type Chain = {
   name: string; chainId: number; subnetID: string; blockchainID: string;
@@ -26,15 +27,20 @@ type TienTrinh = { running: boolean; steps: MotBuoc[]; etaSeconds: number };
  * Chain đã thu hồi vẽ từ mảng `retired` với nhãn riêng.
  */
 async function demValidator(subnetID: string): Promise<number> {
-  const r = await fetch(`${rpcGoc()}/ext/bc/P`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0', id: 1, method: 'platform.getCurrentValidators', params: { subnetID },
-    }),
-    cache: 'no-store',
-  });
-  const j = await r.json();
+  // Hạn giờ (Đ1-8) — an toàn: đây là lượt ĐỌC số validator của một subnet, không
+  // phải `/api/create` hay `/api/revoke`. Không có hạn thì một RPC treo để cột
+  // "tình trạng" quay mãi, và người dùng ngồi nhìn một cái vòng không bao giờ dừng.
+  const j = await docJson<{ result?: { validators?: unknown[] }; error?: { message?: string } }>(
+    `${rpcGoc()}/ext/bc/P`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1, method: 'platform.getCurrentValidators', params: { subnetID },
+      }),
+    },
+    HAN_DOC_MS / 1000,
+  );
   if (j.error) throw new Error(j.error.message);
   return (j.result?.validators ?? []).length;
 }
@@ -64,7 +70,7 @@ export function MyChainsScreen() {
   const nap = useCallback(async (token: string) => {
     datLoiTai(false);
     try {
-      datTt(await goiConsole<TrangThai>('/api/status', token));
+      datTt(await goiConsole<TrangThai>('/api/status', token, undefined, HAN_CONSOLE_GIAY));
     } catch {
       datLoiTai(true);
     }
@@ -117,7 +123,7 @@ export function MyChainsScreen() {
     if (!chay || !phien) return;
     const doc = async () => {
       try {
-        datTienTrinh(await goiConsole<TienTrinh>('/api/progress', phien.token));
+        datTienTrinh(await goiConsole<TienTrinh>('/api/progress', phien.token, undefined, HAN_CONSOLE_GIAY));
       } catch { /* một nhịp hỏng không phải lý do bỏ cuộc — server vẫn đang chạy */ }
     };
     void doc();
@@ -153,7 +159,7 @@ export function MyChainsScreen() {
     // trong `chains`.
     let conSong = true;
     try {
-      const st = await goiConsole<TrangThai>('/api/status', phien.token);
+      const st = await goiConsole<TrangThai>('/api/status', phien.token, undefined, HAN_CONSOLE_GIAY);
       datTt(st);
       conSong = st.chains.some((x) => x.name === c.name);
       if (!conSong) {

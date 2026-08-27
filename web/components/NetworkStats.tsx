@@ -34,17 +34,33 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
     );
   }
 
-  const o = [
-    {
-      nhan: t.soLieu.validator,
-      gt: tt.pha === 'xong' ? `${tt.so.validatorKetNoi}/${tt.so.validatorTong}` : null,
-    },
-    { nhan: t.soLieu.soL1, gt: tt.pha === 'xong' ? String(tt.so.soL1) : null },
-    {
-      nhan: t.soLieu.chieuCao,
-      gt: tt.pha === 'xong' ? dinhDangSo(tt.so.chieuCaoBlock, ma) : null,
-    },
-  ];
+  /**
+   * Ba trạng thái MỖI Ô, không phải ba trạng thái cả dải (Đ1-8):
+   *   `undefined` — đang đo    ⇒ khung xương
+   *   `string`    — đo được    ⇒ con số
+   *   `null`      — ô này vắng ⇒ gạch ngang + lời khai cho trình đọc màn hình
+   *
+   * 🔴 Gạch ngang, KHÔNG phải `0`. `0` là một con số, và ở đây nó sẽ là một con số
+   * SAI: "0 validator" đọc như mạng chết, trong khi sự thật là ta chưa hỏi được.
+   * Đó đúng thứ luật cũ của tệp này cấm — và nó vẫn được giữ nguyên.
+   */
+  const s = tt.pha === 'xong' ? tt.so : null;
+  const o: { nhan: string; gt: string | null | undefined }[] = !s
+    ? [{ nhan: t.soLieu.validator }, { nhan: t.soLieu.soL1 }, { nhan: t.soLieu.chieuCao }].map((x) => ({
+        ...x,
+        gt: undefined, // chưa đo xong ⇒ cả ba ô là khung xương
+      }))
+    : [
+        {
+          nhan: t.soLieu.validator,
+          gt: s.validatorTong === null ? null : `${s.validatorKetNoi}/${s.validatorTong}`,
+        },
+        { nhan: t.soLieu.soL1, gt: s.soL1 === null ? null : String(s.soL1) },
+        {
+          nhan: t.soLieu.chieuCao,
+          gt: s.chieuCaoBlock === null ? null : dinhDangSo(s.chieuCaoBlock, ma),
+        },
+      ];
 
   return (
     <div className="mt-8">
@@ -56,7 +72,17 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
           <div key={x.nhan}>
             <dt className={nhanLop}>{x.nhan}</dt>
             <dd className={soLop}>
-              {x.gt ?? (
+              {x.gt !== undefined && x.gt !== null ? (
+                x.gt
+              ) : x.gt === null ? (
+                /* Ô này vắng: gạch ngang thấy được + lời khai nghe được. Trình đọc
+                   màn hình phải NGHE ĐƯỢC sự khác nhau giữa "—" và một con số, nếu
+                   không thì với họ ô vắng và ô bằng 0 là một. */
+                <>
+                  <span aria-hidden="true">—</span>
+                  <span className="sr-only">{t.soLieu.khongDo}</span>
+                </>
+              ) : (
                 <>
                   {/* Khung xương có nhãn cho trình đọc màn hình — nếu không, người
                       dùng nghe một danh sách rỗng và không biết đang chờ gì. */}

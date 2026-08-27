@@ -18,6 +18,16 @@
  */
 import { faucetGoc } from './chain';
 
+/**
+ * Hạn giờ cho các lượt gọi console NGẮN (`/api/status`, `/api/progress`). (Đ1-8)
+ *
+ * 🔴 KHÔNG dùng cho `/api/create` / `/api/revoke` — xem chú thích ở `goiConsole`.
+ * Để rộng rãi (15s) có chủ ý: đây là các lượt đọc chạy XEN GIỮA một thao tác dài,
+ * và mạng lúc đó đang bận thật. Hạn quá chặt sẽ biến một nhịp chậm bình thường
+ * thành một lỗi giả ngay giữa lúc người dùng đang hồi hộp nhất.
+ */
+export const HAN_CONSOLE_GIAY = 15;
+
 export type ViTrinhDuyet = {
   request(a: { method: string; params?: unknown[] }): Promise<unknown>;
 };
@@ -185,20 +195,46 @@ export class LoiConsole extends Error {
   }
 }
 
+/**
+ * @param hanGiay Hạn giờ, tính bằng **giây**. Bỏ trống = **KHÔNG hạn giờ**, và đó là
+ *   mặc định CÓ CHỦ Ý (Đ1-8).
+ *
+ * 🔴 `/api/create` và `/api/revoke` TUYỆT ĐỐI KHÔNG ĐƯỢC TRUYỀN `hanGiay`.
+ * Chúng mất ~170–300 giây thật; huỷ request giữa chừng thì **server vẫn đẻ chain
+ * xong** trong khi người dùng thấy "lỗi" và đi bấm lại. Cloudflare đã cắt ở ~100s
+ * (524) và mã này vốn được viết để SỐNG CHUNG với điều đó — xem `choTienTrinhXong`.
+ *
+ * ⇒ Chiều mặc định chọn có chủ ý: **quên bật** hạn giờ thì cùng lắm chậm như hôm
+ *   nay; **quên tắt** thì gãy một đường không sửa lại được. Chỉ bật ở lượt gọi đã
+ *   biết chắc là ngắn (`/api/status`, `/api/progress`).
+ */
 export async function goiConsole<T = unknown>(
   duong: string,
   token: string,
   body?: unknown,
+  hanGiay?: number,
 ): Promise<T> {
-  const r = await fetch(`${consoleGoc()}${duong}`, {
-    method: body === undefined ? 'GET' : 'POST',
-    headers: {
-      authorization: `Bearer ${token}`,
-      ...(body === undefined ? {} : { 'content-type': 'application/json' }),
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-    cache: 'no-store',
-  });
+  let r: Response;
+  try {
+    r = await fetch(`${consoleGoc()}${duong}`, {
+      method: body === undefined ? 'GET' : 'POST',
+      headers: {
+        authorization: `Bearer ${token}`,
+        ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      cache: 'no-store',
+      ...(hanGiay ? { signal: AbortSignal.timeout(hanGiay * 1000) } : {}),
+    });
+  } catch (e) {
+    // 🔴 `status: 0` LÀ PHẦN QUAN TRỌNG. Hết giờ / đứt mạng nghĩa là ta **không biết**
+    // server đã làm gì — có thể nó đang làm xong. `laTuChoiThat` đọc `status >= 400`,
+    // nên 0 giữ nó `false`, và màn hình sẽ **chờ tiếp** thay vì kết luận "bị từ chối".
+    // Nhầm chiều này là kiểu hỏng đắt nhất: bỏ cuộc giữa một việc đang chạy đúng.
+    const ten = (e as Error)?.name;
+    const het = ten === 'TimeoutError' || ten === 'AbortError';
+    throw new LoiConsole(het ? `quá ${hanGiay}s không có trả lời` : String((e as Error)?.message ?? e), 0);
+  }
   const t = await r.text();
   let j: unknown;
   try {
@@ -267,7 +303,7 @@ export async function choTienTrinhXong(
   let daThayChay = false;
   while (Date.now() < hetLuc) {
     try {
-      const t = await goiConsole<TienTrinh>('/api/progress', token);
+      const t = await goiConsole<TienTrinh>('/api/progress', token, undefined, HAN_CONSOLE_GIAY);
       cuoi = t;
       if (t.running) daThayChay = true;
       // Chỉ kết luận "xong" SAU KHI đã thấy nó chạy: gọi quá sớm thì hàng đợi chưa

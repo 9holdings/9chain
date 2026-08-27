@@ -6,8 +6,7 @@ import { rutGon } from '@/lib/eip55';
 import { dien, useT } from '@/lib/i18n';
 import {
   layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, kichHoatChain, choTienTrinhXong, LoiConsole,
-  docLoiVi, type PhienVi,
-} from '@/lib/wallet';
+  docLoiVi, type PhienVi, HAN_CONSOLE_GIAY} from '@/lib/wallet';
 
 /**
  * Màn đẻ chain — màn khó nhất của M10, và ba sự thật của SẢN PHẨM ép hình dạng nó,
@@ -68,7 +67,7 @@ export function CreateChainScreen() {
   }, []);
 
   const napTrangThai = useCallback(async (token: string) => {
-    const s = await goiConsole<TrangThai>('/api/status', token);
+    const s = await goiConsole<TrangThai>('/api/status', token, undefined, HAN_CONSOLE_GIAY);
     datTt(s);
     if (s.presets?.length && !s.presets.some((p) => p.id === preset)) datPreset(s.presets[0].id);
   }, [preset]);
@@ -105,7 +104,7 @@ export function CreateChainScreen() {
     if (pha !== 'chay' || !phien) return;
     const doc = async () => {
       try {
-        datTienTrinh(await goiConsole<TienTrinh>('/api/progress', phien.token));
+        datTienTrinh(await goiConsole<TienTrinh>('/api/progress', phien.token, undefined, HAN_CONSOLE_GIAY));
       } catch {
         /* Một nhịp đọc hỏng KHÔNG phải lý do để bỏ cuộc: lượt đẻ vẫn đang chạy ở
            server. Giữ nguyên bước cuối đã biết và đọc lại ở nhịp sau. */
@@ -158,7 +157,7 @@ export function CreateChainScreen() {
 
     // POST không về được ⇒ hỏi DANH BẠ xem chain có thật sự tồn tại không.
     try {
-      const st = await goiConsole<{ chains: KetQua[] } & TrangThai>('/api/status', phien.token);
+      const st = await goiConsole<{ chains: KetQua[] } & TrangThai>('/api/status', phien.token, undefined, HAN_CONSOLE_GIAY);
       datTt(st);
       const co = st.chains.find((c) => c.name === ten.trim());
       if (co) {

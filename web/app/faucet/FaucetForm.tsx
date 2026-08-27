@@ -5,6 +5,7 @@ import { Nut, The, O, Nhan, Xuong, CoLoi, ChepDuoc, LuuY } from '@/components/ui
 import { kiemDiaChi, rutGon } from '@/lib/eip55';
 import { CHAIN, faucetGoc, rpcCChain, explorerGoc, thamSoThemMang } from '@/lib/chain';
 import { dien, useT } from '@/lib/i18n';
+import { docJson, HAN_DOC_MS } from '@/lib/mang';
 import { layVi, docLoiVi } from '@/lib/wallet';
 
 type ThongTin = {
@@ -41,9 +42,10 @@ export function FaucetForm() {
   const napTin = useCallback(async () => {
     datTin({ pha: 'tai' });
     try {
-      const r = await fetch(`${faucetGoc()}/api/info`, { cache: 'no-store' });
-      if (!r.ok) throw new Error(String(r.status));
-      datTin({ pha: 'xong', tin: (await r.json()) as ThongTin });
+      // Hạn giờ (Đ1-8) — an toàn ở đây: `/api/info` là lượt ĐỌC hạn mức, không tiêu
+      // suất và không đụng chain. (Đường tiêu suất là `/api/drip` bên dưới.)
+      const tin = await docJson<ThongTin>(`${faucetGoc()}/api/info`, {}, HAN_DOC_MS / 1000);
+      datTin({ pha: 'xong', tin });
     } catch {
       // Không đọc được hạn mức KHÔNG phải lỗi chặn: người dùng vẫn xin được, chỉ là
       // không biết trước còn mấy lượt. Nói đúng điều đó thay vì dựng một màn lỗi.
