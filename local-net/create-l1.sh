@@ -14,6 +14,15 @@ COMPOSE="docker compose -f local-net/docker-compose.yml"
 L1_NAME="${1:-9ChainA1L1}"
 
 echo "==> [1/4] Đảm bảo node 9Chain-A1 đang chạy"
+# 🔴 Genesis của node dev nay do netgen sinh (`local-net/net/`), không còn lấy từ
+# `9chain-a1-config/genesis.json`. Xem docs/CORE-AUDIT-2026-08-27.md §7b.
+# ⚠️ `l1-evm-genesis.json` thì VẪN ở `9chain-a1-config/` — đó là khuôn genesis cho
+# L1 EVM, khác hẳn genesis của mạng. Bước [2/4] bên dưới vẫn đọc từ đó.
+if [ ! -f "local-net/net/genesis.json" ]; then
+  echo "    LOI: thieu local-net/net/genesis.json" >&2
+  echo "    -> chay 'bash local-net/gen-network.sh 5' truoc" >&2
+  exit 1
+fi
 $COMPOSE up -d >/dev/null
 for i in $(seq 1 24); do
   curl -s -m 3 -X POST --data '{"jsonrpc":"2.0","id":1,"method":"health.health"}' \

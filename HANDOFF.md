@@ -64,7 +64,7 @@ nhau, mà không nói con số nào mới đúng, là chú thích chưa hoàn th
 
 | | |
 |---|---|
-| Tái lập | 13 patch lên `1cf1fc3` → tree **`a8edf74a`** = cây fork, **khớp từng byte** |
+| Tái lập | 13 patch lên `1cf1fc3` → tree **`0f497b37`** = cây fork, **khớp từng byte** |
 | Biên dịch | `go vet` + `go build` sạch (container `golang:1.25.10`) |
 | netgen N=9 | X/P 4.300.000.001 ≤ trần 7.900.000.001 · trần + C-Chain = 9 tỷ · dư địa mint 3,6 tỷ |
 | genesis sinh ra | phân tích lại **độc lập** bằng Python: 6 alloc · 9 staker · offset 604800 · X/P + C-Chain = 5.400.000.000 ✓ |
@@ -91,11 +91,36 @@ cảnh báo về chính cổng này. Nay `readFileSync` thẳng `genesis_9chain_
   dòng, xem D-050.
 - **Runbook ngày G thêm một dòng đối chứng:** `grep -o '"supplyCap":[0-9]*'` phải ra
   **`7900000001000000000`**.
-- **Chưa làm, không chạm binary:** gỡ `9chain-a1-config/genesis.json` khỏi đường boot của
-  `local-net/docker-compose.yml` (nó là `genesis_local.json` của Avalanche — khoá ewoq công
-  khai giữ 50 triệu, địa chỉ `X-local1…`, stake hết hạn `2025-07-15`), và **sửa con trỏ khắc
-  chữ** trong `NGAY-G-A1-CON-LAI.md` + `PLAN-REGENESIS` — cả hai đang trỏ vào `:95
-  "{{ fun_quote }}"` của tệp đó, trong khi ô khắc thật ở `netgen/engrave.go`.
+#### ✅ XONG `27/08` — gỡ genesis cũ khỏi đường boot + sửa con trỏ khắc chữ
+
+🔴 **`9chain-a1-config/genesis.json` ĐÃ XOÁ.** Nó là `genesis_local.json` **gốc của
+Avalanche**, đổi đúng một trường `networkID`: khoá **ewoq** công khai giữ **50.000.000** trên
+C-Chain · 3 địa chỉ `X-local1…` khoá riêng nằm trong repo avalanchego ·
+`NodeID-7Xhw2mDxuDS44j42TCB6U5579esbSt3Lg` · HRP `local` trong khi binary phục vụ `love9` ·
+stake **hết hạn `2025-07-15`**.
+
+Mạng công khai **chưa bao giờ** dùng nó (netgen dựng genesis trong Go). Nhưng **node dev thì
+có** — và tệ hơn: `up-all.sh` lấy khoá faucet từ `local-net/net/faucet.env` do netgen sinh,
+tức **node dev và ví faucet dev thuộc hai mạng khác nhau, ví luôn rỗng**. Mâu thuẫn đó nay hết.
+
+| Đường boot | Trước | Sau |
+|---|---|---|
+| `local-net/docker-compose.yml` | `/9chain-a1/config/genesis.json` | **`/9chain-a1/net/genesis.json`** (netgen sinh) |
+| `up-all.sh` · `create-l1.sh` · `9chain-a1 up` | boot thẳng | **dừng + chỉ chạy `gen-network.sh`** nếu thiếu `net/genesis.json` |
+
+⚠️ `9chain-a1-config/` **vẫn còn và vẫn mount** — nó giữ `l1-evm-genesis.json` (khuôn genesis
+cho L1 EVM, `create-l1` đọc). Chỉ `genesis.json` của **mạng** là biến mất.
+
+**Con trỏ khắc chữ đã sửa ở 5 chỗ** — `NGAY-G-A1-CON-LAI.md` §3 · `PLAN-REGENESIS` §G5 +
+G5a + mục (d) · `KHAC-CHU-NGAY-G.md` luật 3 · `README.md` bảng identity ·
+`netgen/main.go` (chú thích trong mã). Cả năm từng trỏ vào `:95 "{{ fun_quote }}"` của tệp đã
+xoá, trong khi **netgen không đọc tệp cấu hình nào** — nó dựng `UnparsedConfig` thẳng trong Go.
+🔴 **Ai đi theo con trỏ cũ sẽ sửa một tệp không ai đọc, và KHÔNG có gì báo lỗi**: lượt sinh
+mạng vẫn chạy, genesis vẫn hợp lệ, chữ khắc vẫn là chuỗi mặc định. Cùng họ với *"đường lui
+alias = xanh giả"*.
+
+*(Chú thích trong `netgen/main.go` nằm trong patch 0013 ⇒ tree đổi sang **`0f497b37`**, đã
+nghiệm thu lại bằng `git am --keep-cr` 13 patch.)*
 
 ---
 

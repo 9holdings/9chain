@@ -109,17 +109,33 @@ viết lại theo trần 9 tỷ.
 
 ## 3. 🔴 G5 — khắc chữ: chưa làm gì, và có ràng buộc thứ tự với C1
 
-Đây là **toàn bộ lý do** của ngày G. Trạng thái: **0%**.
+Đây là **toàn bộ lý do** của ngày G. Cơ chế: **xong** (patch 0010 + 0011). Nội dung: **0%**.
 
-### Chỗ khắc đã có sẵn, đã đo
+### Chỗ khắc — nằm TRONG MÃ, không nằm trong tệp cấu hình nào
 
-| Chỗ | Bằng chứng | Hiện là |
+> 🔴 **ĐÍNH CHÍNH `2026-08-27`.** Bảng này trước đây trỏ vào
+> `9chain-a1-config/genesis.json:95` `"{{ fun_quote }}"`. **Sai — tệp đó không có vai trò
+> nhân quả nào** và nay **đã bị xoá**: nó là `genesis_local.json` gốc của Avalanche (khoá
+> ewoq công khai giữ 50 triệu), còn sót trong đường boot của node dev. `netgen` **không đọc
+> tệp nào cả** — nó dựng `genesis.UnparsedConfig` thẳng trong Go. Ai đi theo con trỏ cũ để
+> sửa chữ khắc sẽ sửa một tệp không ai đọc, và **không có gì báo lỗi**.
+> Xem [`CORE-AUDIT-2026-08-27.md`](CORE-AUDIT-2026-08-27.md) §7b.
+
+| Chỗ khắc | Sinh ở đâu | Mặc định (không bật khắc) |
 |---|---|---|
-| **P-Chain** `Message` | `9chain-a1-config/genesis.json:95` `"{{ fun_quote }}"`, netgen điền ở `netgen/main.go:222` | `"9Chain-A1 sovereign genesis"` |
-| **C-Chain** `extraData` + `alloc` | khuôn cChainGenesis | `"0x00"` |
+| **P-Chain** `Message` | `netgen/main.go` → `pChainMessage()`, nội dung từ `netgen/engrave.go` → `canonicalBundle(docs, "p")` | `"9Chain-A1 sovereign genesis"` |
+| **C-Chain** `alloc` (hợp đồng dữ liệu) + `extraData` | `netgen/main.go` → `cChainGenesis()`, nội dung từ `canonicalBundle(docs, "c")` | `extraData` = `"0x00"`, không có hợp đồng |
+
+**Bật khắc:** `A1_ENGRAVE=<manifest.json>` + `A1_ENGRAVE_CHECKSUMS=<CHECKSUMS-FREEZE của C1>`
++ `A1_ENGRAVE_CONFIRM=<vân tay>`. Mặc định **KHÔNG khắc** — đó là cổng *"bản tập ≠ bản thật"*.
+Cách dùng đầy đủ: [`KHAC-CHU-NGAY-G.md`](KHAC-CHU-NGAY-G.md).
 
 ✅ Ô trống **có thật**, không phải giả định. `GenesisCodec = codec.NewManager(math.MaxInt32)` ⇒
 trường `Message` không giới hạn thực tế ⇒ chứa được trọn bộ tài liệu.
+
+🔴 **Tuyệt đối không sửa tay genesis đã sinh ra** (`local-net/net*/genesis.json`): C-Chain
+genesis nằm trong đó dưới dạng **chuỗi JSON đã escape trên một dòng**; sửa tay là hỏng escape
+và không ai thấy cho tới lúc node boot.
 
 ### Quyết định đã chốt `26/08` (giữ nguyên, A1 không phản đối)
 
@@ -147,8 +163,9 @@ không — mỗi thứ đổi một byte là đổi cả `sha256`, và số đó
    thứ tự cố định — để `sha256` **từng tài liệu** vẫn tính ra và đối chiếu được với C1.
    *(Nhét thành một khối văn bản trộn là mất vật chứng đồng nhất mạnh nhất đang có.)*
 2. Sinh hợp đồng dữ liệu C-Chain trong netgen + `extraData` = 32 byte hash.
-   🔴 **Tuyệt đối không sửa tay `9chain-a1-config/genesis.json`** — C-Chain genesis nằm ở đó dưới
-   dạng **chuỗi JSON đã escape**; sửa tay là hỏng escape và không ai thấy cho tới lúc boot.
+   🔴 **Tuyệt đối không sửa tay genesis đã sinh** (`local-net/net*/genesis.json`) — C-Chain
+   genesis nằm ở đó dưới dạng **chuỗi JSON đã escape**; sửa tay là hỏng escape và không ai thấy
+   cho tới lúc boot. *(Bản trước ghi `9chain-a1-config/genesis.json` — sai, xem đính chính ở §3.)*
 3. Bài kiểm đọc ngược: lấy `Message` từ P-Chain genesis + `eth_getCode` từ C-Chain, băm lại từng
    tài liệu, so với bản đóng băng của C1. **Chạy được bằng một lệnh** — đây là ô ✓/✗ mạnh nhất
    trong scorecard A1↔C1.

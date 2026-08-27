@@ -1,4 +1,4 @@
-From 07bc36d15ab012b290a67155ed7cd8c68d1c6d9b Mon Sep 17 00:00:00 2001
+From bba6ea1938a510a09f79a017c4c6b46b10865a34 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Thu, 27 Aug 2026 10:14:11 +0400
 Subject: [PATCH] =?UTF-8?q?9chain-a1:=20soat=20core=20=E2=80=94=20ke=20toa?=
@@ -76,11 +76,11 @@ Chi tiet: docs/CORE-AUDIT-2026-08-27.md
 ---
  9chain-a1-tools/netgen/allocation.go | 134 ++++++++++++++++++++++-----
  9chain-a1-tools/netgen/engrave.go    |  92 ++++++++++++++++--
- 9chain-a1-tools/netgen/main.go       |  28 +++++-
+ 9chain-a1-tools/netgen/main.go       |  41 +++++++-
  genesis/genesis_9chain_a1.go         |  68 ++++++++++++--
  upgrade/upgrade.go                   |  49 ++++++++++
  utils/constants/network_ids.go       |  41 ++++++++
- 6 files changed, 372 insertions(+), 40 deletions(-)
+ 6 files changed, 382 insertions(+), 43 deletions(-)
 
 diff --git a/9chain-a1-tools/netgen/allocation.go b/9chain-a1-tools/netgen/allocation.go
 index 700ba0b..8d2f1e3 100644
@@ -375,7 +375,7 @@ index b1ab0eb..211fba5 100644
  
  // report — bảng công khai để đối chiếu chéo với C1 và để 9Scan-A1 phơi ra.
 diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
-index 098179f..0f022a6 100644
+index 098179f..78c55a9 100644
 --- a/9chain-a1-tools/netgen/main.go
 +++ b/9chain-a1-tools/netgen/main.go
 @@ -110,9 +110,33 @@ func main() {
@@ -414,6 +414,27 @@ index 098179f..0f022a6 100644
  	canhBaoSelfBond(n)
  
  	// Chữ khắc — cũng chặn TRƯỚC khi sinh khoá. Lượt khắc hỏng mà đã sinh khoá là
+@@ -316,10 +340,17 @@ func pChainMessage(e *engraving) string {
+ // cChainGenesis dựng alloc C-Chain từ các quỹ có phần C-Chain > 0.
+ // Số dư EVM là wei (18 số 0), khác nLOVE9 của X/P (9 số 0) — nhân thêm 1e9.
+ //
+-// 🔴 HÀM NÀY LÀ LÝ DO KHÔNG ĐƯỢC SỬA TAY `9chain-a1-config/genesis.json`: C-Chain
+-// genesis nằm trong đó dưới dạng **chuỗi JSON đã escape** trên một dòng. Thêm một
+-// `alloc` mang toàn văn tài liệu nghĩa là một dòng escape rất dài — sửa tay là hỏng
++// 🔴 HÀM NÀY LÀ LÝ DO KHÔNG ĐƯỢC SỬA TAY GENESIS ĐÃ SINH (`local-net/net*/genesis.json`):
++// C-Chain genesis nằm trong đó dưới dạng **chuỗi JSON đã escape** trên một dòng. Thêm
++// một `alloc` mang toàn văn tài liệu nghĩa là một dòng escape rất dài — sửa tay là hỏng
+ // escape, và không ai thấy cho tới lúc node boot.
++//
++// ⚠️ Chú thích này (và patch 0010) trước đây trỏ vào `9chain-a1-config/genesis.json`.
++// Sai, và tệp đó **đã xoá `2026-08-27`**: netgen KHÔNG đọc tệp cấu hình nào — nó dựng
++// `genesis.UnparsedConfig` thẳng ở đây trong Go. Tệp kia là `genesis_local.json` gốc của
++// Avalanche (khoá ewoq công khai giữ 50 triệu) còn sót trong đường boot của node dev.
++// Ai đi theo con trỏ cũ để sửa chữ khắc sẽ sửa một tệp không ai đọc, **và không có gì
++// báo lỗi**. Xem `docs/CORE-AUDIT-2026-08-27.md` §7b.
+ func cChainGenesis(funds map[string]*fund, e *engraving) string {
+ 	allocs := make([]string, 0, len(buckets)+1)
+ 	for _, b := range buckets {
 diff --git a/genesis/genesis_9chain_a1.go b/genesis/genesis_9chain_a1.go
 index 4fd82d9..f0f1679 100644
 --- a/genesis/genesis_9chain_a1.go

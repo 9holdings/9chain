@@ -15,6 +15,18 @@ NODE_RPC_HOST="http://host.docker.internal:9650"
 BIND="${A1_SERVICE_BIND:-127.0.0.1}"
 
 echo "==> [1/6] Node 9Chain-A1 (9650)"
+# 🔴 Node dev nay boot bằng genesis do NETGEN sinh, không còn bằng
+# `9chain-a1-config/genesis.json` (đó là genesis gốc của Avalanche — khoá ewoq công
+# khai giữ 50 triệu). Dừng ở đây thay vì để avalanchego báo "no such file" giữa một
+# lượt `up -d --build` dài, và thay vì boot nhầm một mạng lạ.
+# Cùng lúc gỡ một mâu thuẫn cũ: bước [2/6] lấy khoá faucet từ `net/faucet.env`, nên
+# node và ví faucet phải thuộc CÙNG bộ `net/` thì ví mới có tiền.
+if [ ! -f "$ROOT/local-net/net/genesis.json" ]; then
+  echo "    LOI: thieu local-net/net/genesis.json" >&2
+  echo "    -> chay 'bash local-net/gen-network.sh 5' truoc (sinh genesis + khoa 5 quy + faucet.env)" >&2
+  echo "    Xem docs/CORE-AUDIT-2026-08-27.md §7b." >&2
+  exit 1
+fi
 docker compose -f local-net/docker-compose.yml up -d --build >/dev/null
 echo "    chờ node healthy..."
 for _ in $(seq 1 24); do

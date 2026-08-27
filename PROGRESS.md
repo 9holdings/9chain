@@ -36,6 +36,11 @@ Và §5 autopilot yêu cầu "git commit nhỏ" — không có git thì không c
 - [x] M0.2 — `git init` gốc dự án + commit đầu — 49 file, `c85d396`.
       Đã quét secret: không có `PrivateKey-*`/khoá riêng. Chuỗi `0x…` trong
       `9chain-a1-config/genesis.json` là BLS publicKey + proofOfPossession (công khai).
+      ⚠️ **Tệp đó đã XOÁ `27/08`** — nó là `genesis_local.json` gốc của Avalanche (khoá
+      ewoq công khai giữ 50 triệu, địa chỉ `X-local1…`, stake hết hạn `2025-07-15`), và
+      vẫn nằm trong đường boot của node dev. Quét secret hồi đó **đúng** — khoá công khai
+      của người khác không phải secret của mình; cái sai là **dùng nó làm genesis**.
+      Xem `docs/CORE-AUDIT-2026-08-27.md` §7b.
 - [x] M0.3 — `patches/` (3 patch) + `scripts/apply-sovereign.sh`, `2d4af01`
 - [x] M0.4 — `.gitattributes` `* -text` ở **cả hai** repo (KB: patch fail toàn bộ file khi git Windows/Linux lệch)
 - [x] M0.5 — **Kiểm chứng khôi phục đã CHẠY THẬT**: clone sạch → `apply-sovereign.sh` →

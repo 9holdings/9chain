@@ -20,6 +20,17 @@ CM="docker compose -f local-net/net/docker-compose.multinode.yml"  # multi-node
 API="http://localhost:9650"
 cli() { MSYS_NO_PATHCONV=1 $CU exec -T 9chain-a1-node /9chain-a1/build/9chain-a1-cli "$@"; }
 
+# 🔴 CẢ HAI chế độ nay boot bằng genesis do netgen sinh trong `local-net/net/`.
+# Chế độ 1 node trước đây dùng `9chain-a1-config/genesis.json` — genesis GỐC của
+# Avalanche (khoá ewoq công khai giữ 50 triệu). Xem docs/CORE-AUDIT-2026-08-27.md §7b.
+# Chặn ở đây thay vì để avalanchego chết với "no such file" sau một lượt build dài.
+can_net() {
+  [ -f "local-net/net/genesis.json" ] && return 0
+  echo "LOI: thieu local-net/net/genesis.json" >&2
+  echo "  -> 9chain-a1 net up [N]     (hoac: bash local-net/gen-network.sh 5)" >&2
+  exit 1
+}
+
 wait_health() {
   for _ in $(seq 1 24); do
     curl -s -m 3 -X POST --data '{"jsonrpc":"2.0","id":1,"method":"health.health"}' \
@@ -29,7 +40,7 @@ wait_health() {
 }
 
 case "${1:-}" in
-  up)        $CU up -d --build; echo "chờ node..."; wait_health && echo "✓ node healthy @ $API" ;;
+  up)        can_net; $CU up -d --build; echo "chờ node..."; wait_health && echo "✓ node healthy @ $API" ;;
   down)      $CU down ;;
   info)      cli info --uri "$API" ;;
   deploy)

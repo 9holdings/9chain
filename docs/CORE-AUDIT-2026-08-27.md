@@ -280,7 +280,10 @@ Rủi ro thực tế của **C-4** hôm nay thấp: netgen sinh khoá mới mỗ
 cửa duy nhất là người tự import cùng một khoá vào cả hai mạng. Nhưng bất đối xứng thiết kế
 thì có thật.
 
-### 7b. Không chạm binary, nên làm trước ngày G
+### 7b. ✅ ĐÃ SỬA `27/08` — genesis gốc của Avalanche còn trong đường boot
+
+> **Trạng thái:** tệp **đã xoá**, đường boot **đã đổi**, con trỏ khắc chữ **đã sửa ở 5 chỗ**.
+> Xem §7c ngay dưới. Phần mô tả dưới đây giữ nguyên làm bằng chứng.
 
 **`9chain-a1-config/genesis.json` là genesis gốc của Avalanche, và vẫn trong đường boot.**
 `local-net/docker-compose.yml:29` → `--genesis-file=/9chain-a1/config/genesis.json`. Tệp đó là
@@ -304,6 +307,36 @@ node, `README.md:111` trỏ vào nó làm nguồn Network ID và chainId, và �
 
 *(Chưa boot thử nên không khẳng định nó chết ở lỗi nào trước — HRP lệch hay stake hết hạn.
 Nhưng nó không thể đúng, và nó là đường boot mà README đang dạy.)*
+
+### 7c. ✅ Đã sửa — và nó gỡ luôn một mâu thuẫn không ai để ý
+
+🔴 **Phát hiện thêm khi sửa:** `up-all.sh` bước [2/6] lấy khoá faucet từ
+`local-net/net/faucet.env` **do netgen sinh**, trong khi node ở bước [1/6] boot bằng genesis
+gốc của Avalanche. ⇒ **node dev và ví faucet dev thuộc hai mạng khác nhau** — ví faucet luôn có
+số dư 0, và không có thông báo lỗi nào giải thích vì sao. Đường dev đã hỏng theo kiểu im lặng,
+có lẽ từ lúc netgen ra đời.
+
+Nay cả hai lấy từ **cùng một bộ `local-net/net/`**.
+
+| | Trước | Sau |
+|---|---|---|
+| `local-net/docker-compose.yml` | `--genesis-file=/9chain-a1/config/genesis.json` | **`/9chain-a1/net/genesis.json`**, mount `./net:/9chain-a1/net:ro` |
+| `9chain-a1-config/genesis.json` | boot thật | **đã xoá** |
+| `9chain-a1-config/l1-evm-genesis.json` | mount | **giữ nguyên** — khuôn genesis L1 EVM, `create-l1` đọc |
+| thiếu `net/genesis.json` | boot một mạng lạ | **dừng, in lệnh `gen-network.sh`** (`up-all.sh` · `create-l1.sh` · `9chain-a1 up`) |
+
+**Con trỏ khắc chữ — sửa ở 5 chỗ:** `NGAY-G-A1-CON-LAI.md` §3 · `PLAN-REGENESIS` §G5 + G5a +
+mục (d) · `KHAC-CHU-NGAY-G.md` luật 3 · `README.md` bảng identity · **`netgen/main.go`** (chú
+thích trong mã — nằm trong patch 0013, nên tree đổi sang `0f497b37`).
+
+Mỗi chỗ đều giữ lại một dòng nói **bản cũ ghi gì và vì sao sai**, thay vì im lặng thay số —
+người đọc lại tài liệu cũ (hoặc `patches/0010`, vẫn mang câu cũ vì patch là *lịch sử*) phải
+tra được vì sao hai bản khác nhau.
+
+⚠️ **Vì sao lớp lỗi này đắt:** đi theo con trỏ cũ để sửa chữ khắc thì sửa một tệp **không ai
+đọc**, và **không có gì báo lỗi** — lượt sinh mạng vẫn chạy, genesis vẫn hợp lệ, chữ khắc vẫn
+là chuỗi mặc định `"9Chain-A1 sovereign genesis"`. Cùng họ với *"đường lui alias = xanh giả"*:
+**một đường dẫn sai chỉ lộ ra khi có người đi tới cuối nó.**
 
 ---
 
@@ -340,8 +373,8 @@ Nhưng nó không thể đúng, và nó là đường boot mà README đang dạ
 | | |
 |---|---|
 | Gốc | `1cf1fc3` |
-| Áp **13** patch bằng `git am --keep-cr` trong worktree tách rời | tree **`a8edf74aaaf220782547644994fd16d704fd6200`** |
-| Cây fork đang làm việc | tree **`a8edf74aaaf220782547644994fd16d704fd6200`** |
+| Áp **13** patch bằng `git am --keep-cr` trong worktree tách rời | tree **`0f497b379fdabb75e61c17aa414ef07bf9af18da`** |
+| Cây fork đang làm việc | tree **`0f497b379fdabb75e61c17aa414ef07bf9af18da`** |
 | | **khớp từng byte** ✓ |
 
 *(Nhớ `--no-signature` khi sinh patch — thiếu cờ đó thì 13/13 báo "khác" dù nội dung y hệt.)*
@@ -430,9 +463,8 @@ Ba ca đối chứng mới — *"SupplyCap = tổng cung"*, *"quên khai cChain 
 **Đã xong (patch 0013):** P0 kế toán cung · cổng theo `networkID` · `upgrade.A1` ·
 `A1ID`/`A1Name`/`A1HRP` · ba cổng khắc chữ · cổng nhất quán đọc Go.
 
-**Phải làm, không chạm binary:** gỡ `9chain-a1-config/genesis.json` khỏi đường boot của
-`local-net/docker-compose.yml`, và **sửa con trỏ khắc chữ** trong `NGAY-G-A1-CON-LAI.md` +
-`PLAN-REGENESIS` trước khi có người làm theo nó.
+**✅ Xong `27/08`, không chạm binary:** gỡ `9chain-a1-config/genesis.json` khỏi đường boot và
+sửa con trỏ khắc chữ ở 5 chỗ — §7c.
 
 **Cần David:** C-1 `UptimeRequirement` · C-2 `MaxStakeDuration` · C-3 phí C-Chain · C-4
 chainId mạng tập. C-1 → C-3 chạm binary ⇒ **quyết trước lượt `docker build` của ngày G**, nếu
