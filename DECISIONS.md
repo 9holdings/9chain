@@ -2549,3 +2549,60 @@ liệu đã ghi "đóng" — và **không byte nào của nó tồn tại ở n�
   đẻ chain: 🔒 ĐÓNG
 ```
 · không token ⇒ **401** (cổng auth còn nguyên) · có token ⇒ **vấp đúng cổng đẻ chain đóng**.
+
+---
+
+### D-088 — Cổng canh **khoảng cách repo ↔ server**, và gốc rễ của việc B-14 không tới sản phẩm
+
+#### Gốc rễ, tìm được khi đi tìm chỗ khác
+
+`local-net/deploy/console-deploy.sh` — **đường deploy chính thức** — liệt kê tệp **thẳng trong
+script**. Khi `lib/chainid.mjs` được tách ra khỏi `server.mjs` (27/08, để bài kiểm đọc được mã
+thật) thì **không ai nhớ thêm nó vào danh sách chép**. `chainid-da-chiem.json` cũng vậy.
+
+⇒ Cổng chainId David đích thân chốt (B-14) **chưa bao giờ tới được server**. Console công khai
+vẫn cấp từ `9100` suốt hai ngày, và ô nhập trên giao diện còn ghi gợi ý `tự cấp (9100, 9101, …)`
+— **đúng con số B-14 sinh ra để tránh**, hiện ra trước mắt người dùng.
+
+🔴 **Việc tách mã ra cho DỄ KIỂM đã làm nó KHÔNG ĐƯỢC DEPLOY.** Một cải tiến chất lượng, làm
+đúng theo luật của repo, và nó tạo ra lỗ. Không ai làm sai bước nào.
+
+#### Sửa bằng kiến trúc: **một danh sách, hai nơi đọc**
+
+`local-net/deploy/manifest-deploy.json` khai mã phải giống nhau giữa hai máy, theo nhóm dịch vụ
+(`console` · `faucet` · `vantoc`), kèm **lý do cho từng mục bỏ qua**. Cả `console-deploy.sh`
+(chép lên) lẫn `scripts/check-deploy-drift.mjs` (đo lệch) đọc **cùng tệp đó**. Thêm tệp vào
+đường chạy mà quên khai ⇒ **cổng drift đỏ**, thay vì im lặng như cũ.
+
+Cùng lối với `constants.GetAssetAlias` ở D-082: nơi ĐẶT và nơi HỎI phải đọc chung một hằng.
+
+#### 🔴 Bản đầu của chính cổng này sai, và giữ lại bài học
+
+Bản đầu tự đoán phạm vi bằng glob. Nó chạy và báo **27/58 tệp lệch** — phần lớn là công cụ chỉ
+chạy ở máy dev, tức **đỏ giả**. *Một cổng đỏ ở chỗ không cần đỏ sẽ bị người ta học cách bỏ qua,
+và nó sẽ bị bỏ qua đúng vào lần nó đỏ thật.* Phạm vi nay là **quyết định được ghi ra**.
+
+#### Những gì cổng bắt được ngay lần chạy thật đầu tiên (18 tệp, 5 lệch)
+
+| | |
+|---|---|
+| `lib/chainid.mjs` · 2 sổ chặn | **không tồn tại trên server** — B-14 chưa từng chạy |
+| `console/index.html` | gợi ý cho người dùng vẫn ghi `9100, 9101, …` |
+| `faucet/server.mjs` · `lib/cb58.mjs` | cũng đứng ở `69c80ce` (26/08) ⇒ **`/faucet/api/supply` trả 404**: I1b *"cung có nguồn"* làm `27/08` **chưa bao giờ tới người dùng** |
+| `scripts/export-chain.mjs` | **thiếu trên server** — quy trình **O2** gọi nó, và O2 chạy ở nơi có dữ liệu. Không có nó thì O2 **không chạy được ở ngày G**, và điều đó chỉ lộ ra đúng lúc đang cần |
+
+#### Đã deploy + nghiệm thu trên dịch vụ CÔNG KHAI
+
+| | |
+|---|---|
+| Console | hai sổ chặn đã nạp · `đẻ chain: 🔒 ĐÓNG` · không token ⇒ 401 · có token ⇒ vấp cổng đóng |
+| Faucet | `/faucet/api/supply` **200**, số **đo từ chain** (`source: "measured"`, `platform.getCurrentSupply`) · trang faucet 200 · `drip` vẫn kiểm địa chỉ ⇒ không làm hỏng gì |
+| Cổng drift | **18/18 khớp**, thoát 0 |
+
+**Đối chứng ngược cho chính cổng:** khai thêm một tệp chưa hề deploy ⇒ **thoát 1**; trả lại ⇒
+thoát 0. *(Ca đối chứng đầu tiên tôi chọn `package-lock.json` — hoá ra nó ĐÃ có trên server nên
+ra xanh. Một ca đối chứng chọn nhầm vật thì không chứng minh gì.)*
+
+⚠️ **Phạm vi cổng là 18 tệp, không phải cả cây.** Ngoài phạm vi vẫn có thể lệch — `web/` cố ý
+nằm ngoài (thuộc worktree `web-home`), `upstream/` cũng vậy. Đừng đọc "18/18 khớp" thành "server
+giống repo".

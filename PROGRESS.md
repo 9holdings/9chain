@@ -982,7 +982,8 @@ phải chạy thật đường đó — test xanh không đủ.
 | M11.8 | Khoá đẻ chain cho người ngoài tới sau ngày G (O3) | `[x]` | D-087 · 3 ca · **đã deploy + nghiệm thu trên console công khai** |
 | M11.9 | H-7 — IPv4 đa cổng cho P2P (mở khoá O4) | `[ ]` | — |
 | M11.10 | O1 bước 2 — ví ký từ máy dev qua hầm SSH trong container | `[ ]` | ràng buộc đã đo, xem D-085 |
-| M11.11 | 🔴 **Cổng canh khoảng cách repo ↔ server** — không có gì canh lớp này, và nó vừa để lọt B-14 suốt 2 ngày | `[ ]` | sinh từ D-087 |
+| M11.11 | 🔴 **Cổng canh khoảng cách repo ↔ server** | `[x]` | D-088 · bắt 5 lệch thật ngay lần đầu · đối chứng ngược đạt |
+| M11.12 | Deploy phần còn lại của 27–28/08 (faucet I1b, `export-chain`, `index.html`) | `[x]` | D-088 · `/faucet/api/supply` nay **200, số đo từ chain** |
 
 🔴 **Chờ người, autopilot không làm thay được:** bản thứ hai của bộ khoá (O1) · ký SIWE để chạy
 phép kiểm đẻ chain đầu-cuối · B-10 tắt robots.txt ở dashboard Cloudflare · O4 tiền cho nhà cung
