@@ -53,7 +53,7 @@ block**; node đó chậm 5 giây thì bù +3s **vẫn trượt**. Chép con s�
 P-Chain là cơ chế khác hẳn (export/import hoặc thao tác staking), bài `block-adam-drill.mjs`
 không phủ được. Phải tính thời gian cho việc đó **trước `09/09`**, xem D-055.
 
-### 🟡 B-11 — BA MỤC CHẠM BINARY **ĐÃ ĐÓNG** `27/08`, CÒN C-4 (2026-08-27)
+### ✅ B-11 — **ĐÃ ĐÓNG HẲN `27/08`** (ba mục chạm binary + C-4)
 
 Từ bản soát core [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md) §7.
 
@@ -66,12 +66,28 @@ Từ bản soát core [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-
 | ~~**C-1**~~ | `UptimeRequirement` | ✅ **GIỮ `.8`**. Mốc xét lại là **MAINNET**, không phải ngày G — A1 vẫn là testnet mời cộng đồng chạy node trên hạ tầng không chuyên. Chú thích cũ *"⬅️ CHỐT LẠI THÀNH 0.9"* nằm trong comment nên **không ai canh**; nay có ngày tháng |
 | ~~**C-2**~~ | `MaxStakeDuration` | ✅ **GIỮ 365 ngày**, bằng Avalanche mainnet. Trần dài hơn = khoá staking giam lâu hơn, tức đánh đổi chứ không phải cải thiện ⇒ **sinh ra B-12** (quy trình gia hạn) |
 | ~~**C-3**~~ | Phí C-Chain | ✅ **GIỮ đường cong Avalanche, KHAI RA LÀ CỐ Ý** trong `genesis_9chain_a1.go`, kèm lý do + điều kiện xét lại + con trỏ tới chỗ đổi thật (không phải file đó) |
-| 🟡 **C-4** | **chainId `9000000009` cắm cứng** trong `cChainGenesis` (`netgen/main.go:351`) trong khi `networkID` là tham số ⇒ **mạng tập và mạng thật cùng chainId**. MetaMask không phân biệt được; EIP-155 buộc chữ ký vào chainId chứ không vào networkID | 🔴 **CHƯA** — nhưng **không chạm binary**, nên **không chặn ngày G** |
+| ~~**C-4**~~ | **chainId `9000000009` cắm cứng** trong `cChainGenesis` ⇒ **mạng tập và mạng thật cùng chainId** | ✅ **ĐÓNG `27/08`** — patch **0015**, tree **`df68a7d7`**, 15 patch. `netgen/chainid.go` |
 
-⚠️ **C-4 hôm nay rủi ro thấp**: netgen sinh khoá mới mỗi lượt nên địa chỉ hai mạng khác nhau;
-cửa duy nhất là người tự import cùng một khoá vào cả hai. Đừng trích nó mạnh hơn thế. Cái đắt
-là **bất đối xứng thiết kế**: A1 dựng cổng *"bản tập ≠ bản thật"* rất kỹ cho **chữ khắc**, mà
-không có cổng nào cho **chainId** — thứ ví người dùng thật sự đọc.
+✅ **C-4 đã đóng `2026-08-27` (A-4).** `chainId` nay đi qua `resolveChainID` (`netgen/chainid.go`),
+đọc `A1_CHAIN_ID`, mặc định vẫn là số thật:
+
+| | khắc chữ **BẬT** (lượt THẬT) | khắc chữ **TẮT** (lượt TẬP) |
+|---|---|---|
+| chainId = `9000000009` | ✓ im lặng — đúng bản sắc | ⚠️ **CẢNH BÁO LỚN** (hoặc `A1_CHAIN_ID_KHAI_NHAN`) |
+| chainId ≠ `9000000009` | 🔴 **CHẶN** — lượt thật phải mang bản sắc thật | ✓ in ra, đường đúng cho mạng tập |
+
+Kèm trần **EIP-2294**, và netgen nay **luôn in chainId** ở dòng tổng kết — trước đó nó không in
+con số này ở đâu cả, nên không lượt sinh mạng nào để lại dấu vết về bản sắc vừa phát ra.
+**7 ca nghiệm thu, 3 ca đỏ đúng chỗ.** Chi tiết: [`docs/CONG-CHAINID-2026-08-27.md`](docs/CONG-CHAINID-2026-08-27.md).
+
+⚠️ **Bất đối xứng "cảnh báo vs chặn" là CỐ Ý**, không phải làm dở: chặn cứng đường dev quen
+thuộc `gen-network.sh 5` chỉ tạo ra thói quen đi vòng (đúng lý lẽ đã dùng cho `canhBaoSelfBond`).
+Cái sửa được thì cảnh báo; cái **khắc vĩnh viễn không sửa được** thì chặn.
+
+⚠️ **Rủi ro C-4 vốn thấp và vẫn thấp**: netgen sinh khoá mới mỗi lượt nên địa chỉ hai mạng khác
+nhau; cửa duy nhất là người tự import cùng một khoá vào cả hai. Cái được vá là **bất đối xứng
+thiết kế** — A1 dựng cổng *"bản tập ≠ bản thật"* rất kỹ cho **chữ khắc** mà không có cổng nào
+cho **chainId**, thứ ví người dùng thật sự đọc.
 
 ### 🔴 B-12 — CHƯA CÓ QUY TRÌNH GIA HẠN VALIDATOR (2026-08-27, sinh từ D-051b)
 

@@ -70,6 +70,42 @@ const dangNhapVi = siwe({
   chainId: Number(process.env.A1_EVM_CHAIN_ID || 9000000009),
 });
 
+// ═══ chainId ĐÃ BỊ CHIẾM TRONG SỔ CÔNG KHAI (B-14) ═══
+//
+// Console tự cấp chainId cho L1 người dùng bằng `chainId = 9100; while (taken) chainId++`,
+// mà `taken` chỉ tra **sổ của chính mình** (`console-chains.json`). Tra sổ công khai
+// `2026-08-27` phát hiện **9100 = Genesis Coin**, một chuỗi có thật — tức **số console cấp
+// đầu tiên** trùng chuỗi của người khác, và điều đó đã xảy ra rồi (chain `OwnerTest`).
+// Cùng chainId là cùng một mạng dưới mắt MetaMask, và EIP-155 buộc chữ ký vào chainId.
+//
+// 🔴 Đây là **ảnh chụp**, không phải tra trực tiếp. Cố ý: một lời gọi HTTP ra Internet nằm
+// giữa đường người dùng bấm nút là thêm một chỗ hỏng ngoài tầm kiểm soát — hỏng lúc đó thì
+// hoặc chặn oan, hoặc bỏ qua trong im lặng. Cái giá là ảnh chụp **cũ dần**, nên nó mang theo
+// ngày tra và console in tuổi của nó ra lúc khởi động.
+//
+// Sinh lại: `node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-da-chiem.json`
+const CHAINID_CHIEM_FILE = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "chainid-da-chiem.json");
+const chainIdDaChiem = new Map();
+let chainIdChiemNgayTra = null;
+try {
+  const j = JSON.parse(readFileSync(CHAINID_CHIEM_FILE, "utf8"));
+  for (const m of j.daBiChiem ?? []) chainIdDaChiem.set(m.chainId, m.ten);
+  chainIdChiemNgayTra = j.ngayTra ?? null;
+  const tuổiNgày = chainIdChiemNgayTra
+    ? Math.floor((Date.now() - Date.parse(chainIdChiemNgayTra)) / 86_400_000) : null;
+  console.log(`[chainId] danh sách chặn: ${chainIdDaChiem.size} số (dải ${(j.dai ?? []).join("–")}), ` +
+    `tra ${chainIdChiemNgayTra}${tuổiNgày !== null ? ` — ${tuổiNgày} ngày trước` : ""}`);
+  if (tuổiNgày !== null && tuổiNgày > 90) {
+    console.log(`[chainId] ⚠️  ảnh chụp đã ${tuổiNgày} ngày. Sổ công khai đổi hàng ngày — sinh lại.`);
+  }
+} catch (e) {
+  // 🔴 KHÔNG im lặng. Thiếu tệp mà console vẫn chạy như thường là đúng kiểu "xanh giả":
+  // cổng biến mất, không ai biết, và nó chỉ lộ ra khi có người thật nhận chainId trùng.
+  console.log(`[chainId] 🔴 KHÔNG đọc được ${CHAINID_CHIEM_FILE} (${e.message})`);
+  console.log(`[chainId] 🔴 CỔNG CHẶN chainId ĐÃ BỊ CHIẾM ĐANG TẮT. Sinh lại bằng:`);
+  console.log(`[chainId]    node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-da-chiem.json`);
+}
+
 // Hai lượt tạo chain chạy song song sẽ restart node giữa chừng nhau và hỏng cả
 // hai. Xếp hàng tuần tự — đây là ràng buộc đúng đắn, không phải tối ưu hoá.
 const queue = serialQueue({ maxPending: 5 });
@@ -653,10 +689,20 @@ async function createChain({ name, chainId, admin, preset }) {
         : `Chain ID ${n} thuộc về "${cu.name}" — L1 đã thu hồi. Số nhận dạng KHÔNG được cấp lại: ` +
           `ví của người từng dùng chain cũ sẽ coi chain mới là cùng một mạng.`);
     }
+    // Câu lỗi tách riêng khỏi câu trên: hai chỗ trùng là hai thứ khác nhau và cách gỡ
+    // cũng khác. Trùng sổ NHÀ ⇒ đổi số hoặc hỏi chủ cũ. Trùng sổ CÔNG KHAI ⇒ không ai
+    // hỏi được ai, chỉ có đường chọn số khác.
+    if (chainIdDaChiem.has(n)) {
+      throw new Error(`Chain ID ${n} đã thuộc về "${chainIdDaChiem.get(n)}" trong sổ chainId công khai ` +
+        `(chainid.network, tra ${chainIdChiemNgayTra}). Ví đọc chainId chứ không đọc tên mạng, ` +
+        `nên chain của bạn sẽ không phân biệt được với chuỗi đó trong MetaMask. Chọn số khác.`);
+    }
     chainId = n;
   } else {
+    // Bỏ qua CẢ hai sổ. Bản trước chỉ bỏ qua sổ nhà, nên số đầu tiên nó cấp — 9100 —
+    // trùng "Genesis Coin" trong sổ công khai. Xem khối chú thích ở `chainIdDaChiem`.
     chainId = 9100;
-    while (taken.has(chainId)) chainId++;
+    while (taken.has(chainId) || chainIdDaChiem.has(chainId)) chainId++;
   }
 
   // Mở tiến trình NGAY SAU khi mọi phép kiểm rẻ đã qua — trước đó mà hỏng thì

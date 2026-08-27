@@ -1401,3 +1401,54 @@ Gộp hai mã thoát làm một là mất đúng thông tin cần cho ngày G.
 được** — bản gốc để đối chiếu sẽ không còn tồn tại. Vật chứng cho một quyết định **khắc vĩnh
 viễn** thì 1,1 MB một lần là rẻ, và nó làm lượt tra **tái lập được từng byte** (`--tep`).
 **Đánh đổi:** repo phình. Chấp nhận; các lượt tra sau chỉ thêm khi có phát hiện mới.
+
+### D-061 — "Lượt THẬT" = "lượt có khắc chữ"; KHÔNG thêm cờ khai báo thứ hai
+
+Cổng chainId (`netgen/chainid.go`) suy trạng thái tập/thật từ `loadEngraving() != nil`.
+
+**Lý do:** A1 đã có đúng **một** thứ chỉ xuất hiện ở lượt thật — chữ khắc, với cổng xác nhận
+vân tay + đối chiếu C1. Bắt người vận hành khai lần thứ hai cùng một sự thật là đẻ ra chỗ để
+**hai lời khai lệch nhau**, và lúc đó không cổng nào biết tin lời khai nào.
+**Đánh đổi:** một lượt sinh mạng thật **không khắc chữ** sẽ bị coi là lượt tập ⇒ ăn cảnh báo.
+Chấp nhận: theo kế hoạch ngày G, lượt thật **luôn** khắc chữ; và cảnh báo thừa rẻ hơn cổng câm.
+
+### D-062 — chainId: lượt tập chỉ CẢNH BÁO, lượt thật thì CHẶN
+
+**Lý do — bất đối xứng có chủ ý, không phải làm dở:**
+- Chặn cứng lượt tập sẽ giết đường dev quen thuộc `gen-network.sh 5`, và đổi chainId mặc định
+  của mạng dev là đổi cấu hình MetaMask/faucet/explorer của mọi người đang làm việc. Một cổng
+  chặn mà không được gì chỉ tạo ra **thói quen đi vòng** (đúng lý lẽ của `canhBaoSelfBond`).
+- Khắc chữ lên mạng mang chainId lạ là khắc **vĩnh viễn** một bản sắc sai — **không sửa được**,
+  và không ai phát hiện cho tới khi có người thật thêm mạng vào ví.
+
+⇒ **Cái sửa được thì cảnh báo. Cái không sửa được thì chặn.**
+
+### D-063 — netgen LUÔN in `chainId`, kể cả khi nó đúng
+
+**Lý do:** tới `27/08` netgen không in con số này ở đâu cả ⇒ **không lượt sinh mạng nào để lại
+dấu vết về bản sắc nó vừa phát ra**. Im lặng ở đây là cách một mạng tập đi ra ngoài dưới tên
+mạng thật mà không ai nhận ra — cùng lý lẽ đã dùng cho dòng `Chu khac: KHONG (ban tap)`.
+
+### D-064 — Console chặn chainId đã bị chiếm bằng ẢNH CHỤP, không tra mạng lúc đẻ chain
+
+`local-net/console/chainid-da-chiem.json`, sinh bằng `check-chainid.mjs --sinh-danh-sach-chan`.
+
+**Lý do:** một lời gọi HTTP ra Internet nằm **giữa đường người dùng bấm nút** là thêm một chỗ
+hỏng ngoài tầm kiểm soát — và hỏng lúc đó thì hoặc **chặn oan** một chain hợp lệ, hoặc **bỏ qua
+trong im lặng**. Cả hai đều tệ hơn một ảnh chụp cũ vài tuần.
+**Cái giá, đã trả bằng cách khai ra:** ảnh chụp cũ dần ⇒ tệp mang `ngayTra`, console **in tuổi
+của nó** lúc khởi động và cảnh báo khi quá 90 ngày.
+**Và thiếu tệp thì console KHÔNG chạy tiếp trong im lặng** — nó in `🔴 CỔNG ĐANG TẮT` kèm cách
+sinh lại. Một cổng biến mất mà chương trình vẫn chạy như thường là đúng kiểu *"xanh giả"*, và
+nó chỉ lộ ra khi có người thật nhận chainId trùng.
+
+### D-065 — Sinh lại TOÀN BỘ patch series, không chỉ thêm patch mới
+
+Lượt `27/08` regenerate cả 15 patch bằng `git format-patch --no-signature 1cf1fc3..9chain-a1`.
+
+**Lý do:** 0013 và 0014 trên đĩa vẫn mang tiêu đề `[PATCH nn/12]` — tức chúng được **thêm vào**
+chứ không sinh cùng bộ, nên bộ tự khai sai số lượng của chính mình. Nội dung không đổi (đã so
+diff: chỉ đúng dòng `Subject` của 14 tệp), nhưng một bộ vật liệu tái lập mà **tự đếm sai** là
+thứ người sau sẽ tin nhầm.
+**Nghiệm thu:** 15 patch lên `1cf1fc3` → tree **`df68a7d7`**, khớp cây fork từng byte; đối chứng
+ngược áp **14/15** → tree `4c5d5b1e` ≠ ⇒ phép đo phân biệt được bản đủ với bản thiếu.

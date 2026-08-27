@@ -15,6 +15,9 @@
 //   node scripts/check-chainid.mjs --luu <thư mục>       # lưu bản đã tải làm vật chứng
 //   node scripts/check-chainid.mjs --them 1              # ⇦ ĐỐI CHỨNG NGƯỢC: 1 = Ethereum
 //                                                        #    Mainnet, PHẢI ra "bị chiếm"
+//   node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-da-chiem.json
+//        # sinh danh sách chặn TĨNH cho console (dải 9100–9999). Console không gọi mạng lúc
+//        # đẻ chain — nó đọc ảnh chụp này. Ảnh chụp CŨ DẦN, nên tệp mang theo ngày tra.
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -127,6 +130,26 @@ if (LUU) {
   };
   writeFileSync(join(LUU, "KET-QUA-TRA.json"), JSON.stringify(bảnKhai, null, 2) + "\n");
   console.log(`\nvật chứng: ${join(LUU, "chains.json")} + KET-QUA-TRA.json`);
+}
+
+// ─── Sinh danh sách chặn tĩnh cho console ───
+// Console **không gọi mạng** lúc đẻ chain: một lời gọi HTTP ra Internet nằm giữa đường
+// người dùng bấm nút là thêm một chỗ hỏng ngoài tầm kiểm soát, và hỏng lúc đó thì hoặc
+// chặn oan hoặc bỏ qua im lặng. Nên nó đọc **ảnh chụp**. Cái giá: ảnh chụp cũ dần ⇒ tệp
+// mang theo `ngayTra` và console **in ra tuổi của nó**.
+const SINH = cờ("--sinh-danh-sach-chan");
+if (SINH) {
+  const [lo, hi] = (cờ("--dai", "9100-9999")).split("-").map(Number);
+  const trongDải = sổ
+    .filter((c) => typeof c.chainId === "number" && c.chainId >= lo && c.chainId <= hi)
+    .sort((a, b) => a.chainId - b.chainId)
+    .map((c) => ({ chainId: c.chainId, ten: c.name ?? "?" }));
+  writeFileSync(SINH, JSON.stringify({
+    _doc: "Danh sách chainId ĐÃ BỊ CHIẾM trong sổ công khai, dùng cho console lúc cấp chainId cho L1 người dùng. SINH TỰ ĐỘNG — đừng sửa tay, chạy lại scripts/check-chainid.mjs --sinh-danh-sach-chan.",
+    nguon: NGUON, ngayTra: ngàyTra, sha256Nguon: hash, soMucTrongSo: sổ.length,
+    dai: [lo, hi], soBiChiem: trongDải.length, daBiChiem: trongDải,
+  }, null, 2) + "\n");
+  console.log(`\ndanh sách chặn: ${SINH} — ${trongDải.length} số bị chiếm trong dải ${lo}–${hi}`);
 }
 
 console.log(`\n${bịChiếm.length === 0 ? "✅ trống" : "🔴 CÓ SỐ BỊ CHIẾM"} — tra lúc ${ngàyTra}`);

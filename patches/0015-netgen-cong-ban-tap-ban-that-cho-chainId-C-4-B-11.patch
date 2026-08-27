@@ -1,0 +1,227 @@
+From a3183c360bcd887d2c3aeb2777558e7a22997bce Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Thu, 27 Aug 2026 13:47:53 +0400
+Subject: [PATCH 15/15] =?UTF-8?q?netgen:=20cong=20'ban=20tap=20!=3D=20ban?=
+ =?UTF-8?q?=20that'=20cho=20chainId=20=E2=80=94=20C-4=20(B-11)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+chainId 9000000009 cam cung trong cChainGenesis => moi mang netgen sinh ra, tap hay
+that, deu mang ban sac cua mang that. Va netgen khong in con so do o dau ca.
+
+networkID la chuyen noi bo avalanchego. Thu VI DOC la chainId, va EIP-155 buoc chu ky
+vao chainId chu khong vao networkID.
+
+Nay chainId di qua resolveChainID (chainid.go), doc A1_CHAIN_ID:
+  chainId = that + co khac chu  -> im lang di qua (luot THAT, ban sac dung)
+  chainId = that + khong khac   -> CANH BAO LON (hoac A1_CHAIN_ID_KHAI_NHAN)
+  chainId != that + co khac chu -> CHAN (khac vinh vien mot ban sac sai)
+  chainId != that + khong khac  -> in ra, day la duong dung cho mang tap
+Them tran EIP-2294 (MAX_SAFE_INTEGER) va in chainId o dong tong ket LUON LUON.
+
+Bat doi xung 'sua duoc thi canh bao, khong sua duoc thi chan' la CO Y — chan cung
+duong dev quen thuoc gen-network.sh 5 se chi tao ra thoi quen di vong (cung ly le
+da dung cho canhBaoSelfBond).
+
+7 ca nghiem thu, 3 ca do dung cho.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ 9chain-a1-tools/netgen/chainid.go | 127 ++++++++++++++++++++++++++++++
+ 9chain-a1-tools/netgen/main.go    |  20 ++++-
+ 2 files changed, 144 insertions(+), 3 deletions(-)
+ create mode 100644 9chain-a1-tools/netgen/chainid.go
+
+diff --git a/9chain-a1-tools/netgen/chainid.go b/9chain-a1-tools/netgen/chainid.go
+new file mode 100644
+index 0000000..c51c08e
+--- /dev/null
++++ b/9chain-a1-tools/netgen/chainid.go
+@@ -0,0 +1,127 @@
++// CỔNG "BẢN TẬP ≠ BẢN THẬT" CHO chainId — C-4 (BLOCKERS B-11).
++//
++// ═══ Bất đối xứng đã tồn tại tới `2026-08-27` ═══
++// A1 dựng cổng *"bản tập ≠ bản thật"* rất kỹ cho **chữ khắc** (`A1_ENGRAVE_CONFIRM` + đối
++// chiếu C1 + báo cáo `engraving.md`). Cho **chainId** thì **không có cổng nào**:
++// `cChainGenesis` cắm cứng `9000000009`, nên **mọi mạng netgen sinh ra — tập hay thật —
++// đều mang chainId của mạng thật**, và netgen thậm chí không in ra con số đó.
++//
++// 🔴 Vì sao đó là chỗ đắt: `networkID` là chuyện nội bộ avalanchego. Thứ **ví người dùng
++// đọc** là `chainId`, và **EIP-155 buộc chữ ký vào `chainId`, không vào `networkID`**. Hai
++// mạng cùng `chainId` là hai mạng MetaMask không phân biệt được: cùng số, cùng tên, người
++// dùng thấy số dư 0 và không có gì báo lỗi; giao dịch đã ký của mạng này hợp lệ về mặt chữ
++// ký trên mạng kia.
++//
++// ⚠️ **Đừng trích mạnh hơn phép đo.** Hôm nay rủi ro thấp: netgen sinh **khoá mới mỗi lượt**
++// nên địa chỉ hai mạng khác nhau; cửa duy nhất là người tự import cùng một khoá vào cả hai.
++// Cái đắt là **bất đối xứng thiết kế**, không phải một vết thương đang chảy.
++//
++// ═══ Luật ═══
++//
++//	                 │ khắc chữ BẬT (lượt THẬT)      │ khắc chữ TẮT (lượt TẬP)
++//	─────────────────┼───────────────────────────────┼──────────────────────────────
++//	chainId = 9000000009 │ ✓ im lặng — đúng bản sắc  │ ⚠️ CẢNH BÁO LỚN (hoặc khai nhận)
++//	chainId ≠ 9000000009 │ 🔴 CHẶT — lượt thật phải  │ ✓ in ra, đây là đường đúng
++//	                     │    mang bản sắc thật      │
++//
++// **Vì sao lượt tập chỉ CẢNH BÁO chứ không CHẶN:** chặn cứng sẽ giết đường dev quen thuộc
++// `gen-network.sh 5`, và đổi chainId mặc định của mạng dev là đổi cấu hình MetaMask/faucet/
++// explorer của mọi người đang làm việc. Đây đúng lý lẽ đã dùng cho `canhBaoSelfBond` (§2
++// `NGAY-G-A1-CON-LAI`): chặn cứng mà không được gì thì chỉ tạo ra thói quen đi vòng.
++//
++// **Vì sao chiều ngược lại thì CHẶN:** khắc chữ lên một mạng mang chainId lạ là khắc vĩnh
++// viễn một bản sắc sai — không sửa được, và không ai phát hiện cho tới khi có người thật
++// thêm mạng vào ví. Bất đối xứng này là **cố ý**: cái sửa được thì cảnh báo, cái không sửa
++// được thì chặn.
++package main
++
++import (
++	"fmt"
++	"os"
++	"strconv"
++	"strings"
++)
++
++// chainIDThat — chainId của MẠNG THẬT 9Chain-A1. Chốt ở D-047 và nằm trong chuẩn đặt tên
++// `24/08` ⇒ đây là **bản sắc**, không phải tham số điều chỉnh được.
++const chainIDThat uint64 = 9_000_000_009
++
++// chainIDToiDa — EIP-2294: chainId phải vừa `MAX_SAFE_INTEGER` của JS, vì mọi ví và mọi
++// công cụ EVM đều đi qua JSON/JavaScript. Vượt ngưỡng này thì con số **im lặng bị làm
++// tròn** ở phía ví — không có lỗi nào, chỉ có một mạng khác.
++const chainIDToiDa uint64 = 9_007_199_254_740_990
++
++// chainIDTapKhaiNhan — giá trị phải khai để tắt cảnh báo "mạng tập mang chainId thật".
++//
++// Cố ý là một câu tiếng Việt dài chứ không phải `1`/`true`: nó nằm lại trong lịch sử shell
++// và trong log CI, nên người đọc lại thấy ngay lượt đó đã khai nhận điều gì. Một cờ mà gõ
++// nhầm cũng bật được là một cờ sẽ bị bật nhầm. (Cùng khuôn với `engraveDrillOptOut`.)
++const chainIDTapKhaiNhan = "toi-biet-mang-tap-nay-mang-chainid-that"
++
++// resolveChainID đọc `A1_CHAIN_ID` rồi áp bảng luật ở đầu tệp.
++// `khac` = lượt này có khắc chữ hay không, tức "đây có phải lượt THẬT không".
++func resolveChainID(khac bool) uint64 {
++	raw := strings.TrimSpace(env("A1_CHAIN_ID", ""))
++	id := chainIDThat
++	if raw != "" {
++		v, err := strconv.ParseUint(raw, 10, 64)
++		if err != nil || v == 0 {
++			fmt.Fprintf(os.Stderr, "FATAL A1_CHAIN_ID=%q khong doc duoc — can mot so nguyen duong.\n", raw)
++			os.Exit(1)
++		}
++		if v > chainIDToiDa {
++			fmt.Fprintf(os.Stderr,
++				"FATAL A1_CHAIN_ID=%d vuot tran EIP-2294 (%d).\n"+
++					"      Vuot nguong nay thi vi lam tron con so trong IM LANG — khong loi nao,\n"+
++					"      chi la mot mang khac voi mang ban dinh sinh.\n", v, chainIDToiDa)
++			os.Exit(1)
++		}
++		id = v
++	}
++
++	switch {
++	case id == chainIDThat && khac:
++		// Lượt thật, bản sắc thật. Đúng đường, không nói gì thêm ở đây —
++		// dòng tổng kết cuối vẫn in con số ra.
++
++	case id == chainIDThat && !khac:
++		if strings.TrimSpace(env("A1_CHAIN_ID_KHAI_NHAN", "")) == chainIDTapKhaiNhan {
++			fmt.Fprintf(os.Stderr, "⚠️  chainId: mang TAP nay mang chainId THAT (%d) — da khai nhan.\n", id)
++			break
++		}
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "============ chainId: MANG TAP DANG MANG SO CUA MANG THAT ============")
++		fmt.Fprintf(os.Stderr, "Luot nay KHONG khac chu ⇒ day la mot ban TAP.\n")
++		fmt.Fprintf(os.Stderr, "Nhung C-Chain cua no mang chainId %d — DUNG SO CUA MANG THAT.\n", id)
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "Vi doc chainId, KHONG doc networkID. EIP-155 buoc chu ky vao chainId.")
++		fmt.Fprintln(os.Stderr, "⇒ MetaMask khong phan biet duoc mang nay voi mang cong khai: cung so,")
++		fmt.Fprintln(os.Stderr, "   cung ten, nguoi dung thay so du 0 va khong co gi bao loi.")
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "Cach dung:")
++		fmt.Fprintln(os.Stderr, "  Mang tap : A1_CHAIN_ID=<so khac>   (vd 9000000909)")
++		fmt.Fprintf(os.Stderr, "  Neu CO Y : A1_CHAIN_ID_KHAI_NHAN=%s\n", chainIDTapKhaiNhan)
++		fmt.Fprintln(os.Stderr, "======================================================================")
++		fmt.Fprintln(os.Stderr, "")
++
++	case id != chainIDThat && khac:
++		// 🔴 CHẶN. Khắc vĩnh viễn một bản sắc sai là thứ không có đường lui.
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "============ chainId: LUOT THAT MANG SO CUA MANG TAP ============")
++		fmt.Fprintf(os.Stderr, "Luot nay CO khac chu ⇒ day la luot THAT.\n")
++		fmt.Fprintf(os.Stderr, "Nhung A1_CHAIN_ID=%d, khac chainId that %d.\n", id, chainIDThat)
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "Genesis la BAT BIEN. Khac chu len mot mang mang ban sac sai la khac")
++		fmt.Fprintln(os.Stderr, "vinh vien mot ban sac sai — khong sua duoc, va khong ai phat hien cho")
++		fmt.Fprintln(os.Stderr, "toi khi co nguoi that them mang vao vi.")
++		fmt.Fprintln(os.Stderr, "")
++		fmt.Fprintln(os.Stderr, "  Luot THAT: bo A1_CHAIN_ID di (mac dinh la so that).")
++		fmt.Fprintln(os.Stderr, "  Luot TAP : bo A1_ENGRAVE di.")
++		fmt.Fprintln(os.Stderr, "=================================================================")
++		os.Exit(1)
++
++	default: // id != chainIDThat && !khac — đường ĐÚNG cho một mạng tập
++		fmt.Fprintf(os.Stderr, "✓ chainId: %d (mang TAP, khac voi mang that %d)\n", id, chainIDThat)
++	}
++	return id
++}
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+index 78c55a9..c29b0de 100644
+--- a/9chain-a1-tools/netgen/main.go
++++ b/9chain-a1-tools/netgen/main.go
+@@ -144,6 +144,10 @@ func main() {
+ 	// nil = KHÔNG khắc (mặc định, dùng cho mọi lượt tập). Xem engrave.go.
+ 	eng := loadEngraving()
+ 
++	// Cổng "bản tập ≠ bản thật" cho chainId — C-4. Cũng chặn TRƯỚC khi sinh khoá, cùng
++	// lý do với cổng chữ khắc. Xem chainid.go.
++	chainID := resolveChainID(eng != nil)
++
+ 	must(os.MkdirAll(out, 0o755), "mkdir out")
+ 
+ 	// ---- 1) Sinh 5 quỹ genesis, mỗi quỹ MỘT khoá riêng ----
+@@ -248,7 +252,7 @@ func main() {
+ 		InitialStakeDurationOffset: 7 * 24 * 60 * 60,
+ 		InitialStakedFunds:         []string{staking9.XAddr},
+ 		InitialStakers:             stakers,
+-		CChainGenesis:              cChainGenesis(funds, eng),
++		CChainGenesis:              cChainGenesis(funds, eng, chainID),
+ 		Message:                    pChainMessage(eng),
+ 	}
+ 	gb, err := json.MarshalIndent(cfg, "", "  ")
+@@ -305,6 +309,14 @@ FAUCET_ADDR=%s
+ 	fmt.Printf("  genesis.json · docker-compose.multinode.yml · allocation.md (cong khai)\n")
+ 	fmt.Printf("  keys.txt (TUYET MAT) · faucet.env (chi khoa faucet)\n")
+ 	fmt.Printf("  Tong phat hanh genesis: %s LOVE9\n", love9(totalGenesisSupply()))
++	// In chainId LUÔN LUÔN. Tới `27/08` netgen không in con số này ở đâu cả — nên không
++	// lượt sinh mạng nào để lại dấu vết về bản sắc mà nó vừa phát ra. Im lặng ở đây là
++	// cách một mạng tập đi ra ngoài dưới tên mạng thật mà không ai nhận ra.
++	if chainID == chainIDThat {
++		fmt.Printf("  C-Chain chainId: %d  <-- SO CUA MANG THAT\n", chainID)
++	} else {
++		fmt.Printf("  C-Chain chainId: %d  (mang TAP; so that la %d)\n", chainID, chainIDThat)
++	}
+ 	if eng == nil {
+ 		// In cả khi KHÔNG khắc. Im lặng ở đây là cách một lượt "thật" đi qua mà
+ 		// không ai nhận ra nó thiếu chữ khắc.
+@@ -351,7 +363,7 @@ func pChainMessage(e *engraving) string {
+ // Avalanche (khoá ewoq công khai giữ 50 triệu) còn sót trong đường boot của node dev.
+ // Ai đi theo con trỏ cũ để sửa chữ khắc sẽ sửa một tệp không ai đọc, **và không có gì
+ // báo lỗi**. Xem `docs/CORE-AUDIT-2026-08-27.md` §7b.
+-func cChainGenesis(funds map[string]*fund, e *engraving) string {
++func cChainGenesis(funds map[string]*fund, e *engraving, chainID uint64) string {
+ 	allocs := make([]string, 0, len(buckets)+1)
+ 	for _, b := range buckets {
+ 		if b.CChain == 0 {
+@@ -379,7 +391,9 @@ func cChainGenesis(funds map[string]*fund, e *engraving) string {
+ 		extraData = e.CExtraData
+ 	}
+ 
+-	return `{"config":{"chainId":9000000009,"homesteadBlock":0,"eip150Block":0,"eip155Block":0,"eip158Block":0,"byzantiumBlock":0,"constantinopleBlock":0,"petersburgBlock":0,"istanbulBlock":0,"muirGlacierBlock":0,"apricotPhase1BlockTimestamp":0,"apricotPhase2BlockTimestamp":0},"nonce":"0x0","timestamp":"0x0","extraData":"` + extraData + `","gasLimit":"0x5f5e100","difficulty":"0x0","mixHash":"0x0000000000000000000000000000000000000000000000000000000000000000","coinbase":"0x0000000000000000000000000000000000000000","alloc":{` +
++	// chainId KHÔNG còn cắm cứng ở đây — nó đi qua cổng `resolveChainID` (chainid.go).
++	// Cắm cứng là lý do tới `27/08` mọi mạng tập đều mang bản sắc của mạng thật.
++	return `{"config":{"chainId":` + strconv.FormatUint(chainID, 10) + `,"homesteadBlock":0,"eip150Block":0,"eip155Block":0,"eip158Block":0,"byzantiumBlock":0,"constantinopleBlock":0,"petersburgBlock":0,"istanbulBlock":0,"muirGlacierBlock":0,"apricotPhase1BlockTimestamp":0,"apricotPhase2BlockTimestamp":0},"nonce":"0x0","timestamp":"0x0","extraData":"` + extraData + `","gasLimit":"0x5f5e100","difficulty":"0x0","mixHash":"0x0000000000000000000000000000000000000000000000000000000000000000","coinbase":"0x0000000000000000000000000000000000000000","alloc":{` +
+ 		strings.Join(allocs, ",") +
+ 		`},"number":"0x0","gasUsed":"0x0","parentHash":"0x0000000000000000000000000000000000000000000000000000000000000000"}`
+ }

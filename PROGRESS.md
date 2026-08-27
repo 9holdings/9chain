@@ -49,9 +49,19 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       `[]` rỗng ⇒ **từ chối kết luận** (exit 2). Mã thoát phân biệt *"bị chiếm"* với *"không tra
       được"*. Bản đầy đủ: `docs/G4-TRA-CHAINID-2026-08-27.md`.
       🔴 **Phải tra LẠI ngay trước bước sinh genesis ngày G** — sổ đổi hàng ngày.
-- [ ] **A-4 — C-4**: cổng "bản tập ≠ bản thật" cho **chainId** (B-11). Không chạm binary.
-      *Điều kiện qua:* netgen từ chối/cảnh báo khi sinh mạng tập mang chainId của mạng thật;
-      **có đối chứng ngược**.
+- [x] **A-4 — C-4**: cổng "bản tập ≠ bản thật" cho **chainId** — **ĐẠT `27/08`**, đóng nốt B-11.
+      `netgen/chainid.go` (patch **0015**, tree fork **`df68a7d7`**, **15 patch** trên `1cf1fc3`,
+      tái lập khớp từng byte; đối chứng ngược 14/15 patch ⇒ tree khác).
+      Luật: lượt **thật** (có khắc) + chainId thật ⇒ im lặng · lượt **tập** + chainId thật ⇒
+      **cảnh báo lớn** · lượt **thật** + chainId lạ ⇒ **CHẶN** (khắc vĩnh viễn bản sắc sai) ·
+      lượt tập + chainId riêng ⇒ đường đúng. Kèm trần EIP-2294 + **luôn in chainId**.
+      **7 ca nghiệm thu, 3 ca đỏ đúng chỗ**; ca 1/ca 2 chấm bằng **nội dung genesis**, không
+      bằng log. ⚠️ Không cần build lại image node (netgen chạy `go run` lúc sinh mạng).
+      ✅ **Phần thứ hai — console (B-14):** nạp `chainid-da-chiem.json` (51 số bị chiếm dải
+      9100–9999) và bỏ qua ở **cả hai** đường. Nghiệm thu thật: xin `9100` ⇒ từ chối nêu tên
+      *Genesis Coin* · tự cấp trên sổ rỗng ⇒ **9101** (đọc từ genesis vừa dựng) · xoá tệp ⇒
+      console **tự khai cổng đang TẮT**. Bản đầy đủ: `docs/CONG-CHAINID-2026-08-27.md`.
+      🔴 **Còn lại (cần David):** gốc dải vẫn là 9100 — vướng mục quyết §5c.
 - [ ] **A-5 — I1b**: phơi trần cung ra endpoint đọc được, **hoặc** ghi rõ trên trang rằng
       nguồn là *tham số genesis*.
       *Điều kiện qua:* số trên trang truy được về một lệnh RPC, hoặc trang tự khai nguồn.
