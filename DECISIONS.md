@@ -3746,3 +3746,37 @@ thì 42 bản ghi đã đi mất, và đi mất **do một dòng lệnh soạn s
 
 🔴 **Luật rút ra: câu "đã có bản lưu rồi nên xoá được" là một PHÉP ĐO, không phải một câu trấn
 an.** Trước khi xoá bất cứ thứ gì trên server: **đối chiếu `sha256` với bản lưu, TỪNG TỆP MỘT.**
+
+---
+
+## D-107b — B-17 lần thứ HAI suýt xoá nội dung duy nhất; hai tệp console `truoc-admin` (2026-08-28)
+
+Áp đúng luật vừa rút ra ở D-107 (*"đối chiếu `sha256` với bản lưu, từng tệp một"*) lên **ba tệp
+mã** còn lại của B-17 — thứ mà cả D-098 lẫn D-107 đều chưa kiểm, vì cả hai chỉ nghĩ tới ba sổ
+danh bạ. Quét hash từng tệp đối chiếu **toàn bộ `git rev-list --all`** (4 nhánh: `main`,
+`web-home`, `audit`, `brand-standardize`):
+
+| tệp trên server | kết quả |
+|---|---|
+| `server.mjs.bak-pre-D087-1787862510` | ✅ **trùng git `69c80ce`** — đúng commit console công khai từng mắc kẹt (D-087/D-095). Xoá an toàn |
+| **`server.mjs.bak-truoc-admin`** (14.037 B) | 🔴 **không trùng phiên bản git nào** |
+| **`index.html.bak-truoc-admin`** (6.035 B) | 🔴 **không trùng phiên bản git nào** |
+
+⇒ **Lần thứ HAI trong cùng một phiên** câu *"xoá không mất gì"* sai. Lần đầu là một sổ danh bạ
+(D-107); lần này là **mã**, và `shred -u` là mất hẳn.
+
+✅ **Đã lưu trữ** → `docs/archive/console-truoc-admin-2026-08-24/` (kèm `SHA256SUMS.txt` +
+README mang cảnh báo **KHÔNG BAO GIỜ khôi phục**). Khớp `sha256` hai đầu. **Quét bí mật trước
+khi commit: 0 kết quả** cho `0x…64`, `PRIVATE KEY`, `A1_CONSOLE_TOKEN=`, `FAUCET_PK=`, base64
+dài — không đưa bí mật vào git chỉ vì đang vội dọn dẹp.
+
+🔴 **Giá trị của hai tệp không phải "mã cũ" mà là BẰNG CHỨNG:** chúng chứng minh server từng
+chạy mã **sửa tay chưa bao giờ quay về git**. Cùng lớp với B-9 (`console/index.html` trên
+server lệch **12 byte** so với cả `main` lẫn `web-home`) và D-095 (`chainid.mjs` lên server
+bằng đường **chép tay**). Xoá đi là xoá bằng chứng của đúng thói quen vận hành mà repo đang chữa.
+
+⚠️ **Bài học về hình dạng của lỗi, không phải về ba tệp này.** D-098 khai *"xoá 6 tệp"* kèm một
+lệnh một dòng và một câu trấn an. Câu trấn an đó **đúng cho nhóm tệp mà người viết đang nghĩ
+tới** (ba sổ) và **chưa từng được kiểm cho nhóm còn lại** (ba tệp mã) — mà lệnh thì xoá **cả
+sáu**. ⇒ **Phạm vi của một lời trấn an hẹp hơn phạm vi của lệnh nó đi kèm**, và khoảng chênh đó
+là chỗ dữ liệu biến mất. Kiểm **từng tệp trong lệnh**, không kiểm *"nhóm tệp"*.
