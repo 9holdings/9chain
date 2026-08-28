@@ -46,8 +46,16 @@ const SO_PATCH = 24;
 const node = (...a) => ({ lenh: process.execPath, args: a });
 
 /**
- * Cổng — `batBuoc` sai nghĩa là đỏ vẫn không chặn (dùng cho mục mang tính thông tin).
- * `mang` = cần mạng hoặc ssh.
+ * Cổng. `mang` = cần mạng hoặc ssh (bỏ được bằng `--khong-mang`).
+ *
+ * 🔴 **MỌI CỔNG Ở ĐÂY ĐỀU BẮT BUỘC — đỏ là chặn.** Không có hạng "thông tin".
+ * (Chú thích cũ khai một cờ `batBuoc` cho phép đỏ-mà-không-chặn; cờ đó **chưa từng
+ * được cài**, phát hiện `28/08` — tài liệu mô tả một hành vi không tồn tại là đúng
+ * lớp lỗi netgen đã dính ở D-083. Đã bỏ lời hứa đó thay vì cài nó: một cổng "đỏ
+ * nhưng không sao" sẽ bị bỏ qua **đúng lúc nó kêu thật** — cùng lý lẽ D-070 dùng khi
+ * hạ ô Block Adam xuống "lưu ý".)
+ * ⇒ Cổng nào chưa đủ tư cách chặn ngày G thì để **ngoài tệp này** và ghi vào
+ * `CLAUDE.md` §3 — ví dụ `kiem-robots.mjs` (B-10: mặt web, không chạm genesis).
  */
 const CONG = [
   // ── 1. Cây fork: thứ mọi thứ khác dựng lên trên ──
@@ -84,9 +92,11 @@ const VIEC_TAY = [
   ["TRƯỚC `down -v`", "🔴 **Sổ danh bạ** — `node scripts/dong-so-truoc-regenesis.mjs --keo` rồi `--don`; sổ mới phải lên server. Reset sổ = trả 43 tên + chainId lại cho vòng quay."],
   ["TRƯỚC `down -v`", "🔴 **H-6b** — `bash scripts/h6b-sao-luu.sh` và đọc kỹ số patch nó khai."],
   ["Lúc sinh mạng", "🔴 **Bump `A1Gen` ở CẢ HAI ngôn ngữ** — `utils/constants/network_ids.go` **và** `local-net/lib/chainid.mjs`, rồi chạy lại `check-consistency`. Quên một bên thì không có gì báo lỗi (D-093)."],
-  ["Lúc sinh mạng", "🔴 **Build lại image node** — image đang chạy là **18 patch**, repo là **24**. Patch 0019/0022 (bí danh `LOVE9`) chưa vào image; thiếu nó là **mọi ví X/C chết câm**."],
+  ["Lúc sinh mạng", "🔴 **Build lại image node** — image đang chạy là **18 patch**, repo là **24**. Patch 0019/0022 (bí danh `LOVE9`) chưa vào image; thiếu nó là **mọi ví X/C chết câm**. Đường build đã diễn tập `28/08` và ĐẠT (D-105) — nhưng ở `A1Gen 0`; bump lên 1 là đổi binary ⇒ **vẫn phải build lại**."],
+  ["Lúc sinh mạng", "🔴 **SỬA DÒNG `image:` TRONG COMPOSE NETGEN VỪA SINH** — netgen ghi cắm cứng `9chain-a1/node:dev` và **không biến nào đổi được** (D-105). Quên là mạng lên bằng binary **18 patch** trong khi mọi cổng vẫn xanh: `grep image: <net>/docker-compose.multinode.yml` phải ra **tag vừa build**."],
+  ["Lúc sinh mạng", "🔴 **Đo BINARY, đừng đo mạng:** `docker exec <node> ./avalanchego --version` phải in đúng `commit=` của lượt build ngày G, và `avm.getAssetDescription` alias `LOVE9` phải ra tài sản còn `AVAX` phải **ĐỎ có lý do**. Mạng xanh không nói gì về việc node đang chạy binary nào."],
   ["Lúc sinh mạng", "🔴 **Sinh token + khoá MỚI** — `A1_CONSOLE_TOKEN`, `FAUCET_PK`, `A1_CLI_KEY`. Token cũ **chưa từng đổi qua hai lượt re-genesis** (gotcha 15)."],
-  ["Lúc sinh mạng", "🔴 **Chữ khắc** — chờ **C1 đóng băng byte**. Cơ chế xong 100%, nội dung 0%. A1 không tự cứu được vế này."],
+  ["Lúc sinh mạng", "🔴 **Chữ khắc** — cơ chế xong 100%. Nội dung là **ĐẦU VÀO David cấp** (D-104: C1 do David điều phối riêng, A1 không theo dõi). ⚠️ Byte tới **sau** bước sinh genesis là **không khắc được nữa trong thế hệ đó** — hỏi David chốt byte TRƯỚC khi chạy netgen, không phải sau."],
   ["SAU khi mạng lên", "🔴 Đo **trên node đang chạy**: `supplyCap` · `networkID` · HRP · `eth_chainId` · 9/9 node. `node scripts/canh-mang.mjs`."],
   ["SAU khi mạng lên", "🔴 **B-13(b)** — đo lệch đồng hồ 9 node rồi chọn `--bu-ms` cho Block Adam. Chỉ làm được sau khi mạng g1 lên, và **phải xong trước `09/09`**."],
   ["SAU khi deploy", "🔴 `node scripts/check-deploy-drift.mjs` — **chạy TRƯỚC khi tin bất kỳ dòng \"ĐÃ ĐÓNG\" nào**."],

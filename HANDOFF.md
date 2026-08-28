@@ -1,7 +1,7 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-28** (phiên tối `28/08` — **ĐỢT AUTOPILOT 15: 7/7 mốc ĐẠT**, toàn bộ là
-**độ bền**, không mốc nào là tính năng. Trước đó cùng ngày: O1 + M11.10 · nạp ví · 6 patch).
+Cập nhật: **2026-08-28** (phiên tối `28/08` — **ĐỢT AUTOPILOT 15: 8/8 mốc ĐẠT** (`A15-0`…`A15-7`),
+toàn bộ là **độ bền**, không mốc nào là tính năng. Trước đó cùng ngày: O1 + M11.10 · nạp ví · 6 patch).
 
 > 🔴 **ĐỌC [`CLAUDE.md`](CLAUDE.md) TRƯỚC — đó là LUẬT.** Tệp này là **bàn giao**: dài, có lịch
 > sử, và phần lớn là số đo của các phiên trước. Mâu thuẫn thì `CLAUDE.md` thắng về **luật**,
@@ -103,6 +103,21 @@ ngày G (D-087).
 cụ** (SDK ví, netgen, `kiem-khoa`), không đụng node — chúng vào image ở lượt build ngày G.
 Đừng đọc `074aaa93` thành "mạng đang chạy có 24 patch".
 
+✅ **Lượt build 24 patch ĐÃ ĐƯỢC DIỄN TẬP `28/08` và ĐẠT** (D-105) — trước đó **chưa image nào
+từng dựng từ cây 24 patch**, và lượt đầu tiên bị xếp vào đúng ngày G, sau `down -v`. Đo trên
+node chạy bằng image mới: `supplyCap 7900000001000000000` · `eth_chainId 0x218711a09`
+(= 9000000009) · **alias `LOVE9` ra tài sản**, **`AVAX` ĐỎ có lý do**.
+🔴 **Hai lỗi công cụ lộ ra trong lượt tập, cả hai đều im lặng:**
+1. `gen-network.sh` **không chuyển tiếp `NETWORK_ID`** ⇒ đường sinh mạng trong tài liệu chết ở
+   mọi lượt gọi kể từ patch 0020. **Đã vá** (mảng `A1_NETGEN_ENV`, 17 biến).
+2. netgen ghi **`image: 9chain-a1/node:dev` cắm cứng** vào compose, không biến nào đổi được.
+   Build image mới rồi `up -d` mà quên sửa dòng đó ⇒ mạng lên bằng binary **18 patch**, 9/9
+   node xanh, mọi cổng xanh. **CHƯA vá** (sửa netgen = đụng `patches/`) ⇒ thành **việc tay** ở
+   preflight. `grep image: <net>/docker-compose.multinode.yml` trước khi `up`.
+⚠️ Diễn tập dựng ở `A1Gen 0` ⇒ **không thay được lượt build ngày G** (bump lên 1 là đổi binary).
+⚠️ Còn `local-net/net-dryrun/` trên máy dev — bộ khoá **vứt đi** của mạng tập `899999999`.
+Gitignore rồi, nhưng **xoá tay đi**: đừng để nó nằm cạnh thư mục thật (gotcha 13).
+
 ⚠️ **Ngày G `2026-09-01` VẪN phải sinh lại lần nữa** (chữ khắc vào genesis) ⇒ **thế hệ 1**:
 `A1Gen 1` · `networkID 999999998` · `9chain-a1-g1` · khối chainId L1 `9001000000–9001999999`.
 David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
@@ -119,7 +134,7 @@ David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
 | **3** | ✅ ~~netgen sinh `.env`~~ **XONG `27/08`** — patch 0020, kèm **cổng chặn mạng THẬT sinh ra ở tư thế phơi trần** và `NETWORK_ID` nay bắt buộc | A1 | D-083. Đo đầu-cuối bằng `docker compose config`: có `.env` → `localhost,127.0.0.1`, giấu đi → `*` |
 | **4** | ✅ ~~**B-9** `#e84142`~~ **XONG `27/08`** — patch 0021, vàng 9Chain trên navy | A1 | 🔴 Còn một chỗ NGOÀI phạm vi B-9: `local-net/console/index.html` **trên server** vẫn có 3 lần `#e84142` và lệch 12 byte so với git — thuộc worktree web, phiên này không đụng |
 | **5** | **O4** — dời 1 node sang nhà cung cấp thứ hai, **hoặc** khai thật + đổi tên `01/09` | **David** | §12.3: cách rẻ nhất không phải tiền mà là chữ *"chính thức"* |
-| **6** | **B-10** tắt Managed robots.txt ở dashboard Cloudflare | **David** | 1 phút, đo lại bằng NỘI DUNG |
+| **6** | **B-10** tắt Managed robots.txt ở dashboard Cloudflare | **David** | 1 phút. ✅ Nay có cổng: `node scripts/kiem-robots.mjs` — **đang ĐỎ**, sửa xong purge cache rồi chạy lại phải ra `exit 0` (D-106) |
 | **6b** | 🔴 **B-17 (MỚI)** — xoá 6 tệp `.bak` trên server: đường lui trỏ vào quyết định ĐÃ ĐÓNG (mở lại đẻ chain + gỡ xác thực ví). Lệnh soạn sẵn trong `BLOCKERS.md` | **David** | D-098 · autopilot không ghi lên server |
 | **7** | ✅ ~~H-7~~ **CHỐT + LÀM XONG** — IPv4 đa cổng (D-089, patch 0024). 🔴 Còn lại của **O4 là TIỀN**: đã chứng minh beacon tới được từ Internet và mesh cùng máy còn nguyên, **chưa** chứng minh node ở máy khác bắt tay được — việc đó cần máy thứ hai | **David** (O4) | D-089 |
 | **8** | **Gộp `web-home` → `main`** | **David** | `DECISIONS.md` đang tồn tại ở hai bản — xem §12.1 |
@@ -129,8 +144,11 @@ David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
 🔴 **Phép kiểm đẻ chain đầu-cuối cần HAI thứ của David:** ký SIWE, **và** biết rằng cổng nay
 mặc định ĐÓNG — muốn chạy thì khởi động console với `A1_DE_CHAIN_MO=1` rồi tắt lại.
 
-🔴 **Đường găng lớn nhất vẫn ngoài tầm A1:** chữ khắc chờ **C1 đóng băng byte**. Cơ chế xong
-100%, nội dung 0%.
+🔴 **Chữ khắc: cơ chế 100%, nội dung 0% — nhưng nội dung KHÔNG còn là việc A1 phải theo dõi.**
+David chốt `28/08` (**D-104**): hai chuỗi chạy **song song**, C1 do **David điều phối riêng**.
+⇒ A1 nhận **byte đã đóng băng** như một **đầu vào David cấp**, không chờ, không hỏi, không
+xếp C1 vào bảng rủi ro của mình. Việc của A1 là: giữ cơ chế khắc chạy được, và **nói rõ hạn
+chót mà đầu vào phải tới** để lượt sinh mạng ngày G không phải chờ.
 
 ---
 
@@ -217,14 +235,20 @@ Ba bản soát mới: `docs/SOAT-TOAN-DIEN-2026-08-27.md` (lớp vận hành) ·
     đó, đừng dùng giá trị nhớ trong đầu. 🔴 Và bài học của lượt đó: token cũ **chưa từng được đổi
     qua HAI lượt re-genesis** — nó nằm trong cả `console.env.bak-720m` lẫn `bak-pre-g0`; **đưa
     vào việc ngày G**: sinh mạng mới thì sinh luôn token mới.
-14. 🔴 **`check-deploy-drift.mjs` KHÔNG thấy tệp THỪA trên server.** Nó canh 18 tệp trong
+14. ✅ **`check-deploy-drift.mjs` NAY THẤY tệp thừa — lỗ này đã đóng cùng ngày (D-098/A15-3).**
+    Đo lại `28/08` cuối phiên: cổng bắt **7 mồ côi**, tách **🔴 MỒ CÔI** (không có trong repo)
+    khỏi **ℹ️ ngoài tầm canh**, và `null ≠ []` (không quét được là *không biết*, không phải
+    *sạch*). ⚠️ Vẫn phải khai từng tệp mồ côi trong `manifest-deploy.json` — mục đã khai thì
+    cổng chỉ nhắc, **không đỏ**; khai bừa là tự bịt mắt mình.
+    <br>*(Nguyên văn lúc còn hở, giữ lại vì phép đo vẫn nguyên giá trị:)* nó canh 18 tệp trong
     phạm vi: *"tệp trong danh sách có khớp không"*. Một tệp bị **XOÁ khỏi repo** mà vẫn nằm
     trên server thì **không nhóm nào thấy**. Đo `28/08`: `src/9chain-a1-config/genesis.json` —
     **genesis LOCAL của Avalanche** (`networkID 9001`, 3 địa chỉ `X-local1…`, khoá **công khai
     trong repo avalanchego**) — repo đã xoá `27/08`, **server vẫn còn**. ⚠️ Mạng công khai boot
     bằng `net/genesis.json` do netgen sinh nên nó là **bẫy nằm im**, không phải lỗ đang chảy.
     ✅ **Cả hai đã `shred -u` `28/08`** (D-092b) — kèm `~/9chain-a1/vi-thu.json`, khoá riêng
-    trần số dư 0. **Lỗ trong CỔNG thì vẫn còn:** drift không thấy tệp thừa.
+    trần số dư 0. ~~**Lỗ trong CỔNG thì vẫn còn:** drift không thấy tệp thừa.~~ **⇒ ĐÃ ĐÓNG
+    cùng ngày bởi D-098** — xem đầu mục.
     ✅ Kèm kết quả mạnh hơn: quét hash **toàn máy** đối chiếu **cả 6 khoá quỹ** ⇒ **server
     không còn khoá quỹ nào**. Còn đúng hai khoá, **đều có chủ ý**: `FAUCET_PK` và
     `console.env → A1_CLI_KEY` (= `chain-factory`). `A1_L1_ADMIN` là **địa chỉ** Foundation,

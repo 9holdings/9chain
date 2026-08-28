@@ -18,13 +18,36 @@ NET_DIR="${A1_NET_DIR:-local-net/net}"
 OUT="$(pwd)/$NET_DIR"
 mkdir -p "$OUT"
 
+# 🔴 DANH SÁCH BIẾN PHẢI ĐI QUA `docker run` — đây là chỗ đã cháy thật.
+#
+# Diễn tập build 24 patch `28/08` phát hiện: script này chuyển tiếp đúng 3 biến
+# (`A1_P2P_MODE`, `A1_IPV6_*`), trong khi patch 0020 (D-083) đã làm `NETWORK_ID`
+# **BẮT BUỘC**. Nên mọi lượt gọi đường-được-ghi-trong-tài-liệu đều chết ở
+# `FATAL NETWORK_ID chưa đặt` — kể cả khi người dùng ĐÃ khai biến đó ở shell.
+# Cùng lớp lỗi với D-095 (`console-deploy.sh` hỏng từ chính commit vá nó):
+# công cụ liệt kê thẳng trong script thì mọi thứ thêm sau đó lặng lẽ rơi ra ngoài.
+#
+# ⇒ Khai MỘT danh sách, dùng nó để dựng cờ `-e`. Thêm biến ở netgen thì thêm ở đây.
+# Đối chứng rẻ: `grep -rhoE 'env\("[A-Z0-9_]+"' 9chain-a1-tools/netgen/` phải là tập
+# con của danh sách này (trừ `N`/`OUT` do script tự đặt).
+A1_NETGEN_ENV=(
+  NETWORK_ID SUBNET_PREFIX BASE_OCTET A1_CONFIG_DIR
+  A1_P2P_MODE A1_IPV6_SUBNET A1_IPV6_BASE A1_PUBLIC_IP A1_STAKING_PORT_BASE
+  A1_HTTP_ALLOWED_HOSTS A1_API_BIND
+  A1_CHAIN_ID A1_CHAIN_ID_KHAI_NHAN
+  A1_ENGRAVE A1_ENGRAVE_CHECKSUMS A1_ENGRAVE_CONFIRM A1_ENGRAVE_NO_CHECKSUMS
+)
+CHUYEN_TIEP=()
+for v in "${A1_NETGEN_ENV[@]}"; do CHUYEN_TIEP+=(-e "$v"); done
+
 echo "==> Sinh mạng $N node vào $NET_DIR/ (khoá mới)"
+echo "    NETWORK_ID=${NETWORK_ID:-<CHƯA ĐẶT — netgen sẽ dừng, và đó là ĐÚNG>}"
 MSYS_NO_PATHCONV=1 docker run --rm \
   -v "/$SRC":/src -w /src \
   -v "/$OUT":/out \
   -v 9chain-a1-gomod:/go/pkg/mod \
   -e GOWORK=off -e N="$N" -e OUT=/out \
-  -e A1_P2P_MODE -e A1_IPV6_SUBNET -e A1_IPV6_BASE \
+  "${CHUYEN_TIEP[@]}" \
   golang:1.25.10-bookworm sh -c "go run ./9chain-a1-tools/netgen"
 
 cat <<EOF
