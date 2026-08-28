@@ -45,12 +45,19 @@ Details` · số liệu **9/9 · 0 · 1** (ô `0` ở đây là **số 0 đo đ�
 1. `git -C C:\PROJECTS\9Chain-A1 log --oneline -5` — phiên chain commit liên tục.
 2. Backlog: [`docs/WEB-PROGRESS.md`](docs/WEB-PROGRESS.md) — mục
    **"ĐỐI CHIẾU SITE ↔ MẠNG g0"** là phần còn mở.
-3. **Ba quyết định đang chặn:**
-   - **Deploy hay chưa?** (mọi việc trên chưa lên mạng)
-   - **C1** — deploy faucet để `/faucet/api/supply` sống, **hay** viết câu nguồn cung
-     theo đường "tham số genesis"?
-   - **A2** — cần **đo lại** thời gian đẻ chain trên g0 trước khi sửa câu "ba phút"
-     (số mới nhất trong repo là **305,5s**, không phải 170s).
+3. **Autopilot làm được ngay, không cần hỏi ai:** **Đ1-9** (a11y ngoài tầm axe) ·
+   **Đ1-7** (đường ra khỏi phiên ví) · **Đ1-11b phần 2–3** (so DANH SÁCH chunk thay
+   vì chỉ số đếm, `web-rollback.sh`).
+
+4. **Hai quyết định đang chặn — `[human]`:**
+   - **A2 · câu "khoảng ba phút" ĐANG SAI trên mạng.** Nó ở 3 chỗ trong `en.ts`
+     (`:198` `cPhu` → cũng là **`og:description`**, `:225`, `:335`). Số đo mới nhất
+     trong repo là **305,5s ≈ 5 phút** trên mạng 9 node ([`HANDOFF.md:489`](HANDOFF.md));
+     con số ~170s là thời mạng **5 node**. Mâu thuẫn nội bộ xác nhận:
+     `web/lib/wallet.ts` đặt `tranGiay = 420` — **mã chờ 7 phút trong khi chữ hứa 3**.
+     🔴 Sửa được nhưng **phải đo lại trên g0 trước**, và phép đo đó là **đẻ một chain
+     thật trên mạng công khai** ⇒ cần David gật.
+   - **C1 · `/faucet/api/supply` đang 404 thật** — việc của phiên chain, xem dưới.
 
 ---
 
@@ -68,18 +75,19 @@ Details` · số liệu **9/9 · 0 · 1** (ô `0` ở đây là **số 0 đo đ�
 | **Đ1-6a** Màn hình thôi đứng im | 900s → 420s + `LoiConsole` mang mã HTTP |
 | **Đ1-13** Chân trang | **0 → 8 liên kết**; `/re-genesis/` thân trang **0 → 3 href** |
 
-### Đa ngôn ngữ — 11/30
+### Đa ngôn ngữ — **30/30 XONG** (`2026-08-28`)
 
-`en` (mặc định, trong bundle) · `zh hi es ar fr pt vi ru de ja` (chunk lười).
-Còn **19**: `bn ur id mr te tr ta ko it th gu fa pl uk ms nl tl sw ha`.
+`en` trong bundle + **29 chunk lười**. 3 bản RTL (`ar ur fa`) — bộ component vốn dùng
+**thuộc tính logic** (`ms-`, `end-`, `text-start`) nên **không phải sửa một dòng nào**
+cho hướng viết. Giữ nếp đó.
 
-- Bộ chọn ở header: **VI ở đúng vị trí 9** (David chốt), 3 RTL, ngôn ngữ chưa có từ
-  điển **bị vô hiệu hoá** và ghi "chưa có" — không im lặng rơi về tiếng Anh.
-- Chi phí cả bộ máy: **130,0 → 134,2 KB gz** (trần 160).
-- ✅ **Đã đo bằng Chrome:** đổi ngôn ngữ lật cả cây; chunk `vi` (19,4 KB) tải ở
-  `t=30342ms` tức **đúng lúc bấm**, mọi chunk khác ở `t=47ms` ⇒ nạp lười chạy thật.
-- ✅ RTL đúng ngay lần đầu (`dir=rtl`, `text-align: start`) vì bộ component vốn dùng
-  **thuộc tính logic** (`ms-`, `end-`, `text-start`). Giữ nếp đó.
+- Ngân sách: **134,3 → 135,3 KB gz** cho **19 bộ thêm** (trần 160). +1,0 KB là bằng
+  chứng nạp lười chạy thật — trần chỉ đếm thứ tải **vô điều kiện**.
+  ⇒ **i18n KHÔNG phải rủi ro ngân sách. Font (B1+B2) mới là.**
+- Bài `i18n-shape` **đổi vai**: từ bộ đếm tiến độ (đỏ có chủ ý) thành **cổng thật** —
+  thêm ngôn ngữ vào `ngonNgu.ts` mà quên từ điển sẽ đỏ. **Đừng gỡ nó vì "đã xong rồi".**
+- ⚠️ Việc còn lại của i18n là việc của **người**: 29/30 bản chưa ai đọc được để soát.
+  `soat: 'may'` là một **lời khai**, không phải tinh chỉnh.
 
 ### Mạng sinh lại thế hệ g0 (D-081, ngày 2026-08-27)
 
@@ -95,31 +103,13 @@ Còn **19**: `bn ur id mr te tr ta ko it th gu fa pl uk ms nl tl sw ha`.
 
 ## Việc tiếp — cụ thể, làm được ngay
 
-### 1. Cày nốt 19 từ điển *(David đã chốt: làm hết)*
+### Đợt 1 còn tồn
 
-**Cách viết một từ điển** (khuôn đã chứng minh qua 10 bản):
-
-```
-web/lib/i18n/dicts/<ma>.ts   ← chép hình dạng từ en.ts, dịch từ EN (KHÔNG dịch từ vi.ts)
-web/lib/i18n/index.tsx       ← thêm một dòng vào BO_NAP: <ma>: () => import('./dicts/<ma>'),
-```
-
-🔴 **Ba luật khi dịch:**
-- Dịch **từ `en.ts`**, không từ `vi.ts` — dịch qua hai tầng là nhân đôi chỗ nghĩa trôi.
-- **Không làm nhẹ** `reGenesis.*` · `deChain.soatMoTa` · `chainCuaToi.thuHoiY*`.
-  Chúng nói "vĩnh viễn"/"không sửa được" để chặn người dùng mất tài sản.
-- Mở đầu tệp bằng chú thích khai **máy dịch, chưa có người soát, nguồn là tiếng Anh**.
-
-Sau mỗi lô: `pnpm typecheck && pnpm vitest run test/i18n-shape.test.ts`.
-
-### 2. Đợt 1 còn tồn
-
-- **Đ1-8** lưới an toàn mạng — hạn giờ GET, `r.ok`, `allSettled`.
-  🔴 **KHÔNG** đặt `AbortSignal.timeout` cho `/api/create` và `/api/revoke` (CF cắt
-  ~100s, thao tác ~170s).
 - **Đ1-9** a11y ngoài tầm axe — bàn phím, `aria-live`, phóng 200%, `prefers-reduced-motion`.
-- **Đ1-11b** mỏ neo phiên bản (`version.txt`), kiểm **TẤT CẢ** chunk lấy từ bản VỪA
-  DỰNG, `pnpm test` trong script, `web-rollback.sh`.
+- **Đ1-11b phần 2–3** — phần 1 (`version.txt` + cổng route hai chiều) **XONG 28/08**.
+  Còn: so **DANH SÁCH** chunk lấy từ bản VỪA DỰNG (`so-chunk-js` hiện chỉ là số
+  **đếm** — hai bộ tệp khác nhau vẫn có thể cùng số đếm) · `pnpm test` trong script ·
+  `web-rollback.sh`.
   🔴 **TUYỆT ĐỐI không `mv out.new out`** — bẫy inode bind-mount, đã cắn 25/08.
 - **Đ1-7** đường ra khỏi phiên ví.
 
@@ -136,6 +126,29 @@ Sau mỗi lô: `pnpm typecheck && pnpm vitest run test/i18n-shape.test.ts`.
   (David chọn đường (b)). Bản đẹp `out/404.html` cần `replace_status`, mà **bản Caddy
   này không có module đó**.
 
+### Việc của PHIÊN CHAIN (đã báo `9chain-a1-20` ngày `28/08`)
+
+- **C1 · `/faucet/api/supply` đang 404 THẬT.** Đo:
+  `curl https://a1.9chain.org/faucet/api/supply` → **404** `{"error":"not found"}`.
+  Đó là 404 của **chính faucet** (vì `/faucet/api/info` sống ⇒ Caddy cắt tiền tố
+  đúng), trong khi repo **CÓ** route ở `local-net/faucet/server.mjs:241` ⇒ **bản
+  faucet đang chạy cũ hơn đợt 14**. Cần deploy lại faucet **kèm `cung.json` +
+  `faucet.env`**.
+  🔴 **Bẫy khi kiểm:** `/api/supply` ở **gốc** (không có `/faucet`) do **Blockscout**
+  trả lời — HTTP 400 + JSON của họ. Kiểm nhầm đường đó sẽ kết luận sai hoàn toàn.
+  ⇒ Việc HANDOFF giao phiên web ("câu khai nguồn cung trên trang") **chờ cái này**,
+  hoặc chuyển sang đường (b) của A-5: khai nguồn là *tham số genesis*.
+
+- **C2 · Explorer site trỏ sang vẫn công bố `networkID 9001`.** Đo `28/08` trên
+  `a1.9scan.org`: `<title>… block explorer · 9001`, **12 lần** chuỗi `9001` trong
+  HTML. Repo của họ **ĐÃ CÓ** commit `2a84d95` sửa `9001 → 999999999` ⇒ **độ trễ
+  deploy, không phải họ chưa biết.**
+  Ảnh hưởng thật: site đưa `blockExplorerUrls: ['https://a1.9scan.org']` vào ví qua
+  EIP-3085 ⇒ người dùng thêm mạng xong bấm sang explorer thì gặp con số **mâu thuẫn
+  với chân trang A1**.
+  🔴 Câu hỏi kiến trúc chưa quyết: `check-chain-id.mjs` chỉ chứng minh hằng số **CỦA
+  A1**, nó **không đo thứ A1 trỏ người dùng tới**. Có dựng cổng đo cả explorer không?
+
 ### Kẹt `[blocked]`
 
 - **Vân tay token đỏ có chủ ý** — 9Scan đổi `--font-display`→Manrope,
@@ -149,12 +162,15 @@ Sau mỗi lô: `pnpm typecheck && pnpm vitest run test/i18n-shape.test.ts`.
 
 ## Gotchas của phiên này
 
-### Bảy cổng đang canh, và cái mỗi cổng KHÔNG bắt được
+### Mười cổng đang canh, và cái mỗi cổng KHÔNG bắt được
 
 | Cổng | Bắt | Mù với |
 |---|---|---|
-| `check-routes.mjs` | trang mới thiếu route Caddy | nội dung |
-| `check-chain-id.mjs` | hằng số mạng lệch mạng thật | câu chữ |
+| `check-routes.mjs` | **hai chiều**: tệp thiếu route **và** route trỏ vào hư không | nội dung |
+| `check-chain-id.mjs` | chainId · networkID · **thế hệ** lệch mạng thật | câu chữ |
+| `so.test` — locale | ai đó cắm cứng lại `toLocaleString('xx')` | định dạng có đẹp không |
+| `mang.test` — 4 kiểu hỏng | hết giờ / http / trả rác / đứt mạng | — |
+| `mang.test` — **hạn giờ create/revoke** | ai đó thêm tham số thứ tư vào 2 đường dài | — |
 | `check-no-marker.mjs` | dấu `[?]` lọt ra `out/` | chuỗi tiếng Anh viết thẳng |
 | `i18n-shape` | khoá lệch · `{chỗ}` mất · chuỗi rỗng | **câu dịch sai nghĩa** |
 | nhiễm hệ chữ | chữ ngôn ngữ khác lọt vào | như trên |
@@ -171,6 +187,49 @@ Xảy ra **ba lần** trong ngày, và mỗi lần đều "không cổng nào b�
 
 ⇒ Thang đo từ yếu tới mạnh: **mã HTTP → content-type → nội dung → header tầng trước**
 (`cf-cache-status`).
+
+### 🔴 Gotchas MỚI của đợt `2026-08-28` — thứ sẽ tốn giờ nếu không biết trước
+
+**1. Cổng kiểm một QUAN HỆ mà chỉ đo MỘT CHIỀU.**
+`check-routes.mjs` hỏi *"mọi tệp trong `out/` đã có route chưa?"* và xanh suốt, trong
+khi `/version.txt` **đã nằm trong `@trangmoi` từ Đ1-1** mà không có gì sinh ra tệp ⇒
+**404 thật trên mạng công khai nhiều ngày**. Chiều kia không ai hỏi.
+⇒ Dấu hiệu nhận biết: cổng nào có dạng *"mọi X đều có Y"* thì **luôn hỏi tiếp
+"còn mọi Y có X không?"**.
+
+**2. `process.exit()` sau nhiều `fetch` trên Windows ⇒ mã thoát 127, không phải 1.**
+Đo trên Node 24: sau ~3 lượt `fetch`, `process.exit(1)` làm libuv ném
+`Assertion failed: !(handle->flags & UV_HANDLE_CLOSING), src\win\async.c:94` và tiến
+trình thoát **127**. Tái lập 3/3. Sửa: `process.exitCode = 1` rồi để vòng lặp tự cạn.
+⚠️ Đáng sửa dù 127 vẫn khác 0 nên `&&` vẫn chặn: dòng "Assertion failed" **đọc như
+chính cổng bị hỏng**, nên người đang vội trước một lượt deploy rất dễ kết luận "cổng
+lỗi" rồi bỏ qua nó — lỗi này biến một cổng **đang chặn đúng** thành một cổng **bị nghi
+ngờ**.
+⇒ Kiểm một cổng phải kiểm **ba** nửa: *có chặn không* · *chặn xong nói gì* ·
+**thoát ra mã gì**.
+
+**3. Cổng đếm tham số bằng regex sẽ BÁO OAN.**
+Cổng canh `/api/create` đỏ ngay lần chạy đầu vì `{ name, xacNhan }` có dấu phẩy bên
+trong — regex tưởng có tham số thứ tư. **Một cổng báo oan còn nguy hơn cổng không có,
+vì người ta học cách bỏ qua nó.** Phải cân ngoặc thật.
+
+**4. Mỏ neo phiên bản chỉ mang SHA sẽ nói dối rất tự tin.**
+Dựng từ cây còn sửa dở thì SHA trỏ vào một commit **không chứa** thứ đang lên sóng.
+`version.txt` vì thế khai cả `con-sua-chua-commit`. Đã chứng minh sống: lượt dựng giữa
+phiên khai `co`, lượt dựng trước deploy khai `khong`.
+
+**5. Chính phép reset mạng có thể CHE một khuyết tật.**
+`toLocaleString('vi-VN')` cắm cứng sai cho 29/30 ngôn ngữ — nhưng mạng vừa sinh lại
+nên `eth_blockNumber = 1`, mà **một chữ số thì không có dấu phân cách**, nên mọi ngôn
+ngữ in ra y hệt nhau ⇒ triệu chứng bằng 0. `01/09` mạng lại về 1, cửa sổ ẩn mở thêm
+lượt nữa. ⇒ Bài kiểm cho lớp lỗi này phải đo **thẳng hàm** với số đủ lớn, **không đo
+qua mạng**.
+
+**6. `Promise.all` buộc các nguồn ĐỘC LẬP sống chết cùng nhau.**
+Số validator không phụ thuộc việc danh bạ L1 có đọc được hay không, nhưng `all` làm
+một nguồn chết là mất cả ba ô — **đúng lúc trang cần nhất để nói "9/9 còn sống"**.
+⚠️ Nhưng luật cũ *"đừng hiện một con số sai lệch"* vẫn đúng và vẫn phải giữ: ô hỏng
+hiện **gạch ngang**, không hiện `0`. "0 validator" đọc như mạng chết.
 
 ### Bẫy kỹ thuật
 
@@ -222,6 +281,11 @@ cd C:\PROJECTS\9Chain-A1-web && bash local-net/deploy/web-deploy.sh
 
 ```
 cd C:\PROJECTS\9Chain-A1-web && node local-net/deploy/check-chain-id.mjs
+```
+
+Kiểm bản ĐANG PHỤC VỤ có đúng bản vừa dựng không (mỏ neo Đ1-11b):
+```
+curl -s https://a1.9chain.org/version.txt && cat C:\PROJECTS\9Chain-A1-web\web\out\version.txt
 ```
 
 Deploy Caddy (chạy TRÊN server, không phải máy dev):
