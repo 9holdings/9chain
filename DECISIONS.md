@@ -3323,3 +3323,59 @@ số đó lại. ⇒ **B-17**, cần David xoá (ghi lên server là ranh giới
 **Khai vào `thuaDaBiet` KHÔNG phải là tha bổng:** mỗi mục nói thật nó là gì, kể cả khi sự thật
 là *"🔴 NGUY HIỂM — chờ David xoá: B-17"*. Cổng xanh nghĩa là *"không có mồ côi nào CHƯA ai
 nhìn"*, không phải *"không có mồ côi nào"*.
+
+## D-099 — Công cụ O3b: kéo sổ SỐNG về rồi dồn `chains` → `retired` (2026-08-28)
+
+`NGAY-G-A1-CON-LAI.md` §5c đã chỉ đúng cách làm từ `26/08` — **dồn rồi giữ tệp**, đừng reset
+(mất sổ chống phát lại) và cũng đừng giữ nguyên (console tưởng chain còn sống trên một mạng
+chúng không tồn tại). Nhưng tới `28/08` **chưa có công cụ nào làm việc đó**: nó vẫn là thao tác
+tay trên một tệp JSON — đúng loại việc đã hỏng một lần và mất **43 bản ghi**.
+
+### 🔴 Đo được một lỗ thứ hai, chưa ai nêu
+
+`sinh-chainid-da-cap.mjs` đọc sổ **trong repo**; sổ **đang sống** nằm trên **server**; và
+`check-deploy-drift.mjs` **cố ý bỏ qua** tệp đó (`boQua`, vì nó đổi theo thời gian). ⇒ **Không
+cổng nào canh khoảng cách giữa hai sổ.**
+
+Đo `28/08`: server `0 sống · 0 thu hồi` · repo `1 sống — DeltaChain#9201`. **Hai tệp không phải
+bản sao của nhau.** Hôm nay vô hại (server rỗng), nhưng nếu server có chain mà repo chưa biết
+thì lượt sinh lại ngày G sẽ xoá chúng khỏi **mọi nơi** — không ai còn nguồn để dựng lại sổ chặn.
+
+⇒ `--keo` kéo sổ sống về (chỉ đọc), đối chiếu với mọi sổ repo đã biết, và **lưu vào
+`docs/archive/` những bản ghi chưa ai biết — trước khi có gì bị xoá**.
+
+### Hai phân biệt phải làm đúng, và tôi làm sai một cái ở bản đầu
+
+1. **`null` ≠ `[]`** — *không hỏi được server* trả **exit 2** ("không biết"), khác hẳn *sổ rỗng*.
+2. 🔴 **THIẾU KHOÁ ≠ SAI KIỂU.** Bản đầu tôi từ chối mọi sổ không có mảng `retired`, viện luật
+   *"rỗng ≡ hỏng"* — và nó **từ chối luôn sổ thật của repo**. Sai: `loadState()` trong
+   `console/server.mjs` **khai rõ** tệp không có khoá `retired` là **định dạng trước M4.4** và
+   vẫn hợp lệ. Luật đúng:
+   - khoá **vắng mặt** ⇒ định dạng cũ, coi như rỗng, **nhưng phải KHAI RA** (in `⚠️`);
+   - khoá **có mà sai kiểu** ⇒ **HỎNG** — đó mới là lúc "coi như rỗng" nghĩa là **im lặng vứt
+     đi phần sổ mình không đọc được**.
+
+   *Bài học: "rỗng ≡ hỏng" là luật đúng, nhưng áp nó vào **sự vắng mặt của một khoá tuỳ chọn**
+   là biến một cổng thành một cái chặn đường. Cổng đúng phải đọc mã đang chạy trước — ở đây là
+   `loadState()` — chứ không suy từ một khẩu hiệu.*
+
+### 🔴 Sổ sống RỖNG là trạng thái HỢP LỆ, không phải hỏng
+
+Sau một lượt sinh lại, rỗng là đúng. Áp "rỗng ≡ hỏng" ở đây sẽ **chặn đúng lượt chạy đúng**.
+Nên `--keo` in một dòng vàng nói rõ *"hợp lệ — nhưng nếu anh ĐANG mong thấy chain trong đó thì
+một lượt reset vừa xảy ra"*. Rỗng vừa là trạng thái hợp lệ vừa là triệu chứng; công cụ không
+được chọn hộ người đọc.
+
+### Nghiệm thu
+
+| | |
+|---|---|
+| Đối chứng ngược | **9/9 ca đúng**, gồm 4 ca ĐỎ (`retired` sai kiểu · `chains` sai kiểu · bản ghi thiếu `chainId` · sổ `null`) |
+| Tính chất bao trùm | `|ra.retired| = |vào.chains ∪ vào.retired|` đúng ở **n = 0, 1, 5, 43** — không mất, không đẻ |
+| `--keo` chạy thật | server `0/0` · repo biết **53 bản ghi từ 3 sổ** · exit 0 kèm dòng vàng |
+| `--don` chạy thật | sổ repo thật ⇒ `chains 0 · retired 1`, bản ghi mang `thuHoiLuc` + `lyDo`, và ⚠️ khai luôn "sổ không có khoá `retired`" |
+| Sau đó | `sinh-chainid-da-cap.mjs --kiem` vẫn xanh — 47 chainId · 53 tên, và `9201` vẫn nằm trong sổ chặn |
+
+⚠️ **Không ghi gì lên server** — công cụ chuẩn bị tệp ở máy dev; đưa lên là việc có người bấm.
+Đó cũng là lý do nó **không** tự chạy `sinh-chainid-da-cap.mjs`: hai việc đó phải là hai quyết
+định, vì việc thứ hai ghi vào một tệp đang được deploy.
