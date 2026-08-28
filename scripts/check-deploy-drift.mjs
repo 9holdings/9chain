@@ -40,6 +40,37 @@ const KHOA = lay("--key", `${process.env.HOME || process.env.USERPROFILE}/.ssh/9
 const SRC = lay("--src", "/home/ubuntu/9chain-a1/src");
 const TAT_CA = argv.includes("--tat-ca");
 
+// ═════ ĐỐI CHỨNG NGƯỢC cho phép PHÂN LOẠI TỆP THỪA ═════
+// Chạy trên danh sách TỔNG HỢP, không chạm server: phép phân loại phải phân biệt được
+// bốn nhóm **trước khi** ta tin nó trên dữ liệu thật.
+if (argv.includes("--tu-kiem")) {
+  const inMan = new Set(["a/trong-manifest.mjs"]);
+  const trongRepo = (f) => f === "a/co-trong-repo.mjs" || f === "a/trong-manifest.mjs";
+  const khai = (f) => (f === "a/da-khai.bak" ? { ly: "ca thử" } : undefined);
+  const ca = [
+    ["tệp lạ KHÔNG có trong repo ⇒ MỒ CÔI", ["a/la.bak"], (r) => r.moCoi.length === 1],
+    ["tệp mồ côi ĐÃ KHAI ⇒ không tính đỏ", ["a/da-khai.bak"], (r) => r.moCoi.length === 0 && r.moCoiDaKhai.length === 1],
+    ["tệp trong manifest ⇒ không vào nhóm thừa nào", ["a/trong-manifest.mjs"],
+      (r) => r.moCoi.length === 0 && r.ngoaiTam.length === 0],
+    ["tệp có trong repo, ngoài manifest ⇒ NGOÀI TẦM CANH, không đỏ", ["a/co-trong-repo.mjs"],
+      (r) => r.moCoi.length === 0 && r.ngoaiTam.length === 1],
+    // 🔴 Ca đắt nhất: `null` (không quét được) TUYỆT ĐỐI không được đọc thành "sạch".
+    ["🔴 KHÔNG quét được ⇒ khai 'không biết', KHÔNG kết luận sạch", null,
+      (r) => r.khongQuetDuoc === true && r.moCoi.length === 0],
+    ["danh sách RỖNG ⇒ là khẳng định thật, khác hẳn null", [],
+      (r) => r.khongQuetDuoc === false && r.moCoi.length === 0],
+  ];
+  let hong = 0;
+  console.log("══ ĐỐI CHỨNG NGƯỢC — phân loại tệp thừa ══");
+  for (const [ten, dsSv, dung] of ca) {
+    const r = phanLoaiThua(dsSv, inMan, trongRepo, khai);
+    if (dung(r)) console.log(`  ✓ ${ten}`);
+    else { console.log(`  ✗ ${ten} — ra ${JSON.stringify(r)}`); hong++; }
+  }
+  console.log(`\n${hong ? "✗" : "✅"} ${ca.length - hong}/${ca.length} đúng`);
+  process.exit(hong ? 1 : 0);
+}
+
 /**
  * PHẠM VI đọc từ `local-net/deploy/manifest-deploy.json` — **một danh sách, hai nơi đọc**.
  *
@@ -120,6 +151,69 @@ for (const dong of raw.split("\n")) {
   if (m) bamServer.set(m[2].trim(), m[1]);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// QUÉT TỆP THỪA — hướng NGƯỢC lại của cổng này
+//
+// 🔴 VÌ SAO. Phần trên chỉ hỏi *"tệp trong danh sách có khớp không"*. Một tệp bị
+// **XOÁ khỏi repo mà vẫn nằm trên server** thì không nhóm nào thấy. Đã cháy thật
+// (`28/08`, D-092b): `9chain-a1-config/genesis.json` — genesis LOCAL của Avalanche,
+// khoá ewoq công khai — repo xoá `27/08`, **server vẫn còn**.
+//
+// ⚠️ "Thừa" là HAI thứ khác nhau, và gộp chúng là đẻ ra một cổng đỏ tràn lan:
+//
+//   🔴 MỒ CÔI       trên server, **không tồn tại trong repo** → xoá khỏi repo mà
+//                   còn ở đây, hoặc chưa bao giờ ở repo. Đây là lớp BẪY NẰM IM.
+//   🟡 NGOÀI TẦM    có trong repo nhưng không có trong manifest → lỗ **phủ sóng**,
+//                   một quyết định chưa ai ghi, không phải một vết thương.
+//
+// Chỉ MỒ CÔI **chưa khai báo** mới làm cổng đỏ. Mồ côi đã khai nằm ở
+// `thuaDaBiet` trong manifest, mỗi mục kèm **lý do** — cùng kỷ luật với `boQua`:
+// *vắng mặt phải là một quyết định, không phải một lần quên.*
+// ═══════════════════════════════════════════════════════════════════════════
+const thuaDaBiet = manifest.thuaDaBiet ?? [];
+const daKhaiThua = (p) => thuaDaBiet.find((t) => new RegExp(t.mau).test(p));
+
+/**
+ * Thuần, để bài đối chứng gọi được mà không cần server.
+ * @param {string[]|null} tepServer  null = KHÔNG quét được (khác hẳn mảng rỗng)
+ */
+export function phanLoaiThua(tepServer, trongManifest, coTrongRepo, daKhai) {
+  // 🔴 `null` và `[]` KHÔNG được nhập làm một. Không quét được là **không biết**;
+  // quét ra rỗng là một khẳng định. Nhập hai thứ đó là đúng cách một cổng báo
+  // "sạch" cho một lượt quét chưa từng chạy. (Rỗng ≡ hỏng — D-069b.)
+  if (tepServer === null) return { khongQuetDuoc: true, moCoi: [], moCoiDaKhai: [], ngoaiTam: [] };
+  const moCoi = [], moCoiDaKhai = [], ngoaiTam = [];
+  for (const f of tepServer) {
+    if (trongManifest.has(f)) continue;
+    if (coTrongRepo(f)) { ngoaiTam.push(f); continue; }
+    const khai = daKhai(f);
+    (khai ? moCoiDaKhai : moCoi).push(khai ? { p: f, ly: khai.ly } : f);
+  }
+  return { khongQuetDuoc: false, moCoi, moCoiDaKhai, ngoaiTam };
+}
+
+// Thư mục cần quét **suy ra từ chính manifest**, không khai tay: một danh sách thư
+// mục viết riêng sẽ trôi lệch khỏi danh sách tệp — đúng lỗ D-088/D-094.
+const thuMucQuet = [...new Set(tep.map((f) => f.split("/").slice(0, -1).join("/")))].filter(Boolean);
+let tepServer = null;
+try {
+  // `-maxdepth 1`: không đệ quy. Đệ quy là nuốt `node_modules` và biến cổng thành
+  // tiếng ồn; còn bẫy thật (D-092b) nằm ngay trong thư mục, không nằm sâu.
+  const raThua = execFileSync(
+    "ssh",
+    ["-o", "BatchMode=yes", "-o", "ConnectTimeout=20", "-i", KHOA, HOST,
+      `cd ${SRC} && for d in ${thuMucQuet.join(" ")}; do [ -d "$d" ] && find "$d" -maxdepth 1 -type f; done`],
+    { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 }
+  );
+  tepServer = raThua.split("\n").map((s) => s.trim()).filter(Boolean);
+} catch {
+  tepServer = null; // KHÔNG quét được — xem chú thích trong `phanLoaiThua`
+}
+const trongManifest = new Set(tep);
+const thua = phanLoaiThua(
+  tepServer, trongManifest, (f) => existsSync(path.join(GOC, f)), daKhaiThua,
+);
+
 const khop = [], lech = [], thieu = [];
 for (const [p, h] of bamDev) {
   const s = bamServer.get(p);
@@ -136,7 +230,30 @@ if (TAT_CA) for (const p of khop) console.log(`  = ${p}`);
 for (const p of thieu) console.log(`  🔴 THIẾU TRÊN SERVER  [${thuocNhom.get(p)}] ${p}`);
 for (const p of lech) console.log(`  🔴 LỆCH               [${thuocNhom.get(p)}] ${p}`);
 
-console.log(`\n${khop.length} khớp · ${lech.length} lệch · ${thieu.length} thiếu`);
+// ── hướng ngược: tệp THỪA trên server ──
+if (thua.khongQuetDuoc) {
+  console.log(`\n🟡 KHÔNG quét được tệp thừa (${thuMucQuet.length} thư mục) — đây là "không biết", KHÔNG phải "sạch".`);
+} else {
+  for (const f of thua.moCoi) console.log(`  🔴 MỒ CÔI (không có trong repo)  ${f}`);
+  for (const { p, ly } of thua.moCoiDaKhai) console.log(`  🟡 mồ côi ĐÃ KHAI  ${p}  — ${ly}`);
+  if (thua.ngoaiTam.length) {
+    console.log(`  ℹ️  ${thua.ngoaiTam.length} tệp NGOÀI TẦM CANH (có trong repo, không trong manifest):`);
+    for (const f of thua.ngoaiTam) console.log(`       ${f}`);
+  }
+}
+
+console.log(`\n${khop.length} khớp · ${lech.length} lệch · ${thieu.length} thiếu` +
+  (thua.khongQuetDuoc ? " · thừa: KHÔNG QUÉT ĐƯỢC"
+    : ` · ${thua.moCoi.length} mồ côi · ${thua.moCoiDaKhai.length} mồ côi đã khai · ${thua.ngoaiTam.length} ngoài tầm canh`));
+
+if (thua.moCoi.length) {
+  console.log(
+    `\n🔴 Có tệp trên server KHÔNG tồn tại trong repo. Cổng phía trên KHÔNG thấy được lớp này:\n` +
+    `   nó chỉ hỏi "tệp trong danh sách có khớp không". Một bản .bak của mã cũ nằm cạnh mã đang\n` +
+    `   chạy là một đường lui trỏ vào một QUYẾT ĐỊNH ĐÃ ĐÓNG — xem D-092b và D-098.\n` +
+    `   Nếu tệp đó ở lại có chủ ý, khai vào "thuaDaBiet" trong manifest kèm LÝ DO.`
+  );
+}
 
 if (lech.length || thieu.length) {
   console.log(
@@ -144,6 +261,10 @@ if (lech.length || thieu.length) {
     `   xanh KHÔNG chứng minh được điều gì về hành vi mà người dùng đang gặp.\n` +
     `   Xem D-087 — đúng lớp lỗi này đã để B-14 hở suốt hai ngày.`
   );
-  process.exit(1);
 }
-console.log("✓ mọi tệp trong phạm vi khớp từng byte.");
+if (lech.length || thieu.length || thua.moCoi.length) process.exit(1);
+console.log(
+  "✓ mọi tệp trong phạm vi khớp từng byte" +
+  (thua.khongQuetDuoc ? " (nhưng KHÔNG quét được tệp thừa — xem dòng vàng trên)."
+    : ", và không có tệp mồ côi nào chưa khai báo."),
+);

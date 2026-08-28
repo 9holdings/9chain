@@ -3263,3 +3263,63 @@ khoá đang nằm trên máy dev** — thứ dễ bị chép nhầm thành "bả
 
 Đã cập nhật `docs/O1-CUSTODY-PHEP-KIEM.md` và `BLOCKERS.md` B-16 sang một lệnh; hai lệnh rời
 **vẫn giữ** cho ai muốn đọc kỹ từng vế.
+
+## D-098 — Cổng drift nhìn HƯỚNG NGƯỢC: tệp có trên server mà không có trong repo (2026-08-28)
+
+Gotcha 14 đã ghi lỗ này từ `28/08` nhưng chưa ai vá: `check-deploy-drift.mjs` chỉ hỏi *"tệp
+**trong danh sách** có khớp không"*. Một tệp **xoá khỏi repo mà vẫn nằm trên server** thì
+**không nhóm nào thấy** — và điều đó đã cháy thật (D-092b: genesis LOCAL của Avalanche, khoá
+ewoq công khai, repo xoá `27/08` mà server còn tới `28/08`).
+
+### Quyết định thiết kế: "thừa" là HAI thứ, không phải một
+
+Gộp chúng là đẻ ra cổng đỏ tràn lan — và chính tệp này đã ghi bài học đó (bản đầu dùng glob,
+báo **27/58 lệch**, phần lớn đỏ giả; *"một cổng đỏ ở chỗ không cần đỏ sẽ bị người ta học cách
+bỏ qua, và nó sẽ bị bỏ qua đúng vào lần nó đỏ thật"*).
+
+| nhóm | định nghĩa | màu |
+|---|---|---|
+| 🔴 **MỒ CÔI** | trên server, **không tồn tại trong repo** | **ĐỎ, exit 1** — lớp bẫy nằm im |
+| 🟡 **mồ côi ĐÃ KHAI** | mồ côi có mục trong `thuaDaBiet` **kèm lý do** | in ra, không đỏ |
+| ℹ️ **NGOÀI TẦM CANH** | có trong repo nhưng không trong manifest | đếm + liệt kê, không đỏ — đây là lỗ **phủ sóng**, không phải vết thương |
+
+Thư mục quét **suy ra từ chính manifest**, không khai tay — một danh sách thư mục viết riêng sẽ
+trôi lệch khỏi danh sách tệp, đúng lỗ D-088/D-094. `-maxdepth 1`: đệ quy là nuốt `node_modules`
+và biến cổng thành tiếng ồn, còn bẫy thật nằm ngay trong thư mục.
+
+🔴 **`null` ≠ `[]`.** Không quét được là **không biết**; quét ra rỗng là một **khẳng định**.
+Nhập hai thứ đó là đúng cách một cổng báo "sạch" cho một lượt quét chưa từng chạy (rỗng ≡ hỏng,
+D-069b). Có một ca đối chứng riêng cho việc này.
+
+### Bật MẶC ĐỊNH, không núp sau cờ
+
+Bản đầu tôi định làm `--quet-thua`. Bỏ, vì nó tái phạm đúng thứ A15-2 vừa sửa: **một cổng phải
+nhớ bật thì nó là một lời dặn, không phải một cổng.**
+
+### Nghiệm thu
+
+- **6/6 đối chứng ngược** trên danh sách tổng hợp (`--tu-kiem`), gồm ca `null` ⇒ phải khai
+  *"không biết"* và ca `[]` ⇒ là khẳng định thật.
+- **Chạy thật, chỉ đọc, lên server:** bắt **7 tệp mồ côi** ngay lần đầu.
+- 🔴 **Đối chứng trên DỮ LIỆU THẬT:** gỡ một mục khỏi `thuaDaBiet` (≡ một mồ côi MỚI xuất hiện)
+  ⇒ cổng **ĐỎ, exit 1**; khai lại ⇒ xanh. Phép đo **phân biệt được**, không phải chặn tất.
+- Sau khi khai đủ 7 mục: `19 khớp · 0 lệch · 0 thiếu · 0 mồ côi · 7 mồ côi đã khai · 14 ngoài
+  tầm canh`, exit 0 ⇒ `console-deploy.sh` vẫn deploy được.
+
+### 🔴 Cái nó tìm thấy quan trọng hơn chính nó — B-17
+
+Hai trong bảy tệp là **đường lui trỏ vào quyết định đã đóng**, và số đo nói rõ:
+
+| tệp | `A1_DE_CHAIN_MO` | `siwe` |
+|---|---:|---:|
+| `server.mjs.bak-pre-D087-…` (27/08) | **0** | 7 |
+| `server.mjs.bak-truoc-admin` (24/08) | **0** | **0** |
+
+Khôi phục bản thứ nhất = mở lại đẻ chain mà D-087 đóng. Bản thứ hai còn gỡ luôn xác thực ví
+(M4.1/D-020) ⇒ `admin` quay lại kiểu **gõ tay**. Chúng không phục vụ đường nào hôm nay, nhưng
+chúng **được đặt tên như một đường lui** — người xử lý sự cố lúc 2 giờ sáng sẽ `cp` một trong
+số đó lại. ⇒ **B-17**, cần David xoá (ghi lên server là ranh giới cứng của đợt này).
+
+**Khai vào `thuaDaBiet` KHÔNG phải là tha bổng:** mỗi mục nói thật nó là gì, kể cả khi sự thật
+là *"🔴 NGUY HIỂM — chờ David xoá: B-17"*. Cổng xanh nghĩa là *"không có mồ côi nào CHƯA ai
+nhìn"*, không phải *"không có mồ côi nào"*.
