@@ -44,7 +44,7 @@ David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
 | **7** | ✅ ~~H-7~~ **CHỐT + LÀM XONG** — IPv4 đa cổng (D-089, patch 0024). 🔴 Còn lại của **O4 là TIỀN**: đã chứng minh beacon tới được từ Internet và mesh cùng máy còn nguyên, **chưa** chứng minh node ở máy khác bắt tay được — việc đó cần máy thứ hai | **David** (O4) | D-089 |
 | **8** | **Gộp `web-home` → `main`** | **David** | `DECISIONS.md` đang tồn tại ở hai bản — xem §12.1 |
 | **9** | GO/NO-GO `2026-08-29` · Ngày G `2026-09-01` | — | `docs/NGAY-G-A1-CON-LAI.md` §7 |
-| **10** | ✅ ~~**M11.10**~~ **XONG `28/08`** (D-091) — ví ký từ máy dev qua hầm SSH **trong cùng container**; đã **ký thật** lên mạng công khai, khoá không chạm server. `node scripts/vi-qua-ham.mjs --kiem` | A1 | 🔴 Còn: đường `--quy` chọn 1 trong 6 khoá của `keys.txt` **chưa chạy thật** — thử TRƯỚC khi bắn quỹ đầu tiên ngày G. Và `9chain-a1-xpwallet` **trên server vẫn còn**, gỡ cùng lượt ngày G |
+| **10** | ✅ ~~**M11.10**~~ **XONG `28/08`** (D-091) — ví ký từ máy dev qua hầm SSH **trong cùng container**; đã **ký thật** lên mạng công khai, khoá không chạm server. `node scripts/vi-qua-ham.mjs --kiem` | A1 | ✅ `--quy` cũng XONG (D-091b): 6/6 quỹ chọn đúng, `--kiem` nay kiểm được việc chọn quỹ **mà không khởi động ví**. 🔴 Còn: `9chain-a1-xpwallet` **trên server vẫn còn và vẫn giữ khoá trong env** — gỡ cùng lượt ngày G |
 
 🔴 **Phép kiểm đẻ chain đầu-cuối cần HAI thứ của David:** ký SIWE, **và** biết rằng cổng nay
 mặc định ĐÓNG — muốn chạy thì khởi động console với `A1_DE_CHAIN_MO=1` rồi tắt lại.
@@ -67,7 +67,8 @@ mặc định ĐÓNG — muốn chạy thì khởi động console với `A1_DE_
 | **D-088** | **Cổng canh khoảng cách repo ↔ server** + manifest deploy (một danh sách, hai nơi đọc) | bắt **5 lệch thật** ngay lần đầu · đối chứng ngược đạt · `/faucet/api/supply` nay **200, số đo từ chain** |
 | **D-089** | **H-7 = IPv4 đa cổng** (David chốt). Bản đầu **sai**, diễn tập 3 node bác nó | patch 0024 · mesh `1 → 2` peer sau khi sửa · beacon bắt tay TCP được **từ ngoài Internet** |
 | **D-090** | 🔴 **`kiem-khoa` chấm `6/6 ✓ exit 0` cho bộ khoá đã chết** ⇒ cổng thứ hai nối bộ khoá vào **chain đang chạy** | bộ g0 **6/6 khớp chain** · bộ 9001 đã chết **8 lệch, exit 1** · **5/5 đối chứng ngược** · O1 lần đầu nối được khoá ↔ **tiền** |
-| **D-091** | **M11.10** — ví ký ở máy dev, **hầm SSH trong cùng container**; khoá không chạm server | 3/3 nghiệm thu đường đi (chạy mỗi lượt) · **3/3 đối chứng ngược** · 🔴 **KÝ THẬT**: `p-to-x 0.1` trên mạng công khai, đọc lại bằng RPC công khai P `89,99999173 → 89,8999813` · X `0,009 → 0,108` · `Accepted` |
+| **D-091** | **M11.10** — ví ký ở máy dev, **hầm SSH trong cùng container**; khoá không chạm server | 3/3 nghiệm thu đường đi (chạy mỗi lượt) · 🔴 **KÝ THẬT**: `p-to-x 0.1` trên mạng công khai, đọc lại bằng RPC công khai P `89,99999173 → 89,8999813` · X `0,009 → 0,108` · `Accepted` |
+| **D-091b** | `--quy` chọn 1 trong 6 khoá `keys.txt`. 🔴 **Dòng `P-addr` trong tệp là CHỮ NGƯỜI VIẾT** — khối `[team]` dán địa chỉ `[foundation]` thì dòng in ra vẫn trông đúng ⇒ gọi `kiem-khoa` trên đúng khối vừa chọn | 6/6 quỹ, **sáu địa chỉ khác nhau** khớp `ALLOCATION-PUBLIC.md` · khối thứ 3 và thứ 6 phân biệt được với "lấy khối đầu" · ví lên thật với `--quy faucet` · **6/6 đối chứng ngược** |
 
 ---
 
