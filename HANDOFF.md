@@ -3,6 +3,10 @@
 Cập nhật: **2026-08-28** (phiên chiều `28/08`: **O1 + M11.10** — hai công cụ custody, ví ký
 không chạm server, dọn server. Trước đó cùng ngày: nạp ví · 6 patch · server lạc hậu 2 ngày).
 
+> 🔴 **ĐỌC [`CLAUDE.md`](CLAUDE.md) TRƯỚC — đó là LUẬT.** Tệp này là **bàn giao**: dài, có lịch
+> sử, và phần lớn là số đo của các phiên trước. Mâu thuẫn thì `CLAUDE.md` thắng về **luật**,
+> `HANDOFF.md` thắng về **số đo**. Backlog đang chạy: [`PROGRESS.md`](PROGRESS.md) đợt 15.
+
 ## TL;DR
 
 Mạng công khai đang chạy **thế hệ `g0`** — `networkID 999999999`, `9chain-a1-g0`,
