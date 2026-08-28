@@ -1390,3 +1390,42 @@ còn tệ hơn. Lý do đã ghi thành comment ngay tại chỗ để lần sau 
   nối thì A-014 đóng về *công cụ*, chưa đóng về *thói quen*.
 - 🔴 **Khoá 5 quỹ vẫn không có bản nào ngoài máy dev.** Script in câu đó ở dòng cuối mỗi
   lượt chạy, cố ý, để không ai đọc *"H-6b đạt"* thành *"đã an toàn"*. Đó là **D-044 / O1**.
+
+### A-014 — nay đóng cả về THÓI QUEN: hook `Stop` (`2026-08-28`)
+
+`--kiem` đã nối vào cổng cuối phiên, `main/.claude/settings.json`:
+
+```json
+"hooks": { "Stop": [ { "hooks": [ { "type": "command",
+  "command": "… bash scripts/h6b-sao-luu.sh --kiem … jq -Rs '{systemMessage: …}'",
+  "timeout": 30 } ] } ] }
+```
+
+**Chọn `Stop`, không chọn `SessionEnd`** — `SessionEnd` chạy lúc phiên đang tắt nên nói gì
+cũng không ai đọc. `Stop` chạy khi Claude dừng một lượt, và `systemMessage` **được hiển thị**.
+Một cổng báo đỏ mà không ai thấy thì không phải cổng — đúng bài học vừa rút từ hai lần
+`h6b-sao-luu.sh` chết câm.
+
+| | |
+|---|---|
+| xanh / vàng | `{"suppressOutput":true}` — **không một chữ** |
+| đỏ | `systemMessage` kèm **lý do thật** (số patch lệch, danh sách tệp mã đã đổi) + lệnh sửa |
+| cwd sai | `exit 0` im lặng — hook không được phép làm hỏng phiên vì lý do của riêng nó |
+
+Chi phí: `--kiem` đo **0,37s**, chỉ đọc git, không dựng gì. Lượt **sao lưu thật** không bao
+giờ tự chạy — nó ghi lên máy chủ, đó phải là việc có người bấm.
+
+**Nghiệm thu — chạy chuỗi lệnh LẤY NGƯỢC RA TỪ `settings.json`**, không phải bản gốc, để bắt
+lỗi escaping: vế xanh im lặng ✓ · vế đỏ in đủ ✓ · cwd sai không nổ ✓ · `jq -e` nesting ✓.
+
+🔴 **Một lỗi đã dính, ghi lại vì nó đảo chiều bài học cũ:** bản thử đầu dùng `eval` và **cả
+hai vế đều ra ĐỎ** với `$out` rỗng — `eval` nuốt escaping nên script không hề chạy. Suýt
+commit một **cổng LUÔN ĐỎ**. Cổng luôn đỏ vô dụng y hệt cổng luôn xanh, và tệ hơn ở chỗ:
+người ta sẽ **tắt nó đi**. Cùng họ với `check-deploy-drift` bản đầu (27/58 đỏ giả).
+
+⚠️ Còn hai chỗ hở nhỏ, nói ra chứ không giấu:
+1. Hook chỉ nạp ở phiên **mở sau** commit `70f1345` — `.claude/settings.json` chưa tồn tại lúc
+   các phiên hiện tại khởi động. Phiên đang chạy phải mở `/hooks` một lần hoặc khởi động lại.
+2. `DUONG_MA` **không gồm `.claude/`**, nên sửa chính cấu hình cổng thì cổng không tự báo.
+   Vô hại cho việc dựng lại mạng (thứ `.claude/` không tham gia), nhưng nó là một điểm mù
+   có thật của cổng đối với chính nó.
