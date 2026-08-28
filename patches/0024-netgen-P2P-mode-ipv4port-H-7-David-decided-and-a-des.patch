@@ -1,9 +1,9 @@
-From 03ccd70f6009a3ceb8f986d23dc640380d4825eb Mon Sep 17 00:00:00 2001
+From 4f3f50687388232102259c39f50d358a7e530ebd Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Fri, 28 Aug 2026 05:35:06 +0400
-Subject: [PATCH 24/24] =?UTF-8?q?netgen:=20che=20do=20P2P=20`ipv4port`=20?=
- =?UTF-8?q?=E2=80=94=20H-7=20David=20chot,=20va=20mot=20thiet=20ke=20bi=20?=
- =?UTF-8?q?CHINH=20MINH=20bac=20bo?=
+Subject: [PATCH 24/25] =?UTF-8?q?netgen:=20P2P=20mode=20`ipv4port`=20?=
+ =?UTF-8?q?=E2=80=94=20H-7=20David=20decided,=20and=20a=20design=20its=20O?=
+ =?UTF-8?q?WN=20drill=20refuted?=
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

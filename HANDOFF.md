@@ -22,7 +22,7 @@ node scripts/gday-preflight.mjs      # trạng thái toàn cục trong 1 lệnh 
 | mạng g0 | sống · `999999999` · **9 validator** · 8 peer · B-12 còn **308 ngày** (`2027-07-02`) · factory **89,899 LOVE9** |
 | drift server | **18 khớp · 1 lệch · 0 thiếu · 0 mồ côi chưa khai** (mồ côi 7 → **1**, tệp lành) |
 | sao lưu H-6b | `20260828-043739` · 24 = 24 patch · **chậm 1 commit, chỉ tài liệu** |
-| cây fork | 24 patch → tree `074aaa93` ✓ tái lập được |
+| cây fork | **25 patch → tree `f2b9486b`** ✓ tái lập được · đối chứng 24/25 → `074aaa93` ✓ |
 
 🟡 **Cái ĐỎ duy nhất, và nó đỏ đúng:** `local-net/console/chainid-issued.json` lệch — repo sinh
 lại nó (D-107, thêm nguồn sổ thứ tư) còn server chưa. **Hành vi console KHÔNG đổi**: danh sách
@@ -123,7 +123,8 @@ liệt kê tệp thẳng trong script, nên việc tách `lib/chainid.mjs` ra *c
 chain chạy được** — ví có tiền ≠ đường đẻ chain thông; và đẻ chain nay **TẠM ĐÓNG** tới sau
 ngày G (D-087).
 
-**Cây fork: tree `074aaa93` · 24 patch trên `1cf1fc3`.**
+**Cây fork: tree `f2b9486b` · 25 patch trên `1cf1fc3`** (đổi `28/08`: patch 0025 đổi tên
+công cụ `kiem-khoa`→`check-keys`; áp 24/25 vẫn ra `074aaa93`).
 ⚠️ **Image `9chain-a1/node:g0` đang chạy vẫn là bản 18 patch.** Patch 0019–0024 chỉ đụng **công
 cụ** (SDK ví, netgen, `kiem-khoa`), không đụng node — chúng vào image ở lượt build ngày G.
 Đừng đọc `074aaa93` thành "mạng đang chạy có 24 patch".
@@ -312,7 +313,7 @@ node local-net/console/chainid-test.mjs
 node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs
 
-# Tái lập cây fork (24 patch → tree 074aaa93)
+# Tái lập cây fork (25 patch → tree f2b9486b; 24/25 → 074aaa93)
 cd upstream/avalanchego && git worktree add --detach /tmp/tl 1cf1fc3
 cd /tmp/tl && git am --keep-cr ../../patches/*.patch && git rev-parse HEAD^{tree}
 
@@ -326,8 +327,8 @@ curl -s -X POST -H 'content-type:application/json' \
 1. **Không tin mã HTTP.** Thang đo: mã HTTP → `content-type` → **nội dung** → header tầng trước.
 2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một nửa.
 3. **Đụng `patches/` là đụng đường tái lập fork** — sinh `--no-signature`, nghiệm thu
-   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`074aaa93`** / **24 patch**
-   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **23/24** phải ra đúng tree cũ `2954b987`.
+   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`f2b9486b`** / **25 patch**
+   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **24/25** phải ra đúng **`074aaa93`**.
    ⚠️ **Image node đang chạy vẫn là 18 patch** — 0019 đụng SDK ví, 0020 đụng netgen; cả hai là
    CÔNG CỤ, không đụng node. Tree của repo ≠ tree trong image cho tới lượt build ngày G.
 4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)

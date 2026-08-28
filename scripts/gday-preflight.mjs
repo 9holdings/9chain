@@ -40,8 +40,12 @@ const KHONG_MANG = argv.includes("--no-network");
 
 // Tree của cây fork hiện tại — luật cứng #3. Đổi số này là một quyết định, không phải
 // một lần cập nhật: nó chỉ đổi cùng lượt sinh lại CẢ BỘ patch.
-const TREE_FORK = "074aaa9327be70103b25d5a3873d41cacd431652";
-const SO_PATCH = 24;
+const TREE_FORK = "f2b9486b71ad53b584a86f77d6017c34d74e6fa6";
+const SO_PATCH = 25;
+// 🔴 Đối chứng ngược của cây này: áp **24/25** phải ra `074aaa93` — ĐÚNG cái cây mà
+// image đang chạy dựng lên trên. Patch 0025 chỉ đổi tên công cụ `kiem-khoa`→`check-keys`
+// và sửa một chú thích dẫn cờ đã bỏ; nó KHÔNG đụng node. (2026-08-28)
+const TREE_TRUOC_0025 = "074aaa9327be70103b25d5a3873d41cacd431652";
 
 const node = (...a) => ({ lenh: process.execPath, args: a });
 
@@ -101,7 +105,7 @@ const VIEC_TAY = [
   ["TRƯỚC `down -v`", "🔴 **Sổ danh bạ** — `node scripts/close-ledger-before-regenesis.mjs --pull` rồi `--compact`; sổ mới phải lên server. Reset sổ = trả 43 tên + chainId lại cho vòng quay."],
   ["TRƯỚC `down -v`", "🔴 **H-6b** — `bash scripts/h6b-backup.sh` và đọc kỹ số patch nó khai."],
   ["Lúc sinh mạng", "🔴 **Bump `A1Gen` ở CẢ HAI ngôn ngữ** — `utils/constants/network_ids.go` **và** `local-net/lib/chainid.mjs`, rồi chạy lại `check-consistency`. Quên một bên thì không có gì báo lỗi (D-093)."],
-  ["Lúc sinh mạng", "🔴 **Build lại image node** — image đang chạy là **18 patch**, repo là **24**. Patch 0019/0022 (bí danh `LOVE9`) chưa vào image; thiếu nó là **mọi ví X/C chết câm**. Đường build đã diễn tập `28/08` và ĐẠT (D-105) — nhưng ở `A1Gen 0`; bump lên 1 là đổi binary ⇒ **vẫn phải build lại**."],
+  ["Lúc sinh mạng", "🔴 **Build lại image node** — image đang chạy là **18 patch**, repo là **25**. Patch 0019/0022 (bí danh `LOVE9`) chưa vào image; thiếu nó là **mọi ví X/C chết câm**. Đường build đã diễn tập `28/08` và ĐẠT (D-105) — nhưng ở `A1Gen 0`; bump lên 1 là đổi binary ⇒ **vẫn phải build lại**."],
   ["Lúc sinh mạng", "🔴 **SỬA DÒNG `image:` TRONG COMPOSE NETGEN VỪA SINH** — netgen ghi cắm cứng `9chain-a1/node:dev` và **không biến nào đổi được** (D-105). Quên là mạng lên bằng binary **18 patch** trong khi mọi cổng vẫn xanh: `grep image: <net>/docker-compose.multinode.yml` phải ra **tag vừa build**."],
   ["Lúc sinh mạng", "🔴 **Đo BINARY, đừng đo mạng:** `docker exec <node> ./avalanchego --version` phải in đúng `commit=` của lượt build ngày G, và `avm.getAssetDescription` alias `LOVE9` phải ra tài sản còn `AVAX` phải **ĐỎ có lý do**. Mạng xanh không nói gì về việc node đang chạy binary nào."],
   ["Lúc sinh mạng", "🔴 **Sinh token + khoá MỚI** — `A1_CONSOLE_TOKEN`, `FAUCET_PK`, `A1_CLI_KEY`. Token cũ **chưa từng đổi qua hai lượt re-genesis** (gotcha 15)."],
@@ -126,12 +130,28 @@ function taiLapFork() {
     if (patches.length !== SO_PATCH) {
       return { ma: 1, vi: `thấy ${patches.length} patch, luật cứng khai ${SO_PATCH} — sinh lại CẢ BỘ hay sửa luật, đừng thêm lẻ` };
     }
-    git(["am", "--keep-cr", ...patches.map((f) => path.join(GOC, "patches", f))], w);
+    // ── Đối chứng ngược, CHẠY TRƯỚC: áp N−1 patch phải ra ĐÚNG tree đã biết ──
+    //
+    // 🔴 Vì sao nó phải là MÃ, không phải một dòng nghi thức trong tài liệu. Cổng "áp đủ
+    // bộ rồi so tree" chỉ chứng minh **bộ patch tự nhất quán với hằng số ta vừa chép vào
+    // đây**. Ai sinh lại cả bộ rồi dán tree mới vào `TREE_FORK` cũng làm nó xanh — kể cả
+    // khi nội dung đã trôi. Đối chứng N−1 neo vào một tree **có gốc độc lập**: `074aaa93`
+    // là cây mà **image đang chạy** dựng lên trên. Hai đầu neo mới nói được điều gì đó.
+    // (Luật cứng #2: cổng chưa từng đỏ vì đúng lý do thì chưa phải cổng.)
+    git(["am", "--keep-cr", ...patches.slice(0, SO_PATCH - 1).map((f) => path.join(GOC, "patches", f))], w);
+    const treeTruoc = git(["rev-parse", "HEAD^{tree}"], w).trim();
+    if (treeTruoc !== TREE_TRUOC_0025) {
+      return {
+        ma: 1,
+        vi: `đối chứng ${SO_PATCH - 1}/${SO_PATCH}: tree ${treeTruoc.slice(0, 12)} ≠ ${TREE_TRUOC_0025.slice(0, 12)} — bộ patch đã trôi Ở GIỮA`,
+      };
+    }
+    git(["am", "--keep-cr", path.join(GOC, "patches", patches[SO_PATCH - 1])], w);
     const tree = git(["rev-parse", "HEAD^{tree}"], w).trim();
     if (tree !== TREE_FORK) {
       return { ma: 1, vi: `tree ${tree.slice(0, 12)} ≠ ${TREE_FORK.slice(0, 12)} — cây fork ĐÃ TRÔI` };
     }
-    return { ma: 0, vi: `${SO_PATCH} patch → tree khớp từng byte` };
+    return { ma: 0, vi: `${SO_PATCH} patch → tree khớp · đối chứng ${SO_PATCH - 1}/${SO_PATCH} → ${TREE_TRUOC_0025.slice(0, 8)} ✓` };
   } catch (e) {
     return { ma: 2, vi: `không tái lập được: ${String(e.message).split("\n")[0].slice(0, 120)}` };
   } finally {

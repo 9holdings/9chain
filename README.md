@@ -72,7 +72,7 @@ xem [docs/TOKENOMICS.md §0](docs/TOKENOMICS.md). Nguồn sự thật cho con s�
 │       ├── engrave-verify/   #     đọc ngược chữ khắc genesis (ngày G)
 │       ├── 9chain-a1-cli/    #     CLI factory L1
 │       └── xp-wallet/        #     ví X/P
-├── patches/                  # 24 patch tái lập lớp chủ quyền lên fork sạch (tree 074aaa93)
+├── patches/                  # 25 patch tái lập lớp chủ quyền lên fork sạch (tree f2b9486b)
 ├── scripts/
 │   ├── rebrand.sh            #   áp lớp identity (idempotent)
 │   ├── check-consistency.mjs #   cổng nhất quán tokenomics (có đối chứng ngược)

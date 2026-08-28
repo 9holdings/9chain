@@ -12,8 +12,9 @@
 2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một
    nửa: nửa *"có chặn không"*, chưa kiểm nửa *"chặn xong nó nói gì"*.
 3. **Đụng `patches/` là đụng đường tái lập fork.** Sinh `--no-signature`, **sinh lại CẢ BỘ**,
-   nghiệm thu bằng `git am --keep-cr` + so tree. Tree hiện tại **`074aaa93`** / **24 patch** /
-   gốc `1cf1fc3`. Đối chứng rẻ mà mạnh: áp **23/24** phải ra đúng tree cũ `2954b987`.
+   nghiệm thu bằng `git am --keep-cr` + so tree. Tree hiện tại **`f2b9486b`** / **25 patch** /
+   gốc `1cf1fc3`. Đối chứng rẻ mà mạnh: áp **24/25** phải ra đúng **`074aaa93`** — chính là
+   cây mà **image đang chạy** dựng lên trên (patch 0025 chỉ đổi tên công cụ, không đụng node).
 4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)
    — **Caddyfile đang chạy đến từ nhánh đó**, không phải `main`.
 

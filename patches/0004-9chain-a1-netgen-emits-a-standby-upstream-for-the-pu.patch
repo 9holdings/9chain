@@ -1,8 +1,8 @@
-From a9381233aec3e6b0b3099ea831e73bb4030ac2bb Mon Sep 17 00:00:00 2001
+From 2e0bc12adfb73f2130c610816cf050bf610368b0 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Mon, 24 Aug 2026 23:57:08 +0400
-Subject: [PATCH 04/24] 9chain-a1: netgen sinh them upstream du phong cho RPC
- cong khai (node-2:9660)
+Subject: [PATCH 04/25] 9chain-a1: netgen emits a standby upstream for the
+ public RPC (node-2:9660)
 
 Voi MOT upstream duy nhat, moi lan node-1 restart la RPC cong khai chet. Ma node
 BUOC phai restart moi lan track subnet moi (de L1) - khong co API them subnet luc
