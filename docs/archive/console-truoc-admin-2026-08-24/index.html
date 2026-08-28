@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>9Chain-A1 Console — Đẻ chain</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{font-family:system-ui,Segoe UI,Roboto,sans-serif;margin:0;background:#0b0f17;color:#e6edf3}
+header{display:flex;align-items:center;gap:12px;padding:16px 24px;border-bottom:1px solid #1c2637;background:#0e1420}
+.brand{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#e84142,#ff8a3d)}
+h1{font-size:1.15rem;margin:0}.muted{color:#66788d;font-size:.85rem}
+.wrap{max-width:860px;margin:0 auto;padding:22px 24px}
+.card{background:#131a26;border:1px solid #223049;border-radius:14px;padding:20px;margin-bottom:16px}
+h2{font-size:1rem;margin:0 0 12px}
+label{font-size:.82rem;color:#8aa0b6;display:block;margin-top:10px}
+input{width:100%;padding:11px;border-radius:9px;border:1px solid #2b3a54;background:#0e1420;color:#e6edf3;margin-top:5px}
+button{margin-top:14px;padding:12px 18px;border:0;border-radius:9px;background:#e84142;color:#fff;font-weight:600;cursor:pointer}
+button:disabled{opacity:.5}
+.stat{display:inline-block;margin-right:22px}.stat .k{color:#8aa0b6;font-size:.78rem}.stat .v{font-weight:700}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #1c2637;vertical-align:top}
+th{color:#8aa0b6}
+code{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#7fd1ff;word-break:break-all}
+#out{margin-top:12px;font-size:14px}
+.ok{color:#9fe6a0}.err{color:#ff8a8a}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid #556;border-top-color:#e84142;border-radius:50%;animation:s .8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes s{to{transform:rotate(360deg)}}
+</style></head><body>
+<header><div class="brand"></div><h1>9Chain-A1 Console</h1><span class="muted">Đẻ chain trên 9Chain Testnet A1 (Avalanche)</span></header>
+<div class="wrap">
+  <div class="card">
+    <div class="stat"><div class="k">Node</div><div class="v" id="s-node">…</div></div>
+    <div class="stat"><div class="k">C-Chain ID</div><div class="v" id="s-cid">…</div></div>
+    <div class="stat"><div class="k">Số chain đã đẻ</div><div class="v" id="s-count">…</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Đẻ một blockchain EVM mới</h2>
+    <label>Tên chain (chữ/số/space)</label>
+    <input id="name" placeholder="VD: AlphaChain" autocomplete="off">
+    <label>Chain ID EVM (để trống = tự cấp)</label>
+    <input id="chainId" type="number" placeholder="tự cấp (9100, 9101, …)">
+    <button id="btn" onclick="create()">🚀 Đẻ chain</button>
+    <div id="out"></div>
+  </div>
+
+  <div class="card">
+    <h2>Các chain đã đẻ</h2>
+    <table><thead><tr><th>Tên</th><th>Chain ID</th><th>RPC (MetaMask)</th><th>Blockchain ID</th></tr></thead>
+    <tbody id="rows"><tr><td colspan="4" class="muted">—</td></tr></tbody></table>
+  </div>
+</div>
+<script>
+// Token vận hành. Console tạo được L1 và restart node nên MỌI /api/* đều cần token.
+// Giữ trong sessionStorage: mất khi đóng tab (khác localStorage sống mãi) — token
+// vận hành không nên nằm lại trên máy dùng chung.
+function token(){
+  let t=sessionStorage.getItem('a1_token');
+  if(!t){
+    t=prompt('Nhập A1_CONSOLE_TOKEN (token vận hành console):')||'';
+    if(t) sessionStorage.setItem('a1_token',t);
+  }
+  return t;
+}
+function clearToken(){ sessionStorage.removeItem('a1_token'); location.reload(); }
+function authHeaders(extra){ return Object.assign({'authorization':'Bearer '+token()}, extra||{}); }
+
+async function refresh(){
+  try{
+    const res=await fetch('/api/status',{headers:authHeaders()});
+    if(res.status===401){
+      sessionStorage.removeItem('a1_token');
+      document.getElementById('out').innerHTML='<span class="err">❌ Token sai. Tải lại trang để nhập lại.</span>';
+      return;
+    }
+    const s=await res.json();
+    document.getElementById('s-node').textContent=s.node;
+    document.getElementById('s-cid').textContent=s.cChainId;
+    document.getElementById('s-count').textContent=(s.chains||[]).length;
+    document.getElementById('rows').innerHTML=(s.chains||[]).map(c=>
+      `<tr><td>${c.name}</td><td>${c.chainId}</td><td><code>${c.rpc}</code></td><td><code>${c.blockchainID}</code></td></tr>`
+    ).join('')||'<tr><td colspan=4 class=muted>chưa có chain nào</td></tr>';
+  }catch(e){}
+}
+async function create(){
+  const name=document.getElementById('name').value.trim();
+  const chainId=document.getElementById('chainId').value.trim();
+  const btn=document.getElementById('btn'), out=document.getElementById('out');
+  btn.disabled=true;
+  out.innerHTML='<span class="spin"></span>Đang đẻ chain (tạo subnet → track → restart node → chờ RPC, ~1–2 phút)…';
+  try{
+    const r=await fetch('/api/create',{method:'POST',headers:authHeaders({'content-type':'application/json'}),body:JSON.stringify({name,chainId})});
+    const j=await r.json();
+    if(r.status===401){ sessionStorage.removeItem('a1_token'); throw new Error('Token sai — tải lại trang để nhập lại.'); }
+    if(r.status===429){ throw new Error(j.error||'vượt hạn mức, thử lại sau'); }
+    if(r.ok){
+      out.innerHTML=`<div class="ok">✅ Đã đẻ <b>${j.name}</b> (chainId ${j.chainId})</div>
+      <div style="margin-top:8px">MetaMask → Add network:<br>
+      &nbsp;• Network: ${j.name}<br>&nbsp;• RPC: <code>${j.rpc}</code><br>
+      &nbsp;• Chain ID: ${j.chainId}<br>&nbsp;• Symbol: LOVE9</div>`;
+      document.getElementById('name').value='';document.getElementById('chainId').value='';
+    } else out.innerHTML='<span class="err">❌ '+(j.error||'lỗi')+'</span>';
+  }catch(e){ out.innerHTML='<span class="err">❌ '+e.message+'</span>'; }
+  btn.disabled=false; refresh();
+}
+refresh(); setInterval(refresh,5000);
+</script></body></html>
