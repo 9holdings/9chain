@@ -4086,3 +4086,54 @@ Lượt đổi tên `28/08` giữ nguyên tên tệp **bên trong** hai gói v�
 
 Nghiệm thu bằng một lượt **xuất thật** từ RPC công khai: ra đúng ba tên mới, `--check` bộ mới
 9/9 gốc khớp, và `--check` bộ cũ `2026-08-27` **vẫn** 9/9 gốc khớp.
+
+## D-116 — Lượt đổi tên giết CỔNG O1 và ĐƯỜNG KÝ VÍ, và cả hai khai "công cụ hỏng" thành "khoá sai" (2026-08-28)
+
+Patch 0025 đổi công cụ Go `9chain-a1-tools/kiem-khoa` → `check-keys`. **Hai nơi gọi nó bằng
+đường dẫn cắm cứng không được đổi theo**, và cả hai đều nằm trên đường khoá quỹ:
+
+| nơi | gọi | hậu quả |
+|---|---|---|
+| `scripts/o1-check.mjs` | vế 1 của cổng O1 | `go run` gói không tồn tại ⇒ **exit 1** ⇒ chấm `VE_DO` ⇒ in **`🔴 SAI — đừng cất nó làm bản O1`** cho bộ khoá **chính, hoàn toàn đúng** |
+| `local-net/deploy/wallet-tunnel/enter.sh` | xác thực khối quỹ trước khi ký | cùng exit 1 ⇒ `chet "kiem-khoa BÁC khối […] — khoá không suy ra địa chỉ tệp tự khai"` |
+
+🔴 **Cả hai đều biến một CÔNG CỤ HỎNG thành một PHÁN QUYẾT VỀ KHOÁ.** Đọc đúng mặt chữ, cổng
+O1 bảo David **vứt bỏ một bản sao lưu tốt**; `enter.sh` báo động **khoá quỹ không khớp địa chỉ**
+ngay trên đường ký tiền thật. Đây là lớp lỗi *đo sai đại lượng* ở dạng độc nhất: không phải đo
+nhầm thứ, mà là **quy kết một phép đo chưa từng xảy ra**.
+
+**Vì sao không cổng nào bắt** — ba lớp cùng mù, mỗi lớp vì một lý do riêng:
+- `o1-check` là **VIỆC TAY** trong preflight, không phải một trong 18 cổng ⇒ preflight vẫn 16/18.
+- `--self-test` của chính nó **có ca đúng nhưng xanh vì SAI LÝ DO**: ca đắt nhất *"bộ khoá thế
+  hệ ĐÃ CHẾT ⇒ 1"* vẫn ra `1` — từ đường công cụ hỏng, **không** từ bộ khoá. Chỉ ca cuối
+  (*"bộ g0 đang sống ⇒ 0"*) đỏ. Tức **vế 3 của luật cứng #2 lại đúng lần nữa**: xanh vì sai lý
+  do cũng nguy hiểm như đỏ vì sai lý do (D-106b).
+- `wallet-over-tunnel.mjs --check` **không mount tệp khoá**, nên nó không bao giờ đi vào nhánh
+  chứa lệnh hỏng ⇒ cổng xanh, đường ký thật hỏng. Gotcha 4 nguyên văn: *cổng chỉ chứng minh
+  được đường mà CHÍNH NÓ đi.*
+
+⇒ **Bản vá không phải là sửa cái tên.** Sửa tên đóng lượt này; lượt đổi tên sau lại mở ra.
+Cách chặn là **đòi công cụ TỰ KHAI rằng nó đã chạy** trước khi lời phán của nó được tin:
+`check-keys` in `check-keys — <đường dẫn>` khi bắt đầu đo, và `FATAL ` ở mọi lối đỏ **của chính
+nó**; lỗi của `go` không in cái nào.
+
+- `o1-check.mjs`: không có dấu tự khai ⇒ **`2` CHƯA KẾT LUẬN**, không bao giờ `1`, không bao
+  giờ `0`. *Không biết* không được rơi về **bất kỳ** phía nào.
+- `enter.sh`: không có dấu tự khai ⇒ `chet "check-keys KHÔNG CHẠY ĐƯỢC — chưa đo gì cả, đừng
+  đọc thành 'khoá sai'"`, kèm 5 dòng đầu output thật.
+
+| nghiệm thu | đo được |
+|---|---|
+| `o1-check --self-test` | **7/7**, gồm ca mới *"gói công cụ không tồn tại ⇒ 2, KHÔNG phải 1"* |
+| ca đắt nhất nay xanh **vì đúng lý do** | bộ 9001 chết ⇒ `1` sau khi `check-keys` thật sự chạy và phán đỏ |
+| `o1-check` trên bộ g0 chính | **exit 0** · 6/6 khoá suy đúng địa chỉ · 6/6 địa chỉ giữ tiền thật |
+| đối chứng thẳng trên khối khoá **đã chết** | `kiem-khoa` ⇒ exit 1, dấu tự khai **VẮNG** · `check-keys` ⇒ exit 0, dấu **CÓ** |
+| `bash -n enter.sh` | cú pháp đạt |
+
+⚠️ **`--tool` được thêm vào `o1-check.mjs` là CÓ CHỦ Ý.** Không có nó thì nhánh *"công cụ chưa
+chạy"* không có cách nào được nhìn thấy lúc nó hoạt động — mà một nhánh chưa ai thấy chạy thì
+chưa phải một cổng (luật cứng #2, vế 2). Lượt đổi tên sau chỉ cần sửa **giá trị mặc định**.
+
+🔴 **Việc còn lại của B-16 KHÔNG đổi:** cổng nay đúng, nhưng nó vẫn chỉ mới chấm ĐẠT cho bản
+**gốc**. Bản thứ hai vẫn chưa tồn tại. David chốt `28/08`: phương tiện là **máy tính thứ hai** —
+quy trình ở [`docs/O1-SECOND-COPY-RUNBOOK.md`](docs/O1-SECOND-COPY-RUNBOOK.md).

@@ -83,6 +83,26 @@ rồi giao ba việc bật ra từ bản quét đó.
       `C:\PROJECTS\9Chain-backups\` cũng trên `C:` nên không tính. ⇒ Cần David cắm ổ vào hoặc
       chỉ ra nơi bản thứ hai đang nằm. Phần A1 làm được đã xong: `o1-check.mjs` trên bộ **chính**
       ⇒ **exit 0** (nó ĐÚNG là bộ của mạng đang chạy, 6/6 quỹ giữ tiền thật).
+      ✅ **`28/08` lượt 2 — David chốt phương tiện: MÁY TÍNH THỨ HAI.** Quy trình đầy đủ ở
+      `docs/O1-SECOND-COPY-RUNBOOK.md` (đường chuyển được phép / **cấm** · 3 mức nghiệm thu ·
+      đường lui khi máy đích không có Docker). Còn lại: David chỉ **máy đích + thư mục**.
+- [x] **Q-5b — 🔴 CỔNG NGHIỆM THU CỦA B-16 ĐÃ CHẾT CẢ NGÀY, VÀ NÓ ĐỎ NGƯỢC** (D-116)
+      Lượt đổi tên `kiem-khoa`→`check-keys` (patch 0025) không nối vào `scripts/o1-check.mjs`
+      ⇒ `go run` gói **không tồn tại** ⇒ exit 1 ⇒ cổng chấm `VE_DO` ⇒ in
+      **`🔴 SAI — đừng cất nó làm bản O1`** cho **bộ khoá chính, hoàn toàn đúng**. Tin mặt chữ
+      là **vứt bỏ một bản sao lưu tốt**. Cùng lỗi nằm luôn trên **đường ký ví tiền thật**
+      (`wallet-tunnel/enter.sh` ⇒ *"khoá không suy ra địa chỉ tệp tự khai"*).
+      🔴 Ba lớp cùng mù: `o1-check` là **việc tay**, không phải 1 trong 18 cổng ·
+      `--self-test` có ca đúng nhưng **xanh vì SAI LÝ DO** (ca *"bộ chết ⇒ 1"* ra 1 từ đường
+      công cụ hỏng) · `wallet-over-tunnel --check` **không mount khoá** nên không đi vào nhánh
+      hỏng — cổng xanh, đường thật hỏng (gotcha 4).
+      ✅ Vá **không phải bằng cách sửa cái tên**: công cụ phải **TỰ KHAI đã chạy**
+      (`check-keys — <đường dẫn>` / `FATAL `) thì lời phán mới được tin; không có dấu đó ⇒
+      **`2` CHƯA KẾT LUẬN**, không bao giờ `1`, không bao giờ `0`.
+      **Đối chứng:** self-test **7/7** (thêm ca *"gói công cụ không tồn tại ⇒ 2, KHÔNG phải 1"*)
+      · ca đắt nhất nay xanh **vì đúng lý do** · `o1-check` bộ g0 ⇒ **exit 0** · đo thẳng trên
+      khối khoá **đã chết**: tên cũ ⇒ exit 1 **không dấu tự khai**, tên mới ⇒ exit 0 **có dấu**
+      · `bash -n enter.sh` đạt · `check-english-code` **5856 → 5786** (trả 70 dòng).
 
 **Số đo cuối phiên:** preflight **12/12 xanh, exit 0** (14 việc tay) · `watch-network` 9/9 ·
 drift `19 khớp · 0 lệch · 0 thiếu` · `o1-check` trên bộ g0 **chính** ⇒ **exit 0** (nó ĐÚNG là bộ

@@ -269,6 +269,6 @@ if (TU_KIEM) {
   if (loi.length) process.exit(1);
   console.log("\n⚠️  Lệnh này KHÔNG kiểm khoá riêng — nó chỉ đọc địa chỉ.");
   console.log("   Vòng chỉ khép khi CHẠY CẢ HAI, trên CÙNG một thư mục:");
-  console.log("     1) kiem-khoa -allocation allocation.md keys.txt   → khoá suy ra đúng địa chỉ");
+  console.log("     1) check-keys -allocation allocation.md keys.txt  → khoá suy ra đúng địa chỉ");
   console.log("     2) lệnh này                                       → địa chỉ đó giữ tiền thật");
 }

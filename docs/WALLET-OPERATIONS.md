@@ -84,7 +84,14 @@ docker rm -f 9chain-a1-vi-ham                    # 🔴 xong việc là dừng N
 
 🔴 **Dòng `P-addr` trong `keys.txt` là CHỮ NGƯỜI VIẾT, không phải phép đo.** Khối `[team]` dán
 nhầm địa chỉ `[foundation]` thì dòng `quỹ chọn:` in ra **vẫn trông đúng** và ví vẫn ký. Vì thế
-bước 2 gọi `kiem-khoa` **suy lại địa chỉ TỪ KHOÁ**; đọc dòng `✓ kiem-khoa:` mới là đọc phép đo.
+bước 2 gọi `check-keys` **suy lại địa chỉ TỪ KHOÁ**; đọc dòng `✓ check-keys:` mới là đọc phép đo.
+
+🔴 **Và đọc dòng đó là chưa đủ — phải đọc cả dòng `check-keys — <đường dẫn>` phía trên nó.**
+Đo `28/08`: lượt đổi tên `kiem-khoa`→`check-keys` làm `go run` trỏ vào một gói **không còn tồn
+tại**, và nó thoát `1` **y hệt một khối khoá SAI** ⇒ `enter.sh` khai thành *"khoá không suy ra
+địa chỉ tệp tự khai"*. Một **công cụ hỏng** được đọc thành **báo động khoá quỹ**, ngay trên
+đường ký tiền thật. Nay `enter.sh` đòi công cụ **tự khai đã chạy** trước khi tin lời phán của
+nó — không có dòng đó thì thông báo là *"KHÔNG CHẠY ĐƯỢC"*, không phải *"khoá sai"*.
 
 ### 🔴 Ba cái bẫy đã trả giá ở lượt nạp g0 (`27/08`)
 
