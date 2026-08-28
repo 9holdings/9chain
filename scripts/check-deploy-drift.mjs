@@ -28,6 +28,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { SSH_HOST, SSH_KEY } from "../local-net/lib/server.mjs";
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -35,8 +36,8 @@ const lay = (co, mac) => {
   const i = argv.indexOf(co);
   return i >= 0 && argv[i + 1] ? argv[i + 1] : mac;
 };
-const HOST = lay("--host", ""$A1_SSH_HOST"");
-const KHOA = lay("--ssh-key", `${process.env.HOME || process.env.USERPROFILE}/.ssh/9chain-a1`);
+const HOST = lay("--host", SSH_HOST);
+const KHOA = lay("--ssh-key", SSH_KEY);
 const SRC = lay("--src", "/home/ubuntu/9chain-a1/src");
 const TAT_CA = argv.includes("--all");
 

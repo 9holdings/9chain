@@ -44,8 +44,12 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 FORK="$ROOT/upstream/avalanchego"
 PATCHES="$ROOT/patches"
 KHO="${A1_BACKUP_ROOT:-/c/PROJECTS/9Chain-backups}"
-MAY_CHU="${A1_BACKUP_HOST:-"$A1_SSH_HOST"}"
-KHOA_SSH="${A1_BACKUP_KEY:-$HOME/.ssh/9chain-a1}"
+# 🔴 Trước 28/08 tệp này đọc `A1_BACKUP_HOST`/`A1_BACKUP_KEY` — hai tên KHÔNG script nào
+# khác dùng. Dời máy chủ mà quên chúng thì bản sao lưu lặng lẽ chụp MÁY CŨ, và nó vẫn in
+# ra một dòng xanh. Nay dùng chung tên với mọi nơi khác.
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../local-net/deploy" && pwd)/server-env.sh"
+MAY_CHU="$A1_SSH_HOST"
+KHOA_SSH="$A1_SSH_KEY"
 DICH_XA="${A1_BACKUP_REMOTE_DIR:-~/9chain-a1/backup}"
 
 DAY_LEN_SERVER=1

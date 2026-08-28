@@ -35,14 +35,15 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { A1_GEN, NETWORK_ID, TEN_MANG } from "../local-net/lib/chainid.mjs";
+import { SSH_HOST, SSH_KEY } from "../local-net/lib/server.mjs";
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
 const lay = (co, mac) => { const i = argv.indexOf(co); return i >= 0 && argv[i + 1] ? argv[i + 1] : mac; };
 const RPC = lay("--rpc", "https://rpc-a1.9chain.org");
 const WEB = lay("--web", "https://a1.9chain.org");
-const HOST = lay("--host", ""$A1_SSH_HOST"");
-const KHOA = lay("--ssh-key", `${process.env.HOME || process.env.USERPROFILE}/.ssh/9chain-a1`);
+const HOST = lay("--host", SSH_HOST);
+const KHOA = lay("--ssh-key", SSH_KEY);
 const KHONG_SSH = argv.includes("--no-ssh");
 const VI_FACTORY = lay("--wallet", "P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj");
 
