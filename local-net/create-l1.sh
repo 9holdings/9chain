@@ -17,7 +17,9 @@ echo "==> [1/4] Đảm bảo node 9Chain-A1 đang chạy"
 # 🔴 Genesis của node dev nay do netgen sinh (`local-net/net/`), không còn lấy từ
 # `9chain-a1-config/genesis.json`. Xem docs/CORE-AUDIT-2026-08-27.md §7b.
 # ⚠️ `l1-evm-genesis.json` thì VẪN ở `9chain-a1-config/` — đó là khuôn genesis cho
-# L1 EVM, khác hẳn genesis của mạng. Bước [2/4] bên dưới vẫn đọc từ đó.
+# L1 EVM, khác hẳn genesis của mạng.
+# Since 2026-08-28 step [2/4] no longer reads it directly: it builds a per-run genesis
+# through `scripts/make-l1-genesis.mjs` instead (D-114).
 if [ ! -f "local-net/net/genesis.json" ]; then
   echo "    LOI: thieu local-net/net/genesis.json" >&2
   echo "    -> chay 'NETWORK_ID=899999999 bash local-net/gen-network.sh 5' truoc" >&2
@@ -34,9 +36,18 @@ for i in $(seq 1 24); do
 done
 
 echo "==> [2/4] Tạo subnet + L1 EVM ($L1_NAME)"
+# 🔴 NEVER hand `l1-evm-genesis.json` to the CLI as-is. That file is a SHAPE, not a usable
+# genesis: it declares `chainId 9100` (already taken - "Genesis Coin", B-14) and grants the
+# whole token supply plus fee-admin rights to the `ewoq` key, which is published in the
+# avalanchego repository. The console overwrites all three on every request; this CLI path
+# passed the file through verbatim until 2026-08-28. See D-114.
+mkdir -p "9chain-a1-config/console-tmp"
+GEN_REL="console-tmp/l1-cli-$(date +%s).json"
+node scripts/make-l1-genesis.mjs --admin "${A1_L1_ADMIN:?set A1_L1_ADMIN=0x... - no default; the old default was the PUBLIC ewoq key}" \
+  --out "9chain-a1-config/$GEN_REL" || exit 1
 OUT=$(MSYS_NO_PATHCONV=1 $COMPOSE exec -T \
   -e A1_URI=http://localhost:9650 \
-  -e A1_L1_GENESIS=/9chain-a1/config/l1-evm-genesis.json \
+  -e A1_L1_GENESIS="/9chain-a1/config/$GEN_REL" \
   -e A1_L1_NAME="$L1_NAME" \
   9chain-a1-node /9chain-a1/build/create-l1 2>&1)
 echo "$OUT" | grep -E "subnet mới|L1 EVM mới" || { echo "$OUT"; exit 1; }

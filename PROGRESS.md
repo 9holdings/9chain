@@ -1278,3 +1278,24 @@ liệu · 25 tiêu đề commit fork ⇒ 25 tên tệp patch. Chi tiết, gồm 
   cứng #4): `main` lệch `web-home` **78 tệp / +17.440 −2.792**, và `main:web/lib/chain.ts` vẫn
   khai `networkId: 9001` trong khi `web-home` đã đúng `999999999`.
 - [ ] Định danh **cục bộ** trong JS/Go vẫn tiếng Việt — cố ý hoãn, lý do ở D-108. Làm sau ngày G.
+
+### Lượt quét thứ HAI (`28/08`, David yêu cầu quét lại)
+
+Vòng hai tìm được **ba** thứ vòng một bỏ sót — cả ba đều là *"đã đổi ở một nơi, chưa đổi ở
+nguồn"*:
+
+| | |
+|---|---|
+| **D-115** | `export-chain.mjs` vẫn **đẻ ra** tên tiếng Việt (`00-DOC-TRUOC.md`, `GOC.txt`, `tep-kem/`) — bản xuất ngày G sẽ lại là tiếng Việt. Sửa **nguồn**, giữ nguyên gói đã niêm; chế độ KIỂM đọc được cả hai |
+| **D-113** | một khái niệm *"máy chủ"* mang **sáu** tên biến; `h6b-backup.sh` dùng tên **không script nào khác dùng** ⇒ O4 sẽ làm nó lặng lẽ sao lưu máy cũ |
+| **D-114** | khuôn genesis L1 vẫn cấp **50 triệu token + quyền chỉnh phí** cho khoá **công khai** `ewoq`, trên `chainId 9100` đã bị chiếm — và **hai đường CLI truyền thẳng nó** |
+
+Cổng mới: `check-single-source.mjs` (6/6) · `check-english-code.mjs` (12/12, bánh cóc) ·
+`make-l1-genesis.mjs` (13/13). Preflight nay **18 cổng · 15 việc tay**.
+
+🔴 **Luật ngôn ngữ (D-113):** mã nguồn chỉ có tiếng Anh. Nợ **6.801 → 5.856 dòng**; toàn bộ mã
+phiên này tạo ra đã trả hết. Cổng bắt được **chính tôi ba lần** trong một phiên — đó là lý do
+nó phải là mã, không phải quy ước.
+
+- [ ] Trả tiếp nợ ngôn ngữ: 107 tệp · 5.856 dòng còn lại + 54 tệp Go trong fork. Ưu tiên
+  `local-net/console/server.mjs` (639 dòng — sản phẩm sống, người ngoài đọc nhiều nhất).

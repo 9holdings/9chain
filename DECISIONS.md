@@ -3953,3 +3953,136 @@ dựng lên trên. Hai đầu neo có gốc độc lập mới nói được đi
 dựng tree từ phần diff; tiêu đề không vào tree. Đó cũng là lý do lượt viết lại 25 tiêu đề sang
 tiếng Anh **không đổi tree** (`f2b9486b` trước và sau), và tính chất đó chính là bằng chứng
 lượt đó chỉ đụng thông điệp.
+
+---
+
+## D-113 — LUẬT NGÔN NGỮ: mã nguồn chỉ có tiếng Anh, thi hành bằng BÁNH CÓC (2026-08-28)
+
+David: *"Không đặt tên file, tên hàm, thông tin gì ghi vào code bằng tiếng Việt — vì dùng cho
+quốc tế, nhiều cộng đồng toàn cầu vào để phát triển thêm."* ⇒ `CLAUDE.md` **§0**, đặt **trên**
+cả bốn luật cứng.
+
+### Vì sao nó là luật, không phải sở thích
+
+Chú thích trong repo này **là** tài sản đắt nhất của dự án — mỗi khối `🔴` là một cái bẫy đã
+trả giá để học. Với người đóng góp ở nước khác, một chú thích tiếng Việt **không tồn tại**, và
+họ sẽ dẫm lại đúng cái bẫy đó. Để tài sản ở ngôn ngữ người ta không đọc được là vứt bỏ nó một
+cách **im lặng** — cùng hình dạng với mọi lỗi đắt khác của dự án.
+
+### Vì sao BÁNH CÓC, không phải một lượt dịch ồ ạt
+
+Quy mô đo được: **109 tệp · 6.485 dòng** (repo chính) + **54 tệp Go** (fork). Viết lại tất cả
+**bốn ngày trước ngày G** là thay đổi lớn nhất và **ít nghiệm thu được nhất** trong lịch sử dự
+án — đúng lúc một genesis **bất biến** sắp được đúc ra. Một lượt dịch hỏng một chú thích cảnh
+báo còn tệ hơn để nguyên nó tiếng Việt.
+
+`scripts/check-english-code.mjs`:
+- tệp **không** trong danh sách nợ ⇒ phải **100% tiếng Anh ngay** (mã mới sạch từ đầu)
+- tệp **đã** trong danh sách nợ ⇒ **không được tệ hơn** (nợ cũ trả dần)
+- `--update-baseline` **TỪ CHỐI** ghi một con số lớn hơn — bánh cóc phải thật sự cóc
+
+🔴 **Khai thẳng điểm mù ngay trong tệp:** nó **không** bắt được tiếng Việt viết hoàn toàn không
+dấu. Đọc xanh là *"không có tiếng Việt có dấu và không có từ đánh dấu nào"*, **không phải**
+*"tệp này là tiếng Anh"*. Một cổng không viết ra giới hạn của mình sẽ bị đọc thành bằng chứng
+cho thứ nó chưa bao giờ đo.
+
+⚠️ **Tên riêng trong dấu nháy ngược không phải văn xuôi.** Bộ dò bỏ qua `` `…` `` — nếu không,
+một chú thích trích đúng tên tệp `00-DOC-TRUOC.md` trong gói vật chứng đã niêm sẽ bị chấm là vi
+phạm, và người ta sẽ sửa **tên tệp trong trích dẫn** cho cổng xanh, tức làm hỏng chính con trỏ.
+
+### 🔴 Cổng bắt được TÔI ba lần trong một phiên
+
+Ba lần, mỗi lần trong vòng vài phút sau khi tôi tự viết ra luật: thêm hai mục cổng vào
+`gday-preflight` (kéo theo nhãn nhóm tiếng Việt) · thêm chú thích vào `create-l1.sh` · sửa một
+chú thích đã cũ ở chính tệp đó. **Không lần nào tôi cố ý.** Đó là toàn bộ lý lẽ cho việc luật
+này phải là **mã chạy được**, không phải một dòng quy ước — người viết ra luật còn quên nó
+trong vòng năm phút.
+
+### Đã trả trong lượt đầu
+
+`gday-preflight.mjs` (106→0, tệp người ngoài mở đầu tiên) · `check-net-dirs.mjs` (120→0) ·
+`check-single-source.mjs` (85→0) · `check-evidence.mjs` (60→0) · `lib/server.mjs` (24→0) ·
+`network-id.sh` (23→0) · `deploy/server-env.sh` (7→0) — **toàn bộ mã phiên này tạo ra**, cộng
+chính cổng thi hành. Nợ **6.801 → 5.856 dòng**.
+
+Mọi tệp đều **chạy lại và cho kết quả y hệt** bản tiếng Việt: preflight giữ đủ **17 cổng · 15
+việc tay**, `check-net-dirs --self-test` 17/17 và bản chạy thật vẫn bắt đúng 1 mồi nhử + 2 bẫy.
+
+### Kèm: MỘT khái niệm, MỘT tên
+
+Đo cùng lượt: khái niệm *"máy chủ"* mang **sáu** tên biến môi trường (`A1_HOST`, `A1_SSH_HOST`,
+`A1_BACKUP_HOST`, `A1_SSH_TARGET`, `A1_SRC`, `A1_REMOTE_DIR`) và **hai** tên cờ — trong đó
+`--target` mang **hai nghĩa khác nhau** ở hai tệp.
+
+Chưa cháy, nhưng đường cháy đã có tên: **O4** — dời node sang nhà cung cấp thứ hai. Người làm
+sẽ đặt *một* biến, thấy vài lệnh trỏ đúng máy mới, rồi `h6b-backup.sh` — **chính cái sao lưu** —
+lặng lẽ chụp **máy cũ**. ⚠️ *Sao lưu sai máy không báo lỗi: nó chạy xong, in một dòng xanh, và
+chỉ sai vào đúng ngày cần dùng tới.*
+
+⇒ `local-net/lib/server.mjs` + `local-net/deploy/server-env.sh` (hai bản song sinh, **cùng tên
+biến**), 8 script nạp từ đó, và `scripts/check-single-source.mjs` canh để không ai chép bản thứ
+hai. Ba lần sửa chính cổng đó lúc dựng, cả ba đều là bài học:
+1. Quét cả tài liệu ⇒ bắt nhầm `README`. **Sai đại lượng:** một lệnh `ssh` trong runbook tồn
+   tại để **người dán vào terminal**; ép nó viết `$A1_SSH_HOST` là làm runbook vô dụng.
+2. Khớp chuỗi trần ⇒ `999_999_999` là chuỗi con của `9_999_999_999`, báo động giả.
+3. Cổng **tự bắt chính nó**. Một cổng luôn đỏ sẽ bị tắt đi, và lúc đó nó vô dụng đúng lúc cần.
+
+---
+
+## D-114 — Khuôn genesis L1 vẫn cấp toàn bộ token cho một khoá CÔNG KHAI, và hai đường CLI truyền thẳng nó (2026-08-28)
+
+Quét lượt hai phát hiện: `9chain-a1-config/l1-evm-genesis.json` — khuôn cho **mọi L1 người
+dùng** — vẫn khai:
+
+| | |
+|---|---|
+| `chainId` | **9100** — đã bị chiếm trong sổ công khai (*Genesis Coin*), chính là B-14 |
+| `feeManagerConfig.adminAddresses` | **`ewoq`** — khoá nằm **công khai trong repo avalanchego** |
+| `alloc` | **50.000.000 token** cho cùng khoá `ewoq` đó |
+
+Console **luôn ghi đè cả ba** (`server.mjs`: `tpl.config.chainId = chainId` · `tpl.alloc = {…}` ·
+`feeManagerConfig = {adminAddresses:[ADMIN]}`) ⇒ **đường giao diện an toàn**. Nhưng **hai đường
+CLI** — `local-net/create-l1.sh` và `local-net/9chain-a1 l1 create` — truyền tệp cho CLI
+**nguyên xi**. Chain đẻ ra bằng đường đó có `chainId` trùng, và **toàn bộ nguồn cung lẫn quyền
+chỉnh phí thuộc về một khoá ai cũng tra được**.
+
+⚠️ **`chainId` không dừng lại ở máy đó.** EIP-155 buộc chữ ký vào `chainId`, và dưới mắt
+MetaMask hai chain cùng `chainId` là **cùng một mạng**. Dùng lại 9100 trên máy dev là cách một
+chữ ký dành cho chain đồ chơi trở nên phát lại được ở nơi khác.
+
+Cùng hình dạng với **D-111**: một **mặc định sai nhưng nhất quán nội bộ**, nên không gì kêu lên.
+Và cách chữa cũng y hệt: **bỏ mặc định đi, bắt người gọi khai giá trị.**
+
+⇒ `scripts/make-l1-genesis.mjs` (tiếng Anh, theo D-113): sinh genesis cho **từng lượt**, thay cả
+ba trường, **từ chối** khi thiếu `--admin`, **từ chối** `ewoq` (trừ `--allow-ewoq` cho chain vứt
+đi), **từ chối** `chainId 9100`, và tự cấp chainId từ khối của thế hệ hiện tại theo **đúng luật
+console** — đọc cả hai sổ, và **ném lỗi nếu sổ rỗng** (sổ rỗng nghĩa là cổng đang TẮT, không
+phải "chưa ai chiếm gì").
+
+Đối chứng ngược **13/13**, gồm ba ca khẳng định khuôn **vẫn** mang cả ba giá trị nguy hiểm — nếu
+ai đó "dọn" chúng khỏi khuôn thì bài kiểm này phải đỏ, vì lúc đó nó đang chứng minh một thứ
+không còn đúng. Chạy thật: thiếu `--admin` ⇒ từ chối · `--admin ewoq` ⇒ từ chối · ép
+`--chain-id 9100` ⇒ từ chối · admin thật ⇒ sinh ra `chainId 9000000010`, alloc và fee-admin đều
+là địa chỉ được khai.
+
+Hai đường CLI nay **đòi `A1_L1_ADMIN`** và dừng ngay nếu thiếu (đối chứng: chạy không có biến ⇒
+exit 1, **không đẻ chain nào**).
+
+---
+
+## D-115 — Công cụ O2 vẫn đẻ tên tiếng Việt, và gói đã niêm thì KHÔNG sửa (2026-08-28)
+
+Lượt đổi tên `28/08` giữ nguyên tên tệp **bên trong** hai gói vật chứng O2 — đúng, vì
+`MANIFEST.txt` băm theo đường dẫn bên trong gói. Nhưng quét lượt hai lộ ra vế còn thiếu:
+**`scripts/export-chain.mjs` — công cụ chạy ở NGÀY G, việc tay bắt buộc — vẫn sinh ra
+`00-DOC-TRUOC.md`, `GOC.txt`, `tep-kem/`.** Bản xuất tiếp theo, ba ngày nữa, lại là tiếng Việt.
+
+⇒ **Sửa NGUỒN, không sửa bản đã niêm:**
+- chế độ **XUẤT** nay sinh `00-READ-FIRST.md` · `ROOT.txt` · `attachments/`
+- chế độ **KIỂM** đọc được **cả hai**: `ROOT.txt` (bộ mới) và `GOC.txt` (bộ đã niêm)
+
+Đây là tương thích với **dữ liệu đã ghi**, không phải bí danh của đầu vào mới — cùng phân biệt
+đã áp cho id preset ở D-108: *đường VÀO* và *đường ĐỌC* là hai chuyện.
+
+Nghiệm thu bằng một lượt **xuất thật** từ RPC công khai: ra đúng ba tên mới, `--check` bộ mới
+9/9 gốc khớp, và `--check` bộ cũ `2026-08-27` **vẫn** 9/9 gốc khớp.
