@@ -59,7 +59,7 @@ phép kiểm đẻ chain đầu-cuối · gộp `web-home` → `main` · **byte 
 Mạng công khai đang chạy **thế hệ `g0`** — `networkID 999999999`, `9chain-a1-g0`,
 `supplyCap 7.900.000.001`, 9/9 node. Sinh lại `2026-08-27` (D-081). Đo lại `28/08` chiều: sống.
 
-### 🔴 ĐỢT 15 (`28/08` tối) — 7/7 mốc đạt · 9 quyết định · 2 việc mới cho David
+### 🔴 ĐỢT 15 (`28/08` tối) — 8/8 mốc đạt (`A15-0`…`A15-7`) · 9 quyết định · 2 việc mới cho David
 
 **Ngày G nay có MỘT lệnh:**
 
@@ -174,44 +174,6 @@ David chốt `28/08` (**D-104**): hai chuỗi chạy **song song**, C1 do **Davi
 ⇒ A1 nhận **byte đã đóng băng** như một **đầu vào David cấp**, không chờ, không hỏi, không
 xếp C1 vào bảng rủi ro của mình. Việc của A1 là: giữ cơ chế khắc chạy được, và **nói rõ hạn
 chót mà đầu vào phải tới** để lượt sinh mạng ngày G không phải chờ.
-
----
-
-## ✅ Đã xong phiên `2026-08-27 → 28` — đều đã chạy thật
-
-| | Việc | Nghiệm thu |
-|---|---|---|
-| **D-082** | Bí danh tài sản X-Chain: SDK ví của fork hỏi `"AVAX"` trong khi g0 đăng ký `"LOVE9"` ⇒ **mọi ví X/C chết câm** | patch 0019 · `sha256` genesis g0 **khớp từng bit** trước/sau, mainnet/fuji **đổi** (phép so phân biệt được) · nạp ví thật, đọc lại bằng RPC công khai |
-| **D-083** | netgen sinh `.env` + **chặn mạng THẬT sinh ra ở tư thế phơi trần**; `NETWORK_ID` nay bắt buộc | patch 0020 · 6 ca (3 đỏ) · đo đầu-cuối `docker compose config`: có `.env` → `localhost,127.0.0.1`, giấu đi → `*` |
-| **D-084** | **David chốt: bí danh `LOVE9` DỨT KHOÁT**, không đăng ký thêm `AVAX`. Giá đã biết: công cụ SDK upstream không nói chuyện được với A1 ⇒ patch 0022 bắt nó **hỏng ra tiếng** | patch 0021 (B-9) + 0022 · 6 ca, **3 đối chứng** · toàn bộ `vms/avm` xanh |
-| **D-085** | **O1 bước 1**: khoá g0 rời server (`shred -u`), + công cụ `kiem-khoa` | patch 0023 · `sha256` 3/3 · **khôi phục 6/6** · 4 ca đỏ |
-| **D-086** | Sổ **"A1 đã từng cấp"** — 47 chainId + 53 tên, nhớ **xuyên thế hệ** | `chainid-test` **35 đạt/0 hỏng** (5 đối chứng) · **verify trên API thật** |
-| **D-087** | Đẻ chain **TẠM ĐÓNG** tới sau ngày G (`A1_DE_CHAIN_MO`) | 3 ca · **đã deploy**, console công khai từ chối đúng câu |
-| **D-088** | **Cổng canh khoảng cách repo ↔ server** + manifest deploy (một danh sách, hai nơi đọc) | bắt **5 lệch thật** ngay lần đầu · đối chứng ngược đạt · `/faucet/api/supply` nay **200, số đo từ chain** |
-| **D-089** | **H-7 = IPv4 đa cổng** (David chốt). Bản đầu **sai**, diễn tập 3 node bác nó | patch 0024 · mesh `1 → 2` peer sau khi sửa · beacon bắt tay TCP được **từ ngoài Internet** |
-| **D-090** | 🔴 **`kiem-khoa` chấm `6/6 ✓ exit 0` cho bộ khoá đã chết** ⇒ cổng thứ hai nối bộ khoá vào **chain đang chạy** | bộ g0 **6/6 khớp chain** · bộ 9001 đã chết **8 lệch, exit 1** · **5/5 đối chứng ngược** · O1 lần đầu nối được khoá ↔ **tiền** |
-| **D-091** | **M11.10** — ví ký ở máy dev, **hầm SSH trong cùng container**; khoá không chạm server | 3/3 nghiệm thu đường đi (chạy mỗi lượt) · 🔴 **KÝ THẬT**: `p-to-x 0.1` trên mạng công khai, đọc lại bằng RPC công khai P `89,99999173 → 89,8999813` · X `0,009 → 0,108` · `Accepted` |
-| **D-092** | **Gỡ `9chain-a1-xpwallet` khỏi server** (ví HTTP không auth, giữ khoá trong env). 🔴 Quét sau đó lộ **2 thứ khác**, xem dòng dưới | khoá trong env **trùng hash** bản trên máy dev · 0 tuyến/0 kết nối · dừng trước, đo sản phẩm, rồi mới xoá · sau khi xoá: **0 container còn `WALLET_KEY`**, `find keys.txt` ⇒ **0** |
-| **D-091b** | `--quy` chọn 1 trong 6 khoá `keys.txt`. 🔴 **Dòng `P-addr` trong tệp là CHỮ NGƯỜI VIẾT** — khối `[team]` dán địa chỉ `[foundation]` thì dòng in ra vẫn trông đúng ⇒ gọi `kiem-khoa` trên đúng khối vừa chọn | 6/6 quỹ, **sáu địa chỉ khác nhau** khớp `ALLOCATION-PUBLIC.md` · khối thứ 3 và thứ 6 phân biệt được với "lấy khối đầu" · ví lên thật với `--quy faucet` · **6/6 đối chứng ngược** |
-
----
-
-## ✅ Đã xong `2026-08-27` (đợt trước trong cùng phiên) — không phải "đã viết"
-
-| | Việc | Nghiệm thu |
-|---|---|---|
-| **D-069** | Gốc dải chainId L1 `9100` → `9000000010` | `chainid-test` 22 đạt · 4 ca đối chứng ngược |
-| **D-070** | Block Adam neo vào **hash giao dịch nghi lễ** | Diễn tập lại: `--bu-ms 0` (ca bản cũ chấm ✗) nay 10 đạt/0 hỏng |
-| **D-071** | 9 validator `restart=no` → `unless-stopped` | Ca A/B trên container nháp; **chưa reboot thật** |
-| **D-072** | O2 chạy thật trên mạng công khai | 37–54s · 4 ca, 2 đối chứng ngược |
-| **D-073/074/075** | Chống nhúng iframe · CORS · cổng chặn deploy làm teo cấu hình | Đã deploy · cổng đã thấy **ĐỎ** (chặn 68 dòng) |
-| **D-077** | `cb58.mjs` neo C-Chain → P-Chain | Neo cũ **đã chết từ 26/08 mà bài vẫn 8/8 xanh** |
-| **D-079** | Bộ định danh theo thế hệ, 18 patch, tree `f4615e73` | Mạng tập 3 node + **bài cắt-kết-nối có đối chứng dương** |
-| **D-080** | `GỐC` mạng thế hệ trước, công bố **trước khi xoá** | `c92ad73cf6cdcf44ef32bf4bb6475d282fb76878c553f690533bfa6c476ce066` |
-| **D-081** | **Re-genesis mạng công khai → g0** | 9/9 node · drip `0x635f2183…` đọc lại từ chain = 10 LOVE9 |
-
-Ba bản soát mới: `docs/SOAT-TOAN-DIEN-2026-08-27.md` (lớp vận hành) ·
-`docs/HIEN-TRANG-A1-2026-08-27.md` · `docs/DE-XUAT-BO-DINH-DANH-THE-HE.md`.
 
 ---
 
