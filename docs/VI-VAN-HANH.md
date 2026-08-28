@@ -55,13 +55,18 @@ thuộc genesis nên không bị đổi; chỉ số dư mất theo mạng cũ). 
      https://rpc-a1.9chain.org/ext/bc/P
    ```
 
-Công cụ: `upstream/avalanchego/9chain-a1-tools/xp-wallet` (ví X/P, chạy loopback
-`:8090` trên server — **không có auth, tuyệt đối không public**).
+Công cụ: `upstream/avalanchego/9chain-a1-tools/xp-wallet`.
 
-### 🔴 TỪ `28/08` CÓ ĐƯỜNG THỨ HAI, VÀ NGÀY G PHẢI DÙNG ĐƯỜNG ĐÓ (M11.10, D-091)
+> 🔴 **BỎ `2026-08-28` (D-092): container `9chain-a1-xpwallet` trên server ĐÃ XOÁ HẲN.**
+> Nó chạy loopback `:8090`, **không auth**, và giữ khoá `chain-factory` trong env.
+> **Đừng dựng lại nó.** Đường thay thế ở ngay dưới, đã ký thật.
+> *(Ví X/P trong `up-all.sh` là chuyện khác — đó là máy dev và nó chạy **không có
+> `WALLET_KEY`**, tức khoá `ewoq` mặc định. Không đụng.)*
 
-Cách ở trên đưa **khoá lên server**. Nay có đường ví chạy **ở máy dev**, hầm SSH nằm **trong
-cùng container với ví**, khoá **không chạm server một byte nào**:
+### ✅ ĐƯỜNG DUY NHẤT TỪ `28/08` — M11.10 (D-091 · D-091b)
+
+Cách cũ đưa **khoá lên server**. Nay ví chạy **ở máy dev**, hầm SSH nằm **trong cùng container
+với ví**, khoá **không chạm server một byte nào**:
 
 ```bash
 # 1. nghiệm thu đường đi — chưa cần khoá
@@ -80,8 +85,6 @@ docker rm -f 9chain-a1-vi-ham                    # 🔴 xong việc là dừng N
 🔴 **Dòng `P-addr` trong `keys.txt` là CHỮ NGƯỜI VIẾT, không phải phép đo.** Khối `[team]` dán
 nhầm địa chỉ `[foundation]` thì dòng `quỹ chọn:` in ra **vẫn trông đúng** và ví vẫn ký. Vì thế
 bước 2 gọi `kiem-khoa` **suy lại địa chỉ TỪ KHOÁ**; đọc dòng `✓ kiem-khoa:` mới là đọc phép đo.
-⚠️ Container `9chain-a1-xpwallet` trên server **vẫn còn và vẫn giữ khoá trong env** — D-091 mở
-đường mới, **chưa gỡ đường cũ**.
 
 ### 🔴 Ba cái bẫy đã trả giá ở lượt nạp g0 (`27/08`)
 
@@ -92,6 +95,7 @@ không phải git repo** — vá ở máy dev rồi phải `scp` sang, và **so 
 
 **2. Container `9chain-a1-xpwallet` giữ khoá trong env ⇒ `docker restart` KHÔNG nạp lại.**
 Phải `docker rm -f` rồi `docker run`. Cùng bẫy với faucet ở D-081.
+*(Bẫy này nay chỉ còn giá trị lịch sử cho `9chain-a1-faucet` — xpwallet đã xoá, D-092.)*
 
 **3. Khoá Foundation KHÔNG được để nằm lâu trong một ví HTTP không auth.** Lượt này chạy một
 container **tạm** (`a1-fund-tmp`, không publish cổng ra host, gọi bằng `docker exec`), gửi xong
