@@ -3890,7 +3890,7 @@ Cổng đo **hai đại lượng cắt nhau**, không tin tên thư mục: thế
 
 | | |
 |---|---|
-| `net-public/` + `net-public-dead-720m/` | `9001` chết, **nhưng giữ 90.008 LOVE9 thật** ⇒ dọn theo thư mục là mất tiền |
+| `net-public/` + `net-public-dead-720m/` | `9001` chết, **nhưng giữ ~90 LOVE9 thật** (P 89,89998130 + X) ⇒ dọn theo thư mục là mất tiền |
 | `net-that-g0/` | networkID **KHỚP** mạng sống, **6 ví đều 0đ** ⇒ **MỒI NHỬ** |
 | 6 thư mục còn lại | chết hoặc băng tập, 0đ — dọn được |
 

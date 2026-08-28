@@ -1,45 +1,48 @@
 /**
- * server.mjs — **MỘT nguồn duy nhất** cho toạ độ máy chủ công khai.
+ * server.mjs — the SINGLE source of truth for the public server's coordinates.
  *
- * ═══ 🔴 VÌ SAO TỆP NÀY TỒN TẠI ═══
+ * ═══ 🔴 WHY THIS FILE EXISTS ═══
  *
- * Đo `2026-08-28`: **một khái niệm — "máy chủ" — đang có NĂM tên biến môi trường**, mỗi
- * script một tên, mỗi tên một bản chép của cùng một chuỗi `"$A1_SSH_HOST"`:
+ * Measured 2026-08-28: **one concept — "the server" — had SIX environment-variable names**,
+ * one per script, each carrying its own copy of the same `"$A1_SSH_HOST"`:
  *
  *   A1_HOST         check-ports.sh · console-deploy.sh
  *   A1_SSH_HOST     web-deploy.sh
- *   A1_BACKUP_HOST  h6b-backup.sh            ← chính cái SAO LƯU
+ *   A1_BACKUP_HOST  h6b-backup.sh            ← the BACKUP script itself
  *   A1_SSH_TARGET   wallet-tunnel/enter.sh
- *   --host / --target  bốn script .mjs
+ *   A1_SRC / A1_REMOTE_DIR   two names for the source directory
+ *   --host / --target        two flag names, and `--target` meant two different things
  *
- * Nó chưa cháy, nhưng **đường cháy đã dựng sẵn và có tên**: **O4** — dời một node sang
- * nhà cung cấp thứ hai. Người làm sẽ đặt *một* biến, thấy vài lệnh trỏ đúng máy mới, rồi
- * `h6b-backup.sh` vẫn **lặng lẽ sao lưu máy cũ**. Sao lưu sai máy không báo lỗi: nó chạy
- * xong, in ra một dòng xanh, và chỉ sai vào đúng ngày cần dùng tới.
+ * It had not burned yet, but the path to the burn was already built and already named: **O4**
+ * — moving a node to a second provider. Whoever does it will set *one* variable, watch a few
+ * commands point at the new box, and then `h6b-backup.sh` will **quietly back up the old
+ * one**. Backing up the wrong machine does not raise an error: it finishes, prints a green
+ * line, and is wrong only on the day you finally need it.
  *
- * Cùng hình dạng với `A1Gen ↔ A1_GEN` (D-093) và `--network-id=9001` trong compose
- * (D-111): **hằng số chép tay ở nhiều nơi, không cổng nào nối chúng.**
+ * Same shape as `A1Gen ↔ A1_GEN` (D-093) and `--network-id=9001` in the compose files
+ * (D-111): **a constant copied by hand into several places, with no gate joining them.**
  *
- * ⇒ Nay **một tên cho một khái niệm**, và `scripts/check-single-source.mjs` canh để không
- * ai chép lại bản thứ hai.
+ * ⇒ Now: one name per concept, and `scripts/check-single-source.mjs` keeps it that way.
  *
- * Biến môi trường (đều ghi đè được, và **cùng tên ở cả `.mjs` lẫn `.sh`**):
- *   A1_SSH_HOST   đích ssh, dạng `user@host`
- *   A1_SSH_KEY    đường dẫn khoá riêng ssh
- *   A1_SRC_DIR    thư mục mã trên máy chủ
- *   A1_RPC_URL    RPC công khai
+ * Environment variables (all overridable, and **identical on the `.sh` side**):
+ *   A1_SSH_HOST   ssh destination, `user@host`
+ *   A1_SSH_KEY    path to the ssh private key
+ *   A1_SRC_DIR    source directory on the server
+ *   A1_RPC_URL    public RPC endpoint
  */
 import { homedir } from "node:os";
 import path from "node:path";
 
 /**
- * 🔴 BỐN CHUỖI DƯỚI ĐÂY LÀ BẢN DUY NHẤT TRONG REPO. Chép một bản thứ hai đi chỗ khác là
- * dựng lại đúng cái bẫy tệp này sinh ra để gỡ — `check-single-source.mjs` sẽ đỏ.
+ * 🔴 THE FOUR STRINGS BELOW ARE THE ONLY COPY IN THE REPO. Putting a second copy anywhere
+ * else rebuilds precisely the trap this file exists to remove — `check-single-source.mjs`
+ * will go red.
  */
 export const SSH_HOST = process.env.A1_SSH_HOST || ""$A1_SSH_HOST"";
-// Viết `".ssh/9chain-a1"` thành MỘT chuỗi liền (không `join(".ssh","9chain-a1")`) là chủ ý:
-// `check-single-source.mjs` canh bằng chuỗi, và một hằng số bị chẻ ra thì cổng không thấy
-// nó ở đâu cả — rồi báo "khai thừa", tức xanh vì lý do sai.
+// Written as the single string `".ssh/9chain-a1"` (not `join(".ssh", "9chain-a1")`) on
+// purpose: `check-single-source.mjs` matches on the literal, and a constant split across
+// arguments is invisible to it — the gate would then report "declared but absent", i.e. it
+// would be green for the wrong reason.
 export const SSH_KEY = process.env.A1_SSH_KEY || path.join(homedir(), ".ssh/9chain-a1");
 export const SRC_DIR = process.env.A1_SRC_DIR || "~/9chain-a1/src";
 export const RPC_URL = process.env.A1_RPC_URL || "https://rpc-a1.9chain.org";
