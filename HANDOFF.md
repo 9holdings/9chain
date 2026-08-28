@@ -24,7 +24,7 @@ node scripts/gday-preflight.mjs      # trạng thái toàn cục trong 1 lệnh 
    `074aaa93`** nay **chạy tự động** trong preflight.
 3. 🔴 **B-19 MỚI, và nó liên quan thẳng tới B-16 đang chặn GO/NO-GO:** `net-that-g0/` là
    **MỒI NHỬ** — networkID khớp mạng sống nhưng **6 ví đều 0đ**. Đừng cất nó làm bản sao lưu
-   quỹ. Bộ thật: `C:\Users\abc\9chain-a1-keys\g0\`. Và **khoá đang giữ 90.008 LOVE9 nằm trong
+   quỹ. Bộ thật: `C:\Users\abc\9chain-a1-keys\g0\`. Và **khoá đang giữ ~90 LOVE9 THẬT nằm trong
    hai thư mục tự khai là "đồ chết"** ⇒ dọn theo thư mục là mất tiền. `check-net-dirs.mjs`.
 4. 🔴 **B-18 MỚI:** 3 tên tệp **cũ** còn trên server sau lượt đổi tên ⇒ dọn **cùng lượt deploy**.
 5. **`up-all.sh` / `docker-compose.yml` nay ĐÒI `NETWORK_ID`** và suy nó từ genesis. Bộ

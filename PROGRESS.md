@@ -1271,7 +1271,7 @@ liệu · 25 tiêu đề commit fork ⇒ 25 tên tệp patch. Chi tiết, gồm 
 
 ### 🔴 Còn lại — việc của David
 
-- [human] **B-19** — di dời `chain-factory-key.txt` (90.008 LOVE9) ra khỏi thư mục `9001` **trước**
+- [human] **B-19** — di dời `chain-factory-key.txt` (~90 LOVE9 thật) ra khỏi thư mục `9001` **trước**
   khi dọn; và **đừng** cất `net-that-g0` làm bản sao lưu quỹ — nó là **mồi nhử, 0đ**.
 - [human] **B-18** — xoá 3 tên tệp **cũ** còn trên server, **cùng lượt deploy console**.
 - [human] **Gộp `web-home` → `main`.** `web/` **không** được chuẩn hoá trong phiên này (luật

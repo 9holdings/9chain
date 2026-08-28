@@ -1,36 +1,41 @@
 #!/usr/bin/env node
 /**
- * check-evidence.mjs — **cổng canh: gói vật chứng còn TỰ NGHIỆM THU được không.**
+ * check-evidence.mjs — gate: **can each evidence bundle still verify itself?**
  *
- * 🔴 VÌ SAO CÓ — và nó sinh ra từ một lỗi có thật của phiên `2026-08-28`.
+ * ═══ 🔴 WHY IT EXISTS — it came out of a real mistake, on 2026-08-28 ═══
  *
- * Quy trình O2 (*"xuất trước khi xoá"*) đóng gói trạng thái chain kèm `MANIFEST.txt`
- * chứa `sha256` **của từng tệp trong gói**. Giá trị của gói **nằm ở chỗ hash khớp**:
- * một gói không tự nghiệm thu được thì không còn là vật chứng, chỉ là mấy tệp cũ.
+ * The O2 procedure ("export before deleting") packages the chain's state together with a
+ * `MANIFEST.txt` holding the `sha256` **of every file in the bundle**. The bundle's value
+ * IS that the hashes match: a bundle that cannot verify itself is no longer evidence, it is
+ * just some old files.
  *
- * Phiên `28/08` chạy một lượt đổi cờ CLI *"trên mọi tệp văn bản"*. Nó sửa `--tu-kiem`
- * thành `--self-test` **bên trong `00-DOC-TRUOC.md` của gói vật chứng** ⇒ hai gói O2
- * tụt từ **9/9 xuống 7/9**, và **không có gì kêu lên**. Cùng lượt quét đó cũng sửa một
- * dòng trong `patches/0006` làm tree fork trôi khỏi `074aaa93` — cái đó thì
- * `gday-preflight` bắt được ngay, vì luật cứng #3 có cổng. Vật chứng thì **không có**.
+ * That day, a sweep renamed CLI flags "across every text file". It rewrote a flag name
+ * **inside `00-DOC-TRUOC.md` of the evidence bundles** — both O2 bundles dropped from 9/9
+ * to 7/9, and **nothing said a word**. It only surfaced because someone happened to run
+ * `sha256sum -c` while doing something else. The same sweep also touched one line in
+ * `patches/0006`, and THAT was caught within seconds — because hard rule #3 has a gate.
+ * Evidence had none.
  *
- * ⇒ Bài học: **thứ nào phải đóng băng theo BYTE thì phải có cổng canh byte.** Một quy
- * ước *"đừng sửa thư mục đó"* nằm trong đầu người viết script không chặn được gì.
+ * ⇒ The lesson, broader than either case: **anything that must be frozen byte-for-byte needs
+ * a gate that watches bytes.** A convention living in the head of whoever writes the next
+ * script stops nothing.
  *
- * ## Cổng này đo ĐẠI LƯỢNG NÀO
+ * ═══ WHAT THIS GATE MEASURES ═══
  *
- * `sha256` **thực tế trên đĩa** ↔ `sha256` **gói tự khai**. Không đọc git, không so với
- * commit nào — một gói vật chứng phải đứng được **một mình**, kể cả khi tách khỏi repo.
+ * The `sha256` **actually on disk** against the `sha256` **the bundle claims**. It does not
+ * read git: an evidence bundle must stand on its own, even lifted out of the repo — that is
+ * its entire reason to exist.
  *
- * ⚠️ Cổng này KHÔNG nói gói mô tả đúng sự thật lúc đó hay không. Nó chỉ nói gói **chưa
- * bị sửa kể từ lúc niêm**. Hai câu hỏi khác nhau; đừng đọc cái này thành cái kia.
+ * ⚠️ It does NOT say the bundle described the truth at the time. It says only that the bundle
+ * **has not been modified since it was sealed**. Two different questions; reading one as the
+ * other is the "measuring the wrong quantity" failure this project keeps paying for.
  *
- * ## Mã thoát
- *   0  ĐẠT           — mọi gói khớp từng byte
- *   1  SAI           — có tệp lệch hash, hoặc tệp trong manifest đã biến mất
- *   2  CHƯA KẾT LUẬN — không đọc được manifest (⚠️ KHÔNG phải "sạch")
+ * ═══ EXIT CODES ═══
+ *   0  PASS          — every bundle matches byte for byte
+ *   1  FAIL          — a file's hash differs, or a file named in the manifest is gone
+ *   2  INCONCLUSIVE  — a manifest could not be read (⚠️ NOT the same as "clean")
  *
- * Dùng:
+ * Usage:
  *   node scripts/check-evidence.mjs
  *   node scripts/check-evidence.mjs --self-test
  */
@@ -46,14 +51,14 @@ const MANIFEST_NAMES = new Set(["MANIFEST.txt", "SHA256SUMS.txt"]);
 
 const sha256 = (p) => createHash("sha256").update(readFileSync(p)).digest("hex");
 
-/** Tìm mọi tệp manifest dưới một gốc. */
+/** Find every manifest file beneath a root. */
 export function findManifests(root) {
   const out = [];
-  const walk = (d) => {
+  const walk = (dir) => {
     let entries;
-    try { entries = readdirSync(d, { withFileTypes: true }); } catch { return; }
+    try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
     for (const e of entries) {
-      const full = path.join(d, e.name);
+      const full = path.join(dir, e.name);
       if (e.isDirectory()) walk(full);
       else if (MANIFEST_NAMES.has(e.name)) out.push(full);
     }
@@ -63,10 +68,11 @@ export function findManifests(root) {
 }
 
 /**
- * Đọc một manifest kiểu `sha256sum`. Chấp nhận cả hai khuôn:
- *   `<hash>  <đường dẫn>`   (văn bản)
- *   `<hash> *<đường dẫn>`   (nhị phân — `sha256sum -b`, `SHA256SUMS.txt` dùng khuôn này)
- * Bỏ sót khuôn thứ hai là cổng đọc ra "0 mục" rồi báo XANH — im lặng, và sai.
+ * Parse a `sha256sum`-style manifest. Accepts BOTH line shapes:
+ *   `<hash>  <path>`   (text mode)
+ *   `<hash> *<path>`   (binary mode — `sha256sum -b`, which `SHA256SUMS.txt` uses)
+ * Missing the second shape makes the gate read ZERO entries and then report GREEN — silently,
+ * and wrongly.
  */
 export function parseManifest(text) {
   const rows = [];
@@ -77,7 +83,7 @@ export function parseManifest(text) {
   return rows;
 }
 
-/** Nghiệm thu một gói. Trả về {ok, missing, mismatch, total}. */
+/** Verify one bundle. Returns {ok, missing, mismatch, total}. */
 export function verifyBundle(manifestPath) {
   const dir = path.dirname(manifestPath);
   const rows = parseManifest(readFileSync(manifestPath, "utf8"));
@@ -93,83 +99,85 @@ export function verifyBundle(manifestPath) {
 function main() {
   const manifests = findManifests(path.join(ROOT, "docs"));
   if (manifests.length === 0) {
-    console.log("⁇ CHƯA KẾT LUẬN — không thấy manifest nào dưới docs/.");
-    console.log("   Không tìm thấy KHÁC với không có gì để canh: kiểm lại đường dẫn.");
+    console.log("⁇ INCONCLUSIVE — no manifest found under docs/.");
+    console.log("   'Found nothing' is NOT 'nothing to watch': check the path.");
     return 2;
   }
-  console.log(`\n══ VẬT CHỨNG — ${manifests.length} gói ══\n`);
+  console.log(`\n══ EVIDENCE — ${manifests.length} bundle(s) ══\n`);
   let bad = 0, unresolved = 0;
   for (const m of manifests) {
     const rel = path.relative(ROOT, m).replace(/\\/g, "/");
     let r;
     try { r = verifyBundle(m); } catch (e) {
-      unresolved++; console.log(`  ⁇ ${rel}\n     CHƯA KẾT LUẬN — ${e.message}`); continue;
+      unresolved++; console.log(`  ⁇ ${rel}\n     INCONCLUSIVE — ${e.message}`); continue;
     }
     if (r.total === 0) {
       unresolved++;
-      console.log(`  ⁇ ${rel}\n     CHƯA KẾT LUẬN — manifest KHÔNG có dòng hash nào đọc được`);
+      console.log(`  ⁇ ${rel}\n     INCONCLUSIVE — the manifest has no readable hash line`);
       continue;
     }
-    const dau = r.missing.length + r.mismatch.length === 0 ? "✓" : "🔴";
-    console.log(`  ${dau} ${rel}   ${r.ok}/${r.total} khớp`);
-    for (const f of r.mismatch) console.log(`       🔴 LỆCH HASH   ${f}  — tệp đã bị SỬA kể từ lúc niêm`);
-    for (const f of r.missing) console.log(`       🔴 MẤT TỆP     ${f}  — manifest khai có, đĩa không có`);
+    const mark = r.missing.length + r.mismatch.length === 0 ? "✓" : "🔴";
+    console.log(`  ${mark} ${rel}   ${r.ok}/${r.total} match`);
+    for (const f of r.mismatch) console.log(`       🔴 HASH DIFFERS  ${f}  — modified since it was sealed`);
+    for (const f of r.missing) console.log(`       🔴 FILE GONE     ${f}  — the manifest lists it, the disk does not have it`);
     if (r.missing.length + r.mismatch.length) bad++;
   }
   console.log();
   if (bad) {
-    console.log(`🔴 SAI — ${bad}/${manifests.length} gói KHÔNG còn tự nghiệm thu được.`);
-    console.log(`   Một gói vật chứng lệch hash thì không còn là vật chứng. ĐỪNG sinh lại manifest`);
-    console.log(`   để cho nó xanh — làm thế là xoá đúng thứ tạo ra giá trị. Khôi phục BYTE gốc:`);
-    console.log(`     git show <commit-trước-khi-hỏng>:<đường-dẫn> > <tệp>`);
+    console.log(`🔴 FAIL — ${bad}/${manifests.length} bundle(s) no longer verify themselves.`);
+    console.log(`   A bundle whose hashes differ is no longer evidence. DO NOT regenerate the`);
+    console.log(`   manifest to make it green — that erases the very thing that gave it value.`);
+    console.log(`   Restore the original bytes instead:`);
+    console.log(`     git show <commit-before-the-break>:<path> > <file>`);
     return 1;
   }
-  if (unresolved) { console.log(`⁇ CHƯA KẾT LUẬN — ${unresolved} gói không đọc được.`); return 2; }
-  console.log(`✅ ĐẠT — ${manifests.length} gói vật chứng đều khớp từng byte.`);
+  if (unresolved) { console.log(`⁇ INCONCLUSIVE — ${unresolved} bundle(s) unreadable.`); return 2; }
+  console.log(`✅ PASS — all ${manifests.length} evidence bundles match byte for byte.`);
   return 0;
 }
 
-/** Đối chứng ngược: cổng phải ĐỎ khi đáng đỏ, và đỏ VÌ ĐÚNG LÝ DO. */
+/** Counter-check: the gate must go red when it should, and red FOR THE RIGHT REASON. */
 function selfTest() {
   let pass = 0, fail = 0;
-  const ok = (n, c, seen) => (c ? (pass++, console.log(`  ✓ ${n}`)) : (fail++, console.log(`  ✗ ${n} — đo được: ${seen}`)));
-  console.log("\n══ ĐỐI CHỨNG NGƯỢC — check-evidence ══\n");
+  const ok = (n, c, seen) => (c ? (pass++, console.log(`  ✓ ${n}`)) : (fail++, console.log(`  ✗ ${n} — got: ${seen}`)));
+  console.log("\n══ COUNTER-CHECK — check-evidence ══\n");
 
-  console.log("── 1. Đọc được CẢ HAI khuôn dòng sha256sum ──");
-  const rows = parseManifest("aa" + "0".repeat(62) + "  a.txt\n" + "bb" + "1".repeat(62) + " *b.txt\nrác\n");
-  ok("khuôn văn bản (hai khoảng trắng)", rows[0]?.file === "a.txt", JSON.stringify(rows[0]));
-  ok("🔴 khuôn nhị phân (dấu *) — bỏ sót là cổng đọc 0 mục rồi báo XANH",
+  console.log("── 1. Both sha256sum line shapes are read ──");
+  const rows = parseManifest("aa" + "0".repeat(62) + "  a.txt\n" + "bb" + "1".repeat(62) + " *b.txt\ngarbage\n");
+  ok("text shape (two spaces)", rows[0]?.file === "a.txt", JSON.stringify(rows[0]));
+  ok("🔴 binary shape (asterisk) — missing it means reading 0 entries and reporting GREEN",
     rows[1]?.file === "b.txt", JSON.stringify(rows[1]));
-  ok("dòng rác bị bỏ, không thành mục giả", rows.length === 2, String(rows.length));
+  ok("garbage lines are dropped, not turned into fake entries", rows.length === 2, String(rows.length));
 
-  console.log("\n── 2. Gói dựng tay ──");
+  console.log("\n── 2. A hand-built bundle ──");
   const tmp = mkdtempSync(path.join(os.tmpdir(), "a1-evi-"));
   try {
-    const d = path.join(tmp, "goi");
-    mkdirSync(path.join(d, "con"), { recursive: true });
-    writeFileSync(path.join(d, "a.txt"), "noi dung A\n");
-    writeFileSync(path.join(d, "con", "b.txt"), "noi dung B\n");
+    const d = path.join(tmp, "bundle");
+    mkdirSync(path.join(d, "sub"), { recursive: true });
+    writeFileSync(path.join(d, "a.txt"), "content A\n");
+    writeFileSync(path.join(d, "sub", "b.txt"), "content B\n");
     const h = (p) => createHash("sha256").update(readFileSync(p)).digest("hex");
     const man = path.join(d, "MANIFEST.txt");
-    writeFileSync(man, `${h(path.join(d, "a.txt"))}  a.txt\n${h(path.join(d, "con", "b.txt"))}  con/b.txt\n`);
+    writeFileSync(man, `${h(path.join(d, "a.txt"))}  a.txt\n${h(path.join(d, "sub", "b.txt"))}  sub/b.txt\n`);
 
-    ok("gói nguyên vẹn ⇒ khớp hết", (() => { const r = verifyBundle(man); return r.ok === 2 && !r.mismatch.length && !r.missing.length; })(), "");
+    ok("an intact bundle matches everywhere",
+      (() => { const r = verifyBundle(man); return r.ok === 2 && !r.mismatch.length && !r.missing.length; })(), "");
 
-    writeFileSync(path.join(d, "a.txt"), "noi dung A da bi sua\n");
+    writeFileSync(path.join(d, "a.txt"), "content A, modified\n");
     const r2 = verifyBundle(man);
-    ok("🔴 SỬA MỘT TỆP ⇒ báo LỆCH HASH (đúng ca đã cháy thật 28/08)",
+    ok("🔴 MODIFY ONE FILE ⇒ reports HASH DIFFERS (the case that actually burned on 2026-08-28)",
       r2.mismatch.includes("a.txt") && r2.ok === 1, JSON.stringify(r2));
-    ok("🔴 và KHÔNG báo là 'mất tệp' — hai lỗi khác nhau, đừng gộp",
+    ok("🔴 and does NOT report it as 'file gone' — two different faults, do not merge them",
       r2.missing.length === 0, JSON.stringify(r2.missing));
 
-    rmSync(path.join(d, "con", "b.txt"));
+    rmSync(path.join(d, "sub", "b.txt"));
     const r3 = verifyBundle(man);
-    ok("🔴 XOÁ MỘT TỆP ⇒ báo MẤT TỆP", r3.missing.includes("con/b.txt"), JSON.stringify(r3.missing));
+    ok("🔴 DELETE ONE FILE ⇒ reports FILE GONE", r3.missing.includes("sub/b.txt"), JSON.stringify(r3.missing));
 
-    ok("tìm được manifest trong thư mục con", findManifests(tmp).length === 1, String(findManifests(tmp).length));
+    ok("manifests in subdirectories are found", findManifests(tmp).length === 1, String(findManifests(tmp).length));
   } finally { rmSync(tmp, { recursive: true, force: true }); }
 
-  console.log(`\n${fail === 0 ? "✅" : "🔴"} ${pass} đạt · ${fail} hỏng`);
+  console.log(`\n${fail === 0 ? "✅" : "🔴"} ${pass} passed · ${fail} failed`);
   return fail === 0 ? 0 : 1;
 }
 

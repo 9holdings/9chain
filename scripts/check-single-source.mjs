@@ -1,34 +1,44 @@
 #!/usr/bin/env node
 /**
- * check-single-source.mjs — **cổng canh: một hằng số, MỘT nơi khai.**
+ * check-single-source.mjs — gate: **one constant, ONE place it is declared.**
  *
- * ═══ 🔴 VÌ SAO CÓ ═══
+ * ═══ 🔴 WHY IT EXISTS ═══
  *
- * Lớp lỗi này đã cháy **ba lần** trong dự án, mỗi lần ở một chỗ khác, cùng một hình dạng:
- * *một giá trị được chép tay ở nhiều nơi, và không cổng nào nối chúng lại.*
+ * This failure class has burned the project **three times**, in three different places, with
+ * exactly one shape: *a value copied by hand into several files, with no gate joining them.*
  *
- *   D-093  `A1Gen` (Go) ↔ `A1_GEN` (JS) — bump một bên, bên kia im lặng cấp chainId của
- *          thế hệ khác vào ví người dùng, qua một genesis BẤT BIẾN.
- *   D-111  `--network-id=9001` cắm cứng ở 4 tệp compose, khớp với một `genesis.json`
- *          cũng 9001 ⇒ node boot sạch, mọi cổng xanh, mạng dev chạy thế hệ ĐÃ CHẾT.
- *   D-113  Một khái niệm "máy chủ" mang **sáu** tên biến môi trường. Chưa cháy — nhưng
- *          đường cháy đã có tên: **O4** (dời node sang nhà cung cấp thứ hai). Đặt một
- *          biến, vài lệnh trỏ đúng, còn `h6b-backup.sh` **lặng lẽ sao lưu máy cũ**.
+ *   D-093  `A1Gen` (Go) ↔ `A1_GEN` (JS) — bump one side and the other silently hands out a
+ *          chainId from a different generation, into a user's wallet, through an IMMUTABLE
+ *          genesis.
+ *   D-111  `--network-id=9001` hardcoded in 4 compose files, agreeing with a `genesis.json`
+ *          that was also 9001 ⇒ the node booted cleanly, every gate went green, and the dev
+ *          network was running a DEAD generation.
+ *   D-113  One concept, "the server", carried **six** environment-variable names. It had not
+ *          burned yet — but the path was already named: **O4**, moving a node to a second
+ *          provider. Set one variable, watch a few commands point at the new box, and
+ *          `h6b-backup.sh` **quietly backs up the old one**.
  *
- * ⚠️ **Sao lưu sai máy không báo lỗi.** Nó chạy xong, in một dòng xanh, và chỉ sai vào
- * đúng ngày cần dùng tới. Đó là lý do cổng này tồn tại thay vì một dòng quy ước.
+ * ⚠️ **Backing up the wrong machine raises no error.** It finishes, prints a green line, and
+ * is wrong only on the day you finally need it. That is why this is a gate and not a note.
  *
- * ## Cổng này đo ĐẠI LƯỢNG NÀO
+ * ═══ WHAT THIS GATE MEASURES ═══
  *
- * Đếm số tệp **chứa chuỗi hằng**, so với danh sách nơi được phép. Nó **không** đo ngữ
- * nghĩa — một chuỗi nằm trong chú thích giải thích lịch sử vẫn bị đếm. Đó là **chủ ý**:
- * cổng thà bắt người ta khai một ngoại lệ có lý do còn hơn tự đoán ý.
+ * How many files **contain the constant**, compared against an allow-list. It does NOT
+ * understand meaning — a string sitting in a comment that explains history still counts.
+ * That is **deliberate**: better to make someone write down a reason than to let the gate
+ * guess intent.
  *
- * ## Mã thoát
- *   0  ĐẠT — mỗi hằng số chỉ nằm ở nơi đã khai
- *   1  SAI — có bản chép ngoài danh sách
+ * ⚠️ SCOPE IS **EXECUTABLE CODE**, and only that. Documentation contains these constants ON
+ * PURPOSE — `README.md` printing an ssh command with the literal address exists so a human
+ * can paste it, and forcing it to say `$A1_SSH_HOST` would make the runbook useless. The
+ * quantity worth watching is *"does the CODE hold a second copy"*, not *"how often does this
+ * string appear"*.
  *
- * Dùng:
+ * ═══ EXIT CODES ═══
+ *   0  PASS — each constant appears only where it was declared
+ *   1  FAIL — a copy exists outside the allow-list
+ *
+ * Usage:
  *   node scripts/check-single-source.mjs
  *   node scripts/check-single-source.mjs --self-test
  */
@@ -41,144 +51,142 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SELF_TEST = process.argv.includes("--self-test");
 
 /**
- * Mỗi mục: hằng số + **danh sách trắng có LÝ DO**.
+ * Each entry: a constant plus an allow-list **with reasons**.
  *
- * 🔴 Thêm một đường dẫn vào `nơiĐược` là một QUYẾT ĐỊNH, không phải cách làm cho cổng
- * xanh. Mỗi mục phải nói THẬT vì sao bản chép đó được phép tồn tại.
+ * 🔴 Adding a path to `allowedIn` is a DECISION, not a way to make the gate green. Every
+ * entry must state honestly why that copy is permitted to exist.
  */
-export const RANG_BUOC = [
+export const CONSTRAINTS = [
   {
-    ten: "đích ssh máy chủ công khai",
-    chuoi: "139.99.145.13",
-    noiDuoc: [
-      { duong: "local-net/lib/server.mjs", ly: "NGUỒN — phía .mjs" },
-      { duong: "local-net/deploy/server-env.sh", ly: "NGUỒN — phía bash" },
-      { duong: "local-net/deploy/Caddyfile", ly: "thuộc worktree web-home (luật cứng #4); chỉ nằm trong CHÚ THÍCH ví dụ curl/ssh" },
+    name: "public server ssh destination",
+    literal: "139.99.145.13",
+    allowedIn: [
+      { file: "local-net/lib/server.mjs", why: "SOURCE — the .mjs side" },
+      { file: "local-net/deploy/server-env.sh", why: "SOURCE — the bash side" },
+      { file: "local-net/deploy/Caddyfile", why: "belongs to the web-home worktree (hard rule #4); appears only inside example curl/ssh COMMENTS" },
     ],
   },
   {
-    ten: "đường dẫn khoá ssh",
-    chuoi: ".ssh/9chain-a1",
-    noiDuoc: [
-      { duong: "local-net/lib/server.mjs", ly: "NGUỒN — phía .mjs" },
-      { duong: "local-net/deploy/server-env.sh", ly: "NGUỒN — phía bash" },
-      { duong: "local-net/deploy/Caddyfile", ly: "worktree khác; chỉ trong chú thích" },
-      
+    name: "ssh key path",
+    literal: ".ssh/9chain-a1",
+    allowedIn: [
+      { file: "local-net/lib/server.mjs", why: "SOURCE — the .mjs side" },
+      { file: "local-net/deploy/server-env.sh", why: "SOURCE — the bash side" },
+      { file: "local-net/deploy/Caddyfile", why: "different worktree; comments only" },
     ],
   },
   {
-    ten: "networkID mạng đang chạy",
-    chuoi: "999_999_999",
-    noiDuoc: [
-      { duong: "local-net/lib/chainid.mjs", ly: "NGUỒN phía JS — `A1_ID_GOC`, mọi thứ khác suy ra" },
-      { duong: "scripts/check-consistency.mjs", ly: "cổng nối Go↔JS: nó PHẢI biết con số để đối chiếu, đó là việc của nó (D-093)" },
-      { duong: "local-net/console/chainid-test.mjs", ly: "🔴 CỐ Ý — bài kiểm phải khai SỐ MONG ĐỢI bằng chữ. Nếu nó import cùng nguồn với thứ đang bị kiểm thì nó không chứng minh gì cả." },
+    name: "networkID of the running network",
+    literal: "999_999_999",
+    allowedIn: [
+      { file: "local-net/lib/chainid.mjs", why: "SOURCE on the JS side — `A1_ID_GOC`; everything else is derived from it" },
+      { file: "scripts/check-consistency.mjs", why: "the Go-to-JS gate: knowing the number in order to compare IS its job (D-093)" },
+      { file: "local-net/console/chainid-test.mjs", why: "🔴 DELIBERATE — a test must state its EXPECTED value literally. If it imported the same source as the thing under test, it would prove nothing." },
     ],
   },
 ];
 
 /**
- * Phạm vi: **MÃ THỰC THI**, và chỉ nó.
+ * Scope: executable code. `--cached --others` so files that are NEW and not yet `git add`ed
+ * are seen too; without that, a source file just created reads as "no longer contains the
+ * string" and the gate goes green for the wrong reason.
  *
- * 🔴 Tài liệu CỐ Ý chứa các hằng số này — `README.md` in một lệnh `ssh …@139.99.145.13` là
- * để người ta **dán vào terminal**, và bắt nó viết `$A1_SSH_HOST` sẽ làm runbook vô dụng.
- * Một cổng ép tài liệu giấu đi con số mà người đọc cần là cổng đo sai đại lượng: đại lượng
- * cần canh là *"mã có bản chép thứ hai không"*, không phải *"chuỗi này xuất hiện mấy lần"*.
- *
- * `patches/` và `docs/` còn là **bản ghi** — sửa chúng để cho cổng xanh là viết lại lịch sử.
- * Dùng `--cached --others` để thấy cả tệp MỚI chưa `git add`; nếu không, một nguồn vừa tạo
- * sẽ đọc ra *"không còn chứa chuỗi"* và cổng xanh vì lý do sai.
+ * `patches/` and `docs/` are RECORDS — editing them to satisfy a gate is rewriting history.
  */
-const MA_THUC_THI = /\.(mjs|js|ts|tsx|sh|yml|yaml|json)$/i;
-const cacTep = () =>
+const CODE_FILES = /\.(mjs|js|ts|tsx|sh|yml|yaml|json)$/i;
+const listFiles = () =>
   execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { cwd: ROOT, encoding: "utf8" })
     .split("\n").filter(Boolean)
     .filter((f) => !f.startsWith("patches/") && !f.startsWith("docs/"))
-    .filter((f) => MA_THUC_THI.test(f) || f.endsWith("Caddyfile"))
+    .filter((f) => CODE_FILES.test(f) || f.endsWith("Caddyfile"))
     .filter((f) => !f.includes("node_modules") && !/(package|pnpm)-lock/.test(f))
-    // Loai tru CHINH TEP NAY: noi khai rang buoc tat nhien chua hang so no canh. Khong
-    // loai thi cong tu bat minh va khong bao gio xanh duoc — mot cong luon do se bi
-    // nguoi ta tat di, va luc do no thanh vo dung dung luc can.
+    // Exclude THIS file: the place that declares the constraints obviously contains the
+    // constants it watches. Without this the gate flags itself and can never be green — and
+    // a gate that is always red gets switched off, becoming useless exactly when it matters.
     .filter((f) => f !== "scripts/check-single-source.mjs");
 
-export function quet(rangBuoc, tep) {
-  // Hằng số SỐ phải khớp có biên: `999_999_999` là chuỗi con của `9_999_999_999` (trần dải
-  // L1) ⇒ khớp chuỗi trần sẽ báo động giả ngay tại `check-chainid.mjs`. Đã dính khi dựng.
-  const laSo = /^[\d_]+$/.test(rangBuoc.chuoi);
-  const rx = laSo
-    ? new RegExp(`(?<![\\d_])${rangBuoc.chuoi}(?![\\d_])`)
-    : null;
-  const thay = [];
-  for (const f of tep) {
+export function scan(constraint, files) {
+  // A NUMERIC constant must match on boundaries: `999_999_999` is a substring of
+  // `9_999_999_999` (the L1 range ceiling) ⇒ a plain substring match raises a false alarm in
+  // `check-chainid.mjs`. This was hit while building the gate.
+  const isNumeric = /^[\d_]+$/.test(constraint.literal);
+  const rx = isNumeric ? new RegExp(`(?<![\\d_])${constraint.literal}(?![\\d_])`) : null;
+  const found = [];
+  for (const f of files) {
     let s;
     try { s = readFileSync(path.join(ROOT, f), "utf8"); } catch { continue; }
-    if (rx ? rx.test(s) : s.includes(rangBuoc.chuoi)) thay.push(f);
+    if (rx ? rx.test(s) : s.includes(constraint.literal)) found.push(f);
   }
-  const duoc = new Set(rangBuoc.noiDuoc.map((n) => n.duong));
-  return { thay, thua: thay.filter((f) => !duoc.has(f)), thieu: [...duoc].filter((d) => !thay.includes(d)) };
+  const allowed = new Set(constraint.allowedIn.map((a) => a.file));
+  return {
+    found,
+    extra: found.filter((f) => !allowed.has(f)),
+    stale: [...allowed].filter((a) => !found.includes(a)),
+  };
 }
 
 function main() {
-  const tep = cacTep();
-  console.log(`\n══ MỘT HẰNG SỐ, MỘT NƠI KHAI — ${tep.length} tệp trong tầm ══\n`);
-  let hong = 0;
-  for (const rb of RANG_BUOC) {
-    const r = quet(rb, tep);
-    const dau = r.thua.length === 0 ? "✓" : "🔴";
-    console.log(`  ${dau} ${rb.ten}  (\`${rb.chuoi}\`)  — ${r.thay.length} tệp chứa`);
-    for (const n of rb.noiDuoc) console.log(`       · ${n.duong}  — ${n.ly}`);
-    for (const f of r.thua) { console.log(`       🔴 BẢN CHÉP NGOÀI DANH SÁCH  ${f}`); hong++; }
-    // Một mục trong danh sách trắng mà KHÔNG còn chứa chuỗi ⇒ danh sách đã lạc hậu. Nhắc,
-    // không chặn: nó là rác trong tài liệu, không phải một lỗ đang chảy.
-    for (const d of r.thieu) console.log(`       ℹ️  khai thừa (không còn chứa chuỗi): ${d}`);
+  const files = listFiles();
+  console.log(`\n══ ONE CONSTANT, ONE DECLARATION — ${files.length} code files in scope ══\n`);
+  let broken = 0;
+  for (const c of CONSTRAINTS) {
+    const r = scan(c, files);
+    const mark = r.extra.length === 0 ? "✓" : "🔴";
+    console.log(`  ${mark} ${c.name}  (\`${c.literal}\`)  — in ${r.found.length} file(s)`);
+    for (const a of c.allowedIn) console.log(`       · ${a.file}  — ${a.why}`);
+    for (const f of r.extra) { console.log(`       🔴 COPY OUTSIDE THE ALLOW-LIST  ${f}`); broken++; }
+    // An allow-list entry that no longer contains the string means the list has gone stale.
+    // Report it, do not block: it is clutter in the documentation, not a leak.
+    for (const a of r.stale) console.log(`       ℹ️  stale entry (no longer contains it): ${a}`);
   }
   console.log();
-  if (hong) {
-    console.log(`🔴 SAI — ${hong} bản chép ngoài danh sách.`);
-    console.log(`   Nạp từ nguồn (\`local-net/lib/server.mjs\` hoặc \`deploy/server-env.sh\`),`);
-    console.log(`   hoặc khai một ngoại lệ KÈM LÝ DO trong RANG_BUOC. Khai bừa là tự bịt mắt mình.`);
+  if (broken) {
+    console.log(`🔴 FAIL — ${broken} copy/copies outside the allow-list.`);
+    console.log(`   Import from the source (\`local-net/lib/server.mjs\` or \`deploy/server-env.sh\`),`);
+    console.log(`   or declare an exception WITH A REASON in CONSTRAINTS. Declaring it blindly`);
+    console.log(`   is just blindfolding yourself.`);
     return 1;
   }
-  console.log(`✅ ĐẠT — ${RANG_BUOC.length} hằng số, mỗi cái chỉ nằm ở nơi đã khai.`);
+  console.log(`✅ PASS — ${CONSTRAINTS.length} constants, each only where it was declared.`);
   return 0;
 }
 
 function selfTest() {
   let pass = 0, fail = 0;
   const ok = (n, c, seen) => (c ? (pass++, console.log(`  ✓ ${n}`)) : (fail++, console.log(`  ✗ ${n} — ${seen}`)));
-  console.log("\n══ ĐỐI CHỨNG NGƯỢC — check-single-source ══\n");
+  console.log("\n══ COUNTER-CHECK — check-single-source ══\n");
 
-  const rb = { ten: "thử", chuoi: "CHUOI_THU_NGHIEM_XYZ", noiDuoc: [{ duong: "a.mjs", ly: "nguồn" }] };
-  const gia = new Map([
-    ["a.mjs", "export const X = 'CHUOI_THU_NGHIEM_XYZ';"],
-    ["b.mjs", "const X = 'CHUOI_THU_NGHIEM_XYZ';"],
-    ["c.mjs", "khong co gi"],
+  const c = { name: "probe", literal: "TEST_LITERAL_XYZ", allowedIn: [{ file: "a.mjs", why: "source" }] };
+  const fake = new Map([
+    ["a.mjs", "export const X = 'TEST_LITERAL_XYZ';"],
+    ["b.mjs", "const X = 'TEST_LITERAL_XYZ';"],
+    ["c.mjs", "nothing here"],
   ]);
-  const quetGia = (rb) => {
-    const thay = [...gia].filter(([, v]) => v.includes(rb.chuoi)).map(([k]) => k);
-    const duoc = new Set(rb.noiDuoc.map((n) => n.duong));
-    return { thay, thua: thay.filter((f) => !duoc.has(f)), thieu: [...duoc].filter((d) => !thay.includes(d)) };
+  const scanFake = (c) => {
+    const found = [...fake].filter(([, v]) => v.includes(c.literal)).map(([k]) => k);
+    const allowed = new Set(c.allowedIn.map((a) => a.file));
+    return { found, extra: found.filter((f) => !allowed.has(f)), stale: [...allowed].filter((a) => !found.includes(a)) };
   };
-  const r = quetGia(rb);
-  ok("🔴 bản chép thứ hai bị bắt", r.thua.length === 1 && r.thua[0] === "b.mjs", JSON.stringify(r.thua));
-  ok("nguồn hợp lệ KHÔNG bị báo", !r.thua.includes("a.mjs"), JSON.stringify(r.thua));
-  ok("tệp không chứa chuỗi thì không dính", !r.thay.includes("c.mjs"), JSON.stringify(r.thay));
+  const r = scanFake(c);
+  ok("🔴 a second copy is caught", r.extra.length === 1 && r.extra[0] === "b.mjs", JSON.stringify(r.extra));
+  ok("the legitimate source is NOT reported", !r.extra.includes("a.mjs"), JSON.stringify(r.extra));
+  ok("a file without the string is untouched", !r.found.includes("c.mjs"), JSON.stringify(r.found));
 
-  const rb2 = { ...rb, noiDuoc: [...rb.noiDuoc, { duong: "khong-ton-tai.mjs", ly: "x" }] };
-  ok("🔴 danh sách trắng lạc hậu được NHẮC (không chặn)",
-    quetGia(rb2).thieu.includes("khong-ton-tai.mjs"), JSON.stringify(quetGia(rb2).thieu));
+  const c2 = { ...c, allowedIn: [...c.allowedIn, { file: "does-not-exist.mjs", why: "x" }] };
+  ok("🔴 a stale allow-list entry is REPORTED (but does not block)",
+    scanFake(c2).stale.includes("does-not-exist.mjs"), JSON.stringify(scanFake(c2).stale));
 
-  // Ca thật, và là ca đắt nhất: nếu ai đó chép lại IP vào một script sao lưu.
-  const tep = cacTep();
-  const ipRb = RANG_BUOC.find((x) => x.chuoi === "139.99.145.13");
-  ok("hằng số THẬT: IP máy chủ hiện không có bản chép nào ngoài danh sách",
-    quet(ipRb, tep).thua.length === 0, JSON.stringify(quet(ipRb, tep).thua));
-  ok("🔴 và nó VẪN nằm ở đúng cả hai nguồn (cổng không xanh vì chuỗi biến mất)",
-    quet(ipRb, tep).thay.includes("local-net/lib/server.mjs") &&
-    quet(ipRb, tep).thay.includes("local-net/deploy/server-env.sh"),
-    JSON.stringify(quet(ipRb, tep).thay));
+  // The real case, and the most expensive one: someone re-copying the IP into a backup script.
+  const files = listFiles();
+  const ipRule = CONSTRAINTS.find((x) => x.literal === "139.99.145.13");
+  ok("REAL constant: the server IP currently has no copy outside the allow-list",
+    scan(ipRule, files).extra.length === 0, JSON.stringify(scan(ipRule, files).extra));
+  ok("🔴 and it IS still present in both sources (the gate is not green because the string vanished)",
+    scan(ipRule, files).found.includes("local-net/lib/server.mjs") &&
+    scan(ipRule, files).found.includes("local-net/deploy/server-env.sh"),
+    JSON.stringify(scan(ipRule, files).found));
 
-  console.log(`\n${fail === 0 ? "✅" : "🔴"} ${pass} đạt · ${fail} hỏng`);
+  console.log(`\n${fail === 0 ? "✅" : "🔴"} ${pass} passed · ${fail} failed`);
   return fail === 0 ? 0 : 1;
 }
 

@@ -5,6 +5,41 @@
 
 ---
 
+## 0. 🔴 LUẬT NGÔN NGỮ — **MÃ NGUỒN CHỈ CÓ TIẾNG ANH** (David chốt `2026-08-28`)
+
+> *"Không đặt tên file, tên hàm, thông tin gì ghi vào code bằng tiếng Việt — vì dùng cho
+> quốc tế, nhiều cộng đồng toàn cầu vào để phát triển thêm."*
+
+**Đây là luật về NGƯỜI ĐỌC TƯƠNG LAI, không phải về thẩm mỹ.** Một chú thích tiếng Việt giải
+thích một cái bẫy đã trả giá để học thì với người đóng góp ở nước khác **không tồn tại** — và
+họ sẽ dẫm lại đúng cái bẫy đó. Chú thích trong repo này là **tài sản đắt nhất** của dự án;
+để nó ở ngôn ngữ người ta không đọc được là vứt bỏ tài sản đó một cách im lặng.
+
+**Áp cho MỌI thứ nằm trong mã:** tên tệp · tên thư mục · tên hàm · tên biến · khoá JSON ·
+cờ CLI · **chú thích** · chuỗi log · thông báo lỗi · tiêu đề commit.
+
+**Ba ngoại lệ, và chỉ ba** — mỗi cái phải khai vào `scripts/check-english-code.mjs`:
+
+| Ngoại lệ | Vì sao |
+|---|---|
+| `web/lib/i18n/vi.ts` và mọi tệp bản dịch VI | Đó **là** nội dung tiếng Việt cho người dùng Việt. Dịch nó sang tiếng Anh là phá đúng chức năng của nó |
+| `docs/**` · `*.md` ở gốc (`CLAUDE.md`, `HANDOFF.md`, `DECISIONS.md`, `BLOCKERS.md`, `PROGRESS.md`) | Sổ làm việc của David. **Không phải mã.** Xem lưu ý dưới |
+| `docs/evidence/**` · `patches/**` | **Đóng băng theo byte** / là bản ghi lịch sử. Sửa chúng là làm hỏng vật chứng hoặc viết lại lịch sử |
+
+⚠️ **Nợ đã biết, và nó lớn:** đo `2026-08-28` sau lượt trả đầu tiên — **107 tệp · 5.856 dòng**
+trong repo chính, cộng **54 tệp Go** trong cây fork, vẫn là tiếng Việt. Luật này **không** được
+thi hành bằng một lượt dịch ồ ạt sát ngày G. Nó thi hành bằng **bánh cóc**:
+`scripts/check-english-code.mjs` giữ một mốc nợ (`scripts/english-debt.json`) **chỉ được PHÉP
+CO LẠI** — mã mới phải sạch ngay, mã cũ trả dần. Cổng đỏ khi nợ **phình ra**, và
+`--update-baseline` **từ chối ghi** một con số lớn hơn.
+
+Đã trả trong lượt đầu (`28/08`): `gday-preflight.mjs` · `check-net-dirs.mjs` ·
+`check-single-source.mjs` · `check-evidence.mjs` · `lib/server.mjs` · `network-id.sh` ·
+`deploy/server-env.sh` — **toàn bộ mã phiên đó tạo ra**, cộng cổng thi hành chính nó.
+
+🔴 **Hệ quả tức thì:** mọi tệp anh **tạo mới hoặc viết lại** từ nay phải là tiếng Anh 100%,
+kể cả chú thích. Đừng thêm một dòng tiếng Việt nào vào mã nữa.
+
 ## 1. Bốn luật cứng — đã trả giá để học
 
 1. **Không tin mã HTTP.** Thang đo từ yếu tới mạnh: mã HTTP → `content-type` → **nội dung** →
@@ -45,9 +80,11 @@ quá khứ hay sẽ được xuất bản?*
 ## 3. Danh sách cổng — chạy trước khi tin bất cứ điều gì
 
 ```bash
-node scripts/gday-preflight.mjs              # 15 cổng + 14 VIỆC TAY, một lệnh (~90s)
+node scripts/gday-preflight.mjs              # 17 cổng + 15 VIỆC TAY, một lệnh (~90s)
 node scripts/check-net-dirs.mjs              # thư mục net* nào thuộc thế hệ nào · thư mục nào giữ TIỀN
 node scripts/check-evidence.mjs              # gói vật chứng còn tự nghiệm thu được không
+node scripts/check-single-source.mjs         # một hằng số, MỘT nơi khai
+node scripts/check-english-code.mjs          # mã nguồn chỉ có tiếng Anh (bánh cóc, §0)
 node scripts/check-deploy-drift.mjs          # repo ↔ server (chạy TRƯỚC mọi mục "đã đóng")
 node scripts/check-consistency.mjs --self-test # số học tokenomics, đọc THẲNG từ Go
 node scripts/gen-chainid-issued.mjs --check  # sổ chainId/tên xuyên thế hệ
@@ -60,8 +97,8 @@ bash scripts/h6b-backup.sh --check           # bản sao lưu có dựng lại �
 node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
 ```
 
-⚠️ `gday-preflight.mjs` gọi **15 cổng** (gồm `check-net-dirs` và `check-evidence`, thêm
-`28/08`); ba cổng cuối trong danh sách trên đứng ngoài nó (hai cái là VIỆC TAY của nó,
+⚠️ `gday-preflight.mjs` gọi **17 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`
+×2, `check-single-source`, `check-english-code`); ba cổng cuối trong danh sách trên đứng ngoài nó (hai cái là VIỆC TAY của nó,
 `check-robots` là mặt web — không đủ tư cách chặn genesis).
 
 🔴 **Cổng "áp đủ bộ rồi so hằng số của chính mình" chưa phải cổng** (D-112). Nó chỉ chứng minh

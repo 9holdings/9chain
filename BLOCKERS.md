@@ -15,7 +15,7 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 | Thư mục | `genesis.json` khai | Sự thật |
 |---|--:|---|
-| `local-net/net-public/` | `9001` ⚫ chết | 🔴 `chain-factory-key.txt` giữ **90.008 LOVE9 THẬT** |
+| `local-net/net-public/` | `9001` ⚫ chết | 🔴 `chain-factory-key.txt` giữ **~90 LOVE9 THẬT** (đo `28/08`: P 89,89998130 + X) |
 | `local-net/net-public-dead-720m/` | `9001` ⚫ chết | 🔴 **bản trùng byte** của đúng khoá đó |
 | `local-net/net-that-g0/` | `999999999` ✅ | 🔴 **MỒI NHỬ** — 6 ví đều **0đ**, `allocation.md` khai *"1 node"* trong khi mạng thật **9 node** |
 
