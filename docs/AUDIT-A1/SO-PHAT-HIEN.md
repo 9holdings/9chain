@@ -897,6 +897,76 @@ trong bốn ngày cuối trước ngày G.
 
 **Liên quan:** A-005, Q-3, `SOAT-TOAN-DIEN` §9, memory `9scan-a1-explorer`.
 
+#### ✅ QUYẾT ĐỊNH `2026-08-28` — David chốt **(c) gỡ hẳn Blockscout**
+
+Điều kiện qua nói *"phải là một quyết định được ghi ra"* — đây là chỗ ghi.
+
+🔴 **NHƯNG PHÉP ĐO NGAY SAU ĐÓ CHO THẤY (c) KHÔNG PHẢI MỘT LỆNH.** Blockscout **đang
+phục vụ công khai**, không phải đang nằm không:
+
+```
+$ grep A1_ROOT_UPSTREAM ~/9chain-a1/caddy.env
+A1_ROOT_UPSTREAM=127.0.0.1:8100
+
+$ docker port proxy
+80/tcp -> 127.0.0.1:8100        ← 8100 CHÍNH LÀ container `proxy` của Blockscout
+
+$ grep -n 'A1_ROOT_UPSTREAM' ~/9chain-a1/Caddyfile
+616:  handle /api/*    { reverse_proxy {$A1_ROOT_UPSTREAM:127.0.0.1:80} }
+619:  handle /socket/* { reverse_proxy {$A1_ROOT_UPSTREAM:127.0.0.1:80} }
+671:  handle           { reverse_proxy {$A1_ROOT_UPSTREAM:127.0.0.1:80} { … } }   ← BẮT-TẤT-CẢ
+
+# BASELINE công khai, đo `28/08` TRƯỚC khi gỡ — dùng để so sau:
+/khong-co-trang-nay  →  404  <title>Không có trang này — 9Chain Testnet A1</title>
+/tx/0xabc            →  200  text/html
+/api/v2/stats        →  200  application/json          ← MÁY ĐỌC
+/socket/websocket    →  426  (websocket sống)
+```
+
+⇒ **`docker compose down` biến cả bốn dòng trên thành `502`** — kể cả **trang 404 mang
+thương hiệu**, thứ David đích thân chọn `27/08` (đường (b)). Trang đó không phải tệp
+tĩnh: nó được dựng bằng cách **chặn đúng mã 404 của Blockscout** (`handle_response
+@loi404`). Mất upstream ⇒ không còn 404 để chặn ⇒ không còn trang.
+
+Đường lui ghi sẵn trong Caddyfile (`9chain-a1-explorer:8082`, `9chain-a1-dashboard:8092`)
+**đã chết từ `26/08`** — chính Caddyfile khai điều đó. Và `web/test/404-caddy.test.ts`
+**không bắt được ca này**: nó đọc mã màu trong Caddyfile, không đo upstream còn sống không.
+
+🔴 **Ràng buộc thứ hai, nặng hơn:** explorer thay thế — `a1.9scan.org` — **đang trắng
+(A-008 chưa đóng)**. Gỡ Blockscout lúc này = A1 **không còn explorer nào chạy được**,
+bốn ngày trước ngày G.
+
+**Quy trình gỡ — hai nửa, KHÔNG làm ngược thứ tự:**
+
+*Nửa đầu — làm được ngay, rủi ro công khai bằng 0:*
+```
+docker compose stop stats user-ops-indexer
+```
+Hai thứ này là toàn bộ vòng loop (773 / 298 lần) và **chứng minh được là không nằm trên
+đường phục vụ**: chúng chết gần như liên tục mà `/api/v2/stats` vẫn trả `200`.
+
+*Nửa sau — CHỈ sau khi A-008 đóng. Sửa Caddy TRƯỚC, gỡ container SAU:*
+```
+1. A1_ROOT_UPSTREAM -> 127.0.0.1:8095   (9chain-a1-web; nginx trả 404 ⇒ handle_response
+                                          vẫn dựng đúng trang 404 thương hiệu)
+2. /api/* và /socket/*: thay reverse_proxy bằng `respond` JSON + mã 410
+   (Đ1-2 cấm trả HTML cho máy đọc — rơi xuống catch-all là trả đúng HTML)
+3. docker compose down  ở explorer-full/blockscout/docker-compose   (~5,9 GB image)
+```
+
+**Điều kiện qua (thay cho bản trên):**
+```
+docker inspect -f '{{.RestartCount}}' stats user-ops-indexer   →  đứng yên
+# và chạy lại ĐÚNG 4 dòng baseline — KHÔNG dòng nào được là 502:
+/khong-co-trang-nay  →  404 + <title> mang thương hiệu
+/tx/0xabc            →  404 (chấp nhận: explorer đã gỡ)  — KHÔNG phải 502
+/api/v2/stats        →  410 application/json             — KHÔNG phải HTML
+/socket/websocket    →  410                              — KHÔNG phải 502
+```
+
+⚠️ Worktree soát **không chạy** nửa nào trong hai nửa trên (luật 1 và luật 4). Việc này
+thuộc worktree `main`.
+
 ---
 
 ## 3. A-008 — đo lại bằng trình duyệt thật, sau ~34 giờ: y nguyên
