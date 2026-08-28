@@ -15,7 +15,7 @@ import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, A1_GEN, GOC_DAI_CHAINID
 
 const THU_MUC = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const chan = JSON.parse(readFileSync(path.join(THU_MUC, "chainid-taken.json"), "utf8"));
-const daChiem = new Map(chan.daBiChiem.map((m) => [m.chainId, m.ten]));
+const daChiem = new Map(chan.taken.map((m) => [m.chainId, m.name]));
 
 let dat = 0, hong = 0;
 const ok = (nhan, dieuKien, chiTiet = "") => {
@@ -26,7 +26,7 @@ const ok = (nhan, dieuKien, chiTiet = "") => {
 console.log("═══ CẤP chainId — D-069 ═══");
 console.log(`thế hệ  : ${A1_GEN}`);
 console.log(`khối    : ${GOC_DAI_CHAINID} – ${TRAN_DAI_CHAINID}`);
-console.log(`chặn    : ${daChiem.size} số · tra ${chan.ngayTra} · nguồn ${chan.nguon}`);
+console.log(`chặn    : ${daChiem.size} số · tra ${chan.lookupDate} · nguồn ${chan.source}`);
 
 // ─── 1. Danh sách chặn phải LÀNH ─────────────────────────────────────────────
 // Một danh sách rỗng cho ra kết quả y hệt một danh sách hỏng. Neo vào thứ ta biết chắc
@@ -35,7 +35,7 @@ console.log("\n─── 1. Danh sách chặn có thật không ───");
 ok("khác rỗng", daChiem.size > 0, `${daChiem.size} số`);
 ok("neo 9100 = Genesis Coin", /genesis coin/i.test(daChiem.get(9100) ?? ""), daChiem.get(9100) ?? "KHÔNG CÓ");
 ok("phủ cả 3 số còn lại của dải cũ", [9108, 9134, 9170].every((n) => daChiem.has(n)));
-ok("khai đúng nguồn nó đọc", typeof chan.nguon === "string" && chan.nguon.length > 0, chan.nguon);
+ok("khai đúng nguồn nó đọc", typeof chan.source === "string" && chan.source.length > 0, chan.source);
 
 // ─── 2. Sổ rỗng: người ĐẦU TIÊN bấm nút nhận số nào? ─────────────────────────
 // Đây là câu hỏi đã đẻ ra B-14. Trước D-069 câu trả lời là 9100 = Genesis Coin.
@@ -126,7 +126,7 @@ console.log("\n─── 8. Sổ A1 đã từng cấp — xuyên thế hệ ─�
 
 const daCapFile = JSON.parse(readFileSync(path.join(THU_MUC, "chainid-issued.json"), "utf8"));
 const daCapId = new Set(daCapFile.chainIds);
-const daCapTen = new Map(daCapFile.tens.map((t) => [t.toLowerCase(), t]));
+const daCapTen = new Map(daCapFile.names.map((t) => [t.toLowerCase(), t]));
 
 ok("danh sách có thật (≥ 40 chainId, ≥ 40 tên)",
   daCapId.size >= 40 && daCapTen.size >= 40,

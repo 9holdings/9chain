@@ -60,7 +60,7 @@ function gom() {
     process.exit(1);
   }
   const chainIds = new Map(); // chainId -> Set<tên>
-  const tens = new Map();     // tên thường hoá -> tên gốc đầu tiên gặp
+  const names = new Map();    // tên thường hoá -> tên gốc đầu tiên gặp
   const daDoc = [];
 
   for (const f of ds) {
@@ -79,28 +79,28 @@ function gom() {
         if (!chainIds.has(cid)) chainIds.set(cid, new Set());
         if (ten) {
           chainIds.get(cid).add(ten);
-          if (!tens.has(ten.toLowerCase())) tens.set(ten.toLowerCase(), ten);
+          if (!names.has(ten.toLowerCase())) names.set(ten.toLowerCase(), ten);
         }
       }
     }
-    daDoc.push({ tep: path.relative(GOC, f).replace(/\\/g, "/"), muc: dem });
+    daDoc.push({ file: path.relative(GOC, f).replace(/\\/g, "/"), entries: dem });
   }
-  return { chainIds, tens, daDoc };
+  return { chainIds, names, daDoc };
 }
 
-function dungBan({ chainIds, tens, daDoc }) {
+function dungBan({ chainIds, names, daDoc }) {
   return {
     _doc:
       "chainId VÀ TÊN mà 9Chain-A1 ĐÃ TỪNG CẤP cho L1 người dùng, gộp từ mọi sổ console " +
       "trong repo. Chặn cấp lại VĨNH VIỄN: thu hồi không gỡ được mạng khỏi ví ai, nên cấp " +
       "lại một chainId là để chữ ký của chain cũ phát lại được trên chain mới. " +
       "SINH TỰ ĐỘNG — đừng sửa tay, chạy `node scripts/gen-chainid-issued.mjs --write`.",
-    nguon: daDoc,
-    soChainId: chainIds.size,
-    soTen: tens.size,
+    sources: daDoc,
+    chainIdCount: chainIds.size,
+    nameCount: names.size,
     chainIds: [...chainIds.keys()].sort((a, b) => a - b),
     // Tên giữ nguyên dạng gốc để câu lỗi đọc được; so sánh thì thường hoá ở nơi dùng.
-    tens: [...tens.values()].sort((a, b) => a.localeCompare(b, "vi")),
+    names: [...names.values()].sort((a, b) => a.localeCompare(b, "vi")),
   };
 }
 
@@ -118,7 +118,7 @@ if (process.argv.includes("--check")) {
     console.error("      Chạy: node scripts/gen-chainid-issued.mjs --write");
     process.exit(1);
   }
-  console.log(`✓ chainid-issued.json khớp nguồn — ${ban.soChainId} chainId · ${ban.soTen} tên`);
+  console.log(`✓ chainid-issued.json khớp nguồn — ${ban.chainIdCount} chainId · ${ban.nameCount} tên`);
   process.exit(0);
 }
 
@@ -127,7 +127,7 @@ if (process.argv.includes("--write")) {
   console.log(`✓ đã ghi ${path.relative(GOC, RA)}`);
 }
 
-console.log(`Nguồn (${ban.nguon.length} sổ):`);
-for (const n of ban.nguon) console.log(`  ${String(n.muc).padStart(3)} mục  ${n.tep}`);
-console.log(`\nĐã cấp: ${ban.soChainId} chainId · ${ban.soTen} tên`);
+console.log(`Nguồn (${ban.sources.length} sổ):`);
+for (const n of ban.sources) console.log(`  ${String(n.entries).padStart(3)} mục  ${n.file}`);
+console.log(`\nĐã cấp: ${ban.chainIdCount} chainId · ${ban.nameCount} tên`);
 console.log(`  chainId: ${ban.chainIds[0]}…${ban.chainIds[ban.chainIds.length - 1]}`);

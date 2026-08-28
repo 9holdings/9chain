@@ -172,13 +172,13 @@ if (LUU) {
 // Console **không gọi mạng** lúc đẻ chain: một lời gọi HTTP ra Internet nằm giữa đường
 // người dùng bấm nút là thêm một chỗ hỏng ngoài tầm kiểm soát, và hỏng lúc đó thì hoặc
 // chặn oan hoặc bỏ qua im lặng. Nên nó đọc **ảnh chụp**. Cái giá: ảnh chụp cũ dần ⇒ tệp
-// mang theo `ngayTra` và console **in ra tuổi của nó**.
+// mang theo `lookupDate` và console **in ra tuổi của nó**.
 const SINH = cờ("--gen-blocklist");
 if (SINH) {
   // 🔴 HAI dải, không phải một — và dải CŨ ở lại là CÓ CHỦ Ý (D-069).
   //
   // Sau khi gốc dải đổi sang 9000000010, dải mới **trống hoàn toàn** trong bán kính 10 triệu.
-  // Sinh danh sách chặn chỉ cho dải mới ⇒ tệp có `daBiChiem: []`. Một danh sách chặn RỖNG
+  // Sinh danh sách chặn chỉ cho dải mới ⇒ tệp có `taken: []`. Một danh sách chặn RỖNG
   // không phân biệt được với một bộ sinh HỎNG: cả hai cho ra cùng một tệp, và console nạp
   // xong sẽ in "0 số" ở cả hai trường hợp. Đó đúng là "xanh giả" mà luật cứng #2 của repo
   // cấm — cổng chưa từng được nhìn thấy lúc nó ĐỎ.
@@ -213,8 +213,8 @@ if (SINH) {
     // rằng nó vừa hỏi Internet trong khi nó đọc một ảnh chụp trên đĩa — có thể là ảnh chụp
     // từ năm ngoái. Cùng lớp lỗi với bộ xuất O2 khai "kèm 1 L1" khi không có byte nào
     // (D-057): công cụ dựng ra để chống nói dối thì chỗ nó tự khai phải đúng trước nhất.
-    nguon: nguồnMôTả, ngayTra: ngàyTra, sha256Nguon: hash, soMucTrongSo: sổ.length,
-    dais: dải, soBiChiem: trongDải.length, daBiChiem: trongDải,
+    source: nguồnMôTả, lookupDate: ngàyTra, sha256Source: hash, ledgerEntries: sổ.length,
+    ranges: dải, takenCount: trongDải.length, taken: trongDải,
   }, null, 2) + "\n");
   console.log(`\ndanh sách chặn: ${SINH} — ${trongDải.length} số bị chiếm trong dải ` +
     dải.map(([l, h]) => `${l}–${h}`).join(" · "));
