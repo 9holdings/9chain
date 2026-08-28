@@ -3007,3 +3007,69 @@ Lệnh in `console.env` của tôi che **hình dạng khoá** nhưng **không ch
 không công khai ⇒ **rủi ro thấp nhưng khác 0**. **Nên đổi token** (sửa `console.env` rồi
 `local-net/deploy/console-restart.sh`). Chưa làm — đổi token là đổi auth của dịch vụ công khai
 đang chạy.
+
+---
+
+### D-092c — Đổi `A1_CONSOLE_TOKEN`. Và nó lộ ra: token **chưa từng đổi qua hai lượt re-genesis**
+
+`2026-08-28`. **Nguyên nhân là lỗi của tôi:** lệnh in `console.env` ở D-092b che **hình dạng
+khoá** nhưng **không che token**, nên `A1_CONSOLE_TOKEN` hiện nguyên văn trong bản ghi phiên.
+David duyệt đổi.
+
+⚠️ Bài học của lớp che: **danh sách "cái gì là bí mật" viết theo HÌNH DẠNG thì bỏ sót mọi bí mật
+không có hình dạng.** Khoá riêng nhận ra được (`PrivateKey-…`, `0x`+64hex); **token thì trông y
+hệt một chuỗi cấu hình bình thường**. Cùng họ với *"đo sai đại lượng"*, ở phía đầu ra.
+
+#### Trước khi đổi — hai phép đo đổi cách làm
+
+| | |
+|---|---|
+| Ai dùng token | **người thật**: ô `prompt()` trong `console/index.html:98` · `console-deploy.sh` · `bridge-test.mjs` · `auth-e2e-test.mjs` ⇒ **David cần giá trị mới**, không thể chỉ đổi rồi im |
+| Console chạy bằng gì | `node local-net/console/server.mjs`, **PPID 1**, không compose, không unit ⇒ phải dùng `console-restart.sh` |
+| 🔴 `console-restart.sh` trên server | **KHÔNG CÓ** — repo có, server không. Lại đúng lớp *repo ≠ server*, lại **ngoài phạm vi 18 tệp** của `check-deploy-drift`. Đã `scp` sang, `sha256` khớp hai đầu `97706131660266f7` |
+
+#### Đã làm
+
+Token **sinh trên server** (`secrets.token_bytes(24)` → base64 32 ký tự, **đúng khuôn cũ**),
+**không đi qua bản ghi phiên**. Cổng tự kiểm trong lượt sửa: độ dài phải bằng bản cũ · số dòng
+không đổi · `diff` mọi dòng **trừ** dòng token ⇒ **khớp từng byte** (chứng minh `A1_CLI_KEY`
+không bị đụng).
+
+`console-restart.sh` chạy sạch: **PID 3456928 → 3700068** — chính bài kiểm của script (*"cổng có
+người nghe CHƯA phải bằng chứng, phải là NGƯỜI KHÁC"*) là thứ chứng minh bản mới đang phục vụ.
+
+#### Nghiệm thu — bốn chiều, có cả chiều PHẢI ĐỎ
+
+| | |
+|---|---|
+| 🔴 **token CŨ (đã lộ)** | **401** ⇒ đổi thật, không phải khai suông |
+| token MỚI | **200** |
+| không token · token rác | **401 · 401** |
+| công khai | `/console/api/chains` **401** · `/` `/chains/` `/faucet/api/supply` **200** |
+
+#### 🔴 Và một quả mìn hẹn giờ suýt để lại
+
+`grep` token đã lộ trên toàn máy sau khi đổi: **5 tệp `console.env.bak*` đều còn nó** — gồm
+`bak-720m` và `bak-pre-g0`. ⇒ **Token đó chưa từng được đổi qua HAI lượt re-genesis** (720M-era
+→ 9001 → g0). Một token tĩnh dùng chung, sống lâu hơn cả hai thế hệ mạng.
+
+Và quan trọng hơn: **phục hồi bất kỳ bản `.bak` nào là bật lại token đã lộ**, im lặng.
+
+**Không xoá 5 tệp đó** — chúng là điểm hoàn nguyên thật (`A1_CLI_KEY` và cấu hình các thế hệ).
+Thay dòng token bằng **một chuỗi ngẫu nhiên khác cho từng tệp, không ai biết**, kèm 3 dòng chú
+thích tại chỗ. ⇒ Phục hồi một bản `.bak` nay cho ra console **không ai đăng nhập được bằng
+token**, thay vì console **chạy bằng token đã lộ**. *Hỏng ồn hơn hỏng câm.*
+
+⚠️ **Đặt giá trị rỗng thì rẻ hơn — và tôi đã loại.** Nó phụ thuộc vào việc `requireSecret` coi
+rỗng là thiếu, điều tôi **chưa đo**. Và một placeholder tự nghĩ ra thì **chính nó nằm trong bản
+ghi phiên** ⇒ lại là token ai cũng biết. Ngẫu nhiên trên server là đường duy nhất không dựa vào
+giả định nào.
+
+**Đối chứng:** `grep` token cũ toàn máy ⇒ **0 tệp**. Đối chứng ngược: `A1_CLI_KEY` vẫn còn trong
+4/5 bản `.bak` (bản thứ 5 vốn không có — định dạng cũ) ⇒ phép sửa **không** dọn nhầm thứ khác.
+
+#### Token mới ở đâu
+
+`C:\Users\abc\9chain-a1-keys\console-token.txt` — ngoài repo, ngoài git, cùng chỗ khoá g0.
+Ghi bằng **đường ống thẳng từ server vào tệp**, không qua màn hình. Đối chứng bằng **hash**:
+tệp trên máy dev `79235ba36980be4a` = `console.env` trên server, và console trả **200** cho nó.
