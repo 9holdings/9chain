@@ -122,6 +122,32 @@ rồi giao ba việc bật ra từ bản quét đó.
       tệp, hai `PROGRESS.md` **rơi khỏi danh sách** · dọn theo D-107 (LIỆT KÊ 4/4 hash khớp →
       `shred -u -n 3` → ĐỐI CHỨNG) · sau khi dọn ⇒ cổng **exit 0**, bản gốc **khớp từng byte**.
       🟡 Còn **19 tệp khoá mạng diễn tập** rải trong cây tạm — không phải tiền, không chặn.
+- [x] **Q-5d — cổng rò rỉ tự nó sai HAI lần nữa; một lượt quét ĐỘC LẬP mới bắt được** (D-117b)
+      (1) **Phạm vi dừng ở REPO, không ra THƯ MỤC CHA** ⇒ mù với `C:\PROJECTS\9Chain-backups\`,
+      hai worktree anh em, các bản gương — **thư mục sao lưu là nơi khoá dễ bị chép vào nhất và
+      ít được nhìn lại nhất**. (2) **Mốc so hẹp hơn tập khoá giữ tiền**: chỉ so với `keys.txt`
+      6 quỹ, trong khi `chain-factory-key.txt` là **ví thứ BẢY giữ ~90 LOVE9 thật** ⇒ bản trùng
+      byte của nó trong gói lưu bị chấm **🟡 "chắc không sao"**.
+      ✅ Mốc so nay **nhiều nguồn**, nguồn nào đọc không được thì **khai ra** (mốc so co lại sẽ
+      âm thầm biến 🔴 thành 🟡). Self-test **8/8**, có ca chứng minh lỗi cũ **có thật**
+      (*"cùng khoá, bỏ nguồn thứ hai ⇒ 0"*). Chạy thật ⇒ 🔴 đúng **2** tệp. **~235s ⇒ cổng tay.**
+      🔴 **Phát hiện kèm, lớn hơn cả hai lỗi:** `chain-factory-key.txt` trong gói `20260825`
+      (mạng **9001 ĐÃ CHẾT**) **trùng byte** với khoá giữ tiền trên `g0` hôm nay ⇒ **khoá factory
+      được tái dùng xuyên thế hệ**, đúng hình dạng gotcha 15. ⇒ **Ngày G phải sinh khoá factory
+      mới**, cùng lượt với token.
+- [x] **Q-5e — xoá gói lưu `20260825` (David duyệt HAI lần), và phép đo đổi cả câu hỏi** (D-117c)
+      Bước LIỆT KÊ lộ ra giả định sai: gói đó **không** phải *"gói của mạng đã chết"* mà là **gói
+      duy nhất còn hình dạng bản lưu đầy đủ** — 20 tệp danh tính validator · 651 MB chain data ·
+      khoá + genesis; hai gói mới hơn có **0**. Đã trình lại số đo, David **tái khẳng định**.
+      Cách xoá: LIỆT KÊ 31/31 → ghi `docs/archive/backup-20260825-inventory.md` (sha256 từng tệp,
+      thứ duy nhất sống sót) → `shred -u -n 3` (30 tệp nhỏ) + `-n 1` (archive) → đối chứng: gói
+      biến mất, **6 gói A1 còn lại nguyên vẹn**.
+      🔴 **Hai bẫy công cụ IM LẶNG trong đúng lượt xoá:** `find -size -1M` khớp **0 tệp** (find
+      làm tròn **lên** ⇒ tệp 495 B không *"nhỏ hơn 1M"*), lệnh exit 0 mà xoá **0 tệp** — đúng
+      hình dạng B-17 · và dòng đối chứng cuối in *"remaining bundles:"* **rỗng** do lỗi glob của
+      chính nó, đọc theo mặt chữ là khai một sự cố không có thật. ⇒ **Dòng đối chứng cũng phải
+      được đối chứng.**
+      ⇒ Sinh ra **B-20**: không bản lưu nào chứa danh tính validator của **mạng đang chạy**.
 
 **Số đo cuối phiên:** preflight **12/12 xanh, exit 0** (14 việc tay) · `watch-network` 9/9 ·
 drift `19 khớp · 0 lệch · 0 thiếu` · `o1-check` trên bộ g0 **chính** ⇒ **exit 0** (nó ĐÚNG là bộ

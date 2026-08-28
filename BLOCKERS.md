@@ -6,6 +6,38 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### 🔴 B-20 — KHÔNG BẢN LƯU NÀO CHỨA DANH TÍNH VALIDATOR CỦA MẠNG ĐANG CHẠY (2026-08-28)
+
+**Lộ ra khi đo gói lưu `20260825` trước lúc xoá nó** (D-117c). Không phải suy đoán — đếm tệp:
+
+| | `20260825` (đã xoá) | `20260827` | `20260828` |
+|---|---|---|---|
+| `staker.key` / `signer.key` | 20 tệp | **0** | **0** |
+| chain data | 651 MB | **0** | **0** |
+| khoá + genesis + compose | có | **0** | **0** |
+| git bundle + patches | có | có | có |
+
+🔴 **Danh tính 9 node của `g0` chỉ tồn tại ở hai nơi: máy dev và server.** Cả hai gói lưu mới
+nhất chứa **0 tệp** danh tính/khoá/archive — chúng là bản lưu **mã nguồn**, không phải bản lưu
+**mạng**. Server hỏng hôm nay ⇒ **không dựng lại được mạng**, dù `h6b-backup.sh --check` xanh.
+
+⚠️ **Đây là H-6b nhìn từ một đại lượng khác.** Lâu nay H-6b đo bằng **số patch** (memory:
+*"đo bằng SỐ PATCH, đừng đọc BLOCKERS"*). Số patch đúng mà **nội dung trống** thì bản lưu vẫn
+vô dụng — cùng lớp lỗi *đo sai đại lượng*, chỉ là ở tầng khác.
+
+⏳ **Ngày G `01/09` sinh mạng mới ⇒ danh tính mới ⇒ việc này phải làm LẠI dù hôm nay có làm.**
+Nhưng làm hôm nay là **diễn tập rủi ro bằng không**, đúng lý do B-16 tồn tại.
+
+**Việc của David** (A1 không tự lấy tệp từ server về):
+```bash
+# LIỆT KÊ trước — danh tính 9 node của mạng ĐANG CHẠY nằm ở đâu trên server
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'find ~/9chain-a1/net -name "staker.key" | wc -l'
+# rồi đưa chúng vào bản lưu, và ĐỐI CHỨNG bằng cách đếm lại trong gói
+```
+🔴 **Đừng cất chúng cạnh khoá quỹ** — `check-key-leaks.mjs` canh khoá quỹ, không canh danh tính.
+
+---
+
 ### 🔴 B-19 — KHOÁ ĐANG GIỮ TIỀN NẰM TRONG HAI THƯ MỤC TỰ KHAI LÀ "ĐỒ CHẾT" (2026-08-28)
 
 **Không kẹt kỹ thuật — kẹt vì xoá là việc có người bấm, và ở đây xoá nhầm là mất tiền thật.**

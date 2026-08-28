@@ -79,6 +79,17 @@ cổng canh mới: **`node scripts/check-key-leaks.mjs`** (6/6 đối chứng, n
 ⚠️ Bản nháp đầu của cổng đó đỏ **32 tệp** gồm hai `PROGRESS.md` trong git — nó đo *sự có mặt của
 một CHỮ*, không phải *của một KHOÁ*. Đã sửa: đo `PrivateKey-` + **40+ base58**, rồi **so với bộ
 quỹ sống** để tách 🔴 tiền thật khỏi 🟡 khoá mạng tập.
+⚠️ **Rồi nó sai thêm hai lần nữa, và một lượt quét ĐỘC LẬP mới bắt được** (D-117b): phạm vi dừng
+ở repo nên **mù với `9Chain-backups\`**, và mốc so chỉ có 6 quỹ nên **`chain-factory-key.txt` —
+ví thứ BẢY giữ ~90 LOVE9 thật — bị chấm 🟡**. Mốc so nay nhiều nguồn, self-test **8/8**.
+🔴 **Và phát hiện lớn hơn cả hai lỗi: KHOÁ FACTORY ĐƯỢC TÁI DÙNG XUYÊN THẾ HỆ** — bản trong gói
+lưu của mạng `9001` **đã chết** trùng byte với khoá giữ tiền trên `g0` **hôm nay**. Cùng hình
+dạng gotcha 15. ⇒ **Ngày G sinh mạng mới thì sinh luôn khoá factory mới**, cùng lượt với token.
+
+🔴 **B-20 MỚI — KHÔNG BẢN LƯU NÀO CHỨA DANH TÍNH VALIDATOR CỦA MẠNG ĐANG CHẠY** (D-117c). Lộ ra
+khi đo gói `20260825` trước lúc xoá: hai gói lưu mới nhất có **0 tệp** danh tính/khoá/archive —
+chúng là bản lưu **mã nguồn**, không phải bản lưu **mạng**. H-6b lâu nay đo bằng **số patch**;
+số patch đúng mà **nội dung trống** thì bản lưu vẫn vô dụng.
 
 **B-16 — bản sao thứ hai của khoá quỹ.** Đo `28/08`: máy dev có **đúng một ổ đĩa**
 (`C:`, 1.862 GB) — không USB, không ổ ngoài. *"Hai nơi khác nhau về vật lý"* **không tạo ra
@@ -246,6 +257,14 @@ chót mà đầu vào phải tới** để lượt sinh mạng ngày G không ph
     bằng **nội dung**. Cloudflare **chèn thêm**, không **thay** ⇒ B-10 chưa bao giờ là một lỗ.
     Kèm: **đọc HẾT tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đã viết
     sẵn phép đo đúng trong chú thích. (D-106b)
+
+19. 🔴 **`find -size -1M` KHỚP 0 TỆP — và không báo lỗi.** `find` làm tròn kích thước **LÊN**
+    đơn vị, nên một tệp 495 B **không** *"nhỏ hơn 1M"*. Một lượt `find … -size -1M -exec shred`
+    chạy trót lọt, **exit 0**, và xoá **0 tệp** — đúng hình dạng B-17: tưởng đã dọn mà chưa.
+    Dùng đơn vị **byte**: `-size -1048576c`. Đã dính `28/08` lúc xoá gói lưu `20260825`.
+    Kèm bài học rộng hơn của cùng lượt đó: dòng đối chứng cuối in *"remaining bundles:"* **rỗng**
+    vì lỗi glob **của chính nó** — đọc theo mặt chữ là khai một sự cố không có thật.
+    ⇒ **Một dòng đối chứng cũng phải được đối chứng** (D-117c).
 
 1. **`net/` do container netgen sinh ⇒ thuộc `root`.** `sed` sửa `docker-compose.multinode.yml`
    **thất bại lặng lẽ** ⇒ mạng lên bằng image CŨ. `sudo chown -R ubuntu:ubuntu ~/9chain-a1/net`
