@@ -17,6 +17,12 @@ node scripts/ngay-g-preflight.mjs      # trạng thái toàn cục trong 1 lện
 sha256**, clone ngược khớp ở cả hai nơi · console **đã deploy**, drift `19 khớp · 0 lệch · 0
 thiếu` · mạng g0 sống, 9 validator, B-12 còn **308 ngày**.
 
+🟡 **`28/08` khuya — preflight nay `11 đạt · 1 đỏ`, và cái đỏ là ĐÚNG:** `check-deploy-drift`
+báo `local-net/console/chainid-da-cap.json` **lệch** vì repo vừa sinh lại nó (D-107, thêm nguồn
+sổ thứ tư) còn server thì chưa. **Hành vi console KHÔNG đổi** — danh sách chặn vẫn **47 chainId
+· 53 tên**, chỉ thêm một dòng khai nguồn. Hết đỏ khi console được deploy; lượt deploy đó đã nằm
+trong runbook ngày G. **Deploy là việc có người bấm — autopilot không tự làm.**
+
 🔴 **Hai việc chặn GO/NO-GO `2026-08-29`, chỉ David làm được:**
 
 ```bash
