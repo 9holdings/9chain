@@ -1,8 +1,8 @@
-From a3183c360bcd887d2c3aeb2777558e7a22997bce Mon Sep 17 00:00:00 2001
+From 0ee5fff1213442a94bd8e3055a296e05b9e27108 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Thu, 27 Aug 2026 13:47:53 +0400
-Subject: [PATCH 15/24] =?UTF-8?q?netgen:=20cong=20'ban=20tap=20!=3D=20ban?=
- =?UTF-8?q?=20that'=20cho=20chainId=20=E2=80=94=20C-4=20(B-11)?=
+Subject: [PATCH 15/25] =?UTF-8?q?netgen:=20gate=20'drill=20build=20!=3D=20?=
+ =?UTF-8?q?real=20build'=20for=20chainId=20=E2=80=94=20C-4=20(B-11)?=
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

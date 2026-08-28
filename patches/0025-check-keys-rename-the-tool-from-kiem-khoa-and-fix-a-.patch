@@ -1,0 +1,105 @@
+From 296c7a4bb9b5687b4521315d5b7948a66606e29c Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Fri, 28 Aug 2026 14:20:39 +0400
+Subject: [PATCH 25/25] check-keys: rename the tool from `kiem-khoa`, and fix a
+ comment citing a removed flag
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Chuan hoa toan dien 2026-08-28: dinh danh cua du an chuyen sang tieng Anh.
+`kiem-khoa` la cong cu Go DUY NHAT trong `9chain-a1-tools/` con mang ten tieng Viet.
+
+  9chain-a1-tools/kiem-khoa/  ->  9chain-a1-tools/check-keys/
+  main.go: 7 lan chuoi `kiem-khoa` (ten binary trong cau tro giup) -> `check-keys`
+
+Kem mot sua nho nhung dung lop loi cua du an: `netgen/allocation.go` dan
+`check-consistency.mjs --tu-kiem`, ma co do da doi thanh `--self-test`. Mot chu thich
+day nguoi doc toi mot lenh KHONG CON TON TAI thi te hon la khong co chu thich — no
+trong nhu mot phep do da duoc kiem chung.
+
+🔴 DAY LA COMMIT THU 25. Luat cung #3 truoc do khai 24 patch / tree 074aaa93. Con so
+do PHAI doi cung luc, va doi chung nguoc nay MANH HON ban cu: ap 24/25 patch phai ra
+DUNG `074aaa93` — tuc dung cai cay ma image dang chay dung tren.
+---
+ 9chain-a1-tools/{kiem-khoa => check-keys}/main.go | 14 +++++++-------
+ 9chain-a1-tools/netgen/allocation.go              |  2 +-
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+ rename 9chain-a1-tools/{kiem-khoa => check-keys}/main.go (95%)
+
+diff --git a/9chain-a1-tools/kiem-khoa/main.go b/9chain-a1-tools/check-keys/main.go
+similarity index 95%
+rename from 9chain-a1-tools/kiem-khoa/main.go
+rename to 9chain-a1-tools/check-keys/main.go
+index 3abd52e..13fcad2 100644
+--- a/9chain-a1-tools/kiem-khoa/main.go
++++ b/9chain-a1-tools/check-keys/main.go
+@@ -1,4 +1,4 @@
+-// kiem-khoa — PHÉP KIỂM KHÔI PHỤC cho bộ khoá quỹ genesis (O1).
++// check-keys — PHÉP KIỂM KHÔI PHỤC cho bộ khoá quỹ genesis (O1).
+ //
+ // 🔴 VÌ SAO CÓ CÔNG CỤ NÀY. O1 nằm mở nhiều ngày dưới dạng câu hỏi *"bản thứ hai có
+ // tồn tại không"*. Đó là câu hỏi sai, và sai theo cách không ai phát hiện được: một
+@@ -20,7 +20,7 @@
+ //
+ // Dùng:
+ //
+-//	kiem-khoa <keys.txt> [-allocation allocation.md] [-network-id N]
++//	check-keys <keys.txt> [-allocation allocation.md] [-network-id N]
+ //
+ // `-allocation` bật thêm phép đối chiếu **chéo**: bảng CÔNG KHAI có khai đúng những
+ // địa chỉ mà bộ khoá BÍ MẬT thật sự mở được không. Thiếu vế này thì hai tệp có thể
+@@ -66,19 +66,19 @@ var (
+ )
+ 
+ func main() {
+-	fs := flag.NewFlagSet("kiem-khoa", flag.ExitOnError)
++	fs := flag.NewFlagSet("check-keys", flag.ExitOnError)
+ 	allocPath := fs.String("allocation", "", "đối chiếu chéo với allocation.md (bảng công khai)")
+ 	networkID := fs.Uint("network-id", 0, "networkID để suy HRP (0 = đọc từ đầu keys.txt)")
+ 	fs.Parse(os.Args[1:])
+ 
+ 	if fs.NArg() < 1 {
+-		fmt.Fprintln(os.Stderr, "Dùng: kiem-khoa <keys.txt> [-allocation allocation.md] [-network-id N]")
++		fmt.Fprintln(os.Stderr, "Dùng: check-keys <keys.txt> [-allocation allocation.md] [-network-id N]")
+ 		os.Exit(2)
+ 	}
+ 	duongDan := fs.Arg(0)
+ 
+ 	// 🔴 `flag` DỪNG PHÂN TÍCH ở đối số không phải cờ đầu tiên. Nên
+-	// `kiem-khoa keys.txt -allocation x.md` chạy **trơn tru và bỏ qua `-allocation`** —
++	// `check-keys keys.txt -allocation x.md` chạy **trơn tru và bỏ qua `-allocation`** —
+ 	// tức bỏ luôn phép đối chiếu chéo, và bỏ trong im lặng. Đã dính đúng thế ở lượt
+ 	// chạy đầu tiên; chỉ thoát vì dòng cảnh báo cuối bài nói ra là nó chưa chạy.
+ 	// Nay chặn thẳng: một phép kiểm bị bỏ qua phải ồn hơn một phép kiểm thất bại.
+@@ -86,7 +86,7 @@ func main() {
+ 		if strings.HasPrefix(thua, "-") {
+ 			fmt.Fprintf(os.Stderr,
+ 				"FATAL cờ %q đứng SAU đường dẫn nên bị bỏ qua.\n"+
+-					"      Dùng: kiem-khoa [cờ...] <keys.txt>\n", thua)
++					"      Dùng: check-keys [cờ...] <keys.txt>\n", thua)
+ 			os.Exit(2)
+ 		}
+ 	}
+@@ -112,7 +112,7 @@ func main() {
+ 	}
+ 	hrp := constants.GetHRP(nid)
+ 
+-	fmt.Printf("kiem-khoa — %s\n", duongDan)
++	fmt.Printf("check-keys — %s\n", duongDan)
+ 	fmt.Printf("  networkID %d · mạng %q · HRP %q · %d quỹ\n\n", nid, constants.NetworkName(nid), hrp, len(khois))
+ 	if !constants.LaMangA1(nid) {
+ 		// Cảnh báo, không chặn: có thể ai đó đang kiểm một bộ khoá cũ một cách có ý thức.
+diff --git a/9chain-a1-tools/netgen/allocation.go b/9chain-a1-tools/netgen/allocation.go
+index 11d48fb..f840e54 100644
+--- a/9chain-a1-tools/netgen/allocation.go
++++ b/9chain-a1-tools/netgen/allocation.go
+@@ -69,7 +69,7 @@ func (b bucket) Total() uint64 { return b.LiquidXP + b.LockedXP + b.CChain }
+ // phần chênh 3,600,000,000 là quỹ **Staking Rewards**, KHÔNG cấp ở genesis mà mint dần).
+ //
+ // Nguồn số: DECISIONS.md **D-039** (tổng cung 9 tỷ) và **D-042** (bảng phân bổ).
+-// 🔴 Đổi số ở đây thì PHẢI chạy `node scripts/check-consistency.mjs --tu-kiem` TRƯỚC —
++// 🔴 Đổi số ở đây thì PHẢI chạy `node scripts/check-consistency.mjs --self-test` TRƯỚC —
+ // cổng đó khẳng định tổng %, tổng quỹ, chia nhỏ khớp quỹ, và trần uint64.
+ //
+ // ⚠️ 6 bucket ở đây gộp thành 5 HẠNG MỤC công bố (`Nhom`): Foundation và self-bond là
