@@ -3780,3 +3780,176 @@ lệnh một dòng và một câu trấn an. Câu trấn an đó **đúng cho nh
 tới** (ba sổ) và **chưa từng được kiểm cho nhóm còn lại** (ba tệp mã) — mà lệnh thì xoá **cả
 sáu**. ⇒ **Phạm vi của một lời trấn an hẹp hơn phạm vi của lệnh nó đi kèm**, và khoảng chênh đó
 là chỗ dữ liệu biến mất. Kiểm **từng tệp trong lệnh**, không kiểm *"nhóm tệp"*.
+
+---
+
+## D-108 — Chuẩn hoá toàn diện định danh sang tiếng Anh; và ba lỗi nó lộ ra ở ba lớp khác nhau (2026-08-28)
+
+David yêu cầu: *"quét lại toàn bộ hệ thống… các file có file nào đặt tên kiểu tiếng Việt không
+thì sửa lại thành tiếng Anh hết. Chuẩn hoá toàn diện code."* Chốt phạm vi **tối đa** (gồm
+`patches/`) và **không giữ bí danh**.
+
+### Đã đổi
+
+| Lớp | Số lượng |
+|---|---|
+| Tên tệp mã (`scripts/`, `local-net/`) | **15** — `git mv`, 15/15 git nhận là `R`, lịch sử giữ nguyên |
+| Cờ CLI | **32 cờ · 325 lần thay** |
+| Khoá JSON (hợp đồng liên tệp) | `manifest-deploy.json` + hai sổ chainId |
+| id preset (**dữ liệu đã lưu**) | 6 |
+| Tên tệp tài liệu | **56** (gồm `docs/vat-chung/` → `docs/evidence/`) |
+| Tiêu đề commit của cây fork ⇒ tên tệp patch | **25** |
+
+**Gộp hai tên cho một khái niệm** — đây mới là chuẩn hoá, không phải dịch: `--tu-kiem` (13 chỗ)
++ `--self-test` (4 chỗ đã có) ⇒ **một** `--self-test`; `--khoa-ssh` + `--key` ⇒ **một**
+`--ssh-key`. Và **tách một tên đang mang hai nghĩa**: `--khoa` ⇒ `--wallet-key` (khoá riêng của
+ví) ≠ `--ssh-key`; `--tep` ⇒ `--file` (tệp để đọc) và `--attach` (tệp kèm vào bản xuất).
+
+### 🔴 Ba lỗi lộ ra, và chúng nằm ở ba lớp khác nhau — đó mới là phần đáng ghi
+
+**1. `patches/` — cổng bắt được.** Kịch bản đổi cờ *"trên mọi tệp văn bản"* sửa **đúng một
+dòng** trong patch 0006 (một cờ `--tu-kiem` nằm trong chú thích Go). `gday-preflight` đỏ ngay:
+`tree fa2e502c ≠ 074aaa93`. Hoàn nguyên, chứng minh lại nền.
+
+**2. Gói vật chứng O2 — KHÔNG cổng nào bắt được.** Cùng lượt quét đó sửa `--tu-kiem` bên trong
+`00-DOC-TRUOC.md` của **cả hai** gói vật chứng ⇒ chúng tụt từ **9/9 xuống 7/9** và **im lặng
+hoàn toàn**. Chỉ lộ ra vì tôi tình cờ chạy `sha256sum -c` sau một bước khác.
+
+⇒ **Bài học, và nó tổng quát hơn cả hai ca:** *thứ nào phải đóng băng theo BYTE thì phải có
+CỔNG canh byte.* `patches/` có luật cứng #3 nên nó có cổng, nên nó sống. Vật chứng chỉ có một
+quy ước *"đừng sửa thư mục đó"* nằm trong đầu người viết script — và quy ước đó **không chặn
+được gì**. Đã dựng `scripts/check-evidence.mjs` (xem D-109).
+
+**3. Đổi khoá xuất mà quên biến cục bộ.** `soTen` → `nameCount` nhưng biến vẫn là `tens` ⇒
+`gen-chainid-issued.mjs` ném `ReferenceError`. Cổng `--check` bắt ngay. Vô hại vì có cổng —
+và đó chính là điểm.
+
+### id preset: đổi ĐƯỜNG VÀO, giữ ĐƯỜNG ĐỌC
+
+`chuan`/`khong-phi`/… **là dữ liệu đã lưu** trong `console-chains.json` (đo được: **42 bản ghi**
+mang id cũ), và console **không bao giờ viết lại bản ghi đã đẻ**. Nên:
+
+- **Đường VÀO (API)**: không bí danh. `apDungPreset(_, "khong-phi")` **ném lỗi**, liệt kê id hợp lệ.
+- **Đường ĐỌC (hiển thị)**: bảng `TEN_PRESET` ở `/chains/` **giữ cả id cũ**. Xoá hàng cũ là làm
+  mọi chain cũ hiện ra id trần thay vì tên.
+
+Hai chuyện khác nhau: một cái **nhận đầu vào mới**, một cái **đọc quá khứ**. Gộp chúng lại thì
+hoặc ta phá dữ liệu lịch sử, hoặc ta đẻ ra một bí danh mà David đã bác.
+
+### Không làm — khai rõ, không giấu
+
+**Định danh cục bộ trong JS và Go vẫn là tiếng Việt** (hàng trăm tên, nhiều tên 2–3 ký tự như
+`ma`, `so`, `co`, `kq`). Đổi chúng bằng quét-và-thay là **rủi ro cao nhất, giá trị mỗi đơn vị
+rủi ro thấp nhất**: chúng vô hình ngoài phạm vi tệp, trong khi một lần khớp nhầm chuỗi con làm
+hỏng lặng một cổng đang canh ngày G. Với Go còn thêm một vế: `go vet` trên máy này **đang hỏng
+vì lý do không liên quan** (libevm/`btc_ecdsa`, cgo) ⇒ **không nghiệm thu được**, và luật cứng
+#2 nói thẳng một thay đổi không nghiệm thu được thì chưa xong. Bốn ngày trước ngày G không phải
+lúc đổi thứ mình không đo được.
+
+**`web/` không đụng** (luật cứng #4): `main` lệch `web-home` **78 tệp / +17.440 −2.792**, mọi
+lần đổi tên tôi làm ở đó sẽ bị xoá lúc gộp. Đã liệt kê ra thành việc riêng cho lượt gộp.
+
+---
+
+## D-109 — `check-evidence.mjs`: gói vật chứng phải TỰ nghiệm thu được, và giờ có cổng (2026-08-28)
+
+Sinh ra từ đúng lỗi thứ 2 ở D-108. Đo `sha256` **thực tế trên đĩa** ↔ `sha256` **gói tự khai**.
+Không đọc git: một gói vật chứng phải đứng được **một mình**, kể cả khi tách khỏi repo — đó là
+toàn bộ lý do nó tồn tại.
+
+⚠️ **Nó KHÔNG nói gói mô tả đúng sự thật lúc đó.** Nó chỉ nói gói **chưa bị sửa kể từ lúc niêm**.
+Hai câu hỏi khác nhau; đọc cái này thành cái kia là đúng lớp lỗi "đo sai đại lượng".
+
+Đối chứng ngược `--self-test` **8/8**, gồm hai ca đã cháy thật và một ca suýt:
+- sửa MỘT tệp ⇒ báo **LỆCH HASH**, và **không** báo nhầm thành "mất tệp" (hai lỗi khác nhau)
+- xoá MỘT tệp ⇒ báo **MẤT TỆP**
+- đọc được **cả hai** khuôn `sha256sum` (hai khoảng trắng, và dấu `*`) — `SHA256SUMS.txt` dùng
+  khuôn thứ hai, **bỏ sót nó là cổng đọc ra 0 mục rồi báo XANH**
+
+Chạy thật: **3 gói · 20/20 dòng khớp**. Đã nối vào `gday-preflight` nhóm 2 (cả bản đo thật lẫn
+bản đối chứng) — O2 là **việc tay của chính ngày G**, phát hiện gói hỏng lúc đang chạy runbook
+thì đã muộn.
+
+🔴 **Cũng vì thế mà không đổi tên tệp NẰM TRONG gói.** `MANIFEST.txt` băm theo **đường dẫn bên
+trong gói**. Đổi tên `00-DOC-TRUOC.md`/`tep-kem/` thì hoặc gói tự bác chính nó, hoặc phải sinh
+lại manifest — mà **sinh lại manifest là xoá đúng thứ tạo ra giá trị của một gói vật chứng**.
+Chỉ đổi tên **thư mục ngoài**, thứ không xuất hiện trong manifest.
+
+---
+
+## D-110 — `check-net-dirs.mjs`: hỏi TỪNG thư mục, và nó tìm ra một MỒI NHỬ (2026-08-28)
+
+`CLAUDE.md` gotcha 10 khai `local-net/net-public/` là *"thư mục TRỘN"*. Quét lại `28/08`: thực
+tế **rộng hơn nhiều** — **9 thư mục `net*`, 3 thế hệ**, và **năm** từ khác nhau cho *"mạng
+thử"* (`public`/`drill`/`dryrun`/`tap`/`bak`).
+
+Cổng đo **hai đại lượng cắt nhau**, không tin tên thư mục: thế hệ ← `genesis.json/networkID`
+(đĩa) · tiền ← `platform.getBalance` + `avm.getBalance` (**chain đang chạy**).
+
+**Ba kết quả, mỗi cái một loại nguy hiểm:**
+
+| | |
+|---|---|
+| `net-public/` + `net-public-dead-720m/` | `9001` chết, **nhưng giữ 90.008 LOVE9 thật** ⇒ dọn theo thư mục là mất tiền |
+| `net-that-g0/` | networkID **KHỚP** mạng sống, **6 ví đều 0đ** ⇒ **MỒI NHỬ** |
+| 6 thư mục còn lại | chết hoặc băng tập, 0đ — dọn được |
+
+🔴 **Mồi nhử nguy hiểm hơn bộ đã chết.** Ở bộ `9001`, `networkID` lệch nên `check-keys` còn có
+cái để cảnh báo (D-090). Ở `net-that-g0` **networkID khớp**, nên `check-keys` chấm **6/6 ✓** và
+**không cổng nào kêu** — trong khi `allocation.md` của nó tự khai *"1 node"* còn mạng thật là
+**9 node**. Đây đúng thứ bị cất nhầm thành *"bản sao lưu khoá quỹ"* của **O1/B-16**, và B-16
+đang là mục **chặn GO/NO-GO**. ⇒ **B-19.**
+
+**Hai lỗi của chính cổng này lộ ra lúc dùng, cả hai cùng lớp với thứ nó đi soát:**
+1. Gửi địa chỉ `X-` vào endpoint P-Chain ⇒ `mismatched chainIDs` hàng loạt.
+2. **Một vế chain hỏng mà vẫn cộng thành `0`.** Quỹ Foundation g0 đo được **P = 0, X =
+   70.999.918** ⇒ nếu vế X sập mà cổng trả `0`, thư mục giữ khoá đó **đọc ra sạch**. Nay ném
+   lỗi ⇒ **CHƯA KẾT LUẬN**, đúng luật `null ≠ []`.
+
+Đối chứng ngược `--self-test` **17/17**, gồm: `9001` ⇒ không phải live · `899999999` ⇒ băng tập ·
+`999999998` ⇒ băng thật nhưng khác thế hệ · thư mục **tên nghe chính thức** vẫn bị chấm theo
+`genesis.json` chứ không theo tên · khoá riêng (`PrivateKey-…` và `0x`+64hex) **không bao giờ**
+lọt vào kết quả in ra.
+
+---
+
+## D-111 — `NETWORK_ID` là HÀM CỦA GENESIS, không còn là hằng số chép tay (2026-08-28)
+
+Bốn tệp compose cắm cứng `--network-id=9001` (8 dòng) — **thế hệ đã chết từ 27/08**. Và
+`local-net/net/genesis.json` trên máy dev **cũng** là bộ 9001. Hai bên **khớp nhau**, nên node
+boot sạch, health xanh, **mọi cổng xanh** — trong khi thứ đang chạy là một mạng **không còn tồn
+tại**.
+
+⇒ Đây là §2 của `CLAUDE.md` ở dạng thuần khiết nhất: **nhất quán nội bộ không phải bằng chứng
+còn sống.** Hai hằng số chép tay ở hai tệp, không cổng nào nối chúng — cùng hình dạng với
+`A1Gen ↔ A1_GEN` (D-093), chỉ khác chỗ.
+
+Cách chữa **không phải** sửa `9001` thành `999999999`: làm thế là chép tay lần nữa, chỉ đúng cho
+tới lượt re-genesis sau. Nay:
+- compose khai `${NETWORK_ID:?…}` ⇒ **dừng** khi thiếu, không còn mặc định nào
+- `local-net/network-id.sh` **suy `NETWORK_ID` từ chính genesis sắp mount** và khai thẳng ra
+  màn hình nó thuộc băng nào ⇒ **compose không thể lệch khỏi genesis, vì nó không còn giữ con
+  số nào của riêng mình**
+
+Nghiệm thu trên **đường sản phẩm** (`docker compose config`), **cả hai chiều**: thiếu biến ⇒
+exit 1 kèm câu lỗi nói rõ `9001` là thế hệ đã chết (4/4 tệp) · có biến ⇒ `--network-id=899999999`
+đúng ở mọi node (7 dòng).
+
+---
+
+## D-112 — Đối chứng ngược của luật cứng #3 nay là MÃ, không còn là nghi thức (2026-08-28)
+
+Sinh lại cả bộ patch (D-108) buộc phải đổi `TREE_FORK`. Lúc đổi mới thấy: cổng *"áp đủ bộ rồi
+so tree"* chỉ chứng minh bộ patch **tự nhất quán với hằng số ta vừa chép vào chính tệp đó**.
+Ai sinh lại cả bộ rồi dán tree mới vào cũng làm nó xanh — **kể cả khi nội dung đã trôi**.
+
+⇒ `gday-preflight` nay áp **24/25 TRƯỚC**, đối chiếu với `074aaa93` — cây mà **image đang chạy**
+dựng lên trên. Hai đầu neo có gốc độc lập mới nói được điều gì đó.
+
+Đã nhìn thấy nó **ĐỎ, vì đúng lý do**: đổi một ký tự trong **thân diff** patch 0012 ⇒
+`đối chứng 24/25: tree 924282f4 ≠ 074aaa93 — bộ patch đã trôi Ở GIỮA`.
+
+⚠️ Lần thử đầu tôi đổi ký tự trong **tiêu đề commit** và cổng vẫn xanh — **đúng**, vì `git am`
+dựng tree từ phần diff; tiêu đề không vào tree. Đó cũng là lý do lượt viết lại 25 tiêu đề sang
+tiếng Anh **không đổi tree** (`f2b9486b` trước và sau), và tính chất đó chính là bằng chứng
+lượt đó chỉ đụng thông điệp.

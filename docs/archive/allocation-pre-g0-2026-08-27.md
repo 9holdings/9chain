@@ -40,4 +40,4 @@ File này CÔNG KHAI được — chỉ chứa địa chỉ, không chứa khoá
 |---|---|--:|---|
 | chain-factory | phí đẻ L1 (khoá TRÊN SERVER, `console.env`) | ~9 LOVE9 P-Chain | `X-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj` |
 
-Chi tiết + quy trình nạp lại: [WALLET-OPERATIONS.md](WALLET-OPERATIONS.md).
+Chi tiết + quy trình nạp lại: [WALLET-OPERATIONS.md](../WALLET-OPERATIONS.md).

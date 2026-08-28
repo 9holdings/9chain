@@ -14,6 +14,25 @@ Cập nhật: **2026-08-28** (phiên khuya `28/08` — quét toàn diện + **di
 node scripts/gday-preflight.mjs      # trạng thái toàn cục trong 1 lệnh (~90s)
 ```
 
+### 🆕 Phiên `28/08` (chuẩn hoá toàn diện) — đọc 6 dòng này trước
+
+1. **Mọi tên tệp/cờ/khoá JSON nay là tiếng Anh.** Lệnh anh nhớ trong đầu **đã đổi**:
+   `ngay-g-preflight`→`gday-preflight` · `canh-mang`→`watch-network` · `o1-kiem`→`o1-check` ·
+   `kiem-khoa-tren-chain`→`check-keys-on-chain` · `vi-qua-ham`→`wallet-over-tunnel` ·
+   `--tu-kiem`→`--self-test` · `--kiem`→`--check`. **Không có bí danh** (David chốt).
+2. **Cây fork: 25 patch · tree `f2b9486b`** (không còn 24/`074aaa93`). Đối chứng **24/25 →
+   `074aaa93`** nay **chạy tự động** trong preflight.
+3. 🔴 **B-19 MỚI, và nó liên quan thẳng tới B-16 đang chặn GO/NO-GO:** `net-that-g0/` là
+   **MỒI NHỬ** — networkID khớp mạng sống nhưng **6 ví đều 0đ**. Đừng cất nó làm bản sao lưu
+   quỹ. Bộ thật: `C:\Users\abc\9chain-a1-keys\g0\`. Và **khoá đang giữ 90.008 LOVE9 nằm trong
+   hai thư mục tự khai là "đồ chết"** ⇒ dọn theo thư mục là mất tiền. `check-net-dirs.mjs`.
+4. 🔴 **B-18 MỚI:** 3 tên tệp **cũ** còn trên server sau lượt đổi tên ⇒ dọn **cùng lượt deploy**.
+5. **`up-all.sh` / `docker-compose.yml` nay ĐÒI `NETWORK_ID`** và suy nó từ genesis. Bộ
+   `local-net/net/` hiện tại là **9001 đã chết** ⇒ nó sẽ kêu, và đó là đúng.
+6. 🔴 **Tôi làm hỏng hai thứ trong phiên và đã sửa cả hai** — chi tiết ở D-108. Một cái cổng bắt
+   được (`patches/`), một cái **không cổng nào bắt** (gói vật chứng, 9/9→7/9 im lặng). Nay có
+   `check-evidence.mjs`.
+
 **Trạng thái `2026-08-28` cuối phiên khuya:**
 
 | | |
