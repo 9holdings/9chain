@@ -23,7 +23,8 @@ từng lệch nhau**, luôn ghi rõ.
 
 | ID | Mức | Mặt | Điều khẳng định | Tin cậy | Nguồn | Trạng thái |
 |---|---|---|---|---|---|---|
-| A-001 | 🔴 **P0** | cấu trúc | Bản sao lưu ngoài máy duy nhất chứa **12 patch** = mạng ĐÃ BỊ XOÁ; các patch định nghĩa mạng đang chạy không có bản nào ngoài ổ dev | ĐO ĐƯỢC | REPO + máy dev | 🔴 mở · **xấu đi `28/08 08:00Z`: thiếu 12 patch / 45 commit** |
+| A-001 | 🔴 **P0** | cấu trúc | Bản sao lưu ngoài máy duy nhất chứa **12 patch** = mạng ĐÃ BỊ XOÁ; các patch định nghĩa mạng đang chạy không có bản nào ngoài ổ dev | ĐO ĐƯỢC | REPO + máy dev | 🟡 **TRẠNG THÁI ĐÃ SỬA `28/08`** — H-6b chạy lại, bản `20260828-024659` có **24/24 patch**, `rev-list = 0`. **Cơ chế vẫn chưa có** ⇒ xem A-014 |
+| **A-014** | **P1** | cấu trúc | Không phép đo nào phát hiện bản sao lưu **cũ đi**. Lần trước nó cũ sau **đúng 1 ngày** mà mọi cổng vẫn xanh | ĐO ĐƯỢC | REPO | 🔴 **mới `28/08`** — phần chưa đóng của A-001 |
 | A-002 | **P1** | công nghệ | `rebase-drill.sh` không canh `upgrade.A1`; nó canh `FallbackHRP` — thứ mã nguồn đã hạ xuống làm dây dự phòng | ĐO ĐƯỢC | REPO | 🔴 mở · **thực tế đã chứng minh** (D-079) |
 | A-003 | P2 | cấu trúc | `multinode.compose.yml` tự khai "NGUỒN CHÍNH THỨC" nhưng lệch **ba thứ**: 5 node · 0 dòng `restart:` · `--network-id=9001` | ĐO ĐƯỢC | REPO (vs SERVER `27/08`) | 🔴 mở · xem A-010 |
 | A-004 | P2 | bảo mật | Faucet giữ khoá có tiền nhưng dùng `ethers: ^6.13.0` không lockfile; console cùng repo ghim `6.17.0` | ĐO ĐƯỢC | REPO | 🔴 mở |
@@ -1145,3 +1146,124 @@ $ sed -n '12,42p' utils/constants/network_ids_test.go
 - **Không** `docker exec`, **không** restart, **không** `caddy reload`, **không** đụng
   `upstream/avalanchego` của worktree này (vẫn detached ở `15c940e`). Mọi lệnh trên máy
   chủ là `ps` / `ss` / `docker ps|inspect` / `grep` / `df` — chỉ đọc.
+
+---
+
+## 9. A-001 — H-6b ĐÃ CHẠY LẠI `2026-08-28`, và cái gì vẫn còn hở
+
+🔴 **Ngoại lệ luật 4 lần thứ hai trong phiên, David chốt bằng lời.** H-6b **ghi lên máy
+chủ** (bản thứ hai đặt ở `~/9chain-a1/backup/`), tức worktree soát đã đổi trạng thái máy
+chủ. Ghi ra để hồ sơ không nói dối. Không phải luật mới, không tạo tiền lệ.
+
+**Bản mới:** `20260828-024659` — 3,0 MB, hai nơi:
+- `C:\PROJECTS\9Chain-backups\9chain-a1-backup-20260828-024659\` (máy dev)
+- `139.99.145.13:~/9chain-a1/backup/20260828-024659/` (**bản thứ hai thật**)
+
+```
+repo   HEAD 0afc664 · 218 commit · 256 tệp · tree 735cd81812f6a0751171fcfd2ea420dde80d64fd
+       4 nhánh: main · audit · web-home · brand-standardize
+fork   base 1cf1fc3 (SHALLOW) · 24 patch · tree sau khi áp 074aaa9327be70103b25d5a3873d41cacd431652
+       áp bằng: git am --keep-cr
+```
+
+**Nghiệm thu — bốn phép, chạy thật:**
+
+```
+[ĐẠT] CLONE NGƯỢC bundle (máy dev)   → tree 735cd818… · 218 commit · đủ 4 nhánh
+[ĐẠT] CLONE NGƯỢC bundle (MÁY CHỦ)   → tree 735cd818… · 218 commit · đủ 4 nhánh
+[ĐẠT] áp 24 patch lên 1cf1fc3 sạch trong bản clone tách rời
+        → tree 074aaa93…  khớp cây fork TỪNG BYTE   (git am exit=0)
+[ĐẠT] sha256 hai đầu: 27/27 mục OK trên máy chủ
+```
+
+**Đối chứng ngược — chứng minh phép đo biết ĐỎ, không chỉ biết in ✓:**
+```
+$ head -c 2000000 9chain-a1.bundle > hong.bundle    # cắt cụt cố ý
+$ git clone --branch main hong.bundle …
+fatal: early EOF
+error: index-pack died                               ← BỊ TỪ CHỐI, đúng như phải thế
+```
+Đây là phép **bắt buộc**: `git bundle verify` từng khen một bundle hỏng là *"okay"* và
+*"records a complete history"* trong khi clone ngược chết ngay (bẫy repo shallow,
+`BLOCKERS.md`). Cổng chỉ chạy `verify` là cổng chưa bao giờ biết đỏ.
+
+**Quét bí mật trước khi đẩy ra ngoài** — bản `27/08` có làm, repo từ đó thêm 74 tệp nên
+làm lại:
+```
+khối "PRIVATE KEY"                    → không có
+tệp .env / .env.sh trong bundle       → 3, đều là cấu hình Blockscout công khai
+                                        (0 dòng khớp secret|password|key|token)
+chuỗi 64-hex trong docs               → đều được CHÍNH tài liệu ghi rõ là `sha256`
+                                        của bản xuất công bố, không phải khoá
+```
+
+**Điều kiện qua của A-001 — cả hai ĐẠT:**
+```
+ls <backup>/avalanchego-patches/ | wc -l   →  24   (ls patches/ = 24)      ĐẠT
+git rev-list --count 0afc664..main         →  0                            ĐẠT
+```
+
+**Ba thế hệ bản sao lưu, để thấy vấn đề là gì:**
+
+| bản | patch | ghi chú |
+|---|--:|---|
+| `20260825-064053` | 0 | chỉ bundle, chưa có lớp chủ quyền |
+| `20260827-051507` | 12 | **cũ 12 patch / 45 commit** sau đúng **1 ngày** |
+| `20260828-024659` | **24** | hôm nay khớp |
+
+⚠️ **`BLOCKERS.md:493` nay đúng trở lại** — câu *"H-6b đã chạy, không còn là một ổ đĩa"*
+hôm qua là sai, hôm nay là thật. Nó sẽ **tự sai lại** ở commit kế tiếp. Xem A-014.
+
+🔴 **KHÔNG ĐƯỢC ĐỌC MỤC NÀY THÀNH "ĐÃ AN TOÀN".** Bản sao lưu **không chứa khoá 5 quỹ**
+(`local-net/net-*/keys.txt` bị `.gitignore` — cố ý). H-6b chưa bao giờ cứu khoá và không
+được thiết kế để cứu khoá. Mất máy dev vẫn = **mất khoá cả 5 quỹ**. Đó là D-044 / O1,
+một mục khác, vẫn mở, và vẫn là mục quyết số 1 trước ngày G.
+
+---
+
+### A-014 — Không gì phát hiện bản sao lưu cũ đi; lần trước nó cũ sau đúng một ngày
+
+**Mức:** **P1** · **Mặt:** cấu trúc · *(phần chưa đóng của A-001)*
+**Tin cậy:** ĐO ĐƯỢC · **Nguồn:** REPO
+
+**Bằng chứng:**
+
+```
+$ ls /c/PROJECTS/9Chain-A1/scripts/ | grep -iE "backup|sao-luu|h6"
+(rỗng — KHÔNG có script nào cho H-6b; nó là quy trình viết tay trong BLOCKERS.md)
+
+$ ls <backup 27/08>/avalanchego-patches/ | wc -l      →  12
+$ ls patches/ | wc -l                                  →  24
+$ git rev-list --count 15f9076..main                   →  45
+    ⇒ cũ đi 12 patch / 45 commit trong ĐÚNG MỘT NGÀY, và không cổng nào đỏ
+
+$ node scripts/check-consistency.mjs   →  21 đạt      ← không biết bản sao lưu tồn tại
+$ node scripts/check-deploy-drift.mjs  →  18 khớp     ← so repo↔server, không so repo↔backup
+```
+
+Điều kiện qua của A-001 **đã ghi sẵn vế này từ lượt 1** — *"chạy lại H-6b **sau mỗi phiên
+có commit**, không phải theo lịch tuỳ hứng"* — và vế đó vẫn chưa có gì thực thi.
+
+**Kịch bản hỏng** — chính kịch bản vừa xảy ra, lặp lại. Hôm nay bản sao lưu khớp; ngày mai
+`main` đi thêm vài commit và một patch 0025 ra đời; `BLOCKERS.md` vẫn ghi *"không còn là
+một ổ đĩa"*; mọi cổng vẫn xanh. Tới lúc ổ `C:` hỏng thì thứ dựng lại được là mạng của
+**hôm nay**, không phải mạng đang chạy. Lần trước khoảng lệch tích được trong **một ngày**
+là 12 patch — trong đó có `A1Gen`, bí danh tài sản X-Chain, và cổng chặn sinh nhầm mạng thật.
+
+**Đối chứng ngược** — cổng mới phải **đỏ ngay ở commit thứ nhất** sau lượt sao lưu. Chứng
+minh nó biết đỏ: đặt một commit rỗng ⇒ phải thoát mã 1. Cổng chỉ kiểm *bản sao lưu có
+lành không* **không phân biệt được** — bản `27/08` lành hoàn toàn, nó chỉ **cũ**.
+
+**Điều kiện qua** — thêm `scripts/check-backup-fresh.mjs` (hoặc một mục trong cổng có sẵn):
+```
+đọc <backup mới nhất>/MANIFEST.txt  →  HEAD, patch
+đòi:  git rev-list --count <HEAD>..main   ==  0
+      ls <backup>/avalanchego-patches/ | wc -l  ==  ls patches/ | wc -l
+lệch  ⇒  exit 1, in ra ĐÚNG lệnh chạy lại H-6b
+```
+Và: H-6b nên thành **script** (`scripts/h6b-sao-luu.sh`), không để là quy trình viết tay —
+một quy trình 8 bước trong tài liệu là một quy trình sẽ bị làm tắt lúc vội. Bốn phép nghiệm
+thu ở §9 (kể cả đối chứng ngược bundle cắt cụt) phải nằm **trong** script, không nằm cạnh nó.
+
+**Liên quan:** A-001, A-012 (cùng lớp: hai bản của một thứ, không ai canh chỗ lệch),
+H-6/H-6b (`BLOCKERS.md:493`), D-044, memory `a1-ban-sao-luu-khong-dung-lai-duoc`.
