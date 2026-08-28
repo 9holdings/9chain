@@ -55,6 +55,29 @@ nhưng `chain-factory-key.txt` **cùng thư mục** lại là khoá **g0 đang s
 
 Nối lại: **khoá riêng trong tay anh chi được tiền của mạng đang chạy.** Đó mới là thứ O1 hỏi.
 
+### 🔴 NAY CHỈ CẦN MỘT LỆNH — và đó không phải chuyện tiện tay
+
+```bash
+node scripts/o1-kiem.mjs D:/tam-o1
+```
+
+Một **lời dặn** *"nhớ chạy cả hai"* không phải một **cổng**: nó chỉ có hiệu lực với người đọc
+đúng tài liệu, đúng hôm ấy, và nhớ tới lệnh thứ hai **sau khi lệnh thứ nhất vừa in một dòng
+xanh rất thuyết phục**. `scripts/o1-kiem.mjs` chạy cả hai vế và **chỉ thoát `0` khi cả hai
+xanh** (D-097).
+
+| mã thoát | nghĩa | phải làm gì |
+|---:|---|---|
+| `0` | ✅ **ĐẠT** | bản sao dùng được — O1 khép vòng |
+| `1` | 🔴 **SAI** | bản sao **không** cứu được mạng đang chạy. Đừng cất nó |
+| `2` | 🟡 **CHƯA KẾT LUẬN** | một vế **không chạy được** ⇒ *không biết*. **Không biết KHÔNG phải đạt** — sửa nguyên nhân rồi chạy lại |
+
+Ba mã, không phải hai: gộp `2` vào `0` là để **một bản sao chưa được kiểm được chấm là đã
+kiểm** — đúng lớp lỗi cả D-090 lẫn lệnh này sinh ra để chặn.
+
+*(Hai lệnh rời ở Bước 2 và Bước 3 vẫn đúng và vẫn giữ — dùng khi cần đọc kỹ từng vế, hoặc khi
+muốn tự tay đối chiếu. Nhưng đường mặc định là lệnh trên.)*
+
 ---
 
 ## 2. Chạy — bốn bước

@@ -25,7 +25,20 @@ trên chính nó thì hỏng cũng không mất gì. Sau ngày G lại kẹt y c
 🔴 **Bẫy phải biết trước khi chạy (D-090):** `kiem-khoa` một mình **KHÔNG phân biệt được bộ khoá
 còn sống với bộ khoá đã chết** — bộ thế hệ `9001` qua nó sạch **6/6 ✓ exit 0**. Và bộ `9001` đó
 là bộ đang tồn tại đúng lúc David được nhắc phải sao lưu, **vẫn nằm trên máy dev** để chép nhầm.
-⇒ **Chạy CẢ HAI lệnh**, trên cùng một thư mục:
+✅ **`28/08` — NAY CHỈ CÒN MỘT LỆNH** (D-097). Bẫy trên không còn phụ thuộc trí nhớ nữa:
+
+```bash
+node scripts/o1-kiem.mjs <thư-mục-bản-sao>
+```
+
+Nó chạy **cả hai** vế và **chỉ thoát `0` khi cả hai xanh**. Ba mã thoát: `0` ĐẠT · `1` SAI ·
+`2` **CHƯA KẾT LUẬN** (một vế không chạy được — *không biết* **không phải** *đạt*).
+
+Đã nghiệm thu trên **dữ liệu thật**: bộ `g0` đang sống ⇒ `0` · bộ `9001` đã chết ⇒ **`1`**
+(trong khi `kiem-khoa` một mình vẫn in `✓ 6/6 quỹ khôi phục đúng`) · giấu phép đo trên chain
+đi ⇒ **`2`, không xanh**. 6/6 ca đối chứng ngược đúng mã thoát.
+
+*(Hai lệnh rời vẫn dùng được khi muốn đọc kỹ từng vế:)*
 
 ```bash
 node scripts/kiem-khoa-tren-chain.mjs <thư-mục-bản-sao>/allocation.md
