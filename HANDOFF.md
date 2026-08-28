@@ -35,7 +35,7 @@ David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
 | # | Việc | Ai | Ghi chú |
 |---|---|---|---|
 | **1** | ✅ ~~Nạp `chain-factory`~~ **XONG `27/08`** — 89,99999173 LOVE9 trên P. 🔴 **Còn nợ phép kiểm:** đẻ **một** L1 rồi thu hồi để chứng minh đường đẻ chain thông (cần David ký SIWE, và nó tạo chain THẬT trên mạng công khai) | A1 + **David** | D-082. Khoá Foundation lấy từ `net/keys.txt` **trên server** — không phải "khoá máy dev" như dự tính, xem O1 |
-| **2** | 🟡 **O1 custody** — 🔴 **bước 1 XONG `27/08`** (D-085): khoá g0 đã rời server (`shred -u`), nay ở `C:\Users\abc\9chain-a1-keys\g0\`, đã qua **phép kiểm khôi phục 6/6**. ⇒ Còn lại đúng một việc của David: **bản thứ hai**, và nay có lệnh để kiểm nó: `kiem-khoa -allocation allocation.md keys.txt` | **David** | 🔴 Khoá g0 hiện ở **đúng một ổ đĩa** — đổi rủi ro *lộ* lấy rủi ro *mất*, đúng sơ đồ D-044 chứ chưa hơn |
+| **2** | 🟡 **O1 custody** — bước 1 XONG `27/08` (D-085). 🔴 **`28/08` phát hiện `kiem-khoa` chấm `6/6 ✓ exit 0` cho bộ khoá THẾ HỆ ĐÃ CHẾT** ⇒ thêm cổng thứ hai nối vào chain (D-090). Nay **6/6 quỹ đã chứng minh giữ tiền thật trên g0**. ⇒ Còn lại đúng một việc của David: **bản thứ hai** — quy trình 15 phút ở [`docs/O1-CUSTODY-PHEP-KIEM.md`](docs/O1-CUSTODY-PHEP-KIEM.md) | **David** | 🔴 Khoá g0 vẫn ở **đúng một ổ đĩa**. 🔴 **Phải chạy CẢ HAI lệnh** — `kiem-khoa` một mình không phân biệt được bản sống với bản chết |
 | **2b** | ✅ ~~B-15 bí danh tài sản~~ **CHỐT `27/08` — `LOVE9`, DỨT KHOÁT** (D-084). 🔴 Giá đã biết trước và chấp nhận: **công cụ dựng trên SDK avalanchego gốc KHÔNG nói chuyện được với A1**. Patch 0022 bắt nó hỏng ra tiếng | — | D-084 |
 | **3** | ✅ ~~netgen sinh `.env`~~ **XONG `27/08`** — patch 0020, kèm **cổng chặn mạng THẬT sinh ra ở tư thế phơi trần** và `NETWORK_ID` nay bắt buộc | A1 | D-083. Đo đầu-cuối bằng `docker compose config`: có `.env` → `localhost,127.0.0.1`, giấu đi → `*` |
 | **4** | ✅ ~~**B-9** `#e84142`~~ **XONG `27/08`** — patch 0021, vàng 9Chain trên navy | A1 | 🔴 Còn một chỗ NGOÀI phạm vi B-9: `local-net/console/index.html` **trên server** vẫn có 3 lần `#e84142` và lệch 12 byte so với git — thuộc worktree web, phiên này không đụng |
@@ -66,6 +66,7 @@ mặc định ĐÓNG — muốn chạy thì khởi động console với `A1_DE_
 | **D-087** | Đẻ chain **TẠM ĐÓNG** tới sau ngày G (`A1_DE_CHAIN_MO`) | 3 ca · **đã deploy**, console công khai từ chối đúng câu |
 | **D-088** | **Cổng canh khoảng cách repo ↔ server** + manifest deploy (một danh sách, hai nơi đọc) | bắt **5 lệch thật** ngay lần đầu · đối chứng ngược đạt · `/faucet/api/supply` nay **200, số đo từ chain** |
 | **D-089** | **H-7 = IPv4 đa cổng** (David chốt). Bản đầu **sai**, diễn tập 3 node bác nó | patch 0024 · mesh `1 → 2` peer sau khi sửa · beacon bắt tay TCP được **từ ngoài Internet** |
+| **D-090** | 🔴 **`kiem-khoa` chấm `6/6 ✓ exit 0` cho bộ khoá đã chết** ⇒ cổng thứ hai nối bộ khoá vào **chain đang chạy** | bộ g0 **6/6 khớp chain** · bộ 9001 đã chết **8 lệch, exit 1** · **5/5 đối chứng ngược** · O1 lần đầu nối được khoá ↔ **tiền** |
 
 ---
 
@@ -127,6 +128,12 @@ Ba bản soát mới: `docs/SOAT-TOAN-DIEN-2026-08-27.md` (lớp vận hành) ·
     — thứ **mọi công cụ hỏi X-Chain phải gọi đúng** — nằm ngoài. Đổi nó ở `genesis.go` mà không
     đổi `wallet/chain/{x,c}` là giết mọi ví X/C **mà đường đẻ chain vẫn xanh** (nó đi P-Chain).
     Nay một hằng `constants.GetAssetAlias`, hai nơi đọc — xem D-082 trước khi đụng lại lớp này.
+12. 🔴 **`kiem-khoa` KHÔNG phân biệt được bộ khoá còn sống với bộ khoá đã chết.** Nó so
+    `keys.txt` với `allocation.md` — **hai tệp cùng một thư mục, chép cùng một lượt**. Bộ khoá
+    thế hệ `9001` (tiền không tồn tại ở đâu cả) qua nó sạch **6/6 ✓, exit 0**. Nó *có* cảnh báo
+    `networkID`, nhưng câu phán cuối vẫn xanh — mà đó là câu người ta đọc. **Luôn chạy kèm
+    `scripts/kiem-khoa-tren-chain.mjs`** (D-090). ⚠️ Bộ `9001` đã chết vẫn nằm trên máy dev ở
+    `local-net/net-public/` — đúng thứ dễ bị chép nhầm thành "bản sao lưu".
 11. **Cổng C-4 có một ca chưa lường:** *"khắc chữ TẮT ⇒ bản tập"* sai với **mạng THẬT ở thế hệ
     trước lượt khắc chữ**. Nó chỉ cảnh báo, không chặn — nhưng đừng đọc cảnh báo đó thành lỗi.
 
@@ -141,8 +148,17 @@ curl -s -X POST -H 'content-type: application/json' \
   https://rpc-a1.9chain.org/ext/info
 
 # supplyCap ĐANG CHẠY (đừng đọc mã — đọc node)
+# 🔴 SỬA `28/08`: bản cũ dùng `docker logs` và nay RA RỖNG — vòng đệm stdout đã trôi qua
+#    dòng boot sau ~11 giờ chạy. Nó KHÔNG báo lỗi, chỉ im lặng ra rỗng ⇒ dễ đọc thành
+#    "không đo được". Đường còn sống là đọc tệp log TRONG container:
 ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" \
-  'docker logs 9chain-a1-node-1 2>&1 | grep -oE "\"supplyCap\":[0-9]+" | head -1'
+  'docker exec 9chain-a1-node-1 sh -c "grep -rho \"supplyCap[^,]*\" /root/.avalanchego/logs | head -1"'
+# đo 2026-08-28 ⇒ supplyCap":7900000001000000000 ✓
+
+# 🔴 O1 — bộ khoá quỹ có phải của MẠNG ĐANG CHẠY không (D-090). Chạy CẢ HAI, cùng thư mục:
+node scripts/kiem-khoa-tren-chain.mjs <thư-mục-khoá>/allocation.md
+node scripts/kiem-khoa-tren-chain.mjs --tu-kiem     # 5 ca đối chứng ngược
+# kèm: kiem-khoa -allocation allocation.md keys.txt  (xem docs/O1-CUSTODY-PHEP-KIEM.md)
 
 # 🔴 Cổng canh khoảng cách REPO ↔ SERVER (D-088) — chạy TRƯỚC khi tin bất kỳ mục "ĐÃ ĐÓNG" nào
 node scripts/check-deploy-drift.mjs

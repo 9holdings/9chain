@@ -6,6 +6,34 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### 🔴 B-16 — O1: BẢN SAO THỨ HAI CỦA KHOÁ QUỸ — **15 phút, chặn GO/NO-GO `29/08`**
+
+**Quy trình đầy đủ: [`docs/O1-CUSTODY-PHEP-KIEM.md`](docs/O1-CUSTODY-PHEP-KIEM.md).**
+
+Đây **không phải quyết định** — David đã chốt sơ đồ ở D-044. Là **một phép kiểm chưa ai chạy**:
+*bản thứ hai có thật không, và khôi phục được không.*
+
+| Đo `2026-08-28` | |
+|---|---|
+| Khoá g0 nằm ở | **đúng một ổ đĩa** — `C:\Users\abc\9chain-a1-keys\g0\` |
+| Bộ đó có đúng là bộ của mạng đang chạy không | ✅ **6/6 quỹ giữ tiền thật trên g0** (D-090) — khoá 8.999.991 staked · 2.600.000.001 · 810tr × 2 · C@block0 1 tỷ + 99.999.999 |
+| Bản thứ hai | 🔴 **chưa ai xác nhận có** |
+
+🔴 **Cửa sổ diễn tập rủi ro BẰNG KHÔNG đang trôi qua:** bộ khoá này **bị vứt bỏ `01/09`**. Tập
+trên chính nó thì hỏng cũng không mất gì. Sau ngày G lại kẹt y cũ, và lúc đó khoá là thật.
+
+🔴 **Bẫy phải biết trước khi chạy (D-090):** `kiem-khoa` một mình **KHÔNG phân biệt được bộ khoá
+còn sống với bộ khoá đã chết** — bộ thế hệ `9001` qua nó sạch **6/6 ✓ exit 0**. Và bộ `9001` đó
+là bộ đang tồn tại đúng lúc David được nhắc phải sao lưu, **vẫn nằm trên máy dev** để chép nhầm.
+⇒ **Chạy CẢ HAI lệnh**, trên cùng một thư mục:
+
+```bash
+node scripts/kiem-khoa-tren-chain.mjs <thư-mục-bản-sao>/allocation.md
+```
+
+**Nếu bước "lấy bản thứ hai ra" không làm được** — không tìm thấy, không mở được — thì **đó
+chính là câu trả lời cần biết trước ngày G**, và biết hôm nay thì còn 4 ngày để dựng lại.
+
 ### ✅ B-9 — **ĐÃ ĐÓNG `2026-08-27`** — đỏ Avalanche đã ra khỏi ví X/P (patch 0021)
 
 `#e84142` ở hai chỗ trong `9chain-a1-tools/xp-wallet` (dấu thương hiệu + nút chính) → **vàng

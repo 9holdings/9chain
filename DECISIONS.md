@@ -2677,3 +2677,99 @@ Tree `2954b987` → **`074aaa93`**, 24 patch; đối chứng ngược 23/24 → 
 ⚠️ Đã chứng minh: **beacon tới được từ Internet**, và **mesh cùng máy còn nguyên**. **CHƯA**
 chứng minh: một node ở **máy khác** bắt tay và đồng thuận được — việc đó cần một máy thứ hai,
 tức cần **O4 (tiền)**. Đừng đọc lượt này thành "O4 xong".
+
+---
+
+### D-090 — O1: `kiem-khoa` **chấm 6/6 ✓ cho một bộ khoá đã chết**. Cổng thứ hai nối vào chain
+
+`2026-08-28`, làm tiếp O1. Trước khi soạn quy trình cho David, tôi kiểm chính **công cụ** mà
+quy trình đó dựa vào — và nó không đứng vững.
+
+#### 🔴 Phép đo, không phải suy luận
+
+Bộ khoá thế hệ **9001** (bộ `26/08`, mạng đã chết, tiền của nó **không tồn tại ở đâu cả**) vẫn
+còn trên máy dev tại `local-net/net-public/`. Chạy `kiem-khoa` trên nó:
+
+```
+kiem-khoa — /keys/keys.txt
+  networkID 9001 · mạng "network-9001" · HRP "love9" · 6 quỹ
+  ⚠️  networkID 9001 KHÔNG thuộc băng 9Chain-A1 — chắc chắn đây là bộ khoá muốn kiểm?
+  ✓ staking … ✓ foundation … ✓ ecosystem … ✓ faucet … ✓ private-sale … ✓ team
+  ✓ đối chiếu chéo: 6 địa chỉ trong /keys/allocation.md đều có khoá
+✓ 6/6 quỹ khôi phục đúng — mọi địa chỉ suy lại từ khoá đều khớp thứ tệp tự khai.
+EXIT=0
+```
+
+Nó **có** cảnh báo — ghi nhận, đó là một nửa cổng thật. Nhưng **câu phán cuối vẫn xanh và mã
+thoát vẫn `0`**, mà câu phán cuối mới là thứ người ta đọc và trích ra ngoài.
+
+#### Vì sao đây đúng là lớp lỗi đắt nhất của repo này
+
+`kiem-khoa` đo `keys.txt` ↔ `allocation.md` — **hai tệp nằm cùng một thư mục, chép cùng một
+lượt**. Nó chứng minh bản sao **tự nhất quán**, không chứng minh bản sao **còn giá trị**.
+
+🔴 **Và tình huống nguy hiểm nhất của O1 rơi đúng vào lỗ đó.** Rủi ro thật không phải "tệp
+hỏng" — mà là **David cất đúng một bản, của thế hệ trước**: bộ `26/08` là bộ đang tồn tại vào
+đúng lúc anh được nhắc phải sao lưu, và nó vẫn nằm nguyên trên máy dev để chép nhầm. Nếu bản
+thứ hai là bộ đó thì `kiem-khoa` in **6/6 ✓**, O1 được chấm ĐẠT ở GO/NO-GO, và **khoá thật thì
+vẫn chỉ có một bản**. Cùng họ với *"đường lui alias = xanh giả"* và *"cổng chỉ chứng minh
+đường của nó"*.
+
+#### Đã làm — `scripts/kiem-khoa-tren-chain.mjs`
+
+Không sửa `kiem-khoa`: nó nằm trong **patch 0023**, đụng vào là đụng đường tái lập fork và
+phải sinh lại cả 24 patch — bốn ngày trước ngày G, cái giá đó không đáng cho một cổng **cần
+mạng mới chạy được**. Cổng vận hành thì đặt ở `scripts/`, đúng chỗ `check-*.mjs` đang ở.
+
+Nó **chỉ đọc `allocation.md`** — tệp tự khai *"CÔNG KHAI được, không chứa khoá bí mật"*.
+**Không đọc, không in, không gửi đi khoá riêng nào.** Mắt xích `keys.txt → địa chỉ` do
+`kiem-khoa` chứng minh; tệp này nối `địa chỉ → tiền trên chain đang chạy`.
+
+| Ô | Đo bằng | Phép so | Vì sao chọn phép so đó |
+|---|---|---|---|
+| X/P **khoá** | `lockedStakeable` + `platform.getStake` | **khớp từng nLOVE9** | tiền khoá không tiêu được ⇒ lệch = sai bộ |
+| **C-Chain** | `eth_getBalance(addr, **"0x0"**)` | **khớp từng wei** | số dư **ở block 0** là lịch sử genesis, bất biến, không trôi theo ngày |
+| X/P **thanh khoản** | số dư X + `unlocked` | `0 < đo ≤ khai` | ví tiêu được ⇒ đòi khớp là đẻ báo động giả |
+| `networkID` đầu tệp | `info.getNetworkID` | **CHẶN** nếu lệch | đây đúng là ca `kiem-khoa` chỉ cảnh báo rồi thoát `0` |
+
+⚠️ Quỹ staking không có `lockedStakeable` — 8.999.991 LOVE9 của nó nằm trong stake của 9
+validator. Vế khoá vì thế đo bằng **tổng** `lockedStakeable + staked`, **không đặc cách theo
+tên quỹ**: tên đổi được, phép cộng thì không.
+
+#### Nghiệm thu
+
+| | |
+|---|---|
+| Bộ g0 thật (`C:\Users\abc\9chain-a1-keys\g0\`) | **6/6 khớp chain đang chạy**, exit `0` |
+| `kiem-khoa` trên cùng bộ đó | **6/6 ✓** + đối chiếu chéo `allocation.md` 6/6 |
+| 🔴 Bộ 9001 đã chết | **8 lệch, exit 1** — trong khi `kiem-khoa` cho nó **6/6 ✓ exit 0** |
+| Đối chứng ngược `--tu-kiem` | **5/5 đỏ đúng chỗ** |
+
+Kèm một phép đo O1 chưa từng có: **6/6 quỹ của bộ khoá trên máy dev giữ tiền thật trên g0** —
+khoá 8.999.991 (staked, khớp self-bond 999.999 × 9) · 2.600.000.001 · 810.000.000 × 2 ·
+C-Chain@block0 1.000.000.000 + 99.999.999. Trước lượt này O1 **chưa bao giờ nối bộ khoá với
+tiền**, chỉ nối nó với một tệp nằm cạnh nó.
+
+#### 🔴 Đối chứng ngược lại bắt lỗi trong CHÍNH lượt vá này — lần thứ tư trong dự án
+
+Ca *"một ô KHOÁ lệch đúng 1 LOVE9"* ra **XANH**. Cổng không sai — **ca kiểm bắn nhầm ô**:
+`2,600,000,001` xuất hiện **hai lần trong cùng một dòng** (ô `Tổng` rồi mới tới ô `khoá`), và
+`String.replace` trơn thay ô **đầu**.
+
+Nhưng bắn nhầm mới lộ ra cái đáng giá: **ô `Tổng` không được cổng nào canh**, mà nó chính là ô
+người ta đọc và trích ra ngoài — không chain nào bác được nó, chỉ **phép cộng** bác được. Nay
+cổng kiểm `Tổng == lỏng + khoá + C`, và ca đối chứng tách làm hai, mỗi ca nói một chuyện.
+
+⇒ **Vẫn đúng luật cũ, thêm một vế:** cổng chưa ai thấy nó ĐỎ thì mới kiểm một nửa — và **ca
+đối chứng chưa ai kiểm là nó bắn trúng ô nào thì cũng chỉ là một nửa**. Một ca đối chứng ra
+xanh có hai nghĩa, "cổng thủng" và "ca bắn trượt", và chúng nhìn giống hệt nhau.
+
+#### Còn lại của O1 — nói thẳng
+
+`kiem-khoa` + `kiem-khoa-tren-chain` là **HAI lệnh**, chạy trên **cùng một thư mục** mới khép
+vòng. D-085 hứa *"O1 nay là một lệnh chạy được"* — câu đó nay **sai**, ghi ra thay vì để nó
+đứng. Đầu ra của lệnh mới in cả hai bước ở chân màn hình để không ai chạy nửa vòng.
+
+🔴 Và **không cổng nào trong hai cổng đó tạo ra bản sao thứ hai.** Khoá g0 vẫn ở **đúng một ổ
+đĩa**. Việc còn lại của O1 vẫn nguyên: **David lấy bản anh tự cất, chạy hai lệnh trên nó** —
+xem `docs/O1-CUSTODY-PHEP-KIEM.md`.
