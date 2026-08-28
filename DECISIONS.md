@@ -816,7 +816,7 @@ self-bond = 50 tỷ × tỷ-lệ-staking ÷ 5 node. Với **mọi** khả năng 
   gian; chỉ đầu vào/ra là `uint64`.
 - Cầu nối P/X↔C là **đúng một hằng số** `X2CRateUint64` (`coreth/plugin/evm/atomic/tx.go:33`).
 
-📄 **Soát rủi ro đầy đủ: `docs/RUI-RO-THANG-1E7.md`** — 6 rủi ro có vị trí cụ thể
+📄 **Soát rủi ro đầy đủ: `docs/RISK-SCALE-1E7.md`** — 6 rủi ro có vị trí cụ thể
 trong mã, 7 thứ đã kiểm và KHÔNG phải rủi ro, và 3 thứ chưa đo. Hai điều nặng nhất:
 thang `1e9` nằm ở **BA chỗ độc lập** (netgen `unitLOVE9`, netgen `cChainGenesis`,
 coreth `X2CRateUint64`) và lệch nhau thì **không gây lỗi nào**; và mọi `units.*` còn
@@ -877,7 +877,7 @@ trần quá ~18,4 tỷ thì mới phải quay lại bài toán thang đơn vị.
 
 #### Vì sao phương án này tối ưu — nó **xoá** gần hết bảng rủi ro
 
-`docs/RUI-RO-THANG-1E7.md` liệt kê 6 rủi ro của việc đổi thang. Giữ nguyên `1e9` làm
+`docs/RISK-SCALE-1E7.md` liệt kê 6 rủi ro của việc đổi thang. Giữ nguyên `1e9` làm
 chúng **biến mất**, không phải giảm nhẹ:
 
 | | Rủi ro của PA-1/PA-2 | Ở D-039 |
@@ -1083,7 +1083,7 @@ lại bảng, tính lại lát self-bond, và chạy lại toàn bộ nghiệm t
 mà chưa ai nêu được lý do kỹ thuật.
 
 ⇒ **Mở khoá:** G1 · G2 (lát self-bond) · G3 (phần để mint) trong kế hoạch ngày G, và
-điều kiện GO/NO-GO số 1. Xem `docs/NGAY-G-A1-CON-LAI.md`.
+điều kiện GO/NO-GO số 1. Xem `docs/GDAY-A1-REMAINING.md`.
 
 **Hệ quả kèm theo, đã tính sẵn (G2/G3 không còn phải quyết riêng):**
 - **G2** — self-bond **8.999.991** nằm trong Foundation 12% (KHÔNG trích từ ô staking như
@@ -1395,7 +1395,7 @@ Gộp hai mã thoát làm một là mất đúng thông tin cần cho ngày G.
 
 ### D-060 — Giữ `chains.json` (1,1 MB) trong repo làm vật chứng, không chỉ giữ `sha256`
 
-`docs/vat-chung/g4-2026-08-27/chains.json`.
+`docs/evidence/g4-2026-08-27/chains.json`.
 
 **Lý do:** sổ đổi **hàng ngày**, nên chỉ giữ `sha256` là giữ một con số **không ai kiểm lại
 được** — bản gốc để đối chiếu sẽ không còn tồn tại. Vật chứng cho một quyết định **khắc vĩnh
@@ -1579,7 +1579,7 @@ oan là một cổng sẽ bị bỏ qua đúng lúc nó kêu thật.
 | 🔴 `--offset-ms 0` — **ca mà bản cũ chấm ✗** | **10 đạt · 0 hỏng · 2 lưu ý (2 KHÔNG đạt)**, exit 0. Block đầu tiên vượt mốc là của **Eva `#4`**, Adam ở `#3` — neo vẫn trỏ đúng `#3` |
 | `--no-send` (đối chứng ngược gốc) | 2 đạt · 0 hỏng, exit 0 |
 
-Vật chứng: `docs/vat-chung/block-adam-neo-2026-08-27.json` + `…-bu0-2026-08-27.json`.
+Vật chứng: `docs/evidence/block-adam-anchor-2026-08-27.json` + `…-bu0-2026-08-27.json`.
 
 🔴 **D-070 HẠ MỨC B-13(b), KHÔNG ĐÓNG NÓ.** Bù `--offset-ms` thôi quyết định *"neo đúng hay sai"*,
 nhưng nếu bản khắc còn **CÂU CHỮ** khẳng định block vượt mốc `2026-09-09T06:09:09Z` thì câu đó
@@ -1590,7 +1590,7 @@ vẫn phải đúng, và nó vẫn phụ thuộc đồng hồ của **node đề
 
 ### D-071 — 9 validator mang `restart: unless-stopped`, KHÔNG phải `always`
 
-**David duyệt `2026-08-27`** (P0-1 của `SOAT-TOAN-DIEN-2026-08-27.md`). Đã áp trên mạng công
+**David duyệt `2026-08-27`** (P0-1 của `FULL-REVIEW-2026-08-27.md`). Đã áp trên mạng công
 khai: `9/9` từ `no` → `unless-stopped`, container **không bị restart**.
 
 **Vì sao trước đó là `no`:** không ai chọn nó. `netgen` sinh `docker-compose.multinode.yml` mà
@@ -1668,7 +1668,7 @@ nói tới.
 ### D-072 — O2 đã chạy THẬT trên mạng công khai; `GỐC` neo một THỜI ĐIỂM, không neo một chuỗi
 
 Lượt O2 đầu tiên trên mạng công khai, `2026-08-27`. Vật chứng:
-`docs/vat-chung/o2-mang-cong-khai-2026-08-27/`.
+`docs/evidence/o2-public-network-2026-08-27/`.
 
 | | |
 |---|--:|
@@ -1865,7 +1865,7 @@ hồi được), trong khi **nới rộng thì miễn phí, nhưng chỉ miễn 
 | ±10 triệu quanh chain mẹ | ✓ trống — tái lập phép đo G4 `27/08`, **vẫn đúng hôm nay** |
 | `LOVE9` · `9Chain` · `9Scan` | ✓ không chuỗi nào dùng tên/ký hiệu này |
 
-**Vật chứng:** `docs/vat-chung/g4-2026-08-27-c-dai-moi/` — `chains.json` + `KET-QUA-TRA.json` (kèm bảng 10 khối thế hệ).
+**Vật chứng:** `docs/evidence/g4-2026-08-27-c-new-range/` — `chains.json` + `LOOKUP-RESULT.json` (kèm bảng 10 khối thế hệ).
 ⚠️ **Luật cũ giữ nguyên: tra LẠI ngay trước bước sinh genesis `01/09`, với dải mới.**
 
 #### `999999999` trùng Zora Sepolia ở thang `chainId` — và vì sao vẫn chốt
@@ -1985,7 +1985,7 @@ kiểm được nửa "có chặn không", chưa kiểm nửa "chặn xong nó n
 
 ### D-079 — Bộ định danh theo thế hệ ĐÃ HIỆN THỰC. Và một cổng xanh vẫn để lọt một lỗi 720 triệu
 
-Thi hành D-076 + đề xuất thế hệ (`docs/DE-XUAT-BO-DINH-DANH-THE-HE.md`). Cây fork: **18 patch**,
+Thi hành D-076 + đề xuất thế hệ (`docs/PROPOSAL-GENERATION-IDS.md`). Cây fork: **18 patch**,
 tree **`f4615e73`**.
 
 | | Thế hệ 0 |
@@ -2072,7 +2072,7 @@ sinh lại **không âm thầm đổi gì** ở 17 patch cũ.
 ### D-080 — 🔴 GỐC của mạng công khai thế hệ trước, công bố TRƯỚC khi xoá
 
 Lượt O2 cuối cùng của mạng `networkID 9001` (sinh `2026-08-26`, xoá `2026-08-27`).
-Vật chứng: `docs/vat-chung/o2-truoc-khi-xoa-2026-08-27/`.
+Vật chứng: `docs/evidence/o2-before-delete-2026-08-27/`.
 
 | | |
 |---|--:|
@@ -2150,14 +2150,14 @@ của netgen. Cùng bài học với D-079: **cổng chỉ chứng minh được
 
 #### Vật chứng thế hệ trước
 
-`docs/vat-chung/o2-truoc-khi-xoa-2026-08-27/` · `GỐC` ở **D-080**.
+`docs/evidence/o2-before-delete-2026-08-27/` · `GỐC` ở **D-080**.
 Bản sao trên máy chủ: `net-pre-g0-20260827-152109/` · `console.env.bak-pre-g0-*` ·
 `faucet.env.bak-pre-g0-*` · cây fork cũ ở `src/upstream/avalanchego.bak-pre-g0`.
 
 #### 🔴 Còn lại, KHÔNG được quên
 
 1. **`chain-factory` chưa nạp tiền P-Chain** ⇒ **đẻ chain chưa dùng được**. Nạp từ Foundation
-   X-Chain (`X-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g`) → X→P 9 LOVE9. Xem `VI-VAN-HANH.md`.
+   X-Chain (`X-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g`) → X→P 9 LOVE9. Xem `WALLET-OPERATIONS.md`.
 2. **Blockscout đang index lại từ block 0** của chuỗi mới.
 3. **Ngày G `01/09` vẫn phải sinh lại lần nữa** — chữ khắc đi vào genesis, C1 chưa đóng băng byte.
    ⇒ Lượt đó là **thế hệ 1**: `A1Gen 1` · `networkID 999999998` · `9chain-a1-g1` · khối chainId
@@ -2170,7 +2170,7 @@ Bản sao trên máy chủ: `net-pre-g0-20260827-152109/` · `console.env.bak-pr
 ### D-082 — 🔴 Bí danh tài sản X-Chain: một hằng, hai nơi đọc. Và ví `chain-factory` đã có tiền
 
 **Triệu chứng ban đầu chỉ là "đẻ chain chưa dùng được vì thiếu tiền".** Nạp tiền thì phải chạy
-`xp-wallet` — đúng công cụ `docs/VI-VAN-HANH.md` chỉ định. Nó **không khởi động nổi**:
+`xp-wallet` — đúng công cụ `docs/WALLET-OPERATIONS.md` chỉ định. Nó **không khởi động nổi**:
 
 ```
 khong ket noi duoc node: failed to decode client response: asset 'AVAX' not found
@@ -2772,7 +2772,7 @@ vòng. D-085 hứa *"O1 nay là một lệnh chạy được"* — câu đó nay
 
 🔴 Và **không cổng nào trong hai cổng đó tạo ra bản sao thứ hai.** Khoá g0 vẫn ở **đúng một ổ
 đĩa**. Việc còn lại của O1 vẫn nguyên: **David lấy bản anh tự cất, chạy hai lệnh trên nó** —
-xem `docs/O1-CUSTODY-PHEP-KIEM.md`.
+xem `docs/O1-CUSTODY-VERIFICATION.md`.
 
 ---
 
@@ -2919,7 +2919,7 @@ khoá `chain-factory` trong **env container**, chạy thường trực trên má
 🔴 Điểm cuối quan trọng hơn vẻ ngoài: `up-all.sh` **cũng** dựng một `9chain-a1-xpwallet`, nhưng
 **không truyền `WALLET_KEY`** ⇒ ví đó dùng khoá `ewoq` mặc định, và đó là máy dev. Nên đây
 **không** phải ca *"vá trên server rồi lượt deploy sau dựng lại"* (B-5/B-6). Không cần sửa
-`up-all.sh`; cần sửa **tài liệu**, vì `VI-VAN-HANH.md` mô tả lượt chạy tay đó là cách làm.
+`up-all.sh`; cần sửa **tài liệu**, vì `WALLET-OPERATIONS.md` mô tả lượt chạy tay đó là cách làm.
 
 #### Đã làm — dừng trước, xoá sau
 
@@ -3261,7 +3261,7 @@ khoá đang nằm trên máy dev** — thứ dễ bị chép nhầm thành "bả
    `MSYS_NO_PATHCONV=1`; gọi qua `spawnSync` thì **lời dặn đó thôi cần thiết** — cùng tinh
    thần với chính mốc này: **biến lời dặn thành cấu trúc.**
 
-Đã cập nhật `docs/O1-CUSTODY-PHEP-KIEM.md` và `BLOCKERS.md` B-16 sang một lệnh; hai lệnh rời
+Đã cập nhật `docs/O1-CUSTODY-VERIFICATION.md` và `BLOCKERS.md` B-16 sang một lệnh; hai lệnh rời
 **vẫn giữ** cho ai muốn đọc kỹ từng vế.
 
 ## D-098 — Cổng drift nhìn HƯỚNG NGƯỢC: tệp có trên server mà không có trong repo (2026-08-28)
@@ -3326,7 +3326,7 @@ nhìn"*, không phải *"không có mồ côi nào"*.
 
 ## D-099 — Công cụ O3b: kéo sổ SỐNG về rồi dồn `chains` → `retired` (2026-08-28)
 
-`NGAY-G-A1-CON-LAI.md` §5c đã chỉ đúng cách làm từ `26/08` — **dồn rồi giữ tệp**, đừng reset
+`GDAY-A1-REMAINING.md` §5c đã chỉ đúng cách làm từ `26/08` — **dồn rồi giữ tệp**, đừng reset
 (mất sổ chống phát lại) và cũng đừng giữ nguyên (console tưởng chain còn sống trên một mạng
 chúng không tồn tại). Nhưng tới `28/08` **chưa có công cụ nào làm việc đó**: nó vẫn là thao tác
 tay trên một tệp JSON — đúng loại việc đã hỏng một lần và mất **43 bản ghi**.
@@ -3526,7 +3526,7 @@ Lấy giá trị trung tâm là chọn con số đúng 50% số lần — mà đ
 Mỗi phiên mới trả ~85K token để đọc lại một tệp mà ~90% là lịch sử tệp đó **tự khai** là
 *"không cần đọc nếu chỉ tiếp việc"*. Đây là chi phí **định kỳ**, không phải một lần.
 
-Toàn bộ phần lịch sử sang [`docs/archive/HANDOFF-lich-su-2026-08.md`](docs/archive/HANDOFF-lich-su-2026-08.md)
+Toàn bộ phần lịch sử sang [`docs/archive/HANDOFF-history-2026-08.md`](docs/archive/HANDOFF-history-2026-08.md)
 — **1.793 dòng, không mất một chữ nào**. `HANDOFF.md` giữ: TL;DR · đợt 15 · việc tiếp · gotchas
 · lệnh hữu ích. Luật cứng đã ra `CLAUDE.md` từ A15-0.
 
@@ -3542,7 +3542,7 @@ tập trung A1, C1 tôi điều phối riêng."*
 
 Trước quyết định này, ba tệp sống của A1 đều khai C1 là **đường găng lớn nhất**:
 `HANDOFF.md` (*"ngoài tầm A1: chữ khắc chờ C1 đóng băng byte"*), `PROGRESS.md` (cuối đợt 15),
-`gday-preflight.mjs` (việc tay *"chờ C1 đóng băng byte"*), và `NGAY-G-A1-CON-LAI.md` §8 xếp
+`gday-preflight.mjs` (việc tay *"chờ C1 đóng băng byte"*), và `GDAY-A1-REMAINING.md` §8 xếp
 *"C1 chưa đóng băng byte kịp `28/08`"* là **rủi ro số 1**.
 
 ⇒ **Đổi hình dạng, không đổi cơ chế.** A1 nhận **byte đã đóng băng như một đầu vào David cấp**:
@@ -3765,7 +3765,7 @@ danh bạ. Quét hash từng tệp đối chiếu **toàn bộ `git rev-list --a
 ⇒ **Lần thứ HAI trong cùng một phiên** câu *"xoá không mất gì"* sai. Lần đầu là một sổ danh bạ
 (D-107); lần này là **mã**, và `shred -u` là mất hẳn.
 
-✅ **Đã lưu trữ** → `docs/archive/console-truoc-admin-2026-08-24/` (kèm `SHA256SUMS.txt` +
+✅ **Đã lưu trữ** → `docs/archive/console-pre-admin-2026-08-24/` (kèm `SHA256SUMS.txt` +
 README mang cảnh báo **KHÔNG BAO GIỜ khôi phục**). Khớp `sha256` hai đầu. **Quét bí mật trước
 khi commit: 0 kết quả** cho `0x…64`, `PRIVATE KEY`, `A1_CONSOLE_TOKEN=`, `FAUCET_PK=`, base64
 dài — không đưa bí mật vào git chỉ vì đang vội dọn dẹp.

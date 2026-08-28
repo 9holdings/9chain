@@ -4,8 +4,8 @@
  *
  * ═══ VÌ SAO CÓ ═══
  *
- * Tới `2026-08-28`, runbook ngày G nằm rải ở **năm tệp tài liệu** (`NGAY-G-A1-CON-LAI.md`,
- * `PLAN-REGENESIS-2026-09-01.md`, `KHAC-CHU-NGAY-G.md`, `QUY-TRINH-O2-…`, `HANDOFF.md`) và
+ * Tới `2026-08-28`, runbook ngày G nằm rải ở **năm tệp tài liệu** (`GDAY-A1-REMAINING.md`,
+ * `PLAN-REGENESIS-2026-09-01.md`, `GDAY-ENGRAVING.md`, `QUY-TRINH-O2-…`, `HANDOFF.md`) và
  * **không có gì chạy được**. Một quy trình chỉ tồn tại dưới dạng văn bản là một quy trình
  * được thi hành bằng trí nhớ, vào đúng ngày người ta bận nhất và ít ngủ nhất.
  *
@@ -70,10 +70,19 @@ const CONG = [
   { nhom: "2 · CỔNG REPO", ten: "phân loại tệp thừa (đối chứng)", ...node("scripts/check-deploy-drift.mjs", "--self-test") },
   { nhom: "2 · CỔNG REPO", ten: "phép dồn sổ danh bạ (đối chứng)", ...node("scripts/close-ledger-before-regenesis.mjs", "--self-test") },
   { nhom: "2 · CỔNG REPO", ten: "chấm điểm canh mạng (đối chứng)", ...node("scripts/watch-network.mjs", "--self-test") },
+  // Vật chứng O2 phải TỰ nghiệm thu được. Đặt ở đây vì O2 là **việc tay của chính ngày
+  // G** — phát hiện gói đã hỏng lúc đang chạy runbook thì đã muộn. (28/08)
+  { nhom: "2 · CỔNG REPO", ten: "gói vật chứng khớp từng byte", ...node("scripts/check-evidence.mjs") },
+  { nhom: "2 · CỔNG REPO", ten: "cổng vật chứng biết báo đỏ (đối chứng)", ...node("scripts/check-evidence.mjs", "--self-test") },
 
   // ── 3. Thế giới thật — mạng đang chạy và server ──
   { nhom: "3 · THẾ GIỚI THẬT", mang: true, ten: "mạng đang chạy (watch-network)", ...node("scripts/watch-network.mjs") },
   { nhom: "3 · THẾ GIỚI THẬT", mang: true, ten: "khoảng cách repo ↔ server + tệp mồ côi", ...node("scripts/check-deploy-drift.mjs") },
+  // Đo TIỀN THẬT trên chain nên nó thuộc nhóm 3, không phải cổng repo: bản `--offline`
+  // chỉ trả lời được nửa câu hỏi và mã thoát của nó là 2 (CHƯA KẾT LUẬN) — đúng bản chất,
+  // nhưng một cổng ngày G mà "chưa kết luận" thì không dùng được. Chặn bẫy "xoá mấy thư
+  // mục chết đi" ngay trước lượt dọn dẹp.
+  { nhom: "3 · THẾ GIỚI THẬT", mang: true, ten: "thư mục net* — thế hệ + TIỀN THẬT", ...node("scripts/check-net-dirs.mjs") },
   {
     nhom: "3 · THẾ GIỚI THẬT", mang: true,
     ten: "G4 · tra sổ chainId công khai (PHẢI tra lại ngay trước genesis)",

@@ -103,7 +103,7 @@ patch 0013 (D-050).
 
 ## 4. Phần thứ hai — console không cấp chainId đã bị người khác chiếm (B-14)
 
-Tra sổ công khai `27/08` ([`G4-TRA-CHAINID-2026-08-27.md`](G4-TRA-CHAINID-2026-08-27.md)) phát
+Tra sổ công khai `27/08` ([`G4-CHAINID-LOOKUP-2026-08-27.md`](G4-CHAINID-LOOKUP-2026-08-27.md)) phát
 hiện **`9100` = Genesis Coin**, mà `9100` là **số đầu tiên console cấp** cho L1 người dùng.
 
 `server.mjs` nay đọc [`local-net/console/chainid-taken.json`](../local-net/console/chainid-taken.json)

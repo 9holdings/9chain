@@ -109,7 +109,7 @@ sống tự khai `thế hệ : ✅ khớp node đang chạy — g0 · networkID 
 3. ✅ **M11.10 XONG và ĐÃ KÝ THẬT** (D-091): ví chạy ở máy dev, hầm SSH **trong cùng container**,
    khoá không chạm server. `9chain-a1-xpwallet` trên server **đã xoá hẳn** (D-092).
 4. 🔴 **O1 vẫn CHƯA ĐẠT** — còn đúng một việc, và chỉ David làm được: **bản sao thứ hai**.
-   Xem [`docs/O1-CUSTODY-PHEP-KIEM.md`](docs/O1-CUSTODY-PHEP-KIEM.md) · **B-16**.
+   Xem [`docs/O1-CUSTODY-VERIFICATION.md`](docs/O1-CUSTODY-VERIFICATION.md) · **B-16**.
 
 🔴 **PHÁT HIỆN ĐẮT NHẤT `28/08`: mã trên server lạc hậu 2 ngày, mà mọi cổng vẫn xanh.**
 Console công khai đứng ở commit `69c80ce` (26/08) ⇒ **B-14 ghi "ĐÃ ĐÓNG" trong repo nhưng
@@ -154,7 +154,7 @@ David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
 | # | Việc | Ai | Ghi chú |
 |---|---|---|---|
 | **1** | ✅ ~~Nạp `chain-factory`~~ **XONG `27/08`** — 89,99999173 LOVE9 trên P. 🔴 **Còn nợ phép kiểm:** đẻ **một** L1 rồi thu hồi để chứng minh đường đẻ chain thông (cần David ký SIWE, và nó tạo chain THẬT trên mạng công khai) | A1 + **David** | D-082. Khoá Foundation lấy từ `net/keys.txt` **trên server** — không phải "khoá máy dev" như dự tính, xem O1 |
-| **2** | 🟡 **O1 custody** — ✅ **NAY CHỈ MỘT LỆNH: `node scripts/o1-check.mjs <thư-mục>`** (D-097; exit 0 ĐẠT · 1 SAI · 2 CHƯA KẾT LUẬN). — bước 1 XONG `27/08` (D-085). 🔴 **`28/08` phát hiện `kiem-khoa` chấm `6/6 ✓ exit 0` cho bộ khoá THẾ HỆ ĐÃ CHẾT** ⇒ thêm cổng thứ hai nối vào chain (D-090). Nay **6/6 quỹ đã chứng minh giữ tiền thật trên g0**. ⇒ Còn lại đúng một việc của David: **bản thứ hai** — quy trình 15 phút ở [`docs/O1-CUSTODY-PHEP-KIEM.md`](docs/O1-CUSTODY-PHEP-KIEM.md) | **David** | 🔴 Khoá g0 vẫn ở **đúng một ổ đĩa**. 🔴 **Phải chạy CẢ HAI lệnh** — `kiem-khoa` một mình không phân biệt được bản sống với bản chết |
+| **2** | 🟡 **O1 custody** — ✅ **NAY CHỈ MỘT LỆNH: `node scripts/o1-check.mjs <thư-mục>`** (D-097; exit 0 ĐẠT · 1 SAI · 2 CHƯA KẾT LUẬN). — bước 1 XONG `27/08` (D-085). 🔴 **`28/08` phát hiện `kiem-khoa` chấm `6/6 ✓ exit 0` cho bộ khoá THẾ HỆ ĐÃ CHẾT** ⇒ thêm cổng thứ hai nối vào chain (D-090). Nay **6/6 quỹ đã chứng minh giữ tiền thật trên g0**. ⇒ Còn lại đúng một việc của David: **bản thứ hai** — quy trình 15 phút ở [`docs/O1-CUSTODY-VERIFICATION.md`](docs/O1-CUSTODY-VERIFICATION.md) | **David** | 🔴 Khoá g0 vẫn ở **đúng một ổ đĩa**. 🔴 **Phải chạy CẢ HAI lệnh** — `kiem-khoa` một mình không phân biệt được bản sống với bản chết |
 | **2b** | ✅ ~~B-15 bí danh tài sản~~ **CHỐT `27/08` — `LOVE9`, DỨT KHOÁT** (D-084). 🔴 Giá đã biết trước và chấp nhận: **công cụ dựng trên SDK avalanchego gốc KHÔNG nói chuyện được với A1**. Patch 0022 bắt nó hỏng ra tiếng | — | D-084 |
 | **3** | ✅ ~~netgen sinh `.env`~~ **XONG `27/08`** — patch 0020, kèm **cổng chặn mạng THẬT sinh ra ở tư thế phơi trần** và `NETWORK_ID` nay bắt buộc | A1 | D-083. Đo đầu-cuối bằng `docker compose config`: có `.env` → `localhost,127.0.0.1`, giấu đi → `*` |
 | **4** | ✅ ~~**B-9** `#e84142`~~ **XONG `27/08`** — patch 0021, vàng 9Chain trên navy | A1 | 🔴 Còn một chỗ NGOÀI phạm vi B-9: `local-net/console/index.html` **trên server** vẫn có 3 lần `#e84142` và lệch 12 byte so với git — thuộc worktree web, phiên này không đụng |
@@ -163,7 +163,7 @@ David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
 | **6b** | 🔴 **B-17 (MỚI)** — xoá 6 tệp `.bak` trên server: đường lui trỏ vào quyết định ĐÃ ĐÓNG (mở lại đẻ chain + gỡ xác thực ví). Lệnh soạn sẵn trong `BLOCKERS.md` | **David** | D-098 · autopilot không ghi lên server |
 | **7** | ✅ ~~H-7~~ **CHỐT + LÀM XONG** — IPv4 đa cổng (D-089, patch 0024). 🔴 Còn lại của **O4 là TIỀN**: đã chứng minh beacon tới được từ Internet và mesh cùng máy còn nguyên, **chưa** chứng minh node ở máy khác bắt tay được — việc đó cần máy thứ hai | **David** (O4) | D-089 |
 | **8** | **Gộp `web-home` → `main`** | **David** | `DECISIONS.md` đang tồn tại ở hai bản — xem §12.1 |
-| **9** | GO/NO-GO `2026-08-29` · Ngày G `2026-09-01` | — | `docs/NGAY-G-A1-CON-LAI.md` §7 |
+| **9** | GO/NO-GO `2026-08-29` · Ngày G `2026-09-01` | — | `docs/GDAY-A1-REMAINING.md` §7 |
 | **10** | ✅ ~~**M11.10**~~ **XONG `28/08`** (D-091) — ví ký từ máy dev qua hầm SSH **trong cùng container**; đã **ký thật** lên mạng công khai, khoá không chạm server. `node scripts/wallet-over-tunnel.mjs --check` | A1 | ✅ `--fund` cũng XONG (D-091b): 6/6 quỹ chọn đúng, `--check` kiểm được việc chọn quỹ **mà không khởi động ví**. ✅ `9chain-a1-xpwallet` trên server **ĐÃ XOÁ HẲN `28/08`** (D-092) — đừng dựng lại |
 
 🔴 **Phép kiểm đẻ chain đầu-cuối cần HAI thứ của David:** ký SIWE, **và** biết rằng cổng nay
@@ -300,7 +300,7 @@ docker rm -f 9chain-a1-vi-ham           # 🔴 xong việc là dừng NGAY — c
 # 🔴 O1 — bộ khoá quỹ có phải của MẠNG ĐANG CHẠY không (D-090). Chạy CẢ HAI, cùng thư mục:
 node scripts/check-keys-on-chain.mjs <thư-mục-khoá>/allocation.md
 node scripts/check-keys-on-chain.mjs --self-test     # 5 ca đối chứng ngược
-# kèm: kiem-khoa -allocation allocation.md keys.txt  (xem docs/O1-CUSTODY-PHEP-KIEM.md)
+# kèm: kiem-khoa -allocation allocation.md keys.txt  (xem docs/O1-CUSTODY-VERIFICATION.md)
 
 # 🔴 Cổng canh khoảng cách REPO ↔ SERVER (D-088) — chạy TRƯỚC khi tin bất kỳ mục "ĐÃ ĐÓNG" nào
 node scripts/check-deploy-drift.mjs
@@ -337,6 +337,6 @@ curl -s -X POST -H 'content-type:application/json' \
 ---
 ## Lịch sử các đợt trước
 
-Đã tách sang [`docs/archive/HANDOFF-lich-su-2026-08.md`](docs/archive/HANDOFF-lich-su-2026-08.md)
+Đã tách sang [`docs/archive/HANDOFF-history-2026-08.md`](docs/archive/HANDOFF-history-2026-08.md)
 (`2026-08-28`, A15-7) — **không mất một chữ nào**, chỉ thôi nằm trên đường đi hằng ngày.
 Ở đó: đợt autopilot 14 · soát CORE `27/08` · chuẩn hoá thương hiệu `27/08` · các phiên trước.

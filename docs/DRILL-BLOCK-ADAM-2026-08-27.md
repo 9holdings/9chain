@@ -123,7 +123,7 @@ mất ô đó**, và không có cách nào giành lại.
 *"được bảo đảm đứng yên"*, và ngày G là ngày đông người nhất từ trước tới nay.
 
 ⇒ Luật khắc chắc chắn đúng phải neo vào thứ ta cầm được: **hash của giao dịch nghi lễ**, hoặc
-**số block chốt sau khi nó đã sinh ra**. 🔴 **Đây là việc của David** — `NGAY-G-A1-CON-LAI.md`
+**số block chốt sau khi nó đã sinh ra**. 🔴 **Đây là việc của David** — `GDAY-A1-REMAINING.md`
 §6 mục 3 đang hỏi *"Block Adam nằm trên chain nào"*; lượt diễn tập này thêm một câu nữa vào
 cùng mục đó: **neo vào cái gì**.
 

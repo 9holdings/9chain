@@ -320,7 +320,7 @@ ngày phản ứng thay vì tắt đồng loạt. Đừng dọn về 0.
 `netgen` **không đọc tệp này** (dựng `UnparsedConfig` trong Go, `main.go:213`; `main.go:9` ghi
 rõ *"KHÔNG dùng khoá ewoq"*), nên **mạng công khai sạch**. Nhưng tệp vẫn mount `ro` vào mọi
 node, `README.md:111` trỏ vào nó làm nguồn Network ID và chainId, và — đắt nhất —
-[`NGAY-G-A1-CON-LAI.md`](NGAY-G-A1-CON-LAI.md) cùng `PLAN-REGENESIS:105` trỏ **`:95
+[`GDAY-A1-REMAINING.md`](GDAY-A1-REMAINING.md) cùng `PLAN-REGENESIS:105` trỏ **`:95
 "{{ fun_quote }}"` làm ô khắc chữ ngày G**, trong khi ô khắc thật nằm ở `netgen/engrave.go`.
 
 ⇒ **Tài liệu ngày G đang chỉ người đọc vào một tệp không có vai trò nhân quả nào.**
@@ -345,8 +345,8 @@ Nay cả hai lấy từ **cùng một bộ `local-net/net/`**.
 | `9chain-a1-config/l1-evm-genesis.json` | mount | **giữ nguyên** — khuôn genesis L1 EVM, `create-l1` đọc |
 | thiếu `net/genesis.json` | boot một mạng lạ | **dừng, in lệnh `gen-network.sh`** (`up-all.sh` · `create-l1.sh` · `9chain-a1 up`) |
 
-**Con trỏ khắc chữ — sửa ở 5 chỗ:** `NGAY-G-A1-CON-LAI.md` §3 · `PLAN-REGENESIS` §G5 + G5a +
-mục (d) · `KHAC-CHU-NGAY-G.md` luật 3 · `README.md` bảng identity · **`netgen/main.go`** (chú
+**Con trỏ khắc chữ — sửa ở 5 chỗ:** `GDAY-A1-REMAINING.md` §3 · `PLAN-REGENESIS` §G5 + G5a +
+mục (d) · `GDAY-ENGRAVING.md` luật 3 · `README.md` bảng identity · **`netgen/main.go`** (chú
 thích trong mã — nằm trong patch 0013, nên tree đổi sang `0f497b37`).
 
 Mỗi chỗ đều giữ lại một dòng nói **bản cũ ghi gì và vì sao sai**, thay vì im lặng thay số —

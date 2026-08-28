@@ -1,7 +1,7 @@
 # KHẮC CHỮ VÀO GENESIS — cách dùng
 
 > Cơ chế: `9chain-a1-tools/netgen/engrave.go`. Quyết định gốc: `PLAN-REGENESIS-2026-09-01.md`
-> §G5f/§G5h. Còn lại gì cho ngày G: [`NGAY-G-A1-CON-LAI.md`](NGAY-G-A1-CON-LAI.md).
+> §G5f/§G5h. Còn lại gì cho ngày G: [`GDAY-A1-REMAINING.md`](GDAY-A1-REMAINING.md).
 
 ## Mặc định là KHÔNG khắc
 

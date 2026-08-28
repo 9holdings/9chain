@@ -149,7 +149,7 @@ không push.
       docker hỏng / thư mục rỗng / thư mục không tồn tại ⇒ `2`.
       Kèm: Go bản địa **không** build được `kiem-khoa` (cần container `golang:1.25.10`, ~28s),
       và `spawnSync` né hẳn bẫy MSYS đổi `-w /src` thành `C:/Program Files/Git/src`.
-      Kèm: cập nhật `docs/O1-CUSTODY-PHEP-KIEM.md` + `BLOCKERS.md` B-16 sang **một lệnh duy nhất**.
+      Kèm: cập nhật `docs/O1-CUSTODY-VERIFICATION.md` + `BLOCKERS.md` B-16 sang **một lệnh duy nhất**.
 - [x] **A15-3 — drift gate thấy tệp THỪA (`--quet-thua`)**
       Gotcha 14: cổng canh *"tệp trong danh sách có khớp không"*; tệp **xoá khỏi repo mà còn
       trên server** thì không nhóm nào thấy. Đã cháy thật — genesis LOCAL của Avalanche
@@ -219,7 +219,7 @@ không push.
       nghĩa **sau O4** (nhà cung cấp thứ hai). Đo lệch trên một đồng hồ duy nhất rồi khai "đã đo"
       chính là *đo sai đại lượng*.
       ✅ **ĐẠT `28/08`** (D-102 · D-103). (a) `HANDOFF.md` **2.026 → 250 dòng**, lịch sử 1.793
-      dòng sang `docs/archive/HANDOFF-lich-su-2026-08.md`, **không mất một chữ**.
+      dòng sang `docs/archive/HANDOFF-history-2026-08.md`, **không mất một chữ**.
       (b) `scripts/check-clock-skew.mjs` — **7/7 ca đối chứng**; đo thật **+557ms ± 811ms** ⇒
       biên xấu nhất node chậm 254ms ⇒ giữ `--offset-ms 3000`.
       🔴 **Bỏ hai cách đo vì chúng đo sai đại lượng:** `ssh` cho RTT **4.100ms** và một thiên
@@ -243,7 +243,7 @@ dõi, không chờ, và **không xếp C1 vào bảng rủi ro của mình**. Vi
 
 ## 🔴 ĐỢT AUTOPILOT 14 (2026-08-27) — 5 mốc đường găng ngày G
 
-Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
+Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/GDAY-A1-REMAINING.md` §9.
 **Không mốc nào cần David.** Không đạt ⇒ ghi `BLOCKERS.md` rồi sang mốc kế, đừng dừng chờ.
 
 - [x] **A-1 — Diễn tập giao dịch nghi lễ Block Adam** (§4 `NGAY-G-A1-CON-LAI`) — **ĐẠT `27/08`**
@@ -251,7 +251,7 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       (1 node, cổng 9750, binary đã vá — `supplyCap` 7900000001000000000 trong log đầu).
       **4 lượt chạy:** bù 0 ⇒ 🔴 **7 đạt/1 hỏng** · bù +3s ⇒ ✅ **9 đạt/0 hỏng** · đối chứng
       ngược *không gửi gì* ⇒ 3/3 đúng (0 block) · đối chứng ngược *hẹn sai giờ* ⇒ 5/5 đúng.
-      Hẹn giờ lệch **0 ms** cả 3 lượt. Bản đầy đủ: `docs/DIEN-TAP-BLOCK-ADAM-2026-08-27.md`.
+      Hẹn giờ lệch **0 ms** cả 3 lượt. Bản đầy đủ: `docs/DRILL-BLOCK-ADAM-2026-08-27.md`.
       🔴 **Lượt bắn ĐÚNG mốc HỎNG** — `block.timestamp` rơi vào đúng giây bấm gửi ⇒ block chứa
       Adam mang `ts = mốc`, không **vượt** mốc; block vượt mốc lại là block của Eva. Luật khắc
       và hành động nghi lễ trỏ vào **hai block khác nhau**. ⇒ sinh ra **B-13** (a: David chốt
@@ -264,14 +264,14 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       kiểm được bằng công cụ sinh ra nó thì yếu.
       **3 ca đối chứng ngược đỏ đúng chỗ:** sửa 1 byte ⇒ `LỆCH BYTE` · sửa 1 byte **và sửa
       luôn manifest** ⇒ `GỐC LỆCH` (ca chứng minh vì sao phải công bố ra **ngoài**) · xoá tệp
-      ⇒ `THIẾU TỆP`. Quy trình: `docs/QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md`.
+      ⇒ `THIẾU TỆP`. Quy trình: `docs/O2-EXPORT-BEFORE-DELETE.md`.
       🔴 Đối chứng ngược bắt một lỗi trong **chính công cụ này**: tờ đầu đếm L1 *được xin* thay
       vì *xuất được* ⇒ khai "kèm 1 L1" trong khi không có byte nào. Đã sửa thành `xin N · XUẤT
       ĐƯỢC M`.
       🔴 **Còn lại (không chặn):** chạy một lượt trên **mạng công khai** để biết thời gian thật;
       nhớ `--add-evm` cho từng L1 còn sống.
 - [x] **A-3 — G4**: tra `chainid.network` — **ĐẠT `27/08`**. Bài `scripts/check-chainid.mjs`,
-      vật chứng `docs/vat-chung/g4-2026-08-27/` (`chains.json` 1.161.063 byte · sha256
+      vật chứng `docs/evidence/g4-2026-08-27/` (`chains.json` 1.161.063 byte · sha256
       `583b67a2…` · 2.723 chuỗi · tra lúc `2026-08-27T09:32:38Z`).
       ✅ **`9000000009` TRỐNG**, và không có chuỗi nào trong bán kính 1 triệu quanh nó.
       🔴 **Nhưng bài tra rộng hơn kế hoạch và bắt được 4 số bị chiếm trong dải console tự cấp
@@ -280,7 +280,7 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       khác*. ⇒ **B-14** (gốc dải, cần David — gộp vào mục quyết §5c).
       3 ca đối chứng ngược: `--add 1` ⇒ bắt được Ethereum Mainnet (exit 1) · sổ cắt cụt và sổ
       `[]` rỗng ⇒ **từ chối kết luận** (exit 2). Mã thoát phân biệt *"bị chiếm"* với *"không tra
-      được"*. Bản đầy đủ: `docs/G4-TRA-CHAINID-2026-08-27.md`.
+      được"*. Bản đầy đủ: `docs/G4-CHAINID-LOOKUP-2026-08-27.md`.
       🔴 **Phải tra LẠI ngay trước bước sinh genesis ngày G** — sổ đổi hàng ngày.
 - [x] **A-4 — C-4**: cổng "bản tập ≠ bản thật" cho **chainId** — **ĐẠT `27/08`**, đóng nốt B-11.
       `netgen/chainid.go` (patch **0015**, tree fork **`df68a7d7`**, **15 patch** trên `1cf1fc3`,
@@ -293,7 +293,7 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       ✅ **Phần thứ hai — console (B-14):** nạp `chainid-taken.json` (51 số bị chiếm dải
       9100–9999) và bỏ qua ở **cả hai** đường. Nghiệm thu thật: xin `9100` ⇒ từ chối nêu tên
       *Genesis Coin* · tự cấp trên sổ rỗng ⇒ **9101** (đọc từ genesis vừa dựng) · xoá tệp ⇒
-      console **tự khai cổng đang TẮT**. Bản đầy đủ: `docs/CONG-CHAINID-2026-08-27.md`.
+      console **tự khai cổng đang TẮT**. Bản đầy đủ: `docs/CHAINID-GATE-2026-08-27.md`.
       🔴 **Còn lại (cần David):** gốc dải vẫn là 9100 — vướng mục quyết §5c.
 - [x] **A-5 — I1b**: phơi cung ra endpoint — **ĐẠT `27/08` bằng đường mạnh hơn (endpoint)**.
       `GET /api/supply` (faucet) + `netgen/cung.json` (patch **0016**, tree fork **`c9226d9c`**,
@@ -309,7 +309,7 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       Endpoint **tự đo rồi SO LẠI** bản khai ⇒ `manifestMatchesChain` + `mismatches`.
       **2 ca đối chứng ngược:** sửa bản khai ⇒ nêu đích danh địa chỉ lệch, và `totalSupply`
       **vẫn đúng** (suy từ số đo, không từ số khai) · xoá bản khai ⇒ **503, không bịa số**,
-      `/api/info` vẫn 200 (hỏng có phạm vi). Bản đầy đủ: `docs/I1B-CUNG-CO-NGUON-2026-08-27.md`.
+      `/api/info` vẫn 200 (hỏng có phạm vi). Bản đầy đủ: `docs/I1B-SUPPLY-SOURCED-2026-08-27.md`.
       🔴 **Còn lại (không chặn):** (a) `cung.json` phải lên server cùng `faucet.env` ·
       (b) câu khai nguồn trên trang — `web/` thuộc worktree `9Chain-A1-web`, câu chữ đã soạn sẵn.
 

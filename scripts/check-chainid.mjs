@@ -8,7 +8,7 @@
 //
 // ═══ 🔴 Phải tra LẠI ngay trước bước sinh genesis ngày G ═══
 // Sổ này thay đổi hàng ngày. Lần tra hôm nay chứng minh **hôm nay** trống, không chứng minh
-// `01/09` trống. `NGAY-G-A1-CON-LAI.md` §7 điều 3 nói rõ điều đó.
+// `01/09` trống. `GDAY-A1-REMAINING.md` §7 điều 3 nói rõ điều đó.
 //
 //   node scripts/check-chainid.mjs                       # tải mới rồi tra
 //   node scripts/check-chainid.mjs --file <chains.json>   # tra một bản đã tải (tái lập)
@@ -164,8 +164,8 @@ if (LUU) {
     đãTra: cầnTra.map((m) => m.id), bịChiếm,
     hàngXómQuanh9000000009: gần,
   };
-  writeFileSync(join(LUU, "KET-QUA-TRA.json"), JSON.stringify(bảnKhai, null, 2) + "\n");
-  console.log(`\nvật chứng: ${join(LUU, "chains.json")} + KET-QUA-TRA.json`);
+  writeFileSync(join(LUU, "LOOKUP-RESULT.json"), JSON.stringify(bảnKhai, null, 2) + "\n");
+  console.log(`\nvật chứng: ${join(LUU, "chains.json")} + LOOKUP-RESULT.json`);
 }
 
 // ─── Sinh danh sách chặn tĩnh cho console ───

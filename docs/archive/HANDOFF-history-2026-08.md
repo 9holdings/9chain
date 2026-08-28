@@ -15,18 +15,18 @@
 
 ## ✅ ĐỢT AUTOPILOT 14 (`2026-08-27`) — **5/5 MỐC ĐẠT**
 
-🔴 **ĐỌC [`docs/NGAY-G-A1-CON-LAI.md`](docs/NGAY-G-A1-CON-LAI.md) TRƯỚC.** Đó là bản A1 thẩm
+🔴 **ĐỌC [`docs/GDAY-A1-REMAINING.md`](docs/GDAY-A1-REMAINING.md) TRƯỚC.** Đó là bản A1 thẩm
 định kế hoạch ngày G `01/09` và là **danh sách còn-lại thật**. `PLAN-REGENESIS-2026-09-01.md`
 là bối cảnh của BOD, mâu thuẫn thì file kia thắng.
 `DECISIONS.md` (vì sao) · `BLOCKERS.md` (chờ David) · `PROGRESS.md` (backlog).
 
 | # | Mốc | Kết quả |
 |---|---|---|
-| **A-1** | Diễn tập nghi lễ **Block Adam** | ✅ 4 lượt · [`DIEN-TAP-BLOCK-ADAM-2026-08-27.md`](docs/DIEN-TAP-BLOCK-ADAM-2026-08-27.md) |
-| **A-2** | **Quy trình O2** — xuất + `sha256` trước khi xoá | ✅ 3 ĐCN · [`QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md`](docs/QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md) |
-| **A-3** | **G4** — tra `chainid.network` | ✅ 3 ĐCN · [`G4-TRA-CHAINID-2026-08-27.md`](docs/G4-TRA-CHAINID-2026-08-27.md) |
-| **A-4** | **C-4** — cổng chainId (đóng nốt **B-11**) | ✅ 7 ca/3 ĐCN · [`CONG-CHAINID-2026-08-27.md`](docs/CONG-CHAINID-2026-08-27.md) |
-| **A-5** | **I1b** — cung có nguồn | ✅ 2 ĐCN · [`I1B-CUNG-CO-NGUON-2026-08-27.md`](docs/I1B-CUNG-CO-NGUON-2026-08-27.md) |
+| **A-1** | Diễn tập nghi lễ **Block Adam** | ✅ 4 lượt · [`DRILL-BLOCK-ADAM-2026-08-27.md`](docs/DRILL-BLOCK-ADAM-2026-08-27.md) |
+| **A-2** | **Quy trình O2** — xuất + `sha256` trước khi xoá | ✅ 3 ĐCN · [`O2-EXPORT-BEFORE-DELETE.md`](docs/O2-EXPORT-BEFORE-DELETE.md) |
+| **A-3** | **G4** — tra `chainid.network` | ✅ 3 ĐCN · [`G4-CHAINID-LOOKUP-2026-08-27.md`](docs/G4-CHAINID-LOOKUP-2026-08-27.md) |
+| **A-4** | **C-4** — cổng chainId (đóng nốt **B-11**) | ✅ 7 ca/3 ĐCN · [`CHAINID-GATE-2026-08-27.md`](docs/CHAINID-GATE-2026-08-27.md) |
+| **A-5** | **I1b** — cung có nguồn | ✅ 2 ĐCN · [`I1B-SUPPLY-SOURCED-2026-08-27.md`](docs/I1B-SUPPLY-SOURCED-2026-08-27.md) |
 
 **Cây fork: tree `f4615e73` · 18 patch trên `1cf1fc3`** *(patch 0018 = bộ định danh theo thế hệ, D-079)*. Trước đó: `f8458b33` / 17 patch *(patch 0017 = `restart:` của D-071,
 thêm `27/08` sau bản soát vận hành)*. Trước đó: `c9226d9c` / 16 patch (patch 0015 cổng chainId · 0016
@@ -103,7 +103,7 @@ nói dối suýt nói dối**. Nay khai `xin N · XUẤT ĐƯỢC M`.
 `patches/0003` · **B-10** tắt Managed robots.txt ở dashboard Cloudflare.
 *(**B-11** đóng hẳn `27/08` · **B-13(a)** và **B-14** đóng `27/08` — David chốt trong phiên.
 **B-13(b)** còn mở nhưng chỉ làm được sau khi mạng ngày G lên.)*
-`NGAY-G-A1-CON-LAI.md` §6: **O1 custody khoá quỹ** (hạn `28/08`, cơ hội một lần) · **Block Adam
+`GDAY-A1-REMAINING.md` §6: **O1 custody khoá quỹ** (hạn `28/08`, cơ hội một lần) · **Block Adam
 nằm trên chain nào** · **O3** chính sách L1 người dùng · **có khôi phục sổ `retired` cũ không**
 (chain `David Do` 9141 nằm trong vùng đang hở) · **O4** validator nhà cung cấp thứ hai (tiền) ·
 **O5/H-7** IPv4 đa cổng hay IPv6.
@@ -210,8 +210,8 @@ tức **node dev và ví faucet dev thuộc hai mạng khác nhau, ví luôn r�
 ⚠️ `9chain-a1-config/` **vẫn còn và vẫn mount** — nó giữ `l1-evm-genesis.json` (khuôn genesis
 cho L1 EVM, `create-l1` đọc). Chỉ `genesis.json` của **mạng** là biến mất.
 
-**Con trỏ khắc chữ đã sửa ở 5 chỗ** — `NGAY-G-A1-CON-LAI.md` §3 · `PLAN-REGENESIS` §G5 +
-G5a + mục (d) · `KHAC-CHU-NGAY-G.md` luật 3 · `README.md` bảng identity ·
+**Con trỏ khắc chữ đã sửa ở 5 chỗ** — `GDAY-A1-REMAINING.md` §3 · `PLAN-REGENESIS` §G5 +
+G5a + mục (d) · `GDAY-ENGRAVING.md` luật 3 · `README.md` bảng identity ·
 `netgen/main.go` (chú thích trong mã). Cả năm từng trỏ vào `:95 "{{ fun_quote }}"` của tệp đã
 xoá, trong khi **netgen không đọc tệp cấu hình nào** — nó dựng `UnparsedConfig` thẳng trong Go.
 🔴 **Ai đi theo con trỏ cũ sẽ sửa một tệp không ai đọc, và KHÔNG có gì báo lỗi**: lượt sinh
@@ -397,7 +397,7 @@ token `#ffcb24` ⇒ A1 nay có **hai sắc vàng cùng tồn tại, có chủ ý
 **Cơ chế ngày G, cả hai chiều, đã nghiệm thu trên chain sống:**
 - **Khắc chữ** — `netgen/engrave.go` (patch 0010). P-Chain `Message` (trọn bộ, gốc) +
   C-Chain hợp đồng dữ liệu `eth_getCode` + `extraData` = `sha256` 32 byte. **Mặc định KHÔNG
-  khắc** — đó là cổng "bản tập ≠ bản thật" của A1. Cách dùng: `docs/KHAC-CHU-NGAY-G.md`.
+  khắc** — đó là cổng "bản tập ≠ bản thật" của A1. Cách dùng: `docs/GDAY-ENGRAVING.md`.
 - **Đọc ngược** — `9chain-a1-tools/engrave-verify` (patch 0011), một lệnh. Dựng mạng tập
   3 node thật: **17 đạt/0 hỏng**; 3 ca đối chứng ngược đều đỏ đúng chỗ.
 - 🔴 **Nội dung thật CHƯA CÓ** — chờ **C1 đóng băng byte trước**, A1 lấy đúng byte. Manifest
@@ -414,7 +414,7 @@ mở khoá, **không phải sửa mã**) · D-046 **giữ N = 9** · D-047 **gi�
 | | |
 |---|---|
 | **O1 custody** khoá quỹ mới | Cơ hội **một lần**; sau ngày G lại kẹt y cũ |
-| **Có khôi phục sổ `retired` cũ không** | Lỗ **đã hở thật**, xem `NGAY-G-A1-CON-LAI.md` §5c |
+| **Có khôi phục sổ `retired` cũ không** | Lỗ **đã hở thật**, xem `GDAY-A1-REMAINING.md` §5c |
 | **O4** — nay là **DỜI một node**, không phải thêm (D-046) | Không đạt thì `01/09` không nên gọi là "chạy chính thức" |
 
 Kèm **H-7 IPv4 hay IPv6** (O5), và **O2** export+`sha256` mạng sắp chết (đã **bỏ lỡ** ở `26/08`).
@@ -477,7 +477,7 @@ Ba đòn tấn công của `bridge-test` vẫn bị chặn đúng trên mạng m
 ✅ **9Scan-A1 ĐÃ ĐƯỢC BÁO THẬT** (David uỷ quyền ghi thẳng vào repo họ): commit
 `5be74f7` trong `C:\PROJECTS\9Scan-A1` — toàn văn ở `docs/requests/2026-08-26-A1-da-re-genesis.md`
 của họ, kèm con trỏ ở **đầu `HANDOFF.md`** của họ. Bản bên mình giữ ở
-`docs/requests-from-9scan/2026-08-26-A1-da-re-genesis-BAO-CHO-9SCAN.md`.
+`docs/requests-from-9scan/2026-08-26-A1-re-genesis-NOTIFY-9SCAN.md`.
 
 🔴 **Trong lúc báo, phát hiện một kết luận SAI của 9Scan đang chặn họ — đã đính chính.**
 `HANDOFF.md` của họ khẳng định *"108 triệu mà tài liệu khai không tồn tại trên chain"*
@@ -489,7 +489,7 @@ họ đo lấy từ **`local-net/net/allocation.md` = bộ DEV LOCAL**, không p
 ⚠️ **Lỗi ở cách bày file BÊN MÌNH:** luật "đừng lẫn hai bộ" có trong HANDOFF này nhưng nằm
 ở mục *Bí mật*, nên người đi tìm bảng phân bổ mở nhầm file gần như chắc chắn.
 ✅ **ĐÃ SỬA 2026-08-26:** cảnh báo nay đứng cạnh **mọi** chỗ nhắc `allocation.md`
-(`docs/ALLOCATION-PUBLIC.md` · `docs/TOKENOMICS.md` · `docs/VI-VAN-HANH.md` ·
+(`docs/ALLOCATION-PUBLIC.md` · `docs/TOKENOMICS.md` · `docs/WALLET-OPERATIONS.md` ·
 `local-net/gen-network.sh` in ra lúc sinh mạng), và `docs/TOKENOMICS.md` nay mở đầu bằng
 banner "file này đã cũ" trỏ sang nguồn sự thật.
 ⚠️ Phần **số dư 20M/70M có thật hay không thì KHÔNG còn kiểm lại được** — chuỗi cũ và DB
@@ -545,7 +545,7 @@ console · Warp/ICM · faucet HTTP · Blockscout index lại từ đầu.
 - Patch series tái lập đúng cây nguồn: tree **`ac260a38`** (**12 patch** tính tới
   2026-08-26; nhớ **`git am --keep-cr`**). Đã nghiệm thu lại sau patch 0009: áp đủ
   12 patch lên `1cf1fc3` trong worktree tách rời → tree ra **khớp tuyệt đối**.
-  *(Patch 0010 = cơ chế khắc chữ · 0011 = `engrave-verify` đọc ngược. Xem `docs/KHAC-CHU-NGAY-G.md`.)*
+  *(Patch 0010 = cơ chế khắc chữ · 0011 = `engrave-verify` đọc ngược. Xem `docs/GDAY-ENGRAVING.md`.)*
 
 🔴 **CỔNG `check-consistency.mjs` KHÔNG BAO TRÙM MÃ — nó giữ bảng số riêng bằng JS.**
 "17 đạt" chứng minh các CON SỐ David chốt nhất quán với nhau, **không** chứng minh
@@ -606,7 +606,7 @@ Xem `BLOCKERS.md` H-8.
   vô dụng, nên đây là bài toán **thiết kế custody** chứ không phải sao lưu (D-036).
 
 **5.** ~~Backlog phần mềm ĐÃ CẠN.~~ ⚠️ **HẾT ĐÚNG từ `27/08`** — backlog ngày G đã nạp lại,
-xem `docs/NGAY-G-A1-CON-LAI.md` §9. Phần dưới là bối cảnh M10.
+xem `docs/GDAY-A1-REMAINING.md` §9. Phần dưới là bối cảnh M10.
 M10.1–M10.6 xong, M10.7 xong phần đo được (còn
 một mục chờ 9Scan đưa `/chains/` của họ lên). Không còn task nào chạy được mà không
 cần người. Muốn nạp việc mới thì dùng skill `feed-autopilot`.
@@ -743,7 +743,7 @@ build a11y 6/6 · web-deploy 6/6 liên kết sống · smoke-l1 **14/14** · `ch
 sạch · 3 route cũ đều 301 · `/api/tien-trinh` nay **404** đúng như mong đợi.
 
 ⚠️ **9Scan-A1 cũng đổi tên miền trong cùng đợt** (yêu cầu của họ ở
-`docs/requests-from-9scan/2026-08-26-doi-ten-mien-a1.md`): `testnet-a1.9scan.org` →
+`docs/requests-from-9scan/2026-08-26-rename-domain-a1.md`): `testnet-a1.9scan.org` →
 **`a1.9scan.org`**, tên cũ 308. Khối site của họ nằm trong Caddyfile của repo NÀY, nên
 lượt `caddy-deploy.sh` của A1 áp luôn cả phần đó — đã đối chứng bằng `<title>` là trang
 9Scan thật, không phải trang A1 (đúng chỗ B-6 từng gãy). `explorerGoc()` bên A1 nay
@@ -1024,7 +1024,7 @@ khỏi phải tự dịch id → tên và trôi lệch — bản chép tay cũ �
 | SSH | `ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST"` (key không passphrase, mật khẩu đã tắt) |
 | DNS | 2 A record → `139.99.145.13`, Cloudflare **Proxied**, SSL/TLS mode **Full** |
 
-**Ví chain-factory** (khoá trên server, `console.env`): P-Chain `P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj` · **9 LOVE9** · khoá gốc ở `local-net/net-public/chain-factory-key.txt` (chỉ máy dev). Hết tiền thì nạp lại từ quỹ Foundation theo cách ghi ở `docs/VI-VAN-HANH.md`.
+**Ví chain-factory** (khoá trên server, `console.env`): P-Chain `P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj` · **9 LOVE9** · khoá gốc ở `local-net/net-public/chain-factory-key.txt` (chỉ máy dev). Hết tiền thì nạp lại từ quỹ Foundation theo cách ghi ở `docs/WALLET-OPERATIONS.md`.
 🔴 **`net-public/allocation.md` (mạng công khai) ≠ `net/allocation.md` (dev local)** — hai
 mạng khác nhau, khoá khác, số khác; đọc nhầm không có dấu hiệu gì. Bản chép công khai của
 mạng thật: `docs/ALLOCATION-PUBLIC.md`.
@@ -1081,7 +1081,7 @@ Tự kiểm: `node local-net/lib/eip55.mjs --self-test`.
   Luật này trước đây **chỉ** nằm ở đây, trong mục *Bí mật* — nên người đi tìm bảng phân bổ
   không bao giờ đọc tới, và 9Scan-A1 đã mở nhầm `net/allocation.md` rồi đăng một kết luận
   sai (2026-08-26). Nay cảnh báo đã đứng cạnh **mọi** chỗ nhắc `allocation.md`:
-  `docs/ALLOCATION-PUBLIC.md` · `docs/TOKENOMICS.md` · `docs/VI-VAN-HANH.md` ·
+  `docs/ALLOCATION-PUBLIC.md` · `docs/TOKENOMICS.md` · `docs/WALLET-OPERATIONS.md` ·
   `local-net/gen-network.sh` (in ra lúc sinh mạng). **Thêm chỗ nhắc mới thì thêm cảnh báo.**
 
 ---
@@ -1109,7 +1109,7 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
   ngay trong 24 giờ** (9100–9105, trong đó 9100/9101 là chain **đang sống** lúc re-genesis).
   Chỗ đắt: **9106–9145 còn trống**, mà console tự cấp bằng `chainId=9100; while(taken)
   chainId++` — trong dải đó có **9141 = chain `David Do`**. Chi tiết + cách xử:
-  `docs/NGAY-G-A1-CON-LAI.md` §5c.
+  `docs/GDAY-A1-REMAINING.md` §5c.
 - **SIWE của console KHÔNG dính đòn phát lại khi re-genesis, và nó chặn ĐỘC LẬP với chainId.**
   `siwe.mjs:113`: `xacThuc` **không bao giờ nhận `message` từ client**, server tra message từ
   kho của chính nó theo nonce ⇒ chữ ký của mạng cũ không có đường trình lên. Thêm hai lớp:
@@ -1197,7 +1197,7 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
 - 🔴 **Faucet nướng `FAUCET_PK` vào ENV LÚC TẠO CONTAINER, và container đó không có
   định nghĩa nào trong repo** (dựng bằng `docker run` tay). Đổi `faucet.env` trên đĩa
   **không có tác dụng** — phải `docker rm` rồi `docker run` lại. Cấu hình thật moi ra
-  bằng `docker inspect`; đã ghi lại trong `docs/VI-VAN-HANH.md`.
+  bằng `docker inspect`; đã ghi lại trong `docs/WALLET-OPERATIONS.md`.
   Điểm sáng: faucet **tự chẩn đoán đúng** — *"VÍ FAUCET RỖNG trên chain này. Sai khoá,
   hay genesis khác?"*. Thông báo lỗi nói ra giả thuyết đáng giá hơn một dòng stack trace.
 - 🔴 **RPC công khai KHÔNG phục vụ `/ext/bc/C/avax`** (Caddy lọc path, chỉ mở
@@ -1264,7 +1264,7 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
   `netgen/allocation.go` `unitLOVE9` · `netgen/main.go:273` (P/X→wei trong
   `cChainGenesis`) · `coreth/plugin/evm/atomic/tx.go:33` `X2CRateUint64`. Lệch nhau
   **không gây lỗi nào**: đổi (1) quên (2) ⇒ số dư C-Chain genesis sai 100 lần, mạng vẫn
-  khởi động. Chi tiết + 6 rủi ro: `docs/RUI-RO-THANG-1E7.md`.
+  khởi động. Chi tiết + 6 rủi ro: `docs/RISK-SCALE-1E7.md`.
   (Quyết định cuối là **KHÔNG đổi thang** — xem D-039, nên bảng rủi ro đó hiện là dự phòng.)
 - 🔴 **Chú thích trong `allocation.go` SAI và đã sửa:** nó ghi *"đặt LiquidXP > 0 cho quỹ
   staking là sai — tiền sẽ bị bỏ qua"*. Mã thật: vòng dựng UTXO **X-Chain**
@@ -1832,7 +1832,7 @@ Tài liệu: `docs/PROGRESS.md` (nhật ký chi tiết) · `docs/DEPLOY-KSGAME.m
 | **D-080** | `GỐC` mạng thế hệ trước, công bố **trước khi xoá** | `c92ad73cf6cdcf44ef32bf4bb6475d282fb76878c553f690533bfa6c476ce066` |
 | **D-081** | **Re-genesis mạng công khai → g0** | 9/9 node · drip `0x635f2183…` đọc lại từ chain = 10 LOVE9 |
 
-Ba bản soát mới: `docs/SOAT-TOAN-DIEN-2026-08-27.md` (lớp vận hành) ·
-`docs/HIEN-TRANG-A1-2026-08-27.md` · `docs/DE-XUAT-BO-DINH-DANH-THE-HE.md`.
+Ba bản soát mới: `docs/FULL-REVIEW-2026-08-27.md` (lớp vận hành) ·
+`docs/STATUS-A1-2026-08-27.md` · `docs/PROPOSAL-GENERATION-IDS.md`.
 
 ---

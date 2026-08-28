@@ -346,7 +346,7 @@ Nguồn: $ROOT
 
 == 🔴 BẢN SAO LƯU NÀY KHÔNG CHỨA GÌ ==
   KHÔNG chứa khoá 5 quỹ. local-net/net-*/keys.txt bị .gitignore — CỐ Ý.
-  Mất máy dev vẫn = mất khoá cả 5 quỹ. Xem D-044 và NGAY-G-A1-CON-LAI.md O1.
+  Mất máy dev vẫn = mất khoá cả 5 quỹ. Xem D-044 và GDAY-A1-REMAINING.md O1.
 EOF
 
 cat > "$D/RESTORE.md" <<'EOF'

@@ -24,8 +24,8 @@ hợp lý. Vì thế hiến chương này bắt buộc phân biệt hai nguồn 
 | **Công nghệ / core** | `docs/CORE-AUDIT-2026-08-27.md` — trần cung, lịch nâng cấp, HRP, patch 0013 | Nghiệm thu lại 17 patch trong `patches/` trên bản ghim `15c940e`; đường đi tài sản P/C/X; VM config theo từng chain |
 | **Mã nguồn** | Chưa có bản soát mã diện rộng | `web/` (70 file), `local-net/console/` (API đã mở ra Internet), `scripts/`, `explorer-full/` |
 | **Cấu trúc** | Rải rác trong `docs/ARCHITECTURE.md` | Cái gì **không** vào git mà lại là sản xuất (compose thật, khoá, cấu hình Caddy); ranh giới repo ↔ server |
-| **Bảo mật** | `SOAT-TOAN-DIEN-2026-08-27.md` §7–8 — biên đã đo, 3 chỗ hở P2 | Bề mặt `/console/api/*` (đã công khai từ 25/08), phụ thuộc npm/Go, custody khoá 5 quỹ, quyền trên server |
-| **Tối ưu** | `SOAT-TOAN-DIEN-2026-08-27.md` §9 — explorer tốn gấp 2,2 lần cả blockchain | Chi phí thật/1 chain con, đường tăng trưởng khi có người dùng thật, kích thước bundle web |
+| **Bảo mật** | `FULL-REVIEW-2026-08-27.md` §7–8 — biên đã đo, 3 chỗ hở P2 | Bề mặt `/console/api/*` (đã công khai từ 25/08), phụ thuộc npm/Go, custody khoá 5 quỹ, quyền trên server |
+| **Tối ưu** | `FULL-REVIEW-2026-08-27.md` §9 — explorer tốn gấp 2,2 lần cả blockchain | Chi phí thật/1 chain con, đường tăng trưởng khi có người dùng thật, kích thước bundle web |
 
 **Ngoài phạm vi:** thương hiệu/nhận diện (`BRAND-AUDIT-2026-08-27.md` đã soát và
 đang thi hành), nội dung khắc chữ ngày G (chờ C1 đóng băng byte).
@@ -35,9 +35,9 @@ hợp lý. Vì thế hiến chương này bắt buộc phân biệt hai nguồn 
 Bốn tài liệu dưới đây là **đầu vào**, không phải đối tượng để chép lại:
 
 - `docs/PLAN-AUDIT-2026-08-26.md` — 24 phát hiện, **P0-2 (cầu tài sản) còn mở**
-- `docs/SOAT-TOAN-DIEN-2026-08-27.md` — P0-1/P0-2/P0-3, P1-1→P1-3
+- `docs/FULL-REVIEW-2026-08-27.md` — P0-1/P0-2/P0-3, P1-1→P1-3
 - `docs/CORE-AUDIT-2026-08-27.md` — P0 trần cung `10.099.999.999`, P1 lịch nâng cấp
-- `docs/HIEN-TRANG-A1-2026-08-27.md` — A1 tồn tại ở **hai bản**, bản phục vụ người
+- `docs/STATUS-A1-2026-08-27.md` — A1 tồn tại ở **hai bản**, bản phục vụ người
   ngoài là bản **cũ**
 
 Việc đầu tiên của worktree này là **đo lại xem những mục đánh ✅ có thật sự còn
@@ -54,7 +54,7 @@ mục mới, vì nó nghĩa là sổ sách đang nói dối.
 
 ## 4. Sản phẩm
 
-- `docs/AUDIT-A1/SO-PHAT-HIEN.md` — sổ phát hiện, định dạng 6 trường trong `CLAUDE.md`
+- `docs/AUDIT-A1/FINDINGS.md` — sổ phát hiện, định dạng 6 trường trong `CLAUDE.md`
 - `docs/AUDIT-A1/1x-*.md` — báo cáo theo từng mặt, mỗi mặt một file
 - Cuối cùng: một trang xếp theo **"mất gì nếu nó xảy ra"**, không theo xác suất
 

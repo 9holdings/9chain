@@ -1,6 +1,6 @@
 # KẾ HOẠCH — 9Chain Testnet A1 sinh lại mạng `2026-09-01`
 
-> 🔴 **A1 ĐÃ THẨM ĐỊNH BẢN NÀY `2026-08-26` — ĐỌC [`docs/NGAY-G-A1-CON-LAI.md`](docs/NGAY-G-A1-CON-LAI.md) TRƯỚC.**
+> 🔴 **A1 ĐÃ THẨM ĐỊNH BẢN NÀY `2026-08-26` — ĐỌC [`docs/GDAY-A1-REMAINING.md`](docs/GDAY-A1-REMAINING.md) TRƯỚC.**
 > File này là **bối cảnh + quyết định**; file kia là thứ A1 **thi hành**. Mâu thuẫn thì file kia
 > thắng, vì nó đo trên máy. Ba chỗ bản này sai đã ghi rõ ở đó: **O6** (A1 đã có cổng nhất quán) ·
 > **điều kiện GO/NO-GO số 1** (đòi 90 tỷ — con số không tồn tại trong `uint64`) · **G1** (có **ba**
@@ -112,7 +112,7 @@ mục sẽ đi qua ngày G mà không ai chạm.
 > alias = xanh giả". Xem [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md) §7b.
 >
 > ✅ **Cơ chế nay đã XONG** (patch 0010 khắc, 0011 đọc ngược) — bảng dưới giữ lại làm bối cảnh
-> quyết định. Cách dùng thật: [`docs/KHAC-CHU-NGAY-G.md`](docs/KHAC-CHU-NGAY-G.md).
+> quyết định. Cách dùng thật: [`docs/GDAY-ENGRAVING.md`](docs/GDAY-ENGRAVING.md).
 
 | # | Chỗ | Hiện tại | Dùng cho | Điều kiện qua |
 |---|---|---|---|---|
@@ -303,7 +303,7 @@ gỡ bản văn ở chain permissioned · chỉ khắc trên ba chain chính. **
 
 | # | Mục | Trạng thái | Điều kiện qua |
 |---|---|---|---|
-| **I1** | `SupplyCap` **720.000.000 → 9.000.000.000** | 🔄 **SỬA `26/08`: 9 tỷ, KHÔNG phải 90 tỷ** (Đ24). `genesis/genesis_9chain_a1.go` (`A1Params`) | ✅ 9 tỷ @ thang `1e9` hiện tại = `9e18`, **vừa** (48,8% `uint64`, dư 2,05×) ⇒ **KHÔNG phải đổi thang đơn vị**, `x2cRate` không phải đụng, `docs/RUI-RO-THANG-1E7.md` R1–R6 **tan hết** |
+| **I1** | `SupplyCap` **720.000.000 → 9.000.000.000** | 🔄 **SỬA `26/08`: 9 tỷ, KHÔNG phải 90 tỷ** (Đ24). `genesis/genesis_9chain_a1.go` (`A1Params`) | ✅ 9 tỷ @ thang `1e9` hiện tại = `9e18`, **vừa** (48,8% `uint64`, dư 2,05×) ⇒ **KHÔNG phải đổi thang đơn vị**, `x2cRate` không phải đụng, `docs/RISK-SCALE-1E7.md` R1–R6 **tan hết** |
 | **I1b** | 🔴 **Phơi TRẦN CUNG ra một endpoint đọc được** | Chưa có. **P-Chain không có `getMaxSupply`**, chỉ `getCurrentSupply` (đo production `26/08`: **318.456.024,405**) | Luật cứng #2 của 9Scan-A1: *"số công bố phải đọc từ chain thật"* ⇒ in trần mà không có endpoint là **gõ hằng số vào giao diện**. **(a)** node phơi trần ra RPC ⭐ · **(b)** trang ghi rõ nguồn là *tham số genesis*. ⚠️ Bất đối xứng thật với C1 (`bank/supply` bên đó trả số đo), nên (a) **không** giải luôn cho C1 |
 | **I2** | **Rescale mọi tham số ghi bằng LOVE9 tuyệt đối** | 🔄 **SỬA: hệ số là ×12,5, KHÔNG phải ×125** (720 triệu → 9 tỷ) | min validator `2.000 → 25.000` · max `50.000.000 → 625.000.000` · min delegator `25 → ~270` · phí P/X `0,001 → ~0,0125`. *Gợi ý — chủ dự án chốt số cuối.* 🔑 **Uỷ quyền tính vào `MaxValidatorStake`** (A1 nêu `26/08`) ⇒ self-bond lớn thì validator genesis gần hết chỗ nhận uỷ quyền. Phải kiểm dư địa, không chỉ kiểm trần |
 | **I3** | **Tính lại `maxValidatorStake` theo self-bond genesis THẬT** | Chưa làm | Trần phải chứa nổi self-bond của node genesis **và** vẫn chặn tập trung. Đây là ô dễ lặp lại lỗi cũ nhất |
