@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * kiem-khoa-tren-chain.mjs — **cổng canh: bộ khoá này có phải bộ khoá của MẠNG ĐANG CHẠY không.**
+ * check-keys-on-chain.mjs — **cổng canh: bộ khoá này có phải bộ khoá của MẠNG ĐANG CHẠY không.**
  *
  * 🔴 VÌ SAO CÓ. `kiem-khoa` (patch 0023, D-085) là công cụ O1 dựa vào để kiểm bản sao khoá quỹ.
  * Đo `2026-08-28`: chạy nó trên bộ khoá **thế hệ 9001 đã chết** (`local-net/net-public/`, bộ
@@ -40,9 +40,9 @@
  * quỹ nào — không đặc cách theo tên, vì tên đổi được còn phép cộng thì không.
  *
  * Dùng:
- *   node scripts/kiem-khoa-tren-chain.mjs C:/Users/abc/9chain-a1-keys/g0/allocation.md
- *   node scripts/kiem-khoa-tren-chain.mjs <allocation.md> --rpc https://rpc-a1.9chain.org
- *   node scripts/kiem-khoa-tren-chain.mjs --tu-kiem      # đối chứng ngược, 4 ca PHẢI ra ĐỎ
+ *   node scripts/check-keys-on-chain.mjs C:/Users/abc/9chain-a1-keys/g0/allocation.md
+ *   node scripts/check-keys-on-chain.mjs <allocation.md> --rpc https://rpc-a1.9chain.org
+ *   node scripts/check-keys-on-chain.mjs --tu-kiem      # đối chứng ngược, 4 ca PHẢI ra ĐỎ
  */
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
@@ -146,7 +146,7 @@ async function kiem(p, { im = false } = {}) {
     rpc("/ext/info", "info.getNetworkID", {}).then((r) => Number(r.networkID)),
   ]);
 
-  noi(`kiem-khoa-tren-chain — ${p}`);
+  noi(`check-keys-on-chain — ${p}`);
   noi(`  tệp khai networkID ${networkID} · chain đang chạy ${idMang} (${tenMang}) · ${quy.length} quỹ\n`);
 
   // 🔴 Cổng đầu tiên và rẻ nhất: bộ khoá của thế hệ khác thì dừng ngay, đừng đo tiếp.
@@ -260,8 +260,8 @@ async function tuKiem() {
 if (TU_KIEM) {
   await tuKiem();
 } else if (!duongDan) {
-  console.log("dùng: node scripts/kiem-khoa-tren-chain.mjs <đường-dẫn/allocation.md> [--rpc URL]");
-  console.log("      node scripts/kiem-khoa-tren-chain.mjs --tu-kiem");
+  console.log("dùng: node scripts/check-keys-on-chain.mjs <đường-dẫn/allocation.md> [--rpc URL]");
+  console.log("      node scripts/check-keys-on-chain.mjs --tu-kiem");
   process.exit(2);
 } else {
   if (!existsSync(duongDan)) { console.log(`🔴 không thấy tệp: ${duongDan}`); process.exit(1); }

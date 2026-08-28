@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * kiem-robots.mjs — B-10: `robots.txt` của A1 có tới được người đọc không?
+ * check-robots.mjs — B-10: `robots.txt` của A1 có tới được người đọc không?
  *
  * ═══ 🔴 BẢN ĐẦU CỦA CHÍNH TỆP NÀY ĐÃ SAI, VÀ SAI Ở ĐÚNG CHỖ NÓ ĐỊNH CANH ═══
  *
@@ -26,8 +26,8 @@
  * 🔴 `2` KHÔNG phải `0`. Không đo được là *không biết*.
  *
  * Dùng:
- *   node scripts/kiem-robots.mjs
- *   node scripts/kiem-robots.mjs --tu-kiem
+ *   node scripts/check-robots.mjs
+ *   node scripts/check-robots.mjs --tu-kiem
  */
 
 const TEN_MIEN = process.env.A1_TEN_MIEN || "a1.9chain.org";

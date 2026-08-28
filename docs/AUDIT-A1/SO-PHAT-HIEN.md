@@ -24,7 +24,7 @@ từng lệch nhau**, luôn ghi rõ.
 | ID | Mức | Mặt | Điều khẳng định | Tin cậy | Nguồn | Trạng thái |
 |---|---|---|---|---|---|---|
 | A-001 | 🔴 **P0** | cấu trúc | Bản sao lưu ngoài máy duy nhất chứa **12 patch** = mạng ĐÃ BỊ XOÁ; các patch định nghĩa mạng đang chạy không có bản nào ngoài ổ dev | ĐO ĐƯỢC | REPO + máy dev | 🟡 **TRẠNG THÁI ĐÃ SỬA `28/08`** — H-6b chạy lại, bản `20260828-024659` có **24/24 patch**, `rev-list = 0`. **Cơ chế vẫn chưa có** ⇒ xem A-014 |
-| **A-014** | **P1** | cấu trúc | Không phép đo nào phát hiện bản sao lưu **cũ đi**. Lần trước nó cũ sau **đúng 1 ngày** mà mọi cổng vẫn xanh | ĐO ĐƯỢC | REPO | ✅ **ĐÃ ĐÓNG `28/08`** — `scripts/h6b-sao-luu.sh` + cổng `--kiem`, tự kiểm 4/4 ca |
+| **A-014** | **P1** | cấu trúc | Không phép đo nào phát hiện bản sao lưu **cũ đi**. Lần trước nó cũ sau **đúng 1 ngày** mà mọi cổng vẫn xanh | ĐO ĐƯỢC | REPO | ✅ **ĐÃ ĐÓNG `28/08`** — `scripts/h6b-backup.sh` + cổng `--kiem`, tự kiểm 4/4 ca |
 | A-002 | **P1** | công nghệ | `rebase-drill.sh` không canh `upgrade.A1`; nó canh `FallbackHRP` — thứ mã nguồn đã hạ xuống làm dây dự phòng | ĐO ĐƯỢC | REPO | 🔴 mở · **thực tế đã chứng minh** (D-079) |
 | A-003 | P2 | cấu trúc | `multinode.compose.yml` tự khai "NGUỒN CHÍNH THỨC" nhưng lệch **ba thứ**: 5 node · 0 dòng `restart:` · `--network-id=9001` | ĐO ĐƯỢC | REPO (vs SERVER `27/08`) | 🔴 mở · xem A-010 |
 | A-004 | P2 | bảo mật | Faucet giữ khoá có tiền nhưng dùng `ethers: ^6.13.0` không lockfile; console cùng repo ghim `6.17.0` | ĐO ĐƯỢC | REPO | 🔴 mở |
@@ -1261,7 +1261,7 @@ lành không* **không phân biệt được** — bản `27/08` lành hoàn to�
       ls <backup>/avalanchego-patches/ | wc -l  ==  ls patches/ | wc -l
 lệch  ⇒  exit 1, in ra ĐÚNG lệnh chạy lại H-6b
 ```
-Và: H-6b nên thành **script** (`scripts/h6b-sao-luu.sh`), không để là quy trình viết tay —
+Và: H-6b nên thành **script** (`scripts/h6b-backup.sh`), không để là quy trình viết tay —
 một quy trình 8 bước trong tài liệu là một quy trình sẽ bị làm tắt lúc vội. Bốn phép nghiệm
 thu ở §9 (kể cả đối chứng ngược bundle cắt cụt) phải nằm **trong** script, không nằm cạnh nó.
 
@@ -1317,17 +1317,17 @@ tin, và mới không ai học cách bỏ qua nó.
 
 ---
 
-## 10. A-014 ĐÃ ĐÓNG `2026-08-28` — `scripts/h6b-sao-luu.sh`
+## 10. A-014 ĐÃ ĐÓNG `2026-08-28` — `scripts/h6b-backup.sh`
 
 ⚠️ **Ngoại lệ charter §4** (*"không sinh bản vá trong worktree này"*) — David chốt bằng
 lời. Script đặt ở `main`, **một nhà duy nhất**: nhân bản nó sang `audit` là tự tạo đúng
 cái bệnh mà A-012 và A-014 vừa mô tả.
 
 ```
-bash scripts/h6b-sao-luu.sh              dựng + nghiệm thu + đẩy lên máy chủ
-bash scripts/h6b-sao-luu.sh --khong-day  dựng + nghiệm thu, KHÔNG chạm máy chủ
-bash scripts/h6b-sao-luu.sh --kiem       cổng A-014 — bản mới nhất còn tươi không
-bash scripts/h6b-sao-luu.sh --tu-kiem    chứng minh cổng biết báo ĐỎ
+bash scripts/h6b-backup.sh              dựng + nghiệm thu + đẩy lên máy chủ
+bash scripts/h6b-backup.sh --khong-day  dựng + nghiệm thu, KHÔNG chạm máy chủ
+bash scripts/h6b-backup.sh --kiem       cổng A-014 — bản mới nhất còn tươi không
+bash scripts/h6b-backup.sh --tu-kiem    chứng minh cổng biết báo ĐỎ
 ```
 
 **Lượt chạy thật, `20260828-030536` — sáu phép, đạt cả sáu:**
@@ -1363,7 +1363,7 @@ ca 4  --kiem trước bản CŨ   → ĐỎ · vế xanh: bản hiện có vẫn
 bản sao lưu **lành mà cũ**, và trước hôm nay không phép đo nào phân biệt được hai thứ đó.
 
 **Cổng đã tự chứng minh trên chính commit của nó:** commit script chạm `scripts/` ⇒
-`--kiem` lập tức ra đỏ, gọi đích danh `scripts/h6b-sao-luu.sh`; chạy H-6b xong ⇒ xanh lại.
+`--kiem` lập tức ra đỏ, gọi đích danh `scripts/h6b-backup.sh`; chạy H-6b xong ⇒ xanh lại.
 
 ### Hai lỗi tự script suýt gây ra, ghi lại vì chúng cùng một họ
 
@@ -1397,14 +1397,14 @@ còn tệ hơn. Lý do đã ghi thành comment ngay tại chỗ để lần sau 
 
 ```json
 "hooks": { "Stop": [ { "hooks": [ { "type": "command",
-  "command": "… bash scripts/h6b-sao-luu.sh --kiem … jq -Rs '{systemMessage: …}'",
+  "command": "… bash scripts/h6b-backup.sh --kiem … jq -Rs '{systemMessage: …}'",
   "timeout": 30 } ] } ] }
 ```
 
 **Chọn `Stop`, không chọn `SessionEnd`** — `SessionEnd` chạy lúc phiên đang tắt nên nói gì
 cũng không ai đọc. `Stop` chạy khi Claude dừng một lượt, và `systemMessage` **được hiển thị**.
 Một cổng báo đỏ mà không ai thấy thì không phải cổng — đúng bài học vừa rút từ hai lần
-`h6b-sao-luu.sh` chết câm.
+`h6b-backup.sh` chết câm.
 
 | | |
 |---|---|

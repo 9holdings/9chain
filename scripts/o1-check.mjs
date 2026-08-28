@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * o1-kiem.mjs — **MỘT lệnh cho O1**: bản sao khoá quỹ này có còn cứu được mạng đang chạy không.
+ * o1-check.mjs — **MỘT lệnh cho O1**: bản sao khoá quỹ này có còn cứu được mạng đang chạy không.
  *
  * ═══ VÌ SAO GỘP HAI LỆNH LÀM MỘT ═══
  *
@@ -34,9 +34,9 @@
  * mount vào container ở chế độ **`:ro`**.
  *
  * Dùng:
- *   node scripts/o1-kiem.mjs C:/Users/abc/9chain-a1-keys/g0
- *   node scripts/o1-kiem.mjs <thư-mục> --rpc https://rpc-a1.9chain.org
- *   node scripts/o1-kiem.mjs --tu-kiem     # đối chứng ngược — có ca PHẢI ra 1 và ca PHẢI ra 2
+ *   node scripts/o1-check.mjs C:/Users/abc/9chain-a1-keys/g0
+ *   node scripts/o1-check.mjs <thư-mục> --rpc https://rpc-a1.9chain.org
+ *   node scripts/o1-check.mjs --tu-kiem     # đối chứng ngược — có ca PHẢI ra 1 và ca PHẢI ra 2
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, copyFileSync, rmSync, mkdirSync } from "node:fs";
@@ -99,7 +99,7 @@ function veKhoaRaDiaChi(dirKhoa) {
 
 /** VẾ 2 — những địa chỉ đó có giữ tiền thật trên MẠNG ĐANG CHẠY không (D-090). */
 function veDiaChiRaTien(fileAlloc) {
-  const bai = path.join(GOC, "scripts", "kiem-khoa-tren-chain.mjs");
+  const bai = path.join(GOC, "scripts", "check-keys-on-chain.mjs");
   if (!existsSync(bai)) {
     return { trangThai: VE_KHONG_CHAY, vi: `thiếu ${bai} — KHÔNG được coi vế này là đã kiểm` };
   }
@@ -175,7 +175,7 @@ function tuKiem() {
   const ca = [
     ["thư mục không tồn tại ⇒ 2", path.join(tam, "khong-co"), 2, {}],
     ["thư mục RỖNG (có thật, không tệp nào) ⇒ 2", rong, 2, {}],
-    ["thiếu `kiem-khoa-tren-chain.mjs` ⇒ 2, KHÔNG được xanh", boSong, 2, { veHong: true }],
+    ["thiếu `check-keys-on-chain.mjs` ⇒ 2, KHÔNG được xanh", boSong, 2, { veHong: true }],
     ["không gọi được docker ⇒ 2", boSong, 2, { docker: "docker-khong-ton-tai-o-day" }],
     // 🔴 CA ĐẮT NHẤT — bộ khoá THẾ HỆ 9001 ĐÃ CHẾT, vẫn nằm trên máy dev.
     // `kiem-khoa` một mình chấm nó 6/6 ✓ exit 0. Cổng gộp PHẢI ra 1.
@@ -194,7 +194,7 @@ function tuKiem() {
     if (tuyChon.veHong) {
       // Giấu phép đo trên chain đi bằng cách trỏ bài sang đường không tồn tại — mô phỏng
       // đúng kịch bản "người ta chỉ chạy kiem-khoa".
-      const goc = path.join(GOC, "scripts", "kiem-khoa-tren-chain.mjs");
+      const goc = path.join(GOC, "scripts", "check-keys-on-chain.mjs");
       const cat = `${goc}.tam-doi-chung`;
       try {
         copyFileSync(goc, cat); rmSync(goc);
@@ -226,8 +226,8 @@ if (TU_KIEM) {
 }
 
 if (!thuMuc) {
-  console.error("Dùng: node scripts/o1-kiem.mjs <thư-mục-chứa keys.txt + allocation.md>");
-  console.error("      node scripts/o1-kiem.mjs --tu-kiem");
+  console.error("Dùng: node scripts/o1-check.mjs <thư-mục-chứa keys.txt + allocation.md>");
+  console.error("      node scripts/o1-check.mjs --tu-kiem");
   process.exit(2);
 }
 const kq = chay(thuMuc);

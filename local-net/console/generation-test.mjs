@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * thehe-test.mjs — cổng THẾ HỆ của console: nó có hỏi node đang chạy không, và
+ * generation-test.mjs — cổng THẾ HỆ của console: nó có hỏi node đang chạy không, và
  * nó có **từ chối** khi thế hệ lệch không.
  *
  * 🔴 VÌ SAO CÓ BÀI NÀY. Tới `2026-08-28` console **chưa bao giờ hỏi node nó đang
@@ -19,7 +19,7 @@
  * lỗi trả về phải là lỗi TÊN — tức cổng thế hệ đã cho đi qua. Chứng minh được
  * "cổng mở" mà không tiêu một slot L1 nào.
  *
- * Dùng:  node local-net/console/thehe-test.mjs
+ * Dùng:  node local-net/console/generation-test.mjs
  */
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";

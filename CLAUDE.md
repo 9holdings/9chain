@@ -46,21 +46,21 @@ quá khứ hay sẽ được xuất bản?*
 ```bash
 node scripts/check-deploy-drift.mjs          # repo ↔ server (chạy TRƯỚC mọi mục "đã đóng")
 node scripts/check-consistency.mjs --tu-kiem # số học tokenomics, đọc THẲNG từ Go
-node scripts/sinh-chainid-da-cap.mjs --kiem  # sổ chainId/tên xuyên thế hệ
+node scripts/gen-chainid-issued.mjs --kiem  # sổ chainId/tên xuyên thế hệ
 node local-net/console/chainid-test.mjs      # phép cấp chainId
 node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs               # tra sổ công khai chainid.network
-node scripts/kiem-khoa-tren-chain.mjs <thư-mục>/allocation.md   # khoá ↔ TIỀN THẬT
-node scripts/vi-qua-ham.mjs --kiem           # ví ký không chạm server (M11.10)
-bash scripts/h6b-sao-luu.sh --kiem           # bản sao lưu có dựng lại được mạng không
-node scripts/kiem-robots.mjs                 # robots.txt của A1 có tới người đọc không
+node scripts/check-keys-on-chain.mjs <thư-mục>/allocation.md   # khoá ↔ TIỀN THẬT
+node scripts/wallet-over-tunnel.mjs --kiem           # ví ký không chạm server (M11.10)
+bash scripts/h6b-backup.sh --kiem           # bản sao lưu có dựng lại được mạng không
+node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
 ```
 
-⚠️ `ngay-g-preflight.mjs` gọi **12** cổng đầu; ba cổng cuối đứng ngoài (hai cái là VIỆC TAY
-của nó, `kiem-robots` là mặt web — không đủ tư cách chặn genesis).
+⚠️ `gday-preflight.mjs` gọi **12** cổng đầu; ba cổng cuối đứng ngoài (hai cái là VIỆC TAY
+của nó, `check-robots` là mặt web — không đủ tư cách chặn genesis).
 
 🔴 **Vế thứ BA của luật cứng #2 (D-106b, `28/08`): thấy cổng ĐỎ chưa đủ — phải kiểm nó đỏ VÌ
-ĐÚNG LÝ DO.** `kiem-robots` bản đầu đỏ ngay lần đầu và cái đỏ đó bị đọc thành *"cổng nhạy"*,
+ĐÚNG LÝ DO.** `check-robots` bản đầu đỏ ngay lần đầu và cái đỏ đó bị đọc thành *"cổng nhạy"*,
 trong khi nó chấm bằng **dòng đầu** `robots.txt` mà tưởng đang chấm bằng **nội dung**.
 Cloudflare **chèn thêm**, không **thay** ⇒ B-10 chưa bao giờ là một lỗ. Bài học kèm: **đọc HẾT
 tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đã viết sẵn phép đo đúng.
@@ -70,7 +70,7 @@ tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đ
 | Không được | Vì sao |
 |---|---|
 | `git add -A` | phiên khác đang làm việc trong repo — **đã nuốt nhầm một lần**. Commit bằng đường dẫn tường minh |
-| `git push` | repo **không có remote** (H-6). Chống mất việc là nhiệm vụ của `commit` + `h6b-sao-luu.sh` |
+| `git push` | repo **không có remote** (H-6). Chống mất việc là nhiệm vụ của `commit` + `h6b-backup.sh` |
 | Deploy / restart / ghi lên server công khai | chỉ một phiên được deploy, và deploy là việc **có người bấm** |
 | Gửi giao dịch · đẻ/thu hồi chain · faucet | tiêu tiền thật trên mạng công khai; đẻ chain nay còn **mặc định ĐÓNG** (`A1_DE_CHAIN_MO`) |
 | Đụng `web/` · Caddyfile · merge `web-home` | thuộc worktree khác đang sống |

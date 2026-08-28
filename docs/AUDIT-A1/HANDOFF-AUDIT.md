@@ -23,7 +23,7 @@ mở**, không mục nào là P0.
 | ID | Mức | Trạng thái |
 |---|---|---|
 | A-001 bản sao lưu không dựng lại được mạng | ~~P0~~ | 🟡 **trạng thái đã sửa** — bản `20260828-030536`, 24/24 patch, 6 phép nghiệm thu |
-| A-014 không ai phát hiện backup **cũ đi** | P1 | ✅ **ĐÓNG** — `scripts/h6b-sao-luu.sh` + hook `Stop` |
+| A-014 không ai phát hiện backup **cũ đi** | P1 | ✅ **ĐÓNG** — `scripts/h6b-backup.sh` + hook `Stop` |
 | A-013 explorer loop chết trên máy chủ | P2 | 🟡 **nửa đầu xong** — `stats`/`user-ops-indexer` đã dừng (800/308, `exited`) |
 | **A-011** console không có người canh | 🔴 **P1** | 🔴 **mở** — việc rẻ nhất còn lại |
 | **A-012** `main` còn `networkId: 9001` | **P1** | 🔴 **mở** — A-007 phát lại được |
@@ -41,7 +41,7 @@ lại **từng đơn vị** từ ngoài.
 - **Nhặt `docs/AUDIT-A1/` sang `main`** (David chốt) — `ab3f22b`, 5 tệp, không một dòng mã
 - **A-013 nửa đầu**: `docker stop stats user-ops-indexer` — baseline công khai 4 dòng **không
   đổi một ký tự**, 9 node nguyên
-- **H-6b chạy lại** rồi **thành script**: `scripts/h6b-sao-luu.sh`, 4 chế độ, `--tu-kiem` 4/4
+- **H-6b chạy lại** rồi **thành script**: `scripts/h6b-backup.sh`, 4 chế độ, `--tu-kiem` 4/4
 - **Cổng cuối phiên**: hook `Stop` ở `main/.claude/settings.json` (`70f1345`) — im khi xanh,
   in lý do thật khi đỏ, 0,37s
 
@@ -76,7 +76,7 @@ luật 4 × 2 (dừng container · H-6b ghi lên máy chủ) · charter §4 × 1
 3. 🔴 **Hai lớp "cổng chết câm" trong bash, cả hai đã dính thật:**
    `[ -n "$X" ] && ham` là lệnh cuối ⇒ `set -e` giết không in một chữ; và
    `grep … | wc -l` với `pipefail` ⇒ **ca TỐT** (không tìm thấy gì) bị xử như lỗi.
-   Đừng "dọn" `|| true` trong `h6b-sao-luu.sh` — lý do đã ghi thành comment tại chỗ.
+   Đừng "dọn" `|| true` trong `h6b-backup.sh` — lý do đã ghi thành comment tại chỗ.
 4. 🔴 **Cổng luôn ĐỎ vô dụng y hệt cổng luôn xanh, và tệ hơn vì người ta sẽ TẮT nó.** Thử
    hook bằng `eval` cho cả hai vế đều đỏ (`eval` nuốt escaping). ⇒ Luôn thử bằng chuỗi
    **lấy ngược ra từ `settings.json`**, không phải bản gốc.
@@ -99,11 +99,11 @@ luật 4 × 2 (dừng container · H-6b ghi lên máy chủ) · charter §4 × 1
 ## Lệnh hữu ích
 
 ```bash
-cd /c/PROJECTS/9Chain-A1 && bash scripts/h6b-sao-luu.sh --kiem
+cd /c/PROJECTS/9Chain-A1 && bash scripts/h6b-backup.sh --kiem
 ```
 
 ```bash
-cd /c/PROJECTS/9Chain-A1 && bash scripts/h6b-sao-luu.sh --tu-kiem
+cd /c/PROJECTS/9Chain-A1 && bash scripts/h6b-backup.sh --tu-kiem
 ```
 
 ```bash

@@ -70,11 +70,11 @@ với ví**, khoá **không chạm server một byte nào**:
 
 ```bash
 # 1. nghiệm thu đường đi — chưa cần khoá
-node scripts/vi-qua-ham.mjs --kiem
+node scripts/wallet-over-tunnel.mjs --kiem
 # 2. 🔴 kiểm CHỌN QUỸ mà KHÔNG khởi động ví — chạy cho cả 6 quỹ trước khi nạp quỹ đầu tiên
-node scripts/vi-qua-ham.mjs --kiem --khoa <keys.txt> --quy foundation
+node scripts/wallet-over-tunnel.mjs --kiem --khoa <keys.txt> --quy foundation
 # 3. rồi mới nạp ví
-node scripts/vi-qua-ham.mjs --khoa <keys.txt> --quy foundation
+node scripts/wallet-over-tunnel.mjs --khoa <keys.txt> --quy foundation
 docker rm -f 9chain-a1-vi-ham                    # 🔴 xong việc là dừng NGAY
 ```
 

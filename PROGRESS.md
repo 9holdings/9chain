@@ -35,12 +35,12 @@ rồi giao ba việc bật ra từ bản quét đó.
 - [x] **Q-2 — C1 ra khỏi tầm ngắm của A1** (D-104)
       David chốt: *"hai chain này song song, C1 tôi điều phối riêng."* Trước đó 4 tệp sống của
       A1 khai C1 là **đường găng lớn nhất**.
-      ✅ **ĐẠT** — đổi ở `HANDOFF.md`, `PROGRESS.md`, `ngay-g-preflight.mjs`. Chữ khắc nay là
+      ✅ **ĐẠT** — đổi ở `HANDOFF.md`, `PROGRESS.md`, `gday-preflight.mjs`. Chữ khắc nay là
       **đầu vào David cấp**, không phải phụ thuộc. 🔴 Vế A1 **không** bỏ theo: byte tới **sau**
       bước sinh genesis là không khắc được nữa ⇒ preflight nay hỏi byte **trước** khi chạy netgen.
       ⚠️ Không sửa các câu **kể về quá khứ** có nhắc C1 (M10.6, D-041, H-5).
 - [x] **Q-3 — B-10: cổng chấm bằng NỘI DUNG, và nó ĐÍNH CHÍNH chính B-10** (D-106 → **D-106b**)
-      `scripts/kiem-robots.mjs`. B-10 mở từ `27/08` nhưng chỉ tồn tại như **một dòng chữ**.
+      `scripts/check-robots.mjs`. B-10 mở từ `27/08` nhưng chỉ tồn tại như **một dòng chữ**.
       **Điều kiện qua:** chấm bằng nội dung (không bằng mã HTTP) · **đối chứng dương**
       `/sitemap.xml` · ba mã thoát phân biệt *đạt/sai/không biết*.
       🔴 **Bản đầu của tôi ĐỎ, và ĐỎ SAI.** Nó chấm bằng dấu vân tay Cloudflare ở **dòng đầu**
@@ -57,14 +57,14 @@ rồi giao ba việc bật ra từ bản quét đó.
       ⚠️ **Luật cứng #2 cần vế thứ ba:** thấy cổng ĐỎ chưa đủ — phải kiểm nó **đỏ VÌ ĐÚNG LÝ DO**.
       🟡 Còn lại là **quyết định chính sách của David**, không phải lỗi: khối Cloudflare cấm hẳn
       **9 bot AI** và khai điều khoản **nhân danh A1**.
-      🔴 **Kèm:** `ngay-g-preflight.mjs` khai cờ `batBuoc` trong chú thích mà **chưa từng cài**.
+      🔴 **Kèm:** `gday-preflight.mjs` khai cờ `batBuoc` trong chú thích mà **chưa từng cài**.
       Đã **bỏ lời hứa** thay vì cài — cổng *"đỏ nhưng không sao"* sẽ bị bỏ qua đúng lúc nó kêu
       thật (lý lẽ D-070). Mọi cổng trong preflight nay **đều bắt buộc**.
 
 - [x] **Q-4 — B-17 ĐÓNG: xoá 6 tệp `.bak` trên server** (D-107 · D-107b)
       David duyệt trong phiên. Ba bước **liệt kê → xoá → đối chứng**, không phải một dòng.
       ✅ **ĐẠT** — `ls *.bak*` ⇒ **0** · sổ đang chạy `console-chains.json` còn nguyên 27 byte ·
-      `server.mjs`/`index.html` còn sống · drift mồ côi **7 → 1** · `canh-mang` 9/9, console 200.
+      `server.mjs`/`index.html` còn sống · drift mồ côi **7 → 1** · `watch-network` 9/9, console 200.
       🔴 **Lệnh soạn sẵn của D-098 sẽ xoá mất NỘI DUNG DUY NHẤT — hai lần:**
       (1) sổ `console-chains.json.bak-1787728833` (20.489 B) không có bản lưu nào trong repo,
       dù D-098 khẳng định *"ba sổ đã có bản lưu trữ chính thức"*;
@@ -81,13 +81,13 @@ rồi giao ba việc bật ra từ bản quét đó.
       Đo `28/08`: máy dev chỉ có **một ổ đĩa** (`C:`, 1.862 GB) — không USB, không ổ ngoài.
       *"Hai nơi khác nhau về vật lý"* **không tạo ra được từ phần mềm**, và
       `C:\PROJECTS\9Chain-backups\` cũng trên `C:` nên không tính. ⇒ Cần David cắm ổ vào hoặc
-      chỉ ra nơi bản thứ hai đang nằm. Phần A1 làm được đã xong: `o1-kiem.mjs` trên bộ **chính**
+      chỉ ra nơi bản thứ hai đang nằm. Phần A1 làm được đã xong: `o1-check.mjs` trên bộ **chính**
       ⇒ **exit 0** (nó ĐÚNG là bộ của mạng đang chạy, 6/6 quỹ giữ tiền thật).
 
-**Số đo cuối phiên:** preflight **12/12 xanh, exit 0** (14 việc tay) · `canh-mang` 9/9 ·
-drift `19 khớp · 0 lệch · 0 thiếu` · `o1-kiem` trên bộ g0 **chính** ⇒ **exit 0** (nó ĐÚNG là bộ
-của mạng đang chạy) · `kiem-khoa-tren-chain --tu-kiem` 5/5 · `vi-qua-ham --kiem` 3/3 ·
-`h6b --kiem` 24=24 patch (chậm 1 commit, chỉ tài liệu) · `kiem-robots` **ĐỎ, có chủ ý**.
+**Số đo cuối phiên:** preflight **12/12 xanh, exit 0** (14 việc tay) · `watch-network` 9/9 ·
+drift `19 khớp · 0 lệch · 0 thiếu` · `o1-check` trên bộ g0 **chính** ⇒ **exit 0** (nó ĐÚNG là bộ
+của mạng đang chạy) · `check-keys-on-chain --tu-kiem` 5/5 · `wallet-over-tunnel --kiem` 3/3 ·
+`h6b --kiem` 24=24 patch (chậm 1 commit, chỉ tài liệu) · `check-robots` **ĐỎ, có chủ ý**.
 
 ---
 
@@ -118,7 +118,7 @@ không push.
       **Điều kiện qua:** 3 ca ĐỎ — sửa JS ⇒ đỏ · sửa Go ⇒ đỏ · console trỏ networkID lạ ⇒ từ
       chối đẻ chain, trỏ đúng ⇒ phục vụ bình thường.
       ✅ **ĐẠT `28/08`** (D-093). `check-consistency` **17 đạt/0 lỗi · 14/14 ca đỏ**, kèm đối chứng
-      trên **TỆP THẬT** (`sed A1_GEN=1` ⇒ exit 1). `thehe-test.mjs` mới: **13/13** trên console
+      trên **TỆP THẬT** (`sed A1_GEN=1` ⇒ exit 1). `generation-test.mjs` mới: **13/13** trên console
       THẬT với node giả đổi được câu trả lời; **gỡ cổng khỏi `createChain` ⇒ 7 hỏng/exit 1** (bài
       kiểm nối vào mã thật). 🔴 Bẫy đã đo: `info.getNetworkID` trả **CHUỖI**.
       🔴 **Đẻ ra D-094:** `console-deploy.sh` chép 15 tệp mà **đối chiếu chỉ 9** — thiếu đúng
@@ -135,9 +135,9 @@ không push.
       Cloudflare — đo bằng tên cũ ra "trang chết" trong khi trang vẫn sống.
       ⚠️ Sửa `console/server.mjs` ⇒ drift **sẽ báo console lệch, và đó là ĐÚNG**. Deploy là việc
       của David.
-- [x] **A15-2 — O1 thành MỘT cổng (`scripts/o1-kiem.mjs`)**
+- [x] **A15-2 — O1 thành MỘT cổng (`scripts/o1-check.mjs`)**
       D-090: `kiem-khoa` một mình chấm `6/6 ✓ exit 0` cho bộ khoá **đã chết**. Luật *"nhớ chạy
-      kèm `kiem-khoa-tren-chain.mjs`"* hiện chỉ sống trong đầu người đọc HANDOFF — đó là **quy
+      kèm `check-keys-on-chain.mjs`"* hiện chỉ sống trong đầu người đọc HANDOFF — đó là **quy
       trình, không phải cổng**, và nó sai đúng lúc được dùng nhiều nhất (**B-16, David làm bản
       sao thứ hai**).
       **Điều kiện qua:** bộ g0 ⇒ exit 0 · bộ `9001` chết ⇒ exit 1 nêu đúng *"thuộc thế hệ đã
@@ -145,7 +145,7 @@ không push.
       (ba mã thoát phân biệt *đúng* / *sai* / *không đo được*).
       ✅ **ĐẠT `28/08`** (D-097) — nghiệm thu trên **dữ liệu thật**, **6/6 ca đúng mã thoát**:
       g0 sống ⇒ `0` · 🔴 bộ `9001` chết ⇒ `1` *trong khi cùng lượt đó vế 1 vẫn in
-      `✓ 6/6 quỹ khôi phục đúng`* · giấu `kiem-khoa-tren-chain.mjs` ⇒ `2` **không xanh** ·
+      `✓ 6/6 quỹ khôi phục đúng`* · giấu `check-keys-on-chain.mjs` ⇒ `2` **không xanh** ·
       docker hỏng / thư mục rỗng / thư mục không tồn tại ⇒ `2`.
       Kèm: Go bản địa **không** build được `kiem-khoa` (cần container `golang:1.25.10`, ~28s),
       và `spawnSync` né hẳn bẫy MSYS đổi `-w /src` thành `C:/Program Files/Git/src`.
@@ -164,25 +164,25 @@ không push.
       🔴 **Đẻ ra B-17:** hai bản `.bak` của console trên server đo được **0** lần
       `A1_DE_CHAIN_MO` (một bản còn **0** lần `siwe`) ⇒ khôi phục là mở lại D-087 và gỡ M4.1.
       Cần **David** xoá.
-- [x] **A15-4 — O3b: kéo sổ THẬT về → dồn `chains` → `retired` (`scripts/dong-so-truoc-regenesis.mjs`)**
+- [x] **A15-4 — O3b: kéo sổ THẬT về → dồn `chains` → `retired` (`scripts/close-ledger-before-regenesis.mjs`)**
       Lượt `26/08` reset sổ về `{chains:[],retired:[]}` ⇒ **mất 43 bản ghi chống phát lại**.
-      Và `sinh-chainid-da-cap.mjs` đọc **repo** ([dòng 23–24](scripts/sinh-chainid-da-cap.mjs:23))
+      Và `gen-chainid-issued.mjs` đọc **repo** ([dòng 23–24](scripts/gen-chainid-issued.mjs:23))
       trong khi sổ sống nằm trên **server** và bị `boQua` trong drift gate ⇒ **không ai canh
       khoảng cách đó**.
       **Điều kiện qua:** sổ rỗng ⇒ **từ chối** (rỗng ≡ hỏng) · JSON hỏng ⇒ từ chối · 2 chain sống
-      ⇒ ra tệp 0 sống / 2 `retired` có `thuHoiLuc`, và `sinh-chainid-da-cap --kiem` sau đó vẫn
+      ⇒ ra tệp 0 sống / 2 `retired` có `thuHoiLuc`, và `gen-chainid-issued --kiem` sau đó vẫn
       xanh **với số mục TĂNG**.
-      ✅ **ĐẠT `28/08`** (D-099) — `scripts/dong-so-truoc-regenesis.mjs`. **9/9 ca đối chứng**
+      ✅ **ĐẠT `28/08`** (D-099) — `scripts/close-ledger-before-regenesis.mjs`. **9/9 ca đối chứng**
       (4 ca đỏ) + tính chất *không mất/không đẻ bản ghi* đúng ở n = 0/1/5/43. `--keo` chạy thật:
       server `0/0`, repo biết **53 bản ghi từ 3 sổ**. `--don` chạy thật trên sổ repo ⇒
-      `0 sống / 1 retired` có `thuHoiLuc` + `lyDo`; `sinh-chainid-da-cap --kiem` sau đó vẫn xanh.
+      `0 sống / 1 retired` có `thuHoiLuc` + `lyDo`; `gen-chainid-issued --kiem` sau đó vẫn xanh.
       🔴 **Đo ra lỗ thứ hai chưa ai nêu:** sổ sống ở **server** (`0/0`) và sổ repo
       (`DeltaChain#9201`) **không phải bản sao của nhau**, mà drift gate **cố ý bỏ qua** tệp đó
       ⇒ không cổng nào canh khoảng cách giữa hai sổ. `--keo` lấp chỗ đó.
       🔴 **Sửa một lỗi của chính tôi:** bản đầu từ chối mọi sổ thiếu khoá `retired` (viện *rỗng ≡
       hỏng*) và **từ chối luôn sổ thật của repo** — trong khi `loadState()` khai rõ đó là định
       dạng trước M4.4, hợp lệ. Luật đúng: **thiếu khoá ≠ sai kiểu**.
-- [x] **A15-5 — `scripts/canh-mang.mjs`: giám sát một lệnh**
+- [x] **A15-5 — `scripts/watch-network.mjs`: giám sát một lệnh**
       HANDOFF tự khai số dư `chain-factory` **chưa có giám sát** (cạn ⇒ đẻ chain chết câm), và
       B-12 (9 validator rụng dần trong cửa sổ 56 ngày, node cuối rụng là **mạng DỪNG**) đang chờ
       một cái lịch không ai dựng.
@@ -199,7 +199,7 @@ không push.
       🔴 Hai đối chứng **dữ liệu thật, hai chiều hỏng ⇒ hai mã**: RPC chết ⇒ **2** (không đo
       được) · `A1_GEN = 1` trong khi mạng g0 ⇒ **1** (đúng kịch bản ngày G nếu bump một bên).
       Phát hiện phụ: tài liệu gọi `/api/tien-trinh`, mã thật là `/api/progress`.
-- [x] **A15-6 — `scripts/ngay-g-preflight.mjs`: runbook chạy được**
+- [x] **A15-6 — `scripts/gday-preflight.mjs`: runbook chạy được**
       Hôm nay runbook ngày G nằm rải ở 5 tệp tài liệu, không có gì chạy được. Gọi mọi cổng theo
       **đúng thứ tự ngày G**, in bảng ĐẠT/ĐỎ/BỎ QUA, exit ≠0 nếu mục bắt buộc đỏ.
       🔴 Mục **chưa tự động hoá được** (O2 công bố `sha256` ra chỗ NGOÀI · sinh token/khoá mới ·
@@ -214,13 +214,13 @@ không push.
 - [x] **A15-7 — HANDOFF gọn + bài đo lệch đồng hồ (B-13b)**
       (a) `HANDOFF.md` ≤300 dòng, lịch sử sang `docs/archive/HANDOFF-2026-08.md` — **không mất
       nội dung** (đối chứng: grep vài chuỗi mốc cũ vẫn tìm được).
-      (b) `scripts/do-lech-dong-ho.mjs` — viết TRƯỚC, chạy được SAU khi mạng g1 lên.
+      (b) `scripts/check-clock-skew.mjs` — viết TRƯỚC, chạy được SAU khi mạng g1 lên.
       🔴 Bài phải **tự khai**: hôm nay 9 node **cùng một máy ⇒ lệch = 0**, và con số đó chỉ có
       nghĩa **sau O4** (nhà cung cấp thứ hai). Đo lệch trên một đồng hồ duy nhất rồi khai "đã đo"
       chính là *đo sai đại lượng*.
       ✅ **ĐẠT `28/08`** (D-102 · D-103). (a) `HANDOFF.md` **2.026 → 250 dòng**, lịch sử 1.793
       dòng sang `docs/archive/HANDOFF-lich-su-2026-08.md`, **không mất một chữ**.
-      (b) `scripts/do-lech-dong-ho.mjs` — **7/7 ca đối chứng**; đo thật **+557ms ± 811ms** ⇒
+      (b) `scripts/check-clock-skew.mjs` — **7/7 ca đối chứng**; đo thật **+557ms ± 811ms** ⇒
       biên xấu nhất node chậm 254ms ⇒ giữ `--bu-ms 3000`.
       🔴 **Bỏ hai cách đo vì chúng đo sai đại lượng:** `ssh` cho RTT **4.100ms** và một thiên
       lệch hệ thống +3.150ms **không tách được** khỏi lệch thật (5 mẫu chỉ tản 55ms — *nhất quán
@@ -290,7 +290,7 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       lượt tập + chainId riêng ⇒ đường đúng. Kèm trần EIP-2294 + **luôn in chainId**.
       **7 ca nghiệm thu, 3 ca đỏ đúng chỗ**; ca 1/ca 2 chấm bằng **nội dung genesis**, không
       bằng log. ⚠️ Không cần build lại image node (netgen chạy `go run` lúc sinh mạng).
-      ✅ **Phần thứ hai — console (B-14):** nạp `chainid-da-chiem.json` (51 số bị chiếm dải
+      ✅ **Phần thứ hai — console (B-14):** nạp `chainid-taken.json` (51 số bị chiếm dải
       9100–9999) và bỏ qua ở **cả hai** đường. Nghiệm thu thật: xin `9100` ⇒ từ chối nêu tên
       *Genesis Coin* · tự cấp trên sổ rỗng ⇒ **9101** (đọc từ genesis vừa dựng) · xoá tệp ⇒
       console **tự khai cổng đang TẮT**. Bản đầy đủ: `docs/CONG-CHAINID-2026-08-27.md`.

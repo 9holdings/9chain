@@ -17,7 +17,7 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 | `console-chains.json` (sổ đang chạy) **còn nguyên** 27 byte | server |
 | `server.mjs` 82.983 B · `index.html` 20.299 B **còn sống** | server |
 | `check-deploy-drift` mồ côi **7 → 1** (chỉ còn `faucet/package-lock.json`, LÀNH) | server |
-| `canh-mang` 9/9 xanh, console `/whoami` **200** | mạng công khai |
+| `watch-network` 9/9 xanh, console `/whoami` **200** | mạng công khai |
 
 🔴 **Lệnh soạn sẵn bản đầu sẽ XOÁ MẤT NỘI DUNG DUY NHẤT — hai lần, không phải một.**
 Xem **D-107** (sổ `console-chains.json.bak-1787728833`) và **D-107b** (hai tệp
@@ -69,7 +69,7 @@ này, và xoá tệp trên máy chủ công khai là quyết định vận hành
 >
 > ✅ **Đã kéo về `28/08`** → `docs/archive/console-chains-2026-08-26T0720Z.json`
 > (`ca24eb59…`, khớp sha256 hai đầu; ảnh chụp `2026-08-26T07:20:33Z`, **3 sống · 39 thu hồi**).
-> Cổng `sinh-chainid-da-cap --kiem` **đỏ ngay** khi có nguồn thứ tư — đúng chức năng — rồi
+> Cổng `gen-chainid-issued --kiem` **đỏ ngay** khi có nguồn thứ tư — đúng chức năng — rồi
 > `--ghi` cho **47 chainId · 53 tên, KHÔNG đổi**: sổ đó không thiếu lời hứa nào, nhưng nó là
 > **bản duy nhất** của ảnh chụp ấy. ⇒ Nay xoá thật sự không mất gì.
 >
@@ -94,7 +94,7 @@ ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && shred -u -n 3 local-n
 # ── BƯỚC 3 · ĐỐI CHỨNG: phải ra 0, và console phải còn sống
 ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && ls local-net/console/*.bak* 9chain-a1-config/*.bak* 2>/dev/null | wc -l; ls -l 9chain-a1-config/console-chains.json'
 node scripts/check-deploy-drift.mjs      # mồ côi 7 → 1 (chỉ còn faucet/package-lock.json, LÀNH)
-node scripts/canh-mang.mjs               # console /whoami phải vẫn 200
+node scripts/watch-network.mjs               # console /whoami phải vẫn 200
 ```
 
 🔴 **Glob `console-chains.json.bak*` KHÔNG khớp `console-chains.json` trần** (thiếu `.bak`) —
@@ -134,7 +134,7 @@ là bộ đang tồn tại đúng lúc David được nhắc phải sao lưu, **
 ✅ **`28/08` — NAY CHỈ CÒN MỘT LỆNH** (D-097). Bẫy trên không còn phụ thuộc trí nhớ nữa:
 
 ```bash
-node scripts/o1-kiem.mjs <thư-mục-bản-sao>
+node scripts/o1-check.mjs <thư-mục-bản-sao>
 ```
 
 Nó chạy **cả hai** vế và **chỉ thoát `0` khi cả hai xanh**. Ba mã thoát: `0` ĐẠT · `1` SAI ·
@@ -147,7 +147,7 @@ Nó chạy **cả hai** vế và **chỉ thoát `0` khi cả hai xanh**. Ba mã 
 *(Hai lệnh rời vẫn dùng được khi muốn đọc kỹ từng vế:)*
 
 ```bash
-node scripts/kiem-khoa-tren-chain.mjs <thư-mục-bản-sao>/allocation.md
+node scripts/check-keys-on-chain.mjs <thư-mục-bản-sao>/allocation.md
 ```
 
 **Nếu bước "lấy bản thứ hai ra" không làm được** — không tìm thấy, không mở được — thì **đó
@@ -406,7 +406,7 @@ HTML tự viết hay trong patch**. Chi tiết: `docs/BRAND-AUDIT-2026-08-27.md`
 > **`robots.txt` của A1 VẪN LUÔN tới được người đọc.** Không có gì hỏng, không có gì
 > để tắt cho khỏi hỏng.
 >
-> **Vì sao lỗi này sống được hai ngày:** cả lượt `27/08` lẫn cổng `kiem-robots.mjs`
+> **Vì sao lỗi này sống được hai ngày:** cả lượt `27/08` lẫn cổng `check-robots.mjs`
 > bản đầu đều đọc **vài dòng đầu** rồi phán. Tức chúng **đo VỊ TRÍ trong khi tưởng
 > mình đo NỘI DUNG** — thang đo `CLAUDE.md` §1 nói *"đọc nội dung"*, không nói *"đọc
 > dòng đầu"*, và khoảng cách giữa hai câu đó vừa tốn hai ngày.
@@ -416,7 +416,7 @@ HTML tự viết hay trong patch**. Chi tiết: `docs/BRAND-AUDIT-2026-08-27.md`
 > mặt trái của xanh giả: **đỏ giả** cũng phá đúng thứ đó, chỉ chậm hơn."* Người viết
 > dòng đó đã đi trước; người dựng cổng không đọc tới đó.
 >
-> ✅ **Cổng nay chấm đúng:** `node scripts/kiem-robots.mjs` — **7/7 ca đối chứng**
+> ✅ **Cổng nay chấm đúng:** `node scripts/check-robots.mjs` — **7/7 ca đối chứng**
 > (gồm ca *"chỉ có khối Cloudflare, mất dòng Sitemap"* ⇒ **1**, và ca *"route biến mất
 > khỏi Caddyfile, trả HTML 404"* ⇒ **2**). Chạy thật `28/08` ⇒ **exit 0**.
 > Phép chấm là **một** chuỗi chỉ có thể tới từ tệp của A1; mọi thứ khác là ghi chú.

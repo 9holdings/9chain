@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * sinh-chainid-da-cap.mjs — dựng danh sách **chainId và TÊN mà A1 ĐÃ TỪNG CẤP**
+ * gen-chainid-issued.mjs — dựng danh sách **chainId và TÊN mà A1 ĐÃ TỪNG CẤP**
  * cho L1 người dùng, gộp từ MỌI sổ console còn lưu được.
  *
  * 🔴 VÌ SAO CẦN. Mỗi lượt re-genesis xoá sạch `console-chains.json`, nên sổ
@@ -26,16 +26,16 @@
  * không ai dám sinh lại nó.
  *
  * Dùng:
- *   node scripts/sinh-chainid-da-cap.mjs                    # in ra, không ghi
- *   node scripts/sinh-chainid-da-cap.mjs --ghi              # ghi vào console/
- *   node scripts/sinh-chainid-da-cap.mjs --kiem             # thoát 1 nếu lệch tệp đang có
+ *   node scripts/gen-chainid-issued.mjs                    # in ra, không ghi
+ *   node scripts/gen-chainid-issued.mjs --ghi              # ghi vào console/
+ *   node scripts/gen-chainid-issued.mjs --kiem             # thoát 1 nếu lệch tệp đang có
  */
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const RA = path.join(GOC, "local-net", "console", "chainid-da-cap.json");
+const RA = path.join(GOC, "local-net", "console", "chainid-issued.json");
 
 /** Mọi sổ console trong repo. Thêm sổ mới = thả tệp vào `docs/archive/`. */
 function nguon() {
@@ -94,7 +94,7 @@ function dungBan({ chainIds, tens, daDoc }) {
       "chainId VÀ TÊN mà 9Chain-A1 ĐÃ TỪNG CẤP cho L1 người dùng, gộp từ mọi sổ console " +
       "trong repo. Chặn cấp lại VĨNH VIỄN: thu hồi không gỡ được mạng khỏi ví ai, nên cấp " +
       "lại một chainId là để chữ ký của chain cũ phát lại được trên chain mới. " +
-      "SINH TỰ ĐỘNG — đừng sửa tay, chạy `node scripts/sinh-chainid-da-cap.mjs --ghi`.",
+      "SINH TỰ ĐỘNG — đừng sửa tay, chạy `node scripts/gen-chainid-issued.mjs --ghi`.",
     nguon: daDoc,
     soChainId: chainIds.size,
     soTen: tens.size,
@@ -114,11 +114,11 @@ if (process.argv.includes("--kiem")) {
   }
   const cu = readFileSync(RA, "utf8");
   if (cu !== chuoi) {
-    console.error("FATAL chainid-da-cap.json ĐÃ TRÔI LỆCH khỏi các sổ trong repo.");
-    console.error("      Chạy: node scripts/sinh-chainid-da-cap.mjs --ghi");
+    console.error("FATAL chainid-issued.json ĐÃ TRÔI LỆCH khỏi các sổ trong repo.");
+    console.error("      Chạy: node scripts/gen-chainid-issued.mjs --ghi");
     process.exit(1);
   }
-  console.log(`✓ chainid-da-cap.json khớp nguồn — ${ban.soChainId} chainId · ${ban.soTen} tên`);
+  console.log(`✓ chainid-issued.json khớp nguồn — ${ban.soChainId} chainId · ${ban.soTen} tên`);
   process.exit(0);
 }
 

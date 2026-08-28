@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
-# h6b-sao-luu.sh — H-6b: dựng bản sao lưu thứ hai của 9Chain-A1 và NGHIỆM THU nó.
+# h6b-backup.sh — H-6b: dựng bản sao lưu thứ hai của 9Chain-A1 và NGHIỆM THU nó.
 #
-#   bash scripts/h6b-sao-luu.sh              # dựng + nghiệm thu + đẩy lên máy chủ
-#   bash scripts/h6b-sao-luu.sh --khong-day  # dựng + nghiệm thu, KHÔNG chạm máy chủ
-#   bash scripts/h6b-sao-luu.sh --kiem       # CHỈ hỏi "bản mới nhất còn tươi không" (A-014)
-#   bash scripts/h6b-sao-luu.sh --tu-kiem    # chứng minh cổng này biết báo ĐỎ
+#   bash scripts/h6b-backup.sh              # dựng + nghiệm thu + đẩy lên máy chủ
+#   bash scripts/h6b-backup.sh --khong-day  # dựng + nghiệm thu, KHÔNG chạm máy chủ
+#   bash scripts/h6b-backup.sh --kiem       # CHỈ hỏi "bản mới nhất còn tươi không" (A-014)
+#   bash scripts/h6b-backup.sh --tu-kiem    # chứng minh cổng này biết báo ĐỎ
 #
 # ═══ VÌ SAO PHẢI LÀ SCRIPT, KHÔNG PHẢI QUY TRÌNH TRONG TÀI LIỆU ═══
 # H-6b từng là 8 bước viết tay trong `BLOCKERS.md`. Nó đã chạy ba lần và **hai lần
@@ -145,7 +145,7 @@ kiem_tuoi() {
   echo
   if [ "$do_" -gt 0 ]; then
     echo "🔴 BẢN SAO LƯU KHÔNG CÒN TẢ ĐƯỢC MẠNG ĐANG CHẠY. Chạy lại:"
-    echo "     bash scripts/h6b-sao-luu.sh"
+    echo "     bash scripts/h6b-backup.sh"
     return 1
   fi
   [ "$vang" -gt 0 ] && echo "🟡 đạt, có cảnh báo." || echo "✓ bản sao lưu còn tươi."
@@ -328,7 +328,7 @@ FORK_TREE=$TREE_FORK
 EOF
 
 cat > "$D/MANIFEST.txt" <<EOF
-9Chain-A1 — BẢN SAO LƯU $TS UTC   (sinh bởi scripts/h6b-sao-luu.sh)
+9Chain-A1 — BẢN SAO LƯU $TS UTC   (sinh bởi scripts/h6b-backup.sh)
 Nguồn: $ROOT
 
 == REPO 9Chain-A1 ==
