@@ -1,157 +1,119 @@
-# HANDOFF — worktree `audit` · Cập nhật: `2026-08-28` (lượt soát lại thứ 2)
+# HANDOFF — worktree `audit` · Cập nhật: `2026-08-28` (soát lượt 2 + thi hành)
 
-> 🔴 **THƯ MỤC NÀY NAY SỐNG Ở HAI NHÁNH — ĐỌC TRƯỚC KHI TIN BẤT KỲ CON SỐ NÀO Ở ĐÂY.**
->
-> **Nhánh `audit` là nơi ghi tiếp. Bản trên `main` là ẢNH CHỤP ngày `2026-08-28`** —
-> nhặt sang bằng `main @ ab3f22b` sau khi David chốt. Muốn bản mới nhất thì đọc ở
-> nhánh `audit` (`git show audit:docs/AUDIT-A1/SO-PHAT-HIEN.md`), **đừng đọc bản `main`
-> rồi tưởng đó là hiện trạng**.
->
-> Vì sao phải nói ra: đây **đúng hình dạng của A-012** — một thứ sống ở hai nơi, một nơi
-> trôi tiếp, nơi kia im lặng cũ đi, và **không cổng nào báo**. A-012 cháy vì
-> `web/lib/chain.ts` tồn tại ở cả `main` lẫn `web-home` và không ai canh chỗ lệch;
-> thư mục này vừa có đúng tính chất đó. Khác biệt duy nhất: ở đây ta **biết trước**.
->
-> **Cách giữ nó không thành lỗi** — mỗi phiên soát kết thúc thì nhặt lại một lượt:
-> ```
-> cd /c/PROJECTS/9Chain-A1 && git checkout audit -- docs/AUDIT-A1/ && git commit docs/AUDIT-A1 -m "..."
-> ```
-> Kiểm lệch bất cứ lúc nào — **0 dòng là khớp**:
+> 🔴 **THƯ MỤC NÀY SỐNG Ở HAI NHÁNH.** Nhánh `audit` là nơi ghi tiếp; bản trên `main` là
+> **ảnh chụp** (nhặt sang sau khi David chốt). Kiểm lệch — **0 dòng là khớp**:
 > ```
 > git diff audit main -- docs/AUDIT-A1/ | wc -l
 > ```
-> ⚠️ Commit theo **pathspec** (`git commit docs/AUDIT-A1`), đừng commit cả index:
-> worktree `main` gần như luôn có việc dở của session khác đang chạy song song.
-
-> ⚠️ Đây là HANDOFF **của riêng worktree soát**, cố ý **không** ghi vào `HANDOFF.md` ở
-> gốc repo — tệp đó thuộc quy trình làm việc của `main`. Mọi thứ worktree soát sinh ra
-> nằm trong `docs/AUDIT-A1/`. Luật 3 (`CLAUDE.md`) cấm worktree này commit vào `main`
-> **trừ khi David chốt và chỉ nhặt file `docs/`** — đã dùng đúng ngoại lệ đó `28/08`.
+> Nhặt lại sau mỗi phiên soát:
+> ```
+> cd /c/PROJECTS/9Chain-A1 && git checkout audit -- docs/AUDIT-A1/ && git commit docs/AUDIT-A1 -m "..."
+> ```
+> ⚠️ Commit theo **pathspec**, đừng commit cả index: worktree `main` gần như luôn có việc dở
+> của session khác. Đây đúng hình dạng A-012 — khác biệt duy nhất: ở đây ta **biết trước**.
 
 ## TL;DR
 
-Đã soát **hai mặt** (mã nguồn/công nghệ, chuỗi công khai g0), rồi **đo lại toàn bộ một
-lượt nữa ngày `28/08`**. Nay **13 phát hiện**: 1 P0 · 5 P1 · 7 P2.
+Soát lại toàn diện lượt 2 → **14 phát hiện** (từ 10). **P0 A-001 đã hạ** — H-6b chạy lại,
+nay là script có cổng canh. Ba việc David chốt trong phiên đã **thi hành xong**. Còn **4 mục
+mở**, không mục nào là P0.
 
-- **P0 A-001** vẫn mở và **xấu thêm**: bản sao lưu ngoài máy thiếu **12 patch / 45 commit**.
-- **3 phát hiện mới** từ lượt đo lại: **A-011** console không có người canh (P1) ·
-  **A-012** cổng drift loại trắng `web/` trong khi `main` còn giữ `networkID 9001` (P1) ·
-  **A-013** explorer loop chết 773 lần trên máy chủ (P2).
-- **A-007 chỉ đóng một nửa**: xanh trên máy chủ, đỏ trong nguồn `main` ⇒ phát lại được.
-
-Không lệnh nào đổi trạng thái máy chủ trong cả hai phiên.
-
-## Đã xong
-
-| Sản phẩm | Nội dung |
-|---|---|
-| `docs/AUDIT-A1/10-MA-NGUON-VA-CONG-NGHE.md` | kiểm kê cây mã (fork chạm **7/2.930** file Go, xoá **7/660.132** dòng), soát console công khai, 6 phát hiện A-001…A-006 |
-| `docs/AUDIT-A1/11-CHAIN-CONG-KHAI-G0-2026-08-27.md` | đo chuỗi g0 `27/08 15:30Z` + **mục CẬP NHẬT `28/08 01:30Z`**; A-007…A-010 |
-| `docs/AUDIT-A1/SO-PHAT-HIEN.md` | sổ 10 phát hiện đủ 6 trường + 5 quan sát + 8 mục "chưa đo được" |
-
-**Phép đo tự chạy trong phiên (đều chỉ-đọc, đã có đối chứng ngược):**
-- `node scripts/check-consistency.mjs` → 21 đạt · `--tu-kiem` 9/9 ca sai ra đỏ
-- `node scripts/check-deploy-drift.mjs` → **18 khớp · 0 lệch · 0 thiếu** (chạy từ worktree `main`)
-- ssh chỉ-đọc: `A1_HTTP_ALLOWED_HOSTS=localhost,127.0.0.1` ✓ · `restart: unless-stopped` ×9 ✓
-- Trình duyệt thật trên `a1.9chain.org` (6 trang) và `a1.9scan.org`
-- **Xác minh độc lập `supplyCap` mạng công khai = 7.900.000.001** bằng cách nghịch đảo
-  công thức thưởng — khớp **từng đơn vị**, ca tràn 720 triệu lệch 4,13 lần
-
-## Trạng thái phát hiện — **soát lại toàn diện lượt 2, `2026-08-28`**
-
-Gốc đo: `main @ 40bcc6c` · core `03ccd70` (24 patch) · mạng g0 đang chạy.
+## Trạng thái — `2026-08-28`
 
 | ID | Mức | Trạng thái |
 |---|---|---|
-| **A-001** bản sao lưu **không dựng lại được mạng đang chạy** | 🔴 **P0** | **mở, xấu thêm**: backup có **12 patch**; repo **24 patch**, **45 commit** sau. `BLOCKERS.md:493` vẫn ghi *"không còn là một ổ đĩa"* |
-| **A-011** 🆕 **console là tiến trình `node` trần, PPID 1, không ai canh** | 🔴 **P1** | **mới** — 30/31 thành phần có `restart:`/unit; console là ngoại lệ duy nhất |
-| **A-012** 🆕 cổng drift **loại `^web/`**; `main` ↔ `web-home` lệch **40/26 commit · 151 tệp**, `main` vẫn `networkId: 9001` | **P1** | **mới** — A-007 **phát lại được** |
-| A-008 `a1.9scan.org` chết trên chuỗi mới | P1 | 🔴 mở sau **~34 giờ** — đo lại bằng trình duyệt: y nguyên |
-| A-009 trang mời dùng dịch vụ đang **đóng** | P1 | 🟡 nửa đóng — console đóng **đã đo trên máy chủ**; trang **vẫn mời**; **suất vẫn bị tiêu trước khi cổng từ chối** |
-| A-002 `rebase-drill.sh` không canh `upgrade.A1` | P1 | 🔴 mở, tệp không đổi từ `25/08` |
-| A-005 explorer 6 image `:latest` | P2 | 🔴 mở — **nay đã đo trên MÁY CHỦ** (C-5 đóng) |
-| **A-013** 🆕 `stats` restart **773 lần**, `user-ops-indexer` **298 lần** trên máy chủ | P2 | **mới** (nâng từ Q-3) |
-| A-003 + A-010 compose trong git lệch 3 thứ | P2 | 🔴 mở, y nguyên |
-| A-004 faucet `ethers: ^6.13.0`, không lockfile | P2 | 🔴 mở, y nguyên |
-| A-006 lớp chủ quyền thiếu test | P2 | 🟠 **nhích**: có test băng bí danh (0022); `A1HRP`/`A1Name`/`upgrade.A1` vẫn **0 test** |
-| A-007 6 trang khai `networkID 9001` | P1 | ✅ đóng **phía sản phẩm** (6/6 = `999999999`) · 🔴 hở **phía nguồn** ⇒ A-012 |
+| A-001 bản sao lưu không dựng lại được mạng | ~~P0~~ | 🟡 **trạng thái đã sửa** — bản `20260828-030536`, 24/24 patch, 6 phép nghiệm thu |
+| A-014 không ai phát hiện backup **cũ đi** | P1 | ✅ **ĐÓNG** — `scripts/h6b-sao-luu.sh` + hook `Stop` |
+| A-013 explorer loop chết trên máy chủ | P2 | 🟡 **nửa đầu xong** — `stats`/`user-ops-indexer` đã dừng (800/308, `exited`) |
+| **A-011** console không có người canh | 🔴 **P1** | 🔴 **mở** — việc rẻ nhất còn lại |
+| **A-012** `main` còn `networkId: 9001` | **P1** | 🔴 **mở** — A-007 phát lại được |
+| **A-008** `a1.9scan.org` trắng | **P1** | 🔴 **mở** — đội 9Scan-A1 |
+| **A-009** trang vẫn mời + tiêu suất | **P1** | 🟡 console đóng thật; **trang vẫn mời**, suất vẫn bị tiêu |
+| A-002 · A-003 · A-004 · A-005 · A-006 · A-010 | P2 | 🔴 mở, y nguyên (chi tiết ở `SO-PHAT-HIEN.md`) |
 
-Mạng công khai còn lành: `networkID 999999999` · `9chain-a1-g0` · chainId `0x218711a09` ·
-**9 validator** · `potentialReward[0] = 82.876.379.811.608` ⇒ `SupplyCap 7.900.000.001`
-xác nhận lại **từng đơn vị** từ ngoài.
+Mạng công khai lành: `networkID 999999999` · `9chain-a1-g0` · chainId `0x218711a09` ·
+9 validator · `potentialReward[0] = 82.876.379.811.608` ⇒ `SupplyCap 7.900.000.001` xác nhận
+lại **từng đơn vị** từ ngoài.
+
+## Đã xong trong phiên
+
+- **Soát lại 10 phát hiện cũ** + **4 mới** (A-011…A-014) — `SO-PHAT-HIEN.md` §"Soát lại lượt 2"
+- **Nhặt `docs/AUDIT-A1/` sang `main`** (David chốt) — `ab3f22b`, 5 tệp, không một dòng mã
+- **A-013 nửa đầu**: `docker stop stats user-ops-indexer` — baseline công khai 4 dòng **không
+  đổi một ký tự**, 9 node nguyên
+- **H-6b chạy lại** rồi **thành script**: `scripts/h6b-sao-luu.sh`, 4 chế độ, `--tu-kiem` 4/4
+- **Cổng cuối phiên**: hook `Stop` ở `main/.claude/settings.json` (`70f1345`) — im khi xanh,
+  in lý do thật khi đỏ, 0,37s
+
+**Ba ngoại lệ David cho phép** (đã ghi thẳng vào sổ, không phải luật mới):
+luật 4 × 2 (dừng container · H-6b ghi lên máy chủ) · charter §4 × 1 (sinh script).
 
 ## Việc tiếp — ai làm gì
 
-1. **[human — David]** 🔴 **Chạy lại H-6b.** P0 duy nhất, và nó là một lệnh.
-   Điều kiện qua: `ls <backup>/avalanchego-patches/ | wc -l → 24` và
-   `git rev-list --count <HEAD-MANIFEST>..main → 0`. Chừng nào chưa đạt,
-   `BLOCKERS.md:493` phải bỏ câu *"không còn là một ổ đĩa"*.
-2. **[main]** 🔴 **A-011 — cho console một người canh.** systemd unit `enabled` + `active`,
-   hoặc đưa vào compose với `restart: unless-stopped`. Rẻ, và nó chặn một ca "mọi thứ
-   xanh, tính năng chủ lực chết" sau reboot.
-3. **[main]** 🔴 **A-012 — sửa `web/lib/chain.ts` trên `main` về `999999999`**, và cho
-   `web/` một mốc canh (so với `web-home`, không phải `main`). Không để cổng drift
-   loại trắng bề mặt công khai lớn nhất.
-4. **[main]** A-009 hai vế: (a) chuyển cổng D-087 lên **trước** `blockedByRate`
-   (`server.mjs:1237`) để lượt bị từ chối không tiêu suất; (b) trang chủ +
-   `/create-chain/` **nói ra** dịch vụ đóng tới sau ngày G.
-5. **[9Scan-A1]** A-008: gửi phiếu qua `docs/requests-from-9scan/` — kèm bằng chứng
-   "một POST `/rpc/ext/bc/C/rpc` trả **đúng** block 2 + chainId, không lỗi console,
-   rồi không vẽ gì ⇒ hỏng phía client".
-6. **[main]** A-002: thêm 5 dòng `doi` vào `scripts/rebase-drill.sh` (đã viết sẵn ở
-   `SO-PHAT-HIEN.md` §A-002 — copy được).
-7. **[main]** A-004: ghim `ethers` + sinh lockfile cho `faucet` và `deploy-test`.
-8. **[human — David]** A-013: quyết **dừng hay gỡ** Blockscout trước ngày G — và ghi
-   thành quyết định, đừng để nó loop tiếp.
-9. **[human — David]** Quyết: **có nhặt `docs/AUDIT-A1/` sang `main` không**, và có
-   commit các tệp đang dở trên nhánh `audit` không (xem Gotcha 1).
+1. **[main]** 🔴 **A-011 — cho console một người canh.** systemd unit `enabled`+`active`,
+   hoặc đưa vào compose `restart: unless-stopped`. Rẻ nhất, chặn ca "mọi thứ xanh, tính năng
+   chủ lực chết" sau reboot.
+2. **[main]** 🔴 **A-012 — `web/lib/chain.ts` trên `main` về `999999999`**, và cho `web/` một
+   mốc canh (so với `web-home`, **không** phải `main`).
+3. **[main]** A-009: (a) chuyển cổng D-087 lên **trước** `blockedByRate` (`server.mjs:1237`);
+   (b) trang chủ + `/create-chain/` **nói ra** dịch vụ đóng tới sau ngày G.
+4. **[9Scan-A1]** A-008 — phiếu qua `docs/requests-from-9scan/`, kèm bằng chứng "một POST trả
+   **đúng** block + chainId, không lỗi console, rồi không vẽ gì ⇒ hỏng phía client".
+5. **[main]** A-002 (5 dòng `doi` đã viết sẵn ở §A-002) · A-004 (ghim `ethers` + lockfile).
+6. **[human — David]** A-013 nửa sau — gỡ hẳn Blockscout, **chỉ sau khi A-008 đóng**
+   (quy trình đủ ở §A-013: sửa Caddy **trước**, `compose down` **sau**).
+7. **[human — David]** 🔴 **D-044 / O1 — khoá 5 quỹ vẫn không có bản nào ngoài máy dev.**
+   H-6b chưa bao giờ cứu khoá. Vẫn là mục quyết số 1 trước ngày G.
+8. **[dọn]** `9Chain-backups\...-030321` và `...-030439` là hai lượt dở, lành nhưng chưa từng
+   lên máy chủ. Vô hại, nên xoá.
 
 ## Gotchas
 
-1. 🔴 **Ba tệp báo cáo đang CHƯA COMMIT** trên nhánh `audit`
-   (`git status`: `M SO-PHAT-HIEN.md`, `?? 10-…`, `?? 11-…`). Chúng chỉ tồn tại trên đĩa.
-   Đã hỏi David hai lần, chưa có lệnh commit — **đừng giả định đã an toàn**.
-2. **Bản ghim `15c940e` (17 patch) đã hết hiệu lực làm chuẩn soát.** Mạng công khai chạy
-   **23 patch**. Mọi kết luận từ đây phải ghi rõ đúng với cây nào. Muốn soát core hiện
-   tại thì **đọc** `C:/PROJECTS/9Chain-A1/patches/` (đọc được, không ghi).
-3. **`grep 9001` trên HTML của site sẽ trượt.** React chèn `<!-- -->` giữa các text node:
-   phải tìm `networkID <!-- -->[0-9]*`, không phải `networkID 9001`.
-4. **`disabled` trong HTML `/create-chain/` KHÔNG phải thông báo tạm dừng** — nó là lớp
-   Tailwind `disabled:opacity-55`. Suýt kết luận nhầm là A-009 đã đóng.
-5. **`robots.txt`: Cloudflare CHÈN THÊM, không thay thế.** Bản của dự án nằm từ dòng 62
-   tới hết. Đọc `head -3` rồi kết luận là sai — tôi đã sai đúng như thế một lượt.
-6. **`go vet`/`go build` core KHÔNG chạy được trên Windows** (CGO: blst, zstd, libevm).
-   `GOOS=linux CGO_ENABLED=0` cho 3 lỗi *của việc tắt CGO*, không phải lỗi mã A1.
-   Muốn build thì Docker Linux, và đó là việc của worktree `main`.
-7. **`curl` phải kèm `-H 'content-type:application/json'`** — thiếu là node trả
-   `unrecognized Content-Type`, dễ tưởng RPC chết.
-8. Bash tool **đổi cwd sau `cd`**; dùng đường dẫn tuyệt đối hoặc `cd` lại mỗi lệnh.
-9. 🔴 **`grep -l A1_CLI_KEY /proc/*/cmdline` TỰ KHỚP CHÍNH NÓ.** Lượt đầu ra "4 tiến
-   trình" và suýt thành một phát hiện bảo mật; cả 4 là cmdline của chính lệnh grep.
-   Muốn đo thật thì phải in ra PID + `exe` rồi loại tiến trình của mình.
-10. **`local-net/net-*/` không ở trong git** (`.gitignore:3`) — nên `net-public/` trên
-   máy dev còn `--network-id=9001` là **vật liệu cũ**, không phải A-010. A-010 chỉ tính
-   4 tệp `.yml` **được git theo dõi**. Kiểm bằng `git ls-files --error-unmatch <tệp>`.
-11. **`net-that-g0/` mới là bộ sinh mạng công khai** (1 node, `--network-id=999999999`);
-   compose 9 node thật nằm **trên máy chủ**, không có trong repo.
-12. `docs/BLOCKERS.md` **không tồn tại** — nó ở **gốc repo**: `BLOCKERS.md`.
-13. Console **không phải container**: `docker ps` không thấy nó. Nó là
-   `node local-net/console/server.mjs` trên host, cổng `127.0.0.1:8091` — xem A-011.
+1. 🔴 **Hook `Stop` chỉ nạp ở phiên mở SAU `70f1345`.** Phiên `main` đang chạy phải khởi động
+   lại, hoặc mở `/hooks` một lần.
+2. 🔴 **`grep -l A1_CLI_KEY /proc/*/cmdline` TỰ KHỚP CHÍNH NÓ** — ra "4 tiến trình" và suýt
+   thành một phát hiện bảo mật. Phải in PID + `exe` rồi loại tiến trình của mình.
+3. 🔴 **Hai lớp "cổng chết câm" trong bash, cả hai đã dính thật:**
+   `[ -n "$X" ] && ham` là lệnh cuối ⇒ `set -e` giết không in một chữ; và
+   `grep … | wc -l` với `pipefail` ⇒ **ca TỐT** (không tìm thấy gì) bị xử như lỗi.
+   Đừng "dọn" `|| true` trong `h6b-sao-luu.sh` — lý do đã ghi thành comment tại chỗ.
+4. 🔴 **Cổng luôn ĐỎ vô dụng y hệt cổng luôn xanh, và tệ hơn vì người ta sẽ TẮT nó.** Thử
+   hook bằng `eval` cho cả hai vế đều đỏ (`eval` nuốt escaping). ⇒ Luôn thử bằng chuỗi
+   **lấy ngược ra từ `settings.json`**, không phải bản gốc.
+5. **`local-net/net-*/` không ở trong git** (`.gitignore:3`) — `net-public/` trên máy dev còn
+   `9001` là **vật liệu cũ**, không phải A-010. A-010 chỉ tính 4 `.yml` **được git theo dõi**.
+6. **`net-that-g0/` là bộ sinh mạng công khai** (1 node); compose 9 node thật nằm **trên máy chủ**.
+7. **`BLOCKERS.md` ở GỐC repo**, không phải `docs/`.
+8. **Console không phải container** — `docker ps` không thấy. Nó là `node server.mjs` trên
+   host, `127.0.0.1:8091` (A-011).
+9. **`A1_ROOT_UPSTREAM=127.0.0.1:8100` CHÍNH LÀ Blockscout `proxy`**, và là catch-all của
+   Caddy. Trang 404 thương hiệu được dựng bằng cách **chặn mã 404 của Blockscout** ⇒ gỡ thẳng
+   là 502 hoá nó.
+10. **`grep 9001` trên HTML sẽ trượt** — React chèn `<!-- -->`: tìm `networkID <!-- -->[0-9]*`.
+11. **`curl` phải kèm `-H 'content-type:application/json'`**, thiếu là node trả `unrecognized
+    Content-Type` — dễ tưởng RPC chết.
+12. **`go vet`/`go build` core KHÔNG chạy được trên Windows** (CGO). 3 lỗi là **của việc tắt
+    CGO**, không phải lỗi mã A1.
+13. Bash tool **đổi cwd sau `cd`**; dùng đường dẫn tuyệt đối.
 
 ## Lệnh hữu ích
 
 ```bash
-node scripts/check-consistency.mjs --tu-kiem
+cd /c/PROJECTS/9Chain-A1 && bash scripts/h6b-sao-luu.sh --kiem
 ```
 
 ```bash
-cd /c/PROJECTS/9Chain-A1 && node scripts/check-deploy-drift.mjs
+cd /c/PROJECTS/9Chain-A1 && bash scripts/h6b-sao-luu.sh --tu-kiem
 ```
 
 ```bash
-curl -s -H 'content-type:application/json' -d '{"jsonrpc":"2.0","id":1,"method":"info.getNetworkName"}' https://rpc-a1.9chain.org/ext/info
+cd /c/PROJECTS/9Chain-A1 && git diff audit main -- docs/AUDIT-A1/ | wc -l
 ```
 
 ```bash
-diff <(ls /c/PROJECTS/9Chain-backups/9chain-a1-backup-*/avalanchego-patches/ | tail -30) <(ls /c/PROJECTS/9Chain-A1/patches/)
+curl -s -H 'content-type:application/json' -d '{"jsonrpc":"2.0","id":1,"method":"info.getNetworkID"}' https://rpc-a1.9chain.org/ext/info
+```
+
+```bash
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'pgrep -af server.mjs; ps -o ppid= -p $(pgrep -f "console/server.mjs")'
 ```
