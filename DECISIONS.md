@@ -4231,3 +4231,38 @@ quỹ nhưng KHÔNG thay khoá factory**, nên mọi bản lưu cũ vẫn cầm 
 - `9Chain-backups\…\chain-factory-key.txt` — 🔴 **`MANIFEST.txt` của gói có liệt kê tệp này**.
   Xoá nó là làm gói **lệch manifest**, và luật repo cấm sinh lại manifest cho một gói đã niêm.
   Đây là **quyết định của David**, không phải thao tác dọn dẹp.
+
+### D-117c — gói lưu `20260825` bị XOÁ, và phép đo trước khi xoá đổi cả câu hỏi
+
+David chọn *"xoá cả gói"* để khỏi phải đụng `MANIFEST.txt`. Bước **LIỆT KÊ** của D-107 lộ ra
+rằng giả định đằng sau lựa chọn đó sai:
+
+| | `20260825` | `20260827` | `20260828` |
+|---|---|---|---|
+| danh tính validator (`staker.key`/`signer.key`) | **20 tệp** | 0 | 0 |
+| chain data | **651 MB** | 0 | 0 |
+| khoá + genesis + compose | **có** | 0 | 0 |
+| git bundle + patches | có | có | có |
+
+⇒ Nó **không** phải *"một gói của mạng đã chết"*. Nó là **gói duy nhất còn hình dạng một bản lưu
+đầy đủ**, và `MANIFEST.txt` của chính nó khai 5 danh tính validator là *"thứ không thể tái tạo"*.
+Đã trình lại số đo; **David tái khẳng định xoá** — quyết định của anh, ghi lại nguyên văn bối
+cảnh vì nó là thứ sau này người ta sẽ hỏi.
+
+🔴 **Phát hiện lớn hơn cả câu hỏi ban đầu — và nó chưa được xử lý:** danh tính 9 node của **mạng
+g0 ĐANG CHẠY** không nằm trong **bất kỳ** gói lưu nào; chúng chỉ ở máy dev và trên server. Hai
+gói lưu mới nhất chứa **0 tệp** danh tính/khoá/archive. H-6b lâu nay đo bằng **số patch** — hoá
+ra **nội dung** cũng trống. Server cháy hôm nay thì không bản lưu nào dựng lại được mạng.
+
+**Cách xoá** (D-107): LIỆT KÊ **31/31 tệp** → ghi
+[`docs/archive/backup-20260825-inventory.md`](docs/archive/backup-20260825-inventory.md)
+(kích thước + `sha256` từng tệp — thứ duy nhất sống sót) → `shred -u -n 3` cho 30 tệp nhỏ,
+`-n 1` cho archive 651 MB → ĐỐI CHỨNG: thư mục biến mất, **6 gói A1 còn lại nguyên vẹn**.
+
+⚠️ **Hai bẫy công cụ trong đúng lượt xoá này, cả hai đều IM LẶNG:**
+1. `find -size -1M` **không khớp tệp nào** — `find` làm tròn **lên**, nên tệp 495 B không
+   *"nhỏ hơn 1M"*. Lệnh chạy trót lọt, exit 0, xoá **0 tệp**. Phải dùng đơn vị byte
+   (`-size -1048576c`). Một lượt xoá tưởng đã chạy mà thật ra chưa là đúng hình dạng B-17.
+2. Dòng đối chứng cuối in *"remaining A1 bundles:"* **rỗng** — lỗi glob trong chính dòng đó,
+   không phải mất dữ liệu. `ls` trực tiếp cho thấy **cả 6 gói còn nguyên**. ⇒ **Một dòng đối
+   chứng cũng phải được đối chứng**; nếu đọc nó theo mặt chữ thì đã khai một sự cố không có thật.
