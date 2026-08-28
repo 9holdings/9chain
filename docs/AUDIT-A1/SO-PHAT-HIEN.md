@@ -1267,3 +1267,50 @@ thu ở §9 (kể cả đối chứng ngược bundle cắt cụt) phải nằm 
 
 **Liên quan:** A-001, A-012 (cùng lớp: hai bản của một thứ, không ai canh chỗ lệch),
 H-6/H-6b (`BLOCKERS.md:493`), D-044, memory `a1-ban-sao-luu-khong-dung-lai-duoc`.
+
+#### 🔴 A-014 TỰ CHỨNG MINH SAU ~10 PHÚT — và nó lộ ra điều kiện qua đang SAI HÌNH DẠNG
+
+Đo lại đúng điều kiện qua của A-001, khoảng mười phút sau khi H-6b chạy xong:
+
+```
+$ git rev-list --count 0afc664..main
+2                                     ← ĐÃ VỠ. Điều kiện đòi 0.
+$ git log --oneline 0afc664..main
+d80ae12 Dong bo docs/AUDIT-A1/ … (chính lượt ghi sổ này)
+ecf0570 D-092: go 9chain-a1-xpwallet khoi server …   ← của SESSION KHÁC, không phải tôi
+
+$ ls <backup>/avalanchego-patches/ | wc -l  →  24     (= ls patches/)   ← VẪN ĐẠT
+```
+
+**Hai kết luận, đừng trộn:**
+
+1. **Mạng đang chạy vẫn dựng lại được.** Lớp chủ quyền — 24 patch — **không đổi**. Thứ
+   thêm vào là 2 commit chạm `docs/` và 3 tệp mã ngoài `docs/AUDIT-A1/`. Đây **không**
+   phải cảnh A-001 quay lại.
+
+2. 🔴 **Nhưng `rev-list … == 0` là một điều kiện SAI HÌNH DẠNG, và lượt này chứng minh nó.**
+   Nó đòi bản sao lưu **luôn luôn bằng `HEAD`** — bất khả thi với một quy trình chạy tay
+   trong một repo có **hai session làm việc song song**. Đo ở bất kỳ thời điểm nào không
+   phải "ngay sau khi sao lưu" thì nó đỏ, kể cả khi chỉ có một commit sửa chính tả.
+
+   Repo này **đã học đúng bài đó một lần**: bản đầu của `check-deploy-drift.mjs` tự đoán
+   phạm vi bằng glob và báo **27/58 lệch — phần lớn là đỏ giả**, rồi chính nó viết ra
+   *"một cổng đỏ ở chỗ không cần đỏ sẽ bị người ta học cách bỏ qua, và nó sẽ bị bỏ qua
+   đúng vào lần nó đỏ thật."* Điều kiện `rev-list == 0` đang đi vào đúng cái bẫy ấy.
+
+**Điều kiện qua — sửa lại cho đúng đại lượng cần đo.** Cái cần bảo vệ không phải "backup
+bằng HEAD", mà **"backup có đủ thứ định nghĩa mạng đang chạy"**:
+```
+BẮT BUỘC (đỏ là đỏ thật):
+  ls <backup>/avalanchego-patches/ | wc -l  ==  ls patches/ | wc -l
+  git diff --quiet <HEAD-MANIFEST>..main -- patches/ local-net/ upstream/ scripts/
+                                                 ⇒ 0 tệp mã lệch
+CẢNH BÁO (vàng, không đỏ):
+  git rev-list --count <HEAD-MANIFEST>..main  >  0  và chỉ chạm docs/
+                                                 ⇒ "backup cũ N commit, toàn docs"
+```
+Tức: **lệch mã ⇒ đỏ · lệch chỉ tài liệu ⇒ vàng.** Có thế thì lượt đỏ đầu tiên mới đáng
+tin, và mới không ai học cách bỏ qua nó.
+
+*(Ghi thêm: `ecf0570` của session `main` đã **gỡ `9chain-a1-xpwallet` khỏi máy chủ** —
+đóng luôn Q-6 của lượt soát này, và họ tìm ra thêm hai thứ khác trong lượt quét đó.)*
