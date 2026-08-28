@@ -3433,3 +3433,47 @@ Tài liệu (`HANDOFF.md`, `PROGRESS.md` M10.4) gọi endpoint tiến trình c�
 `/api/tien-trinh`; **mã thật là `/api/progress`** (`server.mjs:1232`) và `console-deploy.sh`
 gọi đúng tên đó. Không gây hỏng — nhưng ai gõ theo tài liệu sẽ nhận 404 và dễ đọc thành
 "console hỏng". Bộ canh dùng `/whoami` (công khai, không cần token).
+
+## D-101 — `ngay-g-preflight.mjs`: runbook ngày G ở dạng CHẠY ĐƯỢC (2026-08-28)
+
+Tới `28/08`, runbook ngày G nằm rải ở **năm tệp tài liệu** và **không có gì chạy được**. Một
+quy trình chỉ tồn tại dưới dạng văn bản là một quy trình được thi hành **bằng trí nhớ**, vào
+đúng ngày người ta bận nhất và ít ngủ nhất. Mà ngày G là **cơ hội một lần** — genesis bất biến,
+sàn trượt cứng `2026-09-06`.
+
+### 🔴 Luật quan trọng nhất của tệp này: VIỆC TAY không bao giờ được tính là "đạt"
+
+Preflight in **12 việc tay** thành một danh sách ô trống, chia theo giai đoạn thi hành
+(*trước khi đụng gì* → *trước `down -v`* → *lúc sinh mạng* → *sau khi mạng lên* → *sau khi
+deploy*). Chúng **luôn hiện**, **luôn là ô trống**, và **không vào phép đếm "đạt"**.
+
+Một preflight in *"✅ tất cả đạt"* trong khi ba việc quyết định nhất chưa ai làm thì nó không
+phải cổng — nó là **giấy chứng nhận giả**. Câu phán cuối nói thẳng: *"preflight xanh KHÔNG có
+nghĩa là sẵn sàng sinh mạng."*
+
+### 12 cổng tự động, ba nhóm, theo đúng thứ tự thi hành
+
+1. **CÂY FORK** — tái lập 24 patch lên `1cf1fc3` rồi so tree với `074aaa93…`. Chạy **đầu tiên**
+   vì mọi thứ khác dựng trên nó. Kèm cổng đếm: thấy ≠ 24 patch ⇒ đỏ với câu *"sinh lại CẢ BỘ
+   hay sửa luật, đừng thêm lẻ"*. Worktree dọn trong `finally`.
+2. **CỔNG REPO** (8) — rẻ, không mạng, chạy trước để hỏng sớm.
+3. **THẾ GIỚI THẬT** (3) — mạng đang chạy · repo ↔ server + tệp mồ côi · **tra lại sổ chainId
+   công khai** (§7 mục 3 đòi tra **ngay trước** bước sinh genesis, vì sổ đổi trong cùng một ngày).
+
+### Mã thoát: 0 / 1 / 2 — cùng họ với `o1-kiem.mjs` và `canh-mang.mjs`
+
+Ba công cụ của đợt này dùng **cùng một quy ước**: `2` = *không chạy được* ≠ `0` = *đạt*. Một
+quy ước dùng chung là thứ người đọc học **một lần** rồi áp cho cả bộ.
+
+### Nghiệm thu
+
+- **Chạy thật: 12/12 cổng xanh**, exit 0, kèm 12 việc tay hiện đủ.
+- 🔴 **Đối chứng ngược trên dữ liệu thật:** đặt `A1_GEN = 1` ⇒ preflight **ĐỎ, exit 1**, và
+  **nêu đích danh** từng cổng hỏng.
+- 🔴 **Và nó đo được một thứ chưa ai nêu — BÁN KÍNH ẢNH HƯỞNG.** Đổi **một** hằng số làm **bốn**
+  cổng đỏ cùng lúc: số học tokenomics · **phép cấp chainId** (`33 đạt · 2 hỏng`) · canh mạng ·
+  drift repo↔server. Tức lượt bump `A1Gen` ngày G **không phải sửa hai dòng rồi đi tiếp** — nó
+  chạm bốn đường đo độc lập, và cả bốn phải được nhìn thấy xanh lại.
+- **Sửa một câu nói dối gọn gàng của chính bản đầu:** với `--khong-mang`, nó in *"MỌI CỔNG TỰ
+  ĐỘNG ĐỀU XANH"* trong khi 3 cổng bị bỏ qua. Số bỏ qua nay nằm **trong chính câu phán**, không
+  ở một dòng phía trên mà mắt đã lướt qua.

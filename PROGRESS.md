@@ -116,12 +116,18 @@ không push.
       🔴 Hai đối chứng **dữ liệu thật, hai chiều hỏng ⇒ hai mã**: RPC chết ⇒ **2** (không đo
       được) · `A1_GEN = 1` trong khi mạng g0 ⇒ **1** (đúng kịch bản ngày G nếu bump một bên).
       Phát hiện phụ: tài liệu gọi `/api/tien-trinh`, mã thật là `/api/progress`.
-- [ ] **A15-6 — `scripts/ngay-g-preflight.mjs`: runbook chạy được**
+- [x] **A15-6 — `scripts/ngay-g-preflight.mjs`: runbook chạy được**
       Hôm nay runbook ngày G nằm rải ở 5 tệp tài liệu, không có gì chạy được. Gọi mọi cổng theo
       **đúng thứ tự ngày G**, in bảng ĐẠT/ĐỎ/BỎ QUA, exit ≠0 nếu mục bắt buộc đỏ.
       🔴 Mục **chưa tự động hoá được** (O2 công bố `sha256` ra chỗ NGOÀI · sinh token/khoá mới ·
       build lại image 24 patch · `down -v`) phải in ra là **VIỆC TAY BẮT BUỘC** — không giả vờ xanh.
       **Điều kiện qua:** 1 lượt chạy thật · làm hỏng 1 cổng con ⇒ preflight **đỏ và nêu đích danh**.
+      ✅ **ĐẠT `28/08`** (D-101). **12/12 cổng xanh** + **12 việc tay** in thành ô trống chia
+      theo giai đoạn, **không bao giờ tính là "đạt"**. Đối chứng: `A1_GEN = 1` ⇒ **đỏ, exit 1**,
+      nêu đích danh.
+      🔴 **Đo được bán kính ảnh hưởng:** đổi **một** hằng số làm **bốn** cổng đỏ (số học · phép
+      cấp chainId · canh mạng · drift) ⇒ bump `A1Gen` ngày G không phải "sửa hai dòng rồi đi tiếp".
+      Sửa một câu nói dối của bản đầu: `--khong-mang` từng in "MỌI CỔNG XANH" trong khi bỏ qua 3 cổng.
 - [ ] **A15-7 — *(nếu còn giờ)* HANDOFF gọn + bài đo lệch đồng hồ (B-13b)**
       (a) `HANDOFF.md` ≤300 dòng, lịch sử sang `docs/archive/HANDOFF-2026-08.md` — **không mất
       nội dung** (đối chứng: grep vài chuỗi mốc cũ vẫn tìm được).
