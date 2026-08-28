@@ -15,18 +15,18 @@
 
 ## ✅ ĐỢT AUTOPILOT 14 (`2026-08-27`) — **5/5 MỐC ĐẠT**
 
-🔴 **ĐỌC [`docs/GDAY-A1-REMAINING.md`](docs/GDAY-A1-REMAINING.md) TRƯỚC.** Đó là bản A1 thẩm
+🔴 **ĐỌC [`docs/GDAY-A1-REMAINING.md`](../GDAY-A1-REMAINING.md) TRƯỚC.** Đó là bản A1 thẩm
 định kế hoạch ngày G `01/09` và là **danh sách còn-lại thật**. `PLAN-REGENESIS-2026-09-01.md`
 là bối cảnh của BOD, mâu thuẫn thì file kia thắng.
 `DECISIONS.md` (vì sao) · `BLOCKERS.md` (chờ David) · `PROGRESS.md` (backlog).
 
 | # | Mốc | Kết quả |
 |---|---|---|
-| **A-1** | Diễn tập nghi lễ **Block Adam** | ✅ 4 lượt · [`DRILL-BLOCK-ADAM-2026-08-27.md`](docs/DRILL-BLOCK-ADAM-2026-08-27.md) |
-| **A-2** | **Quy trình O2** — xuất + `sha256` trước khi xoá | ✅ 3 ĐCN · [`O2-EXPORT-BEFORE-DELETE.md`](docs/O2-EXPORT-BEFORE-DELETE.md) |
-| **A-3** | **G4** — tra `chainid.network` | ✅ 3 ĐCN · [`G4-CHAINID-LOOKUP-2026-08-27.md`](docs/G4-CHAINID-LOOKUP-2026-08-27.md) |
-| **A-4** | **C-4** — cổng chainId (đóng nốt **B-11**) | ✅ 7 ca/3 ĐCN · [`CHAINID-GATE-2026-08-27.md`](docs/CHAINID-GATE-2026-08-27.md) |
-| **A-5** | **I1b** — cung có nguồn | ✅ 2 ĐCN · [`I1B-SUPPLY-SOURCED-2026-08-27.md`](docs/I1B-SUPPLY-SOURCED-2026-08-27.md) |
+| **A-1** | Diễn tập nghi lễ **Block Adam** | ✅ 4 lượt · [`DRILL-BLOCK-ADAM-2026-08-27.md`](../DRILL-BLOCK-ADAM-2026-08-27.md) |
+| **A-2** | **Quy trình O2** — xuất + `sha256` trước khi xoá | ✅ 3 ĐCN · [`O2-EXPORT-BEFORE-DELETE.md`](../O2-EXPORT-BEFORE-DELETE.md) |
+| **A-3** | **G4** — tra `chainid.network` | ✅ 3 ĐCN · [`G4-CHAINID-LOOKUP-2026-08-27.md`](../G4-CHAINID-LOOKUP-2026-08-27.md) |
+| **A-4** | **C-4** — cổng chainId (đóng nốt **B-11**) | ✅ 7 ca/3 ĐCN · [`CHAINID-GATE-2026-08-27.md`](../CHAINID-GATE-2026-08-27.md) |
+| **A-5** | **I1b** — cung có nguồn | ✅ 2 ĐCN · [`I1B-SUPPLY-SOURCED-2026-08-27.md`](../I1B-SUPPLY-SOURCED-2026-08-27.md) |
 
 **Cây fork: tree `f4615e73` · 18 patch trên `1cf1fc3`** *(patch 0018 = bộ định danh theo thế hệ, D-079)*. Trước đó: `f8458b33` / 17 patch *(patch 0017 = `restart:` của D-071,
 thêm `27/08` sau bản soát vận hành)*. Trước đó: `c9226d9c` / 16 patch (patch 0015 cổng chainId · 0016
@@ -115,7 +115,7 @@ xong (patch 0010/0011); **nội dung 0%**. C1 trễ thì đường găng gãy �
 
 ### Phiên 2026-08-27 (đợt 13 — SOÁT CORE) — tóm tắt để khỏi mở file
 
-**Bản soát đầy đủ: [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-27.md).**
+**Bản soát đầy đủ: [`docs/CORE-AUDIT-2026-08-27.md`](../CORE-AUDIT-2026-08-27.md).**
 Đợt 12 soát **lớp da**; đợt này soát **lớp xương**. Đã vá bằng **patch 0013**, nghiệm thu
 bằng tree hash + đối chứng ngược.
 
@@ -256,7 +256,7 @@ lấy khoá mới.
 
 ### Phiên 2026-08-27 (đợt 12 — CHUẨN HOÁ THƯƠNG HIỆU) — tóm tắt để khỏi mở file
 
-**Bản soát đầy đủ: [`docs/BRAND-AUDIT-2026-08-27.md`](docs/BRAND-AUDIT-2026-08-27.md)** (157 tệp,
+**Bản soát đầy đủ: [`docs/BRAND-AUDIT-2026-08-27.md`](../BRAND-AUDIT-2026-08-27.md)** (157 tệp,
 13 phát hiện). David duyệt làm **7 việc trước ngày G** — xong hết, đã lên công khai.
 
 **Kết luận của bản soát:** đọc code thì có đầu tư rõ (vân tay chống trôi lệch token, cổng số

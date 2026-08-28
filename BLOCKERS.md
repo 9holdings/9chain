@@ -6,6 +6,69 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### 🔴 B-19 — KHOÁ ĐANG GIỮ TIỀN NẰM TRONG HAI THƯ MỤC TỰ KHAI LÀ "ĐỒ CHẾT" (2026-08-28)
+
+**Không kẹt kỹ thuật — kẹt vì xoá là việc có người bấm, và ở đây xoá nhầm là mất tiền thật.**
+
+`node scripts/check-net-dirs.mjs` ⇒ **exit 1**. Đo trên máy dev + RPC mạng đang chạy
+(cả P-Chain lẫn X-Chain):
+
+| Thư mục | `genesis.json` khai | Sự thật |
+|---|--:|---|
+| `local-net/net-public/` | `9001` ⚫ chết | 🔴 `chain-factory-key.txt` giữ **90.008 LOVE9 THẬT** |
+| `local-net/net-public-dead-720m/` | `9001` ⚫ chết | 🔴 **bản trùng byte** của đúng khoá đó |
+| `local-net/net-that-g0/` | `999999999` ✅ | 🔴 **MỒI NHỬ** — 6 ví đều **0đ**, `allocation.md` khai *"1 node"* trong khi mạng thật **9 node** |
+
+`sha256` khoá = `1dc334145c8a1abc`, **khớp bản ghi D-092** ⇒ đúng là ví `chain-factory`
+`P-love91vgh2wh…` mà đường đẻ chain tiêu tiền từ đó.
+
+🔴 **Hai cái bẫy ngược chiều nhau, và cùng bắn vào lượt dọn dẹp ngày G:**
+1. *"Xoá mấy thư mục 9001 đi"* ⇒ **shred mất khoá đang giữ tiền**.
+2. *"Cất `net-that-g0` làm bản sao lưu khoá quỹ"* (đúng việc B-16 đang cần!) ⇒ cất một bộ
+   **0 đồng**. Bộ này nguy hiểm hơn bộ `9001`: ở kia `networkID` lệch nên `check-keys`
+   còn cảnh báo được; ở đây **networkID KHỚP** nên `check-keys` chấm **6/6 ✓** và không
+   cổng nào kêu. Bộ quỹ THẬT nằm ở `C:\Users\abc\9chain-a1-keys\g0\`.
+
+**Việc của David** — theo đúng kỷ luật D-107 (LIỆT KÊ → XOÁ → ĐỐI CHỨNG), *không* xoá theo
+thư mục:
+```bash
+node scripts/check-net-dirs.mjs            # liệt kê: thư mục nào giữ tiền
+# 1. chép chain-factory-key.txt về nơi khoá g0 thật sự sống, đối chứng sha256 HAI ĐẦU
+# 2. chạy lại cổng: phải hết "BẪY"
+# 3. chỉ khi đó mới dọn các thư mục 9001 — và đối chứng TỪNG TỆP, không kiểm "nhóm tệp"
+```
+
+---
+
+### 🔴 B-18 — BA TÊN TỆP CŨ CÒN NẰM TRÊN SERVER SAU LƯỢT ĐỔI TÊN (2026-08-28)
+
+Lượt chuẩn hoá `28/08` đổi tên 3 tệp **có trong `manifest-deploy.json`**. `console-deploy.sh`
+chép tên **mới** lên nhưng **không xoá tên cũ** ⇒ server sẽ giữ **cả hai bộ**, và một bản mã
+cũ nằm cạnh mã đang chạy chính là kịch bản B-17 sinh ra để chặn.
+
+Đo `28/08` (`node scripts/check-deploy-drift.mjs`): **3 mồ côi**
+```
+local-net/console/thehe-test.mjs
+local-net/console/chainid-da-cap.json
+local-net/console/chainid-da-chiem.json
+```
+
+🔴 **KHÔNG khai chúng vào `knownExtra` cho cổng xanh** — `manifest-deploy.json` `_extraDeleted`
+đã ghi rõ vì sao: khai một tệp đã phải chết là đẻ ra một dòng khai không còn đúng, **và**
+khiến cổng im lặng bỏ qua tệp cùng tên nếu nó quay lại.
+
+**Việc của David**, làm **cùng lượt deploy console** (autopilot không ghi lên server):
+```bash
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" \
+  'cd ~/9chain-a1/src/local-net/console && ls -l thehe-test.mjs chainid-da-cap.json chainid-da-chiem.json'
+# LIỆT KÊ trước — phải đúng 3 tệp, và phải đối chiếu chúng với bản git ĐÃ ĐỔI TÊN
+# (nội dung giống hệt tệp mới ⇒ xoá không mất gì; khác ⇒ DỪNG, đó là tin)
+# rồi mới: shred -u -n 3 thehe-test.mjs chainid-da-cap.json chainid-da-chiem.json
+node scripts/check-deploy-drift.mjs        # đối chứng: mồ côi 3 → 0
+```
+
+---
+
 ### ✅ B-17 — **ĐÃ ĐÓNG `2026-08-28`** — 6 tệp đã `shred -u -n 3`, đo trên SERVER
 
 **David duyệt trong phiên, A1 chạy.** Ba bước: liệt kê (đúng **6**, sổ đang chạy không lọt) →
@@ -374,7 +437,7 @@ dòng: D-050.
 ### 🔴 B-9 — MÀU ĐỎ THƯƠNG HIỆU AVALANCHE CÒN TRONG `patches/0003` (2026-08-27)
 
 `#e84142` là **đúng đỏ thương hiệu của Avalanche**. Soát `27/08` tìm thấy nó ở 4 tệp
-HTML tự viết + **`patches/0003-9chain-a1-bo-cong-cu-chu-quyen-netgen-cli-create-l1-.patch`**.
+HTML tự viết + **`patches/0003-9chain-a1-sovereign-toolchain-netgen-cli-create-l1-x.patch`**.
 
 | Chỗ | Trạng thái |
 |---|---|

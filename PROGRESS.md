@@ -1230,3 +1230,51 @@ cấp thứ hai · gộp `web-home` → `main`.
   (L1 chuẩn có phí duy trì liên tục), không phải task kỹ thuật. Chốt tokenomics trước.
 - [human] **Mở console công khai hay không** (M4.5)
 - [human] URL Cosmos REST của C1 (`:1317`) để dashboard kéo C1 live
+
+---
+
+## 2026-08-28 — quét chuẩn hoá toàn diện (David yêu cầu)
+
+**Yêu cầu:** quét ngôn từ / tên / cấu trúc / logic / mã số / url / domain; xoá thứ đã bỏ; đổi
+tên tệp tiếng Việt sang tiếng Anh. David chốt **phạm vi tối đa** (gồm `patches/`) và **không
+giữ bí danh**.
+
+### Đã sửa — lỗi thực chất (không phải đổi tên)
+
+| | |
+|---|---|
+| `README.md` | networkID **9001 → 999999999**; tách *tổng cung 9 tỷ* khỏi *`SupplyCap` 7.900.000.001*; lệnh đo supplyCap (`docker logs` **nay ra rỗng**); gốc dải chainId **9100 → 9000000010**; 12 → 25 patch; bảng 9 thư mục `net*` |
+| 4 tệp compose | bỏ `--network-id=9001` cắm cứng (8 dòng) ⇒ `${NETWORK_ID:?…}`; thêm `local-net/network-id.sh` **suy từ genesis** (D-111) |
+| `multinode.compose.yml` | bỏ dòng tự khai *"NGUỒN CHÍNH THỨC"* — sai, nó tả mạng **5 node** đã chết; thêm `restart:` cho cả 5 node (A-003, mở từ 27/08) |
+| console **công khai** | 3 lần `#e84142` (đỏ thương hiệu Avalanche) → vàng 9Chain; gỡ mọi khẳng định *"5 node"* (mạng thật **9**) |
+| `9chain-a1-config/l1-evm-genesis.json` | khai rõ `chainId 9100` là **khuôn**, console luôn ghi đè — nhưng đường **CLI** thì không (cảnh báo trong README) |
+
+🔴 Miễn trừ B-9 trong HANDOFF ghi `local-net/console/index.html` *"thuộc worktree web"* —
+**sai**: tệp nằm ở `local-net/`, trên `main`, và có tên trong `manifest-deploy.json`. **Một miễn
+trừ đặt nhầm chỗ đã giấu mục này lại nhiều ngày** — cùng hình dạng với "ĐÃ ĐÓNG trong repo ≠
+đã đóng ngoài đời".
+
+### Đã đổi tên
+
+15 tệp mã · 32 cờ CLI (325 lần thay) · khoá JSON của 3 tệp dữ liệu · 6 id preset · 56 tệp tài
+liệu · 25 tiêu đề commit fork ⇒ 25 tên tệp patch. Chi tiết, gồm **phần cố ý KHÔNG làm**: **D-108**.
+
+### Cổng mới
+
+- `scripts/check-net-dirs.mjs` — thư mục `net*` nào thuộc thế hệ nào, thư mục nào giữ **TIỀN
+  THẬT** (đối chứng ngược 17/17). Chính nó tìm ra **B-19**.
+- `scripts/check-evidence.mjs` — gói vật chứng còn **tự nghiệm thu** được không (đối chứng 8/8).
+- Đối chứng **24/25 → `074aaa93`** của luật cứng #3 nay **là mã**, không còn là nghi thức (D-112);
+  đã nhìn thấy nó ĐỎ vì đúng lý do.
+
+`gday-preflight --no-network`: **11 đạt · 0 đỏ · 0 không chạy được · 4 bỏ qua · 14 việc tay**.
+
+### 🔴 Còn lại — việc của David
+
+- [human] **B-19** — di dời `chain-factory-key.txt` (90.008 LOVE9) ra khỏi thư mục `9001` **trước**
+  khi dọn; và **đừng** cất `net-that-g0` làm bản sao lưu quỹ — nó là **mồi nhử, 0đ**.
+- [human] **B-18** — xoá 3 tên tệp **cũ** còn trên server, **cùng lượt deploy console**.
+- [human] **Gộp `web-home` → `main`.** `web/` **không** được chuẩn hoá trong phiên này (luật
+  cứng #4): `main` lệch `web-home` **78 tệp / +17.440 −2.792**, và `main:web/lib/chain.ts` vẫn
+  khai `networkId: 9001` trong khi `web-home` đã đúng `999999999`.
+- [ ] Định danh **cục bộ** trong JS/Go vẫn tiếng Việt — cố ý hoãn, lý do ở D-108. Làm sau ngày G.

@@ -45,6 +45,9 @@ quá khứ hay sẽ được xuất bản?*
 ## 3. Danh sách cổng — chạy trước khi tin bất cứ điều gì
 
 ```bash
+node scripts/gday-preflight.mjs              # 15 cổng + 14 VIỆC TAY, một lệnh (~90s)
+node scripts/check-net-dirs.mjs              # thư mục net* nào thuộc thế hệ nào · thư mục nào giữ TIỀN
+node scripts/check-evidence.mjs              # gói vật chứng còn tự nghiệm thu được không
 node scripts/check-deploy-drift.mjs          # repo ↔ server (chạy TRƯỚC mọi mục "đã đóng")
 node scripts/check-consistency.mjs --self-test # số học tokenomics, đọc THẲNG từ Go
 node scripts/gen-chainid-issued.mjs --check  # sổ chainId/tên xuyên thế hệ
@@ -57,8 +60,14 @@ bash scripts/h6b-backup.sh --check           # bản sao lưu có dựng lại �
 node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
 ```
 
-⚠️ `gday-preflight.mjs` gọi **12** cổng đầu; ba cổng cuối đứng ngoài (hai cái là VIỆC TAY
-của nó, `check-robots` là mặt web — không đủ tư cách chặn genesis).
+⚠️ `gday-preflight.mjs` gọi **15 cổng** (gồm `check-net-dirs` và `check-evidence`, thêm
+`28/08`); ba cổng cuối trong danh sách trên đứng ngoài nó (hai cái là VIỆC TAY của nó,
+`check-robots` là mặt web — không đủ tư cách chặn genesis).
+
+🔴 **Cổng "áp đủ bộ rồi so hằng số của chính mình" chưa phải cổng** (D-112). Nó chỉ chứng minh
+bộ patch **tự nhất quán với con số ta vừa chép vào tệp đó** — ai sinh lại cả bộ rồi dán tree
+mới vào cũng làm nó xanh. Preflight nay áp **24/25 TRƯỚC** và neo vào `074aaa93`, tree mà
+**image đang chạy** dựng lên trên: hai đầu neo có gốc độc lập mới nói được điều gì đó.
 
 🔴 **Vế thứ BA của luật cứng #2 (D-106b, `28/08`): thấy cổng ĐỎ chưa đủ — phải kiểm nó đỏ VÌ
 ĐÚNG LÝ DO.** `check-robots` bản đầu đỏ ngay lần đầu và cái đỏ đó bị đọc thành *"cổng nhạy"*,
@@ -77,6 +86,9 @@ tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đ
 | Đụng `web/` · Caddyfile · merge `web-home` | thuộc worktree khác đang sống |
 | Sửa tay `local-net/net*/genesis.json` | C-Chain genesis nằm trong đó dưới dạng **chuỗi JSON đã escape**; hỏng escape **không ai thấy cho tới lúc node boot** |
 | Đổi một giá trị trong `patches/` mà không sinh lại cả bộ | xem luật cứng 3 |
+| **Quét-và-thay "trên mọi tệp văn bản"** | `patches/` và `docs/evidence/**` phải **loại trừ TƯỜNG MINH**. Đã cháy **hai lần trong một phiên** (`28/08`): một lần patch 0006 (cổng bắt được), một lần gói vật chứng (**không cổng nào bắt**, 9/9 → 7/9 im lặng) |
+| Sinh lại `MANIFEST.txt` / `SHA256SUMS.txt` cho một gói vật chứng | làm thế là **xoá đúng thứ tạo ra giá trị** của gói. Gói lệch hash thì **khôi phục byte gốc**, không sinh lại manifest |
+| Xoá một thư mục `local-net/net*` | 🔴 chạy `check-net-dirs.mjs` trước: **khoá đang giữ tiền nằm trong thư mục tự khai là đồ chết** (B-19) |
 
 ## 5. Bẫy phải biết trước (bản rút gọn — bản đầy đủ ở `HANDOFF.md` §GOTCHAS)
 
@@ -99,6 +111,16 @@ tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đ
    VỀ QUÁ KHỨ, và đổi chúng là viết lại lịch sử để cho gọn mắt.
 10. **`local-net/net-public/` là thư mục TRỘN** — `keys.txt` là bộ **9001 đã chết**, còn
    `chain-factory-key.txt` cùng thư mục là khoá **g0 đang giữ tiền**. Hỏi **từng tệp**.
+11. 🔴 **MỒI NHỬ: `local-net/net-that-g0/` khai ĐÚNG networkID của mạng đang chạy nhưng cả 6
+   ví đều 0đ** — nó là bộ khoá của **một lượt sinh mạng KHÁC** (`allocation.md` của nó tự khai
+   *"1 node"*, mạng thật là **9**). Nguy hiểm hơn bộ `9001`: ở kia `networkID` lệch nên
+   `check-keys` còn cảnh báo được, ở đây **networkID KHỚP** ⇒ `check-keys` chấm **6/6 ✓** và
+   **không cổng nào kêu**. Đúng thứ dễ bị cất nhầm thành *"bản sao lưu khoá quỹ"* của O1/B-16.
+   Bộ quỹ THẬT: `C:\Users\abc\9chain-a1-keys\g0\`. Đo bằng `check-net-dirs.mjs`. (D-110)
+12. 🔴 **Đổi tên định danh: đường VÀO và đường ĐỌC là hai chuyện.** id preset (`chuan`→`standard`…)
+   **là dữ liệu đã lưu** trong sổ danh bạ. API **từ chối** id cũ (không bí danh), nhưng bảng
+   hiển thị ở `/chains/` **giữ id cũ** để bản ghi lịch sử còn đọc được. Trước khi đổi một
+   "hằng số", hỏi: *nó có nằm trong dữ liệu đã ghi ra đĩa/lên chain không?* (D-108)
 
 ## 6. Bộ định danh — `A1Gen` là nguồn sự thật, và nó bị CHÉP TAY ở hai ngôn ngữ
 
