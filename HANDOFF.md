@@ -131,6 +131,12 @@ Ba bản soát mới: `docs/SOAT-TOAN-DIEN-2026-08-27.md` (lớp vận hành) ·
     — thứ **mọi công cụ hỏi X-Chain phải gọi đúng** — nằm ngoài. Đổi nó ở `genesis.go` mà không
     đổi `wallet/chain/{x,c}` là giết mọi ví X/C **mà đường đẻ chain vẫn xanh** (nó đi P-Chain).
     Nay một hằng `constants.GetAssetAlias`, hai nơi đọc — xem D-082 trước khi đụng lại lớp này.
+15. 🔴 **`A1_CONSOLE_TOKEN` ĐÃ ĐỔI `28/08`** (D-092c) — token cũ nay trả **401**. Giá trị mới ở
+    `C:\Users\abc\9chain-a1-keys\console-token.txt` (ngoài repo, ngoài git). ⚠️ **`console-deploy.sh`,
+    `bridge-test.mjs`, `auth-e2e-test.mjs` đọc token từ env** — nạp `console.env` hoặc lấy từ tệp
+    đó, đừng dùng giá trị nhớ trong đầu. 🔴 Và bài học của lượt đó: token cũ **chưa từng được đổi
+    qua HAI lượt re-genesis** — nó nằm trong cả `console.env.bak-720m` lẫn `bak-pre-g0`; **đưa
+    vào việc ngày G**: sinh mạng mới thì sinh luôn token mới.
 14. 🔴 **`check-deploy-drift.mjs` KHÔNG thấy tệp THỪA trên server.** Nó canh 18 tệp trong
     phạm vi: *"tệp trong danh sách có khớp không"*. Một tệp bị **XOÁ khỏi repo** mà vẫn nằm
     trên server thì **không nhóm nào thấy**. Đo `28/08`: `src/9chain-a1-config/genesis.json` —
