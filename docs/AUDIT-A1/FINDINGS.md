@@ -6,7 +6,7 @@
 > 🔴 **Bản ghim `15c940e` (17 patch) đã hết hiệu lực làm chuẩn soát.** Mạng công khai
 > sinh lại `27/08` (D-081); `main` nay ở **24 patch**. Mọi kết luận từ đây trở đi ghi rõ
 > nó đúng với cây nào. Đợt đo `27/08 15:30Z` ở
-> `docs/AUDIT-A1/11-CHAIN-CONG-KHAI-G0-2026-08-27.md`; đợt đo lại `28/08` ở mục
+> `docs/AUDIT-A1/11-PUBLIC-CHAIN-G0-2026-08-27.md`; đợt đo lại `28/08` ở mục
 > **"Soát lại lượt 2"** cuối tệp này.
 Luật ghi: `CLAUDE.md` · Phạm vi: `docs/AUDIT-A1/00-CHARTER.md`
 
@@ -533,7 +533,7 @@ rỗng ⇒ ném lỗi **tức thì**, câu chữ nói rõ *"dịch vụ đang t�
 và **không tiêu suất** (kiểm trước khi gọi `check()`, hoặc hoàn suất khi hỏng vì lý do hệ thống).
 Cùng lượt: trang `/create-chain/` đọc trạng thái đó và **nói ra**, thay vì mời bấm.
 
-**Liên quan:** D-081, D-030, `VI-VAN-HANH.md` §Ví chain-factory.
+**Liên quan:** D-081, D-030, `WALLET-OPERATIONS.md` §Ví chain-factory.
 
 ---
 
@@ -622,7 +622,7 @@ với `A1Params` thật, rồi so với `potentialReward` mà `platform.getCurre
 | **ĐO THẬT `27/08 15:30Z`** | **82.876.379.811.608** ✓ |
 
 ⇒ Khớp **từng đơn vị**; ca tràn lệch **4,13 lần** ⇒ phép đo **phân biệt được**, tức nó
-biết báo đỏ. Chi tiết: `docs/AUDIT-A1/11-CHAIN-CONG-KHAI-G0-2026-08-27.md` §2.
+biết báo đỏ. Chi tiết: `docs/AUDIT-A1/11-PUBLIC-CHAIN-G0-2026-08-27.md` §2.
 
 ---
 

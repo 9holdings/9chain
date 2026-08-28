@@ -12,7 +12,7 @@
 > thế `26/08`.
 >
 > Vật chứng của mạng thế hệ trước, xuất **trước khi xoá**:
-> `docs/vat-chung/o2-truoc-khi-xoa-2026-08-27/` — `GỐC` công bố ở `DECISIONS.md` D-080.
+> `docs/evidence/o2-before-delete-2026-08-27/` — `GỐC` công bố ở `DECISIONS.md` D-080.
 
 # 9Chain-A1 — Phân bổ genesis (networkID 999999999, 9 node)
 

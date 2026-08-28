@@ -24,7 +24,7 @@ Xem **D-107** (sổ `console-chains.json.bak-1787728833`) và **D-107b** (hai t�
 `*.bak-truoc-admin` **không trùng bất kỳ phiên bản git nào** trên cả 4 nhánh).
 Cả ba đã được lưu trữ + đối chiếu `sha256` hai đầu **trước** khi xoá:
 `docs/archive/console-chains-2026-08-26T0720Z.json` ·
-`docs/archive/console-truoc-admin-2026-08-24/`.
+`docs/archive/console-pre-admin-2026-08-24/`.
 
 ⇒ **Luật rút ra, đắt và lặp lại hai lần trong một phiên:** *"đã có bản lưu rồi nên xoá được"*
 là một **PHÉP ĐO**, không phải một câu trấn an. Và **phạm vi của một lời trấn an hẹp hơn phạm
@@ -114,7 +114,7 @@ ra. Giữ nguyên.)*
 
 ### 🔴 B-16 — O1: BẢN SAO THỨ HAI CỦA KHOÁ QUỸ — **15 phút, chặn GO/NO-GO `29/08`**
 
-**Quy trình đầy đủ: [`docs/O1-CUSTODY-PHEP-KIEM.md`](docs/O1-CUSTODY-PHEP-KIEM.md).**
+**Quy trình đầy đủ: [`docs/O1-CUSTODY-VERIFICATION.md`](docs/O1-CUSTODY-VERIFICATION.md).**
 
 Đây **không phải quyết định** — David đã chốt sơ đồ ở D-044. Là **một phép kiểm chưa ai chạy**:
 *bản thứ hai có thật không, và khôi phục được không.*
@@ -236,7 +236,7 @@ David không chọn đường nào trong ba đường A1 đưa (9146 / 9100 / "d
 
 ### 🔴 B-14 — GỐC DẢI chainId CHO L1 NGƯỜI DÙNG: `9100` TRÙNG MỘT CHUỖI CÓ THẬT (2026-08-27, sinh từ G4)
 
-Tra sổ công khai `27/08` ([`docs/G4-TRA-CHAINID-2026-08-27.md`](docs/G4-TRA-CHAINID-2026-08-27.md)):
+Tra sổ công khai `27/08` ([`docs/G4-CHAINID-LOOKUP-2026-08-27.md`](docs/G4-CHAINID-LOOKUP-2026-08-27.md)):
 `9000000009` **trống** ✓ — nhưng trong dải console tự cấp cho L1 người dùng có **4 số bị chiếm**,
 và một trong đó là số **đầu tiên** console cấp:
 
@@ -292,12 +292,12 @@ Câu chữ chốt cùng lượt **C1 đóng băng byte**.
 ### 🔴 B-13 — BLOCK ADAM: NEO VÀO CÁI GÌ, VÀ BÙ BAO NHIÊU (2026-08-27, sinh từ diễn tập A-1)
 
 Diễn tập `27/08` đạt (9/9 + 2 đối chứng ngược) — bản đầy đủ
-[`docs/DIEN-TAP-BLOCK-ADAM-2026-08-27.md`](docs/DIEN-TAP-BLOCK-ADAM-2026-08-27.md). Nhưng nó
+[`docs/DRILL-BLOCK-ADAM-2026-08-27.md`](docs/DRILL-BLOCK-ADAM-2026-08-27.md). Nhưng nó
 đẻ ra hai việc **không đóng được trong cùng lượt**.
 
 | | Việc | Ai | Vì sao không tự quyết/tự làm được |
 |---|---|---|---|
-| **(a)** | 🔴 **Block Adam NEO VÀO CÁI GÌ** | **David** | Luật đang định khắc — *"block **đầu tiên** vượt `2026-09-09T06:09:09Z`"* — là mệnh đề về **TOÀN CHUỖI**, mà nghi lễ chỉ điều khiển được **giao dịch của mình**. Ai gửi một giao dịch vào khoảng giữa mốc và lúc ta bắn là chiếm mất ô đó, không giành lại được. **Khắc vĩnh viễn** ⇒ không tự quyết. *Khuyến nghị: neo vào **hash giao dịch nghi lễ**, hoặc số block chốt SAU khi nó đã sinh ra.* Hạn `28/08`, gộp vào `NGAY-G-A1-CON-LAI.md` §6 mục 3 |
+| **(a)** | 🔴 **Block Adam NEO VÀO CÁI GÌ** | **David** | Luật đang định khắc — *"block **đầu tiên** vượt `2026-09-09T06:09:09Z`"* — là mệnh đề về **TOÀN CHUỖI**, mà nghi lễ chỉ điều khiển được **giao dịch của mình**. Ai gửi một giao dịch vào khoảng giữa mốc và lúc ta bắn là chiếm mất ô đó, không giành lại được. **Khắc vĩnh viễn** ⇒ không tự quyết. *Khuyến nghị: neo vào **hash giao dịch nghi lễ**, hoặc số block chốt SAU khi nó đã sinh ra.* Hạn `28/08`, gộp vào `GDAY-A1-REMAINING.md` §6 mục 3 |
 | **(b)** | **Đo lệch đồng hồ 9 node** rồi chọn `--offset-ms` | A1 | Làm được, nhưng **chỉ sau khi mạng ngày G lên** — số phải đo trên chính bộ node sẽ chạy nghi lễ |
 
 🔴 **Vì sao (b) không phải là "chép +3s vào runbook":** +3s đạt trên mạng tập **1 node dùng
@@ -336,7 +336,7 @@ Từ bản soát core [`docs/CORE-AUDIT-2026-08-27.md`](docs/CORE-AUDIT-2026-08-
 
 Kèm trần **EIP-2294**, và netgen nay **luôn in chainId** ở dòng tổng kết — trước đó nó không in
 con số này ở đâu cả, nên không lượt sinh mạng nào để lại dấu vết về bản sắc vừa phát ra.
-**7 ca nghiệm thu, 3 ca đỏ đúng chỗ.** Chi tiết: [`docs/CONG-CHAINID-2026-08-27.md`](docs/CONG-CHAINID-2026-08-27.md).
+**7 ca nghiệm thu, 3 ca đỏ đúng chỗ.** Chi tiết: [`docs/CHAINID-GATE-2026-08-27.md`](docs/CHAINID-GATE-2026-08-27.md).
 
 ⚠️ **Bất đối xứng "cảnh báo vs chặn" là CỐ Ý**, không phải làm dở: chặn cứng đường dev quen
 thuộc `gen-network.sh 5` chỉ tạo ra thói quen đi vòng (đúng lý lẽ đã dùng cho `canhBaoSelfBond`).
@@ -486,7 +486,7 @@ Caddyfile để người sau không tưởng nó đang chạy.
 </details>
 
 ### ✅ B-7 — ĐÃ TRẢ LỜI (2026-08-25) — phân biệt được sẵn, không cần trường mới
-**Trả lời đầy đủ:** `docs/requests-from-9scan/2026-08-25-node-tracking-TRA-LOI.md`.
+**Trả lời đầy đủ:** `docs/requests-from-9scan/2026-08-25-node-tracking-REPLY.md`.
 Tóm tắt: `console-chains.json` đã tách bằng **cấu trúc** — mảng `chains` (6, đang
 track) và `retired` (**21**, đã thu hồi có chủ ý). **21 đó khớp chính xác con số "21
 không node nào track"** ⇒ toàn bộ nhóm đang bị gộp dưới `not served here` thực ra là
@@ -771,7 +771,7 @@ Bản mới ở **`139.99.145.13:~/9chain-a1/backup/20260827-051507/`** và bả
 
 🔴 **VÀ BẢN SAO LƯU NÀY KHÔNG CỨU ĐƯỢC THỨ ĐẮT NHẤT.** Nó **không chứa khoá 5 quỹ**
 (`local-net/net-public/keys.txt` bị `.gitignore`, cố ý). Mất máy dev vẫn = mất khoá cả
-5 quỹ. Xem D-044 và `NGAY-G-A1-CON-LAI.md` O1 — bản thứ hai do David tự cất, **chưa ai
+5 quỹ. Xem D-044 và `GDAY-A1-REMAINING.md` O1 — bản thứ hai do David tự cất, **chưa ai
 xác nhận là có**. Đây vẫn là mục quyết số 1 trước ngày G.
 
 ⚠️ Bản ở `C:\PROJECTS\9Chain-backups\` nằm **cùng ổ đĩa** với repo ⇒ nó không phải bản

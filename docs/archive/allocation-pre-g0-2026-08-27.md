@@ -12,7 +12,7 @@
 > `docs/archive/allocation-pre-regenesis-2026-08-26.md`).
 >
 > Mạng **trước** re-genesis: `docs/archive/allocation-pre-regenesis-2026-08-26.md`.
-> Ví vận hành (không thuộc genesis): `docs/VI-VAN-HANH.md`.
+> Ví vận hành (không thuộc genesis): `docs/WALLET-OPERATIONS.md`.
 
 Tổng phát hành genesis: **5,400,000,000 LOVE9** · Trần cung: **9,000,000,000 LOVE9**
 
@@ -40,4 +40,4 @@ File này CÔNG KHAI được — chỉ chứa địa chỉ, không chứa khoá
 |---|---|--:|---|
 | chain-factory | phí đẻ L1 (khoá TRÊN SERVER, `console.env`) | ~9 LOVE9 P-Chain | `X-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj` |
 
-Chi tiết + quy trình nạp lại: [VI-VAN-HANH.md](VI-VAN-HANH.md).
+Chi tiết + quy trình nạp lại: [WALLET-OPERATIONS.md](WALLET-OPERATIONS.md).

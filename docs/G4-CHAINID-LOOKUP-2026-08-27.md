@@ -123,5 +123,5 @@ Sổ `chainid.network` đổi hàng ngày (nó là repo `ethereum-lists/chains`,
 lệnh:
 
 ```bash
-node scripts/check-chainid.mjs --save docs/vat-chung/g4-<ngày>
+node scripts/check-chainid.mjs --save docs/evidence/g4-<ngày>
 ```

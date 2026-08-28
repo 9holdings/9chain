@@ -4,8 +4,8 @@
 **Core ghim:** `upstream/avalanchego @ 15c940e` (detached) · base upstream `1cf1fc3` (`22/08`)
 **Phạm vi:** `docs/AUDIT-A1/00-CHARTER.md` §1 dòng *Công nghệ / Mã nguồn / Cấu trúc*
 
-> Bản này **không** chép lại `HIEN-TRANG-A1-2026-08-27.md` (mạng đang là gì) hay
-> `SOAT-TOAN-DIEN-2026-08-27.md` (lớp vận hành). Nó trả lời một câu khác:
+> Bản này **không** chép lại `STATUS-A1-2026-08-27.md` (mạng đang là gì) hay
+> `FULL-REVIEW-2026-08-27.md` (lớp vận hành). Nó trả lời một câu khác:
 > **cây mã hôm nay là cái gì, chỗ nào đã cứng, chỗ nào còn mềm.**
 >
 > Mọi con số dưới đây đo **ngoại tuyến trong worktree này**, trừ hai chỗ ghi rõ
@@ -201,7 +201,7 @@ Config fields: 18 | A1: 18 | Default: 18
 
 ## 3. Cái còn MỀM — sáu phát hiện
 
-Chi tiết đủ 6 trường ở `docs/AUDIT-A1/SO-PHAT-HIEN.md`. Tóm ở đây theo *"mất gì
+Chi tiết đủ 6 trường ở `docs/AUDIT-A1/FINDINGS.md`. Tóm ở đây theo *"mất gì
 nếu nó xảy ra"*:
 
 | ID | Mức | Một câu |

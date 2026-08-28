@@ -9,7 +9,7 @@
  * `chains ∪ retired`, nên xoá sổ là **trả lại cho vòng quay 43 tên + chainId đã phát cho
  * người thật** — ví của họ sẽ lặng lẽ trỏ vào chain của người khác.
  *
- * `NGAY-G-A1-CON-LAI.md` §5c đã chỉ đúng cách làm: **dồn `chains` sang `retired` rồi GIỮ
+ * `GDAY-A1-REMAINING.md` §5c đã chỉ đúng cách làm: **dồn `chains` sang `retired` rồi GIỮ
  * tệp**, đừng giữ nguyên cả tệp (console sẽ tưởng các chain đó còn sống trên một mạng chúng
  * không tồn tại) và đừng reset (mất sổ chống phát lại). Nhưng tới `28/08` **chưa có công cụ
  * nào làm việc đó** — nó vẫn là một thao tác tay trên một tệp JSON, đúng loại việc đã hỏng

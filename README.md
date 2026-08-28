@@ -132,7 +132,7 @@ dự án explorer kết luận sai suốt một phiên.
 | Vì sao lại quyết thế | [DECISIONS.md](DECISIONS.md) — D-001 → D-107b |
 | Đang kẹt gì / chờ ai | [BLOCKERS.md](BLOCKERS.md) |
 | Kiến trúc fork | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| Ngày G `01/09` | [docs/NGAY-G-A1-CON-LAI.md](docs/NGAY-G-A1-CON-LAI.md) · [docs/KHAC-CHU-NGAY-G.md](docs/KHAC-CHU-NGAY-G.md) |
+| Ngày G `01/09` | [docs/GDAY-A1-REMAINING.md](docs/GDAY-A1-REMAINING.md) · [docs/GDAY-ENGRAVING.md](docs/GDAY-ENGRAVING.md) |
 | A1 so với C1 | [docs/A1-vs-C1-SCORECARD.md](docs/A1-vs-C1-SCORECARD.md) |
 | Chuẩn hoá thương hiệu | [docs/BRAND-AUDIT-2026-08-27.md](docs/BRAND-AUDIT-2026-08-27.md) |
 

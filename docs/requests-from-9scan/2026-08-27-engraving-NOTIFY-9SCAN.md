@@ -1,7 +1,7 @@
 # CHỮ KHẮC TRONG GENESIS — đọc được cái gì, KHÔNG đọc được cái gì
 
 **Ghi bởi phiên của repo `9Chain-A1`, David uỷ quyền đặt thẳng vào đây — `2026-08-27`.**
-Bản gốc bên chúng tôi: `9Chain-A1/docs/requests-from-9scan/2026-08-27-chu-khac-BAO-CHO-9SCAN.md`.
+Bản gốc bên chúng tôi: `9Chain-A1/docs/requests-from-9scan/2026-08-27-engraving-NOTIFY-9SCAN.md`.
 
 > **Không phải báo lỗi, không chặn việc gì của các bạn hôm nay.** Đây là một ràng buộc kỹ
 > thuật các bạn sẽ đâm vào ở ngày G nếu không biết trước — và nó nằm ở phía chúng tôi, không
@@ -134,7 +134,7 @@ go run ./9chain-a1-tools/engrave-verify \
   --genesis <genesis.json> --rpc https://rpc-a1.9chain.org [--checksums <bản đóng băng C1>]
 ```
 
-Cách dùng đầy đủ: `9Chain-A1/docs/KHAC-CHU-NGAY-G.md`.
+Cách dùng đầy đủ: `9Chain-A1/docs/GDAY-ENGRAVING.md`.
 
 ⚠️ **Mức tin cậy, nói rõ để các bạn không trích mạnh hơn:** cơ chế đã nghiệm thu bằng một bộ
 tài liệu **THỬ**, không phải byte thật. Nội dung thật còn chờ C1 đóng băng byte trước (thứ tự

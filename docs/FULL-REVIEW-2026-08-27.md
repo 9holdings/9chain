@@ -466,7 +466,7 @@ vấn đề — **hướng phân kỳ** mới là:
 | `local-net/deploy/Caddyfile` | web-home **+175 dòng** |
 | `local-net/deploy/caddy-deploy.sh` | main **+37 dòng** (cổng D-075) |
 | `DECISIONS.md` | main **+83 dòng** (D-073/074/075) |
-| `docs/NGAY-G-A1-CON-LAI.md` · `docs/SOAT-TOAN-DIEN` | **cả hai chiều** |
+| `docs/GDAY-A1-REMAINING.md` · `docs/SOAT-TOAN-DIEN` | **cả hai chiều** |
 
 🔴 **Nhánh này không cô lập được gì.** Cả hai phiên đều sửa **cùng một bộ tệp hạ tầng và cùng
 một sổ quyết định**. Một nhánh chỉ có ích khi hai bên chạm hai vùng khác nhau — ở đây thì không,

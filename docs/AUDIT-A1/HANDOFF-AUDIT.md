@@ -29,7 +29,7 @@ mở**, không mục nào là P0.
 | **A-012** `main` còn `networkId: 9001` | **P1** | 🔴 **mở** — A-007 phát lại được |
 | **A-008** `a1.9scan.org` trắng | **P1** | 🔴 **mở** — đội 9Scan-A1 |
 | **A-009** trang vẫn mời + tiêu suất | **P1** | 🟡 console đóng thật; **trang vẫn mời**, suất vẫn bị tiêu |
-| A-002 · A-003 · A-004 · A-005 · A-006 · A-010 | P2 | 🔴 mở, y nguyên (chi tiết ở `SO-PHAT-HIEN.md`) |
+| A-002 · A-003 · A-004 · A-005 · A-006 · A-010 | P2 | 🔴 mở, y nguyên (chi tiết ở `FINDINGS.md`) |
 
 Mạng công khai lành: `networkID 999999999` · `9chain-a1-g0` · chainId `0x218711a09` ·
 9 validator · `potentialReward[0] = 82.876.379.811.608` ⇒ `SupplyCap 7.900.000.001` xác nhận
@@ -37,7 +37,7 @@ lại **từng đơn vị** từ ngoài.
 
 ## Đã xong trong phiên
 
-- **Soát lại 10 phát hiện cũ** + **4 mới** (A-011…A-014) — `SO-PHAT-HIEN.md` §"Soát lại lượt 2"
+- **Soát lại 10 phát hiện cũ** + **4 mới** (A-011…A-014) — `FINDINGS.md` §"Soát lại lượt 2"
 - **Nhặt `docs/AUDIT-A1/` sang `main`** (David chốt) — `ab3f22b`, 5 tệp, không một dòng mã
 - **A-013 nửa đầu**: `docker stop stats user-ops-indexer` — baseline công khai 4 dòng **không
   đổi một ký tự**, 9 node nguyên

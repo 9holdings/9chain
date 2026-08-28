@@ -424,10 +424,10 @@ Không `og-image`, không `manifest.webmanifest`, không `robots.txt`.
 Với một dự án sắp mời cộng đồng vào ngày G, đây là chỗ rẻ nhất đổi lấy vẻ chỉn chu nhất.
 
 ### H. Bốn tài liệu vi phạm chính luật đặt tên của nhà
-Luật chốt `26/08`: **tên tệp phải bằng tiếng Anh**. Vi phạm: `KHAC-CHU-NGAY-G.md` ·
-`NGAY-G-A1-CON-LAI.md` · `RUI-RO-THANG-1E7.md` · `VI-VAN-HANH.md`.
-⚠️ **Đừng đổi ngay:** `NGAY-G-A1-CON-LAI.md` là tệp `HANDOFF` trỏ vào đầu tiên và
-`KHAC-CHU-NGAY-G.md` là runbook ngày G. Đổi tên hai tệp đó tuần này là chạm đường găng để
+Luật chốt `26/08`: **tên tệp phải bằng tiếng Anh**. Vi phạm: `GDAY-ENGRAVING.md` ·
+`GDAY-A1-REMAINING.md` · `RISK-SCALE-1E7.md` · `WALLET-OPERATIONS.md`.
+⚠️ **Đừng đổi ngay:** `GDAY-A1-REMAINING.md` là tệp `HANDOFF` trỏ vào đầu tiên và
+`GDAY-ENGRAVING.md` là runbook ngày G. Đổi tên hai tệp đó tuần này là chạm đường găng để
 lấy một thứ không ai ngoài dự án nhìn thấy. **Hoãn tới sau `01/09`.**
 
 ### I. Bốn chú thích trỏ vào tệp không còn tồn tại (sót của đợt đổi tên `26/08`)

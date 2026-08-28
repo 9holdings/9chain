@@ -128,7 +128,7 @@ viết lại theo trần 9 tỷ.
 
 **Bật khắc:** `A1_ENGRAVE=<manifest.json>` + `A1_ENGRAVE_CHECKSUMS=<CHECKSUMS-FREEZE của C1>`
 + `A1_ENGRAVE_CONFIRM=<vân tay>`. Mặc định **KHÔNG khắc** — đó là cổng *"bản tập ≠ bản thật"*.
-Cách dùng đầy đủ: [`KHAC-CHU-NGAY-G.md`](KHAC-CHU-NGAY-G.md).
+Cách dùng đầy đủ: [`GDAY-ENGRAVING.md`](GDAY-ENGRAVING.md).
 
 ✅ Ô trống **có thật**, không phải giả định. `GenesisCodec = codec.NewManager(math.MaxInt32)` ⇒
 trường `Message` không giới hạn thực tế ⇒ chứa được trọn bộ tài liệu.
@@ -186,7 +186,7 @@ phải xử.
 chạy đúng `2026-09-09T06:09:09Z` và ngay sau đó, để Block Adam / Eva **được sinh ra bởi một hành
 động có chủ đích**.
 
-✅ **ĐÃ DIỄN TẬP `27/08`** — bản đầy đủ: [`DIEN-TAP-BLOCK-ADAM-2026-08-27.md`](DIEN-TAP-BLOCK-ADAM-2026-08-27.md).
+✅ **ĐÃ DIỄN TẬP `27/08`** — bản đầy đủ: [`DRILL-BLOCK-ADAM-2026-08-27.md`](DRILL-BLOCK-ADAM-2026-08-27.md).
 Bài: `local-net/faucet/block-adam-drill.mjs`, mạng tập 1 node trên cổng 9750.
 
 🔴 **Và nó bắt được một lỗi trong CHÍNH đối sách này, ngay lượt chạy đầu.** Bắn **đúng** mốc —
@@ -242,7 +242,7 @@ Vế *"neo vào cái gì"* là do lượt diễn tập `27/08` sinh ra, xem mụ
 | # | Việc | Trạng thái thật | Ai làm |
 |---|---|---|---|
 | **O1** ⭐ | **Custody bộ khoá quỹ MỚI** | 🔴 **CHƯA.** D-044 giữ nguyên sơ đồ cũ; bản thứ hai David tự cất, **chưa ai xác nhận có**. Mất máy dev = mất khoá cả 5 quỹ | **David** |
-| **O2** | Export + `sha256` mạng sắp chết, công bố trước khi xoá | 🟡 **QUY TRÌNH ĐÃ CÓ VÀ ĐÃ CHẠY THỬ `27/08`** — [`QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md`](QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md), bài `scripts/export-chain.mjs`, 3 ca đối chứng ngược đỏ đúng chỗ. **Còn lại: chạy một lượt trên MẠNG CÔNG KHAI để biết thời gian thật, rồi chạy thật ở ngày G.** *(Lượt `26/08` đã BỎ LỠ — chain data + DB Blockscout xoá không có bản công bố nào)* | A1 |
+| **O2** | Export + `sha256` mạng sắp chết, công bố trước khi xoá | 🟡 **QUY TRÌNH ĐÃ CÓ VÀ ĐÃ CHẠY THỬ `27/08`** — [`O2-EXPORT-BEFORE-DELETE.md`](O2-EXPORT-BEFORE-DELETE.md), bài `scripts/export-chain.mjs`, 3 ca đối chứng ngược đỏ đúng chỗ. **Còn lại: chạy một lượt trên MẠNG CÔNG KHAI để biết thời gian thật, rồi chạy thật ở ngày G.** *(Lượt `26/08` đã BỎ LỠ — chain data + DB Blockscout xoá không có bản công bố nào)* | A1 |
 | **O3** | Chính sách với L1 người dùng | 🟡 **Đã đổi hình dạng**: sau `26/08` danh bạ là **0 sống / 6 đã thu hồi** — chain `David Do` 9141 **đã mất rồi**. Rủi ro nay nằm ở người được mời **từ nay tới 01/09** | **David** + `Web9Chain` |
 | **O3b** | Sổ chống phát lại | ✅ **A1 XÁC NHẬN giả thuyết BOD đúng** — xem dưới | A1 |
 | **O4** 🔴 | Validator ở nhà cung cấp **thứ hai** | 🔴 **CHƯA.** 9 node vẫn *một máy, một nhà cung cấp*. Tốn tiền | **David** |
@@ -353,10 +353,10 @@ Bản nháp BOD có 7 điều kiện, trong đó **điều 1 không thoả mãn 
 3. **G4** — tra lại `chainid.network` **ngay trước bước sinh genesis**: `9000000009` **và trọn
    dải L1 `9000000010–9000000109`** không trùng. Bài **thoát `0`** mới là đạt.
    *(Tra `27/08`: cả hai **trống** ✓. Lượt đó bắt được **`9100` = Genesis Coin** ⇒ B-14 ⇒
-   **David dời gốc dải sang `9000000010`**, D-069. Xem `G4-TRA-CHAINID-2026-08-27.md`.)*
+   **David dời gốc dải sang `9000000010`**, D-069. Xem `G4-CHAINID-LOOKUP-2026-08-27.md`.)*
    🔴 **Sổ đổi trong CÙNG một ngày** — hai lượt tra `27/08` cách nhau ~2 giờ đã lệch: 2.723 →
    2.725 mục, `sha256` khác hẳn. Đây là số đo, không phải lo xa.
-   Một lệnh: `node scripts/check-chainid.mjs --save docs/vat-chung/g4-<ngày>`
+   Một lệnh: `node scripts/check-chainid.mjs --save docs/evidence/g4-<ngày>`
 4. **G5** — chữ khắc **đọc ngược lại được từ chain**, `sha256` từng tài liệu **khớp bản đóng băng
    của C1**, và đã chốt Block Adam nằm trên chain nào
 5. **I** — ✅ đã xong từ `26/08`; chỉ cần đối chứng lại `supplyCap` trên binary sau khi build
@@ -370,7 +370,7 @@ Bản nháp BOD có 7 điều kiện, trong đó **điều 1 không thoả mãn 
    lệch đồng hồ 9 node** và chọn được con số bù · (b) David đã chốt Block Adam **neo vào cái gì**
 10. ✅ **Cổng "bản tập ≠ bản thật" đã tồn tại và đã bắt được ít nhất một ca đối chứng ngược** —
     **hai cổng**: chữ khắc (patch 0010, `26/08`) và **chainId** (patch 0015, `27/08`, C-4).
-    Cổng chainId: 7 ca nghiệm thu, **3 ca đỏ đúng chỗ**. Xem [`CONG-CHAINID-2026-08-27.md`](CONG-CHAINID-2026-08-27.md)
+    Cổng chainId: 7 ca nghiệm thu, **3 ca đỏ đúng chỗ**. Xem [`CHAINID-GATE-2026-08-27.md`](CHAINID-GATE-2026-08-27.md)
 
 ---
 
@@ -392,13 +392,13 @@ Xếp theo thứ tự đường găng:
 
 1. ✅ **XONG `26/08`** — **Tham số hoá `Message` + hợp đồng dữ liệu C-Chain trong netgen.**
    Cơ chế dựng sẵn, nội dung nhét vào sau khi C1 giao byte. Patch 0010, cây fork tree
-   `76a714ea`. Cách dùng + bảng nghiệm thu: [`KHAC-CHU-NGAY-G.md`](KHAC-CHU-NGAY-G.md).
+   `76a714ea`. Cách dùng + bảng nghiệm thu: [`GDAY-ENGRAVING.md`](GDAY-ENGRAVING.md).
 2. ✅ **XONG `26-27/08`** — **Bài kiểm đọc ngược chữ khắc**: `9chain-a1-tools/engrave-verify`,
    một lệnh, chạy được vào chain thật. **17 đạt/0 hỏng trên mạng tập 3 node dựng thật**, ba ca
    đối chứng ngược đều đỏ đúng chỗ. Patch 0011, tree `09c74a2a`.
    🔴 Phát hiện nền: `Message` là **trường chỉ ghi**, không API nào đọc được — nhưng `parentID`
    của block 0 P-Chain **chính là `sha256` của toàn bộ genesis blob**, nên mạng đang chạy mang
-   sẵn cam kết mật mã cho chữ khắc. Xem [`KHAC-CHU-NGAY-G.md`](KHAC-CHU-NGAY-G.md).
+   sẵn cam kết mật mã cho chữ khắc. Xem [`GDAY-ENGRAVING.md`](GDAY-ENGRAVING.md).
 3. ✅ **XONG `26/08`** — **Cổng "bản tập ≠ bản thật"** (§5): mặc định KHÔNG khắc, bật khắc thì
    bắt buộc `A1_ENGRAVE_CONFIRM` khớp vân tay bộ tài liệu, và netgen **luôn in ra** mình có
    khắc hay không. Đã có đối chứng ngược: vân tay lệch ⇒ từ chối sinh mạng.
@@ -406,14 +406,14 @@ Xếp theo thứ tự đường găng:
    `local-net/faucet/block-adam-drill.mjs` + `local-net/docker-compose.drill.yml`.
    4 lượt chạy, **lượt bắn đúng mốc HỎNG** (block của Adam không vượt mốc), bù +3s đạt 9/9,
    2 ca đối chứng ngược đỏ đúng chỗ. Bản đầy đủ:
-   [`DIEN-TAP-BLOCK-ADAM-2026-08-27.md`](DIEN-TAP-BLOCK-ADAM-2026-08-27.md).
+   [`DRILL-BLOCK-ADAM-2026-08-27.md`](DRILL-BLOCK-ADAM-2026-08-27.md).
    🔴 Sinh ra 2 việc: **đo lệch đồng hồ 9 node** (A1 làm được, sau khi mạng ngày G lên) và
    **neo Block Adam vào cái gì** (David, §6 mục 3).
 5. 🟡 **CHẠY THỬ XONG `27/08`** — **Quy trình O2** (export + `sha256` + công bố), thứ đã bỏ lỡ
    ở `26/08`: `scripts/export-chain.mjs`, một lệnh, kiểm lại được **cả bằng `sha256sum -c`
    chuẩn** chứ không chỉ bằng chính nó. 3 ca đối chứng ngược đỏ đúng chỗ — trong đó ca *"sửa
    1 byte VÀ sửa luôn manifest"* là ca chứng minh vì sao **phải công bố con số ra chỗ NGOÀI**.
-   [`QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md`](QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md).
+   [`O2-EXPORT-BEFORE-DELETE.md`](O2-EXPORT-BEFORE-DELETE.md).
    🔴 **Còn lại:** chạy một lượt trên **mạng công khai** để biết thời gian thật (bài lấy block
    từng cái một), và nhớ `--add-evm` cho **từng L1 còn sống** — thiếu cờ đó thì L1 người dùng
    biến mất không dấu vết.
@@ -421,11 +421,11 @@ Xếp theo thứ tự đường găng:
    bản văn phải đọc từ **tệp genesis** (nói rõ nguồn là tệp), còn thứ đọc **từ chain** là
    `parentID` block 0 (= `sha256` cả blob) làm ô đối chứng, cộng `eth_getCode` cho mặt C-Chain.
    Commit `7e3b579` trong `C:\PROJECTS\9Scan-A1`; bản sao bên mình ở
-   `docs/requests-from-9scan/2026-08-27-chu-khac-BAO-CHO-9SCAN.md` (đối chứng `sha256` khớp).
+   `docs/requests-from-9scan/2026-08-27-engraving-NOTIFY-9SCAN.md` (đối chứng `sha256` khớp).
    🟡 **Chờ họ trả lời một câu**: thiết kế đó có đủ cho luật cứng #2 của họ không, hay họ cần
    endpoint mới trên node — nếu cần thì phải biết **trước ngày G**.
 6. ✅ **XONG `27/08`** — **G4, tra `chainid.network`**: `scripts/check-chainid.mjs`, vật chứng
-   `docs/vat-chung/g4-2026-08-27/`. **`9000000009` trống** ✓.
+   `docs/evidence/g4-2026-08-27/`. **`9000000009` trống** ✓.
    🔴 Bài tra rộng hơn kế hoạch (thêm trọn dải L1 `9100–9199`) và bắt được **`9100` = Genesis
    Coin** — số console cấp **đầu tiên**. ⇒ B-14, gộp vào mục quyết §5c.
    🔴 **Vẫn phải tra LẠI ngay trước bước sinh genesis** — lượt này chỉ nói về hôm nay.
@@ -435,7 +435,7 @@ Xếp theo thứ tự đường găng:
    mỗi trường mang `source` riêng (`measured` kèm tên lệnh · `binary-constant` · `derived` kèm
    công thức). Nó **tự đo rồi so lại** bản khai (`manifestMatchesChain` + `mismatches`), và
    `totalSupply` suy từ **số đo được** nên sửa bản khai không đẩy được con số công bố lên.
-   2 ca đối chứng ngược. Bản đầy đủ: [`I1B-CUNG-CO-NGUON-2026-08-27.md`](I1B-CUNG-CO-NGUON-2026-08-27.md).
+   2 ca đối chứng ngược. Bản đầy đủ: [`I1B-SUPPLY-SOURCED-2026-08-27.md`](I1B-SUPPLY-SOURCED-2026-08-27.md).
    🔴 Còn: `cung.json` **phải lên server cùng `faucet.env`** (quên ⇒ 503), và câu khai nguồn trên
    trang (`web/` thuộc worktree `9Chain-A1-web` — câu chữ đã soạn sẵn ở §5b bản trên).
 8. **Dồn `chains` → `retired`, giữ tệp** (O3b) — chờ David quyết có khôi phục 43 bản ghi cũ không.
