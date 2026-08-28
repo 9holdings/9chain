@@ -2952,3 +2952,58 @@ netgen sinh, **không** bằng tệp kia. Hôm nay nó là **cái bẫy nằm im
 
 🔴 **Hai tệp trên CHƯA XOÁ — chờ David.** Xoá tệp trên máy công khai nằm ngoài câu *"gỡ
 xpwallet"*, và `vi-thu.json` có thể còn ai đó đang dùng làm ví thử.
+
+---
+
+### D-092b — Xoá hai tệp còn lại. Và phép quét dọn lại xác nhận được một điều lớn hơn
+
+`2026-08-28`, David duyệt xoá cả hai.
+
+#### Soi đích trước — đo trên thứ ĐANG CHẠY, không đọc tài liệu
+
+| | |
+|---|---|
+| 9 node có đọc `config/genesis.json` không | **KHÔNG** — cả 9 đều `--genesis-file=/9chain-a1/net/genesis.json` (đọc `docker inspect`, không đọc compose) |
+| `9chain-a1-chains` (nginx) có phục vụ nó không | **KHÔNG** — chỉ `location = /data/console-chains.json` với `alias`, **không `autoindex`**. Chú thích trong chính conf đó nói rõ: *"chỉ mở đúng MỘT file … để không lộ những file khác nằm cùng thư mục config (genesis mẫu, console-tmp/…)"* |
+| Ai trỏ tới `vi-thu.json` | **0** |
+| Ghi lại trước khi huỷ (luật O2) | `vi-thu.json` `a3ffed60…` · `config/genesis.json` `5b77a812…` |
+
+⇒ `shred -u -n 3` cả hai · đối chứng `ls` ⇒ **No such file** · `l1-evm-genesis.json` và
+`console-chains.json` **còn nguyên** · sản phẩm sau đó: `/` `/chains/` `/faucet/api/supply`
+đều 200, `9chain-a1-g0`, **9/9 node Up 12 giờ (không node nào restart)**.
+
+🔴 **Một lượt đo của tôi ra 404 và suýt bị đọc thành "vừa làm hỏng":** tôi gọi
+`:8093/console-chains.json` trong khi đường thật là **`/data/console-chains.json`**. Đường
+đúng ra **200**, cả nội bộ lẫn công khai. **Lỗi ở phép đo, không ở sản phẩm** — đúng lớp
+*"đo sai đại lượng"*, lần này tự mình dính.
+
+#### Quét dọn: cái gì còn lại, và vì sao KHÔNG xoá
+
+| Còn `X-local1…` | Kết luận |
+|---|---|
+| `upstream/avalanchego/genesis/genesis_local.{go,json}` · `genesis_test.json` · một `examples/` | **MÃ NGUỒN UPSTREAM, phải giữ.** Xoá là hỏng fork |
+
+⇒ Tệp vừa xoá đúng là **đứa lạc đàn**: bản chép rời trong thư mục `config` mà node **từng**
+boot bằng nó. Không phải "dọn mọi thứ có chữ `X-local1`".
+
+#### 🔴 Và phép quét khép lại được một câu D-085 mới chỉ khẳng định một nửa
+
+Quét **toàn máy** theo hình dạng khoá, rồi đối chiếu hash với **cả 6 khoá quỹ g0**:
+
+| Nơi | Khoá | Kết luận |
+|---|---|---|
+| `9chain-a1-faucet` → `FAUCET_PK` | ví nóng | **có chủ ý** |
+| `~/9chain-a1/console.env` → `A1_CLI_KEY` | **`1dc334145c8a1abc` = `chain-factory`** | **có chủ ý** — console cần nó để đẻ L1; và đẻ chain đang **TẠM ĐÓNG** (D-087) |
+| `console.env` → `A1_L1_ADMIN` = `0xf408235C…` | **ĐỊA CHỈ Foundation, không phải khoá** | dùng làm admin của L1 sinh ra. Nhìn giật mình, đo ra vô hại |
+
+**Không hash nào trùng bất kỳ khoá nào trong 6 quỹ** (`91e3a12f` · `417c9c08` · `321fe3d6` ·
+`f68aa092` · `e42bb357` · `35bc2f61`). ⇒ **Trên server không còn một khoá quỹ nào** — trước đây
+đó là lời khẳng định dựa vào `find -name keys.txt`; nay nó dựa vào **đối chiếu hash toàn máy**.
+
+#### 🔴 Việc của David — do TÔI gây ra
+
+Lệnh in `console.env` của tôi che **hình dạng khoá** nhưng **không che token**, nên
+`A1_CONSOLE_TOKEN` đã hiện **nguyên văn** trong bản ghi phiên. Bản ghi nằm trên máy David,
+không công khai ⇒ **rủi ro thấp nhưng khác 0**. **Nên đổi token** (sửa `console.env` rồi
+`local-net/deploy/console-restart.sh`). Chưa làm — đổi token là đổi auth của dịch vụ công khai
+đang chạy.
