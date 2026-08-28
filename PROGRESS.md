@@ -39,14 +39,24 @@ rồi giao ba việc bật ra từ bản quét đó.
       **đầu vào David cấp**, không phải phụ thuộc. 🔴 Vế A1 **không** bỏ theo: byte tới **sau**
       bước sinh genesis là không khắc được nữa ⇒ preflight nay hỏi byte **trước** khi chạy netgen.
       ⚠️ Không sửa các câu **kể về quá khứ** có nhắc C1 (M10.6, D-041, H-5).
-- [x] **Q-3 — B-10 thành một cổng chấm bằng NỘI DUNG** (D-106) — `scripts/kiem-robots.mjs`
-      B-10 mở từ `27/08` nhưng chỉ tồn tại như **một dòng chữ** ⇒ quy trình, không phải cổng.
-      **Điều kiện qua:** chấm bằng nội dung (không bằng mã HTTP) · có **đối chứng dương**
+- [x] **Q-3 — B-10: cổng chấm bằng NỘI DUNG, và nó ĐÍNH CHÍNH chính B-10** (D-106 → **D-106b**)
+      `scripts/kiem-robots.mjs`. B-10 mở từ `27/08` nhưng chỉ tồn tại như **một dòng chữ**.
+      **Điều kiện qua:** chấm bằng nội dung (không bằng mã HTTP) · **đối chứng dương**
       `/sitemap.xml` · ba mã thoát phân biệt *đạt/sai/không biết*.
-      ✅ **ĐẠT** — `--tu-kiem` **6/6 đúng mã thoát**; chạy thật ⇒ **`1`, ĐỎ**. Cổng **sinh ra
-      đã đỏ**, thoả luật cứng #2 mà không cần ca giả. Đo `28/08`: `/robots.txt` `HIT · age
-      1153s · max-age=14400`, nội dung của **Cloudflare**; `/sitemap.xml` **DYNAMIC** ⇒ đường
-      tới origin vẫn thông, lỗi ở Cloudflare.
+      🔴 **Bản đầu của tôi ĐỎ, và ĐỎ SAI.** Nó chấm bằng dấu vân tay Cloudflare ở **dòng đầu**
+      — tức đo **VỊ TRÍ** trong khi tưởng mình đo **NỘI DUNG**, đúng lỗi lượt `27/08` đã mắc.
+      Đọc đủ 5.367 byte thì Cloudflare **CHÈN THÊM VÀO ĐẦU**, không **THAY**: tệp A1 còn nguyên
+      bên dưới (`Allow: /` · 7 dòng `Disallow:` · `Sitemap:` grep ra 3 lần).
+      ⇒ **B-10 chưa bao giờ là một lỗ; robots.txt của A1 vẫn luôn tới được người đọc.**
+      🔴 Cay nhất: `web/public/robots.txt` **đã viết sẵn luật đúng trong chú thích của chính nó**
+      (*"đo NỘI DUNG mà không phụ thuộc VỊ TRÍ … đỏ giả cũng phá đúng thứ đó, chỉ chậm hơn"*).
+      ✅ **ĐẠT sau khi sửa** — phép chấm nay là **một** chuỗi chỉ có thể tới từ tệp A1;
+      `--tu-kiem` **7/7**, gồm ca *route biến mất khỏi Caddyfile* ⇒ `2`, ca *chỉ có khối
+      Cloudflare* ⇒ `1`, ca *Sitemap trỏ tên miền CŨ* ⇒ `2`, **và ca tái hiện đúng lỗi bản đầu
+      ⇒ phải XANH**. Chạy thật ⇒ **exit 0**.
+      ⚠️ **Luật cứng #2 cần vế thứ ba:** thấy cổng ĐỎ chưa đủ — phải kiểm nó **đỏ VÌ ĐÚNG LÝ DO**.
+      🟡 Còn lại là **quyết định chính sách của David**, không phải lỗi: khối Cloudflare cấm hẳn
+      **9 bot AI** và khai điều khoản **nhân danh A1**.
       🔴 **Kèm:** `ngay-g-preflight.mjs` khai cờ `batBuoc` trong chú thích mà **chưa từng cài**.
       Đã **bỏ lời hứa** thay vì cài — cổng *"đỏ nhưng không sao"* sẽ bị bỏ qua đúng lúc nó kêu
       thật (lý lẽ D-070). Mọi cổng trong preflight nay **đều bắt buộc**.

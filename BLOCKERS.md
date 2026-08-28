@@ -325,6 +325,59 @@ thu lại bằng `git am --keep-cr` + so tree), hay để sau ngày G. **A1 khô
 `web/test/token.test.ts` canh MÀU CỦA HỆ TOKEN — **không cái nào canh màu cắm cứng trong
 HTML tự viết hay trong patch**. Chi tiết: `docs/BRAND-AUDIT-2026-08-27.md` mục M.
 
+### 🟢 B-10 — **CHẨN ĐOÁN SAI TỪ ĐẦU. ĐÓNG `2026-08-28`** (D-106b)
+
+> 🔴 **ĐÍNH CHÍNH — mục này sai suốt từ `27/08`, và sai vì đọc THIẾU.**
+> Cloudflare **CHÈN THÊM VÀO ĐẦU**, không **THAY**. Đo đầy đủ `28/08`: tệp `robots.txt`
+> của A1 còn **nguyên vẹn bên dưới** khối Cloudflare — `User-agent: *` · `Allow: /` ·
+> đủ 7 dòng `Disallow:` · `Sitemap: https://a1.9chain.org/sitemap.xml`.
+> **`robots.txt` của A1 VẪN LUÔN tới được người đọc.** Không có gì hỏng, không có gì
+> để tắt cho khỏi hỏng.
+>
+> **Vì sao lỗi này sống được hai ngày:** cả lượt `27/08` lẫn cổng `kiem-robots.mjs`
+> bản đầu đều đọc **vài dòng đầu** rồi phán. Tức chúng **đo VỊ TRÍ trong khi tưởng
+> mình đo NỘI DUNG** — thang đo `CLAUDE.md` §1 nói *"đọc nội dung"*, không nói *"đọc
+> dòng đầu"*, và khoảng cách giữa hai câu đó vừa tốn hai ngày.
+>
+> 🔴 **Cay nhất: `web/public/robots.txt` ĐÃ VIẾT SẴN luật đúng trong chú thích của
+> chính nó** — *"đo NỘI DUNG mà không phụ thuộc VỊ TRÍ: `grep -q 'Sitemap: …'`. Đây là
+> mặt trái của xanh giả: **đỏ giả** cũng phá đúng thứ đó, chỉ chậm hơn."* Người viết
+> dòng đó đã đi trước; người dựng cổng không đọc tới đó.
+>
+> ✅ **Cổng nay chấm đúng:** `node scripts/kiem-robots.mjs` — **7/7 ca đối chứng**
+> (gồm ca *"chỉ có khối Cloudflare, mất dòng Sitemap"* ⇒ **1**, và ca *"route biến mất
+> khỏi Caddyfile, trả HTML 404"* ⇒ **2**). Chạy thật `28/08` ⇒ **exit 0**.
+> Phép chấm là **một** chuỗi chỉ có thể tới từ tệp của A1; mọi thứ khác là ghi chú.
+
+**🟡 CÒN LẠI MỘT VIỆC, VÀ NÓ LÀ QUYẾT ĐỊNH CHÍNH SÁCH — KHÔNG PHẢI LỖI.**
+
+Khối Cloudflare chèn vào **nhân danh A1**:
+
+| nó khai gì | |
+|---|---|
+| điều khoản | *"As a condition of accessing this website, you agree to abide by…"* |
+| tín hiệu | `Content-Signal: search=yes, ai-train=no, use=reference` |
+| **cấm hẳn 9 bot** | `Amazonbot` · `Applebot-Extended` · `Bytespider` · `CCBot` · `ClaudeBot` · `CloudflareBrowserRenderingCrawler` · `Google-Extended` · `GPTBot` · … |
+| pháp lý | viện **Điều 4 Chỉ thị EU 2019/790** về bảo lưu quyền |
+
+🔴 **A1 không chọn thứ này — Cloudflare bật mặc định.** Với một testnet công khai mời
+cộng đồng, *"ai được đọc nội dung của A1"* là câu David nên tự trả lời, không phải
+nhận mặc định của nhà cung cấp CDN.
+
+⚠️ **Lý do kỹ thuật phụ để cân nhắc tắt:** nhóm `User-agent: *` của Cloudflare đứng
+**trước** nhóm của A1. RFC 9309 §2.2.1 buộc bot **gộp** hai nhóm cùng tên, nên bot tuân
+thủ vẫn thấy `Disallow: /tx/ …` của A1 — nhưng bot chỉ đọc nhóm đầu thì **không**, và
+đó đúng là các dòng dựng ra để Blockscout khỏi bị bò hết. Rủi ro thấp, không phải zero.
+
+**Nếu David muốn tắt** (không gấp, không chặn ngày G):
+`dash.cloudflare.com` → zone `9chain.org` → **Overview → Control AI Crawlers** → bỏ chọn
+**Display Content Signals Policy**. Đường thứ hai: **Security → Settings** → lọc
+*Bot traffic* → *Instruct AI bot traffic with robots.txt*.
+Xong thì purge `/robots.txt` (`max-age=14400`) rồi chạy lại cổng.
+
+<details>
+<summary>Nguyên văn lúc còn bị chẩn đoán sai — giữ lại vì phép đo header vẫn đúng và bài học đắt</summary>
+
 ### 🔴 B-10 — CLOUDFLARE ĐANG CHE `robots.txt` CỦA CHÍNH MÌNH (2026-08-27)
 
 `web/public/robots.txt` **đã có tệp, đã có route trong Caddyfile, đã deploy** — và vẫn
@@ -343,35 +396,22 @@ thật** = Cloudflare tự sinh phản hồi và **không hỏi origin**. Zone `
 Signals / robots.txt management). **Không sửa được từ mã nguồn hay từ Caddy** — đừng ngồi
 thử thêm một vòng route nữa. Tệp + route đã giữ nguyên, nó ăn ngay khi tính năng kia tắt.
 
-✅ **`28/08` — NAY CÓ CỔNG, và nó ĐANG ĐỎ** (`scripts/kiem-robots.mjs`, D-106):
-
-```bash
-node scripts/kiem-robots.mjs            # 0 ĐẠT · 1 SAI (Cloudflare đang che) · 2 CHƯA KẾT LUẬN
-node scripts/kiem-robots.mjs --tu-kiem  # 6/6 ca đối chứng
-```
-
-Cổng chấm bằng **NỘI DUNG**, không bằng mã HTTP, và kèm **đối chứng dương** `/sitemap.xml`
-— thiếu nó thì một origin chết cũng cho ra cùng triệu chứng và ta đi sửa nhầm chỗ.
-
-**Đo lại `28/08` (số tươi):**
-
-| | `cf-cache-status` | `age` | nội dung |
-|---|---|---|---|
-| `/sitemap.xml` | **DYNAMIC** | — | tới origin ✓ |
-| `/robots.txt` | **HIT** | 1153s | văn bản của Cloudflare 🔴 |
+⚠️ **Phần header ở trên vẫn ĐÚNG** — Cloudflare thật sự trả `/robots.txt` từ cache của nó
+(`HIT` · `max-age=14400`) trong khi `/sitemap.xml` đi tới origin. Cái sai là **kết luận rút
+ra từ đó**: "trả từ cache" ≠ "thay tệp của ta". Cloudflare lấy tệp origin, chèn khối của nó
+vào đầu, rồi cache kết quả. Header nói về **đường đi**, không nói về **nội dung** — muốn biết
+nội dung thì phải đọc **cả tệp**, không phải dòng đầu.
 
 ⚠️ **Không đo được origin trực tiếp:** `curl --resolve … 139.99.145.13` trả **403 — "máy chủ
 này chỉ phục vụ qua Cloudflare"**. Đó là bộ lọc `Host` của M11.10 và nó **đang làm đúng việc**
 — đừng nới nó ra để kiểm cho tiện. Đối chứng dương `sitemap.xml` thay được vai trò đó.
 
-**Sửa xong thì:** cache Cloudflare `max-age=14400` (4 giờ) ⇒ **purge** `/robots.txt` trong
-dashboard hoặc chờ, rồi chạy lại cổng. Cổng ra `exit 0` mới được đánh dấu đóng — mục này
-chạm **đường sản phẩm**, nên nó phải có phép đo trên sản phẩm (`CLAUDE.md` §2).
-
 ⚠️ **Ca xanh giả sách giáo khoa:** `curl -o /dev/null -w '%{http_code}'` trả **200** và
 `content-type` cũng đúng **text/plain**. Chỉ đọc **nội dung** — hoặc đọc **header
 `cf-cache-status`** — mới thấy. Cảnh báo đã ghi vào chính `web/public/robots.txt` và
 Caddyfile để người sau không tưởng nó đang chạy.
+
+</details>
 
 ### ✅ B-7 — ĐÃ TRẢ LỜI (2026-08-25) — phân biệt được sẵn, không cần trường mới
 **Trả lời đầy đủ:** `docs/requests-from-9scan/2026-08-25-node-tracking-TRA-LOI.md`.

@@ -1,61 +1,57 @@
 #!/usr/bin/env node
 /**
- * kiem-robots.mjs — B-10: `robots.txt` tới được người đọc chưa?
+ * kiem-robots.mjs — B-10: `robots.txt` của A1 có tới được người đọc không?
  *
- * 🔴 VÌ SAO CẦN MỘT CỔNG RIÊNG CHO MỘT TỆP TEXT 5KB:
- * đây là **ca xanh giả sách giáo khoa** của repo này, và nó đã sống nhiều ngày.
+ * ═══ 🔴 BẢN ĐẦU CỦA CHÍNH TỆP NÀY ĐÃ SAI, VÀ SAI Ở ĐÚNG CHỖ NÓ ĐỊNH CANH ═══
  *
- *   curl -o /dev/null -w '%{http_code}'   ⇒ 200        ✓ (sai)
- *   content-type                          ⇒ text/plain ✓ (sai)
- *   NỘI DUNG                              ⇒ văn bản của CLOUDFLARE, không phải của A1
+ * Bản `28/08` đầu tiên chấm: *"nội dung mang dấu Cloudflare ⇒ ĐỎ"*. Nó đỏ thật, và
+ * kết luận sai. Đo lại đầy đủ 5.367 byte thì Cloudflare **CHÈN THÊM VÀO ĐẦU**, không
+ * **THAY** — tệp của A1 còn nguyên bên dưới, đủ `Allow: /`, 7 dòng `Disallow:` và
+ * `Sitemap:`.
  *
- * Ba tầng đầu của thang đo trong `CLAUDE.md` §1 đều xanh. Chỉ tầng 3 (nội dung) và
- * tầng 4 (`cf-cache-status`) mới thấy. Nên cổng này **không bao giờ được chấm bằng
- * mã HTTP** — nó chấm bằng chữ trong tệp.
+ * Cay hơn nữa: **chính `web/public/robots.txt` đã viết sẵn luật đúng trong chú thích
+ * của nó** — *"đo NỘI DUNG mà không phụ thuộc VỊ TRÍ … `grep -q 'Sitemap: …'`. Đây là
+ * mặt trái của xanh giả: **đỏ giả** cũng phá đúng thứ đó, chỉ chậm hơn."* Cổng bản đầu
+ * đọc 3 dòng đầu rồi phán, tức nó **đo VỊ TRÍ trong khi tưởng mình đo NỘI DUNG**.
  *
- * ═══ PHÉP ĐO ═══
- * Hai đường, và sức mạnh nằm ở CHỖ SO SÁNH chứ không ở từng đường:
+ * ⇒ Luật của tệp này: **chỉ một câu hỏi quyết định xanh/đỏ** — *chuỗi chỉ có thể tới
+ * từ tệp của A1 có xuất hiện không?* Mọi thứ khác là **ghi chú**, không phải điểm.
  *
- *   /sitemap.xml  → `cf-cache-status: DYNAMIC`  = yêu cầu ĐI TỚI origin
- *   /robots.txt   → `cf-cache-status: HIT/MISS` + `Cache-Control: max-age=…`
- *                   ở một đường mà origin CÓ tệp thật
- *                 = Cloudflare tự sinh phản hồi và KHÔNG hỏi origin
+ * ═══ THANG ĐO (`CLAUDE.md` §1) ═══
+ *   mã HTTP · content-type      → in ra, KHÔNG chấm (cả hai xanh trong ca hỏng thật)
+ *   NỘI DUNG                    → CHẤM Ở ĐÂY
+ *   `cf-cache-status`           → ghi chú: nói VÌ SAO, không nói ĐÚNG/SAI
  *
- * `sitemap.xml` là **đối chứng dương**: nó chứng minh đường qua Cloudflare tới origin
- * vẫn thông. Thiếu nó thì một origin chết cũng cho ra cùng triệu chứng, và ta sẽ đi
- * sửa nhầm chỗ. (Đúng bài học D-096: hai tên miền hỏng/sống khác nhau thì lỗi không
- * nằm ở server.)
- *
- * ⚠️ KHÔNG đo được origin trực tiếp từ máy dev: origin trả **403** cho mọi yêu cầu
- * không qua Cloudflare (bộ lọc `Host` của M11.10 — đo `28/08`, và 403 đó là cổng
- * THẬT, đừng nới nó ra để "kiểm cho tiện").
- *
- * ═══ MÃ THOÁT ═══   0 ĐẠT · 1 SAI (Cloudflare đang che) · 2 CHƯA KẾT LUẬN
- * 🔴 `2` KHÔNG phải `0`. Không đo được là *không biết*, không phải *đạt*.
+ * ═══ MÃ THOÁT ═══   0 ĐẠT · 1 SAI (tệp A1 không tới nơi) · 2 CHƯA KẾT LUẬN
+ * 🔴 `2` KHÔNG phải `0`. Không đo được là *không biết*.
  *
  * Dùng:
  *   node scripts/kiem-robots.mjs
- *   node scripts/kiem-robots.mjs --tu-kiem     # đối chứng ngược trên dữ liệu tổng hợp
+ *   node scripts/kiem-robots.mjs --tu-kiem
  */
 
 const TEN_MIEN = process.env.A1_TEN_MIEN || "a1.9chain.org";
 const HET_GIO = 15000;
 
-/** Dấu vân tay của văn bản Cloudflare tự sinh (Managed robots.txt / Content Signals). */
-const DAU_CLOUDFLARE = [
-  "as a condition of accessing this website",
-  "content-signal",
-  "content signals",
-];
+/**
+ * 🔴 DẤU DUY NHẤT ĐƯỢC DÙNG ĐỂ CHẤM. Chuỗi này chỉ có thể tới từ `web/public/robots.txt`
+ * — Cloudflare không sinh ra dòng `Sitemap:` trỏ vào tên miền của ta. Nó xanh khi tệp có
+ * hiệu lực, và đỏ THẬT nếu route `/robots.txt` biến mất khỏi Caddyfile.
+ * Đừng thêm dấu thứ hai kiểu `"user-agent:"` — Cloudflare cũng in chuỗi đó, và một dấu
+ * mà cả hai bên đều sinh ra được thì không phân biệt được gì.
+ */
+const DAU_A1 = `Sitemap: https://${TEN_MIEN}/sitemap.xml`;
 
-/** Thứ PHẢI có trong robots.txt thật của A1. Rỗng ⇒ không kết luận được. */
-const DAU_A1 = ["sitemap:", "user-agent:"];
+/** Dấu vân tay khối Cloudflare chèn thêm — chỉ để GHI CHÚ, không để chấm. */
+const DAU_CLOUDFLARE = "BEGIN Cloudflare Managed content";
+const DAU_CHINH_SACH = "as a condition of accessing this website";
 
 async function lay(duong) {
-  const url = `https://${TEN_MIEN}${duong}`;
-  const bo = AbortSignal.timeout(HET_GIO);
   try {
-    const r = await fetch(url, { signal: bo, redirect: "follow" });
+    const r = await fetch(`https://${TEN_MIEN}${duong}`, {
+      signal: AbortSignal.timeout(HET_GIO),
+      redirect: "follow",
+    });
     return {
       ok: true,
       ma: r.status,
@@ -70,98 +66,117 @@ async function lay(duong) {
   }
 }
 
-/**
- * Chấm điểm — TÁCH THUẦN khỏi mạng để `--tu-kiem` chạy được trên dữ liệu tổng hợp.
- * Đây là chỗ D-100 đã học: hàm chấm dính vào fetch thì không ai đối chứng ngược được nó.
- */
+/** Chấm điểm — TÁCH THUẦN khỏi mạng để `--tu-kiem` chạy trên dữ liệu tổng hợp (D-100). */
 export function cham(robots, sitemap) {
-  const loi = [];
   const luuY = [];
-
   if (!robots?.ok) return { ma: 2, loi: [`không lấy được /robots.txt: ${robots?.loi}`], luuY };
 
-  const than = (robots.than || "").toLowerCase();
+  const than = robots.than || "";
+  const thap = than.toLowerCase();
 
-  // ── Tầng 3: NỘI DUNG. Đây là phép đo chính, hai tầng trên chỉ để in ra cho người đọc.
-  const laCuaCloudflare = DAU_CLOUDFLARE.some((d) => than.includes(d));
-  const coDauA1 = DAU_A1.some((d) => than.includes(d));
+  const coDauA1 = than.includes(DAU_A1);
+  const coKhoiCF = thap.includes(DAU_CLOUDFLARE.toLowerCase()) || thap.includes(DAU_CHINH_SACH);
 
-  if (laCuaCloudflare) {
-    loi.push(
-      "NỘI DUNG là văn bản do CLOUDFLARE tự sinh (Managed robots.txt / Content Signals) — " +
-        "không phải tệp của A1. Mã HTTP và content-type đều XANH ⇒ đừng chấm bằng chúng.",
-    );
-  } else if (!coDauA1) {
-    // Không phải của Cloudflare, nhưng cũng không nhận ra là của A1 ⇒ KHÔNG kết luận.
+  // ── Đối chứng dương: đường qua Cloudflare tới origin có còn thông không ──
+  // Thiếu vế này thì một origin chết cũng cho ra cùng triệu chứng, và ta đi sửa nhầm
+  // chỗ (bài học D-096: hai tên miền hỏng/sống khác nhau ⇒ lỗi không ở server).
+  if (!sitemap?.ok) luuY.push(`không đo được /sitemap.xml (${sitemap?.loi}) — thiếu đối chứng dương.`);
+  else if (sitemap.cache === "DYNAMIC") luuY.push("đối chứng dương: /sitemap.xml = DYNAMIC ⇒ đường tới origin VẪN THÔNG.");
+  else luuY.push(`⚠️ /sitemap.xml cũng không tới origin (cf-cache-status=${sitemap.cache || "?"}) ⇒ có thể là chuyện của cả zone.`);
+
+  // ── PHÉP CHẤM: đúng một câu hỏi ──
+  if (!coDauA1) {
     return {
-      ma: 2,
+      ma: coKhoiCF ? 1 : 2,
       loi: [
-        `/robots.txt không mang dấu Cloudflare, nhưng cũng không thấy ${DAU_A1.map((d) => `"${d}"`).join(" hoặc ")} ` +
-          "⇒ không nhận ra là tệp của A1. Không biết ≠ đạt.",
+        coKhoiCF
+          ? `KHÔNG thấy "${DAU_A1}" mà CHỈ có khối Cloudflare ⇒ tệp của A1 KHÔNG tới nơi (bị THAY, không phải chèn thêm).`
+          : `KHÔNG thấy "${DAU_A1}", và cũng không nhận ra khối Cloudflare ⇒ không biết đang phục vụ tệp của ai. Không biết ≠ đạt.`,
       ],
       luuY,
     };
   }
 
-  // ── Tầng 4: header tầng trước. Bằng chứng phụ, nhưng nó nói VÌ SAO.
+  // ── Từ đây trở xuống là ĐẠT. Phần còn lại là ghi chú cho người đọc. ──
+  if (coKhoiCF) {
+    luuY.push("Cloudflare CHÈN THÊM khối Content Signals vào ĐẦU tệp — nó không thay tệp của A1.");
+    const cam = [...than.matchAll(/^User-agent:\s*(\S+)\s*\nDisallow:\s*\/\s*$/gim)].map((m) => m[1]);
+    if (cam.length) {
+      luuY.push(
+        `🔴 QUYẾT ĐỊNH CHÍNH SÁCH, KHÔNG PHẢI LỖI: khối đó CẤM HẲN ${cam.length} bot ` +
+          `(${cam.slice(0, 5).join(", ")}${cam.length > 5 ? ", …" : ""}) và khai điều khoản ` +
+          `"as a condition of accessing this website" NHÂN DANH A1. Đây là lựa chọn của David, không phải mặc định kỹ thuật.`,
+      );
+    }
+    // RFC 9309 §2.2.1 buộc gộp các nhóm cùng user-agent; nhưng bot không tuân thủ thì
+    // có thể chỉ đọc nhóm ĐẦU TIÊN — mà nhóm đầu là của Cloudflare, không có Disallow của ta.
+    const viCF = thap.indexOf("user-agent:");
+    const viA1 = than.indexOf(DAU_A1);
+    if (viCF >= 0 && viCF < viA1) {
+      luuY.push(
+        "⚠️ Nhóm `User-agent: *` của Cloudflare đứng TRƯỚC nhóm của A1. RFC 9309 §2.2.1 buộc bot GỘP " +
+          "hai nhóm cùng tên, nên bot tuân thủ vẫn thấy các dòng `Disallow:` của A1; bot chỉ đọc nhóm " +
+          "đầu tiên thì KHÔNG. Rủi ro thấp, nhưng nó là lý do thứ hai để cân nhắc tắt khối kia.",
+      );
+    }
+  }
   if (robots.cache && robots.cache !== "DYNAMIC") {
-    luuY.push(
-      `cf-cache-status = ${robots.cache}${robots.tuoi ? ` (age ${robots.tuoi}s)` : ""} ` +
-        `+ ${robots.dieuKhien || "không có cache-control"} ⇒ Cloudflare trả lời THAY origin.`,
-    );
+    luuY.push(`cf-cache-status = ${robots.cache}${robots.tuoi ? ` (age ${robots.tuoi}s)` : ""} + ${robots.dieuKhien || "không có cache-control"} — Cloudflare trả từ cache của nó.`);
   }
-
-  // ── Đối chứng DƯƠNG: đường qua Cloudflare tới origin có còn thông không.
-  if (!sitemap?.ok) {
-    luuY.push(`không đo được /sitemap.xml (${sitemap?.loi}) — thiếu đối chứng dương.`);
-  } else if (sitemap.cache === "DYNAMIC") {
-    luuY.push("đối chứng dương: /sitemap.xml = DYNAMIC ⇒ đường tới origin VẪN THÔNG. Lỗi nằm ở Cloudflare, không ở server.");
-  } else {
-    // Cả hai đường đều không tới origin ⇒ triệu chứng khác hẳn, đừng đi sửa robots.
-    luuY.push(
-      `⚠️ /sitemap.xml cũng KHÔNG tới origin (cf-cache-status=${sitemap.cache || "?"}) ` +
-        "⇒ đây có thể là chuyện của cả zone, không riêng robots.txt. Đừng kết luận vội.",
-    );
-  }
-
-  return { ma: loi.length ? 1 : 0, loi, luuY };
+  return { ma: 0, loi: [], luuY };
 }
 
 // ─────────────────────────── đối chứng ngược ───────────────────────────
+const CF_KHOI = `# As a condition of accessing this website, you agree to abide by the following
+# content signals:
+# BEGIN Cloudflare Managed content
+User-agent: *
+Content-Signal: search=yes,ai-train=no,use=reference
+Allow: /
+User-agent: GPTBot
+Disallow: /
+`;
+const A1_KHOI = `User-agent: *\nAllow: /\nDisallow: /api/\n\n${DAU_A1}\n`;
+
 function tuKiem() {
-  const R = (than, cache, extra = {}) => ({ ok: true, ma: 200, kieu: "text/plain", cache, than, tuoi: "", dieuKhien: "", ...extra });
+  const R = (than, cache = "DYNAMIC") => ({ ok: true, ma: 200, kieu: "text/plain", cache, than, tuoi: "", dieuKhien: "" });
   const S_OK = { ok: true, cache: "DYNAMIC" };
 
   const ca = [
     {
-      ten: "🔴 CA THẬT — Cloudflare che (đo được trên sản phẩm 28/08)",
-      cham: () => cham(R("# As a condition of accessing this website, you agree...", "HIT"), S_OK),
-      mong: 1,
-    },
-    {
-      ten: "robots.txt THẬT của A1 tới được người đọc",
-      cham: () => cham(R("User-agent: *\nAllow: /\nSitemap: https://a1.9chain.org/sitemap.xml", "DYNAMIC"), S_OK),
+      ten: "🔴 CA THẬT `28/08` — Cloudflare CHÈN THÊM, tệp A1 còn nguyên bên dưới ⇒ ĐẠT",
+      cham: () => cham(R(CF_KHOI + A1_KHOI, "HIT"), S_OK),
       mong: 0,
     },
     {
-      ten: "🔴 mã 200 + text/plain nhưng NỘI DUNG của Cloudflare — hai tầng đầu KHÔNG cứu được",
-      cham: () => cham(R("...content signals policy...", "MISS"), S_OK),
+      ten: "🔴 CA BẢN ĐẦU CHẤM SAI — chỉ đọc 3 dòng đầu thì thấy Cloudflare và phán đỏ. Nay phải XANH.",
+      cham: () => cham(R(CF_KHOI + A1_KHOI, "HIT"), S_OK),
+      mong: 0,
+    },
+    {
+      ten: "tệp A1 tới thẳng, không có khối Cloudflare ⇒ ĐẠT",
+      cham: () => cham(R(A1_KHOI), S_OK),
+      mong: 0,
+    },
+    {
+      ten: "🔴 THAY THẬT — chỉ có khối Cloudflare, mất dòng Sitemap của A1 ⇒ SAI",
+      cham: () => cham(R(CF_KHOI, "HIT"), S_OK),
       mong: 1,
     },
     {
-      ten: "không lấy được robots.txt ⇒ CHƯA KẾT LUẬN, tuyệt đối không xanh",
+      ten: "🔴 route /robots.txt biến mất khỏi Caddyfile (trang 404 trả HTML) ⇒ SAI hoặc CHƯA KẾT LUẬN, KHÔNG xanh",
+      cham: () => cham(R("<!doctype html><title>404</title>")),
+      mong: 2,
+    },
+    {
+      ten: "Sitemap trỏ tên miền KHÁC (chép nhầm cấu hình) ⇒ không tính là dấu của A1",
+      cham: () => cham(R("User-agent: *\nSitemap: https://testnet-a1.9chain.org/sitemap.xml")),
+      mong: 2,
+    },
+    {
+      ten: "không lấy được ⇒ CHƯA KẾT LUẬN, tuyệt đối không xanh",
       cham: () => cham({ ok: false, loi: "timeout" }, S_OK),
       mong: 2,
-    },
-    {
-      ten: "nội dung lạ, không nhận ra của ai ⇒ CHƯA KẾT LUẬN",
-      cham: () => cham(R("hello", "DYNAMIC"), S_OK),
-      mong: 2,
-    },
-    {
-      ten: "robots.txt thật NHƯNG sitemap cũng không tới origin ⇒ vẫn ĐẠT, kèm lưu ý về cả zone",
-      cham: () => cham(R("User-agent: *\nSitemap: x", "DYNAMIC"), { ok: true, cache: "HIT" }),
-      mong: 0,
     },
   ];
 
@@ -171,9 +186,9 @@ function tuKiem() {
     const kq = c.cham();
     const dat = kq.ma === c.mong;
     if (!dat) hong++;
-    console.log(`  ${dat ? "✓" : "✗"} ${c.ten}\n      → mã ${kq.ma} (mong ${c.mong})${kq.loi[0] ? ` · ${kq.loi[0].slice(0, 90)}…` : ""}`);
+    console.log(`  ${dat ? "✓" : "✗"} ${c.ten}\n      → mã ${kq.ma} (mong ${c.mong})`);
   }
-  console.log(hong ? `\n✗ ${hong} ca sai mã thoát` : `\n✓ ${ca.length}/${ca.length} ca đúng mã thoát — cổng phân biệt được ba trạng thái.`);
+  console.log(hong ? `\n✗ ${hong} ca sai mã thoát` : `\n✓ ${ca.length}/${ca.length} ca đúng mã thoát.`);
   return hong ? 1 : 0;
 }
 
@@ -183,21 +198,26 @@ if (process.argv.includes("--tu-kiem")) process.exit(tuKiem());
 const [robots, sitemap] = await Promise.all([lay("/robots.txt"), lay("/sitemap.xml")]);
 console.log(`══ B-10 · robots.txt của https://${TEN_MIEN} ══\n`);
 if (robots.ok) {
-  console.log(`  mã HTTP        ${robots.ma}          ⇦ tầng YẾU NHẤT, đừng chấm bằng nó`);
-  console.log(`  content-type   ${robots.kieu}`);
+  console.log(`  mã HTTP         ${robots.ma}   ⇦ tầng YẾU NHẤT, KHÔNG chấm bằng nó`);
+  console.log(`  content-type    ${robots.kieu}`);
   console.log(`  cf-cache-status ${robots.cache || "(không có)"}${robots.tuoi ? ` · age ${robots.tuoi}s` : ""}`);
-  console.log(`  dòng đầu       ${(robots.than || "").split("\n")[0].slice(0, 78)}`);
+  console.log(`  kích thước      ${(robots.than || "").length} byte`);
+  console.log(`  PHÉP CHẤM       tìm "${DAU_A1}" ⇒ ${robots.than?.includes(DAU_A1) ? "CÓ" : "KHÔNG"}`);
 }
 console.log("");
 const kq = cham(robots, sitemap);
 for (const l of kq.loi) console.log(`  🔴 ${l}`);
 for (const l of kq.luuY) console.log(`  ℹ️  ${l}`);
 console.log("");
-if (kq.ma === 0) console.log("✅ ĐẠT — robots.txt của A1 tới được người đọc.");
-else if (kq.ma === 1) {
-  console.log("❌ SAI — B-10 CÒN HỞ. Chỉ David sửa được, trong dashboard Cloudflare:");
-  console.log("   zone 9chain.org → Settings → tắt Managed robots.txt / Content Signals Policy.");
-  console.log("   Không sửa được từ mã nguồn hay từ Caddy — tệp và route đã đúng, chúng bị che.");
-  console.log("   Sửa xong: chạy lại lệnh này. Cache Cloudflare tới 4 giờ ⇒ purge hoặc chờ.");
-} else console.log("🟡 CHƯA KẾT LUẬN — không đo được. Không biết KHÔNG phải là đạt.");
+if (kq.ma === 0) {
+  console.log("✅ ĐẠT — robots.txt của A1 TỚI ĐƯỢC người đọc.");
+  console.log("   Muốn bỏ khối Cloudflare chèn thêm (quyết định CHÍNH SÁCH, không phải sửa lỗi):");
+  console.log("   dash.cloudflare.com → zone 9chain.org → Overview → Control AI Crawlers");
+  console.log("   → bỏ chọn 'Display Content Signals Policy'. Hoặc: Security → Settings,");
+  console.log("   lọc 'Bot traffic' → 'Instruct AI bot traffic with robots.txt'.");
+} else if (kq.ma === 1) {
+  console.log("❌ SAI — tệp robots.txt của A1 KHÔNG tới được người đọc.");
+} else {
+  console.log("🟡 CHƯA KẾT LUẬN — không đo được, hoặc không nhận ra đang phục vụ tệp của ai.");
+}
 process.exit(kq.ma);

@@ -53,12 +53,17 @@ node scripts/check-chainid.mjs               # tra sổ công khai chainid.netwo
 node scripts/kiem-khoa-tren-chain.mjs <thư-mục>/allocation.md   # khoá ↔ TIỀN THẬT
 node scripts/vi-qua-ham.mjs --kiem           # ví ký không chạm server (M11.10)
 bash scripts/h6b-sao-luu.sh --kiem           # bản sao lưu có dựng lại được mạng không
-node scripts/kiem-robots.mjs                 # B-10 · chấm bằng NỘI DUNG, không bằng mã HTTP
+node scripts/kiem-robots.mjs                 # robots.txt của A1 có tới người đọc không
 ```
 
-⚠️ `ngay-g-preflight.mjs` gọi **12** cổng trên, **không** gọi ba cổng cuối (`vi-qua-ham`,
-`h6b-sao-luu`, `kiem-robots`) — hai cái đầu nằm trong nhóm VIỆC TAY của nó, cái cuối là mặt
-web nên không đủ tư cách chặn genesis. **Đỏ hôm nay là `kiem-robots` (B-10), có chủ ý.**
+⚠️ `ngay-g-preflight.mjs` gọi **12** cổng đầu; ba cổng cuối đứng ngoài (hai cái là VIỆC TAY
+của nó, `kiem-robots` là mặt web — không đủ tư cách chặn genesis).
+
+🔴 **Vế thứ BA của luật cứng #2 (D-106b, `28/08`): thấy cổng ĐỎ chưa đủ — phải kiểm nó đỏ VÌ
+ĐÚNG LÝ DO.** `kiem-robots` bản đầu đỏ ngay lần đầu và cái đỏ đó bị đọc thành *"cổng nhạy"*,
+trong khi nó chấm bằng **dòng đầu** `robots.txt` mà tưởng đang chấm bằng **nội dung**.
+Cloudflare **chèn thêm**, không **thay** ⇒ B-10 chưa bao giờ là một lỗ. Bài học kèm: **đọc HẾT
+tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đã viết sẵn phép đo đúng.
 
 ## 4. Ranh giới — thứ KHÔNG được tự làm
 
