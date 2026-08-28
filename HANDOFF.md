@@ -1,11 +1,24 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-28** (phiên `27–28/08`: nạp ví · 6 patch mới · **phát hiện server lạc hậu 2 ngày**).
+Cập nhật: **2026-08-28** (phiên chiều `28/08`: **O1 + M11.10** — hai công cụ custody, ví ký
+không chạm server, dọn server. Trước đó cùng ngày: nạp ví · 6 patch · server lạc hậu 2 ngày).
 
 ## TL;DR
 
 Mạng công khai đang chạy **thế hệ `g0`** — `networkID 999999999`, `9chain-a1-g0`,
-`supplyCap 7.900.000.001`, 9/9 node. Sinh lại `2026-08-27` (D-081).
+`supplyCap 7.900.000.001`, 9/9 node. Sinh lại `2026-08-27` (D-081). Đo lại `28/08` chiều: sống.
+
+### 🔴 Bốn điều của phiên chiều `28/08` — đọc trước khi làm gì đụng khoá
+
+1. **`kiem-khoa` chấm `6/6 ✓ exit 0` cho một bộ khoá ĐÃ CHẾT** (D-090). Nó so `keys.txt` với
+   `allocation.md` — hai tệp **cùng thư mục, chép cùng lượt**. ⇒ luôn chạy kèm
+   `scripts/kiem-khoa-tren-chain.mjs`.
+2. **Dòng `P-addr` trong `keys.txt` là CHỮ NGƯỜI VIẾT, không phải phép đo** (D-091b). Khối
+   `[team]` dán địa chỉ `[foundation]` thì dòng in ra vẫn trông đúng và ví vẫn ký.
+3. ✅ **M11.10 XONG và ĐÃ KÝ THẬT** (D-091): ví chạy ở máy dev, hầm SSH **trong cùng container**,
+   khoá không chạm server. `9chain-a1-xpwallet` trên server **đã xoá hẳn** (D-092).
+4. 🔴 **O1 vẫn CHƯA ĐẠT** — còn đúng một việc, và chỉ David làm được: **bản sao thứ hai**.
+   Xem [`docs/O1-CUSTODY-PHEP-KIEM.md`](docs/O1-CUSTODY-PHEP-KIEM.md) · **B-16**.
 
 🔴 **PHÁT HIỆN ĐẮT NHẤT `28/08`: mã trên server lạc hậu 2 ngày, mà mọi cổng vẫn xanh.**
 Console công khai đứng ở commit `69c80ce` (26/08) ⇒ **B-14 ghi "ĐÃ ĐÓNG" trong repo nhưng
