@@ -24,7 +24,7 @@ từng lệch nhau**, luôn ghi rõ.
 | ID | Mức | Mặt | Điều khẳng định | Tin cậy | Nguồn | Trạng thái |
 |---|---|---|---|---|---|---|
 | A-001 | 🔴 **P0** | cấu trúc | Bản sao lưu ngoài máy duy nhất chứa **12 patch** = mạng ĐÃ BỊ XOÁ; các patch định nghĩa mạng đang chạy không có bản nào ngoài ổ dev | ĐO ĐƯỢC | REPO + máy dev | 🟡 **TRẠNG THÁI ĐÃ SỬA `28/08`** — H-6b chạy lại, bản `20260828-024659` có **24/24 patch**, `rev-list = 0`. **Cơ chế vẫn chưa có** ⇒ xem A-014 |
-| **A-014** | **P1** | cấu trúc | Không phép đo nào phát hiện bản sao lưu **cũ đi**. Lần trước nó cũ sau **đúng 1 ngày** mà mọi cổng vẫn xanh | ĐO ĐƯỢC | REPO | 🔴 **mới `28/08`** — phần chưa đóng của A-001 |
+| **A-014** | **P1** | cấu trúc | Không phép đo nào phát hiện bản sao lưu **cũ đi**. Lần trước nó cũ sau **đúng 1 ngày** mà mọi cổng vẫn xanh | ĐO ĐƯỢC | REPO | ✅ **ĐÃ ĐÓNG `28/08`** — `scripts/h6b-sao-luu.sh` + cổng `--kiem`, tự kiểm 4/4 ca |
 | A-002 | **P1** | công nghệ | `rebase-drill.sh` không canh `upgrade.A1`; nó canh `FallbackHRP` — thứ mã nguồn đã hạ xuống làm dây dự phòng | ĐO ĐƯỢC | REPO | 🔴 mở · **thực tế đã chứng minh** (D-079) |
 | A-003 | P2 | cấu trúc | `multinode.compose.yml` tự khai "NGUỒN CHÍNH THỨC" nhưng lệch **ba thứ**: 5 node · 0 dòng `restart:` · `--network-id=9001` | ĐO ĐƯỢC | REPO (vs SERVER `27/08`) | 🔴 mở · xem A-010 |
 | A-004 | P2 | bảo mật | Faucet giữ khoá có tiền nhưng dùng `ethers: ^6.13.0` không lockfile; console cùng repo ghim `6.17.0` | ĐO ĐƯỢC | REPO | 🔴 mở |
@@ -1314,3 +1314,79 @@ tin, và mới không ai học cách bỏ qua nó.
 
 *(Ghi thêm: `ecf0570` của session `main` đã **gỡ `9chain-a1-xpwallet` khỏi máy chủ** —
 đóng luôn Q-6 của lượt soát này, và họ tìm ra thêm hai thứ khác trong lượt quét đó.)*
+
+---
+
+## 10. A-014 ĐÃ ĐÓNG `2026-08-28` — `scripts/h6b-sao-luu.sh`
+
+⚠️ **Ngoại lệ charter §4** (*"không sinh bản vá trong worktree này"*) — David chốt bằng
+lời. Script đặt ở `main`, **một nhà duy nhất**: nhân bản nó sang `audit` là tự tạo đúng
+cái bệnh mà A-012 và A-014 vừa mô tả.
+
+```
+bash scripts/h6b-sao-luu.sh              dựng + nghiệm thu + đẩy lên máy chủ
+bash scripts/h6b-sao-luu.sh --khong-day  dựng + nghiệm thu, KHÔNG chạm máy chủ
+bash scripts/h6b-sao-luu.sh --kiem       cổng A-014 — bản mới nhất còn tươi không
+bash scripts/h6b-sao-luu.sh --tu-kiem    chứng minh cổng biết báo ĐỎ
+```
+
+**Lượt chạy thật, `20260828-030536` — sáu phép, đạt cả sáu:**
+```
+repo main 7f04678 · 228 commit · 257 tệp · tree 0fed97ae…
+fork base 1cf1fc3 (shallow) · 24 patch · tree 074aaa93…
+
+✓ clone ngược (máy dev)          tree khớp tuyệt đối · 228 commit · 5 nhánh
+✓ áp 24 patch lên 1cf1fc3        tree khớp cây fork TỪNG BYTE
+✓ ĐỐI CHỨNG NGƯỢC                bundle cắt cụt bị từ chối
+✓ QUÉT BÍ MẬT                    không khối PRIVATE KEY nào
+✓ sha256 hai đầu                 28/28 khớp
+✓ clone ngược TRÊN MÁY CHỦ       tree khớp tuyệt đối
+```
+
+**Cổng `--kiem` sửa đúng đại lượng.** Điều kiện qua cũ (`rev-list … == 0`) đòi bản sao lưu
+**luôn bằng `HEAD`** — bất khả thi với hai session song song, và §A-014 đã cho thấy nó đỏ
+sau mười phút vì hai commit `docs/`. Nay:
+
+| | |
+|---|---|
+| 🔴 **ĐỎ** | số patch lệch, **hoặc** có tệp **mã** lệch (`patches/ local-net/ upstream/ scripts/ web/ genesis/ 9chain-a1-config/`) |
+| 🟡 **VÀNG** | cũ N commit nhưng **chỉ chạm `docs/`** — nói ra, không báo đỏ |
+
+**Đối chứng ngược của chính cổng — `--tu-kiem`, 4/4 ca, mỗi ca một CẶP lành/hỏng:**
+```
+ca 1  bundle cắt cụt        → lành XANH · cắt cụt ĐỎ (fatal: early EOF)
+ca 2  thiếu một patch       → tree 2954b987… ≠ 074aaa93… ⇒ ĐỎ
+ca 3  đối chứng ngược tự nó → bản lành sống sót
+ca 4  --kiem trước bản CŨ   → ĐỎ · vế xanh: bản hiện có vẫn đạt
+```
+**Ca 4 là ca đáng giá nhất.** A-001 chưa bao giờ hỏng vì bản sao lưu *hỏng* — nó hỏng vì
+bản sao lưu **lành mà cũ**, và trước hôm nay không phép đo nào phân biệt được hai thứ đó.
+
+**Cổng đã tự chứng minh trên chính commit của nó:** commit script chạm `scripts/` ⇒
+`--kiem` lập tức ra đỏ, gọi đích danh `scripts/h6b-sao-luu.sh`; chạy H-6b xong ⇒ xanh lại.
+
+### Hai lỗi tự script suýt gây ra, ghi lại vì chúng cùng một họ
+
+Cả hai đều là **cổng chết câm** — thoát mã 1, không in một chữ, sau khi đã in vài dấu ✓.
+
+1. `[ -n "$CAY" ] && nt_quet_bi_mat "$CAY"` là **lệnh cuối** của script: `[` sai ⇒ cả
+   list trả 1 ⇒ `set -e` giết ngay. Nay viết bằng `if/else`, nhánh `else` **ghi nhận một
+   phép trượt tường minh** thay vì im lặng.
+2. `n_key="$(grep -rlE 'PRIVATE KEY' … | wc -l)"` — `grep` trả **1 khi không tìm thấy gì**,
+   và `set -o pipefail` cho cả pipeline mã 1 dù `wc` chạy ngon. Tức **ca TỐT** của phép
+   quét bí mật bị xử như lỗi.
+
+⇒ Một cổng bảo mật chết câm **đúng lúc nó không tìm thấy gì** là lớp lỗi tệ nhất trong
+họ này: đọc `EXIT=1` thành *"có vấn đề"* thì ngược hẳn sự thật, đọc thành *"chạy rồi"* thì
+còn tệ hơn. Lý do đã ghi thành comment ngay tại chỗ để lần sau không ai "dọn" `|| true` đi.
+
+### Còn lại
+
+- **Sáu thư mục sao lưu** trong `C:\PROJECTS\9Chain-backups\` — trong đó `030321` và
+  `030439` là hai lượt dở của hai lỗi trên. Chúng **lành** (qua 3–4 phép) nhưng **chưa
+  bao giờ được đẩy lên máy chủ**. Vô hại — `--kiem` luôn lấy bản mới nhất — nhưng nên dọn.
+- **Chưa nối vào bất kỳ cổng tự động nào.** `--kiem` rẻ (không dựng gì) nên chỗ đúng của
+  nó là một dòng trong bộ nghiệm thu cuối phiên, hoặc một `pre-push` hook. Chừng nào chưa
+  nối thì A-014 đóng về *công cụ*, chưa đóng về *thói quen*.
+- 🔴 **Khoá 5 quỹ vẫn không có bản nào ngoài máy dev.** Script in câu đó ở dòng cuối mỗi
+  lượt chạy, cố ý, để không ai đọc *"H-6b đạt"* thành *"đã an toàn"*. Đó là **D-044 / O1**.
