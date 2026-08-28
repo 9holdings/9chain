@@ -52,7 +52,7 @@ không push.
       Cloudflare — đo bằng tên cũ ra "trang chết" trong khi trang vẫn sống.
       ⚠️ Sửa `console/server.mjs` ⇒ drift **sẽ báo console lệch, và đó là ĐÚNG**. Deploy là việc
       của David.
-- [ ] **A15-2 — O1 thành MỘT cổng (`scripts/o1-kiem.mjs`)**
+- [x] **A15-2 — O1 thành MỘT cổng (`scripts/o1-kiem.mjs`)**
       D-090: `kiem-khoa` một mình chấm `6/6 ✓ exit 0` cho bộ khoá **đã chết**. Luật *"nhớ chạy
       kèm `kiem-khoa-tren-chain.mjs`"* hiện chỉ sống trong đầu người đọc HANDOFF — đó là **quy
       trình, không phải cổng**, và nó sai đúng lúc được dùng nhiều nhất (**B-16, David làm bản
@@ -60,6 +60,12 @@ không push.
       **Điều kiện qua:** bộ g0 ⇒ exit 0 · bộ `9001` chết ⇒ exit 1 nêu đúng *"thuộc thế hệ đã
       chết"* · **giấu phép đo trên chain đi ⇒ exit 2 "CHƯA KẾT LUẬN", tuyệt đối không xanh**
       (ba mã thoát phân biệt *đúng* / *sai* / *không đo được*).
+      ✅ **ĐẠT `28/08`** (D-097) — nghiệm thu trên **dữ liệu thật**, **6/6 ca đúng mã thoát**:
+      g0 sống ⇒ `0` · 🔴 bộ `9001` chết ⇒ `1` *trong khi cùng lượt đó vế 1 vẫn in
+      `✓ 6/6 quỹ khôi phục đúng`* · giấu `kiem-khoa-tren-chain.mjs` ⇒ `2` **không xanh** ·
+      docker hỏng / thư mục rỗng / thư mục không tồn tại ⇒ `2`.
+      Kèm: Go bản địa **không** build được `kiem-khoa` (cần container `golang:1.25.10`, ~28s),
+      và `spawnSync` né hẳn bẫy MSYS đổi `-w /src` thành `C:/Program Files/Git/src`.
       Kèm: cập nhật `docs/O1-CUSTODY-PHEP-KIEM.md` + `BLOCKERS.md` B-16 sang **một lệnh duy nhất**.
 - [ ] **A15-3 — drift gate thấy tệp THỪA (`--quet-thua`)**
       Gotcha 14: cổng canh *"tệp trong danh sách có khớp không"*; tệp **xoá khỏi repo mà còn
