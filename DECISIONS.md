@@ -2843,8 +2843,59 @@ Ba phép đo chạy **mỗi lượt**, không phải lượt đầu rồi tin m�
 
 #### Giới hạn — đừng trích mạnh hơn
 
-⚠️ Đã chứng minh trên **ví một khoá** (`chain-factory`, ví nóng). Đường `A1_VI_QUY` chọn quỹ
-trong `keys.txt` 6 khoá **chưa chạy thật** — ngày G phải thử **trước** khi bắn quỹ đầu tiên.
+✅ **Đường `A1_VI_QUY` đã chạy thật cùng ngày — xem D-091b bên dưới.**
 ⚠️ Container thường trực `9chain-a1-xpwallet` **trên server vẫn còn** và vẫn giữ khoá
 `chain-factory` trong env. D-091 mở đường mới, **chưa gỡ đường cũ**. Gỡ nó là việc vận hành,
 làm cùng lượt ngày G.
+
+---
+
+### D-091b — `--quy`: chọn 1 trong 6 khoá của `keys.txt`, và **dòng chữ trong tệp không được tin**
+
+`2026-08-28`, đóng nốt giới hạn D-091. Ngày G nạp **6 quỹ liên tiếp** từ **một tệp** —
+đây là đường sẽ chạy nhiều nhất, và là đường hỏng câm dễ nhất.
+
+#### Sửa một chỗ trước khi thử: `--kiem` nay kiểm được cả việc CHỌN QUỸ
+
+Bản D-091 để việc chọn quỹ nằm **sau** cổng `--kiem` ⇒ cách duy nhất để biết *"khối nào được
+chọn"* là **chạy ví lên với khoá thật**. 🔴 **Chính phép kiểm ấy là một lần phơi khoá.** Nay
+`--kiem --khoa <tệp> --quy <quỹ>` đọc tệp, in **địa chỉ**, đối chiếu, rồi **dừng — không khởi
+động ví**. Sáu quỹ kiểm được liên tiếp mà không lần nào có ví HTTP cầm khoá.
+
+#### 🔴 Phát hiện: dòng `P-addr` trong `keys.txt` là CHỮ NGƯỜI VIẾT, không phải phép đo
+
+Bản đầu in địa chỉ lấy từ dòng `P-addr` của khối. Khối `[team]` mang **khoá của team** nhưng
+dán **địa chỉ của foundation** thì dòng in ra **trông đúng hoàn toàn**, và ví vẫn ký — bằng
+khoá team, dưới cái tên foundation. Người bấm không có cách nào thấy.
+
+⇒ Nay gọi thẳng **`kiem-khoa` trên đúng khối vừa chọn**: địa chỉ phải **suy lại được TỪ KHOÁ**.
+Đây là lần đầu hai công cụ của O1 nối vào nhau thay vì đứng cạnh nhau.
+
+⚠️ Đo được ở ca đối chứng: dòng `quỹ chọn: team → P-love91agflqw…` in ra **vẫn trông đúng**;
+chỉ dòng `kiem-khoa` sau đó mới bác. **Giữ cả hai dòng là cố ý** — dòng trên là thứ tệp *tự
+khai*, dòng dưới là thứ *đo được*, và để chúng cạnh nhau thì người đọc thấy được cái nào là cái nào.
+
+#### Nghiệm thu — chạy thật trên `keys.txt` 6 khoá của g0
+
+| | |
+|---|---|
+| 6/6 quỹ chọn đúng | `staking` · `foundation` · `ecosystem` · `faucet` · `private-sale` · `team` — **sáu địa chỉ khác nhau**, khớp `ALLOCATION-PUBLIC.md` từng ký tự |
+| Phép so phân biệt được | `ecosystem` là khối **thứ 3**, `team` là khối **thứ 6** — nếu mã lấy khối đầu thì hai ca này đã sai |
+| Mỗi quỹ có `kiem-khoa` xác nhận | địa chỉ **suy từ khoá**, không phải đọc chữ |
+| Ví lên thật với khoá `--quy` chọn | `--quy faucet` → ví khai `X/P-love91l778hux…` = đúng địa chỉ faucet công bố · X/P `0/0` khớp `ALLOCATION-PUBLIC.md` (tiền faucet nằm ở C-Chain) · dừng container ngay |
+| Đối chứng ngược `--tu-kiem` | **6/6 đỏ đúng chỗ** (3 ca đường mạng + 3 ca đường chọn quỹ) |
+
+Ba ca chọn quỹ nay là **cổng thường trực**, không phải một lượt thử: tệp 6 khoá mà không khai
+`--quy` ⇒ **dừng, không lấy khối đầu** · `--quy` trỏ tên không tồn tại ⇒ dừng · khối tự mâu
+thuẫn ⇒ dừng.
+
+⚠️ Ba ca đó dựng trên **bộ khoá thế hệ 9001 ĐÃ CHẾT** trong repo — đúng khuôn 6 khối, và tiền
+của nó **đo được là 0** (D-090), nên bản chép tạm không phơi thứ gì. Bản chép nằm trong
+`mkdtemp` và bị xoá cuối hàm. **Đừng đổi ca này sang dùng khoá thật.**
+
+#### Còn lại
+
+⚠️ `--quy` đã chứng minh **chọn đúng + nạp ví được**. **Chưa** chứng minh **ký** bằng một khoá
+quỹ — lượt ký thật của D-091 chạy trên `chain-factory` (ví nóng), cố ý. Ký bằng khoá quỹ chỉ
+nên xảy ra **một lần, ngày G, khi nạp thật**.
+⚠️ `9chain-a1-xpwallet` trên server **vẫn còn và vẫn giữ khoá trong env** — chưa gỡ.

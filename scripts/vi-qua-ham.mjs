@@ -33,7 +33,7 @@
  *   node scripts/vi-qua-ham.mjs --khoa D:/tam/wallet-key.txt --cong 8090
  */
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir, homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -77,7 +77,7 @@ function dungAnh({ im = false } = {}) {
  * Một lượt chạy container. `chiKiem` ⇒ dừng sau phần nghiệm thu, không cần khoá.
  * Mount fork và khoá đều **chỉ đọc**.
  */
-function chay({ chiKiem, networkID = NETWORK_ID, dich = DICH, known = KNOWN, khoaVi = null, im = false }) {
+function chay({ chiKiem, networkID = NETWORK_ID, dich = DICH, known = KNOWN, khoaVi = null, quy = QUY, im = false }) {
   const tay = [
     "run", "--rm",
     ...(im || chiKiem ? [] : ["-d", "--name", "9chain-a1-vi-ham", "-p", `127.0.0.1:${CONG}:8090`]),
@@ -88,7 +88,7 @@ function chay({ chiKiem, networkID = NETWORK_ID, dich = DICH, known = KNOWN, kho
     "-v", "9chain-gomod:/go/pkg/mod",
     "-e", `A1_SSH_TARGET=${dich}`,
     "-e", `A1_NETWORK_ID=${networkID}`,
-    ...(QUY ? ["-e", `A1_VI_QUY=${QUY}`] : []),
+    ...(quy ? ["-e", `A1_VI_QUY=${quy}`] : []),
     ...(chiKiem ? ["-e", "A1_CHI_KIEM=1"] : []),
     "-w", "/src",
     ANH,
@@ -109,6 +109,28 @@ function tuKiem() {
     ["known_hosts RỖNG — không cho tin-lần-đầu (TOFU)", { known: knownRong }],
     ["đích SSH sai", { dich: "ubuntu@127.0.0.2" }],
   ];
+
+  /**
+   * Ba ca của đường CHỌN QUỸ. Dùng **bộ khoá thế hệ 9001 ĐÃ CHẾT** trong repo, không dùng
+   * khoá thật: nó có đúng khuôn 6 khối, và tiền của nó **đo được là 0 trên chain** (D-090)
+   * nên bản chép tạm không phơi thứ gì. Bản chép nằm trong `mkdtemp` và bị xoá ở cuối hàm.
+   */
+  const chet = path.join(GOC, "local-net/net-public/keys.txt");
+  if (existsSync(chet)) {
+    const txt = readFileSync(chet, "utf8");
+    const dc = (ten) => new RegExp(`\\[${ten}\\][\\s\\S]*?P-addr\\s*:\\s*(\\S+)`).exec(txt)?.[1];
+    const i = txt.indexOf("[team]");
+    // 🔴 Dán địa chỉ của quỹ KHÁC vào khối `[team]`: dòng "quỹ chọn" in ra vẫn **trông
+    //    đúng** — nó chỉ đang đọc chữ. Chỉ `kiem-khoa` suy lại từ khoá mới bác được.
+    const treo = path.join(tmp, "keys-treo.txt");
+    writeFileSync(treo, txt.slice(0, i) + txt.slice(i).replace(dc("team"), dc("foundation")));
+
+    ca.push(
+      ["tệp 6 khoá mà KHÔNG khai --quy — phải dừng, không lấy khối đầu", { khoaVi: chet }],
+      ["--quy trỏ tên quỹ không tồn tại", { khoaVi: chet, quy: "khong-co-that" }],
+      ["khối [team] dán nhầm địa chỉ của [foundation] — dòng in ra vẫn trông đúng", { khoaVi: treo, quy: "team" }],
+    );
+  }
 
   console.log("\n══ ĐỐI CHỨNG NGƯỢC — mỗi ca dưới đây PHẢI ra đỏ ══\n");
   let hong = 0;
@@ -133,8 +155,12 @@ for (const [ten, p] of [["khoá SSH", KHOA_SSH], ["known_hosts", KNOWN]]) {
 if (TU_KIEM) {
   tuKiem();
 } else if (CHI_KIEM) {
+  // `--kiem` KÈM `--khoa/--quy` ⇒ kiểm luôn việc CHỌN QUỸ mà **không khởi động ví**.
+  // Ngày G nạp 6 quỹ liên tiếp: nếu muốn biết "khối nào được chọn" mà phải chạy ví lên
+  // với khoá thật thì chính phép kiểm ấy là một lần phơi khoá.
+  if (KHOA_VI && !existsSync(KHOA_VI)) { console.log(`🔴 không thấy tệp khoá ví: ${KHOA_VI}`); process.exit(1); }
   dungAnh();
-  const r = chay({ chiKiem: true });
+  const r = chay({ chiKiem: true, khoaVi: KHOA_VI ? path.resolve(KHOA_VI) : null });
   process.stdout.write(r.stdout || "");
   process.stderr.write(r.stderr || "");
   process.exit(r.status ?? 1);
