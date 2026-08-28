@@ -3700,3 +3700,49 @@ chỉ đọc nhóm đầu thì **không**, mà đó đúng là các dòng dựng
 Chỗ tắt: `dash.cloudflare.com` → zone `9chain.org` → **Overview → Control AI Crawlers** → bỏ
 chọn **Display Content Signals Policy**; hoặc **Security → Settings** → lọc *Bot traffic* →
 *Instruct AI bot traffic with robots.txt*. Purge `/robots.txt` rồi chạy lại cổng.
+
+---
+
+## D-107 — B-17: lệnh xoá soạn sẵn sẽ XOÁ MẤT DỮ LIỆU; kéo sổ mồ côi về trước (2026-08-28)
+
+B-17 (D-098) khai: *"Ba sổ danh bạ đã có bản lưu trữ chính thức trong repo
+(`docs/archive/console-chains-*.json`) nên xoá không mất dữ liệu."* **Câu đó chưa từng được đo,
+và nó sai với một trong ba.**
+
+Đối chiếu `sha256` hai đầu `28/08`:
+
+| server | byte | repo |
+|---|--:|---|
+| `console-chains.json.bak` | 3.116 | ✅ `b8c88b3e…` trùng `console-chains-pre-g0-2026-08-27.json` |
+| `console-chains.json.bak-pre-regenesis` | 22.538 | ✅ `ca073735…` trùng `console-chains-pre-regenesis-2026-08-26.json` |
+| **`console-chains.json.bak-1787728833`** | **20.489** | 🔴 `ca24eb59…` — **không có ở đâu khác** |
+
+Repo có **hai** tệp archive, server có **ba** bản `.bak`. Không cổng nào bắt được vì cả hai
+cổng liên quan nhìn chỗ khác: `check-deploy-drift` hỏi *"tệp này có được KHAI không"* (có — nên
+nó im), `sinh-chainid-da-cap` **cố ý không đọc sổ trên server** (đúng, để danh sách chặn tái lập
+được). Khoảng giữa hai câu hỏi đó là chỗ tệp này nằm.
+
+✅ **Đã kéo về** → `docs/archive/console-chains-2026-08-26T0720Z.json`, `sha256` **khớp hai
+đầu**. Ảnh chụp `2026-08-26T07:20:33Z` — **3 chain sống · 39 thu hồi**, tức sổ ngay **trước**
+lượt re-genesis `26/08`.
+
+🔴 **Cổng `sinh-chainid-da-cap --kiem` ĐỎ NGAY khi có nguồn thứ tư** — đúng chức năng, và đó là
+lần nó chứng minh mình canh **nguồn** chứ không chỉ canh **kết quả**. `--ghi` xong: **47 chainId
+· 53 tên — KHÔNG ĐỔI**. ⇒ Sổ đó **không thiếu lời hứa chống phát lại nào** (nó là tập con của
+hai sổ kia). Nhưng nó vẫn là **bản duy nhất** của ảnh chụp ấy, và lý do dùng để biện minh cho
+việc xoá thì **sai**.
+
+⚠️ **Đừng đọc kết quả này thành "hoá ra không sao".** Điều được chứng minh là *lần này thiệt
+hại bằng 0*, không phải *câu khẳng định kia đúng*. Nếu bản `.bak` đó là sổ của một nhánh khác
+thì 42 bản ghi đã đi mất, và đi mất **do một dòng lệnh soạn sẵn kèm lời trấn an**.
+
+**Hai thứ đổi trong B-17:**
+1. Một dòng `shred -u` → **ba bước: LIỆT KÊ → XOÁ → ĐỐI CHỨNG** (kỷ luật D-092: *dừng trước, đo
+   sản phẩm, rồi mới xoá*). Bước 1 tồn tại để mắt người nhìn thấy đúng **6** tệp trước khi
+   bước 2 chạy — glob `console-chains.json.bak*` **không** khớp `console-chains.json` trần, và
+   tệp trần đó là **sổ đang chạy**; sai một ký tự là mất danh bạ chain đang sống.
+2. Bước 3 đối chứng bằng **hai cổng có sẵn**: `check-deploy-drift` (mồ côi 7 → 1) và
+   `canh-mang` (console `/whoami` vẫn 200) — không tin `ls` một mình.
+
+🔴 **Luật rút ra: câu "đã có bản lưu rồi nên xoá được" là một PHÉP ĐO, không phải một câu trấn
+an.** Trước khi xoá bất cứ thứ gì trên server: **đối chiếu `sha256` với bản lưu, TỪNG TỆP MỘT.**
