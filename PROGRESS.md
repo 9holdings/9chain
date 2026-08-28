@@ -980,7 +980,7 @@ phải chạy thật đường đó — test xanh không đủ.
 | M11.6 | O1 bước 1 — khoá g0 rời server + `kiem-khoa` | `[x]` | D-085 · patch 0023 · khôi phục 6/6, `shred -u` |
 | M11.7 | §5c — sổ "A1 đã cấp", chặn xuyên thế hệ | `[x]` | D-086 · 35 đạt/0 hỏng · **verify trên API thật** |
 | M11.8 | Khoá đẻ chain cho người ngoài tới sau ngày G (O3) | `[x]` | D-087 · 3 ca · **đã deploy + nghiệm thu trên console công khai** |
-| M11.9 | H-7 — IPv4 đa cổng cho P2P (mở khoá O4) | `[ ]` | — |
+| M11.9 | H-7 — IPv4 đa cổng cho P2P (mở khoá O4) | `[x]` | D-089 · patch 0024 · **diễn tập 3 node thật**: mesh 2/2, beacon tới được từ Internet |
 | M11.10 | O1 bước 2 — ví ký từ máy dev qua hầm SSH trong container | `[ ]` | ràng buộc đã đo, xem D-085 |
 | M11.11 | 🔴 **Cổng canh khoảng cách repo ↔ server** | `[x]` | D-088 · bắt 5 lệch thật ngay lần đầu · đối chứng ngược đạt |
 | M11.12 | Deploy phần còn lại của 27–28/08 (faucet I1b, `export-chain`, `index.html`) | `[x]` | D-088 · `/faucet/api/supply` nay **200, số đo từ chain** |

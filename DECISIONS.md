@@ -2606,3 +2606,74 @@ ra xanh. Một ca đối chứng chọn nhầm vật thì không chứng minh g�
 ⚠️ **Phạm vi cổng là 18 tệp, không phải cả cây.** Ngoài phạm vi vẫn có thể lệch — `web/` cố ý
 nằm ngoài (thuộc worktree `web-home`), `upstream/` cũng vậy. Đừng đọc "18/18 khớp" thành "server
 giống repo".
+
+---
+
+### D-089 — H-7: **IPv4 đa cổng**. Và một thiết kế bị chính diễn tập của nó bác bỏ
+
+**David chốt `27/08`:** IPv4 đa cổng, không IPv6. H-7 là **chọn tập người dùng**, không phải
+chọn kỹ thuật — IPv6 loại phần lớn người muốn chạy node hôm nay, còn NAT vòng lại giữa các node
+cùng máy chỉ là phiền.
+
+`A1_P2P_MODE=ipv4port` (patch 0024): mỗi node một `--staking-port`, beacon publish cổng ra
+`0.0.0.0` và khai `--public-ip` = IPv4 công khai của máy chủ.
+
+#### Phép đo quyết định cả thiết kế (`28/08`, trên chính máy chủ)
+
+```
+ngoài Internet        → 139.99.145.13:9751   ✓   nhà cung cấp KHÔNG chặn
+host                  → 139.99.145.13:9751   ✓
+container cùng bridge → 139.99.145.13:9751   ✗   TIMEOUT   ← NAT vòng lại HỎNG
+container cùng bridge → 172.28.0.7:9751      ✓             ← đối chứng phân biệt
+```
+
+Docker không DNAT lưu lượng đến từ chính bridge đó. *(Ca đối chứng đầu tiên tôi chọn là "cổng
+không publish" — nó cũng timeout, nên **không phân biệt được gì**. Phải đổi sang "cùng cổng,
+địa chỉ nội bộ" thì phép đo mới có nghĩa.)*
+
+#### 🔴 Bản đầu SAI, và diễn tập bác nó bằng một con số
+
+Bản đầu cho **mọi** node khai `publicIP:965N`. Mạng 3 node lên **xanh**, log sạch. Nhưng:
+
+| | numPeers |
+|---|---|
+| node1 | **2** |
+| node2 | **1** ← không thấy node3 |
+
+node2 và node3 học địa chỉ của nhau qua `--public-ip` (địa chỉ node **tự khai**) rồi gọi vào IP
+công khai của chính máy mình ⇒ hỏng. Với 9 node, mesh **teo thành hình SAO quanh node1** — mà
+đồng thuận cần lấy mẫu khắp tập validator, không phải qua một trung tâm.
+
+🔴 **Không một phép kiểm tĩnh nào bắt được điều này.** Compose đúng, cờ đúng, node chạy, log
+sạch. Chỉ `info.peers` trên mạng đang chạy mới nói ra.
+
+#### Sửa: chỉ BEACON khai công khai
+
+Các node cùng máy giữ địa chỉ **nội bộ**. Node ở nhà cung cấp thứ hai chạy **cùng chế độ** với
+`A1_PUBLIC_IP` của chính nó ⇒ nó gọi vào beacon được, và các node cùng máy gọi **ra** nó được
+(gọi ra từ container luôn chạy). **Đó chính là O4.**
+
+**Đo lại, cùng phép đo:** node1 `numPeers 2` · node2 `numPeers 2` — thấy node3 ở
+`172.31.0.13:9753`. Từ ngoài Internet: `9751` bắt tay TCP ✓ · `9752`/`9753` **không nối được**
+✓ (đúng thiết kế — publish cổng cho một node không khai công khai chỉ là bề mặt tấn công).
+
+#### Kèm theo: mạng TẬP nay có tiền tố container riêng
+
+`container_name` là **không gian tên toàn máy**, không thuộc project compose. Mạng tập netgen
+sinh ra **không thể chạy cùng máy với mạng thật** — `docker compose up` va tên và dừng giữa
+chừng. Đã chặn đúng một lượt diễn tập hôm nay, và nó dừng ở chỗ **an toàn** chỉ vì Docker canh
+trùng tên, **không phải vì ta lường trước**. Băng tập nay là `9chain-a1-tap-node-N`; băng
+**thật giữ nguyên** `9chain-a1-node-N`, cố ý (`console.env` khai `A1_NODE_CONTAINER`).
+
+#### Ba cổng từ chối + đối chứng
+
+thiếu `A1_PUBLIC_IP` · `A1_PUBLIC_IP` là IPv6 · `A1_STAKING_PORT_BASE` đâm vào `9650`.
+Đối chứng: chế độ `docker` mặc định sinh ra **y hệt như trước** (0 dòng `staking-port`, 0 publish).
+
+Tree `2954b987` → **`074aaa93`**, 24 patch; đối chứng ngược 23/24 → `2954b987` ✓.
+
+#### Còn lại cho O4 — nói thẳng
+
+⚠️ Đã chứng minh: **beacon tới được từ Internet**, và **mesh cùng máy còn nguyên**. **CHƯA**
+chứng minh: một node ở **máy khác** bắt tay và đồng thuận được — việc đó cần một máy thứ hai,
+tức cần **O4 (tiền)**. Đừng đọc lượt này thành "O4 xong".

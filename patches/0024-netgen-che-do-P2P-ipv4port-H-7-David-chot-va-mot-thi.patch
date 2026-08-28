@@ -1,0 +1,250 @@
+From 03ccd70f6009a3ceb8f986d23dc640380d4825eb Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Fri, 28 Aug 2026 05:35:06 +0400
+Subject: [PATCH 24/24] =?UTF-8?q?netgen:=20che=20do=20P2P=20`ipv4port`=20?=
+ =?UTF-8?q?=E2=80=94=20H-7=20David=20chot,=20va=20mot=20thiet=20ke=20bi=20?=
+ =?UTF-8?q?CHINH=20MINH=20bac=20bo?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+H-7 la chon TAP NGUOI DUNG, khong phai chon ky thuat: IPv6 loai phan lon nguoi muon chay node
+hom nay. => A1_P2P_MODE=ipv4port: moi node mot --staking-port, beacon publish cong ra 0.0.0.0
+va khai --public-ip = IPv4 cong khai cua may chu.
+
+DO TREN MAY CHU 28/08, va phep do nay quyet dinh ca thiet ke:
+  ngoai Internet -> 139.99.145.13:9751          ✓  (nha cung cap KHONG chan)
+  host           -> 139.99.145.13:9751          ✓
+  container cung bridge -> 139.99.145.13:9751   ✗ TIMEOUT   <- NAT vong lai HONG
+  container cung bridge -> 172.28.0.7:9751      ✓            <- doi chung phan biet
+Docker khong DNAT luu luong den tu chinh bridge do.
+
+🔴 BAN DAU CUA CHINH LUOT NAY SAI, va dien tap bac no bang mot con so:
+cho MOI node khai publicIP:965N. Mang 3 node len xanh, nhung node1 thay 2 peer con node2 chi
+thay 1 — node2 va node3 KHONG noi duoc nhau, vi chung hoc dia chi cua nhau qua --public-ip roi
+goi vao IP cong khai cua chinh may minh. Voi 9 node, mesh teo thanh hinh SAO quanh node1, ma
+dong thuan can lay mau khap tap validator.
+
+SUA: chi BEACON khai dia chi cong khai + publish cong; cac node cung may giu dia chi NOI BO.
+Node o nha cung cap thu hai chay CUNG che do voi A1_PUBLIC_IP cua chinh no => no goi vao beacon
+duoc, va cac node cung may goi RA no duoc. Do la O4.
+
+DO LAI SAU KHI SUA, cung phep do:  node1 numPeers 2 · node2 numPeers 2 (thay node3 o
+172.31.0.13:9753 — truoc do KHONG thay). Tu ngoai Internet: 9751 bat tay TCP duoc; 9752/9753
+KHONG noi duoc (dung thiet ke: publish cong cho node khong khai cong khai chi la be mat tan
+cong, khong ai duoc bao la co cua do).
+
+KEM: container_name mang TAP nay co tien to 9chain-a1-tap-*. Mang tap KHONG the chay cung may
+voi mang that vi va ten container (ten container la khong gian ten TOAN MAY, khong thuoc project
+compose). Da chan mot luot dien tap that, va no dung o cho AN TOAN chi vi Docker canh trung ten.
+Bang THAT giu nguyen 9chain-a1-node-N, CO Y: console.env khai A1_NODE_CONTAINER=9chain-a1-node-1.
+
+3 cong tu choi: thieu A1_PUBLIC_IP · A1_PUBLIC_IP la IPv6 · A1_STAKING_PORT_BASE dam vao 9650.
+Doi chung: che do `docker` mac dinh sinh ra Y HET nhu truoc (0 dong staking-port/publish).
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ 9chain-a1-tools/netgen/main.go | 124 +++++++++++++++++++++++++++++++--
+ 1 file changed, 119 insertions(+), 5 deletions(-)
+
+diff --git a/9chain-a1-tools/netgen/main.go b/9chain-a1-tools/netgen/main.go
+index 0fc7510..5ee7cbd 100644
+--- a/9chain-a1-tools/netgen/main.go
++++ b/9chain-a1-tools/netgen/main.go
+@@ -40,6 +40,7 @@ type nodeInfo struct {
+ 	NodeID ids.NodeID
+ 	IP     string // IPv4 nội bộ docker (luôn có — mọi node vẫn nói chuyện qua a1net)
+ 	IP6    string // GUA IPv6 công khai; RỖNG khi không bật chế độ ipv6 (M3)
++	Cong   int    // cổng staking riêng của node; 0 = dùng 9651 mặc định (chế độ docker/ipv6)
+ }
+ 
+ // ═══ P2P RA INTERNET (M3) ═══
+@@ -66,8 +67,35 @@ type nodeInfo struct {
+ const (
+ 	p2pDocker = "docker" // mặc định: P2P chỉ trong bridge docker (như trước M3)
+ 	p2pIPv6   = "ipv6"   // mỗi node một GUA IPv6, ra thẳng Internet
++	// H-7 — David chốt `27/08`: IPv4 đa cổng, vì H-7 là **chọn tập người dùng**, không
++	// phải chọn kỹ thuật. IPv6 loại phần lớn người muốn chạy node hôm nay; NAT vòng lại
++	// giữa các node cùng máy chỉ là phiền. Xem khối `ipv4Port` bên dưới.
++	p2pIPv4Port = "ipv4port"
+ )
+ 
++// ═══ CHẾ ĐỘ `ipv4port` — MỖI NODE MỘT CỔNG, RA THẲNG INTERNET (H-7, D-089) ═══
++//
++// Mỗi node nhận `--staking-port` riêng (`9651`, `9652`, …), compose publish đúng cổng đó
++// ra host, và **mọi node khai cùng một `--public-ip`** = IPv4 công khai của máy chủ. Peer
++// ngoài Internet gọi `IP:965N` là tới đúng node N.
++//
++// 🔴 `--bootstrap-ips` VẪN DÙNG ĐỊA CHỈ NỘI BỘ, và đó là điểm dễ sửa sai nhất ở đây.
++// Đo trên chính máy chủ `2026-08-28`:
++//
++//	ngoài Internet  → 139.99.145.13:9751   ✓ (nhà cung cấp KHÔNG chặn)
++//	host            → 139.99.145.13:9751   ✓
++//	container cùng bridge → 139.99.145.13:9751   ✗ TIMEOUT   ← NAT vòng lại HỎNG
++//	container cùng bridge → 172.28.0.7:9751      ✓            ← đối chứng phân biệt
++//
++// Docker không DNAT lưu lượng đến từ chính bridge đó, nên node cùng máy **không gọi được
++// vào IP công khai của máy mình**. Khai `--bootstrap-ips` bằng IP công khai thì mạng lên
++// mà **không node nào bootstrap nổi**, và log chỉ nói "chưa đủ peer".
++//
++// ⚠️ Hệ quả còn lại, PHẢI biết trước: peer cùng máy học được nhau qua `--public-ip` (địa
++// chỉ node TỰ KHAI), nên chúng **không tự gọi lại nhau** sau khi rớt kết nối. Cứu cánh là
++// tính bất đối xứng: node1 vẫn gọi ra được 2..N bằng địa chỉ nội bộ. Đây là chỗ phải đo
++// trên mạng tập, không phải chỗ để suy luận.
++
+ func env(k, def string) string {
+ 	if v := os.Getenv(k); v != "" {
+ 		return v
+@@ -118,6 +146,29 @@ func main() {
+ 	// thay vì để docker tự cấp — địa chỉ node phải ổn định vì nó đi vào
+ 	// `--bootstrap-ips` của các node khác và vào bản ghi DNS công khai.
+ 	ipv6Base := env("A1_IPV6_BASE", "")
++	// H-7 / D-089 — chế độ `ipv4port`. Xem khối chú thích ở `p2pIPv4Port`.
++	publicIP := env("A1_PUBLIC_IP", "")
++	congGoc := atoi(env("A1_STAKING_PORT_BASE", "9651"), 9651)
++	if p2pMode == p2pIPv4Port {
++		// 🔴 CHẾT NGAY nếu thiếu IP công khai. Không có nó thì lựa chọn duy nhất còn lại
++		// là khai IP nội bộ làm `--public-ip` — tức sinh ra đúng cái mạng docker-only cũ
++		// nhưng MANG NHÃN "ra Internet". Một mạng khai sai kiểu đó vẫn lên xanh, và chỉ lộ
++		// khi có người ngoài thử join, tức muộn nhất có thể.
++		if publicIP == "" {
++			fmt.Fprintln(os.Stderr, "FATAL A1_P2P_MODE=ipv4port đòi A1_PUBLIC_IP (IPv4 công khai của máy chủ)")
++			os.Exit(1)
++		}
++		if strings.Contains(publicIP, ":") {
++			fmt.Fprintf(os.Stderr, "FATAL A1_PUBLIC_IP=%q có dấu ':' — chế độ này là IPv4, dùng A1_P2P_MODE=ipv6 cho IPv6\n", publicIP)
++			os.Exit(1)
++		}
++		// Trần cổng: 965x + N phải còn nằm dưới 65535, và không được đè 9650 (API).
++		if congGoc <= 9650 || congGoc+n-1 > 65535 {
++			fmt.Fprintf(os.Stderr, "FATAL A1_STAKING_PORT_BASE=%d với N=%d ⇒ dải %d–%d không hợp lệ (phải > 9650 và ≤ 65535)\n",
++				congGoc, n, congGoc, congGoc+n-1)
++			os.Exit(1)
++		}
++	}
+ 	if p2pMode == p2pIPv6 && (ipv6Subnet == "" || ipv6Base == "") {
+ 		// Chết ngay thay vì sinh ra một compose "gần đúng": mạng sinh sai địa chỉ
+ 		// P2P là loại lỗi chỉ lộ ra khi có người ngoài thử join, tức là muộn nhất.
+@@ -208,7 +259,11 @@ func main() {
+ 			// Hệ 16 để địa chỉ IPv6 đọc ra đúng con số của node (node1 ⇒ …::b).
+ 			ip6 = fmt.Sprintf("%s%x", ipv6Base, baseOctet+i-1)
+ 		}
+-		nodes = append(nodes, nodeInfo{Index: i, NodeID: nodeID, IP: ip, IP6: ip6})
++		cong := 0
++		if p2pMode == p2pIPv4Port {
++			cong = congGoc + i - 1
++		}
++		nodes = append(nodes, nodeInfo{Index: i, NodeID: nodeID, IP: ip, IP6: ip6, Cong: cong})
+ 		stakers = append(stakers, genesis.UnparsedStaker{
+ 			NodeID:        nodeID,
+ 			RewardAddress: treasury.XAddr, // thưởng staking chảy về quỹ Foundation
+@@ -271,7 +326,7 @@ func main() {
+ 	must(os.WriteFile(filepath.Join(out, "genesis.json"), gb, 0o644), "write genesis")
+ 
+ 	// ---- 4) docker-compose nhiều node (static IP) ----
+-	compose := buildCompose(nodes, subnetPrefix, ipv6Subnet, networkID)
++	compose := buildCompose(nodes, subnetPrefix, ipv6Subnet, networkID, publicIP)
+ 	must(os.WriteFile(filepath.Join(out, "docker-compose.multinode.yml"), []byte(compose), 0o644), "write compose")
+ 
+ 	// ---- 4b) .env — ĐI KÈM compose, không phải phụ kiện ----
+@@ -430,7 +485,7 @@ func cChainGenesis(funds map[string]*fund, e *engraving, chainID uint64) string
+ 		`},"number":"0x0","gasUsed":"0x0","parentHash":"0x0000000000000000000000000000000000000000000000000000000000000000"}`
+ }
+ 
+-func buildCompose(nodes []nodeInfo, subnetPrefix, ipv6Subnet string, networkID uint32) string {
++func buildCompose(nodes []nodeInfo, subnetPrefix, ipv6Subnet string, networkID uint32, publicIP string) string {
+ 	var b strings.Builder
+ 	b.WriteString("# 9Chain-A1 — mạng " + strconv.Itoa(len(nodes)) + " node thật (sinh bởi netgen).\n")
+ 	b.WriteString("# Chạy:  docker compose -f local-net/net/docker-compose.multinode.yml up -d\n")
+@@ -444,8 +499,30 @@ func buildCompose(nodes []nodeInfo, subnetPrefix, ipv6Subnet string, networkID u
+ 	if nodes[0].IP6 != "" {
+ 		beaconAddr = "[" + nodes[0].IP6 + "]"
+ 	}
++	// 🔴 Chế độ `ipv4port`: beacon vẫn là địa chỉ NỘI BỘ, **cố ý** — đo `28/08` cho thấy
++	// container cùng bridge KHÔNG gọi được vào IP công khai của chính máy đó (NAT vòng lại
++	// hỏng). Khai IP công khai ở đây thì mạng lên mà không node nào bootstrap nổi.
++	// Cổng thì phải là cổng RIÊNG của beacon, không phải 9651 mặc định.
++	beaconCong := 9651
++	if nodes[0].Cong != 0 {
++		beaconCong = nodes[0].Cong
++	}
+ 	for _, nd := range nodes {
+-		name := fmt.Sprintf("9chain-a1-node-%d", nd.Index)
++		// 🔴 TÊN CONTAINER LÀ KHÔNG GIAN TÊN TOÀN MÁY, không thuộc project compose.
++		//
++		// Mạng TẬP phải mang tiền tố riêng, nếu không nó **không thể chạy cùng máy với mạng
++		// thật**: `docker compose up` va tên và dừng giữa chừng. Đo `28/08` — đúng lỗi này
++		// chặn một lượt diễn tập, và nó dừng ở chỗ AN TOÀN (compose từ chối trước khi đụng
++		// container nào) chỉ vì Docker canh trùng tên, không phải vì ta đã lường trước.
++		//
++		// ⚠️ Băng THẬT giữ nguyên `9chain-a1-node-N`, CỐ Ý: `console.env` khai
++		// `A1_NODE_CONTAINER=9chain-a1-node-1`, và nhiều script/tài liệu gọi thẳng tên đó.
++		// Đổi tên băng thật là một lượt di dời riêng, không phải hệ quả phụ của việc này.
++		tienTo := "9chain-a1"
++		if networkID == constants.A1IDTap {
++			tienTo = "9chain-a1-tap"
++		}
++		name := fmt.Sprintf("%s-node-%d", tienTo, nd.Index)
+ 		b.WriteString("  " + name + ":\n")
+ 		b.WriteString("    image: 9chain-a1/node:dev\n")
+ 		b.WriteString("    container_name: " + name + "\n")
+@@ -496,6 +573,22 @@ func buildCompose(nodes []nodeInfo, subnetPrefix, ipv6Subnet string, networkID u
+ 			// do gì là toàn bộ RPC công khai chết theo.
+ 			b.WriteString("    ports:\n      - \"${A1_API_BIND:-127.0.0.1}:9660:9650\"\n")
+ 		}
++		// `ipv4port`: publish cổng staking RA MỌI GIAO DIỆN (`0.0.0.0`), khác hẳn cổng API.
++		//
++		// 🔴 Hai cổng này có mục đích ngược nhau và phải bind ngược nhau: API (9650) là
++		// toàn quyền RPC nên chỉ ra loopback, còn staking (965N) **phải** ra Internet, nếu
++		// không thì cả chế độ này vô nghĩa. Viết `0.0.0.0` TƯỜNG MINH thay vì dựa mặc định
++		// của compose — để người đọc thấy đây là một quyết định, không phải một lần quên.
++		//
++		// Vì mỗi node một cổng nên KHÔNG có va chạm, và mỗi node đến được từ Internet bằng
++		// đúng `<A1_PUBLIC_IP>:<cổng của nó>`.
++		// Chỉ BEACON publish cổng staking. Publish cổng cho một node khai địa chỉ nội bộ là
++		// mở một cửa **không ai được bảo là có** — không peer nào biết để gọi vào, nên nó chỉ
++		// còn là bề mặt tấn công. Mở cửa phải đi kèm việc khai cửa đó ra.
++		if nd.Cong != 0 && nd.Index == 1 {
++			c := strconv.Itoa(nd.Cong)
++			b.WriteString("      - \"0.0.0.0:" + c + ":" + c + "\"\n")
++		}
+ 		b.WriteString("    volumes:\n")
+ 		b.WriteString(fmt.Sprintf("      - ./node%d:/9chain-a1/node:ro\n", nd.Index))
+ 		b.WriteString("      - ./genesis.json:/9chain-a1/net/genesis.json:ro\n")
+@@ -553,6 +646,27 @@ func buildCompose(nodes []nodeInfo, subnetPrefix, ipv6Subnet string, networkID u
+ 		// Khai sai thì node vẫn chạy, log vẫn sạch, chỉ là không ai gọi vào được.
+ 		if nd.IP6 != "" {
+ 			b.WriteString("      - --public-ip=" + nd.IP6 + "\n")
++		} else if nd.Cong != 0 && nd.Index == 1 {
++			// 🔴 CHỈ BEACON KHAI ĐỊA CHỈ CÔNG KHAI. Xem khối đo ở đầu tệp.
++			//
++			// Bản đầu cho MỌI node khai `publicIP:965N`. Diễn tập 3 node `28/08` bác nó bằng
++			// một con số: node1 thấy **2 peer**, node2 chỉ thấy **1** — node2 và node3 KHÔNG
++			// nối được nhau. Chúng học địa chỉ của nhau qua `--public-ip` (địa chỉ node TỰ
++			// KHAI), rồi gọi vào IP công khai của chính máy mình, và NAT vòng lại hỏng.
++			// Với 9 node, mesh sẽ teo thành hình SAO quanh node1 — mà đồng thuận cần lấy mẫu
++			// khắp tập validator, không phải qua một trung tâm.
++			//
++			// Nay: beacon khai công khai + publish cổng (điểm chạm cho người ngoài), các node
++			// cùng máy giữ địa chỉ NỘI BỘ. Node ở nhà cung cấp thứ hai chạy **cùng chế độ
++			// này** với `A1_PUBLIC_IP` của chính nó ⇒ nó gọi vào beacon được, và các node
++			// cùng máy gọi RA nó được (gọi ra từ container luôn chạy). Đó là O4.
++			b.WriteString("      - --public-ip=" + publicIP + "\n")
++			b.WriteString("      - --staking-port=" + strconv.Itoa(nd.Cong) + "\n")
++		} else if nd.Cong != 0 {
++			// Node cùng máy, KHÔNG phải beacon: khai địa chỉ nội bộ (như chế độ docker).
++			// Vẫn giữ `--staking-port` riêng để không giành cổng bên trong bridge.
++			b.WriteString("      - --public-ip=" + nd.IP + "\n")
++			b.WriteString("      - --staking-port=" + strconv.Itoa(nd.Cong) + "\n")
+ 		} else {
+ 			b.WriteString("      - --public-ip=" + nd.IP + "\n")
+ 		}
+@@ -566,7 +680,7 @@ func buildCompose(nodes []nodeInfo, subnetPrefix, ipv6Subnet string, networkID u
+ 			// `[addr]:port` cho IPv6. Thiếu ngoặc thì node chết ngay lúc khởi động
+ 			// với một lỗi parse — đây là chỗ hiếm hoi trong dự án mà lỗi lộ ra SỚM,
+ 			// nên viết đúng ở đây là xong, không cần phòng thủ thêm.
+-			b.WriteString("      - --bootstrap-ips=" + beaconAddr + ":9651\n")
++			b.WriteString("      - --bootstrap-ips=" + beaconAddr + ":" + strconv.Itoa(beaconCong) + "\n")
+ 		}
+ 		b.WriteString("      - --log-level=info\n")
+ 		// Danh sách subnet mà node theo dõi. PHẢI có ở MỌI node, không chỉ node1:
