@@ -44,7 +44,7 @@ David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
 | **7** | ✅ ~~H-7~~ **CHỐT + LÀM XONG** — IPv4 đa cổng (D-089, patch 0024). 🔴 Còn lại của **O4 là TIỀN**: đã chứng minh beacon tới được từ Internet và mesh cùng máy còn nguyên, **chưa** chứng minh node ở máy khác bắt tay được — việc đó cần máy thứ hai | **David** (O4) | D-089 |
 | **8** | **Gộp `web-home` → `main`** | **David** | `DECISIONS.md` đang tồn tại ở hai bản — xem §12.1 |
 | **9** | GO/NO-GO `2026-08-29` · Ngày G `2026-09-01` | — | `docs/NGAY-G-A1-CON-LAI.md` §7 |
-| **10** | **M11.10** — ví ký từ máy dev qua **hầm SSH chạy TRONG cùng container**, để ngày G khoá không bao giờ chạm server | A1 | Ràng buộc đã đo (D-085): RPC công khai thiếu `/ext/bc/C/avax`; hầm SSH thì vấp bộ lọc Host `A1_HTTP_ALLOWED_HOSTS` |
+| **10** | ✅ ~~**M11.10**~~ **XONG `28/08`** (D-091) — ví ký từ máy dev qua hầm SSH **trong cùng container**; đã **ký thật** lên mạng công khai, khoá không chạm server. `node scripts/vi-qua-ham.mjs --kiem` | A1 | 🔴 Còn: đường `--quy` chọn 1 trong 6 khoá của `keys.txt` **chưa chạy thật** — thử TRƯỚC khi bắn quỹ đầu tiên ngày G. Và `9chain-a1-xpwallet` **trên server vẫn còn**, gỡ cùng lượt ngày G |
 
 🔴 **Phép kiểm đẻ chain đầu-cuối cần HAI thứ của David:** ký SIWE, **và** biết rằng cổng nay
 mặc định ĐÓNG — muốn chạy thì khởi động console với `A1_DE_CHAIN_MO=1` rồi tắt lại.
@@ -67,6 +67,7 @@ mặc định ĐÓNG — muốn chạy thì khởi động console với `A1_DE_
 | **D-088** | **Cổng canh khoảng cách repo ↔ server** + manifest deploy (một danh sách, hai nơi đọc) | bắt **5 lệch thật** ngay lần đầu · đối chứng ngược đạt · `/faucet/api/supply` nay **200, số đo từ chain** |
 | **D-089** | **H-7 = IPv4 đa cổng** (David chốt). Bản đầu **sai**, diễn tập 3 node bác nó | patch 0024 · mesh `1 → 2` peer sau khi sửa · beacon bắt tay TCP được **từ ngoài Internet** |
 | **D-090** | 🔴 **`kiem-khoa` chấm `6/6 ✓ exit 0` cho bộ khoá đã chết** ⇒ cổng thứ hai nối bộ khoá vào **chain đang chạy** | bộ g0 **6/6 khớp chain** · bộ 9001 đã chết **8 lệch, exit 1** · **5/5 đối chứng ngược** · O1 lần đầu nối được khoá ↔ **tiền** |
+| **D-091** | **M11.10** — ví ký ở máy dev, **hầm SSH trong cùng container**; khoá không chạm server | 3/3 nghiệm thu đường đi (chạy mỗi lượt) · **3/3 đối chứng ngược** · 🔴 **KÝ THẬT**: `p-to-x 0.1` trên mạng công khai, đọc lại bằng RPC công khai P `89,99999173 → 89,8999813` · X `0,009 → 0,108` · `Accepted` |
 
 ---
 
@@ -128,6 +129,12 @@ Ba bản soát mới: `docs/SOAT-TOAN-DIEN-2026-08-27.md` (lớp vận hành) ·
     — thứ **mọi công cụ hỏi X-Chain phải gọi đúng** — nằm ngoài. Đổi nó ở `genesis.go` mà không
     đổi `wallet/chain/{x,c}` là giết mọi ví X/C **mà đường đẻ chain vẫn xanh** (nó đi P-Chain).
     Nay một hằng `constants.GetAssetAlias`, hai nơi đọc — xem D-082 trước khi đụng lại lớp này.
+13. 🔴 **`local-net/net-public/` là một thư mục TRỘN — nửa chết, nửa sống.** Đo `28/08`:
+    `keys.txt` là bộ **thế hệ 9001 đã chết** (kiem-khoa khai `networkID 9001`, cả 6 quỹ đọc ra
+    **0 trên chain**), nhưng `chain-factory-key.txt` **cùng thư mục** lại là khoá **g0 đang
+    sống** — `P-love91vgh2wh…`, ví thật đang giữ tiền và vừa ký được giao dịch. Ngày giờ tệp
+    cũng lệch (`18:39` vs `19:03`). ⇒ **Không có câu trả lời đúng cho "thư mục này còn dùng
+    được không"** — phải hỏi từng tệp. Đây đúng là thứ khiến người ta cất nhầm bản sao lưu.
 12. 🔴 **`kiem-khoa` KHÔNG phân biệt được bộ khoá còn sống với bộ khoá đã chết.** Nó so
     `keys.txt` với `allocation.md` — **hai tệp cùng một thư mục, chép cùng một lượt**. Bộ khoá
     thế hệ `9001` (tiền không tồn tại ở đâu cả) qua nó sạch **6/6 ✓, exit 0**. Nó *có* cảnh báo
@@ -154,6 +161,12 @@ curl -s -X POST -H 'content-type: application/json' \
 ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" \
   'docker exec 9chain-a1-node-1 sh -c "grep -rho \"supplyCap[^,]*\" /root/.avalanchego/logs | head -1"'
 # đo 2026-08-28 ⇒ supplyCap":7900000001000000000 ✓
+
+# 🔴 M11.10 — ví ký ở MÁY DEV, khoá không chạm server (D-091)
+node scripts/vi-qua-ham.mjs --kiem      # nghiệm thu đường đi, KHÔNG cần khoá, KHÔNG chạy ví
+node scripts/vi-qua-ham.mjs --tu-kiem   # 3 ca đối chứng ngược
+node scripts/vi-qua-ham.mjs --khoa <tệp> [--quy foundation] [--cong 8090]
+docker rm -f 9chain-a1-vi-ham           # 🔴 xong việc là dừng NGAY — container này giữ khoá
 
 # 🔴 O1 — bộ khoá quỹ có phải của MẠNG ĐANG CHẠY không (D-090). Chạy CẢ HAI, cùng thư mục:
 node scripts/kiem-khoa-tren-chain.mjs <thư-mục-khoá>/allocation.md

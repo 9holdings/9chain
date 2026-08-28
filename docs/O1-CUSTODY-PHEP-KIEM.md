@@ -40,6 +40,12 @@ lượt**. Nó chứng minh bản sao **tự nhất quán**, không chứng minh
 lưu. Nếu bản anh cất là bộ đó, `kiem-khoa` in `6/6 ✓`, O1 được chấm ĐẠT — **và khoá thật vẫn
 chỉ có một bản.**
 
+🔴 **Và thư mục đó là một thư mục TRỘN, nên "cất cả thư mục cho chắc" cũng không cứu.** Đo
+`28/08`: `local-net/net-public/keys.txt` là bộ **9001 đã chết** (6 quỹ đọc ra **0** trên chain),
+nhưng `chain-factory-key.txt` **cùng thư mục** lại là khoá **g0 đang sống** và đang giữ tiền.
+⇒ Không có câu trả lời đúng cho *"thư mục này còn dùng được không"* — **phải hỏi từng tệp**, và
+đó chính là việc hai lệnh dưới đây làm.
+
 ⇒ **Phải chạy CẢ HAI lệnh.** Một mình không lệnh nào đủ:
 
 | | Lệnh | Chứng minh |

@@ -2773,3 +2773,78 @@ vòng. D-085 hứa *"O1 nay là một lệnh chạy được"* — câu đó nay
 🔴 Và **không cổng nào trong hai cổng đó tạo ra bản sao thứ hai.** Khoá g0 vẫn ở **đúng một ổ
 đĩa**. Việc còn lại của O1 vẫn nguyên: **David lấy bản anh tự cất, chạy hai lệnh trên nó** —
 xem `docs/O1-CUSTODY-PHEP-KIEM.md`.
+
+---
+
+### D-091 — M11.10: ví ký ở máy dev, **hầm SSH trong cùng container**. Khoá không chạm server
+
+`2026-08-28`. Mảnh A1 còn nợ của sơ đồ custody O1 — D-085 đã dò ra ràng buộc nhưng chưa dựng.
+
+#### Vấn đề: mọi lượt nạp quỹ hôm nay là một lượt khoá quỹ đi lên máy công khai
+
+Ví X/P chạy **trên server** (`9chain-a1-xpwallet`), khoá nằm trong env container. Lượt g0
+`27/08` đã phải lách bằng container tạm `a1-fund-tmp` rồi `docker rm -f` ngay — **né được,
+không đóng được**. Ngày G nạp lại cả 6 quỹ ⇒ phải đóng thật.
+
+#### Hai lớp chặn của đường thẳng — đo lại `28/08`, **cả hai đều ĐÚNG**
+
+| Đường | Đo được |
+|---|---|
+| RPC công khai | `/ext/info` `/ext/bc/X` `/ext/bc/P` `/ext/bc/C/rpc` = **200** · **`/ext/bc/C/avax` = 404** — đúng đường `primary.MakeWallet` cần |
+| Hầm SSH mở từ Windows, ví trong container | ví gọi `host.docker.internal` ⇒ **header `Host` mang đúng chuỗi đó** ⇒ node **403** (`A1_HTTP_ALLOWED_HOSTS=localhost,127.0.0.1`, D-083) |
+
+Đo thẳng qua hầm, ba ca cạnh nhau: `Host: 127.0.0.1` → **200** · `Host: localhost:19650` →
+**200** (cổng bị bỏ qua) · `Host: host.docker.internal` → **403**.
+
+⚠️ **403 đó là tin tốt đọc ngược** — bộ lọc Host chặn đúng một thứ đáng chặn, trong một tình
+huống không ai dựng ra để thử nó. Đường ra **không phải nới nó**, và đã không nới.
+
+#### Đã dựng — `local-net/deploy/vi-qua-ham/` + `scripts/vi-qua-ham.mjs`
+
+Hầm SSH chạy **TRONG CÙNG container với ví** ⇒ ví gọi `127.0.0.1:9650`, header `Host` tự nó đã
+nằm trong danh sách cho phép. **Không nới một cổng nào ở server, không đổi một dòng cấu hình
+node nào.**
+
+🔴 **Thứ tự trong `vao.sh` là toàn bộ giá trị của nó: chứng minh đường đi TRƯỚC, nạp khoá SAU.**
+Ba phép đo chạy **mỗi lượt**, không phải lượt đầu rồi tin mãi:
+
+| | Đo | Vì sao ở đây |
+|---|---|---|
+| a | `networkID` khớp số **bắt buộc khai** | cổng rẻ nhất, bắt sai lầm đắt nhất: bắn giao dịch của quỹ vào **thế hệ khác** |
+| b | `/ext/bc/C/avax` = 200 | chính đường RPC công khai không có; 404 ở đây là M11.10 mất lý do tồn tại |
+| c | 🔴 **đối chứng ngược**: `Host` lạ = **403** | giữ cho (b) còn nghĩa — ngày nào ô này ra 200 thì bộ lọc Host đã bị nới và (b) không chứng minh gì nữa |
+
+#### Ba thứ dựng ra vì đo mới thấy, không phải vì thiết kế trước
+
+1. **Khoá SSH phải chép ra rồi `chmod 600`.** Tệp mount từ NTFS hiện ra `0777` trong container
+   và `ssh` **từ chối** ("UNPROTECTED PRIVATE KEY FILE"); mount `:ro` nên không siết tại chỗ được.
+2. **`known_hosts` BẮT BUỘC, `StrictHostKeyChecking=yes`.** Hầm này chở **giao dịch đã ký của
+   quỹ**; chấp nhận host lạ (TOFU) là để ngỏ chỗ cho một node giả bơm UTXO sai vào lúc ví đang
+   dựng giao dịch. Ví ký cục bộ nên MITM không lấy được khoá — nhưng **lái được thứ được ký**.
+3. **Khoá ví vào bằng TỆP MOUNT, không bằng `-e WALLET_KEY`.** Env của container hiện nguyên
+   văn trong `docker inspect` và nằm lại trong lịch sử shell của người gõ.
+   🔴 Và `keys.txt` genesis chứa **cả 6 quỹ trong một tệp** ⇒ phải khai `A1_VI_QUY=<tên quỹ>`;
+   **nhiều hơn một khoá mà không chọn thì DỪNG**, không lấy cái đầu tiên. Lấy nhầm quỹ ở đây là
+   ký bằng khoá của một quỹ khác — **hỏng câm, và vĩnh viễn nếu giao dịch đã lên chain.**
+   Container in **địa chỉ** (không phải khoá) trước khi ví lên, để bắt "chọn nhầm quỹ" trước khi ký.
+
+#### Nghiệm thu — chạy thật trên mạng công khai, David duyệt lượt ký
+
+| | |
+|---|---|
+| Nghiệm thu đường đi | 3/3 đạt, in ra mỗi lượt |
+| Đối chứng ngược `--tu-kiem` | **3/3 đỏ đúng chỗ**: `networkID` sai băng · `known_hosts` rỗng · đích SSH sai |
+| Ví lên, đọc chain | `pBalance 89.99999173` — **khớp từng chữ số** với phép đo độc lập qua RPC công khai |
+| 🔴 **KÝ THẬT** | `p-to-x 0.1 LOVE9` tự gửi mình · `exportTx saTLkuyy…` · `importTx c1zDFCg4…` |
+| Đọc lại bằng **RPC công khai**, không qua ví | P `89.99999173 → 89.8999813` · X `0.009 → 0.108` · `getTxStatus` = **`Accepted`** |
+
+⇒ **Khoá ở máy dev ký được giao dịch lên mạng công khai mà không một byte khoá nào chạm server.**
+Đây là vế `primary.MakeWallet` — thứ `--kiem` **không** chứng minh được, vì ví chỉ dựng khi GỬI.
+
+#### Giới hạn — đừng trích mạnh hơn
+
+⚠️ Đã chứng minh trên **ví một khoá** (`chain-factory`, ví nóng). Đường `A1_VI_QUY` chọn quỹ
+trong `keys.txt` 6 khoá **chưa chạy thật** — ngày G phải thử **trước** khi bắn quỹ đầu tiên.
+⚠️ Container thường trực `9chain-a1-xpwallet` **trên server vẫn còn** và vẫn giữ khoá
+`chain-factory` trong env. D-091 mở đường mới, **chưa gỡ đường cũ**. Gỡ nó là việc vận hành,
+làm cùng lượt ngày G.

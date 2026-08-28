@@ -58,6 +58,23 @@ thuộc genesis nên không bị đổi; chỉ số dư mất theo mạng cũ). 
 Công cụ: `upstream/avalanchego/9chain-a1-tools/xp-wallet` (ví X/P, chạy loopback
 `:8090` trên server — **không có auth, tuyệt đối không public**).
 
+### 🔴 TỪ `28/08` CÓ ĐƯỜNG THỨ HAI, VÀ NGÀY G PHẢI DÙNG ĐƯỜNG ĐÓ (M11.10, D-091)
+
+Cách ở trên đưa **khoá lên server**. Nay có đường ví chạy **ở máy dev**, hầm SSH nằm **trong
+cùng container với ví**, khoá **không chạm server một byte nào**:
+
+```bash
+node scripts/vi-qua-ham.mjs --kiem                          # nghiệm thu đường đi, chưa cần khoá
+node scripts/vi-qua-ham.mjs --khoa <tệp> --quy foundation   # rồi mới nạp khoá
+docker rm -f 9chain-a1-vi-ham                               # 🔴 xong việc là dừng NGAY
+```
+
+Đã ký thật `28/08` (`p-to-x 0.1`, `Accepted`, đọc lại bằng RPC công khai). ⚠️ Mới chứng minh
+trên ví **một khoá**; đường `--quy` chọn 1 trong 6 khoá của `keys.txt` **chưa chạy thật** —
+thử **trước** khi bắn quỹ đầu tiên ngày G.
+⚠️ Container `9chain-a1-xpwallet` trên server **vẫn còn và vẫn giữ khoá trong env** — D-091 mở
+đường mới, **chưa gỡ đường cũ**.
+
 ### 🔴 Ba cái bẫy đã trả giá ở lượt nạp g0 (`27/08`)
 
 **1. `xp-wallet` chết sau mỗi lượt re-genesis nếu bí danh tài sản đổi.** Lượt g0 đổi bí danh
