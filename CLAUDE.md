@@ -78,7 +78,15 @@ bash scripts/h6b-sao-luu.sh --kiem           # bản sao lưu có dựng lại �
 7. **Heredoc bash + Python nuốt dấu gạch chéo** — sửa mã Go có `\n` thì dùng công cụ sửa tệp.
 8. **`A1_CONSOLE_TOKEN` đổi `28/08`** — đọc từ `C:\Users\abc\9chain-a1-keys\console-token.txt`,
    đừng dùng giá trị nhớ trong đầu.
-9. **`local-net/net-public/` là thư mục TRỘN** — `keys.txt` là bộ **9001 đã chết**, còn
+9b. 🔴 **TÊN MIỀN SỐNG LÀ `a1.9chain.org`.** `testnet-a1.9chain.org` là tên **CŨ**: origin
+   `308` sang tên mới, nhưng **Cloudflare trả `525` cho nó** ⇒ đo bằng tên cũ ra "trang chết"
+   trong khi trang vẫn sống. Đã dính `28/08` và suýt khai một sự cố không có thật.
+   Cách phân biệt trong 10 giây: `rpc-a1.9chain.org` **vẫn đúng** và vẫn phục vụ 200 — hai
+   tên miền hỏng/sống khác nhau thì lỗi không nằm ở server. `/console/` **308 sang
+   `/create-chain/`**; theo redirect (`curl -sL`) mới thấy trang thật.
+   ⚠️ Tài liệu cũ và sổ lưu trữ còn dẫn tên cũ — **đừng đổi hàng loạt**: phần lớn là câu KỂ
+   VỀ QUÁ KHỨ, và đổi chúng là viết lại lịch sử để cho gọn mắt.
+10. **`local-net/net-public/` là thư mục TRỘN** — `keys.txt` là bộ **9001 đã chết**, còn
    `chain-factory-key.txt` cùng thư mục là khoá **g0 đang giữ tiền**. Hỏi **từng tệp**.
 
 ## 6. Bộ định danh — `A1Gen` là nguồn sự thật, và nó bị CHÉP TAY ở hai ngôn ngữ
