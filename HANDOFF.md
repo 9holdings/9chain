@@ -7,6 +7,28 @@ Cập nhật: **2026-08-28** (phiên tối `28/08` — **ĐỢT AUTOPILOT 15: 7/
 > sử, và phần lớn là số đo của các phiên trước. Mâu thuẫn thì `CLAUDE.md` thắng về **luật**,
 > `HANDOFF.md` thắng về **số đo**. Backlog đang chạy: [`PROGRESS.md`](PROGRESS.md) đợt 15.
 
+## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
+
+```bash
+node scripts/ngay-g-preflight.mjs      # trạng thái toàn cục trong 1 lệnh (~90s)
+```
+
+Đo `2026-08-28` cuối phiên: **12/12 cổng xanh** · sao lưu H-6b `20260828-043739` **28/28
+sha256**, clone ngược khớp ở cả hai nơi · console **đã deploy**, drift `19 khớp · 0 lệch · 0
+thiếu` · mạng g0 sống, 9 validator, B-12 còn **308 ngày**.
+
+🔴 **Hai việc chặn GO/NO-GO `2026-08-29`, chỉ David làm được:**
+
+```bash
+node scripts/o1-kiem.mjs <thư-mục-bản-sao>    # B-16 · exit 0 ĐẠT · 1 SAI · 2 CHƯA KẾT LUẬN
+```
+- **B-17** — xoá 6 tệp `.bak` trên server (lệnh soạn sẵn trong `BLOCKERS.md`).
+
+⚠️ **Đừng cày tiếp trong phiên cũ.** Mọi thứ cần biết nằm ở `CLAUDE.md` (luật) ·
+`PROGRESS.md` đợt 15 (trạng thái) · `DECISIONS.md` D-093→D-103 (vì sao).
+
+---
+
 ## TL;DR
 
 Mạng công khai đang chạy **thế hệ `g0`** — `networkID 999999999`, `9chain-a1-g0`,
