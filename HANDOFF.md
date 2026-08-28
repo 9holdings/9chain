@@ -12,12 +12,12 @@ dịch thật đã chốt. **Bốn patch cuối lần đầu chạy trên mạng
 chốt 90, không phải 9). Nhưng để nạp được phải vá một lỗi chưa ai biết: **bí danh tài sản
 X-Chain đổi sang `LOVE9` ở lượt g0 mà SDK ví của chính fork vẫn hỏi `"AVAX"`** ⇒ mọi công cụ
 dùng ví X/C chết câm. Patch **0019** (D-082). Cùng phiên: patch **0020** cho netgen (D-083)
-⇒ tree `f4615e73` → **`f29d8c87`**, **23 patch** (0021 = B-9 · 0022 = D-084 · 0023 = `kiem-khoa`).
+⇒ tree `f4615e73` → **`f29d8c87`**, **24 patch** (0021 = B-9 · 0022 = D-084 · 0023 = `kiem-khoa` · 0024 = D-089 P2P ipv4port).
 🔴 **Vẫn CHƯA chứng minh đẻ chain chạy được** — ví có tiền ≠ đường đẻ chain thông. Xem #1.
 
-⚠️ **Image `9chain-a1/node:g0` đang chạy vẫn là bản 18 patch.** Patch 0019–0023 chỉ sống ở nguồn
+⚠️ **Image `9chain-a1/node:g0` đang chạy vẫn là bản 18 patch.** Patch 0019–0024 chỉ sống ở nguồn
 (`~/9chain-a1/src`, nơi `xp-wallet` chạy bằng `go run`). Node không dùng SDK ví nên **không cần
-dựng lại image**; nó sẽ vào image ở lượt build ngày G. Đừng đọc `2954b987` thành "mạng đang
+dựng lại image**; nó sẽ vào image ở lượt build ngày G. Đừng đọc `074aaa93` thành "mạng đang
 chạy có 19 patch".
 
 ⚠️ **Ngày G `2026-09-01` VẪN phải sinh lại lần nữa** (chữ khắc vào genesis, C1 chưa đóng băng
@@ -37,7 +37,7 @@ chainId L1 `9001000000–9001999999`.
 | **4** | ✅ ~~**B-9** `#e84142`~~ **XONG `27/08`** — patch 0021, vàng 9Chain trên navy | A1 | 🔴 Còn một chỗ NGOÀI phạm vi B-9: `local-net/console/index.html` **trên server** vẫn có 3 lần `#e84142` và lệch 12 byte so với git — thuộc worktree web, phiên này không đụng |
 | **5** | **O4** — dời 1 node sang nhà cung cấp thứ hai, **hoặc** khai thật + đổi tên `01/09` | **David** | §12.3: cách rẻ nhất không phải tiền mà là chữ *"chính thức"* |
 | **6** | **B-10** tắt Managed robots.txt ở dashboard Cloudflare | **David** | 1 phút, đo lại bằng NỘI DUNG |
-| **7** | **H-7** IPv4 đa cổng hay IPv6 | **David** | Không chặn ngày G |
+| **7** | ✅ ~~H-7~~ **CHỐT + LÀM XONG** — IPv4 đa cổng (D-089, patch 0024). 🔴 Còn lại của **O4 là TIỀN**: đã chứng minh beacon tới được từ Internet và mesh cùng máy còn nguyên, **chưa** chứng minh node ở máy khác bắt tay được — việc đó cần máy thứ hai | **David** (O4) | D-089 |
 | **8** | **Gộp `web-home` → `main`** | **David** | `DECISIONS.md` đang tồn tại ở hai bản — xem §12.1 |
 | **9** | GO/NO-GO `2026-08-29` · Ngày G `2026-09-01` | — | `docs/NGAY-G-A1-CON-LAI.md` §7 |
 
@@ -131,7 +131,7 @@ node local-net/console/chainid-test.mjs
 node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs
 
-# Tái lập cây fork (23 patch → tree 2954b987)
+# Tái lập cây fork (24 patch → tree 074aaa93)
 cd upstream/avalanchego && git worktree add --detach /tmp/tl 1cf1fc3
 cd /tmp/tl && git am --keep-cr ../../patches/*.patch && git rev-parse HEAD^{tree}
 
@@ -145,8 +145,8 @@ curl -s -X POST -H 'content-type:application/json' \
 1. **Không tin mã HTTP.** Thang đo: mã HTTP → `content-type` → **nội dung** → header tầng trước.
 2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một nửa.
 3. **Đụng `patches/` là đụng đường tái lập fork** — sinh `--no-signature`, nghiệm thu
-   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`2954b987`** / **23 patch**
-   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **22/23** phải ra đúng tree cũ `f29d8c87`.
+   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`074aaa93`** / **24 patch**
+   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **23/24** phải ra đúng tree cũ `2954b987`.
    ⚠️ **Image node đang chạy vẫn là 18 patch** — 0019 đụng SDK ví, 0020 đụng netgen; cả hai là
    CÔNG CỤ, không đụng node. Tree của repo ≠ tree trong image cho tới lượt build ngày G.
 4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)
