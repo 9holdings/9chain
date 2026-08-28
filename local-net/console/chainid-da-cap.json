@@ -2,6 +2,10 @@
   "_doc": "chainId VÀ TÊN mà 9Chain-A1 ĐÃ TỪNG CẤP cho L1 người dùng, gộp từ mọi sổ console trong repo. Chặn cấp lại VĨNH VIỄN: thu hồi không gỡ được mạng khỏi ví ai, nên cấp lại một chainId là để chữ ký của chain cũ phát lại được trên chain mới. SINH TỰ ĐỘNG — đừng sửa tay, chạy `node scripts/sinh-chainid-da-cap.mjs --ghi`.",
   "nguon": [
     {
+      "tep": "docs/archive/console-chains-2026-08-26T0720Z.json",
+      "muc": 42
+    },
+    {
       "tep": "docs/archive/console-chains-pre-g0-2026-08-27.json",
       "muc": 6
     },

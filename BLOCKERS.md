@@ -27,14 +27,54 @@ lại, và bản họ khôi phục **mở toang thứ vừa được đóng có 
 🔴 **Cần David: xoá 6 tệp.** Autopilot không tự làm — ghi lên server là ranh giới cứng của đợt
 này, và xoá tệp trên máy chủ công khai là quyết định vận hành.
 
+> 🔴 **ĐÍNH CHÍNH `28/08` — lệnh một dòng bản đầu XOÁ MẤT DỮ LIỆU.** Mục này từng khẳng định
+> *"ba sổ danh bạ đã có bản lưu trữ chính thức trong repo nên xoá không mất dữ liệu."*
+> **Sai với một trong ba.** Đo sha256 hai đầu:
+>
+> | tệp trên server | byte | bản lưu trong repo |
+> |---|--:|---|
+> | `console-chains.json.bak` | 3.116 | ✅ trùng từng byte `console-chains-pre-g0-2026-08-27.json` |
+> | `console-chains.json.bak-pre-regenesis` | 22.538 | ✅ trùng từng byte `console-chains-pre-regenesis-2026-08-26.json` |
+> | **`console-chains.json.bak-1787728833`** | **20.489** | 🔴 **KHÔNG CÓ** |
+>
+> ✅ **Đã kéo về `28/08`** → `docs/archive/console-chains-2026-08-26T0720Z.json`
+> (`ca24eb59…`, khớp sha256 hai đầu; ảnh chụp `2026-08-26T07:20:33Z`, **3 sống · 39 thu hồi**).
+> Cổng `sinh-chainid-da-cap --kiem` **đỏ ngay** khi có nguồn thứ tư — đúng chức năng — rồi
+> `--ghi` cho **47 chainId · 53 tên, KHÔNG đổi**: sổ đó không thiếu lời hứa nào, nhưng nó là
+> **bản duy nhất** của ảnh chụp ấy. ⇒ Nay xoá thật sự không mất gì.
+>
+> **Bài học:** câu *"đã có bản lưu rồi nên xoá được"* là một **phép đo**, không phải một câu
+> trấn an — và nó chưa từng được ai chạy. Trước khi xoá bất cứ thứ gì trên server: **đối chiếu
+> sha256 với bản lưu, từng tệp một.**
+
+**Quy trình ba bước — đừng chạy một dòng phá huỷ.** (Cùng kỷ luật D-092: *dừng trước, đo sản
+phẩm, rồi mới xoá.*)
+
 ```bash
-ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && shred -u   local-net/console/server.mjs.bak-pre-D087-* local-net/console/server.mjs.bak-truoc-admin   local-net/console/index.html.bak-truoc-admin 9chain-a1-config/console-chains.json.bak*'
+# ── BƯỚC 1 · LIỆT KÊ, KHÔNG XOÁ. Đọc kỹ: phải đúng 6 tệp, KHÔNG có console-chains.json trần.
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && ls -l local-net/console/server.mjs.bak-pre-D087-* local-net/console/server.mjs.bak-truoc-admin local-net/console/index.html.bak-truoc-admin 9chain-a1-config/console-chains.json.bak*'
 ```
 
-⚠️ **Ba sổ danh bạ đã có bản lưu trữ chính thức trong repo** (`docs/archive/console-chains-*.json`)
-nên xoá không mất dữ liệu. Xoá xong thì gỡ 4 mục tương ứng khỏi `thuaDaBiet` trong
+```bash
+# ── BƯỚC 2 · XOÁ (chỉ chạy khi bước 1 in ĐÚNG 6 dòng)
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && shred -u -n 3 local-net/console/server.mjs.bak-pre-D087-* local-net/console/server.mjs.bak-truoc-admin local-net/console/index.html.bak-truoc-admin 9chain-a1-config/console-chains.json.bak*'
+```
+
+```bash
+# ── BƯỚC 3 · ĐỐI CHỨNG: phải ra 0, và console phải còn sống
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && ls local-net/console/*.bak* 9chain-a1-config/*.bak* 2>/dev/null | wc -l; ls -l 9chain-a1-config/console-chains.json'
+node scripts/check-deploy-drift.mjs      # mồ côi 7 → 1 (chỉ còn faucet/package-lock.json, LÀNH)
+node scripts/canh-mang.mjs               # console /whoami phải vẫn 200
+```
+
+🔴 **Glob `console-chains.json.bak*` KHÔNG khớp `console-chains.json` trần** (thiếu `.bak`) —
+tệp trần là **SỔ ĐANG CHẠY của console**, xoá nó là mất danh bạ chain đang sống. Bước 1 tồn tại
+để nhìn thấy điều đó bằng mắt trước khi bước 2 chạy.
+
+**Xoá xong** thì gỡ 4 mục tương ứng khỏi `thuaDaBiet` trong
 `local-net/deploy/manifest-deploy.json` — **để lại mục khai cho một tệp đã xoá là đẻ ra một
 dòng khai không còn đúng**, và cổng sẽ im lặng bỏ qua tệp cùng tên nếu nó quay lại.
+*(Giữ nguyên mục `local-net/faucet/package-lock.json` — tệp đó **lành**, không xoá.)*
 
 *(Mục thứ 7, `local-net/faucet/package-lock.json`, là **lành** — `npm install` trên server sinh
 ra. Giữ nguyên.)*
