@@ -50,7 +50,7 @@ const con = spawn(process.execPath, ["local-net/console/server.mjs"], {
     // Bài này chạy console THẬT, đọc ĐÚNG `console-chains.json` thật, và trên
     // server thì đó là danh bạ của testnet công khai. Mọi lượt thu hồi ở đây đều
     // ĐƯỢC THIẾT KẾ để bị từ chối — nhưng "được thiết kế" không phải là bảo đảm.
-    // Một lượt lọt qua sẽ restart lần lượt cả 5 validator của mạng đang chạy.
+    // Một lượt lọt qua sẽ restart lần lượt MỌI validator của mạng đang chạy.
     // Trỏ compose vào đường dẫn không tồn tại: nếu logic quyền có lỗ, lệnh docker
     // sẽ chết vì thiếu file thay vì đụng vào mạng thật. Rẻ, và biến một rủi ro
     // "chắc là không xảy ra" thành "không thể xảy ra".
@@ -201,7 +201,7 @@ console.log("\n── 8. Request CHƯA XÁC THỰC không được tiêu quota c
     // Bài này chạy console THẬT, đọc ĐÚNG `console-chains.json` thật, và trên
     // server thì đó là danh bạ của testnet công khai. Mọi lượt thu hồi ở đây đều
     // ĐƯỢC THIẾT KẾ để bị từ chối — nhưng "được thiết kế" không phải là bảo đảm.
-    // Một lượt lọt qua sẽ restart lần lượt cả 5 validator của mạng đang chạy.
+    // Một lượt lọt qua sẽ restart lần lượt MỌI validator của mạng đang chạy.
     // Trỏ compose vào đường dẫn không tồn tại: nếu logic quyền có lỗ, lệnh docker
     // sẽ chết vì thiếu file thay vì đụng vào mạng thật. Rẻ, và biến một rủi ro
     // "chắc là không xảy ra" thành "không thể xảy ra".

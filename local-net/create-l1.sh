@@ -20,9 +20,11 @@ echo "==> [1/4] Đảm bảo node 9Chain-A1 đang chạy"
 # L1 EVM, khác hẳn genesis của mạng. Bước [2/4] bên dưới vẫn đọc từ đó.
 if [ ! -f "local-net/net/genesis.json" ]; then
   echo "    LOI: thieu local-net/net/genesis.json" >&2
-  echo "    -> chay 'bash local-net/gen-network.sh 5' truoc" >&2
+  echo "    -> chay 'NETWORK_ID=899999999 bash local-net/gen-network.sh 5' truoc" >&2
   exit 1
 fi
+# Compose nay doi NETWORK_ID va KHONG con mac dinh (9001 la the he da chet).
+source "local-net/network-id.sh" "local-net/net/genesis.json"
 $COMPOSE up -d >/dev/null
 for i in $(seq 1 24); do
   curl -s -m 3 -X POST --data '{"jsonrpc":"2.0","id":1,"method":"health.health"}' \
