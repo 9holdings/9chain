@@ -2899,3 +2899,56 @@ của nó **đo được là 0** (D-090), nên bản chép tạm không phơi th
 quỹ — lượt ký thật của D-091 chạy trên `chain-factory` (ví nóng), cố ý. Ký bằng khoá quỹ chỉ
 nên xảy ra **một lần, ngày G, khi nạp thật**.
 ⚠️ `9chain-a1-xpwallet` trên server **vẫn còn và vẫn giữ khoá trong env** — chưa gỡ.
+
+---
+
+### D-092 — Gỡ `9chain-a1-xpwallet` khỏi server. Và phép quét sau đó lộ hai thứ khác
+
+`2026-08-28`, David yêu cầu. Đây là đường cũ mà D-091 thay thế: ví HTTP **không auth**, giữ
+khoá `chain-factory` trong **env container**, chạy thường trực trên máy công khai.
+
+#### Soi cái đích trước — bốn phép đo trước khi đụng vào
+
+| | Đo được |
+|---|---|
+| Khoá trong env | `WALLET_KEY` **sha256 `1dc334145c8a1abc`** = **trùng khít** khoá `chain-factory` đang giữ ở `local-net/net-public/chain-factory-key.txt` trên máy dev ⇒ **xoá không huỷ bản duy nhất nào** |
+| Ai trỏ tới | **không tuyến Caddy nào** · **không mã console/faucet nào** · **không tệp env nào** — grep cả `/etc/caddy/` lẫn nguồn trên server |
+| Ai đang nối | `ss -tn :8090` ⇒ **0 kết nối** |
+| Chính sách | `restart=no`, `WALLET_URI=172.28.0.11:9650`, `--restart` khác `up-all.sh` ⇒ **chạy tay**, không phải do script nào dựng lên |
+
+🔴 Điểm cuối quan trọng hơn vẻ ngoài: `up-all.sh` **cũng** dựng một `9chain-a1-xpwallet`, nhưng
+**không truyền `WALLET_KEY`** ⇒ ví đó dùng khoá `ewoq` mặc định, và đó là máy dev. Nên đây
+**không** phải ca *"vá trên server rồi lượt deploy sau dựng lại"* (B-5/B-6). Không cần sửa
+`up-all.sh`; cần sửa **tài liệu**, vì `VI-VAN-HANH.md` mô tả lượt chạy tay đó là cách làm.
+
+#### Đã làm — dừng trước, xoá sau
+
+`docker stop` ⇒ đo lại sản phẩm công khai (`/` 200 · `/faucet/api/supply` 200 ·
+`/console/api/chains` 401 đúng cửa auth · RPC sống · **9/9 node**) ⇒ rồi mới `docker rm`.
+Thứ tự đó mua được một cửa sổ `docker start` hoàn nguyên; `rm -f` thẳng thì không có cửa sổ nào.
+
+**Đối chứng sau:** không container nào còn `WALLET_KEY` · `find ~/9chain-a1 -name keys.txt` ⇒ **0**.
+
+#### 🔴 Nhưng "không còn `WALLET_KEY`" KHÔNG PHẢI "không còn khoá" — tôi suýt khai thiếu
+
+Phép quét đầu chỉ tìm **đúng tên biến** `WALLET_KEY`. Quét lại theo **HÌNH DẠNG** khoá
+(`PrivateKey-…` hoặc `0x`+64 hex) trên **mọi** container và mọi tệp:
+
+| | Kết quả |
+|---|---|
+| `9chain-a1-faucet` → `FAUCET_PK` | **CÓ CHỦ Ý** — ví nóng, `faucet.env`, "lộ khoá chỉ mất phần faucet" |
+| `genesis.json` · `console-tmp/*.json` | **báo động giả** — khớp rơi vào `mixHash`/`parentHash`, không phải khoá riêng |
+| 🔴 `~/9chain-a1/vi-thu.json` | **khoá riêng trần, 130 byte, `{"address","pk"}`**, `25/08`. Đo trên g0: **số dư 0** (đối chứng: Foundation cùng lệnh ra 1 tỷ ⇒ phép đo phân biệt được) ⇒ ví thử thế hệ đã chết, **mất tiền = 0**, nhưng vẫn là một khoá trần nằm trên máy công khai |
+| 🔴 `~/9chain-a1/src/9chain-a1-config/genesis.json` | **genesis LOCAL của Avalanche vẫn còn trên server** — `networkID 9001`, 3 địa chỉ `X-local1…` (khoá **công khai trong repo avalanchego**). Repo đã **XOÁ** tệp này `27/08` vì nó là đường boot nguy hiểm; **server thì chưa** |
+
+⇒ **Bài học lặp lại lần thứ ba, ở một lớp mới:** `check-deploy-drift.mjs` (D-088) canh **18 tệp
+trong 3 nhóm**. Một tệp bị **XOÁ** khỏi repo mà vẫn nằm trên server thì **không nhóm nào thấy** —
+cổng đó đo *"tệp trong phạm vi có khớp không"*, không đo *"trên server có gì thừa"*.
+
+⚠️ **Đừng trích mạnh hơn thực tế:** mạng công khai boot bằng `~/9chain-a1/net/genesis.json` do
+netgen sinh, **không** bằng tệp kia. Hôm nay nó là **cái bẫy nằm im**, không phải lỗ đang chảy.
+
+#### Còn lại
+
+🔴 **Hai tệp trên CHƯA XOÁ — chờ David.** Xoá tệp trên máy công khai nằm ngoài câu *"gỡ
+xpwallet"*, và `vi-thu.json` có thể còn ai đó đang dùng làm ví thử.

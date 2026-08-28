@@ -44,7 +44,7 @@ David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
 | **7** | ✅ ~~H-7~~ **CHỐT + LÀM XONG** — IPv4 đa cổng (D-089, patch 0024). 🔴 Còn lại của **O4 là TIỀN**: đã chứng minh beacon tới được từ Internet và mesh cùng máy còn nguyên, **chưa** chứng minh node ở máy khác bắt tay được — việc đó cần máy thứ hai | **David** (O4) | D-089 |
 | **8** | **Gộp `web-home` → `main`** | **David** | `DECISIONS.md` đang tồn tại ở hai bản — xem §12.1 |
 | **9** | GO/NO-GO `2026-08-29` · Ngày G `2026-09-01` | — | `docs/NGAY-G-A1-CON-LAI.md` §7 |
-| **10** | ✅ ~~**M11.10**~~ **XONG `28/08`** (D-091) — ví ký từ máy dev qua hầm SSH **trong cùng container**; đã **ký thật** lên mạng công khai, khoá không chạm server. `node scripts/vi-qua-ham.mjs --kiem` | A1 | ✅ `--quy` cũng XONG (D-091b): 6/6 quỹ chọn đúng, `--kiem` nay kiểm được việc chọn quỹ **mà không khởi động ví**. 🔴 Còn: `9chain-a1-xpwallet` **trên server vẫn còn và vẫn giữ khoá trong env** — gỡ cùng lượt ngày G |
+| **10** | ✅ ~~**M11.10**~~ **XONG `28/08`** (D-091) — ví ký từ máy dev qua hầm SSH **trong cùng container**; đã **ký thật** lên mạng công khai, khoá không chạm server. `node scripts/vi-qua-ham.mjs --kiem` | A1 | ✅ `--quy` cũng XONG (D-091b): 6/6 quỹ chọn đúng, `--kiem` kiểm được việc chọn quỹ **mà không khởi động ví**. ✅ `9chain-a1-xpwallet` trên server **ĐÃ XOÁ HẲN `28/08`** (D-092) — đừng dựng lại |
 
 🔴 **Phép kiểm đẻ chain đầu-cuối cần HAI thứ của David:** ký SIWE, **và** biết rằng cổng nay
 mặc định ĐÓNG — muốn chạy thì khởi động console với `A1_DE_CHAIN_MO=1` rồi tắt lại.
@@ -68,6 +68,7 @@ mặc định ĐÓNG — muốn chạy thì khởi động console với `A1_DE_
 | **D-089** | **H-7 = IPv4 đa cổng** (David chốt). Bản đầu **sai**, diễn tập 3 node bác nó | patch 0024 · mesh `1 → 2` peer sau khi sửa · beacon bắt tay TCP được **từ ngoài Internet** |
 | **D-090** | 🔴 **`kiem-khoa` chấm `6/6 ✓ exit 0` cho bộ khoá đã chết** ⇒ cổng thứ hai nối bộ khoá vào **chain đang chạy** | bộ g0 **6/6 khớp chain** · bộ 9001 đã chết **8 lệch, exit 1** · **5/5 đối chứng ngược** · O1 lần đầu nối được khoá ↔ **tiền** |
 | **D-091** | **M11.10** — ví ký ở máy dev, **hầm SSH trong cùng container**; khoá không chạm server | 3/3 nghiệm thu đường đi (chạy mỗi lượt) · 🔴 **KÝ THẬT**: `p-to-x 0.1` trên mạng công khai, đọc lại bằng RPC công khai P `89,99999173 → 89,8999813` · X `0,009 → 0,108` · `Accepted` |
+| **D-092** | **Gỡ `9chain-a1-xpwallet` khỏi server** (ví HTTP không auth, giữ khoá trong env). 🔴 Quét sau đó lộ **2 thứ khác**, xem dòng dưới | khoá trong env **trùng hash** bản trên máy dev · 0 tuyến/0 kết nối · dừng trước, đo sản phẩm, rồi mới xoá · sau khi xoá: **0 container còn `WALLET_KEY`**, `find keys.txt` ⇒ **0** |
 | **D-091b** | `--quy` chọn 1 trong 6 khoá `keys.txt`. 🔴 **Dòng `P-addr` trong tệp là CHỮ NGƯỜI VIẾT** — khối `[team]` dán địa chỉ `[foundation]` thì dòng in ra vẫn trông đúng ⇒ gọi `kiem-khoa` trên đúng khối vừa chọn | 6/6 quỹ, **sáu địa chỉ khác nhau** khớp `ALLOCATION-PUBLIC.md` · khối thứ 3 và thứ 6 phân biệt được với "lấy khối đầu" · ví lên thật với `--quy faucet` · **6/6 đối chứng ngược** |
 
 ---
@@ -130,6 +131,14 @@ Ba bản soát mới: `docs/SOAT-TOAN-DIEN-2026-08-27.md` (lớp vận hành) ·
     — thứ **mọi công cụ hỏi X-Chain phải gọi đúng** — nằm ngoài. Đổi nó ở `genesis.go` mà không
     đổi `wallet/chain/{x,c}` là giết mọi ví X/C **mà đường đẻ chain vẫn xanh** (nó đi P-Chain).
     Nay một hằng `constants.GetAssetAlias`, hai nơi đọc — xem D-082 trước khi đụng lại lớp này.
+14. 🔴 **`check-deploy-drift.mjs` KHÔNG thấy tệp THỪA trên server.** Nó canh 18 tệp trong
+    phạm vi: *"tệp trong danh sách có khớp không"*. Một tệp bị **XOÁ khỏi repo** mà vẫn nằm
+    trên server thì **không nhóm nào thấy**. Đo `28/08`: `src/9chain-a1-config/genesis.json` —
+    **genesis LOCAL của Avalanche** (`networkID 9001`, 3 địa chỉ `X-local1…`, khoá **công khai
+    trong repo avalanchego**) — repo đã xoá `27/08`, **server vẫn còn**. ⚠️ Mạng công khai boot
+    bằng `net/genesis.json` do netgen sinh nên hôm nay nó là **bẫy nằm im**, không phải lỗ đang
+    chảy — đừng trích mạnh hơn thế. Cùng họ: `~/9chain-a1/vi-thu.json` là **khoá riêng trần**
+    (số dư 0 trên g0). **Cả hai chưa xoá — chờ David.**
 13. 🔴 **`local-net/net-public/` là một thư mục TRỘN — nửa chết, nửa sống.** Đo `28/08`:
     `keys.txt` là bộ **thế hệ 9001 đã chết** (kiem-khoa khai `networkID 9001`, cả 6 quỹ đọc ra
     **0 trên chain**), nhưng `chain-factory-key.txt` **cùng thư mục** lại là khoá **g0 đang
