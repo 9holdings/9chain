@@ -37,6 +37,7 @@ import { existsSync, readFileSync, writeFileSync, mkdtempSync, rmSync } from "no
 import { tmpdir, homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { SSH_HOST, SSH_KEY } from "../local-net/lib/server.mjs";
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FORK = path.join(GOC, "upstream/avalanchego");
@@ -48,8 +49,8 @@ const lay = (co, mac) => {
   const i = argv.indexOf(co);
   return i >= 0 && argv[i + 1] ? argv[i + 1] : mac;
 };
-const DICH = lay("--target", ""$A1_SSH_HOST"");
-const KHOA_SSH = lay("--ssh-key", path.join(homedir(), ".ssh/9chain-a1"));
+const DICH = lay("--host", SSH_HOST);
+const KHOA_SSH = lay("--ssh-key", SSH_KEY);
 const KNOWN = lay("--known-hosts", path.join(homedir(), ".ssh/known_hosts"));
 const NETWORK_ID = lay("--network-id", "999999999");
 const CONG = lay("--port", "8090");
@@ -86,7 +87,7 @@ function chay({ chiKiem, networkID = NETWORK_ID, dich = DICH, known = KNOWN, kho
     "-v", `${known}:/ssh/known_hosts:ro`,
     ...(khoaVi ? ["-v", `${khoaVi}:/vi/wallet-key:ro`] : []),
     "-v", "9chain-gomod:/go/pkg/mod",
-    "-e", `A1_SSH_TARGET=${dich}`,
+    "-e", `A1_SSH_HOST=${dich}`,
     "-e", `A1_NETWORK_ID=${networkID}`,
     ...(quy ? ["-e", `A1_VI_QUY=${quy}`] : []),
     ...(chiKiem ? ["-e", "A1_CHI_KIEM=1"] : []),

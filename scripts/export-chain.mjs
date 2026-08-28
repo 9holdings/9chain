@@ -14,7 +14,7 @@
 //
 // ═══ Con số công bố ═══
 // `MANIFEST.txt` liệt kê `sha256` từng tệp theo **đúng khuôn `sha256sum`**, nên kiểm lại được
-// bằng công cụ chuẩn (`sha256sum -c MANIFEST.txt`) mà **không cần tin bài này**. `GOC.txt` là
+// bằng công cụ chuẩn (`sha256sum -c MANIFEST.txt`) mà **không cần tin bài này**. `ROOT.txt` là
 // `sha256` của chính `MANIFEST.txt` — **đó là con số duy nhất phải công bố**, và nó neo toàn
 // bộ phần còn lại.
 //
@@ -68,9 +68,14 @@ const băm = (buf) => createHash("sha256").update(buf).digest("hex");
 const KIEM = cờ("--check");
 if (KIEM) {
   const đườngManifest = join(KIEM, "MANIFEST.txt");
-  const đườngGốc = join(KIEM, "GOC.txt");
-  if (!existsSync(đườngManifest) || !existsSync(đườngGốc)) {
-    console.error(`🔴 ${KIEM} thiếu MANIFEST.txt hoặc GOC.txt — không phải bộ xuất của bài này.`);
+  // 🔴 Tệp neo đổi tên `GOC.txt` → `ROOT.txt` ngày `2026-08-28`. Chế độ KIỂM phải đọc
+  // được **cả hai**: những bộ đã xuất trước đó đã được NIÊM, và niêm rồi thì không viết
+  // lại — đổi tên tệp trong một gói vật chứng là làm gói tự bác chính nó.
+  // Đây là tương thích với DỮ LIỆU ĐÃ GHI, không phải bí danh của đầu vào mới:
+  // chế độ XUẤT dưới đây chỉ còn sinh ra `ROOT.txt`.
+  const đườngGốc = [join(KIEM, "ROOT.txt"), join(KIEM, "GOC.txt")].find((p) => existsSync(p));
+  if (!existsSync(đườngManifest) || !đườngGốc) {
+    console.error(`🔴 ${KIEM} thiếu MANIFEST.txt hoặc ROOT.txt/GOC.txt — không phải bộ xuất của bài này.`);
     process.exit(2);
   }
   const bytesManifest = readFileSync(đườngManifest);
@@ -201,7 +206,7 @@ async function xuấtEVM(nhãn, đường) {
   const chainId = await gọiMềm(đường, "eth_chainId", []);
   const cao = await gọiMềm(đường, "eth_blockNumber", []);
   if (chainId === null || cao === null) {
-    console.log(`  ⚠️ ${nhãn}: KHÔNG gọi được (${đường}) — bỏ qua, đã ghi vào 00-DOC-TRUOC.md`);
+    console.log(`  ⚠️ ${nhãn}: KHÔNG gọi được (${đường}) — bỏ qua, đã ghi vào 00-READ-FIRST.md`);
     return null;
   }
   const caoSố = parseInt(cao, 16);
@@ -237,7 +242,7 @@ for (const spec of l1Xin) {
 // ─── Tệp cục bộ kèm theo ───
 for (const đ of TEP_KEM) {
   if (!existsSync(đ)) { cảnhBáo.push(`--attach ${đ}: không tồn tại, BỎ QUA`); console.log(`  ⚠️ bỏ qua ${đ} (không tồn tại)`); continue; }
-  ghi(posix.join("tep-kem", basename(đ)), readFileSync(đ));
+  ghi(posix.join("attachments", basename(đ)), readFileSync(đ));
   console.log(`  kèm: ${đ}`);
 }
 
@@ -249,7 +254,7 @@ const cắtGì = [
 // 🔴 Đếm cái ĐÃ XUẤT, không đếm cái ĐÃ XIN. Bản đầu đếm nhầm và tờ đầu khai "kèm 1 L1"
 // trong khi L1 đó gọi hỏng và không có một byte nào trong bộ — đúng lớp lỗi tệp này sinh
 // ra để chặn, và nó suýt đi vào chính công cụ chống nói dối.
-ghi("00-DOC-TRUOC.md", `# Bộ xuất mạng trước khi xoá — quy trình O2
+ghi("00-READ-FIRST.md", `# Bộ xuất mạng trước khi xoá — quy trình O2
 
 Mạng: **${info.networkName?.networkName ?? "?"}** (networkID ${info.networkID?.networkID ?? "?"}) ·
 node \`${info.nodeVersion?.version ?? "?"}\` · C-Chain chainId **${cChain?.chainIdThập ?? "?"}**
@@ -263,7 +268,7 @@ node scripts/export-chain.mjs --check <thư mục này>
 cd <thư mục này> && sha256sum -c MANIFEST.txt && sha256sum MANIFEST.txt
 \`\`\`
 
-Con số phải công bố là **\`GOC.txt\`** — \`sha256\` của \`MANIFEST.txt\`. Nó neo toàn bộ phần
+Con số phải công bố là **\`ROOT.txt\`** — \`sha256\` của \`MANIFEST.txt\`. Nó neo toàn bộ phần
 còn lại, nên công bố một dòng đó là đủ.
 
 ## 🔴 Bộ này KHÔNG chứa
@@ -313,12 +318,12 @@ const manifest = tênSắp.map((tên) => `${băm(tệp.get(tên))}  ${tên}`).jo
 writeFileSync(join(RA, "MANIFEST.txt"), Buffer.from(manifest, "utf8"));
 const gốc = băm(Buffer.from(manifest, "utf8"));
 const tổngByte = tênSắp.reduce((s, t) => s + tệp.get(t).length, 0);
-writeFileSync(join(RA, "GOC.txt"),
+writeFileSync(join(RA, "ROOT.txt"),
   Buffer.from(`${gốc}  MANIFEST.txt\n# ${tênSắp.length} tệp · ${tổngByte} byte\n`, "utf8"));
 
 console.log(`\n${tênSắp.length} tệp · ${tổngByte} byte`);
 if (cảnhBáo.length) {
-  console.log(`\n⚠️ ${cảnhBáo.length} chỗ không lấy được (đã ghi vào 00-DOC-TRUOC.md):`);
+  console.log(`\n⚠️ ${cảnhBáo.length} chỗ không lấy được (đã ghi vào 00-READ-FIRST.md):`);
   cảnhBáo.forEach((c) => console.log(`   · ${c}`));
 }
 console.log(`\n═══ CÔNG BỐ DÒNG NÀY TRƯỚC KHI XOÁ MẠNG ═══`);
