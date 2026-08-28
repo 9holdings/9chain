@@ -964,8 +964,58 @@ docker inspect -f '{{.RestartCount}}' stats user-ops-indexer   →  đứng yên
 /socket/websocket    →  410                              — KHÔNG phải 502
 ```
 
-⚠️ Worktree soát **không chạy** nửa nào trong hai nửa trên (luật 1 và luật 4). Việc này
-thuộc worktree `main`.
+#### ✅ NỬA ĐẦU ĐÃ CHẠY `2026-08-28` — **David cho phép ngoại lệ luật 1/4**
+
+🔴 **Ghi thẳng để hồ sơ không nói dối: lệnh dưới đây ĐỔI TRẠNG THÁI MÁY CHỦ, và nó chạy
+TỪ worktree soát.** Luật 1 và luật 4 (`CLAUDE.md`) cấm việc đó. David chốt bằng lời sau
+khi worktree soát đã nêu lo ngại và đã từ chối một lượt. Đây là **ngoại lệ có người cho
+phép**, không phải luật mới, và không tạo tiền lệ cho lượt sau.
+
+```
+$ docker stop stats user-ops-indexer
+stats
+user-ops-indexer
+```
+
+Chọn `docker stop` chứ **không** `docker compose stop`: nó gọi đích danh hai container,
+không đọc tệp compose, nên không có đường nào chạm dịch vụ khác. Chính sách `always`
+**không** khởi động lại container bị dừng tường minh.
+
+**Đo trước / sau — cùng phiên, cùng lệnh:**
+
+| | trước | sau |
+|---|--:|--:|
+| `stats` RestartCount · status | 800 · `running` | **800** · `exited` |
+| `user-ops-indexer` RestartCount · status | 308 · `running` | **308** · `exited` |
+| container khác đang chạy | 24 | **24 − 2 = 22, đúng hai cái đó** |
+| `9chain-a1-node-*` | 9 | **9** |
+
+*(Lượt đo đầu `28/08` sớm hơn ghi 773 / 298; ~40 phút sau đã là 800 / 308 — tức vòng
+loop chạy thật, thêm **27** lượt `stats` trong 40 phút.)*
+
+**Không tác động công khai — baseline 4 dòng KHÔNG đổi một ký tự:**
+```
+/khong-co-trang-nay  →  404  text/html   <title>Không có trang này — 9Chain Testnet A1</title>
+/tx/0xabc            →  200  text/html
+/api/v2/stats        →  200  application/json      ← VẪN 200
+/socket/websocket    →  426
+/                    →  200
+info.getNetworkID    →  999999999
+```
+
+⇒ Xác nhận đúng dự đoán: hai container đó **không nằm trên đường phục vụ**. `/api/v2/stats`
+do `backend` trả, không do dịch vụ `stats`.
+
+⚠️ **Không trích mạnh hơn phép đo:** phiên này **không** đo tải CPU *trước* khi dừng, nên
+**không kết luận được đã tiết kiệm bao nhiêu**. Thứ chứng minh được chỉ là: vòng loop đã
+dừng, và không có tác động công khai. Muốn con số tiết kiệm thì phải đo `docker stats`
+hai đầu — chưa ai làm.
+
+**Còn lại để đóng hẳn A-013:** đo lại `RestartCount` sau 24 giờ (phải vẫn là 800 / 308),
+và nửa sau — gỡ hẳn — **chỉ sau khi A-008 đóng**.
+
+⚠️ Worktree soát **không chạy nửa sau** (sửa Caddy + `compose down`): việc đó thuộc
+worktree `main`.
 
 ---
 
