@@ -86,6 +86,9 @@ const GATES = [
   // debt may only shrink. Included in the G-day run because that is the most rushed moment,
   // and rushing is exactly when someone types a non-English comment into a new file.
   { group: "2 · REPO GATES", name: "source code is English only (ratchet)", ...node("scripts/check-english-code.mjs") },
+  // The L1 genesis TEMPLATE still carries chainId 9100 and the public ewoq key. Nothing may
+  // ship it raw; this gate proves the builder still strips all three (D-114).
+  { group: "2 · REPO GATES", name: "L1 genesis builder strips the template defaults", ...node("scripts/make-l1-genesis.mjs", "--self-test") },
 
   // ── 3. The real world — the running network and the server ──
   { group: "3 · REAL WORLD", needsNetwork: true, name: "the running network (watch-network)", ...node("scripts/watch-network.mjs") },

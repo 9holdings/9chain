@@ -80,11 +80,12 @@ quá khứ hay sẽ được xuất bản?*
 ## 3. Danh sách cổng — chạy trước khi tin bất cứ điều gì
 
 ```bash
-node scripts/gday-preflight.mjs              # 17 cổng + 15 VIỆC TAY, một lệnh (~90s)
+node scripts/gday-preflight.mjs              # 18 cổng + 15 VIỆC TAY, một lệnh (~90s)
 node scripts/check-net-dirs.mjs              # thư mục net* nào thuộc thế hệ nào · thư mục nào giữ TIỀN
 node scripts/check-evidence.mjs              # gói vật chứng còn tự nghiệm thu được không
 node scripts/check-single-source.mjs         # một hằng số, MỘT nơi khai
 node scripts/check-english-code.mjs          # mã nguồn chỉ có tiếng Anh (bánh cóc, §0)
+node scripts/make-l1-genesis.mjs --self-test  # khuôn L1 KHÔNG được dùng nguyên xi (D-114)
 node scripts/check-deploy-drift.mjs          # repo ↔ server (chạy TRƯỚC mọi mục "đã đóng")
 node scripts/check-consistency.mjs --self-test # số học tokenomics, đọc THẲNG từ Go
 node scripts/gen-chainid-issued.mjs --check  # sổ chainId/tên xuyên thế hệ
@@ -97,7 +98,7 @@ bash scripts/h6b-backup.sh --check           # bản sao lưu có dựng lại �
 node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
 ```
 
-⚠️ `gday-preflight.mjs` gọi **17 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`
+⚠️ `gday-preflight.mjs` gọi **18 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`
 ×2, `check-single-source`, `check-english-code`); ba cổng cuối trong danh sách trên đứng ngoài nó (hai cái là VIỆC TAY của nó,
 `check-robots` là mặt web — không đủ tư cách chặn genesis).
 

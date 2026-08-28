@@ -59,7 +59,15 @@ case "${1:-}" in
       create)
         NAME="${3:-9ChainA1L1}"
         echo "==> tạo L1 '$NAME'"
-        OUT=$(cli l1 create --uri "$API" --genesis /9chain-a1/config/l1-evm-genesis.json --name "$NAME")
+        # 🔴 Build a genesis for THIS run. The `l1-evm-genesis.json` template declares
+        # `chainId 9100` (already taken, B-14) and hands the whole supply plus fee-admin
+        # rights to the PUBLIC `ewoq` key. See D-114.
+        mkdir -p "$ROOT/9chain-a1-config/console-tmp"
+        GEN_REL="console-tmp/l1-cli-$(date +%s).json"
+        node "$ROOT/scripts/make-l1-genesis.mjs" \
+          --admin "${A1_L1_ADMIN:?set A1_L1_ADMIN=0x... - no default; the old default was the PUBLIC ewoq key}" \
+          --out "$ROOT/9chain-a1-config/$GEN_REL" || exit 1
+        OUT=$(cli l1 create --uri "$API" --genesis "/9chain-a1/config/$GEN_REL" --name "$NAME")
         echo "$OUT"
         SUBNET=$(echo "$OUT" | grep -oE 'SUBNET_ID=[A-Za-z0-9]+' | cut -d= -f2)
         BID=$(echo "$OUT"    | grep -oE 'BLOCKCHAIN_ID=[A-Za-z0-9]+' | cut -d= -f2)
