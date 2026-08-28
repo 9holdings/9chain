@@ -71,6 +71,15 @@ Cùng lỗi nằm luôn trên **đường ký ví tiền thật** (`wallet-tunne
 không suy ra địa chỉ"*. **Cả hai đã vá + 7/7 đối chứng ngược.** Bài học: một **công cụ hỏng**
 không được phép thành một **phán quyết về khoá** — nay công cụ phải **tự khai đã chạy**.
 
+🔴 **VÀ MỘT BẢN SAO KHOÁ QUỸ ĐÃ NẰM TRẦN TRONG `%TEMP%` SUỐT 20 GIỜ** (D-117). Tìm ra khi quét
+*"đã có bản thứ hai nào chưa"*: `…\Temp\claude\…\scratchpad\kk\` giữ **bản trùng byte** của bộ
+g0, cộng hai bản *"làm hỏng"* dựng làm ca đối chứng — mà **bản làm hỏng vẫn chứa đủ khoá riêng
+thật**. Ba cổng cùng mù vì ba lý do khác nhau. ✅ Đã `shred -u -n 3` theo kỷ luật D-107, và có
+cổng canh mới: **`node scripts/check-key-leaks.mjs`** (6/6 đối chứng, nay **exit 0**).
+⚠️ Bản nháp đầu của cổng đó đỏ **32 tệp** gồm hai `PROGRESS.md` trong git — nó đo *sự có mặt của
+một CHỮ*, không phải *của một KHOÁ*. Đã sửa: đo `PrivateKey-` + **40+ base58**, rồi **so với bộ
+quỹ sống** để tách 🔴 tiền thật khỏi 🟡 khoá mạng tập.
+
 **B-16 — bản sao thứ hai của khoá quỹ.** Đo `28/08`: máy dev có **đúng một ổ đĩa**
 (`C:`, 1.862 GB) — không USB, không ổ ngoài. *"Hai nơi khác nhau về vật lý"* **không tạo ra
 được từ phần mềm**; `C:\PROJECTS\9Chain-backups\` cũng trên `C:` nên **không tính**.

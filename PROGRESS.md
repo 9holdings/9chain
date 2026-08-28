@@ -103,6 +103,25 @@ rồi giao ba việc bật ra từ bản quét đó.
       · ca đắt nhất nay xanh **vì đúng lý do** · `o1-check` bộ g0 ⇒ **exit 0** · đo thẳng trên
       khối khoá **đã chết**: tên cũ ⇒ exit 1 **không dấu tự khai**, tên mới ⇒ exit 0 **có dấu**
       · `bash -n enter.sh` đạt · `check-english-code` **5856 → 5786** (trả 70 dòng).
+- [x] **Q-5c — 🔴 KHOÁ QUỸ ĐANG GIỮ TIỀN NẰM TRẦN TRONG THƯ MỤC TẠM 20 GIỜ** (D-117)
+      Tìm ra khi quét *"đã có bản sao thứ hai nào chưa"*: `…\Temp\claude\…\scratchpad\kk\` chứa
+      **bản trùng byte** của bộ g0 (`keys.txt` + `allocation.md` khớp từng hash) **cộng** hai
+      bản *"làm hỏng"* dựng làm ca đối chứng đêm `27/08` — mà **bản làm hỏng vẫn chứa đủ khoá
+      riêng thật**.
+      🔴 Ba cổng cùng mù, mỗi cổng vì lý do riêng: `check-net-dirs` chỉ đi trong `local-net/` ·
+      `o1-check` **không ai bảo nó nhìn đâu** · `check-deploy-drift` so repo↔server, tệp này
+      không thuộc bên nào.
+      ✅ Cổng mới **`scripts/check-key-leaks.mjs`**. 🔴 **Bản nháp đầu của nó cũng sai, và sai
+      đúng lớp lỗi của dự án**: khớp chuỗi `PrivateKey-` ⇒ đỏ **32 tệp**, gồm **hai
+      `PROGRESS.md` trong git** (chỗ khớp là câu *"đã quét: không có `PrivateKey-*`"*). Nó đo
+      **sự có mặt của một CHỮ**, không phải **của một KHOÁ**. Bản đúng đo hai đại lượng:
+      (1) có phải khoá — `PrivateKey-` + **40+ ký tự base58**; (2) có phải khoá **GIỮ TIỀN** —
+      băm rồi so với bộ quỹ sống. Trùng ⇒ 🔴; không trùng ⇒ 🟡 **báo mà không chặn**.
+      **Đối chứng:** self-test **6/6** (có ca *"tài liệu chỉ NHẮC ⇒ không phải rò rỉ"* và ca
+      *"không đọc được bộ quỹ ⇒ 2, KHÔNG phải 0"*) · chạy thật **trước** khi dọn ⇒ 🔴 đúng **2**
+      tệp, hai `PROGRESS.md` **rơi khỏi danh sách** · dọn theo D-107 (LIỆT KÊ 4/4 hash khớp →
+      `shred -u -n 3` → ĐỐI CHỨNG) · sau khi dọn ⇒ cổng **exit 0**, bản gốc **khớp từng byte**.
+      🟡 Còn **19 tệp khoá mạng diễn tập** rải trong cây tạm — không phải tiền, không chặn.
 
 **Số đo cuối phiên:** preflight **12/12 xanh, exit 0** (14 việc tay) · `watch-network` 9/9 ·
 drift `19 khớp · 0 lệch · 0 thiếu` · `o1-check` trên bộ g0 **chính** ⇒ **exit 0** (nó ĐÚNG là bộ

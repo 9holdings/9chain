@@ -124,6 +124,13 @@ cổng khai bộ khoá **hoàn toàn đúng** thành *"🔴 SAI — đừng cấ
 
 ## 5. Sau khi đạt
 
+0. 🔴 **Quét vệt còn sót — trên MÁY NGUỒN:**
+   ```bash
+   node scripts/check-key-leaks.mjs
+   ```
+   Phải **exit 0**. Lượt chép nào cũng có thể để lại một bản trung chuyển mà chính người chép
+   quên mất: `28/08` tìm ra một bản **trùng byte** nằm trong `%TEMP%` **20 giờ**, ngoài tầm cả
+   ba cổng đang có (D-117). Cổng này đỏ **chỉ khi** khoá tìm được **trùng bộ quỹ đang sống**.
 1. **Giữ NGUYÊN bản gốc** ở `C:\Users\abc\9chain-a1-keys\g0\`. B-16 hỏi *"có HAI bản không"* —
    di dời không phải sao lưu.
 2. Ghi ra giấy/sổ: **máy nào · thư mục nào · ngày nào**. Một bản sao không ai nhớ chỗ là

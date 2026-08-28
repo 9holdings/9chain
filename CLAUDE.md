@@ -93,6 +93,7 @@ node local-net/console/chainid-test.mjs      # phép cấp chainId
 node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs               # tra sổ công khai chainid.network
 node scripts/check-keys-on-chain.mjs <thư-mục>/allocation.md   # khoá ↔ TIỀN THẬT
+node scripts/check-key-leaks.mjs             # khoá quỹ nằm NGOÀI nơi được phép (D-117)
 node scripts/wallet-over-tunnel.mjs --check           # ví ký không chạm server (M11.10)
 bash scripts/h6b-backup.sh --check           # bản sao lưu có dựng lại được mạng không
 node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
@@ -127,6 +128,7 @@ tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đ
 | **Quét-và-thay "trên mọi tệp văn bản"** | `patches/` và `docs/evidence/**` phải **loại trừ TƯỜNG MINH**. Đã cháy **hai lần trong một phiên** (`28/08`): một lần patch 0006 (cổng bắt được), một lần gói vật chứng (**không cổng nào bắt**, 9/9 → 7/9 im lặng) |
 | Sinh lại `MANIFEST.txt` / `SHA256SUMS.txt` cho một gói vật chứng | làm thế là **xoá đúng thứ tạo ra giá trị** của gói. Gói lệch hash thì **khôi phục byte gốc**, không sinh lại manifest |
 | Xoá một thư mục `local-net/net*` | 🔴 chạy `check-net-dirs.mjs` trước: **khoá đang giữ tiền nằm trong thư mục tự khai là đồ chết** (B-19) |
+| **Chép khoá quỹ ra thư mục tạm để dựng ca đối chứng** | Đã cháy: bản **trùng byte** của bộ g0 nằm trong `%TEMP%\claude\…\scratchpad\` **20 giờ**, ngoài tầm cả ba cổng. Và bản *"làm hỏng"* cố ý **vẫn chứa đủ khoá riêng thật**. Dọn bằng `shred -u -n 3` **ngay trong phiên tạo ra nó**; canh bằng `check-key-leaks.mjs` (D-117) |
 
 ## 5. Bẫy phải biết trước (bản rút gọn — bản đầy đủ ở `HANDOFF.md` §GOTCHAS)
 

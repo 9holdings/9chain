@@ -4137,3 +4137,55 @@ chưa phải một cổng (luật cứng #2, vế 2). Lượt đổi tên sau ch
 🔴 **Việc còn lại của B-16 KHÔNG đổi:** cổng nay đúng, nhưng nó vẫn chỉ mới chấm ĐẠT cho bản
 **gốc**. Bản thứ hai vẫn chưa tồn tại. David chốt `28/08`: phương tiện là **máy tính thứ hai** —
 quy trình ở [`docs/O1-SECOND-COPY-RUNBOOK.md`](docs/O1-SECOND-COPY-RUNBOOK.md).
+
+## D-117 — Khoá quỹ ĐANG GIỮ TIỀN nằm trần trong thư mục tạm 20 giờ, ngoài tầm mọi cổng (2026-08-28)
+
+Trong lúc tìm *"đã có bản sao thứ hai nào chưa"*, một lượt quét toàn ổ tìm ra **bản sao trùng
+byte của bộ khoá quỹ g0** ở `…\Temp\claude\…\<phiên>\scratchpad\kk\` — bốn tệp: `keys.txt` +
+`allocation.md` **khớp bản gốc từng hash**, cộng `keys-hong.txt` + `allocation-hong.md`, hai bản
+sửa tay dựng làm ca đối chứng cho D-090/D-097 đêm `27/08`. Nằm đó **20 giờ**, giữ quyền chi của
+cả 6 quỹ.
+
+🔴 **Ba cổng cùng mù, mỗi cổng vì một lý do khác nhau** — và đó mới là điều đáng ghi:
+- `check-net-dirs.mjs` chỉ đi trong `local-net/`; chỗ này nằm dưới `%LOCALAPPDATA%\Temp`.
+- `o1-check.mjs` trả lời *"thư mục NÀY có phải bản sao tốt không"* — **không ai bảo nó nhìn đâu**.
+- `check-deploy-drift.mjs` so repo ↔ server; tệp này không thuộc bên nào.
+
+⇒ Đúng hình dạng quen thuộc: **mọi cổng xanh vì không cổng nào đo đại lượng này.**
+
+**Cổng mới `scripts/check-key-leaks.mjs`** — và bản nháp đầu của nó là một bài học riêng:
+
+> Bản đầu khớp chuỗi `PrivateKey-` và **đỏ trên 32 tệp**, trong đó có **hai `PROGRESS.md` nằm
+> trong git** — chỗ khớp là câu *"Đã quét secret: không có `PrivateKey-*`"*. Nó đo **sự có mặt
+> của một CHỮ**, không phải **sự có mặt của một KHOÁ**. Một cổng in 32 dòng phần lớn là nhiễu
+> thì **dạy người ta thôi đọc nó** — đúng lớp lỗi đắt nhất của dự án, hạ cánh xuống chính công
+> cụ sinh ra để chặn nó.
+
+Bản đúng đo **hai đại lượng, theo thứ tự**:
+1. **Có phải khoá không** — `PrivateKey-` + **40+ ký tự base58** (khoá cb58 dài ~51). Một tài
+   liệu nhắc `PrivateKey-*` không phải khoá.
+2. **Có phải khoá GIỮ TIỀN không** — băm từng khoá tìm được, so với khoá trong **bộ quỹ đang
+   sống**. Trùng ⇒ 🔴 ĐỎ. Không trùng ⇒ 🟡 **báo mà không chặn**: khoá mạng diễn tập rải khắp
+   cây tạm, đỏ vì chúng mỗi lượt là cách biến một cổng thành giấy dán tường.
+
+🔴 **Không bao giờ in khoá** — so sánh chỉ bằng `sha256` của chuỗi khoá. Và **không đọc được bộ
+quỹ ⇒ mã `2`**: không có mốc so thì câu *"khoá này không phải khoá quỹ"* là một **giả định**,
+không phải phép đo.
+
+| nghiệm thu | đo được |
+|---|---|
+| `--self-test` | **6/6**, gồm ca *"tài liệu chỉ NHẮC `PrivateKey-*` ⇒ 0, không được gọi là rò rỉ"* |
+| chạy trên máy thật, **trước** khi dọn | 🔴 đúng **2** tệp (`kk/keys.txt`, `kk/keys-hong.txt`) · 19 tệp khoá mạng tập ⇒ 🟡 · hai `PROGRESS.md` **rơi khỏi danh sách** |
+| dọn theo D-107 | LIỆT KÊ (4/4 hash khớp danh sách đã duyệt) → `shred -u -n 3` → ĐỐI CHỨNG |
+| sau khi dọn | cổng **exit 0** · bản gốc `9chain-a1-keys/g0` **khớp từng byte** |
+
+⚠️ **`keys-hong.txt` — bản "làm hỏng" cố ý — VẪN chứa đủ khoá riêng thật.** Làm hỏng một trường
+để dựng ca đối chứng **không** làm tệp đó bớt nhạy cảm. Ai dựng ca đối chứng từ dữ liệu thật
+phải dọn nó như dọn dữ liệu thật.
+
+⚠️ **Phạm vi cổng là 7 gốc, không phải cả ổ đĩa** — quét toàn `C:` mất nhiều phút và **một cổng
+không ai chạy thì không phải cổng**. Ngoài 7 gốc đó là **chưa đo**, không phải *sạch*; tệp khai
+rõ điều đó thay vì im lặng.
+
+🔴 **Còn 19 tệp khoá mạng diễn tập nằm rải trong cây tạm.** Không phải tiền, nhưng đúng thứ để
+ai đó cất nhầm — chính là bẫy B-19 và gotcha 11 ở dạng khác. Việc dọn: không gấp, không chặn.
