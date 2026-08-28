@@ -27,6 +27,18 @@
  */
 
 import { readFileSync } from "node:fs";
+// 🔴 `import` chứ không chép: đây là ĐÚNG mô-đun console dùng để cấp chainId cho
+// L1 người dùng. Chép bảng số sang đây là tái phạm lỗi mà chính tệp này đã dính
+// một lần với `SupplyCap` (xem khối chú thích ngay dưới).
+import {
+  A1_GEN,
+  A1_ID_GOC,
+  NETWORK_ID,
+  TEN_MANG,
+  GOC_DAI_CHAINID,
+  TRAN_DAI_CHAINID,
+  TRAN_TOAN_DAI,
+} from "../local-net/lib/chainid.mjs";
 
 const U64_MAX = (1n << 64n) - 1n;
 
@@ -68,6 +80,184 @@ function docSupplyCapTuGo() {
 }
 
 const SUPPLY_CAP_GO = docSupplyCapTuGo();
+
+// ═════════════════════════════════════════════════════════════════════════════
+// BỘ ĐỊNH DANH THẾ HỆ — `A1Gen` (Go) ↔ `A1_GEN` (JS)
+//
+// 🔴 VÌ SAO CÓ. Đo `2026-08-28`: thế hệ mạng được khai **hai lần, bằng hai ngôn
+// ngữ, ở hai tệp không ai nối với nhau** —
+//
+//   Go  `utils/constants/network_ids.go`  → `A1Gen`   ⇒ binary + netgen
+//   JS  `local-net/lib/chainid.mjs`       → `A1_GEN`  ⇒ console cấp chainId L1
+//
+// `chainid.mjs` **tự khai** rằng nó là bản chép (*"Đây là bản chép, và bản chép
+// thì trôi lệch… Đừng sửa số này một mình"*) — nhưng lời dặn ấy sống trong một
+// khối chú thích, tức nó chỉ có hiệu lực với người ĐỌC ĐÚNG TỆP ĐÓ đúng hôm ấy.
+//
+// Ngày G bump `0 → 1`. Bump một bên mà quên bên kia thì **không có gì báo lỗi**:
+// node lên bình thường, console chạy bình thường, và console cấp chainId từ khối
+// của **thế hệ khác**. Số đó đi vào ví người dùng qua một genesis **bất biến**.
+// Đúng lớp lỗi đã ghi ở `CLAUDE.md` §2 — mọi cổng xanh vì không cổng nào đo
+// **quan hệ giữa hai tệp**.
+//
+// ⚠️ Phía JS **`import` mã thật**, không regex: `chainid.mjs` là lib thuần (không
+// `listen()`), nên đọc được giá trị đã TÍNH — gồm cả công thức dẫn xuất. Regex
+// chỉ đọc được chữ; ở đây thứ cần kiểm là **kết quả**.
+// ═════════════════════════════════════════════════════════════════════════════
+const GO_DINH_DANH = new URL(
+  "../upstream/avalanchego/utils/constants/network_ids.go",
+  import.meta.url,
+);
+
+function docDinhDanhTuGo() {
+  let src;
+  try {
+    src = readFileSync(GO_DINH_DANH, "utf8");
+  } catch (e) {
+    return { loiDoc: `không đọc được ${GO_DINH_DANH.pathname}: ${e.code ?? e.message}` };
+  }
+  // Neo vào DÒNG GÁN, không vào chú thích — khối chú thích phía trên nhắc cả năm
+  // tên này nhiều lần, khớp nhầm vào đó là đọc ra số của một ví dụ (cùng kỷ luật
+  // với `docSupplyCapTuGo`).
+  const soU32 = (ten) => {
+    const m = src.match(new RegExp(`^\\s*${ten}\\s+uint32\\s*=\\s*([0-9_]+)`, "m"));
+    return m ? Number(m[1].replace(/_/g, "")) : null;
+  };
+  const chuoi = (ten) => {
+    const m = src.match(new RegExp(`^\\s*${ten}\\s*=\\s*"([^"]+)"`, "m"));
+    return m ? m[1] : null;
+  };
+  return {
+    gen: soU32("A1Gen"),
+    idGoc: soU32("A1IDGoc"),
+    idGocTap: soU32("A1IDGocTap"),
+    ten: chuoi("A1Name"),
+    tenTap: chuoi("A1NameTap"),
+    loiDoc: null,
+  };
+}
+
+/** Ghép hai nguồn thành MỘT đối tượng để `chayDinhDanh` (và ca đối chứng) đọc. */
+function ganDinhDanh() {
+  return {
+    go: docDinhDanhTuGo(),
+    js: {
+      gen: A1_GEN,
+      idGoc: A1_ID_GOC,
+      netID: NETWORK_ID,
+      ten: TEN_MANG,
+      gocDai: GOC_DAI_CHAINID,
+      tranDai: TRAN_DAI_CHAINID,
+      tranToanDai: TRAN_TOAN_DAI,
+    },
+  };
+}
+
+const TRAN_U32 = 4_294_967_295;
+const BIEN_DO_GEN = 999; // khớp `bienDo` trong `network_ids.go`
+
+function chayDinhDanh(d) {
+  const loi = [];
+  const ok = [];
+  const K = (n) => (typeof n === "number" ? n.toLocaleString("en-US") : String(n));
+  const dat = (dieuKien, cau) => (dieuKien ? ok : loi).push(cau);
+
+  if (d.go.loiDoc) {
+    loi.push(`KHÔNG ĐỌC ĐƯỢC bộ định danh bên Go — ${d.go.loiDoc}`);
+    return { ok, loi };
+  }
+  for (const [khoa, ten] of [["gen", "A1Gen"], ["idGoc", "A1IDGoc"], ["idGocTap", "A1IDGocTap"]]) {
+    if (d.go[khoa] === null) loi.push(`không tìm thấy dòng gán \`${ten} uint32 = <số>\` trong Go`);
+  }
+  for (const [khoa, ten] of [["ten", "A1Name"], ["tenTap", "A1NameTap"]]) {
+    if (d.go[khoa] === null) loi.push(`không tìm thấy dòng gán \`${ten} = "<tên>"\` trong Go`);
+  }
+  if (loi.length) return { ok, loi };
+
+  // 1. 🔴 CÂU HỎI CHÍNH CỦA CẢ KHỐI NÀY. Mọi dòng dưới đây chỉ có nghĩa nếu dòng này đúng.
+  dat(
+    d.go.gen === d.js.gen,
+    `thế hệ khớp HAI ngôn ngữ: Go \`A1Gen\` = ${K(d.go.gen)} · JS \`A1_GEN\` = ${K(d.js.gen)}`,
+  );
+
+  // 2. A1Gen trong biên độ — Go tự khai `bienDo = 999` khi nhận diện băng.
+  dat(
+    d.go.gen >= 0 && d.go.gen <= BIEN_DO_GEN,
+    `A1Gen ${K(d.go.gen)} nằm trong biên độ 0…${BIEN_DO_GEN} (khối chainId chỉ đủ ${BIEN_DO_GEN + 1} thế hệ)`,
+  );
+
+  // 3. TÊN mạng phải mang đúng thế hệ. Tên đi vào **đường dẫn DB** (config.go:1008),
+  //    nên tên lệch thế hệ là mạng mới đọc thư mục dữ liệu của mạng cũ.
+  dat(d.go.ten === `9chain-a1-g${d.go.gen}`, `A1Name = "${d.go.ten}" khớp A1Gen ${K(d.go.gen)}`);
+  dat(
+    d.go.tenTap === `9chain-a1-tap-g${d.go.gen}`,
+    `A1NameTap = "${d.go.tenTap}" khớp A1Gen ${K(d.go.gen)}`,
+  );
+
+  // 4. networkID suy ra từ thế hệ — hai băng THẬT/TẬP không bao giờ chạm nhau.
+  const netID = d.go.idGoc - d.go.gen;
+  const netIDTap = d.go.idGocTap - d.go.gen;
+  ok.push(`networkID suy ra = ${K(d.go.idGoc)} − ${K(d.go.gen)} = ${K(netID)}`);
+
+  // 4b. 🔴 Ba số console DÙNG ĐỂ ĐỐI CHIẾU VỚI NODE ĐANG CHẠY. Chúng phải là hệ
+  //     quả của Go, không phải ba lần gõ tay độc lập — nếu không thì cổng
+  //     "console hỏi node thế hệ nào" (`kiemTheHeMang`) đang so node với một con
+  //     số trôi lệch, tức nó xanh vì hai cái sai giống nhau.
+  dat(
+    d.js.idGoc === d.go.idGoc,
+    `đỉnh băng khớp: Go \`A1IDGoc\` = ${K(d.go.idGoc)} · JS \`A1_ID_GOC\` = ${K(d.js.idGoc)}`,
+  );
+  dat(
+    d.js.netID === netID,
+    `JS \`NETWORK_ID\` = ${K(d.js.netID)} = networkID suy từ Go (${K(netID)})`,
+  );
+  dat(
+    d.js.ten === d.go.ten,
+    `JS \`TEN_MANG\` = "${d.js.ten}" khớp Go \`A1Name\` = "${d.go.ten}"`,
+  );
+  dat(
+    d.go.idGoc - BIEN_DO_GEN > d.go.idGocTap,
+    `băng THẬT (${K(d.go.idGoc - BIEN_DO_GEN)}…${K(d.go.idGoc)}) không chạm băng TẬP (…${K(d.go.idGocTap)})`,
+  );
+
+  // 5. Khối chainId của JS phải SUY ĐÚNG từ thế hệ. Đây là chỗ thiệt hại thật:
+  //    console thế hệ mới mà giữ khối cũ thì nó phát lại số thế hệ trước đã phát.
+  const gocDung = d.js.gen === 0 ? 9_000_000_010 : 9_000_000_000 + d.js.gen * 1_000_000;
+  const tranDung = 9_000_000_000 + d.js.gen * 1_000_000 + 999_999;
+  dat(
+    d.js.gocDai === gocDung,
+    `gốc khối chainId = ${K(d.js.gocDai)} (suy từ A1_GEN ${K(d.js.gen)} phải là ${K(gocDung)})`,
+  );
+  dat(
+    d.js.tranDai === tranDung,
+    `trần khối chainId = ${K(d.js.tranDai)} (suy từ A1_GEN ${K(d.js.gen)} phải là ${K(tranDung)})`,
+  );
+  dat(d.js.gocDai < d.js.tranDai, `khối thế hệ không rỗng: ${K(d.js.gocDai)} < ${K(d.js.tranDai)}`);
+  dat(
+    d.js.tranDai <= d.js.tranToanDai,
+    `khối thế hệ nằm trong toàn dải L1 (trần ${K(d.js.tranToanDai)})`,
+  );
+
+  // 6. Ba tính chất an toàn mà `chainid.mjs` khai — kiểm chúng bằng SỐ, đừng tin chú thích.
+  dat(
+    netID < d.js.gocDai,
+    `networkID ${K(netID)} nằm DƯỚI sàn khối chainId ${K(d.js.gocDai)} (chép nhầm ô thì cổng console bắt được)`,
+  );
+  dat(
+    netIDTap < d.js.gocDai,
+    `networkID mạng TẬP ${K(netIDTap)} cũng nằm dưới sàn khối chainId`,
+  );
+  dat(
+    d.js.gocDai > TRAN_U32,
+    `toàn dải L1 vượt trần uint32 ${K(TRAN_U32)} (chép nhầm chiều ngược lại ⇒ node KHÔNG khởi động được, lỗi to chứ không im lặng)`,
+  );
+  dat(
+    String(netID).length < String(d.js.gocDai).length,
+    `networkID ${String(netID).length} chữ số < chainId L1 ${String(d.js.gocDai).length} chữ số (không nhìn nhầm nhau)`,
+  );
+
+  return { ok, loi };
+}
 
 // ═════════════════════════════════════════════════════════════════════════════
 // BẢNG SỐ — nguồn duy nhất. Sửa ở đây rồi mới sửa Go, và chạy cổng này trước.
@@ -263,9 +453,43 @@ function tuKiem() {
   return hong;
 }
 
+// ═════ ĐỐI CHỨNG NGƯỢC — BỘ ĐỊNH DANH ═════
+// 🔴 Ca 1 và ca 2 KHÔNG phải giả định: chúng là đúng hai cách quên của ngày G.
+function tuKiemDinhDanh() {
+  const caSai = [
+    ["ngày G: bump JS mà QUÊN Go", (d) => { d.js.gen = 1; }],
+    ["ngày G: bump Go mà QUÊN JS", (d) => { d.go.gen = 1; }],
+    ["bump cả hai nhưng quên đổi A1Name", (d) => { d.go.gen = 1; d.js.gen = 1; d.js.gocDai = 9_001_000_000; d.js.tranDai = 9_001_999_999; }],
+    ["thế hệ mới nhưng khối chainId GIỮ NGUYÊN của thế hệ cũ", (d) => {
+      d.go.gen = 1; d.js.gen = 1; d.go.ten = "9chain-a1-g1"; d.go.tenTap = "9chain-a1-tap-g1";
+    }],
+    ["trần khối lệch gốc khối", (d) => { d.js.tranDai = d.js.gocDai - 1; }],
+    ["khối thế hệ tràn ra ngoài toàn dải L1", (d) => { d.js.tranToanDai = 9_000_000_100; }],
+    ["networkID rơi VÀO trong khối chainId", (d) => { d.go.idGoc = 9_000_000_100; }],
+    ["A1Gen vượt biên độ 999", (d) => { d.go.gen = 1000; d.js.gen = 1000; }],
+    ["băng THẬT chạm băng TẬP", (d) => { d.go.idGocTap = 999_999_000; }],
+    ["JS gõ lại đỉnh băng thành số khác", (d) => { d.js.idGoc = 999_999_998; }],
+    ["🔴 console mang networkID của thế hệ TRƯỚC (số console so với node)", (d) => { d.js.netID = 999_999_998; }],
+    ["JS TEN_MANG lệch A1Name của Go", (d) => { d.js.ten = "9chain-a1"; }],
+    ["không đọc được network_ids.go", (d) => { d.go = { loiDoc: "ca thử" }; }],
+    ["Go đổi cách khai A1Gen (regex hết khớp)", (d) => { d.go.gen = null; }],
+  ];
+  let hong = 0;
+  console.log("\n══ ĐỐI CHỨNG NGƯỢC — BỘ ĐỊNH DANH: mỗi ca PHẢI ra đỏ ══");
+  for (const [ten, pha] of caSai) {
+    const d = ganDinhDanh();
+    pha(d);
+    const { loi } = chayDinhDanh(d);
+    if (loi.length > 0) console.log(`  ✓ "${ten}" → bắt được (${loi.length} lỗi)`);
+    else { console.log(`  ✗ "${ten}" → KHÔNG bắt được — cổng này đang MÙ ở chỗ đó`); hong++; }
+  }
+  return hong;
+}
+
 const tuKiemMode = process.argv.includes("--tu-kiem");
 let hong = inKetQua(chay(BANG, THANG), "BẢNG ĐANG KHAI (DECISIONS D-039 · D-042)");
-if (tuKiemMode) hong += tuKiem();
+hong += inKetQua(chayDinhDanh(ganDinhDanh()), "BỘ ĐỊNH DANH THẾ HỆ (Go ↔ JS) — D-079 · D-093");
+if (tuKiemMode) hong += tuKiem() + tuKiemDinhDanh();
 
 if (hong) {
   console.log(`\n✗ ${hong} vấn đề — ĐỪNG sửa genesis cho tới khi sạch.`);

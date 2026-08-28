@@ -24,6 +24,16 @@
 // `chainid-test.mjs`. Đừng sửa số này một mình.
 export const A1_GEN = 0;
 
+// ─── Ba thứ dẫn xuất từ thế hệ — KHAI Ở ĐÂY, đừng chép lẻ ra chỗ khác ───
+//
+// 🔴 Trước `2026-08-28` mỗi nơi cần networkID lại gõ lại `999999999`. Gõ lại là
+// đẻ thêm một bản chép nữa, mà bản chép nào cũng trôi lệch được — và ở đây trôi
+// lệch nghĩa là console nói chuyện với một thế hệ mạng khác mà không biết.
+// `scripts/check-consistency.mjs` nối cả ba số này về `constants.A1*` bên Go.
+export const A1_ID_GOC = 999_999_999; // ⇦ PHẢI khớp `constants.A1IDGoc`
+export const NETWORK_ID = A1_ID_GOC - A1_GEN;
+export const TEN_MANG = `9chain-a1-g${A1_GEN}`;
+
 // Khối chainId của thế hệ: `[9_000_000_000 + gen×1_000_000 , +999_999]`.
 // Thế hệ 0 nâng sàn lên `…010` để chừa chain mẹ `…009` và chín số đệm.
 export const GOC_DAI_CHAINID = A1_GEN === 0
