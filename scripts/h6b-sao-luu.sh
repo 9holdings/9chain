@@ -379,8 +379,17 @@ echo "── NGHIỆM THU (bốn phép, chạy thật) ──"
 nt_clone_nguoc "$D/9chain-a1.bundle" "$TREE_MAIN" "$N_MAIN" "máy dev"
 nt_ap_patch    "$D/avalanchego-patches" "$TREE_FORK" "máy dev"
 nt_doi_chung_nguoc "$D/9chain-a1.bundle"
-CAY="$(ls -d "$TAM"/cl-* 2>/dev/null | head -1)"
-[ -n "$CAY" ] && nt_quet_bi_mat "$CAY"
+# 🔴 VIẾT BẰNG `if`, KHÔNG BẰNG `[ … ] && ham`.
+# Dạng `A && B` ở cuối script là một lệnh có mã thoát: A sai ⇒ cả list trả 1 ⇒
+# `set -e` giết script **không in một chữ nào**. Đã dính thật ở lượt chạy đầu:
+# ba phép nghiệm thu in ✓ rồi script chết câm với EXIT=1. Một cổng chết câm còn
+# tệ hơn một cổng không có, vì nó trông như đã chạy.
+CAY="$(ls -d "$TAM"/cl-* 2>/dev/null | head -1 || true)"
+if [ -n "$CAY" ]; then
+  nt_quet_bi_mat "$CAY"
+else
+  truot "QUÉT BÍ MẬT: không tìm thấy cây đã clone ngược để quét"
+fi
 
 if [ $LOI -gt 0 ]; then
   echo; echo "🔴 $LOI PHÉP TRƯỢT — bản sao lưu KHÔNG đạt, KHÔNG đẩy lên máy chủ."
