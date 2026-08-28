@@ -1,28 +1,32 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-27** (phiên soát vận hành + **RE-GENESIS THẾ HỆ g0**).
+Cập nhật: **2026-08-28** (phiên `27–28/08`: nạp ví · 6 patch mới · **phát hiện server lạc hậu 2 ngày**).
 
 ## TL;DR
 
-🔴 **Mạng công khai ĐÃ SINH LẠI hôm nay** thành **thế hệ `g0`** — `networkID 999999999`,
-`9chain-a1-g0`, `supplyCap 7.900.000.001`, 18 patch (tree `f4615e73`). 9/9 node, 0 lỗi, giao
-dịch thật đã chốt. **Bốn patch cuối lần đầu chạy trên mạng công khai.**
+Mạng công khai đang chạy **thế hệ `g0`** — `networkID 999999999`, `9chain-a1-g0`,
+`supplyCap 7.900.000.001`, 9/9 node. Sinh lại `2026-08-27` (D-081).
 
-✅ **Ví `chain-factory` ĐÃ NẠP `27/08`** — **89,99999173 LOVE9 unlocked** trên P-Chain (David
-chốt 90, không phải 9). Nhưng để nạp được phải vá một lỗi chưa ai biết: **bí danh tài sản
-X-Chain đổi sang `LOVE9` ở lượt g0 mà SDK ví của chính fork vẫn hỏi `"AVAX"`** ⇒ mọi công cụ
-dùng ví X/C chết câm. Patch **0019** (D-082). Cùng phiên: patch **0020** cho netgen (D-083)
-⇒ tree `f4615e73` → **`f29d8c87`**, **24 patch** (0021 = B-9 · 0022 = D-084 · 0023 = `kiem-khoa` · 0024 = D-089 P2P ipv4port).
-🔴 **Vẫn CHƯA chứng minh đẻ chain chạy được** — ví có tiền ≠ đường đẻ chain thông. Xem #1.
+🔴 **PHÁT HIỆN ĐẮT NHẤT `28/08`: mã trên server lạc hậu 2 ngày, mà mọi cổng vẫn xanh.**
+Console công khai đứng ở commit `69c80ce` (26/08) ⇒ **B-14 ghi "ĐÃ ĐÓNG" trong repo nhưng
+console vẫn cấp chainId từ `9100`** (trùng Genesis Coin); faucet thiếu `/api/supply` của I1b;
+`export-chain.mjs` — công cụ **O2 gọi ở ngày G** — không có trên server. Gốc rễ: `console-deploy.sh`
+liệt kê tệp thẳng trong script, nên việc tách `lib/chainid.mjs` ra *cho dễ kiểm* đã khiến nó
+**không được deploy**. Đã vá + có cổng canh: **`node scripts/check-deploy-drift.mjs`** (D-087/D-088).
+⇒ **Chạy cổng đó TRƯỚC khi tin bất kỳ dòng "ĐÃ ĐÓNG" nào.**
 
-⚠️ **Image `9chain-a1/node:g0` đang chạy vẫn là bản 18 patch.** Patch 0019–0024 chỉ sống ở nguồn
-(`~/9chain-a1/src`, nơi `xp-wallet` chạy bằng `go run`). Node không dùng SDK ví nên **không cần
-dựng lại image**; nó sẽ vào image ở lượt build ngày G. Đừng đọc `074aaa93` thành "mạng đang
-chạy có 19 patch".
+✅ Ví `chain-factory`: **89,99999173 LOVE9 unlocked** trên P (D-082). 🔴 **Chưa chứng minh đẻ
+chain chạy được** — ví có tiền ≠ đường đẻ chain thông; và đẻ chain nay **TẠM ĐÓNG** tới sau
+ngày G (D-087).
 
-⚠️ **Ngày G `2026-09-01` VẪN phải sinh lại lần nữa** (chữ khắc vào genesis, C1 chưa đóng băng
-byte) ⇒ lượt đó là **thế hệ 1**: `A1Gen 1` · `networkID 999999998` · `9chain-a1-g1` · khối
-chainId L1 `9001000000–9001999999`.
+**Cây fork: tree `074aaa93` · 24 patch trên `1cf1fc3`.**
+⚠️ **Image `9chain-a1/node:g0` đang chạy vẫn là bản 18 patch.** Patch 0019–0024 chỉ đụng **công
+cụ** (SDK ví, netgen, `kiem-khoa`), không đụng node — chúng vào image ở lượt build ngày G.
+Đừng đọc `074aaa93` thành "mạng đang chạy có 24 patch".
+
+⚠️ **Ngày G `2026-09-01` VẪN phải sinh lại lần nữa** (chữ khắc vào genesis) ⇒ **thế hệ 1**:
+`A1Gen 1` · `networkID 999999998` · `9chain-a1-g1` · khối chainId L1 `9001000000–9001999999`.
+David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
 
 ---
 
@@ -40,13 +44,32 @@ chainId L1 `9001000000–9001999999`.
 | **7** | ✅ ~~H-7~~ **CHỐT + LÀM XONG** — IPv4 đa cổng (D-089, patch 0024). 🔴 Còn lại của **O4 là TIỀN**: đã chứng minh beacon tới được từ Internet và mesh cùng máy còn nguyên, **chưa** chứng minh node ở máy khác bắt tay được — việc đó cần máy thứ hai | **David** (O4) | D-089 |
 | **8** | **Gộp `web-home` → `main`** | **David** | `DECISIONS.md` đang tồn tại ở hai bản — xem §12.1 |
 | **9** | GO/NO-GO `2026-08-29` · Ngày G `2026-09-01` | — | `docs/NGAY-G-A1-CON-LAI.md` §7 |
+| **10** | **M11.10** — ví ký từ máy dev qua **hầm SSH chạy TRONG cùng container**, để ngày G khoá không bao giờ chạm server | A1 | Ràng buộc đã đo (D-085): RPC công khai thiếu `/ext/bc/C/avax`; hầm SSH thì vấp bộ lọc Host `A1_HTTP_ALLOWED_HOSTS` |
+
+🔴 **Phép kiểm đẻ chain đầu-cuối cần HAI thứ của David:** ký SIWE, **và** biết rằng cổng nay
+mặc định ĐÓNG — muốn chạy thì khởi động console với `A1_DE_CHAIN_MO=1` rồi tắt lại.
 
 🔴 **Đường găng lớn nhất vẫn ngoài tầm A1:** chữ khắc chờ **C1 đóng băng byte**. Cơ chế xong
 100%, nội dung 0%.
 
 ---
 
-## ✅ Đã xong hôm nay (`2026-08-27`) — đều đã chạy thật, không phải "đã viết"
+## ✅ Đã xong phiên `2026-08-27 → 28` — đều đã chạy thật
+
+| | Việc | Nghiệm thu |
+|---|---|---|
+| **D-082** | Bí danh tài sản X-Chain: SDK ví của fork hỏi `"AVAX"` trong khi g0 đăng ký `"LOVE9"` ⇒ **mọi ví X/C chết câm** | patch 0019 · `sha256` genesis g0 **khớp từng bit** trước/sau, mainnet/fuji **đổi** (phép so phân biệt được) · nạp ví thật, đọc lại bằng RPC công khai |
+| **D-083** | netgen sinh `.env` + **chặn mạng THẬT sinh ra ở tư thế phơi trần**; `NETWORK_ID` nay bắt buộc | patch 0020 · 6 ca (3 đỏ) · đo đầu-cuối `docker compose config`: có `.env` → `localhost,127.0.0.1`, giấu đi → `*` |
+| **D-084** | **David chốt: bí danh `LOVE9` DỨT KHOÁT**, không đăng ký thêm `AVAX`. Giá đã biết: công cụ SDK upstream không nói chuyện được với A1 ⇒ patch 0022 bắt nó **hỏng ra tiếng** | patch 0021 (B-9) + 0022 · 6 ca, **3 đối chứng** · toàn bộ `vms/avm` xanh |
+| **D-085** | **O1 bước 1**: khoá g0 rời server (`shred -u`), + công cụ `kiem-khoa` | patch 0023 · `sha256` 3/3 · **khôi phục 6/6** · 4 ca đỏ |
+| **D-086** | Sổ **"A1 đã từng cấp"** — 47 chainId + 53 tên, nhớ **xuyên thế hệ** | `chainid-test` **35 đạt/0 hỏng** (5 đối chứng) · **verify trên API thật** |
+| **D-087** | Đẻ chain **TẠM ĐÓNG** tới sau ngày G (`A1_DE_CHAIN_MO`) | 3 ca · **đã deploy**, console công khai từ chối đúng câu |
+| **D-088** | **Cổng canh khoảng cách repo ↔ server** + manifest deploy (một danh sách, hai nơi đọc) | bắt **5 lệch thật** ngay lần đầu · đối chứng ngược đạt · `/faucet/api/supply` nay **200, số đo từ chain** |
+| **D-089** | **H-7 = IPv4 đa cổng** (David chốt). Bản đầu **sai**, diễn tập 3 node bác nó | patch 0024 · mesh `1 → 2` peer sau khi sửa · beacon bắt tay TCP được **từ ngoài Internet** |
+
+---
+
+## ✅ Đã xong `2026-08-27` (đợt trước trong cùng phiên) — không phải "đã viết"
 
 | | Việc | Nghiệm thu |
 |---|---|---|
