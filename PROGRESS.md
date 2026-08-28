@@ -81,7 +81,7 @@ không push.
       🔴 **Đẻ ra B-17:** hai bản `.bak` của console trên server đo được **0** lần
       `A1_DE_CHAIN_MO` (một bản còn **0** lần `siwe`) ⇒ khôi phục là mở lại D-087 và gỡ M4.1.
       Cần **David** xoá.
-- [ ] **A15-4 — O3b: kéo sổ THẬT về → dồn `chains` → `retired` (`scripts/dong-so-truoc-regenesis.mjs`)**
+- [x] **A15-4 — O3b: kéo sổ THẬT về → dồn `chains` → `retired` (`scripts/dong-so-truoc-regenesis.mjs`)**
       Lượt `26/08` reset sổ về `{chains:[],retired:[]}` ⇒ **mất 43 bản ghi chống phát lại**.
       Và `sinh-chainid-da-cap.mjs` đọc **repo** ([dòng 23–24](scripts/sinh-chainid-da-cap.mjs:23))
       trong khi sổ sống nằm trên **server** và bị `boQua` trong drift gate ⇒ **không ai canh
@@ -89,6 +89,16 @@ không push.
       **Điều kiện qua:** sổ rỗng ⇒ **từ chối** (rỗng ≡ hỏng) · JSON hỏng ⇒ từ chối · 2 chain sống
       ⇒ ra tệp 0 sống / 2 `retired` có `thuHoiLuc`, và `sinh-chainid-da-cap --kiem` sau đó vẫn
       xanh **với số mục TĂNG**.
+      ✅ **ĐẠT `28/08`** (D-099) — `scripts/dong-so-truoc-regenesis.mjs`. **9/9 ca đối chứng**
+      (4 ca đỏ) + tính chất *không mất/không đẻ bản ghi* đúng ở n = 0/1/5/43. `--keo` chạy thật:
+      server `0/0`, repo biết **53 bản ghi từ 3 sổ**. `--don` chạy thật trên sổ repo ⇒
+      `0 sống / 1 retired` có `thuHoiLuc` + `lyDo`; `sinh-chainid-da-cap --kiem` sau đó vẫn xanh.
+      🔴 **Đo ra lỗ thứ hai chưa ai nêu:** sổ sống ở **server** (`0/0`) và sổ repo
+      (`DeltaChain#9201`) **không phải bản sao của nhau**, mà drift gate **cố ý bỏ qua** tệp đó
+      ⇒ không cổng nào canh khoảng cách giữa hai sổ. `--keo` lấp chỗ đó.
+      🔴 **Sửa một lỗi của chính tôi:** bản đầu từ chối mọi sổ thiếu khoá `retired` (viện *rỗng ≡
+      hỏng*) và **từ chối luôn sổ thật của repo** — trong khi `loadState()` khai rõ đó là định
+      dạng trước M4.4, hợp lệ. Luật đúng: **thiếu khoá ≠ sai kiểu**.
 - [ ] **A15-5 — `scripts/canh-mang.mjs`: giám sát một lệnh**
       HANDOFF tự khai số dư `chain-factory` **chưa có giám sát** (cạn ⇒ đẻ chain chết câm), và
       B-12 (9 validator rụng dần trong cửa sổ 56 ngày, node cuối rụng là **mạng DỪNG**) đang chờ
