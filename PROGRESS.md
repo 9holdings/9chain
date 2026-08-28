@@ -128,13 +128,21 @@ không push.
       🔴 **Đo được bán kính ảnh hưởng:** đổi **một** hằng số làm **bốn** cổng đỏ (số học · phép
       cấp chainId · canh mạng · drift) ⇒ bump `A1Gen` ngày G không phải "sửa hai dòng rồi đi tiếp".
       Sửa một câu nói dối của bản đầu: `--khong-mang` từng in "MỌI CỔNG XANH" trong khi bỏ qua 3 cổng.
-- [ ] **A15-7 — *(nếu còn giờ)* HANDOFF gọn + bài đo lệch đồng hồ (B-13b)**
+- [x] **A15-7 — HANDOFF gọn + bài đo lệch đồng hồ (B-13b)**
       (a) `HANDOFF.md` ≤300 dòng, lịch sử sang `docs/archive/HANDOFF-2026-08.md` — **không mất
       nội dung** (đối chứng: grep vài chuỗi mốc cũ vẫn tìm được).
       (b) `scripts/do-lech-dong-ho.mjs` — viết TRƯỚC, chạy được SAU khi mạng g1 lên.
       🔴 Bài phải **tự khai**: hôm nay 9 node **cùng một máy ⇒ lệch = 0**, và con số đó chỉ có
       nghĩa **sau O4** (nhà cung cấp thứ hai). Đo lệch trên một đồng hồ duy nhất rồi khai "đã đo"
       chính là *đo sai đại lượng*.
+      ✅ **ĐẠT `28/08`** (D-102 · D-103). (a) `HANDOFF.md` **2.026 → 250 dòng**, lịch sử 1.793
+      dòng sang `docs/archive/HANDOFF-lich-su-2026-08.md`, **không mất một chữ**.
+      (b) `scripts/do-lech-dong-ho.mjs` — **7/7 ca đối chứng**; đo thật **+557ms ± 811ms** ⇒
+      biên xấu nhất node chậm 254ms ⇒ giữ `--bu-ms 3000`.
+      🔴 **Bỏ hai cách đo vì chúng đo sai đại lượng:** `ssh` cho RTT **4.100ms** và một thiên
+      lệch hệ thống +3.150ms **không tách được** khỏi lệch thật (5 mẫu chỉ tản 55ms — *nhất quán
+      cao không phải bằng chứng đúng*); `curl` dính chi phí sinh tiến trình. Sàn sai số **±500ms
+      bất khả kháng** vì header `Date` có độ phân giải giây.
 
 **Điều kiện qua đợt 15:** ngày G có **một lệnh** để chạy, và mỗi cổng trong lệnh đó **đã từng
 được nhìn thấy lúc ĐỎ**.

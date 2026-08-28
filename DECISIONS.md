@@ -3477,3 +3477,58 @@ quy ước dùng chung là thứ người đọc học **một lần** rồi áp
 - **Sửa một câu nói dối gọn gàng của chính bản đầu:** với `--khong-mang`, nó in *"MỌI CỔNG TỰ
   ĐỘNG ĐỀU XANH"* trong khi 3 cổng bị bỏ qua. Số bỏ qua nay nằm **trong chính câu phán**, không
   ở một dòng phía trên mà mắt đã lướt qua.
+
+## D-102 — B-13(b): đại lượng cần đo KHÔNG phải "lệch giữa 9 node" (2026-08-28)
+
+`BLOCKERS.md` B-13(b) viết *"đo lệch đồng hồ 9 node"*. Đúng **ý**, sai **đại lượng** — và sai
+theo hướng khiến người ta đo một con số vô nghĩa rồi tin nó.
+
+Thứ quyết định Block Adam là **một** phép so: `block.timestamp > 2026-09-09T06:09:09Z`.
+`block.timestamp` là đồng hồ **node đề xuất block**; thời điểm bấm gửi là đồng hồ **máy bắn**.
+⇒ Đại lượng thật là **lệch(máy bắn ↔ node đề xuất)**.
+
+🔴 **Lệch giữa 9 node hôm nay là 0 theo KIẾN TRÚC, không theo phép đo:** 9 container trên
+**cùng một máy**, Docker không ảo hoá đồng hồ ⇒ chung một `CLOCK_REALTIME`. Đo 9 lần rồi khai
+*"lệch 0ms, đã kiểm"* là đo một tính chất của **hạ tầng**, không phải của **đồng hồ** — và nó
+sẽ được đọc thành "đã xử lý B-13(b)". Nó chỉ thành phép đo nhiều đồng hồ thật **sau O4**.
+
+### Ba cách đo đã thử, hai cái BỎ — và lý do là bài học chung
+
+| cách | RTT | ước lượng | phán |
+|---|--:|--:|---|
+| `ssh 'date +%s%3N'` | **4.100ms** | +3.150ms ±2.050 | 🔴 **BỎ** |
+| `curl -sI` (Date header) | 1.600ms | +1.650ms ±1.300 | 🔴 BỎ |
+| `fetch` trong tiến trình | **600ms** | +1.279ms **±800** | ✅ dùng |
+
+🔴 **Vì sao `ssh` không dùng được, và nó tinh vi:** lệnh chạy ở **cuối** lượt bắt tay, không ở
+giữa ⇒ giả định *đường đi đối xứng* mà NTP dựa vào bị **vỡ**. Năm mẫu ra `3149·3140·3150·3195·
+3174` — độ tản chỉ ~55ms. Nhất quán cao **không phải bằng chứng đúng**: ở đây nó là bằng chứng
+của một **thiên lệch hệ thống**, và thiên lệch đó **không tách được** khỏi lệch đồng hồ thật.
+*(Một phép đo lặp lại rất ổn định vẫn có thể sai — ổn định chỉ nói về phương sai, không nói về
+độ chệch.)*
+
+⚠️ **Sàn sai số ±500ms là BẤT KHẢ KHÁNG:** header HTTP `Date` chỉ có **độ phân giải giây**.
+Bài nào khai chính xác hơn thế là đang bịa chữ số. Lọc kiểu NTP: lấy mẫu **RTT nhỏ nhất**.
+
+### Chọn bù theo BIÊN XẤU NHẤT, không theo giá trị trung tâm
+
+Lấy giá trị trung tâm là chọn con số đúng 50% số lần — mà đây là việc **không có lần hai**.
+`lech > 0` (node nhanh hơn máy bắn) là chiều **an toàn**; chiều nguy hiểm là node **chậm**.
+
+**Đo thật `28/08`:** mẫu tốt nhất **+557ms ± 811ms** ⇒ biên xấu nhất node chậm **254ms** ⇒
+`--bu-ms 3000` (sàn của lượt diễn tập `27/08`) **vẫn dư sức**. 7/7 ca đối chứng, gồm ca *không
+đo được ⇒ trả `null`, KHÔNG rơi về sàn* — một nửa phép đo không phải phép đo.
+
+🔴 **Phải đo LẠI sau khi mạng ngày G lên** — số này nói về mạng g0 hôm nay.
+
+## D-103 — Cắt `HANDOFF.md` 2.026 → 250 dòng (2026-08-28)
+
+Mỗi phiên mới trả ~85K token để đọc lại một tệp mà ~90% là lịch sử tệp đó **tự khai** là
+*"không cần đọc nếu chỉ tiếp việc"*. Đây là chi phí **định kỳ**, không phải một lần.
+
+Toàn bộ phần lịch sử sang [`docs/archive/HANDOFF-lich-su-2026-08.md`](docs/archive/HANDOFF-lich-su-2026-08.md)
+— **1.793 dòng, không mất một chữ nào**. `HANDOFF.md` giữ: TL;DR · đợt 15 · việc tiếp · gotchas
+· lệnh hữu ích. Luật cứng đã ra `CLAUDE.md` từ A15-0.
+
+⚠️ **Không sửa nội dung lịch sử cho khớp hiện tại** — chúng **kể về quá khứ**; sửa cho gọn mắt
+là viết lại lịch sử (cùng lý lẽ đã dùng cho 80 chỗ dẫn tên miền cũ ở D-096).
