@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * canh-mang.mjs — **một lệnh đo mạng đang chạy**, thay cho "phải nhớ tự đo".
+ * watch-network.mjs — **một lệnh đo mạng đang chạy**, thay cho "phải nhớ tự đo".
  *
  * ═══ VÌ SAO CÓ ═══
  *
@@ -18,7 +18,7 @@
  *
  * ⇒ Tệp này biến cả hai từ **việc phải nhớ** thành **một lệnh có mã thoát**.
  *
- * ═══ BA MÃ THOÁT — cùng họ với `o1-kiem.mjs` ═══
+ * ═══ BA MÃ THOÁT — cùng họ với `o1-check.mjs` ═══
  *   0  mọi mục đo được và đạt
  *   1  có mục ĐỎ
  *   2  có mục **không đo được** — *không biết* KHÔNG phải *đạt*
@@ -26,9 +26,9 @@
  * ⚠️ **Chỉ đọc.** Không gửi giao dịch, không ghi gì lên server, không đụng mạng.
  *
  * Dùng:
- *   node scripts/canh-mang.mjs
- *   node scripts/canh-mang.mjs --khong-ssh     # bỏ các mục cần ssh (supplyCap, drift)
- *   node scripts/canh-mang.mjs --tu-kiem       # đối chứng ngược
+ *   node scripts/watch-network.mjs
+ *   node scripts/watch-network.mjs --khong-ssh     # bỏ các mục cần ssh (supplyCap, drift)
+ *   node scripts/watch-network.mjs --tu-kiem       # đối chứng ngược
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";

@@ -76,7 +76,7 @@ cũng sửa được nó. Đây chính là ca đối chứng ngược số 2 dư
 ```bash
 cp <net>/../9chain-a1-config/console-chains.json \
    docs/archive/console-chains-pre-<the-he>-<ngay>.json
-node scripts/sinh-chainid-da-cap.mjs --ghi     # gộp lại danh sách chặn
+node scripts/gen-chainid-issued.mjs --ghi     # gộp lại danh sách chặn
 node local-net/console/chainid-test.mjs         # phải vẫn xanh
 ```
 

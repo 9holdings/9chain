@@ -11,7 +11,7 @@ Cập nhật: **2026-08-28** (phiên khuya `28/08` — quét toàn diện + **di
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
 ```bash
-node scripts/ngay-g-preflight.mjs      # trạng thái toàn cục trong 1 lệnh (~90s)
+node scripts/gday-preflight.mjs      # trạng thái toàn cục trong 1 lệnh (~90s)
 ```
 
 **Trạng thái `2026-08-28` cuối phiên khuya:**
@@ -24,7 +24,7 @@ node scripts/ngay-g-preflight.mjs      # trạng thái toàn cục trong 1 lện
 | sao lưu H-6b | `20260828-043739` · 24 = 24 patch · **chậm 1 commit, chỉ tài liệu** |
 | cây fork | 24 patch → tree `074aaa93` ✓ tái lập được |
 
-🟡 **Cái ĐỎ duy nhất, và nó đỏ đúng:** `local-net/console/chainid-da-cap.json` lệch — repo sinh
+🟡 **Cái ĐỎ duy nhất, và nó đỏ đúng:** `local-net/console/chainid-issued.json` lệch — repo sinh
 lại nó (D-107, thêm nguồn sổ thứ tư) còn server chưa. **Hành vi console KHÔNG đổi**: danh sách
 chặn vẫn **47 chainId · 53 tên**, chỉ thêm một dòng khai nguồn. Hết đỏ khi console được deploy
 — lượt đó đã nằm trong runbook ngày G. **Deploy là việc có người bấm.**
@@ -32,7 +32,7 @@ chặn vẫn **47 chainId · 53 tên**, chỉ thêm một dòng khai nguồn. H�
 ### 🔴 Còn chặn GO/NO-GO `2026-08-29` — đúng MỘT việc, và nó chặn ở PHẦN CỨNG
 
 ```bash
-node scripts/o1-kiem.mjs <thư-mục-bản-sao>    # B-16 · exit 0 ĐẠT · 1 SAI · 2 CHƯA KẾT LUẬN
+node scripts/o1-check.mjs <thư-mục-bản-sao>    # B-16 · exit 0 ĐẠT · 1 SAI · 2 CHƯA KẾT LUẬN
 ```
 
 **B-16 — bản sao thứ hai của khoá quỹ.** Đo `28/08`: máy dev có **đúng một ổ đĩa**
@@ -40,7 +40,7 @@ node scripts/o1-kiem.mjs <thư-mục-bản-sao>    # B-16 · exit 0 ĐẠT · 1 
 được từ phần mềm**; `C:\PROJECTS\9Chain-backups\` cũng trên `C:` nên **không tính**.
 ⇒ David cắm một ổ vào rồi cho ký tự ổ, **hoặc** chỉ ra nơi bản thứ hai đang nằm.
 
-Phần A1 làm được đã xong: `o1-kiem.mjs` trên bộ **chính** ⇒ **exit 0** — bộ ở
+Phần A1 làm được đã xong: `o1-check.mjs` trên bộ **chính** ⇒ **exit 0** — bộ ở
 `C:\Users\abc\9chain-a1-keys\g0\` **đúng là bộ của mạng đang chạy**, 6/6 quỹ giữ tiền thật.
 Dấu vân tay để đối chiếu bản sao: `keys.txt` **3.531 B** `e350727a…` · `allocation.md`
 **2.221 B** `654fb72e…` · `genesis.json` **7.753 B** `e1024eab…`.
@@ -64,17 +64,17 @@ Mạng công khai đang chạy **thế hệ `g0`** — `networkID 999999999`, `9
 **Ngày G nay có MỘT lệnh:**
 
 ```bash
-node scripts/ngay-g-preflight.mjs      # 12 cổng + 12 VIỆC TAY in thành ô trống
+node scripts/gday-preflight.mjs      # 12 cổng + 12 VIỆC TAY in thành ô trống
 ```
 
 | công cụ mới | làm gì | đối chứng |
 |---|---|---|
-| `ngay-g-preflight.mjs` | runbook ngày G chạy được (D-101) | 12/12 xanh · `A1_GEN=1` ⇒ đỏ |
-| `o1-kiem.mjs` | **O1 một lệnh** — gộp cả hai phép đo khoá (D-097) | 6/6, gồm bộ khoá **đã chết ⇒ exit 1** |
-| `canh-mang.mjs` | 9 mục · **B-12 còn 308 ngày** · số dư factory (D-100) | 13/13 · RPC chết ⇒ **2**, không phải 0 |
-| `dong-so-truoc-regenesis.mjs` | O3b: kéo sổ sống → dồn `chains`→`retired` (D-099) | 9/9 · không mất bản ghi ở n=43 |
-| `do-lech-dong-ho.mjs` | B-13(b): chọn `--bu-ms` (D-102) | 7/7 · đo thật **557ms ±811** ⇒ giữ `3000` |
-| `thehe-test.mjs` | cổng THẾ HỆ của console (D-093) | 13/13 · gỡ cổng ⇒ 7 hỏng |
+| `gday-preflight.mjs` | runbook ngày G chạy được (D-101) | 12/12 xanh · `A1_GEN=1` ⇒ đỏ |
+| `o1-check.mjs` | **O1 một lệnh** — gộp cả hai phép đo khoá (D-097) | 6/6, gồm bộ khoá **đã chết ⇒ exit 1** |
+| `watch-network.mjs` | 9 mục · **B-12 còn 308 ngày** · số dư factory (D-100) | 13/13 · RPC chết ⇒ **2**, không phải 0 |
+| `close-ledger-before-regenesis.mjs` | O3b: kéo sổ sống → dồn `chains`→`retired` (D-099) | 9/9 · không mất bản ghi ở n=43 |
+| `check-clock-skew.mjs` | B-13(b): chọn `--bu-ms` (D-102) | 7/7 · đo thật **557ms ±811** ⇒ giữ `3000` |
+| `generation-test.mjs` | cổng THẾ HỆ của console (D-093) | 13/13 · gỡ cổng ⇒ 7 hỏng |
 
 **Cổng cũ được vá:** `check-consistency` nay nối `A1Gen` (Go) ↔ `A1_GEN` (JS) — **hai hằng số
 chép tay ở hai ngôn ngữ, trước đó không cổng nào nối** · `check-deploy-drift` nay thấy **tệp
@@ -103,7 +103,7 @@ sống tự khai `thế hệ : ✅ khớp node đang chạy — g0 · networkID 
 
 1. **`kiem-khoa` chấm `6/6 ✓ exit 0` cho một bộ khoá ĐÃ CHẾT** (D-090). Nó so `keys.txt` với
    `allocation.md` — hai tệp **cùng thư mục, chép cùng lượt**. ⇒ luôn chạy kèm
-   `scripts/kiem-khoa-tren-chain.mjs`.
+   `scripts/check-keys-on-chain.mjs`.
 2. **Dòng `P-addr` trong `keys.txt` là CHỮ NGƯỜI VIẾT, không phải phép đo** (D-091b). Khối
    `[team]` dán địa chỉ `[foundation]` thì dòng in ra vẫn trông đúng và ví vẫn ký.
 3. ✅ **M11.10 XONG và ĐÃ KÝ THẬT** (D-091): ví chạy ở máy dev, hầm SSH **trong cùng container**,
@@ -154,17 +154,17 @@ David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
 | # | Việc | Ai | Ghi chú |
 |---|---|---|---|
 | **1** | ✅ ~~Nạp `chain-factory`~~ **XONG `27/08`** — 89,99999173 LOVE9 trên P. 🔴 **Còn nợ phép kiểm:** đẻ **một** L1 rồi thu hồi để chứng minh đường đẻ chain thông (cần David ký SIWE, và nó tạo chain THẬT trên mạng công khai) | A1 + **David** | D-082. Khoá Foundation lấy từ `net/keys.txt` **trên server** — không phải "khoá máy dev" như dự tính, xem O1 |
-| **2** | 🟡 **O1 custody** — ✅ **NAY CHỈ MỘT LỆNH: `node scripts/o1-kiem.mjs <thư-mục>`** (D-097; exit 0 ĐẠT · 1 SAI · 2 CHƯA KẾT LUẬN). — bước 1 XONG `27/08` (D-085). 🔴 **`28/08` phát hiện `kiem-khoa` chấm `6/6 ✓ exit 0` cho bộ khoá THẾ HỆ ĐÃ CHẾT** ⇒ thêm cổng thứ hai nối vào chain (D-090). Nay **6/6 quỹ đã chứng minh giữ tiền thật trên g0**. ⇒ Còn lại đúng một việc của David: **bản thứ hai** — quy trình 15 phút ở [`docs/O1-CUSTODY-PHEP-KIEM.md`](docs/O1-CUSTODY-PHEP-KIEM.md) | **David** | 🔴 Khoá g0 vẫn ở **đúng một ổ đĩa**. 🔴 **Phải chạy CẢ HAI lệnh** — `kiem-khoa` một mình không phân biệt được bản sống với bản chết |
+| **2** | 🟡 **O1 custody** — ✅ **NAY CHỈ MỘT LỆNH: `node scripts/o1-check.mjs <thư-mục>`** (D-097; exit 0 ĐẠT · 1 SAI · 2 CHƯA KẾT LUẬN). — bước 1 XONG `27/08` (D-085). 🔴 **`28/08` phát hiện `kiem-khoa` chấm `6/6 ✓ exit 0` cho bộ khoá THẾ HỆ ĐÃ CHẾT** ⇒ thêm cổng thứ hai nối vào chain (D-090). Nay **6/6 quỹ đã chứng minh giữ tiền thật trên g0**. ⇒ Còn lại đúng một việc của David: **bản thứ hai** — quy trình 15 phút ở [`docs/O1-CUSTODY-PHEP-KIEM.md`](docs/O1-CUSTODY-PHEP-KIEM.md) | **David** | 🔴 Khoá g0 vẫn ở **đúng một ổ đĩa**. 🔴 **Phải chạy CẢ HAI lệnh** — `kiem-khoa` một mình không phân biệt được bản sống với bản chết |
 | **2b** | ✅ ~~B-15 bí danh tài sản~~ **CHỐT `27/08` — `LOVE9`, DỨT KHOÁT** (D-084). 🔴 Giá đã biết trước và chấp nhận: **công cụ dựng trên SDK avalanchego gốc KHÔNG nói chuyện được với A1**. Patch 0022 bắt nó hỏng ra tiếng | — | D-084 |
 | **3** | ✅ ~~netgen sinh `.env`~~ **XONG `27/08`** — patch 0020, kèm **cổng chặn mạng THẬT sinh ra ở tư thế phơi trần** và `NETWORK_ID` nay bắt buộc | A1 | D-083. Đo đầu-cuối bằng `docker compose config`: có `.env` → `localhost,127.0.0.1`, giấu đi → `*` |
 | **4** | ✅ ~~**B-9** `#e84142`~~ **XONG `27/08`** — patch 0021, vàng 9Chain trên navy | A1 | 🔴 Còn một chỗ NGOÀI phạm vi B-9: `local-net/console/index.html` **trên server** vẫn có 3 lần `#e84142` và lệch 12 byte so với git — thuộc worktree web, phiên này không đụng |
 | **5** | **O4** — dời 1 node sang nhà cung cấp thứ hai, **hoặc** khai thật + đổi tên `01/09` | **David** | §12.3: cách rẻ nhất không phải tiền mà là chữ *"chính thức"* |
-| **6** | ✅ ~~**B-10** robots.txt bị Cloudflare che~~ **CHẨN ĐOÁN SAI TỪ ĐẦU — ĐÓNG `28/08`** (D-106b). Cloudflare **CHÈN THÊM**, không **THAY**; tệp A1 luôn tới được người đọc. Cổng `node scripts/kiem-robots.mjs` ⇒ **exit 0**, 7/7 đối chứng | — | 🟡 Còn lại là **quyết định chính sách**: khối Cloudflare cấm hẳn 9 bot AI + khai điều khoản **nhân danh A1**. Muốn tắt: Overview → Control AI Crawlers → bỏ *Display Content Signals Policy* |
+| **6** | ✅ ~~**B-10** robots.txt bị Cloudflare che~~ **CHẨN ĐOÁN SAI TỪ ĐẦU — ĐÓNG `28/08`** (D-106b). Cloudflare **CHÈN THÊM**, không **THAY**; tệp A1 luôn tới được người đọc. Cổng `node scripts/check-robots.mjs` ⇒ **exit 0**, 7/7 đối chứng | — | 🟡 Còn lại là **quyết định chính sách**: khối Cloudflare cấm hẳn 9 bot AI + khai điều khoản **nhân danh A1**. Muốn tắt: Overview → Control AI Crawlers → bỏ *Display Content Signals Policy* |
 | **6b** | 🔴 **B-17 (MỚI)** — xoá 6 tệp `.bak` trên server: đường lui trỏ vào quyết định ĐÃ ĐÓNG (mở lại đẻ chain + gỡ xác thực ví). Lệnh soạn sẵn trong `BLOCKERS.md` | **David** | D-098 · autopilot không ghi lên server |
 | **7** | ✅ ~~H-7~~ **CHỐT + LÀM XONG** — IPv4 đa cổng (D-089, patch 0024). 🔴 Còn lại của **O4 là TIỀN**: đã chứng minh beacon tới được từ Internet và mesh cùng máy còn nguyên, **chưa** chứng minh node ở máy khác bắt tay được — việc đó cần máy thứ hai | **David** (O4) | D-089 |
 | **8** | **Gộp `web-home` → `main`** | **David** | `DECISIONS.md` đang tồn tại ở hai bản — xem §12.1 |
 | **9** | GO/NO-GO `2026-08-29` · Ngày G `2026-09-01` | — | `docs/NGAY-G-A1-CON-LAI.md` §7 |
-| **10** | ✅ ~~**M11.10**~~ **XONG `28/08`** (D-091) — ví ký từ máy dev qua hầm SSH **trong cùng container**; đã **ký thật** lên mạng công khai, khoá không chạm server. `node scripts/vi-qua-ham.mjs --kiem` | A1 | ✅ `--quy` cũng XONG (D-091b): 6/6 quỹ chọn đúng, `--kiem` kiểm được việc chọn quỹ **mà không khởi động ví**. ✅ `9chain-a1-xpwallet` trên server **ĐÃ XOÁ HẲN `28/08`** (D-092) — đừng dựng lại |
+| **10** | ✅ ~~**M11.10**~~ **XONG `28/08`** (D-091) — ví ký từ máy dev qua hầm SSH **trong cùng container**; đã **ký thật** lên mạng công khai, khoá không chạm server. `node scripts/wallet-over-tunnel.mjs --kiem` | A1 | ✅ `--quy` cũng XONG (D-091b): 6/6 quỹ chọn đúng, `--kiem` kiểm được việc chọn quỹ **mà không khởi động ví**. ✅ `9chain-a1-xpwallet` trên server **ĐÃ XOÁ HẲN `28/08`** (D-092) — đừng dựng lại |
 
 🔴 **Phép kiểm đẻ chain đầu-cuối cần HAI thứ của David:** ký SIWE, **và** biết rằng cổng nay
 mặc định ĐÓNG — muốn chạy thì khởi động console với `A1_DE_CHAIN_MO=1` rồi tắt lại.
@@ -191,7 +191,7 @@ chót mà đầu vào phải tới** để lượt sinh mạng ngày G không ph
     thứ gì trên server: đối chiếu `sha256` **từng tệp một**, không kiểm *"nhóm tệp"*.
     **Phạm vi của một lời trấn an hẹp hơn phạm vi của lệnh nó đi kèm.** (D-107 · D-107b)
 18. 🔴 **ĐỎ GIẢ — vế thứ ba của luật cứng #2.** Thấy cổng đỏ **chưa đủ**; phải kiểm nó đỏ
-    **VÌ ĐÚNG LÝ DO**. `kiem-robots` bản đầu đỏ ngay lần chạy đầu và cái đỏ đó bị đọc thành
+    **VÌ ĐÚNG LÝ DO**. `check-robots` bản đầu đỏ ngay lần chạy đầu và cái đỏ đó bị đọc thành
     *"cổng nhạy"* — thật ra nó chấm bằng **dòng đầu** `robots.txt` trong khi tưởng đang chấm
     bằng **nội dung**. Cloudflare **chèn thêm**, không **thay** ⇒ B-10 chưa bao giờ là một lỗ.
     Kèm: **đọc HẾT tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đã viết
@@ -268,7 +268,7 @@ chót mà đầu vào phải tới** để lượt sinh mạng ngày G không ph
     `keys.txt` với `allocation.md` — **hai tệp cùng một thư mục, chép cùng một lượt**. Bộ khoá
     thế hệ `9001` (tiền không tồn tại ở đâu cả) qua nó sạch **6/6 ✓, exit 0**. Nó *có* cảnh báo
     `networkID`, nhưng câu phán cuối vẫn xanh — mà đó là câu người ta đọc. **Luôn chạy kèm
-    `scripts/kiem-khoa-tren-chain.mjs`** (D-090). ⚠️ Bộ `9001` đã chết vẫn nằm trên máy dev ở
+    `scripts/check-keys-on-chain.mjs`** (D-090). ⚠️ Bộ `9001` đã chết vẫn nằm trên máy dev ở
     `local-net/net-public/` — đúng thứ dễ bị chép nhầm thành "bản sao lưu".
 11. **Cổng C-4 có một ca chưa lường:** *"khắc chữ TẮT ⇒ bản tập"* sai với **mạng THẬT ở thế hệ
     trước lượt khắc chữ**. Nó chỉ cảnh báo, không chặn — nhưng đừng đọc cảnh báo đó thành lỗi.
@@ -292,14 +292,14 @@ ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" \
 # đo 2026-08-28 ⇒ supplyCap":7900000001000000000 ✓
 
 # 🔴 M11.10 — ví ký ở MÁY DEV, khoá không chạm server (D-091)
-node scripts/vi-qua-ham.mjs --kiem      # nghiệm thu đường đi, KHÔNG cần khoá, KHÔNG chạy ví
-node scripts/vi-qua-ham.mjs --tu-kiem   # 3 ca đối chứng ngược
-node scripts/vi-qua-ham.mjs --khoa <tệp> [--quy foundation] [--cong 8090]
+node scripts/wallet-over-tunnel.mjs --kiem      # nghiệm thu đường đi, KHÔNG cần khoá, KHÔNG chạy ví
+node scripts/wallet-over-tunnel.mjs --tu-kiem   # 3 ca đối chứng ngược
+node scripts/wallet-over-tunnel.mjs --khoa <tệp> [--quy foundation] [--cong 8090]
 docker rm -f 9chain-a1-vi-ham           # 🔴 xong việc là dừng NGAY — container này giữ khoá
 
 # 🔴 O1 — bộ khoá quỹ có phải của MẠNG ĐANG CHẠY không (D-090). Chạy CẢ HAI, cùng thư mục:
-node scripts/kiem-khoa-tren-chain.mjs <thư-mục-khoá>/allocation.md
-node scripts/kiem-khoa-tren-chain.mjs --tu-kiem     # 5 ca đối chứng ngược
+node scripts/check-keys-on-chain.mjs <thư-mục-khoá>/allocation.md
+node scripts/check-keys-on-chain.mjs --tu-kiem     # 5 ca đối chứng ngược
 # kèm: kiem-khoa -allocation allocation.md keys.txt  (xem docs/O1-CUSTODY-PHEP-KIEM.md)
 
 # 🔴 Cổng canh khoảng cách REPO ↔ SERVER (D-088) — chạy TRƯỚC khi tin bất kỳ mục "ĐÃ ĐÓNG" nào
@@ -307,7 +307,7 @@ node scripts/check-deploy-drift.mjs
 
 # Cổng repo
 node scripts/check-consistency.mjs --tu-kiem
-node scripts/sinh-chainid-da-cap.mjs --kiem
+node scripts/gen-chainid-issued.mjs --kiem
 node local-net/console/chainid-test.mjs
 node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs

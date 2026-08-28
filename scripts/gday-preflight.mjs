@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ngay-g-preflight.mjs — **runbook ngày G, ở dạng chạy được.**
+ * gday-preflight.mjs — **runbook ngày G, ở dạng chạy được.**
  *
  * ═══ VÌ SAO CÓ ═══
  *
@@ -25,8 +25,8 @@
  *   2  có cổng **không chạy được** — *không biết* KHÔNG phải *đạt*
  *
  * Dùng:
- *   node scripts/ngay-g-preflight.mjs
- *   node scripts/ngay-g-preflight.mjs --khong-mang    # bỏ mọi cổng cần mạng/ssh
+ *   node scripts/gday-preflight.mjs
+ *   node scripts/gday-preflight.mjs --khong-mang    # bỏ mọi cổng cần mạng/ssh
  */
 import { spawnSync, execFileSync } from "node:child_process";
 import { existsSync, rmSync } from "node:fs";
@@ -55,7 +55,7 @@ const node = (...a) => ({ lenh: process.execPath, args: a });
  * nhưng không sao" sẽ bị bỏ qua **đúng lúc nó kêu thật** — cùng lý lẽ D-070 dùng khi
  * hạ ô Block Adam xuống "lưu ý".)
  * ⇒ Cổng nào chưa đủ tư cách chặn ngày G thì để **ngoài tệp này** và ghi vào
- * `CLAUDE.md` §3 — ví dụ `kiem-robots.mjs` (B-10: mặt web, không chạm genesis).
+ * `CLAUDE.md` §3 — ví dụ `check-robots.mjs` (B-10: mặt web, không chạm genesis).
  */
 const CONG = [
   // ── 1. Cây fork: thứ mọi thứ khác dựng lên trên ──
@@ -65,14 +65,14 @@ const CONG = [
   { nhom: "2 · CỔNG REPO", ten: "số học tokenomics + bộ định danh Go↔JS", ...node("scripts/check-consistency.mjs", "--tu-kiem") },
   { nhom: "2 · CỔNG REPO", ten: "phép cấp chainId (chainid-test)", ...node("local-net/console/chainid-test.mjs") },
   { nhom: "2 · CỔNG REPO", ten: "cb58 self-test", ...node("local-net/lib/cb58.mjs", "--self-test") },
-  { nhom: "2 · CỔNG REPO", ten: "sổ chainId đã cấp khớp nguồn", ...node("scripts/sinh-chainid-da-cap.mjs", "--kiem") },
-  { nhom: "2 · CỔNG REPO", ten: "cổng THẾ HỆ của console (thehe-test)", ...node("local-net/console/thehe-test.mjs") },
+  { nhom: "2 · CỔNG REPO", ten: "sổ chainId đã cấp khớp nguồn", ...node("scripts/gen-chainid-issued.mjs", "--kiem") },
+  { nhom: "2 · CỔNG REPO", ten: "cổng THẾ HỆ của console (generation-test)", ...node("local-net/console/generation-test.mjs") },
   { nhom: "2 · CỔNG REPO", ten: "phân loại tệp thừa (đối chứng)", ...node("scripts/check-deploy-drift.mjs", "--tu-kiem") },
-  { nhom: "2 · CỔNG REPO", ten: "phép dồn sổ danh bạ (đối chứng)", ...node("scripts/dong-so-truoc-regenesis.mjs", "--tu-kiem") },
-  { nhom: "2 · CỔNG REPO", ten: "chấm điểm canh mạng (đối chứng)", ...node("scripts/canh-mang.mjs", "--tu-kiem") },
+  { nhom: "2 · CỔNG REPO", ten: "phép dồn sổ danh bạ (đối chứng)", ...node("scripts/close-ledger-before-regenesis.mjs", "--tu-kiem") },
+  { nhom: "2 · CỔNG REPO", ten: "chấm điểm canh mạng (đối chứng)", ...node("scripts/watch-network.mjs", "--tu-kiem") },
 
   // ── 3. Thế giới thật — mạng đang chạy và server ──
-  { nhom: "3 · THẾ GIỚI THẬT", mang: true, ten: "mạng đang chạy (canh-mang)", ...node("scripts/canh-mang.mjs") },
+  { nhom: "3 · THẾ GIỚI THẬT", mang: true, ten: "mạng đang chạy (watch-network)", ...node("scripts/watch-network.mjs") },
   { nhom: "3 · THẾ GIỚI THẬT", mang: true, ten: "khoảng cách repo ↔ server + tệp mồ côi", ...node("scripts/check-deploy-drift.mjs") },
   {
     nhom: "3 · THẾ GIỚI THẬT", mang: true,
@@ -86,18 +86,18 @@ const CONG = [
  * Thứ tự ở đây LÀ thứ tự thi hành; vài mục chỉ đúng khi làm trước `down -v`.
  */
 const VIEC_TAY = [
-  ["TRƯỚC khi đụng gì", "🔴 **B-16** — bản sao thứ hai bộ khoá quỹ: `node scripts/o1-kiem.mjs <thư-mục>` phải ra **exit 0**. Chặn GO/NO-GO."],
+  ["TRƯỚC khi đụng gì", "🔴 **B-16** — bản sao thứ hai bộ khoá quỹ: `node scripts/o1-check.mjs <thư-mục>` phải ra **exit 0**. Chặn GO/NO-GO."],
   ["TRƯỚC khi đụng gì", "🔴 **B-17** — xoá 6 tệp `.bak` trên server (đường lui trỏ vào quyết định đã đóng). Lệnh ở `BLOCKERS.md`."],
   ["TRƯỚC `down -v`", "🔴 **O2** — `node scripts/export-chain.mjs` rồi **công bố `sha256` RA CHỖ NGOÀI** trước khi xoá. Thứ tự đó LÀ toàn bộ giá trị của quy trình (lượt `26/08` đã bỏ lỡ)."],
-  ["TRƯỚC `down -v`", "🔴 **Sổ danh bạ** — `node scripts/dong-so-truoc-regenesis.mjs --keo` rồi `--don`; sổ mới phải lên server. Reset sổ = trả 43 tên + chainId lại cho vòng quay."],
-  ["TRƯỚC `down -v`", "🔴 **H-6b** — `bash scripts/h6b-sao-luu.sh` và đọc kỹ số patch nó khai."],
+  ["TRƯỚC `down -v`", "🔴 **Sổ danh bạ** — `node scripts/close-ledger-before-regenesis.mjs --keo` rồi `--don`; sổ mới phải lên server. Reset sổ = trả 43 tên + chainId lại cho vòng quay."],
+  ["TRƯỚC `down -v`", "🔴 **H-6b** — `bash scripts/h6b-backup.sh` và đọc kỹ số patch nó khai."],
   ["Lúc sinh mạng", "🔴 **Bump `A1Gen` ở CẢ HAI ngôn ngữ** — `utils/constants/network_ids.go` **và** `local-net/lib/chainid.mjs`, rồi chạy lại `check-consistency`. Quên một bên thì không có gì báo lỗi (D-093)."],
   ["Lúc sinh mạng", "🔴 **Build lại image node** — image đang chạy là **18 patch**, repo là **24**. Patch 0019/0022 (bí danh `LOVE9`) chưa vào image; thiếu nó là **mọi ví X/C chết câm**. Đường build đã diễn tập `28/08` và ĐẠT (D-105) — nhưng ở `A1Gen 0`; bump lên 1 là đổi binary ⇒ **vẫn phải build lại**."],
   ["Lúc sinh mạng", "🔴 **SỬA DÒNG `image:` TRONG COMPOSE NETGEN VỪA SINH** — netgen ghi cắm cứng `9chain-a1/node:dev` và **không biến nào đổi được** (D-105). Quên là mạng lên bằng binary **18 patch** trong khi mọi cổng vẫn xanh: `grep image: <net>/docker-compose.multinode.yml` phải ra **tag vừa build**."],
   ["Lúc sinh mạng", "🔴 **Đo BINARY, đừng đo mạng:** `docker exec <node> ./avalanchego --version` phải in đúng `commit=` của lượt build ngày G, và `avm.getAssetDescription` alias `LOVE9` phải ra tài sản còn `AVAX` phải **ĐỎ có lý do**. Mạng xanh không nói gì về việc node đang chạy binary nào."],
   ["Lúc sinh mạng", "🔴 **Sinh token + khoá MỚI** — `A1_CONSOLE_TOKEN`, `FAUCET_PK`, `A1_CLI_KEY`. Token cũ **chưa từng đổi qua hai lượt re-genesis** (gotcha 15)."],
   ["Lúc sinh mạng", "🔴 **Chữ khắc** — cơ chế xong 100%. Nội dung là **ĐẦU VÀO David cấp** (D-104: C1 do David điều phối riêng, A1 không theo dõi). ⚠️ Byte tới **sau** bước sinh genesis là **không khắc được nữa trong thế hệ đó** — hỏi David chốt byte TRƯỚC khi chạy netgen, không phải sau."],
-  ["SAU khi mạng lên", "🔴 Đo **trên node đang chạy**: `supplyCap` · `networkID` · HRP · `eth_chainId` · 9/9 node. `node scripts/canh-mang.mjs`."],
+  ["SAU khi mạng lên", "🔴 Đo **trên node đang chạy**: `supplyCap` · `networkID` · HRP · `eth_chainId` · 9/9 node. `node scripts/watch-network.mjs`."],
   ["SAU khi mạng lên", "🔴 **B-13(b)** — đo lệch đồng hồ 9 node rồi chọn `--bu-ms` cho Block Adam. Chỉ làm được sau khi mạng g1 lên, và **phải xong trước `09/09`**."],
   ["SAU khi deploy", "🔴 `node scripts/check-deploy-drift.mjs` — **chạy TRƯỚC khi tin bất kỳ dòng \"ĐÃ ĐÓNG\" nào**."],
 ];

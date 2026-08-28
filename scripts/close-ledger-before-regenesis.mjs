@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * dong-so-truoc-regenesis.mjs — **đóng sổ danh bạ TRƯỚC một lượt sinh lại mạng** (O3b).
+ * close-ledger-before-regenesis.mjs — **đóng sổ danh bạ TRƯỚC một lượt sinh lại mạng** (O3b).
  *
  * ═══ VÌ SAO CÓ ═══
  *
@@ -15,7 +15,7 @@
  * nào làm việc đó** — nó vẫn là một thao tác tay trên một tệp JSON, đúng loại việc đã hỏng
  * một lần rồi.
  *
- * 🔴 **VÀ CÓ MỘT LỖ THỨ HAI, ĐO ĐƯỢC `28/08`:** `sinh-chainid-da-cap.mjs` đọc sổ **trong
+ * 🔴 **VÀ CÓ MỘT LỖ THỨ HAI, ĐO ĐƯỢC `28/08`:** `gen-chainid-issued.mjs` đọc sổ **trong
  * repo** (`9chain-a1-config/console-chains.json` + `docs/archive/`), trong khi sổ **đang
  * sống nằm trên server**, và `check-deploy-drift.mjs` cố ý **bỏ qua** tệp đó (`boQua`).
  * ⇒ Không cổng nào canh khoảng cách giữa hai sổ. Đo `28/08`: server `0 sống · 0 thu hồi`,
@@ -30,9 +30,9 @@
  * ⚠️ **KHÔNG ghi gì lên server.** Nó chuẩn bị tệp ở máy dev; đưa lên là việc có người bấm.
  *
  * Dùng:
- *   node scripts/dong-so-truoc-regenesis.mjs --keo          # kéo sổ sống + đối chiếu
- *   node scripts/dong-so-truoc-regenesis.mjs --don <vào.json> --ra <ra.json>
- *   node scripts/dong-so-truoc-regenesis.mjs --tu-kiem      # đối chứng ngược
+ *   node scripts/close-ledger-before-regenesis.mjs --keo          # kéo sổ sống + đối chiếu
+ *   node scripts/close-ledger-before-regenesis.mjs --don <vào.json> --ra <ra.json>
+ *   node scripts/close-ledger-before-regenesis.mjs --tu-kiem      # đối chứng ngược
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
@@ -118,7 +118,7 @@ function repoDaBiet() {
     try {
       const d = JSON.parse(readFileSync(f, "utf8"));
       for (const nhom of ["chains", "retired"]) for (const c of d[nhom] ?? []) biet.add(khoaBanGhi(c));
-    } catch { /* tệp hỏng: `sinh-chainid-da-cap.mjs` mới là nơi báo, không phải đây */ }
+    } catch { /* tệp hỏng: `gen-chainid-issued.mjs` mới là nơi báo, không phải đây */ }
   }
   return { biet, nguon: ds.length };
 }
@@ -166,7 +166,7 @@ function keo() {
   writeFileSync(dich, JSON.stringify(song, null, 2));
   console.log(`\n🔴 ${chuaBiet.length} bản ghi CHƯA có trong repo — đã lưu vào docs/archive/${ten}`);
   for (const c of chuaBiet) console.log(`     ${c.name} #${c.chainId}`);
-  console.log("   Chạy `node scripts/sinh-chainid-da-cap.mjs` để nạp chúng vào sổ chặn xuyên thế hệ.");
+  console.log("   Chạy `node scripts/gen-chainid-issued.mjs` để nạp chúng vào sổ chặn xuyên thế hệ.");
   return 0;
 }
 

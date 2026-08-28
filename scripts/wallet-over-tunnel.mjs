@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * vi-qua-ham.mjs — **M11.10: ví ký ở MÁY DEV, khoá quỹ không bao giờ chạm server.**
+ * wallet-over-tunnel.mjs — **M11.10: ví ký ở MÁY DEV, khoá quỹ không bao giờ chạm server.**
  *
  * 🔴 VÌ SAO CÓ. Hôm nay ví X/P chạy **trên server** (`9chain-a1-xpwallet`), khoá nằm trong env
  * của container ⇒ mọi lượt nạp quỹ là một lượt khoá quỹ đi lên một máy công khai. Lượt g0
@@ -20,7 +20,7 @@
  * ⇒ Hầm SSH chạy **TRONG CÙNG container với ví**: ví gọi `127.0.0.1:9650`, header `Host` tự nó
  * đã nằm trong danh sách cho phép. **Không nới một cổng nào ở server.**
  *
- * ## Thứ tự trong `vao.sh` là toàn bộ giá trị của nó
+ * ## Thứ tự trong `enter.sh` là toàn bộ giá trị của nó
  *
  * Chứng minh đường đi **trước**, nạp khoá **sau**. Ba phép đo chạy **mỗi lượt**, không phải
  * lượt đầu rồi tin mãi: `networkID` đúng băng · `/ext/bc/C/avax` = 200 · **đối chứng ngược**
@@ -28,9 +28,9 @@
  * Host đã bị nới và phép đo kia không chứng minh gì nữa.
  *
  * Dùng:
- *   node scripts/vi-qua-ham.mjs --kiem       # nghiệm thu đường đi, KHÔNG cần khoá, KHÔNG chạy ví
- *   node scripts/vi-qua-ham.mjs --tu-kiem    # đối chứng ngược — 3 ca PHẢI ra ĐỎ
- *   node scripts/vi-qua-ham.mjs --khoa D:/tam/wallet-key.txt --cong 8090
+ *   node scripts/wallet-over-tunnel.mjs --kiem       # nghiệm thu đường đi, KHÔNG cần khoá, KHÔNG chạy ví
+ *   node scripts/wallet-over-tunnel.mjs --tu-kiem    # đối chứng ngược — 3 ca PHẢI ra ĐỎ
+ *   node scripts/wallet-over-tunnel.mjs --khoa D:/tam/wallet-key.txt --cong 8090
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
@@ -40,8 +40,8 @@ import { fileURLToPath } from "node:url";
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FORK = path.join(GOC, "upstream/avalanchego");
-const BOI_CANH = path.join(GOC, "local-net/deploy/vi-qua-ham");
-const ANH = "9chain-a1/vi-qua-ham:dev";
+const BOI_CANH = path.join(GOC, "local-net/deploy/wallet-tunnel");
+const ANH = "9chain-a1/wallet-over-tunnel:dev";
 
 const argv = process.argv.slice(2);
 const lay = (co, mac) => {
@@ -166,9 +166,9 @@ if (TU_KIEM) {
   process.exit(r.status ?? 1);
 } else {
   if (!KHOA_VI) {
-    console.log("dùng: node scripts/vi-qua-ham.mjs --kiem");
-    console.log("      node scripts/vi-qua-ham.mjs --tu-kiem");
-    console.log("      node scripts/vi-qua-ham.mjs --khoa <tệp-khoá-ví> [--cong 8090]");
+    console.log("dùng: node scripts/wallet-over-tunnel.mjs --kiem");
+    console.log("      node scripts/wallet-over-tunnel.mjs --tu-kiem");
+    console.log("      node scripts/wallet-over-tunnel.mjs --khoa <tệp-khoá-ví> [--cong 8090]");
     console.log("\n🔴 Khoá ví vào bằng TỆP, không bằng tham số dòng lệnh — nó nằm lại trong");
     console.log("   lịch sử shell và trong `docker inspect` nếu truyền bằng env.");
     process.exit(2);

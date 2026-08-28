@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * do-lech-dong-ho.mjs — **B-13(b)**: đo lệch đồng hồ rồi chọn `--bu-ms` cho Block Adam.
+ * check-clock-skew.mjs — **B-13(b)**: đo lệch đồng hồ rồi chọn `--bu-ms` cho Block Adam.
  *
  * ═══ ĐẠI LƯỢNG CẦN ĐO LÀ GÌ — và nó KHÔNG phải "lệch giữa 9 node" ═══
  *
@@ -37,8 +37,8 @@
  * Lọc kiểu NTP: lấy **mẫu có RTT NHỎ NHẤT** — nó có biên chặt nhất, vì biên là ±(RTT/2 + 500).
  *
  * Dùng:
- *   node scripts/do-lech-dong-ho.mjs
- *   node scripts/do-lech-dong-ho.mjs --tu-kiem
+ *   node scripts/check-clock-skew.mjs
+ *   node scripts/check-clock-skew.mjs --tu-kiem
  */
 const argv = process.argv.slice(2);
 const lay = (co, mac) => { const i = argv.indexOf(co); return i >= 0 && argv[i + 1] ? argv[i + 1] : mac; };

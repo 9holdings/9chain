@@ -106,7 +106,7 @@ patch 0013 (D-050).
 Tra sổ công khai `27/08` ([`G4-TRA-CHAINID-2026-08-27.md`](G4-TRA-CHAINID-2026-08-27.md)) phát
 hiện **`9100` = Genesis Coin**, mà `9100` là **số đầu tiên console cấp** cho L1 người dùng.
 
-`server.mjs` nay đọc [`local-net/console/chainid-da-chiem.json`](../local-net/console/chainid-da-chiem.json)
+`server.mjs` nay đọc [`local-net/console/chainid-taken.json`](../local-net/console/chainid-taken.json)
 — **51 số** bị chiếm trong dải `9100–9999` — và bỏ qua chúng ở **cả hai** đường: người dùng tự
 chọn số, và console tự cấp.
 
@@ -115,7 +115,7 @@ chọn số, và console tự cấp.
 oan, hoặc bỏ qua trong im lặng. Cái giá là ảnh chụp **cũ dần**, nên tệp mang theo `ngayTra` và
 console **in tuổi của nó** lúc khởi động, kèm cảnh báo khi quá 90 ngày.
 
-Sinh lại: `node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-da-chiem.json`
+Sinh lại: `node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-taken.json`
 
 ### Nghiệm thu — chạy thật trên console
 

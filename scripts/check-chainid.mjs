@@ -15,7 +15,7 @@
 //   node scripts/check-chainid.mjs --luu <thư mục>       # lưu bản đã tải làm vật chứng
 //   node scripts/check-chainid.mjs --them 1              # ⇦ ĐỐI CHỨNG NGƯỢC: 1 = Ethereum
 //                                                        #    Mainnet, PHẢI ra "bị chiếm"
-//   node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-da-chiem.json
+//   node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-taken.json
 //        # sinh danh sách chặn TĨNH cho console (mặc định HAI dải: 9100–9999 cũ +
 //        # 9000000010–9000009999 mới). Console không gọi mạng lúc đẻ chain — nó đọc ảnh chụp
 //        # này. Ảnh chụp CŨ DẦN, nên tệp mang theo ngày tra. Thêm dải: `--dai lo-hi` (lặp lại).

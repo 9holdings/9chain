@@ -1431,7 +1431,7 @@ mạng thật mà không ai nhận ra — cùng lý lẽ đã dùng cho dòng `C
 
 ### D-064 — Console chặn chainId đã bị chiếm bằng ẢNH CHỤP, không tra mạng lúc đẻ chain
 
-`local-net/console/chainid-da-chiem.json`, sinh bằng `check-chainid.mjs --sinh-danh-sach-chan`.
+`local-net/console/chainid-taken.json`, sinh bằng `check-chainid.mjs --sinh-danh-sach-chan`.
 
 **Lý do:** một lời gọi HTTP ra Internet nằm **giữa đường người dùng bấm nút** là thêm một chỗ
 hỏng ngoài tầm kiểm soát — và hỏng lúc đó thì hoặc **chặn oan** một chain hợp lệ, hoặc **bỏ qua
@@ -2443,7 +2443,7 @@ mạng, EIP-155 buộc chữ ký vào chainId, nên **chữ ký cũ phát lại 
 
 | | |
 |---|---|
-| `scripts/sinh-chainid-da-cap.mjs` | gộp **mọi sổ console trong repo** → `local-net/console/chainid-da-cap.json`. Có `--kiem` (thoát 1 khi tệp trôi lệch khỏi nguồn) |
+| `scripts/gen-chainid-issued.mjs` | gộp **mọi sổ console trong repo** → `local-net/console/chainid-issued.json`. Có `--kiem` (thoát 1 khi tệp trôi lệch khỏi nguồn) |
 | `docs/archive/console-chains-pre-g0-2026-08-27.json` | sổ `26/08→27/08` **chỉ còn trên server** — nay vào repo, để danh sách chặn **tái lập được** mà không phụ thuộc máy chủ |
 | `local-net/lib/chainid.mjs` | `loiChainIdDaCap()` · `loiTenDaCap()` — **hàm thuần**, đặt ở lib theo đúng tiền lệ `capChainIdTuDong`: một phép kiểm sống trong `server.mjs` chỉ chạy được khi có node + SIWE + mạng, nên thực tế nó không bao giờ được kiểm |
 | `server.mjs` | nạp sổ thứ hai (rỗng ≡ cổng tắt, thiếu tệp ≡ cổng tắt — **nói to cả hai**) · chặn TÊN · chặn chainId tự nhập · đường **tự cấp** nhận HỢP hai sổ |
@@ -2509,7 +2509,7 @@ Lúc chuẩn bị deploy, so `sha256` bản trên server với git:
 
 ```
 local-net/lib/chainid.mjs           THIẾU trên server
-local-net/console/chainid-da-chiem.json   THIẾU trên server
+local-net/console/chainid-taken.json   THIẾU trên server
 local-net/console/server.mjs        = commit 69c80ce (2026-08-26)
 ```
 
@@ -2558,7 +2558,7 @@ liệu đã ghi "đóng" — và **không byte nào của nó tồn tại ở n�
 
 `local-net/deploy/console-deploy.sh` — **đường deploy chính thức** — liệt kê tệp **thẳng trong
 script**. Khi `lib/chainid.mjs` được tách ra khỏi `server.mjs` (27/08, để bài kiểm đọc được mã
-thật) thì **không ai nhớ thêm nó vào danh sách chép**. `chainid-da-chiem.json` cũng vậy.
+thật) thì **không ai nhớ thêm nó vào danh sách chép**. `chainid-taken.json` cũng vậy.
 
 ⇒ Cổng chainId David đích thân chốt (B-14) **chưa bao giờ tới được server**. Console công khai
 vẫn cấp từ `9100` suốt hai ngày, và ô nhập trên giao diện còn ghi gợi ý `tự cấp (9100, 9101, …)`
@@ -2715,7 +2715,7 @@ thứ hai là bộ đó thì `kiem-khoa` in **6/6 ✓**, O1 được chấm Đ�
 vẫn chỉ có một bản**. Cùng họ với *"đường lui alias = xanh giả"* và *"cổng chỉ chứng minh
 đường của nó"*.
 
-#### Đã làm — `scripts/kiem-khoa-tren-chain.mjs`
+#### Đã làm — `scripts/check-keys-on-chain.mjs`
 
 Không sửa `kiem-khoa`: nó nằm trong **patch 0023**, đụng vào là đụng đường tái lập fork và
 phải sinh lại cả 24 patch — bốn ngày trước ngày G, cái giá đó không đáng cho một cổng **cần
@@ -2766,7 +2766,7 @@ xanh có hai nghĩa, "cổng thủng" và "ca bắn trượt", và chúng nhìn 
 
 #### Còn lại của O1 — nói thẳng
 
-`kiem-khoa` + `kiem-khoa-tren-chain` là **HAI lệnh**, chạy trên **cùng một thư mục** mới khép
+`kiem-khoa` + `check-keys-on-chain` là **HAI lệnh**, chạy trên **cùng một thư mục** mới khép
 vòng. D-085 hứa *"O1 nay là một lệnh chạy được"* — câu đó nay **sai**, ghi ra thay vì để nó
 đứng. Đầu ra của lệnh mới in cả hai bước ở chân màn hình để không ai chạy nửa vòng.
 
@@ -2799,13 +2799,13 @@ không đóng được**. Ngày G nạp lại cả 6 quỹ ⇒ phải đóng th�
 ⚠️ **403 đó là tin tốt đọc ngược** — bộ lọc Host chặn đúng một thứ đáng chặn, trong một tình
 huống không ai dựng ra để thử nó. Đường ra **không phải nới nó**, và đã không nới.
 
-#### Đã dựng — `local-net/deploy/vi-qua-ham/` + `scripts/vi-qua-ham.mjs`
+#### Đã dựng — `local-net/deploy/wallet-tunnel/` + `scripts/wallet-over-tunnel.mjs`
 
 Hầm SSH chạy **TRONG CÙNG container với ví** ⇒ ví gọi `127.0.0.1:9650`, header `Host` tự nó đã
 nằm trong danh sách cho phép. **Không nới một cổng nào ở server, không đổi một dòng cấu hình
 node nào.**
 
-🔴 **Thứ tự trong `vao.sh` là toàn bộ giá trị của nó: chứng minh đường đi TRƯỚC, nạp khoá SAU.**
+🔴 **Thứ tự trong `enter.sh` là toàn bộ giá trị của nó: chứng minh đường đi TRƯỚC, nạp khoá SAU.**
 Ba phép đo chạy **mỗi lượt**, không phải lượt đầu rồi tin mãi:
 
 | | Đo | Vì sao ở đây |
@@ -3114,7 +3114,7 @@ sẽ bị gỡ). Đã cắm hẳn một ca kiểm cho cả hai dạng.
   đầu là đúng hai cách quên của ngày G (*bump JS quên Go* · *bump Go quên JS*).
 - 🔴 **Đối chứng trên TỆP THẬT** (không phải ca tiêm vào bộ nhớ): `sed` đổi `A1_GEN = 1` trong
   `lib/chainid.mjs` ⇒ cổng đỏ, **mã thoát 1**; hoàn nguyên ⇒ 0.
-- `thehe-test.mjs` (mới): **13/13 đạt** trên console THẬT với một **node giả đổi được câu trả
+- `generation-test.mjs` (mới): **13/13 đạt** trên console THẬT với một **node giả đổi được câu trả
   lời** — đo bằng mạng thật chỉ tới được trạng thái *khớp*, đúng trạng thái không cần cổng.
 - 🔴 **Đối chứng mức bộ:** gỡ hai dòng cổng khỏi `createChain` ⇒ **7 hỏng, exit 1** ⇒ bài kiểm
   nối vào **mã thật**, không tự kiểm chính nó.
@@ -3129,8 +3129,8 @@ lệch, và đó là ĐÚNG** — mã mới ở repo, chưa lên server. Deploy 
 
 Tìm thấy trong lúc làm D-093. **Bản thứ hai của chính lỗ D-088**, ngay trong cùng một script:
 bước **CHÉP** đã đọc `manifest-deploy.json` (bản vá D-088), nhưng vòng **ĐỐI CHIẾU** ngay sau đó
-vẫn **liệt kê tay 9 tệp** — thiếu `lib/chainid.mjs`, `chainid-da-chiem.json`,
-`chainid-da-cap.json`, `chainid-test.mjs`, `l1-evm-genesis.json`.
+vẫn **liệt kê tay 9 tệp** — thiếu `lib/chainid.mjs`, `chainid-taken.json`,
+`chainid-issued.json`, `chainid-test.mjs`, `l1-evm-genesis.json`.
 
 🔴 Tức **đúng bộ tệp đã để B-14 hở hai ngày lại nằm ngoài tầm nhìn của cổng**, lần này ở khâu
 sau. Một lượt `scp` hỏng ở năm tệp đó ⇒ script in đủ 9 dòng `✓ khớp` rồi restart — đúng kịch bản
@@ -3209,7 +3209,7 @@ Ba dấu hiệu tách "server hỏng" khỏi "tôi gõ nhầm địa chỉ", the
 quyết định cũ — chúng **kể về quá khứ**, và sửa chúng cho gọn mắt là viết lại lịch sử. Đã ghi
 bẫy vào `CLAUDE.md` §5 mục 9b thay vì `sed` cả repo.
 
-## D-097 — O1 thành MỘT cổng: `scripts/o1-kiem.mjs`, ba mã thoát (2026-08-28)
+## D-097 — O1 thành MỘT cổng: `scripts/o1-check.mjs`, ba mã thoát (2026-08-28)
 
 D-090 đã dựng đủ **hai** phép đo và tài liệu đã dặn *"phải chạy CẢ HAI"*. Nhưng **một lời dặn
 không phải một cổng.** Nó chỉ có hiệu lực với người đọc đúng tài liệu, đúng hôm ấy, và nhớ tới
@@ -3243,7 +3243,7 @@ D-090 sinh ra để chặn. Thứ tự phán xét trong mã cũng theo đó: *"k
 |---|---:|---:|
 | bộ `g0` **đang sống** (`9chain-a1-keys/g0`) | 0 | **0** ✓ |
 | 🔴 bộ `9001` **đã chết** (`local-net/net-public`) | 1 | **1** ✓ — cùng lượt đó vế 1 vẫn in `✓ 6/6 quỹ khôi phục đúng` |
-| **giấu `kiem-khoa-tren-chain.mjs` đi** (mô phỏng "chỉ chạy kiem-khoa") | 2 | **2** ✓ — *không xanh* |
+| **giấu `check-keys-on-chain.mjs` đi** (mô phỏng "chỉ chạy kiem-khoa") | 2 | **2** ✓ — *không xanh* |
 | không gọi được docker | 2 | **2** ✓ |
 | thư mục không tồn tại · thư mục RỖNG | 2 | **2** ✓ |
 
@@ -3333,7 +3333,7 @@ tay trên một tệp JSON — đúng loại việc đã hỏng một lần và 
 
 ### 🔴 Đo được một lỗ thứ hai, chưa ai nêu
 
-`sinh-chainid-da-cap.mjs` đọc sổ **trong repo**; sổ **đang sống** nằm trên **server**; và
+`gen-chainid-issued.mjs` đọc sổ **trong repo**; sổ **đang sống** nằm trên **server**; và
 `check-deploy-drift.mjs` **cố ý bỏ qua** tệp đó (`boQua`, vì nó đổi theo thời gian). ⇒ **Không
 cổng nào canh khoảng cách giữa hai sổ.**
 
@@ -3374,13 +3374,13 @@ một lượt reset vừa xảy ra"*. Rỗng vừa là trạng thái hợp lệ 
 | Tính chất bao trùm | `|ra.retired| = |vào.chains ∪ vào.retired|` đúng ở **n = 0, 1, 5, 43** — không mất, không đẻ |
 | `--keo` chạy thật | server `0/0` · repo biết **53 bản ghi từ 3 sổ** · exit 0 kèm dòng vàng |
 | `--don` chạy thật | sổ repo thật ⇒ `chains 0 · retired 1`, bản ghi mang `thuHoiLuc` + `lyDo`, và ⚠️ khai luôn "sổ không có khoá `retired`" |
-| Sau đó | `sinh-chainid-da-cap.mjs --kiem` vẫn xanh — 47 chainId · 53 tên, và `9201` vẫn nằm trong sổ chặn |
+| Sau đó | `gen-chainid-issued.mjs --kiem` vẫn xanh — 47 chainId · 53 tên, và `9201` vẫn nằm trong sổ chặn |
 
 ⚠️ **Không ghi gì lên server** — công cụ chuẩn bị tệp ở máy dev; đưa lên là việc có người bấm.
-Đó cũng là lý do nó **không** tự chạy `sinh-chainid-da-cap.mjs`: hai việc đó phải là hai quyết
+Đó cũng là lý do nó **không** tự chạy `gen-chainid-issued.mjs`: hai việc đó phải là hai quyết
 định, vì việc thứ hai ghi vào một tệp đang được deploy.
 
-## D-100 — `canh-mang.mjs`: biến hai thứ "phải nhớ tự đo" thành một lệnh có mã thoát (2026-08-28)
+## D-100 — `watch-network.mjs`: biến hai thứ "phải nhớ tự đo" thành một lệnh có mã thoát (2026-08-28)
 
 Tới `28/08`, hai thứ **có thể giết mạng** đang được canh bằng **trí nhớ**:
 
@@ -3392,7 +3392,7 @@ Tới `28/08`, hai thứ **có thể giết mạng** đang được canh bằng 
 Và ngày hết hạn **chỉ đọc được bằng phép đo** — `BLOCKERS.md` dặn thẳng *"đừng tính tay"*, vì
 mốc thật phụ thuộc `InitialStakeDurationOffset` (so le 7 ngày, **cố ý**) và giờ sinh genesis.
 
-### Ba mã thoát, cùng họ với `o1-kiem.mjs`
+### Ba mã thoát, cùng họ với `o1-check.mjs`
 
 `0` mọi mục đo được và đạt · `1` có mục ĐỎ · `2` có mục **không đo được**. Thứ tự phán xét:
 **ĐỎ trước, KHÔNG-ĐO-ĐƯỢC sau** — một mục hỏng đã biết quan trọng hơn một mục chưa biết.
@@ -3434,7 +3434,7 @@ Tài liệu (`HANDOFF.md`, `PROGRESS.md` M10.4) gọi endpoint tiến trình c�
 gọi đúng tên đó. Không gây hỏng — nhưng ai gõ theo tài liệu sẽ nhận 404 và dễ đọc thành
 "console hỏng". Bộ canh dùng `/whoami` (công khai, không cần token).
 
-## D-101 — `ngay-g-preflight.mjs`: runbook ngày G ở dạng CHẠY ĐƯỢC (2026-08-28)
+## D-101 — `gday-preflight.mjs`: runbook ngày G ở dạng CHẠY ĐƯỢC (2026-08-28)
 
 Tới `28/08`, runbook ngày G nằm rải ở **năm tệp tài liệu** và **không có gì chạy được**. Một
 quy trình chỉ tồn tại dưới dạng văn bản là một quy trình được thi hành **bằng trí nhớ**, vào
@@ -3460,7 +3460,7 @@ nghĩa là sẵn sàng sinh mạng."*
 3. **THẾ GIỚI THẬT** (3) — mạng đang chạy · repo ↔ server + tệp mồ côi · **tra lại sổ chainId
    công khai** (§7 mục 3 đòi tra **ngay trước** bước sinh genesis, vì sổ đổi trong cùng một ngày).
 
-### Mã thoát: 0 / 1 / 2 — cùng họ với `o1-kiem.mjs` và `canh-mang.mjs`
+### Mã thoát: 0 / 1 / 2 — cùng họ với `o1-check.mjs` và `watch-network.mjs`
 
 Ba công cụ của đợt này dùng **cùng một quy ước**: `2` = *không chạy được* ≠ `0` = *đạt*. Một
 quy ước dùng chung là thứ người đọc học **một lần** rồi áp cho cả bộ.
@@ -3542,7 +3542,7 @@ tập trung A1, C1 tôi điều phối riêng."*
 
 Trước quyết định này, ba tệp sống của A1 đều khai C1 là **đường găng lớn nhất**:
 `HANDOFF.md` (*"ngoài tầm A1: chữ khắc chờ C1 đóng băng byte"*), `PROGRESS.md` (cuối đợt 15),
-`ngay-g-preflight.mjs` (việc tay *"chờ C1 đóng băng byte"*), và `NGAY-G-A1-CON-LAI.md` §8 xếp
+`gday-preflight.mjs` (việc tay *"chờ C1 đóng băng byte"*), và `NGAY-G-A1-CON-LAI.md` §8 xếp
 *"C1 chưa đóng băng byte kịp `28/08`"* là **rủi ro số 1**.
 
 ⇒ **Đổi hình dạng, không đổi cơ chế.** A1 nhận **byte đã đóng băng như một đầu vào David cấp**:
@@ -3609,7 +3609,7 @@ bước chưa ai đi.
 
 ---
 
-## D-106 — B-10 có cổng: `kiem-robots.mjs` chấm bằng NỘI DUNG (2026-08-28)
+## D-106 — B-10 có cổng: `check-robots.mjs` chấm bằng NỘI DUNG (2026-08-28)
 
 B-10 mở từ `27/08` và tồn tại **chỉ như một dòng chữ trong `BLOCKERS.md`** — tức nó là *quy
 trình*, không phải *cổng*, và nó sai đúng lúc được cần: sau khi David tắt tính năng ở
@@ -3638,11 +3638,11 @@ Cloudflare"* ⇒ `1`, ca *"nội dung lạ không nhận ra của ai"* ⇒ **`2`
 Chạy thật trên sản phẩm ⇒ **`1`, đỏ**. ⇒ Cổng này **sinh ra đã ĐỎ**, thoả luật cứng #2 mà
 không phải dựng ca giả.
 
-🔴 **Kèm một lỗi bắt được lúc định nối vào preflight:** `ngay-g-preflight.mjs` khai trong chú
+🔴 **Kèm một lỗi bắt được lúc định nối vào preflight:** `gday-preflight.mjs` khai trong chú
 thích một cờ `batBuoc` (*"sai nghĩa là đỏ vẫn không chặn"*) — **cờ đó chưa từng được cài**.
 Đã **bỏ lời hứa** thay vì cài nó: một cổng *"đỏ nhưng không sao"* sẽ bị bỏ qua đúng lúc nó kêu
 thật (lý lẽ D-070). ⇒ Mọi cổng trong preflight đều **bắt buộc**; cổng chưa đủ tư cách chặn
-ngày G thì để **ngoài** và ghi vào `CLAUDE.md` §3 — `kiem-robots` thuộc nhóm đó (mặt web,
+ngày G thì để **ngoài** và ghi vào `CLAUDE.md` §3 — `check-robots` thuộc nhóm đó (mặt web,
 không chạm genesis).
 
 ---
@@ -3659,7 +3659,7 @@ phục vụ). **robots.txt của A1 vẫn luôn tới được người đọc.*
 | lượt | làm gì | sai ở đâu |
 |---|---|---|
 | `27/08` | đọc **dòng đầu** + header, kết luận *"Cloudflare trả robots.txt của chính nó"* | đọc dòng đầu, gọi đó là "đọc nội dung" |
-| `28/08` bản đầu của `kiem-robots.mjs` | dựng cổng chấm bằng **dấu vân tay Cloudflare** ⇒ đỏ | **cùng lỗi, nhưng nay đóng băng vào một cổng** |
+| `28/08` bản đầu của `check-robots.mjs` | dựng cổng chấm bằng **dấu vân tay Cloudflare** ⇒ đỏ | **cùng lỗi, nhưng nay đóng băng vào một cổng** |
 
 ⇒ **Thang đo `CLAUDE.md` §1 nói *"đọc NỘI DUNG"*, không nói *"đọc DÒNG ĐẦU"* — và khoảng cách
 giữa hai câu đó vừa tốn hai ngày.** Header `cf-cache-status: HIT` **đúng và vẫn đúng**: nó nói
@@ -3719,14 +3719,14 @@ và nó sai với một trong ba.**
 
 Repo có **hai** tệp archive, server có **ba** bản `.bak`. Không cổng nào bắt được vì cả hai
 cổng liên quan nhìn chỗ khác: `check-deploy-drift` hỏi *"tệp này có được KHAI không"* (có — nên
-nó im), `sinh-chainid-da-cap` **cố ý không đọc sổ trên server** (đúng, để danh sách chặn tái lập
+nó im), `gen-chainid-issued` **cố ý không đọc sổ trên server** (đúng, để danh sách chặn tái lập
 được). Khoảng giữa hai câu hỏi đó là chỗ tệp này nằm.
 
 ✅ **Đã kéo về** → `docs/archive/console-chains-2026-08-26T0720Z.json`, `sha256` **khớp hai
 đầu**. Ảnh chụp `2026-08-26T07:20:33Z` — **3 chain sống · 39 thu hồi**, tức sổ ngay **trước**
 lượt re-genesis `26/08`.
 
-🔴 **Cổng `sinh-chainid-da-cap --kiem` ĐỎ NGAY khi có nguồn thứ tư** — đúng chức năng, và đó là
+🔴 **Cổng `gen-chainid-issued --kiem` ĐỎ NGAY khi có nguồn thứ tư** — đúng chức năng, và đó là
 lần nó chứng minh mình canh **nguồn** chứ không chỉ canh **kết quả**. `--ghi` xong: **47 chainId
 · 53 tên — KHÔNG ĐỔI**. ⇒ Sổ đó **không thiếu lời hứa chống phát lại nào** (nó là tập con của
 hai sổ kia). Nhưng nó vẫn là **bản duy nhất** của ảnh chụp ấy, và lý do dùng để biện minh cho
@@ -3742,7 +3742,7 @@ thì 42 bản ghi đã đi mất, và đi mất **do một dòng lệnh soạn s
    bước 2 chạy — glob `console-chains.json.bak*` **không** khớp `console-chains.json` trần, và
    tệp trần đó là **sổ đang chạy**; sai một ký tự là mất danh bạ chain đang sống.
 2. Bước 3 đối chứng bằng **hai cổng có sẵn**: `check-deploy-drift` (mồ côi 7 → 1) và
-   `canh-mang` (console `/whoami` vẫn 200) — không tin `ls` một mình.
+   `watch-network` (console `/whoami` vẫn 200) — không tin `ls` một mình.
 
 🔴 **Luật rút ra: câu "đã có bản lưu rồi nên xoá được" là một PHÉP ĐO, không phải một câu trấn
 an.** Trước khi xoá bất cứ thứ gì trên server: **đối chiếu `sha256` với bản lưu, TỪNG TỆP MỘT.**

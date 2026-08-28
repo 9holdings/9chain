@@ -265,7 +265,7 @@ async function main() {
     console.log(`🔴 SAI — ${decoys.length} thư mục là MỒI NHỬ (networkID khớp mạng sống, tiền = 0):`);
     for (const d of decoys) console.log(`   ${d.dir}/ — ${d.wallets} ví, không ví nào có tiền`);
     console.log(`\n   ⇒ Bộ khoá quỹ THẬT của g0 nằm ở C:\\Users\\abc\\9chain-a1-keys\\g0\\.`);
-    console.log(`     Nghiệm thu bằng \`node scripts/o1-kiem.mjs <thư-mục>\`, đừng chấm bằng tên thư mục.`);
+    console.log(`     Nghiệm thu bằng \`node scripts/o1-check.mjs <thư-mục>\`, đừng chấm bằng tên thư mục.`);
   }
   if (traps.length) {
     console.log(`🔴 SAI — ${traps.length} tệp giữ TIỀN THẬT nằm ngoài thư mục của thế hệ đang chạy:`);

@@ -5,7 +5,7 @@
  * 🔴 VÌ SAO CÓ. Ngày `2026-08-28`, lúc chuẩn bị deploy một thay đổi console, so `sha256` hai
  * đầu thì lộ ra: **console công khai đang chạy đứng ở commit `69c80ce` (26/08)**, và ba commit
  * sau nó chưa bao giờ lên — gồm `b53c8f5` là **B-14, gốc dải chainId `9000000010`, mục David
- * đích thân chốt**. `lib/chainid.mjs` và `chainid-da-chiem.json` **không tồn tại trên server**.
+ * đích thân chốt**. `lib/chainid.mjs` và `chainid-taken.json` **không tồn tại trên server**.
  * Tức console sống vẫn cấp chainId từ `9100` (số trùng **Genesis Coin**) suốt hai ngày, trong
  * khi `BLOCKERS.md` ghi B-14 *"ĐÃ ĐÓNG"*.
  *

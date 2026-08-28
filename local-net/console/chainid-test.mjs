@@ -3,7 +3,7 @@
 // Chạy: `node local-net/console/chainid-test.mjs`
 //
 // 🔴 Bài này `import` **mã thật** (`../lib/chainid.mjs`) và đọc **danh sách chặn thật**
-// (`chainid-da-chiem.json`). Nó KHÔNG chép lại công thức cấp số — chép là đúng lớp lỗi
+// (`chainid-taken.json`). Nó KHÔNG chép lại công thức cấp số — chép là đúng lớp lỗi
 // `check-consistency.mjs` đã dính, nơi bản chép tay bằng JS xanh suốt trong khi con số nó
 // khẳng định đã trôi lệch khỏi mã thật.
 //
@@ -14,7 +14,7 @@ import path from "node:path";
 import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, A1_GEN, GOC_DAI_CHAINID, TRAN_DAI_CHAINID, TRAN_TOAN_DAI, TRAN_EIP2294 } from "../lib/chainid.mjs";
 
 const THU_MUC = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
-const chan = JSON.parse(readFileSync(path.join(THU_MUC, "chainid-da-chiem.json"), "utf8"));
+const chan = JSON.parse(readFileSync(path.join(THU_MUC, "chainid-taken.json"), "utf8"));
 const daChiem = new Map(chan.daBiChiem.map((m) => [m.chainId, m.ten]));
 
 let dat = 0, hong = 0;
@@ -124,7 +124,7 @@ ok("chừa một chỗ trong dải ⇒ vẫn cấp được (phép đo phân bi�
 // `console-chains.json` về rỗng, và mọi tên/số từng phát cho người dùng "còn trống".
 console.log("\n─── 8. Sổ A1 đã từng cấp — xuyên thế hệ ───");
 
-const daCapFile = JSON.parse(readFileSync(path.join(THU_MUC, "chainid-da-cap.json"), "utf8"));
+const daCapFile = JSON.parse(readFileSync(path.join(THU_MUC, "chainid-issued.json"), "utf8"));
 const daCapId = new Set(daCapFile.chainIds);
 const daCapTen = new Map(daCapFile.tens.map((t) => [t.toLowerCase(), t]));
 

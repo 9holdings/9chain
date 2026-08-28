@@ -51,19 +51,19 @@ nhưng `chain-factory-key.txt` **cùng thư mục** lại là khoá **g0 đang s
 | | Lệnh | Chứng minh |
 |---|---|---|
 | **1** | `kiem-khoa` | khoá riêng suy ra **đúng những địa chỉ** tệp tự khai |
-| **2** | `kiem-khoa-tren-chain.mjs` | những địa chỉ đó **giữ tiền thật trên mạng đang chạy** |
+| **2** | `check-keys-on-chain.mjs` | những địa chỉ đó **giữ tiền thật trên mạng đang chạy** |
 
 Nối lại: **khoá riêng trong tay anh chi được tiền của mạng đang chạy.** Đó mới là thứ O1 hỏi.
 
 ### 🔴 NAY CHỈ CẦN MỘT LỆNH — và đó không phải chuyện tiện tay
 
 ```bash
-node scripts/o1-kiem.mjs D:/tam-o1
+node scripts/o1-check.mjs D:/tam-o1
 ```
 
 Một **lời dặn** *"nhớ chạy cả hai"* không phải một **cổng**: nó chỉ có hiệu lực với người đọc
 đúng tài liệu, đúng hôm ấy, và nhớ tới lệnh thứ hai **sau khi lệnh thứ nhất vừa in một dòng
-xanh rất thuyết phục**. `scripts/o1-kiem.mjs` chạy cả hai vế và **chỉ thoát `0` khi cả hai
+xanh rất thuyết phục**. `scripts/o1-check.mjs` chạy cả hai vế và **chỉ thoát `0` khi cả hai
 xanh** (D-097).
 
 | mã thoát | nghĩa | phải làm gì |
@@ -113,7 +113,7 @@ chắn anh đang cầm bộ của thế hệ khác, dù câu cuối vẫn xanh. 
 ### Bước 3 — những địa chỉ đó có giữ tiền thật không
 
 ```bash
-node scripts/kiem-khoa-tren-chain.mjs D:/tam-o1/allocation.md
+node scripts/check-keys-on-chain.mjs D:/tam-o1/allocation.md
 ```
 
 **Đạt** = `✓ 6/6 quỹ khớp CHAIN ĐANG CHẠY`, mã thoát `0`.
