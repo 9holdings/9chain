@@ -242,7 +242,24 @@ function copy(text, btn){
 // Cách chữa thật: console nay ghi kèm khoá `presetName` vào mỗi bản ghi chain, và
 // hàm dưới **ưu tiên khoá đó**. Bảng này chỉ còn là đường lui cho chain đẻ TRƯỚC
 // thay đổi ấy — tức nó đóng băng, không cần cập nhật khi thêm preset mới nữa.
+//
+// 🔴 BẢNG NÀY CHỨA CẢ id CŨ LẪN id MỚI, VÀ ĐÓ LÀ CHỦ Ý — KHÔNG PHẢI SÓT DỌN.
+// `2026-08-28` id preset đổi sang tiếng Anh (`chuan`→`standard`…). Nhưng id là **dữ
+// liệu ĐÃ LƯU** trong `console-chains.json`: mọi chain đẻ trước hôm đó mang id cũ, và
+// console **không bao giờ viết lại bản ghi đã đẻ**. Xoá hàng cũ ở đây là làm mọi chain
+// cũ hiện ra id trần thay vì tên.
+// ⇒ Đây là **bảng tra cho dữ liệu lịch sử**, không phải bí danh của API: `apDungPreset`
+//   TỪ CHỐI thẳng id cũ (`Kiểu chain "khong-phi" không có`). Hai chuyện khác nhau —
+//   cái trước đọc quá khứ, cái sau nhận đầu vào mới.
 const TEN_PRESET = {
+  // id hiện hành
+  'standard': 'Chuẩn',
+  'zero-fee': 'Phí gần như bằng 0',
+  'high-throughput': 'Thông lượng cao',
+  'mintable': 'Tự in thêm token',
+  'owner-deploy-only': 'Chỉ chủ chain deploy được hợp đồng',
+  'permissioned': 'Chain kín (chỉ ai được duyệt mới giao dịch)',
+  // id CŨ — bản ghi đẻ trước 2026-08-28 mang chúng, ĐỪNG XOÁ
   'chuan': 'Chuẩn',
   'khong-phi': 'Phí gần như bằng 0',
   'thong-luong-cao': 'Thông lượng cao',

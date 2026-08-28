@@ -1,25 +1,25 @@
 {
   "_doc": "chainId VÀ TÊN mà 9Chain-A1 ĐÃ TỪNG CẤP cho L1 người dùng, gộp từ mọi sổ console trong repo. Chặn cấp lại VĨNH VIỄN: thu hồi không gỡ được mạng khỏi ví ai, nên cấp lại một chainId là để chữ ký của chain cũ phát lại được trên chain mới. SINH TỰ ĐỘNG — đừng sửa tay, chạy `node scripts/gen-chainid-issued.mjs --write`.",
-  "nguon": [
+  "sources": [
     {
-      "tep": "docs/archive/console-chains-2026-08-26T0720Z.json",
-      "muc": 42
+      "file": "docs/archive/console-chains-2026-08-26T0720Z.json",
+      "entries": 42
     },
     {
-      "tep": "docs/archive/console-chains-pre-g0-2026-08-27.json",
-      "muc": 6
+      "file": "docs/archive/console-chains-pre-g0-2026-08-27.json",
+      "entries": 6
     },
     {
-      "tep": "docs/archive/console-chains-pre-regenesis-2026-08-26.json",
-      "muc": 46
+      "file": "docs/archive/console-chains-pre-regenesis-2026-08-26.json",
+      "entries": 46
     },
     {
-      "tep": "9chain-a1-config/console-chains.json",
-      "muc": 1
+      "file": "9chain-a1-config/console-chains.json",
+      "entries": 1
     }
   ],
-  "soChainId": 47,
-  "soTen": 53,
+  "chainIdCount": 47,
+  "nameCount": 53,
   "chainIds": [
     9100,
     9101,
@@ -69,7 +69,7 @@
     9145,
     9201
   ],
-  "tens": [
+  "names": [
     "BuocTest1951",
     "CauDich0MKJ",
     "CauDich3SP4",

@@ -6,7 +6,7 @@
 //     node local-net/faucet/load-test.mjs --phut 5            # hiệu chỉnh, chạy ngắn
 //     node local-net/faucet/load-test.mjs --gio 3             # chạy dài
 //     node local-net/faucet/load-test.mjs --gio 3 --wallet 40     # nhiều ví gửi hơn
-//     node local-net/faucet/load-test.mjs --phut 10 --wallet 60 --preset thong-luong-cao
+//     node local-net/faucet/load-test.mjs --phut 10 --wallet 60 --preset high-throughput
 //                                                            # đo trần của gasLimit 60M (M9.4)
 //
 // ═══ VÌ SAO ĐẺ MỘT L1 RIÊNG, KHÔNG BƠM THẲNG VÀO C-CHAIN ═══
@@ -51,13 +51,13 @@ const CHAIN_CO_SAN = opt("chain-rpc", null);
 const KHOA_CO_SAN = opt("khoa", null);
 // Giới hạn tốc độ. 0 = bơm hết sức (dùng để tìm trần).
 const TPS_MUC_TIEU = Number(opt("tps", 0));
-// Kiểu chain đem ra đo. Mặc định `chuan` để mọi số cũ vẫn so được với nhau.
+// Kiểu chain đem ra đo. Mặc định `standard` để mọi số cũ vẫn so được với nhau.
 //
 // Có cờ này vì M9.3 chứng minh **trần TPS là tham số genesis, không phải phần cứng**
 // — nên "đo năng lực chain" mà chỉ đo được đúng một bộ tham số genesis thì nó trả
-// lời sai câu hỏi. `--preset thong-luong-cao` là cách đo xem trần mới nằm ở đâu và
+// lời sai câu hỏi. `--preset high-throughput` là cách đo xem trần mới nằm ở đâu và
 // tới mức nào thì MÁY mới thành nút thắt (M9.4).
-const PRESET = opt("preset", "chuan");
+const PRESET = opt("preset", "standard");
 
 // ═══ TRẦN THỜI GIAN TỔNG — chốt an toàn cho CHÍNH BÀI ĐO (B-8) ═══
 //

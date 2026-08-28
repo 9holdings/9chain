@@ -41,15 +41,15 @@ export const DIA_CHI = {
  */
 export const PRESETS = [
   {
-    id: "chuan",
-    ten: "Chuẩn",
-    moTa: "EVM thường. Chủ chain nhận toàn bộ token genesis và quyền chỉnh phí.",
+    id: "standard",
+    name: "Chuẩn",
+    desc: "EVM thường. Chủ chain nhận toàn bộ token genesis và quyền chỉnh phí.",
     ap() { /* không thêm gì — đây là hình dạng nền */ },
   },
   {
-    id: "khong-phi",
-    ten: "Phí gần như bằng 0",
-    moTa: "baseFee = 1 wei, giao dịch trả đúng sàn đó (một lượt chuyển tiền tốn " +
+    id: "zero-fee",
+    name: "Phí gần như bằng 0",
+    desc: "baseFee = 1 wei, giao dịch trả đúng sàn đó (một lượt chuyển tiền tốn " +
           "0,000000000000021 LOVE9). Hợp cho game, thử nghiệm, chain nội bộ. " +
           "Đổi lại gần như không có chi phí nào cản spam.",
     ap(cfg) {
@@ -107,9 +107,9 @@ export const PRESETS = [
     },
   },
   {
-    id: "thong-luong-cao",
-    ten: "Thông lượng cao",
-    moTa: "Gấp 5 lần số giao dịch mỗi block (gasLimit 60 triệu thay vì 12 triệu). " +
+    id: "high-throughput",
+    name: "Thông lượng cao",
+    desc: "Gấp 5 lần số giao dịch mỗi block (gasLimit 60 triệu thay vì 12 triệu). " +
           "Hợp cho game, sàn, thứ gì cần nhiều giao dịch nhỏ liên tục. " +
           "Đổi lại block nặng hơn, và ai chạy node cho chain này cần máy khoẻ hơn.",
     ap(cfg) {
@@ -149,27 +149,27 @@ export const PRESETS = [
     },
   },
   {
-    id: "tu-in-tien",
-    ten: "Tự in thêm token",
-    moTa: "Chủ chain đúc thêm token bản địa bất cứ lúc nào qua precompile " +
+    id: "mintable",
+    name: "Tự in thêm token",
+    desc: "Chủ chain đúc thêm token bản địa bất cứ lúc nào qua precompile " +
           DIA_CHI.nativeMinter + ". Nguồn cung KHÔNG cố định — người dùng chain này phải biết điều đó.",
     ap(cfg, admin) {
       cfg.contractNativeMinterConfig = { adminAddresses: [admin], blockTimestamp: 0 };
     },
   },
   {
-    id: "chi-chu-deploy",
-    ten: "Chỉ chủ chain deploy được hợp đồng",
-    moTa: "Người khác vẫn gửi giao dịch và dùng hợp đồng đã có, nhưng không tự deploy được. " +
+    id: "owner-deploy-only",
+    name: "Chỉ chủ chain deploy được hợp đồng",
+    desc: "Người khác vẫn gửi giao dịch và dùng hợp đồng đã có, nhưng không tự deploy được. " +
           "Chủ chain cấp quyền cho ai tuỳ ý qua precompile " + DIA_CHI.deployerAllowList + ".",
     ap(cfg, admin) {
       cfg.contractDeployerAllowListConfig = { adminAddresses: [admin], blockTimestamp: 0 };
     },
   },
   {
-    id: "kin",
-    ten: "Chain kín (chỉ ai được duyệt mới giao dịch)",
-    moTa: "Chỉ địa chỉ trong danh sách mới GỬI được giao dịch. Hợp cho chain nội bộ doanh nghiệp. " +
+    id: "permissioned",
+    name: "Chain kín (chỉ ai được duyệt mới giao dịch)",
+    desc: "Chỉ địa chỉ trong danh sách mới GỬI được giao dịch. Hợp cho chain nội bộ doanh nghiệp. " +
           "⚠️ Đây là preset khắt khe nhất: ví lạ vào chain này sẽ không làm được gì cả.",
     ap(cfg, admin) {
       // Chủ chain BẮT BUỘC có mặt — xem luật cứng #2 ở đầu file.
@@ -182,19 +182,19 @@ const THEO_ID = new Map(PRESETS.map(p => [p.id, p]));
 
 /** Danh sách rút gọn cho giao diện / API — không lộ hàm `ap`. */
 export function danhSachPreset() {
-  return PRESETS.map(({ id, ten, moTa }) => ({ id, ten, moTa }));
+  return PRESETS.map(({ id, name, desc }) => ({ id, name, desc }));
 }
 
 /**
  * Áp preset lên `config` của genesis.
  *
  * @param {object} cfg   phần `config` của genesis (SỬA TẠI CHỖ)
- * @param {string} id    id preset; rỗng/thiếu ⇒ "chuan"
+ * @param {string} id    id preset; rỗng/thiếu ⇒ "standard"
  * @param {string} admin địa chỉ EIP-55 của chủ chain (đã validate ở tầng trên)
- * @returns {{id:string, ten:string}} preset đã áp
+ * @returns {{id:string, name:string}} preset đã áp
  */
 export function apDungPreset(cfg, id, admin) {
-  const key = String(id ?? "").trim() || "chuan";
+  const key = String(id ?? "").trim() || "standard";
   const p = THEO_ID.get(key);
   if (!p) {
     // Liệt kê lựa chọn hợp lệ ngay trong lỗi: người gọi qua API không có giao diện
@@ -207,5 +207,5 @@ export function apDungPreset(cfg, id, admin) {
     throw new Error(`apDungPreset: địa chỉ admin không hợp lệ (${admin})`);
   }
   p.ap(cfg, admin);
-  return { id: p.id, ten: p.ten };
+  return { id: p.id, name: p.name };
 }

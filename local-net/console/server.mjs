@@ -113,14 +113,14 @@ const chainIdDaChiem = new Map();
 let chainIdChiemNgayTra = null;
 try {
   const j = JSON.parse(readFileSync(CHAINID_CHIEM_FILE, "utf8"));
-  for (const m of j.daBiChiem ?? []) chainIdDaChiem.set(m.chainId, m.ten);
-  chainIdChiemNgayTra = j.ngayTra ?? null;
+  for (const m of j.taken ?? []) chainIdDaChiem.set(m.chainId, m.name);
+  chainIdChiemNgayTra = j.lookupDate ?? null;
   const tuổiNgày = chainIdChiemNgayTra
     ? Math.floor((Date.now() - Date.parse(chainIdChiemNgayTra)) / 86_400_000) : null;
-  // `dais` = nhiều dải (D-069). `dai` = một dải, khuôn cũ — giữ đường đọc ngược để một tệp
+  // `ranges` = nhiều dải (D-069). `dai` = một dải, khuôn cũ — giữ đường đọc ngược để một tệp
   // chưa sinh lại không làm console im lặng mất thông tin dải.
-  const môTảDải = Array.isArray(j.dais)
-    ? j.dais.map((d) => d.join("–")).join(" · ")
+  const môTảDải = Array.isArray(j.ranges)
+    ? j.ranges.map((d) => d.join("–")).join(" · ")
     : (j.dai ?? []).join("–");
   console.log(`[chainId] danh sách chặn: ${chainIdDaChiem.size} số (dải ${môTảDải}), ` +
     `tra ${chainIdChiemNgayTra}${tuổiNgày !== null ? ` — ${tuổiNgày} ngày trước` : ""}`);
@@ -163,9 +163,9 @@ const tenDaCap = new Map(); // tên thường hoá -> tên gốc (để câu l�
 try {
   const j = JSON.parse(readFileSync(CHAINID_DACAP_FILE, "utf8"));
   for (const n of j.chainIds ?? []) chainIdDaCap.add(Number(n));
-  for (const t of j.tens ?? []) tenDaCap.set(String(t).toLowerCase(), String(t));
+  for (const t of j.names ?? []) tenDaCap.set(String(t).toLowerCase(), String(t));
   console.log(`[chainId] sổ A1 đã cấp: ${chainIdDaCap.size} chainId · ${tenDaCap.size} tên ` +
-    `(gộp từ ${(j.nguon ?? []).length} sổ console trong repo)`);
+    `(gộp từ ${(j.sources ?? []).length} sổ console trong repo)`);
   // Rỗng ≡ cổng tắt. Cùng luật với sổ trên: một tệp đọc được mà rỗng vẫn là xanh giả.
   if (chainIdDaCap.size === 0) {
     console.log(`[chainId] 🔴 sổ "A1 đã cấp" RỖNG ⇒ CỔNG ĐANG TẮT. Sinh lại bằng gen-chainid-issued.mjs.`);
@@ -980,7 +980,7 @@ async function createChain({ name, chainId, admin, preset }) {
     // bằng 0" từ D-026 — đúng cái lời hứa sai mà việc đổi tên sinh ra để bỏ. Ghi tên
     // vào đây là ghi tại thời điểm đẻ chain, từ chính `presets.mjs`, nên hết trôi.
     // Thêm khoá vào `console-chains.json` là thao tác AN TOÀN với trang danh bạ.
-    presetName: presetDaAp.ten,
+    presetName: presetDaAp.name,
     rpc: `${rpcBase}${rpcPath}`, createdAt: Date.now(),
   };
   state.chains.push(chain); saveState(state);

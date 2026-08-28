@@ -98,15 +98,15 @@ try {
   console.error("      Không có danh sách thì cổng này đo RỖNG, tức là đang tắt.");
   process.exit(1);
 }
-const boQua = (p) => (manifest.boQua ?? []).some((b) => new RegExp(b.mau).test(p));
+const boQua = (p) => (manifest.ignore ?? []).some((b) => new RegExp(b.pattern).test(p));
 
 const sha = (b) => createHash("sha256").update(b).digest("hex");
 
-const nhom = manifest.nhom ?? {};
+const nhom = manifest.groups ?? {};
 const tep = [];
 const thuocNhom = new Map();
 for (const [ten, n] of Object.entries(nhom)) {
-  for (const f of n.tep ?? []) {
+  for (const f of n.files ?? []) {
     if (boQua(f)) continue;
     tep.push(f);
     thuocNhom.set(f, ten);
@@ -167,11 +167,11 @@ for (const dong of raw.split("\n")) {
 //                   một quyết định chưa ai ghi, không phải một vết thương.
 //
 // Chỉ MỒ CÔI **chưa khai báo** mới làm cổng đỏ. Mồ côi đã khai nằm ở
-// `thuaDaBiet` trong manifest, mỗi mục kèm **lý do** — cùng kỷ luật với `boQua`:
+// `knownExtra` trong manifest, mỗi mục kèm **lý do** — cùng kỷ luật với `ignore`:
 // *vắng mặt phải là một quyết định, không phải một lần quên.*
 // ═══════════════════════════════════════════════════════════════════════════
-const thuaDaBiet = manifest.thuaDaBiet ?? [];
-const daKhaiThua = (p) => thuaDaBiet.find((t) => new RegExp(t.mau).test(p));
+const thuaDaBiet = manifest.knownExtra ?? [];
+const daKhaiThua = (p) => thuaDaBiet.find((t) => new RegExp(t.pattern).test(p));
 
 /**
  * Thuần, để bài đối chứng gọi được mà không cần server.
@@ -251,7 +251,7 @@ if (thua.moCoi.length) {
     `\n🔴 Có tệp trên server KHÔNG tồn tại trong repo. Cổng phía trên KHÔNG thấy được lớp này:\n` +
     `   nó chỉ hỏi "tệp trong danh sách có khớp không". Một bản .bak của mã cũ nằm cạnh mã đang\n` +
     `   chạy là một đường lui trỏ vào một QUYẾT ĐỊNH ĐÃ ĐÓNG — xem D-092b và D-098.\n` +
-    `   Nếu tệp đó ở lại có chủ ý, khai vào "thuaDaBiet" trong manifest kèm LÝ DO.`
+    `   Nếu tệp đó ở lại có chủ ý, khai vào "knownExtra" trong manifest kèm LÝ DO.`
   );
 }
 

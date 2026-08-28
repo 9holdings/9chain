@@ -194,7 +194,7 @@ async function refresh(){
     const sel=document.getElementById('preset');
     if(s.presets && sel.options.length!==s.presets.length){
       PRESETS=s.presets;
-      sel.innerHTML=s.presets.map(p=>`<option value="${esc(p.id)}">${esc(p.ten)}</option>`).join('');
+      sel.innerHTML=s.presets.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
       moTaPreset();
     }
 
@@ -250,7 +250,7 @@ let PRESETS=[];
 function moTaPreset(){
   const id=document.getElementById('preset').value;
   const p=PRESETS.find(x=>x.id===id);
-  document.getElementById('presetHint').innerHTML=p?esc(p.moTa):'';
+  document.getElementById('presetHint').innerHTML=p?esc(p.desc):'';
 }
 
 // Kiểm tra hình thức ở client chỉ để báo sớm cho người dùng — server vẫn kiểm

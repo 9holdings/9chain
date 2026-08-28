@@ -149,7 +149,7 @@ const nghi = ms => new Promise(r => setTimeout(r, ms));
  *
  * 🔴 **MỌI lượt gửi trong file này đi qua đây, không riêng `phaiChan`.** Bản đầu chỉ
  * bọc `phaiChan` vì tưởng bẫy nằm ở "giao dịch bị từ chối". Sai: ngay lượt chạy sau
- * đó, bài `thong-luong-cao` đỏ với `nonce too low: next nonce 1, tx nonce 0` ở hai
+ * đó, bài `high-throughput` đỏ với `nonce too low: next nonce 1, tx nonce 0` ở hai
  * giao dịch **đều thành công** của cùng một ví — `tx.wait(1)` đã trả về mà lượt
  * `getTransactionCount("pending")` kế tiếp vẫn đọc ra số cũ. Bẫy nằm ở **mọi giao
  * dịch thứ hai trở đi của cùng một ví**, và nó chỉ cắn khi hai lượt gần nhau đủ.
@@ -175,7 +175,7 @@ async function guiVoiNonce(vi, tx, lan = 6) {
  *
  * VÌ SAO CẦN (B-4.1): `tx.wait(1)` trả về ngay khi receipt có mặt, nhưng lượt
  * `eth_getBalance` NGAY SAU ĐÓ có thể đọc trạng thái trước block đó — đo được ở
- * preset `tu-in-tien`: mint `status 1` ở block 1 mà số dư đọc ra `0.0`, trong khi
+ * preset `mintable`: mint `status 1` ở block 1 mà số dư đọc ra `0.0`, trong khi
  * thử tay trên đúng chain đó vài giây sau ra đúng `777.0`. Tin lần đọc đầu là kết
  * luận "precompile không có hiệu lực" trong khi nó vừa chạy xong.
  */
@@ -265,7 +265,7 @@ async function chot(tx, nhan) {
 // ══════════════════════════════════════════════════════════════════════════
 // Mỗi bài nhận (provider, ví chủ chain) và tự chứng minh preset có hiệu lực.
 const BAI = {
-  "khong-phi": async (p, chu) => {
+  "zero-fee": async (p, chu) => {
     // Đo TRỰC TIẾP: baseFee của chain phải là ĐÚNG 1 wei. Trên chain chuẩn nó là 25 gwei.
     //
     // Không phải 0 — và bài này đòi đúng 1 chứ không đòi "≤ 1" là có chủ ý: baseFee 0
@@ -292,7 +292,7 @@ const BAI = {
     kiem("phí thực trả gần như bằng 0 (< 1 gwei)", phi < 1000000000n, `${phi} wei`);
   },
 
-  "thong-luong-cao": async (p, chu) => {
+  "high-throughput": async (p, chu) => {
     // Đo THẲNG trên header block, không đọc lại file genesis mình vừa ghi.
     //
     // Đọc genesis chỉ chứng minh "ta đã viết đúng thứ ta định viết" — đúng loại
@@ -303,7 +303,7 @@ const BAI = {
     kiem("gasLimit của chain = 60.000.000 (gấp 5 lần chuẩn)", blk.gasLimit === 60000000n,
       `đo được ${blk.gasLimit}`);
     // Và chain phải vẫn giao dịch được — nâng trần mà chain không chạy nổi thì
-    // preset này tệ hơn `chuan`, không tốt hơn.
+    // preset này tệ hơn `standard`, không tốt hơn.
     const rc = await chot(await guiVoiNonce(chu, {
       to: "0x000000000000000000000000000000000000dEaD", value: 1n, gasLimit: 21000n,
     }), "tx trên chain thông lượng cao");
@@ -334,7 +334,7 @@ const BAI = {
     }
   },
 
-  "tu-in-tien": async (p, chu) => {
+  "mintable": async (p, chu) => {
     const vt = await docVaiTro(p, NATIVE_MINTER, chu.address);
     kiem("precompile nativeMinter ĐANG BẬT", vt.bat, vt.vi);
     kiem("chủ chain có vai Admin trên precompile", vt.vai === 2, vt.vi);
@@ -369,7 +369,7 @@ const BAI = {
       `${ethers.formatEther(sau)}${nhip ? ` (thấy sau ${nhip} nhịp)` : ""}`);
   },
 
-  "chi-chu-deploy": async (p, chu) => {
+  "owner-deploy-only": async (p, chu) => {
     const vt = await docVaiTro(p, DEPLOYER_ALLOWLIST, chu.address);
     kiem("precompile deployerAllowList ĐANG BẬT", vt.bat, vt.vi);
     kiem("chủ chain có vai Admin trên precompile", vt.vai === 2, vt.vi);
@@ -388,7 +388,7 @@ const BAI = {
     kiem("ví lạ VẪN gửi được giao dịch thường (chỉ chặn deploy)", rc2.status === 1, `block ${rc2.blockNumber}`);
   },
 
-  "kin": async (p, chu) => {
+  "permissioned": async (p, chu) => {
     const vt = await docVaiTro(p, TX_ALLOWLIST, chu.address);
     kiem("precompile txAllowList ĐANG BẬT", vt.bat, vt.vi);
     kiem("chủ chain có vai Admin trên precompile", vt.vai === 2, vt.vi);
