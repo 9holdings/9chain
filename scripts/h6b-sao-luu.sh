@@ -203,8 +203,12 @@ nt_doi_chung_nguoc() {  # $1 bundle lành — bản cắt cụt PHẢI bị từ
 }
 
 nt_quet_bi_mat() {  # $1 = cây đã clone ngược
+  # 🔴 `|| true` KHÔNG PHẢI THỪA. `grep` trả mã 1 khi KHÔNG tìm thấy gì, và
+  # `set -o pipefail` cho cả pipeline mã 1 kể cả khi `wc` chạy ngon. Tức là ca
+  # TỐT — "không có khoá riêng nào" — bị `set -e` xử như lỗi và giết script
+  # không in một chữ. Đã dính đúng thế ở lượt chạy thật thứ hai.
   local n_key n_env
-  n_key="$(grep -rlE 'BEGIN (RSA|EC|OPENSSH|DSA)? ?PRIVATE KEY' "$1" --exclude-dir=.git 2>/dev/null | wc -l)"
+  n_key="$(grep -rlE 'BEGIN (RSA|EC|OPENSSH|DSA)? ?PRIVATE KEY' "$1" --exclude-dir=.git 2>/dev/null | wc -l || true)"
   n_env="$(git -C "$1" ls-files | grep -icE '\.env|\.pem$|\.key$|keys?\.txt' || true)"
   if [ "$n_key" -gt 0 ]; then
     truot "QUÉT BÍ MẬT: thấy $n_key tệp chứa khối PRIVATE KEY — KHÔNG ĐƯỢC ĐẨY RA NGOÀI"
