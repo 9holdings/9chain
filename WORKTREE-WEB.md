@@ -9,9 +9,27 @@ từ một lượt **đối chiếu site ↔ mạng g0** (đo mạng thật trư
 Test **139/140** — nay chỉ còn **MỘT** bài đỏ có chủ ý (vân tay token, chờ 9Scan);
 bài "còn thiếu từ điển" đã xanh.
 
-🔴 **MỌI THỨ DƯỚI ĐÂY ĐÃ COMMIT NHƯNG CHƯA DEPLOY.** Trang công khai vẫn là bản cũ —
-`/version.txt` vẫn 404 thật, dải cảnh báo vẫn chưa nói mốc `27/08`. Deploy cần David
-gật và cần báo phiên chain (luật "chỉ MỘT phiên được deploy").
+✅ **ĐÃ DEPLOY `2026-08-28`** — David duyệt, đã báo phiên chain `9chain-a1-20` trước.
+Chỉ chép `web/out`; **KHÔNG đụng Caddyfile** (không đổi trong đợt này) nên không có
+nguy cơ ghi đè lẫn nhau như lần `27/08`.
+Mỏ neo đang chạy: **`commit=f38b99fd7ff8` · `con-sua-chua-commit=khong` · 40 chunk**.
+
+**Nghiệm thu SAU deploy — đo nội dung trên mạng, không tin dòng "✓ xong" của script:**
+
+| Đo | Trước | Sau |
+|---|---|---|
+| `/version.txt` | **404 thật** (nginx, `text/html`) | **200**, `text/plain`, **khớp từng byte** với `web/out/version.txt` |
+| Câu "đã sinh lại 27/08" | chỉ `/re-genesis/` | **6/6 trang** |
+| Ngôn ngữ "chưa có" | 19 | **0** (29 nhãn máy dịch + `vi` có người soát = 30) |
+| `vi-VN` trong chunk đang phục vụ | có | **0/10 chunk** |
+| host ↔ container | — | **107 = 107 tệp** (không dính bẫy inode) |
+| Liên kết nội bộ | — | **7/7 sống**, đo bằng nội dung |
+
+**Chrome thật, qua Cloudflare, trên `https://a1.9chain.org`:**
+dải hiện `Already rebuilt once on 2026-08-27 → A1 is being rebuilt on 2026-09-01 →
+Details` · số liệu **9/9 · 0 · 1** (ô `0` ở đây là **số 0 đo được thật**, khác hẳn ô
+`—` nghĩa là chưa đo được — đúng thứ Đ1-8 dựng ra để phân biệt) · bấm **Gujarati** ⇒
+`lang=gu`, dải lật, và **đúng MỘT chunk mới** tải ở `t=28190ms`.
 
 | Đợt này đóng | |
 |---|---|
