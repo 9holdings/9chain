@@ -3644,3 +3644,59 @@ thích một cờ `batBuoc` (*"sai nghĩa là đỏ vẫn không chặn"*) — *
 thật (lý lẽ D-070). ⇒ Mọi cổng trong preflight đều **bắt buộc**; cổng chưa đủ tư cách chặn
 ngày G thì để **ngoài** và ghi vào `CLAUDE.md` §3 — `kiem-robots` thuộc nhóm đó (mặt web,
 không chạm genesis).
+
+---
+
+## D-106b — ĐÍNH CHÍNH D-106 và B-10: **chẩn đoán sai từ `27/08`, đóng `28/08`**
+
+**B-10 chưa bao giờ là một lỗ.** Cloudflare **CHÈN THÊM VÀO ĐẦU** `robots.txt`, không **THAY**
+nó. Đo đầy đủ `28/08`: tệp của A1 còn nguyên bên dưới — `User-agent: *` · `Allow: /` · đủ 7
+dòng `Disallow:` · `Sitemap: https://a1.9chain.org/sitemap.xml` (grep ra **3** lần trong tệp
+phục vụ). **robots.txt của A1 vẫn luôn tới được người đọc.**
+
+🔴 **Vì sao lỗi sống được hai ngày, và vì sao nó đắt hơn vẻ ngoài:**
+
+| lượt | làm gì | sai ở đâu |
+|---|---|---|
+| `27/08` | đọc **dòng đầu** + header, kết luận *"Cloudflare trả robots.txt của chính nó"* | đọc dòng đầu, gọi đó là "đọc nội dung" |
+| `28/08` bản đầu của `kiem-robots.mjs` | dựng cổng chấm bằng **dấu vân tay Cloudflare** ⇒ đỏ | **cùng lỗi, nhưng nay đóng băng vào một cổng** |
+
+⇒ **Thang đo `CLAUDE.md` §1 nói *"đọc NỘI DUNG"*, không nói *"đọc DÒNG ĐẦU"* — và khoảng cách
+giữa hai câu đó vừa tốn hai ngày.** Header `cf-cache-status: HIT` **đúng và vẫn đúng**: nó nói
+về **đường đi**, không nói về **nội dung**. Cloudflare lấy tệp origin, chèn khối của nó vào
+đầu, rồi cache **kết quả đã ghép**. Suy từ *"trả từ cache"* ra *"thay tệp của ta"* là một bước
+nhảy không ai kiểm.
+
+🔴 **Bài học riêng, và nó cay:** `web/public/robots.txt` **đã viết sẵn luật đúng trong chú
+thích của chính nó** — *"đo NỘI DUNG mà không phụ thuộc VỊ TRÍ: `grep -q 'Sitemap: …'`. Đây là
+mặt trái của xanh giả: **đỏ giả** cũng phá đúng thứ đó, chỉ chậm hơn."* Người viết dòng đó đã
+đi trước cả hai lượt chẩn đoán. ⇒ **Trước khi dựng cổng cho một tệp, đọc hết tệp đó — kể cả
+phần chú thích.** Nó thường đã chứa phép đo đúng.
+
+⚠️ **Luật cứng #2 cần vế thứ ba.** Hai vế đã có: *cổng phải được nhìn thấy lúc ĐỎ* (#2), và
+*cổng chưa ai thấy CHẠY XANH THẬT thì cũng chưa phải cổng* (D-095). Vế mới: **thấy nó đỏ chưa
+đủ — phải kiểm rằng nó đỏ VÌ ĐÚNG LÝ DO.** Cổng bản đầu đỏ ngay lần chạy đầu, và cái đỏ đó
+được đọc thành *"bằng chứng cổng nhạy"* trong khi nó là **đỏ giả**.
+
+**Cổng nay chấm đúng:** một câu hỏi duy nhất quyết định xanh/đỏ — *chuỗi chỉ có thể tới từ tệp
+của A1 (`Sitemap: https://a1.9chain.org/sitemap.xml`) có xuất hiện không?* — độc lập vị trí,
+độc lập độ dài, độc lập việc Cloudflare có chèn gì hay không. Mọi thứ khác **hạ xuống ghi
+chú**. **7/7 ca đối chứng**, gồm: *chỉ có khối Cloudflare, mất dòng Sitemap* ⇒ **1** ·
+*route biến mất khỏi Caddyfile, trả HTML 404* ⇒ **2** · *Sitemap trỏ tên miền CŨ
+`testnet-a1`* ⇒ **2** (không tính là dấu của A1) · **và ca tái hiện đúng lỗi của bản đầu**,
+nay phải **XANH**. Chạy thật ⇒ **exit 0**.
+
+**🟡 Còn lại một việc, và nó là QUYẾT ĐỊNH CHÍNH SÁCH của David — không phải lỗi.** Khối
+Cloudflare chèn vào **nhân danh A1**: điều khoản *"As a condition of accessing this website,
+you agree…"* · `Content-Signal: search=yes,ai-train=no,use=reference` · **cấm hẳn 9 bot**
+(`Amazonbot`, `Applebot-Extended`, `Bytespider`, `CCBot`, `ClaudeBot`,
+`CloudflareBrowserRenderingCrawler`, `Google-Extended`, `GPTBot`, …) · viện **Điều 4 Chỉ thị
+EU 2019/790**. Với một testnet công khai mời cộng đồng, *"ai được đọc nội dung của A1"* là câu
+David nên tự trả lời chứ không nhận mặc định của nhà cung cấp CDN.
+⚠️ Lý do kỹ thuật phụ: nhóm `User-agent: *` của Cloudflare đứng **trước** nhóm của A1. RFC 9309
+§2.2.1 buộc bot **gộp** hai nhóm cùng tên nên bot tuân thủ vẫn thấy `Disallow:` của A1 — bot
+chỉ đọc nhóm đầu thì **không**, mà đó đúng là các dòng dựng ra để Blockscout khỏi bị bò hết.
+**Rủi ro thấp, không phải zero.**
+Chỗ tắt: `dash.cloudflare.com` → zone `9chain.org` → **Overview → Control AI Crawlers** → bỏ
+chọn **Display Content Signals Policy**; hoặc **Security → Settings** → lọc *Bot traffic* →
+*Instruct AI bot traffic with robots.txt*. Purge `/robots.txt` rồi chạy lại cổng.
