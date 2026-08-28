@@ -141,7 +141,7 @@ $ node scripts/check-consistency.mjs
   21 đạt · 0 lỗi
 EXIT=0
 
-$ node scripts/check-consistency.mjs --tu-kiem
+$ node scripts/check-consistency.mjs --self-test
   ✓ "tổng cung 90 tỷ (tràn uint64)" → bắt được (5 lỗi)
   ✓ "SupplyCap = tổng cung (bỏ quên phần C-Chain)" → bắt được (2 lỗi)
   ✓ "không đọc được SupplyCap từ Go" → bắt được (1 lỗi)
@@ -151,7 +151,7 @@ EXIT=0
 
 Đây là **cổng duy nhất trong dự án đạt đủ chuẩn `CLAUDE.md`**: nó đọc hằng số
 thẳng từ Go (không giữ bản chép tay), nó kiểm **tỷ lệ so với trần uint64** chứ
-không chỉ kiểm số, và nó có `--tu-kiem` chứng minh mình phân biệt được xanh/đỏ.
+không chỉ kiểm số, và nó có `--self-test` chứng minh mình phân biệt được xanh/đỏ.
 
 ### 2b. Console — bề mặt công khai, và nó được viết như thứ biết mình công khai
 

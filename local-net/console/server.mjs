@@ -107,7 +107,7 @@ const dangNhapVi = siwe({
 // hoặc chặn oan, hoặc bỏ qua trong im lặng. Cái giá là ảnh chụp **cũ dần**, nên nó mang theo
 // ngày tra và console in tuổi của nó ra lúc khởi động.
 //
-// Sinh lại: `node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-taken.json`
+// Sinh lại: `node scripts/check-chainid.mjs --gen-blocklist local-net/console/chainid-taken.json`
 const CHAINID_CHIEM_FILE = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "chainid-taken.json");
 const chainIdDaChiem = new Map();
 let chainIdChiemNgayTra = null;
@@ -137,7 +137,7 @@ try {
   // cổng biến mất, không ai biết, và nó chỉ lộ ra khi có người thật nhận chainId trùng.
   console.log(`[chainId] 🔴 KHÔNG đọc được ${CHAINID_CHIEM_FILE} (${e.message})`);
   console.log(`[chainId] 🔴 CỔNG CHẶN chainId ĐÃ BỊ CHIẾM ĐANG TẮT. Sinh lại bằng:`);
-  console.log(`[chainId]    node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-taken.json`);
+  console.log(`[chainId]    node scripts/check-chainid.mjs --gen-blocklist local-net/console/chainid-taken.json`);
 }
 
 // ═══ SỔ THỨ HAI: chainId + TÊN CHÍNH A1 ĐÃ TỪNG CẤP (D-086) ═══
@@ -156,7 +156,7 @@ try {
 // một mạng đã chết vào mạng mới — `subnetID`/`blockchainID` trong đó không còn tồn tại. Thứ
 // giữ lại chỉ là **lời hứa**: con số này, cái tên này, đã phát ra ngoài rồi.
 //
-// Sinh lại: `node scripts/gen-chainid-issued.mjs --ghi`
+// Sinh lại: `node scripts/gen-chainid-issued.mjs --write`
 const CHAINID_DACAP_FILE = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "chainid-issued.json");
 const chainIdDaCap = new Set();
 const tenDaCap = new Map(); // tên thường hoá -> tên gốc (để câu lỗi đọc được)
@@ -173,7 +173,7 @@ try {
 } catch (e) {
   console.log(`[chainId] 🔴 KHÔNG đọc được ${CHAINID_DACAP_FILE} (${e.message})`);
   console.log(`[chainId] 🔴 CỔNG CHẶN "A1 đã từng cấp" ĐANG TẮT. Sinh lại bằng:`);
-  console.log(`[chainId]    node scripts/gen-chainid-issued.mjs --ghi`);
+  console.log(`[chainId]    node scripts/gen-chainid-issued.mjs --write`);
 }
 
 // ═══ CỔNG ĐẺ CHAIN: MẶC ĐỊNH ĐÓNG (D-087) ═══

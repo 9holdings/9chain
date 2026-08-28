@@ -11,14 +11,14 @@
 // `01/09` trống. `NGAY-G-A1-CON-LAI.md` §7 điều 3 nói rõ điều đó.
 //
 //   node scripts/check-chainid.mjs                       # tải mới rồi tra
-//   node scripts/check-chainid.mjs --tep <chains.json>   # tra một bản đã tải (tái lập)
-//   node scripts/check-chainid.mjs --luu <thư mục>       # lưu bản đã tải làm vật chứng
-//   node scripts/check-chainid.mjs --them 1              # ⇦ ĐỐI CHỨNG NGƯỢC: 1 = Ethereum
+//   node scripts/check-chainid.mjs --file <chains.json>   # tra một bản đã tải (tái lập)
+//   node scripts/check-chainid.mjs --save <thư mục>       # lưu bản đã tải làm vật chứng
+//   node scripts/check-chainid.mjs --add 1              # ⇦ ĐỐI CHỨNG NGƯỢC: 1 = Ethereum
 //                                                        #    Mainnet, PHẢI ra "bị chiếm"
-//   node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-taken.json
+//   node scripts/check-chainid.mjs --gen-blocklist local-net/console/chainid-taken.json
 //        # sinh danh sách chặn TĨNH cho console (mặc định HAI dải: 9100–9999 cũ +
 //        # 9000000010–9000009999 mới). Console không gọi mạng lúc đẻ chain — nó đọc ảnh chụp
-//        # này. Ảnh chụp CŨ DẦN, nên tệp mang theo ngày tra. Thêm dải: `--dai lo-hi` (lặp lại).
+//        # này. Ảnh chụp CŨ DẦN, nên tệp mang theo ngày tra. Thêm dải: `--range lo-hi` (lặp lại).
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -64,7 +64,7 @@ const CAN_TRA = [
 // đó), tức thông tin, không phải báo động.
 
 // ═════════════════════════════ lấy sổ ═════════════════════════════
-const TEP = cờ("--tep");
+const TEP = cờ("--file");
 let thô, nguồnMôTả;
 if (TEP) {
   thô = readFileSync(TEP);
@@ -110,7 +110,7 @@ for (const c of sổ) if (typeof c.chainId === "number") {
   theoId.get(c.chainId).push(c);
 }
 
-const cầnTra = [...CAN_TRA, ...cờNhiều("--them").map((s) => ({ id: Number(s), vaiTrò: "thêm bằng --them (đối chứng ngược?)" }))];
+const cầnTra = [...CAN_TRA, ...cờNhiều("--add").map((s) => ({ id: Number(s), vaiTrò: "thêm bằng --add (đối chứng ngược?)" }))];
 
 const bịChiếm = [];
 for (const mục of cầnTra) {
@@ -134,7 +134,7 @@ console.log("\n─── Kết quả ───");
 console.log(`  tra ${cầnTra.length} chainId đích danh (9000000009) + QUÉT TRỌN dải L1 ` +
   `${GOC_DAI.toLocaleString("vi-VN")}–${TRAN_DAI.toLocaleString("vi-VN")} ` +
   `(${(TRAN_DAI - GOC_DAI + 1).toLocaleString("vi-VN")} số)` +
-  (cờNhiều("--them").length ? ` · thêm ${cờNhiều("--them").join(", ")}` : ""));
+  (cờNhiều("--add").length ? ` · thêm ${cờNhiều("--add").join(", ")}` : ""));
 console.log(`  · trong dải L1: ${trongDảiL1.length === 0 ? "KHÔNG mục nào" : `🔴 ${trongDảiL1.length} mục`}`);
 
 if (bịChiếm.length === 0) {
@@ -154,7 +154,7 @@ const gần = [...theoId.keys()].filter((k) => Math.abs(k - 9000000009) < 10_000
 console.log(`  · hàng xóm trong bán kính 10 triệu quanh 9000000009: ${gần.length ? gần.join(", ") : "không có"}`);
 
 // ─── Lưu vật chứng ───
-const LUU = cờ("--luu");
+const LUU = cờ("--save");
 if (LUU) {
   mkdirSync(LUU, { recursive: true });
   writeFileSync(join(LUU, "chains.json"), thô);
@@ -173,7 +173,7 @@ if (LUU) {
 // người dùng bấm nút là thêm một chỗ hỏng ngoài tầm kiểm soát, và hỏng lúc đó thì hoặc
 // chặn oan hoặc bỏ qua im lặng. Nên nó đọc **ảnh chụp**. Cái giá: ảnh chụp cũ dần ⇒ tệp
 // mang theo `ngayTra` và console **in ra tuổi của nó**.
-const SINH = cờ("--sinh-danh-sach-chan");
+const SINH = cờ("--gen-blocklist");
 if (SINH) {
   // 🔴 HAI dải, không phải một — và dải CŨ ở lại là CÓ CHỦ Ý (D-069).
   //
@@ -187,12 +187,12 @@ if (SINH) {
   //   · nó **thật sự vẫn cần chặn** — người dùng tự nhập số trong dải đó được;
   //   · nó cho tệp một **nội dung khác rỗng đã biết trước** (4 số trong 9100–9199), nên
   //     tệp rỗng từ nay là **tín hiệu HỎNG**, không phải trạng thái bình thường.
-  const dảiThô = cờNhiều("--dai");
+  const dảiThô = cờNhiều("--range");
   const dải = (dảiThô.length ? dảiThô : ["9100-9999", `${GOC_DAI}-${TRAN_DAI}`])
     .map((s) => s.split("-").map(Number));
   for (const [lo, hi] of dải) {
     if (!Number.isSafeInteger(lo) || !Number.isSafeInteger(hi) || lo > hi) {
-      console.error(`🔴 --dai không hợp lệ: ${lo}-${hi}`); process.exit(2);
+      console.error(`🔴 --range không hợp lệ: ${lo}-${hi}`); process.exit(2);
     }
   }
   const trongDải = sổ
@@ -208,8 +208,8 @@ if (SINH) {
   }
 
   writeFileSync(SINH, JSON.stringify({
-    _doc: "Danh sách chainId ĐÃ BỊ CHIẾM trong sổ công khai, dùng cho console lúc cấp chainId cho L1 người dùng. SINH TỰ ĐỘNG — đừng sửa tay, chạy lại scripts/check-chainid.mjs --sinh-danh-sach-chan.",
-    // 🔴 `nguồnMôTả`, KHÔNG phải `NGUON`. Chạy với `--tep` mà vẫn khai URL là tệp tự khai
+    _doc: "Danh sách chainId ĐÃ BỊ CHIẾM trong sổ công khai, dùng cho console lúc cấp chainId cho L1 người dùng. SINH TỰ ĐỘNG — đừng sửa tay, chạy lại scripts/check-chainid.mjs --gen-blocklist.",
+    // 🔴 `nguồnMôTả`, KHÔNG phải `NGUON`. Chạy với `--file` mà vẫn khai URL là tệp tự khai
     // rằng nó vừa hỏi Internet trong khi nó đọc một ảnh chụp trên đĩa — có thể là ảnh chụp
     // từ năm ngoái. Cùng lớp lỗi với bộ xuất O2 khai "kèm 1 L1" khi không có byte nào
     // (D-057): công cụ dựng ra để chống nói dối thì chỗ nó tự khai phải đúng trước nhất.

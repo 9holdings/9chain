@@ -10,7 +10,7 @@
 // `~/9chain-a1/src` không có package.json/node_modules (thêm một `import` từ
 // npm là script chết lúc khởi động dù máy dev chạy ngon).
 //
-//   node local-net/faucet/probe-net.mjs <RPC_URL> [--giay 180] [--nhip 250] [--ra bao-cao.json]
+//   node local-net/faucet/probe-net.mjs <RPC_URL> [--giay 180] [--nhip 250] [--out bao-cao.json]
 //
 // Ví dụ — đo từ MÁY DEV qua Cloudflare (thứ người dùng thật trải nghiệm):
 //   node local-net/faucet/probe-net.mjs https://rpc-a1.9chain.org/ext/bc/C/rpc --giay 300
@@ -25,7 +25,7 @@ function opt(ten, mac) {
   return i >= 0 && args[i + 1] ? args[i + 1] : mac;
 }
 if (!RPC) {
-  console.error("dùng: node probe-net.mjs <RPC_URL> [--giay 180] [--nhip 250] [--ra bao-cao.json]");
+  console.error("dùng: node probe-net.mjs <RPC_URL> [--giay 180] [--nhip 250] [--out bao-cao.json]");
   process.exit(2);
 }
 const TONG_MS = Number(opt("giay", 180)) * 1000;

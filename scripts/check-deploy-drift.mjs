@@ -21,7 +21,7 @@
  * Dùng:
  *   node scripts/check-deploy-drift.mjs
  *   node scripts/check-deploy-drift.mjs --host ubuntu@1.2.3.4 --src '~/9chain-a1/src'
- *   node scripts/check-deploy-drift.mjs --tat-ca      # in cả những tệp KHỚP
+ *   node scripts/check-deploy-drift.mjs --all      # in cả những tệp KHỚP
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
@@ -36,14 +36,14 @@ const lay = (co, mac) => {
   return i >= 0 && argv[i + 1] ? argv[i + 1] : mac;
 };
 const HOST = lay("--host", ""$A1_SSH_HOST"");
-const KHOA = lay("--key", `${process.env.HOME || process.env.USERPROFILE}/.ssh/9chain-a1`);
+const KHOA = lay("--ssh-key", `${process.env.HOME || process.env.USERPROFILE}/.ssh/9chain-a1`);
 const SRC = lay("--src", "/home/ubuntu/9chain-a1/src");
-const TAT_CA = argv.includes("--tat-ca");
+const TAT_CA = argv.includes("--all");
 
 // ═════ ĐỐI CHỨNG NGƯỢC cho phép PHÂN LOẠI TỆP THỪA ═════
 // Chạy trên danh sách TỔNG HỢP, không chạm server: phép phân loại phải phân biệt được
 // bốn nhóm **trước khi** ta tin nó trên dữ liệu thật.
-if (argv.includes("--tu-kiem")) {
+if (argv.includes("--self-test")) {
   const inMan = new Set(["a/trong-manifest.mjs"]);
   const trongRepo = (f) => f === "a/co-trong-repo.mjs" || f === "a/trong-manifest.mjs";
   const khai = (f) => (f === "a/da-khai.bak" ? { ly: "ca thử" } : undefined);

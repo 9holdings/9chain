@@ -36,7 +36,7 @@
  * Dùng:
  *   node scripts/o1-check.mjs C:/Users/abc/9chain-a1-keys/g0
  *   node scripts/o1-check.mjs <thư-mục> --rpc https://rpc-a1.9chain.org
- *   node scripts/o1-check.mjs --tu-kiem     # đối chứng ngược — có ca PHẢI ra 1 và ca PHẢI ra 2
+ *   node scripts/o1-check.mjs --self-test     # đối chứng ngược — có ca PHẢI ra 1 và ca PHẢI ra 2
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, copyFileSync, rmSync, mkdirSync } from "node:fs";
@@ -52,9 +52,9 @@ const lay = (co, mac) => {
 };
 const RPC = lay("--rpc", "https://rpc-a1.9chain.org");
 const DOCKER = lay("--docker", "docker");
-const ANH = lay("--anh", "golang:1.25.10");
-const TU_KIEM = argv.includes("--tu-kiem");
-const CO_CO = new Set(["--rpc", "--docker", "--anh"]);
+const ANH = lay("--image", "golang:1.25.10");
+const TU_KIEM = argv.includes("--self-test");
+const CO_CO = new Set(["--rpc", "--docker", "--image"]);
 const thuMuc = argv.find((a, i) => !a.startsWith("--") && !CO_CO.has(argv[i - 1]));
 
 const FORK = path.join(GOC, "upstream", "avalanchego");
@@ -167,7 +167,7 @@ function inPhan({ ma, vi }) {
 function tuKiem() {
   const tam = mkdtempSync(path.join(tmpdir(), "o1-"));
   const boChet = path.join(GOC, "local-net", "net-public");
-  const boSong = lay("--bo-song", "C:/Users/abc/9chain-a1-keys/g0");
+  const boSong = lay("--live-set", "C:/Users/abc/9chain-a1-keys/g0");
   // Thư mục rỗng: có thật nhưng KHÔNG có tệp nào ⇒ phải ra 2, không phải 0.
   const rong = path.join(tam, "rong");
   mkdirSync(rong, { recursive: true });
@@ -227,7 +227,7 @@ if (TU_KIEM) {
 
 if (!thuMuc) {
   console.error("Dùng: node scripts/o1-check.mjs <thư-mục-chứa keys.txt + allocation.md>");
-  console.error("      node scripts/o1-check.mjs --tu-kiem");
+  console.error("      node scripts/o1-check.mjs --self-test");
   process.exit(2);
 }
 const kq = chay(thuMuc);

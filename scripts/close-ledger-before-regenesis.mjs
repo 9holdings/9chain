@@ -30,9 +30,9 @@
  * ⚠️ **KHÔNG ghi gì lên server.** Nó chuẩn bị tệp ở máy dev; đưa lên là việc có người bấm.
  *
  * Dùng:
- *   node scripts/close-ledger-before-regenesis.mjs --keo          # kéo sổ sống + đối chiếu
- *   node scripts/close-ledger-before-regenesis.mjs --don <vào.json> --ra <ra.json>
- *   node scripts/close-ledger-before-regenesis.mjs --tu-kiem      # đối chứng ngược
+ *   node scripts/close-ledger-before-regenesis.mjs --pull          # kéo sổ sống + đối chiếu
+ *   node scripts/close-ledger-before-regenesis.mjs --compact <vào.json> --out <ra.json>
+ *   node scripts/close-ledger-before-regenesis.mjs --self-test      # đối chứng ngược
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
@@ -46,8 +46,8 @@ const lay = (co, mac) => {
   return i >= 0 && argv[i + 1] ? argv[i + 1] : mac;
 };
 const HOST = lay("--host", ""$A1_SSH_HOST"");
-const KHOA = lay("--key", `${process.env.HOME || process.env.USERPROFILE}/.ssh/9chain-a1`);
-const SO_SERVER = lay("--so-server", "~/9chain-a1/src/9chain-a1-config/console-chains.json");
+const KHOA = lay("--ssh-key", `${process.env.HOME || process.env.USERPROFILE}/.ssh/9chain-a1`);
+const SO_SERVER = lay("--server-ledger", "~/9chain-a1/src/9chain-a1-config/console-chains.json");
 
 /** Khoá nhận dạng một bản ghi: chainId + tên thường hoá. */
 const khoaBanGhi = (c) => `${Number(c.chainId)}|${String(c.name ?? "").trim().toLowerCase()}`;
@@ -220,16 +220,16 @@ function tuKiem() {
   return hong;
 }
 
-if (argv.includes("--tu-kiem")) {
+if (argv.includes("--self-test")) {
   const hong = tuKiem();
   console.log(`\n${hong ? "✗" : "✅"} ${hong} ca sai`);
   process.exit(hong ? 1 : 0);
 }
-if (argv.includes("--keo")) process.exit(keo());
-if (argv.includes("--don")) {
-  const vao = lay("--don", null);
-  const ra = lay("--ra", null);
-  if (!vao || !ra) { console.error("Dùng: --don <vào.json> --ra <ra.json>"); process.exit(2); }
+if (argv.includes("--pull")) process.exit(keo());
+if (argv.includes("--compact")) {
+  const vao = lay("--compact", null);
+  const ra = lay("--out", null);
+  if (!vao || !ra) { console.error("Dùng: --compact <vào.json> --out <ra.json>"); process.exit(2); }
   let d;
   try { d = JSON.parse(readFileSync(vao, "utf8")); } catch (e) {
     console.error(`FATAL không đọc được ${vao}: ${e.message}`); process.exit(1);
@@ -246,5 +246,5 @@ if (argv.includes("--don")) {
   console.log("\n⚠️  Tệp này chưa được đưa lên server — đó là việc có người bấm.");
   process.exit(0);
 }
-console.error("Dùng: --keo | --don <vào.json> --ra <ra.json> | --tu-kiem");
+console.error("Dùng: --pull | --compact <vào.json> --out <ra.json> | --self-test");
 process.exit(2);

@@ -4,8 +4,8 @@
 #
 #   bash scripts/h6b-backup.sh              # dựng + nghiệm thu + đẩy lên máy chủ
 #   bash scripts/h6b-backup.sh --khong-day  # dựng + nghiệm thu, KHÔNG chạm máy chủ
-#   bash scripts/h6b-backup.sh --kiem       # CHỈ hỏi "bản mới nhất còn tươi không" (A-014)
-#   bash scripts/h6b-backup.sh --tu-kiem    # chứng minh cổng này biết báo ĐỎ
+#   bash scripts/h6b-backup.sh --check       # CHỈ hỏi "bản mới nhất còn tươi không" (A-014)
+#   bash scripts/h6b-backup.sh --self-test    # chứng minh cổng này biết báo ĐỎ
 #
 # ═══ VÌ SAO PHẢI LÀ SCRIPT, KHÔNG PHẢI QUY TRÌNH TRONG TÀI LIỆU ═══
 # H-6b từng là 8 bước viết tay trong `BLOCKERS.md`. Nó đã chạy ba lần và **hai lần
@@ -53,8 +53,8 @@ CHE_DO="day-du"
 for a in "$@"; do
   case "$a" in
     --khong-day) DAY_LEN_SERVER=0 ;;
-    --kiem)      CHE_DO="kiem" ;;
-    --tu-kiem)   CHE_DO="tu-kiem" ;;
+    --check)      CHE_DO="kiem" ;;
+    --self-test)   CHE_DO="tu-kiem" ;;
     *) echo "✗ tham số lạ: $a"; exit 1 ;;
   esac
 done
@@ -68,7 +68,7 @@ dat()   { echo "  ✓ $*"; }
 truot() { echo "  ✗ $*"; LOI=$((LOI+1)); }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# --kiem — cổng A-014: bản sao lưu mới nhất còn tả được mạng đang chạy không?
+# --check — cổng A-014: bản sao lưu mới nhất còn tả được mạng đang chạy không?
 #
 # 🔴 ĐỎ VÀ VÀNG LÀ HAI THỨ KHÁC NHAU, VÀ ĐÓ LÀ CẢ ĐIỂM CỦA MỤC NÀY.
 # Bản đầu của điều kiện qua đòi `git rev-list <HEAD-backup>..main == 0`, tức đòi
@@ -153,11 +153,11 @@ kiem_tuoi() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Bốn phép nghiệm thu — dùng chung cho lượt dựng thật và cho --tu-kiem.
+# Bốn phép nghiệm thu — dùng chung cho lượt dựng thật và cho --self-test.
 # ─────────────────────────────────────────────────────────────────────────────
 # 🔴 CÁC HÀM nt_* KHÔNG BAO GIỜ TRẢ MÃ KHÁC 0 — chúng chỉ GHI NHẬN vào $LOI.
 # Lý do: script chạy `set -e`, nên một hàm nghiệm thu trả 1 sẽ giết cả script
-# NGAY TẠI CA ĐANG CỐ Ý LÀM HỎNG của `--tu-kiem`. Tức là ca "phải đỏ" sẽ không
+# NGAY TẠI CA ĐANG CỐ Ý LÀM HỎNG của `--self-test`. Tức là ca "phải đỏ" sẽ không
 # bao giờ chạy tới câu kết luận, và bộ tự kiểm mất khả năng chứng minh điều duy
 # nhất nó sinh ra để chứng minh. (Đã dính đúng lỗi này ở bản đầu.)
 nt_clone_nguoc() {  # $1 bundle · $2 tree kỳ vọng · $3 số commit kỳ vọng · $4 nhãn
@@ -264,10 +264,10 @@ if [ "$CHE_DO" = "tu-kiem" ]; then
   L0=$LOI; nt_doi_chung_nguoc "$TAM/that.bundle"
   if [ $LOI -eq $L0 ]; then echo "   → ca 3 đạt"; else echo "   🔴 ca 3 hỏng"; exit 1; fi
 
-  # Ca 4 canh CỔNG --kiem, không canh bản sao lưu. Nó là ca quan trọng nhất của
+  # Ca 4 canh CỔNG --check, không canh bản sao lưu. Nó là ca quan trọng nhất của
   # bộ này: A-001 chưa bao giờ hỏng vì bản sao lưu hỏng — nó hỏng vì bản sao lưu
   # LÀNH mà CŨ, và không phép đo nào phân biệt được hai thứ đó.
-  echo "ca 4 — cổng --kiem trước một bản sao lưu CŨ (lành nhưng lạc hậu):"
+  echo "ca 4 — cổng --check trước một bản sao lưu CŨ (lành nhưng lạc hậu):"
   kho_that="$KHO"; gia="$TAM/kho-gia/9chain-a1-backup-19700101-000000"
   mkdir -p "$gia/avalanchego-patches"
   # HEAD lùi 50 commit + khai thiếu patch = đúng hình dạng bản 27/08 đã để lọt.
@@ -278,7 +278,7 @@ EOF2
   touch "$gia/avalanchego-patches/0001-gia.patch"
   KHO="$TAM/kho-gia"
   if kiem_tuoi >/dev/null 2>&1; then
-    KHO="$kho_that"; echo "   🔴 ca 4 KHÔNG ra đỏ — cổng --kiem không phân biệt được CŨ với TƯƠI"; exit 1
+    KHO="$kho_that"; echo "   🔴 ca 4 KHÔNG ra đỏ — cổng --check không phân biệt được CŨ với TƯƠI"; exit 1
   fi
   KHO="$kho_that"
   echo "   → ca 4 ra đỏ đúng như phải thế"

@@ -70,17 +70,17 @@ với ví**, khoá **không chạm server một byte nào**:
 
 ```bash
 # 1. nghiệm thu đường đi — chưa cần khoá
-node scripts/wallet-over-tunnel.mjs --kiem
+node scripts/wallet-over-tunnel.mjs --check
 # 2. 🔴 kiểm CHỌN QUỸ mà KHÔNG khởi động ví — chạy cho cả 6 quỹ trước khi nạp quỹ đầu tiên
-node scripts/wallet-over-tunnel.mjs --kiem --khoa <keys.txt> --quy foundation
+node scripts/wallet-over-tunnel.mjs --check --wallet-key <keys.txt> --fund foundation
 # 3. rồi mới nạp ví
-node scripts/wallet-over-tunnel.mjs --khoa <keys.txt> --quy foundation
+node scripts/wallet-over-tunnel.mjs --wallet-key <keys.txt> --fund foundation
 docker rm -f 9chain-a1-vi-ham                    # 🔴 xong việc là dừng NGAY
 ```
 
 Đã ký thật `28/08` (`p-to-x 0.1`, `Accepted`, đọc lại bằng RPC công khai) — trên
 `chain-factory`, ví nóng, **cố ý**: ký bằng khoá quỹ chỉ nên xảy ra **một lần, ngày G**.
-`--quy` đã chạy đủ 6 quỹ (D-091b), **sáu địa chỉ khác nhau** khớp `ALLOCATION-PUBLIC.md`.
+`--fund` đã chạy đủ 6 quỹ (D-091b), **sáu địa chỉ khác nhau** khớp `ALLOCATION-PUBLIC.md`.
 
 🔴 **Dòng `P-addr` trong `keys.txt` là CHỮ NGƯỜI VIẾT, không phải phép đo.** Khối `[team]` dán
 nhầm địa chỉ `[foundation]` thì dòng `quỹ chọn:` in ra **vẫn trông đúng** và ví vẫn ký. Vì thế

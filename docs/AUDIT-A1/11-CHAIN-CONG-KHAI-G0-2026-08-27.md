@@ -93,7 +93,7 @@ tổng cung tối đa    7.900.000.001 + 1.099.999.999 (C-Chain) = 9.000.000.000
 
 > **Đây nên thành một cổng.** Nó đo `supplyCap` của một mạng đang chạy **từ bên ngoài,
 > chỉ đọc, không cần shell, không cần log** — thứ mà D-079 vừa trả giá vì không có.
-> Nghịch đảo công thức, so với hằng số trong Go, `--tu-kiem` bằng ca tràn 720 triệu.
+> Nghịch đảo công thức, so với hằng số trong Go, `--self-test` bằng ca tràn 720 triệu.
 
 ---
 

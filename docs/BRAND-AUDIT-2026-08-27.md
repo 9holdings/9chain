@@ -100,7 +100,7 @@ mục 0 nói "nền móng tốt hơn vẻ ngoài".
 | **Hệ token chống trôi lệch BẰNG MÁY** | `web/app/tokens.css` 200 dòng chép từ 9Scan-A1, mang **vân tay `535cbf6329efb6d0`**, và `web/test/token.test.ts` so vân tay để bắt lệch. Rất hiếm dự án làm tới mức này |
 | **Màu đã sửa cho đạt tương phản, có ghi lý do** | `--color-muted`: design gốc `#8A94AC` chỉ đạt 2.8:1 → đẩy tối tới `#626c88` ≥4.8:1, chú thích ngay tại chỗ |
 | **Lớp identity node codify được, idempotent** | `scripts/rebrand.sh` — chỉ đổi *giá trị chuỗi*, không đổi định danh Go ⇒ merge upstream sạch |
-| **Cổng nhất quán số học có đối chứng ngược** | `scripts/check-consistency.mjs --tu-kiem` |
+| **Cổng nhất quán số học có đối chứng ngược** | `scripts/check-consistency.mjs --self-test` |
 | **Tên container/image nhất quán** | `9chain-a1-node-1…9`, `9chain-a1-caddy`, `9chain-a1/node:dev` |
 | **Tiền tố env nhất quán** | `A1_*` — 16 `A1_TRUST_PROXY`, 8 `A1_TRACK_SUBNETS`, … |
 | **Chú thích code mang theo PHÉP ĐO** | `chain.ts` giải thích vì sao `iconUrls` không ăn (đã đo, đừng thử lại) · `layout.tsx` giải thích dải Unicode nào bị hụt |

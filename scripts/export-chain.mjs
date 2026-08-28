@@ -32,22 +32,22 @@
 // ⇒ `GỐC` **vẫn** chống được sửa đổi SAU khi xuất — đó mới là việc của nó, và đã đối chứng
 //    ngược: sửa 1 byte ⇒ đỏ; sửa cả `MANIFEST` để che ⇒ `GỐC` vẫn đỏ.
 //
-//   node scripts/export-chain.mjs --rpc http://127.0.0.1:9750 --ra ./xuat-2026-09-01 \
-//        --tep local-net/net-public/genesis.json --tep docs/ALLOCATION-PUBLIC.md
-//   node scripts/export-chain.mjs --kiem ./xuat-2026-09-01     # kiểm lại, exit≠0 nếu lệch
+//   node scripts/export-chain.mjs --rpc http://127.0.0.1:9750 --out ./xuat-2026-09-01 \
+//        --attach local-net/net-public/genesis.json --attach docs/ALLOCATION-PUBLIC.md
+//   node scripts/export-chain.mjs --check ./xuat-2026-09-01     # kiểm lại, exit≠0 nếu lệch
 //
 // Cờ:
 //   --rpc <url>          gốc API của node (KHÔNG kèm /ext/…). Mặc định http://127.0.0.1:9650
-//   --ra <thư mục>       nơi ghi. Phải chưa tồn tại hoặc rỗng.
-//   --tep <đường dẫn>    kèm một tệp cục bộ vào bộ xuất (lặp lại được). Ví dụ genesis.json,
+//   --out <thư mục>       nơi ghi. Phải chưa tồn tại hoặc rỗng.
+//   --attach <đường dẫn>    kèm một tệp cục bộ vào bộ xuất (lặp lại được). Ví dụ genesis.json,
 //                        bảng phân bổ, `console-chains.json` (sổ chống phát lại — §5c).
-//   --them-evm <n=id>    xuất thêm một chuỗi EVM (L1 người dùng), `nhãn=blockchainID`. Lặp
+//   --add-evm <n=id>    xuất thêm một chuỗi EVM (L1 người dùng), `nhãn=blockchainID`. Lặp
 //                        lại được. 🔴 KHÔNG có cờ này thì bộ xuất **chỉ có P/X/C của mạng
 //                        chính** — mọi L1 người dùng biến mất không dấu vết. Lấy danh sách
 //                        từ `console-chains.json` hoặc `platform.getBlockchains`.
-//   --toi-da-block <n>   trần số block mỗi chuỗi. Mặc định KHÔNG trần. Nếu cắt, bài này GHI
+//   --max-blocks <n>   trần số block mỗi chuỗi. Mặc định KHÔNG trần. Nếu cắt, bài này GHI
 //                        RÕ vào manifest — bộ xuất im lặng thiếu dữ liệu là bộ xuất nói dối.
-//   --kiem <thư mục>     chế độ kiểm lại.
+//   --check <thư mục>     chế độ kiểm lại.
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync, appendFileSync } from "node:fs";
 import { basename, join, posix } from "node:path";
@@ -65,7 +65,7 @@ function cờNhiều(tên) {
 const băm = (buf) => createHash("sha256").update(buf).digest("hex");
 
 // ═════════════════════════════ CHẾ ĐỘ KIỂM ═════════════════════════════
-const KIEM = cờ("--kiem");
+const KIEM = cờ("--check");
 if (KIEM) {
   const đườngManifest = join(KIEM, "MANIFEST.txt");
   const đườngGốc = join(KIEM, "GOC.txt");
@@ -108,12 +108,12 @@ if (KIEM) {
 
 // ═════════════════════════════ CHẾ ĐỘ XUẤT ═════════════════════════════
 const RPC = (cờ("--rpc", "http://127.0.0.1:9650")).replace(/\/+$/, "");
-const RA = cờ("--ra");
-const TEP_KEM = cờNhiều("--tep");
-const TRAN_BLOCK = cờ("--toi-da-block") ? Number(cờ("--toi-da-block")) : Infinity;
+const RA = cờ("--out");
+const TEP_KEM = cờNhiều("--attach");
+const TRAN_BLOCK = cờ("--max-blocks") ? Number(cờ("--max-blocks")) : Infinity;
 
 if (!RA) {
-  console.error("thiếu --ra <thư mục>  (hoặc --kiem <thư mục> để kiểm lại)");
+  console.error("thiếu --out <thư mục>  (hoặc --check <thư mục> để kiểm lại)");
   process.exit(2);
 }
 if (existsSync(RA) && readdirSync(RA).length) {
@@ -167,7 +167,7 @@ async function xuấtChuỗiThô(nhãn, đường, mHeight, mBlock) {
   if (!h) return null;
   const cao = Number(h.height);
   const đến = Math.min(cao, TRAN_BLOCK === Infinity ? cao : TRAN_BLOCK);
-  if (đến < cao) console.log(`  ⚠️ ${nhãn}: CẮT ở ${đến}/${cao} (--toi-da-block)`);
+  if (đến < cao) console.log(`  ⚠️ ${nhãn}: CẮT ở ${đến}/${cao} (--max-blocks)`);
   const dòng = [];
   for (let n = 0; n <= đến; n++) {
     const b = await gọiMềm(đường, mBlock, { height: n, encoding: "hex" });
@@ -206,7 +206,7 @@ async function xuấtEVM(nhãn, đường) {
   }
   const caoSố = parseInt(cao, 16);
   const đến = Math.min(caoSố, TRAN_BLOCK === Infinity ? caoSố : TRAN_BLOCK);
-  if (đến < caoSố) console.log(`  ⚠️ ${nhãn}: CẮT ở ${đến}/${caoSố} (--toi-da-block)`);
+  if (đến < caoSố) console.log(`  ⚠️ ${nhãn}: CẮT ở ${đến}/${caoSố} (--max-blocks)`);
   const dòng = [];
   for (let n = 0; n <= đến; n++) {
     const b = await gọiMềm(đường, "eth_getBlockByNumber", ["0x" + n.toString(16), true]);
@@ -224,19 +224,19 @@ async function xuấtEVM(nhãn, đường) {
 }
 const cChain = await xuấtEVM("c-chain", "/ext/bc/C/rpc");
 const l1Cắt = [];
-const l1Xin = cờNhiều("--them-evm");
+const l1Xin = cờNhiều("--add-evm");
 let l1ĐãXuất = 0;
 for (const spec of l1Xin) {
   const [nhãn, id] = spec.split("=");
-  if (!nhãn || !id) { cảnhBáo.push(`--them-evm ${spec}: sai khuôn, cần nhãn=blockchainID`); continue; }
+  if (!nhãn || !id) { cảnhBáo.push(`--add-evm ${spec}: sai khuôn, cần nhãn=blockchainID`); continue; }
   const r = await xuấtEVM(`l1-${nhãn}`, `/ext/bc/${id}/rpc`);
-  if (r === null) cảnhBáo.push(`--them-evm ${spec}: node không phục vụ chuỗi này (không track subnet?) — KHÔNG có trong bộ xuất`);
+  if (r === null) cảnhBáo.push(`--add-evm ${spec}: node không phục vụ chuỗi này (không track subnet?) — KHÔNG có trong bộ xuất`);
   else { l1ĐãXuất++; if (r.cắt) l1Cắt.push(`l1-${nhãn}`); }
 }
 
 // ─── Tệp cục bộ kèm theo ───
 for (const đ of TEP_KEM) {
-  if (!existsSync(đ)) { cảnhBáo.push(`--tep ${đ}: không tồn tại, BỎ QUA`); console.log(`  ⚠️ bỏ qua ${đ} (không tồn tại)`); continue; }
+  if (!existsSync(đ)) { cảnhBáo.push(`--attach ${đ}: không tồn tại, BỎ QUA`); console.log(`  ⚠️ bỏ qua ${đ} (không tồn tại)`); continue; }
   ghi(posix.join("tep-kem", basename(đ)), readFileSync(đ));
   console.log(`  kèm: ${đ}`);
 }
@@ -253,12 +253,12 @@ ghi("00-DOC-TRUOC.md", `# Bộ xuất mạng trước khi xoá — quy trình O2
 
 Mạng: **${info.networkName?.networkName ?? "?"}** (networkID ${info.networkID?.networkID ?? "?"}) ·
 node \`${info.nodeVersion?.version ?? "?"}\` · C-Chain chainId **${cChain?.chainIdThập ?? "?"}**
-L1 người dùng: **xin ${l1Xin.length} · XUẤT ĐƯỢC ${l1ĐãXuất}**${l1ĐãXuất < l1Xin.length ? " 🔴 **THIẾU — xem mục “Chỗ không lấy được” bên dưới.**" : ""}${l1Xin.length === 0 ? " — 🔴 **KHÔNG có L1 nào trong bộ này.** Nếu mạng đang phục vụ L1 người dùng thì bộ xuất này **thiếu**; xem `--them-evm`." : ""}
+L1 người dùng: **xin ${l1Xin.length} · XUẤT ĐƯỢC ${l1ĐãXuất}**${l1ĐãXuất < l1Xin.length ? " 🔴 **THIẾU — xem mục “Chỗ không lấy được” bên dưới.**" : ""}${l1Xin.length === 0 ? " — 🔴 **KHÔNG có L1 nào trong bộ này.** Nếu mạng đang phục vụ L1 người dùng thì bộ xuất này **thiếu**; xem `--add-evm`." : ""}
 
 ## Kiểm lại bộ này
 
 \`\`\`bash
-node scripts/export-chain.mjs --kiem <thư mục này>
+node scripts/export-chain.mjs --check <thư mục này>
 # hoặc, KHÔNG cần tin bài trên, bằng công cụ chuẩn:
 cd <thư mục này> && sha256sum -c MANIFEST.txt && sha256sum MANIFEST.txt
 \`\`\`
@@ -292,7 +292,7 @@ là *ý kiến của node đang được hỏi* về các peer của nó, nên h
   xuất cùng lúc sẽ ra hai \`GỐC\` khác nhau, và **cả hai đều đúng**.
 - ⇒ Thấy hai \`GỐC\` lệch thì **đừng kết luận có người sửa**. So từng tệp trước; nếu chỉ lệch
   ở \`tip.json\` thì đó là chuyện bình thường.
-${cắtGì.length ? `\n🔴 **BỘ NÀY BỊ CẮT** ở: ${cắtGì.join(", ")} (\`--toi-da-block\`). Nó KHÔNG đầy đủ.\n` : ""}
+${cắtGì.length ? `\n🔴 **BỘ NÀY BỊ CẮT** ở: ${cắtGì.join(", ")} (\`--max-blocks\`). Nó KHÔNG đầy đủ.\n` : ""}
 ${cảnhBáo.length ? `\n## ⚠️ Chỗ không lấy được\n\n${cảnhBáo.map((c) => `- ${c}`).join("\n")}\n` : ""}
 `);
 

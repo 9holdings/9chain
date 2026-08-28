@@ -42,18 +42,18 @@ trong khi clone ngược chết ngay — và bài học ở đó là **phép đo
 ```bash
 node scripts/export-chain.mjs \
   --rpc http://127.0.0.1:9650 \
-  --ra  ~/9chain-a1/xuat-truoc-ngay-G-20260901 \
+  --out  ~/9chain-a1/xuat-truoc-ngay-G-20260901 \
   --tep local-net/net-public/genesis.json \
   --tep docs/ALLOCATION-PUBLIC.md \
   --tep <đường dẫn>/console-chains.json \
-  --them-evm <tên L1>=<blockchainID>          # lặp lại cho TỪNG L1 còn sống
+  --add-evm <tên L1>=<blockchainID>          # lặp lại cho TỪNG L1 còn sống
 ```
 
 | Cờ | Vì sao có mặt |
 |---|---|
 | `--tep …/genesis.json` | tệp **định nghĩa** chuỗi. Thiếu nó thì mọi block trong bộ xuất không neo vào đâu |
 | `--tep …/console-chains.json` | **sổ chống phát lại** (§5c `NGAY-G-A1-CON-LAI`). 46 bản ghi cũ đã mất một lần rồi vì không ai xuất nó |
-| `--them-evm` | 🔴 **KHÔNG có cờ này thì bộ xuất chỉ có P/X/C của mạng chính — mọi L1 người dùng biến mất không dấu vết.** Lấy danh sách từ `console-chains.json` hoặc `platform.getBlockchains` |
+| `--add-evm` | 🔴 **KHÔNG có cờ này thì bộ xuất chỉ có P/X/C của mạng chính — mọi L1 người dùng biến mất không dấu vết.** Lấy danh sách từ `console-chains.json` hoặc `platform.getBlockchains` |
 
 ### Bước 2 — công bố
 
@@ -76,7 +76,7 @@ cũng sửa được nó. Đây chính là ca đối chứng ngược số 2 dư
 ```bash
 cp <net>/../9chain-a1-config/console-chains.json \
    docs/archive/console-chains-pre-<the-he>-<ngay>.json
-node scripts/gen-chainid-issued.mjs --ghi     # gộp lại danh sách chặn
+node scripts/gen-chainid-issued.mjs --write     # gộp lại danh sách chặn
 node local-net/console/chainid-test.mjs         # phải vẫn xanh
 ```
 
@@ -97,7 +97,7 @@ hứa đã phát ra ngoài*. Làm bước 2 mà quên bước này thì chuỗi 
 ## 3. Kiểm lại — **hai đường, cố ý**
 
 ```bash
-node scripts/export-chain.mjs --kiem <thư mục>          # đường 1
+node scripts/export-chain.mjs --check <thư mục>          # đường 1
 cd <thư mục> && sha256sum -c MANIFEST.txt              # đường 2 — công cụ chuẩn
                 sha256sum MANIFEST.txt                  #          so với GOC.txt
 ```
@@ -127,7 +127,7 @@ Một bộ vật chứng chỉ kiểm được bằng chính công cụ sinh ra 
 
 ### 🔴 Và đối chứng ngược bắt một lỗi trong CHÍNH công cụ này
 
-Bản đầu đếm số L1 kèm theo bằng **số L1 được XIN** (`--them-evm`), không phải số **XUẤT ĐƯỢC**.
+Bản đầu đếm số L1 kèm theo bằng **số L1 được XIN** (`--add-evm`), không phải số **XUẤT ĐƯỢC**.
 Chạy với một `blockchainID` không tồn tại: chuỗi đó gọi hỏng, không có một byte nào trong bộ —
 mà tờ đầu vẫn khai **"L1 người dùng kèm theo: 1"**.
 
@@ -142,5 +142,5 @@ Tức **công cụ chống nói dối suýt nói dối, ở đúng chỗ nó kh�
 |---|---|
 | Quy mô | Thử trên **7 block C-Chain**. Bài lấy block **từng cái một** ⇒ chuỗi hàng chục nghìn block sẽ chậm; đo trước, đừng chạy lần đầu vào đúng cửa sổ bảo trì |
 | Không có | LevelDB · DB Blockscout · khoá bí mật (cố ý) · trạng thái ví theo thời điểm (suy lại được từ block, bộ này **không** tính hộ) |
-| L1 | chỉ vào bộ xuất khi được nêu tên bằng `--them-evm`, **và** node đang track subnet đó. Node không track ⇒ ghi cảnh báo, **không** im lặng bỏ qua |
+| L1 | chỉ vào bộ xuất khi được nêu tên bằng `--add-evm`, **và** node đang track subnet đó. Node không track ⇒ ghi cảnh báo, **không** im lặng bỏ qua |
 | Chưa chạy trên mạng công khai | Lượt `27/08` chạy trên mạng tập 1 node. Trước ngày G nên chạy thử **một lượt trên mạng công khai** để biết thời gian thật |

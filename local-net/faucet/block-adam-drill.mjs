@@ -34,21 +34,21 @@
 // chữ khắc, nhưng vẫn là phép đo độ lệch đồng hồ mà B-13(b) cần, và vẫn nói cho ta biết câu
 // chữ "vượt mốc" trong bản khắc có trung thực hay không.
 //
-//   node local-net/faucet/block-adam-drill.mjs --moc 2026-09-09T06:09:09Z
+//   node local-net/faucet/block-adam-drill.mjs --at 2026-09-09T06:09:09Z
 //
 // Cờ:
 //   --rpc <url>       mặc định http://127.0.0.1:9750/ext/bc/C/rpc (mạng tập, xem
 //                     local-net/docker-compose.drill.yml)
-//   --moc <ISO>       mốc nghi lễ. BẮT BUỘC.
-//   --khoa <0x…>      khoá gửi; hoặc biến môi trường A1_DRILL_PK. KHÔNG nhận khoá qua tệp
+//   --at <ISO>       mốc nghi lễ. BẮT BUỘC.
+//   --wallet-key <0x…>      khoá gửi; hoặc biến môi trường A1_DRILL_PK. KHÔNG nhận khoá qua tệp
 //                     nằm trong git.
-//   --truoc-ms <n>    nạp nonce/phí + ký sẵn trước mốc bao nhiêu ms (mặc định 3000)
-//   --cho-sau-s <n>   sau mốc chờ bao lâu rồi mới chấm (mặc định 20)
-//   --bu-ms <n>       bắn ở mốc + n ms (mặc định 0; ÂM = bắn sớm). Đây vừa là núm VÁ vừa là
+//   --lead-ms <n>    nạp nonce/phí + ký sẵn trước mốc bao nhiêu ms (mặc định 3000)
+//   --settle-s <n>   sau mốc chờ bao lâu rồi mới chấm (mặc định 20)
+//   --offset-ms <n>       bắn ở mốc + n ms (mặc định 0; ÂM = bắn sớm). Đây vừa là núm VÁ vừa là
 //                     núm PHÁ — xem "bù bao nhiêu" ở cuối tệp.
-//   --khong-gui       ĐỐI CHỨNG NGƯỢC: không gửi gì cả, chỉ nhìn mốc trôi qua.
-//   --doi-chung-nguoc khai rằng lượt này MONG ĐỢI không có Block Adam. Đảo cách chấm: có
-//                     Block Adam mới là ĐỎ. `--khong-gui` tự bật cờ này.
+//   --no-send       ĐỐI CHỨNG NGƯỢC: không gửi gì cả, chỉ nhìn mốc trôi qua.
+//   --counter-check khai rằng lượt này MONG ĐỢI không có Block Adam. Đảo cách chấm: có
+//                     Block Adam mới là ĐỎ. `--no-send` tự bật cờ này.
 //   --json <tệp>      ghi toàn bộ số đo ra JSON để lưu làm vật chứng.
 import { ethers } from "ethers";
 import { writeFileSync } from "node:fs";
@@ -61,28 +61,28 @@ function cờ(tên, mặcĐịnh = undefined) {
 const có = (tên) => process.argv.includes(tên);
 
 const RPC = cờ("--rpc", "http://127.0.0.1:9750/ext/bc/C/rpc");
-const MOC_ISO = cờ("--moc");
-const PK = cờ("--khoa", process.env.A1_DRILL_PK);
-const TRUOC_MS = Number(cờ("--truoc-ms", 3000));
-const CHO_SAU_S = Number(cờ("--cho-sau-s", 20));
-const KHONG_GUI = có("--khong-gui");
-const BU_MS = Number(cờ("--bu-ms", 0));
-const NGUOC = KHONG_GUI || có("--doi-chung-nguoc");
+const MOC_ISO = cờ("--at");
+const PK = cờ("--wallet-key", process.env.A1_DRILL_PK);
+const TRUOC_MS = Number(cờ("--lead-ms", 3000));
+const CHO_SAU_S = Number(cờ("--settle-s", 20));
+const KHONG_GUI = có("--no-send");
+const BU_MS = Number(cờ("--offset-ms", 0));
+const NGUOC = KHONG_GUI || có("--counter-check");
 const RA_JSON = cờ("--json");
 
 if (!MOC_ISO) {
-  console.error("thiếu --moc <ISO>, ví dụ --moc 2026-09-09T06:09:09Z");
+  console.error("thiếu --at <ISO>, ví dụ --at 2026-09-09T06:09:09Z");
   process.exit(2);
 }
 const MOC_MS = Date.parse(MOC_ISO);
 if (!Number.isFinite(MOC_MS)) {
-  console.error(`--moc không đọc được: ${MOC_ISO}`);
+  console.error(`--at không đọc được: ${MOC_ISO}`);
   process.exit(2);
 }
 // `block.timestamp` đếm bằng GIÂY. Mốc phải quy về cùng đơn vị trước khi so, không so ms với s.
 const MOC_GIAY = Math.floor(MOC_MS / 1000);
 if (!KHONG_GUI && !PK) {
-  console.error("thiếu khoá: đặt A1_DRILL_PK hoặc --khoa 0x…");
+  console.error("thiếu khoá: đặt A1_DRILL_PK hoặc --wallet-key 0x…");
   process.exit(2);
 }
 
@@ -164,7 +164,7 @@ async function blockĐầuTiênVượtMốc(từ, đến) {
 // Trước mốc: khẳng định chưa có block nào vượt mốc (nếu có thì bài này vô nghĩa từ đầu).
 const vượtSẵn = await blockĐầuTiênVượtMốc(Math.max(0, cao0 - 20), cao0);
 chấm(vượtSẵn === null, "trước mốc: chưa có block nào vượt mốc",
-  vượtSẵn ? `đã có #${vượtSẵn.number} ts=${vượtSẵn.timestamp} ⇒ mốc nằm trong quá khứ, chọn --moc khác` : `cao nhất #${cao0}`);
+  vượtSẵn ? `đã có #${vượtSẵn.number} ts=${vượtSẵn.timestamp} ⇒ mốc nằm trong quá khứ, chọn --at khác` : `cao nhất #${cao0}`);
 if (vượtSẵn) {
   console.log("\n🔴 DỪNG: mốc đã trôi qua trước khi bài chạy. Không diễn tập được.");
   process.exit(1);
@@ -242,8 +242,8 @@ console.log(`chiều cao: #${cao0} → #${cao1}  (+${cao1 - cao0} block)`);
 
 if (NGUOC) {
   // ĐỐI CHỨNG NGƯỢC — hai kiểu, chấm chung một luật: **không được có Block Adam**.
-  //   (a) --khong-gui : không gửi gì. Kiểm luôn cả chiều cao không đổi.
-  //   (b) --bu-ms âm  : có gửi, giao dịch chốt bình thường, nhưng block rơi TRƯỚC mốc.
+  //   (a) --no-send : không gửi gì. Kiểm luôn cả chiều cao không đổi.
+  //   (b) --offset-ms âm  : có gửi, giao dịch chốt bình thường, nhưng block rơi TRƯỚC mốc.
   //       Ca (b) đắt hơn (a): mọi thứ trông như thành công — hai giao dịch status 1, chuỗi
   //       đẻ ra block — mà vẫn KHÔNG có Block Adam. Nếu phép đo chỉ nhìn "tx có chốt không"
   //       thì nó sẽ báo xanh ở đúng ca hỏng.
@@ -357,7 +357,7 @@ console.log(`  Trên bộ nhiều node, block do node KHÁC đề xuất mang đ
 //
 // ✅ **ĐÃ CHỐT `2026-08-27` (D-070): neo vào HASH GIAO DỊCH NGHI LỄ.** Vì thế ô *"block đầu
 // tiên vượt mốc CHÍNH LÀ block của Adam"* xuống hạng **lưu ý** — xem `lưuÝRa`.
-// 🔴 Nhưng `--bu-ms` **chưa hết việc**: nếu bản khắc còn CÂU CHỮ khẳng định block vượt mốc
+// 🔴 Nhưng `--offset-ms` **chưa hết việc**: nếu bản khắc còn CÂU CHỮ khẳng định block vượt mốc
 // `2026-09-09T06:09:09Z`, thì câu đó vẫn phải đúng, và nó vẫn phụ thuộc đồng hồ node đề xuất.
 // D-070 hạ B-13(b) từ *"neo sai thì hỏng"* xuống *"câu chữ sai thì không trung thực"* —
 // **hạ mức, không phải đóng**. Câu chữ chốt cùng lượt C1 đóng băng byte.

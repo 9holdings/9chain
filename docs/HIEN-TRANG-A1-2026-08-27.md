@@ -178,7 +178,7 @@ B-14. Bằng chứng nằm ngay trong sổ, không phải suy đoán.
 | **B-9** | `#e84142` đỏ Avalanche trong `patches/0003` | David |
 | **B-10** | Cloudflare che `robots.txt` — **đo lại hôm nay, vẫn nguyên** | David |
 | **B-12** | Chưa có lịch gia hạn validator. Đo thật: node đầu rụng `2027-07-01`, **mạng dừng `2027-08-26`** | David |
-| **B-13(b)** | Đo lệch đồng hồ 9 node → chọn `--bu-ms`. Chỉ làm được **sau** ngày G | A1 |
+| **B-13(b)** | Đo lệch đồng hồ 9 node → chọn `--offset-ms`. Chỉ làm được **sau** ngày G | A1 |
 | **H-4/5/6/7** | DNS · URL C1 · nhà cho repo · IPv4-vs-IPv6 | David |
 
 ✅ Đã đóng: B-1…B-8 · **B-11** · **B-13(a)** · **B-14**.

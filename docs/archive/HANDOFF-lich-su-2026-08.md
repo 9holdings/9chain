@@ -61,8 +61,8 @@ nói dối suýt nói dối**. Nay khai `xin N · XUẤT ĐƯỢC M`.
 
 | | Việc | Ai |
 |---|---|---|
-| ~~**B-13 (a)**~~ | ✅ **ĐÓNG `27/08`** — David chốt **neo vào hash giao dịch nghi lễ** (D-070). Bài diễn tập đã đổi cách chấm + chạy lại thật, kèm ca `--bu-ms 0` mà bản cũ chấm ✗ | — |
-| **B-13 (b)** | Đo **lệch đồng hồ 9 node** rồi chọn `--bu-ms`. Chỉ làm được **sau khi mạng ngày G lên**. 🔴 **D-070 HẠ MỨC, không đóng**: bù thôi quyết định "neo đúng/sai", nhưng nếu bản khắc có **câu chữ** "vượt mốc" thì câu đó vẫn phải đúng | A1 |
+| ~~**B-13 (a)**~~ | ✅ **ĐÓNG `27/08`** — David chốt **neo vào hash giao dịch nghi lễ** (D-070). Bài diễn tập đã đổi cách chấm + chạy lại thật, kèm ca `--offset-ms 0` mà bản cũ chấm ✗ | — |
+| **B-13 (b)** | Đo **lệch đồng hồ 9 node** rồi chọn `--offset-ms`. Chỉ làm được **sau khi mạng ngày G lên**. 🔴 **D-070 HẠ MỨC, không đóng**: bù thôi quyết định "neo đúng/sai", nhưng nếu bản khắc có **câu chữ** "vượt mốc" thì câu đó vẫn phải đúng | A1 |
 | ~~**B-14**~~ | ✅ **ĐÓNG `27/08`** — David chốt gốc dải **`9000000010`**, đường thứ tư ngoài ba đường A1 đưa (D-069) | — |
 | — | `cung.json` phải lên server **cùng `faucet.env`** (quên ⇒ `/api/supply` 503) | vận hành |
 | — | Câu khai nguồn cung trên trang — `web/` thuộc worktree `9Chain-A1-web`, **câu chữ đã soạn sẵn** | phiên web |
@@ -540,7 +540,7 @@ thật sẽ nằm quanh 5,4 tỷ chứ không phải 9 tỷ) **không đổi** �
 console · Warp/ICM · faucet HTTP · Blockscout index lại từ đầu.
 
 **Đã kiểm được (không phải "trông có vẻ đúng"):**
-- `node scripts/check-consistency.mjs --tu-kiem` → **17 đạt · 6/6 đối chứng ngược bắt được**
+- `node scripts/check-consistency.mjs --self-test` → **17 đạt · 6/6 đối chứng ngược bắt được**
   🔴 nhưng xem cảnh báo ngay dưới: cổng này **không đọc một dòng Go nào**.
 - Patch series tái lập đúng cây nguồn: tree **`ac260a38`** (**12 patch** tính tới
   2026-08-26; nhớ **`git am --keep-cr`**). Đã nghiệm thu lại sau patch 0009: áp đủ
@@ -1814,7 +1814,7 @@ Tài liệu: `docs/PROGRESS.md` (nhật ký chi tiết) · `docs/DEPLOY-KSGAME.m
 | **D-090** | 🔴 **`kiem-khoa` chấm `6/6 ✓ exit 0` cho bộ khoá đã chết** ⇒ cổng thứ hai nối bộ khoá vào **chain đang chạy** | bộ g0 **6/6 khớp chain** · bộ 9001 đã chết **8 lệch, exit 1** · **5/5 đối chứng ngược** · O1 lần đầu nối được khoá ↔ **tiền** |
 | **D-091** | **M11.10** — ví ký ở máy dev, **hầm SSH trong cùng container**; khoá không chạm server | 3/3 nghiệm thu đường đi (chạy mỗi lượt) · 🔴 **KÝ THẬT**: `p-to-x 0.1` trên mạng công khai, đọc lại bằng RPC công khai P `89,99999173 → 89,8999813` · X `0,009 → 0,108` · `Accepted` |
 | **D-092** | **Gỡ `9chain-a1-xpwallet` khỏi server** (ví HTTP không auth, giữ khoá trong env). 🔴 Quét sau đó lộ **2 thứ khác**, xem dòng dưới | khoá trong env **trùng hash** bản trên máy dev · 0 tuyến/0 kết nối · dừng trước, đo sản phẩm, rồi mới xoá · sau khi xoá: **0 container còn `WALLET_KEY`**, `find keys.txt` ⇒ **0** |
-| **D-091b** | `--quy` chọn 1 trong 6 khoá `keys.txt`. 🔴 **Dòng `P-addr` trong tệp là CHỮ NGƯỜI VIẾT** — khối `[team]` dán địa chỉ `[foundation]` thì dòng in ra vẫn trông đúng ⇒ gọi `kiem-khoa` trên đúng khối vừa chọn | 6/6 quỹ, **sáu địa chỉ khác nhau** khớp `ALLOCATION-PUBLIC.md` · khối thứ 3 và thứ 6 phân biệt được với "lấy khối đầu" · ví lên thật với `--quy faucet` · **6/6 đối chứng ngược** |
+| **D-091b** | `--fund` chọn 1 trong 6 khoá `keys.txt`. 🔴 **Dòng `P-addr` trong tệp là CHỮ NGƯỜI VIẾT** — khối `[team]` dán địa chỉ `[foundation]` thì dòng in ra vẫn trông đúng ⇒ gọi `kiem-khoa` trên đúng khối vừa chọn | 6/6 quỹ, **sáu địa chỉ khác nhau** khớp `ALLOCATION-PUBLIC.md` · khối thứ 3 và thứ 6 phân biệt được với "lấy khối đầu" · ví lên thật với `--fund faucet` · **6/6 đối chứng ngược** |
 
 ---
 
@@ -1823,7 +1823,7 @@ Tài liệu: `docs/PROGRESS.md` (nhật ký chi tiết) · `docs/DEPLOY-KSGAME.m
 | | Việc | Nghiệm thu |
 |---|---|---|
 | **D-069** | Gốc dải chainId L1 `9100` → `9000000010` | `chainid-test` 22 đạt · 4 ca đối chứng ngược |
-| **D-070** | Block Adam neo vào **hash giao dịch nghi lễ** | Diễn tập lại: `--bu-ms 0` (ca bản cũ chấm ✗) nay 10 đạt/0 hỏng |
+| **D-070** | Block Adam neo vào **hash giao dịch nghi lễ** | Diễn tập lại: `--offset-ms 0` (ca bản cũ chấm ✗) nay 10 đạt/0 hỏng |
 | **D-071** | 9 validator `restart=no` → `unless-stopped` | Ca A/B trên container nháp; **chưa reboot thật** |
 | **D-072** | O2 chạy thật trên mạng công khai | 37–54s · 4 ca, 2 đối chứng ngược |
 | **D-073/074/075** | Chống nhúng iframe · CORS · cổng chặn deploy làm teo cấu hình | Đã deploy · cổng đã thấy **ĐỎ** (chặn 68 dòng) |

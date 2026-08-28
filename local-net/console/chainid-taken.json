@@ -1,5 +1,5 @@
 {
-  "_doc": "Danh sách chainId ĐÃ BỊ CHIẾM trong sổ công khai, dùng cho console lúc cấp chainId cho L1 người dùng. SINH TỰ ĐỘNG — đừng sửa tay, chạy lại scripts/check-chainid.mjs --sinh-danh-sach-chan.",
+  "_doc": "Danh sách chainId ĐÃ BỊ CHIẾM trong sổ công khai, dùng cho console lúc cấp chainId cho L1 người dùng. SINH TỰ ĐỘNG — đừng sửa tay, chạy lại scripts/check-chainid.mjs --gen-blocklist.",
   "nguon": "https://chainid.network/chains.json",
   "ngayTra": "2026-08-27T13:35:27.232Z",
   "sha256Nguon": "7a122fb15423a595324f6a95d82077adacaef89c8492036bdb88707b9cd493ff",
