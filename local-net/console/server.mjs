@@ -16,7 +16,7 @@ import path from "node:path";
 import { clientIp, rateLimit, requireToken, requireSecret, serialQueue } from "../lib/guard.mjs";
 import { parseEvmAddress } from "../lib/eip55.mjs";
 import { apDungPreset, danhSachPreset } from "../lib/presets.mjs";
-import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID } from "../lib/chainid.mjs";
+import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
 import { siwe } from "./siwe.mjs";
 
 const PORT = Number(process.env.PORT || 8091);
@@ -309,6 +309,66 @@ function scrub(s) {
 
 // Subnet của Primary Network (P/X/C). `ids.Empty` in ra chuỗi này.
 const PRIMARY_SUBNET = "11111111111111111111111111111111LpoYY";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CỔNG THẾ HỆ — console đang nói chuyện với mạng của thế hệ NÀO?
+//
+// 🔴 VÌ SAO. Tới `2026-08-28` console **chưa bao giờ hỏi node câu này**
+// (`grep networkID server.mjs` ⇒ 0 kết quả). Nó cấp chainId từ khối của thế hệ
+// khai trong `lib/chainid.mjs` — một hằng số **chép tay**, độc lập với
+// `constants.A1Gen` bên Go. Ngày G bump `0 → 1`; quên một bên thì không có gì
+// báo lỗi và console phát chainId của **thế hệ khác** vào ví người dùng, qua
+// một genesis **BẤT BIẾN**.
+//
+// `scripts/check-consistency.mjs` canh quan hệ Go ↔ JS **trong repo**. Cổng này
+// canh lớp còn lại và là lớp đắt hơn: *mã trong repo* ↔ **mạng đang chạy**. Đó
+// đúng là lớp đã để B-14 hở hai ngày (D-088) — mã đúng, cổng xanh, tài liệu ghi
+// "đã đóng", mà sản phẩm thì không.
+//
+// ⚠️ Ba trạng thái, và **hai trong ba đều CHẶN**:
+//   khớp      → phục vụ
+//   lệch      → CHẶN. Đây là lúc cổng có ích nhất.
+//   chưa đo   → CHẶN. "Không biết mình đang ở thế hệ nào" không phải lý do để
+//               phát một số vĩnh viễn. Rỗng ≡ hỏng (D-069b).
+//
+// 🔴 BẪY ĐÃ ĐO: `info.getNetworkID` trả về **CHUỖI** `"999999999"`, không phải
+// số. So bằng `===` với số là cổng ĐỎ VĨNH VIỄN; so bằng `==` là cổng lỏng.
+// Đo thật `28/08` trên `rpc-a1.9chain.org` trước khi viết dòng này.
+//
+// Đo MỖI LƯỢT, không cache: một kết quả "khớp" nhớ từ lúc khởi động sẽ sống sót
+// qua đúng thứ nó sinh ra để bắt — một lượt sinh lại mạng dưới chân console.
+async function kiemTheHeMang() {
+  let doDuoc, tenDo;
+  try {
+    const r = await rpc("/ext/info", "info.getNetworkID");
+    const t = await rpc("/ext/info", "info.getNetworkName");
+    doDuoc = Number(r?.networkID);
+    tenDo = t?.networkName;
+  } catch (e) {
+    return {
+      trangThai: "chuaDo",
+      vi: `không hỏi được node đang chạy (${API}): ${e.message}. Console từ chối đẻ chain khi ` +
+        `chưa biết mình đang ở thế hệ mạng nào — một chainId phát nhầm thế hệ là vĩnh viễn.`,
+    };
+  }
+  if (!Number.isSafeInteger(doDuoc)) {
+    return {
+      trangThai: "chuaDo",
+      vi: `node trả networkID không đọc được thành số: ${JSON.stringify(doDuoc)}`,
+    };
+  }
+  if (doDuoc !== NETWORK_ID || (tenDo && tenDo !== TEN_MANG)) {
+    return {
+      trangThai: "lech",
+      vi: `LỆCH THẾ HỆ. Console dựng cho thế hệ g${A1_GEN} (networkID ${NETWORK_ID}, "${TEN_MANG}") ` +
+        `nhưng node đang chạy khai networkID ${doDuoc}, "${tenDo}". Khối chainId của console ` +
+        `bắt đầu ở ${GOC_DAI_CHAINID} — cấp số từ khối đó lên mạng này là phát nhầm thế hệ, ` +
+        `và chainId nằm trong genesis BẤT BIẾN. Sửa: cập nhật A1_GEN trong local-net/lib/chainid.mjs ` +
+        `cho khớp constants.A1Gen bên Go rồi deploy lại console (scripts/check-deploy-drift.mjs).`,
+    };
+  }
+  return { trangThai: "khop", vi: `g${A1_GEN} · networkID ${doDuoc} · "${tenDo}"` };
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TRẦN CỨNG CỦA GIAO THỨC — KHÔNG PHẢI CON SỐ TỰ ĐẶT
@@ -731,6 +791,12 @@ async function createChain({ name, chainId, admin, preset }) {
       "người dùng sẽ biến mất theo — nên mở cửa lúc này là hứa một thứ chúng tôi biết chắc " +
       "sẽ không giữ được. Cửa mở lại sau ngày G. (Vận hành: đặt A1_DE_CHAIN_MO=1.)");
   }
+
+  // Cổng thứ hai, ngay sau cổng rẻ nhất: console có đang đứng đúng thế hệ mạng
+  // không. Đặt TRƯỚC mọi phép kiểm tên/hạn mức/khoá vì một chainId phát nhầm thế
+  // hệ là thứ **không thu hồi được** — thu hồi chain không trả lại số nhận dạng.
+  const theHe = await kiemTheHeMang();
+  if (theHe.trangThai !== "khop") throw new Error(theHe.vi);
 
   name = String(name || "").trim();
   if (!/^[A-Za-z0-9 ]{2,32}$/.test(name)) throw new Error("Tên chỉ gồm chữ/số/space (2–32 ký tự)");
@@ -1290,6 +1356,13 @@ server.listen(PORT, HOST, () => {
   console.log(DE_CHAIN_MO
     ? `  đẻ chain: 🔓 MỞ (A1_DE_CHAIN_MO=1)`
     : `  đẻ chain: 🔒 ĐÓNG — mọi lượt tạo bị từ chối. Mở sau ngày G bằng A1_DE_CHAIN_MO=1 (D-087)`);
+  // Đo thế hệ NGAY lúc khởi động để người vận hành thấy, nhưng KHÔNG dùng kết quả
+  // này làm quyết định: `createChain` đo lại mỗi lượt. Một con số nhớ từ lúc boot
+  // sống sót qua đúng thứ nó sinh ra để bắt.
+  kiemTheHeMang().then((t) => {
+    if (t.trangThai === "khop") console.log(`  thế hệ : ✅ khớp node đang chạy — ${t.vi}`);
+    else console.warn(`  thế hệ : 🔴 ${t.trangThai.toUpperCase()} — ĐẺ CHAIN SẼ BỊ TỪ CHỐI.\n           ${t.vi}`);
+  });
   console.log(`  auth   : token vận hành (Bearer <A1_CONSOLE_TOKEN>) HOẶC chữ ký ví (SIWE)`);
   console.log(`  ví     : /api/siwe/nonce → /api/siwe/login · domain ${SIWE_DOMAIN}`);
   console.log(`           đăng nhập bằng ví thì admin bị ÉP = địa chỉ ký (không ai gõ tay)`);

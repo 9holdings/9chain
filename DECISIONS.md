@@ -3073,3 +3073,75 @@ giả định nào.
 `C:\Users\abc\9chain-a1-keys\console-token.txt` — ngoài repo, ngoài git, cùng chỗ khoá g0.
 Ghi bằng **đường ống thẳng từ server vào tệp**, không qua màn hình. Đối chứng bằng **hash**:
 tệp trên máy dev `79235ba36980be4a` = `console.env` trên server, và console trả **200** cho nó.
+
+## D-093 — Cổng bộ định danh XUYÊN NGÔN NGỮ, và console phải hỏi node nó đứng ở thế hệ nào (2026-08-28)
+
+**Đo được, không suy.** Thế hệ mạng được khai **hai lần bằng hai ngôn ngữ**, ở hai tệp mà
+**không cổng nào nối lại**:
+
+| nguồn | tệp | ai đọc |
+|---|---|---|
+| Go | `utils/constants/network_ids.go` → `A1Gen` | binary + netgen |
+| JS | `local-net/lib/chainid.mjs` → `A1_GEN` | console cấp chainId cho L1 người dùng |
+
+`chainid.mjs` **tự khai** mình là bản chép (*"Đừng sửa số này một mình"*) — nhưng lời dặn đó
+sống trong một khối chú thích, tức nó chỉ có hiệu lực với người **đọc đúng tệp đó đúng hôm ấy**.
+Và `grep networkID local-net/console/server.mjs` ⇒ **0 kết quả**: console **chưa bao giờ hỏi
+node** nó đang nói chuyện với thế hệ nào.
+
+🔴 **Thiệt hại nếu để nguyên:** ngày G bump `0 → 1`. Quên một bên ⇒ console cấp chainId từ khối
+của **thế hệ khác**, im lặng, vào một genesis **BẤT BIẾN**. Thu hồi chain **không** trả lại số
+nhận dạng ⇒ không sửa được sau.
+
+**Vá hai lớp, vì đó là hai lớp khác nhau:**
+
+| lớp | cổng | canh cái gì |
+|---|---|---|
+| repo | `check-consistency.mjs` — đọc `A1Gen`/`A1IDGoc`/`A1IDGocTap`/`A1Name`/`A1NameTap` **thẳng từ Go**, so với `A1_GEN`/`A1_ID_GOC`/`NETWORK_ID`/`TEN_MANG`/khối chainId của JS | hai tệp trong repo có khớp nhau không |
+| sản phẩm | `console/server.mjs` → `kiemTheHeMang()`, gọi trong `createChain` | **mã trong repo ↔ MẠNG ĐANG CHẠY** — đúng lớp đã để B-14 hở hai ngày (D-088) |
+
+**Ba trạng thái, HAI trong ba đều CHẶN:** khớp → phục vụ · lệch → chặn · **chưa đo được → cũng
+chặn** (*"không biết mình ở thế hệ nào"* không phải lý do để phát một số vĩnh viễn; rỗng ≡ hỏng,
+D-069b). Đo **mỗi lượt, không cache** — một kết quả "khớp" nhớ từ lúc boot sẽ sống sót qua đúng
+thứ nó sinh ra để bắt: một lượt sinh lại mạng dưới chân console.
+
+🔴 **Bẫy đã ĐO trước khi viết:** `info.getNetworkID` trả về **CHUỖI** `"999999999"`, không phải
+số. So `===` với số ⇒ cổng **đỏ vĩnh viễn** (hỏng theo hướng "chặn tất", và cổng chặn tất thì
+sẽ bị gỡ). Đã cắm hẳn một ca kiểm cho cả hai dạng.
+
+**Nghiệm thu:**
+- `check-consistency.mjs`: **17 đạt · 0 lỗi** · **14/14 ca đối chứng ngược ĐỎ**, trong đó hai ca
+  đầu là đúng hai cách quên của ngày G (*bump JS quên Go* · *bump Go quên JS*).
+- 🔴 **Đối chứng trên TỆP THẬT** (không phải ca tiêm vào bộ nhớ): `sed` đổi `A1_GEN = 1` trong
+  `lib/chainid.mjs` ⇒ cổng đỏ, **mã thoát 1**; hoàn nguyên ⇒ 0.
+- `thehe-test.mjs` (mới): **13/13 đạt** trên console THẬT với một **node giả đổi được câu trả
+  lời** — đo bằng mạng thật chỉ tới được trạng thái *khớp*, đúng trạng thái không cần cổng.
+- 🔴 **Đối chứng mức bộ:** gỡ hai dòng cổng khỏi `createChain` ⇒ **7 hỏng, exit 1** ⇒ bài kiểm
+  nối vào **mã thật**, không tự kiểm chính nó.
+- Ca *khớp* chứng minh bằng cách gửi **tên sai** và đòi lỗi trả về là lỗi TÊN ⇒ cổng đã cho đi
+  qua, mà **không tiêu một slot L1 nào**.
+- Không gãy gì: `siwe-test` 21/21 · `auth-e2e-test` **38/38** · `chainid-test` 35/35.
+
+⚠️ **Hệ quả phải biết:** `console/server.mjs` đổi ⇒ `check-deploy-drift.mjs` **sẽ báo console
+lệch, và đó là ĐÚNG** — mã mới ở repo, chưa lên server. Deploy là việc có người bấm.
+
+## D-094 — `console-deploy.sh` chép 15 tệp nhưng chỉ đối chiếu 9 (2026-08-28)
+
+Tìm thấy trong lúc làm D-093. **Bản thứ hai của chính lỗ D-088**, ngay trong cùng một script:
+bước **CHÉP** đã đọc `manifest-deploy.json` (bản vá D-088), nhưng vòng **ĐỐI CHIẾU** ngay sau đó
+vẫn **liệt kê tay 9 tệp** — thiếu `lib/chainid.mjs`, `chainid-da-chiem.json`,
+`chainid-da-cap.json`, `chainid-test.mjs`, `l1-evm-genesis.json`.
+
+🔴 Tức **đúng bộ tệp đã để B-14 hở hai ngày lại nằm ngoài tầm nhìn của cổng**, lần này ở khâu
+sau. Một lượt `scp` hỏng ở năm tệp đó ⇒ script in đủ 9 dòng `✓ khớp` rồi restart — đúng kịch bản
+mà khối chú thích ngay phía trên nó mô tả (B-3), chỉ khác là xảy ra ở những tệp **không có trong
+danh sách** thay vì ở `presets.mjs`.
+
+**Bài học chung:** vá một danh sách chép tay bằng cách cho **một** chỗ đọc manifest là chưa đủ —
+phải đếm xem trong cùng file còn mấy chỗ nữa đang giữ bản chép. Nay vòng đối chiếu đọc **cùng
+`$TEP`** với bước chép (một danh sách, **ba** nơi đọc), và script **in ra số tệp đã đối chiếu**
+để hai con số lệch nhau là nhìn thấy được ngay.
+
+**Nghiệm thu:** `bash -n` sạch · manifest cấp **15** tệp ⇒ chép 15, đối chiếu 15.
+⚠️ Chưa chạy `console-deploy.sh` thật (đợt này **không deploy**) — vá này nghiệm thu ở mức đọc
+mã + cú pháp, và phải được nhìn thấy chạy thật ở lượt deploy kế tiếp.
