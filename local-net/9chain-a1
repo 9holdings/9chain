@@ -18,6 +18,13 @@ cd "$ROOT"   # dùng đường dẫn tương đối để tránh MSYS đổi /c/
 CU="docker compose -f local-net/docker-compose.yml"          # single-node dev
 CM="docker compose -f local-net/net/docker-compose.multinode.yml"  # multi-node
 API="http://localhost:9650"
+
+# 🔴 `docker-compose.yml` nay ĐÒI `NETWORK_ID` và không còn mặc định — số cũ cắm cứng ở
+# đó là `9001`, thế hệ đã chết. Suy từ genesis sắp mount thì compose không thể lệch khỏi
+# genesis. Thiếu `net/` thì bỏ qua ở đây: các nhánh lệnh bên dưới tự báo lỗi rõ hơn.
+if [ -f "$ROOT/local-net/net/genesis.json" ]; then
+  source "$ROOT/local-net/network-id.sh" "$ROOT/local-net/net/genesis.json" || true
+fi
 cli() { MSYS_NO_PATHCONV=1 $CU exec -T 9chain-a1-node /9chain-a1/build/9chain-a1-cli "$@"; }
 
 # 🔴 CẢ HAI chế độ nay boot bằng genesis do netgen sinh trong `local-net/net/`.

@@ -27,6 +27,10 @@ if [ ! -f "$ROOT/local-net/net/genesis.json" ]; then
   echo "    Xem docs/CORE-AUDIT-2026-08-27.md §7b." >&2
   exit 1
 fi
+# NETWORK_ID suy TỪ genesis sắp mount — compose không còn giữ con số nào của riêng nó.
+# Trước 28/08 compose cắm cứng `9001` và `net/genesis.json` cũng là 9001: hai bên khớp
+# nhau nên node boot sạch và mạng dev chạy một **thế hệ đã chết** mà không cổng nào kêu.
+source "$ROOT/local-net/network-id.sh" "$ROOT/local-net/net/genesis.json"
 docker compose -f local-net/docker-compose.yml up -d --build >/dev/null
 echo "    chờ node healthy..."
 for _ in $(seq 1 24); do

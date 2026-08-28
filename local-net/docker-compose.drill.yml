@@ -34,7 +34,7 @@ services:
       - AVAGO_TRACK_SUBNETS=${A1_TRACK_SUBNETS:-}
     command:
       - ./avalanchego
-      - --network-id=9001
+      - --network-id=${NETWORK_ID:?NETWORK_ID chua dat. Mac dinh cu 9001 la THE HE DA CHET. Bang TAP 899999999, bang THAT 999999999. Xem CLAUDE.md gotcha 5.}
       - --genesis-file=/9chain-a1/net/genesis.json
       - --plugin-dir=/9chain-a1/build/plugins
       - --sybil-protection-enabled=false

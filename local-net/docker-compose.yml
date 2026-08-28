@@ -50,7 +50,12 @@ services:
       - AVAGO_TRACK_SUBNETS=${A1_TRACK_SUBNETS:-}
     command:
       - ./avalanchego
-      - --network-id=9001                              # mạng chủ quyền 9Chain-A1
+      # 🔴 KHÔNG mặc định. Số cũ cắm cứng ở đây là `9001` — **thế hệ đã chết từ 27/08**,
+      # và `local-net/net/genesis.json` cũng còn là bộ 9001 ⇒ hai bên khớp nhau nên node
+      # boot sạch, mọi cổng xanh, và cái đang chạy là **một mạng không còn tồn tại**.
+      # Đó đúng lớp lỗi "đo sai đại lượng": nhất quán nội bộ KHÔNG phải bằng chứng còn sống.
+      # `:?` làm compose DỪNG khi thiếu biến — cùng kỷ luật netgen đã áp (gotcha 2b · D-083).
+      - --network-id=${NETWORK_ID:?NETWORK_ID chua dat. Mac dinh cu 9001 la THE HE DA CHET. Bang TAP dung 899999999; bang THAT dung 999999999. Xem CLAUDE.md gotcha 5.}
       - --genesis-file=/9chain-a1/net/genesis.json       # do netgen sinh — KHÔNG phải config/
       - --plugin-dir=/9chain-a1/build/plugins            # nơi chứa VM plugin love9evm
       - --sybil-protection-enabled=false                 # 1 node dev

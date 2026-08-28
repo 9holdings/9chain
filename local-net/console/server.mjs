@@ -49,7 +49,7 @@ const checkToken = requireToken(TOKEN);
 const limitFlood = rateLimit({ max: 60, windowMs: 60 * 60 * 1000, name: "flood" });
 const limitCreate = rateLimit({ max: Number(process.env.A1_LIMIT_CREATE || 3), windowMs: 60 * 60 * 1000, name: "create" });
 const limitRead = rateLimit({ max: 120, windowMs: 60 * 1000, name: "read" });
-// Thu hồi cũng restart cả 5 node như lúc đẻ — nặng ngang nhau, nên hạn mức ngang nhau.
+// Thu hồi cũng restart cả cụm node như lúc đẻ — nặng ngang nhau, nên hạn mức ngang nhau.
 // Hạn mức RIÊNG (không dùng chung khoá với create): gộp chung thì một người đẻ 3 chain
 // là hết quyền dọn chính mấy chain đó, tức là hạn mức tự khoá đường sửa sai.
 const limitRevoke = rateLimit({ max: Number(process.env.A1_LIMIT_REVOKE || 3), windowMs: 60 * 60 * 1000, name: "revoke" });
@@ -188,7 +188,7 @@ const DE_CHAIN_MO = process.env.A1_DE_CHAIN_MO === "1";
 const queue = serialQueue({ maxPending: 5 });
 const ROOT = process.cwd(); // phải là gốc dự án
 // Compose + container để điều phối. Mặc định là node đơn (dev cũ); mạng chuẩn
-// hiện nay là bộ 5 node nên trên server phải trỏ sang compose multinode:
+// hiện nay là bộ nhiều node nên trên server phải trỏ sang compose multinode:
 //   A1_COMPOSE_FILE=/home/ubuntu/9chain-a1/net/docker-compose.multinode.yml
 //   A1_NODE_CONTAINER=9chain-a1-node-1
 const COMPOSE_FILE = process.env.A1_COMPOSE_FILE || "local-net/docker-compose.yml";
@@ -197,9 +197,9 @@ const COMPOSE = ["compose", "-f", COMPOSE_FILE];
 const CFG_DIR = path.join(ROOT, "9chain-a1-config");
 const TMP_DIR = path.join(CFG_DIR, "console-tmp");
 // Cấu hình riêng của từng chain: `<CHAIN_CFG_DIR>/<blockchainID>/config.json`.
-// Compose mount thư mục cha vào cả 5 node ở `/9chain-a1/config` (ro) và mỗi node
+// Compose mount thư mục cha vào MỌI node ở `/9chain-a1/config` (ro) và mỗi node
 // chạy với `--chain-config-dir=/9chain-a1/config/chains`, nên ghi MỘT lần ở đây là
-// cả 5 node cùng đọc. Xem ghiChainConfig().
+// mọi node cùng đọc. Xem ghiChainConfig().
 const CHAIN_CFG_DIR = path.join(CFG_DIR, "chains");
 const STATE = path.join(CFG_DIR, "console-chains.json");
 // Khuôn genesis cho mọi L1. JSON không chứa được chú thích, mà trong đó có đúng một
@@ -507,7 +507,7 @@ function ghimTrackVaoEnv(trackList) {
 /**
  * ═══ TIẾN TRÌNH ĐANG CHẠY — vì sao cần một cái riêng ═══
  *
- * Một lượt đẻ chain mất **~170 giây**, và đó là CHỦ Ý: 5 node restart lần lượt để
+ * Một lượt đẻ chain mất **~170 giây**, và đó là CHỦ Ý: các node restart lần lượt để
  * mạng không mất quorum, đổi lại RPC công khai chỉ gián đoạn 0,5s thay vì 6,0s
  * (D-008). Nhưng với người bấm nút thì một vòng xoay 170 giây đọc là **"hỏng rồi"** —
  * họ tải lại trang, bấm lại, và lần bấm thứ hai là một chain thừa ăn mất một slot
@@ -747,9 +747,9 @@ export const LUU_Y_GIAO_DICH_DAU = {
  * ═══ VÌ SAO GHI Ở HOST, TRƯỚC KHI RESTART ═══
  * Node đọc file này lúc **dựng chain**, mà chain chỉ được dựng sau khi node track
  * subnet — tức là trong đợt rolling restart ngay sau đây. Ghi muộn hơn một nhịp là
- * cả 5 node dựng chain với cấu hình mặc định và phải restart lại lần nữa mới sửa.
+ * mọi node dựng chain với cấu hình mặc định và phải restart lại lần nữa mới sửa.
  *
- * Thư mục `9chain-a1-config/` đã mount sẵn vào cả 5 node (ro) nên một lần ghi là
+ * Thư mục `9chain-a1-config/` đã mount sẵn vào MỌI node (ro) nên một lần ghi là
  * đủ — khác hẳn đường mặc định `~/.avalanchego/configs/chains/` nằm trong volume
  * RIÊNG của từng node (phải `docker exec` 5 lần).
  *
@@ -1004,9 +1004,9 @@ async function createChain({ name, chainId, admin, preset }) {
  * ═══ NÓ KHÔNG LÀM GÌ (đọc kỹ, đây là chỗ dễ hiểu nhầm nhất) ═══
  * • KHÔNG xoá subnet/blockchain trên P-Chain — đã đẻ là vĩnh viễn, không có
  *   giao dịch nào xoá được. Dữ liệu chain cũng còn nguyên trên đĩa node.
- * • KHÔNG rút 5 node khỏi tập validator của subnet đó. Chúng vẫn là validator đã
+ * • KHÔNG rút node nào khỏi tập validator của subnet đó. Chúng vẫn là validator đã
  *   đăng ký cho tới hết hạn, chỉ là không còn chạy subnet nữa.
- *   ⚠️ Hệ quả: `platform.getCurrentValidators({subnetID})` vẫn trả 5 validator cho
+ *   ⚠️ Hệ quả: `platform.getCurrentValidators({subnetID})` vẫn trả ĐỦ validator cho
  *   chain đã thu hồi. Tức là phép đo "sống = có validator" mà trang /chains/ dùng
  *   sẽ NÓI DỐI với chain đã thu hồi. Vì vậy chain thu hồi phải được vẽ từ mảng
  *   `retired` với nhãn riêng, KHÔNG được đem đi đo bằng heuristic của chain sống.
@@ -1281,7 +1281,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     // Đẻ chain và thu hồi chain đi chung một cửa: cả hai đều restart lần lượt cả
-    // 5 node, nên cả hai PHẢI đi qua cùng một hàng đợi tuần tự. Chạy chồng nhau
+    // từng node, nên cả hai PHẢI đi qua cùng một hàng đợi tuần tự. Chạy chồng nhau
     // là hai đợt rollout đá nhau giữa chừng và hỏng cả hai.
     if (req.method === "POST" && (req.url === "/api/create" || req.url === "/api/revoke")) {
       const laThuHoi = req.url === "/api/revoke";
