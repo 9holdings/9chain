@@ -39,7 +39,17 @@ không push.
       THẬT với node giả đổi được câu trả lời; **gỡ cổng khỏi `createChain` ⇒ 7 hỏng/exit 1** (bài
       kiểm nối vào mã thật). 🔴 Bẫy đã đo: `info.getNetworkID` trả **CHUỖI**.
       🔴 **Đẻ ra D-094:** `console-deploy.sh` chép 15 tệp mà **đối chiếu chỉ 9** — thiếu đúng
-      `lib/chainid.mjs` + hai sổ chặn đã để B-14 hở hai ngày. Đã vá; **chưa chạy deploy thật**.
+      `lib/chainid.mjs` + hai sổ chặn đã để B-14 hở hai ngày.
+      ✅ **ĐÃ DEPLOY THẬT `28/08`** (David yêu cầu trong phiên) — D-095. Lượt deploy lộ ra
+      `console-deploy.sh` **hỏng từ chính commit vá nó** (`a16c81c` = D-088): một ký tự xuống
+      dòng thật nằm trong chuỗi JS ⇒ `SyntaxError`. Tức bản vá đóng gốc rễ B-14 **chưa từng
+      chạy trót lọt lần nào**; `chainid.mjs` lên server bằng đường chép tay. Đã sửa, và lượt
+      này là **lần chạy trót lọt đầu tiên**: 15 chép/15 đối chiếu · test trên server 21/21 +
+      32/32 · **drift 19 khớp · 0 lệch · 0 thiếu** · console sống tự khai
+      `thế hệ : ✅ khớp node đang chạy — g0 · networkID 999999999`.
+      ⇒ **D-093 đóng ở CẢ HAI lớp** (repo + sản phẩm).
+      🔴 D-096: tên miền sống là **`a1.9chain.org`**; `testnet-a1.9chain.org` trả **525** qua
+      Cloudflare — đo bằng tên cũ ra "trang chết" trong khi trang vẫn sống.
       ⚠️ Sửa `console/server.mjs` ⇒ drift **sẽ báo console lệch, và đó là ĐÚNG**. Deploy là việc
       của David.
 - [ ] **A15-2 — O1 thành MỘT cổng (`scripts/o1-kiem.mjs`)**
