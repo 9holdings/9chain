@@ -4189,3 +4189,45 @@ rõ điều đó thay vì im lặng.
 
 🔴 **Còn 19 tệp khoá mạng diễn tập nằm rải trong cây tạm.** Không phải tiền, nhưng đúng thứ để
 ai đó cất nhầm — chính là bẫy B-19 và gotcha 11 ở dạng khác. Việc dọn: không gấp, không chặn.
+
+### D-117b — cùng ngày, cổng ĐÓ lại sai HAI lần nữa, và một lượt quét độc lập mới bắt được
+
+Sau khi `check-key-leaks` chấm **exit 0**, một lượt quét nền viết trước đó (phạm vi khác, tiêu
+chí thô hơn) chạy xong và chỉ ra **hai chỗ cổng không nhìn tới**:
+
+**(1) PHẠM VI — cổng dừng ở REPO, không ra tới THƯ MỤC CHA.** Danh sách gốc có `ROOT` (chính
+repo) nhưng bỏ qua `C:\PROJECTS\9Chain-backups\`, hai worktree anh em (`-web`, `-audit`), và các
+bản gương của `claude-config`. **Thư mục sao lưu là nơi khoá dễ bị chép vào nhất và ít được nhìn
+lại nhất** — mà cổng mù với nó trong khi vẫn in một dòng xanh rất thuyết phục về mọi chỗ nó có
+quét. ⇒ quét `path.dirname(ROOT)`.
+
+**(2) MỐC SO hẹp hơn tập "khoá giữ tiền".** Mốc so ban đầu là **một tệp**:
+`9chain-a1-keys/g0/keys.txt` — sáu quỹ genesis. Nhưng `chain-factory-key.txt` là **ví thứ BẢY,
+đang giữ ~90 LOVE9 thật** (B-19), và nó **không nằm trong tệp đó**. Hệ quả: một bản trùng byte
+của nó trong gói sao lưu bị chấm **🟡 "không phải khoá quỹ"** — cổng nói *"chắc không sao"* về
+quyền chi tiền thật.
+
+⇒ Mốc so nay là **danh sách nhiều nguồn** (`DEFAULT_FUND_SETS`), và nguồn nào đọc không được thì
+**khai ra** — vì một mốc so co lại sẽ **âm thầm biến 🔴 thành 🟡** mà không ai đụng vào tệp này.
+
+| nghiệm thu | đo được |
+|---|---|
+| `--self-test` | **8/8**, thêm ca *"khoá giữ tiền từ nguồn mốc so THỨ HAI ⇒ 1, không phải vàng"* |
+| ca chứng minh lỗi cũ có thật | *"cùng khoá đó, BỎ nguồn thứ hai ⇒ 0"* — tức trước khi vá nó **đúng là** vàng |
+| chạy thật, mốc so 7 khoá / 9 gốc | 🔴 **2 tệp**: `…\scratchpad\verify1\console.env` (`A1_CLI_KEY`) · `9Chain-backups\…\net-public\chain-factory-key.txt` |
+| thời gian | **~235 giây** — chậm, nên đây là cổng **chạy tay**, không nhét vào preflight |
+
+🔴 **PHÁT HIỆN KÈM, và nó lớn hơn cả hai lỗi trên: KHOÁ FACTORY ĐƯỢC TÁI DÙNG XUYÊN THẾ HỆ.**
+`chain-factory-key.txt` trong gói lưu `20260825` — gói của mạng **`9001` ĐÃ CHẾT** — **trùng
+byte** với khoá đang giữ tiền trên `g0` hôm nay (`ced0f04f…`, cả ba nơi). Đây đúng hình dạng
+gotcha 15 (`A1_CONSOLE_TOKEN` chưa từng đổi qua **hai** lượt re-genesis): **re-genesis thay khoá
+quỹ nhưng KHÔNG thay khoá factory**, nên mọi bản lưu cũ vẫn cầm quyền chi **hôm nay**.
+⇒ **Đưa vào việc ngày G: sinh mạng mới thì sinh luôn khoá factory mới**, cùng lượt với token.
+
+⏸️ **Hai tệp đỏ chưa xử lý — chờ David, và hai ca KHÁC NHAU về bản chất:**
+- `verify1\console.env` (`24/08`, 396 B) — bản sao thuần trong cây tạm; khoá còn ở 3 nơi khác nên
+  xoá không mất gì. `A1_CONSOLE_TOKEN` trong đó là **token cũ đã vô hiệu** (D-092c), nhưng
+  `A1_CLI_KEY` **vẫn sống**.
+- `9Chain-backups\…\chain-factory-key.txt` — 🔴 **`MANIFEST.txt` của gói có liệt kê tệp này**.
+  Xoá nó là làm gói **lệch manifest**, và luật repo cấm sinh lại manifest cho một gói đã niêm.
+  Đây là **quyết định của David**, không phải thao tác dọn dẹp.

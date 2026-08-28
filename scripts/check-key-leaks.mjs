@@ -80,8 +80,30 @@ const HOME = homedir();
  */
 const KEY_RE = /PrivateKey-[1-9A-HJ-NP-Za-km-z]{40,}/g;
 const MARKER = "PrivateKey-";
-const FUND_SET = opt("--fund-set", path.join(HOME, "9chain-a1-keys", "g0", "keys.txt"));
 const MAX_BYTES = 200_000;
+
+/**
+ * 🔴 THE BASELINE IS NOT ONE FILE, AND ASSUMING IT WAS COST A REAL MISS.
+ *
+ * The first version compared only against `9chain-a1-keys/g0/keys.txt` — the six genesis funds.
+ * But `chain-factory-key.txt` is a **seventh wallet holding ~90 real LOVE9** (B-19), and it does
+ * not live in that file. So a byte-identical copy of it inside a backup bundle was scored 🟡
+ * "not a fund key" — the gate said *amber* about live spend authority.
+ *
+ * The baseline must be **every key proven to hold money**, not every key in one convenient file.
+ *
+ * ⚠️ **Known limit, stated rather than hidden:** this list is maintained by hand. A future wallet
+ * that holds money and is not named here is invisible to this gate. `check-net-dirs.mjs` is the
+ * tool that actually asks the chain; when it reports a funded key somewhere new, add it here.
+ */
+const DEFAULT_FUND_SETS = [
+  path.join(HOME, "9chain-a1-keys", "g0", "keys.txt"),
+  path.join(ROOT, "local-net", "net-public", "chain-factory-key.txt"),
+];
+const FUND_SETS = argv.reduce(
+  (acc, a, i) => (a === "--fund-set" && argv[i + 1] ? [...acc, argv[i + 1]] : acc),
+  [],
+);
 const TEXT_EXT = new Set([".txt", ".md", ".json", ".env", ".key", ".bak", ".csv", ".log", ".yml", ".yaml", ""]);
 
 /** Directory names never worth walking: huge, and none of them is where a key gets forgotten. */
@@ -90,6 +112,15 @@ const SKIP_DIRS = new Set([
   ".cache", ".gradle", ".conda", "miniconda3", "go", "npm-cache", "AppData\\Roaming",
 ]);
 
+/**
+ * 🔴 `PROJECTS` is the parent of the repo, not the repo — and that difference was a real hole.
+ * The first root list stopped at `ROOT` (the repo itself), so it never looked at
+ * `9Chain-backups/`, the sibling worktrees (`-web`, `-audit`), or the config mirrors. An
+ * independent whole-disk scan run the same hour found `chain-factory-key.txt` inside a backup
+ * bundle there — exactly the kind of file B-19 is about. A backup directory is where key
+ * material is *most* likely to be copied and *least* likely to be looked at again, and the gate
+ * was blind to it while reporting green on everything it did search. Search the parent.
+ */
 const ROOTS = [
   process.env.TEMP,
   process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, "Temp") : null,
@@ -97,6 +128,8 @@ const ROOTS = [
   path.join(HOME, "Documents"),
   path.join(HOME, "Desktop"),
   path.join(HOME, "OneDrive"),
+  path.join(HOME, "backups"),
+  path.dirname(ROOT),
   ROOT,
   ...EXTRA_ROOTS,
 ].filter(Boolean);
@@ -147,14 +180,24 @@ function walk(dir, out, unreadable, depth = 0) {
 /** SHA-256 of the key string. Key material itself is never held beyond this call, never printed. */
 const keyDigest = (k) => createHash("sha256").update(k).digest("hex");
 
-/** Digests of every key in the live fund set — the baseline that turns "a key" into "money". */
-function fundSetDigests(file) {
-  if (!existsSync(file)) return null;
-  let body;
-  try { body = readFileSync(file, "latin1"); } catch { return null; }
-  const keys = body.match(KEY_RE);
-  if (!keys || !keys.length) return null;
-  return new Set(keys.map(keyDigest));
+/**
+ * Digests of every key proven to hold money — the baseline that turns "a key" into "money".
+ * Returns null if NO source could be read: with no baseline at all, every "not a fund key"
+ * below would be an assumption. A source that is missing individually is reported, because a
+ * shrinking baseline silently turns red findings amber — the exact miss this fixes.
+ */
+function fundSetDigests(files) {
+  const digests = new Set();
+  const missing = [];
+  for (const file of files) {
+    if (!existsSync(file)) { missing.push(file); continue; }
+    let body;
+    try { body = readFileSync(file, "latin1"); } catch { missing.push(file); continue; }
+    const keys = body.match(KEY_RE);
+    if (!keys || !keys.length) { missing.push(file); continue; }
+    for (const k of keys) digests.add(keyDigest(k));
+  }
+  return digests.size ? { digests, missing } : null;
 }
 
 function scan(roots) {
@@ -170,20 +213,28 @@ function scan(roots) {
   return { found, unreadable };
 }
 
-function run({ roots = ROOTS, fundSet = FUND_SET, quiet = false } = {}) {
+function run({ roots = ROOTS, fundSets = FUND_SETS.length ? FUND_SETS : DEFAULT_FUND_SETS, quiet = false } = {}) {
   const say = (...a) => { if (!quiet) console.log(...a); };
   say("\n══ FUND KEY LEAKS — spend authority sitting where nothing watches ══");
   say(`   roots searched: ${roots.length}`);
 
   // 🔴 No baseline ⇒ every "no match" below would be meaningless. That is *don't know*, and
   // *don't know* must never leave through the green door.
-  const fund = fundSetDigests(fundSet);
-  if (!fund) {
-    say(`\n🟡 INCONCLUSIVE — cannot read the fund key set at ${fundSet}`);
-    say("   Without it, 'this key is not a fund key' is an assumption, not a measurement.");
+  const base = fundSetDigests(fundSets);
+  if (!base) {
+    say(`\n🟡 INCONCLUSIVE — could not read any funded-key source (${fundSets.length} tried)`);
+    for (const f of fundSets) say(`     ${f}`);
+    say("   Without one, 'this key is not a fund key' is an assumption, not a measurement.");
     return { code: 2, critical: [], other: [] };
   }
-  say(`   fund keys in the baseline: ${fund.size}  (${path.basename(fundSet)})`);
+  const fund = base.digests;
+  say(`   funded keys in the baseline: ${fund.size}  (from ${fundSets.length - base.missing.length}/${fundSets.length} source(s))`);
+  if (base.missing.length) {
+    // A source that vanished shrinks the baseline, and a shrinking baseline turns RED findings
+    // into amber ones without anybody touching this file. Say it out loud.
+    say(`   🟡 ${base.missing.length} source(s) unreadable — the baseline is INCOMPLETE:`);
+    for (const m of base.missing) say(`        ${m}`);
+  }
 
   const { found, unreadable } = scan(roots);
   const outside = found.filter((f) => !isAllowed(f.file));
@@ -223,7 +274,7 @@ function run({ roots = ROOTS, fundSet = FUND_SET, quiet = false } = {}) {
     for (const f of critical) say(`     ${f.file}`);
     say("\n   This is spend authority over the running network, outside every watched place.");
     say("   Do NOT delete by directory. Verify sha256 FILE BY FILE against the primary set in");
-    say(`   ${path.dirname(fundSet)}, confirm it is a duplicate and not the only copy,`);
+    say(`   ${path.dirname(fundSets[0])}, confirm it is a duplicate and not the only copy,`);
     say("   and only then overwrite and remove. (gotcha 17 · D-107 · D-117)");
     return { code: 1, critical, other };
   }
@@ -240,15 +291,23 @@ function selfTest() {
   // Two DIFFERENT well-formed keys, and a stand-in fund set holding only the first. No real key
   // material is written anywhere — the gate compares digests, so fakes exercise it exactly.
   const FUND_KEY = `PrivateKey-${"A".repeat(51)}`;
+  const FACTORY_KEY = `PrivateKey-${"C".repeat(51)}`;
   const OTHER_KEY = `PrivateKey-${"B".repeat(51)}`;
+  // Two baseline sources, mirroring the real world: the six genesis funds in one file, and the
+  // funded factory wallet in a completely different one.
   const fundSet = path.join(dir, "fund-keys.txt");
+  const factorySet = path.join(dir, "chain-factory-key.txt");
   writeFileSync(fundSet, `[foundation]\n  PrivateKey : ${FUND_KEY}\n`);
+  writeFileSync(factorySet, `PrivateKey : ${FACTORY_KEY}\n`);
+  const bothSets = [fundSet, factorySet];
 
   const leakedFund = path.join(dir, "leak", "keys.txt");
+  const leakedFactory = path.join(dir, "backup", "chain-factory-key.txt");
   const leakedOther = path.join(dir, "drill", "keys.txt");
   const mentionOnly = path.join(dir, "docs", "PROGRESS.md");
   for (const [p, body] of [
     [leakedFund, `[foundation]\n  PrivateKey : ${FUND_KEY}\n`],
+    [leakedFactory, `PrivateKey : ${FACTORY_KEY}\n`],
     [leakedOther, `[drill]\n  PrivateKey : ${OTHER_KEY}\n`],
     // 🔴 THE CASE THAT BURNED THIS GATE'S FIRST DRAFT: a document that merely names the marker.
     [mentionOnly, "Scanned for secrets: no `PrivateKey-*` / private keys present.\n"],
@@ -265,13 +324,20 @@ function selfTest() {
 
   console.log("\n══ REVERSE CONTROLS ══");
   check("LIVE FUND key outside allowed places ⇒ 1 (RED)",
-    run({ roots: [path.dirname(leakedFund)], fundSet, quiet: true }).code, 1);
+    run({ roots: [path.dirname(leakedFund)], fundSets: bothSets, quiet: true }).code, 1);
+  // 🔴 THE SECOND MISS, 2026-08-28: the factory wallet holds real money but lives in a different
+  // file from the six genesis funds. With a single-file baseline this scored amber — the gate
+  // saying "probably fine" about live spend authority sitting in a backup bundle.
+  check("🔴 FUNDED key from the SECOND baseline source ⇒ 1, not amber",
+    run({ roots: [path.dirname(leakedFactory)], fundSets: bothSets, quiet: true }).code, 1);
+  check("same key with the second source DROPPED ⇒ 0 — proves the miss was real",
+    run({ roots: [path.dirname(leakedFactory)], fundSets: [fundSet], quiet: true }).code, 0);
   check("🔴 doc that only MENTIONS `PrivateKey-*` ⇒ 0, must NOT be called a leak",
-    run({ roots: [path.dirname(mentionOnly)], fundSet, quiet: true }).code, 0);
-  check("key that is NOT in the fund set ⇒ 0 (reported 🟡, not blocking)",
-    run({ roots: [path.dirname(leakedOther)], fundSet, quiet: true }).code, 0);
-  check("fund set unreadable ⇒ 2, NOT 0 (no baseline = no measurement)",
-    run({ roots: [path.dirname(leakedFund)], fundSet: path.join(dir, "absent.txt"), quiet: true }).code, 2);
+    run({ roots: [path.dirname(mentionOnly)], fundSets: bothSets, quiet: true }).code, 0);
+  check("key in NO baseline ⇒ 0 (reported 🟡, not blocking)",
+    run({ roots: [path.dirname(leakedOther)], fundSets: bothSets, quiet: true }).code, 0);
+  check("every baseline source unreadable ⇒ 2, NOT 0 (no baseline = no measurement)",
+    run({ roots: [path.dirname(leakedFund)], fundSets: [path.join(dir, "absent.txt")], quiet: true }).code, 2);
   // Location, not content: the same fund key inside an allowed place must be green.
   const allowedRoot = ALLOWED[0].at;
   if (existsSync(allowedRoot)) {
@@ -280,7 +346,7 @@ function selfTest() {
   }
   rmSync(path.dirname(leakedFund), { recursive: true, force: true });
   check("leak removed ⇒ 0 (the gate stops shouting once it is fixed)",
-    run({ roots: [path.dirname(leakedFund)], fundSet, quiet: true }).code, 0);
+    run({ roots: [path.dirname(leakedFund)], fundSets: bothSets, quiet: true }).code, 0);
 
   rmSync(dir, { recursive: true, force: true });
   return failures;
