@@ -99,7 +99,7 @@ không push.
       🔴 **Sửa một lỗi của chính tôi:** bản đầu từ chối mọi sổ thiếu khoá `retired` (viện *rỗng ≡
       hỏng*) và **từ chối luôn sổ thật của repo** — trong khi `loadState()` khai rõ đó là định
       dạng trước M4.4, hợp lệ. Luật đúng: **thiếu khoá ≠ sai kiểu**.
-- [ ] **A15-5 — `scripts/canh-mang.mjs`: giám sát một lệnh**
+- [x] **A15-5 — `scripts/canh-mang.mjs`: giám sát một lệnh**
       HANDOFF tự khai số dư `chain-factory` **chưa có giám sát** (cạn ⇒ đẻ chain chết câm), và
       B-12 (9 validator rụng dần trong cửa sổ 56 ngày, node cuối rụng là **mạng DỪNG**) đang chờ
       một cái lịch không ai dựng.
@@ -109,6 +109,13 @@ không push.
       **Điều kiện qua:** ra bảng số thật + ≥2 ca đỏ (RPC sai đường ⇒ **đỏ**, không phải xanh rỗng ·
       hạ ngưỡng ngày hết hạn ⇒ cảnh báo nổ). Chỉ đọc. ⇒ biến B-12 từ *"David dựng lịch"* thành
       *"máy tự nhắc"*, và trả lời `endTime` **bằng phép đo, không tính tay**.
+      ✅ **ĐẠT `28/08`** (D-100). **13/13 ca đối chứng** (6 chấm điểm + 7 ngưỡng B-12) ·
+      **chạy thật 9/9 mục xanh**: g0 · 999999999 · 9 validator · 8 peer · hạn sớm nhất **308
+      ngày** (`2027-07-02`) · factory **89,899 LOVE9** · `supplyCap` đọc **trong container**
+      khớp Go · faucet có số đo · console 200.
+      🔴 Hai đối chứng **dữ liệu thật, hai chiều hỏng ⇒ hai mã**: RPC chết ⇒ **2** (không đo
+      được) · `A1_GEN = 1` trong khi mạng g0 ⇒ **1** (đúng kịch bản ngày G nếu bump một bên).
+      Phát hiện phụ: tài liệu gọi `/api/tien-trinh`, mã thật là `/api/progress`.
 - [ ] **A15-6 — `scripts/ngay-g-preflight.mjs`: runbook chạy được**
       Hôm nay runbook ngày G nằm rải ở 5 tệp tài liệu, không có gì chạy được. Gọi mọi cổng theo
       **đúng thứ tự ngày G**, in bảng ĐẠT/ĐỎ/BỎ QUA, exit ≠0 nếu mục bắt buộc đỏ.
