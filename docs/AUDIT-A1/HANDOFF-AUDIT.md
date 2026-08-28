@@ -1,8 +1,32 @@
 # HANDOFF — worktree `audit` · Cập nhật: `2026-08-28` (lượt soát lại thứ 2)
 
+> 🔴 **THƯ MỤC NÀY NAY SỐNG Ở HAI NHÁNH — ĐỌC TRƯỚC KHI TIN BẤT KỲ CON SỐ NÀO Ở ĐÂY.**
+>
+> **Nhánh `audit` là nơi ghi tiếp. Bản trên `main` là ẢNH CHỤP ngày `2026-08-28`** —
+> nhặt sang bằng `main @ ab3f22b` sau khi David chốt. Muốn bản mới nhất thì đọc ở
+> nhánh `audit` (`git show audit:docs/AUDIT-A1/SO-PHAT-HIEN.md`), **đừng đọc bản `main`
+> rồi tưởng đó là hiện trạng**.
+>
+> Vì sao phải nói ra: đây **đúng hình dạng của A-012** — một thứ sống ở hai nơi, một nơi
+> trôi tiếp, nơi kia im lặng cũ đi, và **không cổng nào báo**. A-012 cháy vì
+> `web/lib/chain.ts` tồn tại ở cả `main` lẫn `web-home` và không ai canh chỗ lệch;
+> thư mục này vừa có đúng tính chất đó. Khác biệt duy nhất: ở đây ta **biết trước**.
+>
+> **Cách giữ nó không thành lỗi** — mỗi phiên soát kết thúc thì nhặt lại một lượt:
+> ```
+> cd /c/PROJECTS/9Chain-A1 && git checkout audit -- docs/AUDIT-A1/ && git commit docs/AUDIT-A1 -m "..."
+> ```
+> Kiểm lệch bất cứ lúc nào — **0 dòng là khớp**:
+> ```
+> git diff audit main -- docs/AUDIT-A1/ | wc -l
+> ```
+> ⚠️ Commit theo **pathspec** (`git commit docs/AUDIT-A1`), đừng commit cả index:
+> worktree `main` gần như luôn có việc dở của session khác đang chạy song song.
+
 > ⚠️ Đây là HANDOFF **của riêng worktree soát**, cố ý **không** ghi vào `HANDOFF.md` ở
-> gốc repo: tệp đó thuộc `main`, và luật 3 trong `CLAUDE.md` cấm worktree này đụng vào
-> `main`. Mọi thứ worktree soát sinh ra nằm trong `docs/AUDIT-A1/`.
+> gốc repo — tệp đó thuộc quy trình làm việc của `main`. Mọi thứ worktree soát sinh ra
+> nằm trong `docs/AUDIT-A1/`. Luật 3 (`CLAUDE.md`) cấm worktree này commit vào `main`
+> **trừ khi David chốt và chỉ nhặt file `docs/`** — đã dùng đúng ngoại lệ đó `28/08`.
 
 ## TL;DR
 
