@@ -3208,3 +3208,58 @@ Ba dấu hiệu tách "server hỏng" khỏi "tôi gõ nhầm địa chỉ", the
 ⚠️ **Không đổi hàng loạt 80 chỗ dẫn tên cũ trong repo:** phần lớn nằm trong sổ lưu trữ và các
 quyết định cũ — chúng **kể về quá khứ**, và sửa chúng cho gọn mắt là viết lại lịch sử. Đã ghi
 bẫy vào `CLAUDE.md` §5 mục 9b thay vì `sed` cả repo.
+
+## D-097 — O1 thành MỘT cổng: `scripts/o1-kiem.mjs`, ba mã thoát (2026-08-28)
+
+D-090 đã dựng đủ **hai** phép đo và tài liệu đã dặn *"phải chạy CẢ HAI"*. Nhưng **một lời dặn
+không phải một cổng.** Nó chỉ có hiệu lực với người đọc đúng tài liệu, đúng hôm ấy, và nhớ tới
+lệnh thứ hai **sau khi lệnh thứ nhất vừa in một dòng xanh rất thuyết phục**:
+
+```
+✓ 6/6 quỹ khôi phục đúng — mọi địa chỉ suy lại từ khoá đều khớp thứ tệp tự khai.
+```
+
+Đó chính là dòng `kiem-khoa` in cho bộ khoá **thế hệ 9001 đã chết**. Và tình huống nguy hiểm
+nhất của O1 không phải *"tệp hỏng"* mà là **cất đúng một bản, của thế hệ trước** — trên đúng
+con đường đó, phép đo còn thiếu lại là phép đo dễ quên nhất. Việc này gấp vì **David sắp tự
+chạy nó** (B-16, chặn GO/NO-GO `29/08`).
+
+### Ba mã thoát, không phải hai
+
+| mã | nghĩa | khi nào |
+|---:|---|---|
+| `0` | **ĐẠT** | cả hai vế chạy được **và** cả hai xanh |
+| `1` | **SAI** | một vế chạy được và báo đỏ |
+| `2` | 🟡 **CHƯA KẾT LUẬN** | một vế **không chạy được** (thiếu tệp · thiếu docker · không tới được chain) |
+
+Gộp `2` vào `1` thì *"hỏng"* nuốt mất *"không biết"* và người ta đi sửa nhầm thứ. Gộp `2` vào
+`0` thì tệ hơn nhiều: **một bản sao chưa được kiểm sẽ được chấm là đã kiểm** — đúng lớp lỗi
+D-090 sinh ra để chặn. Thứ tự phán xét trong mã cũng theo đó: *"không chạy được"* xét **trước**
+*"sai"*.
+
+### Nghiệm thu — trên DỮ LIỆU THẬT, không phải ca dựng
+
+| ca | mong | ra |
+|---|---:|---:|
+| bộ `g0` **đang sống** (`9chain-a1-keys/g0`) | 0 | **0** ✓ |
+| 🔴 bộ `9001` **đã chết** (`local-net/net-public`) | 1 | **1** ✓ — cùng lượt đó vế 1 vẫn in `✓ 6/6 quỹ khôi phục đúng` |
+| **giấu `kiem-khoa-tren-chain.mjs` đi** (mô phỏng "chỉ chạy kiem-khoa") | 2 | **2** ✓ — *không xanh* |
+| không gọi được docker | 2 | **2** ✓ |
+| thư mục không tồn tại · thư mục RỖNG | 2 | **2** ✓ |
+
+**6/6 ca đối chứng ngược đúng mã thoát.** Ca thứ hai là ca đắt nhất và nó chạy trên **đúng bộ
+khoá đang nằm trên máy dev** — thứ dễ bị chép nhầm thành "bản sao lưu O1" nhất.
+
+### Hai chi tiết kỹ thuật đáng ghi
+
+1. 🔴 **Go bản địa KHÔNG build được `kiem-khoa`** (Windows, go1.26.4): `libevm/crypto` cần
+   CGO/btcec khác phiên bản ⇒ `assignment mismatch`. Đường duy nhất là container
+   `golang:1.25.10` + volume `9chain-gomod` (527 MB cache đã có). ~28s mỗi lượt.
+2. 🔴 **`spawnSync` thay vì shell là một quyết định, không phải thói quen.** Trên Git Bash
+   (Windows), MSYS đổi mọi đối số bắt đầu bằng `/` thành đường dẫn Windows ⇒ `-w /src` biến
+   thành `C:/Program Files/Git/src` và docker từ chối. Tài liệu O1 đã phải dặn
+   `MSYS_NO_PATHCONV=1`; gọi qua `spawnSync` thì **lời dặn đó thôi cần thiết** — cùng tinh
+   thần với chính mốc này: **biến lời dặn thành cấu trúc.**
+
+Đã cập nhật `docs/O1-CUSTODY-PHEP-KIEM.md` và `BLOCKERS.md` B-16 sang một lệnh; hai lệnh rời
+**vẫn giữ** cho ai muốn đọc kỹ từng vế.
