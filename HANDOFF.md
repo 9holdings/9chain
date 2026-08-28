@@ -1,52 +1,62 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-28** (phiên khuya `28/08` — quét toàn diện + **diễn tập build 24 patch ĐẠT**
-· B-17 đóng · B-10 đính chính. Trước đó cùng ngày: đợt autopilot 15 **8/8 mốc** (`A15-0`…`A15-7`)
-· O1 + M11.10 · nạp ví · 6 patch).
+Cập nhật: **2026-08-28** (phiên CHUẨN HOÁ TOÀN DIỆN — 2 lượt quét, 12 commit. Trước đó
+cùng ngày: quét toàn diện + diễn tập build 24 patch · B-17 đóng · B-10 đính chính · đợt
+autopilot 15 **8/8 mốc**).
 
 > 🔴 **ĐỌC [`CLAUDE.md`](CLAUDE.md) TRƯỚC — đó là LUẬT.** Tệp này là **bàn giao**: dài, có lịch
 > sử, và phần lớn là số đo của các phiên trước. Mâu thuẫn thì `CLAUDE.md` thắng về **luật**,
-> `HANDOFF.md` thắng về **số đo**. Backlog: [`PROGRESS.md`](PROGRESS.md) — phiên quét lại + đợt 15.
+> `HANDOFF.md` thắng về **số đo**. Backlog: [`PROGRESS.md`](PROGRESS.md).
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
 ```bash
-node scripts/gday-preflight.mjs      # trạng thái toàn cục trong 1 lệnh (~90s)
+node scripts/gday-preflight.mjs      # 18 cổng + 15 VIỆC TAY, một lệnh (~2 phút)
 ```
 
-### 🆕 Phiên `28/08` (chuẩn hoá toàn diện) — đọc 6 dòng này trước
+### 🆕 Phiên `2026-08-28` (chuẩn hoá) — SÁU dòng phải đọc trước khi gõ bất cứ lệnh nào
 
-1. **Mọi tên tệp/cờ/khoá JSON nay là tiếng Anh.** Lệnh anh nhớ trong đầu **đã đổi**:
-   `ngay-g-preflight`→`gday-preflight` · `canh-mang`→`watch-network` · `o1-kiem`→`o1-check` ·
-   `kiem-khoa-tren-chain`→`check-keys-on-chain` · `vi-qua-ham`→`wallet-over-tunnel` ·
-   `--tu-kiem`→`--self-test` · `--kiem`→`--check`. **Không có bí danh** (David chốt).
-2. **Cây fork: 25 patch · tree `f2b9486b`** (không còn 24/`074aaa93`). Đối chứng **24/25 →
-   `074aaa93`** nay **chạy tự động** trong preflight.
-3. 🔴 **B-19 MỚI, và nó liên quan thẳng tới B-16 đang chặn GO/NO-GO:** `net-that-g0/` là
-   **MỒI NHỬ** — networkID khớp mạng sống nhưng **6 ví đều 0đ**. Đừng cất nó làm bản sao lưu
-   quỹ. Bộ thật: `C:\Users\abc\9chain-a1-keys\g0\`. Và **khoá đang giữ ~90 LOVE9 THẬT nằm trong
-   hai thư mục tự khai là "đồ chết"** ⇒ dọn theo thư mục là mất tiền. `check-net-dirs.mjs`.
-4. 🔴 **B-18 MỚI:** 3 tên tệp **cũ** còn trên server sau lượt đổi tên ⇒ dọn **cùng lượt deploy**.
-5. **`up-all.sh` / `docker-compose.yml` nay ĐÒI `NETWORK_ID`** và suy nó từ genesis. Bộ
-   `local-net/net/` hiện tại là **9001 đã chết** ⇒ nó sẽ kêu, và đó là đúng.
-6. 🔴 **Tôi làm hỏng hai thứ trong phiên và đã sửa cả hai** — chi tiết ở D-108. Một cái cổng bắt
-   được (`patches/`), một cái **không cổng nào bắt** (gói vật chứng, 9/9→7/9 im lặng). Nay có
-   `check-evidence.mjs`.
+1. 🔴 **LUẬT MỚI, David chốt: mã nguồn CHỈ CÓ TIẾNG ANH** (`CLAUDE.md` **§0**, trên cả 4 luật
+   cứng) — tên tệp · tên hàm · biến · khoá JSON · cờ · **chú thích** · log · tiêu đề commit.
+   Ngoại lệ: `web/lib/i18n/vi.ts` · `docs/**` + `*.md` gốc · `docs/evidence/**` + `patches/**`.
+   Thi hành bằng **bánh cóc**: `node scripts/check-english-code.mjs` — mã MỚI phải sạch ngay,
+   nợ cũ chỉ được **CO LẠI**. Nợ hiện tại **107 tệp · 5.856 dòng** + 54 tệp Go trong fork.
+2. **Mọi tên tệp / cờ / khoá JSON đã đổi sang tiếng Anh — KHÔNG có bí danh.** Lệnh cũ trong
+   đầu anh **sẽ không chạy**: `ngay-g-preflight`→`gday-preflight` · `canh-mang`→`watch-network` ·
+   `o1-kiem`→`o1-check` · `kiem-khoa-tren-chain`→`check-keys-on-chain` ·
+   `vi-qua-ham`→`wallet-over-tunnel` · `--tu-kiem`→`--self-test` · `--kiem`→`--check`.
+3. **Cây fork: 25 patch · tree `f2b9486b`** (không còn 24/`074aaa93`). Đối chứng **24/25 →
+   `074aaa93`** nay **chạy tự động** trong preflight, không còn là nghi thức chép tay.
+4. 🔴 **B-19 — dính thẳng vào B-16 đang chặn GO/NO-GO.** `local-net/net-that-g0/` là **MỒI NHỬ**:
+   networkID **khớp** mạng sống nhưng **6 ví đều 0đ** (`allocation.md` của nó khai *"1 node"*,
+   mạng thật 9). **Đừng cất nó làm bản sao lưu quỹ** — bộ thật ở `C:\Users\abc\9chain-a1-keys\g0\`.
+   Chiều ngược lại: khoá giữ **~90 LOVE9 thật** nằm trong **hai** thư mục tự khai là *đồ chết*
+   ⇒ dọn theo thư mục là **mất tiền**. `node scripts/check-net-dirs.mjs`.
+5. 🔴 **B-18 — 3 tên tệp CŨ còn trên server** sau lượt đổi tên ⇒ dọn **cùng lượt deploy console**.
+6. **`up-all.sh` / mọi compose nay ĐÒI `NETWORK_ID`** và suy nó **từ genesis sắp mount**. Bộ
+   `local-net/net/` hiện tại là **9001 đã chết** ⇒ nó sẽ kêu, và đó là **đúng**.
 
-**Trạng thái `2026-08-28` cuối phiên khuya:**
+⚠️ **Ba lỗi của phiên này, đã sửa hết, ghi lại vì bài học còn giá trị** (D-108, D-113):
+một lượt quét-và-thay sửa nhầm `patches/0006` (**cổng bắt được**) · sửa nhầm nội dung **gói vật
+chứng** làm nó tụt 9/9→7/9 (**KHÔNG cổng nào bắt** — nay có `check-evidence.mjs`) · và tôi khai
+sai số dư ví factory **lệch 1000 lần** vì đọc `90,008` kiểu `vi-VN` thành *chín mươi nghìn*
+(thật: **~90 LOVE9**). Cách in số đã sửa để không lặp lại.
+
+**Trạng thái `2026-08-28` cuối phiên:**
 
 | | |
 |---|---|
-| preflight | **11 đạt · 1 đỏ** — cái đỏ là ĐÚNG, xem ngay dưới |
-| mạng g0 | sống · `999999999` · **9 validator** · 8 peer · B-12 còn **308 ngày** (`2027-07-02`) · factory **89,899 LOVE9** |
-| drift server | **18 khớp · 1 lệch · 0 thiếu · 0 mồ côi chưa khai** (mồ côi 7 → **1**, tệp lành) |
-| sao lưu H-6b | `20260828-043739` · 24 = 24 patch · **chậm 1 commit, chỉ tài liệu** |
-| cây fork | **25 patch → tree `f2b9486b`** ✓ tái lập được · đối chứng 24/25 → `074aaa93` ✓ |
+| preflight | **16 đạt · 2 đỏ · 0 không chạy được · 15 việc tay** — hai cái đỏ ĐÚNG, xem dưới |
+| mạng g0 | sống · `999999999` · **9 validator** · B-12 còn **308 ngày** (`2027-07-02`) · factory **~90 LOVE9** |
+| cây fork | **25 patch → tree `f2b9486b`** ✓ · đối chứng 24/25 → `074aaa93` ✓ |
+| vật chứng | 3 gói · **20/20 dòng hash khớp** |
+| nợ ngôn ngữ | **5.856 dòng / 107 tệp** (đã trả 945 dòng trong phiên) |
+| sao lưu H-6b | 🔴 **ĐỎ — `20260828-043739` có 24 patch, repo nay 25, 68 tệp mã đã đổi** ⇒ chạy lại |
 
-🟡 **Cái ĐỎ duy nhất, và nó đỏ đúng:** `local-net/console/chainid-issued.json` lệch — repo sinh
-lại nó (D-107, thêm nguồn sổ thứ tư) còn server chưa. **Hành vi console KHÔNG đổi**: danh sách
-chặn vẫn **47 chainId · 53 tên**, chỉ thêm một dòng khai nguồn. Hết đỏ khi console được deploy
-— lượt đó đã nằm trong runbook ngày G. **Deploy là việc có người bấm.**
+🔴 **Hai cái ĐỎ của preflight, cả hai là VIỆC CỦA DAVID:**
+- `repo ↔ server drift` — **3 thiếu · 5 lệch** (tên mới sau đổi tên + sửa nội dung console).
+  Hết đỏ khi console được deploy. **Deploy là việc có người bấm.** ⇒ **B-18**
+- `net* directories` — 1 mồi nhử + 2 tệp giữ tiền trong thư mục chết. ⇒ **B-19**
 
 ### 🔴 Còn chặn GO/NO-GO `2026-08-29` — đúng MỘT việc, và nó chặn ở PHẦN CỨNG
 
@@ -69,7 +79,7 @@ Dấu vân tay để đối chiếu bản sao: `keys.txt` **3.531 B** `e350727a�
 phép kiểm đẻ chain đầu-cuối · gộp `web-home` → `main` · **byte chữ khắc** (D-104).
 
 ⚠️ **Đừng cày tiếp trong phiên cũ.** Mọi thứ cần biết: `CLAUDE.md` (luật) · `PROGRESS.md`
-(trạng thái) · `DECISIONS.md` **D-093→D-107b** (vì sao).
+(trạng thái) · `DECISIONS.md` **D-093→D-115** (vì sao).
 
 ---
 
