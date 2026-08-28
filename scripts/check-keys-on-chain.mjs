@@ -42,7 +42,7 @@
  * Dùng:
  *   node scripts/check-keys-on-chain.mjs C:/Users/abc/9chain-a1-keys/g0/allocation.md
  *   node scripts/check-keys-on-chain.mjs <allocation.md> --rpc https://rpc-a1.9chain.org
- *   node scripts/check-keys-on-chain.mjs --tu-kiem      # đối chứng ngược, 4 ca PHẢI ra ĐỎ
+ *   node scripts/check-keys-on-chain.mjs --self-test      # đối chứng ngược, 4 ca PHẢI ra ĐỎ
  */
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
@@ -55,7 +55,7 @@ const lay = (co, mac) => {
   return i >= 0 && argv[i + 1] ? argv[i + 1] : mac;
 };
 const RPC = lay("--rpc", "https://rpc-a1.9chain.org");
-const TU_KIEM = argv.includes("--tu-kiem");
+const TU_KIEM = argv.includes("--self-test");
 const duongDan = argv.find((a) => !a.startsWith("--") && a !== RPC);
 
 const NANO = 1_000_000_000n; // LOVE9 có 9 chữ số thập phân trên X/P
@@ -187,7 +187,7 @@ async function kiem(p, { im = false } = {}) {
   return loi;
 }
 
-/* ─────────────────────── đối chứng ngược (--tu-kiem) ───────────────────── */
+/* ─────────────────────── đối chứng ngược (--self-test) ───────────────────── */
 
 /**
  * Luật cứng số 2 của repo: **cổng chưa ai thấy nó ĐỎ thì mới kiểm được một nửa.**
@@ -261,7 +261,7 @@ if (TU_KIEM) {
   await tuKiem();
 } else if (!duongDan) {
   console.log("dùng: node scripts/check-keys-on-chain.mjs <đường-dẫn/allocation.md> [--rpc URL]");
-  console.log("      node scripts/check-keys-on-chain.mjs --tu-kiem");
+  console.log("      node scripts/check-keys-on-chain.mjs --self-test");
   process.exit(2);
 } else {
   if (!existsSync(duongDan)) { console.log(`🔴 không thấy tệp: ${duongDan}`); process.exit(1); }

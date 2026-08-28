@@ -153,9 +153,9 @@ diễn tập lại**, và phải tính thời gian cho việc đó trước `09/
 docker compose -p a1-drill -f local-net/docker-compose.drill.yml up -d
 cd local-net/faucet
 export A1_DRILL_PK=<khoá có tiền trên C-Chain của mạng tập>
-node block-adam-drill.mjs --moc 2026-09-09T06:09:09Z --bu-ms 3000 --json /tmp/adam.json
+node block-adam-drill.mjs --at 2026-09-09T06:09:09Z --offset-ms 3000 --json /tmp/adam.json
 # đối chứng ngược — BẮT BUỘC chạy kèm, xem lượt 2 và 3 ở trên
-node block-adam-drill.mjs --moc <mốc khác> --khong-gui
-node block-adam-drill.mjs --moc <mốc khác> --bu-ms -12000 --doi-chung-nguoc
+node block-adam-drill.mjs --at <mốc khác> --no-send
+node block-adam-drill.mjs --at <mốc khác> --offset-ms -12000 --counter-check
 docker compose -p a1-drill -f local-net/docker-compose.drill.yml down -v
 ```

@@ -51,7 +51,7 @@ rồi giao ba việc bật ra từ bản quét đó.
       🔴 Cay nhất: `web/public/robots.txt` **đã viết sẵn luật đúng trong chú thích của chính nó**
       (*"đo NỘI DUNG mà không phụ thuộc VỊ TRÍ … đỏ giả cũng phá đúng thứ đó, chỉ chậm hơn"*).
       ✅ **ĐẠT sau khi sửa** — phép chấm nay là **một** chuỗi chỉ có thể tới từ tệp A1;
-      `--tu-kiem` **7/7**, gồm ca *route biến mất khỏi Caddyfile* ⇒ `2`, ca *chỉ có khối
+      `--self-test` **7/7**, gồm ca *route biến mất khỏi Caddyfile* ⇒ `2`, ca *chỉ có khối
       Cloudflare* ⇒ `1`, ca *Sitemap trỏ tên miền CŨ* ⇒ `2`, **và ca tái hiện đúng lỗi bản đầu
       ⇒ phải XANH**. Chạy thật ⇒ **exit 0**.
       ⚠️ **Luật cứng #2 cần vế thứ ba:** thấy cổng ĐỎ chưa đủ — phải kiểm nó **đỏ VÌ ĐÚNG LÝ DO**.
@@ -86,8 +86,8 @@ rồi giao ba việc bật ra từ bản quét đó.
 
 **Số đo cuối phiên:** preflight **12/12 xanh, exit 0** (14 việc tay) · `watch-network` 9/9 ·
 drift `19 khớp · 0 lệch · 0 thiếu` · `o1-check` trên bộ g0 **chính** ⇒ **exit 0** (nó ĐÚNG là bộ
-của mạng đang chạy) · `check-keys-on-chain --tu-kiem` 5/5 · `wallet-over-tunnel --kiem` 3/3 ·
-`h6b --kiem` 24=24 patch (chậm 1 commit, chỉ tài liệu) · `check-robots` **ĐỎ, có chủ ý**.
+của mạng đang chạy) · `check-keys-on-chain --self-test` 5/5 · `wallet-over-tunnel --check` 3/3 ·
+`h6b --check` 24=24 patch (chậm 1 commit, chỉ tài liệu) · `check-robots` **ĐỎ, có chủ ý**.
 
 ---
 
@@ -170,15 +170,15 @@ không push.
       trong khi sổ sống nằm trên **server** và bị `boQua` trong drift gate ⇒ **không ai canh
       khoảng cách đó**.
       **Điều kiện qua:** sổ rỗng ⇒ **từ chối** (rỗng ≡ hỏng) · JSON hỏng ⇒ từ chối · 2 chain sống
-      ⇒ ra tệp 0 sống / 2 `retired` có `thuHoiLuc`, và `gen-chainid-issued --kiem` sau đó vẫn
+      ⇒ ra tệp 0 sống / 2 `retired` có `thuHoiLuc`, và `gen-chainid-issued --check` sau đó vẫn
       xanh **với số mục TĂNG**.
       ✅ **ĐẠT `28/08`** (D-099) — `scripts/close-ledger-before-regenesis.mjs`. **9/9 ca đối chứng**
-      (4 ca đỏ) + tính chất *không mất/không đẻ bản ghi* đúng ở n = 0/1/5/43. `--keo` chạy thật:
-      server `0/0`, repo biết **53 bản ghi từ 3 sổ**. `--don` chạy thật trên sổ repo ⇒
-      `0 sống / 1 retired` có `thuHoiLuc` + `lyDo`; `gen-chainid-issued --kiem` sau đó vẫn xanh.
+      (4 ca đỏ) + tính chất *không mất/không đẻ bản ghi* đúng ở n = 0/1/5/43. `--pull` chạy thật:
+      server `0/0`, repo biết **53 bản ghi từ 3 sổ**. `--compact` chạy thật trên sổ repo ⇒
+      `0 sống / 1 retired` có `thuHoiLuc` + `lyDo`; `gen-chainid-issued --check` sau đó vẫn xanh.
       🔴 **Đo ra lỗ thứ hai chưa ai nêu:** sổ sống ở **server** (`0/0`) và sổ repo
       (`DeltaChain#9201`) **không phải bản sao của nhau**, mà drift gate **cố ý bỏ qua** tệp đó
-      ⇒ không cổng nào canh khoảng cách giữa hai sổ. `--keo` lấp chỗ đó.
+      ⇒ không cổng nào canh khoảng cách giữa hai sổ. `--pull` lấp chỗ đó.
       🔴 **Sửa một lỗi của chính tôi:** bản đầu từ chối mọi sổ thiếu khoá `retired` (viện *rỗng ≡
       hỏng*) và **từ chối luôn sổ thật của repo** — trong khi `loadState()` khai rõ đó là định
       dạng trước M4.4, hợp lệ. Luật đúng: **thiếu khoá ≠ sai kiểu**.
@@ -210,7 +210,7 @@ không push.
       nêu đích danh.
       🔴 **Đo được bán kính ảnh hưởng:** đổi **một** hằng số làm **bốn** cổng đỏ (số học · phép
       cấp chainId · canh mạng · drift) ⇒ bump `A1Gen` ngày G không phải "sửa hai dòng rồi đi tiếp".
-      Sửa một câu nói dối của bản đầu: `--khong-mang` từng in "MỌI CỔNG XANH" trong khi bỏ qua 3 cổng.
+      Sửa một câu nói dối của bản đầu: `--no-network` từng in "MỌI CỔNG XANH" trong khi bỏ qua 3 cổng.
 - [x] **A15-7 — HANDOFF gọn + bài đo lệch đồng hồ (B-13b)**
       (a) `HANDOFF.md` ≤300 dòng, lịch sử sang `docs/archive/HANDOFF-2026-08.md` — **không mất
       nội dung** (đối chứng: grep vài chuỗi mốc cũ vẫn tìm được).
@@ -221,7 +221,7 @@ không push.
       ✅ **ĐẠT `28/08`** (D-102 · D-103). (a) `HANDOFF.md` **2.026 → 250 dòng**, lịch sử 1.793
       dòng sang `docs/archive/HANDOFF-lich-su-2026-08.md`, **không mất một chữ**.
       (b) `scripts/check-clock-skew.mjs` — **7/7 ca đối chứng**; đo thật **+557ms ± 811ms** ⇒
-      biên xấu nhất node chậm 254ms ⇒ giữ `--bu-ms 3000`.
+      biên xấu nhất node chậm 254ms ⇒ giữ `--offset-ms 3000`.
       🔴 **Bỏ hai cách đo vì chúng đo sai đại lượng:** `ssh` cho RTT **4.100ms** và một thiên
       lệch hệ thống +3.150ms **không tách được** khỏi lệch thật (5 mẫu chỉ tản 55ms — *nhất quán
       cao không phải bằng chứng đúng*); `curl` dính chi phí sinh tiến trình. Sàn sai số **±500ms
@@ -255,7 +255,7 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       🔴 **Lượt bắn ĐÚNG mốc HỎNG** — `block.timestamp` rơi vào đúng giây bấm gửi ⇒ block chứa
       Adam mang `ts = mốc`, không **vượt** mốc; block vượt mốc lại là block của Eva. Luật khắc
       và hành động nghi lễ trỏ vào **hai block khác nhau**. ⇒ sinh ra **B-13** (a: David chốt
-      neo vào cái gì · b: đo lệch đồng hồ 9 node rồi chọn `--bu-ms`), D-052…D-055.
+      neo vào cái gì · b: đo lệch đồng hồ 9 node rồi chọn `--offset-ms`), D-052…D-055.
       ⚠️ Chỉ phủ **C-Chain**; 1 node ⇒ **không chứng minh được đồng thuận**.
 - [x] **A-2 — Quy trình O2**: export + `sha256` mạng sắp chết, công bố **trước** khi xoá —
       **ĐẠT `27/08`**. Bài `scripts/export-chain.mjs` (một lệnh, không phụ thuộc gói ngoài).
@@ -269,7 +269,7 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       vì *xuất được* ⇒ khai "kèm 1 L1" trong khi không có byte nào. Đã sửa thành `xin N · XUẤT
       ĐƯỢC M`.
       🔴 **Còn lại (không chặn):** chạy một lượt trên **mạng công khai** để biết thời gian thật;
-      nhớ `--them-evm` cho từng L1 còn sống.
+      nhớ `--add-evm` cho từng L1 còn sống.
 - [x] **A-3 — G4**: tra `chainid.network` — **ĐẠT `27/08`**. Bài `scripts/check-chainid.mjs`,
       vật chứng `docs/vat-chung/g4-2026-08-27/` (`chains.json` 1.161.063 byte · sha256
       `583b67a2…` · 2.723 chuỗi · tra lúc `2026-08-27T09:32:38Z`).
@@ -278,7 +278,7 @@ Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
       cho L1 người dùng: `9100` = Genesis Coin (số console cấp ĐẦU TIÊN) · 9108 · 9134 · 9170.**
       Kế hoạch chỉ nêu `9000000009` — tức chainId *của A1*, bỏ sót chainId *A1 phát cho người
       khác*. ⇒ **B-14** (gốc dải, cần David — gộp vào mục quyết §5c).
-      3 ca đối chứng ngược: `--them 1` ⇒ bắt được Ethereum Mainnet (exit 1) · sổ cắt cụt và sổ
+      3 ca đối chứng ngược: `--add 1` ⇒ bắt được Ethereum Mainnet (exit 1) · sổ cắt cụt và sổ
       `[]` rỗng ⇒ **từ chối kết luận** (exit 2). Mã thoát phân biệt *"bị chiếm"* với *"không tra
       được"*. Bản đầy đủ: `docs/G4-TRA-CHAINID-2026-08-27.md`.
       🔴 **Phải tra LẠI ngay trước bước sinh genesis ngày G** — sổ đổi hàng ngày.

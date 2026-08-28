@@ -73,7 +73,7 @@ node scripts/gday-preflight.mjs      # 12 cổng + 12 VIỆC TAY in thành ô tr
 | `o1-check.mjs` | **O1 một lệnh** — gộp cả hai phép đo khoá (D-097) | 6/6, gồm bộ khoá **đã chết ⇒ exit 1** |
 | `watch-network.mjs` | 9 mục · **B-12 còn 308 ngày** · số dư factory (D-100) | 13/13 · RPC chết ⇒ **2**, không phải 0 |
 | `close-ledger-before-regenesis.mjs` | O3b: kéo sổ sống → dồn `chains`→`retired` (D-099) | 9/9 · không mất bản ghi ở n=43 |
-| `check-clock-skew.mjs` | B-13(b): chọn `--bu-ms` (D-102) | 7/7 · đo thật **557ms ±811** ⇒ giữ `3000` |
+| `check-clock-skew.mjs` | B-13(b): chọn `--offset-ms` (D-102) | 7/7 · đo thật **557ms ±811** ⇒ giữ `3000` |
 | `generation-test.mjs` | cổng THẾ HỆ của console (D-093) | 13/13 · gỡ cổng ⇒ 7 hỏng |
 
 **Cổng cũ được vá:** `check-consistency` nay nối `A1Gen` (Go) ↔ `A1_GEN` (JS) — **hai hằng số
@@ -164,7 +164,7 @@ David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
 | **7** | ✅ ~~H-7~~ **CHỐT + LÀM XONG** — IPv4 đa cổng (D-089, patch 0024). 🔴 Còn lại của **O4 là TIỀN**: đã chứng minh beacon tới được từ Internet và mesh cùng máy còn nguyên, **chưa** chứng minh node ở máy khác bắt tay được — việc đó cần máy thứ hai | **David** (O4) | D-089 |
 | **8** | **Gộp `web-home` → `main`** | **David** | `DECISIONS.md` đang tồn tại ở hai bản — xem §12.1 |
 | **9** | GO/NO-GO `2026-08-29` · Ngày G `2026-09-01` | — | `docs/NGAY-G-A1-CON-LAI.md` §7 |
-| **10** | ✅ ~~**M11.10**~~ **XONG `28/08`** (D-091) — ví ký từ máy dev qua hầm SSH **trong cùng container**; đã **ký thật** lên mạng công khai, khoá không chạm server. `node scripts/wallet-over-tunnel.mjs --kiem` | A1 | ✅ `--quy` cũng XONG (D-091b): 6/6 quỹ chọn đúng, `--kiem` kiểm được việc chọn quỹ **mà không khởi động ví**. ✅ `9chain-a1-xpwallet` trên server **ĐÃ XOÁ HẲN `28/08`** (D-092) — đừng dựng lại |
+| **10** | ✅ ~~**M11.10**~~ **XONG `28/08`** (D-091) — ví ký từ máy dev qua hầm SSH **trong cùng container**; đã **ký thật** lên mạng công khai, khoá không chạm server. `node scripts/wallet-over-tunnel.mjs --check` | A1 | ✅ `--fund` cũng XONG (D-091b): 6/6 quỹ chọn đúng, `--check` kiểm được việc chọn quỹ **mà không khởi động ví**. ✅ `9chain-a1-xpwallet` trên server **ĐÃ XOÁ HẲN `28/08`** (D-092) — đừng dựng lại |
 
 🔴 **Phép kiểm đẻ chain đầu-cuối cần HAI thứ của David:** ký SIWE, **và** biết rằng cổng nay
 mặc định ĐÓNG — muốn chạy thì khởi động console với `A1_DE_CHAIN_MO=1` rồi tắt lại.
@@ -292,22 +292,22 @@ ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" \
 # đo 2026-08-28 ⇒ supplyCap":7900000001000000000 ✓
 
 # 🔴 M11.10 — ví ký ở MÁY DEV, khoá không chạm server (D-091)
-node scripts/wallet-over-tunnel.mjs --kiem      # nghiệm thu đường đi, KHÔNG cần khoá, KHÔNG chạy ví
-node scripts/wallet-over-tunnel.mjs --tu-kiem   # 3 ca đối chứng ngược
-node scripts/wallet-over-tunnel.mjs --khoa <tệp> [--quy foundation] [--cong 8090]
+node scripts/wallet-over-tunnel.mjs --check      # nghiệm thu đường đi, KHÔNG cần khoá, KHÔNG chạy ví
+node scripts/wallet-over-tunnel.mjs --self-test   # 3 ca đối chứng ngược
+node scripts/wallet-over-tunnel.mjs --wallet-key <tệp> [--fund foundation] [--port 8090]
 docker rm -f 9chain-a1-vi-ham           # 🔴 xong việc là dừng NGAY — container này giữ khoá
 
 # 🔴 O1 — bộ khoá quỹ có phải của MẠNG ĐANG CHẠY không (D-090). Chạy CẢ HAI, cùng thư mục:
 node scripts/check-keys-on-chain.mjs <thư-mục-khoá>/allocation.md
-node scripts/check-keys-on-chain.mjs --tu-kiem     # 5 ca đối chứng ngược
+node scripts/check-keys-on-chain.mjs --self-test     # 5 ca đối chứng ngược
 # kèm: kiem-khoa -allocation allocation.md keys.txt  (xem docs/O1-CUSTODY-PHEP-KIEM.md)
 
 # 🔴 Cổng canh khoảng cách REPO ↔ SERVER (D-088) — chạy TRƯỚC khi tin bất kỳ mục "ĐÃ ĐÓNG" nào
 node scripts/check-deploy-drift.mjs
 
 # Cổng repo
-node scripts/check-consistency.mjs --tu-kiem
-node scripts/gen-chainid-issued.mjs --kiem
+node scripts/check-consistency.mjs --self-test
+node scripts/gen-chainid-issued.mjs --check
 node local-net/console/chainid-test.mjs
 node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs

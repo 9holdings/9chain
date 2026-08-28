@@ -41,7 +41,7 @@ lại **từng đơn vị** từ ngoài.
 - **Nhặt `docs/AUDIT-A1/` sang `main`** (David chốt) — `ab3f22b`, 5 tệp, không một dòng mã
 - **A-013 nửa đầu**: `docker stop stats user-ops-indexer` — baseline công khai 4 dòng **không
   đổi một ký tự**, 9 node nguyên
-- **H-6b chạy lại** rồi **thành script**: `scripts/h6b-backup.sh`, 4 chế độ, `--tu-kiem` 4/4
+- **H-6b chạy lại** rồi **thành script**: `scripts/h6b-backup.sh`, 4 chế độ, `--self-test` 4/4
 - **Cổng cuối phiên**: hook `Stop` ở `main/.claude/settings.json` (`70f1345`) — im khi xanh,
   in lý do thật khi đỏ, 0,37s
 
@@ -99,11 +99,11 @@ luật 4 × 2 (dừng container · H-6b ghi lên máy chủ) · charter §4 × 1
 ## Lệnh hữu ích
 
 ```bash
-cd /c/PROJECTS/9Chain-A1 && bash scripts/h6b-backup.sh --kiem
+cd /c/PROJECTS/9Chain-A1 && bash scripts/h6b-backup.sh --check
 ```
 
 ```bash
-cd /c/PROJECTS/9Chain-A1 && bash scripts/h6b-backup.sh --tu-kiem
+cd /c/PROJECTS/9Chain-A1 && bash scripts/h6b-backup.sh --self-test
 ```
 
 ```bash

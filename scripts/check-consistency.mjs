@@ -18,12 +18,12 @@
  * xanh rồi tưởng đã nghiệm thu.
  *
  * ═══ THEO D-035: MỌI CỔNG CHẶN PHẢI TRẢ LỜI "LÀM SAO BIẾT MÀY VỪA CHẠY?" ═══
- * Tệp này in ra **con số nó vừa kiểm** ở mỗi dòng, và có `--tu-kiem` chạy một bộ ca
+ * Tệp này in ra **con số nó vừa kiểm** ở mỗi dòng, và có `--self-test` chạy một bộ ca
  * SAI đã biết để chứng minh nó biết báo đỏ.
  *
  * Dùng:
  *   node scripts/check-consistency.mjs            # kiểm bảng đang khai bên dưới
- *   node scripts/check-consistency.mjs --tu-kiem  # đối chứng ngược
+ *   node scripts/check-consistency.mjs --self-test  # đối chứng ngược
  */
 
 import { readFileSync } from "node:fs";
@@ -486,7 +486,7 @@ function tuKiemDinhDanh() {
   return hong;
 }
 
-const tuKiemMode = process.argv.includes("--tu-kiem");
+const tuKiemMode = process.argv.includes("--self-test");
 let hong = inKetQua(chay(BANG, THANG), "BẢNG ĐANG KHAI (DECISIONS D-039 · D-042)");
 hong += inKetQua(chayDinhDanh(ganDinhDanh()), "BỘ ĐỊNH DANH THẾ HỆ (Go ↔ JS) — D-079 · D-093");
 if (tuKiemMode) hong += tuKiem() + tuKiemDinhDanh();
@@ -495,4 +495,4 @@ if (hong) {
   console.log(`\n✗ ${hong} vấn đề — ĐỪNG sửa genesis cho tới khi sạch.`);
   process.exit(1);
 }
-console.log(`\n✓ nhất quán${tuKiemMode ? " · đối chứng ngược đầy đủ" : " (chạy --tu-kiem để chứng minh cổng biết báo đỏ)"}`);
+console.log(`\n✓ nhất quán${tuKiemMode ? " · đối chứng ngược đầy đủ" : " (chạy --self-test để chứng minh cổng biết báo đỏ)"}`);

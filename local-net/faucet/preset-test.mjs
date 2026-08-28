@@ -415,7 +415,7 @@ const danhSach = CHI ? [CHI] : Object.keys(BAI);
 // chain chỉ mang đúng một kiểu.
 if (RPC_CO_SAN) {
   if (!CHI || !BAI[CHI]) { console.log("✗ --rpc phải đi kèm --chi <preset> hợp lệ"); process.exit(1); }
-  if (!KHOA) { console.log("✗ --rpc phải đi kèm --khoa <privkey của chủ chain>"); process.exit(1); }
+  if (!KHOA) { console.log("✗ --rpc phải đi kèm --wallet-key <privkey của chủ chain>"); process.exit(1); }
   console.log(`\n── chạy lại bài "${CHI}" trên chain có sẵn ──\n   ${RPC_CO_SAN}`);
   const p = new ethers.JsonRpcProvider(RPC_CO_SAN, undefined, { staticNetwork: true });
   const chu = new ethers.Wallet(KHOA, p);
@@ -446,7 +446,7 @@ for (const id of danhSach) {
       !!(chain.notes && chain.notes.title && chain.notes.how),
       chain.notes ? chain.notes.title : "THIẾU trường notes");
     if (GIU) console.log(`      ↳ giữ lại để gỡ lỗi. Chạy lại nhanh:\n` +
-      `        node local-net/faucet/preset-test.mjs --chi ${id} --rpc ${chain.rpc} --khoa <privkey>`);
+      `        node local-net/faucet/preset-test.mjs --chi ${id} --rpc ${chain.rpc} --wallet-key <privkey>`);
   } catch (e) {
     kiem("đẻ được chain", false, sach(e.message));
     continue;

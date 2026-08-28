@@ -28,9 +28,9 @@
  * Host đã bị nới và phép đo kia không chứng minh gì nữa.
  *
  * Dùng:
- *   node scripts/wallet-over-tunnel.mjs --kiem       # nghiệm thu đường đi, KHÔNG cần khoá, KHÔNG chạy ví
- *   node scripts/wallet-over-tunnel.mjs --tu-kiem    # đối chứng ngược — 3 ca PHẢI ra ĐỎ
- *   node scripts/wallet-over-tunnel.mjs --khoa D:/tam/wallet-key.txt --cong 8090
+ *   node scripts/wallet-over-tunnel.mjs --check       # nghiệm thu đường đi, KHÔNG cần khoá, KHÔNG chạy ví
+ *   node scripts/wallet-over-tunnel.mjs --self-test    # đối chứng ngược — 3 ca PHẢI ra ĐỎ
+ *   node scripts/wallet-over-tunnel.mjs --wallet-key D:/tam/wallet-key.txt --port 8090
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
@@ -48,15 +48,15 @@ const lay = (co, mac) => {
   const i = argv.indexOf(co);
   return i >= 0 && argv[i + 1] ? argv[i + 1] : mac;
 };
-const DICH = lay("--dich", ""$A1_SSH_HOST"");
-const KHOA_SSH = lay("--khoa-ssh", path.join(homedir(), ".ssh/9chain-a1"));
+const DICH = lay("--target", ""$A1_SSH_HOST"");
+const KHOA_SSH = lay("--ssh-key", path.join(homedir(), ".ssh/9chain-a1"));
 const KNOWN = lay("--known-hosts", path.join(homedir(), ".ssh/known_hosts"));
 const NETWORK_ID = lay("--network-id", "999999999");
-const CONG = lay("--cong", "8090");
-const KHOA_VI = lay("--khoa", null);
-const QUY = lay("--quy", null); // tên khối trong keys.txt, vd `foundation`
-const CHI_KIEM = argv.includes("--kiem");
-const TU_KIEM = argv.includes("--tu-kiem");
+const CONG = lay("--port", "8090");
+const KHOA_VI = lay("--wallet-key", null);
+const QUY = lay("--fund", null); // tên khối trong keys.txt, vd `foundation`
+const CHI_KIEM = argv.includes("--check");
+const TU_KIEM = argv.includes("--self-test");
 
 /** Windows + Git Bash: `MSYS_NO_PATHCONV=1` hoặc `/src` biến thành `C:/Program Files/Git/src`. */
 const MOI_TRUONG = { ...process.env, MSYS_NO_PATHCONV: "1" };
@@ -126,8 +126,8 @@ function tuKiem() {
     writeFileSync(treo, txt.slice(0, i) + txt.slice(i).replace(dc("team"), dc("foundation")));
 
     ca.push(
-      ["tệp 6 khoá mà KHÔNG khai --quy — phải dừng, không lấy khối đầu", { khoaVi: chet }],
-      ["--quy trỏ tên quỹ không tồn tại", { khoaVi: chet, quy: "khong-co-that" }],
+      ["tệp 6 khoá mà KHÔNG khai --fund — phải dừng, không lấy khối đầu", { khoaVi: chet }],
+      ["--fund trỏ tên quỹ không tồn tại", { khoaVi: chet, quy: "khong-co-that" }],
       ["khối [team] dán nhầm địa chỉ của [foundation] — dòng in ra vẫn trông đúng", { khoaVi: treo, quy: "team" }],
     );
   }
@@ -155,7 +155,7 @@ for (const [ten, p] of [["khoá SSH", KHOA_SSH], ["known_hosts", KNOWN]]) {
 if (TU_KIEM) {
   tuKiem();
 } else if (CHI_KIEM) {
-  // `--kiem` KÈM `--khoa/--quy` ⇒ kiểm luôn việc CHỌN QUỸ mà **không khởi động ví**.
+  // `--check` KÈM `--wallet-key/--fund` ⇒ kiểm luôn việc CHỌN QUỸ mà **không khởi động ví**.
   // Ngày G nạp 6 quỹ liên tiếp: nếu muốn biết "khối nào được chọn" mà phải chạy ví lên
   // với khoá thật thì chính phép kiểm ấy là một lần phơi khoá.
   if (KHOA_VI && !existsSync(KHOA_VI)) { console.log(`🔴 không thấy tệp khoá ví: ${KHOA_VI}`); process.exit(1); }
@@ -166,9 +166,9 @@ if (TU_KIEM) {
   process.exit(r.status ?? 1);
 } else {
   if (!KHOA_VI) {
-    console.log("dùng: node scripts/wallet-over-tunnel.mjs --kiem");
-    console.log("      node scripts/wallet-over-tunnel.mjs --tu-kiem");
-    console.log("      node scripts/wallet-over-tunnel.mjs --khoa <tệp-khoá-ví> [--cong 8090]");
+    console.log("dùng: node scripts/wallet-over-tunnel.mjs --check");
+    console.log("      node scripts/wallet-over-tunnel.mjs --self-test");
+    console.log("      node scripts/wallet-over-tunnel.mjs --wallet-key <tệp-khoá-ví> [--port 8090]");
     console.log("\n🔴 Khoá ví vào bằng TỆP, không bằng tham số dòng lệnh — nó nằm lại trong");
     console.log("   lịch sử shell và trong `docker inspect` nếu truyền bằng env.");
     process.exit(2);

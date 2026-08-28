@@ -2,12 +2,12 @@
 
 Mạng: **network-9001** (networkID 9001) ·
 node `9chaingo/1.14.2` · C-Chain chainId **9000000009**
-L1 người dùng: **xin 0 · XUẤT ĐƯỢC 0** — 🔴 **KHÔNG có L1 nào trong bộ này.** Nếu mạng đang phục vụ L1 người dùng thì bộ xuất này **thiếu**; xem `--them-evm`.
+L1 người dùng: **xin 0 · XUẤT ĐƯỢC 0** — 🔴 **KHÔNG có L1 nào trong bộ này.** Nếu mạng đang phục vụ L1 người dùng thì bộ xuất này **thiếu**; xem `--add-evm`.
 
 ## Kiểm lại bộ này
 
 ```bash
-node scripts/export-chain.mjs --kiem <thư mục này>
+node scripts/export-chain.mjs --check <thư mục này>
 # hoặc, KHÔNG cần tin bài trên, bằng công cụ chuẩn:
 cd <thư mục này> && sha256sum -c MANIFEST.txt && sha256sum MANIFEST.txt
 ```

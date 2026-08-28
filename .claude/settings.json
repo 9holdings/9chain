@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "d=\"$(pwd)\"; [ -f \"$d/scripts/h6b-backup.sh\" ] || d=/c/PROJECTS/9Chain-A1; [ -f \"$d/scripts/h6b-backup.sh\" ] || exit 0; out=\"$(cd \"$d\" && bash scripts/h6b-backup.sh --kiem 2>&1)\"; rc=$?; if [ $rc -ne 0 ]; then printf '%s' \"$out\" | jq -Rs '{systemMessage: (\"🔴 BẢN SAO LƯU CŨ — mạng đang chạy KHÔNG dựng lại được từ bản sao lưu ngoài máy.\\n\\n\" + . + \"\\nSửa: bash scripts/h6b-backup.sh\"), suppressOutput: false}'; else printf '{\"suppressOutput\":true}'; fi",
+            "command": "d=\"$(pwd)\"; [ -f \"$d/scripts/h6b-backup.sh\" ] || d=/c/PROJECTS/9Chain-A1; [ -f \"$d/scripts/h6b-backup.sh\" ] || exit 0; out=\"$(cd \"$d\" && bash scripts/h6b-backup.sh --check 2>&1)\"; rc=$?; if [ $rc -ne 0 ]; then printf '%s' \"$out\" | jq -Rs '{systemMessage: (\"🔴 BẢN SAO LƯU CŨ — mạng đang chạy KHÔNG dựng lại được từ bản sao lưu ngoài máy.\\n\\n\" + . + \"\\nSửa: bash scripts/h6b-backup.sh\"), suppressOutput: false}'; else printf '{\"suppressOutput\":true}'; fi",
             "timeout": 30,
             "statusMessage": "kiểm bản sao lưu (H-6b)"
           }

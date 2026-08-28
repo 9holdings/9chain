@@ -115,7 +115,7 @@ chọn số, và console tự cấp.
 oan, hoặc bỏ qua trong im lặng. Cái giá là ảnh chụp **cũ dần**, nên tệp mang theo `ngayTra` và
 console **in tuổi của nó** lúc khởi động, kèm cảnh báo khi quá 90 ngày.
 
-Sinh lại: `node scripts/check-chainid.mjs --sinh-danh-sach-chan local-net/console/chainid-taken.json`
+Sinh lại: `node scripts/check-chainid.mjs --gen-blocklist local-net/console/chainid-taken.json`
 
 ### Nghiệm thu — chạy thật trên console
 

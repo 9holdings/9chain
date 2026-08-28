@@ -360,7 +360,7 @@ phút vì phải đẻ lại chain.
 3. Gửi lại với `gasLimit` tường minh.
 
 **Quyết định:** mọi giao dịch trong `preset-test.mjs` đặt `gasLimit` tường minh, kèm
-cờ `--rpc/--khoa` để chạy lại bài kiểm trên chain đã có — vòng gỡ lỗi từ 5,5 phút
+cờ `--rpc/--wallet-key` để chạy lại bài kiểm trên chain đã có — vòng gỡ lỗi từ 5,5 phút
 xuống vài giây. Vòng lặp chậm là thứ đẩy người ta sang đoán mò thay vì đo.
 
 ⚠️ **Ảnh hưởng người dùng thật, chưa xử lý:** ai vừa đẻ chain rồi gọi precompile lần
@@ -1327,7 +1327,7 @@ sẽ được khắc là mệnh đề về **chuỗi**, nên phép đo phải h�
 
 ### D-054 — Nghi lễ bắn ở `mốc + bù`, bù > 0; con số bù là THAM SỐ, không cắm cứng
 
-Cờ `--bu-ms`, mặc định **0** (tức mặc định là hành vi *sai* đã đo được — cố ý, để ai chạy
+Cờ `--offset-ms`, mặc định **0** (tức mặc định là hành vi *sai* đã đo được — cố ý, để ai chạy
 mặc định thì gặp đúng cái bẫy trong môi trường tập chứ không phải ngày `09/09`).
 
 **Lý do:** đo `27/08`, bắn tại giây `T` ⇒ `block.timestamp = T`, mà luật khắc đòi **vượt** mốc
@@ -1365,7 +1365,7 @@ ngoài** thư mục nó bảo vệ, nên quy trình bắt buộc bước "công 
 
 `00-DOC-TRUOC.md` liệt kê: không khôi phục được mạng · không có LevelDB/Blockscout/khoá ·
 số L1 dạng `xin N · XUẤT ĐƯỢC M` + cờ đỏ khi lệch · mọi lời gọi RPC hỏng · mọi chỗ bị
-`--toi-da-block` cắt.
+`--max-blocks` cắt.
 
 **Lý do — có ca thật, không phải phòng xa.** Bản đầu đếm L1 bằng **số được xin**; chạy với một
 `blockchainID` không tồn tại thì tờ đầu khai *"kèm 1 L1"* trong khi bộ xuất không có một byte
@@ -1431,7 +1431,7 @@ mạng thật mà không ai nhận ra — cùng lý lẽ đã dùng cho dòng `C
 
 ### D-064 — Console chặn chainId đã bị chiếm bằng ẢNH CHỤP, không tra mạng lúc đẻ chain
 
-`local-net/console/chainid-taken.json`, sinh bằng `check-chainid.mjs --sinh-danh-sach-chan`.
+`local-net/console/chainid-taken.json`, sinh bằng `check-chainid.mjs --gen-blocklist`.
 
 **Lý do:** một lời gọi HTTP ra Internet nằm **giữa đường người dùng bấm nút** là thêm một chỗ
 hỏng ngoài tầm kiểm soát — và hỏng lúc đó thì hoặc **chặn oan** một chain hợp lệ, hoặc **bỏ qua
@@ -1519,7 +1519,7 @@ là nối nhầm mạng và thấy số dư lạ — **không** mất tiền, **
 
 **Nghiệm thu:** `local-net/console/chainid-test.mjs` — **13 đạt / 0 hỏng**, bài `import` mã
 thật (`lib/chainid.mjs`) và đọc danh sách chặn thật, **không chép công thức**. Bốn ca đối
-chứng ngược trên `check-chainid.mjs` đỏ đúng chỗ (`--them 9100` · `--them 1` · sổ cắt cụt ·
+chứng ngược trên `check-chainid.mjs` đỏ đúng chỗ (`--add 9100` · `--add 1` · sổ cắt cụt ·
 danh sách chặn rỗng).
 
 ### D-069b — Danh sách chặn giữ **CẢ dải cũ** `9100–9999`, cố ý
@@ -1575,13 +1575,13 @@ oan là một cổng sẽ bị bỏ qua đúng lúc nó kêu thật.
 
 | lượt | kết quả |
 |---|---|
-| `--bu-ms 3000` | **10 đạt · 0 hỏng · 2 lưu ý (0 không đạt)** |
-| 🔴 `--bu-ms 0` — **ca mà bản cũ chấm ✗** | **10 đạt · 0 hỏng · 2 lưu ý (2 KHÔNG đạt)**, exit 0. Block đầu tiên vượt mốc là của **Eva `#4`**, Adam ở `#3` — neo vẫn trỏ đúng `#3` |
-| `--khong-gui` (đối chứng ngược gốc) | 2 đạt · 0 hỏng, exit 0 |
+| `--offset-ms 3000` | **10 đạt · 0 hỏng · 2 lưu ý (0 không đạt)** |
+| 🔴 `--offset-ms 0` — **ca mà bản cũ chấm ✗** | **10 đạt · 0 hỏng · 2 lưu ý (2 KHÔNG đạt)**, exit 0. Block đầu tiên vượt mốc là của **Eva `#4`**, Adam ở `#3` — neo vẫn trỏ đúng `#3` |
+| `--no-send` (đối chứng ngược gốc) | 2 đạt · 0 hỏng, exit 0 |
 
 Vật chứng: `docs/vat-chung/block-adam-neo-2026-08-27.json` + `…-bu0-2026-08-27.json`.
 
-🔴 **D-070 HẠ MỨC B-13(b), KHÔNG ĐÓNG NÓ.** Bù `--bu-ms` thôi quyết định *"neo đúng hay sai"*,
+🔴 **D-070 HẠ MỨC B-13(b), KHÔNG ĐÓNG NÓ.** Bù `--offset-ms` thôi quyết định *"neo đúng hay sai"*,
 nhưng nếu bản khắc còn **CÂU CHỮ** khẳng định block vượt mốc `2026-09-09T06:09:09Z` thì câu đó
 vẫn phải đúng, và nó vẫn phụ thuộc đồng hồ của **node đề xuất block**. ⇒ vẫn phải đo lệch
 đồng hồ 9 node **sau khi mạng ngày G lên**. Câu chữ chốt cùng lượt C1 đóng băng byte.
@@ -1711,7 +1711,7 @@ xuất ba năm nữa sẽ đọc tệp đó chứ không mở mã nguồn.
 
 | # | Ca | Kết quả |
 |---|---|---|
-| 1 | `--kiem` bản lành | **9 tệp khớp · 0 lệch · gốc khớp** · exit 0 |
+| 1 | `--check` bản lành | **9 tệp khớp · 0 lệch · gốc khớp** · exit 0 |
 | 2 | `sha256sum -c MANIFEST.txt` — **công cụ chuẩn, không cần tin bài này** | tất cả `OK` · exit 0 |
 | 3 | 🔴 sửa **đúng một byte** trong `c-chain/blocks.jsonl` | **1 lệch byte** · exit 1 |
 | 4 | 🔴 **sửa cả `MANIFEST` để che ca 3** | *"9 tệp khớp · 0 lệch byte · **gốc LỆCH**"* · exit 1 |
@@ -1721,7 +1721,7 @@ che vẫn bị bắt — **miễn là con số gốc đã được công bố ra
 mục đó thì ca 4 **đi lọt sạch**.
 
 ⚠️ Bộ xuất khai `L1 người dùng: xin 0 · XUẤT ĐƯỢC 0` — đúng (0 L1 đang sống). Ngày G nếu có L1
-thì **bắt buộc** dùng `--them-evm`, không thì chúng biến mất không dấu vết (D-057).
+thì **bắt buộc** dùng `--add-evm`, không thì chúng biến mất không dấu vết (D-057).
 
 ### D-073 — Header chống nhúng là snippet RIÊNG, KHÔNG nhét vào `(secheaders)`
 
@@ -2443,7 +2443,7 @@ mạng, EIP-155 buộc chữ ký vào chainId, nên **chữ ký cũ phát lại 
 
 | | |
 |---|---|
-| `scripts/gen-chainid-issued.mjs` | gộp **mọi sổ console trong repo** → `local-net/console/chainid-issued.json`. Có `--kiem` (thoát 1 khi tệp trôi lệch khỏi nguồn) |
+| `scripts/gen-chainid-issued.mjs` | gộp **mọi sổ console trong repo** → `local-net/console/chainid-issued.json`. Có `--check` (thoát 1 khi tệp trôi lệch khỏi nguồn) |
 | `docs/archive/console-chains-pre-g0-2026-08-27.json` | sổ `26/08→27/08` **chỉ còn trên server** — nay vào repo, để danh sách chặn **tái lập được** mà không phụ thuộc máy chủ |
 | `local-net/lib/chainid.mjs` | `loiChainIdDaCap()` · `loiTenDaCap()` — **hàm thuần**, đặt ở lib theo đúng tiền lệ `capChainIdTuDong`: một phép kiểm sống trong `server.mjs` chỉ chạy được khi có node + SIWE + mạng, nên thực tế nó không bao giờ được kiểm |
 | `server.mjs` | nạp sổ thứ hai (rỗng ≡ cổng tắt, thiếu tệp ≡ cổng tắt — **nói to cả hai**) · chặn TÊN · chặn chainId tự nhập · đường **tự cấp** nhận HỢP hai sổ |
@@ -2743,7 +2743,7 @@ tên quỹ**: tên đổi được, phép cộng thì không.
 | Bộ g0 thật (`C:\Users\abc\9chain-a1-keys\g0\`) | **6/6 khớp chain đang chạy**, exit `0` |
 | `kiem-khoa` trên cùng bộ đó | **6/6 ✓** + đối chiếu chéo `allocation.md` 6/6 |
 | 🔴 Bộ 9001 đã chết | **8 lệch, exit 1** — trong khi `kiem-khoa` cho nó **6/6 ✓ exit 0** |
-| Đối chứng ngược `--tu-kiem` | **5/5 đỏ đúng chỗ** |
+| Đối chứng ngược `--self-test` | **5/5 đỏ đúng chỗ** |
 
 Kèm một phép đo O1 chưa từng có: **6/6 quỹ của bộ khoá trên máy dev giữ tiền thật trên g0** —
 khoá 8.999.991 (staked, khớp self-bond 999.999 × 9) · 2.600.000.001 · 810.000.000 × 2 ·
@@ -2833,13 +2833,13 @@ Ba phép đo chạy **mỗi lượt**, không phải lượt đầu rồi tin m�
 | | |
 |---|---|
 | Nghiệm thu đường đi | 3/3 đạt, in ra mỗi lượt |
-| Đối chứng ngược `--tu-kiem` | **3/3 đỏ đúng chỗ**: `networkID` sai băng · `known_hosts` rỗng · đích SSH sai |
+| Đối chứng ngược `--self-test` | **3/3 đỏ đúng chỗ**: `networkID` sai băng · `known_hosts` rỗng · đích SSH sai |
 | Ví lên, đọc chain | `pBalance 89.99999173` — **khớp từng chữ số** với phép đo độc lập qua RPC công khai |
 | 🔴 **KÝ THẬT** | `p-to-x 0.1 LOVE9` tự gửi mình · `exportTx saTLkuyy…` · `importTx c1zDFCg4…` |
 | Đọc lại bằng **RPC công khai**, không qua ví | P `89.99999173 → 89.8999813` · X `0.009 → 0.108` · `getTxStatus` = **`Accepted`** |
 
 ⇒ **Khoá ở máy dev ký được giao dịch lên mạng công khai mà không một byte khoá nào chạm server.**
-Đây là vế `primary.MakeWallet` — thứ `--kiem` **không** chứng minh được, vì ví chỉ dựng khi GỬI.
+Đây là vế `primary.MakeWallet` — thứ `--check` **không** chứng minh được, vì ví chỉ dựng khi GỬI.
 
 #### Giới hạn — đừng trích mạnh hơn
 
@@ -2850,16 +2850,16 @@ làm cùng lượt ngày G.
 
 ---
 
-### D-091b — `--quy`: chọn 1 trong 6 khoá của `keys.txt`, và **dòng chữ trong tệp không được tin**
+### D-091b — `--fund`: chọn 1 trong 6 khoá của `keys.txt`, và **dòng chữ trong tệp không được tin**
 
 `2026-08-28`, đóng nốt giới hạn D-091. Ngày G nạp **6 quỹ liên tiếp** từ **một tệp** —
 đây là đường sẽ chạy nhiều nhất, và là đường hỏng câm dễ nhất.
 
-#### Sửa một chỗ trước khi thử: `--kiem` nay kiểm được cả việc CHỌN QUỸ
+#### Sửa một chỗ trước khi thử: `--check` nay kiểm được cả việc CHỌN QUỸ
 
-Bản D-091 để việc chọn quỹ nằm **sau** cổng `--kiem` ⇒ cách duy nhất để biết *"khối nào được
+Bản D-091 để việc chọn quỹ nằm **sau** cổng `--check` ⇒ cách duy nhất để biết *"khối nào được
 chọn"* là **chạy ví lên với khoá thật**. 🔴 **Chính phép kiểm ấy là một lần phơi khoá.** Nay
-`--kiem --khoa <tệp> --quy <quỹ>` đọc tệp, in **địa chỉ**, đối chiếu, rồi **dừng — không khởi
+`--check --wallet-key <tệp> --fund <quỹ>` đọc tệp, in **địa chỉ**, đối chiếu, rồi **dừng — không khởi
 động ví**. Sáu quỹ kiểm được liên tiếp mà không lần nào có ví HTTP cầm khoá.
 
 #### 🔴 Phát hiện: dòng `P-addr` trong `keys.txt` là CHỮ NGƯỜI VIẾT, không phải phép đo
@@ -2882,11 +2882,11 @@ khai*, dòng dưới là thứ *đo được*, và để chúng cạnh nhau thì
 | 6/6 quỹ chọn đúng | `staking` · `foundation` · `ecosystem` · `faucet` · `private-sale` · `team` — **sáu địa chỉ khác nhau**, khớp `ALLOCATION-PUBLIC.md` từng ký tự |
 | Phép so phân biệt được | `ecosystem` là khối **thứ 3**, `team` là khối **thứ 6** — nếu mã lấy khối đầu thì hai ca này đã sai |
 | Mỗi quỹ có `kiem-khoa` xác nhận | địa chỉ **suy từ khoá**, không phải đọc chữ |
-| Ví lên thật với khoá `--quy` chọn | `--quy faucet` → ví khai `X/P-love91l778hux…` = đúng địa chỉ faucet công bố · X/P `0/0` khớp `ALLOCATION-PUBLIC.md` (tiền faucet nằm ở C-Chain) · dừng container ngay |
-| Đối chứng ngược `--tu-kiem` | **6/6 đỏ đúng chỗ** (3 ca đường mạng + 3 ca đường chọn quỹ) |
+| Ví lên thật với khoá `--fund` chọn | `--fund faucet` → ví khai `X/P-love91l778hux…` = đúng địa chỉ faucet công bố · X/P `0/0` khớp `ALLOCATION-PUBLIC.md` (tiền faucet nằm ở C-Chain) · dừng container ngay |
+| Đối chứng ngược `--self-test` | **6/6 đỏ đúng chỗ** (3 ca đường mạng + 3 ca đường chọn quỹ) |
 
 Ba ca chọn quỹ nay là **cổng thường trực**, không phải một lượt thử: tệp 6 khoá mà không khai
-`--quy` ⇒ **dừng, không lấy khối đầu** · `--quy` trỏ tên không tồn tại ⇒ dừng · khối tự mâu
+`--fund` ⇒ **dừng, không lấy khối đầu** · `--fund` trỏ tên không tồn tại ⇒ dừng · khối tự mâu
 thuẫn ⇒ dừng.
 
 ⚠️ Ba ca đó dựng trên **bộ khoá thế hệ 9001 ĐÃ CHẾT** trong repo — đúng khuôn 6 khối, và tiền
@@ -2895,7 +2895,7 @@ của nó **đo được là 0** (D-090), nên bản chép tạm không phơi th
 
 #### Còn lại
 
-⚠️ `--quy` đã chứng minh **chọn đúng + nạp ví được**. **Chưa** chứng minh **ký** bằng một khoá
+⚠️ `--fund` đã chứng minh **chọn đúng + nạp ví được**. **Chưa** chứng minh **ký** bằng một khoá
 quỹ — lượt ký thật của D-091 chạy trên `chain-factory` (ví nóng), cố ý. Ký bằng khoá quỹ chỉ
 nên xảy ra **một lần, ngày G, khi nạp thật**.
 ⚠️ `9chain-a1-xpwallet` trên server **vẫn còn và vẫn giữ khoá trong env** — chưa gỡ.
@@ -3298,7 +3298,7 @@ nhớ bật thì nó là một lời dặn, không phải một cổng.**
 
 ### Nghiệm thu
 
-- **6/6 đối chứng ngược** trên danh sách tổng hợp (`--tu-kiem`), gồm ca `null` ⇒ phải khai
+- **6/6 đối chứng ngược** trên danh sách tổng hợp (`--self-test`), gồm ca `null` ⇒ phải khai
   *"không biết"* và ca `[]` ⇒ là khẳng định thật.
 - **Chạy thật, chỉ đọc, lên server:** bắt **7 tệp mồ côi** ngay lần đầu.
 - 🔴 **Đối chứng trên DỮ LIỆU THẬT:** gỡ một mục khỏi `thuaDaBiet` (≡ một mồ côi MỚI xuất hiện)
@@ -3341,7 +3341,7 @@ cổng nào canh khoảng cách giữa hai sổ.**
 bản sao của nhau.** Hôm nay vô hại (server rỗng), nhưng nếu server có chain mà repo chưa biết
 thì lượt sinh lại ngày G sẽ xoá chúng khỏi **mọi nơi** — không ai còn nguồn để dựng lại sổ chặn.
 
-⇒ `--keo` kéo sổ sống về (chỉ đọc), đối chiếu với mọi sổ repo đã biết, và **lưu vào
+⇒ `--pull` kéo sổ sống về (chỉ đọc), đối chiếu với mọi sổ repo đã biết, và **lưu vào
 `docs/archive/` những bản ghi chưa ai biết — trước khi có gì bị xoá**.
 
 ### Hai phân biệt phải làm đúng, và tôi làm sai một cái ở bản đầu
@@ -3362,7 +3362,7 @@ thì lượt sinh lại ngày G sẽ xoá chúng khỏi **mọi nơi** — khôn
 ### 🔴 Sổ sống RỖNG là trạng thái HỢP LỆ, không phải hỏng
 
 Sau một lượt sinh lại, rỗng là đúng. Áp "rỗng ≡ hỏng" ở đây sẽ **chặn đúng lượt chạy đúng**.
-Nên `--keo` in một dòng vàng nói rõ *"hợp lệ — nhưng nếu anh ĐANG mong thấy chain trong đó thì
+Nên `--pull` in một dòng vàng nói rõ *"hợp lệ — nhưng nếu anh ĐANG mong thấy chain trong đó thì
 một lượt reset vừa xảy ra"*. Rỗng vừa là trạng thái hợp lệ vừa là triệu chứng; công cụ không
 được chọn hộ người đọc.
 
@@ -3372,9 +3372,9 @@ một lượt reset vừa xảy ra"*. Rỗng vừa là trạng thái hợp lệ 
 |---|---|
 | Đối chứng ngược | **9/9 ca đúng**, gồm 4 ca ĐỎ (`retired` sai kiểu · `chains` sai kiểu · bản ghi thiếu `chainId` · sổ `null`) |
 | Tính chất bao trùm | `|ra.retired| = |vào.chains ∪ vào.retired|` đúng ở **n = 0, 1, 5, 43** — không mất, không đẻ |
-| `--keo` chạy thật | server `0/0` · repo biết **53 bản ghi từ 3 sổ** · exit 0 kèm dòng vàng |
-| `--don` chạy thật | sổ repo thật ⇒ `chains 0 · retired 1`, bản ghi mang `thuHoiLuc` + `lyDo`, và ⚠️ khai luôn "sổ không có khoá `retired`" |
-| Sau đó | `gen-chainid-issued.mjs --kiem` vẫn xanh — 47 chainId · 53 tên, và `9201` vẫn nằm trong sổ chặn |
+| `--pull` chạy thật | server `0/0` · repo biết **53 bản ghi từ 3 sổ** · exit 0 kèm dòng vàng |
+| `--compact` chạy thật | sổ repo thật ⇒ `chains 0 · retired 1`, bản ghi mang `thuHoiLuc` + `lyDo`, và ⚠️ khai luôn "sổ không có khoá `retired`" |
+| Sau đó | `gen-chainid-issued.mjs --check` vẫn xanh — 47 chainId · 53 tên, và `9201` vẫn nằm trong sổ chặn |
 
 ⚠️ **Không ghi gì lên server** — công cụ chuẩn bị tệp ở máy dev; đưa lên là việc có người bấm.
 Đó cũng là lý do nó **không** tự chạy `gen-chainid-issued.mjs`: hai việc đó phải là hai quyết
@@ -3416,7 +3416,7 @@ phải việc làm trong một buổi chiều. *(Cảnh báo vàng **không** l�
 
 ### Nghiệm thu
 
-- **13/13 ca đối chứng ngược** (`--tu-kiem`): 6 ca chấm điểm + 7 ca ngưỡng B-12 (309 / 121 /
+- **13/13 ca đối chứng ngược** (`--self-test`): 6 ca chấm điểm + 7 ca ngưỡng B-12 (309 / 121 /
   119 / 46 / 44 / 0 / **-5** ngày).
 - **Chạy thật trên mạng công khai: 9/9 mục xanh** — `9chain-a1-g0` · `999999999` · 9 validator ·
   8 peer · hạn sớm nhất **308 ngày** (`2027-07-02`) · factory **89,899 LOVE9** ·
@@ -3474,7 +3474,7 @@ quy ước dùng chung là thứ người đọc học **một lần** rồi áp
   cổng đỏ cùng lúc: số học tokenomics · **phép cấp chainId** (`33 đạt · 2 hỏng`) · canh mạng ·
   drift repo↔server. Tức lượt bump `A1Gen` ngày G **không phải sửa hai dòng rồi đi tiếp** — nó
   chạm bốn đường đo độc lập, và cả bốn phải được nhìn thấy xanh lại.
-- **Sửa một câu nói dối gọn gàng của chính bản đầu:** với `--khong-mang`, nó in *"MỌI CỔNG TỰ
+- **Sửa một câu nói dối gọn gàng của chính bản đầu:** với `--no-network`, nó in *"MỌI CỔNG TỰ
   ĐỘNG ĐỀU XANH"* trong khi 3 cổng bị bỏ qua. Số bỏ qua nay nằm **trong chính câu phán**, không
   ở một dòng phía trên mà mắt đã lướt qua.
 
@@ -3516,7 +3516,7 @@ Lấy giá trị trung tâm là chọn con số đúng 50% số lần — mà đ
 `lech > 0` (node nhanh hơn máy bắn) là chiều **an toàn**; chiều nguy hiểm là node **chậm**.
 
 **Đo thật `28/08`:** mẫu tốt nhất **+557ms ± 811ms** ⇒ biên xấu nhất node chậm **254ms** ⇒
-`--bu-ms 3000` (sàn của lượt diễn tập `27/08`) **vẫn dư sức**. 7/7 ca đối chứng, gồm ca *không
+`--offset-ms 3000` (sàn của lượt diễn tập `27/08`) **vẫn dư sức**. 7/7 ca đối chứng, gồm ca *không
 đo được ⇒ trả `null`, KHÔNG rơi về sàn* — một nửa phép đo không phải phép đo.
 
 🔴 **Phải đo LẠI sau khi mạng ngày G lên** — số này nói về mạng g0 hôm nay.
@@ -3632,7 +3632,7 @@ bài học D-096 (*hai tên miền hỏng/sống khác nhau thì lỗi không n�
 này chỉ phục vụ qua Cloudflare"** — bộ lọc `Host` của M11.10 đang làm đúng việc. Ghi lại đây
 để phiên sau **đừng nới cổng đó ra cho dễ kiểm**.
 
-**Nghiệm thu:** `--tu-kiem` **6/6 đúng mã thoát**, gồm ca *"200 + text/plain nhưng nội dung của
+**Nghiệm thu:** `--self-test` **6/6 đúng mã thoát**, gồm ca *"200 + text/plain nhưng nội dung của
 Cloudflare"* ⇒ `1`, ca *"nội dung lạ không nhận ra của ai"* ⇒ **`2` CHƯA KẾT LUẬN** (không biết
 ≠ đạt), ca *"robots thật nhưng sitemap cũng không tới origin"* ⇒ `0` **kèm lưu ý về cả zone**.
 Chạy thật trên sản phẩm ⇒ **`1`, đỏ**. ⇒ Cổng này **sinh ra đã ĐỎ**, thoả luật cứng #2 mà
@@ -3726,8 +3726,8 @@ nó im), `gen-chainid-issued` **cố ý không đọc sổ trên server** (đún
 đầu**. Ảnh chụp `2026-08-26T07:20:33Z` — **3 chain sống · 39 thu hồi**, tức sổ ngay **trước**
 lượt re-genesis `26/08`.
 
-🔴 **Cổng `gen-chainid-issued --kiem` ĐỎ NGAY khi có nguồn thứ tư** — đúng chức năng, và đó là
-lần nó chứng minh mình canh **nguồn** chứ không chỉ canh **kết quả**. `--ghi` xong: **47 chainId
+🔴 **Cổng `gen-chainid-issued --check` ĐỎ NGAY khi có nguồn thứ tư** — đúng chức năng, và đó là
+lần nó chứng minh mình canh **nguồn** chứ không chỉ canh **kết quả**. `--write` xong: **47 chainId
 · 53 tên — KHÔNG ĐỔI**. ⇒ Sổ đó **không thiếu lời hứa chống phát lại nào** (nó là tập con của
 hai sổ kia). Nhưng nó vẫn là **bản duy nhất** của ảnh chụp ấy, và lý do dùng để biện minh cho
 việc xoá thì **sai**.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * check-clock-skew.mjs — **B-13(b)**: đo lệch đồng hồ rồi chọn `--bu-ms` cho Block Adam.
+ * check-clock-skew.mjs — **B-13(b)**: đo lệch đồng hồ rồi chọn `--offset-ms` cho Block Adam.
  *
  * ═══ ĐẠI LƯỢNG CẦN ĐO LÀ GÌ — và nó KHÔNG phải "lệch giữa 9 node" ═══
  *
@@ -38,14 +38,14 @@
  *
  * Dùng:
  *   node scripts/check-clock-skew.mjs
- *   node scripts/check-clock-skew.mjs --tu-kiem
+ *   node scripts/check-clock-skew.mjs --self-test
  */
 const argv = process.argv.slice(2);
 const lay = (co, mac) => { const i = argv.indexOf(co); return i >= 0 && argv[i + 1] ? argv[i + 1] : mac; };
-const DICH = lay("--dich", "https://rpc-a1.9chain.org/ext/info");
-const SO_MAU = Number(lay("--mau", 7));
+const DICH = lay("--target", "https://rpc-a1.9chain.org/ext/info");
+const SO_MAU = Number(lay("--samples", 7));
 
-/** Sàn: `--bu-ms 3000` là con số đã đạt 9/9 ở lượt diễn tập `27/08` (D-052…D-055). */
+/** Sàn: `--offset-ms 3000` là con số đã đạt 9/9 ở lượt diễn tập `27/08` (D-052…D-055). */
 export const SAN_BU_MS = 3000;
 
 /**
@@ -107,7 +107,7 @@ function tuKiem() {
   return hong;
 }
 
-if (argv.includes("--tu-kiem")) {
+if (argv.includes("--self-test")) {
   const hong = tuKiem();
   console.log(`\n${hong ? "✗" : "✅"} ${hong} ca sai`);
   process.exit(hong ? 1 : 0);
@@ -124,7 +124,7 @@ const tot = mau[0];
 console.log(`\n  mẫu tốt nhất (RTT nhỏ nhất, biên chặt nhất): **${tot.lech}ms ± ${tot.bien}ms**`);
 
 const { bu, xauNhat, vi } = chonBu(tot.lech, tot.bien);
-console.log(`\n  ⇒ \`--bu-ms ${bu}\`  — ${vi}`);
+console.log(`\n  ⇒ \`--offset-ms ${bu}\`  — ${vi}`);
 console.log(`
 🔴 ĐỌC ĐÚNG CON SỐ NÀY:
    • Nó là lệch **máy dev ↔ server**, KHÔNG phải "lệch giữa 9 node".

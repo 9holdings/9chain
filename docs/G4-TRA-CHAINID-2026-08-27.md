@@ -101,7 +101,7 @@ sổ rỗng. Nên bài phải kiểm **sổ** trước khi tin **kết luận**.
 
 | # | Ca | Kết quả |
 |---|---|---|
-| 1 | hỏi thêm `--them 1` (Ethereum Mainnet — chắc chắn bị chiếm) | `🔴 1 BỊ CHIẾM — Ethereum Mainnet` · **exit 1** ⇒ phép tra tìm được thật |
+| 1 | hỏi thêm `--add 1` (Ethereum Mainnet — chắc chắn bị chiếm) | `🔴 1 BỊ CHIẾM — Ethereum Mainnet` · **exit 1** ⇒ phép tra tìm được thật |
 | 2 | sổ **cắt cụt** (5.000 byte đầu) | `🔴 KHÔNG PHẢI JSON hợp lệ … đừng kết luận gì` · **exit 2** |
 | 3 | 🔴 sổ là **JSON hợp lệ nhưng rỗng** `[]` — bẫy nguy hiểm nhất | `✗ sổ đọc được và có thật: 0 mục · KHÔNG có chainId 1` → **từ chối kết luận**, exit 2 |
 
@@ -123,5 +123,5 @@ Sổ `chainid.network` đổi hàng ngày (nó là repo `ethereum-lists/chains`,
 lệnh:
 
 ```bash
-node scripts/check-chainid.mjs --luu docs/vat-chung/g4-<ngày>
+node scripts/check-chainid.mjs --save docs/vat-chung/g4-<ngày>
 ```

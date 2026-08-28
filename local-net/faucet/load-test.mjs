@@ -5,8 +5,8 @@
 //     cd ~/9chain-a1/src
 //     node local-net/faucet/load-test.mjs --phut 5            # hiệu chỉnh, chạy ngắn
 //     node local-net/faucet/load-test.mjs --gio 3             # chạy dài
-//     node local-net/faucet/load-test.mjs --gio 3 --vi 40     # nhiều ví gửi hơn
-//     node local-net/faucet/load-test.mjs --phut 10 --vi 60 --preset thong-luong-cao
+//     node local-net/faucet/load-test.mjs --gio 3 --wallet 40     # nhiều ví gửi hơn
+//     node local-net/faucet/load-test.mjs --phut 10 --wallet 60 --preset thong-luong-cao
 //                                                            # đo trần của gasLimit 60M (M9.4)
 //
 // ═══ VÌ SAO ĐẺ MỘT L1 RIÊNG, KHÔNG BƠM THẲNG VÀO C-CHAIN ═══
@@ -61,7 +61,7 @@ const PRESET = opt("preset", "chuan");
 
 // ═══ TRẦN THỜI GIAN TỔNG — chốt an toàn cho CHÍNH BÀI ĐO (B-8) ═══
 //
-// 2026-08-25: `--phut 8 --vi 300` treo **2 giờ 59 phút**, CPU 0,1%, chain đứng ở
+// 2026-08-25: `--phut 8 --wallet 300` treo **2 giờ 59 phút**, CPU 0,1%, chain đứng ở
 // block 2. Bài đo tự nhận là "có chốt an toàn" nhưng chốt đó chỉ canh C-Chain, đĩa,
 // và độ trễ — **không canh chính nó**. Ba lỗ, cả ba đều dẫn tới treo im lặng vô hạn
 // trong khi vẫn giữ một slot L1 và một chain đang sống:
@@ -178,7 +178,7 @@ if (C_CHAIN) {
   log(`🔴 CHẾ ĐỘ C-CHAIN — bơm thẳng vào mạng công khai (${C_CHAIN_RPC})`);
   log(`   không đẻ chain, không thu hồi. Chốt an toàn vẫn bật.`);
 } else if (CHAIN_CO_SAN) {
-  if (!KHOA_CO_SAN) { console.log("✗ --chain-rpc phải đi kèm --khoa"); process.exit(1); }
+  if (!KHOA_CO_SAN) { console.log("✗ --chain-rpc phải đi kèm --wallet-key"); process.exit(1); }
   chain = { rpc: CHAIN_CO_SAN, name: "(chain có sẵn)" };
   chuKhoa = KHOA_CO_SAN;
   log(`dùng lại chain có sẵn: ${CHAIN_CO_SAN}`);

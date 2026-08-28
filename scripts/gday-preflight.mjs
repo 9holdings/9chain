@@ -26,7 +26,7 @@
  *
  * Dùng:
  *   node scripts/gday-preflight.mjs
- *   node scripts/gday-preflight.mjs --khong-mang    # bỏ mọi cổng cần mạng/ssh
+ *   node scripts/gday-preflight.mjs --no-network    # bỏ mọi cổng cần mạng/ssh
  */
 import { spawnSync, execFileSync } from "node:child_process";
 import { existsSync, rmSync } from "node:fs";
@@ -36,7 +36,7 @@ import { fileURLToPath } from "node:url";
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
-const KHONG_MANG = argv.includes("--khong-mang");
+const KHONG_MANG = argv.includes("--no-network");
 
 // Tree của cây fork hiện tại — luật cứng #3. Đổi số này là một quyết định, không phải
 // một lần cập nhật: nó chỉ đổi cùng lượt sinh lại CẢ BỘ patch.
@@ -46,7 +46,7 @@ const SO_PATCH = 24;
 const node = (...a) => ({ lenh: process.execPath, args: a });
 
 /**
- * Cổng. `mang` = cần mạng hoặc ssh (bỏ được bằng `--khong-mang`).
+ * Cổng. `mang` = cần mạng hoặc ssh (bỏ được bằng `--no-network`).
  *
  * 🔴 **MỌI CỔNG Ở ĐÂY ĐỀU BẮT BUỘC — đỏ là chặn.** Không có hạng "thông tin".
  * (Chú thích cũ khai một cờ `batBuoc` cho phép đỏ-mà-không-chặn; cờ đó **chưa từng
@@ -62,14 +62,14 @@ const CONG = [
   { nhom: "1 · CÂY FORK", ten: `tái lập ${SO_PATCH} patch → tree ${TREE_FORK.slice(0, 8)}`, rieng: taiLapFork },
 
   // ── 2. Cổng repo — rẻ, không mạng, chạy trước để hỏng sớm ──
-  { nhom: "2 · CỔNG REPO", ten: "số học tokenomics + bộ định danh Go↔JS", ...node("scripts/check-consistency.mjs", "--tu-kiem") },
+  { nhom: "2 · CỔNG REPO", ten: "số học tokenomics + bộ định danh Go↔JS", ...node("scripts/check-consistency.mjs", "--self-test") },
   { nhom: "2 · CỔNG REPO", ten: "phép cấp chainId (chainid-test)", ...node("local-net/console/chainid-test.mjs") },
   { nhom: "2 · CỔNG REPO", ten: "cb58 self-test", ...node("local-net/lib/cb58.mjs", "--self-test") },
-  { nhom: "2 · CỔNG REPO", ten: "sổ chainId đã cấp khớp nguồn", ...node("scripts/gen-chainid-issued.mjs", "--kiem") },
+  { nhom: "2 · CỔNG REPO", ten: "sổ chainId đã cấp khớp nguồn", ...node("scripts/gen-chainid-issued.mjs", "--check") },
   { nhom: "2 · CỔNG REPO", ten: "cổng THẾ HỆ của console (generation-test)", ...node("local-net/console/generation-test.mjs") },
-  { nhom: "2 · CỔNG REPO", ten: "phân loại tệp thừa (đối chứng)", ...node("scripts/check-deploy-drift.mjs", "--tu-kiem") },
-  { nhom: "2 · CỔNG REPO", ten: "phép dồn sổ danh bạ (đối chứng)", ...node("scripts/close-ledger-before-regenesis.mjs", "--tu-kiem") },
-  { nhom: "2 · CỔNG REPO", ten: "chấm điểm canh mạng (đối chứng)", ...node("scripts/watch-network.mjs", "--tu-kiem") },
+  { nhom: "2 · CỔNG REPO", ten: "phân loại tệp thừa (đối chứng)", ...node("scripts/check-deploy-drift.mjs", "--self-test") },
+  { nhom: "2 · CỔNG REPO", ten: "phép dồn sổ danh bạ (đối chứng)", ...node("scripts/close-ledger-before-regenesis.mjs", "--self-test") },
+  { nhom: "2 · CỔNG REPO", ten: "chấm điểm canh mạng (đối chứng)", ...node("scripts/watch-network.mjs", "--self-test") },
 
   // ── 3. Thế giới thật — mạng đang chạy và server ──
   { nhom: "3 · THẾ GIỚI THẬT", mang: true, ten: "mạng đang chạy (watch-network)", ...node("scripts/watch-network.mjs") },
@@ -89,7 +89,7 @@ const VIEC_TAY = [
   ["TRƯỚC khi đụng gì", "🔴 **B-16** — bản sao thứ hai bộ khoá quỹ: `node scripts/o1-check.mjs <thư-mục>` phải ra **exit 0**. Chặn GO/NO-GO."],
   ["TRƯỚC khi đụng gì", "🔴 **B-17** — xoá 6 tệp `.bak` trên server (đường lui trỏ vào quyết định đã đóng). Lệnh ở `BLOCKERS.md`."],
   ["TRƯỚC `down -v`", "🔴 **O2** — `node scripts/export-chain.mjs` rồi **công bố `sha256` RA CHỖ NGOÀI** trước khi xoá. Thứ tự đó LÀ toàn bộ giá trị của quy trình (lượt `26/08` đã bỏ lỡ)."],
-  ["TRƯỚC `down -v`", "🔴 **Sổ danh bạ** — `node scripts/close-ledger-before-regenesis.mjs --keo` rồi `--don`; sổ mới phải lên server. Reset sổ = trả 43 tên + chainId lại cho vòng quay."],
+  ["TRƯỚC `down -v`", "🔴 **Sổ danh bạ** — `node scripts/close-ledger-before-regenesis.mjs --pull` rồi `--compact`; sổ mới phải lên server. Reset sổ = trả 43 tên + chainId lại cho vòng quay."],
   ["TRƯỚC `down -v`", "🔴 **H-6b** — `bash scripts/h6b-backup.sh` và đọc kỹ số patch nó khai."],
   ["Lúc sinh mạng", "🔴 **Bump `A1Gen` ở CẢ HAI ngôn ngữ** — `utils/constants/network_ids.go` **và** `local-net/lib/chainid.mjs`, rồi chạy lại `check-consistency`. Quên một bên thì không có gì báo lỗi (D-093)."],
   ["Lúc sinh mạng", "🔴 **Build lại image node** — image đang chạy là **18 patch**, repo là **24**. Patch 0019/0022 (bí danh `LOVE9`) chưa vào image; thiếu nó là **mọi ví X/C chết câm**. Đường build đã diễn tập `28/08` và ĐẠT (D-105) — nhưng ở `A1Gen 0`; bump lên 1 là đổi binary ⇒ **vẫn phải build lại**."],
@@ -98,7 +98,7 @@ const VIEC_TAY = [
   ["Lúc sinh mạng", "🔴 **Sinh token + khoá MỚI** — `A1_CONSOLE_TOKEN`, `FAUCET_PK`, `A1_CLI_KEY`. Token cũ **chưa từng đổi qua hai lượt re-genesis** (gotcha 15)."],
   ["Lúc sinh mạng", "🔴 **Chữ khắc** — cơ chế xong 100%. Nội dung là **ĐẦU VÀO David cấp** (D-104: C1 do David điều phối riêng, A1 không theo dõi). ⚠️ Byte tới **sau** bước sinh genesis là **không khắc được nữa trong thế hệ đó** — hỏi David chốt byte TRƯỚC khi chạy netgen, không phải sau."],
   ["SAU khi mạng lên", "🔴 Đo **trên node đang chạy**: `supplyCap` · `networkID` · HRP · `eth_chainId` · 9/9 node. `node scripts/watch-network.mjs`."],
-  ["SAU khi mạng lên", "🔴 **B-13(b)** — đo lệch đồng hồ 9 node rồi chọn `--bu-ms` cho Block Adam. Chỉ làm được sau khi mạng g1 lên, và **phải xong trước `09/09`**."],
+  ["SAU khi mạng lên", "🔴 **B-13(b)** — đo lệch đồng hồ 9 node rồi chọn `--offset-ms` cho Block Adam. Chỉ làm được sau khi mạng g1 lên, và **phải xong trước `09/09`**."],
   ["SAU khi deploy", "🔴 `node scripts/check-deploy-drift.mjs` — **chạy TRƯỚC khi tin bất kỳ dòng \"ĐÃ ĐÓNG\" nào**."],
 ];
 
@@ -141,7 +141,7 @@ function chay(c) {
 
 console.log(`\n╔═══ PREFLIGHT NGÀY G ═══ ${new Date().toISOString()}`);
 console.log(`║ cây fork: ${SO_PATCH} patch · tree ${TREE_FORK.slice(0, 8)}`);
-if (KHONG_MANG) console.log("║ ⚠️  --khong-mang: bỏ cổng cần mạng/ssh — CHÚNG KHÔNG PHẢI 'ĐẠT'");
+if (KHONG_MANG) console.log("║ ⚠️  --no-network: bỏ cổng cần mạng/ssh — CHÚNG KHÔNG PHẢI 'ĐẠT'");
 console.log("╚" + "═".repeat(60));
 
 let nhomHienTai = "";
@@ -168,7 +168,7 @@ const ma = do_ ? 1 : khongChay ? 2 : 0;
 // 🔴 Một câu "mọi cổng xanh" in ra sau khi BỎ QUA ba cổng là một câu nói dối gọn gàng.
 // Số bỏ qua phải nằm trong chính câu phán, không nằm ở một dòng phía trên mà mắt đã lướt qua.
 const xanh = boQua
-  ? `\n🟡 ${dat} cổng đã chạy đều xanh — NHƯNG ${boQua} cổng BỊ BỎ QUA (--khong-mang).\n   Ba cổng đó đo THẾ GIỚI THẬT; bỏ chúng đi thì lượt này không nói được gì về\n   mạng đang chạy hay về server. Chạy lại KHÔNG có --khong-mang trước ngày G.`
+  ? `\n🟡 ${dat} cổng đã chạy đều xanh — NHƯNG ${boQua} cổng BỊ BỎ QUA (--no-network).\n   Ba cổng đó đo THẾ GIỚI THẬT; bỏ chúng đi thì lượt này không nói được gì về\n   mạng đang chạy hay về server. Chạy lại KHÔNG có --no-network trước ngày G.`
   : `\n✅ MỌI CỔNG TỰ ĐỘNG ĐỀU XANH.`;
 console.log({
   0: `${xanh}\n   🔴 Và ${VIEC_TAY.length} VIỆC TAY ở trên CHƯA ai làm thay được — preflight xanh\n   KHÔNG có nghĩa là sẵn sàng sinh mạng.`,

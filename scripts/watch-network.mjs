@@ -27,8 +27,8 @@
  *
  * Dùng:
  *   node scripts/watch-network.mjs
- *   node scripts/watch-network.mjs --khong-ssh     # bỏ các mục cần ssh (supplyCap, drift)
- *   node scripts/watch-network.mjs --tu-kiem       # đối chứng ngược
+ *   node scripts/watch-network.mjs --no-ssh     # bỏ các mục cần ssh (supplyCap, drift)
+ *   node scripts/watch-network.mjs --self-test       # đối chứng ngược
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -42,9 +42,9 @@ const lay = (co, mac) => { const i = argv.indexOf(co); return i >= 0 && argv[i +
 const RPC = lay("--rpc", "https://rpc-a1.9chain.org");
 const WEB = lay("--web", "https://a1.9chain.org");
 const HOST = lay("--host", ""$A1_SSH_HOST"");
-const KHOA = lay("--key", `${process.env.HOME || process.env.USERPROFILE}/.ssh/9chain-a1`);
-const KHONG_SSH = argv.includes("--khong-ssh");
-const VI_FACTORY = lay("--vi", "P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj");
+const KHOA = lay("--ssh-key", `${process.env.HOME || process.env.USERPROFILE}/.ssh/9chain-a1`);
+const KHONG_SSH = argv.includes("--no-ssh");
+const VI_FACTORY = lay("--wallet", "P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj");
 
 // ─── Ngưỡng — khai ở MỘT chỗ, và bài đối chứng lái được chúng ───
 export const NGUONG = {
@@ -190,7 +190,7 @@ function tuKiem() {
   return hong;
 }
 
-if (argv.includes("--tu-kiem")) {
+if (argv.includes("--self-test")) {
   const hong = tuKiem();
   console.log(`\n${hong ? "✗" : "✅"} ${hong} ca sai`);
   process.exit(hong ? 1 : 0);
@@ -204,5 +204,5 @@ for (const d of dong) {
 }
 const nhan = { 0: "✅ MẠNG BÌNH THƯỜNG", 1: "🔴 CÓ MỤC ĐỎ", 2: "🟡 CÓ MỤC KHÔNG ĐO ĐƯỢC — không biết KHÔNG phải đạt" };
 console.log(`\n${nhan[ma]}`);
-if (KHONG_SSH) console.log("   (chạy với --khong-ssh: các mục cần ssh đã bị bỏ, không phải 'đạt')");
+if (KHONG_SSH) console.log("   (chạy với --no-ssh: các mục cần ssh đã bị bỏ, không phải 'đạt')");
 process.exit(ma);

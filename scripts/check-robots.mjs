@@ -27,7 +27,7 @@
  *
  * Dùng:
  *   node scripts/check-robots.mjs
- *   node scripts/check-robots.mjs --tu-kiem
+ *   node scripts/check-robots.mjs --self-test
  */
 
 const TEN_MIEN = process.env.A1_TEN_MIEN || "a1.9chain.org";
@@ -66,7 +66,7 @@ async function lay(duong) {
   }
 }
 
-/** Chấm điểm — TÁCH THUẦN khỏi mạng để `--tu-kiem` chạy trên dữ liệu tổng hợp (D-100). */
+/** Chấm điểm — TÁCH THUẦN khỏi mạng để `--self-test` chạy trên dữ liệu tổng hợp (D-100). */
 export function cham(robots, sitemap) {
   const luuY = [];
   if (!robots?.ok) return { ma: 2, loi: [`không lấy được /robots.txt: ${robots?.loi}`], luuY };
@@ -193,7 +193,7 @@ function tuKiem() {
 }
 
 // ─────────────────────────── chạy ───────────────────────────
-if (process.argv.includes("--tu-kiem")) process.exit(tuKiem());
+if (process.argv.includes("--self-test")) process.exit(tuKiem());
 
 const [robots, sitemap] = await Promise.all([lay("/robots.txt"), lay("/sitemap.xml")]);
 console.log(`══ B-10 · robots.txt của https://${TEN_MIEN} ══\n`);

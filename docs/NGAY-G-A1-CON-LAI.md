@@ -221,7 +221,7 @@ Bù **+3s** thì đạt 9/9 (block chứa Adam *là* block đầu tiên vượt 
    **Bài diễn tập đã đổi theo và chạy lại thật `27/08`:** ô mạnh nhất nay là *"đưa hash cho
    chuỗi, chuỗi trả lại đúng giao dịch đó"* (đường **ngược** — đọc hash từ biến của mình rồi
    khai "neo đọc được" là tự hỏi chính mình). Ô cũ **xuống hạng lưu ý**, không bị xoá.
-   Ca `--bu-ms 0` — ca mà bản cũ chấm ✗ — nay: **10 đạt · 0 hỏng · 2 lưu ý không đạt**, block
+   Ca `--offset-ms 0` — ca mà bản cũ chấm ✗ — nay: **10 đạt · 0 hỏng · 2 lưu ý không đạt**, block
    đầu tiên vượt mốc là của **Eva `#4`** trong khi neo trỏ đúng Adam `#3`.
 
    🔴 **Điều đó HẠ MỨC mục 1 ở trên, KHÔNG xoá nó.** Nếu bản khắc còn **câu chữ** khẳng định
@@ -356,7 +356,7 @@ Bản nháp BOD có 7 điều kiện, trong đó **điều 1 không thoả mãn 
    **David dời gốc dải sang `9000000010`**, D-069. Xem `G4-TRA-CHAINID-2026-08-27.md`.)*
    🔴 **Sổ đổi trong CÙNG một ngày** — hai lượt tra `27/08` cách nhau ~2 giờ đã lệch: 2.723 →
    2.725 mục, `sha256` khác hẳn. Đây là số đo, không phải lo xa.
-   Một lệnh: `node scripts/check-chainid.mjs --luu docs/vat-chung/g4-<ngày>`
+   Một lệnh: `node scripts/check-chainid.mjs --save docs/vat-chung/g4-<ngày>`
 4. **G5** — chữ khắc **đọc ngược lại được từ chain**, `sha256` từng tài liệu **khớp bản đóng băng
    của C1**, và đã chốt Block Adam nằm trên chain nào
 5. **I** — ✅ đã xong từ `26/08`; chỉ cần đối chứng lại `supplyCap` trên binary sau khi build
@@ -415,7 +415,7 @@ Xếp theo thứ tự đường găng:
    1 byte VÀ sửa luôn manifest"* là ca chứng minh vì sao **phải công bố con số ra chỗ NGOÀI**.
    [`QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md`](QUY-TRINH-O2-XUAT-TRUOC-KHI-XOA.md).
    🔴 **Còn lại:** chạy một lượt trên **mạng công khai** để biết thời gian thật (bài lấy block
-   từng cái một), và nhớ `--them-evm` cho **từng L1 còn sống** — thiếu cờ đó thì L1 người dùng
+   từng cái một), và nhớ `--add-evm` cho **từng L1 còn sống** — thiếu cờ đó thì L1 người dùng
    biến mất không dấu vết.
 5b. ✅ **ĐÃ BÁO `27/08`** — 9Scan-A1 nay biết `Message` là trường chỉ ghi, không API nào trả về;
    bản văn phải đọc từ **tệp genesis** (nói rõ nguồn là tệp), còn thứ đọc **từ chain** là

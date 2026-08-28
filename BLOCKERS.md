@@ -69,8 +69,8 @@ này, và xoá tệp trên máy chủ công khai là quyết định vận hành
 >
 > ✅ **Đã kéo về `28/08`** → `docs/archive/console-chains-2026-08-26T0720Z.json`
 > (`ca24eb59…`, khớp sha256 hai đầu; ảnh chụp `2026-08-26T07:20:33Z`, **3 sống · 39 thu hồi**).
-> Cổng `gen-chainid-issued --kiem` **đỏ ngay** khi có nguồn thứ tư — đúng chức năng — rồi
-> `--ghi` cho **47 chainId · 53 tên, KHÔNG đổi**: sổ đó không thiếu lời hứa nào, nhưng nó là
+> Cổng `gen-chainid-issued --check` **đỏ ngay** khi có nguồn thứ tư — đúng chức năng — rồi
+> `--write` cho **47 chainId · 53 tên, KHÔNG đổi**: sổ đó không thiếu lời hứa nào, nhưng nó là
 > **bản duy nhất** của ảnh chụp ấy. ⇒ Nay xoá thật sự không mất gì.
 >
 > **Bài học:** câu *"đã có bản lưu rồi nên xoá được"* là một **phép đo**, không phải một câu
@@ -273,9 +273,9 @@ Bài diễn tập đã đổi cách chấm và **chạy thật lại trên mạn
 
 | lượt | kết quả |
 |---|---|
-| `--bu-ms 3000` | 10 đạt · 0 hỏng · 2 lưu ý (0 không đạt) |
-| 🔴 `--bu-ms 0` — ca bản cũ chấm **✗** | 10 đạt · 0 hỏng · **2 lưu ý KHÔNG đạt**, exit **0**. Block đầu tiên vượt mốc là của **Eva `#4`**; neo vẫn trỏ đúng Adam `#3` |
-| `--khong-gui` | 2 đạt · 0 hỏng |
+| `--offset-ms 3000` | 10 đạt · 0 hỏng · 2 lưu ý (0 không đạt) |
+| 🔴 `--offset-ms 0` — ca bản cũ chấm **✗** | 10 đạt · 0 hỏng · **2 lưu ý KHÔNG đạt**, exit **0**. Block đầu tiên vượt mốc là của **Eva `#4`**; neo vẫn trỏ đúng Adam `#3` |
+| `--no-send` | 2 đạt · 0 hỏng |
 
 Ô cũ **xuống hạng "lưu ý"**, không bị xoá: xoá là mất phép đo lệch đồng hồ mà (b) cần; giữ ở
 hạng ✗ là để bài **kêu oan**, mà cổng kêu oan sẽ bị bỏ qua đúng lúc nó kêu thật.
@@ -283,7 +283,7 @@ hạng ✗ là để bài **kêu oan**, mà cổng kêu oan sẽ bị bỏ qua �
 🔴 **(b) VẪN MỞ, nhưng đổi tính chất.** D-070 hạ nó từ *"neo sai thì hỏng"* xuống *"câu chữ
 sai thì không trung thực"*: nếu bản khắc còn **câu chữ** khẳng định block vượt mốc
 `2026-09-09T06:09:09Z` thì câu đó vẫn phải đúng, và nó vẫn phụ thuộc đồng hồ **node đề xuất
-block**. ⇒ vẫn phải đo lệch đồng hồ 9 node **sau khi mạng ngày G lên**, rồi chọn `--bu-ms`.
+block**. ⇒ vẫn phải đo lệch đồng hồ 9 node **sau khi mạng ngày G lên**, rồi chọn `--offset-ms`.
 Câu chữ chốt cùng lượt **C1 đóng băng byte**.
 
 <details>
@@ -298,7 +298,7 @@ Diễn tập `27/08` đạt (9/9 + 2 đối chứng ngược) — bản đầy �
 | | Việc | Ai | Vì sao không tự quyết/tự làm được |
 |---|---|---|---|
 | **(a)** | 🔴 **Block Adam NEO VÀO CÁI GÌ** | **David** | Luật đang định khắc — *"block **đầu tiên** vượt `2026-09-09T06:09:09Z`"* — là mệnh đề về **TOÀN CHUỖI**, mà nghi lễ chỉ điều khiển được **giao dịch của mình**. Ai gửi một giao dịch vào khoảng giữa mốc và lúc ta bắn là chiếm mất ô đó, không giành lại được. **Khắc vĩnh viễn** ⇒ không tự quyết. *Khuyến nghị: neo vào **hash giao dịch nghi lễ**, hoặc số block chốt SAU khi nó đã sinh ra.* Hạn `28/08`, gộp vào `NGAY-G-A1-CON-LAI.md` §6 mục 3 |
-| **(b)** | **Đo lệch đồng hồ 9 node** rồi chọn `--bu-ms` | A1 | Làm được, nhưng **chỉ sau khi mạng ngày G lên** — số phải đo trên chính bộ node sẽ chạy nghi lễ |
+| **(b)** | **Đo lệch đồng hồ 9 node** rồi chọn `--offset-ms` | A1 | Làm được, nhưng **chỉ sau khi mạng ngày G lên** — số phải đo trên chính bộ node sẽ chạy nghi lễ |
 
 🔴 **Vì sao (b) không phải là "chép +3s vào runbook":** +3s đạt trên mạng tập **1 node dùng
 chung đồng hồ với máy bắn**. Trên bộ 9 node, `block.timestamp` là đồng hồ của **node đề xuất
@@ -847,8 +847,8 @@ cho mỗi L1 một tập validator riêng — chính là ACP-77.
 ## Đã gỡ
 
 ### ✅ B-8 — ĐÃ GỠ (2026-08-25) — `load-test.mjs` treo ở 300 ví, không có trần thời gian tổng
-Triệu chứng: `--phut 8 --vi 300` treo **2 giờ 59 phút**, CPU 0,1%, chain đứng ở block 2,
-**giữ một slot L1** suốt thời gian đó. Với `--vi 60` thì chạy trọn vẹn.
+Triệu chứng: `--phut 8 --wallet 300` treo **2 giờ 59 phút**, CPU 0,1%, chain đứng ở block 2,
+**giữ một slot L1** suốt thời gian đó. Với `--wallet 60` thì chạy trọn vẹn.
 
 🔴 **Lỗi đáng sửa không phải chỗ treo — mà là bài đo tự nhận "có chốt an toàn" trong
 khi chốt đó canh C-Chain, canh đĩa, canh độ trễ, và KHÔNG canh chính nó.** Bốn lỗ:

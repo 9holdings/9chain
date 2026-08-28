@@ -414,7 +414,7 @@ patch 0017**, và không có gì khác báo cho ta biết điều đó.
 | # | Việc |
 |---|---|
 | 11 | 🔴 **Đo lại hạn 9 validator** (`platform.getCurrentValidators` → `endTime`) rồi **dựng lịch nhắc + người chịu trách nhiệm** — B-12 |
-| 12 | 🔴 **Đo lệch đồng hồ 9 node** → chọn `--bu-ms` — B-13(b), đã hạ mức nhưng chưa đóng |
+| 12 | 🔴 **Đo lệch đồng hồ 9 node** → chọn `--offset-ms` — B-13(b), đã hạ mức nhưng chưa đóng |
 | 13 | Dựng **cron backup A1** (repo bundle + patch series) song song cron của 9Scan |
 | 14 | Dựng **giám sát tối thiểu**: 9 node connected · số dư chain-factory · đĩa · hạn validator |
 
@@ -580,7 +580,7 @@ ra Internet, tức H-7 phải xong trước.
 | **28/08** | Câu khai thật về hạ tầng + đổi tên `01/09` (§12.3 a+b) | David + phiên web |
 | **29/08** | **GO/NO-GO** — mười điều §7 | — |
 | **01/09** | Ngày G. Runbook thêm: O2 **trước** khi xoá · tra lại G4 · `restart policy = unless-stopped × 9` sau `up -d` | A1 |
-| **ngay sau** | Đo hạn 9 validator → lịch nhắc (B-12) · đo lệch đồng hồ → `--bu-ms` (B-13b) · dựng cron backup + giám sát | A1 |
+| **ngay sau** | Đo hạn 9 validator → lịch nhắc (B-12) · đo lệch đồng hồ → `--offset-ms` (B-13b) · dựng cron backup + giám sát | A1 |
 | **tháng 9** | O4(c) dời node + H-7 + O7 tập trên nhiều máy — **cụm này đi cùng nhau** | David + A1 |
 
 🔴 **Thứ duy nhất A1 không tự cứu được vẫn không đổi:** chữ khắc chờ **C1 đóng băng byte**. Nếu

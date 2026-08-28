@@ -45,14 +45,14 @@ quá khứ hay sẽ được xuất bản?*
 
 ```bash
 node scripts/check-deploy-drift.mjs          # repo ↔ server (chạy TRƯỚC mọi mục "đã đóng")
-node scripts/check-consistency.mjs --tu-kiem # số học tokenomics, đọc THẲNG từ Go
-node scripts/gen-chainid-issued.mjs --kiem  # sổ chainId/tên xuyên thế hệ
+node scripts/check-consistency.mjs --self-test # số học tokenomics, đọc THẲNG từ Go
+node scripts/gen-chainid-issued.mjs --check  # sổ chainId/tên xuyên thế hệ
 node local-net/console/chainid-test.mjs      # phép cấp chainId
 node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs               # tra sổ công khai chainid.network
 node scripts/check-keys-on-chain.mjs <thư-mục>/allocation.md   # khoá ↔ TIỀN THẬT
-node scripts/wallet-over-tunnel.mjs --kiem           # ví ký không chạm server (M11.10)
-bash scripts/h6b-backup.sh --kiem           # bản sao lưu có dựng lại được mạng không
+node scripts/wallet-over-tunnel.mjs --check           # ví ký không chạm server (M11.10)
+bash scripts/h6b-backup.sh --check           # bản sao lưu có dựng lại được mạng không
 node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
 ```
 

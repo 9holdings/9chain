@@ -27,8 +27,8 @@
  *
  * Dùng:
  *   node scripts/gen-chainid-issued.mjs                    # in ra, không ghi
- *   node scripts/gen-chainid-issued.mjs --ghi              # ghi vào console/
- *   node scripts/gen-chainid-issued.mjs --kiem             # thoát 1 nếu lệch tệp đang có
+ *   node scripts/gen-chainid-issued.mjs --write              # ghi vào console/
+ *   node scripts/gen-chainid-issued.mjs --check             # thoát 1 nếu lệch tệp đang có
  */
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
@@ -94,7 +94,7 @@ function dungBan({ chainIds, tens, daDoc }) {
       "chainId VÀ TÊN mà 9Chain-A1 ĐÃ TỪNG CẤP cho L1 người dùng, gộp từ mọi sổ console " +
       "trong repo. Chặn cấp lại VĨNH VIỄN: thu hồi không gỡ được mạng khỏi ví ai, nên cấp " +
       "lại một chainId là để chữ ký của chain cũ phát lại được trên chain mới. " +
-      "SINH TỰ ĐỘNG — đừng sửa tay, chạy `node scripts/gen-chainid-issued.mjs --ghi`.",
+      "SINH TỰ ĐỘNG — đừng sửa tay, chạy `node scripts/gen-chainid-issued.mjs --write`.",
     nguon: daDoc,
     soChainId: chainIds.size,
     soTen: tens.size,
@@ -107,22 +107,22 @@ function dungBan({ chainIds, tens, daDoc }) {
 const ban = dungBan(gom());
 const chuoi = JSON.stringify(ban, null, 2) + "\n";
 
-if (process.argv.includes("--kiem")) {
+if (process.argv.includes("--check")) {
   if (!existsSync(RA)) {
-    console.error(`FATAL chưa có ${path.relative(GOC, RA)} — chạy với --ghi.`);
+    console.error(`FATAL chưa có ${path.relative(GOC, RA)} — chạy với --write.`);
     process.exit(1);
   }
   const cu = readFileSync(RA, "utf8");
   if (cu !== chuoi) {
     console.error("FATAL chainid-issued.json ĐÃ TRÔI LỆCH khỏi các sổ trong repo.");
-    console.error("      Chạy: node scripts/gen-chainid-issued.mjs --ghi");
+    console.error("      Chạy: node scripts/gen-chainid-issued.mjs --write");
     process.exit(1);
   }
   console.log(`✓ chainid-issued.json khớp nguồn — ${ban.soChainId} chainId · ${ban.soTen} tên`);
   process.exit(0);
 }
 
-if (process.argv.includes("--ghi")) {
+if (process.argv.includes("--write")) {
   writeFileSync(RA, chuoi, "utf8");
   console.log(`✓ đã ghi ${path.relative(GOC, RA)}`);
 }
