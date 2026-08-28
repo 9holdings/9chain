@@ -19,11 +19,11 @@ KHÔNG deploy · KHÔNG ghi lên server (SSH **chỉ đọc**) · KHÔNG gửi g
 `patches/`** ⇒ tree giữ `074aaa93` / 24 patch · commit đường dẫn tường minh, không remote nên
 không push.
 
-- [ ] **A15-0 — `CLAUDE.md`: luật cứng ra khỏi tệp 2.023 dòng**
+- [x] **A15-0 — `CLAUDE.md`: luật cứng ra khỏi tệp 2.023 dòng**
       Luật cứng hiện nằm ở dòng ~229 của `HANDOFF.md`; mỗi phiên mới trả ~85K token để đọc lại.
       **Điều kiện qua:** `CLAUDE.md` ≤120 dòng, đủ 4 luật cứng + lớp lỗi "đo sai đại lượng" +
       danh sách cổng + ranh giới + định nghĩa "xong"; `HANDOFF.md` trỏ tới nó ở đầu tệp.
-- [ ] **A15-1 — 🔴 CỔNG BỘ ĐỊNH DANH XUYÊN NGÔN NGỮ (`A1Gen` Go ↔ `A1_GEN` JS)**
+- [x] **A15-1 — 🔴 CỔNG BỘ ĐỊNH DANH XUYÊN NGÔN NGỮ (`A1Gen` Go ↔ `A1_GEN` JS)**
       Đo `28/08`: `A1Gen` (Go, patch 0018) và `A1_GEN` ([`lib/chainid.mjs:25`](local-net/lib/chainid.mjs:25))
       là **hai hằng số chép tay độc lập**, không cổng nào nối chúng. Và
       `grep networkID local-net/console/server.mjs` ⇒ **0 kết quả**: console **chưa bao giờ hỏi
@@ -34,6 +34,12 @@ không push.
       (b) console lúc khởi động gọi `info.getNetworkID`, lệch ⇒ **fail-closed** `/api/create`.
       **Điều kiện qua:** 3 ca ĐỎ — sửa JS ⇒ đỏ · sửa Go ⇒ đỏ · console trỏ networkID lạ ⇒ từ
       chối đẻ chain, trỏ đúng ⇒ phục vụ bình thường.
+      ✅ **ĐẠT `28/08`** (D-093). `check-consistency` **17 đạt/0 lỗi · 14/14 ca đỏ**, kèm đối chứng
+      trên **TỆP THẬT** (`sed A1_GEN=1` ⇒ exit 1). `thehe-test.mjs` mới: **13/13** trên console
+      THẬT với node giả đổi được câu trả lời; **gỡ cổng khỏi `createChain` ⇒ 7 hỏng/exit 1** (bài
+      kiểm nối vào mã thật). 🔴 Bẫy đã đo: `info.getNetworkID` trả **CHUỖI**.
+      🔴 **Đẻ ra D-094:** `console-deploy.sh` chép 15 tệp mà **đối chiếu chỉ 9** — thiếu đúng
+      `lib/chainid.mjs` + hai sổ chặn đã để B-14 hở hai ngày. Đã vá; **chưa chạy deploy thật**.
       ⚠️ Sửa `console/server.mjs` ⇒ drift **sẽ báo console lệch, và đó là ĐÚNG**. Deploy là việc
       của David.
 - [ ] **A15-2 — O1 thành MỘT cổng (`scripts/o1-kiem.mjs`)**
