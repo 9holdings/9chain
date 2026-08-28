@@ -8,6 +8,91 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 
 ---
 
+## 🔴 ĐỢT AUTOPILOT 15 (2026-08-28, chiều/tối) — ĐỘ BỀN trước GO/NO-GO `29/08`
+
+**Chạy KHÔNG có David, ~5 giờ.** Luật cứng + ranh giới: [`CLAUDE.md`](CLAUDE.md).
+Nguồn: bản phân tích `28/08` — mọi mốc dưới đây là **cổng**, không mốc nào là tính năng, và
+**không mốc nào chạm mạng đang chạy**.
+
+🔴 **Ranh giới cứng của đợt này** (ngoài `CLAUDE.md` §4):
+KHÔNG deploy · KHÔNG ghi lên server (SSH **chỉ đọc**) · KHÔNG gửi giao dịch · **KHÔNG đụng
+`patches/`** ⇒ tree giữ `074aaa93` / 24 patch · commit đường dẫn tường minh, không remote nên
+không push.
+
+- [ ] **A15-0 — `CLAUDE.md`: luật cứng ra khỏi tệp 2.023 dòng**
+      Luật cứng hiện nằm ở dòng ~229 của `HANDOFF.md`; mỗi phiên mới trả ~85K token để đọc lại.
+      **Điều kiện qua:** `CLAUDE.md` ≤120 dòng, đủ 4 luật cứng + lớp lỗi "đo sai đại lượng" +
+      danh sách cổng + ranh giới + định nghĩa "xong"; `HANDOFF.md` trỏ tới nó ở đầu tệp.
+- [ ] **A15-1 — 🔴 CỔNG BỘ ĐỊNH DANH XUYÊN NGÔN NGỮ (`A1Gen` Go ↔ `A1_GEN` JS)**
+      Đo `28/08`: `A1Gen` (Go, patch 0018) và `A1_GEN` ([`lib/chainid.mjs:25`](local-net/lib/chainid.mjs:25))
+      là **hai hằng số chép tay độc lập**, không cổng nào nối chúng. Và
+      `grep networkID local-net/console/server.mjs` ⇒ **0 kết quả**: console **chưa bao giờ hỏi
+      node nó đang nói chuyện với thế hệ nào**. Ngày G bump `0 → 1`; quên một bên thì console
+      cấp chainId từ khối của thế hệ khác, **im lặng**, vào một genesis bất biến.
+      **Hai vế:** (a) `check-consistency.mjs` đọc `A1Gen`/`A1ID`/`A1Name` **thẳng từ Go**
+      (đã có tiền lệ `SupplyCap`, dòng 55) và so với `A1_GEN`/`GOC_DAI_CHAINID`/`TRAN_DAI_CHAINID`;
+      (b) console lúc khởi động gọi `info.getNetworkID`, lệch ⇒ **fail-closed** `/api/create`.
+      **Điều kiện qua:** 3 ca ĐỎ — sửa JS ⇒ đỏ · sửa Go ⇒ đỏ · console trỏ networkID lạ ⇒ từ
+      chối đẻ chain, trỏ đúng ⇒ phục vụ bình thường.
+      ⚠️ Sửa `console/server.mjs` ⇒ drift **sẽ báo console lệch, và đó là ĐÚNG**. Deploy là việc
+      của David.
+- [ ] **A15-2 — O1 thành MỘT cổng (`scripts/o1-kiem.mjs`)**
+      D-090: `kiem-khoa` một mình chấm `6/6 ✓ exit 0` cho bộ khoá **đã chết**. Luật *"nhớ chạy
+      kèm `kiem-khoa-tren-chain.mjs`"* hiện chỉ sống trong đầu người đọc HANDOFF — đó là **quy
+      trình, không phải cổng**, và nó sai đúng lúc được dùng nhiều nhất (**B-16, David làm bản
+      sao thứ hai**).
+      **Điều kiện qua:** bộ g0 ⇒ exit 0 · bộ `9001` chết ⇒ exit 1 nêu đúng *"thuộc thế hệ đã
+      chết"* · **giấu phép đo trên chain đi ⇒ exit 2 "CHƯA KẾT LUẬN", tuyệt đối không xanh**
+      (ba mã thoát phân biệt *đúng* / *sai* / *không đo được*).
+      Kèm: cập nhật `docs/O1-CUSTODY-PHEP-KIEM.md` + `BLOCKERS.md` B-16 sang **một lệnh duy nhất**.
+- [ ] **A15-3 — drift gate thấy tệp THỪA (`--quet-thua`)**
+      Gotcha 14: cổng canh *"tệp trong danh sách có khớp không"*; tệp **xoá khỏi repo mà còn
+      trên server** thì không nhóm nào thấy. Đã cháy thật — genesis LOCAL của Avalanche
+      (khoá ewoq công khai) sống trên server sau khi repo xoá.
+      **Điều kiện qua:** hàm so sánh tách thuần, đối chứng bằng danh sách tổng hợp (tệp lạ ⇒ đỏ ·
+      đúng danh sách ⇒ xanh) + **một lượt chạy thật read-only** lên server. Không ghi một byte.
+- [ ] **A15-4 — O3b: kéo sổ THẬT về → dồn `chains` → `retired` (`scripts/dong-so-truoc-regenesis.mjs`)**
+      Lượt `26/08` reset sổ về `{chains:[],retired:[]}` ⇒ **mất 43 bản ghi chống phát lại**.
+      Và `sinh-chainid-da-cap.mjs` đọc **repo** ([dòng 23–24](scripts/sinh-chainid-da-cap.mjs:23))
+      trong khi sổ sống nằm trên **server** và bị `boQua` trong drift gate ⇒ **không ai canh
+      khoảng cách đó**.
+      **Điều kiện qua:** sổ rỗng ⇒ **từ chối** (rỗng ≡ hỏng) · JSON hỏng ⇒ từ chối · 2 chain sống
+      ⇒ ra tệp 0 sống / 2 `retired` có `thuHoiLuc`, và `sinh-chainid-da-cap --kiem` sau đó vẫn
+      xanh **với số mục TĂNG**.
+- [ ] **A15-5 — `scripts/canh-mang.mjs`: giám sát một lệnh**
+      HANDOFF tự khai số dư `chain-factory` **chưa có giám sát** (cạn ⇒ đẻ chain chết câm), và
+      B-12 (9 validator rụng dần trong cửa sổ 56 ngày, node cuối rụng là **mạng DỪNG**) đang chờ
+      một cái lịch không ai dựng.
+      Đo: networkID + tên (so `A1_GEN`) · 9/9 node · `supplyCap` đọc **trong container** · số dư
+      `chain-factory` · `platform.getCurrentValidators` → `endTime` sớm nhất + **số ngày còn lại**
+      · faucet `/api/supply` · console health · gọi drift.
+      **Điều kiện qua:** ra bảng số thật + ≥2 ca đỏ (RPC sai đường ⇒ **đỏ**, không phải xanh rỗng ·
+      hạ ngưỡng ngày hết hạn ⇒ cảnh báo nổ). Chỉ đọc. ⇒ biến B-12 từ *"David dựng lịch"* thành
+      *"máy tự nhắc"*, và trả lời `endTime` **bằng phép đo, không tính tay**.
+- [ ] **A15-6 — `scripts/ngay-g-preflight.mjs`: runbook chạy được**
+      Hôm nay runbook ngày G nằm rải ở 5 tệp tài liệu, không có gì chạy được. Gọi mọi cổng theo
+      **đúng thứ tự ngày G**, in bảng ĐẠT/ĐỎ/BỎ QUA, exit ≠0 nếu mục bắt buộc đỏ.
+      🔴 Mục **chưa tự động hoá được** (O2 công bố `sha256` ra chỗ NGOÀI · sinh token/khoá mới ·
+      build lại image 24 patch · `down -v`) phải in ra là **VIỆC TAY BẮT BUỘC** — không giả vờ xanh.
+      **Điều kiện qua:** 1 lượt chạy thật · làm hỏng 1 cổng con ⇒ preflight **đỏ và nêu đích danh**.
+- [ ] **A15-7 — *(nếu còn giờ)* HANDOFF gọn + bài đo lệch đồng hồ (B-13b)**
+      (a) `HANDOFF.md` ≤300 dòng, lịch sử sang `docs/archive/HANDOFF-2026-08.md` — **không mất
+      nội dung** (đối chứng: grep vài chuỗi mốc cũ vẫn tìm được).
+      (b) `scripts/do-lech-dong-ho.mjs` — viết TRƯỚC, chạy được SAU khi mạng g1 lên.
+      🔴 Bài phải **tự khai**: hôm nay 9 node **cùng một máy ⇒ lệch = 0**, và con số đó chỉ có
+      nghĩa **sau O4** (nhà cung cấp thứ hai). Đo lệch trên một đồng hồ duy nhất rồi khai "đã đo"
+      chính là *đo sai đại lượng*.
+
+**Điều kiện qua đợt 15:** ngày G có **một lệnh** để chạy, và mỗi cổng trong lệnh đó **đã từng
+được nhìn thấy lúc ĐỎ**.
+
+🔴 **Không thuộc đợt này — cần David, autopilot không đoán thay:** B-16 bản sao thứ hai (chặn
+GO/NO-GO `29/08`) · B-10 robots.txt ở dashboard Cloudflare · O4 tiền cho nhà cung cấp thứ hai ·
+ký SIWE cho phép kiểm đẻ chain đầu-cuối · gộp `web-home` → `main` · **và đường găng lớn nhất:
+C1 đóng băng byte cho chữ khắc (cơ chế 100%, nội dung 0%)**.
+
+---
+
 ## 🔴 ĐỢT AUTOPILOT 14 (2026-08-27) — 5 mốc đường găng ngày G
 
 Nguồn: `HANDOFF.md` §"Backlog autopilot" + `docs/NGAY-G-A1-CON-LAI.md` §9.
