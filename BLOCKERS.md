@@ -6,6 +6,36 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### ✅ B-17 — **ĐÃ ĐÓNG `2026-08-28`** — 6 tệp đã `shred -u -n 3`, đo trên SERVER
+
+**David duyệt trong phiên, A1 chạy.** Ba bước: liệt kê (đúng **6**, sổ đang chạy không lọt) →
+`shred -u -n 3` → đối chứng.
+
+| nghiệm thu | đo trên |
+|---|---|
+| `ls local-net/console/*.bak* 9chain-a1-config/*.bak*` ⇒ **0** | server |
+| `console-chains.json` (sổ đang chạy) **còn nguyên** 27 byte | server |
+| `server.mjs` 82.983 B · `index.html` 20.299 B **còn sống** | server |
+| `check-deploy-drift` mồ côi **7 → 1** (chỉ còn `faucet/package-lock.json`, LÀNH) | server |
+| `canh-mang` 9/9 xanh, console `/whoami` **200** | mạng công khai |
+
+🔴 **Lệnh soạn sẵn bản đầu sẽ XOÁ MẤT NỘI DUNG DUY NHẤT — hai lần, không phải một.**
+Xem **D-107** (sổ `console-chains.json.bak-1787728833`) và **D-107b** (hai tệp
+`*.bak-truoc-admin` **không trùng bất kỳ phiên bản git nào** trên cả 4 nhánh).
+Cả ba đã được lưu trữ + đối chiếu `sha256` hai đầu **trước** khi xoá:
+`docs/archive/console-chains-2026-08-26T0720Z.json` ·
+`docs/archive/console-truoc-admin-2026-08-24/`.
+
+⇒ **Luật rút ra, đắt và lặp lại hai lần trong một phiên:** *"đã có bản lưu rồi nên xoá được"*
+là một **PHÉP ĐO**, không phải một câu trấn an. Và **phạm vi của một lời trấn an hẹp hơn phạm
+vi của lệnh nó đi kèm** — D-098 kiểm ba sổ rồi viết một lệnh xoá **sáu** tệp.
+
+✅ Đã gỡ 4 mục hết đúng khỏi `thuaDaBiet` trong `manifest-deploy.json`, giữ mục `faucet/package-lock.json`,
+và thêm `_thuaDaXoa` dặn **đừng khai lại** — nếu chúng quay lại thì đó là **TIN**, cổng phải ĐỎ.
+
+<details>
+<summary>Nguyên văn lúc còn mở</summary>
+
 ### 🔴 B-17 — SÁU TỆP `.bak` TRÊN SERVER LÀ ĐƯỜNG LUI TRỎ VÀO QUYẾT ĐỊNH ĐÃ ĐÓNG (2026-08-28)
 
 Tìm thấy khi cổng `check-deploy-drift.mjs` lần đầu nhìn **hướng ngược** (D-098): quét tệp có
@@ -75,6 +105,8 @@ tệp trần là **SỔ ĐANG CHẠY của console**, xoá nó là mất danh b�
 `local-net/deploy/manifest-deploy.json` — **để lại mục khai cho một tệp đã xoá là đẻ ra một
 dòng khai không còn đúng**, và cổng sẽ im lặng bỏ qua tệp cùng tên nếu nó quay lại.
 *(Giữ nguyên mục `local-net/faucet/package-lock.json` — tệp đó **lành**, không xoá.)*
+
+</details>
 
 *(Mục thứ 7, `local-net/faucet/package-lock.json`, là **lành** — `npm install` trên server sinh
 ra. Giữ nguyên.)*

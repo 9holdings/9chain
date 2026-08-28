@@ -28,7 +28,14 @@ trong runbook ngày G. **Deploy là việc có người bấm — autopilot khô
 ```bash
 node scripts/o1-kiem.mjs <thư-mục-bản-sao>    # B-16 · exit 0 ĐẠT · 1 SAI · 2 CHƯA KẾT LUẬN
 ```
-- **B-17** — xoá 6 tệp `.bak` trên server (lệnh soạn sẵn trong `BLOCKERS.md`).
+🔴 **B-16 CHẶN Ở PHẦN CỨNG, KHÔNG Ở PHẦN MỀM:** máy dev đo `28/08` chỉ có **một ổ đĩa**
+(`C:`, 1.862 GB) — không USB, không ổ ngoài. *"Hai nơi khác nhau về vật lý"* **không thể tạo
+ra từ phần mềm**; `C:\PROJECTS\9Chain-backups\` cũng nằm trên `C:` nên **không tính**. David
+phải cắm một ổ vào, hoặc chỉ ra nơi bản thứ hai đang nằm.
+
+✅ **B-17 — ĐÃ ĐÓNG `28/08`**, A1 chạy sau khi David duyệt: 6 tệp `shred -u -n 3`, mồ côi
+**7 → 1**, console vẫn 200. 🔴 Lệnh soạn sẵn bản đầu **suýt xoá nội dung duy nhất HAI lần**
+(D-107 · D-107b) — đã lưu trữ + đối chiếu `sha256` hai đầu trước khi xoá.
 
 ⚠️ **Đừng cày tiếp trong phiên cũ.** Mọi thứ cần biết nằm ở `CLAUDE.md` (luật) ·
 `PROGRESS.md` đợt 15 (trạng thái) · `DECISIONS.md` D-093→D-103 (vì sao).

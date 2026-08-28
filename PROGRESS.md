@@ -61,6 +61,29 @@ rồi giao ba việc bật ra từ bản quét đó.
       Đã **bỏ lời hứa** thay vì cài — cổng *"đỏ nhưng không sao"* sẽ bị bỏ qua đúng lúc nó kêu
       thật (lý lẽ D-070). Mọi cổng trong preflight nay **đều bắt buộc**.
 
+- [x] **Q-4 — B-17 ĐÓNG: xoá 6 tệp `.bak` trên server** (D-107 · D-107b)
+      David duyệt trong phiên. Ba bước **liệt kê → xoá → đối chứng**, không phải một dòng.
+      ✅ **ĐẠT** — `ls *.bak*` ⇒ **0** · sổ đang chạy `console-chains.json` còn nguyên 27 byte ·
+      `server.mjs`/`index.html` còn sống · drift mồ côi **7 → 1** · `canh-mang` 9/9, console 200.
+      🔴 **Lệnh soạn sẵn của D-098 sẽ xoá mất NỘI DUNG DUY NHẤT — hai lần:**
+      (1) sổ `console-chains.json.bak-1787728833` (20.489 B) không có bản lưu nào trong repo,
+      dù D-098 khẳng định *"ba sổ đã có bản lưu trữ chính thức"*;
+      (2) `server.mjs.bak-truoc-admin` + `index.html.bak-truoc-admin` **không trùng bất kỳ phiên
+      bản git nào** trên cả 4 nhánh — thứ mà cả D-098 lẫn D-107 đều chưa kiểm, vì cả hai chỉ
+      nghĩ tới ba sổ danh bạ.
+      ✅ Cả ba đã lưu trữ + **đối chiếu `sha256` hai đầu TRƯỚC khi xoá**, và quét bí mật (0 kết
+      quả) trước khi cho vào git.
+      ⚠️ **Luật:** *"đã có bản lưu rồi nên xoá được"* là một **PHÉP ĐO**, không phải câu trấn an
+      — và **phạm vi của một lời trấn an hẹp hơn phạm vi của lệnh nó đi kèm**.
+      ✅ Gỡ 4 mục hết đúng khỏi `manifest-deploy.json`, thêm `_thuaDaXoa`: chúng quay lại thì
+      cổng phải **ĐỎ**, không im lặng bỏ qua.
+- [blocked] **Q-5 — B-16 bản sao thứ hai: CHẶN Ở PHẦN CỨNG**
+      Đo `28/08`: máy dev chỉ có **một ổ đĩa** (`C:`, 1.862 GB) — không USB, không ổ ngoài.
+      *"Hai nơi khác nhau về vật lý"* **không tạo ra được từ phần mềm**, và
+      `C:\PROJECTS\9Chain-backups\` cũng trên `C:` nên không tính. ⇒ Cần David cắm ổ vào hoặc
+      chỉ ra nơi bản thứ hai đang nằm. Phần A1 làm được đã xong: `o1-kiem.mjs` trên bộ **chính**
+      ⇒ **exit 0** (nó ĐÚNG là bộ của mạng đang chạy, 6/6 quỹ giữ tiền thật).
+
 **Số đo cuối phiên:** preflight **12/12 xanh, exit 0** (14 việc tay) · `canh-mang` 9/9 ·
 drift `19 khớp · 0 lệch · 0 thiếu` · `o1-kiem` trên bộ g0 **chính** ⇒ **exit 0** (nó ĐÚNG là bộ
 của mạng đang chạy) · `kiem-khoa-tren-chain --tu-kiem` 5/5 · `vi-qua-ham --kiem` 3/3 ·
