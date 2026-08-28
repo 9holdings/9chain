@@ -1,11 +1,12 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-28** (phiên tối `28/08` — **ĐỢT AUTOPILOT 15: 8/8 mốc ĐẠT** (`A15-0`…`A15-7`),
-toàn bộ là **độ bền**, không mốc nào là tính năng. Trước đó cùng ngày: O1 + M11.10 · nạp ví · 6 patch).
+Cập nhật: **2026-08-28** (phiên khuya `28/08` — quét toàn diện + **diễn tập build 24 patch ĐẠT**
+· B-17 đóng · B-10 đính chính. Trước đó cùng ngày: đợt autopilot 15 **8/8 mốc** (`A15-0`…`A15-7`)
+· O1 + M11.10 · nạp ví · 6 patch).
 
 > 🔴 **ĐỌC [`CLAUDE.md`](CLAUDE.md) TRƯỚC — đó là LUẬT.** Tệp này là **bàn giao**: dài, có lịch
 > sử, và phần lớn là số đo của các phiên trước. Mâu thuẫn thì `CLAUDE.md` thắng về **luật**,
-> `HANDOFF.md` thắng về **số đo**. Backlog đang chạy: [`PROGRESS.md`](PROGRESS.md) đợt 15.
+> `HANDOFF.md` thắng về **số đo**. Backlog: [`PROGRESS.md`](PROGRESS.md) — phiên quét lại + đợt 15.
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
@@ -13,32 +14,43 @@ toàn bộ là **độ bền**, không mốc nào là tính năng. Trước đó
 node scripts/ngay-g-preflight.mjs      # trạng thái toàn cục trong 1 lệnh (~90s)
 ```
 
-Đo `2026-08-28` cuối phiên: **12/12 cổng xanh** · sao lưu H-6b `20260828-043739` **28/28
-sha256**, clone ngược khớp ở cả hai nơi · console **đã deploy**, drift `19 khớp · 0 lệch · 0
-thiếu` · mạng g0 sống, 9 validator, B-12 còn **308 ngày**.
+**Trạng thái `2026-08-28` cuối phiên khuya:**
 
-🟡 **`28/08` khuya — preflight nay `11 đạt · 1 đỏ`, và cái đỏ là ĐÚNG:** `check-deploy-drift`
-báo `local-net/console/chainid-da-cap.json` **lệch** vì repo vừa sinh lại nó (D-107, thêm nguồn
-sổ thứ tư) còn server thì chưa. **Hành vi console KHÔNG đổi** — danh sách chặn vẫn **47 chainId
-· 53 tên**, chỉ thêm một dòng khai nguồn. Hết đỏ khi console được deploy; lượt deploy đó đã nằm
-trong runbook ngày G. **Deploy là việc có người bấm — autopilot không tự làm.**
+| | |
+|---|---|
+| preflight | **11 đạt · 1 đỏ** — cái đỏ là ĐÚNG, xem ngay dưới |
+| mạng g0 | sống · `999999999` · **9 validator** · 8 peer · B-12 còn **308 ngày** (`2027-07-02`) · factory **89,899 LOVE9** |
+| drift server | **18 khớp · 1 lệch · 0 thiếu · 0 mồ côi chưa khai** (mồ côi 7 → **1**, tệp lành) |
+| sao lưu H-6b | `20260828-043739` · 24 = 24 patch · **chậm 1 commit, chỉ tài liệu** |
+| cây fork | 24 patch → tree `074aaa93` ✓ tái lập được |
 
-🔴 **Hai việc chặn GO/NO-GO `2026-08-29`, chỉ David làm được:**
+🟡 **Cái ĐỎ duy nhất, và nó đỏ đúng:** `local-net/console/chainid-da-cap.json` lệch — repo sinh
+lại nó (D-107, thêm nguồn sổ thứ tư) còn server chưa. **Hành vi console KHÔNG đổi**: danh sách
+chặn vẫn **47 chainId · 53 tên**, chỉ thêm một dòng khai nguồn. Hết đỏ khi console được deploy
+— lượt đó đã nằm trong runbook ngày G. **Deploy là việc có người bấm.**
+
+### 🔴 Còn chặn GO/NO-GO `2026-08-29` — đúng MỘT việc, và nó chặn ở PHẦN CỨNG
 
 ```bash
 node scripts/o1-kiem.mjs <thư-mục-bản-sao>    # B-16 · exit 0 ĐẠT · 1 SAI · 2 CHƯA KẾT LUẬN
 ```
-🔴 **B-16 CHẶN Ở PHẦN CỨNG, KHÔNG Ở PHẦN MỀM:** máy dev đo `28/08` chỉ có **một ổ đĩa**
-(`C:`, 1.862 GB) — không USB, không ổ ngoài. *"Hai nơi khác nhau về vật lý"* **không thể tạo
-ra từ phần mềm**; `C:\PROJECTS\9Chain-backups\` cũng nằm trên `C:` nên **không tính**. David
-phải cắm một ổ vào, hoặc chỉ ra nơi bản thứ hai đang nằm.
 
-✅ **B-17 — ĐÃ ĐÓNG `28/08`**, A1 chạy sau khi David duyệt: 6 tệp `shred -u -n 3`, mồ côi
-**7 → 1**, console vẫn 200. 🔴 Lệnh soạn sẵn bản đầu **suýt xoá nội dung duy nhất HAI lần**
-(D-107 · D-107b) — đã lưu trữ + đối chiếu `sha256` hai đầu trước khi xoá.
+**B-16 — bản sao thứ hai của khoá quỹ.** Đo `28/08`: máy dev có **đúng một ổ đĩa**
+(`C:`, 1.862 GB) — không USB, không ổ ngoài. *"Hai nơi khác nhau về vật lý"* **không tạo ra
+được từ phần mềm**; `C:\PROJECTS\9Chain-backups\` cũng trên `C:` nên **không tính**.
+⇒ David cắm một ổ vào rồi cho ký tự ổ, **hoặc** chỉ ra nơi bản thứ hai đang nằm.
 
-⚠️ **Đừng cày tiếp trong phiên cũ.** Mọi thứ cần biết nằm ở `CLAUDE.md` (luật) ·
-`PROGRESS.md` đợt 15 (trạng thái) · `DECISIONS.md` D-093→D-103 (vì sao).
+Phần A1 làm được đã xong: `o1-kiem.mjs` trên bộ **chính** ⇒ **exit 0** — bộ ở
+`C:\Users\abc\9chain-a1-keys\g0\` **đúng là bộ của mạng đang chạy**, 6/6 quỹ giữ tiền thật.
+Dấu vân tay để đối chiếu bản sao: `keys.txt` **3.531 B** `e350727a…` · `allocation.md`
+**2.221 B** `654fb72e…` · `genesis.json` **7.753 B** `e1024eab…`.
+⏳ Bộ khoá này **bị vứt bỏ `2026-09-01`** ⇒ đây là cửa sổ diễn tập **rủi ro bằng không**.
+
+**Việc khác của David** (không chặn GO/NO-GO): O4 nhà cung cấp thứ hai (tiền) · ký SIWE cho
+phép kiểm đẻ chain đầu-cuối · gộp `web-home` → `main` · **byte chữ khắc** (D-104).
+
+⚠️ **Đừng cày tiếp trong phiên cũ.** Mọi thứ cần biết: `CLAUDE.md` (luật) · `PROGRESS.md`
+(trạng thái) · `DECISIONS.md` **D-093→D-107b** (vì sao).
 
 ---
 
@@ -204,6 +216,24 @@ Ba bản soát mới: `docs/SOAT-TOAN-DIEN-2026-08-27.md` (lớp vận hành) ·
 ---
 
 ## 🔴 GOTCHAS — thứ sẽ tốn giờ nếu không biết trước
+
+16. 🔴 **netgen ghi `image: 9chain-a1/node:dev` CẮM CỨNG vào compose nó sinh** — không biến
+    môi trường nào đổi được (đã đối chiếu cả 18 biến `env()` của netgen). Ngày G build image
+    mới rồi `up -d` mà quên sửa dòng đó ⇒ mạng lên bằng binary **18 patch**, **9/9 node xanh,
+    mọi cổng xanh**, và bí danh `LOVE9` không có trong binary ⇒ mọi ví X/C chết câm. Chưa vá
+    (sửa netgen = đụng `patches/`). ⇒ `grep image: <net>/docker-compose.multinode.yml` trước
+    khi `up`, và sau đó **đo BINARY** (`docker exec … --version`), đừng đo mạng. (D-105)
+17. 🔴 **"Đã có bản lưu rồi nên xoá được" là một PHÉP ĐO, không phải câu trấn an.** B-17 sai
+    **hai lần trong một phiên**: một sổ danh bạ 20 KB và **hai tệp mã** không trùng bất kỳ
+    phiên bản git nào — trong khi mục đó khẳng định xoá không mất gì. ⇒ Trước khi xoá bất cứ
+    thứ gì trên server: đối chiếu `sha256` **từng tệp một**, không kiểm *"nhóm tệp"*.
+    **Phạm vi của một lời trấn an hẹp hơn phạm vi của lệnh nó đi kèm.** (D-107 · D-107b)
+18. 🔴 **ĐỎ GIẢ — vế thứ ba của luật cứng #2.** Thấy cổng đỏ **chưa đủ**; phải kiểm nó đỏ
+    **VÌ ĐÚNG LÝ DO**. `kiem-robots` bản đầu đỏ ngay lần chạy đầu và cái đỏ đó bị đọc thành
+    *"cổng nhạy"* — thật ra nó chấm bằng **dòng đầu** `robots.txt` trong khi tưởng đang chấm
+    bằng **nội dung**. Cloudflare **chèn thêm**, không **thay** ⇒ B-10 chưa bao giờ là một lỗ.
+    Kèm: **đọc HẾT tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đã viết
+    sẵn phép đo đúng trong chú thích. (D-106b)
 
 1. **`net/` do container netgen sinh ⇒ thuộc `root`.** `sed` sửa `docker-compose.multinode.yml`
    **thất bại lặng lẽ** ⇒ mạng lên bằng image CŨ. `sudo chown -R ubuntu:ubuntu ~/9chain-a1/net`
