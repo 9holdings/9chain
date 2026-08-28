@@ -3532,3 +3532,115 @@ Toàn bộ phần lịch sử sang [`docs/archive/HANDOFF-lich-su-2026-08.md`](d
 
 ⚠️ **Không sửa nội dung lịch sử cho khớp hiện tại** — chúng **kể về quá khứ**; sửa cho gọn mắt
 là viết lại lịch sử (cùng lý lẽ đã dùng cho 80 chỗ dẫn tên miền cũ ở D-096).
+
+---
+
+## D-104 — C1 **ra khỏi tầm ngắm của A1**; chữ khắc là ĐẦU VÀO, không phải phụ thuộc (2026-08-28)
+
+**David chốt trực tiếp trong phiên `28/08`:** *"hai chain này song song, bạn hãy chỉ quan tâm
+tập trung A1, C1 tôi điều phối riêng."*
+
+Trước quyết định này, ba tệp sống của A1 đều khai C1 là **đường găng lớn nhất**:
+`HANDOFF.md` (*"ngoài tầm A1: chữ khắc chờ C1 đóng băng byte"*), `PROGRESS.md` (cuối đợt 15),
+`ngay-g-preflight.mjs` (việc tay *"chờ C1 đóng băng byte"*), và `NGAY-G-A1-CON-LAI.md` §8 xếp
+*"C1 chưa đóng băng byte kịp `28/08`"* là **rủi ro số 1**.
+
+⇒ **Đổi hình dạng, không đổi cơ chế.** A1 nhận **byte đã đóng băng như một đầu vào David cấp**:
+không theo dõi C1, không chờ C1, không xếp C1 vào bảng rủi ro của mình. Cơ chế khắc
+(patch 0010 + 0011, `A1_ENGRAVE*`) **đã xong 100% và vẫn phải giữ chạy được**.
+
+🔴 **Vế A1 KHÔNG được bỏ cùng với C1:** *hạn chót đầu vào phải tới*. Byte tới sau bước sinh
+genesis là **không khắc được nữa trong thế hệ đó** — genesis bất biến. Nên A1 vẫn phải khai
+một mốc, và mốc đó thuộc runbook ngày G, không thuộc lịch của C1.
+
+⚠️ **Đừng sửa hàng loạt các câu KỂ VỀ QUÁ KHỨ** có nhắc C1 (bảng so sánh M10.6, D-041 *"A1 làm
+chuẩn, C1 sửa theo"*, H-5). Chúng kể đúng chuyện đã xảy ra. Chỉ đổi câu nói **A1 đang chờ gì**.
+
+---
+
+## D-105 — Diễn tập `docker build` cây 24 patch: **ĐẠT**, và nó bắt hai lỗi công cụ (2026-08-28)
+
+**Vì sao chạy:** bản quét `28/08` đo được image node mới nhất (`9chain-a1/node:g0`) tạo lúc
+`27/08 18:56`, tức **chưa image nào từng được dựng từ cây 24 patch**. Lượt build đầu tiên của
+bộ patch đó bị xếp vào **đúng ngày G**, sau `down -v` — tức sau khi mạng cũ đã chết. Và bộ đó
+mang **patch 0019/0022** (bí danh `LOVE9`), thiếu là **mọi ví X/C chết câm**.
+
+**Cách chạy — không đụng gì đang sống:** tag riêng `9chain-a1/node:g1-dryrun` (không đè `g0`),
+mạng TẬP `NETWORK_ID=899999999`, cổng `9760`, không server, không giao dịch, không `patches/`.
+
+| Đo trên **node đang chạy** bằng image vừa build | |
+|---|---|
+| build | **exit 0** · `9chaingo/1.14.2 [… commit=9chain-a1-24patch-dryrun, go=1.25.10]` |
+| `supplyCap` (log **trong** container) | `7900000001000000000` — khớp Go, khớp mạng công khai |
+| `info.getNetworkID` · tên | `899999999` · `9chain-a1-tap-g0` |
+| `eth_chainId` | `0x218711a09` = **9000000009** |
+| **X-Chain `avm.getAssetDescription("LOVE9")`** | `LOVE9 Coin` · `LOVE9` · denom 9 ⇒ **0019/0022 CÓ trong binary** |
+| 🔴 **đối chứng ngược `("AVAX")`** | **ĐỎ và nói ra lý do**: *"…registered under the alias 'LOVE9', not 'AVAX'. This is deliberate, not a bug…"* |
+| cổng C-4 | nổ đúng: bản TẬP mang chainId THẬT ⇒ **cảnh báo lớn**, không im lặng |
+| cổng patch 0020 | `.env` sinh ra với `A1_API_BIND=127.0.0.1` · `A1_HTTP_ALLOWED_HOSTS=localhost,127.0.0.1` |
+
+🔴 **Lỗi 1 — `local-net/gen-network.sh` chuyển tiếp thiếu biến ⇒ đường sinh mạng ĐƯỢC GHI
+TRONG TÀI LIỆU chết ở MỌI lượt gọi.** Script liệt kê đúng 3 cờ `-e` (`A1_P2P_MODE`,
+`A1_IPV6_*`), trong khi patch 0020 (D-083) đã làm `NETWORK_ID` **bắt buộc**. Người dùng khai
+`NETWORK_ID` ở shell thì biến đó **không vào tới container** ⇒ `FATAL NETWORK_ID chưa đặt`,
+và thông báo nói về một biến người dùng **đã** đặt. **Cùng lớp lỗi D-095** (`console-deploy.sh`
+hỏng từ chính commit vá nó): danh sách nằm thẳng trong script thì thứ thêm sau đó lặng lẽ rơi
+ra ngoài. Đã vá: một mảng `A1_NETGEN_ENV` đủ **17 biến**, dựng cờ `-e` từ nó, và in
+`NETWORK_ID` ra trước khi chạy. Nghiệm thu: trước khi vá ⇒ `exit 1`; sau khi vá ⇒ sinh xong
+1 node, `exit 0`.
+
+🔴 **Lỗi 2 — netgen ghi `image: 9chain-a1/node:dev` CẮM CỨNG vào compose nó sinh ra.** Không
+có biến môi trường nào đổi được (đối chiếu toàn bộ `env("…")` của netgen: 18 biến, **không có
+biến ảnh**). Ngày G build image mới rồi `up -d` mà quên sửa dòng đó ⇒ mạng lên bằng
+**`:dev` (24/08, thời 18 patch)**, 9/9 node xanh, mọi cổng xanh — và bí danh `LOVE9` **không
+có trong binary**. Đây đúng lớp *"đo sai đại lượng"*: cổng đo mạng, không ai đo **binary nào
+đang chạy**. ⚠️ Mạng công khai hiện chạy `:g0` ⇒ dòng đó **đã bị sửa tay một lần** rồi.
+**Chưa vá** — sửa netgen là đụng `patches/` (luật cứng 3, phải sinh lại CẢ BỘ), bốn ngày trước
+ngày G không đáng. ⇒ Đưa thành **việc tay bắt buộc** trong preflight.
+
+⚠️ **Diễn tập này KHÔNG thay được lượt build ngày G.** Image `g1-dryrun` dựng ở `A1Gen 0`;
+ngày G bump `A1Gen 1` là **đổi binary** ⇒ vẫn phải build lại. Cái nó chứng minh là **đường
+build thông và bộ 24 patch nạp đúng thứ nó hứa** — chỉ vậy, và đó là đủ để bước này thôi là
+bước chưa ai đi.
+
+⚠️ Vật liệu tập còn lại trên máy dev: `local-net/net-dryrun/` (bộ khoá **vứt đi** của mạng
+`899999999`). Đã gitignore (`local-net/net-*/`), **chưa xoá được** trong phiên. Xoá tay —
+đừng để nó nằm cạnh các thư mục thật, đúng bẫy gotcha 13.
+
+---
+
+## D-106 — B-10 có cổng: `kiem-robots.mjs` chấm bằng NỘI DUNG (2026-08-28)
+
+B-10 mở từ `27/08` và tồn tại **chỉ như một dòng chữ trong `BLOCKERS.md`** — tức nó là *quy
+trình*, không phải *cổng*, và nó sai đúng lúc được cần: sau khi David tắt tính năng ở
+Cloudflare, không có gì nói cho ai biết là đã ăn hay chưa.
+
+Đây là **ca xanh giả sách giáo khoa** của repo, nên cổng cố tình chấm **ngược thang đo**:
+
+| tầng (`CLAUDE.md` §1) | đo được `28/08` | dùng để chấm? |
+|---|---|---|
+| mã HTTP | `200` | ❌ **không** — in ra kèm chú thích *"tầng yếu nhất"* |
+| `content-type` | `text/plain` | ❌ không |
+| **nội dung** | *"As a condition of accessing this website…"* | ✅ **đây là phép chấm** |
+| header tầng trước | `cf-cache-status: HIT` · `age 1153s` · `max-age=14400` | ✅ nói **vì sao** |
+
+🔴 **Đối chứng DƯƠNG là phần không được bỏ:** `/sitemap.xml` phải ra `DYNAMIC`. Thiếu nó thì
+một origin chết cũng cho ra cùng triệu chứng ở `/robots.txt`, và ta đi sửa nhầm chỗ — đúng
+bài học D-096 (*hai tên miền hỏng/sống khác nhau thì lỗi không nằm ở server*).
+
+⚠️ **Không đo được origin trực tiếp**: `curl --resolve` vào `139.99.145.13` trả **403 "máy chủ
+này chỉ phục vụ qua Cloudflare"** — bộ lọc `Host` của M11.10 đang làm đúng việc. Ghi lại đây
+để phiên sau **đừng nới cổng đó ra cho dễ kiểm**.
+
+**Nghiệm thu:** `--tu-kiem` **6/6 đúng mã thoát**, gồm ca *"200 + text/plain nhưng nội dung của
+Cloudflare"* ⇒ `1`, ca *"nội dung lạ không nhận ra của ai"* ⇒ **`2` CHƯA KẾT LUẬN** (không biết
+≠ đạt), ca *"robots thật nhưng sitemap cũng không tới origin"* ⇒ `0` **kèm lưu ý về cả zone**.
+Chạy thật trên sản phẩm ⇒ **`1`, đỏ**. ⇒ Cổng này **sinh ra đã ĐỎ**, thoả luật cứng #2 mà
+không phải dựng ca giả.
+
+🔴 **Kèm một lỗi bắt được lúc định nối vào preflight:** `ngay-g-preflight.mjs` khai trong chú
+thích một cờ `batBuoc` (*"sai nghĩa là đỏ vẫn không chặn"*) — **cờ đó chưa từng được cài**.
+Đã **bỏ lời hứa** thay vì cài nó: một cổng *"đỏ nhưng không sao"* sẽ bị bỏ qua đúng lúc nó kêu
+thật (lý lẽ D-070). ⇒ Mọi cổng trong preflight đều **bắt buộc**; cổng chưa đủ tư cách chặn
+ngày G thì để **ngoài** và ghi vào `CLAUDE.md` §3 — `kiem-robots` thuộc nhóm đó (mặt web,
+không chạm genesis).

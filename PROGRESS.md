@@ -8,6 +8,56 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 
 ---
 
+## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
+
+Không phải đợt autopilot. David yêu cầu **quét lại + phân tích chuyên sâu** trước GO/NO-GO,
+rồi giao ba việc bật ra từ bản quét đó.
+
+- [x] **Q-1 — 🔴 DIỄN TẬP `docker build` CÂY 24 PATCH** (D-105)
+      Bản quét đo được: image node mới nhất (`:g0`) tạo `27/08 18:56` ⇒ **chưa image nào từng
+      dựng từ cây 24 patch**, mà lượt đầu tiên bị xếp vào **đúng ngày G, sau `down -v`** — và
+      bộ đó mang patch 0019/0022 (`LOVE9`), thiếu là **mọi ví X/C chết câm**.
+      **Điều kiện qua:** build xong · boot thật · và **đo trên node đang chạy**, không đọc mã.
+      ✅ **ĐẠT.** Tag riêng `:g1-dryrun` (không đè `g0`), băng TẬP `899999999`, cổng 9760,
+      không server/không giao dịch/không `patches/`. Đo: `supplyCap 7900000001000000000` (log
+      **trong** container) · `9chain-a1-tap-g0` · `eth_chainId 0x218711a09` = **9000000009** ·
+      **`avm.getAssetDescription("LOVE9")` ⇒ `LOVE9 Coin` denom 9** · 🔴 **đối chứng ngược
+      `("AVAX")` ⇒ ĐỎ và NÓI RA LÝ DO**. Cổng C-4 nổ đúng (tập + chainId thật ⇒ cảnh báo lớn);
+      patch 0020 sinh `.env` với `A1_API_BIND=127.0.0.1`.
+      🔴 **Bắt hai lỗi công cụ, cả hai im lặng:** (1) `gen-network.sh` **không chuyển tiếp
+      `NETWORK_ID`** ⇒ đường sinh mạng trong tài liệu **chết ở mọi lượt gọi** từ patch 0020 —
+      cùng lớp D-095, **đã vá** (mảng `A1_NETGEN_ENV`, 17 biến; trước vá `exit 1`, sau vá
+      `exit 0`); (2) netgen ghi **`image: 9chain-a1/node:dev` cắm cứng**, không biến nào đổi
+      được ⇒ quên sửa là mạng lên bằng binary 18 patch **trong khi mọi cổng vẫn xanh** —
+      **chưa vá** (đụng netgen = đụng `patches/`), thành **việc tay** ở preflight.
+      ⚠️ Dựng ở `A1Gen 0` ⇒ **không thay được lượt build ngày G**.
+      ⚠️ `local-net/net-dryrun/` (khoá mạng tập, vứt đi) còn trên máy dev — **xoá tay**.
+- [x] **Q-2 — C1 ra khỏi tầm ngắm của A1** (D-104)
+      David chốt: *"hai chain này song song, C1 tôi điều phối riêng."* Trước đó 4 tệp sống của
+      A1 khai C1 là **đường găng lớn nhất**.
+      ✅ **ĐẠT** — đổi ở `HANDOFF.md`, `PROGRESS.md`, `ngay-g-preflight.mjs`. Chữ khắc nay là
+      **đầu vào David cấp**, không phải phụ thuộc. 🔴 Vế A1 **không** bỏ theo: byte tới **sau**
+      bước sinh genesis là không khắc được nữa ⇒ preflight nay hỏi byte **trước** khi chạy netgen.
+      ⚠️ Không sửa các câu **kể về quá khứ** có nhắc C1 (M10.6, D-041, H-5).
+- [x] **Q-3 — B-10 thành một cổng chấm bằng NỘI DUNG** (D-106) — `scripts/kiem-robots.mjs`
+      B-10 mở từ `27/08` nhưng chỉ tồn tại như **một dòng chữ** ⇒ quy trình, không phải cổng.
+      **Điều kiện qua:** chấm bằng nội dung (không bằng mã HTTP) · có **đối chứng dương**
+      `/sitemap.xml` · ba mã thoát phân biệt *đạt/sai/không biết*.
+      ✅ **ĐẠT** — `--tu-kiem` **6/6 đúng mã thoát**; chạy thật ⇒ **`1`, ĐỎ**. Cổng **sinh ra
+      đã đỏ**, thoả luật cứng #2 mà không cần ca giả. Đo `28/08`: `/robots.txt` `HIT · age
+      1153s · max-age=14400`, nội dung của **Cloudflare**; `/sitemap.xml` **DYNAMIC** ⇒ đường
+      tới origin vẫn thông, lỗi ở Cloudflare.
+      🔴 **Kèm:** `ngay-g-preflight.mjs` khai cờ `batBuoc` trong chú thích mà **chưa từng cài**.
+      Đã **bỏ lời hứa** thay vì cài — cổng *"đỏ nhưng không sao"* sẽ bị bỏ qua đúng lúc nó kêu
+      thật (lý lẽ D-070). Mọi cổng trong preflight nay **đều bắt buộc**.
+
+**Số đo cuối phiên:** preflight **12/12 xanh, exit 0** (14 việc tay) · `canh-mang` 9/9 ·
+drift `19 khớp · 0 lệch · 0 thiếu` · `o1-kiem` trên bộ g0 **chính** ⇒ **exit 0** (nó ĐÚNG là bộ
+của mạng đang chạy) · `kiem-khoa-tren-chain --tu-kiem` 5/5 · `vi-qua-ham --kiem` 3/3 ·
+`h6b --kiem` 24=24 patch (chậm 1 commit, chỉ tài liệu) · `kiem-robots` **ĐỎ, có chủ ý**.
+
+---
+
 ## 🔴 ĐỢT AUTOPILOT 15 (2026-08-28, chiều/tối) — ĐỘ BỀN trước GO/NO-GO `29/08`
 
 **Chạy KHÔNG có David, ~5 giờ.** Luật cứng + ranh giới: [`CLAUDE.md`](CLAUDE.md).
@@ -149,8 +199,12 @@ không push.
 
 🔴 **Không thuộc đợt này — cần David, autopilot không đoán thay:** B-16 bản sao thứ hai (chặn
 GO/NO-GO `29/08`) · B-10 robots.txt ở dashboard Cloudflare · O4 tiền cho nhà cung cấp thứ hai ·
-ký SIWE cho phép kiểm đẻ chain đầu-cuối · gộp `web-home` → `main` · **và đường găng lớn nhất:
-C1 đóng băng byte cho chữ khắc (cơ chế 100%, nội dung 0%)**.
+ký SIWE cho phép kiểm đẻ chain đầu-cuối · gộp `web-home` → `main`.
+
+⚫ **RA KHỎI TẦM NGẮM CỦA A1 (D-104, `28/08`):** nội dung chữ khắc. Hai chuỗi chạy **song
+song**; **David điều phối C1 riêng**. A1 nhận byte đã đóng băng như **đầu vào**, không theo
+dõi, không chờ, và **không xếp C1 vào bảng rủi ro của mình**. Việc còn lại của A1 ở vế này
+đúng một câu: **giữ cơ chế khắc chạy được, và khai rõ hạn chót đầu vào phải tới.**
 
 ---
 

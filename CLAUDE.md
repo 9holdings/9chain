@@ -53,7 +53,12 @@ node scripts/check-chainid.mjs               # tra sổ công khai chainid.netwo
 node scripts/kiem-khoa-tren-chain.mjs <thư-mục>/allocation.md   # khoá ↔ TIỀN THẬT
 node scripts/vi-qua-ham.mjs --kiem           # ví ký không chạm server (M11.10)
 bash scripts/h6b-sao-luu.sh --kiem           # bản sao lưu có dựng lại được mạng không
+node scripts/kiem-robots.mjs                 # B-10 · chấm bằng NỘI DUNG, không bằng mã HTTP
 ```
+
+⚠️ `ngay-g-preflight.mjs` gọi **12** cổng trên, **không** gọi ba cổng cuối (`vi-qua-ham`,
+`h6b-sao-luu`, `kiem-robots`) — hai cái đầu nằm trong nhóm VIỆC TAY của nó, cái cuối là mặt
+web nên không đủ tư cách chặn genesis. **Đỏ hôm nay là `kiem-robots` (B-10), có chủ ý.**
 
 ## 4. Ranh giới — thứ KHÔNG được tự làm
 

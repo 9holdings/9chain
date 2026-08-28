@@ -343,6 +343,31 @@ thật** = Cloudflare tự sinh phản hồi và **không hỏi origin**. Zone `
 Signals / robots.txt management). **Không sửa được từ mã nguồn hay từ Caddy** — đừng ngồi
 thử thêm một vòng route nữa. Tệp + route đã giữ nguyên, nó ăn ngay khi tính năng kia tắt.
 
+✅ **`28/08` — NAY CÓ CỔNG, và nó ĐANG ĐỎ** (`scripts/kiem-robots.mjs`, D-106):
+
+```bash
+node scripts/kiem-robots.mjs            # 0 ĐẠT · 1 SAI (Cloudflare đang che) · 2 CHƯA KẾT LUẬN
+node scripts/kiem-robots.mjs --tu-kiem  # 6/6 ca đối chứng
+```
+
+Cổng chấm bằng **NỘI DUNG**, không bằng mã HTTP, và kèm **đối chứng dương** `/sitemap.xml`
+— thiếu nó thì một origin chết cũng cho ra cùng triệu chứng và ta đi sửa nhầm chỗ.
+
+**Đo lại `28/08` (số tươi):**
+
+| | `cf-cache-status` | `age` | nội dung |
+|---|---|---|---|
+| `/sitemap.xml` | **DYNAMIC** | — | tới origin ✓ |
+| `/robots.txt` | **HIT** | 1153s | văn bản của Cloudflare 🔴 |
+
+⚠️ **Không đo được origin trực tiếp:** `curl --resolve … 139.99.145.13` trả **403 — "máy chủ
+này chỉ phục vụ qua Cloudflare"**. Đó là bộ lọc `Host` của M11.10 và nó **đang làm đúng việc**
+— đừng nới nó ra để kiểm cho tiện. Đối chứng dương `sitemap.xml` thay được vai trò đó.
+
+**Sửa xong thì:** cache Cloudflare `max-age=14400` (4 giờ) ⇒ **purge** `/robots.txt` trong
+dashboard hoặc chờ, rồi chạy lại cổng. Cổng ra `exit 0` mới được đánh dấu đóng — mục này
+chạm **đường sản phẩm**, nên nó phải có phép đo trên sản phẩm (`CLAUDE.md` §2).
+
 ⚠️ **Ca xanh giả sách giáo khoa:** `curl -o /dev/null -w '%{http_code}'` trả **200** và
 `content-type` cũng đúng **text/plain**. Chỉ đọc **nội dung** — hoặc đọc **header
 `cf-cache-status`** — mới thấy. Cảnh báo đã ghi vào chính `web/public/robots.txt` và
