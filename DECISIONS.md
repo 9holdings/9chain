@@ -3145,3 +3145,66 @@ phải đếm xem trong cùng file còn mấy chỗ nữa đang giữ bản ché
 **Nghiệm thu:** `bash -n` sạch · manifest cấp **15** tệp ⇒ chép 15, đối chiếu 15.
 ⚠️ Chưa chạy `console-deploy.sh` thật (đợt này **không deploy**) — vá này nghiệm thu ở mức đọc
 mã + cú pháp, và phải được nhìn thấy chạy thật ở lượt deploy kế tiếp.
+
+## D-095 — `console-deploy.sh` HỎNG TỪ CHÍNH COMMIT VÁ NÓ, và lượt deploy `28/08` là lần chạy trót lọt ĐẦU TIÊN
+
+**David yêu cầu deploy console `28/08`.** Bước đọc manifest chết ngay:
+
+```
+process.stdout.write((m.nhom.console.tep||[]).join('
+'))                                    ← xuống dòng THẬT nằm trong chuỗi JS
+SyntaxError: Invalid or unexpected token
+```
+
+`git show` xác nhận dòng đó vào repo ở **`a16c81c` — đúng commit của D-088**, tức bản vá sinh
+ra để đóng gốc rễ B-14 (*"console-deploy.sh liệt kê tệp thẳng trong script"*) **chưa từng chạy
+trót lọt một lần nào**. `lib/chainid.mjs` lên được server bằng đường **chép tay**, và vì kết quả
+cuối cùng đúng nên không ai phát hiện công cụ đã chết.
+
+🔴 **Luật cứng #2 nhìn ngược lại:** repo đòi *"mọi cổng mới phải được nhìn thấy lúc nó ĐỎ"*.
+Ca này cho thấy vế còn thiếu — **một cổng chưa ai thấy nó CHẠY XANH THẬT thì cũng chưa phải
+cổng.** D-088 nghiệm thu `check-deploy-drift.mjs` (đo lệch) rất kỹ mà không chạy `console-deploy.sh`
+(chép lên) lấy một lần.
+
+**Sửa:** in từng dòng bằng `forEach(f => console.log(f))` — không có xuống dòng nào nằm trong
+chuỗi JS nữa.
+
+**Kèm D-094 được nghiệm thu THẬT trong cùng lượt:** vòng đối chiếu nay đọc cùng `$TEP`, và
+script in `→ đối chiếu 15 tệp (bằng số tệp đã chép)`. Trước đó chép 15 / đối chiếu 9.
+
+### Nghiệm thu lượt deploy (chạy thật, `28/08`)
+
+| | |
+|---|---|
+| Bài kiểm trước khi chép | `siwe` · `auth-e2e` · `chainid` · **`thehe` (mới)** đều đạt |
+| Chép | **15 tệp** theo manifest |
+| Bài kiểm **trên server** | `21/21` + `32/32` |
+| Đối chiếu | **15/15 khớp** (lần đầu đủ số) |
+| Restart | console PID `3700068` → `3716315`, nghe 8091 sau **2s** |
+| Drift sau deploy | **19 khớp · 0 lệch · 0 thiếu** |
+| 🔴 Cổng thế hệ TRÊN SẢN PHẨM | console sống tự khai: `thế hệ : ✅ khớp node đang chạy — g0 · networkID 999999999 · "9chain-a1-g0"` |
+| Đường công khai | `a1.9chain.org/` **200** · `/console/` → 308 → `/create-chain/` **200, 39.050 byte** · `create` không token → **401 đúng câu** |
+
+⇒ **D-093 nay đã đóng ở CẢ HAI lớp**: repo (`check-consistency`) và **sản phẩm** (console sống
+đang hỏi node mỗi lượt). Không còn khoảng cách repo ↔ server nào trong phạm vi cổng canh.
+
+## D-096 — Tên miền sống là `a1.9chain.org`; `testnet-a1.9chain.org` trả 525 qua Cloudflare
+
+Trong lúc nghiệm thu deploy, đo `https://testnet-a1.9chain.org/console/` ⇒ **525** ở mọi đường,
+và tôi **suýt khai một sự cố không có thật**.
+
+**Đo tiếp mới ra sự thật:** origin `308` sang `https://a1.9chain.org/…` cho mọi đường; bắt tay
+TLS tới origin **thành công từ Internet** (308) và từ chính server (308); `rpc-a1.9chain.org`
+**vẫn phục vụ người dùng thật 200** qua cùng một Caddy; và **log Caddy 30 phút không có một
+request `testnet-a1` nào** — tức request chết **trước** khi tới origin. ⇒ Lỗi nằm ở cấu hình
+Cloudflare **của riêng tên miền cũ**, không ở server, và **không liên quan tới lượt deploy**.
+
+🔴 **Bài học, cùng họ với "đo sai đại lượng" nhưng ở một trục mới — ĐẠI LƯỢNG ĐÂY LÀ TÊN MIỀN.**
+Ba dấu hiệu tách "server hỏng" khỏi "tôi gõ nhầm địa chỉ", theo thứ tự rẻ dần:
+1. một tên miền khác trên **cùng máy** có sống không (`rpc-a1` ⇒ sống);
+2. request có **tới log của origin** không (⇒ không);
+3. bắt tay TLS **thẳng tới IP origin** có được không (⇒ được).
+
+⚠️ **Không đổi hàng loạt 80 chỗ dẫn tên cũ trong repo:** phần lớn nằm trong sổ lưu trữ và các
+quyết định cũ — chúng **kể về quá khứ**, và sửa chúng cho gọn mắt là viết lại lịch sử. Đã ghi
+bẫy vào `CLAUDE.md` §5 mục 9b thay vì `sed` cả repo.
