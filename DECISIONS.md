@@ -3379,3 +3379,57 @@ một lượt reset vừa xảy ra"*. Rỗng vừa là trạng thái hợp lệ 
 ⚠️ **Không ghi gì lên server** — công cụ chuẩn bị tệp ở máy dev; đưa lên là việc có người bấm.
 Đó cũng là lý do nó **không** tự chạy `sinh-chainid-da-cap.mjs`: hai việc đó phải là hai quyết
 định, vì việc thứ hai ghi vào một tệp đang được deploy.
+
+## D-100 — `canh-mang.mjs`: biến hai thứ "phải nhớ tự đo" thành một lệnh có mã thoát (2026-08-28)
+
+Tới `28/08`, hai thứ **có thể giết mạng** đang được canh bằng **trí nhớ**:
+
+| | Canh bằng gì trước đó | Hỏng thì sao |
+|---|---|---|
+| Số dư `chain-factory` | `HANDOFF.md` tự khai *"chưa có giám sát, phải nhớ tự đo"* | ví cạn ⇒ đẻ chain **chết câm** |
+| **B-12** hạn validator | `BLOCKERS.md`: *"cần David dựng lịch nhắc"* | 9 node rụng trong cửa sổ **56 ngày**; **node cuối rụng là mạng DỪNG** |
+
+Và ngày hết hạn **chỉ đọc được bằng phép đo** — `BLOCKERS.md` dặn thẳng *"đừng tính tay"*, vì
+mốc thật phụ thuộc `InitialStakeDurationOffset` (so le 7 ngày, **cố ý**) và giờ sinh genesis.
+
+### Ba mã thoát, cùng họ với `o1-kiem.mjs`
+
+`0` mọi mục đo được và đạt · `1` có mục ĐỎ · `2` có mục **không đo được**. Thứ tự phán xét:
+**ĐỎ trước, KHÔNG-ĐO-ĐƯỢC sau** — một mục hỏng đã biết quan trọng hơn một mục chưa biết.
+🔴 `do === 0` là **đo được**, không phải `null`: có ca đối chứng riêng, vì số dư 0 và
+"không hỏi được" là hai tình huống hoàn toàn khác nhau mà cùng trông như "không có số".
+
+### Chín mục — mỗi mục đo một đại lượng khác nhau
+
+Đáng chú ý ba mục **nối hai lớp**, tức chúng đo *quan hệ* chứ không đo *giá trị*:
+- **tên mạng / networkID ↔ `A1_GEN` của repo** — đưa cổng D-093 xuống lớp vận hành: giờ
+  chạy một lệnh là biết repo có còn nói cùng thế hệ với mạng không.
+- **`supplyCap` TRÊN NODE ĐANG CHẠY ↔ `SupplyCap` đọc thẳng từ Go** — đúng gotcha 4
+  (*"thứ đi vào genesis phải nghiệm thu trên node đang chạy"*), nay tự động.
+
+### Ngưỡng B-12 — và vì sao vàng ở 120 chứ không phải 30
+
+Node **đầu** rụng ở ~ngày 309, lúc đó 8 node còn chạy ⇒ có ~56 ngày để phản ứng. Vàng ở
+**120 ngày** để lời nhắc đến **trước** khi cần gấp; đỏ ở **45** vì gia hạn validator không
+phải việc làm trong một buổi chiều. *(Cảnh báo vàng **không** làm mã thoát thành 1 — một cổng
+đỏ vì một việc còn 4 tháng nữa sẽ bị học cách bỏ qua.)*
+
+### Nghiệm thu
+
+- **13/13 ca đối chứng ngược** (`--tu-kiem`): 6 ca chấm điểm + 7 ca ngưỡng B-12 (309 / 121 /
+  119 / 46 / 44 / 0 / **-5** ngày).
+- **Chạy thật trên mạng công khai: 9/9 mục xanh** — `9chain-a1-g0` · `999999999` · 9 validator ·
+  8 peer · hạn sớm nhất **308 ngày** (`2027-07-02`) · factory **89,899 LOVE9** ·
+  `supplyCap":7900000001000000000` đọc **trong container** khớp Go · faucet có số đo ·
+  console `/whoami` 200.
+- 🔴 **Hai đối chứng trên DỮ LIỆU THẬT, hai chiều hỏng khác nhau ⇒ hai mã khác nhau:**
+  RPC chết ⇒ **exit 2** (`KHÔNG ĐO ĐƯỢC`, không phải "đạt") · đặt `A1_GEN = 1` trong khi mạng
+  vẫn g0 ⇒ **exit 1** với hai dòng đỏ nêu đích danh cả hai số. Ca thứ hai chính là **kịch bản
+  ngày G nếu chỉ bump một bên**.
+
+### Phát hiện phụ
+
+Tài liệu (`HANDOFF.md`, `PROGRESS.md` M10.4) gọi endpoint tiến trình của console là
+`/api/tien-trinh`; **mã thật là `/api/progress`** (`server.mjs:1232`) và `console-deploy.sh`
+gọi đúng tên đó. Không gây hỏng — nhưng ai gõ theo tài liệu sẽ nhận 404 và dễ đọc thành
+"console hỏng". Bộ canh dùng `/whoami` (công khai, không cần token).
