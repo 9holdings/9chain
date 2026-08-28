@@ -67,12 +67,20 @@ không push.
       Kèm: Go bản địa **không** build được `kiem-khoa` (cần container `golang:1.25.10`, ~28s),
       và `spawnSync` né hẳn bẫy MSYS đổi `-w /src` thành `C:/Program Files/Git/src`.
       Kèm: cập nhật `docs/O1-CUSTODY-PHEP-KIEM.md` + `BLOCKERS.md` B-16 sang **một lệnh duy nhất**.
-- [ ] **A15-3 — drift gate thấy tệp THỪA (`--quet-thua`)**
+- [x] **A15-3 — drift gate thấy tệp THỪA (`--quet-thua`)**
       Gotcha 14: cổng canh *"tệp trong danh sách có khớp không"*; tệp **xoá khỏi repo mà còn
       trên server** thì không nhóm nào thấy. Đã cháy thật — genesis LOCAL của Avalanche
       (khoá ewoq công khai) sống trên server sau khi repo xoá.
       **Điều kiện qua:** hàm so sánh tách thuần, đối chứng bằng danh sách tổng hợp (tệp lạ ⇒ đỏ ·
       đúng danh sách ⇒ xanh) + **một lượt chạy thật read-only** lên server. Không ghi một byte.
+      ✅ **ĐẠT `28/08`** (D-098). Bật **mặc định**, không núp sau cờ. Tách "thừa" làm hai:
+      🔴 **MỒ CÔI** (không có trong repo) ⇒ đỏ · ℹ️ **ngoài tầm canh** (có trong repo, ngoài
+      manifest) ⇒ chỉ đếm. `null` ≠ `[]` — không quét được là *không biết*, có ca đối chứng riêng.
+      **6/6 ca tổng hợp** + chạy thật bắt **7 mồ côi** ngay lần đầu + đối chứng trên dữ liệu thật
+      (gỡ một mục khai ⇒ **đỏ, exit 1**).
+      🔴 **Đẻ ra B-17:** hai bản `.bak` của console trên server đo được **0** lần
+      `A1_DE_CHAIN_MO` (một bản còn **0** lần `siwe`) ⇒ khôi phục là mở lại D-087 và gỡ M4.1.
+      Cần **David** xoá.
 - [ ] **A15-4 — O3b: kéo sổ THẬT về → dồn `chains` → `retired` (`scripts/dong-so-truoc-regenesis.mjs`)**
       Lượt `26/08` reset sổ về `{chains:[],retired:[]}` ⇒ **mất 43 bản ghi chống phát lại**.
       Và `sinh-chainid-da-cap.mjs` đọc **repo** ([dòng 23–24](scripts/sinh-chainid-da-cap.mjs:23))

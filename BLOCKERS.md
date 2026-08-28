@@ -6,6 +6,40 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### 🔴 B-17 — SÁU TỆP `.bak` TRÊN SERVER LÀ ĐƯỜNG LUI TRỎ VÀO QUYẾT ĐỊNH ĐÃ ĐÓNG (2026-08-28)
+
+Tìm thấy khi cổng `check-deploy-drift.mjs` lần đầu nhìn **hướng ngược** (D-098): quét tệp có
+trên server mà **không có trong repo**. Cổng cũ mù hoàn toàn với lớp này — nó chỉ hỏi *"tệp
+trong danh sách có khớp không"*.
+
+| tệp trên server | đo được | nếu ai đó khôi phục nó |
+|---|---|---|
+| `local-net/console/server.mjs.bak-pre-D087-…` (27/08) | **0** lần `A1_DE_CHAIN_MO` | **mở lại đẻ chain** mà D-087 đã đóng — hứa với người lạ một thứ sắp bị xoá ngày G |
+| `local-net/console/server.mjs.bak-truoc-admin` (24/08) | **0** lần `A1_DE_CHAIN_MO` **và 0** lần `siwe` | mở đẻ chain **và** gỡ xác thực ví (M4.1/D-020): `admin` quay lại kiểu **gõ tay**, gõ nhầm một ký tự ⇒ chain vô chủ **vĩnh viễn** |
+| `local-net/console/index.html.bak-truoc-admin` | — | nửa giao diện của cùng đường lui hỏng |
+| `9chain-a1-config/console-chains.json.bak{,-1787728833,-pre-regenesis}` | 3 bản | danh bạ khai các chain **đã chết** là còn sống |
+
+⚠️ **Hôm nay chúng không phục vụ đường nào** — không phải lỗ đang chảy, mà là **bẫy nằm im**,
+đúng họ với `9chain-a1-config/genesis.json` của D-092b. Nguy hiểm của chúng nằm ở chỗ chúng
+được đặt tên như một **đường lui**: người xử lý sự cố lúc 2 giờ sáng sẽ `cp` một trong số đó
+lại, và bản họ khôi phục **mở toang thứ vừa được đóng có chủ ý**.
+
+🔴 **Cần David: xoá 6 tệp.** Autopilot không tự làm — ghi lên server là ranh giới cứng của đợt
+này, và xoá tệp trên máy chủ công khai là quyết định vận hành.
+
+```bash
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'cd ~/9chain-a1/src && shred -u   local-net/console/server.mjs.bak-pre-D087-* local-net/console/server.mjs.bak-truoc-admin   local-net/console/index.html.bak-truoc-admin 9chain-a1-config/console-chains.json.bak*'
+```
+
+⚠️ **Ba sổ danh bạ đã có bản lưu trữ chính thức trong repo** (`docs/archive/console-chains-*.json`)
+nên xoá không mất dữ liệu. Xoá xong thì gỡ 4 mục tương ứng khỏi `thuaDaBiet` trong
+`local-net/deploy/manifest-deploy.json` — **để lại mục khai cho một tệp đã xoá là đẻ ra một
+dòng khai không còn đúng**, và cổng sẽ im lặng bỏ qua tệp cùng tên nếu nó quay lại.
+
+*(Mục thứ 7, `local-net/faucet/package-lock.json`, là **lành** — `npm install` trên server sinh
+ra. Giữ nguyên.)*
+
+
 ### 🔴 B-16 — O1: BẢN SAO THỨ HAI CỦA KHOÁ QUỸ — **15 phút, chặn GO/NO-GO `29/08`**
 
 **Quy trình đầy đủ: [`docs/O1-CUSTODY-PHEP-KIEM.md`](docs/O1-CUSTODY-PHEP-KIEM.md).**
