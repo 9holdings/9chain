@@ -177,16 +177,29 @@ ra. Giữ nguyên.)*
 
 ### 🔴 B-16 — O1: BẢN SAO THỨ HAI CỦA KHOÁ QUỸ — **15 phút, chặn GO/NO-GO `29/08`**
 
-**Quy trình đầy đủ: [`docs/O1-CUSTODY-VERIFICATION.md`](docs/O1-CUSTODY-VERIFICATION.md).**
+**Phương tiện: MÁY TÍNH THỨ HAI — David chốt `2026-08-28`.**
+**Quy trình: [`docs/O1-SECOND-COPY-RUNBOOK.md`](docs/O1-SECOND-COPY-RUNBOOK.md)** (chép + đường
+chuyển + ba mức nghiệm thu) · phép kiểm gốc: [`docs/O1-CUSTODY-VERIFICATION.md`](docs/O1-CUSTODY-VERIFICATION.md).
 
 Đây **không phải quyết định** — David đã chốt sơ đồ ở D-044. Là **một phép kiểm chưa ai chạy**:
 *bản thứ hai có thật không, và khôi phục được không.*
 
-| Đo `2026-08-28` | |
+| Đo `2026-08-28` (lượt 2, sau khi vá cổng) | |
 |---|---|
-| Khoá g0 nằm ở | **đúng một ổ đĩa** — `C:\Users\abc\9chain-a1-keys\g0\` |
+| Khoá g0 nằm ở | **đúng một ổ đĩa** — `C:\Users\abc\9chain-a1-keys\g0\`. Đo lại cuối ngày: máy dev có **một ổ vật lý** (BIWIN M350 2TB → `C:`), **không** USB, **không** ổ ngoài |
 | Bộ đó có đúng là bộ của mạng đang chạy không | ✅ **6/6 quỹ giữ tiền thật trên g0** (D-090) — khoá 8.999.991 staked · 2.600.000.001 · 810tr × 2 · C@block0 1 tỷ + 99.999.999 |
-| Bản thứ hai | 🔴 **chưa ai xác nhận có** |
+| Bản gốc còn nguyên vẹn | ✅ vân tay khớp: `keys.txt` 3.531 B `e350727a…` · `allocation.md` 2.221 B `654fb72e…` · `genesis.json` 7.753 B `e1024eab…` |
+| Cổng nghiệm thu `o1-check.mjs` | ✅ **đã vá và chạy lại** — xem cảnh báo 🔴 ngay dưới. Trên bộ gốc ⇒ **exit 0** |
+| Bản thứ hai | 🔴 **chưa tồn tại** — chờ David chỉ máy đích |
+
+🔴 **CỔNG NÀY ĐÃ CHẾT TỪ SÁNG `28/08` VÀ NÓ ĐỎ NGƯỢC — đọc trước khi tin bất kỳ lượt chạy cũ
+nào** (D-116). Lượt đổi tên `kiem-khoa`→`check-keys` (patch 0025) không được nối vào
+`o1-check.mjs`, nên `go run` trỏ vào một gói **không tồn tại**, thoát `1`, và cổng in
+**`🔴 SAI — Bản sao này KHÔNG dùng được. Đừng cất nó làm bản O1`** cho **bộ khoá chính, hoàn
+toàn đúng**. Ai chạy nó trong khoảng đó và tin mặt chữ thì đã **vứt bỏ một bản sao lưu tốt**.
+Cùng lỗi, cùng gốc, nằm luôn trên **đường ký ví tiền thật**: `wallet-tunnel/enter.sh` khai nó
+thành *"khoá không suy ra địa chỉ tệp tự khai"*. **Cả hai đã vá**: công cụ phải **tự khai đã
+chạy** thì lời phán mới được tin; không có dấu đó ⇒ `2` CHƯA KẾT LUẬN, không phải `1`.
 
 🔴 **Cửa sổ diễn tập rủi ro BẰNG KHÔNG đang trôi qua:** bộ khoá này **bị vứt bỏ `01/09`**. Tập
 trên chính nó thì hỏng cũng không mất gì. Sau ngày G lại kẹt y cũ, và lúc đó khoá là thật.
@@ -204,8 +217,9 @@ Nó chạy **cả hai** vế và **chỉ thoát `0` khi cả hai xanh**. Ba mã 
 `2` **CHƯA KẾT LUẬN** (một vế không chạy được — *không biết* **không phải** *đạt*).
 
 Đã nghiệm thu trên **dữ liệu thật**: bộ `g0` đang sống ⇒ `0` · bộ `9001` đã chết ⇒ **`1`**
-(trong khi `kiem-khoa` một mình vẫn in `✓ 6/6 quỹ khôi phục đúng`) · giấu phép đo trên chain
-đi ⇒ **`2`, không xanh**. 6/6 ca đối chứng ngược đúng mã thoát.
+(trong khi `check-keys` một mình vẫn in `✓ 6/6 quỹ khôi phục đúng`) · giấu phép đo trên chain
+đi ⇒ **`2`, không xanh** · **gói công cụ không tồn tại ⇒ `2`, KHÔNG phải `1`** (ca mới của
+D-116). **7/7** ca đối chứng ngược đúng mã thoát, đo lại `28/08` cuối ngày.
 
 *(Hai lệnh rời vẫn dùng được khi muốn đọc kỹ từng vế:)*
 

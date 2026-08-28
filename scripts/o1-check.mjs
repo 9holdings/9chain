@@ -1,42 +1,64 @@
 #!/usr/bin/env node
 /**
- * o1-check.mjs — **MỘT lệnh cho O1**: bản sao khoá quỹ này có còn cứu được mạng đang chạy không.
+ * o1-check.mjs — **ONE command for O1**: can this copy of the fund key set still recover the
+ * network that is actually running?
  *
- * ═══ VÌ SAO GỘP HAI LỆNH LÀM MỘT ═══
+ * ═══ WHY TWO COMMANDS WERE MERGED INTO ONE ═══
  *
- * D-090 đã dựng đủ hai phép đo, và tài liệu đã dặn *"phải chạy CẢ HAI"*. Nhưng **một lời dặn
- * không phải một cổng** — nó chỉ có hiệu lực với người đọc đúng tài liệu, đúng hôm ấy, và
- * nhớ tới lệnh thứ hai sau khi lệnh thứ nhất vừa in một dòng xanh rất thuyết phục:
+ * D-090 built both measurements, and the docs said *"you must run BOTH"*. But **a reminder is
+ * not a gate** — it only works on a reader who opens the right document, on the right day, and
+ * still remembers the second command after the first one has just printed a very convincing
+ * green line:
  *
  *     ✓ 6/6 quỹ khôi phục đúng — mọi địa chỉ suy lại từ khoá đều khớp thứ tệp tự khai.
  *
- * Dòng đó là dòng `kiem-khoa` in ra cho bộ khoá **thế hệ 9001 ĐÃ CHẾT**, tiền của nó không
- * tồn tại ở đâu cả. Tình huống nguy hiểm nhất của O1 không phải "tệp hỏng" mà là **cất đúng
- * một bản, của thế hệ trước** — và trên chính con đường đó, phép đo còn thiếu là phép đo
- * người ta dễ quên nhất.
+ * That line is what `check-keys` prints for the **DEAD generation-9001 key set**, whose money
+ * does not exist anywhere. The dangerous O1 failure is not "corrupt file", it is **keeping
+ * exactly one copy, of the previous generation** — and on that exact path, the missing
+ * measurement is the one people forget.
  *
- * ⇒ Tệp này biến *"nhớ chạy cả hai"* từ **quy trình** thành **cổng**.
+ * ⇒ This file turns *"remember to run both"* from a **procedure** into a **gate**.
  *
- * ═══ BA MÃ THOÁT — VÀ VÌ SAO PHẢI LÀ BA ═══
+ * ═══ THREE EXIT CODES — AND WHY IT MUST BE THREE ═══
  *
- * | mã | nghĩa | khi nào |
+ * | code | meaning | when |
  * |---:|---|---|
- * | `0` | **ĐẠT** | cả hai vế chạy được **và** cả hai xanh |
- * | `1` | **SAI** | một vế chạy được và **báo đỏ** — bản sao này không dùng được |
- * | `2` | 🔴 **CHƯA KẾT LUẬN** | một vế **không chạy được** (thiếu tệp/thiếu docker/không tới được chain) |
+ * | `0` | **PASS** | both halves ran **and** both are green |
+ * | `1` | **FAIL** | a half ran and **reported red** — this copy is not usable |
+ * | `2` | 🔴 **INCONCLUSIVE** | a half **could not run** (missing file / no docker / chain unreachable) |
  *
- * Gộp `2` vào `1` thì "hỏng" nuốt mất "không biết", và người ta đi sửa nhầm thứ. Gộp `2` vào
- * `0` thì tệ hơn nhiều: **một bản sao chưa được kiểm sẽ được chấm là đã kiểm.** Đó đúng là
- * lớp lỗi cả D-090 lẫn tệp này sinh ra để chặn.
+ * Folding `2` into `1` lets "broken" swallow "don't know", and people go fix the wrong thing.
+ * Folding `2` into `0` is far worse: **an unverified copy gets scored as verified.** That is
+ * exactly the failure class both D-090 and this file exist to block.
  *
- * ⚠️ **Không đọc, không in, không gửi đi khoá riêng nào.** Vế 1 chạy trong container và chỉ
- * in **địa chỉ**; vế 2 chỉ đọc `allocation.md` (tệp tự khai là công khai được). Thư mục khoá
- * mount vào container ở chế độ **`:ro`**.
+ * ═══ 🔴 2026-08-28 — THIS GATE WAS DEAD, AND IT FAILED TOWARD "FAIL" ═══
  *
- * Dùng:
+ * The 2026-08-28 rename moved the Go tool from `9chain-a1-tools/kiem-khoa` to
+ * `9chain-a1-tools/check-keys` (patch 0025). This file kept calling the old path. `go run` on a
+ * missing package exits **1**, and half 1 scored that as **red**, so the gate printed:
+ *
+ *     🔴 FAIL — this copy is NOT usable for the running network. Do not keep it as the O1 copy.
+ *
+ * ...for the **primary, provably correct** key set. Read literally, that verdict tells David to
+ * throw away a good backup. Both directions of this mistake cost money; this one just costs it
+ * more quietly.
+ *
+ * Nothing caught it because `o1-check` is a MANUAL TASK in the preflight, not one of its gates,
+ * and because the self-test's most expensive case — *"dead generation ⇒ 1"* — **stayed green for
+ * the wrong reason**: it did exit 1, but from the broken tool path, never from the key set. A
+ * reverse-control case that passes for the wrong reason is not a control (hard rule #2, part 3).
+ *
+ * ⇒ Fix: half 1 may only return **FAIL** when the tool **proves it actually ran** (see
+ * `toolActuallyRan`). No proof of execution ⇒ **INCONCLUSIVE**, never FAIL, never PASS.
+ *
+ * ⚠️ **Reads, prints and transmits no private key.** Half 1 runs in a container and prints only
+ * **addresses**; half 2 reads only `allocation.md` (a file that is self-declared public). The key
+ * directory is mounted **`:ro`**.
+ *
+ * Usage:
  *   node scripts/o1-check.mjs C:/Users/abc/9chain-a1-keys/g0
- *   node scripts/o1-check.mjs <thư-mục> --rpc https://rpc-a1.9chain.org
- *   node scripts/o1-check.mjs --self-test     # đối chứng ngược — có ca PHẢI ra 1 và ca PHẢI ra 2
+ *   node scripts/o1-check.mjs <dir> --rpc https://rpc-a1.9chain.org
+ *   node scripts/o1-check.mjs --self-test     # reverse controls — includes cases that MUST be 1 and 2
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, copyFileSync, rmSync, mkdirSync } from "node:fs";
@@ -44,192 +66,227 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
-const lay = (co, mac) => {
-  const i = argv.indexOf(co);
-  return i >= 0 && argv[i + 1] ? argv[i + 1] : mac;
+const opt = (flag, fallback) => {
+  const i = argv.indexOf(flag);
+  return i >= 0 && argv[i + 1] ? argv[i + 1] : fallback;
 };
-const RPC = lay("--rpc", "https://rpc-a1.9chain.org");
-const DOCKER = lay("--docker", "docker");
-const ANH = lay("--image", "golang:1.25.10");
-const TU_KIEM = argv.includes("--self-test");
-const CO_CO = new Set(["--rpc", "--docker", "--image"]);
-const thuMuc = argv.find((a, i) => !a.startsWith("--") && !CO_CO.has(argv[i - 1]));
+const RPC = opt("--rpc", "https://rpc-a1.9chain.org");
+const DOCKER = opt("--docker", "docker");
+const IMAGE = opt("--image", "golang:1.25.10");
+// The Go tool's package path inside the fork. Overridable so the self-test can point it at a
+// package that does not exist and prove the "tool never ran" branch is live — the branch that
+// was missing on 2026-08-28. Renaming the tool again only needs this default changed.
+const TOOL = opt("--tool", "check-keys");
+const SELF_TEST = argv.includes("--self-test");
+const FLAGS_WITH_VALUE = new Set(["--rpc", "--docker", "--image", "--tool", "--live-set"]);
+const targetDir = argv.find((a, i) => !a.startsWith("--") && !FLAGS_WITH_VALUE.has(argv[i - 1]));
 
-const FORK = path.join(GOC, "upstream", "avalanchego");
-// Docker trên Windows nhận cả `C:\...` lẫn `C:/...`; chuẩn hoá về gạch chéo xuôi để
-// chuỗi mount không bao giờ mang ký tự thoát.
+const FORK = path.join(ROOT, "upstream", "avalanchego");
+// Docker on Windows accepts both `C:\...` and `C:/...`; normalise to forward slashes so the
+// mount string never carries an escape character.
 const mount = (p) => path.resolve(p).replace(/\\/g, "/");
 
-/** Kết quả một vế: chạy được không, và nếu chạy thì xanh hay đỏ. */
-const VE_DAT = "dat", VE_DO = "do", VE_KHONG_CHAY = "khong-chay";
+/** Result of one half: could it run at all, and if so is it green or red. */
+const HALF_PASS = "pass", HALF_FAIL = "fail", HALF_DID_NOT_RUN = "did-not-run";
 
 /**
- * VẾ 1 — khoá riêng có suy ra ĐÚNG những địa chỉ tệp tự khai không (`kiem-khoa`, patch 0023).
+ * 🔴 Proof that `check-keys` actually executed, rather than `go run` failing before reaching it.
  *
- * 🔴 Chạy qua `spawnSync` chứ không qua shell: trên Git Bash (Windows), MSYS đổi mọi đối số
- * bắt đầu bằng `/` thành đường dẫn Windows, nên `-w /src` biến thành
- * `C:/Program Files/Git/src` và docker từ chối. Đã dính `28/08`. `spawnSync` không đi qua
- * MSYS ⇒ lỗi đó không tồn tại ở đây.
+ * Both markers are printed by the tool itself and by nothing else on the path:
+ *   - `check-keys — <path>` is its header line, printed once parsing succeeds (main.go).
+ *   - `FATAL ` prefixes every one of its own red exits.
+ * A missing package, a compile error or a broken image produce neither, and those must be
+ * INCONCLUSIVE — we measured nothing.
+ *
+ * ⚠️ If the tool's output strings ever change, this returns false and the whole gate goes to
+ * exit 2 (never to a false green). The self-test case *"live g0 set ⇒ 0"* fails loudly the
+ * moment that happens, which is exactly how it should be found.
  */
-function veKhoaRaDiaChi(dirKhoa) {
+function toolActuallyRan(output) {
+  return /^check-keys — /m.test(output) || /^FATAL /m.test(output);
+}
+
+/**
+ * HALF 1 — do the private keys derive EXACTLY the addresses the file claims (`check-keys`,
+ * patch 0023, renamed by patch 0025).
+ *
+ * 🔴 Spawned via `spawnSync` rather than a shell: on Git Bash (Windows) MSYS rewrites every
+ * argument starting with `/` into a Windows path, so `-w /src` becomes
+ * `C:/Program Files/Git/src` and docker refuses. Hit on 2026-08-28. `spawnSync` does not go
+ * through MSYS, so that failure cannot occur here.
+ */
+function halfKeysToAddresses(keyDir) {
   if (!existsSync(FORK)) {
-    return { trangThai: VE_KHONG_CHAY, vi: `không thấy cây fork ở ${FORK}` };
+    return { state: HALF_DID_NOT_RUN, why: `fork tree not found at ${FORK}` };
   }
   const args = [
     "run", "--rm",
     "-v", `${mount(FORK)}:/src`,
-    "-v", `${mount(dirKhoa)}:/keys:ro`,
+    "-v", `${mount(keyDir)}:/keys:ro`,
     "-v", "9chain-gomod:/go/pkg/mod",
-    "-w", "/src", ANH,
-    "sh", "-c", "go run ./9chain-a1-tools/kiem-khoa -allocation /keys/allocation.md /keys/keys.txt",
+    "-w", "/src", IMAGE,
+    "sh", "-c", `go run ./9chain-a1-tools/${TOOL} -allocation /keys/allocation.md /keys/keys.txt`,
   ];
   const r = spawnSync(DOCKER, args, { encoding: "utf8", timeout: 180_000 });
-  const ra = `${r.stdout || ""}${r.stderr || ""}`.trim();
+  const output = `${r.stdout || ""}${r.stderr || ""}`.trim();
   if (r.error || r.status === null) {
-    return { trangThai: VE_KHONG_CHAY, vi: `không chạy được ${DOCKER}: ${r.error?.message || "hết giờ"}`, ra };
+    return { state: HALF_DID_NOT_RUN, why: `could not run ${DOCKER}: ${r.error?.message || "timed out"}`, output };
   }
-  // `kiem-khoa` dùng exit 2 cho lỗi CÁCH DÙNG (thiếu đối số, cờ đặt sai chỗ) — đó là
-  // "không đo được", không phải "đo ra sai". Giữ nguyên sự phân biệt đó thay vì gộp.
-  if (r.status === 2) return { trangThai: VE_KHONG_CHAY, vi: "kiem-khoa từ chối chạy (lỗi cách dùng)", ra };
-  if (r.status !== 0) return { trangThai: VE_DO, vi: `kiem-khoa báo ĐỎ (exit ${r.status})`, ra };
-  return { trangThai: VE_DAT, vi: "khoá riêng suy ra đúng mọi địa chỉ tệp tự khai", ra };
+  // `check-keys` uses exit 2 for USAGE errors (missing argument, flag in the wrong position) —
+  // that is "did not measure", not "measured and it is wrong". Keep the distinction.
+  if (r.status === 2) return { state: HALF_DID_NOT_RUN, why: `${TOOL} refused to run (usage error)`, output };
+  // 🔴 The 2026-08-28 hole: any non-zero exit was read as a verdict about the KEYS. It is only a
+  // verdict if the tool got far enough to print one.
+  if (!toolActuallyRan(output)) {
+    return {
+      state: HALF_DID_NOT_RUN,
+      why: `${TOOL} never ran (exit ${r.status}, no output of its own) — this says nothing about the keys`,
+      output,
+    };
+  }
+  if (r.status !== 0) return { state: HALF_FAIL, why: `${TOOL} reported RED (exit ${r.status})`, output };
+  return { state: HALF_PASS, why: "private keys derive every address the file claims", output };
 }
 
-/** VẾ 2 — những địa chỉ đó có giữ tiền thật trên MẠNG ĐANG CHẠY không (D-090). */
-function veDiaChiRaTien(fileAlloc) {
-  const bai = path.join(GOC, "scripts", "check-keys-on-chain.mjs");
-  if (!existsSync(bai)) {
-    return { trangThai: VE_KHONG_CHAY, vi: `thiếu ${bai} — KHÔNG được coi vế này là đã kiểm` };
+/** HALF 2 — do those addresses hold real money on the RUNNING network (D-090). */
+function halfAddressesToMoney(allocFile) {
+  const script = path.join(ROOT, "scripts", "check-keys-on-chain.mjs");
+  if (!existsSync(script)) {
+    return { state: HALF_DID_NOT_RUN, why: `missing ${script} — this half must NOT be counted as checked` };
   }
-  const r = spawnSync(process.execPath, [bai, fileAlloc, "--rpc", RPC], {
+  const r = spawnSync(process.execPath, [script, allocFile, "--rpc", RPC], {
     encoding: "utf8", timeout: 180_000,
   });
-  const ra = `${r.stdout || ""}${r.stderr || ""}`.trim();
+  const output = `${r.stdout || ""}${r.stderr || ""}`.trim();
   if (r.error || r.status === null) {
-    return { trangThai: VE_KHONG_CHAY, vi: `không chạy được phép đo trên chain: ${r.error?.message || "hết giờ"}`, ra };
+    return { state: HALF_DID_NOT_RUN, why: `could not run the on-chain measurement: ${r.error?.message || "timed out"}`, output };
   }
-  // Bài đó dùng exit 2 cho "không tới được chain / sổ không đọc được" — cũng là *không
-  // biết*, không phải *sai*.
-  if (r.status === 2) return { trangThai: VE_KHONG_CHAY, vi: "không đo được trên chain (RPC/tệp)", ra };
-  if (r.status !== 0) return { trangThai: VE_DO, vi: `địa chỉ KHÔNG khớp chain đang chạy (exit ${r.status})`, ra };
-  return { trangThai: VE_DAT, vi: "các địa chỉ đó giữ tiền thật trên chain đang chạy", ra };
+  // That script uses exit 2 for "chain unreachable / ledger unreadable" — also *don't know*,
+  // not *wrong*.
+  if (r.status === 2) return { state: HALF_DID_NOT_RUN, why: "could not measure on chain (RPC/file)", output };
+  if (r.status !== 0) return { state: HALF_FAIL, why: `addresses do NOT match the running chain (exit ${r.status})`, output };
+  return { state: HALF_PASS, why: "those addresses hold real money on the running chain", output };
 }
 
-function chay(dir, { im = false } = {}) {
-  const noi = (...a) => { if (!im) console.log(...a); };
+function run(dir, { quiet = false } = {}) {
+  const say = (...a) => { if (!quiet) console.log(...a); };
   const keys = path.join(dir, "keys.txt");
   const alloc = path.join(dir, "allocation.md");
 
-  noi(`\n══ O1 — bản sao khoá quỹ: ${dir} ══`);
-  if (!existsSync(dir)) return { ma: 2, vi: `thư mục không tồn tại: ${dir}` };
-  // Thiếu MỘT trong hai tệp là "chưa kết luận", không phải "sai": ta chưa đo được gì cả.
-  for (const [ten, p] of [["keys.txt", keys], ["allocation.md", alloc]]) {
-    if (!existsSync(p)) return { ma: 2, vi: `thiếu ${ten} trong ${dir} — chưa đo được gì` };
+  say(`\n══ O1 — fund key copy: ${dir} ══`);
+  if (!existsSync(dir)) return { code: 2, why: `directory does not exist: ${dir}` };
+  // Missing ONE of the two files is "inconclusive", not "wrong": nothing has been measured yet.
+  for (const [name, p] of [["keys.txt", keys], ["allocation.md", alloc]]) {
+    if (!existsSync(p)) return { code: 2, why: `${name} missing from ${dir} — nothing measured yet` };
   }
 
-  noi("\n── vế 1/2 · khoá riêng → địa chỉ  (kiem-khoa, trong container) ──");
-  const v1 = veKhoaRaDiaChi(dir);
-  noi(`  ${v1.trangThai === VE_DAT ? "✓" : "✗"} ${v1.vi}`);
-  if (!im && v1.ra) noi(v1.ra.split("\n").map((l) => `    │ ${l}`).join("\n"));
+  say(`\n── half 1/2 · private key → address  (${TOOL}, in a container) ──`);
+  const h1 = halfKeysToAddresses(dir);
+  say(`  ${h1.state === HALF_PASS ? "✓" : "✗"} ${h1.why}`);
+  if (!quiet && h1.output) say(h1.output.split("\n").map((l) => `    │ ${l}`).join("\n"));
 
-  noi("\n── vế 2/2 · địa chỉ → TIỀN THẬT trên chain đang chạy ──");
-  const v2 = veDiaChiRaTien(alloc);
-  noi(`  ${v2.trangThai === VE_DAT ? "✓" : "✗"} ${v2.vi}`);
-  if (!im && v2.ra) noi(v2.ra.split("\n").map((l) => `    │ ${l}`).join("\n"));
+  say("\n── half 2/2 · address → REAL MONEY on the running chain ──");
+  const h2 = halfAddressesToMoney(alloc);
+  say(`  ${h2.state === HALF_PASS ? "✓" : "✗"} ${h2.why}`);
+  if (!quiet && h2.output) say(h2.output.split("\n").map((l) => `    │ ${l}`).join("\n"));
 
-  // 🔴 THỨ TỰ PHÁN XÉT: "không chạy được" đứng TRƯỚC "sai". Một vế không đo được thì kết
-  // luận chung không thể là "đạt", kể cả khi vế kia xanh — và cũng không thể là "sai",
-  // vì ta chưa biết. Xếp sai thứ tự này là gộp *không biết* vào *biết*.
-  if (v1.trangThai === VE_KHONG_CHAY || v2.trangThai === VE_KHONG_CHAY) {
-    const ai = v1.trangThai === VE_KHONG_CHAY ? v1.vi : v2.vi;
-    return { ma: 2, vi: `chưa kết luận được — ${ai}` };
+  // 🔴 ORDER OF JUDGEMENT: "could not run" comes BEFORE "wrong". A half that could not measure
+  // cannot make the overall verdict "pass" even if the other half is green — and it cannot make
+  // it "fail" either, because we do not know. Getting this order wrong folds *don't know* into
+  // *know*.
+  if (h1.state === HALF_DID_NOT_RUN || h2.state === HALF_DID_NOT_RUN) {
+    const which = h1.state === HALF_DID_NOT_RUN ? h1.why : h2.why;
+    return { code: 2, why: `inconclusive — ${which}` };
   }
-  if (v1.trangThai === VE_DO || v2.trangThai === VE_DO) {
-    return { ma: 1, vi: v1.trangThai === VE_DO ? v1.vi : v2.vi };
+  if (h1.state === HALF_FAIL || h2.state === HALF_FAIL) {
+    return { code: 1, why: h1.state === HALF_FAIL ? h1.why : h2.why };
   }
-  return { ma: 0, vi: "cả hai vế xanh — bản sao này khôi phục được mạng đang chạy" };
+  return { code: 0, why: "both halves green — this copy can recover the running network" };
 }
 
-function inPhan({ ma, vi }) {
-  const bang = {
-    0: ["✅ ĐẠT", "Bộ khoá này suy ra đúng địa chỉ, VÀ những địa chỉ đó đang giữ tiền thật\n   trên mạng đang chạy. Vòng đã khép."],
-    1: ["🔴 SAI", "Bản sao này KHÔNG dùng được cho mạng đang chạy. Đừng cất nó làm bản O1."],
-    2: ["🟡 CHƯA KẾT LUẬN", "Một vế không chạy được ⇒ **không biết**, và *không biết* KHÔNG phải *đạt*.\n   Sửa nguyên nhân rồi chạy lại; đừng chấm O1 dựa trên lượt này."],
+function printVerdict({ code, why }) {
+  const table = {
+    0: ["✅ PASS", "This key set derives the right addresses, AND those addresses hold real money\n   on the running network. The loop is closed."],
+    1: ["🔴 FAIL", "This copy is NOT usable for the running network. Do not keep it as the O1 copy."],
+    2: ["🟡 INCONCLUSIVE", "A half could not run ⇒ **don't know**, and *don't know* is NOT *pass*.\n   Fix the cause and run again; do not score O1 from this run."],
   };
-  const [nhan, giai] = bang[ma];
-  console.log(`\n${nhan} — ${vi}\n   ${giai}`);
+  const [label, explanation] = table[code];
+  console.log(`\n${label} — ${why}\n   ${explanation}`);
 }
 
-// ═════ ĐỐI CHỨNG NGƯỢC ═════
-// Không có phần này thì "ĐẠT" có thể chỉ nghĩa là cổng không phân biệt được gì.
-function tuKiem() {
-  const tam = mkdtempSync(path.join(tmpdir(), "o1-"));
-  const boChet = path.join(GOC, "local-net", "net-public");
-  const boSong = lay("--live-set", "C:/Users/abc/9chain-a1-keys/g0");
-  // Thư mục rỗng: có thật nhưng KHÔNG có tệp nào ⇒ phải ra 2, không phải 0.
-  const rong = path.join(tam, "rong");
-  mkdirSync(rong, { recursive: true });
+// ═════ REVERSE CONTROLS ═════
+// Without these, "PASS" may only mean the gate cannot tell anything apart.
+function selfTest() {
+  const tmp = mkdtempSync(path.join(tmpdir(), "o1-"));
+  const deadSet = path.join(ROOT, "local-net", "net-public");
+  const liveSet = opt("--live-set", "C:/Users/abc/9chain-a1-keys/g0");
+  // Empty directory: real, but holds no file ⇒ must be 2, not 0.
+  const empty = path.join(tmp, "empty");
+  mkdirSync(empty, { recursive: true });
 
-  const ca = [
-    ["thư mục không tồn tại ⇒ 2", path.join(tam, "khong-co"), 2, {}],
-    ["thư mục RỖNG (có thật, không tệp nào) ⇒ 2", rong, 2, {}],
-    ["thiếu `check-keys-on-chain.mjs` ⇒ 2, KHÔNG được xanh", boSong, 2, { veHong: true }],
-    ["không gọi được docker ⇒ 2", boSong, 2, { docker: "docker-khong-ton-tai-o-day" }],
-    // 🔴 CA ĐẮT NHẤT — bộ khoá THẾ HỆ 9001 ĐÃ CHẾT, vẫn nằm trên máy dev.
-    // `kiem-khoa` một mình chấm nó 6/6 ✓ exit 0. Cổng gộp PHẢI ra 1.
-    ["🔴 bộ khoá thế hệ ĐÃ CHẾT ⇒ 1 (kiem-khoa một mình chấm 6/6 ✓)", boChet, 1, {}],
-    ["bộ khoá g0 ĐANG SỐNG ⇒ 0 (đối chứng: cổng không chặn bừa)", boSong, 0, {}],
+  const cases = [
+    ["directory does not exist ⇒ 2", path.join(tmp, "absent"), 2, {}],
+    ["EMPTY directory (real, no files) ⇒ 2", empty, 2, {}],
+    ["`check-keys-on-chain.mjs` missing ⇒ 2, must NOT be green", liveSet, 2, { breakHalf2: true }],
+    ["docker not callable ⇒ 2", liveSet, 2, { docker: "docker-that-does-not-exist" }],
+    // 🔴 THE 2026-08-28 REGRESSION, now a permanent control. Before the fix this returned 1:
+    // a broken tool path was read as a verdict about the keys, so a GOOD backup was scored
+    // "do not keep it". The keys here are the live ones — the only correct answer is 2.
+    ["🔴 tool package missing ⇒ 2, NOT 1 (broken tool ≠ bad keys)", liveSet, 2, { tool: "tool-that-does-not-exist" }],
+    // 🔴 THE MOST EXPENSIVE CASE — the DEAD generation-9001 key set, still on the dev machine.
+    // `check-keys` alone scores it 6/6 ✓ exit 0. The merged gate MUST return 1.
+    ["🔴 DEAD-generation key set ⇒ 1 (check-keys alone scores it 6/6 ✓)", deadSet, 1, {}],
+    ["live g0 key set ⇒ 0 (control: the gate does not block blindly)", liveSet, 0, {}],
   ];
 
-  let hong = 0;
-  console.log("\n══ ĐỐI CHỨNG NGƯỢC — mỗi ca phải ra ĐÚNG mã thoát đã nêu ══");
-  for (const [ten, dir, mongDoi, tuyChon] of ca) {
-    if (!existsSync(dir) && mongDoi !== 2) {
-      console.log(`  ⚠️  "${ten}" → BỎ QUA, không có ${dir} trên máy này`);
+  let broken = 0;
+  console.log("\n══ REVERSE CONTROLS — each case must produce EXACTLY the stated exit code ══");
+  for (const [name, dir, expected, options] of cases) {
+    if (!existsSync(dir) && expected !== 2) {
+      console.log(`  ⚠️  "${name}" → SKIPPED, no ${dir} on this machine`);
       continue;
     }
-    let ma;
-    if (tuyChon.veHong) {
-      // Giấu phép đo trên chain đi bằng cách trỏ bài sang đường không tồn tại — mô phỏng
-      // đúng kịch bản "người ta chỉ chạy kiem-khoa".
-      const goc = path.join(GOC, "scripts", "check-keys-on-chain.mjs");
-      const cat = `${goc}.tam-doi-chung`;
+    let code;
+    if (options.breakHalf2) {
+      // Hide the on-chain measurement by moving the script aside — this reproduces exactly the
+      // "someone only ran check-keys" scenario.
+      const src = path.join(ROOT, "scripts", "check-keys-on-chain.mjs");
+      const stash = `${src}.control-copy`;
       try {
-        copyFileSync(goc, cat); rmSync(goc);
-        ma = chay(dir, { im: true }).ma;
+        copyFileSync(src, stash); rmSync(src);
+        code = run(dir, { quiet: true }).code;
       } finally {
-        copyFileSync(cat, goc); rmSync(cat);
+        copyFileSync(stash, src); rmSync(stash);
       }
+    } else if (options.docker || options.tool) {
+      // Overrides that only take effect at startup have to be exercised in a child process.
+      const extra = options.docker ? ["--docker", options.docker] : ["--tool", options.tool];
+      const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url), dir, ...extra],
+        { encoding: "utf8", timeout: 180_000 });
+      code = r.status;
     } else {
-      const luuDocker = tuyChon.docker;
-      if (luuDocker) {
-        const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url), dir, "--docker", luuDocker],
-          { encoding: "utf8", timeout: 180_000 });
-        ma = r.status;
-      } else {
-        ma = chay(dir, { im: true }).ma;
-      }
+      code = run(dir, { quiet: true }).code;
     }
-    if (ma === mongDoi) console.log(`  ✓ "${ten}" → đúng, exit ${ma}`);
-    else { console.log(`  ✗ "${ten}" → SAI: mong ${mongDoi}, ra ${ma}`); hong++; }
+    if (code === expected) console.log(`  ✓ "${name}" → correct, exit ${code}`);
+    else { console.log(`  ✗ "${name}" → WRONG: expected ${expected}, got ${code}`); broken++; }
   }
-  try { rmSync(tam, { recursive: true, force: true }); } catch { /* kệ */ }
-  return hong;
+  try { rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ }
+  return broken;
 }
 
-if (TU_KIEM) {
-  const hong = tuKiem();
-  console.log(`\n${hong ? "✗" : "✅"} đối chứng ngược: ${hong} ca sai`);
-  process.exit(hong ? 1 : 0);
+if (SELF_TEST) {
+  const broken = selfTest();
+  console.log(`\n${broken ? "✗" : "✅"} reverse controls: ${broken} case(s) wrong`);
+  process.exit(broken ? 1 : 0);
 }
 
-if (!thuMuc) {
-  console.error("Dùng: node scripts/o1-check.mjs <thư-mục-chứa keys.txt + allocation.md>");
-  console.error("      node scripts/o1-check.mjs --self-test");
+if (!targetDir) {
+  console.error("Usage: node scripts/o1-check.mjs <dir containing keys.txt + allocation.md>");
+  console.error("       node scripts/o1-check.mjs --self-test");
   process.exit(2);
 }
-const kq = chay(thuMuc);
-inPhan(kq);
-process.exit(kq.ma);
+const result = run(targetDir);
+printVerdict(result);
+process.exit(result.code);

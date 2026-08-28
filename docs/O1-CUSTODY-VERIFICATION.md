@@ -50,7 +50,7 @@ nhưng `chain-factory-key.txt` **cùng thư mục** lại là khoá **g0 đang s
 
 | | Lệnh | Chứng minh |
 |---|---|---|
-| **1** | `kiem-khoa` | khoá riêng suy ra **đúng những địa chỉ** tệp tự khai |
+| **1** | `check-keys` | khoá riêng suy ra **đúng những địa chỉ** tệp tự khai |
 | **2** | `check-keys-on-chain.mjs` | những địa chỉ đó **giữ tiền thật trên mạng đang chạy** |
 
 Nối lại: **khoá riêng trong tay anh chi được tiền của mạng đang chạy.** Đó mới là thứ O1 hỏi.
@@ -97,7 +97,7 @@ xoá mất đúng thứ đang cần đo.
 ### Bước 2 — khoá có suy ra đúng địa chỉ không
 
 ```bash
-docker run --rm -v "C:/PROJECTS/9Chain-A1/upstream/avalanchego:/src" -v "D:/tam-o1:/keys:ro" -v 9chain-gomod:/go/pkg/mod -w /src golang:1.25.10 sh -c "go run ./9chain-a1-tools/kiem-khoa -allocation /keys/allocation.md /keys/keys.txt"
+docker run --rm -v "C:/PROJECTS/9Chain-A1/upstream/avalanchego:/src" -v "D:/tam-o1:/keys:ro" -v 9chain-gomod:/go/pkg/mod -w /src golang:1.25.10 sh -c "go run ./9chain-a1-tools/check-keys -allocation /keys/allocation.md /keys/keys.txt"
 ```
 
 **Đạt** = `✓ 6/6 quỹ khôi phục đúng` **và** `✓ đối chiếu chéo: 6 địa chỉ … đều có khoá`.

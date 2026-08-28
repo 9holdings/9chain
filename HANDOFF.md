@@ -64,10 +64,21 @@ sai số dư ví factory **lệch 1000 lần** vì đọc `90,008` kiểu `vi-VN
 node scripts/o1-check.mjs <thư-mục-bản-sao>    # B-16 · exit 0 ĐẠT · 1 SAI · 2 CHƯA KẾT LUẬN
 ```
 
+🔴 **CỔNG NÀY ĐÃ CHẾT SUỐT NGÀY `28/08`, VÀ NÓ ĐỎ NGƯỢC** (D-116). Lượt đổi tên
+`kiem-khoa`→`check-keys` không được nối vào `o1-check.mjs` ⇒ `go run` gói không tồn tại ⇒
+exit 1 ⇒ cổng in **`🔴 SAI — đừng cất nó làm bản O1`** cho bộ khoá **chính, hoàn toàn đúng**.
+Cùng lỗi nằm luôn trên **đường ký ví tiền thật** (`wallet-tunnel/enter.sh`), khai thành *"khoá
+không suy ra địa chỉ"*. **Cả hai đã vá + 7/7 đối chứng ngược.** Bài học: một **công cụ hỏng**
+không được phép thành một **phán quyết về khoá** — nay công cụ phải **tự khai đã chạy**.
+
 **B-16 — bản sao thứ hai của khoá quỹ.** Đo `28/08`: máy dev có **đúng một ổ đĩa**
 (`C:`, 1.862 GB) — không USB, không ổ ngoài. *"Hai nơi khác nhau về vật lý"* **không tạo ra
 được từ phần mềm**; `C:\PROJECTS\9Chain-backups\` cũng trên `C:` nên **không tính**.
-⇒ David cắm một ổ vào rồi cho ký tự ổ, **hoặc** chỉ ra nơi bản thứ hai đang nằm.
+✅ **Phương tiện David chốt `28/08`: MÁY TÍNH THỨ HAI.** Quy trình đầy đủ (đường chuyển được
+phép / bị cấm · ba mức nghiệm thu · đường lui khi máy đích không có Docker):
+[`docs/O1-SECOND-COPY-RUNBOOK.md`](docs/O1-SECOND-COPY-RUNBOOK.md).
+⇒ Còn lại: David chỉ **máy đích + thư mục**, rồi chạy nghiệm thu mức 1 + mức 2.
+Bản gốc đo lại cuối ngày **còn nguyên vẹn**, và `o1-check` trên nó ⇒ **exit 0**.
 
 Phần A1 làm được đã xong: `o1-check.mjs` trên bộ **chính** ⇒ **exit 0** — bộ ở
 `C:\Users\abc\9chain-a1-keys\g0\` **đúng là bộ của mạng đang chạy**, 6/6 quỹ giữ tiền thật.
@@ -330,7 +341,7 @@ docker rm -f 9chain-a1-vi-ham           # 🔴 xong việc là dừng NGAY — c
 # 🔴 O1 — bộ khoá quỹ có phải của MẠNG ĐANG CHẠY không (D-090). Chạy CẢ HAI, cùng thư mục:
 node scripts/check-keys-on-chain.mjs <thư-mục-khoá>/allocation.md
 node scripts/check-keys-on-chain.mjs --self-test     # 5 ca đối chứng ngược
-# kèm: kiem-khoa -allocation allocation.md keys.txt  (xem docs/O1-CUSTODY-VERIFICATION.md)
+# kèm: check-keys -allocation allocation.md keys.txt  (xem docs/O1-CUSTODY-VERIFICATION.md)
 
 # 🔴 Cổng canh khoảng cách REPO ↔ SERVER (D-088) — chạy TRƯỚC khi tin bất kỳ mục "ĐÃ ĐÓNG" nào
 node scripts/check-deploy-drift.mjs
