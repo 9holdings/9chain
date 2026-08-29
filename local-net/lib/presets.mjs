@@ -42,16 +42,16 @@ export const DIA_CHI = {
 export const PRESETS = [
   {
     id: "standard",
-    name: "Chuẩn",
-    desc: "EVM thường. Chủ chain nhận toàn bộ token genesis và quyền chỉnh phí.",
+    name: "Standard",
+    desc: "A plain EVM chain. The owner receives every genesis token and the right to change fees.",
     ap() { /* không thêm gì — đây là hình dạng nền */ },
   },
   {
     id: "zero-fee",
-    name: "Phí gần như bằng 0",
-    desc: "baseFee = 1 wei, giao dịch trả đúng sàn đó (một lượt chuyển tiền tốn " +
-          "0,000000000000021 LOVE9). Hợp cho game, thử nghiệm, chain nội bộ. " +
-          "Đổi lại gần như không có chi phí nào cản spam.",
+    name: "Near-zero fees",
+    desc: "baseFee = 1 wei, so a transaction pays exactly that floor (a transfer costs " +
+          "0.000000000000021 LOVE9). Good for games, experiments and internal chains. " +
+          "The trade-off: almost nothing stands in the way of spam.",
     ap(cfg) {
       // ═══ minBaseFee PHẢI LÀ 1, TUYỆT ĐỐI KHÔNG ĐƯỢC LÀ 0 ═══
       //
@@ -108,10 +108,10 @@ export const PRESETS = [
   },
   {
     id: "high-throughput",
-    name: "Thông lượng cao",
-    desc: "Gấp 5 lần số giao dịch mỗi block (gasLimit 60 triệu thay vì 12 triệu). " +
-          "Hợp cho game, sàn, thứ gì cần nhiều giao dịch nhỏ liên tục. " +
-          "Đổi lại block nặng hơn, và ai chạy node cho chain này cần máy khoẻ hơn.",
+    name: "High throughput",
+    desc: "Five times as many transactions per block (gasLimit 60 million instead of 12 million). " +
+          "Good for games, exchanges, anything with a steady stream of small transactions. " +
+          "The trade-off: heavier blocks, and whoever runs a node for this chain needs a stronger machine.",
     ap(cfg) {
       // ═══ VÌ SAO CÓ PRESET NÀY: TRẦN TPS LÀ THAM SỐ GENESIS, KHÔNG PHẢI PHẦN CỨNG ═══
       //
@@ -150,27 +150,27 @@ export const PRESETS = [
   },
   {
     id: "mintable",
-    name: "Tự in thêm token",
-    desc: "Chủ chain đúc thêm token bản địa bất cứ lúc nào qua precompile " +
-          DIA_CHI.nativeMinter + ". Nguồn cung KHÔNG cố định — người dùng chain này phải biết điều đó.",
+    name: "Mintable supply",
+    desc: "The owner can mint more native token at any time through precompile " +
+          DIA_CHI.nativeMinter + ". The supply is NOT fixed — anyone using this chain has to know that.",
     ap(cfg, admin) {
       cfg.contractNativeMinterConfig = { adminAddresses: [admin], blockTimestamp: 0 };
     },
   },
   {
     id: "owner-deploy-only",
-    name: "Chỉ chủ chain deploy được hợp đồng",
-    desc: "Người khác vẫn gửi giao dịch và dùng hợp đồng đã có, nhưng không tự deploy được. " +
-          "Chủ chain cấp quyền cho ai tuỳ ý qua precompile " + DIA_CHI.deployerAllowList + ".",
+    name: "Owner-only contract deployment",
+    desc: "Everyone else can still send transactions and use existing contracts, but cannot deploy their own. " +
+          "The owner grants that right to anyone through precompile " + DIA_CHI.deployerAllowList + ".",
     ap(cfg, admin) {
       cfg.contractDeployerAllowListConfig = { adminAddresses: [admin], blockTimestamp: 0 };
     },
   },
   {
     id: "permissioned",
-    name: "Chain kín (chỉ ai được duyệt mới giao dịch)",
-    desc: "Chỉ địa chỉ trong danh sách mới GỬI được giao dịch. Hợp cho chain nội bộ doanh nghiệp. " +
-          "⚠️ Đây là preset khắt khe nhất: ví lạ vào chain này sẽ không làm được gì cả.",
+    name: "Permissioned (approved senders only)",
+    desc: "Only listed addresses can SEND transactions. Suited to an internal company chain. " +
+          "⚠️ This is the strictest preset: an unknown wallet arriving here can do nothing at all.",
     ap(cfg, admin) {
       // Chủ chain BẮT BUỘC có mặt — xem luật cứng #2 ở đầu file.
       cfg.txAllowListConfig = { adminAddresses: [admin], blockTimestamp: 0 };

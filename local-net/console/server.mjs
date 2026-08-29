@@ -786,10 +786,14 @@ async function createChain({ name, chainId, admin, preset }) {
   // Đặt ở ĐẦU `createChain`, trước mọi phép kiểm khác: nó là câu trả lời rẻ nhất và không
   // phụ thuộc gì. `thuHoiChain` KHÔNG bị chặn — đóng cửa vào không được nhốt người đã ở trong.
   if (!DE_CHAIN_MO) {
+    // 🔴 NEVER name the environment variable in this sentence. It goes straight to a visitor's
+    //    browser: an internal operations hint on a public page is meaningless to the reader and
+    //    tells a stranger what the switch is called. How to open it belongs in the startup log
+    //    (operators only) and in `docs/`.
     throw new Error(
-      "Đẻ chain đang TẠM ĐÓNG. Mạng công khai sẽ được sinh lại vào ngày G (01/09) và mọi L1 " +
-      "người dùng sẽ biến mất theo — nên mở cửa lúc này là hứa một thứ chúng tôi biết chắc " +
-      "sẽ không giữ được. Cửa mở lại sau ngày G. (Vận hành: đặt A1_DE_CHAIN_MO=1.)");
+      "Chain creation is paused. The public network is being rebuilt on 2026-09-01 and every " +
+      "user L1 will be erased with it — opening the door now would be promising something we " +
+      "already know we cannot keep. It reopens after the rebuild.");
   }
 
   // Cổng thứ hai, ngay sau cổng rẻ nhất: console có đang đứng đúng thế hệ mạng
