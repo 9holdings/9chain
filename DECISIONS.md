@@ -4519,3 +4519,47 @@ khoá factory vẫn còn trong `net-public/` · **`check-key-leaks` ⇒ exit 0**
 cổng này ra đời (D-117), không còn khoá quỹ sống nào nằm ngoài nơi được phép.
 
 🟡 Còn 18 tệp giữ khoá **mạng diễn tập** rải trong cây tạm — báo mà không chặn, đúng thiết kế.
+
+## D-122 — Node thứ 10 vào THẲNG GENESIS ngày G, không stake sau (2026-08-29)
+
+David chốt. So với đường D-119 (stake sau):
+
+| | stake sau | vào genesis |
+|---|---|---|
+| tốn | 25.000 LOVE9 + 2 giao dịch | **0** |
+| phụ thuộc | ví ký được · P-Chain có tiền · RPC thông | **không gì** |
+| hỏng thì lộ lúc nào | **giữa ngày G**, lúc bận nhất | **ngay khi sinh mạng**, còn sửa được |
+| hạn validator | 14 ngày ⇒ lệch 9 node kia ⇒ B-12 đỏ | **cùng cửa sổ** |
+
+⇒ D-119 **không phí**: nó chứng minh đường stake chạy được cho **người ngoài thật**, và nay là
+**đường lui** nếu node10 lỡ chuyến genesis.
+
+Quy trình đầy đủ: [`docs/GDAY-NODE10-HETZNER.md`](docs/GDAY-NODE10-HETZNER.md). Đã đưa **3 việc
+tay** vào `gday-preflight.mjs` (14 → 17) — runbook là nơi người ta thực sự đọc, tài liệu là nơi
+người ta định đọc.
+
+🔴 **Bẫy tìm ra khi soạn, không phải khi chạy: xung đột cổng `9660`.** netgen publish API của
+**node2** ở `127.0.0.1:9660`; ở chế độ `ipv4port`, staking port của node *N* là
+`A1_STAKING_PORT_BASE + N - 1`, nên **node10 lấy đúng 9660**. Với `N=9` lỗi này **không tồn
+tại** (cao nhất 9659) ⇒ nó xuất hiện lần đầu **đúng vào ngày thêm node thứ mười**.
+⇒ Ngày G dùng `A1_STAKING_PORT_BASE=9700`. Không sửa netgen, không đụng `patches/`.
+
+**Hai điều node10 KHÔNG lấy từ compose netgen sinh** (nó ở máy khác, cả hai đều sai với nó):
+`--public-ip` phải là IP **của chính nó**, và `--bootstrap-ips` phải là địa chỉ **CÔNG KHAI** của
+beacon — không phải địa chỉ nội bộ mà netgen ghi (đúng cho node cùng máy, D-089).
+⚠️ **Xoá `--data-dir` cũ trước**: nó giữ DB `g0` **và một danh tính tự sinh**; để lại là node lên
+bằng nodeID cũ, không phải nodeID trong genesis — và mọi cổng vẫn xanh.
+
+⚠️ Binary trên Hetzner hiện là bản `A1Gen 0`. Bump lên 1 đổi networkID, tên mạng **và đường DB**
+⇒ **phải build lại**, đúng đường D-118 đã chạy.
+
+### Lượt này lại tự tạo ra một hồi quy — và cổng bắt được lần thứ hai trong ngày
+
+Thêm việc tay xong, `check-single-source` **đỏ**: hai chuỗi hướng dẫn chép cứng
+`139.99.145.13`. Cổng đúng — **một dòng runbook chép sai địa chỉ còn tệ hơn không có dòng nào**,
+vì người ta tin runbook. Đã `import { SSH_HOST }` từ `local-net/lib/server.mjs` và nối chuỗi.
+⚠️ Lần sửa đầu dùng `${SERVER_IP}` **trong chuỗi nháy kép** ⇒ in ra nguyên văn `${SERVER_IP}`.
+Cổng single-source **không bắt được** cái đó (nó tìm chuỗi IP, và chuỗi IP đã biến mất). Chỉ
+lộ ra vì đã **chạy thật và đọc dòng in ra** thay vì tin rằng sửa xong là đúng.
+
+**Số đo cuối:** preflight **15 đạt · 3 đỏ · 17 việc tay** — ba đỏ đều đã ghi sổ và đỏ đúng lý do.
