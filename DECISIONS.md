@@ -4500,3 +4500,22 @@ khi xong sẽ dạy người ta **lướt qua danh sách** — đúng cơ chế 
 **Ba đỏ còn lại, tất cả ĐỎ ĐÚNG LÝ DO:** `watch-network` (validator 10 · B-12 14 ngày — hệ quả
 D-119, và B-12 nay đo sai đại lượng, xem D-120) · `drift` (3 mồ côi `heartbeat-*` **không thuộc
 repo** — chưa rõ nguồn, A1 không đụng) · `net* directories` (**B-19**, việc của David).
+
+## D-121b — Dọn nốt hai thứ còn lại: cổng rò rỉ khoá nay XANH (2026-08-29)
+
+David duyệt xoá cả hai. Theo D-107, **chứng minh trước khi xoá**, không trấn an:
+
+| | đo được |
+|---|---|
+| `…\292d2448-…\scratchpad\verify1\console.env` (396 B, `24/08`) | khoá `A1_CLI_KEY` trong đó **trùng digest** với `net-public/chain-factory-key.txt` **và** `net-public-dead-720m/` ⇒ xoá không mất khoá. `A1_CONSOLE_TOKEN` là **token cũ đã vô hiệu** (D-092c). Các biến còn lại là cấu hình tái tạo được |
+| container `9chain-a1-xpwallet` (**354 lần restart** từ `24/08`) | image `golang`, 2 mount: volume `9chain-a1-gomod` (**cache dùng chung**) + bind nguồn fork chỉ đọc ⇒ **không có state riêng** |
+
+Xoá: `shred -u -n 3` cho tệp · `docker rm -f` **KHÔNG kèm `-v`** cho container — `-v` sẽ cuốn
+theo volume cache mà các công cụ khác đang dùng chung; xoá container không có nghĩa là xoá thứ
+nó mượn.
+
+**Đối chứng:** tệp biến mất · 0 instance container · volume `9chain-a1-gomod` **còn nguyên** ·
+khoá factory vẫn còn trong `net-public/` · **`check-key-leaks` ⇒ exit 0** — lần đầu kể từ khi
+cổng này ra đời (D-117), không còn khoá quỹ sống nào nằm ngoài nơi được phép.
+
+🟡 Còn 18 tệp giữ khoá **mạng diễn tập** rải trong cây tạm — báo mà không chặn, đúng thiết kế.
