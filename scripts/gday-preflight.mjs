@@ -111,7 +111,9 @@ const GATES = [
  */
 const MANUAL_TASKS = [
   ["BEFORE touching anything", "🔴 **B-16** — second copy of the fund key set: `node scripts/o1-check.mjs <dir>` must exit **0**. Blocks GO/NO-GO."],
-  ["BEFORE touching anything", "🔴 **B-18** — delete the 3 OLD filenames still on the server after the 2026-08-28 rename. Command in `BLOCKERS.md`."],
+  // B-18 closed 2026-08-29 (D-120): the three stale filenames were shredded after proving the
+  // renamed twins hold the same data (chainIds 47/47, names 53/53, taken 56/56). A manual task
+  // that stays on the list after it is done trains people to skim the list.
   ["BEFORE touching anything", "🔴 **B-19** — move `chain-factory-key.txt` (real money) out of the dead-generation directories BEFORE any cleanup. `node scripts/check-net-dirs.mjs`."],
   ["BEFORE `down -v`", "🔴 **O2** — run `node scripts/export-chain.mjs`, then **publish the sha256 SOMEWHERE ELSE** before deleting. That ordering IS the entire value of the procedure (the 2026-08-26 run missed it)."],
   ["BEFORE `down -v`", "🔴 **Chain directory** — `node scripts/close-ledger-before-regenesis.mjs --pull` then `--compact`; the new ledger must reach the server. Resetting it hands 43 names + chainIds back into circulation."],
