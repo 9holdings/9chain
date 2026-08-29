@@ -4296,3 +4296,45 @@ công khai** → `git checkout 1cf1fc3` → `git am --keep-cr` 25 patch → buil
 
 🔴 **Còn đúng một bước, và nó cần David bấm:** beacon trên server A1 chưa publish cổng P2P
 (mạng g0 sinh ở chế độ `A1_P2P_MODE=docker`). Xem `docs/TESTNET1-PUBLIC-2026-09-01.md` §P1.
+
+## D-118b — 🔴 P1-3 KHÔNG ĐẠT: một beacon công khai KHÔNG đủ cho node ngoài (2026-08-29)
+
+David duyệt mở P2P trên `g0`. Sửa **đúng 2 dòng** trong khối node-1 của compose
+(`--public-ip=172.28.0.11` → `139.99.145.13`, thêm publish `0.0.0.0:9651:9651`), recreate
+**chỉ node-1**. Backup: `docker-compose.multinode.yml.pre-p2p-20260829`.
+
+| đo | trước | sau |
+|---|---|---|
+| mesh nội bộ (node 1/2/5/9) | 8 peer mỗi node | **8 peer mỗi node** — không gãy ✓ |
+| validator | 9 | **9** ✓ |
+| `9651` từ Internet | đóng | **mở** ✓ (đối chứng `9652` vẫn đóng) |
+| node ngoài (Hetzner) | 0 peer | **1 peer** ✓ |
+
+⇒ Rủi ro hairpin mà D-089 cảnh báo **KHÔNG xảy ra** khi chỉ beacon đổi. Nhưng:
+
+🔴 **Điều kiện qua P1-3 THẤT BẠI, và nó thất bại vì KIẾN TRÚC, không vì cấu hình:**
+
+```
+node-1 (beacon)   9 peer   thấy node ngoài : CÓ
+node-2 / 5 / 9    8 peer   thấy node ngoài : KHÔNG
+node ngoài        1 peer   isBootstrapped(P) = false · healthy = false
+                           health liệt kê 8 nodeID trong "disconnectedValidators"
+```
+
+**Vòng luẩn quẩn, và không có đường ra bằng cấu hình:**
+1. 8 node kia khai `--public-ip=172.28.0.x` ⇒ node ngoài **không thể gọi tới** chúng.
+2. Chúng chỉ gọi RA node ngoài nếu biết địa chỉ nó — mà avalanchego gossip **IP của
+   VALIDATOR**, còn node ngoài chưa stake nên không nằm trong danh sách đó.
+3. Muốn stake thì node phải **bootstrap xong**; bootstrap đòi kết nối tới **đủ stake**, mà nó
+   chỉ với tới 1/9 validator (~11%). ⇒ quay lại (1).
+
+⇒ **Mô hình "1 beacon công khai + 8 node sau bridge nội bộ" không phục vụ được validator
+ngoài.** Nó đủ cho *"có RPC công khai"*, **không** đủ cho *"testnet công khai"* — đúng ranh
+giới đã ghi ở §4 điều 3 của `docs/TESTNET1-PUBLIC-2026-09-01.md`, nay có số đo đứng sau.
+
+**Đường ra — và nó KHÔNG bắt buộc phải đụng `patches/`:** mọi node phải đến được từ Internet.
+Trên bridge thì bất khả (hairpin, D-089 đã đo). Nhưng `network_mode: host` **bỏ NAT hoàn toàn**:
+mỗi node một `--staking-port` riêng, tất cả khai IP công khai, node cùng máy gọi nhau thẳng qua
+`127.0.0.1:965N`. Đó là **hậu xử lý compose**, không phải sửa netgen ⇒ không sinh lại patch.
+
+⏳ `g0` bị vứt bỏ `01/09` ⇒ đây vẫn là cửa sổ thử **rủi ro thấp nhất sẽ có**.
