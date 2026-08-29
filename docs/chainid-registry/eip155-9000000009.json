@@ -1,0 +1,26 @@
+{
+  "name": "9Chain A1 Testnet",
+  "chain": "9Chain",
+  "rpc": [
+    "https://rpc-a1.9chain.org/ext/bc/C/rpc"
+  ],
+  "faucets": [
+    "https://a1.9chain.org/faucet"
+  ],
+  "nativeCurrency": {
+    "name": "LOVE9",
+    "symbol": "LOVE9",
+    "decimals": 18
+  },
+  "infoURL": "https://a1.9chain.org",
+  "shortName": "a1love9",
+  "chainId": 9000000009,
+  "networkId": 9000000009,
+  "explorers": [
+    {
+      "name": "9Scan A1",
+      "url": "https://a1.9scan.org",
+      "standard": "EIP3091"
+    }
+  ]
+}
