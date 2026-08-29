@@ -192,6 +192,28 @@ export const pt: Tu = {
     khongDoMoTa: 'A página continua funcionando — isto é só o painel de estado.',
   },
 
+  loadTest: {
+    badge: 'Teste de carga',
+    banner: 'Estamos a executar um teste de carga público — {tps} transações por segundo, geradas por nós, não por utilizadores reais.',
+    bannerLink: 'Ver os números ao vivo',
+    title: 'Teste de carga público',
+    intro: 'A A1 é uma rede de teste jovem com muito poucos utilizadores reais, por isso, deixada sozinha, quase não produz blocos. Geramos um fluxo constante de transações para que a rede esteja continuamente em funcionamento e para que possa vê-la a trabalhar. Este tráfego é nosso. Não é utilização e não o contamos como tal — cada endereço que o envia está listado abaixo, para que o possa subtrair.',
+    running: 'A decorrer agora',
+    stopped: 'Não está a decorrer neste momento',
+    stoppedWhy: 'Motivo registado: {reason}',
+    labelTps: 'Transações por segundo',
+    labelBlockHeight: 'Bloco da C-Chain',
+    labelSecondsPerBlock: 'Segundos por bloco',
+    labelTotal: 'Transações confirmadas desde o início',
+    labelUptime: 'A funcionar há',
+    committedNote: 'Estes números são contados a partir dos próprios blocos, não daquilo que tentámos enviar. Uma transação que a rede aceitou mas nunca incluiu num bloco não é contada aqui.',
+    addressesTitle: 'Os nove endereços remetentes',
+    addressesNote: 'Cada transação destes endereços é gerada por uma máquina nossa. Filtre-os para ver a atividade real que exista.',
+    measuring: 'A ler o estado do teste de carga…',
+    notMeasured: 'Não foi possível ler o estado do teste de carga',
+    notMeasuredMore: 'A página continua funcionando — isto é só o painel de estado.',
+  },
+
   deChain: {
     tieuDe: 'Lance sua cadeia',
     moTa: 'Uma L1 dedicada, de propriedade da sua carteira. Você assina uma vez para provar quem é, revisa, e a rede constrói a cadeia em cerca de três minutos.',

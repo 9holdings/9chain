@@ -351,6 +351,28 @@ export const vi: Tu = {
     khongDoMoTa: 'Trang vẫn dùng được — đây chỉ là phần hiển thị tình trạng.',
   },
 
+  loadTest: {
+    badge: 'Bài bơm tải',
+    banner: 'Chúng tôi đang chạy một bài bơm tải công khai — {tps} giao dịch mỗi giây, do chúng tôi tự sinh ra, không phải người dùng thật.',
+    bannerLink: 'Xem số liệu đang chạy',
+    title: 'Bài bơm tải công khai',
+    intro: 'A1 là mạng thử nghiệm còn non, gần như chưa có người dùng thật, nên để yên thì nó hầu như không sinh block nào. Chúng tôi tự sinh một dòng giao dịch đều đặn để mạng luôn được vận hành và để bạn nhìn thấy nó đang chạy. Dòng giao dịch này là của chúng tôi. Nó không phải mức sử dụng, và chúng tôi cũng không tính nó là mức sử dụng — mọi địa chỉ gửi nó đều liệt kê bên dưới để bạn trừ ra được.',
+    running: 'Đang chạy',
+    stopped: 'Hiện không chạy',
+    stoppedWhy: 'Lý do đã ghi: {reason}',
+    labelTps: 'Giao dịch mỗi giây',
+    labelBlockHeight: 'Block C-Chain',
+    labelSecondsPerBlock: 'Số giây mỗi block',
+    labelTotal: 'Giao dịch đã chốt từ lúc bắt đầu',
+    labelUptime: 'Đã chạy được',
+    committedNote: 'Những con số này đếm từ chính các block, không phải từ số lượt chúng tôi gửi đi. Một giao dịch mạng đã nhận nhưng chưa bao giờ đưa vào block thì không được tính ở đây.',
+    addressesTitle: 'Chín địa chỉ gửi',
+    addressesNote: 'Mọi giao dịch từ những địa chỉ này đều do máy của chúng tôi sinh ra. Lọc chúng đi để thấy phần hoạt động thật, nếu có.',
+    measuring: 'Đang đọc trạng thái bài bơm tải…',
+    notMeasured: 'Không đọc được trạng thái bài bơm tải',
+    notMeasuredMore: 'Trang vẫn dùng được — đây chỉ là phần hiển thị tình trạng.',
+  },
+
   deChain: {
     tieuDe: 'Đẻ chain của bạn',
     moTa:

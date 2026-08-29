@@ -198,6 +198,28 @@ export const tr: Tu = {
     khongDoMoTa: 'Sayfa yine de çalışıyor — bu yalnızca durum göstergesi.',
   },
 
+  loadTest: {
+    badge: 'Yük testi',
+    banner: 'Herkese açık bir yük testi yürütüyoruz — saniyede {tps} işlem; bunları gerçek kullanıcılar değil, biz üretiyoruz.',
+    bannerLink: 'Canlı rakamları gör',
+    title: 'Herkese açık yük testi',
+    intro: 'A1, gerçek kullanıcısı çok az olan yeni bir test ağı; kendi haline bırakıldığında neredeyse hiç blok üretmiyor. Ağın sürekli çalışması ve sizin de çalışırken görebilmeniz için düzenli bir işlem akışı üretiyoruz. Bu trafik bize ait. Kullanım değildir ve kullanım olarak da saymıyoruz — gönderen her adres aşağıda listelenmiştir, böylece çıkarabilirsiniz.',
+    running: 'Şu anda çalışıyor',
+    stopped: 'Şu anda çalışmıyor',
+    stoppedWhy: 'Kaydedilen neden: {reason}',
+    labelTps: 'Saniyedeki işlem',
+    labelBlockHeight: 'C-Chain bloğu',
+    labelSecondsPerBlock: 'Blok başına saniye',
+    labelTotal: 'Başlangıçtan beri onaylanan işlemler',
+    labelUptime: 'Çalışma süresi',
+    committedNote: 'Bu rakamlar göndermeye çalıştıklarımızdan değil, blokların kendisinden sayılır. Ağın kabul ettiği ama hiçbir zaman bir bloğa almadığı bir işlem burada sayılmaz.',
+    addressesTitle: 'Dokuz gönderen adres',
+    addressesNote: 'Bu adreslerden gelen her işlem bizim makinemiz tarafından üretilmiştir. Gerçek etkinliği görmek için bunları ayıklayın.',
+    measuring: 'Yük testi durumu okunuyor…',
+    notMeasured: 'Yük testi durumu okunamadı',
+    notMeasuredMore: 'Sayfa yine de çalışıyor — bu yalnızca durum göstergesi.',
+  },
+
   deChain: {
     tieuDe: 'Zincirinizi başlatın',
     moTa:

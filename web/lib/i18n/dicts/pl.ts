@@ -199,6 +199,28 @@ export const pl: Tu = {
     khongDoMoTa: 'Strona nadal działa — to tylko wskaźnik stanu.',
   },
 
+  loadTest: {
+    badge: 'Test obciążeniowy',
+    banner: 'Prowadzimy publiczny test obciążeniowy — {tps} transakcji na sekundę, generowanych przez nas, a nie przez prawdziwych użytkowników.',
+    bannerLink: 'Zobacz dane na żywo',
+    title: 'Publiczny test obciążeniowy',
+    intro: 'A1 to młoda sieć testowa z bardzo niewielką liczbą prawdziwych użytkowników, więc pozostawiona sama sobie niemal nie tworzy bloków. Generujemy stały strumień transakcji, aby sieć nieprzerwanie pracowała i abyś mógł zobaczyć ją w działaniu. Ten ruch jest nasz. To nie jest użycie i nie liczymy go jako użycie — każdy adres, który go wysyła, jest wymieniony poniżej, żebyś mógł go odjąć.',
+    running: 'Działa teraz',
+    stopped: 'Obecnie nie działa',
+    stoppedWhy: 'Zapisany powód: {reason}',
+    labelTps: 'Transakcji na sekundę',
+    labelBlockHeight: 'Blok C-Chain',
+    labelSecondsPerBlock: 'Sekund na blok',
+    labelTotal: 'Potwierdzone transakcje od startu',
+    labelUptime: 'Działa od',
+    committedNote: 'Te liczby są liczone z samych bloków, a nie z tego, co próbowaliśmy wysłać. Transakcja przyjęta przez sieć, ale nigdy niewłączona do bloku, nie jest tu liczona.',
+    addressesTitle: 'Dziewięć adresów nadawczych',
+    addressesNote: 'Każda transakcja z tych adresów jest generowana maszynowo przez nas. Odfiltruj je, aby zobaczyć rzeczywistą aktywność.',
+    measuring: 'Odczyt stanu testu obciążeniowego…',
+    notMeasured: 'Nie udało się odczytać stanu testu obciążeniowego',
+    notMeasuredMore: 'Strona nadal działa — to tylko wskaźnik stanu.',
+  },
+
   deChain: {
     tieuDe: 'Uruchom swój łańcuch',
     moTa:

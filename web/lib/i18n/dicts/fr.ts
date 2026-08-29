@@ -195,6 +195,28 @@ export const fr: Tu = {
     khongDoMoTa: 'La page fonctionne toujours — ceci n’est que l’affichage de l’état.',
   },
 
+  loadTest: {
+    badge: 'Test de charge',
+    banner: 'Nous menons un test de charge public : {tps} transactions par seconde, générées par nous, pas par de vrais utilisateurs.',
+    bannerLink: 'Voir les chiffres en direct',
+    title: 'Test de charge public',
+    intro: 'A1 est un jeune réseau de test avec très peu d\'utilisateurs réels ; laissé seul, il ne produit presque aucun bloc. Nous générons un flux régulier de transactions pour que le réseau soit sollicité en continu et que vous puissiez le voir fonctionner. Ce trafic est le nôtre. Ce n\'est pas de l\'usage et nous ne le comptons pas comme tel : chaque adresse qui l\'émet est listée ci-dessous, pour que vous puissiez la soustraire.',
+    running: 'En cours',
+    stopped: 'Pas en cours actuellement',
+    stoppedWhy: 'Raison enregistrée : {reason}',
+    labelTps: 'Transactions par seconde',
+    labelBlockHeight: 'Bloc C-Chain',
+    labelSecondsPerBlock: 'Secondes par bloc',
+    labelTotal: 'Transactions confirmées depuis le début',
+    labelUptime: 'En marche depuis',
+    committedNote: 'Ces chiffres sont comptés à partir des blocs eux-mêmes, pas de ce que nous avons tenté d\'envoyer. Une transaction acceptée par le réseau mais jamais incluse dans un bloc n\'est pas comptée ici.',
+    addressesTitle: 'Les neuf adresses émettrices',
+    addressesNote: 'Chaque transaction issue de ces adresses est générée par une machine chez nous. Filtrez-les pour voir l\'activité réelle éventuelle.',
+    measuring: 'Lecture de l\'état du test de charge…',
+    notMeasured: 'Impossible de lire l\'état du test de charge',
+    notMeasuredMore: 'La page fonctionne toujours — ceci n’est que l’affichage de l’état.',
+  },
+
   deChain: {
     tieuDe: 'Lancez votre chaîne',
     moTa: 'Une L1 dédiée, détenue par votre portefeuille. Vous signez une fois pour prouver qui vous êtes, vous vérifiez, et le réseau construit la chaîne en trois minutes environ.',

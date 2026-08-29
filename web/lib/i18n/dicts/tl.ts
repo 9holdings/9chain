@@ -208,6 +208,28 @@ export const tl: Tu = {
     khongDoMoTa: 'Gumagana pa rin ang pahina — ito lang ang pagpapakita ng katayuan.',
   },
 
+  loadTest: {
+    badge: 'Pagsubok sa load',
+    banner: 'Nagpapatakbo kami ng pampublikong pagsubok sa load — {tps} transaksyon kada segundo, kami ang gumagawa nito, hindi tunay na gumagamit.',
+    bannerLink: 'Tingnan ang live na datos',
+    title: 'Pampublikong pagsubok sa load',
+    intro: 'Bata pa ang A1 bilang test network at napakakaunti ng tunay na gumagamit, kaya kung iiwan mag-isa, halos walang block na nabubuo. Gumagawa kami ng tuloy-tuloy na daloy ng transaksyon para patuloy na gumana ang network at makita ninyo itong gumagana. Amin ang trapikong ito. Hindi ito paggamit at hindi rin namin binibilang bilang paggamit — nakalista sa ibaba ang bawat address na nagpapadala nito para mabawas ninyo.',
+    running: 'Tumatakbo ngayon',
+    stopped: 'Hindi tumatakbo ngayon',
+    stoppedWhy: 'Naitalang dahilan: {reason}',
+    labelTps: 'Transaksyon kada segundo',
+    labelBlockHeight: 'Block ng C-Chain',
+    labelSecondsPerBlock: 'Segundo kada block',
+    labelTotal: 'Nakumpirmang transaksyon mula nang magsimula',
+    labelUptime: 'Tumatakbo nang',
+    committedNote: 'Mula mismo sa mga block binibilang ang mga numerong ito, hindi mula sa sinubukan naming ipadala. Ang transaksyong tinanggap ng network pero hindi kailanman isinama sa block ay hindi binibilang dito.',
+    addressesTitle: 'Ang siyam na address na nagpapadala',
+    addressesNote: 'Bawat transaksyon mula sa mga address na ito ay gawa ng makina namin. I-filter ang mga ito para makita ang tunay na aktibidad.',
+    measuring: 'Binabasa ang katayuan ng pagsubok sa load…',
+    notMeasured: 'Hindi mabasa ang katayuan ng pagsubok sa load',
+    notMeasuredMore: 'Gumagana pa rin ang pahina — ito lang ang pagpapakita ng katayuan.',
+  },
+
   deChain: {
     tieuDe: 'Ilunsad ang iyong chain',
     moTa:

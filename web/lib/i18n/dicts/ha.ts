@@ -203,6 +203,28 @@ export const ha: Tu = {
     khongDoMoTa: 'Shafin na ci gaba da aiki — wannan nuni na yanayi ne kawai.',
   },
 
+  loadTest: {
+    badge: 'Gwajin nauyi',
+    banner: 'Muna gudanar da gwajin nauyi a fili — ma’amaloli {tps} a cikin dakika, mu ne muka ƙirƙire su, ba masu amfani na gaskiya ba.',
+    bannerLink: 'Duba lambobin kai tsaye',
+    title: 'Gwajin nauyi a fili',
+    intro: 'A1 sabuwar hanyar sadarwa ce ta gwaji mai ƙalilan masu amfani na gaskiya, don haka idan aka bar ta kaɗai kusan ba ta samar da wani shingen bayanai. Muna ƙirƙirar ci gaba da ma’amaloli domin hanyar sadarwa ta ci gaba da aiki kuma ku iya ganin tana aiki. Wannan zirga-zirgar tamu ce. Ba amfani ba ne, kuma ba ma ƙidaya ta a matsayin amfani — kowane adireshi da ke aika ta yana ƙasa, domin ku iya cire shi.',
+    running: 'Yana gudana yanzu',
+    stopped: 'Ba ya gudana a yanzu',
+    stoppedWhy: 'Dalilin da aka rubuta: {reason}',
+    labelTps: 'Ma’amaloli a dakika',
+    labelBlockHeight: 'Shingen C-Chain',
+    labelSecondsPerBlock: 'Dakiku kowane shinge',
+    labelTotal: 'Ma’amalolin da aka tabbatar tun farawa',
+    labelUptime: 'Yana gudana tsawon',
+    committedNote: 'An ƙidaya waɗannan lambobi daga shingayen kansu, ba daga abin da muka yi ƙoƙarin aikawa ba. Ma’amalar da hanyar sadarwa ta karɓa amma ba a taɓa saka ta cikin shinge ba ba a ƙidaya ta a nan.',
+    addressesTitle: 'Adiresoshi tara masu aikawa',
+    addressesNote: 'Kowace ma’amala daga waɗannan adireshi na’urarmu ce ta ƙirƙira. Tace su domin ganin ainihin ayyukan da ake yi.',
+    measuring: 'Ana karanta halin gwajin nauyi…',
+    notMeasured: 'An kasa karanta halin gwajin nauyi',
+    notMeasuredMore: 'Shafin na ci gaba da aiki — wannan nuni na yanayi ne kawai.',
+  },
+
   deChain: {
     tieuDe: 'Ƙaddamar da sarƙarka',
     moTa:

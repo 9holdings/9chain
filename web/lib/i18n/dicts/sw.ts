@@ -200,6 +200,28 @@ export const sw: Tu = {
     khongDoMoTa: 'Ukurasa bado unafanya kazi — hii ni onyesho la hali tu.',
   },
 
+  loadTest: {
+    badge: 'Jaribio la mzigo',
+    banner: 'Tunaendesha jaribio la mzigo la hadharani — miamala {tps} kwa sekunde, iliyotengenezwa nasi, si watumiaji halisi.',
+    bannerLink: 'Tazama takwimu za moja kwa moja',
+    title: 'Jaribio la mzigo la hadharani',
+    intro: 'A1 ni mtandao mchanga wa majaribio wenye watumiaji halisi wachache sana, hivyo ukiachwa peke yake hautoi vitalu vyovyote karibu. Tunatengeneza mtiririko wa kudumu wa miamala ili mtandao ufanye kazi bila kukoma na uweze kuuona ukifanya kazi. Trafiki hii ni yetu. Si matumizi, na hatuihesabu kama matumizi — kila anwani inayoituma imeorodheshwa hapa chini ili uweze kuiondoa.',
+    running: 'Inaendeshwa sasa',
+    stopped: 'Haiendeshwi kwa sasa',
+    stoppedWhy: 'Sababu iliyorekodiwa: {reason}',
+    labelTps: 'Miamala kwa sekunde',
+    labelBlockHeight: 'Kitalu cha C-Chain',
+    labelSecondsPerBlock: 'Sekunde kwa kitalu',
+    labelTotal: 'Miamala iliyothibitishwa tangu kuanza',
+    labelUptime: 'Imeendeshwa kwa',
+    committedNote: 'Takwimu hizi zinahesabiwa kutoka kwenye vitalu vyenyewe, si kutoka kile tulichojaribu kutuma. Muamala ambao mtandao uliukubali lakini haukuuweka kwenye kitalu hauhesabiwi hapa.',
+    addressesTitle: 'Anwani tisa zinazotuma',
+    addressesNote: 'Kila muamala kutoka anwani hizi umetengenezwa na mashine yetu. Zichuje ili uone shughuli halisi zilizopo.',
+    measuring: 'Inasoma hali ya jaribio la mzigo…',
+    notMeasured: 'Imeshindwa kusoma hali ya jaribio la mzigo',
+    notMeasuredMore: 'Ukurasa bado unafanya kazi — hii ni onyesho la hali tu.',
+  },
+
   deChain: {
     tieuDe: 'Zindua mnyororo wako',
     moTa:

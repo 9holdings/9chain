@@ -204,6 +204,28 @@ export const it: Tu = {
     khongDoMoTa: 'La pagina funziona comunque — questo è solo il pannello di stato.',
   },
 
+  loadTest: {
+    badge: 'Test di carico',
+    banner: 'Stiamo eseguendo un test di carico pubblico — {tps} transazioni al secondo, generate da noi, non da utenti reali.',
+    bannerLink: 'Vedi i numeri in tempo reale',
+    title: 'Test di carico pubblico',
+    intro: 'A1 è una rete di test giovane con pochissimi utenti reali, quindi lasciata a sé stessa non produce quasi nessun blocco. Generiamo un flusso costante di transazioni perché la rete sia sempre in funzione e perché tu possa vederla lavorare. Questo traffico è nostro. Non è utilizzo e non lo conteggiamo come tale: ogni indirizzo che lo invia è elencato qui sotto, così puoi sottrarlo.',
+    running: 'In esecuzione',
+    stopped: 'Non in esecuzione al momento',
+    stoppedWhy: 'Motivo registrato: {reason}',
+    labelTps: 'Transazioni al secondo',
+    labelBlockHeight: 'Blocco C-Chain',
+    labelSecondsPerBlock: 'Secondi per blocco',
+    labelTotal: 'Transazioni confermate dall\'avvio',
+    labelUptime: 'In funzione da',
+    committedNote: 'Queste cifre sono contate dai blocchi stessi, non da ciò che abbiamo provato a inviare. Una transazione accettata dalla rete ma mai inclusa in un blocco non viene conteggiata qui.',
+    addressesTitle: 'I nove indirizzi mittenti',
+    addressesNote: 'Ogni transazione da questi indirizzi è generata da una nostra macchina. Filtrali per vedere l\'attività reale eventuale.',
+    measuring: 'Lettura dello stato del test di carico…',
+    notMeasured: 'Impossibile leggere lo stato del test di carico',
+    notMeasuredMore: 'La pagina funziona comunque — questo è solo il pannello di stato.',
+  },
+
   deChain: {
     tieuDe: 'Avvia la tua catena',
     moTa:

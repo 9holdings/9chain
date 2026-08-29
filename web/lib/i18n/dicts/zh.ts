@@ -172,6 +172,28 @@ export const zh: Tu = {
     khongDoMoTa: '页面仍可正常使用 —— 这里只是状态显示。',
   },
 
+  loadTest: {
+    badge: '压力测试',
+    banner: '我们正在进行公开压力测试 —— 每秒 {tps} 笔交易，由我们生成，并非真实用户。',
+    bannerLink: '查看实时数据',
+    title: '公开压力测试',
+    intro: 'A1 是一个新的测试网络，真实用户极少，若无人使用几乎不会产生区块。我们持续生成交易，让网络保持运转，也让你能看到它在工作。这些流量是我们自己制造的。它不是使用量，我们也不把它算作使用量 —— 下方列出了发送这些交易的全部地址，你可以把它们排除掉。',
+    running: '正在运行',
+    stopped: '当前未运行',
+    stoppedWhy: '记录的原因：{reason}',
+    labelTps: '每秒交易数',
+    labelBlockHeight: 'C 链区块',
+    labelSecondsPerBlock: '每个区块秒数',
+    labelTotal: '启动以来已确认的交易',
+    labelUptime: '已运行',
+    committedNote: '这些数字取自区块本身，而不是我们尝试发送的数量。网络已接受但从未打包进区块的交易不计入此处。',
+    addressesTitle: '九个发送地址',
+    addressesNote: '来自这些地址的每一笔交易都由我们用机器生成。把它们过滤掉，就能看到真实活动。',
+    measuring: '正在读取压力测试状态…',
+    notMeasured: '无法读取压力测试状态',
+    notMeasuredMore: '页面仍可正常使用 —— 这里只是状态显示。',
+  },
+
   deChain: {
     tieuDe: '启动您的链',
     moTa: '一条专属 L1，由您的钱包拥有。您签名一次以证明身份，确认后网络将在约三分钟内构建该链。',

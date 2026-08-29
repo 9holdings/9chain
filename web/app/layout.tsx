@@ -3,6 +3,7 @@ import { Sora, Instrument_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { SiteHeader } from '@/components/SiteHeader';
 import { ReGenesisBanner } from '@/components/ReGenesisBanner';
+import { LoadTestBanner } from '@/components/LoadTestBanner';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ThemeScript } from '@/components/ThemeScript';
 import { EN } from '@/lib/i18n/en';
@@ -116,6 +117,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               vẫn nhảy thẳng được vào nội dung, còn người đọc bằng mắt thì thấy nó
               trước mọi thứ khác. Gỡ dải này sau ngày G — xem chú thích trong file. */}
           <ReGenesisBanner />
+          {/* Dải bài bơm tải đứng SAU dải re-genesis: mất tiền vì mạng bị xoá là
+              tin quan trọng hơn "số liệu bạn đang nhìn là do chúng tôi tự sinh".
+              Dải này TỰ BIẾN MẤT khi bài bơm dừng — không phải việc tay như dải
+              trên; xem `components/LoadTestBanner.tsx`. */}
+          <LoadTestBanner />
           <SiteHeader />
           <main id="noi-dung" className="flex-1">
             {children}

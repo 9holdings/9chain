@@ -204,6 +204,28 @@ export const nl: Tu = {
     khongDoMoTa: 'De pagina werkt gewoon — dit is alleen de statusweergave.',
   },
 
+  loadTest: {
+    badge: 'Belastingtest',
+    banner: 'We voeren een openbare belastingtest uit — {tps} transacties per seconde, door ons gegenereerd, niet door echte gebruikers.',
+    bannerLink: 'Bekijk de live cijfers',
+    title: 'Openbare belastingtest',
+    intro: 'A1 is een jong testnetwerk met heel weinig echte gebruikers, dus vanzelf produceert het bijna geen blokken. Wij genereren een gestage stroom transacties zodat het netwerk voortdurend werkt en je het aan het werk kunt zien. Dit verkeer is van ons. Het is geen gebruik en we tellen het ook niet als gebruik — elk adres dat het verstuurt staat hieronder, zodat je het eraf kunt trekken.',
+    running: 'Draait nu',
+    stopped: 'Draait momenteel niet',
+    stoppedWhy: 'Vastgelegde reden: {reason}',
+    labelTps: 'Transacties per seconde',
+    labelBlockHeight: 'C-Chain-blok',
+    labelSecondsPerBlock: 'Seconden per blok',
+    labelTotal: 'Bevestigde transacties sinds de start',
+    labelUptime: 'Draait al',
+    committedNote: 'Deze cijfers worden geteld uit de blokken zelf, niet uit wat we probeerden te versturen. Een transactie die het netwerk accepteerde maar nooit in een blok opnam, telt hier niet mee.',
+    addressesTitle: 'De negen verzendende adressen',
+    addressesNote: 'Elke transactie van deze adressen wordt door een machine van ons gegenereerd. Filter ze eruit om te zien welke echte activiteit er is.',
+    measuring: 'Status van de belastingtest wordt gelezen…',
+    notMeasured: 'Status van de belastingtest kon niet worden gelezen',
+    notMeasuredMore: 'De pagina werkt gewoon — dit is alleen de statusweergave.',
+  },
+
   deChain: {
     tieuDe: 'Start je chain',
     moTa:

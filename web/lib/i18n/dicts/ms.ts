@@ -206,6 +206,28 @@ export const ms: Tu = {
     khongDoMoTa: 'Halaman ini masih berfungsi — ini hanyalah paparan status.',
   },
 
+  loadTest: {
+    badge: 'Ujian beban',
+    banner: 'Kami sedang menjalankan ujian beban awam — {tps} transaksi sesaat, dijana oleh kami, bukan pengguna sebenar.',
+    bannerLink: 'Lihat angka langsung',
+    title: 'Ujian beban awam',
+    intro: 'A1 ialah rangkaian ujian yang masih baharu dengan pengguna sebenar yang sangat sedikit, jadi jika dibiarkan ia hampir tidak menghasilkan blok. Kami menjana aliran transaksi yang tetap supaya rangkaian sentiasa bekerja dan anda dapat melihatnya berfungsi. Trafik ini milik kami. Ia bukan penggunaan dan kami tidak mengiranya sebagai penggunaan — setiap alamat yang menghantarnya disenaraikan di bawah supaya anda boleh menolaknya.',
+    running: 'Sedang berjalan',
+    stopped: 'Tidak berjalan buat masa ini',
+    stoppedWhy: 'Sebab yang direkodkan: {reason}',
+    labelTps: 'Transaksi sesaat',
+    labelBlockHeight: 'Blok C-Chain',
+    labelSecondsPerBlock: 'Saat setiap blok',
+    labelTotal: 'Transaksi disahkan sejak mula',
+    labelUptime: 'Berjalan selama',
+    committedNote: 'Angka ini dikira daripada blok itu sendiri, bukan daripada apa yang kami cuba hantar. Transaksi yang diterima rangkaian tetapi tidak pernah dimasukkan ke dalam blok tidak dikira di sini.',
+    addressesTitle: 'Sembilan alamat penghantar',
+    addressesNote: 'Setiap transaksi daripada alamat ini dijana mesin kami. Tapis keluar untuk melihat aktiviti sebenar yang ada.',
+    measuring: 'Membaca status ujian beban…',
+    notMeasured: 'Tidak dapat membaca status ujian beban',
+    notMeasuredMore: 'Halaman ini masih berfungsi — ini hanyalah paparan status.',
+  },
+
   deChain: {
     tieuDe: 'Lancarkan rantaian anda',
     moTa:

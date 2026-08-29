@@ -199,6 +199,28 @@ export const ko: Tu = {
     khongDoMoTa: '페이지는 정상 작동합니다 — 이것은 상태 표시일 뿐입니다.',
   },
 
+  loadTest: {
+    badge: '부하 테스트',
+    banner: '공개 부하 테스트를 진행 중입니다 — 초당 {tps}건의 거래로, 실제 사용자가 아니라 저희가 생성한 것입니다.',
+    bannerLink: '실시간 수치 보기',
+    title: '공개 부하 테스트',
+    intro: 'A1은 실제 사용자가 매우 적은 신생 테스트 네트워크여서, 그대로 두면 블록이 거의 생성되지 않습니다. 네트워크가 끊임없이 작동하고 그 모습을 보실 수 있도록 저희가 일정한 거래 흐름을 만들고 있습니다. 이 트래픽은 저희 것입니다. 이는 사용량이 아니며 저희도 사용량으로 집계하지 않습니다 — 이를 보내는 모든 주소를 아래에 공개하니 빼고 보실 수 있습니다.',
+    running: '실행 중',
+    stopped: '현재 실행 중이 아님',
+    stoppedWhy: '기록된 사유: {reason}',
+    labelTps: '초당 거래 수',
+    labelBlockHeight: 'C-Chain 블록',
+    labelSecondsPerBlock: '블록당 초',
+    labelTotal: '시작 이후 확정된 거래',
+    labelUptime: '실행 시간',
+    committedNote: '이 수치는 저희가 보내려 한 건수가 아니라 블록 자체에서 집계한 것입니다. 네트워크가 받아들였지만 블록에 포함되지 않은 거래는 여기에 집계되지 않습니다.',
+    addressesTitle: '아홉 개의 발신 주소',
+    addressesNote: '이 주소들에서 나온 모든 거래는 저희가 기계로 생성한 것입니다. 걸러내면 실제 활동을 확인할 수 있습니다.',
+    measuring: '부하 테스트 상태를 읽는 중…',
+    notMeasured: '부하 테스트 상태를 읽을 수 없습니다',
+    notMeasuredMore: '페이지는 정상 작동합니다 — 이것은 상태 표시일 뿐입니다.',
+  },
+
   deChain: {
     tieuDe: '내 체인 실행하기',
     moTa:

@@ -192,6 +192,28 @@ export const de: Tu = {
     khongDoMoTa: 'Die Seite funktioniert weiterhin — dies ist nur die Statusanzeige.',
   },
 
+  loadTest: {
+    badge: 'Lasttest',
+    banner: 'Wir führen einen öffentlichen Lasttest durch — {tps} Transaktionen pro Sekunde, von uns erzeugt, nicht von echten Nutzern.',
+    bannerLink: 'Live-Zahlen ansehen',
+    title: 'Öffentlicher Lasttest',
+    intro: 'A1 ist ein junges Testnetz mit sehr wenigen echten Nutzern; sich selbst überlassen erzeugt es fast keine Blöcke. Wir erzeugen einen stetigen Strom von Transaktionen, damit das Netzwerk durchgehend arbeitet und Sie ihm dabei zusehen können. Dieser Verkehr stammt von uns. Er ist keine Nutzung, und wir zählen ihn auch nicht als Nutzung — jede Adresse, die ihn sendet, ist unten aufgeführt, damit Sie sie herausrechnen können.',
+    running: 'Läuft gerade',
+    stopped: 'Läuft derzeit nicht',
+    stoppedWhy: 'Erfasster Grund: {reason}',
+    labelTps: 'Transaktionen pro Sekunde',
+    labelBlockHeight: 'C-Chain-Block',
+    labelSecondsPerBlock: 'Sekunden pro Block',
+    labelTotal: 'Bestätigte Transaktionen seit Start',
+    labelUptime: 'Läuft seit',
+    committedNote: 'Diese Zahlen werden aus den Blöcken selbst gezählt, nicht aus dem, was wir zu senden versucht haben. Eine Transaktion, die das Netzwerk angenommen, aber nie in einen Block aufgenommen hat, zählt hier nicht.',
+    addressesTitle: 'Die neun sendenden Adressen',
+    addressesNote: 'Jede Transaktion von diesen Adressen wird von einer Maschine von uns erzeugt. Filtern Sie sie heraus, um zu sehen, welche echte Aktivität es gibt.',
+    measuring: 'Status des Lasttests wird gelesen…',
+    notMeasured: 'Status des Lasttests konnte nicht gelesen werden',
+    notMeasuredMore: 'Die Seite funktioniert weiterhin — dies ist nur die Statusanzeige.',
+  },
+
   deChain: {
     tieuDe: 'Starten Sie Ihre Chain',
     moTa: 'Eine eigene L1, im Besitz Ihrer Wallet. Sie signieren einmal, um zu belegen, wer Sie sind, prüfen — und das Netzwerk baut die Chain in etwa drei Minuten.',
