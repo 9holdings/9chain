@@ -34,6 +34,12 @@ import { existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+// 🔴 The server's address has ONE declaration. Even a manual-task STRING that spells it out is
+// a second copy, and check-single-source is right to say so: the day this host moves, a hand
+// note that still names the old machine is worse than no note - people trust the runbook.
+import { SSH_HOST } from "../local-net/lib/server.mjs";
+
+const SERVER_IP = SSH_HOST.split("@").pop();
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -118,6 +124,8 @@ const MANUAL_TASKS = [
   ["BEFORE `down -v`", "🔴 **O2** — run `node scripts/export-chain.mjs`, then **publish the sha256 SOMEWHERE ELSE** before deleting. That ordering IS the entire value of the procedure (the 2026-08-26 run missed it)."],
   ["BEFORE `down -v`", "🔴 **Chain directory** — `node scripts/close-ledger-before-regenesis.mjs --pull` then `--compact`; the new ledger must reach the server. Resetting it hands 43 names + chainIds back into circulation."],
   ["BEFORE `down -v`", "🔴 **H-6b** — `bash scripts/h6b-backup.sh`, and read the patch count it reports carefully."],
+  ["While generating the network", "🔴 **TEN nodes, and `A1_STAKING_PORT_BASE=9700`** — David decided 2026-08-29 that the Hetzner node joins **in genesis**, not by staking afterwards. Generate with `N=10 A1_P2P_MODE=ipv4port A1_PUBLIC_IP=" + SERVER_IP + " A1_STAKING_PORT_BASE=9700`. ⚠️ The port base is not cosmetic: at the default, node10's staking port is **9660**, which is node2's API port — a collision that cannot happen at N=9, so it appears for the first time on the very day you add the tenth node. See `docs/GDAY-NODE10-HETZNER.md`."],
+  ["While generating the network", "🔴 **Bring up only node1..node9 on OVH**, then carry `node10/{staker.key,staker.crt,signer.key}` to the Hetzner box and run it there with **its own** `--public-ip=95.217.60.140` and `--bootstrap-ips=" + SERVER_IP + ":9700` (the beacon's PUBLIC address — node10 is on another machine, so the internal address netgen writes is wrong for it). Delete node10's old `--data-dir` first: it holds the g0 database and a self-generated identity, and leaving it means the node comes up under the wrong nodeID."],
   ["While generating the network", "🔴 **Bump `A1Gen` in BOTH languages** — `utils/constants/network_ids.go` **and** `local-net/lib/chainid.mjs`, then re-run `check-consistency`. Forget one side and nothing reports an error (D-093)."],
   ["While generating the network", "🔴 **Rebuild the node image** — the running image is **18 patches**, the repo is **25**. Patches 0019/0022 (the `LOVE9` alias) are not in the image; without them **every X/C wallet goes silent**. The build path was rehearsed 2026-08-28 and PASSED (D-105) — but at `A1Gen 0`; bumping to 1 changes the binary ⇒ **it still must be rebuilt**."],
   ["While generating the network", "🔴 **FIX THE `image:` LINE IN THE COMPOSE NETGEN JUST WROTE** — netgen hardcodes `9chain-a1/node:dev` and **no variable can change it** (D-105). Forgetting means the network comes up on the **18-patch** binary while every gate stays green: `grep image: <net>/docker-compose.multinode.yml` must show **the tag you just built**."],
@@ -125,6 +133,7 @@ const MANUAL_TASKS = [
   ["While generating the network", "🔴 **Generate NEW token + keys** — `A1_CONSOLE_TOKEN`, `FAUCET_PK`, `A1_CLI_KEY`. The old token **was never rotated across two re-genesis runs** (gotcha 15)."],
   ["While generating the network", "🔴 **The engraving** — the mechanism is 100% done. The CONTENT is an **input David supplies** (D-104: C1 is coordinated separately; A1 does not track it). ⚠️ Bytes arriving **after** the genesis step **can never be engraved in that generation** — get David to freeze the bytes BEFORE running netgen, not after."],
   ["AFTER the network is up", "🔴 Measure **on the running node**: `supplyCap` · `networkID` · HRP · `eth_chainId` · 9/9 nodes. `node scripts/watch-network.mjs`."],
+  ["AFTER the network is up", "🔴 **Node10 is genuinely IN, measured on the chain** — `platform.getCurrentValidators` must list **10**, a NON-beacon node must see node10 in `info.peers`, and node10's `endTime` must sit in the same window as the other nine. Then watch `ingressConnectionCount` on node10 for at least an hour: on 2026-08-29 it stayed **0** while the port was provably reachable, and avalanchego cannot tell 'nobody dialled in' from 'unreachable' — but validator uptime is measured over connections, so a lasting 0 is real (D-121)."],
   ["AFTER the network is up", "🔴 **B-13(b)** — measure clock skew across the 9 nodes, then pick `--offset-ms` for Block Adam. Only possible once g1 is up, and **must be done before 2026-09-09**."],
   ["AFTER deploying", "🔴 `node scripts/check-deploy-drift.mjs` — **run this before believing any line that says \"CLOSED\"**."],
 ];
