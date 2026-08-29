@@ -179,7 +179,7 @@ export const es: Tu = {
     cMacDinh: 'predeterminado del sistema',
     cTrong: 'Todavía no hay ninguna L1 en funcionamiento',
     cTrongMoTa: 'Serías el primero. El directorio se actualiza en cuanto tu cadena esté activa.',
-    tuTo: 'Los 9 validadores funcionan actualmente en el mismo servidor y con el mismo proveedor: descentralizado a nivel de protocolo, todavía no a nivel de infraestructura.',
+    tuTo: '9 de los 10 validadores funcionan en un mismo servidor y con un mismo proveedor; el décimo funciona en un proveedor distinto. Descentralizado a nivel de protocolo, y apenas empezando a serlo a nivel de infraestructura.',
     blockDungYen: 'Avalanche no produce bloques vacíos, así que una altura de bloque que no se mueve mientras nadie transacciona es normal. La medida de actividad es el número de validadores que aparece al lado.',
   },
 

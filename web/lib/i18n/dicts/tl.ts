@@ -194,7 +194,7 @@ export const tl: Tu = {
     cTrong: 'Wala pang L1 na tumatakbo',
     cTrongMoTa: 'Ikaw ang magiging una. Nag-a-update ang direktoryo sa oras na umandar ang iyong chain.',
 
-    tuTo: 'Lahat ng 9 validator ay kasalukuyang tumatakbo sa iisang server, sa iisang provider — desentralisado sa antas ng protocol, hindi pa sa antas ng imprastraktura.',
+    tuTo: '9 sa 10 validator ay tumatakbo sa iisang server at iisang provider; ang ikasampu ay tumatakbo sa ibang provider. Desentralisado sa antas ng protocol, at nagsisimula pa lamang sa antas ng imprastraktura.',
     blockDungYen: 'Hindi gumagawa ng walang lamang block ang Avalanche, kaya normal lang na hindi gumagalaw ang taas ng block kapag walang nagtatransaksyon. Ang sukatan ng buhay ay ang bilang ng validator sa tabi nito.',
   },
 

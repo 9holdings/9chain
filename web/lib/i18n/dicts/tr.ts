@@ -184,7 +184,7 @@ export const tr: Tu = {
     cTrong: 'Henüz çalışan bir L1 yok',
     cTrongMoTa: 'İlk siz olurdunuz. Zinciriniz açılır açılmaz dizin güncellenir.',
 
-    tuTo: 'Şu anda 9 doğrulayıcının tamamı aynı sunucuda, aynı sağlayıcıda çalışıyor — protokol düzeyinde merkeziyetsiz, altyapı düzeyinde henüz değil.',
+    tuTo: '10 doğrulayıcıdan 9’u tek bir sunucuda, tek bir sağlayıcıda çalışıyor; onuncusu farklı bir sağlayıcıda çalışıyor. Protokol düzeyinde merkeziyetsiz, altyapı düzeyinde ise daha yeni başlıyor.',
     blockDungYen: 'Avalanche boş blok üretmez; bu yüzden kimse işlem yapmazken blok yüksekliğinin sabit kalması normaldir. Canlılık ölçüsü yanındaki doğrulayıcı sayısıdır.',
   },
 

@@ -336,7 +336,7 @@ export const vi: Tu = {
     // (`139.99.145.13`, cùng máy chạy Caddy + faucet + console). Để một con số đúng
     // đứng ở vị trí gợi ra kết luận sai thì site không nói dối bằng câu chữ, nhưng
     // vẫn để người đọc tự rút ra điều không đúng. Đây là chỗ rẻ nhất để nói thẳng.
-    tuTo: '9 validator hiện chạy trên cùng một máy chủ, cùng một nhà cung cấp — phân tán về giao thức, chưa phân tán về hạ tầng.',
+    tuTo: '9 trong 10 validator chạy trên cùng một máy chủ, cùng một nhà cung cấp; validator thứ mười chạy ở một nhà cung cấp khác. Phân tán về giao thức, và mới chỉ bắt đầu phân tán về hạ tầng.',
     // Đo 10 mẫu/5 phút: P-Chain đứng yên, C-Chain đứng yên. Đây là BÌNH THƯỜNG.
     blockDungYen: 'Avalanche không đẻ block rỗng, nên số block đứng yên khi chưa ai giao dịch là bình thường. Phép đo sống/chết là số validator ở ô bên cạnh.',
   },

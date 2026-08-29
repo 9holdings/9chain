@@ -190,7 +190,7 @@ export const it: Tu = {
     cTrong: 'Nessuna L1 è ancora in funzione',
     cTrongMoTa: 'Saresti il primo. L’elenco si aggiorna appena la tua catena è attiva.',
 
-    tuTo: 'Tutti e 9 i validatori girano attualmente sullo stesso server, con lo stesso fornitore — decentralizzati a livello di protocollo, non ancora a livello di infrastruttura.',
+    tuTo: '9 dei 10 validatori girano su un solo server e con un solo fornitore; il decimo gira presso un fornitore diverso. Decentralizzato a livello di protocollo, e appena agli inizi a livello di infrastruttura.',
     blockDungYen: 'Avalanche non produce blocchi vuoti, quindi un’altezza di blocco che resta ferma mentre nessuno effettua transazioni è normale. La misura di attività è il numero di validatori accanto.',
   },
 

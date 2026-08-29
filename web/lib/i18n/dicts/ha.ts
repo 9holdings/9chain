@@ -189,7 +189,7 @@ export const ha: Tu = {
     cTrong: 'Babu wata L1 da ke gudana tukuna',
     cTrongMoTa: 'Kai za ka zama na farko. Jerin yana sabuntawa da zarar sarƙarka ta fara aiki.',
 
-    tuTo: 'Duk masu tabbatarwa 9 a yanzu suna gudana a uwar garke ɗaya, da mai bayarwa ɗaya — an rarraba a matakin ka’ida, ba a matakin ababen more rayuwa ba tukuna.',
+    tuTo: 'Masu tantancewa 9 daga cikin 10 suna aiki a kan sabar guda ɗaya da mai bayarwa guda ɗaya; na goma yana aiki a wurin wani mai bayarwa daban. An rarraba shi a matakin ka’ida, kuma a matakin more rayuwa yanzu ne kawai ake farawa.',
     blockDungYen: 'Avalanche ba ya samar da toshe fanko, don haka tsayin toshe da ya tsaya cak yayin da babu wanda ke yin mu’amala abu ne na yau da kullum. Ma’aunin rayuwa shine adadin masu tabbatarwa da ke gefensa.',
   },
 

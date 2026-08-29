@@ -190,7 +190,7 @@ export const nl: Tu = {
     cTrong: 'Er draait nog geen L1',
     cTrongMoTa: 'Jij zou de eerste zijn. De lijst wordt bijgewerkt zodra je chain draait.',
 
-    tuTo: 'Alle 9 validators draaien momenteel op dezelfde server, bij dezelfde provider — gedecentraliseerd op protocolniveau, nog niet op infrastructuurniveau.',
+    tuTo: '9 van de 10 validators draaien op één server bij één aanbieder; de tiende draait bij een andere aanbieder. Gedecentraliseerd op protocolniveau, en op infrastructuurniveau pas net begonnen.',
     blockDungYen: 'Avalanche produceert geen lege blokken, dus een blokhoogte die stilstaat terwijl niemand transacties doet is normaal. De maat voor leven is het aantal validators ernaast.',
   },
 

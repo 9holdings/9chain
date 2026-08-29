@@ -178,7 +178,7 @@ export const de: Tu = {
     cMacDinh: 'Systemvorgabe',
     cTrong: 'Es läuft noch keine L1',
     cTrongMoTa: 'Sie wären die erste Person. Das Verzeichnis aktualisiert sich, sobald Ihre Chain läuft.',
-    tuTo: 'Alle 9 Validatoren laufen derzeit auf demselben Server beim selben Anbieter — auf Protokollebene dezentral, auf Infrastrukturebene noch nicht.',
+    tuTo: '9 der 10 Validatoren laufen auf einem Server bei einem Anbieter; der zehnte läuft bei einem anderen Anbieter. Auf Protokollebene dezentral, auf Infrastrukturebene erst am Anfang.',
     blockDungYen: 'Avalanche erzeugt keine leeren Blöcke; eine stehende Blockhöhe ist daher normal, solange niemand Transaktionen sendet. Das Maß für Lebendigkeit ist die Validatorenzahl daneben.',
   },
 
