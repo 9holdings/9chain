@@ -26,10 +26,15 @@ set -euo pipefail
 # means the caller cannot forget.
 export MSYS_NO_PATHCONV=1
 
+# 🔴 The A1 server's address and key have ONE declaration, in deploy/server-env.sh. Copying
+# them here would put the same constant in a second place, which check-single-source.mjs
+# catches — and rightly: the day that host moves, a copy nobody remembers is the one that
+# keeps pointing at the old machine.
+source "$(dirname "${BASH_SOURCE[0]}")/../../deploy/server-env.sh"
+
 REPO=${A1_REPO:-C:/PROJECTS/9Chain-A1}
 KEYS=${A1_KEYS:-C:/Users/abc/9chain-a1-keys/g0}
-A1_HOST=${A1_HOST:-"$A1_SSH_HOST"}
-A1_SSH_KEY=${A1_SSH_KEY:-$HOME/.ssh/9chain-a1}
+A1_HOST=$A1_SSH_HOST
 VDR_HOST=${VDR_HOST:-root@95.217.60.140}
 VDR_SSH_KEY=${VDR_SSH_KEY:-$HOME/.ssh/id_ed25519}
 VDR_API_PORT=${VDR_API_PORT:-9655}

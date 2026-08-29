@@ -4463,3 +4463,40 @@ theo ý họ — đó chính là điều một testnet công khai phải chấp 
 **bình thường**; 9 node genesis hết hạn mới là **mạng dừng**.
 ⇒ Việc cần làm trước ngày G: tách hai đại lượng đó. **Chưa sửa** — sửa một cổng quan trọng lúc
 đang mỏi là cách tốt nhất để đẻ ra cổng thứ ba đo sai.
+
+## D-121 — Tự soát lượt `29/08`: một hồi quy do chính A1 gây ra, và một cổng chưa ai thấy xanh (2026-08-29)
+
+David yêu cầu *"tự check lại"*. Soát toàn bộ việc trong ngày. Bốn kết quả:
+
+**1. 🔴 HỒI QUY DO A1 GÂY RA — `check-single-source` đỏ.** `run-over-tunnel.sh` chép cứng
+`139.99.145.13` và `.ssh/9chain-a1` thay vì lấy từ `deploy/server-env.sh`. Cổng bắt đúng: hằng
+số có bản thứ hai. **Ngày server đổi máy, bản sao không ai nhớ là bản còn trỏ vào máy cũ.**
+Đã `source` từ nguồn ⇒ cổng xanh, script vẫn chạy. Preflight **14/4 → 15 đạt · 3 đỏ**.
+
+**2. ✅ Bản vá `enter.sh` (D-116) nay ĐÃ ĐƯỢC THẤY CHẠY XANH trên khoá quỹ thật.** Sáng nay nó
+chỉ có `bash -n` và `wallet-over-tunnel --check` — mà `--check` **không mount khoá** nên không đi
+vào nhánh đã sửa. Lượt X→P có đi qua, nhưng log nằm trong container và container đã bị xoá ⇒
+**không còn bằng chứng**. Chạy lại đúng chế độ `--check --wallet-key --fund` (kiểm chọn quỹ mà
+không khởi động ví) ⇒ in `✓ check-keys: khoá suy ra đúng X-love918a4zwd…`. Lỗ *"cổng chưa ai
+thấy chạy xanh"* đóng.
+
+**3. 🟡 Node ngoài: `healthy=false`, và nó chỉ đỏ SAU khi thành validator.**
+`ingressConnectionCount: 0` · `primaryNetworkValidator: true` ⇒ *"primary network validator has
+no inbound connections"*. Health check này **chỉ bật cho validator**, nên lỗi không thể lộ ra
+trước lượt stake. Đo tiếp thay vì đoán: TCP `95.217.60.140:9651` từ Internet ⇒ **True**, node
+listen `*:9651`, ufw cho phép. ⇒ Cổng **thông**; con số 0 phản ánh *chưa peer nào chủ động gọi
+vào*, không phải *không gọi được* — avalanchego **không phân biệt hai điều đó**.
+⚠️ Vẫn phải theo dõi: uptime của validator tính theo kết nối, nên nếu ngày G node ngoài vẫn
+`ingress=0` thì đó là chuyện thật, không phải nhiễu.
+
+**4. ✅ Không thao tác nào hôm nay đẻ ra rò rỉ khoá mới.** `check-key-leaks` đỏ đúng **một** tệp,
+và đó là `verify1/console.env` từ `24/08` mà David **chưa duyệt xoá** — không phải hệ quả của
+lượt này. Mount `:ro`, container `--rm`, hầm trong container: không cái nào để lại bản sao.
+
+⚠️ **Preflight vẫn liệt kê B-18 sau khi B-18 đã đóng.** Một việc tay còn nằm trên danh sách sau
+khi xong sẽ dạy người ta **lướt qua danh sách** — đúng cơ chế biến một cổng thành giấy dán tường.
+Đã gỡ khỏi `MANUAL_TASKS` và đóng mục trong `BLOCKERS.md` kèm số đo.
+
+**Ba đỏ còn lại, tất cả ĐỎ ĐÚNG LÝ DO:** `watch-network` (validator 10 · B-12 14 ngày — hệ quả
+D-119, và B-12 nay đo sai đại lượng, xem D-120) · `drift` (3 mồ côi `heartbeat-*` **không thuộc
+repo** — chưa rõ nguồn, A1 không đụng) · `net* directories` (**B-19**, việc của David).

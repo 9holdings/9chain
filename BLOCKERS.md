@@ -72,6 +72,28 @@ node scripts/check-net-dirs.mjs            # liệt kê: thư mục nào giữ t
 
 ---
 
+### ✅ B-18 — **ĐÃ ĐÓNG `2026-08-29`** — 3 tệp đã `shred -u -n 3`, sau khi CHỨNG MINH không mất dữ liệu
+
+**David duyệt deploy console, A1 chạy.** Bước LIỆT KÊ của D-107 suýt biến việc này thành B-17
+lần thứ ba: **cả ba tệp đều KHÁC hash** với bản đã đổi tên — đúng ca *"khác ⇒ DỪNG, đó là tin"*.
+
+Dừng rồi đo tiếp, thay vì suy đoán: khác biệt là **đổi tên khoá JSON** (`tep`→`file`,
+`dais`→`ranges`, `daBiChiem`→`taken`…) cộng danh sách **nguồn** khác nhau. So **tập dữ liệu
+thật**: `chainIds` **47/47** · `names` **53/53** · `taken` **56/56** ⇒ **mất 0**.
+`thehe-test.mjs` còn nguyên trong git (2 commit). Chỉ khi đó mới xoá.
+
+| nghiệm thu | đo trên |
+|---|---|
+| 3 tệp cũ biến mất · 3 bản đã đổi tên còn đủ | server |
+| drift **19 khớp · 0 lệch · 0 thiếu** (trước: 10 · 6 · 3) | server |
+| console khởi động `12:24:16` **sau** mtime `12:22:03` ⇒ chạy bản mới | server |
+
+⚠️ **Phép so đầu tiên của A1 lọc số `> 100000` nên mù cả sổ** — `chainIds` bắt đầu từ **9100**.
+Nó in *"LOST 0"* vì **không thấy gì**, không phải vì không mất gì. **Kết quả rỗng ≠ kết quả sạch**
+(cùng lớp D-116).
+
+---
+
 ### 🔴 B-18 — BA TÊN TỆP CŨ CÒN NẰM TRÊN SERVER SAU LƯỢT ĐỔI TÊN (2026-08-28)
 
 Lượt chuẩn hoá `28/08` đổi tên 3 tệp **có trong `manifest-deploy.json`**. `console-deploy.sh`
