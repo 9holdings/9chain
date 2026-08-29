@@ -251,25 +251,27 @@ function copy(text, btn){
 // ⇒ Đây là **bảng tra cho dữ liệu lịch sử**, không phải bí danh của API: `apDungPreset`
 //   TỪ CHỐI thẳng id cũ (`Kiểu chain "khong-phi" không có`). Hai chuyện khác nhau —
 //   cái trước đọc quá khứ, cái sau nhận đầu vào mới.
+// 🔴 KHOÁ là dữ liệu đã ghi ra đĩa — GIỮ NGUYÊN cả id cũ. GIÁ TRỊ là chữ hiện trên trang
+//    công khai, nên nó theo ngôn ngữ của trang (tiếng Anh) và khớp `presets.mjs`.
 const TEN_PRESET = {
   // id hiện hành
-  'standard': 'Chuẩn',
-  'zero-fee': 'Phí gần như bằng 0',
-  'high-throughput': 'Thông lượng cao',
-  'mintable': 'Tự in thêm token',
-  'owner-deploy-only': 'Chỉ chủ chain deploy được hợp đồng',
-  'permissioned': 'Chain kín (chỉ ai được duyệt mới giao dịch)',
+  'standard': 'Standard',
+  'zero-fee': 'Near-zero fees',
+  'high-throughput': 'High throughput',
+  'mintable': 'Mintable supply',
+  'owner-deploy-only': 'Owner-only contract deployment',
+  'permissioned': 'Permissioned (approved senders only)',
   // id CŨ — bản ghi đẻ trước 2026-08-28 mang chúng, ĐỪNG XOÁ
-  'chuan': 'Chuẩn',
-  'khong-phi': 'Phí gần như bằng 0',
-  'thong-luong-cao': 'Thông lượng cao',
-  'tu-in-tien': 'Tự in thêm token',
-  'chi-chu-deploy': 'Chỉ chủ chain deploy được hợp đồng',
-  'kin': 'Chain kín (chỉ ai được duyệt mới giao dịch)',
+  'chuan': 'Standard',
+  'khong-phi': 'Near-zero fees',
+  'thong-luong-cao': 'High throughput',
+  'tu-in-tien': 'Mintable supply',
+  'chi-chu-deploy': 'Owner-only contract deployment',
+  'kin': 'Permissioned (approved senders only)',
 };
 function presetCell(chain){
   const p = typeof chain.preset === 'string' ? chain.preset.trim() : '';
-  if (!p) return '<span class="dim">Chuẩn</span>';
+  if (!p) return '<span class="dim">Standard</span>';
   // Tên do console ghi kèm là nguồn đúng nhất — nó sinh ra từ chính `presets.mjs`
   // tại thời điểm đẻ chain, nên không trôi lệch được.
   //
