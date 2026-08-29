@@ -4415,3 +4415,51 @@ X-Chain và **0 trên P**, nên `--issue` sẽ hỏng **sau khi** người vận
 ⏳ Ngày G có đường sạch hơn cho việc này: cho node ngoài vào **thẳng genesis** (netgen sinh 10
 node) — validator từ block 0, không cần giao dịch nào. Lượt hôm nay là **diễn tập trọn đường mà
 người ngoài sẽ đi**, và nó đã chạy được.
+
+## D-120 — Deploy console: chuỗi công khai sang tiếng Anh, B-18 đóng, và hai cổng đỏ ĐÚNG LÝ DO (2026-08-29)
+
+David duyệt deploy. `console-deploy.sh` chạy trót lọt (nó tự dừng ở *"✗ VẪN CÒN LỆCH"* khi còn
+`export-chain.mjs` nhóm `vantoc` ngoài phạm vi — **đúng**, và đó là lần đầu vế thứ hai của luật
+cứng #2 được thấy hoạt động trên chính script này).
+
+| đo | trước | sau |
+|---|---|---|
+| drift | 10 khớp · 6 lệch · 3 thiếu · 6 mồ côi | **19 khớp · 0 lệch · 0 thiếu · 3 mồ côi** |
+| preset trên server | tiếng Việt | **6/6 tiếng Anh** |
+| thông báo tạm đóng | lộ `A1_DE_CHAIN_MO=1` | tiếng Anh, **không lộ gì** |
+| console đang chạy bản nào | — | khởi động `12:24:16` **sau** mtime `12:22:03` ⇒ **bản mới** |
+
+🔴 **Vì sao grep trang công khai ra 0 cho CẢ tiếng Việt lẫn tiếng Anh** — và suýt đọc thành
+*"deploy không ăn"*: trang `/create-chain/` là **Next.js xuất tĩnh** và **form chỉ render sau khi
+kết nối ví**. Trình duyệt không có MetaMask thì `document.querySelector("select")` là `null`, nên
+mọi phép đo dựa trên HTML tải về đều mù. Phép đo đúng nằm **trên server**: import `presets.mjs`
+và in ra. ⇒ *Đo ở nơi chuỗi thực sự sống, không ở nơi tiện tay nhất.*
+
+### B-18 ĐÓNG — nhưng bước LIỆT KÊ đã suýt biến nó thành B-17 lần thứ ba
+
+Cả **ba** tệp tên cũ đều **KHÁC hash** với bản đã đổi tên, đúng cái mà `BLOCKERS.md` dặn
+*"khác ⇒ DỪNG, đó là tin"*. Dừng, rồi đo tiếp thay vì suy đoán:
+
+- khác biệt là **đổi tên khoá JSON** (`tep`→`file`, `dais`→`ranges`, `daBiChiem`→`taken`…) cộng
+  danh sách **nguồn** khác nhau — tức nghi vấn *"bản mới có thiếu bản ghi không"* là chính đáng;
+- so **tập dữ liệu thật**, không so tên khoá: `chainIds` **47/47** · `names` **53/53** ·
+  danh sách `taken` **56/56** ⇒ **LOST 0**;
+- `thehe-test.mjs` còn nguyên trong git (2 commit) ⇒ khôi phục được.
+
+Chỉ khi đó mới `shred -u -n 3`. Đối chứng: 3 tệp biến mất, 3 bản đã đổi tên **còn đủ**.
+
+⚠️ **Phép đo đầu tiên của tôi lọc `> 100000` nên bỏ sót cả sổ** — `chainIds` bắt đầu từ **9100**.
+Nó in *"LOST 0"* vì **không thấy gì cả**, không phải vì không mất gì. Suýt là một câu trấn an
+dựa trên một bộ lọc sai. Lớp lỗi D-116 lần nữa: **kết quả rỗng không phải kết quả sạch**.
+
+### 🔴 Hai cổng nay ĐỎ, và chúng đỏ vì ĐÚNG LÝ DO — đừng vá cho xanh
+
+`watch-network`: **số validator 10 (mong 9)** · **B-12 hết hạn sớm nhất 14 ngày (`2026-09-12`)**.
+Cả hai là hệ quả trực tiếp của D-119: node ngoài stake **14 ngày**, ngắn hơn 9 node genesis (307).
+
+🔴 Nhưng B-12 nay **đo sai đại lượng trong bối cảnh mới**: nó sinh ra để cảnh báo *"mạng sắp
+dừng"*, mà *"validator hết hạn sớm nhất"* không còn nghĩa đó khi có validator **ngoài** đến và đi
+theo ý họ — đó chính là điều một testnet công khai phải chấp nhận. Một validator ngoài rời đi là
+**bình thường**; 9 node genesis hết hạn mới là **mạng dừng**.
+⇒ Việc cần làm trước ngày G: tách hai đại lượng đó. **Chưa sửa** — sửa một cổng quan trọng lúc
+đang mỏi là cách tốt nhất để đẻ ra cổng thứ ba đo sai.
