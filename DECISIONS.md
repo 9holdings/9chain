@@ -4266,3 +4266,33 @@ ra **nội dung** cũng trống. Server cháy hôm nay thì không bản lưu n�
 2. Dòng đối chứng cuối in *"remaining A1 bundles:"* **rỗng** — lỗi glob trong chính dòng đó,
    không phải mất dữ liệu. `ls` trực tiếp cho thấy **cả 6 gói còn nguyên**. ⇒ **Một dòng đối
    chứng cũng phải được đối chứng**; nếu đọc nó theo mặt chữ thì đã khai một sự cố không có thật.
+
+## D-118 — Node A1 dựng được TỪ TAY TRẮNG trên máy nhà cung cấp khác (2026-08-29)
+
+David chốt mở testnet công khai `01/09` và chọn máy Hetzner **`95.217.60.140`** (Đức) làm node
+thứ hai — nhà cung cấp **khác** OVH ⇒ gỡ luôn O4, không chỉ chứng minh P2P.
+
+**Dựng đúng đường một người NGOÀI sẽ đi**, cố ý: không chép image từ server A1 sang, vì làm thế
+thì không chứng minh được gì cho người ngoài. Đường đã đi: `git clone` avalanchego **từ GitHub
+công khai** → `git checkout 1cf1fc3` → `git am --keep-cr` 25 patch → build trong container
+`golang:1.26` (host **không cài** Go/gcc — máy đó của dự án khác, 201 container đang chạy).
+
+| nghiệm thu | đo được |
+|---|---|
+| 🔴 **tái lập cây fork NGOÀI máy dev** | 25 patch ⇒ tree **`f2b9486b71`** = `f2b9486b` ✓ |
+| đối chứng ngược | 24/25 ⇒ **`074aaa9327`** = `074aaa93` ✓ |
+| binary là bản A1, không phải upstream | `--version` ⇒ **`9chaingo/1.14.2`** · `LOVE9` ×2 · `9chain-a1-g0` ×1 · **`avalanchego/1.14` = 0** |
+| đối chứng ngược của phép đo chuỗi | chuỗi bịa ⇒ 0 (phép đo phân biệt được) |
+| genesis khớp mạng thật | `sha256 e1024eab…` **giống nhau ở CẢ BA**: máy dev · `~/9chain-a1/net/genesis.json` trên server A1 · Hetzner |
+| node chạy | 0 fatal · `networkID 999999999` · `supplyCap 7900000001000000000` · DB `db/9chain-a1-g0` |
+| 🔴 **peers** | **0** — beacon A1 không mở, đúng như đo TCP |
+
+⇒ **Điều kiện qua số 4 của ngày G đã ĐẠT SỚM**: *"một người lạ dựng lại được cây fork từ
+`patches/` ra đúng tree hash"* — nay không còn là suy luận, đã chạy trên một máy thứ ba.
+
+⚠️ **`strings` không có trên máy đó, và `grep -c` của lượt đo đầu trả `0` cho MỌI chuỗi** — suýt
+đọc thành *"binary không có LOVE9"*. Đúng lớp lỗi D-116 cùng ngày: **công cụ hỏng ≠ phán quyết**.
+Đo lại bằng `grep -a` mới ra số thật.
+
+🔴 **Còn đúng một bước, và nó cần David bấm:** beacon trên server A1 chưa publish cổng P2P
+(mạng g0 sinh ở chế độ `A1_P2P_MODE=docker`). Xem `docs/TESTNET1-PUBLIC-2026-09-01.md` §P1.
