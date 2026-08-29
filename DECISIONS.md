@@ -4375,3 +4375,43 @@ máy chủ đang là peer — đo trên node đang chạy"*. Nay còn mạnh hơ
 ⏳ Còn lại để thành **validator** (không chỉ full node): stake ≥ 25.000 LOVE9 qua
 `AddPermissionlessValidatorTx`. Cần David ký — tiền thật trên mạng công khai.
 Backup compose: `docker-compose.multinode.yml.pre-hostports-20260829`.
+
+## D-119 — ✅ NGƯỜI NGOÀI ĐÃ VALIDATE ĐƯỢC: validator thứ 10, nhà cung cấp khác (2026-08-29)
+
+David duyệt trong phiên (*"làm luôn"*), A1 chạy — cùng tiền lệ B-17. Rủi ro tài chính **bằng
+không**: `g0` bị vứt bỏ `01/09`, token của nó thành vô nghĩa cùng ngày.
+
+**Công cụ mới `local-net/tools/stake-validator/`** — module Go **ngoài cây fork** (dùng `replace`),
+nên `patches/` không bị đụng và tree vẫn `f2b9486b` ba ngày trước ngày G.
+
+| bước | kết quả |
+|---|---|
+| X→P (xp-wallet qua hầm, patch 0019) | `exportTx 2M4WXqek…` · `importTx 2Q5d92Tv…` ⇒ P: 0 → **29.999,99999173 LOVE9** |
+| dừng container giữ khoá | `9chain-a1-vi-ham` **đã xoá ngay** |
+| `AddPermissionlessValidatorTx` | `txID EQZgjvCyjMTiUMkgnNCiSeRQoJtB8HthPs685TBWvR4Wm1M9A` |
+| 🔴 **đối chứng TRÊN CHAIN** | **10 validator** (từ 9) · nodeID Hetzner có mặt · `weight 25000000000000` · thưởng về Foundation |
+
+⇒ **Vòng đã khép**: người ngoài `git clone` từ GitHub công khai → `git am` 25 patch → build →
+chạy node → join mạng → **stake → validate**. Không bước nào cần thứ gì chỉ David mới có, ngoài
+tiền để stake.
+
+🔴 **Bốn ràng buộc công cụ TÔN TRỌNG thay vì nới** — mỗi cái là một cổng đã trả giá để có:
+1. **Không bao giờ đọc khoá BLS bí mật** của validator. Proof-of-possession đã được node tự công
+   bố qua `info.getNodeID`; chỉ nửa công khai đi ra ngoài.
+2. `MakePWallet` **chứ không** `MakeWallet`: ví đầy đủ fetch C-chain từ `/ext/bc/C/avax`, endpoint
+   **404 công khai CÓ CHỦ Ý** (M11.10). Stake chỉ cần P-Chain.
+3. **Hầm SSH trong container** (mô hình M11.10/D-091): SDK gọi `<uri>/ext/P` mà RPC công khai chỉ
+   phục vụ `/ext/bc/*`; và node lọc `--http-allowed-hosts=localhost,127.0.0.1` nên hầm trên host
+   qua `host.docker.internal` bị **403**. Forward bên trong ⇒ ví thật sự gọi `localhost`,
+   **không cổng nào bị nới**.
+4. `MSYS_NO_PATHCONV=1` đặt **trong script**, không để người gọi nhớ — Git Bash đổi `/src` thành
+   `C:/Program Files/Git/src`. Đã ghi ở `O1-CUSTODY-VERIFICATION.md` và **vẫn dẫm lại** khi viết.
+
+⚠️ **Bản nháp đầu của dry-run chỉ in ý định rồi nói "sẵn sàng".** Foundation giữ tiền trên
+X-Chain và **0 trên P**, nên `--issue` sẽ hỏng **sau khi** người vận hành đã quyết chi. Nay dry-run
+**đo số dư thật** và **từ chối gửi giao dịch không thể thành công**. Một lượt chạy thử chỉ in dự
+định là một lượt chạy thử nói dối.
+
+⏳ Ngày G có đường sạch hơn cho việc này: cho node ngoài vào **thẳng genesis** (netgen sinh 10
+node) — validator từ block 0, không cần giao dịch nào. Lượt hôm nay là **diễn tập trọn đường mà
+người ngoài sẽ đi**, và nó đã chạy được.
