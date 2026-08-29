@@ -4338,3 +4338,40 @@ mỗi node một `--staking-port` riêng, tất cả khai IP công khai, node c�
 `127.0.0.1:965N`. Đó là **hậu xử lý compose**, không phải sửa netgen ⇒ không sinh lại patch.
 
 ⏳ `g0` bị vứt bỏ `01/09` ⇒ đây vẫn là cửa sổ thử **rủi ro thấp nhất sẽ có**.
+
+## D-118c — ✅ P1-3 ĐẠT: node ở nhà cung cấp KHÁC, nước KHÁC, đã vào mạng (2026-08-29)
+
+D-118b kết luận *"1 beacon công khai + 8 node sau bridge"* không phục vụ được node ngoài, và đề
+xuất `network_mode: host`. **Đo trước khi làm đã bác chính đề xuất đó:** `9scan-a1-web`,
+`9chain-a1-faucet` và `backend` nằm **cùng bridge `net_a1net`** với các node ⇒ bỏ bridge là đứt
+cả ba; thêm nữa `--http-host=0.0.0.0` ở host-mode sẽ **mở API RPC toàn quyền ra Internet**.
+
+⇒ Chọn đường rẻ hơn và không phá gì: **giữ bridge, cho MỖI node một cổng staking riêng ra
+Internet** — đúng hình dạng `ipv4port` mà netgen đã có (H-7/D-089), nhưng áp cho **cả 9** thay vì
+chỉ beacon. `scripts/open-p2p-all-nodes.py` sửa compose (idempotent, tự dừng nếu không thấy đúng
+9 service). `--bootstrap-ips` **giữ địa chỉ nội bộ**, đúng lý do D-089 đã đo.
+
+Recreate **từng node một**, không đồng loạt: mất đa số cùng lúc là dừng mạng.
+
+| đo | trước | sau |
+|---|---|---|
+| node 1,2,3,5,7,9 thấy node ngoài | **chỉ beacon** | **6/6 node đều thấy** ✓ |
+| peer mỗi node | 8 | **9** ✓ |
+| node ngoài | 1 peer · `isBootstrapped=false` · `healthy=false` | **9 peer · P và C `true` · `healthy=true`** ✓ |
+| P-Chain height | — | **khớp**: RPC công khai `2` ↔ node ngoài `2` |
+| `eth_chainId` từ node NGOÀI | — | **`0x218711a09`** = 9000000009 |
+| validator | 9 | **9** ✓ |
+
+🔴 **D-089 dự báo mesh sẽ teo thành hình sao khi mọi node khai IP công khai. Điều đó KHÔNG xảy
+ra ở đây.** Khác biệt: D-089 đo lúc **SINH mạng mới** (chưa node nào biết ai); ở đây mạng **đã có
+mesh** và `--bootstrap-ips` vẫn trỏ địa chỉ nội bộ, nên node cùng máy giữ được đường nội bộ
+trong khi vẫn khai được địa chỉ công khai cho người ngoài. ⇒ **Một kết luận đúng ở một thời
+điểm không tự động đúng ở thời điểm khác** — và cách duy nhất biết là đo lại.
+
+⇒ **Điều kiện qua §4 điều 3 của kế hoạch ngày G đã ĐẠT**, ba ngày trước hạn: *"một node NGOÀI
+máy chủ đang là peer — đo trên node đang chạy"*. Nay còn mạnh hơn: nó **đồng bộ trọn vẹn** và
+**khác nhà cung cấp** (Hetzner 🇩🇪 vs OVH 🇫🇷) ⇒ **O4 cũng đạt**.
+
+⏳ Còn lại để thành **validator** (không chỉ full node): stake ≥ 25.000 LOVE9 qua
+`AddPermissionlessValidatorTx`. Cần David ký — tiền thật trên mạng công khai.
+Backup compose: `docker-compose.multinode.yml.pre-hostports-20260829`.
