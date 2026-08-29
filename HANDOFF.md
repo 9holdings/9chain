@@ -1,8 +1,7 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-28** (phiên CHUẨN HOÁ TOÀN DIỆN — 2 lượt quét, 12 commit. Trước đó
-cùng ngày: quét toàn diện + diễn tập build 24 patch · B-17 đóng · B-10 đính chính · đợt
-autopilot 15 **8/8 mốc**).
+Cập nhật: **2026-08-29** (phiên MỞ TESTNET CÔNG KHAI — David chốt ngày `01/09`; node ngoài
+đã validate được; 13 commit, D-116→D-122).
 
 > 🔴 **ĐỌC [`CLAUDE.md`](CLAUDE.md) TRƯỚC — đó là LUẬT.** Tệp này là **bàn giao**: dài, có lịch
 > sử, và phần lớn là số đo của các phiên trước. Mâu thuẫn thì `CLAUDE.md` thắng về **luật**,
@@ -11,8 +10,37 @@ autopilot 15 **8/8 mốc**).
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
 ```bash
-node scripts/gday-preflight.mjs      # 18 cổng + 15 VIỆC TAY, một lệnh (~2 phút)
+node scripts/gday-preflight.mjs      # 18 cổng + 17 VIỆC TAY, một lệnh (~2 phút)
 ```
+
+### 🆕 Phiên `2026-08-29` — TL;DR
+
+**David chốt: mở testnet công khai ĐÚNG `2026-09-01`.** Trong ngày đã khép trọn vòng người ngoài
+phải đi — `git clone` GitHub công khai → `git am` 25 patch (ra đúng tree `f2b9486b`) → build →
+join → **stake → validate**. Node thứ 10 chạy ở **Hetzner 🇩🇪 `95.217.60.140`**, khác nhà cung cấp
+với server A1 (OVH 🇫🇷) ⇒ **O4 đạt**. Kế hoạch: [`docs/TESTNET1-PUBLIC-2026-09-01.md`](docs/TESTNET1-PUBLIC-2026-09-01.md).
+
+**Bốn quyết định của David:** ngày mở `01/09` · O4 = máy Hetzner đó · mã nguồn lên **GitHub tài
+khoản cá nhân** · dịch **đường người ngoài đọc** trước, nợ còn lại trả dần.
+**Chốt cuối phiên:** node10 vào **THẲNG GENESIS** ngày G, **không** stake sau
+([`docs/GDAY-NODE10-HETZNER.md`](docs/GDAY-NODE10-HETZNER.md), D-122).
+
+**Số đo cuối phiên:** preflight **15 đạt · 3 đỏ · 17 việc tay** · mạng g0 **10 validator**,
+mọi node 9 peer · drift **19 khớp · 0 lệch · 0 thiếu** · `check-key-leaks` **exit 0 lần đầu** ·
+nợ tiếng Anh **5.856 → 5.754**.
+
+**Ba đỏ còn lại, tất cả ĐỎ ĐÚNG LÝ DO** — đừng vá cho xanh:
+`watch-network` (validator **10** mong 9 · B-12 **14 ngày** — hệ quả lượt stake) ·
+`drift` (3 mồ côi `heartbeat-*` **không thuộc repo**, chưa rõ nguồn) · `net*` (**B-19**).
+
+### 🔴 Việc của David — theo thứ tự gấp
+
+| # | việc | vì sao gấp |
+|---|---|---|
+| 1 | **PR đăng ký chainId** — [`docs/chainid-registry/`](docs/chainid-registry/README-PR.md), soạn sẵn, mọi trường đã ĐO | duyệt mất **vài ngày**; gửi 01/09 là không kịp |
+| 2 | **Tạo GitHub repo rỗng** + cấp quyền | `git push` là việc có người bấm; repo **không có remote** (H-6) |
+| 3 | **B-16** bản sao khoá thứ hai · **B-19** khoá trong thư mục chết | chặn GO/NO-GO |
+| 4 | 3 tệp `heartbeat-*` mồ côi trên server — của ai? | drift đỏ vì chúng |
 
 ### 🆕 Phiên `2026-08-28` (chuẩn hoá) — SÁU dòng phải đọc trước khi gõ bất cứ lệnh nào
 
@@ -258,6 +286,19 @@ chót mà đầu vào phải tới** để lượt sinh mạng ngày G không ph
     Kèm: **đọc HẾT tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đã viết
     sẵn phép đo đúng trong chú thích. (D-106b)
 
+22. 🔴 **`${BIẾN}` trong chuỗi NHÁY KÉP của JS in ra nguyên văn — và cổng hằng số KHÔNG bắt được.**
+    Sửa `gday-preflight.mjs` để thôi chép cứng IP, dùng `${SERVER_IP}` trong `"..."` ⇒ runbook in
+    ra chữ `${SERVER_IP}`. `check-single-source` **xanh** vì chuỗi IP đã biến mất — nó tìm IP,
+    không tìm nghĩa. Chỉ lộ vì **chạy thật và đọc dòng in ra**. Dùng nối chuỗi hoặc backtick,
+    rồi **đọc output**. (D-122)
+21. 🔴 **Grep HTML tải về của `/create-chain/` là phép đo MÙ.** Trang là Next.js xuất tĩnh và
+    **form chỉ render sau khi kết nối ví**; không có MetaMask thì `querySelector("select")` là
+    `null`. Grep ra 0 cho **cả** tiếng Việt lẫn tiếng Anh, đọc thành *"deploy không ăn"*. Phép đo
+    đúng nằm **trên server**: `import` `presets.mjs` rồi in. (D-120)
+20. 🔴 **Ngày G `N=10` đụng cổng `9660`.** netgen publish API **node2** ở `127.0.0.1:9660`; ở
+    `ipv4port`, staking port node *N* = `A1_STAKING_PORT_BASE + N - 1` ⇒ node10 lấy đúng **9660**.
+    Với `N=9` lỗi **không tồn tại** ⇒ nó xuất hiện lần đầu **đúng ngày thêm node thứ mười**.
+    Dùng `A1_STAKING_PORT_BASE=9700`. (D-122)
 19. 🔴 **`find -size -1M` KHỚP 0 TỆP — và không báo lỗi.** `find` làm tròn kích thước **LÊN**
     đơn vị, nên một tệp 495 B **không** *"nhỏ hơn 1M"*. Một lượt `find … -size -1M -exec shred`
     chạy trót lọt, **exit 0**, và xoá **0 tệp** — đúng hình dạng B-17: tưởng đã dọn mà chưa.
