@@ -2,66 +2,86 @@
 
 ---
 
-## HANDOFF — cập nhật 2026-08-28 (đợt autopilot)
+## HANDOFF — cập nhật 2026-08-29 (bơm nhịp sống + dọn hai câu nói sai)
 
-**TL;DR.** **Đa ngôn ngữ 30/30 XONG.** Thêm 5 mục nữa đóng trong đợt này, đều sinh ra
-từ một lượt **đối chiếu site ↔ mạng g0** (đo mạng thật trước, rồi mới đọc mã).
-Test **139/140** — nay chỉ còn **MỘT** bài đỏ có chủ ý (vân tay token, chờ 9Scan);
-bài "còn thiếu từ điển" đã xanh.
+**TL;DR.** A1 công khai đang chạy **9 tx/s traffic tổng hợp, có công bố rõ**, dưới
+Docker, tự dừng `2026-09-01T00:00:00Z`. Trang chủ có dải băng + trang `/live` (30/30
+ngôn ngữ). Câu tự-tố về phi tập trung đã **sai trên mạng** (10 validator, 2 nhà cung
+cấp) — đã sửa và đã dựng cổng canh. Test **139/140** (đỏ duy nhất vẫn là vân tay token).
 
-✅ **ĐÃ DEPLOY `2026-08-28`** — David duyệt, đã báo phiên chain `9chain-a1-20` trước.
-Chỉ chép `web/out`; **KHÔNG đụng Caddyfile** (không đổi trong đợt này) nên không có
-nguy cơ ghi đè lẫn nhau như lần `27/08`.
-Mỏ neo đang chạy: **`commit=f38b99fd7ff8` · `con-sua-chua-commit=khong` · 40 chunk**.
+✅ **ĐÃ DEPLOY `2026-08-29`** — David duyệt. `version.txt` = `55d705b8210e` ·
+`con-sua-chua-commit=khong` · 40 chunk.
 
-**Nghiệm thu SAU deploy — đo nội dung trên mạng, không tin dòng "✓ xong" của script:**
+### Đã xong (đều đo trên mạng thật, qua Cloudflare)
 
-| Đo | Trước | Sau |
-|---|---|---|
-| `/version.txt` | **404 thật** (nginx, `text/html`) | **200**, `text/plain`, **khớp từng byte** với `web/out/version.txt` |
-| Câu "đã sinh lại 27/08" | chỉ `/re-genesis/` | **6/6 trang** |
-| Ngôn ngữ "chưa có" | 19 | **0** (29 nhãn máy dịch + `vi` có người soát = 30) |
-| `vi-VN` trong chunk đang phục vụ | có | **0/10 chunk** |
-| host ↔ container | — | **107 = 107 tệp** (không dính bẫy inode) |
-| Liên kết nội bộ | — | **7/7 sống**, đo bằng nội dung |
-
-**Chrome thật, qua Cloudflare, trên `https://a1.9chain.org`:**
-dải hiện `Already rebuilt once on 2026-08-27 → A1 is being rebuilt on 2026-09-01 →
-Details` · số liệu **9/9 · 0 · 1** (ô `0` ở đây là **số 0 đo được thật**, khác hẳn ô
-`—` nghĩa là chưa đo được — đúng thứ Đ1-8 dựng ra để phân biệt) · bấm **Gujarati** ⇒
-`lang=gu`, dải lật, và **đúng MỘT chunk mới** tải ở `t=28190ms`.
-
-| Đợt này đóng | |
+| | |
 |---|---|
-| **D-web-1** | Dải cảnh báo nay nói **cả mốc ĐÃ QUA** (`27/08`), không chỉ `01/09` |
-| **D-web-2** | Bỏ `toLocaleString('vi-VN')` cắm cứng — số theo ngôn ngữ, giữ chữ số Latin |
-| **Đ1-11b p1** | `version.txt` + `check-routes.mjs` nay đo **CẢ HAI CHIỀU** |
-| **i18n** | **30/30** từ điển, ngân sách chỉ +1,0 KB (nạp lười chạy thật) |
-| **B2** | Cổng danh tính canh **thế hệ**; kèm sửa mã thoát `127 → 1` |
-| **Đ1-8** | Lưới an toàn mạng — một nguồn chết thôi kéo cả dải số liệu biến mất |
+| **Bơm 9 tx/s** | `local-net/faucet/heartbeat-pump.mjs` — mới. Đo: **8,97 tx/s suốt 14,6 phút, 7.841 tx chốt, 0 lỗi**. Chạy dưới container `9chain-a1-heartbeat` (`restart: unless-stopped`) |
+| **Công bố** | Dải băng toàn site + [`/live`](web/app/live/page.tsx), **30/30 ngôn ngữ**. `synthetic: true` + **9 địa chỉ gửi công khai** để người ngoài lọc ra được |
+| **Câu phi tập trung** | `trangChu.tuTo` — 30 tệp, nội dung mới nói đúng 10 validator / 2 nhà cung cấp |
+| **Cổng mới** | `check-decentralisation-claim.mjs` (nối vào `web-deploy.sh`) · `check-heartbeat-stopped.mjs` (nối vào `gday-preflight`, **trên nhánh chờ merge**) |
+
+### 🔴 Ba con số đã đo — đừng đo lại
+
+- **Nhịp block sàn 2,000 giây**, 0 sai lệch qua 28 block liên tiếp. **"Block mỗi giây"
+  KHÔNG làm được** trên C-Chain hiện tại (`feeConfig` = null trong genesis ⇒ đây là
+  hành vi coreth, không phải nút vặn).
+- **~4.500 byte/giao dịch** (9 node + Postgres Blockscout) = **3,5 GB/ngày**.
+- Đĩa còn 371 GB ⇒ **đầy sau ~106 ngày**. "Chạy vô thời hạn" **có đồng hồ 3,5 tháng**.
+  Không nguy hiểm: bơm tự dừng ở mức đĩa còn 20% trống.
 
 ### 🔴 Phiên sau bắt đầu từ đâu
 
-1. `git -C C:\PROJECTS\9Chain-A1 log --oneline -5` — phiên chain commit liên tục.
-2. Backlog: [`docs/WEB-PROGRESS.md`](docs/WEB-PROGRESS.md) — mục
-   **"ĐỐI CHIẾU SITE ↔ MẠNG g0"** là phần còn mở.
-3. **Autopilot làm được ngay, không cần hỏi ai:** **Đ1-9** (a11y ngoài tầm axe) ·
-   **Đ1-7** (đường ra khỏi phiên ví) · **Đ1-11b phần 2–3** (so DANH SÁCH chunk thay
-   vì chỉ số đếm, `web-rollback.sh`).
+1. **`[human]` MERGE NHÁNH `gday-heartbeat-gate`** (worktree `C:\PROJECTS\9Chain-A1-gday`).
+   Chưa merge được vì worktree `main` **đang có việc chưa commit** ở đúng
+   `scripts/gday-preflight.mjs` (node10 Hetzner vào genesis, `A1_STAKING_PORT_BASE=9700`)
+   \+ `docs/GDAY-NODE10-HETZNER.md` chưa theo dõi. Merge đã đo là **sạch** và nay là
+   **fast-forward**. Khi cây đó sạch:
+   `git -C C:/PROJECTS/9Chain-A1 merge --ff-only gday-heartbeat-gate`
+2. **`[human]` `watch-network` đỏ**: kỳ vọng 9 validator, đo 10 — node D-118/D-119.
+   Hằng số chép tay mà thực tế đã vượt qua, **không phải lỗi mới**.
+3. **`[human]` drift đỏ**: `9chain-a1-config/console-chains.json` mồ côi. Nó ở
+   `.gitignore:25` nên không bao giờ có trong repo, và được khai ở `ignore` — mà
+   `ignore` **không** được tra khi phân loại mồ côi. Sửa: chuyển sang `knownExtra`.
+   Là lời khai về sổ của David nên tôi báo chứ không tự làm.
+4. **Autopilot làm được ngay:** `load-test.mjs` **vẫn mang lỗi lệch nonce** (xem
+   Gotchas) — chưa vá, ngoài phạm vi phiên này.
+5. Backlog cũ: `docs/WEB-PROGRESS.md`, mục **Đ1-9 · Đ1-7 · Đ1-11b phần 2–3**.
 
-4. **Hai quyết định đang chặn — `[human]`:**
-   - **A2 · câu "khoảng ba phút" ĐANG SAI trên mạng.** Nó ở 3 chỗ trong `en.ts`
-     (`:198` `cPhu` → cũng là **`og:description`**, `:225`, `:335`). Số đo mới nhất
-     trong repo là **305,5s ≈ 5 phút** trên mạng 9 node ([`HANDOFF.md:489`](HANDOFF.md));
-     con số ~170s là thời mạng **5 node**. Mâu thuẫn nội bộ xác nhận:
-     `web/lib/wallet.ts` đặt `tranGiay = 420` — **mã chờ 7 phút trong khi chữ hứa 3**.
-     🔴 Sửa được nhưng **phải đo lại trên g0 trước**, và phép đo đó là **đẻ một chain
-     thật trên mạng công khai** ⇒ cần David gật.
-   - **C1 · `/faucet/api/supply` đang 404 thật** — việc của phiên chain, xem dưới.
+### 🔴 Gotchas MỚI `2026-08-29` — thứ sẽ tốn giờ nếu không biết
+
+- **`load-test.mjs` giết chính nó bằng nonce.** Nó resync bằng `getTransactionCount(…,
+  "latest")` = nonce **đã đào**, bỏ qua mempool. Một cú nấc RPC ⇒ mọi ví tua lùi ⇒ coreth
+  đuổi khúc giữa ⇒ **thủng lỗ nonce ⇒ tx sau đó node vẫn NHẬN nhưng không bao giờ đào**.
+  Đo được: chain đứng im **260 giây** trong khi công cụ in `gửi 1044`, **chốt 0**.
+  Chain KHOẺ suốt lúc đó (gửi tay 1 tx ⇒ chốt 4,1s). Phân biệt "chain chết" với "bộ gửi
+  chết" bằng **một tx tay** là phép thử rẻ nhất.
+- **`df --output=pcent` là GNU, `node:24-alpine` là busybox ⇒ cờ bị từ chối.** Chốt an
+  toàn đĩa trong container **chưa từng hoạt động**; mọi lời gọi ném lỗi, và `null` được
+  hiểu là "không đo được, đừng dừng". Chỉ lộ ra vì log in **giá trị đo** chứ không in
+  đường dẫn cấu hình. Nay dùng `statfs`.
+- **`pgrep -af <tên>` khớp CHÍNH LỆNH đang chạy nó.** Vừa báo tiến trình lạ (là chính
+  nó), vừa nhét mọi mốc `<<<SECTION` vào output làm hỏng bộ tách mục. Dùng
+  `heartbeat[-]pump` (regex và literal bất đồng). Cùng bẫy từng làm `pkill -f` giết
+  phiên ssh gọi nó — đã dính **2 lần** trong phiên này.
+- **`docker --env-file` KHÔNG bóc dấu nháy.** `X="a b c"` vào container thành `"a b c"`
+  kèm nháy. File env viết cho `set -a; . file` phải được shell parse rồi **ghi lại bản
+  không nháy** cho docker.
+- **`process.exit()` ngay sau `fetch` làm libuv nổ assertion trên Windows** ⇒ shell nhận
+  **127** thay vì mã cổng đã chọn. Dùng `process.exitCode`. Nhưng nếu chỉ đặt exitCode
+  mà **không `return`**, nhánh đỏ sẽ chạy tiếp xuống dòng thành công và **ghi đè đỏ
+  thành xanh** — xanh đúng lúc cổng vừa tìm ra thứ nó sinh ra để tìm.
+- **`ignore` ≠ `knownExtra` trong `manifest-deploy.json`.** `ignore` không được tra khi
+  phân loại **mồ côi**. Khai nhầm danh sách thì cổng vẫn đỏ.
+- **Cổng chạy trên máy dev không được đo máy dev.** Bản đầu của
+  `check-heartbeat-stopped.mjs` chạy `docker`/`pgrep` cục bộ ⇒ trên laptop nó in **ba
+  dấu ✓ và thoát 0** trong khi bơm đang chạy trên server. Và "không có docker" cho danh
+  sách container **rỗng**, đọc y hệt "không có bơm" = PASS. Phải bắt docker **và** cây
+  nguồn tự khai có mặt.
 
 ---
 
-## Đã xong trong phiên này (đều đã lên mạng công khai và đã đo)
+## Lưu trữ — đợt `2026-08-28` (đều đã lên mạng công khai và đã đo)
 
 ### Đợt 1 — 7/11 mục
 
