@@ -1282,6 +1282,7 @@ phải chạy thật đường đó — test xanh không đủ.
 | M11.10 | O1 bước 2 — ví ký từ máy dev qua hầm SSH trong container | `[ ]` | ràng buộc đã đo, xem D-085 |
 | M11.11 | 🔴 **Cổng canh khoảng cách repo ↔ server** | `[x]` | D-088 · bắt 5 lệch thật ngay lần đầu · đối chứng ngược đạt |
 | M11.12 | Deploy phần còn lại của 27–28/08 (faucet I1b, `export-chain`, `index.html`) | `[x]` | D-088 · `/faucet/api/supply` nay **200, số đo từ chain** |
+| M11.13 | 🔴 **Diễn tập trọn lượt ngày G ở thế hệ 1** (P2-5 của `TESTNET1-PUBLIC`) | `[x]` | D-123→D-128 · `30/08` · bump `A1Gen` + **sinh lại 26 patch** (tree `60a61707`) · image `9chain-a1/node:g1` **dùng lại được ngày G** · khắc chữ `engrave-verify` **13/13 trên chain sống** · `N=9`: node ngoài compose bootstrapped, validators **9**, node **không phải beacon** thấy nó · **5 phát hiện, 4 nằm trong thứ đang xanh** |
 
 🔴 **Chờ người, autopilot không làm thay được:** bản thứ hai của bộ khoá (O1) · ký SIWE để chạy
 phép kiểm đẻ chain đầu-cuối · B-10 tắt robots.txt ở dashboard Cloudflare · O4 tiền cho nhà cung

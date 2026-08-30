@@ -66,9 +66,24 @@ specified"**. Đó là bộ lọc `Host` của M11.10 **làm đúng việc**, kh
 (22 tệp khoá) · `net-tap-g1` (20 tệp khoá) — `shred -u -n 3`, đối chứng `find` ⇒ 0 tệp.
 `check-key-leaks.mjs` ⇒ **exit 0**. 49 container của dự án khác **không đụng tới**.
 
-**Số đo cuối phiên:** preflight `--no-network` **14 đạt · 0 đỏ · 4 bỏ qua · 24 việc tay**.
-⚠️ **Chưa chạy lượt đầy đủ có mạng** — bốn cổng nhóm 3 đo mạng `g0` đang sống, mà repo nay tả
-`g1` ⇒ **`watch-network` sẽ đỏ, và đó là đỏ ĐÚNG cho tới ngày G**.
+**Số đo cuối phiên — lượt ĐẦY ĐỦ có mạng:** **15 đạt · 3 đỏ · 0 không chạy được · 24 việc tay**.
+
+🔴 **BA ĐỎ NÀY LÀ ĐỎ DỰ KIẾN TỚI NGÀY G — đã kiểm từng cái đỏ VÌ ĐÚNG LÝ DO. Đừng vá cho xanh.**
+
+| cổng | đỏ ở mục nào | vì sao đó là ĐÚNG |
+|---|---|---|
+| `watch-network` | tên mạng `9chain-a1-g0` (repo mong `g1`) · networkID `999999999` (mong `999999998`) | **hệ quả trực tiếp của bump.** Repo tả `g1`, mạng sống là `g0`. Hết đỏ **đúng lúc** mạng g1 lên |
+| | số validator **10** (mong 9) | hệ quả lượt stake D-119 + D-126 nay chốt `N=9`. Hết đỏ ở ngày G |
+| | B-12 · hạn sớm nhất **13 ngày** (`2026-09-12`) | validator thứ 10 stake-sau, hạn 14 ngày. **Nó chết cùng mạng g0 ngày G** ⇒ không phải rủi ro thật, **trừ khi ngày G trượt**. Mạng g1 đo được cửa sổ **56 ngày** |
+| `check-deploy-drift` | **2 lệch**: `local-net/lib/chainid.mjs` · `local-net/console/chainid-test.mjs` | đúng **hai tệp vừa bump**. Hết đỏ khi console g1 được deploy (đã là việc tay) |
+| | **3 mồ côi** `heartbeat-*` | **G-6, việc của David** — xem dưới |
+| `check-net-dirs` | **B-19** | không đổi, việc của David |
+
+🔴 **G-6 có thêm manh mối, chưa phải câu trả lời.** Ba tệp mồ côi nay đọc được tên đầy đủ:
+`9chain-a1-config/heartbeat.json` · `local-net/faucet/heartbeat-pump.mjs` ·
+`local-net/faucet/fund-heartbeat-wallets.mjs`. Tên tự khai đây là **bộ bơm nhịp sống 9 tx/s**,
+và **nguồn của nó không nằm trong repo này**. ⇒ Sau `down -v` nó sẽ bơm vào một chain **đã chết**
+bằng ví **thế hệ cũ**. Vẫn cần David nói nó đến từ đâu — **đừng khai vào `knownExtra` cho xanh**.
 
 ### 🆕 Phiên `2026-08-29` (chiều) — SOÁT CHỖ HỞ NGÀY G
 
