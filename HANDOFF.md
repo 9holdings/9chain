@@ -1,7 +1,8 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-29** (phiên MỞ TESTNET CÔNG KHAI — David chốt ngày `01/09`; node ngoài
-đã validate được; 13 commit, D-116→D-122).
+Cập nhật: **2026-08-30** (phiên **DIỄN TẬP g1** — D-123→D-128, việc tay 22 → **24**, fork
+**26 patch / tree `60a61707`**). Trước đó `2026-08-29`: mở testnet công khai (D-116→D-122) và
+soát chỗ hở ngày G (`docs/GDAY-G1-GAPS.md`).
 
 > 🔴 **ĐỌC [`CLAUDE.md`](CLAUDE.md) TRƯỚC — đó là LUẬT.** Tệp này là **bàn giao**: dài, có lịch
 > sử, và phần lớn là số đo của các phiên trước. Mâu thuẫn thì `CLAUDE.md` thắng về **luật**,
@@ -10,8 +11,113 @@ Cập nhật: **2026-08-29** (phiên MỞ TESTNET CÔNG KHAI — David chốt ng
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
 ```bash
-node scripts/gday-preflight.mjs      # 18 cổng + 17 VIỆC TAY, một lệnh (~2 phút)
+node scripts/gday-preflight.mjs      # 18 cổng + 24 VIỆC TAY, một lệnh (~2 phút)
 ```
+
+### 🆕 Phiên `2026-08-30` — DIỄN TẬP g1 (máy dev, băng TẬP `899999998`)
+
+**David chốt hôm nay:** diễn tập hôm nay, có thể thêm một lượt `31/08` trước ngày G. Và **hai
+quyết định đổi hướng ngày G** — cả hai từ số đo, không từ ý muốn:
+
+| | David chốt `30/08` | vì sao |
+|---|---|---|
+| **`N=9`**, Hetzner **THAY** một node OVH | **D-126** | D-122 lật D-046 mà không mục nào ghi là đang lật. Chỉ `N=9` cho self-bond **`999.999`** LOVE9/node (`8.999.991 = 9 × 999.999`), và số đó vào genesis **bất biến**. netgen cảnh báo ở **mọi** lượt `N=10` — cảnh báo đó bị đọc lướt suốt |
+| **giữ `A1_STAKING_PORT_BASE` mặc định `9651`** | **D-125** | bẫy `9660` **không tồn tại** (đo, xem dưới). `ufw 9651` đã mở, tài liệu công khai đã nói `9651` |
+
+🔴 **`A1Gen` NẰM TRONG bộ patch (0018) ⇒ bump thế hệ LÀ sửa `patches/`** (**D-123**). Bump ở cây
+làm việc mà quên sinh lại bộ patch thì image ngày G **đúng**, còn bộ patch **công bố** vẫn khai
+`A1Gen 0`: người ngoài build ra binary của **thế hệ đã chết**, không join được — mà cổng
+fork-tree **xanh suốt** và điều kiện qua số 4 của `01/09` cũng xanh. Không tài liệu nào từng nối
+hai thứ này. ⇒ Đã sinh lại: **26 patch · tree `f2b9486b` → `60a61707`**, đối chứng **25/26 →
+`f2b9486b`**. Bộ 25 patch cũ chỉ đổi dòng đếm `[PATCH nn/25→26]` (**50 dòng, 0 dòng nội dung**).
+
+🔴 **Hai cổng cắm cứng thế hệ 0 ⇒ mù đúng vào ngày bump** (**D-124**). `check-consistency`
+**5/14** ca đối chứng ngược ngừng bắt được — và đó đúng là năm cách hỏng của ngày G (*bump JS
+quên Go* · *bump Go quên JS* · *quên `A1Name`* · *khối chainId giữ nguyên* · *console mang
+networkID thế hệ trước*). `chainid-test` thì **ĐỎ GIẢ**. Đã sửa cả hai sang **lệch tương đối**;
+14/14 và 36/36 xanh lại, có đối chứng ngược cho chính bản vá.
+
+🔴 **Phép nghiệm thu trong `GDAY-NODE10-HETZNER.md` SAI** (**D-127**): nó đòi
+`grep -c -- "--public-ip=<IP>"` **= 10**; đo thật là **1**, và **1 mới đúng** (chỉ beacon khai IP
+công khai — patch 0024/D-089). Dòng cũ báo "hỏng" cho một mạng **đúng**, và cách sửa hiển nhiên
+là tái lập chính thiết kế mà diễn tập của nó đã bác. Đã sửa tài liệu + thành việc tay riêng.
+
+**Số đo (D-128 có bảng đầy đủ):** image `9chain-a1/node:g1` build **exit 0**, binary tự khai
+`commit=9chain-a1-g1-26patch-60a61707` · `supplyCap 7900000001000000000` · `eth_chainId
+0x218711a09` · `LOVE9` giải được, **`AVAX` đỏ có lý do** · chữ khắc `engrave-verify` **13 đạt ·
+0 hỏng** (đọc ngược từ chain sống, cả hai lượt) · hình dạng ngày G `N=9`: node9 chạy **ngoài
+compose**, bootstrapped P/X/C, nodeID **khớp genesis**, `getCurrentValidators` = **9**, node
+**không phải beacon** thấy nó, cửa sổ hạn **56 ngày** offset **7 ngày**.
+
+🔴 **Image `9chain-a1/node:g1` DÙNG LẠI ĐƯỢC NGÀY G** — binary không phụ thuộc byte chữ khắc.
+Bước dài nhất của ngày G đã đẩy ra khỏi ngày G. **Đừng xoá image này.**
+
+⏱️ **Con số đáng nhớ nhất:** node ngoài bootstrap ở **~50s**, nhưng node **không phải beacon**
+chỉ thấy nó ở **~70s**. Chấm điểm ở mốc 30s là khai một sự cố không có thật.
+
+⚠️ **Giới hạn phải khai:** node ngoài chạy trên **cùng máy dev**, nên rào cản mạng giữa **hai máy
+vật lý** không được mô phỏng. Lượt này **không thay thế** phép đo với Hetzner —
+`ingressConnectionCount` (D-121) vẫn phải đo ở đó.
+
+⚠️ **Bẫy phép đo mới:** `engrave-verify --rpc` qua `host.docker.internal` ⇒ **403 "invalid host
+specified"**. Đó là bộ lọc `Host` của M11.10 **làm đúng việc**, không phải chữ khắc hỏng.
+
+**Đã dọn ngay trong phiên (D-107):** `a1tap-node-1/2/3` + 3 volume · `net-probe-portbase`
+(22 tệp khoá) · `net-tap-g1` (20 tệp khoá) — `shred -u -n 3`, đối chứng `find` ⇒ 0 tệp.
+`check-key-leaks.mjs` ⇒ **exit 0**. 49 container của dự án khác **không đụng tới**.
+
+**Số đo cuối phiên:** preflight `--no-network` **14 đạt · 0 đỏ · 4 bỏ qua · 24 việc tay**.
+⚠️ **Chưa chạy lượt đầy đủ có mạng** — bốn cổng nhóm 3 đo mạng `g0` đang sống, mà repo nay tả
+`g1` ⇒ **`watch-network` sẽ đỏ, và đó là đỏ ĐÚNG cho tới ngày G**.
+
+### 🆕 Phiên `2026-08-29` (chiều) — SOÁT CHỖ HỞ NGÀY G
+
+**Câu David hỏi:** *"còn cần làm gì cho ngày G1, có cần diễn tập chạy lại chain nữa không?"*
+
+**Kết quả: 17 việc tay của preflight đều ĐÚNG và xếp đúng thứ tự — vấn đề nằm ở thứ KHÔNG có
+trong đó.** Soát ra **7 chỗ hở**; **5** đã đưa **thẳng vào `MANUAL_TASKS`** (17 → **22**), vì
+danh sách việc tay là thứ **duy nhất chặn được** ngày G — tài liệu là nơi người ta *định* đọc.
+Bản đầy đủ: [`docs/GDAY-G1-GAPS.md`](docs/GDAY-G1-GAPS.md).
+
+| | chỗ hở | ai |
+|---|---|---|
+| G-1 | **B-20** sao lưu danh tính 10 validator của g1 — B-20 tự khai *"phải làm LẠI"* mà không việc tay nào nhắc | A1 + David |
+| G-2 | 🔴 **`docs/RUN-A-VALIDATOR.md` KHÔNG TỒN TẠI** (đo `ls docs/`) — mà nó là **điều kiện qua số 5** của `01/09` | **A1, chưa làm** |
+| G-3 | công bố `genesis.json` + bootstrap của g1 **qua repo GitHub**, không qua `web/` | A1 + David |
+| G-4 | việc tay cũ dừng ở chữ *"sinh"* token mới — chưa ai nói **đưa lên server**; faucet dính gotcha 3 | David |
+| G-5 | `main:web/lib/chain.ts` còn `networkId: 9001` (**lệch 2 thế hệ**) · blockchainID C/X chết theo re-genesis | worktree khác |
+| G-6 | `heartbeat-*` **không có nguồn trong repo** (grep toàn repo chỉ trúng bản ghi về chính nó) | **David** |
+| G-7 | 🟡 `check-chainid.mjs:54` chép cứng gốc dải — **hôm nay KHÔNG sai** (quét cả không gian, phủ trọn khối g1). **Đừng sửa trước ngày G** | sau |
+
+🔴 **DIỄN TẬP: CÓ, và đề xuất `31/08` (không phải 30/08).** Năm thứ **chưa từng chạy** đang được
+xếp vào đúng ngày G, **sau `down -v`**: `A1Gen 1` ở bất cứ đâu · netgen `N=10` (xung đột cổng
+`9660` mới chỉ **đọc ra từ mã**, chưa ai thấy xảy ra) · `ipv4port` + `STAKING_PORT_BASE=9700` ·
+node10 vào **từ genesis** (D-119 chứng minh đường **stake sau**, cơ chế khác hẳn) · khắc chữ
+**BẬT** trong một lượt sinh mạng đầy đủ.
+
+✅ **Và nó rẻ hơn tưởng:** `network_ids.go` đã có **băng mạng TẬP theo thế hệ** —
+`A1IDGocTap 899_999_999` ⇒ gen 1 = `899999998`, tên `9chain-a1-tap-g1`. Hai băng **không bao
+giờ bắt tay được**, và `netgen/identity.go` chặn **FATAL** nếu tên không suy đúng từ `A1Gen`.
+⇒ Tập ở `A1Gen 1` **không** là canh bạc *"bản tập thành bản thật"*. Hơn nữa **binary không phụ
+thuộc byte chữ khắc** ⇒ **image lượt tập chính là image ngày G dùng lại**.
+⚠️ Giá phải trả: bump `A1Gen` ⇒ repo mô tả g1 trong khi mạng sống là g0 ⇒ vài cổng đỏ tới ngày G.
+**Đỏ nhiều ngày là cách nhanh nhất dạy người ta lướt qua danh sách** ⇒ tập sát ngày, khai trước
+đỏ nào là đỏ dự kiến.
+
+⚠️ **Bump thế hệ là BA dòng bên Go** (`A1Gen`, `A1Name`, `A1NameTap`) + **một** dòng JS
+(`A1_GEN`). Việc tay ghi *"cả hai ngôn ngữ"* — đúng nhưng chưa đủ chi tiết. Quên vế Go thì
+netgen chặn FATAL; **quên vế JS thì không gì báo lỗi** (D-093).
+
+**Nếu chỉ tập được một nửa:** ưu tiên **`N=10` + `STAKING_PORT_BASE=9700` + node10 từ genesis** —
+phần duy nhất hỏng thì hỏng **giữa ngày G, sau khi mạng cũ đã bị xoá**, và đường lui của nó
+(D-119) tốn **25.000 LOVE9** + đưa B-12 về 14 ngày.
+
+**Số đo cuối phiên:** preflight đầy đủ **15 đạt · 3 đỏ · 17 việc tay** (đo `13:20Z`, trước khi
+sửa) ⇒ sau khi sửa: `--no-network` **14 đạt · 0 đỏ · 4 bỏ qua · 22 việc tay** ·
+`check-single-source` ✓ · `check-english-code` ✓ (nợ **5.754**, không phình).
+⚠️ **Chưa chạy lại lượt đầy đủ có mạng** — ba cổng đỏ không nằm trong thứ đã sửa.
+⚠️ **Chưa commit · chưa ghi `DECISIONS.md`/`PROGRESS.md`** — chưa quyết định nào được chốt và
+chưa mục nào đánh `[x]`; ngày diễn tập đang chờ David.
 
 ### 🆕 Phiên `2026-08-29` — TL;DR
 
@@ -40,7 +146,8 @@ nợ tiếng Anh **5.856 → 5.754**.
 | 1 | **PR đăng ký chainId** — [`docs/chainid-registry/`](docs/chainid-registry/README-PR.md), soạn sẵn, mọi trường đã ĐO | duyệt mất **vài ngày**; gửi 01/09 là không kịp |
 | 2 | **Tạo GitHub repo rỗng** + cấp quyền | `git push` là việc có người bấm; repo **không có remote** (H-6) |
 | 3 | **B-16** bản sao khoá thứ hai · **B-19** khoá trong thư mục chết | chặn GO/NO-GO |
-| 4 | 3 tệp `heartbeat-*` mồ côi trên server — của ai? | drift đỏ vì chúng |
+| 4 | 3 tệp `heartbeat-*` mồ côi trên server — của ai? | drift đỏ vì chúng; và sau `down -v` là **mất manh mối** |
+| 5 | **Chốt có diễn tập `31/08` không** (A1 đề xuất: CÓ) | 5 thứ chưa từng chạy đang xếp vào sau `down -v` — xem phiên chiều `29/08` |
 
 ### 🆕 Phiên `2026-08-28` (chuẩn hoá) — SÁU dòng phải đọc trước khi gõ bất cứ lệnh nào
 

@@ -1,7 +1,7 @@
 From 0e745a2d80ff3c6db443e3ec68b524e7c44d2e58 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Thu, 27 Aug 2026 00:32:01 +0400
-Subject: [PATCH 12/25] netgen: print per-node self-bond + warn when it stops
+Subject: [PATCH 12/26] netgen: print per-node self-bond + warn when it stops
  being a whole LOVE9 (D-046)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

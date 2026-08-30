@@ -22,7 +22,7 @@
 // 🔴 Đây là bản chép, và bản chép thì trôi lệch. Cổng `netgen/identity.go` in ra khối
 // chainId nó tính được ở MỖI lượt sinh mạng, và runbook ngày G đối chiếu dòng đó với
 // `chainid-test.mjs`. Đừng sửa số này một mình.
-export const A1_GEN = 0;
+export const A1_GEN = 1;
 
 // ─── Ba thứ dẫn xuất từ thế hệ — KHAI Ở ĐÂY, đừng chép lẻ ra chỗ khác ───
 //

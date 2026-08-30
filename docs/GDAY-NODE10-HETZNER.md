@@ -1,4 +1,15 @@
-# NGÀY G — NODE THỨ 10 Ở HETZNER, VÀO THẲNG GENESIS
+# NGÀY G — NODE HETZNER VÀO THẲNG GENESIS
+
+> 🔴 **ĐÍNH CHÍNH `2026-08-30` — ba điều trong tệp này đã SAI và đã sửa. Đọc trước.**
+> Nguồn: diễn tập g1 trên máy dev (D-123→D-128).
+>
+> | | bản cũ | sự thật đo được |
+> |---|---|---|
+> | **số node** | `N=10`, Hetzner là node **thứ mười** | 🔴 **`N=9`, Hetzner THAY một node OVH** — D-122 lật D-046 mà không ai nêu; chỉ `N=9` cho self-bond `999.999` LOVE9/node (`8.999.991 = 9 × 999.999`), và nó vào genesis **bất biến**. David chốt lại `30/08` (**D-126**) |
+> | **cổng staking** | `A1_STAKING_PORT_BASE=9700` vì node10 đụng `9660` | 🔴 **Bẫy đó KHÔNG tồn tại** — netgen chỉ publish cổng staking cho **beacon**, nên `9660` của node10 nằm trong namespace container nó. Đo thật: 10 node lên đủ, mesh 9/9 ở base mặc định. **Giữ `9651`** (**D-125**) |
+> | **nghiệm thu compose** | `grep -c -- "--public-ip=<IP>"` **phải là 10** | 🔴 **Phải là `1`** — chỉ beacon khai IP công khai (patch 0024/D-089). Dòng cũ báo "hỏng" cho một mạng đúng, và cách sửa hiển nhiên là tái lập đúng thiết kế mà diễn tập đã bác (**D-127**) |
+>
+> Phần **vẫn đúng nguyên vẹn**: node ngoài vào **từ genesis**, không stake sau.
 
 **David chốt `2026-08-29`:** node ngoài vào **genesis**, không stake sau. Nó là validator từ
 **block 0**, không cần giao dịch nào, không tốn 25.000 LOVE9, và không phụ thuộc `AddPermissionless…`
@@ -25,7 +36,16 @@ Nhưng cho node của chính ta, genesis là đường sạch hơn.
 
 ## 1. 🔴 Ba cái bẫy phải biết TRƯỚC, không phải lúc đang sinh mạng
 
-### 1a. Xung đột cổng `9660` — netgen KHÔNG tự phát hiện
+### 1a. ~~Xung đột cổng `9660`~~ — 🔴 **BÁC BỎ `30/08` (D-125). Giữ nguyên văn dưới đây vì cách suy luận sai vẫn đáng đọc.**
+
+**Sai ở đâu:** lập luận đúng tới chỗ *"node10 lấy `--staking-port=9660`"* rồi dừng, và bỏ qua
+việc netgen **chỉ publish cổng staking cho beacon** (`nd.Index == 1`). Cổng `9660` của node10
+sống trong namespace của container nó; `9660` trên host là API node2 — hai không gian tên khác
+nhau. Đo thật `30/08`: `N=10` base mặc định ⇒ 10 node lên hết, không va chạm, mesh 9/9.
+**Bài học: một bẫy đọc-ra-từ-mã chưa phải một bẫy** — nó chỉ là giả thuyết cho tới khi có số đo,
+và ở đây giả thuyết đó suýt mua thêm hai bước phải nhớ giữa ngày G.
+
+*(nguyên văn bản cũ:)*
 
 netgen publish API của **node2** ở `127.0.0.1:9660` (cố ý — Caddy có hai upstream, D-1xx).
 Ở chế độ `ipv4port`, staking port của node **N** là `A1_STAKING_PORT_BASE + N - 1`. Với
@@ -43,9 +63,9 @@ netgen sinh compose cho **cả N node trên một máy**, và đặt `--bootstra
 bộ** (đúng — Docker không hairpin, D-089). Node10 ở máy khác thì cả hai đều sai với nó:
 
 - nó phải khai `--public-ip=95.217.60.140` (IP **của nó**), không phải của server A1;
-- `--bootstrap-ips` của nó phải là **địa chỉ CÔNG KHAI** của beacon: `139.99.145.13:9700`.
+- `--bootstrap-ips` của nó phải là **địa chỉ CÔNG KHAI** của beacon: `139.99.145.13:9651`.
 
-⇒ Trên OVH chỉ `up` **node1..node9**. Thư mục `node10/` chỉ dùng để lấy **danh tính**.
+⇒ Trên OVH chỉ `up` **node1..node8**. Thư mục `node9/` chỉ dùng để lấy **danh tính**.
 
 ### 1c. Binary trên Hetzner hiện là `A1Gen 0` — ngày G phải build lại
 
@@ -62,51 +82,57 @@ Hetzner (dựng `29/08`) là bản `g0` ⇒ **không dùng lại được**.
 ### Bước 1 · Sinh mạng 10 node (trên server A1)
 
 ```bash
-N=10 \
+N=9 \
 NETWORK_ID=999999998 \
 A1_P2P_MODE=ipv4port \
 A1_PUBLIC_IP=139.99.145.13 \
-A1_STAKING_PORT_BASE=9700 \
   <lệnh netgen ngày G>
 ```
+*(Không đặt `A1_STAKING_PORT_BASE` — mặc định `9651` là đúng, xem đính chính đầu tệp.)*
 
 🔴 Nghiệm thu **ngay**, trước khi `up` bất cứ thứ gì:
 ```bash
-grep -c -- "--public-ip=139.99.145.13" <net>/docker-compose.multinode.yml   # phải là 10
+grep -c -- "--public-ip=139.99.145.13" <net>/docker-compose.multinode.yml   # phải là 1  (CHỈ beacon)
+grep -c -- "--public-ip=" <net>/docker-compose.multinode.yml                # phải là 9  (mỗi node một dòng)
 grep image: <net>/docker-compose.multinode.yml                              # gotcha 16
 ```
+Và đọc dòng netgen in về **self-bond**: phải là `999,999 LOVE9 mỗi node`, **không kèm cảnh báo**.
+Có cảnh báo nghĩa là N ≠ 9 và bộ chín số 9 đã mất (D-046 · D-126).
 
-### Bước 2 · Chỉ chạy 9 node trên OVH
+### Bước 2 · Chỉ chạy 8 node trên OVH
 
 ```bash
 docker compose -f <net>/docker-compose.multinode.yml up -d \
-  9chain-a1-node-1 9chain-a1-node-2 ... 9chain-a1-node-9
-sudo ufw allow 9700:9709/tcp comment "9Chain-A1 P2P g1"
+  9chain-a1-node-1 9chain-a1-node-2 ... 9chain-a1-node-8
+sudo ufw allow 9651:9659/tcp comment "9Chain-A1 P2P g1"
 ```
 
-### Bước 3 · Chuyển danh tính node10 sang Hetzner
+### Bước 3 · Chuyển danh tính node9 sang Hetzner
 
-Ba tệp: `node10/staker.key` · `node10/staker.crt` · `node10/signer.key`.
+Ba tệp: `node9/staker.key` · `node9/staker.crt` · `node9/signer.key`.
 
 🔴 **Đây là KHOÁ.** Không phải khoá quỹ, nhưng ai cầm nó **mạo danh được validator này**.
 - chuyển thẳng máy-sang-máy, **không** qua thư mục trung chuyển trên `C:`;
 - xong việc chạy `node scripts/check-key-leaks.mjs` — cổng chỉ đỏ với **khoá quỹ**, nên
   danh tính validator **nó không canh**: dọn bằng tay và đối chứng bằng `find`.
 
-### Bước 4 · Chạy node10 ở Hetzner
+### Bước 4 · Chạy node9 ở Hetzner
 
 ```bash
 /opt/9chain-a1/avalanchego/build/avalanchego \
   --network-id=999999998 \
   --genesis-file=/opt/9chain-a1/genesis.json \
   --data-dir=/opt/9chain-a1/data \
-  --staking-tls-cert-file=/opt/9chain-a1/node10/staker.crt \
-  --staking-tls-key-file=/opt/9chain-a1/node10/staker.key \
-  --staking-signer-key-file=/opt/9chain-a1/node10/signer.key \
+  --staking-tls-cert-file=/opt/9chain-a1/node9/staker.crt \
+  --staking-tls-key-file=/opt/9chain-a1/node9/staker.key \
+  --staking-signer-key-file=/opt/9chain-a1/node9/signer.key \
   --public-ip=95.217.60.140 --staking-port=9651 \
   --http-host=127.0.0.1 --http-port=9655 \
-  --bootstrap-ips=139.99.145.13:9700 --bootstrap-ids=<NodeID của node1 g1>
+  --bootstrap-ips=139.99.145.13:9651 --bootstrap-ids=<NodeID của node1 g1>
 ```
+
+🔴 **Ngay sau khi nó lên, đo nodeID nó tự khai và so với `genesis.json`** — đó là thứ chứng minh
+danh tính đã nạp đúng. Đo `30/08` trên bản tập: khớp, và `grep -c <nodeID> genesis.json` = 1.
 
 ⚠️ **Xoá `--data-dir` cũ trước** — nó chứa DB của `g0` và một danh tính **tự sinh** khác.
 Để lại là node lên bằng nodeID cũ, **không** phải nodeID trong genesis.
@@ -115,11 +141,19 @@ Ba tệp: `node10/staker.key` · `node10/staker.crt` · `node10/signer.key`.
 
 | phải đạt | đo bằng |
 |---|---|
-| **10 validator**, có nodeID node10 | `platform.getCurrentValidators` trên RPC công khai |
-| node10 `isBootstrapped` P/X/C = true | `info.isBootstrapped` trên chính node10 |
-| **mọi node OVH thấy node10** | `info.peers` trên node **không phải beacon** |
-| 🔴 `ingressConnectionCount > 0` | `health.health` trên node10 — xem §3 |
-| hạn validator node10 **cùng cửa sổ** 9 node kia | `getCurrentValidators` → `endTime` |
+| **9 validator**, có nodeID node9 | `platform.getCurrentValidators` trên RPC công khai |
+| node9 `isBootstrapped` P/X/C = true | `info.isBootstrapped` trên chính node9 |
+| **node OVH KHÔNG phải beacon thấy node9** | `info.peers` trên node đó |
+| 🔴 `ingressConnectionCount > 0` | `health.health` trên node9 — xem §3 |
+| hạn validator node9 **cùng cửa sổ** 8 node kia | `getCurrentValidators` → `endTime` |
+
+⏱️ **Cho mesh thời gian trước khi kết luận.** Đo `30/08` trên bản tập: node ngoài bootstrap ở
+**~50s**, nhưng node **không phải beacon** chỉ thấy nó ở **~70s**. Chấm điểm ở mốc 30s là khai
+một sự cố không có thật — đúng lớp lỗi mà repo này đã trả giá nhiều lần.
+
+✅ **Hạn validator cùng cửa sổ là ĐẠT SẴN theo kiến trúc** khi node vào từ genesis: đo được
+cửa sổ **56 ngày**, mỗi node cách nhau đúng **7 ngày**. Không cần thao tác gì để đạt điều kiện
+này — chỉ cần **không** đi đường stake-sau (đường đó cho 14 ngày, và làm B-12 đỏ).
 
 ---
 
@@ -145,7 +179,11 @@ báo bỏ qua được.
 
 ## 4. Đường lui
 
-Nếu node10 không vào được genesis kịp: **sinh mạng 9 node như cũ**, rồi dùng đường D-119
-(`local-net/tools/stake-validator/`) để thêm node ngoài **sau** khi mạng đã ổn. Đường đó đã chạy
-thật `29/08`. Mất 25.000 LOVE9 và vài phút — đắt hơn, nhưng nó **đã được chứng minh**, và ngày G
-không phải lúc thử một đường chưa ai đi.
+Nếu máy Hetzner không kịp nhận danh tính node9: **chạy cả 9 node trên OVH** (mạng vẫn đúng, chỉ
+là O4 chưa gỡ được), rồi dùng đường D-119 (`local-net/tools/stake-validator/`) để thêm node ngoài
+**sau** khi mạng đã ổn. Đường đó đã chạy thật `29/08`.
+
+⚠️ Giá của đường lui, nói thẳng: node thêm sau là **validator thứ 10** ⇒ hạn của nó **14 ngày**,
+ngắn hơn hẳn cửa sổ 56 ngày của 9 node genesis ⇒ **B-12 đỏ**; cộng **25.000 LOVE9**. Đắt hơn,
+nhưng nó **đã được chứng minh**, và ngày G không phải lúc thử một đường chưa ai đi.
+⚠️ Và nó **không** đụng tới bộ chín số 9: self-bond vẫn chia cho 9 node genesis (D-046 · D-126).

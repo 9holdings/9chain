@@ -457,11 +457,30 @@ function tuKiem() {
 // 🔴 Ca 1 và ca 2 KHÔNG phải giả định: chúng là đúng hai cách quên của ngày G.
 function tuKiemDinhDanh() {
   const caSai = [
-    ["ngày G: bump JS mà QUÊN Go", (d) => { d.js.gen = 1; }],
-    ["ngày G: bump Go mà QUÊN JS", (d) => { d.go.gen = 1; }],
-    ["bump cả hai nhưng quên đổi A1Name", (d) => { d.go.gen = 1; d.js.gen = 1; d.js.gocDai = 9_001_000_000; d.js.tranDai = 9_001_999_999; }],
+    // 🔴 EVERY case below must express the fault RELATIVE to the generation in the source
+    // right now — never as the literal `1`.
+    //
+    // Measured 2026-08-30, during the g1 rehearsal: written against the literal `1`, these
+    // five cases were correct at exactly ONE generation — the one they were authored at.
+    // The moment `A1Gen` became 1, `d.js.gen = 1` stopped being a fault and became the
+    // truth, so the gate reported "cannot catch it" for the five faults it exists to catch,
+    // ON THE DAY the bump happens. And it fails in the direction that reads as harmless:
+    // a run right after the G-day bump shows five ✗ lines that are easy to file under
+    // "expected red, the repo describes g1 while g0 is still live" — while what actually
+    // happened is that the gate went blind. A self-test anchored to a constant it is
+    // supposed to be watching tests only the day it was written.
+    ["ngày G: bump JS mà QUÊN Go", (d) => { d.js.gen = d.js.gen + 1; }],
+    ["ngày G: bump Go mà QUÊN JS", (d) => { d.go.gen = d.go.gen + 1; }],
+    ["bump cả hai nhưng quên đổi A1Name", (d) => {
+      const g = d.go.gen + 1;
+      d.go.gen = g; d.js.gen = g;
+      d.js.gocDai = 9_000_000_000 + g * 1_000_000;
+      d.js.tranDai = d.js.gocDai + 999_999;
+    }],
     ["thế hệ mới nhưng khối chainId GIỮ NGUYÊN của thế hệ cũ", (d) => {
-      d.go.gen = 1; d.js.gen = 1; d.go.ten = "9chain-a1-g1"; d.go.tenTap = "9chain-a1-tap-g1";
+      const g = d.go.gen + 1;
+      d.go.gen = g; d.js.gen = g;
+      d.go.ten = `9chain-a1-g${g}`; d.go.tenTap = `9chain-a1-tap-g${g}`;
     }],
     ["trần khối lệch gốc khối", (d) => { d.js.tranDai = d.js.gocDai - 1; }],
     ["khối thế hệ tràn ra ngoài toàn dải L1", (d) => { d.js.tranToanDai = 9_000_000_100; }],
@@ -469,7 +488,10 @@ function tuKiemDinhDanh() {
     ["A1Gen vượt biên độ 999", (d) => { d.go.gen = 1000; d.js.gen = 1000; }],
     ["băng THẬT chạm băng TẬP", (d) => { d.go.idGocTap = 999_999_000; }],
     ["JS gõ lại đỉnh băng thành số khác", (d) => { d.js.idGoc = 999_999_998; }],
-    ["🔴 console mang networkID của thế hệ TRƯỚC (số console so với node)", (d) => { d.js.netID = 999_999_998; }],
+    // Generations count DOWN the band, so the PREVIOUS generation is `netID + 1`. At g1 this
+    // stops being a hypothetical: `netID + 1` is 999999999, the dead g0 network — exactly the
+    // console nobody remembered to redeploy.
+    ["🔴 console mang networkID của thế hệ TRƯỚC (số console so với node)", (d) => { d.js.netID = d.js.netID + 1; }],
     ["JS TEN_MANG lệch A1Name của Go", (d) => { d.js.ten = "9chain-a1"; }],
     ["không đọc được network_ids.go", (d) => { d.go = { loiDoc: "ca thử" }; }],
     ["Go đổi cách khai A1Gen (regex hết khớp)", (d) => { d.go.gen = null; }],

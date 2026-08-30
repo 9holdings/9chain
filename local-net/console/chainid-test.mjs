@@ -85,8 +85,26 @@ ok("gốc dải < trần", GOC_DAI_CHAINID < TRAN_EIP2294,
 
 // ─── 7. TRẦN DẢI — David chốt cùng bộ định danh ngày G ───────────────────────
 console.log("\n─── 7. Trần dải: cạn thì DỪNG CỨNG, không tự tràn ───");
-ok("trần KHỐI THẾ HỆ 0 = 9.000.999.999", TRAN_DAI_CHAINID === 9_000_999_999, String(TRAN_DAI_CHAINID));
-ok("khối thế hệ 0 rộng 999.990 số", TRAN_DAI_CHAINID - GOC_DAI_CHAINID + 1 === 999_990,
+// 🔴 These assertions must hold at EVERY generation, so they are written as properties of the
+// block, never as the numbers of one generation.
+//
+// Measured 2026-08-30 during the g1 rehearsal: the previous wording pinned the literals of
+// generation 0 (`9_000_999_999`, width `999_990`). Bumping `A1Gen` to 1 turned this gate red
+// while nothing was wrong — a false red, and a false red two days before G-day is worse than
+// no gate, because it teaches the operator that red lines here are noise.
+//
+// They also do NOT restate the formula in `lib/chainid.mjs` (that would make the test green by
+// construction, the very failure this file's header warns about). They check it BACKWARDS:
+// modulo and integer division recover the block from the number itself.
+ok("trần KHỐI THẾ HỆ là số CUỐI của một khối triệu", TRAN_DAI_CHAINID % 1_000_000 === 999_999,
+  String(TRAN_DAI_CHAINID));
+ok(`🔴 khối đó đúng là khối của thế hệ ${A1_GEN}`,
+  Math.floor((TRAN_DAI_CHAINID - 9_000_000_000) / 1_000_000) === A1_GEN,
+  `khối ${Math.floor((TRAN_DAI_CHAINID - 9_000_000_000) / 1_000_000)}`);
+// Generation 0 is the only one that gives up numbers: its floor is lifted to …010 to leave the
+// parent chainId 9000000009 plus nine spare. Every later generation gets the full million.
+ok(`khối thế hệ ${A1_GEN} rộng ${A1_GEN === 0 ? "999.990" : "1.000.000"} số`,
+  TRAN_DAI_CHAINID - GOC_DAI_CHAINID + 1 === (A1_GEN === 0 ? 999_990 : 1_000_000),
   (TRAN_DAI_CHAINID - GOC_DAI_CHAINID + 1).toLocaleString("vi-VN"));
 ok("🔴 khối thế hệ nằm TRỌN trong dải David chốt", TRAN_DAI_CHAINID <= TRAN_TOAN_DAI);
 ok("🔴 khối thế hệ KHÔNG chạm chainId chain mẹ 9000000009", GOC_DAI_CHAINID > 9_000_000_009);

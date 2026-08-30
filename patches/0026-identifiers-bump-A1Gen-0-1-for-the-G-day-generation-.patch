@@ -1,0 +1,53 @@
+From d7076c8a524e85e51e1684c6f5f0e2b541347b86 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Sun, 30 Aug 2026 09:55:42 +0400
+Subject: [PATCH 26/26] identifiers: bump A1Gen 0 -> 1 for the G-day generation
+ (g1)
+
+Everything else is derived, so this one integer moves five things at once:
+
+  networkID (real band)  999999999        -> 999999998
+  networkID (drill band) 899999999        -> 899999998
+  network name           9chain-a1-g0     -> 9chain-a1-g1
+  drill network name     9chain-a1-tap-g0 -> 9chain-a1-tap-g1
+  L1 chainId block       9000000010-9999999999 -> 9001000000-9001999999
+
+The name goes into the node DB path, so a binary carrying it may only be
+deployed together with a full re-genesis (`down -v`). That is deliberate:
+new generation => new name => new DB path => a wipe is forced, and nobody
+has to remember it.
+
+The JS side (`local-net/lib/chainid.mjs`, `A1_GEN`) is a HAND COPY of this
+constant and must move in the same breath - forget it and nothing reports an
+error, the console just issues chainIds out of another generation block
+(D-093). Verified by `scripts/check-consistency.mjs`.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+---
+ utils/constants/network_ids.go | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/utils/constants/network_ids.go b/utils/constants/network_ids.go
+index f57c43b..e477049 100644
+--- a/utils/constants/network_ids.go
++++ b/utils/constants/network_ids.go
+@@ -56,7 +56,7 @@ const (
+ 	//      không im lặng.
+ 	//
+ 	// A1Gen — thế hệ mạng. Tăng đúng MỘT lần cho mỗi lượt re-genesis.
+-	A1Gen uint32 = 0
++	A1Gen uint32 = 1
+ 
+ 	// A1IDGoc / A1IDGocTap — đỉnh của hai băng. Thế hệ đếm **xuống** từ đây, để
+ 	// thế hệ 0 giữ đúng con số David chốt (`999999999`).
+@@ -105,8 +105,8 @@ const (
+ 	// một lượt nâng cấp nhầm sẽ **im lặng**. Đó chính là lý do thế hệ phải nằm **cả
+ 	// trong `networkID`** — lúc đó node thế hệ sai không bắt tay được với ai, và lỗi
+ 	// trở nên TO.
+-	A1Name    = "9chain-a1-g0" // ⇦ PHẢI khớp A1Gen — netgen có cổng kiểm
+-	A1NameTap = "9chain-a1-tap-g0"
++	A1Name    = "9chain-a1-g1" // ⇦ PHẢI khớp A1Gen — netgen có cổng kiểm
++	A1NameTap = "9chain-a1-tap-g1"
+ 
+ 	MainnetHRP  = "avax"
+ 	CascadeHRP  = "cascade"

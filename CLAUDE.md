@@ -47,9 +47,14 @@ kể cả chú thích. Đừng thêm một dòng tiếng Việt nào vào mã n�
 2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một
    nửa: nửa *"có chặn không"*, chưa kiểm nửa *"chặn xong nó nói gì"*.
 3. **Đụng `patches/` là đụng đường tái lập fork.** Sinh `--no-signature`, **sinh lại CẢ BỘ**,
-   nghiệm thu bằng `git am --keep-cr` + so tree. Tree hiện tại **`f2b9486b`** / **25 patch** /
-   gốc `1cf1fc3`. Đối chứng rẻ mà mạnh: áp **24/25** phải ra đúng **`074aaa93`** — chính là
-   cây mà **image đang chạy** dựng lên trên (patch 0025 chỉ đổi tên công cụ, không đụng node).
+   nghiệm thu bằng `git am --keep-cr` + so tree. Tree hiện tại **`60a61707`** / **26 patch** /
+   gốc `1cf1fc3`. Đối chứng rẻ mà mạnh: áp **25/26** phải ra đúng **`f2b9486b`** — tree mà fork
+   đứng suốt `28–29/08`, tức mốc **không do lượt bump này đẻ ra**.
+   🔴 **`A1Gen` NẰM TRONG bộ patch (0018) ⇒ bump thế hệ LÀ sửa `patches/`** (đo `30/08`). Bump
+   ở cây làm việc mà quên sinh lại bộ patch thì image ngày G đúng, còn **bộ patch công bố vẫn
+   khai `A1Gen 0`**: người ngoài áp 26 patch, build ra binary của **thế hệ đã chết**, không
+   join được — trong khi cổng fork-tree **xanh suốt** (nó chỉ so `patches/` với hằng số chép
+   trong chính nó), và điều kiện qua số 4 của `01/09` cũng xanh.
 4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)
    — **Caddyfile đang chạy đến từ nhánh đó**, không phải `main`.
 
@@ -80,7 +85,7 @@ quá khứ hay sẽ được xuất bản?*
 ## 3. Danh sách cổng — chạy trước khi tin bất cứ điều gì
 
 ```bash
-node scripts/gday-preflight.mjs              # 18 cổng + 15 VIỆC TAY, một lệnh (~90s)
+node scripts/gday-preflight.mjs              # 18 cổng + 24 VIỆC TAY, một lệnh (~2 phút)
 node scripts/check-net-dirs.mjs              # thư mục net* nào thuộc thế hệ nào · thư mục nào giữ TIỀN
 node scripts/check-evidence.mjs              # gói vật chứng còn tự nghiệm thu được không
 node scripts/check-single-source.mjs         # một hằng số, MỘT nơi khai
@@ -105,8 +110,10 @@ node scripts/check-robots.mjs                 # robots.txt của A1 có tới ng
 
 🔴 **Cổng "áp đủ bộ rồi so hằng số của chính mình" chưa phải cổng** (D-112). Nó chỉ chứng minh
 bộ patch **tự nhất quán với con số ta vừa chép vào tệp đó** — ai sinh lại cả bộ rồi dán tree
-mới vào cũng làm nó xanh. Preflight nay áp **24/25 TRƯỚC** và neo vào `074aaa93`, tree mà
-**image đang chạy** dựng lên trên: hai đầu neo có gốc độc lập mới nói được điều gì đó.
+mới vào cũng làm nó xanh. Preflight nay áp **25/26 TRƯỚC** và neo vào `f2b9486b`, tree mà fork
+đứng suốt hai ngày trước lượt bump: hai đầu neo có gốc độc lập mới nói được điều gì đó.
+*(Mốc cũ `074aaa93` — tree mà image `g0` dựng lên trên — nghỉ cùng thế hệ g0; nó còn trong
+`DECISIONS.md`, không còn ở đây, vì cổng chặn ngày G phải neo vào thế hệ nó đang chặn.)*
 
 🔴 **Vế thứ BA của luật cứng #2 (D-106b, `28/08`): thấy cổng ĐỎ chưa đủ — phải kiểm nó đỏ VÌ
 ĐÚNG LÝ DO.** `check-robots` bản đầu đỏ ngay lần đầu và cái đỏ đó bị đọc thành *"cổng nhạy"*,

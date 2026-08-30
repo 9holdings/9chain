@@ -1,7 +1,7 @@
 From 91a64631af12ff911119a5ee134f9d98f94b86de Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Thu, 27 Aug 2026 22:46:12 +0400
-Subject: [PATCH 19/25] =?UTF-8?q?wallet+genesis:=20X-Chain=20asset=20alias?=
+Subject: [PATCH 19/26] =?UTF-8?q?wallet+genesis:=20X-Chain=20asset=20alias?=
  =?UTF-8?q?=20from=20the=20NETWORK=20TABLE=20=E2=80=94=20X/C=20wallets=20l?=
  =?UTF-8?q?ive=20again=20on=20g0?=
 MIME-Version: 1.0
