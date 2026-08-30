@@ -22,7 +22,13 @@ import {
  *    vận hành — mà đường đó không đi qua trang này.
  */
 
-type Preset = { id: string; ten: string; moTa?: string };
+// 🔴 CÁC TRƯỜNG NÀY LÀ HỢP ĐỒNG VỚI `/api/status` CỦA CONSOLE — không phải tên ta tự đặt.
+// Console (`local-net/lib/presets.mjs`) trả `{ id, name, desc }`. Trước 2026-08-30 tệp này
+// khai `{ id, ten, moTa }`, tức tên CŨ từ thời id preset còn tiếng Việt (D-108) — nên
+// `p.ten` luôn `undefined` và **mọi dòng trong ô chọn hiện ra TRỐNG**: người dùng phải
+// chọn cấu hình VĨNH VIỄN cho chain của mình bằng cách bấm mù vào ô trắng.
+// TypeScript không bắt được vì dữ liệu đến từ mạng, không từ mã.
+type Preset = { id: string; name: string; desc?: string };
 type TrangThai = {
   tran: number;
   chains: unknown[];
@@ -45,7 +51,11 @@ export function CreateChainScreen() {
 
   const [tt, datTt] = useState<TrangThai | null>(null);
   const [ten, datTen] = useState('');
-  const [preset, datPreset] = useState('chuan');
+  // Giá trị khởi tạo chỉ sống tới lượt `/api/status` đầu tiên: nếu id này không có trong
+  // danh sách console trả về thì hiệu ứng bên dưới thay nó bằng preset đầu tiên. Vẫn phải
+  // đúng — `'chuan'` là id thời preset còn tiếng Việt (D-108), và API **không có bí danh**
+  // cho id cũ, nên một lượt gửi trước khi status kịp về sẽ bị từ chối thẳng.
+  const [preset, datPreset] = useState('standard');
 
   const [tienTrinh, datTienTrinh] = useState<TienTrinh | null>(null);
   const [ketQua, datKetQua] = useState<KetQua | null>(null);
@@ -256,17 +266,17 @@ export function CreateChainScreen() {
                   >
                     {tt.presets.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.ten}
+                        {p.name}
                       </option>
                     ))}
                   </select>
                 ) : (
                   <Xuong className="h-12 w-full" />
                 )}
-                {presetHienTai?.moTa && (
+                {presetHienTai?.desc && (
                   // Mô tả hiện NGAY DƯỚI ô chọn: genesis bất biến nên người dùng chỉ
                   // có đúng một lần đọc.
-                  <p className="text-sm text-body-2">{presetHienTai.moTa}</p>
+                  <p className="text-sm text-body-2">{presetHienTai.desc}</p>
                 )}
               </div>
             </div>
@@ -300,7 +310,7 @@ export function CreateChainScreen() {
             <dl className="mt-5 flex flex-col gap-3">
               {[
                 { k: t.deChain.soatTen, v: tenSach },
-                { k: t.deChain.soatKieu, v: presetHienTai?.ten ?? preset },
+                { k: t.deChain.soatKieu, v: presetHienTai?.name ?? preset },
                 { k: t.deChain.soatChu, v: phien?.diaChi ?? '' },
               ].map((x) => (
                 <div key={x.k} className="flex flex-col gap-1 border-b border-line-soft pb-3 last:border-0">
