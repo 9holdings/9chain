@@ -4563,3 +4563,215 @@ Cổng single-source **không bắt được** cái đó (nó tìm chuỗi IP, v
 lộ ra vì đã **chạy thật và đọc dòng in ra** thay vì tin rằng sửa xong là đúng.
 
 **Số đo cuối:** preflight **15 đạt · 3 đỏ · 17 việc tay** — ba đỏ đều đã ghi sổ và đỏ đúng lý do.
+
+---
+
+## D-123 — Diễn tập g1 `2026-08-30`: **`A1Gen` nằm TRONG bộ patch**, nên bump thế hệ là sửa `patches/`
+
+**Tìm ra trước khi up node nào**, lúc định bump: `grep -l A1Gen patches/*.patch` ⇒ **patch 0018**
+khai `A1Gen uint32 = 0`. Cây làm việc `upstream/avalanchego` sạch, HEAD tree đúng bằng
+`f2b9486b` của bộ 25 patch.
+
+⇒ Bump thế hệ **không phải** *"sửa ba dòng Go"*. Nó là **sửa `patches/`**, tức luật cứng #3:
+sinh lại **CẢ BỘ**, và **hai** hằng số tree trong `gday-preflight.mjs` phải đi cùng.
+
+🔴 **Hình dạng của lỗ nếu quên** — đây là lý do mục này tồn tại:
+
+| | |
+|---|---|
+| image ngày G (build từ cây làm việc) | `A1Gen 1` ✓ **đúng** |
+| `patches/` **công bố cho người ngoài** | vẫn `A1Gen 0` ⇒ họ build ra binary của **thế hệ đã chết**, **không join được** |
+| cổng `replayFork` trong preflight | **XANH suốt** — nó chỉ so `patches/` với hằng số **chép trong chính nó** |
+| điều kiện qua số 4 của `01/09` (*"người lạ dựng lại được cây fork ra đúng tree hash"*) | **XANH** |
+
+Tức mọi cổng xanh trong khi đúng thứ người ngoài chạm vào thì hỏng — lớp lỗi *"đo sai đại
+lượng"*, lần này ở tầng **bộ phát hành**. Không tài liệu nào trong repo nối `A1Gen` với việc
+sinh lại patch set (đã grep `docs/**` · `DECISIONS` · `BLOCKERS` · `PROGRESS` · `HANDOFF`).
+
+**Đã làm:** `git format-patch --no-signature 1cf1fc3..9chain-a1` ⇒ **26 patch**, tree
+`f2b9486b` → **`60a61707`**. Đối chứng bộ cũ có bị lượt sinh lại làm hỏng không:
+**50 dòng đổi trên 25 patch cũ, và 0 dòng nào không phải `Subject: [PATCH nn/25→26]`** — không
+một byte nội dung. Nghiệm thu bằng preflight: 26 patch → `60a61707` ✓, đối chứng
+**25/26 → `f2b9486b`** ✓.
+
+**Mốc neo đổi, và có lý do:** counter-check cũ neo vào `074aaa93` (tree mà image `g0` dựng lên
+trên). Mốc đó **nghỉ cùng thế hệ g0**. Mốc mới `f2b9486b` là tree fork đứng suốt `28–29/08` —
+vẫn có **gốc độc lập** với con số lượt bump này đẻ ra, và đó là cả điểm của đối chứng N−1.
+
+⇒ Thêm **một việc tay** vào preflight (22 → 23).
+
+---
+
+## D-124 — Hai cổng **cắm cứng thế hệ 0**, nên chúng mù ĐÚNG VÀO NGÀY bump
+
+Bump xong, preflight đỏ hai cổng. Cả hai **không** đỏ vì *"repo tả g1 mà mạng là g0"*:
+
+**1. `check-consistency --self-test`: 5/14 ca đối chứng ngược NGỪNG bắt được.** Các ca dựng lỗi
+bằng chữ số `1` (`d.js.gen = 1`). Ở thế hệ 0 đó là lệch ⇒ bắt được; ở thế hệ 1 đó **chính là
+giá trị đúng** ⇒ không lệch, cổng mù. Năm ca đó là: *"bump JS quên Go"* · *"bump Go quên JS"* ·
+*"quên đổi `A1Name`"* · *"khối chainId giữ nguyên thế hệ cũ"* · *"console mang networkID thế hệ
+trước"* — tức **đúng năm cách hỏng của ngày G**.
+
+🔴 **Hướng hỏng mới là chỗ đắt:** một lượt chạy ngay sau bump in ra năm dòng `✗`, và chúng **đọc
+như vô hại** — rất dễ xếp vào *"đỏ dự kiến"*. Cổng tự khai *"đang MÙ ở chỗ đó"* mà câu đó vẫn dễ
+bị đọc lướt, vì nó xuất hiện đúng lúc người ta đang chờ vài dòng đỏ.
+
+**2. `chainid-test`: hai assertion khai `trần KHỐI THẾ HỆ 0 = 9.000.999.999` và `rộng 999.990
+số`** ⇒ **ĐỎ GIẢ**, không có gì sai cả.
+
+**Đã sửa, cùng một nguyên tắc: lỗi phải diễn đạt TƯƠNG ĐỐI so với thế hệ đang có trong mã.**
+`d.js.gen + 1` thay cho `1`; hai assertion chainId kiểm **ngược** bằng modulo + chia nguyên
+(`tran % 1_000_000 === 999_999`, `floor((tran − 9e9)/1e6) === A1_GEN`) thay vì chép lại công
+thức của `lib/chainid.mjs` — chép công thức là làm bài kiểm xanh **theo cấu tạo**, đúng điều chú
+thích đầu tệp đó đã cảnh báo.
+
+**Nghiệm thu:** 14/14 ca bắt lại được · `chainid-test` **36 đạt · 0 hỏng**. Đối chứng ngược cho
+chính bản vá: làm hỏng công thức trần ⇒ **bắt được (2 lỗi)**; bỏ quên nhân thế hệ ⇒ mã thật **nổ
+to** (`gốc 9001000000 nằm TRÊN trần 9000999999`), không im lặng.
+
+**Bài học rộng hơn:** *một self-test neo vào chính hằng số nó canh chỉ đúng vào ngày nó được
+viết.* Đáng soát mọi cổng khác theo tiêu chí này.
+
+---
+
+## D-125 — Bẫy cổng `9660` (D-122) **KHÔNG TỒN TẠI** — đo, không suy
+
+D-122 và `GDAY-G1-GAPS.md` đều **tự khai** rằng cổng `9660` mới là *"suy luận từ mã, chưa ai thấy
+xảy ra"*. Lượt tập biến nó thành số đo: sinh mạng `N=10`, `ipv4port`, base **mặc định**.
+
+```
+node10 --staking-port=9660        ← ĐÚNG, D-122 đọc mã không sai chỗ này
+publish ra host: 127.0.0.1:9650 (node1 API) · 0.0.0.0:9651 (node1 staking) · 127.0.0.1:9660→9650 (node2 API)
+node10 publish cổng staking       ← KHÔNG
+```
+
+`buildCompose` chỉ publish cổng staking khi `nd.Index == 1` — **chỉ beacon**, và đó là cố ý
+(publish cổng cho một node khai địa chỉ nội bộ là mở cửa không ai được bảo là có). Nên `9660` của
+node10 sống trong **namespace của container nó**, còn `9660` trên host là API node2: hai không
+gian tên khác nhau, không giao nhau.
+
+**Đo trên mạng chạy thật:** 10 node lên hết, không một va chạm · beacon **9** peer · node2
+(**không phải beacon**) **9** peer · node10 có mặt trong `info.peers` của **cả hai**.
+
+⇒ `A1_STAKING_PORT_BASE=9700` **không sai**, nhưng nó mua một bẫy không có thật bằng hai bước
+phải nhớ giữa ngày G: mở `ufw 9700`, và công bố bootstrap `:9700`. **David chốt `30/08`: giữ
+`9651` mặc định** — `ufw 9651` đã mở, tài liệu công khai đã nói `9651`.
+
+⚠️ Đo trên máy dev (Docker Desktop). Cơ chế là thuộc tính của compose, không của hệ điều hành,
+nhưng lượt đo trên OVH chưa có.
+
+---
+
+## D-126 — **Ngày G quay lại `N=9`.** Hetzner **THAY** một node OVH, không phải node thứ mười
+
+**David chốt `2026-08-30`,** sau khi lượt tập phơi ra một mâu thuẫn chưa ai nêu.
+
+netgen in cảnh báo này ở **mọi** lượt sinh `N=10`:
+
+> *self-bond mỗi node KHÔNG tròn LOVE9 ở N=10 — thật ra là 899999,100000000 LOVE9 (chỉ tròn ở
+> N=9: 999.999). Nhưng mạng CÔNG KHAI ngày G phải là N=9 (D-046) — N khác là mất bộ chín số 9.*
+
+**D-046** (`27/08`) nói thẳng: *"Số node ở ngày G: **GIỮ 9**"*, và *"O4 không còn là 'thêm một
+node thứ 10' — nó phải là **DỜI một trong 9 node** sang nhà cung cấp khác"*. **D-122** (`29/08`)
+chốt node Hetzner vào genesis ⇒ `N=10`, tức **lật D-046 mà không mục nào ghi là đang lật**, và hệ
+quả bản sắc không được nêu lúc chốt. Cảnh báo của netgen thì có ở đó suốt — nó chỉ **cảnh báo,
+không chặn** (cố ý, D-046), nên nó bị đọc lướt.
+
+**Vì sao `N=9` tốt hơn ở cả hai mặt:**
+- **bản sắc:** `8.999.991 = 9 × 999.999` — bộ chín số 9 chỉ tồn tại ở `N=9`, và nó đi vào genesis
+  **bất biến**;
+- **O4:** *dời* cho ra **8 OVH + 1 Hetzner**, còn *thêm* cho ra **9 OVH + 1** — dời gỡ được nhiều
+  rủi ro "một máy một nhà cung cấp" hơn.
+
+Giữ nguyên phần đúng của D-122: node ngoài vào **từ genesis**, không stake sau — 0 LOVE9, không
+phụ thuộc `AddPermissionless…`, hạn validator cùng cửa sổ với các node kia.
+
+---
+
+## D-127 — Phép nghiệm thu compose trong runbook ngày G **SAI**, và sai theo hướng khiến người ta phá thứ đang đúng
+
+`docs/GDAY-NODE10-HETZNER.md` §Bước 1 ghi:
+
+```bash
+grep -c -- "--public-ip=139.99.145.13" <net>/docker-compose.multinode.yml   # phải là 10
+```
+
+**Đo `30/08`: kết quả là `1`, và `1` mới ĐÚNG.** netgen (patch 0024 / D-089) **cố ý** chỉ cho
+beacon khai địa chỉ công khai; các node cùng máy giữ địa chỉ nội bộ vì Docker không NAT vòng lại
+— và **chính diễn tập của thiết kế đó đã bác bỏ** phương án cho mọi node khai IP công khai (node2
+và node3 không nối được nhau, mesh teo thành hình sao quanh node1).
+
+🔴 Giữa ngày G, phép đo này báo *"hỏng"* cho một mạng **đúng**, và cách sửa hiển nhiên nhất — cho
+mọi node khai IP công khai — là **tái lập đúng cái thiết kế đã bị bác**. Một dòng nghiệm thu sai
+còn tệ hơn không có dòng nào.
+
+**Phép đo đúng:** `--public-ip=<IP công khai>` xuất hiện **đúng 1** lần · `--public-ip=` xuất hiện
+**N** lần. Đã đưa thành việc tay riêng trong preflight (23 → 24).
+
+---
+
+## D-128 — Số đo lượt diễn tập g1 `2026-08-30` (máy dev, băng TẬP `899999998`)
+
+Hai lượt sinh mạng, cả hai ở thế hệ **1**, băng **TẬP** — hai băng không bao giờ bắt tay được với
+nhau (`A1IDGocTap`), nên tập ở `A1Gen 1` không tạo rủi ro *"bản tập thành bản thật"*.
+
+**Binary — đo BINARY, không đo mạng:**
+
+| | |
+|---|---|
+| build image `9chain-a1/node:g1` | **exit 0** · `commit=9chain-a1-g1-26patch-60a61707` |
+| `supplyCap` (log **trong** container) | `7900000001000000000` ✓ |
+| `eth_chainId` | `0x218711a09` = **9000000009** ✓ |
+| `avm.getAssetDescription("LOVE9")` | `LOVE9 Coin` · denom 9 ⇒ patch 0019/0022 **có** trong binary |
+| đối chứng ngược `("AVAX")` | **ĐỎ và nói ra lý do**, câu trả lời tự khai `networkID 899999998` |
+
+🔴 **Image này dùng lại được ngày G** — binary **không** phụ thuộc byte chữ khắc (chữ khắc đi vào
+genesis). Bước dài nhất của ngày G đã đẩy ra khỏi ngày G.
+
+**Chữ khắc — cơ chế nghiệm thu trọn ở thế hệ 1, hai lần (N=10 và N=9):**
+
+| | |
+|---|---|
+| `engrave-verify` đọc ngược từ **chain sống** | **13 đạt · 0 hỏng** (cả hai lượt) |
+| block 0 P-Chain | `parentID == sha256(genesisBytes)` ✓ |
+| bản văn **trên MẠNG** == **trong TỆP** | ✓ · `extraData` khớp · P/C cùng byte 3/3 |
+| 4 hash tài liệu tính **độc lập** trên host | khớp **4/4** bảng netgen in |
+| ĐỎ: thiếu `A1_ENGRAVE_CHECKSUMS` | chặn, chỉ ra cả đường thật lẫn đường tập |
+| ĐỎ: vân tay **lệch 1 ký tự** | chặn, và nói *"đi tìm xem tài liệu nào đổi"* |
+
+⚠️ **Bẫy phép đo:** gọi `engrave-verify --rpc` qua `host.docker.internal` ⇒ **HTTP 403 "invalid
+host specified"** — đó là bộ lọc `Host` của M11.10 **làm đúng việc**, không phải chữ khắc hỏng.
+Gọi từ trong namespace mạng của node (`--network container:<node1>`, `http://127.0.0.1:9650`) thì
+qua. Ngày G phải gọi qua Host nằm trong `A1_HTTP_ALLOWED_HOSTS`.
+
+**Hình dạng ngày G (`N=9`, node9 chạy NGOÀI compose, vai máy Hetzner):**
+
+| điều kiện qua | đo được |
+|---|---|
+| self-bond mỗi node | **999.999 LOVE9** — bộ chín số 9, hết cảnh báo netgen |
+| `--public-ip=<công khai>` / tổng `--public-ip=` | **1 / 9** ✓ |
+| staking port | `9651…9659` · publish `0.0.0.0:9651` (chỉ beacon) |
+| node9 bootstrapped P/X/C | **true / true / true** |
+| nodeID node9 tự khai ↔ `genesis.json` | **khớp** — danh tính đúng, không phải bản tự sinh |
+| `platform.getCurrentValidators` | **9** |
+| node **không phải beacon** thấy node9 | **có** |
+| cửa sổ hạn validator | **56 ngày** · offset **7 ngày**/node ✓ |
+| health node9 | `healthy: true` · `connectedPeers: 8` · không cảnh báo D-121 |
+
+🔴 **Con số đáng nhớ nhất cho ngày G: node ngoài bootstrap ở ~50s, nhưng node KHÔNG-beacon chỉ
+thấy nó ở ~70s.** Chấm điểm ở mốc 30s là khai một sự cố không có thật.
+
+⚠️ **Giới hạn phải khai:** node ngoài chạy trên **cùng máy dev** (bridge khác), nên rào cản mạng
+giữa **hai máy vật lý** không được mô phỏng — và inbound tới nó dễ hơn thực tế. Lượt này **không
+thay thế** phép đo với Hetzner, đặc biệt cho `ingressConnectionCount` (D-121).
+
+**Gotcha 16 xác nhận thật:** netgen ghi `image: 9chain-a1/node:dev` đúng **10 lần** (N=10) và **9
+lần** (N=9). Không biến nào đổi được. Phải sửa tay trước mỗi lượt `up`.
+
+**Dọn theo kỷ luật D-107, ngay trong phiên tạo ra:** mạng tập cũ `a1tap-node-1/2/3` (thế hệ 0,
+băng tập) + 3 volume · bộ dò `net-probe-portbase` (**22** tệp khoá) · `net-tap-g1` (**20** tệp
+khoá) — tất cả `shred -u -n 3`, đối chứng bằng `find` ⇒ **0 tệp**, thư mục biến mất.
+`check-key-leaks.mjs` ⇒ **exit 0**.
+
+**Số đo cuối:** preflight `--no-network` **14 đạt · 0 đỏ · 4 bỏ qua · 24 việc tay**
+(17 → 22 → **24**).

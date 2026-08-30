@@ -1,7 +1,7 @@
 From 3c061bad6439f616c19344394a92c72403e124f3 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Wed, 26 Aug 2026 23:13:55 +0400
-Subject: [PATCH 09/25] 9chain-a1: fix the A1Params comment that contradicted
+Subject: [PATCH 09/26] 9chain-a1: fix the A1Params comment that contradicted
  the value next to it
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

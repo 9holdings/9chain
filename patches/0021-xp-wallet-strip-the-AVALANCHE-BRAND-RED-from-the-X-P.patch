@@ -1,7 +1,7 @@
 From e70d13acf9c3d00f5022d404deae22bdb1078f68 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Thu, 27 Aug 2026 23:15:39 +0400
-Subject: [PATCH 21/25] =?UTF-8?q?xp-wallet:=20strip=20the=20AVALANCHE=20BR?=
+Subject: [PATCH 21/26] =?UTF-8?q?xp-wallet:=20strip=20the=20AVALANCHE=20BR?=
  =?UTF-8?q?AND=20RED=20from=20the=20X/P=20wallet=20=E2=80=94=20B-9,=20Davi?=
  =?UTF-8?q?d=20signed=20off?=
 MIME-Version: 1.0

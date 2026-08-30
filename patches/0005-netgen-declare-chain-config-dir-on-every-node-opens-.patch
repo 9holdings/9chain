@@ -1,7 +1,7 @@
 From 43a15ca783d5d0079c19bc434681c5e3127c3c05 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Tue, 25 Aug 2026 19:57:08 +0400
-Subject: [PATCH 05/25] netgen: declare --chain-config-dir on every node (opens
+Subject: [PATCH 05/26] netgen: declare --chain-config-dir on every node (opens
  the path to the Warp API)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

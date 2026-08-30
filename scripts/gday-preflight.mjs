@@ -47,13 +47,25 @@ const NO_NETWORK = argv.includes("--no-network");
 
 // Tree of the current fork. Hard rule #3. Changing this number is a DECISION, not an
 // update: it changes only together with a full regeneration of the whole patch set.
-const TREE_FORK = "f2b9486b71ad53b584a86f77d6017c34d74e6fa6";
-const PATCH_COUNT = 25;
-// 🔴 This tree's counter-check: applying **24/25** must yield `074aaa93` — precisely the
-// tree the RUNNING NODE IMAGE was built on. Patch 0025 only renames the legacy key-recovery
-// tool to `check-keys` and fixes a comment citing a removed flag; it does NOT touch the node.
-// (Its former name is in that patch's own filename and in DECISIONS.md D-108.)
-const TREE_BEFORE_0025 = "074aaa9327be70103b25d5a3873d41cacd431652";
+const TREE_FORK = "60a61707f7974a0f1853b8bf78df7d0fdc1ef863";
+const PATCH_COUNT = 26;
+// 🔴 This tree's counter-check: applying **25/26** must yield `f2b9486b`.
+//
+// Why the anchor moved (2026-08-30, the g1 rehearsal). `A1Gen` lives INSIDE the patch set
+// (patch 0018), so bumping the generation is not "editing three lines of Go" — it is editing
+// `patches/`, which by hard rule #3 means regenerating the WHOLE set and moving both tree
+// constants with it. Bumping only the working tree would build a correct G-day image while
+// the published `patches/` still carried `A1Gen 0`: an outsider replaying them gets a binary
+// of the DEAD generation and cannot join, and this very gate stays GREEN throughout, because
+// it compares the patch set against a constant pasted into this file. That is the
+// "measured the wrong quantity" class, one layer up. Recorded as G-8.
+//
+// The counter-check keeps its independent origin: `f2b9486b` is the tree the fork stood on
+// through 2026-08-28/29 — verified repeatedly, and NOT a number produced by this bump. The
+// old anchor `074aaa93` (the tree the running g0 image was built on) retires with the g0
+// generation; it is kept in DECISIONS.md, not here, because a G-day gate must anchor to the
+// generation it is gating.
+const TREE_BEFORE_LAST = "f2b9486b71ad53b584a86f77d6017c34d74e6fa6";
 
 const node = (...a) => ({ cmd: process.execPath, args: a });
 
@@ -124,18 +136,34 @@ const MANUAL_TASKS = [
   ["BEFORE `down -v`", "🔴 **O2** — run `node scripts/export-chain.mjs`, then **publish the sha256 SOMEWHERE ELSE** before deleting. That ordering IS the entire value of the procedure (the 2026-08-26 run missed it)."],
   ["BEFORE `down -v`", "🔴 **Chain directory** — `node scripts/close-ledger-before-regenesis.mjs --pull` then `--compact`; the new ledger must reach the server. Resetting it hands 43 names + chainIds back into circulation."],
   ["BEFORE `down -v`", "🔴 **H-6b** — `bash scripts/h6b-backup.sh`, and read the patch count it reports carefully."],
-  ["While generating the network", "🔴 **TEN nodes, and `A1_STAKING_PORT_BASE=9700`** — David decided 2026-08-29 that the Hetzner node joins **in genesis**, not by staking afterwards. Generate with `N=10 A1_P2P_MODE=ipv4port A1_PUBLIC_IP=" + SERVER_IP + " A1_STAKING_PORT_BASE=9700`. ⚠️ The port base is not cosmetic: at the default, node10's staking port is **9660**, which is node2's API port — a collision that cannot happen at N=9, so it appears for the first time on the very day you add the tenth node. See `docs/GDAY-NODE10-HETZNER.md`."],
-  ["While generating the network", "🔴 **Bring up only node1..node9 on OVH**, then carry `node10/{staker.key,staker.crt,signer.key}` to the Hetzner box and run it there with **its own** `--public-ip=95.217.60.140` and `--bootstrap-ips=" + SERVER_IP + ":9700` (the beacon's PUBLIC address — node10 is on another machine, so the internal address netgen writes is wrong for it). Delete node10's old `--data-dir` first: it holds the g0 database and a self-generated identity, and leaving it means the node comes up under the wrong nodeID."],
-  ["While generating the network", "🔴 **Bump `A1Gen` in BOTH languages** — `utils/constants/network_ids.go` **and** `local-net/lib/chainid.mjs`, then re-run `check-consistency`. Forget one side and nothing reports an error (D-093)."],
+  // The three orphan `heartbeat-*` files on the server have NO source anywhere in this repo
+  // (grep 2026-08-29: only DECISIONS.md/HANDOFF.md, i.e. the record of the finding itself).
+  // Whatever writes them survives `down -v` and would then be writing against a DEAD chain
+  // with a dead-generation wallet — and the evidence of what it was disappears with the network.
+  ["BEFORE `down -v`", "🔴 **The `heartbeat-*` orphans** — find what writes them and STOP it before the old network is gone; afterwards the trail is gone too. 🔴 Do **not** silence this by declaring them in `knownExtra`: `manifest-deploy.json` `_extraDeleted` says why — declaring a file nobody understands is blindfolding the gate. See `docs/GDAY-G1-GAPS.md` G-6."],
+  ["While generating the network", "🔴 **NINE nodes — the Hetzner box REPLACES an OVH node, it is not a tenth.** Generate with `N=9 A1_P2P_MODE=ipv4port A1_PUBLIC_IP=" + SERVER_IP + "` and the DEFAULT staking port base. ⚠️ Both halves reversed a decision on 2026-08-30, each for a measured reason. **N:** self-bond is a fixed total `8,999,991 = 9 × 999,999`, so only N=9 gives every node the nine-nines — D-046 said so on 2026-08-27 and D-122 overrode it without noticing; netgen warns on EVERY N=10 run and the warning was being read past. **Port base:** the `9660` collision that motivated `A1_STAKING_PORT_BASE=9700` **does not exist** — measured 2026-08-30, node10 carried `--staking-port=9660` but netgen publishes a staking port for the BEACON ONLY, so that 9660 lives in the container's own namespace while host 9660 is node2's API; ten nodes came up with a full mesh at the default base. Keeping 9651 also keeps the already-open `ufw` rule and the port the public docs already name."],
+  ["While generating the network", "🔴 **Bring up only node1..node8 on OVH**, then carry `node9/{staker.key,staker.crt,signer.key}` to the Hetzner box and run it there with **its own** `--public-ip=95.217.60.140` and `--bootstrap-ips=" + SERVER_IP + ":9651` (the beacon's PUBLIC address — node9 is on another machine, so the internal address netgen writes is wrong for it). Delete that box's old `--data-dir` first: it holds the g0 database and a self-generated identity, and leaving it means the node comes up under the wrong nodeID. 🔴 **Then measure the nodeID it reports against `genesis.json`** — that is what proves the identity took."],
+  ["While generating the network", "🔴 **The compose acceptance check — the OLD one was WRONG and would make you break a correct network.** `docs/GDAY-NODE10-HETZNER.md` said `grep -c -- \"--public-ip=<IP>\" … # phải là 10`. Measured 2026-08-30: it is **1**, and **1 is correct** — netgen deliberately lets ONLY the beacon announce the public address (patch 0024 / D-089); the other nodes keep internal addresses because Docker does not hairpin, and its own drill showed a full-mesh design collapsing into a star when every node announced the public IP. ⇒ The right check is: `--public-ip=" + SERVER_IP + "` appears **exactly 1** time, and `--public-ip=` appears **N** times."],
+  ["While generating the network", "🔴 **Bump `A1Gen` in BOTH languages** — `utils/constants/network_ids.go` (**three** lines: `A1Gen`, `A1Name`, `A1NameTap`) **and** `local-net/lib/chainid.mjs` (`A1_GEN`), then re-run `check-consistency`. Forget the Go side and netgen stops with a FATAL; forget the JS side and **nothing reports an error** (D-093)."],
+  ["While generating the network", "🔴 **The `A1Gen` bump is an edit to `patches/` — REGENERATE THE WHOLE SET.** `A1Gen` is declared inside patch 0018, so bumping it in the working tree alone builds a correct G-day image while the PUBLISHED patch set still says `A1Gen 0`: an outsider replays 26 patches, builds a binary of the dead generation, and cannot join — while this preflight's fork-tree gate stays GREEN the whole time, because it only compares `patches/` against a constant in this file. Condition 4 of 2026-09-01 (*\"a stranger rebuilds the fork tree to the same tree hash\"*) also stays green. ⇒ `git format-patch --no-signature 1cf1fc3..9chain-a1`, then move BOTH `TREE_FORK` and `TREE_BEFORE_LAST` at the top of this file. Rehearsed 2026-08-30: 25 → 26 patches, the 25 older ones changed only their `[PATCH nn/NN]` counter line (50 changed lines, 0 of them content)."],
   ["While generating the network", "🔴 **Rebuild the node image** — the running image is **18 patches**, the repo is **25**. Patches 0019/0022 (the `LOVE9` alias) are not in the image; without them **every X/C wallet goes silent**. The build path was rehearsed 2026-08-28 and PASSED (D-105) — but at `A1Gen 0`; bumping to 1 changes the binary ⇒ **it still must be rebuilt**."],
   ["While generating the network", "🔴 **FIX THE `image:` LINE IN THE COMPOSE NETGEN JUST WROTE** — netgen hardcodes `9chain-a1/node:dev` and **no variable can change it** (D-105). Forgetting means the network comes up on the **18-patch** binary while every gate stays green: `grep image: <net>/docker-compose.multinode.yml` must show **the tag you just built**."],
   ["While generating the network", "🔴 **Measure the BINARY, not the network:** `docker exec <node> ./avalanchego --version` must print the `commit=` of the G-day build, and `avm.getAssetDescription` must resolve the `LOVE9` alias while `AVAX` must be **RED for a stated reason**. A green network says nothing about which binary the node is running."],
   ["While generating the network", "🔴 **Generate NEW token + keys** — `A1_CONSOLE_TOKEN`, `FAUCET_PK`, `A1_CLI_KEY`. The old token **was never rotated across two re-genesis runs** (gotcha 15)."],
   ["While generating the network", "🔴 **The engraving** — the mechanism is 100% done. The CONTENT is an **input David supplies** (D-104: C1 is coordinated separately; A1 does not track it). ⚠️ Bytes arriving **after** the genesis step **can never be engraved in that generation** — get David to freeze the bytes BEFORE running netgen, not after."],
   ["AFTER the network is up", "🔴 Measure **on the running node**: `supplyCap` · `networkID` · HRP · `eth_chainId` · 9/9 nodes. `node scripts/watch-network.mjs`."],
-  ["AFTER the network is up", "🔴 **Node10 is genuinely IN, measured on the chain** — `platform.getCurrentValidators` must list **10**, a NON-beacon node must see node10 in `info.peers`, and node10's `endTime` must sit in the same window as the other nine. Then watch `ingressConnectionCount` on node10 for at least an hour: on 2026-08-29 it stayed **0** while the port was provably reachable, and avalanchego cannot tell 'nobody dialled in' from 'unreachable' — but validator uptime is measured over connections, so a lasting 0 is real (D-121)."],
+  ["AFTER the network is up", "🔴 **The Hetzner node is genuinely IN, measured on the chain** — `platform.getCurrentValidators` must list **9**, a NON-beacon node must see it in `info.peers`, and its `endTime` must sit in the same window as the other eight (it does so by construction when the node is in genesis: the window is 56 days at N=9, one node every 7 days — measured 2026-08-30). ⚠️ **Give the mesh time before concluding**: in that drill the outside node bootstrapped at ~50s but a NON-beacon node only saw it at ~70s. Judging at 30s reads as a failure that is not there. Then watch `ingressConnectionCount` on it for at least an hour: on 2026-08-29 it stayed **0** while the port was provably reachable, and avalanchego cannot tell 'nobody dialled in' from 'unreachable' — but validator uptime is measured over connections, so a lasting 0 is real (D-121)."],
   ["AFTER the network is up", "🔴 **B-13(b)** — measure clock skew across the 9 nodes, then pick `--offset-ms` for Block Adam. Only possible once g1 is up, and **must be done before 2026-09-09**."],
+  // B-20: the two most recent backup bundles hold ZERO identity files. H-6b measures the
+  // backup by PATCH COUNT, and a correct patch count over empty content is still a useless
+  // backup — the same "measured the wrong quantity" class, one layer down.
+  ["AFTER the network is up", "🔴 **B-20** — back up the **nine** validator identities of g1 (`staker.key`, `staker.crt`, `signer.key`) together with `genesis.json` and the compose file. Verify by **COUNTING the files inside the bundle**, not by reading a `--check` line. 🔴 Do not store them beside the fund keys: `check-key-leaks.mjs` watches fund keys, it does **not** watch validator identities. Regenerating the network regenerates these, so today's copy does not count."],
   ["AFTER deploying", "🔴 `node scripts/check-deploy-drift.mjs` — **run this before believing any line that says \"CLOSED\"**."],
+  // "Generate NEW token + keys" above stops at the word *generate*. Generating them and leaving
+  // the server on the old ones is exactly B-14's shape: closed in the repo, open where users are.
+  ["AFTER deploying", "🔴 **Ship the new token and keys** — `A1_CONSOLE_TOKEN`, `FAUCET_PK`, `A1_CLI_KEY` must reach the server, and the console there must be the **bumped** build (g1 issues chainIds in `9001000000–9001999999`, a different block from g0). ⚠️ The faucet needs `docker rm -f` then `docker run`: `docker restart` does **NOT** reload env (gotcha 3) and the faucet keeps a dead-generation key while looking healthy."],
+  ["AFTER deploying", "🔴 **Publish `genesis.json` + bootstrap** (nodeID and the beacon's PUBLIC `IP:port`) through the **public repo** — not through `web/`, which belongs to another live worktree (hard rule #4). Without both, an outsider cannot join, and 2026-09-01 is a public RPC rather than a public testnet — which is then what it must be called."],
+  ["AFTER deploying", "🔴 **The public surfaces still print the dead generation** — `main:web/lib/chain.ts` declared `networkId: 9001` when measured 2026-08-28, two generations stale, and C/X `blockchainID`s are a function of the genesis bytes, so **every one of them dies with this re-genesis**. A1 does not touch `web/` or 9Scan-A1: tell those worktrees, then MEASURE what the public page actually prints."],
 ];
 
 /** Replay the fork tree in a detached worktree and compare trees. Cleans up in `finally`. */
@@ -164,10 +192,10 @@ function replayFork() {
     // (Hard rule #2: a gate never seen red for the right reason is not yet a gate.)
     git(["am", "--keep-cr", ...patches.slice(0, PATCH_COUNT - 1).map((f) => path.join(ROOT, "patches", f))], w);
     const treeBefore = git(["rev-parse", "HEAD^{tree}"], w).trim();
-    if (treeBefore !== TREE_BEFORE_0025) {
+    if (treeBefore !== TREE_BEFORE_LAST) {
       return {
         code: 1,
-        detail: `counter-check ${PATCH_COUNT - 1}/${PATCH_COUNT}: tree ${treeBefore.slice(0, 12)} ≠ ${TREE_BEFORE_0025.slice(0, 12)} — the patch set drifted IN THE MIDDLE`,
+        detail: `counter-check ${PATCH_COUNT - 1}/${PATCH_COUNT}: tree ${treeBefore.slice(0, 12)} ≠ ${TREE_BEFORE_LAST.slice(0, 12)} — the patch set drifted IN THE MIDDLE`,
       };
     }
     git(["am", "--keep-cr", path.join(ROOT, "patches", patches[PATCH_COUNT - 1])], w);
@@ -175,7 +203,7 @@ function replayFork() {
     if (tree !== TREE_FORK) {
       return { code: 1, detail: `tree ${tree.slice(0, 12)} ≠ ${TREE_FORK.slice(0, 12)} — the fork tree DRIFTED` };
     }
-    return { code: 0, detail: `${PATCH_COUNT} patches → tree matches · counter-check ${PATCH_COUNT - 1}/${PATCH_COUNT} → ${TREE_BEFORE_0025.slice(0, 8)} ✓` };
+    return { code: 0, detail: `${PATCH_COUNT} patches → tree matches · counter-check ${PATCH_COUNT - 1}/${PATCH_COUNT} → ${TREE_BEFORE_LAST.slice(0, 8)} ✓` };
   } catch (e) {
     return { code: 2, detail: `could not replay: ${String(e.message).split("\n")[0].slice(0, 120)}` };
   } finally {
