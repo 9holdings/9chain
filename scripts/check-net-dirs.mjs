@@ -28,8 +28,20 @@
  *
  * | Question | Measured by | Where |
  * |---|---|---|
+ * | Which generation is RUNNING? | `info.getNetworkID` on the LIVE RPC | CHAIN |
  * | Which generation is this directory? | `genesis.json → networkID` | DISK |
  * | Does this file hold real money? | `platform.getBalance` + `avm.getBalance` on the LIVE RPC | CHAIN |
+ *
+ * 🔴 **THE FIRST ROW USED TO BE A CLAIM, NOT A MEASUREMENT — and that turned the DECOY
+ * detector off in silence.** Until 2026-08-31 the live networkID was `A1_ID_GOC - A1_GEN`,
+ * i.e. read out of the repo, while the banner printed it as *"running network"*. From the
+ * `A1Gen` 0 -> 1 bump on 2026-08-30 the repo described `g1` while `g0` was still serving, so
+ * `net-that-g0/` — the decoy this gate exists to catch, declaring the LIVE networkID with six
+ * empty wallets (D-110) — scored `🟡 real band, different generation` and the DECOY branch
+ * never ran. The blind window was exactly the days when directories get cleaned up before a
+ * re-genesis. Same error class as D-124/D-134, one file further on: **a constant meaning
+ * "some other generation" walks into the live slot at the next bump.** The gate already held
+ * an RPC connection that could answer the question; now it asks.
  *
  * The two **intersect** to expose the trap: *an address WITH money inside a directory that is
  * NOT the running generation*. Measure only one side and a dead directory looks safe to wipe.
@@ -68,8 +80,18 @@ const RPC = flag("--rpc", RPC_URL);
 const OFFLINE = argv.includes("--offline");
 const SELF_TEST = argv.includes("--self-test");
 
-/** networkID of the RUNNING network, derived from the source of truth — never hand-copied. */
-const LIVE_NETWORK_ID = A1_ID_GOC - A1_GEN;
+/**
+ * What the REPO says the running network should be. A claim about the world, not a measurement:
+ * between a generation bump and the re-genesis it describes, this is deliberately ahead of the
+ * chain. Used as the banner's second opinion, and as the fallback when the chain cannot be asked.
+ */
+const DERIVED_NETWORK_ID = A1_ID_GOC - A1_GEN;
+/**
+ * The networkID every classification is judged against. Starts at the repo's claim and is
+ * REPLACED by the measured value in `main()`. Kept module-level only so the exported pure
+ * functions keep a sane default; every caller that has a measurement passes it explicitly.
+ */
+let liveNetworkId = DERIVED_NETWORK_ID;
 /** Top of the DRILL band. A drill network can never handshake with the real one. */
 const DRILL_BAND_TOP = 899_999_999;
 const BAND_WIDTH = 999; // A1Gen runs 0…999
@@ -96,9 +118,14 @@ export function addressBody(addr) {
   return addr.replace(/^[PX]-/, "");
 }
 
-/** Classify a networkID into one of the bands. Never guesses from the directory name. */
-export function classifyNetworkId(networkId) {
-  if (networkId === LIVE_NETWORK_ID) return "live";
+/**
+ * Classify a networkID into one of the bands. Never guesses from the directory name.
+ *
+ * `live` is a PARAMETER because the answer depends on which network is actually running, and
+ * that is something only the chain can say. Callers holding a measurement must pass it.
+ */
+export function classifyNetworkId(networkId, live = liveNetworkId) {
+  if (networkId === live) return "live";
   if (networkId <= A1_ID_GOC && networkId > A1_ID_GOC - BAND_WIDTH - 1) return "real-band-other-gen";
   if (networkId <= DRILL_BAND_TOP && networkId > DRILL_BAND_TOP - BAND_WIDTH - 1) return "drill-band";
   return "dead";
@@ -112,7 +139,7 @@ const LABEL = {
 };
 
 /** Read one net* directory: generation + secret files + addresses found. */
-export function readNetDir(dir) {
+export function readNetDir(dir, live = liveNetworkId) {
   const out = { dir, networkId: null, band: null, secrets: [], addresses: [], error: null };
   const genesis = path.join(dir, "genesis.json");
   if (!existsSync(genesis)) {
@@ -123,7 +150,7 @@ export function readNetDir(dir) {
     const g = JSON.parse(readFileSync(genesis, "utf8"));
     if (typeof g.networkID !== "number") throw new Error("genesis.json has no numeric networkID");
     out.networkId = g.networkID;
-    out.band = classifyNetworkId(g.networkID);
+    out.band = classifyNetworkId(g.networkID, live);
   } catch (e) {
     out.error = e.message;
     return out;
@@ -193,11 +220,85 @@ export async function walletBalance(body, ask = rpc) {
   return total;
 }
 
+/**
+ * Ask the chain which network it is. This is the quantity the whole gate hangs on.
+ *
+ * 🔴 `info.getNetworkID` answers with a **STRING** (`"999999999"`), not a number — the same trap
+ * `console/server.mjs` documents. `Number()` handles it; `===` against a number would not.
+ * 🔴 An unusable answer THROWS. Returning the repo's guess on failure would rebuild the exact
+ * hole this function was written to close, and hide it behind a green banner.
+ */
+export async function measureLiveNetwork(ask = rpc, tries = 3) {
+  // 🔴 RETRY THE TRANSPORT ONLY, because this one measurement decides every band below it.
+  // Measured 2026-08-31: a run of two concurrent calls came back `fetch failed` while the very
+  // same request succeeded a second later — a cold TLS connection through Cloudflare. Losing
+  // that coin toss downgrades the gate to the repo's claim, i.e. the hole this exists to close.
+  // The balance half can afford a per-wallet failure (that wallet reports INCONCLUSIVE); this
+  // cannot. Sequential, not `Promise.all` — two simultaneous cold connections is what tripped it.
+  //
+  // ⚠️ A BAD ANSWER IS NOT RETRIED. `{"networkID":"nonsense"}` is deterministic: asking again
+  // three times only delays the same verdict and buries the real reason under a transport-shaped
+  // error. Retry the flaky thing, not the settled one.
+  let last;
+  for (let i = 0; i < tries; i++) {
+    let idRes, nameRes;
+    try {
+      idRes = await ask("/ext/info", "info.getNetworkID", {});
+      nameRes = await ask("/ext/info", "info.getNetworkName", {});
+    } catch (e) {
+      // `fetch failed` on its own says nothing — carry the cause so the printed line is usable.
+      last = e.cause?.message ? new Error(`${e.message} (${e.cause.message})`) : e;
+      continue;
+    }
+    return parseLiveNetwork(idRes, nameRes);
+  }
+  throw last;
+}
+
+/** Validate what the chain answered. Separate from the transport so it is never retried. */
+export function parseLiveNetwork(idRes, nameRes) {
+  const id = Number(idRes?.networkID);
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw new Error(`info.getNetworkID answered ${JSON.stringify(idRes?.networkID)}`);
+  }
+  return { id, name: String(nameRes?.networkName ?? "") };
+}
+
 async function main() {
   if (SELF_TEST) return selfTest();
 
   console.log(`\n══ NETWORK DIRECTORIES — ${ROOT}/local-net ══`);
-  console.log(`   running network: networkID ${LIVE_NETWORK_ID} · ${TEN_MANG} (A1Gen ${A1_GEN})`);
+
+  // 🔴 MEASURE FIRST. Every band below is judged against this number, so reading it out of the
+  // repo would make the whole report a restatement of what the repo already believes.
+  let measured = null;
+  let measureError = null;
+  if (OFFLINE) {
+    measureError = "--offline";
+  } else {
+    try {
+      measured = await measureLiveNetwork();
+      liveNetworkId = measured.id;
+    } catch (e) {
+      measureError = e.message;
+    }
+  }
+
+  if (measured) {
+    console.log(`   running network: networkID ${measured.id} · ${measured.name}   ⇦ MEASURED on ${RPC}`);
+    if (measured.id !== DERIVED_NETWORK_ID) {
+      // Not an error: between a generation bump and the re-genesis it describes, the repo is
+      // AHEAD of the chain on purpose. It IS worth saying out loud, because every band below is
+      // judged against the measured number, not the one the repo carries.
+      console.log(`   repo describes  : networkID ${DERIVED_NETWORK_ID} · ${TEN_MANG} (A1Gen ${A1_GEN})`);
+      console.log(`   ⚠️  repo and chain are on DIFFERENT generations — bands below follow the MEASURED one.`);
+    }
+  } else {
+    console.log(`   running network: COULD NOT MEASURE (${measureError})`);
+    console.log(`   ⚠️  falling back to the repo's claim: networkID ${DERIVED_NETWORK_ID} · ${TEN_MANG} (A1Gen ${A1_GEN}).`);
+    console.log(`      That is a CLAIM, not a measurement: if the repo has been bumped ahead of the`);
+    console.log(`      running network, the DECOY check below is judging against the wrong generation.`);
+  }
   console.log(`   ${OFFLINE ? "⚠️  --offline: SKIPPING the on-chain half" : `RPC: ${RPC}`}\n`);
 
   const base = path.join(ROOT, "local-net");
@@ -212,8 +313,15 @@ async function main() {
     return 0;
   }
 
-  const reports = dirs.map(readNetDir);
+  // 🔴 NOT `dirs.map(readNetDir)` — `Array.map` passes (value, INDEX, array), so the index would
+  // land in the `live` parameter and every directory would be classified against `0`/`1`/`2`.
+  // The arrow keeps the second argument the measured networkID.
+  const reports = dirs.map((d) => readNetDir(d, liveNetworkId));
   let unresolved = reports.filter((r) => r.error).length;
+  // "Could not measure which network is running" is INCONCLUSIVE, not clean — the same rule the
+  // balance half already follows. It also makes `--offline` match its documented contract:
+  // it can never reach exit 0.
+  if (!measured) unresolved++;
   const traps = [];
   const decoys = [];
 
@@ -313,7 +421,11 @@ async function selfTest() {
   console.log("\n══ COUNTER-CHECK — check-net-dirs ══\n");
 
   console.log("── 1. Band classification ──");
-  ok("the running network's networkID => live", classifyNetworkId(LIVE_NETWORK_ID) === "live", classifyNetworkId(LIVE_NETWORK_ID));
+  // ⚠️ This one is TAUTOLOGICAL on its own — it compares the default against itself. It stays
+  // because it pins the shape, but the case that actually proves anything is section 1b, where
+  // the measured live id and the repo's derived id DISAGREE.
+  ok("CONTROL — the derived networkID => live (compared against itself)",
+    classifyNetworkId(DERIVED_NETWORK_ID) === "live", classifyNetworkId(DERIVED_NETWORK_ID));
   ok("🔴 9001 (the dead generation) => NOT live", classifyNetworkId(9001) !== "live", classifyNetworkId(9001));
   ok("🔴 9001 lands in 'dead', not in any band", classifyNetworkId(9001) === "dead", classifyNetworkId(9001));
   ok("🔴 the drill band's top => DRILL band, NOT live", classifyNetworkId(DRILL_BAND_TOP) === "drill-band", classifyNetworkId(DRILL_BAND_TOP));
@@ -330,12 +442,62 @@ async function selfTest() {
   // D-124 converted `check-consistency` and `chainid-test` to relative offsets for precisely
   // this reason and did not reach this file. The gate itself was fine throughout; only its
   // proof-that-it-can-tell-things-apart was broken, and `gday-preflight` never ran it.
-  const nextGen = LIVE_NETWORK_ID - 1; // one generation further on, whatever generation we are
+  const nextGen = DERIVED_NETWORK_ID - 1; // one generation further on, whatever generation we are
   ok("🔴 the NEXT generation => real band but NOT live", classifyNetworkId(nextGen) === "real-band-other-gen", classifyNetworkId(nextGen));
-  const prevGen = LIVE_NETWORK_ID + 1; // the generation before this one, if there is one
+  const prevGen = DERIVED_NETWORK_ID + 1; // the generation before this one, if there is one
   if (prevGen <= A1_ID_GOC) {
     ok("🔴 the PREVIOUS generation => real band but NOT live", classifyNetworkId(prevGen) === "real-band-other-gen", classifyNetworkId(prevGen));
   }
+
+  console.log("\n── 1b. 🔴 The live networkID is MEASURED, and the measurement WINS ──");
+  // This is the bug this section exists for. On 2026-08-31 the repo carried A1Gen 1 while g0
+  // (999999999) was still serving. With the live id read out of the repo, the decoy directory
+  // `net-that-g0/` classified as "a different generation" and the DECOY branch never ran — on
+  // the one gate whose job is to tell a live key set from a dead one.
+  const chainSays = DERIVED_NETWORK_ID + 1; // pretend the chain is one generation BEHIND the repo
+  if (chainSays <= A1_ID_GOC) {
+    ok("🔴 with the repo AHEAD of the chain, the repo's number is NOT live",
+      classifyNetworkId(chainSays) === "real-band-other-gen", classifyNetworkId(chainSays));
+    ok("🔴 …and passing the MEASURED id flips exactly that verdict to live",
+      classifyNetworkId(chainSays, chainSays) === "live", classifyNetworkId(chainSays, chainSays));
+    ok("🔴 …while the repo's own number stops being live once the chain disagrees",
+      classifyNetworkId(DERIVED_NETWORK_ID, chainSays) === "real-band-other-gen",
+      classifyNetworkId(DERIVED_NETWORK_ID, chainSays));
+  }
+
+  // `info.getNetworkID` answers with a STRING. A gate that only handled numbers would throw here
+  // and fall back to the repo — green banner, wrong generation.
+  const askStringId = async (p, m) =>
+    m === "info.getNetworkID" ? { networkID: "999999999" } : { networkName: "9chain-a1-g0" };
+  const measured = await measureLiveNetwork(askStringId);
+  ok("the STRING form of networkID is parsed to a number",
+    measured.id === 999999999 && measured.name === "9chain-a1-g0", JSON.stringify(measured));
+
+  for (const [label, bad] of [
+    ["an absent networkID", async () => ({})],
+    ["a non-numeric networkID", async () => ({ networkID: "not-a-number" })],
+    ["a zero networkID", async () => ({ networkID: "0" })],
+  ]) {
+    let threw = false;
+    let calls = 0;
+    const counted = async (...a) => { calls++; return bad(...a); };
+    await measureLiveNetwork(counted).then(() => {}, () => { threw = true; });
+    ok(`🔴 ${label} THROWS — it must never silently fall back to the repo's guess`, threw, "returned");
+    // 2 = one getNetworkID + one getNetworkName. A settled bad answer must not be asked again.
+    ok(`   …and is NOT retried (a bad answer is deterministic)`, calls === 2, `${calls} calls`);
+  }
+
+  // The other half of the same rule: a TRANSPORT failure must be retried, or one flaky moment
+  // silently demotes the master measurement to the repo's claim.
+  let attempts = 0;
+  const flaky = async (p, m) => {
+    attempts++;
+    if (attempts <= 2) throw new Error("fetch failed");
+    return m === "info.getNetworkID" ? { networkID: "999999999" } : { networkName: "9chain-a1-g0" };
+  };
+  const recovered = await measureLiveNetwork(flaky).catch((e) => e.message);
+  ok("🔴 a flaky transport is RETRIED and the measurement still lands",
+    recovered?.id === 999999999, JSON.stringify(recovered));
 
   console.log("\n── 2. A private key must never escape ──");
   const leaky = `P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj\nPrivateKey-abcDEF123\n0x${"a".repeat(64)}`;
@@ -370,7 +532,12 @@ async function selfTest() {
     writeFileSync(path.join(dead, "genesis.json"), JSON.stringify({ networkID: 9001 }));
     writeFileSync(path.join(dead, "chain-factory-key.txt"),
       "PrivateKey-NOTREAL\n  P-addr : P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj\n");
-    writeFileSync(path.join(live, "genesis.json"), JSON.stringify({ networkID: LIVE_NETWORK_ID }));
+    // 🔴 Built at the networkID the CHAIN reports, not the one the repo derives, and the two are
+    // deliberately different here. This is the end-to-end shape of the miss: a directory named
+    // `net-that-g0` declaring the generation that is actually serving, which must reach `live`
+    // so the DECOY branch in `main()` can fire on it.
+    const chainNetworkId = Math.min(DERIVED_NETWORK_ID + 1, A1_ID_GOC);
+    writeFileSync(path.join(live, "genesis.json"), JSON.stringify({ networkID: chainNetworkId }));
 
     const rDead = readNetDir(dead);
     ok("🔴 an official-SOUNDING directory is still judged by its genesis, not its name",
@@ -382,8 +549,10 @@ async function selfTest() {
     ok("🔴 and the private key on the line above is NOT carried along",
       !JSON.stringify(rDead.addresses).includes("PrivateKey"), JSON.stringify(rDead.addresses));
 
-    const rLive = readNetDir(live);
-    ok("CONTROL — a directory matching the live networkID => live", rLive.band === "live", rLive.band);
+    ok("CONTROL — a directory matching the MEASURED networkID => live",
+      readNetDir(live, chainNetworkId).band === "live", readNetDir(live, chainNetworkId).band);
+    ok("🔴 …and the SAME directory judged against the repo's number is NOT live — the exact miss",
+      readNetDir(live).band !== "live", readNetDir(live).band);
 
     const broken = path.join(tmp, "net-broken");
     mkdirSync(broken, { recursive: true });
