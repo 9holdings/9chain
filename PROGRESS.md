@@ -1483,6 +1483,23 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       ⇒ Không còn nguy cơ *"bump ở cây làm việc mà bộ patch công bố vẫn khai `A1Gen 0`"* (CLAUDE.md
       luật cứng 3). **Còn 34 việc tay, không phải 36.**
 
+- [x] 🔴 **D-141 — hai phát hiện nữa từ bản diễn tập** (`31/08`).
+      (1) **`make-l1-genesis.mjs` TRA sổ nhưng KHÔNG ghi lại** ⇒ chỉ an toàn **đúng một lần**: L1 #1
+      và L1 #2 đẻ cách nhau vài phút **cùng nhận `chainId 9001000000`**. Console an toàn vì **chính
+      nó** ghi vào `console-chains.json`; đường CLI **không có bước đó**. Với MetaMask hai chain cùng
+      chainId là **MỘT mạng**, và EIP-155 buộc chữ ký vào chainId ⇒ **phát lại được**. Đúng lỗ D-069,
+      trên đường nó không phủ. **Đã vá bằng cảnh báo lớn** (đối chứng: tự chọn ⇒ có, khai tay ⇒ không,
+      chạy hai lần ⇒ cùng số; `--self-test` 13/13). Sửa tận gốc (ghi ngược vào sổ) **hoãn sau ngày G**.
+      (2) 🔴 **Cái bẫy "giao dịch đầu tiên" KHÔNG tái hiện.** Trên L1 mới toanh, block 0:
+      `eth_estimateGas` = **56.070** vs thực dùng **55.270** ⇒ **ước lượng đúng, dư 1,4%**. Cả 4 ca
+      **thành công**, kể cả ca 1 (deploy làm giao dịch đầu tiên) mà tài liệu nói sẽ hỏng.
+      ⚠️ Giới hạn: một preset, hợp đồng rất nhỏ, băng TẬP ⇒ **chưa đủ để xoá** cảnh báo khỏi
+      `CREATE-A-CHAIN.md`. **Cần David quyết sau khi đo lại trên L1 THẬT đầu tiên sau giờ G.**
+      Tôi **không tự sửa tài liệu công khai dựa trên một lượt diễn tập.**
+      (3) ⚠️ **Bài kiểm đầu của tôi SAI** — để `ethers` tự lấy nonce ⇒ ca 2–4 đỏ vì
+      `nonce has already been used`. **Lỗi ở bài kiểm, không ở chain**, đúng bẫy đã ghi cho
+      `load-test.mjs`. Đọc vội thì ba ca đó thành *"chain hỏng"*. Nay quản nonce tường minh.
+
 - [x] 🔴 **D-140 — ĐẺ L1 TRÊN BẢN DIỄN TẬP: tái hiện ĐÚNG lỗ hổng ngày G** (`31/08`).
       Lượt quét `31/08` cảnh báo *"nạp `chain-factory` X→P có **0 dòng** trong runbook"*. Bản diễn
       tập **dựng lại nguyên vẹn** cảnh báo đó bằng một lỗi dừng hẳn:
