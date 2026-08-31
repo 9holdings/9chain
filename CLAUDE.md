@@ -85,7 +85,7 @@ quá khứ hay sẽ được xuất bản?*
 ## 3. Danh sách cổng — chạy trước khi tin bất cứ điều gì
 
 ```bash
-node scripts/gday-preflight.mjs              # 18 cổng + 24 VIỆC TAY, một lệnh (~2 phút)
+node scripts/gday-preflight.mjs              # 18 cổng + 25 VIỆC TAY, một lệnh (~2 phút)
 node scripts/check-net-dirs.mjs              # thư mục net* nào thuộc thế hệ nào · thư mục nào giữ TIỀN
 node scripts/check-evidence.mjs              # gói vật chứng còn tự nghiệm thu được không
 node scripts/check-single-source.mjs         # một hằng số, MỘT nơi khai
