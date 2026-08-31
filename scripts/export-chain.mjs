@@ -162,14 +162,14 @@ function ghi(tên, nộiDung) {
  * It also keeps peak memory lower: nothing ever holds the whole file twice, and only the LAST
  * line is retained as a string (`hashBlockCuoi` needs it) instead of all of them.
  */
-function bộGomJsonl() {
-  const khối = [];
-  let số = 0, cuối = null;
+function jsonlAccumulator() {
+  const chunks = [];
+  let count = 0, last = null;
   return {
-    them(dòng) { khối.push(Buffer.from(dòng + "\n", "utf8")); số++; cuối = dòng; },
-    get số() { return số; },
-    get cuối() { return cuối; },
-    buffer() { return Buffer.concat(khối); },
+    add(line) { chunks.push(Buffer.from(line + "\n", "utf8")); count++; last = line; },
+    get count() { return count; },
+    get last() { return last; },
+    buffer() { return Buffer.concat(chunks); },
   };
 }
 const jsonỔnĐịnh = (o) => JSON.stringify(o, null, 2) + "\n";
@@ -197,15 +197,15 @@ async function xuấtChuỗiThô(nhãn, đường, mHeight, mBlock) {
   const cao = Number(h.height);
   const đến = Math.min(cao, TRAN_BLOCK === Infinity ? cao : TRAN_BLOCK);
   if (đến < cao) console.log(`  ⚠️ ${nhãn}: CẮT ở ${đến}/${cao} (--max-blocks)`);
-  const gom = bộGomJsonl();
+  const acc = jsonlAccumulator();
   for (let n = 0; n <= đến; n++) {
     const b = await gọiMềm(đường, mBlock, { height: n, encoding: "hex" });
     if (!b) break;
-    gom.them(JSON.stringify({ height: n, hex: b.block }));
+    acc.add(JSON.stringify({ height: n, hex: b.block }));
   }
-  const dòng = { length: gom.số };
-  ghi(`${nhãn}/blocks.jsonl`, gom.buffer());
-  console.log(`  ${nhãn}: ${gom.số} block (chiều cao ${cao})`);
+  const dòng = { length: acc.count };
+  ghi(`${nhãn}/blocks.jsonl`, acc.buffer());
+  console.log(`  ${nhãn}: ${acc.count} block (chiều cao ${cao})`);
   // 🔴 A BREAK IN THE MIDDLE IS ALSO A CUT — and it did not use to count as one.
   //
   // `cắt` was `đến < cao`, i.e. it only ever described `--max-blocks`. But the loop also stops
@@ -244,14 +244,14 @@ async function xuấtEVM(nhãn, đường) {
   const caoSố = parseInt(cao, 16);
   const đến = Math.min(caoSố, TRAN_BLOCK === Infinity ? caoSố : TRAN_BLOCK);
   if (đến < caoSố) console.log(`  ⚠️ ${nhãn}: CẮT ở ${đến}/${caoSố} (--max-blocks)`);
-  const gom = bộGomJsonl();
+  const acc = jsonlAccumulator();
   for (let n = 0; n <= đến; n++) {
     const b = await gọiMềm(đường, "eth_getBlockByNumber", ["0x" + n.toString(16), true]);
     if (!b) break;
-    gom.them(JSON.stringify(b));
+    acc.add(JSON.stringify(b));
   }
-  const dòng = { length: gom.số };
-  ghi(`${nhãn}/blocks.jsonl`, gom.buffer());
+  const dòng = { length: acc.count };
+  ghi(`${nhãn}/blocks.jsonl`, acc.buffer());
   // 🔴 `hashBlockCuoi` IS THE LAST BLOCK EXPORTED, NOT THE TIP — and until the two counts sat
   // side by side, nothing in the bundle said so. A truncated export wrote the chain's real
   // height next to the hash of a much lower block, with no field to tell them apart.
@@ -261,7 +261,7 @@ async function xuấtEVM(nhãn, đường) {
     blockNumber: cao, blockNumberThập: caoSố,
     blocksExported: dòng.length,
     complete: !cutEVM,
-    hashBlockCuoi: gom.cuối ? JSON.parse(gom.cuối).hash : null,
+    hashBlockCuoi: acc.last ? JSON.parse(acc.last).hash : null,
   }));
   console.log(`  ${nhãn}: ${dòng.length} block (chiều cao ${caoSố})${cutEVM ? " 🔴 TRUNCATED" : ""} · chainId ${parseInt(chainId, 16)}`);
   return { caoSố, cắt: cutEVM, chainIdThập: parseInt(chainId, 16) };
