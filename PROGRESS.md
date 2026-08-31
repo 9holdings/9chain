@@ -1501,7 +1501,9 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       **Dọn:** hai bộ, **38 tệp khoá** shred `-u -n 3`, đối chứng **0 còn lại**.
       🔴 Lần đầu con số hiện ra: **18 `staker.key`/`signer.key` mỗi bộ** — danh tính validator LÀ
       khoá riêng, và `check-key-leaks.mjs` **không canh chúng** (B-20).
-      ⚠️ `rm -rf` bị chặn quyền ⇒ còn hai thư mục rỗng (không có bí mật), David xoá tay khi tiện.
+      ✅ **Đã xoá cả hai thư mục.** Kiểm trước: **0 tệp tracked · 0 khoá riêng**; còn lại chỉ
+      `staker.crt` (chứng chỉ CÔNG KHAI) và `engraving.md` — vân tay trong đó đã có trong DECISIONS.
+      Đối chứng: `check-net-dirs` không còn liệt kê chúng. Chỉ còn **B-19** đỏ (90,007 LOVE9).
 
 - [x] 🔴 **D-141 — hai phát hiện nữa từ bản diễn tập** (`31/08`).
       (1) **`make-l1-genesis.mjs` TRA sổ nhưng KHÔNG ghi lại** ⇒ chỉ an toàn **đúng một lần**: L1 #1
