@@ -142,45 +142,71 @@ ok("chừa một chỗ trong dải ⇒ vẫn cấp được (phép đo phân bi�
 // `console-chains.json` về rỗng, và mọi tên/số từng phát cho người dùng "còn trống".
 console.log("\n─── 8. Sổ A1 đã từng cấp — xuyên thế hệ ───");
 
+// 🔴 THE MECHANISM IS TESTED AGAINST A FIXTURE, NOT AGAINST THE LIVE LEDGER.
+//
+// Until 2026-09-01 every case below read `chainid-issued.json` and asserted that *those 49
+// specific entries* were blocked. That conflates two different claims: **the gate blocks what
+// it is given** (a property, always true) and **these entries are currently blocked**
+// (operational data, legitimately changeable). When David released the team's test names on
+// G-day the property was untouched, yet eight cases went red — a gate reporting a fault that
+// did not exist, on the morning when a red line is most expensive.
+//
+// The fixture keeps the historical values because they are good cases (9201 sits OUTSIDE the
+// contiguous 9100-9145 run, which is what proves the list is merged from real ledgers rather
+// than derived from a range), but nothing here depends on them still being in the live file.
+const FIXTURE_IDS = new Set([9100, 9141, 9201]);
+const FIXTURE_NAMES = new Map([["david do", "David Do"], ["ownertest", "OwnerTest"]]);
+
+ok("🔴 a chainId in the list is blocked", loiChainIdDaCap(9141, FIXTURE_IDS) !== null);
+ok("🔴 the FIRST chainId the console ever issued (9100) is blocked",
+  loiChainIdDaCap(9100, FIXTURE_IDS) !== null);
+ok("🔴 9201 — OUTSIDE the contiguous run — is blocked too",
+  loiChainIdDaCap(9201, FIXTURE_IDS) !== null,
+  "a list merged from real ledgers, not inferred from a range");
+
+ok("🔴 a name in the list is blocked", loiTenDaCap("David Do", FIXTURE_NAMES) !== null);
+ok("🔴 a different CASE is still blocked",
+  loiTenDaCap("david do", FIXTURE_NAMES) !== null,
+  "blocking byte-for-byte means one capital letter walks straight past");
+ok("🔴 surrounding WHITESPACE is still blocked",
+  loiTenDaCap("  David Do  ", FIXTURE_NAMES) !== null);
+
+// ─── Counter-checks: the gate must DISCRIMINATE, not block everything ───
+ok("CONTROL — a chainId never issued is NOT blocked", loiChainIdDaCap(9146, FIXTURE_IDS) === null);
+ok("CONTROL — this generation's block floor is NOT blocked",
+  loiChainIdDaCap(GOC_DAI_CHAINID, FIXTURE_IDS) === null);
+ok("CONTROL — an unused name is NOT blocked",
+  loiTenDaCap("MotCaiTenChuaAiDung", FIXTURE_NAMES) === null);
+ok("CONTROL — an EMPTY ledger blocks nothing (it reads the list, it does not invent one)",
+  loiChainIdDaCap(9141, new Set()) === null && loiTenDaCap("David Do", new Map()) === null);
+
+// Self-issue must step over the ledger too. The live block floor sits far above these numbers,
+// so this case builds a SMALL range overlapping the fixture to make the measurement mean something.
+const capTrongVungDaCap = capChainIdTuDong(new Set([9100, 9101, 9102]), new Map(), 9100, 9210);
+ok("🔴 self-issue inside an already-issued run skips all of it and lands on the first free number",
+  capTrongVungDaCap === 9103, String(capTrongVungDaCap));
+ok("CONTROL — same range WITHOUT passing the ledger ⇒ 9100, a number already handed out",
+  capChainIdTuDong(new Set(), new Map(), 9100, 9210) === 9100,
+  "proves that passing the ledger in is what makes the difference");
+
+// ─── The LIVE file: judged on being COHERENT, not on holding any particular entry ───
 const daCapFile = JSON.parse(readFileSync(path.join(THU_MUC, "chainid-issued.json"), "utf8"));
 const daCapId = new Set(daCapFile.chainIds);
 const daCapTen = new Map(daCapFile.names.map((t) => [t.toLowerCase(), t]));
+const daTha = daCapFile.released ?? { chainIds: 0, names: 0, releases: 0 };
 
-ok("danh sách có thật (≥ 40 chainId, ≥ 40 tên)",
-  daCapId.size >= 40 && daCapTen.size >= 40,
-  `${daCapId.size} chainId · ${daCapTen.size} tên`);
+ok("the live ledger's counts match its own lists",
+  daCapId.size === daCapFile.chainIdCount && daCapTen.size === daCapFile.nameCount,
+  `${daCapId.size}/${daCapFile.chainIdCount} · ${daCapTen.size}/${daCapFile.nameCount}`);
 
-ok("🔴 9141 (chain \"David Do\") bị chặn", loiChainIdDaCap(9141, daCapId) !== null);
-ok("🔴 9100 (OwnerTest — số console từng cấp ĐẦU TIÊN) bị chặn", loiChainIdDaCap(9100, daCapId) !== null);
-ok("🔴 9201 (DeltaChain — NGOÀI dải liền 9100–9145) bị chặn",
-  loiChainIdDaCap(9201, daCapId) !== null,
-  "chứng minh danh sách gộp từ sổ thật, không suy từ một dải");
-
-ok("🔴 tên \"David Do\" bị chặn", loiTenDaCap("David Do", daCapTen) !== null);
-ok("🔴 tên \"david do\" (khác hoa/thường) VẪN bị chặn",
-  loiTenDaCap("david do", daCapTen) !== null,
-  "chặn theo byte thì đổi một chữ hoa là lách được");
-ok("🔴 tên \"  David Do  \" (thừa khoảng trắng) VẪN bị chặn",
-  loiTenDaCap("  David Do  ", daCapTen) !== null);
-
-// ─── Đối chứng ngược: cổng phải phân biệt được, không phải chặn tất ───
-ok("ĐỐI CHỨNG — 9146 (chưa từng cấp) KHÔNG bị chặn", loiChainIdDaCap(9146, daCapId) === null);
-ok("ĐỐI CHỨNG — 9000000010 (gốc dải hiện tại) KHÔNG bị chặn",
-  loiChainIdDaCap(GOC_DAI_CHAINID, daCapId) === null);
-ok("ĐỐI CHỨNG — tên \"MotCaiTenChuaAiDung\" KHÔNG bị chặn",
-  loiTenDaCap("MotCaiTenChuaAiDung", daCapTen) === null);
-ok("ĐỐI CHỨNG — sổ RỖNG thì không chặn gì (phép đo đọc sổ, không tự bịa)",
-  loiChainIdDaCap(9141, new Set()) === null && loiTenDaCap("David Do", new Map()) === null);
-
-// Đường TỰ CẤP phải bỏ qua cả sổ này. Hôm nay gốc dải cách 9201 rất xa nên phép cấp
-// không đổi — nên ca này dựng một dải NHỎ chồng lên vùng đã cấp để phép đo có nghĩa.
-const capTrongVungDaCap = capChainIdTuDong(new Set([...daCapId]), new Map(), 9100, 9210);
-ok("🔴 tự cấp trong vùng đã cấp ⇒ nhảy qua hết, ra số trống đầu tiên",
-  capTrongVungDaCap === 9146,
-  String(capTrongVungDaCap));
-ok("ĐỐI CHỨNG — cùng dải nhưng KHÔNG truyền sổ đã cấp ⇒ ra 9100 (số đã phát cho người thật)",
-  capChainIdTuDong(new Set(), new Map(), 9100, 9210) === 9100,
-  "chứng minh chính việc truyền sổ vào là thứ tạo ra khác biệt");
+// 🔴 An EMPTY block-list is only acceptable when a release declaration accounts for it. Empty
+// because somebody decided, and empty because an archived ledger went missing, look identical
+// from here — and one of them hands issued names back into circulation.
+ok("🔴 an empty live ledger is backed by a release declaration",
+  daCapId.size > 0 || daTha.chainIds > 0,
+  `${daCapId.size} blocked · ${daTha.chainIds} released across ${daTha.releases} declaration(s)`);
+ok("the live ledger names at least one source (it was merged, not hand-written)",
+  (daCapFile.sources ?? []).length > 0, String((daCapFile.sources ?? []).length));
 
 console.log(`\n${hong === 0 ? "✅" : "🔴"} ${dat} đạt · ${hong} hỏng`);
 process.exit(hong === 0 ? 0 : 1);
