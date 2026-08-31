@@ -72,9 +72,8 @@ Done. **Do not type the settings by hand** — one wrong digit costs half an hou
 </details>
 
 > 🔴 **If you added the A1 network at some earlier point:** delete it and add it again with the
-> button above. The old configuration may point at `rpc-testnet-a1.9chain.org`, an address that
-> **no longer works**. A wallet pointing there reports a connection error that looks exactly like a
-> dead network, while the network is running perfectly well.
+> button above. A saved configuration can be out of date, and a wallet using one reports a
+> connection error that looks exactly like a dead network — while the network is running fine.
 
 ---
 
@@ -179,7 +178,7 @@ If you must do something else first, set the fee limit manually to **300,000**.
 |---|---|---|
 | The create page has no fields to fill in | MetaMask is not installed, or the wallet is not connected | Install MetaMask, reload, click *Connect wallet* |
 | Wallet shows a balance of 0 after using the faucet | The wallet is on a different network | Switch to *9Chain Testnet A1*, top left |
-| Wallet reports a network connection error | Old configuration pointing at an address that no longer works | Delete the A1 network in your wallet and add it again with the button in Step 2 |
+| Wallet reports a network connection error | A saved configuration that is out of date | Delete the A1 network in your wallet and add it again with the button in Step 2 |
 | Error `524` while creating a chain | The chain is still being built; the browser simply ran out of patience | **Do not press again.** Wait 2 minutes, check `/chains/` |
 | First transaction fails with no reason given | Fee estimation is wrong on the first block | See the section just above |
 | Your chain is not in the directory yet | It has not finished coming up | Wait another minute and reload |
