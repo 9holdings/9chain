@@ -5074,3 +5074,60 @@ thông**. Sổ này, `patches/` và `docs/evidence/**` là **ba thứ phải đi
 | 🔴 `main:web/lib/chain.ts:23` khai `networkId: 9001` — **hai thế hệ chết** | `main` **không** phải bản đang chạy (bản sống ở worktree `web-home`), nhưng repo công khai sẽ **xuất bản** mã nguồn trang web khai thế hệ chết. Luật cứng #4 cấm phiên này đụng `web/` ⇒ hoặc merge `web-home` vào `main` trước ngày G, hoặc gỡ `web/` khỏi bản công bố |
 | 🔴 Repo công khai = **công bố cả sổ nội bộ** | `DECISIONS.md` · `HANDOFF.md` · `BLOCKERS.md` · `docs/AUDIT-A1/` đi kèm: mọi lần cháy, mọi phát hiện soát nguồn, bố cục server. Không có khoá nào trong đó (quét `PrivateKey-` = **0**, khoá EVM 64-hex gán cho biến khoá = **0**, ngoài khoá `ewoq` vốn đã công khai). Đây là **lựa chọn**, không phải sự cố — nhưng phải là lựa chọn có ý thức |
 | 🔴 Đẻ chain đang **MỞ**, và chain đẻ hôm nay **chết ngày mai** | Hai chain người thật (`Eric1` · `eric1`) đã có. Hoặc đóng cổng đẻ tới sau ngày G, hoặc báo cho họ. Bản ghi đã cứu vào sổ; **người thì chưa ai báo** |
+
+---
+
+## D-135 — **ĐÓNG cổng đẻ chain** trên sản phẩm, `31/08` (David chốt)
+
+David: *"đóng cổng đẻ chain lại đi."* Lý do đã nằm sẵn trong chính đoạn mã: ngày G `01/09` xoá
+sạch mọi L1 người dùng, nên **mỗi chain người lạ đẻ ra từ giờ tới đó là một lời hứa ta BIẾT CHẮC
+sẽ nuốt lời** — và họ không biết điều đó. Hai chain người thật (`Eric1` · `eric1`) đã là bằng chứng
+cái cửa mở này tốn gì.
+
+### Đã làm — trên SERVER, không phải trong repo
+
+| Bước | |
+|---|---|
+| Sao lưu | `console.env.bak-before-close-20260831` (`cp -n`, không đè bản có sẵn) |
+| Đổi | `A1_DE_CHAIN_MO=1` → `=0`. **Đúng một dòng**: `diff` ra **2 dòng** (`<`/`>`), bộ tên biến **trùng khít**, `wc -l` **16 → 16** |
+| Khởi động lại | `~/9chain-a1/console-restart.sh` — đường được hỗ trợ, **không** phải một dòng `ssh` tự chế |
+
+🔴 **Vì sao dùng script chứ không gõ tay:** console chạy bằng **`node` trần, PPID 1, không
+systemd, không compose** — không có ai dựng nó dậy nếu nó chết. `ssh host 'pkill -f
+"console/server.mjs"'` **tự giết chính phiên ssh** (chuỗi đó nằm trong dòng `bash -c` của nó), và
+`tail console.log` sau đó **trông y hệt một lượt lên thành công** vì banner cũ còn nằm lại. Script
+chốt **PID cũ trước khi giết** rồi đòi **PID mới ≠ PID cũ** trên cổng đang nghe: `751090 → 1143490`.
+Cổng có người nghe chưa phải bằng chứng — **người khác** mới là.
+
+### Nghiệm thu — trên SẢN PHẨM, không phải trên repo
+
+```
+POST https://a1.9chain.org/console/api/create   (qua Cloudflare + Caddy, đường người dùng đi)
+→ HTTP 400
+→ "Chain creation is paused. The public network is being rebuilt on 2026-09-01 …"
+```
+
+🔴 **Đỏ VÌ ĐÚNG LÝ DO** (vế ba của luật cứng #2). Tôi cố ý gửi **tên KHÔNG hợp lệ** (`"!!!"`): nếu
+cổng còn mở, phép kiểm tên sẽ bác — nên **không lượt nào đẻ ra chain thật dù kết quả thế nào**, và
+hai câu trả lời phân biệt được. Thứ trả về là **văn bản của chính cái cổng**, không phải lỗi tên,
+không phải 401, không phải hạn mức ⇒ cổng chặn **trước mọi phép kiểm khác**, đúng chỗ mã đặt nó.
+
+Banner tiến trình mới: `đẻ chain: 🔒 ĐÓNG`. Bốn mặt công khai (`/`, `/create-chain/`, `/faucet/`,
+`/chains/`) đều **200**; node vẫn `networkID 999999999`. **Thu hồi KHÔNG bị chặn** — mã cố ý để vậy:
+*"đóng cửa vào không được nhốt người đã ở trong"*.
+
+### 🔴 Lộ ra một thứ khác khi đọc banner
+
+Console trên server in: **`sổ A1 đã cấp: 47 chainId · 53 tên (gộp từ 4 sổ)`**. Repo đang là
+**49 · 54, gộp từ 5 sổ** — bản tôi sinh lại sau khi kéo sổ sống về `31/08`. ⇒ **Server đang chạy
+danh sách chặn CŨ, thiếu đúng hai chainId của Eric.** Hôm nay vô hại vì cửa đã đóng; **trước khi
+mở lại sau ngày G thì bắt buộc phải đẩy lên**, nếu không hai số đó có thể được cấp lại cho người
+khác — đúng lỗ phát lại mà cả cuốn sổ sinh ra để bịt. Đã có trong việc tay của preflight; đây là
+lần **đo được trên sản phẩm**.
+
+### Mở lại
+
+`A1_DE_CHAIN_MO=1` trong `~/9chain-a1/console.env`, rồi `~/9chain-a1/console-restart.sh`.
+🔴 **Mở bằng TAY, không mở bằng đồng hồ** — một cổng tự mở theo mốc thời gian sẽ mở **kể cả khi
+ngày G trượt**, tức đúng lúc điều kiện nó đang canh chưa thoả. Trước khi mở: đẩy
+`chainid-issued.json` (49 · 54) lên server.
