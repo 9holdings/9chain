@@ -5179,7 +5179,10 @@ phẩm không tồn tại (D-083).
 
 ---
 
-## D-136 — **GIỜ G CHỐT: `2026-09-01 00:00` giờ Jerusalem** (David chốt `31/08`)
+## D-136 — ~~GIỜ G: `2026-09-01 00:00` giờ Jerusalem~~ → **THAY BẮNG D-136c** (David chốt `31/08`)
+
+> 🔴 **Mốc này đã đổi cùng ngày sang `09:09:09`. Xem D-136c.** Giữ mục này vì phần số học múi giờ
+> và cái bẫy *"lịch server ghi ngày khác"* vẫn đúng y nguyên — chỉ giờ trong ngày là đổi.
 
 David: *"giờ G sẽ chốt lại đúng 00:00 ngày 01/09/2026 theo giờ Jerusalem."*
 
@@ -5257,3 +5260,56 @@ phải dịch vụ).
 ⚠️ **Vẫn KHÔNG đo thẳng được luật tên phân biệt hoa-thường** qua `/api/create`: cửa đóng trả lời
 trước khi tới phép kiểm tên. Bản vá **đã ở trên server** (trùng byte) và console **đã nạp nó**;
 phép đo thẳng phải chờ lượt mở lại sau giờ G.
+
+---
+
+## D-136c — **GIỜ G CHỐT LẠI: `2026-09-01 09:09:09` giờ Jerusalem** (David chốt `31/08`, thay D-136)
+
+David: *"vậy đổi lại 09:09:09 ngày 01/09/2026 giờ Jerusalem là ok."*
+
+### Một khoảnh khắc, ba mặt đồng hồ
+
+| Đồng hồ | Giờ G |
+|---|---|
+| **Jerusalem (IDT, UTC+3)** | thứ Ba **`2026-09-01` 09:09:09** ← mốc chốt |
+| **UTC** | thứ Ba **`2026-09-01` 06:09:09Z** |
+| **Việt Nam (UTC+7)** | thứ Ba `2026-09-01` **13:09:09** |
+
+Lệch múi giờ đo bằng `Intl`/`Asia/Jerusalem`, không chép tay: Israel còn DST tới `25/10/2026`
+nên là **+3**, không phải +2.
+
+### 🔴 Vì sao đổi, và đổi được gì
+
+Mốc cũ `00:00` Jerusalem rơi vào **`31/08` 21:00Z** — tức **hơn 4 tiếng** kể từ lúc chốt, trong khi
+đường tới hạn (bump `A1Gen` → sinh lại 26 patch → build image → `docker save | ssh | docker load`)
+**một mình nó đã có thể ăn 1,5–2 tiếng**, và nó **phải xong TRƯỚC `down -v`**. Mốc mới cho
+**13h16m**, tức thêm **9 giờ** — đủ để bước 6 (đưa image lên server) hoàn tất và **được nghiệm thu**
+trước điểm không quay lại, thay vì bị bấm vội.
+
+⚠️ **Khác biệt so với mốc cũ, đáng ghi:** mốc `09:09:09` rơi vào **`01/09` ở CẢ BA đồng hồ**. Mốc
+`00:00` thì UTC và lịch server (`Etc/UTC`) vẫn ghi **`31/08`** — cái bẫy *"nhìn lịch server rồi
+tưởng chưa tới ngày"* nay **không còn**. Mốc mới **rẻ hơn về mặt nhận thức**, không chỉ về thời gian.
+
+### Mốc treo cho ngày G (giờ UTC · giờ VN)
+
+| Xong việc gì | UTC | Việt Nam |
+|---|---|---|
+| KHỐI 0 — image **đã nằm trên server** và tự khai đúng `commit=` | `01/09 02:09Z` | `01/09 09:09` |
+| KHỐI 1 — B-16 · B-19 · O2 · sổ chain · H-6b | `01/09 03:09Z` | `01/09 10:09` |
+| 🟥 **`down -v` — điểm không quay lại** | `01/09 03:39Z` | `01/09 10:39` |
+| Mạng lên 9/9, đo trên binary | `01/09 04:29Z` | `01/09 11:29` |
+| `engrave-verify` xanh **trên chain thật** | `01/09 04:59Z` | `01/09 11:59` |
+| Công bố + mở lại cổng đẻ chain | **`01/09 06:09Z`** | **`01/09 13:09`** |
+
+🔴 **Điểm quyết định GO/NO-GO là mốc KHỐI 0.** Tới `02:09Z` mà image chưa nằm trên server **và
+chưa tự khai đúng `commit=`** thì **đừng bấm `down -v`** — hoãn giờ G còn rẻ, `down -v` khi chưa có
+binary đúng là **mất g0 mà không dựng được g1** (bản fork trên server là snapshot không-git ở
+`A1Gen 0`, build ở đó ra binary thế hệ chết đeo nhãn `:g1`, và không có tree hash nào ở đó bắt được).
+Cổng đẻ chain **đang ĐÓNG** (D-135), nên hoãn **không tốn thêm gì cho người dùng**.
+
+### Vẫn đúng như D-136
+
+Giờ G là **mốc VẬN HÀNH**, **không** đi vào `genesis.json`: `netgen/main.go` đặt
+`StartTime: now-60`, luôn động. Dấu phân biệt bản tập với bản thật của A1 là **có khắc chữ hay
+không** cộng `A1_ENGRAVE_CONFIRM`. Đừng đẽo một chỗ trong genesis để cắm mốc này vào — làm thế là
+tự thêm một hằng số chép tay.

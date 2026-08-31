@@ -1443,13 +1443,23 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       🔴 **Còn 7 tệp mã LỆCH**, trong đó `CREATE-A-CHAIN.md` **đang hứa** `MyChain`=`mychain` mà
       `server.mjs` trên server **chưa có bản vá đó** — ship console trước khi tài liệu tới tay ai.
 
-- [x] 🔴 **D-136 — GIỜ G CHỐT: `2026-09-01 00:00` giờ Jerusalem** (David chốt `31/08`).
+- [x] 🔴 ~~**D-136 — giờ G `00:00`**~~ → **ĐỔI sang D-136c cùng ngày**. (Số học múi giờ vẫn đúng.)
       = **`2026-08-31 21:00:00Z`** = `01/09 04:00` giờ Việt Nam. Israel còn DST tới `25/10` nên
       lệch là **+3**, không phải +2 (đo bằng `Intl`/`Asia/Jerusalem`, không chép tay).
       ⚠️ **Bẫy:** *"ngày 01/09"* nghe như sáng mai, nhưng mốc thật là **21:00 UTC HÔM NAY**; máy
       chủ chạy `Etc/UTC` nên lịch trên đó vẫn ghi `2026-08-31` ở đúng thời điểm giờ G.
       Giờ G là **mốc VẬN HÀNH**, không đi vào `genesis.json` (`StartTime: now-60` luôn động) —
       đừng đẽo chỗ cắm nó vào genesis.
+
+- [x] 🔴 **D-136c — GIỜ G CHỐT LẠI: `2026-09-01 09:09:09` giờ Jerusalem** (David chốt `31/08`).
+      = **`01/09 06:09:09Z`** = `01/09 13:09` giờ VN. Đổi vì mốc cũ chỉ còn **4h11m** trong khi
+      riêng *bump → sinh lại 26 patch → build image → `docker save|ssh|docker load`* đã có thể ăn
+      1,5–2h **và phải xong TRƯỚC `down -v`**. Mốc mới cho **13h16m**.
+      ⚠️ Mốc mới rơi vào **`01/09` ở CẢ BA đồng hồ** ⇒ **hết bẫy** *"lịch server (`Etc/UTC`) còn ghi
+      `31/08`"* mà mốc `00:00` mang theo.
+      🔴 **GO/NO-GO ở mốc `01/09 02:09Z` (VN 09:09):** image chưa nằm trên server **và** chưa tự
+      khai đúng `commit=` ⇒ **KHÔNG bấm `down -v`**. Hoãn rẻ; `down -v` thiếu binary đúng là **mất
+      g0 mà không dựng được g1**. Cổng đẻ chain đang ĐÓNG nên hoãn không tốn gì cho người dùng.
 
 - [x] **D-136b — ship console lên server** (`31/08`). Bốn tệp đi: `console/server.mjs` ·
       `console/index.html` · `console/chainid-test.mjs` · `lib/guard.mjs`.
