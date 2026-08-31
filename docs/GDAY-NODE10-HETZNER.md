@@ -84,19 +84,134 @@ thuộc genesis** — đúng lập luận D-128 đã dùng để đẩy image OV
 ngày G là xếp một lượt build Go **sau `down -v`**, trên máy duy nhất chứng minh **điều kiện qua
 số 3** (một node NGOÀI máy chủ là peer).
 
-⇒ Đường đi, chạy **hôm nay**:
-```bash
-# trên Hetzner, đúng đường đã chạy ở D-118
-git checkout 1cf1fc3 && git am --keep-cr <đủ 26 patch>
-git rev-parse HEAD^{tree}          # phải ra 60a61707f7974a0f1853b8bf78df7d0fdc1ef863
-# build trong container golang, rồi ĐO BINARY — không đo mạng:
-/opt/9chain-a1/avalanchego/build/avalanchego --version
-#   phải in commit=9chain-a1-g1-26patch-60a61707
+🔴 **ĐỪNG BUILD Ở HETZNER — CHỞ IMAGE SANG, y như D-137 đã làm cho OVH.** Build lại là dựng
+**một binary thứ hai** rồi hy vọng nó bằng bản đã diễn tập; chở đi là **đúng bản đó**. Lý do
+D-137 cấm build trên OVH (cây nguồn ở đó là ảnh chụp, không phải git repo) chưa ai đi đo ở
+Hetzner — và ta không cần biết câu trả lời nếu không build ở đó. Docker **có sẵn** trên máy đó
+(D-118 đã build trong container `golang`).
+
+⚠️ Ba lý do nữa, mỗi cái đủ để bỏ đường build:
+- lượt build Go mất **hàng chục phút**, và nó đang được xếp **sau `down -v`**;
+- `scripts/build.sh` nhúng `commit=` từ biến `AVALANCHEGO_COMMIT`; build trần mà quên khai thì
+  binary tự xưng `9chain-a1-poc`, tức **tiêu chí nghiệm thu không thoả được** (cùng lỗi mà
+  `--build-arg A1_COMMIT=` sinh ra ở đường Docker);
+- `Dockerfile` chạy `scripts/rebrand.sh` **trong lúc build**. Build trần bỏ bước đó ⇒ lớp bản
+  sắc có thể lệch với image đang chạy ở OVH, mà **9/9 node vẫn xanh** khi lệch (gotcha 10).
+
+---
+
+## 1d. 🔴 CHỞ IMAGE SANG HETZNER — làm **HÔM NAY**, không phải ngày G
+
+Image `9chain-a1/node:g1` **không phụ thuộc byte chữ khắc và không phụ thuộc genesis** — đúng
+lập luận D-128 dùng để đẩy lượt build OVH ra khỏi ngày G. Ngày G chỉ còn **khởi động**.
+
+Số đo trên máy dev, `2026-08-31T20:2x UTC` — dùng làm mỏ neo cho mọi bước dưới:
+
 ```
-🔴 **Phép đo cuối cùng là bắt buộc và nó KHÔNG có trong bảng nghiệm thu Bước 5** — bảng đó đo
+image     9chain-a1/node:g1           586 MB
+--version 9chaingo/1.14.2 [database=v1.4.5, rpcchainvm=45,
+                           commit=9chain-a1-g1-26patch-60a61707, go=1.25.10]
+sha256    7ad4e2ac76ea8e2c6f48cb5144971569510371c7eb644eef88eac5f31f4c6ea4  build/avalanchego
+sha256    33d0bd0068afe7b3b1660e7d58c3dc8bb4371e0444e4298de262d58962f6422c  build/plugins/pkqXsz…4mf
+nền       debian:12-slim · glibc 2.36
+```
+
+### Bước A · chở image (máy dev → Hetzner)
+
+```bash
+docker save 9chain-a1/node:g1 | gzip | \
+  ssh -i ~/.ssh/<khoá-hetzner> root@95.217.60.140 'gunzip | docker load'
+```
+
+### Bước B · 🔴 NGHIỆM THU **TRÊN CHÍNH MÁY HETZNER** — hai mỏ neo độc lập
+
+```bash
+ssh -i ~/.ssh/<khoá-hetzner> root@95.217.60.140 '
+  docker run --rm --entrypoint ./avalanchego 9chain-a1/node:g1 --version
+  docker run --rm --entrypoint sha256sum   9chain-a1/node:g1 /9chain-a1/build/avalanchego
+  docker run --rm --entrypoint sh 9chain-a1/node:g1 -c \
+    "strings /9chain-a1/build/avalanchego | grep -c 9chain-a1-g1; \
+     strings /9chain-a1/build/avalanchego | grep -c 9chain-a1-g0"
+'
+```
+
+| phải ra | vì sao mỏ neo này không thay được mỏ neo kia |
+|---|---|
+| `commit=9chain-a1-g1-26patch-60a61707` | chuỗi này do `--build-arg` đặt ⇒ **một mình nó chứng minh rất ít**, khai gì cũng được |
+| `sha256 = 7ad4e2ac…6ea4` | **byte y hệt** bản đã diễn tập. Đây mới là mỏ neo mạnh |
+| `9chain-a1-g1` ≥ 1 · **`9chain-a1-g0` = 0** | vế **0 lần** là vế quan trọng: nó loại hẳn khả năng đây là binary thế hệ chết dán nhãn mới |
+
+⚠️ **Git Bash trên Windows bẻ đường dẫn** — `/9chain-a1/build/…` bị dịch thành
+`C:/Program Files/Git/9chain-a1/…` và lệnh chết với *"No such file"*. Đã dính khi soạn mục này.
+Chạy các lệnh có đường dẫn tuyệt đối trong container với `MSYS_NO_PATHCONV=1` ở đầu, hoặc chạy
+chúng **qua `ssh`** như trên (trong dấu nháy đơn thì Git Bash không đụng tới).
+
+### Bước C · ngày G — chạy node9 **BẰNG CONTAINER**, không phải binary trần
+
+🔴 **Đừng `docker cp` binary ra host rồi chạy trần.** Image nền là Debian 12 (**glibc 2.36**);
+nếu Hetzner đang là Ubuntu 22.04 (glibc 2.35) thì binary **không khởi động được**, và lỗi
+`GLIBC_2.36 not found` xuất hiện đúng lúc mạng cũ đã bị xoá. Chạy trong container thì câu hỏi
+đó **không tồn tại** — và node9 khi đó dùng **cùng một runtime** với 8 node OVH.
+*(Nếu vẫn muốn đường binary trần: đo trước `ldd --version` trên máy đó, phải ≥ 2.36.)*
+
+```bash
+# 1) XOÁ DB CŨ TRƯỚC — nó giữ database g0 VÀ một danh tính tự sinh.
+#    Để lại là node lên bằng nodeID SAI, không phải nodeID trong genesis.
+rm -rf /opt/9chain-a1/data && mkdir -p /opt/9chain-a1/data
+
+# 2) chép sang: node9/{staker.key,staker.crt,signer.key} + genesis.json của g1
+#    (cả hai chỉ tồn tại SAU khi netgen chạy ở giờ G)
+
+# 3) chạy
+docker run -d --name 9chain-a1-node-9 --restart unless-stopped --network host \
+  -v /opt/9chain-a1:/opt/9chain-a1 \
+  --entrypoint ./avalanchego 9chain-a1/node:g1 \
+  --network-id=999999998 \
+  --genesis-file=/opt/9chain-a1/genesis.json \
+  --data-dir=/opt/9chain-a1/data \
+  --staking-tls-cert-file=/opt/9chain-a1/node9/staker.crt \
+  --staking-tls-key-file=/opt/9chain-a1/node9/staker.key \
+  --staking-signer-key-file=/opt/9chain-a1/node9/signer.key \
+  --public-ip=95.217.60.140 --staking-port=9651 \
+  --http-host=127.0.0.1 --http-port=9655 \
+  --bootstrap-ips=139.99.145.13:9651 --bootstrap-ids=<NodeID node1 của g1>
+```
+
+⚠️ `--network host` là cố ý: `--public-ip` và cổng `9651` phải là cổng **thật của máy**, và
+`--http-host=127.0.0.1` giữ API **không** ra Internet. Không có nó thì phải `-p` từng cổng và
+`127.0.0.1` bên trong container không còn nghĩa như ta tưởng.
+
+### Bước D · đo BINARY đang chạy, rồi mới đo mạng
+
+```bash
+docker exec 9chain-a1-node-9 ./avalanchego --version    # lại phải ra commit=…-26patch-60a61707
+curl -s -X POST -H 'content-type:application/json' \
+  --data '{"jsonrpc":"2.0","id":1,"method":"info.getNodeID","params":{}}' \
+  http://127.0.0.1:9655/ext/info                        # rồi grep nodeID đó trong genesis.json
+```
+
+🔴 **Phép đo binary là BẮT BUỘC và nó KHÔNG có trong bảng nghiệm thu Bước 5** — bảng đó đo
 **mạng** (validator · peers · bootstrap), thứ D-137 vừa chứng minh là không nói gì về binary
-đang chạy. Việc tay *"Measure the BINARY"* của preflight dùng `docker exec <node>`, mà node9
-chạy **trần, ngoài compose** ⇒ nó **không phủ máy này**.
+đang chạy. Và việc tay *"Measure the BINARY"* của preflight viết `docker exec <node>` cho các
+node **trong compose ở OVH**; node9 nằm ngoài compose, trên máy khác ⇒ **không mục nào phủ nó**
+cho tới dòng này.
+
+### Nếu KHÔNG chở image được (đường lui, chỉ dùng khi bước A thất bại)
+
+Build ở Hetzner **bằng đúng `Dockerfile` này**, không build trần — nó đã gói sẵn `rebrand.sh`
+và `AVALANCHEGO_COMMIT`:
+
+```bash
+git clone https://github.com/ava-labs/avalanchego.git && cd avalanchego
+git checkout 1cf1fc3 && git am --keep-cr /path/9chain-a1/patches/*.patch
+git rev-parse HEAD^{tree}     # PHẢI ra 60a61707f7974a0f1853b8bf78df7d0fdc1ef863
+# đối chứng ngược: áp 25/26 phải ra f2b9486b71ad53b584a86f77d6017c34d74e6fa6
+docker build -f local-net/Dockerfile \
+  --build-arg A1_COMMIT=9chain-a1-g1-26patch-60a61707 -t 9chain-a1/node:g1 .
+```
+Rồi vẫn chạy **Bước B** — và `sha256` ở đó **có thể lệch** (Go build không đảm bảo tái lập
+theo byte qua hai máy). Lệch sha256 mà `--version` + hai vế `strings` đúng thì **chấp nhận
+được nhưng phải khai ra**: nó nghĩa là node9 chạy một binary **chưa từng được diễn tập**.
 
 ---
 
