@@ -5373,3 +5373,47 @@ bấm `down -v`**. Cổng đẻ chain đang ĐÓNG nên hoãn **không tốn gì
 ### Vẫn đúng như D-136
 
 Giờ G là **mốc VẬN HÀNH**, không đi vào `genesis.json` (`StartTime: now-60`, luôn động).
+
+---
+
+## D-137 — Image `g1` **đã nằm trên server**, và nó được nghiệm thu bằng HAI mỏ neo độc lập (2026-08-31)
+
+Đây là **rủi ro lớn nhất của ngày G** và nó vừa đóng lại, **sớm hơn hạn KHỐI 0 gần 13 giờ**.
+
+### Không phải build lại — image đã có sẵn từ lượt diễn tập `30/08`
+
+`9chain-a1/node:g1` · 586 MB · dựng `2026-08-30 10:04`. Theo **D-128** (*dùng lại image đã diễn
+tập, đừng build lại*), bước build **bỏ được** — cắt đôi đường tới hạn.
+
+### 🔴 Nhãn không chứng minh gì — hai phép đo có gốc độc lập
+
+| Mỏ neo | Đo được | Vì sao chưa đủ một mình |
+|---|---|---|
+| **Binary tự khai** | `commit=9chain-a1-g1-26patch-60a61707` — khớp **chính xác** điều kiện nghiệm thu | `commit=` là **chuỗi người gõ vào `--build-arg`**. Nó nói người build **KHAI** gì, không nói binary **CHỨA** gì |
+| **Nội dung nhị phân** | `9chain-a1-g1` **4 lần** · **`9chain-a1-g0` 0 lần** · `9chain-a1-tap-g1` 1 · **`LOVE9` 2** · `love9` 1 | một mình nó không gắn được với bộ patch nào |
+
+**`9chain-a1-g0` = 0** là đối chứng ngược: **không còn một dấu vết nào của thế hệ đã chết** trong
+binary. Và **`LOVE9` có mặt** ⇒ patch **0019/0022** nằm trong image — đúng thứ image 18-patch
+thiếu, mà thiếu nó thì **mọi ví X/C chết câm** trong khi 9/9 node vẫn xanh.
+
+### Chuyển và đo LẠI ở đầu bên kia
+
+```
+docker save 9chain-a1/node:g1 | gzip -6 | ssh … 'gunzip | docker load'
+17:13:12Z → 17:13:42Z   —  30 giây
+```
+
+🔴 **"Đã load" không phải phép đo.** Chạy lại **cả ba** phép trên **chính máy chủ**: binary ở đó
+tự khai **cùng chuỗi `commit=`**, và các con số nhị phân **trùng khít** bản trên máy dev
+(`g1`=4 · `g0`=0 · `tap-g1`=1 · `LOVE9`=2 · `love9`=1).
+
+Đó là điều làm cho **binary đã được diễn tập chính là binary sẽ chạy** — không phải một bản build
+lại trên một cây nguồn khác. 🔴 Nhắc lại vì sao **cấm build trên server**: cây fork ở đó là
+**snapshot không-git ở `A1Gen 0`**, không `.git`, không `patches/` ⇒ build ở đó ra **binary thế hệ
+đã chết đeo nhãn `:g1`**, và **không tree hash nào trên máy đó bắt được**.
+
+### Đường lui còn nguyên
+
+`9chain-a1/node:g0` **vẫn còn trên server**, không đụng tới. Đĩa còn **342G/410G**.
+
+⇒ **Việc tay #14 · #15 · #17 của preflight: ĐẠT.** Còn **31 việc tay**, không phải 34.

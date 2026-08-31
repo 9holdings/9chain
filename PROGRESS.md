@@ -1483,6 +1483,20 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       ⇒ Không còn nguy cơ *"bump ở cây làm việc mà bộ patch công bố vẫn khai `A1Gen 0`"* (CLAUDE.md
       luật cứng 3). **Còn 34 việc tay, không phải 36.**
 
+- [x] 🔴 **D-137 — IMAGE `g1` ĐÃ NẰM TRÊN SERVER** (`31/08 17:13Z`). **Rủi ro lớn nhất của ngày G
+      đã đóng, sớm hơn hạn KHỐI 0 gần 13 giờ.**
+      Không phải build lại: image có sẵn từ lượt diễn tập `30/08` (D-128) ⇒ **cắt đôi đường tới hạn**.
+      🔴 Nghiệm thu bằng **hai mỏ neo có gốc độc lập**, vì nhãn `:g1` không chứng minh gì:
+      (a) binary tự khai `commit=9chain-a1-g1-26patch-60a61707`; (b) nội dung nhị phân —
+      `9chain-a1-g1` **4 lần**, **`9chain-a1-g0` 0 lần** (đối chứng ngược), **`LOVE9` 2 lần**
+      (⇒ patch 0019/0022 CÓ trong image; thiếu nó là **mọi ví X/C chết câm** mà 9/9 node vẫn xanh).
+      `commit=` một mình **không đủ** — nó là chuỗi gõ vào `--build-arg`, nói người build KHAI gì
+      chứ không nói binary CHỨA gì.
+      Chuyển `docker save | gzip | ssh | docker load` — **30 giây**. Rồi **đo LẠI cả ba phép trên
+      chính máy chủ**: trùng khít bản dev. *"Đã load" không phải phép đo.*
+      Đường lui: `node:g0` **vẫn còn trên server**, đĩa còn 342G/410G.
+      ⇒ **Việc tay #14 · #15 · #17 ĐẠT. Còn 31, không phải 34.**
+
 - [x] **D-136b — ship console lên server** (`31/08`). Bốn tệp đi: `console/server.mjs` ·
       `console/index.html` · `console/chainid-test.mjs` · `lib/guard.mjs`.
       🔴 **Giữ lại `lib/chainid.mjs`** (khác đúng một dòng `A1_GEN 0→1`): mạng đang là **g0**, đẩy
