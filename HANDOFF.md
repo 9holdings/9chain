@@ -175,8 +175,11 @@ mạng g0                  10 validator · 9 peer · factory 89,899 LOVE9 · B-1
    mới là phép đo, đọc dòng `--check` thì không)
 2. 🔴 **David:** GitHub repo rỗng (5 phút, mở khoá điều kiện **4 + 5**) · báo **D-132** cho C1 + BOD
    (họ có thể đang chờ giao ASV theo chiều cũ)
-3. **A1:** dịch `docs/CREATE-A-CHAIN.md` sang tiếng Anh · cấp số quyết định cho các phát hiện phiên
-   này (mới có **D-132**)
+3. **A1:** ✅ ~~dịch `CREATE-A-CHAIN`~~ **XONG** — bản **EN** giữ tên gốc và là **nguồn dịch** cho
+   29 thứ tiếng; VI dời sang `.vi.md`/`.vi.pdf`. Cả hai nay có cảnh báo *"chain tạo trước `01/09`
+   sẽ bị XOÁ"* — tài liệu cũ hứa *"một blockchain của riêng bạn"* mà không nói mạng sắp dựng lại.
+   🔴 Còn nợ: **bản PDF tiếng Anh chưa sinh** (bản `.vi.pdf` là bản Việt). · cấp số quyết định cho
+   các phát hiện phiên này (mới có **D-132**)
 4. **Sau ngày G:** tổng quát hoá `verifyAgainstC1` → *"đối chiếu với CANON"* (D-132 §4) · điền **11
    chỗ `FILL-ON-G-DAY`** trong `docs/RUN-A-VALIDATOR.md` (cổng xuất bản: `grep -c` phải `= 0`)
 
@@ -302,7 +305,7 @@ curl -s https://a1.9chain.org/create-chain/ | grep -oE '/_next/static/chunks/app
 
 #### Tài liệu phiên này tạo
 
-- [`docs/CREATE-A-CHAIN.md`](docs/CREATE-A-CHAIN.md) + [`docs/CREATE-A-CHAIN.pdf`](docs/CREATE-A-CHAIN.pdf)
+- [`docs/CREATE-A-CHAIN.vi.md`](docs/CREATE-A-CHAIN.vi.md) + [`docs/CREATE-A-CHAIN.vi.pdf`](docs/CREATE-A-CHAIN.vi.pdf) *(đổi tên `31/08`: bản **tiếng Anh** nay giữ tên gốc `CREATE-A-CHAIN.md` và là **nguồn dịch**)*
   — hướng dẫn cho user mới hoàn toàn, 7 trang A4, phát được cho người ngoài.
 - Artifact *"Chain đầu tiên của bạn"* (bản web của tài liệu trên) và *"Hiện trạng trước giờ G"*
   (bản soát tổng 5 điều kiện qua + kế hoạch). Link trong lịch sử phiên `31/08`.
