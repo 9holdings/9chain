@@ -31,7 +31,7 @@
  *
  * Dùng:
  *   node scripts/close-ledger-before-regenesis.mjs --pull          # kéo sổ sống + đối chiếu
- *   node scripts/close-ledger-before-regenesis.mjs --compact <vào.json> --out <ra.json>
+ *   node scripts/close-ledger-before-regenesis.mjs --compact <vào.json> --out <ra.json> [--at <ISO>]
  *   node scripts/close-ledger-before-regenesis.mjs --self-test      # đối chứng ngược
  */
 import { execFileSync } from "node:child_process";
@@ -230,12 +230,23 @@ if (argv.includes("--pull")) process.exit(keo());
 if (argv.includes("--compact")) {
   const vao = lay("--compact", null);
   const ra = lay("--out", null);
-  if (!vao || !ra) { console.error("Dùng: --compact <vào.json> --out <ra.json>"); process.exit(2); }
+  if (!vao || !ra) { console.error("Dùng: --compact <vào.json> --out <ra.json> [--at <ISO>]"); process.exit(2); }
   let d;
   try { d = JSON.parse(readFileSync(vao, "utf8")); } catch (e) {
     console.error(`FATAL không đọc được ${vao}: ${e.message}`); process.exit(1);
   }
-  const kq = don(d);
+  // 🔴 `--at <ISO>` stamps `thuHoiLuc` with the moment the chains ACTUALLY stop existing —
+  // G-hour — instead of the moment this command happened to run. Without it, a ledger
+  // prepared hours in advance claims the chains were retired while they were still serving
+  // traffic, and that record is permanent and public. `retired` is a statement about the
+  // world, not a log line about this process.
+  const luc = lay("--at", null);
+  if (luc !== null && Number.isNaN(Date.parse(luc))) {
+    console.error(`FATAL --at is not a parseable timestamp: ${luc}`);
+    console.error("      Use an ISO-8601 instant, e.g. 2026-09-01T10:09:09.000Z");
+    process.exit(2);
+  }
+  const kq = don(d, { luc });
   // Chú ý phải in TRƯỚC kết quả: một sổ định dạng cũ vẫn dồn được, nhưng người chạy
   // cần biết mình vừa dồn một tệp thiếu khoá — im lặng ở đây là giấu nửa sự thật.
   for (const c of kq.chuY) console.log(`  ⚠️  ${c}`);
@@ -247,5 +258,5 @@ if (argv.includes("--compact")) {
   console.log("\n⚠️  Tệp này chưa được đưa lên server — đó là việc có người bấm.");
   process.exit(0);
 }
-console.error("Dùng: --pull | --compact <vào.json> --out <ra.json> | --self-test");
+console.error("Dùng: --pull | --compact <vào.json> --out <ra.json> [--at <ISO>] | --self-test");
 process.exit(2);
