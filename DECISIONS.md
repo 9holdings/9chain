@@ -5176,3 +5176,84 @@ khâu: **byte đã chứng minh là chặn đủ mọi cách viết** → **byte
 sau khi một người dùng thật đẻ `Eric1` rồi `eric1` cách nhau chín phút — nhưng bản vá **vẫn nằm
 trong repo**. Ship console trước khi tài liệu đó tới tay ai, nếu không tài liệu đang mô tả một sản
 phẩm không tồn tại (D-083).
+
+---
+
+## D-136 — **GIỜ G CHỐT: `2026-09-01 00:00` giờ Jerusalem** (David chốt `31/08`)
+
+David: *"giờ G sẽ chốt lại đúng 00:00 ngày 01/09/2026 theo giờ Jerusalem."*
+
+### 🔴 Một khoảnh khắc, ba mặt đồng hồ — và hai trong ba KHÔNG phải ngày 01/09
+
+| Đồng hồ | Giờ G rơi vào |
+|---|---|
+| **Jerusalem (IDT, UTC+3)** | **thứ Ba `2026-09-01` 00:00:00** ← mốc chốt |
+| **UTC** | thứ Hai **`2026-08-31` 21:00:00Z** |
+| **Việt Nam (UTC+7)** | thứ Ba `2026-09-01` **04:00:00** |
+
+⚠️ **Đây là chỗ dễ trượt nhất của cả mốc này:** *"ngày 01/09"* trong đầu người Việt là **sáng mai**,
+còn mốc thật là **21:00 UTC HÔM NAY**. Máy chủ chạy `Etc/UTC` (đã đồng bộ NTP), nên mọi lệnh gõ
+trên đó thấy **`2026-08-31`** ở đúng thời điểm giờ G. Ai đọc lịch server rồi kết luận *"chưa tới
+ngày"* sẽ trễ mất ba tiếng.
+
+Israel còn trong **DST tới `25/10/2026`**, nên `+3` là đúng cho mốc này — **không** phải `+2`.
+Đo bằng `Intl` với `Asia/Jerusalem`, không chép tay độ lệch.
+
+### Vì sao mốc này không nằm trong `genesis.json`
+
+`netgen/main.go` đặt `StartTime: now-60`, **luôn động** — A1 **không** dùng `genesisTime` làm dấu
+nghi lễ. Dấu phân biệt bản tập với bản thật của A1 là **chính việc có khắc chữ hay không**, cộng
+`A1_ENGRAVE_CONFIRM` (xem `GDAY-ENGRAVING.md`). ⇒ Giờ G là **mốc VẬN HÀNH**: nó nói *khi nào bấm*,
+không phải *con số nào đi vào genesis*. Đừng đi tìm chỗ cắm nó vào genesis — không có chỗ đó, và
+đẽo ra một chỗ là tự thêm một hằng số chép tay.
+
+### Hệ quả phải nhớ
+
+- **Block Adam** (B-13(b)) đo lệch đồng hồ **sau** khi g1 lên, rồi mới chọn `--offset-ms`. Mốc
+  `2026-09-09` của nó tính từ giờ G này.
+- Câu công khai *"chains created before 2026-09-01 will be erased"* vẫn **đúng** ở giờ Jerusalem —
+  không sửa, vì sửa sang UTC là làm người đọc phải tự quy đổi.
+- Cổng đẻ chain **mở lại bằng TAY sau khi mạng đã sinh lại**, không hẹn giờ (D-135). Giờ G trượt
+  thì cái cửa vẫn đóng — đó là điểm của việc không dùng đồng hồ.
+
+---
+
+## D-136b — Ship console lên server `31/08`: bốn tệp ĐI, một tệp **CỐ Ý GIỮ LẠI**
+
+David: *"ship console lên server luôn đi."* Lý do: `docs/CREATE-A-CHAIN.md` đã **hứa ra công chúng**
+rằng `MyChain` và `mychain` là **một tên** — bản vá nằm trong repo, server thì chưa có.
+
+### 🔴 Tệp giữ lại là phần quan trọng nhất của lượt ship này
+
+`local-net/lib/chainid.mjs` khác **đúng một dòng**: `A1_GEN 0 → 1`. Mạng đang chạy là **g0**.
+Đẩy tệp đó **hôm nay** là đặt console vào trạng thái **lệch thế hệ vĩnh viễn**: cổng của chính nó
+so với `999999998` trong khi node trả `999999999` ⇒ banner đỏ, và chainId (nếu cửa mở) rơi vào
+**khối của thế hệ chưa tồn tại**. ⇒ Tệp này đi **cùng lượt bump ở giờ G**, không sớm hơn một phút.
+
+### Đo phụ thuộc TRƯỚC khi copy — vì console là thứ restart cả 9 node
+
+| Câu hỏi | Đo được |
+|---|---|
+| `server.mjs` mới có chạy được với `chainid.mjs` **cũ** không? | ✅ Nó cần `capChainIdTuDong · loiChainIdDaCap · loiTenDaCap · GOC_DAI_CHAINID · A1_GEN · NETWORK_ID · TEN_MANG` — bản trên server **xuất đủ cả bảy** |
+| `guard.mjs` mới có phá tiến trình khác không? | ✅ **Thuần cộng thêm** (`requireInt`), không bỏ export nào. `faucet/server.mjs` và `siwe.mjs` (bản cũ) vẫn chạy |
+| `requireInt` có giết console khi env **không đặt** không? | ✅ vắng ⇒ dùng mặc định (15); `"fifteen"` ⇒ **từ chối kèm lý do** — đúng lỗi nó sinh ra để bắt |
+| Ba module còn lại (`eip55` · `presets` · `siwe`) | ✅ **trùng hash** sẵn |
+
+### Đã làm
+
+Sao lưu `~/9chain-a1/rollback-console-20260831/` (4 tệp, có sha256) → `scp` → **cả 4 trùng byte** →
+`console-restart.sh` (**PID 1145349 → 1148847**).
+
+**Banner bản mới:** `thế hệ ✅ khớp node đang chạy — g0 · 999999999` · `sổ 49 chainId · 54 tên` ·
+`đẻ chain 🔒 ĐÓNG` · `trần L1 15` (tức `requireInt` đã chạy, không nổ).
+
+**Nghiệm thu trên sản phẩm:** `POST /console/api/create` qua Cloudflare ⇒ **400** kèm văn bản của
+chính cổng. Bốn mặt công khai **200**.
+
+**Drift: `12 khớp · 7 lệch` → `16 khớp · 3 lệch`.** Ba cái còn lại: `lib/chainid.mjs`
+(**giữ có chủ ý**, đi ở giờ G) · `faucet/server.mjs` · `scripts/export-chain.mjs` (công cụ, không
+phải dịch vụ).
+
+⚠️ **Vẫn KHÔNG đo thẳng được luật tên phân biệt hoa-thường** qua `/api/create`: cửa đóng trả lời
+trước khi tới phép kiểm tên. Bản vá **đã ở trên server** (trùng byte) và console **đã nạp nó**;
+phép đo thẳng phải chờ lượt mở lại sau giờ G.

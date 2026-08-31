@@ -1443,6 +1443,27 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       🔴 **Còn 7 tệp mã LỆCH**, trong đó `CREATE-A-CHAIN.md` **đang hứa** `MyChain`=`mychain` mà
       `server.mjs` trên server **chưa có bản vá đó** — ship console trước khi tài liệu tới tay ai.
 
+- [x] 🔴 **D-136 — GIỜ G CHỐT: `2026-09-01 00:00` giờ Jerusalem** (David chốt `31/08`).
+      = **`2026-08-31 21:00:00Z`** = `01/09 04:00` giờ Việt Nam. Israel còn DST tới `25/10` nên
+      lệch là **+3**, không phải +2 (đo bằng `Intl`/`Asia/Jerusalem`, không chép tay).
+      ⚠️ **Bẫy:** *"ngày 01/09"* nghe như sáng mai, nhưng mốc thật là **21:00 UTC HÔM NAY**; máy
+      chủ chạy `Etc/UTC` nên lịch trên đó vẫn ghi `2026-08-31` ở đúng thời điểm giờ G.
+      Giờ G là **mốc VẬN HÀNH**, không đi vào `genesis.json` (`StartTime: now-60` luôn động) —
+      đừng đẽo chỗ cắm nó vào genesis.
+
+- [x] **D-136b — ship console lên server** (`31/08`). Bốn tệp đi: `console/server.mjs` ·
+      `console/index.html` · `console/chainid-test.mjs` · `lib/guard.mjs`.
+      🔴 **Giữ lại `lib/chainid.mjs`** (khác đúng một dòng `A1_GEN 0→1`): mạng đang là **g0**, đẩy
+      hôm nay là đặt console vào **lệch thế hệ vĩnh viễn**. Tệp đó đi **cùng lượt bump ở giờ G**.
+      Đo phụ thuộc trước: `server.mjs` mới cần 7 export và `chainid.mjs` cũ **có đủ cả 7**;
+      `guard.mjs` **thuần cộng thêm** nên faucet/siwe cũ vẫn chạy; `requireInt` vắng env ⇒ mặc
+      định, `"fifteen"` ⇒ **từ chối kèm lý do**. Sao lưu `rollback-console-20260831/` (4 tệp +
+      sha256) → scp **trùng byte cả 4** → restart **PID 1145349 → 1148847**.
+      Banner: `thế hệ ✅ g0 · 999999999` · `49 chainId · 54 tên` · `🔒 ĐÓNG` · `trần L1 15`.
+      Sản phẩm: `/console/api/create` ⇒ **400** kèm văn bản của cổng; 4 mặt công khai **200**.
+      **Drift `12 khớp · 7 lệch` → `16 khớp · 3 lệch`** (còn `chainid.mjs` giữ có chủ ý,
+      `faucet/server.mjs`, `export-chain.mjs`).
+
 ### Cổng — preflight offline **14 → 20**, và một cổng đã ĐỎ suốt một ngày
 
 - [x] **`check-net-dirs --self-test` đang ĐỎ từ lượt bump `A1Gen 0→1`** (`30/08`): một ca đối
