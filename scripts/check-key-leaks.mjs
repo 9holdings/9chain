@@ -123,14 +123,23 @@ function discoverFundSets() {
       if (existsSync(f)) found.push(f);
     }
   } catch { /* store absent: leave the list short; the caller turns empty into exit 2 */ }
-  // The factory wallet is the SEVENTH fund and lives outside the six-fund set (D-117b) — it is
-  // funded by a transfer rather than by genesis, so netgen never writes it into `keys.txt`.
-  // Discovered the same way for the same reason: a generation whose factory key is not in this
-  // baseline gets its leaks scored amber ("drill key") instead of red ("real money"), which is
-  // the yardstick inverting itself on exactly the day it matters.
+  // 🔴 EVERY `*-key.txt` IN A GENERATION DIRECTORY, not a hand-kept list of filenames.
+  //
+  // Genesis mints six funds into `keys.txt`. Everything else that ends up holding money —
+  // `chain-factory` (the seventh wallet, D-117b), a swapped faucet sender, whatever the next
+  // operational wallet turns out to be — is funded by a transfer and never appears there.
+  //
+  // Naming each one by hand is the failure this file already documents about itself: *"a future
+  // wallet that holds money and is not named here is invisible to this gate"*. And invisible
+  // here does not mean unreported, it means reported AMBER — the yardstick that separates real
+  // money from drill litter quietly inverting on the day the new wallet is funded.
+  //
+  // A file matching the convention but holding no key contributes nothing, so erring wide costs
+  // nothing and erring narrow costs the only thing this gate exists to protect.
   for (const d of readdirSync(store, { withFileTypes: true }).filter((e) => e.isDirectory() && /^g\d+$/.test(e.name))) {
-    const f = path.join(store, d.name, "chain-factory-key.txt");
-    if (existsSync(f)) found.push(f);
+    for (const f of readdirSync(path.join(store, d.name)).sort()) {
+      if (/-key\.txt$/.test(f)) found.push(path.join(store, d.name, f));
+    }
   }
   const legacy = path.join(ROOT, "local-net", "net-public", "chain-factory-key.txt");
   if (existsSync(legacy)) found.push(legacy);
