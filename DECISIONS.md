@@ -5002,3 +5002,75 @@ Chạy lại netgen với `A1_ENGRAVE_CHECKSUMS=/repo/docs/engrave/CANON.txt`:
 vân tay **`f04e939b58e58db46714047978b989cb167cf5f8875bcb4e4ad2563ebd366b18`** — **không đổi** —
 và `✓ khac chu: 4/4`. Bốn tài liệu vẫn `108 + 25 + 45 + 964 = 1.142` byte, hash từng tệp y nguyên.
 ⇒ **Lượt tách này dịch chuyển giấy tờ, không dịch chuyển một byte nào sẽ lên chain.**
+
+---
+
+## D-134 — Quét toàn diện trước giờ G: **hằng số neo vào thế hệ** là một lớp lỗi, không phải một lỗi (2026-08-31)
+
+David: *"quét lại toàn diện code, tài liệu… đảm bảo đến giờ G sẽ đưa lên bản chuẩn nhất, sạch
+nhất, mọi lịch sử bắt đầu từ giờ G."*
+
+### 🔴 Phát hiện chính: cùng MỘT literal, BA tệp, và cả ba đều là cổng
+
+Sáng nay `check-net-dirs.mjs` được sửa vì chép cứng `999_999_998` làm *"thế hệ KHÁC"* — con số đó
+**trở thành mạng sống** đúng lúc `A1Gen` lên 1, nên đối chứng ngược của nó đã **ĐỎ suốt một ngày**.
+Quét literal ấy ra thêm **hai** chỗ nữa, và cả hai nặng hơn:
+
+| Tệp | Chép cứng | Vì sao nguy |
+|---|---|---|
+| `scripts/wallet-over-tunnel.mjs` | `NETWORK_ID` mặc định `"999999999"` | **thế hệ g0 ĐÃ CHẾT**. Đây là công cụ ký giao dịch X/P **bằng khoá quỹ**. networkID sai **không** làm ví từ chối dựng giao dịch — nó làm **mạng từ chối chữ ký**, và cái đó đọc ra như lỗi hầm hoặc lỗi node, **không** như *"anh vừa ký cho một thế hệ đã chết"* |
+| `scripts/wallet-over-tunnel.mjs` (đối chứng) | ca "sai băng" = `"999999998"` | đang **đòi mạng SỐNG phải bị từ chối** |
+| `scripts/check-keys-on-chain.mjs` | ca "thế hệ khác" thay bằng `999999998` | thay bằng **giá trị sống** ⇒ ca đối chứng ra **XANH**, và cái xanh đó đọc ra như *"cổng mềm đi"* |
+
+⇒ **Bài học, và nó tổng quát hơn cả ba ca:** một hằng số viết dưới dạng *"thế hệ nào đó khác"*
+**luôn** đi vào ô của mạng sống ở lượt bump kế tiếp. Không được chép; phải **suy ra**. Cả ba nay
+đọc `A1_GEN`/`A1_ID_GOC` từ `local-net/lib/chainid.mjs` — đúng module `local-net/network-id.sh`
+vốn đã dùng. Ca "sai băng" của công cụ ví nay là **thế hệ TRƯỚC** (`netID + 1`): sai ở mọi thế hệ
+theo kiến trúc, không cần ai nhớ sửa.
+
+**Đo, không đoán:** `check-keys-on-chain --self-test` = **5/5 đỏ**, ca mới in
+*"tệp khai 999999997, chain đang chạy 999999999"* — né đúng cả giá trị sống lẫn giá trị chính tệp
+mẫu khai. `wallet-over-tunnel` thêm một assertion **chạy trước cả Docker**: mặc định phải LÀ thế hệ
+sống — đúng một dòng, và nó là dòng đáng ra đã bắt được cả lớp lỗi này.
+
+### README — cửa trước, và nó khai ba điều SAI
+
+`README.md` là **tệp gốc duy nhất không phải sổ tay**: người lạ đọc nó trước, và ngày G repo là
+đường người ngoài lấy `genesis.json` + bootstrap. Nó đang **chỉ có tiếng Việt**, trên một dự án có
+luật §0 sinh ra chính vì người đóng góp nước khác. ⇒ **Tiếng Anh thành bản nguồn**, tiếng Việt sang
+`README.vi.md` — đúng khuôn `CREATE-A-CHAIN.md`/`.vi.md` và đúng D-132.
+
+Ba câu **sai**, không phải cũ:
+
+1. 🔴 *"`patches/` — 25 patch (tree `f2b9486b`)"*. Trên đĩa: **26 patch, tree `60a61707`**.
+   `f2b9486b` là tree của **đối chứng 25/26**. Người làm theo README sẽ áp 25 patch, **khớp một
+   hash đã công bố**, và build ra **binary sai** — đúng cái hỏng mà đối chứng sinh ra để chặn, nay
+   được trao cho họ dưới dạng **hướng dẫn**.
+2. Mục thế hệ mô tả g0 là hiện hành và bảo *"ngày G bump `A1Gen` lên 1"* — `A1Gen` **đã** là 1.
+3. Cảnh báo B-14 nói đường CLI vẫn đẻ chain `chainId 9100`. **D-114 đã đóng**: cả `create-l1.sh`
+   lẫn `9chain-a1 l1 create` nay dựng genesis qua `make-l1-genesis.mjs` (đo lại hôm nay).
+
+**Bỏ:** bảng chép tay *"thư mục `net*` nào thuộc thế hệ nào, thư mục nào giữ tiền"*. Nó là **bản
+chép cứng đầu ra của `check-net-dirs.mjs`** — đúng lớp "số chép tay trôi khỏi thứ nó mô tả" mà repo
+này dựng lên để chống — **và** nó là tấm bản đồ chỉ chỗ quyền chi tiêu nằm trên máy dev. README nay
+bảo **chạy cổng**. Cùng lý do: **không có con số đếm cổng** trong hai tệp; ghi số vào đó là hẹn
+trước một lần trôi lệch.
+
+### 🔴 "Mọi lịch sử bắt đầu từ giờ G" — một chỗ mà đọc theo NGHĨA ĐEN là hỏng
+
+Đúng cho **chain**: block, số dư, `blockchainID` của C/X, danh tính validator, khoá, token — tất cả
+sinh lại, không mang gì từ g0 sang.
+
+🔴 **SAI cho `local-net/console/chainid-issued.json`.** Sổ đó (**49 chainId · 54 tên**, gộp từ 5
+nguồn gồm bản kéo về từ server `31/08`) là **danh sách chặn XUYÊN thế hệ**. Thu hồi một chain
+**không gỡ được mạng khỏi ví ai**, nên cấp lại một chainId cũ là **mở đường cho chữ ký của chain
+chết phát lại trên chain mới**. "Bắt đầu lại từ 0" ở đây = **thả 54 tên + 49 chainId trở lại lưu
+thông**. Sổ này, `patches/` và `docs/evidence/**` là **ba thứ phải đi qua ngày G nguyên vẹn**.
+
+### Ba việc còn lại, và cả ba là quyết định của David
+
+| | |
+|---|---|
+| 🔴 `main:web/lib/chain.ts:23` khai `networkId: 9001` — **hai thế hệ chết** | `main` **không** phải bản đang chạy (bản sống ở worktree `web-home`), nhưng repo công khai sẽ **xuất bản** mã nguồn trang web khai thế hệ chết. Luật cứng #4 cấm phiên này đụng `web/` ⇒ hoặc merge `web-home` vào `main` trước ngày G, hoặc gỡ `web/` khỏi bản công bố |
+| 🔴 Repo công khai = **công bố cả sổ nội bộ** | `DECISIONS.md` · `HANDOFF.md` · `BLOCKERS.md` · `docs/AUDIT-A1/` đi kèm: mọi lần cháy, mọi phát hiện soát nguồn, bố cục server. Không có khoá nào trong đó (quét `PrivateKey-` = **0**, khoá EVM 64-hex gán cho biến khoá = **0**, ngoài khoá `ewoq` vốn đã công khai). Đây là **lựa chọn**, không phải sự cố — nhưng phải là lựa chọn có ý thức |
+| 🔴 Đẻ chain đang **MỞ**, và chain đẻ hôm nay **chết ngày mai** | Hai chain người thật (`Eric1` · `eric1`) đã có. Hoặc đóng cổng đẻ tới sau ngày G, hoặc báo cho họ. Bản ghi đã cứu vào sổ; **người thì chưa ai báo** |
