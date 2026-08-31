@@ -38,6 +38,7 @@ import { tmpdir, homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { SSH_HOST, SSH_KEY } from "../local-net/lib/server.mjs";
+import { A1_GEN, A1_ID_GOC } from "../local-net/lib/chainid.mjs";
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FORK = path.join(GOC, "upstream/avalanchego");
@@ -52,7 +53,15 @@ const lay = (co, mac) => {
 const DICH = lay("--host", SSH_HOST);
 const KHOA_SSH = lay("--ssh-key", SSH_KEY);
 const KNOWN = lay("--known-hosts", path.join(homedir(), ".ssh/known_hosts"));
-const NETWORK_ID = lay("--network-id", "999999999");
+// 🔴 The default is DERIVED from the generation, never typed. It used to be the literal
+// `"999999999"`, which stopped being the live network the moment `A1Gen` moved to 1 — and this
+// tool signs X/P transactions with FUND keys. A wrong networkID does not make a wallet refuse
+// to build a transaction; it makes the network refuse the signature, which reads as a tunnel
+// or a node problem, not as "you signed for a dead generation". Same shape as netgen's old
+// `NETWORK_ID=9001` default (patch 0020 · D-083) and as `local-net/network-id.sh`, which
+// already derives the live band from this same module.
+const NETWORK_ID_LIVE = String(A1_ID_GOC - A1_GEN);
+const NETWORK_ID = lay("--network-id", NETWORK_ID_LIVE);
 const CONG = lay("--port", "8090");
 const KHOA_VI = lay("--wallet-key", null);
 const QUY = lay("--fund", null); // tên khối trong keys.txt, vd `foundation`
@@ -100,13 +109,28 @@ function chay({ chiKiem, networkID = NETWORK_ID, dich = DICH, known = KNOWN, kho
 /* ─────────────────── đối chứng ngược — 3 ca PHẢI ra đỏ ──────────────────── */
 
 function tuKiem() {
+  // Cheapest possible check, and it runs before Docker: the default networkID must BE the live
+  // generation. It costs nothing and it is the one assertion that would have caught the
+  // hard-coded literal this file carried until 2026-08-31.
+  if (NETWORK_ID_LIVE === String(A1_ID_GOC) && A1_GEN !== 0) {
+    console.log(`🔴 networkID mặc định (${NETWORK_ID_LIVE}) là gốc dải, không phải thế hệ ${A1_GEN}.`);
+    process.exit(1);
+  }
+  console.log(`✓ networkID mặc định = ${NETWORK_ID_LIVE} (thế hệ g${A1_GEN}, suy ra chứ không chép tay)`);
   dungAnh();
   const tmp = mkdtempSync(path.join(tmpdir(), "m1110-"));
   const knownRong = path.join(tmp, "known_hosts_rong");
   writeFileSync(knownRong, "");
 
+  // 🔴 This case used to be the literal `"999999998"`. That number BECAME the live network
+  // when `A1Gen` moved to 1, so the counter-check was demanding that the live generation be
+  // rejected — a red light for the wrong reason, in a file whose whole job is to keep fund
+  // keys off the server. Identical shape to the bug found in `check-net-dirs.mjs` on
+  // 2026-08-31: a hard-coded "some other generation" walks into the live slot on bump day.
+  // ⇒ Derive it. The PREVIOUS generation is always the wrong band and never the live one.
+  const GEN_TRUOC = String(A1_ID_GOC - A1_GEN + 1);
   const ca = [
-    ["networkID khai SAI băng — ví bắn vào thế hệ khác", { networkID: "999999998" }],
+    [`networkID thế hệ TRƯỚC (${GEN_TRUOC}) — ví bắn vào thế hệ đã chết`, { networkID: GEN_TRUOC }],
     ["known_hosts RỖNG — không cho tin-lần-đầu (TOFU)", { known: knownRong }],
     ["đích SSH sai", { dich: "ubuntu@127.0.0.2" }],
   ];

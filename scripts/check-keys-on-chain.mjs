@@ -47,6 +47,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { A1_GEN, A1_ID_GOC } from "../local-net/lib/chainid.mjs";
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -211,9 +212,19 @@ async function tuKiem() {
       writeFileSync(f, sua);
       return f;
     };
+    // 🔴 This mutation used to hard-code `999999998`. That number BECAME the live networkID at
+    // the g0 -> g1 bump, so the case stopped saying "another generation" and started saying
+    // "the live one" — the control would have gone green and been read as the gate weakening.
+    // Third file this session carrying the same literal (see `check-net-dirs.mjs`,
+    // `wallet-over-tunnel.mjs`). ⇒ Derive a networkID that is in the REAL band, is NOT live,
+    // and is NOT the one the fixture already declares.
+    const idSong = A1_ID_GOC - A1_GEN;
+    const idKhai = Number(/networkID\s+(\d+)/.exec(txt)?.[1] ?? -1);
+    let idKhac = idSong - 1;
+    while (idKhac === idKhai || idKhac === idSong) idKhac -= 1;
     ca.push([
-      "networkID đúng khuôn nhưng của thế hệ khác",
-      v("net.md", txt.replace(/networkID\s+\d+/, "networkID 999999998")),
+      `networkID đúng khuôn nhưng của thế hệ khác (${idKhac}, mạng sống là ${idSong})`,
+      v("net.md", txt.replace(/networkID\s+\d+/, `networkID ${idKhac}`)),
     ]);
     ca.push([
       "một địa chỉ EVM bị tráo (khuôn vẫn hợp lệ)",
