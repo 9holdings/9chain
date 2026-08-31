@@ -1,7 +1,9 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-31** (phiên **CHIỀU→TỐI**: ba lượt quét · diễn tập g1 · **bộ khắc chữ SẴN
-SÀNG, vân tay đã đóng băng** · **D-132: A1 dẫn dắt** · ba chỗ chặn cứng ngày G chưa ai ghi ở đâu).
+Cập nhật: **2026-08-31** (phiên **ĐÊM**: 🔴 **GIỜ G CHỐT `01/09 13:09:09` Jerusalem** ·
+**image g1 ĐÃ TRÊN SERVER** — chỗ chặn số 1 đã đóng · **cổng đẻ chain ĐÃ ĐÓNG** · O2 + H-6b xong ·
+**hai lượt tổng duyệt, một ở mỗi băng**, và bản băng THẬT chứng minh thứ băng tập không kiểm được).
+Trước đó cùng ngày, phiên **CHIỀU**: ba lượt quét · **D-132: A1 dẫn dắt** · bộ khắc chữ sẵn sàng.
 Cùng ngày, phiên sáng: **MẶT NGƯỜI DÙNG** — sửa 3 lỗi đường sản phẩm (D-129→D-131). Trước đó
 `2026-08-30`: diễn tập g1 (D-123→D-128, fork **26 patch / tree `60a61707`**). `2026-08-29`: mở
 testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-GAPS.md`).
@@ -13,8 +15,81 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
 ```bash
-node scripts/gday-preflight.mjs      # 20 cổng + 36 VIỆC TAY, một lệnh (~3 phút)
+node scripts/gday-preflight.mjs      # 24 cổng + 36 VIỆC TAY, một lệnh (~3 phút)
+# ⚠️ Nó VẪN in 36 việc tay, nhưng 5 cái đã xong (#10 #11 #14 #15 #17) — preflight không biết.
+# Thực còn: 31. Xem D-137/D-142.
 ```
+
+### 🆕🆕 Phiên `2026-08-31` (ĐÊM) — GIỜ G CHỐT · IMAGE ĐÃ LÊN SERVER · HAI LƯỢT TỔNG DUYỆT
+
+**TL;DR:** Chỗ chặn cứng số 1 (image `:g1` không có trên server) **đã đóng, sớm hơn hạn 13 giờ**.
+Giờ G chốt **`2026-09-01 13:09:09` Jerusalem**. Cổng đẻ chain **đã đóng** trên sản phẩm. Toàn bộ
+đường sinh mạng đã chạy trót lọt **hai lần** — một ở băng TẬP, một ở băng THẬT. 19 commit,
+`d9f636a` → `7595848`.
+
+#### 🔴 GIỜ G — ba mặt đồng hồ (D-136d)
+
+| Jerusalem (IDT, UTC+3) | UTC | Việt Nam |
+|---|---|---|
+| **`2026-09-01` 13:09:09** | **`2026-09-01` 10:09:09Z** | `2026-09-01` **17:09:09** |
+
+Chọn mốc này vì nó nằm giữa **cửa sổ phủ nhiều người nhất**: quét từng phút suốt 50 giờ mà ngày
+01/09 tồn tại, cân theo dân số 51 múi giờ ⇒ đỉnh là `10:00–11:00Z`, **phủ 99,999%**, bỏ lại
+**~55.000 người**. Mốc `09:09:09 Jerusalem` từng chốt trước đó bỏ lại **59,2 triệu** (cả bờ Tây Mỹ).
+🔴 **Không tồn tại khoảnh khắc nào cả thế giới cùng một ngày** — múi giờ trải 26 giờ, ngày có 24.
+
+🔴 **GO/NO-GO ở `01/09 06:09Z` (VN 13:09):** image chưa trên server và chưa tự khai đúng `commit=`
+⇒ **đừng bấm `down -v`**. Cổng đẻ chain đang ĐÓNG nên hoãn **không tốn gì cho người dùng**.
+
+#### ✅ Ba chỗ chặn cứng của phiên trước — nay còn mấy?
+
+| | |
+|---|---|
+| **1. Image `:g1` không có trên server** | ✅ **ĐÓNG** (D-137). `docker save\|ssh\|docker load` **30 giây**. Nghiệm thu **hai mỏ neo độc lập**: binary tự khai `commit=9chain-a1-g1-26patch-60a61707`, **và** grep nhị phân — `9chain-a1-g1` **4 lần**, **`9chain-a1-g0` 0 lần**, `LOVE9` 2 lần. Đo lại **trên chính máy chủ**, trùng khít bản dev. `:g0` vẫn còn ⇒ đường lui nguyên |
+| **2. `open-p2p-all-nodes.py` 0 lần trong runbook** | ⏳ vẫn là việc tay #26 |
+| **3. Nạp `chain-factory` X→P 0 dòng** | ✅ **ĐÓNG** (D-140) — xem GOTCHAS mới |
+
+#### 🔴 Việc tay đã XONG mà preflight vẫn in ra (đừng làm lại)
+
+- **#10 + #11 — bump `A1Gen`:** ĐÃ XONG TỪ TRƯỚC, **đo được chứ không tin**. Go `A1Gen=1` ·
+  `A1Name="9chain-a1-g1"` · `A1NameTap="9chain-a1-tap-g1"`; JS `A1_GEN=1`; **patch `0026` CHÍNH LÀ
+  lượt bump** và nằm trong bộ 26 đã công bố. Bằng chứng khép kín: cây fork
+  `git rev-parse HEAD^{tree}` = **`60a61707…`** = `TREE_FORK`, **0 thay đổi chưa commit**.
+- **#14 · #15 · #17 — build + ship + `--build-arg`:** ĐÃ XONG (D-137). **KHÔNG build lại** (D-128).
+
+#### Đã làm trên SẢN PHẨM (máy chủ)
+
+| | |
+|---|---|
+| **Cổng đẻ chain: ĐÓNG** (D-135) | `A1_DE_CHAIN_MO=1→0`, restart bằng `~/9chain-a1/console-restart.sh`, **PID đổi**. Nghiệm thu qua Cloudflare: `POST /console/api/create` ⇒ **400 kèm văn bản của chính cổng** (không phải 401/lỗi tên/hạn mức) |
+| **Sổ chặn xuyên thế hệ** (D-135b) | `chainid-issued.json` **49 · 54** đã lên server, trùng byte. Kiểm **CHỨA TRỌN trước khi đẩy**, không phải "mới hơn thì thắng" |
+| **Console** (D-136b) | 4 tệp lên server; 🔴 **cố ý GIỮ LẠI `lib/chainid.mjs`** (`A1_GEN 0→1`) — đẩy hôm nay là đặt console vào **lệch thế hệ vĩnh viễn**. Nó đi **cùng lượt bump ở giờ G** |
+| Drift | `12 khớp · 7 lệch` → **`16 khớp · 3 lệch`** |
+
+#### Đã làm trước `down -v` (KHÔNG phải làm lại ngày G)
+
+- **O2** — xuất mạng g0 cuối cùng: P 29 · X 5 · **C 96.173** · 2 L1 · **14 tệp · 1,32 GB**, nằm ở
+  `~/9chain-a1/o2-export-g0-20260831/`. Nghiệm thu **hai đường** (công cụ dự án 14/14 · `sha256sum -c`).
+  🔴 **Neo đã công bố NGOÀI server** (git+GitHub): `4432d62a…7b63`, xem `docs/o2-g0-final/`.
+- **H-6b** — **ĐẠT · 26 patch**, hai nơi, clone ngược khớp tree ở **cả dev lẫn máy chủ**.
+- **Sổ chain** — `--pull` (không mất gì) → `--write` (49·54, không đổi) → `--compact` ra
+  `docs/archive/console-chains-closed-g0-2026-09-01.json`, đóng dấu **đúng giờ G** (cờ `--at` mới).
+
+#### Hai lượt tổng duyệt — một ở mỗi băng
+
+| | Băng TẬP `899999998` (D-139) | Băng THẬT `999999998` (D-142) |
+|---|---|---|
+| `engrave-verify` | **17 đạt · 0 hỏng**, mục `[5] Mạng đang chạy` **có chạy** | vân tay + `extraData` y hệt |
+| validator | 9/9 | 9/9, node1 thấy 8 peer |
+| L1 đẻ thử | ✅ `chainId 9001000000` — **trong khối g1**, không phải g0 | — |
+| 🔴 **Đường dẫn DB** | `9chain-a1-tap-g1` | **`9chain-a1-g1`** ⇦ **chỉ băng THẬT kiểm được** |
+
+🔴 **Vì sao dòng cuối là phép đo quan trọng nhất:** đường dẫn DB **LÀ** tên mạng. Nó ra
+`9chain-a1-g1` chứ **không** ra `network-999999998` ⇒ `A1Name` **có trong bản đồ binary**, tức
+nhánh `FallbackHRP` (thứ patch 0013 sinh ra để diệt, và là triệu chứng của **binary thế hệ chết**)
+**không bị đi vào**. Băng tập **không kiểm được điều này** vì ở đó tên khác.
+
+Cả hai bộ đã **shred `-u -n 3`** (**38 tệp khoá**) và **xoá thư mục**, đối chứng 0 còn lại.
 
 ### 🆕 Phiên `2026-08-31` (chiều→tối) — BA LƯỢT QUÉT · DIỄN TẬP g1 · BỘ KHẮC CHỮ SẴN SÀNG
 
@@ -663,6 +738,43 @@ David chốt `28/08`: **bỏ C1 khỏi tầm ngắm**, chỉ tập trung A1.
 
 ## ▶ Việc tiếp — theo thứ tự
 
+### 🔴 NGÀY G `2026-09-01` — lịch bấm (giờ UTC · giờ VN)
+
+| Xong việc gì | UTC | VN | Ai |
+|---|---|---|---|
+| **KHỐI 0** — image trên server, tự khai đúng `commit=` | `06:09Z` | **13:09** | ✅ **XONG SỚM `31/08`** |
+| **KHỐI 1** — B-16 · B-19 · O2 · sổ chain · H-6b | `07:09Z` | 14:09 | O2/sổ/H-6b ✅ xong · **B-16, B-19 = David** |
+| 🟥 **`down -v` — điểm không quay lại** | `07:39Z` | **14:39** | **David** |
+| Mạng lên 9/9, **đo BINARY** | `08:29Z` | 15:29 | David |
+| `engrave-verify` **kèm `--rpc`** trên chain thật | `08:59Z` | 15:59 | David |
+| Công bố + **mở lại cổng đẻ chain bằng TAY** | **`10:09Z`** | **17:09** | David |
+
+🔴 **GO/NO-GO:** tới `06:09Z` mà image chưa tự khai đúng `commit=` ⇒ **đừng bấm `down -v`**.
+Hoãn rẻ; `down -v` thiếu binary đúng là **mất g0 mà không dựng được g1**. Cổng đẻ chain **đang
+ĐÓNG** nên hoãn **không tốn gì cho người dùng**.
+
+### 🔴 Hai việc của David, làm SAU KHI g1 xanh — không phải trước
+
+| | |
+|---|---|
+| **B-16** — bản sao thứ hai bộ khoá quỹ, `o1-check.mjs` exit 0 | 🔴 Bộ đáng làm là **g1**, mà nó **chưa tồn tại** (netgen sinh ở giờ G). Làm trên g0 hôm nay là bảo vệ thứ ngày mai vô giá trị |
+| **B-19** — dời `chain-factory-key.txt` (**90,007 LOVE9**) khỏi thư mục thế hệ chết | Số tiền đó **chết cùng g0**; giá trị còn lại là **giữ bản ghi** |
+
+🔴 **Điều kiện phải giữ: ĐỪNG SHRED GÌ CỦA g0 CHO TỚI KHI g1 XANH.** Hỏng lượt sinh lại phải hoãn
+thì g0 là thứ duy nhất còn lại, và lúc đó tiền + khoá g0 **lại có giá trị trở lại**.
+
+### 🟡 Ba quyết định đang chờ David (không chặn ngày G)
+
+1. **`HEARTBEAT_STOP_AFTER=2026-09-01T00:00:00Z`** — bơm tự dừng **sớm hơn giờ G 10h09m** ⇒ mạng
+   công khai **im lặng hơn 10 tiếng** ngay trước lượt sinh lại. Để nguyên, hay dời cho khớp?
+   (`docker rm -f` + `run`, vì `restart` **không** nạp env.)
+2. **`main:web/lib/chain.ts` khai `networkId: 9001`** — hai thế hệ chết. `main` không phải bản đang
+   chạy (bản sống ở `web-home`), nhưng repo công khai sẽ **xuất bản** nó. Luật cứng #4 cấm phiên
+   này sửa ⇒ merge `web-home`, hay gỡ `web/` khỏi bản công bố?
+3. **Công khai repo = công bố cả sổ nội bộ** (`DECISIONS` · `HANDOFF` · `BLOCKERS` · `docs/AUDIT-A1/`).
+   Quét khoá **sạch** (`PrivateKey-` = 0) ⇒ đây là **lựa chọn**, không phải sự cố.
+
+
 | # | Việc | Ai | Ghi chú |
 |---|---|---|---|
 | **1** | ✅ ~~Nạp `chain-factory`~~ **XONG `27/08`** — 89,99999173 LOVE9 trên P. 🔴 **Còn nợ phép kiểm:** đẻ **một** L1 rồi thu hồi để chứng minh đường đẻ chain thông (cần David ký SIWE, và nó tạo chain THẬT trên mạng công khai) | A1 + **David** | D-082. Khoá Foundation lấy từ `net/keys.txt` **trên server** — không phải "khoá máy dev" như dự tính, xem O1 |
@@ -690,6 +802,62 @@ chót mà đầu vào phải tới** để lượt sinh mạng ngày G không ph
 ---
 
 ## 🔴 GOTCHAS — thứ sẽ tốn giờ nếu không biết trước
+
+### 🆕 Từ phiên ĐÊM `2026-08-31` (chín cái, đều lộ ra từ CHẠY THẬT)
+
+**A. Một hằng số nghĩa là "thế hệ nào đó khác" LUÔN đi vào ô mạng sống ở lượt bump kế** (D-134).
+Cùng literal `999999998`/`999999999` chép cứng ở **ba tệp cổng**. Nặng nhất: `wallet-over-tunnel.mjs`
+— công cụ **ký bằng khoá quỹ** — mặc định là g0 **đã chết**, và ca đối chứng của nó đang **đòi mạng
+SỐNG bị từ chối**. networkID sai **không** làm ví từ chối dựng giao dịch; nó làm **mạng từ chối chữ
+ký**, đọc ra như lỗi hầm/lỗi node. ⇒ **Đừng chép — SUY RA** từ `A1_GEN`/`A1_ID_GOC`.
+
+**B. `create-l1` cắm cứng khoá `ewoq` ⇒ CHẾT trên mọi mạng netgen** (D-140). Đo: `ewoq` xuất hiện
+**0 lần** trong `allocation.md`/`genesis.json` của mạng netgen sinh. `local-net/create-l1.sh` gọi nó
+⇒ **đường đó chỉ chạy trên mạng dev thế hệ `9001` cũ**. Đường dùng được: `9chain-a1-cli l1 create`
+với `A1_CLI_KEY`.
+
+**C. 🔴 Thanh khoản genesis nằm trên X-Chain, CLI trả phí trên P-Chain** (D-140). Không chuyển
+trước thì **mọi lượt đẻ chain chết ở giao dịch đầu**, và lỗi nói về *"UTXO"* chứ không nói *"tiền
+của anh ở chain khác"*:
+```
+LỖI CreateSubnetTx: insufficient funds: needed 2196 more nAVAX      # P=0, X=71.000.009
+docker exec -d -e WALLET_KEY="$KEY" -e WALLET_URI=http://127.0.0.1:9650 -e PORT=8091 <node> /9chain-a1/build/xp-wallet
+curl -X POST -H 'content-type: application/json' --data '{"amount":"1000"}' http://127.0.0.1:8091/api/x-to-p
+# rồi ĐO TRÊN NODE (platform.getBalance), không tin ví, MỚI l1 create
+```
+⚠️ Ví phải chạy **TRONG container node** — header `Host` là `127.0.0.1`. Đi vòng ngoài là **403**,
+và cái 403 đó là **cổng M11.10**, không phải thứ để nới.
+
+**D. Một ví chạy SAI KHOÁ vẫn trả `200`** (D-140). Một tiến trình ví cũ giữ cổng, tiến trình mới
+bind hỏng rồi **chết lặng**, `/api/info` vẫn trả lời — của ví cũ, số dư 0. **Dấu hiệu duy nhất là
+địa chỉ in ra khác địa chỉ mình mong.** ⇒ **Đọc `xAddr` trước khi tin số dư.**
+
+**E. `make-l1-genesis.mjs` CHỌN chứ không GIỮ CHỖ** (D-141) — nó tra hai sổ đúng luật nhưng
+**không ghi lại**, nên hai L1 đẻ qua CLI cách nhau vài phút **cùng nhận `9001000000`**. Console an
+toàn vì **chính nó** ghi vào `console-chains.json`. Đã vá bằng **cảnh báo lớn**; sửa tận gốc hoãn
+sau ngày G. ⇒ Đẻ chain người dùng **qua console**, hoặc khai `--chain-id` tường minh.
+
+**F. Container `9chain-a1-heartbeat` — hai điều** (D-138). (a) **Không thuộc compose nào** ⇒ mọi
+cổng duyệt `docker compose` **mù với nó** (container thứ hai như thế, sau console). Dừng êm:
+`touch ~/9chain-a1/src/9chain-a1-config/heartbeat.stop`. (b) 🔴 Nó mount **`/ → /hostfs`**, chạy
+**root**, userns **OFF** ⇒ **đọc được `console.env`** (đã đo: 800 byte) tức token + khoá. Ngày G
+dựng lại nó (seed g1) ⇒ **thu hẹp mount ngay lúc đó**.
+
+**G. Danh tính validator LÀ khoá riêng, và `check-key-leaks.mjs` KHÔNG canh chúng** (D-142) —
+**18 tệp `staker.key`/`signer.key` mỗi mạng**, ngoài tầm mọi cổng. B-20 nói bằng chữ; đây là số.
+
+**H. Hai bẫy công cụ nhỏ mà tốn giờ.** `SUBNET_PREFIX` — netgen **tự nối `.0`**, đưa dư một octet
+ra `172.30.0.0.0/16` và compose chết. Image node **không có `ps`/`pkill`** ⇒ không dừng được tiến
+trình bên trong bằng cách thường, dùng cổng khác hoặc restart container.
+⚠️ `docker exec -e` **khác** `docker run -e`: env của `exec` là **tạm thời cho tiến trình đó**,
+**không** nằm trong `docker inspect` — đó là lý do nạp khoá qua `exec` an toàn hơn.
+
+**I. 🔴 Cái bẫy "giao dịch đầu tiên" trong `CREATE-A-CHAIN.md` KHÔNG tái hiện** (D-141). Trên L1
+mới toanh, block 0: `eth_estimateGas` = **56.070** vs thực dùng **55.270** ⇒ **ước lượng đúng, dư
+1,4%**; cả 4 ca **thành công**, kể cả ca tài liệu nói sẽ hỏng. ⚠️ Một preset, hợp đồng rất nhỏ,
+băng TẬP ⇒ **chưa đủ để xoá cảnh báo khỏi tài liệu công khai**. **Đo lại trên L1 THẬT đầu tiên sau
+giờ G rồi David quyết.**
+
 
 16. 🔴 **netgen ghi `image: 9chain-a1/node:dev` CẮM CỨNG vào compose nó sinh** — không biến
     môi trường nào đổi được (đã đối chiếu cả 18 biến `env()` của netgen). Ngày G build image
