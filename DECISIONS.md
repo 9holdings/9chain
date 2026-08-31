@@ -5263,7 +5263,10 @@ phép đo thẳng phải chờ lượt mở lại sau giờ G.
 
 ---
 
-## D-136c — **GIỜ G CHỐT LẠI: `2026-09-01 09:09:09` giờ Jerusalem** (David chốt `31/08`, thay D-136)
+## D-136c — ~~GIỜ G: `2026-09-01 09:09:09` Jerusalem~~ → **THAY BẰNG D-136d** (David chốt `31/08`)
+
+> 🔴 **Mốc này đã đổi lần nữa cùng ngày sang `13:09:09` Jerusalem. Xem D-136d.** Giữ mục này vì
+> lý do đổi khỏi `00:00` (đường tới hạn cần thời gian) vẫn đúng và vẫn là lý do của mốc mới.
 
 David: *"vậy đổi lại 09:09:09 ngày 01/09/2026 giờ Jerusalem là ok."*
 
@@ -5313,3 +5316,60 @@ Giờ G là **mốc VẬN HÀNH**, **không** đi vào `genesis.json`: `netgen/m
 `StartTime: now-60`, luôn động. Dấu phân biệt bản tập với bản thật của A1 là **có khắc chữ hay
 không** cộng `A1_ENGRAVE_CONFIRM`. Đừng đẽo một chỗ trong genesis để cắm mốc này vào — làm thế là
 tự thêm một hằng số chép tay.
+
+---
+
+## D-136d — **GIỜ G CHỐT: `2026-09-01 13:09:09` giờ Jerusalem** (David chốt `31/08`, thay D-136c)
+
+David: *"chốt 13:09:09 Jerusalem."*
+
+| Đồng hồ | Giờ G |
+|---|---|
+| **Jerusalem (IDT, UTC+3)** | thứ Ba **`2026-09-01` 13:09:09** ← mốc chốt |
+| **UTC** | thứ Ba **`2026-09-01` 10:09:09Z** |
+| **Việt Nam (UTC+7)** | thứ Ba `2026-09-01` **17:09:09** |
+
+### 🔴 Vì sao mốc NÀY — và một câu tôi đã nói SAI phải sửa
+
+Ở lượt trước tôi viết *"giờ G nằm gọn trong ngày 01/09 theo mọi múi giờ trên hành tinh"*. **Sai.**
+Đo lại: ở mốc `09:09:09` Jerusalem (`06:09:09Z`), **cả bờ Tây nước Mỹ trở đi vẫn còn `31/08`** —
+Los Angeles `31/08 23:09`, Hawaii `31/08 20:09`.
+
+Sự thật tổng quát hơn, và nó không riêng gì ngày này: **múi giờ trải 26 giờ (`+14` … `−12`) mà một
+ngày chỉ có 24 giờ ⇒ KHÔNG tồn tại khoảnh khắc nào cả thế giới cùng một ngày.** Cửa sổ 01/09 của
+`UTC+14` (`31/08 10:00Z` → `01/09 10:00Z`) và của `UTC−12` (`01/09 12:00Z` → `02/09 12:00Z`)
+**rời nhau đúng 2 giờ**. Kiritimati và Baker Island không bao giờ chung ngày.
+
+⇒ Bài toán không phải *"phủ hết"* mà **"đặt dải 24 giờ vào chỗ ít người bị hụt nhất"**. Quét từng
+phút suốt 50 giờ mà ngày 01/09 tồn tại, cân theo dân số (51 múi giờ, ~6,18 tỷ):
+
+| Cửa sổ | Phủ | Bỏ lại |
+|---|--:|---|
+| **`01/09 10:00:00Z` → `10:59:59Z`** ← **đỉnh** | **99,999%** · 47/51 múi | **~55.000 người**: Samoa thuộc Mỹ (45k) · Niue (1,7k) · Kiritimati (8,8k) · Baker (0) |
+| `09:00Z` → `10:00Z` | | 1,48 triệu — thêm **Hawaii** |
+| `06:09:09Z` (mốc D-136c) | | 🔴 **59,2 triệu** — cả bờ Tây Mỹ, Alaska, Hawaii |
+
+`13:09:09` Jerusalem = `10:09:09Z` nằm **giữa cửa sổ đỉnh**, và vẫn giữ `09:09` trên đồng hồ.
+**Bỏ lại ít hơn mốc cũ 1.000 lần.**
+
+⚠️ **Cái giá, nói rõ:** ở mốc này **Kiribati đã sang `02/09`**. Không mốc nào cứu được cả Kiribati
+lẫn Hawaii — hai nơi đó **không bao giờ chung một ngày**. Lựa chọn là **bỏ 8.800 người hay bỏ 1,44
+triệu**, và mốc này chọn bỏ 8.800.
+
+### Mốc treo cho ngày G
+
+| Xong việc gì | UTC | Việt Nam |
+|---|---|---|
+| KHỐI 0 — image **trên server**, tự khai đúng `commit=` | `01/09 06:09Z` | `01/09 13:09` |
+| KHỐI 1 — B-16 · B-19 · O2 · sổ chain · H-6b | `01/09 07:09Z` | `01/09 14:09` |
+| 🟥 **`down -v` — điểm không quay lại** | `01/09 07:39Z` | `01/09 14:39` |
+| Mạng lên 9/9, đo trên **binary** | `01/09 08:29Z` | `01/09 15:29` |
+| `engrave-verify` xanh trên chain thật | `01/09 08:59Z` | `01/09 15:59` |
+| Công bố + mở lại cổng đẻ chain | **`01/09 10:09Z`** | **`01/09 17:09`** |
+
+🔴 **GO/NO-GO ở mốc KHỐI 0.** Image chưa nằm trên server và chưa tự khai đúng `commit=` ⇒ **đừng
+bấm `down -v`**. Cổng đẻ chain đang ĐÓNG nên hoãn **không tốn gì cho người dùng**.
+
+### Vẫn đúng như D-136
+
+Giờ G là **mốc VẬN HÀNH**, không đi vào `genesis.json` (`StartTime: now-60`, luôn động).

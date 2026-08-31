@@ -1451,7 +1451,7 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       Giờ G là **mốc VẬN HÀNH**, không đi vào `genesis.json` (`StartTime: now-60` luôn động) —
       đừng đẽo chỗ cắm nó vào genesis.
 
-- [x] 🔴 **D-136c — GIỜ G CHỐT LẠI: `2026-09-01 09:09:09` giờ Jerusalem** (David chốt `31/08`).
+- [x] 🔴 ~~**D-136c — giờ G `09:09:09` Jerusalem**~~ → **ĐỔI sang D-136d cùng ngày**.
       = **`01/09 06:09:09Z`** = `01/09 13:09` giờ VN. Đổi vì mốc cũ chỉ còn **4h11m** trong khi
       riêng *bump → sinh lại 26 patch → build image → `docker save|ssh|docker load`* đã có thể ăn
       1,5–2h **và phải xong TRƯỚC `down -v`**. Mốc mới cho **13h16m**.
@@ -1460,6 +1460,28 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       🔴 **GO/NO-GO ở mốc `01/09 02:09Z` (VN 09:09):** image chưa nằm trên server **và** chưa tự
       khai đúng `commit=` ⇒ **KHÔNG bấm `down -v`**. Hoãn rẻ; `down -v` thiếu binary đúng là **mất
       g0 mà không dựng được g1**. Cổng đẻ chain đang ĐÓNG nên hoãn không tốn gì cho người dùng.
+
+- [x] 🔴 **D-136d — GIỜ G CHỐT: `2026-09-01 13:09:09` giờ Jerusalem** = **`01/09 10:09:09Z`**
+      = `01/09 17:09` giờ VN (David chốt `31/08`).
+      🔴 **Tôi đã nói SAI ở lượt trước** rằng mốc `09:09:09` Jerusalem *"nằm gọn trong 01/09 theo
+      mọi múi giờ"*. Đo lại: ở mốc đó **cả bờ Tây Mỹ trở đi vẫn còn `31/08`** (LA `23:09`, Hawaii
+      `20:09`) — **59,2 triệu người**.
+      Sự thật tổng quát: múi giờ trải **26 giờ**, ngày có **24** ⇒ **không khoảnh khắc nào cả thế
+      giới cùng một ngày**, không riêng 01/09. Cửa sổ của `UTC+14` và `UTC−12` **rời nhau 2 giờ**.
+      ⇒ Quét từng phút suốt 50h, cân theo dân số: **đỉnh là `01/09 10:00–11:00Z`, phủ 99,999%**,
+      bỏ lại **~55.000 người**. `13:09:09` Jerusalem nằm giữa cửa sổ đó — **bỏ lại ít hơn mốc cũ
+      1.000 lần** mà vẫn giữ `09:09` trên đồng hồ.
+      ⚠️ Cái giá: **Kiribati đã sang `02/09`**. Không mốc nào cứu được cả Kiribati lẫn Hawaii —
+      chọn bỏ **8.800 người** thay vì **1,44 triệu**.
+      🔴 GO/NO-GO ở `01/09 06:09Z` (VN 13:09): image chưa trên server ⇒ **không bấm `down -v`**.
+
+- [x] 🔴 **Việc tay #10 + #11 của preflight: ĐÃ XONG TỪ TRƯỚC — đo được, không phải tin.**
+      `A1Gen` đã bump ở **cả hai ngôn ngữ** (Go `A1Gen=1` · `A1Name="9chain-a1-g1"` ·
+      `A1NameTap="9chain-a1-tap-g1"`; JS `A1_GEN=1`) **và** bộ patch đã sinh lại: **patch 0026**
+      chính là lượt bump, nằm trong bộ 26 đã công bố. Bằng chứng khép kín: cây fork làm việc
+      `git rev-parse HEAD^{tree}` = **`60a61707…`** = **`TREE_FORK`**, **0 thay đổi chưa commit**.
+      ⇒ Không còn nguy cơ *"bump ở cây làm việc mà bộ patch công bố vẫn khai `A1Gen 0`"* (CLAUDE.md
+      luật cứng 3). **Còn 34 việc tay, không phải 36.**
 
 - [x] **D-136b — ship console lên server** (`31/08`). Bốn tệp đi: `console/server.mjs` ·
       `console/index.html` · `console/chainid-test.mjs` · `lib/guard.mjs`.
