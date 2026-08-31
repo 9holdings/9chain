@@ -1483,6 +1483,33 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       ⇒ Không còn nguy cơ *"bump ở cây làm việc mà bộ patch công bố vẫn khai `A1Gen 0`"* (CLAUDE.md
       luật cứng 3). **Còn 34 việc tay, không phải 36.**
 
+- [x] **VIỆC 3–5 TRƯỚC `down -v` ĐÃ CHẠY** (`31/08`). Sổ chain: `--pull` (2 sống · repo biết 55
+      ⇒ *không có gì sắp mất*) → `gen-chainid-issued --write` (**49 · 54, không đổi** ⇒ server đang
+      đúng) → `--compact` ra `docs/archive/console-chains-closed-g0-2026-09-01.json`.
+      🔴 Thêm cờ `--at`: `thuHoiLuc` từng đóng dấu **giờ chạy lệnh**, tức khai 2 chain người thật
+      *"đã thu hồi"* trong khi chúng còn phục vụ **17 giờ nữa**. Nay đóng dấu đúng giờ G.
+      **H-6b ĐẠT · 26 patch**, hai nơi, clone ngược khớp tree ở **cả dev lẫn máy chủ**.
+      **O2 XONG**: P 29 · X 5 · **C 96.173** · 2 L1 · 14 tệp · **1,32 GB**. Nghiệm thu **hai đường**
+      (công cụ dự án 14/14 · `sha256sum -c` chuẩn). Neo đã **công bố ra ngoài server**:
+      `4432d62a…7b63` (`docs/o2-g0-final/`).
+      🔴 Lượt đầu **CHẾT THẬT**: `RangeError: Invalid string length` — 96k block nối thành MỘT
+      chuỗi vượt trần V8. Sửa bằng gom `Buffer`. Chain 26/08 quá nhỏ nên chưa bao giờ lộ.
+
+- [x] 🔴 **D-138 — truy ra `heartbeat-*`, ba phát hiện** (`31/08`). David hoãn B-16/B-19/heartbeat
+      sang ngày G; riêng heartbeat **mất dấu vết sau `down -v`** nên truy ngay (chỉ đọc).
+      (1) Thủ phạm: container **`9chain-a1-heartbeat`**, chạy 2 ngày, **KHÔNG thuộc compose nào**
+      ⇒ **container thứ hai không ai canh** (như console). Dừng êm: `touch …/heartbeat.stop`.
+      (2) 🔴 `HEARTBEAT_STOP_AFTER=2026-09-01T00:00:00Z` — **tự dừng sớm hơn giờ G 10h09m** ⇒ mạng
+      công khai **im lặng hoàn toàn 10 tiếng** ngay trước lượt sinh lại. **Cần David quyết**: để
+      nguyên, hay dời cho khớp giờ G (`docker rm -f` + `run`, vì `restart` không nạp env).
+      (3) 🔴 Container bơm tải mount `/ → /hostfs`, chạy **root**, userns **OFF** ⇒ **đọc được
+      `console.env`** (đã đo: 800 byte) tức `A1_CONSOLE_TOKEN`/`A1_CLI_KEY`/`FAUCET_PK`. Không phải
+      xâm nhập, nhưng **bán kính thiệt hại lớn hơn nhu cầu rất nhiều**. Ngày G dựng lại nó (seed g1)
+      — **thu hẹp mount ngay lúc đó, không tốn thêm bước**. ✅ `~/.ssh/` chỉ có `authorized_keys`.
+      (4) Hoãn B-16/B-19 **đúng**: tiền 90.007 LOVE9 và bộ khoá g0 **chết cùng g0**; bộ đáng làm
+      B-16 là **g1**, chưa tồn tại. 🔴 Điều kiện: **đừng shred gì của g0 tới khi g1 xanh** — hỏng
+      lượt sinh lại thì g0 lại có giá trị trở lại.
+
 - [x] 🔴 **D-137 — IMAGE `g1` ĐÃ NẰM TRÊN SERVER** (`31/08 17:13Z`). **Rủi ro lớn nhất của ngày G
       đã đóng, sớm hơn hạn KHỐI 0 gần 13 giờ.**
       Không phải build lại: image có sẵn từ lượt diễn tập `30/08` (D-128) ⇒ **cắt đôi đường tới hạn**.
