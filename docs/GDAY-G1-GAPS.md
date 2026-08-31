@@ -166,6 +166,15 @@ người ta lướt qua danh sách** — đúng cơ chế biến một cổng th
 
 ### 2.4 Phạm vi lượt tập — một buổi
 
+> 🔴 **§2.4 và §2.5 LÀ KẾ HOẠCH ĐÃ CHẠY XONG (`30/08` + `31/08`), KHÔNG PHẢI LỆNH.** Giữ nguyên
+> chữ vì đó là bản ghi của thời điểm đó. **Đừng làm theo con số trong hai mục này** — lượt tập
+> đã bác một phần chúng, xem đính chính đầu tệp:
+> `N=10` → **`N=9`** (D-126) · `A1_STAKING_PORT_BASE=9700` → **bỏ, giữ mặc định `9651`** (D-125) ·
+> `grep -c -- "--public-ip=" = 10` → **`= 9`, và `--public-ip=<IP công khai>` phải đúng `1`** (D-127) ·
+> **25 patch → 26** (`A1Gen` nằm trong patch `0018`, và patch `0026` là chính lượt bump — D-123).
+> Lệnh thật của ngày G nằm ở `node scripts/gday-preflight.mjs` và
+> [`GDAY-NODE10-HETZNER.md`](GDAY-NODE10-HETZNER.md) §2.
+
 1. Bump `A1Gen 0→1`: Go **ba dòng** (`A1Gen`, `A1Name`, `A1NameTap`) + JS **một dòng**
    (`A1_GEN`), rồi `node scripts/check-consistency.mjs`.
    *(Việc tay hiện ghi "bump in BOTH languages" — đúng, nhưng bên Go là **ba** dòng; quên
@@ -185,12 +194,17 @@ người ta lướt qua danh sách** — đúng cơ chế biến một cổng th
 7. 🔴 Dọn mạng tập **trong chính phiên tạo ra nó** (kỷ luật D-107 + gotcha 13). Đừng để
    `net-tap-g1` nằm cạnh thư mục thật — `net-dryrun` của `28/08` đã là một lần cảnh cáo.
 
-### 2.5 Nếu chỉ làm được một nửa
+### 2.5 Nếu chỉ làm được một nửa *(đã hết hiệu lực — lượt tập chạy đủ)*
 
-Ưu tiên **`N=10` + `A1_STAKING_PORT_BASE=9700` + node10 vào từ genesis**.
-Đó là phần duy nhất mà hỏng thì hỏng **giữa ngày G, sau khi mạng cũ đã bị xoá**. Chữ khắc và
-lượt build còn đường lui; cái này không có đường lui rẻ — đường lui của nó (D-119, stake sau)
-**tốn 25.000 LOVE9 và đưa B-12 về 14 ngày**.
+Ưu tiên lúc soạn là **hình dạng nhiều node + node ngoài vào từ genesis**: đó là phần duy nhất
+mà hỏng thì hỏng **giữa ngày G, sau khi mạng cũ đã bị xoá**. Chữ khắc và lượt build còn đường
+lui; cái này không có đường lui rẻ — đường lui của nó (D-119, stake sau) **tốn 25.000 LOVE9 và
+đưa B-12 về 14 ngày**.
+
+🔴 **Bản đầu mục này ghi thẳng `N=10` + `A1_STAKING_PORT_BASE=9700`. Cả hai đã bị số đo bác**
+(D-125 · D-126) — và **`N` đi vào genesis BẤT BIẾN**: `N=10` cho self-bond `899.999,1`/node,
+tức mất bộ chín số 9 vĩnh viễn (`8.999.991 = 9 × 999.999` chỉ chia tròn ở `N=9`). Ngày G là
+**`N=9`, cổng staking mặc định**.
 
 ---
 

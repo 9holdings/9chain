@@ -67,19 +67,42 @@ bộ** (đúng — Docker không hairpin, D-089). Node10 ở máy khác thì c�
 
 ⇒ Trên OVH chỉ `up` **node1..node8**. Thư mục `node9/` chỉ dùng để lấy **danh tính**.
 
-### 1c. Binary trên Hetzner hiện là `A1Gen 0` — ngày G phải build lại
+### 1c. Binary trên Hetzner hiện là `A1Gen 0` — phải dựng lại, và **DỰNG TRƯỚC NGÀY G**
 
 `A1Gen` đi vào binary. Bump 0 → 1 đổi networkID, tên mạng **và đường DB**. Binary đang chạy ở
 Hetzner (dựng `29/08`) là bản `g0` ⇒ **không dùng lại được**.
 
-⇒ Sau khi bump `A1Gen` ở **cả hai ngôn ngữ**, build lại trên Hetzner đúng đường đã chạy ở D-118:
-`git am` 25 patch → tree phải ra hash của bộ patch ngày G → build trong container `golang`.
+🔴 **`git am` phải là ĐỦ 26 PATCH, không phải 25.** Bản đầu mục này ghi *"25 patch"* — số của
+`28/08`. **Patch `0026` CHÍNH LÀ lượt bump `A1Gen 0→1`**, nên dừng ở 25 cho ra một binary
+**thế hệ đã chết** mang nhãn g1: node boot với `--network-id=999999998` trên binary chỉ biết
+`999999999` ⇒ `NetworkName()` rơi xuống `network-999999998` (**sai đường dẫn DB**) và `GetHRP()`
+sống bằng `FallbackHRP` — đúng nhánh patch 0013 sinh ra để xoá. Đây là **chỗ chặn cứng số 1 của
+ngày G (D-137), dời sang máy khác**: cùng lỗi, khác máy chủ.
+
+🔴 **VÀ NÓ PHẢI XONG TRƯỚC NGÀY G.** Binary này **không phụ thuộc byte chữ khắc và không phụ
+thuộc genesis** — đúng lập luận D-128 đã dùng để đẩy image OVH ra khỏi ngày G. Để nó lại giữa
+ngày G là xếp một lượt build Go **sau `down -v`**, trên máy duy nhất chứng minh **điều kiện qua
+số 3** (một node NGOÀI máy chủ là peer).
+
+⇒ Đường đi, chạy **hôm nay**:
+```bash
+# trên Hetzner, đúng đường đã chạy ở D-118
+git checkout 1cf1fc3 && git am --keep-cr <đủ 26 patch>
+git rev-parse HEAD^{tree}          # phải ra 60a61707f7974a0f1853b8bf78df7d0fdc1ef863
+# build trong container golang, rồi ĐO BINARY — không đo mạng:
+/opt/9chain-a1/avalanchego/build/avalanchego --version
+#   phải in commit=9chain-a1-g1-26patch-60a61707
+```
+🔴 **Phép đo cuối cùng là bắt buộc và nó KHÔNG có trong bảng nghiệm thu Bước 5** — bảng đó đo
+**mạng** (validator · peers · bootstrap), thứ D-137 vừa chứng minh là không nói gì về binary
+đang chạy. Việc tay *"Measure the BINARY"* của preflight dùng `docker exec <node>`, mà node9
+chạy **trần, ngoài compose** ⇒ nó **không phủ máy này**.
 
 ---
 
 ## 2. Quy trình — theo đúng thứ tự
 
-### Bước 1 · Sinh mạng 10 node (trên server A1)
+### Bước 1 · Sinh mạng **9 node** (trên server A1)
 
 ```bash
 N=9 \
