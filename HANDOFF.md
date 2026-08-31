@@ -163,7 +163,7 @@ preflight --no-network   20 đạt · 0 đỏ · 0 không chạy được · 4 b
 h6b --check              ✓ xanh (fork tree 60a61707f797 khớp — phép so MỚI)
 check-key-leaks          exit 0 · mốc so 9 khoá / 4 nguồn
 nợ ngôn ngữ              5.753 → 5.750
-sổ console trên server   0 sống · 0 thu hồi  ⇒ KHÔNG chain người thật nào sắp mất
+sổ console trên server   🔴 2 SỐNG — `Eric1` #9000000010 · `eric1` #9000000011 (đo lại 13:40 UTC)
 mạng g0                  10 validator · 9 peer · factory 89,899 LOVE9 · B-12 còn 12 ngày
 ```
 

@@ -824,7 +824,23 @@ async function createChain({ name, chainId, admin, preset }) {
   // cũ phát lại được trên chain mới. Chỗ trống thu hồi trả lại là **slot track**
   // (trần 16 của giao thức), không phải con số nhận dạng.
   const daDung = [...state.chains, ...state.retired];
-  const trung = daDung.find(c => c.name === name);
+  // 🔴 COMPARE CASE-INSENSITIVELY — the same rule `loiTenDaCap` already applies, and production
+  // demonstrated why on 2026-08-31.
+  //
+  // This line compared with `===` until that day, so within ONE generation two names differing
+  // only in case both got through: measured on the public network, a real user created `Eric1`
+  // and then `eric1` nine minutes apart, each one dragging a rolling restart of all nine nodes
+  // behind it.
+  //
+  // The asymmetry had no reason to exist. The CROSS-GENERATION ledger has normalised case since
+  // D-086, and the argument written there — two spellings of a name are the same promise to the
+  // same person, and someone who slips past a byte-exact check is usually just retyping the name
+  // they remember — applies identically here. Applying it to only one half produced a generation
+  // that permits two names the NEXT generation will refuse.
+  //
+  // ⚠️ `thuHoiChain` still compares exactly, deliberately: revoking points at one chain that
+  // already exists, it does not ask whether a name is free.
+  const trung = daDung.find(c => c.name.toLowerCase() === name.toLowerCase());
   if (trung) {
     throw new Error(state.chains.includes(trung)
       ? "Tên đã tồn tại"

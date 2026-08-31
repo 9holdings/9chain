@@ -14,12 +14,16 @@
       "entries": 46
     },
     {
+      "file": "docs/archive/console-chains-song-2026-08-31.json",
+      "entries": 2
+    },
+    {
       "file": "9chain-a1-config/console-chains.json",
       "entries": 1
     }
   ],
-  "chainIdCount": 47,
-  "nameCount": 53,
+  "chainIdCount": 49,
+  "nameCount": 54,
   "chainIds": [
     9100,
     9101,
@@ -67,7 +71,9 @@
     9143,
     9144,
     9145,
-    9201
+    9201,
+    9000000010,
+    9000000011
   ],
   "names": [
     "BuocTest1951",
@@ -81,6 +87,7 @@
     "CauNguonQT6T",
     "David Do",
     "DeltaChain",
+    "Eric1",
     "GiaoDienTest",
     "OmegaChain",
     "OwnerTest",
