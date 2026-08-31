@@ -165,8 +165,8 @@ const info = {
 ghi("info.json", jsonỔnĐịnh(info));
 console.log(`mạng: ${info.networkName?.networkName ?? "?"} (id ${info.networkID?.networkID ?? "?"}) · node ${info.nodeVersion?.version ?? "?"}`);
 
-/** Xuất block thô của một chuỗi avalanchego (P hoặc X) dưới dạng hex — byte gốc, không
- *  diễn giải. Diễn giải là nơi phiên bản phần mềm len vào và làm bản xuất thôi trung lập. */
+/** Export one avalanchego chain (P or X) as RAW hex blocks — original bytes, no interpretation.
+ *  Interpretation is where the software version creeps in and stops the export being neutral. */
 async function xuấtChuỗiThô(nhãn, đường, mHeight, mBlock) {
   const h = await gọiMềm(đường, mHeight);
   if (!h) return null;
@@ -181,7 +181,14 @@ async function xuấtChuỗiThô(nhãn, đường, mHeight, mBlock) {
   }
   ghi(`${nhãn}/blocks.jsonl`, dòng.join("\n") + (dòng.length ? "\n" : ""));
   console.log(`  ${nhãn}: ${dòng.length} block (chiều cao ${cao})`);
-  return { cao, đãXuất: dòng.length, cắt: đến < cao };
+  // 🔴 A BREAK IN THE MIDDLE IS ALSO A CUT — and it did not use to count as one.
+  //
+  // `cắt` was `đến < cao`, i.e. it only ever described `--max-blocks`. But the loop also stops
+  // on the FIRST failed RPC call, and that path left `cắt` false — so the front page printed
+  // no truncation banner on the front page, and the only trace of a half-empty bundle was a
+  // single line in the "could not fetch" list. An evidence bundle that does not say how much
+  // of itself is missing is the exact thing this file was written to stop.
+  return { cao, đãXuất: dòng.length, cắt: dòng.length < đến + 1 || đến < cao };
 }
 
 // ─── P-Chain ───
@@ -219,13 +226,19 @@ async function xuấtEVM(nhãn, đường) {
     dòng.push(JSON.stringify(b));
   }
   ghi(`${nhãn}/blocks.jsonl`, dòng.join("\n") + (dòng.length ? "\n" : ""));
+  // 🔴 `hashBlockCuoi` IS THE LAST BLOCK EXPORTED, NOT THE TIP — and until the two counts sat
+  // side by side, nothing in the bundle said so. A truncated export wrote the chain's real
+  // height next to the hash of a much lower block, with no field to tell them apart.
+  const cutEVM = dòng.length < đến + 1 || đến < caoSố;
   ghi(`${nhãn}/tip.json`, jsonỔnĐịnh({
     rpc: đường, chainId, chainIdThập: parseInt(chainId, 16),
     blockNumber: cao, blockNumberThập: caoSố,
+    blocksExported: dòng.length,
+    complete: !cutEVM,
     hashBlockCuoi: dòng.length ? JSON.parse(dòng[dòng.length - 1]).hash : null,
   }));
-  console.log(`  ${nhãn}: ${dòng.length} block (chiều cao ${caoSố}) · chainId ${parseInt(chainId, 16)}`);
-  return { caoSố, cắt: đến < caoSố, chainIdThập: parseInt(chainId, 16) };
+  console.log(`  ${nhãn}: ${dòng.length} block (chiều cao ${caoSố})${cutEVM ? " 🔴 TRUNCATED" : ""} · chainId ${parseInt(chainId, 16)}`);
+  return { caoSố, cắt: cutEVM, chainIdThập: parseInt(chainId, 16) };
 }
 const cChain = await xuấtEVM("c-chain", "/ext/bc/C/rpc");
 const l1Cắt = [];

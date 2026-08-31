@@ -65,8 +65,8 @@ sách sẽ trôi lệch. **Người chọn địa chỉ phải tự tránh.**
 
 ```bash
 A1_NET_DIR=local-net/net-public \
-A1_ENGRAVE=/duong/dan/manifest.json \
-A1_ENGRAVE_CHECKSUMS=/duong/dan/CHECKSUMS-FREEZE-cua-C1.txt \
+A1_ENGRAVE=/repo/docs/engrave/manifest.json \
+A1_ENGRAVE_CHECKSUMS=/repo/docs/engrave/CHECKSUMS-FREEZE-cua-C1.txt \
 bash local-net/gen-network.sh 9
 ```
 
@@ -79,9 +79,24 @@ A1_ENGRAVE_CONFIRM=<vân tay netgen vừa in>
 
 | Biến | Bắt buộc | Vai trò |
 |---|---|---|
-| `A1_ENGRAVE` | — | đường dẫn manifest. Không đặt = không khắc |
+| `A1_ENGRAVE` | — | đường dẫn manifest, **theo góc nhìn CONTAINER**. Không đặt = không khắc |
 | `A1_ENGRAVE_CONFIRM` | **có**, khi đã bật khắc | vân tay bộ tài liệu. Lệch ⇒ từ chối sinh mạng |
-| `A1_ENGRAVE_CHECKSUMS` | nên có ở lượt thật | bản đóng băng của C1. Thiếu ⇒ chỉ cảnh báo |
+| `A1_ENGRAVE_CHECKSUMS` | **CÓ — thiếu là CHẶN** | bản đóng băng của C1. Thiếu ⇒ `os.Exit(1)`, trừ khi khai `A1_ENGRAVE_NO_CHECKSUMS=toi-biet-day-la-ban-tap` |
+
+### 🔴 Đường dẫn phải là đường dẫn TRONG CONTAINER
+
+netgen **chạy trong container**. `gen-network.sh` mount ba chỗ: cây fork ở `/src`, thư mục ra
+ở `/out`, và **gốc repo ở `/repo` (chỉ đọc)**. Một đường dẫn host như `/duong/dan/manifest.json`
+hay `C:\PROJECTS\...` **không tồn tại bên trong**, và netgen sẽ dừng ở
+`FATAL doc manifest khac chu … no such file or directory`.
+
+⇒ Đặt manifest + tài liệu **dưới gốc repo**, gọi bằng `/repo/<đường dẫn tương đối>`.
+`file` trong manifest vẫn là đường dẫn **tương đối so với chính manifest**, nên cả bộ đi cùng nhau.
+
+⚠️ Bản trước của mục §Chạy ghi `/duong/dan/manifest.json` — một đường dẫn host — và **chưa lượt
+nào chạy trót lọt theo đúng chữ đó**: không thư mục `local-net/net*/` nào trong repo chứa
+`engraving.md` (tệp netgen luôn sinh khi có khắc). `gen-network.sh` nay **từ chối trước khi gọi
+docker** nếu đường dẫn không nằm dưới `/repo`, `/out` hoặc `/src`.
 
 Kết quả kèm theo: **`engraving.md`** trong thư mục ra — bảng công khai (không có bí mật) để
 đối chiếu chéo với C1 và để 9Scan-A1 phơi ra.

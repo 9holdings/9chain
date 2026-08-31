@@ -44,6 +44,11 @@ const argv = process.argv.slice(2);
 const lay = (co, mac) => { const i = argv.indexOf(co); return i >= 0 && argv[i + 1] ? argv[i + 1] : mac; };
 const DICH = lay("--target", "https://rpc-a1.9chain.org/ext/info");
 const SO_MAU = Number(lay("--samples", 7));
+/**
+ * C-Chain RPC, derived from `--target` unless given. This is where the NODE'S OWN clock is
+ * readable — see the block comment on `doLechChain`.
+ */
+const RPC_C = lay("--rpc", new URL(DICH).origin + "/ext/bc/C/rpc");
 
 /** Sàn: `--offset-ms 3000` là con số đã đạt 9/9 ở lượt diễn tập `27/08` (D-052…D-055). */
 export const SAN_BU_MS = 3000;
@@ -68,6 +73,56 @@ export function chonBu(lechMs, bienMs, san = SAN_BU_MS) {
   }
   const bu = Math.max(san, Math.ceil(-xauNhat) + bienMs);
   return { bu, xauNhat, vi: `biên xấu nhất: node chậm ${-xauNhat}ms ⇒ bù phải phủ nó cộng một biên nữa` };
+}
+
+/**
+ * ═══ 🔴 THE PRIMARY MEASUREMENT — AND WHY THE HTTP ONE BELOW IS NOT IT ═══
+ *
+ * This file spends its whole header explaining that the quantity that decides Block Adam is
+ * **skew(firing machine ↔ the node that PROPOSES the block)** — and then measured it with the
+ * HTTP `Date` header of `rpc-a1.9chain.org`. Measured 2026-08-31, that response carries
+ * `server: cloudflare` and `cf-ray: …-CDG`: the `Date` is stamped by **Cloudflare's edge in
+ * Paris**, not by the OVH origin and certainly not by avalanchego. Cloudflare's clocks are
+ * NTP-tight, so that number is essentially *"how wrong is this laptop"* — and the clock error
+ * of the machine that actually writes `block.timestamp` was never measured at all.
+ *
+ * Which is this project's own most expensive failure class, landing inside the gate written to
+ * warn about it.
+ *
+ * `eth_getBlockByNumber` is different in the one way that matters: the value comes **out of
+ * the node** and passes through Cloudflare unchanged. So the block timestamp IS a reading of
+ * the node's clock, proxy or no proxy. It is the same quantity `block-adam-drill.mjs` already
+ * computes on the live chain (`b0.timestamp - now`).
+ *
+ * ⚠️ **Known bias, and it points the SAFE way.** A block timestamp is the moment that block
+ * was produced, which may be several seconds in the past on an idle chain. So this reads as
+ * *"the node is slower than it is"*, and `chonBu` reacts by choosing a LARGER offset. Erring
+ * large is the harmless direction: Block Adam must land AFTER the mark, never before.
+ * ⇒ On a busy chain the number tightens by itself. Do not "correct" the bias by subtracting a
+ *   block time — that would be guessing in the dangerous direction.
+ */
+async function doLechChain() {
+  const mau = [];
+  for (let i = 0; i < SO_MAU; i++) {
+    const t0 = Date.now();
+    let j;
+    try {
+      const r = await fetch(RPC_C, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getBlockByNumber", params: ["latest", false] }),
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (!r.ok) continue;            // a non-200 is NOT a sample. Silence here is a fake green.
+      j = await r.json();
+    } catch { continue; }
+    const t1 = Date.now();
+    const ts = Number(j?.result?.timestamp);
+    if (!Number.isFinite(ts) || ts <= 0) continue;
+    // Biên = RTT/2 + 500ms (block timestamp has SECOND resolution, same floor as `Date`).
+    mau.push({ rtt: t1 - t0, lech: ts * 1000 - Math.round((t0 + t1) / 2), bien: Math.round((t1 - t0) / 2) + 500 });
+  }
+  return mau.sort((a, b) => a.rtt - b.rtt);
 }
 
 async function doLech() {
@@ -113,21 +168,36 @@ if (argv.includes("--self-test")) {
   process.exit(hong ? 1 : 0);
 }
 
-const mau = await doLech();
-console.log(`\n══ LỆCH ĐỒNG HỒ · máy bắn ↔ ${new URL(DICH).host} ══\n`);
+const mau = await doLechChain();
+console.log(`\n══ LỆCH ĐỒNG HỒ · máy bắn ↔ NODE (block.timestamp qua ${new URL(RPC_C).host}) ══\n`);
 if (mau.length === 0) {
-  console.log("🟡 KHÔNG lấy được mẫu nào — 'không đo được' KHÔNG phải 'lệch 0'.");
+  console.log("🟡 no sample obtained from the chain — 'could not measure' is NOT 'skew 0'.");
+  console.log(`   asked: ${RPC_C}  (override with --rpc)`);
   process.exit(2);
 }
 for (const m of mau) console.log(`  RTT ${String(m.rtt).padStart(5)}ms   lệch ${String(m.lech).padStart(6)}ms   biên ±${m.bien}ms`);
 const tot = mau[0];
 console.log(`\n  mẫu tốt nhất (RTT nhỏ nhất, biên chặt nhất): **${tot.lech}ms ± ${tot.bien}ms**`);
 
+// SECONDARY, and labelled as what it is. Kept because the gap between the two numbers is
+// itself informative: a large one usually means the edge and the origin disagree, not that the
+// node is broken.
+const mauHttp = await doLech();
+if (mauHttp.length) {
+  const h = mauHttp[0];
+  console.log("");
+  console.log(`  (secondary) HTTP \`Date\` header of ${new URL(DICH).host}: ${h.lech}ms ± ${h.bien}ms`);
+  console.log(`        🔴 NOT the node clock — this hostname is proxied by Cloudflare and the`);
+  console.log(`        \`Date\` is stamped at their edge. For comparison only, never for the offset.`);
+}
+
 const { bu, xauNhat, vi } = chonBu(tot.lech, tot.bien);
 console.log(`\n  ⇒ \`--offset-ms ${bu}\`  — ${vi}`);
 console.log(`
 🔴 ĐỌC ĐÚNG CON SỐ NÀY:
-   • Nó là lệch **máy dev ↔ server**, KHÔNG phải "lệch giữa 9 node".
+   • It is the skew **dev machine <-> NODE**, read from \`block.timestamp\` — NOT "skew across 9 nodes".
+   • It reads the node as SLOWER than it is, because the last block may be seconds old.
+     That is the SAFE direction (larger offset). Do not subtract a block time to "correct" it.
    • Lệch giữa 9 node hôm nay là **0 theo KIẾN TRÚC**: 9 container trên cùng MỘT máy,
      Docker không ảo hoá đồng hồ ⇒ chung một CLOCK_REALTIME. Đo 9 lần rồi khai
      "lệch 0ms, đã kiểm" là đo một tính chất của hạ tầng, không phải của đồng hồ.

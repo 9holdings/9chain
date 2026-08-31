@@ -10,19 +10,21 @@
 import http from "node:http";
 import { readFileSync } from "node:fs";
 import { ethers } from "ethers";
-import { clientIp, rateLimit, serialQueue } from "../lib/guard.mjs";
+import { clientIp, rateLimit, requireInt, serialQueue } from "../lib/guard.mjs";
 
 const RPC = process.env.FAUCET_RPC || "http://localhost:9650/ext/bc/C/rpc";
 const AMOUNT = process.env.FAUCET_AMOUNT || "10";
-const COOLDOWN = Number(process.env.FAUCET_COOLDOWN_MS || 60000);
-const PORT = Number(process.env.PORT || 8080);
+// `requireInt`, not `Number(... || d)`: a mistyped limit becomes NaN, and every comparison
+// against NaN is false — i.e. the limit silently stops existing. See guard.mjs.
+const COOLDOWN = requireInt("FAUCET_COOLDOWN_MS", 60000, { min: 0 });
+const PORT = requireInt("PORT", 8080, { min: 1, max: 65535 });
 const HOST = process.env.FAUCET_HOST || "0.0.0.0"; // chạy trong container -> cần 0.0.0.0
 const TRUST_PROXY = process.env.A1_TRUST_PROXY === "1";
 
 // Hạn mức theo IP. Chặn theo ĐỊA CHỈ VÍ là vô dụng một mình: ví mới sinh miễn phí,
 // vô hạn. IP mới thì tốn kém hơn nhiều.
-const MAX_PER_IP_HOUR = Number(process.env.FAUCET_MAX_PER_IP_HOUR || 5);
-const MAX_PER_HOUR = Number(process.env.FAUCET_MAX_PER_HOUR || 300);
+const MAX_PER_IP_HOUR = requireInt("FAUCET_MAX_PER_IP_HOUR", 5);
+const MAX_PER_HOUR = requireInt("FAUCET_MAX_PER_HOUR", 300);
 const limitIp = rateLimit({ max: MAX_PER_IP_HOUR, windowMs: 3600_000, name: "ip/gio" });
 // Trần toàn cục: chặn cạn ví trong một đợt tấn công phân tán (nhiều IP).
 const limitGlobal = rateLimit({ max: MAX_PER_HOUR, windowMs: 3600_000, name: "toan cuc/gio" });
@@ -51,6 +53,16 @@ if (PK.toLowerCase() === EWOQ_PK) {
 const provider = new ethers.JsonRpcProvider(RPC);
 const wallet = new ethers.NonceManager(new ethers.Wallet(PK, provider));
 const lastDrip = new Map(); // address -> timestamp
+// Sweep it. `rateLimit()` in guard.mjs sweeps its own Map for exactly this reason and this
+// one was left unbounded: one entry per address ever served, held for the process's lifetime,
+// on a public endpoint where minting a fresh address is free. Not a leak that breaks anything
+// today; it is a leak that grows for as long as the faucet is popular, which is the point of
+// the faucet. `unref` so the process still exits on Ctrl-C.
+const dripSweep = setInterval(() => {
+  const cutoff = Date.now() - COOLDOWN;
+  for (const [addr, t] of lastDrip) if (t <= cutoff) lastDrip.delete(addr);
+}, Math.max(COOLDOWN, 60_000));
+dripSweep.unref?.();
 
 /**
  * ═══ TRANG FAUCET NAY LA MOT TRANG THAT, KHONG PHAI CHUOI JS ═══
@@ -260,16 +272,24 @@ const server = http.createServer(async (req, res) => {
         const { address } = JSON.parse(body || "{}");
         if (!ethers.isAddress(address)) return send(res, 400, { error: "địa chỉ không hợp lệ" });
 
-        // Thứ tự kiểm tra: rẻ trước, đắt sau. Trần toàn cục kiểm CUỐI trong nhóm
-        // hạn mức để một IP bị chặn không tiêu mất một suất của trần toàn cục.
-        const rIp = limitIp(ip);
-        if (!rIp.ok)
-          return send(res, 429, { error: `IP này đã nhận đủ suất, thử lại sau ${Math.ceil(rIp.retryAfter / 60)} phút` }, rIp.retryAfter);
-
+        // ═══ ORDER: EVERY CHECK THAT CAN REFUSE RUNS BEFORE ANY BUDGET IS SPENT ═══
+        //
+        // The per-address cooldown used to sit AFTER `limitIp(ip)`, and `limitIp` is not a
+        // question — calling it CONSUMES one of the 5 hourly slots. So a double-click inside
+        // the 60s cooldown returned 429 *and* burned a slot the caller never received tokens
+        // for. Four such taps and a real user is locked out for an hour having got nothing.
+        //
+        // This file already states the rule one line further down ("a blocked IP must not
+        // spend a slot of the global ceiling") and applied it only to the global tier. The
+        // cheap, purely-local check belongs first: it needs no shared budget at all.
         const now = Date.now();
         const prev = lastDrip.get(address.toLowerCase()) || 0;
         if (now - prev < COOLDOWN)
           return send(res, 429, { error: `chờ ${Math.ceil((COOLDOWN - (now - prev)) / 1000)}s nữa` });
+
+        const rIp = limitIp(ip);
+        if (!rIp.ok)
+          return send(res, 429, { error: `IP này đã nhận đủ suất, thử lại sau ${Math.ceil(rIp.retryAfter / 60)} phút` }, rIp.retryAfter);
 
         const rG = limitGlobal(":global:");
         if (!rG.ok)

@@ -91,16 +91,17 @@ DUONG_MA=(patches local-net upstream scripts web genesis 9chain-a1-config)
 
 ban_moi_nhat() { ls -d "$KHO"/9chain-a1-backup-*/ 2>/dev/null | sort | tail -1; }
 
-doc_manifest() {  # $1 = thư mục backup; in ra "HEAD PATCH"
+# Prints "HEAD PATCH FORK_TREE". FORK_TREE is `KHONG-GHI` for bundles built before 2026-08-31.
+doc_manifest() {  # $1 = backup directory
   local d="$1"
   if [ -f "$d/manifest.env" ]; then
-    ( . "$d/manifest.env"; echo "$HEAD $PATCH" )
+    ( . "$d/manifest.env"; echo "$HEAD $PATCH ${FORK_TREE:-KHONG-GHI}" )
   else
     # Bản cũ (25/08, 27/08) không có manifest.env — rút từ MANIFEST.txt.
     local h p
     h="$(grep -oE 'HEAD +[0-9a-f]{7,40}' "$d/MANIFEST.txt" 2>/dev/null | awk '{print $2}' | head -1)"
     p="$(ls "$d/avalanchego-patches" 2>/dev/null | wc -l)"
-    echo "${h:-KHONG-DOC-DUOC} $p"
+    echo "${h:-KHONG-DOC-DUOC} $p KHONG-GHI"
   fi
 }
 
@@ -109,14 +110,42 @@ kiem_tuoi() {
   [ -n "$d" ] || { echo "🔴 KHÔNG CÓ BẢN SAO LƯU NÀO trong $KHO"; return 1; }
   echo "── kiểm bản mới nhất: $(basename "$d")"
 
-  local head_bk patch_bk patch_now
-  read -r head_bk patch_bk <<<"$(doc_manifest "$d")"
+  local head_bk patch_bk fork_bk patch_now fork_now
+  read -r head_bk patch_bk fork_bk <<<"$(doc_manifest "$d")"
   patch_now="$(ls "$PATCHES" | wc -l)"
+  fork_now="$(git -C "$FORK" rev-parse HEAD^{tree} 2>/dev/null || echo KHONG-DOC-DUOC)"
 
   local do_=0 vang=0
 
-  # ĐỎ 1 — số patch lệch. Đây là lớp chủ quyền: thiếu một patch là dựng lại ra
-  # một mạng KHÁC, không phải một mạng cũ.
+  # ═══ ĐỎ 0 — CÂY FORK. 🔴 THE `git diff` BELOW IS BLIND TO IT, MEASURED 2026-08-31. ═══
+  #
+  # `DUONG_MA` lists `upstream`, which reads as though the fork were covered. It is not:
+  # `.gitignore` carries the line `upstream/`, so `git ls-files upstream` returns **0** and
+  # `git diff -- upstream` can never report anything. Every sovereign line of code — the whole
+  # reason a restore is worth having — sat outside the freshness check, with the patch COUNT as
+  # its only proxy.
+  #
+  # A count is not content. Regenerating the set 26 -> 26 with different content leaves this
+  # gate printing "still fresh" for a bundle that describes a different binary. That is B-20s
+  # shape exactly (a correct patch count over empty content), one layer down.
+  #
+  # The number needed was already being written: `manifest.env` has recorded `FORK_TREE` since
+  # the bundle format was introduced. `doc_manifest()` simply threw it away.
+  #
+  # Not recorded => RED, not amber: "could not compare" is not "matches" (D-069b), and the fix is
+  # one command — build a fresh bundle, which does record it.
+  if [ "$fork_bk" = "KHONG-GHI" ]; then
+    echo "  🔴 fork tree: backup records NO FORK_TREE => the sovereign tree cannot be compared"
+    do_=$((do_+1))
+  elif [ "$fork_bk" != "$fork_now" ]; then
+    echo "  🔴 fork tree: backup ${fork_bk:0:12} != repo ${fork_now:0:12}"
+    do_=$((do_+1))
+  else
+    dat "fork tree: ${fork_bk:0:12} = ${fork_now:0:12}"
+  fi
+
+  # RED 1 — patch count differs. This is the sovereign layer: one missing patch rebuilds a
+  # DIFFERENT network, not an older one.
   if [ "$patch_bk" != "$patch_now" ]; then
     echo "  🔴 patch: backup $patch_bk ≠ repo $patch_now"; do_=$((do_+1))
   else
@@ -128,7 +157,7 @@ kiem_tuoi() {
     return 1
   fi
 
-  # ĐỎ 2 — có tệp MÃ lệch giữa HEAD-backup và main.
+  # RED 2 — a CODE file changed between the backup's HEAD and main.
   local ma_lech
   ma_lech="$(git -C "$ROOT" diff --name-only "$head_bk..main" -- "${DUONG_MA[@]}" | wc -l)"
   if [ "$ma_lech" -gt 0 ]; then

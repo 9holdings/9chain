@@ -13,7 +13,7 @@ import { execFile } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from "node:fs";
 import { promisify } from "node:util";
 import path from "node:path";
-import { clientIp, rateLimit, requireToken, requireSecret, serialQueue } from "../lib/guard.mjs";
+import { clientIp, rateLimit, requireToken, requireSecret, requireInt, serialQueue } from "../lib/guard.mjs";
 import { parseEvmAddress } from "../lib/eip55.mjs";
 import { apDungPreset, danhSachPreset } from "../lib/presets.mjs";
 import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
@@ -47,12 +47,12 @@ const checkToken = requireToken(TOKEN);
 //   cửa ngoài  (trước xác thực): rộng tay, chỉ để chặn lụt request
 //   cửa trong  (sau xác thực)  : ngân sách thật cho thao tác nặng
 const limitFlood = rateLimit({ max: 60, windowMs: 60 * 60 * 1000, name: "flood" });
-const limitCreate = rateLimit({ max: Number(process.env.A1_LIMIT_CREATE || 3), windowMs: 60 * 60 * 1000, name: "create" });
+const limitCreate = rateLimit({ max: requireInt("A1_LIMIT_CREATE", 3), windowMs: 60 * 60 * 1000, name: "create" });
 const limitRead = rateLimit({ max: 120, windowMs: 60 * 1000, name: "read" });
 // Thu hồi cũng restart cả cụm node như lúc đẻ — nặng ngang nhau, nên hạn mức ngang nhau.
 // Hạn mức RIÊNG (không dùng chung khoá với create): gộp chung thì một người đẻ 3 chain
 // là hết quyền dọn chính mấy chain đó, tức là hạn mức tự khoá đường sửa sai.
-const limitRevoke = rateLimit({ max: Number(process.env.A1_LIMIT_REVOKE || 3), windowMs: 60 * 60 * 1000, name: "revoke" });
+const limitRevoke = rateLimit({ max: requireInt("A1_LIMIT_REVOKE", 3), windowMs: 60 * 60 * 1000, name: "revoke" });
 // Xin lời mời ký là thao tác RẺ nhưng chiếm chỗ trong kho nonce — hạn mức rộng tay
 // hơn create/revoke nhiều, nhưng không để mở toang.
 const limitNonce = rateLimit({ max: 30, windowMs: 10 * 60 * 1000, name: "nonce" });
@@ -389,7 +389,9 @@ async function kiemTheHeMang() {
 // Để 15 chứ không phải 16: chừa một chỗ cho subnet đẻ ra ngoài luồng console
 // (ví dụ lượt tạo hỏng giữa chừng để lại subnet mồ côi không có trong state).
 const TRAN_SUBNET_GIAO_THUC = 16;
-const MAX_L1 = Math.min(Number(process.env.A1_MAX_L1 || 15), TRAN_SUBNET_GIAO_THUC);
+// `requireInt` refuses a mistyped value instead of turning it into NaN — a NaN ceiling is
+// not a loose ceiling, it is NO ceiling (every `>=` against NaN is false). See guard.mjs.
+const MAX_L1 = Math.min(requireInt("A1_MAX_L1", 15, { min: 1, max: TRAN_SUBNET_GIAO_THUC }), TRAN_SUBNET_GIAO_THUC);
 
 /**
  * Node đã phục vụ lại được MẠNG CHÍNH chưa (P, X, C)?

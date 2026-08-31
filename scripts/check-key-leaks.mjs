@@ -96,10 +96,40 @@ const MAX_BYTES = 200_000;
  * that holds money and is not named here is invisible to this gate. `check-net-dirs.mjs` is the
  * tool that actually asks the chain; when it reports a funded key somewhere new, add it here.
  */
-const DEFAULT_FUND_SETS = [
-  path.join(HOME, "9chain-a1-keys", "g0", "keys.txt"),
-  path.join(ROOT, "local-net", "net-public", "chain-factory-key.txt"),
-];
+/**
+ * 🔴 DISCOVERED, NOT HARD-CODED TO ONE GENERATION.
+ *
+ * This list read `9chain-a1-keys/g0/keys.txt` literally. That is the yardstick the gate
+ * measures found keys AGAINST: a key that matches it is 🔴 real money, anything else is 🟡 a
+ * drill key. Re-genesis mints a new fund set in `g1/`, so on the morning after G-day a leaked
+ * **g1** fund key — the only kind that would still be worth anything — would have been graded
+ * 🟡 "drill key" and the operator told to relax, while the worthless g0 set kept scoring 🔴.
+ *
+ * The yardstick would have inverted itself, silently, on exactly the day it matters.
+ *
+ * ⇒ Enumerate every `keys.txt` under a `9chain-a1-keys/gN` directory. A new generation appears
+ *   the moment its directory does; old ones stay listed (a key from a dead generation is still
+ *   worth knowing about, and `check-net-dirs.mjs` is what asks the chain who holds money).
+ *   Zero sets found is already handled: the gate exits 2, not 0 — see the `--self-test` case
+ *   "fund set absent => 2".
+ */
+function discoverFundSets() {
+  const found = [];
+  const store = path.join(HOME, "9chain-a1-keys");
+  try {
+    for (const d of readdirSync(store).sort()) {
+      if (!/^g\d+$/.test(d)) continue;
+      const f = path.join(store, d, "keys.txt");
+      if (existsSync(f)) found.push(f);
+    }
+  } catch { /* store absent: leave the list short; the caller turns empty into exit 2 */ }
+  // The factory wallet is the SEVENTH fund and lives outside the six-fund set (D-117b).
+  // A new one is minted at every re-genesis; add its path here when it exists.
+  const factory = path.join(ROOT, "local-net", "net-public", "chain-factory-key.txt");
+  if (existsSync(factory)) found.push(factory);
+  return found;
+}
+const DEFAULT_FUND_SETS = discoverFundSets();
 const FUND_SETS = argv.reduce(
   (acc, a, i) => (a === "--fund-set" && argv[i + 1] ? [...acc, argv[i + 1]] : acc),
   [],

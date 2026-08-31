@@ -299,7 +299,15 @@ async function create(){
     if(r.status===401){ sessionStorage.removeItem('a1_token'); throw new Error('Token sai — tải lại trang để nhập lại.'); }
     if(r.status===429){ throw new Error(j.error||'vượt hạn mức, thử lại sau'); }
     if(r.ok){
-      const tenPreset=(PRESETS.find(x=>x.id===j.preset)||{}).ten||j.preset;
+      // 🔴 `presetName` COMES FROM THE SERVER — do not look the id up in a client table.
+      // This line read `(PRESETS.find(x=>x.id===j.preset)||{}).ten` until 2026-08-31: `.ten`
+      // is the Vietnamese key the preset objects carried BEFORE D-108 renamed them to
+      // `{id,name,desc}`, so it was always `undefined` and every successful creation showed
+      // the raw id ("zero-fee") where the display name belongs. The `||` fallback made it
+      // degrade in silence — never an error, just the wrong word.
+      // Same residue as D-129 on the web side; that fix did not reach the console's own page.
+      // `server.mjs` already records `presetName` on the chain record at creation time.
+      const tenPreset=j.presetName||(PRESETS.find(x=>x.id===j.preset)||{}).name||j.preset;
       out.innerHTML=`<div class="ok">✅ Đã đẻ <b>${esc(j.name)}</b> (chainId ${esc(j.chainId)}, kiểu <b>${esc(tenPreset)}</b>)</div>
       <div style="margin-top:8px">MetaMask → Add network:<br>
       &nbsp;• Network: ${esc(j.name)}<br>&nbsp;• RPC: <code>${esc(j.rpc)}</code><br>
