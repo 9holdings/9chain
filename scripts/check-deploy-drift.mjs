@@ -68,15 +68,43 @@ if (argv.includes("--self-test")) {
     ["danh sách RỖNG ⇒ là khẳng định thật, khác hẳn null", [],
       (r) => r.khongQuetDuoc === false && r.moCoi.length === 0],
   ];
+  // 🔴 THE REAL manifest patterns, not a fixture. `console-chains.json.bak` was carved out of
+  // the B-17 ban on 2026-09-01 because the console writes it on every save — but the ban still
+  // covers every OTHER `.bak` beside running code, and a carve-out that quietly widened would
+  // remove the tripwire without anyone noticing. Anchoring is the whole safety property here,
+  // so it is measured rather than trusted to a comment.
+  const carveOutCases = [
+    ["the exact file the console writes IS declared", "9chain-a1-config/console-chains.json.bak", true],
+    ["🔴 a -pre-* variant is NOT declared (B-17 shape must stay red)", "9chain-a1-config/console-chains.json.bak-pre-D087", false],
+    // Suffixes here are deliberately generic: the property under test is "no rollback copy of
+    // CODE is declared", which must hold for every suffix, not just the three B-17 happened to
+    // find. (The historical names are recorded in `_extraDeleted`, where they belong.)
+    ["🔴 a server.mjs rollback copy is NOT declared", "local-net/console/server.mjs.bak-pre-D087-20260827", false],
+    ["🔴 an index.html rollback copy is NOT declared", "local-net/console/index.html.bak-20260824", false],
+  ];
+
+  // Read the manifest here: it is loaded further down, after this block runs and exits.
+  const realKnownExtra = (JSON.parse(readFileSync(path.join(GOC, "local-net", "deploy", "manifest-deploy.json"), "utf8"))
+    .knownExtra ?? []);
+  const isDeclared = (p) => realKnownExtra.some((t) => new RegExp(t.pattern).test(p));
+
   let hong = 0;
   console.log("══ ĐỐI CHỨNG NGƯỢC — phân loại tệp thừa ══");
+  for (const [label, filePath, expected] of carveOutCases) {
+    const declared = isDeclared(filePath);
+    if (declared === expected) console.log(`  ✓ ${label}`);
+    else { console.log(`  ✗ ${label} — declared=${declared}, expected ${expected}`); hong++; }
+  }
   // A 4th element lets one case swap the declaration lookup — used by the missing-reason case.
   for (const [ten, dsSv, dung, khaiRieng] of ca) {
     const r = phanLoaiThua(dsSv, inMan, trongRepo, khaiRieng ?? khai);
     if (dung(r)) console.log(`  ✓ ${ten}`);
     else { console.log(`  ✗ ${ten} — ra ${JSON.stringify(r)}`); hong++; }
   }
-  console.log(`\n${hong ? "✗" : "✅"} ${ca.length - hong}/${ca.length} đúng`);
+  // Count EVERY case that ran. Printing `8/8` while twelve ran is a small lie in the one line
+  // a reader takes away, and it hides four checks going missing if they are ever dropped.
+  const total = ca.length + carveOutCases.length;
+  console.log(`\n${hong ? "✗" : "✅"} ${total - hong}/${total} đúng`);
   process.exit(hong ? 1 : 0);
 }
 
