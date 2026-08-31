@@ -4956,3 +4956,49 @@ D-041 đã dặn đúng câu này và nó lặp lại: **báo C1 + BOD ngay.** C
 `request/2026-08-26-genesis-document-10-EN.md` gửi dưới **chiều cũ** (*C1 giao, A1 chép*). Nếu
 C1 vẫn đang chờ để giao mà A1 đã quyết không dùng cho g1, hai bên đốt ngày cho một thứ không
 ai còn cần.
+
+---
+
+## D-133 — Canon khắc chữ của A1 **đứng một mình**; bản đóng băng cũ hạ xuống làm **vật chứng** (2026-08-31)
+
+David: *"tách biệt dữ liệu nói về C1, vì có thể C1 sẽ không được chọn và A1 được chọn.. nên
+tách ra hoàn toàn."*
+
+**Đo trước khi cắt.** Toàn bộ tài liệu người dùng chạm vào (`CREATE-A-CHAIN.md` + bản VI,
+`RUN-A-VALIDATOR.md`, trang faucet/create-chain) **đã sạch sẵn** — không nhắc C1 dòng nào.
+Chỗ dính là **đúng một đường**: đường khắc chữ. Cổng chứng minh *"byte được CHÉP, không GÕ
+LẠI"* trỏ vào tệp đóng băng của mạng khác, và runbook bảo người vận hành đối chiếu với tệp đó.
+
+### Làm gì
+
+| | |
+|---|---|
+| `docs/engrave/CANON.txt` **(mới)** | canon của riêng A1, sinh từ chính byte của A1: `id · sha256 · bytes · surfaces · lang`. **Không nêu tên mạng nào khác, không phụ thuộc mạng nào khác.** Đây là tệp `A1_ENGRAVE_CHECKSUMS` trỏ vào |
+| `CHECKSUMS-FREEZE-LOVEPAPER.txt` → `attestation-2026-08-07.txt` | giữ lại làm **VẬT CHỨNG**, không còn là **PHỤ THUỘC**. Bản dựng **không đọc tệp này** |
+| `GDAY-ENGRAVING.md` · `gday-preflight.mjs` | mọi đường dẫn và mọi câu chỉ dẫn nay trỏ `CANON.txt` |
+
+### 🔴 Cái giá — viết ra, không giấu
+
+Cổng đối chiếu **mạnh nhất khi tệp nó so là tệp người khác viết TRƯỚC ĐÓ**. `CANON.txt` do
+chính A1 viết từ chính tệp của A1 ⇒ **một mình nó chỉ chứng minh nhất quán nội bộ**, không
+chứng minh **nguồn gốc độc lập**. Đó là hình dạng **D-112**, y hệt thứ D-132 §4 vừa cảnh báo.
+
+Thứ vẫn đỡ nó: bốn hash trong `CANON.txt` **trùng khít từng chữ số** với
+`attestation-2026-08-07.txt` — bản đóng băng **có ngày tháng, sinh ra ở nơi khác, TRƯỚC** tệp
+này. So hai tệp mất một lệnh. Đó là lý do bản cũ được **giữ chứ không xoá**: xoá nó là biến
+`CANON.txt` từ *"có hai nguồn"* thành *"A1 tự khai"* mà không cổng nào kêu.
+
+### Còn đúng một chỗ chưa tách được — và nó nằm sau luật cứng #3
+
+netgen vẫn **in ra** chuỗi `"khop ban dong bang cua C1"`, và hàm của nó tên `verifyAgainstC1`
+(`9chain-a1-tools/netgen/engrave.go`, 28 lần nhắc). Cả hai nằm **trong `patches/`** ⇒ đổi là
+**sinh lại cả 26 patch và dịch `TREE_FORK`** vào đúng đêm trước ngày G. **Hoãn sau ngày G**,
+gộp cùng việc tổng quát hoá cổng (D-132 §4). Ngày G nó chỉ là **một dòng chữ in ra sai tên**,
+không phải hành vi sai.
+
+### Đối chứng — thứ nói lên tất cả
+
+Chạy lại netgen với `A1_ENGRAVE_CHECKSUMS=/repo/docs/engrave/CANON.txt`:
+vân tay **`f04e939b58e58db46714047978b989cb167cf5f8875bcb4e4ad2563ebd366b18`** — **không đổi** —
+và `✓ khac chu: 4/4`. Bốn tài liệu vẫn `108 + 25 + 45 + 964 = 1.142` byte, hash từng tệp y nguyên.
+⇒ **Lượt tách này dịch chuyển giấy tờ, không dịch chuyển một byte nào sẽ lên chain.**
