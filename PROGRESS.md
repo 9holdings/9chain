@@ -1461,6 +1461,19 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       node khai IP công khai lúc **SINH** mạng; D-118c đo **không** teo khi làm với mesh đã có và
       `--bootstrap-ips` vẫn nội bộ. Nghiệm thu **trên chain**: một node **không phải beacon** thấy
       node ngoài trong `info.peers`, và node ngoài `healthy: true` với P+C bootstrapped.
+- [x] 🔴 **NGƯỜI THẬT ĐÃ ĐẺ CHAIN — bản ghi đã được cứu.** Đo `13:40 UTC`: sổ sống có **2 chain**
+      (`Eric1` #9000000010 · `eric1` #9000000011, cùng chủ `0x29B0864c…6F71`, preset `zero-fee`,
+      tạo lúc `11:16` và `11:25 UTC`, **cả hai đang chạy thật**). 🔴 **Số đo `09:2x` của phiên này
+      — *"sổ sống rỗng, không gì sắp mất"* — ĐÃ HẾT ĐÚNG chỉ sau hai tiếng.** Đã chạy
+      `close-ledger --pull` → `docs/archive/console-chains-song-2026-08-31.json` →
+      `gen-chainid-issued --write` ⇒ sổ chặn xuyên thế hệ **47 → 49 chainId · 53 → 54 tên**;
+      `9000000010`/`9000000011` và mọi biến thể hoa/thường của `eric1` nay **chặn vĩnh viễn**.
+      ⚠️ **Ngày G vẫn phải chạy lại chuỗi này** — có thể còn chain mới sinh ra từ giờ tới lúc đó.
+      ⚠️ **Eric mất cả hai chain vào ngày mai và không biết điều đó.**
+- [x] **Sửa: `createChain` so tên PHÂN BIỆT hoa/thường** — chính vì thế Eric có được cả `Eric1`
+      lẫn `eric1`, mỗi lượt kéo theo một đợt rolling restart 9 node. Sổ **xuyên thế hệ** đã thường
+      hoá từ D-086 với lý lẽ áp đúng y hệt ở đây ⇒ thế hệ NÀY cho phép hai tên mà thế hệ SAU chặn.
+      Nay thường hoá cả hai. `thuHoiChain` giữ so chính xác (nó trỏ vào một chain đã tồn tại).
 - [human] 🔴 **Người ngoài lấy 25.000 LOVE9 ở đâu để stake?** Faucet cấp **10 LOVE9** mỗi lượt,
       có hạn mức ⇒ **không phải đường chậm, mà là không có đường**. Trên g0, D-119 nạp từ quỹ
       Foundation. Tài liệu validator nói thẳng điều này thay vì để người ta dựng node một tuần rồi

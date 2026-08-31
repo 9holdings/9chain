@@ -1,0 +1,27 @@
+{
+  "chains": [
+    {
+      "name": "Eric1",
+      "subnetID": "g7eDvoo2ykK6BX6kf5aP6Qrr9gTMunVao5ZYwka7Xb2pfHbDf",
+      "blockchainID": "2vwXkbjsRXA47DhjJvYXoo9BFYUg3d1An7Z6Uo9PAdbzgSNEus",
+      "chainId": 9000000010,
+      "admin": "0x29B0864c86ab39051178D63C4c7E8c70D4b36F71",
+      "preset": "zero-fee",
+      "presetName": "Near-zero fees",
+      "rpc": "https://rpc-a1.9chain.org/ext/bc/2vwXkbjsRXA47DhjJvYXoo9BFYUg3d1An7Z6Uo9PAdbzgSNEus/rpc",
+      "createdAt": 1788174975991
+    },
+    {
+      "name": "eric1",
+      "subnetID": "MqQr8dHj6MWQegc2LgqzvERgHuV26t4egK8yQycv6rx3f6DF7",
+      "blockchainID": "aNqEioiL5hqiMkrrYHR944vM5vFtjwfJnFLsGu6HdvSPuHE8N",
+      "chainId": 9000000011,
+      "admin": "0x29B0864c86ab39051178D63C4c7E8c70D4b36F71",
+      "preset": "zero-fee",
+      "presetName": "Near-zero fees",
+      "rpc": "https://rpc-a1.9chain.org/ext/bc/aNqEioiL5hqiMkrrYHR944vM5vFtjwfJnFLsGu6HdvSPuHE8N/rpc",
+      "createdAt": 1788175535225
+    }
+  ],
+  "retired": []
+}
