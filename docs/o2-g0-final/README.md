@@ -14,8 +14,8 @@ sha256(MANIFEST.txt) = 4432d62a2634141a81cf79868db2436e139ea2c72b78e6c26a1db25c5
 `sha256sum`, nên ai cũng kiểm lại được **bằng công cụ chuẩn, không cần tin mã của chúng tôi**:
 
 ```bash
-cd <bộ-xuất> && sha256sum -c MANIFEST.txt      # từng tệp
-sha256sum MANIFEST.txt                          # phải ra đúng con số trên
+cd <bộ-xuất-đầy-đủ> && sha256sum -c MANIFEST.txt   # từng tệp (TRÊN MÁY CHỦ)
+sha256sum MANIFEST.txt                             # phải ra đúng con số trên
 ```
 
 🔴 **Vì sao tệp này nằm ở đây chứ không nằm cạnh dữ liệu:** một con số neo đặt cạnh chính dữ liệu
@@ -39,8 +39,14 @@ Kèm theo: `console-chains.json` (sổ danh bạ sống) và `chainid-issued.jso
 
 **14 tệp · 1.318.041.580 byte.** Bộ đầy đủ: `"$A1_SSH_HOST":~/9chain-a1/o2-export-g0-20260831/`
 
-Thư mục này giữ **phần nhỏ, kiểm lại được**: `MANIFEST.txt`, `ROOT.txt`, `info.json`,
-`00-READ-FIRST.md`, và `tip.json` của cả năm chuỗi.
+Thư mục này giữ **phần nhỏ, kiểm lại được**: `MANIFEST-of-remote-bundle.txt`,
+`ROOT-of-remote-bundle.txt`, `info.json`, `00-READ-FIRST.md`, và `tip.json` của cả năm chuỗi.
+
+🔴 **Hai tệp đó cố ý KHÔNG tên là `MANIFEST.txt`/`ROOT.txt`.** `check-evidence.mjs` quét cả repo và
+coi **mọi** thư mục có `MANIFEST.txt` là một gói vật chứng phải **tự nghiệm thu được**. Thư mục này
+là **bản chép một phần** của gói nằm trên máy chủ — 4/14 tệp — nên dưới cái tên kia nó làm cổng đỏ,
+và **đỏ đúng**: một manifest liệt kê 14 tệp mà thư mục chỉ có 4 thì nó **không** phải gói tự nghiệm
+thu được. Đổi tên là nói đúng thứ nó là: **bản ghi về một gói ở nơi khác**, không phải gói ấy.
 
 ## Nghiệm thu — hai đường độc lập, cả hai đã chạy
 
