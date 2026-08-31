@@ -116,30 +116,65 @@ sha256    33d0bd0068afe7b3b1660e7d58c3dc8bb4371e0444e4298de262d58962f6422c  buil
 nền       debian:12-slim · glibc 2.36
 ```
 
+### Máy Hetzner thật ra là gì — đo `2026-09-01`, đừng đoán lại
+
+| | |
+|---|---|
+| khoá SSH | `~/.ssh/id_ed25519`, `root@95.217.60.140` (không phải khoá `9chain-a1` của OVH) |
+| hệ | **Ubuntu noble 24.04**, kernel 6.8 ⇒ glibc **≥ 2.36** |
+| đĩa | `436G`, còn **84G** (80% đã dùng) — image 586 MB là **0,7%** chỗ trống |
+| image A1 | 🔴 **KHÔNG có cái nào.** `docker images 9chain-a1/node` ra **rỗng** |
+| node9 | chạy **binary trần**, PID 34489, từ `29/08`, `--network-id=999999999` (**g0**) |
+
+🔴 **ĐÂY LÀ MÁY DÙNG CHUNG, KHÔNG PHẢI MÁY RIÊNG CỦA A1.** Nó đang chạy production của nhiều dự
+án khác (`oneboard*`, `9mall-*`, `worldboard-*`, `isocial-*`, `msc-*`, `caddy`, `shared-*`) —
+**178 image · 228 container · 87,6 GB**. Mọi thao tác ở đây phải **cộng thêm**, không dọn dẹp:
+`docker system prune` trên máy này là xoá việc của người khác.
+
+✅ Vì noble ≥ glibc 2.36, cái bẫy `GLIBC_2.36 not found` ở Bước C **không áp cho máy này** — đó
+là số đo, không phải phỏng đoán. Vẫn chạy bằng container ở giờ G vì lý do còn lại: node9 khi đó
+dùng **cùng runtime** với 8 node OVH.
+
 ### Bước A · chở image (máy dev → Hetzner)
 
 ```bash
 docker save 9chain-a1/node:g1 | gzip | \
-  ssh -i ~/.ssh/<khoá-hetzner> root@95.217.60.140 'gunzip | docker load'
+  ssh -i ~/.ssh/id_ed25519 root@95.217.60.140 'gunzip | docker load'
 ```
 
-### Bước B · 🔴 NGHIỆM THU **TRÊN CHÍNH MÁY HETZNER** — hai mỏ neo độc lập
+### Bước B · 🔴 NGHIỆM THU **TRÊN CHÍNH MÁY HETZNER** — ba mỏ neo độc lập
+
+🔴 **KHÔNG DÙNG `strings` — image KHÔNG CÓ NÓ.** Bản đầu mục này viết `strings … | grep -c`.
+Chạy thật `2026-09-01` trên Hetzner: `sh: 1: strings: not found`, và `grep -c` trên đầu vào rỗng
+in ra **`0`** — tức mục *"`9chain-a1-g0` phải = 0"* **ĐẠT bằng một cái ống gãy**. Đúng lớp lỗi đắt
+nhất của dự án: một con số đúng đến từ một công cụ không chạy. Dùng `grep -a` thẳng trên binary.
 
 ```bash
-ssh -i ~/.ssh/<khoá-hetzner> root@95.217.60.140 '
+ssh -i ~/.ssh/id_ed25519 root@95.217.60.140 '
+  B=/9chain-a1/build/avalanchego
   docker run --rm --entrypoint ./avalanchego 9chain-a1/node:g1 --version
-  docker run --rm --entrypoint sha256sum   9chain-a1/node:g1 /9chain-a1/build/avalanchego
-  docker run --rm --entrypoint sh 9chain-a1/node:g1 -c \
-    "strings /9chain-a1/build/avalanchego | grep -c 9chain-a1-g1; \
-     strings /9chain-a1/build/avalanchego | grep -c 9chain-a1-g0"
+  docker run --rm --entrypoint sha256sum   9chain-a1/node:g1 $B
+  # 🔴 công cụ phải TỰ KHAI là có (D-116: công cụ hỏng ≠ phán quyết)
+  docker run --rm --entrypoint sh 9chain-a1/node:g1 -c "command -v grep >/dev/null && echo grep-OK || echo grep-MISSING"
+  # 🔴 hai ca đối chứng TRƯỚC, để biết số 0 nghĩa là "không có" chứ không phải "không đo được"
+  docker run --rm --entrypoint grep 9chain-a1/node:g1 -ac avalanchego            $B   # phải > 0
+  docker run --rm --entrypoint grep 9chain-a1/node:g1 -ac zzz-khong-ton-tai-zzz  $B   # phải = 0
+  docker run --rm --entrypoint grep 9chain-a1/node:g1 -ac 9chain-a1-g1 $B
+  docker run --rm --entrypoint grep 9chain-a1/node:g1 -ac 9chain-a1-g0 $B
+  docker run --rm --entrypoint grep 9chain-a1/node:g1 -ac LOVE9        $B
 '
 ```
 
-| phải ra | vì sao mỏ neo này không thay được mỏ neo kia |
-|---|---|
-| `commit=9chain-a1-g1-26patch-60a61707` | chuỗi này do `--build-arg` đặt ⇒ **một mình nó chứng minh rất ít**, khai gì cũng được |
-| `sha256 = 7ad4e2ac…6ea4` | **byte y hệt** bản đã diễn tập. Đây mới là mỏ neo mạnh |
-| `9chain-a1-g1` ≥ 1 · **`9chain-a1-g0` = 0** | vế **0 lần** là vế quan trọng: nó loại hẳn khả năng đây là binary thế hệ chết dán nhãn mới |
+Số đo thật trên Hetzner `2026-09-01` — **trùng khít bản OVH của D-137**:
+
+| phải ra | đo được | vì sao mỏ neo này không thay được mỏ neo kia |
+|---|---|---|
+| `commit=9chain-a1-g1-26patch-60a61707` | ✅ khớp | chuỗi này do `--build-arg` đặt ⇒ **một mình nó chứng minh rất ít**, khai gì cũng được |
+| `sha256 = 7ad4e2ac…6ea4` | ✅ khớp | **byte y hệt** bản đã diễn tập. Đây mới là mỏ neo mạnh |
+| `grep-OK` · ca chắc-có > 0 · ca chắc-không = 0 | ✅ `grep-OK` · `283` · `0` | không có ba dòng này thì hai dòng dưới **vô nghĩa** |
+| `9chain-a1-g1` > 0 | ✅ **4** | |
+| **`9chain-a1-g0` = 0** | ✅ **0** | vế **0 lần** là vế quan trọng: loại hẳn khả năng đây là binary thế hệ chết dán nhãn mới |
+| `LOVE9` > 0 | ✅ **2** | bí danh tài sản có trong binary (gotcha 16) |
 
 ⚠️ **Git Bash trên Windows bẻ đường dẫn** — `/9chain-a1/build/…` bị dịch thành
 `C:/Program Files/Git/9chain-a1/…` và lệnh chết với *"No such file"*. Đã dính khi soạn mục này.
