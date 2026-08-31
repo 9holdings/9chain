@@ -5417,3 +5417,80 @@ lại trên một cây nguồn khác. 🔴 Nhắc lại vì sao **cấm build tr
 `9chain-a1/node:g0` **vẫn còn trên server**, không đụng tới. Đĩa còn **342G/410G**.
 
 ⇒ **Việc tay #14 · #15 · #17 của preflight: ĐẠT.** Còn **31 việc tay**, không phải 34.
+
+---
+
+## D-138 — Truy ra `heartbeat-*`: ba phát hiện, một cái đổi lịch **tối nay** (2026-08-31)
+
+David: *"các việc này mai chạy lại chain thì làm luôn"* — hoãn B-16 · B-19 · `heartbeat-*` sang
+ngày G. **Đồng ý cho hai cái đầu** (xem cuối mục). Nhưng việc `heartbeat-*` **mất bằng chứng nếu
+để tới đó**: preflight nói rõ *"tìm cái gì ghi ra chúng và DỪNG trước khi mạng cũ biến mất; sau đó
+dấu vết cũng mất"*. Nên truy **ngay**, chỉ đọc, không đụng gì.
+
+### 1 · Ai ghi — và vì sao ba cổng đều mù với nó
+
+`9chain-a1-heartbeat`, **container Docker** (`node:24-alpine`), chạy từ `2026-08-29 13:01:03Z`
+(hơn 2 ngày). Nó ghi `heartbeat.json` **qua bind mount** ⇒ tệp thuộc `root` trên host — đúng
+**gotcha #1** (*"thư mục do container sinh thuộc root"*).
+
+🔴 **`compose project` RỖNG** — nó **không thuộc compose nào**, hệt như console (`node` trần,
+PPID 1). ⇒ Mọi cổng duyệt `docker compose` **mù với nó**, và `check-deploy-drift` chỉ thấy được
+*dấu chân* của nó (`heartbeat.json` + hai `.mjs` mồ côi), không thấy chính nó. **Đây là container
+thứ hai trên máy chủ không có ai canh.**
+
+`RestartPolicy: unless-stopped` ⇒ `docker stop` là đủ (gotcha #3). Nhưng có đường **êm hơn**:
+`HEARTBEAT_STOP_FILE=/srv/a1-config/heartbeat.stop`. Tạo tệp đó là bơm tự dừng và **tự ghi lý do**:
+
+```bash
+touch ~/9chain-a1/src/9chain-a1-config/heartbeat.stop
+```
+
+### 2 · 🔴 NÓ TỰ DỪNG LÚC `00:00Z` — SỚM HƠN GIỜ G **10 GIỜ 9 PHÚT**
+
+```
+HEARTBEAT_STOP_AFTER = 2026-09-01T00:00:00Z
+GIỜ G (D-136d)       = 2026-09-01T10:09:09Z
+```
+
+Con số đó được đặt hồi giờ G còn được giả định là *"01/09 00:00 UTC"*. Nay giờ G là **`10:09:09Z`**.
+Hệ quả **không phải lỗi kỹ thuật mà là lỗ hổng hình ảnh**: mạng công khai sẽ **im lặng hoàn toàn
+hơn 10 tiếng** ngay trước lượt sinh lại — đúng lúc người ngoài có thể đang nhìn explorer. Ai nhìn
+vào sẽ thấy một mạng **trông như đã chết**, và họ **không sai** khi đọc thế.
+
+⇒ **Quyết định cần David:** (a) để nguyên, chấp nhận 10 giờ im lặng; (b) dời `HEARTBEAT_STOP_AFTER`
+sang `2026-09-01T10:09:09Z` cho khớp giờ G — phải `docker rm -f` rồi `docker run` vì
+**`docker restart` KHÔNG nạp lại env** (gotcha #2). Việc này **không** chặn ngày G.
+
+### 3 · 🔴 Container bơm tải đọc được TOÀN BỘ bí mật trên máy chủ
+
+| Đo được | |
+|---|---|
+| Mount | `/ → /hostfs (ro)` — **toàn bộ hệ tệp host** |
+| Container chạy như | **`root`** (`Config.User` rỗng) |
+| User-namespace remapping | **OFF** |
+| `console.env` | `-rw------- ubuntu:ubuntu` (600) — nhưng **đọc được từ trong container: 800 byte** |
+
+⇒ Một container chỉ để **bơm giao dịch giả** đọc được `A1_CONSOLE_TOKEN`, `A1_CLI_KEY`, `FAUCET_PK`.
+Đây **không phải một vụ xâm nhập** — mã trong đó là mã của dự án — nhưng nó là **bán kính thiệt hại**
+lớn hơn nhu cầu **rất nhiều**: thứ nó thật sự cần chỉ là dung lượng đĩa (`HEARTBEAT_DISK_PATH=/hostfs`).
+Một thư mục là đủ; nó được cho cả ổ.
+
+✅ Điểm sáng: `~/.ssh/` trên máy chủ **chỉ có `authorized_keys`**, không có khoá riêng — đúng kỷ luật
+*"ví ký không chạm server"*.
+
+⇒ **Ngày G phải dựng lại container này** (seed mới cho ví g1). Dựng lại là lúc **thu hẹp mount**,
+và nó **không tốn thêm một bước nào** vì bước đó đã có trong lịch.
+
+### 4 · Hoãn B-16 / B-19 — đồng ý, và lý do MẠNH HƠN David nêu
+
+Hoãn là **đúng**, không chỉ chấp nhận được, vì nó đổi **bộ khoá nào đáng bảo vệ**:
+
+- **B-19** — `chain-factory-key.txt` giữ **90,007 LOVE9** *trên g0*. Số tiền đó **chết cùng g0** ở
+  giờ G, không mang sang được. Giá trị còn lại của việc dời nó là **giữ bản ghi**, không phải giữ tiền.
+- **B-16** — bản sao thứ hai của bộ khoá quỹ. Bộ **g0** cũng chết ở giờ G. Bộ đáng làm B-16 là bộ
+  **g1**, mà nó **chưa tồn tại** — netgen mới sinh ra ở giờ G. Làm B-16 trên g0 hôm nay là bảo vệ
+  thứ ngày mai vô giá trị.
+
+🔴 **Nhưng một điều kiện phải giữ:** **đừng shred gì của g0 cho tới khi g1 được chứng minh là sống.**
+Nếu lượt sinh lại hỏng và phải hoãn, g0 là thứ duy nhất còn lại — và lúc đó 90,007 LOVE9 cùng bộ
+khoá g0 **lại có giá trị trở lại**. Thứ tự đúng: **g1 xanh trước, dọn g0 sau.**
