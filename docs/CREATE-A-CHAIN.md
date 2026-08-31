@@ -1,59 +1,66 @@
-# Tạo chain riêng của bạn trên 9Chain Testnet A1
+# Create your own chain on 9Chain Testnet A1
 
-**Hướng dẫn cho người bắt đầu từ con số không.** Bạn không cần biết gì về blockchain trước khi
-đọc. Cần khoảng **15 phút**, trong đó **3 phút** là ngồi chờ mạng dựng chain cho bạn.
+**A guide for someone starting from nothing.** You need to know nothing about blockchains before
+reading it. Allow about **15 minutes**, of which **3** are spent waiting while the network builds
+your chain.
 
-Kết quả: một blockchain **của riêng bạn**, do ví bạn làm chủ, chạy thật trên mạng thử nghiệm —
-kết nối được bằng MetaMask, deploy hợp đồng được, mời người khác vào dùng được.
+What you end up with: a blockchain **of your own**, owned by your wallet, genuinely running on the
+test network — reachable from MetaMask, able to host contracts, open to anyone you invite.
 
-> ⚠️ **Đây là mạng THỬ NGHIỆM (testnet).** Đồng LOVE9 ở đây **không có giá trị thật**. Nó tồn
-> tại để bạn trả phí trong lúc thử. Đừng mua, đừng bán, đừng nhận nó thay tiền.
+> ⚠️ **This is a TEST network.** LOVE9 here **has no real value**. It exists so you have something
+> to pay fees with while you experiment. Do not buy it, do not sell it, do not accept it as payment.
 
----
-
-## Trước khi bắt đầu — ba câu hỏi hay gặp
-
-**"Chain riêng" nghĩa là gì?**
-Một blockchain độc lập, có sổ cái riêng, đồng token riêng, luật phí riêng. Nó chạy trên hạ tầng
-của 9Chain-A1 nhưng dữ liệu và quyền quản trị là của bạn. Trong Avalanche người ta gọi nó là
-**L1**.
-
-**Tôi phải trả bao nhiêu?**
-Không đồng nào. Phí dựng chain do mạng trả. Bạn chỉ cần một ví.
-
-**Ai làm chủ chain?**
-Ví bạn ký ở bước 4. Địa chỉ chủ chain **lấy từ chữ ký**, không ai gõ tay — kể cả bạn. Chọn đúng
-ví ngay từ đầu, vì địa chỉ đó đi vào nền móng của chain và **không sửa được sau này**.
+> 🔴 **Chains created before 2026-09-01 will be erased.** The network is being rebuilt that day, and
+> every chain created on it disappears with it — including yours. This is not a risk, it is a
+> scheduled event we already know about, so we would rather you hear it here than discover it.
+> If you want to keep what you build, create it after the rebuild. A test network can be rebuilt
+> again; we will say so before it happens.
 
 ---
 
-## Bước 1 · Cài MetaMask
+## Before you start — three common questions
 
-MetaMask là ví tiền mã hoá dạng tiện ích trình duyệt. Nó giữ khoá của bạn và ký thay bạn.
+**What does "your own chain" mean?**
+An independent blockchain with its own ledger, its own token and its own fee rules. It runs on
+9Chain-A1's infrastructure, but the data and the control are yours. Avalanche calls this an **L1**.
 
-1. Vào **https://metamask.io** và cài tiện ích cho trình duyệt bạn đang dùng.
-2. Tạo ví mới, đặt mật khẩu.
-3. 🔴 **Chép 12 từ khôi phục ra giấy và cất kỹ.** Mất 12 từ đó là mất ví vĩnh viễn — không ai
-   khôi phục hộ được, kể cả 9Chain.
+**What does it cost?**
+Nothing. The network pays the fee to build it. All you need is a wallet.
 
-Đã có MetaMask rồi thì bỏ qua bước này.
+**Who owns the chain?**
+The wallet you sign with in Step 4. The owner address is **taken from your signature** — nobody
+types it, including you. Choose the right wallet from the start: that address goes into the chain's
+foundations and **cannot be changed afterwards**.
 
 ---
 
-## Bước 2 · Thêm mạng A1 vào ví
+## Step 1 · Install MetaMask
 
-Mặc định MetaMask chỉ biết Ethereum. Phải chỉ cho nó biết mạng A1 ở đâu.
+MetaMask is a crypto wallet that lives in your browser. It holds your keys and signs on your behalf.
 
-1. Mở **https://a1.9chain.org/faucet/**
-2. Bấm nút **"Add network to wallet"**
-3. MetaMask hiện hộp xác nhận → bấm **Approve**
+1. Go to **https://metamask.io** and install the extension for your browser.
+2. Create a new wallet and set a password.
+3. 🔴 **Write the 12 recovery words on paper and store them safely.** Lose them and the wallet is
+   gone for good — nobody can restore it for you, 9Chain included.
 
-Xong. **Đừng gõ tay các thông số** — một chữ số sai là nửa tiếng đi tìm.
+Already have MetaMask? Skip this step.
+
+---
+
+## Step 2 · Add the A1 network to your wallet
+
+Out of the box MetaMask only knows about Ethereum. You have to tell it where A1 is.
+
+1. Open **https://a1.9chain.org/faucet/**
+2. Click **"Add network to wallet"**
+3. MetaMask shows a confirmation box → click **Approve**
+
+Done. **Do not type the settings by hand** — one wrong digit costs half an hour of searching.
 
 <details>
-<summary>Nếu bạn vẫn muốn nhập tay (bấm để mở)</summary>
+<summary>If you would rather enter them manually (click to open)</summary>
 
-| Trường | Giá trị |
+| Field | Value |
 |---|---|
 | Network name | `9Chain Testnet A1` |
 | RPC URL | `https://rpc-a1.9chain.org/ext/bc/C/rpc` |
@@ -64,140 +71,148 @@ Xong. **Đừng gõ tay các thông số** — một chữ số sai là nửa ti
 
 </details>
 
-> 🔴 **Nếu bạn đã từng thêm mạng A1 từ trước:** xoá nó đi rồi thêm lại bằng nút ở trên. Cấu
-> hình cũ có thể trỏ vào địa chỉ `rpc-testnet-a1.9chain.org` — địa chỉ **đã ngừng hoạt động**.
-> Ví trỏ vào đó sẽ báo lỗi kết nối, trông y như mạng bị chết trong khi mạng vẫn chạy bình thường.
+> 🔴 **If you added the A1 network at some earlier point:** delete it and add it again with the
+> button above. The old configuration may point at `rpc-testnet-a1.9chain.org`, an address that
+> **no longer works**. A wallet pointing there reports a connection error that looks exactly like a
+> dead network, while the network is running perfectly well.
 
 ---
 
-## Bước 3 · Nhận token thử nghiệm
+## Step 3 · Get test tokens
 
-Bạn cần một ít LOVE9 để trả phí khi dùng chain sau này.
+You need a little LOVE9 to pay fees once you start using your chain.
 
-1. Vẫn ở trang **https://a1.9chain.org/faucet/**
-2. Chép địa chỉ ví của bạn từ MetaMask (chuỗi bắt đầu bằng `0x…`) và dán vào ô
-3. Bấm **"Send me tokens"**
+1. Stay on **https://a1.9chain.org/faucet/**
+2. Copy your wallet address from MetaMask (the string beginning `0x…`) and paste it into the box
+3. Click **"Send me tokens"**
 
-Token về ví trong vài giây. Nếu MetaMask hiện số 0, kiểm tra xem ví đang đứng ở mạng
-**9Chain Testnet A1** chưa — góc trên bên trái MetaMask.
+The tokens arrive in a few seconds. If MetaMask still shows zero, check that the wallet is on the
+**9Chain Testnet A1** network — top left in MetaMask.
 
-> **Vì sao ví hiện 18 số lẻ mà chỗ khác ghi 9?**
-> LOVE9 đếm 18 số lẻ trên C-Chain (nơi MetaMask nói chuyện) và 9 số lẻ trên hai chain còn lại
-> của mạng. **Một đồng, hai thang đo** — không phải hai loại token khác nhau.
-
----
-
-## Bước 4 · Tạo chain
-
-1. Mở **https://a1.9chain.org/create-chain/**
-
-   ⚠️ Nếu trang báo *"No wallet found in this browser"* thì bạn đang mở bằng trình duyệt chưa
-   có MetaMask. Quay lại bước 1. Form chỉ hiện ra sau khi ví kết nối — đó là thiết kế, không
-   phải lỗi.
-
-2. Bấm **"Connect wallet"** và chọn ví trong MetaMask.
-
-3. MetaMask hiện hộp **ký chữ ký**. Bấm ký.
-
-   Đây **không phải giao dịch**: không tốn phí, không chuyển tiền đi đâu. Nó chỉ chứng minh bạn
-   cầm khoá của ví đó.
-
-4. **Đặt tên chain.** Tên phải chưa ai dùng. Nếu trùng, trang sẽ báo và bạn đổi tên khác.
-
-5. **Chọn một cấu hình** trong sáu cái ở bảng dưới. Chưa chắc thì chọn `standard`.
-
-6. Bấm nút tạo, rồi **chờ khoảng ba phút**. Mạng phải dựng chain và khởi động lại node để nó
-   bắt đầu phục vụ chain của bạn.
-
-> 🔴 **Nếu trình duyệt báo lỗi `524` hoặc "hết thời gian chờ" — ĐỪNG bấm lại.**
-> Việc dựng chain mất khoảng 170 giây, còn lớp bảo vệ phía trước cắt kết nối ở khoảng 100 giây.
-> Chain của bạn **vẫn đang được dựng bình thường**. Chờ thêm hai phút rồi mở
-> **https://a1.9chain.org/chains/** — nếu chain của bạn có trong danh sách thì nó đã xong.
-> Bấm tạo lại chỉ tạo ra chain thứ hai.
+> **Why does my wallet show 18 decimals when elsewhere it says 9?**
+> LOVE9 uses 18 decimals on the C-Chain, which is the one MetaMask talks to, and 9 decimals on the
+> network's other two chains. **One coin, two scales** — not two different tokens.
 
 ---
 
-## Sáu cấu hình — chọn cái nào
+## Step 4 · Create the chain
 
-| Cấu hình | Dành cho ai | Đánh đổi |
+1. Open **https://a1.9chain.org/create-chain/**
+
+   ⚠️ If the page says *"No wallet found in this browser"*, you have opened it in a browser without
+   MetaMask. Go back to Step 1. The form only appears after a wallet connects — that is the design,
+   not a fault.
+
+2. Click **"Connect wallet"** and choose your wallet in MetaMask.
+
+3. MetaMask asks you to **sign a message**. Sign it.
+
+   This is **not a transaction**: it costs nothing and moves nothing. It only proves you hold the
+   key to that wallet.
+
+4. **Name your chain.** The name has to be unused. If it is taken, the page says so and you pick
+   another. Capitalisation does not make a name free: `MyChain` and `mychain` count as the same name.
+
+5. **Pick one of the six configurations** from the table below. If unsure, choose `standard`.
+
+6. Press the create button, then **wait about three minutes**. The network has to build the chain
+   and restart its nodes so they begin serving it.
+
+> 🔴 **If your browser shows error `524` or "timed out" — DO NOT press the button again.**
+> Building a chain takes roughly 170 seconds, and the protection layer in front cuts the connection
+> at around 100. Your chain **is still being built normally**. Wait another two minutes, then open
+> **https://a1.9chain.org/chains/** — if your chain is in the list, it finished.
+> Pressing create again only produces a second chain.
+
+---
+
+## The six configurations — which one
+
+| Configuration | Who it is for | The trade-off |
 |---|---|---|
-| **standard** | Hầu hết mọi người. Chain EVM thường; bạn nhận toàn bộ token khởi tạo và quyền đổi phí | Không có gì đặc biệt |
-| **zero-fee** | Game, thử nghiệm, chain nội bộ. Phí gần như bằng 0 | Gần như không có gì cản spam |
-| **high-throughput** | Ứng dụng nhiều giao dịch nhỏ, liên tục. Gấp 5 lần số giao dịch mỗi block | Block nặng hơn; ai chạy node cho chain này cần máy mạnh hơn |
-| **mintable** | Khi bạn cần in thêm token về sau | ⚠️ **Tổng cung không cố định.** Ai dùng chain của bạn đều phải được cho biết điều này |
-| **owner-deploy-only** | Chain mà chỉ bạn được đưa hợp đồng lên | Người khác vẫn gửi giao dịch và dùng hợp đồng sẵn có được |
-| **permissioned** | Chain nội bộ công ty | ⚠️ Chặt nhất: chỉ địa chỉ trong danh sách mới **gửi** được giao dịch |
+| **standard** — *Standard* | Most people. A plain EVM chain; you receive every genesis token and the right to change fees | Nothing special |
+| **zero-fee** — *Near-zero fees* | Games, experiments, internal chains. Fees are effectively zero | Almost nothing stands in the way of spam |
+| **high-throughput** — *High throughput* | Apps with a steady stream of small transactions. Five times as many transactions per block | Heavier blocks; whoever runs a node for this chain needs a stronger machine |
+| **mintable** — *Mintable supply* | When you need to issue more tokens later | ⚠️ **The supply is not fixed.** Anyone using your chain has to be told this |
+| **owner-deploy-only** — *Owner-only contract deployment* | A chain where only you may deploy contracts | Everyone else can still send transactions and use existing contracts |
+| **permissioned** — *Permissioned* | An internal company chain | ⚠️ The strictest one: only listed addresses can **send** transactions at all |
 
-**Bạn không chọn số hiệu chain (chainId).** Mạng tự cấp số trống đầu tiên. Bạn chọn **tên** và
-**cấu hình**, thế thôi.
-
----
-
-## Bước 5 · Thêm chain của bạn vào MetaMask
-
-Tạo xong, trang hiện thông tin chain. Hai thứ bạn cần:
-
-- **RPC** — địa chỉ chain của bạn
-- **Chain ID** — số hiệu chain của bạn
-
-Vào MetaMask → *Settings → Networks → Add network → Add a network manually*, điền hai giá trị
-đó, đặt tên chain và ký hiệu token tuỳ ý.
-
-Bây giờ ví bạn có **hai** mạng: mạng A1 (để lấy token, tạo chain) và **chain của riêng bạn**.
-Chuyển qua lại bằng menu ở góc trên bên trái MetaMask.
+**You do not choose the chain number (chainId).** The network assigns the first free one. You choose
+a **name** and a **configuration**, and that is all.
 
 ---
 
-## 🔴 Giao dịch đầu tiên trên chain mới — đọc trước khi thử
+## Step 5 · Add your chain to MetaMask
 
-Chain vừa sinh ra chưa có block nào ngoài block gốc, và điều đó làm **phép ước lượng phí bị
-sai**. Hậu quả: giao dịch đầu tiên của bạn sẽ **hết phí giữa chừng và thất bại mà không báo lý
-do** — trông hệt như "chức năng này không được bật". Từ block thứ hai trở đi mọi thứ bình
-thường.
+Once it is built, the page shows your chain's details. Two of them matter:
 
-**Cách đi qua nó:** giao dịch đầu tiên hãy là một lần **chuyển tiền thường** (gửi một ít LOVE9
-từ ví bạn sang chính ví bạn cũng được). Loại giao dịch này tốn đúng 21 000 đơn vị phí, cố định,
-không cần ước lượng. Sau đó deploy hợp đồng hay gọi chức năng gì cũng chạy bình thường.
+- **RPC** — the address of your chain
+- **Chain ID** — your chain's number
 
-Nếu buộc phải làm việc khác trước, đặt giới hạn phí thủ công **300 000**.
+In MetaMask go to *Settings → Networks → Add network → Add a network manually*, enter those two
+values, and give the network and its token whatever name and symbol you like.
+
+Your wallet now has **two** networks: A1 itself, for getting tokens and creating chains, and **your
+own chain**. Switch between them from the menu at the top left of MetaMask.
 
 ---
 
-## Sự cố thường gặp
+## 🔴 The first transaction on a new chain — read this before you try
 
-| Bạn thấy | Nguyên nhân | Cách xử lý |
+A newly created chain has no blocks except its first, and that makes **fee estimation wrong**. The
+consequence: your first transaction **runs out of fee partway through and fails without giving a
+reason** — it looks exactly like "this feature is not enabled". From the second block onwards
+everything behaves normally.
+
+**How to get past it:** make your first transaction an ordinary **transfer** — sending a little
+LOVE9 from your wallet to your own wallet is fine. That kind of transaction costs exactly 21,000
+fee units, fixed, with nothing to estimate. After that, deploying contracts and calling functions
+all work normally.
+
+If you must do something else first, set the fee limit manually to **300,000**.
+
+---
+
+## Common problems
+
+| What you see | Why | What to do |
 |---|---|---|
-| Trang tạo chain không có ô nào để điền | Chưa cài MetaMask, hoặc chưa kết nối ví | Cài MetaMask, tải lại trang, bấm *Connect wallet* |
-| Ví hiện số dư 0 sau khi xin token | Ví đang đứng ở mạng khác | Chuyển sang mạng *9Chain Testnet A1* ở góc trên bên trái |
-| Ví báo lỗi kết nối mạng | Cấu hình cũ trỏ vào địa chỉ đã ngừng hoạt động | Xoá mạng A1 trong ví, thêm lại bằng nút ở bước 2 |
-| Lỗi `524` khi tạo chain | Chain vẫn đang dựng, chỉ là trình duyệt hết kiên nhẫn | **Đừng bấm lại.** Chờ 2 phút, xem `/chains/` |
-| Giao dịch đầu tiên thất bại, không rõ lý do | Ước lượng phí sai ở block đầu | Xem mục ngay phía trên |
-| Trang danh bạ chưa thấy chain của bạn | Chain chưa lên xong | Chờ thêm một phút rồi tải lại |
+| The create page has no fields to fill in | MetaMask is not installed, or the wallet is not connected | Install MetaMask, reload, click *Connect wallet* |
+| Wallet shows a balance of 0 after using the faucet | The wallet is on a different network | Switch to *9Chain Testnet A1*, top left |
+| Wallet reports a network connection error | Old configuration pointing at an address that no longer works | Delete the A1 network in your wallet and add it again with the button in Step 2 |
+| Error `524` while creating a chain | The chain is still being built; the browser simply ran out of patience | **Do not press again.** Wait 2 minutes, check `/chains/` |
+| First transaction fails with no reason given | Fee estimation is wrong on the first block | See the section just above |
+| Your chain is not in the directory yet | It has not finished coming up | Wait another minute and reload |
 
 ---
 
-## Từ vựng — đủ để hiểu hết trang này
+## Vocabulary — enough to read this whole page
 
-| Từ | Nghĩa |
+| Term | Meaning |
 |---|---|
-| **Ví (wallet)** | Phần mềm giữ khoá của bạn và ký thay bạn. Ở đây là MetaMask |
-| **Địa chỉ** | Chuỗi bắt đầu bằng `0x…`. Giống số tài khoản — chia sẻ được, an toàn |
-| **Khoá / 12 từ khôi phục** | Thứ mở được ví. **Không bao giờ đưa cho ai**, kể cả người tự xưng là 9Chain |
-| **Phí (gas)** | Chi phí mỗi giao dịch, trả bằng token của mạng |
-| **Faucet** | Vòi cấp token miễn phí trên mạng thử nghiệm |
-| **Testnet** | Mạng thử nghiệm. Token không có giá trị thật |
-| **L1** | Một blockchain độc lập — thứ bạn sắp tạo |
-| **Chain ID** | Số hiệu để ví phân biệt các mạng với nhau |
-| **RPC** | Địa chỉ mà ví gọi tới để nói chuyện với một mạng |
-| **Explorer** | Trang tra cứu block và giao dịch. Của A1 là 9Scan-A1 |
+| **Wallet** | Software that holds your keys and signs for you. Here, MetaMask |
+| **Address** | A string beginning `0x…`. Like an account number — safe to share |
+| **Key / 12 recovery words** | What opens the wallet. **Never give them to anyone**, including someone claiming to be 9Chain |
+| **Fee (gas)** | What each transaction costs, paid in the network's token |
+| **Faucet** | A tap that hands out free tokens on a test network |
+| **Testnet** | A test network. Its tokens have no real value |
+| **L1** | An independent blockchain — the thing you are about to create |
+| **Chain ID** | The number a wallet uses to tell networks apart |
+| **RPC** | The address a wallet calls to talk to a network |
+| **Explorer** | A site for looking up blocks and transactions. A1's is 9Scan-A1 |
 
 ---
 
-## Còn thắc mắc
+## Still stuck
 
-- Danh bạ mọi chain đang chạy: **https://a1.9chain.org/chains/**
-- Tra cứu block và giao dịch: **https://a1.9scan.org**
-- Trang chủ mạng: **https://a1.9chain.org**
+- Directory of every running chain: **https://a1.9chain.org/chains/**
+- Look up blocks and transactions: **https://a1.9scan.org**
+- Network home page: **https://a1.9chain.org**
 
-🔴 **Nhắc lại một lần nữa:** đây là mạng thử nghiệm. Token không có giá trị. Đừng gửi tài sản
-thật vào đây, và đừng bao giờ đưa 12 từ khôi phục cho bất kỳ ai.
+🔴 **Once more:** this is a test network. The tokens have no value. Do not send real assets here,
+and never give your 12 recovery words to anyone.
+
+---
+
+<sub>This English text is the **source** for every other translation of this page. Vietnamese:
+[`CREATE-A-CHAIN.vi.md`](CREATE-A-CHAIN.vi.md). Translate from this file, not from a translation.</sub>
