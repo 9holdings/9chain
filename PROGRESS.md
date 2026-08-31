@@ -1443,7 +1443,28 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
 
 - [human] **`cChainAddress`** — vĩnh viễn, netgen cố ý không có mặc định. **Chặn bộ khắc.**
 - [human] **Xác nhận bỏ `ASV 1901` cho g1** (D-132 giải thích vì sao không tự đóng băng).
-- [human] Điều kiện qua **4 & 5**: GitHub repo rỗng (5 phút) · `docs/RUN-A-VALIDATOR.md` — [ ] A1 viết.
+- [x] **G-2 — `docs/RUN-A-VALIDATOR.md` ĐÃ VIẾT** (điều kiện qua số 5). Tiếng **Anh** — người đọc
+      là cộng đồng quốc tế, đúng lý do §0 tồn tại. 11 chỗ `FILL-ON-G-DAY` (sha256 genesis · nodeID
+      + `IP:port` beacon · `A1_COMMIT` · kênh liên hệ · nguồn 25.000 LOVE9); **cổng xuất bản:**
+      `grep -c FILL-ON-G-DAY` phải `= 0`.
+      🔴 **Viết nó lộ ra chỗ hở lớn nhất của điều kiện 5** — xem mục ngay dưới.
+- [human] Điều kiện qua **4**: GitHub repo rỗng (5 phút).
+- [human] 🔴 **MỞ CỔNG STAKING TRÊN MỌI NODE, không chỉ beacon — nếu không, KHÔNG người ngoài nào
+      validate được.** `scripts/open-p2p-all-nodes.py` xuất hiện **0 lần** trong `gday-preflight.mjs`
+      và **0 lần** trong `docs/TESTNET1-PUBLIC-2026-09-01.md`. Chế độ `ipv4port` của netgen chỉ cho
+      **beacon** khai địa chỉ công khai (patch 0024/D-089), và **D-118b đã đo cái giá**: node ngoài
+      học địa chỉ 8 node kia qua gossip, chúng khai `172.28.0.x` ⇒ với tới **1/9 validator (~11%)**,
+      mà bootstrap đòi **80%**, stake đòi bootstrap ⇒ **vòng khép, không có đường ra bằng cấu hình**.
+      Ngày G hình dạng là beacon + node9 Hetzner công khai, bảy node nội bộ ⇒ **~22%**, vẫn xa 80%.
+      ⚠️ **Thứ tự quan trọng:** lên mạng bằng mặc định netgen TRƯỚC (mesh hình thành qua địa chỉ nội
+      bộ), rồi mới mở cổng, recreate **từng node một** — D-089 đo mesh teo thành hình sao khi mọi
+      node khai IP công khai lúc **SINH** mạng; D-118c đo **không** teo khi làm với mesh đã có và
+      `--bootstrap-ips` vẫn nội bộ. Nghiệm thu **trên chain**: một node **không phải beacon** thấy
+      node ngoài trong `info.peers`, và node ngoài `healthy: true` với P+C bootstrapped.
+- [human] 🔴 **Người ngoài lấy 25.000 LOVE9 ở đâu để stake?** Faucet cấp **10 LOVE9** mỗi lượt,
+      có hạn mức ⇒ **không phải đường chậm, mà là không có đường**. Trên g0, D-119 nạp từ quỹ
+      Foundation. Tài liệu validator nói thẳng điều này thay vì để người ta dựng node một tuần rồi
+      mới phát hiện — nhưng **kênh xin cấp thì chưa tồn tại**.
 - [human] **B-16** bản sao khoá quỹ sang máy thứ hai. Hôm nay là cửa sổ tập **rủi ro bằng không**.
 - [human] **B-20** — gói `h6b` vừa dựng, qua cả 4 phép nghiệm thu của chính nó, chứa **0
       `staker.key` · 0 `signer.key` · 0 `genesis.json`**. Đếm tệp mới là phép đo; đọc dòng
