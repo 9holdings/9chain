@@ -1402,6 +1402,24 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       ⚠️ Ảnh David gửi là **bản WEB** của trang này — nằm ở worktree `web-home`, **luật cứng #4**,
       phiên này **không đụng**. Sửa bản web là việc của phiên đó.
 
+- [x] **D-134 — quét toàn diện trước giờ G** (`d9f636a` · `dcfd4e2`). David: *"đưa lên bản chuẩn
+      nhất, sạch nhất, mọi lịch sử bắt đầu từ giờ G."*
+      🔴 **Hằng số neo vào thế hệ là một LỚP lỗi:** cùng literal `999999998`/`999999999` chép cứng
+      ở **ba** tệp cổng. Nặng nhất: `wallet-over-tunnel.mjs` — công cụ **ký bằng khoá quỹ** — mặc
+      định networkID là **g0 đã chết**, và ca đối chứng của nó đang **đòi mạng SỐNG bị từ chối**.
+      Cả ba nay **suy ra** từ `A1_GEN`/`A1_ID_GOC`. `check-keys-on-chain --self-test` **5/5 đỏ**.
+      🔴 **README khai ba điều SAI**, nặng nhất: *"25 patch, tree `f2b9486b`"* — thật ra **26 /
+      `60a61707`**; `f2b9486b` là tree của **đối chứng**. Người ngoài làm theo sẽ **khớp một hash
+      đã công bố và build ra binary sai**. Nay **tiếng Anh là bản nguồn**, VI sang `README.vi.md`.
+      Bỏ bảng chép tay thư mục `net*` (bản chép cứng đầu ra của một cổng + bản đồ chỗ giữ tiền).
+      🔴 **"Lịch sử bắt đầu từ giờ G" KHÔNG áp cho `chainid-issued.json`** (49 chainId · 54 tên):
+      đó là danh sách chặn **xuyên thế hệ**; reset = thả 54 tên trở lại lưu thông và mở đường phát
+      lại chữ ký. Ba thứ phải qua ngày G **nguyên vẹn**: sổ này · `patches/` · `docs/evidence/**`.
+      🔴 **Ba việc là quyết định của David:** (a) `main:web/lib/chain.ts` khai `networkId: 9001`
+      — luật cứng #4 cấm phiên này sửa ⇒ merge `web-home` hoặc gỡ `web/` khỏi bản công bố;
+      (b) repo công khai **công bố cả sổ nội bộ** (quét khoá = **0**, nên đây là lựa chọn chứ không
+      phải sự cố); (c) đẻ chain **đang MỞ**, chain đẻ hôm nay **chết ngày mai**.
+
 ### Cổng — preflight offline **14 → 20**, và một cổng đã ĐỎ suốt một ngày
 
 - [x] **`check-net-dirs --self-test` đang ĐỎ từ lượt bump `A1Gen 0→1`** (`30/08`): một ca đối
