@@ -5131,3 +5131,48 @@ lần **đo được trên sản phẩm**.
 🔴 **Mở bằng TAY, không mở bằng đồng hồ** — một cổng tự mở theo mốc thời gian sẽ mở **kể cả khi
 ngày G trượt**, tức đúng lúc điều kiện nó đang canh chưa thoả. Trước khi mở: đẩy
 `chainid-issued.json` (49 · 54) lên server.
+
+### D-135b — đẩy `chainid-issued.json` lên server (`31/08`, ngay sau khi đóng cổng)
+
+David: *"đẩy chainid-issued.json lên server luôn đi."*
+
+🔴 **Phép kiểm phải chạy TRƯỚC, không phải sau:** đẩy một sổ chặn **thiếu mục** là tự tay mở lại
+đúng cái lỗ nó bịt. Nên câu hỏi không phải *"bản mới có mới hơn không"* mà *"bản mới có CHỨA TRỌN
+bản cũ không"*:
+
+```
+chainIds: server 47 → repo 49   · sẽ MẤT: không có gì · thêm: 9000000010, 9000000011
+names   : server 53 → repo 54   · sẽ MẤT: không có gì · thêm: Eric1
+```
+
+⚠️ **Tên chỉ +1 trong khi chain là +2 — và đó ĐÚNG, không phải mất bản ghi.** `loiTenDaCap` tra
+bằng khoá **đã hạ về chữ thường**, nên một cách viết chặn mọi cách viết. Đo trên đúng bộ byte vừa
+đẩy: `Eric1` · `eric1` · `ERIC1` · `  eRiC1  ` → **đều bị từ chối**, cùng khớp về `"Eric1"`; một
+tên chưa ai dùng → **vẫn tự do**.
+
+| Bước | |
+|---|---|
+| Sao lưu | `.bak-20260831` (hash cũ `c8fd48c8…`) |
+| Đẩy | `scp` — server nay `d1e20037…`, **trùng byte** với repo |
+| Nạp | `console-restart.sh` — **PID 1143490 → 1145349**; banner: `sổ A1 đã cấp: 49 chainId · 54 tên (gộp từ 5 sổ)` |
+| Dọn | 🔴 **xoá `.bak`**: bộ byte cũ **tra được trong git** (`d360d33b`), nên bản sao chỉ còn là **đường lui trỏ vào một danh sách chặn YẾU HƠN** — đúng thứ D-092b/D-098 cấm để lại. Ba bước: **LIỆT KÊ → XOÁ → ĐỐI CHỨNG** (`No such file`), sổ sống không suy suyển |
+
+Cổng drift: `chainid-issued.json` rời khỏi danh sách **LỆCH**, mồ côi **5 → 4** (bốn cái còn lại
+có từ trước). Cổng đẻ chain vẫn `🔒 ĐÓNG`; ba mặt công khai vẫn **200**.
+
+🔴 **Nói rõ giới hạn của phép đo này:** cửa đang đóng nên **không thể** nghiệm thu việc chặn tên
+qua `/api/create` — cổng đóng trả lời trước khi tới phép kiểm tên. Thứ chứng minh được là chuỗi ba
+khâu: **byte đã chứng minh là chặn đủ mọi cách viết** → **byte trên server trùng khít** → **console
+đã nạp đúng bộ đó** (banner đếm 49 · 54). Muốn đo thẳng thì phải chờ lượt mở lại sau ngày G.
+
+### 🔴 Còn 7 tệp mã LỆCH giữa repo và server — và một cái đã được hứa ra công chúng
+
+`local-net/lib/chainid.mjs` (repo `A1_GEN = 1`, server `0` — **đúng cho hôm nay**, phải đẩy ngày G) ·
+`console/server.mjs` · `console/index.html` · `console/chainid-test.mjs` · `lib/guard.mjs` ·
+`faucet/server.mjs` · `scripts/export-chain.mjs`.
+
+⚠️ **`docs/CREATE-A-CHAIN.md` đang hứa một hành vi server CHƯA CÓ:** nó nói với người đọc rằng
+`MyChain` và `mychain` tính là **cùng một tên**. Điều đó thành thật trong `server.mjs` ngày `31/08`,
+sau khi một người dùng thật đẻ `Eric1` rồi `eric1` cách nhau chín phút — nhưng bản vá **vẫn nằm
+trong repo**. Ship console trước khi tài liệu đó tới tay ai, nếu không tài liệu đang mô tả một sản
+phẩm không tồn tại (D-083).

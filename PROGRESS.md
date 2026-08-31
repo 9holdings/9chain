@@ -1431,6 +1431,18 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       🔴 **Lộ ra:** server đang chạy sổ chặn **47 · 53**, repo là **49 · 54** — thiếu đúng hai
       chainId của Eric. Vô hại khi cửa đóng; **phải đẩy lên TRƯỚC khi mở lại sau ngày G.**
 
+- [x] **D-135b — đã đẩy `chainid-issued.json` lên server** (`31/08`). Kiểm **TRƯỚC** khi đẩy:
+      repo **chứa trọn** server (`sẽ MẤT: không có gì`; thêm `9000000010`, `9000000011`, `Eric1`).
+      Tên chỉ +1 vì `loiTenDaCap` tra bằng khoá **chữ thường** — đo trên đúng bộ byte vừa đẩy:
+      `Eric1`/`eric1`/`ERIC1`/`  eRiC1  ` **đều bị từ chối**, tên chưa dùng **vẫn tự do**.
+      `scp` ⇒ server `d1e20037…` **trùng byte** repo; restart **PID 1143490 → 1145349**; banner
+      **`49 chainId · 54 tên (gộp từ 5 sổ)`**. Xoá `.bak` (bộ byte cũ tra được ở `d360d33b`, giữ
+      lại là **đường lui vào danh sách chặn YẾU HƠN** — D-092b/D-098): LIỆT KÊ → XOÁ → ĐỐI CHỨNG.
+      Drift: `chainid-issued.json` rời danh sách LỆCH, mồ côi **5 → 4**. Cửa vẫn `🔒 ĐÓNG`.
+      🔴 **Giới hạn:** cửa đóng nên **không đo thẳng** được việc chặn tên qua `/api/create`.
+      🔴 **Còn 7 tệp mã LỆCH**, trong đó `CREATE-A-CHAIN.md` **đang hứa** `MyChain`=`mychain` mà
+      `server.mjs` trên server **chưa có bản vá đó** — ship console trước khi tài liệu tới tay ai.
+
 ### Cổng — preflight offline **14 → 20**, và một cổng đã ĐỎ suốt một ngày
 
 - [x] **`check-net-dirs --self-test` đang ĐỎ từ lượt bump `A1Gen 0→1`** (`30/08`): một ca đối
