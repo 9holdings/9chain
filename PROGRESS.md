@@ -1420,6 +1420,17 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       (b) repo công khai **công bố cả sổ nội bộ** (quét khoá = **0**, nên đây là lựa chọn chứ không
       phải sự cố); (c) đẻ chain **đang MỞ**, chain đẻ hôm nay **chết ngày mai**.
 
+- [x] **D-135 — ĐÓNG cổng đẻ chain trên SẢN PHẨM** (`31/08`, David chốt). `A1_DE_CHAIN_MO=1 → 0`
+      trong `~/9chain-a1/console.env` (sao lưu `console.env.bak-before-close-20260831`; `diff` ra
+      **đúng 2 dòng**, `wc -l` 16 → 16), khởi động lại bằng `~/9chain-a1/console-restart.sh` —
+      **PID 751090 → 1143490**, tức bản mới thật sự đang phục vụ, không phải bản cũ còn giữ cổng.
+      **Nghiệm thu trên đường người dùng đi** (`POST /console/api/create` qua Cloudflare + Caddy):
+      **HTTP 400** kèm **văn bản của chính cái cổng**, không phải lỗi tên / 401 / hạn mức ⇒ đỏ **vì
+      đúng lý do**. Gửi tên **không hợp lệ** để dù kết quả thế nào cũng **không đẻ ra chain thật**.
+      Bốn mặt công khai vẫn 200; node vẫn `networkID 999999999`; **thu hồi không bị chặn** (cố ý).
+      🔴 **Lộ ra:** server đang chạy sổ chặn **47 · 53**, repo là **49 · 54** — thiếu đúng hai
+      chainId của Eric. Vô hại khi cửa đóng; **phải đẩy lên TRƯỚC khi mở lại sau ngày G.**
+
 ### Cổng — preflight offline **14 → 20**, và một cổng đã ĐỎ suốt một ngày
 
 - [x] **`check-net-dirs --self-test` đang ĐỎ từ lượt bump `A1Gen 0→1`** (`30/08`): một ca đối
