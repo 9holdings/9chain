@@ -1,0 +1,10 @@
+{
+  "rpc": "/ext/bc/2vwXkbjsRXA47DhjJvYXoo9BFYUg3d1An7Z6Uo9PAdbzgSNEus/rpc",
+  "chainId": "0x218711a0a",
+  "chainIdThập": 9000000010,
+  "blockNumber": "0x0",
+  "blockNumberThập": 0,
+  "blocksExported": 1,
+  "complete": true,
+  "hashBlockCuoi": "0xf42f573428e8e381baf35ec114e96588e6fb64e37818ced79253ffcea49acc42"
+}
