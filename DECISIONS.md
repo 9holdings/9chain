@@ -5662,3 +5662,68 @@ Số dư admin trên L1: `0x295be96e64066972000000` = **50.000.000 token** — �
    mình mong**. ⇒ **Luôn đọc `xAddr` trước khi tin số dư.**
 2. **Image node không có `ps`/`pkill`** — không dừng được tiến trình bên trong bằng cách thường.
    Dùng cổng khác, hoặc restart container.
+
+---
+
+## D-141 — Hai phát hiện nữa từ bản diễn tập: **chainId trùng trên đường CLI**, và **cái bẫy giao dịch đầu tiên KHÔNG tái hiện** (2026-08-31)
+
+### 1 · 🔴 `make-l1-genesis.mjs` TRA sổ nhưng KHÔNG GHI LẠI ⇒ chỉ an toàn ĐÚNG MỘT LẦN
+
+Đẻ L1 thứ hai trên bản diễn tập, cách lượt đầu vài phút:
+
+```
+L1 #1  chainId 9001000000
+L1 #2  chainId 9001000000   ← TRÙNG
+```
+
+**Cơ chế:** hàm đọc `chainid-taken.json` + `chainid-issued.json` rồi chọn số **rảnh đầu tiên** —
+đúng luật. Nhưng **không có gì ghi lựa chọn đó trở lại**. Console an toàn vì **chính nó** ghi chain
+vào `console-chains.json`; **đường CLI không có bước tương đương**.
+
+**Hậu quả không nằm ở máy này:** với MetaMask, hai chain cùng `chainId` là **MỘT mạng**; và EIP-155
+buộc chữ ký vào `chainId`, nên **giao dịch ký cho chain này phát lại được trên chain kia**. Đó đúng
+là lỗ D-069 sinh ra để bịt, trên **đường nó không phủ**.
+
+**Đã sửa (nhỏ, an toàn, hợp triết lý "hỏng thì hỏng TO"):** lượt tự chọn nay **cảnh báo lớn** rằng
+số đó **được CHỌN chứ không được GIỮ CHỖ**, và bảo người dùng đi qua console hoặc khai `--chain-id`.
+Đối chứng đã chạy: tự chọn ⇒ **có** cảnh báo · khai tay ⇒ **không** cảnh báo · chạy hai lần ⇒
+**cùng một số**, đúng điều cảnh báo nói. `--self-test` **13/13**.
+
+⚠️ **Chưa sửa tận gốc** (ghi ngược vào sổ) — việc đó đụng thiết kế sổ, không làm vào hôm trước ngày G.
+
+### 2 · 🔴 "Cái bẫy giao dịch đầu tiên" — đo trên chain mới toanh, **KHÔNG tái hiện**
+
+`docs/CREATE-A-CHAIN.md` **hứa với người dùng**: chain mới sinh có mỗi block đầu ⇒ **ước lượng phí
+sai** ⇒ *"giao dịch đầu tiên hết phí giữa chừng và fail mà không nêu lý do"*, và cách lách là gửi
+một lượt chuyển thường trước.
+
+Đo trên **L1 #2, block 0, chưa có giao dịch nào**:
+
+| | |
+|---|---|
+| `eth_estimateGas` **tại block 0** | **56.070** |
+| Thực dùng | **55.270** |
+| ⇒ | ước lượng **đúng và dư 1,4%**, không phải thiếu |
+| Ca 1 — giao dịch ĐẦU TIÊN là deploy hợp đồng (cần ước lượng) | ✅ **THÀNH CÔNG** |
+| Ca 2 — chuyển thường 21.000 | ✅ thành công |
+| Ca 3 — deploy lại sau khi đã có block | ✅ thành công |
+| Ca 4 — deploy với trần 300.000 như tài liệu khuyên | ✅ thành công |
+
+⇒ **Cơ chế mà tài liệu quy kết không xảy ra ở thế hệ này.**
+
+⚠️ **Giới hạn của phép đo, nói rõ:** một preset (`standard`), một hợp đồng **rất nhỏ**, trên **băng
+TẬP**. Điều đó **chưa đủ để xoá** cảnh báo khỏi tài liệu công khai: xoá nhầm là đẩy người dùng trở
+lại một cái bẫy thật. Nhưng để nguyên cũng có giá — tài liệu đang bảo người ta rằng **giao dịch đầu
+tiên của họ sẽ hỏng**, và điều đó làm sản phẩm trông như đang lỗi.
+
+⇒ **Việc cần David quyết, KHÔNG chặn ngày G:** đo lại đúng phép này trên **L1 thật đầu tiên sau giờ
+G**, rồi mới quyết giữ / sửa / bỏ đoạn đó. Tôi **không tự sửa tài liệu công khai dựa trên một lượt
+diễn tập**.
+
+### 3 · Bài kiểm đầu tiên của tôi SAI, và cái sai đó suýt thành "phát hiện"
+
+Lượt đầu, ca 2–4 trả `nonce has already been used` — tôi để `ethers` tự lấy nonce sau khi ca 1 vừa
+tiêu một nonce. **Lỗi ở bài kiểm, không ở chain**, và nó đúng bằng cái bẫy đã ghi cho
+`load-test.mjs` (đồng bộ bằng `latest`). Nếu đọc vội, ba ca đỏ đó thành *"chain hỏng"*.
+⇒ Bài kiểm nay **quản nonce tường minh**, và cả bốn ca mới hợp lệ.
+**Một bài kiểm không phân biệt được lỗi của chính nó với hành vi của thứ nó đo thì không chứng minh gì.**

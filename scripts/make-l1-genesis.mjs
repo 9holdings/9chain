@@ -107,6 +107,7 @@ function main() {
   }
 
   const template = JSON.parse(readFileSync(TEMPLATE, "utf8"));
+  let autoPicked = false;
   let chainId = flag("--chain-id");
   if (chainId) {
     chainId = Number(chainId);
@@ -115,6 +116,16 @@ function main() {
     let ledgers;
     try { ledgers = loadLedgers(); } catch (e) { console.error(`🔴 ${e.message}`); return 1; }
     chainId = capChainIdTuDong(ledgers.everIssued, ledgers.publiclyTaken, GOC_DAI_CHAINID, TRAN_DAI_CHAINID);
+    // 🔴 THE PICK IS NOT RECORDED ANYWHERE, so it is only safe ONCE.
+    //
+    // Measured on the g1 drill, 2026-08-31: two L1s created back to back through the CLI both
+    // received chainId 9001000000. This function reads the ledgers but nothing writes the
+    // result back — the console is safe because IT records the chain in console-chains.json,
+    // and this path has no equivalent. Two chains sharing a chainId are ONE network to
+    // MetaMask, and EIP-155 binds a signature to the chainId, so a transaction signed for one
+    // replays on the other. That is the hazard D-069 exists to prevent, on the path it does
+    // not cover. Warn loudly rather than hand back a quietly-colliding number.
+    autoPicked = true;
   }
   if (chainId === 9100) {
     console.error("🔴 REFUSING chainId 9100 — taken in the public registry by 'Genesis Coin' (B-14).");
@@ -126,6 +137,15 @@ function main() {
   console.log(`  L1 genesis written: ${out}`);
   console.log(`    chainId : ${chainId}`);
   console.log(`    admin   : ${admin}${admin.toLowerCase() === EWOQ.toLowerCase() ? "  ⚠️ EWOQ — throwaway chains only" : ""}`);
+  if (autoPicked) {
+    console.warn("");
+    console.warn("🔴 THIS chainId WAS PICKED, NOT RESERVED — running this command again returns THE SAME");
+    console.warn("   NUMBER. Nothing here writes the pick back to a ledger, so a second CLI-created L1");
+    console.warn("   collides with the first. To MetaMask two chains sharing a chainId are ONE network,");
+    console.warn("   and under EIP-155 a signature made for one replays on the other.");
+    console.warn("   ⇒ Create user chains through the console (it records them), or pass --chain-id");
+    console.warn("     explicitly and keep your own record. Measured on the g1 drill, 2026-08-31.");
+  }
   return 0;
 }
 
