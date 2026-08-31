@@ -1483,6 +1483,26 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       ⇒ Không còn nguy cơ *"bump ở cây làm việc mà bộ patch công bố vẫn khai `A1Gen 0`"* (CLAUDE.md
       luật cứng 3). **Còn 34 việc tay, không phải 36.**
 
+- [x] 🔴 **D-142 — TỔNG DUYỆT TRÊN BĂNG THẬT** (networkID `999999998`), rồi shred ngay (`31/08`).
+      David: *"chạy lại chain chính luôn xem như diễn tập chain chính."* Câu đó có **hai cách đọc**;
+      tôi đọc là **cấu hình chain chính, vẫn trên máy dev**. **Không đụng máy chủ** — g0 còn sống tới
+      giờ G, `down -v` sớm 15 tiếng là mất g0 mà chưa có gì thay.
+      🔴 Chạy ở băng thật = **tự đẻ ra con mồi nhử `net-that-g0`** (D-110). Trả giá bằng: tên thư mục
+      không thể nhầm · **shred ngay trong phiên** · **tháo ngòi** (xoá `genesis.json`+`allocation.md`
+      ⇒ `check-net-dirs` chấm `INCONCLUSIVE`, nó **không còn tự khai là băng thật**).
+      **Đối chứng ngược chạy TRƯỚC:** `A1_HTTP_ALLOWED_HOSTS='*'` ⇒ **FATAL**, và thông báo tự nói
+      *"mạng TẬP không bị chặn"* — cổng **phân biệt được hai băng**, không chặn bừa.
+      **Đo:** binary `commit=…g1-26patch-60a61707` · **networkID 999999998** · **9/9 validator**,
+      node1 thấy **8 peer** · `eth_chainId 9000000009` · `LOVE9` · `supplyCap` từ log node · chữ khắc
+      **1273 byte, sha256 = extraData**, vân tay **y hệt băng tập**.
+      🔴 **Phép đo chỉ có ở BĂNG THẬT:** đường dẫn DB = **`9chain-a1-g1`**, KHÔNG phải
+      `network-999999998` ⇒ `A1Name` **có trong bản đồ binary**, nhánh dự phòng (`FallbackHRP`,
+      thứ patch 0013 diệt) **không bị đi vào**. Băng tập **không kiểm được điều này** vì tên nó khác.
+      **Dọn:** hai bộ, **38 tệp khoá** shred `-u -n 3`, đối chứng **0 còn lại**.
+      🔴 Lần đầu con số hiện ra: **18 `staker.key`/`signer.key` mỗi bộ** — danh tính validator LÀ
+      khoá riêng, và `check-key-leaks.mjs` **không canh chúng** (B-20).
+      ⚠️ `rm -rf` bị chặn quyền ⇒ còn hai thư mục rỗng (không có bí mật), David xoá tay khi tiện.
+
 - [x] 🔴 **D-141 — hai phát hiện nữa từ bản diễn tập** (`31/08`).
       (1) **`make-l1-genesis.mjs` TRA sổ nhưng KHÔNG ghi lại** ⇒ chỉ an toàn **đúng một lần**: L1 #1
       và L1 #2 đẻ cách nhau vài phút **cùng nhận `chainId 9001000000`**. Console an toàn vì **chính
