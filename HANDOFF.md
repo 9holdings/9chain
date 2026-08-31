@@ -1,9 +1,10 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-31** (phiên **MẶT NGƯỜI DÙNG** — sửa 3 lỗi trên đường sản phẩm, và soát
-tổng: điều kiện qua ngày G đang **1/5**). Trước đó `2026-08-30`: diễn tập g1 (D-123→D-128, fork
-**26 patch / tree `60a61707`**). `2026-08-29`: mở testnet công khai (D-116→D-122) và soát chỗ
-hở ngày G (`docs/GDAY-G1-GAPS.md`).
+Cập nhật: **2026-08-31** (phiên **CHIỀU→TỐI**: ba lượt quét · diễn tập g1 · **bộ khắc chữ SẴN
+SÀNG, vân tay đã đóng băng** · **D-132: A1 dẫn dắt** · ba chỗ chặn cứng ngày G chưa ai ghi ở đâu).
+Cùng ngày, phiên sáng: **MẶT NGƯỜI DÙNG** — sửa 3 lỗi đường sản phẩm (D-129→D-131). Trước đó
+`2026-08-30`: diễn tập g1 (D-123→D-128, fork **26 patch / tree `60a61707`**). `2026-08-29`: mở
+testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-GAPS.md`).
 
 > 🔴 **ĐỌC [`CLAUDE.md`](CLAUDE.md) TRƯỚC — đó là LUẬT.** Tệp này là **bàn giao**: dài, có lịch
 > sử, và phần lớn là số đo của các phiên trước. Mâu thuẫn thì `CLAUDE.md` thắng về **luật**,
@@ -12,8 +13,177 @@ hở ngày G (`docs/GDAY-G1-GAPS.md`).
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
 ```bash
-node scripts/gday-preflight.mjs      # 18 cổng + 25 VIỆC TAY, một lệnh (~2 phút)
+node scripts/gday-preflight.mjs      # 20 cổng + 36 VIỆC TAY, một lệnh (~3 phút)
 ```
+
+### 🆕 Phiên `2026-08-31` (chiều→tối) — BA LƯỢT QUÉT · DIỄN TẬP g1 · BỘ KHẮC CHỮ SẴN SÀNG
+
+**TL;DR:** David yêu cầu quét kỹ trước testnet 1, ba lượt. Kết quả: **cổng 14 → 20** (một bộ đối
+chứng **đã ĐỎ suốt một ngày** mà preflight không chạy), **việc tay 25 → 36**, và **byte chữ khắc
+TÌM ĐƯỢC** — điều kiện qua số 2 hết chặn. Mười commit: `a8e3e93` → `f6f768c`.
+
+🔴 **Thứ quan trọng nhất phiên sau phải biết: ba chỗ chặn cứng ngày G, không cái nào từng được ghi
+ở đâu.** Chúng không lộ ra từ đọc mã — chúng lộ ra từ **chạy thật** và **đo server**.
+
+#### 🔴 BA CHỖ CHẶN CỨNG NGÀY G
+
+**1. Image `:g1` KHÔNG có trên server, và server KHÔNG dựng lại đúng được.**
+Đo `31/08`: server có `:g0` · `:dev` · `:regen9` · `:next` + 2 bản cũ — **không có `:g1`**. Tệ hơn:
+`~/9chain-a1/src/upstream/avalanchego` trên server là **ảnh chụp KHÔNG phải git repo, vẫn ở
+`A1Gen 0` / `A1Name "9chain-a1-g0"`**, không `.git`, không `patches/`. Build ở đó ⇒ **binary thế hệ
+chết mang nhãn `:g1`**. Node boot với `--network-id=999999998` trên binary chỉ biết `999999999`:
+`NetworkName()` rơi xuống `network-999999998` (**sai đường dẫn DB**), `GetHRP()` sống bằng
+`FallbackHRP` — đúng nhánh patch 0013 sinh ra để xoá. Nó **có** bị bắt (`watch-network`, cổng thế hệ
+console) — nhưng **sau khi `down -v` đã xoá g0**.
+⇒ `docker save` trên dev → `docker load` trên server → **đo `--version` TRÊN SERVER**, đòi
+`commit=9chain-a1-g1-26patch-60a61707`. Đó mới là *"binary đã diễn tập = binary đang chạy"* (D-128).
+
+**2. `open-p2p-all-nodes.py` xuất hiện 0 lần trong runbook ⇒ KHÔNG người ngoài nào validate được.**
+netgen `ipv4port` chỉ cho **beacon** khai địa chỉ công khai (patch 0024/D-089). D-118b **đã đo cái
+giá**: node ngoài học địa chỉ 8 node kia qua gossip, chúng khai `172.28.0.x` ⇒ với tới **1/9
+validator (~11%)**; bootstrap đòi **80%**; stake đòi bootstrap ⇒ **vòng khép, không có đường ra bằng
+cấu hình**. Ngày G: beacon + node9 Hetzner công khai, bảy node nội bộ ⇒ **~22%**, vẫn xa 80%.
+⚠️ **Thứ tự quyết định:** lên mạng bằng mặc định netgen TRƯỚC (mesh hình thành qua địa chỉ nội bộ),
+**rồi mới** mở cổng, recreate **từng node một**. D-089 đo mesh teo thành hình sao khi mọi node khai
+IP công khai lúc **SINH** mạng; D-118c đo **không** teo khi làm với mesh đã có.
+
+**3. Nạp ví `chain-factory` X→P — runbook có 0 dòng (`grep` = 0).**
+Trên genesis mới, tiền thanh khoản mọi quỹ nằm trên **X-Chain**, CLI trả phí trên **P-Chain**. Đo
+trên mạng tập: Foundation `71.000.009` trên X, **`0` trên P**. Quên ⇒ console lên xanh và **người
+đầu tiên bấm nút nhận `insufficient funds`**.
+
+Ba việc tay nhỏ hơn cùng loại: **`A1_CONFIG_DIR` khai tường minh** (mặc định `../../9chain-a1-config`
+sai với bố cục server ⇒ **mọi lượt đẻ chain chết**, node vẫn 9/9 xanh) · **`--build-arg A1_COMMIT=`**
+(tiêu chí nghiệm thu image trước đó **không thoả được từ runbook** — `A1_COMMIT` chỉ tồn tại ở
+`Dockerfile:24`) · **`gen-chainid-issued --write`** chèn giữa `--pull` và `--compact`.
+
+#### ✅ BỘ KHẮC CHỮ — SẴN SÀNG, VÂN TAY ĐÃ ĐÓNG BĂNG
+
+Byte **tìm được**, nằm inline trong CR của C1
+(`9Chain-C1/9chain-operator/config/samples/chain_love9.yaml` dòng 611–617), rút ra `docs/engrave/`
+dạng **`body as-is`** — không NFC/NFD, không thêm bớt xuống dòng. Tái lập **đúng cả 4 hash đóng băng
+`07/08`**, kiểm hai lần bằng hai công cụ.
+
+| tài liệu | byte | mặt |
+|---|--:|---|
+| `genesis_inscription` (Hebrew) | 108 | `p` |
+| `dedication` (Adam) | 25 | `p+c` |
+| `dedication_eva` (Eva) | 45 | `p+c` |
+| `love_paper_en` | 964 | `p+c` |
+
+**Tổng 1.142 byte — NHỎ HƠN bản tập `1.328 B`** ⇒ đường ống đã kiểm ở đúng cỡ. *(LOVE Paper là
+**964 byte**, một trang; nó bị rút từ `5.854 B` xuống lõi bất biến ngày `2026-08-13`.)*
+
+```
+A1_ENGRAVE_CONFIRM=f04e939b58e58db46714047978b989cb167cf5f8875bcb4e4ad2563ebd366b18
+cChainAddress     =0x9000000000000000000000000000000000000009   (David chốt)
+```
+
+🔴 **Vân tay dùng được cho ngày G**: `loadEngraving()` **không nhận networkID**, `engraveRoot` chỉ
+băm `version + địa chỉ + (id, lang, mặt, sha256)`. Lượt băng TẬP ra đúng con số lượt băng THẬT.
+
+**David chốt: BỎ `ASV 1901`** — nó chưa có hash trong freeze của C1, nên netgen sẽ **chặn** nếu đưa
+vào. Và A1 tự đóng băng nó là để cổng so A1 với chính A1 (**D-112**).
+
+⚠️ **Địa chỉ khắc chữ KHÔNG phải ví của ai — đó là TÍNH CHẤT.** Đã kiểm: coreth có `ErrSenderNoEOA`
+(EIP-3607) ⇒ không gì gửi được giao dịch **từ** tài khoản có `code`; địa chỉ có **0 ký tự `a-f`** ⇒
+EIP-55 là phép rỗng, không chép sai kiểu chữ được; ngoài vùng precompile và ngoài `0x0200…`; netgen
+từ chối sinh mạng nếu trùng địa chỉ quỹ. 🔴 **Nhưng tiền gửi vào đó CHÁY vĩnh viễn** — phải công bố
+kèm câu đó ở mọi nơi địa chỉ xuất hiện.
+
+#### Cổng: 14 → 20, và một bộ đối chứng đã ĐỎ suốt một ngày
+
+🔴 **`check-net-dirs --self-test` ĐỎ từ lượt bump `A1Gen 0→1` (`30/08`)** — một ca cắm cứng
+`999_999_998` làm *"thế hệ SAU"*, mà số đó **thành networkID SỐNG** ở lượt bump. Đúng lớp **D-124**,
+một tệp xa hơn. Ẩn được vì preflight chỉ chạy **7/15** bộ tự kiểm. Nay nối thêm **6**.
+
+Sáu thứ khác, mỗi cái là *"đo sai đại lượng"*:
+
+| | |
+|---|---|
+| `check-clock-skew` | đo **đồng hồ của Cloudflare**, không phải của node (`server: cloudflare`, `cf-ray …-CDG`). Nay đọc `block.timestamp` — giá trị **do node sinh**. Số đầu: node **−1569ms** vs CF **−952ms**, node ở **chiều nguy hiểm**; bù `3000 → 3025` |
+| `h6b-backup --check` | **mù hoàn toàn với cây fork** — `.gitignore` có `upstream/` ⇒ `git ls-files upstream` = **0**. `manifest.env` đã ghi sẵn `FORK_TREE` mà `doc_manifest()` vứt đi. Nay so thật |
+| `console/index.html:302` | in **id preset** thay vì tên (`.ten`, khoá chết từ D-108) — cùng tàn dư D-129, không sang tới trang của chính console |
+| `guard.mjs` `requireInt` | `Number(env hoặc mặc định)` biến typo thành `NaN`, mọi phép so với `NaN` là false ⇒ `A1_MAX_L1=fifteen` **xoá sạch trần 15 L1** |
+| faucet | cooldown địa chỉ nay kiểm **trước** khi tiêu suất IP; `lastDrip` có bộ quét |
+| `export-chain` | đứt giữa chừng nay tính là **CẮT**; `tip.json` ghi `blocksExported`/`complete` |
+
+#### Diễn tập g1 — và thứ KHÔNG diễn tập được
+
+Băng TẬP `899999998`, 3 node, image `:g1`. **Đường khắc chữ trong tài liệu chạy được lần đầu tiên
+trong repo** (`/repo` mount; trước đó `A1_ENGRAVE` là đường dẫn host, **không tồn tại trong
+container**, và không thư mục `net*` nào có `engraving.md`). `engrave-verify` trên chain SỐNG:
+**15 đạt · 0 hỏng**, có mục `[5] Mạng đang chạy`, `parentID` block 0 P-Chain `==`
+`sha256(genesisBytes)`. Block Adam ở thế hệ 1: **10 đạt · 0 hỏng**, gồm phép **neo ngược**.
+Gotcha 16 tái hiện đúng D-105 (`image: :dev` ×3).
+
+⛔ **Console đẻ L1 KHÔNG diễn tập được trước ngày G** — cổng thế hệ so node với
+`NETWORK_ID = A1_ID_GOC − A1_GEN` (băng THẬT), **không có biến thể băng TẬP**, nên trước mạng tập
+nó **từ chối theo kiến trúc** (đã kiểm ở tầng API, không chỉ banner). Cổng làm **đúng việc** (D-093)
+⇒ đường đẻ chain chỉ kiểm được **trên g1 thật**. Đẻ **một** L1 rồi thu hồi, **trước khi công bố**.
+
+🔴 **Diễn tập tìm ra: cổng đối chiếu C1 của netgen KHÔNG bắt được manifest gán nhầm tài liệu** —
+đúng ca câu lỗi của chính nó mô tả. Nó neo bằng `Contains(dòng, tên_tệp)` **hoặc** `Contains(dòng,
+id)`, mà `file` là trường một lượt gán nhầm sẽ đổi. **Freeze của C1 (dạng `title  hash`, không có
+tên tệp) vá lỗ này** — chỉ `id` neo được. ⇒ Đặt `id` manifest **trùng `title` C1**, tệp `<id>.txt`,
+**đừng đặt trần `<id>`** (`dedication` là chuỗi con của `dedication_eva`).
+
+#### Hai ví số đẹp — `local-net/tools/vanity-keygen/`
+
+| ví | địa chỉ | tìm trong |
+|---|---|---|
+| `chain-factory` (P-Chain — nơi nó tiêu tiền) | `P-love91999h0q4ucfnex9q0qxefuu0ke0xtyvl6739999` | 52m36s · 1,19 tỷ |
+| `faucet` (EVM — nơi người dùng nhìn) | `0x90001e27808F4aAa9FF672f5714476EB8E3f0009` | 1h14m45s · 1,34 tỷ |
+
+Khoá ở `C:\Users\abc\9chain-a1-keys\g1\` (chmod 600) — **chưa ví nào có tiền**. Log tạm trong
+`%TEMP%` đã `shred -u -n 3` ngay trong phiên tạo ra chúng. `check-key-leaks` mốc so **7 khoá/2 nguồn
+→ 9 khoá/4 nguồn**: nay **mọi `*-key.txt` trong thư mục thế hệ tự vào mốc**, thôi khai tay.
+
+⚠️ **Sáu ví quỹ genesis KHÔNG làm số đẹp được** — netgen đúc chúng trong `newFund()` ⇒ sửa
+`patches/`. Ví faucet làm được vì **`FAUCET_PK` là biến môi trường, không phải sự thật genesis**.
+
+#### GOTCHAS mới
+
+23. 🔴 **Công cụ ghi kết quả vào `%TEMP%\*.log` là hình dạng D-117.** Lượt tìm khoá ghi khoá riêng
+    vào đúng thư mục `check-key-leaks` sinh ra để canh. Dời vào kho khoá + `shred` **trong chính
+    phiên tạo ra nó**, đừng để sang phiên sau.
+24. 🔴 **`latest` trên một chain chưa có block nào là GENESIS với `timestamp 0`.** `check-clock-skew`
+    trả *"không đo được"* thay vì khai lệch 55 năm — đúng, nhưng nghĩa là **phải mở block 1 trước**
+    (một giao dịch chuyển tiền thường, 21000 gas cố định — luật M5.4).
+25. 🔴 **Trên chain nhàn rỗi, TUỔI BLOCK áp đảo phép đo lệch đồng hồ.** Block ~10s tuổi cho
+    `−10136ms ± 501ms`, gần như toàn bộ là tuổi block. ⇒ B-13(b) phải đo **lúc chain đang đẻ block**.
+26. **Repo A1 sạch trên trục blockchainID** — không ID sống nào cắm cứng, và `cb58.mjs` nay neo vào
+    P-Chain ID (`ids.Empty`, giống nhau ở mọi mạng Avalanche) ⇒ **sống sót qua re-genesis**. Rủi ro
+    còn lại nằm **ngoài repo**: 9Scan-A1 và worktree `web`.
+
+#### Số đo cuối phiên
+
+```
+preflight --no-network   20 đạt · 0 đỏ · 0 không chạy được · 4 bỏ qua · 36 việc tay
+h6b --check              ✓ xanh (fork tree 60a61707f797 khớp — phép so MỚI)
+check-key-leaks          exit 0 · mốc so 9 khoá / 4 nguồn
+nợ ngôn ngữ              5.753 → 5.750
+sổ console trên server   0 sống · 0 thu hồi  ⇒ KHÔNG chain người thật nào sắp mất
+mạng g0                  10 validator · 9 peer · factory 89,899 LOVE9 · B-12 còn 12 ngày
+```
+
+#### Việc tiếp — theo thứ tự chặn
+
+1. 🔴 **David:** `docker save`/`load` image sang server · **B-16** (hôm nay là cửa sổ **rủi ro bằng
+   không** — bộ g0 bị vứt ngày mai) · **B-19** · **B-20** (gói `h6b` **vừa dựng**, qua cả bốn phép
+   nghiệm thu của chính nó, chứa **0 `staker.key` · 0 `signer.key` · 0 `genesis.json`** — **đếm tệp**
+   mới là phép đo, đọc dòng `--check` thì không)
+2. 🔴 **David:** GitHub repo rỗng (5 phút, mở khoá điều kiện **4 + 5**) · báo **D-132** cho C1 + BOD
+   (họ có thể đang chờ giao ASV theo chiều cũ)
+3. **A1:** dịch `docs/CREATE-A-CHAIN.md` sang tiếng Anh · cấp số quyết định cho các phát hiện phiên
+   này (mới có **D-132**)
+4. **Sau ngày G:** tổng quát hoá `verifyAgainstC1` → *"đối chiếu với CANON"* (D-132 §4) · điền **11
+   chỗ `FILL-ON-G-DAY`** trong `docs/RUN-A-VALIDATOR.md` (cổng xuất bản: `grep -c` phải `= 0`)
+
+🔴 **Khuyến nghị còn nguyên: TÁCH ngày G thành hai sự kiện.** `01/09` sinh lại g1 + khắc chữ — phần
+**mã** đã sẵn sàng. **Mở công khai** khi xong điều kiện 4 & 5, vài ngày sau, vẫn trong hạn `06/09`
+của Block Adam. Mở cửa mà người lạ không clone được, không có `RUN-A-VALIDATOR.md` điền xong, không
+có genesis + bootstrap công bố thì đó là **một RPC công khai**, không phải một testnet công khai.
 
 ### 🆕 Phiên `2026-08-31` — MẶT NGƯỜI DÙNG: sửa 3 lỗi trên đường sản phẩm, và soát tổng trước ngày G
 
@@ -458,6 +628,9 @@ ngày G (D-087).
 
 **Cây fork: tree `f2b9486b` · 25 patch trên `1cf1fc3`** (đổi `28/08`: patch 0025 đổi tên
 công cụ `kiem-khoa`→`check-keys`; áp 24/25 vẫn ra `074aaa93`).
+🔴 **`stale-ok` — SỐ CỦA `28/08`, GIỮ ĐỂ ĐỐI CHIẾU.** Hôm nay là **26 patch / `60a61707`**, đối
+chứng **25/26 → `f2b9486b`** (bump `A1Gen` nằm trong patch 0018, D-123). Đoạn dưới đây kể chuyện
+`28/08`; đừng đọc nó thành trạng thái hiện tại. Số hiện tại ở mục phiên đầu tệp và ở `CLAUDE.md`.
 ⚠️ **Image `9chain-a1/node:g0` đang chạy vẫn là bản 18 patch.** Patch 0019–0024 chỉ đụng **công
 cụ** (SDK ví, netgen, `kiem-khoa`), không đụng node — chúng vào image ở lượt build ngày G.
 Đừng đọc `074aaa93` thành "mạng đang chạy có 24 patch".
@@ -667,7 +840,8 @@ node local-net/console/chainid-test.mjs
 node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs
 
-# Tái lập cây fork (25 patch → tree f2b9486b; 24/25 → 074aaa93)
+# Tái lập cây fork (26 patch → tree 60a61707; đối chứng 25/26 → f2b9486b)
+# 🔴 Preflight đã chạy CẢ HAI vế tự động — chạy tay chỉ để soi khi nó đỏ.
 cd upstream/avalanchego && git worktree add --detach /tmp/tl 1cf1fc3
 cd /tmp/tl && git am --keep-cr ../../patches/*.patch && git rev-parse HEAD^{tree}
 
@@ -681,10 +855,16 @@ curl -s -X POST -H 'content-type:application/json' \
 1. **Không tin mã HTTP.** Thang đo: mã HTTP → `content-type` → **nội dung** → header tầng trước.
 2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một nửa.
 3. **Đụng `patches/` là đụng đường tái lập fork** — sinh `--no-signature`, nghiệm thu
-   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`f2b9486b`** / **25 patch**
-   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **24/25** phải ra đúng **`074aaa93`**.
-   ⚠️ **Image node đang chạy vẫn là 18 patch** — 0019 đụng SDK ví, 0020 đụng netgen; cả hai là
-   CÔNG CỤ, không đụng node. Tree của repo ≠ tree trong image cho tới lượt build ngày G.
+   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`60a61707`** / **26 patch**
+   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **25/26** phải ra đúng **`f2b9486b`**.
+   *(Mốc cũ `f2b9486b`/25 và `074aaa93`/24 còn nằm trong các mục phiên `28–29/08` bên trên —
+   đó là **câu kể về quá khứ**, đúng ở thời điểm của chúng, đừng sửa hàng loạt.)*
+   ⚠️ **Image `9chain-a1/node:g0` ĐANG CHẠY vẫn là bản 18 patch** — 0019 đụng SDK ví, 0020 đụng
+   netgen; cả hai là CÔNG CỤ, không đụng node. Tree của repo ≠ tree trong image cho tới ngày G.
+   🔴 **Và image ngày G — `9chain-a1/node:g1`, `commit=9chain-a1-g1-26patch-60a61707` — CHỈ CÓ
+   TRÊN MÁY DEV.** Server không có nó, và cây fork trên server là ảnh chụp **không phải git repo,
+   vẫn ở `A1Gen 0`** ⇒ build ở đó ra binary thế hệ chết mang nhãn `:g1`. `docker save`/`load`,
+   rồi đo `--version` **TRÊN SERVER**. Đo `31/08` — xem mục phiên đầu tệp.
 4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)
    — 🔴 **Caddyfile ĐANG CHẠY đến từ nhánh đó**, không phải `main`. Deploy từ `main` sẽ xoá công
    việc của phiên web (cổng D-075 nay chặn, nhưng đừng dựa vào nó).
