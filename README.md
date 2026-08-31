@@ -1,249 +1,232 @@
-# 9Chain Testnet A1 (Avalanche)
+# 9Chain Testnet A1
 
-**Track Avalanche** của 9Chain — một trong hai testnet chạy song song để cộng đồng chọn hướng mainnet (A1 = Avalanche, C1 = Cosmos). Đây là một **sovereign fork** của [avalanchego](https://github.com/ava-labs/avalanchego): **giữ nguyên 100% core** (Snow\* + P/X/C + subnet/L1), chỉ **thay lớp identity** sang 9Chain.
+**A sovereign fork of [avalanchego](https://github.com/ava-labs/avalanchego).** The consensus
+engine, the VMs and the P/X/C chain architecture are Ava Labs' work and are left untouched. What
+9Chain-A1 replaces is the **identity layer**: network id, network name, address prefix, token,
+economic parameters, upgrade schedule.
 
-> 🟢 **Testnet đang chạy công khai.** Không phải mạng local.
->
-> | | |
-> |---|---|
-> | Trang chính | **<https://a1.9chain.org>** |
-> | RPC C-Chain | **`https://rpc-a1.9chain.org/ext/bc/C/rpc`** |
-> | Explorer | **<https://a1.9scan.org>** (dự án riêng: `9Scan-A1`) |
-> | Vòi token thử | <https://a1.9chain.org/faucet/> |
-> | Đẻ chain của bạn | <https://a1.9chain.org/create-chain/> |
-> | Danh bạ L1 | <https://a1.9chain.org/chains/> |
->
-> ⚠️ **Testnet — token không có giá trị.** Mạng sẽ **sinh lại genesis ngày `2026-09-01`**;
-> mọi số dư hiện tại về 0. Xem <https://a1.9chain.org/re-genesis/>.
+> ⚠️ **This is a TEST network. LOVE9 has no monetary value.** Do not buy it, do not sell it, do
+> not accept it as payment. Test networks are rebuilt; when that happens every balance goes to
+> zero and we say so beforehand.
 
-- **Nhận diện A1:** node `9chaingo` · token **LOVE9** · địa chỉ `love91…` · VM đẻ L1 `love9evm` · networkID **999999999** (thế hệ `g0`, tên mạng `9chain-a1-g0`) · C-Chain chainId **9000000009**.
-  🔴 `networkID` **suy ra từ `A1Gen`**, đừng chép tay: `A1ID = A1IDGoc − A1Gen` = `999999999 − 0`. Ngày G bump `A1Gen` lên **1** ⇒ networkID **999999998**, tên `9chain-a1-g1`. `chainId 9000000009` thì **KHÔNG đổi theo thế hệ**.
-- **Multi-L1 (ai cũng đẻ chain):** `graft/subnet-evm` → đẻ nhiều L1 EVM tuỳ chỉnh, qua giao diện hoặc CLI.
-- **Merge upstream dễ:** lớp identity chỉ đổi *giá trị chuỗi*, không đổi định danh Go.
+| | |
+|---|---|
+| Home | <https://a1.9chain.org> |
+| C-Chain RPC | `https://rpc-a1.9chain.org/ext/bc/C/rpc` |
+| Explorer | <https://a1.9scan.org> |
+| Faucet | <https://a1.9chain.org/faucet/> |
+| Create your own L1 | <https://a1.9chain.org/create-chain/> |
+| Directory of L1s | <https://a1.9chain.org/chains/> |
 
-## Tham số kinh tế đang chạy
+## Where to start
+
+| You want to | Read |
+|---|---|
+| **Run a validator** | [docs/RUN-A-VALIDATOR.md](docs/RUN-A-VALIDATOR.md) — rebuild the fork, prove the tree hash, join, stake |
+| **Create your own chain** | [docs/CREATE-A-CHAIN.md](docs/CREATE-A-CHAIN.md) — 15 minutes, no prior blockchain knowledge |
+| Understand the architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Check the token maths | [docs/TOKENOMICS.md](docs/TOKENOMICS.md) · [docs/ALLOCATION-PUBLIC.md](docs/ALLOCATION-PUBLIC.md) |
+| Read what is engraved into genesis | [docs/engrave/](docs/engrave/) |
+
+Vietnamese: [README.vi.md](README.vi.md). This English file is the source; translate from it.
+
+## Identity
+
+| | |
+|---|---|
+| Node client | `9chaingo` |
+| Token | **LOVE9** |
+| Address prefix (P/X) | `P-love9…` / `X-love9…` |
+| L1 EVM VM id | `love9evm` |
+| C-Chain `chainId` | **`9000000009`** — fixed across every generation |
+| Network id | derived, see below |
+
+### Generations — the network id is derived, never typed
+
+A1 re-generates its genesis from time to time. Each re-genesis is a **generation**, counted by a
+single integer `A1Gen` (`utils/constants/network_ids.go`). Everything else follows from it:
+
+```
+networkID   = A1IDGoc − A1Gen        (A1IDGoc = 999999999)
+networkName = "9chain-a1-g{A1Gen}"
+L1 chainId block = 9_000_000_000 + A1Gen × 1_000_000 + 10 … +999_999
+```
+
+Generation `g1` therefore runs on networkID **999999998**, name `9chain-a1-g1`.
+
+Two safety properties hold at every generation, and both are deliberate:
+
+- **The drill band can never handshake with the real one.** Rehearsal networks are generated from
+  `A1IDGocTap = 899999999`, a separate band. A node from a drill cannot join the public network by
+  accident, whatever anyone types.
+- **Each generation owns a disjoint block of L1 chainIds.** A chain from a retired generation
+  cannot silently point at a new user's L1, and a signature from one cannot replay on the other
+  (EIP-155 binds signatures to `chainId`).
+
+🔴 `A1Gen` is **written in two languages** — Go (`A1Gen`) and JavaScript
+(`local-net/lib/chainid.mjs` → `A1_GEN`). Bump one and forget the other and nothing raises an
+error: the chain-creation console would hand out chainIds from a different generation's block, and
+those numbers reach users' wallets through an immutable genesis. `node scripts/check-consistency.mjs`
+is the gate that compares the two.
+
+## Economics
 
 | | |
 |---|--:|
-| **Tổng cung công bố** | **9.000.000.000 LOVE9** |
-| `SupplyCap` trong binary | **7.900.000.001 LOVE9** |
-| Phát hành ở genesis | **5.400.000.000** (60%) |
-| Phân bổ | Staking 40 · Community 30 · Foundation 12 · Private Sale 9 · Team 9 |
-| Validator | **9 node**, self-bond 999.999 LOVE9/node |
+| **Announced total supply** | **9,000,000,000 LOVE9** |
+| `SupplyCap` compiled into the binary | 7,900,000,001 LOVE9 |
+| Issued at genesis | 5,400,000,000 (60%) |
+| Allocation | Staking 40 · Community 30 · Foundation 12 · Private Sale 9 · Team 9 |
+| Validators | 9 nodes, self-bond 999,999 LOVE9 each |
 
-🔴 **`SupplyCap` KHÁC tổng cung, và đó là CHỦ Ý — đừng hoà hai số về một.** `SupplyCap` là
-trần của `currentSupply` **trên P-Chain**, mà `currentSupply` **không đếm phần C-Chain**.
-Bất biến được `netgen` cưỡng chế (`mustFitSupplyCap()`):
+🔴 **`SupplyCap` is NOT the total supply, and reconciling the two would mint 1.1 billion tokens.**
+`SupplyCap` bounds `currentSupply` **on the P-Chain**, and `currentSupply` does not count the
+C-Chain allocation. The invariant `netgen` enforces (`mustFitSupplyCap()`) is:
 
 ```
-SupplyCap (7.900.000.001)  +  Σ bucket.CChain (1.099.999.999)  ==  9.000.000.000
+SupplyCap (7,900,000,001)  +  Σ bucket.CChain (1,099,999,999)  ==  9,000,000,000
 ```
 
-Hoà chúng về một con số nghĩa là **in thêm 1,1 tỷ**. Xem `genesis_9chain_a1.go` và D-039.
+⚠️ **LOVE9 has 9 decimals on P/X-Chain and 18 on the C-Chain.** Both are correct — one coin, two
+scales. See [docs/TOKENOMICS.md §0](docs/TOKENOMICS.md).
 
-🔴 **`SupplyCap` được BIÊN DỊCH VÀO BINARY**, không đọc từ `genesis.json`. Đổi nó là phải
-**build lại image node**, không chỉ sinh lại genesis. Đối chứng **bản đang chạy**:
+🔴 `SupplyCap` is **compiled into the binary**, not read from `genesis.json`. Changing it means
+rebuilding the node image, not just regenerating genesis.
+
+## Reproducing the fork
+
+You are not asked to trust a binary. The sovereignty layer is distributed as a patch series that
+replays onto a clean upstream checkout and must land on a known tree hash.
 
 ```bash
-ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'docker exec 9chain-a1-node-1 sh -c "grep -rho \"supplyCap[^,]*\" /root/.avalanchego/logs | head -1"'
+git clone https://github.com/ava-labs/avalanchego.git && cd avalanchego
+git checkout 1cf1fc3
+git am --keep-cr /path/to/9chain-a1/patches/*.patch
+git rev-parse HEAD^{tree}     # 60a61707f7974a0f1853b8bf78df7d0fdc1ef863
 ```
 
-⚠️ **Đừng dùng `docker logs … | head -1`** cho phép đo này. Vòng đệm stdout trôi qua dòng
-boot sau ~11 giờ chạy ⇒ lệnh **ra RỖNG mà không báo lỗi**, và cái rỗng đó dễ bị đọc thành
-*"không đo được"* thay vì *"đo sai chỗ"*. Đường còn sống là đọc **tệp log trong container**.
+`--keep-cr` is not optional: without it line endings shift and the tree hash will not match.
 
-⚠️ **LOVE9 có 9 chữ số thập phân trên P/X-Chain và 18 trên C-Chain.** Cả hai đều đúng —
-xem [docs/TOKENOMICS.md §0](docs/TOKENOMICS.md). Nguồn sự thật cho con số là mã và mạng
-đang chạy, **không phải** `TOKENOMICS.md` (tệp đó còn phần cũ, có banner cảnh báo).
+**Counter-check — do this too.** Applying **25 of the 26** patches must yield a different,
+also-published tree: `f2b9486b71ad53b584a86f77d6017c34d74e6fa6`. One anchor only proves the patch
+set agrees with a number we printed in our own documentation; two anchors with independent origins
+say something. Full walkthrough in [docs/RUN-A-VALIDATOR.md](docs/RUN-A-VALIDATOR.md).
 
-## Cấu trúc
+## What the identity layer actually changes
+
+| Touch point | File | From | To |
+|---|---|---|---|
+| Client / node name | `version/constants.go` | `avalanchego` | `9chaingo` |
+| Token name | `genesis/genesis.go` | `Avalanche` | `LOVE9 Coin` |
+| Token symbol | `genesis/genesis.go` | `AVAX` | `LOVE9` |
+| Address HRP | `utils/constants/network_ids.go` | `custom` | `love9` |
+| L1 EVM VM id | `graft/subnet-evm/scripts/constants.sh` | `subnetevm` | `love9evm` |
+| Economic parameters | `genesis/genesis_9chain_a1.go` | `LocalParams` | `A1Params` |
+| Network id | `utils/constants/network_ids.go` (`A1ID`) | `12345` | `A1IDGoc − A1Gen` |
+| Network name | `utils/constants/network_ids.go` (`A1Name`) | `local` | `9chain-a1-g{N}` |
+| C-Chain chainId | `9chain-a1-tools/netgen/main.go` | `43112` | `9000000009` |
+| Upgrade schedule | `upgrade/upgrade.go` (`A1`) | Ava Labs' `Default` | `A1` |
+
+**Untouched:** `snow/` (consensus), `vms/` (virtual machines), `chains/`. That is the core, and it
+stays upstream's.
+
+The asset alias is **`LOVE9`, and only `LOVE9`**. Asking the X-Chain for `AVAX` returns an error
+that says so in full. That error is the feature, not an oversight.
+
+## Repository layout
 
 ```
 9Chain-A1/
-├── web/                      # 🟢 TRANG CÔNG KHAI — Next 15 xuất tĩnh, Tailwind v4
-│   ├── app/                  #    /, /faucet/, /create-chain/, /my-chains/,
-│   │                         #    /compare/, /re-genesis/
-│   ├── lib/i18n/vi.ts        #    MỌI chữ hiện ra cho người dùng nằm ở đây
-│   ├── app/tokens.css        #    token thiết kế — CHÉP từ 9Scan-A1, đừng sửa tay
-│   └── public/brand/         #    logo + og-image
-├── upstream/avalanchego/     # bản fork avalanchego (repo RIÊNG, không track ở đây)
-│   └── 9chain-a1-tools/      #   overlay chủ quyền (không đụng core)
-│       ├── netgen/           #     sinh khoá + genesis + compose N node
-│       ├── engrave-verify/   #     đọc ngược chữ khắc genesis (ngày G)
-│       ├── 9chain-a1-cli/    #     CLI factory L1
-│       └── xp-wallet/        #     ví X/P
-├── patches/                  # 25 patch tái lập lớp chủ quyền lên fork sạch (tree f2b9486b)
-├── scripts/
-│   ├── rebrand.sh            #   áp lớp identity (idempotent)
-│   ├── check-consistency.mjs #   cổng nhất quán tokenomics (có đối chứng ngược)
-│   └── setup-fork.sh
-├── 9chain-a1-config/
-│   └── l1-evm-genesis.json   # khuôn genesis cho L1 EVM
-│                             # (genesis.json ĐÃ XOÁ 2026-08-27 — nó là genesis GỐC
-│                             #  của Avalanche, khoá ewoq công khai giữ 50 triệu.
-│                             #  Mạng nay boot bằng genesis do netgen sinh.)
+├── patches/                   # 26 patches replaying the sovereignty layer onto 1cf1fc3
+├── upstream/avalanchego/      # the fork itself (separate repository, not tracked here)
+│   └── 9chain-a1-tools/       #   sovereignty overlay — does not touch core
+│       ├── netgen/            #     generate keys + genesis + an N-node compose file
+│       ├── engrave-verify/    #     read the genesis engraving back, from file AND from chain
+│       ├── 9chain-a1-cli/     #     L1 factory CLI
+│       └── xp-wallet/         #     X/P wallet
 ├── local-net/
-│   ├── console/              # 🟢 bộ điều phối đẻ/thu hồi L1 (SIWE) — API sống
-│   ├── faucet/              # 🟢 API faucet + các bài kiểm trên mạng thật
-│   ├── chains/              # 🟢 trang danh bạ L1  → /chains/
-│   ├── deploy/              # 🟢 Caddyfile + script deploy có nghiệm thu thật
-│   ├── contracts/           #   AssetBridge.sol + IWarpMessenger.sol
-│   ├── gen-network.sh       #   1 lệnh sinh mạng N node thật (khoá MỚI)
-│   ├── explorer/  dashboard/ # ⚫ ĐÃ TẮT (docker stop, chưa xoá) — thay bằng 9Scan-A1
-│   └── 9chain-a1            #   CLI mặt tiền cho dev
-├── explorer-full/            # Blockscout rebrand (đang phục vụ, sẽ thay bằng 9Scan-A1)
+│   ├── console/               # chain-creation service (sign-in with Ethereum)
+│   ├── faucet/                # faucet API
+│   ├── chains/                # public L1 directory
+│   ├── deploy/                # Caddyfile + deployment scripts
+│   └── gen-network.sh         # one command, a real N-node network
+├── scripts/                   # the gates — see below
+├── 9chain-a1-config/
+│   └── l1-evm-genesis.json    # SHAPE of an L1 EVM genesis, not a usable one (see note)
+├── web/                       # public site (Next, static export)
 └── docs/
 ```
 
-⚠️ **`local-net/net*/` chứa KHOÁ BÍ MẬT** (`keys.txt`, `faucet.env`, …) — đã `.gitignore`,
-tuyệt đối không commit.
+⚠️ `local-net/net*/` holds **private keys** (`keys.txt`, `faucet.env`). It is git-ignored and must
+never be committed.
 
-🔴 **KHÔNG có thư mục nào tên là "bộ đang chạy". Hỏi TỪNG THƯ MỤC, bằng `genesis.json`.**
-Đo `2026-08-28` trên máy dev — **9 thư mục, 3 thế hệ, và cái nghe chính thức nhất là đồ chết**:
+⚠️ `9chain-a1-config/l1-evm-genesis.json` is a **template, not a usable genesis**: it declares a
+`chainId` that is already taken in the public registry and grants the whole supply to the `ewoq`
+key, which is published in the avalanchego repository. Every path that creates an L1 builds a real
+genesis through `scripts/make-l1-genesis.mjs` instead. Handing the template to the CLI as-is is a
+mistake the tooling now refuses to make for you.
 
-| Thư mục | `networkID` | Là gì |
-|---|--:|---|
-| `net-that-g0/` | **999999999** | ✅ **thế hệ đang chạy (g0)** — bộ duy nhất khớp mạng công khai |
-| `net-dryrun/` · `net-tap-g0/` · `net-tap-g0b/` | 899999999 | băng **TẬP**, không bao giờ bắt tay mạng thật |
-| `net/` | 9001 | ⚫ chết — **nhưng đây là thư mục `docker-compose.yml` mount** |
-| `net-public/` | 9001 | ⚫ chết ở phần mạng — 🔴 **nhưng giữ `chain-factory-key.txt` ĐANG CÓ TIỀN** |
-| `net-public-dead-720m/` | 9001 | ⚫ chết — 🔴 giữ **bản trùng byte** của chính khoá đó |
-| `net-bak-20260827/` · `net-drill9/` | 9001 | ⚫ chết |
+## Gates
 
-🔴 **`net-public/` KHÔNG phải "mạng công khai" nữa** — tên đó có từ thế hệ 9001 và đã lạc hậu
-hai lượt re-genesis. Nó là **thư mục TRỘN**: `keys.txt` là bộ đã chết (6/6 quỹ đọc ra **0**
-trên chain), còn `chain-factory-key.txt` cùng thư mục là khoá **g0 đang giữ 89,899 LOVE9**
-(`sha256` khoá = `1dc334145c8a1abc`, khớp bản ghi D-092).
-
-⇒ **Một lượt dọn "xoá mấy thư mục 9001" sẽ shred mất khoá sống.** Trước khi xoá bất cứ thư
-mục nào ở đây: chạy **`node scripts/check-net-dirs.mjs`** — nó khai thế hệ của từng thư mục
-VÀ tách riêng tệp nào giữ tiền thật.
-
-Bảng phân bổ của mạng công khai ở [docs/ALLOCATION-PUBLIC.md](docs/ALLOCATION-PUBLIC.md).
-Đọc nhầm `net/allocation.md` rồi tưởng là số liệu công khai **đã xảy ra một lần** và làm
-dự án explorer kết luận sai suốt một phiên.
-
-## Bắt đầu đọc từ đâu
-
-| Muốn gì | Đọc |
-|---|---|
-| Tiếp tục công việc | [HANDOFF.md](HANDOFF.md) — bàn giao, gotchas, sự cố đã trả giá |
-| Việc còn lại | [PROGRESS.md](PROGRESS.md) ← **bản sống**. `docs/PROGRESS.md` là **nhật ký lịch sử, đóng băng 2026-08-24** |
-| Vì sao lại quyết thế | [DECISIONS.md](DECISIONS.md) — D-001 → D-107b |
-| Đang kẹt gì / chờ ai | [BLOCKERS.md](BLOCKERS.md) |
-| Kiến trúc fork | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| Ngày G `01/09` | [docs/GDAY-A1-REMAINING.md](docs/GDAY-A1-REMAINING.md) · [docs/GDAY-ENGRAVING.md](docs/GDAY-ENGRAVING.md) |
-| A1 so với C1 | [docs/A1-vs-C1-SCORECARD.md](docs/A1-vs-C1-SCORECARD.md) |
-| Chuẩn hoá thương hiệu | [docs/BRAND-AUDIT-2026-08-27.md](docs/BRAND-AUDIT-2026-08-27.md) |
-
-## Lớp identity (toàn bộ thay đổi so với upstream)
-
-| Điểm chạm | File | Từ | Thành |
-|---|---|---|---|
-| Client/node name | `version/constants.go` | `avalanchego` | `9chaingo` |
-| Tên token | `genesis/genesis.go` | `Avalanche` | `LOVE9 Coin` |
-| Ký hiệu token | `genesis/genesis.go` | `AVAX` | `LOVE9` |
-| HRP địa chỉ | `utils/constants/network_ids.go` | `custom` | `love9` |
-| VMID L1 EVM | `graft/subnet-evm/scripts/constants.sh` | `subnetevm` | `love9evm` |
-| Tham số kinh tế | `genesis/genesis_9chain_a1.go` | LocalParams | `A1Params` (9 tỷ) |
-| Network ID | `utils/constants/network_ids.go` (`A1ID`) | `12345` | `999999999` = `A1IDGoc − A1Gen` |
-| Tên mạng | `utils/constants/network_ids.go` (`A1Name`) | `local` | `9chain-a1-g0` |
-| C-Chain chainId | `9chain-a1-tools/netgen/main.go` (`cChainGenesis`) | `43112` | `9000000009` |
-| Lịch nâng cấp | `upgrade/upgrade.go` (`A1`) | `Default` của Ava Labs | `A1` |
-
-**Không đụng:** `snow/` (consensus), `vms/` (VM), `chains/`. Đó là core, giữ nguyên.
-
-Chuẩn đặt tên đầy đủ (chốt `2026-08-24`): xem [HANDOFF.md § Chuẩn đặt tên](HANDOFF.md).
-Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng số).
-
-## Chạy mạng dev trên máy
-
-Yêu cầu: Docker Desktop (Linux containers). `avalanchego` **không build native trên Windows** → luôn qua Docker.
+This project's most expensive class of failure is **measuring the wrong quantity** — every check
+green because all of them measured the same wrong thing. The gates exist against that, and each
+one carries a counter-check that must have been seen **red for the right reason**.
 
 ```bash
-bash local-net/9chain-a1 up                     # mạng dev 1 node
-bash local-net/9chain-a1 l1 create AlphaChain   # đẻ 1 L1 EVM
-NETWORK_ID=899999999 bash local-net/9chain-a1 net up 9   # mạng 9 node THẬT (khoá MỚI)
-bash local-net/9chain-a1 info                   # phiên bản node + peers + validators
+node scripts/gday-preflight.mjs        # the whole gate set in one command, plus the manual tasks it cannot automate
+node scripts/check-consistency.mjs     # tokenomics arithmetic, read straight out of the Go source
+node scripts/check-single-source.mjs   # one constant, declared in exactly one place
+node scripts/check-net-dirs.mjs        # which local network directory belongs to which generation
+node scripts/watch-network.mjs         # measured on the RUNNING node, not on the repository
 ```
 
-🔴 **`NETWORK_ID` là BẮT BUỘC** (patch 0020 · D-083). Mặc định cũ `9001` là **thế hệ đã
-chết**; netgen nay dừng thẳng nếu thiếu, và đó là chủ ý — chọn băng là một quyết định.
-Băng **TẬP** là `899999999` trở xuống, băng **THẬT** là `999999999` trở xuống; hai băng
-không bao giờ bắt tay được nhau. Mạng thử trên máy dev thì dùng băng TẬP.
+Exit codes are uniform across the set: **0** pass · **1** red · **2** could not measure. A `2` is
+never a pass.
 
-🔴 **Đo BINARY, đừng đo mạng — và đừng tin tag.** Hai bẫy đã cháy thật:
+## Running a network locally
 
-1. **`9chain-a1/node:dev` không nói gì về nội dung.** Cùng một tag ở máy dev và ở server
-   từng là **hai binary khác nhau**. Nạp genesis 5,4 tỷ lên binary trần 720 triệu thì node
-   **vẫn khởi động sạch**; sai lệch chỉ lộ ở phần thưởng staking nhiều ngày sau.
-2. **netgen ghi `image: 9chain-a1/node:dev` CẮM CỨNG vào compose nó sinh** — không biến môi
-   trường nào đổi được. Build image mới rồi `up -d` mà quên sửa dòng đó ⇒ mạng lên bằng
-   **binary cũ**, 9/9 node xanh, **mọi cổng xanh**, mà bí danh `LOVE9` không có trong binary
-   ⇒ mọi ví X/C chết câm. (D-105 · gotcha 16)
+Requires Docker. `avalanchego` does not build natively on Windows, so everything goes through a
+container.
 
 ```bash
-grep image: <net>/docker-compose.multinode.yml   # TRƯỚC khi `up`
-docker exec 9chain-a1-node-1 ./avalanchego --version   # rồi đo BINARY, không đo mạng
+NETWORK_ID=899999999 bash local-net/gen-network.sh 5
 ```
 
-Kiểm chứng lớp identity:
+🔴 **`NETWORK_ID` is mandatory.** There used to be a default and it was a dead generation. Choosing
+a band is a decision, so the tool makes you make it. Use the **drill** band (`899999999` and down)
+for anything local; it can never handshake with the public network.
+
+🔴 **Measure the binary, not the network.** A node boots cleanly on the wrong binary — a genesis of
+5.4 billion loads onto a binary compiled for a different supply without complaint, and the
+divergence only surfaces in staking rewards days later. Also, `netgen` hardcodes the image tag into
+the compose file it writes, and no environment variable overrides it:
 
 ```bash
-# Client đã là 9chaingo
-curl -s -X POST --data '{"jsonrpc":"2.0","id":1,"method":"info.getNodeVersion"}' \
-  -H 'content-type:application/json' http://localhost:9650/ext/info
+grep image: <net>/docker-compose.multinode.yml      # BEFORE `up`
+docker exec 9chain-a1-node-1 ./avalanchego --version # then measure the binary
 ```
 
-## Đẻ một L1 EVM
+## Genesis engraving
 
-Qua giao diện: <https://a1.9chain.org/create-chain/> (đăng nhập bằng chữ ký ví).
-Hoặc một lệnh trên máy dev:
+A1's genesis carries text: on the P-Chain `Message` field (the root surface) and, for the English
+documents, as contract code at a fixed C-Chain address. See [docs/engrave/](docs/engrave/) for the
+canon — id, sha256, byte count for each document — and `docs/GDAY-ENGRAVING.md` for the mechanism.
 
-```bash
-bash local-net/create-l1.sh MyChain
-```
+🔴 **`0x9000000000000000000000000000000000000009` is nobody's wallet.** It holds the engraved text
+as contract code with a zero balance, and no private key for it exists — deriving one is a 2^160
+problem, so not even we can touch that text. That is the point. But it is also a short, memorable,
+all-digit address on a chain whose parent `chainId` is `9000000009`, which is exactly the shape
+somebody mistakes for a treasury: **anything sent there is burned, permanently.**
 
-`chainId` do console **tự cấp** từ **`9000000010`** trở lên, không cắm cứng. Cấu hình mỗi L1
-(phí gas, precompile governance, cấp phát token) nằm ở
-[9chain-a1-config/l1-evm-genesis.json](9chain-a1-config/l1-evm-genesis.json).
+## Licence
 
-🔴 **Gốc dải KHÔNG còn là `9100`** (D-069 · B-14). `9100` đã bị chiếm trong sổ công khai
-(*Genesis Coin*) — cùng `chainId` là **cùng một mạng dưới mắt MetaMask**, và EIP-155 buộc
-chữ ký vào `chainId`. Gốc mới = `chainId` của A1 (`9000000009`) **+1**. Mỗi thế hệ lấy một
-khối riêng `9_000_000_000 + A1Gen×1_000_000 + 10 … +999_999`, nên chain của thế hệ cũ không
-thể lặng lẽ trỏ vào L1 của người mới.
+Project code: **BSD-3-Clause** — see [LICENSE](LICENSE).
 
-⚠️ **`l1-evm-genesis.json` còn ghi `"chainId": 9100`.** Console **luôn ghi đè** giá trị đó
-(`server.mjs`: `tpl.config.chainId = chainId`) nên đường qua giao diện an toàn. Nhưng
-`create-l1.sh` và `local-net/9chain-a1 l1 create` truyền **thẳng** tệp này cho CLI ⇒ đường
-dòng lệnh vẫn đẻ ra chain mang `chainId 9100`. Xem `BLOCKERS.md` B-14.
+🔴 Third-party components keep their own licences: **avalanchego** (BSD-3-Clause, Ava Labs) —
+including the avalanchego code carried inside `patches/` — and **coreth / subnet-evm**
+(**LGPL-3.0**, derived from go-ethereum). Anyone redistributing a node image must meet the LGPL
+obligations. Full list: [NOTICE](NOTICE).
 
-⚠️ **Trần 15 L1** — mô hình hiện tại cho mọi validator track mọi L1, và đụng trần cứng
-ở 16 (`network/peer/peer.go`). Muốn hơn thì phải làm ACP-77. Xem `BLOCKERS.md` H-2.
-
-⚠️ L1 chưa bật Durango → compile contract với `evmVersion:"paris"`.
-
-## Rebrand lại sau khi kéo update upstream
-
-```bash
-cd upstream/avalanchego
-git fetch upstream && git merge upstream/master
-bash ../../scripts/rebrand.sh .                  # idempotent
-```
-
-Lớp chủ quyền tái lập được từ fork sạch bằng `patches/` — nhớ **`git am --keep-cr`**, và
-nghiệm thu bằng **tree hash**, không phải commit hash (`git am` ghi lại committer).
-
-## Giấy phép
-
-Mã gốc của dự án: **BSD-3-Clause** — xem [LICENSE](LICENSE).
-
-🔴 Các thành phần bên thứ ba giữ giấy phép riêng của chúng, gồm **avalanchego**
-(BSD-3-Clause, Ava Labs) — kể cả mã avalanchego nằm trong `patches/` — và **coreth /
-subnet-evm** (**LGPL-3.0**, dẫn xuất từ go-ethereum). Ai phân phối lại image node phải
-tuân thủ nghĩa vụ LGPL. Danh sách đầy đủ: [NOTICE](NOTICE).
-
-"Avalanche" và "AvalancheGo" là nhãn hiệu của Ava Labs, Inc. 9Chain-A1 **không dùng chúng
-để làm thương hiệu**; nơi chúng xuất hiện là để nói đúng nguồn gốc phần mềm. Đây là dự án
-độc lập, không liên kết với Ava Labs.
+"Avalanche" and "AvalancheGo" are trademarks of Ava Labs, Inc. 9Chain-A1 does not use them as
+branding; where they appear it is to state the software's origin accurately. This is an independent
+project, not affiliated with Ava Labs.
