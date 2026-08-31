@@ -1,0 +1,7 @@
+9CHAIN-A1 — DRILL DOCUMENT, NOT THE REAL ENGRAVING.
+
+This file exists so that the engraving mechanism can be exercised end to end before G-day:
+manifest -> netgen -> genesis -> a running chain -> engrave-verify reading it back.
+
+Its bytes carry no meaning. The real text is an input David supplies, frozen by 9Chain-C1
+(D-104). Bytes that arrive after the genesis step can never be engraved in that generation.

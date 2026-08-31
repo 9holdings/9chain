@@ -100,6 +100,14 @@ export function chonBu(lechMs, bienMs, san = SAN_BU_MS) {
  * large is the harmless direction: Block Adam must land AFTER the mark, never before.
  * ⇒ On a busy chain the number tightens by itself. Do not "correct" the bias by subtracting a
  *   block time — that would be guessing in the dangerous direction.
+ *
+ * 🔴 MEASURED IN THE 2026-08-31 DRILL: on an idle chain the block age DOMINATES. A chain whose
+ * last block was ~10s old reported -10136ms +/- 501ms, essentially all of it block age. So the
+ * reading is only informative while the chain is PRODUCING BLOCKS — take it during load, and
+ * treat a large negative number on a quiet chain as "no traffic", not "the node is 10s slow".
+ * ⚠️ And on a chain with NO blocks at all, `latest` is the genesis block whose timestamp is 0;
+ * that is rejected as a sample, so the gate says "could not measure" rather than reporting a
+ * 55-year skew. Open block 1 first (a plain transfer costs a fixed 21000 gas — see M5.4).
  */
 async function doLechChain() {
   const mau = [];
@@ -136,8 +144,15 @@ async function doLech() {
     if (!d) continue;
     const sv = Date.parse(d);
     if (!Number.isFinite(sv)) continue;
+    // 🔴 MEASURE who stamped the Date, do not assert it. The first version of this line said
+    // "stamped by Cloudflare" unconditionally — and printed that sentence verbatim while
+    // pointed at 127.0.0.1 during the 2026-08-31 drill. A claim that is not a measurement is
+    // exactly what this file exists to warn about.
+    const edge = r.headers.get("cf-ray") ? `Cloudflare (cf-ray ${r.headers.get("cf-ray")})`
+      : /cloudflare/i.test(r.headers.get("server") || "") ? "Cloudflare"
+      : null;
     // Biên = RTT/2 (bất định đường đi) + 500ms (độ phân giải GIÂY của header Date).
-    mau.push({ rtt: t1 - t0, lech: sv - Math.round((t0 + t1) / 2), bien: Math.round((t1 - t0) / 2) + 500 });
+    mau.push({ rtt: t1 - t0, lech: sv - Math.round((t0 + t1) / 2), bien: Math.round((t1 - t0) / 2) + 500, edge });
   }
   return mau.sort((a, b) => a.rtt - b.rtt);
 }
@@ -187,8 +202,13 @@ if (mauHttp.length) {
   const h = mauHttp[0];
   console.log("");
   console.log(`  (secondary) HTTP \`Date\` header of ${new URL(DICH).host}: ${h.lech}ms ± ${h.bien}ms`);
-  console.log(`        🔴 NOT the node clock — this hostname is proxied by Cloudflare and the`);
-  console.log(`        \`Date\` is stamped at their edge. For comparison only, never for the offset.`);
+  console.log(h.edge
+    ? `        🔴 NOT the node clock — answered by ${h.edge}, so this is THEIR clock.
+` +
+      `        For comparison only, never for picking the offset.`
+    : `        (no edge header seen — this looks like the origin, but it is still an HTTP
+` +
+      `        server clock, not the clock that writes block.timestamp.)`);
 }
 
 const { bu, xauNhat, vi } = chonBu(tot.lech, tot.bien);

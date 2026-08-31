@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "source": "9Chain-A1 DRILL — placeholder bytes, NOT a C1 freeze. See doc-drill-note.txt.",
+  "cChainAddress": "0x9111000000000000000000000000000000009111",
+  "docs": [
+    {
+      "id": "drill-charter-he",
+      "lang": "he",
+      "file": "doc-charter-he.txt",
+      "on": [
+        "p"
+      ]
+    },
+    {
+      "id": "drill-charter-en",
+      "lang": "en",
+      "file": "doc-charter-en.txt",
+      "on": [
+        "p",
+        "c"
+      ]
+    },
+    {
+      "id": "drill-note",
+      "lang": "en",
+      "file": "doc-drill-note.txt",
+      "on": [
+        "p",
+        "c"
+      ]
+    }
+  ]
+}
