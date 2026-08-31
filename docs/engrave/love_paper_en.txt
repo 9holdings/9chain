@@ -1,0 +1,18 @@
+# LOVE Paper
+
+*Version **0.0** · Hash-anchored at genesis*
+
+Three things are written here forever. Everything else, we decide together.
+
+> **Block 1** — בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ
+> *Genesis 1:1 in ancient Hebrew — 7 words, 28 letters. The earth before the human.*
+>
+> **Block Adam** — *Adam — the first human.*
+>
+> **Block Eva** — *Eva — the second human, and the first "we".*
+
+First the heavens and the earth, then one human, then **we**. From this block on there is no "us" and no "you" — only **we**.
+
+These three blocks can never change. Everything else about 9Chain — every number, every rule, every share — belongs to the whole community of Earth to decide, together, for as long as the chain lives. Anyone, whoever they are, so long as they keep faith with these three.
+
+This is **V0.0**: the first version, and the shortest thing that will never change.
