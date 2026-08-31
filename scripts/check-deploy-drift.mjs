@@ -47,10 +47,17 @@ const TAT_CA = argv.includes("--all");
 if (argv.includes("--self-test")) {
   const inMan = new Set(["a/trong-manifest.mjs"]);
   const trongRepo = (f) => f === "a/co-trong-repo.mjs" || f === "a/trong-manifest.mjs";
-  const khai = (f) => (f === "a/da-khai.bak" ? { ly: "ca thử" } : undefined);
+  // 🔴 The fixture returns the manifest's REAL shape (`reason`). It used to invent `{ ly: … }`,
+  // which is why this suite stayed green while every declared orphan printed "— undefined".
+  // A counter-check built on a shape production never emits proves nothing about production.
+  const khai = (f) => (f === "a/da-khai.bak" ? { pattern: "^a/da-khai\\.bak$", reason: "counter-check" } : undefined);
   const ca = [
     ["tệp lạ KHÔNG có trong repo ⇒ MỒ CÔI", ["a/la.bak"], (r) => r.moCoi.length === 1],
     ["tệp mồ côi ĐÃ KHAI ⇒ không tính đỏ", ["a/da-khai.bak"], (r) => r.moCoi.length === 0 && r.moCoiDaKhai.length === 1],
+    ["🔴 the declared REASON must reach the output (not `undefined`)", ["a/da-khai.bak"],
+      (r) => r.moCoiDaKhai[0]?.ly === "counter-check"],
+    ["🔴 a declaration MISSING its reason says so loudly, it does not go quiet", ["a/no-reason.bak"],
+      (r) => /NO REASON/.test(r.moCoiDaKhai[0]?.ly ?? ""), (f) => (f === "a/no-reason.bak" ? { pattern: "x" } : undefined)],
     ["tệp trong manifest ⇒ không vào nhóm thừa nào", ["a/trong-manifest.mjs"],
       (r) => r.moCoi.length === 0 && r.ngoaiTam.length === 0],
     ["tệp có trong repo, ngoài manifest ⇒ NGOÀI TẦM CANH, không đỏ", ["a/co-trong-repo.mjs"],
@@ -63,8 +70,9 @@ if (argv.includes("--self-test")) {
   ];
   let hong = 0;
   console.log("══ ĐỐI CHỨNG NGƯỢC — phân loại tệp thừa ══");
-  for (const [ten, dsSv, dung] of ca) {
-    const r = phanLoaiThua(dsSv, inMan, trongRepo, khai);
+  // A 4th element lets one case swap the declaration lookup — used by the missing-reason case.
+  for (const [ten, dsSv, dung, khaiRieng] of ca) {
+    const r = phanLoaiThua(dsSv, inMan, trongRepo, khaiRieng ?? khai);
     if (dung(r)) console.log(`  ✓ ${ten}`);
     else { console.log(`  ✗ ${ten} — ra ${JSON.stringify(r)}`); hong++; }
   }
@@ -188,7 +196,15 @@ export function phanLoaiThua(tepServer, trongManifest, coTrongRepo, daKhai) {
     if (trongManifest.has(f)) continue;
     if (coTrongRepo(f)) { ngoaiTam.push(f); continue; }
     const khai = daKhai(f);
-    (khai ? moCoiDaKhai : moCoi).push(khai ? { p: f, ly: khai.ly } : f);
+    // 🔴 The manifest key is `reason`. This read `khai.ly`, a key the manifest has never had, so
+    // EVERY declared orphan printed "— undefined" since the feature shipped. The counter-check
+    // below could not catch it because its fixture invented `{ ly: … }` — a shape production
+    // never produces. A declaration whose reason is invisible silences the gate AND hides the
+    // justification, which is the exact thing `_extraDoc` exists to prevent.
+    // A declared entry with no reason is louder than silence, on purpose.
+    (khai ? moCoiDaKhai : moCoi).push(
+      khai ? { p: f, ly: khai.reason ?? "🔴 DECLARED WITH NO REASON — _extraDoc requires one" } : f,
+    );
   }
   return { khongQuetDuoc: false, moCoi, moCoiDaKhai, ngoaiTam };
 }
