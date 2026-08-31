@@ -70,9 +70,9 @@ Xong. **Đừng gõ tay các thông số** — một chữ số sai là nửa ti
 
 </details>
 
-> 🔴 **Nếu bạn đã từng thêm mạng A1 từ trước:** xoá nó đi rồi thêm lại bằng nút ở trên. Cấu
-> hình cũ có thể trỏ vào địa chỉ `rpc-testnet-a1.9chain.org` — địa chỉ **đã ngừng hoạt động**.
-> Ví trỏ vào đó sẽ báo lỗi kết nối, trông y như mạng bị chết trong khi mạng vẫn chạy bình thường.
+> 🔴 **Nếu bạn đã từng thêm mạng A1 từ trước:** xoá nó đi rồi thêm lại bằng nút ở trên. Một cấu
+> hình đã lưu có thể lỗi thời, và ví dùng nó sẽ báo lỗi kết nối — trông y như mạng bị chết, trong
+> khi mạng vẫn chạy bình thường.
 
 ---
 
@@ -176,7 +176,7 @@ Nếu buộc phải làm việc khác trước, đặt giới hạn phí thủ c
 |---|---|---|
 | Trang tạo chain không có ô nào để điền | Chưa cài MetaMask, hoặc chưa kết nối ví | Cài MetaMask, tải lại trang, bấm *Connect wallet* |
 | Ví hiện số dư 0 sau khi xin token | Ví đang đứng ở mạng khác | Chuyển sang mạng *9Chain Testnet A1* ở góc trên bên trái |
-| Ví báo lỗi kết nối mạng | Cấu hình cũ trỏ vào địa chỉ đã ngừng hoạt động | Xoá mạng A1 trong ví, thêm lại bằng nút ở bước 2 |
+| Ví báo lỗi kết nối mạng | Cấu hình đã lưu bị lỗi thời | Xoá mạng A1 trong ví, thêm lại bằng nút ở bước 2 |
 | Lỗi `524` khi tạo chain | Chain vẫn đang dựng, chỉ là trình duyệt hết kiên nhẫn | **Đừng bấm lại.** Chờ 2 phút, xem `/chains/` |
 | Giao dịch đầu tiên thất bại, không rõ lý do | Ước lượng phí sai ở block đầu | Xem mục ngay phía trên |
 | Trang danh bạ chưa thấy chain của bạn | Chain chưa lên xong | Chờ thêm một phút rồi tải lại |
