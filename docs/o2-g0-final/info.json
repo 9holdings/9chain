@@ -1,0 +1,30 @@
+{
+  "nodeVersion": {
+    "version": "9chaingo/1.14.2",
+    "databaseVersion": "v1.4.5",
+    "rpcProtocolVersion": "45",
+    "gitCommit": "9chain-a1-poc",
+    "vmVersions": {
+      "avm": "9chaingo/1.14.2",
+      "evm": "v1.14.2",
+      "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "v1.14.2",
+      "platform": "9chaingo/1.14.2"
+    }
+  },
+  "networkID": {
+    "networkID": "999999999"
+  },
+  "networkName": {
+    "networkName": "9chain-a1-g0"
+  },
+  "nodeID": {
+    "nodeID": "NodeID-BxxcV4RaWmVjioAY3UsRa4HJTRo1qTZ6t",
+    "nodePOP": {
+      "publicKey": "0x977e9b8eee70dbb0155f4f56c81dea3eb60a1619c9247d4fe81766caab4e05133d1c82a5c8612f188c9e77a9414f59b6",
+      "proofOfPossession": "0x90ddbe7919c660cdd0e06276a5a6a83b3abdcbaba06d41ab9cd11ecc19d17f2322429f1acec595deb11ba46f0a964de703d4d2c4ebf6bd829dcb7594e498da67500b73f6cdf55a37a12ca17fdc4d193ad5027ea04837c2d9d4ba984627bc3aa3"
+    }
+  },
+  "blockchains": {
+    "blockchainID": "WY85WhvwkgQtEoAnBuCPkKDtVf8pksV4MYE9Jc3qqGMq5y3T3"
+  }
+}

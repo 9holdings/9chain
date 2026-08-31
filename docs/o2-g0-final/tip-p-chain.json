@@ -1,0 +1,384 @@
+{
+  "height": {
+    "height": "28"
+  },
+  "currentSupply": {
+    "supply": "4300824446744093402",
+    "height": "28"
+  },
+  "currentValidators": {
+    "validators": [
+      {
+        "txID": "EQZgjvCyjMTiUMkgnNCiSeRQoJtB8HthPs685TBWvR4Wm1M9A",
+        "startTime": "1788005209",
+        "endTime": "1789214837",
+        "weight": "25000000000000",
+        "nodeID": "NodeID-9puVhcAApAiskFHPQwdTQLRymwQWLnCCA",
+        "validationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "delegationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "potentialReward": "80864052565",
+        "accruedDelegateeReward": "0",
+        "delegationFee": "2.0000",
+        "uptime": "98.0420",
+        "connected": true,
+        "signer": {
+          "publicKey": "0xb840ada2bd2d75c1db39b66611db518dd5e64a6b1fdfbcb7014f81b940e25c8c4bfe72f3ae5fea84bdca84a8db204a45",
+          "proofOfPossession": "0xa1eb200be082f28da096d5384d29d66b295cceeaef2163bf80faeef449385b483560a661659cba4bc31b4730553d4e9a11b494c7569cef03e1feb3f0db683ef928bd934ab97ff9027e8ce3ea2702cfcb096772663abb5d30440d5336d72394ba"
+        },
+        "delegatorCount": "0",
+        "delegatorWeight": "0"
+      },
+      {
+        "txID": "SuTFpd19MQbEDZVzguU13yXwgf5WMryjFnP1mZciHSfiDcDoT",
+        "startTime": "1787843951",
+        "endTime": "1814541551",
+        "weight": "999999000000000",
+        "nodeID": "NodeID-LBVLe7DZJxx94GfvoxBhc29qSn8eDoj7Q",
+        "validationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "delegationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "potentialReward": "82876379811608",
+        "accruedDelegateeReward": "0",
+        "delegationFee": "2.0000",
+        "uptime": "99.9997",
+        "connected": true,
+        "signer": {
+          "publicKey": "0xa283fdea3f24dbdcb72fa3772d309b28ff817f1bb8f3e69ba07d93ecf18495a2991dd79ba63d58469a7ee7ea153133f1",
+          "proofOfPossession": "0x85b7989c2dd094785c09296b4d0e7ad22a0f315afbfc0573ff7f42a472800132dc76546941090ed71e3b11dc89945669017277bab81b4bef83556ea308eb064a24bf356ba3c6bbad4f27d43712291c8eb594c80c24a5ec6458c559b8012ea080"
+        },
+        "delegatorCount": "0",
+        "delegatorWeight": "0"
+      },
+      {
+        "txID": "aagTJJnjxpmftHxvjXC1GMLnc6XufMvxXRXCLuHF4zKFBHsQP",
+        "startTime": "1787843951",
+        "endTime": "1815146351",
+        "weight": "999999000000000",
+        "nodeID": "NodeID-MYoe7PnRe7wg15dRaDPd2PsSKZCLZe8vA",
+        "validationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "delegationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "potentialReward": "85028253571869",
+        "accruedDelegateeReward": "0",
+        "delegationFee": "2.0000",
+        "uptime": "99.9992",
+        "connected": true,
+        "signer": {
+          "publicKey": "0x8c89d413925db1e8d4e58a2cfd431b10df9f6cd7cf0c8943f6774d1788c5450a0298cce27510715ac773ce358587c09d",
+          "proofOfPossession": "0x962de3a5349872b91d771b1838e6a28b0269124c685c527bcf36b62f6db3b351ddd71d77d0e479dd25fcbf0b4c8fbbfc05339c84eb1114d6323ad1669549be2ac92638696482496b105b48026e07be19e12e72cf909494df18ec73c10551fac2"
+        },
+        "delegatorCount": "0",
+        "delegatorWeight": "0"
+      },
+      {
+        "txID": "2ok14KTUdKcMJZBZpffdENB4RYbtYyPRzFEd5uXG2cABVABsS",
+        "startTime": "1787843951",
+        "endTime": "1815751151",
+        "weight": "999999000000000",
+        "nodeID": "NodeID-EGiSYbF2Wd9cCa3Z5EYYMZfUktzqRCRGc",
+        "validationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "delegationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "potentialReward": "87188188560895",
+        "accruedDelegateeReward": "0",
+        "delegationFee": "2.0000",
+        "uptime": "99.9994",
+        "connected": true,
+        "signer": {
+          "publicKey": "0x969d79187bc549bf852afeace53db2d9fc0a17d405d1f5218ae4bf1b38451cb1c08e9208c81cf8c4035d9bee10db2792",
+          "proofOfPossession": "0xb417f53be6a3759bac39266a696659fd22c12fb2889bf026350aa5a88f38a67ab476cf4d8e656f3e1015572da1f189890d484e88a0a0b9743b314f035c877a6188725d6e8dcb00132d22a52aecdd7fca36a64de4112e6b08947d584d0236f224"
+        },
+        "delegatorCount": "0",
+        "delegatorWeight": "0"
+      },
+      {
+        "txID": "gCu7e7SoGHg62grpAVJnZ6jcp6H1hwwEMNc2vPGmwTChw9JAt",
+        "startTime": "1787843951",
+        "endTime": "1816355951",
+        "weight": "999999000000000",
+        "nodeID": "NodeID-ES6N1XTerAgvk2Sz1YB3EuNyGRLwfsxh7",
+        "validationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "delegationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "potentialReward": "89372082562713",
+        "accruedDelegateeReward": "0",
+        "delegationFee": "2.0000",
+        "uptime": "99.9992",
+        "connected": true,
+        "signer": {
+          "publicKey": "0x85e9d61e371b803b86f1e0e97187c79f1bef06f1219dc54d155f5f85ec3c10cc86a5e9a4e4e83dc8a9c8da5605e8ed26",
+          "proofOfPossession": "0xab84c87aed7ea6333827d3343a2bcf62fb52e187350536b73df6be3406e677331568ecaf858ac992193c527493f6c589041aae2eeb00a1b2183b1455d431f6881bb9467358ad485b7eb50de450a8aa557fb5a1be5e9ccedf5484a9ab729d91b4"
+        },
+        "delegatorCount": "0",
+        "delegatorWeight": "0"
+      },
+      {
+        "txID": "2VuwHP9D2WCyEafy5U6HyNY3a5u1DHRQPhchnU5wYgX2CkUHS9",
+        "startTime": "1787843951",
+        "endTime": "1816960751",
+        "weight": "999999000000000",
+        "nodeID": "NodeID-3EghQcQ19XJNiq8GCTfXUGSNVWRt4U4oU",
+        "validationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "delegationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "potentialReward": "91546992998958",
+        "accruedDelegateeReward": "0",
+        "delegationFee": "2.0000",
+        "uptime": "99.9992",
+        "connected": true,
+        "signer": {
+          "publicKey": "0x8def7b504127e6796631902195c5bfde7a77b657aa9a21bd9fd4442d47e807d710629fe74a77186b996bb825ed303f23",
+          "proofOfPossession": "0x956220a008beec13434faecb348054343a662342cfda4116ca9a5931fb1093365405048e1b778cb2a9a55c9368592e3d177fb33a370c1b06b83192fc01244fd264f5d9f9c39d1edb1dc416f458bc5caffb1c16a74fa04d64d60473582a328e6e"
+        },
+        "delegatorCount": "0",
+        "delegatorWeight": "0"
+      },
+      {
+        "txID": "3MF8WxnsVEGRekum5LngE1c3RUgQHX5jPhY3iDVXNTMxLr8zG",
+        "startTime": "1787843951",
+        "endTime": "1817565551",
+        "weight": "999999000000000",
+        "nodeID": "NodeID-GQ8iTY5cGSunm6f9op8nTri86GgcMTiAR",
+        "validationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "delegationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "potentialReward": "93741940000504",
+        "accruedDelegateeReward": "0",
+        "delegationFee": "2.0000",
+        "uptime": "99.9994",
+        "connected": true,
+        "signer": {
+          "publicKey": "0xb919d5378bed3bb279510bc2878d104f1b65ef9c0437fa4927f4381fd2d263685cebae089e65c74c2fc1c1b52b346b55",
+          "proofOfPossession": "0x88c8181e45412d3c707e82529e02a1a73b10e3757824c83525c1a13239d91555898efaee7244ad959c410bab8e41e8f20a75261ea5f673d3bc8d4ffb213e449e08fa69c7987c71290bc58b0dcc791c60693051ca39a4b41bd26dbdb251a8ed07"
+        },
+        "delegatorCount": "0",
+        "delegatorWeight": "0"
+      },
+      {
+        "txID": "2kwqXUuTUhEr77vXQjussKdkNsLNDQmdvGAbDnPdKWjdKCJKZL",
+        "startTime": "1787843951",
+        "endTime": "1818170351",
+        "weight": "999999000000000",
+        "nodeID": "NodeID-Admva73mRxceKBNee4SYbftWBwuZdAkf4",
+        "validationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "delegationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "potentialReward": "95977081268345",
+        "accruedDelegateeReward": "0",
+        "delegationFee": "2.0000",
+        "uptime": "99.9992",
+        "connected": true,
+        "signer": {
+          "publicKey": "0x877a24d696c28abd1a4abf9c31cf042f8806a01ca8158245970b5f09f9e1d23bc162044205cc2e0b0f69f89af1ed2a98",
+          "proofOfPossession": "0x80cd6bb3ce45cacf90e95e96f354310603d9aeeb1520604822bb3e7c027a5eefe1c0a301ba70e57ca6ac7f4843e2dcda192700edcd60cae1b07d4ba98a1d2404e135b719951bc6a6c5db298762d74c42a1082dd7d70c5b891fc244167a13405a"
+        },
+        "delegatorCount": "0",
+        "delegatorWeight": "0"
+      },
+      {
+        "txID": "VzJrQX3eLY7rsA7PgUe5YP4kDEhJV3DPqTxofq3LUfh67VHvm",
+        "startTime": "1787843951",
+        "endTime": "1818775151",
+        "weight": "999999000000000",
+        "nodeID": "NodeID-HXq5FEEReyPHv7zp5oMMv8hsTMggP6HYx",
+        "validationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "delegationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "potentialReward": "98201251164800",
+        "accruedDelegateeReward": "0",
+        "delegationFee": "2.0000",
+        "uptime": "99.9992",
+        "connected": true,
+        "signer": {
+          "publicKey": "0x94e7b01a1e3d71b6cdc2f674dadf79b2cf5558966085751af7807b7b62f2f61a92f8a7b730bafc10b6612be9e8d72be6",
+          "proofOfPossession": "0xb87b7b5e3d4ba85d0baaad56070d34be6348a7da3365909083ab2e735f4fbc720fcb3eadb2a9ffa1dff04d3531fdcd45092436df3c861f208a7c6a640295de5b7eea6c25a57211c63d7c84519948e7cbc0caded3eb02bac75c3da10456059378"
+        },
+        "delegatorCount": "0",
+        "delegatorWeight": "0"
+      },
+      {
+        "txID": "q7tJRduUhU6xQsFQMTaHwR4WV6T2A7hxmdJhz2EHS85foSvWi",
+        "startTime": "1787843951",
+        "endTime": "1819379951",
+        "weight": "999999000000000",
+        "nodeID": "NodeID-BxxcV4RaWmVjioAY3UsRa4HJTRo1qTZ6t",
+        "validationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "delegationRewardOwner": {
+          "locktime": "0",
+          "threshold": "1",
+          "addresses": [
+            "P-love918a4zwddz9nqjmzyzd86nt2czjkgpfxl8s3wx4g"
+          ]
+        },
+        "potentialReward": "100432710101145",
+        "accruedDelegateeReward": "0",
+        "delegationFee": "2.0000",
+        "uptime": "100.0000",
+        "connected": true,
+        "signer": {
+          "publicKey": "0x977e9b8eee70dbb0155f4f56c81dea3eb60a1619c9247d4fe81766caab4e05133d1c82a5c8612f188c9e77a9414f59b6",
+          "proofOfPossession": "0x90ddbe7919c660cdd0e06276a5a6a83b3abdcbaba06d41ab9cd11ecc19d17f2322429f1acec595deb11ba46f0a964de703d4d2c4ebf6bd829dcb7594e498da67500b73f6cdf55a37a12ca17fdc4d193ad5027ea04837c2d9d4ba984627bc3aa3"
+        },
+        "delegatorCount": "0",
+        "delegatorWeight": "0"
+      }
+    ]
+  },
+  "subnets": {
+    "subnets": [
+      {
+        "id": "MqQr8dHj6MWQegc2LgqzvERgHuV26t4egK8yQycv6rx3f6DF7",
+        "controlKeys": [
+          "P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj"
+        ],
+        "threshold": "1"
+      },
+      {
+        "id": "g7eDvoo2ykK6BX6kf5aP6Qrr9gTMunVao5ZYwka7Xb2pfHbDf",
+        "controlKeys": [
+          "P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj"
+        ],
+        "threshold": "1"
+      },
+      {
+        "id": "11111111111111111111111111111111LpoYY",
+        "controlKeys": [],
+        "threshold": "0"
+      }
+    ]
+  },
+  "blockchains": {
+    "blockchains": [
+      {
+        "id": "aNqEioiL5hqiMkrrYHR944vM5vFtjwfJnFLsGu6HdvSPuHE8N",
+        "name": "eric1",
+        "subnetID": "MqQr8dHj6MWQegc2LgqzvERgHuV26t4egK8yQycv6rx3f6DF7",
+        "vmID": "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf"
+      },
+      {
+        "id": "2vwXkbjsRXA47DhjJvYXoo9BFYUg3d1An7Z6Uo9PAdbzgSNEus",
+        "name": "Eric1",
+        "subnetID": "g7eDvoo2ykK6BX6kf5aP6Qrr9gTMunVao5ZYwka7Xb2pfHbDf",
+        "vmID": "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf"
+      },
+      {
+        "id": "WY85WhvwkgQtEoAnBuCPkKDtVf8pksV4MYE9Jc3qqGMq5y3T3",
+        "name": "C-Chain",
+        "subnetID": "11111111111111111111111111111111LpoYY",
+        "vmID": "mgj786NP7uDwBCcq6YwThhaN8FLyybkCa4zBWTQbNgmK6k9A6"
+      },
+      {
+        "id": "EPugGEazKzfCHWqCyTdpF3R8ssbKC8a888RSEMt5pKVdP3jqQ",
+        "name": "X-Chain",
+        "subnetID": "11111111111111111111111111111111LpoYY",
+        "vmID": "jvYyfQTxGMJLuGWa55kdP2p2zSUYsQ5Raupu4TW34ZAUBAbtq"
+      }
+    ]
+  }
+}
