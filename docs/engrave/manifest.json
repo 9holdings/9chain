@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "source": "9Chain-C1 PAPER/ freeze 2026-08-07T21:19:13Z - bytes taken verbatim, never retyped",
+  "cChainAddress": "0x9000000000000000000000000000000000000009",
+  "docs": [
+    {
+      "id": "genesis_inscription",
+      "lang": "he",
+      "file": "genesis_inscription.txt",
+      "on": [
+        "p"
+      ]
+    },
+    {
+      "id": "dedication",
+      "lang": "en",
+      "file": "dedication.txt",
+      "on": [
+        "p",
+        "c"
+      ]
+    },
+    {
+      "id": "dedication_eva",
+      "lang": "en",
+      "file": "dedication_eva.txt",
+      "on": [
+        "p",
+        "c"
+      ]
+    },
+    {
+      "id": "love_paper_en",
+      "lang": "en",
+      "file": "love_paper_en.txt",
+      "on": [
+        "p",
+        "c"
+      ]
+    }
+  ]
+}

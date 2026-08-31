@@ -1,0 +1,143 @@
+# CHECKSUMS ĐÓNG BĂNG LOVE9 PAPER — 20260807T211913Z (kịch bản #3B.3)
+# sha256 tính trên body ĐÃ chuẩn hóa NFC/LF/BOM — đúng giá trị khắc on-chain + công bố.
+# Từ thời điểm này LOVE-PAPER.md + LOVE-PAPER-EN.md ĐÓNG BĂNG — không sửa một chữ.
+# (Tên file bỏ số 9 từ 2026-08-14; đợt đóng băng V0.0 ở khối "ĐẢO HƯỚNG PAPER → V0.0" bên dưới.)
+# CHỈ bản EN được khắc on-chain; bản VI là bản đối soát (checksum ghi ở mục 'file nguồn').
+genesis_inscription  7e89adee122f26790f748375e3ea6769cb386b20d695206c2e2c65e57e0f9615
+dedication  19f90a317851933e88fb288949a44b18f87103b2d7947b80d557f05d425a236c
+# ── THÊM 2026-08-08 (sau mốc đóng băng ở trên, TRƯỚC giờ khai sinh) ──────────────────────────
+# Chủ dự án chốt thêm BLOCK EVA = block LIỀN SAU Block Adam. Tài liệu `dedication_eva` là mục thứ 9.
+# Vì sao phải thêm bây giờ hoặc không bao giờ: `compliance.proto:55` — tài liệu BẤT BIẾN sau genesis,
+# Msg service KHÔNG có AddDocument, nên không có đường gov nào khắc thêm về sau trên chain này.
+# ⚠️ 8 dòng còn lại KHÔNG đổi một ký tự — `love9_paper_en` vẫn nguyên hash đã công bố, tức Paper
+#    KHÔNG bị sửa để nhắc Eva. Đóng băng của 07/08 vẫn còn nguyên hiệu lực cho những gì nó phủ.
+dedication_eva  747ebe59ab6a152e962a2c3f215f46a8a30a82265210cb4fd6ee4bd31ffc97df
+#
+# ── ĐỔI MÚI GIỜ 2026-08-08 (sau đóng băng, TRƯỚC giờ khai sinh) ──────────────────────────────
+# Chủ dự án chốt neo hai mốc vào GIỜ JERUSALEM thay cho GMT+9:
+#     khai sinh  2026-08-09T00:09:09Z → 2026-08-09T06:09:09Z  (= 09:09:09 Jerusalem)
+#     Block Adam 2026-09-09T00:09:09Z → 2026-09-09T06:09:09Z  (= 09:09:09 Jerusalem)
+# Vì sao chấp nhận đổi Paper: câu Block Adam trong Paper GHI TÊN MÚI GIỜ, nên đổi mốc mà không
+# sửa Paper thì văn bản khắc vĩnh viễn sẽ nói sai. Đây là lần DUY NHẤT trong đợt này Paper bị sửa.
+#     cũ:  09:09:09 GMT+9, 9 September 2026 (2026-09-09T00:09:09Z)
+#     mới: 09:09:09 Jerusalem, 9 September 2026 (2026-09-09T06:09:09Z)
+# ⇒ love9_paper_en đổi hash. Hash CŨ dc089549…6f2e1e ĐÃ CÔNG BỐ nay VÔ HIỆU — thấy ở đâu còn
+#   dùng nó để đối chiếu thì đó là tàn dư, không phải bằng chứng chain bị đổi.
+# 7 tài liệu còn lại KHÔNG đổi một ký tự.
+# ── ĐẢO HƯỚNG PAPER → V0.0 (2026-08-13, chủ dự án chốt) ─────────────────────────────────────
+# LOVE PAPER rút xuống LÕI BẤT BIẾN: chỉ còn 3 mỏ neo (Hebrew Block 1 · Block Adam · Block Eva) +
+# luật meta "mọi thứ còn lại do toàn thể cộng đồng quyết, miễn giữ trọn ba điều đó". Điều 1–9 bỏ
+# khỏi hiến pháp; số tokenomics vẫn on-chain ở pool_allocation/genesis_operating_budget/validator_access
+# như đề xuất khởi đầu có thể vote. Bản ĐẦU TIÊN khắc = V0.0, phả hệ khởi lại từ gốc (prev = none).
+# Ba hash đổi (love_paper_en · love_paper_version · love_paper_prev_sha256); 6 tài liệu còn lại
+# KHÔNG đổi một ký tự (Hebrew/Adam/Eva/pool/ops/validator). Block Adam nay chỉ khắc LỜI, không khắc
+# mốc ngày (luật thời gian ở genesis/runbook — tránh bẫy trượt-ngày CL3).
+# 🔴 ĐỔI TÊN 2026-08-14 (chủ dự án chốt): paper bỏ số 9 — tên hiển thị "LOVE Paper"; KHOÁ on-chain
+#   love9_paper_* → love_paper_* (en/version/prev); file PAPER/LOVE9-PAPER*.md → PAPER/LOVE-PAPER*.md.
+#   Đổi khoá không đổi hash; tiêu đề "# LOVE Paper" nằm trong body EN nên love_paper_en đã tính lại.
+#   VÔ HIỆU nay (đều của Paper v1.0, khoá cũ love9_paper_*, trên chain đã chết 12/08): love9_paper_en
+#   e6457043…06a5 · love9_paper_version c0319017…1bd35 · love9_paper_prev_sha256 82187d91…45e500.
+love_paper_en  8cee72ba268f4f5fb0a55d77dd52313bcdfb8ff3afed3165686140e2a0339835
+# ────────────────────────────────────────────────────────────────────────────────────────────
+# ── SỬA pool_allocation 2026-08-08 (sau đóng băng, TRƯỚC giờ khai sinh) ─────────────────────
+# Câu mở đầu cũ NÓI SAI: "AGAPE reserve holds the entire supply of 81,000,000,000 LOVE9 at genesis."
+# Số dư THẬT của kho `agape` ở block 1 là 79.999.999.999 — 1.000.000.001 nằm ở 12 ví ops. Chính cổng
+# proof của repo đã khẳng định điều đó suốt, nhưng cổng chỉ gác `genesis_operating_budget` nên chỗ
+# này lọt. Nay `mainnet-genesis.sh` có cổng "pool_allocation khai đúng số dư AGAPE" — đã thử ngược:
+# câu cũ làm cổng ĐỎ, câu mới XANH.
+# 🔴 SỬA 2026-08-13 (CL10 §5.5, phát hiện 10/08): dòng trên từng ghi `80.898.000.012` / ops
+# `101.999.988` — đó là số của một bản nháp CŨ HƠN NỮA (trước đợt tăng vốn ops lên 1.000.000.001
+# cùng ngày 08/08, vì 9 validator phải nướng self-bond ngay genesis). Chain khai sinh THẬT 09/08 có
+# AGAPE = 79.999.999.999, KHÔNG PHẢI 80.898.000.012 — số cũ nói sai về một sự kiện đã xảy ra
+# (BLOCKERS.md §CL10 §5.5). Sửa SỐ, giữ nguyên mọi hash — hash không đổi vì phần này là chú thích.
+#   hash cũ: 18e03af7ee842dfb853dcc8c011d0eae0acd5af7ecc4a38f9343167a95b44400 (nay VÔ HIỆU)
+# ── SỬA pool_allocation + genesis_operating_budget 2026-08-24 (N13.8 · A2/A3) ───────────────
+# Cả hai đổi vì CÙNG MỘT lý do: một câu KHẮC VĨNH VIỄN hứa điều chain KHÔNG cưỡng chế, mà không nói
+# ra rằng nó không cưỡng chế. Chuẩn để noi theo có sẵn trong chính bộ tài liệu này — `validator_access`
+# viết *"though the chain does not yet enforce that floor in consensus"*. Trung thực ở một chỗ thì
+# phải trung thực ở mọi chỗ.
+#
+# `pool_allocation`: câu *"the reserve grows … through the 9% of network fees"*. `x/feesplit` ĐÃ wire
+#   (N1.1, 13/08) nên câu cũ không sai về mã — nhưng chain này **gasless**, `fee_collector` luôn rỗng
+#   ⇒ BeginBlocker return sớm ⇒ không đồng nào chảy về AGAPE. **Đo trên chain sống 2026-08-24: sau
+#   109.618 block, AGAPE tăng ĐÚNG 0 LOVE9.** Người ngoài kiểm điều này bằng MỘT query. Thêm:
+#   *"That split is wired, but it yields nothing while this chain charges no fees … It begins to grow
+#   only if and when fees are switched on."*
+#   hash cũ: ba6971fb9f9964909dcd8c168163bf09af1355cf78c026aeb4b5f0543065cb4e (nay VÔ HIỆU)
+#
+# `genesis_operating_budget`: từ *"advanced from the AGAPE reserve"* hàm ý sẽ HOÀN, nhưng **không có
+#   luật nào bắt hoàn** — không vesting, không lock, và sau block 1 thì không thêm được nữa
+#   (`compliance.proto:55`: tài liệu bất biến, không có `AddDocument`). Thêm: *"The word advanced
+#   states an intention, not an obligation this chain can collect … Any return is a governance act by
+#   the holders, not something consensus enforces."*
+#   hash cũ: 532594abbfcd9969a24c3c2ee66d2c5a1ac41aade407a7954ad7d3b789c0bd9a (nay VÔ HIỆU)
+#
+# ⚠️ `validator_access` KHÔNG đổi một ký tự — hash `19a86543…` giữ nguyên. Đó là đối chứng: nếu nó
+#    đổi theo thì tôi đã đụng nhầm thứ không định đụng.
+# 🔴 HAI hash này chỉ lên chain ở **re-genesis 01/09**. Từ nay tới đó, `verify-genesis-live.sh §8`
+#    sẽ báo LỆCH với chain đang sống — ĐÚNG như vậy, chain đó còn khắc hash cũ. Đừng "hoà giải"
+#    ngược, và **đừng deploy `love9config.js` sớm** (xem khối cảnh báo ở đầu chính file đó).
+# ── SỬA pool_allocation + genesis_operating_budget 2026-08-24 (phiên 14 — `Q-A` + `Q-C`) ────
+# Hai câu nữa được đo ra là SAI-KHI-KHẮC, cùng một lớp lỗi với đợt N13.8 ngay trên: văn bản khắc
+# VĨNH VIỄN mà nói một điều phép đo bác được.
+#
+# `pool_allocation`: câu *"No module executes this rule yet."* — khối cảnh báo trong
+# `inject-documents.py` đã dặn trước rằng câu này phụ thuộc một quyết định chưa chốt. Chủ dự án chốt
+# `Q-C` = **BẬT `x/emission` từ genesis** ⇒ câu ấy SAI ngay tại block 1. Câu mới khai luật được THI
+# HÀNH từ block 1, và khai luôn điều người đọc hỏi ngay sau đó: mở kho là CHUYỂN token đã tồn tại,
+# KHÔNG mint (module chỉ có `GetBalance`+`SendCoins`; `render.go` khắc `inflation = 0`).
+#   hash cũ: bb012d83… (nay VÔ HIỆU)
+#
+# `genesis_operating_budget`: câu gọi tên bộ ví theo **số validator khai trong CR**. Đo ra sai:
+# `provision.sh` ghim CỨNG bộ ví (`for k in val … val9`) và `amt()` rơi về mặc định khi CR không
+# khai ⇒ với CR ngày G (3 validator) cách cũ khắc kho AGAPE **cao hơn thực tế 59.999.994 LOVE9**
+# (= 6 × 9.999.999) và mỗi pool lệch 19.999.998 — trong đúng tài liệu viết ra để chống cáo buộc
+# premine. Nay mọi con số suy từ `provision.sh`, không đếm từ CR.
+#   hash cũ: 2234ad8b… (nay VÔ HIỆU)
+#
+# `validator_access`: CR ngày G khai **3** validator (`Q-A`), nên câu khắc tách BA vế thay vì một —
+# chín ví được cấp vốn + allowlist · BA chạy từ block 1 trong cụm · SÁU vào bằng create-validator từ
+# máy NGOÀI cụm, mỗi máy TỰ SINH khoá consensus của chính nó. Vế cuối khắc luôn tính chất của đường
+# `Q-B`=B2: khoá không bao giờ tồn tại ở hai nơi ⇒ không có cửa sổ double-sign nào.
+#   hash cũ: 19a86543… (nay VÔ HIỆU)
+# 🔴 Hai hash này chỉ lên chain ở re-genesis 01/09; tới đó `verify-genesis-live.sh §8` báo LỆCH với
+#    chain đang sống — ĐÚNG. Đừng "hoà giải" ngược, đừng deploy `love9config.js` sớm.
+# ── SỬA pool_allocation + genesis_operating_budget + validator_access 2026-08-26 (TOKENOMICS 9 TỶ) ──
+# Team chốt 26/08: **81 tỷ → 9 tỷ**, bốn pool `agape`/`veritas`/`libertas`/`aeternum` → **năm nhóm**
+# (team · private_sale · foundation · community · staking_rewards), dùng chung cho A1 và C1. Ba tài
+# liệu này khắc chính những con số đó nên cả ba phải viết lại; commit `03d1376` đã sinh lại thân tài
+# liệu trong CR, và chain **đã carve 2026-08-26T18:09:09Z** với hash mới.
+#   pool_allocation           hash cũ: b9099e1765900fff…a54e5b87  (nay VÔ HIỆU)
+#   genesis_operating_budget  hash cũ: 964fe80fda8462bb…d2c22887  (nay VÔ HIỆU)
+#   validator_access          hash cũ: 632ff29c6561d603…0e093d6b  (nay VÔ HIỆU)
+# 🔴 KHÁC MỌI ĐỢT TRƯỚC — ĐỌC KỸ: ba dòng dưới KHÔNG còn là "sẽ lên chain ở re-genesis kế tiếp".
+#    Chúng ĐÃ ở trên chain rồi; file này mới là bên đi sau. Từ 26/08 tới lúc sửa dòng này, hai bản
+#    công bố (file này + `9chain-web-static/love9config.js`) khai hash của một mô hình tokenomics
+#    đã bãi bỏ, trong khi `love9config.js` **đang phục vụ công khai** ⇒ compliance-explorer báo
+#    "tài liệu không khớp chain" cho 3/9 tài liệu: **báo động thật, không phải giả** — lần này
+#    lệch nằm ở bản công bố chứ không ở chain.
+# 🔑 Vì sao cổng không kêu: `check-consistency.py` so file này ↔ `love9config.js`, tức hai BẢN CHÉP
+#    với nhau. Cùng sai một kiểu thì cổng vẫn xanh. Đo đúng là so với CHAIN:
+#      curl -s https://rpc-c1.9chain.org/rest/love9/compliance/v1/documents
+# ⚠️ 6 tài liệu còn lại KHÔNG đổi một ký tự (Hebrew · Adam · Eva · Paper EN/version/prev) — đó là
+#    đối chứng: nếu chúng đổi theo thì đợt sinh lại đã đụng nhầm thứ không định đụng.
+pool_allocation  203c7449a77a3b379b3a25fcbfdfcf48130a7887cbcd3cb218abd81b7a665379
+# ────────────────────────────────────────────────────────────────────────────────────────────
+genesis_operating_budget  447ba24ac6c5108d885d86aa9e2fc567b2f0a1085e7d98aab615fb9fc1877e44
+# ── SỬA validator_access 2026-08-08 (F-11, đợt rà 08/08) ───────────────────────────────────
+# Câu cũ khắc "The set holds at minimum 4 validators" — TRẦN 81 có cưỡng chế, SÀN 4 thì KHÔNG có
+# ở đâu cả (Cosmos không có tham số min-validators; chính CR ghi "quy ước vận hành, không phải luật
+# chain"). Nay: "capped at 81 … that ceiling is enforced … A floor of four is an operating convention
+# and is not enforced."  hash cũ: 37b911fa…88767c (nay VÔ HIỆU)
+validator_access  27478e7d9fd04ad37e0a1a9be5b1c840637d9c9fd1baf53f04f3387a3453c09a
+love_paper_version  8aed642bf5118b9d3c859bd4be35ecac75b6e873cce34e7b6f554b06f75550d7
+love_paper_prev_sha256  cb52483fe9cd7804e0b3447d3ab3bf4b3c0cbeb21c1f5e3f7ee1ed139c302426
+# file nguồn:
+# (cập nhật 08/08 cùng đợt đổi múi giờ — hash cũ: VI a475bc0d…cb420 · EN dc089549…6f2e1e)
+# ⚠️ 2026-08-10: thư mục `Cowork/` ĐỔI TÊN thành `PAPER/`. Chỉ NHÃN đường dẫn hai dòng dưới đổi theo
+#    — KHÔNG một hash nào đổi, vì sha256 tính trên NỘI DUNG file, không trên đường dẫn. Ghi ra ở đây
+#    thay vì sửa lặng lẽ: đây là file người ngoài dùng để đối chiếu với hash on-chain, nên mọi lần nó
+#    thay đổi đều phải tự giải thích. Đối chiếu bằng `verify-genesis-live.sh` không bị ảnh hưởng —
+#    script đó tra theo TÊN TÀI LIỆU, không theo đường dẫn file.
+a922045e538712089ce7f539a81fc83bbea1392245d71a4aa880eddbd236a5ca  PAPER/LOVE-PAPER.md
+8cee72ba268f4f5fb0a55d77dd52313bcdfb8ff3afed3165686140e2a0339835  PAPER/LOVE-PAPER-EN.md
