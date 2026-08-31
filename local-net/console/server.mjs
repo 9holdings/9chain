@@ -167,8 +167,21 @@ try {
   console.log(`[chainId] sổ A1 đã cấp: ${chainIdDaCap.size} chainId · ${tenDaCap.size} tên ` +
     `(gộp từ ${(j.sources ?? []).length} sổ console trong repo)`);
   // Rỗng ≡ cổng tắt. Cùng luật với sổ trên: một tệp đọc được mà rỗng vẫn là xanh giả.
+  //
+  // 🔴 BUT EMPTY-BECAUSE-SOMEBODY-DECIDED IS NOT EMPTY-BECAUSE-A-SOURCE-VANISHED, and counting
+  // alone cannot tell them apart. The previous version printed one line — *"regenerate with
+  // gen-chainid-issued"* — for both, i.e. in the decided case it sent the operator off to re-run
+  // a command that changes nothing, in the middle of G-day. `released` says which case this is.
   if (chainIdDaCap.size === 0) {
-    console.log(`[chainId] 🔴 sổ "A1 đã cấp" RỖNG ⇒ CỔNG ĐANG TẮT. Sinh lại bằng gen-chainid-issued.mjs.`);
+    const released = j.released?.chainIds ?? 0;
+    if (released > 0) {
+      console.log(`[chainId] ℹ️  issued-list EMPTY ON PURPOSE — ${released} chainId · ` +
+        `${j.released?.names ?? 0} names released across ${j.released?.releases ?? 0} declaration(s) ` +
+        `(chainid-released.json). Not a fault, and nothing to regenerate.`);
+    } else {
+      console.log(`[chainId] 🔴 issued-list EMPTY with NO release declaration => THE GATE IS OFF.`);
+      console.log(`[chainId]    Almost certainly a ledger under docs/archive/ went missing. Rebuild: gen-chainid-issued.mjs.`);
+    }
   }
 } catch (e) {
   console.log(`[chainId] 🔴 KHÔNG đọc được ${CHAINID_DACAP_FILE} (${e.message})`);

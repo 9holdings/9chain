@@ -90,6 +90,11 @@ const GATES = [
   { group: "2 · REPO GATES", name: "chainId issuance (chainid-test)", ...node("local-net/console/chainid-test.mjs") },
   { group: "2 · REPO GATES", name: "cb58 self-test", ...node("local-net/lib/cb58.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "issued-chainId ledger matches its sources", ...node("scripts/gen-chainid-issued.mjs", "--check") },
+  // The ratchet added 2026-09-01: the block-list may only GROW, and the one exception —
+  // `chainid-released.json` — has to name every entry it lets go. Wired in here because the
+  // gate above only proves the file matches the sources; it says nothing about whether the
+  // sources shrank. Losing an archived ledger used to hand names back in silence.
+  { group: "2 · REPO GATES", name: "block-list ratchet — it may only grow (counter-check)", ...node("scripts/gen-chainid-issued.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "console GENERATION gate (generation-test)", ...node("local-net/console/generation-test.mjs") },
   { group: "2 · REPO GATES", name: "orphan-file classification (counter-check)", ...node("scripts/check-deploy-drift.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "chain-directory compaction (counter-check)", ...node("scripts/close-ledger-before-regenesis.mjs", "--self-test") },
