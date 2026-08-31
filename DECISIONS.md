@@ -5574,3 +5574,91 @@ netgen vẫn in `"khop ban dong bang cua C1"` (D-133 §hoãn sau ngày G).
 `local-net/net-tap-g1b/keys.txt` + `faucet.env` chứa **khoá thật của bộ diễn tập** (đã `.gitignore`).
 🔴 **`shred -u -n 3` ngay trong phiên dọn mạng này** — D-107 đã trả giá một lần cho một bản trùng
 byte nằm 20 giờ trong `%TEMP%`.
+
+---
+
+## D-140 — Đẻ L1 trên bản diễn tập: **tái hiện đúng lỗ hổng ngày G**, và đây là những dòng runbook còn thiếu (2026-08-31)
+
+David: *"đẻ thử 1 L1 trên mạng diễn tập xem."* Lượt này **đáng giá hơn một phép kiểm xanh**: nó
+dựng lại đúng chỗ mà lượt quét `31/08` đã cảnh báo là *"nạp `chain-factory` X→P có **0 dòng** trong
+runbook"* — và chứng minh cảnh báo đó là thật, bằng một lỗi dừng hẳn.
+
+### 🔴 Hai công cụ, chỉ MỘT dùng được trên mạng thật
+
+| Công cụ | Trả phí bằng | Dùng được trên mạng netgen? |
+|---|---|---|
+| `create-l1` (và `local-net/create-l1.sh` gọi nó) | **`genesis.EWOQKey` cắm cứng**, không có cờ ghi đè | 🔴 **KHÔNG** |
+| `9chain-a1-cli l1 create` | `A1_CLI_KEY` từ môi trường | ✅ có — đây là đường console dùng |
+
+**Đo, không đoán:** `allocation.md` và `genesis.json` của bản diễn tập nhắc `ewoq` **0 lần** ⇒ ewoq
+có **0 đồng** trên mọi mạng netgen sinh ra. ⇒ `create-l1.sh` **không chạy được trên bất kỳ mạng A1
+thật nào**, chỉ chạy trên mạng dev cũ (thế hệ `9001`) nơi genesis còn cấp cho ewoq.
+
+### 🔴 Lỗi dừng hẳn — và nó chính là lỗ hổng đã cảnh báo
+
+```
+LỖI CreateSubnetTx: insufficient funds: provided UTXOs needed 2196 more nAVAX
+```
+
+Đo ngay tại chỗ, trên quỹ Foundation:
+
+```
+P-Chain : 0
+X-Chain : 71,000,009 LOVE9
+```
+
+**Thanh khoản genesis nằm trên X-Chain. CLI trả phí trên P-Chain.** Không có bước chuyển thì mọi
+lượt đẻ chain **chết ở giao dịch đầu tiên**, và thông báo lỗi nói về *"UTXO"* chứ không nói
+*"tiền của anh đang ở chain khác"*.
+
+### Bốn dòng runbook còn thiếu — nay đã chạy thật
+
+```bash
+# 1. Ví X/P chạy TRONG container node: header Host là 127.0.0.1, nằm trong danh sách cho phép.
+#    Đi vòng ngoài là 403 — đó là cổng M11.10 đang canh, KHÔNG phải thứ để nới.
+docker exec -d -e WALLET_KEY="$KEY" -e WALLET_URI=http://127.0.0.1:9650 -e PORT=8091 \
+  <node> /9chain-a1/build/xp-wallet
+
+# 2. Chuyển X → P (thừa sức trả phí subnet + chain)
+curl -X POST -H 'content-type: application/json' --data '{"amount":"1000"}' \
+  http://127.0.0.1:8091/api/x-to-p
+
+# 3. ĐO TRÊN NODE, không tin ví: platform.getBalance phải khác 0
+# 4. Rồi mới `9chain-a1-cli l1 create --genesis <tệp do make-l1-genesis.mjs sinh>`
+```
+
+⚠️ **`docker exec -e` KHÁC `docker run -e`:** biến của `exec` là **tạm thời cho tiến trình đó**,
+**không** nằm trong `docker inspect` của container. Đó là lý do đường này an toàn hơn nạp khoá qua
+env lúc tạo container.
+
+### Kết quả
+
+```
+subnet      P2fAVBSmkQKtByTfvPQrRP1uPyaCTTzHmASHsqvCFabvHBhAE
+blockchain  a3wagNnjYcpDvxXhYEP2ivwobV5NnUebQEkztzFjc1tJ8fo74
+9/9 validator đã đăng ký cho subnet · track + restart · healthy sau 40s · L1 phục vụ sau 10s
+```
+
+🔴 **Phép đo quan trọng nhất — chainId đúng THẾ HỆ:**
+
+| | |
+|---|---|
+| `eth_chainId` | `0x218805c40` = **`9001000000`** |
+| Khối g1 (`9001000000`–`9001999999`) | ✅ **nằm trong** |
+| Khối g0 (`9000000010`–`9000999999`) | ✅ **không** nằm trong |
+
+Đó là bằng chứng `A1_GEN` đi trọn từ hằng số Go/JS → `make-l1-genesis.mjs` → genesis L1 → **chainId
+mà ví người dùng sẽ thấy**. Bump một bên mà quên bên kia thì **chính con số này** sẽ sai, và nó đi
+vào một genesis **bất biến**.
+
+Số dư admin trên L1: `0x295be96e64066972000000` = **50.000.000 token** — đúng khuôn
+`make-l1-genesis.mjs` sinh, và **không có ewoq trong `alloc`** (D-114).
+
+### Hai chỗ tôi vấp, ghi lại vì cả hai sẽ lặp
+
+1. **Ví chạy sai khoá mà vẫn trả lời 200.** Lượt gọi `xp-wallet --help` bị treo lúc trước **chính là
+   một ví đang chạy bằng ewoq mặc định** giữ cổng 8090; lượt sau của tôi bind hỏng rồi chết lặng, và
+   `/api/info` vẫn trả về — **của ví cũ**. Dấu hiệu duy nhất là **địa chỉ in ra không phải địa chỉ
+   mình mong**. ⇒ **Luôn đọc `xAddr` trước khi tin số dư.**
+2. **Image node không có `ps`/`pkill`** — không dừng được tiến trình bên trong bằng cách thường.
+   Dùng cổng khác, hoặc restart container.
