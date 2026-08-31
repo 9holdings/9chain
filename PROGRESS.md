@@ -1483,6 +1483,26 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       ⇒ Không còn nguy cơ *"bump ở cây làm việc mà bộ patch công bố vẫn khai `A1Gen 0`"* (CLAUDE.md
       luật cứng 3). **Còn 34 việc tay, không phải 36.**
 
+- [x] 🔴 **D-139 — DIỄN TẬP NGÀY G ở băng TẬP g1: `engrave-verify` 17 đạt · 0 hỏng** (`31/08`).
+      networkID **`899999998`** trên máy dev — băng tập **không bao giờ bắt tay được** mạng thật,
+      an toàn **theo kiến trúc**. Cần lượt này vì **canon khắc chữ vừa đổi hôm nay** (D-133), và
+      một canon chưa đi hết đường tới chain thật là canon **chưa được kiểm**.
+      Lượt 1 **bị từ chối đúng thiết kế**; việc tay #20 làm **bằng máy**: 4/4 hash trong `CANON.txt`,
+      **4/4 phân biệt**, `lang` đúng id, và 4/4 **cũng có trong `attestation-2026-08-07.txt`** —
+      bản đóng băng có ngày, viết ở nơi khác, TRƯỚC đó. Vân tay xác nhận **đã ở trong git từ trước**.
+      Lượt 2: 9 node · self-bond `9 × 999.999` · 🔴 sửa **9 dòng `image: :dev` → `:g1`** trước `up`.
+      ⚠️ Đụng subnet với faucet dev ⇒ **dời bản diễn tập** sang `172.29.`, **không xoá gì của David**.
+      **Đo trên mạng thật:** binary `commit=…g1-26patch-60a61707` (đúng image đã ship) · 9/9 validator
+      · `eth_chainId 9000000009` · `supplyCap` đọc từ log node · `LOVE9` giải được · **`AVAX` ĐỎ kèm
+      lý do**.
+      🔴 **Một giả định của tôi sai:** đọc ra 1274 byte ≠ 1273 khai, JSON không parse, sha256 không
+      khớp — **ba số lệch cùng lúc = MỘT giả định sai**. `byte[0]=0x00` (STOP, mã cố ý không chạy
+      được); bỏ ra ⇒ **1273 byte · JSON hợp lệ · sha256 = đúng `extraData`**.
+      Mạnh nhất trong 17 mục: **`block 0 parentID == sha256(genesisBytes)`** (mỏ neo đọc được chữ
+      khắc P-Chain từ node đang chạy, dù `Message` là trường CHỈ GHI) + **bản văn trên MẠNG == trong
+      TỆP**. Chạy qua `--network container:` vì đi vòng khác là **403** — cổng M11.10, đừng nới.
+      🔴 **Nợ dọn:** `net-tap-g1b/keys.txt` + `faucet.env` phải `shred -u -n 3` khi dọn (D-107).
+
 - [x] **VIỆC 3–5 TRƯỚC `down -v` ĐÃ CHẠY** (`31/08`). Sổ chain: `--pull` (2 sống · repo biết 55
       ⇒ *không có gì sắp mất*) → `gen-chainid-issued --write` (**49 · 54, không đổi** ⇒ server đang
       đúng) → `--compact` ra `docs/archive/console-chains-closed-g0-2026-09-01.json`.

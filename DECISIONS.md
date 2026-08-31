@@ -5494,3 +5494,83 @@ Hoãn là **đúng**, không chỉ chấp nhận được, vì nó đổi **bộ
 🔴 **Nhưng một điều kiện phải giữ:** **đừng shred gì của g0 cho tới khi g1 được chứng minh là sống.**
 Nếu lượt sinh lại hỏng và phải hoãn, g0 là thứ duy nhất còn lại — và lúc đó 90,007 LOVE9 cùng bộ
 khoá g0 **lại có giá trị trở lại**. Thứ tự đúng: **g1 xanh trước, dọn g0 sau.**
+
+---
+
+## D-139 — Diễn tập ngày G ở **băng TẬP g1**: 17/17 đạt, và nó nghiệm thu canon MỚI (2026-08-31)
+
+David: *"giờ chạy lại chain để diễn tập."* Chạy trên **máy dev**, băng **TẬP** — networkID
+**`899999998`** (`899999999 − A1Gen`), tên `9chain-a1-tap-g1`. Băng tập **không bao giờ bắt tay
+được** mạng thật `999999998`, nên đây là an toàn **theo kiến trúc**, không phải theo kỷ luật.
+
+**Vì sao lượt này cần thiết:** canon khắc chữ vừa đổi hôm nay (D-133 — A1 đứng một mình,
+`CANON.txt` thay bản đóng băng của C1). Một canon mới **chưa từng đi hết đường tới chain thật** là
+một canon chưa được kiểm.
+
+### Lượt 1 — bị TỪ CHỐI, đúng thiết kế
+
+netgen in bảng 4 tài liệu rồi `exit 1`. Vân tay: **`f04e939b…366b18`**.
+
+🔴 **Việc tay #20 làm bằng MÁY, không bằng mắt** (cổng khắc chữ **không** kiểm tài liệu nào là tài
+liệu nào — nó khớp hash với *tên tệp*, đúng ô mà một lượt buộc nhầm sẽ đổi):
+
+| Kiểm | Kết quả |
+|---|---|
+| 4 hash có trong `CANON.txt` | ✅ 4/4 |
+| 4 hash **phân biệt** nhau | ✅ 4/4 (hai dòng cùng hash = manifest buộc nhầm) |
+| `lang` khớp id · Hebrew chỉ mặt `[p]` | ✅ |
+| 4 hash **cũng** có trong `attestation-2026-08-07.txt` — bản đóng băng **có ngày, viết ở nơi khác, TRƯỚC đó** | ✅ 4/4 |
+
+⇒ Vân tay dùng để xác nhận **đã nằm trong git từ trước lượt chạy** (D-133), nên nó **không phải con
+số vừa in ra** — đúng điều kiện mà việc tay #20 đòi.
+
+### Lượt 2 — sinh mạng, và cái bẫy `image:`
+
+9 node · self-bond `8.999.991 = 9 × 999.999` · genesis 5.400.000.000 · chainId C `9000000009`.
+
+🔴 **netgen ghi `image: 9chain-a1/node:dev` CẮM CỨNG — 9 dòng.** Sửa hết sang `:g1` **trước khi
+`up`**; quên là mạng lên bằng binary cũ trong khi mọi cổng vẫn xanh (D-105).
+
+⚠️ **Đụng subnet:** `172.28.0.0/16` đang do `net_a1net` giữ (faucet dev tự bật lại cùng Docker
+Desktop). **Không xoá gì của David** — dời bản diễn tập sang `172.29.` (genesis **không chứa IP**
+nên sửa compose là đủ; đã đo trước khi sửa: `genesis.json` 0 lần, compose 27 lần).
+
+### Đo trên mạng thật — không đo repo
+
+| | |
+|---|---|
+| **BINARY** trong node đang chạy | `commit=9chain-a1-g1-26patch-60a61707` ✅ đúng image đã ship lên server |
+| networkID · health | `899999998` · `healthy:true` |
+| validator | **9/9** |
+| `eth_chainId` | `9000000009` ✅ **không đổi theo thế hệ**, đúng cả ở băng tập |
+| `supplyCap` **đọc từ log node** | `7900000001000000000` ✅ |
+| `LOVE9` | giải được, `denomination: 9` ✅ |
+| **`AVAX`** | 🔴 **ĐỎ kèm lý do**, nêu thẳng networkID — đối chứng ngược, đúng chỗ |
+
+### 🔴 Một giả định của TÔI sai, và sửa nó thì ba số cùng khớp
+
+Đọc `eth_getCode` ra **1274 byte** trong khi `engraving.md` khai **1273**, JSON **không parse
+được**, và `sha256` **không khớp** `extraData`. Ba thứ lệch cùng lúc thường nghĩa là **một giả định
+sai**, không phải ba lỗi — và đúng thế:
+
+**`byte[0] = 0x00`, opcode STOP.** Mã khắc **cố ý không chạy được**. Bỏ byte đó ra:
+**đúng 1273 byte · JSON hợp lệ · `sha256(payload)` = `340ce488…` = ĐÚNG `extraData` trong genesis.**
+
+### `engrave-verify` — **17 đạt · 0 hỏng**, và mục [5] có chạy
+
+Chạy với `--network container:<node>` để chia namespace mạng với node: header `Host` là `127.0.0.1`,
+nằm trong danh sách cho phép. **Đi vòng khác là 403** — và cái 403 đó là cổng M11.10 đang canh, không
+phải thứ để nới.
+
+Nghiệm thu mạnh nhất trong đó: **`block 0 P-Chain: parentID == sha256(genesisBytes)`** — mỏ neo
+khiến chữ khắc P-Chain đọc được từ **node đang chạy**, dù trường `Message` là trường **chỉ ghi**.
+Cộng **`bản văn trên MẠNG == bản văn trong TỆP`** và **`extraData trên MẠNG == trong TỆP`**.
+
+⇒ **Đường khắc chữ ngày G đã đi trọn vẹn một lần, trên canon mới.** Còn đúng một chỗ chưa tách được:
+netgen vẫn in `"khop ban dong bang cua C1"` (D-133 §hoãn sau ngày G).
+
+### Việc dọn còn nợ
+
+`local-net/net-tap-g1b/keys.txt` + `faucet.env` chứa **khoá thật của bộ diễn tập** (đã `.gitignore`).
+🔴 **`shred -u -n 3` ngay trong phiên dọn mạng này** — D-107 đã trả giá một lần cho một bản trùng
+byte nằm 20 giờ trong `%TEMP%`.
