@@ -178,8 +178,10 @@ mạng g0                  10 validator · 9 peer · factory 89,899 LOVE9 · B-1
 3. **A1:** ✅ ~~dịch `CREATE-A-CHAIN`~~ **XONG** — bản **EN** giữ tên gốc và là **nguồn dịch** cho
    29 thứ tiếng; VI dời sang `.vi.md`/`.vi.pdf`. Cả hai nay có cảnh báo *"chain tạo trước `01/09`
    sẽ bị XOÁ"* — tài liệu cũ hứa *"một blockchain của riêng bạn"* mà không nói mạng sắp dựng lại.
-   🔴 Còn nợ: **bản PDF tiếng Anh chưa sinh** (bản `.vi.pdf` là bản Việt). · cấp số quyết định cho
-   các phát hiện phiên này (mới có **D-132**)
+   ✅ **PDF tiếng Anh đã sinh** — 5 trang A4, và đường sinh nay là **một lệnh tái lập được**:
+   `node scripts/build-doc-pdf.mjs <file.md> [--counter-check]` (lượt trước dựng tay và **không
+   giữ lại HTML**, nên chỉ tái lập được từ một ghi chú trong `HANDOFF`). · còn nợ: cấp số quyết
+   định cho các phát hiện phiên này (mới có **D-132**)
 4. **Sau ngày G:** tổng quát hoá `verifyAgainstC1` → *"đối chiếu với CANON"* (D-132 §4) · điền **11
    chỗ `FILL-ON-G-DAY`** trong `docs/RUN-A-VALIDATOR.md` (cổng xuất bản: `grep -c` phải `= 0`)
 
