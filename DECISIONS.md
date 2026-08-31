@@ -5727,3 +5727,76 @@ tiêu một nonce. **Lỗi ở bài kiểm, không ở chain**, và nó đúng b
 `load-test.mjs` (đồng bộ bằng `latest`). Nếu đọc vội, ba ca đỏ đó thành *"chain hỏng"*.
 ⇒ Bài kiểm nay **quản nonce tường minh**, và cả bốn ca mới hợp lệ.
 **Một bài kiểm không phân biệt được lỗi của chính nó với hành vi của thứ nó đo thì không chứng minh gì.**
+
+---
+
+## D-142 — **TỔNG DUYỆT TRÊN BĂNG THẬT** (networkID `999999998`), rồi shred ngay (2026-08-31)
+
+David: *"dọn mạng diễn tập đi và chạy lại chain chính luôn xem như diễn tập chain chính."*
+
+🔴 **Câu đó có hai cách đọc, và một cách là thảm hoạ.** Tôi đọc là: diễn tập tiếp **bằng cấu hình
+của chain chính**, vẫn **trên máy dev**. Tôi **không** đụng máy chủ: mạng công khai `g0` còn sống tới
+giờ G ngày mai, và `down -v` sớm 15 tiếng là **mất g0 mà chưa có gì thay**.
+
+### 🔴 Cái giá của việc chạy ở băng THẬT — và cách trả
+
+Sinh mạng ở băng thật trên máy dev là **tự tay đẻ ra đúng con mồi nhử `net-that-g0`** (D-110): một
+thư mục khai **ĐÚNG networkID của mạng sống** nhưng ví 0 đồng — `check-keys` chấm **6/6 ✓** và
+**không cổng nào kêu**. Cách trả giá:
+
+1. Thư mục đặt tên **không thể nhầm**: `net-dress-rehearsal-delete-after`.
+2. **Shred ngay trong phiên tạo ra nó** (D-107) — 20 tệp khoá.
+3. **Tháo ngòi cái mồi:** xoá `genesis.json` + `allocation.md` ⇒ `check-net-dirs` nay chấm
+   `INCONCLUSIVE — no genesis.json`, tức nó **không còn tự khai là băng thật** được nữa.
+
+### Đối chứng ngược chạy TRƯỚC — băng thật phải từ chối tư thế phơi trần
+
+```
+A1_HTTP_ALLOWED_HOSTS='*'  ⇒  FATAL — MẠNG THẬT (networkID 999999998) KHÔNG ĐƯỢC SINH RA Ở TƯ THẾ PHƠI TRẦN
+                              "Mạng TẬP (networkID 899999998) không bị chặn."
+```
+
+**Đỏ vì đúng lý do**, và nó tự nói ra rằng băng TẬP không bị chặn — tức cổng phân biệt được hai băng,
+không phải chặn bừa.
+
+### Đo trên mạng đang chạy
+
+| | |
+|---|---|
+| BINARY | `commit=9chain-a1-g1-26patch-60a61707` — đúng image đã ship lên server |
+| **networkID** | **`999999998`** — băng THẬT, thế hệ g1 |
+| validator | **9/9** · node1 thấy **8 peer** (mesh đủ) |
+| `eth_chainId` | `0x218711a09` = `9000000009` |
+| bí danh tài sản | `LOVE9` |
+| `supplyCap` (log node) | `7900000001000000000` |
+| chữ khắc | payload **1273 byte** · `sha256` = `340ce488…` = **đúng `extraData`** · vân tay `f04e939b…` **y hệt băng tập** |
+
+### 🔴 Phép đo quyết định nhất — và nó chỉ có ở BĂNG THẬT
+
+```
+/root/.avalanchego/db/9chain-a1-g1
+```
+
+Đường dẫn DB **là tên mạng**. Nó ra `9chain-a1-g1`, **không** ra `network-999999998`.
+
+Đó là bằng chứng `A1Name` **nằm trong bản đồ của binary** cho networkID này, tức **nhánh dự phòng
+không bị đi vào** — đúng nhánh mà việc tay *"SHIP THE IMAGE"* mô tả là hậu quả của một binary thế hệ
+chết: *"`NetworkName()` rơi xuống `network-999999998` (sai đường dẫn DB) và `GetHRP()` sống sót chỉ
+nhờ `FallbackHRP` — đúng nhánh patch 0013 sinh ra để diệt."*
+
+⇒ **Đây là thứ băng TẬP không kiểm được**, vì ở băng tập tên là `9chain-a1-tap-g1`. Lượt tổng duyệt
+này là lần **duy nhất** cặp `999999998 ↔ 9chain-a1-g1` được chạy thật trước ngày G.
+
+### Dọn — LIỆT KÊ → SHRED → ĐỐI CHỨNG
+
+| Bộ | Tệp khoá | Kết quả |
+|---|--:|---|
+| `net-tap-g1b` (băng tập) | 2 + 18 | shred `-u -n 3`, đối chứng **0 còn lại** |
+| `net-dress-rehearsal-delete-after` (băng thật) | 20 | shred `-u -n 3`, đối chứng **0 còn lại** |
+
+🔴 **Danh tính validator LÀ khoá riêng, và `check-key-leaks.mjs` KHÔNG canh chúng** — B-20 nói
+thẳng điều đó, và lượt này là lần đầu tiên con số hiện ra: **18 `staker.key`/`signer.key` mỗi bộ**,
+ngoài tầm mọi cổng.
+
+⚠️ **Chưa xoá được thư mục rỗng** (`rm -rf` bị chặn quyền trong phiên này) — còn `engraving.md` và
+9 thư mục `node*/` rỗng. Không có bí mật nào trong đó. David xoá tay khi tiện.
