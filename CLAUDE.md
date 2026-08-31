@@ -126,7 +126,7 @@ tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đ
 | Không được | Vì sao |
 |---|---|
 | `git add -A` | phiên khác đang làm việc trong repo — **đã nuốt nhầm một lần**. Commit bằng đường dẫn tường minh |
-| `git push` | repo **không có remote** (H-6). Chống mất việc là nhiệm vụ của `commit` + `h6b-backup.sh` |
+| `git push` | 🔴 **H-6 ĐÃ MỞ `31/08`** — remote nay có thật: `daviddokrao/9chain-a1`, **RIÊNG TƯ**, chỉ nhánh `main`. Luật giữ nguyên vì lý do **khác** với trước: đẩy là **việc hướng ra ngoài**, và `web-home`/`audit`/`gday-heartbeat-gate` thuộc worktree khác — đẩy nhầm là công bố việc của phiên khác. Đẩy nhánh mới, đổi sang công khai, hay `push --all`: **hỏi David**. `commit` + `h6b-backup.sh` vẫn là tuyến chống mất việc thứ hai |
 | Deploy / restart / ghi lên server công khai | chỉ một phiên được deploy, và deploy là việc **có người bấm** |
 | Gửi giao dịch · đẻ/thu hồi chain · faucet | tiêu tiền thật trên mạng công khai; đẻ chain nay còn **mặc định ĐÓNG** (`A1_DE_CHAIN_MO`) |
 | Đụng `web/` · Caddyfile · merge `web-home` | thuộc worktree khác đang sống |

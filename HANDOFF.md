@@ -452,7 +452,7 @@ nợ tiếng Anh **5.856 → 5.754**.
 | # | việc | vì sao gấp |
 |---|---|---|
 | 1 | **PR đăng ký chainId** — [`docs/chainid-registry/`](docs/chainid-registry/README-PR.md), soạn sẵn, mọi trường đã ĐO | duyệt mất **vài ngày**; gửi 01/09 là không kịp |
-| 2 | **Tạo GitHub repo rỗng** + cấp quyền | `git push` là việc có người bấm; repo **không có remote** (H-6) |
+| 2 | ✅ ~~**Tạo GitHub repo rỗng**~~ **XONG `31/08`** — `daviddokrao/9chain-a1`, **RIÊNG TƯ**, chỉ `main` (299 commit). Nghiệm thu **từ phía GitHub**: `visibility PRIVATE` · đúng **một** nhánh · `patches/` **26 tệp** · `upstream/` **404 đúng thiết kế**. Clone ngược về: 26 patch **trùng byte** bản cục bộ, **0 khoá** trong cây. 🔴 Còn lại: **đổi sang CÔNG KHAI** mới mở khoá điều kiện qua **4 + 5** | **David** |
 | 3 | **B-16** bản sao khoá thứ hai · **B-19** khoá trong thư mục chết | chặn GO/NO-GO |
 | 4 | 3 tệp `heartbeat-*` mồ côi trên server — của ai? | drift đỏ vì chúng; và sau `down -v` là **mất manh mối** |
 | 5 | **Chốt có diễn tập `31/08` không** (A1 đề xuất: CÓ) | 5 thứ chưa từng chạy đang xếp vào sau `down -v` — xem phiên chiều `29/08` |

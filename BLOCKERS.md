@@ -852,7 +852,33 @@ vi cũ** (đã kiểm bằng cách sinh lại và so: 0 dòng ipv6, `--public-ip
 validator = giết mạng. Mạng đang chạy phải **vá tại chỗ** compose (y như M2.3 đã
 làm với cổng 9660), và cần một cửa sổ bảo trì vì container phải recreate.
 
-### Ghi chú H-6 — 🔴 ĐẮT HƠN HẲN sau phiên 2026-08-25
+### 🟢 H-6 — HẠ MỨC `2026-08-31`: remote đã có, nhưng CÒN RIÊNG TƯ
+
+David chốt *"tạo repo riêng tư trước, chỉ push main"*. Đã làm: **`daviddokrao/9chain-a1`**,
+`visibility PRIVATE`, đúng **một** nhánh `main` (299 commit) — `web-home`, `audit`,
+`gday-heartbeat-gate` **không** được đẩy, chúng thuộc worktree khác.
+
+**Quét trước khi đẩy — làm được một lần, vì lịch sử đã lên thì lên vĩnh viễn:** toàn bộ 299
+commit của mọi nhánh ⇒ **0** chuỗi `PrivateKey-`+base58, **0** khoá EVM (mọi `0x`+64hex là hash
+giao dịch trong gói vật chứng, cộng khoá **ewoq công khai** ghi có chủ ý), **0** giá trị mật khẩu
+literal; hai tệp `.env` được theo dõi chỉ chứa cấu hình. `.gitignore` chặn đúng `local-net/net*/`
+và `upstream/`.
+
+**Nghiệm thu từ phía GitHub, không phải từ máy dev:** clone ngược về ⇒ 26 patch **trùng byte**
+bản cục bộ (nên phép replay ra `60a61707` áp đúng cho thứ đã đẻ ra ngoài) · `upstream/` **vắng
+mặt đúng thiết kế** · `local-net/net*/` vắng mặt ⇒ khoá quỹ không đi theo.
+
+🔴 **CHƯA đóng.** Riêng tư thì **không** mở khoá điều kiện qua **4** (*người lạ dựng lại được
+fork*) hay **5** (*công bố genesis + bootstrap*). Và trước khi công khai còn một quyết định
+chưa có câu trả lời: repo này mang **4.958 dòng `DECISIONS` · 1.079 `BLOCKERS` · 1.501
+`PROGRESS`**, IP máy chủ **92 lần trong 22 tệp**, đường dẫn khoá ssh **12 tệp** — tức một **bản
+đồ chính xác các điểm yếu đang mở**. Ba đường: công khai hết · tách `docs/` nội bộ · hoặc một
+repo riêng cho người ngoài (`patches/` + `RUN-A-VALIDATOR.md` + `LICENSE`).
+
+⚠️ Repo riêng tư **vẫn cùng một tài khoản, một nhà cung cấp** — nó gỡ rủi ro *"một ổ đĩa"*
+(`C:` đang đầy **97%**), **không** gỡ rủi ro *"một nơi"*. B-16 vẫn mở.
+
+### Ghi chú H-6 (nguyên văn, TRƯỚC `31/08`) — 🔴 ĐẮT HƠN HẲN sau phiên 2026-08-25
 
 Kiểm lại lúc định push cuối phiên: repo `9Chain-A1` **không có remote nào**, còn repo
 fork chỉ có `origin` trỏ `github.com/ava-labs/avalanchego` — tức là upstream của người
