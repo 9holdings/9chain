@@ -1483,6 +1483,26 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       ⇒ Không còn nguy cơ *"bump ở cây làm việc mà bộ patch công bố vẫn khai `A1Gen 0`"* (CLAUDE.md
       luật cứng 3). **Còn 34 việc tay, không phải 36.**
 
+- [x] 🔴 **D-140 — ĐẺ L1 TRÊN BẢN DIỄN TẬP: tái hiện ĐÚNG lỗ hổng ngày G** (`31/08`).
+      Lượt quét `31/08` cảnh báo *"nạp `chain-factory` X→P có **0 dòng** trong runbook"*. Bản diễn
+      tập **dựng lại nguyên vẹn** cảnh báo đó bằng một lỗi dừng hẳn:
+      `LỖI CreateSubnetTx: insufficient funds: needed 2196 more nAVAX` — trong khi quỹ Foundation có
+      **X-Chain 71.000.009 · P-Chain 0**. **Thanh khoản genesis ở X, CLI trả phí ở P.**
+      🔴 Và `create-l1` (+ `create-l1.sh`) cắm cứng **khoá ewoq**; đo được `ewoq` xuất hiện **0 lần**
+      trong `allocation.md`/`genesis.json` ⇒ đường đó **không chạy được trên mạng netgen nào**.
+      Đường đúng là `9chain-a1-cli l1 create` với `A1_CLI_KEY`.
+      **Bốn dòng runbook còn thiếu nay đã chạy thật:** `xp-wallet` chạy TRONG container node (Host là
+      `127.0.0.1`; đi vòng ngoài là **403** — cổng M11.10) → `POST /api/x-to-p` → **đo trên node**
+      (`platform.getBalance` = 999,99999173) → mới `l1 create`.
+      Kết quả: subnet + blockchain, **9/9 validator đăng ký**, healthy 40s, L1 phục vụ 10s.
+      🔴 **Phép đo quan trọng nhất:** `eth_chainId` = **`9001000000`** — **nằm trong khối g1**,
+      **KHÔNG** nằm trong khối g0. Đó là bằng chứng `A1_GEN` đi trọn từ hằng số Go/JS →
+      `make-l1-genesis.mjs` → genesis L1 → **con số ví người dùng thấy**, và nó vào genesis **bất biến**.
+      Admin nhận 50.000.000 token, **`alloc` không có ewoq** (D-114).
+      ⚠️ Hai chỗ tôi vấp: (a) một ví chạy **sai khoá** vẫn trả `200` — dấu hiệu duy nhất là **địa chỉ
+      in ra khác địa chỉ mình mong** ⇒ **đọc `xAddr` trước khi tin số dư**; (b) image node **không có
+      `ps`/`pkill`**.
+
 - [x] 🔴 **D-139 — DIỄN TẬP NGÀY G ở băng TẬP g1: `engrave-verify` 17 đạt · 0 hỏng** (`31/08`).
       networkID **`899999998`** trên máy dev — băng tập **không bao giờ bắt tay được** mạng thật,
       an toàn **theo kiến trúc**. Cần lượt này vì **canon khắc chữ vừa đổi hôm nay** (D-133), và
