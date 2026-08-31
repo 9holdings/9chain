@@ -8,10 +8,9 @@
 Không đặt `A1_ENGRAVE` thì netgen sinh mạng y như cũ: `Message` giữ chuỗi
 `"9Chain-A1 sovereign genesis"`, `extraData` giữ `"0x00"`. **Mọi lượt tập đi đường này.**
 
-🔴 **Đây là cổng "bản tập ≠ bản thật" của A1.** C1 phân biệt bằng `genesisTime` mang mốc
-thiêng — **A1 không dùng được cách đó**, vì `netgen/main.go` đặt `StartTime: now-60`, luôn
-động. Nên dấu phân biệt của A1 là **chính việc có khắc hay không**, cộng một cờ xác nhận
-phải khớp vân tay nội dung. netgen **luôn in ra** mình có khắc hay không, kể cả khi không —
+🔴 **Đây là cổng "bản tập ≠ bản thật" của A1.** A1 **không** phân biệt được bằng `genesisTime`
+mang mốc thiêng, vì `netgen/main.go` đặt `StartTime: now-60`, luôn động. Nên dấu phân biệt của
+A1 là **chính việc có khắc hay không**, cộng một cờ xác nhận phải khớp vân tay nội dung. netgen **luôn in ra** mình có khắc hay không, kể cả khi không —
 im lặng ở đó là cách một lượt thật đi qua mà không ai nhận ra nó thiếu chữ khắc.
 
 ## Hai mặt khắc
@@ -30,7 +29,7 @@ X-Chain **không khắc** — trường `Message` cấp UTXO ở đó đã bị 
 ```json
 {
   "version": 1,
-  "source": "9Chain-C1 PAPER/ freeze <ngày>",
+  "source": "9Chain-A1 engraving canon - see CANON.txt",
   "cChainAddress": "0x0000000000000000000000000000000000000909",
   "docs": [
     {"id":"genesis-1-1-he", "lang":"he", "file":"docs/gen11-he.txt",      "on":["p"]},
@@ -66,12 +65,12 @@ sách sẽ trôi lệch. **Người chọn địa chỉ phải tự tránh.**
 ```bash
 A1_NET_DIR=local-net/net-public \
 A1_ENGRAVE=/repo/docs/engrave/manifest.json \
-A1_ENGRAVE_CHECKSUMS=/repo/docs/engrave/CHECKSUMS-FREEZE-cua-C1.txt \
+A1_ENGRAVE_CHECKSUMS=/repo/docs/engrave/CANON.txt \
 bash local-net/gen-network.sh 9
 ```
 
 Lượt đầu **luôn bị từ chối** — netgen in bảng hash từng tài liệu + vân tay bộ, rồi dừng.
-Đối chiếu từng dòng với bản đóng băng của C1, **rồi mới** chạy lại kèm:
+Đối chiếu từng dòng với `docs/engrave/CANON.txt`, **rồi mới** chạy lại kèm:
 
 ```bash
 A1_ENGRAVE_CONFIRM=<vân tay netgen vừa in>
@@ -81,7 +80,7 @@ A1_ENGRAVE_CONFIRM=<vân tay netgen vừa in>
 |---|---|---|
 | `A1_ENGRAVE` | — | đường dẫn manifest, **theo góc nhìn CONTAINER**. Không đặt = không khắc |
 | `A1_ENGRAVE_CONFIRM` | **có**, khi đã bật khắc | vân tay bộ tài liệu. Lệch ⇒ từ chối sinh mạng |
-| `A1_ENGRAVE_CHECKSUMS` | **CÓ — thiếu là CHẶN** | bản đóng băng của C1. Thiếu ⇒ `os.Exit(1)`, trừ khi khai `A1_ENGRAVE_NO_CHECKSUMS=toi-biet-day-la-ban-tap` |
+| `A1_ENGRAVE_CHECKSUMS` | **CÓ — thiếu là CHẶN** | canon của A1 (`docs/engrave/CANON.txt`). Thiếu ⇒ `os.Exit(1)`, trừ khi khai `A1_ENGRAVE_NO_CHECKSUMS=toi-biet-day-la-ban-tap` |
 
 ### 🔴 Đường dẫn phải là đường dẫn TRONG CONTAINER
 
@@ -99,23 +98,23 @@ nào chạy trót lọt theo đúng chữ đó**: không thư mục `local-net/n
 docker** nếu đường dẫn không nằm dưới `/repo`, `/out` hoặc `/src`.
 
 Kết quả kèm theo: **`engraving.md`** trong thư mục ra — bảng công khai (không có bí mật) để
-đối chiếu chéo với C1 và để 9Scan-A1 phơi ra.
+bất kỳ ai đối chiếu, và để 9Scan-A1 phơi ra.
 
 ## 🔴 Ba luật cứng — vi phạm cái nào cũng hỏng VĨNH VIỄN
 
-**1. Byte lấy từ C1, KHÔNG gõ lại.** Thứ tự thi hành bắt buộc:
+**1. Byte CHÉP TỪ BẢN GỐC ĐÃ ĐÓNG BĂNG, KHÔNG gõ lại.** Thứ tự thi hành bắt buộc:
 
 ```
-C1 sinh bản chính tắc + đóng băng CHECKSUMS  ──►  A1 lấy ĐÚNG BYTE  ──►  A1 khắc
+bản gốc đóng băng (có ngày tháng)  ──►  A1 chép ĐÚNG BYTE  ──►  A1 khắc
 ```
 
 Dấu chấm cuối câu, kiểu nháy, BOM, CRLF, niqqud có hay không — mỗi thứ đổi một byte là đổi
 cả `sha256`, và số đó nằm trong genesis không sửa được. netgen đọc **byte thô**: không trim,
 không đổi xuống dòng, không thêm newline cuối. Có BOM thì nó **cảnh báo chứ không tự gỡ** —
-gỡ hộ là làm lệch hash so với bản C1.
+gỡ hộ là làm lệch hash so với bản gốc.
 
 **2. `sha256` băm BYTE CỦA TỆP**, không băm chuỗi đã escape trong JSON. Đó là cùng một đại
-lượng C1 đóng băng, nên đối chiếu chéo hai chain mới có nghĩa.
+lượng mọi bản đóng băng dùng, nên đối chiếu giữa các nơi mới có nghĩa.
 
 **3. KHÔNG sửa tay genesis đã sinh** (`local-net/net*/genesis.json`). C-Chain genesis nằm trong
 đó dưới dạng **chuỗi JSON đã escape** trên một dòng. Thêm `alloc` mang toàn văn tài liệu là một
@@ -136,7 +135,7 @@ bằng chứng.
 docker run --rm --network host -v /c/PROJECTS/9Chain-A1/upstream/avalanchego:/src:ro -w /src \
   -e GOWORK=off golang:1.25.10-bookworm \
   go run ./9chain-a1-tools/engrave-verify \
-    --genesis <genesis.json> --rpc https://rpc-a1.9chain.org --checksums <CHECKSUMS cua C1>
+    --genesis <genesis.json> --rpc https://rpc-a1.9chain.org --checksums /repo/docs/engrave/CANON.txt
 ```
 
 Không khai `--rpc` thì nó **nói rõ là chưa chạm vào mạng nào**. Chưa khắc chữ **không phải
@@ -225,3 +224,23 @@ trước), nhưng phải ghi rõ: **nó chưa từng chạy thật**.
 🔴 **Và lượt đo đầu tiên của cổng đó là một CA XANH GIẢ:** nó thoát mã 1 nên trông như "bắt
 được", thực ra dừng ở **cổng xác nhận** — vì đổi địa chỉ trong manifest cũng đổi vân tay. Tin
 mã thoát mà không đọc *lý do* thoát là ghi nhận một cổng đã chứng minh trong khi nó chưa chạy.
+
+---
+
+## 🔴 A1 đứng một mình — và cái giá của việc đó
+
+Canon của A1 là **`docs/engrave/CANON.txt`**: id · sha256 · số byte của từng tài liệu, **không
+nêu tên mạng nào khác và không phụ thuộc mạng nào khác**. Đó là tệp `A1_ENGRAVE_CHECKSUMS` trỏ vào.
+
+⚠️ **Nói thẳng cái giá, đừng giấu:** cổng đối chiếu sinh ra để bắt người **gõ lại** tài liệu thay
+vì chép byte, và nó **mạnh nhất khi tệp nó so là tệp do người khác viết TRƯỚC ĐÓ**. `CANON.txt` do
+chính A1 viết từ chính tệp của A1 ⇒ một mình nó chỉ chứng minh **nhất quán nội bộ**, không chứng
+minh **nguồn gốc độc lập**. Đó là hình dạng **D-112**.
+
+Thứ vẫn đỡ nó: bốn hash trong `CANON.txt` **trùng khít** bốn hash trong
+`docs/engrave/attestation-2026-08-07.txt` — một bản đóng băng **có ngày tháng, sinh ra ở nơi khác,
+trước tệp này**. So hai tệp mất một lệnh. **Bản dựng không đọc tệp đó**; chỉ **vật chứng** cần nó.
+
+⚠️ Còn đúng một chỗ chưa tách được: netgen vẫn **in ra** chữ `"khop ban dong bang cua C1"`, và
+hàm của nó tên `verifyAgainstC1`. Cả hai nằm trong `patches/` ⇒ đổi là sinh lại cả 26 patch và
+dịch `TREE_FORK`. **Hoãn sau ngày G**, cùng nhóm với việc tổng quát hoá cổng đó (D-132 §4).

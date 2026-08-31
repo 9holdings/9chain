@@ -1,0 +1,22 @@
+# 9CHAIN-A1 — ENGRAVING CANON
+#
+# The documents engraved into the genesis of this network, and the sha256 of each one.
+# sha256 is taken over the RAW BYTES OF THE FILE, with no normalisation of any kind: no NFC,
+# no line-ending translation, no BOM stripping, no trailing newline added or removed. That is
+# the same quantity netgen computes, so this file and the chain can be compared directly.
+#
+# Verify without trusting this file:
+#   sha256sum docs/engrave/*.txt
+#   cast code <cChainAddress> --rpc-url <rpc> | cut -c5- | xxd -r -p   # the C-Chain surface
+#
+# This canon stands on its own. It names no other network and depends on none.
+#
+# cChainAddress  0x9000000000000000000000000000000000000009
+# documents      4
+
+genesis_inscription  7e89adee122f26790f748375e3ea6769cb386b20d695206c2e2c65e57e0f9615  108 bytes  [p]  he
+dedication  19f90a317851933e88fb288949a44b18f87103b2d7947b80d557f05d425a236c  25 bytes  [p+c]  en
+dedication_eva  747ebe59ab6a152e962a2c3f215f46a8a30a82265210cb4fd6ee4bd31ffc97df  45 bytes  [p+c]  en
+love_paper_en  8cee72ba268f4f5fb0a55d77dd52313bcdfb8ff3afed3165686140e2a0339835  964 bytes  [p+c]  en
+
+# total 1142 bytes across 4 documents
