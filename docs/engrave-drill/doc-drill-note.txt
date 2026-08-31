@@ -1,0 +1,7 @@
+DRILL RUN NOTE
+==============
+network band : DRILL (networkID 899999998 = A1IDTap for A1Gen 1)
+chainId      : 9000000009 - forced, because engraving is ON (netgen chainid.go refuses a
+               real engraving run carrying a drill chainId; the asymmetry is deliberate)
+purpose      : prove the documented gen-network.sh command actually runs, and that
+               engrave-verify can read the result back off a live chain.
