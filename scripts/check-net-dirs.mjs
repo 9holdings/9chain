@@ -316,8 +316,26 @@ async function selfTest() {
   ok("the running network's networkID => live", classifyNetworkId(LIVE_NETWORK_ID) === "live", classifyNetworkId(LIVE_NETWORK_ID));
   ok("🔴 9001 (the dead generation) => NOT live", classifyNetworkId(9001) !== "live", classifyNetworkId(9001));
   ok("🔴 9001 lands in 'dead', not in any band", classifyNetworkId(9001) === "dead", classifyNetworkId(9001));
-  ok("🔴 899999999 => DRILL band, NOT live", classifyNetworkId(899_999_999) === "drill-band", classifyNetworkId(899_999_999));
-  ok("🔴 999999998 (the NEXT generation) => real band but NOT live", classifyNetworkId(999_999_998) === "real-band-other-gen", classifyNetworkId(999_999_998));
+  ok("🔴 the drill band's top => DRILL band, NOT live", classifyNetworkId(DRILL_BAND_TOP) === "drill-band", classifyNetworkId(DRILL_BAND_TOP));
+  ok("🔴 this generation's DRILL twin => drill band, NOT live",
+    classifyNetworkId(DRILL_BAND_TOP - A1_GEN) === "drill-band", classifyNetworkId(DRILL_BAND_TOP - A1_GEN));
+  // 🔴 RELATIVE OFFSET, NOT AN ABSOLUTE NUMBER — this is D-124 one file further on.
+  //
+  // This case used to read `classifyNetworkId(999_999_998) === "real-band-other-gen"`, i.e. it
+  // hard-coded "the NEXT generation" as a literal. The moment `A1Gen` went 0 -> 1 on 2026-08-30
+  // that literal BECAME the live networkID, so the control asserted the opposite of the truth
+  // and this counter-check has been RED ever since — on the one file whose whole job is to tell
+  // a live generation from a dead one, at the exact bump it exists to survive.
+  //
+  // D-124 converted `check-consistency` and `chainid-test` to relative offsets for precisely
+  // this reason and did not reach this file. The gate itself was fine throughout; only its
+  // proof-that-it-can-tell-things-apart was broken, and `gday-preflight` never ran it.
+  const nextGen = LIVE_NETWORK_ID - 1; // one generation further on, whatever generation we are
+  ok("🔴 the NEXT generation => real band but NOT live", classifyNetworkId(nextGen) === "real-band-other-gen", classifyNetworkId(nextGen));
+  const prevGen = LIVE_NETWORK_ID + 1; // the generation before this one, if there is one
+  if (prevGen <= A1_ID_GOC) {
+    ok("🔴 the PREVIOUS generation => real band but NOT live", classifyNetworkId(prevGen) === "real-band-other-gen", classifyNetworkId(prevGen));
+  }
 
   console.log("\n── 2. A private key must never escape ──");
   const leaky = `P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj\nPrivateKey-abcDEF123\n0x${"a".repeat(64)}`;

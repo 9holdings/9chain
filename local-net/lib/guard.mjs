@@ -167,6 +167,49 @@ export function suggestToken() {
 }
 
 /**
+ * Read a NUMERIC limit from the environment, failing CLOSED on anything unreadable.
+ *
+ * ═══ 🔴 WHY THIS EXISTS — the pattern it replaces fails OPEN ═══
+ *
+ * Every numeric knob in this project was written as `Number(process.env.X || <default>)`.
+ * That is safe when the variable is absent, and silently catastrophic when it is present and
+ * mistyped: `A1_MAX_L1=fifteen` yields `NaN`, and **every comparison against NaN is false** —
+ *
+ *   `state.chains.length >= MAX_L1`   -> false forever  => the 15-L1 ceiling disappears
+ *   `arr.length >= max`               -> false forever  => the rate limiter admits everything
+ *
+ * Nothing throws. The console prints a NaN ceiling in a startup banner nobody re-reads, and
+ * the only thing still standing is the protocol's own 16-subnet cut-off — which is the wall
+ * this ceiling exists to keep the network away from.
+ *
+ * That is the exact opposite of the rule stated at the top of this file (missing configuration
+ * must REFUSE, never silently pass), and it is the same failure shape as netgen's old
+ * `NETWORK_ID` default: a value that is wrong but internally consistent, so nothing
+ * complains. Measured 2026-08-31.
+ *
+ * ⇒ Absent = use the default (a deliberate, reviewed number). Present but not a positive
+ *   integer = **refuse to start**. A typo in a safety limit must not be survivable.
+ *
+ * @param {string} name  environment variable name
+ * @param {number} fallback  value used when the variable is absent or empty
+ * @param {{min?: number, max?: number}} [bounds]
+ * @returns {number}
+ */
+export function requireInt(name, fallback, { min = 1, max = Number.MAX_SAFE_INTEGER } = {}) {
+  const raw = process.env[name];
+  if (raw === undefined || String(raw).trim() === "") return fallback;
+  const n = Number(String(raw).trim());
+  if (!Number.isInteger(n) || n < min || n > max) {
+    console.error(`FATAL: ${name}=${JSON.stringify(raw)} is not an integer in [${min}, ${max}].`);
+    console.error(`  This value is a SAFETY LIMIT. A NaN here does not raise an error — it makes`);
+    console.error(`  every comparison against it false, i.e. it removes the limit entirely.`);
+    console.error(`  Unset it to use the default (${fallback}), or give it a whole number.`);
+    process.exit(1);
+  }
+  return n;
+}
+
+/**
  * Đọc một bí mật BẮT BUỘC từ env. Thiếu thì thoát ngay kèm hướng dẫn,
  * thay vì chạy tiếp ở trạng thái không an toàn.
  */

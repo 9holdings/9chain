@@ -45,7 +45,30 @@ const WEB = lay("--web", "https://a1.9chain.org");
 const HOST = lay("--host", SSH_HOST);
 const KHOA = lay("--ssh-key", SSH_KEY);
 const KHONG_SSH = argv.includes("--no-ssh");
-const VI_FACTORY = lay("--wallet", "P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj");
+/**
+ * The `chain-factory` wallet, PER GENERATION.
+ *
+ * ═══ 🔴 WHY THIS IS A MAP AND NOT A DEFAULT STRING ═══
+ *
+ * This was `lay("--wallet", "P-love91vgh2wh…")` — the g0 factory address, hard-coded as the
+ * default of a gate that runs on G-day. Re-genesis mints a NEW factory key (D-117b, and
+ * mandatory since the key leak of 2026-08-31), so on the morning of g1 this gate would have
+ * asked the chain about a wallet from the generation that had just been thrown away.
+ *
+ * And it would not have errored: `platform.getBalance` answers `unlocked: "0"` for an address
+ * that simply holds nothing. So the gate goes RED reading "the factory wallet is empty" —
+ * true of the address it asked about, meaningless about the network — while the wallet that
+ * actually pays for every chain creation is never measured at all. Red for the wrong reason
+ * is worse than red: it sends someone to top up a dead wallet.
+ *
+ * ⇒ Keyed by generation, and a generation with no entry is **UNMEASURABLE (exit 2)**, never
+ *   a silent zero. "I don't know which wallet to ask about" is not "the wallet is empty".
+ *   Declaring the g1 address here is a G-day manual task, listed in `gday-preflight.mjs`.
+ */
+const VI_FACTORY_THEO_THE_HE = {
+  0: "P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj",
+};
+const VI_FACTORY = lay("--wallet", VI_FACTORY_THEO_THE_HE[A1_GEN] ?? null);
 
 // ─── Ngưỡng — khai ở MỘT chỗ, và bài đối chứng lái được chúng ───
 export const NGUONG = {
@@ -123,8 +146,12 @@ async function doMang() {
   const nid = await thu(() => rpc("/ext/info", "info.getNetworkID").then((r) => Number(r.networkID)));
   const peers = await thu(() => rpc("/ext/info", "info.peers").then((r) => Number(r.numPeers)));
   const vals = await thu(() => rpc("/ext/bc/P", "platform.getCurrentValidators").then((r) => r.validators));
-  const soDu = await thu(() => rpc("/ext/bc/P", "platform.getBalance", { addresses: [VI_FACTORY] })
-    .then((r) => Number(BigInt(r.unlocked) / 1_000_000n) / 1000));
+  // No declared address for this generation => null => scored "could not measure" => exit 2.
+  // Asking the chain about the PREVIOUS generation's wallet would answer 0 and look like a
+  // measurement. See VI_FACTORY_THEO_THE_HE.
+  const soDu = VI_FACTORY === null ? null
+    : await thu(() => rpc("/ext/bc/P", "platform.getBalance", { addresses: [VI_FACTORY] })
+      .then((r) => Number(BigInt(r.unlocked) / 1_000_000n) / 1000));
   const capNode = sshDoc(
     `docker exec 9chain-a1-node-1 sh -c 'grep -rho "supplyCap[^,]*" /root/.avalanchego/logs | head -1'`,
   );
@@ -155,7 +182,9 @@ async function doMang() {
       hanSom ? new Date(hanSom * 1000).toISOString().slice(0, 10) : ""),
     muc("số dư chain-factory (LOVE9)", soDu,
       (v) => (v <= NGUONG.factoryDo ? "do" : v <= NGUONG.factoryVang ? "vang" : "dat"),
-      "cạn ⇒ đẻ chain chết câm"),
+      VI_FACTORY === null
+        ? `no factory wallet declared for g${A1_GEN}; measure another one with --wallet <P-addr>`
+        : "cạn ⇒ đẻ chain chết câm"),
     muc("supplyCap TRÊN NODE ĐANG CHẠY ↔ repo", capNode === null || capRepo === null ? null : capNode,
       (v) => (capRepo && v.includes(capRepo) ? "dat" : "do"), `repo khai ${capRepo ?? "?"}`),
     muc("faucet /api/supply", faucet, (v) => (v === "có số đo" ? "dat" : "do")),
