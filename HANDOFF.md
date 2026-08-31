@@ -1,8 +1,9 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-30** (phiên **DIỄN TẬP g1** — D-123→D-128, việc tay 22 → **24**, fork
-**26 patch / tree `60a61707`**). Trước đó `2026-08-29`: mở testnet công khai (D-116→D-122) và
-soát chỗ hở ngày G (`docs/GDAY-G1-GAPS.md`).
+Cập nhật: **2026-08-31** (phiên **MẶT NGƯỜI DÙNG** — sửa 3 lỗi trên đường sản phẩm, và soát
+tổng: điều kiện qua ngày G đang **1/5**). Trước đó `2026-08-30`: diễn tập g1 (D-123→D-128, fork
+**26 patch / tree `60a61707`**). `2026-08-29`: mở testnet công khai (D-116→D-122) và soát chỗ
+hở ngày G (`docs/GDAY-G1-GAPS.md`).
 
 > 🔴 **ĐỌC [`CLAUDE.md`](CLAUDE.md) TRƯỚC — đó là LUẬT.** Tệp này là **bàn giao**: dài, có lịch
 > sử, và phần lớn là số đo của các phiên trước. Mâu thuẫn thì `CLAUDE.md` thắng về **luật**,
@@ -11,8 +12,130 @@ soát chỗ hở ngày G (`docs/GDAY-G1-GAPS.md`).
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
 ```bash
-node scripts/gday-preflight.mjs      # 18 cổng + 24 VIỆC TAY, một lệnh (~2 phút)
+node scripts/gday-preflight.mjs      # 18 cổng + 25 VIỆC TAY, một lệnh (~2 phút)
 ```
+
+### 🆕 Phiên `2026-08-31` — MẶT NGƯỜI DÙNG: sửa 3 lỗi trên đường sản phẩm, và soát tổng trước ngày G
+
+**TL;DR:** David đi thử **đúng đường một user thật** (`/create-chain/`) và đường đó gãy ở ba
+chỗ, cả ba đã sửa + nghiệm thu trên sản phẩm. Soát tổng cuối phiên: theo **điều kiện qua của
+chính dự án** (`TESTNET1-PUBLIC` §4), ngày `01/09` đang đạt **1/5** — và thứ chặn phần lớn
+**không phải mã**. Bản đầy đủ: artifact *"Hiện trạng trước giờ G"*.
+
+#### Ba lỗi trên đường sản phẩm — đã sửa
+
+| lỗi | gốc rễ | nghiệm thu |
+|---|---|---|
+| **Ô chọn loại chain hiện 6 dòng TRỐNG** | web đọc `p.ten`/`moTa`, console trả `{id,name,desc}` — tàn dư lượt đổi id preset sang tiếng Anh (D-108) **không nối sang web** | bundle công khai nay `children: e.name` · `"chuan"` **0 lần** |
+| **Cổng đẻ chain ĐÓNG** | D-087, đúng thiết kế | David chốt **mở hẳn tới ngày G**; console tự khai `đẻ chain: 🔓 MỞ` |
+| 🔴 **`A1_PUBLIC_RPC_BASE` trỏ tên miền CHẾT** | biến trên server khai `rpc-testnet-a1.9chain.org` (**525**) | sửa → `rpc-a1.9chain.org` (**200**) |
+
+🔴 **Lỗi thứ ba là thứ suýt làm hỏng đúng việc David sắp làm:** console dùng biến đó dựng URL
+RPC **trả cho người vừa tạo chain**. Chain sẽ chạy thật, nhưng người dùng nhận một địa chỉ RPC
+chết — dán vào MetaMask không bao giờ nối được. Nó nằm trong **biến môi trường trên server**,
+không phải mã trong repo, nên **không cổng nào canh**. `server.mjs` có sẵn dòng dặn đặt đúng
+tên; biến *có* được đặt, chỉ là đặt tên cũ.
+
+⚠️ **Đã đụng worktree web** (vượt luật cứng #4) theo yêu cầu David, sau khi đo worktree sạch.
+Commit `7ac2ada` trên `web-home`, đã `web-deploy.sh` (7/7 liên kết sống). Console restart bằng
+`~/9chain-a1/console-restart.sh` (PID mới 751090 ≠ cũ 145971).
+
+#### 🔴 Khoá `A1_CLI_KEY` đã LỘ trong transcript — việc bắt buộc cho ngày G
+
+Lệnh đo env tiến trình console của A1 lọc thiếu: che `TOKEN=`/`PK=` nhưng **không** che
+`A1_CLI_KEY`. Khoá ví `chain-factory` (giữ ~90 LOVE9 **testnet**) in ra dạng rõ. Thiệt hại kinh
+tế **bằng 0**, nhưng: **ngày G PHẢI sinh khoá factory mới** — trước đây là *nên* (D-117b), nay
+là *bắt buộc*. ⇒ Đừng in `/proc/<pid>/environ` của console nữa; nếu cần, lọc theo **danh sách
+trắng tên biến**, không lọc theo mẫu.
+
+#### Số đo cuối phiên `2026-08-31`
+
+```
+preflight đầy đủ    15 đạt · 3 đỏ · 0 không chạy được · 24 việc tay
+drift               17 khớp · 2 lệch (chainid*, do repo ở g1) · 3 mồ côi heartbeat-*
+check-net-dirs      🔴 2 tệp giữ TIỀN THẬT ngoài thư mục thế hệ sống (B-19)
+h6b-backup --check  🔴 "bản sao lưu không còn tả được mạng đang chạy"
+mạng g0             10/10 validator · sống
+```
+
+#### 🔴 Điều kiện qua `01/09`: **1/5** — và rủi ro số 1 tránh được bằng MỘT quyết định
+
+| # | điều kiện | trạng thái |
+|---|---|---|
+| 1 | preflight exit 0 | 🔴 3 đỏ + **24 việc tay chưa tick** |
+| 2 | g1 sống, chữ khắc đọc ngược được | 🔴 **cơ chế 13/13 xong, BYTE CHƯA TỒN TẠI** |
+| 3 | node NGOÀI máy chủ là peer | ✅ đạt |
+| 4 | repo công khai, người lạ dựng lại được fork | 🔴 cây fork sẵn sàng, **chưa có GitHub** |
+| 5 | genesis+bootstrap công bố + tài liệu validator | 🔴 `RUN-A-VALIDATOR.md` **chưa tồn tại** |
+
+🔴 **Rủi ro cao nhất: ngày G có thể mất lý do tồn tại.** Khắc chữ là lý do chính để bỏ `g0`
+đang chạy tốt. Không có byte ⇒ trả **toàn bộ** chi phí re-genesis (mọi blockchainID đổi, mọi ví
+về 0, mọi L1 biến mất) để nhận về một mạng **giống hệt cái vừa xoá**. Ba đường: đóng băng byte ·
+chấp nhận g1 không chữ khắc · **dời ngày G**. `g0` không có gì buộc phải chết ngày 01/09.
+
+#### Việc A1 làm được ngay — phiên sau bắt đầu từ đây
+
+1. `docs/RUN-A-VALIDATOR.md` (**G-2**, điều kiện qua số 5) — chưa ai nhận từ `29/08`.
+2. `bash scripts/h6b-backup.sh` — cổng đang **đỏ**.
+3. Ghi `DECISIONS.md` cho 3 thay đổi phiên này (D-129…): web preset · mở cổng · RPC base.
+4. Soạn gói công bố **genesis + bootstrap** (chờ GitHub repo của David mới push được).
+5. Dịch `docs/CREATE-A-CHAIN.md` sang tiếng Anh (bản gốc để dịch 29 thứ tiếng còn lại).
+
+#### Việc CHỈ David làm được — xếp theo độ trễ
+
+1. 🔴 **Quyết về byte chữ khắc** — mọi thứ khác phụ thuộc.
+2. **Tạo GitHub repo rỗng** + cấp quyền — 5 phút, mở khoá **hai** điều kiện qua.
+3. 🔴 **B-16** bản sao khoá quỹ sang **máy tính thứ hai** — chặn GO/NO-GO, cần phần cứng.
+   Bộ khoá g0 bị bỏ ngày G ⇒ hôm nay là cửa sổ tập **rủi ro bằng không**.
+4. 🔴 **`heartbeat-*` là của ai** — sau `down -v` mất manh mối.
+5. **B-19** dời khoá giữ tiền khỏi thư mục "đồ chết" TRƯỚC mọi lượt dọn.
+6. B-17 (6 tệp `.bak`) · PR chainId · báo 9Scan-A1 + worktree web sửa số thế hệ chết.
+
+#### GOTCHAS mới của phiên này
+
+1. 🔴 **Cấu hình sản phẩm nằm ở BIẾN MÔI TRƯỜNG TRÊN SERVER là điểm mù của mọi cổng.**
+   `A1_PUBLIC_RPC_BASE` trỏ tên miền chết nhiều ngày: repo đúng, `check-deploy-drift` xanh cho
+   nó (drift so **tệp**, không so **env**), và triệu chứng chỉ lộ ra ở tay người dùng cuối.
+   ⇒ Thêm phép đo env server vào runbook, đừng chỉ so tệp.
+2. 🔴 **`heartbeat.json` KHÔNG phải rác — trang chủ đọc số đo từ nó** (`/chains/data/heartbeat.json`).
+   Suy đoán trước đó (*"bộ bơm giao dịch"*) mới đúng một nửa. Sau `down -v` mà không dựng lại
+   thì **trang chủ in số của mạng đã chết**, 200 và không cổng nào bắt.
+3. 🔴 **Explorer công khai `a1.9scan.org` khai endpoint bằng tên miền CŨ** ⇒ mọi số rỗng
+   (`LATEST BLOCK —`). NetworkID nó in thì **đúng**, nên lỗi không lộ ở chỗ dễ thấy. Người lạ mở
+   explorer sẽ kết luận mạng chết trong khi mạng chạy 10/10.
+4. **Lọc bí mật phải theo DANH SÁCH TRẮNG tên biến**, không theo mẫu chuỗi — xem mục khoá lộ.
+5. **In PDF từ HTML: khối `<details>` đóng thì KHÔNG được in ra.** Bảng thông số mạng suýt biến
+   mất khỏi bản PDF phát cho người dùng — mất đúng hai giá trị tài liệu sinh ra để trao.
+   Kèm: `break-inside: avoid` trên mỗi bước đẻ ra trang trắng (9 trang → 7 sau khi nới).
+
+#### Lệnh hữu ích (phiên này thêm)
+
+```bash
+# Mặt web (worktree C:\PROJECTS\9Chain-A1-web, nhánh web-home)
+cd C:/PROJECTS/9Chain-A1-web && npx --prefix web tsc --noEmit
+cd C:/PROJECTS/9Chain-A1-web/web && npm run build
+cd C:/PROJECTS/9Chain-A1-web && bash local-net/deploy/web-deploy.sh   # tự nghiệm thu 7 liên kết
+
+# Console trên server — KHỞI ĐỘNG LẠI ĐÚNG CÁCH (tự chứng minh PID mới ≠ PID cũ)
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" '~/9chain-a1/console-restart.sh'
+
+# Console tự khai trạng thái cổng đẻ chain (đừng đoán từ mã)
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'grep "đẻ chain" ~/9chain-a1/console.log | tail -1'
+
+# Đo bundle CÔNG KHAI thay vì tin bước deploy
+curl -s https://a1.9chain.org/create-chain/ | grep -oE '/_next/static/chunks/app/create-chain/[^"]*\.js'
+
+# Xuất PDF từ một trang HTML (giữ nguyên thiết kế)
+"/c/Program Files/Google/Chrome/Application/chrome.exe" --headless=new --disable-gpu \
+  --virtual-time-budget=20000 --no-pdf-header-footer --print-to-pdf=out.pdf "file:///duong/dan.html"
+```
+
+#### Tài liệu phiên này tạo
+
+- [`docs/CREATE-A-CHAIN.md`](docs/CREATE-A-CHAIN.md) + [`docs/CREATE-A-CHAIN.pdf`](docs/CREATE-A-CHAIN.pdf)
+  — hướng dẫn cho user mới hoàn toàn, 7 trang A4, phát được cho người ngoài.
+- Artifact *"Chain đầu tiên của bạn"* (bản web của tài liệu trên) và *"Hiện trạng trước giờ G"*
+  (bản soát tổng 5 điều kiện qua + kế hoạch). Link trong lịch sử phiên `31/08`.
 
 ### 🆕 Phiên `2026-08-30` — DIỄN TẬP g1 (máy dev, băng TẬP `899999998`)
 

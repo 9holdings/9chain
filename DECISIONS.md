@@ -4775,3 +4775,101 @@ khoá) — tất cả `shred -u -n 3`, đối chứng bằng `find` ⇒ **0 tệ
 
 **Số đo cuối:** preflight `--no-network` **14 đạt · 0 đỏ · 4 bỏ qua · 24 việc tay**
 (17 → 22 → **24**).
+
+---
+
+## D-129 — Đường sản phẩm gãy ba chỗ, và chỗ đắt nhất nằm ở BIẾN MÔI TRƯỜNG TRÊN SERVER (2026-08-31)
+
+David đi thử `/create-chain/` **đúng như một người dùng thật**. Ba lỗi lộ ra theo đúng thứ tự
+người dùng gặp — không lỗi nào bị cổng nào bắt trước đó.
+
+**1. Ô chọn loại chain hiện SÁU DÒNG TRỐNG.** `CreateChainScreen.tsx` khai kiểu
+`{ id, ten, moTa }` — tên trường thời id preset còn tiếng Việt. Console
+(`local-net/lib/presets.mjs`) trả `{ id, name, desc }`, nên `p.ten` là `undefined` và mọi
+`<option>` render **không có chữ**: người dùng chọn cấu hình **vĩnh viễn** cho chain của mình
+bằng cách bấm mù, ngay dưới dòng chữ *"Once chosen it is fixed — a chain's genesis cannot be
+edited."* Cùng lệch đó làm **màn hình soát lại** cũng trống ở dòng loại chain — tức nó che mất
+lựa chọn ở **cả hai** nơi người dùng lẽ ra được đọc. TypeScript không bắt được: dữ liệu qua
+dây, không phải giá trị trong mã. Đây là D-108 quay lại — lượt đổi id sang tiếng Anh làm ở
+console mà **không nối sang web**.
+
+**2. Cổng đẻ chain ĐÓNG** — đúng thiết kế (D-087). Ảnh chụp của David là lần đầu ai đó thấy
+cổng đó **nói ra thành lời với người dùng thật**; trước giờ nó chỉ tồn tại trong mã.
+⇒ **David chốt `31/08`: MỞ HẲN tới ngày G.** Đã đặt `A1_DE_CHAIN_MO=1` trong
+`~/9chain-a1/console.env` và khởi động lại bằng `console-restart.sh` (PID mới 751090 ≠ cũ
+145971). Console tự khai `đẻ chain: 🔓 MỞ`.
+
+**3. 🔴 `A1_PUBLIC_RPC_BASE` trỏ TÊN MIỀN CHẾT.** Biến trên server khai
+`https://rpc-testnet-a1.9chain.org` — tên cũ, đo được **525**. Console dùng đúng biến này để
+dựng URL RPC **trả cho người vừa tạo chain**: chain chạy thật, nhưng người dùng nhận một địa
+chỉ không bao giờ nối được. Đã sửa → `https://rpc-a1.9chain.org` (**200**).
+
+🔴 **Bài học chung của cả ba, và nó là lớp lỗi mới cho repo này: cấu hình sản phẩm nằm trong
+BIẾN MÔI TRƯỜNG TRÊN SERVER là điểm mù của mọi cổng đang có.** `check-deploy-drift` so **tệp**,
+không so **env**. Repo đúng, tệp khớp, cổng xanh — mà thứ người dùng chạm vào thì sai. Chính
+`server.mjs` có sẵn dòng dặn đặt đúng tên miền; biến *có* được đặt, chỉ là đặt sai giá trị, và
+không gì trên đời này bắt được điều đó. ⇒ Ngày G phải có một phép đo **env trên server**, không
+chỉ so tệp.
+
+**Nghiệm thu — đo trên sản phẩm, không tin bước deploy:** bundle công khai của
+`a1.9chain.org/create-chain/` nay chứa `children: e.name`, `"chuan"` **0 lần**;
+`/create-chain/` 200 · `/console/api/chains` 401 (sống, đòi đăng nhập) · `rpc-a1` 200.
+`npm run build` exit 0 qua hết cổng postbuild; typecheck **0 lỗi** ở tệp sửa (7 lỗi còn lại ở
+`test/mang.test.ts`, có sẵn từ trước).
+
+⚠️ **Đã đụng worktree web** — vượt luật cứng #4, theo yêu cầu tường minh của David sau khi đo
+worktree sạch (không phiên nào làm dở). Commit `7ac2ada` trên `web-home` + `web-deploy.sh`
+(7/7 liên kết sống). Ghi ra đây để phiên web biết mà `git pull` trước khi làm tiếp.
+
+---
+
+## D-130 — 🔴 Khoá `A1_CLI_KEY` lộ trong transcript: sinh khoá factory mới thành BẮT BUỘC (2026-08-31)
+
+Lệnh đo `/proc/<pid>/environ` của console lọc bí mật theo **mẫu chuỗi** (`TOKEN=`, `PK=`) và
+**trượt** `A1_CLI_KEY`. Khoá ví `chain-factory` in ra dạng rõ trong transcript phiên.
+
+**Thiệt hại kinh tế bằng 0** — ví testnet, ~90 LOVE9 không có giá trị thật. Nhưng:
+
+🔴 **D-117b đã ghi *"ngày G sinh mạng mới thì sinh luôn khoá factory mới"* ở mức KHUYẾN NGHỊ.
+Nay là BẮT BUỘC** — cùng lượt với token console và khoá faucet.
+
+**Bài học:** lọc bí mật phải theo **danh sách trắng tên biến được phép in**, không theo mẫu
+chuỗi. Mẫu chuỗi bảo vệ đúng những gì ta nghĩ ra lúc viết lệnh, và biến nguy hiểm nhất thường
+là biến không nằm trong danh sách đó. Cùng họ với D-117 (khoá quỹ nằm 20 giờ trong `%TEMP%`),
+chỉ khác là lần này kênh rò rỉ là **transcript**, không phải đĩa.
+
+---
+
+## D-131 — Soát tổng `31/08`: điều kiện qua ngày G đang **1/5**, và cái chặn phần lớn không phải mã
+
+Đo lại toàn bộ, không trích tài liệu. Đối chiếu với năm điều kiện của
+`TESTNET1-PUBLIC-2026-09-01.md` §4:
+
+| # | điều kiện | trạng thái `31/08` |
+|---|---|---|
+| 1 | `gday-preflight.mjs` exit 0 | 🔴 15 đạt · 3 đỏ · **24 việc tay chưa tick** |
+| 2 | g1 sống, chữ khắc đọc ngược được | 🔴 **cơ chế 13/13, BYTE CHƯA TỒN TẠI** |
+| 3 | node NGOÀI máy chủ là peer | ✅ đạt (Hetzner 🇩🇪, và đường vào-genesis đã tập `30/08`) |
+| 4 | repo công khai, người lạ dựng lại được fork | 🔴 cây fork sẵn sàng, **chưa có GitHub remote** (H-6) |
+| 5 | genesis+bootstrap công bố + tài liệu validator | 🔴 `docs/RUN-A-VALIDATOR.md` **chưa tồn tại** (G-2) |
+
+🔴 **Rủi ro cao nhất, và nó tránh được bằng MỘT quyết định chứ không bằng thêm giờ làm:
+ngày G có thể mất lý do tồn tại.** Khắc chữ là lý do chính để bỏ `g0` đang chạy tốt. Không có
+byte thì ta trả **toàn bộ** chi phí re-genesis — mọi `blockchainID` đổi, mọi ví về 0, mọi L1
+người dùng biến mất — để nhận về một mạng **giống hệt cái vừa xoá, chỉ khác số thế hệ**.
+Ba đường: đóng băng byte hôm nay · chấp nhận g1 không chữ khắc · **dời ngày G**. Không có gì
+buộc `g0` phải chết ngày `01/09`: nó đang 10/10 validator.
+
+**Hai phát hiện phụ, cả hai ở bề mặt người lạ nhìn thấy đầu tiên:**
+
+1. **`heartbeat.json` không phải rác** — trang chủ đọc số đo từ `/chains/data/heartbeat.json`.
+   Suy đoán `30/08` (*"bộ bơm giao dịch"*) mới đúng một nửa. ⇒ Sau `down -v` mà không dựng lại
+   cho g1 thì **trang chủ in số của mạng đã chết**, HTTP 200, không cổng nào bắt. G-6 nay có
+   thêm mặt này, không chỉ mặt "bơm vào chain chết".
+2. **`a1.9scan.org` khai endpoint bằng tên miền cũ** ⇒ `LATEST BLOCK —`, `VALIDATORS —`, mọi số
+   rỗng. NetworkID nó in thì **đúng** (`999999999`), nên lỗi không lộ ở chỗ dễ thấy. Người lạ mở
+   explorer sẽ kết luận mạng chết trong khi mạng chạy 10/10. Thuộc 9Scan-A1 — A1 chỉ báo.
+
+**Số đo nền:** preflight **15 đạt · 3 đỏ · 24 việc tay** · drift **17 khớp · 2 lệch · 3 mồ côi**
+· `check-net-dirs` **🔴 2 tệp giữ tiền thật ngoài thư mục thế hệ sống** (B-19) ·
+`h6b-backup --check` **🔴 không còn tả được mạng đang chạy** · mạng g0 **10/10 validator**.
