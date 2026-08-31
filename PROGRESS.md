@@ -1365,3 +1365,103 @@ nó phải là mã, không phải quy ước.
 
 - [ ] Trả tiếp nợ ngôn ngữ: 107 tệp · 5.856 dòng còn lại + 54 tệp Go trong fork. Ưu tiên
   `local-net/console/server.mjs` (639 dòng — sản phẩm sống, người ngoài đọc nhiều nhất).
+
+---
+
+## 🔵 PHIÊN 2026-08-31 (chiều) — ba lượt quét + DIỄN TẬP g1 + **D-132: A1 dẫn dắt**
+
+Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập + hai phát hiện của nó).
+
+### Quyết định
+
+- [x] **D-132 — A1 là chain DẪN DẮT; C1 và mọi testnet sau follow theo A1.** Mở rộng D-041
+      sang đúng phần D-041 loại trừ (khắc chữ). **Không hồi tố:** byte g1 vẫn lấy từ bản đóng
+      băng `07/08` của C1 — đổi là mất `G5e`. Canon là **của 9Chain**, C1 chỉ là nhân chứng
+      đầu tiên; A1 là nhân chứng **kiểm được bằng một lệnh**.
+      🔴 **Việc kèm theo, chưa làm:** báo C1 + BOD (họ có thể đang chờ giao ASV theo chiều cũ).
+
+### Cổng — preflight offline **14 → 20**, và một cổng đã ĐỎ suốt một ngày
+
+- [x] **`check-net-dirs --self-test` đang ĐỎ từ lượt bump `A1Gen 0→1`** (`30/08`): một ca đối
+      chứng cắm cứng `999999998` làm *"thế hệ SAU"*, mà số đó **thành networkID SỐNG** ở lượt
+      bump. Đúng lớp **D-124**, một tệp xa hơn — và ẩn được vì preflight chỉ chạy **7/15** bộ
+      tự kiểm trong repo. Sửa sang lệch tương đối ⇒ **19 đạt**; nối thêm **6** bộ tự kiểm vào
+      preflight.
+- [x] `check-clock-skew` đo **đồng hồ của Cloudflare**, không phải của node — đo được
+      `server: cloudflare` + `cf-ray …-CDG` trên `rpc-a1.9chain.org`. Nay đọc `block.timestamp`
+      qua `eth_getBlockByNumber` (giá trị **do node sinh**, proxy không đổi được). Số đầu tiên:
+      node **−1569ms** vs Cloudflare **−952ms**, node ở **chiều nguy hiểm**; bù `3000 → 3025`.
+- [x] `h6b-backup --check` **mù hoàn toàn với cây fork**: `DUONG_MA` có `upstream`, nhưng
+      `.gitignore` có dòng `upstream/` ⇒ `git ls-files upstream` = **0**. Số patch là proxy duy
+      nhất. `manifest.env` đã ghi sẵn `FORK_TREE` mà `doc_manifest()` vứt đi. Nay so thật.
+- [x] `gen-network.sh` mount gốc repo ở `/repo` + **từ chối** `A1_ENGRAVE` ngoài `/repo,/out,/src`.
+- [x] `requireInt` trong `guard.mjs` — `Number(env || d)` biến typo thành `NaN`, mà mọi phép so
+      với `NaN` là false ⇒ `A1_MAX_L1=fifteen` **xoá sạch trần 15 L1**. Nay từ chối khởi động.
+- [x] `console/index.html:302` in **id preset** thay vì tên (`.ten` — khoá đã chết từ D-108).
+      Cùng tàn dư D-129 bên `web/`, không sang tới trang của chính console. `/api/status` xác
+      nhận: preset về dạng `{id,name,desc}`, **không có khoá `.ten`**.
+- [x] Faucet: cooldown địa chỉ nay kiểm **trước** khi tiêu suất IP · `lastDrip` có bộ quét.
+- [x] `export-chain`: đứt giữa chừng nay tính là **CẮT**; `tip.json` ghi `blocksExported`/`complete`.
+- [x] `watch-network` + `check-key-leaks` neo theo **thế hệ**; thế hệ chưa khai ⇒ **không đo
+      được (2)**, không phải `0` câm.
+- [x] `MANUAL_TASKS` **25 → 31**: `A1_CONFIG_DIR` · `--build-arg A1_COMMIT=` ·
+      `gen-chainid-issued --write` · `engrave-verify --rpc` · dời neo hằng số thế hệ · đọc bảng
+      tài liệu trước khi xác nhận vân tay.
+
+### Diễn tập g1 — băng TẬP `899999998`, 3 node, image `:g1`
+
+- [x] **Đường khắc chữ trong tài liệu CHẠY ĐƯỢC — lần đầu tiên trong repo.** `engraving.md`
+      sinh ra; trước đó **không thư mục `net*` nào** có tệp đó.
+- [x] `engrave-verify` trên chain SỐNG: **15 đạt · 0 hỏng**, có mục `[5] Mạng đang chạy`.
+      `parentID` block 0 P-Chain `==` `sha256(genesisBytes)` ⇒ **điều kiện qua số 2 nghiệm thu được**.
+- [x] Block Adam ở thế hệ 1: **10 đạt · 0 hỏng**, gồm phép **neo ngược**. Block Adam ở mốc **+3s**.
+- [x] Gotcha 16 tái hiện đúng D-105: netgen ghi `image: :dev` **3 lần**. Vá, đo `:g1` ×3 / `:dev` ×0,
+      rồi **đo BINARY**: `commit=9chain-a1-g1-26patch-60a61707`.
+- [x] Dọn: 3 container + 3 volume + network · **11 tệp khoá `shred -u -n 3`** ·
+      `check-key-leaks` **exit 0** · 55/58 container dự án khác **không đụng**.
+
+🔴 **Hai thứ diễn tập tìm ra:**
+
+1. **Cổng đối chiếu C1 của netgen KHÔNG bắt được manifest gán nhầm tài liệu** — đúng ca mà câu
+   lỗi của chính nó mô tả. Nó neo bằng `Contains(dòng, tên_tệp) || Contains(dòng, id)`, mà
+   `file` là trường một lượt gán nhầm sẽ đổi. Trỏ `drill-charter-he` vào tệp tiếng Anh vẫn nhận
+   `✓ khac chu: 3/3 … (hash VA ten tep)`. **Freeze của C1 (dạng `title  hash`, không có tên tệp)
+   vá lỗ này** — chỉ `id` neo được ⇒ gán nhầm bị bắt. ⇒ Đặt `id` manifest **trùng `title` C1**,
+   tệp đặt `<id>.txt`, **đừng đặt trần `<id>`**.
+2. Tôi viết một câu **không phải phép đo** (khẳng định "proxied by Cloudflare" cho `127.0.0.1`).
+   Nay đọc `cf-ray`/`server` và chỉ nêu khi có thật.
+
+- [x] **Byte chữ khắc: TÌM ĐƯỢC, tái lập đúng cả 4 hash đóng băng.** Nằm inline trong
+      `9Chain-C1/9chain-operator/config/samples/chain_love9.yaml` dòng 611–617. Dạng **`body
+      as-is`** — không NFC/NFD, không thêm bớt xuống dòng. `genesis_inscription` **108 B** ·
+      `dedication` **25 B** · `dedication_eva` **45 B** · `love_paper_en` **964 B** ⇒ bộ khắc
+      thật **1.142 B**, **NHỎ HƠN** bản tập `1.328 B` ⇒ đường ống đã kiểm ở đúng cỡ.
+      🔴 **Một nguồn duy nhất:** không `genesis.json` nào trong C1; ba tài liệu ngắn **không có
+      tệp riêng**. Khắc lên A1 là tạo bản bất biến **thứ hai**.
+
+### 🔴 Còn mở
+
+- [human] **`cChainAddress`** — vĩnh viễn, netgen cố ý không có mặc định. **Chặn bộ khắc.**
+- [human] **Xác nhận bỏ `ASV 1901` cho g1** (D-132 giải thích vì sao không tự đóng băng).
+- [human] Điều kiện qua **4 & 5**: GitHub repo rỗng (5 phút) · `docs/RUN-A-VALIDATOR.md` — [ ] A1 viết.
+- [human] **B-16** bản sao khoá quỹ sang máy thứ hai. Hôm nay là cửa sổ tập **rủi ro bằng không**.
+- [human] **B-20** — gói `h6b` vừa dựng, qua cả 4 phép nghiệm thu của chính nó, chứa **0
+      `staker.key` · 0 `signer.key` · 0 `genesis.json`**. Đếm tệp mới là phép đo; đọc dòng
+      `--check` thì không.
+- [human] 🔴 **Nạp ví factory trên P-Chain (X→P)** — runbook có **0 dòng** về việc này
+      (`grep` = 0). Trên genesis mới, tiền thanh khoản mọi quỹ nằm trên **X-Chain**, CLI trả phí
+      trên **P-Chain**: Foundation `71.000.009` trên X, **`0` trên P**. Quên ⇒ console lên xanh
+      và **người đầu tiên bấm nút nhận `insufficient funds`**.
+- [ ] **Console đẻ L1 không diễn tập được trước ngày G** — cổng thế hệ so node với
+      `NETWORK_ID = A1_ID_GOC − A1_GEN` (băng THẬT), không có biến thể băng TẬP, nên trước mạng
+      tập nó **từ chối theo kiến trúc** (đã kiểm ở tầng API). Cổng làm đúng việc (D-093) ⇒ đường
+      đẻ chain chỉ kiểm được **trên g1 thật, sau khi lên**. Đẻ **một** L1 rồi thu hồi, **trước
+      khi công bố**.
+- [ ] Sau ngày G: **tổng quát hoá `verifyAgainstC1`** thành *"đối chiếu với CANON"* (D-132 §4)
+      — đụng `patches/`, không làm trước ngày G.
+- [ ] Chưa cấp số quyết định cho các phát hiện của ba lượt quét + diễn tập (mới có D-132).
+
+**Số đo cuối phiên:** preflight offline **20 đạt · 0 đỏ · 4 bỏ qua · 31 việc tay** ·
+`h6b --check` ✓ (fork tree `60a61707f797` khớp) · `check-key-leaks` exit 0 · nợ ngôn ngữ
+**5.753 → 5.750** · mạng công khai g0 **10 validator · 9 peer · factory 89,899 LOVE9** ·
+B-12 còn **12 ngày** (`2026-09-12`, node stake-sau, chết cùng g0 ngày G).

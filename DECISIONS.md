@@ -4873,3 +4873,86 @@ buộc `g0` phải chết ngày `01/09`: nó đang 10/10 validator.
 **Số đo nền:** preflight **15 đạt · 3 đỏ · 24 việc tay** · drift **17 khớp · 2 lệch · 3 mồ côi**
 · `check-net-dirs` **🔴 2 tệp giữ tiền thật ngoài thư mục thế hệ sống** (B-19) ·
 `h6b-backup --check` **🔴 không còn tả được mạng đang chạy** · mạng g0 **10/10 validator**.
+
+## D-132 — **A1 là chain DẪN DẮT; C1 và mọi testnet sau follow theo A1** (2026-08-31)
+
+**David chốt:** *"giờ bạn hãy xem testnet A1 là dẫn dắt và C1 hoặc các testnet khác sau này
+có thể sẽ follow theo"*.
+
+Đây là **mở rộng D-041 sang đúng phần mà D-041 đã loại trừ tường minh**. D-041 (`26/08`) đảo
+chiều cho tokenomics và ghi rõ: *"Đảo chiều này CHỈ áp cho phân bổ/tokenomics. Phần khắc chữ
+vẫn theo chiều cũ — C1 sinh, A1 chép byte."* Vế loại trừ đó **nay bỏ**.
+
+### 🔴 Thứ KHÔNG đổi — và nó không mâu thuẫn với việc dẫn dắt
+
+**Byte của g1 vẫn lấy từ bản đóng băng `2026-08-07` của C1.** Ba tài liệu
+(`genesis_inscription` · `dedication` · `dedication_eva`) đã được C1 khắc lên chain của nó từ
+tháng trước. A1 tự đóng băng lại phiên bản của mình ⇒ hash khác ⇒ **`G5e` — vật chứng đồng
+nhất giữa hai chain — biến mất**. Đó là thứ mạnh nhất cả hệ đang có; đổi nó lấy một tư thế là
+lỗ ròng.
+
+⇒ Cách đọc đúng: **văn bản không phải "của C1", nó là canon của 9Chain.** C1 chỉ là **nhân
+chứng đầu tiên**. A1 khắc đúng byte đó là trở thành nhân chứng **thứ hai** — và là nhân chứng
+**kiểm được bằng một lệnh**, thứ C1 không có.
+
+⇒ **Dẫn dắt TỪ NAY, không hồi tố.** Cùng luật D-104 đã dặn: đừng sửa những câu **kể về quá
+khứ**; chỉ đổi câu nói **A1 đang chờ gì**.
+
+### Bốn hệ quả cụ thể
+
+**1. A1 là nơi canon được KIỂM, không chỉ được lưu.** A1 có hai mặt khắc (P-Chain gốc +
+C-Chain `eth_getCode`), có `engrave-verify` đọc ngược **từ chain sống**, và netgen tự sinh
+`engraving.md`. C1 có một mặt và không có công cụ đọc ngược. Nghiệm thu `31/08` trên mạng tập
+g1: **15 đạt · 0 hỏng**, gồm `parentID` block 0 P-Chain `==` `sha256(genesisBytes)`. Sau ngày
+G, câu *"chứng minh đi"* trả lời được bằng một lệnh — **trên A1**.
+
+**2. Bộ định danh theo THẾ HỆ là thứ chain sau nên chép trước tiên.** `A1Gen` là một số
+nguyên, và networkID · tên mạng · khối chainId L1 · băng TẬP đều **suy ra từ nó**, có cổng bắt
+ở **hai ngôn ngữ** (`check-consistency.mjs`), và băng tập **không bao giờ bắt tay được** băng
+thật (`A1IDGocTap 899_999_999`). C1 không có gì tương đương. Nó chặn đúng lớp hỏng đắt nhất:
+*một mạng tập mang bản sắc của mạng thật*.
+
+**3. Kỷ luật cổng chuyển giao tốt hơn cả mã.** Mã thoát **0/1/2 với `2` = "không đo được" ≠
+"đạt"** · mọi cổng phải **từng thấy ĐỎ vì đúng lý do** (luật cứng #2, ba vế) · một hằng số
+**MỘT nơi khai** (`check-single-source`) · bánh cóc thay vì di dời ồ ạt · *"dấu miễn trừ không
+bao giờ cho nội dung sẽ lên chain"*. Đó là thứ chain sau copy được ngay, không cần Avalanche.
+
+**4. Chiều của cổng đối chiếu phải tổng quát hoá — nhưng SAU ngày G.**
+`netgen/engrave.go → verifyAgainstC1()` đóng cứng chiều vào **tên hàm và tên biến môi trường**
+(`A1_ENGRAVE_CHECKSUMS` mô tả là *"bản đóng băng của C1"*). Nó phải thành *"đối chiếu với
+CANON"*, canon là một artifact bất kỳ chain nào trỏ vào được. Nhưng nó nằm trong `patches/`
+⇒ sửa là **sinh lại cả 26 patch** và dịch `TREE_FORK`, vào đúng hôm trước ngày G, đồng thời
+làm `commit=` của image g1 dùng lại thành lạc hậu. **Hoãn sau ngày G**, ghi thành việc.
+
+### 🔴 Nghĩa vụ đi kèm — phần nặng hơn phần quyền
+
+Người dẫn dắt thì **lỗi cũng được nhân bản**. Ba lượt quét `31/08` tìm ra, tất cả trong mã của
+chính A1: một bộ đối chứng **đỏ suốt một ngày** mà preflight không chạy · một cổng đo **đồng hồ
+của Cloudflare** thay vì của node · một phép đối chiếu C1 **không bắt được gán nhầm tài liệu**
+· một tiêu chí nghiệm thu **runbook không thoả được** (`A1_COMMIT`) · một trần L1 **biến mất vì
+một biến gõ sai**. Chain sau chép **cả thiết kế lẫn lỗi**.
+
+⇒ **Luật cho việc xuất bản: đừng công bố một chuẩn mà chính A1 chưa đạt.** Ví dụ sống — quy
+tắc *"mã nguồn chỉ tiếng Anh"* (§0): nợ của chính A1 hôm nay là **5.750 dòng / 107 tệp**. Công
+bố nó như một **trạng thái** là dựng lại đúng *"ĐÃ ĐÓNG trong repo ≠ đã đóng ở nơi người dùng
+chạm"*. Công bố như một **bánh cóc kèm số nợ khai thật** thì trung thực, và đáng học hơn.
+
+### ASV 1901 — nay A1 CÓ quyền tự đóng băng, và vẫn KHÔNG dùng quyền đó cho g1
+
+Dưới chiều mới, A1 tự soạn `ASV 1901` + tự ghi hash vào freeze của mình là hợp lệ về quy trình.
+
+🔴 **Nhưng nó phá chính cổng đang bảo vệ nó.** `verifyAgainstC1` sinh ra để chặn *"gõ lại văn
+bản thay vì chép byte"*. Một tài liệu A1 **vừa soạn, vừa đóng băng, vừa khắc trong cùng 24
+giờ** thì cổng đang so A1 với **chính A1** — đúng **D-112**: *"cổng áp đủ bộ rồi so hằng số
+của chính mình chưa phải cổng"*. Trong cả bộ khắc nó sẽ là mục **trông chắc nhất mà yếu nhất**.
+
+⇒ Thứ tự đúng của người dẫn dắt: **A1 công bố ASV vào canon trước** (commit, có mốc thời gian,
+công khai) → C1 và chain sau nhận → **thế hệ sau** khắc với hai nhân chứng độc lập. Dẫn dắt
+không có nghĩa là vội. Ngày G g1 khắc **4 tài liệu đã có hai nguồn độc lập**.
+
+### Phải báo ngay, vì có thể đang chờ nhau
+
+D-041 đã dặn đúng câu này và nó lặp lại: **báo C1 + BOD ngay.** Có một trường hợp đang sống —
+`request/2026-08-26-genesis-document-10-EN.md` gửi dưới **chiều cũ** (*C1 giao, A1 chép*). Nếu
+C1 vẫn đang chờ để giao mà A1 đã quyết không dùng cho g1, hai bên đốt ngày cho một thứ không
+ai còn cần.
