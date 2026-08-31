@@ -1380,6 +1380,28 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
       đầu tiên; A1 là nhân chứng **kiểm được bằng một lệnh**.
       🔴 **Việc kèm theo, chưa làm:** báo C1 + BOD (họ có thể đang chờ giao ASV theo chiều cũ).
 
+- [x] **D-133 — canon khắc chữ của A1 ĐỨNG MỘT MÌNH** (`bbddc25`). David: *"tách ra hoàn toàn"*.
+      Đo trước khi cắt: **tài liệu người dùng đã sạch sẵn**, dính chỉ ở **một đường** — đường
+      khắc chữ. Nay `docs/engrave/CANON.txt` là canon của riêng A1; bản đóng băng `07/08` hạ
+      xuống làm `attestation-2026-08-07.txt` — **vật chứng, không phải phụ thuộc** (bản dựng
+      không đọc nó).
+      🔴 **Cái giá đã viết ra:** cổng so A1 với chính A1 chỉ chứng minh **nhất quán nội bộ** —
+      hình dạng **D-112**. Thứ đỡ nó là bốn hash trùng khít bản đóng băng **có ngày tháng, ở
+      nơi khác, trước đó**; nên bản cũ **giữ chứ không xoá**.
+      **Đối chứng:** netgen chạy lại với canon mới ⇒ vân tay `f04e939b…366b18` **không đổi**,
+      `khac chu: 4/4`, `1.142` byte y nguyên. **Dịch giấy tờ, không dịch một byte lên chain.**
+      🔴 **Chưa tách được:** netgen còn **in** `"khop ban dong bang cua C1"` + hàm
+      `verifyAgainstC1` — nằm trong `patches/` (luật cứng #3) ⇒ **hoãn sau ngày G**, gộp cùng
+      D-132 §4. Ngày G nó là **chữ in sai tên**, không phải hành vi sai.
+
+- [x] **Tài liệu người dùng bỏ phần khảo cổ tên miền cũ** (`8820f48`). David: *"ko hiển thị nội
+      dung kiểu này."* Cả hai bản ngôn ngữ nay chỉ đưa **việc phải làm** (xoá mạng đã lưu, thêm
+      lại bằng nút) kèm **triệu chứng** (ví dùng cấu hình cũ báo lỗi kết nối **giống hệt mạng
+      chết** trong khi mạng vẫn sống), không kể lịch sử. `grep -c "rpc-testnet-a1"` = **0** ở cả
+      hai. PDF dựng lại: EN 200 KB · VI 210 KB.
+      ⚠️ Ảnh David gửi là **bản WEB** của trang này — nằm ở worktree `web-home`, **luật cứng #4**,
+      phiên này **không đụng**. Sửa bản web là việc của phiên đó.
+
 ### Cổng — preflight offline **14 → 20**, và một cổng đã ĐỎ suốt một ngày
 
 - [x] **`check-net-dirs --self-test` đang ĐỎ từ lượt bump `A1Gen 0→1`** (`30/08`): một ca đối
