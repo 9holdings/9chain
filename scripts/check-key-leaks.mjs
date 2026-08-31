@@ -123,10 +123,17 @@ function discoverFundSets() {
       if (existsSync(f)) found.push(f);
     }
   } catch { /* store absent: leave the list short; the caller turns empty into exit 2 */ }
-  // The factory wallet is the SEVENTH fund and lives outside the six-fund set (D-117b).
-  // A new one is minted at every re-genesis; add its path here when it exists.
-  const factory = path.join(ROOT, "local-net", "net-public", "chain-factory-key.txt");
-  if (existsSync(factory)) found.push(factory);
+  // The factory wallet is the SEVENTH fund and lives outside the six-fund set (D-117b) — it is
+  // funded by a transfer rather than by genesis, so netgen never writes it into `keys.txt`.
+  // Discovered the same way for the same reason: a generation whose factory key is not in this
+  // baseline gets its leaks scored amber ("drill key") instead of red ("real money"), which is
+  // the yardstick inverting itself on exactly the day it matters.
+  for (const d of readdirSync(store, { withFileTypes: true }).filter((e) => e.isDirectory() && /^g\d+$/.test(e.name))) {
+    const f = path.join(store, d.name, "chain-factory-key.txt");
+    if (existsSync(f)) found.push(f);
+  }
+  const legacy = path.join(ROOT, "local-net", "net-public", "chain-factory-key.txt");
+  if (existsSync(legacy)) found.push(legacy);
   return found;
 }
 const DEFAULT_FUND_SETS = discoverFundSets();
