@@ -162,6 +162,14 @@ const GATES = [
   // because the console writes it. Two gates, each correct about its own quantity, and the gap
   // between them held two chains of a dead generation on the public page (D-154).
   { group: "2 · REPO GATES", name: "public chain directory — band + both directions (counter-check)", ...node("scripts/check-chain-ledger.mjs", "--self-test") },
+  // 🔴 The three below close gaps an OUTSIDE tester found on 2026-09-01, not us — and each gap had
+  // the same shape: this preflight compared the repo against constants inside itself, and never
+  // against what a stranger is handed. G-1 the patch count in the prose, G-2 the supply, G-3 the
+  // served page. README had been a generation stale for a day while every gate here stayed green.
+  { group: "2 · REPO GATES", name: "patch count in the docs matches patches/ (counter-check)", ...node("scripts/check-patch-count.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "patch count in the docs matches patches/", ...node("scripts/check-patch-count.mjs") },
+  { group: "2 · REPO GATES", name: "supply reconciliation (counter-check)", ...node("scripts/check-supply.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "served pages vs the running chain (counter-check)", ...node("scripts/check-live-page.mjs", "--self-test") },
 
   // ── 3. The real world — the running network and the server ──
   { group: "3 · REAL WORLD", needsNetwork: true, name: "the running network (watch-network)", ...node("scripts/watch-network.mjs") },
@@ -182,6 +190,12 @@ const GATES = [
   // Both directions: in the generation's chainId block AND the advertised RPC answers with the id
   // it claims — either one alone passes a chain that is in-band but dead, or live under a wrong id.
   { group: "3 · REAL WORLD", needsNetwork: true, name: "public chain directory — every advertised chain is real", ...node("scripts/check-chain-ledger.mjs") },
+  // 🔴 G-2 and G-3, both measured against the chain rather than against this repo's opinion.
+  // check-live-page is expected RED until the web-home worktree ships: the footer on /, /faucet/
+  // and /create-chain/ still prints networkID 999999999, a generation that died at 09:26Z on
+  // G-day. That red is not A1's to clear (hard rule #4) and it must stay visible until it is.
+  { group: "3 · REAL WORLD", needsNetwork: true, name: "allocation table vs live supply (minus pre-minted rewards)", ...node("scripts/check-supply.mjs") },
+  { group: "3 · REAL WORLD", needsNetwork: true, name: "served pages vs the running chain", ...node("scripts/check-live-page.mjs") },
   // This one measures REAL MONEY on chain, so it belongs to group 3, not to the repo gates:
   // the `--offline` variant answers only half the question and exits 2 (INCONCLUSIVE) — which
   // is honest, but a G-day gate that says "inconclusive" is unusable. Blocks the
