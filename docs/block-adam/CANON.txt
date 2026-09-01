@@ -91,3 +91,44 @@
 #   2. B-13(b) must be measured while the chain is PRODUCING BLOCKS. Measured 2026-09-01 10:51Z on
 #      an idle chain: head was block 8, and the "skew" read -443s, nearly all of it the age of a
 #      seven-minute-old block. That number is not a skew and must not be used as one.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# WHAT C1 PUBLISHED, AND WHICH PARTS A1 TOOK — 2026-09-01, David
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# C1's engraving page carries the three documents A1 engraved, and the sha256 printed there for
+# each one is byte-identical to docs/engrave/CANON.txt:
+#
+#   genesis_inscription  7e89adee122f2679…   dedication  19f90a3178519339…   dedication_eva  747ebe59ab6a152e…
+#
+# ⇒ Two sovereign chains are carrying the SAME BYTES, and either can be verified against the
+# other without trusting either page. Nothing to take there; it is already one text.
+#
+# What C1 states that A1 had NOT written down anywhere — and A1 now implements:
+#
+#   Block Adam   the FIRST block whose timestamp is 2026-09-09T06:09:09Z or later.
+#                "Defined by time, not by height."
+#   Block Eva    the block IMMEDIATELY AFTER Block Adam — one block, about three seconds.
+#
+# Two consequences, both of which corrected real mistakes in ceremony-9s-union.mjs the same day:
+#   1. Block Adam is NOT "the block holding our transaction". A stranger's transaction can
+#      produce it. Our ceremony transaction is the MECHANISM that makes such a block exist on an
+#      idle chain — not the definition. (D-070 is untouched: the engraving anchors on the
+#      ceremonial transaction HASH, which is precisely why the ceremony survives losing that race.)
+#   2. Block Eva is Adam+1 BY HEIGHT, so the anchor slot is Adam+10 and is known the moment Block
+#      Adam is known. It does not depend on where the Eva transaction lands.
+#
+# 🔴 AND ONE DISAGREEMENT THAT MUST NOT REACH 09/09 UNRESOLVED:
+#
+#   C1 publishes "from 06:09:09Z onward"      => INCLUSIVE  (ts >= mark)
+#   A1's 2026-08-27 drill scored "the first block to CROSS" => STRICT (ts > mark)
+#
+# This is not a hypothetical: the drill failed 1 of 8 cases on exactly this boundary — the
+# ceremonial block was sealed with a timestamp EXACTLY on the mark, so under STRICT, Block Adam
+# would have been Eva's block. Two chains telling one story must not use two comparisons.
+# ceremony-9s-union.mjs defaults to INCLUSIVE (what is published) and reports whenever the two
+# rules would disagree for the run in front of it. If A1 keeps strict, C1's page must change.
+#
+# Also worth taking, but it belongs to the web worktree and A1 does not touch it: C1's page
+# re-hashes each document IN THE READER'S BROWSER and compares against what the chain declares —
+# "you do not have to trust this page". That is the strongest form of the claim A1 already makes.
