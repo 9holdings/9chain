@@ -279,7 +279,7 @@ if (NGUOC) {
     // Sau D-070: lưu ý, không chấm. Neo là hash giao dịch — block chứa nó là Block Adam dù
     // timestamp có vượt mốc hay không. Ô này nay trả lời một câu KHÁC và vẫn cần: *"câu chữ
     // 'vượt mốc' trong bản khắc có trung thực không"*, và nó là đầu vào của B-13(b).
-    // Inclusive since D-147 — see blockĐầuTiênVượtMốc above.
+    // Inclusive since D-147 — see the first-block-past-the-mark scan above.
     lưuÝRa(bAdam.timestamp >= MOC_GIAY, "block CHỨA giao dịch Adam tự nó vượt mốc",
       `#${bAdam.number} ts=${bAdam.timestamp}, mốc=${MOC_GIAY}, cách ${bAdam.timestamp - MOC_GIAY >= 0 ? "+" : ""}${bAdam.timestamp - MOC_GIAY}s`);
   }
