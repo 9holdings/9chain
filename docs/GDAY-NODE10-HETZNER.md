@@ -189,8 +189,33 @@ nếu Hetzner đang là Ubuntu 22.04 (glibc 2.35) thì binary **không khởi đ
 đó **không tồn tại** — và node9 khi đó dùng **cùng một runtime** với 8 node OVH.
 *(Nếu vẫn muốn đường binary trần: đo trước `ldd --version` trên máy đó, phải ≥ 2.36.)*
 
+🔴 **BƯỚC 0 KHÔNG ĐƯỢC BỎ: node9 hôm nay là một TIẾN TRÌNH TRẦN, và nó đang GIỮ CỔNG `9651`.**
+Đo `2026-09-01 07:18Z`: `PID 34489`, chạy từ `29/08`, `LISTEN *:9651`. Nó **không thuộc Docker**
+⇒ `docker stop`/`rm`/`compose down` **không đụng được tới nó**, và không lệnh docker nào cho thấy
+nó tồn tại. Hai thứ hỏng nếu bỏ bước này, cả hai **sau `down -v`**:
+
+1. `--network host` khiến Docker **không kiểm cổng trước khi chạy**. Container lên, avalanchego
+   bind `9651` **thất bại**, tiến trình chết — nhưng `docker run -d` đã trả về **thành công**, và
+   `--restart unless-stopped` đưa nó vào **vòng lặp restart**. `docker ps` in `Restarting`, không
+   dòng nào nói vì sao, và nguyên nhân nằm ở một PID ba ngày tuổi mà mọi cổng duyệt docker **mù**.
+   (Đúng hình dạng container `9chain-a1-heartbeat` sáng nay: 430 lượt restart, không ai biết.)
+2. `rm -rf /opt/9chain-a1/data` chạy **trong lúc tiến trình còn sống** vẫn *"thành công"* — Linux
+   chỉ gỡ liên kết, tiến trình giữ nguyên fd đang mở và **ghi tiếp**, có thể tạo lại tệp. Ta tưởng
+   đã xoá danh tính cũ; nó vẫn ở đó.
+
 ```bash
-# 1) XOÁ DB CŨ TRƯỚC — nó giữ database g0 VÀ một danh tính tự sinh.
+# 0) 🔴 DỪNG TIẾN TRÌNH TRẦN TRƯỚC — nó không phải container.
+pgrep -af '[a]valanchego' || echo "  (khong con tien trinh nao — bo qua buoc nay)"
+kill "$(pgrep -f '[a]valanchego --network-id=999999999')"
+sleep 5
+# ĐỐI CHỨNG — cả hai dòng dưới PHẢI rỗng trước khi đi tiếp:
+pgrep -af '[a]valanchego'          # tien trinh da chet?
+ss -lntp | grep ':9651'            # cong da nha?
+# Còn sống sau 5s thì `kill -9 <PID>`. ĐỪNG chạy tiếp khi cổng chưa nhả —
+# bước 3 sẽ "thành công" rồi chết lặng trong vòng lặp restart.
+
+# 1) XOÁ DB CŨ — CHỈ SAU KHI tiến trình đã chết (xem trên).
+#    Nó giữ database g0 VÀ một danh tính tự sinh.
 #    Để lại là node lên bằng nodeID SAI, không phải nodeID trong genesis.
 rm -rf /opt/9chain-a1/data && mkdir -p /opt/9chain-a1/data
 
