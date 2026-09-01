@@ -3,11 +3,16 @@
 > **This document is in English on purpose.** 9Chain-A1 is meant to be run by people who do not
 > read Vietnamese. `CLAUDE.md` §0 exists for exactly this reader.
 
-> 🔴 **NOT PUBLISHABLE WHILE ANY `FILL-ON-G-DAY` MARKER REMAINS.** Every value the G-day
-> generation decides is marked. Check before publishing:
+> 🔴 **NOT PUBLISHABLE WHILE ANY PLACEHOLDER REMAINS.** Every value the G-day generation
+> decides is marked. Check before publishing:
 > ```bash
-> grep -c FILL-ON-G-DAY docs/RUN-A-VALIDATOR.md   # must print 0
+> grep -c "FILL-ON-G[-]DAY" docs/RUN-A-VALIDATOR.md   # must print 0
 > ```
+> 🔴 The bracket in `G[-]DAY` is deliberate — the same trick as `[a]valanchego` in a `pgrep`.
+> It makes the regex match the marker while this instruction does NOT match itself. Until
+> 2026-09-01 the pattern was written plainly, so `grep -c` counted its own two instruction lines
+> and could NEVER print 0. A gate that cannot go green teaches people to skip it, which is the
+> one thing a publish gate must not do.
 > A guide with a placeholder in it reads exactly like a guide without one, right up to the
 > moment somebody pastes it into a terminal.
 
@@ -104,7 +109,7 @@ with a number we printed in our own documentation.
 
 ```bash
 docker build -f local-net/Dockerfile \
-  --build-arg A1_COMMIT=FILL-ON-G-DAY-commit-string \
+  --build-arg A1_COMMIT=9chain-a1-g1-27patch-38723877 \
   -t 9chain-a1/node:g1 .
 ```
 
@@ -117,7 +122,7 @@ Verify what you built — **measure the binary, not the network**:
 docker run --rm --entrypoint ./avalanchego 9chain-a1/node:g1 --version
 ```
 
-Must contain `9chaingo/` and `commit=FILL-ON-G-DAY-commit-string`. If it says `avalanchego/`,
+Must contain `9chaingo/` and `commit=9chain-a1-g1-27patch-38723877`. If it says `avalanchego/`,
 you built upstream, not this fork.
 
 ---
@@ -125,9 +130,9 @@ you built upstream, not this fork.
 ## Step 3 — Get genesis and the bootstrap address
 
 ```
-genesis.json   sha256  FILL-ON-G-DAY-genesis-sha256
-beacon nodeID          FILL-ON-G-DAY-beacon-nodeid
-beacon address         FILL-ON-G-DAY-beacon-ip:port
+genesis.json   sha256  4de8caa59ef92e9212c27e569103bb757fa3e2a3876f3ab0c6981328bb0f6ee6
+beacon nodeID          NodeID-MrgP69AZRSeJ3DQRSBWQzqeqovNcTAsEb
+beacon address         139.99.145.13:9651
 ```
 
 Verify the file before you boot with it:
@@ -155,8 +160,8 @@ docker run -d --name a1-node \
     --plugin-dir=/9chain-a1/build/plugins \
     --public-ip=YOUR.PUBLIC.IPV4 \
     --staking-port=9651 \
-    --bootstrap-ids=FILL-ON-G-DAY-beacon-nodeid \
-    --bootstrap-ips=FILL-ON-G-DAY-beacon-ip:port \
+    --bootstrap-ids=NodeID-MrgP69AZRSeJ3DQRSBWQzqeqovNcTAsEb \
+    --bootstrap-ips=139.99.145.13:9651 \
     --http-host=127.0.0.1 \
     --http-allowed-hosts=localhost,127.0.0.1 \
     --log-level=info
