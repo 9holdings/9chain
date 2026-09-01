@@ -1,7 +1,10 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-01 `06:25Z`** — phiên **SỐ ĐO NGÀY G**: H-6b chạy lại ✅ ĐẠT hai nơi ·
-preflight đầy đủ **22 đạt · 3 đỏ · 38 việc tay**, ba đỏ đúng như dự kiến. Cùng ngày, phiên
+Cập nhật: **2026-09-01 `07:20Z`** — phiên **SỐ ĐO + QUÉT TRƯỚC `down -v`**: H-6b ✅ ĐẠT hai nơi ·
+preflight đầy đủ **22 đạt · 3 đỏ · 38 việc tay** (ba đỏ đúng dự kiến) · sổ chain 3 lệnh **0 thay
+đổi** · heartbeat đã dừng · 🔴 **hai lỗ ngày G tìm được và vá**: node9 Hetzner là **tiến trình trần
+giữ cổng 9651**, và `HEARTBEAT_STOP_AFTER` **nằm trong quá khứ** (`a229a99` · `6652f43`).
+Cùng ngày, phiên
 **SOÁT 3 VÒNG + VÁ**: image g1 nay ở **CẢ HAI** máy · sổ chặn
 đã xoá có chữ ký · 7 commit `8ebae9e`→`cb3813f`. Trước đó `2026-08-31` phiên **ĐÊM**:
 🔴 **GIỜ G CHỐT `01/09 13:09:09` Jerusalem** ·
@@ -93,6 +96,65 @@ cả hai nằm ngoài mọi băng thế hệ sống. Dời **rồi so `sha256` t
 ⚠️ **Ghi chú sổ sách:** phiên SOÁT 3 VÒNG (`8ebae9e`→`cb3813f`) **không cập nhật `PROGRESS.md`** —
 7 phát hiện của nó chỉ sống trong `HANDOFF.md` + `DECISIONS.md`. Phiên này không backfill hộ;
 mục đó vẫn nợ.
+
+#### Chuỗi sổ chain + heartbeat — chạy `06:41Z`–`07:04Z`
+
+**Sổ chain, 3 lệnh, `0` thay đổi** — và con số 0 đó là phép đo có giá trị nhất trong lượt:
+`--pull` thấy sổ sống vẫn đúng **2 bản ghi** (Eric1 · eric1 của `31/08`), repo biết cả **55**;
+`--write` ra `0 chainId · 0 tên` và **tự dẫn chiếu** `chainid-released.json` ⇒ bánh cóc phân biệt
+được *"mất vì có người quyết"* với *"mất vì mất sổ nguồn"*, quyết định xoá sổ **đứng nguyên**.
+🔴 **`--compact` KHÔNG chạy lại, có chủ ý:** sổ nén đã đóng dấu `thuHoiLuc = 2026-09-01T10:09:09Z`
+— **giờ G**, tức lúc hai chain đó thật sự thôi tồn tại. Chạy lại là đóng dấu một khoảnh khắc mà
+chúng **vẫn đang chạy**, tức phá đúng thứ cờ `--at` sinh ra để giữ.
+⇒ Không ai đẻ chain mới trong ~19 giờ ⇒ **xác nhận độc lập, đo trên sản phẩm**, rằng cổng đẻ chain
+thật sự đóng (D-135), chứ không chỉ *"đã bấm đóng"*.
+
+**heartbeat: bơm đã tự dừng, và lệnh trong runbook là lệnh SAI.** Xem mục việc tay đã sửa; tóm tắt:
+bơm dừng sạch lúc `00:00:03Z` theo hạn của chính nó (ghi `running:false` + `stopReason` rồi mới
+thoát). Thứ còn chạy là **container**, lặp restart ~1 lần/phút từ `00:00Z`, `restartCount 430`.
+`docker stop` lúc `07:03:37Z` ⇒ `state=exited`, đối chứng: số đứng yên, không tiến trình bơm nào khác.
+
+#### 🔴 Lượt quét toàn diện `07:05Z`–`07:18Z` — hai lỗ, cả hai nổ SAU `down -v`
+
+**Sạch (đo, không đọc):** hằng số thế hệ **suy ra** ở cả Go lẫn JS (`A1Gen=1` · `9chain-a1-g1` ·
+`A1ID 999999998` · dải `9001000000–9001999999`) · chữ khắc **4 tệp · 1.142 B · 4 sha256 khớp CANON
+từng byte**, `manifest.json` khớp `id`/`lang`/mặt, **4 hash khác nhau đôi một** (không có triệu chứng
+gán nhầm tài liệu) · ba giá trị đã bị lật trong tài liệu ngày G (`N=10` · `9700` · `25 patch`) đều
+nằm **sau rào đính chính đặt NGAY TRÊN** danh sách lệnh · **image `:g1` trên CẢ HAI máy**, ba mỏ neo
+trùng khít, đo kèm **ca đối chứng dương (4/2) và âm (0)** + `command -v grep` ⇒ số `g0 = 0` nghĩa là
+*không có*, không phải *không đo được*.
+
+🔴 **Lỗ 1 — node9 ở Hetzner là TIẾN TRÌNH TRẦN, và nó đang giữ cổng `9651`** (`a229a99`).
+`PID 34489`, chạy từ `29/08`, `--network-id=999999999`, `LISTEN *:9651`. **Tiến trình trần thứ BA**
+của dự án sau console và bơm heartbeat — không lệnh docker nào thấy hay dừng được nó. Cả hai bước
+ngày G cho máy đó viết như thể nó là container:
+(a) `docker run --network host --staking-port=9651` **không kiểm cổng trước** ⇒ container lên, bind
+hỏng, tiến trình chết, `docker run -d` **vẫn trả thành công**, `--restart unless-stopped` đưa vào
+vòng lặp restart. `docker ps` in `Restarting`, không dòng nào nói vì sao — **đúng hình dạng
+`9chain-a1-heartbeat` sáng nay, 430 lượt, không ai biết**.
+(b) `rm -rf /opt/9chain-a1/data` khi tiến trình còn sống **"thành công" mà không xoá được gì có
+nghĩa** — Linux chỉ gỡ liên kết, tiến trình giữ fd và ghi tiếp, có thể tạo lại tệp. Danh tính cũ
+sống sót qua một lượt xoá **trông sạch**, trong khi cả điểm của bước đó là danh tính **phải đến từ
+genesis**.
+⇒ Đã thêm **bước 0** (kill + **hai** ca đối chứng phải rỗng: `pgrep -af '[a]valanchego'` và
+`ss -lntp | grep ':9651'`) vào `GDAY-NODE10-HETZNER.md` **và** vào việc tay preflight.
+
+🔴 **Lỗ 2 — `HEARTBEAT_STOP_AFTER` nằm trong QUÁ KHỨ** (`6652f43`). Env vẫn khai
+`2026-09-01T00:00:00Z`. Dựng lại bơm cho g1 với giá trị đó ⇒ FATAL ở `heartbeat-pump.mjs:445` mỗi
+lần boot ⇒ vòng lặp restart ⇒ **bước gieo lại `heartbeat.json` KHÔNG BAO GIỜ CHẠY** ⇒ trang chủ
+tiếp tục phục vụ số của mạng **đã chết**, HTTP 200, không cổng nào đỏ. Cần `docker rm -f` +
+`docker run` (gotcha 3). ⇒ Việc tay heartbeat nay có **4 bước**, bước (1) bị **lật ngược**:
+`touch heartbeat.stop` **không dừng được gì** (thoát ở `:447` trước khi đọc `STOP_FILE` ở `:50`)
+và một tệp stop bỏ quên là **mìn** cho bước (3).
+
+#### 🔴 GOTCHA mới — và nó là lỗi của chính lượt quét này
+
+**`cd` trong Bash CÒN DÍNH sang lệnh sau, và một `grep` trên 0 tệp in ra RỖNG — đọc thành "sạch".**
+Một bước `cd docs/engrave` làm ba lệnh grep kế tiếp chạy sai thư mục; `docs/GDAY-*.md` không tồn tại
+từ đó nên grep im lặng, và tôi suýt khai *"tài liệu ngày G sạch"* từ một phép đo gãy. Cùng lớp với
+GOTCHA 1 của phiên sáng nay (`strings` không có ⇒ `grep -c` trên rỗng in `0`).
+⇒ **Mọi lượt grep dùng để KẾT LUẬN phải bắt đầu vào TỰ KHAI** (liệt kê tệp + kích thước) **và chạy
+một ca đối chứng dương** trước khi tin một kết quả rỗng. Đường dẫn tuyệt đối, đừng dựa vào cwd.
 
 ### 🆕🆕🆕 Phiên `2026-09-01` — SOÁT 3 VÒNG · CHỖ CHẶN SỐ 2 ĐÓNG · SỔ CHẶN XOÁ CÓ CHỮ KÝ
 
