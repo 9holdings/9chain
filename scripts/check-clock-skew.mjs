@@ -51,6 +51,23 @@ const SO_MAU = Number(lay("--samples", 7));
 const RPC_C = lay("--rpc", new URL(DICH).origin + "/ext/bc/C/rpc");
 
 /** Sàn: `--offset-ms 3000` là con số đã đạt 9/9 ở lượt diễn tập `27/08` (D-052…D-055). */
+// 🔴 WHAT THIS NUMBER IS, AND WHAT IT IS NOT — checked 2026-09-01 during a sweep for measurements
+// frozen into constants that then act like live claims (the sweep found nothing worse).
+//
+// It is a POLICY FLOOR, not a reading: `chonBu` returns max(floor, what it just measured), so a
+// live measurement can only push the offset UP. That is what keeps it honest.
+//
+// ⚠️ But its provenance is a drill run against the public hostname, and on 2026-09-01 both this
+// project and the 9Scan team discovered that a naive reading of that path is dominated by the
+// TOOL: cold `curl` reads 1.3–2.9s per call where a kept-alive connection reads ~0.31–0.5s, and
+// ~9–10ms from inside the server. So some transport may well be baked into this 3000.
+//
+// It does not endanger the ceremony, and the direction is why: transport delay makes the
+// ceremonial block LATER, i.e. more certainly at or past the mark, which is the safe side of the
+// D-147 boundary. An inflated floor costs a slightly later Block Adam, never a missed one.
+// ⇒ Do not "correct" it by arithmetic. Re-measure it (B-13(b)) over the link the ceremony will
+//   actually use, warm, on a chain that is producing blocks — and let this floor be overridden by
+//   that measurement if it is larger.
 export const SAN_BU_MS = 3000;
 
 /**
