@@ -5802,3 +5802,95 @@ ngoài tầm mọi cổng.
 Kiểm trước khi xoá: **0 tệp git theo dõi**, **0 khoá riêng**, thứ còn lại chỉ là `staker.crt` (chứng
 chỉ **công khai**) và `engraving.md` — mà vân tay trong đó **đã nằm sẵn trong DECISIONS.md**, nên
 không mất bản ghi nào. Đối chứng: `check-net-dirs` **không còn liệt kê** hai thư mục đó.
+
+---
+
+## D-143
+
+**Rào cản validator: 25.000 → 81 LOVE9. Rào cản uỷ quyền: 312,5 → 9.**
+*(David chốt `2026-09-01 ~07:25Z`, hơn hai tiếng trước genesis. Patch 0027.)*
+
+### Câu hỏi, và vì sao nó phải trả lời NGAY hôm đó
+
+David hỏi: *"còn có thể giảm chi phí để mọi người vào làm Validator thành 81 LOVE9 không? tức là
+chỉ cần xin 9 lần"*.
+
+Đo trước khi trả lời — và phép đo quyết định là **con số nằm ở đâu**:
+
+```
+upstream/avalanchego/genesis/genesis_9chain_a1.go:129   MinValidatorStake: 25 * units.KiloAvax
+netgen ghi minValidatorStake vào genesis.json?          KHÔNG — 0 hit trên mọi net*/genesis.json
+patches/ chạm tệp đó?                                    CÓ — 0002 · 0006 · 0009 · 0018
+```
+
+⇒ Nó **biên dịch vào binary**, không phải tham số genesis. Tức là **bất biến suốt đời mạng** kể từ
+khoảnh khắc netgen chạy, và cửa sổ sửa rẻ đóng lại ở đúng ngày G.
+
+### Vì sao 25.000 là một cánh cửa không ai bước qua được
+
+Faucet cấp **10 LOVE9/lượt**, `FAUCET_MAX_PER_IP_HOUR=5` ⇒ đạt 25.000 mất **~500 giờ xin liên tục**,
+và **không có đường nào khác được ghi trong tài liệu**. `PROGRESS.md` đã tự khai điều này bằng chính
+chữ của nó và để ngỏ ở mục `[human]`: *"không phải đường chậm, mà là không có đường"*.
+
+Chú thích của chính hằng số đó nói *"cố tình thấp để cộng đồng tự chạy node được — đây là mục đích
+tồn tại của A1"*. Nó đúng theo tiêu chuẩn của thời điểm viết ra và **sai theo phép đo**. Ship nó là
+**đóng vĩnh viễn đúng cánh cửa mạng này sinh ra để mở**.
+
+**81 = 9 × 9**, chín lượt xin từ faucet cấp 9. Mốc so: Fuji của chính Avalanche dùng
+`MinValidatorStake: 1 * units.Avax` ⇒ 81 vẫn **cao gấp 81 lần** Fuji.
+
+**An toàn không đổi.** Chín node genesis self-bond **8.999.991 LOVE9** ⇒ một validator 81 LOVE9 nắm
+**~0,0009%** stake, không ảnh hưởng đồng thuận. Sybil không được gì: **stake mới là thứ bỏ phiếu**.
+
+### 🔴 `MinDelegatorStake` PHẢI đi cùng, nếu không bảng tham số lộn ngược
+
+312,5 nằm **dưới** rào 25.000 nên hợp lý. Hạ validator xuống 81 mà giữ 312,5 thì **uỷ quyền đắt gấp
+3,9 lần tự chạy validator** — vô lý, và đóng băng vĩnh viễn. Hai rào này diễn đạt một **thứ tự**:
+cho mượn stake không bao giờ được đắt hơn dựng một node. `9 < 81` giữ đúng thứ tự đó.
+
+⇒ **Ai đổi một trong hai số này phải đổi cả hai.**
+
+### Nghiệm thu — vì "build thành công" KHÔNG chứng minh gì về giá trị
+
+1. **Biên dịch chạy thật, không phải cache:** `#12` avalanchego **55,5s** · `#13` plugin **25,0s** ·
+   `#14` tools **33,3s**; chỉ `WORKDIR` là `CACHED`.
+2. 🔴 **Phép đo đúng đại lượng — tìm chính con số trong CẢ HAI binary** (uint64 little-endian):
+
+   | | binary MỚI | binary CŨ |
+   |---|--:|--:|
+   | `81e9` (81 LOVE9) | **1** | 0 |
+   | `9e9` (9 LOVE9) | **1** | 0 |
+   | `25e12` (25.000 LOVE9) | **0** | 1 |
+   | `625e15` (max — **không đụng tới**) | 1 | 1 |
+
+   Dòng cuối là **ca đối chứng nằm trong cùng phép đo**: một giá trị không sửa phải giống hệt hai
+   bên, và nó giống. `sha256` đổi + `commit=` đổi **không đủ** — đổi `--build-arg` một mình cũng
+   làm sha256 đổi.
+3. **Hai máy, ba mỏ neo, đo trên chính từng máy:** `commit=9chain-a1-g1-27patch-38723877` ·
+   `sha256 2f733249…b57480` · `g1=4 · LOVE9=2 · g0=0` **kèm ca đối chứng dương (4/2) và âm (0)** và
+   `command -v grep` tự khai ⇒ số 0 nghĩa *không có*, không phải *không đo được*.
+4. **Đường lui giữ nguyên:** bản 26 patch còn trên cả hai máy dưới tag `9chain-a1/node:g1-26patch-60a61707`.
+
+### Luật cứng #3 — sinh lại CẢ BỘ, và mỏ neo đối chứng lần này mạnh bất thường
+
+**26 → 27 patch · tree `60a61707` → `38723877`.** 26 patch cũ đổi đúng **26 dòng, toàn bộ là dòng
+đếm `[PATCH nn/27]`, 0 dòng nội dung** (đo bằng diff loại trừ đúng mẫu đó).
+
+🔴 **`TREE_BEFORE_LAST` nay là `60a61707`** — tree fork đứng suốt `30/08`→`01/09` **VÀ** tree dựng ra
+image `:g1` đã ship sang hai máy và nghiệm thu bằng ba mỏ neo. Đó là con số lượt thay đổi này
+**không thể tự đẻ ra**, tức mỏ neo có gốc độc lập theo đúng nghĩa D-112 đòi.
+
+### Dây phụ thuộc mới — 81 chỉ đúng nếu faucet cấp 9
+
+`FAUCET_AMOUNT` mặc định **10**, `FAUCET_MAX_PER_IP_HOUR` mặc định **5**. Giữ nguyên thì chín lượt ra
+**90** (không phải 81 ⇒ lời hứa trong tài liệu đọc ra sai) và mất **hai giờ** qua hai cửa sổ hạn mức
+thay vì một lượt ngồi. **Không cái nào là lỗi sập, và không cổng nào canh env** ⇒ đúng hình dạng
+`A1_PUBLIC_RPC_BASE` của `31/08`: repo đúng, tệp khớp, mọi cổng xanh, chỉ người đứng ở faucet biết.
+⇒ Đã thành **điều kiện bắt buộc trong việc tay faucet**, nghiệm thu bằng cách **đọc dòng khởi động**
+của chính faucet (`amount=<N> LOVE9`).
+
+### Tài liệu người ngoài đọc
+
+`docs/RUN-A-VALIDATOR.md`: bảng tham số nay **81** và **9**; hướng dẫn dựng lại fork nay **27 patch
+→ `38723877`** với đối chứng **26/27 → `60a61707`**; và **một `FILL-ON-G-DAY` bị XOÁ chứ không phải
+điền** (11 → 10) — nó hỏi *"người ngoài lấy 25.000 LOVE9 ở đâu"*, và câu hỏi đó **không còn tồn tại**.
