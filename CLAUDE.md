@@ -120,7 +120,7 @@ D-145 — `ceremony-9s-union --self-test` — D-146 — `check-doc-drift` ×2 �
 `check-remotes` ×2 — D-151); ba cổng cuối
 trong danh sách trên đứng ngoài nó (hai cái là VIỆC TAY của nó,
 `check-robots` là mặt web — không đủ tư cách chặn genesis).
-⚠️ **Số đo `01/09` 13:03Z: `27 đạt · 2 đỏ · 1 không chạy được`** — 30 mục gọi ra. Hai đỏ đã biết,
+⚠️ **Số đo `01/09` chiều: `29 đạt · 2 đỏ · 1 không chạy được`** — 32 mục gọi ra. Hai đỏ đã biết,
 **cả hai là việc của David, không phải lỗi mã**: ví `chain-factory` **0 đồng** (`P-love91999h…9999`,
 địa chỉ g1) · console trên server **chưa deploy bản g1** (`check-deploy-drift`: 4 lệch + 1 thiếu).
 🔴 **Cả hai đỏ này CHẶN việc mở lại cổng đẻ chain L1** — thứ tự bắt buộc: đẩy sổ chainId lên
