@@ -102,13 +102,13 @@ replays onto a clean upstream checkout and must land on a known tree hash.
 git clone https://github.com/ava-labs/avalanchego.git && cd avalanchego
 git checkout 1cf1fc3
 git am --keep-cr /path/to/9chain-a1/patches/*.patch
-git rev-parse HEAD^{tree}     # 60a61707f7974a0f1853b8bf78df7d0fdc1ef863
+git rev-parse HEAD^{tree}     # 387238778dda96d58cabe6f9ddd7097e208b69e9
 ```
 
 `--keep-cr` is not optional: without it line endings shift and the tree hash will not match.
 
-**Counter-check — do this too.** Applying **25 of the 26** patches must yield a different,
-also-published tree: `f2b9486b71ad53b584a86f77d6017c34d74e6fa6`. One anchor only proves the patch
+**Counter-check — do this too.** Applying **26 of the 27** patches must yield a different,
+also-published tree: `60a61707f7974a0f1853b8bf78df7d0fdc1ef863`. One anchor only proves the patch
 set agrees with a number we printed in our own documentation; two anchors with independent origins
 say something. Full walkthrough in [docs/RUN-A-VALIDATOR.md](docs/RUN-A-VALIDATOR.md).
 
@@ -137,7 +137,7 @@ that says so in full. That error is the feature, not an oversight.
 
 ```
 9Chain-A1/
-├── patches/                   # 26 patches replaying the sovereignty layer onto 1cf1fc3
+├── patches/                   # 27 patches replaying the sovereignty layer onto 1cf1fc3
 ├── upstream/avalanchego/      # the fork itself (separate repository, not tracked here)
 │   └── 9chain-a1-tools/       #   sovereignty overlay — does not touch core
 │       ├── netgen/            #     generate keys + genesis + an N-node compose file
