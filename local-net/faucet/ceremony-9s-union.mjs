@@ -5,42 +5,54 @@
  *
  * ═══ WHAT IT IS FOR ═══
  *
- * `docs/block-adam/CANON.txt` fixes three things and leaves one mechanical problem open:
+ * `docs/block-adam/CANON.txt` fixes the anchor point and leaves one mechanical problem open:
  *
  *   2026-09-09T06:09:09Z   ceremony: tx Adam, then tx Eva
- *   block Eva              = the block carrying the Eva transaction
- *   block(Eva) + 9         = where the 9S Union message is anchored
+ *   block Eva              the block after Block Adam
+ *   block(Eva) + 9         where the 9S Union message is anchored
  *
  * 🔴 The open problem: **the C-Chain does not produce empty blocks.** It made block 1 at 10:05Z
  * on G-day off a single faucet drip and then sat there. So "nine blocks after Eva" does not
  * arrive on its own — on a quiet chain it may not arrive for days. CANON names two ways out and
  * says the second "has to be scripted in advance". This is that script.
  *
- * ⚠️ It is written for a day that happens ONCE. Everything about it is therefore biased towards
- * refusing rather than improvising:
+ * ═══ 🔴 THE DEFINITIONS COME FROM WHAT IS PUBLISHED, NOT FROM WHAT IS CONVENIENT ═══
  *
- *   - **Dry run is the default.** Nothing is signed or broadcast without `--send`. Broadcasting
- *     is a person's act, and this file never makes it accidentally.
- *   - **It refuses to start with an unmeasured offset.** B-13(b) is not paperwork: the 2026-08-27
- *     drill at `--offset-ms 0` scored 7 pass / 1 FAIL because the ceremonial block landed with a
- *     timestamp EXACTLY on the mark, and "the first block to CROSS" is a strict comparison. The
- *     whole distance between hitting and missing was one `>` versus `>=`. `+3000 ms` scored 9/0.
- *   - **It refuses to guess the chain.** A ceremony broadcast against the wrong chainId cannot be
- *     undone, so the expected chainId is checked before anything else moves.
- *   - **It stops instead of anchoring in the wrong block.** If the slot at `block(Eva)+9` is
- *     taken by someone else's traffic before the message can be sent, the run goes RED and sends
- *     NOTHING further. What happens then is David's decision (re-run the ceremony, or publish the
- *     deviation) — not a decision this file may make at 06:09 in the morning.
+ * C1 published its engraving page on 2026-09-01 with a definition A1 had not written down:
+ *
+ *   Block Adam  the FIRST block whose timestamp is 2026-09-09T06:09:09Z **or later**.
+ *               "Defined by time, not by height."
+ *   Block Eva   the block **immediately after** Block Adam — one block, about three seconds.
+ *
+ * The three engraved documents on that page hash **byte for byte identically** to A1's own canon
+ * (`docs/engrave/CANON.txt`), so the two chains are carrying the same text and will be read as
+ * one story. A1 therefore implements the same definitions, and two consequences follow that the
+ * earlier draft of this file got wrong:
+ *
+ *   1. **Block Adam is not "the block holding our transaction".** It is whatever block first
+ *      carries a timestamp at or after the mark — a stranger's transaction can produce it. Our
+ *      ceremony transaction is the MECHANISM for making such a block exist on an idle chain; it
+ *      is not the definition. So this script finds Block Adam by scanning timestamps, then
+ *      measures whether our transaction is in it.
+ *   2. **Block Eva is Adam + 1 by HEIGHT**, so the anchor slot is `Adam + 10` and is known the
+ *      instant Block Adam is known — it does not depend on where the Eva transaction lands. If
+ *      the Eva transaction misses that block, the ceremony has a problem; the arithmetic does not.
+ *
+ * 🔴 **AND ONE BOUNDARY THAT ALREADY BIT ONCE.** C1's wording is *"from 06:09:09Z onward"* —
+ * INCLUSIVE (`>=`). A1's 2026-08-27 drill scored the same question with *"the first block to
+ * CROSS"* — STRICT (`>`) — and failed 1 of 8 cases on exactly this: the ceremonial block was
+ * sealed with a timestamp EXACTLY on the mark, so under `>` Block Adam would have been Eva's
+ * block instead. Two chains publishing one ceremony must not disagree here. This file defaults to
+ * INCLUSIVE (what is published) and says so out loud whenever the two rules would differ for the
+ * run in front of it. `--boundary strict` selects the other reading.
  *
  * ═══ THE THING MOST LIKELY TO RUIN THE DAY, NAMED UP FRONT ═══
  *
  * The chain is PUBLIC and the faucet is live. Every transaction a stranger sends produces a
- * block, and the ceremony's arithmetic is block numbers. If the heartbeat pump is running, or a
- * handful of users are dripping, `block(Eva)+9` can be produced by someone else while the script
- * is still walking towards it. There is no lock, there is no way to reserve a block number, and
- * a retry is not a retry: re-running means new Adam and Eva transactions, i.e. a different
- * ceremony. ⇒ The run therefore MEASURES background block production first and refuses to send
- * on a busy chain unless explicitly told to accept the risk.
+ * block, and the ceremony's arithmetic is block numbers. There is no lock, there is no way to
+ * reserve a block number, and a retry is not a retry: re-running means new Adam and Eva
+ * transactions, i.e. a different ceremony. ⇒ The run MEASURES background block production first
+ * and refuses to send on a busy chain unless explicitly told to accept the risk.
  *
  * ═══ TWO CLOCKS — DO NOT MIX THEM (inherited from block-adam-drill.mjs) ═══
  *
@@ -48,12 +60,12 @@
  * We VERIFY by `block.timestamp`, because it is the only clock the anchored thing carries. They
  * are not equal: `block.timestamp` is the proposing node's clock at sealing time.
  *
- * ═══ WHAT CANON DOES NOT SAY, AND THIS FILE DOES NOT INVENT ═══
+ * ═══ WHAT NOTHING SPECIFIES, AND THIS FILE DOES NOT INVENT ═══
  *
- * The CONTENT of the Adam and Eva transactions is not specified anywhere. This script sends them
- * as zero-value self-transfers with empty calldata unless `--adam-data <file>` / `--eva-data
- * <file>` are given. If they are meant to carry text, that text has to be frozen the way the 9S
- * Union message was — before the day, not on it.
+ * The CONTENT of the Adam and Eva transactions is written down nowhere. This script sends them as
+ * zero-value self-transfers with empty calldata unless `--adam-data <file>` / `--eva-data <file>`
+ * are given. If they are meant to carry text, that text has to be frozen the way the 9S Union
+ * message was — before the day, not on it.
  *
  * Exit codes: `0` ceremony complete and verified · `1` something went wrong · `2` refused to run.
  *
@@ -65,8 +77,11 @@
  * Flags:
  *   --rpc <url>          default https://rpc-a1.9chain.org/ext/bc/C/rpc
  *   --at <ISO>           ceremony mark. Default 2026-09-09T06:09:09Z (CANON).
+ *   --boundary <mode>    inclusive (default, C1's published wording) | strict (A1's drill rule)
  *   --offset-ms <n>      broadcast at mark + n ms. REQUIRED with --send (B-13(b)).
  *   --lead-ms <n>        pre-sign this long before the mark (default 3000).
+ *   --adam-data <file>   payload for the Adam transaction (default: none)
+ *   --eva-data <file>    payload for the Eva transaction (default: none)
  *   --wallet-key <0x…>   or env A1_CEREMONY_PK. Never read from a file inside git.
  *   --expect-chainid <n> default 9000000009.
  *   --quiet-probe-s <n>  seconds spent measuring background block production (default 20).
@@ -91,6 +106,7 @@ const SELF_TEST = has("--self-test");
 const SEND = has("--send");
 const RPC = opt("--rpc", "https://rpc-a1.9chain.org/ext/bc/C/rpc");
 const MARK_ISO = opt("--at", "2026-09-09T06:09:09Z");
+const BOUNDARY = opt("--boundary", "inclusive");
 const LEAD_MS = Number(opt("--lead-ms", 3000));
 const OFFSET_RAW = opt("--offset-ms", null);
 const EXPECT_CHAINID = opt("--expect-chainid", "9000000009");
@@ -98,11 +114,15 @@ const QUIET_PROBE_S = Number(opt("--quiet-probe-s", 20));
 const ALLOW_BUSY = has("--allow-busy-chain");
 const JSON_OUT = opt("--json", null);
 const PK = opt("--wallet-key", process.env.A1_CEREMONY_PK);
+const ADAM_DATA_FILE = opt("--adam-data", null);
+const EVA_DATA_FILE = opt("--eva-data", null);
 
 const MESSAGE_FILE = path.join(ROOT, "docs/block-adam/9s-union-message.txt");
 const CANON_FILE = path.join(ROOT, "docs/block-adam/CANON.txt");
 
-/** How many blocks after Eva's block the message is anchored in. CANON, David 2026-09-01 10:10Z. */
+/** Block Eva is Block Adam + 1 (C1's published definition: "the block immediately after"). */
+const EVA_OFFSET_BLOCKS = 1;
+/** The 9S Union message is anchored nine blocks after Block Eva (CANON, David 2026-09-01 10:10Z). */
 const UNION_OFFSET_BLOCKS = 9;
 
 const sha256 = (buf) => createHash("sha256").update(buf).digest("hex");
@@ -111,12 +131,12 @@ const utc = (ms) => new Date(ms).toISOString();
 
 // ───────────────────────────── scoring: pass · fail · note ─────────────────────────────
 //
-// Three tiers, not two — the drill's reasoning (D-070) applies unchanged. The anchor is a
-// TRANSACTION HASH, something we hold, so a measurement about the whole chain ("was our block the
-// first to cross the mark") can no longer decide right from wrong. Deleting it would throw away
-// the clock-skew measurement B-13(b) needs; leaving it as a failure would make the run report red
-// on a day where nothing went wrong. A gate that cries wolf is a gate that gets ignored on the
-// one morning it is right.
+// Three tiers, not two — the drill's reasoning (D-070) applies unchanged. The engraving anchors
+// on a TRANSACTION HASH, something we hold, so a measurement about the whole chain ("was our
+// block the first past the mark") can no longer decide right from wrong. Deleting it would throw
+// away the clock-skew measurement B-13(b) needs; leaving it as a failure would make the run
+// report red on a day where nothing went wrong. A gate that cries wolf is a gate that gets
+// ignored on the one morning it is right.
 function makeScore(log = console.log) {
   const pass = [], fail = [], notes = [];
   return {
@@ -152,9 +172,15 @@ function loadMessage(messageFile = MESSAGE_FILE, canonFile = CANON_FILE) {
     if (m) frozen = { digest: m[1], size: Number(m[2]) };
   }
   if (!frozen) return { error: `CANON carries no 9s_union_message line (${canonFile})`, bytes, digest };
-  if (frozen.digest !== digest) return { error: `message file does NOT match the frozen digest — refusing`, bytes, digest, frozen };
+  if (frozen.digest !== digest) return { error: "message file does NOT match the frozen digest — refusing", bytes, digest, frozen };
   if (frozen.size !== bytes.length) return { error: `message file is ${bytes.length} bytes, CANON froze ${frozen.size}`, bytes, digest, frozen };
   return { bytes, digest, frozen };
+}
+
+function loadPayload(file) {
+  if (!file) return "0x";
+  const b = readFileSync(file);
+  return "0x" + b.toString("hex");
 }
 
 // ───────────────────────────── chain adapter ─────────────────────────────
@@ -162,13 +188,6 @@ function loadMessage(messageFile = MESSAGE_FILE, canonFile = CANON_FILE) {
 // Everything below the sequencer talks through this shape, so the whole ceremony can be driven
 // against a simulated chain in --self-test. A sequence that has only ever been exercised against
 // a live network is a sequence whose failure branches have never run.
-//
-//   blockNumber()            -> number
-//   block(n)                 -> {number, timestamp, txCount} | null
-//   send({data, label})      -> {hash}                (signs and broadcasts)
-//   wait(hash)               -> {blockNumber, status}
-//   getTx(hash)              -> {data, from, to, blockNumber}
-//   chainId()                -> string
 
 async function ethersChain({ rpc, pk, expectChainId }) {
   const { ethers } = await import("ethers");
@@ -183,8 +202,8 @@ async function ethersChain({ rpc, pk, expectChainId }) {
   // 🔴 NONCE IS TRACKED LOCALLY AFTER ONE READ, and that is a scar, not a preference. The load
   // tester synchronised every transaction against `latest`; a single RPC hiccup returned a stale
   // count, two transactions took the same nonce, and the wallet was dead for the rest of the run
-  // while the tool cheerfully printed "1044 sent". Here the run is nine-plus transactions long
-  // and the last one has to land in one specific block.
+  // while the tool cheerfully printed "1044 sent". Here the run is eleven transactions long and
+  // the last one has to land in one specific block.
   let nonce = wallet ? await provider.getTransactionCount(wallet.address, "pending") : 0;
   const fee = await provider.getFeeData();
   // Pre-signing fixes the fee at signing time. On a chain that congests in between, a signed
@@ -223,25 +242,64 @@ async function ethersChain({ rpc, pk, expectChainId }) {
   };
 }
 
+// ───────────────────────────── finding Block Adam by TIME ─────────────────────────────
+
+/**
+ * The first block at or after the mark, searched forward from the last block known to precede the
+ * ceremony. This is the published definition — "defined by time, not by height" — so it is a
+ * measurement over the chain, not a claim about our own transaction.
+ *
+ * `inclusive` decides whether a block sealed EXACTLY on the mark counts. See the header: C1
+ * publishes inclusive, A1's drill used strict, and the difference is not hypothetical — it is the
+ * single case the 2026-08-27 drill failed.
+ */
+/**
+ * 🔴 IT WALKS DOWNWARD, AND THE UPWARD VERSION WAS A REAL BUG — caught by the fixture for
+ * "a stranger's block crosses the mark first", which is the whole reason the definition is about
+ * time. The first draft searched forward from the head measured before the ceremony started. But
+ * a stranger's block can cross the mark WHILE we are waiting out the offset, i.e. at a height at
+ * or below that head — and the search would then skip straight past the real Block Adam and crown
+ * our own block instead. A wrong answer, printed confidently, about the one number the whole
+ * ceremony is built on.
+ *
+ * Downward from the ceremony transaction's block: block timestamps on the C-Chain are
+ * non-decreasing, so the blocks satisfying the rule form a suffix. Walk down while the rule still
+ * holds and the last one that holds is the first block past the mark, no matter who produced it
+ * or when we started looking.
+ */
+async function findBlockAdam(chain, { fromTop, markSec, inclusive, maxSteps = 10_000 }) {
+  const crosses = (b) => (inclusive ? b.timestamp >= markSec : b.timestamp > markSec);
+  let best = null;
+  for (let n = fromTop, steps = 0; n >= 0 && steps < maxSteps; n--, steps++) {
+    const b = await chain.block(n);
+    if (!b) break;
+    if (!crosses(b)) break;
+    best = b;
+  }
+  return best;
+}
+
 // ───────────────────────────── the sequencer ─────────────────────────────
 
 /**
  * 🔴 THE WHOLE CEREMONY, AND EVERY WAY IT IS ALLOWED TO STOP.
  *
- * Steps, in order, each one measured before the next begins:
- *   1. Adam  — broadcast at mark+offset. Its block is Block Adam; the engraving anchors on its
- *              HASH (D-070), not on the block number, so a stranger's transaction sharing the
- *              block cannot take anything away.
- *   2. Eva   — broadcast immediately after. Its block E is the ONLY number the rest depends on.
- *   3. Filler×N — one transaction at a time, each awaited, walking the head from E to E+8. One
- *              transaction usually means one block, but nothing guarantees it, so the loop is
- *              driven by MEASURED block numbers and never by a count of sends.
- *   4. Union — sent only when the head is exactly E+8, and required to land in exactly E+9.
- *   5. Readback — ask the chain for the transaction by hash and compare the bytes it returns
- *              against the file. Reading our own variable back would be asking ourselves.
+ *   1. Adam      — broadcast at mark+offset, to make a block exist past the mark on an idle chain.
+ *   2. Block Adam — FOUND BY TIMESTAMP, not assumed. Then measured: is our transaction in it?
+ *   3. Eva       — broadcast immediately. Block Eva is Adam+1 BY DEFINITION; we measure whether
+ *                  the Eva transaction actually landed there.
+ *   4. Fillers   — one at a time, walking the head to Adam+9, driven by MEASURED block numbers
+ *                  and never by a count of sends.
+ *   5. Union     — sent only when the head is exactly Adam+9, required to land in Adam+10.
+ *   6. Readback  — ask the chain for the transaction by hash and compare the bytes it returns
+ *                  against the file. Reading our own variable back would be asking ourselves.
  */
-async function runCeremony(chain, { message, dry, score, log = console.log, adamData = "0x", evaData = "0x" }) {
-  const rec = { steps: [], dry };
+async function runCeremony(chain, {
+  message, dry, score, log = console.log,
+  adamData = "0x", evaData = "0x",
+  markSec = 0, inclusive = true, headBefore = null,
+}) {
+  const rec = { steps: [], dry, markSec, boundary: inclusive ? "inclusive" : "strict" };
   const send = async (label, data) => {
     if (dry) { log(`  · [dry] would send ${label}`); rec.steps.push({ label, dry: true }); return null; }
     const { hash } = await chain.send({ data, label });
@@ -257,36 +315,59 @@ async function runCeremony(chain, { message, dry, score, log = console.log, adam
   if (dry) {
     await send("Adam", adamData);
     await send("Eva", evaData);
-    for (let i = 1; i <= UNION_OFFSET_BLOCKS - 1; i++) await send(`filler ${i}`, "0x");
+    for (let i = 1; i <= EVA_OFFSET_BLOCKS + UNION_OFFSET_BLOCKS - 2; i++) await send(`filler ${i}`, "0x");
     await send(`9S Union message (${message.bytes.length} bytes)`, "0x" + message.bytes.toString("hex"));
     return rec;
   }
 
   // ── 1 · Adam ──
-  const adam = await send("Adam", adamData);
-  score.ok(adam.status === 1, "Adam transaction succeeded", `block ${adam.blockNumber}`);
-  rec.adam = { hash: adam.hash, block: adam.blockNumber };
+  const adamTx = await send("Adam", adamData);
+  score.ok(adamTx.status === 1, "Adam transaction succeeded", `block ${adamTx.blockNumber}`);
 
-  // ── 2 · Eva ──
-  const eva = await send("Eva", evaData);
-  score.ok(eva.status === 1, "Eva transaction succeeded", `block ${eva.blockNumber}`);
-  rec.eva = { hash: eva.hash, block: eva.blockNumber };
+  // ── 2 · Block Adam, by TIME ──
+  const blockAdam = await findBlockAdam(chain, { fromTop: adamTx.blockNumber, markSec, inclusive });
+  if (!blockAdam) {
+    // The block carrying our transaction was sealed BEFORE the mark. Nothing is broken on the
+    // chain — but no Block Adam exists yet, and continuing would anchor the message against a
+    // block number that the published definition does not point at.
+    score.ok(false, "a block exists at or after the mark",
+      `our Adam transaction is in block ${adamTx.blockNumber}, sealed before the mark ⇒ increase --offset-ms`);
+    rec.abort = "no-block-past-mark";
+    return rec;
+  }
+  const A = blockAdam.number;
+  rec.adam = { hash: adamTx.hash, txBlock: adamTx.blockNumber, blockAdam: A, timestamp: blockAdam.timestamp };
+  log(`\n  Block Adam = ${A}  ts ${blockAdam.timestamp} (${utc(blockAdam.timestamp * 1000)})`);
 
-  // The drill measured Adam and Eva two seconds and one block apart. That was a measurement, not
-  // a rule, so this run measures it again instead of assuming: if they share a block, the anchor
-  // slot is still well defined (E == A), and the run says so rather than quietly proceeding.
-  score.note(eva.blockNumber > adam.blockNumber, "Adam and Eva landed in different blocks",
-    eva.blockNumber === adam.blockNumber ? `BOTH in block ${eva.blockNumber} — anchor slot becomes ${eva.blockNumber + UNION_OFFSET_BLOCKS}` : `${adam.blockNumber} → ${eva.blockNumber}`);
+  // 🔴 The definition is about time; our transaction being inside it is a separate fact, and the
+  // engraving does not depend on it (D-070 anchors on the transaction hash). So this is a NOTE —
+  // but a loud one, because "the ceremony produced Block Adam" is what everyone will assume.
+  score.note(A === adamTx.blockNumber, "our Adam transaction is IN Block Adam",
+    A === adamTx.blockNumber ? `block ${A}` : `Block Adam is ${A}, our transaction is in ${adamTx.blockNumber} — someone else's block crossed the mark first`);
 
-  const target = eva.blockNumber + UNION_OFFSET_BLOCKS;
+  // The boundary case that failed 1 of 8 in the 2026-08-27 drill, reported whenever it is live.
+  score.note(blockAdam.timestamp !== markSec, "the boundary rule does not change the answer here",
+    blockAdam.timestamp === markSec
+      ? `block ${A} is sealed EXACTLY on the mark: inclusive counts it, strict would pick a later block`
+      : `ts ${blockAdam.timestamp} vs mark ${markSec}`);
+
+  // ── 3 · Eva ──
+  const E = A + EVA_OFFSET_BLOCKS;              // by definition, not by receipt
+  const evaTx = await send("Eva", evaData);
+  score.ok(evaTx.status === 1, "Eva transaction succeeded", `block ${evaTx.blockNumber}`);
+  score.ok(evaTx.blockNumber === E, `the Eva transaction is in Block Eva (Adam+${EVA_OFFSET_BLOCKS})`,
+    `block ${evaTx.blockNumber}, Block Eva is ${E}`);
+  rec.eva = { hash: evaTx.hash, txBlock: evaTx.blockNumber, blockEva: E };
+
+  const target = E + UNION_OFFSET_BLOCKS;
   rec.targetBlock = target;
-  log(`\n  anchor slot: block(Eva) + ${UNION_OFFSET_BLOCKS} = ${target}`);
+  log(`\n  Block Eva = ${E}   anchor slot = Eva + ${UNION_OFFSET_BLOCKS} = ${target}`);
 
-  // ── 3 · fillers, one at a time, driven by measured head ──
+  // ── 4 · fillers, one at a time, driven by measured head ──
   let head = await chain.blockNumber();
   let fillers = 0;
   while (head < target - 1) {
-    const f = await send(`filler ${fillers + 1}`, "0x");
+    await send(`filler ${fillers + 1}`, "0x");
     fillers++;
     head = await chain.blockNumber();
     if (head > target - 1) break;
@@ -304,20 +385,20 @@ async function runCeremony(chain, { message, dry, score, log = console.log, adam
   // here with nothing else sent. Anchoring it "close enough" would put a wrong claim on a chain
   // that keeps it forever.
   if (head !== target - 1) {
-    score.ok(false, `head is exactly block(Eva)+${UNION_OFFSET_BLOCKS - 1} before the message is sent`,
-      `head ${head}, needed ${target - 1} — the slot at ${target} is gone; NOTHING further was sent`);
+    score.ok(false, `head is exactly ${target - 1} before the message is sent`,
+      `head ${head} — the slot at ${target} is gone; NOTHING further was sent`);
     rec.abort = "slot-lost";
     return rec;
   }
 
-  // ── 4 · the message ──
+  // ── 5 · the message ──
   const union = await send("9S Union message", "0x" + message.bytes.toString("hex"));
   rec.union = { hash: union.hash, block: union.blockNumber };
   score.ok(union.status === 1, "9S Union transaction succeeded", `block ${union.blockNumber}`);
-  score.ok(union.blockNumber === target, `9S Union landed in block(Eva)+${UNION_OFFSET_BLOCKS}`,
+  score.ok(union.blockNumber === target, `9S Union landed in Block Eva + ${UNION_OFFSET_BLOCKS}`,
     `block ${union.blockNumber}, target ${target}`);
 
-  // ── 5 · readback, in the reverse direction ──
+  // ── 6 · readback, in the reverse direction ──
   const back = await chain.getTx(union.hash);
   const backBytes = back ? Buffer.from(String(back.data).replace(/^0x/, ""), "hex") : Buffer.alloc(0);
   score.ok(back !== null, "the chain returns the transaction when given its hash");
@@ -334,7 +415,7 @@ async function runCeremony(chain, { message, dry, score, log = console.log, adam
 /**
  * How fast does the chain make blocks when WE are not sending anything? On a quiet chain the
  * answer is zero and the ceremony's arithmetic holds. Anything above zero means another producer
- * can take the anchor slot mid-run, and there is no lock anywhere in the system that can stop it.
+ * can take the anchor slot mid-run — or Block Adam itself — and no lock anywhere can stop it.
  */
 async function probeBackground(chain, seconds, log = console.log) {
   const start = await chain.blockNumber();
@@ -358,41 +439,49 @@ async function waitUntil(ms) {
 // ───────────────────────────── self-test: a simulated chain ─────────────────────────────
 
 /**
- * A chain we can make misbehave on purpose. Every hook exists because the corresponding failure
- * is one this ceremony can actually meet on 2026-09-09.
+ * A chain we can make misbehave on purpose, with controllable block timestamps — the definitions
+ * are about time, so a fake chain without a clock could not test them.
+ *
+ * `nextTs` is the timestamp the next mined block gets; every mined block advances it by `tsStep`.
+ * A test simulates "a stranger crossed the mark first" by mining before the ceremony starts.
  */
-function fakeChain({ startBlock = 100, extraBlocksPerSend = 0, sameBlockForEva = false, unionLandsAt = null } = {}) {
+function fakeChain({ startBlock = 100, nextTs = 0, tsStep = 3, extraBlocksPerSend = 0, extraFrom = 1, unionLandsAt = null } = {}) {
   let head = startBlock;
+  let ts = nextTs;
+  const blocks = new Map([[startBlock, ts - tsStep]]);
   const txs = new Map();
   let sends = 0;
-  let lastEvaBlock = null;
+  const mine = () => { head += 1; blocks.set(head, ts); ts += tsStep; return head; };
   return {
     kind: "fake",
     sends: () => sends,
+    mine,                                   // for simulating other people's traffic
+    setNextTs: (v) => { ts = v; },
     async chainId() { return "9000000009"; },
     async blockNumber() { return head; },
-    async block(n) { return n <= head ? { number: n, timestamp: 1757397549 + n, txCount: 1 } : null; },
+    async block(n) { return blocks.has(n) ? { number: n, timestamp: blocks.get(n), txCount: 1 } : null; },
+    async balance() { return 10n ** 20n; },
     async send({ data }) {
       sends++;
       const hash = "0x" + sha256(Buffer.from(`${sends}:${data ?? ""}`)).slice(0, 64);
-      const isEva = sends === 2;
-      let landed;
-      if (isEva && sameBlockForEva) landed = head;                 // Eva shares Adam's block
-      else { head += 1 + extraBlocksPerSend; landed = head; }
-      if (isEva) lastEvaBlock = landed;
-      // The union transaction is the one carrying a payload longer than a filler.
+      let landed = mine();
+      if (sends >= extraFrom) for (let i = 0; i < extraBlocksPerSend; i++) landed = mine();
+      // The union transaction is the one carrying a payload much longer than a filler.
       if (unionLandsAt !== null && data && data.length > 10) {
-        head = Math.max(head, lastEvaBlock + unionLandsAt);
-        landed = head;
+        for (let i = 0; i < unionLandsAt; i++) landed = mine();
       }
       txs.set(hash, { data: data ?? "0x", from: "0xself", to: "0xself", blockNumber: landed });
       return { hash };
     },
     async wait(hash) { const t = txs.get(hash); return { blockNumber: t.blockNumber, status: 1 }; },
     async getTx(hash) { return txs.get(hash) ?? null; },
-    async balance() { return 10n ** 20n; },
   };
 }
+
+// Derived, not typed: a hand-copied epoch constant with a comment claiming it is the ceremony
+// mark is a wrong number wearing a correct label. (The first version of this line was off by
+// 42,000 seconds and said so in a comment.)
+const MARK = Math.floor(Date.parse("2026-09-09T06:09:09Z") / 1000);
 
 function selfTest() {
   const silent = () => {};
@@ -402,62 +491,89 @@ function selfTest() {
 
   const run = async (chain, extra = {}) => {
     const score = makeScore(silent);
-    const rec = await runCeremony(chain, { message: msg, dry: false, score, log: silent, ...extra });
+    const headBefore = await chain.blockNumber();
+    const rec = await runCeremony(chain, {
+      message: msg, dry: false, score, log: silent,
+      markSec: MARK, inclusive: true, headBefore, ...extra,
+    });
     return { rec, score };
   };
 
   return (async () => {
-    // 1 — the happy path: nine blocks after Eva, byte-identical on readback.
+    // 1 — happy path: our Adam transaction makes the first block past the mark, the message lands
+    //     in Adam+10, and the bytes come back identical.
     {
-      const { rec, score } = await run(fakeChain());
-      cases.push(["happy path anchors at block(Eva)+9 and reads back identical",
-        score.fail.length === 0 && rec.union.block === rec.eva.block + 9]);
+      const { rec, score } = await run(fakeChain({ nextTs: MARK + 2 }));
+      cases.push(["happy path: Block Adam is ours, message anchors at Adam+10",
+        score.fail.length === 0 && rec.adam.blockAdam === rec.adam.txBlock &&
+        rec.union.block === rec.adam.blockAdam + 10]);
     }
-    // 2 — 🔴 the public-chain risk: someone else's traffic runs the head past the slot.
+    // 2 — 🔴 THE DEFINITION IS ABOUT TIME. A stranger's block crosses the mark first: Block Adam
+    //     is THEIRS, our transaction is in a later block, and the anchor slot moves with the
+    //     definition rather than with us.
     {
-      // 4 extra blocks per send, not 3: with 3 the walk lands exactly on E+8 and the run would
-      // proceed correctly — a fixture that tests nothing while looking like it does. The number
-      // has to make the head STEP OVER the slot, which is what a busy chain does.
-      const { rec, score } = await run(fakeChain({ extraBlocksPerSend: 4 }));
+      const c = fakeChain({ nextTs: MARK + 1 });
+      const strangerBlock = c.mine();                  // someone else, one second after the mark
+      const { rec, score } = await run(c);
+      cases.push(["a stranger's block past the mark becomes Block Adam, and is reported",
+        rec.adam.blockAdam === strangerBlock && rec.adam.txBlock !== strangerBlock &&
+        score.notes.some((n) => !n.ok && /IN Block Adam/.test(n.label))]);
+    }
+    // 3 — 🔴 the 2026-08-27 boundary, exactly: a block sealed ON the mark. Inclusive takes it,
+    //     strict does not — the one case that drill failed.
+    {
+      const c1 = fakeChain({ nextTs: MARK });
+      const r1 = await run(c1, { inclusive: true });
+      const c2 = fakeChain({ nextTs: MARK });
+      const r2 = await run(c2, { inclusive: false });
+      cases.push(["a block sealed EXACTLY on the mark: inclusive counts it, strict does not",
+        r1.rec.adam?.timestamp === MARK && r2.rec.adam?.blockAdam !== r1.rec.adam?.blockAdam]);
+      cases.push(["and the boundary is reported as a note when it is live",
+        r1.score.notes.some((n) => !n.ok && /boundary rule/.test(n.label))]);
+    }
+    // 4 — our block is sealed BEFORE the mark: no Block Adam exists, so nothing may be anchored.
+    {
+      const { rec, score } = await run(fakeChain({ nextTs: MARK - 60 }));
+      cases.push(["a ceremony block sealed before the mark aborts instead of anchoring",
+        rec.abort === "no-block-past-mark" && !rec.union && score.fail.length === 1]);
+    }
+    // 5 — the public-chain risk: traffic runs the head past the slot mid-walk.
+    {
+      // Extra blocks only from the third send onward: Adam and Eva land where they should, and
+      // the disruption hits the filler walk — which is what a busy chain actually does to a run
+      // that got its first two blocks cleanly.
+      const { rec, score } = await run(fakeChain({ nextTs: MARK + 2, extraBlocksPerSend: 4, extraFrom: 3 }));
       cases.push(["slot overrun stops the run and sends no message",
         rec.abort === "slot-lost" && !rec.union && score.fail.length === 1]);
     }
-    // 3 — the union transaction lands one block late: RED, and said out loud.
+    // 6 — the union transaction lands one block late: RED, and said out loud.
     {
-      const { rec, score } = await run(fakeChain({ unionLandsAt: 10 }));
-      cases.push(["a message landing at +10 instead of +9 is RED",
-        !!rec.union && score.fail.some((f) => f.includes("block(Eva)+9"))]);
+      const { rec, score } = await run(fakeChain({ nextTs: MARK + 2, unionLandsAt: 1 }));
+      cases.push(["a message landing one block late is RED",
+        !!rec.union && score.fail.some((f) => /Block Eva \+ 9/.test(f))]);
     }
-    // 4 — Adam and Eva sharing a block is a NOTE, not a failure: the slot is still defined.
+    // 7 — 🔴 dry run must not touch the chain. Not "sends nothing important": sends NOTHING.
     {
-      const { rec, score } = await run(fakeChain({ sameBlockForEva: true }));
-      cases.push(["Adam and Eva in one block is a note, and the target shifts with Eva",
-        score.fail.length === 0 && rec.targetBlock === rec.eva.block + 9 &&
-        score.notes.some((n) => !n.ok && /different blocks/.test(n.label))]);
-    }
-    // 5 — 🔴 dry run must not touch the chain. Not "sends nothing important": sends NOTHING.
-    {
-      const c = fakeChain();
+      const c = fakeChain({ nextTs: MARK + 2 });
       const score = makeScore(silent);
-      await runCeremony(c, { message: msg, dry: true, score, log: silent });
+      await runCeremony(c, { message: msg, dry: true, score, log: silent, markSec: MARK });
       cases.push(["dry run broadcasts zero transactions", c.sends() === 0]);
     }
-    // 6 — readback comparison must be able to fail, or it proves nothing.
+    // 8 — readback comparison must be able to fail, or it proves nothing.
     {
-      const c = fakeChain();
+      const c = fakeChain({ nextTs: MARK + 2 });
       const orig = c.getTx.bind(c);
       c.getTx = async (h) => { const t = await orig(h); return t && { ...t, data: "0xdeadbeef" }; };
       const { score } = await run(c);
       cases.push(["a chain returning different bytes is caught",
         score.fail.some((f) => /bytes ON THE CHAIN/.test(f))]);
     }
-    // 7 — the frozen digest is the gate on the payload, and it must reject drift.
+    // 9 — the frozen digest is the gate on the payload, and it must reject drift…
     {
-      const bad = loadMessage(path.join(ROOT, "docs/block-adam/9s-union-message.txt"),
-        path.join(HERE, "does-not-exist.txt"));
+      const bad = loadMessage(MESSAGE_FILE, path.join(HERE, "does-not-exist.txt"));
       cases.push(["a missing CANON line refuses the run", !!bad.error]);
     }
-    // 8 — and it must ACCEPT the real, unmodified pair (the mirror of case 7).
+    // 10 — …and accept the real, unmodified pair (the mirror of case 9).
     {
       const good = loadMessage();
       cases.push(["the real message matches the frozen digest", !good.error && good.bytes.length === good.frozen.size]);
@@ -479,11 +595,19 @@ async function main() {
 
   const markMs = Date.parse(MARK_ISO);
   if (!Number.isFinite(markMs)) { console.error(`--at unreadable: ${MARK_ISO}`); return 2; }
+  if (BOUNDARY !== "inclusive" && BOUNDARY !== "strict") {
+    console.error(`--boundary must be inclusive or strict, got ${BOUNDARY}`);
+    return 2;
+  }
+  const inclusive = BOUNDARY === "inclusive";
+  const markSec = Math.floor(markMs / 1000);
 
   console.log("═══ CEREMONY 2026-09-09 — Adam · Eva · nine blocks · the 9S Union message ═══");
   console.log(`mode      : ${SEND ? "🔴 LIVE — transactions WILL be broadcast" : "dry run (nothing is sent)"}`);
   console.log(`rpc       : ${RPC}`);
-  console.log(`mark      : ${utc(markMs)}`);
+  console.log(`mark      : ${utc(markMs)}  (epoch ${markSec})`);
+  console.log(`Block Adam: first block with ts ${inclusive ? ">=" : ">"} mark  [--boundary ${BOUNDARY}]`);
+  console.log(`Block Eva : Block Adam + ${EVA_OFFSET_BLOCKS}   ·   anchor slot: Block Eva + ${UNION_OFFSET_BLOCKS}`);
 
   // ── refusals, before anything is measured or signed ──
   const message = loadMessage();
@@ -499,8 +623,9 @@ async function main() {
     console.log("\n🔴 REFUSING: --send without --offset-ms.");
     console.log("   B-13(b) is not paperwork. The 2026-08-27 drill at offset 0 scored 7/1: the block");
     console.log("   carrying the ceremonial transaction was sealed with a timestamp EXACTLY on the");
-    console.log("   mark, and \"the first block to CROSS\" is a strict comparison. +3000 ms scored 9/0.");
-    console.log("   Measure the skew on a chain that is PRODUCING BLOCKS, then pass the number.");
+    console.log("   mark. Under the published (inclusive) rule that block IS Block Adam; under the");
+    console.log("   drill's strict rule it is not. Do not run into that boundary by accident —");
+    console.log("   measure the skew on a chain that is PRODUCING BLOCKS and pass the number.");
     return 2;
   }
   const offsetMs = Number(OFFSET_RAW ?? 0);
@@ -532,55 +657,60 @@ async function main() {
   console.log(`  ${bg.blocks} block(s) in ${bg.seconds}s with nothing sent by us`);
   if (bg.blocks > 0) {
     console.log("  🔴 ANOTHER PRODUCER IS ACTIVE. Block numbers are the ceremony's arithmetic and");
-    console.log("     nothing can reserve one: a stranger's transaction can take block(Eva)+9 while");
-    console.log("     this script walks towards it, and a retry means a NEW Adam and a NEW Eva.");
+    console.log("     nothing can reserve one: a stranger's transaction can take Block Adam itself or");
+    console.log("     the anchor slot, and a retry means a NEW Adam and a NEW Eva.");
     if (SEND && !ALLOW_BUSY) {
       console.log("     ⇒ Refusing. Re-run with --allow-busy-chain to accept the risk deliberately.");
       return 2;
     }
   }
 
-  const head = await chain.blockNumber();
-  const b = await chain.block(head);
+  const headBefore = await chain.blockNumber();
+  const b = await chain.block(headBefore);
   const skewS = b ? b.timestamp - Math.floor(Date.now() / 1000) : null;
-  console.log(`\n  head      : block ${head}  ts ${b?.timestamp} (${b ? utc(b.timestamp * 1000) : "?"})`);
+  console.log(`\n  head      : block ${headBefore}  ts ${b?.timestamp} (${b ? utc(b.timestamp * 1000) : "?"})`);
   console.log(`  skew hint : ${skewS >= 0 ? "+" : ""}${skewS}s  ⚠️ this is the AGE of the last block plus the`);
   console.log("              node's skew, and on an idle chain age dominates: a 10s-old block reads");
   console.log("              as -10s of \"skew\". Only a chain producing blocks gives B-13(b) a number.");
 
+  const adamData = loadPayload(ADAM_DATA_FILE);
+  const evaData = loadPayload(EVA_DATA_FILE);
+  if (adamData === "0x" || evaData === "0x") {
+    console.log("\n  ⚠️ Adam/Eva carry NO payload. Nothing anywhere specifies what they should contain;");
+    console.log("     if they are meant to carry text, freeze the bytes first and pass --adam-data /");
+    console.log("     --eva-data. Bytes decided on the day cannot be frozen beforehand.");
+  }
+
   if (!SEND) {
     console.log("\n── plan (nothing will be sent) ──");
-    console.log(`  at ${utc(markMs + offsetMs)}  Adam`);
-    console.log("  then                       Eva                → block E");
-    console.log(`  then                       8 fillers          → head walks to E+${UNION_OFFSET_BLOCKS - 1}`);
-    console.log(`  then                       9S Union message   → must land in E+${UNION_OFFSET_BLOCKS}`);
+    console.log(`  at ${utc(markMs + offsetMs)}  Adam            → forces a block past the mark`);
+    console.log(`  measure                    Block Adam      = first block with ts ${inclusive ? ">=" : ">"} ${markSec}`);
+    console.log(`  then                       Eva             → must land in Block Adam + ${EVA_OFFSET_BLOCKS}`);
+    console.log("  then                       8 fillers       → head walks to the slot minus one");
+    console.log(`  then                       9S Union        → must land in Block Eva + ${UNION_OFFSET_BLOCKS}`);
     console.log(`  then                       read it back by hash and compare ${message.bytes.length} bytes`);
-    await runCeremony(chain, { message, dry: true, score });
+    await runCeremony(chain, { message, dry: true, score, markSec, inclusive });
     console.log("\n✓ plan only. Add --send --offset-ms <n> --wallet-key <0x…> to perform it.");
     return 0;
   }
 
   // ── live: pre-sign window, then the mark ──
   const fireAt = markMs + offsetMs;
-  if (fireAt < Date.now()) {
-    console.log(`\n🔴 REFUSING: the mark (${utc(fireAt)}) is already in the past.`);
-    return 2;
-  }
   console.log(`\n  waiting until ${utc(fireAt)} (mark ${offsetMs >= 0 ? "+" : ""}${offsetMs} ms, pre-signed ${LEAD_MS} ms ahead)…`);
   await waitUntil(fireAt - LEAD_MS);
   await waitUntil(fireAt);
 
   console.log("\n── ceremony ──");
-  const rec = await runCeremony(chain, { message, dry: false, score });
+  const rec = await runCeremony(chain, { message, dry: false, score, adamData, evaData, markSec, inclusive, headBefore });
 
   console.log(`\n  ${score.pass.length} pass · ${score.fail.length} fail · ${score.notes.length} note(s)`);
   if (JSON_OUT) {
-    writeFileSync(JSON_OUT, JSON.stringify({ mark: MARK_ISO, offsetMs, rpc: RPC, background: bg, record: rec, pass: score.pass, fail: score.fail, notes: score.notes }, null, 2));
+    writeFileSync(JSON_OUT, JSON.stringify({ mark: MARK_ISO, markSec, boundary: BOUNDARY, offsetMs, rpc: RPC, background: bg, record: rec, pass: score.pass, fail: score.fail, notes: score.notes }, null, 2));
     console.log(`  evidence written: ${JSON_OUT}`);
   }
   if (score.fail.length) {
-    console.log("\n🔴 The ceremony did not complete as CANON describes. What happens next is a decision,");
-    console.log("   not a retry: re-running means a new Adam and a new Eva. Record what happened first.");
+    console.log("\n🔴 The ceremony did not complete as published. What happens next is a decision, not a");
+    console.log("   retry: re-running means a new Adam and a new Eva. Record what happened first.");
     return 1;
   }
   console.log("\n✓ Anchored and verified from the chain.");
