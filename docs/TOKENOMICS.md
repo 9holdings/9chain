@@ -187,3 +187,60 @@ Quỹ **Faucet** là ví nóng, tách riêng có chủ đích — lộ khoá ch�
 - [ ] Hợp đồng vesting trên C-Chain (phần EVM hiện thanh khoản ngay, không khoá được).
 - [ ] Mô phỏng lạm phát/áp lực bán qua vài kịch bản staking.
 - [ ] Kiểm toán kinh tế độc lập.
+
+---
+
+## 5. 🔴 `getCurrentSupply` KHÔNG bằng tổng bảng phân bổ — và đó là ĐÚNG
+
+*(Viết `2026-09-01` sau khi một người ngoài đo được chênh lệch và báo về. Đây là mục lẽ ra phải
+tồn tại từ ngày G: bất kỳ ai cộng bảng rồi hỏi chain đều sẽ dừng lại ở đúng chỗ họ dừng.)*
+
+```
+Σ cột X/P của bảng phân bổ g1     4.300.000.001            LOVE9
+platform.getCurrentSupply         4.300.824.365,880041     LOVE9   (P-Chain height 0)
+                                  ──────────────────────
+chênh                                   824.364,880041     LOVE9
+```
+
+### Nó KHÔNG phải phát hành thừa. Ba phép đo nói vậy
+
+| Đo cái gì | Kết quả |
+|---|---|
+| `sha256(local-net/net-g1/genesis.json)` | `4de8caa5…0f6ee6` — **trùng** số đã công bố trong `RUN-A-VALIDATOR.md` |
+| Σ `allocations[].initialAmount + unlockSchedule[]` **trong chính tệp đó** | **4.300.000.001** — **khớp bảng từng đồng** |
+| `platform.getHeight` | **0** — chưa block nào được xử lý |
+
+⇒ Genesis phát đúng bằng bảng. Chênh lệch do **node tạo ra**, không do allocation.
+
+### Nó là gì: **phần thưởng staking TIỀM NĂNG, đúc trước**
+
+Khi P-Chain thêm một validator, avalanchego tính phần thưởng tiềm năng cho trọn kỳ stake và **cộng
+ngay vào `currentSupply`**. Nếu validator không được thưởng, số đó bị trừ lại. 9 validator genesis
+stake 365 ngày, lệch 7 ngày mỗi node (`initialStakeDurationOffset = 604800`).
+
+Tái lập bằng đúng công thức `vms/platformvm/reward/calculator.go`, cộng dồn tuần tự:
+
+```
+tính lại   824.364,880275 LOVE9
+chain      824.364,880041 LOVE9
+lệch            0,000234        ⇦ mức làm tròn số nguyên của phép chia bigint
+```
+
+### 🔴 Hệ quả cho bất kỳ cổng nào so tổng cung
+
+Một cổng lấy `Σbảng` so thẳng với `getCurrentSupply` sẽ **ĐỎ VĨNH VIỄN** — và một cổng không bao
+giờ xanh được thì cái đỏ của nó **không mang tin** (D-153). Phép so đúng là:
+
+```
+getCurrentSupply  −  phần thưởng tiềm năng của tập validator hiện tại  ==  Σ bảng phân bổ
+```
+
+### Ba con số **không** đổi vì điều này
+
+- `SupplyCap` vẫn **7.900.000.001** (P/X) — phần thưởng đúc trước tiêu vào *dư địa mint*
+  3.600.000.000, nó không vượt trần.
+- Bất biến `SupplyCap + Σ(bucket.CChain) == 9.000.000.000` vẫn đúng.
+- Tổng phát hành genesis vẫn **5.400.000.000** (4.300.000.001 X/P + 1.099.999.999 C-Chain).
+
+⚠️ **Con số 824.364,88 sẽ ĐỔI** mỗi lần tập validator đổi — thêm validator, hết hạn, hoặc được
+thưởng thật. Đừng cắm nó thành hằng số ở đâu cả; **tính lại** từ tập validator đang chạy.
