@@ -6435,3 +6435,82 @@ trong chính bài kiểm** (mỗi ca chỉ truyền một remote nên các vai c
 — và ca *"remote biến mất"* khi đó **xanh VÌ LỖI ĐÓ**. Nay mỗi ca chỉ khai đúng vai nó nói tới,
 và có thêm một ca kiểm cổng **gọi đúng TÊN** cái đã biến mất. **16/16.** Preflight nay **32 cổng**
 (đếm từ nguồn, không từ trí nhớ).
+
+---
+
+## D-152 — **Mở lại đẻ chain L1: THỨ TỰ là phép kiểm, và có phép đo không tiêu tiền** (`2026-09-01`)
+
+### Ba việc, và cái nguy hiểm không phải "quên một việc" mà là "làm đúng việc SAI THỨ TỰ"
+
+1. **Đẩy sổ + mã console lên server** — `lib/chainid.mjs` khai thế hệ; `chainid-issued.json` /
+   `chainid-released.json` chặn phát trùng.
+2. **Nạp ví `chain-factory`** — thanh khoản ở **X**, phí trả ở **P** ⇒ chuyển X→P (D-140).
+3. **Bật `A1_DE_CHAIN_MO=1`** rồi restart.
+
+🔴 **Làm 3 trước 1 không báo lỗi.** Console cũ vẫn chạy, vẫn nhận yêu cầu, và cấp chainId từ
+**khối của thế hệ đã chết** vào một genesis **bất biến** của người lạ. Không thu hồi được — thu
+hồi chain không lấy lại số nhận dạng. ⇒ `scripts/reopen-chain-creation.mjs` **từ chối nói "sẵn
+sàng"** khi một bước sau xanh trong lúc bước trước đỏ, và gọi thẳng trạng thái đó là **OUT OF
+ORDER** thay vì liệt kê ba dấu tích rời rạc.
+
+⚠️ Công cụ **không làm** việc nào trong ba — đẩy mã, chuyển tiền, bật công tắc sản phẩm là việc
+có người bấm (§4). Nó **đo**.
+
+### 🔴 Phép đo cửa thứ ba mà KHÔNG tạo ra chain
+
+Cửa `DE_CHAIN_MO` nằm **bên trong `createChain()`, sau xác thực** ⇒ yêu cầu không token trả `401`
+ở **cả hai** trạng thái, tức đo được **con số không**. (D-135 nghiệm thu bằng yêu cầu **có** token
+— chi tiết đó chưa từng được viết ra, và thiếu nó thì phép nghiệm thu không lặp lại được.)
+
+Yêu cầu có token đi qua ba cửa **theo thứ tự, và cả ba đều TỪ CHỐI**: cửa đóng → câu của chính
+cửa · sai thế hệ → lỗi thế hệ · tên sai → lỗi định dạng tên. ⇒ Thăm dò gửi tên `!`, thứ mà
+`/^[A-Za-z0-9 ]{2,32}$/` **không đời nào nhận**. Dù cửa mở hay đóng, yêu cầu bị chối **trước khi
+có gì được dựng**: không tiêu đồng nào, không tiêu một số nhận dạng nào.
+
+🔴 **Cả ba câu trả lời đều là HTTP 400.** Mã trạng thái ở đây **không mang thông tin**; chỉ văn
+bản mang. Luật cứng #1 ở dạng thuần khiết nhất.
+
+🔴 **Và chỉ MỘT trong ba văn bản được khớp: câu của chính cửa**, vốn bằng tiếng Anh vì nó hiện ra
+trên trình duyệt người lạ. Hai câu kia đang là tiếng Việt, mà §0 nói chúng **không nên ở lại như
+thế** — bám vào chữ của chúng là dựng một cổng **gãy đúng ngày có người tuân thủ luật ngôn ngữ**.
+Phần còn lại suy bằng **loại trừ**, và loại trừ ở đây vững vì thứ tự cửa đã biết và mỗi cửa trước
+có **mã trạng thái riêng**: chống lụt `429`, xác thực `401`. Một `400` không phải câu của cửa
+nghĩa là cửa đã cho qua. Công cụ **in nguyên văn thứ đã từ chối**, không diễn giải nó.
+
+### Đo được `01/09` — cả ba đỏ, và đỏ theo đúng thứ tự
+
+`1` **4 lệch + 1 thiếu** (`chainid-released.json` chưa từng lên server) · `2` **0 LOVE9** trên
+`P-love91999h…9999` · `3` **CLOSED — cửa tự trả lời bằng câu của nó**. Không chain nào được tạo.
+
+### Ba lỗi lộ ra trong lúc dựng, và mỗi lỗi là một bài học cũ tái diễn
+
+1. 🔴 **Cổng đỏ VÌ SAI LÝ DO ngay lần chạy đầu:** báo **cả 5 tệp MISSING** trong khi
+   `check-deploy-drift` thấy 4 tệp có thật. Nguyên nhân: hỏi `~/9chain-a1/src/<tệp>` rồi cắt
+   tiền tố `~/…` khỏi câu trả lời — nhưng **shell từ xa bung dấu ngã**, nên mọi dòng về là
+   `/home/ubuntu/…`, phép cắt trượt, mọi tra cứu trượt. Nó sẽ cử người đi đẩy lại những tệp
+   **đã nằm sẵn ở đó**. ⇒ Nay `cd` trước rồi dùng đường dẫn tương đối; không cắt tiền tố khỏi
+   thứ shell in ra.
+2. 🔴 **Tệp token là một GHI CHÚ có chứa bí mật, không phải một bí mật.** `console-token.txt` có
+   **5 dòng**: ba dòng văn xuôi (dòng đầu tiếng Việt) và **một dòng 32 ký tự** là token. Đọc cả
+   tệp rồi `trim()` ra một "token" **280 ký tự**, và Node từ chối với *"Invalid character in
+   header content"* — một thông báo **trỏ đi đâu đó rất xa nguyên nhân thật**. ⇒ Nay chọn đúng
+   dòng có **hình dạng token**, và **từ chối đoán** khi có 0 hoặc >1 ứng viên: gửi nhầm token ra
+   `401`, mà `401` **không phân biệt được** với *"cửa nằm sau xác thực"* ⇒ sẽ báo UNKNOWN và
+   trông như trục trặc mạng.
+3. **Node sập lúc thoát** (`UV_HANDLE_CLOSING`, **mã 127**) vì `fetch` giữ socket keep-alive khi
+   `process.exit`. Một cổng **sập trên đường ra** sẽ bị đọc thành thất bại bất kể nó đo được gì.
+   ⇒ Dùng `http/https` thô với `connection: close`, đúng lối `check-doc-drift` đã dùng.
+
+### Kèm: một hằng số rời khỏi chỗ nó không thuộc về
+
+`VI_FACTORY_THEO_THE_HE` (ví factory theo thế hệ) nằm trong `scripts/watch-network.mjs`, mà tệp
+đó là **SCRIPT**: `import` nó để mượn bảng sẽ **chạy cả cổng** rồi `process.exit`, giết luôn tiến
+trình đang mượn — đã xảy ra thật. Hai lựa chọn còn lại đều xấu: chạy một cổng như tác dụng phụ của
+việc đọc một hằng số, hoặc **chép địa chỉ sang tệp thứ hai** — đúng thứ D-113 tồn tại để cấm, và
+một địa chỉ quỹ bị chép là loại hằng số **chết lặng đúng một thế hệ sau**.
+⇒ Tách sang `local-net/lib/factory-wallets.mjs`, không tác dụng phụ, lý lẽ đi theo bảng.
+**Cố ý KHÔNG** để trong `lib/chainid.mjs`: tệp đó được **chép lên server** và nằm trên đường sản
+phẩm của console — console không có việc gì phải mang địa chỉ quỹ.
+
+**21/21 đối chứng ngược.** Không nối vào `gday-preflight`: preflight canh việc **sinh genesis**,
+còn đây là việc **sau** ngày G.
