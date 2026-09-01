@@ -24,6 +24,14 @@ import http from "node:http";
 import { NETWORK_ID, GOC_DAI_CHAINID, TRAN_DAI_CHAINID, TEN_MANG } from "./chainid.mjs";
 
 /**
+ * Where the public is served the chain directory. Declared once: two readers compose the same URL,
+ * and a path that drifts in one of them would send a gate to measure a surface nobody visits.
+ */
+export const PUBLIC_SITE_DEFAULT = "https://a1.9chain.org";
+export const LEDGER_PATH = "/chains/data/console-chains.json";
+export const publicLedgerUrl = (site = process.env.A1_PUBLIC_SITE || PUBLIC_SITE_DEFAULT) => `${site}${LEDGER_PATH}`;
+
+/**
  * 🔴 `fetch` + `process.exit()` on Windows aborts with `UV_HANDLE_CLOSING` and exit code 127 — a
  * gate that crashes on the way OUT is read as a failure whatever it measured. Raw http/https with
  * `connection: close`, the shape `check-doc-drift` already settled on.
