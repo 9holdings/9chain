@@ -5894,3 +5894,61 @@ của chính faucet (`amount=<N> LOVE9`).
 `docs/RUN-A-VALIDATOR.md`: bảng tham số nay **81** và **9**; hướng dẫn dựng lại fork nay **27 patch
 → `38723877`** với đối chứng **26/27 → `60a61707`**; và **một `FILL-ON-G-DAY` bị XOÁ chứ không phải
 điền** (11 → 10) — nó hỏi *"người ngoài lấy 25.000 LOVE9 ở đâu"*, và câu hỏi đó **không còn tồn tại**.
+
+---
+
+## D-144
+
+**Chín validator sáng lập chạy trên MỘT máy (OVH). Mở rộng bằng staking, không bằng genesis.**
+*(David chốt `2026-09-01 09:10Z`, sau `down -v` chưa tới một tiếng.)*
+
+> *"9 Validator đầu tiên trên thế giới sẽ chạy ngay trên máy này, sau đó các server, vps khác sẽ
+> chạy thêm các Validator khác, mở rộng ra thêm, 9 Validator ở máy này vẫn giữ nguyên."*
+
+### Nó lật cái gì, và KHÔNG lật cái gì
+
+Lật **vế vị trí** của D-126 (*"Hetzner THAY một node OVH"*). **Không** lật vế số lượng: vẫn
+`N=9`, nên self-bond giữ nguyên `8.999.991 = 9 × 999.999` — bộ chín số 9 đi vào genesis **bất
+biến**. Đây là lý do quyết định này rẻ: nó không đụng số học tokenomics.
+
+### 🔴 Vì sao đây là CẢI THIỆN, không phải rút lui
+
+D-118b đo được một **vòng khép không có đường ra bằng cấu hình**: người ngoài nối tới beacon,
+học địa chỉ các node kia qua gossip, chúng khai `172.28.0.x` ⇒ với tới **1/9 validator (~11%)**;
+bootstrap đòi **80%**; stake đòi bootstrap. Hình dạng dự kiến ngày G (beacon + node9 Hetzner công
+khai, bảy node nội bộ) cho **~22%** — vẫn xa 80%.
+
+Chín node **trên cùng một máy** + lượt mở cổng theo giai đoạn ⇒ cả chín cùng khai một địa chỉ
+tới được ⇒ người ngoài với tới **100% stake**. **Đo thật lúc `09:44Z`, TỪ NGOÀI Internet:** cả 9
+cổng `9651–9659` tới được, ca đối chứng âm (`9999`) đóng.
+
+⇒ Đây là hình dạng ngày G **đầu tiên** mà người lạ thật sự bootstrap và stake được.
+
+Cộng thêm: đó là hình dạng **đã chạy nhiều ngày** (g0 là chín node trên chính máy này), nên là
+cấu hình **đã được chứng minh**, không phải cấu hình mới.
+
+### Nó khớp với D-143 không phải tình cờ
+
+Validator vào **sau** genesis đi đường `AddPermissionlessValidatorTx`, tốn `MinValidatorStake`.
+D-119 đo đường đó khi rào cản còn **25.000 LOVE9** và gọi nó là đường lui **đắt**. Patch 0027
+(cùng buổi sáng) hạ xuống **81** ⇒ *"mở rộng sau"* từ một câu nói đắt thành một thao tác **9 lượt
+xin faucet**. Hai quyết định cách nhau hai tiếng và ăn khớp nhau về mặt kiến trúc.
+
+### 🔴 Cái giá — khai ra, không giấu
+
+**Điều kiện qua số 3** (*"node NGOÀI máy chủ là peer"*) và **O4** (nhà cung cấp thứ hai)
+**KHÔNG đạt tại thời điểm công bố**. Chúng đạt trên g0 **chỉ nhờ** node Hetzner.
+
+⇒ Bản công bố **phải nói thẳng**: *chín validator sáng lập chạy trên một máy, một nhà cung cấp;
+mạng mở để bất kỳ ai thêm validator từ hạ tầng của mình với 81 LOVE9 = 9 lượt faucet.*
+**Nói ra thì đó là thiết kế; giấu đi thì đó là điểm yếu chờ bị phát hiện.**
+
+### Hệ quả vận hành
+
+- `docs/GDAY-NODE10-HETZNER.md` hạ thành **runbook SAU công bố**. Mọi lệnh trong đó vẫn đúng
+  nguyên văn — node9 chỉ đổi từ *"vào từ genesis"* sang *"vào bằng staking"*.
+- Hai việc tay của preflight **ra lệnh sai** sau quyết định này (*"Hetzner THAY một node OVH"* và
+  *"chỉ dựng node1..node8"*). Đã **gạch ngang và giữ nguyên văn** (lý lẽ `N=9` + cổng staking
+  trong đó vẫn đáng đọc), thêm hai mục thay thế. Việc tay **38 → 40**.
+- 🔴 Tiến trình `avalanchego` **trần** trên Hetzner (`PID 34489`, giữ cổng `9651`) vẫn phải giết
+  trước khi container nào bind cổng đó — hoãn không làm nó biến mất.

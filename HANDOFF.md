@@ -1,9 +1,8 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-01 `08:25Z`** — phiên **SỐ ĐO + QUÉT + D-143**: 🔴 **rào cản validator 25.000 → 81 LOVE9** (patch 0027, tree `38723877`, hai máy ship lại) · H-6b ✅ ĐẠT hai nơi ·
-preflight đầy đủ **22 đạt · 3 đỏ · 38 việc tay** (ba đỏ đúng dự kiến) · sổ chain 3 lệnh **0 thay
-đổi** · heartbeat đã dừng · 🔴 **hai lỗ ngày G tìm được và vá**: node9 Hetzner là **tiến trình trần
-giữ cổng 9651**, và `HEARTBEAT_STOP_AFTER` **nằm trong quá khứ** (`a229a99` · `6652f43`).
+Cập nhật: **2026-09-01 `09:50Z`** — 🟢 **MẠNG g1 ĐÃ SINH RA VÀ ĐANG SỐNG**: `down -v` `09:26Z` ·
+9/9 node · `watch-network` **5 đỏ → 0 đỏ** · chữ khắc `engrave-verify` **17/0** đọc ngược từ chain
+sống · **9/9 cổng P2P mở, đo từ ngoài Internet** · `minValidatorStake` **81 LOVE9** trên P-Chain.
 Cùng ngày, phiên
 **SOÁT 3 VÒNG + VÁ**: image g1 nay ở **CẢ HAI** máy · sổ chặn
 đã xoá có chữ ký · 7 commit `8ebae9e`→`cb3813f`. Trước đó `2026-08-31` phiên **ĐÊM**:
@@ -29,6 +28,99 @@ node scripts/gday-preflight.mjs      # 26 cổng + 38 VIỆC TAY, một lệnh (
 #   + heartbeat "của ai"      (David xác nhận: bộ bơm của anh; đã khai knownExtra)
 # Thực còn: 31. Xem D-137/D-142 + mục phiên 2026-09-01 ngay dưới.
 ```
+
+### 🟢🟢🟢 `2026-09-01` — **MẠNG g1 ĐÃ SINH RA VÀ ĐANG SỐNG**
+
+`down -v` lúc `09:26Z` · mạng lên `09:31Z` · P2P mở `09:44Z`. Sinh mạng **trên MÁY DEV**, không
+phải trên server — xem chỗ chặn dưới đây, nó suýt hỏng cả lượt.
+
+```
+RPC cong khai    https://rpc-a1.9chain.org  ->  "9chain-a1-g1"
+networkID        999999998        validator 9        peer 8/8       healthy true
+binary           commit=9chain-a1-g1-27patch-38723877   <- ban DA DIEN TAP
+duong dan DB     9chain-a1-g1                          <- FallbackHRP KHONG bi di vao
+supplyCap        7900000001000000000 (do TREN NODE)
+eth_chainId      0x218711a09 = 9000000009
+LOVE9            "LOVE9 Coin" denom 9   ·   AVAX DO kem nguyen van ly do
+minValidatorStake 81 LOVE9   ·   minDelegatorStake 9 LOVE9   (do tren P-Chain)
+B-12             309 ngay (2027-07-07)
+genesis sha256   4de8caa59ef92e9212c27e569103bb757fa3e2a3876f3ab0c6981328bb0f6ee6
+beacon           NodeID-MrgP69AZRSeJ3DQRSBWQzqeqovNcTAsEb  @ 139.99.145.13:9651
+watch-network    5 do  ->  0 do
+```
+
+#### 🔴 CHỖ CHẶN KHÔNG TÀI LIỆU NÀO GHI — tìm được 20 phút TRƯỚC `down -v`
+
+`gen-network.sh:93` chạy `go run ./9chain-a1-tools/netgen` từ `$(pwd)/upstream/avalanchego`.
+**netgen KHÔNG chạy từ image — nó biên dịch tại chỗ từ cây nguồn.** Trên server cây đó là ảnh
+chụp `27/08`: `A1Gen = 0` · `A1Name "9chain-a1-g0"` · `MinValidatorStake 25 * KiloAvax` · không
+`.git` · **0 patch**.
+
+Việc tay preflight **có** cảnh báo cây nguồn server ở `A1Gen 0` — nhưng nó nói về **build IMAGE**.
+Không dòng nào nối sang chuyện **netgen cũng biên dịch từ đúng cây đó**. Ship image chỉ giải
+quyết một nửa, và nửa còn lại nằm **sau `down -v`**.
+
+Nó **kêu to** chứ không hỏng lặng (`NETWORK_ID` bắt buộc ⇒ `999999998` không khớp `A1ID` suy từ
+`A1Gen 0` ⇒ FATAL). 🔴 **Nhưng cái bẫy là cách sửa hiển nhiên:** đang đứng sau `down -v`, g0 đã
+xoá, đồng hồ chạy — hạ `NETWORK_ID` xuống `999999999` cho khớp là **sinh lại g0**.
+
+⇒ **Sinh mạng trên MÁY DEV** (cây 27 patch), chở `net/` sang. Và nó **tốt hơn về khoá**: lượt g0
+lấy `keys.txt` **trên server** — điều O1 ghi là ngoài dự tính. Lần này netgen tự dặn
+*"`keys.txt` … KHÔNG BAO GIỜ đưa lên server; file duy nhất được phép: `faucet.env`"*, và bộ khoá
+5 quỹ **ở lại máy dev**.
+
+#### Ba cái bẫy bắt được TRONG lúc chạy
+
+1. 🔴 **`image: 9chain-a1/node:dev` × 9 dòng** trong compose netgen vừa sinh (gotcha 16 / D-105).
+   Không sửa thì mạng lên **9/9 xanh bằng binary 18 patch**, không `LOVE9`, rào cản vẫn 25.000,
+   **mọi cổng xanh**. Sửa cả 9, `docker compose config` xác nhận vẫn hợp lệ.
+2. 🔴 **`heartbeat.json` công khai in `blockHeight 107.874 · 9,01 tps` của mạng ĐÃ CHẾT.** Trang
+   chủ đọc tệp đó. Đã ghi lại bằng số thật của g1 (`running:false · blockHeight 0 · 0 ví`) —
+   ví bơm cũ thuộc thế hệ chết nên **gỡ khỏi danh sách công khai**. Tệp thuộc `root`, phải `sudo`.
+3. 🔴 **faucet đọc `cung.json` của g0** (`networkID 999999999`) ⇒ `/faucet/api/supply` sắp công bố
+   số của mạng chết. Chép bản g1 vào, restart, dòng khởi động tự khai `networkID 999999998`.
+
+#### 🟢 Vòng khép D-118b ĐÃ MỞ — đo TỪ NGOÀI Internet
+
+```
+9651 ✓  9652 ✓  9653 ✓  9654 ✓  9655 ✓  9656 ✓  9657 ✓  9658 ✓  9659 ✓
+ca doi chung am 9999 -> dong   (phep do phan biet duoc)
+```
+
+Chín node recreate **từng cái một**, mesh **không bao giờ tụt dưới 8 peer**. Cộng
+`minValidatorStake 81` ⇒ người ngoài với tới **100% stake** (bootstrap đòi 80%) và cần **9 lượt
+faucet**. Câu *"ai cũng chạy validator được"* lần đầu tiên **đúng và đo được**.
+
+#### Chữ khắc — điều kiện qua số 2 ĐẠT
+
+`engrave-verify --rpc` ⇒ **17 đạt · 0 hỏng**, **có mục `[5] Mạng đang chạy`**:
+`block 0 P-Chain parentID == sha256(genesisBytes)` · `eth_getCode` trả 1273 byte ·
+**bản văn trên MẠNG == bản văn trong TỆP** · `extraData` trùng.
+
+Bảy từ Hebrew (Sáng Thế 1:1, đếm bằng công cụ hiểu UTF-8 — `wc -w` in ra `0`, đó là **phép đo
+hỏng**), Adam, Eva, LOVE Paper. Vân tay netgen in ra **trùng bản đóng băng `31/08`** ⇒ mỏ neo
+tính **trước**, không phải tiếng vọng.
+
+#### 🔴 CÒN LẠI — ba việc chỉ David làm được
+
+| # | việc | chặn gì |
+|---|---|---|
+| 1 | **Repo GitHub → CÔNG KHAI** | 🔴 điều kiện qua **4 + 5**. Không có nó thì hôm nay là **một RPC công khai**, không phải testnet công khai — và phải gọi đúng tên như thế |
+| 2 | **Kênh liên hệ** — chỗ `FILL-ON-G-DAY` **cuối cùng** (`RUN-A-VALIDATOR.md:321`) | cổng xuất bản đang đếm **1** |
+| 3 | 🔴 **Nạp ví `chain-factory` X→P TRƯỚC khi mở cổng đẻ chain** | số dư **0** ⇒ người đầu tiên bấm nút nhận `insufficient funds` (D-140 gotcha C) |
+
+⚠️ **Khuyến nghị: ĐỪNG mở cổng đẻ chain trong lượt công bố này.** Công bố mạng + đường validator
+trước; mở đẻ chain sau khi nạp ví và **đẻ thử một L1 rồi thu hồi**.
+
+#### Việc tiếp của A1
+
+- **B-19 nửa 2** — g1 đã xanh ⇒ **được phép** `shred` hai bản `chain-factory-key.txt` trong thư
+  mục thế hệ chết. Bản ghi đã cứu vào `9chain-a1-keys/g0/`.
+- **B-16** — bộ đáng làm nay **đã tồn tại** (`local-net/net-g1/keys.txt` trên dev). Cửa sổ mở.
+- **B-20** — sao lưu **9 danh tính validator** của g1 (`staker.key`/`staker.crt`/`signer.key`),
+  đếm TỆP trong gói chứ không đọc dòng `--check`.
+- **B-13(b) / Block Adam** — chưa làm được: C-Chain `blockNumber = 0`, phải **mở block 1** bằng
+  một giao dịch thường rồi đo lúc chain **đang đẻ block** (gotcha 24 + 25).
 
 ### 🆕🆕🆕🆕 `2026-09-01` `06:25Z` (VN 13:25) — SỐ ĐO NGÀY G, lấy TRƯỚC khối `07:09Z`
 
