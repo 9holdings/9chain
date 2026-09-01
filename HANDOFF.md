@@ -92,7 +92,14 @@ kho tri thức, mục `5roi-v2`: sau refactor, ca đối chứng **vẫn xanh** 
 **vẫn CẮN**.)*
 
 ⚠️ **Bốn việc dọn KHÔNG đổi và vẫn là việc David bấm.** Cổng nay chỉ **đo đủ bốn**.
-🔴 **Chưa đẩy đi đâu** — nay **8 commit** chưa lên `origin`, **9** chưa lên `official`.
+✅ **Đã đẩy lên `origin`** (sao lưu RIÊNG TƯ) lúc `19:1xZ`, David duyệt — `check-remotes` trước khi
+đẩy: `PRIVATE · ADMIN`, chưa archive; `check-history-secrets --all-objects`: **2.489 object, 0 vật
+liệu khoá**; sau khi đẩy: **`behind 0`**. 🔴 **`official` (CÔNG KHAI) CỐ Ý ĐỂ SAU — còn 10 commit.**
+
+⚠️ **Hook pre-push bắt được một thứ thật, đáng nhớ:** cụm này có **thay đổi mã**, nhưng commit trên
+cùng chỉ chạm tài liệu nên hook commit tự gắn dấu bỏ-CI — **GitHub chỉ xét HEAD** ⇒ cả cụm sẽ qua
+mà **không cổng nào chạy, và không gì nói ra điều đó**. Đường sửa đã thành nếp trong repo: một
+commit **rỗng** đặt lên làm ngọn cho CI nhìn (`0a34218`, `de8d88d`, nay `382b608`).
 
 
 ### Sáu bẫy của phiên `2026-09-01` chiều muộn — đọc trước khi đụng vào bất cứ thứ gì
