@@ -6405,5 +6405,33 @@ sáng nay (D-150): bảng đúng lúc viết, một lượt `down -v` **ở nơi
 nào chạm vào tệp. ⇒ Câu hỏi bổ sung cho §2: *phép đo này còn đo được thứ nó tưởng đang đo không —
 hay có ai đó đã đổi thế giới quanh nó mà không đi qua repo này?*
 
-⚠️ **Chưa có cổng cho mục này.** Một cổng canh `visibility`/`isArchived` của cả ba remote là rẻ và
-nên có; nó chưa được dựng trong phiên này, và đây là chỗ ghi nợ để phiên sau không tưởng là đã có.
+### ✅ Cổng — `scripts/check-remotes.mjs` (David chốt dựng, cùng phiên)
+
+*(Mục này ban đầu ghi **"chưa có cổng, đây là chỗ ghi nợ"**. David bảo dựng luôn, nên nợ đã trả
+trong cùng phiên; câu cũ được thay chứ không giữ, vì một dòng nợ đã trả mà vẫn nằm đó sẽ khiến
+phiên sau đi dựng lại thứ đã có.)*
+
+Nó hỏi **GitHub**, không hỏi bất cứ thứ gì trong repo. Danh sách remote lấy từ `git remote` chứ
+không từ bảng vai — **một remote nào đó thêm vào mai này mà không ai khai là ĐỎ**, vì thêm một
+chỗ đẩy là thêm một chỗ việc có thể đi tới. Canh **hai chiều**, và chiều thứ hai mới là chiều đắt:
+
+| Hỏng | Vì sao chết người |
+|---|---|
+| sao lưu thành **chỉ đọc** | việc thôi được chép ra khỏi máy. Im lặng. **Đã xảy ra.** |
+| chỗ **riêng tư thành CÔNG KHAI** | việc bị xuất bản bởi một lượt đẩy không ai nghĩ ngợi. **Không thu lại được** |
+
+🔴 **Đối chứng ngược chạy trên DỮ LIỆU THẬT, không chỉ trên fixture:** khai `archived-31aug` là
+tuyến sao lưu — đúng trạng thái thế giới trước `12:19Z` — và cổng đỏ đúng hai câu: *"is ARCHIVED
+— read-only… nothing looks wrong until the push you needed"* và *"51 commit… the gap is permanent"*.
+Đó là tái hiện chính sự cố, bằng số liệu GitHub trả về hôm nay.
+
+🔴 **Và lượt đối chứng đó lộ ra thứ suýt thành cổng xanh giả:** GitHub **vẫn khai
+`viewerPermission: ADMIN`** cho repo đã archive. Tài khoản vẫn quản trị nó; GitHub chỉ từ chối
+ghi. ⇒ Một cổng hỏi *"tôi có quyền ghi không"* sẽ **XANH SUỐT** thời gian sự cố. `isArchived` mới
+là thứ phân biệt; quyền hạn là câu hỏi thứ hai, không phải câu thứ nhất.
+
+⚠️ Còn một ca nữa lộ ra lúc dựng, và nó thuộc đúng §2: **6/15 ca đối chứng đỏ vì cùng một lỗi
+trong chính bài kiểm** (mỗi ca chỉ truyền một remote nên các vai còn lại bị chấm là *"MISSING"*)
+— và ca *"remote biến mất"* khi đó **xanh VÌ LỖI ĐÓ**. Nay mỗi ca chỉ khai đúng vai nó nói tới,
+và có thêm một ca kiểm cổng **gọi đúng TÊN** cái đã biến mất. **16/16.** Preflight nay **32 cổng**
+(đếm từ nguồn, không từ trí nhớ).

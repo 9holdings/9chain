@@ -88,7 +88,7 @@ quá khứ hay sẽ được xuất bản?*
 ## 3. Danh sách cổng — chạy trước khi tin bất cứ điều gì
 
 ```bash
-node scripts/gday-preflight.mjs              # 28 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
+node scripts/gday-preflight.mjs              # 32 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
 node scripts/check-net-dirs.mjs              # thư mục net* nào thuộc thế hệ nào · thư mục nào giữ TIỀN
 node scripts/check-evidence.mjs              # gói vật chứng còn tự nghiệm thu được không
 node scripts/check-single-source.mjs         # một hằng số, MỘT nơi khai
@@ -97,6 +97,8 @@ node scripts/make-l1-genesis.mjs --self-test  # khuôn L1 KHÔNG được dùng 
 node scripts/check-deploy-drift.mjs          # repo ↔ server (chạy TRƯỚC mọi mục "đã đóng")
 node scripts/check-doc-drift.mjs             # 🔴 TÀI LIỆU có khai số của thế hệ ĐÃ CHẾT không (D-150)
                                              #    ĐO mạng sống rồi mới chấm; bản ghi/đóng băng KHÔNG quét
+node scripts/check-remotes.mjs               # 🔴 nơi ĐẨY còn làm được việc của nó không (D-151)
+                                             #    sao lưu còn ghi được · và chỗ RIÊNG TƯ còn riêng tư
 node scripts/check-consistency.mjs --self-test # số học tokenomics, đọc THẲNG từ Go
 node scripts/gen-chainid-issued.mjs --check  # sổ chainId/tên xuyên thế hệ
 node local-net/console/chainid-test.mjs      # phép cấp chainId
@@ -112,9 +114,10 @@ bash scripts/h6b-backup.sh --check           # bản sao lưu có dựng lại �
 node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
 ```
 
-⚠️ `gday-preflight.mjs` gọi **30 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`
+⚠️ `gday-preflight.mjs` gọi **32 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`
 ×2, `check-single-source`, `check-english-code`; thêm `01/09`: `check-history-secrets` ×2 —
-D-145 — `ceremony-9s-union --self-test` — D-146 — và `check-doc-drift` ×2 — D-150); ba cổng cuối
+D-145 — `ceremony-9s-union --self-test` — D-146 — `check-doc-drift` ×2 — D-150 — và
+`check-remotes` ×2 — D-151); ba cổng cuối
 trong danh sách trên đứng ngoài nó (hai cái là VIỆC TAY của nó,
 `check-robots` là mặt web — không đủ tư cách chặn genesis).
 ⚠️ **Số đo `01/09` 13:03Z: `27 đạt · 2 đỏ · 1 không chạy được`** — 30 mục gọi ra. Hai đỏ đã biết,

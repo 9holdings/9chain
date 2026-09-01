@@ -1951,6 +1951,26 @@ giao dịch nào.
       làm cổng im*. 🟢 Ghi rõ trong D-149: **đẻ chain L1 KHÔNG ảnh hưởng nghi lễ** (P-Chain ≠ C-Chain)
       — hai việc này hay bị buộc nhầm vào nhau.
 
+- [x] 🔴 **D-151 — tuyến sao lưu ĐÃ ĐỨT 7 tiếng mà không gì báo; nay có cổng canh** (`01/09`).
+      `git push origin main` trả **403**: repo sao lưu bị **archive lúc `12:19Z`**, đóng băng ở
+      **325 commit**, để **49 commit của chính ngày G** nằm ngoài. Repo archive **vẫn giữ URL, vẫn
+      cho đọc, vẫn trả `fetch`/`ls-remote`** — chỉ từ chối **GHI**, mà ghi là thao tác ta chỉ làm
+      khi đã có việc cần cứu.
+      ✅ Remote riêng tư mới `daviddokrao/9chain-a1-backup`; `visibility` kiểm **TRƯỚC** lượt đẩy
+      đầu (kiểm sau thì nếu cờ `--private` hỏng, thứ ta đo đã công khai rồi). Nghiệm thu: **375
+      commit hai đầu, cùng tip, PRIVATE, đúng một nhánh**. Remote chết **giữ lại, đổi tên**
+      `archived-31aug` — xoá là mất bản ghi, để tên `origin` là để lại bẫy 403 dưới cái tên người
+      ta gõ theo phản xạ.
+      ✅ Cổng `scripts/check-remotes.mjs`, **16/16** đối chứng ngược, đã nối preflight (**32 cổng**).
+      Canh hai chiều: sao lưu **hết ghi được** · chỗ riêng tư **thành CÔNG KHAI**. Danh sách remote
+      lấy từ `git remote` ⇒ **remote không ai khai là ĐỎ**.
+      🔴 **Thấy đỏ trên DỮ LIỆU THẬT**, không chỉ fixture: khai `archived-31aug` là tuyến sao lưu
+      ⇒ đỏ đúng hai câu (*ARCHIVED* · *51 commit, gap is permanent*).
+      🔴 **Suýt có cổng xanh giả:** GitHub vẫn khai `viewerPermission: ADMIN` cho repo đã archive
+      ⇒ cổng hỏi *"tôi có quyền ghi không"* sẽ xanh suốt sự cố. `isArchived` mới là thứ phân biệt.
+      ⚠️ Và **6/15 ca đối chứng đầu đỏ vì lỗi trong chính bài kiểm** — ca *"remote biến mất"* khi
+      đó **xanh VÌ LỖI ĐÓ**. Đã tách vai theo từng ca + thêm ca kiểm **gọi đúng TÊN**.
+
 ### 🔴 Mở lại cổng đẻ chain L1 — ba việc, đo `01/09 13:03Z`, **cả ba là việc có người bấm**
 
 Thứ tự **bắt buộc**, và nó là thứ tự chứ không phải danh sách:
