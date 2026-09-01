@@ -144,7 +144,7 @@ tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đ
 | Không được | Vì sao |
 |---|---|
 | `git add -A` | phiên khác đang làm việc trong repo — **đã nuốt nhầm một lần**. Commit bằng đường dẫn tường minh |
-| `git push` | 🔴 **H-6 ĐÃ MỞ `31/08`** — remote nay có thật: `daviddokrao/9chain-a1`, **RIÊNG TƯ**, chỉ nhánh `main`. Luật giữ nguyên vì lý do **khác** với trước: đẩy là **việc hướng ra ngoài**, và `web-home`/`audit`/`gday-heartbeat-gate` thuộc worktree khác — đẩy nhầm là công bố việc của phiên khác. Đẩy nhánh mới, đổi sang công khai, hay `push --all`: **hỏi David**. `commit` + `h6b-backup.sh` vẫn là tuyến chống mất việc thứ hai |
+| `git push` | 🔴 **MỌI LƯỢT ĐẨY NAY LÀ MỘT LƯỢT XUẤT BẢN** (đo `01/09 13:5x Z`). Có **hai** remote và cả hai đã đổi tính chất: `official` = **`9holdings/9chain`, CÔNG KHAI**, đang giữ **đủ 374 commit** của `main` — đẩy vào đây là đưa byte ra Internet, không thu lại được · `origin` = `daviddokrao/9chain-a1`, riêng tư nhưng **ĐÃ ARCHIVE lúc `12:19Z`, CHỈ ĐỌC** (`403 … repository was archived`), đóng băng ở **325 commit** / `556a470` (`31/08 19:15Z`). ⇒ **Tuyến chống mất việc "commit rồi đẩy vào chỗ riêng tư" KHÔNG CÒN TỒN TẠI**; thứ còn lại là `commit` + `h6b-backup.sh`. Đẩy nhánh mới, `push --all`, hay đẩy khi chưa chạy `check-history-secrets --all-objects`: **hỏi David**. `web-home`/`audit`/`gday-heartbeat-gate` thuộc worktree khác — đẩy nhầm là **công bố** việc của phiên khác |
 | Deploy / restart / ghi lên server công khai | chỉ một phiên được deploy, và deploy là việc **có người bấm** |
 | Gửi giao dịch · đẻ/thu hồi chain · faucet | tiêu tiền thật trên mạng công khai; đẻ chain nay còn **mặc định ĐÓNG** (`A1_DE_CHAIN_MO`) |
 | Đụng `web/` · Caddyfile · merge `web-home` | thuộc worktree khác đang sống |
