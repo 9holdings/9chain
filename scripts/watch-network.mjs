@@ -67,6 +67,11 @@ const KHONG_SSH = argv.includes("--no-ssh");
  */
 const VI_FACTORY_THEO_THE_HE = {
   0: "P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj",
+  // 🔴 A NEW KEY PER GENERATION, NOT THE OLD ONE CARRIED FORWARD (D-117b). The g0 factory key
+  // was byte-identical to the one in a backup of the already-dead 9001 network, which meant a
+  // bundle describing a dead chain still held spend authority on the live one. g1 gets its own,
+  // and it is a vanity address: nine 9s at the end, ground out in 52m36s.
+  1: "P-love91999h0q4ucfnex9q0qxefuu0ke0xtyvl6739999",
 };
 const VI_FACTORY = lay("--wallet", VI_FACTORY_THEO_THE_HE[A1_GEN] ?? null);
 
