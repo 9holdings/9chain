@@ -137,6 +137,26 @@ nó chỉ thẳng vào việc phải làm.
 
 Preflight: **32 → 34 cổng**, `31 đạt · 3 đỏ · 0 không chạy được`.
 
+#### 📋 Lệnh cho **bốn việc dọn** đã soạn sẵn — `docs/RUNBOOK-REOPEN-CHAIN-CREATION.md`
+
+Console (5 tệp) → **sổ chain đã nén** → nạp ví → bật cửa. Mỗi việc kèm lệnh, phép nghiệm thu, và
+cái bẫy của riêng nó. Hai thứ tìm ra lúc soạn, **không sổ nào ghi**:
+
+- 🔴 **"Nạp ví factory X→P" là CHƯA ĐỦ.** Đo: ví factory **0 trên X và 0 trên P** — nó là ví số
+  đẹp sinh riêng, không phải quỹ genesis ⇒ **không có gì để chuyển X→P**. Phải **hai chặng, hai
+  khoá**: quỹ →(`/api/send-x`)→ factory trên X, rồi factory →(`/api/x-to-p`)→ P của chính nó.
+  `x-to-p` xuất cho `owner()`, tức **chỉ gửi được cho chính mình** — đọc thẳng từ `xp-wallet`.
+- 🟡 **`console-deploy.sh` nay `bash -n` sạch và đoạn đọc manifest in đủ 16 dòng** — nhưng D-088
+  vẫn đứng: **chưa ai thấy nó chạy trọn vẹn**. Đường lui chép tay 5 tệp có trong runbook.
+- ✅ Thay sổ chain **không cần restart console**: `loadState()` đọc đĩa **mỗi lượt gọi**
+  (`server.mjs:275`), không giữ bản trong bộ nhớ. Nhưng **đừng thay lúc có lượt đẻ/thu hồi chạy
+  dở** — `saveState()` sẽ ghi đè.
+
+⚠️ Lúc soạn tôi gắn nhãn `doc-drift: record` lên chính runbook đó rồi **tự gỡ**: nó là **câu ra
+lệnh**, không phải bản ghi, và §2 nói nhãn miễn trừ **chỉ hợp lệ cho câu kể về quá khứ**. Kèm một
+điều đáng biết về `check-doc-drift`: nó đọc `git ls-files` ⇒ **tệp chưa `git add` thì chưa bị
+chấm**, vì thứ chưa xuất bản thì chưa đánh lừa được ai. Phải stage rồi mới đo thật (21 tệp, xanh).
+
 #### 🟢 Một bẫy đã kiểm là KHÔNG dính
 
 `A1_CONFIG_DIR` — thứ HANDOFF cảnh báo *"mọi lượt đẻ chain chết ở bước 2 trong khi node vẫn 9/9
