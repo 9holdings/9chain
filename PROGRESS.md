@@ -1735,3 +1735,72 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
 `h6b --check` ✓ (fork tree `60a61707f797` khớp) · `check-key-leaks` exit 0 · nợ ngôn ngữ
 **5.753 → 5.750** · mạng công khai g0 **10 validator · 9 peer · factory 89,899 LOVE9** ·
 B-12 còn **12 ngày** (`2026-09-12`, node stake-sau, chết cùng g0 ngày G).
+
+---
+
+## 🔴 NGÀY G `2026-09-01` — SỐ ĐO `06:25Z` (VN 13:25), lấy TRƯỚC khối `07:09Z`
+
+Phiên đo, không sửa mã. Mốc thời gian để đọc mọi con số dưới đây: `down -v` ở **`07:39Z`**,
+giờ G ở **`10:09:09Z`**.
+
+⚠️ **Nợ sổ sách phát hiện ngay đầu phiên:** phiên **SOÁT 3 VÒNG** (`8ebae9e`→`cb3813f`, cùng
+ngày) **không cập nhật tệp này** — 7 phát hiện của nó chỉ sống ở `HANDOFF.md` + `DECISIONS.md`.
+Phiên này **không backfill hộ**; mục đó vẫn nợ, và ghi ra đây để nó thôi vô hình.
+
+- [x] 🔴 **H-6b chạy lại — ĐẠT, hai nơi.** Cổng đang **ĐỎ** lúc phiên bắt đầu.
+      **Thấy ĐỎ trước, và đỏ vì ĐÚNG LÝ DO:** fork tree `60a61707` + **26 patch** vẫn khớp;
+      đỏ **chỉ** vì **3 tệp MÃ** đổi sau bản `20260831-201321` —
+      `local-net/deploy/manifest-deploy.json` · `scripts/check-deploy-drift.mjs` ·
+      `scripts/gday-preflight.mjs`, đúng ba tệp 7 commit hôm qua đụng. Tức cổng đo **đúng đại
+      lượng nó khai** (D-069b: "lệch mã ⇒ ĐỎ, lệch tài liệu ⇒ VÀNG"), không phải đỏ giả.
+      ✅ Bản mới **`20260901-061904`**: repo `main f69a216` · **333 commit** · tree `569bc7d1` ·
+      fork **26 patch** · tree `60a61707`. Sáu phép nghiệm thu **chạy thật**: clone ngược máy dev
+      (tree khớp tuyệt đối) · áp 26 patch lên `1cf1fc3` (khớp cây fork **từng byte**) ·
+      🔴 **đối chứng ngược — bundle cắt cụt bị TỪ CHỐI** · quét bí mật **0 khối PRIVATE KEY**
+      (4 tệp `.env`/`.key`; xem lại nếu con số này tăng) · sha256 hai đầu **30/30** ·
+      **clone ngược TRÊN MÁY CHỦ** tree khớp tuyệt đối.
+      Nằm ở `C:\PROJECTS\9Chain-backups\9chain-a1-backup-20260901-061904` và
+      `"$A1_SSH_HOST":~/9chain-a1/backup/20260901-061904`.
+      🔴 **KHÔNG ĐƯỢC ĐỌC THÀNH "ĐÃ AN TOÀN"** — chính script in ra câu đó. Nó **chưa bao giờ**
+      cứu khoá 5 quỹ (D-044 / O1) và chứa **0** danh tính validator (B-20). Lượt này **không**
+      dời B-16 hay B-20 một milimet.
+      ⚠️ **Hết hạn lại** nếu còn commit nào chạm `patches/ local-net/ upstream/ scripts/ web/
+      genesis/ 9chain-a1-config/` trước `down -v`. `bash scripts/h6b-backup.sh --check` trả lời
+      trong 3 giây — **hỏi lại nó, đừng nhớ**.
+
+- [x] **Preflight ĐẦY ĐỦ (có mạng) — `22 đạt · 3 đỏ · 0 không chạy được · 0 bỏ qua · 38 việc tay`**
+      **Trùng khít số đo phiên trước ⇒ 7 commit hôm qua không làm hỏng gì.** Cả **21 cổng repo**
+      xanh, gồm bánh cóc sổ chặn chainId, cổng ngôn ngữ, và **12 bộ đối chứng ngược**.
+      ✓ `G4 · sổ chainId công khai` — nhưng nó **tự khai phải đo lại ngay trước genesis**;
+      đừng dùng lại con số này ở `07:39Z`.
+      🔴 **Ba đỏ, đã kiểm từng cái đỏ VÌ ĐÚNG LÝ DO — đừng vá cho xanh:**
+      (a) `watch-network`: `9chain-a1-g0` · `999999999` · validator **10** · B-12 còn **11 ngày**
+      (`2026-09-12`). Hết đỏ khi g1 lên. 🟡 Số dư `chain-factory` in **KHÔNG ĐO ĐƯỢC** — đó là
+      **đúng thiết kế** (việc tay #99a: chưa khai ví factory cho g1), **vàng chứ không đỏ**;
+      trước khi có mục đó nó mặc định về địa chỉ g0 và trả `unlocked: "0"`, tức **đỏ vì sai lý do**.
+      ✓ Mục mạnh nhất vẫn xanh: **`supplyCap` đo TRÊN NODE ĐANG CHẠY** = `7900000001000000000`
+      khớp repo · node-1 thấy **9 peer** · faucet `/api/supply` có số · console `/whoami` 200.
+      (b) `check-deploy-drift`: **14 khớp · 5 lệch · 1 thiếu · 0 mồ côi · 4 mồ côi ĐÃ KHAI ·
+      14 ngoài tầm canh**. Tất cả là console + faucet **chờ deploy ở giờ G**.
+      (c) `check-net-dirs`: **2 TRAP + 1 DECOY** — không đổi, việc David (B-19).
+
+- [human] 🔴 **SÁU tệp phải lên server ở giờ G — danh sách ĐÃ ĐO, đừng dựng lại từ trí nhớ:**
+      `console/chainid-released.json` (**THIẾU trên server**) · `console/server.mjs` ·
+      `console/chainid-test.mjs` · `console/chainid-issued.json` · `lib/chainid.mjs` ·
+      `faucet/server.mjs`.
+      🔴 `lib/chainid.mjs` **cố ý lệch tới nay** (D-136b) — nó đi **cùng lượt bump**, đẩy sớm là
+      đặt console vào lệch thế hệ vĩnh viễn. 🔴 `faucet/server.mjs` là **MÃ, không phải env** —
+      **không script nào sở hữu tệp này**, nó chỉ di chuyển khi có người dời.
+
+- [human] 🔴 **B-19 nay có SỐ, không còn là chữ.** Hai tệp giữ **cùng `90.007476864 LOVE9`**:
+      `local-net/net-public/chain-factory-key.txt` và
+      `local-net/net-public-dead-720m/allocation.md+chain-factory-key.txt` — cả hai nằm **ngoài
+      mọi băng thế hệ sống** (`⚫ outside every band — dead`). Số tiền đó **chết cùng g0**; giá trị
+      còn lại là **giữ bản ghi**. Dời **rồi so `sha256` từng tệp một**, đừng xoá theo thư mục
+      (gotcha 17 · D-107). Kèm: `net-that-g0/` vẫn là **DECOY** — networkID khớp mạng sống, 6 ví
+      **0đ**; bộ quỹ thật ở `C:\Users\abc\9chain-a1-keys\g0\`.
+
+- [human] **B-16 — thuộc SAU khi g1 xanh, không phải trước `down -v`.** Bộ đáng làm là **g1**,
+      mà netgen chỉ sinh nó ở giờ G. 🔴 **Điều kiện phải giữ suốt lượt bấm: ĐỪNG SHRED GÌ CỦA g0
+      CHO TỚI KHI g1 XANH** — hỏng lượt sinh lại phải hoãn thì g0 là thứ duy nhất còn lại, và
+      lúc đó tiền + khoá g0 **lại có giá trị trở lại**.

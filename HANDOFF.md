@@ -1,7 +1,9 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-01** (phiên **SOÁT 3 VÒNG + VÁ**: image g1 nay ở **CẢ HAI** máy · sổ chặn
-đã xoá có chữ ký · 7 commit `8ebae9e`→`cb3813f`). Trước đó `2026-08-31` phiên **ĐÊM**:
+Cập nhật: **2026-09-01 `06:25Z`** — phiên **SỐ ĐO NGÀY G**: H-6b chạy lại ✅ ĐẠT hai nơi ·
+preflight đầy đủ **22 đạt · 3 đỏ · 38 việc tay**, ba đỏ đúng như dự kiến. Cùng ngày, phiên
+**SOÁT 3 VÒNG + VÁ**: image g1 nay ở **CẢ HAI** máy · sổ chặn
+đã xoá có chữ ký · 7 commit `8ebae9e`→`cb3813f`. Trước đó `2026-08-31` phiên **ĐÊM**:
 🔴 **GIỜ G CHỐT `01/09 13:09:09` Jerusalem** ·
 **image g1 ĐÃ TRÊN SERVER** — chỗ chặn số 1 đã đóng · **cổng đẻ chain ĐÃ ĐÓNG** · O2 + H-6b xong ·
 **hai lượt tổng duyệt, một ở mỗi băng**, và bản băng THẬT chứng minh thứ băng tập không kiểm được).
@@ -25,6 +27,73 @@ node scripts/gday-preflight.mjs      # 26 cổng + 38 VIỆC TAY, một lệnh (
 # Thực còn: 31. Xem D-137/D-142 + mục phiên 2026-09-01 ngay dưới.
 ```
 
+### 🆕🆕🆕🆕 `2026-09-01` `06:25Z` (VN 13:25) — SỐ ĐO NGÀY G, lấy TRƯỚC khối `07:09Z`
+
+Không sửa một dòng mã. Chạy đúng hai việc HANDOFF xếp cho A1, rồi đo lại toàn bộ. **Cả hai số
+đo dưới đây là số TƯƠI**, cách `down -v` (`07:39Z`) khoảng **75 phút**.
+
+#### ✅ H-6b — ĐẠT, hai nơi. Cổng này ĐANG ĐỎ lúc phiên bắt đầu
+
+Thấy **ĐỎ trước**, và đỏ **vì đúng lý do**: fork tree `60a61707` + **26 patch** vẫn khớp, chỉ
+**3 tệp MÃ** đổi sau bản `20260831-201321` — `local-net/deploy/manifest-deploy.json` ·
+`scripts/check-deploy-drift.mjs` · `scripts/gday-preflight.mjs`. Đúng ba tệp mà 7 commit hôm
+qua đụng, tức cổng đo đúng đại lượng nó khai. Dựng lại ⇒ **`20260901-061904`**:
+
+```
+repo main f69a216 · 333 commit · tree 569bc7d1 · fork 26 patch · tree 60a61707
+✓ clone ngược (máy dev): tree khớp tuyệt đối · 333 commit
+✓ áp 26 patch lên 1cf1fc3 (máy dev): tree khớp cây fork TỪNG BYTE
+✓ ĐỐI CHỨNG NGƯỢC: bundle cắt cụt bị TỪ CHỐI ⇒ phép đo biết báo ĐỎ
+✓ QUÉT BÍ MẬT: 0 khối PRIVATE KEY (4 tệp .env/.key — xem lại nếu con số này tăng)
+✓ sha256 hai đầu: 30/30 khớp        (máy chủ)
+✓ clone ngược TRÊN MÁY CHỦ: tree khớp tuyệt đối
+
+C:\PROJECTS\9Chain-backups\9chain-a1-backup-20260901-061904
+"$A1_SSH_HOST":~/9chain-a1/backup/20260901-061904
+```
+
+🔴 **Đừng đọc thành "đã an toàn".** Chính script in ra câu đó: nó **chưa bao giờ** cứu khoá 5
+quỹ (D-044 / O1) và **không** chứa danh tính validator (B-20). Lượt này không dời B-16 hay
+B-20 một milimet nào.
+
+#### Preflight ĐẦY ĐỦ (có mạng) — `22 đạt · 3 đỏ · 0 không chạy được · 0 bỏ qua · 38 việc tay`
+
+**Trùng khít số đo phiên trước ⇒ 7 commit hôm qua không làm hỏng gì.** Cả **21 cổng repo**
+xanh, gồm bánh cóc sổ chặn, cổng ngôn ngữ, và 12 bộ đối chứng ngược. `G4 · sổ chainId công
+khai` xanh — nhưng nó tự khai phải **đo lại ngay trước genesis**, đừng dùng lại con số này.
+
+Ba đỏ **đã kiểm từng cái đỏ VÌ ĐÚNG LÝ DO**, khớp bảng "ba đỏ dự kiến" bên dưới:
+
+```
+watch-network       tên mạng 9chain-a1-g0 · networkID 999999999 · validator 10
+                    B-12 còn 11 ngày (2026-09-12)
+                    🟡 số dư chain-factory KHÔNG ĐO ĐƯỢC — ĐÚNG THIẾT KẾ (việc tay #99a:
+                       chưa khai ví factory cho g1). Vàng, không phải đỏ.
+                    ✓ supplyCap ĐO TRÊN NODE = 7900000001000000000 khớp repo
+                    ✓ node-1 thấy 9 peer · faucet /api/supply có số · console /whoami 200
+check-deploy-drift  14 khớp · 5 lệch · 1 thiếu · 0 mồ côi · 4 mồ côi ĐÃ KHAI · 14 ngoài tầm
+check-net-dirs      2 TRAP (B-19) + 1 DECOY (net-that-g0) — không đổi, việc David
+```
+
+🔴 **SÁU tệp phải lên server ở giờ G — danh sách đã ĐO, đừng dựng lại từ trí nhớ:**
+
+```
+THIẾU   local-net/console/chainid-released.json
+LỆCH    local-net/console/server.mjs
+LỆCH    local-net/console/chainid-test.mjs
+LỆCH    local-net/console/chainid-issued.json
+LỆCH    local-net/lib/chainid.mjs        ⇦ CỐ Ý giữ lại tới nay; đi CÙNG lượt bump
+LỆCH    local-net/faucet/server.mjs      ⇦ faucet ship MÃ; KHÔNG script nào sở hữu tệp này
+```
+
+🔴 **B-19 nay có số, không còn là chữ:** `net-public/chain-factory-key.txt` và
+`net-public-dead-720m/allocation.md+chain-factory-key.txt` — **cùng giữ `90.007476864 LOVE9`**,
+cả hai nằm ngoài mọi băng thế hệ sống. Dời **rồi so `sha256` từng tệp một**, đừng xoá theo thư mục.
+
+⚠️ **Ghi chú sổ sách:** phiên SOÁT 3 VÒNG (`8ebae9e`→`cb3813f`) **không cập nhật `PROGRESS.md`** —
+7 phát hiện của nó chỉ sống trong `HANDOFF.md` + `DECISIONS.md`. Phiên này không backfill hộ;
+mục đó vẫn nợ.
+
 ### 🆕🆕🆕 Phiên `2026-09-01` — SOÁT 3 VÒNG · CHỖ CHẶN SỐ 2 ĐÓNG · SỔ CHẶN XOÁ CÓ CHỮ KÝ
 
 **TL;DR:** David yêu cầu quét kỹ thêm 3 vòng. Ra **7 phát hiện**, trong đó **hai cổng đang ĐỎ mà
@@ -38,6 +107,7 @@ preflight --no-network   21 đạt · 0 đỏ · 4 bỏ qua · 38 việc tay
 preflight ĐẦY ĐỦ         22 đạt · 3 đỏ  (ba đỏ DỰ KIẾN, tự hết ở giờ G — bảng dưới)
 drift                    14 khớp · 5 lệch · 1 thiếu · 0 mồ côi · 4 mồ côi ĐÃ KHAI
 h6b --check              🔴 CŨ (mã đổi sau lượt lưu) ⇒ chạy LẠI ở khối 07:09Z
+                         [stale-ok — số của phiên đó. ĐÃ CHẠY LẠI 06:19Z, ✅ ĐẠT: xem mục trên]
 sổ chặn chainId          49 · 54  →  0 · 0  (thả có chữ ký, xem dưới)
 ```
 
@@ -108,7 +178,10 @@ Mọi thao tác phải **cộng thêm**; `docker system prune` ở đó là xoá
 #### Việc tiếp — theo thứ tự chặn
 
 1. 🔴 **David:** **B-16** · **B-19** — hai thứ duy nhất còn chặn GO/NO-GO mà không ai làm thay được.
-2. 🔴 **Khối `07:09Z`:** chạy lại `bash scripts/h6b-backup.sh` (đang cũ vì 7 commit hôm nay).
+2. ✅ ~~**Khối `07:09Z`:** chạy lại `bash scripts/h6b-backup.sh`~~ **XONG `06:19Z`** —
+   bản `20260901-061904`, hai nơi, sáu phép nghiệm thu. 🔴 **Hết hạn lại nếu còn commit nào
+   chạm `patches/ local-net/ upstream/ scripts/ web/ genesis/ 9chain-a1-config/` trước `down -v`**
+   — `bash scripts/h6b-backup.sh --check` trả lời trong 3 giây, hỏi lại nó thay vì nhớ.
 3. **Deploy console + faucet ở giờ G** — nhớ faucet phải ship **MÃ**, không chỉ `FAUCET_PK`
    (việc tay riêng, mới thêm). Console mang `chainid-released.json` + sổ rỗng.
 4. **heartbeat:** dừng bơm trước `down -v` · gieo lại `heartbeat.json` cho g1 · thu hẹp mount
