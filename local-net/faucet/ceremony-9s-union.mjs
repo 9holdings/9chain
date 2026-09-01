@@ -427,9 +427,19 @@ async function runCeremony(chain, {
  *
  * The difference is not the network. `curl` opens a NEW TLS connection every invocation and pays
  * ~0.5s of handshake plus a cold path; ethers keeps the connection alive, so only the first call
- * pays that. The 2.9s figure measured **the tool**, not the link — the same shape as 9Scan's own
- * caveat that their 1.4–2.3s reading was "the measurer's geography penalty", and the same shape
- * as this project's most expensive failure class: *measuring the wrong quantity*.
+ * pays that. The 2.9s figure measured **the tool**, not the link — this project's most expensive
+ * failure class, *measuring the wrong quantity*, in the hands of the person warning about it.
+ *
+ * The 9Scan team re-measured the same hour after reading this and found the same defect in their
+ * own figure, so the two now reconcile instead of contradicting each other:
+ *
+ *   from inside the server      9–10 ms          (their indexer's actual path)
+ *   from the dev machine, warm  ~0.44–0.5 s curl · ~0.31 s ethers   ← round trip via the CF edge
+ *   from the dev machine, cold  1.3–2.9 s        ← plus a fresh TLS handshake, every call
+ *
+ * So the honest ratio dev-to-server is about **50x**, not the 200x either side first said, and
+ * the part that is genuinely distance is ~0.44 s for a **40-byte** response — no payload left to
+ * blame it on.
  *
  * ⇒ What actually holds, at ~310 ms per call against a ~2s block floor (one call ≈ 0.15 blocks):
  *   · Deterministic mode on a quiet chain: comfortable. Each filler is ~3 round trips ≈ 1s, so
