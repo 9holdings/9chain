@@ -1971,7 +1971,25 @@ giao dịch nào.
       ⚠️ Và **6/15 ca đối chứng đầu đỏ vì lỗi trong chính bài kiểm** — ca *"remote biến mất"* khi
       đó **xanh VÌ LỖI ĐÓ**. Đã tách vai theo từng ca + thêm ca kiểm **gọi đúng TÊN**.
 
-### 🔴 Mở lại cổng đẻ chain L1 — ba việc, đo `01/09 13:03Z`, **cả ba là việc có người bấm**
+### 🔴 Mở lại cổng đẻ chain L1 — ba việc, **cả ba là việc có người bấm**
+
+✅ **Nay có MỘT lệnh đo cả ba** (D-152) — mặc định chỉ đọc, không gửi gì tới sản phẩm:
+
+```bash
+node scripts/reopen-chain-creation.mjs            # ba bước, và THỨ TỰ là phép kiểm
+node scripts/reopen-chain-creation.mjs --probe     # hỏi console thật (KHÔNG tạo được chain)
+```
+
+Đo `01/09` — **cả ba đỏ, đúng thứ tự**: `1` 4 lệch + 1 thiếu · `2` **0 LOVE9** ·
+`3` **CLOSED**, cửa tự trả lời bằng câu của chính nó. **21/21** đối chứng ngược.
+🔴 Nó **từ chối nói "sẵn sàng"** khi bước sau xanh mà bước trước đỏ, và gọi thẳng đó là
+**OUT OF ORDER** — vì mở cửa trước khi đẩy sổ là cấp chainId của **thế hệ đã chết** vào một
+genesis **bất biến**, thứ không thu hồi được.
+⚠️ Ba lỗi lộ ra lúc dựng, đều là bài cũ: cổng **đỏ vì sai lý do** (bung dấu ngã ⇒ báo cả 5 tệp
+MISSING trong khi 4 tệp có thật) · **tệp token là ghi chú có chứa bí mật**, không phải bí mật
+(5 dòng; đọc cả tệp ra "token" 280 ký tự) · **Node sập lúc thoát mã 127** vì `fetch` giữ socket.
+✅ Kèm: `VI_FACTORY_THEO_THE_HE` tách khỏi `watch-network.mjs` sang `local-net/lib/factory-wallets.mjs`
+— import một script để mượn hằng số thì **chạy cả cổng đó** rồi `process.exit`, đã xảy ra thật.
 
 Thứ tự **bắt buộc**, và nó là thứ tự chứ không phải danh sách:
 

@@ -99,6 +99,9 @@ node scripts/check-doc-drift.mjs             # 🔴 TÀI LIỆU có khai số c�
                                              #    ĐO mạng sống rồi mới chấm; bản ghi/đóng băng KHÔNG quét
 node scripts/check-remotes.mjs               # 🔴 nơi ĐẨY còn làm được việc của nó không (D-151)
                                              #    sao lưu còn ghi được · và chỗ RIÊNG TƯ còn riêng tư
+node scripts/reopen-chain-creation.mjs       # MỞ LẠI ĐẺ CHAIN L1: ba việc, và THỨ TỰ là phép kiểm
+                                             #    mặc định CHỈ ĐỌC · `--probe` mới hỏi console thật
+                                             #    (phép thăm dò KHÔNG tạo được chain — D-152)
 node scripts/check-consistency.mjs --self-test # số học tokenomics, đọc THẲNG từ Go
 node scripts/gen-chainid-issued.mjs --check  # sổ chainId/tên xuyên thế hệ
 node local-net/console/chainid-test.mjs      # phép cấp chainId

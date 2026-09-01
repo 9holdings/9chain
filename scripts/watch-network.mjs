@@ -36,6 +36,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { A1_GEN, NETWORK_ID, TEN_MANG } from "../local-net/lib/chainid.mjs";
 import { SSH_HOST, SSH_KEY } from "../local-net/lib/server.mjs";
+import { VI_FACTORY_THEO_THE_HE } from "../local-net/lib/factory-wallets.mjs";
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -45,34 +46,9 @@ const WEB = lay("--web", "https://a1.9chain.org");
 const HOST = lay("--host", SSH_HOST);
 const KHOA = lay("--ssh-key", SSH_KEY);
 const KHONG_SSH = argv.includes("--no-ssh");
-/**
- * The `chain-factory` wallet, PER GENERATION.
- *
- * ═══ 🔴 WHY THIS IS A MAP AND NOT A DEFAULT STRING ═══
- *
- * This was `lay("--wallet", "P-love91vgh2wh…")` — the g0 factory address, hard-coded as the
- * default of a gate that runs on G-day. Re-genesis mints a NEW factory key (D-117b, and
- * mandatory since the key leak of 2026-08-31), so on the morning of g1 this gate would have
- * asked the chain about a wallet from the generation that had just been thrown away.
- *
- * And it would not have errored: `platform.getBalance` answers `unlocked: "0"` for an address
- * that simply holds nothing. So the gate goes RED reading "the factory wallet is empty" —
- * true of the address it asked about, meaningless about the network — while the wallet that
- * actually pays for every chain creation is never measured at all. Red for the wrong reason
- * is worse than red: it sends someone to top up a dead wallet.
- *
- * ⇒ Keyed by generation, and a generation with no entry is **UNMEASURABLE (exit 2)**, never
- *   a silent zero. "I don't know which wallet to ask about" is not "the wallet is empty".
- *   Declaring the g1 address here is a G-day manual task, listed in `gday-preflight.mjs`.
- */
-const VI_FACTORY_THEO_THE_HE = {
-  0: "P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj",
-  // 🔴 A NEW KEY PER GENERATION, NOT THE OLD ONE CARRIED FORWARD (D-117b). The g0 factory key
-  // was byte-identical to the one in a backup of the already-dead 9001 network, which meant a
-  // bundle describing a dead chain still held spend authority on the live one. g1 gets its own,
-  // and it is a vanity address: nine 9s at the end, ground out in 52m36s.
-  1: "P-love91999h0q4ucfnex9q0qxefuu0ke0xtyvl6739999",
-};
+// The per-generation `chain-factory` wallet. Moved to its own module 2026-09-01: this file is a
+// SCRIPT, so a second reader importing it to borrow the table would run the whole gate and then
+// hit `process.exit`. The rationale for the map travels with the map — see the module.
 const VI_FACTORY = lay("--wallet", VI_FACTORY_THEO_THE_HE[A1_GEN] ?? null);
 
 // ─── Ngưỡng — khai ở MỘT chỗ, và bài đối chứng lái được chúng ───
