@@ -89,6 +89,27 @@ node scripts/gday-preflight.mjs      # 34 cổng + 40 VIỆC TAY, một lệnh (
 # Thực còn: 31. Xem D-137/D-142 + mục phiên 2026-09-01 ngay dưới.
 ```
 
+### 🔵 CHỐT PHIÊN `2026-09-01` `18:25Z` — bốn commit **CHƯA ĐẨY**
+
+```
+preflight 18:22Z   31 đạt · 3 đỏ · 0 không chạy được · 0 bỏ qua · 40 việc tay   (34 cổng)
+```
+
+Ba lượt preflight trong phiên (`14:49Z` · `15:03Z` · `18:22Z`) — **trùng khít cả con số lẫn nội
+dung**. Ba đỏ **đều là việc David**, không cái nào là lỗi mã:
+
+| đỏ | việc |
+|---|---|
+| `watch-network` | ví `chain-factory` **0 LOVE9** — nạp **hai chặng**, xem runbook |
+| `check-deploy-drift` | console trên server còn bản g0 — **5 tệp** |
+| `check-chain-ledger` | sổ chain **công khai** còn khai 2 chain của g0 |
+
+🔴 **Bốn commit chưa đẩy** (`1e4c1f3` `e3a67cc` `60f9034` `5d807fc`). Đẩy là việc **hỏi David**,
+và §4: **ba remote, đọc TÊN trước** — `official` là cả Internet.
+
+**Phiên sau bắt đầu từ:** `docs/RUNBOOK-REOPEN-CHAIN-CREATION.md` nếu David đã dọn xong, hoặc
+`node scripts/reopen-chain-creation.mjs --probe` để đo lại còn đỏ ở đâu.
+
 ### 🆕🆕 `2026-09-01` `15:2xZ` — 🔴 **SỔ CHAIN CÔNG KHAI LÀ SỔ CỦA MẠNG ĐÃ CHẾT** (D-154)
 
 Hỏi *"sắp chạy được phần user tạo chain chưa"*. Câu trả lời: **chưa**, ba việc, cả ba đỏ, đúng
