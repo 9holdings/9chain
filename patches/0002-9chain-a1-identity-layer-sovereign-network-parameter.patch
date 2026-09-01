@@ -1,7 +1,7 @@
 From bdc6ea6a1c60361a33d567ac688755548c3200ea Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Mon, 24 Aug 2026 22:56:38 +0400
-Subject: [PATCH 02/26] 9chain-a1: identity layer + sovereign network
+Subject: [PATCH 02/27] 9chain-a1: identity layer + sovereign network
  parameters
 
 Lop lam 9Chain-A1 khac avalanchego. Truoc commit nay no ton tai duy nhat

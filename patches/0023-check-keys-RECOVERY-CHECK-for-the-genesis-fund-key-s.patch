@@ -1,7 +1,7 @@
 From 1d4cc3d1b32a1c8f6122d8abb627ab0089a59d50 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Fri, 28 Aug 2026 00:03:16 +0400
-Subject: [PATCH 23/26] =?UTF-8?q?check-keys:=20RECOVERY=20CHECK=20for=20th?=
+Subject: [PATCH 23/27] =?UTF-8?q?check-keys:=20RECOVERY=20CHECK=20for=20th?=
  =?UTF-8?q?e=20genesis=20fund=20key=20set=20=E2=80=94=20turns=20O1=20into?=
  =?UTF-8?q?=20one=20command?=
 MIME-Version: 1.0

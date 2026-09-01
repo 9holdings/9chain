@@ -1,7 +1,7 @@
 From d7076c8a524e85e51e1684c6f5f0e2b541347b86 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Sun, 30 Aug 2026 09:55:42 +0400
-Subject: [PATCH 26/26] identifiers: bump A1Gen 0 -> 1 for the G-day generation
+Subject: [PATCH 26/27] identifiers: bump A1Gen 0 -> 1 for the G-day generation
  (g1)
 
 Everything else is derived, so this one integer moves five things at once:

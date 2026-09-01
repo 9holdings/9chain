@@ -1,7 +1,7 @@
 From ff72424ef4b7f5e30264b6881db96ce9a45b5e2e Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Mon, 24 Aug 2026 22:56:19 +0400
-Subject: [PATCH 01/26] 9chain-a1: disable newline normalization for the fork
+Subject: [PATCH 01/27] 9chain-a1: disable newline normalization for the fork
  tree (avoid CRLF war on apply) [skip ci]
 
 ---

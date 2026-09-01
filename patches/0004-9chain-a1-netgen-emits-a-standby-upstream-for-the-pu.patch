@@ -1,7 +1,7 @@
 From 2e0bc12adfb73f2130c610816cf050bf610368b0 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Mon, 24 Aug 2026 23:57:08 +0400
-Subject: [PATCH 04/26] 9chain-a1: netgen emits a standby upstream for the
+Subject: [PATCH 04/27] 9chain-a1: netgen emits a standby upstream for the
  public RPC (node-2:9660)
 
 Voi MOT upstream duy nhat, moi lan node-1 restart la RPC cong khai chet. Ma node
