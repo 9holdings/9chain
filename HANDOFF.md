@@ -13,8 +13,11 @@ URL, vẫn cho đọc, vẫn trả `fetch` — **chỉ từ chối GHI**. Nay: r
 `daviddokrao/9chain-a1-backup` (375 commit, PRIVATE, kiểm **trước** khi đẩy) · remote chết giữ lại
 đổi tên `archived-31aug` · cổng `check-remotes.mjs` **16/16**, đã thấy đỏ trên **dữ liệu thật**.
 ⚠️ **Ba remote — đọc TÊN trước khi đẩy, một trong ba là cả Internet.**
-🟢 **Mở lại đẻ chain L1: ba việc, cả ba là việc có người bấm** — sổ chainId lên server → nạp ví
-factory (X→P) → bật cờ. Nghi lễ `09/09` **không** chặn việc này (P-Chain ≠ C-Chain).
+🟢 **Mở lại đẻ chain L1 (D-152): ba việc, cả ba là việc có người bấm, và nay có MỘT lệnh đo cả ba**
+— `node scripts/reopen-chain-creation.mjs --probe`. Thứ tự **là** phép kiểm: sổ + mã console lên
+server → nạp ví factory (**X→P**, không phải X sang X) → bật cờ. Đo `01/09`: cả ba đỏ, đúng thứ tự.
+Phép đo cửa **không tạo được chain** (gửi tên `!`, regex tên của console không đời nào nhận).
+Nghi lễ `09/09` **không** chặn việc này (P-Chain ≠ C-Chain).
 Trước đó cùng ngày — phiên **HẬU PHÓNG**: ① cổng mới canh **lịch sử git** trước lượt
 bật repo công khai (D-145) — **0 vật liệu khoá trong 2.349 object** ② **kịch bản nghi lễ `09/09`**
 (D-146, 11 đối chứng, chạy khô mặc định) ③ **D-147: ranh giới Block Adam = BAO GỒM** (`ts >= mốc`),
@@ -40,6 +43,23 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 > `HANDOFF.md` thắng về **số đo**. Backlog: [`PROGRESS.md`](PROGRESS.md).
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
+
+### Năm bẫy của phiên `2026-09-01` chiều muộn — đọc trước khi đụng vào bất cứ thứ gì
+
+1. 🔴 **BA remote, một trong ba là cả Internet.** `official` = **CÔNG KHAI** · `origin` = bản sao
+   lưu riêng tư **MỚI** (`daviddokrao/9chain-a1-backup`) · `archived-31aug` = chỉ đọc, đẩy vào là
+   403. **Đọc TÊN trước khi đẩy.** Cổng: `node scripts/check-remotes.mjs`.
+2. 🔴 **Đừng viết chuỗi `[skip` + `ci]` nguyên văn trong THÂN commit message.** Hook pre-push grep
+   cả thân, **và GitHub cũng vậy** — một câu *giải thích* dấu đó hoạt động y hệt dấu đó. Đã bị từ
+   chối hai lượt trước khi nhận ra. Muốn nói tới nó thì viết `skip-ci`.
+3. 🔴 **Tệp `console-token.txt` là một GHI CHÚ có chứa bí mật, không phải một bí mật** — 5 dòng,
+   token là dòng 32 ký tự không khoảng trắng. Đọc cả tệp rồi `trim()` ra "token" 280 ký tự, và
+   Node báo *"Invalid character in header content"* — thông báo trỏ đi rất xa nguyên nhân.
+4. 🔴 **`import` một SCRIPT để mượn hằng số sẽ CHẠY cả kịch bản đó** rồi `process.exit`, giết
+   tiến trình đang mượn. Đã dính với `watch-network.mjs`. Hằng số dùng chung phải nằm trong
+   module không tác dụng phụ (`local-net/lib/factory-wallets.mjs`).
+5. 🔴 **`fetch` + `process.exit()` trên Windows = `UV_HANDLE_CLOSING`, thoát mã 127.** Một cổng
+   sập trên đường ra bị đọc thành thất bại. Dùng `http/https` thô với `connection: close`.
 
 ```bash
 node scripts/gday-preflight.mjs      # 32 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
