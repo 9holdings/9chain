@@ -1915,3 +1915,14 @@ giao dịch nào.
       nơi trong một lượt (kịch bản nghi lễ · bài diễn tập · CANON). `--boundary strict` giữ lại
       **chỉ để đo** bản đọc đã nghỉ. Bản chấm 7/1 của vật chứng `27/08` **giữ nguyên** — nó chấm
       dưới luật cũ và là câu kể về quá khứ. 11/11 đối chứng vẫn xanh sau lượt đổi.
+
+- [x] 🟢 **B-20 nửa phần mềm ĐÓNG** — gói danh tính 9 validator của g1: **29 tệp · 27 danh tính ·
+      0 thiếu · 0 lệch**, nghiệm thu bằng **đếm tệp trong gói**. Công cụ: `backup-validator-identity.mjs`
+      (11 đối chứng ngược; `--check --rpc` hỏi **chain thật**, không suy từ thư mục — D-110).
+- [x] 🟢 **B-16 ĐÓNG cho g1** — bộ khoá quỹ vào kho khoá, **trùng byte**; `o1-check --rpc` **mã 0,
+      cả hai nửa xanh**: khoá suy đúng 6 địa chỉ **và** 6 địa chỉ giữ tiền thật trên `999999998`.
+- [ ] 🔴 **[human] Nửa VẬT LÝ của cả B-16 lẫn B-20** — hai bản sao đang trên **cùng một ổ đĩa**.
+      Sống sót qua *xoá nhầm*, **không** sống sót qua *mất máy*. Đưa sang media khác, và **cất
+      tách nhau** (`check-key-leaks` canh khoá quỹ, không canh danh tính).
+- [x] **Hai chỗ `FILL-ON-G-DAY` cuối đã điền** ⇒ cổng xuất bản `grep -c` = **0**. Repo chính thức:
+      `github.com/9holdings/9chain` · kênh liên hệ: GitHub Issues (D-148).

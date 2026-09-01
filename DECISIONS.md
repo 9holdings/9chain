@@ -6169,3 +6169,48 @@ mạnh nhất cho biết vì sao ranh giới này phải được chốt bằng 
 
 Nội dung **giao dịch Adam và Eva** vẫn chưa ai khai ở đâu (D-146 §treo 1). Chốt ranh giới **không**
 chốt hộ chuyện đó.
+
+---
+
+## D-148 — **CÔNG BỐ MÃ NGUỒN: `github.com/9holdings/9chain`, và thứ tự công bố là một quyết định** (David chốt `2026-09-01`)
+
+> *"giờ tôi cần đưa code lên github chính thức của dự án để cho cộng đồng vào tạo Validator"*
+
+### Hai câu hỏi, hai lựa chọn, và lý do lựa chọn thứ hai quan trọng hơn nó trông
+
+**① Repo đích: `9holdings/9chain`** — không phải remote cũ `daviddokrao/9chain-a1`.
+🔴 **Đo trước khi chạm:** repo đó **ĐÃ CÔNG KHAI và RỖNG** (`isEmpty: true`, `visibility: PUBLIC`).
+⇒ **`git push` CHÍNH LÀ lượt công bố.** Không có bước *"đẩy trước, bật công khai sau"* như với
+remote cũ — nghĩa là mọi thứ phải đúng **trước** lệnh đẩy, không sửa sau.
+
+**② Phạm vi: công bố TẤT CẢ, nhưng ĐÓNG B-16/B-20 TRƯỚC.** Đây là quyết định đắt hơn nó trông.
+
+Sổ làm việc đi kèm mã: **10.852 dòng** (`DECISIONS` · `HANDOFF` · `BLOCKERS` · `PROGRESS`), trong
+đó **41 lần** đường dẫn kho khoá trên máy cá nhân, **20 lần** đường dẫn thư mục bản lưu. Công bố
+nguyên trạng lúc `11:00Z` là đăng kèm một câu đúng nguyên văn: *"quyền chi 9 tỷ LOVE9 nằm ở đúng
+thư mục này trên đúng một máy, và bản sao thứ hai chưa tồn tại."*
+
+⇒ Ba đường đã cân: (a) công bố ngay · (b) **đóng B-16/B-20 rồi công bố tất cả** · (c) tách repo,
+giữ sổ riêng. **David chọn (b).** (c) bị loại có lý do: nó đẻ ra **hai nguồn sự thật** và phá
+chính lý lẽ *"kiểm được mà không cần tin ai"* — thứ mà cả `patches/`, `docs/engrave/CANON.txt` và
+`RUN-A-VALIDATOR.md` tồn tại để phục vụ.
+
+🔴 **Điểm cốt lõi của (b):** bản đồ điểm yếu **vẫn được đăng** — nhưng nó trỏ vào những thứ **đã
+không còn đúng**. Đó là khác biệt giữa *minh bạch* và *hớ hênh*, và nó tốn đúng một tiếng.
+
+### Đã làm trước khi đẩy — theo thứ tự, mỗi bước có phép đo
+
+1. **B-20** — `backup-validator-identity.mjs --write` ⇒ **29 tệp · 27 danh tính · 0 thiếu · 0 lệch**.
+2. **B-16** — bộ khoá quỹ g1 vào kho khoá, **trùng byte**; `o1-check --rpc` ⇒ **mã 0, cả hai nửa
+   xanh** (khoá suy đúng địa chỉ **và** địa chỉ giữ tiền thật trên `999999998`).
+3. **Cổng lịch sử git** (D-145) chạy lại: **0 vật liệu khoá** trên toàn kho object.
+4. **Hai chỗ `FILL-ON-G-DAY` cuối** đã điền ⇒ `grep -c` = **0**:
+   `git clone https://github.com/9holdings/9chain.git` và kênh liên hệ = **GitHub Issues**.
+   *(Chọn Issues công khai có chủ ý: lỗi của một validator gần như luôn là lỗi người sau cũng
+   gặp; trả lời riêng thì giúp được một người.)*
+
+### 🔴 Thứ CHƯA đóng, và đừng đọc mục này thành đã đóng
+
+B-16 và B-20 nay là **hai bản sao trên CÙNG MỘT ổ đĩa**. Chúng sống sót qua *xoá nhầm*, **không**
+sống sót qua *mất máy*. Việc còn lại là **vật lý và của David**: đưa cả hai sang media khác, và
+**không cất chung** — `check-key-leaks` canh khoá quỹ, **không** canh danh tính validator.
