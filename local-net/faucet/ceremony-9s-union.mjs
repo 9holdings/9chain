@@ -39,7 +39,9 @@
  *      the Eva transaction misses that block, the ceremony has a problem; the arithmetic does not.
  *
  * 🔴 **THE BOUNDARY IS RULED, NOT DEFAULTED — David, 2026-09-01 (D-147): INCLUSIVE.**
- * *"dùng luật bao gồm đi, C1 đã công bố rồi."* C1's wording is *"from 06:09:09Z onward"* (`>=`);
+ * *"Use the inclusive rule — C1 has already published it."* (Original wording in D-147; §0 keeps
+ * code English, so the quote lives there and the ruling lives here.) C1's page says "from
+ * 06:09:09Z onward" (`>=`);
  * A1's 2026-08-27 drill scored the same question as *"the first block to CROSS"* (`>`) and failed
  * 1 of 8 cases on exactly this — the ceremonial block was sealed with a timestamp EXACTLY on the
  * mark, so under `>` Block Adam would have been Eva's block. Two chains telling one story may not
