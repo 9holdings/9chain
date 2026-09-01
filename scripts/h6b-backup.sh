@@ -249,6 +249,24 @@ nt_quet_bi_mat() {  # $1 = cây đã clone ngược
   else
     dat "QUÉT BÍ MẬT: không khối PRIVATE KEY nào ($n_env tệp .env/.key — xem lại nếu con số này tăng)"
   fi
+
+  # 🔴 THE SCAN ABOVE CANNOT SEE THE OBJECT DATABASE, AND SAYS SO IN ITS OWN FLAGS.
+  # `--exclude-dir=.git` is deliberate — grepping packfiles would be noise — but it means the
+  # measurement is about the CHECKED-OUT TREE. A bundle carries every historical object, so a key
+  # committed once and deleted the next day travels inside this backup while this function says
+  # "no PRIVATE KEY block". It also only knows the PEM shape: neither `PrivateKey-` cb58 nor a
+  # bare `0x` EVM key would match even if it were sitting in the working tree.
+  # ⇒ D-145's gate reads the objects instead. Run it against the CLONE, not the source repo:
+  # what matters here is what this bundle would hand to whoever restores it.
+  local ma=0
+  node "$ROOT/scripts/check-history-secrets.mjs" --repo "$1" --all-objects >"$TAM/histsec.txt" 2>&1 || ma=$?
+  case "$ma" in
+    0) dat "QUÉT LỊCH SỬ (D-145): không vật liệu khoá trong kho object của bản lưu" ;;
+    2) truot "QUÉT LỊCH SỬ (D-145): KHÔNG ĐO ĐƯỢC — 'không đo được' không phải 'sạch'"
+       sed 's/^/       /' "$TAM/histsec.txt" ;;
+    *) truot "QUÉT LỊCH SỬ (D-145): CÓ vật liệu khoá trong lịch sử — KHÔNG ĐƯỢC ĐẨY RA NGOÀI"
+       sed 's/^/       /' "$TAM/histsec.txt" ;;
+  esac
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

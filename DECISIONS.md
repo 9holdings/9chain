@@ -6048,3 +6048,31 @@ Theo đúng luật ghi sẵn trong `gday-preflight.mjs` (*"một `--self-test` t
 đây là đối chứng không ai để ý lúc nó hỏng"*). Cổng repo **22 → 24**; số đo phiên: **24 đạt ·
 2 đỏ · 1 không chạy được · 40 việc tay** — hai đỏ vẫn là hai đỏ cũ (ví `chain-factory` 0 đồng ·
 console chưa deploy), không đỏ nào mới.
+
+### 🔴 Bổ sung cùng ngày — **cổng bắt CHÍNH NÓ, và cách sửa đúng không phải miễn trừ**
+
+Ngay sau commit đầu, chạy lại trên **một bản clone**: **ĐỎ** — `scripts/check-history-secrets.mjs`
+bị chấm là rò rỉ. Ca đối chứng PEM của nó viết thẳng chuỗi `-----BEGIN OPENSSH PRIVATE KEY-----`
+vào mã, và commit vừa rồi biến đúng dòng đó thành **một blob trong lịch sử mà nó quét**.
+
+Đường sửa cám dỗ là **miễn trừ cho chính tệp cổng**. Đó là **một cái lỗ có chú thích bên cạnh**,
+và mọi bản sao ca đối chứng sau này thừa hưởng nó.
+
+Đường sửa đúng là đo **thứ khiến một khối PEM nguy hiểm: phần THÂN**. Tiêu đề mà sau nó chín ký
+tự thì không mang khoá nào; tiêu đề + **100+ ký tự base64** thì có. ⇒ Cổng đòi **cả hai**, và hệ
+quả phụ là một khối PEM **đã che/cắt cụt trong tài liệu** nay **đúng đắn không phải phát hiện**.
+Cùng lúc, ca đối chứng dựng tiêu đề **bằng cách ghép chuỗi lúc chạy** và thân **sinh ngẫu nhiên**
+⇒ mã nguồn cổng không còn chứa mẫu nào của chính nó.
+
+**Đây chính là luật cứng #2 đang làm việc:** cổng được nhìn thấy lúc ĐỎ, và cái đỏ đó **đúng lý
+do** (blob ấy có thật trong lịch sử) — chỉ là ngưỡng đặt ở đại lượng sai. Đối chứng ngược **11 →
+12 ca**, thêm: *"tiêu đề PEM không có thân KHÔNG phải phát hiện"* — chính là blob mà lượt commit
+đầu để lại, nay được **đo** chứ không được **tha**.
+
+Kèm hai chỗ khác trong cùng lượt:
+- **Sửa một câu khai phạm vi SAI**: object không ref nào với tới **không** được `git push --mirror`
+  gửi (push chỉ chuyển thứ ref với tới). Chúng đi theo **bản chép hệ tệp của `.git`** — tar thư
+  mục, ảnh đĩa, máy sang tay. `--all-objects` là phạm vi phòng thủ cho tình huống đó.
+- **`h6b-backup.sh` nay gọi cổng này trên CÂY ĐÃ CLONE NGƯỢC.** Hàm `nt_quet_bi_mat` tự khai
+  `--exclude-dir=.git` ⇒ nó đo **cây làm việc**, trong khi bundle mang **mọi object lịch sử**.
+  Mã 2 (không đo được) tính là **trượt**, không phải đạt.
