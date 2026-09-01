@@ -122,6 +122,14 @@ const GATES = [
   { group: "2 · REPO GATES", name: "net* generation banding (counter-check)", ...node("scripts/check-net-dirs.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "fund-key leak detection (counter-check)", ...node("scripts/check-key-leaks.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "keys-hold-real-money (counter-check)", ...node("scripts/check-keys-on-chain.mjs", "--self-test") },
+  // 🔴 GIT HISTORY, not the working tree. `check-key-leaks` walks directories and `h6b-backup.sh`
+  // greps with `--exclude-dir=.git`: between them, no gate had ever read a single historical
+  // object — and making the repository public publishes every one of them, irreversibly. Both
+  // halves are wired because this gate's own first real run went red for the WRONG reason (it
+  // had swallowed `g0/genesis.json` into its yardstick), which is precisely what a counter-check
+  // that runs on every invocation is for. Cost: under a second, fully offline.
+  { group: "2 · REPO GATES", name: "git history carries no key material (counter-check)", ...node("scripts/check-history-secrets.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "git history carries no key material", ...node("scripts/check-history-secrets.mjs", "--all-objects") },
   { group: "2 · REPO GATES", name: "single-source detection (counter-check)", ...node("scripts/check-single-source.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "Block Adam offset picking (counter-check)", ...node("scripts/check-clock-skew.mjs", "--self-test") },
   // EIP-55 sits on the product path: it is what stops a mistyped admin address from becoming

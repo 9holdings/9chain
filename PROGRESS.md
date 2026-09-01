@@ -1848,3 +1848,55 @@ Phiên này **không backfill hộ**; mục đó vẫn nợ, và ghi ra đây đ
       chạy **4 phút 37 giây** (mở nhiều tệp hơn hẳn). Chưa nằm trong `gday-preflight` (preflight
       chỉ gọi `--self-test`), nên **hôm nay không tốn gì** — nhưng nếu sau này nối lượt quét đầy
       đủ vào preflight thì con số đó phải được biết trước, không phát hiện giữa ngày G.
+
+---
+
+## 🟢 `2026-09-01` SAU GIỜ G — phiên **HẬU PHÓNG**, số đo `10:2xZ`–`11:0xZ`
+
+Mạng g1 sống được ~1 giờ khi phiên bắt đầu. Không đụng mạng, không đụng server, không gửi
+giao dịch nào.
+
+- [x] 🔴 **CỔNG MỚI: lịch sử git có vật liệu khoá không** — `scripts/check-history-secrets.mjs`
+      (D-145). **Vì sao bây giờ:** việc kế tiếp của David là **bật repo CÔNG KHAI**, mà bật là
+      xuất bản **mọi commit** — và **không cổng nào từng đọc một object lịch sử nào**
+      (`h6b-backup.sh` quét `--exclude-dir=.git` + chỉ tìm PEM; `check-key-leaks` đi theo thư mục
+      nên mù với blob không cây nào trỏ tới).
+      **Điều kiện qua — cả bốn:** ① chạy trên repo THẬT, hai phạm vi ② **11 ca đối chứng ngược**
+      + **một ca ĐỎ trên dữ liệu thật** (nạp sha256 genesis công khai giả dạng dòng khai khoá ⇒
+      đỏ đúng `HANDOFF.md` · `RUN-A-VALIDATOR.md` · **một lời nhắn commit**) ③ đo **trên máy dev**
+      — nơi sinh ra thứ được đẩy đi ④ D-145 + mục này.
+      🔴 **Lần chạy thật đầu tiên ĐỎ 68 mục và nó đỏ VÌ SAI LÝ DO** — thước đo nuốt cả
+      `g0/genesis.json`. *"Sai rộng thì không mất gì"* đúng cho phía ĐI TÌM, **sai cho THƯỚC ĐO**.
+      **Kết quả: 0 phát hiện · 2.349 object (toàn kho) · 969–978 token hex 🟡 khai ra ·
+      121 object không ref nào với tới** (đó là thứ `git push --mirror` gửi mà `git push` không).
+      ⇒ **Bật công khai KHÔNG bị chặn bởi đại lượng này.**
+      Đã nối vào `gday-preflight` cả hai vế (self-test + lượt thật): cổng **22 → 24 đạt**.
+
+- [x] **Đo lại toàn bộ sau khi mạng lên** — `24 đạt · 2 đỏ · 1 không chạy được · 40 việc tay`.
+      Hai đỏ **đã kiểm là đỏ vì đúng lý do**, và **cả hai đều là việc của David**:
+      🔴 (a) `watch-network`: mọi mục xanh (`9chain-a1-g1` · `999999998` · **9 validator** ·
+      8 peer · `supplyCap` đo **trên node đang chạy** · B-12 còn **309 ngày**) trừ **ví
+      `chain-factory` = 0 LOVE9**. Đây là mục #3 trong ba việc của David: **nạp X→P trước khi mở
+      cổng đẻ chain**, nếu không người đầu tiên bấm nút nhận `insufficient funds`.
+      🔴 (b) `check-deploy-drift`: **15 khớp · 4 lệch · 1 thiếu · 1 mồ côi**. Lệch là **console**:
+      `chainid-released.json` (**THIẾU trên server**) · `server.mjs` · `chainid-test.mjs` ·
+      `chainid-issued.json` · `lib/chainid.mjs`. 🔴 Nghĩa là **console công khai vẫn là bản g0**:
+      `A1_GEN` ở đó = 0 ⇒ nó cấp chainId từ khối của **thế hệ đã chết**. Tạm thời vô hại **chỉ
+      vì** cổng đẻ chain đang ĐÓNG — mở cổng trước khi deploy console là mở đúng cái bẫy §6.
+      ✅ Tin tốt: `local-net/faucet/server.mjs` nay **KHỚP** — mã faucet đã lên server.
+      🟡 Mồ côi mới: `9chain-a1-config/heartbeat.json.g0-20260901` — bản lưu của thế hệ chết nằm
+      cạnh tệp đang chạy, đúng hình dạng B-17. Khai hoặc `shred`, đừng để nguyên.
+
+- [ ] 🟡 **`check-net-dirs` vẫn KHÔNG KẾT LUẬN ĐƯỢC 1 mục** — `local-net/net-tap-g1/` **rỗng,
+      không có `genesis.json`** ⇒ cổng không xếp nổi thế hệ. *"Không đo được" không phải "sạch"*.
+      Mười thư mục còn lại đo sạch: **`net-g1` là THẾ HỆ ĐANG CHẠY** (4 ví đọc ra tiền thật trên
+      chain), mọi thư mục khác **0 đồng**. Việc: xoá thư mục rỗng đó (an toàn — nhưng theo luật §4
+      thì **xoá thư mục `net*` là việc có người bấm**, và LIỆT KÊ → XOÁ → ĐỐI CHỨNG).
+
+### Việc của David còn nguyên (không phiên nào tự làm được)
+
+1. 🔴 **Repo → CÔNG KHAI** — chặn điều kiện qua **4 + 5**. ✅ Nay đã có phép đo nói *lịch sử sạch*.
+2. 🔴 **Nạp ví `chain-factory` X→P** trước khi mở cổng đẻ chain (cổng đang ĐÓNG — giữ nguyên thế).
+3. 🔴 **Deploy console bản g1** (5 tệp) — trước khi mở cổng đẻ chain, không sau.
+4. **Kênh liên hệ** — `FILL-ON-G-DAY` cuối cùng ở `docs/RUN-A-VALIDATOR.md:340`; cộng chỗ URL
+   repo ở dòng 77 sẽ điền được ngay khi việc 1 xong. Cổng xuất bản đang đếm **2**.

@@ -85,7 +85,7 @@ quá khứ hay sẽ được xuất bản?*
 ## 3. Danh sách cổng — chạy trước khi tin bất cứ điều gì
 
 ```bash
-node scripts/gday-preflight.mjs              # 18 cổng + 25 VIỆC TAY, một lệnh (~2 phút)
+node scripts/gday-preflight.mjs              # 27 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
 node scripts/check-net-dirs.mjs              # thư mục net* nào thuộc thế hệ nào · thư mục nào giữ TIỀN
 node scripts/check-evidence.mjs              # gói vật chứng còn tự nghiệm thu được không
 node scripts/check-single-source.mjs         # một hằng số, MỘT nơi khai
@@ -99,14 +99,20 @@ node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs               # tra sổ công khai chainid.network
 node scripts/check-keys-on-chain.mjs <thư-mục>/allocation.md   # khoá ↔ TIỀN THẬT
 node scripts/check-key-leaks.mjs             # khoá quỹ nằm NGOÀI nơi được phép (D-117)
+node scripts/check-history-secrets.mjs --all-objects  # 🔴 LỊCH SỬ git có vật liệu khoá không (D-145)
+                                             #    CHẠY TRƯỚC KHI BẬT REPO CÔNG KHAI — xoá tệp
+                                             #    không xoá object; đã clone là mất
 node scripts/wallet-over-tunnel.mjs --check           # ví ký không chạm server (M11.10)
 bash scripts/h6b-backup.sh --check           # bản sao lưu có dựng lại được mạng không
 node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
 ```
 
-⚠️ `gday-preflight.mjs` gọi **18 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`
-×2, `check-single-source`, `check-english-code`); ba cổng cuối trong danh sách trên đứng ngoài nó (hai cái là VIỆC TAY của nó,
+⚠️ `gday-preflight.mjs` gọi **27 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`
+×2, `check-single-source`, `check-english-code`; thêm `01/09`: `check-history-secrets` ×2 —
+D-145); ba cổng cuối trong danh sách trên đứng ngoài nó (hai cái là VIỆC TAY của nó,
 `check-robots` là mặt web — không đủ tư cách chặn genesis).
+⚠️ **Số đo `01/09 11:0xZ`: `24 đạt · 2 đỏ · 1 không chạy được`** — 27 mục gọi ra, ba mục cuối là
+đo mạng/server. Hai đỏ đã biết: ví `chain-factory` **0 đồng** · console trên server **chưa deploy**.
 
 🔴 **Cổng "áp đủ bộ rồi so hằng số của chính mình" chưa phải cổng** (D-112). Nó chỉ chứng minh
 bộ patch **tự nhất quán với con số ta vừa chép vào tệp đó** — ai sinh lại cả bộ rồi dán tree

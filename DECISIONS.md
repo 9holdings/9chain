@@ -5952,3 +5952,99 @@ mạng mở để bất kỳ ai thêm validator từ hạ tầng của mình v�
   trong đó vẫn đáng đọc), thêm hai mục thay thế. Việc tay **38 → 40**.
 - 🔴 Tiến trình `avalanchego` **trần** trên Hetzner (`PID 34489`, giữ cổng `9651`) vẫn phải giết
   trước khi container nào bind cổng đó — hoãn không làm nó biến mất.
+
+---
+
+## D-145 — **LỊCH SỬ GIT CHƯA TỪNG ĐƯỢC ĐO, và việc kế tiếp của David là bật repo CÔNG KHAI** (2026-09-01)
+
+### Lỗ hổng: hai cổng trông như đang canh, cả hai đều canh chỗ khác
+
+Việc còn chặn điều kiện qua **4 và 5** hôm nay là *"repo GitHub → CÔNG KHAI"*. Bật công tắc đó
+**xuất bản mọi commit**, không phải cây làm việc: một khoá commit hồi tháng 7 rồi xoá hồi tháng 8
+**vẫn được trao cho mọi người clone**. Xoá tệp là xoá khỏi *cây*, không bao giờ xoá khỏi *object*.
+
+| Cổng | Nó đo gì | Vì sao nó mù với lớp này |
+|---|---|---|
+| `h6b-backup.sh` | quét bí mật trong bản lưu | `grep -r … --exclude-dir=.git` — **loại kho object theo cấu tạo**, và chỉ tìm khối PEM (không thấy `PrivateKey-…` cb58, không thấy `0x` hex) |
+| `check-key-leaks.mjs` | tệp **đang tồn tại** dưới các thư mục gốc | một blob không cây nào trỏ tới thì không nằm trong thư mục nào để nó đi qua |
+
+Cả hai xanh, cả hai **đúng với đại lượng của chúng**, và chưa cái nào từng đọc **một object lịch
+sử nào**. Đúng lớp lỗi đắt nhất của dự án — *đo sai đại lượng* — nằm ngay trên **hành động không
+thể lùi cuối cùng** của lượt phóng. Đã clone rồi thì khoá coi như mất, và xoay khoá quỹ = re-genesis.
+
+### Cổng mới: `scripts/check-history-secrets.mjs`
+
+Đọc **mọi blob + mọi lời nhắn commit + mọi lời nhắn tag** — đúng tập byte mà `git push` giao đi:
+
+1. **cb58** `PrivateKey-` + 40+ ký tự base58 ⇒ 🔴 **ĐỎ theo hình dạng**, không cần mốc so sánh.
+   Câu văn nhắc `PrivateKey-*` **không** khớp (đúng lỗi dương tính giả của D-117).
+2. **Khối PEM** `-----BEGIN … PRIVATE KEY-----` ⇒ 🔴 ĐỎ theo hình dạng.
+3. **32 byte hex** (`0x` hoặc trần, đúng 64 ký tự) ⇒ **hình dạng KHÔNG phán quyết được**: sha256,
+   hash giao dịch và khoá riêng EVM giống hệt nhau, mà repo này đầy hai loại đầu. Mỗi token được
+   băm và so với **kho khoá sống** (`~/9chain-a1-keys/g<N>/`); khớp ⇒ 🔴, còn lại ⇒ 🟡 **đếm và
+   khai ra**, không im lặng cho qua.
+
+🔴 **Không bao giờ in vật liệu khoá** — so bằng `sha256`. Cổng chữa rò rỉ bằng cách in rò rỉ ra
+terminal + log + bản ghi phiên là **dời** chỗ rò, không phải đóng (đúng cơ chế của B-21).
+
+### 🔴 Lần chạy THẬT đầu tiên ĐỎ — và nó đỏ VÌ SAI LÝ DO
+
+**68 phát hiện**, tất cả trỏ vào `docs/evidence/**` và `9chain-a1-config/l1-evm-genesis.json`.
+Nguyên nhân: bản đầu nạp mốc so sánh từ **mọi tệp** `.txt .env .key .json` trong kho khoá — nên
+nuốt luôn `g0/genesis.json`, một tệp genesis là **hàng trăm giá trị 32 byte không phải khoá**.
+Mọi gói vật chứng in lại đúng những hash đó liền bị chấm là rò rỉ.
+
+⇒ **Bài học, và nó ngược với trực giác đã ghi trong `check-key-leaks.mjs`:** *"sai rộng thì không
+mất gì"* đúng cho phía **ĐI TÌM**, sai cho phía **THƯỚC ĐO**. Thước đo rộng không làm cổng nhạy
+hơn — nó làm cổng **chặn một hành động đúng vì một lý do sai**, thứ chỉ cần xảy ra một lần là
+người ta học cách chạy lại kèm cờ bỏ qua. Nay mốc so sánh **hẹp có chủ ý**: `keys.txt` ·
+`*-key.txt` · `*.env`, và hex chỉ lấy từ **dòng khai một khoá**. Giá của sự hẹp cũng khai luôn
+trong tệp: khoá cất ở chỗ mới sẽ vắng khỏi thước ⇒ rò rỉ nó chấm 🟡 thay vì 🔴; chịu được **chỉ
+vì** mọi ví trong kho đều ghi cả hai dạng, mà nửa cb58 thì ĐỎ theo hình dạng không cần thước.
+
+### Đối chứng ngược — 11 ca tổng hợp + **một ca trên dữ liệu THẬT**
+
+`--self-test` dựng repo git tạm bằng vật liệu **sinh ngẫu nhiên** (không bao giờ chép khoá thật):
+khoá **bị xoá ở commit sau** vẫn tìm ra · câu văn nhắc `PrivateKey-*` không phải phát hiện ·
+hex không khớp thước là 🟡 chứ không 🔴 · **tệp genesis đóng góp 0 khoá vào thước** (chính ca
+dương tính giả ở trên) · PEM đỏ · khoá trong **lời nhắn commit** tìm ra · repo sạch **XANH** ·
+thước rỗng + sạch ⇒ **2** · thước rỗng + có phát hiện ⇒ **1, không phải 2** · object quá lớn ⇒ **2**.
+
+🔴 **Thứ tự phán quyết là một quyết định, và thứ tự hiển nhiên thì SAI:** *"không đo được"* trên
+cơ *"sạch"*, nhưng **không** trên cơ *"tìm thấy"*. Viết ngược lại thì một máy không có thư mục
+`9chain-a1-keys` sẽ trả **2** trong khi lịch sử đang cầm một khoá cb58 — mà **2** là mã người ta
+dễ đọc thành *"lỗi môi trường, không phải repo của mình"* nhất.
+
+Ca trên dữ liệu thật: nạp `--fund-set` một tệp chứa **sha256 genesis g1 công khai** giả dạng dòng
+khai khoá ⇒ cổng **ĐỎ đúng chỗ**: `HANDOFF.md`, `docs/RUN-A-VALIDATOR.md`, và **một lời nhắn
+commit**. Tức đường đọc-object trên repo thật chạy được, không chỉ trên fixture.
+
+### Kết quả đo `2026-09-01 ~11:00Z`
+
+```
+phạm vi refs (đúng thứ `git push` gửi)   2.228 object   →  0 phát hiện · 969 token hex 🟡
+phạm vi TOÀN kho object (--all-objects)  2.349 object   →  0 phát hiện · 978 token hex 🟡
+thước đo: 18 khoá từ 4 tệp trong kho khoá sống (g0 keys.txt+chain-factory, g1 ×2)
+121 object không ref nào với tới — `git push` KHÔNG gửi, `git push --mirror` thì CÓ
+```
+
+⇒ **Lịch sử git sạch vật liệu khoá.** Việc "bật công khai" **không bị chặn bởi đại lượng này**.
+
+⚠️ Trần đo: 8 MB làm chính repo này trả *"không đo được"* vì **một blob wasm 9,18 MB**. Một trần
+khiến câu trả lời trung thực là exit 2 trên một repo bình thường là **trần đặt sai** — sức ép sẽ
+là chạy lại mà bỏ nó đi. Nâng lên 64 MB: quét cả kho hết **0,8 giây**.
+
+### Phạm vi — nói ra chứ không ngụ ý
+
+- Quét **rộng hơn** thứ được xuất bản: `--all` gồm cả `web-home`, `audit`, `gday-heartbeat-gate`,
+  `brand-standardize` — các nhánh **không** đẩy lên `origin`. Đỏ ở đó không đương nhiên chặn
+  việc công bố `main`.
+- Nói **không gì** về kho object **phía GitHub** (force-push cũ, nhánh đã xoá vẫn có thể còn ở đó).
+- Nói **không gì** về cây làm việc (`check-key-leaks.mjs`) hay server (`check-deploy-drift.mjs`).
+
+### Đã nối vào preflight — cả hai vế
+
+Theo đúng luật ghi sẵn trong `gday-preflight.mjs` (*"một `--self-test` tồn tại mà không nối vào
+đây là đối chứng không ai để ý lúc nó hỏng"*). Cổng repo **22 → 24**; số đo phiên: **24 đạt ·
+2 đỏ · 1 không chạy được · 40 việc tay** — hai đỏ vẫn là hai đỏ cũ (ví `chain-factory` 0 đồng ·
+console chưa deploy), không đỏ nào mới.
