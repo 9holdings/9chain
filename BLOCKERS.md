@@ -81,6 +81,21 @@ lỗ phạm vi — mỗi lượt chạy sẽ có 4 mục vàng không bao giờ 
 
 ---
 
+### 🟢 B-20 — **NỬA PHẦN MỀM ĐÃ ĐÓNG `2026-09-01 12:04Z`**, nửa vật lý còn lại
+
+`node scripts/backup-validator-identity.mjs --write` ⇒ gói
+`C:/PROJECTS/9Chain-backups/9chain-a1-identity-net-g1-20260901120410`:
+**29 tệp · 27 danh tính · 0 thiếu · 0 lệch**, nghiệm thu bằng **ĐẾM TỆP TRONG GÓI** đúng như mục
+này đòi, không phải bằng một dòng `--check`. Cổng `--check --rpc` hỏi **chain thật** (`999999998`)
+chứ không suy từ thư mục — D-110.
+
+🔴 **CÒN LẠI, VÀ NÓ LÀ TOÀN BỘ GIÁ TRỊ:** gói đang nằm trên **cùng một ổ đĩa** với bản gốc. Một
+bản sao chưa rời máy thì chưa phải bản lưu — nó sống sót qua *xoá nhầm*, không sống sót qua *mất
+máy*. **Việc của David: đưa gói sang media khác.** Và nó **chứa khoá riêng** ⇒ không cất cạnh bộ
+khoá quỹ (`check-key-leaks` canh khoá quỹ, **không** canh danh tính).
+
+*(Nguyên văn lúc còn mở, giữ vì phép đo vẫn nguyên giá trị:)*
+
 ### 🔴 B-20 — KHÔNG BẢN LƯU NÀO CHỨA DANH TÍNH VALIDATOR CỦA MẠNG ĐANG CHẠY (2026-08-28)
 
 **Lộ ra khi đo gói lưu `20260825` trước lúc xoá nó** (D-117c). Không phải suy đoán — đếm tệp:
@@ -344,6 +359,23 @@ dòng khai không còn đúng**, và cổng sẽ im lặng bỏ qua tệp cùng 
 *(Mục thứ 7, `local-net/faucet/package-lock.json`, là **lành** — `npm install` trên server sinh
 ra. Giữ nguyên.)*
 
+
+### 🟢 B-16 — **ĐÃ ĐÓNG CHO g1 `2026-09-01 12:0xZ`** (nửa vật lý: xem cuối mục)
+
+Bộ khoá quỹ **g1** nay có bản thứ hai ở `C:/Users/abc/9chain-a1-keys/g1/` — `keys.txt` ·
+`allocation.md` · `genesis.json` (cộng hai ví vận hành đã có sẵn), chép **trùng byte** (so `sha256`
+hai đầu). `genesis.json` băm ra `4de8caa5…`, **khớp vân tay genesis g1** ghi lúc phóng.
+
+**`node scripts/o1-check.mjs …/g1 --rpc` ⇒ mã 0, CẢ HAI NỬA XANH:** `6/6 quỹ khôi phục đúng`
+(khoá suy ra đúng địa chỉ) **và** `6/6 khớp CHAIN ĐANG CHẠY` (`999999998`, khớp từng đơn vị:
+Self-bond 8.999.991 · Foundation 1 tỷ C@0 + 71.000.009 lỏng · Community 2.600.000.001 ·
+Faucet 99.999.999 · Private Sale 810 triệu · Team 810 triệu).
+⇒ Đây **không** phải bộ khoá chết: nó vừa suy đúng địa chỉ **vừa** giữ tiền thật (D-090 · D-110).
+
+🔴 **Vẫn trên MỘT ổ đĩa.** Hai bản, cùng máy. Việc còn lại giống hệt B-20: **đưa sang media khác**.
+Điều đã đóng là *"bản sao thứ hai tồn tại và đã nghiệm thu"*, chưa phải *"nó sống sót khi mất máy"*.
+
+*(Nguyên văn lúc còn mở:)*
 
 ### 🔴 B-16 — O1: BẢN SAO THỨ HAI CỦA KHOÁ QUỸ — **15 phút, chặn GO/NO-GO `29/08`**
 

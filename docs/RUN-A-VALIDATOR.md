@@ -74,7 +74,7 @@ error is the feature. This is a sovereignty decision, not an oversight.
 ## Step 0 — Get 9Chain-A1 itself
 
 ```bash
-git clone FILL-ON-G-DAY-9chain-a1-repo-url 9chain-a1
+git clone https://github.com/9holdings/9chain.git 9chain-a1
 cd 9chain-a1
 ```
 
@@ -337,4 +337,7 @@ Tell us what you **measured**, not what you concluded: the output of `--version`
 `info.getNetworkName`, of `health.health`, and your `sha256sum genesis.json`. Those four lines
 identify almost every failure on this page.
 
-**FILL-ON-G-DAY: issue tracker / contact.**
+**Issue tracker: <https://github.com/9holdings/9chain/issues>.**
+
+That is the only channel, and it is deliberately a public one: a validator problem is almost
+always a problem someone else will hit, and an answer given in private helps one person.
