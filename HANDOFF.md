@@ -1,6 +1,9 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-01 `09:50Z`** — 🟢 **MẠNG g1 ĐÃ SINH RA VÀ ĐANG SỐNG**: `down -v` `09:26Z` ·
+Cập nhật: **2026-09-01 `11:05Z`** — phiên **HẬU PHÓNG**: cổng mới canh **lịch sử git** trước lượt
+bật repo công khai (D-145) — **0 vật liệu khoá trong 2.349 object**; hai đỏ còn lại đều là việc
+David (ví `chain-factory` 0 đồng · console server vẫn bản g0). Trước đó cùng ngày:
+🟢 **MẠNG g1 ĐÃ SINH RA VÀ ĐANG SỐNG**: `down -v` `09:26Z` ·
 9/9 node · `watch-network` **5 đỏ → 0 đỏ** · chữ khắc `engrave-verify` **17/0** đọc ngược từ chain
 sống · **9/9 cổng P2P mở, đo từ ngoài Internet** · `minValidatorStake` **81 LOVE9** trên P-Chain.
 Cùng ngày, phiên
@@ -21,13 +24,56 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
 ```bash
-node scripts/gday-preflight.mjs      # 26 cổng + 38 VIỆC TAY, một lệnh (~4 phút)
+node scripts/gday-preflight.mjs      # 27 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
 # ⚠️ Nó VẪN in 38 việc tay, nhưng 7 cái ĐÃ XONG — preflight không biết. Đừng làm lại:
 #   #10 #11 (bump A1Gen) · #14 #15 #17 (build + ship + --build-arg, OVH)
 #   + CHỞ IMAGE SANG HETZNER  (xong 2026-09-01, nghiệm thu 3 mỏ neo trên chính máy đó)
 #   + heartbeat "của ai"      (David xác nhận: bộ bơm của anh; đã khai knownExtra)
 # Thực còn: 31. Xem D-137/D-142 + mục phiên 2026-09-01 ngay dưới.
 ```
+
+### 🆕 `2026-09-01` `11:0xZ` — PHIÊN **HẬU PHÓNG**: cổng canh **LỊCH SỬ GIT**, và hai đỏ đều là việc David
+
+Không đụng mạng, không đụng server, không gửi giao dịch. Một cổng mới + một lượt đo lại.
+
+#### 🔴 Lỗ hổng nằm ngay trước việc kế tiếp của David — `scripts/check-history-secrets.mjs` (D-145)
+
+Bật repo **CÔNG KHAI** là xuất bản **mọi commit**, không phải cây làm việc. Xoá tệp là xoá khỏi
+*cây*, không xoá khỏi *object*. Mà **không cổng nào từng đọc một object lịch sử nào**:
+`h6b-backup.sh` quét bí mật với `--exclude-dir=.git` (loại kho object **theo cấu tạo**) và chỉ
+tìm khối PEM; `check-key-leaks.mjs` đi theo **thư mục**, nên một blob không cây nào trỏ tới thì
+không nằm ở đâu để nó gặp. Hai cổng xanh, cả hai đúng với đại lượng của mình, và lớp này **chưa
+từng được đo** — nằm trên **hành động không lùi được** cuối cùng của lượt phóng.
+
+```
+phạm vi refs (đúng thứ `git push` gửi)   2.228 object  →  0 phát hiện · 969 hex 🟡
+toàn kho object (--all-objects)          2.349 object  →  0 phát hiện · 978 hex 🟡
+thước đo 18 khoá / 4 tệp trong kho sống  ·  121 object không ref nào với tới
+```
+
+⇒ **Lịch sử sạch vật liệu khoá. Việc "bật công khai" không bị chặn bởi đại lượng này.**
+
+🔴 **Lần chạy thật đầu tiên ĐỎ 68 mục, và nó đỏ VÌ SAI LÝ DO** — thước đo nuốt cả `g0/genesis.json`
+(một tệp genesis là hàng trăm giá trị 32 byte **không phải khoá**), nên mọi gói vật chứng in lại
+đúng những hash đó bị chấm là rò rỉ. *"Sai rộng thì không mất gì"* đúng cho phía **ĐI TÌM**, **sai
+cho THƯỚC ĐO**: thước rộng không làm cổng nhạy hơn, nó làm cổng **chặn một việc đúng vì lý do sai**.
+
+Đối chứng ngược: **11 ca tổng hợp** (khoá xoá ở commit sau vẫn tìm ra · khoá trong **lời nhắn
+commit** · PEM · tệp genesis đóng góp **0** khoá vào thước · thước rỗng + có phát hiện ⇒ **1 chứ
+không 2**) **+ một ca ĐỎ trên dữ liệu THẬT**. Đã nối vào preflight cả hai vế (**22 → 24 đạt**).
+
+#### Hai đỏ còn lại — **cả hai là việc David**, và không cái nào là lỗi mới
+
+- 🔴 **ví `chain-factory` = 0 LOVE9.** Mọi mục khác của `watch-network` xanh (9 validator ·
+  8 peer · `supplyCap` đo trên node đang chạy · B-12 **309 ngày**). Nạp X→P **trước** khi mở cổng
+  đẻ chain, nếu không người đầu tiên bấm nút nhận `insufficient funds`.
+- 🔴 **console trên server vẫn là bản g0** — 5 tệp lệch/thiếu (`chainid-released.json` **thiếu** ·
+  `server.mjs` · `chainid-test.mjs` · `chainid-issued.json` · `lib/chainid.mjs`). `A1_GEN` ở đó
+  **= 0** ⇒ nó sẽ cấp chainId từ khối của **thế hệ đã chết**. Vô hại **chỉ vì** cổng đẻ chain
+  đang ĐÓNG ⇒ **deploy console TRƯỚC khi mở cổng**, không sau. ✅ `faucet/server.mjs` nay **KHỚP**.
+- 🟡 Mồ côi mới trên server: `9chain-a1-config/heartbeat.json.g0-20260901` — đúng hình dạng B-17.
+- 🟡 `check-net-dirs` còn **1 mục không kết luận được**: `local-net/net-tap-g1/` **rỗng**, không có
+  `genesis.json`. Mười thư mục kia đo sạch, `net-g1` là thế hệ đang chạy (4 ví có tiền thật).
 
 ### 🟢🟢🟢 `2026-09-01` — **MẠNG g1 ĐÃ SINH RA VÀ ĐANG SỐNG**
 
