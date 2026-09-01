@@ -59,6 +59,47 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
+### 🟢🟢 `2026-09-01` `19:2xZ`–`19:5xZ` — **VIỆC 1 VÀ 2 ĐÃ LÀM XONG TRÊN SẢN PHẨM** (D-156)
+
+David bảo *"làm luôn đi, từng việc một"*. Làm được **hai**, dừng đúng chỗ phải dừng.
+
+```
+preflight  31 đạt · 3 đỏ   ->   32 đạt · 2 đỏ
+```
+
+**✅ Việc 1 — console 5 tệp.** `console-deploy.sh` **chạy trọn vẹn LẦN ĐẦU TIÊN ⇒ D-088 ĐÓNG**:
+tự kiểm trước khi chép · 16 tệp theo manifest · **21/21 + 38/38 ĐẠT trên chính server** · md5 từng
+tệp · hỏi console *"có lượt đẻ/thu hồi đang chạy không"* (200, không có) · restart **kiểm PID ĐỔI**
+`1148847 → 1724747`. `check-deploy-drift`: **0 lệch · 0 thiếu**.
+
+**✅ Việc 2 — sổ chain.** `advertised: 0 live · 2 retired`, nghiệm thu **trên bề mặt công khai qua
+Cloudflare**, không nghiệm thu tệp trên server. `check-chain-ledger` **✅ PASS**, mã 0.
+
+🔴 **Suýt ghi đè một sổ chặn 49 chainId / 54 tên.** Server có `chainIdCount 49 · nameCount 54`,
+repo có **0/0**. Dừng lại đọc trước khi chép: bản thả là **có chủ ý, có chữ ký** —
+`chainid-released.json`, `decided_by: David`, đóng dấu **đúng giờ G** `10:09:09Z`, và lý do an toàn
+là **kiến trúc**: g1 chỉ cấp trong `[9001000000–9001999999]` nên **không đời nào** phát lại
+`9100–9145` · `9201` · `9000000010/11`. Tôi **tự nghiệm lại vế đó trên khối đo được**, không tin
+lời khai. ⚠️ Còn một chỗ **vênh giữa hai tài liệu**: bản thả nói *"None was ever handed to an
+outside user"*, mà HANDOFF/preflight lại kể `Eric1`/`eric1` do **"a real user"** tạo `31/08` —
+**David là người biết Eric là ai.**
+
+🔴 **D-156 — đường lui tôi dựng làm ĐỎ hai cổng repo.** Kéo 4 tệp server về `./rollback-…/` **trong
+cây repo** ⇒ `chainid.mjs` thành **bản khai thứ hai** của `A1_GEN`/`NETWORK_ID` (D-113) và
+`server.mjs` làm **nợ tiếng Việt phình** (§0). *Mặt ngược của D-117*: ở kia bản chép nằm **ngoài**
+tầm cổng và sống 20 giờ; ở đây nằm **trong** tầm và chết trong vài phút. ⇒ **Đường lui phải ở
+NGOÀI biên cổng quét, TRONG tầm tay người vận hành** — scratchpad của phiên, không phải repo.
+🔴 Và bẫy #6 **theo chiều ngược**: tổng đi từ `31·3` xuống `30·4` trong lúc tôi vừa **đóng** một đỏ
+và vừa **đẻ** hai đỏ — đọc tổng thì mất cả hai chiều.
+
+**Hai đỏ còn lại — cả hai chờ David:**
+
+| đỏ | việc |
+|---|---|
+| `watch-network` | ví `chain-factory` **0 LOVE9** — việc 3, **HAI chặng**, cần David chọn **quỹ nào** và **bao nhiêu** |
+| `check-deploy-drift` | **CHỈ còn 1 mồ côi** `9chain-a1-config/heartbeat.json.g0-20260901` (hình dạng B-17) — xoá trên server là việc David; `a1-xoa-tren-server`: *"đã có bản lưu"* là PHÉP ĐO |
+
+
 ### 🆕🆕🆕 `2026-09-01` `18:3xZ`–`19:0xZ` — **CỔNG "SẴN SÀNG" BIẾT BA TRONG BỐN THỨ NÓ CANH** (D-155)
 
 David bảo đo lại `--probe`. Ba đỏ đúng như sổ. Nhưng **đọc mã cổng** thì ra ba lỗi trong chính nó:
