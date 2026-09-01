@@ -82,6 +82,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   assessPublicLedger, judgeLedgerShape, probeChainId, measureLiveNetworkId, sameHostAsRpc,
+  publicLedgerUrl,
 } from "../local-net/lib/chain-ledger.mjs";
 import { RPC_URL } from "../local-net/lib/server.mjs";
 
@@ -91,8 +92,7 @@ const flag = (name, fallback) => {
   const i = argv.indexOf(name);
   return i >= 0 && argv[i + 1] && !argv[i + 1].startsWith("--") ? argv[i + 1] : fallback;
 };
-const PUBLIC_SITE = process.env.A1_PUBLIC_SITE || "https://a1.9chain.org";
-const LEDGER_URL = flag("--url", `${PUBLIC_SITE}/chains/data/console-chains.json`);
+const LEDGER_URL = flag("--url", publicLedgerUrl());
 const LEDGER_FILE = flag("--file", null);
 const RPC = flag("--rpc", RPC_URL);
 const SELF_TEST = argv.includes("--self-test");

@@ -4,7 +4,7 @@
  *
  * ═══ WHY THIS EXISTS ═══
  *
- * Reopening is three human actions, and THE ORDER IS THE PRODUCT. Done out of order the failure
+ * Reopening is four human actions, and THE ORDER IS THE PRODUCT. Done out of order the failure
  * is not an error message, it is a chainId issued from the wrong generation into a stranger's
  * immutable genesis — the one mistake in this project that cannot be taken back.
  *
@@ -12,11 +12,20 @@
  *      generation is declared; `chainid-issued.json` / `chainid-released.json` are what stop a
  *      number or a name being handed out twice. Opening the door before these land means the
  *      console issues from the block of a generation that no longer exists.
- *   2. FUND `chain-factory`.  Genesis liquidity sits on X, the CLI pays fees on P: an unfunded
- *      factory does not refuse politely, it dies partway through (D-140).
- *   3. ONLY THEN set the flag and restart.
+ *   2. PUT THE COMPACTED CHAIN DIRECTORY ON THE SERVER (D-154).  `/chains/` is the page a visitor
+ *      passes THROUGH on the way to creating one, and it was still advertising two chains of a
+ *      dead generation whose RPCs answer `404 page not found`.
+ *   3. FUND `chain-factory`.  An unfunded factory does not refuse politely, it dies partway
+ *      through (D-140).
+ *   4. ONLY THEN set the flag and restart.
  *
- * ⚠️ This tool does NOT perform any of the three. Shipping code, moving money and flipping a
+ * 🔴 STEP 2 WAS NOT IN THIS FILE UNTIL 2026-09-01 (D-155). It was found by running `--probe`,
+ * not by this tool: the tool was written for D-152's three steps and D-154 added a fourth the
+ * next hour, so a green run here would have said "ready" while the directory in front of the
+ * create-chain page still listed two dead chains. A readiness check that does not know about one
+ * of the things it is gating is not conservative — it is confidently wrong.
+ *
+ * ⚠️ This tool does NOT perform any of the four. Shipping code, moving money and flipping a
  * production switch are things a person presses (CLAUDE.md §4). It measures, and it refuses to
  * say "ready" while an earlier step is unmet, so the order cannot be lost.
  *
@@ -46,7 +55,7 @@
  * Exit codes: `0` every measured item ready · `1` something is not ready · `2` could not measure.
  *
  * Usage:
- *   node scripts/reopen-chain-creation.mjs                 # read-only: ledgers + factory wallet
+ *   node scripts/reopen-chain-creation.mjs                 # read-only: ledgers + directory + wallet
  *   node scripts/reopen-chain-creation.mjs --probe         # also ask the live console its state
  *   node scripts/reopen-chain-creation.mjs --self-test
  */
@@ -60,6 +69,7 @@ import { fileURLToPath } from "node:url";
 import { SSH_HOST, SSH_KEY, SRC_DIR, RPC_URL } from "../local-net/lib/server.mjs";
 import { A1_GEN, NETWORK_ID } from "../local-net/lib/chainid.mjs";
 import { VI_FACTORY_THEO_THE_HE } from "../local-net/lib/factory-wallets.mjs";
+import { assessPublicLedger, publicLedgerUrl, summariseLedger } from "../local-net/lib/chain-ledger.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -201,8 +211,12 @@ export function readProbe({ status, body }) {
   return { state: "UNKNOWN", why: `unrecognised answer (${status}) — read it, do not guess` };
 }
 
-/** @param ships [{file, why, local, remote}] @param factory {address, balance} | null */
-export function judge(ships, factory, probe) {
+/**
+ * @param ships [{file, why, local, remote}]
+ * @param ledger {ok: boolean|null, detail: string} | null — the D-154 verdict, injected
+ * @param factory {address, balance} | null
+ */
+export function judge(ships, ledger, factory, probe) {
   const steps = [];
   const stale = ships.filter((s) => s.remote !== s.local);
   steps.push({
@@ -215,32 +229,69 @@ export function judge(ships, factory, probe) {
   });
   steps.push({
     n: 2,
+    name: "the public chain directory",
+    ok: ledger ? ledger.ok : null,
+    detail: ledger ? ledger.detail : "not measured",
+  });
+  steps.push({
+    n: 3,
     name: "chain-factory wallet funded",
     ok: factory ? factory.balance >= FACTORY_MIN : null,
     detail: !factory ? "not measured"
       : factory.balance >= FACTORY_MIN ? `${factory.balance} LOVE9 on ${factory.address}`
-        : `${factory.balance} LOVE9 on ${factory.address} — below ${FACTORY_MIN}; liquidity is on X, fees are paid on P, so move X→P (D-140)`,
+        // 🔴 "Move X→P" is what the older books said, and it is not a thing that can be done.
+        // Measured 2026-09-01: this wallet held 0 on X as well — it is a vanity key generated on
+        // its own, not one of the genesis funds, so there is nothing sitting on X to move. Two
+        // legs, two DIFFERENT keys, because `/api/x-to-p` exports to `owner()` and can therefore
+        // only ever pay the wallet that is running it. A remedy that cannot be carried out is the
+        // D-153 failure: the red is right, the instruction points at another quantity, and the
+        // reader burns the attempt before finding out.
+        : `${factory.balance} LOVE9 on ${factory.address} — below ${FACTORY_MIN}. `
+          + `TWO legs, two different keys: a genesis fund -> the factory ON X (/api/send-x), `
+          + `then the factory's own X -> its own P (/api/x-to-p, which pays out to owner() only). `
+          + `This wallet measured 0 on X too, so a single X->P hop has nothing to move (D-140; `
+          + `see docs/RUNBOOK-REOPEN-CHAIN-CREATION.md)`,
   });
   steps.push({
-    n: 3,
+    n: 4,
     name: "the door",
     ok: probe ? probe.state === "OPEN" : null,
     detail: probe ? `${probe.state} — ${probe.why}` : "not measured (add --probe)",
   });
 
-  // 🔴 The order is the product. A later step passing while an earlier one fails is not progress,
-  // it is the dangerous state: an open door in front of a stale ledger hands out dead numbers.
   const blocked = steps.find((s) => s.ok === false);
-  // Boolean(), not the bare `&&`: with nothing blocked this returned `undefined`, which reads as
-  // falsy everywhere and as "not measured" nowhere — the exact ambiguity this file argues against.
-  const outOfOrder = Boolean(blocked && steps.some((s) => s.n > blocked.n && s.ok === true));
-  return { steps, blocked, outOfOrder };
+  const door = steps[steps.length - 1];
+
+  // 🔴 THE DANGEROUS INVERSION IS THE DOOR, AND ONLY THE DOOR (D-155).
+  //
+  // This used to read "any later step ready while an earlier one is not", which is a different and
+  // much larger claim than the sentence it prints. Funding the wallet before the console ships is
+  // harmless — the door is shut, nothing can be issued. Putting the compacted directory up early
+  // is harmless for the same reason. Only an OPEN door can hand a stranger an identifier out of a
+  // dead generation's block, and only that is worth the alarm.
+  //
+  // Left broad it would have gone off on the most likely order of work: step 2 is two `scp` lines,
+  // by far the cheapest of the four, so doing it first is what a careful person does — and the
+  // tool would have answered with its gravest warning. An alarm that fires on correct behaviour is
+  // an alarm that gets read past, and then it is not there for the case it was built for.
+  const unmetBeforeDoor = steps.filter((s) => s.n < door.n && s.ok === false);
+  const outOfOrder = door.ok === true && unmetBeforeDoor.length > 0;
+  return { steps, blocked, outOfOrder, unmetBeforeDoor };
 }
 
 // ───────────────────────────── self-test ─────────────────────────────
 
 function selfTest() {
   const ship = (f, l, r) => ({ file: f, why: "", local: l, remote: r });
+  // Fixtures for the three injected verdicts. The directory verdict is DATA here, never a live
+  // measurement: a counter-check that needed the network could not run when the network is the
+  // thing being changed, which is exactly when it is worth the most.
+  const CLEAN = { ok: true, detail: "0 live · 2 retired" };
+  const DIRTY = { ok: false, detail: "2 problem(s) in the directory the PUBLIC is served" };
+  const UNKNOWN_LEDGER = { ok: null, detail: "could not read the public ledger" };
+  const FUNDED = { address: "P-x", balance: 90 };
+  const OPEN = { state: "OPEN", why: "" };
+  const CLOSED = { state: "CLOSED", why: "" };
   const cases = [
     ["the pause sentence is read as CLOSED",
       readProbe({ status: 400, body: '{"error":"Chain creation is paused. The public network…"}' }).state === "CLOSED"],
@@ -273,26 +324,63 @@ function selfTest() {
       /no line/.test(pickToken("prose line\nshort123\n").error)],
 
     ["a stale ledger file blocks step 1",
-      judge([ship("lib/chainid.mjs", "aaa", "bbb")], null, null).blocked.n === 1],
+      judge([ship("lib/chainid.mjs", "aaa", "bbb")], null, null, null).blocked?.n === 1],
     ["a missing ledger file blocks step 1 and says MISSING",
-      /MISSING/.test(judge([ship("x.json", "aaa", null)], null, null).steps[0].detail)],
+      /MISSING/.test(judge([ship("x.json", "aaa", null)], null, null, null).steps[0].detail)],
     ["everything matching passes step 1",
-      judge([ship("x.json", "aaa", "aaa")], null, null).steps[0].ok === true],
-    ["an empty factory wallet blocks step 2 and names the X→P trap",
-      (() => { const r = judge([ship("x", "a", "a")], { address: "P-x", balance: 0 }, null);
-        return r.blocked.n === 2 && /X→P/.test(r.steps[1].detail); })()],
-    ["a funded factory passes step 2",
-      judge([ship("x", "a", "a")], { address: "P-x", balance: 90 }, null).steps[1].ok === true],
+      judge([ship("x.json", "aaa", "aaa")], null, null, null).steps[0].ok === true],
 
-    ["🔴 an OPEN door while the ledger is stale is flagged as OUT OF ORDER",
-      judge([ship("x", "a", "b")], { address: "P-x", balance: 90 }, { state: "OPEN", why: "" }).outOfOrder === true],
-    ["…and the same open door with everything shipped is not out of order",
-      judge([ship("x", "a", "a")], { address: "P-x", balance: 90 }, { state: "OPEN", why: "" }).outOfOrder === false],
-    ["not measured is neither pass nor fail — it stays null",
-      judge([ship("x", "a", "a")], null, null).steps[1].ok === null],
+    // ─── step 2 · the public chain directory (D-154, wired in by D-155) ───
+    ["🔴 a dirty public directory blocks step 2 — NOT step 3",
+      judge([ship("x", "a", "a")], DIRTY, FUNDED, null).blocked?.n === 2],
+    // 🔴 The positive control. D-153, the same day: a gate that can never go green carries no
+    // information when it is red. If a clean directory did not pass here, the red above would be
+    // saying nothing about the directory and everything about this file.
+    ["🔴 POSITIVE CONTROL — a clean public directory PASSES step 2",
+      judge([ship("x", "a", "a")], CLEAN, FUNDED, null).steps[1].ok === true],
+    ["🔴 'could not measure' the directory is null — neither a pass nor a defect",
+      (() => { const r = judge([ship("x", "a", "a")], UNKNOWN_LEDGER, FUNDED, null);
+        return r.steps[1].ok === null && r.blocked === undefined; })()],
+    ["the directory step is not measured at all when nothing was passed",
+      judge([ship("x", "a", "a")], null, null, null).steps[1].ok === null],
+
+    // ─── step 3 · the wallet, and the remedy that has to be POSSIBLE ───
+    ["an empty factory wallet blocks step 3",
+      judge([ship("x", "a", "a")], CLEAN, { address: "P-x", balance: 0 }, null).blocked?.n === 3],
+    // Anchored on the two API routes rather than on wording: the shape of the remedy is that it
+    // takes two hops through two different endpoints, and that survives an edit to the sentence.
+    ["🔴 the remedy names BOTH legs — /api/send-x AND /api/x-to-p",
+      (() => { const d = judge([ship("x", "a", "a")], CLEAN, { address: "P-x", balance: 0 }, null).steps[2].detail;
+        return /\/api\/send-x/.test(d) && /\/api\/x-to-p/.test(d); })()],
+    ["🔴 …and it says the wallet is empty on X TOO, which is WHY one hop cannot work",
+      /0 on X/.test(judge([ship("x", "a", "a")], CLEAN, { address: "P-x", balance: 0 }, null).steps[2].detail)],
+    ["a funded factory passes step 3",
+      judge([ship("x", "a", "a")], CLEAN, FUNDED, null).steps[2].ok === true],
+
+    // ─── the order · only the DOOR makes an inversion dangerous (D-155) ───
+    ["🔴 an OPEN door while the console code is stale is OUT OF ORDER",
+      judge([ship("x", "a", "b")], CLEAN, FUNDED, OPEN).outOfOrder === true],
+    ["🔴 an OPEN door while the public directory is dirty is OUT OF ORDER",
+      judge([ship("x", "a", "a")], DIRTY, FUNDED, OPEN).outOfOrder === true],
+    ["…and it NAMES which step is unmet, rather than only saying that one is",
+      judge([ship("x", "a", "a")], DIRTY, FUNDED, OPEN).unmetBeforeDoor.map((s) => s.n).join() === "2"],
+    ["…and the same open door with everything ready is not out of order",
+      judge([ship("x", "a", "a")], CLEAN, FUNDED, OPEN).outOfOrder === false],
+    // 🔴 THE FALSE ALARM THIS FILE USED TO RAISE. Doing the two cheapest steps first is what a
+    // careful person does; the old rule answered that with its gravest warning.
+    ["🔴 a FUNDED wallet while the console is stale is NOT out of order — the door is shut",
+      judge([ship("x", "a", "b")], null, FUNDED, CLOSED).outOfOrder === false],
+    ["🔴 a CLEAN directory while the console is stale is NOT out of order — the door is shut",
+      judge([ship("x", "a", "b")], CLEAN, null, CLOSED).outOfOrder === false],
+    ["🔴 both later steps ready, console stale, door shut => still NOT out of order",
+      judge([ship("x", "a", "b")], CLEAN, FUNDED, CLOSED).outOfOrder === false],
+    ["…and that case still reports NOT READY, blocked at step 1",
+      judge([ship("x", "a", "b")], CLEAN, FUNDED, CLOSED).blocked?.n === 1],
     ["a closed door with everything ready is 'not ready' but NOT out of order",
-      (() => { const r = judge([ship("x", "a", "a")], { address: "P-x", balance: 90 }, { state: "CLOSED", why: "" });
-        return r.blocked.n === 3 && r.outOfOrder === false; })()],
+      (() => { const r = judge([ship("x", "a", "a")], CLEAN, FUNDED, CLOSED);
+        return r.blocked?.n === 4 && r.outOfOrder === false; })()],
+    ["not measured is neither pass nor fail — it stays null",
+      judge([ship("x", "a", "a")], null, null, null).steps[2].ok === null],
   ];
   let bad = 0;
   for (const [name, pass] of cases) { console.log(`  ${pass ? "✓" : "🔴"} ${name}`); if (!pass) bad++; }
@@ -312,6 +400,19 @@ async function main() {
   } catch (e) {
     console.log(`⁇ could not read the server (${SSH_HOST}): ${String(e.message).split("\n")[0]}`);
     return 2;
+  }
+
+  // The D-154 verdict, from the one implementation of it. Read-only: a GET of a public file and
+  // `eth_chainId` on the RPCs that file itself advertises. Runs without `--probe` because it sends
+  // the product nothing it does not already serve to every visitor.
+  let ledger = null;
+  try {
+    const v = await assessPublicLedger({ ledgerUrl: publicLedgerUrl(), rpcBase: RPC_URL });
+    // 🔴 code 2 is "could not measure", which is `null` here and NEVER a pass. Collapsing it into
+    // true is how a surface nobody looked at gets reported as a surface that is fine.
+    ledger = { ok: v.code === 0 ? true : v.code === 1 ? false : null, detail: summariseLedger(v) };
+  } catch (e) {
+    ledger = { ok: null, detail: `could not measure the public directory: ${String(e.message).split("\n")[0]}` };
   }
 
   let factory = null;
@@ -338,7 +439,7 @@ async function main() {
     } catch (e) { console.log(`⁇ probe failed to reach the console: ${e.message}`); return 2; }
   }
 
-  const { steps, blocked, outOfOrder } = judge(ships, factory, probe);
+  const { steps, blocked, outOfOrder, unmetBeforeDoor } = judge(ships, ledger, factory, probe);
   console.log(`reopen-chain-creation — ${SSH_HOST} · ${RPC_URL}`);
   console.log("  the order below IS the check: a later step ready before an earlier one is the dangerous state\n");
   for (const s of steps) {
@@ -347,13 +448,14 @@ async function main() {
     console.log(`       ${s.detail}`);
   }
   if (outOfOrder) {
-    console.log("\n🔴 OUT OF ORDER — a later step is ready while an earlier one is not.");
+    console.log("\n🔴 OUT OF ORDER — THE DOOR IS OPEN while something it depends on is not ready:");
+    for (const s of unmetBeforeDoor) console.log(`     step ${s.n} — ${s.name}`);
     console.log("   An open door in front of a stale ledger hands out identifiers from a dead");
     console.log("   generation, and a genesis is immutable. Close it, ship, then open again.");
     return 1;
   }
   if (!blocked && steps.every((s) => s.ok === true)) {
-    console.log("\n✓ All three measured and ready — chain creation is open on the product.");
+    console.log("\n✓ All four measured and ready — chain creation is open on the product.");
     return 0;
   }
   if (blocked) {
