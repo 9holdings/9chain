@@ -1,0 +1,24 @@
+# 9CHAIN-A1 — BLOCK ADAM CANON
+#
+# The message anchored on-chain by the Block Adam ceremony (D-070). This is NOT the genesis
+# engraving: the genesis canon lives in docs/engrave/CANON.txt, is sealed inside block 0 of
+# 9chain-a1-g1, and cannot be added to. This one is anchored by the hash of a ceremonial
+# TRANSACTION, so it lives at block 1 or later.
+#
+# 🔴 WHY THIS FILE EXISTS AT ALL, AND WHY IT WAS WRITTEN BEFORE THE CEREMONY:
+# David sent this text at 10:01Z on G-day, thirty-five minutes after the network was born and
+# eight minutes before the announcement. It could not go into genesis without destroying and
+# regenerating a live network, and he chose (correctly) to keep the network and anchor the text
+# by transaction instead. The bytes were frozen immediately, in the same minute, because the
+# genesis engraving taught this project exactly one thing about text: a sentence that is going
+# to be hashed must stop moving BEFORE anyone needs it, not at the moment they need it. A comma
+# added later is a different hash, and by then the hash is what people quote.
+#
+# sha256 is over the RAW BYTES OF THE FILE. No normalisation of any kind: no NFC/NFD, no
+# line-ending translation, no BOM, and NO TRAILING NEWLINE. Verified at freeze time: first byte
+# 0x48 ('H'), last byte 0x21 ('!'), 182 bytes, 182 characters (pure ASCII, so they match).
+#
+# Verify without trusting this file:
+#   sha256sum docs/block-adam/9s-union-message.txt
+
+9s_union_message  84846f452db83644231895a65f75706d3a435df827b88a1b18852ec4670d5b78  182 bytes  en
