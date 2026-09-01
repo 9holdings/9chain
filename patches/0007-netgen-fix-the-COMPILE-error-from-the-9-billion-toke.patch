@@ -1,7 +1,7 @@
 From 948c6fe7cfa4b52e7cf2315914473bc765a8703c Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Wed, 26 Aug 2026 17:52:28 +0400
-Subject: [PATCH 07/26] netgen: fix the COMPILE error from the 9-billion
+Subject: [PATCH 07/27] netgen: fix the COMPILE error from the 9-billion
  tokenomics change (b.Percent is gone)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

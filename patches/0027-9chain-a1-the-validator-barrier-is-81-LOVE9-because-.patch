@@ -1,0 +1,90 @@
+From 66e57766dccd98b2dbc214cf3edff7483ef41c07 Mon Sep 17 00:00:00 2001
+From: David Do <david.do@openkingdom.com>
+Date: Tue, 1 Sep 2026 11:27:00 +0400
+Subject: [PATCH 27/27] 9chain-a1: the validator barrier is 81 LOVE9, because
+ 25,000 was a door nobody could walk through
+
+MinValidatorStake was 25,000 LOVE9, described in its own comment as "deliberately low so the
+community can run its own node". Measured on G-day, hours before genesis: the faucet grants 10
+LOVE9 per request and rate-limits to 5 per IP per hour, so reaching 25,000 is about 500 hours of
+uninterrupted asking. There is no other documented path. That is not a slow road, it is no road.
+
+This value is compiled into the binary -- netgen never writes minValidatorStake into genesis.json
+(measured: zero hits across every generated net*/genesis.json) -- so it is immutable for the life
+of the network. Shipping it would have permanently closed the door this network exists to hold
+open, and the last moment it could be changed cheaply is before genesis.
+
+81 = 9 x 9: nine requests from a faucet granting 9. Avalanche's own Fuji uses 1 * units.Avax, so
+81 is still 81x that. Safety is untouched: the nine genesis validators self-bond 8,999,991 LOVE9,
+so an 81-LOVE9 validator holds ~0.0009% of stake and cannot influence consensus; sybils gain
+nothing because stake is what votes.
+
+MinDelegatorStake moves with it, 312.5 -> 9. Leaving it would have made delegating 3.9x more
+expensive than running your own validator, frozen in for the life of the network. The two
+barriers express an ordering -- lending stake must never cost more than putting up a node -- and
+9 < 81 keeps it.
+---
+ genesis/genesis_9chain_a1.go | 43 +++++++++++++++++++++++++++++-------
+ 1 file changed, 35 insertions(+), 8 deletions(-)
+
+diff --git a/genesis/genesis_9chain_a1.go b/genesis/genesis_9chain_a1.go
+index 894977b..0340ae2 100644
+--- a/genesis/genesis_9chain_a1.go
++++ b/genesis/genesis_9chain_a1.go
+@@ -123,10 +123,29 @@ var A1Params = Params{
+ 		// bảng tham số riêng thì đây là chỗ nó phải tách ra, không phải chỗ sửa nóng.
+ 		UptimeRequirement: .8,
+ 
+-		// Rào cản vào làm validator: 25,000 LOVE9.
+-		// Cố tình thấp để cộng đồng tự chạy node được — đây là mục đích tồn tại của A1.
+-		// (Thời trần 720 triệu con số này là 2,000; D-042 nhân ×12,5 cùng cả bảng.)
+-		MinValidatorStake: 25 * units.KiloAvax, // 25.000 LOVE9 — D-042 (x12,5)
++		// The barrier to becoming a validator: 81 LOVE9 = 9 x 9.
++		//
++		// It used to be 25,000 (D-042 scaled the whole table by 12.5 from 2,000). That number
++		// was called "deliberately low so the community can run its own node", and on its own
++		// terms it was. Measured on G-day, hours before genesis, it was not: the faucet grants
++		// 10 LOVE9 per request with a per-IP limit of 5 per hour, so 25,000 is ~500 hours of
++		// uninterrupted asking. An outsider could not reach the barrier by any documented path.
++		// That is not a slow road, it is no road -- and this value is COMPILED IN and therefore
++		// immutable for the life of the network, so shipping it would have closed the door A1
++		// exists to hold open.
++		//
++		// 81 is 9 x 9: nine requests from a faucet that grants 9. Reference point: Avalanche's
++		// own Fuji testnet uses MinValidatorStake = 1 * units.Avax, so this is still 81x that.
++		//
++		// Safety is unaffected. The nine genesis validators self-bond 8,999,991 LOVE9 total, so
++		// an 81-LOVE9 validator holds ~0.0009% of stake and cannot influence consensus. Sybils
++		// gain nothing: stake is what votes, and 81 buys ~nothing of it.
++		//
++		// 🔴 COMPILED INTO THE BINARY, not written into genesis.json -- netgen never emits
++		// minValidatorStake (measured: zero hits across every generated net*/genesis.json).
++		// Changing it means regenerating the whole patch set, rebuilding the image, and
++		// re-shipping it to every machine. Do not treat it as a runtime setting.
++		MinValidatorStake: 81 * units.Avax, // 81 LOVE9 = 9 x 9 — supersedes D-042's 25,000
+ 
+ 		// Trần stake mỗi validator: 625,000,000 LOVE9.
+ 		//
+@@ -141,10 +160,18 @@ var A1Params = Params{
+ 		// node genesis còn ~624 triệu chỗ trống — thoải mái.
+ 		MaxValidatorStake: 625 * units.MegaAvax, // 625.000.000 LOVE9 — D-042 (x12,5)
+ 
+-		// Rào cản uỷ quyền: 312,5 LOVE9 — người dùng thường vẫn tham gia được.
+-		// Khai bằng MilliAvax vì 312,5 KHÔNG phải số nguyên LOVE9; viết
+-		// `312.5 * units.Avax` là biểu thức float, không biên dịch được ở hằng uint64.
+-		MinDelegatorStake: 312_500 * units.MilliAvax, // 312,5 LOVE9 — D-042 (x12,5)
++		// The barrier to delegating: 9 LOVE9.
++		//
++		// 🔴 THIS MOVES WITH MinValidatorStake OR THE TABLE INVERTS. It used to be 312.5, which
++		// was below the old 25,000 validator barrier and therefore sane. Dropping the validator
++		// barrier to 81 while leaving this at 312.5 would have made DELEGATING 3.9x more
++		// expensive than running your own validator -- an absurdity, frozen into the binary for
++		// the life of the network. Whoever changes one of these two numbers changes both.
++		//
++		// 9 keeps delegating strictly cheaper than validating (9 < 81), which is the ordering
++		// the two barriers are supposed to express: lending stake must never cost more than
++		// putting up a node.
++		MinDelegatorStake: 9 * units.Avax, // 9 LOVE9 — moves with MinValidatorStake, see above
+ 
+ 		// Phí uỷ quyền tối thiểu validator được thu: 2%.
+ 		MinDelegationFee: 20_000, // thang 1,000,000 = 100%

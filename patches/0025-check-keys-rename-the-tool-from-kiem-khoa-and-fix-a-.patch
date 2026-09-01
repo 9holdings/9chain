@@ -1,7 +1,7 @@
 From 296c7a4bb9b5687b4521315d5b7948a66606e29c Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Fri, 28 Aug 2026 14:20:39 +0400
-Subject: [PATCH 25/26] check-keys: rename the tool from `kiem-khoa`, and fix a
+Subject: [PATCH 25/27] check-keys: rename the tool from `kiem-khoa`, and fix a
  comment citing a removed flag
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

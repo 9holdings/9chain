@@ -1,7 +1,7 @@
 From 1bd068819f4791e52317c7f969fc0e55cdc41be6 Mon Sep 17 00:00:00 2001
 From: David Do <david.do@openkingdom.com>
 Date: Thu, 27 Aug 2026 00:04:17 +0400
-Subject: [PATCH 11/26] engrave-verify: read the engraving back from genesis
+Subject: [PATCH 11/27] engrave-verify: read the engraving back from genesis
  AND from the running network
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

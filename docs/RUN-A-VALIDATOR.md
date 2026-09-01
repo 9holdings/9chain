@@ -18,14 +18,18 @@
 | | |
 |---|---|
 | **Run a full node** | Free. No permission, no allowlist, no application. You need a machine and a public IPv4 address. |
-| **Become a validator** | Requires a **self-bond of at least 25,000 LOVE9**, locked for the term you choose. |
+| **Become a validator** | Requires a **self-bond of at least 81 LOVE9**, locked for the term you choose. |
 
-🔴 **Read this before you plan on validating: the faucet cannot fund a validator.** It hands out
-10 LOVE9 at a time, rate-limited. Reaching 25,000 that way is not a slow path, it is not a path.
-On a test network the stake has to be granted, and today that means asking:
-**FILL-ON-G-DAY: contact / grant request channel.**
+✅ **The faucet can fund a validator, and that is deliberate.** It hands out **9 LOVE9** per
+request, so **nine requests** cover the whole 81-LOVE9 bond. Nothing to apply for, nobody to ask.
 
-We would rather say that plainly than let you build a node for a week and discover it at the end.
+*(Until 2026-09-01 this barrier was 25,000 LOVE9. At 10 LOVE9 per request that was roughly 500
+hours of uninterrupted asking — not a slow path, no path at all. The number is compiled into the
+node binary and therefore fixed for the life of the network, so it was changed in the hours
+before genesis rather than shipped. 81 = 9 × 9. For reference, Avalanche's own Fuji testnet uses
+a 1 AVAX minimum, so this is still 81× that.)*
+
+We would rather you learn the cost here than build a node for a week and discover it at the end.
 
 **No permission gate exists at the protocol level.** `ROLE_OPERATOR` is not granted to anyone at
 genesis, so the validator gate never activates and any funded account can submit
@@ -43,9 +47,9 @@ genesis, so the validator gate never activates and any funded account can submit
 | native asset alias | **`LOVE9`** — see the warning below, it will bite you |
 | C-Chain EVM chainId | `9000000009` (`0x218711a09`) |
 | P/X supply cap | `7,900,000,001 LOVE9` (`7900000001000000000` nano) |
-| minimum validator stake | `25,000 LOVE9` |
+| minimum validator stake | `81 LOVE9` (9 x 9 — nine faucet requests) |
 | maximum validator stake | `625,000,000 LOVE9` (delegations count toward it) |
-| minimum delegator stake | `312.5 LOVE9` |
+| minimum delegator stake | `9 LOVE9` |
 | minimum delegation fee | `2%` (`20000` parts per million) |
 | stake duration | min `24h`, max `365 days` |
 | uptime required for rewards | **80%** |
@@ -77,18 +81,18 @@ git rev-parse HEAD^{tree}
 **Must print:**
 
 ```
-60a61707f7974a0f1853b8bf78df7d0fdc1ef863
+387238778dda96d58cabe6f9ddd7097e208b69e9
 ```
 
 `--keep-cr` is not optional: without it, line endings shift and the tree hash will not match.
 
 ### Counter-check — do this too, it is what makes the first check mean something
 
-Applying **25 of the 26** patches must yield a *different, also-known* tree:
+Applying **26 of the 27** patches must yield a *different, also-known* tree:
 
 ```bash
-git checkout 1cf1fc3 && git am --keep-cr <first 25 patches>
-git rev-parse HEAD^{tree}     # f2b9486b71ad53b584a86f77d6017c34d74e6fa6
+git checkout 1cf1fc3 && git am --keep-cr <first 26 patches>
+git rev-parse HEAD^{tree}     # 60a61707f7974a0f1853b8bf78df7d0fdc1ef863
 ```
 
 Two anchors with independent origins say something. One anchor only proves the patch set agrees
@@ -220,7 +224,7 @@ curl -s -X POST -H 'content-type:application/json' \
   http://127.0.0.1:9650/ext/bc/P
 ```
 
-`unlocked` must be at least `25000000000000` (25,000 LOVE9 in nano) plus a little for fees.
+`unlocked` must be at least `81000000000` (81 LOVE9 in nano) plus a little for fees.
 
 ---
 
