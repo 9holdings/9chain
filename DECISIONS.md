@@ -6354,3 +6354,56 @@ Thành bản ghi có bia: `GDAY-G1-GAPS.md` · `GDAY-NODE10-HETZNER.md` · `PROP
 tên thế hệ · tên miền đã nghỉ · mức self-bond cũ). `blockchainID` C/X — thứ **chết mỗi lần
 re-genesis** — chưa có mẫu vì chúng không có hình dạng nhận diện được bằng chữ. Mỗi lần sinh lại
 mạng, thêm mẫu **trước** khi công bố.
+
+---
+
+## D-151 — **Tuyến sao lưu đã ĐỨT và không có gì báo; nay đẩy đi đâu cũng phải đọc TÊN trước** (`2026-09-01`)
+
+### Phát hiện — bằng một lượt đẩy thật, không bằng cổng nào
+
+`git push origin main` trả **403**: *"This repository was archived so it is read-only."*
+`daviddokrao/9chain-a1` bị chuyển sang **archived lúc `12:19Z`** cùng ngày, đóng băng ở **325
+commit** / `556a470` (`31/08 19:15Z`).
+
+🔴 **Không có gì báo, và không có gì lẽ ra phải báo.** Repo bị archive không đổi URL, không đổi
+quyền đọc, `git fetch` vẫn chạy, `git ls-remote` vẫn trả ref. Nó **chỉ từ chối lúc GHI** — mà ghi
+là thứ ta chỉ làm khi đã có việc cần cứu. ⇒ Đúng hình dạng *"cổng chưa bao giờ thấy đỏ"*, chỉ khác
+là **ở đây không có cổng nào cả**: tuyến sao lưu là một thao tác tay, và một thao tác tay không
+chạy thì không phân biệt được với một thao tác tay chạy tốt.
+
+### Việc KHÔNG mất, nhưng một tính chất thì mất
+
+| Nơi | commit | Trạng thái lúc phát hiện |
+|---|--:|---|
+| `main` cục bộ | 374 | — |
+| `9holdings/9chain` | **374** | 🔴 **CÔNG KHAI** |
+| `daviddokrao/9chain-a1` | 325 | ⚫ archived, chỉ đọc |
+
+49 commit của **chính ngày G** — sinh mạng g1, kịch bản nghi lễ, lượt sửa bảng phân bổ — nằm ngoài
+bản sao lưu. Chúng an toàn **chỉ vì** repo công khai tình cờ giữ đủ lịch sử. ⇒ Trong khoảng từ
+`12:19Z` tới lúc phát hiện, **bản sao duy nhất ngoài máy này là một bản CÔNG KHAI**, và câu
+*"commit rồi đẩy cho chắc"* — vốn là động tác rẻ và vô hại — đã lặng lẽ trở thành **một lượt xuất
+bản**. Không ai đổi luật; luật tự đổi nghĩa vì môi trường quanh nó đổi.
+
+### Đã làm
+
+1. **Remote riêng tư mới**: `daviddokrao/9chain-a1-backup`. 🔴 Kiểm `visibility` **TRƯỚC** khi đẩy,
+   không phải sau — nếu cờ `--private` hỏng thì đo sau khi đẩy là đo một thứ đã công khai rồi.
+   Đo trước: `PRIVATE · isArchived false`. Đẩy xong đo lại: **375 commit cả hai đầu**, cùng tip,
+   vẫn `PRIVATE`, đúng một nhánh `main`.
+2. **Remote chết giữ lại, đổi tên thành `archived-31aug`** — không xoá. Xoá là mất bản ghi *"chỗ
+   này từng là tuyến sao lưu tới `31/08`"*; giữ nguyên tên `origin` thì để lại một cái bẫy 403
+   mang cái tên mà mọi người gõ theo phản xạ. Tên mới **tự khai nó là gì**.
+3. **`CLAUDE.md` §4**: từ *"đẩy là việc hướng ra ngoài"* thành **ba remote, đọc TÊN trước khi đẩy**
+   — vì nay hai trong ba nhận được và chúng khác nhau ở đúng chỗ đắt nhất: một cái công bố.
+
+### 🔴 Bài học, và nó không nói về git
+
+Thứ hỏng không phải cái repo. Thứ hỏng là **một giả định đã đúng suốt nhiều tuần rồi thôi đúng, mà
+không có sự kiện nào trong repo đánh dấu thời điểm đó**. Cùng hình dạng với `ALLOCATION-PUBLIC.md`
+sáng nay (D-150): bảng đúng lúc viết, một lượt `down -v` **ở nơi khác** làm nó sai, không commit
+nào chạm vào tệp. ⇒ Câu hỏi bổ sung cho §2: *phép đo này còn đo được thứ nó tưởng đang đo không —
+hay có ai đó đã đổi thế giới quanh nó mà không đi qua repo này?*
+
+⚠️ **Chưa có cổng cho mục này.** Một cổng canh `visibility`/`isArchived` của cả ba remote là rẻ và
+nên có; nó chưa được dựng trong phiên này, và đây là chỗ ghi nợ để phiên sau không tưởng là đã có.
