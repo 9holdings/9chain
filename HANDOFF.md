@@ -489,7 +489,14 @@ tên tệp) vá lỗ này** — chỉ `id` neo được. ⇒ Đặt `id` manifes
 | `chain-factory` (P-Chain — nơi nó tiêu tiền) | `P-love91999h0q4ucfnex9q0qxefuu0ke0xtyvl6739999` | 52m36s · 1,19 tỷ |
 | `faucet` (EVM — nơi người dùng nhìn) | `0x90001e27808F4aAa9FF672f5714476EB8E3f0009` | 1h14m45s · 1,34 tỷ |
 
-Khoá ở `C:\Users\abc\9chain-a1-keys\g1\` (chmod 600) — **chưa ví nào có tiền**. Log tạm trong
+Khoá ở `C:\Users\abc\9chain-a1-keys\g1\` (chmod 600) — **chưa ví nào có tiền**.
+<!-- 🔴 ĐÍNH CHÍNH 2026-09-01 08:00Z: "(chmod 600)" SAI — `chmod` là lệnh RỖNG trên NTFS qua Git
+     Bash. Đo: mọi tệp khoá ở CẢ `g0` lẫn `g1` đều `-rw-r--r--`, và `chmod 600` chạy exit 0 mà
+     không đổi gì. ACL thật (`icacls`) chỉ cấp SYSTEM · Administrators · DAVIDDO\abc ⇒ KHÔNG
+     phải lỗ hổng trên máy này, nhưng câu trên khai một lớp bảo vệ KHÔNG TỒN TẠI. Muốn quyền
+     thật trên Windows phải dùng `icacls`, không phải `chmod`. Cùng họ với lỗi ống gãy: lệnh
+     chạy, exit 0, và không làm gì. -->
+Log tạm trong
 `%TEMP%` đã `shred -u -n 3` ngay trong phiên tạo ra chúng. `check-key-leaks` mốc so **7 khoá/2 nguồn
 → 9 khoá/4 nguồn**: nay **mọi `*-key.txt` trong thư mục thế hệ tự vào mốc**, thôi khai tay.
 
