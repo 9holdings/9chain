@@ -6779,3 +6779,56 @@ miễn trừ **chỉ hợp lệ cho câu kể về quá khứ**, mà đó là c�
 ba chỗ ra lệnh · `docs/RUNBOOK-REOPEN-CHAIN-CREATION.md` đã đúng sẵn từ lúc soạn.
 ⚠️ `PROGRESS.md:1526` **giữ nguyên**: nó kể lại D-140 và nói về **quỹ Foundation**, nơi câu
 *"thanh khoản ở X, phí ở P"* là **đúng**. Ví factory không phải quỹ genesis — đó mới là chỗ trượt.
+
+---
+
+## D-156 — **Đường lui dựng BÊN TRONG thứ mình đang bảo vệ thì trở thành một phần của nó** (`2026-09-01`)
+
+**Bối cảnh.** David bảo làm luôn bốn việc dọn. Trước khi chạy `console-deploy.sh` — kịch bản
+**chưa ai từng thấy chạy trọn vẹn** (D-088) — tôi kéo 4 tệp đích trên server về làm đường lui, đặt
+vào `./rollback-console-20260901/` **trong cây repo**. Đối chứng md5 hai đầu: trùng khít. Đường lui
+thật, đúng gotcha 17 (*"đã có bản lưu" là PHÉP ĐO*).
+
+**Rồi preflight đi từ `31 đạt · 3 đỏ` xuống `30 đạt · 4 đỏ`** — thế giới thật **bớt** một đỏ (sổ
+chain nay ✓) mà **tổng lại tăng**. Hai cổng **repo** đỏ:
+
+```
+🔴 no constant has a second copy      ← rollback/chainid.mjs khai A1_GEN, NETWORK_ID, khối chainId
+🔴 source code is English only        ← rollback/server.mjs mang chú thích tiếng Việt ⇒ nợ PHÌNH
+```
+
+🔴 **Bản chép để cứu hộ trở thành một bản khai thứ hai.** `check-single-source` (D-113) không hỏi
+*"tệp này để làm gì"* — nó hỏi *"hằng số này được khai mấy nơi"*, và câu trả lời thành **hai**.
+Cổng ngôn ngữ (§0) cũng vậy: nó đếm dòng tiếng Việt **trong repo**, không đếm ý định.
+
+**Đây là mặt NGƯỢC của D-117.** Ở kia: bản chép khoá quỹ nằm trong `%TEMP%`, **ngoài tầm ba cổng**,
+sống 20 giờ. Ở đây: bản chép nằm **trong tầm**, và cổng bắt trong vài phút. Cùng một hành động —
+*"chép một bản để phòng thân"* — cho hai hỏng hóc đối xứng: **ngoài tầm thì không ai thấy, trong
+tầm thì nó thành một phần của thứ đang được đo**.
+
+⇒ **Luật: đường lui phải nằm NGOÀI biên mà cổng quét, nhưng TRONG tầm tay người vận hành.**
+Ở dự án này chỗ đó là thư mục scratchpad của phiên, không phải cây repo, và **không bao giờ** là
+`%TEMP%` cho vật liệu khoá.
+
+⚠️ **Và nó xác nhận bẫy #6 lần nữa, theo chiều ngược:** nếu tôi chỉ đọc *"vẫn còn đỏ"* rồi cho là
+hai đỏ cũ, tôi đã bỏ qua việc mình vừa **đẻ ra hai đỏ mới** trong lúc **đóng được một đỏ cũ**.
+Tổng che mất cả hai chiều cùng lúc.
+
+## D-156b — **D-088 ĐÃ ĐÓNG: `console-deploy.sh` chạy trọn vẹn, lần đầu tiên**
+
+Kịch bản hỏng từ **chính commit vá nó** (`a16c81c`) và `lib/chainid.mjs` từng phải lên server bằng
+**chép tay**. Hôm nay nó chạy hết chuỗi, và mỗi mắt xích tự khai:
+
+```
+bài tự kiểm TRƯỚC khi chép   ·  chép 16 tệp theo manifest  ·  npm install
+bài tự kiểm TRÊN SERVER       ->  21/21 ĐẠT · 38/38 ĐẠT
+đối chiếu md5 từng tệp        ->  16 tệp
+"có lượt đẻ/thu hồi đang chạy không?"  ->  hỏi được console, HTTP 200, không có lượt nào
+restart, kiểm PID ĐỔI          ->  1148847 -> 1724747   (không chỉ kiểm "cổng có người nghe")
+check-deploy-drift             ->  20 khớp · 0 lệch · 0 thiếu
+```
+
+🔴 **Nhưng nó thoát mã 1 và in *"đừng coi lượt deploy này là xong"*** — vì còn **một tệp MỒ CÔI**
+(`heartbeat.json.g0-20260901`, đúng hình dạng B-17). Lượt deploy **đã xong**; thứ chưa xong là một
+việc dọn giờ G **không thuộc lượt deploy này**. Đúng lớp D-153: đỏ có lý do thật, **câu kết trỏ vào
+đại lượng khác**. Chưa vá — ghi ra đây trước, vì vá cổng lúc vừa dùng nó xong là lúc dễ chiều số.
