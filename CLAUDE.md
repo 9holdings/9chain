@@ -47,12 +47,15 @@ kể cả chú thích. Đừng thêm một dòng tiếng Việt nào vào mã n�
 2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một
    nửa: nửa *"có chặn không"*, chưa kiểm nửa *"chặn xong nó nói gì"*.
 3. **Đụng `patches/` là đụng đường tái lập fork.** Sinh `--no-signature`, **sinh lại CẢ BỘ**,
-   nghiệm thu bằng `git am --keep-cr` + so tree. Tree hiện tại **`60a61707`** / **26 patch** /
-   gốc `1cf1fc3`. Đối chứng rẻ mà mạnh: áp **25/26** phải ra đúng **`f2b9486b`** — tree mà fork
-   đứng suốt `28–29/08`, tức mốc **không do lượt bump này đẻ ra**.
+   nghiệm thu bằng `git am --keep-cr` + so tree. Tree hiện tại **`38723877`** / **27 patch** /
+   gốc `1cf1fc3` — ba phép đo độc lập khớp `01/09`: `ls patches/*.patch` = 27 · `TREE_FORK`
+   trong `gday-preflight.mjs` · **binary đang chạy tự khai** `gitCommit`
+   `9chain-a1-g1-27patch-38723877`. Đối chứng rẻ mà mạnh: áp **26/27** phải ra đúng
+   **`60a61707`** — tree mà fork đứng trước lượt thêm patch 0027, tức mốc **không do lượt bump
+   này đẻ ra**. *(Mốc cũ `f2b9486b` là đối chứng của thời 26 patch. <!-- stale-ok -->)*
    🔴 **`A1Gen` NẰM TRONG bộ patch (0018) ⇒ bump thế hệ LÀ sửa `patches/`** (đo `30/08`). Bump
    ở cây làm việc mà quên sinh lại bộ patch thì image ngày G đúng, còn **bộ patch công bố vẫn
-   khai `A1Gen 0`**: người ngoài áp 26 patch, build ra binary của **thế hệ đã chết**, không
+   khai `A1Gen 0`**: người ngoài áp đủ bộ patch, build ra binary của **thế hệ đã chết**, không
    join được — trong khi cổng fork-tree **xanh suốt** (nó chỉ so `patches/` với hằng số chép
    trong chính nó), và điều kiện qua số 4 của `01/09` cũng xanh.
 4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)
@@ -92,6 +95,8 @@ node scripts/check-single-source.mjs         # một hằng số, MỘT nơi kha
 node scripts/check-english-code.mjs          # mã nguồn chỉ có tiếng Anh (bánh cóc, §0)
 node scripts/make-l1-genesis.mjs --self-test  # khuôn L1 KHÔNG được dùng nguyên xi (D-114)
 node scripts/check-deploy-drift.mjs          # repo ↔ server (chạy TRƯỚC mọi mục "đã đóng")
+node scripts/check-doc-drift.mjs             # 🔴 TÀI LIỆU có khai số của thế hệ ĐÃ CHẾT không (D-150)
+                                             #    ĐO mạng sống rồi mới chấm; bản ghi/đóng băng KHÔNG quét
 node scripts/check-consistency.mjs --self-test # số học tokenomics, đọc THẲNG từ Go
 node scripts/gen-chainid-issued.mjs --check  # sổ chainId/tên xuyên thế hệ
 node local-net/console/chainid-test.mjs      # phép cấp chainId
@@ -107,19 +112,26 @@ bash scripts/h6b-backup.sh --check           # bản sao lưu có dựng lại �
 node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
 ```
 
-⚠️ `gday-preflight.mjs` gọi **28 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`
+⚠️ `gday-preflight.mjs` gọi **30 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`
 ×2, `check-single-source`, `check-english-code`; thêm `01/09`: `check-history-secrets` ×2 —
-D-145 — và `ceremony-9s-union --self-test` — D-146); ba cổng cuối trong danh sách trên đứng ngoài nó (hai cái là VIỆC TAY của nó,
+D-145 — `ceremony-9s-union --self-test` — D-146 — và `check-doc-drift` ×2 — D-150); ba cổng cuối
+trong danh sách trên đứng ngoài nó (hai cái là VIỆC TAY của nó,
 `check-robots` là mặt web — không đủ tư cách chặn genesis).
-⚠️ **Số đo `01/09` chiều: `25 đạt · 2 đỏ · 1 không chạy được`** — 28 mục gọi ra, ba mục cuối là
-đo mạng/server. Hai đỏ đã biết: ví `chain-factory` **0 đồng** · console trên server **chưa deploy**.
+⚠️ **Số đo `01/09` 13:03Z: `27 đạt · 2 đỏ · 1 không chạy được`** — 30 mục gọi ra. Hai đỏ đã biết,
+**cả hai là việc của David, không phải lỗi mã**: ví `chain-factory` **0 đồng** (`P-love91999h…9999`,
+địa chỉ g1) · console trên server **chưa deploy bản g1** (`check-deploy-drift`: 4 lệch + 1 thiếu).
+🔴 **Cả hai đỏ này CHẶN việc mở lại cổng đẻ chain L1** — thứ tự bắt buộc: đẩy sổ chainId lên
+server → nạp ví factory (X→P, D-140) → mới bật `A1_DE_CHAIN_MO=1`.
 
 🔴 **Cổng "áp đủ bộ rồi so hằng số của chính mình" chưa phải cổng** (D-112). Nó chỉ chứng minh
 bộ patch **tự nhất quán với con số ta vừa chép vào tệp đó** — ai sinh lại cả bộ rồi dán tree
-mới vào cũng làm nó xanh. Preflight nay áp **25/26 TRƯỚC** và neo vào `f2b9486b`, tree mà fork
-đứng suốt hai ngày trước lượt bump: hai đầu neo có gốc độc lập mới nói được điều gì đó.
-*(Mốc cũ `074aaa93` — tree mà image `g0` dựng lên trên — nghỉ cùng thế hệ g0; nó còn trong
-`DECISIONS.md`, không còn ở đây, vì cổng chặn ngày G phải neo vào thế hệ nó đang chặn.)*
+mới vào cũng làm nó xanh. Preflight nay áp **26/27 TRƯỚC** và neo vào `60a61707` — tree mà fork
+đứng từ `30/08` tới `01/09`, **và** tree mà image `g1` đang chạy được dựng lên trên: hai đầu neo
+có gốc độc lập mới nói được điều gì đó.
+*(Hai mốc cũ `f2b9486b` (thời 26 patch) và `074aaa93` (tree image `g0`) đã nghỉ; chúng còn trong
+`DECISIONS.md`, không còn ở đây, vì cổng chặn ngày G phải neo vào thế hệ nó đang chặn.)* <!-- stale-ok -->
+🔴 **Đây là đúng lớp lỗi §2:** đoạn này còn khai `25/26 → f2b9486b` **sau** lượt bump lên 27 patch
+— luật thì đã đổi ở §1, mà lời giải thích của luật thì chưa. Đo `01/09`, sửa cùng lượt D-150.
 
 🔴 **Vế thứ BA của luật cứng #2 (D-106b, `28/08`): thấy cổng ĐỎ chưa đủ — phải kiểm nó đỏ VÌ
 ĐÚNG LÝ DO.** `check-robots` bản đầu đỏ ngay lần đầu và cái đỏ đó bị đọc thành *"cổng nhạy"*,
@@ -154,7 +166,7 @@ tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đ
 7. **Heredoc bash + Python nuốt dấu gạch chéo** — sửa mã Go có `\n` thì dùng công cụ sửa tệp.
 8. **`A1_CONSOLE_TOKEN` đổi `28/08`** — đọc từ `C:\Users\abc\9chain-a1-keys\console-token.txt`,
    đừng dùng giá trị nhớ trong đầu.
-9b. 🔴 **TÊN MIỀN SỐNG LÀ `a1.9chain.org`.** `testnet-a1.9chain.org` là tên **CŨ**: origin
+9b. 🔴 **TÊN MIỀN SỐNG LÀ `a1.9chain.org`.** `testnet-a1.9chain.org` là tên **CŨ**: origin <!-- stale-ok: mục này TỒN TẠI để nói về cái tên đã nghỉ -->
    `308` sang tên mới, nhưng **Cloudflare trả `525` cho nó** ⇒ đo bằng tên cũ ra "trang chết"
    trong khi trang vẫn sống. Đã dính `28/08` và suýt khai một sự cố không có thật.
    Cách phân biệt trong 10 giây: `rpc-a1.9chain.org` **vẫn đúng** và vẫn phục vụ 200 — hai
@@ -182,7 +194,7 @@ tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đ
 | Go | `upstream/avalanchego/utils/constants/network_ids.go` → `A1Gen` | binary, netgen |
 | JS | `local-net/lib/chainid.mjs` → `A1_GEN` | console (cấp chainId cho L1 người dùng) |
 
-Hôm nay cả hai = **0** (mạng `g0`, networkID `999999999`). Ngày G lên **1**.
+🔴 **Từ `2026-09-01` cả hai = `1`** — mạng đang chạy là `g1`, networkID **`999999998`**, tên `9chain-a1-g1`. *(Trước ngày G cả hai = 0, networkID `999999999` — thế hệ đó đã chết.)* <!-- stale-ok: câu trong ngoặc kể về quá khứ và tự khai thế -->
 🔴 **Bump một bên mà quên bên kia thì không có gì báo lỗi** — console sẽ cấp chainId từ khối
 của thế hệ khác, và số đó đi vào ví người dùng qua một genesis **bất biến**.
 ⇒ Đổi thế hệ là đổi **cả hai**, rồi chạy `check-consistency.mjs`.

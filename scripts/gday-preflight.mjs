@@ -152,10 +152,20 @@ const GATES = [
   // The L1 genesis TEMPLATE still carries chainId 9100 and the public ewoq key. Nothing may
   // ship it raw; this gate proves the builder still strips all three (D-114).
   { group: "2 · REPO GATES", name: "L1 genesis builder strips the template defaults", ...node("scripts/make-l1-genesis.mjs", "--self-test") },
+  // Documentation drift. The counter-check half is offline and lives here; the half that MEASURES
+  // is in group 3, because deciding a number is dead requires asking the running chain what is
+  // alive — never a constant copied into the gate (D-110).
+  { group: "2 · REPO GATES", name: "doc drift — dead generation stated as current (counter-check)", ...node("scripts/check-doc-drift.mjs", "--self-test") },
 
   // ── 3. The real world — the running network and the server ──
   { group: "3 · REAL WORLD", needsNetwork: true, name: "the running network (watch-network)", ...node("scripts/watch-network.mjs") },
   { group: "3 · REAL WORLD", needsNetwork: true, name: "repo ↔ server drift + orphan files", ...node("scripts/check-deploy-drift.mjs") },
+  // 🔴 Documents were the ONE published surface no gate had ever read. Found hours after the
+  // repository went public: `docs/ALLOCATION-PUBLIC.md` handed out six fund addresses under a
+  // networkID that had died that morning. Dead addresses do not error — they hold zero and say
+  // nothing — so the only reader who would have found out is one who had already sent value.
+  // Every other gate was green, and every one of them was right about its own quantity (D-150).
+  { group: "3 · REAL WORLD", needsNetwork: true, name: "no document states a dead generation as current", ...node("scripts/check-doc-drift.mjs") },
   // This one measures REAL MONEY on chain, so it belongs to group 3, not to the repo gates:
   // the `--offline` variant answers only half the question and exits 2 (INCONCLUSIVE) — which
   // is honest, but a G-day gate that says "inconclusive" is unusable. Blocks the

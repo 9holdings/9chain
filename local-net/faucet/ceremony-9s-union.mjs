@@ -775,7 +775,10 @@ async function main() {
     console.log("     nothing can reserve one: a stranger's transaction can take Block Adam itself or");
     console.log("     the anchor slot, and a retry means a NEW Adam and a NEW Eva.");
     if (SEND && !ALLOW_BUSY) {
-      console.log("     ⇒ Refusing. Re-run with --allow-busy-chain to accept the risk deliberately.");
+      console.log("     ⇒ Refusing. --allow-busy-chain accepts the risk deliberately — but note that");
+      console.log("       David ruled a QUIET WINDOW for this ceremony (D-149), so a busy chain here");
+      console.log("       means something that was supposed to be stopped is still running. Find it");
+      console.log("       before overriding: the flag does not make the chain quiet, only this gate.");
       return 2;
     }
   }

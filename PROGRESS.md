@@ -1926,3 +1926,41 @@ giao dịch nào.
       tách nhau** (`check-key-leaks` canh khoá quỹ, không canh danh tính).
 - [x] **Hai chỗ `FILL-ON-G-DAY` cuối đã điền** ⇒ cổng xuất bản `grep -c` = **0**. Repo chính thức:
       `github.com/9holdings/9chain` · kênh liên hệ: GitHub Issues (D-148).
+
+- [x] 🔴 **D-150 — BẢNG PHÂN BỔ CÔNG KHAI là bảng của mạng ĐÃ XOÁ, và không cổng nào đọc tài liệu**
+      (`01/09`, phát hiện đến từ **9Chain-BOD** chứ không từ cổng nào của A1).
+      `docs/ALLOCATION-PUBLIC.md` khai `networkID 999999999` (g0, chết `09:26Z` sáng đó) **sau khi
+      repo đã công khai**; Foundation khai **1 tỷ**, đo trên chain sống ra **0**. Địa chỉ chết
+      không báo lỗi — người đầu tiên phát hiện sẽ là người **đã gửi tiền vào đó**.
+      ✅ Bảng `g1` đã chép về, nghiệm thu `o1-check --rpc` **cả hai nửa xanh** (khoá→địa chỉ **và**
+      địa chỉ→tiền thật, khớp từng đơn vị); bản `g0` sang `docs/archive/` **kèm bia mộ**.
+      ✅ Cổng mới `scripts/check-doc-drift.mjs`, **đã nối vào preflight** (nay **30 cổng**):
+      **17/17** đối chứng ngược · thấy **đỏ thật 24 dòng/8 tệp** · thấy **mã 2** khi không đo được.
+      Nó **ĐO mạng sống** rồi mới chấm (D-110), tập quét là **`git ls-files`** — *"công bố có đưa
+      tệp này cho người lạ không"*, không phải *"tệp có trên đĩa không"*.
+      🔴 **Ba thứ bắt được mà không ai đi tìm:** (1) `stale-ok` đặt ở **dòng trên** không có tác
+      dụng — đúng cách `RUN-A-VALIDATOR.md` đang viết ⇒ đã thành luật, có ca hai chiều; (2) chính
+      cổng vừa dựng **đếm sai đại lượng** (in *"scanned 23"* trong khi 4 tệp không được đọc);
+      (3) `CLAUDE.md` §3 còn khai `25/26 → f2b9486b` sau lượt bump 27 patch.
+      ⚠️ **Nợ đã biết:** cổng chấm bằng **mẫu** ⇒ `blockchainID` C/X (chết mỗi lần re-genesis)
+      **chưa có mẫu**. Lần sinh mạng sau: thêm mẫu **trước** khi công bố.
+
+- [x] **D-149 viết bù** — cửa sổ yên tĩnh cho nghi lễ `09/09`. Nó đã bị **ba nơi trích dẫn**
+      (`CEREMONY-2026-09-09.md` ×2, `ceremony-9s-union.mjs:779`) trong khi **chưa ai viết ra**.
+      Kèm: lời khai của cửa `--allow-busy-chain` đã sửa để nói *cờ này không làm chain yên, chỉ
+      làm cổng im*. 🟢 Ghi rõ trong D-149: **đẻ chain L1 KHÔNG ảnh hưởng nghi lễ** (P-Chain ≠ C-Chain)
+      — hai việc này hay bị buộc nhầm vào nhau.
+
+### 🔴 Mở lại cổng đẻ chain L1 — ba việc, đo `01/09 13:03Z`, **cả ba là việc có người bấm**
+
+Thứ tự **bắt buộc**, và nó là thứ tự chứ không phải danh sách:
+
+1. **Đẩy sổ chainId lên server TRƯỚC** — `check-deploy-drift`: `chainid-released.json` **thiếu hẳn**,
+   `chainid-issued.json` · `server.mjs` · `chainid-test.mjs` · `lib/chainid.mjs` **lệch**. Trong đó
+   `lib/chainid.mjs` là nơi khai `A1_GEN` ⇒ **console trên server đang cấp chainId từ khối của g0**.
+   Bật cờ trước khi sổ lên = phát trùng tên/số **vào một genesis bất biến**.
+2. **Nạp ví `chain-factory`** — `watch-network`: 🔴 **0 LOVE9** trên `P-love91999h…9999` (đúng ví g1).
+   Thanh khoản genesis nằm ở **X**, CLI trả phí ở **P** ⇒ phải chuyển **X→P** (D-140 đã dựng lại
+   đúng lỗi này trên bản diễn tập: `insufficient funds: needed 2196 more nAVAX`).
+3. **`A1_DE_CHAIN_MO=1`** + `~/9chain-a1/console-restart.sh`, rồi nghiệm thu **qua Cloudflare**,
+   không nghiệm thu trên host.

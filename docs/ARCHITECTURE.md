@@ -60,7 +60,8 @@ mỗi node:
   staking TLS cert+key -> NodeID (ids.NodeIDFromCert)
   BLS secret key       -> ProofOfPossession (signer.NewProofOfPossession)
 genesis.json:
-  networkID 9001, startTime = now-60 (ĐỘNG — tránh stake hết hạn),
+  networkID 999999998 (BẮT BUỘC khai — mặc định cũ đã chết cùng thế hệ của nó),
+  startTime = now-60 (ĐỘNG — tránh stake hết hạn),
   initialStakers = N node, initialStakedFunds = treasury (khoá locked chia đều)
 docker-compose.multinode.yml:
   static IP (avalanchego cần IP, không hostname), node1 = beacon,
@@ -84,7 +85,9 @@ FallbackHRP = "custom"   →  FallbackHRP = "love9"        # đổi chuỗi hằ
 Vì tên biến/hàm/field giữ nguyên, khi `git merge upstream` Git chỉ thấy vài dòng chuỗi khác → hầu như không conflict. Nếu upstream đổi ngay dòng đó, chạy lại `rebrand.sh` (idempotent) là xong.
 
 ### Cơ chế địa chỉ (điểm tinh tế)
-`genesis.go` format địa chỉ bằng `address.FormatBech32(GetHRP(networkID), addrBytes)`. Vì 9Chain-A1 dùng **networkID 9001** (không phải 1/5/12345), `GetHRP` rơi vào `FallbackHRP="love9"`. Bytes địa chỉ trong genesis **giữ nguyên** (khoá test ewoq) nên vẫn ký được; chỉ **tiền tố hiển thị** đổi thành `love9`. Không cần tái sinh khoá cho PoC.
+`genesis.go` format địa chỉ bằng `address.FormatBech32(GetHRP(networkID), addrBytes)`. Vì 9Chain-A1 dùng **networkID 999999998** (không nằm trong bảng `1/5/12345` của Ava Labs), `GetHRP` rơi vào `FallbackHRP="love9"` ⇒ địa chỉ hiển thị tiền tố `love9`. Cơ chế này đúng với **mọi thế hệ**: bump `A1Gen` là đổi `networkID`, và tiền tố vẫn `love9` vì nó luôn rơi vào nhánh fallback — đó là lý do đổi thế hệ **không** đổi hình dạng địa chỉ, nên nhìn bằng mắt không phân biệt được ví g0 với ví g1. Phải đo.
+
+*(Thời PoC còn dùng khoá test `ewoq`: bytes địa chỉ giữ nguyên nên vẫn ký được, chỉ tiền tố hiển thị đổi. Genesis công khai từ `2026-08-27` trở đi **không** dùng `ewoq` — mỗi thế hệ sinh bộ khoá quỹ riêng.)*
 
 ## 4. Ràng buộc môi trường
 - `avalanchego` dùng syscall Unix (`utils/ulimit`) → **không build native trên Windows**. Luôn build/chạy qua **Docker (Linux)** hoặc WSL.

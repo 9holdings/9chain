@@ -49,7 +49,7 @@ Cộng đồng: thử cả hai → chấm theo trọng số của mình → bi�
 | Hạng mục A1 | Trạng thái |
 |---|---|
 | Rebrand identity (9chaingo/LOVE9/love9/love9evm) | ✅ |
-| Node A1 (networkID 9001, C-Chain chainId 9000000009) | 🟡 đang dựng |
+| Node A1 (networkID 999999998 — thế hệ `g1`, C-Chain chainId 9000000009) | ✅ 9 validator công khai |
 | Faucet / Explorer / Ví X/P (rebrand LOVE9) | ✅ code |
 | Chain-factory (create-l1, L1 chainId 9100) | ✅ code |
 | Deploy-kit đa VPS (đưa public) | ✅ sẵn |

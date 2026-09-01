@@ -1,4 +1,9 @@
+<!-- doc-drift: record -->
 # NGÀY G — NODE HETZNER VÀO THẲNG GENESIS
+
+> ⚫ **BẢN GHI — viết TRƯỚC ngày G, giữ nguyên văn.** Ngày G đã chạy `2026-09-01 09:26Z` và
+> Hetzner **đã vào genesis g1**. Mọi `9chain-a1-g0` / `25.000 LOVE9` dưới đây là **số của lúc
+> viết**: mạng nay là `g1` (`999999998`), và mức self-bond nay là **81 LOVE9** (patch 0027).
 
 > 🔴 **ĐÍNH CHÍNH `2026-08-30` — ba điều trong tệp này đã SAI và đã sửa. Đọc trước.**
 > Nguồn: diễn tập g1 trên máy dev (D-123→D-128).

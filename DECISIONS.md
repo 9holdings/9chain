@@ -6214,3 +6214,143 @@ không còn đúng**. Đó là khác biệt giữa *minh bạch* và *hớ hênh
 B-16 và B-20 nay là **hai bản sao trên CÙNG MỘT ổ đĩa**. Chúng sống sót qua *xoá nhầm*, **không**
 sống sót qua *mất máy*. Việc còn lại là **vật lý và của David**: đưa cả hai sang media khác, và
 **không cất chung** — `check-key-leaks` canh khoá quỹ, **không** canh danh tính validator.
+
+---
+
+## D-149 — **Nghi lễ `09/09` chạy trong CỬA SỔ YÊN TĨNH, không chạy trên chain đang bơm** (David chốt `2026-09-01`)
+
+> Mục này lẽ ra phải có từ `01/09`. Nó đã bị **ba nơi trích dẫn** — `docs/CEREMONY-2026-09-09.md:4`
+> và `:6`, `local-net/faucet/ceremony-9s-union.mjs:779` — trong khi **chưa ai viết nó ra**. Một số
+> hiệu quyết định trỏ vào chỗ trống thì đọc y hệt một quyết định đã cân nhắc kỹ, và đó là hình dạng
+> nguy hiểm hơn cả việc không ghi gì: người sau tra không thấy sẽ **đoán lý lẽ**. Viết bù `01/09`.
+
+### Câu hỏi
+
+C-Chain **không đẻ block rỗng**. Nghi lễ `09/09` cần ba block liên tiếp có thật (Adam · Eva ·
+Adam+10) để neo thông điệp 9S Union. ⇒ Phải có giao dịch. Hai đường, **loại trừ nhau**:
+
+| | (a) bật bơm nhịp cho chain sống động | **(b) cửa sổ yên tĩnh — ĐÃ CHỌN** |
+|---|--:|--:|
+| Ai đẻ Block Adam | block của **bơm** | block của **nghi lễ** |
+| Thông điệp vào đúng ô | một **cuộc đua ~2 giây** | **tất định** — ta là người đẻ block |
+| Giá phải trả | 0 | **~1 phút** chain không có bơm |
+
+### Vì sao (b)
+
+**Thua cuộc đua ở (a) là không có lần hai.** Chạy lại nghi lễ **không phải là chạy lại**: nó là
+một **Adam mới** và một **Eva mới**, tức một nghi lễ khác — mốc thời gian đã trôi qua rồi. Một
+phút chain lặng là cái giá rẻ nhất trong toàn bộ danh mục để đổi lấy tính tất định trên một thứ
+xảy ra **đúng một lần** và **bất biến** sau đó.
+
+⚠️ Đổi lại, (b) đặt gánh nặng lên **vận hành**, không lên mã: thứ phải dừng thì phải **thật sự
+dừng**. `touch heartbeat.stop` **KHÔNG tắt được bơm** — tệp đó đọc trong vòng lặp mà tiến trình
+không tới được khi cửa hạn chặn ở startup. Phải đặt `HEARTBEAT_STOP_AFTER` **trước** cửa sổ, hoặc
+`docker stop` rồi đối chứng bằng `restartCount` **thôi tăng**.
+
+### 🔴 Hệ quả lên cổng: `--allow-busy-chain` đổi NGHĨA
+
+Trước quyết định này, "chain đang bận" chỉ là một điều kiện bất lợi và cờ ghi đè là một lựa chọn
+hợp lý. Sau nó, **chain bận nghĩa là có thứ đáng lẽ đã dừng vẫn đang chạy** — tức một phát hiện
+vận hành, không phải một trở ngại cần ghi đè. Lời khai của cổng đã sửa để nói đúng điều đó
+(`ceremony-9s-union.mjs`): *cờ này không làm chain yên, nó chỉ làm cổng im. Tìm ra cái đang chạy
+trước đã.* Đây là **cùng một lớp lỗi** với "đường lui alias = xanh giả": một đường ghi đè tồn tại
+sẵn sẽ được dùng dưới áp lực thời gian, nên nó phải tự khai cái giá của nó **ngay tại chỗ bấm**.
+
+### Ai còn đẻ được block — đã kiểm từng dòng
+
+**bơm nhịp** 🔴 phải dừng · **faucet** 🔴 công khai, không khoá được bằng cấu hình ⇒ **quyết định
+còn treo của David**: để chạy (chấp nhận rủi ro) hay `docker stop` ~5 phút · **9Scan explorer** ✅
+không thể (họ tự đo `01/09`: 0 lời gọi ghi, không ví) · **người lạ bất kỳ** 🔴 testnet công khai,
+**đây là thiết kế** — kịch bản đo lưu lượng nền và dừng nếu ô bị chiếm.
+
+🟢 **Đẻ chain L1 (console) KHÔNG ảnh hưởng** — nó đi **P-Chain**, ô neo nằm ở **C-Chain**. Mở hay
+đóng cổng đẻ chain đều không chạm nghi lễ. Ghi rõ ở đây vì hai việc này hay bị buộc vào nhau.
+
+### Đo được
+
+`--plan` trên mạng thật `01/09`: `eth_chainId` = `9000000009` ✓ · thông điệp **182 byte** khớp vân
+tay đóng băng ✓ · chain **0 block trong 20 giây** — rảnh tuyệt đối, tức cửa sổ yên tĩnh **đang là
+trạng thái mặc định của chain hôm nay**, không phải thứ phải tạo ra.
+
+---
+
+## D-150 — **TÀI LIỆU là bề mặt công bố mà KHÔNG cổng nào từng đọc** (`2026-09-01`)
+
+### Phát hiện — và nó đến từ bên ngoài
+
+`9Chain-BOD` đo bảng phân bổ công khai của A1 bằng `eth_getBalance` trên chain đang chạy và gửi
+`docs/requests-from-9scan/2026-09-01-bang-phan-bo-cong-khai-la-cua-mang-da-xoa.md`:
+
+| Ví | `ALLOCATION-PUBLIC.md` khai | Đo được trên chain sống |
+|---|--:|--:|
+| Foundation | **1.000.000.000** | **0** |
+| Faucet | **99.999.999** | **0** |
+
+Tệp khai `networkID 999999999` — thế hệ **g0**, chết lúc `09:26Z` **sáng hôm đó**. Repo đã **công
+khai** vài giờ trước. ⇒ Tài liệu phân bổ duy nhất của A1 trỏ vào sáu địa chỉ **không ai kiểm soát,
+trên một mạng không ai chạy** — và địa chỉ chết **không báo lỗi**: chúng giữ 0 và im lặng. Người
+duy nhất phát hiện ra sẽ là người **đã gửi tiền vào đó**.
+
+🔴 **Mọi cổng trong repo đều xanh, và không cổng nào sai.** Từng cái đều đúng về **đại lượng của
+nó** — patch tree, khoá giữ tiền, lịch sử git, deploy drift. Không cái nào đọc **văn xuôi**. Đây
+là §2 ở dạng thuần khiết nhất: *cổng này đo đại lượng nào, và đó có phải đại lượng ta quan tâm không?*
+
+⚠️ **Và nó hỏng theo lịch của người khác**: bảng đúng vào lúc viết, rồi một lượt `down -v` ở nơi
+khác làm nó sai — **không lượt commit nào chạm vào tệp** để ai đó nhớ ra.
+
+### Đã làm
+
+1. **Chép bảng `g1`** từ `local-net/net-g1/allocation.md` về `docs/ALLOCATION-PUBLIC.md`; bản `g0`
+   sang `docs/archive/allocation-g0-2026-08-27.md` **kèm bia mộ** (*"BẢNG NÀY ĐÃ CHẾT — sáu địa chỉ
+   nay có số dư 0"*), đúng lối đã làm hai lần trước.
+2. **Nghiệm thu bằng phép đo, không bằng mắt**: `o1-check --rpc` **cả hai nửa xanh** — mỗi khoá suy
+   ra đúng địa chỉ nó tự khai, **và** mỗi địa chỉ giữ đúng số ghi trong bảng, khớp tới từng đơn vị.
+3. **Dựng cổng `scripts/check-doc-drift.mjs`** — thứ lẽ ra phải có từ lần re-genesis đầu tiên.
+
+### Thiết kế cổng — ba điểm, và mỗi điểm là một bài học đã trả giá
+
+🔴 **(a) Nó ĐO mạng sống, không so với hằng số chép vào chính nó.** `networkID` "đang sống" hỏi
+`info.getNetworkID` của node đang chạy; không đo được thì **mã 2 (KHÔNG KẾT LUẬN)**, không bao giờ
+là xanh. Đúng lý do `check-net-dirs` đã phải thôi suy mạng đang chạy từ hằng số repo (D-110).
+
+🔴 **(b) Không phải quét-và-thay.** Phần lớn số chết trong repo là **câu kể về quá khứ** và đúng
+nguyên trạng. Ba nhóm, và khác biệt giữa chúng **là toàn bộ thiết kế**: **ĐƯỜNG SẢN PHẨM** (người
+ta làm theo ⇒ quét) · **BẢN GHI** (mục có ngày; số cũ ở đây **là mục đích** ⇒ không quét, nhưng
+**bắt buộc có bia** cho người đọc) · **ĐÓNG BĂNG** (`patches/`, `docs/evidence/**`, `archive/` ⇒
+không bao giờ chạm — một lượt quét qua chúng đã phá repo **hai lần trong một phiên**).
+
+🔴 **(c) Tập quét là `git ls-files`, không phải đĩa.** Bản đầu đi bộ trên hệ tệp và báo chín tệp
+`local-net/net*/allocation.md` là drift — chúng là đồ netgen sinh cho mạng chết/mạng tập, **nằm
+trong `.gitignore`**, không lượt công bố nào chạm tới. Câu hỏi đúng không phải *"tệp này có trên
+đĩa không"* mà **"công bố có đưa nó cho người lạ không"** — và `git` là thứ trả lời câu đó.
+
+### Nghiệm thu — ba mã thoát đều đã thấy tận mắt
+
+**17/17 đối chứng ngược** (mã 0) · **đỏ thật: 24 dòng trong 8 tệp** (mã 1) · **RPC sai đường ⇒ mã 2**,
+in đúng câu *"không đo được ≠ sạch"*. Trong 17 ca có ba ca canh chính chỗ dễ hỏng: **gốc dải
+`A1IDGoc = 999999999` KHÔNG phải một networkID** và không được báo · dấu miễn trừ **không rò sang
+dòng sau** · tệp **mới thêm ngày mai được quét mặc định** (danh sách LOẠI TRỪ, không phải danh sách
+BAO GỒM — một danh sách bao gồm sẽ im lặng bỏ sót đúng kiểu `ALLOCATION-PUBLIC.md` đã bị bỏ sót).
+
+### Đã sửa 24 dòng: 4 tệp sửa nội dung, 4 tệp thành BẢN GHI có bia
+
+Sửa thật (đường sản phẩm): `ARCHITECTURE.md` (`networkID`, cơ chế HRP) · `DEPLOY-KSGAME.md` (hai
+tên miền **đã nghỉ** trong một runbook người ta làm theo) · `A1-vs-C1-SCORECARD.md` · `RUN-A-VALIDATOR.md`.
+Thành bản ghi có bia: `GDAY-G1-GAPS.md` · `GDAY-NODE10-HETZNER.md` · `PROPOSAL-GENERATION-IDS.md`
+· `UI-PLAN.md` — cả bốn viết trước ngày G, và bia của chúng nói thẳng số nào là số của lúc viết.
+
+### 🔴 Ba thứ lượt này bắt được mà không ai đi tìm
+
+1. **Dấu `stale-ok` đặt ở dòng TRÊN không có tác dụng** — cách viết tự nhiên của markdown, và
+   `RUN-A-VALIDATOR.md` (tệp người lạ đọc để vào mạng) viết đúng kiểu đó. Cổng bỏ qua dấu và báo
+   cả đoạn. ⇒ Luật mới: dấu **đứng riêng một dòng** che dòng của nó **và đúng MỘT dòng dưới**;
+   dấu **nội dòng** không rò sang dòng sau. Cả hai chiều đều có ca đối chứng.
+2. **Chính cổng vừa dựng đã đếm sai đại lượng**: in *"scanned 23"* trong khi 4 tệp tự khai là bản
+   ghi và **không được đọc**. Nay in **đọc 19 · 4 tự khai bản ghi**, kèm tên từng tệp.
+3. **`CLAUDE.md` §3 còn khai `25/26 → f2b9486b`** sau lượt bump lên 27 patch — **luật ở §1 đã đổi,
+   lời giải thích của luật thì chưa**. Sửa cùng lượt.
+
+⚠️ **Nợ đã biết của cổng này:** nó chấm bằng **mẫu**, nên chỉ bắt được thứ đã có mẫu (networkID ·
+tên thế hệ · tên miền đã nghỉ · mức self-bond cũ). `blockchainID` C/X — thứ **chết mỗi lần
+re-genesis** — chưa có mẫu vì chúng không có hình dạng nhận diện được bằng chữ. Mỗi lần sinh lại
+mạng, thêm mẫu **trước** khi công bố.

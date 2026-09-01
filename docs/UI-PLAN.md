@@ -1,4 +1,10 @@
+<!-- doc-drift: record -->
 # Kế hoạch giao diện 9Chain-A1 — bản để phiên sau triển khai
+
+> ⚫ **BẢN GHI — mọi phép đo trong tệp này chấm ngày `2026-08-25`.** §1 và §5 mô tả **hiện trạng
+> lúc đó** (chưa có trang chủ, tên miền còn là `testnet-a1.9chain.org`); cả hai nay đã khác —
+> trang chủ đã chiếm gốc `/` và tên miền sống là **`a1.9chain.org`**. Giữ nguyên văn vì bảng đếm
+> `@media`/`:focus`/`aria-*` là **mốc so** để đo tiến bộ; sửa nó là xoá mất mốc.
 
 Lập 2026-08-25 (phiên thứ tư). Backlog thi công nằm ở `PROGRESS.md` mục **M10**.
 Đọc kèm: `HANDOFF.md` (ranh giới với 9Scan-A1), `DECISIONS.md` D-030/D-031.
