@@ -1,6 +1,8 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-08-31** (phiên **ĐÊM**: 🔴 **GIỜ G CHỐT `01/09 13:09:09` Jerusalem** ·
+Cập nhật: **2026-09-01** (phiên **SOÁT 3 VÒNG + VÁ**: image g1 nay ở **CẢ HAI** máy · sổ chặn
+đã xoá có chữ ký · 7 commit `8ebae9e`→`cb3813f`). Trước đó `2026-08-31` phiên **ĐÊM**:
+🔴 **GIỜ G CHỐT `01/09 13:09:09` Jerusalem** ·
 **image g1 ĐÃ TRÊN SERVER** — chỗ chặn số 1 đã đóng · **cổng đẻ chain ĐÃ ĐÓNG** · O2 + H-6b xong ·
 **hai lượt tổng duyệt, một ở mỗi băng**, và bản băng THẬT chứng minh thứ băng tập không kiểm được).
 Trước đó cùng ngày, phiên **CHIỀU**: ba lượt quét · **D-132: A1 dẫn dắt** · bộ khắc chữ sẵn sàng.
@@ -15,10 +17,102 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
 ```bash
-node scripts/gday-preflight.mjs      # 24 cổng + 36 VIỆC TAY, một lệnh (~3 phút)
-# ⚠️ Nó VẪN in 36 việc tay, nhưng 5 cái đã xong (#10 #11 #14 #15 #17) — preflight không biết.
-# Thực còn: 31. Xem D-137/D-142.
+node scripts/gday-preflight.mjs      # 26 cổng + 38 VIỆC TAY, một lệnh (~4 phút)
+# ⚠️ Nó VẪN in 38 việc tay, nhưng 7 cái ĐÃ XONG — preflight không biết. Đừng làm lại:
+#   #10 #11 (bump A1Gen) · #14 #15 #17 (build + ship + --build-arg, OVH)
+#   + CHỞ IMAGE SANG HETZNER  (xong 2026-09-01, nghiệm thu 3 mỏ neo trên chính máy đó)
+#   + heartbeat "của ai"      (David xác nhận: bộ bơm của anh; đã khai knownExtra)
+# Thực còn: 31. Xem D-137/D-142 + mục phiên 2026-09-01 ngay dưới.
 ```
+
+### 🆕🆕🆕 Phiên `2026-09-01` — SOÁT 3 VÒNG · CHỖ CHẶN SỐ 2 ĐÓNG · SỔ CHẶN XOÁ CÓ CHỮ KÝ
+
+**TL;DR:** David yêu cầu quét kỹ thêm 3 vòng. Ra **7 phát hiện**, trong đó **hai cổng đang ĐỎ mà
+HANDOFF ghi là xanh**, và một cổng an toàn **đã tắt lặng lẽ 2 ngày**. Đã vá hết + chở image g1
+sang Hetzner. 7 commit `8ebae9e` → `cb3813f`.
+
+#### 🔴 Số đo cuối phiên — đọc trước
+
+```
+preflight --no-network   21 đạt · 0 đỏ · 4 bỏ qua · 38 việc tay
+preflight ĐẦY ĐỦ         22 đạt · 3 đỏ  (ba đỏ DỰ KIẾN, tự hết ở giờ G — bảng dưới)
+drift                    14 khớp · 5 lệch · 1 thiếu · 0 mồ côi · 4 mồ côi ĐÃ KHAI
+h6b --check              🔴 CŨ (mã đổi sau lượt lưu) ⇒ chạy LẠI ở khối 07:09Z
+sổ chặn chainId          49 · 54  →  0 · 0  (thả có chữ ký, xem dưới)
+```
+
+#### ✅ Chỗ chặn cứng số 2 ĐÃ ĐÓNG — image g1 nay ở **CẢ HAI** máy
+
+`docker save|ssh|docker load` sang Hetzner. Nghiệm thu **trên chính máy đó**, ba mỏ neo, trùng
+khít bản OVH của D-137: `commit=9chain-a1-g1-26patch-60a61707` · `sha256 7ad4e2ac…6ea4`
+(plugin `33d0bd00…422c`) · `g1=4 · g0=0 · LOVE9=2`. Node9 g0 **vẫn chạy**, đĩa 84G→83G.
+⇒ **Ngày G không còn lượt build Go nào sau `down -v`.** Chi tiết + lệnh: `GDAY-NODE10-HETZNER.md` §1d.
+
+🔴 **Máy Hetzner là máy DÙNG CHUNG** — 178 image · 228 container của `oneboard`/`9mall`/`msc`/…
+Mọi thao tác phải **cộng thêm**; `docker system prune` ở đó là xoá việc người khác. Khoá SSH là
+`~/.ssh/id_ed25519` (**không** phải khoá `9chain-a1` của OVH). Ubuntu noble 24.04 ⇒ bẫy glibc
+đã ghi hôm qua **không áp** cho máy này.
+
+#### Bảy phát hiện của lượt soát
+
+| # | phát hiện |
+|---|---|
+| 1 | **Hai cổng ĐỎ mà HANDOFF ghi xanh** — `gen-chainid-issued --check` và `h6b --check`. Cả hai vì cùng lý do: số đo lấy GIỮA phiên rồi phiên làm tiếp và làm chúng sai |
+| 2 | **Sổ chặn chainId không có bánh cóc** — mất một sổ nguồn ⇒ danh sách CO LẠI, `--check` xanh lại, tên đã phát quay về lưu thông. Và `--check` in đúng câu *"chạy --write"* cho mọi kiểu lệch ⇒ **dạy người ta bấm đúng thao tác nguy hiểm** |
+| 3 | 🔴 **`check-net-dirs` khai "running network" bằng HẰNG SỐ REPO** trong khi đang mở sẵn RPC. Từ lượt bump `30/08`, mồi nhử `net-that-g0` (D-110) bị chấm *"thế hệ khác"* ⇒ nhánh **DECOY không bao giờ chạy**, đúng cửa sổ dọn thư mục trước re-genesis |
+| 4 | 🔴 **node9 Hetzner**: runbook ghi `git am` **25 patch** (phải 26 — patch 0026 LÀ lượt bump) · bảng nghiệm thu đo **MẠNG** chứ không đo binary · việc tay preflight dùng `docker exec` nên **không phủ** máy chạy trần |
+| 5 | Hai tài liệu ngày G còn **ra lệnh** bằng giá trị đã bị lật (`N=10`, `PORT_BASE=9700`) |
+| 6 | ~~2 user thật mất chain~~ — **David: đó là test của team**, bỏ |
+| 7 | `faucet/server.mjs` lệch repo↔server: ba bản vá đêm `31/08` **chỉ sửa trong repo** |
+
+#### Đã vá — và mỗi bản vá đều thấy ĐỎ trước
+
+- **`check-net-dirs` nay ĐO** `info.getNetworkID`; repo là ý kiến thứ hai; lệch thì nói to.
+  Counter-check **27/27**. Hai lỗi trong chính bản vá bị self-test bắt (`dirs.map` truyền INDEX
+  vào tham số `live`; `readNetDir` nhận `live` mà không chuyển tiếp) — **vô hình ở lượt chạy thật**.
+- **Bánh cóc sổ chặn**: `--write` từ chối mọi mục biến mất, **trừ** mục khai trong
+  `local-net/console/chainid-released.json` (có tên người quyết + lý do). Thấy đỏ end-to-end
+  bằng một sổ dò thật. `--self-test` 8/8, đã nối vào preflight.
+- **Xoá sổ chặn** (David chốt): 49 chainId · 54 tên → **0**. An toàn vì replay chainId bị chặn
+  **bằng kiến trúc** (g1 chỉ cấp `9001000000–9001999999`), lượt thả chỉ đụng nửa TÊN.
+- **`chainid-test` mục 8** tách: cơ chế chạy trên **fixture**, tệp sống chỉ bị chấm **mạch lạc**.
+- **`heartbeat-*` đã khai `knownExtra`** (David xác nhận là bộ bơm của anh) ⇒ mồ côi 4→0.
+- **`console-chains.json.bak`** — console tự ghi ở `server.mjs:299` ⇒ khai là vật liệu chạy,
+  **neo đúng tên đó**; mọi biến thể `.bak-*` vẫn phải ĐỎ, và độ hẹp đó **được đo**.
+
+#### 🔴 GOTCHAS mới — thứ sẽ tốn giờ nếu không biết
+
+1. 🔴 **Lệnh viết vào runbook mà chưa chạy thì chưa phải lệnh.** Tôi ghi `strings … | grep -c`
+   vào phép nghiệm thu image; image **không có `strings`** ⇒ `grep -c` trên đầu vào rỗng in
+   **`0`** ⇒ tiêu chí *"`g0` phải = 0"* **ĐẠT bằng ống gãy**. Nay dùng `grep -a` thẳng trên
+   binary, **công cụ phải tự khai** (`command -v grep`) và chạy **hai ca đối chứng TRƯỚC** để số
+   0 nghĩa là *không có* chứ không phải *không đo được*.
+2. 🔴 **Bài đối chứng dùng hình dạng dữ liệu mà đường thật không bao giờ sinh ra thì vô giá trị.**
+   `check-deploy-drift` đọc `khai.ly`, manifest khai `reason` ⇒ **mọi lời khai in `undefined`**
+   từ ngày tính năng ra đời; self-test không bắt được vì nó **tự bịa** `{ ly: … }`.
+3. 🔴 **`Array.map(fn)` truyền `(value, INDEX, array)`** — thêm tham số thứ hai vào một hàm đang
+   được `map` trực tiếp là nhét index vào đó.
+4. **Git Bash bẻ đường dẫn tuyệt đối** trong `docker run`: `/9chain-a1/build/…` →
+   `C:/Program Files/Git/…`. Dùng `MSYS_NO_PATHCONV=1`, hoặc gửi qua `ssh` trong nháy đơn.
+5. **`gen-chainid-issued --write` KHÔNG còn ghi mù** — nếu nó từ chối, gần như chắc chắn một sổ
+   trong `docs/archive/` đã mất. **Khôi phục sổ, đừng ghi đè.**
+
+#### Ba đỏ của lượt đầy đủ — đã kiểm ĐỎ VÌ ĐÚNG LÝ DO, đừng vá cho xanh
+
+| cổng | đỏ ở đâu | hết đỏ khi nào |
+|---|---|---|
+| `watch-network` | tên mạng `g0` · networkID `999999999` · validator **10** · B-12 **12 ngày** | g1 lên |
+| `check-deploy-drift` | 5 lệch · 1 thiếu — **tất cả** là console + faucet chờ deploy | deploy ở giờ G |
+| `check-net-dirs` | 2 TRAP (**B-19**) + 1 **DECOY** `net-that-g0` | B-19 là việc David |
+
+#### Việc tiếp — theo thứ tự chặn
+
+1. 🔴 **David:** **B-16** · **B-19** — hai thứ duy nhất còn chặn GO/NO-GO mà không ai làm thay được.
+2. 🔴 **Khối `07:09Z`:** chạy lại `bash scripts/h6b-backup.sh` (đang cũ vì 7 commit hôm nay).
+3. **Deploy console + faucet ở giờ G** — nhớ faucet phải ship **MÃ**, không chỉ `FAUCET_PK`
+   (việc tay riêng, mới thêm). Console mang `chainid-released.json` + sổ rỗng.
+4. **heartbeat:** dừng bơm trước `down -v` · gieo lại `heartbeat.json` cho g1 · thu hẹp mount
+   `/→/hostfs` lúc dựng lại.
 
 ### 🆕🆕 Phiên `2026-08-31` (ĐÊM) — GIỜ G CHỐT · IMAGE ĐÃ LÊN SERVER · HAI LƯỢT TỔNG DUYỆT
 
