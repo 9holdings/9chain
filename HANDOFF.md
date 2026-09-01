@@ -1,6 +1,14 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-01 chiều (muộn)** — 🔴 **BẢNG PHÂN BỔ CÔNG KHAI LÀ BẢNG CỦA MẠNG ĐÃ XOÁ**, và
+Cập nhật: **2026-09-01 `15:05Z`** — 🟢 **PREFLIGHT `30 đạt · 2 đỏ · 0 không chạy được · 40 việc
+tay`** (số cũ `29 · 2 · 1`), **đo hai lượt cách nhau 14 phút, trùng khít cả con số lẫn nội dung**.
+Hai đỏ **đều là việc David** và không đổi: ví `chain-factory` **0 LOVE9** · console trên server còn
+bản g0 — 🔴 **NĂM tệp, không phải sáu**: `faucet/server.mjs` **đã KHỚP**. 🟢 **B-19 thôi là "tiền
+thật"** — `90,007 LOVE9` chết cùng g0, hai mục TRAP tự biến mất vì **đại lượng chúng canh đã đổi**.
+Kèm **D-153**: một cổng **không bao giờ xanh được**, vì một lý do **không phải lý do của nó**
+(`net-tap-g1/` rỗng ⇒ mã 2 vĩnh viễn, mà remedy in ra lại là *"chạy lại khi chain tới được"* —
+chain vừa được đo thành công ở dòng trên). Đối chứng **27 → 40 ca**, ba bản hỏng có chủ ý.
+Trước đó cùng ngày — 🔴 **BẢNG PHÂN BỔ CÔNG KHAI LÀ BẢNG CỦA MẠNG ĐÃ XOÁ**, và
 phát hiện **đến từ 9Chain-BOD** chứ không từ cổng nào của A1 (D-150): `docs/ALLOCATION-PUBLIC.md`
 khai `networkID 999999999` (g0, chết `09:26Z` sáng đó) **sau khi repo đã công khai** — Foundation
 khai **1 tỷ**, đo trên chain sống ra **0**. Đã chép bảng `g1` về (`o1-check --rpc` **cả hai nửa
@@ -44,7 +52,7 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
-### Năm bẫy của phiên `2026-09-01` chiều muộn — đọc trước khi đụng vào bất cứ thứ gì
+### Sáu bẫy của phiên `2026-09-01` chiều muộn — đọc trước khi đụng vào bất cứ thứ gì
 
 1. 🔴 **BA remote, một trong ba là cả Internet.** `official` = **CÔNG KHAI** · `origin` = bản sao
    lưu riêng tư **MỚI** (`daviddokrao/9chain-a1-backup`) · `archived-31aug` = chỉ đọc, đẩy vào là
@@ -60,6 +68,10 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
    module không tác dụng phụ (`local-net/lib/factory-wallets.mjs`).
 5. 🔴 **`fetch` + `process.exit()` trên Windows = `UV_HANDLE_CLOSING`, thoát mã 127.** Một cổng
    sập trên đường ra bị đọc thành thất bại. Dùng `http/https` thô với `connection: close`.
+6. 🔴 **`X đạt · Y đỏ` TRÙNG KHÍT không có nghĩa là không có gì đổi.** Tổng của preflight giữ
+   nguyên `29 · 2 · 1` qua nhiều phiên trong khi **bên trong** `check-net-dirs` đổi từ *2 TRAP +
+   1 DECOY* sang *0 TRAP* (tiền chết cùng g0). ⇒ **Đọc nội dung từng đỏ, đừng so tổng.** Và khi
+   nói *"ổn định"* thì phải chạy **hai lượt rồi so NỘI DUNG**, không so con số. (D-153)
 
 ```bash
 node scripts/gday-preflight.mjs      # 32 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
@@ -69,6 +81,72 @@ node scripts/gday-preflight.mjs      # 32 cổng + 40 VIỆC TAY, một lệnh (
 #   + heartbeat "của ai"      (David xác nhận: bộ bơm của anh; đã khai knownExtra)
 # Thực còn: 31. Xem D-137/D-142 + mục phiên 2026-09-01 ngay dưới.
 ```
+
+### 🆕 `2026-09-01` `14:49Z`–`15:05Z` — SỐ ĐO TƯƠI, và một cổng KHÔNG BAO GIỜ xanh được (D-153)
+
+Phiên đo. Không đụng mạng, không đụng server, không gửi giao dịch. Một cổng được vá, một commit
+tại chỗ (`1e4c1f3`), **chưa đẩy đi đâu**.
+
+```
+preflight  14:49Z   29 đạt · 2 đỏ · 1 không chạy được · 0 bỏ qua · 40 việc tay
+      vá cổng ⇒
+preflight  15:03Z   30 đạt · 2 đỏ · 0 không chạy được · 0 bỏ qua · 40 việc tay
+```
+
+**Chạy HAI lượt cách nhau 14 phút, trùng khít cả con số LẪN nội dung** — và lượt thứ hai là cần
+thiết chứ không phải cẩn thận thừa: *đếm ổn định* **không** suy ra *nội dung ổn định*, đúng thứ đã
+giấu `check-net-dirs` bên dưới. Fork tree tái lập được cả hai lượt (`27 patch → 38723877`, đối
+chứng `26/27 → 60a61707` chạy trong cùng cổng, dựng worktree mới mỗi lượt chứ không đọc cache).
+
+#### Hai đỏ — **cả hai là việc David**, và nội dung không đổi giữa hai lượt
+
+```
+watch-network       8 muc ✓  ·  do CHI o  chain-factory = 0 LOVE9
+                    9 validator · peer 8 · B-12 309 ngay · supplyCap DO TREN NODE · console 200
+check-deploy-drift  15 khop · 4 lech · 1 thieu · 1 mo coi · 4 mo coi DA KHAI
+```
+
+🔴 **Danh sách tệp phải lên server nay là NĂM, không phải sáu:** `faucet/server.mjs` **ĐÃ KHỚP**.
+Còn lại đều là console: `chainid-released.json` (**thiếu hẳn**) · `server.mjs` · `chainid-test.mjs`
+· `chainid-issued.json` · `lib/chainid.mjs`. Mồ côi mới: `9chain-a1-config/heartbeat.json.g0-20260901`
+— đúng hình dạng B-17.
+
+#### 🟢 B-19 thôi là "tiền thật" — và không phải vì ai dọn
+
+`net-public/` và `net-public-dead-720m/` nay đo ra **mọi ví 0đ** trên `999999998`: `90,007 LOVE9`
+**chết cùng g0**. Hai mục TRAP biến mất vì **đại lượng chúng canh đã đổi**, không vì có người dời
+tệp. ⇒ B-19 còn lại **giá trị GIỮ BẢN GHI**, thôi chặn GO/NO-GO. Mồi nhử `net-that-g0` vẫn bị chấm
+đúng `🟡 real band, different generation`.
+
+#### 🔴 D-153 — cổng đỏ ĐÚNG, nhưng lời khuyên trỏ vào ĐẠI LƯỢNG KHÁC
+
+`local-net/net-tap-g1/` **rỗng** (còn lại sau lượt shred `31/08`) ⇒ `no genesis.json` ⇒ mã 2
+**vĩnh viễn** — không gì sẽ đặt genesis vào đó. Và câu kết khuyên *"chạy lại khi chain tới được"*
+trong khi chính cổng đó **vừa đo `info.getNetworkID` thành công** ở dòng banner ngay trên.
+
+**Đây là mặt sau của D-106b.** Ở kia: đỏ vì sai lý do. Ở đây: đỏ **đúng**, remedy **sai đại lượng**.
+Cái giá không phải một dòng chữ sai — người đọc **làm theo**, chạy lại, không đổi gì, và sau vài
+lượt thì mục đó thành **nhiễu nền** nằm cạnh hai đỏ thật. Trên đúng cổng canh *"thư mục nào giữ
+TIỀN"*, đúng cửa sổ dọn thư mục trước re-genesis.
+
+Vá: thư mục rỗng là **verdict riêng** · rỗng phải **ĐẾM** chứ không suy từ thiếu genesis (thư mục
+có `keys.txt` mà không genesis **vẫn ở mã 2** — đó mới là hình dạng nguy hiểm) · phép đếm **ĐỆ QUY**
+· mã 2 nay khai **NỬA NÀO** hỏng (ĐĨA hay CHAIN) và chỉ in remedy của nửa đó.
+
+🔴 **Chỗ bản vá suýt thành lỗi NẶNG HƠN lỗi nó đóng:** `net*` giữ danh tính validator ở tầng dưới
+(`node1/staker.key`). Đếm mỗi tầng đầu sẽ gọi một thư mục **đầy khoá riêng** là *"rỗng"* rồi cho
+qua. Ca đối chứng đó là ca đáng giá nhất lượt này.
+
+Đối chứng ngược **27 → 40 ca**, cộng **ba bản hỏng có chủ ý**, mỗi bản đỏ **đúng ở ca mang tên nó**:
+bỏ đệ quy → 2 đỏ · coi thiếu genesis là rỗng → 2 đỏ · in cả hai remedy → 2 đỏ. `--offline` **vẫn
+mã 2** (hợp đồng cũ nguyên vẹn). ⚠️ **Thư mục KHÔNG bị xoá** — David chốt: sửa cổng, đừng xoá.
+
+⚠️ **Lỗi của chính lượt này, cổng bắt được:** hai chú thích tiếng Việt lọt vào
+`scripts/check-net-dirs.mjs`, `check-english-code` đỏ ngay (*"1 file(s) that were clean now contain
+Vietnamese"*). §0 hoạt động đúng thiết kế, kể cả với phiên vừa đọc nó. Nợ: **5.721 → 5.719**.
+
+⚠️ `G4 · sổ chainId công khai` xanh cả hai lượt — **đừng dùng lại con số này**, chính nó tự khai
+phải đo lại ngay trước genesis.
 
 ### 🆕 `2026-09-01` chiều — **NGHI LỄ `09/09` ĐÃ CÓ KỊCH BẢN**, và ranh giới Block Adam đã được chốt
 
@@ -330,6 +408,13 @@ LỆCH    local-net/console/chainid-issued.json
 LỆCH    local-net/lib/chainid.mjs        ⇦ CỐ Ý giữ lại tới nay; đi CÙNG lượt bump
 LỆCH    local-net/faucet/server.mjs      ⇦ faucet ship MÃ; KHÔNG script nào sở hữu tệp này
 ```
+
+> 🔴 **ĐÍNH CHÍNH `2026-09-01 14:52Z` — NAY LÀ NĂM, không phải sáu.** `local-net/faucet/server.mjs`
+> **đã KHỚP** repo↔server (đo hai lượt, `14:52Z` và `15:05Z`). Năm tệp còn lại đúng nguyên văn
+> trên, **toàn bộ là console**. Đính chính chứ không sửa khối trên: đó là số đo `06:25Z` và nó
+> đúng ở thời điểm nó. 🔴 Nhưng khối này là **câu RA LỆNH cho một việc sắp làm**, không phải câu
+> kể về quá khứ — mà `stale-ok` chỉ hợp lệ cho loại thứ hai (§2). Đi ship lại một tệp đã khớp thì
+> vô hại; đọc *"sáu"* rồi **kết luận nhầm rằng faucet vẫn còn nợ ba bản vá đêm `31/08`** thì không.
 
 🔴 **B-19 nay có số, không còn là chữ:** `net-public/chain-factory-key.txt` và
 `net-public-dead-720m/allocation.md+chain-factory-key.txt` — **cùng giữ `90.007476864 LOVE9`**,
