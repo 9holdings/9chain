@@ -62,18 +62,18 @@ const GO_SUPPLY_CAP = new URL(
 );
 
 /**
- * Đọc MỘT trường `<Tên>: <số> * units.<đơn vị>,` trong `genesis_9chain_a1.go`.
+ * Read ONE field of the form `<Name>: <number> * units.<unit>,` out of `genesis_9chain_a1.go`.
  *
- * 🔴 VÌ SAO ĐÂY LÀ HÀM CHUNG CHỨ KHÔNG PHẢI RIÊNG CHO `SupplyCap` (2026-09-01):
- * bản đầu chỉ đọc `SupplyCap` từ Go, còn `minValidatorStake` / `maxValidatorStake` nằm trong
- * mốc so dưới kia dưới dạng **số chép tay**. Tệp này tự khai *"số học tokenomics, đọc THẲNG từ
- * Go"* — và ở đúng hai dòng đó nó đọc từ trí nhớ.
+ * 🔴 WHY THIS IS GENERIC RATHER THAN `SupplyCap`-ONLY (2026-09-01): the first version read only
+ * `SupplyCap` from Go, while `minValidatorStake` / `maxValidatorStake` sat in the baseline below
+ * as HAND-COPIED numbers. This file's own header says the tokenomics arithmetic is read STRAIGHT
+ * FROM Go; on exactly those two lines it was read from memory.
  *
- * Lộ ra ở lượt hạ rào cản validator `25.000 → 81` (D-143/patch 0027): Go đổi, bản chép tay
- * **không**, và **không cổng nào kêu** — vì phép so duy nhất dùng tới nó
- * (`selfBondMoiNode ≥ minValidatorStake`) đúng với **cả hai** giá trị (999.999 ≥ 25.000 và
- * ≥ 81). Một hằng số chết nằm im trong một cổng đang xanh, chờ tới lần đổi sau mới cắn.
- * Đúng hình dạng **D-124**: hằng số neo vào một thời điểm thì mù đúng vào lúc thời điểm đó đổi.
+ * Exposed by dropping the validator barrier 25,000 -> 81 (D-143 / patch 0027): Go moved, the copy
+ * did not, and NO GATE SAID ANYTHING — because the only comparison using it
+ * (`selfBondMoiNode >= minValidatorStake`) is true for BOTH values (999,999 >= 25,000 and >= 81).
+ * A dead constant sitting inside a green gate, waiting for the next change to bite.
+ * D-124's shape exactly: a constant anchored to a moment goes blind at the moment it moves.
  */
 function docTruongTuGo(ten) {
   let src;
@@ -317,10 +317,10 @@ export const BANG = {
   },
   soNode: 9,
   selfBondMoiNode: 999_999n,
-  // 🔴 ĐỌC TỪ Go, KHÔNG CHÉP. Xem `docTruongTuGo` để biết vì sao — hai dòng này từng là số
-  // chép tay và đã lạc hậu im lặng ở lượt hạ rào cản `25.000 → 81` (D-143).
-  // `?? 0n` là CHỦ Ý: đọc hỏng ⇒ 0 ⇒ mọi phép so `≥` vẫn chạy, và ca "không đọc được Go" ở
-  // `chayDinhDanh` mới là chỗ báo đỏ chuyện đó — đừng để nó nổ hai lần ở hai nơi.
+  // 🔴 READ FROM Go, NEVER COPIED. See `docTruongTuGo` for why: these two lines used to be
+  // hand-copied numbers and went silently stale when the barrier dropped 25,000 -> 81 (D-143).
+  // `?? 0n` is DELIBERATE: an unreadable Go file yields 0, every `>=` comparison still runs, and
+  // the "cannot read Go" case in `chayDinhDanh` is where that gets reported — one fault, one red.
   minValidatorStake: docTruongTuGo("MinValidatorStake").love9 ?? 0n,
   maxValidatorStake: docTruongTuGo("MaxValidatorStake").love9 ?? 0n,
 };
