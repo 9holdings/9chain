@@ -139,3 +139,50 @@
 # Also worth taking, but it belongs to the web worktree and A1 does not touch it: C1's page
 # re-hashes each document IN THE READER'S BROWSER and compares against what the chain declares —
 # "you do not have to trust this page". That is the strongest form of the claim A1 already makes.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# THE QUIET WINDOW — WHO CAN STILL PRODUCE A BLOCK ON 2026-09-09, MEASURED
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# The ceremony's arithmetic is block numbers, and any transaction from anyone produces a block.
+# So "can this party produce a block during the window" has to be answered per producer, not by
+# a feeling that the chain is quiet.
+#
+#   9Scan-A1 explorer   ✅ CANNOT. Measured by that team 2026-09-01: grep for
+#                       eth_sendRawTransaction / eth_sendTransaction / personal_ / avm.send /
+#                       platform.add / issueTx across lib/ indexer/ app/ components/ returns 0;
+#                       all 27 RPC calls it emits are reads; it holds no key and has no wallet;
+#                       its nginx blocks /ext/admin and /ext/keystore. They also wrote the
+#                       "add no write calls" constraint into their own docs so a later session
+#                       does not undo it with one convenient button.
+#
+#   heartbeat pump      🔴 CAN, and would make the ceremony impossible — it is ~9 tx/s, i.e. a
+#                       block every couple of seconds, so the anchor slot could never be walked
+#                       to. It is STOPPED (container stopped 2026-09-01 07:03Z; the process had
+#                       already exited on its own HEARTBEAT_STOP_AFTER deadline).
+#                       🔴 THE TRAP IS THE OTHER DIRECTION: B-13(b) needs the skew measured on a
+#                       chain that IS producing blocks, and the pump is the obvious way to do
+#                       that. If it is started for the measurement, HEARTBEAT_STOP_AFTER must be
+#                       moved to start it AND it must be stopped again before the window — and
+#                       stopping it is not `touch heartbeat.stop` (that file is read in a loop the
+#                       process never reaches when the deadline check fires first). Set the
+#                       deadline BEFORE the ceremony window and let it stop itself, or
+#                       `docker stop` the container and confirm restartCount stops moving.
+#                       ⚠️ CANON's option (a) — "restart the pump so blocks are produced
+#                       continuously" — is therefore RULED OUT once option (b) was scripted.
+#                       The two options are mutually exclusive, and (b) is what exists.
+#
+#   the faucet          🔴 CAN, and CANNOT BE LOCKED. It is public and it is the point. Every drip
+#                       is a transaction, i.e. a block. This is the residual risk the sequencer
+#                       reports rather than removes: it measures background production before
+#                       sending and refuses on a busy chain, and it stops without anchoring if
+#                       the slot is taken mid-walk. Whether to pause the faucet for the window is
+#                       a decision for David; nothing in the software makes it for him.
+#
+#   chain creation      ✅ CLOSED since 2026-08-31 (A1_DE_CHAIN_MO), reopened only by hand.
+#
+#   anyone on earth     🔴 CAN. It is a public testnet. That is the design, not a defect.
+#
+# ⇒ The inference to avoid: "9Scan cannot produce a block" is NOT "the chain will be quiet". One
+# producer measured silent is one producer, and this project has paid for that shape of reasoning
+# more than once.
