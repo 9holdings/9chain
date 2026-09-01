@@ -59,3 +59,35 @@
 # the measurement (a ~10s-old block reads as -10,136 ms, nearly all of it age, not skew).
 # ⚠️ Adam and Eva do NOT land in the same block even when broadcast milliseconds apart — the
 # drill measured them two seconds and one block apart. No ceremony script may assume otherwise.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# THE SCRIPT THAT PERFORMS THIS — added 2026-09-01, eight days ahead
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+#   node local-net/faucet/ceremony-9s-union.mjs --plan        # measures, sends nothing
+#   node local-net/faucet/ceremony-9s-union.mjs --self-test    # 8 reverse controls
+#
+# It performs option (b) above — Adam, Eva, eight deliberate fillers, then the message — and
+# refuses rather than improvises. Written now because "nine deliberate filler transactions […]
+# has to be scripted in advance" and 09/09 has no second attempt.
+#
+# What it will NOT do, each refusal exercised and each exiting 2:
+#   · --send without --offset-ms          B-13(b) is unmeasured; the 08-27 drill scored 7/1 at 0 ms
+#   · --send when the mark is in the past
+#   · --send with no wallet key
+#   · run at all if 9s-union-message.txt no longer matches the digest frozen above
+#   · run at all if eth_chainId is not 9000000009
+#   · --send on a chain where blocks are being produced by someone else, unless --allow-busy-chain
+#
+# 🔴 AND THE ONE IT CANNOT SOLVE, ONLY REPORT: block numbers cannot be reserved. If another
+# transaction takes block(Eva)+9 while the script walks towards it, the run STOPS and sends
+# nothing further — because "close enough" would put a false claim on a permanent record. A retry
+# is not a retry: it means a new Adam and a new Eva.
+#
+# ⚠️ STILL OPEN, and both are decisions rather than code:
+#   1. THE CONTENT OF THE ADAM AND EVA TRANSACTIONS IS NOWHERE SPECIFIED. The script sends them
+#      empty unless --adam-data/--eva-data are given. If they are meant to carry text, freeze the
+#      bytes the way this message was frozen — before the day, not on it.
+#   2. B-13(b) must be measured while the chain is PRODUCING BLOCKS. Measured 2026-09-01 10:51Z on
+#      an idle chain: head was block 8, and the "skew" read -443s, nearly all of it the age of a
+#      seven-minute-old block. That number is not a skew and must not be used as one.
