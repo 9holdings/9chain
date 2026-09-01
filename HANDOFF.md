@@ -59,6 +59,42 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
+### 🆕🆕🆕 `2026-09-01` `18:3xZ`–`19:0xZ` — **CỔNG "SẴN SÀNG" BIẾT BA TRONG BỐN THỨ NÓ CANH** (D-155)
+
+David bảo đo lại `--probe`. Ba đỏ đúng như sổ. Nhưng **đọc mã cổng** thì ra ba lỗi trong chính nó:
+
+| | lỗi | cái giá |
+|---|---|---|
+| **A** | Sổ chain công khai **không phải một bước** — cổng viết cho ba việc D-152, D-154 đẻ việc thứ tư một giờ sau, không gì nối lại | làm xong ba việc nó biết ⇒ nó in **`✓ All three … ready`** trong khi `/chains/` vẫn quảng cáo 2 chain chết |
+| **B** | Lời khuyên ví: *"move X→P"* — **việc không làm được** (ví 0 trên **cả X lẫn P**) | D-153 lần hai; và câu sai **đã đóng đinh vào ca đối chứng** `:281`, tự bảo vệ chính nó |
+| **C** | Luật `outOfOrder` **rộng hơn câu nó in** (mọi đảo ngược, thay vì riêng **cửa mở**) | vá A làm nó **nổ**: việc 2 là hai lệnh `scp`, làm trước là đúng — cổng đáp bằng cảnh báo nặng nhất |
+
+🔴 **Một cổng sẵn sàng không biết một trong những thứ nó đang canh thì không phải dè dặt — nó SAI
+MỘT CÁCH TỰ TIN.** Bài tổng quát: **một quyết định đẻ ra việc mới phải đi hỏi mọi cổng đang khai
+là nó canh cái danh sách đó**; không ai nối thì mỗi phát hiện mới lại âm thầm làm sai một cổng cũ.
+
+**Kiến trúc:** tách `local-net/lib/chain-ledger.mjs` (không tác dụng phụ) — theo án lệ
+`factory-wallets.mjs`: `import` một SCRIPT là chạy nó rồi `process.exit`. Bản sao ở đây đắt đặc
+biệt vì **nội dung D-154 chính là "đo CẢ HAI CHIỀU"**, nên bản sao thứ hai là thứ có thể trôi lệch
+im lặng một thế hệ sau — đúng lỗi D-154 vừa đóng, đẻ lại **bởi hành động tái dùng nó**.
+
+```
+check-chain-ledger --self-test   24/24 (đúng 24 ca cũ)  ·  chạy thật TRÙNG BYTE lượt trước khi dời
+reopen --self-test               21 → 33 ca             ·  reopen --probe  BỐN bước, chặn ở bước 1
+preflight 18:5xZ                 31 đạt · 3 đỏ · 0 không chạy được   ← diff với 18:30Z: CHỈ khác
+                                 tên thư mục worktree tạm theo PID. Nội dung trùng khít.
+```
+
+**SÁU bản hỏng có chủ ý**, mỗi bản đỏ đúng ở ca mang tên nó (thư viện 2/1/3 đỏ · reopen 5/3/2 đỏ).
+🔴 **Bản hỏng đầu của `reopen` KHÔNG đỏ — nó giết cả bộ đo**: `blocked` thành `undefined`, mảng ca
+dựng eager nên một `TypeError` cuốn theo 32 ca còn lại. Sửa bằng `blocked?.n`. *(Bài này đến từ
+kho tri thức, mục `5roi-v2`: sau refactor, ca đối chứng **vẫn xanh** chưa đủ — phải chứng minh nó
+**vẫn CẮN**.)*
+
+⚠️ **Bốn việc dọn KHÔNG đổi và vẫn là việc David bấm.** Cổng nay chỉ **đo đủ bốn**.
+🔴 **Chưa đẩy đi đâu** — nay **8 commit** chưa lên `origin`, **9** chưa lên `official`.
+
+
 ### Sáu bẫy của phiên `2026-09-01` chiều muộn — đọc trước khi đụng vào bất cứ thứ gì
 
 1. 🔴 **BA remote, một trong ba là cả Internet.** `official` = **CÔNG KHAI** · `origin` = bản sao

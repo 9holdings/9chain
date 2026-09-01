@@ -1718,7 +1718,9 @@ Hai commit: `a8e3e93` (sửa từ ba lượt quét) · `2facaab` (diễn tập +
 - [human] **B-20** — gói `h6b` vừa dựng, qua cả 4 phép nghiệm thu của chính nó, chứa **0
       `staker.key` · 0 `signer.key` · 0 `genesis.json`**. Đếm tệp mới là phép đo; đọc dòng
       `--check` thì không.
-- [human] 🔴 **Nạp ví factory trên P-Chain (X→P)** — runbook có **0 dòng** về việc này
+- [human] 🔴 **Nạp ví factory trên P-Chain — HAI CHẶNG, không phải X→P** (sửa `01/09`, D-155: ví
+      factory **0 trên cả X lẫn P**, xem `docs/RUNBOOK-REOPEN-CHAIN-CREATION.md` việc 3) — runbook
+      lúc viết dòng này có **0 dòng** về việc đó
       (`grep` = 0). Trên genesis mới, tiền thanh khoản mọi quỹ nằm trên **X-Chain**, CLI trả phí
       trên **P-Chain**: Foundation `71.000.009` trên X, **`0` trên P**. Quên ⇒ console lên xanh
       và **người đầu tiên bấm nút nhận `insufficient funds`**.
@@ -1896,7 +1898,8 @@ giao dịch nào.
 ### Việc của David còn nguyên (không phiên nào tự làm được)
 
 1. 🔴 **Repo → CÔNG KHAI** — chặn điều kiện qua **4 + 5**. ✅ Nay đã có phép đo nói *lịch sử sạch*.
-2. 🔴 **Nạp ví `chain-factory` X→P** trước khi mở cổng đẻ chain (cổng đang ĐÓNG — giữ nguyên thế).
+2. 🔴 **Nạp ví `chain-factory` — HAI CHẶNG** (quỹ→X của factory, rồi factory X→P của chính nó;
+   **không phải** một cú X→P — D-155) trước khi mở cổng đẻ chain (cổng đang ĐÓNG — giữ nguyên thế).
 3. 🔴 **Deploy console bản g1** (5 tệp) — trước khi mở cổng đẻ chain, không sau.
 4. **Kênh liên hệ** — `FILL-ON-G-DAY` cuối cùng ở `docs/RUN-A-VALIDATOR.md:340`; cộng chỗ URL
    repo ở dòng 77 sẽ điền được ngay khi việc 1 xong. Cổng xuất bản đang đếm **2**.
@@ -1971,20 +1974,27 @@ giao dịch nào.
       ⚠️ Và **6/15 ca đối chứng đầu đỏ vì lỗi trong chính bài kiểm** — ca *"remote biến mất"* khi
       đó **xanh VÌ LỖI ĐÓ**. Đã tách vai theo từng ca + thêm ca kiểm **gọi đúng TÊN**.
 
-### 🔴 Mở lại cổng đẻ chain L1 — ba việc, **cả ba là việc có người bấm**
+### 🔴 Mở lại cổng đẻ chain L1 — **BỐN việc**, cả bốn là việc có người bấm
 
-✅ **Nay có MỘT lệnh đo cả ba** (D-152) — mặc định chỉ đọc, không gửi gì tới sản phẩm:
+✅ **Nay có MỘT lệnh đo cả bốn** (D-152, nối bước 2 ở D-155) — mặc định chỉ đọc, không gửi gì tới
+sản phẩm:
 
 ```bash
-node scripts/reopen-chain-creation.mjs            # ba bước, và THỨ TỰ là phép kiểm
+node scripts/reopen-chain-creation.mjs            # bốn bước, và THỨ TỰ là phép kiểm
 node scripts/reopen-chain-creation.mjs --probe     # hỏi console thật (KHÔNG tạo được chain)
 ```
 
-Đo `01/09` — **cả ba đỏ, đúng thứ tự**: `1` 4 lệch + 1 thiếu · `2` **0 LOVE9** ·
-`3` **CLOSED**, cửa tự trả lời bằng câu của chính nó. **21/21** đối chứng ngược.
-🔴 Nó **từ chối nói "sẵn sàng"** khi bước sau xanh mà bước trước đỏ, và gọi thẳng đó là
+Đo `01/09` `18:5xZ` — **cả bốn đỏ, đúng thứ tự**: `1` 4 lệch + 1 thiếu · `2` **sổ chain công khai
+khai 2 chain g0** · `3` **0 LOVE9** · `4` **CLOSED**, cửa tự trả lời bằng câu của chính nó.
+**33/33** đối chứng ngược (từ 21).
+🔴 **Bước 2 KHÔNG có ở bản đầu** (D-155): cổng viết cho ba việc của D-152, D-154 đẻ ra việc thứ tư
+một giờ sau, và không gì nối hai cái lại ⇒ làm xong ba việc nó biết là nó in **"sẵn sàng"** trong
+khi `/chains/` vẫn quảng cáo hai chain chết. *Một cổng sẵn sàng không biết một trong những thứ nó
+đang canh thì không phải là dè dặt — nó là **sai một cách tự tin**.*
+🔴 Nó **từ chối nói "sẵn sàng"** khi **CỬA MỞ** mà bước trước chưa đạt, và gọi thẳng đó là
 **OUT OF ORDER** — vì mở cửa trước khi đẩy sổ là cấp chainId của **thế hệ đã chết** vào một
-genesis **bất biến**, thứ không thu hồi được.
+genesis **bất biến**, thứ không thu hồi được. ⚠️ **Chỉ CỬA mới nguy hiểm** (thu hẹp ở D-155): ví
+đã nạp hay sổ đã sạch đứng trước console cũ **không** cấp cho ai cái gì — cửa đang đóng.
 ⚠️ Ba lỗi lộ ra lúc dựng, đều là bài cũ: cổng **đỏ vì sai lý do** (bung dấu ngã ⇒ báo cả 5 tệp
 MISSING trong khi 4 tệp có thật) · **tệp token là ghi chú có chứa bí mật**, không phải bí mật
 (5 dòng; đọc cả tệp ra "token" 280 ký tự) · **Node sập lúc thoát mã 127** vì `fetch` giữ socket.
@@ -1998,8 +2008,11 @@ Thứ tự **bắt buộc**, và nó là thứ tự chứ không phải danh sá
    `lib/chainid.mjs` là nơi khai `A1_GEN` ⇒ **console trên server đang cấp chainId từ khối của g0**.
    Bật cờ trước khi sổ lên = phát trùng tên/số **vào một genesis bất biến**.
 2. **Nạp ví `chain-factory`** — `watch-network`: 🔴 **0 LOVE9** trên `P-love91999h…9999` (đúng ví g1).
-   Thanh khoản genesis nằm ở **X**, CLI trả phí ở **P** ⇒ phải chuyển **X→P** (D-140 đã dựng lại
-   đúng lỗi này trên bản diễn tập: `insufficient funds: needed 2196 more nAVAX`).
+   🔴 **HAI CHẶNG, HAI KHOÁ — không phải một cú X→P** (D-155): ví factory là ví số đẹp sinh riêng,
+   đo `01/09` ra **0 trên cả X lẫn P** ⇒ không có gì để chuyển. Quỹ genesis →`/api/send-x`→ factory
+   trên X, rồi factory →`/api/x-to-p`→ P của chính nó (`x-to-p` chỉ xuất cho `owner()`).
+   *(Câu "thanh khoản ở X, phí ở P" đúng cho **quỹ genesis** — D-140 dựng lại đúng lỗi đó trên bản
+   diễn tập: `insufficient funds: needed 2196 more nAVAX`. Ví factory không phải quỹ genesis.)*
 3. **`A1_DE_CHAIN_MO=1`** + `~/9chain-a1/console-restart.sh`, rồi nghiệm thu **qua Cloudflare**,
    không nghiệm thu trên host.
 

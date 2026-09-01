@@ -6668,3 +6668,114 @@ cổng **không bao giờ xanh được** thì đỏ của nó không mang tin. 
 
 Nối vào `gday-preflight` cả hai vế ⇒ **32 → 34 cổng**, số đo `31 đạt · 3 đỏ · 0 không chạy được`.
 Đỏ thứ ba **không phải lỗi mới**: nó là việc dọn còn thiếu của giờ G, nay có người canh.
+
+---
+
+## D-155 — **Một cổng "sẵn sàng" biết BA trong BỐN thứ nó đang canh** (`2026-09-01`)
+
+**Bối cảnh.** David bảo đo lại `reopen-chain-creation.mjs --probe`. Lượt đo ra đúng ba đỏ như sổ
+đã ghi. Nhưng đọc mã cổng thì lòi ra ba lỗi trong **chính nó**, và lỗi thứ ba là thứ mà việc vá
+lỗi thứ nhất sẽ **đẻ ra**.
+
+### A · Sổ chain công khai KHÔNG phải một bước — mà nó là việc thứ hai trên đường người dùng đi
+
+Cổng viết cho **ba việc của D-152**. **D-154 đẻ ra việc thứ tư một giờ sau**, và không gì nối hai
+cái lại: `grep chain-ledger scripts/reopen-chain-creation.mjs` = **0**.
+
+⇒ Làm xong ba việc nó biết thì nó in **`✓ All three measured and ready`** — trong khi `/chains/`,
+trang người dùng **đi qua** để tới chỗ tạo chain, vẫn quảng cáo hai chain của thế hệ đã chết với
+RPC trả `404 page not found`.
+
+🔴 **Một cổng sẵn sàng không biết một trong những thứ nó đang canh thì không phải là dè dặt — nó
+là SAI MỘT CÁCH TỰ TIN.** Cổng thiếu hẳn thì người ta còn nhớ là chưa ai canh; cổng nói *"sẵn
+sàng"* thì người ta thôi nhìn.
+
+Đây là **lớp lỗi §2 ở tầng công cụ**: cổng đo *"ba việc của D-152"* trong khi đại lượng người ta
+quan tâm là *"mở cửa an toàn chưa"* — và hai thứ đó **thôi bằng nhau** vào lúc D-154 ra đời.
+🔴 **Bài học tổng quát: một quyết định đẻ ra việc mới thì phải đi hỏi mọi cổng đang khai là nó
+canh cái danh sách ấy.** Không có ai làm việc nối đó thì mỗi phát hiện mới lại **âm thầm làm sai**
+một cổng cũ.
+
+### B · Lời khuyên trỏ vào một việc KHÔNG LÀM ĐƯỢC — mặt sau của D-153
+
+`:222` viết *"liquidity is on X, fees are paid on P, so move X→P (D-140)"*. Đo `01/09`: ví factory
+**0 trên X và 0 trên P** — nó là **ví số đẹp sinh riêng**, không phải quỹ genesis, nên **không có
+gì nằm trên X để chuyển**. Phải **hai chặng, hai khoá khác nhau**, vì `/api/x-to-p` xuất cho
+`owner()` nên chỉ trả được cho chính ví đang chạy.
+
+🔴 **Và câu sai đó đã được ĐÓNG ĐINH vào một ca đối chứng** (`:281`: *"names the X→P trap"*): bộ
+tự kiểm **đòi** cổng in ra đúng câu sai. Sửa lời khuyên mà không sửa ca đối chứng thì cổng đỏ ⇒
+**một lỗi tự bảo vệ chính nó bằng chính bộ đo của nó**. Đó là thứ đáng sợ hơn cả lỗi.
+
+⇒ Ca đối chứng mới **neo theo HÌNH DẠNG**, không theo chữ: nó đòi lời khuyên nêu **cả hai tuyến
+API** (`/api/send-x` và `/api/x-to-p`). Tên tuyến là cấu trúc; câu văn thì sửa lúc nào cũng được.
+
+### C · Luật thứ tự RỘNG HƠN câu nó in ra — và vá A làm nó nổ
+
+```js
+outOfOrder = Boolean(blocked && steps.some((s) => s.n > blocked.n && s.ok === true));   // CŨ
+```
+Luật: *"bất kỳ bước sau nào xanh trong khi bước trước đỏ"*. Câu nó in: *"một cái **cửa MỞ** đứng
+trước một cuốn sổ cũ"*. **Hai mệnh đề khác nhau.** Ví đã nạp hay sổ đã sạch đứng trước console cũ
+**không cấp cho ai cái gì** — cửa đang đóng.
+
+🔴 **Thêm bước sổ chain vào vị trí 2 biến chỗ rộng đó thành báo động giả trên đường đi khả dĩ
+nhất:** việc 2 là **hai lệnh `scp`**, rẻ nhất trong bốn việc, nên làm nó trước là điều một người
+cẩn thận sẽ làm — và cổng sẽ đáp lại bằng **lời cảnh báo nặng nhất của nó**. *Một báo động kêu
+đúng lúc người ta làm đúng là một báo động sẽ bị đọc lướt, và rồi nó không còn ở đó cho đúng cái
+ca nó sinh ra để bắt.*
+
+```js
+outOfOrder = door.ok === true && unmetBeforeDoor.length > 0;                            // MỚI
+```
+Và nó **nêu tên** bước chưa đạt, không chỉ nói rằng có một bước như thế.
+
+### Kiến trúc — vì sao TÁCH THƯ VIỆN chứ không gọi tiến trình con
+
+`check-chain-ledger.mjs` gọi `main()` ở mức module ⇒ `import` nó là **chạy nó rồi `process.exit`**,
+giết tiến trình đang mượn (bẫy `watch-network`). Án lệ đã có trong `local-net/lib/factory-wallets.mjs`:
+người đọc thứ hai đứng trước hai lựa chọn — *chạy một cổng như tác dụng phụ của việc đọc*, hoặc
+*chép logic sang tệp mình* — và cái thứ hai là thứ `check-single-source.mjs` sinh ra để cấm (D-113).
+
+🔴 **Bản sao ở đây đắt hơn bình thường:** cả nội dung D-154 là *"phải đo CẢ HAI CHIỀU"*. Một cài
+đặt thứ hai của cặp đó là **một thứ thứ hai có thể trôi lệch khỏi cái thứ nhất, im lặng, một thế
+hệ sau** — tức chính cái lỗi D-154 vừa đóng, được đẻ lại **bởi hành động tái dùng nó**.
+
+⇒ `local-net/lib/chain-ledger.mjs`: không đọc `argv`, không in, không `exit`. `assessPublicLedger()`
+trả **phán quyết dưới dạng DỮ LIỆU**; cổng in nó, `reopen` xếp nó thành một bước. Bên thứ hai
+**dựng câu tóm tắt từ các TRƯỜNG**, không bao giờ `grep` chữ cổng kia in ra — thứ đó gãy khi cổng
+kia sửa một câu văn, và tệ hơn, có thể **thôi khớp gì cả rồi báo sự im lặng đó là bình yên**.
+
+### Nghiệm thu
+
+```
+check-chain-ledger --self-test    24/24  (đúng 24 ca cũ, sau khi dời)
+check-chain-ledger  chạy thật     TRÙNG BYTE lượt 18:3xZ trước khi dời
+reopen             --self-test    21 → 33 ca
+reopen             --probe        BỐN bước, đúng thứ tự runbook, chặn ở bước 1
+```
+
+🔴 **Ca đối chứng DƯƠNG là bắt buộc** (D-153, cùng ngày): sổ **sạch** phải làm bước 2 **XANH**.
+Không có nó thì cái đỏ ở trên không nói gì về sổ, chỉ nói về tệp này.
+
+**Sáu bản hỏng có chủ ý, mỗi bản đỏ đúng ở ca mang tên nó:**
+
+```
+thư viện: tắt luật khối          -> 2 đỏ      reopen: bước sổ luôn xanh   -> 5 đỏ
+thư viện: unreachable = refused  -> 1 đỏ      reopen: luật thứ tự CŨ      -> 3 đỏ
+thư viện: cho phép mọi host      -> 3 đỏ      reopen: lời khuyên một chặng-> 2 đỏ
+```
+
+🔴 **Bản hỏng đầu của `reopen` KHÔNG đỏ — nó giết cả bộ đo.** `blocked` thành `undefined`, mảng ca
+dựng **eager** nên một `TypeError` cuốn theo 32 ca còn lại và bộ đo im lặng thay vì báo. Sửa bằng
+`blocked?.n`, cũng là **điều mệnh đề đó vốn muốn nói**: *"chặn ở bước 2"* là **sai** khi không có
+bước nào bị chặn, không phải là một cú sập. *(Bài học đến từ kho tri thức, mục `5roi-v2`: sau
+refactor, ca đối chứng **vẫn xanh** chưa đủ — phải chứng minh nó **vẫn CẮN**.)*
+
+### Hệ quả sổ sách
+
+`CLAUDE.md` §3 (*ba việc* → **bốn**, và câu **ra lệnh** `X→P` trong §3 đã được sửa — theo §2 dấu
+miễn trừ **chỉ hợp lệ cho câu kể về quá khứ**, mà đó là câu chỉ việc sắp làm) · `PROGRESS.md`
+ba chỗ ra lệnh · `docs/RUNBOOK-REOPEN-CHAIN-CREATION.md` đã đúng sẵn từ lúc soạn.
+⚠️ `PROGRESS.md:1526` **giữ nguyên**: nó kể lại D-140 và nói về **quỹ Foundation**, nơi câu
+*"thanh khoản ở X, phí ở P"* là **đúng**. Ví factory không phải quỹ genesis — đó mới là chỗ trượt.

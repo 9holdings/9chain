@@ -103,9 +103,11 @@ node scripts/check-chain-ledger.mjs          # 🔴 SỔ CHAIN người dùng NH
                                              #    đo trên BỀ MẶT CÔNG KHAI, không phải repo/server
                                              #    CẢ HAI CHIỀU: trong khối thế hệ · RPC tự khai đúng id
                                              #    `chains` phải là thế hệ sống · `retired` thì KHÔNG
-node scripts/reopen-chain-creation.mjs       # MỞ LẠI ĐẺ CHAIN L1: ba việc, và THỨ TỰ là phép kiểm
+node scripts/reopen-chain-creation.mjs       # MỞ LẠI ĐẺ CHAIN L1: BỐN việc, và THỨ TỰ là phép kiểm
                                              #    mặc định CHỈ ĐỌC · `--probe` mới hỏi console thật
                                              #    (phép thăm dò KHÔNG tạo được chain — D-152)
+                                             #    🔴 bước 2 = SỔ CHAIN công khai, nối vào D-155 —
+                                             #    trước đó cổng khai "sẵn sàng" mà không biết bước này
 node scripts/check-consistency.mjs --self-test # số học tokenomics, đọc THẲNG từ Go
 node scripts/gen-chainid-issued.mjs --check  # sổ chainId/tên xuyên thế hệ
 node local-net/console/chainid-test.mjs      # phép cấp chainId
@@ -132,8 +134,12 @@ Ba đỏ đã biết, **cả ba là việc của David, không phải lỗi mã*
 (`P-love91999h…9999`, địa chỉ g1) · console trên server **chưa deploy bản g1**
 (`check-deploy-drift`: 4 lệch + 1 thiếu) · **sổ chain CÔNG KHAI còn khai 2 chain của g0**
 (`check-chain-ledger`: `#9000000010` · `#9000000011`, RPC của chúng trả `404`).
-🔴 **Cả ba đỏ này CHẶN việc mở lại cổng đẻ chain L1** — thứ tự bắt buộc: đẩy sổ chainId **và sổ
-chain đã nén** lên server → nạp ví factory (X→P, D-140) → mới bật `A1_DE_CHAIN_MO=1`.
+🔴 **Cả ba đỏ này CHẶN việc mở lại cổng đẻ chain L1** — thứ tự bắt buộc: deploy console (5 tệp) →
+đẩy **sổ chain đã nén** lên server → **nạp ví factory HAI CHẶNG** → mới bật `A1_DE_CHAIN_MO=1`.
+🔴 **"Nạp ví factory X→P" là câu SAI, và nó đã nằm ở đây** (sửa `01/09`, D-155): ví factory là ví
+số đẹp sinh riêng, **0 trên CẢ X lẫn P** ⇒ không có gì để chuyển. Phải **hai chặng, hai khoá**:
+quỹ genesis →`/api/send-x`→ factory **trên X**, rồi factory →`/api/x-to-p`→ **P của chính nó**
+(`x-to-p` chỉ xuất cho `owner()`). Lệnh đầy đủ: `docs/RUNBOOK-REOPEN-CHAIN-CREATION.md` việc 3.
 
 🔴 **Cổng "áp đủ bộ rồi so hằng số của chính mình" chưa phải cổng** (D-112). Nó chỉ chứng minh
 bộ patch **tự nhất quán với con số ta vừa chép vào tệp đó** — ai sinh lại cả bộ rồi dán tree
