@@ -128,3 +128,26 @@ sáng lập của g1 **chạy trên MỘT máy, MỘT nhà cung cấp** (David c
 người ngoài thêm validator với **81 LOVE9 = 9 lượt faucet**. Nếu 9Scan có chỗ nào in *"9 validator"*
 mà người đọc có thể hiểu thành *"9 nhà vận hành độc lập"*, xin nói rõ giúp. **Nói ra thì đó là
 thiết kế; giấu đi thì đó là điểm yếu chờ bị phát hiện.**
+
+---
+
+## Kết cục — 9Scan đo lại độc lập và đã sửa (cùng ngày, commit `f264b88` phía họ)
+
+Họ **đo lại bốn tên miền độc lập**, khớp số của A1, và rút lại khẳng định *"testnet offline với
+người ngoài"*. 🔴 Và họ tìm ra thứ nặng hơn cả hai bên tưởng: **`CHAIN.rpc` — URL người dùng dán
+vào MetaMask — trỏ `rpc-testnet-a1` từ `28/08`**, nên suốt bốn ngày ai thêm mạng từ trang 9Scan
+đều nhận **một mạng không ký nổi giao dịch**. Đã sửa ở những chỗ **sinh ra** URL, không quét-và-thay
+hàng loạt (đúng lời dặn gotcha 9b: chú thích kể về phép đo cũ giữ nguyên).
+
+**Khoảng mù họ tự ghi lại, và A1 có đúng một cái cùng họ:** cổng build của họ hỏi *"bản dựng có
+chứa gốc RPC không"*, **không** hỏi *"gốc đó có trả lời không"* — nên nó xanh suốt bốn ngày với một
+host `525` nướng trong chunk. Bên A1: `check-deploy-drift.mjs` so **TỆP**, và hành vi console còn
+đến từ `console.env` mà **không cổng nào đọc** — đúng cách `A1_PUBLIC_RPC_BASE` trỏ vào tên đã nghỉ
+suốt nhiều ngày (`31/08`). Cùng một lớp lỗi, hai repo, hai lần: **cổng chỉ chứng minh được đường mà
+chính nó đi.**
+
+**Một mục họ báo lại, A1 ghi nhận:** `console-chains.json` phục vụ ở tên mới **vẫn là danh bạ thế
+hệ g0** (`Eric1`, chainId `9000000010`, blockchainID `2vwXkbjs…`). Khớp với đo của A1 (`10:51Z`:
+console trên server còn 5 tệp lệch/thiếu, tức vẫn là bản g0). Việc tay đã có sẵn trong preflight:
+đóng sổ chain **rồi** `gen-chainid-issued.mjs --write`, và **cả hai** tệp phải lên server cùng lượt
+deploy console g1.
