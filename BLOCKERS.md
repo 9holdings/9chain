@@ -61,14 +61,55 @@ ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'find ~/9chain-a1/net -name "staker.key" | w
    còn cảnh báo được; ở đây **networkID KHỚP** nên `check-keys` chấm **6/6 ✓** và không
    cổng nào kêu. Bộ quỹ THẬT nằm ở `C:\Users\abc\9chain-a1-keys\g0\`.
 
-**Việc của David** — theo đúng kỷ luật D-107 (LIỆT KÊ → XOÁ → ĐỐI CHỨNG), *không* xoá theo
-thư mục:
+### ✅ NỬA 1 XONG `2026-09-01 07:57Z` — nguy cơ MẤT KHOÁ đã gỡ. Nửa 2 chờ g1 xanh.
+
+🔴 **Gốc rễ đo được, và nó không nằm ở hai thư mục chết:** kho quỹ thật
+`C:\Users\abc\9chain-a1-keys\g0\` chỉ có `keys.txt` · `allocation.md` · `genesis.json` —
+**KHÔNG có `chain-factory-key.txt`**. Đây là ví **thứ BẢY**, nằm ngoài `keys.txt` (D-117b), nên
+khoá giữ tiền tồn tại ở **đúng hai nơi và cả hai đều tự khai là đồ chết**.
+
+Đã chép vào kho g0, **bốn phép đo, không xoá gì**:
+
+| phép đo | kết quả |
+|---|---|
+| `cmp` với bản gốc | ✓ trùng byte |
+| `sha256` TỆP | `ced0f04f784db89e…487ccd` |
+| `sha256` **KHOÁ** (không phải tệp) | `1dc334145c8a1abc` — **khớp bản ghi D-092** |
+| `check-key-leaks.mjs` | ✅ PASS · exit 0 |
+
+⚠️ **Hai đại lượng khác nhau, đừng lẫn:** mục này ghi `sha256` **khoá** = `1dc334145c8a1abc`;
+`sha256` **tệp** là `ced0f04f…`. Lượt dời phải giữ **tệp** trùng byte, lượt nhận dạng ví phải so
+**khoá**.
+
+✅ Kèm: khoá factory của **g1** băm ra `586d9bb2aa9d4fe6` — **khác thật** ⇒ D-117b (sinh mạng mới
+thì sinh khoá factory mới) đã được tuân thủ, không phải hứa suông.
+
+🔴 **BƯỚC 2 CỦA RUNBOOK DƯỚI ĐÂY SAI, giữ nguyên văn vì cách sai đáng đọc.** Nó viết *"chạy lại
+cổng: phải hết BẪY"* ngay sau bước chép. **Không.** Chép là **thêm**; cổng đếm khoá giữ tiền
+**nằm ngoài** thư mục thế hệ sống, nên nó vẫn ĐỎ cho tới khi hai bản trong thư mục chết **biến
+mất**. Đọc theo mặt chữ thì sau bước 1 sẽ thấy cổng vẫn đỏ và tưởng lượt chép hỏng.
+
+🔴 **VÀ NỬA 2 KHÔNG ĐƯỢC LÀM HÔM NAY CHO TỚI KHI g1 XANH** — luật đang đứng: hỏng lượt sinh lại
+phải hoãn thì g0 là thứ duy nhất còn lại, và lúc đó ~90 LOVE9 kia **có giá trị trở lại**.
+
+**Nửa 2 — chỉ chạy khi g1 đã xanh** (D-107: LIỆT KÊ → XOÁ → ĐỐI CHỨNG, *không* xoá theo thư mục):
+```bash
+shred -u -n 3 local-net/net-public/chain-factory-key.txt
+shred -u -n 3 local-net/net-public-dead-720m/chain-factory-key.txt
+find local-net -name 'chain-factory-key.txt'   # ĐỐI CHỨNG: phải RỖNG
+node scripts/check-net-dirs.mjs                 # 2 BẪY phải biến mất
+```
+⚠️ **Chỉ hai tệp đó.** `net-that-g0/` là MỒI NHỬ và phải nằm lại để cổng còn bắt được nó.
+
+<details><summary>Runbook nguyên văn của <code>28/08</code> (bước 2 sai — xem trên)</summary>
+
 ```bash
 node scripts/check-net-dirs.mjs            # liệt kê: thư mục nào giữ tiền
 # 1. chép chain-factory-key.txt về nơi khoá g0 thật sự sống, đối chứng sha256 HAI ĐẦU
 # 2. chạy lại cổng: phải hết "BẪY"
 # 3. chỉ khi đó mới dọn các thư mục 9001 — và đối chứng TỪNG TỆP, không kiểm "nhóm tệp"
 ```
+</details>
 
 ---
 
