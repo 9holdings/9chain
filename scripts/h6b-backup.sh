@@ -261,10 +261,10 @@ nt_quet_bi_mat() {  # $1 = cây đã clone ngược
   local ma=0
   node "$ROOT/scripts/check-history-secrets.mjs" --repo "$1" --all-objects >"$TAM/histsec.txt" 2>&1 || ma=$?
   case "$ma" in
-    0) dat "QUÉT LỊCH SỬ (D-145): không vật liệu khoá trong kho object của bản lưu" ;;
-    2) truot "QUÉT LỊCH SỬ (D-145): KHÔNG ĐO ĐƯỢC — 'không đo được' không phải 'sạch'"
+    0) dat "HISTORY SCAN (D-145): no key material in this backup's object database" ;;
+    2) truot "HISTORY SCAN (D-145): COULD NOT MEASURE — which is not the same as clean"
        sed 's/^/       /' "$TAM/histsec.txt" ;;
-    *) truot "QUÉT LỊCH SỬ (D-145): CÓ vật liệu khoá trong lịch sử — KHÔNG ĐƯỢC ĐẨY RA NGOÀI"
+    *) truot "HISTORY SCAN (D-145): key material IS in the history — MUST NOT LEAVE THIS MACHINE"
        sed 's/^/       /' "$TAM/histsec.txt" ;;
   esac
 }
