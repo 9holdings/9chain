@@ -2034,3 +2034,20 @@ Phiên đo. Không đụng mạng, không đụng server, không gửi giao dị
       ⚠️ **Thư mục KHÔNG xoá** (David chốt). ⚠️ Lỗi của chính lượt này: 2 chú thích tiếng Việt lọt
       vào mã, `check-english-code` bắt được ngay — nợ ngôn ngữ **5.721 → 5.719**.
       ⇒ Preflight: **`30 đạt · 2 đỏ · 0 không chạy được`**.
+
+- [x] 🔴 **Cổng đọc SỔ CHAIN SỐNG — `scripts/check-chain-ledger.mjs`** (D-154)
+      Tìm bằng tay khi trả lời *"sắp chạy được phần user tạo chain chưa"*: sổ chain **công khai**
+      còn khai **2 chain của g0** (`#9000000010` · `#9000000011`), RPC của chúng trả `404`.
+      Bản nén đúng đã có sẵn trong `docs/archive/` từ giờ G — **chưa bao giờ lên server**.
+      🔴 Không cổng nào bắt được vì **lỗ nằm GIỮA hai đại lượng**: `check-deploy-drift` để tệp đó
+      **ngoài tầm canh** (console tự ghi) · `check-doc-drift` chỉ đọc **văn xuôi**, đây là **JSON**.
+      **Điều kiện qua:** đo trên **bề mặt công khai** (không phải repo, không phải tệp server) ·
+      **cả hai chiều** (trong khối thế hệ **và** RPC tự khai đúng id) · `retired` **được phép**
+      mang id thế hệ cũ · phân biệt *từ chối* với *không với tới được* · **không gửi yêu cầu** tới
+      host mà tệp tải về chỉ định.
+      ✅ **ĐẠT.** **24 ca đối chứng ngược** · đỏ thật trên dữ liệu công khai (4 lỗi/2 chain, hai
+      chiều bắt **độc lập**) · 🔴 **đối chứng DƯƠNG**: chấm bản nén đúng ⇒ **PASS**, tức cái đỏ kia
+      là trạng thái **sửa được** chứ không phải cổng không xanh nổi (bài D-153, cùng ngày).
+      Nối vào preflight cả hai vế ⇒ **32 → 34 cổng**, `31 đạt · 3 đỏ · 0 không chạy được`.
+      🔴 Đỏ thứ ba **chặn mở lại cổng đẻ chain**: nó nằm **trước** trang tạo chain trên đúng đường
+      người dùng đi.
