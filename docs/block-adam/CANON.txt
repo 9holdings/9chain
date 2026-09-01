@@ -186,3 +186,32 @@
 # ⇒ The inference to avoid: "9Scan cannot produce a block" is NOT "the chain will be quiet". One
 # producer measured silent is one producer, and this project has paid for that shape of reasoning
 # more than once.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IF ANY A1 SURFACE PUBLISHES BLOCK ADAM: A CONSTRAINT ON LABELS, NOT ON NUMBERS
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Raised by the 9Scan-A1 team 2026-09-01 about their own page, and it lands on A1 the same way.
+#
+# Both projects have a reflex — print DECLARED next to READ-FROM-CHAIN and flag any difference.
+# It is the right reflex; it is how a page stops being something you have to trust. Applied to
+# Block Adam it produces a permanent false alarm:
+#
+#   declared   2026-09-09T06:09:09Z          <- the mark
+#   measured   2026-09-09T06:09:12Z          <- the timestamp Block Adam actually carries
+#   => MISMATCH, forever, on something entirely correct
+#
+# The two numbers do not contradict each other. Under D-147 (`ts >= mark`) the second is a
+# CONSEQUENCE of the definition: the mark is an instant, a block is sealed whenever it is sealed,
+# and the offset (B-13(b)) deliberately pushes the ceremonial transaction PAST the mark because
+# that is the safe side. Block Adam arriving a few seconds late is the design working.
+#
+# ⇒ Constraint, and it is about wording:
+#     · label them "mark" and "first block at or past the mark" — never "declared" / "measured"
+#     · never compute a difference between them and present it as drift
+#     · a page that prints the mark and the block timestamp side by side is correct; a page that
+#       calls their difference an error teaches its readers to ignore drift markers, which is the
+#       one thing those markers exist for
+#
+# The engraved bytes carry no timestamp at all ("Adam — the first human." is 25 bytes), so this is
+# a constraint on PAGES and on evidence records, not on the canon.
