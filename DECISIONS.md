@@ -6076,3 +6076,46 @@ Kèm hai chỗ khác trong cùng lượt:
 - **`h6b-backup.sh` nay gọi cổng này trên CÂY ĐÃ CLONE NGƯỢC.** Hàm `nt_quet_bi_mat` tự khai
   `--exclude-dir=.git` ⇒ nó đo **cây làm việc**, trong khi bundle mang **mọi object lịch sử**.
   Mã 2 (không đo được) tính là **trượt**, không phải đạt.
+
+---
+
+## D-146 — Kịch bản nghi lễ `09/09` viết trước **8 ngày**, và **hai chỗ chỉ David quyết được** (2026-09-01)
+
+`local-net/faucet/ceremony-9s-union.mjs` — thực hiện phương án (b) mà CANON để mở: **Adam → Eva →
+8 giao dịch chèn → thông điệp 9S Union vào đúng `block(Eva)+9` → đọc ngược 182 byte TỪ CHAIN**.
+
+**Vì sao viết hôm nay chứ không hôm `08/09`:** C-Chain **không đẻ block rỗng**. Đo `10:51Z`: chain
+đứng ở **block 8** từ `10:05Z` và sẽ đứng đó tới giao dịch kế tiếp. *"Chín block sau Eva"* **không
+tự tới** — CANON đã ghi *"phải viết kịch bản trước"*, và `09/09` không có lần thứ hai.
+
+### Nó TỪ CHỐI thay vì ứng biến — sáu cửa, mỗi cửa đã chạy thật, đều mã 2
+
+`--send` mà thiếu `--offset-ms` (B-13(b) chưa đo) · mốc nằm trong quá khứ · không khoá · tệp
+thông điệp **lệch vân tay đã đóng băng** · `eth_chainId` ≠ `9000000009` · **chain đang có người
+khác đẻ block** (trừ khi khai `--allow-busy-chain`). Mặc định là **chạy khô**; `--send` là việc
+có người bấm.
+
+🔴 **Thứ nó KHÔNG chữa được, nên nó KHAI ra:** *không ai đặt chỗ được một số block.* Nếu giao dịch
+của người lạ chiếm `block(Eva)+9` giữa chừng, lượt chạy **DỪNG và không gửi thêm gì** — vì
+*"gần đúng"* mà ghi lên một bản ghi vĩnh viễn là ghi một lời khai sai. **Chạy lại không phải chạy
+lại**: nó là một Adam mới và một Eva mới.
+
+8 ca đối chứng ngược (chain giả lập điều khiển được): đường thuận · **chèn vượt ô ⇒ dừng, không
+gửi thông điệp** · rơi vào +10 ⇒ ĐỎ · Adam+Eva cùng block ⇒ **lưu ý, không phải lỗi** (ô neo vẫn
+xác định, dịch theo Eva) · chạy khô gửi **0** giao dịch · chain trả byte khác ⇒ bắt được · thiếu
+dòng CANON ⇒ từ chối · và **cặp thật khớp vân tay**. Đã nối vào preflight (**24 → 25 đạt**).
+
+### 🔴 Hai chỗ còn treo — cả hai là quyết định, không phải mã
+
+1. **NỘI DUNG giao dịch Adam và Eva chưa được khai ở đâu cả.** Kịch bản gửi chúng **rỗng** trừ khi
+   có `--adam-data` / `--eva-data`. Nếu chúng phải mang chữ, **đóng băng byte như đã làm với thông
+   điệp 9S Union** — trước ngày, không phải trong ngày. Byte đến sau thì không neo được nữa.
+2. **B-13(b) phải đo trên chain ĐANG ĐẺ BLOCK.** Đo `10:51Z` trên chain rảnh: *"lệch"* in ra
+   **−443 giây**, gần như toàn bộ là **tuổi của một block bảy phút trước**, không phải lệch đồng
+   hồ. Con số đó **không được dùng làm offset**. ⇒ Muốn có số thật thì phải có nhịp: hoặc bật lại
+   bơm nhịp (nó sẽ **từ chối khởi động** vì `HEARTBEAT_STOP_AFTER` nằm ở quá khứ), hoặc bắn một
+   loạt giao dịch đo rồi đọc `block.timestamp`.
+
+⚠️ Một nhánh **chưa được nhìn thấy chạy**: cửa từ chối *"chain đang bận"* — hôm nay chain rảnh
+tuyệt đối (0 block trong 20 giây) nên không dựng được ca thật cho nó. Phần logic mà nó bảo vệ thì
+**đã** có đối chứng (ca "chèn vượt ô"). Khai ra chứ không tính là đã kiểm.

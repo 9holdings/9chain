@@ -1900,3 +1900,12 @@ giao dịch nào.
 3. 🔴 **Deploy console bản g1** (5 tệp) — trước khi mở cổng đẻ chain, không sau.
 4. **Kênh liên hệ** — `FILL-ON-G-DAY` cuối cùng ở `docs/RUN-A-VALIDATOR.md:340`; cộng chỗ URL
    repo ở dòng 77 sẽ điền được ngay khi việc 1 xong. Cổng xuất bản đang đếm **2**.
+
+- [x] 🔵 **Kịch bản nghi lễ `2026-09-09` — `local-net/faucet/ceremony-9s-union.mjs`** (D-146).
+      Adam → Eva → 8 giao dịch chèn → thông điệp vào đúng `block(Eva)+9` → **đọc ngược từ chain**.
+      Mặc định **chạy khô**; 6 cửa từ chối đều đã chạy thật (mã 2); 8 ca đối chứng ngược; đã nối
+      vào preflight (**25 đạt**). Chạy `--plan` trên mạng thật: chainId `9000000009` ✓, thông điệp
+      **182 byte khớp vân tay đóng băng** ✓, chain **0 block trong 20 giây** (rảnh tuyệt đối).
+      🔴 **Còn treo, cần David:** ① nội dung giao dịch **Adam/Eva** chưa ai khai — đóng băng byte
+      trước ngày ② **B-13(b)** phải đo khi chain đang đẻ block; số đo hôm nay (−443s) là **tuổi
+      block**, không phải lệch đồng hồ, **đừng dùng làm offset**.
