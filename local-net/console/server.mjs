@@ -841,7 +841,7 @@ async function createChain({ name, chainId, admin, preset }) {
   // demonstrated why on 2026-08-31.
   //
   // This line compared with `===` until that day, so within ONE generation two names differing
-  // only in case both got through: measured on the public network, a real user created `Eric1`
+  // only in case both got through: measured on the public network, a team member created `Eric1`
   // and then `eric1` nine minutes apart, each one dragging a rolling restart of all nine nodes
   // behind it.
   //
