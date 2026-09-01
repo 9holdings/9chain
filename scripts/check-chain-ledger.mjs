@@ -55,6 +55,13 @@
  * band rule applies to `chains` and never to `retired` — and a retired entry is never asked to
  * answer, because a retired chain not answering is the point.
  *
+ * ## WHERE THE JUDGEMENT LIVES
+ *
+ * In `local-net/lib/chain-ledger.mjs`, not here. `scripts/reopen-chain-creation.mjs` needs the
+ * same verdict as one step of its four-step order, and importing THIS file to get it would run
+ * `main()` and `process.exit` inside the importer. This file is the gate: it prints, and it
+ * carries the counter-checks. See the library's header for why a second copy was refused.
+ *
  * ## EXIT CODES (shared convention across the tool set)
  *
  *   0  PASS          — every advertised chain is of the running generation and answers as claimed
@@ -71,12 +78,11 @@
  *   node scripts/check-chain-ledger.mjs --file 9chain-a1-config/console-chains.json
  *   node scripts/check-chain-ledger.mjs --self-test
  */
-import { readFileSync } from "node:fs";
 import path from "node:path";
-import https from "node:https";
-import http from "node:http";
 import { fileURLToPath } from "node:url";
-import { NETWORK_ID, GOC_DAI_CHAINID, TRAN_DAI_CHAINID, TEN_MANG } from "../local-net/lib/chainid.mjs";
+import {
+  assessPublicLedger, judgeLedgerShape, probeChainId, measureLiveNetworkId, sameHostAsRpc,
+} from "../local-net/lib/chain-ledger.mjs";
 import { RPC_URL } from "../local-net/lib/server.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -91,243 +97,69 @@ const LEDGER_FILE = flag("--file", null);
 const RPC = flag("--rpc", RPC_URL);
 const SELF_TEST = argv.includes("--self-test");
 
-/**
- * 🔴 `fetch` + `process.exit()` on Windows aborts with `UV_HANDLE_CLOSING` and exit code 127 — a
- * gate that crashes on the way OUT is read as a failure whatever it measured. Raw http/https with
- * `connection: close`, the shape `check-doc-drift` already settled on.
- */
-function request(url, { method = "GET", payload = null, timeoutMs = 20_000 } = {}) {
-  const u = new URL(url);
-  const lib = u.protocol === "http:" ? http : https;
-  const data = payload === null ? null : JSON.stringify(payload);
-  const headers = { connection: "close" };
-  if (data !== null) {
-    headers["content-type"] = "application/json";
-    headers["content-length"] = Buffer.byteLength(data);
-  }
-  return new Promise((resolve, reject) => {
-    const req = lib.request(u, { method, headers, agent: new lib.Agent({ keepAlive: false }), timeout: timeoutMs }, (res) => {
-      let out = ""; res.setEncoding("utf8");
-      res.on("data", (c) => { out += c; });
-      res.on("end", () => resolve({ status: res.statusCode, body: out }));
-    });
-    req.on("timeout", () => req.destroy(new Error(`timed out after ${timeoutMs} ms`)));
-    req.on("error", reject);
-    req.end(data);
-  });
-}
-
-/** The running identity, asked of the node. Never inferred from a constant in this repo. */
-export async function measureLiveNetworkId(ask = request, rpcBase = RPC) {
-  const res = await ask(`${rpcBase}/ext/info`, { method: "POST", payload: { jsonrpc: "2.0", id: 1, method: "info.getNetworkID", params: {} } });
-  const parsed = JSON.parse(res.body);
-  const id = Number(parsed?.result?.networkID);
-  if (!Number.isSafeInteger(id) || id <= 0) throw new Error(`info.getNetworkID answered ${JSON.stringify(parsed?.result?.networkID)}`);
-  return id;
-}
-
-/**
- * Ask one advertised RPC what chain it is.
- *
- * 🔴 A DEAD CHAIN DOES NOT ANSWER WITH AN HTTP CODE — it answers with a BODY. Measured on the
- * live network: an L1 blockchainID that no longer exists returns the seven words `404 page not
- * found` as plain text. Judging by status would also mean judging by Cloudflare, which cuts long
- * POSTs at ~100s with a 524 of its own. Hard rule #1: read the CONTENT.
- *
- * Returns one of:
- *   { kind: "id", chainId }          the chain answered, and this is what it says it is
- *   { kind: "refused", detail }      it answered something that is not a chainId — a real defect
- *   { kind: "unreachable", detail }  transport failed — NOT a verdict, this is "unknown"
- */
-export async function probeChainId(rpcUrl, ask = request) {
-  let res;
-  try {
-    res = await ask(rpcUrl, { method: "POST", payload: { jsonrpc: "2.0", id: 1, method: "eth_chainId", params: [] } });
-  } catch (e) {
-    // Transport failure is INCONCLUSIVE, never a defect: a flaky moment must not be published as
-    // "this chain is dead", and the opposite mistake — silently treating it as fine — is worse.
-    return { kind: "unreachable", detail: e.message };
-  }
-  let parsed;
-  try {
-    parsed = JSON.parse(res.body);
-  } catch {
-    // Print VERBATIM what came back, truncated. A gate that paraphrases a body teaches the reader
-    // to trust its paraphrase; `404 page not found` says more than "invalid response" ever will.
-    return { kind: "refused", detail: `HTTP ${res.status} · body: ${JSON.stringify(res.body.slice(0, 60))}` };
-  }
-  if (parsed?.error) return { kind: "refused", detail: `JSON-RPC error: ${parsed.error.message ?? JSON.stringify(parsed.error)}` };
-  const raw = parsed?.result;
-  const id = typeof raw === "string" ? Number(raw.startsWith("0x") ? BigInt(raw) : raw) : Number(raw);
-  if (!Number.isSafeInteger(id) || id <= 0) return { kind: "refused", detail: `eth_chainId answered ${JSON.stringify(raw)}` };
-  return { kind: "id", chainId: id };
-}
-
-/**
- * Everything that can be judged WITHOUT touching the network: shape, band membership, and the
- * two lists' relationship to each other. Pure, so the counter-check can drive it directly.
- *
- * `band` is passed in, never read from the repo here, because the caller is the one that has to
- * prove the repo's band belongs to the generation that is actually running.
- */
-export function judgeLedgerShape(ledger, band) {
-  const problems = [];
-  if (ledger === null || typeof ledger !== "object" || Array.isArray(ledger)) {
-    return { fatal: "the ledger is not a JSON object", problems, live: [], retired: [] };
-  }
-  const live = Array.isArray(ledger.chains) ? ledger.chains : null;
-  if (live === null) return { fatal: "the ledger has no `chains` array", problems, live: [], retired: [] };
-  const retired = Array.isArray(ledger.retired) ? ledger.retired : [];
-
-  for (const entry of live) {
-    const label = `${entry?.name ?? "<unnamed>"} #${entry?.chainId ?? "<no chainId>"}`;
-    const id = Number(entry?.chainId);
-    if (!Number.isSafeInteger(id)) {
-      problems.push({ label, kind: "red", reason: `chainId is not a number: ${JSON.stringify(entry?.chainId)}` });
-      continue;
-    }
-    if (id < band.floor || id > band.ceiling) {
-      problems.push({
-        label,
-        kind: "red",
-        reason: `chainId ${id} is OUTSIDE the running generation's block [${band.floor}–${band.ceiling}] `
-          + `— a chain of a dead generation is being advertised as live`,
-      });
-    }
-  }
-
-  // 🔴 An id in BOTH lists is the block-list failing in the direction that matters: a name and a
-  // number that were retired are back in circulation while the record still says they are gone.
-  const retiredIds = new Set(retired.map((r) => Number(r?.chainId)).filter(Number.isSafeInteger));
-  for (const entry of live) {
-    const id = Number(entry?.chainId);
-    if (retiredIds.has(id)) {
-      problems.push({ label: `${entry?.name ?? "<unnamed>"} #${id}`, kind: "red", reason: `chainId ${id} is listed as RETIRED and as LIVE at the same time` });
-    }
-  }
-  return { fatal: null, problems, live, retired };
-}
-
-/**
- * Is this entry's advertised RPC one this gate may ask?
- *
- * 🔴 TWO REASONS, and the second is the one worth writing down. (a) A public directory that sends
- * users to a host which is not the network's RPC is itself a defect — that is exactly how 9Scan
- * spent four days handing out `rpc-testnet-a1`, a network that could not sign. (b) This gate
- * fetches a file from the network and would otherwise send a request to whatever URL that file
- * names. The ledger is ours today; a tool that turns a fetched document into outbound requests is
- * a shape to refuse on principle, not after it is abused.
- */
-export function sameHostAsRpc(rpcUrl, rpcBase) {
-  try {
-    return new URL(rpcUrl).host === new URL(rpcBase).host;
-  } catch {
-    return false;
-  }
-}
+/** One printed line per advertised chain. Entries refused before any request are not printed. */
+const MARKS = { unreachable: "⁇", refused: "🔴", "wrong-id": "🔴", ok: "✓" };
 
 async function main() {
   if (SELF_TEST) return selfTest();
 
   console.log(`\n══ PUBLIC CHAIN LEDGER — ${LEDGER_FILE ? `file ${LEDGER_FILE}` : LEDGER_URL} ══`);
 
-  // ─── 1. Which generation is actually running? Measured, then used to validate the repo. ───
-  let liveId;
-  try {
-    liveId = await measureLiveNetworkId();
-  } catch (e) {
-    console.log(`   🔴 could not measure the running network on ${RPC}: ${e.message}`);
+  const v = await assessPublicLedger({
+    ledgerUrl: LEDGER_URL,
+    ledgerFile: LEDGER_FILE ? path.resolve(ROOT, LEDGER_FILE) : null,
+    rpcBase: RPC,
+  });
+
+  if (v.stage === "network") {
+    console.log(`   🔴 could not measure the running network on ${RPC}: ${v.error}`);
     console.log(`   ⁇ INCONCLUSIVE — without it, "which block is current" is only the repo's opinion.`);
     return 2;
   }
-  console.log(`   running network: networkID ${liveId}   ⇦ MEASURED on ${RPC}`);
+  console.log(`   running network: networkID ${v.liveId}   ⇦ MEASURED on ${RPC}`);
 
-  // 🔴 The repo's chainId block is used ONLY once the chain confirms the repo is describing the
-  // generation that is actually serving. Between a bump and its re-genesis the repo is ahead on
-  // purpose, and judging the ledger with a block from a generation that does not exist yet would
-  // condemn every correct entry. That is D-134 in this file's terms: a constant meaning "some
-  // other generation" walking into the live slot.
-  if (liveId !== NETWORK_ID) {
-    console.log(`   🔴 the repo describes networkID ${NETWORK_ID} (${TEN_MANG}) — the chain says ${liveId}`);
+  if (v.stage === "generation") {
+    console.log(`   🔴 the repo describes networkID ${v.repoNetworkId} (${v.repoNetworkName}) — the chain says ${v.liveId}`);
     console.log(`   ⁇ INCONCLUSIVE — refusing to judge chainIds against a block from a different generation.`);
     return 2;
   }
-  const band = { floor: GOC_DAI_CHAINID, ceiling: TRAN_DAI_CHAINID };
-  console.log(`   generation block: [${band.floor}–${band.ceiling}]   (repo, confirmed against the chain)\n`);
+  console.log(`   generation block: [${v.band.floor}–${v.band.ceiling}]   (repo, confirmed against the chain)\n`);
 
-  // ─── 2. What is the public actually served? ───
-  let ledger;
-  try {
-    const raw = LEDGER_FILE
-      ? readFileSync(path.resolve(ROOT, LEDGER_FILE), "utf8")
-      : (await request(LEDGER_URL)).body;
-    ledger = JSON.parse(raw);
-  } catch (e) {
-    console.log(`   🔴 could not read the ledger: ${e.message}`);
+  if (v.stage === "fetch") {
+    console.log(`   🔴 could not read the ledger: ${v.error}`);
     console.log(`   ⁇ INCONCLUSIVE — "could not read" is not "nothing is advertised".`);
     return 2;
   }
-
-  const { fatal, problems, live, retired } = judgeLedgerShape(ledger, band);
-  if (fatal) {
-    console.log(`   🔴 ${fatal}`);
+  if (v.stage === "shape") {
+    console.log(`   🔴 ${v.fatal}`);
     console.log(`   ⁇ INCONCLUSIVE — the ledger's shape is not the shape this gate knows how to judge.`);
     return 2;
   }
-  console.log(`   advertised: ${live.length} live · ${retired.length} retired`);
+
+  console.log(`   advertised: ${v.live.length} live · ${v.retired.length} retired`);
   console.log(`   (the band rule applies to LIVE entries only — a retired entry is SUPPOSED to carry`);
   console.log(`    an id from an earlier generation, and is never asked to answer.)\n`);
 
-  const reds = [...problems];
-  const unknowns = [];
-
-  // ─── 3. Does each advertised chain exist? Both directions. ───
-  for (const entry of live) {
-    const label = `${entry?.name ?? "<unnamed>"} #${entry?.chainId ?? "?"}`;
-    const rpcUrl = entry?.rpc;
-    if (typeof rpcUrl !== "string" || !rpcUrl) {
-      reds.push({ label, kind: "red", reason: "publishes no `rpc` — a directory entry nobody can use" });
-      continue;
-    }
-    if (!sameHostAsRpc(rpcUrl, RPC)) {
-      reds.push({ label, kind: "red", reason: `publishes an RPC on a FOREIGN host: ${rpcUrl} (this network's RPC is ${new URL(RPC).host})` });
-      continue;
-    }
-    const probe = await probeChainId(rpcUrl);
-    if (probe.kind === "unreachable") {
-      unknowns.push({ label, reason: `could not be asked (${probe.detail})` });
-      console.log(`  ⁇ ${label} — ${probe.detail}`);
-      continue;
-    }
-    if (probe.kind === "refused") {
-      reds.push({ label, kind: "red", reason: `the advertised RPC does not serve a chain: ${probe.detail}` });
-      console.log(`  🔴 ${label} — ${probe.detail}`);
-      continue;
-    }
-    if (probe.chainId !== Number(entry.chainId)) {
-      reds.push({ label, kind: "red", reason: `the ledger says ${entry.chainId}, the chain answers ${probe.chainId}` });
-      console.log(`  🔴 ${label} — answers ${probe.chainId}`);
-      continue;
-    }
-    console.log(`  ✓ ${label} — answers with the id it claims`);
+  for (const e of v.entries) {
+    if (MARKS[e.verdict]) console.log(`  ${MARKS[e.verdict]} ${e.label} — ${e.detail}`);
   }
 
   console.log();
-  if (reds.length) {
-    console.log(`🔴 FAIL — ${reds.length} problem(s) in the directory the PUBLIC is served:`);
-    for (const p of reds) console.log(`   ${p.label} — ${p.reason}`);
+  if (v.reds.length) {
+    console.log(`🔴 FAIL — ${v.reds.length} problem(s) in the directory the PUBLIC is served:`);
+    for (const p of v.reds) console.log(`   ${p.label} — ${p.reason}`);
     console.log(`\n   This is what a visitor to /chains/ sees. Fixing it means putting the correct ledger`);
     console.log(`   on the SERVER — the repo copy is a dev fixture and does not reach anyone.`);
     return 1;
   }
-  if (unknowns.length) {
-    console.log(`⁇ INCONCLUSIVE — ${unknowns.length} advertised chain(s) could not be asked.`);
-    for (const u of unknowns) console.log(`   ${u.label} — ${u.reason}`);
+  if (v.unknowns.length) {
+    console.log(`⁇ INCONCLUSIVE — ${v.unknowns.length} advertised chain(s) could not be asked.`);
+    for (const u of v.unknowns) console.log(`   ${u.label} — ${u.reason}`);
     console.log(`   "could not ask" is NOT "answered correctly". Re-run when the RPC responds.`);
     return 2;
   }
   console.log(`✅ PASS — every advertised chain belongs to the running generation and answers with the id it claims.`);
-  if (live.length === 0) console.log(`   (the directory advertises nothing — it therefore claims nothing that could be wrong.)`);
+  if (v.live.length === 0) console.log(`   (the directory advertises nothing — it therefore claims nothing that could be wrong.)`);
   return 0;
 }
 
