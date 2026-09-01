@@ -95,11 +95,18 @@ the document whose job is to make that true.
 
 You are not asked to trust a binary we hand you. You rebuild it and compare tree hashes.
 
+🔴 **Clone it to `9chain-a1/upstream/avalanchego`, not beside it.** Step 2 builds with
+`local-net/Dockerfile`, whose first instruction is `COPY upstream/avalanchego/ ./` — it reads the
+fork from *inside* your `9chain-a1` clone. And `upstream/` is in `.gitignore`, so after you clone
+9chain-a1 that directory is simply absent: there is nothing there to hint where the fork belongs.
+Clone it anywhere else and `docker build` fails on its first line.
+
 ```bash
-git clone https://github.com/ava-labs/avalanchego.git
-cd avalanchego
+# run this from the directory that CONTAINS your 9chain-a1 clone
+git clone https://github.com/ava-labs/avalanchego.git 9chain-a1/upstream/avalanchego
+cd 9chain-a1/upstream/avalanchego
 git checkout 1cf1fc3
-git am --keep-cr ../9chain-a1/patches/*.patch
+git am --keep-cr ../../patches/*.patch
 git rev-parse HEAD^{tree}
 ```
 
@@ -230,16 +237,48 @@ You are ready to stake when `health.health` reports `true` **and** P and C are b
 
 ## Step 6 — Get LOVE9 onto **P-Chain**
 
-🔴 **This is where most people lose an afternoon.** Staking happens on **P-Chain**, and genesis
-liquid balances live on **X-Chain**. A wallet showing a healthy balance can still be unable to
-stake, because the money is on the wrong chain, and the failure arrives *after* you decide to
-spend.
+🔴 **This is where most people lose an afternoon.** Staking happens on **P-Chain**. A wallet
+showing a healthy balance can still be unable to stake, because the money is on the wrong chain,
+and the failure arrives *after* you decide to spend.
 
-You need an X→P export/import first. `xp-wallet`, shipped inside the node image, does it:
+**Which chain your LOVE9 is on depends on where it came from, and the two answers differ:**
+
+| Source | Lands on | Hops to P-Chain |
+|---|---|---|
+| **The faucet** (what a newcomer uses) | **C-Chain** — it is an EVM payout, chainId `9000000009` | **TWO**: C→X, then X→P |
+| A genesis fund | X-Chain | one: X→P |
+
+🔴 **Earlier versions of this page described only the second row**, and told you to run X→P against
+a balance that was never on X. If you funded yourself from the faucet, that command finds nothing
+to move and the guide reads as if you did something wrong. Corrected 2026-09-01 after an outside
+tester lost exactly this afternoon.
+
+### Hop 1 · C→X — **and this one is not yet shippable, said plainly**
+
+🔴 **The node image does not do this hop.** Measured 2026-09-01: `xp-wallet` exposes `/api/info`,
+`/api/send-x`, `/api/x-to-p`, `/api/p-to-x` — and mentions the C-Chain **zero times**. There is no
+`c-to-x` in it.
+
+🔴 **And it cannot be done against the public RPC by design.** `https://rpc-a1.9chain.org/ext/bc/C/avax`
+answers **404** on purpose — the atomic C-Chain endpoint is closed to the internet (M11.10), while
+`/ext/bc/C/rpc` answers 200. This is a security boundary, not an outage. The export therefore has
+to run against **your own node**, which you have from Step 5, on `127.0.0.1:9650`.
+
+⚠️ **We are not printing a command here that we have not run end to end.** A guide that hands you
+an unverified `curl` for the step it just called the hardest one is worse than a guide that admits
+the gap. Until A1 ships either a `c-to-x` route in `xp-wallet` or a faucet that pays directly to an
+`X-love9…` address, fund yourself from an X-Chain balance, or ask in the contact channel below.
+
+### Hop 2 · X→P — this one is shipped and verified
+
+`xp-wallet`, inside the node image:
 
 ```
-POST /api/x-to-p   {"amount":"25000"}
+POST /api/x-to-p   {"amount":"81"}
 ```
+
+⚠️ `x-to-p` exports to `owner()` — the key the wallet is running. It can only ever pay **itself**
+on P-Chain, so run it with the key that is going to stake.
 
 Then confirm on P-Chain — do not trust the wallet's own display:
 
@@ -249,7 +288,14 @@ curl -s -X POST -H 'content-type:application/json' \
   http://127.0.0.1:9650/ext/bc/P
 ```
 
-`unlocked` must be at least `81000000000` (81 LOVE9 in nano) plus a little for fees.
+`unlocked` must be at least `81000000000` (81 LOVE9 in nano) **plus fees** — measured on the live
+chain, `platform.getMinStake` returns exactly `81000000000`.
+
+🔴 **Nine faucet requests give you exactly 81, and 81 is the STAKE, not the stake plus the cost of
+staking.** Fees on P-Chain are dynamic since Etna (`platform.getTxFee` no longer exists, so this
+page does not quote a number it cannot measure) and they come out of the same balance. Budget at
+least one request more than nine, and note the faucet's limit is nine per IP per hour — so the
+tenth may mean waiting into the next hour.
 
 ---
 
@@ -264,7 +310,7 @@ stake-validator \
   --key <your key file> \
   --node-rpc http://127.0.0.1:9650/ext/info \
   --uri https://rpc-a1.9chain.org \
-  --stake 25000 \
+  --stake 81 \
   --days 14 \
   --delegation-fee 20000
 # add --issue to actually sign and spend
