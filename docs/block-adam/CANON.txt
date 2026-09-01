@@ -22,3 +22,40 @@
 #   sha256sum docs/block-adam/9s-union-message.txt
 
 9s_union_message  84846f452db83644231895a65f75706d3a435df827b88a1b18852ec4670d5b78  182 bytes  en
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# WHERE IT GETS ANCHORED — David, 2026-09-01 10:10Z
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+#   "neo vào sau 9 block kể từ block Eva"
+#
+#   2026-09-09T06:09:09Z   ceremony: tx Adam, then tx Eva
+#                          block Eva = the block carrying the Eva tx
+#   block(Eva) + 9         <- the 9S Union message is anchored HERE
+#
+# Block Eva does not exist yet. The block number is only knowable after the ceremony, so this
+# is a 2026-09-09 task and cannot be pre-computed.
+#
+# 🔴 THE MECHANIC THAT WILL BREAK THIS IF NOBODY PLANS FOR IT: the C-Chain does not produce
+# empty blocks. It makes a block when there is something to put in one. The chain sat at block 0
+# from genesis (09:20Z) until 10:05Z, when a single faucet drip created block 1 — and it will sit
+# at block 1 until the next transaction. So "nine blocks after Eva" does NOT arrive on its own;
+# on a quiet chain it may not arrive for days. Two ways, decide before the ceremony:
+#
+#   (a) Restart the heartbeat pump before 09/09 so blocks are produced continuously. ⚠️ It will
+#       refuse to start until HEARTBEAT_STOP_AFTER is moved — the value is 2026-09-01T00:00:00Z,
+#       already in the past, and the process exits(1) at startup before it reads anything else.
+#   (b) Send nine deliberate filler transactions: nine transactions, nine blocks, then the
+#       declaration. More fitting ceremonially, but it has to be scripted in advance.
+#
+# This is the same risk the plan already wrote down about Block Adam itself: "if nothing is done,
+# what happens on 09/09 is that nobody knows which block Block Adam is."
+#
+# 🔴 AND THE OFFSET STILL HAS TO BE MEASURED FIRST (B-13(b)). The 2026-08-27 drill at 0 ms offset
+# scored 7 pass / 1 FAIL: the Adam transaction's block landed with ts EXACTLY ON the mark, and
+# the rule says "the first block to CROSS", so Block Adam would have been Eva's block. +3000 ms
+# scored 9/0. The whole distance between hitting and missing is one strict-vs-loose comparison.
+# ⚠️ Measure the skew while the chain is PRODUCING BLOCKS: on an idle chain block age dominates
+# the measurement (a ~10s-old block reads as -10,136 ms, nearly all of it age, not skew).
+# ⚠️ Adam and Eva do NOT land in the same block even when broadcast milliseconds apart — the
+# drill measured them two seconds and one block apart. No ceremony script may assume otherwise.
