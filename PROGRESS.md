@@ -2002,3 +2002,35 @@ Thứ tự **bắt buộc**, và nó là thứ tự chứ không phải danh sá
    đúng lỗi này trên bản diễn tập: `insufficient funds: needed 2196 more nAVAX`).
 3. **`A1_DE_CHAIN_MO=1`** + `~/9chain-a1/console-restart.sh`, rồi nghiệm thu **qua Cloudflare**,
    không nghiệm thu trên host.
+
+---
+
+## 🔵 `2026-09-01` (chiều muộn, sau D-152) — preflight lấy số tươi + vá một cổng không xanh được
+
+Phiên đo. Không đụng mạng, không đụng server, không gửi giao dịch.
+
+- [x] 🔴 **Preflight đầy đủ, số tươi `14:49Z`** — `29 đạt · 2 đỏ · 1 không chạy được · 40 việc tay`.
+      **Trùng khít số đo phiên trước** ⇒ không có gì hỏng thêm. Fork tree ✓ 27 patch →
+      `38723877`, đối chứng **26/27 → `60a61707`** chạy trong cùng cổng.
+      Hai đỏ đã kiểm **từng cái đỏ VÌ ĐÚNG LÝ DO**, và **cả hai là việc David**:
+      `watch-network` 8/9 mục xanh, đỏ **chỉ** ở ví `chain-factory` **0 LOVE9** ·
+      `check-deploy-drift` **15 khớp · 4 lệch · 1 thiếu · 1 mồ côi**, toàn bộ là console chờ deploy.
+      🟢 **Đổi so với HANDOFF:** `faucet/server.mjs` nay **KHỚP** ⇒ danh sách còn **5 tệp**,
+      không phải 6. Mồ côi mới `9chain-a1-config/heartbeat.json.g0-20260901` (hình dạng B-17).
+- [x] 🟢 **B-19 hết là "tiền thật", đo trên chain sống.** `net-public/` và
+      `net-public-dead-720m/` nay đo ra **mọi ví 0đ** trên `999999998` — `90,007 LOVE9` chết cùng
+      g0. Hai mục TRAP biến mất **không phải vì ai dọn**, mà vì đại lượng chúng canh đã đổi.
+      ⇒ B-19 còn lại **giá trị GIỮ BẢN GHI**, không còn là chặn GO/NO-GO. Mồi nhử `net-that-g0`
+      vẫn bị chấm đúng `🟡 real band, different generation`.
+- [x] 🔴 **`check-net-dirs` — cổng KHÔNG BAO GIỜ xanh được, vì lý do không phải của nó** (D-153)
+      `local-net/net-tap-g1/` **rỗng** (còn lại sau lượt shred `31/08`) ⇒ `no genesis.json` ⇒ mã 2
+      **vĩnh viễn**, và câu kết khuyên *"chạy lại khi chain tới được"* trong khi chain **vừa được
+      đo thành công** ở dòng ngay trên. Mặt sau của D-106b: đỏ **đúng**, lời khuyên **sai đại lượng**.
+      **Điều kiện qua:** thư mục rỗng là verdict riêng · rỗng phải **ĐẾM** chứ không suy từ thiếu
+      genesis · phép đếm **đệ quy** (`node1/staker.key`) · mã 2 khai **nửa nào** hỏng.
+      ✅ **ĐẠT.** Đối chứng ngược **27 → 40 ca**; **ba bản hỏng có chủ ý**, mỗi bản đỏ đúng ở ca
+      mang tên nó (bỏ đệ quy · coi thiếu genesis là rỗng · in cả hai lời khuyên).
+      Chạy thật: `✅ PASS — 10 thư mục`, khai riêng 1 thư mục rỗng. `--offline` **vẫn mã 2**.
+      ⚠️ **Thư mục KHÔNG xoá** (David chốt). ⚠️ Lỗi của chính lượt này: 2 chú thích tiếng Việt lọt
+      vào mã, `check-english-code` bắt được ngay — nợ ngôn ngữ **5.721 → 5.719**.
+      ⇒ Preflight: **`30 đạt · 2 đỏ · 0 không chạy được`**.

@@ -57,6 +57,19 @@
  *   2  INCONCLUSIVE  — a genesis was unreadable, or the chain could not be queried
  *                      (⚠️ this is NOT "clean")
  *
+ * 🔴 **AN EMPTY DIRECTORY IS MEASURED, NOT GUESSED — and exit 2 names WHICH HALF failed.**
+ * Measured 2026-09-01, after the g1 drill sets were shredded: `local-net/net-tap-g1/` was left
+ * behind holding **zero files**, so `no genesis.json` scored INCONCLUSIVE and dragged the whole
+ * preflight to *"1 could not run"* — permanently, since nothing will ever put a genesis there.
+ * Worse, the closing line advised *"re-run when the chain is reachable"* while the chain HAD
+ * just been measured successfully in the banner above: the advice named a quantity that was
+ * not the failing one. A gate that can never go green, for a reason that is not its reason,
+ * teaches people to read past it — hard rule #2, third clause (CLAUDE.md §1).
+ * ⇒ An empty directory is now its own verdict (0 files at ANY depth ⇒ no genesis to read, no
+ * key to lose, nothing to misclassify), and that emptiness is COUNTED, never inferred from the
+ * missing genesis: a directory holding `keys.txt` and no genesis stays INCONCLUSIVE, which is
+ * the case that matters. Exit 2 now says whether the unmeasured half was DISK or CHAIN.
+ *
  * Usage:
  *   node scripts/check-net-dirs.mjs
  *   node scripts/check-net-dirs.mjs --rpc https://rpc-a1.9chain.org
@@ -138,11 +151,39 @@ const LABEL = {
   dead: "⚫ outside every band — dead",
 };
 
+/**
+ * Count files at ANY depth. This is the measurement that separates *"there is nothing here"*
+ * from *"there is something here I could not classify"* — the two things a missing
+ * `genesis.json` used to collapse into one.
+ *
+ * 🔴 RECURSIVE ON PURPOSE. A `net*` directory keeps validator identities in per-node
+ * subdirectories (`node1/staker.key` …), so a top-level-only count would call a directory
+ * full of private keys "empty" — turning this fix into a far worse bug than the one it closes.
+ */
+export function countFiles(dir) {
+  let n = 0;
+  for (const name of readdirSync(dir)) {
+    const full = path.join(dir, name);
+    const st = statSync(full);
+    if (st.isDirectory()) n += countFiles(full);
+    else n++;
+  }
+  return n;
+}
+
 /** Read one net* directory: generation + secret files + addresses found. */
 export function readNetDir(dir, live = liveNetworkId) {
-  const out = { dir, networkId: null, band: null, secrets: [], addresses: [], error: null };
+  const out = { dir, networkId: null, band: null, secrets: [], addresses: [], error: null, empty: false };
   const genesis = path.join(dir, "genesis.json");
   if (!existsSync(genesis)) {
+    // 🔴 EMPTINESS IS COUNTED, NEVER INFERRED FROM THE MISSING GENESIS. A directory holding
+    // `keys.txt` with no genesis is the dangerous shape — generation unknown, key material
+    // present — and it must stay INCONCLUSIVE. Only a directory with zero files at any depth
+    // is a finished answer: no genesis to read, no address to ask about, nothing to lose.
+    if (countFiles(dir) === 0) {
+      out.empty = true;
+      return out;
+    }
     out.error = "no genesis.json";
     return out;
   }
@@ -317,16 +358,24 @@ async function main() {
   // land in the `live` parameter and every directory would be classified against `0`/`1`/`2`.
   // The arrow keeps the second argument the measured networkID.
   const reports = dirs.map((d) => readNetDir(d, liveNetworkId));
-  let unresolved = reports.filter((r) => r.error).length;
+  // 🔴 WHICH HALF could not be measured is part of the verdict, not decoration: the two halves
+  // are fixed by different people doing different things, and printing the chain's remedy for a
+  // disk-side failure sends the reader to re-run a query that already succeeded.
+  const unresolved = reports.filter((r) => r.error).map((r) => ({ kind: "disk", what: `${path.basename(r.dir)}: ${r.error}` }));
   // "Could not measure which network is running" is INCONCLUSIVE, not clean — the same rule the
   // balance half already follows. It also makes `--offline` match its documented contract:
   // it can never reach exit 0.
-  if (!measured) unresolved++;
+  if (!measured) unresolved.push({ kind: "chain", what: `running networkID: ${measureError}` });
   const traps = [];
   const decoys = [];
 
   for (const r of reports) {
     const name = path.basename(r.dir);
+    if (r.empty) {
+      // Not inconclusive: 0 files at any depth was MEASURED. Nothing to classify, nothing to lose.
+      console.log(`  ${name.padEnd(26)} EMPTY — 0 files at any depth (no genesis to read, no key to lose)`);
+      continue;
+    }
     if (r.error) {
       console.log(`  ⁇ ${name.padEnd(26)} INCONCLUSIVE — ${r.error}`);
       continue;
@@ -336,7 +385,7 @@ async function main() {
 
     if (OFFLINE) {
       if (r.addresses.length) {
-        unresolved++;
+        unresolved.push({ kind: "chain", what: `${name}: ${r.addresses.length} address(es) not asked (--offline)` });
         console.log(`     ⁇ ${r.addresses.length} address(es) NOT measured on chain (--offline)`);
       }
       continue;
@@ -348,7 +397,7 @@ async function main() {
       try {
         bal = await walletBalance(body);
       } catch (e) {
-        unresolved++;
+        unresolved.push({ kind: "chain", what: `${name}: ${body.slice(0, 18)}… (${e.message})` });
         console.log(`     ⁇ ${body.slice(0, 18)}… could not ask the chain (${e.message})`);
         continue;
       }
@@ -400,13 +449,42 @@ async function main() {
     return 1;
   }
   if (decoys.length) return 1;
-  if (unresolved) {
-    console.log(`⁇ INCONCLUSIVE — ${unresolved} item(s) could not be measured.`);
-    console.log(`   "could not measure" is NOT "clean". Re-run when the chain is reachable.`);
+  if (unresolved.length) {
+    for (const line of inconclusiveAdvice(unresolved, RPC)) console.log(line);
     return 2;
   }
-  console.log(`✅ PASS — all ${reports.length} directories have a known generation, and no dead one holds money.`);
+  const empties = reports.filter((r) => r.empty).length;
+  console.log(`✅ PASS — all ${reports.length - empties} directories have a known generation, and no dead one holds money.`);
+  if (empties) console.log(`   (${empties} empty directory/directories, measured at 0 files — nothing to classify.)`);
   return 0;
+}
+
+/**
+ * The closing lines of an exit-2 run. Pure, so the counter-check can prove the ADVICE follows
+ * the REASONS — the half of hard rule #2 that says a red must be red for its own reason.
+ *
+ * 🔴 Written after the failure it prevents: on 2026-09-01 this gate printed *"re-run when the
+ * chain is reachable"* for an empty directory on disk, moments after successfully measuring the
+ * chain in its own banner. A remedy aimed at the wrong quantity costs more than no remedy: the
+ * reader runs it, nothing changes, and the gate becomes noise.
+ */
+export function inconclusiveAdvice(unresolved, rpc) {
+  const chain = unresolved.filter((u) => u.kind === "chain");
+  const disk = unresolved.filter((u) => u.kind !== "chain");
+  const lines = [
+    `⁇ INCONCLUSIVE — ${unresolved.length} item(s) could not be measured (${disk.length} on DISK · ${chain.length} on CHAIN).`,
+    `   "could not measure" is NOT "clean".`,
+  ];
+  for (const u of unresolved) lines.push(`   ⁇ ${u.kind.toUpperCase().padEnd(5)} ${u.what}`);
+  if (chain.length) {
+    lines.push(`   CHAIN half — re-run when ${rpc} answers. Until then every band below is unjudged.`);
+  }
+  if (disk.length) {
+    lines.push(`   DISK half — a directory holds FILES but no readable genesis, so its generation is`);
+    lines.push(`      unknown while key material may be sitting in it. The chain being up cannot answer`);
+    lines.push(`      this: read the directory by hand, and do NOT delete it on the strength of its name.`);
+  }
+  return lines;
 }
 
 /** Counter-check — the gate must go red when it should, and red FOR THE RIGHT REASON. */
@@ -560,10 +638,53 @@ async function selfTest() {
     ok("🔴 a broken genesis => INCONCLUSIVE, NOT scored as clean",
       readNetDir(broken).error !== null, String(readNetDir(broken).error));
 
+    // 🔴 THE CASE THAT MATTERS. This assertion used to be made against an EMPTY directory, which
+    // proved nothing about the shape it names: generation unknown WHILE key material sits there.
+    // Now the directory has a `keys.txt`, so a wrong "empty" rule shows up here as a red line
+    // instead of hiding behind a green one.
     const noGenesis = path.join(tmp, "net-no-genesis");
     mkdirSync(noGenesis, { recursive: true });
-    ok("🔴 a missing genesis.json => INCONCLUSIVE, NOT scored as clean",
-      readNetDir(noGenesis).error !== null, String(readNetDir(noGenesis).error));
+    writeFileSync(path.join(noGenesis, "keys.txt"), "P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj\n");
+    ok("🔴 files present but NO genesis => INCONCLUSIVE, NOT scored as clean",
+      readNetDir(noGenesis).error !== null && readNetDir(noGenesis).empty === false,
+      `${readNetDir(noGenesis).error} · empty=${readNetDir(noGenesis).empty}`);
+
+    console.log("\n── 4b. An EMPTY directory is measured, not guessed ──");
+    const emptyDir = path.join(tmp, "net-tap-leftover");
+    mkdirSync(emptyDir, { recursive: true });
+    ok("an empty directory => EMPTY, and NOT inconclusive (0 files was measured)",
+      readNetDir(emptyDir).empty === true && readNetDir(emptyDir).error === null,
+      `empty=${readNetDir(emptyDir).empty} error=${readNetDir(emptyDir).error}`);
+    ok("   …and it carries no generation to judge", readNetDir(emptyDir).band === null, String(readNetDir(emptyDir).band));
+
+    // 🔴 The way this fix could become a far worse bug than the one it closes: `net*` directories
+    // keep validator identities one level down (`node1/staker.key`). A top-level-only count would
+    // call a directory full of private keys "empty" and wave it through as clean.
+    const nested = path.join(tmp, "net-nested-keys");
+    mkdirSync(path.join(nested, "node1"), { recursive: true });
+    writeFileSync(path.join(nested, "node1", "staker.key"), "PrivateKey-NOTREAL\n");
+    ok("🔴 a key hiding ONE LEVEL DOWN is NOT 'empty' — it stays INCONCLUSIVE",
+      readNetDir(nested).empty === false && readNetDir(nested).error !== null,
+      `empty=${readNetDir(nested).empty} error=${readNetDir(nested).error}`);
+    ok("   …and the recursive count sees it", countFiles(nested) === 1, String(countFiles(nested)));
+    ok("CONTROL — the same count says 0 for the genuinely empty one", countFiles(emptyDir) === 0, String(countFiles(emptyDir)));
+
+    console.log("\n── 4c. Exit 2 must name the half that failed ──");
+    // The 2026-09-01 miss verbatim: a DISK-side problem answered with the CHAIN's remedy, printed
+    // moments after the chain had been measured successfully in the banner above.
+    const diskOnly = inconclusiveAdvice([{ kind: "disk", what: "net-x: no genesis.json" }], "https://rpc.example").join("\n");
+    const chainOnly = inconclusiveAdvice([{ kind: "chain", what: "running networkID: fetch failed" }], "https://rpc.example").join("\n");
+    const both = inconclusiveAdvice(
+      [{ kind: "disk", what: "net-x: no genesis.json" }, { kind: "chain", what: "net-y: timeout" }], "https://rpc.example").join("\n");
+    ok("🔴 a DISK-only failure never tells the reader to wait for the chain",
+      !/CHAIN half/.test(diskOnly) && /DISK half/.test(diskOnly), diskOnly.replace(/\n/g, " ⏎ "));
+    ok("🔴 a CHAIN-only failure never sends the reader to read directories by hand",
+      !/DISK half/.test(chainOnly) && /CHAIN half/.test(chainOnly), chainOnly.replace(/\n/g, " ⏎ "));
+    ok("   …and the CHAIN remedy names the RPC that actually failed",
+      chainOnly.includes("https://rpc.example"), chainOnly.replace(/\n/g, " ⏎ "));
+    ok("both halves failing => both remedies, and the count splits them",
+      /DISK half/.test(both) && /CHAIN half/.test(both) && both.includes("(1 on DISK · 1 on CHAIN)"),
+      both.replace(/\n/g, " ⏎ "));
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }
