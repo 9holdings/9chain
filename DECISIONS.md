@@ -6514,3 +6514,76 @@ phẩm của console — console không có việc gì phải mang địa chỉ 
 
 **21/21 đối chứng ngược.** Không nối vào `gday-preflight`: preflight canh việc **sinh genesis**,
 còn đây là việc **sau** ngày G.
+
+---
+
+## D-153 — **Một cổng KHÔNG BAO GIỜ xanh được, vì một lý do không phải lý do của nó** (`2026-09-01`)
+
+### Đo được
+
+`gday-preflight` in **`29 đạt · 2 đỏ · 1 không chạy được`**. Mục không chạy được là
+`check-net-dirs`, và nó nói:
+
+```
+⁇ net-tap-g1   INCONCLUSIVE — no genesis.json
+   "could not measure" is NOT "clean". Re-run when the chain is reachable.
+```
+
+`local-net/net-tap-g1/` là thư mục **RỖNG** — còn lại sau lượt `shred` bộ khoá diễn tập `31/08`.
+Không gì sẽ đặt `genesis.json` vào đó ⇒ cổng **đỏ vĩnh viễn**, mã 2, kéo cả preflight theo.
+
+### 🔴 Vế thứ ba của luật cứng #2, ở chiều chưa ai viết ra
+
+Luật đã có: *thấy cổng đỏ chưa đủ — phải kiểm nó đỏ VÌ ĐÚNG LÝ DO* (D-106b). Ca này là **mặt sau**
+của cùng đồng xu: cổng đỏ **đúng** (thư mục đó thật sự chưa được phân loại), nhưng **lời khuyên nó
+in ra chỉ vào một đại lượng khác** — *"chạy lại khi chain tới được"* — trong khi chính nó vừa đo
+`info.getNetworkID` **thành công** ở dòng banner ngay phía trên.
+
+Cái giá không phải là một dòng chữ sai. Người đọc **làm theo**: chạy lại, không đổi gì, chạy lại
+lần nữa. Sau vài lượt thì mục đó thành **nhiễu nền**, và một mục nhiễu nền nằm cạnh hai mục đỏ
+thật là cách một cổng **thôi được đọc**. Cổng này canh *"thư mục nào đang giữ TIỀN"* — đúng thứ
+không được phép thành nhiễu, đúng cửa sổ dọn thư mục trước re-genesis (D-110 / B-19).
+
+### Nguyên nhân: hai đại lượng bị gộp vào một mã thoát
+
+| Nửa | Hỏng nghĩa là gì | Ai sửa được |
+|---|---|---|
+| **ĐĨA** | thư mục có tệp mà **không đọc được thế hệ** của nó | người, đọc tay |
+| **CHAIN** | không hỏi được số dư / networkID | chờ RPC trả lời |
+
+Cả hai cùng ra mã 2, và câu kết **luôn** in lời khuyên của nửa CHAIN. Cùng lớp lỗi §2: *đo sai
+đại lượng*, lần này ở **đầu ra** chứ không ở đầu vào.
+
+### Sửa — và chỗ nó **suýt** thành lỗi nặng hơn lỗi nó đóng
+
+1. **Thư mục rỗng là một VERDICT, không phải một phép đo thất bại.** `0 tệp ở MỌI độ sâu` là thứ
+   **đếm được**: không genesis để đọc, không địa chỉ để hỏi, không khoá để mất.
+2. 🔴 **Rỗng phải được ĐẾM, không được SUY từ việc thiếu `genesis.json`.** Thư mục có `keys.txt`
+   mà không có genesis là **hình dạng nguy hiểm** — thế hệ không rõ *trong khi* vật liệu khoá nằm
+   đó — và nó **phải ở lại mã 2**.
+3. 🔴 **Phép đếm phải ĐỆ QUY.** Thư mục `net*` giữ danh tính validator ở tầng dưới
+   (`node1/staker.key`). Đếm mỗi tầng đầu sẽ gọi một thư mục **đầy khoá riêng** là *"rỗng"* và
+   cho qua — **tệ hơn hẳn** lỗi đang sửa. Đây là ca đối chứng đáng giá nhất trong lượt.
+4. **Mã 2 nay khai NỬA NÀO hỏng**, và chỉ in lời khuyên của nửa đó. `inconclusiveAdvice()` tách
+   thành hàm thuần để **chính lời khuyên** kiểm được bằng đối chứng ngược.
+
+### Nghiệm thu
+
+`--self-test` **27 → 40 ca**. Ba bản hỏng có chủ ý, mỗi bản đỏ **đúng ở ca mang tên nó**:
+
+```
+countFiles thoi de quy          -> 2 do: "khoa MOT TANG DUOI" + "phep dem thay no"
+thieu genesis = rong (khong dem)-> 2 do: "co tep ma khong genesis" van phai INCONCLUSIVE
+loi khuyen in ca hai nua        -> 2 do: DISK-only va CHAIN-only doi lai
+```
+
+Chạy thật: `✅ PASS — 10 thư mục có thế hệ đã biết`, kèm dòng khai **1 thư mục rỗng**.
+`--offline` **vẫn mã 2** (hợp đồng cũ nguyên vẹn) và nay chỉ in lời khuyên nửa CHAIN.
+Preflight: **`29 đạt · 2 đỏ · 1 không chạy được` → `30 đạt · 2 đỏ · 0 không chạy được`**.
+
+⚠️ **Thư mục KHÔNG bị xoá** (David chốt: sửa cổng, đừng xoá thư mục). Cổng nay **phân loại đúng**
+thứ đang có, thay vì đòi thế giới đổi cho vừa phép đo của nó.
+
+⚠️ **Lỗi của chính lượt này, cổng bắt được:** hai chú thích tiếng Việt (*"luật cứng #2"*) lọt vào
+`scripts/check-net-dirs.mjs` — `check-english-code` đỏ ngay: *"1 file(s) that were clean now
+contain Vietnamese"*. §0 hoạt động đúng như thiết kế, kể cả với người vừa đọc nó.
