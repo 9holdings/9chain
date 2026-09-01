@@ -150,7 +150,41 @@ const FUND_SETS = argv.reduce(
   (acc, a, i) => (a === "--fund-set" && argv[i + 1] ? [...acc, argv[i + 1]] : acc),
   [],
 );
-const TEXT_EXT = new Set([".txt", ".md", ".json", ".env", ".key", ".bak", ".csv", ".log", ".yml", ".yaml", ""]);
+/**
+ * 🔴 A DENY-LIST OF BINARY FORMATS, NOT AN ALLOW-LIST OF TEXT ONES — and that inversion is the
+ * whole point of this constant.
+ *
+ * Until 2026-09-01 this was `TEXT_EXT`, an allow-list: `.txt .md .json .env .key .bak .csv .log
+ * .yml .yaml` and no extension. Anything else was skipped at line ~210 WITHOUT BEING OPENED.
+ *
+ * What that cost, measured on G-day morning: the private keys of `g1`'s `chain-factory` and
+ * `faucet` wallets — the network being generated that same afternoon — sat in plain text inside
+ * two files named `tasks/<id>.output`, for sixteen hours, while this gate printed PASS. `.output`
+ * was not in the list, so the files were never read. The gate did not weigh them and decide they
+ * were harmless; it never saw them. HANDOFF meanwhile recorded that the key-generation logs had
+ * been shredded "in the session that created them", which was true of the logs the session knew
+ * about and false of the harness's own transcript of the same output.
+ *
+ * The failure is exactly the one this file's header warns about one layer up: it insists on
+ * matching a KEY rather than the word "key" — content over name — and then selected which files
+ * to look at BY NAME. A key does not care what a file is called. Nothing that decides *whether to
+ * look* may depend on the filename.
+ *
+ * So: open everything under MAX_BYTES except formats that cannot sensibly carry a cb58 key in
+ * readable form, and let `body.includes(MARKER)` do the deciding. Erring wide costs a few
+ * milliseconds of I/O; erring narrow costs the only thing this gate exists to protect. A new
+ * tool inventing a new extension tomorrow is now covered by default instead of silently exempt.
+ */
+const BINARY_EXT = new Set([
+  ".exe", ".dll", ".so", ".dylib", ".bin", ".o", ".a", ".lib", ".obj", ".pdb", ".msi", ".sys",
+  ".zip", ".gz", ".tgz", ".bz2", ".xz", ".7z", ".rar", ".tar", ".jar", ".war", ".cab",
+  ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".webp", ".tif", ".tiff", ".svgz", ".psd",
+  ".mp3", ".mp4", ".avi", ".mov", ".mkv", ".wav", ".flac", ".ogg", ".webm",
+  ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".odt", ".ods",
+  ".woff", ".woff2", ".ttf", ".otf", ".eot",
+  ".db", ".sqlite", ".sqlite3", ".mdb", ".iso", ".img", ".vhd", ".vmdk", ".pack", ".idx",
+  ".class", ".pyc", ".pyo", ".wasm", ".node", ".nupkg", ".whl", ".deb", ".rpm", ".dmg", ".pkg",
+]);
 
 /** Directory names never worth walking: huge, and none of them is where a key gets forgotten. */
 const SKIP_DIRS = new Set([
@@ -207,7 +241,7 @@ function walk(dir, out, unreadable, depth = 0) {
       if (SKIP_DIRS.has(e.name)) continue;
       walk(full, out, unreadable, depth + 1);
     } else if (e.isFile()) {
-      if (!TEXT_EXT.has(path.extname(e.name).toLowerCase())) continue;
+      if (BINARY_EXT.has(path.extname(e.name).toLowerCase())) continue;
       let st;
       try { st = statSync(full); } catch { continue; }
       if (st.size > MAX_BYTES || st.size === 0) continue;
@@ -351,10 +385,22 @@ function selfTest() {
   const leakedFactory = path.join(dir, "backup", "chain-factory-key.txt");
   const leakedOther = path.join(dir, "drill", "keys.txt");
   const mentionOnly = path.join(dir, "docs", "PROGRESS.md");
+  // 🔴 THE THIRD MISS, 2026-09-01, and the one that reached the LIVE generation's keys: a file
+  // whose extension was not on the old allow-list was never opened. `tasks/<id>.output` is what
+  // the harness writes for a backgrounded command, and the vanity-keygen run put g1's factory
+  // and faucet private keys straight into two of them. Sixteen hours, gate green.
+  // 🔴 Separate directories on purpose: each control is run with `roots: [dirname]`, so two
+  // decoys sharing a directory would collapse into one verdict and neither claim would be tested.
+  const leakedOddExt = path.join(dir, "tasks-odd-ext", "bwqedv5wo.output");
+  // And the other half of the same claim: a genuinely binary format must STILL be skipped, or
+  // "we now read everything" would just be a slower way of saying the filter does nothing.
+  const leakedBinary = path.join(dir, "tasks-binary", "core.zip");
   for (const [p, body] of [
     [leakedFund, `[foundation]\n  PrivateKey : ${FUND_KEY}\n`],
     [leakedFactory, `PrivateKey : ${FACTORY_KEY}\n`],
     [leakedOther, `[drill]\n  PrivateKey : ${OTHER_KEY}\n`],
+    [leakedOddExt, `wrote key file\n  PrivateKey : ${FUND_KEY}\n[exited with code 0]\n`],
+    [leakedBinary, `PrivateKey : ${FUND_KEY}\n`],
     // 🔴 THE CASE THAT BURNED THIS GATE'S FIRST DRAFT: a document that merely names the marker.
     [mentionOnly, "Scanned for secrets: no `PrivateKey-*` / private keys present.\n"],
   ]) {
@@ -382,6 +428,12 @@ function selfTest() {
     run({ roots: [path.dirname(mentionOnly)], fundSets: bothSets, quiet: true }).code, 0);
   check("key in NO baseline ⇒ 0 (reported 🟡, not blocking)",
     run({ roots: [path.dirname(leakedOther)], fundSets: bothSets, quiet: true }).code, 0);
+  // 🔴 THE 2026-09-01 MISS. Under the old allow-list this returned 0 because `.output` was never
+  // opened — a live-generation key, unread, behind a green line.
+  check("🔴 LIVE FUND key in a file with an UNLISTED extension (.output) ⇒ 1, not 0",
+    run({ roots: [path.dirname(leakedOddExt)], fundSets: bothSets, quiet: true }).code, 1);
+  check("binary format (.zip) still skipped ⇒ 0 — the deny-list is doing something",
+    run({ roots: [path.dirname(leakedBinary)], fundSets: bothSets, quiet: true }).code, 0);
   check("every baseline source unreadable ⇒ 2, NOT 0 (no baseline = no measurement)",
     run({ roots: [path.dirname(leakedFund)], fundSets: [path.join(dir, "absent.txt")], quiet: true }).code, 2);
   // Location, not content: the same fund key inside an allowed place must be green.
