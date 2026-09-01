@@ -6587,3 +6587,84 @@ thứ đang có, thay vì đòi thế giới đổi cho vừa phép đo của n�
 ⚠️ **Lỗi của chính lượt này, cổng bắt được:** hai chú thích tiếng Việt (*"luật cứng #2"*) lọt vào
 `scripts/check-net-dirs.mjs` — `check-english-code` đỏ ngay: *"1 file(s) that were clean now
 contain Vietnamese"*. §0 hoạt động đúng như thiết kế, kể cả với người vừa đọc nó.
+
+---
+
+## D-154 — **Sổ chain người dùng NHÌN THẤY là một bề mặt công bố, và nó là JSON nên không cổng nào đọc** (`2026-09-01`)
+
+### Đo được — bằng tay, trong lúc trả lời một câu hỏi trạng thái
+
+```
+https://a1.9chain.org/chains/data/console-chains.json   ->  chains: 2 · retired: 0
+   Eric1 #9000000010  ·  eric1 #9000000011              <- khoi chainId cua g0
+   RPC chung tu cong bo, hoi that                       ->  "404 page not found"
+```
+
+Cả hai chết cùng g0 lúc `09:26Z`. Bản **đúng** đã nằm sẵn trong repo —
+`docs/archive/console-chains-closed-g0-2026-09-01.json`, `chains: 0 · retired: 2`, đóng dấu
+`thuHoiLuc = 10:09:09Z` — **chỉ là nó chưa bao giờ lên server**. Lượt `--compact` đã chạy; vế
+*"và bản nén phải tới server"* thì không.
+
+⇒ Người đầu tiên mở `/chains/` thấy **hai blockchain không tồn tại**, bấm vào RPC ra `404`, rồi
+mới tới được trang tạo chain của mình.
+
+### 🔴 Vì sao không cổng nào bắt: HAI cổng, mỗi cổng ĐÚNG với đại lượng của mình
+
+| Cổng | Vì sao nó mù |
+|---|---|
+| `check-deploy-drift` | `9chain-a1-config/console-chains.json` nằm trong **14 tệp NGOÀI TẦM CANH**, và **cố ý**: console **tự ghi** tệp đó ⇒ so hash với repo sẽ kêu sai ở **mọi lượt đẻ chain** |
+| `check-doc-drift` (D-150) | đọc **VĂN XUÔI** trên đường sản phẩm. Đây là **JSON**. Nó không nhìn |
+
+Không cổng nào sai. Lỗ nằm **giữa hai đại lượng**, và nó sống được vì câu *"console sở hữu tệp
+này"* bị đọc thành *"vậy là có người canh nó"*. Không ai canh.
+
+⇒ **Đây là D-150 ở nửa còn lại: tài liệu là bề mặt công bố — DỮ LIỆU cũng vậy.**
+
+### Cổng: `scripts/check-chain-ledger.mjs`
+
+**Đo ở đâu, và vì sao chỗ đó:** trên **URL trình duyệt người dùng gõ vào**. Không phải bản repo
+(đó là fixture dev, còn khai `DeltaChain` trên `localhost:9650`), không phải tệp trên server (gần
+hơn một nhịp, nhưng vẫn không phải thứ Cloudflare phát ra). Cổng canh một bề mặt công khai mà đo ở
+chỗ khác thì nó canh một thứ không ai nhìn.
+
+🔴 **CẢ HAI CHIỀU, và một chiều thôi thì vô nghĩa:**
+- chỉ hỏi *"chainId có trong khối thế hệ không"* ⇒ cho qua một chain **đúng khối nhưng đã chết**;
+- chỉ hỏi *"RPC có trả lời không"* ⇒ cho qua một chain **sống nhưng khai sai id**.
+
+### 🔴 Cùng một con số: DEFECT ở danh sách này, BẢN GHI ở danh sách kia
+
+`9000000010` nằm dưới `chains` là lời khai công khai rằng một chain đã chết đang sống.
+Đúng con số đó nằm dưới `retired` **chính là định nghĩa của thu hồi** — mục thu hồi **bắt buộc**
+mang id của thế hệ trước, và bắt nó khớp khối hiện tại là bắt **làm sai lệch bản ghi**.
+⇒ Luật khối áp cho `chains`, **không bao giờ** cho `retired`; và mục `retired` **không bị hỏi**
+có trả lời không — một chain đã thu hồi mà im lặng thì đó mới là đúng.
+
+### Ba thứ khác đã ghi vào cổng, mỗi thứ từ một bài học cũ
+
+1. **Chain chết trả lời bằng THÂN, không bằng mã HTTP** — đo thật: `404 page not found`, bảy chữ,
+   dạng văn bản thuần. Chấm bằng mã trạng thái là chấm bằng **Cloudflare** (thứ tự nó cắt POST dài
+   thành `524`). Luật cứng #1. Cổng **in nguyên văn** thân đó, không diễn giải.
+2. **`refused` khác `unreachable`.** Chain **từ chối** là lỗi; chain **không với tới được** là
+   *không biết* (mã 2). Gộp hai thứ thì hoặc công bố *"chain này chết"* từ một nhịp mạng chập,
+   hoặc — tệ hơn — cho một chain chết thật đi qua.
+3. 🔴 **Cổng KHÔNG gửi yêu cầu tới host mà tệp nó vừa tải về chỉ định.** Hai lý do, và lý do thứ
+   hai đáng viết ra: (a) sổ công khai trỏ người dùng sang host **không phải RPC của mạng** tự nó
+   đã là lỗi — đúng thứ 9Scan phát ra suốt bốn ngày (`rpc-testnet-a1`, một mạng **không ký nổi
+   giao dịch**); (b) một công cụ biến **tài liệu tải về** thành **yêu cầu gửi đi** là hình dạng
+   phải từ chối **theo nguyên tắc**, không phải sau khi bị lợi dụng.
+
+### Nghiệm thu
+
+**24 ca đối chứng ngược**, cộng **hai lượt trên dữ liệu THẬT ở hai chiều**:
+
+```
+do that (cong khai)      -> 🔴 4 loi / 2 chain: LECH KHOI + RPC 404, hai chieu bat DOC LAP
+doi chung DUONG (--file) -> ✅ PASS tren chinh ban nen dung  (chains: 0 · retired: 2)
+```
+
+🔴 **Đối chứng dương là bắt buộc, không phải cho đẹp** — D-153 vừa dạy đúng bài đó cùng ngày: một
+cổng **không bao giờ xanh được** thì đỏ của nó không mang tin. Ở đây bản nén đúng làm nó xanh, tức
+**cái đỏ kia là một trạng thái sửa được**, và nó chỉ thẳng vào việc phải làm.
+
+Nối vào `gday-preflight` cả hai vế ⇒ **32 → 34 cổng**, số đo `31 đạt · 3 đỏ · 0 không chạy được`.
+Đỏ thứ ba **không phải lỗi mới**: nó là việc dọn còn thiếu của giờ G, nay có người canh.

@@ -157,6 +157,11 @@ const GATES = [
   // alive — never a constant copied into the gate (D-110).
   { group: "2 · REPO GATES", name: "doc drift — dead generation stated as current (counter-check)", ...node("scripts/check-doc-drift.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "push targets can still do their job (counter-check)", ...node("scripts/check-remotes.mjs", "--self-test") },
+  // The other half of D-150, in DATA rather than in prose: the public chain directory is JSON,
+  // so the document gate never reads it, and `check-deploy-drift` puts it OUT OF SCOPE on purpose
+  // because the console writes it. Two gates, each correct about its own quantity, and the gap
+  // between them held two chains of a dead generation on the public page (D-154).
+  { group: "2 · REPO GATES", name: "public chain directory — band + both directions (counter-check)", ...node("scripts/check-chain-ledger.mjs", "--self-test") },
 
   // ── 3. The real world — the running network and the server ──
   { group: "3 · REAL WORLD", needsNetwork: true, name: "the running network (watch-network)", ...node("scripts/watch-network.mjs") },
@@ -172,6 +177,11 @@ const GATES = [
   // and refuses only writes. It also still reports `viewerPermission: ADMIN`. Two directions are
   // watched here, and the second is the expensive one: a backup that has gone PUBLIC (D-151).
   { group: "3 · REAL WORLD", needsNetwork: true, name: "push targets — backup writable, private still private", ...node("scripts/check-remotes.mjs") },
+  // 🔴 Measured ON THE PUBLIC SURFACE, not on the repo copy (a dev fixture naming `DeltaChain` on
+  // localhost) and not on the server file (one hop closer, still not what Cloudflare hands out).
+  // Both directions: in the generation's chainId block AND the advertised RPC answers with the id
+  // it claims — either one alone passes a chain that is in-band but dead, or live under a wrong id.
+  { group: "3 · REAL WORLD", needsNetwork: true, name: "public chain directory — every advertised chain is real", ...node("scripts/check-chain-ledger.mjs") },
   // This one measures REAL MONEY on chain, so it belongs to group 3, not to the repo gates:
   // the `--offline` variant answers only half the question and exits 2 (INCONCLUSIVE) — which
   // is honest, but a G-day gate that says "inconclusive" is unusable. Blocks the

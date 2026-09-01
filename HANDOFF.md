@@ -1,6 +1,13 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-01 `15:05Z`** — 🟢 **PREFLIGHT `30 đạt · 2 đỏ · 0 không chạy được · 40 việc
+Cập nhật: **2026-09-01 `15:2xZ`** — 🔴 **SỔ CHAIN CÔNG KHAI CÒN KHAI 2 CHAIN CỦA g0** (D-154):
+`/chains/data/console-chains.json` phát `#9000000010` · `#9000000011`, RPC của chúng trả `404`.
+Bản nén đúng đã có trong repo từ giờ G, **chưa lên server**. Không cổng nào bắt vì lỗ nằm **giữa
+hai đại lượng** — drift để tệp đó ngoài tầm canh (console tự ghi), doc-drift chỉ đọc văn xuôi mà
+đây là **JSON**. ⇒ Cổng mới `check-chain-ledger.mjs`, đo trên **bề mặt công khai**, **cả hai
+chiều**, **24 đối chứng** + đối chứng **dương** (bản nén đúng ⇒ PASS). Preflight **32 → 34 cổng**:
+`31 đạt · 3 đỏ · 0 không chạy được`. 🟢 Kèm: `A1_CONFIG_DIR` đo trên node — **KHÔNG dính bẫy**.
+Trước đó cùng ngày: 🟢 **PREFLIGHT `30 đạt · 2 đỏ · 0 không chạy được · 40 việc
 tay`** (số cũ `29 · 2 · 1`), **đo hai lượt cách nhau 14 phút, trùng khít cả con số lẫn nội dung**.
 Hai đỏ **đều là việc David** và không đổi: ví `chain-factory` **0 LOVE9** · console trên server còn
 bản g0 — 🔴 **NĂM tệp, không phải sáu**: `faucet/server.mjs` **đã KHỚP**. 🟢 **B-19 thôi là "tiền
@@ -74,13 +81,68 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
    nói *"ổn định"* thì phải chạy **hai lượt rồi so NỘI DUNG**, không so con số. (D-153)
 
 ```bash
-node scripts/gday-preflight.mjs      # 32 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
+node scripts/gday-preflight.mjs      # 34 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
 # ⚠️ Nó VẪN in 38 việc tay, nhưng 7 cái ĐÃ XONG — preflight không biết. Đừng làm lại:
 #   #10 #11 (bump A1Gen) · #14 #15 #17 (build + ship + --build-arg, OVH)
 #   + CHỞ IMAGE SANG HETZNER  (xong 2026-09-01, nghiệm thu 3 mỏ neo trên chính máy đó)
 #   + heartbeat "của ai"      (David xác nhận: bộ bơm của anh; đã khai knownExtra)
 # Thực còn: 31. Xem D-137/D-142 + mục phiên 2026-09-01 ngay dưới.
 ```
+
+### 🆕🆕 `2026-09-01` `15:2xZ` — 🔴 **SỔ CHAIN CÔNG KHAI LÀ SỔ CỦA MẠNG ĐÃ CHẾT** (D-154)
+
+Hỏi *"sắp chạy được phần user tạo chain chưa"*. Câu trả lời: **chưa**, ba việc, cả ba đỏ, đúng
+thứ tự — `node scripts/reopen-chain-creation.mjs --probe`. Nhưng lượt đo lòi ra **việc thứ TƯ**
+không nằm trong ba, và nó nằm **trước** trang tạo chain trên đúng đường người dùng đi:
+
+```
+a1.9chain.org/chains/data/console-chains.json  ->  chains: 2 · retired: 0
+   Eric1 #9000000010 · eric1 #9000000011       <- khoi chainId cua g0
+   RPC chung tu cong bo, hoi that              ->  "404 page not found"
+```
+
+Bản **đúng** đã nằm trong repo từ giờ G — `docs/archive/console-chains-closed-g0-2026-09-01.json`
+(`chains: 0 · retired: 2`, đóng dấu `10:09:09Z`). Lượt `--compact` **đã chạy**; vế *"và bản nén
+phải tới server"* thì **chưa**. ⇒ Việc dọn còn thiếu, không phải lỗi mới.
+
+🔴 **Vì sao không cổng nào bắt — hai cổng, mỗi cổng ĐÚNG với đại lượng của mình:**
+`check-deploy-drift` để tệp đó **ngoài tầm canh** (console **tự ghi** ⇒ so hash sẽ kêu sai ở mọi
+lượt đẻ chain) · `check-doc-drift` (D-150) đọc **VĂN XUÔI**, đây là **JSON**. Lỗ nằm **giữa hai
+đại lượng**, sống được vì *"console sở hữu tệp này"* bị đọc thành *"vậy là có người canh"*.
+⇒ **D-150 ở nửa còn lại: tài liệu là bề mặt công bố — DỮ LIỆU cũng vậy.**
+
+**Cổng mới `scripts/check-chain-ledger.mjs`** — đo trên **URL người dùng gõ**, không phải repo
+(fixture dev, còn khai `DeltaChain` trên `localhost`) và không phải tệp server. **Cả hai chiều**:
+trong khối thế hệ **và** RPC tự khai đúng id — một chiều thôi thì cho qua *chain đúng khối nhưng
+đã chết*, hoặc *chain sống nhưng khai sai id*.
+
+🔴 **Cùng một số, DEFECT ở danh sách này và BẢN GHI ở danh sách kia:** `9000000010` dưới `chains`
+là khai một chain chết đang sống; dưới `retired` **chính là định nghĩa thu hồi**. Luật khối áp cho
+`chains`, **không bao giờ** cho `retired`, và mục retired **không bị hỏi** có trả lời không.
+
+Ba thứ khác đã ghi vào cổng: chain chết trả lời bằng **THÂN** (`404 page not found`) chứ không
+bằng mã HTTP · **`refused` khác `unreachable`** (từ chối = lỗi, không với tới = *không biết*) ·
+🔴 **cổng KHÔNG gửi yêu cầu tới host mà tệp nó vừa tải về chỉ định** — vừa vì sổ trỏ sang host lạ
+tự nó đã là lỗi (đúng thứ 9Scan phát ra 4 ngày), vừa vì biến **tài liệu tải về** thành **yêu cầu
+gửi đi** là hình dạng phải từ chối theo nguyên tắc.
+
+**Nghiệm thu: 24 ca đối chứng ngược + hai lượt trên dữ liệu THẬT, hai chiều.**
+```
+do that (cong khai)      -> 🔴 4 loi / 2 chain, hai chieu bat DOC LAP
+doi chung DUONG (--file) -> ✅ PASS tren chinh ban nen dung
+```
+🔴 **Đối chứng dương là bắt buộc** — D-153 vừa dạy đúng bài đó cùng ngày: cổng **không bao giờ
+xanh được** thì đỏ của nó không mang tin. Bản nén đúng làm nó xanh ⇒ cái đỏ kia **sửa được**, và
+nó chỉ thẳng vào việc phải làm.
+
+Preflight: **32 → 34 cổng**, `31 đạt · 3 đỏ · 0 không chạy được`.
+
+#### 🟢 Một bẫy đã kiểm là KHÔNG dính
+
+`A1_CONFIG_DIR` — thứ HANDOFF cảnh báo *"mọi lượt đẻ chain chết ở bước 2 trong khi node vẫn 9/9
+xanh"*. Đo trên node đang chạy: `node-1` **nhìn thấy thư mục config thật** (`chains/` ·
+`console-chains.json` · `console-tmp/`), không phải thư mục rỗng Docker tự tạo. Mạng g1 sinh trên
+máy dev rồi chở sang mà mount vẫn đúng.
 
 ### 🆕 `2026-09-01` `14:49Z`–`15:05Z` — SỐ ĐO TƯƠI, và một cổng KHÔNG BAO GIỜ xanh được (D-153)
 

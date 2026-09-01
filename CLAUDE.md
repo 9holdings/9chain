@@ -88,7 +88,7 @@ quá khứ hay sẽ được xuất bản?*
 ## 3. Danh sách cổng — chạy trước khi tin bất cứ điều gì
 
 ```bash
-node scripts/gday-preflight.mjs              # 32 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
+node scripts/gday-preflight.mjs              # 34 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
 node scripts/check-net-dirs.mjs              # thư mục net* nào thuộc thế hệ nào · thư mục nào giữ TIỀN
 node scripts/check-evidence.mjs              # gói vật chứng còn tự nghiệm thu được không
 node scripts/check-single-source.mjs         # một hằng số, MỘT nơi khai
@@ -99,6 +99,10 @@ node scripts/check-doc-drift.mjs             # 🔴 TÀI LIỆU có khai số c�
                                              #    ĐO mạng sống rồi mới chấm; bản ghi/đóng băng KHÔNG quét
 node scripts/check-remotes.mjs               # 🔴 nơi ĐẨY còn làm được việc của nó không (D-151)
                                              #    sao lưu còn ghi được · và chỗ RIÊNG TƯ còn riêng tư
+node scripts/check-chain-ledger.mjs          # 🔴 SỔ CHAIN người dùng NHÌN THẤY (D-154)
+                                             #    đo trên BỀ MẶT CÔNG KHAI, không phải repo/server
+                                             #    CẢ HAI CHIỀU: trong khối thế hệ · RPC tự khai đúng id
+                                             #    `chains` phải là thế hệ sống · `retired` thì KHÔNG
 node scripts/reopen-chain-creation.mjs       # MỞ LẠI ĐẺ CHAIN L1: ba việc, và THỨ TỰ là phép kiểm
                                              #    mặc định CHỈ ĐỌC · `--probe` mới hỏi console thật
                                              #    (phép thăm dò KHÔNG tạo được chain — D-152)
@@ -117,17 +121,19 @@ bash scripts/h6b-backup.sh --check           # bản sao lưu có dựng lại �
 node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
 ```
 
-⚠️ `gday-preflight.mjs` gọi **32 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`
+⚠️ `gday-preflight.mjs` gọi **34 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`
 ×2, `check-single-source`, `check-english-code`; thêm `01/09`: `check-history-secrets` ×2 —
-D-145 — `ceremony-9s-union --self-test` — D-146 — `check-doc-drift` ×2 — D-150 — và
-`check-remotes` ×2 — D-151); ba cổng cuối
+D-145 — `ceremony-9s-union --self-test` — D-146 — `check-doc-drift` ×2 — D-150 —
+`check-remotes` ×2 — D-151 — và `check-chain-ledger` ×2 — D-154); ba cổng cuối
 trong danh sách trên đứng ngoài nó (hai cái là VIỆC TAY của nó,
 `check-robots` là mặt web — không đủ tư cách chặn genesis).
-⚠️ **Số đo `01/09` chiều: `29 đạt · 2 đỏ · 1 không chạy được`** — 32 mục gọi ra. Hai đỏ đã biết,
-**cả hai là việc của David, không phải lỗi mã**: ví `chain-factory` **0 đồng** (`P-love91999h…9999`,
-địa chỉ g1) · console trên server **chưa deploy bản g1** (`check-deploy-drift`: 4 lệch + 1 thiếu).
-🔴 **Cả hai đỏ này CHẶN việc mở lại cổng đẻ chain L1** — thứ tự bắt buộc: đẩy sổ chainId lên
-server → nạp ví factory (X→P, D-140) → mới bật `A1_DE_CHAIN_MO=1`.
+⚠️ **Số đo `01/09` chiều muộn: `31 đạt · 3 đỏ · 0 không chạy được`** — 34 mục gọi ra.
+Ba đỏ đã biết, **cả ba là việc của David, không phải lỗi mã**: ví `chain-factory` **0 đồng**
+(`P-love91999h…9999`, địa chỉ g1) · console trên server **chưa deploy bản g1**
+(`check-deploy-drift`: 4 lệch + 1 thiếu) · **sổ chain CÔNG KHAI còn khai 2 chain của g0**
+(`check-chain-ledger`: `#9000000010` · `#9000000011`, RPC của chúng trả `404`).
+🔴 **Cả ba đỏ này CHẶN việc mở lại cổng đẻ chain L1** — thứ tự bắt buộc: đẩy sổ chainId **và sổ
+chain đã nén** lên server → nạp ví factory (X→P, D-140) → mới bật `A1_DE_CHAIN_MO=1`.
 
 🔴 **Cổng "áp đủ bộ rồi so hằng số của chính mình" chưa phải cổng** (D-112). Nó chỉ chứng minh
 bộ patch **tự nhất quán với con số ta vừa chép vào tệp đó** — ai sinh lại cả bộ rồi dán tree
