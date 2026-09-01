@@ -1,8 +1,11 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-01 `11:05Z`** — phiên **HẬU PHÓNG**: cổng mới canh **lịch sử git** trước lượt
-bật repo công khai (D-145) — **0 vật liệu khoá trong 2.349 object**; hai đỏ còn lại đều là việc
-David (ví `chain-factory` 0 đồng · console server vẫn bản g0). Trước đó cùng ngày:
+Cập nhật: **2026-09-01 chiều** — phiên **HẬU PHÓNG**: ① cổng mới canh **lịch sử git** trước lượt
+bật repo công khai (D-145) — **0 vật liệu khoá trong 2.349 object** ② **kịch bản nghi lễ `09/09`**
+(D-146, 11 đối chứng, chạy khô mặc định) ③ **D-147: ranh giới Block Adam = BAO GỒM** (`ts >= mốc`),
+lấy theo cái C1 đã công bố. Hai đỏ còn lại đều là việc David (ví `chain-factory` 0 đồng · console
+server vẫn bản g0). **Ba câu chờ David cho `09/09`:** cửa sổ yên tĩnh hay để bơm chạy · nội dung
+giao dịch Adam/Eva (chưa ai khai) · đo B-13(b). Trước đó cùng ngày:
 🟢 **MẠNG g1 ĐÃ SINH RA VÀ ĐANG SỐNG**: `down -v` `09:26Z` ·
 9/9 node · `watch-network` **5 đỏ → 0 đỏ** · chữ khắc `engrave-verify` **17/0** đọc ngược từ chain
 sống · **9/9 cổng P2P mở, đo từ ngoài Internet** · `minValidatorStake` **81 LOVE9** trên P-Chain.
@@ -24,13 +27,79 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
 ```bash
-node scripts/gday-preflight.mjs      # 27 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
+node scripts/gday-preflight.mjs      # 28 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
 # ⚠️ Nó VẪN in 38 việc tay, nhưng 7 cái ĐÃ XONG — preflight không biết. Đừng làm lại:
 #   #10 #11 (bump A1Gen) · #14 #15 #17 (build + ship + --build-arg, OVH)
 #   + CHỞ IMAGE SANG HETZNER  (xong 2026-09-01, nghiệm thu 3 mỏ neo trên chính máy đó)
 #   + heartbeat "của ai"      (David xác nhận: bộ bơm của anh; đã khai knownExtra)
 # Thực còn: 31. Xem D-137/D-142 + mục phiên 2026-09-01 ngay dưới.
 ```
+
+### 🆕 `2026-09-01` chiều — **NGHI LỄ `09/09` ĐÃ CÓ KỊCH BẢN**, và ranh giới Block Adam đã được chốt
+
+Ba thứ ra đời trong nửa sau phiên hậu phóng. Không đụng mạng, không đụng server, không gửi giao dịch.
+
+#### 1 · `local-net/faucet/ceremony-9s-union.mjs` — D-146
+
+Adam → Eva → 8 giao dịch chèn → thông điệp vào **đúng `block(Eva)+9`** → **đọc ngược 182 byte từ
+chain**. Vì sao phải có: C-Chain **không đẻ block rỗng** (chain đứng ở block 8 từ `10:05Z`), nên
+*"chín block sau Eva"* **không tự tới**. Mặc định **chạy khô**; `--send` là việc có người bấm.
+**Sáu cửa từ chối** đều đã chạy thật (mã 2): thiếu `--offset-ms` · mốc quá khứ · không khoá ·
+thông điệp lệch vân tay đóng băng · sai `chainId` · chain đang bận. **11 ca đối chứng ngược.**
+
+🔴 **Thứ nó KHÔNG chữa được, nên nó khai:** không ai đặt chỗ được một số block. Ô neo bị chiếm ⇒
+**dừng, không gửi thêm gì**. *Chạy lại không phải chạy lại* — nó là một Adam mới, một Eva mới.
+
+#### 2 · 🔴 D-147 — ranh giới **BAO GỒM** (`ts >= mốc`), David chốt
+
+Ảnh trang khắc chữ của **C1** lộ ra hai định nghĩa A1 **chưa từng viết ra**: *Block Adam = block
+đầu tiên có ts **từ mốc trở đi**, định nghĩa bằng THỜI GIAN không phải chiều cao* · *Block Eva =
+block **ngay sau** Adam*. Ba tài liệu trên trang đó **trùng byte tuyệt đối** với `docs/engrave/`.
+
+⇒ Hai giả định của bản kịch bản đầu **sai**: Block Adam **không** phải "block chứa giao dịch của
+ta" (người lạ đẻ ra nó cũng được), và ô neo là **Adam+10** biết ngay khi biết Adam. Ca đối chứng
+dựng cho điều đó **bắt một lỗi thật trong đường sống**: quét **xuôi** từ đầu chain đo trước lượt
+chạy sẽ **bỏ sót** block người lạ vượt mốc trong lúc chờ offset ⇒ nay quét **ngược xuống**.
+
+Đổi ở **ba nơi**: kịch bản · `block-adam-drill.mjs` (`>` → `>=`) · CANON. ⚠️ Bản chấm **7/1** của
+vật chứng `27/08` **giữ nguyên** — chấm dưới luật cũ, là câu kể về quá khứ. **C1 không phải đổi gì.**
+
+#### 3 · Độ trễ: **hai phiên dính cùng một lỗi trong cùng một giờ**
+
+Tôi đo bằng `curl` ⇒ `0,76–2,94s`/lời gọi, kết luận *"đua ô neo là vô vọng"*. Kịch bản tự đo,
+**cùng máy cùng phút** ⇒ **median 309 ms**. `curl` bắt tay TLS **lại mỗi lần gọi**; ethers giữ kết
+nối. **Số đo CÔNG CỤ, không đo LIÊN KẾT.** 9Scan đo lại và dính y hệt (họ khai `1,4–2,3s`, thật ra
+`~0,44s` nóng). Ba chế độ đã ghi vào chính tệp sẽ đọc ngày `09/09`:
+
+```
+trong máy chủ   9–10 ms   ·   dev NÓNG ~0,31–0,5s   ·   dev NGUỘI 1,3–2,9s (thêm bắt tay mỗi lần)
+```
+
+⇒ `~0,15 block` một lời gọi: **đi bộ tất định thoải mái (~1 phút)**; đua ô chính xác **làm được
+nhưng không an toàn** ⇒ đó là chỗ **hầm M11.10** đáng giá. Kịch bản nay **tự in độ trễ median mỗi
+lượt chạy** thay vì cắm hằng số — vì bài học thật là *biết luật không ngăn được lớp lỗi này*.
+
+#### Kèm: ba ràng buộc đã ghi vào `docs/block-adam/CANON.txt`
+
+- **Danh sách năm bên đẻ được block** trong cửa sổ nghi lễ: 9Scan ✅ không thể (đo được) ·
+  **bơm nhịp** 🔴 · **faucet** 🔴 không khoá được · đẻ chain ✅ đóng · người lạ 🔴.
+  ⚠️ *"Một bên đo được im lặng"* **không** suy ra *"chain sẽ yên"*.
+- **Phương án (a) bật bơm và (b) chèn có kịch bản LOẠI TRỪ NHAU.** (b) đã có ⇒ (a) bị loại cho
+  cửa sổ. Bẫy chiều ngược: **B-13(b) cần bơm chạy để đo**, nên bật để đo thì **phải tắt lại**, và
+  tắt **không phải** `touch heartbeat.stop`.
+- 🔴 **Nhãn khi công bố Block Adam:** *"mốc"* và *"block đầu tiên đạt mốc"* — **không** *"công bố"*
+  / *"đo được"*, và **không tính hiệu** rồi trình bày như độ trôi (nó sẽ lệch **vĩnh viễn** trên
+  một thứ đúng). Chiều khẳng định: **hiệu = 0 mới là lúc đáng nhìn kỹ** — đó là ranh giới D-147.
+
+#### 9Scan-A1 — đã khép, và họ tự sửa một lỗ nặng
+
+Mục *"gấp nhất"* của họ (**testnet offline 4 ngày**) là **đo nhầm tên miền đã nghỉ**. Nhưng khi
+đào tiếp họ tìm ra thứ nặng thật: **`CHAIN.rpc` — URL người dùng dán vào MetaMask — trỏ
+`rpc-testnet-a1` từ `28/08`** ⇒ bốn ngày ai thêm mạng từ trang 9Scan đều nhận **một mạng không ký
+nổi giao dịch**. Đã sửa + deploy phía họ. `parentID` block 0 P-Chain: **A1 đo lại độc lập, trùng
+từng ký tự**. Vế `sha256(genesisBytes)` **không tái lập được hôm nay** (engrave-verify hỏng biên
+dịch trên Windows vì cgo, **không có trong image `:g1`**) ⇒ là **bản ghi lúc phóng**, không phải
+phép đo hôm nay. Trao đổi đầy đủ: `docs/requests-from-9scan/2026-09-01-…-REPLY.md`.
 
 ### 🆕 `2026-09-01` `11:0xZ` — PHIÊN **HẬU PHÓNG**: cổng canh **LỊCH SỬ GIT**, và hai đỏ đều là việc David
 
