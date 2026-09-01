@@ -132,6 +132,10 @@ const GATES = [
   { group: "2 · REPO GATES", name: "git history carries no key material", ...node("scripts/check-history-secrets.mjs", "--all-objects") },
   { group: "2 · REPO GATES", name: "single-source detection (counter-check)", ...node("scripts/check-single-source.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "Block Adam offset picking (counter-check)", ...node("scripts/check-clock-skew.mjs", "--self-test") },
+  // The 2026-09-09 ceremony sequencer. Wired here for the same reason as everything else in this
+  // block: it has a --self-test, it is offline, and a counter-check nobody runs is a counter-check
+  // nobody notices breaking — least of all on a morning that happens once.
+  { group: "2 · REPO GATES", name: "9S Union ceremony sequencer (counter-check)", ...node("local-net/faucet/ceremony-9s-union.mjs", "--self-test") },
   // EIP-55 sits on the product path: it is what stops a mistyped admin address from becoming
   // an L1 nobody owns, and genesis is immutable.
   { group: "2 · REPO GATES", name: "EIP-55 address parsing (counter-check)", ...node("local-net/lib/eip55.mjs", "--self-test") },
