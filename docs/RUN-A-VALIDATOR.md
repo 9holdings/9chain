@@ -253,21 +253,33 @@ a balance that was never on X. If you funded yourself from the faucet, that comm
 to move and the guide reads as if you did something wrong. Corrected 2026-09-01 after an outside
 tester lost exactly this afternoon.
 
-### Hop 1 · C→X — **and this one is not yet shippable, said plainly**
+### Hop 1 · C→X — `local-net/tools/c-to-x`
 
-🔴 **The node image does not do this hop.** Measured 2026-09-01: `xp-wallet` exposes `/api/info`,
-`/api/send-x`, `/api/x-to-p`, `/api/p-to-x` — and mentions the C-Chain **zero times**. There is no
-`c-to-x` in it.
+🔴 **`xp-wallet` does not do this hop.** Measured 2026-09-01: it exposes `/api/info`,
+`/api/send-x`, `/api/x-to-p`, `/api/p-to-x` and mentions the C-Chain **zero times**. So there is a
+separate tool, and it lives **outside the fork tree** — the same rule as `stake-validator`: using
+it never changes the patch set you verified in Step 1.
 
-🔴 **And it cannot be done against the public RPC by design.** `https://rpc-a1.9chain.org/ext/bc/C/avax`
-answers **404** on purpose — the atomic C-Chain endpoint is closed to the internet (M11.10), while
-`/ext/bc/C/rpc` answers 200. This is a security boundary, not an outage. The export therefore has
-to run against **your own node**, which you have from Step 5, on `127.0.0.1:9650`.
+🔴 **It must talk to YOUR OWN node.** `https://rpc-a1.9chain.org/ext/bc/C/avax` answers **404** on
+purpose — the atomic C-Chain endpoint is closed to the internet (M11.10) while `/ext/bc/C/rpc`
+answers 200. That is a boundary, not an outage, and it is not going to be widened. The tool checks
+this before it does anything and refuses with that explanation, rather than failing later with a
+message about UTXOs that would send you looking at your key.
 
-⚠️ **We are not printing a command here that we have not run end to end.** A guide that hands you
-an unverified `curl` for the step it just called the hardest one is worse than a guide that admits
-the gap. Until A1 ships either a `c-to-x` route in `xp-wallet` or a faucet that pays directly to an
-`X-love9…` address, fund yourself from an X-Chain balance, or ask in the contact channel below.
+```bash
+cd local-net/tools/c-to-x
+go run . --key <your key file> --amount 90                 # DRY RUN — reports, signs nothing
+go run . --key <your key file> --amount 90 --issue         # spends
+```
+
+⚠️ **It is two transactions, and the guide says so because the failure mode matters.** An export on
+C, then an import on X. If the export lands and the import does not, your LOVE9 is sitting in the
+X-Chain's shared memory — **not lost**. Re-run with `--issue`: the import consumes whatever is
+waiting. **Do not re-run the export to "try again".**
+
+⚠️ **Honest status:** the tool compiles, and its refusal path was exercised against the live public
+RPC. **The money path has not been run by anyone yet** — the first person to pass `--issue` is the
+first. Dry-run first, read every line it prints, and tell us what happened.
 
 ### Hop 2 · X→P — this one is shipped and verified
 
