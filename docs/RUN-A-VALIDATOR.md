@@ -71,6 +71,25 @@ error is the feature. This is a sovereignty decision, not an oversight.
 
 ---
 
+## Step 0 — Get 9Chain-A1 itself
+
+```bash
+git clone FILL-ON-G-DAY-9chain-a1-repo-url 9chain-a1
+cd 9chain-a1
+```
+
+Everything below assumes you are standing in that directory: the patch series lives in
+`patches/`, the node image builds from `local-net/Dockerfile`, and the engraving canon you can
+check the chain against is `docs/engrave/CANON.txt`.
+
+🔴 **This step was MISSING until 2026-09-01.** The guide went straight to `git am
+/path/to/9chain-a1/patches/*.patch` and never said where `/path/to/9chain-a1` comes from — a
+hole that is invisible to anyone who already has the repository and fatal to everyone who does
+not. It is the whole substance of *"a stranger can rebuild the fork"*, and it was missing from
+the document whose job is to make that true.
+
+---
+
 ## Step 1 — Rebuild the fork, and prove you rebuilt it
 
 You are not asked to trust a binary we hand you. You rebuild it and compare tree hashes.
@@ -79,7 +98,7 @@ You are not asked to trust a binary we hand you. You rebuild it and compare tree
 git clone https://github.com/ava-labs/avalanchego.git
 cd avalanchego
 git checkout 1cf1fc3
-git am --keep-cr /path/to/9chain-a1/patches/*.patch
+git am --keep-cr ../9chain-a1/patches/*.patch
 git rev-parse HEAD^{tree}
 ```
 
