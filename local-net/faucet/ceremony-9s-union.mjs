@@ -108,7 +108,15 @@ const opt = (f, d) => {
 const SELF_TEST = has("--self-test");
 const SEND = has("--send");
 const RPC = opt("--rpc", "https://rpc-a1.9chain.org/ext/bc/C/rpc");
-const MARK_ISO = opt("--at", "2026-09-09T06:09:09Z");
+/**
+ * 🔴 ONE PLACE. The self-test used to carry its own copy of this literal, and a hand-copied
+ * constant beside the real one is two sources of truth waiting to drift — the 9Scan team found
+ * exactly this shape in their own display an hour after warning me about the general case: their
+ * date labels were a hand-copy of their mark, so arming the page printed a found block next to
+ * the wrong date, and nothing tied the two together.
+ */
+const CEREMONY_MARK_ISO = "2026-09-09T06:09:09Z";
+const MARK_ISO = opt("--at", CEREMONY_MARK_ISO);
 const BOUNDARY = opt("--boundary", "inclusive");
 const LEAD_MS = Number(opt("--lead-ms", 3000));
 const OFFSET_RAW = opt("--offset-ms", null);
@@ -270,16 +278,39 @@ async function ethersChain({ rpc, pk, expectChainId }) {
  * holds and the last one that holds is the first block past the mark, no matter who produced it
  * or when we started looking.
  */
-async function findBlockAdam(chain, { fromTop, markSec, inclusive, maxSteps = 10_000 }) {
+async function findBlockAdam(chain, { fromTop, markSec, inclusive, maxSteps = 10_000, probeBelow = 20 }) {
   const crosses = (b) => (inclusive ? b.timestamp >= markSec : b.timestamp > markSec);
   let best = null;
+  let stoppedAt = null;
   for (let n = fromTop, steps = 0; n >= 0 && steps < maxSteps; n--, steps++) {
     const b = await chain.block(n);
     if (!b) break;
-    if (!crosses(b)) break;
+    if (!crosses(b)) { stoppedAt = n; break; }
     best = b;
   }
-  return best;
+
+  // 🔴 THE WALK RESTS ON AN ASSUMPTION, SO IT CHECKS THE ASSUMPTION.
+  //
+  // "Timestamps are non-decreasing, therefore the blocks past the mark form a suffix, therefore
+  // walking down until the rule first fails lands on the first block past the mark." Every step
+  // of that is true on a healthy C-Chain — and if a single timestamp were ever out of order, the
+  // walk would stop at the dip and return a LATER block with total confidence. A wrong block,
+  // stated firmly, on the one number the ceremony is built on.
+  //
+  // The 9Scan team hit this exact shape in their own search an hour before this was written: a
+  // conflicting sample was silently filtered out instead of being recognised as a conflict, and
+  // the result looked perfectly normal. ⇒ Look a little further down. If anything below the
+  // stopping point ALSO crosses the mark, the assumption is false here and the caller must be
+  // told, not handed an answer.
+  const contradictions = [];
+  if (stoppedAt !== null) {
+    for (let n = stoppedAt - 1, k = 0; n >= 0 && k < probeBelow; n--, k++) {
+      const b = await chain.block(n);
+      if (!b) break;
+      if (crosses(b)) contradictions.push(b.number);
+    }
+  }
+  return { block: best, contradictions };
 }
 
 // ───────────────────────────── the sequencer ─────────────────────────────
@@ -328,7 +359,14 @@ async function runCeremony(chain, {
   score.ok(adamTx.status === 1, "Adam transaction succeeded", `block ${adamTx.blockNumber}`);
 
   // ── 2 · Block Adam, by TIME ──
-  const blockAdam = await findBlockAdam(chain, { fromTop: adamTx.blockNumber, markSec, inclusive });
+  const scan = await findBlockAdam(chain, { fromTop: adamTx.blockNumber, markSec, inclusive });
+  if (scan.contradictions.length) {
+    score.ok(false, "block timestamps are ordered, so 'the first block past the mark' is well defined",
+      `blocks ${scan.contradictions.join(", ")} are at or past the mark but sit BELOW a block that is not — the chain's timestamps are out of order here, and no walk can name Block Adam from them`);
+    rec.abort = "timestamps-not-ordered";
+    return rec;
+  }
+  const blockAdam = scan.block;
   if (!blockAdam) {
     // The block carrying our transaction was sealed BEFORE the mark. Nothing is broken on the
     // chain — but no Block Adam exists yet, and continuing would anchor the message against a
@@ -506,6 +544,7 @@ function fakeChain({ startBlock = 100, nextTs = 0, tsStep = 3, extraBlocksPerSen
     async chainId() { return "9000000009"; },
     async blockNumber() { return head; },
     async block(n) { return blocks.has(n) ? { number: n, timestamp: blocks.get(n), txCount: 1 } : null; },
+    setBlockTs: (n, v) => blocks.set(n, v),
     async balance() { return 10n ** 20n; },
     async send({ data }) {
       sends++;
@@ -524,10 +563,9 @@ function fakeChain({ startBlock = 100, nextTs = 0, tsStep = 3, extraBlocksPerSen
   };
 }
 
-// Derived, not typed: a hand-copied epoch constant with a comment claiming it is the ceremony
-// mark is a wrong number wearing a correct label. (The first version of this line was off by
-// 42,000 seconds and said so in a comment.)
-const MARK = Math.floor(Date.parse("2026-09-09T06:09:09Z") / 1000);
+// Derived from the SAME constant the run uses, not typed again. (The first version of this line
+// was a hand-typed epoch, off by 42,000 seconds, with a comment claiming it was the mark.)
+const MARK = Math.floor(Date.parse(CEREMONY_MARK_ISO) / 1000);
 
 function selfTest() {
   const silent = () => {};
@@ -577,6 +615,23 @@ function selfTest() {
       cases.push(["and the boundary is reported as a note when it is live",
         r1.score.notes.some((n) => !n.ok && /boundary rule/.test(n.label))]);
     }
+    // 3b — 🔴 A TIMESTAMP OUT OF ORDER. The downward walk is only correct because timestamps are
+    //      non-decreasing; if one dips below the mark with a crossing block underneath it, the
+    //      walk stops at the dip and would name a LATER block with complete confidence. It must
+    //      say the assumption failed instead of answering. (Found by 9Scan in their own search
+    //      an hour before this case existed: a conflicting sample filtered out rather than
+    //      recognised, and the wrong result looked perfectly normal.)
+    {
+      const c = fakeChain({ nextTs: MARK + 2 });
+      c.setBlockTs(100, MARK + 1);   // crosses …
+      c.mine();
+      c.setBlockTs(101, MARK - 1);   // … but the block ABOVE it does not
+      const { rec, score } = await run(c);
+      cases.push(["a timestamp out of order aborts instead of naming a block",
+        rec.abort === "timestamps-not-ordered" && !rec.union &&
+        score.fail.some((f) => /well defined/.test(f))]);
+    }
+
     // 4 — our block is sealed BEFORE the mark: no Block Adam exists, so nothing may be anchored.
     {
       const { rec, score } = await run(fakeChain({ nextTs: MARK - 60 }));
