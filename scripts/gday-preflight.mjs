@@ -156,6 +156,7 @@ const GATES = [
   // is in group 3, because deciding a number is dead requires asking the running chain what is
   // alive — never a constant copied into the gate (D-110).
   { group: "2 · REPO GATES", name: "doc drift — dead generation stated as current (counter-check)", ...node("scripts/check-doc-drift.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "push targets can still do their job (counter-check)", ...node("scripts/check-remotes.mjs", "--self-test") },
 
   // ── 3. The real world — the running network and the server ──
   { group: "3 · REAL WORLD", needsNetwork: true, name: "the running network (watch-network)", ...node("scripts/watch-network.mjs") },
@@ -166,6 +167,11 @@ const GATES = [
   // nothing — so the only reader who would have found out is one who had already sent value.
   // Every other gate was green, and every one of them was right about its own quantity (D-150).
   { group: "3 · REAL WORLD", needsNetwork: true, name: "no document states a dead generation as current", ...node("scripts/check-doc-drift.mjs") },
+  // 🔴 The backup route broke silently for seven hours on 2026-09-01 and only a real push found
+  // out: an archived repository keeps its URL, keeps read access, answers fetch and ls-remote,
+  // and refuses only writes. It also still reports `viewerPermission: ADMIN`. Two directions are
+  // watched here, and the second is the expensive one: a backup that has gone PUBLIC (D-151).
+  { group: "3 · REAL WORLD", needsNetwork: true, name: "push targets — backup writable, private still private", ...node("scripts/check-remotes.mjs") },
   // This one measures REAL MONEY on chain, so it belongs to group 3, not to the repo gates:
   // the `--offline` variant answers only half the question and exits 2 (INCONCLUSIVE) — which
   // is honest, but a G-day gate that says "inconclusive" is unusable. Blocks the

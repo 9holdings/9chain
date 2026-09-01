@@ -5,8 +5,14 @@ phát hiện **đến từ 9Chain-BOD** chứ không từ cổng nào của A1 (
 khai `networkID 999999999` (g0, chết `09:26Z` sáng đó) **sau khi repo đã công khai** — Foundation
 khai **1 tỷ**, đo trên chain sống ra **0**. Đã chép bảng `g1` về (`o1-check --rpc` **cả hai nửa
 xanh**), bản g0 sang `archive/` kèm bia mộ, và dựng cổng **`check-doc-drift.mjs`** — thứ lẽ ra
-phải có từ lần re-genesis đầu. Preflight nay **30 cổng**. Kèm: **D-149 viết bù** (cửa sổ yên tĩnh
+phải có từ lần re-genesis đầu. Preflight nay **32 cổng**. Kèm: **D-149 viết bù** (cửa sổ yên tĩnh
 `09/09` — đã bị ba nơi trích dẫn mà chưa ai viết ra).
+🔴 **Kèm D-151 — tuyến sao lưu đã ĐỨT 7 tiếng mà không gì báo:** repo sao lưu bị **archive
+`12:19Z`**, phát hiện bằng một lượt `push` thật (403), không bằng cổng nào. Repo archive vẫn giữ
+URL, vẫn cho đọc, vẫn trả `fetch` — **chỉ từ chối GHI**. Nay: remote riêng tư mới
+`daviddokrao/9chain-a1-backup` (375 commit, PRIVATE, kiểm **trước** khi đẩy) · remote chết giữ lại
+đổi tên `archived-31aug` · cổng `check-remotes.mjs` **16/16**, đã thấy đỏ trên **dữ liệu thật**.
+⚠️ **Ba remote — đọc TÊN trước khi đẩy, một trong ba là cả Internet.**
 🟢 **Mở lại đẻ chain L1: ba việc, cả ba là việc có người bấm** — sổ chainId lên server → nạp ví
 factory (X→P) → bật cờ. Nghi lễ `09/09` **không** chặn việc này (P-Chain ≠ C-Chain).
 Trước đó cùng ngày — phiên **HẬU PHÓNG**: ① cổng mới canh **lịch sử git** trước lượt
@@ -36,7 +42,7 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
 ```bash
-node scripts/gday-preflight.mjs      # 30 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
+node scripts/gday-preflight.mjs      # 32 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
 # ⚠️ Nó VẪN in 38 việc tay, nhưng 7 cái ĐÃ XONG — preflight không biết. Đừng làm lại:
 #   #10 #11 (bump A1Gen) · #14 #15 #17 (build + ship + --build-arg, OVH)
 #   + CHỞ IMAGE SANG HETZNER  (xong 2026-09-01, nghiệm thu 3 mỏ neo trên chính máy đó)
@@ -1531,6 +1537,10 @@ curl -s -X POST -H 'content-type:application/json' \
 
 # 🔴 Tài liệu có khai số của thế hệ đã chết không (D-150) — cổng DUY NHẤT đọc văn xuôi
 node scripts/check-doc-drift.mjs
+
+# 🔴 Nơi ĐẨY còn làm được việc của nó không (D-151) — sao lưu còn GHI được, riêng tư còn RIÊNG TƯ.
+#    Repo bị archive vẫn trả fetch/ls-remote và vẫn khai `ADMIN`; chỉ `isArchived` phân biệt được.
+node scripts/check-remotes.mjs
 ```
 
 ⚠️ **Luật cứng của repo** *(đã trả giá để học)*:
