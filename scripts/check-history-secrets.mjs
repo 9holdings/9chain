@@ -31,7 +31,9 @@
  *      alone: nothing but a key looks like that. Prose saying `PrivateKey-*` does not match, and
  *      that distinction is not theoretical — the first version of `check-key-leaks.mjs` matched
  *      the bare word and reported two tracked documents as leaks (D-117).
- *   2. **PEM private-key blocks** — `-----BEGIN … PRIVATE KEY-----`. 🔴 RED by shape.
+ *   2. **PEM private-key blocks** — a `BEGIN … PRIVATE KEY` header **followed by a real body**
+ *      (100+ base64 characters). 🔴 RED by shape. The body requirement is not decoration; see
+ *      `hasPemKey` for the run where the header alone reported this very file.
  *   3. **32-byte hex** — `0x`-prefixed or bare, exactly 64 hex characters. This shape is
  *      **ambiguous on purpose**: a sha256, a tx hash and an EVM private key are the same 64
  *      characters, and this repo's history is full of the first two. So shape alone is NOT a
@@ -47,8 +49,10 @@
  * ⚠️ **Scope, stated rather than implied.** Default scope is what publishing exposes: objects
  * reachable from refs. Objects in the database that no ref reaches (an amended commit, an
  * abandoned rebase) are NOT sent by `git push` and are NOT scanned — but they are counted and
- * reported, because `git push --mirror` and some hosting imports do send them. `--all-objects`
- * scans those too.
+ * reported and can be scanned with `--all-objects`, because they DO travel in a filesystem copy
+ * of `.git` — a backup that tars the directory, a drive image, a machine handed on. ⚠️ Said
+ * precisely, since the imprecise version was written here first: no `git push` sends them,
+ * `--mirror` included. Push transfers what refs reach.
  *
  * Exit codes: `0` no key material in history · `1` key material found · `2` could not measure.
  *
@@ -83,7 +87,29 @@ const EXTRA_SETS = argv.reduce((acc, a, i) => (a === "--fund-set" && argv[i + 1]
  * characters. Requiring 40+ is what separates a key from a sentence mentioning one.
  */
 const CB58_RE = /PrivateKey-[1-9A-HJ-NP-Za-km-z]{40,}/g;
-const PEM_RE = /-----BEGIN (?:RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY-----/g;
+/**
+ * 🔴 A HEADER IS NOT A KEY — the same rule as `PrivateKey-*` one line up, learned the same way.
+ *
+ * The first commit of this file matched the header alone, and the next run reported **this file**
+ * as a leak: its own self-test fixture had become a blob in the history it scans. The tempting
+ * repair is an exception for the gate's own path. That is a hole with a comment next to it, and
+ * it would have been inherited by every later copy of the fixture.
+ *
+ * The honest repair is to measure the thing that makes a PEM block dangerous: the **body**. A
+ * header with nine characters after it carries no key. A header followed by a hundred-plus
+ * base64 characters does. So the gate asks for both — which also means a redacted or truncated
+ * PEM in a document is correctly *not* a finding.
+ */
+const PEM_HEADER_RE = /-----BEGIN (?:RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY-----/g;
+const PEM_BODY_MIN = 100;
+function hasPemKey(text) {
+  for (const m of text.matchAll(PEM_HEADER_RE)) {
+    const after = text.slice(m.index + m[0].length, m.index + m[0].length + 4000);
+    const body = after.match(/[A-Za-z0-9+/=\r\n]+/);
+    if (body && body[0].replace(/\s/g, "").length >= PEM_BODY_MIN) return true;
+  }
+  return false;
+}
 /**
  * Exactly 64 hex characters, not 63 and not the middle of a longer run — a 128-character hex blob
  * is not two keys. The lookarounds are what make that true; `\b` alone accepts a substring of a
@@ -274,11 +300,7 @@ function scan(cwd, baseline, { allObjects = false } = {}) {
       red.push({ why: "cb58 private key", sha: o.sha, type: o.type, where });
       break; // one finding per object is enough to block; counting them adds nothing but noise
     }
-    for (const m of o.text.matchAll(PEM_RE)) {
-      void m;
-      red.push({ why: "PEM private key block", sha: o.sha, type: o.type, where });
-      break;
-    }
+    if (hasPemKey(o.text)) red.push({ why: "PEM private key block", sha: o.sha, type: o.type, where });
     for (const m of o.text.matchAll(HEX_RE)) {
       const h = sha256(m[1].toLowerCase());
       if (baseline.hashes.has(h)) red.push({ why: `32-byte key matching the live store (${baseline.hashes.get(h)})`, sha: o.sha, type: o.type, where });
@@ -392,9 +414,22 @@ function selfTest() {
     // 5 — the shape h6b-backup.sh looks for, in the place it cannot look.
     const r5 = path.join(tmp, "pem");
     initRepo(r5);
-    commit(r5, "id_rsa", "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNza\n", "pem");
+    // 🔴 ASSEMBLED, NEVER WRITTEN OUT — and this is not fastidiousness, it is a measurement.
+    // The first commit of this file spelled the header literally, and the very next run scored
+    // `scripts/check-history-secrets.mjs` itself as a leak: the fixture had become a blob in the
+    // history it scans. A gate that trips on its own source teaches exactly one behaviour —
+    // adding an exception for itself — and an exception is a hole with a comment next to it.
+    const pemHeader = ["-----BEGIN OPENSSH PRIVATE", "KEY-----"].join(" ");
+    commit(r5, "id_rsa", `${pemHeader}\n${randomBytes(240).toString("base64")}\n`, "pem");
     const s5 = scan(r5, emptyBaseline);
     cases.push(["PEM block in history is RED", s5.red.length === 1]);
+
+    // 5b — the blob this gate's own first commit left behind: a header with a nine-character
+    // stub after it. No body, no key, no finding — measured, not exempted.
+    const r5b = path.join(tmp, "pem-header-only");
+    initRepo(r5b);
+    commit(r5b, "doc.md", `example:\n${pemHeader}\nb3BlbnNza\n`, "header only");
+    cases.push(["a PEM header with no body is NOT a finding", scan(r5b, emptyBaseline).red.length === 0]);
 
     // 6 — a key in a COMMIT MESSAGE is published too, and lives in no tree at all.
     const r6 = path.join(tmp, "commit-msg");
@@ -470,7 +505,8 @@ function main() {
   }
   if (!ALL_OBJECTS && result.unreachable) {
     console.log(`  ℹ️  ${result.unreachable} object(s) in the database that no ref reaches — NOT sent by`);
-    console.log("       `git push`, but sent by `git push --mirror`. Re-run with --all-objects to include them.");
+    console.log("       any `git push` (mirror included) — but they DO travel in a filesystem copy of");
+    console.log("       `.git`. Re-run with --all-objects to include them.");
   }
   for (const s of result.skipped) {
     console.log(`  ⁇ object ${s.sha.slice(0, 12)} skipped: ${s.size} bytes exceeds the ${MAX_BYTES}-byte cap — UNMEASURED`);
