@@ -6832,3 +6832,67 @@ check-deploy-drift             ->  20 khớp · 0 lệch · 0 thiếu
 (`heartbeat.json.g0-20260901`, đúng hình dạng B-17). Lượt deploy **đã xong**; thứ chưa xong là một
 việc dọn giờ G **không thuộc lượt deploy này**. Đúng lớp D-153: đỏ có lý do thật, **câu kết trỏ vào
 đại lượng khác**. Chưa vá — ghi ra đây trước, vì vá cổng lúc vừa dùng nó xong là lúc dễ chiều số.
+
+---
+
+## D-157 — **Người ngoài tìm ra thứ 37 cổng không tìm ra, vì mọi cổng đều đo REPO** (`2026-09-01`)
+
+Team David dựng lại fork trên máy sạch và gửi về 11 phát hiện. **Sáu đúng, một sai ở kết luận, và
+bốn chỗ trống là phần giá trị nhất.** Chúng chung một hình dạng: **preflight so `patches/` với hằng
+số nằm trong chính nó**, không bao giờ so với **thứ người lạ được đưa cho**.
+
+### 🔴 S-4 — họ nói "không có khả năng thứ ba". Có, và đó là câu trả lời
+
+```
+Σ bảng phân bổ (X/P)   4.300.000.001
+getCurrentSupply       4.300.824.365,880041     chênh 824.364,880041
+```
+Ba phép đo bác vế *"genesis phát thừa"*: `sha256(net-g1/genesis.json)` **trùng** số công bố · tổng
+allocation **trong chính tệp đó** = **4.300.000.001**, khớp bảng từng đồng · `getHeight` = **0**.
+⇒ Chênh lệch **do node tạo ra**: P-Chain cộng **phần thưởng TIỀM NĂNG** của validator vào
+`currentSupply` ngay lúc kết nạp, trừ lại nếu không được thưởng. `Σ potentialReward` =
+**824.364,880040837** — **trùng chữ số cuối**. Đẳng thức chính xác, không xấp xỉ.
+
+🔴 **Và cổng họ đề xuất sẽ TỆ HƠN KHÔNG CÓ:** so thẳng bảng với `getCurrentSupply` là **đỏ vĩnh
+viễn trên một mạng đúng** (D-153) ⇒ bị tắt trong một tuần ⇒ lúc đó cái trôi thật cũng qua luôn.
+🔴 **Cổng hỏi CHAIN con số phần thưởng, không tự tính lại** — cài đặt thứ hai của
+`reward/calculator.go` là thứ có thể bất đồng với bản gốc ngay ngày một tham số đổi (D-113, trên số học).
+
+### Bốn cổng mới, và ba lần cổng của tôi SAI trước khi đúng
+
+`check-patch-count` (G-1) · `check-supply` (G-2) · `check-live-page` (G-3). Preflight **34 → 40 mục**.
+
+🔴 **Ba dương tính giả bị bắt trước khi tôi tin cổng của mình — cả ba cùng một bài học:**
+
+| cổng | nó chấm sai cái gì | vì sao |
+|---|---|---|
+| `check-patch-count` | `docs/RUN-A-VALIDATOR.md` "hỏng" | **Khối lệnh** nằm dưới câu *"Applying 26 of the 27"* ⇒ `<first 26 patches>` và `60a61707` ở đó **đúng**. Xét từng DÒNG thì mất ngữ cảnh. **Làm theo báo cáo đó là thay số đúng bằng số sai.** |
+| `check-live-page` | `/chains/` khai "5 validators" | Con số nằm trong **chú thích mã bên trong bundle JS**, nói về validator của một L1. Không ai nhìn thấy nó. |
+| `check-live-page` | một URL bị báo **hai lần** | `testnet-a1.9chain.org` là **chuỗi con** của `rpc-testnet-a1.9chain.org` |
+
+⇒ **Luật rút ra: cổng mới phải bị nghi ngờ đúng như cổng cũ.** Ba lần đỏ đầu tiên của ba cổng mới
+đều SAI, và cả ba sẽ khiến người đọc **làm hỏng thứ đang đúng**. D-106b nói *"đỏ phải đỏ vì đúng lý
+do"*; ở đây là vế đắt hơn: **đỏ sai khiến người ta hành động**, còn xanh sai chỉ khiến người ta ngồi yên.
+
+### Thứ họ tìm ra mà tôi đã sửa, và thứ tôi tìm thêm khi sửa
+
+- **S-1** README khai 26 patch / tree `60a61707` — 🔴 `60a61707` **không sai, nó bị GIÁNG VAI** từ
+  tree chính xuống mốc đối chứng. Dạng trôi khó thấy nhất: con số vẫn đúng, **chỉ sai chỗ**.
+- **B-3** Bước 1 clone ra thư mục anh em, `Dockerfile:15` đọc `upstream/avalanchego/`, mà `upstream/`
+  bị gitignore ⇒ **không một gợi ý nào**.
+- **B-2** faucet trả trên **C-Chain**, Bước 6 chỉ dạy X→P. 🔴 **Nặng hơn báo cáo:** `xp-wallet` có
+  `send-x`/`x-to-p`/`p-to-x` và **0 lần nhắc C-Chain** — **image không làm được chặng đó**; và
+  `/ext/bc/C/avax` **404 công khai có chủ ý** (M11.10) nên phải chạy trên node của chính mình.
+  ⇒ Tài liệu **khai chỗ trống** thay vì in một `curl` chưa ai chạy.
+- **Tôi tìm thêm, không có trong báo cáo:** Bước 6 ví dụ `{"amount":"25000"}` và Bước 7
+  `--stake 25000` — **rào cản đã bỏ** từ sáng ngày G, nằm ngay trên đường sao-chép-dán · lời hứa
+  *"chín lượt faucet = 81"* **quên phí** (81 là tiền cọc, phí trừ vào cùng số dư, và faucet giới hạn
+  9 lượt/IP/giờ nên lượt thứ mười sang giờ sau) · `/create-chain/` cũng in networkID chết.
+
+### 🔴 Chỗ mù còn nguyên, và nó không phải của A1
+
+`check-live-page` **đỏ và sẽ còn đỏ**: `/` · `/faucet/` · `/create-chain/` in `networkID 999999999`
+(thế hệ chết `09:26Z`) và `/` khai **10 validator** trong khi đo được **9**. Web deploy từ nhánh
+`web-home` — **không có trên remote công khai** — nên `check-doc-drift` (đi theo `git ls-files`)
+**không bao giờ chạm tới thứ đang phục vụ người dùng**. Luật cứng #4: A1 không đụng. Đỏ này **phải
+ở lại nhìn thấy được** cho tới khi phiên kia ship.
