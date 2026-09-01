@@ -1909,3 +1909,9 @@ giao dịch nào.
       🔴 **Còn treo, cần David:** ① nội dung giao dịch **Adam/Eva** chưa ai khai — đóng băng byte
       trước ngày ② **B-13(b)** phải đo khi chain đang đẻ block; số đo hôm nay (−443s) là **tuổi
       block**, không phải lệch đồng hồ, **đừng dùng làm offset**.
+
+- [x] 🔵 **D-147 — ranh giới Block Adam chốt: LUẬT BAO GỒM (`ts >= mốc`)**, David `01/09`, lý do:
+      **C1 đã công bố** và hai chain kể một câu chuyện thì không được dùng hai phép so. Đổi ở ba
+      nơi trong một lượt (kịch bản nghi lễ · bài diễn tập · CANON). `--boundary strict` giữ lại
+      **chỉ để đo** bản đọc đã nghỉ. Bản chấm 7/1 của vật chứng `27/08` **giữ nguyên** — nó chấm
+      dưới luật cũ và là câu kể về quá khứ. 11/11 đối chứng vẫn xanh sau lượt đổi.

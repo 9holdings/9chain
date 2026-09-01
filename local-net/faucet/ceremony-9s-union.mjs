@@ -38,13 +38,14 @@
  *      instant Block Adam is known — it does not depend on where the Eva transaction lands. If
  *      the Eva transaction misses that block, the ceremony has a problem; the arithmetic does not.
  *
- * 🔴 **AND ONE BOUNDARY THAT ALREADY BIT ONCE.** C1's wording is *"from 06:09:09Z onward"* —
- * INCLUSIVE (`>=`). A1's 2026-08-27 drill scored the same question with *"the first block to
- * CROSS"* — STRICT (`>`) — and failed 1 of 8 cases on exactly this: the ceremonial block was
- * sealed with a timestamp EXACTLY on the mark, so under `>` Block Adam would have been Eva's
- * block instead. Two chains publishing one ceremony must not disagree here. This file defaults to
- * INCLUSIVE (what is published) and says so out loud whenever the two rules would differ for the
- * run in front of it. `--boundary strict` selects the other reading.
+ * 🔴 **THE BOUNDARY IS RULED, NOT DEFAULTED — David, 2026-09-01 (D-147): INCLUSIVE.**
+ * *"dùng luật bao gồm đi, C1 đã công bố rồi."* C1's wording is *"from 06:09:09Z onward"* (`>=`);
+ * A1's 2026-08-27 drill scored the same question as *"the first block to CROSS"* (`>`) and failed
+ * 1 of 8 cases on exactly this — the ceremonial block was sealed with a timestamp EXACTLY on the
+ * mark, so under `>` Block Adam would have been Eva's block. Two chains telling one story may not
+ * use two comparisons, and the one already published to readers is the one that wins.
+ * `--boundary strict` is kept ONLY to measure the retired reading — it is not a supported way to
+ * run the ceremony, and the run says so.
  *
  * ═══ THE THING MOST LIKELY TO RUIN THE DAY, NAMED UP FRONT ═══
  *
@@ -77,7 +78,7 @@
  * Flags:
  *   --rpc <url>          default https://rpc-a1.9chain.org/ext/bc/C/rpc
  *   --at <ISO>           ceremony mark. Default 2026-09-09T06:09:09Z (CANON).
- *   --boundary <mode>    inclusive (default, C1's published wording) | strict (A1's drill rule)
+ *   --boundary <mode>    inclusive (THE RULE, D-147) | strict (retired reading, for measuring only)
  *   --offset-ms <n>      broadcast at mark + n ms. REQUIRED with --send (B-13(b)).
  *   --lead-ms <n>        pre-sign this long before the mark (default 3000).
  *   --adam-data <file>   payload for the Adam transaction (default: none)
@@ -607,6 +608,10 @@ async function main() {
   console.log(`rpc       : ${RPC}`);
   console.log(`mark      : ${utc(markMs)}  (epoch ${markSec})`);
   console.log(`Block Adam: first block with ts ${inclusive ? ">=" : ">"} mark  [--boundary ${BOUNDARY}]`);
+  if (!inclusive) {
+    console.log("  🔴 --boundary strict is the RETIRED reading (D-147 ruled inclusive, because C1 had");
+    console.log("     already published it). Use it to measure the divergence, never to run the ceremony.");
+  }
   console.log(`Block Eva : Block Adam + ${EVA_OFFSET_BLOCKS}   ·   anchor slot: Block Eva + ${UNION_OFFSET_BLOCKS}`);
 
   // ── refusals, before anything is measured or signed ──

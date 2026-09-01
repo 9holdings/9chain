@@ -153,10 +153,16 @@ console.log("  ⚠️ Đây là lệch của block CŨ, tức cận dưới thô
 console.log("     đóng lúc nào, không nói đồng hồ node đang chạy lệch bao nhiêu.");
 
 /** Quét chuỗi tìm block ĐẦU TIÊN có timestamp vượt mốc. Đây là phép đo chấm điểm. */
+// 🔴 INCLUSIVE (`>=`) SINCE 2026-09-01 — David's ruling (D-147), because C1 had already
+// published "from 06:09:09Z onward" and two chains telling one story may not use two
+// comparisons. This line used to be `>`, and that is exactly the case this drill failed on
+// 2026-08-27: the ceremonial block was sealed EXACTLY on the mark, so under `>` Block Adam
+// would have been Eva's block. ⚠️ The 7/1 score in that run's evidence was made under the
+// strict rule and stays as it is — it is a statement about the past, not a bug to fix.
 async function blockĐầuTiênVượtMốc(từ, đến) {
   for (let n = từ; n <= đến; n++) {
     const b = await p.getBlock(n);
-    if (b && b.timestamp > MOC_GIAY) return b;
+    if (b && b.timestamp >= MOC_GIAY) return b;
   }
   return null;
 }
@@ -273,7 +279,8 @@ if (NGUOC) {
     // Sau D-070: lưu ý, không chấm. Neo là hash giao dịch — block chứa nó là Block Adam dù
     // timestamp có vượt mốc hay không. Ô này nay trả lời một câu KHÁC và vẫn cần: *"câu chữ
     // 'vượt mốc' trong bản khắc có trung thực không"*, và nó là đầu vào của B-13(b).
-    lưuÝRa(bAdam.timestamp > MOC_GIAY, "block CHỨA giao dịch Adam tự nó vượt mốc",
+    // Inclusive since D-147 — see blockĐầuTiênVượtMốc above.
+    lưuÝRa(bAdam.timestamp >= MOC_GIAY, "block CHỨA giao dịch Adam tự nó vượt mốc",
       `#${bAdam.number} ts=${bAdam.timestamp}, mốc=${MOC_GIAY}, cách ${bAdam.timestamp - MOC_GIAY >= 0 ? "+" : ""}${bAdam.timestamp - MOC_GIAY}s`);
   }
 

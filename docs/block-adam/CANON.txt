@@ -118,7 +118,11 @@
 #   2. Block Eva is Adam+1 BY HEIGHT, so the anchor slot is Adam+10 and is known the moment Block
 #      Adam is known. It does not depend on where the Eva transaction lands.
 #
-# 🔴 AND ONE DISAGREEMENT THAT MUST NOT REACH 09/09 UNRESOLVED:
+# ✅ RESOLVED THE SAME DAY — David, 2026-09-01: "dùng luật bao gồm đi, C1 đã công bố rồi."
+#    THE RULE IS INCLUSIVE (ts >= mark). See D-147. The disagreement it settles, kept because the
+#    reasoning is the whole point:
+#
+# 🔴 THE DISAGREEMENT (settled above, do not re-open by accident):
 #
 #   C1 publishes "from 06:09:09Z onward"      => INCLUSIVE  (ts >= mark)
 #   A1's 2026-08-27 drill scored "the first block to CROSS" => STRICT (ts > mark)
@@ -126,8 +130,11 @@
 # This is not a hypothetical: the drill failed 1 of 8 cases on exactly this boundary — the
 # ceremonial block was sealed with a timestamp EXACTLY on the mark, so under STRICT, Block Adam
 # would have been Eva's block. Two chains telling one story must not use two comparisons.
-# ceremony-9s-union.mjs defaults to INCLUSIVE (what is published) and reports whenever the two
-# rules would disagree for the run in front of it. If A1 keeps strict, C1's page must change.
+# ceremony-9s-union.mjs now RULES inclusive and reports whenever the two rules would disagree for
+# the run in front of it; `--boundary strict` survives only to measure the retired reading.
+# block-adam-drill.mjs was moved to `>=` in the same pass. ⚠️ The 7/1 score in the 2026-08-27
+# evidence stays as it is — it was made under the strict rule, and it is a statement about the
+# past, not a bug to fix. Nothing on C1's side has to change: A1 adopted what C1 had published.
 #
 # Also worth taking, but it belongs to the web worktree and A1 does not touch it: C1's page
 # re-hashes each document IN THE READER'S BROWSER and compares against what the chain declares —

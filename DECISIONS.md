@@ -6119,3 +6119,53 @@ dòng CANON ⇒ từ chối · và **cặp thật khớp vân tay**. Đã nối 
 ⚠️ Một nhánh **chưa được nhìn thấy chạy**: cửa từ chối *"chain đang bận"* — hôm nay chain rảnh
 tuyệt đối (0 block trong 20 giây) nên không dựng được ca thật cho nó. Phần logic mà nó bảo vệ thì
 **đã** có đối chứng (ca "chèn vượt ô"). Khai ra chứ không tính là đã kiểm.
+
+---
+
+## D-147 — **Ranh giới Block Adam: LUẬT BAO GỒM (`ts >= mốc`)** (David chốt `2026-09-01`)
+
+> *"dùng luật bao gồm đi, C1 đã công bố rồi"*
+
+### Câu hỏi nó đóng lại
+
+`06:09:09Z` là **thuộc về** Block Adam hay **chưa tới** Block Adam?
+
+| | phép so | nguồn |
+|---|---|---|
+| **C1 — ĐÃ CÔNG BỐ** | `ts >= mốc` (*"từ … trở đi"*) | trang khắc chữ của C1, `01/09` |
+| A1 — diễn tập `27/08` | `ts > mốc` (*"block đầu tiên VƯỢT"*) | `block-adam-drill.mjs`, D-052…D-055 |
+
+🔴 **Đây chưa bao giờ là chuyện chữ nghĩa.** Bài diễn tập `27/08` trượt **đúng 1/8 ca** ở chính
+ranh giới này: block nghi lễ đóng dấu **đúng ngay mốc**, nên theo `>` thì Block Adam lại là block
+của **Eva**. Toàn bộ khoảng cách giữa trúng và trượt là một dấu `=`.
+
+### Vì sao "C1 đã công bố" là lý lẽ đủ, chứ không phải nhượng bộ
+
+Hai chain kể **một** câu chuyện. Ba tài liệu khắc trên C1 **trùng byte tuyệt đối** với bản khắc
+A1 (`7e89adee…`, `19f90a3178…`, `747ebe59…` khớp `docs/engrave/CANON.txt`), nên người đọc sẽ đối
+chiếu chéo hai trang — và **hai phép so cho hai câu trả lời khác nhau về cùng một block** là thứ
+họ sẽ tìm ra, không phải thứ ta giấu được. Giữa hai bản đúng ngang nhau, bản **đã đến tay người
+đọc** là bản thắng: đổi nó là viết lại một lời đã hứa; đổi bên chưa hứa thì không mất gì.
+
+Cộng thêm một điểm về chiều rủi ro: `>=` **rộng hơn** `>`, nên chuyển sang bao gồm chỉ làm nghi lễ
+**dễ trúng hơn**, không bao giờ khó hơn. Sàn `--offset-ms 3000` (đạt 9/9 lượt `27/08`) nay là
+**dư an toàn**, không còn là mép.
+
+### Đã đổi ở đâu — ba nơi, cùng một lượt
+
+| Nơi | Đổi |
+|---|---|
+| `local-net/faucet/ceremony-9s-union.mjs` | `inclusive` từ **mặc định** thành **LUẬT**; `--boundary strict` **giữ lại chỉ để ĐO** bản đọc đã nghỉ, và lượt chạy tự in ra dòng nói thế |
+| `local-net/faucet/block-adam-drill.mjs` | `blockĐầuTiênVượtMốc` và ô lưu ý: `>` → **`>=`** |
+| `docs/block-adam/CANON.txt` | mục bất đồng chuyển sang **ĐÃ GIẢI QUYẾT**, giữ nguyên lý lẽ |
+
+⚠️ **Không đụng bản chấm 7/1 trong vật chứng `27/08`.** Nó được chấm dưới luật chặt, và nó là
+**câu kể về quá khứ** — sửa nó là viết lại lịch sử để cho gọn mắt (§2). Nó vẫn là bằng chứng
+mạnh nhất cho biết vì sao ranh giới này phải được chốt bằng một quyết định.
+
+⚠️ **Phía C1 không phải đổi gì.** A1 lấy cái C1 đã công bố — đó là toàn bộ nội dung của quyết định.
+
+### Còn treo, và nó KHÁC quyết định này
+
+Nội dung **giao dịch Adam và Eva** vẫn chưa ai khai ở đâu (D-146 §treo 1). Chốt ranh giới **không**
+chốt hộ chuyện đó.
