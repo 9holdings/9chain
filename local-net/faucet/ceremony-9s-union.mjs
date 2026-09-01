@@ -416,16 +416,49 @@ async function runCeremony(chain, {
 // ───────────────────────────── background traffic probe ─────────────────────────────
 
 /**
- * How fast does the chain make blocks when WE are not sending anything? On a quiet chain the
- * answer is zero and the ceremony's arithmetic holds. Anything above zero means another producer
- * can take the anchor slot mid-run — or Block Adam itself — and no lock anywhere can stop it.
+ * 🔴 HOW FAR AWAY IS THE NODE, IN BLOCKS?
+ *
+ * 🔴 AND THE FIRST ANSWER TO THIS QUESTION WAS WRONG BY A FACTOR OF SEVEN, MEASURED THE SAME HOUR.
+ *
+ * Five `curl` calls from the dev machine through Cloudflare read **0.76 – 2.94 s** each, which
+ * says one round trip costs an entire block (~2s floor) and that racing for a slot is hopeless
+ * from here. Then this function — same machine, same hostname, same minute — measured a median of
+ * **309 ms** (292–312).
+ *
+ * The difference is not the network. `curl` opens a NEW TLS connection every invocation and pays
+ * ~0.5s of handshake plus a cold path; ethers keeps the connection alive, so only the first call
+ * pays that. The 2.9s figure measured **the tool**, not the link — the same shape as 9Scan's own
+ * caveat that their 1.4–2.3s reading was "the measurer's geography penalty", and the same shape
+ * as this project's most expensive failure class: *measuring the wrong quantity*.
+ *
+ * ⇒ What actually holds, at ~310 ms per call against a ~2s block floor (one call ≈ 0.15 blocks):
+ *   · Deterministic mode on a quiet chain: comfortable. Each filler is ~3 round trips ≈ 1s, so
+ *     eleven transactions land in roughly a minute, dominated by block time rather than by us.
+ *   · Racing an exact slot on a chain that produces its own blocks: possible but not safe —
+ *     detect + send is ~0.6s of a ~2s window, with no second attempt if it slips.
+ *   · The offset (B-13(b)): still measure it over the connection the ceremony will actually use,
+ *     and keep it warm. A cold first call would put half a second of handshake inside the number.
+ *
+ * A direct tunnel to the node (`--rpc http://127.0.0.1:<port>/ext/bc/C/rpc`, the M11.10 pattern —
+ * key stays on the dev machine, traffic bypasses Cloudflare) is still the better link, and the
+ * 9–77 ms 9Scan measured from inside the server is what it would buy. This function measures the
+ * link and the traffic and says which mode they support, rather than leaving it to the day.
  */
 async function probeBackground(chain, seconds, log = console.log) {
+  const rtts = [];
+  for (let i = 0; i < 5; i++) {
+    const t0 = Date.now();
+    await chain.blockNumber();
+    rtts.push(Date.now() - t0);
+  }
+  rtts.sort((a, b) => a - b);
+  const rttMedian = rtts[Math.floor(rtts.length / 2)];
   const start = await chain.blockNumber();
+  log(`  round trip to the node: median ${rttMedian} ms (${rtts[0]}–${rtts[rtts.length - 1]} ms)`);
   log(`  measuring background block production for ${seconds}s (head ${start})…`);
   await sleep(seconds * 1000);
   const end = await chain.blockNumber();
-  return { start, end, blocks: end - start, seconds };
+  return { start, end, blocks: end - start, seconds, rttMedian, rtts };
 }
 
 /** Wait for a wall-clock instant, tightening as it approaches. Precision is the product here. */
@@ -662,6 +695,16 @@ async function main() {
   console.log("\n── background traffic ──");
   const bg = await probeBackground(chain, QUIET_PROBE_S);
   console.log(`  ${bg.blocks} block(s) in ${bg.seconds}s with nothing sent by us`);
+  // ~2s is the C-Chain block floor. A round trip of that order means one call costs one block.
+  if (bg.rttMedian >= 500) {
+    console.log(`  🟡 the node is ${bg.rttMedian} ms away — about ${(bg.rttMedian / 2000).toFixed(2)} block(s) per call.`);
+    console.log("     Deterministic mode still holds (every step waits for its receipt), it is just");
+    console.log("     slower. Hitting an exact slot on a chain that produces its own blocks needs a");
+    console.log("     direct tunnel to the node (M11.10), not the public hostname through Cloudflare.");
+    if (bg.blocks > 0) {
+      console.log("  🔴 SLOW LINK **AND** A BUSY CHAIN. This combination cannot hit an exact block.");
+    }
+  }
   if (bg.blocks > 0) {
     console.log("  🔴 ANOTHER PRODUCER IS ACTIVE. Block numbers are the ceremony's arithmetic and");
     console.log("     nothing can reserve one: a stranger's transaction can take Block Adam itself or");
