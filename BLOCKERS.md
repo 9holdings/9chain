@@ -6,6 +6,81 @@ Việc kẹt / cần người thật. Ghi vào đây rồi **đi làm việc kh�
 
 ## Đang mở
 
+### ✅ B-21 — KHOÁ RIÊNG CỦA **g1** NẰM TRẦN TRONG `%TEMP%` 16 GIỜ, VÀ CỔNG CANH **KHÔNG MỞ TỆP** — ĐÃ ĐÓNG `2026-09-01 08:26Z`
+
+**Tìm ra vì David bảo dọn 18 tệp rác — không phải vì cổng nào kêu.** Lượt dọn quét theo **khoá**
+chứ không theo **tên tệp**, và ra **19** tệp thay vì 18. Hai tệp thừa không phải rác:
+
+```
+tasks/bwqedv5wo.output  31/08 16:07  →  586d9bb2aa9d = g1/chain-factory-key.txt
+tasks/b3mz7nceq.output  31/08 16:34  →  9bae6ed071f4 = g1/faucet-vanity-key.txt
+```
+
+🔴 Đây là khoá của **thế hệ SẮP SINH RA**, không phải thế hệ vừa chết. Sau giờ G, `chain-factory`
+trả phí cho **mọi lượt đẻ chain của người dùng** và `faucet` là ví **phát tiền**. Chúng sắp giữ
+tiền, không phải vừa hết giữ tiền.
+
+**Vì sao trực giác *"làm lại từ đầu nên không sao"* sai ở đây:** re-genesis xoá **DỮ LIỆU**, không
+xoá **KHOÁ**. Khoá nằm trên đĩa và sống qua mọi lượt sinh lại — chính là D-117b (khoá factory tái
+dùng xuyên thế hệ ⇒ bản lưu mạng đã chết vẫn cầm quyền chi trên mạng đang sống).
+
+#### 🔴 Gốc rễ — và nó KHÔNG phải điều tôi đoán lần đầu
+
+Chẩn đoán đầu của tôi: *"cổng chấm VÀNG vì bộ quỹ sống neo vào g0"*. **SAI.** `discoverFundSets()`
+nạp đủ cả hai khoá g1, và khâu phân loại đúng. Gốc rễ nằm ở **`check-key-leaks.mjs:210`**:
+
+```js
+if (!TEXT_EXT.has(path.extname(e.name).toLowerCase())) continue;
+// TEXT_EXT = .txt .md .json .env .key .bak .csv .log .yml .yaml ""
+```
+
+`.output` không có trong danh sách ⇒ **cổng chưa bao giờ MỞ hai tệp đó**. Nó không cân nhắc rồi
+kết luận vô hại — **nó không nhìn**. Cổng in `✅ PASS` suốt 16 giờ.
+
+**Đây là đúng cái sai mà phần đầu chính tệp đó cảnh báo, ở một tầng cao hơn.** Nó khăng khăng
+chấm **một KHOÁ** chứ không chấm **chữ "key"** — nội dung trên tên — rồi lại **chọn tệp nào để
+đọc BẰNG TÊN**. Khoá không quan tâm tệp tên là gì. *Thứ quyết định **có nhìn hay không** tuyệt
+đối không được phụ thuộc vào tên tệp.*
+
+Kèm: `HANDOFF` ghi *"log tạm trong `%TEMP%` đã `shred -u -n 3` **ngay trong phiên tạo ra chúng**"*.
+Đúng với log mà phiên đó **biết**; sai với bản thứ hai mà **harness tự ghi** ra `tasks/*.output`.
+Dọn đúng thứ mình biết, sót thứ mình không biết.
+
+#### Đã làm
+
+**Dọn** — `shred -u -n 3` **19/19**, `0` còn lại, quét lại toàn bộ `%TEMP%` của dự án ra **rỗng**,
+và một **ca đối chứng dương** (tệp mồi mang khoá giả) chứng minh phép quét thật sự hoạt động —
+chứ không phải rỗng vì hỏng.
+
+**Vá cổng** — `TEXT_EXT` (cho phép theo đuôi) → **`BINARY_EXT` (chặn nhị phân)**: mở mọi tệp dưới
+`MAX_BYTES` trừ định dạng không thể mang cb58 ở dạng đọc được, rồi để `body.includes(MARKER)`
+quyết định. Công cụ mới đẻ ra đuôi mới ngày mai **được canh mặc định** thay vì được miễn trừ im lặng.
+
+**Đối chứng ngược** — self-test **8 → 10 ca**, hai ca mới:
+- 🔴 khoá quỹ sống trong tệp đuôi **`.output`** ⇒ **phải 1 (ĐỎ)** — dưới mã cũ ca này ra **0**.
+- tệp `.zip` ⇒ **phải 0** — nếu không thì *"nay đọc hết"* chỉ là cách nói khác của *"bộ lọc không làm gì"*.
+
+**10/10 đạt.** Bằng chứng mạnh nhất rằng nó đỏ **vì đúng lý do** không phải ca dựng ra, mà là
+**quan sát thật**: cổng cũ đã in `PASS` trong lúc hai tệp đó nằm ngay đó.
+
+**Chạy thật sau khi vá:** `exit 0` · **4 phút 37 giây** (mở nhiều tệp hơn hẳn) · 5 mục 🟡 mới, tất
+cả là **khoá test CÔNG KHAI của avalanchego** (`genesis_local.go`, `secp256k1_test.go`) trong
+worktree `audit` + một tệp của **dự án khác**. Không mục nào thuộc A1.
+
+#### Mức độ thiệt hại — đừng thổi phồng
+
+Phơi nhiễm **cục bộ**: `%TEMP%` trên máy dev, ACL chỉ `SYSTEM`/`Administrators`/`abc`, **không ra
+mạng**, và **chưa ví nào có tiền** (g1 chưa tồn tại). ⇒ Shred là biện pháp **đủ và đúng tỷ lệ**;
+không sinh lại khoá — hai ví số đẹp đó tốn `52m36s` và `1h14m45s` để dò ra, không kịp trước giờ G.
+
+#### 🟡 Còn lại, chưa làm
+
+`ALLOWED` nhận ra *"khoá test công khai của avalanchego"* cho bản trong repo chính nhưng **không**
+cho bản y hệt trong worktree `9Chain-A1-audit`. Vô hại (khoá công khai của upstream), nhưng là một
+lỗ phạm vi — mỗi lượt chạy sẽ có 4 mục vàng không bao giờ tự hết. Sau ngày G.
+
+---
+
 ### 🔴 B-20 — KHÔNG BẢN LƯU NÀO CHỨA DANH TÍNH VALIDATOR CỦA MẠNG ĐANG CHẠY (2026-08-28)
 
 **Lộ ra khi đo gói lưu `20260825` trước lúc xoá nó** (D-117c). Không phải suy đoán — đếm tệp:
