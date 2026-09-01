@@ -61,23 +61,41 @@ const GO_SUPPLY_CAP = new URL(
   import.meta.url,
 );
 
-function docSupplyCapTuGo() {
+/**
+ * Đọc MỘT trường `<Tên>: <số> * units.<đơn vị>,` trong `genesis_9chain_a1.go`.
+ *
+ * 🔴 VÌ SAO ĐÂY LÀ HÀM CHUNG CHỨ KHÔNG PHẢI RIÊNG CHO `SupplyCap` (2026-09-01):
+ * bản đầu chỉ đọc `SupplyCap` từ Go, còn `minValidatorStake` / `maxValidatorStake` nằm trong
+ * mốc so dưới kia dưới dạng **số chép tay**. Tệp này tự khai *"số học tokenomics, đọc THẲNG từ
+ * Go"* — và ở đúng hai dòng đó nó đọc từ trí nhớ.
+ *
+ * Lộ ra ở lượt hạ rào cản validator `25.000 → 81` (D-143/patch 0027): Go đổi, bản chép tay
+ * **không**, và **không cổng nào kêu** — vì phép so duy nhất dùng tới nó
+ * (`selfBondMoiNode ≥ minValidatorStake`) đúng với **cả hai** giá trị (999.999 ≥ 25.000 và
+ * ≥ 81). Một hằng số chết nằm im trong một cổng đang xanh, chờ tới lần đổi sau mới cắn.
+ * Đúng hình dạng **D-124**: hằng số neo vào một thời điểm thì mù đúng vào lúc thời điểm đó đổi.
+ */
+function docTruongTuGo(ten) {
   let src;
   try {
     src = readFileSync(GO_SUPPLY_CAP, "utf8");
   } catch (e) {
     return { love9: null, vi: `không đọc được ${GO_SUPPLY_CAP.pathname}: ${e.code ?? e.message}` };
   }
-  // Chỉ khớp DÒNG GÁN, không khớp chú thích: neo `SupplyCap:` ở đầu dòng (sau
-  // khoảng trắng) và đòi dấu phẩy cuối. Khối chú thích phía trên nhắc `SupplyCap`
-  // nhiều lần; khớp nhầm vào đó là đọc ra số của một ví dụ.
-  const m = src.match(/^\s*SupplyCap:\s*([0-9_]+)\s*\*\s*units\.(Avax|KiloAvax|MegaAvax)\s*,/m);
+  // Chỉ khớp DÒNG GÁN, không khớp chú thích: neo tên ở đầu dòng (sau khoảng trắng) và đòi dấu
+  // phẩy cuối. Khối chú thích phía trên nhắc các tên này nhiều lần; khớp nhầm vào đó là đọc ra
+  // số của một ví dụ.
+  const m = src.match(
+    new RegExp(`^\\s*${ten}:\\s*([0-9_]+)\\s*\\*\\s*units\\.(Avax|KiloAvax|MegaAvax)\\s*,`, "m"),
+  );
   if (!m) {
-    return { love9: null, vi: "không tìm thấy dòng gán `SupplyCap: <số> * units.<đơn vị>,`" };
+    return { love9: null, vi: `không tìm thấy dòng gán \`${ten}: <số> * units.<đơn vị>,\`` };
   }
   const so = BigInt(m[1].replace(/_/g, ""));
   return { love9: so * HE_SO_UNITS[m[2]], vi: `${m[1]} * units.${m[2]}` };
 }
+
+const docSupplyCapTuGo = () => docTruongTuGo("SupplyCap");
 
 const SUPPLY_CAP_GO = docSupplyCapTuGo();
 
@@ -299,8 +317,12 @@ export const BANG = {
   },
   soNode: 9,
   selfBondMoiNode: 999_999n,
-  minValidatorStake: 25_000n,
-  maxValidatorStake: 625_000_000n,
+  // 🔴 ĐỌC TỪ Go, KHÔNG CHÉP. Xem `docTruongTuGo` để biết vì sao — hai dòng này từng là số
+  // chép tay và đã lạc hậu im lặng ở lượt hạ rào cản `25.000 → 81` (D-143).
+  // `?? 0n` là CHỦ Ý: đọc hỏng ⇒ 0 ⇒ mọi phép so `≥` vẫn chạy, và ca "không đọc được Go" ở
+  // `chayDinhDanh` mới là chỗ báo đỏ chuyện đó — đừng để nó nổ hai lần ở hai nơi.
+  minValidatorStake: docTruongTuGo("MinValidatorStake").love9 ?? 0n,
+  maxValidatorStake: docTruongTuGo("MaxValidatorStake").love9 ?? 0n,
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
