@@ -1,4 +1,9 @@
+<!-- doc-drift: record -->
 # NGÀY G `2026-09-01` — BẢY THỨ KHÔNG NẰM TRONG RUNBOOK NÀO
+
+> ⚫ **BẢN GHI — viết TRƯỚC ngày G, giữ nguyên văn.** Ngày G đã chạy `2026-09-01 09:26Z`. Mạng
+> đang chạy là **`g1`, networkID `999999998`** — mọi `9001` / `g0` dưới đây là **số của lúc
+> viết**, đúng ở thời điểm của chúng. Số đang dùng: [`docs/ALLOCATION-PUBLIC.md`](ALLOCATION-PUBLIC.md).
 
 > 🔴 **ĐÍNH CHÍNH `2026-08-30` — lượt diễn tập đề xuất ở §2 ĐÃ CHẠY, và nó bác hai điều trong
 > chính tệp này.** Đọc `DECISIONS.md` **D-123→D-128**. Ba thay đổi:

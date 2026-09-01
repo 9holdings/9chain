@@ -28,6 +28,7 @@
 ✅ **The faucet can fund a validator, and that is deliberate.** It hands out **9 LOVE9** per
 request, so **nine requests** cover the whole 81-LOVE9 bond. Nothing to apply for, nobody to ask.
 
+<!-- stale-ok: past tense, and it names its date -->
 *(Until 2026-09-01 this barrier was 25,000 LOVE9. At 10 LOVE9 per request that was roughly 500
 hours of uninterrupted asking — not a slow path, no path at all. The number is compiled into the
 node binary and therefore fixed for the life of the network, so it was changed in the hours

@@ -1,6 +1,15 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-01 chiều** — phiên **HẬU PHÓNG**: ① cổng mới canh **lịch sử git** trước lượt
+Cập nhật: **2026-09-01 chiều (muộn)** — 🔴 **BẢNG PHÂN BỔ CÔNG KHAI LÀ BẢNG CỦA MẠNG ĐÃ XOÁ**, và
+phát hiện **đến từ 9Chain-BOD** chứ không từ cổng nào của A1 (D-150): `docs/ALLOCATION-PUBLIC.md`
+khai `networkID 999999999` (g0, chết `09:26Z` sáng đó) **sau khi repo đã công khai** — Foundation
+khai **1 tỷ**, đo trên chain sống ra **0**. Đã chép bảng `g1` về (`o1-check --rpc` **cả hai nửa
+xanh**), bản g0 sang `archive/` kèm bia mộ, và dựng cổng **`check-doc-drift.mjs`** — thứ lẽ ra
+phải có từ lần re-genesis đầu. Preflight nay **30 cổng**. Kèm: **D-149 viết bù** (cửa sổ yên tĩnh
+`09/09` — đã bị ba nơi trích dẫn mà chưa ai viết ra).
+🟢 **Mở lại đẻ chain L1: ba việc, cả ba là việc có người bấm** — sổ chainId lên server → nạp ví
+factory (X→P) → bật cờ. Nghi lễ `09/09` **không** chặn việc này (P-Chain ≠ C-Chain).
+Trước đó cùng ngày — phiên **HẬU PHÓNG**: ① cổng mới canh **lịch sử git** trước lượt
 bật repo công khai (D-145) — **0 vật liệu khoá trong 2.349 object** ② **kịch bản nghi lễ `09/09`**
 (D-146, 11 đối chứng, chạy khô mặc định) ③ **D-147: ranh giới Block Adam = BAO GỒM** (`ts >= mốc`),
 lấy theo cái C1 đã công bố. Hai đỏ còn lại đều là việc David (ví `chain-factory` 0 đồng · console
@@ -27,7 +36,7 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
 ```bash
-node scripts/gday-preflight.mjs      # 28 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
+node scripts/gday-preflight.mjs      # 30 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
 # ⚠️ Nó VẪN in 38 việc tay, nhưng 7 cái ĐÃ XONG — preflight không biết. Đừng làm lại:
 #   #10 #11 (bump A1Gen) · #14 #15 #17 (build + ship + --build-arg, OVH)
 #   + CHỞ IMAGE SANG HETZNER  (xong 2026-09-01, nghiệm thu 3 mỏ neo trên chính máy đó)
@@ -1201,8 +1210,9 @@ ngày G (D-087).
 
 **Cây fork: tree `f2b9486b` · 25 patch trên `1cf1fc3`** (đổi `28/08`: patch 0025 đổi tên
 công cụ `kiem-khoa`→`check-keys`; áp 24/25 vẫn ra `074aaa93`).
-🔴 **`stale-ok` — SỐ CỦA `28/08`, GIỮ ĐỂ ĐỐI CHIẾU.** Hôm nay là **26 patch / `60a61707`**, đối
-chứng **25/26 → `f2b9486b`** (bump `A1Gen` nằm trong patch 0018, D-123). Đoạn dưới đây kể chuyện
+🔴 **`stale-ok` — SỐ CỦA `28/08`, GIỮ ĐỂ ĐỐI CHIẾU.** Hôm nay (`01/09` chiều) là **27 patch /
+`38723877`**, đối chứng **26/27 → `60a61707`** (bump `A1Gen` nằm trong patch 0018, D-123; patch
+0027 hạ `MinValidatorStake` về 81 LOVE9). Đoạn dưới đây kể chuyện
 `28/08`; đừng đọc nó thành trạng thái hiện tại. Số hiện tại ở mục phiên đầu tệp và ở `CLAUDE.md`.
 ⚠️ **Image `9chain-a1/node:g0` đang chạy vẫn là bản 18 patch.** Patch 0019–0024 chỉ đụng **công
 cụ** (SDK ví, netgen, `kiem-khoa`), không đụng node — chúng vào image ở lượt build ngày G.
@@ -1506,31 +1516,35 @@ node local-net/console/chainid-test.mjs
 node local-net/lib/cb58.mjs --self-test
 node scripts/check-chainid.mjs
 
-# Tái lập cây fork (26 patch → tree 60a61707; đối chứng 25/26 → f2b9486b)
+# Tái lập cây fork (27 patch → tree 38723877; đối chứng 26/27 → 60a61707)
 # 🔴 Preflight đã chạy CẢ HAI vế tự động — chạy tay chỉ để soi khi nó đỏ.
 cd upstream/avalanchego && git worktree add --detach /tmp/tl 1cf1fc3
 cd /tmp/tl && git am --keep-cr ../../patches/*.patch && git rev-parse HEAD^{tree}
 
-# Số dư ví chain-factory (đẻ chain chết câm khi cạn) — chưa có giám sát, phải nhớ tự đo
+# Số dư ví chain-factory (đẻ chain chết câm khi cạn)
+# 🔴 ĐỊA CHỈ THEO THẾ HỆ. Dưới đây là ví g1. Ví g0 (`P-love91vgh2wh…`) nay giữ 0 và KHÔNG báo lỗi
+#    — hỏi nhầm nó ra "0 đồng", đúng về địa chỉ được hỏi, vô nghĩa về mạng. Đừng nạp tiền vào đó.
+#    Đường đúng: `node scripts/watch-network.mjs` (nó tra bảng ví theo A1Gen, D-117b).
 curl -s -X POST -H 'content-type:application/json' \
-  --data '{"jsonrpc":"2.0","id":1,"method":"platform.getBalance","params":{"addresses":["P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj"]}}' \
+  --data '{"jsonrpc":"2.0","id":1,"method":"platform.getBalance","params":{"addresses":["P-love91999h0q4ucfnex9q0qxefuu0ke0xtyvl6739999"]}}' \
   https://rpc-a1.9chain.org/ext/bc/P
+
+# 🔴 Tài liệu có khai số của thế hệ đã chết không (D-150) — cổng DUY NHẤT đọc văn xuôi
+node scripts/check-doc-drift.mjs
 ```
 
 ⚠️ **Luật cứng của repo** *(đã trả giá để học)*:
 1. **Không tin mã HTTP.** Thang đo: mã HTTP → `content-type` → **nội dung** → header tầng trước.
 2. **Mọi cổng mới phải được nhìn thấy lúc nó ĐỎ.** Chưa có đối chứng ngược = mới kiểm một nửa.
 3. **Đụng `patches/` là đụng đường tái lập fork** — sinh `--no-signature`, nghiệm thu
-   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`60a61707`** / **26 patch**
-   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **25/26** phải ra đúng **`f2b9486b`**.
-   *(Mốc cũ `f2b9486b`/25 và `074aaa93`/24 còn nằm trong các mục phiên `28–29/08` bên trên —
+   `git am --keep-cr` + so tree. **Sinh lại CẢ BỘ.** Tree hiện tại: **`38723877`** / **27 patch**
+   / gốc `1cf1fc3`. Đối chứng ngược rẻ mà mạnh: áp **26/27** phải ra đúng **`60a61707`**.
+   *(Mốc cũ `f2b9486b`/25–26 và `074aaa93`/24 còn nằm trong các mục phiên `28–30/08` bên trên —
    đó là **câu kể về quá khứ**, đúng ở thời điểm của chúng, đừng sửa hàng loạt.)*
-   ⚠️ **Image `9chain-a1/node:g0` ĐANG CHẠY vẫn là bản 18 patch** — 0019 đụng SDK ví, 0020 đụng
-   netgen; cả hai là CÔNG CỤ, không đụng node. Tree của repo ≠ tree trong image cho tới ngày G.
-   🔴 **Và image ngày G — `9chain-a1/node:g1`, `commit=9chain-a1-g1-26patch-60a61707` — CHỈ CÓ
-   TRÊN MÁY DEV.** Server không có nó, và cây fork trên server là ảnh chụp **không phải git repo,
-   vẫn ở `A1Gen 0`** ⇒ build ở đó ra binary thế hệ chết mang nhãn `:g1`. `docker save`/`load`,
-   rồi đo `--version` **TRÊN SERVER**. Đo `31/08` — xem mục phiên đầu tệp.
+   ✅ **Image `9chain-a1/node:g1` ĐANG CHẠY trên cả hai máy**, binary tự khai
+   `gitCommit 9chain-a1-g1-27patch-38723877` — tức repo tree, patch count và **binary đang phục
+   vụ người dùng** là **ba phép đo độc lập cùng khớp**. Đây là trạng thái hiếm: giữ nó bằng cách
+   sinh lại CẢ BỘ patch mỗi lần đụng, không bao giờ nối thêm một patch.
 4. **Chỉ MỘT phiên được deploy.** Worktree web ở `C:\PROJECTS\9Chain-A1-web` (nhánh `web-home`)
    — 🔴 **Caddyfile ĐANG CHẠY đến từ nhánh đó**, không phải `main`. Deploy từ `main` sẽ xoá công
    việc của phiên web (cổng D-075 nay chặn, nhưng đừng dựa vào nó).

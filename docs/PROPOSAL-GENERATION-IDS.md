@@ -1,4 +1,11 @@
+<!-- doc-drift: record -->
 # ĐỀ XUẤT — BỘ ĐỊNH DANH THEO THẾ HỆ (trả lời §5 a/b/c của bản chuyển giao `9chain-a1-eb`)
+
+> ⚫ **BẢN GHI — đề xuất này ĐÃ ĐƯỢC CHỐT (D-076, `2026-08-27`) và đã chạy qua HAI thế hệ.**
+> Giữ nguyên văn vì nó là **lý lẽ** đằng sau bộ định danh, và lý lẽ thì không cũ đi. Nhưng mọi
+> ví dụ trong đây viết ở thời `g0`: hôm nay `A1Gen = 1`, tên mạng **`9chain-a1-g1`**, networkID
+> **`999999998`**. Quy tắc thì bất biến: `networkID = A1IDGoc − A1Gen`, chainId mẹ `9000000009`
+> **cố định mọi thế hệ**.
 
 > Ba câu để mở: **(a)** có chia dải L1 thành khối thế hệ không · **(b)** tên mạng · **(c)** có
 > khối `networkID` riêng cho mạng tập không.
