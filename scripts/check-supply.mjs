@@ -73,6 +73,26 @@ const NANO = 1_000_000_000n;
 export const toLove9 = (nano) => `${(nano / NANO).toLocaleString("en-US")}.${String(nano % NANO).padStart(9, "0")}`;
 
 /**
+ * Which heading marks which column.
+ *
+ * 🔴 Parameterised, and not for elegance. The published table is Vietnamese, so the defaults must
+ * match Vietnamese headings — but a counter-check fixture that copied those headings would put
+ * Vietnamese into a new source file, which CLAUDE.md section 0 forbids. Removing the accents from
+ * the fixture to slip past that gate would be worse than either: the fixture would stop resembling
+ * the document it claims to model, and a later tightening of these patterns would not fail a
+ * single case. So the LOGIC is proven against an English fixture and the real Vietnamese defaults
+ * are exercised by the real run.
+ *
+ * The patterns deliberately stop before the accented characters (`thanh kho`, `kho`), which is why
+ * they match `X/P thanh khoản` and `X/P khoá` without carrying an accent themselves.
+ */
+export const COLUMNS = {
+  liquid: /X\/P\s+(?:thanh\s+kho|liquid)/i,
+  locked: /X\/P\s+(?:kho|locked)/i,
+  notLiquid: /thanh|liquid/i,
+};
+
+/**
  * Sum the X/P columns of the published table.
  *
  * 🔴 BY COLUMN HEADING, never by position. The table has ten columns and gains more over time; a
@@ -80,10 +100,9 @@ export const toLove9 = (nano) => `${(nano / NANO).toLocaleString("en-US")}.${Str
  * it would still print a total, which is the worst way for this to fail.
  *
  * Both X/P columns count: locked LOVE9 is issued LOVE9. `currentSupply` does not care that
- * something is on an unlock schedule — that was the whole point of the C-Chain footnote in
- * TOKENOMICS section 5.
+ * something sits on an unlock schedule.
  */
-export function sumAllocationTable(md) {
+export function sumAllocationTable(md, cols = COLUMNS) {
   const rows = md.split(/\r?\n/).filter((l) => l.trim().startsWith("|"));
   if (rows.length < 3) return { error: "no markdown table found" };
 
@@ -91,14 +110,14 @@ export function sumAllocationTable(md) {
   let header = null, headerAt = -1;
   rows.forEach((r, idx) => {
     const c = cells(r);
-    if (header === null && c.some((x) => /X\/P\s+thanh\s+kho/i.test(x)) && c.some((x) => /X\/P\s+kho/i.test(x))) {
+    if (header === null && c.some((x) => cols.liquid.test(x)) && c.some((x) => cols.locked.test(x))) {
       header = c; headerAt = idx;
     }
   });
   if (header === null) return { error: "no header row carrying both X/P columns" };
 
-  const liquid = header.findIndex((x) => /X\/P\s+thanh\s+kho/i.test(x));
-  const locked = header.findIndex((x) => /X\/P\s+kho/i.test(x) && !/thanh/i.test(x));
+  const liquid = header.findIndex((x) => cols.liquid.test(x));
+  const locked = header.findIndex((x) => cols.locked.test(x) && !cols.notLiquid.test(x));
   if (liquid < 0 || locked < 0) return { error: "could not locate both X/P columns" };
 
   let total = 0n;
@@ -221,12 +240,14 @@ async function selfTest() {
 
   console.log("\n══ COUNTER-CHECK — check-supply ══\n");
 
+  // English mirror of the published table's SHAPE. The real Vietnamese headings are matched by the
+  // same COLUMNS patterns and are exercised by the real run — see the note on COLUMNS.
   const table = [
-    "| Hạng mục | Quỹ | % | Tổng (LOVE9) | X/P thanh khoản | X/P khoá | Mở khoá |",
+    "| Bucket | Fund | % | Total (LOVE9) | X/P liquid | X/P locked | Unlock |",
     "|---|---|--:|--:|--:|--:|---|",
-    "| Foundation | Self-bond | 12% | 8,999,991 | 0 | 8,999,991 | 1 nam |",
+    "| Foundation | Self-bond | 12% | 8,999,991 | 0 | 8,999,991 | 1 year |",
     "| Foundation | Foundation | 12% | 1,071,000,009 | 71,000,009 | 0 | — |",
-    "| Community | Locked | 30% | 2,600,000,001 | 0 | 2,600,000,001 | 2 nam |",
+    "| Community | Locked | 30% | 2,600,000,001 | 0 | 2,600,000,001 | 2 years |",
     "| Community | Faucet | 30% | 99,999,999 | 0 | 0 | — |",
   ].join("\n");
 
@@ -238,7 +259,7 @@ async function selfTest() {
     s.rows.length === 4, String(s.rows?.length));
   ok("🔴 an em-dash is not read as a number", !String(s.total).includes("NaN"), String(s.total));
   // 🔴 By heading, never by position: the table gains columns over time.
-  const shifted = table.replace("| Hạng mục | Quỹ |", "| Ghi chú | Hạng mục | Quỹ |").replace(/^\| (Foundation|Community) \|/gm, "| x | $1 |");
+  const shifted = table.replace("| Bucket | Fund |", "| Note | Bucket | Fund |").replace(/^\| (Foundation|Community) \|/gm, "| x | $1 |");
   ok("🔴 an inserted column does not shift the sum (columns found by HEADING)",
     sumAllocationTable(shifted).total === s.total, String(sumAllocationTable(shifted).total));
   ok("🔴 a table with no X/P columns is INCONCLUSIVE, not zero",
