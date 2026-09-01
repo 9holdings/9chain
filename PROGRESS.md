@@ -1804,3 +1804,47 @@ Phiên này **không backfill hộ**; mục đó vẫn nợ, và ghi ra đây đ
       mà netgen chỉ sinh nó ở giờ G. 🔴 **Điều kiện phải giữ suốt lượt bấm: ĐỪNG SHRED GÌ CỦA g0
       CHO TỚI KHI g1 XANH** — hỏng lượt sinh lại phải hoãn thì g0 là thứ duy nhất còn lại, và
       lúc đó tiền + khoá g0 **lại có giá trị trở lại**.
+
+### 🔵 SAU NGÀY G — sinh từ lượt quét `2026-09-01`, không cái nào chặn genesis
+
+- [ ] **Đổi tên ba công cụ còn mang tên upstream** (David hỏi `08:30Z`: *"nên đổi tên file hay
+      tên gì đó để mang bản sắc 9Chain nhiều hơn không?"*).
+      🔴 **Câu trả lời hôm đó là KHÔNG-phải-hôm-nay, và lý do là một phép đo, không phải sự thận
+      trọng:** mọi thứ **đóng băng vĩnh viễn lúc genesis đã mang tên 9Chain rồi** —
+      `A1Name "9chain-a1-g1"` · HRP **`love9`** (`P-love91…`) · bí danh tài sản **`LOVE9`**
+      (và `AVAX` bị từ chối có chủ ý) · chainId mẹ `9000000009` · khối L1
+      `9001000000–9001999999` · networkID `999999998` · địa chỉ khắc chữ `0x9000…0009` · binary
+      tự khai **`9chaingo/1.14.2`**. Không chỗ nào người dùng chạm vào là chữ mượn.
+      Thứ còn generic nằm trong `/9chain-a1/build/` và **không** đóng băng:
+      ```
+      9chain-a1-cli   ✓ đã mang tên
+      avalanchego     🔴 tên upstream — bề mặt "không phải 9Chain" lớn nhất còn lại
+      create-l1       ○ generic
+      xp-wallet       ○ generic
+      ```
+      ⇒ Đề xuất: `avalanchego` → **`9chaingo`** (chuỗi phiên bản **đã** dùng tên đó), `create-l1`
+      → `9chain-a1-create-l1`, `xp-wallet` → `9chain-a1-wallet`.
+      **Điều kiện qua:** image dựng lại chạy được, `--version` giữ nguyên `9chaingo/`, node lên
+      9/9, và `docs/RUN-A-VALIDATOR.md` + `GDAY-NODE10-HETZNER.md` đổi theo **cùng lượt** (chúng
+      gõ `./avalanchego` trong lệnh người ngoài dán vào terminal).
+      ⚠️ **Không chạm chain** — đây là tên TỆP, nên đổi hôm nay hay sau một tháng **chi phí y hệt**.
+      🔴 **Thứ DUY NHẤT là bây-giờ-hoặc-không-bao-giờ mà tôi vẫn khuyên không đụng:** tên sáu quỹ
+      (`staking · foundation · ecosystem · faucet · private-sale · team`) đóng băng theo genesis.
+      Đổi = sửa `newFund()` trong netgen ⇒ **`patches/`** ⇒ sinh lại cả bộ ⇒ build ⇒ ship hai máy
+      ⇒ đo lại ba mỏ neo (**lượt thứ hai trong một ngày**), và làm lệch `allocation.md` khỏi các
+      gói vật chứng + bản xuất O2 **đã công bố**. Đổi lấy sáu cái tên nội bộ người dùng gần như
+      không nhìn. Khác `MinValidatorStake` ở chỗ: cái đó vừa bất biến **vừa** chặn đúng mục đích
+      tồn tại của mạng; tên quỹ không phải cả hai.
+
+- [ ] 🟡 **`check-key-leaks` — lỗ phạm vi trong `ALLOWED`.** Nó nhận ra *"khoá test công khai của
+      avalanchego"* cho bản trong repo chính, nhưng **không** cho bản y hệt trong worktree
+      `C:\PROJECTS\9Chain-A1-audit\` và bản sao tạm của nó ⇒ mỗi lượt chạy in **4 mục 🟡 không bao
+      giờ tự hết** (`genesis_local.go`, `secp256k1_test.go` × 2 nơi). Vô hại về khoá (chúng công
+      khai trong repo upstream), nhưng **cảnh báo không bao giờ hết là cách nhanh nhất dạy người
+      ta lướt qua danh sách** — đúng lý lẽ D-070. Nới `ALLOWED` theo **nội dung nguồn** (tệp thuộc
+      cây `upstream/avalanchego`), đừng nới theo đường dẫn tuyệt đối của một worktree.
+
+- [ ] **Đo lại thời gian chạy `check-key-leaks`.** Sau lượt đổi allow-list → deny-list (B-21) nó
+      chạy **4 phút 37 giây** (mở nhiều tệp hơn hẳn). Chưa nằm trong `gday-preflight` (preflight
+      chỉ gọi `--self-test`), nên **hôm nay không tốn gì** — nhưng nếu sau này nối lượt quét đầy
+      đủ vào preflight thì con số đó phải được biết trước, không phát hiện giữa ngày G.
