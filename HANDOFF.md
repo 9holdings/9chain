@@ -1,6 +1,6 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-01 `07:20Z`** — phiên **SỐ ĐO + QUÉT TRƯỚC `down -v`**: H-6b ✅ ĐẠT hai nơi ·
+Cập nhật: **2026-09-01 `08:25Z`** — phiên **SỐ ĐO + QUÉT + D-143**: 🔴 **rào cản validator 25.000 → 81 LOVE9** (patch 0027, tree `38723877`, hai máy ship lại) · H-6b ✅ ĐẠT hai nơi ·
 preflight đầy đủ **22 đạt · 3 đỏ · 38 việc tay** (ba đỏ đúng dự kiến) · sổ chain 3 lệnh **0 thay
 đổi** · heartbeat đã dừng · 🔴 **hai lỗ ngày G tìm được và vá**: node9 Hetzner là **tiến trình trần
 giữ cổng 9651**, và `HEARTBEAT_STOP_AFTER` **nằm trong quá khứ** (`a229a99` · `6652f43`).
@@ -96,6 +96,56 @@ cả hai nằm ngoài mọi băng thế hệ sống. Dời **rồi so `sha256` t
 ⚠️ **Ghi chú sổ sách:** phiên SOÁT 3 VÒNG (`8ebae9e`→`cb3813f`) **không cập nhật `PROGRESS.md`** —
 7 phát hiện của nó chỉ sống trong `HANDOFF.md` + `DECISIONS.md`. Phiên này không backfill hộ;
 mục đó vẫn nợ.
+
+#### 🔴🔴 `07:25Z`–`08:20Z` — **D-143: RÀO CẢN VALIDATOR 25.000 → 81 LOVE9**, hai máy ship lại
+
+**David hỏi hơn hai tiếng trước genesis, và câu trả lời phải là HÔM NAY.** Phép đo quyết định là
+**con số nằm ở đâu**: `MinValidatorStake` ở `genesis/genesis_9chain_a1.go:129`, **netgen KHÔNG ghi
+nó vào `genesis.json`** (0 hit trên mọi `net*/genesis.json`) ⇒ **biên dịch vào binary** ⇒ **bất
+biến suốt đời mạng** kể từ lúc netgen chạy. Cửa sổ sửa rẻ đóng lại ở đúng ngày G.
+
+25.000 LOVE9 với faucet cấp 10/lượt, hạn 5/IP/giờ = **~500 giờ xin liên tục**, không đường nào
+khác. `PROGRESS.md` đã tự khai bằng chính chữ của nó: *"không phải đường chậm, mà là không có
+đường"*. **81 = 9 × 9**, chín lượt xin từ faucet cấp 9. Fuji của Avalanche dùng `1 * units.Avax`
+⇒ 81 vẫn cao **gấp 81 lần**. An toàn không đổi: 81 / 8.999.991 ≈ **0,0009%** stake.
+
+🔴 **`MinDelegatorStake` đi cùng, 312,5 → 9** — giữ nguyên là **uỷ quyền đắt gấp 3,9 lần tự chạy
+validator**, đóng băng vĩnh viễn. Ai đổi một trong hai số phải đổi cả hai.
+
+**Nghiệm thu — vì "build thành công" không nói gì về GIÁ TRỊ.** Tìm chính con số (uint64 LE) trong
+**cả hai** binary:
+
+```
+                                    binary MOI   binary CU
+  81e9   (81 LOVE9)                      1           0
+  9e9    (9 LOVE9)                       1           0
+  25e12  (25.000 LOVE9)                  0           1
+  625e15 (max — KHONG dung toi)          1           1   ⇦ ca doi chung trong cung phep do
+```
+
+Biên dịch **chạy thật** (`55,5s` + `25,0s` + `33,3s`; chỉ `WORKDIR` CACHED). Hai máy ship lại,
+**ba mỏ neo đo trên chính từng máy, trùng khít**:
+
+```
+commit=9chain-a1-g1-27patch-38723877
+sha256 2f733249037b90c6f6532f9159faed5071b17ded81a8d99fa760cb6192b57480
+g1=4 · LOVE9=2 · g0=0     (ca duong 4/2 · ca am 0 · command -v grep tu khai)
+duong lui: 9chain-a1/node:g1-26patch-60a61707 con tren CA HAI may
+```
+
+**Luật cứng #3: 26 → 27 patch · tree `60a61707` → `38723877`.** 26 patch cũ đổi đúng **26 dòng, toàn
+bộ là dòng đếm, 0 dòng nội dung**. 🔴 **`TREE_BEFORE_LAST` nay là `60a61707`** — tree fork đứng suốt
+hai ngày **VÀ** tree dựng ra image đã ship + nghiệm thu ba mỏ neo, tức con số lượt này **không thể
+tự đẻ ra**. Mỏ neo đối chứng mạnh nhất từ trước tới nay.
+
+🔴 **DÂY PHỤ THUỘC MỚI, đừng để đứt: 81 chỉ đúng nếu faucet cấp 9.** `FAUCET_AMOUNT` mặc định **10**,
+`FAUCET_MAX_PER_IP_HOUR` mặc định **5** ⇒ để nguyên thì chín lượt ra **90** và mất **hai giờ**.
+Không cái nào là lỗi sập, **không cổng nào canh env** ⇒ đúng hình dạng `A1_PUBLIC_RPC_BASE`. Đã
+thành điều kiện bắt buộc trong việc tay faucet; nghiệm thu bằng **đọc dòng khởi động** của faucet.
+
+`docs/RUN-A-VALIDATOR.md` đã theo: bảng tham số **81/9** · dựng lại fork **27 patch → `38723877`**,
+đối chứng **26/27 → `60a61707`** · và **một `FILL-ON-G-DAY` bị XOÁ chứ không điền** (11 → 10) — nó
+hỏi *"người ngoài lấy 25.000 LOVE9 ở đâu"*, câu hỏi đó **không còn tồn tại**.
 
 #### Chuỗi sổ chain + heartbeat — chạy `06:41Z`–`07:04Z`
 
