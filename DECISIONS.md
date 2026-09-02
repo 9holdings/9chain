@@ -6896,3 +6896,95 @@ do"*; ở đây là vế đắt hơn: **đỏ sai khiến người ta hành đ�
 `web-home` — **không có trên remote công khai** — nên `check-doc-drift` (đi theo `git ls-files`)
 **không bao giờ chạm tới thứ đang phục vụ người dùng**. Luật cứng #4: A1 không đụng. Đỏ này **phải
 ở lại nhìn thấy được** cho tới khi phiên kia ship.
+
+---
+
+## D-158 — **Vật chứng cũng là bề mặt công bố, và tệp cả thế giới cần thì không nằm trong repo nào** (`2026-09-02`)
+
+**Bối cảnh.** HANDOFF xếp *"phát hành `genesis.json`"* là chặn số 1, mô tả là **404** trên
+`a1.9chain.org/genesis.json`, và ghi *"tệp có sẵn ở `local-net/net-g1/genesis.json`"*. Đọc như một
+lượt tải lên chưa ai làm.
+
+🔴 **Đo `02/09`: trạng thái thật hẹp hơn và tệ hơn.** `local-net/net-g1/genesis.json`
+**không được git theo dõi**. `.gitignore` dòng 3 loại cả nhóm thư mục `local-net/net-*` — luật
+**đúng**, vì đó là nơi netgen ghi `keys.txt`, `staker.key`, `signer.key` — nhưng nó quét luôn
+**đúng một tệp trong đó vốn để công khai**. ⇒ Byte mà toàn bộ người ngoài cần để tồn tại trên mạng
+này nằm ở **đúng hai chỗ đang vận hành** (một máy dev, một máy chủ) và ở **không repo, không bản
+sao lưu, không release nào**. Mất một trong hai máy là mất khả năng đón người mới, **và không có
+gì nói ra điều đó**.
+
+### Vì sao ba cổng đều mù, mỗi cổng ĐÚNG với đại lượng của mình
+
+| cổng | vì sao không thấy |
+|---|---|
+| `check-deploy-drift` | so **repo ↔ server**. Tệp không được theo dõi thì **không có vế repo** để so |
+| `check-doc-drift` | đọc **văn xuôi** tìm số của thế hệ chết. Ở đây **số thì đúng**; cái sai là **VẮNG một URL** — và không cổng nào đo một sự vắng mặt |
+| `check-live-page` | đọc các trang **đang tồn tại**. Một 404 trên URL **chưa tài liệu nào hứa** thì không cổng nào có hình dạng để thấy |
+
+⇒ **Cùng họ với D-150 và D-154, thêm một bậc:** tài liệu là bề mặt công bố · **dữ liệu** cũng vậy ·
+và **vật chứng** cũng vậy. *"Đã phát hành"* là một **lời tuyên bố phải đo trên bề mặt công khai**,
+không phải một câu trong sổ bàn giao.
+
+### Quyết định
+
+1. **Chép sang đường được theo dõi** (`docs/genesis/genesis-g1.json`), **không** gỡ ignore thư mục.
+   Gỡ ignore là để vật liệu khoá cách chỗ công bố đúng một lệnh `git add`.
+2. **Tên tệp mang thế hệ, và bản đã phát hành KHÔNG BAO GIỜ bị ghi đè.** Re-genesis thì thêm
+   `genesis-g2.json` bên cạnh ⇒ đường dẫn ai đó đã lưu vẫn trỏ đúng byte họ đã nghiệm thu.
+3. **Đường phát hành là REPO CÔNG KHAI, không phải `web/`** — chính danh sách việc tay của
+   preflight đã chốt thế, và luật cứng #4 nói vì sao: `a1.9chain.org/genesis.json` đòi một dòng
+   trong `@trangmoi` của Caddyfile, mà Caddyfile đang chạy đến từ worktree `web-home`.
+4. **Vá chỗ hổng thật của tài liệu:** `RUN-A-VALIDATOR.md` in `sha256` từ lúc phóng nhưng
+   **chưa bao giờ khai nguồn tải**. Tệp và URL nằm **cùng một commit** ⇒ không có cửa sổ nào mà
+   tài liệu hứa một thứ chưa tồn tại.
+
+### 🔴 Bài về phép quét: regex không neo đọc ĐẦU của một giá trị dài hơn
+
+Lượt quét khoá đầu tiên trên `genesis.json` in ra **mười chuỗi 64-hex** — đọc như mười khoá riêng.
+Chúng là **64 ký tự đầu của khoá BLS 96 ký tự**. Neo lại (`(?![0-9a-fA-F])`) rồi **gộp theo độ
+dài** thì ra bức tranh thật: `9 × 48 byte` (publicKey) · `9 × 96 byte` (proofOfPossession) ·
+`7 × 20 byte` (địa chỉ) · `extraData` 32 byte · `mixHash`/`parentHash` = 0. **Không một bí mật
+32 byte nào.** BLS publicKey và PoP **công khai theo thiết kế** — mọi node phát chúng trong bắt
+tay P2P. ⇒ Suýt tự chặn mình bằng một **đỏ giả** ở đúng chỗ D-106b cảnh báo, chỉ khác là lần này
+đỏ giả đến từ **công cụ đo**, không từ cổng.
+
+### Cổng mới `scripts/check-genesis-published.mjs` — 6 phép đo, mỗi phép ở đúng nơi
+
+| câu hỏi | đo bằng | ở đâu |
+|---|---|---|
+| còn giữ byte, có phiên bản không? | `git ls-files` | REPO |
+| tài liệu khai đúng hash không? | đọc 3 tài liệu | TÀI LIỆU |
+| byte có tả **mạng đang chạy** không? | `info.getNetworkID` | NODE ĐANG CHẠY |
+| beacon ta quảng cáo có thật trong đó không? | `platform.getCurrentValidators` | CHAIN ĐANG CHẠY |
+| người lạ tải được không? | đúng URL tài liệu đưa họ | BỀ MẶT CÔNG KHAI |
+
+🔴 **`git ls-files`, không phải "có trên đĩa"** — *có trên đĩa* chính là trạng thái đã giấu lỗi này.
+🔴 **CẢ HAI CHIỀU (D-154).** Chỉ đo *"networkID của tệp khớp mạng sống"* thì cho qua một genesis
+đúng mạng nhưng liệt kê **staker không ai chạy**; chỉ đo *"beacon đang validate"* thì cho qua một
+beacon sống trên **mạng khác**. Cặp đôi mới nói được: **lối vào ta quảng cáo thuộc về chain ta
+quảng cáo**.
+🔴 **Chấm bằng NỘI DUNG, không bằng mã (luật cứng #1)** — băm thân trả về. `200` kèm trang lỗi HTML
+vẫn **trượt**; `200` rỗng cũng trượt; lỗi truyền tải là **không kết luận**, không phải lỗi.
+
+**Nghiệm thu: 27 đối chứng ngược + đối chứng DƯƠNG trên byte thật.** Chạy thật: **đỏ đúng MỘT
+bước** (tải công khai — 404 tới khi đẩy), năm bước kia xanh. Vì D-153 (*cổng không bao giờ xanh
+được thì đỏ không mang tin*), đã chĩa `--url` vào một host phục vụ **đúng byte** ⇒ **PASS**, rồi
+sang đường sai cùng host ⇒ **đỏ lại**. Cái đỏ hiện tại là **trạng thái sửa được**, và nó chỉ thẳng
+vào việc phải làm.
+
+Preflight: **40 → 42 mục**.
+
+### Kèm — bản ghi suýt bị xoá để làm vừa lòng một cổng
+
+`heartbeat.json.g0-20260901` trên server bị `check-deploy-drift` chấm **mồ côi** và HANDOFF xếp
+*"hình dạng B-17"*, tức **chờ xoá**. B-17 nói câu *"đã có bản lưu rồi nên xoá được"* là một
+**PHÉP ĐO**. Đo `02/09`: **repo không có bản nào** — `git ls-files | grep heartbeat` rỗng, tìm
+theo nội dung đặc trưng cũng rỗng.
+
+Tệp đó là **bản ghi duy nhất** của lượt bơm `g0`: **59 giờ · 1.910.316 giao dịch vào khối ·
+9,01 TPS đo được · dừng vì chạm hạn đã khai**, không vì sự cố. Tuyên bố *"nhịp sống 9 tx/s"* **đã
+công bố ra ngoài** ⇒ xoá vật chứng của nó để làm một cổng drift hết đỏ là **làm ngược**.
+⇒ Chép về `docs/archive/` (FROZEN) trùng byte trước; **sau đó** bản trên server mới được xoá.
+
+**Còn lại là việc có người bấm:** đẩy lên `official` (CÔNG KHAI, không thu lại được) là việc hỏi
+David — §4. Cổng sẽ tự chuyển xanh ngay lượt đẩy đó.
