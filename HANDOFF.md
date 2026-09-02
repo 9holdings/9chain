@@ -1,11 +1,12 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-02** chiều — 🟢 **CHẶN SỐ 1 NAY CÁCH MỘT LƯỢT ĐẨY** (D-158). `genesis.json`
-đã vào đường git theo dõi + tài liệu khai nguồn tải + cổng canh việc đó, **5 commit tại chỗ, chưa
-đẩy**. 🔴 Hoá ra không phải *"chưa ai tải lên"*: tệp **không được git theo dõi** — byte cả thế giới
-cần nằm ở **hai chỗ vận hành, không repo/sao lưu/release nào**. Preflight **38 đạt · 4 đỏ**
-(40→42 mục); đỏ thứ tư là cổng mới, **đỏ đúng chỗ** và tự xanh ngay lượt đẩy.
-Chi tiết ở mục ngay dưới. *(Số đo cũ giữ nguyên bên dưới làm bản ghi.)* <!-- stale-ok -->
+Cập nhật: **2026-09-02** chiều — 🟢🟢 **CHẶN SỐ 1 HẾT CHẶN: `genesis.json` NAY TẢI ĐƯỢC TỪ NGOÀI**
+(D-158). Đã đẩy `official` + `origin`, nghiệm thu **bằng tay** trên đúng đường người lạ đi.
+🔴 Hoá ra không phải *"chưa ai tải lên"*: tệp **không được git theo dõi** — byte cả thế giới cần
+nằm ở **hai chỗ vận hành, không repo/sao lưu/release nào**, và **không cổng nào đo một sự vắng
+mặt**. Preflight **39 đạt · 3 đỏ** (40→42 mục). **Ba đỏ còn lại đều là việc có người bấm**: ví
+factory 0 đồng · 1 mồ côi trên server · footer `web-home`. Chi tiết ở mục ngay dưới.
+*(Số đo cũ giữ nguyên bên dưới làm bản ghi.)* <!-- stale-ok -->
 
 Trước đó cùng ngày — 🟢 **VIỆC 1 + 2 XONG TRÊN SẢN PHẨM · D-088 ĐÓNG · 4 cổng mới từ báo cáo
 người ngoài** (D-155 · D-156 · D-157). Preflight **37 đạt · 3 đỏ** (34→40 mục).
@@ -71,11 +72,12 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 
 ### 🆕🆕🆕 `2026-09-02` chiều — **CHẶN SỐ 1 ĐÃ SẴN SÀNG, CHỜ ĐÚNG MỘT LƯỢT ĐẨY** (D-158)
 
-David hỏi *"giờ cần tôi làm gì"* rồi *"bạn làm được hết mà"*. Đúng — phần lớn làm được, và phần
-làm được đã làm xong. **5 commit tại chỗ, CHƯA ĐẨY.**
+David hỏi *"giờ cần tôi làm gì"* rồi *"bạn làm được hết mà"*, rồi *"đẩy đi"*. Làm xong và đã
+xuất bản.
 
 ```
-preflight  37 đạt · 3 đỏ  (40 mục)   ->   38 đạt · 4 đỏ  (42 mục)
+preflight  37 đạt · 3 đỏ  (40 mục)   ->   39 đạt · 3 đỏ  (42 mục)
+official   behind 31  ->  behind 0        origin  behind 7  ->  behind 0
 ```
 
 #### 🔴 Chặn số 1 KHÔNG phải "chưa ai tải lên" — tệp không được git theo dõi
@@ -120,13 +122,29 @@ giờ bản trên server mới được xoá.
    nguyên byte, không chuẩn hoá** ⇒ không gì cứu. Mở `'rb'`/`'wb'` và tự nối `\r\n`. **Xem
    `git diff --stat` NGAY sau mỗi lượt sửa tệp bằng script.**
 
-#### 🔴 Bốn đỏ, và ai gỡ — **cả bốn là việc có người bấm**
+#### 🟢 ĐÃ ĐẨY — **`genesis.json` NAY TẢI ĐƯỢC TỪ NGOÀI, chặn số 1 HẾT CHẶN**
+
+David duyệt, đẩy `02/09`: `7b56add..30894f9` lên **`official`** (`9holdings/9chain`, CÔNG KHAI) và
+`da4acac..30894f9` lên **`origin`** — tuyến sao lưu riêng tư **thiếu 7 commit**, đúng cái lỗ D-151
+sinh ra để canh. Kiểm **TRƯỚC** theo §4: lịch sử **0 vật liệu khoá** (quét lại lần hai để phủ cả
+hai commit cuối) · `official` **PUBLIC · WRITE · chưa archive** · liệt kê **32 tệp sẽ thành công
+khai**, không tệp khoá / `.env` / `net-*`. Nay `official` **behind 0**.
+
+🔴 **Nghiệm thu bằng TAY, không tin cổng của chính mình** — cổng mới do tôi viết thì nó xanh không
+chứng minh được gì về chính nó:
+
+```
+curl URL trong tai lieu  ->  sha256 4de8caa5…0f6ee6   = KHOP hang so cong bo
+networkID trong tep 999999998  =  info.getNetworkID cua mang song
+check-genesis-published  6/6  ✅ PASS
+```
+
+#### 🔴 Ba đỏ còn lại, và ai gỡ
 
 | đỏ | việc |
 |---|---|
-| `check-genesis-published` | **ĐẨY `official`** — cổng tự xanh ngay lượt đó. `9holdings/9chain` **CÔNG KHAI**, không thu lại được ⇒ §4 hỏi David |
 | `watch-network` | ví `chain-factory` **0 LOVE9** — HAI chặng; David chọn **quỹ nào** + **bao nhiêu** |
-| `check-deploy-drift` | 1 mồ côi trên server — **an toàn để xoá kể từ hôm nay** |
+| `check-deploy-drift` | 1 mồ côi trên server — **an toàn để xoá kể từ hôm nay** (bản ghi đã cứu, xem trên) |
 | `check-live-page` | `/` `/faucet/` `/create-chain/` in networkID chết — worktree `web-home`, luật cứng #4 |
 
 ```bash
