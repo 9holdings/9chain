@@ -7065,3 +7065,65 @@ khi nó đỏ — vì phép kiểm nào phụ thuộc vào việc người ta nh
 
 **Còn lại là việc David:** đặt `A1_CLI_KEY` mới vào `console.env` trên server + restart console ·
 huỷ tệp khoá đã nghỉ · rồi mới nạp 1.000.
+
+---
+
+## D-160 — **B-12 có SỐ THẬT: lịch hết hạn của g1 đọc từ chain sống, và một bánh cóc chưa được chốt** (`2026-09-02`)
+
+**Bối cảnh.** Hai đỏ còn lại của preflight (`40 đạt · 2 đỏ`) đều **không phải việc A1**: ví
+`chain-factory` 0 đồng là việc có người bấm (§4), trang in networkID chết thuộc worktree
+`web-home` (luật cứng #4). Phiên này làm hai thứ **A1 tự làm được** và cả hai đã quá hạn.
+
+### 1. B-12 — số hết hạn thật, đúng cửa sổ mà blocker tự dặn
+
+`BLOCKERS.md` B-12 viết từ `27/08`: *"Ngày hết hạn **thật** chỉ biết sau khi sinh genesis ngày G
+— đọc bằng `platform.getCurrentValidators` → `endTime`, **đừng tính tay**. Việc này nên làm
+**ngay sau ngày G**, lúc số còn tươi."* Ngày G là `01/09`; hôm nay là `02/09`. Cửa sổ đó là **bây
+giờ**, và nó sẽ không mở lại — mỗi ngày trôi qua là một ngày con số nằm trong một chain có thể
+được sinh lại.
+
+Đo `9/9` validator, cả 9 `connected: true`:
+
+```
+2027-07-07T09:19:33Z   node dau rung   (con 307 ngay)
+2027-09-01T09:19:33Z   node cuoi rung  (con 363 ngay)  <- MANG DUNG
+cua so 56,00 ngay · so le dung 7 ngay
+```
+
+⇒ `InitialStakeDurationOffset` **còn nguyên**, tức hệ thống cảnh báo mà D-051b cố ý dựng lên vẫn
+còn sống. Bảng đủ 9 dòng (`endTime` + nodeID) nay nằm trong B-12.
+
+🔴 **Câu hỏi §2 phải hỏi về chính cổng đang canh nó.** `watch-network` chấm mục B-12 bằng
+**`min(endTime)`** — *"validator hết hạn sớm nhất"*. Một cổng đo *"sớm nhất"* có một lối tự xanh
+lại rất tự nhiên: khi cái sớm nhất **biến mất khỏi danh sách**, mốc nhảy sang cái kế tiếp và con
+số **tăng lên**. Ở đây nó **không** xảy ra, và lý do là số học chứ không phải may: so le **7
+ngày**, ngưỡng đỏ **45 ngày** ⇒ sau khi node 1 rụng, mốc mới còn 7 ngày, vẫn sâu trong vùng đỏ;
+node cuối cùng còn 56 ngày cũng vậy. Nhưng điều đó **đúng vì N=9 và so le 7** — đổi một trong hai
+là lối thoát đó mở ra. Ghi lại ở đây để lần sau ai đụng vào `InitialStakeDurationOffset` thấy được
+cái giá thứ hai của nó.
+
+**Nửa còn lại là NGƯỜI, và không phần mềm nào thay được:** lịch nhắc phải sống ở nơi **đánh thức
+được một con người** — repo không đánh thức ai — cộng **tên người chịu trách nhiệm**. Mốc đáng đặt
+là `~2027-03-09` (chỗ cổng chuyển vàng, 120 ngày), **không** phải `~2027-05-23` (chỗ chuyển đỏ, 45
+ngày): đặt lời nhắc đúng chỗ cổng kêu đỏ là để nó đến khi đã hết thời gian thong thả.
+
+### 2. Bánh cóc §0 chưa được chốt — 137 dòng đã trả có thể mọc lại mà không ai biết
+
+`check-english-code` đo `5.719` dòng nợ trong khi mốc khai `5.856`. Cổng **PASS**, và đó chính là
+vấn đề: 137 dòng đã trả nằm ngoài mốc ⇒ nợ có thể **phình trở lại tới 5.856** mà cổng vẫn xanh
+suốt đường. Một bánh cóc không được chốt thì không phải bánh cóc — nó chỉ là một phép đo.
+`--update-baseline` ⇒ `107 tệp · 5.719 dòng`.
+
+🔴 **Và đã kiểm nó ĐỎ VÌ ĐÚNG LÝ DO** (luật cứng #2, vế 3): thêm một tệp `.mjs` mới có đúng một
+dòng chú thích tiếng Việt ⇒ `108 tệp · 5.720 dòng`, `exit 1`, và lời khuyên in ra trỏ đúng đại
+lượng (*"tệp mới phải là tiếng Anh ngay từ đầu"*). Gỡ tệp ⇒ `exit 0`. Hai chiều, trên đường thật.
+Lượt này đắt hơn nó trông: repo **vừa công khai `02/09`** (D-158), nên §0 thôi là luật phòng xa —
+những chú thích đó **đang** nằm trước mắt cộng đồng quốc tế mà luật viết ra để phục vụ.
+
+### Cái không làm, và vì sao
+
+**Không dựng cổng mới cho B-12.** Ý đầu tiên là viết `check-validator-expiry.mjs`; đọc mã trước
+thì thấy `watch-network.mjs` **đã canh B-12 từ `28/08`**, có ngưỡng, có màu, có đối chứng ngưỡng
+trong `--self-test`. Dựng thêm một cổng thứ hai cho cùng một đại lượng là **nhân đôi chỗ phải giữ
+đồng bộ** — đúng lớp lỗi §6 (`A1Gen` chép tay ở hai ngôn ngữ). Thứ B-12 thiếu chưa bao giờ là một
+cổng; nó thiếu **một con số thật** và **một con người**.

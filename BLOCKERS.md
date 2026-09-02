@@ -626,7 +626,7 @@ nhau; cửa duy nhất là người tự import cùng một khoá vào cả hai.
 thiết kế** — A1 dựng cổng *"bản tập ≠ bản thật"* rất kỹ cho **chữ khắc** mà không có cổng nào
 cho **chainId**, thứ ví người dùng thật sự đọc.
 
-### 🔴 B-12 — CHƯA CÓ QUY TRÌNH GIA HẠN VALIDATOR (2026-08-27, sinh từ D-051b)
+### 🟡 B-12 — GIA HẠN VALIDATOR: **nửa SỐ ĐO xong `2026-09-02`**, nửa NGƯỜI còn nguyên (2026-08-27, sinh từ D-051b)
 
 Hệ quả trực tiếp của quyết định giữ `MaxStakeDuration` 365 ngày. **Không phải việc mã** —
 avalanchego không có cơ chế tự gia hạn, và không cổng nào cảnh báo được.
@@ -643,7 +643,49 @@ khi sinh genesis ngày G — đọc bằng `platform.getCurrentValidators` → `
 tay**. Việc này nên làm **ngay sau ngày G**, lúc số còn tươi.
 
 *(Mục "⏰ Hẹn giờ đã biết" trong `HANDOFF.md` ghi `2027-08-24` cho 5 validator — đó là của mạng
-TRƯỚC re-genesis `26/08`, đã cũ hai lần.)*
+TRƯỚC re-genesis `26/08`, đã cũ hai lần. Mục đó nay **không còn** trong `HANDOFF.md`; dòng sống
+là `HANDOFF.md:652`. Câu này giữ lại vì nó **kể về quá khứ**.)* <!-- stale-ok -->
+
+#### ✅ NỬA "SỐ ĐO" ĐÃ XONG — lịch hết hạn THẬT của g1, đọc từ chain sống `2026-09-02`
+
+🔴 **Đây là số ĐO, không phải số tính.** `platform.getCurrentValidators` trên
+`https://rpc-a1.9chain.org/ext/bc/P`, `9/9` validator, cả 9 `connected: true`, weight bằng nhau
+`999.999 LOVE9`. Cửa sổ **đúng 56,00 ngày**, so le **đúng 7 ngày** ⇒ `InitialStakeDurationOffset`
+còn nguyên, hệ thống cảnh báo còn sống.
+
+| # | `endTime` (UTC) | còn (ngày, tính từ `02/09/2026`) | nodeID |
+|---|---|---|---|
+| 1 | `2027-07-07T09:19:33Z` | 307 | `NodeID-5XoXtUm9akM3niELhKwiq5XDLMrVeYfS1` |
+| 2 | `2027-07-14T09:19:33Z` | 314 | `NodeID-DEjrYqjQjCQRLcmNdcQFKYCwRfAsYB8hH` |
+| 3 | `2027-07-21T09:19:33Z` | 321 | `NodeID-23YFQuyUSNiPuoL5frucqkKq7ppXntJer` |
+| 4 | `2027-07-28T09:19:33Z` | 328 | `NodeID-HU2xWcjpt7iLjYpMEVFE8XUx8VMSy2b3W` |
+| 5 | `2027-08-04T09:19:33Z` | 335 | `NodeID-BGapjT8P3YTiT6Q4N2kjqCcSPU3uwZkgc` |
+| 6 | `2027-08-11T09:19:33Z` | 342 | `NodeID-Pae9qr7wg4oBkNPBHCBuQmKKM3Hp1n145` |
+| 7 | `2027-08-18T09:19:33Z` | 349 | `NodeID-LpG379JZSAW79EquMtRJ7rr4wZbqLQUy`  |
+| 8 | `2027-08-25T09:19:33Z` | 356 | `NodeID-C5xCZnbB4BRdEHvJNB3MxHbrr1CARmTTW` |
+| 9 | `2027-09-01T09:19:33Z` | 363 | `NodeID-MrgP69AZRSeJ3DQRSBWQzqeqovNcTAsEb` |
+
+⇒ **`2027-09-01T09:19:33Z` là lúc mạng DỪNG nếu không ai gia hạn.** Node đầu rụng
+`2027-07-07`, và từ đó còn **56 ngày** để phản ứng.
+
+**Cổng đã canh, không phải trí nhớ:** `scripts/watch-network.mjs` mục *"B-12 · validator hết hạn
+sớm nhất"* — `ngayHetHanVang: 120`, `ngayHetHanDo: 45`. Quy ra ngày trên lịch của g1:
+
+| cổng chuyển | ngày | vì |
+|---|---|---|
+| 🟡 vàng | `~2027-03-09` | còn 120 ngày tới node đầu |
+| 🔴 đỏ | `~2027-05-23` | còn 45 ngày — *"gia hạn validator không phải việc làm trong một buổi chiều"* |
+
+Hôm nay nó chấm **đạt** (307 ngày).
+⚠️ **Cổng này KHÔNG tự xanh lại sau khi node đầu rụng** — điều đáng lo ở một cổng đo *"sớm
+nhất"*. Sau khi node 1 hết hạn, `getCurrentValidators` **thôi liệt kê nó** ⇒ mốc sớm nhất nhảy
+sang node 2. Nhưng so le là **7 ngày**, mà ngưỡng đỏ là **45** ⇒ mọi mốc còn lại đều ≤ 56 ngày,
+tức nằm sâu trong vùng đỏ. Suy ra từ **so le đã đo** + **hằng số đã đọc trong mã**, không từ trí nhớ.
+
+🔴 **Còn lại đúng nửa NGƯỜI, và chỉ David làm được:** lịch nhắc ở nơi sống lâu hơn một phiên làm
+việc (không phải tệp trong repo — repo không đánh thức ai), + **tên người chịu trách nhiệm**.
+Mốc đáng đặt là **`2027-03-09`**, chỗ cổng chuyển vàng: đặt vào chỗ nó chuyển ĐỎ là để lời nhắc
+đến đúng lúc đã hết thời gian thong thả.
 
 🔴 **Kèm theo, KHÔNG cần quyết nhưng phải nhớ khi deploy:** patch 0013 khai
 `constants.A1Name`, mà `config/config.go:1008` dựng đường dẫn DB từ tên mạng ⇒ **binary này

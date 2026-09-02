@@ -106,6 +106,38 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 - [human] **P-11 — đặt `A1_CLI_KEY` mới vào `console.env` + restart console**, rồi huỷ tệp khoá
       đã nghỉ (`chain-factory-key-RETIRED-LEAKED-2026-09-02.txt`). Sau đó mới nạp 1.000.
 
+- [x] **P-12 — B-12 có SỐ THẬT: lịch hết hạn validator của g1, đọc từ chain sống** (D-160)
+      Blocker tự dặn từ `27/08`: *"đọc bằng `platform.getCurrentValidators` → `endTime`, đừng
+      tính tay … nên làm **ngay sau ngày G**, lúc số còn tươi."* Ngày G là `01/09`, hôm nay `02/09`
+      — cửa sổ đó là **bây giờ**.
+      **Điều kiện qua:** số đến từ chain đang chạy, không từ phép tính; và biết cổng canh nó sẽ
+      chuyển màu **ngày nào**.
+      ✅ **ĐẠT.** `9/9` validator, cả 9 `connected: true`, weight bằng nhau. Node đầu rụng
+      `2027-07-07T09:19:33Z` (307 ngày) · **node cuối `2027-09-01T09:19:33Z` (363 ngày) = MẠNG
+      DỪNG** · cửa sổ **56,00 ngày** · so le **đúng 7 ngày** ⇒ `InitialStakeDurationOffset` còn
+      nguyên. Bảng đủ 9 dòng vào `BLOCKERS.md` B-12, mục hạ từ 🔴 xuống 🟡.
+      🔴 Hỏi câu §2 về chính cổng đang canh: `watch-network` chấm bằng **`min(endTime)`**, mà một
+      cổng đo *"sớm nhất"* có lối tự xanh lại khi cái sớm nhất **rơi khỏi danh sách**. Ở đây không
+      xảy ra — nhưng vì **số học** (so le 7 < ngưỡng đỏ 45), không vì may. Đổi `N` hoặc đổi so le
+      là lối thoát đó mở ra; đã ghi vào D-160.
+      🔵 **Không dựng cổng mới** — đọc mã trước thì `watch-network` đã canh B-12 từ `28/08`. Thêm
+      cổng thứ hai cho cùng đại lượng là nhân đôi chỗ phải giữ đồng bộ (lớp lỗi §6). B-12 chưa bao
+      giờ thiếu cổng; nó thiếu **số** và **người**.
+
+- [human] **P-13 — nửa NGƯỜI của B-12**: lịch nhắc ở nơi **đánh thức được một con người** (repo
+      không đánh thức ai) + **tên người chịu trách nhiệm**. Mốc đáng đặt `~2027-03-09` — chỗ
+      `watch-network` chuyển VÀNG (120 ngày), không phải chỗ nó chuyển ĐỎ (`~2027-05-23`, 45 ngày).
+
+- [x] **P-14 — chốt bánh cóc §0: mốc nợ ngôn ngữ `5.856 → 5.719`** (D-160)
+      Cổng đo `5.719` trong khi mốc khai `5.856` ⇒ **PASS**, và đó là vấn đề: 137 dòng đã trả nằm
+      ngoài mốc, nợ **phình lại tới 5.856 vẫn xanh suốt đường**. Bánh cóc không chốt thì chỉ là
+      một phép đo.
+      **Điều kiện qua:** thấy nó ĐỎ **vì đúng lý do**, cả hai chiều.
+      ✅ **ĐẠT.** `--update-baseline` ⇒ `107 tệp · 5.719 dòng`. Đối chứng: thêm một `.mjs` mới có
+      **một** dòng chú thích tiếng Việt ⇒ `108 tệp · 5.720 dòng`, `exit 1`, lời khuyên in ra trỏ
+      **đúng** đại lượng (*"tệp mới phải là tiếng Anh ngay từ đầu"*); gỡ tệp ⇒ `exit 0`.
+      🔴 Nay đắt hơn nó trông: repo **vừa công khai `02/09`** (D-158) ⇒ §0 thôi là luật phòng xa.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
