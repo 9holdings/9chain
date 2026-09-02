@@ -124,29 +124,83 @@ sang P của factory. Hai chặng, **hai khoá khác nhau**.
 🔴 **Khoá KHÔNG được chạm server** (M11.10 / D-091). Dùng ví chạy trên máy dev qua hầm SSH nằm
 **trong cùng container**:
 
+🔴 **CHẠY TRONG GIT BASH, KHÔNG PHẢI PowerShell VÀ KHÔNG PHẢI WSL** (đo `02/09`):
+- PowerShell 5.1 có `curl` là **bí danh của `Invoke-WebRequest`** — JSON bị mangle.
+- Gõ `bash` trong PowerShell **rơi vào WSL** (`C:\Windows\System32\bash.exe`), nơi `/root/.ssh`
+  **không có khoá `9chain-a1`** ⇒ mọi lệnh ssh treo chờ mật khẩu. Đúng thứ đã làm
+  `console-deploy.sh` treo mà không ai biết vì sao.
+- Đúng shell: Start menu → **Git Bash**, hoặc `& "C:\Program Files\Git\bin\bash.exe" -l -i`.
+- Kiểm bằng thứ **thật sự khác nhau**, không bằng hình dáng dấu nhắc:
+  `echo "$MSYSTEM"; ls "$A1_SSH_KEY"` → phải ra `MINGW64` và thấy tệp khoá.
+
+⏱️ **Ví mất ~4 PHÚT mới phục vụ, và trong lúc đó nó im lặng hoàn toàn.** `enter.sh` chạy
+`go run` nên **biên dịch `xp-wallet` từ nguồn mỗi lượt**, và build cache không được mount
+(chỉ `/go/pkg/mod` là volume). Đo `02/09`: container `Up`, `check-keys` đã xanh trong log,
+mà `:8090` vẫn chưa ai nghe suốt ~3 phút 15. ⇒ **`curl` ngay sau khi dựng ví LUÔN LUÔN
+trượt**, và với `curl -s` cái trượt đó **không phân biệt được với thành công** — đó là lý do
+lượt `02/09` in ra rỗng ở cả hai chặng và bị đọc thành "đã gửi". **Dùng `-sS`, và chờ.**
+
 ```bash
-# 0. CHỨNG MINH ĐƯỜNG ĐI TRƯỚC — không cần khoá, không khởi động ví
-node scripts/wallet-over-tunnel.mjs --check
+cd /c/PROJECTS/9Chain-A1
 
-# ── CHẶNG A: quỹ → ví factory, trên X ──
+# ── Địa chỉ lấy từ NGUỒN DUY NHẤT, không gõ tay (D-113) ──────────────────────
+DICH_P=$(node --input-type=module -e 'import {VI_FACTORY_THEO_THE_HE} from "./local-net/lib/factory-wallets.mjs"; import {A1_GEN} from "./local-net/lib/chainid.mjs"; console.log(VI_FACTORY_THEO_THE_HE[A1_GEN]);')
+DICH_X="X-${DICH_P#P-}"
+QUY_X=$(awk '/^\[foundation\]/{f=1;next} /^\[/{f=0} f' local-net/net-g1/keys.txt | grep -o 'X-love9[a-z0-9]*' | head -1)
+echo "quy nguon : $QUY_X"
+echo "vi dich   : $DICH_X"
+
+# ── Chờ ví lên VÀ kiểm đúng ví. Không đạt thì KHÔNG gửi. ─────────────────────
+cho_vi() {   # $1 = địa chỉ X mong đợi
+  echo "cho vi len (toi 10 phut — go run bien dich xp-wallet moi luot)..."
+  for i in $(seq 1 600); do
+    R=$(curl -sS --max-time 5 http://127.0.0.1:8090/api/info 2>/dev/null)
+    if [ -n "$R" ]; then
+      G=$(printf '%s' "$R" | sed -n 's/.*"xAddr":"\([^"]*\)".*/\1/p')
+      echo "vi len sau ${i}s · xAddr=$G"
+      [ "$G" = "$1" ] && { echo "✅ DUNG VI"; return 0; }
+      echo "🔴 SAI VI — cho doi $1. KHONG gui."; return 1
+    fi
+    sleep 1
+  done
+  echo "🔴 vi khong tra loi sau 600s — KHONG gui."; return 1
+}
+```
+
+**CHẶNG A** — quỹ Foundation → factory, **trên X**:
+
+```bash
+docker rm -f 9chain-a1-vi-ham 2>/dev/null
 node scripts/wallet-over-tunnel.mjs --wallet-key local-net/net-g1/keys.txt --fund foundation --port 8090
-curl -s http://127.0.0.1:8090/api/info          # 🔴 ĐỌC xAddr TRƯỚC KHI TIN SỐ DƯ (gotcha D)
-curl -s -X POST -H 'content-type: application/json' \
-     -d '{"to":"X-love91999h0q4ucfnex9q0qxefuu0ke0xtyvl6739999","amount":"100"}' \
-     http://127.0.0.1:8090/api/send-x
-
-# ── CHẶNG B: ví factory, X → P (khoá KHÁC ⇒ phải dựng lại ví) ──
-docker rm -f 9chain-a1-vi-ham
-node scripts/wallet-over-tunnel.mjs --wallet-key "$HOME/9chain-a1-keys/g1/chain-factory-key.txt" --port 8090
-curl -s http://127.0.0.1:8090/api/info          # xAddr phải là ví …9999, KHÔNG phải quỹ
-curl -s -X POST -H 'content-type: application/json' -d '{"amount":"99"}' \
-     http://127.0.0.1:8090/api/x-to-p
+cho_vi "$QUY_X" && curl -sS -X POST -H 'content-type: application/json' \
+  -d "{\"to\":\"$DICH_X\",\"amount\":\"1000\"}" http://127.0.0.1:8090/api/send-x
 docker rm -f 9chain-a1-vi-ham
 ```
 
+**CHẶNG B** — factory X → P **của chính nó** (khoá KHÁC ⇒ phải dựng lại ví):
+
+```bash
+node scripts/wallet-over-tunnel.mjs --wallet-key ~/9chain-a1-keys/g1/chain-factory-key.txt --port 8090
+cho_vi "$DICH_X" && curl -sS -X POST -H 'content-type: application/json' \
+  -d '{"amount":"999"}' http://127.0.0.1:8090/api/x-to-p
+docker rm -f 9chain-a1-vi-ham
+```
+
+`999` chứ không `1000`: `x-to-p` trừ phí xuất trên X. Phí thật cỡ `0,000002` nên 1 LOVE9 là
+thừa sức, và phần dư nằm lại trong ví factory chứ không mất.
+
 🔴 **`/api/info` trước mọi lệnh gửi.** Một ví chạy **SAI KHOÁ vẫn trả `200`** — tiến trình cũ giữ
 cổng, tiến trình mới bind hỏng rồi chết lặng, và `/api/info` vẫn trả lời **của ví cũ** (D-140
-gotcha D). **Dấu hiệu duy nhất là địa chỉ in ra khác địa chỉ mình mong.**
+gotcha D). **Dấu hiệu duy nhất là địa chỉ in ra khác địa chỉ mình mong.** Hàm `cho_vi` ở trên
+làm phép so đó **thay người bấm**, và `&&` giữ cho lệnh gửi không chạy khi nó đỏ — vì một phép
+kiểm phụ thuộc vào việc người ta nhớ nhìn thì sớm muộn cũng bị bỏ qua.
+
+🔴 **TỆP KHOÁ MỘT VÍ TỪNG LÀM VÍ KHÔNG KHỞI ĐỘNG ĐƯỢC — đã vá `02/09`.** `check-keys` nhận
+diện quỹ bằng dòng tiêu đề `[tên]`; tệp khoá `chain-factory` có đủ mọi trường nhưng **không có
+dòng đó** (nó chứa một ví, không có gì để phân biệt) ⇒ phân tích ra **0 khối** ⇒ `FATAL` ⇒ ví
+bỏ chạy, và vì `docker run --rm` nên **xác lẫn log đều bị xoá**. Chặng B **chưa bao giờ có thể
+chạy được**. `enter.sh` nay tổng hợp tiêu đề **trong ống, không ghi ra đĩa**. Nếu thấy lại
+`FATAL … không có khối quỹ nào`: đó là **công cụ kiểm hỏng, không phải khoá hỏng** (D-116).
 ⚠️ Ảnh node **không có `ps`/`pkill`** ⇒ không dừng được ví bằng cách thường; dựng lại container
 (hoặc dùng cổng khác) là đường đúng.
 ⚠️ Số `100`/`99` là **gợi ý**: g0 chạy suốt với **~90 LOVE9**; chặng B phải chừa phí. **David
