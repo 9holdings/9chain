@@ -1,9 +1,111 @@
 <!-- doc-drift: record -->
 # NGÀY G — NODE HETZNER VÀO THẲNG GENESIS
 
-> ⚫ **BẢN GHI — viết TRƯỚC ngày G, giữ nguyên văn.** Ngày G đã chạy `2026-09-01 09:26Z` và
-> Hetzner **đã vào genesis g1**. Mọi `9chain-a1-g0` / `25.000 LOVE9` dưới đây là **số của lúc
-> viết**: mạng nay là `g1` (`999999998`), và mức self-bond nay là **81 LOVE9** (patch 0027).
+> ⚫ **BẢN GHI — viết TRƯỚC ngày G, giữ nguyên văn.** Mọi `9chain-a1-g0` / `25.000 LOVE9` dưới đây
+> là **số của lúc viết**: mạng nay là `g1` (`999999998`), self-bond nay là **81 LOVE9** (patch 0027).
+>
+> 🔴 **ĐÍNH CHÍNH `2026-09-03` — dòng trên đây từng ghi *"Hetzner ĐÃ VÀO genesis g1"*. ĐIỀU ĐÓ
+> KHÔNG XẢY RA.** David chốt `2026-09-01 09:10Z`: **cả chín validator genesis chạy trên máy OVH**,
+> Hetzner **không** vào genesis — nó vào sau, **bằng cách stake, như một người lạ**.
+> Đo `03/09`, ba nguồn độc lập: chain có **9 validator trọng số y hệt nhau** (⇒ vẫn đúng chín node
+> genesis) · máy Hetzner **không có container node nào** · thứ đang chạy ở đó là một tiến trình
+> `avalanchego` **trần** của thế hệ **đã chết** (`--network-id=999999999`).
+> ⚠️ Dấu `doc-drift: record` khiến cổng tài liệu **bỏ qua tệp này**, nên câu sai đó sống được hai
+> ngày. **Miễn trừ hợp lệ cho một SỐ ĐO cũ, không hợp lệ cho một SỰ KIỆN không có thật** — một bản
+> ghi được phép mang số của hôm qua, không được phép khai một việc chưa từng xảy ra (CLAUDE.md §2).
+
+---
+
+## 🔵 TRẠNG THÁI HÔM NAY — đo `2026-09-03`, và vì sao phần dưới KHÔNG còn là quy trình cần theo
+
+Tệp này viết cho *"vào thẳng genesis"*. Cửa đó **đã đóng** — genesis g1 bất biến và Hetzner không
+ở trong đó. Nay nó vào bằng **đúng con đường của người ngoài**, và đó là **tin tốt**: nó biến
+điều kiện qua số **3** (*một node ngoài là peer*) và **O4** (*nhà cung cấp thứ hai*) từ **lời khai**
+thành **phép đo**, đồng thời là **người đầu tiên đi hết đường tiền** mà `docs/RUN-A-VALIDATOR.md`
+tự khai là chưa ai đi.
+
+🔴 **⇒ ĐỪNG dùng phần dưới. Hãy đi ĐÚNG `docs/RUN-A-VALIDATOR.md`, từng bước, không tắt đường.**
+Nếu ta dùng một runbook nội bộ thì ta chứng minh được *"máy này chạy được node"* — thứ đã biết.
+Đi bằng **tài liệu công khai** thì mỗi chỗ lệch là **một lỗi trong tài liệu người lạ đang cầm**,
+và bắt được nó ở đây rẻ hơn nhiều so với để người lạ bắt.
+
+### Cái gì đã sẵn, cái gì phải dọn — đo, không đoán
+
+| | trạng thái `03/09` |
+|---|---|
+| image 27 patch | ✅ **có**, `9chain-a1/node:g1` = `:g1-81`, và **ba mỏ neo khớp**: `commit=9chain-a1-g1-27patch-38723877` · `sha256 2f733249…b57480` (**trùng byte với image OVH**) · `g0`=**0** `g1`=**4** `LOVE9`=**2**, có đối chứng ống (`avalanchego`=283, `zzqqxx`=0) nên số 0 là **vắng thật**, không phải ống gãy |
+| tới được beacon g1 | ✅ `139.99.145.13:9651` mở từ Hetzner |
+| 🔴 tiến trình cũ | **ĐANG CHẠY** — PID `34489`, `--network-id=999999999` (**thế hệ đã chết**), chạy từ `29/08`, **giữ cổng 9651** |
+| 🔴 `genesis.json` trên máy | **bản g0** — `e1024eab…`, `"networkID": 999999999`. Bản sống là `4de8caa5…` |
+| 🔴 DB cũ | `/opt/9chain-a1/data` = **541 MB** cơ sở dữ liệu g0 |
+| ví có 81 LOVE9 | 🔴 **chưa có** — đây là chặng chưa ai đi |
+
+### Ba cái bẫy của lượt dọn, cả ba đã ghi và cả ba vẫn sống
+
+1. 🔴 **Tiến trình đó KHÔNG phải container** — `docker stop`/`rm`/`compose down` **không đụng được
+   nó**, và không lệnh docker nào cho thấy nó tồn tại. Nếu chạy container mà quên giết nó:
+   `--network host` khiến Docker **không** kiểm cổng trước, container khởi động, avalanchego
+   **không bind nổi 9651**, tiến trình chết, `docker run -d` **vẫn trả về thành công**, rồi
+   `restart` đưa nó vào vòng lặp — `docker ps` ghi `Restarting` và **không gì nói vì sao**.
+2. 🔴 **Xoá `data/` trong lúc tiến trình còn sống thì THÀNH CÔNG mà không xoá được gì có nghĩa** —
+   Linux chỉ `unlink`; tiến trình sống vẫn ghi qua file descriptor đang mở và **tạo lại được** tệp.
+   Danh tính cũ **sống sót qua một lượt xoá trông sạch sẽ**. ⇒ Giết **trước**, xoá **sau**, và đòi
+   **cả hai** đối chứng rỗng.
+3. 🔴 **Chạy bằng CONTAINER, không phải binary trần** — image là Debian 12 (glibc 2.36); một
+   binary chép ra ngoài chết bằng `GLIBC_2.36 not found` đúng lúc không còn đường lui.
+
+### Thứ tự — và thứ tự LÀ phép kiểm
+
+```bash
+# ── 1 · giết tiến trình thế hệ chết, rồi ĐÒI HAI ĐỐI CHỨNG RỖNG ──
+ssh -i ~/.ssh/id_ed25519 root@95.217.60.140 '
+  kill $(pgrep -f "[a]valanchego --network-id=999999999")
+  sleep 3
+  pgrep -af "[a]valanchego" ; echo "--- phai rong tren day ---"
+  ss -lntp | grep ":9651"   ; echo "--- va rong tren day ---"
+'
+
+# ── 2 · CHỈ KHI cả hai rỗng: xoá DB g0 và thay genesis bằng bản CÔNG KHAI ──
+#      Lấy genesis từ đúng URL người lạ dùng — đó là phép thử tài liệu, không phải tiện tay.
+ssh -i ~/.ssh/id_ed25519 root@95.217.60.140 '
+  rm -rf /opt/9chain-a1/data
+  curl -fsSL -o /opt/9chain-a1/genesis.json \
+    https://raw.githubusercontent.com/9holdings/9chain/main/docs/genesis/genesis-g1.json
+  sha256sum /opt/9chain-a1/genesis.json     # PHAI la 4de8caa5...0f6ee6
+  grep -o "\"networkID\"[^,]*" /opt/9chain-a1/genesis.json | head -1   # PHAI la 999999998
+'
+```
+
+**Từ đây trở đi: mở `docs/RUN-A-VALIDATOR.md` và làm theo nó, không theo tệp này.** Bước 5 (chạy
+node) · Bước 6 (đưa LOVE9 sang P-Chain — **hai chặng** C→X rồi X→P) · Bước 7 (stake).
+
+⚠️ **Chặng đắt nhất là chặng chưa ai đi**: `local-net/tools/c-to-x` **chưa từng được ai chạy với
+`--issue`**. Chạy khô trước, đọc từng dòng nó in, và nếu export lên mà import chưa xuống thì
+**đừng export lại** — tiền đang nằm trong bộ nhớ chia sẻ của X-Chain, chạy lại `--issue` sẽ nhập
+đúng phần đang đợi.
+
+⚠️ **Cần 10 lượt faucet, không phải 9** — 9 lượt cho **đúng 81** mà phí đi từ chính số dư đó; và
+trần là 9 lượt/IP/giờ ⇒ có một lượt **chờ tới một giờ** (D-161).
+
+### Nghiệm thu — đo trên CHAIN, không đọc lệnh
+
+```bash
+# validator mới phải XUẤT HIỆN, và trọng số nó phải KHÁC chín node genesis
+curl -s -X POST -H 'content-type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"platform.getCurrentValidators","params":{}}' \
+  https://rpc-a1.9chain.org/ext/bc/P
+#   mong: 10 validator; chin cai 999999000000000, cai thu muoi la stake cua ta
+```
+
+🔴 **Và đối chứng THẬT của điều kiện 3 là ở phía bên kia**: một node **KHÔNG phải beacon** phải
+nhìn thấy nó trong `info.peers`. ⚠️ Cho mesh thời gian — diễn tập `30/08`: node ngoài bootstrap ở
+~50s nhưng một node **không phải beacon** chỉ thấy nó ở ~**70s**. Chấm ở giây 30 là đọc ra một
+thất bại không có thật.
+⚠️ Rồi theo dõi `ingressConnectionCount` **ít nhất một giờ**: `29/08` nó đứng **0** trong khi cổng
+chứng minh được là tới được, và avalanchego **không phân biệt được** *"không ai gọi vào"* với
+*"không tới được"* — mà uptime của validator đo trên kết nối, nên một số 0 kéo dài là **thật** (D-121).
+
+---
 
 > 🔴 **ĐÍNH CHÍNH `2026-08-30` — ba điều trong tệp này đã SAI và đã sửa. Đọc trước.**
 > Nguồn: diễn tập g1 trên máy dev (D-123→D-128).

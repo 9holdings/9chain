@@ -321,6 +321,44 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       Quét trước khi vào git công khai: **0 khoá EVM · 0 `PrivateKey-` · 0 base58 dài · 0 địa chỉ**
       (bí mật đến từ **env**). **0 dòng tiếng Việt** ⇒ không phình nợ §0.
 
+- [x] **P-27 — 🔴 một BẢN GHI khai một SỰ KIỆN KHÔNG XẢY RA, sống hai ngày** (D-166)
+      `docs/GDAY-NODE10-HETZNER.md` mở đầu: *"Hetzner **đã vào genesis g1**."* **Không xảy ra.**
+      David chốt `01/09 09:10Z`: cả chín validator genesis chạy **trên OVH**, Hetzner vào sau bằng
+      cách **stake như người lạ**. Ba nguồn độc lập đo `03/09`: chain **9 validator trọng số y hệt
+      nhau** · máy Hetzner **không có container node nào** · thứ chạy ở đó là `avalanchego` **trần**
+      của thế hệ **đã chết**.
+      ⚠️ Sống được vì tệp mang dấu `<!-- doc-drift: record -->` nên cổng **cố ý bỏ qua**.
+      ⇒ **Luật bổ sung: `record` miễn trừ một SỐ ĐO của hôm qua, KHÔNG miễn trừ một SỰ KIỆN không
+      có thật.** *"Lúc đó chúng tôi đo 25.000"* là lịch sử; *"việc X đã xảy ra"* khi X không xảy ra
+      là **thông tin sai mặc áo lịch sử** — nguy hiểm hơn số cũ, vì số cũ tự khai ngày của nó.
+
+- [x] **P-28 — dọn đường cho node Hetzner: đo xong, soạn xong** (D-166)
+      **Điều kiện qua:** mọi tiền đề được **đo**, và đường đi là **tài liệu công khai**.
+      ✅ image 27 patch **đã có**, ba mỏ neo khớp (`commit=…27patch-38723877` · `sha256 2f733249…`
+      **trùng byte image OVH** · `g0`=0 `g1`=4 `LOVE9`=2) — 🔴 kèm **đối chứng ống**
+      (`avalanchego`=283, `zzqqxx`=0) vì đúng bài này từng qua bằng một **ống gãy**: `strings`
+      không có trong image, `grep -c` trên rỗng in `0`, và tiêu chí *"g0 = 0"* **đạt bằng cách
+      không đo gì**. ✅ beacon g1 tới được từ Hetzner.
+      🔴 Ba thứ phải dọn: tiến trình g0 **đang giữ cổng 9651** (PID `34489`) · `genesis.json` trên
+      máy là **bản g0** · `/opt/9chain-a1/data` **541 MB** DB g0.
+      🔵 **Quyết định về CÁCH đi: dùng `docs/RUN-A-VALIDATOR.md`, không dùng runbook nội bộ.**
+      Runbook nội bộ chỉ chứng minh *"máy này chạy được node"* — thứ đã biết. Đi bằng tài liệu công
+      khai thì **mỗi chỗ lệch là một lỗi trong tài liệu người lạ đang cầm**. Kể cả lượt tải genesis
+      cũng lấy từ **đúng URL người lạ dùng** — kiểm chạy thật: `11.950 byte`, `sha256 4de8caa5…`,
+      `networkID 999999998`.
+
+- [human] **P-29 — 🔴 STAKE node Hetzner (việc David bấm — §4)**
+      Giết PID `34489` → **đòi HAI đối chứng rỗng** (`pgrep` và `ss :9651`) → xoá DB → thay genesis
+      → chạy **bằng container** → **10 lượt faucet** (không phải 9 — D-161) → `c-to-x` (**chưa ai
+      chạy `--issue` bao giờ**) → `x-to-p` → `stake-validator --stake 81`.
+      🔴 Ba bẫy: tiến trình đó **không phải container** nên `docker stop` không đụng được, và quên
+      giết thì container vào **vòng lặp restart im lặng** · xoá `data/` khi nó **còn sống** thì
+      *thành công mà không xoá gì có nghĩa* (Linux chỉ `unlink`) · chạy **container**, không phải
+      binary trần (glibc 2.36).
+      **Nghiệm thu trên CHAIN:** validator thứ **10** với trọng số khác chín node genesis, **và**
+      một node **không phải beacon** thấy nó trong `info.peers` — cho mesh **~70 giây**, đừng chấm
+      ở giây 30 (D-121). Đây là thứ biến điều kiện qua **3** và **O4** từ *khai* thành *đo*.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
