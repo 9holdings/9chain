@@ -1,6 +1,11 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-01 `15:2xZ`** — 🔴 **SỔ CHAIN CÔNG KHAI CÒN KHAI 2 CHAIN CỦA g0** (D-154):
+Cập nhật: **2026-09-02** — 🟢 **VIỆC 1 + 2 XONG TRÊN SẢN PHẨM · D-088 ĐÓNG · 4 cổng mới từ báo cáo
+người ngoài** (D-155 · D-156 · D-157). Preflight **37 đạt · 3 đỏ** (34→40 mục). 🔴 **Chặn duy nhất
+cho team: `genesis.json` chưa phát hành — 404.** Chi tiết ở mục CHỐT PHIÊN ngay dưới.
+*(Số đo cũ giữ nguyên bên dưới làm bản ghi.)* <!-- stale-ok -->
+
+Trước đó `2026-09-01 15:2xZ` — 🔴 **SỔ CHAIN CÔNG KHAI CÒN KHAI 2 CHAIN CỦA g0** (D-154):
 `/chains/data/console-chains.json` phát `#9000000010` · `#9000000011`, RPC của chúng trả `404`.
 Bản nén đúng đã có trong repo từ giờ G, **chưa lên server**. Không cổng nào bắt vì lỗ nằm **giữa
 hai đại lượng** — drift để tệp đó ngoài tầm canh (console tự ghi), doc-drift chỉ đọc văn xuôi mà
@@ -58,6 +63,86 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 > `HANDOFF.md` thắng về **số đo**. Backlog: [`PROGRESS.md`](PROGRESS.md).
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
+
+### 🆕🆕🆕 CHỐT PHIÊN `2026-09-01` tối → `2026-09-02` — **22 commit, đã đẩy `origin`**
+
+**TL;DR:** Hai trong bốn việc dọn **đã làm xong trên sản phẩm** (console + sổ chain). Team David
+soát từ máy ngoài và gửi 11 phát hiện — **6 đúng, 1 sai ở kết luận, 4 chỗ trống đã dựng cổng**.
+Còn **một thứ duy nhất chặn cả team: `genesis.json` chưa phát hành (404)** — chỉ David làm được.
+
+```
+preflight  37 đạt · 3 đỏ · 0 không chạy được       (34 → 40 mục)
+origin     behind 0        official  behind 23  ⇦ David chốt "để sau"
+```
+
+#### ✅ Đã xong, có nghiệm thu thật
+
+| việc | bằng chứng |
+|---|---|
+| **D-155** vá `reopen-chain-creation` — 3 lỗi (thiếu bước sổ chain · lời khuyên ví bất khả thi · luật thứ tự quá rộng) | 21 → **33** đối chứng · 6 bản hỏng có chủ ý |
+| **Việc 1 — deploy console 5 tệp** | 🟢 **D-088 ĐÓNG**: `console-deploy.sh` chạy trọn vẹn **lần đầu tiên**. `21/21 + 38/38` trên server · PID `1148847→1724747→1734495` · drift **0 lệch · 0 thiếu** |
+| **Việc 2 — sổ chain công khai** | `check-chain-ledger` ✅ PASS trên bề mặt công khai |
+| **Ẩn 2 chain g0 khỏi `/chains/`** (David yêu cầu) | trang chỉ còn *"Chưa có L1 nào được tạo"*, ảnh chụp đã gửi |
+| **Xoá dữ liệu trước giờ G** (David chốt phương án **(a)**) | 5 sổ archive + 2 genesis tạm; **giữ** `docs/o2-g0-final/` (gói vật chứng có merkle ROOT) và `chainid-taken.json` (sổ toàn cầu) |
+| **S-1 README** khai 26 patch / tree sai | sửa 3 dòng + dựng cổng `check-patch-count` (G-1) |
+| **S-4 tổng cung lệch 824.364,88** | **trả lời xong** — phần thưởng staking đúc trước. `TOKENOMICS.md §5` + cổng `check-supply` (G-2) |
+| **G-3** cổng đọc trang đang chạy qua HTTP | `check-live-page`, 20 đối chứng |
+| **B-2 · B-3** hai chỗ người ngoài không qua được | sửa `RUN-A-VALIDATOR.md` |
+| **`c-to-x`** — chặng faucet(C) → X | `local-net/tools/c-to-x/`, **ngoài cây fork** |
+
+#### 🔴 Ba đỏ còn lại, và ai gỡ
+
+| đỏ | ai |
+|---|---|
+| ví `chain-factory` **0 LOVE9** — nạp **HAI chặng** (runbook việc 3) | **David** |
+| `check-deploy-drift` — nay **CHỈ còn 1 mồ côi** `heartbeat.json.g0-20260901` (hình dạng B-17) | **David** |
+| `check-live-page` — `/` `/faucet/` `/create-chain/` in `networkID 999999999`; `/` khai **10 validator** (đo được 9) | **worktree `web-home`** — luật cứng #4, A1 không đụng |
+
+#### 🔴 VIỆC KẾ TIẾP, theo thứ tự
+
+1. 🔴 **Phát hành `genesis.json`** — `a1.9chain.org/genesis.json` **404**. Tệp có sẵn ở
+   `local-net/net-g1/genesis.json`, `sha256 = 4de8caa5…` **đã khớp** số công bố. **Chặn toàn bộ
+   team**: không có tệp thì `--genesis-file=` không điền được. GitHub Release asset hoặc URL cố định.
+2. Bốn việc dọn — `docs/RUNBOOK-REOPEN-CHAIN-CREATION.md`, đo lại bằng
+   `node scripts/reopen-chain-creation.mjs --probe`
+3. `web-home` sửa footer + câu "10 validators"
+4. G-4: gỡ DNS hoặc 301 hai tên miền trả **525** (`testnet-a1`, `rpc-testnet-a1`)
+5. Quyết định đẩy `official` (23 commit)
+
+#### ⚠️ GOTCHAS phiên này — đọc trước khi dựng cổng mới
+
+1. 🔴 **Cổng MỚI phải bị nghi ngờ đúng như cổng cũ.** Ba lần đỏ đầu tiên của ba cổng mới **đều
+   SAI**, và cả ba sẽ khiến người đọc **phá thứ đang đúng**: `check-patch-count` chấm
+   `RUN-A-VALIDATOR.md` hỏng (khối lệnh nằm dưới câu *"26 of the 27"* nên nó **đúng** — ngữ cảnh
+   trải cả KHỐI, không phải từng DÒNG) · `check-live-page` chấm `/chains/` khai "5 validators"
+   (số nằm trong **chú thích mã trong bundle JS**) · và báo một URL **hai lần** (`testnet-a1…` là
+   **chuỗi con** của `rpc-testnet-a1…`). ⇒ **Xanh sai khiến người ta ngồi yên; đỏ sai khiến người
+   ta hành động.** Vế đắt hơn của D-106b.
+2. 🔴 **Đường lui đặt TRONG repo trở thành một phần của repo** (D-156). Chép 4 tệp server về
+   `./rollback-…/` làm đỏ `check-single-source` (bản khai thứ hai của `A1_GEN`) và
+   `check-english-code` (nợ phình). Mặt ngược của D-117. ⇒ **Đường lui để ở scratchpad của phiên.**
+3. 🔴 **Gotcha #7 vẫn cắn:** heredoc bash + Python nuốt `\\r?\\n` thành ký tự xuống dòng thật, vỡ
+   regex, hỏng cả tệp. **Sửa mã có `\n` thì dùng công cụ sửa tệp, đừng dùng `python - <<EOF`.**
+4. 🔴 **Máy dev Windows KHÔNG biên dịch được công cụ Go** (`CGO_ENABLED=0`: blst · libevm · zstd)
+   — `stake-validator` **cũng hỏng y hệt**, đã chạy làm đối chứng. Build trong container:
+   `MSYS_NO_PATHCONV=1 docker run --rm -v "C:/PROJECTS/9Chain-A1:/src" -w /src/local-net/tools/<tool> -e CGO_ENABLED=1 golang:1.25.10-bookworm go build ./...`
+   (`MSYS_NO_PATHCONV=1` bắt buộc, không thì Git Bash đổi `/src` thành `C:/Program Files/Git/src`).
+5. 🔴 **Hook pre-push chặn khi ngọn cụm là commit tài liệu**: nó mang dấu bỏ-CI, **GitHub chỉ xét
+   HEAD** ⇒ cả cụm có mã sẽ qua mà **không cổng nào chạy**. Sửa: `git commit --allow-empty` làm ngọn.
+6. ⚠️ **`xp-wallet` nằm TRONG bộ patch (0003·0019·0021)** — thêm route vào đó là sinh lại cả 27
+   patch + đổi `TREE_FORK` + ship lại image hai máy. Công cụ mới ⇒ `local-net/tools/`.
+7. ⚠️ `c-to-x` **đường tiền CHƯA AI CHẠY**. Build + vet + cửa từ chối đã kiểm thật; `--issue` thì chưa.
+
+#### Lệnh hữu ích
+
+```bash
+node scripts/gday-preflight.mjs                    # 40 mục (~4 phút)
+node scripts/reopen-chain-creation.mjs --probe     # bốn việc dọn còn đỏ ở đâu
+node scripts/check-live-page.mjs                   # trang công khai vs mạng thật
+node scripts/check-supply.mjs                      # bảng phân bổ vs tổng cung
+node scripts/check-patch-count.mjs                 # số patch trong tài liệu
+```
+
 
 ### 🟢🟢 `2026-09-01` `19:2xZ`–`19:5xZ` — **VIỆC 1 VÀ 2 ĐÃ LÀM XONG TRÊN SẢN PHẨM** (D-156)
 
