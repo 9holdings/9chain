@@ -182,6 +182,39 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       nó **phá đẳng thức `81 = 9 × 9`** mà cả trang đang dựa vào. Cổng chấp nhận cả hai — nó đo
       **quan hệ**, không ép một con số.
 
+- [x] **P-18 — 🔴 ĐIỀU KIỆN TIÊN QUYẾT của "người ngoài tự làm validator" KHÔNG AI ĐO** (D-162)
+      Tiền chỉ là nửa sau; nửa trước là **node phải bootstrap được**. Stake đòi bootstrap, bootstrap
+      đòi **80% stake**, và nối được đòi **địa chỉ mạng phát tán ra phải quay số được từ ngoài**.
+      D-118b từng đo đúng cái chết đó (11% thấy được / 80% cần) **trên một mạng mọi cổng đều xanh**.
+      Bản vá `open-p2p-all-nodes.py` đã áp ngày G — 🔴 **và không gì đo rằng nó CÒN đúng**: đó là
+      thuộc tính của **tiến trình đang chạy**, mất khi dựng lại một node thiếu cờ, và **triệu chứng
+      không phải sự cố** — mạng vẫn xanh, RPC vẫn nhanh, chỉ **người lạ** phát hiện, một mình.
+      **Điều kiện qua:** đo **cả hai chiều** (khai-mà-đóng · mở-mà-không-khai), và đo **từ ngoài**.
+      ✅ **ĐẠT.** `check-outsider-bootstrap.mjs`: **26 đối chứng ngược** · đối chứng **trên byte
+      thật hai hướng** (cổng thật ⇒ `open`, cổng `9999` cùng host ⇒ `timed out`; tên miền đã nghỉ
+      ⇒ `EXIT 2` **chứ không PASS**). Đo mạng sống: **9/9 khai địa chỉ công khai · 9/9 cổng TCP mở
+      từ máy này · 100,00% stake quay số được** ⇒ người lạ bootstrap được thật.
+      🔴 **NƠI CHẠY LÀ MỘT PHẦN CỦA PHÉP ĐO** — thăm dò từ chính server chứng minh số 0 (không qua
+      tường lửa, Docker không hairpin — D-089). Cổng tự in điều kiện đó ra.
+      🔴 Stake tính bằng **WEIGHT**, không bằng đầu người: hôm nay chín node cùng trọng số nên hai
+      cách trùng nhau, và đó **chính là lý do** không được viết bằng đầu người.
+      ⚠️ Khai rõ: nhánh **FAIL** mới chỉ có fixture — dựng ca đỏ thật phải sửa cấu hình mạng đang
+      chạy, việc có người bấm (§4). Nói ra thay vì để màu xanh ngụ ý đã kiểm.
+
+- [x] **P-19 — 🔴 tôi SUÝT khai một sự cố không có thật, và chỉ tra mã nguồn mới chặn được** (D-162)
+      Lượt đo đầu: `info.peers` trả **8/8 peer mang `172.28.0.x`**. Đọc mặt chữ thì đó là D-118b tái
+      phát trên mạng công khai. Tra thẳng `upstream/avalanchego/network/peer/`: **có HAI trường** —
+      `ip` là **socket node được hỏi đang nối**, `PublicIP` là **lời khai đã KÝ**, và đó mới là thứ
+      được gossip cho người lạ. Trên mạng Docker hai trường **luôn khác nhau**.
+      Đo đúng trường ⇒ **8/8 khai địa chỉ công khai**, mạng hoàn toàn khoẻ.
+      🔴 Nếu tôi khai theo lượt đọc đầu, David sẽ đi **dựng lại chín node đang chạy đúng**. Cùng
+      hình dạng gotcha 9b và lượt đỏ đầu của `check-robots` (D-106b).
+      ⚠️ **Luật: hai trường tên gần giống nhau trong một API là một cái bẫy đo sai đại lượng — tra
+      ĐỊNH NGHĨA trước khi tin cái TÊN.**
+      🟢 Kèm: `check-single-source` **bắt chính cổng mới** vì fixture cắm cứng IP máy chủ (D-113).
+      Vá **không bằng cách khai ngoại lệ** mà bỏ hằng số đi — fixture nay dùng địa chỉ tài liệu
+      RFC 5737. Cổng đã dạy điều đó **trước khi** tệp kịp vào commit.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện

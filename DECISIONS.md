@@ -7227,3 +7227,79 @@ thì đổi **`FAUCET_MAX_PER_IP_HOUR` 9 → 10** trên server (⚠️ `docker r
 `docker restart` KHÔNG nạp lại env, bẫy 2). Đổi `FAUCET_AMOUNT` lên 10 cũng xong nhưng **phá đẳng
 thức `81 = 9 × 9`** mà cả trang đang dựa vào. Cổng chấp nhận cả hai — nó đo **quan hệ**, không ép
 một con số.
+
+---
+
+## D-162 — **Điều kiện TIÊN QUYẾT của việc "người ngoài tự làm validator" không được ai đo, và tôi suýt báo động giả về nó** (`2026-09-02`)
+
+Tiếp D-161, cùng yêu cầu của David. Tiền mới là nửa sau; nửa trước là **node phải đồng bộ được**.
+Stake đòi bootstrap, bootstrap đòi nối tới **80% stake**, và nối được đòi **địa chỉ mà mạng phát
+tán ra phải là địa chỉ người lạ quay số được**.
+
+### Vì sao đây là chỗ dễ chết nhất
+
+D-118b đã đo đúng cái chết đó: node ngoài tới beacon, học tám node kia bằng gossip, và nhận về
+`172.28.0.x` — mạng nội bộ Docker. Nó thấy ~**11%** stake, bootstrap cần **80%**, **không có lối ra
+bằng cấu hình**. Một vòng lặp kín, trên một mạng mà **mọi cổng đều xanh**.
+
+Bản vá (`open-p2p-all-nodes.py`, D-089/D-118c) cho node N khai IPv4 công khai + cổng `9650+N`. Đã
+áp ngày G. 🔴 **Không gì đo rằng điều đó CÒN đúng.** Nó là thuộc tính của **tiến trình đang chạy**,
+mất đi khi ai đó dựng lại một node thiếu cờ — và **triệu chứng không phải là sự cố**: mạng vẫn xanh,
+RPC vẫn nhanh, validator cũ vẫn validate. **Chỉ người lạ phát hiện ra, một mình, ở cuối một buổi
+chiều.** Đúng lớp lỗi §2: mọi cổng đo đúng đại lượng của mình, và không cổng nào đo cái này.
+
+### 🔴 Và tôi suýt khai một sự cố không có thật
+
+Lượt đo đầu: `info.peers` trả **8/8 peer mang `172.28.0.x`**. Đọc mặt chữ thì đó chính là D-118b
+tái phát trên mạng công khai. Trước khi kết luận, tra thẳng `upstream/avalanchego/network/peer/`:
+
+```
+Info{ IP: ip,                 // socket THIS node is connected on
+      PublicIP: p.ip.AddrPort // the SIGNED claim, and the thing that gets gossiped
+```
+
+**Hai trường, và trên mạng Docker chúng LUÔN khác nhau.** Tôi in trường `ip`. Đo lại đúng trường:
+
+```
+ip 172.28.0.16:46696   ->   publicIP <public>:9656     8/8 khai dia chi cong khai
+TCP tu MAY NAY (ngoai server) : 9651..9659  ->  9/9 open
+stake dialable                                ->  100.00%
+```
+
+⇒ **Mạng hoàn toàn khoẻ.** Nếu tôi khai theo lượt đọc đầu, David sẽ đi dựng lại chín node đang
+chạy đúng. Cùng hình dạng gotcha 9b (`testnet-a1` trả 525 ⇒ "trang chết" trong khi trang vẫn sống)
+và lượt đỏ đầu của `check-robots` (D-106b). ⚠️ **Luật: hai trường tên gần giống nhau trong một API
+là một cái bẫy đo sai đại lượng — tra định nghĩa trước khi tin cái tên.**
+
+### Cổng `scripts/check-outsider-bootstrap.mjs`
+
+Đo **cả hai chiều**, vì mỗi chiều một mình đều để người lạ mắc kẹt và **trông ổn** với phép kiểm của
+chiều kia: *khai-mà-đóng* là lỗi tường lửa, *mở-mà-không-khai* là lỗi gossip.
+
+🔴 **NƠI CHẠY LÀ MỘT PHẦN CỦA PHÉP ĐO.** Thăm dò TCP **từ chính server** chứng minh số 0: nó không
+đi qua tường lửa, và Docker **không hairpin** nên container cùng máy còn không quay số nổi IP công
+khai của chính host (D-089). Cổng tự in ra điều kiện đó thay vì ngầm giả định.
+
+🔴 **Không đổ lỗi cho mạng vì đường truyền của chính mình.** Nếu **mọi** thăm dò hỏng, lời giải
+thích hợp lý là máy đo, không phải chín lượt đổi tường lửa đồng thời ⇒ **INCONCLUSIVE**, không FAIL.
+Hỏng một phần thì mạng đang trả lời ⇒ những cái hỏng là hỏng thật. Đây là khác biệt giữa một cổng
+người ta tin và một cổng người ta học cách bỏ qua (lý lẽ D-070).
+
+🔴 **Stake tính bằng WEIGHT, không bằng ĐẦU NGƯỜI.** Hôm nay chín node cùng trọng số nên hai cách
+cho cùng kết quả — và đó **chính là lý do** không được viết bằng đầu người: ngày một node đổi trọng
+số, phép đếm **âm thầm thôi đo** thứ mà bootstrap thật sự chặn.
+
+**Nghiệm thu:** 26 đối chứng ngược (gồm ca `ip` riêng tư + `publicIP` công khai phải **XANH**, và ca
+ngược lại phải **ĐỎ** — ghim đúng cái bẫy trên) · đối chứng **trên byte thật hai hướng**: cổng thật
+`9651` ⇒ `open`, cổng `9999` cùng host ⇒ `timed out` (thăm dò phân biệt được trạng thái thật), và
+tên miền đã nghỉ ⇒ **`EXIT 2`, không phải PASS**.
+⚠️ **Khai rõ đường chưa phủ bằng dữ liệu thật:** nhánh **FAIL** mới chỉ có fixture — dựng một ca đỏ
+thật đòi sửa cấu hình mạng đang chạy, và đó là việc có người bấm (§4). Nói ra thay vì để một màu
+xanh ngụ ý nó đã được kiểm.
+
+### Kèm: `check-single-source` bắt chính cổng này, và nó đúng
+
+Fixture của tôi cắm cứng IP máy chủ ⇒ D-113 nổ (`COPY OUTSIDE THE ALLOW-LIST`). Vá **không phải
+bằng cách khai ngoại lệ** mà bằng cách bỏ hằng số đi: fixture nay dùng địa chỉ tài liệu RFC 5737
+(`203.0.113.9`). Một bài kiểm tra không nên phụ thuộc hạ tầng thật — và cổng đã dạy điều đó **trước
+khi** tệp kịp vào commit.
