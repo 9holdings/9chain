@@ -244,6 +244,45 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       **không phải phần mềm**: hai bản sao trên **cùng một ổ đĩa**. Nay nói đúng **một lần**, ở
       B-16 — hai mục cho một hành động là hai lời nhắc cho một việc, tức lại đúng bệnh đang chữa.
 
+- [x] **P-21 — B-13(b): số đã ĐO và đã CHỌN — `--offset-ms 3000`** (D-164)
+      David: *"làm B-13(b) đi."* Hạn `09/09`, còn 7 ngày.
+      🔴 **Công cụ `check-clock-skew` đang in ra một con số NGUY HIỂM và exit 0.** Chain rảnh tuyệt
+      đối (cao **22** block · block cuối **7.062 giây tuổi** · 0 block mới trong 20 giây) ⇒ nó in
+      **`--offset-ms 7197020`** — **hai tiếng** — mà toàn bộ là **TUỔI BLOCK**. Ai tin dòng đó bắn
+      Block Adam **muộn hai tiếng** so với khoảnh khắc nó sinh ra để đánh dấu.
+      🔴 **Và tiêu đề của chính tệp đó đã cảnh báo đúng điều này** rồi vẫn đem đi tính bù. *Một lời
+      cảnh báo bằng văn xuôi không phải một cái chặn* — cùng bài học với bánh cóc §0 (D-160).
+      **Điều kiện qua:** đo được trên chain **đang rảnh**, và cổng **từ chối** nguồn hỏng.
+      ✅ **ĐẠT.** Nguồn mới: `info.peers[].lastReceived` — mốc **do chính đồng hồ node đóng dấu**,
+      nằm trong **thân JSON** nên Cloudflare không sửa, và **nhúc nhích khi không có giao dịch nào**
+      (đo: tiến 14s qua 12s đồng hồ tường trong lúc chain đẻ **0** block). Thiên lệch của nó chỉ về
+      phía **an toàn** và bị chặn bởi **giây**, còn tuổi block **không bị chặn bởi gì**.
+      **Số chốt:** `+201ms ±649` và `+29ms ±726` (hai lượt cách nhau ~15 phút, **cùng kết luận**) ·
+      biên xấu nhất node chậm **697ms** ⇒ **sàn `3000ms` phủ ~4 lần**. `lệch > 0` = node **nhanh
+      hơn** máy bắn = chiều an toàn.
+      🟢 Kèm cổng mới: `check-clock-skew` nay **exit 1** khi số đo **vượt sàn** — trước đó exit 0 dù
+      đo ra yêu cầu lớn hơn, tức con số in trong `BLOCKERS`/runbook/lệnh người gõ có thể hết đúng mà
+      không ai biết (hình dạng D-150, đến qua **công cụ** thay vì qua **tài liệu**). Đối chứng
+      **trên dữ liệu thật hai hướng**: hạ sàn còn `100ms` ⇒ `EXIT 1` in đúng yêu cầu thật `1889ms`;
+      sàn thật ⇒ `EXIT 0`. Đã vào preflight **hai mục**.
+
+- [x] **P-22 — ✅ nửa "câu chữ" của B-13(b) HẾT ĐÚNG, và đó là phép ĐO** (D-164)
+      B-13(b) lo: *"nếu bản khắc còn **câu chữ** khẳng định block vượt mốc `2026-09-09T06:09:09Z`
+      thì câu đó vẫn phải đúng."* Đọc **bốn tài liệu đã khắc thật** (`docs/engrave/CANON.txt`,
+      1.142 byte, đóng băng ngày G): `genesis_inscription` · `dedication` · `dedication_eva` ·
+      `love_paper_en`. **Không tài liệu nào khai một mốc thời gian nào.**
+      ⇒ Câu lo đó viết `27/08` **lúc câu chữ còn mở**; chữ đóng băng ngày G và **tình cờ không chứa
+      lời khẳng định đó**. **Giả định hết đúng mà không ai đánh dấu** — lớp lỗi chung của `01/09`.
+
+- [human] **P-23 — 🔴 RÀNG BUỘC `09/09` KHÁC, và nó KHÔNG phải chuyện đồng hồ**
+      `docs/block-adam/CANON.txt` đã ghi: **C-Chain KHÔNG đẻ block rỗng.** Thông điệp `9S Union`
+      neo ở `block(Eva) + 9` ⇒ **trên chain im lặng, chín block đó có thể không bao giờ tới.** Hôm
+      nay chain đứng ở block **22**, im **hơn hai tiếng** — đây **không phải rủi ro lý thuyết, nó là
+      trạng thái hiện tại**. Hai đường, chọn **TRƯỚC** ngày: (a) bật lại bơm nhịp — ⚠️ nó **từ chối
+      khởi động** cho tới khi `HEARTBEAT_STOP_AFTER` (`2026-09-01T00:00:00Z`, **đã ở quá khứ**) được
+      dời; hoặc (b) **chín giao dịch chèn** có chủ ý (kịch bản nghi lễ đã có sẵn phần chèn).
+      Nối vào mục việc tay `heartbeat` bước 2–4.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện

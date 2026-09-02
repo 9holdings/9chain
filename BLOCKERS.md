@@ -542,7 +542,7 @@ chiếm trong sổ công khai — đúng dù gốc dải là 9100 hay 9146.
 
 </details>
 
-### 🟡 B-13 — **(a) ĐÃ ĐÓNG `2026-08-27`** · (b) còn mở, đã HẠ MỨC
+### 🟡 B-13 — **(a) ĐÓNG `2026-08-27`** · **(b) nửa A1 ĐÓNG `2026-09-02`: `--offset-ms 3000`, đo trên g1** · còn 2 việc ngày `09/09`
 
 ✅ **(a) David chốt: neo vào HASH GIAO DỊCH NGHI LỄ** (D-070). Luật cũ *"block đầu tiên vượt
 mốc"* là mệnh đề về toàn chuỗi — nghi lễ không tự bảo đảm được; hash giao dịch là thứ nghi lễ
@@ -559,11 +559,41 @@ Bài diễn tập đã đổi cách chấm và **chạy thật lại trên mạn
 Ô cũ **xuống hạng "lưu ý"**, không bị xoá: xoá là mất phép đo lệch đồng hồ mà (b) cần; giữ ở
 hạng ✗ là để bài **kêu oan**, mà cổng kêu oan sẽ bị bỏ qua đúng lúc nó kêu thật.
 
-🔴 **(b) VẪN MỞ, nhưng đổi tính chất.** D-070 hạ nó từ *"neo sai thì hỏng"* xuống *"câu chữ
-sai thì không trung thực"*: nếu bản khắc còn **câu chữ** khẳng định block vượt mốc
-`2026-09-09T06:09:09Z` thì câu đó vẫn phải đúng, và nó vẫn phụ thuộc đồng hồ **node đề xuất
-block**. ⇒ vẫn phải đo lệch đồng hồ 9 node **sau khi mạng ngày G lên**, rồi chọn `--offset-ms`.
-Câu chữ chốt cùng lượt **C1 đóng băng byte**.
+🟡 **(b) — NỬA CỦA A1 ĐÃ ĐÓNG `2026-09-02`, đo trên mạng g1 đang chạy.** D-070 hạ nó từ *"neo
+sai thì hỏng"* xuống *"câu chữ sai thì không trung thực"*.
+
+**Số đã chọn: `--offset-ms 3000`** — và đó là **sàn chính sách**, không phải số vừa đo:
+
+```
+lech may ban <-> node : +29ms ± 726ms   (do luc 15:5xZ)
+                        +201ms ± 649ms  (do luc 15:4xZ, 15 phut truoc)
+bien xau nhat         : node cham 697ms
+=> san 3000ms phu no ~4 lan
+```
+
+`lech > 0` = node **nhanh hơn** máy bắn ⇒ `block.timestamp` lớn hơn ⇒ **dễ vượt mốc hơn**, tức
+chiều an toàn. Công cụ: `node scripts/check-clock-skew.mjs`.
+
+🔴 **Câu chữ: KHÔNG CÒN LÀ VẤN ĐỀ, và đó là một phép đo chứ không phải suy đoán.** Mục này lo
+*"nếu bản khắc còn câu chữ khẳng định block vượt mốc"*. Đọc lại **bốn tài liệu đã khắc thật**
+(`docs/engrave/CANON.txt`, 1.142 byte, đóng băng ngày G): `genesis_inscription` ·
+`dedication` (*"Adam — the first human."*) · `dedication_eva` · `love_paper_en`. **Không tài liệu
+nào khai một mốc thời gian nào.** Câu B-13(b) viết `27/08` lúc câu chữ còn mở; câu chữ đã đóng
+băng ngày G và **tình cờ không chứa lời khẳng định đó**. ⇒ Giả định của mục này **hết đúng mà
+không ai đánh dấu** — đúng lớp lỗi chung của `01/09`.
+
+🔴 **Còn lại HAI việc cho `09/09`, và cái thứ hai KHÔNG phải đồng hồ:**
+
+1. **Đo lại `--offset-ms` khi chain ĐANG ĐẺ BLOCK.** Hôm nay chain rảnh tuyệt đối (cao **22**
+   block, block cuối **7.338 giây tuổi**, 0 block mới trong 20 giây), nên phép đo phải rơi về
+   nguồn gossip. Nguồn `block.timestamp` **là** đại lượng nghi lễ so sánh, nên khi có block thì
+   dùng nó — công cụ nay **tự chọn** và **từ chối** block cũ.
+2. 🔴 **C-Chain KHÔNG đẻ block rỗng** (`docs/block-adam/CANON.txt`). Neo `9S Union` ở
+   `block(Eva) + 9` ⇒ trên một chain im lặng, chín block đó **có thể không bao giờ tới**. Hai
+   đường, phải chọn TRƯỚC ngày: (a) bật lại bơm nhịp — ⚠️ nó **từ chối khởi động** cho tới khi
+   `HEARTBEAT_STOP_AFTER` được dời (giá trị hiện tại `2026-09-01T00:00:00Z`, **đã ở quá khứ**)
+   hoặc (b) chín giao dịch chèn có chủ ý. **Đây là việc vận hành, không phải việc đồng hồ**, và
+   nó nối vào mục việc tay `heartbeat` bước 2–4.
 
 <details>
 <summary>Nguyên văn lúc còn mở cả hai vế</summary>

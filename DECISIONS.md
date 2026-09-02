@@ -7371,3 +7371,99 @@ cho một việc, tức lại đúng cái bệnh đang chữa.
 `B-16` nửa vật lý · `heartbeat` bước 2–4 · node Hetzner hậu phóng · **`B-13(b)` đo lệch đồng hồ,
 hạn `09/09`** · đọc `console.env` trên server · ship `A1_CLI_KEY` · ví faucet số đẹp (tuỳ chọn) ·
 bề mặt công khai còn in thế hệ chết (`web-home`, luật cứng #4).
+
+---
+
+## D-164 — **B-13(b): số đã đo và đã chọn (`--offset-ms 3000`); và nửa "câu chữ" của nó HẾT ĐÚNG mà không ai đánh dấu** (`2026-09-02`)
+
+David: *"làm B-13(b) đi."* Hạn `2026-09-09`, còn 7 ngày.
+
+### Đại lượng — công cụ đã đúng từ trước, và điều đó đáng nói
+
+`BLOCKERS.md` B-13(b) viết *"đo lệch đồng hồ 9 node"*. `scripts/check-clock-skew.mjs` (viết
+`28/08`) **đã bác câu đó** ngay trong tiêu đề của nó: thứ quyết định Block Adam là **một** phép so,
+`block.timestamp > mốc`, trong đó `block.timestamp` là đồng hồ **node ĐỀ XUẤT block** còn thời điểm
+bấm là đồng hồ **máy bắn** ⇒ đại lượng thật là **lệch(máy bắn ↔ node)**, không phải lệch giữa các
+node. Và lệch giữa 9 node hôm nay là **0 THEO KIẾN TRÚC** — chín container trên **một** máy, Docker
+không dùng time namespace ⇒ chung một `CLOCK_REALTIME`. Đo chín lần rồi khai *"lệch 0ms, đã kiểm"*
+là đo **bố cục hạ tầng**, không đo đồng hồ.
+
+### 🔴 Nhưng công cụ đó ĐANG in ra một con số nguy hiểm, và exit 0
+
+Chạy thật `02/09`:
+
+```
+C-Chain: cao 22 block · block cuoi 7.062s tuoi · 0 block moi trong 20s
+=> check-clock-skew in ra:  --offset-ms 7197020   (HAI TIENG)   va exit 0
+```
+
+Toàn bộ con số đó là **TUỔI BLOCK**, không phải lệch đồng hồ. Ai tin dòng đó thì bắn Block Adam
+**muộn hai tiếng** so với khoảnh khắc nó sinh ra để đánh dấu.
+
+🔴 **Và tiêu đề của chính tệp đó đã cảnh báo đúng điều này** — *"trên chain rảnh, tuổi block ÁP
+ĐẢO … coi một số âm lớn là KHÔNG CÓ TRAFFIC, đừng coi là node chậm 10s"* — rồi vẫn đem nó đi tính
+bù. **Một lời cảnh báo bằng văn xuôi không phải một cái chặn.** Cùng bài học với bánh cóc §0 hôm
+nay (D-160): *luật viết ra không tự thi hành; chỉ thứ được ĐO mới thi hành.*
+
+### Phép đo dùng được trên chain rảnh
+
+`info.peers[].lastReceived` là mốc thời gian **do chính đồng hồ node đóng dấu**, nằm trong **thân
+JSON** nên Cloudflare không sửa (khác hẳn header `Date`, vốn là đồng hồ của Cloudflare), và — khác
+block — nó **nhúc nhích khi không có giao dịch nào**, vì chín node gossip liên tục. Đo `02/09`:
+tiến **14 giây** qua **12 giây** đồng hồ tường trong lúc chain đẻ ra **0 block**.
+
+🔴 **Thiên lệch của nó chỉ về phía AN TOÀN, và bị chặn bởi GIÂY chứ không phải bởi gì cả.**
+`max(lastReceived) ≤ node_now` luôn đúng ⇒ phép đo **khai node chậm hơn thực tế** ⇒ `chonBu` chọn
+bù **LỚN hơn**. Khoảng hụt bị chặn bởi *"peer bận nhất im lặng được bao lâu"* — vài giây; còn tuổi
+block **không bị chặn bởi gì**.
+
+### Số chốt
+
+```
+lech may ban <-> node : +201ms ± 649ms   (15:4xZ)
+                        +29ms  ± 726ms   (15:5xZ, ~15 phut sau)
+bien xau nhat         : node cham 697ms
+=> --offset-ms 3000    (san chinh sach, phu ~4 lan)
+```
+
+`lệch > 0` = node **nhanh hơn** máy bắn ⇒ `block.timestamp` lớn hơn ⇒ **dễ vượt mốc hơn**: chiều an
+toàn. Hai lượt đo cách nhau ~15 phút cho hai giá trị khác nhau nhưng **cùng một kết luận**, đó là
+điều đáng tin hơn một con số đẹp.
+
+### ✅ Nửa "câu chữ" HẾT ĐÚNG, và đó là phép ĐO chứ không phải suy đoán
+
+B-13(b) lo: *"nếu bản khắc còn **câu chữ** khẳng định block vượt mốc `2026-09-09T06:09:09Z` thì câu
+đó vẫn phải đúng."* Đọc **bốn tài liệu đã khắc thật** (`docs/engrave/CANON.txt`, 1.142 byte, đóng
+băng ngày G): `genesis_inscription` (Sáng thế 1:1, Hebrew) · `dedication` (*"Adam — the first
+human."*) · `dedication_eva` · `love_paper_en`. **Không tài liệu nào khai một mốc thời gian nào.**
+
+⇒ Câu lo đó viết `27/08` **lúc câu chữ còn mở**; câu chữ đóng băng ngày G và **tình cờ không chứa
+lời khẳng định đó**. Giả định của mục này **hết đúng mà không ai đánh dấu** — đúng lớp lỗi chung
+của `01/09`. Ghi ra thay vì để nó tiếp tục đòi một việc không còn tồn tại.
+
+### 🔴 Nhưng có một ràng buộc KHÁC cho `09/09`, và nó không phải chuyện đồng hồ
+
+`docs/block-adam/CANON.txt` đã ghi: **C-Chain KHÔNG đẻ block rỗng.** Nó đẻ block khi có thứ để bỏ
+vào. Thông điệp `9S Union` neo ở `block(Eva) + 9` ⇒ **trên một chain im lặng, chín block đó có thể
+không bao giờ tới.** Hôm nay chain đứng ở block **22** và đã im **hơn hai tiếng** — tức đây không
+phải rủi ro lý thuyết, nó là **trạng thái hiện tại**. Hai đường, phải chọn **trước** ngày:
+(a) bật lại bơm nhịp — ⚠️ nó **từ chối khởi động** cho tới khi `HEARTBEAT_STOP_AFTER`
+(`2026-09-01T00:00:00Z`, **đã ở quá khứ**) được dời; hoặc (b) chín giao dịch chèn có chủ ý.
+
+### Cổng mới, và vì sao nó phải là CỔNG chứ không phải công cụ
+
+`SAN_BU_MS = 3000` là con số nằm trong `BLOCKERS.md`, trong runbook, và trong **lệnh một con người
+sẽ gõ ngày `09/09`**. Trước hôm nay **không gì kiểm rằng nó còn đủ lớn**, và công cụ exit 0 dù đo
+ra yêu cầu lớn hơn. Đó là hình dạng D-150 (tài liệu khai một con số hệ thống sống không còn đỡ
+được), đến qua **công cụ** thay vì qua **tài liệu**.
+⇒ Nay `check-clock-skew` **exit 1** khi số đo vượt sàn, và đã vào preflight **hai mục**.
+**Đỏ ở đây nghĩa là: con số đã công bố phải đổi** — không phải mạng hỏng.
+Đối chứng **trên dữ liệu thật hai hướng**: hạ sàn xuống `100ms` ⇒ `EXIT 1` và in đúng yêu cầu thật
+(`1889ms`); sàn thật ⇒ `EXIT 0`.
+
+### Kèm: bánh cóc §0 bắt chính tôi, hai lần
+
+Lượt sửa này thêm mã mới có **chú thích và chuỗi log tiếng Việt** ⇒ `check-english-code` **ĐỎ**
+(`5.719 → 5.723`). Sửa xong còn `+1`, đỏ tiếp; truy ra là **hai dòng cũ mà tôi vừa chạm**. Đã dịch
+luôn cả hai ⇒ nợ về đúng `5.719`. **Chốt bánh cóc buổi sáng đã thu lãi ngay trong ngày** — và nó
+bắt đúng người viết ra nó, đó mới là bằng chứng nó hoạt động.
