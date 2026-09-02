@@ -7539,3 +7539,74 @@ bí mật đến từ **env**, không cắm cứng. **0 dòng tiếng Việt** �
 ở *"~1 phút"*; 30 phút là lề rẻ tiền vì bơm là **lưu lượng tổng hợp** — tắt sớm nửa tiếng không mất
 gì, còn một giao dịch bơm **còn đang bay** khi nghi lễ bắt đầu thì **mất ô neo**, và ô đó không có
 lần hai.
+
+---
+
+## D-166 — **Node Hetzner: dọn đường đã đo xong; và một BẢN GHI khai một sự kiện KHÔNG XẢY RA suốt hai ngày** (`2026-09-03`)
+
+David: *"cho node Hetzner stake lại đi."* Việc bấm là của David (§4: gửi giao dịch · faucet · ghi
+lên máy chủ). Phần đo và soạn đường là của A1, và nó là phần dễ hỏng nhất.
+
+### 🔴 Bản ghi khai một việc chưa từng xảy ra
+
+`docs/GDAY-NODE10-HETZNER.md` mở đầu bằng *"Ngày G đã chạy `2026-09-01 09:26Z` và Hetzner **đã vào
+genesis g1**."* **Điều đó không xảy ra.** David chốt `01/09 09:10Z`: **cả chín validator genesis
+chạy trên OVH**, Hetzner vào sau **bằng cách stake, như người lạ**.
+
+Ba nguồn độc lập, đo `03/09`: chain có **9 validator trọng số y hệt nhau** ⇒ vẫn đúng chín node
+genesis · máy Hetzner **không có container node nào** · thứ đang chạy ở đó là một `avalanchego`
+**trần** của thế hệ **đã chết**.
+
+⚠️ **Vì sao nó sống được hai ngày:** tệp mang dấu `<!-- doc-drift: record -->`, nên `check-doc-drift`
+**cố ý bỏ qua**. Miễn trừ đó **đúng** cho một số đo cũ — và **sai** ở đây.
+⇒ **Luật bổ sung: `record` miễn trừ một SỐ ĐO của hôm qua, không miễn trừ một SỰ KIỆN không có
+thật.** Một bản ghi được phép nói *"lúc đó chúng tôi đo 25.000"*; không được phép nói *"việc X đã
+xảy ra"* khi X không xảy ra. Cái trước là lịch sử, cái sau là **thông tin sai mặc áo lịch sử** —
+và nó nguy hiểm hơn số cũ, vì số cũ tự khai ngày của nó còn câu này thì không.
+
+### Đo trạng thái máy Hetzner
+
+| | `03/09` |
+|---|---|
+| image 27 patch | ✅ `9chain-a1/node:g1` = `:g1-81`, **ba mỏ neo khớp**: `commit=9chain-a1-g1-27patch-38723877` · `sha256 2f733249…b57480` **trùng byte với image OVH** · `g0`=0 `g1`=4 `LOVE9`=2 |
+| beacon g1 | ✅ `139.99.145.13:9651` tới được từ Hetzner |
+| 🔴 tiến trình cũ | **đang chạy**, PID `34489`, `--network-id=999999999`, **giữ cổng 9651**, từ `29/08` |
+| 🔴 genesis trên máy | bản **g0** `e1024eab…` / `999999999` |
+| 🔴 DB cũ | `/opt/9chain-a1/data` **541 MB** của g0 |
+
+🔴 **Đối chứng ống, vì đúng bài này từng qua bằng một ống gãy:** `strings` không có trong image;
+`grep -c` trên đầu vào rỗng in `0`, và tiêu chí *"g0 phải = 0"* **ĐẠT bằng cách không đo gì**. Nên
+lượt này chạy hai chứng: `avalanchego` = **283** (phải có) và `zzqqxx` = **0** (không thể có) ⇒
+số 0 của `g0` là **vắng thật**.
+
+### 🔵 Quyết định về CÁCH đi: dùng TÀI LIỆU CÔNG KHAI, không dùng runbook nội bộ
+
+Cửa *"vào thẳng genesis"* đã đóng — genesis g1 bất biến. Nay Hetzner vào bằng **đúng con đường
+người ngoài**, và đó là **tin tốt**: nó biến điều kiện qua **3** (*node ngoài là peer*) và **O4**
+(*nhà cung cấp thứ hai*) từ **lời khai** thành **phép đo**, đồng thời là **người đầu tiên đi hết
+đường tiền** mà `RUN-A-VALIDATOR.md` tự khai chưa ai đi.
+
+⇒ **Đi bằng `docs/RUN-A-VALIDATOR.md`, từng bước.** Dùng runbook nội bộ thì chỉ chứng minh
+*"máy này chạy được node"* — thứ đã biết. Đi bằng tài liệu công khai thì **mỗi chỗ lệch là một lỗi
+trong tài liệu người lạ đang cầm**, và bắt ở đây rẻ hơn nhiều so với để người lạ bắt.
+Kể cả lượt tải genesis cũng lấy từ **đúng URL người lạ dùng** — đã kiểm chạy thật `03/09`:
+`11.950 byte`, `sha256 4de8caa5…0f6ee6`, `networkID 999999998`.
+
+### Ba bẫy của lượt dọn, cả ba đã ghi từ trước và cả ba vẫn sống
+
+1. Tiến trình đó **không phải container** ⇒ `docker stop/rm/compose down` không đụng được, và
+   không lệnh docker nào cho thấy nó tồn tại. Quên giết: `--network host` khiến Docker **không**
+   kiểm cổng trước ⇒ container lên, avalanchego **không bind nổi 9651**, chết, `docker run -d`
+   **vẫn trả thành công**, rồi vào vòng lặp restart mà **không gì nói vì sao**.
+2. **Xoá `data/` khi tiến trình còn sống thì THÀNH CÔNG mà không xoá gì có nghĩa** — Linux chỉ
+   `unlink`; tiến trình sống vẫn ghi qua fd đang mở và tạo lại được. Danh tính cũ **sống sót qua
+   một lượt xoá trông sạch**. ⇒ Giết trước, xoá sau, **đòi cả hai đối chứng rỗng**.
+3. **Chạy bằng container, không phải binary trần** — image Debian 12 (glibc 2.36), binary chép ra
+   ngoài chết bằng `GLIBC_2.36 not found` đúng lúc không còn đường lui.
+
+### Còn lại là việc David
+
+Giết tiến trình → xoá DB → thay genesis → chạy node → **10 lượt faucet** (không phải 9 — D-161) →
+`c-to-x` (**chưa ai chạy `--issue` bao giờ**) → `x-to-p` → `stake-validator`. Nghiệm thu **trên
+chain**: validator thứ 10 xuất hiện với trọng số khác chín node genesis, **và** một node **không
+phải beacon** thấy nó trong `info.peers` — cho mesh ~70 giây, đừng chấm ở giây 30 (D-121).
