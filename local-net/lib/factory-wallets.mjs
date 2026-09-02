@@ -37,6 +37,16 @@ export const VI_FACTORY_THEO_THE_HE = {
   // 🔴 A NEW KEY PER GENERATION, NOT THE OLD ONE CARRIED FORWARD (D-117b). The g0 factory key was
   // byte-identical to the one in a backup of the already-dead 9001 network, which meant a bundle
   // describing a dead chain still held spend authority on the live one. g1 gets its own, and it is
-  // a vanity address: nine 9s at the end, ground out in 52m36s.
-  1: "P-love91999h0q4ucfnex9q0qxefuu0ke0xtyvl6739999",
+  // a vanity address ground out by `local-net/tools/vanity-keygen`.
+  //
+  // 🔴 ROTATED 2026-09-02, BEFORE THE WALLET WAS EVER FUNDED. The first g1 factory key
+  // (`P-love91999h0q4ucfnex9q0qxefuu0ke0xtyvl6739999`) was exposed while its file was being read
+  // with a redaction pattern that covered `PrivateKey-…` but not the `EVM privkey : 0x…` line the
+  // same file carries. Both render ONE secp256k1 secret, so the whole wallet was exposed, and by
+  // this project's own definition (D-117) key material outside `9chain-a1-keys/g<N>/` is a leak
+  // whatever the audience. It held 0 on X, P and C at that moment and had authorised nothing, so
+  // rotating cost a 33-minute grind and no money — which is the entire argument for doing it then
+  // rather than after funding. The retired address is deliberately NOT listed here: this table
+  // answers "who pays now", and a dead entry in it is a wallet somebody can still send to.
+  1: "P-love9199au4t8uj8s6875ztwvvgctnkcxddtwv549999",
 };

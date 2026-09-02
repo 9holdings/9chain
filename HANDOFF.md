@@ -1191,7 +1191,7 @@ tên tệp) vá lỗ này** — chỉ `id` neo được. ⇒ Đặt `id` manifes
 
 | ví | địa chỉ | tìm trong |
 |---|---|---|
-| `chain-factory` (P-Chain — nơi nó tiêu tiền) | `P-love91999h0q4ucfnex9q0qxefuu0ke0xtyvl6739999` | 52m36s · 1,19 tỷ |
+| `chain-factory` (P-Chain — nơi nó tiêu tiền) | `P-love91999h0q4ucfnex9q0qxefuu0ke0xtyvl6739999` <!-- stale-ok: ví này ĐÃ NGHỈ 02/09 (D-159); dòng kể lượt mài 31/08 --> | 52m36s · 1,19 tỷ |
 | `faucet` (EVM — nơi người dùng nhìn) | `0x90001e27808F4aAa9FF672f5714476EB8E3f0009` | 1h14m45s · 1,34 tỷ |
 
 Khoá ở `C:\Users\abc\9chain-a1-keys\g1\` (chmod 600) — **chưa ví nào có tiền**.
@@ -2011,11 +2011,15 @@ cd upstream/avalanchego && git worktree add --detach /tmp/tl 1cf1fc3
 cd /tmp/tl && git am --keep-cr ../../patches/*.patch && git rev-parse HEAD^{tree}
 
 # Số dư ví chain-factory (đẻ chain chết câm khi cạn)
-# 🔴 ĐỊA CHỈ THEO THẾ HỆ. Dưới đây là ví g1. Ví g0 (`P-love91vgh2wh…`) nay giữ 0 và KHÔNG báo lỗi
-#    — hỏi nhầm nó ra "0 đồng", đúng về địa chỉ được hỏi, vô nghĩa về mạng. Đừng nạp tiền vào đó.
-#    Đường đúng: `node scripts/watch-network.mjs` (nó tra bảng ví theo A1Gen, D-117b).
-curl -s -X POST -H 'content-type:application/json' \
-  --data '{"jsonrpc":"2.0","id":1,"method":"platform.getBalance","params":{"addresses":["P-love91999h0q4ucfnex9q0qxefuu0ke0xtyvl6739999"]}}' \
+# 🔴 ĐỊA CHỈ ĐỔI THEO THẾ HỆ **VÀ** THEO LƯỢT ĐỔI KHOÁ. Ví g0 (`P-love91vgh2wh…`) giữ 0 và
+#    KHÔNG báo lỗi — hỏi nhầm nó ra "0 đồng", đúng về địa chỉ được hỏi, vô nghĩa về mạng.
+#    🔴 Ví g1 ĐẦU TIÊN (`P-love91999h0q…6739999`) cũng đã NGHỈ — thu hồi `2026-09-02` sau khi
+#    khoá của nó bị lộ, trước khi nạp một đồng nào (D-159). Nó cũng trả "0" mà không báo lỗi.
+#    ⇒ **ĐỪNG chép địa chỉ từ đây.** Suy ra từ nguồn duy nhất, để không có bản chép nào trôi:
+#      node --input-type=module -e 'import {VI_FACTORY_THEO_THE_HE} from "./local-net/lib/factory-wallets.mjs"; import {A1_GEN} from "./local-net/lib/chainid.mjs"; console.log(VI_FACTORY_THEO_THE_HE[A1_GEN]);'
+#    Đường đúng để ĐO: `node scripts/watch-network.mjs` (nó tra bảng ví theo A1Gen, D-117b).
+curl -sS -X POST -H 'content-type:application/json' \
+  --data '{"jsonrpc":"2.0","id":1,"method":"platform.getBalance","params":{"addresses":["P-love9199au4t8uj8s6875ztwvvgctnkcxddtwv549999"]}}' \
   https://rpc-a1.9chain.org/ext/bc/P
 
 # 🔴 Tài liệu có khai số của thế hệ đã chết không (D-150) — cổng DUY NHẤT đọc văn xuôi

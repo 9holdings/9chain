@@ -73,6 +73,39 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       `check-deploy-drift` **20 khớp · 0 lệch · 0 thiếu · 0 MỒ CÔI**, exit 0.
       ✅ Preflight **39 đạt · 3 đỏ → 40 đạt · 2 đỏ**.
 
+- [x] **P-8 — THU HỒI khoá `chain-factory` g1, trước khi nạp một đồng nào** (D-159)
+      🔴 **Lỗi do tôi gây ra:** xem hình dạng tệp khoá bằng `sed` che `PrivateKey-…`, mà tệp còn
+      mang `EVM privkey : 0x…` — mẫu không bắt ⇒ khoá vào bản ghi phiên. Hai dòng là **cùng một
+      bí mật**. Cùng gốc với D-158 ở chiều ngược: ở kia mẫu quá RỘNG (báo động giả), ở đây quá
+      HẸP (báo động không nổ) — đều vì viết mẫu trước khi đọc hết tệp.
+      ⇒ **Luật: xem tệp bí mật thì DANH SÁCH TRẮNG, không danh sách đen.**
+      **Điều kiện qua:** khoá mới suy ra đúng địa chỉ nó tự khai, và ví cũ chưa từng nhận tiền.
+      ✅ **ĐẠT.** Đo trước khi quyết: ví cũ **0 trên cả X, P, C** ⇒ đổi khoá tốn **28 phút, 0 đồng**.
+      Mới: `P-love9199au4t8uj8s6875ztwvvgctnkcxddtwv549999` (930.267.708 ứng viên · `28m10s`).
+      Stdout đổ **thẳng vào tệp**, khoá không qua màn hình. `check-keys` suy lại khớp, `exit 0`.
+      `check-key-leaks` **PASS**. Địa chỉ cũ **không** giữ trong bảng — mục chết trong đó là một ví
+      người ta vẫn gửi vào được.
+
+- [x] **P-9 — ví factory CHƯA BAO GIỜ chạy nổi: bốn lỗi chồng nhau** (D-159)
+      ① `check-keys` nhận quỹ bằng dòng `[tên]`, tệp một khoá **không có** ⇒ `FATAL` ⇒ ví bỏ chạy,
+      mà `--rm` **xoá cả xác lẫn log** ② `go run` biên dịch `xp-wallet` mỗi lượt ⇒ **~4 phút** mới
+      phục vụ ③ `curl -s` nuốt lỗi kết nối ⇒ rỗng **không phân biệt được** với thành công
+      ④ `bash` trong PowerShell rơi vào **WSL** không có khoá ssh.
+      **Điều kiện qua:** ví thật sự PHỤC VỤ, và bản hỏng vẫn bị bác.
+      ✅ **ĐẠT.** `enter.sh` tổng hợp tiêu đề trong ống (không ghi đĩa). Ví trả `/api/info` thật.
+      Bản hỏng (khoá `ewoq` công khai + địa chỉ không phải của nó ⇒ **không khoá thật chạm đĩa**)
+      vẫn **BÁC đúng lý do**, `exit 1`. Ba dạng tệp khoá đều đúng, không hồi quy.
+      🔴 Kèm lần **thứ ba** cùng lớp lỗi trong một ngày: `quỹ chọn:` in `P-love9199` cụt vì
+      `grep -o` vớ phải tham số tìm kiếm. Vá bằng cách neo vào **TÊN TRƯỜNG**.
+
+- [x] **P-10 — runbook việc 3 viết lại: phép kiểm do MÃ giữ, không do trí nhớ** (D-159)
+      Hàm `cho_vi` chờ ví lên, so `xAddr`, nối `&&` ⇒ lệnh gửi **không chạy được** khi đỏ. Đối
+      chứng hai chiều bằng ví giả: lệch `exit 1`, khớp `exit 0`. Địa chỉ **suy từ nguồn duy nhất**,
+      runbook và HANDOFF **thôi in địa chỉ factory ra**.
+
+- [human] **P-11 — đặt `A1_CLI_KEY` mới vào `console.env` + restart console**, rồi huỷ tệp khoá
+      đã nghỉ (`chain-factory-key-RETIRED-LEAKED-2026-09-02.txt`). Sau đó mới nạp 1.000.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
