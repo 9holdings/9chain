@@ -1,9 +1,14 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-02** — 🟢 **VIỆC 1 + 2 XONG TRÊN SẢN PHẨM · D-088 ĐÓNG · 4 cổng mới từ báo cáo
-người ngoài** (D-155 · D-156 · D-157). Preflight **37 đạt · 3 đỏ** (34→40 mục). 🔴 **Chặn duy nhất
-cho team: `genesis.json` chưa phát hành — 404.** Chi tiết ở mục CHỐT PHIÊN ngay dưới.
-*(Số đo cũ giữ nguyên bên dưới làm bản ghi.)* <!-- stale-ok -->
+Cập nhật: **2026-09-02** chiều — 🟢 **CHẶN SỐ 1 NAY CÁCH MỘT LƯỢT ĐẨY** (D-158). `genesis.json`
+đã vào đường git theo dõi + tài liệu khai nguồn tải + cổng canh việc đó, **5 commit tại chỗ, chưa
+đẩy**. 🔴 Hoá ra không phải *"chưa ai tải lên"*: tệp **không được git theo dõi** — byte cả thế giới
+cần nằm ở **hai chỗ vận hành, không repo/sao lưu/release nào**. Preflight **38 đạt · 4 đỏ**
+(40→42 mục); đỏ thứ tư là cổng mới, **đỏ đúng chỗ** và tự xanh ngay lượt đẩy.
+Chi tiết ở mục ngay dưới. *(Số đo cũ giữ nguyên bên dưới làm bản ghi.)* <!-- stale-ok -->
+
+Trước đó cùng ngày — 🟢 **VIỆC 1 + 2 XONG TRÊN SẢN PHẨM · D-088 ĐÓNG · 4 cổng mới từ báo cáo
+người ngoài** (D-155 · D-156 · D-157). Preflight **37 đạt · 3 đỏ** (34→40 mục).
 
 Trước đó `2026-09-01 15:2xZ` — 🔴 **SỔ CHAIN CÔNG KHAI CÒN KHAI 2 CHAIN CỦA g0** (D-154):
 `/chains/data/console-chains.json` phát `#9000000010` · `#9000000011`, RPC của chúng trả `404`.
@@ -64,7 +69,74 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
-### 🆕🆕🆕 CHỐT PHIÊN `2026-09-01` tối → `2026-09-02` — **22 commit, đã đẩy `origin`**
+### 🆕🆕🆕 `2026-09-02` chiều — **CHẶN SỐ 1 ĐÃ SẴN SÀNG, CHỜ ĐÚNG MỘT LƯỢT ĐẨY** (D-158)
+
+David hỏi *"giờ cần tôi làm gì"* rồi *"bạn làm được hết mà"*. Đúng — phần lớn làm được, và phần
+làm được đã làm xong. **5 commit tại chỗ, CHƯA ĐẨY.**
+
+```
+preflight  37 đạt · 3 đỏ  (40 mục)   ->   38 đạt · 4 đỏ  (42 mục)
+```
+
+#### 🔴 Chặn số 1 KHÔNG phải "chưa ai tải lên" — tệp không được git theo dõi
+
+`local-net/net-g1/genesis.json` bị `.gitignore` dòng 3 loại (`local-net/net-*`). Luật đó **đúng**
+— đấy là chỗ netgen ghi `keys.txt`/`staker.key`/`signer.key` — nhưng nó quét luôn **đúng một tệp
+trong đó vốn để công khai**. ⇒ Byte mà **mọi người ngoài** cần để tồn tại trên mạng này nằm ở
+**hai chỗ đang vận hành** (máy dev + máy chủ) và ở **không repo, không bản sao lưu, không release
+nào**. Mất một trong hai máy là mất khả năng đón người mới, **và không gì nói ra điều đó**.
+
+🔴 **Ba cổng đều mù, mỗi cổng ĐÚNG với đại lượng của mình:** `check-deploy-drift` so repo↔server,
+tệp không theo dõi thì **không có vế repo** · `check-doc-drift` đọc văn xuôi tìm số của thế hệ
+chết, ở đây **số đúng**, cái sai là **VẮNG một URL** · `check-live-page` đọc trang đang tồn tại.
+**Không cổng nào đo một sự vắng mặt.** ⇒ D-150 → D-154 → **D-158: vật chứng cũng là bề mặt công bố.**
+
+| đã làm | nghiệm thu |
+|---|---|
+| `docs/genesis/genesis-g1.json` — chép sang đường theo dõi, **không** gỡ ignore thư mục | **bốn mỏ neo độc lập** cùng `4de8caa5…0f6ee6`: bản theo dõi · bản làm việc · hằng số in trong `RUN-A-VALIDATOR.md` · **genesis 9 node đang boot bằng**, đọc thẳng từ máy chủ |
+| `RUN-A-VALIDATOR.md` khai **nguồn tải** — trước nay chỉ in hash, **chưa bao giờ nói tải ở đâu** | tệp và URL **cùng một commit** ⇒ không có cửa sổ tài liệu hứa thứ chưa có |
+| cổng `check-genesis-published.mjs` | **27 đối chứng ngược** · chạy thật **đỏ đúng MỘT bước** · **đối chứng DƯƠNG trên byte thật** |
+| `docs/archive/heartbeat-g0-final-2026-09-01.*` | trùng byte `a16a354d…`, hai đầu |
+
+#### 🔴 Bản ghi suýt bị xoá để làm vừa lòng một cổng
+
+Mồ côi `heartbeat.json.g0-20260901` được xếp *"hình dạng B-17"* = chờ xoá. B-17 nói câu *"đã có
+bản lưu rồi nên xoá được"* là một **PHÉP ĐO**. Đo `02/09`: **repo không có bản nào**. Đó là bản ghi
+**duy nhất** của lượt bơm g0 — **59 giờ · 1.910.316 tx vào khối · 9,01 TPS · tự dừng đúng hạn** —
+và *"nhịp sống 9 tx/s"* **đã công bố ra ngoài**. ⇒ Chép về `docs/archive/` (FROZEN) **trước**;
+giờ bản trên server mới được xoá.
+
+#### ⚠️ Ba bẫy của phiên này
+
+1. 🔴 **Regex không neo đọc ĐẦU của một giá trị dài hơn.** `grep -oE '0x[0-9a-fA-F]{64}'` trên
+   `genesis.json` in ra **mười "khoá riêng"** — thật ra là **64 ký tự đầu của khoá BLS 96 ký tự**.
+   Neo `(?![0-9a-fA-F])` rồi **gộp theo độ dài**: `9×48B` publicKey · `9×96B` PoP · `7×20B` địa chỉ
+   · `extraData` 32B · `mixHash`/`parentHash`=0 ⇒ **0 bí mật**. Suýt tự chặn bằng **đỏ giả**, lần
+   này đỏ giả đến từ **công cụ đo**, không từ cổng.
+2. 🔴 **`local-net/net-*/` viết trong chú thích khối JS thì `*/` ĐÓNG COMMENT** — `SyntaxError` trỏ
+   vào `keys.txt` ở giữa một câu văn.
+3. 🔴 **Chèn một khối vào tệp CRLF bằng Python text-mode = đổi xuống dòng CẢ TỆP.** `PROGRESS.md`
+   ra **4.178 dòng đổi** cho một lượt chèn 46 dòng. `.gitattributes` khai `* -text` nên git **giữ
+   nguyên byte, không chuẩn hoá** ⇒ không gì cứu. Mở `'rb'`/`'wb'` và tự nối `\r\n`. **Xem
+   `git diff --stat` NGAY sau mỗi lượt sửa tệp bằng script.**
+
+#### 🔴 Bốn đỏ, và ai gỡ — **cả bốn là việc có người bấm**
+
+| đỏ | việc |
+|---|---|
+| `check-genesis-published` | **ĐẨY `official`** — cổng tự xanh ngay lượt đó. `9holdings/9chain` **CÔNG KHAI**, không thu lại được ⇒ §4 hỏi David |
+| `watch-network` | ví `chain-factory` **0 LOVE9** — HAI chặng; David chọn **quỹ nào** + **bao nhiêu** |
+| `check-deploy-drift` | 1 mồ côi trên server — **an toàn để xoá kể từ hôm nay** |
+| `check-live-page` | `/` `/faucet/` `/create-chain/` in networkID chết — worktree `web-home`, luật cứng #4 |
+
+```bash
+node scripts/check-genesis-published.mjs              # 6 phép đo, đỏ ở đúng bước còn lại
+node scripts/check-genesis-published.mjs --self-test  # 27 đối chứng ngược
+# xoá mồ côi (sau khi P-4 đã cứu bản ghi):
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'shred -u ~/9chain-a1/src/9chain-a1-config/heartbeat.json.g0-20260901'
+```
+
+### 🆕🆕 CHỐT PHIÊN `2026-09-01` tối → `2026-09-02` — **22 commit, đã đẩy `origin`**
 
 **TL;DR:** Hai trong bốn việc dọn **đã làm xong trên sản phẩm** (console + sổ chain). Team David
 soát từ máy ngoài và gửi 11 phát hiện — **6 đúng, 1 sai ở kết luận, 4 chỗ trống đã dựng cổng**.
