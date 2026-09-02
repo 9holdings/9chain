@@ -43,9 +43,17 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       đúng hạn), mà *"nhịp sống 9 tx/s"* **đã công bố ra ngoài**.
       ✅ Chép về `docs/archive/` trùng byte (`a16a354d…`), FROZEN. **Giờ mới được xoá trên server.**
 
-- [human] **P-5 — ĐẨY lên `official` để cổng P-3 chuyển xanh**
-      `official` = `9holdings/9chain`, **CÔNG KHAI** ⇒ đưa byte ra Internet, không thu lại được.
-      §4: hỏi David. Không có lượt đẩy này thì `genesis.json` vẫn 404 và **cả team vẫn kẹt**.
+- [x] **P-5 — ĐÃ ĐẨY. `genesis.json` NAY TẢI ĐƯỢC TỪ NGOÀI** (David duyệt `02/09`)
+      `7b56add..30894f9` lên `official` (`9holdings/9chain`, CÔNG KHAI) + `da4acac..30894f9` lên
+      `origin` (sao lưu riêng tư — nó **thiếu 7 commit**, đúng lỗ D-151 sinh ra để canh).
+      Kiểm **TRƯỚC** lượt đẩy theo §4: `check-history-secrets --all-objects` **0 vật liệu khoá**
+      (chạy lại lần hai để phủ cả hai commit cuối) · `official` **PUBLIC · WRITE · chưa archive**
+      · 31 commit / 32 tệp, **không tệp khoá, không `.env`, không `net-*`**.
+      **Điều kiện qua:** người ngoài làm đúng Bước 3 mà ra đúng byte.
+      ✅ **ĐẠT, đo bằng tay chứ không tin cổng của chính mình**: `curl` URL trong tài liệu →
+      `sha256` = `4de8caa5…0f6ee6` **khớp hằng số công bố** → `networkID` trong tệp `999999998`
+      **khớp `info.getNetworkID` của mạng sống**. `check-genesis-published` **6/6 ✅ PASS**,
+      `official` nay **behind 0**.
 
 - [human] **P-6 — nạp ví `chain-factory` (HAI chặng)** — David chọn **quỹ nào** và **bao nhiêu**;
       gửi giao dịch trên mạng công khai là việc có người bấm (§4).
