@@ -283,6 +283,44 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       dời; hoặc (b) **chín giao dịch chèn** có chủ ý (kịch bản nghi lễ đã có sẵn phần chèn).
       Nối vào mục việc tay `heartbeat` bước 2–4.
 
+- [x] **P-24 — 🔴 tôi hỏi lại một câu ĐÃ CHỐT, vì nó còn được viết như đang mở** (D-165)
+      Đưa David chọn (a) bật bơm / (b) cửa sổ yên tĩnh cho `09/09` — mà **D-149 đã chốt (b) từ
+      `01/09`**, chính David, có bảng so sánh và lý lẽ. Tôi trích `docs/block-adam/CANON.txt` dòng
+      43 (*"Two ways, decide before the ceremony"*) **mà không tra `DECISIONS.md`**, rồi còn chép
+      cái lạc hậu đó vào **việc tay preflight** một tiếng trước.
+      ⇒ **Một câu hỏi đã quyết mà còn viết như đang mở thì không đọc ra lịch sử — nó đọc ra một
+      quyết định chưa ai lấy, và người sau lấy lại.** Hình dạng D-150, lần này **trong một tệp CANON**.
+      ✅ Sửa cả ba nơi: CANON · việc tay preflight · runbook nghi lễ.
+      🔵 Và **mã đứng về phía D-149**: `ceremony-9s-union.mjs` kiểm **CỨNG**
+      `evaTx.blockNumber === Adam + 1` — tất định **chỉ vì** chain rảnh thì một giao dịch = một
+      block. Kịch bản còn **nêu đích danh cái bơm** là thứ làm mất ô neo (`abort: slot-lost`).
+
+- [x] **P-25 — phương án ghép: bơm chạy trước, TỰ dừng trước cửa sổ** (D-165, David chốt `03/09`)
+      D-149 quản **cửa sổ nghi lễ**, không quản mấy ngày trước ⇒ hai việc ở cùng nhau được, và
+      **phải** ở cùng nhau: chain im từ ngày G nên nguồn đo tốt nhất của B-13(b) không dùng được.
+      Runbook nghi lễ **đã dặn đúng thế**; thứ thiếu là **phần bấm thế nào**, và phần đó có ba bẫy:
+      ① `docker restart` **không nạp lại env** ⇒ phải `docker rm -f` + `docker run`
+      ② `--restart unless-stopped` **bật lại cả khi thoát SẠCH** — tới hạn ⇒ `exit(0)` ⇒ bật lại ⇒
+      cửa hạn chặn ⇒ `exit(1)` ⇒ **vòng lặp** (ngày G: **430** lần, bảy tiếng không ai thấy)
+      ⇒ **`--restart on-failure:3`**
+      ③ 🔴 **bỏ `/hostfs` theo đúng chữ D-138 thì PHÁ PHANH ĐĨA** — `HEARTBEAT_DISK_PATH=/hostfs`,
+      mà `diskFreePct()` dùng `statfs(path)`; mất mount thì nó trả `null`, và `null` **không dừng
+      bơm**. Lỗ hổng đóng, phanh gỡ, **không gì kêu**.
+      ✅ `df` trên máy chủ: `/` · `/home/ubuntu` · `/var/lib/docker` **cùng `/dev/md3`** ⇒ trỏ
+      `HEARTBEAT_DISK_PATH=/srv/a1-config` (đã mount sẵn) cho **đúng cùng con số**, phơi nhiễm **0**.
+      Mốc dừng **`2026-09-09T05:39:09Z`** = 30 phút trước mốc thiêng.
+      **Lệnh + BỐN đối chứng** (boot · phanh đĩa còn in **phần trăm** · `/hostfs` đã biến mất ·
+      **chain thật sự đẻ block**): `docs/CEREMONY-2026-09-09.md` mục 1. **Việc có người bấm** (§4).
+
+- [x] **P-26 — 🔴 D-158 LẶP LẠI: mã bơm nằm ở ĐÚNG MỘT MÁY** (D-165)
+      `heartbeat-pump.mjs` — **517 dòng · 22.548 byte** — sống trên máy chủ và **không repo nào
+      theo dõi**. Nó sinh ra lời khai *"nhịp sống 9 tx/s"* mà dự án **đã công bố ra ngoài**. Mất
+      máy đó là mất cái bơm, và **không cổng nào đo một sự vắng mặt** — `check-deploy-drift` còn
+      khai ba tệp `heartbeat-*` vào `knownExtra`, tức **cố ý** không nhìn.
+      ✅ Kéo về `local-net/faucet/heartbeat-pump.mjs`, **trùng byte** (`b0b2c5ae…45ed2`, so hai đầu).
+      Quét trước khi vào git công khai: **0 khoá EVM · 0 `PrivateKey-` · 0 base58 dài · 0 địa chỉ**
+      (bí mật đến từ **env**). **0 dòng tiếng Việt** ⇒ không phình nợ §0.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện

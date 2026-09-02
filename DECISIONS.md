@@ -7467,3 +7467,75 @@ Lượt sửa này thêm mã mới có **chú thích và chuỗi log tiếng Vi�
 (`5.719 → 5.723`). Sửa xong còn `+1`, đỏ tiếp; truy ra là **hai dòng cũ mà tôi vừa chạm**. Đã dịch
 luôn cả hai ⇒ nợ về đúng `5.719`. **Chốt bánh cóc buổi sáng đã thu lãi ngay trong ngày** — và nó
 bắt đúng người viết ra nó, đó mới là bằng chứng nó hoạt động.
+
+---
+
+## D-165 — **Một câu hỏi đã CHỐT nhưng còn viết như đang mở thì bị hỏi lại; và mã chạy cái bơm nằm ở đúng một máy** (`2026-09-03`)
+
+David: *"giữ D-149, làm phương án ghép, và kéo pump vào repo."*
+
+### 🔴 Lỗi của tôi, và nó là lớp lỗi đắt nhất của dự án
+
+Tôi đưa David chọn giữa **(a) bật bơm** và **(b) cửa sổ yên tĩnh** cho `09/09`. **Câu đó đã chốt
+từ `01/09` — D-149, chính David, chọn (b)**, có bảng so sánh và có lý lẽ: *"thua cuộc đua ở (a) là
+không có lần hai; chạy lại nghi lễ không phải chạy lại, nó là một Adam mới và một Eva mới."*
+
+Tôi trích `docs/block-adam/CANON.txt` dòng 43 — *"Two ways, decide before the ceremony"* — **mà
+không tra `DECISIONS.md`**. Câu đó lạc hậu **hai ngày** so với D-149, và tôi còn **chép cái lạc hậu
+đó vào việc tay preflight** một tiếng trước đó.
+
+⇒ **Một câu hỏi đã quyết mà còn viết như đang mở thì không đọc ra lịch sử — nó đọc ra một quyết
+định chưa ai lấy, và người sau lấy lại.** Đúng hình dạng D-150, lần này **nằm trong một tệp CANON**.
+Đã sửa cả ba nơi: CANON, việc tay, và runbook nghi lễ.
+
+### Và mã đứng về phía D-149 — đo được, không phải cảm tính
+
+`ceremony-9s-union.mjs` có phép kiểm **CỨNG**: `evaTx.blockNumber === Adam + 1`. Trên chain rảnh
+điều đó **tất định** vì **một giao dịch = một block**. Với bơm 9 tx/s và block sàn ~2s, block vẫn
+sinh giữa lúc gửi Adam và gửi Eva ⇒ phép kiểm hỏng. Và chính kịch bản **nêu đích danh cái bơm**:
+*"another user, **the heartbeat pump**, our own filler landing two blocks at once … the message
+CANNOT be anchored where CANON says"* ⇒ `abort: slot-lost`.
+⇒ Bật bơm **không giải quyết** vấn đề block rỗng cho nghi lễ; nó **đổi một việc tất định lấy một
+cuộc đua**.
+
+### Phương án ghép — và nó vốn đã nằm trong runbook
+
+D-149 quản **cửa sổ nghi lễ**, không quản mấy ngày trước ⇒ bơm chạy trước, **tự dừng** trước cửa
+sổ. `docs/CEREMONY-2026-09-09.md` **đã dặn đúng thế** (*"đặt `HEARTBEAT_STOP_AFTER` trước cửa sổ
+để nó tự dừng"*); thứ thiếu là **phần bấm thế nào**, mà phần đó chứa ba cái bẫy:
+
+| bẫy | đo `02–03/09` |
+|---|---|
+| `docker restart` không nạp lại env (bẫy 2) | env còn `HEARTBEAT_STOP_AFTER=2026-09-01T00:00:00Z` ⇒ FATAL lúc boot |
+| `--restart unless-stopped` **bật lại cả khi thoát SẠCH** | tới hạn ⇒ `process.exit(0)` (dòng 517) ⇒ Docker bật lại ⇒ cửa hạn chặn ⇒ `exit(1)` ⇒ **vòng lặp**. Ngày G: `restartCount` **430**, bảy tiếng không ai thấy. ⇒ **`--restart on-failure:3`** |
+| 🔴 bỏ `/hostfs` theo đúng chữ D-138 **phá phanh đĩa** | `HEARTBEAT_DISK_PATH=/hostfs`, mà `diskFreePct()` dùng `statfs(path)` |
+
+🔴 **Cái thứ ba đáng nói nhất: một lời khuyên đúng, thi hành nguyên văn, sẽ gỡ mất một cái phanh.**
+D-138 bảo *"thu hẹp mount"* vì container chạy **root** và `console.env` mode `600` **không cản
+được root** ⇒ bơm đọc được `A1_CONSOLE_TOKEN` + `A1_CLI_KEY`. Đúng. Nhưng `/hostfs` cũng là thứ
+`diskFreePct()` đang đo, và mất nó thì cái chốt *"đĩa dưới 20% thì dừng"* **im lặng trả `null`** —
+và `null` **không dừng bơm** (`free != null && free < FLOOR`). Tức lỗ hổng đóng lại, cái phanh gỡ ra,
+**không gì kêu**.
+✅ Đo `df` trên máy chủ: `/` · `/home/ubuntu` · `/var/lib/docker` **cùng `/dev/md3`** (410G, 12%)
+⇒ trỏ `HEARTBEAT_DISK_PATH=/srv/a1-config` (**đã mount sẵn**) cho **đúng cùng một con số**, mà
+phơi nhiễm về **0**. Và bơm **in phần trăm lúc khởi động** — tác giả nó đã dựng sẵn đúng phép đối
+chứng cho việc này: *"một đường dẫn chứng minh cấu hình; một phần trăm chứng minh nó đang nhìn một
+filesystem thật."*
+
+### 🔴 D-158 lặp lại: mã bơm nằm ở ĐÚNG MỘT MÁY
+
+`heartbeat-pump.mjs` — **517 dòng · 22.548 byte** — sống ở `~/9chain-a1/src/local-net/faucet/`
+trên máy chủ và **không repo nào theo dõi**. Nó là thứ sinh ra lời khai *"nhịp sống 9 tx/s"* mà dự
+án **đã công bố ra ngoài**. Mất máy đó là mất luôn cái bơm, **và không cổng nào đo một sự vắng
+mặt** — `check-deploy-drift` còn khai ba tệp `heartbeat-*` vào `knownExtra`, tức **cố ý** không nhìn.
+
+✅ Kéo về `local-net/faucet/heartbeat-pump.mjs`, **trùng byte** (`b0b2c5ae…45ed2`, so hai đầu).
+Quét trước khi cho vào git công khai: **0 khoá EVM · 0 `PrivateKey-` · 0 base58 dài · 0 địa chỉ**;
+bí mật đến từ **env**, không cắm cứng. **0 dòng tiếng Việt** ⇒ không phình nợ §0.
+
+### Mốc dừng
+
+`HEARTBEAT_STOP_AFTER=2026-09-09T05:39:09Z` — **30 phút trước mốc thiêng**. D-149 định giá cửa sổ
+ở *"~1 phút"*; 30 phút là lề rẻ tiền vì bơm là **lưu lượng tổng hợp** — tắt sớm nửa tiếng không mất
+gì, còn một giao dịch bơm **còn đang bay** khi nghi lễ bắt đầu thì **mất ô neo**, và ô đó không có
+lần hai.

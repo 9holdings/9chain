@@ -40,7 +40,19 @@
 # empty blocks. It makes a block when there is something to put in one. The chain sat at block 0
 # from genesis (09:20Z) until 10:05Z, when a single faucet drip created block 1 — and it will sit
 # at block 1 until the next transaction. So "nine blocks after Eva" does NOT arrive on its own;
-# on a quiet chain it may not arrive for days. Two ways, decide before the ceremony:
+# on a quiet chain it may not arrive for days. Two ways were open when this was written:
+#
+# 🔴 DECIDED 2026-09-01 — D-149 CHOSE (b), THE QUIET WINDOW. This paragraph kept saying "decide
+# before the ceremony" for two days after the decision, and on 2026-09-03 that stale sentence was
+# read back as an open question and put in front of David as a choice he had already made. A
+# decided question left written as open does not read as history — it reads as a decision nobody
+# has taken yet, and the next person re-takes it. Same failure class as D-150, inside a canon file.
+# ⇒ (a) is NOT an option for the ceremony window: `ceremony-9s-union.mjs` hard-checks
+#   `evaTx.blockNumber === Adam + 1`, which is deterministic ONLY because a quiet chain makes one
+#   block per transaction. With the pump running, blocks form every ~2s regardless, and the script
+#   names the pump by name as a thing that loses the anchor slot (`abort: slot-lost`).
+# ⇒ The pump MAY run in the days BEFORE the window — D-149 governs the window, not the week. See
+#   docs/CEREMONY-2026-09-09.md section 1 for the exact command set and its four counter-checks.
 #
 #   (a) Restart the heartbeat pump before 09/09 so blocks are produced continuously. ⚠️ It will
 #       refuse to start until HEARTBEAT_STOP_AFTER is moved — the value is 2026-09-01T00:00:00Z,
