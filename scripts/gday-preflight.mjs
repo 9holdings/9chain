@@ -171,6 +171,7 @@ const GATES = [
   { group: "2 · REPO GATES", name: "supply reconciliation (counter-check)", ...node("scripts/check-supply.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "served pages vs the running chain (counter-check)", ...node("scripts/check-live-page.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "genesis publication (counter-check)", ...node("scripts/check-genesis-published.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "validator onboarding — faucet vs bond vs guide (counter-check)", ...node("scripts/check-validator-onboarding.mjs", "--self-test") },
 
   // ── 3. The real world — the running network and the server ──
   { group: "3 · REAL WORLD", needsNetwork: true, name: "the running network (watch-network)", ...node("scripts/watch-network.mjs") },
@@ -209,6 +210,13 @@ const GATES = [
   // commit, so before that push neither is public. Counter-checked green on 2026-09-02 against a
   // host serving the real bytes (`--url`), so this red is a fixable state, not a permanent one.
   { group: "3 · REAL WORLD", needsNetwork: true, name: "genesis is published and downloadable by an outsider", ...node("scripts/check-genesis-published.mjs") },
+  // 🔴 Genesis being downloadable gets a stranger to the START of the path; this measures whether
+  // they can finish it. The self-serve promise (81 = 9 x 9, nine faucet requests, nothing to
+  // apply for) is built from three numbers that live in a Go binary, in a container's
+  // environment and in a markdown file — none of which can see the other two. Measured
+  // 2026-09-02: every number was individually right and the promise was still false by exactly
+  // one request, because fees come out of the same balance. A relation is nobody's field.
+  { group: "3 · REAL WORLD", needsNetwork: true, name: "a stranger can self-fund the validator bond", ...node("scripts/check-validator-onboarding.mjs") },
   // This one measures REAL MONEY on chain, so it belongs to group 3, not to the repo gates:
   // the `--offline` variant answers only half the question and exits 2 (INCONCLUSIVE) — which
   // is honest, but a G-day gate that says "inconclusive" is unusable. Blocks the

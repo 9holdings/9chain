@@ -26,7 +26,21 @@
 | **Become a validator** | Requires a **self-bond of at least 81 LOVE9**, locked for the term you choose. |
 
 ✅ **The faucet can fund a validator, and that is deliberate.** It hands out **9 LOVE9** per
-request, so **nine requests** cover the whole 81-LOVE9 bond. Nothing to apply for, nobody to ask.
+request, with a **60-second cooldown** and a limit of **nine requests per IP per hour** — measured
+on the live faucet, not quoted from a config file. Nothing to apply for, nobody to ask.
+
+🔴 **Nine requests give you exactly 81, and exactly 81 is NOT enough.** The bond is 81; the
+transactions that carry your money C→X→P and then submit the stake are paid out of that **same
+balance**. So the honest number is **ten requests**, and the tenth crosses the nine-per-hour
+limit: **budget one wait of up to an hour**, or ask from a second address on a different network.
+
+<!-- stale-ok: this paragraph QUOTES the retired promise in order to retract it -->
+We are telling you this in the first screen rather than at the end of Step 6, because an earlier
+version of this page said *"nine requests cover the whole bond"* here and only corrected itself
+300 lines later — which is the same thing as not saying it. The fees are small (the flat
+transaction fee measured `0.001 LOVE9`, and P-Chain fees have been dynamic since Etna, so this
+page does not quote a number it cannot measure); the problem was never the size of the fee, it
+was that nine requests leave **zero** margin for one.
 
 <!-- stale-ok: past tense, and it names its date -->
 *(Until 2026-09-01 this barrier was 25,000 LOVE9. At 10 LOVE9 per request that was roughly 500
@@ -53,7 +67,7 @@ genesis, so the validator gate never activates and any funded account can submit
 | native asset alias | **`LOVE9`** — see the warning below, it will bite you |
 | C-Chain EVM chainId | `9000000009` (`0x218711a09`) |
 | P/X supply cap | `7,900,000,001 LOVE9` (`7900000001000000000` nano) |
-| minimum validator stake | `81 LOVE9` (9 x 9 — nine faucet requests) |
+| minimum validator stake | `81 LOVE9` (9 x 9 — **ten** faucet requests, see above: nine cover the bond and leave nothing for fees) |
 | maximum validator stake | `625,000,000 LOVE9` (delegations count toward it) |
 | minimum delegator stake | `9 LOVE9` |
 | minimum delegation fee | `2%` (`20000` parts per million) |
