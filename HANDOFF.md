@@ -76,8 +76,8 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 David chốt hướng: *"focus vào việc mọi người có thể tạo Validator bên ngoài chủ động."*
 
 ```
-preflight  40 dat · 2 do  (42 muc)   ->   44 dat · 2 do  (46 muc)
-3 commit, CHUA DAY:  4806cb3 · 71bd128 · 9565e74
+preflight   40 dat · 2 do  (42 muc)   ->   44 dat · 2 do  (46 muc)
+viec tay    40 HO                     ->    8 phai lam  (32 rut, giu nguyen byte)
 ```
 
 **Hai đỏ không đổi và không phải việc A1:** ví `chain-factory` 0 đồng (David) · `check-live-page`
@@ -134,6 +134,42 @@ NGHĨA trước khi tin cái TÊN.**
 🔴 **Danh sách 40 việc tay là danh sách của NGÀY G, và ngày G đã qua.** Mục nào đã xong mà vẫn hô
 thì dạy người đọc bỏ qua cả danh sách (lý lẽ D-070). **Tỉa nó là việc David quyết** — A1 không tự
 xoá một danh sách an toàn 40 mục.
+
+#### 🟢 ĐÃ TỈA DANH SÁCH VIỆC TAY — `40 hô` → `8 phải làm`, **không mất byte nào** (D-163)
+
+David: *"tỉa danh sách 40 việc tay đi."*
+
+🔴 **Đây là vế thứ hai của luật cứng #2.** Preflight tự khai luật đúng — *"chưa tự động hoá thì in
+ra như VIỆC TAY, không giả vờ xanh"* — nhưng luật đó chỉ chặn **một** hướng. Hướng ngược lại cũng
+thật: **một danh sách cứ hô công việc ĐÃ XONG thì dạy người đọc LƯỚT, và mục bị lướt qua không bao
+giờ là mục đã xong.**
+
+| giai đoạn | số | |
+|---|---|---|
+| còn sống | **8** | in ☐ như cũ |
+| `✔ RETIRED` | **12** | mỗi mục mang **PHÉP ĐO** đã rút nó |
+| `📦 RE-GENESIS RUNBOOK` | **18** | đã chạy cho g1; **quy trình cho thế hệ SAU** |
+| `SUPERSEDED` | **2** | đã gạch từ trước |
+
+**Đối chứng: `40 = 8 + 12 + 18 + 2`**, và `node scripts/gday-preflight.mjs --all-manual` in **đủ
+40** kèm lý do. Ba mục vô lý nhất mà mỗi lượt vẫn đòi: mở cổng staking (**đo được đã mở**) · phát
+hành genesis (**đã tải về qua Internet**) · sửa payout faucet (**đã ship `9`/`9`**).
+
+⚠️ **Rút chỉ AN TOÀN ở chỗ có thứ khác canh.** *"Mở cổng staking mọi node"* là **thuộc tính của
+tiến trình đang chạy**, không phải việc xong một lần — rút nó **trước khi** `check-outsider-bootstrap`
+tồn tại là liều lĩnh. **Dựng phép đo trước, rút lời nhắc sau.**
+🔴 **Không xoá 18 mục runbook**: xoá là ném đi đường tái lập mạng để đổi lấy một màn hình sạch, mà
+dự án đã trả giá **hai lần** cho một lượt xoá trông an toàn (B-17).
+
+#### ⚠️ Bẫy công cụ mới, ghi trước khi quên
+
+🔴 **Công cụ `Edit` CHUẨN HOÁ xuống dòng trên tệp có xuống dòng TRỘN.** `DECISIONS.md` là
+`6.754 CRLF + 551 LF`; một lượt `Edit` sửa **một câu** biến 551 dòng LF thành CRLF ⇒
+`git diff --stat` nhảy lên **1.170 dòng đổi**. `.gitattributes` khai `* -text` nên git **giữ
+nguyên byte, không chuẩn hoá** ⇒ không gì cứu ngoài khôi phục. Đây là gotcha 3 của phiên trước
+(Python text-mode) **lặp lại qua một công cụ khác**.
+⇒ **Với tệp trộn: `git checkout HEAD -- <tệp>` rồi ghi lại bằng đường nhị phân.** Và **luôn xem
+`git diff --stat` NGAY sau mỗi lượt sửa tệp bằng công cụ, không chỉ bằng script.**
 
 #### Còn treo, và ai gỡ
 
