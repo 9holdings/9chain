@@ -150,6 +150,96 @@ async function doLechChain() {
   return mau.sort((a, b) => a.rtt - b.rtt);
 }
 
+/**
+ * ═══ 🔴 THE READING THAT WORKS ON AN IDLE CHAIN — added 2026-09-02, and it had to be ═══
+ *
+ * The block reading above is honest about its bias and still unusable today. Measured
+ * 2026-09-02 on g1: C-Chain height **22**, latest block **7,062 seconds old**, zero new blocks
+ * in twenty seconds. The chain is not slow — it is *empty*, because the pump that used to fill
+ * it stopped with g0. Feed that into the block reading and it answers `-7,195,576ms`, and this
+ * gate then printed **`--offset-ms 7197020`** — a two-hour offset — and **exited 0**. Anybody
+ * trusting that line fires Block Adam two hours after the moment it exists to mark.
+ *
+ * That is this project's own error class landing, for the second time, inside the very gate
+ * written to warn about it: the header already says *"treat a large negative number on a quiet
+ * chain as no traffic, not as a 10s-slow node"* — and then computed the offset from it anyway.
+ * **A warning in prose is not a guard.** (Same lesson as D-160's ratchet: a rule that is written
+ * but not measured does not hold.)
+ *
+ * ⇒ `info.peers[].lastReceived` is a timestamp **stamped by the node's own clock**, in the JSON
+ * body so Cloudflare passes it through unchanged, and — unlike a block — it **advances with no
+ * transactions at all**, because the nine nodes gossip continuously. Verified 2026-09-02: it
+ * moved 14s across 12s of wall clock while the chain produced nothing.
+ *
+ * 🔴 **Its bias points the SAFE way, and it is bounded by seconds rather than by hours.**
+ * `max(lastReceived) <= node_now` always, so this UNDER-reads the node's clock, i.e. reports the
+ * node as slower than it is, and `chonBu` answers with a LARGER offset. The gap is bounded by
+ * how long the busiest of eight peers can go without sending anything — seconds — where block
+ * age is bounded by nothing at all.
+ *
+ * ⚠️ It reads ONE node's clock: whichever answers the RPC. That is sufficient here for the
+ * reason the header already gives — nine containers on one host share `CLOCK_REALTIME` — and it
+ * stops being sufficient the day a validator runs on a second machine.
+ */
+async function doLechPeers() {
+  const mau = [];
+  for (let i = 0; i < SO_MAU; i++) {
+    const t0 = Date.now();
+    let j;
+    try {
+      const r = await fetch(`${new URL(DICH).origin}/ext/info`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "info.peers", params: {} }),
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (!r.ok) continue;
+      j = await r.json();
+    } catch { continue; }
+    const t1 = Date.now();
+    const moc = (j?.result?.peers ?? [])
+      .map((p) => Date.parse(p?.lastReceived))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    if (!moc.length) continue;
+    mau.push({ rtt: t1 - t0, lech: Math.max(...moc) - Math.round((t0 + t1) / 2), bien: Math.round((t1 - t0) / 2) + 500 });
+  }
+  return mau.sort((a, b) => a.rtt - b.rtt);
+}
+
+/**
+ * How old the latest block may be before its timestamp stops being a clock reading.
+ *
+ * A1 blocks have a two-second floor, so on a chain carrying any traffic at all the newest block
+ * is a few seconds old. 30s sits far above that and far below the hours an idle chain reaches —
+ * the threshold does not need to be precise, it needs to separate *seconds* from *unbounded*.
+ */
+export const NGUONG_TUOI_BLOCK_MS = 30_000;
+
+/**
+ * WHICH reading may set the offset — pure, so `--self-test` can pin it.
+ *
+ * 🔴 The whole point is the REFUSAL. A stale block must never reach `chonBu`, no matter how
+ * confidently it can be formatted. Preferring the block when it IS fresh is not sentiment: it is
+ * the exact quantity the ceremony compares (`block.timestamp > mark`), where the peer reading is
+ * a proxy for the same clock.
+ */
+export function chonNguon(block, peers) {
+  const tuoi = block ? -block.lech : null;      // lech = ts - now, so age is its negation
+  if (block && tuoi <= NGUONG_TUOI_BLOCK_MS) {
+    return { nguon: "block", mau: block, vi: `latest block is ${Math.round(tuoi / 1000)}s old — the chain is producing, so its timestamp IS a clock reading` };
+  }
+  if (peers) {
+    return {
+      nguon: "peers", mau: peers,
+      vi: block
+        ? `latest block is ${Math.round(tuoi / 1000)}s old — that is BLOCK AGE, not skew, and it is refused as a source; falling back to peer gossip timestamps`
+        : "no block sample; using peer gossip timestamps",
+    };
+  }
+  if (block) return { nguon: null, mau: null, vi: `the only sample is a block ${Math.round(tuoi / 1000)}s old — that measures traffic, not clocks, and will not be used to pick an offset` };
+  return { nguon: null, mau: null, vi: "nothing could be read — 'unknown' is not 'skew 0'" };
+}
+
 async function doLech() {
   const mau = [];
   for (let i = 0; i < SO_MAU; i++) {
@@ -191,6 +281,44 @@ function tuKiem() {
     if (dung(r)) console.log(`  ✓ ${ten}`);
     else { console.log(`  ✗ ${ten} — ra ${JSON.stringify(r)}`); hong++; }
   }
+
+  // ═══ WHICH SOURCE MAY SET THE OFFSET — the guard added 2026-09-02 ═══
+  //
+  // 🔴 The first case is the live failure, replayed with the real numbers: an idle chain whose
+  // latest block was 7,062 seconds old made this gate print `--offset-ms 7197020` and exit 0.
+  // Every case here asserts the SOURCE, because asserting only that "an offset came out" is how
+  // that bug survived a self-test in the first place (Q-5b, and again in D-161).
+  const B = (lech) => ({ rtt: 300, lech, bien: 650 });
+  const caNguon = [
+    ["🔴 THE LIVE BUG — a 7,062s-old block is REFUSED as a source, not formatted into an offset",
+      [B(-7_062_000), null], (r) => r.nguon === null],
+    ["🔴 …and with peers available it falls back to them rather than refusing",
+      [B(-7_062_000), B(201)], (r) => r.nguon === "peers"],
+    ["a fresh block WINS over peers — it is the quantity the ceremony actually compares",
+      [B(-4_000), B(201)], (r) => r.nguon === "block"],
+    ["🔴 the boundary is inclusive: exactly 30s old still counts as producing",
+      [B(-NGUONG_TUOI_BLOCK_MS), B(201)], (r) => r.nguon === "block"],
+    ["🔴 one millisecond past it does not",
+      [B(-NGUONG_TUOI_BLOCK_MS - 1), B(201)], (r) => r.nguon === "peers"],
+    ["a block from the FUTURE (node ahead of us) is fresh, not stale",
+      [B(+2_000), null], (r) => r.nguon === "block"],
+    ["peers alone are a valid source when no block could be read", [null, B(201)], (r) => r.nguon === "peers"],
+    ["🔴 nothing readable ⇒ NO source, never a default", [null, null], (r) => r.nguon === null],
+  ];
+  console.log("\n══ REVERSE CONTROLS — which source may set the offset ══");
+  for (const [ten, [b, p], dung] of caNguon) {
+    const r = chonNguon(b, p);
+    if (dung(r)) console.log(`  ✓ ${ten}`);
+    else { console.log(`  ✗ ${ten} — got ${JSON.stringify(r)}`); hong++; }
+  }
+
+  // 🔴 And the arithmetic that closes B-13(b), pinned with the numbers actually measured on g1
+  // so a later change to `chonBu` cannot silently move the ceremony's offset.
+  console.log("\n══ REVERSE CONTROL — the numbers MEASURED on g1, 2026-09-02 ══");
+  const song = chonBu(201, 649);
+  if (song.bu === SAN_BU_MS) console.log(`  ✓ measured +201ms ±649 ⇒ keep the ${SAN_BU_MS}ms floor (worst case: node 448ms slow, the floor covers it)`);
+  else { console.log(`  ✗ measured +201ms ±649 ⇒ got ${song.bu}, wanted ${SAN_BU_MS}`); hong++; }
+
   return hong;
 }
 
@@ -201,14 +329,28 @@ if (argv.includes("--self-test")) {
 }
 
 const mau = await doLechChain();
-console.log(`\n══ LỆCH ĐỒNG HỒ · máy bắn ↔ NODE (block.timestamp qua ${new URL(RPC_C).host}) ══\n`);
-if (mau.length === 0) {
-  console.log("🟡 no sample obtained from the chain — 'could not measure' is NOT 'skew 0'.");
-  console.log(`   asked: ${RPC_C}  (override with --rpc)`);
+const mauPeers = await doLechPeers();
+console.log(`\n══ CLOCK SKEW · firing machine <-> NODE (${new URL(RPC_C).host}) ══\n`);
+
+console.log("  [1] block.timestamp — the exact quantity the ceremony compares, when the chain is producing");
+/** One sample line, printed identically for both sources so the two can be compared by eye. */
+const inMau = (m) => console.log(`      RTT ${String(m.rtt).padStart(5)}ms   skew ${String(m.lech).padStart(9)}ms   margin ±${m.bien}ms`);
+if (mau.length === 0) console.log("      🟡 no sample");
+for (const m of mau) inMau(m);
+
+console.log("\n  [2] info.peers lastReceived — the node's own clock, and it advances with NO transactions");
+if (mauPeers.length === 0) console.log("      🟡 no sample");
+for (const m of mauPeers) inMau(m);
+
+const chon = chonNguon(mau[0] ?? null, mauPeers[0] ?? null);
+console.log(`\n  ⇒ source for the offset: **${chon.nguon ?? "NONE"}** — ${chon.vi}`);
+if (chon.nguon === null) {
+  console.log("\n🔴 REFUSING to pick an offset. A number formatted confidently out of the wrong");
+  console.log("   quantity is worse than no number: this gate printed `--offset-ms 7197020`");
+  console.log("   (two hours, all of it block age) on 2026-09-02 and exited 0.");
   process.exit(2);
 }
-for (const m of mau) console.log(`  RTT ${String(m.rtt).padStart(5)}ms   lệch ${String(m.lech).padStart(6)}ms   biên ±${m.bien}ms`);
-const tot = mau[0];
+const tot = chon.mau;
 console.log(`\n  mẫu tốt nhất (RTT nhỏ nhất, biên chặt nhất): **${tot.lech}ms ± ${tot.bien}ms**`);
 
 // SECONDARY, and labelled as what it is. Kept because the gap between the two numbers is
@@ -232,13 +374,37 @@ const { bu, xauNhat, vi } = chonBu(tot.lech, tot.bien);
 console.log(`\n  ⇒ \`--offset-ms ${bu}\`  — ${vi}`);
 console.log(`
 🔴 ĐỌC ĐÚNG CON SỐ NÀY:
-   • It is the skew **dev machine <-> NODE**, read from \`block.timestamp\` — NOT "skew across 9 nodes".
-   • It reads the node as SLOWER than it is, because the last block may be seconds old.
-     That is the SAFE direction (larger offset). Do not subtract a block time to "correct" it.
+   • It is the skew **dev machine <-> NODE** — NOT "skew across 9 nodes".
+   • Both readings under-state the node's clock (a block may be seconds old; \`lastReceived\`
+     is by definition not later than now). That is the SAFE direction — it buys a LARGER
+     offset. Never "correct" it by subtracting, that is guessing in the dangerous direction.
+   • 🔴 A stale block is REFUSED as a source rather than formatted into an offset. Block age
+     is unbounded; peer-gossip staleness is bounded by seconds.
    • Lệch giữa 9 node hôm nay là **0 theo KIẾN TRÚC**: 9 container trên cùng MỘT máy,
      Docker không ảo hoá đồng hồ ⇒ chung một CLOCK_REALTIME. Đo 9 lần rồi khai
      "lệch 0ms, đã kiểm" là đo một tính chất của hạ tầng, không phải của đồng hồ.
    • Nó thành phép đo NHIỀU ĐỒNG HỒ thật chỉ **sau O4** (node ở nhà cung cấp thứ hai).
-   • Sàn sai số ±500ms là bất khả kháng (header \`Date\` có độ phân giải GIÂY).
-   • 🔴 **Đo LẠI sau khi mạng ngày G lên** — số này nói về mạng g0 đang chạy hôm nay.`);
+   • The ±500ms error floor is unavoidable: BOTH sources have SECOND resolution.
+   • ✅ Re-measured on the LIVE g1 network (2026-09-02) — no longer a g0 number.
+     🔴 Re-measure once more on a chain that is PRODUCING BLOCKS, and prefer source [1]
+     when it is available: it is the quantity the ceremony literally compares.`);
+
+/**
+ * 🔴 EXIT CODE — added 2026-09-02, because until then this exited 0 whatever it measured.
+ *
+ * `SAN_BU_MS` is the number written into `BLOCKERS.md` B-13(b), into the runbook, and into the
+ * command a human will type on 2026-09-09. A tool that measures a requirement LARGER than that
+ * and still exits 0 leaves the published number quietly wrong — which is D-150's shape (a
+ * document stating a figure the live system no longer supports), arriving through a tool instead
+ * of through a document.
+ *
+ * ⇒ Red means exactly one thing: **the floor no longer covers the measurement, so the published
+ * offset must change.** It does not mean the network is broken.
+ */
+if (bu !== null && bu > SAN_BU_MS) {
+  console.log(`\n🔴 THE PUBLISHED OFFSET IS NO LONGER ENOUGH — measurement needs ${bu}ms, the floor is ${SAN_BU_MS}ms.`);
+  console.log(`   Update SAN_BU_MS, BLOCKERS.md B-13(b) and the ceremony runbook together, or the`);
+  console.log(`   number a human types on 2026-09-09 is one this measurement already contradicts.`);
+  process.exit(1);
+}
 process.exit(0);

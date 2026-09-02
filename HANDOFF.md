@@ -71,6 +71,76 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
+### 🆕🆕🆕🆕🆕 `2026-09-02` tối — **B-13(b) ĐÓNG NỬA A1: `--offset-ms 3000`** (D-164)
+
+David: *"làm B-13(b) đi."* Hạn `09/09`, còn **7 ngày**.
+
+```
+preflight  44 dat · 2 do  (46 muc)   ->   46 dat · 2 do  (48 muc)
+```
+
+#### Số chốt cho nghi lễ Block Adam
+
+```
+lech may ban <-> node : +201ms ± 649ms   (do 15:4xZ)
+                        +29ms  ± 726ms   (do 15:5xZ, ~15 phut sau)
+bien xau nhat         : node cham 697ms
+=> --offset-ms 3000     san chinh sach, phu ~4 lan
+```
+
+`lệch > 0` = node **nhanh hơn** máy bắn ⇒ `block.timestamp` lớn hơn ⇒ **dễ vượt mốc hơn**: chiều
+an toàn. Hai lượt cách nhau 15 phút cho hai giá trị khác nhau nhưng **cùng kết luận** — đáng tin
+hơn một con số đẹp.
+
+#### 🔴 Công cụ đang in ra một con số nguy hiểm, và exit 0
+
+Chain **rảnh tuyệt đối**: cao **22** block, block cuối **7.062 giây tuổi**, 0 block mới trong 20
+giây. `check-clock-skew` in ra **`--offset-ms 7197020`** — **hai tiếng** — mà **toàn bộ là TUỔI
+BLOCK**. Ai tin dòng đó bắn Block Adam muộn hai tiếng.
+🔴 **Tiêu đề của chính tệp đó đã cảnh báo đúng điều này** rồi vẫn đem đi tính bù. **Một lời cảnh
+báo bằng văn xuôi không phải một cái chặn** — cùng bài học với bánh cóc §0 sáng nay.
+
+⇒ Nguồn mới: **`info.peers[].lastReceived`** — mốc **do chính đồng hồ node đóng dấu**, nằm trong
+**thân JSON** nên Cloudflare không sửa (khác header `Date`, vốn là đồng hồ Cloudflare), và
+**nhúc nhích khi không có giao dịch nào** (đo: tiến 14s qua 12s trong lúc chain đẻ **0** block).
+Thiên lệch chỉ về phía **an toàn**, và bị chặn bởi **giây** — còn tuổi block **không bị chặn bởi gì**.
+Cổng nay **TỪ CHỐI** block cũ thay vì định dạng nó thành một con số tự tin.
+
+#### ✅ Nửa "câu chữ" HẾT ĐÚNG — và đó là phép ĐO
+
+B-13(b) lo *"nếu bản khắc còn câu chữ khẳng định block vượt mốc"*. Đọc **bốn tài liệu đã khắc
+thật** (1.142 byte, đóng băng ngày G): `genesis_inscription` · `dedication` · `dedication_eva` ·
+`love_paper_en` — **không tài liệu nào khai một mốc thời gian nào**. Câu lo đó viết `27/08` lúc
+chữ còn mở; chữ đóng băng ngày G và **tình cờ không chứa lời khẳng định đó**. **Giả định hết đúng
+mà không ai đánh dấu.**
+
+#### 🔴 NHƯNG có một ràng buộc `09/09` KHÁC, và nó không phải chuyện đồng hồ
+
+`docs/block-adam/CANON.txt` đã ghi: **C-Chain KHÔNG đẻ block rỗng.** Thông điệp `9S Union` neo ở
+`block(Eva) + 9` ⇒ **trên chain im lặng, chín block đó có thể không bao giờ tới.** Hôm nay chain
+đứng ở block **22**, im hơn hai tiếng — **không phải rủi ro lý thuyết, là trạng thái hiện tại.**
+Hai đường, chọn **TRƯỚC** ngày:
+**(a)** bật lại bơm nhịp — ⚠️ nó **từ chối khởi động** cho tới khi `HEARTBEAT_STOP_AFTER`
+(`2026-09-01T00:00:00Z`, **đã ở quá khứ**) được dời · **(b)** **chín giao dịch chèn** có chủ ý.
+
+#### 🟢 Cổng mới, và vì sao nó phải là CỔNG
+
+`SAN_BU_MS = 3000` nằm trong `BLOCKERS`, trong runbook, và trong **lệnh một con người sẽ gõ ngày
+`09/09`** — mà **không gì kiểm rằng nó còn đủ lớn**. Nay `check-clock-skew` **exit 1** khi số đo
+vượt sàn. **Đỏ ở đây nghĩa là con số đã công bố phải đổi**, không phải mạng hỏng. Đối chứng trên
+dữ liệu thật hai hướng: hạ sàn còn `100ms` ⇒ `EXIT 1` in đúng yêu cầu thật `1889ms`; sàn thật ⇒
+`EXIT 0`.
+
+🟢 **Bánh cóc §0 bắt chính tôi, hai lần** trong lượt sửa này (`5.719 → 5.723`, rồi còn `+1`).
+Truy ra là hai dòng cũ tôi vừa chạm; đã dịch luôn ⇒ nợ về đúng `5.719`. **Chốt bánh cóc buổi sáng
+thu lãi ngay trong ngày, và nó bắt đúng người viết ra nó.**
+
+```bash
+node scripts/check-clock-skew.mjs              # nguon [1] block · [2] gossip, tu chon
+node scripts/check-clock-skew.mjs --self-test  # doi chung, gom ca ca loi that
+```
+
+
 ### 🆕🆕🆕🆕 `2026-09-02` tối — **ĐƯỜNG NGƯỜI NGOÀI TỰ DỰNG VALIDATOR** (D-160 · D-161 · D-162)
 
 David chốt hướng: *"focus vào việc mọi người có thể tạo Validator bên ngoài chủ động."*
