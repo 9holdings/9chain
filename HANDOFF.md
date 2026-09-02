@@ -71,6 +71,107 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
+### 🆕🆕🆕🆕 `2026-09-02` tối — **ĐƯỜNG NGƯỜI NGOÀI TỰ DỰNG VALIDATOR** (D-160 · D-161 · D-162)
+
+David chốt hướng: *"focus vào việc mọi người có thể tạo Validator bên ngoài chủ động."*
+
+```
+preflight  40 dat · 2 do  (42 muc)   ->   44 dat · 2 do  (46 muc)
+3 commit, CHUA DAY:  4806cb3 · 71bd128 · 9565e74
+```
+
+**Hai đỏ không đổi và không phải việc A1:** ví `chain-factory` 0 đồng (David) · `check-live-page`
+thuộc worktree `web-home` (luật cứng #4).
+
+#### 🔴 Lời hứa tự phục vụ sai đúng MỘT lượt faucet (D-161)
+
+`81 = 9 × 9`, faucet cấp `9 LOVE9` ⇒ *"nine requests"* — câu **đầu tiên** người ngoài đọc. Đo trên
+bề mặt công khai: **chín lượt cho đúng 81, mà đặt cọc LÀ 81**, phí `C→X→P` + phí nộp stake **trừ vào
+chính số dư đó**. Số thật là **mười**, trần faucet **chín/IP/giờ** ⇒ có một **lượt chờ tới một giờ**.
+Phép số học sai là `>=` thay vì `>`.
+
+🟢 **Không phải lỗi cấu hình** — faucet đã đặt đúng `9`/`9` (việc tay preflight cảnh báo mặc định
+`10`/`5`; lời cảnh báo **đã được nghe**). Sai nằm ở **quan hệ giữa ba số đúng**, mà quan hệ **không
+là trường của ai**: một trong binary Go, một trong env container, một trong markdown.
+
+Tài liệu trước đó **tự mâu thuẫn**: hứa ở dòng 29, đính chính ở dòng **325** — cách 300 dòng thì
+bằng không đính chính. Nay nói thật **ở màn hình đầu**.
+
+#### 🔴 Cổng mới sai HAI LẦN trước khi đúng — đọc trước khi dựng cổng tiếp theo
+
+| lần | hình dạng |
+|---|---|
+| **đỏ giả** | ĐỎ vì **chính câu tôi vừa viết để đính chính** trích lại lời hứa cũ. Vá bằng `stale-ok` **đã có sẵn**, phạm vi ĐOẠN; cổng **in ra** số dòng được miễn |
+| 🔴 **XANH GIẢ** | bản cũ viết `so **nine requests** cover` — dấu `**` chen giữa nên mẫu **đi thẳng qua**. **Cổng dựng ra để bắt đúng câu đó, đọc đúng câu đó, và cho qua.** Bắt được **chỉ vì** chạy vào bản tài liệu đã nghỉ, không vào fixture ⇒ thêm cờ `--guide` |
+| 🔴 **self-test xanh vì SAI LÝ DO** | ca khẳng định `verdict === "fail"` và đúng là `fail` — nhưng vì fixture **thiếu cảnh báo chờ**, không vì bắt lời hứa sai. **Luôn xanh về lời hứa** suốt thời gian đó |
+
+⇒ **Luật: cổng có HAI nghĩa vụ thì ca đối chứng phải nói nó kiểm nghĩa vụ NÀO** — không thì nghĩa
+vụ dễ vỡ nấp sau nghĩa vụ dễ thoả, và bộ đối chứng **đếm đủ ca** mà không kiểm gì (Q-5b lặp lại).
+
+#### 🔴 Và tôi SUÝT khai một sự cố không có thật (D-162)
+
+`info.peers` trả **8/8 peer mang `172.28.0.x`** ⇒ đọc mặt chữ là D-118b tái phát trên mạng công
+khai. Tra thẳng `upstream/avalanchego/network/peer/`: **HAI trường** — `ip` là **socket node được
+hỏi đang nối**, `PublicIP` là **lời khai đã KÝ**, và **chỉ cái sau được gossip**. Trên mạng Docker
+hai trường **luôn khác nhau**.
+
+```
+do dung truong :  8/8 khai dia chi cong khai  ·  9/9 cong TCP mo tu may nay  ·  100,00% stake
+```
+
+**Mạng hoàn toàn khoẻ.** Khai theo lượt đọc đầu là đẩy David đi **dựng lại chín node đang chạy
+đúng**. ⚠️ **Luật: hai trường tên gần giống nhau trong một API là bẫy đo sai đại lượng — tra ĐỊNH
+NGHĨA trước khi tin cái TÊN.**
+
+#### 🟢 Ba việc tay của preflight nay ĐÃ ĐƯỢC ĐO, đừng làm lại
+
+| việc tay còn đang hô | phép đo nói gì |
+|---|---|
+| *"OPEN THE STAKING PORT ON EVERY NODE"* | ✅ `check-outsider-bootstrap` — 9/9 khai + quay số được, **100% stake** |
+| *"Publish `genesis.json` + bootstrap"* | ✅ D-158, `check-genesis-published` 6/6 |
+| cảnh báo faucet mặc định `10`/`5` | ✅ đã ship `9`/`9`; `check-validator-onboarding` canh |
+
+🔴 **Danh sách 40 việc tay là danh sách của NGÀY G, và ngày G đã qua.** Mục nào đã xong mà vẫn hô
+thì dạy người đọc bỏ qua cả danh sách (lý lẽ D-070). **Tỉa nó là việc David quyết** — A1 không tự
+xoá một danh sách an toàn 40 mục.
+
+#### Còn treo, và ai gỡ
+
+- **[human] P-17** — muốn bỏ hẳn lượt chờ một giờ: `FAUCET_MAX_PER_IP_HOUR` **9 → 10** trên server.
+  ⚠️ `docker rm -f` rồi `docker run` — `docker restart` **KHÔNG** nạp lại env (bẫy 2). Cách khác
+  (`FAUCET_AMOUNT` → 10) **phá đẳng thức `81 = 9 × 9`** mà cả trang đang dựa vào.
+- **[human] P-13** — lịch nhắc B-12 + tên người chịu trách nhiệm. Số đã có (dưới đây).
+- 🟡 **Nợ khai ra:** `stale-ok` nay có **BA bản cài đặt**; hai bản kia nằm trong module gọi
+  `process.exit(main())` ở cấp cao nhất nên **import vào là chạy cổng khác rồi thoát**. Gom vào thư
+  viện chung phải sửa hai cổng đang chạy tốt — đáng làm, **chưa làm**. Hình dạng §6.
+- ⚠️ Nhánh **FAIL** của `check-outsider-bootstrap` mới chỉ có fixture: dựng ca đỏ thật phải sửa cấu
+  hình mạng đang chạy, việc có người bấm (§4).
+
+#### 🟡 B-12 có SỐ THẬT, hạ 🔴 → 🟡 (D-160)
+
+Đo `02/09` trên chain sống, `9/9` validator `connected`, so le **đúng 7 ngày**, cửa sổ **56,00**:
+
+```
+node dau rung  2027-07-07T09:19:33Z   (con 307 ngay)
+node cuoi rung 2027-09-01T09:19:33Z   (con 363 ngay)  <- MANG DUNG
+watch-network  vang ~2027-03-09 (120)  ·  do ~2027-05-23 (45)
+```
+
+Bảng đủ 9 dòng ở `BLOCKERS.md` B-12. 🔴 Hỏi câu §2 về **chính cổng đang canh nó**: nó chấm bằng
+`min(endTime)`, mà cổng đo *"sớm nhất"* có lối **tự xanh lại** khi cái sớm nhất rơi khỏi danh sách.
+Ở đây không xảy ra — nhưng vì **số học** (so le 7 < ngưỡng đỏ 45), không vì may. **Đổi `N` hoặc đổi
+so le là lối đó mở ra.**
+
+Kèm: chốt bánh cóc §0 (`5.856 → 5.719`) — 137 dòng đã trả nằm ngoài mốc thì nợ **phình lại vẫn
+xanh**. Đã thấy đỏ đúng lý do cả hai chiều.
+
+```bash
+node scripts/check-validator-onboarding.mjs            # faucet ↔ đặt cọc ↔ tài liệu
+node scripts/check-validator-onboarding.mjs --self-test # 36 đối chứng
+node scripts/check-outsider-bootstrap.mjs              # 🔴 CHỈ có nghĩa khi chạy NGOÀI server
+node scripts/check-outsider-bootstrap.mjs --self-test   # 26 đối chứng
+```
+
 ### 🆕🆕🆕 `2026-09-02` chiều — **CHẶN SỐ 1 ĐÃ SẴN SÀNG, CHỜ ĐÚNG MỘT LƯỢT ĐẨY** (D-158)
 
 David hỏi *"giờ cần tôi làm gì"* rồi *"bạn làm được hết mà"*, rồi *"đẩy đi"*. Làm xong và đã
