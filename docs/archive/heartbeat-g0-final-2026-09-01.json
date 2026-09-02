@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "synthetic": true,
+  "label": "9Chain A1 public load test",
+  "note": "Every transaction from the addresses listed here is machine-generated test traffic, not real user activity.",
+  "senderAddresses": [
+    "0x5E0Df032a2B8F2e77Be353fF74f515D607dB2B9E",
+    "0xbA14F7ce8839b2D2DdF598Cd9a61233C83258103",
+    "0xF42C0229bbFC02D4249b7e11F86d7A130AfbBbBB",
+    "0x3793fcb7D53efa76C3E739be39566387354796cb",
+    "0x40B5e9db994476cA85e86F593F6ACa7E7f63e532",
+    "0xf310C22940fB7FB22Cc4c6F6D819B0F8D04c7da3",
+    "0xdADdE822724d2d3Bc577a7bA86B2FabC13152c05",
+    "0x04f116e70E7C8f4c1153245d6A5bAF0B5B089B3D",
+    "0xda3037c17e8340993DC256647763A6B7A29742c0"
+  ],
+  "running": false,
+  "stopReason": "reached the configured deadline 2026-09-01T00:00:00Z (HEARTBEAT_STOP_AFTER)",
+  "startedAt": "2026-08-29T13:01:03.824Z",
+  "updatedAt": "2026-09-01T00:00:03.548Z",
+  "uptimeSeconds": 212340,
+  "targetTps": 9,
+  "measured": {
+    "blockHeight": 107874,
+    "windowSeconds": 56,
+    "committedTxInWindow": 505,
+    "committedTps": 9.01,
+    "blocksInWindow": 28,
+    "secondsPerBlock": 2,
+    "committedTxSinceStart": 1910316
+  },
+  "submitted": {
+    "txSinceStart": 1910305,
+    "failures": 688,
+    "resyncs": 39,
+    "inFlight": 3
+  }
+}
