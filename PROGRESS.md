@@ -58,7 +58,20 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 - [human] **P-6 — nạp ví `chain-factory` (HAI chặng)** — David chọn **quỹ nào** và **bao nhiêu**;
       gửi giao dịch trên mạng công khai là việc có người bấm (§4).
 
-- [human] **P-7 — xoá mồ côi trên server** — an toàn kể từ P-4.
+- [x] **P-7 — xoá mồ côi trên server** (David bấm `02/09`)
+      🔴 **Làm TRỌN cả ba bước của B-17, vì mục này đã sai hai lần chính vì bỏ bước.**
+      **LIỆT KÊ:** hai tệp cùng thư mục, hash khác nhau — mồ côi `a16a354d…` (1252 B, `ubuntu`)
+      và tệp **đang sống** `heartbeat.json` `805ed518…` (847 B, `root`). Lệnh dùng **đường dẫn
+      tường minh, không glob** — một dấu `*` đặt sai là nuốt luôn cái đang sống.
+      🔴 *"Đã có bản lưu"* được **ĐO**, không phải khẳng định: lấy tệp về từ **ba nơi độc lập
+      ngoài server** — repo tại chỗ · remote **công khai** (tải thật qua Internet) · remote sao
+      lưu **riêng tư** (đọc thẳng blob của ref) — cả ba `a16a354d…`, trùng byte.
+      **XOÁ:** `rm`, **không phải `shred`** — đây là bản ghi **đã công bố**, không phải vật liệu
+      khoá; dùng `shred` cho tệp công khai là khai sai mức nhạy cảm và làm loãng nghĩa của nó
+      ở chỗ thật sự cần (D-117).
+      **ĐỐI CHỨNG:** mồ côi không còn · tệp đang sống **còn nguyên đúng `805ed518…`** ·
+      `check-deploy-drift` **20 khớp · 0 lệch · 0 thiếu · 0 MỒ CÔI**, exit 0.
+      ✅ Preflight **39 đạt · 3 đỏ → 40 đạt · 2 đỏ**.
 
 ---
 

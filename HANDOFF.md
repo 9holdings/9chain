@@ -4,8 +4,9 @@ Cập nhật: **2026-09-02** chiều — 🟢🟢 **CHẶN SỐ 1 HẾT CHẶN: 
 (D-158). Đã đẩy `official` + `origin`, nghiệm thu **bằng tay** trên đúng đường người lạ đi.
 🔴 Hoá ra không phải *"chưa ai tải lên"*: tệp **không được git theo dõi** — byte cả thế giới cần
 nằm ở **hai chỗ vận hành, không repo/sao lưu/release nào**, và **không cổng nào đo một sự vắng
-mặt**. Preflight **39 đạt · 3 đỏ** (40→42 mục). **Ba đỏ còn lại đều là việc có người bấm**: ví
-factory 0 đồng · 1 mồ côi trên server · footer `web-home`. Chi tiết ở mục ngay dưới.
+mặt**. Kèm: mồ côi trên server **đã xoá** (B-17 trọn ba bước). Preflight **40 đạt · 2 đỏ**
+(40→42 mục). **Hai đỏ còn lại**: ví factory 0 đồng — thứ **duy nhất** còn chặn việc mở lại cổng
+đẻ chain L1 — và footer `web-home` (luật cứng #4). Chi tiết ở mục ngay dưới.
 *(Số đo cũ giữ nguyên bên dưới làm bản ghi.)* <!-- stale-ok -->
 
 Trước đó cùng ngày — 🟢 **VIỆC 1 + 2 XONG TRÊN SẢN PHẨM · D-088 ĐÓNG · 4 cổng mới từ báo cáo
@@ -76,7 +77,7 @@ David hỏi *"giờ cần tôi làm gì"* rồi *"bạn làm được hết mà"
 xuất bản.
 
 ```
-preflight  37 đạt · 3 đỏ  (40 mục)   ->   39 đạt · 3 đỏ  (42 mục)
+preflight  37 đạt · 3 đỏ  (40 mục)   ->   40 đạt · 2 đỏ  (42 mục)
 official   behind 31  ->  behind 0        origin  behind 7  ->  behind 0
 ```
 
@@ -139,19 +140,34 @@ networkID trong tep 999999998  =  info.getNetworkID cua mang song
 check-genesis-published  6/6  ✅ PASS
 ```
 
-#### 🔴 Ba đỏ còn lại, và ai gỡ
+#### 🟢 MỒ CÔI ĐÃ XOÁ — B-17 làm trọn cả ba bước, lần này không bỏ bước nào
+
+David bấm `02/09`. **LIỆT KÊ** trước: hai tệp cùng thư mục, hash khác nhau — mồ côi `a16a354d…`
+(1252 B, `ubuntu`) và tệp **đang sống** `heartbeat.json` `805ed518…` (847 B, `root`). Lệnh dùng
+**đường dẫn tường minh, không glob**; một dấu `*` sai chỗ là nuốt luôn cái đang sống.
+🔴 *"Đã có bản lưu"* được **ĐO**: kéo tệp về từ **ba nơi độc lập ngoài server** — repo tại chỗ ·
+remote **công khai** (tải thật qua Internet) · remote **sao lưu riêng tư** (đọc blob của ref) —
+cả ba trùng byte. **`rm`, không `shred`**: bản ghi đã công bố, không phải vật liệu khoá.
+**ĐỐI CHỨNG:** mồ côi hết · tệp sống nguyên vẹn · `check-deploy-drift` **20 khớp · 0 lệch ·
+0 thiếu · 0 MỒ CÔI**, exit 0.
+
+#### 🔴 HAI đỏ còn lại — `40 đạt · 2 đỏ`
 
 | đỏ | việc |
 |---|---|
-| `watch-network` | ví `chain-factory` **0 LOVE9** — HAI chặng; David chọn **quỹ nào** + **bao nhiêu** |
-| `check-deploy-drift` | 1 mồ côi trên server — **an toàn để xoá kể từ hôm nay** (bản ghi đã cứu, xem trên) |
-| `check-live-page` | `/` `/faucet/` `/create-chain/` in networkID chết — worktree `web-home`, luật cứng #4 |
+| `watch-network` | ví `chain-factory` **0 LOVE9** — HAI chặng; David chọn **quỹ nào** + **bao nhiêu**. Đây là thứ duy nhất còn chặn việc mở lại cổng đẻ chain L1 |
+| `check-live-page` | `/` `/faucet/` `/create-chain/` in networkID chết — worktree `web-home`, luật cứng #4, **không phải việc A1** |
 
 ```bash
 node scripts/check-genesis-published.mjs              # 6 phép đo, đỏ ở đúng bước còn lại
 node scripts/check-genesis-published.mjs --self-test  # 27 đối chứng ngược
-# xoá mồ côi (sau khi P-4 đã cứu bản ghi):
-ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'shred -u ~/9chain-a1/src/9chain-a1-config/heartbeat.json.g0-20260901'
+# xoá mồ côi — CHỈ chạy sau khi P-4 đã cứu bản ghi và ĐO được bản lưu ở nơi khác.
+# 🔴 `rm`, KHÔNG phải `shred`: đây là bản ghi ĐÃ CÔNG BỐ, không phải vật liệu khoá. Dùng `shred`
+#    cho một tệp công khai là khai sai mức nhạy cảm của nó — và làm loãng ý nghĩa của `shred`
+#    ở những chỗ nó thật sự cần (D-117).
+ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'rm -v ~/9chain-a1/src/9chain-a1-config/heartbeat.json.g0-20260901'
+# ĐỐI CHỨNG bắt buộc ngay sau (B-17 sai 2 lần vì bỏ bước này):
+node scripts/check-deploy-drift.mjs
 ```
 
 ### 🆕🆕 CHỐT PHIÊN `2026-09-01` tối → `2026-09-02` — **22 commit, đã đẩy `origin`**
