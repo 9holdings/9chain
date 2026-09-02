@@ -359,6 +359,34 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       một node **không phải beacon** thấy nó trong `info.peers` — cho mesh **~70 giây**, đừng chấm
       ở giây 30 (D-121). Đây là thứ biến điều kiện qua **3** và **O4** từ *khai* thành *đo*.
 
+- [x] **P-30 — bơm nhịp: dựng lại XONG và an toàn hơn trước; dừng ở một bước không ai ghi** (D-167)
+      David chỉ thị trực tiếp (*"bật bơm đi"*), nên A1 thực hiện theo bộ đối chứng đã soạn.
+      🔴 **Lệnh trong runbook do chính tôi viết đã HỎNG** — `grep -E '^(ETHERS_PATH|HEARTBEAT_)='`
+      đòi dấu `=` **ngay sau** `HEARTBEAT_` ⇒ `HEARTBEAT_TPS=9` không khớp ⇒ **1 biến** sống sót
+      thay vì **7**, bơm sẽ lên **không có `HEARTBEAT_SEED`**. Bắt được vì **chạy thật**, không
+      phải vì đọc lại. Đã sửa, **và** biến `wc -l` thành **CỔNG** trong chính khối lệnh
+      (`≠ 7 ⇒ dừng + shred + exit 1`) thay vì một chú thích người ta lướt qua.
+      ✅ **Ba đối chứng đạt:** phanh đĩa `89% free (floor 20%)` — **phần trăm thật**, chứng minh
+      mount hẹp vẫn đo được · `/hostfs` **đã biến mất** ⇒ lỗ D-138 đóng thật (container thôi đọc
+      được `console.env`, vì mode `600` **không cản root**) · `on-failure:3` dừng sau **3** lần,
+      **không phải 430** như ngày G.
+      🔴 **Bơm FATAL: `wallet 0 has no balance`.** Ví suy từ `HEARTBEAT_SEED` nên **địa chỉ không
+      đổi giữa các thế hệ**, **số dư thì chết cùng thế hệ cũ**. Cửa chặn là `balance === 0n` —
+      chỉ cần **khác 0**: `gasPrice` = **2 wei** ⇒ 4,9 triệu giao dịch tới hạn tốn
+      ~**0,0000002 LOVE9**.
+      🔴 **Sự thật đó ĐÃ được ghi ở chỗ khác suốt hai ngày** — `heartbeat.json` công khai tự khai
+      *"the wallets listed here belonged to the previous generation"* — trong khi việc tay, D-149
+      và runbook đều chỉ nói *"bật lại bơm"*. ⇒ **Một sự thật ghi ở một chỗ và một việc giao ở chỗ
+      khác thì không tự gặp nhau.** Đã nối: runbook có bước **2b · nạp ví bơm**.
+
+- [human] **P-31 — nạp 9 ví bơm rồi `docker start` (việc David bấm — §4)**
+      Chín địa chỉ ở `docs/CEREMONY-2026-09-09.md` bước 2b (và đọc lại được từ log của chính bơm).
+      Nguồn và số tiền là **quyết định**, không phải mặc định: chín lượt faucet (9 LOVE9/ví, thừa
+      sức) hoặc một lượt chuyển từ quỹ.
+      ⚠️ Sau khi nạp **không cần dựng lại** — env trong container đã đúng, chỉ cần
+      `docker start 9chain-a1-heartbeat`, rồi đối chứng **(4)**: `eth_blockNumber` hai lần cách
+      20 giây, số sau phải **lớn hơn** số trước.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện

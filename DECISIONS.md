@@ -7610,3 +7610,65 @@ Giết tiến trình → xoá DB → thay genesis → chạy node → **10 lư�
 `c-to-x` (**chưa ai chạy `--issue` bao giờ**) → `x-to-p` → `stake-validator`. Nghiệm thu **trên
 chain**: validator thứ 10 xuất hiện với trọng số khác chín node genesis, **và** một node **không
 phải beacon** thấy nó trong `info.peers` — cho mesh ~70 giây, đừng chấm ở giây 30 (D-121).
+
+---
+
+## D-167 — **Bơm nhịp đã dựng lại đúng và AN TOÀN HƠN trước; nó dừng vì một bước không tài liệu nào nhắc** (`2026-09-03`)
+
+David: *"bật bơm đi."* §4 khai deploy là việc có người bấm; David chỉ thị trực tiếp hai lượt, nên
+A1 thực hiện, theo đúng bộ đối chứng đã soạn.
+
+### 🔴 Lệnh trong runbook do chính tôi viết đã HỎNG, và chỉ CHẠY mới lộ ra
+
+Runbook (soạn cùng ngày, đã đẩy công khai) bảo lọc env bằng:
+
+```
+grep -E '^(ETHERS_PATH|HEARTBEAT_)='
+```
+
+Dấu `=` đòi đứng **ngay sau** `HEARTBEAT_`, nên `HEARTBEAT_TPS=9` **không khớp**. Chạy nguyên văn:
+**1 biến** sống sót (`ETHERS_PATH`) thay vì **7** ⇒ bơm sẽ lên **không có `HEARTBEAT_SEED`**.
+
+Bắt được vì **chạy thật**, không phải vì đọc lại — đúng bài *"lệnh chưa chạy chưa phải lệnh"*.
+⇒ Đã sửa mẫu, **và** biến `wc -l` thành một **CỔNG** trong chính khối lệnh (`≠ 7 ⇒ dừng, shred,
+exit 1`) thay vì một chú thích người ta lướt qua.
+
+### Ba đối chứng ĐẠT — và một trong ba chứng minh một quyết định thiết kế
+
+```
+(2) disk check path /srv/a1-config — 89% free (floor 20%)
+(3) mounts: /app  /srv/a1-config          <- /hostfs DA BIEN MAT
+    deadline 2026-09-09T05:39:09Z — stops on its own in 152.4h
+    restartPolicy=on-failure:3  ->  dung sau 3 lan, KHONG phai 430
+```
+
+🔴 **(2) là phép đo quan trọng nhất của lượt này.** D-138 bảo *"thu hẹp mount"*; thi hành nguyên
+văn sẽ **gỡ mất phanh đĩa**, vì `HEARTBEAT_DISK_PATH=/hostfs`. Trỏ sang `/srv/a1-config` cho
+**89% free** — một **PHẦN TRĂM THẬT**, không phải `COULD NOT MEASURE`. Tác giả bơm đã dựng sẵn
+đúng phép đối chứng cho việc này (*"một đường dẫn chứng minh cấu hình; một phần trăm chứng minh
+nó đang nhìn một filesystem thật"*), và hôm nay nó trả công.
+🔴 **(3) đóng lỗ D-138 thật**: container không còn đọc được `console.env` (⇒ `A1_CONSOLE_TOKEN`,
+`A1_CLI_KEY`), vì mode `600` **không cản được root** mà `/hostfs` thì cho root nhìn thấy tất cả.
+
+### 🔴 Và bơm FATAL — vì một bước KHÔNG tài liệu nào nhắc
+
+```
+FATAL: wallet 0 (0x5E0Df03…) has no balance.
+```
+
+Ví bơm suy từ `HEARTBEAT_SEED` nên **địa chỉ không đổi giữa các thế hệ**; **số dư thì chết cùng
+thế hệ cũ**. Cửa chặn là `balance === 0n` (dòng 472) — nó chỉ cần **khác 0**, và không cần nhiều:
+`gasPrice` đo được **2 wei** ⇒ 4,9 triệu giao dịch tới hạn tốn ~**0,0000002 LOVE9**.
+
+🔴 **Sự thật này ĐÃ ĐƯỢC GHI, ở một chỗ khác, suốt hai ngày.** `heartbeat.json` trên bề mặt công
+khai tự khai: *"the wallets listed here belonged to the previous generation."* Còn việc tay,
+D-149 và runbook nghi lễ đều chỉ nói *"bật lại bơm"*.
+⇒ **Một sự thật ghi ở một chỗ và một việc giao ở chỗ khác thì không tự gặp nhau.** Cùng họ với
+D-161 (ba bề mặt đúng, quan hệ giữa chúng sai) — ở đây là **hai tài liệu đúng, không tài liệu nào
+nối chúng**. Đã nối: runbook nay có bước **2b · nạp ví bơm** kèm chín địa chỉ và cách bấm.
+
+### Trạng thái để lại
+
+Container `exited`, `restarts=3`, **không lặp** — `on-failure:3` làm đúng việc nó được chọn để
+làm. Env trong container **đã đúng**, nên sau khi nạp ví chỉ cần `docker start`, **không** phải
+dựng lại. Nguồn tiền và số tiền là **quyết định của David**, không phải mặc định.
