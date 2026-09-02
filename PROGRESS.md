@@ -8,6 +8,52 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 
 ---
 
+## 🟢 PHIÊN `2026-09-02` — PHÁT HÀNH GENESIS + BẢN GHI SUÝT BỊ XOÁ (D-158)
+
+- [x] **P-1 — `genesis.json` vào đường được git theo dõi** (D-158)
+      Chặn số 1 của HANDOFF. 🔴 Trạng thái thật **hẹp hơn mô tả**: không phải *"chưa ai tải lên"*
+      mà là **tệp không được git theo dõi** — `.gitignore` loại cả nhóm `local-net/net-*` (đúng,
+      vì đó là chỗ netgen ghi khoá) và quét luôn tệp duy nhất trong đó vốn để công khai.
+      ⇒ Byte cả thế giới cần nằm ở **hai chỗ vận hành, không repo/sao lưu/release nào**.
+      **Điều kiện qua:** bản theo dõi trùng byte với genesis **node đang chạy boot bằng**.
+      ✅ **ĐẠT — bốn mỏ neo độc lập cùng `4de8caa5…0f6ee6`**: `docs/genesis/genesis-g1.json` ·
+      bản làm việc `local-net/net-g1/` · hằng số in trong `RUN-A-VALIDATOR.md` ·
+      `~/9chain-a1/net/genesis.json` đọc thẳng từ máy chủ.
+      🔴 Kiểm vật liệu khoá **trước** khi theo dõi: 0 bí mật 32 byte. Lượt quét đầu in ra "mười
+      khoá riêng" — là **64 ký tự đầu của khoá BLS 96 ký tự**, regex không neo. Neo + gộp theo
+      độ dài mới ra bức tranh thật.
+
+- [x] **P-2 — `RUN-A-VALIDATOR.md` khai NGUỒN TẢI** (D-158)
+      Tài liệu in `sha256` từ lúc phóng nhưng **chưa bao giờ nói tải ở đâu**. Tệp và URL nằm
+      **cùng một commit** ⇒ không có cửa sổ nào tài liệu hứa thứ chưa tồn tại.
+
+- [x] **P-3 — cổng `check-genesis-published.mjs`** (D-158)
+      6 phép đo, mỗi phép ở đúng nơi; **cả hai chiều** (tệp khai networkID sống **và** beacon
+      trong tài liệu có mặt trong chính genesis đó **và** đang validate); chấm bằng **nội dung**,
+      không bằng mã HTTP.
+      **Điều kiện qua:** thấy ĐỎ đúng lý do **và** thấy XANH được.
+      ✅ **ĐẠT — 27 đối chứng ngược · chạy thật đỏ đúng MỘT bước** (tải công khai 404), năm bước
+      kia xanh · **đối chứng DƯƠNG trên byte thật** (`--url` vào host phục vụ đúng tệp ⇒ PASS,
+      đường sai cùng host ⇒ đỏ lại). Preflight **40 → 42 mục**.
+
+- [x] **P-4 — cứu bản ghi `heartbeat` g0 trước khi có ai xoá nó** (D-158)
+      `check-deploy-drift` chấm mồ côi, HANDOFF xếp *"hình dạng B-17"* = chờ xoá. B-17 nói câu
+      *"đã có bản lưu"* là một **PHÉP ĐO** — và phép đo trả lời **KHÔNG**: repo không có bản nào.
+      Đó là bản ghi **duy nhất** của lượt bơm g0 (59 giờ · 1.910.316 tx · 9,01 TPS · tự dừng
+      đúng hạn), mà *"nhịp sống 9 tx/s"* **đã công bố ra ngoài**.
+      ✅ Chép về `docs/archive/` trùng byte (`a16a354d…`), FROZEN. **Giờ mới được xoá trên server.**
+
+- [human] **P-5 — ĐẨY lên `official` để cổng P-3 chuyển xanh**
+      `official` = `9holdings/9chain`, **CÔNG KHAI** ⇒ đưa byte ra Internet, không thu lại được.
+      §4: hỏi David. Không có lượt đẩy này thì `genesis.json` vẫn 404 và **cả team vẫn kẹt**.
+
+- [human] **P-6 — nạp ví `chain-factory` (HAI chặng)** — David chọn **quỹ nào** và **bao nhiêu**;
+      gửi giao dịch trên mạng công khai là việc có người bấm (§4).
+
+- [human] **P-7 — xoá mồ côi trên server** — an toàn kể từ P-4.
+
+---
+
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
 
 Không phải đợt autopilot. David yêu cầu **quét lại + phân tích chuyên sâu** trước GO/NO-GO,
