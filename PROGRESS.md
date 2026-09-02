@@ -215,6 +215,35 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       Vá **không bằng cách khai ngoại lệ** mà bỏ hằng số đi — fixture nay dùng địa chỉ tài liệu
       RFC 5737. Cổng đã dạy điều đó **trước khi** tệp kịp vào commit.
 
+- [x] **P-20 — 🔴 DANH SÁCH VIỆC TAY HÔ 40 MỤC TRONG KHI CHỈ 8 CÒN PHẢI LÀM** (D-163)
+      David: *"tỉa danh sách 40 việc tay đi."*
+      🔴 **Vế thứ hai của luật cứng #2.** `gday-preflight` tự khai luật đúng — *"chưa tự động hoá
+      thì in ra như VIỆC TAY, không giả vờ xanh"* — nhưng luật đó chỉ chặn **một** hướng hỏng.
+      Hướng ngược lại cũng thật: **một danh sách cứ hô công việc ĐÃ XONG thì dạy người đọc LƯỚT,
+      và mục bị lướt qua không bao giờ là mục đã xong.**
+      Đo: **12 đã xong** (ba trong số đó đo được bằng **chính cổng chạy trong tệp này**) · **18 là
+      runbook re-genesis đã chạy ngày G** · **2 đã gạch**. Tám mục cần người, đứng sau ba mươi hai
+      mục không. Vô lý nhất: mỗi lượt vẫn đòi **mở cổng staking** (đo được đã mở, 9/9, 100% stake)
+      · **phát hành genesis** (đã tải về qua Internet và so hash) · **sửa payout faucet** (đã ship
+      `9`/`9`).
+      🔴 **Và lập luận này đã nằm sẵn trong tệp** từ `29/08` lúc gỡ B-18 — áp **một lần rồi thôi**.
+      *Luật viết ra không tự thi hành; chỉ thứ được ĐO mới thi hành.*
+      **Điều kiện qua:** không mất byte nào, và mỗi lượt rút khai **PHÉP ĐO** chứ không phải câu
+      trấn an (luật B-17).
+      ✅ **ĐẠT — LIỆT KÊ → CHUYỂN → ĐỐI CHỨNG.** Đối chứng số học: **40 = 8 sống + 12 rút + 18
+      runbook + 2 superseded**, và `--all-manual` in **đủ 40** kèm lý do. `git diff --stat` xem
+      ngay sau lượt sửa bằng script: 90 thêm / 37 bớt, **không có lượt ghi đè cả tệp** (bẫy CRLF).
+      ⚠️ **Rút chỉ AN TOÀN ở chỗ có thứ khác canh.** Mục *"mở cổng staking mọi node"* là **thuộc
+      tính của tiến trình đang chạy**, không phải việc xong một lần — rút nó **trước khi**
+      `check-outsider-bootstrap` tồn tại (D-162, cùng ngày) sẽ là liều lĩnh. Thứ tự không tình cờ:
+      **dựng phép đo trước, rút lời nhắc sau.**
+      🔴 **Không xoá 18 mục runbook** — chúng là **quy trình cho thế hệ SAU**; xoá là ném đi đường
+      tái lập mạng để đổi lấy một màn hình sạch, mà dự án đã trả giá **hai lần** cho một lượt xoá
+      trông an toàn (B-17).
+      🟢 Kèm: **B-16 và B-20 khai QUÁ PHẠM VI** — nửa phần mềm cả hai đã đóng `01/09`, thứ còn lại
+      **không phải phần mềm**: hai bản sao trên **cùng một ổ đĩa**. Nay nói đúng **một lần**, ở
+      B-16 — hai mục cho một hành động là hai lời nhắc cho một việc, tức lại đúng bệnh đang chữa.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện

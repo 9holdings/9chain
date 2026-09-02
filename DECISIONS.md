@@ -7303,3 +7303,71 @@ Fixture của tôi cắm cứng IP máy chủ ⇒ D-113 nổ (`COPY OUTSIDE THE 
 bằng cách khai ngoại lệ** mà bằng cách bỏ hằng số đi: fixture nay dùng địa chỉ tài liệu RFC 5737
 (`203.0.113.9`). Một bài kiểm tra không nên phụ thuộc hạ tầng thật — và cổng đã dạy điều đó **trước
 khi** tệp kịp vào commit.
+
+---
+
+## D-163 — **Danh sách việc tay hô 40 mục trong khi chỉ 8 mục còn phải làm, và lập luận để tỉa nó đã nằm sẵn trong chính tệp đó** (`2026-09-02`)
+
+David: *"tỉa danh sách 40 việc tay đi."*
+
+### Vế thứ hai của luật cứng #2, và nó đắt không kém vế thứ nhất
+
+`gday-preflight.mjs` tự khai luật đúng: *"thứ gì chưa tự động hoá thì in ra như VIỆC TAY — không
+bao giờ giả vờ xanh."* Và nó **đúng**. Nhưng luật đó chỉ chặn được **một** hướng hỏng: cổng nói
+xong trong khi chưa xong. Hướng ngược lại **cũng có thật**, và nó ăn mòn đúng cái danh sách sinh
+ra để cứu người:
+
+> **Một danh sách cứ hô công việc đã xong thì dạy người đọc LƯỚT — và mục bị lướt qua không bao
+> giờ là mục đã xong.**
+
+Đo `02/09`: **40 mục** — **12 đã xong** (ba trong số đó đo được bằng **chính những cổng chạy trong
+tệp này**), **18 là runbook re-genesis đã chạy ngày G**, **2 đã gạch superseded**. **Tám** mục cần
+người động tay, đứng sau **ba mươi hai** mục không.
+
+🔴 **Ba mục vô lý nhất — mỗi lượt chạy vẫn đòi:** mở cổng staking trên mọi node (**đo được là đã
+mở**, 9/9, 100% stake) · phát hành `genesis.json` (**đã tải về được qua Internet và so hash**) ·
+sửa payout faucet (**đã ship `9`/`9`**). Không ai làm gì được với ba dòng đó ngoài việc học cách
+bỏ qua cả khối.
+
+🔴 **Và lập luận này đã nằm sẵn trong tệp**, viết `29/08` lúc gỡ B-18: *"một việc tay còn nằm lại
+sau khi đã xong thì dạy người ta lướt danh sách."* Áp **một lần rồi thôi** — và đó chính là điều đáng học: *một luật được viết ra không tự thi hành;
+chỉ thứ được ĐO mới thi hành.* Cùng lý lẽ đã dựng bánh cóc §0 (D-160) thay vì tin vào lời hứa sẽ
+dịch dần.
+
+### Rút ≠ xoá, và khác biệt đó LÀ thiết kế
+
+**Không byte nào bị xoá.** Mục đổi **giai đoạn**, và chỉ giai đoạn còn sống mới được in:
+
+| giai đoạn | số | vì sao giữ |
+|---|---|---|
+| còn sống | **8** | in dấu ☐ như cũ |
+| `✔ RETIRED` | **12** | mỗi mục mang **PHÉP ĐO** đã rút nó |
+| `📦 RE-GENESIS RUNBOOK` | **18** | đã chạy cho g1; là **quy trình cho thế hệ SAU** |
+| `SUPERSEDED` | **2** | đã gạch sẵn từ trước |
+
+`--all-manual` in đủ 40 kèm lý do. **Xoá 18 mục runbook là ném đi đường tái lập mạng để đổi lấy
+một màn hình sạch** — dự án này đã trả giá **hai lần** cho một lượt xoá trông có vẻ an toàn (B-17).
+
+🔴 **Mỗi lượt rút phải khai PHÉP ĐO, không phải câu trấn an** — đúng luật B-17. Ví dụ:
+`grep -c FILL-ON-G-DAY` = **0** · README mang cảnh báo *tiền gửi vào là cháy vĩnh viễn*, **tải
+ngược về từ bề mặt công khai** · `check-net-dirs` exit 0 **và** đại lượng nó canh (90.007 LOVE9)
+**đã chết cùng g0**.
+
+⚠️ **Rút chỉ AN TOÀN ở chỗ có thứ khác canh.** Ba mục được rút vì đã có cổng ở mục 3 đo mỗi lượt.
+Mục *"mở cổng staking mọi node"* là **thuộc tính của tiến trình đang chạy**, không phải việc xong
+một lần: rút nó **trước khi** `check-outsider-bootstrap` tồn tại (D-162, cùng ngày) sẽ là liều
+lĩnh. Thứ tự đó không phải tình cờ — **dựng phép đo trước, rút lời nhắc sau.**
+
+### Hai mục khai QUÁ PHẠM VI, cũng là cùng lỗi
+
+B-16 và B-20 in như thể chưa làm gì, trong khi **nửa phần mềm của cả hai đã đóng `01/09`**
+(`o1-check --rpc` mã 0 cả hai nửa · gói danh tính 29 tệp/27 danh tính, nghiệm thu bằng **đếm tệp
+trong gói**). Thứ còn lại **không phải phần mềm và chưa bao giờ là**: hai bản sao đang nằm trên
+**cùng một ổ đĩa**. Nay nói đúng một lần, ở B-16 — hai mục cho **một hành động** là hai lời nhắc
+cho một việc, tức lại đúng cái bệnh đang chữa.
+
+### Còn lại 8 mục, và không mục nào là việc phần mềm
+
+`B-16` nửa vật lý · `heartbeat` bước 2–4 · node Hetzner hậu phóng · **`B-13(b)` đo lệch đồng hồ,
+hạn `09/09`** · đọc `console.env` trên server · ship `A1_CLI_KEY` · ví faucet số đẹp (tuỳ chọn) ·
+bề mặt công khai còn in thế hệ chết (`web-home`, luật cứng #4).
