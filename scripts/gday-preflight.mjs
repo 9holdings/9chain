@@ -170,6 +170,7 @@ const GATES = [
   { group: "2 · REPO GATES", name: "patch count in the docs matches patches/", ...node("scripts/check-patch-count.mjs") },
   { group: "2 · REPO GATES", name: "supply reconciliation (counter-check)", ...node("scripts/check-supply.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "served pages vs the running chain (counter-check)", ...node("scripts/check-live-page.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "genesis publication (counter-check)", ...node("scripts/check-genesis-published.mjs", "--self-test") },
 
   // ── 3. The real world — the running network and the server ──
   { group: "3 · REAL WORLD", needsNetwork: true, name: "the running network (watch-network)", ...node("scripts/watch-network.mjs") },
@@ -196,6 +197,18 @@ const GATES = [
   // G-day. That red is not A1's to clear (hard rule #4) and it must stay visible until it is.
   { group: "3 · REAL WORLD", needsNetwork: true, name: "allocation table vs live supply (minus pre-minted rewards)", ...node("scripts/check-supply.mjs") },
   { group: "3 · REAL WORLD", needsNetwork: true, name: "served pages vs the running chain", ...node("scripts/check-live-page.mjs") },
+  // 🔴 The bytes an outsider needs in order to exist on this network at all. Measured on the
+  // PUBLIC surface — the URL the guide hands them — and judged by hashing what comes back, never
+  // by the status code (hard rule #1: GitHub serves its 404 as a 200-shaped HTML body elsewhere,
+  // and a CDN can hand out a stale object under a perfectly good 200).
+  // Both directions, the D-154 shape: the file must name the LIVE networkID, AND the beacon the
+  // guide tells people to dial must be inside that same file and validating right now. One
+  // direction alone passes a genesis for the right network listing stakers nobody runs, or a
+  // beacon that is live on some other chain.
+  // ⚠️ Expected RED until the publishing push lands — the file and the URL naming it are in one
+  // commit, so before that push neither is public. Counter-checked green on 2026-09-02 against a
+  // host serving the real bytes (`--url`), so this red is a fixable state, not a permanent one.
+  { group: "3 · REAL WORLD", needsNetwork: true, name: "genesis is published and downloadable by an outsider", ...node("scripts/check-genesis-published.mjs") },
   // This one measures REAL MONEY on chain, so it belongs to group 3, not to the repo gates:
   // the `--offline` variant answers only half the question and exits 2 (INCONCLUSIVE) — which
   // is honest, but a G-day gate that says "inconclusive" is unusable. Blocks the
