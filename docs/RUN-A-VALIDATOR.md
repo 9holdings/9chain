@@ -162,13 +162,29 @@ beacon nodeID          NodeID-MrgP69AZRSeJ3DQRSBWQzqeqovNcTAsEb
 beacon address         139.99.145.13:9651
 ```
 
+Download it from this repository:
+
+```bash
+curl -fsSLO https://raw.githubusercontent.com/9holdings/9chain/main/docs/genesis/genesis-g1.json
+mv genesis-g1.json genesis.json
+```
+
 Verify the file before you boot with it:
 
 ```bash
 sha256sum genesis.json
 ```
 
-A node that boots a genesis you did not check is a node on a chain you did not choose.
+The hash printed above is the one this document commits to, and it is the same
+file the nine launch nodes booted from — checked against the live server on
+2026-09-02. If your download does not match it, **stop**: do not boot, and do
+not "fix" the file. A node that boots a genesis you did not check is a node on
+a chain you did not choose.
+
+The filename carries the generation on purpose. `genesis-g1.json` is the file
+for `9chain-a1-g1` (`networkID 999999998`) and nothing will ever overwrite it —
+a future generation arrives as a new file beside it, so a link you saved keeps
+meaning what it meant the day you saved it.
 
 ---
 

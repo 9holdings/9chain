@@ -1,0 +1,152 @@
+{
+  "networkID": 999999998,
+  "allocations": [
+    {
+      "ethAddr": "0x8a96cB5882DB425236f767a9683bED3b775eACdf",
+      "avaxAddr": "X-love91a6ln7664uegrwf9cauzum040g24s4tv0qmdfra",
+      "initialAmount": 0,
+      "unlockSchedule": [
+        {
+          "amount": 8999991000000000,
+          "locktime": 1819790433
+        }
+      ]
+    },
+    {
+      "ethAddr": "0x1212b2445e74f788B30BfA9C42aa46f252345a0B",
+      "avaxAddr": "X-love91d3xm0w6yctuwdtgz4wchhf65jh0z7ttsfe8zjp",
+      "initialAmount": 71000009000000000,
+      "unlockSchedule": null
+    },
+    {
+      "ethAddr": "0x1e738Cdf9b8B2Ced036Ad3BE382D141a7B0ee6C5",
+      "avaxAddr": "X-love91jthl2n2h3jv45hnp8g2e2tr5c0w4fuazacd48q",
+      "initialAmount": 0,
+      "unlockSchedule": [
+        {
+          "amount": 2600000001000000000,
+          "locktime": 1851326433
+        }
+      ]
+    },
+    {
+      "ethAddr": "0x14666b5b64ecF49D7ECAB64D56D4FE01d0A89058",
+      "avaxAddr": "X-love91sx8wwlvexajzqtru6k4uy68f56jrkr99fy70qm",
+      "initialAmount": 0,
+      "unlockSchedule": null
+    },
+    {
+      "ethAddr": "0x3823D9cA784B719D058f16E512E41b154A05b814",
+      "avaxAddr": "X-love91ghwahzdc4m899jknjkag3sqvfzpcxm4sxd5mt4",
+      "initialAmount": 0,
+      "unlockSchedule": [
+        {
+          "amount": 810000000000000000,
+          "locktime": 1851326433
+        }
+      ]
+    },
+    {
+      "ethAddr": "0x1e6c530FD49731e43EcbFE417c304756B93498c3",
+      "avaxAddr": "X-love91susl5nmwnvfcdxg34jlpfxl47cypw8qu5hecn0",
+      "initialAmount": 0,
+      "unlockSchedule": [
+        {
+          "amount": 810000000000000000,
+          "locktime": 1914398433
+        }
+      ]
+    }
+  ],
+  "startTime": 1788254373,
+  "initialStakeDuration": 31536000,
+  "initialStakeDurationOffset": 604800,
+  "initialStakedFunds": [
+    "X-love91a6ln7664uegrwf9cauzum040g24s4tv0qmdfra"
+  ],
+  "initialStakers": [
+    {
+      "nodeID": "NodeID-MrgP69AZRSeJ3DQRSBWQzqeqovNcTAsEb",
+      "rewardAddress": "X-love91d3xm0w6yctuwdtgz4wchhf65jh0z7ttsfe8zjp",
+      "delegationFee": 20000,
+      "signer": {
+        "publicKey": "0xa742cad5b093598317b5233877cd6fed8b55c169407c099811dcade324d5916c66a446fe07411785cbab036d0d167df4",
+        "proofOfPossession": "0xb0544a0acf7fc09ad95046aeb845d4ce991132693c21d1d45278f1ea9e3eaa03e5b121c1df7327fe019e99f719798639044c39b5ce21820f4d59d0ceb98019fa7adbdf20f036b00bed27c7a8ae818517de66bf2cd4dec94ec56725709de34e16"
+      }
+    },
+    {
+      "nodeID": "NodeID-C5xCZnbB4BRdEHvJNB3MxHbrr1CARmTTW",
+      "rewardAddress": "X-love91d3xm0w6yctuwdtgz4wchhf65jh0z7ttsfe8zjp",
+      "delegationFee": 20000,
+      "signer": {
+        "publicKey": "0x80a6ae1a9e4354456895f3069c8a411c03911cbe87d67fd1809fbb0dfe6445069cf8f58c47b20b4834dad75aaf552687",
+        "proofOfPossession": "0x86bec6cc4518c11c5b3a4d6128d0e4680f893a90ed2c8761bd1ad5a6ecfde4122f61f175202ae8efd5c4f8c7c86a7d0b053cd15a595935220fb6c747caa087260adbdd178b8f7b63ada87f7414864a3a3f36447f84495748766f5551efdcd49a"
+      }
+    },
+    {
+      "nodeID": "NodeID-LpG379JZSAW79EquMtRJ7rr4wZbqLQUy",
+      "rewardAddress": "X-love91d3xm0w6yctuwdtgz4wchhf65jh0z7ttsfe8zjp",
+      "delegationFee": 20000,
+      "signer": {
+        "publicKey": "0xa5c752dda34efe68923fc3f197c11e8416cec9cfb641dfa2b1b89560513469b35de20b3a6a84417015af07a1a27911ba",
+        "proofOfPossession": "0xb920cdb3c0e3a2554b80bbe462568baa507be2cd3cd34825e8a39db66bbea0367b42b7c7a1d5b47884d6fea27b5ce4ce0439a8b999dfba516780fa2e547853f2bdb795f6a12255b601fe207d2a34a5891f142dd2adf8470faf7ab9a46e65b373"
+      }
+    },
+    {
+      "nodeID": "NodeID-Pae9qr7wg4oBkNPBHCBuQmKKM3Hp1n145",
+      "rewardAddress": "X-love91d3xm0w6yctuwdtgz4wchhf65jh0z7ttsfe8zjp",
+      "delegationFee": 20000,
+      "signer": {
+        "publicKey": "0x834435278f754ba3fd31595764c38f0fabe3affc0b250859c7f4acd4bac530771b6d1d23d7be70bab765d4dc53a0f070",
+        "proofOfPossession": "0x89f3ebda85c2a4aed7dd207f219c4523fcdc61755d17c9f67fb4622acd230023e8444a87a18e3ea8d3076f72480d3ae909e4cf6cfbd4129c24f2b86b90e778252c4a8d87ea1675674110fb5fc8d482fcd7bf9c0f952585091adbbfb85be24e48"
+      }
+    },
+    {
+      "nodeID": "NodeID-BGapjT8P3YTiT6Q4N2kjqCcSPU3uwZkgc",
+      "rewardAddress": "X-love91d3xm0w6yctuwdtgz4wchhf65jh0z7ttsfe8zjp",
+      "delegationFee": 20000,
+      "signer": {
+        "publicKey": "0x960fc34f2cf339f3428a52558b2925c71bf5265bf4c85e892b80f9fcc69e5f80c4966e301d116ad35d8926901e88499d",
+        "proofOfPossession": "0xa28d10e769b94b55a41e8462751c9e4da17e1ebe7aceb47b7a9f8d80693e5973cffbd34b59c6601bb74fc5e62caee58c0a463542077fa1498404803808bfc5d09aeb18b092e9fbe5bee7e48e2f1937c7ac0f788b690f996b6f8407c7c5dc5714"
+      }
+    },
+    {
+      "nodeID": "NodeID-HU2xWcjpt7iLjYpMEVFE8XUx8VMSy2b3W",
+      "rewardAddress": "X-love91d3xm0w6yctuwdtgz4wchhf65jh0z7ttsfe8zjp",
+      "delegationFee": 20000,
+      "signer": {
+        "publicKey": "0x8e49bad2b1793e758739c90d3574d1a856078ca0e2402e7d75a0e3e4fc63bc1fbeb02e52648f77c4c5de83a6706e7c11",
+        "proofOfPossession": "0x947621fbab6a515e6c1df506ac08aed44b9aabfdc52e0e7f2b9a63bf6e965db3cdfdd62d8c5d79599af490ff20d2f1191434e1cd19aebd780d99d635123cee16f2cf614b165ada99e4bb56e41d016a32501a1aa5c893c8b6ed7b87ff7cc31583"
+      }
+    },
+    {
+      "nodeID": "NodeID-23YFQuyUSNiPuoL5frucqkKq7ppXntJer",
+      "rewardAddress": "X-love91d3xm0w6yctuwdtgz4wchhf65jh0z7ttsfe8zjp",
+      "delegationFee": 20000,
+      "signer": {
+        "publicKey": "0x931547f1a5a9f155e10b3d24301658ae33b81fb248eb3fe32e4550158f94e5469352c822ef5d8edfdb1c1ad81ccb9c89",
+        "proofOfPossession": "0x8dc90bc70a8e9067172f075e55a620c0e4294dde54d27219d70d975c6f80ae6bca1f4b41b1ba364255bb4cc855b44e1707ff8fe36a8b3d550127c9c94aee7d8bb9905030cdc19bf27f1caebb5522592731e3cb3461b71126772d2f81be4e918b"
+      }
+    },
+    {
+      "nodeID": "NodeID-DEjrYqjQjCQRLcmNdcQFKYCwRfAsYB8hH",
+      "rewardAddress": "X-love91d3xm0w6yctuwdtgz4wchhf65jh0z7ttsfe8zjp",
+      "delegationFee": 20000,
+      "signer": {
+        "publicKey": "0xa95f0d9ea4be2baabc79832842a989da106682c91a89a6e87201b777ec37c7dc2f7e5f26927c8cfd6ed7dcf43900a9dc",
+        "proofOfPossession": "0x84b3ec4935623440b6b1818e3adf266d4b93d46f434c3cf07980db9729284aac7d61514ac079a230485e46eab92623dc0e359b30c35c655d4e9340bf14e2746108bdca3b57d4d310b5ad61cc0df5a90c4fea75881cf21337cce52b886a9db6f3"
+      }
+    },
+    {
+      "nodeID": "NodeID-5XoXtUm9akM3niELhKwiq5XDLMrVeYfS1",
+      "rewardAddress": "X-love91d3xm0w6yctuwdtgz4wchhf65jh0z7ttsfe8zjp",
+      "delegationFee": 20000,
+      "signer": {
+        "publicKey": "0xb5535198ae72bfd98735fd57854fc4cb13b80c7017296d17fc9e36e8376a4d851da8576d660fb46c57a85cfe493c8c32",
+        "proofOfPossession": "0xb923005917384a017d2aa0f7a0582d142e9bdea1c525ee3e344f43f4dcfb20acd676fc32b006b3a4d4d2cbac0b57ce16164071053a455c018b6555e7c5da5ab73925e1225c849c8b865048c5a7c504def15aa2f269ed18de6fc3584c8b4c0216"
+      }
+    }
+  ],
+  "cChainGenesis": "{\"config\":{\"chainId\":9000000009,\"homesteadBlock\":0,\"eip150Block\":0,\"eip155Block\":0,\"eip158Block\":0,\"byzantiumBlock\":0,\"constantinopleBlock\":0,\"petersburgBlock\":0,\"istanbulBlock\":0,\"muirGlacierBlock\":0,\"apricotPhase1BlockTimestamp\":0,\"apricotPhase2BlockTimestamp\":0},\"nonce\":\"0x0\",\"timestamp\":\"0x0\",\"extraData\":\"0x340ce4880bc41c4970f3cec00929e5c9d33016049b8fd48f869d09962fce83a8\",\"gasLimit\":\"0x5f5e100\",\"difficulty\":\"0x0\",\"mixHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"coinbase\":\"0x0000000000000000000000000000000000000000\",\"alloc\":{\"1212b2445e74f788b30bfa9c42aa46f252345a0b\":{\"balance\":\"0x33b2e3c9fd0803ce8000000\"},\"14666b5b64ecf49d7ecab64d56d4fe01d0a89058\":{\"balance\":\"0x52b7d2cee7561f3c9c0000\"},\"9000000000000000000000000000000000000009\":{\"balance\":\"0x0\",\"code\":\"0x007b2276223a312c22636861696e223a2239436861696e2d4131222c2273757266616365223a2263222c22646f6373223a5b7b226964223a2264656469636174696f6e222c226c616e67223a22656e222c2274657874223a224164616d20e28094207468652066697273742068756d616e2e227d2c7b226964223a2264656469636174696f6e5f657661222c226c616e67223a22656e222c2274657874223a2245766120e2809420746865207365636f6e642068756d616e2c20616e6420746865206669727374205c2277655c222e227d2c7b226964223a226c6f76655f70617065725f656e222c226c616e67223a22656e222c2274657874223a2223204c4f56452050617065725c6e5c6e2a56657273696f6e202a2a302e302a2a20c2b720486173682d616e63686f7265642061742067656e657369732a5c6e5c6e5468726565207468696e677320617265207772697474656e206865726520666f72657665722e2045766572797468696e6720656c73652c2077652064656369646520746f6765746865722e5c6e5c6e5c7530303365202a2a426c6f636b20312a2a20e2809420d791d6b0d6bcd7a8d6b5d790d7a9d6b4d781d799d7aa20d791d6b8d6bcd7a8d6b8d79020d790d6b1d79cd6b9d794d6b4d799d79d20d790d6b5d7aa20d794d6b7d7a9d6b8d6bcd781d79ed6b7d799d6b4d79d20d795d6b0d790d6b5d7aa20d794d6b8d790d6b8d7a8d6b6d7a55c6e5c7530303365202a47656e6573697320313a3120696e20616e6369656e742048656272657720e28094203720776f7264732c203238206c6574746572732e20546865206561727468206265666f7265207468652068756d616e2e2a5c6e5c75303033655c6e5c7530303365202a2a426c6f636b204164616d2a2a20e28094202a4164616d20e28094207468652066697273742068756d616e2e2a5c6e5c75303033655c6e5c7530303365202a2a426c6f636b204576612a2a20e28094202a45766120e2809420746865207365636f6e642068756d616e2c20616e6420746865206669727374205c2277655c222e2a5c6e5c6e4669727374207468652068656176656e7320616e64207468652065617274682c207468656e206f6e652068756d616e2c207468656e202a2a77652a2a2e2046726f6d207468697320626c6f636b206f6e207468657265206973206e6f205c2275735c2220616e64206e6f205c22796f755c2220e28094206f6e6c79202a2a77652a2a2e5c6e5c6e546865736520746872656520626c6f636b732063616e206e65766572206368616e67652e2045766572797468696e6720656c73652061626f75742039436861696e20e28094206576657279206e756d6265722c2065766572792072756c652c20657665727920736861726520e280942062656c6f6e677320746f207468652077686f6c6520636f6d6d756e697479206f6620456172746820746f206465636964652c20746f6765746865722c20666f72206173206c6f6e672061732074686520636861696e206c697665732e20416e796f6e652c2077686f657665722074686579206172652c20736f206c6f6e672061732074686579206b65657020666169746820776974682074686573652074687265652e5c6e5c6e54686973206973202a2a56302e302a2a3a207468652066697273742076657273696f6e2c20616e64207468652073686f7274657374207468696e6720746861742077696c6c206e65766572206368616e67652e5c6e227d5d7d\"}},\"number\":\"0x0\",\"gasUsed\":\"0x0\",\"parentHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+  "message": "{\"v\":1,\"chain\":\"9Chain-A1\",\"surface\":\"p\",\"docs\":[{\"id\":\"genesis_inscription\",\"lang\":\"he\",\"text\":\"בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ\"},{\"id\":\"dedication\",\"lang\":\"en\",\"text\":\"Adam — the first human.\"},{\"id\":\"dedication_eva\",\"lang\":\"en\",\"text\":\"Eva — the second human, and the first \\\"we\\\".\"},{\"id\":\"love_paper_en\",\"lang\":\"en\",\"text\":\"# LOVE Paper\\n\\n*Version **0.0** · Hash-anchored at genesis*\\n\\nThree things are written here forever. Everything else, we decide together.\\n\\n\\u003e **Block 1** — בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ\\n\\u003e *Genesis 1:1 in ancient Hebrew — 7 words, 28 letters. The earth before the human.*\\n\\u003e\\n\\u003e **Block Adam** — *Adam — the first human.*\\n\\u003e\\n\\u003e **Block Eva** — *Eva — the second human, and the first \\\"we\\\".*\\n\\nFirst the heavens and the earth, then one human, then **we**. From this block on there is no \\\"us\\\" and no \\\"you\\\" — only **we**.\\n\\nThese three blocks can never change. Everything else about 9Chain — every number, every rule, every share — belongs to the whole community of Earth to decide, together, for as long as the chain lives. Anyone, whoever they are, so long as they keep faith with these three.\\n\\nThis is **V0.0**: the first version, and the shortest thing that will never change.\\n\"}]}"
+}
