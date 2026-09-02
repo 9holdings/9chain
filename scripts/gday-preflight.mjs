@@ -172,6 +172,7 @@ const GATES = [
   { group: "2 · REPO GATES", name: "served pages vs the running chain (counter-check)", ...node("scripts/check-live-page.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "genesis publication (counter-check)", ...node("scripts/check-genesis-published.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "validator onboarding — faucet vs bond vs guide (counter-check)", ...node("scripts/check-validator-onboarding.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "outsider bootstrap — announced vs dialable (counter-check)", ...node("scripts/check-outsider-bootstrap.mjs", "--self-test") },
 
   // ── 3. The real world — the running network and the server ──
   { group: "3 · REAL WORLD", needsNetwork: true, name: "the running network (watch-network)", ...node("scripts/watch-network.mjs") },
@@ -217,6 +218,15 @@ const GATES = [
   // 2026-09-02: every number was individually right and the promise was still false by exactly
   // one request, because fees come out of the same balance. A relation is nobody's field.
   { group: "3 · REAL WORLD", needsNetwork: true, name: "a stranger can self-fund the validator bond", ...node("scripts/check-validator-onboarding.mjs") },
+  // 🔴 Money is useless without a synced node: staking requires bootstrap, bootstrap requires
+  // reaching 80% of stake, and that requires the addresses the network GOSSIPS to be dialable.
+  // D-118b measured the closed loop when they were not — 11% visible, 80% needed, no way out
+  // through configuration — on a network where every other gate was green. The fix is a property
+  // of running processes, undone by recreating one node without its flags, and the symptom is
+  // invisible from inside: only a stranger ever finds out.
+  // ⚠️ Only meaningful run from a machine that is NOT the server: a probe from the server does
+  // not cross the firewall, and Docker does not hairpin (D-089).
+  { group: "3 · REAL WORLD", needsNetwork: true, name: "a stranger can bootstrap (announced addresses are dialable)", ...node("scripts/check-outsider-bootstrap.mjs") },
   // This one measures REAL MONEY on chain, so it belongs to group 3, not to the repo gates:
   // the `--offline` variant answers only half the question and exits 2 (INCONCLUSIVE) — which
   // is honest, but a G-day gate that says "inconclusive" is unusable. Blocks the
