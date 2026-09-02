@@ -6988,3 +6988,80 @@ công bố ra ngoài** ⇒ xoá vật chứng của nó để làm một cổng 
 
 **Còn lại là việc có người bấm:** đẩy lên `official` (CÔNG KHAI, không thu lại được) là việc hỏi
 David — §4. Cổng sẽ tự chuyển xanh ngay lượt đẩy đó.
+
+---
+
+## D-159 — **Khoá factory g1 bị lộ và đã thu hồi trước khi nạp; và ví đó chưa bao giờ chạy nổi** (`2026-09-02`)
+
+**Bối cảnh.** David chốt nạp 1.000 LOVE9 vào ví `chain-factory` để mở lại cổng đẻ chain L1.
+Lượt nạp thất bại, và khi truy nguyên thì lòi ra **bốn lỗi chồng nhau**, cộng **một lỗi do tôi
+gây ra ngay trong lúc truy nguyên**.
+
+### 🔴 Lỗi tôi gây ra: mẫu che quá HẸP, và nó làm lộ khoá
+
+Để xem hình dạng tệp khoá factory, tôi `cat` nó qua `sed` che `PrivateKey-[A-Za-z0-9]*`. Tệp còn
+mang **`EVM privkey : 0x…`** — dạng hex, mẫu không bắt ⇒ **khoá riêng vào thẳng bản ghi phiên**.
+Hai dòng đó là **cùng một bí mật secp256k1** ở hai cách biểu diễn, nên lộ một là lộ cả ví.
+
+🔴 **Cùng gốc với bài học viết trong D-158 vài giờ trước, ở chiều ngược lại.** Ở kia mẫu **quá
+rộng**, đọc 64 ký tự đầu của khoá BLS thành "mười khoá riêng" — báo động giả. Ở đây mẫu **quá
+hẹp** — báo động không nổ. Cùng một nguyên nhân: **viết mẫu trước khi đọc hết tệp.**
+
+⇒ **Luật: xem tệp bí mật thì dùng DANH SÁCH TRẮNG, không dùng danh sách đen.** Trích đúng những
+dòng mình cần (`grep -E '^\s+(X-addr|P-addr|EVM addr)\s*:'`), đừng bao giờ `cat` cả tệp rồi che.
+Che là liệt kê thứ phải giấu — và danh sách đó không bao giờ đầy đủ.
+
+### Quyết định: THU HỒI, và thu hồi NGAY
+
+Ví lúc đó giữ **0 trên cả X, P lẫn C** — đo trước khi quyết. Chưa uỷ quyền gì, chưa đồng nào vào.
+⇒ Giá của việc đổi khoá là **28 phút mài, 0 đồng**. Sau khi nạp thì không còn rẻ như thế.
+
+- Địa chỉ mới `P-love9199au4t8uj8s6875ztwvvgctnkcxddtwv549999` (`vanity-keygen`, 930.267.708 ứng
+  viên trong `28m10s`, 24 luồng). Vẫn đúng mẫu `P-love9199…9999`.
+- 🔴 **Stdout đổ THẲNG vào tệp**, khoá không đi qua màn hình lần nào — công cụ tự khai *"the key
+  goes to stdout and nowhere else"*, nên chuyển hướng là đủ, không cần che.
+- Địa chỉ cũ **không** được giữ lại trong `VI_FACTORY_THEO_THE_HE`: bảng đó trả lời *"ai trả tiền
+  BÂY GIỜ"*, và một mục đã chết nằm trong đó là **một ví người ta vẫn gửi vào được**.
+- Tệp cũ đổi tên `chain-factory-key-RETIRED-LEAKED-2026-09-02.txt`. **Huỷ hẳn là việc David.**
+
+### 🔴 Và lý do ví KHÔNG BAO GIỜ chạy được — bốn thứ chồng nhau, không thứ nào tự khai
+
+| | lỗi | vì sao im lặng |
+|---|---|---|
+| 1 | `check-keys` nhận diện quỹ bằng dòng `[tên]`; tệp khoá factory **không có dòng đó** ⇒ 0 khối ⇒ `FATAL` ⇒ ví bỏ chạy | `docker run --rm` **xoá cả xác lẫn log** |
+| 2 | `enter.sh` chạy `go run` ⇒ **biên dịch `xp-wallet` mỗi lượt**, build cache không mount ⇒ **~4 phút** mới phục vụ | container `Up`, log xanh, mà `:8090` không ai nghe |
+| 3 | `curl -s` **nuốt lỗi kết nối** | phản hồi rỗng **không phân biệt được** với thành công |
+| 4 | `bash` trong PowerShell rơi vào **WSL**, nơi `/root/.ssh` không có khoá `9chain-a1` | mọi ssh treo chờ mật khẩu — cũng là thứ làm `console-deploy.sh` đứng im |
+
+Lỗi 1 là **D-116 lần thứ ba**: công cụ kiểm hỏng bị đọc thành phán quyết về vật được kiểm. Chốt
+chặn D-116 **đã làm đúng việc của nó** (in *"check-keys DID NOT RUN — do not read this as bad
+key"*) rồi ví vẫn bỏ chạy — tức **nói đúng nhưng vẫn chết**.
+
+**Vá:** `enter.sh` tổng hợp tiêu đề `[wallet]` **trong ống, không ghi ra đĩa** (D-117). Không làm
+yếu gì: check-keys vẫn suy lại X/P/EVM và vẫn đối chiếu `EVM privkey`. Nghiệm thu hai chiều —
+tệp thật `exit 0` và **check-keys thật sự chạy**; bản hỏng có chủ ý (khoá `ewoq` **công khai
+trong repo avalanchego**, ghép với địa chỉ không phải của nó ⇒ **không khoá thật nào chạm đĩa**)
+vẫn **BÁC**, và đúng lý do: *"X-addr tệp khai …, khoá suy ra …"*, `exit 1`.
+
+### 🔴 Lần thứ BA cùng một lớp lỗi trong một ngày
+
+Dòng `quỹ chọn:` in ra **`P-love9199`** — cụt. `grep -o 'P-love9[0-9a-z]*' | head -1` vớ phải
+**tham số tìm kiếm** mà `vanity-keygen` in ra phía trên, không phải dòng `P-addr`. Dòng đó tồn
+tại để người bấm bắt *"chọn nhầm quỹ"* **trước khi ký**, nên một giá trị sai mà trông hợp lý ở đó
+**tệ hơn không có giá trị nào**. Vá bằng cách neo vào **TÊN TRƯỜNG**, không neo vào hình dạng.
+
+⇒ Ba lần trong một ngày, một gốc: **mẫu khớp trúng phần đầu của một thứ khác.** Neo hai đầu, và
+đọc hết tệp trước khi viết mẫu cho nó.
+
+### Runbook viết lại
+
+Phần lệnh việc 3 **chính là bộ vừa hỏng**. Nay: khai rõ **Git Bash, không PowerShell, không WSL**
+(kiểm bằng `$MSYSTEM` và sự tồn tại của tệp khoá, không kiểm bằng hình dáng dấu nhắc) · `-sS` thay
+`-s` · hàm `cho_vi` **chờ ví lên rồi so `xAddr`**, nối bằng `&&` nên lệnh gửi **không chạy được**
+khi nó đỏ — vì phép kiểm nào phụ thuộc vào việc người ta nhớ nhìn thì sớm muộn cũng bị bỏ qua.
+Đối chứng hai chiều bằng ví giả trả địa chỉ sai: lệch ⇒ `exit 1`, khớp ⇒ `exit 0`.
+Địa chỉ **suy từ `factory-wallets.mjs`**, không gõ tay ⇒ lượt đổi khoá tự thấm, không bản chép nào
+để trôi lệch (D-113). Cùng lý do, runbook và HANDOFF **thôi in địa chỉ factory ra**.
+
+**Còn lại là việc David:** đặt `A1_CLI_KEY` mới vào `console.env` trên server + restart console ·
+huỷ tệp khoá đã nghỉ · rồi mới nạp 1.000.

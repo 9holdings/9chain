@@ -101,7 +101,9 @@ node scripts/check-chain-ledger.mjs
 
 ## Việc 3 — nạp ví `chain-factory`: **HAI chặng, không phải một**
 
-Đỏ vì: `P-love91999h0q4ucfnex9q0qxefuu0ke0xtyvl6739999` = **0 LOVE9**.
+Đỏ vì ví factory = **0 LOVE9**. 🔴 **Địa chỉ không viết ra ở đây** — nó đổi theo thế hệ **và**
+theo lượt đổi khoá (đã đổi `2026-09-02`, D-159), nên một bản chép trong runbook là một cái bẫy
+chờ sẵn. Lệnh dưới suy nó ra từ `factory-wallets.mjs`, nguồn duy nhất.
 
 🔴 **Câu "nạp X→P" trong sổ cũ là CHƯA ĐỦ, và đây là số đo `2026-09-01`:**
 
