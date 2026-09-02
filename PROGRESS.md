@@ -138,6 +138,50 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       **đúng** đại lượng (*"tệp mới phải là tiếng Anh ngay từ đầu"*); gỡ tệp ⇒ `exit 0`.
       🔴 Nay đắt hơn nó trông: repo **vừa công khai `02/09`** (D-158) ⇒ §0 thôi là luật phòng xa.
 
+- [x] **P-15 — 🔴 ĐƯỜNG TỰ PHỤC VỤ CỦA NGƯỜI NGOÀI SAI ĐÚNG MỘT LƯỢT FAUCET** (D-161)
+      David giao: *"focus vào việc mọi người có thể tạo Validator bên ngoài chủ động."*
+      Cả lý do hạ `MinValidatorStake` 25.000 → **81** sáng ngày G là để tự phục vụ: `81 = 9 × 9`,
+      faucet cấp `9 LOVE9` ⇒ **chín lượt**. Câu đó là **thứ đầu tiên** người ngoài đọc.
+      🔴 Đo trên bề mặt công khai: **chín lượt cho đúng 81, mà đặt cọc LÀ 81** — phí chở tiền
+      `C→X→P` và phí nộp `AddPermissionlessValidatorTx` **trừ vào chính số dư đó**. Số thật là
+      **mười**, trần faucet là **chín/IP/giờ** ⇒ có một **lượt chờ tới một giờ**. Phép số học sai
+      là `>=` thay vì `>`.
+      🟢 Không phải lỗi cấu hình: faucet **đã** được đặt đúng `9`/`9` (việc tay preflight cảnh báo
+      mặc định `10`/`5` — lời cảnh báo **đã được nghe**). Sai nằm ở **quan hệ giữa ba số đúng**,
+      mà quan hệ thì **không là trường của ai**: một trong binary Go, một trong env container, một
+      trong markdown, không cái nào nhìn thấy hai cái kia.
+      **Điều kiện qua:** cổng thấy ĐỎ **trên bản tài liệu đã nghỉ** và XANH trên bản đã sửa.
+      ✅ **ĐẠT.** Tài liệu nói thật **ở màn hình đầu** (trước đó tự mâu thuẫn: hứa ở dòng 29, đính
+      chính ở dòng **325** — cách 300 dòng thì bằng không đính chính). Cổng mới
+      `check-validator-onboarding.mjs`: **36 đối chứng ngược** · đối chứng **âm và dương trên BYTE
+      THẬT** (`--guide` chĩa vào `git show HEAD:…` ⇒ `EXIT 1` **đúng dòng 29**; bản đã sửa ⇒
+      `EXIT 0`). Preflight **42 → 44 mục**.
+
+- [x] **P-16 — cổng đó sai HAI LẦN trước khi đúng, và cả hai là lớp lỗi của chính dự án** (D-161)
+      🔴 **(a) đỏ giả (D-106b lần thứ tư).** Lượt chạy thật đầu tiên ĐỎ — vì **câu tôi vừa viết để
+      đính chính** trích lại lời hứa cũ. Cổng không phân biệt **lời hứa** với **câu trích lời hứa
+      đã nghỉ**. Vá bằng `stale-ok` **đã có sẵn**, phạm vi ĐOẠN, và cổng **in ra** số dòng được
+      miễn — miễn trừ phải nhìn thấy được.
+      🔴 **(b) XANH GIẢ — chiều nguy hiểm hơn.** Bản cũ viết `so **nine requests** cover`; dấu `**`
+      chen giữa nên mẫu đòi khoảng trắng **đi thẳng qua**. **Cổng dựng ra để bắt đúng câu đó, đọc
+      đúng câu đó, và cho qua.** Bắt được **chỉ vì** chạy vào bản tài liệu đã nghỉ, không vào
+      fixture — fixture đồng ý với tác giả, byte thì không.
+      🔴 **(c) ca self-test XANH VÌ SAI LÝ DO** (Q-5b lặp lại). Nó khẳng định `verdict === "fail"`,
+      và đúng là `fail` — nhưng vì fixture **thiếu lời cảnh báo chờ**, không vì bắt được lời hứa
+      sai. Nó **luôn xanh về lời hứa** suốt thời gian đó.
+      ⇒ **Luật: cổng có HAI nghĩa vụ thì ca đối chứng phải nói nó kiểm nghĩa vụ NÀO.** `reason`
+      (`false-promise`/`no-wait-warning`/`none`) nay là thứ mọi ca khẳng định, không phải kết quả.
+      🟡 **Nợ khai ra:** `stale-ok` nay có **BA bản cài đặt** — hai bản kia nằm trong module gọi
+      `process.exit(main())` ở cấp cao nhất nên **import vào là chạy cổng khác rồi thoát**. Gom vào
+      thư viện chung phải sửa hai cổng đang chạy tốt: đáng làm, **chưa làm**. Đúng hình dạng §6.
+
+- [human] **P-17 — bỏ hẳn lượt chờ một giờ trên đường validator (tuỳ David, không phải lỗi)**
+      Đường tự phục vụ nay **đúng như tài liệu mô tả**, nhưng vẫn có một lượt chờ tới một giờ.
+      Muốn bỏ: `FAUCET_MAX_PER_IP_HOUR` **9 → 10** trên server. ⚠️ `docker rm -f` rồi `docker run`
+      — `docker restart` **KHÔNG** nạp lại env (bẫy 2). Cách khác là `FAUCET_AMOUNT` 9 → 10, nhưng
+      nó **phá đẳng thức `81 = 9 × 9`** mà cả trang đang dựa vào. Cổng chấp nhận cả hai — nó đo
+      **quan hệ**, không ép một con số.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện

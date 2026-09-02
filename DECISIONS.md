@@ -7127,3 +7127,103 @@ thì thấy `watch-network.mjs` **đã canh B-12 từ `28/08`**, có ngưỡng, 
 trong `--self-test`. Dựng thêm một cổng thứ hai cho cùng một đại lượng là **nhân đôi chỗ phải giữ
 đồng bộ** — đúng lớp lỗi §6 (`A1Gen` chép tay ở hai ngôn ngữ). Thứ B-12 thiếu chưa bao giờ là một
 cổng; nó thiếu **một con số thật** và **một con người**.
+
+---
+
+## D-161 — **Lời hứa "tự phục vụ" của người ngoài sai đúng MỘT lượt faucet, và ba bề mặt dựng nên nó đều đúng** (`2026-09-02`)
+
+**David giao:** *"focus vào việc mọi người có thể tạo Validator bên ngoài chủ động."* Đường đó vừa
+được mở nửa đầu hôm nay — `genesis.json` tải được từ ngoài (D-158). Phiên này đo **nửa sau**: người
+lạ có tự nạp nổi khoản đặt cọc không, và tài liệu có nói thật với họ không.
+
+### Phát hiện
+
+Cả lý do hạ `MinValidatorStake` từ 25.000 xuống **81** vào sáng ngày G là để tự phục vụ:
+`81 = 9 × 9`, faucet cấp `9 LOVE9`, vậy **chín lượt** là thành validator. Câu đó là **thứ đầu tiên**
+người ngoài đọc trong `docs/RUN-A-VALIDATOR.md`.
+
+Đo trên bề mặt công khai `02/09`:
+
+```
+chain   platform.getMinStake   minValidatorStake 81000000000 nLOVE9 = 81 LOVE9
+faucet  /api/info              amount 9 LOVE9 · perIp.max 9/gio · cooldown 60s
+chain   info.getTxFee          txFee 1000000 nLOVE9 = 0,001 LOVE9  (> 0, va do la tat ca)
+```
+
+🔴 **Chín lượt cho đúng 81, mà đặt cọc là 81 — nên chín lượt KHÔNG đủ.** Các giao dịch chở tiền
+`C→X→P` rồi nộp `AddPermissionlessValidatorTx` **trả phí từ chính số dư đó**. Số thật là **mười**,
+mà trần faucet là **chín lượt/IP/giờ** ⇒ đường tự phục vụ có một **lượt chờ tới một giờ**, đúng lúc
+người mới đang quyết định chain này có thật hay không.
+
+**Sai lầm nằm ở phép số học `>=` thay vì `>`.** Chỗ nào cũng đúng, chỉ quan hệ giữa chúng là sai.
+
+### Vì sao không gì bắt được
+
+Ba bề mặt, mỗi cái **đúng riêng lẻ**, và **không cái nào nhìn thấy hai cái kia**:
+
+| khai ở | giá trị | ai giữ |
+|---|---|---|
+| binary Go (patch 0027) | `MinValidatorStake` 81 | bộ patch |
+| môi trường container | `FAUCET_AMOUNT=9` · `FAUCET_MAX_PER_IP_HOUR=9` | `docker run` trên server |
+| markdown | *"nine requests cover the whole bond"* | repo |
+
+🟢 Và đáng nói: **môi trường faucet đã được đặt ĐÚNG**. Việc tay trong preflight cảnh báo mặc định
+`10`/`5` sẽ hỏng lời hứa; ai đó đã ship `9`/`9`. Lời cảnh báo **đã được nghe**. Cái không ai kiểm là
+thứ sinh ra **từ ba con số đúng đó**.
+
+⇒ Cùng họ D-113 (*một hằng số, MỘT nơi khai*) nhưng **xuyên một ranh giới công khai**; và là mặt
+ngược của D-150: ở kia tài liệu trích số của thế hệ đã chết, ở đây **mọi số đều sống** mà **lời hứa
+dựng từ chúng thì chết**.
+
+### Đã làm
+
+1. `docs/RUN-A-VALIDATOR.md` — nói sự thật **ở màn hình đầu**, không phải ở cuối Bước 6. Tài liệu
+   trước đó **tự mâu thuẫn**: hứa *"nine requests cover"* ở dòng 29 rồi đính chính *"budget at least
+   one request more than nine"* ở dòng 325. Một đính chính cách 300 dòng thì bằng không đính chính.
+2. Cổng `scripts/check-validator-onboarding.mjs` — đo **quan hệ**, không đo từng số. Nối vào
+   preflight **hai mục** (đối chứng + đường thật).
+
+### 🔴 Cổng này sai HAI LẦN trước khi đúng, và cả hai đều là lớp lỗi của chính dự án
+
+**(a) Đỏ giả — D-106b lần thứ tư.** Lượt chạy thật đầu tiên: ĐỎ. Nguyên nhân là **câu tôi vừa viết
+để đính chính**: *"an earlier version of this page said «nine requests cover the whole bond»"*. Cổng
+không phân biệt **lời hứa** với **câu trích lại lời hứa đã nghỉ**. Một cái đỏ khiến người đọc **gỡ
+bản vá đúng** thì tệ hơn không có cổng. Vá bằng quy ước `stale-ok` **đã có sẵn**, phạm vi ĐOẠN (bản
+của `check-patch-count`), và cổng **in ra** số dòng được miễn — miễn trừ phải nhìn thấy được.
+
+**(b) 🔴 XANH GIẢ — chiều nguy hiểm hơn, và fixture không bao giờ thấy được.** Bản cũ viết lỗi đó là
+`so **nine requests** cover` — **dấu `**` chen vào giữa**. Mẫu đòi khoảng trắng giữa `requests` và
+`cover` đi thẳng qua `** `. **Cổng dựng ra để bắt đúng câu đó, đọc đúng câu đó, và cho qua.**
+
+Bắt được **chỉ vì** chạy cổng vào **bản tài liệu đã nghỉ** (`git show HEAD:…`), không phải vào
+fixture. ⇒ Thêm cờ `--guide <đường dẫn>` để phép đối chứng đó **lặp lại được**:
+
+```
+NEGATIVE  --guide <ban truoc khi sua>  ->  EXIT 1, chi dung dong 29
+POSITIVE  ban da sua                   ->  EXIT 0
+```
+
+**(c) Và ca self-test tương ứng XANH VÌ SAI LÝ DO** (đúng Q-5b). Nó khẳng định `verdict === "fail"`
+— và đúng là `fail`, nhưng **vì fixture thiếu lời cảnh báo chờ**, chứ không vì bắt được lời hứa sai.
+Nó **luôn xanh về lời hứa** suốt thời gian đó. ⇒ `assessPromise` nay trả về **`reason`**
+(`false-promise` / `no-wait-warning` / `none`), và **mọi ca đều khẳng định LÝ DO, không khẳng định
+kết quả**.
+
+⇒ **Luật rút ra: một cổng có HAI nghĩa vụ thì một ca đối chứng phải nói nó đang kiểm nghĩa vụ nào.**
+Không thế thì nghĩa vụ dễ vỡ hơn nấp sau nghĩa vụ dễ thoả hơn, và bộ đối chứng **đếm đủ số ca** mà
+vẫn không kiểm gì.
+
+### Nợ khai ra, không giấu
+
+`stale-ok` nay có **BA bản cài đặt** (`check-doc-drift` · `check-patch-count` · cổng này). Lẽ ra là
+một thư viện dùng chung; hai bản kia nằm trong module gọi `process.exit(main())` ở cấp cao nhất nên
+**import vào là chạy cổng khác rồi thoát**. Gom lại phải sửa hai cổng đang chạy tốt — đáng làm,
+**chưa làm ở đây**. Đúng hình dạng §6.
+
+### Còn lại là quyết định của David, không phải lỗi
+
+Đường tự phục vụ nay **đúng như tài liệu mô tả**, nhưng vẫn có một lượt chờ tới một giờ. Muốn bỏ hẳn
+thì đổi **`FAUCET_MAX_PER_IP_HOUR` 9 → 10** trên server (⚠️ `docker rm -f` rồi `docker run` —
+`docker restart` KHÔNG nạp lại env, bẫy 2). Đổi `FAUCET_AMOUNT` lên 10 cũng xong nhưng **phá đẳng
+thức `81 = 9 × 9`** mà cả trang đang dựa vào. Cổng chấp nhận cả hai — nó đo **quan hệ**, không ép
+một con số.
