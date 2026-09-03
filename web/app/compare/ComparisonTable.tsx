@@ -21,26 +21,44 @@ import { formatNumber } from '@/lib/numbers';
  *    được bình thường.
  */
 
-type TieuChi = { k: string; kind: 'kienTruc' | 'song'; a: number; c: number; w: number; note: string };
+/**
+ * Một tiêu chí: ĐIỂM ở lại trong mã, CHỮ nằm trong từ điển.
+ *
+ * 🔴 Ranh giới đó có chủ ý và đã trả giá. Trước `2026-09-03` cả tên tiêu chí lẫn ghi
+ * chú đều là chuỗi tiếng Việt cắm cứng trong mảng dưới đây — tức toàn bộ THÂN bảng
+ * so sánh, phần dài nhất và mang nhiều lập luận nhất của màn này, hiện ra bằng tiếng
+ * Việt cho người đọc ở cả 30 ngôn ngữ. Bộ soát chuỗi cũ mù với nó vì nó chỉ đọc văn
+ * bản JSX và thuộc tính, còn đây là chữ nằm trong DỮ LIỆU.
+ *
+ * `id` là khoá tra trong `t.compare` (`crit<Id>` và `note<Id>`) — nối bằng ghép chuỗi
+ * chứ không tra động ở chỗ gọi, để `check-dict-values` và `tsc` còn thấy được liên hệ.
+ */
+type Criterion = { id: string; kind: 'kienTruc' | 'song'; a: number; c: number; w: number };
 
 // Giữ nguyên bộ tiêu chí + điểm của bản dashboard cũ (`local-net/dashboard/index.html`)
 // và của `docs/A1-vs-C1-SCORECARD.md`. KHÔNG chấm lại ở đây: đổi điểm là một quyết
 // định về sản phẩm, phải đi qua tài liệu, không lẫn vào một lượt dựng giao diện.
-const GOC: TieuChi[] = [
-  { k: 'Phi tập trung (validator tối đa)', kind: 'kienTruc', a: 5, c: 2, w: 4, note: 'Trần GIAO THỨC: Snowman ~nghìn node vs CometBFT ~150. A1 HÔM NAY: 9 node, một máy, một nhà cung cấp' },
-  { k: 'Finality', kind: 'kienTruc', a: 5, c: 3, w: 3, note: '~1–2s vs ~5–6s' },
-  { k: 'Độ chín EVM', kind: 'kienTruc', a: 5, c: 2, w: 4, note: 'coreth production vs Cosmos EVM pre-v1' },
-  { k: 'Tương thích ví/DeFi retail', kind: 'kienTruc', a: 5, c: 3, w: 4, note: 'MetaMask/EVM đầy đủ' },
-  { k: 'UX đẻ chain', kind: 'song', a: 4, c: 4, w: 3, note: 'cả hai có console; A1 đo được ~170s/lượt' },
-  { k: 'Interop rộng', kind: 'song', a: 3, c: 5, w: 4, note: 'Warp/ICM nội hệ (A1 đã chuyển được tài sản, M6.2) vs IBC rộng' },
-  { k: 'Chi phí vận hành / chain', kind: 'kienTruc', a: 4, c: 3, w: 2, note: 'node + plugin vs K8s operator' },
-  { k: 'Bootstrap network-effect', kind: 'kienTruc', a: 2, c: 4, w: 3, note: 'đảo riêng vs IBC cắm sẵn kinh tế Cosmos' },
-  { k: 'Bảo mật kinh tế public', kind: 'kienTruc', a: 4, c: 3, w: 3, note: 'PoS token-secured sẵn' },
-  { k: 'Chi phí chuyển đổi (đội)', kind: 'kienTruc', a: 2, c: 5, w: 2, note: 'A1 mới vs C1 đã chạy nhiều tháng' },
+const GOC: Criterion[] = [
+  { id: 'Decentralisation', kind: 'kienTruc', a: 5, c: 2, w: 4 },
+  { id: 'Finality', kind: 'kienTruc', a: 5, c: 3, w: 3 },
+  { id: 'EvmMaturity', kind: 'kienTruc', a: 5, c: 2, w: 4 },
+  { id: 'WalletCompat', kind: 'kienTruc', a: 5, c: 3, w: 4 },
+  { id: 'LaunchUx', kind: 'song', a: 4, c: 4, w: 3 },
+  { id: 'Interop', kind: 'song', a: 3, c: 5, w: 4 },
+  { id: 'OpCost', kind: 'kienTruc', a: 4, c: 3, w: 2 },
+  { id: 'Bootstrap', kind: 'kienTruc', a: 2, c: 4, w: 3 },
+  { id: 'EconSecurity', kind: 'kienTruc', a: 4, c: 3, w: 3 },
+  { id: 'SwitchCost', kind: 'kienTruc', a: 2, c: 5, w: 2 },
 ];
 
 export function ComparisonTable() {
   const t = useT();
+  // Tra theo `id`. Khoá GHÉP nên `tsc` không kiểm được, và `i18n-shape` cũng mù —
+  // nó so 30 từ điển VỚI NHAU, nên "cả 30 cùng thiếu" là hợp lệ với nó. Thứ canh
+  // đúng chuyện này là `test/compare-criteria.test.ts`, nối mảng dưới đây với từ
+  // điển theo CẢ HAI CHIỀU.
+  const ten = (c: Criterion) => (t.compare as Record<string, string>)[`crit${c.id}`];
+  const ghiChu = (c: Criterion) => (t.compare as Record<string, string>)[`note${c.id}`];
   const { code } = useLanguage();
   const [ts, datTs] = useState<number[]>(GOC.map((c) => c.w));
   const { state } = useNetworkStats();
@@ -115,11 +133,11 @@ export function ComparisonTable() {
             </thead>
             <tbody>
               {GOC.map((c, i) => (
-                <tr key={c.k} className="border-b border-line-soft last:border-0">
+                <tr key={c.id} className="border-b border-line-soft last:border-0">
                   <td className="px-3 py-3 font-mono text-xs text-muted">{i + 1}</td>
                   <th scope="row" className="px-3 py-3 text-start font-semibold text-ink">
-                    {c.k}
-                    <span className="mt-0.5 block text-xs font-normal text-body-2">{c.note}</span>
+                    {ten(c)}
+                    <span className="mt-0.5 block text-xs font-normal text-body-2">{ghiChu(c)}</span>
                   </th>
                   <td className="px-3 py-3">
                     <Badge tone={c.kind === 'song' ? 'good' : 'neutral'}>
@@ -132,7 +150,7 @@ export function ComparisonTable() {
                     <label className="flex items-center gap-2">
                       {/* Nhãn ẩn: một thanh trượt không nhãn thì trình đọc màn hình
                           chỉ đọc "slider" — trong bảng 10 dòng là vô nghĩa. */}
-                      <span className="sr-only">{`${t.compare.colWeight}: ${c.k}`}</span>
+                      <span className="sr-only">{`${t.compare.colWeight}: ${ten(c)}`}</span>
                       <input
                         type="range" min={0} max={5} step={1} value={ts[i]}
                         onChange={(e) => datTs((v) => v.map((x, j) => (j === i ? +e.target.value : x)))}
