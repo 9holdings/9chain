@@ -8,6 +8,53 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 
 ---
 
+## 🔵 MỐC `L1-CUSTOM` — TUỲ CHỈNH CHAIN SÂU HƠN (David chốt `2026-09-03` chiều)
+
+David, sau khi thấy MetaMask in *"50.00M LOVE9"* trên chain vừa đẻ: *"sao không cho tuỳ chọn các thông
+số của Chain sâu hơn"* → *"ghi thành mốc trong PROGRESS đi, làm ký hiệu token trước."*
+Luật của mốc: genesis **bất biến** và mỗi chain chiếm **một trong 15 chỗ vĩnh viễn**, nên mọi tham số
+mở ra phải có **rào ở cả API lẫn giao diện**, tên khoá **lấy từ source subnet-evm** (nó bỏ qua khoá lạ
+trong im lặng), và tổ hợp làm chain chết lúc sinh (`minBaseFee 0`, `txAllowList` không có chủ) **bị
+cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang gây nhầm trước, khác biệt thật sau.
+
+- [ ] **P-54 — KÝ HIỆU TOKEN NATIVE của L1 (phía console)** — *làm trước*
+      Hôm nay trang web đưa `symbol: 'LOVE9'` cứng vào MetaMask cho MỌI L1 ⇒ *"50.00M LOVE9"* trông
+      như LOVE9 thật, mà nó là token riêng của chain con, không cầu, không đổi được.
+      Việc: API tạo chain nhận `symbol` (tuỳ chọn) · kiểm chặt (2–8 ký tự `A-Z0-9`, viết hoa,
+      **cấm `LOVE9`/`AVAX`/`ETH` và các ký hiệu đã dùng**, chỉ ra đích danh ký tự lạ như tên chain)
+      · ghi vào sổ chain `console-chains.json` (khoá THÊM, an toàn với `/chains/`) · trả về trong
+      kết quả tạo · chain cũ thiếu khoá ⇒ trang tự suy `symbol` từ tên, không bao giờ `undefined`.
+      **Điều kiện qua:** đối chứng ngược thấy ĐỎ đúng lý do cho từng luật (rỗng, thường, dài, `LOVE9`,
+      trùng, ký tự vô hình) · `check-chain-ledger` vẫn xanh với khoá mới · deploy đúng thứ tự
+      `check-deploy-imports` → `console-deploy.sh` · đo trên `/api/chains` công khai.
+- [ ] **P-55 — ký hiệu token: phía `web-home`** (luật cứng #4 — A1 không đụng `web/`)
+      Ô nhập ký hiệu trên trang launch (mặc định gợi ý từ tên chain) · `addChain` dùng
+      `symbol` của bản ghi thay cho `'LOVE9'` cứng (`CreateChainScreen.tsx:401`, `wallet.ts:433`) ·
+      trang "Done" nói rõ *"50M này là xăng của chain riêng, không phải LOVE9 mạng chính"* ·
+      `/chains/` hiện ký hiệu. Chain cũ không có khoá ⇒ suy từ tên, **không** rơi về `LOVE9`.
+- [ ] **P-56 — số token cấp ban đầu + nhiều địa chỉ nhận genesis**
+      Hôm nay cứng `0x295BE96E64066972000000` (50M) cho ví admin. Mở: số cấp (có trần), danh sách
+      địa chỉ + số, EIP-55, không trùng. Tổng phải hiện trên trang "Done".
+- [ ] **P-57 — bộ phí sâu, có rào**: `gasLimit` 12M–60M với `targetGas` **tự đồng bộ** 5× ·
+      `minBaseFee ≥ 1` (cấm 0 bằng mã) · `targetBlockRate` 1–10 s · `baseFeeChangeDenominator`.
+      Chạy `Genesis.Verify()` của subnet-evm ở bước KHÔ trước khi tiêu tiền. Ưu tiên thấp: chủ chain
+      đã sửa được phí **sau** genesis qua Fee Manager.
+- [ ] **P-58 — precompile chọn từng cái thay vì một preset**: mint · deployer allowlist · tx
+      allowlist · reward manager (đốt / trả về địa chỉ) · `allowFeeRecipients`. Luật cứng: ví chủ
+      **luôn** là admin của mọi precompile bật; tổ hợp cấm ⇒ lỗi trước khi đụng node.
+- [ ] **P-59 — Warp + thư viện hợp đồng cài sẵn trong genesis** (`alloc` mang mã + storage):
+      Teleporter/registry, ERC-20, multisig — chọn từ bộ đã kiểm, không tự deploy. Đây là thứ tạo
+      khác biệt thật: các L1 nói chuyện được với nhau và với C-Chain.
+- [ ] **P-60 — trang "Quản trị chain của tôi"**: gọi precompile qua MetaMask (đổi phí, mint, thêm
+      bớt quyền, đổi nơi nhận phí, chuyển admin sang ví khác/multisig). Không đụng console — chủ
+      chain đã có quyền, chỉ thiếu giao diện. Chủ yếu là việc `web-home`.
+- [ ] **P-61 — bật precompile SAU genesis qua `upgrade.json`** (rollout 9 node, việc console):
+      để chain "lớn lên" thay vì phải chọn hết lúc launch.
+- [ ] **P-62 — bản xem trước genesis + câu "chain này làm được / không làm được gì" để ký** —
+      chặn cuối trước khi tiêu một chỗ vĩnh viễn.
+
+---
+
 ## 🟢 PHIÊN `2026-09-02` — PHÁT HÀNH GENESIS + BẢN GHI SUÝT BỊ XOÁ (D-158)
 
 - [x] **P-1 — `genesis.json` vào đường được git theo dõi** (D-158)
