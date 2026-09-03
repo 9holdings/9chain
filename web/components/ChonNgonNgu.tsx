@@ -9,7 +9,8 @@ import { NGON_NGU } from '@/lib/i18n/ngonNgu';
  *
  * ═══ HAI ĐIỀU BỘ CHỌN NÀY NÓI RA THAY VÌ GIẤU ═══
  *
- * 1. 🔴 **MỨC ĐỘ SOÁT.** 29/30 bản là máy dịch. Site này nói với người lạ rằng tài
+ * 1. 🔴 **MỨC ĐỘ SOÁT.** 28/30 bản là máy dịch (30 trừ bản gốc `en` và bản `vi`
+ *    đã có người soát). Site này nói với người lạ rằng tài
  *    sản của họ sẽ bị xoá vĩnh viễn — một câu dịch sai ở `/re-genesis/` không phải
  *    lỗi chính tả, mà là một người không hiểu mình sắp mất tiền. Bày 30 mục trông
  *    ngang nhau là để người đọc tự suy ra một điều không đúng; đó đúng lớp lỗi dự án
@@ -101,7 +102,7 @@ export function ChonNgonNgu() {
                     <span className="truncate text-xs text-muted">{n.tenAnh}</span>
                   </span>
                   {/* 🔴 NHÃN "máy dịch" TỪNG ĐỨNG Ở ĐÂY, GỠ `2026-09-03` — David chốt.
-                      29/30 dòng đều mang nhãn, nên nó không còn phân biệt được gì
+                      28/30 dòng đều mang nhãn, nên nó không còn phân biệt được gì
                       bằng mắt: thứ hiếm là dòng KHÔNG có nhãn, và mắt người đọc một
                       danh sách 30 mục thì bỏ qua thứ lặp lại ở mọi dòng. Nó chỉ làm
                       danh sách rối.

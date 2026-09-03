@@ -97,7 +97,7 @@ export function ChainTable() {
         <table className="w-full min-w-[34rem] border-collapse text-sm">
           <caption className="sr-only">{t.trangChu.cBangChuThich}</caption>
           <thead>
-            <tr className="border-b border-line bg-surface-alt text-left">
+            <tr className="border-b border-line bg-surface-alt text-start">
               <th scope="col" className="px-4 py-3 font-semibold text-ink">
                 {t.trangChu.cCot}
               </th>
@@ -112,7 +112,7 @@ export function ChainTable() {
           <tbody>
             {tt.ds.map((c) => (
               <tr key={c.chainId} className="border-b border-line-soft last:border-0">
-                <th scope="row" className="px-4 py-3 text-left font-semibold text-ink">
+                <th scope="row" className="px-4 py-3 text-start font-semibold text-ink">
                   {c.name}
                   <span className="ms-2 font-mono text-xs font-normal text-muted">#{c.chainId}</span>
                 </th>

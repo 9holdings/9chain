@@ -76,8 +76,16 @@ describe('sổ đăng ký ngôn ngữ', () => {
     // 🔴 Trường này tồn tại để bộ chọn KHÔNG bày 30 ngôn ngữ trông ngang nhau trong
     // khi 29 bản là máy dịch. Site này nói với người lạ rằng tài sản của họ sẽ bị
     // xoá — giấu mức độ soát ở đó là đúng lớp lỗi dự án vừa gỡ khỏi trang chủ.
-    for (const n of NGON_NGU) expect(['nguoi', 'may']).toContain(n.soat);
+    for (const n of NGON_NGU) expect(['goc', 'nguoi', 'may']).toContain(n.soat);
     expect(NGON_NGU.find((n) => n.ma === 'vi')?.soat).toBe('nguoi');
+
+    // 🔴 ĐÚNG MỘT bản gốc, và nó phải là ngôn ngữ mặc định.
+    // Bản trước của bài này chỉ đòi `soat` nằm trong tập hợp lệ, nên nó xanh trong
+    // suốt quãng `en` bị khai là `'may'` — tức trình đọc màn hình đọc "English —
+    // máy dịch" về chính bản gốc, và không cổng nào thấy. Một tập hợp lệ không
+    // thay được một phép so với sự thật.
+    const goc = NGON_NGU.filter((n) => n.soat === 'goc');
+    expect(goc.map((n) => n.ma)).toEqual([MAC_DINH]);
   });
 });
 

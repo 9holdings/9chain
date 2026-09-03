@@ -15,11 +15,15 @@
  *
  * ═══ 🔴 `soat` — VÌ SAO MỘT TRƯỜNG NHƯ THẾ NÀY PHẢI TỒN TẠI ═══
  * `vi.ts` đặt luật `[?]`: chuỗi nào do agent tự nghĩ ra phải mang dấu cho tới khi
- * David duyệt GIỌNG. 29 bản dịch dưới đây là 29 tập chữ **không ai trong đội đọc
+ * David duyệt GIỌNG. 28 bản dịch máy dưới đây là 28 tập chữ **không ai trong đội đọc
  * được để soát** — trong đó có `/re-genesis/`, trang báo với người lạ rằng tài sản
  * của họ sắp bị xoá.
- * ⇒ Không giấu chuyện đó sau 30 lá cờ trông ngang nhau. Ngôn ngữ `soat: 'may'` sẽ
- *   hiện một dòng khai ở chân trang (xem `BanDich.tsx`).
+ * ⇒ Không giấu chuyện đó sau 30 lá cờ trông ngang nhau. Ngôn ngữ `soat: 'may'` được
+ *   khai ra trong `aria-label` của từng mục, cộng một câu giải thích ở chân bộ chọn
+ *   (`components/ChonNgonNgu.tsx`).
+ *   ⚠️ Chú thích cũ trỏ vào `BanDich.tsx` — **tệp đó không tồn tại**, và chưa bao giờ
+ *   tồn tại trong cây này. Một con trỏ chết trong tài liệu đắt đúng bằng lúc người
+ *   sau đi tìm nó để sửa lời khai và không tìm thấy gì.
  * ⚠️ ĐỪNG gỡ dòng khai đó để "trông chuyên nghiệp hơn". Nó chính là thứ phân biệt
  *   bộ 30 ngôn ngữ này với bộ 10 ngôn ngữ mà dự án anh em C1 đã phải GỠ BỎ ngày
  *   26/08 vì *"đa ngữ giả — bấm vào là tiếng Anh hết"*.
@@ -27,8 +31,22 @@
  *   soát xong. Đổi trường này là một lời khai, không phải một tinh chỉnh.
  */
 
-/** `'nguoi'` = có người soát · `'may'` = máy dịch, chưa ai đọc lại. */
-export type MucSoat = 'nguoi' | 'may';
+/**
+ * `'goc'` = BẢN GỐC, không phải bản dịch · `'nguoi'` = có người soát ·
+ * `'may'` = máy dịch, chưa ai đọc lại.
+ *
+ * 🔴 `'goc'` THÊM 2026-09-03 VÌ TIẾNG ANH ĐANG BỊ KHAI SAI.
+ * Trước đó chỉ có hai giá trị, nên `en` — thứ tiếng mà 29 bản kia DỊCH RA TỪ ĐÓ —
+ * buộc phải nhận `'may'`. Hệ quả đo được trên bản đang chạy: `aria-label` của mục
+ * đầu bộ chọn đọc lên là **"English — máy dịch"**, tức trình đọc màn hình nói ngược
+ * lại đúng câu giải thích nằm ngay bên dưới nó ("bản tiếng Anh là nguồn sự thật").
+ *
+ * Vì sao KHÔNG nâng `en` lên `'nguoi'` cho gọn: `'nguoi'` là lời khai "có người đọc
+ * được thứ tiếng đó soát xong" — một phép đo về QUY TRÌNH. Bản gốc thì không nằm
+ * trong quy trình ấy: nó không được dịch, nên không có gì để soát lại. Gộp hai thứ
+ * vào một nhãn là làm mất chính sự phân biệt mà trường này sinh ra để giữ.
+ */
+export type MucSoat = 'goc' | 'nguoi' | 'may';
 
 export type NgonNgu = {
   /** Mã BCP-47, dùng thẳng cho thuộc tính `lang` của <html>. */
@@ -51,7 +69,7 @@ export type NgonNgu = {
  * màn hình chọn giọng theo đó. Gõ sai một mã là cả trang bị đọc bằng ngữ âm khác.
  */
 export const NGON_NGU: readonly NgonNgu[] = [
-  { ma: 'en', ten: 'English', tenAnh: 'English', chieu: 'ltr', soat: 'may' },
+  { ma: 'en', ten: 'English', tenAnh: 'English', chieu: 'ltr', soat: 'goc' },
   { ma: 'zh', ten: '中文（简体）', tenAnh: 'Chinese (Simplified)', chieu: 'ltr', soat: 'may' },
   { ma: 'hi', ten: 'हिन्दी', tenAnh: 'Hindi', chieu: 'ltr', soat: 'may' },
   { ma: 'es', ten: 'Español', tenAnh: 'Spanish', chieu: 'ltr', soat: 'may' },
@@ -60,8 +78,12 @@ export const NGON_NGU: readonly NgonNgu[] = [
   { ma: 'bn', ten: 'বাংলা', tenAnh: 'Bengali', chieu: 'ltr', soat: 'may' },
   { ma: 'pt', ten: 'Português', tenAnh: 'Portuguese', chieu: 'ltr', soat: 'may' },
   // ── VỊ TRÍ THỨ 9 — David chốt. Xem quyết định ③ ở đầu file. ──────────────────
-  // Đây cũng là bản dịch DUY NHẤT có người soát: nó là bản GỐC mà mọi bản khác
-  // dịch ra từ đó, và David đã duyệt toàn bộ 2026-08-27.
+  // Bản dịch DUY NHẤT có người soát: David đã duyệt toàn bộ 2026-08-27.
+  // ⚠️ Chú thích cũ ở đây gọi `vi` là "bản GỐC mà mọi bản khác dịch ra từ đó". SAI,
+  // và sai theo hướng dẫn người sau đi nhầm: `en.ts` mới là nguồn của khoá, và nó
+  // ghi rõ *"Mọi bản dịch khác dịch RA TỪ ĐÂY, không phải từ `vi.ts`"* — dịch qua
+  // hai tầng là nhân đôi chỗ để nghĩa trôi đi. `vi` là bản dịch đầu tiên và là bản
+  // được soát, không phải bản gốc.
   { ma: 'vi', ten: 'Tiếng Việt', tenAnh: 'Vietnamese', chieu: 'ltr', soat: 'nguoi' },
   { ma: 'ru', ten: 'Русский', tenAnh: 'Russian', chieu: 'ltr', soat: 'may' },
   { ma: 'ur', ten: 'اردو', tenAnh: 'Urdu', chieu: 'rtl', soat: 'may' },

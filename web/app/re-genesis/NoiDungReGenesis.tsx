@@ -57,7 +57,7 @@ export function NoiDungReGenesis() {
 
       <Muc tieuDe={t.reGenesis.matTieuDe}>
         <p>{t.reGenesis.matMoTa}</p>
-        <ul className="flex list-disc flex-col gap-2 pl-5">
+        <ul className="flex list-disc flex-col gap-2 ps-5">
           <li>{t.reGenesis.mat1}</li>
           <li>{t.reGenesis.mat2}</li>
           <li>{t.reGenesis.mat3}</li>
@@ -71,11 +71,11 @@ export function NoiDungReGenesis() {
 
       <Muc tieuDe={t.reGenesis.lamTieuDe}>
         <p className="font-semibold text-ink">{t.reGenesis.lamTruoc}</p>
-        <ul className="flex list-disc flex-col gap-2 pl-5">
+        <ul className="flex list-disc flex-col gap-2 ps-5">
           <li>{t.reGenesis.lam1}</li>
         </ul>
         <p className="mt-2 font-semibold text-ink">{t.reGenesis.lamSau}</p>
-        <ul className="flex list-disc flex-col gap-2 pl-5">
+        <ul className="flex list-disc flex-col gap-2 ps-5">
           <li>{t.reGenesis.lam2}</li>
           <li>{t.reGenesis.lam3}</li>
           <li>{t.reGenesis.lam4}</li>
@@ -105,7 +105,7 @@ export function NoiDungReGenesis() {
           trừu tượng trước khi biết nó dẫn tới thao tác nào. */}
       <Muc tieuDe={t.reGenesis.imLangTieuDe}>
         <p>{dien(t.reGenesis.imLangMoTa, { chainId: CHAIN.chainId })}</p>
-        <ul className="flex list-disc flex-col gap-2 pl-5">
+        <ul className="flex list-disc flex-col gap-2 ps-5">
           <li>{t.reGenesis.imLang1}</li>
           <li>{t.reGenesis.imLang2}</li>
         </ul>

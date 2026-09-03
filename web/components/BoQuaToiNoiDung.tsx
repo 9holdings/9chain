@@ -17,7 +17,7 @@ export function BoQuaToiNoiDung() {
   return (
     <a
       href="#noi-dung"
-      className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-btn focus:bg-gold focus:px-4 focus:py-2 focus:font-semibold focus:text-navy"
+      className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-btn focus:bg-gold focus:px-4 focus:py-2 focus:font-semibold focus:text-navy"
     >
       {t.chung.boQuaToiNoiDung}
     </a>

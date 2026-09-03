@@ -102,7 +102,7 @@ export function ComparisonTable() {
           <table className="w-full min-w-[46rem] border-collapse text-sm">
             <caption className="sr-only">{t.bang.tieuDe}</caption>
             <thead>
-              <tr className="border-b border-line bg-surface-alt text-left">
+              <tr className="border-b border-line bg-surface-alt text-start">
                 <th scope="col" className="px-3 py-3 font-semibold text-ink">{t.bang.cotSo}</th>
                 <th scope="col" className="px-3 py-3 font-semibold text-ink">{t.bang.cotTieuChi}</th>
                 <th scope="col" className="px-3 py-3 font-semibold text-ink">{t.bang.cotLoai}</th>
@@ -115,7 +115,7 @@ export function ComparisonTable() {
               {GOC.map((c, i) => (
                 <tr key={c.k} className="border-b border-line-soft last:border-0">
                   <td className="px-3 py-3 font-mono text-xs text-muted">{i + 1}</td>
-                  <th scope="row" className="px-3 py-3 text-left font-semibold text-ink">
+                  <th scope="row" className="px-3 py-3 text-start font-semibold text-ink">
                     {c.k}
                     <span className="mt-0.5 block text-xs font-normal text-body-2">{c.note}</span>
                   </th>

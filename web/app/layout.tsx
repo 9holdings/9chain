@@ -58,7 +58,17 @@ export const metadata: Metadata = {
   manifest: '/brand/manifest.webmanifest',
   openGraph: {
     type: 'website',
-    locale: 'vi_VN',
+    // 🔴 `en_US`, KHÔNG phải `vi_VN` (sửa 2026-09-03).
+    // `og:locale` khai ngôn ngữ CỦA CHÍNH KHỐI METADATA NÀY, và mọi chuỗi quanh nó
+    // đều lấy từ `EN.*` — nên `vi_VN` là trang tự khai sai về mình. Sót lại từ thời
+    // site chỉ có tiếng Việt, và sống qua cả lượt lên 30 ngôn ngữ vì không cổng nào
+    // đo QUAN HỆ giữa `og:locale` và thứ tiếng thật của metadata.
+    //
+    // ⚠️ Đây KHÔNG phải chỗ khai 30 ngôn ngữ. Với `output: 'export'` mỗi trang chỉ có
+    // MỘT bản HTML, sinh lúc build, nên thẻ chia sẻ chỉ có thể mang một thứ tiếng —
+    // và tiếng đó là tiếng Anh. Muốn thẻ chia sẻ đa ngôn ngữ thì phải có URL riêng
+    // cho từng ngôn ngữ; đó là đổi kiến trúc, không phải đổi một dòng.
+    locale: 'en_US',
     url: '/',
     siteName: EN.chung.tenSanPham,
     title: `${EN.chung.tenSanPham} — ${EN.chung.tagTitle}`,

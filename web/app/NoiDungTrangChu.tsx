@@ -32,7 +32,7 @@ export function NoiDungTrangChu() {
               mình ở chỗ người ta thật sự đọc. Lời giải "block đứng yên là bình
               thường" vốn ĐÃ TỒN TẠI trong dự án — nhưng chỉ nằm trong chú thích mã
               (`MyChainsScreen.tsx`), tức đúng chỗ người dùng không bao giờ tới. */}
-          <div className="mt-6 flex max-w-2xl flex-col gap-2 border-l-2 border-line-dark pl-4 text-sm text-on-dark-2">
+          <div className="mt-6 flex max-w-2xl flex-col gap-2 border-s-2 border-line-dark ps-4 text-sm text-on-dark-2">
             <p>{t.trangChu.tuTo}</p>
             <p>{t.trangChu.blockDungYen}</p>
           </div>
