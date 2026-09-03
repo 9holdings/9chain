@@ -1,20 +1,10 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-03** — 🟢 **BA L1 ĐẦU TIÊN SỐNG (Adam · Eva · 9S Union), cửa MỞ với allowlist một
-ví, ví factory đã nạp, bơm chạy tới `09/09`.** Preflight `47 đạt · 1 đỏ` (đỏ = `web-home`). Còn
-**12/15 chỗ vĩnh viễn**. 🔴 3 tệp đã deploy nhưng commit cuối **CHƯA ĐẨY**. Đọc mục **CHỐT PHIÊN
-`2026-09-03`** ngay dưới — gotchas ở đó là thứ đắt nhất của ngày.
-🔴 **Chiều `03/09` (D-176 · D-177): BLOCKSCOUT ĐÃ NGHỈ HẲN** — David chốt sau khi đo: node-1 ăn gấp 10
-node kia vì Blockscout đuổi theo **DB của hai thế hệ chết** (block `0` ba hash, công khai khai
-`107.850 block`), và state g1 tại block cũ **cũng đã tỉa** nên index lại không chữa được. Cờ tắt
-coin-balance fetcher **làm explorer đứng** (v9.0.2) — đã hoàn nguyên rồi mới `down`. Sau: node-1
-`435 → 9,8` gọi/s · `0,658 → 0,232` core. Dữ liệu bind (3,1 G + 2,0 G log) **còn trên đĩa**, David
-xoá sau. 🔴 **Cho `web-home`:** trang 404 công khai và `/blocks` `/tx/*` `/api/*` nay **502** — Caddy
-còn bắt-tất-cả vào cổng `8100` trống (P-52); và `/` khai 9 validator, P-Chain có **10**. ⚠️ Console
-rollout hai lượt `15:16–15:27Z` và `16:03–16:07Z` ⇒ 9 node trẻ lại; mẫu đo tải `19:30Z` tự in tuổi.
-Lệnh đo nay là tệp: `scripts/measure-node-load.sh`.
-🔴 **D-178, hai mẫu đo tải:** mỗi L1 track thêm ≈ **0,05 core/node + 53 MiB**, dù chain im; nay **6 L1** (BBWay · 9Mall · 9Cashback đẻ chiều nay). Trần 15 ≈ **6–7 core cho 9 node trên máy 8 lõi** — đưa vào ACP-77.
-🟢 **D-179 (P-54 XONG, deploy PID 2657315):** console nhận `symbol` cho token native của L1, cấm `LOVE9`, ghi vào sổ khi chủ chain chọn; **người dùng vẫn thấy LOVE9 cho tới khi `web-home` làm P-55** (ô nhập + `addChain` đọc `symbol ?? symbolFromName(name)`). Mốc `L1-CUSTOM` P-54→P-62 ở đầu PROGRESS.
+Cập nhật: **2026-09-03 tối** — 🟢 **BLOCKSCOUT ĐÃ NGHỈ HẲN · 6 L1 · console nhận KÝ HIỆU TOKEN (P-54) ·
+10 validator, cái thứ 10 là người ngoài.** Node-1 từ `435 → 9,8` gọi/s. Còn **9/15 chỗ**. 🔴 **14 commit
+CHƯA ĐẨY**. 🔴 Cho `web-home`: trang 404 công khai đang **502** (P-52) và MetaMask vẫn in **LOVE9** cho
+L1 (P-55). Đọc mục **CHỐT PHIÊN `2026-09-03` CHIỀU→TỐI** ngay dưới; mục **BA L1 SỐNG** (sáng cùng ngày)
+giữ nguyên bên dưới nó.
 Trước đó **2026-09-02** chiều — 🟢🟢 **CHẶN SỐ 1 HẾT CHẶN: `genesis.json` NAY TẢI ĐƯỢC TỪ NGOÀI**
 (D-158). Đã đẩy `official` + `origin`, nghiệm thu **bằng tay** trên đúng đường người lạ đi.
 🔴 Hoá ra không phải *"chưa ai tải lên"*: tệp **không được git theo dõi** — byte cả thế giới cần
@@ -85,6 +75,71 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 > `HANDOFF.md` thắng về **số đo**. Backlog: [`PROGRESS.md`](PROGRESS.md).
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
+
+### 🆕 CHỐT PHIÊN `2026-09-03` CHIỀU→TỐI — BLOCKSCOUT NGHỈ, 6 L1, KÝ HIỆU TOKEN, ĐO TẢI
+
+**TL;DR:** Blockscout **đã `down`** (David chốt) — node-1 từ `435 → 9,8` gọi/s. Sổ chain nay **6 L1**
+(BBWay · 9Mall · 9Cashback đẻ chiều `03/09`), còn **9/15 chỗ**. Console **đã deploy** bản nhận ký hiệu
+token (P-54, PID `2657315`), nhưng người dùng **vẫn thấy "50.00M LOVE9"** cho tới khi `web-home` làm
+P-55. P-Chain có **10 validator** — cái thứ 10 là **người ngoài**, cọc sàn 81, vào `15:45Z`. **14 commit
+chưa đẩy** (`e915823..d6db85f`), ngọn là commit rỗng cho CI. Mốc mới `L1-CUSTOM` P-54→P-62 ở đầu PROGRESS.
+
+```
+server : console PID 2657315 (16:5xZ) · drift 23/0/0 · A1_DE_CHAIN_MO=1 · allowlist 0x1e8c…3292C
+         Blockscout: 0 container; bind data CÒN trên đĩa (db 3,1 G · logs 2,0 G) — David xoá sau (B-17)
+git    : 14 commit chưa đẩy — kiểm §4 (check-history-secrets --all-objects · check-remotes) rồi đẩy
+```
+
+#### Đã xong (mỗi mục có nghiệm thu thật — D-176 → D-179)
+- **D-176** node-1 ăn ×10 vì Blockscout đuổi DB **hai thế hệ chết** (block 0 ba hash, công khai khai
+  107.850 block). Cờ tắt fetcher **làm explorer đứng** → hoàn nguyên trong 28 phút.
+- **D-177** Blockscout nghỉ hẳn: B-17 đủ bốn bước · 9 node/faucet/console/9scan không đổi · A1 200.
+- **D-178** đo tải bằng `scripts/measure-node-load.sh` (cgroup): mỗi L1 track thêm ≈ **0,05 core/node
+  + 53 MiB**, dù chain im; CPU **không đổi theo tuổi**, RAM **lớn theo tuổi**. Trần 15 ≈ 6–7 core
+  trên máy 8 lõi — **đưa vào ACP-77**.
+- **D-179** `lib/l1-symbol.mjs`: ký hiệu 2–8 `A-Z0-9` hoa · cấm `LOVE9/AVAX/ETH/BTC/USDT/USDC` · duy
+  nhất kể cả chain thu hồi · nêu code point ký tự lạ · 30 đối chứng · đo trên sản phẩm với chốt
+  `chainId -1` (không tạo chain).
+
+#### ⚠️ Việc tiếp — ai làm
+- **[human] đẩy 14 commit** — `git push origin main && git push official main`, kiểm §4 trước.
+- **[web-home] P-52** 🔴 trang 404 công khai và `/blocks` `/tx/*` `/api/*` đang **502**: Caddy còn
+  bắt-tất-cả vào `127.0.0.1:8100` trống. Gốc → trang 404 tĩnh · đường explorer → `308 a1.9scan.org` ·
+  bỏ `handle /api/*` `/socket/*` · `check-routes.mjs` có ca "Blockscout trả 404".
+- **[web-home] P-55** ô ký hiệu trên trang launch + `addChain` dùng `symbol ?? symbolFromName(name)`
+  (`CreateChainScreen.tsx:401`, `wallet.ts:433`) + câu "50M là xăng chain riêng" ở trang Done.
+- **[web-home]** `/` khai 9 validator, chain có **10** (`check-live-page` đỏ).
+- **[human]** xoá bind data Blockscout: `explorer-full/blockscout/docker-compose/services/{blockscout-db-data,stats-db-data,logs}`
+  — liệt kê → xoá → đối chứng. `explorer-full/` trong repo giữ làm bản ghi.
+- **[human] ACP-77** với số D-178 trong tay: 108 L1 trên một máy là bất khả thi theo cả hai trục.
+- **[human] 09/09** như mục dưới (bơm tự dừng, `check-clock-skew`, CANON).
+- **[autopilot] P-56** số cấp ban đầu + nhiều địa chỉ nhận genesis (mốc `L1-CUSTOM`, sau P-55).
+
+#### 🔴 GOTCHAS phiên này
+1. **Một giới hạn "ổn định" có thể là cái PHANH.** `435/s` = `28.231 cổng / 60 s TIME-WAIT`. Bật
+   `tcp_tw_reuse` "sửa" `eaddrnotavail` và vòng lặp xấu chạy ×5. Hỏi giới hạn đang kìm cái gì trước.
+2. **Tắt một fetcher có thể tắt thứ đường chính phụ thuộc** (Blockscout v9.0.2 `INDEXER_DISABLE_ADDRESS_
+   COIN_BALANCE_FETCHER` giết `CoinBalance.Realtime` mà import block gọi thẳng). Đo **đầu ra đường chính**
+   (block mới nhất đã index), không chỉ đếm lỗi.
+3. **nginx phân giải upstream MỘT LẦN lúc khởi động** — restart `proxy` khi `stats` đã chết 6 ngày ⇒
+   không lên ⇒ 502 công khai 3 phút. Liệt kê upstream cần sống TRƯỚC khi restart.
+4. **Explorer là bề mặt công bố, và DB của nó không tự xoá khi re-genesis** (D-150 lần ba). Không cổng
+   nào so `total_blocks` explorer ↔ `eth_blockNumber` — nợ.
+5. **Node chỉ giữ state ở bội số 4096** (`eth_getBalance` block `0x1000` có, `0x1001` không). Mọi thứ
+   cần số dư lịch sử trên A1 sẽ lặp lỗi vô hạn — Blockscout, và bất cứ indexer nào sau nó.
+6. **`generation-test.mjs` đỏ giả ở lần chạy lạnh** (console khởi động chậm hơn thời gian chờ); chạy lại
+   là xanh. Đừng kết luận từ lần đầu.
+7. **Console rollout 9 node theo mỗi lượt đẻ/thu hồi** — thấy `compose up --no-deps node-5` lạ thì tra
+   `~/9chain-a1/console.log` trước khi nghĩ có kẻ lạ; và mọi mẫu đo tải phải **đọc tuổi node**.
+8. **`docker stats` đã bị bác, nay lệnh cgroup là TỆP** — dùng `measure-node-load.sh`, đừng gõ lại.
+
+#### Lệnh hữu ích
+```bash
+bash scripts/measure-node-load.sh --seconds 60      # 9 node, cgroup, in tuoi node + so L1
+node local-net/console/symbol-test.mjs               # 30 doi chung ky hieu token
+node scripts/check-deploy-imports.mjs && bash local-net/deploy/console-deploy.sh   # THU TU NAY
+node scripts/check-live-page.mjs                     # dang do: / khai 9 validator, chain co 10
+```
 
 ### 🆕 CHỐT PHIÊN `2026-09-03` — BA L1 SỐNG, CỔNG MỜI CHẠY, CÒN 12 CHỖ
 
