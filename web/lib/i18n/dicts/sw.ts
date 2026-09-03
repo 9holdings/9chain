@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Kiswahili — tafsiri ya mashine, haijakaguliwa na binadamu.
@@ -8,7 +8,7 @@ import type { Tu } from '../en';
  * `deChain.soatMoTa` (mlango wa njia moja), `chainCuaToi.thuHoiY*` (kubatilisha hakurudishi jina).
  * Zinasema "kabisa" na "haiwezi kubadilishwa" ili mtu asipoteze mali akidhani inaweza kurudishwa.
  */
-export const sw: Tu = {
+export const sw: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Mtandao wa majaribio wa umma wa 9Chain — mtandao huru unaoendeshwa kwa injini ya Avalanche',

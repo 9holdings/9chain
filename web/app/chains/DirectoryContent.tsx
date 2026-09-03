@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { The, Nhan, ChepDuoc, Nut, CoLoi, TrongRong, Xuong, LuuY } from '@/components/ui';
-import { useT, useNgonNgu } from '@/lib/i18n';
-import { dien } from '@/lib/i18n/interpolate';
-import { dinhDangSo } from '@/lib/numbers';
-import { rpcGoc, thamSoThemMang } from '@/lib/chain';
-import { docJson, HAN_DOC_MS } from '@/lib/net';
+import { Card, Badge, Copyable, Button, ErrorState, EmptyState, Skeleton, Note } from '@/components/ui';
+import { useT, useLanguage } from '@/lib/i18n';
+import { interpolate } from '@/lib/i18n/interpolate';
+import { formatNumber } from '@/lib/numbers';
+import { rpcOrigin, addNetworkParams } from '@/lib/chain';
+import { fetchJson, READ_TIMEOUT_MS } from '@/lib/net';
 import { readDirectory, type ChainRecord } from '@/lib/directory';
 
 /**
@@ -54,14 +54,14 @@ type RetiredRecord = ChainRecord & { revokedAt?: string; thuHoiLuc?: string };
 const POLL_MS = 10_000;
 
 async function rpcCall(path: string, method: string, params: unknown = []) {
-  const j = await docJson<{ result?: unknown; error?: { message?: string } }>(
-    `${rpcGoc()}${path}`,
+  const j = await fetchJson<{ result?: unknown; error?: { message?: string } }>(
+    `${rpcOrigin()}${path}`,
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
     },
-    HAN_DOC_MS / 1000,
+    READ_TIMEOUT_MS / 1000,
   );
   if (j.error) throw new Error(j.error.message ?? 'RPC error');
   return j.result;
@@ -88,7 +88,7 @@ async function subnetValidators(subnetID: string): Promise<number> {
 async function probeChain(c: { blockchainID?: string; subnetID?: string | null }): Promise<Probe> {
   if (!c.blockchainID) return { rpc: '—', rpcOk: false, validators: undefined, unknown: true };
   const path = `/ext/bc/${c.blockchainID}/rpc`;
-  const out: Probe = { rpc: `${rpcGoc()}${path}`, rpcOk: false };
+  const out: Probe = { rpc: `${rpcOrigin()}${path}`, rpcOk: false };
   try {
     const [cid, blk] = await Promise.all([
       rpcCall(path, 'eth_chainId') as Promise<string>,
@@ -113,7 +113,7 @@ async function probeChain(c: { blockchainID?: string; subnetID?: string | null }
 
 export function DirectoryContent() {
   const t = useT();
-  const { ma: code } = useNgonNgu();
+  const { ma: code } = useLanguage();
   const [state, setState] = useState<Phase>({ phase: 'loading' });
   const [round, setRound] = useState(0);
 
@@ -164,12 +164,12 @@ export function DirectoryContent() {
       <div className="flex flex-col gap-4">
         <span className="sr-only">{t.common.loading}</span>
         {[0, 1].map((i) => (
-          <Xuong key={i} className="h-40 w-full" />
+          <Skeleton key={i} className="h-40 w-full" />
         ))}
       </div>
     );
   }
-  if (state.phase === 'failed') return <CoLoi thuLai={retry} />;
+  if (state.phase === 'failed') return <ErrorState thuLai={retry} />;
 
   const { chains, retired, probes, error } = state;
 
@@ -184,18 +184,18 @@ export function DirectoryContent() {
 
       {/* The two explanatory paragraphs. The lead-in phrase is bold and the body is
           plain — see the dictionary comment for why there is no inline markup. */}
-      <LuuY>
+      <Note>
         <p>
           <strong>{t.directory.howToTitle}</strong> {t.directory.howToBody}
         </p>
         <p className="mt-3">
           <strong>{t.directory.ownerTitle}</strong> {t.directory.ownerBody}
         </p>
-      </LuuY>
+      </Note>
 
       {error !== null && (
         <div className="mt-4">
-          <CoLoi moTa={dien(t.directory.listError, { error })} />
+          <ErrorState moTa={interpolate(t.directory.listError, { error })} />
         </div>
       )}
 
@@ -213,14 +213,14 @@ export function DirectoryContent() {
 
       {chains.length === 0 && (
         <div className="mt-4">
-          <TrongRong tieuDe={t.home.emptyTitle} moTa={t.home.emptyDesc} />
+          <EmptyState tieuDe={t.home.emptyTitle} moTa={t.home.emptyDesc} />
         </div>
       )}
 
       {retired.length > 0 && (
         <>
           <h2 className="mt-10 text-sm font-semibold uppercase tracking-wider text-muted">
-            {dien(t.directory.revokedGroup, { count: retired.length })}
+            {interpolate(t.directory.revokedGroup, { count: retired.length })}
           </h2>
           <div className="mt-3 flex flex-col gap-4">
             {(retired as RetiredRecord[]).map((c) => (
@@ -231,10 +231,10 @@ export function DirectoryContent() {
       )}
 
       <p className="mt-8 font-mono text-xs text-muted">
-        {dien(t.directory.footSummary, { count: chains.length })}
-        {retired.length > 0 ? ` · ${dien(t.directory.footRevoked, { count: retired.length })}` : ''}
-        {` · ${dien(t.directory.footUpdated, { time: new Date().toLocaleTimeString(code) })}`}
-        {` · ${t.launch.doneRpc}: ${rpcGoc()}`}
+        {interpolate(t.directory.footSummary, { count: chains.length })}
+        {retired.length > 0 ? ` · ${interpolate(t.directory.footRevoked, { count: retired.length })}` : ''}
+        {` · ${interpolate(t.directory.footUpdated, { time: new Date().toLocaleTimeString(code) })}`}
+        {` · ${t.launch.doneRpc}: ${rpcOrigin()}`}
       </p>
     </>
   );
@@ -283,16 +283,16 @@ function ChainCard({
         ? ['xau', t.myChains.noValidators, t.myChains.noValidatorsDesc]
         : probe.validators === null || probe.validators === undefined
           ? ['canhBao', t.directory.unclear, t.directory.unclearDesc]
-          : ['tot', t.directory.running, dien(t.myChains.validatorCount, { so: probe.validators })];
+          : ['tot', t.directory.running, interpolate(t.myChains.validatorCount, { so: probe.validators })];
 
   const admin = typeof record.admin === 'string' ? record.admin.trim() : '';
   const preset = (record.presetName ?? record.presetTen ?? '').trim();
 
   return (
-    <The className="p-5">
+    <Card className="p-5">
       <div className="mb-3 flex flex-wrap items-center gap-2.5">
         <h2 className="text-base font-bold text-ink">{record.name}</h2>
-        <Nhan kieu={kieu}>{label}</Nhan>
+        <Badge kieu={kieu}>{label}</Badge>
       </div>
       <p className="-mt-1.5 mb-3 text-sm text-muted">{why}</p>
 
@@ -311,7 +311,7 @@ function ChainCard({
       <Row k={t.launch.doneChainId}>
         {probe.chainId != null ? `${probe.chainId} (${probe.chainIdHex})` : '—'}
       </Row>
-      <Row k={t.directory.blocks}>{probe.blocks != null ? dinhDangSo(probe.blocks, code) : '—'}</Row>
+      <Row k={t.directory.blocks}>{probe.blocks != null ? formatNumber(probe.blocks, code) : '—'}</Row>
       {!isMain && (
         <>
           <Row k={t.directory.subnetValidators}>{probe.validators ?? '—'}</Row>
@@ -325,10 +325,10 @@ function ChainCard({
         {probe.rpcOk && probe.chainIdHex && (
           <AddToWallet name={record.name} chainIdHex={probe.chainIdHex} rpc={probe.rpc} />
         )}
-        <ChepDuoc giaTri={probe.rpc} nhan={t.launch.doneRpc} />
-        {admin && <ChepDuoc giaTri={admin} nhan={t.directory.copyOwner} />}
+        <Copyable giaTri={probe.rpc} nhan={t.launch.doneRpc} />
+        {admin && <Copyable giaTri={admin} nhan={t.directory.copyOwner} />}
       </div>
-    </The>
+    </Card>
   );
 }
 
@@ -338,7 +338,7 @@ function AddToWallet({ name, chainIdHex, rpc }: { name: string; chainIdHex: stri
 
   return (
     <>
-      <Nut
+      <Button
         co="vua"
         onClick={async () => {
           const eth = (window as { ethereum?: { request: (a: unknown) => Promise<unknown> } }).ethereum;
@@ -350,19 +350,19 @@ function AddToWallet({ name, chainIdHex, rpc }: { name: string; chainIdHex: stri
             // 🔴 MetaMask accepts ONLY a hex chainId — a decimal is an immediate error.
             // Reuse the wallet-params shape from `lib/chain.ts` so the native currency
             // and decimals cannot drift from what the faucet page declares.
-            const base = thamSoThemMang();
+            const base = addNetworkParams();
             await eth.request({
               method: 'wallet_addEthereumChain',
               params: [{ ...base, chainId: chainIdHex, chainName: name, rpcUrls: [rpc], blockExplorerUrls: [] }],
             });
             setMsg(t.myChains.addedToWallet);
           } catch (e) {
-            setMsg(dien(t.myChains.addWalletError, { chiTiet: e instanceof Error ? e.message : '' }));
+            setMsg(interpolate(t.myChains.addWalletError, { chiTiet: e instanceof Error ? e.message : '' }));
           }
         }}
       >
         {t.myChains.addToWallet}
-      </Nut>
+      </Button>
       {msg && (
         <span role="status" className="text-xs text-muted">
           {msg}
@@ -391,10 +391,10 @@ function RetiredCard({ record, code }: { record: RetiredRecord; code: string }) 
   const revoked = record.revokedAt ?? record.thuHoiLuc;
 
   return (
-    <The className="p-5 opacity-75">
+    <Card className="p-5 opacity-75">
       <div className="mb-3 flex flex-wrap items-center gap-2.5">
         <h2 className="text-base font-bold text-muted line-through">{record.name}</h2>
-        <Nhan kieu="trungTinh">{t.directory.revoked}</Nhan>
+        <Badge kieu="trungTinh">{t.directory.revoked}</Badge>
       </div>
       <p className="-mt-1.5 mb-3 text-sm text-muted">{t.directory.revokedDesc}</p>
       <Row k={t.directory.ownerAdmin}>
@@ -407,6 +407,6 @@ function RetiredCard({ record, code }: { record: RetiredRecord; code: string }) 
       <Row k="blockchainID">{record.blockchainID || '—'}</Row>
       {created && <Row k={t.directory.created}>{new Date(created).toLocaleString(code)}</Row>}
       {revoked && <Row k={t.directory.revokedAt}>{new Date(revoked).toLocaleString(code)}</Row>}
-    </The>
+    </Card>
   );
 }

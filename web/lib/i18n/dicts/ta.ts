@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * தமிழ் — இயந்திர மொழிபெயர்ப்பு, எந்த மனிதரும் சரிபார்க்கவில்லை.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * திருப்பித் தராது). இவை "நிரந்தரமாக", "மாற்ற முடியாது" எனச் சொல்கின்றன — மீட்டெடுக்க
  * முடியும் என நினைத்து யாரும் சொத்தை இழக்காமல் இருக்க.
  */
-export const ta: Tu = {
+export const ta: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: '9Chain-இன் பொது சோதனை வலையமைப்பு — Avalanche இயந்திரத்தில் இயங்கும் தன்னாட்சி வலையமைப்பு',

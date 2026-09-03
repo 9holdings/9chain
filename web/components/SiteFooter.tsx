@@ -1,7 +1,7 @@
 'use client';
 
 import { useT } from '@/lib/i18n';
-import { CHAIN, explorerGoc } from '@/lib/chain';
+import { CHAIN, explorerOrigin } from '@/lib/chain';
 import { BrandLockup } from './BrandLockup';
 
 /**
@@ -54,7 +54,7 @@ export function SiteFooter() {
       muc: [
         { href: '/chains/', nhan: t.nav.directory },
         { href: '/compare/', nhan: t.nav.compare },
-        { href: explorerGoc(), nhan: t.footer.explorer, ngoai: true },
+        { href: explorerOrigin(), nhan: t.footer.explorer, ngoai: true },
       ],
     },
     {

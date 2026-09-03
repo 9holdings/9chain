@@ -1,10 +1,10 @@
 'use client';
 
-import { useSoLieu } from '@/lib/stats';
-import { Xuong, Nhan } from './ui';
-import { gop } from '@/lib/cx';
-import { useT, useNgonNgu } from '@/lib/i18n';
-import { dinhDangSo } from '@/lib/numbers';
+import { useNetworkStats } from '@/lib/stats';
+import { Skeleton, Badge } from './ui';
+import { cx } from '@/lib/cx';
+import { useT, useLanguage } from '@/lib/i18n';
+import { formatNumber } from '@/lib/numbers';
 
 /**
  * Dải số liệu sống — thứ làm trang "trông như sản phẩm đang chạy" thay vì mockup.
@@ -16,16 +16,16 @@ import { dinhDangSo } from '@/lib/numbers';
  */
 export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
   const t = useT();
-  const { ma } = useNgonNgu();
-  const { tt, napLai } = useSoLieu();
+  const { ma } = useLanguage();
+  const { tt, napLai } = useNetworkStats();
   const toi = tren === 'toi';
 
-  const nhanLop = gop('text-xs font-semibold uppercase tracking-wide', toi ? 'text-on-dark-3' : 'text-muted');
-  const soLop = gop('font-display text-2xl font-extrabold md:text-3xl', toi ? 'text-on-dark' : 'text-ink');
+  const nhanLop = cx('text-xs font-semibold uppercase tracking-wide', toi ? 'text-on-dark-3' : 'text-muted');
+  const soLop = cx('font-display text-2xl font-extrabold md:text-3xl', toi ? 'text-on-dark' : 'text-ink');
 
   if (tt.pha === 'hong') {
     return (
-      <div className={gop('mt-8 text-sm', toi ? 'text-on-dark-3' : 'text-muted')}>
+      <div className={cx('mt-8 text-sm', toi ? 'text-on-dark-3' : 'text-muted')}>
         <button type="button" onClick={napLai} className="underline">
           {t.stats.cannotMeasure}
         </button>
@@ -58,14 +58,14 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
         { nhan: t.stats.l1Count, gt: s.soL1 === null ? null : String(s.soL1) },
         {
           nhan: t.stats.blockHeight,
-          gt: s.chieuCaoBlock === null ? null : dinhDangSo(s.chieuCaoBlock, ma),
+          gt: s.chieuCaoBlock === null ? null : formatNumber(s.chieuCaoBlock, ma),
         },
       ];
 
   return (
     <div className="mt-8">
       <div className="flex items-center gap-2">
-        <Nhan kieu="tot">{t.stats.title}</Nhan>
+        <Badge kieu="tot">{t.stats.title}</Badge>
       </div>
       <dl className="mt-3 grid grid-cols-3 gap-4 sm:max-w-lg">
         {o.map((x) => (
@@ -87,7 +87,7 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
                   {/* Khung xương có nhãn cho trình đọc màn hình — nếu không, người
                       dùng nghe một danh sách rỗng và không biết đang chờ gì. */}
                   <span className="sr-only">{t.stats.measuring}</span>
-                  <Xuong className="h-8 w-16" />
+                  <Skeleton className="h-8 w-16" />
                 </>
               )}
             </dd>

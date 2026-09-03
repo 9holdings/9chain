@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Français — traduction automatique, non relue par un humain.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * pas le nom). Ils disent « définitif » et « ne peut pas être modifié » pour éviter
  * qu'on perde ses actifs en croyant pouvoir revenir en arrière.
  */
-export const fr: Tu = {
+export const fr: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Le testnet public de 9Chain — un réseau indépendant fonctionnant avec le moteur Avalanche',

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { dinhDangSo } from '../lib/numbers';
+import { formatNumber } from '../lib/numbers';
 
 /**
  * Cổng định dạng số theo ngôn ngữ.
@@ -17,12 +17,12 @@ describe('định dạng số theo ngôn ngữ', () => {
   const N = 1_234_567;
 
   it('tiếng Anh dùng dấu phẩy', () => {
-    expect(dinhDangSo(N, 'en')).toBe('1,234,567');
+    expect(formatNumber(N, 'en')).toBe('1,234,567');
   });
 
   it('tiếng Việt và tiếng Đức dùng dấu chấm', () => {
-    expect(dinhDangSo(N, 'vi')).toBe('1.234.567');
-    expect(dinhDangSo(N, 'de')).toBe('1.234.567');
+    expect(formatNumber(N, 'vi')).toBe('1.234.567');
+    expect(formatNumber(N, 'de')).toBe('1.234.567');
   });
 
   /**
@@ -32,19 +32,19 @@ describe('định dạng số theo ngôn ngữ', () => {
    * ngôn ngữ phải ra KHÁC NHAU — tức hàm thật sự đọc tham số `ma`.
    */
   it('hai ngôn ngữ khác quy ước phải ra khác nhau', () => {
-    expect(dinhDangSo(N, 'en')).not.toBe(dinhDangSo(N, 'vi'));
+    expect(formatNumber(N, 'en')).not.toBe(formatNumber(N, 'vi'));
   });
 
   it('giữ chữ số Latin kể cả ở ngôn ngữ có hệ chữ số riêng (D-web-2)', () => {
     // `ar` mặc định ra chữ số Ả Rập-Ấn `١٢٣`. Chiều cao block phải đối chiếu được
     // với explorer và ví — cả hai in chữ số Latin.
-    const s = dinhDangSo(N, 'ar');
+    const s = formatNumber(N, 'ar');
     expect(s).toMatch(/[0-9]/);
     expect(s).not.toMatch(/[٠-٩۰-۹]/);
   });
 
   it('mã ngôn ngữ rác không làm đổ, và KHÔNG rơi về vi-VN', () => {
-    expect(dinhDangSo(N, 'khong-phai-locale-!!')).toBe('1,234,567');
+    expect(formatNumber(N, 'khong-phai-locale-!!')).toBe('1,234,567');
   });
 });
 
@@ -92,7 +92,7 @@ describe('không còn locale cắm cứng', () => {
     }
     expect(
       pham,
-      `dùng \`dinhDangSo(n, ma)\` trong \`lib/numbers.ts\` thay vì cắm cứng locale — xem chú thích ở đó. Phạm: ${pham.join(', ')}`,
+      `dùng \`formatNumber(n, ma)\` trong \`lib/numbers.ts\` thay vì cắm cứng locale — xem chú thích ở đó. Phạm: ${pham.join(', ')}`,
     ).toEqual([]);
   });
 });

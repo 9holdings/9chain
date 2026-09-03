@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Русский — машинный перевод, без проверки человеком.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * Они говорят «навсегда» и «нельзя изменить», чтобы человек не потерял активы,
  * решив, что всё можно отыграть назад.
  */
-export const ru: Tu = {
+export const ru: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Публичный тестнет 9Chain — независимая сеть на движке Avalanche',

@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * فارسی — ترجمهٔ ماشینی، هیچ انسانی آن را بازبینی نکرده است.
@@ -11,7 +11,7 @@ import type { Tu } from '../en';
  *
  * ⚠️ این زبان راست‌به‌چپ (RTL) است — در `ngonNgu.ts` با `chieu: 'rtl'` ثبت شده.
  */
-export const fa: Tu = {
+export const fa: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'شبکهٔ آزمایشی عمومی 9Chain — یک شبکهٔ مستقل که روی موتور Avalanche اجرا می‌شود',

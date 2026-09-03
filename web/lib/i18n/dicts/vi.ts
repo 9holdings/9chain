@@ -27,9 +27,9 @@
  * được phép cắt là thẻ meta (`lib/seo.ts`), vì chữ ở đó bị máy khác đọc và hiện
  * lại nguyên văn, ngoài tầm với của mọi lượt sửa sau.
  */
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
-export const vi: Tu = {
+export const vi: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     // 🔴 "chạy trên Avalanche" ĐÃ BỊ GỠ 2026-08-27 — nó SAI, và sai tốn kém.
@@ -138,7 +138,7 @@ export const vi: Tu = {
   /**
    * Re-genesis — xem `PLAN-REGENESIS-2026-09-01.md`, mục O3 và luật "nhiều lần cài".
    *
-   * 🔴 NGÀY NẰM Ở ĐÚNG MỘT CHỖ (`ngay`), mọi chuỗi khác nội suy `{ngay}` qua `dien()`.
+   * 🔴 NGÀY NẰM Ở ĐÚNG MỘT CHỖ (`ngay`), mọi chuỗi khác nội suy `{ngay}` qua `interpolate()`.
    * Cổng GO/NO-GO là 29/08 và sàn cứng là 06/09 — ngày này TRƯỢT ĐƯỢC. Chép ngày ra
    * nhiều chuỗi là tự đặt bẫy: lúc trượt sẽ sửa được chỗ này, sót chỗ kia, và trang
    * lại nói hai ngày khác nhau ở hai màn.

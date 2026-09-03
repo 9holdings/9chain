@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * 中文（简体） — 机器翻译，未经人工审校。
@@ -8,7 +8,7 @@ import type { Tu } from '../en';
  * `chainCuaToi.thuHoiY*`（撤销不会归还名称）。它们使用"永久""无法更改"是为了阻止用户
  * 因误以为可以撤回而损失资产。
  */
-export const zh: Tu = {
+export const zh: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: '9Chain 公共测试网 — 运行 Avalanche 引擎的独立网络',

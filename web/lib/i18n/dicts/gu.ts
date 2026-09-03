@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * ગુજરાતી — યંત્ર અનુવાદ, કોઈ માણસે તપાસ્યું નથી.
@@ -8,7 +8,7 @@ import type { Tu } from '../en';
  * `deChain.soatMoTa` (એક જ દિશાનું બારણું), `chainCuaToi.thuHoiY*` (રદ કરવાથી નામ પાછું મળતું નથી).
  * એ "કાયમ માટે" અને "બદલી શકાતું નથી" કહે છે — પાછું મેળવી શકાશે એમ માનીને કોઈ મિલકત ગુમાવે નહીં એ માટે.
  */
-export const gu: Tu = {
+export const gu: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: '9Chain નું જાહેર ટેસ્ટનેટ — Avalanche એન્જિન પર ચાલતું સ્વતંત્ર નેટવર્ક',

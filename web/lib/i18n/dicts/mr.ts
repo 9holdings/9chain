@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * मराठी — यंत्र-भाषांतर, कोणत्याही माणसाने तपासलेले नाही.
@@ -8,7 +8,7 @@ import type { Tu } from '../en';
  * `deChain.soatMoTa` (एकेरी दरवाजा), `chainCuaToi.thuHoiY*` (रद्द केल्याने नाव परत मिळत नाही).
  * ती "कायमचे" आणि "बदलता येत नाही" असे सांगतात, जेणेकरून कोणी गैरसमजातून मालमत्ता गमावू नये.
  */
-export const mr: Tu = {
+export const mr: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: '9Chain चे सार्वजनिक टेस्टनेट — Avalanche इंजिनवर चालणारे स्वतंत्र नेटवर्क',

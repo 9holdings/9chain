@@ -54,14 +54,14 @@ const HOST_MAC_DINH = 'a1.9chain.org';
  * RPC origin baked into the prerendered HTML, for `<link rel="preconnect">` only.
  *
  * 🔴 This is NOT a second source of truth for where the site talks to the network —
- * `rpcGoc()` below still derives that from the page's own hostname at runtime, and it
+ * `rpcOrigin()` below still derives that from the page's own hostname at runtime, and it
  * stays the only thing any request goes through. A preconnect is a *hint*: pointing it
- * at the wrong host costs one idle socket and nothing else, while `rpcGoc()` pointing
+ * at the wrong host costs one idle socket and nothing else, while `rpcOrigin()` pointing
  * at the wrong host breaks the page. Keeping the hint constant is what lets it sit in
  * static HTML at all, since the head is written at build time when there is no
  * `location` to read.
  *
- * The two agree everywhere it matters: `rpcGoc()` returns this exact value on
+ * The two agree everywhere it matters: `rpcOrigin()` returns this exact value on
  * localhost, and on the public site the hostname IS `a1.9chain.org`.
  */
 export const RPC_ORIGIN_HINT = `https://rpc-${HOST_MAC_DINH}`;
@@ -72,7 +72,7 @@ function host(): string {
 }
 
 /** Gốc RPC công khai, suy từ chính tên miền đang mở. */
-export function rpcGoc(): string {
+export function rpcOrigin(): string {
   const h = host();
   // Dev trên máy: không có `rpc-localhost`, đi thẳng ra mạng công khai.
   if (h === 'localhost' || h === '127.0.0.1' || h.endsWith('.local')) {
@@ -83,11 +83,11 @@ export function rpcGoc(): string {
 
 /** RPC của C-Chain — mạng chính, thứ ví người dùng kết nối vào. */
 export function rpcCChain(): string {
-  return `${rpcGoc()}/ext/bc/C/rpc`;
+  return `${rpcOrigin()}/ext/bc/C/rpc`;
 }
 
 /** Gốc của faucet API. Cùng tên miền với trang, nên đường tương đối là đủ. */
-export function faucetGoc(): string {
+export function faucetOrigin(): string {
   if (typeof window === 'undefined') return `https://${HOST_MAC_DINH}/faucet`;
   const h = host();
   if (h === 'localhost' || h === '127.0.0.1') return `https://${HOST_MAC_DINH}/faucet`;
@@ -95,7 +95,7 @@ export function faucetGoc(): string {
 }
 
 /** Explorer (9Scan-A1) — dự án khác, chỉ liên kết sang. */
-export function explorerGoc(): string {
+export function explorerOrigin(): string {
   return 'https://a1.9scan.org';
 }
 
@@ -110,7 +110,7 @@ export function explorerGoc(): string {
  * route thì ảnh "tải được" 200, ví chỉ hiện ô trống, và mọi phép kiểm bằng mã
  * trạng thái vẫn xanh. Đo bằng `content-type` chứ đừng đo bằng mã HTTP.
  */
-export function bieuTuongGoc(): string {
+export function brandOrigin(): string {
   if (typeof window === 'undefined') return `https://${HOST_MAC_DINH}/brand`;
   const h = host();
   if (h === 'localhost' || h === '127.0.0.1') return `https://${HOST_MAC_DINH}/brand`;
@@ -118,8 +118,8 @@ export function bieuTuongGoc(): string {
 }
 
 /** PNG 256px của LOVE9 — cỡ ví hay dùng nhất, và có nền nên không lẫn vào theme tối. */
-export function bieuTuongLove9(): string {
-  return `${bieuTuongGoc()}/love9-navy-inverse-256px.png`;
+export function love9IconUrl(): string {
+  return `${brandOrigin()}/love9-navy-inverse-256px.png`;
 }
 
 /**
@@ -146,13 +146,13 @@ export function bieuTuongLove9(): string {
  * ⇒ Chỗ ta THẬT SỰ kiểm soát nhận diện là trang của mình và explorer 9Scan-A1 —
  *   cả hai đã dùng dấu LOVE9 (favicon + `/brand/`).
  */
-export function thamSoThemMang() {
+export function addNetworkParams() {
   return {
     chainId: CHAIN.chainIdHex,
     chainName: CHAIN.ten,
     nativeCurrency: { name: CHAIN.tenDayDu, symbol: CHAIN.kyHieu, decimals: CHAIN.thapPhan },
     rpcUrls: [rpcCChain()],
-    blockExplorerUrls: [explorerGoc()],
-    iconUrls: [bieuTuongLove9()],
+    blockExplorerUrls: [explorerOrigin()],
+    iconUrls: [love9IconUrl()],
   };
 }

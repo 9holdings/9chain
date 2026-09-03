@@ -25,7 +25,7 @@ import { useT } from '@/lib/i18n';
  */
 type NhomCoDauTrang = 'faucet' | 'launch' | 'myChains' | 'compare';
 
-export function DauTrang({ nhom, rong }: { nhom: NhomCoDauTrang; rong?: 'hep' | 'vua' }) {
+export function PageHeader({ nhom, rong }: { nhom: NhomCoDauTrang; rong?: 'hep' | 'vua' }) {
   const t = useT();
   const g = t[nhom];
   return (

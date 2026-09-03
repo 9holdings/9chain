@@ -1,19 +1,19 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Nut, The, O, Nhan, Xuong, CoLoi, LuuY, ChepDuoc, TrongRong, CacBuoc, type MotBuoc } from '@/components/ui';
-import { rutGon } from '@/lib/eip55';
-import { rpcGoc } from '@/lib/chain';
-import { dien, useT } from '@/lib/i18n';
-import { docJson, HAN_DOC_MS } from '@/lib/net';
-import { layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, choTienTrinhXong, docLoiVi, LoiConsole, type PhienVi, HAN_CONSOLE_GIAY} from '@/lib/wallet';
+import { Button, Card, Field, Badge, Skeleton, ErrorState, Note, Copyable, EmptyState, Steps, type Step } from '@/components/ui';
+import { shortenAddress } from '@/lib/eip55';
+import { rpcOrigin } from '@/lib/chain';
+import { interpolate, useT } from '@/lib/i18n';
+import { fetchJson, READ_TIMEOUT_MS } from '@/lib/net';
+import { getWallet, connectWallet, siweSignIn, callConsole, addL1ToWallet, waitForProgress, readWalletError, ConsoleError, type WalletSession, CONSOLE_TIMEOUT_S} from '@/lib/wallet';
 
 type Chain = {
   name: string; chainId: number; subnetID: string; blockchainID: string;
   admin?: string; presetName?: string; presetTen?: string; rpc?: string;
 };
 type TrangThai = { tran: number; chains: Chain[]; retired: Chain[]; viDangNhap: string | null };
-type TienTrinh = { running: boolean; steps: MotBuoc[]; etaSeconds: number };
+type Progress = { running: boolean; steps: Step[]; etaSeconds: number };
 
 /** Số validator của một subnet — PHÉP ĐO SỐNG/CHẾT ĐÚNG.
  *
@@ -30,8 +30,8 @@ async function demValidator(subnetID: string): Promise<number> {
   // Hạn giờ (Đ1-8) — an toàn: đây là lượt ĐỌC số validator của một subnet, không
   // phải `/api/create` hay `/api/revoke`. Không có hạn thì một RPC treo để cột
   // "tình trạng" quay mãi, và người dùng ngồi nhìn một cái vòng không bao giờ dừng.
-  const j = await docJson<{ result?: { validators?: unknown[] }; error?: { message?: string } }>(
-    `${rpcGoc()}/ext/bc/P`,
+  const j = await fetchJson<{ result?: { validators?: unknown[] }; error?: { message?: string } }>(
+    `${rpcOrigin()}/ext/bc/P`,
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -39,7 +39,7 @@ async function demValidator(subnetID: string): Promise<number> {
         jsonrpc: '2.0', id: 1, method: 'platform.getCurrentValidators', params: { subnetID },
       }),
     },
-    HAN_DOC_MS / 1000,
+    READ_TIMEOUT_MS / 1000,
   );
   if (j.error) throw new Error(j.error.message);
   return (j.result?.validators ?? []).length;
@@ -47,7 +47,7 @@ async function demValidator(subnetID: string): Promise<number> {
 
 export function MyChainsScreen() {
   const t = useT();
-  const [phien, datPhien] = useState<PhienVi | null>(null);
+  const [phien, datPhien] = useState<WalletSession | null>(null);
   const [dangNoi, datDangNoi] = useState(false);
   const [loiVi, datLoiVi] = useState<string | null>(null);
 
@@ -63,14 +63,14 @@ export function MyChainsScreen() {
   const [dangThuHoi, datDangThuHoi] = useState<Chain | null>(null);
   const [goTen, datGoTen] = useState('');
   const [chay, datChay] = useState<{ ten: string } | null>(null);
-  const [tienTrinh, datTienTrinh] = useState<TienTrinh | null>(null);
+  const [tienTrinh, datTienTrinh] = useState<Progress | null>(null);
   const [xong, datXong] = useState<string | null>(null);
   const [loiThuHoi, datLoiThuHoi] = useState<string | null>(null);
 
   const nap = useCallback(async (token: string) => {
     datLoiTai(false);
     try {
-      datTt(await goiConsole<TrangThai>('/api/status', token, undefined, HAN_CONSOLE_GIAY));
+      datTt(await callConsole<TrangThai>('/api/status', token, undefined, CONSOLE_TIMEOUT_S));
     } catch {
       datLoiTai(true);
     }
@@ -80,8 +80,8 @@ export function MyChainsScreen() {
     datLoiVi(null);
     datDangNoi(true);
     try {
-      const dc = await noiVi();
-      const p = await dangNhapSiwe(dc);
+      const dc = await connectWallet();
+      const p = await siweSignIn(dc);
       datPhien(p);
       await nap(p.token);
     } catch (e) {
@@ -123,7 +123,7 @@ export function MyChainsScreen() {
     if (!chay || !phien) return;
     const doc = async () => {
       try {
-        datTienTrinh(await goiConsole<TienTrinh>('/api/progress', phien.token, undefined, HAN_CONSOLE_GIAY));
+        datTienTrinh(await callConsole<Progress>('/api/progress', phien.token, undefined, CONSOLE_TIMEOUT_S));
       } catch { /* một nhịp hỏng không phải lý do bỏ cuộc — server vẫn đang chạy */ }
     };
     void doc();
@@ -139,31 +139,31 @@ export function MyChainsScreen() {
 
     // 🔴 KHÔNG `await` cái POST này để kết luận. Thao tác mất ~170 giây, Cloudflare
     // cắt kết nối ở ~100 giây (HTTP 524) ⇒ qua tên miền công khai, POST **luôn**
-    // hỏng trong khi server vẫn làm xong. Xem `choTienTrinhXong`.
+    // hỏng trong khi server vẫn làm xong. Xem `waitForProgress`.
     // 🔴 Nhưng 4xx thì KHÁC 524 — xem chú thích dài ở `CreateChainScreen.de()` và ở
-    // `LoiConsole`. Server trả lời "không" (token hết hạn, tên không khớp xác nhận…)
+    // `ConsoleError`. Server trả lời "không" (token hết hạn, tên không khớp xác nhận…)
     // nghĩa là việc chưa bắt đầu, và bắt người dùng nhìn thanh tiến trình thêm vài
     // phút cho một việc không tồn tại là nói dối theo một kiểu khác.
     let loiPost: string | null = null;
     let biTuChoi = false;
-    const post = goiConsole('/api/revoke', phien.token, { name: c.name, xacNhan: c.name })
+    const post = callConsole('/api/revoke', phien.token, { name: c.name, xacNhan: c.name })
       .catch((e) => {
         loiPost = String((e as Error).message ?? e);
-        if (e instanceof LoiConsole && e.laTuChoiThat) biTuChoi = true;
+        if (e instanceof ConsoleError && e.laTuChoiThat) biTuChoi = true;
       });
 
-    const kq = await choTienTrinhXong(phien.token, { tuChoiSom: () => biTuChoi });
+    const kq = await waitForProgress(phien.token, { tuChoiSom: () => biTuChoi });
     await post.catch(() => {});
 
     // Sự thật nằm ở DANH BẠ, không ở mã HTTP: thu hồi thành công ⇔ chain không còn
     // trong `chains`.
     let conSong = true;
     try {
-      const st = await goiConsole<TrangThai>('/api/status', phien.token, undefined, HAN_CONSOLE_GIAY);
+      const st = await callConsole<TrangThai>('/api/status', phien.token, undefined, CONSOLE_TIMEOUT_S);
       datTt(st);
       conSong = st.chains.some((x) => x.name === c.name);
       if (!conSong) {
-        datXong(dien(t.myChains.revokeDone, {
+        datXong(interpolate(t.myChains.revokeDone, {
           ten: c.name, con: st.tran - st.chains.length, tong: st.tran,
         }));
       }
@@ -171,7 +171,7 @@ export function MyChainsScreen() {
       datLoiTai(true);
     }
     if (conSong) {
-      datLoiThuHoi(dien(t.myChains.revokeError, {
+      datLoiThuHoi(interpolate(t.myChains.revokeError, {
         chiTiet: kq?.error ?? loiPost ?? t.myChains.revokeUnknown,
       }));
     }
@@ -185,48 +185,48 @@ export function MyChainsScreen() {
 
   if (!phien) {
     return (
-      <The className="mt-8 max-w-xl p-5 md:p-6">
+      <Card className="mt-8 max-w-xl p-5 md:p-6">
         <h2 className="font-display text-lg font-bold text-ink">{t.myChains.connectWallet}</h2>
         <div className="mt-4">
-          <Nut co="to" onClick={vao} dangChay={dangNoi}>
+          <Button co="to" onClick={vao} isRunning={dangNoi}>
             {dangNoi ? t.launch.signing : t.launch.connectWallet}
-          </Nut>
+          </Button>
         </div>
-        {loiVi && <div className="mt-4"><CoLoi tieuDe={loiVi} moTa="" thuLai={vao} /></div>}
-        {!layVi() && <div className="mt-4"><LuuY kieu="canhBao">{t.launch.noWallet}</LuuY></div>}
-      </The>
+        {loiVi && <div className="mt-4"><ErrorState tieuDe={loiVi} moTa="" thuLai={vao} /></div>}
+        {!getWallet() && <div className="mt-4"><Note kieu="canhBao">{t.launch.noWallet}</Note></div>}
+      </Card>
     );
   }
 
   if (chay) {
     return (
-      <The className="mt-8 max-w-2xl p-5 md:p-6">
+      <Card className="mt-8 max-w-2xl p-5 md:p-6">
         <h2 className="font-display text-lg font-bold text-ink">
-          {dien(t.myChains.revoking, { ten: chay.ten })}
+          {interpolate(t.myChains.revoking, { ten: chay.ten })}
         </h2>
         <div className="mt-4">
           {tienTrinh?.steps?.length ? (
-            <CacBuoc
+            <Steps
               buoc={tienTrinh.steps}
               ghiChu={tienTrinh.etaSeconds
-                ? dien(t.launch.etaRemaining, { phut: Math.max(1, Math.ceil(tienTrinh.etaSeconds / 60)) })
+                ? interpolate(t.launch.etaRemaining, { phut: Math.max(1, Math.ceil(tienTrinh.etaSeconds / 60)) })
                 : undefined}
             />
           ) : (
             <p className="text-sm text-muted">{t.launch.preparing}</p>
           )}
         </div>
-      </The>
+      </Card>
     );
   }
 
-  if (loiTai) return <div className="mt-8 max-w-xl"><CoLoi thuLai={() => nap(phien.token)} /></div>;
+  if (loiTai) return <div className="mt-8 max-w-xl"><ErrorState thuLai={() => nap(phien.token)} /></div>;
   if (!tt) {
     return (
-      <The className="mt-8 p-5">
+      <Card className="mt-8 p-5">
         <span className="sr-only">{t.common.loading}</span>
-        <div className="flex flex-col gap-3">{[0, 1].map((i) => <Xuong key={i} className="h-12 w-full" />)}</div>
-      </The>
+        <div className="flex flex-col gap-3">{[0, 1].map((i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+      </Card>
     );
   }
 
@@ -237,10 +237,10 @@ export function MyChainsScreen() {
           {xong}
         </div>
       )}
-      {loiThuHoi && <CoLoi tieuDe={loiThuHoi} moTa="" />}
+      {loiThuHoi && <ErrorState tieuDe={loiThuHoi} moTa="" />}
 
       {!cuaToi.length && !cuaToiDaThuHoi.length ? (
-        <TrongRong
+        <EmptyState
           tieuDe={t.myChains.emptyTitle}
           moTa={t.myChains.emptyDesc}
           hanhDong={
@@ -255,7 +255,7 @@ export function MyChainsScreen() {
             const v = vld[c.subnetID];
             return (
               <li key={c.chainId}>
-                <The className="p-5">
+                <Card className="p-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <h2 className="font-display text-lg font-bold text-ink">
@@ -263,15 +263,15 @@ export function MyChainsScreen() {
                         <span className="ms-2 font-mono text-xs font-normal text-muted">#{c.chainId}</span>
                       </h2>
                       <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
-                        {(c.presetName ?? c.presetTen) && <Nhan>{c.presetName ?? c.presetTen}</Nhan>}
+                        {(c.presetName ?? c.presetTen) && <Badge>{c.presetName ?? c.presetTen}</Badge>}
                         {v === undefined || v === 'dang' ? (
                           <span className="text-muted">{t.myChains.measuring}</span>
                         ) : v === 'errors' ? (
                           <span className="text-muted">{t.myChains.cannotMeasure}</span>
                         ) : v === 0 ? (
-                          <Nhan kieu="canhBao">{t.myChains.noValidators}</Nhan>
+                          <Badge kieu="canhBao">{t.myChains.noValidators}</Badge>
                         ) : (
-                          <Nhan kieu="tot">{dien(t.myChains.validatorCount, { so: v })}</Nhan>
+                          <Badge kieu="tot">{interpolate(t.myChains.validatorCount, { so: v })}</Badge>
                         )}
                       </p>
                       <p className="mt-1 text-xs text-muted">{t.myChains.statusHelp}</p>
@@ -281,43 +281,43 @@ export function MyChainsScreen() {
                         </p>
                       )}
                     </div>
-                    <Nut kieu="vien" onClick={() => { datDangThuHoi(c); datGoTen(''); }}>
+                    <Button kieu="vien" onClick={() => { datDangThuHoi(c); datGoTen(''); }}>
                       {t.myChains.revoke}
-                    </Nut>
+                    </Button>
                   </div>
 
                   <dl className="mt-4 flex flex-col gap-2">
                     <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{t.myChains.walletSettings}</dt>
                     <dd className="flex flex-wrap gap-2">
-                      {c.rpc && <ChepDuoc giaTri={c.rpc} nhan="RPC" />}
-                      <ChepDuoc giaTri={String(c.chainId)} nhan="Chain ID" />
+                      {c.rpc && <Copyable giaTri={c.rpc} nhan="RPC" />}
+                      <Copyable giaTri={String(c.chainId)} nhan="Chain ID" />
                     </dd>
                   </dl>
 
                   {c.rpc && (
                     <div className="mt-3">
-                      <Nut
+                      <Button
                         kieu="tron"
                         onClick={async () => {
                           try {
-                            await themL1VaoVi({ chainIdHex: '0x' + c.chainId.toString(16), name: c.name, rpc: c.rpc!, kyHieu: 'LOVE9' });
+                            await addL1ToWallet({ chainIdHex: '0x' + c.chainId.toString(16), name: c.name, rpc: c.rpc!, kyHieu: 'LOVE9' });
                             datThemVi((s) => ({ ...s, [c.chainId]: { xong: true } }));
                           } catch (e) {
-                            const l = docLoiVi(e);
+                            const l = readWalletError(e);
                             datThemVi((s) => ({
                               ...s,
                               [c.chainId]: {
                                 xong: false,
                                 chu: l.tuChoi
                                   ? t.common.walletRejected
-                                  : dien(t.myChains.addWalletError, { chiTiet: l.chu ?? '' }),
+                                  : interpolate(t.myChains.addWalletError, { chiTiet: l.chu ?? '' }),
                               },
                             }));
                           }
                         }}
                       >
                         {themVi[c.chainId]?.xong ? t.myChains.addedToWallet : t.myChains.addToWallet}
-                      </Nut>
+                      </Button>
                       {/* Vùng live thường trú cho TỪNG thẻ chain — xem chú thích cùng
                           loại ở CreateChainScreen. */}
                       <div role="status" aria-live="polite" className="mt-2 empty:hidden">
@@ -329,7 +329,7 @@ export function MyChainsScreen() {
                       </div>
                     </div>
                   )}
-                </The>
+                </Card>
               </li>
             );
           })}
@@ -338,25 +338,25 @@ export function MyChainsScreen() {
             <li key={`r-${c.chainId}`}>
               {/* Chain đã thu hồi vẽ từ mảng `retired` với NHÃN RIÊNG — tuyệt đối
                   không đem đo bằng heuristic chain sống (xem demValidator). */}
-              <The className="border-dashed p-5 opacity-80">
+              <Card className="border-dashed p-5 opacity-80">
                 <h2 className="font-display text-base font-bold text-muted">
                   {c.name}
                   <span className="ms-2 font-mono text-xs font-normal">#{c.chainId}</span>
                 </h2>
                 <p className="mt-1 text-sm">
-                  <Nhan kieu="xau">{t.myChains.revokedBadge}</Nhan>
+                  <Badge kieu="xau">{t.myChains.revokedBadge}</Badge>
                   <span className="ms-2 text-muted">{t.myChains.revokedDesc}</span>
                 </p>
-              </The>
+              </Card>
             </li>
           ))}
         </ul>
       )}
 
       {dangThuHoi && (
-        <The className="border-dev-line p-5">
+        <Card className="border-dev-line p-5">
           <h2 className="font-display text-lg font-bold text-ink">
-            {dien(t.myChains.revokeTitle, { ten: dangThuHoi.name })}
+            {interpolate(t.myChains.revokeTitle, { ten: dangThuHoi.name })}
           </h2>
           <ul className="mt-3 flex list-disc flex-col gap-2 ps-5 text-sm text-body">
             <li>{t.myChains.revokeWarn1}</li>
@@ -368,7 +368,7 @@ export function MyChainsScreen() {
           <div className="mt-4 max-w-sm">
             {/* Gõ lại tên: cùng luật với đường API (`xacNhan`). Một nút "Xoá" bấm
                 nhầm được thì cửa một chiều trở thành một cú trượt tay. */}
-            <O
+            <Field
               nhan={t.myChains.revokeTypeLabel}
               placeholder={dangThuHoi.name}
               value={goTen}
@@ -379,14 +379,14 @@ export function MyChainsScreen() {
             />
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Nut disabled={goTen !== dangThuHoi.name} onClick={() => thucHienThuHoi(dangThuHoi)}>
+            <Button disabled={goTen !== dangThuHoi.name} onClick={() => thucHienThuHoi(dangThuHoi)}>
               {t.myChains.revokeConfirm}
-            </Nut>
-            <Nut kieu="tron" onClick={() => { datDangThuHoi(null); datGoTen(''); }}>
+            </Button>
+            <Button kieu="tron" onClick={() => { datDangThuHoi(null); datGoTen(''); }}>
               {t.myChains.revokeCancel}
-            </Nut>
+            </Button>
           </div>
-        </The>
+        </Card>
       )}
     </div>
   );

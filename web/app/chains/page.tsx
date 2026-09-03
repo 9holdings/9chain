@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { EN } from '@/lib/i18n/en';
-import { trangMeta } from '@/lib/seo';
+import { pageMeta } from '@/lib/seo';
 import { DirectoryContent } from './DirectoryContent';
 
 /**
@@ -17,7 +17,7 @@ import { DirectoryContent } from './DirectoryContent';
  * reaches the static export. Order matters: put the page rule first and the data files
  * 404, which would empty this page while every HTTP check stayed green.
  */
-export const metadata: Metadata = trangMeta({
+export const metadata: Metadata = pageMeta({
   tieuDe: EN.nav.directory,
   moTa: EN.directory.lede,
   duong: '/chains/',

@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * বাংলা — যন্ত্র-অনুবাদ, কোনও মানুষ যাচাই করেননি।
@@ -8,7 +8,7 @@ import type { Tu } from '../en';
  * `deChain.soatMoTa` (একমুখী দরজা), `chainCuaToi.thuHoiY*` (প্রত্যাহার নাম ফেরত দেয় না)।
  * ওগুলো "স্থায়ীভাবে" এবং "বদলানো যাবে না" বলে, যাতে কেউ ভুল ধারণা থেকে সম্পদ না হারান।
  */
-export const bn: Tu = {
+export const bn: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: '9Chain-এর সর্বজনীন টেস্টনেট — Avalanche ইঞ্জিনে চলা একটি স্বতন্ত্র নেটওয়ার্ক',

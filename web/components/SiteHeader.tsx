@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ThemeToggle } from './ThemeToggle';
-import { ChonNgonNgu } from './LanguagePicker';
+import { LanguagePicker } from './LanguagePicker';
 import { BrandLockup } from './BrandLockup';
 import { useT } from '@/lib/i18n';
-import type { Tu } from '@/lib/i18n/en';
-import { explorerGoc } from '@/lib/chain';
-import { gop } from './ui';
+import type { Dict } from '@/lib/i18n/en';
+import { explorerOrigin } from '@/lib/chain';
+import { cx } from './ui';
 
 /**
  * Thanh điều hướng. Tên component trùng với 9Scan-A1 có chủ đích — người sang lại
@@ -31,7 +31,7 @@ type Muc = { chu: string; href: string; ngoai?: boolean };
 // tiếng Anh — và không có lỗi nào báo, vì mã vẫn chạy đúng.
 // Đường dẫn thì KHÔNG đổi theo ngôn ngữ (mỗi trang chỉ có một URL), nên chỉ phần
 // chữ nhận `t`.
-function dungMuc(t: Tu): Muc[] {
+function dungMuc(t: Dict): Muc[] {
   return [
     { chu: t.nav.home, href: '/' },
     { chu: t.nav.faucet, href: '/faucet/' },
@@ -111,7 +111,7 @@ export function SiteHeader() {
             </a>
           ))}
           <a
-            href={explorerGoc()}
+            href={explorerOrigin()}
             target="_blank"
             rel="noreferrer"
             aria-label={t.nav.explorerAria}
@@ -123,7 +123,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <ChonNgonNgu />
+          <LanguagePicker />
           <ThemeToggle />
           <button
             ref={nutRef}
@@ -145,7 +145,7 @@ export function SiteHeader() {
         id="ngan-dieu-huong"
         ref={nganRef}
         hidden={!moNgan}
-        className={gop('border-t border-line-dark bg-navy-panel md:hidden')}
+        className={cx('border-t border-line-dark bg-navy-panel md:hidden')}
       >
         <nav aria-label={t.common.openMenu} className="khung flex flex-col py-2">
           {MUC.map((m) => (
@@ -158,7 +158,7 @@ export function SiteHeader() {
             </a>
           ))}
           <a
-            href={explorerGoc()}
+            href={explorerOrigin()}
             target="_blank"
             rel="noreferrer"
             className="rounded-btn px-3 py-3 text-base font-semibold text-on-dark hover:bg-navy-hover"

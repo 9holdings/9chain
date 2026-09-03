@@ -6,7 +6,7 @@
  * ═══ VÌ SAO TỆP NÀY ĐẶC BIỆT ═══
  * 1. Nó đi CÙNG BUNDLE — 29 ngôn ngữ còn lại nạp theo chunk. Nó phải có mặt ở khung
  *    hình đầu tiên, và nó là bản rơi về khi một chunk nạp hỏng.
- * 2. Nó định nghĩa kiểu `Tu`. Thiếu một khoá ở đây là khoá đó không tồn tại với cả
+ * 2. Nó định nghĩa kiểu `Dict`. Thiếu một khoá ở đây là khoá đó không tồn tại với cả
  *    30 ngôn ngữ; thừa một khoá là 29 bản dịch kia đỏ ở `tsc`.
  * 3. Mọi bản dịch khác dịch RA TỪ ĐÂY, không phải từ `vi.ts`. Dịch qua hai tầng là
  *    nhân đôi chỗ để nghĩa trôi đi.
@@ -577,6 +577,6 @@ export const EN = {
  * `string` — đúng thứ ta muốn khoá lại: cấu trúc thì cứng, nội dung thì tự do.
  */
 type SauChuoi<T> = { [K in keyof T]: T[K] extends string ? string : SauChuoi<T[K]> };
-export type Tu = SauChuoi<typeof EN>;
+export type Dict = SauChuoi<typeof EN>;
 
 export default EN;

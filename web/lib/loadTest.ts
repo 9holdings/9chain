@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { docJson, HAN_DOC_MS } from './net';
+import { fetchJson, READ_TIMEOUT_MS } from './net';
 
 /**
  * Status of the disclosed synthetic load test, published by `heartbeat-pump.mjs`.
@@ -40,7 +40,7 @@ export type LoadTestStatus = {
   };
 };
 
-export type TrangThaiTai =
+export type LoadTestState =
   | { pha: 'dangTai' }
   | { pha: 'xong'; tt: LoadTestStatus }
   | { pha: 'hong'; viSao: string };
@@ -84,7 +84,7 @@ function docDuoc(j: unknown): LoadTestStatus | null {
 }
 
 /** A reading counts as live only if the pump says so AND the file is recent. */
-export function dangChay(tt: LoadTestStatus, bayGio = Date.now()): boolean {
+export function isRunning(tt: LoadTestStatus, bayGio = Date.now()): boolean {
   if (!tt.running) return false;
   const luc = Date.parse(tt.updatedAt);
   if (Number.isNaN(luc)) return false;
@@ -98,8 +98,8 @@ export function dangChay(tt: LoadTestStatus, bayGio = Date.now()): boolean {
  * more than a few seconds does not need a request every five. `/live` is a status
  * page whose whole purpose is a number that moves, so it polls.
  */
-export function useLoadTest(nhipMs = 0): TrangThaiTai {
-  const [tt, datTt] = useState<TrangThaiTai>({ pha: 'dangTai' });
+export function useLoadTest(nhipMs = 0): LoadTestState {
+  const [tt, datTt] = useState<LoadTestState>({ pha: 'dangTai' });
 
   useEffect(() => {
     let huy = false;
@@ -107,7 +107,7 @@ export function useLoadTest(nhipMs = 0): TrangThaiTai {
 
     async function doc() {
       try {
-        const j = await docJson<unknown>(DUONG, {}, HAN_DOC_MS / 1000);
+        const j = await fetchJson<unknown>(DUONG, {}, READ_TIMEOUT_MS / 1000);
         if (huy) return;
         const d = docDuoc(j);
         datTt(d ? { pha: 'xong', tt: d } : { pha: 'hong', viSao: 'unexpected status format' });

@@ -16,24 +16,24 @@
  * `{nonce, signature}`. Client KHÔNG tự dựng message: tự dựng là mở đường cho hai
  * bên hiểu khác nhau về thứ vừa được ký, và khi đó chữ ký chứng minh sai thứ.
  */
-import { faucetGoc } from './chain';
+import { faucetOrigin } from './chain';
 
 /**
  * Hạn giờ cho các lượt gọi console NGẮN (`/api/status`, `/api/progress`). (Đ1-8)
  *
- * 🔴 KHÔNG dùng cho `/api/create` / `/api/revoke` — xem chú thích ở `goiConsole`.
+ * 🔴 KHÔNG dùng cho `/api/create` / `/api/revoke` — xem chú thích ở `callConsole`.
  * Để rộng rãi (15s) có chủ ý: đây là các lượt đọc chạy XEN GIỮA một thao tác dài,
  * và mạng lúc đó đang bận thật. Hạn quá chặt sẽ biến một nhịp chậm bình thường
  * thành một lỗi giả ngay giữa lúc người dùng đang hồi hộp nhất.
  */
-export const HAN_CONSOLE_GIAY = 15;
+export const CONSOLE_TIMEOUT_S = 15;
 
-export type ViTrinhDuyet = {
+export type BrowserWallet = {
   request(a: { method: string; params?: unknown[] }): Promise<unknown>;
 };
 
-export type ThongTinVi = { uuid: string; name: string; rdns: string; icon?: string };
-type ViDaKhai = { info: ThongTinVi; provider: ViTrinhDuyet };
+export type WalletInfo = { uuid: string; name: string; rdns: string; icon?: string };
+type ViDaKhai = { info: WalletInfo; provider: BrowserWallet };
 
 /**
  * ═══ VÌ SAO KHÔNG DÙNG THẲNG `window.ethereum` ═══
@@ -49,7 +49,7 @@ type ViDaKhai = { info: ThongTinVi; provider: ViTrinhDuyet };
  * là **ta đang nói chuyện với nhầm ví**. (Cùng một cái bẫy -32601 mà dự án đã dính
  * một lần ở API Warp: mã lỗi nói về TÊN HÀM, còn nguyên nhân nằm ở NGƯỜI NGHE.)
  *
- * Và nó không chỉ hỏng cái nút thêm mạng: `layVi()` là đường đăng nhập SIWE của
+ * Và nó không chỉ hỏng cái nút thêm mạng: `getWallet()` là đường đăng nhập SIWE của
  * `/create-chain/` lẫn `/my-chains/`, nên "nhầm ví" nghĩa là ký bằng ví khác với
  * ví người dùng tưởng — mà `admin` của chain thì bị ÉP theo địa chỉ đã ký.
  *
@@ -71,17 +71,17 @@ if (typeof window !== 'undefined') {
 }
 
 /** Mọi ví đã tự khai. Rỗng nghĩa là không ví nào theo EIP-6963 (hoặc chưa kịp khai). */
-export function dsVi(): ThongTinVi[] {
+export function listWallets(): WalletInfo[] {
   return [...viDaKhai.values()].map((v) => v.info);
 }
 
-/** Người dùng chọn ví theo `rdns`. Không kiểm tồn tại — `layVi()` tự rơi về mặc định. */
-export function chonVi(rdns: string | null): void {
+/** Người dùng chọn ví theo `rdns`. Không kiểm tồn tại — `getWallet()` tự rơi về mặc định. */
+export function pickWallet(rdns: string | null): void {
   viChonTay = rdns;
 }
 
 /** Tên ví đang thật sự được dùng, để giao diện nói rõ chứ không để người dùng đoán. */
-export function tenViDangDung(): string | null {
+export function activeWalletName(): string | null {
   const chon = viChonTay ? viDaKhai.get(viChonTay) : null;
   if (chon) return chon.info.name;
   const mm = [...viDaKhai.values()].find((v) => v.info.rdns === 'io.metamask');
@@ -90,7 +90,7 @@ export function tenViDangDung(): string | null {
   return dau ? dau.info.name : null;
 }
 
-export function layVi(): ViTrinhDuyet | null {
+export function getWallet(): BrowserWallet | null {
   if (typeof window === 'undefined') return null;
 
   // 1. Người dùng đã chọn tay thì tôn trọng tuyệt đối.
@@ -110,7 +110,7 @@ export function layVi(): ViTrinhDuyet | null {
   //    ước cũ của MetaMask khi có nhiều ví; tìm MetaMask trong đó trước khi chịu
   //    nhận bừa `window.ethereum`.
   const w = window as unknown as {
-    ethereum?: ViTrinhDuyet & { isMetaMask?: boolean; providers?: (ViTrinhDuyet & { isMetaMask?: boolean })[] };
+    ethereum?: BrowserWallet & { isMetaMask?: boolean; providers?: (BrowserWallet & { isMetaMask?: boolean })[] };
   };
   const ds = w.ethereum?.providers;
   if (Array.isArray(ds)) return ds.find((p) => p.isMetaMask) ?? ds[0] ?? null;
@@ -118,7 +118,7 @@ export function layVi(): ViTrinhDuyet | null {
 }
 
 /** Gốc API console. Cùng tên miền với trang ⇒ đường tương đối là đủ và đúng. */
-export function consoleGoc(): string {
+export function consoleOrigin(): string {
   if (typeof window === 'undefined') return '/console';
   const h = window.location.hostname;
   // Dev trên máy: trang ở localhost:3901 còn console ở tunnel :8091.
@@ -126,21 +126,21 @@ export function consoleGoc(): string {
   return `${window.location.protocol}//${h}/console`;
 }
 
-export type PhienVi = { diaChi: string; token: string };
+export type WalletSession = { diaChi: string; token: string };
 
-export async function noiVi(): Promise<string> {
-  const v = layVi();
+export async function connectWallet(): Promise<string> {
+  const v = getWallet();
   if (!v) throw new Error('KHONG_CO_VI');
   const ds = (await v.request({ method: 'eth_requestAccounts' })) as string[];
   if (!ds?.length) throw new Error('KHONG_CHON_VI');
   return ds[0];
 }
 
-export async function dangNhapSiwe(diaChi: string): Promise<PhienVi> {
-  const v = layVi();
+export async function siweSignIn(diaChi: string): Promise<WalletSession> {
+  const v = getWallet();
   if (!v) throw new Error('KHONG_CO_VI');
 
-  const rn = await fetch(`${consoleGoc()}/api/siwe/nonce?address=${encodeURIComponent(diaChi)}`, {
+  const rn = await fetch(`${consoleOrigin()}/api/siwe/nonce?address=${encodeURIComponent(diaChi)}`, {
     cache: 'no-store',
   });
   const jn = await rn.json();
@@ -153,7 +153,7 @@ export async function dangNhapSiwe(diaChi: string): Promise<PhienVi> {
     params: [jn.message, diaChi],
   })) as string;
 
-  const rl = await fetch(`${consoleGoc()}/api/siwe/login`, {
+  const rl = await fetch(`${consoleOrigin()}/api/siwe/login`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ nonce: jn.nonce, signature }),
@@ -182,11 +182,11 @@ export async function dangNhapSiwe(diaChi: string): Promise<PhienVi> {
  * 🔴 `status = 0` nghĩa là KHÔNG CÓ phản hồi HTTP (đứt mạng, DNS, CORS). Đừng coi
  * `0` như 4xx — đó đúng là ca "không biết gì cả", và im lặng chờ mới là đúng.
  */
-export class LoiConsole extends Error {
+export class ConsoleError extends Error {
   readonly status: number;
   constructor(thongDiep: string, status: number) {
     super(thongDiep);
-    this.name = 'LoiConsole';
+    this.name = 'ConsoleError';
     this.status = status;
   }
   /** Server đã trả lời và trả lời là "không" ⇒ việc chưa bắt đầu, dừng được. */
@@ -202,13 +202,13 @@ export class LoiConsole extends Error {
  * 🔴 `/api/create` và `/api/revoke` TUYỆT ĐỐI KHÔNG ĐƯỢC TRUYỀN `hanGiay`.
  * Chúng mất ~170–300 giây thật; huỷ request giữa chừng thì **server vẫn đẻ chain
  * xong** trong khi người dùng thấy "lỗi" và đi bấm lại. Cloudflare đã cắt ở ~100s
- * (524) và mã này vốn được viết để SỐNG CHUNG với điều đó — xem `choTienTrinhXong`.
+ * (524) và mã này vốn được viết để SỐNG CHUNG với điều đó — xem `waitForProgress`.
  *
  * ⇒ Chiều mặc định chọn có chủ ý: **quên bật** hạn giờ thì cùng lắm chậm như hôm
  *   nay; **quên tắt** thì gãy một đường không sửa lại được. Chỉ bật ở lượt gọi đã
  *   biết chắc là ngắn (`/api/status`, `/api/progress`).
  */
-export async function goiConsole<T = unknown>(
+export async function callConsole<T = unknown>(
   duong: string,
   token: string,
   body?: unknown,
@@ -216,7 +216,7 @@ export async function goiConsole<T = unknown>(
 ): Promise<T> {
   let r: Response;
   try {
-    r = await fetch(`${consoleGoc()}${duong}`, {
+    r = await fetch(`${consoleOrigin()}${duong}`, {
       method: body === undefined ? 'GET' : 'POST',
       headers: {
         authorization: `Bearer ${token}`,
@@ -233,7 +233,7 @@ export async function goiConsole<T = unknown>(
     // Nhầm chiều này là kiểu hỏng đắt nhất: bỏ cuộc giữa một việc đang chạy đúng.
     const ten = (e as Error)?.name;
     const het = ten === 'TimeoutError' || ten === 'AbortError';
-    throw new LoiConsole(het ? `quá ${hanGiay}s không có trả lời` : String((e as Error)?.message ?? e), 0);
+    throw new ConsoleError(het ? `quá ${hanGiay}s không có trả lời` : String((e as Error)?.message ?? e), 0);
   }
   const t = await r.text();
   let j: unknown;
@@ -244,13 +244,13 @@ export async function goiConsole<T = unknown>(
     // proxy sai) thì request rơi vào Blockscout ở gốc và ta nhận về HTML. Không nói
     // rõ thì lỗi hiện ra là "JSON parse error" — đọc như lỗi dữ liệu chứ không như
     // lỗi định tuyến, và người sửa đi tìm ở đúng chỗ không có gì.
-    throw new LoiConsole(`đáp án không phải JSON (HTTP ${r.status}) — kiểm tra đường dẫn console`, r.status);
+    throw new ConsoleError(`đáp án không phải JSON (HTTP ${r.status}) — kiểm tra đường dẫn console`, r.status);
   }
-  if (!r.ok) throw new LoiConsole((j as { error?: string }).error || `HTTP ${r.status}`, r.status);
+  if (!r.ok) throw new ConsoleError((j as { error?: string }).error || `HTTP ${r.status}`, r.status);
   return j as T;
 }
 
-export type TienTrinh = {
+export type Progress = {
   running: boolean;
   kind: string | null;
   name: string | null;
@@ -280,7 +280,7 @@ export type TienTrinh = {
  * Hàm này lo phần (1). Phần (2) do từng màn tự kiểm, vì "thành công" của đẻ và của
  * thu hồi là hai mệnh đề ngược nhau.
  */
-export async function choTienTrinhXong(
+export async function waitForProgress(
   token: string,
   {
     moiMs = 2000,
@@ -297,13 +297,13 @@ export async function choTienTrinhXong(
      */
     tuChoiSom?: () => boolean;
   } = {},
-): Promise<TienTrinh | null> {
+): Promise<Progress | null> {
   const hetLuc = Date.now() + tranGiay * 1000;
-  let cuoi: TienTrinh | null = null;
+  let cuoi: Progress | null = null;
   let daThayChay = false;
   while (Date.now() < hetLuc) {
     try {
-      const t = await goiConsole<TienTrinh>('/api/progress', token, undefined, HAN_CONSOLE_GIAY);
+      const t = await callConsole<Progress>('/api/progress', token, undefined, CONSOLE_TIMEOUT_S);
       cuoi = t;
       if (t.running) daThayChay = true;
       // Chỉ kết luận "xong" SAU KHI đã thấy nó chạy: gọi quá sớm thì hàng đợi chưa
@@ -346,16 +346,16 @@ export async function choTienTrinhXong(
  * Mọi mã khác: hiện NGUYÊN VĂN mã + thông điệp của ví. Đó là thứ duy nhất phân biệt
  * "tham số của ta sai" với "ví không chịu".
  */
-export type LoiVi = { tuChoi: boolean; chu: string | null };
+export type WalletError = { tuChoi: boolean; chu: string | null };
 
-export function docLoiVi(e: unknown): LoiVi {
+export function readWalletError(e: unknown): WalletError {
   const err = e as { code?: number; message?: string };
   if (err?.code === 4001) return { tuChoi: true, chu: null };
   if ((e as Error)?.message === 'KHONG_CO_VI') {
     return { tuChoi: false, chu: 'Không thấy ví trong trình duyệt.' };
   }
-  const ten = tenViDangDung();
-  const khac = dsVi()
+  const ten = activeWalletName();
+  const khac = listWallets()
     .map((x) => x.name)
     .filter((n) => n !== ten);
   const them =
@@ -365,13 +365,13 @@ export function docLoiVi(e: unknown): LoiVi {
   return { tuChoi: false, chu: `${err?.code ?? '?'} · ${err?.message ?? String(e)}${them}` };
 }
 
-export async function themL1VaoVi(p: {
+export async function addL1ToWallet(p: {
   chainIdHex: string;
   name: string;
   rpc: string;
   kyHieu: string;
 }): Promise<void> {
-  const v = layVi();
+  const v = getWallet();
   if (!v) throw new Error('KHONG_CO_VI');
   await v.request({
     method: 'wallet_addEthereumChain',
@@ -387,8 +387,8 @@ export async function themL1VaoVi(p: {
 }
 
 /** Gửi một giao dịch CHUYỂN TIỀN THƯỜNG để mở block 1 của chain vừa đẻ. */
-export async function kichHoatChain(chainIdHex: string, tuDiaChi: string): Promise<string> {
-  const v = layVi();
+export async function activateChain(chainIdHex: string, tuDiaChi: string): Promise<string> {
+  const v = getWallet();
   if (!v) throw new Error('KHONG_CO_VI');
   await v.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainIdHex }] });
   // 🔴 21.000 gas là HẰNG SỐ của EVM cho một lượt chuyển tiền thường ⇒ không cần
@@ -400,4 +400,4 @@ export async function kichHoatChain(chainIdHex: string, tuDiaChi: string): Promi
   })) as string;
 }
 
-export { faucetGoc };
+export { faucetOrigin };

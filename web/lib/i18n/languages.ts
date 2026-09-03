@@ -46,9 +46,9 @@
  * trong quy trình ấy: nó không được dịch, nên không có gì để soát lại. Gộp hai thứ
  * vào một nhãn là làm mất chính sự phân biệt mà trường này sinh ra để giữ.
  */
-export type MucSoat = 'goc' | 'nguoi' | 'may';
+export type ReviewLevel = 'goc' | 'nguoi' | 'may';
 
-export type NgonNgu = {
+export type Language = {
   /** Mã BCP-47, dùng thẳng cho thuộc tính `lang` của <html>. */
   ma: string;
   /** Tên gọi TRONG CHÍNH thứ tiếng đó — người tìm ngôn ngữ của mình tìm bằng tên này. */
@@ -57,7 +57,7 @@ export type NgonNgu = {
   tenAnh: string;
   /** Chiều viết. Chỉ 3/30 là `'rtl'`. */
   chieu: 'ltr' | 'rtl';
-  soat: MucSoat;
+  soat: ReviewLevel;
 };
 
 /**
@@ -68,7 +68,7 @@ export type NgonNgu = {
  * ⚠️ `ma` phải là mã BCP-47 hợp lệ — nó đi thẳng vào `<html lang>`, và trình đọc
  * màn hình chọn giọng theo đó. Gõ sai một mã là cả trang bị đọc bằng ngữ âm khác.
  */
-export const NGON_NGU: readonly NgonNgu[] = [
+export const LANGUAGES: readonly Language[] = [
   { ma: 'en', ten: 'English', tenAnh: 'English', chieu: 'ltr', soat: 'goc' },
   { ma: 'zh', ten: '中文（简体）', tenAnh: 'Chinese (Simplified)', chieu: 'ltr', soat: 'may' },
   { ma: 'hi', ten: 'हिन्दी', tenAnh: 'Hindi', chieu: 'ltr', soat: 'may' },
@@ -109,15 +109,15 @@ export const NGON_NGU: readonly NgonNgu[] = [
 ] as const;
 
 /** Mã của ngôn ngữ mặc định. Đổi giá trị này là đổi thứ người lạ gặp đầu tiên. */
-export const MAC_DINH = 'en';
+export const DEFAULT_CODE = 'en';
 
 /** Khoá `localStorage`. Cùng tiền tố `9chain-` với `9chain-theme`. */
-export const KHOA_LUU = '9chain-lang';
+export const STORAGE_KEY = '9chain-lang';
 
-const THEO_MA = new Map(NGON_NGU.map((n) => [n.ma, n]));
+const THEO_MA = new Map(LANGUAGES.map((n) => [n.ma, n]));
 
 /** Có phải một mã trong sổ không. Dùng để lọc giá trị đọc từ `localStorage`. */
-export function laMaHopLe(ma: string | null | undefined): boolean {
+export function isValidCode(ma: string | null | undefined): boolean {
   return !!ma && THEO_MA.has(ma);
 }
 
@@ -127,8 +127,8 @@ export function laMaHopLe(ma: string | null | undefined): boolean {
  * `undefined` ở đó biến thành `lang="undefined"` trên <html> — trình đọc màn hình
  * mất giọng mà không có lỗi nào báo.
  */
-export function tra(ma: string | null | undefined): NgonNgu {
-  return (ma && THEO_MA.get(ma)) || THEO_MA.get(MAC_DINH)!;
+export function lookup(ma: string | null | undefined): Language {
+  return (ma && THEO_MA.get(ma)) || THEO_MA.get(DEFAULT_CODE)!;
 }
 
 /**
@@ -146,10 +146,10 @@ export function tra(ma: string | null | undefined): NgonNgu {
  * Người đọc tiếng Việt vì thế thấy MỘT NHÁY tiếng Anh. Đó là cái giá của xuất tĩnh,
  * đã biết trước, không phải lỗi — muốn hết thì phải có URL riêng cho từng ngôn ngữ.
  */
-export function doanNgonNgu(cuaTrinhDuyet: readonly string[] | undefined): string {
+export function guessLanguage(cuaTrinhDuyet: readonly string[] | undefined): string {
   for (const l of cuaTrinhDuyet ?? []) {
     const goc = (l || '').split('-')[0].toLowerCase();
-    if (laMaHopLe(goc)) return goc;
+    if (isValidCode(goc)) return goc;
   }
-  return MAC_DINH;
+  return DEFAULT_CODE;
 }

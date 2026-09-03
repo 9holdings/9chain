@@ -1,9 +1,9 @@
 'use client';
 
-import { dien, useT } from '@/lib/i18n';
-import { dangChay, useLoadTest } from '@/lib/loadTest';
-import { dinhDangSo } from '@/lib/numbers';
-import { useNgonNgu } from '@/lib/i18n';
+import { interpolate, useT } from '@/lib/i18n';
+import { isRunning, useLoadTest } from '@/lib/loadTest';
+import { formatNumber } from '@/lib/numbers';
+import { useLanguage } from '@/lib/i18n';
 
 /**
  * Site-wide strip announcing the synthetic load test.
@@ -24,10 +24,10 @@ import { useNgonNgu } from '@/lib/i18n';
  */
 export function LoadTestBanner() {
   const t = useT();
-  const { ma } = useNgonNgu();
+  const { ma } = useLanguage();
   const tt = useLoadTest();
 
-  if (tt.pha !== 'xong' || !dangChay(tt.tt)) return null;
+  if (tt.pha !== 'xong' || !isRunning(tt.tt)) return null;
 
   // Prefer the measured rate over the configured target: the banner should say what
   // the network is actually doing, not what we asked it to do. They agree when
@@ -38,7 +38,7 @@ export function LoadTestBanner() {
     <aside aria-label={t.loadTest.badge} className="border-b border-gold-line bg-gold-tint text-ink">
       <div className="khung flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2.5 text-sm">
         <span className="font-semibold">{t.loadTest.badge}</span>
-        <span>{dien(t.loadTest.banner, { tps: dinhDangSo(tps, ma) })}</span>
+        <span>{interpolate(t.loadTest.banner, { tps: formatNumber(tps, ma) })}</span>
         <a
           href="/live/"
           className="font-semibold text-gold-ink-strong underline underline-offset-2 hover:no-underline"

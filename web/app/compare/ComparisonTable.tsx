@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { The, Nhan, Xuong, LuuY, gop } from '@/components/ui';
-import { useSoLieu } from '@/lib/stats';
-import { useT, useNgonNgu } from '@/lib/i18n';
-import { dinhDangSo } from '@/lib/numbers';
+import { Card, Badge, Skeleton, Note, cx } from '@/components/ui';
+import { useNetworkStats } from '@/lib/stats';
+import { useT, useLanguage } from '@/lib/i18n';
+import { formatNumber } from '@/lib/numbers';
 
 /**
  * Bảng so sánh A1 ↔ C1.
@@ -41,9 +41,9 @@ const GOC: TieuChi[] = [
 
 export function ComparisonTable() {
   const t = useT();
-  const { ma } = useNgonNgu();
+  const { ma } = useLanguage();
   const [ts, datTs] = useState<number[]>(GOC.map((c) => c.w));
-  const { tt } = useSoLieu();
+  const { tt } = useNetworkStats();
 
   const diemA = GOC.reduce((t, c, i) => t + c.a * ts[i], 0);
   const diemC = GOC.reduce((t, c, i) => t + c.c * ts[i], 0);
@@ -51,12 +51,12 @@ export function ComparisonTable() {
 
   return (
     <div className="mt-8 flex flex-col gap-6">
-      <LuuY kieu="canhBao">
+      <Note kieu="canhBao">
         <strong className="block font-semibold">{t.compare.selfScoreTitle}</strong>
         <span className="mt-1 block">{t.compare.selfScoreDesc}</span>
-      </LuuY>
+      </Note>
 
-      <The className="p-5">
+      <Card className="p-5">
         <h2 className="font-display text-base font-bold text-ink">{t.compare.liveDataTitle}</h2>
         <dl className="mt-4 grid gap-4 sm:grid-cols-3">
           {/* Ba trạng thái MỖI Ô (Đ1-8): `undefined` đang đo · `string` đo được ·
@@ -72,7 +72,7 @@ export function ComparisonTable() {
               { n: t.compare.a1Chains, v: !s ? undefined : s.soL1 === null ? null : String(s.soL1) },
               {
                 n: t.compare.a1Blocks,
-                v: !s ? undefined : s.chieuCaoBlock === null ? null : dinhDangSo(s.chieuCaoBlock, ma),
+                v: !s ? undefined : s.chieuCaoBlock === null ? null : formatNumber(s.chieuCaoBlock, ma),
               },
             ];
           })().map((x) => (
@@ -84,7 +84,7 @@ export function ComparisonTable() {
                 ) : x.v === null || tt.pha === 'hong' ? (
                   <span className="font-sans text-sm font-normal text-muted">{t.compare.cannotMeasure}</span>
                 ) : (
-                  <><span className="sr-only">{t.compare.measuring}</span><Xuong className="h-8 w-16" /></>
+                  <><span className="sr-only">{t.compare.measuring}</span><Skeleton className="h-8 w-16" /></>
                 )}
               </dd>
             </div>
@@ -95,9 +95,9 @@ export function ComparisonTable() {
           <p className="text-sm font-semibold text-body">{t.compare.c1Unreachable}</p>
           <p className="mt-1 text-sm text-body-2">{t.compare.c1UnreachableDesc}</p>
         </div>
-      </The>
+      </Card>
 
-      <The className="overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[46rem] border-collapse text-sm">
             <caption className="sr-only">{t.compare.title}</caption>
@@ -122,9 +122,9 @@ export function ComparisonTable() {
                     <span className="mt-0.5 block text-xs font-normal text-body-2">{c.note}</span>
                   </th>
                   <td className="px-3 py-3">
-                    <Nhan kieu={c.loai === 'song' ? 'tot' : 'trungTinh'}>
+                    <Badge kieu={c.loai === 'song' ? 'tot' : 'trungTinh'}>
                       {c.loai === 'song' ? t.compare.kindLiveData : t.compare.kindArchitecture}
-                    </Nhan>
+                    </Badge>
                   </td>
                   <td className="px-3 py-3 text-center font-mono font-bold text-ink">{c.a}</td>
                   <td className="px-3 py-3 text-center font-mono font-bold text-ink">{c.c}</td>
@@ -146,9 +146,9 @@ export function ComparisonTable() {
             </tbody>
           </table>
         </div>
-      </The>
+      </Card>
 
-      <The className="p-5">
+      <Card className="p-5">
         <h2 className="font-display text-base font-bold text-ink">{t.compare.totalScore}</h2>
         <div className="mt-4 flex flex-wrap items-baseline gap-6">
           {[
@@ -157,7 +157,7 @@ export function ComparisonTable() {
           ].map((x) => (
             <p key={x.t} className="flex items-baseline gap-2">
               <span className="text-sm font-semibold text-muted">{x.t}</span>
-              <span className={gop('font-display text-3xl font-extrabold', x.mau)}>{x.d}</span>
+              <span className={cx('font-display text-3xl font-extrabold', x.mau)}>{x.d}</span>
             </p>
           ))}
           <p className="text-sm font-semibold text-body">
@@ -170,7 +170,7 @@ export function ComparisonTable() {
           <div className="bg-gold" style={{ width: `${(diemA / tong) * 100}%` }} />
           <div className="bg-vision-dot" style={{ width: `${(diemC / tong) * 100}%` }} />
         </div>
-      </The>
+      </Card>
     </div>
   );
 }

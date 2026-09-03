@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toChecksumAddress, kiemDiaChi, rutGon } from '../lib/eip55';
+import { toChecksumAddress, checkAddress, shortenAddress } from '../lib/eip55';
 // `allowJs` cho TS suy kiểu thẳng từ file .mjs — không cần khai báo kiểu riêng.
 import { toChecksumAddress as chuanGoc } from '../../local-net/lib/eip55.mjs';
 
@@ -37,7 +37,7 @@ describe('EIP-55', () => {
 
   it('từ chối địa chỉ sai checksum, và gợi ý đường thoát', () => {
     const hong = '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAeD'; // đổi ký tự cuối
-    const kq = kiemDiaChi(hong);
+    const kq = checkAddress(hong);
     expect(kq.ok).toBe(false);
     if (!kq.ok) {
       expect(kq.loi).toMatch(/checksum/i);
@@ -47,18 +47,18 @@ describe('EIP-55', () => {
   });
 
   it('chấp nhận toàn thường và toàn hoa (không mang thông tin checksum)', () => {
-    expect(kiemDiaChi(VECTOR[0].toLowerCase()).ok).toBe(true);
-    expect(kiemDiaChi('0x' + VECTOR[0].slice(2).toUpperCase()).ok).toBe(true);
+    expect(checkAddress(VECTOR[0].toLowerCase()).ok).toBe(true);
+    expect(checkAddress('0x' + VECTOR[0].slice(2).toUpperCase()).ok).toBe(true);
   });
 
   it('từ chối địa chỉ 0 và chuỗi sai hình dạng', () => {
-    expect(kiemDiaChi('0x' + '0'.repeat(40)).ok).toBe(false);
-    expect(kiemDiaChi('0x123').ok).toBe(false);
-    expect(kiemDiaChi('').ok).toBe(false);
+    expect(checkAddress('0x' + '0'.repeat(40)).ok).toBe(false);
+    expect(checkAddress('0x123').ok).toBe(false);
+    expect(checkAddress('').ok).toBe(false);
   });
 
   it('rút gọn vẫn giữ đủ hai đầu để đối chiếu', () => {
-    const r = rutGon(VECTOR[0]);
+    const r = shortenAddress(VECTOR[0]);
     expect(r.startsWith('0x5aAeb6')).toBe(true);
     expect(r.endsWith('eAed')).toBe(true);
   });

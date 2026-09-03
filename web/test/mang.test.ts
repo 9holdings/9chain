@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { docJson, LoiMang, HAN_DOC_MS } from '../lib/net';
+import { fetchJson, NetworkError, READ_TIMEOUT_MS } from '../lib/net';
 
 /**
  * Lưới an toàn mạng (Đ1-8).
@@ -34,16 +34,16 @@ function gia(opts: { status?: number; body?: string; treo?: boolean; nem?: Error
   });
 }
 
-describe('docJson — ba kiểu hỏng phải phân biệt được', () => {
+describe('fetchJson — ba kiểu hỏng phải phân biệt được', () => {
   it('máy chủ CHẬM/treo ⇒ hetGio, không treo mãi', async () => {
     gia({ treo: true });
     // Hạn 0,05s để bài kiểm không tự nó chậm.
-    await expect(docJson('/x', {}, 0.05)).rejects.toMatchObject({ loai: 'hetGio' });
+    await expect(fetchJson('/x', {}, 0.05)).rejects.toMatchObject({ loai: 'hetGio' });
   });
 
   it('máy chủ CHẾT (500) ⇒ http, và thử lại KHÔNG vô ích', async () => {
     gia({ status: 500, body: '{"error":"vo"}' });
-    const e = await docJson('/x').catch((x) => x as LoiMang);
+    const e = await fetchJson('/x').catch((x) => x as NetworkError);
     expect(e.loai).toBe('http');
     expect(e.status).toBe(500);
     expect(e.thuLaiVoIch).toBe(false);
@@ -51,7 +51,7 @@ describe('docJson — ba kiểu hỏng phải phân biệt được', () => {
 
   it('máy chủ TỪ CHỐI THẬT (401) ⇒ thử lại vô ích', async () => {
     gia({ status: 401, body: '{"error":"chưa xác thực"}' });
-    const e = await docJson('/x').catch((x) => x as LoiMang);
+    const e = await fetchJson('/x').catch((x) => x as NetworkError);
     expect(e.thuLaiVoIch).toBe(true);
     expect(e.message).toContain('chưa xác thực');
   });
@@ -59,14 +59,14 @@ describe('docJson — ba kiểu hỏng phải phân biệt được', () => {
   it('máy chủ trả RÁC (HTML) ⇒ khongPhaiJson, và câu lỗi phải nghi ĐỊNH TUYẾN', async () => {
     // Ca thật: request rơi xuống Blockscout ở gốc `/` và ta nhận về khung HTML.
     gia({ status: 200, body: '<!DOCTYPE html><html><body>Blockscout</body></html>' });
-    const e = await docJson('/x').catch((x) => x as LoiMang);
+    const e = await fetchJson('/x').catch((x) => x as NetworkError);
     expect(e.loai).toBe('khongPhaiJson');
     expect(e.message).toMatch(/đường dẫn/i);
   });
 
   it('đứt mạng ⇒ dutMang, KHÔNG bị nhầm thành hetGio', async () => {
     gia({ nem: new TypeError('Failed to fetch') });
-    await expect(docJson('/x')).rejects.toMatchObject({ loai: 'dutMang' });
+    await expect(fetchJson('/x')).rejects.toMatchObject({ loai: 'dutMang' });
   });
 
   it('không truyền hanGiay ⇒ KHÔNG gắn signal (mặc định là không hạn giờ)', async () => {
@@ -75,10 +75,10 @@ describe('docJson — ba kiểu hỏng phải phân biệt được', () => {
       thay = init;
       return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve('{}') } as Response);
     });
-    await docJson('/x');
+    await fetchJson('/x');
     expect(thay?.signal).toBeUndefined();
 
-    await docJson('/x', {}, HAN_DOC_MS / 1000);
+    await fetchJson('/x', {}, READ_TIMEOUT_MS / 1000);
     expect(thay?.signal).toBeDefined(); // có yêu cầu thì mới có
   });
 });
@@ -113,7 +113,7 @@ describe('KHÔNG hạn giờ cho /api/create và /api/revoke', () => {
    * Đếm tham số ở TẦNG NGOÀI CÙNG của một lượt gọi.
    *
    * ⚠️ Bản đầu của cổng này dùng regex đếm dấu phẩy — và nó **báo oan** ngay lần chạy
-   * đầu: `goiConsole('/api/revoke', token, { name, xacNhan })` chỉ có 3 tham số,
+   * đầu: `callConsole('/api/revoke', token, { name, xacNhan })` chỉ có 3 tham số,
    * nhưng dấu phẩy BÊN TRONG object literal làm regex tưởng có 4. Một cổng báo oan
    * còn nguy hơn cổng không có: người ta học cách bỏ qua nó.
    * ⇒ Cân ngoặc thật, đừng đếm ký tự.
@@ -135,7 +135,7 @@ describe('KHÔNG hạn giờ cho /api/create và /api/revoke', () => {
     const pham: string[] = [];
     for (const p of quet(GOC)) {
       const s = readFileSync(p, 'utf8');
-      const re = /goiConsole\s*(?:<[^>]*>)?\s*\(\s*['"]\/api\/(create|revoke)['"]/g;
+      const re = /callConsole\s*(?:<[^>]*>)?\s*\(\s*['"]\/api\/(create|revoke)['"]/g;
       let m: RegExpExecArray | null;
       while ((m = re.exec(s))) {
         // Bắt đầu đếm ngay sau dấu `(` mở của lượt gọi.
@@ -150,7 +150,7 @@ describe('KHÔNG hạn giờ cho /api/create và /api/revoke', () => {
     ).toEqual([]);
   });
 
-  it('`goiConsole` vẫn mặc định KHÔNG hạn giờ (chiều an toàn)', () => {
+  it('`callConsole` vẫn mặc định KHÔNG hạn giờ (chiều an toàn)', () => {
     const s = readFileSync(path.join(GOC, 'lib', 'wallet.ts'), 'utf8');
     // Tham số phải là tuỳ chọn (`hanGiay?:`) và signal chỉ gắn khi có nó.
     expect(s).toMatch(/hanGiay\?\s*:\s*number/);

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { The, Xuong, CoLoi, TrongRong, Nhan } from '@/components/ui';
-import { rutGon } from '@/lib/eip55';
+import { Card, Skeleton, ErrorState, EmptyState, Badge } from '@/components/ui';
+import { shortenAddress } from '@/lib/eip55';
 import { useT } from '@/lib/i18n';
 import { readDirectory } from '@/lib/directory';
 
@@ -37,7 +37,7 @@ export function ChainTable() {
     // Hạn giờ (Đ1-8) vẫn còn, nay nằm trong `lib/directory.ts` cùng với lượt đọc:
     // đây là một lượt ĐỌC tệp tĩnh, và không có hạn thì một kết nối treo để bảng ở
     // khung xương vĩnh viễn — trang trông như đang tải mãi mãi, và người dùng không
-    // có gì để bấm. Lượt đọc đó DÙNG CHUNG với `useSoLieu` ở cùng trang này.
+    // có gì để bấm. Lượt đọc đó DÙNG CHUNG với `useNetworkStats` ở cùng trang này.
     readDirectory()
       .then((j) => {
         if (huy) return;
@@ -53,22 +53,22 @@ export function ChainTable() {
 
   if (tt.pha === 'tai') {
     return (
-      <The className="p-5">
+      <Card className="p-5">
         <span className="sr-only">{t.common.loading}</span>
         <div className="flex flex-col gap-3">
           {[0, 1, 2].map((i) => (
-            <Xuong key={i} className="h-10 w-full" />
+            <Skeleton key={i} className="h-10 w-full" />
           ))}
         </div>
-      </The>
+      </Card>
     );
   }
 
-  if (tt.pha === 'hong') return <CoLoi thuLai={() => datLan((n) => n + 1)} />;
+  if (tt.pha === 'hong') return <ErrorState thuLai={() => datLan((n) => n + 1)} />;
 
   if (!tt.ds.length) {
     return (
-      <TrongRong
+      <EmptyState
         tieuDe={t.home.emptyTitle}
         moTa={t.home.emptyDesc}
         hanhDong={
@@ -90,7 +90,7 @@ export function ChainTable() {
           `<h1>` — tức nó hiện ra KỂ CẢ khi bảng rỗng, và lúc đó nó trỏ vào những dòng
           không tồn tại. Đặt ở đây thì câu chỉ tồn tại cùng lúc với thứ nó mô tả. */}
       <p className="mb-3 text-sm text-body">{t.home.tableCaption}</p>
-      <The className="overflow-hidden">
+      <Card className="overflow-hidden">
       {/* Bảng rộng phải cuộn TRONG khung của nó — để cả trang cuộn ngang là hỏng
           bố cục ở điện thoại, và đó là lỗi hay gặp nhất với bảng. */}
       <div className="overflow-x-auto">
@@ -125,11 +125,11 @@ export function ChainTable() {
                   <span className="ms-2 font-mono text-xs font-normal text-muted">#{c.chainId}</span>
                 </th>
                 <td className="px-4 py-3 text-body-2">
-                  {(c.presetName ?? c.presetTen) ? <Nhan>{c.presetName ?? c.presetTen}</Nhan> : <span className="text-muted">—</span>}
+                  {(c.presetName ?? c.presetTen) ? <Badge>{c.presetName ?? c.presetTen}</Badge> : <span className="text-muted">—</span>}
                 </td>
                 <td className="px-4 py-3 font-mono text-xs text-body-2">
                   {typeof c.admin === 'string' && c.admin.trim() ? (
-                    rutGon(c.admin)
+                    shortenAddress(c.admin)
                   ) : (
                     <span className="font-sans text-muted">{t.home.systemDefault}</span>
                   )}
@@ -139,7 +139,7 @@ export function ChainTable() {
           </tbody>
         </table>
       </div>
-      </The>
+      </Card>
     </>
   );
 }

@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Nut, The, O, Nhan, Xuong, CoLoi, ChepDuoc, LuuY } from '@/components/ui';
-import { kiemDiaChi, rutGon } from '@/lib/eip55';
-import { CHAIN, faucetGoc, rpcCChain, explorerGoc, thamSoThemMang } from '@/lib/chain';
-import { dien, useT } from '@/lib/i18n';
-import { docJson, HAN_DOC_MS } from '@/lib/net';
-import { layVi, docLoiVi } from '@/lib/wallet';
+import { Button, Card, Field, Badge, Skeleton, ErrorState, Copyable, Note } from '@/components/ui';
+import { checkAddress, shortenAddress } from '@/lib/eip55';
+import { CHAIN, faucetOrigin, rpcCChain, explorerOrigin, addNetworkParams } from '@/lib/chain';
+import { interpolate, useT } from '@/lib/i18n';
+import { fetchJson, READ_TIMEOUT_MS } from '@/lib/net';
+import { getWallet, readWalletError } from '@/lib/wallet';
 
 type ThongTin = {
   amount: string;
@@ -18,7 +18,7 @@ type ThongTin = {
 
 type TrangThaiTin = { pha: 'tai' } | { pha: 'xong'; tin: ThongTin } | { pha: 'hong' };
 
-// 🔴 `layVi` đến từ `@/lib/wallet` — TRƯỚC ĐÂY tệp này có bản chép tay riêng, và bản
+// 🔴 `getWallet` đến từ `@/lib/wallet` — TRƯỚC ĐÂY tệp này có bản chép tay riêng, và bản
 // đó bốc thẳng `window.ethereum`. Hai bản song song nghĩa là hai cách chọn ví khác
 // nhau trong cùng một sản phẩm: faucet nói chuyện với ví này, màn đẻ chain với ví
 // kia, và không màn nào nói cho người dùng biết. Một nguồn duy nhất, xem lib/wallet.
@@ -36,7 +36,7 @@ export function FaucetForm() {
 
   // Chỉ kiểm khi người dùng đã gõ gì đó — báo đỏ vào một ô trống mà họ chưa chạm
   // tới là mắng trước khi hỏi.
-  const kq = diaChi.trim() ? kiemDiaChi(diaChi, t.faucet.addressLabel) : null;
+  const kq = diaChi.trim() ? checkAddress(diaChi, t.faucet.addressLabel) : null;
   const hopLe = kq?.ok === true;
 
   const napTin = useCallback(async () => {
@@ -44,7 +44,7 @@ export function FaucetForm() {
     try {
       // Hạn giờ (Đ1-8) — an toàn ở đây: `/api/info` là lượt ĐỌC hạn mức, không tiêu
       // suất và không đụng chain. (Đường tiêu suất là `/api/drip` bên dưới.)
-      const tin = await docJson<ThongTin>(`${faucetGoc()}/api/info`, {}, HAN_DOC_MS / 1000);
+      const tin = await fetchJson<ThongTin>(`${faucetOrigin()}/api/info`, {}, READ_TIMEOUT_MS / 1000);
       datTin({ pha: 'xong', tin });
     } catch {
       // Không đọc được hạn mức KHÔNG phải lỗi chặn: người dùng vẫn xin được, chỉ là
@@ -63,18 +63,18 @@ export function FaucetForm() {
    * "hoặc", nên khi nút này hỏng thật thì cả người dùng lẫn người sửa đều không có
    * gì để lần. Đã trả giá 2026-08-26.
    *
-   * Cách đọc mã lỗi đã rút sang `docLoiVi()` trong `lib/wallet.ts` — ba nút khác
+   * Cách đọc mã lỗi đã rút sang `readWalletError()` trong `lib/wallet.ts` — ba nút khác
    * trong site cần đúng khuôn này, và trước đó chúng `catch {}` trắng.
    */
   async function themMang() {
-    const v = layVi();
+    const v = getWallet();
     if (!v) return datViTrangThai('khongCo');
     try {
-      await v.request({ method: 'wallet_addEthereumChain', params: [thamSoThemMang()] });
+      await v.request({ method: 'wallet_addEthereumChain', params: [addNetworkParams()] });
       datViTrangThai('xong');
       datViLoi(null);
     } catch (e) {
-      const l = docLoiVi(e);
+      const l = readWalletError(e);
       datViTrangThai(l.tuChoi ? 'tuChoi' : 'errors');
       datViLoi(l.chu);
     }
@@ -86,7 +86,7 @@ export function FaucetForm() {
     datLoiGui(null);
     datKetQua(null);
     try {
-      const r = await fetch(`${faucetGoc()}/api/drip`, {
+      const r = await fetch(`${faucetOrigin()}/api/drip`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ address: kq.diaChi }),
@@ -97,7 +97,7 @@ export function FaucetForm() {
       // Xin xong thì hạn mức đã đổi — đọc lại để con số trên màn khớp sự thật.
       void napTin();
     } catch (e) {
-      datLoiGui(dien(t.faucet.genericError, { chiTiet: String((e as Error).message ?? e) }));
+      datLoiGui(interpolate(t.faucet.genericError, { chiTiet: String((e as Error).message ?? e) }));
     } finally {
       datDangGui(false);
     }
@@ -107,16 +107,16 @@ export function FaucetForm() {
 
   return (
     <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-      <The className="p-5 md:p-6">
+      <Card className="p-5 md:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-lg font-bold text-ink">{t.faucet.title}</h2>
           <HanMuc tin={tin} thuLai={napTin} />
         </div>
 
         <div className="mt-5 flex flex-col gap-2">
-          <Nut kieu="vien" onClick={themMang}>
+          <Button kieu="vien" onClick={themMang}>
             {viTrangThai === 'xong' ? t.faucet.addNetworkDone : t.faucet.addNetwork}
-          </Nut>
+          </Button>
           {viTrangThai === 'tuChoi' && <p className="text-sm text-body-2">{t.faucet.addNetworkRejected}</p>}
           {viTrangThai === 'errors' && (
             <div className="text-sm text-body-2">
@@ -128,7 +128,7 @@ export function FaucetForm() {
         </div>
 
         <div className="mt-6">
-          <O
+          <Field
             nhan={t.faucet.addressLabel}
             moTa={t.faucet.addressHelp}
             placeholder={t.faucet.addressPlaceholder}
@@ -144,18 +144,18 @@ export function FaucetForm() {
 
         {hetSuat && (
           <div className="mt-4">
-            <LuuY kieu="canhBao">
-              {dien(t.faucet.quotaExhausted, {
+            <Note kieu="canhBao">
+              {interpolate(t.faucet.quotaExhausted, {
                 phut: Math.max(1, Math.ceil((tin.pha === 'xong' ? tin.tin.perIp.retryAfter : 60) / 60)),
               })}
-            </LuuY>
+            </Note>
           </div>
         )}
 
         <div className="mt-5">
-          <Nut co="to" onClick={gui} dangChay={dangGui} disabled={!hopLe || hetSuat}>
+          <Button co="to" onClick={gui} isRunning={dangGui} disabled={!hopLe || hetSuat}>
             {dangGui ? t.faucet.sending : t.faucet.requestCta}
-          </Nut>
+          </Button>
         </div>
 
         {ketQua && (
@@ -166,15 +166,15 @@ export function FaucetForm() {
             className="mt-5 rounded-card border border-success-line bg-success-bg px-4 py-3"
           >
             <p className="text-sm font-semibold text-success-ink">
-              {dien(t.faucet.sentOk, {
+              {interpolate(t.faucet.sentOk, {
                 so: ketQua.amount,
                 kyHieu: CHAIN.kyHieu,
-                diaChi: rutGon(kq?.ok ? kq.diaChi : diaChi),
+                diaChi: shortenAddress(kq?.ok ? kq.diaChi : diaChi),
               })}
             </p>
             <a
               className="mt-2 inline-block text-sm font-semibold text-gold-ink-strong underline"
-              href={`${explorerGoc()}/tx/${ketQua.txHash}`}
+              href={`${explorerOrigin()}/tx/${ketQua.txHash}`}
               target="_blank"
               rel="noreferrer"
             >
@@ -185,10 +185,10 @@ export function FaucetForm() {
 
         {loiGui && (
           <div className="mt-5">
-            <CoLoi tieuDe={loiGui} moTa="" thuLai={gui} />
+            <ErrorState tieuDe={loiGui} moTa="" thuLai={gui} />
           </div>
         )}
-      </The>
+      </Card>
 
       <ThongSoMang />
     </div>
@@ -201,7 +201,7 @@ function HanMuc({ tin, thuLai }: { tin: TrangThaiTin; thuLai: () => void }) {
     return (
       <span className="flex items-center gap-2">
         <span className="sr-only">{t.common.loading}</span>
-        <Xuong className="h-6 w-32" />
+        <Skeleton className="h-6 w-32" />
       </span>
     );
   }
@@ -216,9 +216,9 @@ function HanMuc({ tin, thuLai }: { tin: TrangThaiTin; thuLai: () => void }) {
   return (
     <span className="flex items-center gap-2 text-sm text-body-2">
       {t.faucet.quotaLabel}
-      <Nhan kieu={perIp.remaining > 0 ? 'tot' : 'canhBao'}>
-        {dien(t.faucet.quotaFormat, { con: perIp.remaining, tong: perIp.max, gio: perIp.windowHours })}
-      </Nhan>
+      <Badge kieu={perIp.remaining > 0 ? 'tot' : 'canhBao'}>
+        {interpolate(t.faucet.quotaFormat, { con: perIp.remaining, tong: perIp.max, gio: perIp.windowHours })}
+      </Badge>
     </span>
   );
 }
@@ -239,14 +239,14 @@ function ThongSoMang() {
   ];
 
   return (
-    <The className="h-max p-5">
+    <Card className="h-max p-5">
       <h2 className="font-display text-base font-bold text-ink">{t.faucet.settingsTitle}</h2>
       <dl className="mt-4 flex flex-col gap-3">
         {dong.map((d) => (
           <div key={d.nhan} className="flex flex-col gap-1">
             <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{d.nhan}</dt>
             <dd className="min-w-0">
-              {d.gt ? <ChepDuoc giaTri={d.gt} nhan={d.nhan} /> : <Xuong className="h-6 w-full" />}
+              {d.gt ? <Copyable giaTri={d.gt} nhan={d.nhan} /> : <Skeleton className="h-6 w-full" />}
             </dd>
           </div>
         ))}
@@ -256,7 +256,7 @@ function ThongSoMang() {
           </dt>
           <dd>
             <a
-              href={explorerGoc()}
+              href={explorerOrigin()}
               target="_blank"
               rel="noreferrer"
               className="text-sm font-semibold text-gold-ink-strong underline"
@@ -273,6 +273,6 @@ function ThongSoMang() {
       <p className="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-muted">
         {t.faucet.decimalsHelp}
       </p>
-    </The>
+    </Card>
   );
 }

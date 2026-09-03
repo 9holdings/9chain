@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { EN } from '@/lib/i18n/en';
-import { dien } from '@/lib/i18n/interpolate';
-import { NoiDungReGenesis } from './RebuildContent';
+import { interpolate } from '@/lib/i18n/interpolate';
+import { RebuildContent } from './RebuildContent';
 // Chain ID lấy từ NGUỒN SỰ THẬT của mã, không gõ tay vào từ điển: nếu ngày nào đó
 // số này đổi thật thì câu chữ trên trang đổi theo, không có đường để hai chỗ lệch.
 import { CHAIN } from '@/lib/chain';
-import { trangMeta } from '@/lib/seo';
+import { pageMeta } from '@/lib/seo';
 
 /**
  * Trang re-genesis — nói trước cái sắp mất.
@@ -40,13 +40,13 @@ import { trangMeta } from '@/lib/seo';
 // trang chủ — lời mời *"đẻ chain của bạn mất khoảng ba phút"*, ngược hẳn điều trang
 // muốn nói, đúng tuần cần nó nhất. `title` thì đã riêng từ lâu, nên mọi cổng đo
 // `<title>` vẫn xanh suốt thời gian đó.
-// `trangMeta` tự cắt dấu `[?]` — không gọi `.replace()` ở đây nữa.
-export const metadata: Metadata = trangMeta({
-  tieuDe: dien(EN.rebuild.title, { ngay: EN.rebuild.date }),
+// `pageMeta` tự cắt dấu `[?]` — không gọi `.replace()` ở đây nữa.
+export const metadata: Metadata = pageMeta({
+  tieuDe: interpolate(EN.rebuild.title, { ngay: EN.rebuild.date }),
   moTa: EN.rebuild.desc,
   duong: '/re-genesis/',
 });
 
 export default function TrangReGenesis() {
-  return <NoiDungReGenesis />;
+  return <RebuildContent />;
 }

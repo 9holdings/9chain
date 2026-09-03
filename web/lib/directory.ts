@@ -1,12 +1,12 @@
 'use client';
 
-import { docJson, HAN_DOC_MS } from './net';
+import { fetchJson, READ_TIMEOUT_MS } from './net';
 
 /**
  * One read of the L1 directory (`console-chains.json`) shared by every caller.
  *
  * ═══ WHY THIS EXISTS ═══
- * The home page needs the same file twice: `useSoLieu` counts the chains for the
+ * The home page needs the same file twice: `useNetworkStats` counts the chains for the
  * "L1s running" tile, and `ChainTable` lists them. Both fetched it independently, so
  * every home page load sent the request twice, at the same moment, to the same URL.
  * Measured on the live site 2026-09-03: two `console-chains.json` requests starting
@@ -48,7 +48,7 @@ export function readDirectory(): Promise<{ chains?: ChainRecord[] }> {
   // Timeout is deliberate and matches what both callers passed before: this is a short
   // read of a static file, and without a limit a hung connection leaves the table on
   // skeletons forever with nothing for the reader to press.
-  const p = docJson<{ chains?: ChainRecord[] }>('/chains/data/console-chains.json', {}, HAN_DOC_MS / 1000);
+  const p = fetchJson<{ chains?: ChainRecord[] }>('/chains/data/console-chains.json', {}, READ_TIMEOUT_MS / 1000);
   inFlight = p;
   // 🔴 Clear on BOTH outcomes, and clear via a detached `finally` so the rejection
   // still reaches every caller. Clearing only on success would pin a failed promise

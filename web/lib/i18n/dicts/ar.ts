@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * العربية — ترجمة آلية، لم يراجعها إنسان.
@@ -11,7 +11,7 @@ import type { Tu } from '../en';
  * ⚠️ هذه لغة تُكتب من اليمين إلى اليسار. السجل يعلن `chieu: 'rtl'` ويضبط المزوّد
  * سمة `dir` على `<html>`. لا تُدرج علامات اتجاه داخل النصوص نفسها.
  */
-export const ar: Tu = {
+export const ar: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'شبكة الاختبار العامة لـ 9Chain — شبكة مستقلة تعمل بمحرك Avalanche',

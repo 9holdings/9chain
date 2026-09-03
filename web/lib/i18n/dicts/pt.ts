@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Português — tradução automática, sem revisão humana.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * o nome). Eles dizem "permanente" e "não pode ser alterado" para impedir que alguém
  * perca seus ativos achando que dá para voltar atrás.
  */
-export const pt: Tu = {
+export const pt: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Testnet pública da 9Chain — uma rede independente rodando o motor Avalanche',

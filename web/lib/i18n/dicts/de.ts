@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Deutsch — maschinelle Übersetzung, nicht von einem Menschen geprüft.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * Sie sagen „dauerhaft" und „lässt sich nicht ändern", damit niemand sein Vermögen
  * verliert, weil er glaubt, es ließe sich rückgängig machen.
  */
-export const de: Tu = {
+export const de: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Öffentliches Testnetz von 9Chain — ein eigenständiges Netzwerk auf der Avalanche-Engine',

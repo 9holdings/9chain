@@ -1,9 +1,9 @@
 'use client';
 
-import { ChepDuoc, LuuY, Nhan, Xuong } from '@/components/ui';
-import { dien, useNgonNgu, useT } from '@/lib/i18n';
-import { dangChay, useLoadTest } from '@/lib/loadTest';
-import { dinhDangSo } from '@/lib/numbers';
+import { Copyable, Note, Badge, Skeleton } from '@/components/ui';
+import { interpolate, useLanguage, useT } from '@/lib/i18n';
+import { isRunning, useLoadTest } from '@/lib/loadTest';
+import { formatNumber } from '@/lib/numbers';
 
 /**
  * Body of `/live`. Split from `page.tsx` so the page file stays a server component
@@ -17,13 +17,13 @@ import { dinhDangSo } from '@/lib/numbers';
  */
 const NHIP_MS = 5_000;
 
-function O({ nhan, gt, phu }: { nhan: string; gt: string | null | undefined; phu?: string }) {
+function Field({ nhan, gt, phu }: { nhan: string; gt: string | null | undefined; phu?: string }) {
   return (
     <div>
       <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{nhan}</dt>
       <dd className="mt-1 font-display text-2xl font-extrabold text-ink md:text-3xl">
         {gt === undefined ? (
-          <Xuong className="h-8 w-20" />
+          <Skeleton className="h-8 w-20" />
         ) : gt === null ? (
           /* An absent reading is a dash, never a zero. "0 transactions per second"
              is a measurement; "we could not read it" is not, and printing the first
@@ -41,29 +41,29 @@ function O({ nhan, gt, phu }: { nhan: string; gt: string | null | undefined; phu
 function thoiLuong(giay: number, ma: string): string {
   const g = Math.floor(giay / 3600);
   const p = Math.floor((giay % 3600) / 60);
-  if (g > 0) return `${dinhDangSo(g, ma)}h ${dinhDangSo(p, ma)}m`;
-  return `${dinhDangSo(p, ma)}m`;
+  if (g > 0) return `${formatNumber(g, ma)}h ${formatNumber(p, ma)}m`;
+  return `${formatNumber(p, ma)}m`;
 }
 
-export function NoiDungLive() {
+export function LiveContent() {
   const t = useT();
-  const { ma } = useNgonNgu();
+  const { ma } = useLanguage();
   const tt = useLoadTest(NHIP_MS);
 
-  const song = tt.pha === 'xong' && dangChay(tt.tt);
+  const song = tt.pha === 'xong' && isRunning(tt.tt);
   const d = tt.pha === 'xong' ? tt.tt : null;
   const m = d?.measured;
   // `undefined` = still loading, `null` = read but absent. Three states, not two.
   const so = (v: number | null | undefined) =>
-    tt.pha === 'dangTai' ? undefined : v == null ? null : dinhDangSo(v, ma);
+    tt.pha === 'dangTai' ? undefined : v == null ? null : formatNumber(v, ma);
 
   return (
     <div className="khung max-w-3xl py-10 md:py-14">
       <header>
         <div className="flex items-center gap-2">
-          <Nhan kieu={song ? 'tot' : 'trungTinh'}>
+          <Badge kieu={song ? 'tot' : 'trungTinh'}>
             {song ? t.loadTest.running : t.loadTest.stopped}
-          </Nhan>
+          </Badge>
         </div>
         <h1 className="mt-3 font-display text-2xl font-extrabold text-ink md:text-3xl">
           {t.loadTest.title}
@@ -80,20 +80,20 @@ export function NoiDungLive() {
 
       {d && !song && d.stopReason ? (
         <div className="mt-6">
-          <LuuY>
-            <p>{dien(t.loadTest.stoppedWhy, { reason: d.stopReason })}</p>
-          </LuuY>
+          <Note>
+            <p>{interpolate(t.loadTest.stoppedWhy, { reason: d.stopReason })}</p>
+          </Note>
         </div>
       ) : null}
 
       <dl className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4">
-        <O
+        <Field
           nhan={t.loadTest.labelTps}
           gt={tt.pha === 'dangTai' ? undefined : song ? so(m?.committedTps) : null}
         />
-        <O nhan={t.loadTest.labelBlockHeight} gt={so(m?.blockHeight)} />
-        <O nhan={t.loadTest.labelSecondsPerBlock} gt={so(m?.secondsPerBlock)} />
-        <O
+        <Field nhan={t.loadTest.labelBlockHeight} gt={so(m?.blockHeight)} />
+        <Field nhan={t.loadTest.labelSecondsPerBlock} gt={so(m?.secondsPerBlock)} />
+        <Field
           nhan={t.loadTest.labelUptime}
           gt={
             tt.pha === 'dangTai'
@@ -107,7 +107,7 @@ export function NoiDungLive() {
 
       <div className="mt-6">
         <dl>
-          <O nhan={t.loadTest.labelTotal} gt={so(m?.committedTxSinceStart)} />
+          <Field nhan={t.loadTest.labelTotal} gt={so(m?.committedTxSinceStart)} />
         </dl>
         {/* The distinction this paragraph draws is the whole reason the numbers
             above can be trusted: they come from blocks, not from send calls. A run
@@ -125,7 +125,7 @@ export function NoiDungLive() {
           <ul className="mt-4 flex flex-col gap-2">
             {d.senderAddresses.map((a) => (
               <li key={a}>
-                <ChepDuoc giaTri={a} />
+                <Copyable giaTri={a} />
               </li>
             ))}
           </ul>

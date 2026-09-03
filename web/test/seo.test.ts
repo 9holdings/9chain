@@ -64,7 +64,7 @@ describe.skipIf(!coOut)('bề mặt chia sẻ', () => {
     for (const { duong, html } of cacTrang()) {
       if (KHONG_CAN_URL.has(duong)) {
         // Đối chứng ngược cho chính ngoại lệ: nếu ngày nào đó 404 có og:url thì
-        // gần như chắc chắn ai đó đã gắn `trangMeta` vào nó mà không đọc lý do.
+        // gần như chắc chắn ai đó đã gắn `pageMeta` vào nó mà không đọc lý do.
         expect(thePropertyContent(html, 'og:url'), `${duong} KHÔNG được có og:url`).toBeNull();
         continue;
       }

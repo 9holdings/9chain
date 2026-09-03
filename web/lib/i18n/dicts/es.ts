@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Español — traducción automática, sin revisión humana.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * devuelve el nombre). Dicen "permanente" y "no se puede cambiar" para evitar que
  * alguien pierda sus activos creyendo que hay marcha atrás.
  */
-export const es: Tu = {
+export const es: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Testnet pública de 9Chain — una red independiente que ejecuta el motor Avalanche',
@@ -40,7 +40,7 @@ export const es: Tu = {
       'desaparecieron. Esta página explica qué estás viendo y qué hacer.',
     willSeeTitle: 'Qué vas a ver',
     willSee1:
-      'Tu monedero sigue conectando, sigue mostrando el nombre de red correcto y el mismo Chain ID ' +
+      'Dict monedero sigue conectando, sigue mostrando el nombre de red correcto y el mismo Chain ID ' +
       '{chainId}: fue deliberado. Pero tu saldo será 0.',
     willSee2:
       'Todas las L1 que lanzaste desaparecieron del directorio. Sus nombres y Chain ID quedaron ' +
@@ -106,7 +106,7 @@ export const es: Tu = {
       'Si tu monedero aún no tiene la red A1, añádela con el botón de la página del grifo en lugar ' +
       'de escribir la configuración a mano.',
     toDo4: 'Vuelve a pedir tokens en el grifo y lanza de nuevo tu cadena si la quieres.',
-    silentTitle: 'Tu monedero no te avisará',
+    silentTitle: 'Dict monedero no te avisará',
     silentDesc:
       'La nueva red conserva el Chain ID {chainId}, la misma dirección RPC y el mismo nombre que la ' +
       'anterior. Fue deliberado, para que cada documento y guía ya publicados sigan siendo correctos. ' +
@@ -251,7 +251,7 @@ export const es: Tu = {
     connecting: 'Conectando…',
     signIn: 'Firmar para entrar',
     signing: 'Esperando la firma…',
-    yourWallet: 'Tu monedero',
+    yourWallet: 'Dict monedero',
     youWillOwn: 'La cadena pertenecerá a este monedero. La dirección viene de tu firma: nadie la escribe a mano.',
     noWallet: 'No se encontró ningún monedero en este navegador. Instala MetaMask y recarga la página.',
     signRejected: 'Rechazaste firmar. No se creó nada.',
@@ -389,7 +389,7 @@ export const es: Tu = {
   faucet: {
     title: 'Obtener tokens de prueba',
     desc: 'LOVE9 en la testnet A1 no tiene valor real: existe para que puedas pagar gas mientras pruebas. Introduce una dirección de monedero y te enviamos enseguida.',
-    addressLabel: 'Tu dirección de monedero',
+    addressLabel: 'Dict dirección de monedero',
     addressPlaceholder: '0x… (40 caracteres hexadecimales)',
     requestCta: 'Envíame tokens',
     sending: 'Enviando…',
@@ -397,7 +397,7 @@ export const es: Tu = {
     addNetwork: 'Añadir la red al monedero',
     addNetworkDone: 'Añadida al monedero',
     addNetworkRejected: 'Pulsaste rechazar en tu monedero. Vuelve a pulsar si quieres añadir la red.',
-    addNetworkError: 'Tu monedero no pudo añadir la red. Añádela a mano con la configuración de al lado y envía la línea de abajo al equipo:',
+    addNetworkError: 'Dict monedero no pudo añadir la red. Añádela a mano con la configuración de al lado y envía la línea de abajo al equipo:',
     noWallet: 'No se encontró ningún monedero en este navegador. Instala MetaMask y recarga la página.',
     quotaLabel: 'Cuota restante',
     quotaFormat: '{con}/{tong} solicitudes cada {gio} horas',

@@ -1,8 +1,8 @@
 'use client';
 
-import { LuuY } from '@/components/ui';
+import { Note } from '@/components/ui';
 import { CHAIN } from '@/lib/chain';
-import { dien, useT } from '@/lib/i18n';
+import { interpolate, useT } from '@/lib/i18n';
 
 /**
  * Thân trang re-genesis — tách khỏi `page.tsx` (server component, giữ `metadata`).
@@ -20,7 +20,7 @@ function Muc({ tieuDe, children }: { tieuDe: string; children: React.ReactNode }
   );
 }
 
-export function NoiDungReGenesis() {
+export function RebuildContent() {
   const t = useT();
   const ngay = t.rebuild.date;
 
@@ -28,7 +28,7 @@ export function NoiDungReGenesis() {
     <div className="khung max-w-3xl py-10 md:py-14">
       <header>
         <h1 className="font-display text-2xl font-extrabold text-ink md:text-3xl">
-          {dien(t.rebuild.title, { ngay })}
+          {interpolate(t.rebuild.title, { ngay })}
         </h1>
         <p className="mt-3 text-base text-body">{t.rebuild.desc}</p>
       </header>
@@ -43,10 +43,10 @@ export function NoiDungReGenesis() {
           không ai mất token — vì thế câu chữ nói "nếu bạn có token trước đó", không
           nói "không ai mất gì". */}
       <div className="mt-6">
-        <LuuY kieu="canhBao">
+        <Note kieu="canhBao">
           <p className="font-semibold">{t.rebuild.alreadyTitle}</p>
           <p className="mt-1">{t.rebuild.alreadyDesc}</p>
-        </LuuY>
+        </Note>
       </div>
 
       <Muc tieuDe={t.rebuild.whyTitle}>
@@ -104,7 +104,7 @@ export function NoiDungReGenesis() {
           cái sẽ thấy nếu không làm. Đảo thứ tự là bắt người đọc nhớ một cảnh báo
           trừu tượng trước khi biết nó dẫn tới thao tác nào. */}
       <Muc tieuDe={t.rebuild.silentTitle}>
-        <p>{dien(t.rebuild.silentDesc, { chainId: CHAIN.chainId })}</p>
+        <p>{interpolate(t.rebuild.silentDesc, { chainId: CHAIN.chainId })}</p>
         <ul className="flex list-disc flex-col gap-2 ps-5">
           <li>{t.rebuild.silent1}</li>
           <li>{t.rebuild.silent2}</li>
@@ -116,10 +116,10 @@ export function NoiDungReGenesis() {
       </Muc>
 
       <div className="mt-10">
-        <LuuY kieu="canhBao">
+        <Note kieu="canhBao">
           <p className="font-semibold">{t.rebuild.dateNote}</p>
-          <p className="mt-1">{dien(t.rebuild.dateNoteDesc, { ngay })}</p>
-        </LuuY>
+          <p className="mt-1">{interpolate(t.rebuild.dateNoteDesc, { ngay })}</p>
+        </Note>
       </div>
     </div>
   );

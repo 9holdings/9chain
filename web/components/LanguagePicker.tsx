@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { coTuDien, useNgonNgu, useT } from '@/lib/i18n';
-import { NGON_NGU } from '@/lib/i18n/languages';
+import { hasDictionary, useLanguage, useT } from '@/lib/i18n';
+import { LANGUAGES } from '@/lib/i18n/languages';
 
 /**
  * Bộ chọn ngôn ngữ — 30 ngôn ngữ, tiếng Anh mặc định, tiếng Việt ở vị trí thứ 9.
@@ -31,9 +31,9 @@ import { NGON_NGU } from '@/lib/i18n/languages';
  * Dùng `<details>`/`<summary>` thay cho menu tự viết: nó mở/đóng được bằng bàn phím
  * mà không cần một dòng JS nào, và không đẻ thêm bẫy tiêu điểm.
  */
-export function ChonNgonNgu() {
+export function LanguagePicker() {
   const t = useT();
-  const { ma, ngonNgu, dangNap, datNgonNgu } = useNgonNgu();
+  const { ma, ngonNgu, dangNap, datNgonNgu } = useLanguage();
   const [mo, datMo] = useState(false);
   const boc = useRef<HTMLDetailsElement>(null);
 
@@ -67,8 +67,8 @@ export function ChonNgonNgu() {
 
       <div className="absolute end-0 z-50 mt-2 max-h-[70vh] w-64 overflow-y-auto rounded-card border border-line bg-surface p-1.5 shadow-card">
         <ul>
-          {NGON_NGU.map((n) => {
-            const co = coTuDien(n.ma);
+          {LANGUAGES.map((n) => {
+            const co = hasDictionary(n.ma);
             const dangChon = n.ma === ma;
             return (
               <li key={n.ma}>

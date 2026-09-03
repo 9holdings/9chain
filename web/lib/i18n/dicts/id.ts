@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Bahasa Indonesia — terjemahan mesin, belum diperiksa manusia.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * mengembalikan nama). Semuanya menyebut "permanen" dan "tidak bisa diubah" agar tidak
  * ada yang kehilangan aset karena mengira masih bisa diulang.
  */
-export const id: Tu = {
+export const id: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Testnet publik 9Chain — jaringan mandiri yang berjalan di mesin Avalanche',

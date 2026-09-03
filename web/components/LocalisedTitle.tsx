@@ -1,12 +1,12 @@
 'use client';
 
-import { useTieuDeTheoNgonNgu } from '@/lib/pageTitle';
+import { useLocalisedTitle } from '@/lib/pageTitle';
 
 /**
- * Vỏ component cho `useTieuDeTheoNgonNgu()` — không vẽ gì cả.
+ * Vỏ component cho `useLocalisedTitle()` — không vẽ gì cả.
  *
  * Tồn tại vì `app/layout.tsx` là **server component** nên không gọi hook được, và
- * `NhaCungCapNgonNgu` thì KHÔNG dùng được: nó là chính cái provider, nên `useT()`
+ * `LanguageProvider` thì KHÔNG dùng được: nó là chính cái provider, nên `useT()`
  * gọi bên trong nó sẽ không thấy context của nó. Đặt component này BÊN TRONG provider
  * là cách duy nhất để nó đọc được từ điển đang chọn.
  *
@@ -16,7 +16,7 @@ import { useTieuDeTheoNgonNgu } from '@/lib/pageTitle';
  * bao giờ được giải** trên trình duyệt — xem ràng buộc 1 trong `lib/i18n/index.tsx`
  * và cổng `scripts/check-static-export.mjs`. `usePathname` không cần Suspense.
  */
-export function TieuDeTheoNgonNgu() {
-  useTieuDeTheoNgonNgu();
+export function LocalisedTitle() {
+  useLocalisedTitle();
   return null;
 }

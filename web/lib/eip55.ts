@@ -91,7 +91,7 @@ export function toChecksumAddress(addr: string): string {
   return out;
 }
 
-export type KetQuaDiaChi =
+export type AddressCheck =
   | { ok: true; diaChi: string }
   | { ok: false; loi: string; goiY?: string };
 
@@ -103,7 +103,7 @@ export type KetQuaDiaChi =
  * Địa chỉ toàn hoa hoặc toàn thường được chấp nhận (không mang thông tin checksum);
  * hoa/thường lẫn lộn thì BẮT BUỘC khớp EIP-55.
  */
-export function kiemDiaChi(raw: string, nhan = 'Địa chỉ'): KetQuaDiaChi {
+export function checkAddress(raw: string, nhan = 'Địa chỉ'): AddressCheck {
   const s = (raw ?? '').trim();
   if (!s) return { ok: false, loi: `${nhan} không được để trống` };
   if (!/^0x[0-9a-fA-F]{40}$/.test(s)) {
@@ -126,7 +126,7 @@ export function kiemDiaChi(raw: string, nhan = 'Địa chỉ'): KetQuaDiaChi {
 }
 
 /** Rút gọn để hiện trên giao diện hẹp. Giữ đủ hai đầu để người ta đối chiếu được. */
-export function rutGon(addr: string, dau = 6, cuoi = 4): string {
+export function shortenAddress(addr: string, dau = 6, cuoi = 4): string {
   if (!addr || addr.length <= dau + cuoi + 2) return addr;
   return `${addr.slice(0, dau + 2)}…${addr.slice(-cuoi)}`;
 }

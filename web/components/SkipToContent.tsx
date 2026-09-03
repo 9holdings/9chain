@@ -12,7 +12,7 @@ import { useT } from '@/lib/i18n';
  * 🔴 Nó phải đứng TRƯỚC mọi thứ trong `<body>`. Đó là toàn bộ công dụng: người đi
  * bằng bàn phím không phải đi qua cả thanh điều hướng ở mỗi trang.
  */
-export function BoQuaToiNoiDung() {
+export function SkipToContent() {
   const t = useT();
   return (
     <a

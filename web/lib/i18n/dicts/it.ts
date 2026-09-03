@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Italiano — traduzione automatica, non verificata da una persona.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * il nome). Dicono "definitivamente" e "non modificabile" perché nessuno perda beni credendo
  * che si possa tornare indietro.
  */
-export const it: Tu = {
+export const it: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'La testnet pubblica di 9Chain — una rete indipendente che gira sul motore Avalanche',

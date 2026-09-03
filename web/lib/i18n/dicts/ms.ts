@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Bahasa Melayu — terjemahan mesin, belum disemak oleh manusia.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * Semuanya menyebut "kekal" dan "tidak boleh diubah" supaya tiada sesiapa kehilangan aset
  * kerana menyangka ia boleh dipulihkan.
  */
-export const ms: Tu = {
+export const ms: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Rangkaian ujian awam 9Chain — rangkaian bebas yang berjalan pada enjin Avalanche',

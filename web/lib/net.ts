@@ -9,7 +9,7 @@
  * mất quorum). Một `AbortSignal.timeout` ở đó sẽ **huỷ request của trình duyệt trong
  * khi server vẫn đang đẻ chain** — người dùng thấy "lỗi", chain vẫn ra đời, và họ đi
  * bấm lại. Đó là kiểu hỏng đắt nhất màn này có thể có.
- * ⇒ Vì vậy `docJson` **mặc định KHÔNG có hạn giờ**. Hạn giờ là thứ phải **bật ra**,
+ * ⇒ Vì vậy `fetchJson` **mặc định KHÔNG có hạn giờ**. Hạn giờ là thứ phải **bật ra**,
  *   không phải thứ phải nhớ tắt đi. Chọn chiều đó có chủ ý: lỡ quên bật thì cùng lắm
  *   chậm như hôm nay; lỡ quên tắt thì gãy một đường không sửa lại được.
  *
@@ -29,16 +29,16 @@
  */
 
 /** Hạn mặc định cho một lượt ĐỌC ngắn (số liệu, danh bạ, hạn mức faucet). */
-export const HAN_DOC_MS = 12_000;
+export const READ_TIMEOUT_MS = 12_000;
 
-export type LoaiHong = 'hetGio' | 'http' | 'khongPhaiJson' | 'dutMang';
+export type FailureKind = 'hetGio' | 'http' | 'khongPhaiJson' | 'dutMang';
 
-export class LoiMang extends Error {
-  readonly loai: LoaiHong;
+export class NetworkError extends Error {
+  readonly loai: FailureKind;
   readonly status: number;
-  constructor(loai: LoaiHong, message: string, status = 0) {
+  constructor(loai: FailureKind, message: string, status = 0) {
     super(message);
-    this.name = 'LoiMang';
+    this.name = 'NetworkError';
     this.loai = loai;
     this.status = status;
   }
@@ -52,10 +52,10 @@ export class LoiMang extends Error {
  * Đọc JSON từ một URL, có phân loại lỗi.
  *
  * @param hanGiay  Hạn giờ tính bằng **giây**. Bỏ trống = **KHÔNG hạn giờ** (xem
- *                 ràng buộc số một ở đầu tệp). Truyền `HAN_DOC_MS / 1000` cho các
+ *                 ràng buộc số một ở đầu tệp). Truyền `READ_TIMEOUT_MS / 1000` cho các
  *                 lượt đọc ngắn.
  */
-export async function docJson<T = unknown>(
+export async function fetchJson<T = unknown>(
   url: string,
   init: RequestInit = {},
   hanGiay?: number,
@@ -72,9 +72,9 @@ export async function docJson<T = unknown>(
     // `AbortSignal.timeout` ném `TimeoutError`; đứt mạng ném `TypeError`.
     const ten = (e as Error)?.name;
     if (ten === 'TimeoutError' || ten === 'AbortError') {
-      throw new LoiMang('hetGio', `quá ${hanGiay}s không có trả lời`);
+      throw new NetworkError('hetGio', `quá ${hanGiay}s không có trả lời`);
     }
-    throw new LoiMang('dutMang', (e as Error)?.message ?? 'không gọi được');
+    throw new NetworkError('dutMang', (e as Error)?.message ?? 'không gọi được');
   }
 
   const t = await r.text();
@@ -83,7 +83,7 @@ export async function docJson<T = unknown>(
     j = JSON.parse(t);
   } catch {
     // Nói rõ đây là nghi vấn ĐỊNH TUYẾN, kèm mã HTTP để phân biệt với lỗi thật.
-    throw new LoiMang(
+    throw new NetworkError(
       'khongPhaiJson',
       `đáp án không phải JSON (HTTP ${r.status}) — nhiều khả năng đường dẫn bị giải sai`,
       r.status,
@@ -91,7 +91,7 @@ export async function docJson<T = unknown>(
   }
   if (!r.ok) {
     const loi = (j as { error?: string })?.error;
-    throw new LoiMang('http', loi || `HTTP ${r.status}`, r.status);
+    throw new NetworkError('http', loi || `HTTP ${r.status}`, r.status);
   }
   return j as T;
 }

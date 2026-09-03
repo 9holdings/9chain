@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * ไทย — แปลด้วยเครื่อง ยังไม่มีคนตรวจทาน
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * ข้อความเหล่านี้บอกว่า "ถาวร" และ "แก้ไขไม่ได้" เพื่อไม่ให้ใครสูญเสียทรัพย์สิน
  * เพราะเข้าใจผิดว่าย้อนกลับได้
  */
-export const th: Tu = {
+export const th: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'เครือข่ายทดสอบสาธารณะของ 9Chain — เครือข่ายอิสระที่ทำงานบนเอนจิน Avalanche',

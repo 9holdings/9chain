@@ -1,6 +1,6 @@
 'use client';
 
-import { Nhan } from '@/components/ui';
+import { Badge } from '@/components/ui';
 import { NetworkStats } from '@/components/NetworkStats';
 import { ChainTable } from './ChainTable';
 import { useT } from '@/lib/i18n';
@@ -10,13 +10,13 @@ import { useT } from '@/lib/i18n';
  * (`export const metadata` chỉ hợp lệ ở đó), mà server component chạy lúc BUILD nên
  * không biết người đọc chọn ngôn ngữ nào. Xem `components/PageHeader.tsx`.
  */
-export function NoiDungTrangChu() {
+export function HomeContent() {
   const t = useT();
   return (
     <>
       <section className="bg-navy">
         <div className="khung py-14 md:py-20">
-          <Nhan kieu="canhBao">{t.home.testnetBadge}</Nhan>
+          <Badge kieu="canhBao">{t.home.testnetBadge}</Badge>
           {/* Dòng dẫn: chữ "A1" trong <h1> phải có nghĩa TRƯỚC khi được dùng.
               `moTaNgan` là chuỗi đã có sẵn và đã duyệt — không sinh chuỗi mới. */}
           <p className="mt-4 text-sm font-semibold uppercase tracking-wider text-on-dark-2">

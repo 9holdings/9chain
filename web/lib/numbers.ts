@@ -28,9 +28,9 @@
 
 /**
  * @param n   số nguyên (chiều cao block, số chain…)
- * @param ma  mã BCP-47 của ngôn ngữ đang chọn — lấy từ `useNgonNgu().ma`
+ * @param ma  mã BCP-47 của ngôn ngữ đang chọn — lấy từ `useLanguage().ma`
  */
-export function dinhDangSo(n: number, ma: string): string {
+export function formatNumber(n: number, ma: string): string {
   try {
     // `-u-nu-latn` = ép hệ chữ số Latin. Phần còn lại của locale (dấu phân cách,
     // cách nhóm chữ số — `hi` nhóm 2 chữ số sau nhóm 3 đầu) vẫn theo ngôn ngữ.

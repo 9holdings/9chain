@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Nederlands — machinevertaling, niet door een mens nagekeken.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * niet terug). Ze zeggen "definitief" en "kan niet worden gewijzigd", zodat niemand bezit
  * verliest in de veronderstelling dat het terug te draaien is.
  */
-export const nl: Tu = {
+export const nl: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Het publieke testnet van 9Chain — een zelfstandig netwerk op de Avalanche-engine',

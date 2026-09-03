@@ -75,7 +75,7 @@ const TEN = doc('ten', '9Chain Testnet A1');
 // navy lấy từ tokens.css; vàng lấy từ DẤU (9chain.org), không phải từ token giao
 // diện — xem `components/BrandLockup.tsx` về vì sao hai sắc vàng cùng tồn tại.
 const NAVY = '#0d1733';
-const VANG_DAU = '#F5C542';
+const MARK_GOLD = '#F5C542';
 const MO = '#8f9cba';
 
 const W = 1200;
@@ -132,10 +132,10 @@ const nenSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H
        thì dán link A1 vào đâu cũng trông như dán link 9chain.org.
        Chữ phụ, không phải logo ⇒ font hệ thống là đúng chỗ. -->
   <rect x="${W / 2 - 116}" y="${LOGO_Y + LOGO_H + 40}" width="232" height="46" rx="10"
-        fill="none" stroke="${VANG_DAU}" stroke-width="2"/>
+        fill="none" stroke="${MARK_GOLD}" stroke-width="2"/>
   <text x="${W / 2}" y="${LOGO_Y + LOGO_H + 72}" text-anchor="middle"
         font-family="${CHU}" font-size="25" font-weight="600"
-        fill="${VANG_DAU}" letter-spacing="3.4">TESTNET A1</text>
+        fill="${MARK_GOLD}" letter-spacing="3.4">TESTNET A1</text>
 
   <text x="${W / 2}" y="558" text-anchor="middle" font-family="${MONO}"
         font-size="27" fill="${MO}">chainId ${CHAIN_ID} · ${KY_HIEU} · a1.9chain.org</text>

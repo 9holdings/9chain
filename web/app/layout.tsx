@@ -4,12 +4,12 @@ import './globals.css';
 import { SiteHeader } from '@/components/SiteHeader';
 import { LoadTestBanner } from '@/components/LoadTestBanner';
 import { EarlyHints } from '@/components/EarlyHints';
-import { TieuDeTheoNgonNgu } from '@/components/LocalisedTitle';
+import { LocalisedTitle } from '@/components/LocalisedTitle';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ThemeScript } from '@/components/ThemeScript';
 import { EN } from '@/lib/i18n/en';
-import { NhaCungCapNgonNgu } from '@/lib/i18n';
-import { BoQuaToiNoiDung } from '@/components/SkipToContent';
+import { LanguageProvider } from '@/lib/i18n';
+import { SkipToContent } from '@/components/SkipToContent';
 import { CHAIN } from '@/lib/chain';
 
 // Cùng ba font và cùng tên biến với 9Scan-A1 — `tokens.css` trỏ vào
@@ -109,7 +109,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // của một thứ tiếng khác.
     //
     // Giá trị ở ĐÂY là `en` vì với `output: 'export'` mỗi trang chỉ có MỘT bản HTML,
-    // sinh lúc build, và mặc định của site là tiếng Anh. `NhaCungCapNgonNgu` ghi đè
+    // sinh lúc build, và mặc định của site là tiếng Anh. `LanguageProvider` ghi đè
     // cả `lang` lẫn `dir` trên `<html>` ngay sau khi hydrate xong, theo lựa chọn đã
     // lưu của người đọc. `suppressHydrationWarning` đã có sẵn ở đây (vốn cho theme)
     // nên việc ghi đè đó không đẻ ra cảnh báo lệch.
@@ -123,13 +123,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             Nếu mỗi vùng tự nạp từ điển thì chúng đổi trạng thái ở những nhịp khác
             nhau, và người dùng thấy một trang NỬA ANH NỬA VIỆT trong vài khung
             hình. Cả cây phải lật cùng một lúc — xem `lib/i18n/index.tsx`. */}
-        <NhaCungCapNgonNgu>
+        <LanguageProvider>
           {/* Đổi `<title>` theo ngôn ngữ đã chọn — `metadata` ở trên sinh lúc build
               nên nó VĨNH VIỄN tiếng Anh cho cả 30 bản. Không vẽ gì; phải nằm TRONG
               provider mới đọc được từ điển. Xem `lib/pageTitle.ts` cho cả phần thẻ chia
               sẻ mà cách này KHÔNG vá được. */}
-          <TieuDeTheoNgonNgu />
-          <BoQuaToiNoiDung />
+          <LocalisedTitle />
+          <SkipToContent />
           {/* 🔴 `ReGenesisBanner` ĐÃ GỠ `2026-09-03` — David chốt.
               Dải đó nói "A1 sẽ sinh lại ngày 01/09/2026, mọi thứ tạo trước đó sẽ bị
               xoá". Ngày G đã qua, nên câu đó nói ở thì tương lai về một việc **đã
@@ -148,7 +148,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </main>
           <SiteFooter />
-        </NhaCungCapNgonNgu>
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -44,10 +44,10 @@ import { Outfit } from 'next/font/google';
 const outfit = Outfit({ subsets: ['latin'], weight: ['700'], display: 'swap' });
 
 /** Màu chữ theo nền, đúng như bộ kit quy định. */
-export const CHU_TREN_NEN_TOI = '#FFFFFF';
-export const CHU_TREN_NEN_SANG = '#0D1733';
+export const TEXT_ON_DARK = '#FFFFFF';
+export const TEXT_ON_LIGHT = '#0D1733';
 /** Vàng của dấu — giống nhau ở mọi nền. */
-export const VANG_DAU = '#F5C542';
+export const MARK_GOLD = '#F5C542';
 
 type Props = {
   /**
@@ -69,7 +69,7 @@ type Props = {
 
 export function BrandLockup({ nen = 'theo-theme', cao = 30, className, nhan }: Props) {
   const mauChu =
-    nen === 'toi' ? CHU_TREN_NEN_TOI : nen === 'sang' ? CHU_TREN_NEN_SANG : 'var(--mau-chu-logo)';
+    nen === 'toi' ? TEXT_ON_DARK : nen === 'sang' ? TEXT_ON_LIGHT : 'var(--mau-chu-logo)';
 
   return (
     <svg
@@ -85,7 +85,7 @@ export function BrandLockup({ nen = 'theo-theme', cao = 30, className, nhan }: P
       {nhan ? <title>{nhan}</title> : null}
       {/* Dấu — nguyên văn từ kit, không đổi một con số nào. */}
       <g transform="translate(16 16)">
-        <g fill="none" stroke={VANG_DAU} strokeWidth="6.5">
+        <g fill="none" stroke={MARK_GOLD} strokeWidth="6.5">
           <polygon points="48,14 77.4,65 18.6,65" transform="rotate(20 48 48)" />
           <polygon points="48,14 77.4,65 18.6,65" transform="rotate(60 48 48)" />
           <polygon points="48,14 77.4,65 18.6,65" transform="rotate(100 48 48)" />

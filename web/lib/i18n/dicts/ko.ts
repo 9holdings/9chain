@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * 한국어 — 기계 번역이며 사람이 검수하지 않았습니다.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * 이들은 "영구적으로", "변경할 수 없음"이라고 말합니다. 되돌릴 수 있다고 오해해 자산을 잃는
  * 일을 막기 위해서입니다.
  */
-export const ko: Tu = {
+export const ko: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: '9Chain의 공개 테스트넷 — Avalanche 엔진으로 구동되는 독립 네트워크',

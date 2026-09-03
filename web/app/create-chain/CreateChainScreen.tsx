@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Nut, The, O, Nhan, Xuong, CoLoi, LuuY, ChepDuoc, CacBuoc, type MotBuoc } from '@/components/ui';
-import { rutGon } from '@/lib/eip55';
-import { dien, useT } from '@/lib/i18n';
+import { Button, Card, Field, Badge, Skeleton, ErrorState, Note, Copyable, Steps, type Step } from '@/components/ui';
+import { shortenAddress } from '@/lib/eip55';
+import { interpolate, useT } from '@/lib/i18n';
 import {
-  layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, kichHoatChain, choTienTrinhXong, LoiConsole,
-  docLoiVi, type PhienVi, HAN_CONSOLE_GIAY} from '@/lib/wallet';
+  getWallet, connectWallet, siweSignIn, callConsole, addL1ToWallet, activateChain, waitForProgress, ConsoleError,
+  readWalletError, type WalletSession, CONSOLE_TIMEOUT_S} from '@/lib/wallet';
 
 /**
  * Màn đẻ chain — màn khó nhất của M10, và ba sự thật của SẢN PHẨM ép hình dạng nó,
@@ -37,7 +37,7 @@ type TrangThai = {
   viDangNhap: string | null;
 };
 type KetQua = { name: string; chainId: number; rpc: string; blockchainID: string; luuY?: { tieuDe: string; cachLam: string } };
-type TienTrinh = { running: boolean; name: string | null; steps: MotBuoc[]; error: string | null; etaSeconds: number };
+type Progress = { running: boolean; name: string | null; steps: Step[]; error: string | null; etaSeconds: number };
 
 type Pha = 'vi' | 'nhap' | 'soat' | 'chay' | 'xong';
 const TEN_HOP_LE = /^[A-Za-z0-9 ]{2,32}$/;
@@ -45,7 +45,7 @@ const TEN_HOP_LE = /^[A-Za-z0-9 ]{2,32}$/;
 export function CreateChainScreen() {
   const t = useT();
   const [pha, datPha] = useState<Pha>('vi');
-  const [phien, datPhien] = useState<PhienVi | null>(null);
+  const [phien, datPhien] = useState<WalletSession | null>(null);
   const [loiVi, datLoiVi] = useState<string | null>(null);
   const [dangNoi, datDangNoi] = useState(false);
 
@@ -57,7 +57,7 @@ export function CreateChainScreen() {
   // cho id cũ, nên một lượt gửi trước khi status kịp về sẽ bị từ chối thẳng.
   const [preset, datPreset] = useState('standard');
 
-  const [tienTrinh, datTienTrinh] = useState<TienTrinh | null>(null);
+  const [tienTrinh, datTienTrinh] = useState<Progress | null>(null);
   const [ketQua, datKetQua] = useState<KetQua | null>(null);
   const [loiDe, datLoiDe] = useState<string | null>(null);
 
@@ -77,7 +77,7 @@ export function CreateChainScreen() {
   }, []);
 
   const napTrangThai = useCallback(async (token: string) => {
-    const s = await goiConsole<TrangThai>('/api/status', token, undefined, HAN_CONSOLE_GIAY);
+    const s = await callConsole<TrangThai>('/api/status', token, undefined, CONSOLE_TIMEOUT_S);
     datTt(s);
     if (s.presets?.length && !s.presets.some((p) => p.id === preset)) datPreset(s.presets[0].id);
   }, [preset]);
@@ -86,8 +86,8 @@ export function CreateChainScreen() {
     datLoiVi(null);
     datDangNoi(true);
     try {
-      const dc = await noiVi();
-      const p = await dangNhapSiwe(dc);
+      const dc = await connectWallet();
+      const p = await siweSignIn(dc);
       datPhien(p);
       await napTrangThai(p.token);
       datPha('nhap');
@@ -114,7 +114,7 @@ export function CreateChainScreen() {
     if (pha !== 'chay' || !phien) return;
     const doc = async () => {
       try {
-        datTienTrinh(await goiConsole<TienTrinh>('/api/progress', phien.token, undefined, HAN_CONSOLE_GIAY));
+        datTienTrinh(await callConsole<Progress>('/api/progress', phien.token, undefined, CONSOLE_TIMEOUT_S));
       } catch {
         /* Một nhịp đọc hỏng KHÔNG phải lý do để bỏ cuộc: lượt đẻ vẫn đang chạy ở
            server. Giữ nguyên bước cuối đã biết và đọc lại ở nhịp sau. */
@@ -136,11 +136,11 @@ export function CreateChainScreen() {
     // nối ở ~100 giây và trả HTTP 524, nên qua tên miền công khai lượt POST **luôn**
     // hỏng trong khi chain vẫn được đẻ xong. Báo "không đẻ được" lúc đó là mời người
     // dùng bấm lại một việc đã xong — và chain thừa ăn mất một slot trong trần 15,
-    // vĩnh viễn giữ luôn tên và chainId. Xem `choTienTrinhXong`.
+    // vĩnh viễn giữ luôn tên và chainId. Xem `waitForProgress`.
     //
     // 🔴 NHƯNG "không kết luận được" ≠ "chờ tới cùng trong mọi trường hợp".
     // Đo 2026-08-27: POST với token hỏng bị từ chối **401 trong 0,831 giây**, mà màn
-    // hình vẫn đứng im tới trần chờ, vì `choTienTrinhXong` chỉ thoát khi đã thấy
+    // hình vẫn đứng im tới trần chờ, vì `waitForProgress` chỉ thoát khi đã thấy
     // `running` rồi lại thấy hết chạy — mà từ chối sớm thì `running` không bao giờ
     // bật. Người dùng nhìn một thanh tiến trình cho một việc **chưa hề bắt đầu**.
     // `tuChoiSom` vá đúng ca đó và CHỈ ca đó: 4xx = server đã trả lời và trả lời
@@ -148,14 +148,14 @@ export function CreateChainScreen() {
     let kqPost: KetQua | null = null;
     let loiPost: string | null = null;
     let biTuChoi = false;
-    const post = goiConsole<KetQua>('/api/create', phien.token, { name: ten.trim(), preset })
+    const post = callConsole<KetQua>('/api/create', phien.token, { name: ten.trim(), preset })
       .then((k) => { kqPost = k; })
       .catch((e) => {
         loiPost = String((e as Error).message ?? e);
-        if (e instanceof LoiConsole && e.laTuChoiThat) biTuChoi = true;
+        if (e instanceof ConsoleError && e.laTuChoiThat) biTuChoi = true;
       });
 
-    const tt2 = await choTienTrinhXong(phien.token, { tuChoiSom: () => biTuChoi });
+    const tt2 = await waitForProgress(phien.token, { tuChoiSom: () => biTuChoi });
     await post.catch(() => {});
 
     if (kqPost) {
@@ -167,7 +167,7 @@ export function CreateChainScreen() {
 
     // POST không về được ⇒ hỏi DANH BẠ xem chain có thật sự tồn tại không.
     try {
-      const st = await goiConsole<{ chains: KetQua[] } & TrangThai>('/api/status', phien.token, undefined, HAN_CONSOLE_GIAY);
+      const st = await callConsole<{ chains: KetQua[] } & TrangThai>('/api/status', phien.token, undefined, CONSOLE_TIMEOUT_S);
       datTt(st);
       const co = st.chains.find((c) => c.name === ten.trim());
       if (co) {
@@ -179,7 +179,7 @@ export function CreateChainScreen() {
       }
     } catch { /* đọc danh bạ hỏng — rơi xuống nhánh báo lỗi bên dưới */ }
 
-    datLoiDe(dien(t.launch.launchError, { chiTiet: tt2?.error ?? loiPost ?? t.launch.unknownError }));
+    datLoiDe(interpolate(t.launch.launchError, { chiTiet: tt2?.error ?? loiPost ?? t.launch.unknownError }));
     datPha('nhap');
   }
 
@@ -187,25 +187,25 @@ export function CreateChainScreen() {
 
   if (pha === 'vi') {
     return (
-      <The className="mt-8 max-w-xl p-5 md:p-6">
+      <Card className="mt-8 max-w-xl p-5 md:p-6">
         <h2 className="font-display text-lg font-bold text-ink">{t.launch.connectWallet}</h2>
         <p className="mt-2 text-sm text-body-2">{t.launch.youWillOwn}</p>
         <div className="mt-5">
-          <Nut co="to" onClick={vao} dangChay={dangNoi}>
+          <Button co="to" onClick={vao} isRunning={dangNoi}>
             {dangNoi ? t.launch.signing : t.launch.connectWallet}
-          </Nut>
+          </Button>
         </div>
         {loiVi && (
           <div className="mt-4">
-            <CoLoi tieuDe={loiVi} moTa="" thuLai={vao} />
+            <ErrorState tieuDe={loiVi} moTa="" thuLai={vao} />
           </div>
         )}
-        {!layVi() && (
+        {!getWallet() && (
           <div className="mt-4">
-            <LuuY kieu="canhBao">{t.launch.noWallet}</LuuY>
+            <Note kieu="canhBao">{t.launch.noWallet}</Note>
           </div>
         )}
-      </The>
+      </Card>
     );
   }
 
@@ -218,25 +218,25 @@ export function CreateChainScreen() {
 
   return (
     <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-      <The className="p-5 md:p-6">
+      <Card className="p-5 md:p-6">
         {pha === 'nhap' && (
           <>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-lg font-bold text-ink">{t.launch.title}</h2>
               {/* 🔴 Trần hiện TRƯỚC khi người ta bỏ công, không phải lúc bị từ chối. */}
-              <Nhan kieu={hetCho ? 'canhBao' : 'tot'}>
-                {hetCho ? t.launch.slotsFull : dien(t.launch.slotsLeft, { con: tran - soChain, tong: tran })}
-              </Nhan>
+              <Badge kieu={hetCho ? 'canhBao' : 'tot'}>
+                {hetCho ? t.launch.slotsFull : interpolate(t.launch.slotsLeft, { con: tran - soChain, tong: tran })}
+              </Badge>
             </div>
 
             {hetCho && (
               <div className="mt-4">
-                <LuuY kieu="canhBao">{t.launch.slotsFullDesc}</LuuY>
+                <Note kieu="canhBao">{t.launch.slotsFullDesc}</Note>
               </div>
             )}
 
             <div className="mt-5 flex flex-col gap-5">
-              <O
+              <Field
                 nhan={t.launch.nameLabel}
                 moTa={t.launch.nameHelp}
                 placeholder={t.launch.namePlaceholder}
@@ -271,7 +271,7 @@ export function CreateChainScreen() {
                     ))}
                   </select>
                 ) : (
-                  <Xuong className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
                 )}
                 {presetHienTai?.desc && (
                   // Mô tả hiện NGAY DƯỚI ô chọn: genesis bất biến nên người dùng chỉ
@@ -283,14 +283,14 @@ export function CreateChainScreen() {
 
             {loiDe && (
               <div className="mt-5">
-                <CoLoi tieuDe={loiDe} moTa="" />
+                <ErrorState tieuDe={loiDe} moTa="" />
               </div>
             )}
 
             <div className="mt-6">
-              <Nut co="to" disabled={!tenOk || hetCho || !tt} onClick={() => datPha('soat')}>
+              <Button co="to" disabled={!tenOk || hetCho || !tt} onClick={() => datPha('soat')}>
                 {t.launch.reviewCta}
-              </Nut>
+              </Button>
             </div>
           </>
         )}
@@ -299,13 +299,13 @@ export function CreateChainScreen() {
           <>
             <h2 className="font-display text-lg font-bold text-ink">{t.launch.reviewTitle}</h2>
             <div className="mt-3 flex flex-col gap-3">
-              <LuuY kieu="canhBao">{t.launch.reviewDesc}</LuuY>
+              <Note kieu="canhBao">{t.launch.reviewDesc}</Note>
               {/* Cảnh báo re-genesis đặt ở ĐÂY chứ không chỉ ở dải trên đầu trang:
                   đây là giây cuối trước cửa một chiều, và là chỗ duy nhất chắc chắn
                   người dùng đang đọc. Gỡ cùng lúc với dải banner sau ngày G. */}
-              <LuuY kieu="canhBao">
-                {dien(t.launch.reviewRebuild, { ngay: t.rebuild.date })}
-              </LuuY>
+              <Note kieu="canhBao">
+                {interpolate(t.launch.reviewRebuild, { ngay: t.rebuild.date })}
+              </Note>
             </div>
             <dl className="mt-5 flex flex-col gap-3">
               {[
@@ -320,12 +320,12 @@ export function CreateChainScreen() {
               ))}
             </dl>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Nut co="to" onClick={de}>
+              <Button co="to" onClick={de}>
                 {t.launch.reviewConfirm}
-              </Nut>
-              <Nut co="to" kieu="vien" onClick={() => datPha('nhap')}>
+              </Button>
+              <Button co="to" kieu="vien" onClick={() => datPha('nhap')}>
                 {t.launch.reviewBack}
-              </Nut>
+              </Button>
             </div>
           </>
         )}
@@ -333,16 +333,16 @@ export function CreateChainScreen() {
         {pha === 'chay' && (
           <>
             <h2 className="font-display text-lg font-bold text-ink">
-              {dien(t.launch.launching, { ten: tenSach })}
+              {interpolate(t.launch.launching, { ten: tenSach })}
             </h2>
             <p className="mt-2 text-sm text-body-2">{t.launch.launchingDesc}</p>
             <div className="mt-5">
               {tienTrinh?.steps?.length ? (
-                <CacBuoc
+                <Steps
                   buoc={tienTrinh.steps}
                   ghiChu={
                     tienTrinh.etaSeconds
-                      ? dien(t.launch.etaRemaining, { phut: Math.max(1, Math.ceil(tienTrinh.etaSeconds / 60)) })
+                      ? interpolate(t.launch.etaRemaining, { phut: Math.max(1, Math.ceil(tienTrinh.etaSeconds / 60)) })
                       : undefined
                   }
                 />
@@ -356,19 +356,19 @@ export function CreateChainScreen() {
         {pha === 'xong' && ketQua && (
           <>
             <h2 className="font-display text-lg font-bold text-success-ink">
-              {dien(t.launch.doneTitle, { ten: ketQua.name })}
+              {interpolate(t.launch.doneTitle, { ten: ketQua.name })}
             </h2>
             <dl className="mt-4 flex flex-col gap-3">
               <div>
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{t.launch.doneChainId}</dt>
                 <dd className="mt-1">
-                  <ChepDuoc giaTri={String(ketQua.chainId)} nhan={t.launch.doneChainId} />
+                  <Copyable giaTri={String(ketQua.chainId)} nhan={t.launch.doneChainId} />
                 </dd>
               </div>
               <div>
                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{t.launch.doneRpc}</dt>
                 <dd className="mt-1">
-                  <ChepDuoc giaTri={ketQua.rpc} nhan={t.launch.doneRpc} />
+                  <Copyable giaTri={ketQua.rpc} nhan={t.launch.doneRpc} />
                 </dd>
               </div>
             </dl>
@@ -380,20 +380,20 @@ export function CreateChainScreen() {
                 cần ước lượng. Nút dưới đây làm đúng việc đó. */}
             {ketQua.luuY && (
               <div className="mt-5">
-                <LuuY>
+                <Note>
                   <strong className="block font-semibold">{ketQua.luuY.tieuDe}</strong>
                   <span className="mt-1 block">{ketQua.luuY.cachLam}</span>
-                </LuuY>
+                </Note>
               </div>
             )}
 
             <div className="mt-5 flex flex-wrap gap-3">
-              <Nut
+              <Button
                 kieu="vien"
                 onClick={async () => {
                   datLoiThemVi(null);
                   try {
-                    await themL1VaoVi({
+                    await addL1ToWallet({
                       chainIdHex: '0x' + ketQua.chainId.toString(16),
                       name: ketQua.name,
                       rpc: ketQua.rpc,
@@ -401,31 +401,31 @@ export function CreateChainScreen() {
                     });
                     datDaThemVi(true);
                   } catch (e) {
-                    const l = docLoiVi(e);
+                    const l = readWalletError(e);
                     datLoiThemVi(
-                      l.tuChoi ? t.common.walletRejected : dien(t.launch.doneAddWalletError, { chiTiet: l.chu ?? '' }),
+                      l.tuChoi ? t.common.walletRejected : interpolate(t.launch.doneAddWalletError, { chiTiet: l.chu ?? '' }),
                     );
                   }
                 }}
               >
                 {daThemVi ? t.launch.doneAdded : t.launch.doneAddWallet}
-              </Nut>
+              </Button>
 
-              <Nut
-                dangChay={kichHoat === 'dang'}
+              <Button
+                isRunning={kichHoat === 'dang'}
                 disabled={kichHoat === 'xong'}
                 onClick={async () => {
                   if (!phien) return;
                   datKichHoat('dang');
                   datLoiKichHoat(null);
                   try {
-                    await kichHoatChain('0x' + ketQua.chainId.toString(16), phien.diaChi);
+                    await activateChain('0x' + ketQua.chainId.toString(16), phien.diaChi);
                     datKichHoat('xong');
                   } catch (e) {
                     datKichHoat('chua');
-                    const l = docLoiVi(e);
+                    const l = readWalletError(e);
                     datLoiKichHoat(
-                      l.tuChoi ? t.common.walletRejected : dien(t.launch.doneActivateError, { chiTiet: l.chu ?? '' }),
+                      l.tuChoi ? t.common.walletRejected : interpolate(t.launch.doneActivateError, { chiTiet: l.chu ?? '' }),
                     );
                   }
                 }}
@@ -433,9 +433,9 @@ export function CreateChainScreen() {
                 {kichHoat === 'xong' ? t.launch.doneActivated
                   : kichHoat === 'dang' ? t.launch.doneActivating
                   : t.launch.doneActivate}
-              </Nut>
+              </Button>
 
-              <Nut
+              <Button
                 kieu="tron"
                 onClick={() => {
                   datKetQua(null);
@@ -449,26 +449,26 @@ export function CreateChainScreen() {
                 }}
               >
                 {t.launch.launchAnother}
-              </Nut>
+              </Button>
             </div>
 
             {/* 🔴 Vùng live THƯỜNG TRÚ, không phải sinh ra cùng nội dung. Trình đọc
                 màn hình chỉ theo dõi vùng live đã có sẵn trong DOM — chèn cả vùng
-                lẫn chữ vào cùng lúc thì nó không đọc gì. Đây là khuôn `ChepDuoc`
-                đang làm đúng, và là khuôn `CacBuoc` đang làm sai. */}
+                lẫn chữ vào cùng lúc thì nó không đọc gì. Đây là khuôn `Copyable`
+                đang làm đúng, và là khuôn `Steps` đang làm sai. */}
             <div role="status" aria-live="polite" className="mt-4 flex flex-col gap-2 empty:hidden">
               {loiThemVi && <p className="text-sm text-danger">{loiThemVi}</p>}
               {loiKichHoat && <p className="text-sm text-danger">{loiKichHoat}</p>}
             </div>
           </>
         )}
-      </The>
+      </Card>
 
-      <The className="h-max p-5">
+      <Card className="h-max p-5">
         <h2 className="font-display text-base font-bold text-ink">{t.launch.yourWallet}</h2>
-        <p className="mt-2 break-all font-mono text-sm text-ink">{phien ? rutGon(phien.diaChi, 10, 8) : ''}</p>
+        <p className="mt-2 break-all font-mono text-sm text-ink">{phien ? shortenAddress(phien.diaChi, 10, 8) : ''}</p>
         <p className="mt-2 text-sm text-body-2">{t.launch.youWillOwn}</p>
-      </The>
+      </Card>
     </div>
   );
 }

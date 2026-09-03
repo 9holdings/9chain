@@ -36,7 +36,7 @@ import { RPC_ORIGIN_HINT } from '@/lib/chain';
  *   1. The server sends `Cache-Control: no-store` on BOTH files (measured through
  *      Cloudflare, 2026-09-03). A `no-store` response is never stored, so there is no
  *      cache entry for the later `fetch()` to hit.
- *   2. `docJson` itself passes `cache: 'no-store'` (see `lib/net.ts`). A `no-store`
+ *   2. `fetchJson` itself passes `cache: 'no-store'` (see `lib/net.ts`). A `no-store`
  *      request bypasses the cache on the way in as well.
  * The result is the worst shape a "speed-up" can have: one extra request per page load,
  * thrown away on arrival, while the real fetch still leaves at the old time. It looks
@@ -46,7 +46,7 @@ import { RPC_ORIGIN_HINT } from '@/lib/chain';
  * ⇒ Do not re-add the preload on its own. Making it work needs BOTH ends changed
  *   together: a small `max-age` on those files at the edge AND dropping `no-store` from
  *   that one read. That is a decision about how fresh the load-test banner must be
- *   (`dangChay()` already refuses a reading older than 60 s), not a markup tweak.
+ *   (`isRunning()` already refuses a reading older than 60 s), not a markup tweak.
  *
  * ⚠️ So what is left here is only what actually survives measurement: the RPC origin,
  * hinted with `preconnect` rather than `preload` — we are opening the socket, not

@@ -3,7 +3,7 @@
 import { useT } from '@/lib/i18n';
 
 /** Thân trang 404 — tách khỏi `not-found.tsx` (server, giữ `metadata` + `noindex`). */
-export function NoiDungKhongThay() {
+export function NotFoundContent() {
   const t = useT().notFound;
   return (
     <div className="khung flex min-h-[60vh] flex-col justify-center py-14 md:py-20">

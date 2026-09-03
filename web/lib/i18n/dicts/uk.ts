@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Українська — машинний переклад, людина його не переглядала.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * Вони кажуть «назавжди» і «не можна змінити», щоб ніхто не втратив майно, вважаючи, що це
  * можна відкотити.
  */
-export const uk: Tu = {
+export const uk: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Публічна тестова мережа 9Chain — незалежна мережа на рушії Avalanche',

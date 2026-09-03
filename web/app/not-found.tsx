@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { EN } from '@/lib/i18n/en';
-import { NoiDungKhongThay } from './NotFoundContent';
+import { NotFoundContent } from './NotFoundContent';
 
 /**
  * 🔴 `noindex` LÀ PHẦN QUAN TRỌNG NHẤT CỦA KHỐI NÀY, KHÔNG PHẢI TIÊU ĐỀ.
@@ -48,5 +48,5 @@ export const metadata: Metadata = {
  * mọi đường do edge phục vụ đều đi bằng thẻ `<a>` — và đây đúng là một trong số đó.
  */
 export default function KhongThay() {
-  return <NoiDungKhongThay />;
+  return <NotFoundContent />;
 }

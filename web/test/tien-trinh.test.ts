@@ -1,8 +1,8 @@
 import { describe, expect, it, vi as vitest, beforeEach, afterEach } from 'vitest';
-import { LoiConsole } from '../lib/wallet';
+import { ConsoleError } from '../lib/wallet';
 
 /**
- * `choTienTrinhXong` — hàm quyết định người dùng phải nhìn thanh tiến trình bao lâu.
+ * `waitForProgress` — hàm quyết định người dùng phải nhìn thanh tiến trình bao lâu.
  * (Đ1-6, 2026-08-27)
  *
  * ═══ LỖI ĐANG KHOÁ LẠI ═══
@@ -21,7 +21,7 @@ import { LoiConsole } from '../lib/wallet';
  * báo "không thu hồi được" trong khi danh bạ đã ghi chain vào `retired`.
  */
 
-// Hàm gọi `goiConsole` nội bộ (cùng module), nên chặn ở tầng `fetch`.
+// Hàm gọi `callConsole` nội bộ (cùng module), nên chặn ở tầng `fetch`.
 const gocThat = globalThis.fetch;
 
 function datFetch(chuoi: Array<{ ok?: boolean; status?: number; body: unknown }>) {
@@ -38,10 +38,10 @@ function datFetch(chuoi: Array<{ ok?: boolean; status?: number; body: unknown }>
   return () => i;
 }
 
-let choTienTrinhXong: typeof import('../lib/wallet')['choTienTrinhXong'];
+let waitForProgress: typeof import('../lib/wallet')['waitForProgress'];
 
 beforeEach(async () => {
-  ({ choTienTrinhXong } = await import('../lib/wallet'));
+  ({ waitForProgress } = await import('../lib/wallet'));
 });
 afterEach(() => {
   globalThis.fetch = gocThat;
@@ -51,12 +51,12 @@ afterEach(() => {
 const CHAY = { running: true, kind: 'create', name: 'X', steps: [], error: null, etaSeconds: 170 };
 const XONG = { running: false, kind: 'create', name: 'X', steps: [], error: null, etaSeconds: 0 };
 
-describe('choTienTrinhXong', () => {
+describe('waitForProgress', () => {
   it('thoát ngay khi POST bị TỪ CHỐI THẬT (4xx) và chưa từng thấy running', async () => {
     // Đây là ca đã treo 900 giây. `running` luôn false vì việc chưa vào hàng đợi.
     datFetch([{ body: XONG }]);
     const t0 = Date.now();
-    const kq = await choTienTrinhXong('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => true });
+    const kq = await waitForProgress('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => true });
     expect(Date.now() - t0, 'phải thoát gần như tức thì, không chờ hết trần').toBeLessThan(2000);
     expect(kq).not.toBeNull();
   });
@@ -65,7 +65,7 @@ describe('choTienTrinhXong', () => {
     // Cloudflare cắt ở ~100s nhưng server vẫn làm: đây là ca PHẢI kiên nhẫn.
     // Chuỗi: chạy → chạy → xong. Nếu hàm thoát sớm thì nó trả về lúc còn `running`.
     datFetch([{ body: CHAY }, { body: CHAY }, { body: XONG }]);
-    const kq = await choTienTrinhXong('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => false });
+    const kq = await waitForProgress('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => false });
     expect(kq?.running, 'phải chờ tới khi running=false').toBe(false);
   });
 
@@ -74,7 +74,7 @@ describe('choTienTrinhXong', () => {
     // Bỏ cuộc lúc đó là dựng lại đúng bug "giao diện nói dối" của 2026-08-25.
     datFetch([{ body: CHAY }, { body: CHAY }, { body: XONG }]);
     let batDauTuChoi = false;
-    const p = choTienTrinhXong('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => batDauTuChoi });
+    const p = waitForProgress('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => batDauTuChoi });
     setTimeout(() => { batDauTuChoi = true; }, 12); // bật SAU khi đã thấy running
     const kq = await p;
     expect(kq?.running, 'đã thấy chạy thì phải theo tới cùng').toBe(false);
@@ -88,20 +88,20 @@ describe('choTienTrinhXong', () => {
       const b = solan <= 2 ? XONG : solan <= 4 ? CHAY : XONG;
       return { ok: true, status: 200, text: async () => JSON.stringify(b) } as unknown as Response;
     }) as typeof fetch;
-    const kq = await choTienTrinhXong('token', { moiMs: 5, tranGiay: 30 });
+    const kq = await waitForProgress('token', { moiMs: 5, tranGiay: 30 });
     expect(solan, 'phải đọc quá 2 nhịp đầu chứ không kết luận ngay').toBeGreaterThan(4);
     expect(kq?.running).toBe(false);
   });
 });
 
-describe('LoiConsole', () => {
+describe('ConsoleError', () => {
   it('phân biệt từ chối thật với Cloudflare cắt và với đứt mạng', () => {
-    expect(new LoiConsole('unauthorized', 401).laTuChoiThat, '401 = từ chối thật').toBe(true);
-    expect(new LoiConsole('trùng tên', 409).laTuChoiThat, '409 = từ chối thật').toBe(true);
-    expect(new LoiConsole('timeout', 524).laTuChoiThat, '524 = Cloudflare cắt, KHÔNG phải từ chối').toBe(false);
-    expect(new LoiConsole('bad gateway', 502).laTuChoiThat, '5xx = chưa kết luận được').toBe(false);
+    expect(new ConsoleError('unauthorized', 401).laTuChoiThat, '401 = từ chối thật').toBe(true);
+    expect(new ConsoleError('trùng tên', 409).laTuChoiThat, '409 = từ chối thật').toBe(true);
+    expect(new ConsoleError('timeout', 524).laTuChoiThat, '524 = Cloudflare cắt, KHÔNG phải từ chối').toBe(false);
+    expect(new ConsoleError('bad gateway', 502).laTuChoiThat, '5xx = chưa kết luận được').toBe(false);
     // 🔴 `0` = không có phản hồi HTTP nào. Coi nó như 4xx là bỏ cuộc trong lúc
     // server vẫn đang đẻ chain — đúng ca tệ nhất.
-    expect(new LoiConsole('failed to fetch', 0).laTuChoiThat, '0 = đứt mạng, KHÔNG kết luận').toBe(false);
+    expect(new ConsoleError('failed to fetch', 0).laTuChoiThat, '0 = đứt mạng, KHÔNG kết luận').toBe(false);
   });
 });

@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Hausa — fassarar na'ura, ba a bincika ta da mutum ba.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * Suna cewa "har abada" da "ba za a iya canzawa ba" don kada wani ya rasa dukiyarsa yana zaton
  * ana iya mayar da ita.
  */
-export const ha: Tu = {
+export const ha: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Hanyar sadarwa ta gwaji ta jama’a ta 9Chain — hanyar sadarwa mai zaman kanta da ke gudana a injin Avalanche',

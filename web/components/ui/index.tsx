@@ -13,10 +13,10 @@
  */
 import { useEffect, useId, useState, type ReactNode, type ButtonHTMLAttributes, type InputHTMLAttributes } from 'react';
 import { useT } from '@/lib/i18n';
-// `gop` sống ở `lib/cx.ts` (ngoài ranh giới client) và được xuất lại ở đây cho
+// `cx` sống ở `lib/cx.ts` (ngoài ranh giới client) và được xuất lại ở đây cho
 // tiện — xem chú thích trong file đó về vì sao không định nghĩa tại chỗ.
-import { gop } from '@/lib/cx';
-export { gop };
+import { cx } from '@/lib/cx';
+export { cx };
 
 /* ───────────────────────────────────────────────────────────────── Button */
 
@@ -40,24 +40,24 @@ const NUT_CO: Record<CoNut, string> = {
   to: 'h-13 px-6 text-base rounded-btn-lg',
 };
 
-export function Nut({
+export function Button({
   kieu = 'chinh',
   co = 'vua',
-  dangChay = false,
+  isRunning = false,
   className,
   children,
   ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement> & { kieu?: KieuNut; co?: CoNut; dangChay?: boolean }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { kieu?: KieuNut; co?: CoNut; isRunning?: boolean }) {
   return (
     <button
       {...rest}
       // `aria-busy` chứ không chỉ đổi chữ: người dùng trình đọc màn hình cần biết
       // nút đang bận, mà chữ đổi thì họ chỉ nghe lại khi tự điều hướng tới nó.
-      aria-busy={dangChay || undefined}
-      disabled={rest.disabled || dangChay}
-      className={gop(NUT_CHUNG, NUT_KIEU[kieu], NUT_CO[co], className)}
+      aria-busy={isRunning || undefined}
+      disabled={rest.disabled || isRunning}
+      className={cx(NUT_CHUNG, NUT_KIEU[kieu], NUT_CO[co], className)}
     >
-      {dangChay && <VongXoay />}
+      {isRunning && <VongXoay />}
       {children}
     </button>
   );
@@ -74,7 +74,7 @@ function VongXoay() {
 
 /* ───────────────────────────────────────────────────────────────── Card */
 
-export function The({
+export function Card({
   className,
   children,
   ...rest
@@ -82,7 +82,7 @@ export function The({
   return (
     <div
       {...rest}
-      className={gop('rounded-card border border-line bg-surface shadow-card', className)}
+      className={cx('rounded-card border border-line bg-surface shadow-card', className)}
     >
       {children}
     </div>
@@ -91,7 +91,7 @@ export function The({
 
 /* ───────────────────────────────────────────────────────────────── Field */
 
-export function O({
+export function Field({
   nhan,
   moTa,
   loi,
@@ -124,9 +124,9 @@ export function O({
         id={idThat}
         // Nối CẢ hai id: trình đọc màn hình đọc mô tả rồi tới lỗi. Chỉ trỏ vào lỗi
         // là người dùng mất luôn phần hướng dẫn ngay khi họ cần nó nhất.
-        aria-describedby={gop(moTa && idMoTa, loi && idLoi) || undefined}
+        aria-describedby={cx(moTa && idMoTa, loi && idLoi) || undefined}
         aria-invalid={loi ? true : undefined}
-        className={gop(
+        className={cx(
           'h-12 w-full rounded-btn border bg-surface px-3 font-mono text-sm text-ink',
           'placeholder:text-muted placeholder:font-sans',
           loi ? 'border-danger' : 'border-line-strong',
@@ -155,10 +155,10 @@ const NHAN_KIEU: Record<KieuNhan, string> = {
   xau: 'bg-surface-alt text-danger border-line-strong',
 };
 
-export function Nhan({ kieu = 'trungTinh', children }: { kieu?: KieuNhan; children: ReactNode }) {
+export function Badge({ kieu = 'trungTinh', children }: { kieu?: KieuNhan; children: ReactNode }) {
   return (
     <span
-      className={gop(
+      className={cx(
         'inline-flex items-center gap-1 rounded-chip border px-2 py-0.5 text-xs font-semibold',
         NHAN_KIEU[kieu],
       )}
@@ -170,11 +170,11 @@ export function Nhan({ kieu = 'trungTinh', children }: { kieu?: KieuNhan; childr
 
 /* ───────────────────────────────────────────────────────────────── Skeleton */
 
-export function Xuong({ className }: { className?: string }) {
+export function Skeleton({ className }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={gop('block animate-pulse rounded-chip bg-bar', className)}
+      className={cx('block animate-pulse rounded-chip bg-bar', className)}
     />
   );
 }
@@ -197,7 +197,7 @@ export function Xuong({ className }: { className?: string }) {
  *    `<h2>` — đây là thứ `axe-core` KHÔNG bắt được (nó không biết một `<p>` *đáng
  *    lẽ* phải là heading), nên nó nằm trong nhóm "a11y ngoài tầm axe" của Đ1-9.
  */
-export function TrongRong({ tieuDe, moTa, hanhDong }: { tieuDe: string; moTa?: string; hanhDong?: ReactNode }) {
+export function EmptyState({ tieuDe, moTa, hanhDong }: { tieuDe: string; moTa?: string; hanhDong?: ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-card border border-dashed border-line-strong bg-surface px-6 py-10 text-center shadow-card">
       <h2 className="font-display text-lg font-semibold text-ink">{tieuDe}</h2>
@@ -207,7 +207,7 @@ export function TrongRong({ tieuDe, moTa, hanhDong }: { tieuDe: string; moTa?: s
   );
 }
 
-export function CoLoi({ tieuDe, moTa, thuLai }: { tieuDe?: string; moTa?: string; thuLai?: () => void }) {
+export function ErrorState({ tieuDe, moTa, thuLai }: { tieuDe?: string; moTa?: string; thuLai?: () => void }) {
   const t = useT();
   return (
     <div
@@ -217,9 +217,9 @@ export function CoLoi({ tieuDe, moTa, thuLai }: { tieuDe?: string; moTa?: string
       <p className="font-semibold text-ink">{tieuDe ?? t.errors.unreachable}</p>
       <p className="text-sm text-body-2">{moTa ?? t.errors.unreachableDesc}</p>
       {thuLai && (
-        <Nut kieu="vien" onClick={thuLai}>
+        <Button kieu="vien" onClick={thuLai}>
           {t.common.retry}
-        </Nut>
+        </Button>
       )}
     </div>
   );
@@ -227,7 +227,7 @@ export function CoLoi({ tieuDe, moTa, thuLai }: { tieuDe?: string; moTa?: string
 
 /* ───────────────────────────────────────────────────────────────── Copyable */
 
-export function ChepDuoc({ giaTri, nhan, className }: { giaTri: string; nhan?: string; className?: string }) {
+export function Copyable({ giaTri, nhan, className }: { giaTri: string; nhan?: string; className?: string }) {
   const t = useT();
   const [daChep, datDaChep] = useState(false);
   useEffect(() => {
@@ -252,7 +252,7 @@ export function ChepDuoc({ giaTri, nhan, className }: { giaTri: string; nhan?: s
              cho một thao tác tiện ích thì ồn hơn giá trị nó mang lại. */
         }
       }}
-      className={gop(
+      className={cx(
         'inline-flex max-w-full items-center gap-2 rounded-chip border border-line px-2 py-1',
         'font-mono text-xs text-body hover:bg-surface-alt',
         className,
@@ -273,10 +273,10 @@ export function ChepDuoc({ giaTri, nhan, className }: { giaTri: string; nhan?: s
 
 /* ───────────────────────────────────────────────────────────────── Callout */
 
-export function LuuY({ kieu = 'thuong', children }: { kieu?: 'thuong' | 'canhBao'; children: ReactNode }) {
+export function Note({ kieu = 'thuong', children }: { kieu?: 'thuong' | 'canhBao'; children: ReactNode }) {
   return (
     <div
-      className={gop(
+      className={cx(
         'rounded-card border px-4 py-3 text-sm',
         kieu === 'canhBao'
           ? 'border-dev-line bg-gold-tint-2 text-dev-ink'
@@ -290,11 +290,11 @@ export function LuuY({ kieu = 'thuong', children }: { kieu?: 'thuong' | 'canhBao
 
 /* ───────────────────────────────────────────────────────────── Steps (Buoc) */
 
-export type TrangThaiBuoc = 'pending' | 'running' | 'done' | 'failed';
-export type MotBuoc = { code: string; label: string; status: TrangThaiBuoc; ms?: number };
+export type StepStatus = 'pending' | 'running' | 'done' | 'failed';
+export type Step = { code: string; label: string; status: StepStatus; ms?: number };
 
-const DAU: Record<TrangThaiBuoc, string> = { pending: '○', running: '◐', done: '✓', failed: '✕' };
-const MAU: Record<TrangThaiBuoc, string> = {
+const DAU: Record<StepStatus, string> = { pending: '○', running: '◐', done: '✓', failed: '✕' };
+const MAU: Record<StepStatus, string> = {
   pending: 'text-muted',
   running: 'text-gold-ink-strong',
   done: 'text-success-ink',
@@ -312,16 +312,16 @@ const MAU: Record<TrangThaiBuoc, string> = {
  * `aria-live="polite"` để người dùng trình đọc màn hình nghe được tiến trình mà
  * không bị cắt ngang; `role="list"` giữ ngữ nghĩa danh sách khi đã bỏ dấu chấm.
  */
-export function CacBuoc({ buoc, ghiChu }: { buoc: MotBuoc[]; ghiChu?: string }) {
+export function Steps({ buoc, ghiChu }: { buoc: Step[]; ghiChu?: string }) {
   return (
     <div aria-live="polite">
       <ol role="list" className="flex flex-col gap-2">
         {buoc.map((b) => (
           <li key={b.code} className="flex items-baseline gap-3 text-sm">
-            <span aria-hidden="true" className={gop('w-4 shrink-0 font-mono', MAU[b.status])}>
+            <span aria-hidden="true" className={cx('w-4 shrink-0 font-mono', MAU[b.status])}>
               {DAU[b.status]}
             </span>
-            <span className={gop('flex-1', b.status === 'pending' ? 'text-muted' : 'text-body')}>
+            <span className={cx('flex-1', b.status === 'pending' ? 'text-muted' : 'text-body')}>
               {b.label}
               {/* Trạng thái phải nằm trong CHỮ, không chỉ trong ký hiệu và màu:
                   ký hiệu bị aria-hidden, còn màu thì người mù màu không đọc được. */}

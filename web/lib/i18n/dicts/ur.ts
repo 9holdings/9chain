@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * اردو — مشینی ترجمہ، کسی انسان نے جانچ نہیں کی۔
@@ -10,7 +10,7 @@ import type { Tu } from '../en';
  *
  * ⚠️ یہ زبان دائیں سے بائیں (RTL) ہے — `ngonNgu.ts` میں `chieu: 'rtl'` درج ہے۔
  */
-export const ur: Tu = {
+export const ur: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: '9Chain کا عوامی ٹیسٹ نیٹ — Avalanche انجن پر چلنے والا ایک خودمختار نیٹ ورک',

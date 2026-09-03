@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Polski — tłumaczenie maszynowe, nieprzejrzane przez człowieka.
@@ -8,7 +8,7 @@ import type { Tu } from '../en';
  * `deChain.soatMoTa` (drzwi w jedną stronę), `chainCuaToi.thuHoiY*` (cofnięcie nie zwraca nazwy).
  * Mówią „trwale" i „nie da się zmienić", żeby nikt nie stracił majątku, sądząc, że da się cofnąć.
  */
-export const pl: Tu = {
+export const pl: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Publiczna sieć testowa 9Chain — niezależna sieć działająca na silniku Avalanche',

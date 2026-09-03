@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * తెలుగు — యంత్ర అనువాదం, ఏ మనిషీ సమీక్షించలేదు.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * తిరిగి ఇవ్వదు). ఇవి "శాశ్వతంగా", "మార్చలేము" అని చెబుతాయి — తిరిగి పొందవచ్చనే భ్రమతో ఎవరూ
  * ఆస్తిని కోల్పోకుండా ఉండేందుకు.
  */
-export const te: Tu = {
+export const te: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: '9Chain యొక్క బహిరంగ టెస్ట్‌నెట్ — Avalanche ఇంజిన్‌పై నడిచే స్వతంత్ర నెట్‌వర్క్',

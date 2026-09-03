@@ -3,9 +3,9 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useT } from './i18n';
-import type { Tu } from './i18n/en';
-import { dien } from './i18n/interpolate';
-import { ghepTieuDe, ghepTieuDeGoc } from './seo';
+import type { Dict } from './i18n/en';
+import { interpolate } from './i18n/interpolate';
+import { composeTitle, composeHomeTitle } from './seo';
 
 /**
  * `<title>` đi theo ngôn ngữ người đọc chọn.
@@ -42,10 +42,10 @@ import { ghepTieuDe, ghepTieuDeGoc } from './seo';
  * Đường dẫn → tiêu đề TRẦN (chưa nối tên sản phẩm), lấy từ từ điển đang dùng.
  *
  * `null` = dùng khuôn TRANG CHỦ (tên sản phẩm đứng trước). Khoá phải TRÙNG với
- * `tieuDe:` mà `page.tsx` tương ứng truyền cho `trangMeta()` — nếu không, tiêu đề sẽ
+ * `tieuDe:` mà `page.tsx` tương ứng truyền cho `pageMeta()` — nếu không, tiêu đề sẽ
  * **nhảy** một nhịp khi hydrate xong: HTML mang một câu, JS thay bằng câu khác.
  */
-export const TIEU_DE_THEO_DUONG: Record<string, (t: Tu) => string | null> = {
+export const TITLE_BY_PATH: Record<string, (t: Dict) => string | null> = {
   '/': () => null,
   '/faucet/': (t) => t.faucet.title,
   '/create-chain/': (t) => t.launch.title,
@@ -53,11 +53,11 @@ export const TIEU_DE_THEO_DUONG: Record<string, (t: Tu) => string | null> = {
   '/compare/': (t) => t.compare.title,
   '/chains/': (t) => t.nav.directory,
   '/live/': (t) => t.loadTest.title,
-  '/re-genesis/': (t) => dien(t.rebuild.title, { ngay: t.rebuild.date }),
+  '/re-genesis/': (t) => interpolate(t.rebuild.title, { ngay: t.rebuild.date }),
 };
 
 /** Tiêu đề cho mọi đường KHÔNG có trong bảng — tức trang 404. */
-const KHONG_THAY = (t: Tu) => t.notFound.title;
+const KHONG_THAY = (t: Dict) => t.notFound.title;
 
 /**
  * Đặt `document.title` theo ngôn ngữ đang chọn. Gọi ĐÚNG MỘT LẦN, trong layout.
@@ -67,7 +67,7 @@ const KHONG_THAY = (t: Tu) => t.notFound.title;
  * `return () => { document.title = cu }` ở đây sẽ chạy TRƯỚC lượt đặt mới và làm
  * tiêu đề nháy hai lần.
  */
-export function useTieuDeTheoNgonNgu(): void {
+export function useLocalisedTitle(): void {
   const t = useT();
   const duong = usePathname();
 
@@ -76,12 +76,12 @@ export function useTieuDeTheoNgonNgu(): void {
     // trong khi bảng khai theo `trailingSlash: true` của `next.config.ts`. Chuẩn hoá
     // một lần ở đây, thay vì khai hai khoá cho mỗi trang.
     const d = duong === '/' ? '/' : duong.endsWith('/') ? duong : `${duong}/`;
-    const lay = TIEU_DE_THEO_DUONG[d] ?? KHONG_THAY;
+    const lay = TITLE_BY_PATH[d] ?? KHONG_THAY;
     const tran = lay(t);
     const muon =
       tran === null
-        ? ghepTieuDeGoc(t.common.productName, t.common.tagline)
-        : ghepTieuDe(tran, t.common.productName);
+        ? composeHomeTitle(t.common.productName, t.common.tagline)
+        : composeTitle(tran, t.common.productName);
 
     document.title = muon;
 

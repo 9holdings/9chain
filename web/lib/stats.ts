@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { rpcGoc, rpcCChain } from './chain';
-import { docJson, HAN_DOC_MS, LoiMang } from './net';
+import { rpcOrigin, rpcCChain } from './chain';
+import { fetchJson, READ_TIMEOUT_MS, NetworkError } from './net';
 import { readDirectory } from './directory';
 
 /**
@@ -36,23 +36,23 @@ import { readDirectory } from './directory';
  * phạm nó**: ô hỏng không hiện số cũ, không hiện 0, mà hiện thẳng "không đo được".
  * Điều bị cấm là **một con số sai**, không phải **một ô khai là vắng**.
  */
-export type SoLieu = {
+export type NetworkNumbers = {
   validatorTong: number | null;
   validatorKetNoi: number | null;
   soL1: number | null;
   chieuCaoBlock: number | null;
 };
 
-export type TrangThaiSoLieu =
+export type StatsState =
   | { pha: 'dangTai' }
-  | { pha: 'xong'; so: SoLieu }
+  | { pha: 'xong'; so: NetworkNumbers }
   | { pha: 'hong'; viSao: string };
 
-async function jsonRpc(url: string, method: string, params: unknown[] = [], hanGiay = HAN_DOC_MS / 1000) {
+async function jsonRpc(url: string, method: string, params: unknown[] = [], hanGiay = READ_TIMEOUT_MS / 1000) {
   // Hạn giờ ở đây là AN TOÀN và bắt buộc: đây là các lượt ĐỌC ngắn của trang chủ.
   // (Ràng buộc "không hạn giờ" chỉ áp cho `/api/create` và `/api/revoke` — xem
   // `lib/net.ts`. Không đường nào trong tệp này chạm tới chúng.)
-  const j = await docJson<{ result?: unknown; error?: { message?: string } }>(
+  const j = await fetchJson<{ result?: unknown; error?: { message?: string } }>(
     url,
     {
       method: 'POST',
@@ -61,12 +61,12 @@ async function jsonRpc(url: string, method: string, params: unknown[] = [], hanG
     },
     hanGiay,
   );
-  if (j.error) throw new LoiMang('http', j.error.message ?? 'lỗi RPC', 200);
+  if (j.error) throw new NetworkError('http', j.error.message ?? 'lỗi RPC', 200);
   return j.result;
 }
 
-export function useSoLieu(): { tt: TrangThaiSoLieu; napLai: () => void } {
-  const [tt, datTt] = useState<TrangThaiSoLieu>({ pha: 'dangTai' });
+export function useNetworkStats(): { tt: StatsState; napLai: () => void } {
+  const [tt, datTt] = useState<StatsState>({ pha: 'dangTai' });
   const [lan, datLan] = useState(0);
 
   useEffect(() => {
@@ -76,10 +76,10 @@ export function useSoLieu(): { tt: TrangThaiSoLieu; napLai: () => void } {
       // 🔴 `allSettled`, KHÔNG `all` (Đ1-8). Ba nguồn độc lập nhau về mặt sự thật —
       // số validator không phụ thuộc vào việc danh bạ L1 có đọc được hay không — nên
       // buộc chúng sống chết cùng nhau là tự tạo ra một điểm hỏng chung không có
-      // thật. Xem chú thích ở `SoLieu` cho vì sao điều này KHÔNG mâu thuẫn với luật
+      // thật. Xem chú thích ở `NetworkNumbers` cho vì sao điều này KHÔNG mâu thuẫn với luật
       // cũ "đừng hiện một con số sai lệch".
       const [rVld, rCao, rDanhBa] = await Promise.allSettled([
-        jsonRpc(`${rpcGoc()}/ext/bc/P`, 'platform.getCurrentValidators') as Promise<{
+        jsonRpc(`${rpcOrigin()}/ext/bc/P`, 'platform.getCurrentValidators') as Promise<{
           validators?: { connected?: boolean }[];
         }>,
         jsonRpc(rpcCChain(), 'eth_blockNumber') as Promise<string>,
@@ -103,7 +103,7 @@ export function useSoLieu(): { tt: TrangThaiSoLieu; napLai: () => void } {
       // chỉ là một tệp tĩnh chưa kịp ghi.
       if (ds === null && cao === null && soL1 === null) {
         const dau = [rVld, rCao, rDanhBa].find((r) => r.status === 'rejected');
-        const l = dau && dau.status === 'rejected' ? (dau.reason as LoiMang | Error) : null;
+        const l = dau && dau.status === 'rejected' ? (dau.reason as NetworkError | Error) : null;
         datTt({ pha: 'hong', viSao: l?.message ?? 'không gọi được mạng' });
         return;
       }

@@ -49,13 +49,13 @@ if (!existsSync(BANG)) {
 // ── Khoá khai trong bảng ────────────────────────────────────────────────────
 const src = readFileSync(BANG, 'utf8');
 // 🔴 `[\s\S]*?` chứ KHÔNG `[^=]*`. Khai báo mang chú thích kiểu
-// `Record<string, (t: Tu) => string | null>`, và `[^=]*` dừng ngay ở dấu `=` bên
+// `Record<string, (t: Dict) => string | null>`, và `[^=]*` dừng ngay ở dấu `=` bên
 // trong `=>` ⇒ không bao giờ khớp. `=\s*\{` thì không nhầm với `=>` được (sau `=` là
 // `>`, không phải `{`). Bản đầu của cổng này dính đúng thế và trả mã 2 — nó từ chối
 // đi qua thay vì xanh giả, và đó là lý do nhánh "không đo được" phải tồn tại.
-const khoi = src.match(/TIEU_DE_THEO_DUONG[\s\S]*?=\s*\{([\s\S]*?)\n\};/);
+const khoi = src.match(/TITLE_BY_PATH[\s\S]*?=\s*\{([\s\S]*?)\n\};/);
 if (!khoi) {
-  console.log('   ✗ không tách được khối `TIEU_DE_THEO_DUONG` trong lib/pageTitle.ts');
+  console.log('   ✗ không tách được khối `TITLE_BY_PATH` trong lib/pageTitle.ts');
   console.log('     Nếu vừa đổi cấu trúc, sửa bộ tách ở đây — ĐỪNG gỡ cổng.');
   process.exit(2);
 }
@@ -94,9 +94,9 @@ if (thua.length) {
   console.log('     ⇒ bảng đang nói về một trang không tồn tại.');
 }
 if (thieu.length || thua.length) {
-  console.log('\n✗ Bảng tiêu đề lệch với các trang có thật. Sửa `TIEU_DE_THEO_DUONG`');
+  console.log('\n✗ Bảng tiêu đề lệch với các trang có thật. Sửa `TITLE_BY_PATH`');
   console.log('  trong lib/pageTitle.ts — và nhớ khoá `tieuDe` phải TRÙNG với thứ');
-  console.log('  `page.tsx` truyền cho `trangMeta()`, nếu không tiêu đề sẽ nhảy một');
+  console.log('  `page.tsx` truyền cho `pageMeta()`, nếu không tiêu đề sẽ nhảy một');
   console.log('  nhịp lúc hydrate (HTML một câu, JS thay bằng câu khác).');
   process.exit(1);
 }

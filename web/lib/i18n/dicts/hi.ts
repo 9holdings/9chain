@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * हिन्दी — मशीनी अनुवाद, किसी व्यक्ति द्वारा जाँचा नहीं गया।
@@ -8,7 +8,7 @@ import type { Tu } from '../en';
  * `deChain.soatMoTa` (एकतरफ़ा कदम), `chainCuaToi.thuHoiY*` (रद्द करने पर नाम वापस नहीं मिलता)।
  * ये "स्थायी" और "बदला नहीं जा सकता" इसलिए कहते हैं ताकि कोई यह मानकर संपत्ति न खो दे कि इसे पलटा जा सकता है।
  */
-export const hi: Tu = {
+export const hi: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: '9Chain का सार्वजनिक टेस्टनेट — Avalanche इंजन पर चलने वाला एक स्वतंत्र नेटवर्क',

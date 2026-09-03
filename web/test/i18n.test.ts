@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { dien } from '../lib/i18n';
+import { interpolate } from '../lib/i18n';
 import vi from '../lib/i18n/dicts/vi';
 
 /**
@@ -33,13 +33,13 @@ function docTsx(dir: string, ra: string[] = []): string[] {
 }
 
 describe('i18n', () => {
-  it('dien() giữ nguyên khoá thiếu thay vì để trống', () => {
+  it('interpolate() giữ nguyên khoá thiếu thay vì để trống', () => {
     // Một chỗ trống lặng lẽ đọc như dữ liệu bị mất; `{so}` lộ ra thì sửa được ngay.
-    expect(dien('còn {con}/{tong}', { con: 3 })).toBe('còn 3/{tong}');
+    expect(interpolate('còn {con}/{tong}', { con: 3 })).toBe('còn 3/{tong}');
   });
 
-  it('dien() thay đúng mọi khoá có mặt', () => {
-    expect(dien(vi.faucet.quotaFormat, { con: 3, tong: 5, gio: 1 })).toBe('3/5 lượt trong 1 giờ');
+  it('interpolate() thay đúng mọi khoá có mặt', () => {
+    expect(interpolate(vi.faucet.quotaFormat, { con: 3, tong: 5, gio: 1 })).toBe('3/5 lượt trong 1 giờ');
   });
 
   it('không có chuỗi tiếng Việt viết thẳng trong JSX', () => {

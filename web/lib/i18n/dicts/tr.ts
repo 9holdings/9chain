@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Türkçe — makine çevirisi, bir insan tarafından incelenmedi.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * Bunlar "kalıcı olarak" ve "değiştirilemez" der; kimse geri alınabilir sanıp varlığını
  * kaybetmesin diye.
  */
-export const tr: Tu = {
+export const tr: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: "9Chain'in genel test ağı — Avalanche motorunda çalışan bağımsız bir ağ",

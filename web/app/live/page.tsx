@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { EN } from '@/lib/i18n/en';
-import { trangMeta } from '@/lib/seo';
-import { NoiDungLive } from './LiveContent';
+import { pageMeta } from '@/lib/seo';
+import { LiveContent } from './LiveContent';
 
 /**
  * `/live` — the full disclosure page for the synthetic load test.
@@ -17,12 +17,12 @@ import { NoiDungLive } from './LiveContent';
  * and "we ran generated traffic between these dates" is exactly the kind of thing a
  * testnet should keep saying out loud after the fact.
  */
-export const metadata: Metadata = trangMeta({
+export const metadata: Metadata = pageMeta({
   tieuDe: EN.loadTest.title,
   moTa: EN.loadTest.intro,
   duong: '/live/',
 });
 
 export default function Trang() {
-  return <NoiDungLive />;
+  return <LiveContent />;
 }

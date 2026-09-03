@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * Tagalog — salin ng makina, hindi pa nasusuri ng tao.
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * pagbawi ang pangalan). Sinasabi ng mga ito ang "permanente" at "hindi na mababago" upang
  * walang mawalan ng ari-arian dahil sa akalang maibabalik pa ito.
  */
-export const tl: Tu = {
+export const tl: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: 'Pampublikong testnet ng 9Chain — isang malayang network na tumatakbo sa makinang Avalanche',

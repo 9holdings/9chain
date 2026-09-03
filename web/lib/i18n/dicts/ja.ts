@@ -1,4 +1,4 @@
-import type { Tu } from '../en';
+import type { Dict } from '../en';
 
 /**
  * 日本語 — 機械翻訳、人による確認は行われていません。
@@ -9,7 +9,7 @@ import type { Tu } from '../en';
  * 「恒久的」「変更できない」と書いているのは、やり直せると誤解して資産を失う人を
  * 出さないためです。
  */
-export const ja: Tu = {
+export const ja: Dict = {
   common: {
     productName: '9Chain Testnet A1',
     shortDesc: '9Chain の公開テストネット — Avalanche エンジンで動く独立したネットワーク',
