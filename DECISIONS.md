@@ -7788,3 +7788,69 @@ Nay cả hai chặng nối `&&` từ đầu tới cuối, cộng một dòng ki�
 `reopen-chain-creation`: **1 ✓ · 2 ✓ · 3 ✓ · 4 chưa đo**. Bước 4 (bật cửa) **chưa làm** — và
 runbook dặn: sau khi ba bước xanh thì **đẻ một L1 thật rồi thu hồi trước khi nói với ai**, vì
 đường đẻ chain **chưa bao giờ chạy trên g1**.
+
+---
+
+## D-170 — **Hai L1 đầu tiên trên g1; và cửa tự phục vụ mở ra 13 chỗ VĨNH VIỄN mà không có cổng nào** (`2026-09-03`)
+
+### Đường đẻ chain đã chạy thật trên g1
+
+`Adam Chain #9001000000` · `Eva Chain #9001000001` — chainId nằm đúng khối g1
+(`9001000000–9001999999`), RPC trả lời, sổ công khai `2 live · 0 retired`, mỗi chain **trả lời
+đúng như nó được quảng cáo**. Đây là lần đầu toàn bộ đường — SIWE → giao diện → ~170 giây →
+P-Chain → RPC của L1 — chạy trọn trên thế hệ này.
+David đi bằng **giao diện công khai**, không bằng API: đó là lý do lượt này chứng minh được điều
+mà một lượt gọi `curl` không chứng minh được.
+
+**Giá một lượt đẻ chain, hai phép đo độc lập trùng khít:** Adam `0,00023015` · Eva `0,000230148`.
+
+### 🔴 Trần thật là 15, không phải một con số nới được
+
+Đọc thẳng upstream, không tin chú thích:
+
+```go
+// network/peer/peer.go:39   maxNumTrackedSubnets = 16   // gioi han MOI NODE
+// :882   vuot qua -> p.StartClose()                     // cat ket noi, khong canh bao
+```
+
+Trần **mỗi node**, không phải mỗi mạng. Mô hình hiện tại (mọi validator track mọi L1) làm trần
+mạng **bằng** trần node ⇒ console để `MAX_L1 = 15`, chừa một chỗ cho subnet mồ côi.
+
+**Số học cho câu hỏi "108 chain" của David:** sức chứa = `N node × 16` chỗ track, và
+`108 × V ≤ N × 16`:
+
+| | |
+|---|---|
+| 108 L1 trên 9 node hiện tại | `V ≤ 1,33` ⇒ **mỗi L1 một validator** — cơ sở dữ liệu một người ghi, không phải blockchain |
+| 108 L1 × 5 validator | **≥ 34 node** |
+| 108 L1 × 9 validator | **≥ 61 node** |
+
+⇒ Trên hạ tầng này, *"108 chain"* và *"có ý nghĩa về bảo mật"* **loại trừ nhau**. ACP-77
+(`ConvertSubnetToL1Tx`) đổi hẳn bài toán — mỗi L1 có tập validator riêng do **chủ L1** tự lo, nên
+9 node của A1 không track cái nào — nhưng đó là **quyết định kinh tế** đã chờ David từ trước, kèm
+phí duy trì liên tục.
+
+### 🔴 Và thiệt hại của "tạo bậy" SỐNG SÓT QUA RE-GENESIS
+
+Cửa mở lúc `07:2xZ`, đóng lại `08:0xZ` sau khi David hỏi về việc chặn. Trong cửa sổ đó **bất kỳ ví
+nào cũng tạo được** — `A1_L1_ADMIN` chỉ là admin mặc định của chain sinh ra, **không phải phép uỷ
+quyền**, và console **không có allowlist**.
+
+Điều làm nó nặng hơn "mất một chỗ": re-genesis xoá chain **nhưng TÊN và chainId ở lại
+`chainid-issued.json` MÃI MÃI** — thu hồi không gỡ được chain khỏi ví ai, nên cấp lại một chainId
+là để chữ ký của chain cũ phát lại được trên chain mới. Sổ **chỉ phình, không co**.
+⚠️ Sổ đang **sạch tuyệt đối** (49 chainId + 54 tên đã thả có chủ ý trước ngày G). Mỗi tên bậy từ
+giờ là vết bẩn **không tẩy được, kể cả sau khi sinh lại mạng**.
+
+⇒ **Đóng lại `03/09` cho tới khi có cổng.** Nghiệm thu **hai chiều** bằng `--probe`: lúc mở, *"cửa
+không trả lời — thứ SAU cửa mới từ chối"*; lúc đóng, *"chính CỬA trả lời"*.
+
+🔴 **Bài học, và nó không phải về mã:** tự phục vụ là thiết kế đúng khi nguồn lực gần vô hạn.
+**13 chỗ vĩnh viễn là con số của một danh sách mời, không phải của một cái cửa mở.** Mở cửa tự
+phục vụ lên một nguồn lực khan hiếm và bất khả hồi là lệch giữa **hình dạng sản phẩm** và **thứ
+đang thật sự có** — và không cổng kỹ thuật nào bắt được loại lệch đó.
+
+### Còn thiếu: không có cách giữ trước tên
+
+`gen-chainid-issued.mjs` **sinh** sổ từ chain đã tạo, không đặt chỗ. Hôm nay cách duy nhất giữ một
+cái tên là **tạo chain bằng tên đó** — đúng việc David vừa làm với `Adam`/`Eva`.
