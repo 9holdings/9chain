@@ -8015,3 +8015,63 @@ byte sai lên chain vĩnh viễn.
 
 ✅ Tệp khắc chữ **không bị chạm một byte nào** — `check-evidence` xanh, digest đo lại vẫn khớp. Chỉ
 canon nghi lễ được thêm dòng.
+
+---
+
+## D-174 — **Lệch đồng hồ 9 node: kết luận ĐÚNG, lý do SAI — và phép đo tôi tự chọn sai ba bậc** (`2026-09-03`)
+
+David: *"đo lệch đồng hồ 9 node đi."*
+
+### Kết luận không đổi, nhưng nay là PHÉP ĐO
+
+`check-clock-skew.mjs` viết từ `28/08`: lệch giữa 9 node là **0 theo kiến trúc**. Đúng — nhưng đó
+là một **lời khẳng định trong chú thích**, chưa ai đo. Nay đo, hai lớp:
+
+```
+time namespace   host time:[4026531834]  ·  node-1 [4026533895] … node-9 [4026533894]
+                 -> CHIN NAMESPACE RIENG, khac nhau va khac host
+BOOTTIME         host 854947.21  ·  node-1 .27  ·  node-5 .34  ·  node-9 .42
+                 -> tang dung theo chi phi tung luot exec => namespace CO, nhung OFFSET = 0
+REALTIME         `date` trong tung container, KEP GIUA hai lan doc dong ho host
+                 -> ca chin LOT GIUA (cua so 59–110 ms) => MOT dong ho chung
+```
+
+### 🔴 Lý do trong chú thích SAI, và lý do sai là một quả mìn
+
+Câu cũ: *"Docker **không** ảo hoá đồng hồ (**không dùng time namespace**)"*. **Sai trên chính máy
+này** — Docker tạo namespace riêng cho từng container.
+
+Kết luận sống sót vì **một lý do khác**: Linux time namespace ảo hoá `CLOCK_MONOTONIC` và
+`CLOCK_BOOTTIME`, **không ảo hoá `CLOCK_REALTIME`** — và ở đây offset boottime cũng bằng 0.
+
+⇒ **Đúng đáp án, sai lý do.** Nguy hiểm theo **cả hai chiều**: người sau tra lý do đã ghi, thấy có
+time namespace, kết luận *"tiền đề vỡ rồi"* và đi sửa một thứ không hỏng; hoặc ai đó đổi một thứ
+làm vỡ **lý do THẬT** trong khi lý do đã ghi vẫn đọc thấy ổn. Cả hai đều tệ hơn không ghi lý do nào.
+
+### 🔴 Và tôi dùng đúng phương pháp mà chính tệp đó đã BÁC
+
+Để trả lời *"vậy hai máy khác nhau thì sao"*, tôi chạy `ssh 'date'` tới cả hai máy chủ và lấy hiệu,
+lập luận *"thiên lệch ssh nằm trong cả hai nên triệt tiêu"*. Ra **`-658 ms`**.
+
+Lập luận đó **chỉ đúng khi thiên lệch BẰNG NHAU**. Hai RTT đo được là **3372 ms** và **1911 ms** —
+gần gấp đôi nhau ⇒ phần lớn `-658 ms` là **chênh lệch chi phí bắt tay ssh**, không phải chênh lệch
+đồng hồ. Và bảng ngay trong tiêu đề tệp đó **đã loại `ssh`** vì đúng lý do này (*"lệnh chạy CUỐI
+lượt bắt tay, không ở giữa ⇒ giả định đường đi đối xứng vỡ"*).
+
+**Cách đúng: hỏi chính máy đó xem đồng hồ nó lệch bao nhiêu**, thay vì bấm giờ một cái shell:
+
+| | |
+|---|---|
+| OVH (chrony, stratum 3) | system time **14 µs** nhanh hơn NTP · last offset `98 µs` · RMS `124 µs` |
+| Hetzner (timesyncd, stratum 2) | jitter **72 µs** · root delay `9,3 ms` · 55 gói |
+
+⇒ Lệch giữa hai máy bị chặn ở cỡ **vài trăm micro giây** — con số của tôi **sai ba bậc**.
+
+### Điều này nói gì về Block Adam
+
+Sàn `--offset-ms 3000` **cao hơn lệch đồng hồ liên máy bốn bậc độ lớn**. ⇒ Sau O4, khi có validator
+ở nhà cung cấp thứ hai, **đồng hồ vẫn không phải rủi ro** — miễn cả hai chạy NTP. Thứ thật sự tiêu
+thời gian là **VẬN CHUYỂN** (`0,3–2,9 s` qua hostname công khai, đo `01/09`), không phải đồng hồ.
+
+⚠️ Nhưng điều đó **không** làm B-13(b) thành thừa: nó nói *"đừng lo đồng hồ"*, không nói *"đừng đo"*.
+Ngày một máy rơi khỏi NTP là ngày con số này đổi, và không gì báo trừ khi có người hỏi.

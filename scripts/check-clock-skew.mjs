@@ -15,11 +15,44 @@
  * **bấm gửi** là đồng hồ của **máy bắn**. ⇒ Đại lượng thật là
  * **lệch(máy bắn ↔ node đề xuất)**, không phải lệch giữa các node với nhau.
  *
- * 🔴 **VÀ HÔM NAY LỆCH GIỮA 9 NODE LÀ 0 THEO KIẾN TRÚC, KHÔNG PHẢI THEO PHÉP ĐO.**
- * Cả 9 node là 9 container **trên cùng MỘT máy**, và Docker **không** ảo hoá đồng hồ (không
- * dùng time namespace) ⇒ chúng đọc chung một `CLOCK_REALTIME`. Đo chúng 9 lần rồi khai
- * *"lệch 0ms, đã kiểm"* là **đo sai đại lượng**: con số đó do bố cục hạ tầng quyết định, không
- * do đồng hồ. Nó chỉ trở thành phép đo thật **sau O4** (node ở nhà cung cấp thứ hai).
+ * 🔴 **SKEW ACROSS THE 9 NODES IS 0 — and as of 2026-09-03 that is MEASURED, not assumed.**
+ * All nine are containers on ONE host, so they read one `CLOCK_REALTIME`. Measuring them nine
+ * times and reporting *"0ms, checked"* would still be measuring the wrong quantity: the number is
+ * decided by the infrastructure layout, not by any clock. It becomes a real measurement only
+ * after O4 (a validator at a second provider).
+ *
+ * ⚠️ **THE REASON THIS PARAGRAPH USED TO GIVE WAS WRONG, and a wrong reason is a landmine.**
+ * It said *"Docker does not virtualise the clock (it uses no time namespace)"*. Measured on the
+ * server: every container HAS its own time namespace — host `time:[4026531834]`, node-1
+ * `[4026533895]`, node-9 `[4026533894]`, all nine distinct. Docker does create them here.
+ *
+ * The conclusion survives for a DIFFERENT reason: Linux time namespaces virtualise
+ * `CLOCK_MONOTONIC` and `CLOCK_BOOTTIME`, **not `CLOCK_REALTIME`** — and here the boottime offset
+ * is zero anyway. Both halves measured 2026-09-03:
+ *   · `/proc/uptime` host 854947.21 · node-1 .27 · node-5 .34 · node-9 .42 — the increments are
+ *     exactly the sequential `docker exec` cost, so the namespaces carry NO offset;
+ *   · `date` inside each container, bracketed by host reads taken around it, fell strictly
+ *     between them for all nine (windows 59–110 ms) ⇒ one shared wall clock.
+ *
+ * ⇒ Right answer, wrong reason. Somebody who later checks the stated reason finds a time
+ *   namespace and concludes the premise broke, or changes something that breaks the REAL reason
+ *   while the stated one still reads fine. Both directions are worse than not writing a reason.
+ *
+ * ═══ AND WHAT A SECOND MACHINE ACTUALLY COSTS — measured 2026-09-03 ═══
+ *
+ * The question B-13(b) was reaching for is what happens after O4. Asked of the machines' own NTP
+ * daemons rather than probed from outside:
+ *   · OVH (chrony, stratum 3): system time **14 µs** fast of NTP, last offset 98 µs, RMS 124 µs
+ *   · Hetzner (timesyncd, stratum 2): jitter **72 µs**, root delay 9.3 ms, 55 packets
+ * ⇒ Mutual skew between the two hosts is bounded at **hundreds of microseconds** — four orders of
+ *   magnitude below the 3000 ms Block Adam floor. Cross-machine clocks are not the risk; TRANSPORT
+ *   is (0.3–2.9 s over the public hostname, measured 2026-09-01).
+ *
+ * 🔴 An `ssh 'date'` probe from the dev machine put the two hosts **658 ms** apart on the same day.
+ * That number is an artefact and it is wrong by three orders of magnitude: the ssh bias only
+ * cancels in a difference when it is EQUAL on both sides, and the two RTTs were 3372 ms and
+ * 1911 ms. The table below already rejected `ssh` for this, and it was used anyway — ask the
+ * machine's own timekeeper instead of timing a shell.
  *
  * ⇒ Hôm nay bài này đo **một** lệch có thật và có ích: **máy dev ↔ server**.
  *
