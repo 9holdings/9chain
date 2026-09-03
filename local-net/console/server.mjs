@@ -17,6 +17,7 @@ import { clientIp, rateLimit, requireToken, requireSecret, requireInt, serialQue
 import { parseEvmAddress } from "../lib/eip55.mjs";
 import { parseAllowlist, mayCreateL1 } from "../lib/l1-allowlist.mjs";
 import { apDungPreset, danhSachPreset } from "../lib/presets.mjs";
+import { validateSymbol } from "../lib/l1-symbol.mjs";
 import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
 import { siwe } from "./siwe.mjs";
 
@@ -839,7 +840,7 @@ function ghiChainConfig(blockchainID) {
   return dich;
 }
 
-async function createChain({ name, chainId, admin, preset }) {
+async function createChain({ name, chainId, admin, preset, symbol }) {
   // 🔴 CỔNG ĐẺ CHAIN — MẶC ĐỊNH ĐÓNG (D-087).
   //
   // Ngày G `01/09` **xoá sạch mọi L1 người dùng**. Mở cửa từ giờ tới đó nghĩa là mỗi chain
@@ -947,6 +948,18 @@ async function createChain({ name, chainId, admin, preset }) {
   // lại mạng, mọi tên cũ đều "còn trống" và người mới nhận đúng cái tên người cũ từng có.
   const loiTen = loiTenDaCap(name, tenDaCap);
   if (loiTen) throw new Error(loiTen);
+
+  // ═══ NATIVE-TOKEN SYMBOL (P-54, 2026-09-03) ═══
+  // Optional. Absent or blank ⇒ the record carries NO `symbol` key and readers apply the
+  // fallback rule in `lib/l1-symbol.mjs` (derived from the name) — a guess is never written
+  // into the ledger as if the owner had chosen it. Given ⇒ validated strictly and checked for
+  // uniqueness against EVERY chain, retired ones included, the same way names and chainIds are:
+  // a retired chain's symbol still sits in wallets that added that network.
+  // Measured reason, on a real user: MetaMask showing "50.00M LOVE9" for a fresh L1 — the web
+  // front-end passed the NETWORK coin's symbol for every user chain. The ledger key is what the
+  // web reads instead (worktree web-home, P-55).
+  const symbolGiven = symbol !== undefined && symbol !== null && String(symbol).trim() !== "";
+  const SYMBOL = symbolGiven ? validateSymbol(symbol, daDung) : undefined;
 
   // Chặn SỚM, trước khi tiêu tiền và trước khi đụng vào node. Xem TRAN_SUBNET_GIAO_THUC.
   if (state.chains.length >= MAX_L1) {
@@ -1114,6 +1127,10 @@ async function createChain({ name, chainId, admin, preset }) {
     // Thêm khoá vào `console-chains.json` là thao tác AN TOÀN với trang danh bạ.
     presetName: presetDaAp.name,
     rpc: `${rpcBase}${rpcPath}`, createdAt: Date.now(),
+    // `symbol` — the owner's ticker for the L1's native token (P-54). Only present when the
+    // owner chose one; a missing key means "apply the fallback rule", never "LOVE9". Another
+    // ADDED key, so `/chains/` and `check-chain-ledger` keep working unchanged.
+    ...(SYMBOL ? { symbol: SYMBOL } : {}),
   };
   state.chains.push(chain); saveState(state);
   // Nhật ký restart trả cho người gọi làm bằng chứng, nhưng KHÔNG ghi vào state:
