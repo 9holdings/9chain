@@ -920,10 +920,24 @@ async function createChain({ name, chainId, admin, preset }) {
 
   // Mở tiến trình NGAY SAU khi mọi phép kiểm rẻ đã qua — trước đó mà hỏng thì
   // người dùng nhận lỗi tức thì, không cần màn tiến trình nào.
+  // 🔴 IT GOES OUT ON THE WIRE ⇒ IT IS ENGLISH. These three labels were Vietnamese and USERS SAW
+  // THEM: measured 2026-09-03 on `/create-chain/` set to `EN English` — every sentence around
+  // them in English, the three progress steps in Vietnamese.
+  //
+  // The translation boundary is already declared at `/api/progress` and was applied to exactly
+  // HALF of what crosses it: `trangThai` is translated through `STATUS[...]` because it is an
+  // enum the client switches on, and then `nhan` is passed straight through. Whoever wrote it
+  // thought about ENUMS and missed FREE TEXT — the same shape as every other defect found this
+  // day: the rule is right and it was applied to one half.
+  //
+  // ⚠️ Real localisation belongs to the client, not here. The API already ships `code`
+  // (`genesis`/`subnet`/`rpc`) beside the label, so `web/` can translate from the code without
+  // the console changing anything. The console does NOT guess the user's language — it does not
+  // know it, and guessing wrong is this same bug pointing the other way.
   moTienTrinh("tao", name, [
-    { ma: "genesis", nhan: "Dựng genesis" },
-    { ma: "subnet", nhan: "Đẻ subnet + blockchain trên P-Chain" },
-    { ma: "rpc", nhan: "Chờ RPC của L1 trả lời" },
+    { ma: "genesis", nhan: "Building genesis" },
+    { ma: "subnet", nhan: "Creating subnet + blockchain on P-Chain" },
+    { ma: "rpc", nhan: "Waiting for the L1 RPC to answer" },
   ]);
   buocChay("genesis");
 

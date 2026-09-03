@@ -211,7 +211,32 @@ chạy được**. `enter.sh` nay tổng hợp tiêu đề **trong ống, không
 ⚠️ Ảnh node **không có `ps`/`pkill`** ⇒ không dừng được ví bằng cách thường; dựng lại container
 (hoặc dùng cổng khác) là đường đúng.
 ✅ **David chốt `2026-09-03`: `1000` / `999`, quỹ `foundation`.** Hai con số trong khối lệnh trên
-là con số thật, không phải chỗ điền. ~**10.000 lượt đẻ chain** ở mức `~0,1 LOVE9`/lượt (D-091).
+là con số thật, không phải chỗ điền.
+
+🔴 **ĐỪNG ĐỔI SỐ DƯ RA NĂNG LỰC.** Bản đầu của dòng này viết *"~10.000 lượt đẻ chain ở mức
+`~0,1 LOVE9`/lượt"* — **tiền ÷ phí**, đúng số học và **vô nghĩa về vận hành**. Ràng buộc thật
+**không phải ví**:
+
+| ràng buộc | trần | nguồn |
+|---|---|---|
+| ví factory | **~4,3 TRIỆU lượt** | đo `03/09` khi đẻ `Adam Chain`: **`0,00023015` LOVE9/lượt** |
+| 🔴 **giao thức P2P** | **15** (console từ chối) · **16** (tường) | `TRAN_SUBNET_GIAO_THUC` |
+
+🔴 **Và `~0,1 LOVE9/lượt` mà nhiều chỗ đang khai cũng SAI — gấp ~869 lần.** Đó là **phí TĨNH
+tiền-Etna** mà `info.getTxFee` vẫn quảng cáo (`createSubnetTxFee: 0.1` + `createBlockchainTxFee:
+0.1`), trong khi P-Chain **dùng phí ĐỘNG từ Etna**. `docs/PROGRESS.md` đã đo `0,000141468` trên
+mạng dev và **đã viết rằng số tĩnh không còn được dùng** — nhiều tuần trước khi
+`watch-network.mjs` vẫn còn trích số tĩnh đó. *Một sự thật ghi ở một chỗ không sửa được một con
+số để lại ở chỗ khác — và cái người ta đọc là công cụ, không phải sổ.*
+
+`TRAN_SUBNET_GIAO_THUC = 16` trong `local-net/console/server.mjs`: mô hình hiện tại cho **mọi
+validator track mọi L1**, mà *"node khai quá 16 subnet lúc bắt tay sẽ bị **MỌI peer cắt kết nối**
+— **mạng vỡ, không phải chậm đi**"*. `MAX_L1` để **15**, chừa một chỗ cho subnet mồ côi do một
+lượt tạo hỏng để lại.
+
+⇒ Ví giữ đủ tiền cho **~666 lần** số chain mạng này có thể mang. Vượt trần là **đổi kiến trúc**
+(tập validator riêng cho từng L1 / ACP-77), **không phải nới một con số**. *(Phát hiện `03/09` từ
+câu hỏi của David — không cổng nào nối hai con số này lại.)*
 
 🔴 **Quỹ không phải lựa chọn — nó là PHÉP ĐO.** Đo `03/09` trên X-Chain: `foundation`
 **71.000.009 LOVE9**, còn `staking` · `ecosystem` · `faucet` · `private-sale` · `team` đều **0
