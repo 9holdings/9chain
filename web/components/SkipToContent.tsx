@@ -3,14 +3,15 @@
 import { useT } from '@/lib/i18n';
 
 /**
- * Liên kết "bỏ qua điều hướng" — thứ đầu tiên nhận tiêu điểm khi bấm Tab.
+ * The "skip navigation" link — the first thing to receive focus on Tab.
  *
- * Tách thành component client CHỈ vì một lý do: chữ của nó phải đổi theo ngôn ngữ,
- * mà `layout.tsx` là server component (nó phải thế — `export const metadata` chỉ
- * hợp lệ ở server). Xem `components/PageHeader.tsx` cho ranh giới chung của cả site.
+ * It is a client component for exactly one reason: its text has to follow the chosen
+ * language, and `layout.tsx` is a server component (it has to be — `export const
+ * metadata` is only valid on the server). See `components/PageHeader.tsx` for the
+ * site-wide boundary.
  *
- * 🔴 Nó phải đứng TRƯỚC mọi thứ trong `<body>`. Đó là toàn bộ công dụng: người đi
- * bằng bàn phím không phải đi qua cả thanh điều hướng ở mỗi trang.
+ * 🔴 It must come BEFORE everything else in `<body>`. That is the whole point: a
+ * keyboard user should not have to walk the entire nav bar on every page.
  */
 export function SkipToContent() {
   const t = useT();

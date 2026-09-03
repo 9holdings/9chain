@@ -1,19 +1,21 @@
 import { HomeContent } from './HomeContent';
 
 /**
- * TRANG CHỦ — **David chọn bản C ngày 2026-08-26** (M10.3, U-3).
+ * HOME PAGE — **David chose variant C on 2026-08-26** (M10.3, U-3).
  *
- * Cách dẫn: **bằng chứng trước, lời mời sau**. Cho thấy L1 có thật đang chạy, có chủ
- * thật, rồi mới mời người ta đẻ chain của mình. Hai bản còn lại (A — dẫn bằng lời
- * hứa; B — đặt thẳng ô đặt tên lên trang chủ) đã gỡ cùng thanh chọn biến thể; lịch
- * sử nằm trong git nếu cần đọc lại.
+ * How it leads: **evidence first, invitation second**. Show that real L1s are running
+ * with real owners, and only then invite the reader to launch their own. The other two
+ * variants (A — led with a promise; B — put the naming field straight on the home
+ * page) were removed along with the variant switcher; the history is in git if it
+ * needs reading again.
  *
- * 🔴 **Điểm yếu đã biết của bản này, ghi ra để đừng ai ngạc nhiên:** nó mạnh dần
- * theo số chain trong danh bạ, mà hôm nay danh bạ đang **vắng** (2 L1, cả hai của hệ
- * thống). Vì vậy `ChainTable` có trạng thái rỗng viết như một **lời mời** ("bạn sẽ là
- * người đầu tiên"), không phải một ô trống — chọn bản C là đặt cược vào việc danh bạ
- * sẽ đầy lên, và màn phải chịu được quãng chờ đó mà không trông như hỏng.
+ * 🔴 **A KNOWN WEAKNESS OF THIS VARIANT, written down so nobody is surprised:** it
+ * gets stronger as the directory fills up, and today the directory is **thin** (2 L1s,
+ * both belonging to the system). That is why `ChainTable` has an empty state written
+ * as an **invitation** ("you would be the first") rather than a blank box — choosing
+ * variant C is a bet that the directory will fill, and the screen has to survive that
+ * wait without looking broken.
  */
-export default function TrangChu() {
+export default function HomePage() {
   return <HomeContent />;
 }

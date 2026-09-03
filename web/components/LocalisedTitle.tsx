@@ -3,18 +3,18 @@
 import { useLocalisedTitle } from '@/lib/pageTitle';
 
 /**
- * Vỏ component cho `useLocalisedTitle()` — không vẽ gì cả.
+ * A component shell for `useLocalisedTitle()` — it renders nothing.
  *
- * Tồn tại vì `app/layout.tsx` là **server component** nên không gọi hook được, và
- * `LanguageProvider` thì KHÔNG dùng được: nó là chính cái provider, nên `useT()`
- * gọi bên trong nó sẽ không thấy context của nó. Đặt component này BÊN TRONG provider
- * là cách duy nhất để nó đọc được từ điển đang chọn.
+ * It exists because `app/layout.tsx` is a **server component** and cannot call hooks,
+ * and `LanguageProvider` is NOT usable either: it IS the provider, so a `useT()` call
+ * inside it would not see its own context. Placing this component INSIDE the provider
+ * is the only way for it to read the chosen dictionary.
  *
- * 🔴 `usePathname()` chứ KHÔNG phải `useSearchParams()`. Với `output: 'export'`,
- * `useSearchParams` buộc phải có biên `<Suspense>` bọc ngoài, mà một biên Suspense
- * thừa khiến Next ghi ra HTML khung xương kèm marker `<template id="B:1">` **không
- * bao giờ được giải** trên trình duyệt — xem ràng buộc 1 trong `lib/i18n/index.tsx`
- * và cổng `scripts/check-static-export.mjs`. `usePathname` không cần Suspense.
+ * 🔴 `usePathname()`, NOT `useSearchParams()`. Under `output: 'export'`,
+ * `useSearchParams` requires a `<Suspense>` boundary around it, and a stray Suspense
+ * boundary makes Next emit skeleton HTML with a `<template id="B:1">` marker that is
+ * **never resolved** in the browser — see constraint 1 in `lib/i18n/index.tsx` and the
+ * `scripts/check-static-export.mjs` gate. `usePathname` needs no Suspense.
  */
 export function LocalisedTitle() {
   useLocalisedTitle();

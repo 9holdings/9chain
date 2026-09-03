@@ -6,35 +6,39 @@ import { fetchJson, READ_TIMEOUT_MS, NetworkError } from './net';
 import { readDirectory } from './directory';
 
 /**
- * Số liệu sống của mạng, cho trang chủ.
+ * Live network numbers, for the home page.
  *
- * ═══ ĐỌC MỘT LẦN LÚC MOUNT, KHÔNG POLL ═══
- * Trang chủ không phải bảng điều khiển. Poll mỗi vài giây trên một trang mà người
- * ta ở lại 20 giây là tự gánh một dòng request đều đặn từ mọi khách ghé qua, đổi
- * lấy một con số nhích. Muốn số nhúc nhích liên tục thì đó là việc của explorer.
+ * ═══ READ ONCE ON MOUNT, DO NOT POLL ═══
+ * The home page is not a dashboard. Polling every few seconds on a page people stay
+ * on for twenty means carrying a steady stream of requests from every visitor in
+ * exchange for one number ticking over. If a number has to move continuously, that is
+ * the explorer's job.
  *
- * (Kèm một lý do thực dụng: `refetchInterval` kiểu nào cũng **không chạy** khi
- * `document.visibilityState === 'hidden'` — đúng trạng thái của mọi khung xem tự
- * động. Nghiệm thu polling bằng công cụ dễ ra âm tính giả; đọc-một-lần thì nghiệm
- * thu bằng tải lại trang, không mơ hồ.)
+ * (Plus a practical reason: every flavour of `refetchInterval` **does not run** while
+ * `document.visibilityState === 'hidden'` — which is exactly the state of every
+ * automated viewport. Verifying polling with tooling invites false negatives;
+ * read-once is verified by reloading the page, which is unambiguous.)
  *
- * ═══ BA TRẠNG THÁI, KHÔNG PHẢI HAI ═══
- * `dangTai` · `xong` · `hong`. Một con số TRỐNG ở trang chủ đọc như **mạng chết** —
- * đó là điều tệ nhất một trang testnet có thể nói về chính nó, và nó nói bằng cách
- * không nói gì.
+ * ═══ THREE STATES, NOT TWO ═══
+ * `loading` · `done` · `failed`. An EMPTY number on the home page reads as **the
+ * network is dead** — the worst thing a testnet page can say about itself, and it says
+ * it by saying nothing.
  */
 /**
- * 🔴 MỖI Ô CÓ THỂ VẮNG RIÊNG — `null` là "chưa đo được ô NÀY", không phải 0. (Đ1-8)
+ * 🔴 EACH CELL CAN BE ABSENT ON ITS OWN — `null` means "this cell could not be
+ * measured", not 0. (Đ1-8)
  *
- * Trước `2026-08-28` ba nguồn gọi bằng `Promise.all`, nên **một nguồn chết là mất
- * cả ba con số**. Ca cụ thể đã thấy: `console-chains.json` là tệp tĩnh do console
- * ghi ra; nó vắng mặt trong đúng cửa sổ mạng vừa sinh lại — tức **đúng lúc trang cần
- * nhất để nói "9/9 validator còn sống"**, thì nó lại không nói được gì cả.
+ * Before 2026-08-28 the three sources were fetched with `Promise.all`, so **one dead
+ * source lost all three numbers**. The case actually observed: `console-chains.json`
+ * is a static file the console writes, and it was missing during exactly the window
+ * right after a network rebuild — that is, **precisely when the page most needed to
+ * say "9/9 validators are alive"** it could say nothing at all.
  *
- * ⚠️ Chú thích cũ ở đây bảo vệ `Promise.all` bằng lý do *"hiện 2/3 con số đúng và
- * 1 con số SAI LỆCH còn khó đọc hơn"*. Lý do đó vẫn đúng — và bản này **không vi
- * phạm nó**: ô hỏng không hiện số cũ, không hiện 0, mà hiện thẳng "không đo được".
- * Điều bị cấm là **một con số sai**, không phải **một ô khai là vắng**.
+ * ⚠️ The old comment here defended `Promise.all` on the grounds that *"showing 2 of 3
+ * numbers correctly and 1 number MISLEADINGLY is harder to read"*. That reasoning
+ * still holds — and this version **does not violate it**: a failed cell shows no stale
+ * number and no zero, it says outright "could not measure". What is forbidden is **a
+ * wrong number**, not **a cell declaring itself absent**.
  */
 export type NetworkNumbers = {
   validatorsTotal: number | null;
@@ -44,14 +48,14 @@ export type NetworkNumbers = {
 };
 
 export type StatsState =
-  | { phase: 'dangTai' }
-  | { phase: 'xong'; so: NetworkNumbers }
-  | { phase: 'hong'; why: string };
+  | { phase: 'loading' }
+  | { phase: 'done'; numbers: NetworkNumbers }
+  | { phase: 'failed'; why: string };
 
-async function jsonRpc(url: string, method: string, params: unknown[] = [], hanGiay = READ_TIMEOUT_MS / 1000) {
-  // Hạn giờ ở đây là AN TOÀN và bắt buộc: đây là các lượt ĐỌC ngắn của trang chủ.
-  // (Ràng buộc "không hạn giờ" chỉ áp cho `/api/create` và `/api/revoke` — xem
-  // `lib/net.ts`. Không đường nào trong tệp này chạm tới chúng.)
+async function jsonRpc(url: string, method: string, params: unknown[] = [], timeoutS = READ_TIMEOUT_MS / 1000) {
+  // The timeout here is SAFE and required: these are the home page's short READS.
+  // (The "no timeout" constraint applies only to `/api/create` and `/api/revoke` —
+  // see `lib/net.ts`. No path in this file touches them.)
   const j = await fetchJson<{ result?: unknown; error?: { message?: string } }>(
     url,
     {
@@ -59,26 +63,26 @@ async function jsonRpc(url: string, method: string, params: unknown[] = [], hanG
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
     },
-    hanGiay,
+    timeoutS,
   );
-  if (j.error) throw new NetworkError('http', j.error.message ?? 'lỗi RPC', 200);
+  if (j.error) throw new NetworkError('http', j.error.message ?? 'RPC error', 200);
   return j.result;
 }
 
 export function useNetworkStats(): { state: StatsState; reload: () => void } {
-  const [state, setState] = useState<StatsState>({ phase: 'dangTai' });
+  const [state, setState] = useState<StatsState>({ phase: 'loading' });
   const [round, setRound] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      setState({ phase: 'dangTai' });
-      // 🔴 `allSettled`, KHÔNG `all` (Đ1-8). Ba nguồn độc lập nhau về mặt sự thật —
-      // số validator không phụ thuộc vào việc danh bạ L1 có đọc được hay không — nên
-      // buộc chúng sống chết cùng nhau là tự tạo ra một điểm hỏng chung không có
-      // thật. Xem chú thích ở `NetworkNumbers` cho vì sao điều này KHÔNG mâu thuẫn với luật
-      // cũ "đừng hiện một con số sai lệch".
-      const [rVld, rCao, rDanhBa] = await Promise.allSettled([
+      setState({ phase: 'loading' });
+      // 🔴 `allSettled`, NOT `all` (Đ1-8). The three sources are independent as facts —
+      // the validator count does not depend on whether the L1 directory can be read —
+      // so forcing them to live and die together invents a shared point of failure
+      // that does not exist. See the comment on `NetworkNumbers` for why this does NOT
+      // contradict the older rule "never show a misleading number".
+      const [rValidators, rHeight, rDirectory] = await Promise.allSettled([
         jsonRpc(`${rpcOrigin()}/ext/bc/P`, 'platform.getCurrentValidators') as Promise<{
           validators?: { connected?: boolean }[];
         }>,
@@ -90,27 +94,27 @@ export function useNetworkStats(): { state: StatsState; reload: () => void } {
       ]);
       if (cancelled) return;
 
-      const list = rVld.status === 'fulfilled' ? rVld.value?.validators ?? [] : null;
-      const height = rCao.status === 'fulfilled' ? Number(rCao.value) : null;
+      const list = rValidators.status === 'fulfilled' ? rValidators.value?.validators ?? [] : null;
+      const height = rHeight.status === 'fulfilled' ? Number(rHeight.value) : null;
       const l1Count =
-        rDanhBa.status === 'fulfilled' && Array.isArray(rDanhBa.value?.chains)
-          ? rDanhBa.value.chains.length
+        rDirectory.status === 'fulfilled' && Array.isArray(rDirectory.value?.chains)
+          ? rDirectory.value.chains.length
           : null;
 
-      // Cả ba cùng hỏng ⇒ đây là "mạng không với tới được", không phải "một ô vắng".
-      // Phân biệt hai ca đó là việc của giao diện: một dòng chữ nhạt vs ba ô gạch
-      // ngang. Gộp chúng lại là nói với người đọc rằng mạng chết trong khi có thể
-      // chỉ là một tệp tĩnh chưa kịp ghi.
+      // All three failed ⇒ this is "the network is unreachable", not "one cell is
+      // absent". Telling those two cases apart is the interface's job: one line of
+      // muted text versus three dashes. Merging them tells the reader the network is
+      // dead when it may only be a static file that has not been written yet.
       if (list === null && height === null && l1Count === null) {
-        const dau = [rVld, rCao, rDanhBa].find((r) => r.status === 'rejected');
-        const l = dau && dau.status === 'rejected' ? (dau.reason as NetworkError | Error) : null;
-        setState({ phase: 'hong', why: l?.message ?? 'không gọi được mạng' });
+        const first = [rValidators, rHeight, rDirectory].find((r) => r.status === 'rejected');
+        const err = first && first.status === 'rejected' ? (first.reason as NetworkError | Error) : null;
+        setState({ phase: 'failed', why: err?.message ?? 'could not reach the network' });
         return;
       }
 
       setState({
-        phase: 'xong',
-        so: {
+        phase: 'done',
+        numbers: {
           validatorsTotal: list === null ? null : list.length,
           validatorsConnected: list === null ? null : list.filter((v) => v.connected).length,
           l1Count,

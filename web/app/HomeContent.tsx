@@ -6,9 +6,10 @@ import { ChainTable } from './ChainTable';
 import { useT } from '@/lib/i18n';
 
 /**
- * Thân trang chủ — tách khỏi `page.tsx` vì `page.tsx` phải là server component
- * (`export const metadata` chỉ hợp lệ ở đó), mà server component chạy lúc BUILD nên
- * không biết người đọc chọn ngôn ngữ nào. Xem `components/PageHeader.tsx`.
+ * The home page body — split out of `page.tsx` because `page.tsx` has to be a server
+ * component (`export const metadata` is only valid there), and a server component runs
+ * at BUILD time so it cannot know which language the reader picked. See
+ * `components/PageHeader.tsx`.
  */
 export function HomeContent() {
   const t = useT();
@@ -17,8 +18,9 @@ export function HomeContent() {
       <section className="bg-navy">
         <div className="khung py-14 md:py-20">
           <Badge tone="warn">{t.home.testnetBadge}</Badge>
-          {/* Dòng dẫn: chữ "A1" trong <h1> phải có nghĩa TRƯỚC khi được dùng.
-              `moTaNgan` là chuỗi đã có sẵn và đã duyệt — không sinh chuỗi mới. */}
+          {/* Lead line: the string "A1" in the `<h1>` has to mean something BEFORE it
+              is used. `shortDesc` is an existing, already-reviewed string — do not
+              invent a new one. */}
           <p className="mt-4 text-sm font-semibold uppercase tracking-wider text-on-dark-2">
             {t.common.shortDesc}
           </p>
@@ -26,12 +28,13 @@ export function HomeContent() {
             {t.home.title}
           </h1>
           <p className="mt-4 max-w-2xl text-base text-on-dark-2 md:text-lg">{t.home.subtitle}</p>
-          <NetworkStats tren="toi" />
-          {/* 🔴 HAI DÒNG NÀY ĐỨNG NGAY DƯỚI SỐ LIỆU, CÓ CHỦ Ý (Đ1-4).
-              Đặt chúng ở chân trang hay trang riêng là để con số tiếp tục đứng một
-              mình ở chỗ người ta thật sự đọc. Lời giải "block đứng yên là bình
-              thường" vốn ĐÃ TỒN TẠI trong dự án — nhưng chỉ nằm trong chú thích mã
-              (`MyChainsScreen.tsx`), tức đúng chỗ người dùng không bao giờ tới. */}
+          <NetworkStats on="dark" />
+          {/* 🔴 THESE TWO LINES SIT DIRECTLY UNDER THE NUMBERS, ON PURPOSE (Đ1-4).
+              Putting them in the footer or on a page of their own is how the numbers
+              go back to standing alone in the place people actually read. The
+              explanation "a block height that stays still is normal" ALREADY EXISTED
+              in this project — but only inside a code comment
+              (`MyChainsScreen.tsx`), which is precisely where no user ever goes. */}
           <div className="mt-6 flex max-w-2xl flex-col gap-2 border-s-2 border-line-dark ps-4 text-sm text-on-dark-2">
             <p>{t.home.disclosure}</p>
             <p>{t.home.idleBlocksNote}</p>

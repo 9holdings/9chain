@@ -63,7 +63,7 @@ export function ComparisonTable() {
               `null` ô này vắng. Xem `lib/stats.ts` cho vì sao một nguồn hỏng không
               còn kéo theo hai ô kia. */}
           {(() => {
-            const s = state.phase === 'xong' ? state.so : null;
+            const s = state.phase === 'done' ? state.numbers : null;
             return [
               {
                 n: t.compare.a1Validators,
@@ -81,7 +81,7 @@ export function ComparisonTable() {
               <dd className="font-display text-2xl font-extrabold text-ink">
                 {x.v !== undefined && x.v !== null ? (
                   x.v
-                ) : x.v === null || state.phase === 'hong' ? (
+                ) : x.v === null || state.phase === 'failed' ? (
                   <span className="font-sans text-sm font-normal text-muted">{t.compare.cannotMeasure}</span>
                 ) : (
                   <><span className="sr-only">{t.compare.measuring}</span><Skeleton className="h-8 w-16" /></>
