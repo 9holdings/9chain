@@ -18,9 +18,9 @@ import { DirectoryContent } from './DirectoryContent';
  * 404, which would empty this page while every HTTP check stayed green.
  */
 export const metadata: Metadata = pageMeta({
-  tieuDe: EN.nav.directory,
-  moTa: EN.directory.lede,
-  duong: '/chains/',
+  title: EN.nav.directory,
+  desc: EN.directory.lede,
+  urlPath: '/chains/',
 });
 
 export default function Trang() {

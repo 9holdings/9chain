@@ -113,7 +113,7 @@ async function probeChain(c: { blockchainID?: string; subnetID?: string | null }
 
 export function DirectoryContent() {
   const t = useT();
-  const { ma: code } = useLanguage();
+  const { code: code } = useLanguage();
   const [state, setState] = useState<Phase>({ phase: 'loading' });
   const [round, setRound] = useState(0);
 
@@ -169,7 +169,7 @@ export function DirectoryContent() {
       </div>
     );
   }
-  if (state.phase === 'failed') return <ErrorState thuLai={retry} />;
+  if (state.phase === 'failed') return <ErrorState onRetry={retry} />;
 
   const { chains, retired, probes, error } = state;
 
@@ -195,7 +195,7 @@ export function DirectoryContent() {
 
       {error !== null && (
         <div className="mt-4">
-          <ErrorState moTa={interpolate(t.directory.listError, { error })} />
+          <ErrorState desc={interpolate(t.directory.listError, { error })} />
         </div>
       )}
 
@@ -213,7 +213,7 @@ export function DirectoryContent() {
 
       {chains.length === 0 && (
         <div className="mt-4">
-          <EmptyState tieuDe={t.home.emptyTitle} moTa={t.home.emptyDesc} />
+          <EmptyState title={t.home.emptyTitle} desc={t.home.emptyDesc} />
         </div>
       )}
 
@@ -273,7 +273,7 @@ function ChainCard({
   const t = useT();
 
   /** Badge + one-line reason. See the file header: validators decide, not RPC. */
-  const [kieu, label, why]: ['tot' | 'xau' | 'canhBao' | 'trungTinh', string, string] = isMain
+  const [variant, label, why]: ['tot' | 'xau' | 'canhBao' | 'trungTinh', string, string] = isMain
     ? ['trungTinh', t.directory.mainNetwork, t.directory.mainNetworkDesc]
     : probe.unknown
       ? ['canhBao', t.directory.unclear, t.directory.unclearDesc]
@@ -292,7 +292,7 @@ function ChainCard({
     <Card className="p-5">
       <div className="mb-3 flex flex-wrap items-center gap-2.5">
         <h2 className="text-base font-bold text-ink">{record.name}</h2>
-        <Badge kieu={kieu}>{label}</Badge>
+        <Badge variant={variant}>{label}</Badge>
       </div>
       <p className="-mt-1.5 mb-3 text-sm text-muted">{why}</p>
 
@@ -325,8 +325,8 @@ function ChainCard({
         {probe.rpcOk && probe.chainIdHex && (
           <AddToWallet name={record.name} chainIdHex={probe.chainIdHex} rpc={probe.rpc} />
         )}
-        <Copyable giaTri={probe.rpc} nhan={t.launch.doneRpc} />
-        {admin && <Copyable giaTri={admin} nhan={t.directory.copyOwner} />}
+        <Copyable value={probe.rpc} label={t.launch.doneRpc} />
+        {admin && <Copyable value={admin} label={t.directory.copyOwner} />}
       </div>
     </Card>
   );
@@ -394,7 +394,7 @@ function RetiredCard({ record, code }: { record: RetiredRecord; code: string }) 
     <Card className="p-5 opacity-75">
       <div className="mb-3 flex flex-wrap items-center gap-2.5">
         <h2 className="text-base font-bold text-muted line-through">{record.name}</h2>
-        <Badge kieu="trungTinh">{t.directory.revoked}</Badge>
+        <Badge variant="trungTinh">{t.directory.revoked}</Badge>
       </div>
       <p className="-mt-1.5 mb-3 text-sm text-muted">{t.directory.revokedDesc}</p>
       <Row k={t.directory.ownerAdmin}>

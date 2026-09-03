@@ -18,9 +18,9 @@ import { LiveContent } from './LiveContent';
  * testnet should keep saying out loud after the fact.
  */
 export const metadata: Metadata = pageMeta({
-  tieuDe: EN.loadTest.title,
-  moTa: EN.loadTest.intro,
-  duong: '/live/',
+  title: EN.loadTest.title,
+  desc: EN.loadTest.intro,
+  urlPath: '/live/',
 });
 
 export default function Trang() {

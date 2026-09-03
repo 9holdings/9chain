@@ -93,7 +93,7 @@ export function toChecksumAddress(addr: string): string {
 
 export type AddressCheck =
   | { ok: true; diaChi: string }
-  | { ok: false; loi: string; goiY?: string };
+  | { ok: false; failure: string; hint?: string };
 
 /**
  * Kiểm + chuẩn hoá địa chỉ người dùng nhập. **Trả kết quả, không ném lỗi** — ở giao
@@ -103,11 +103,11 @@ export type AddressCheck =
  * Địa chỉ toàn hoa hoặc toàn thường được chấp nhận (không mang thông tin checksum);
  * hoa/thường lẫn lộn thì BẮT BUỘC khớp EIP-55.
  */
-export function checkAddress(raw: string, nhan = 'Địa chỉ'): AddressCheck {
+export function checkAddress(raw: string, label = 'Địa chỉ'): AddressCheck {
   const s = (raw ?? '').trim();
-  if (!s) return { ok: false, loi: `${nhan} không được để trống` };
+  if (!s) return { ok: false, failure: `${label} không được để trống` };
   if (!/^0x[0-9a-fA-F]{40}$/.test(s)) {
-    return { ok: false, loi: `${nhan} phải là 0x + 40 ký tự hex` };
+    return { ok: false, failure: `${label} phải là 0x + 40 ký tự hex` };
   }
   const body = s.slice(2);
   const lanLon = /[a-f]/.test(body) && /[A-F]/.test(body);
@@ -115,12 +115,12 @@ export function checkAddress(raw: string, nhan = 'Địa chỉ'): AddressCheck {
   if (lanLon && s !== chuan) {
     return {
       ok: false,
-      loi: `${nhan} sai checksum EIP-55 — nhiều khả năng gõ/dán nhầm một ký tự`,
-      goiY: s.toLowerCase(),
+      failure: `${label} sai checksum EIP-55 — nhiều khả năng gõ/dán nhầm một ký tự`,
+      hint: s.toLowerCase(),
     };
   }
   if (/^0x0{40}$/.test(s)) {
-    return { ok: false, loi: `${nhan} không được là địa chỉ 0 (không ai giữ khoá)` };
+    return { ok: false, failure: `${label} không được là địa chỉ 0 (không ai giữ khoá)` };
   }
   return { ok: true, diaChi: chuan };
 }

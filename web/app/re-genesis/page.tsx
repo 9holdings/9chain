@@ -42,9 +42,9 @@ import { pageMeta } from '@/lib/seo';
 // `<title>` vẫn xanh suốt thời gian đó.
 // `pageMeta` tự cắt dấu `[?]` — không gọi `.replace()` ở đây nữa.
 export const metadata: Metadata = pageMeta({
-  tieuDe: interpolate(EN.rebuild.title, { ngay: EN.rebuild.date }),
-  moTa: EN.rebuild.desc,
-  duong: '/re-genesis/',
+  title: interpolate(EN.rebuild.title, { ngay: EN.rebuild.date }),
+  desc: EN.rebuild.desc,
+  urlPath: '/re-genesis/',
 });
 
 export default function TrangReGenesis() {

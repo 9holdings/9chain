@@ -47,95 +47,95 @@ async function demValidator(subnetID: string): Promise<number> {
 
 export function MyChainsScreen() {
   const t = useT();
-  const [phien, datPhien] = useState<WalletSession | null>(null);
-  const [dangNoi, datDangNoi] = useState(false);
-  const [loiVi, datLoiVi] = useState<string | null>(null);
+  const [session, setSession] = useState<WalletSession | null>(null);
+  const [connecting, setConnecting] = useState(false);
+  const [walletFailure, setWalletFailure] = useState<string | null>(null);
 
-  const [tt, datTt] = useState<TrangThai | null>(null);
-  const [loiTai, datLoiTai] = useState(false);
-  const [vld, datVld] = useState<Record<string, number | 'dang' | 'errors'>>({});
+  const [state, setState] = useState<TrangThai | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [validators, setValidators] = useState<Record<string, number | 'dang' | 'errors'>>({});
 
   // Kết quả bấm "Thêm vào ví", THEO TỪNG CHAIN — màn này vẽ nhiều chain một lúc, nên
   // một ô lỗi dùng chung sẽ dán lỗi của chain này lên thẻ của chain khác.
   // Bản trước `catch {}` trắng: bấm xong không có gì đổi, cả lúc được lẫn lúc hỏng.
-  const [themVi, datThemVi] = useState<Record<number, { xong: true } | { xong: false; chu: string }>>({});
+  const [addedToWallet, setAddedToWallet] = useState<Record<number, { finished: true } | { finished: false; ownerAddr: string }>>({});
 
-  const [dangThuHoi, datDangThuHoi] = useState<Chain | null>(null);
-  const [goTen, datGoTen] = useState('');
-  const [chay, datChay] = useState<{ ten: string } | null>(null);
-  const [tienTrinh, datTienTrinh] = useState<Progress | null>(null);
-  const [xong, datXong] = useState<string | null>(null);
-  const [loiThuHoi, datLoiThuHoi] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState<Chain | null>(null);
+  const [typedName, setTypedName] = useState('');
+  const [running, setRunning] = useState<{ ten: string } | null>(null);
+  const [progress, setProgress] = useState<Progress | null>(null);
+  const [finished, setFinished] = useState<string | null>(null);
+  const [revokeError, setRevokeError] = useState<string | null>(null);
 
   const nap = useCallback(async (token: string) => {
-    datLoiTai(false);
+    setLoadError(false);
     try {
-      datTt(await callConsole<TrangThai>('/api/status', token, undefined, CONSOLE_TIMEOUT_S));
+      setState(await callConsole<TrangThai>('/api/status', token, undefined, CONSOLE_TIMEOUT_S));
     } catch {
-      datLoiTai(true);
+      setLoadError(true);
     }
   }, []);
 
   async function vao() {
-    datLoiVi(null);
-    datDangNoi(true);
+    setWalletFailure(null);
+    setConnecting(true);
     try {
       const dc = await connectWallet();
       const p = await siweSignIn(dc);
-      datPhien(p);
+      setSession(p);
       await nap(p.token);
     } catch (e) {
       const m = String((e as Error).message ?? e);
-      datLoiVi(m === 'KHONG_CO_VI' ? t.launch.noWallet : /rejected|denied|4001/i.test(m) ? t.launch.signRejected : m);
+      setWalletFailure(m === 'KHONG_CO_VI' ? t.launch.noWallet : /rejected|denied|4001/i.test(m) ? t.launch.signRejected : m);
     } finally {
-      datDangNoi(false);
+      setConnecting(false);
     }
   }
 
-  const cuaToi = (tt?.chains ?? []).filter(
-    (c) => phien && typeof c.admin === 'string' && c.admin.toLowerCase() === phien.diaChi.toLowerCase(),
+  const cuaToi = (state?.chains ?? []).filter(
+    (c) => session && typeof c.admin === 'string' && c.admin.toLowerCase() === session.diaChi.toLowerCase(),
   );
-  const cuaToiDaThuHoi = (tt?.retired ?? []).filter(
-    (c) => phien && typeof c.admin === 'string' && c.admin.toLowerCase() === phien.diaChi.toLowerCase(),
+  const cuaToiDaThuHoi = (state?.retired ?? []).filter(
+    (c) => session && typeof c.admin === 'string' && c.admin.toLowerCase() === session.diaChi.toLowerCase(),
   );
 
   // Đo validator cho từng chain SỐNG, mỗi chain một lần. Đo song song vì chúng độc
   // lập; một chain đo hỏng không được kéo cả bảng xuống.
   useEffect(() => {
     for (const c of cuaToi) {
-      if (c.subnetID in vld) continue;
+      if (c.subnetID in validators) continue;
       // 🔴 Sentinel là `'dang'`, KHÔNG phải 0. **0 validator là một trạng thái
       // THẬT và nguy hiểm**: subnet mới đẻ có tập validator RỖNG, chain đó vẫn trả
       // lời `eth_chainId`, vẫn đọc được số dư, MetaMask vẫn kết nối — chỉ là **giao
       // dịch không bao giờ chốt**. Dùng 0 làm "đang tải" là che đúng cái trạng thái
       // không có dấu hiệu bề ngoài nào khác để nhận ra.
-      datVld((v) => ({ ...v, [c.subnetID]: 'dang' }));
+      setValidators((v) => ({ ...v, [c.subnetID]: 'dang' }));
       demValidator(c.subnetID)
-        .then((n) => datVld((v) => ({ ...v, [c.subnetID]: n })))
-        .catch(() => datVld((v) => ({ ...v, [c.subnetID]: 'errors' })));
+        .then((n) => setValidators((v) => ({ ...v, [c.subnetID]: n })))
+        .catch(() => setValidators((v) => ({ ...v, [c.subnetID]: 'errors' })));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tt, phien]);
+  }, [state, session]);
 
   // Poll tiến trình CHỈ trong lúc thu hồi — có điểm dừng rõ.
   const dongHo = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
-    if (!chay || !phien) return;
+    if (!running || !session) return;
     const doc = async () => {
       try {
-        datTienTrinh(await callConsole<Progress>('/api/progress', phien.token, undefined, CONSOLE_TIMEOUT_S));
+        setProgress(await callConsole<Progress>('/api/progress', session.token, undefined, CONSOLE_TIMEOUT_S));
       } catch { /* một nhịp hỏng không phải lý do bỏ cuộc — server vẫn đang chạy */ }
     };
     void doc();
     dongHo.current = setInterval(doc, 2000);
     return () => { if (dongHo.current) clearInterval(dongHo.current); };
-  }, [chay, phien]);
+  }, [running, session]);
 
   async function thucHienThuHoi(c: Chain) {
-    if (!phien) return;
-    datLoiThuHoi(null);
-    datDangThuHoi(null);
-    datChay({ ten: c.name });
+    if (!session) return;
+    setRevokeError(null);
+    setRevoking(null);
+    setRunning({ ten: c.name });
 
     // 🔴 KHÔNG `await` cái POST này để kết luận. Thao tác mất ~170 giây, Cloudflare
     // cắt kết nối ở ~100 giây (HTTP 524) ⇒ qua tên miền công khai, POST **luôn**
@@ -146,70 +146,70 @@ export function MyChainsScreen() {
     // phút cho một việc không tồn tại là nói dối theo một kiểu khác.
     let loiPost: string | null = null;
     let biTuChoi = false;
-    const post = callConsole('/api/revoke', phien.token, { name: c.name, xacNhan: c.name })
+    const post = callConsole('/api/revoke', session.token, { name: c.name, xacNhan: c.name })
       .catch((e) => {
         loiPost = String((e as Error).message ?? e);
         if (e instanceof ConsoleError && e.laTuChoiThat) biTuChoi = true;
       });
 
-    const kq = await waitForProgress(phien.token, { tuChoiSom: () => biTuChoi });
+    const check = await waitForProgress(session.token, { tuChoiSom: () => biTuChoi });
     await post.catch(() => {});
 
     // Sự thật nằm ở DANH BẠ, không ở mã HTTP: thu hồi thành công ⇔ chain không còn
     // trong `chains`.
     let conSong = true;
     try {
-      const st = await callConsole<TrangThai>('/api/status', phien.token, undefined, CONSOLE_TIMEOUT_S);
-      datTt(st);
+      const st = await callConsole<TrangThai>('/api/status', session.token, undefined, CONSOLE_TIMEOUT_S);
+      setState(st);
       conSong = st.chains.some((x) => x.name === c.name);
       if (!conSong) {
-        datXong(interpolate(t.myChains.revokeDone, {
+        setFinished(interpolate(t.myChains.revokeDone, {
           ten: c.name, con: st.tran - st.chains.length, tong: st.tran,
         }));
       }
     } catch {
-      datLoiTai(true);
+      setLoadError(true);
     }
     if (conSong) {
-      datLoiThuHoi(interpolate(t.myChains.revokeError, {
-        chiTiet: kq?.error ?? loiPost ?? t.myChains.revokeUnknown,
+      setRevokeError(interpolate(t.myChains.revokeError, {
+        chiTiet: check?.error ?? loiPost ?? t.myChains.revokeUnknown,
       }));
     }
 
-    datChay(null);
-    datTienTrinh(null);
-    datGoTen('');
+    setRunning(null);
+    setProgress(null);
+    setTypedName('');
   }
 
   /* ───────────────────────────────────────────────────────────── giao diện */
 
-  if (!phien) {
+  if (!session) {
     return (
       <Card className="mt-8 max-w-xl p-5 md:p-6">
         <h2 className="font-display text-lg font-bold text-ink">{t.myChains.connectWallet}</h2>
         <div className="mt-4">
-          <Button co="to" onClick={vao} isRunning={dangNoi}>
-            {dangNoi ? t.launch.signing : t.launch.connectWallet}
+          <Button co="to" onClick={vao} isRunning={connecting}>
+            {connecting ? t.launch.signing : t.launch.connectWallet}
           </Button>
         </div>
-        {loiVi && <div className="mt-4"><ErrorState tieuDe={loiVi} moTa="" thuLai={vao} /></div>}
-        {!getWallet() && <div className="mt-4"><Note kieu="canhBao">{t.launch.noWallet}</Note></div>}
+        {walletFailure && <div className="mt-4"><ErrorState title={walletFailure} desc="" onRetry={vao} /></div>}
+        {!getWallet() && <div className="mt-4"><Note variant="canhBao">{t.launch.noWallet}</Note></div>}
       </Card>
     );
   }
 
-  if (chay) {
+  if (running) {
     return (
       <Card className="mt-8 max-w-2xl p-5 md:p-6">
         <h2 className="font-display text-lg font-bold text-ink">
-          {interpolate(t.myChains.revoking, { ten: chay.ten })}
+          {interpolate(t.myChains.revoking, { ten: running.ten })}
         </h2>
         <div className="mt-4">
-          {tienTrinh?.steps?.length ? (
+          {progress?.steps?.length ? (
             <Steps
-              buoc={tienTrinh.steps}
-              ghiChu={tienTrinh.etaSeconds
-                ? interpolate(t.launch.etaRemaining, { phut: Math.max(1, Math.ceil(tienTrinh.etaSeconds / 60)) })
+              steps={progress.steps}
+              footnote={progress.etaSeconds
+                ? interpolate(t.launch.etaRemaining, { phut: Math.max(1, Math.ceil(progress.etaSeconds / 60)) })
                 : undefined}
             />
           ) : (
@@ -220,8 +220,8 @@ export function MyChainsScreen() {
     );
   }
 
-  if (loiTai) return <div className="mt-8 max-w-xl"><ErrorState thuLai={() => nap(phien.token)} /></div>;
-  if (!tt) {
+  if (loadError) return <div className="mt-8 max-w-xl"><ErrorState onRetry={() => nap(session.token)} /></div>;
+  if (!state) {
     return (
       <Card className="mt-8 p-5">
         <span className="sr-only">{t.common.loading}</span>
@@ -232,18 +232,18 @@ export function MyChainsScreen() {
 
   return (
     <div className="mt-8 flex max-w-3xl flex-col gap-6">
-      {xong && (
+      {finished && (
         <div role="status" className="rounded-card border border-success-line bg-success-bg px-4 py-3 text-sm font-semibold text-success-ink">
-          {xong}
+          {finished}
         </div>
       )}
-      {loiThuHoi && <ErrorState tieuDe={loiThuHoi} moTa="" />}
+      {revokeError && <ErrorState title={revokeError} desc="" />}
 
       {!cuaToi.length && !cuaToiDaThuHoi.length ? (
         <EmptyState
-          tieuDe={t.myChains.emptyTitle}
-          moTa={t.myChains.emptyDesc}
-          hanhDong={
+          title={t.myChains.emptyTitle}
+          desc={t.myChains.emptyDesc}
+          action={
             <a href="/create-chain/" className="inline-flex h-11 items-center rounded-btn bg-gold px-4 text-sm font-semibold text-navy hover:bg-gold-hover">
               {t.myChains.emptyCta}
             </a>
@@ -252,7 +252,7 @@ export function MyChainsScreen() {
       ) : (
         <ul className="flex flex-col gap-4">
           {cuaToi.map((c) => {
-            const v = vld[c.subnetID];
+            const v = validators[c.subnetID];
             return (
               <li key={c.chainId}>
                 <Card className="p-5">
@@ -269,9 +269,9 @@ export function MyChainsScreen() {
                         ) : v === 'errors' ? (
                           <span className="text-muted">{t.myChains.cannotMeasure}</span>
                         ) : v === 0 ? (
-                          <Badge kieu="canhBao">{t.myChains.noValidators}</Badge>
+                          <Badge variant="canhBao">{t.myChains.noValidators}</Badge>
                         ) : (
-                          <Badge kieu="tot">{interpolate(t.myChains.validatorCount, { so: v })}</Badge>
+                          <Badge variant="tot">{interpolate(t.myChains.validatorCount, { so: v })}</Badge>
                         )}
                       </p>
                       <p className="mt-1 text-xs text-muted">{t.myChains.statusHelp}</p>
@@ -281,7 +281,7 @@ export function MyChainsScreen() {
                         </p>
                       )}
                     </div>
-                    <Button kieu="vien" onClick={() => { datDangThuHoi(c); datGoTen(''); }}>
+                    <Button variant="vien" onClick={() => { setRevoking(c); setTypedName(''); }}>
                       {t.myChains.revoke}
                     </Button>
                   </div>
@@ -289,41 +289,41 @@ export function MyChainsScreen() {
                   <dl className="mt-4 flex flex-col gap-2">
                     <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{t.myChains.walletSettings}</dt>
                     <dd className="flex flex-wrap gap-2">
-                      {c.rpc && <Copyable giaTri={c.rpc} nhan="RPC" />}
-                      <Copyable giaTri={String(c.chainId)} nhan="Chain ID" />
+                      {c.rpc && <Copyable value={c.rpc} label="RPC" />}
+                      <Copyable value={String(c.chainId)} label="Chain ID" />
                     </dd>
                   </dl>
 
                   {c.rpc && (
                     <div className="mt-3">
                       <Button
-                        kieu="tron"
+                        variant="tron"
                         onClick={async () => {
                           try {
                             await addL1ToWallet({ chainIdHex: '0x' + c.chainId.toString(16), name: c.name, rpc: c.rpc!, kyHieu: 'LOVE9' });
-                            datThemVi((s) => ({ ...s, [c.chainId]: { xong: true } }));
+                            setAddedToWallet((s) => ({ ...s, [c.chainId]: { finished: true } }));
                           } catch (e) {
                             const l = readWalletError(e);
-                            datThemVi((s) => ({
+                            setAddedToWallet((s) => ({
                               ...s,
                               [c.chainId]: {
-                                xong: false,
-                                chu: l.tuChoi
+                                finished: false,
+                                ownerAddr: l.tuChoi
                                   ? t.common.walletRejected
-                                  : interpolate(t.myChains.addWalletError, { chiTiet: l.chu ?? '' }),
+                                  : interpolate(t.myChains.addWalletError, { chiTiet: l.ownerAddr ?? '' }),
                               },
                             }));
                           }
                         }}
                       >
-                        {themVi[c.chainId]?.xong ? t.myChains.addedToWallet : t.myChains.addToWallet}
+                        {addedToWallet[c.chainId]?.finished ? t.myChains.addedToWallet : t.myChains.addToWallet}
                       </Button>
                       {/* Vùng live thường trú cho TỪNG thẻ chain — xem chú thích cùng
                           loại ở CreateChainScreen. */}
                       <div role="status" aria-live="polite" className="mt-2 empty:hidden">
-                        {themVi[c.chainId]?.xong === false && (
+                        {addedToWallet[c.chainId]?.finished === false && (
                           <p className="text-sm text-danger">
-                            {(themVi[c.chainId] as { chu: string }).chu}
+                            {(addedToWallet[c.chainId] as { ownerAddr: string }).ownerAddr}
                           </p>
                         )}
                       </div>
@@ -344,7 +344,7 @@ export function MyChainsScreen() {
                   <span className="ms-2 font-mono text-xs font-normal">#{c.chainId}</span>
                 </h2>
                 <p className="mt-1 text-sm">
-                  <Badge kieu="xau">{t.myChains.revokedBadge}</Badge>
+                  <Badge variant="xau">{t.myChains.revokedBadge}</Badge>
                   <span className="ms-2 text-muted">{t.myChains.revokedDesc}</span>
                 </p>
               </Card>
@@ -353,10 +353,10 @@ export function MyChainsScreen() {
         </ul>
       )}
 
-      {dangThuHoi && (
+      {revoking && (
         <Card className="border-dev-line p-5">
           <h2 className="font-display text-lg font-bold text-ink">
-            {interpolate(t.myChains.revokeTitle, { ten: dangThuHoi.name })}
+            {interpolate(t.myChains.revokeTitle, { ten: revoking.name })}
           </h2>
           <ul className="mt-3 flex list-disc flex-col gap-2 ps-5 text-sm text-body">
             <li>{t.myChains.revokeWarn1}</li>
@@ -369,20 +369,20 @@ export function MyChainsScreen() {
             {/* Gõ lại tên: cùng luật với đường API (`xacNhan`). Một nút "Xoá" bấm
                 nhầm được thì cửa một chiều trở thành một cú trượt tay. */}
             <Field
-              nhan={t.myChains.revokeTypeLabel}
-              placeholder={dangThuHoi.name}
-              value={goTen}
-              onChange={(e) => datGoTen(e.target.value)}
+              label={t.myChains.revokeTypeLabel}
+              placeholder={revoking.name}
+              value={typedName}
+              onChange={(e) => setTypedName(e.target.value)}
               autoComplete="off"
               spellCheck={false}
-              loi={goTen && goTen !== dangThuHoi.name ? t.myChains.revokeNameMismatch : undefined}
+              failure={typedName && typedName !== revoking.name ? t.myChains.revokeNameMismatch : undefined}
             />
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Button disabled={goTen !== dangThuHoi.name} onClick={() => thucHienThuHoi(dangThuHoi)}>
+            <Button disabled={typedName !== revoking.name} onClick={() => thucHienThuHoi(revoking)}>
               {t.myChains.revokeConfirm}
             </Button>
-            <Button kieu="tron" onClick={() => { datDangThuHoi(null); datGoTen(''); }}>
+            <Button variant="tron" onClick={() => { setRevoking(null); setTypedName(''); }}>
               {t.myChains.revokeCancel}
             </Button>
           </div>

@@ -24,21 +24,21 @@ import { useLanguage } from '@/lib/i18n';
  */
 export function LoadTestBanner() {
   const t = useT();
-  const { ma } = useLanguage();
-  const tt = useLoadTest();
+  const { code } = useLanguage();
+  const state = useLoadTest();
 
-  if (tt.pha !== 'xong' || !isRunning(tt.tt)) return null;
+  if (state.phase !== 'xong' || !isRunning(state.state)) return null;
 
   // Prefer the measured rate over the configured target: the banner should say what
   // the network is actually doing, not what we asked it to do. They agree when
   // things are healthy, and when they disagree the measured one is the true one.
-  const tps = tt.tt.measured.committedTps ?? tt.tt.targetTps;
+  const tps = state.state.measured.committedTps ?? state.state.targetTps;
 
   return (
     <aside aria-label={t.loadTest.badge} className="border-b border-gold-line bg-gold-tint text-ink">
       <div className="khung flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2.5 text-sm">
         <span className="font-semibold">{t.loadTest.badge}</span>
-        <span>{interpolate(t.loadTest.banner, { tps: formatNumber(tps, ma) })}</span>
+        <span>{interpolate(t.loadTest.banner, { tps: formatNumber(tps, code) })}</span>
         <a
           href="/live/"
           className="font-semibold text-gold-ink-strong underline underline-offset-2 hover:no-underline"

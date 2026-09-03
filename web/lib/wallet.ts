@@ -112,8 +112,8 @@ export function getWallet(): BrowserWallet | null {
   const w = window as unknown as {
     ethereum?: BrowserWallet & { isMetaMask?: boolean; providers?: (BrowserWallet & { isMetaMask?: boolean })[] };
   };
-  const ds = w.ethereum?.providers;
-  if (Array.isArray(ds)) return ds.find((p) => p.isMetaMask) ?? ds[0] ?? null;
+  const list = w.ethereum?.providers;
+  if (Array.isArray(list)) return list.find((p) => p.isMetaMask) ?? list[0] ?? null;
   return w.ethereum ?? null;
 }
 
@@ -131,9 +131,9 @@ export type WalletSession = { diaChi: string; token: string };
 export async function connectWallet(): Promise<string> {
   const v = getWallet();
   if (!v) throw new Error('KHONG_CO_VI');
-  const ds = (await v.request({ method: 'eth_requestAccounts' })) as string[];
-  if (!ds?.length) throw new Error('KHONG_CHON_VI');
-  return ds[0];
+  const list = (await v.request({ method: 'eth_requestAccounts' })) as string[];
+  if (!list?.length) throw new Error('KHONG_CHON_VI');
+  return list[0];
 }
 
 export async function siweSignIn(diaChi: string): Promise<WalletSession> {
@@ -209,14 +209,14 @@ export class ConsoleError extends Error {
  *   biết chắc là ngắn (`/api/status`, `/api/progress`).
  */
 export async function callConsole<T = unknown>(
-  duong: string,
+  urlPath: string,
   token: string,
   body?: unknown,
   hanGiay?: number,
 ): Promise<T> {
   let r: Response;
   try {
-    r = await fetch(`${consoleOrigin()}${duong}`, {
+    r = await fetch(`${consoleOrigin()}${urlPath}`, {
       method: body === undefined ? 'GET' : 'POST',
       headers: {
         authorization: `Bearer ${token}`,
@@ -346,13 +346,13 @@ export async function waitForProgress(
  * Mọi mã khác: hiện NGUYÊN VĂN mã + thông điệp của ví. Đó là thứ duy nhất phân biệt
  * "tham số của ta sai" với "ví không chịu".
  */
-export type WalletError = { tuChoi: boolean; chu: string | null };
+export type WalletError = { tuChoi: boolean; ownerAddr: string | null };
 
 export function readWalletError(e: unknown): WalletError {
   const err = e as { code?: number; message?: string };
-  if (err?.code === 4001) return { tuChoi: true, chu: null };
+  if (err?.code === 4001) return { tuChoi: true, ownerAddr: null };
   if ((e as Error)?.message === 'KHONG_CO_VI') {
-    return { tuChoi: false, chu: 'Không thấy ví trong trình duyệt.' };
+    return { tuChoi: false, ownerAddr: 'Không thấy ví trong trình duyệt.' };
   }
   const ten = activeWalletName();
   const khac = listWallets()
@@ -362,7 +362,7 @@ export function readWalletError(e: unknown): WalletError {
     err?.code === -32601
       ? ` — ví đang dùng: ${ten ?? 'không rõ'}${khac.length ? `; ví khác đang cài: ${khac.join(', ')}` : ''}`
       : '';
-  return { tuChoi: false, chu: `${err?.code ?? '?'} · ${err?.message ?? String(e)}${them}` };
+  return { tuChoi: false, ownerAddr: `${err?.code ?? '?'} · ${err?.message ?? String(e)}${them}` };
 }
 
 export async function addL1ToWallet(p: {

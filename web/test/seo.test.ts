@@ -23,16 +23,16 @@ const OUT = path.resolve(__dirname, '..', 'out');
 const coOut = existsSync(OUT);
 
 /** Đọc mọi `index.html` cấp một trong `out/`, kèm `404.html` ở gốc. */
-function cacTrang(): { duong: string; html: string }[] {
-  const ds: { duong: string; html: string }[] = [];
+function cacTrang(): { urlPath: string; html: string }[] {
+  const list: { urlPath: string; html: string }[] = [];
   const goc = path.join(OUT, 'index.html');
-  if (existsSync(goc)) ds.push({ duong: '/', html: readFileSync(goc, 'utf8') });
+  if (existsSync(goc)) list.push({ urlPath: '/', html: readFileSync(goc, 'utf8') });
   for (const t of readdirSync(OUT, { withFileTypes: true })) {
     if (!t.isDirectory() || t.name.startsWith('_')) continue;
     const p = path.join(OUT, t.name, 'index.html');
-    if (existsSync(p)) ds.push({ duong: `/${t.name}/`, html: readFileSync(p, 'utf8') });
+    if (existsSync(p)) list.push({ urlPath: `/${t.name}/`, html: readFileSync(p, 'utf8') });
   }
-  return ds;
+  return list;
 }
 
 function thePropertyContent(html: string, khoa: string): string | null {
@@ -54,30 +54,30 @@ describe.skipIf(!coOut)('bề mặt chia sẻ', () => {
   const KHONG_CAN_URL = new Set(['/404/']);
 
   it('mọi trang đều có og:title và og:description', () => {
-    for (const { duong, html } of cacTrang()) {
-      expect(thePropertyContent(html, 'og:title'), `${duong} thiếu og:title`).toBeTruthy();
-      expect(thePropertyContent(html, 'og:description'), `${duong} thiếu og:description`).toBeTruthy();
+    for (const { urlPath, html } of cacTrang()) {
+      expect(thePropertyContent(html, 'og:title'), `${urlPath} thiếu og:title`).toBeTruthy();
+      expect(thePropertyContent(html, 'og:description'), `${urlPath} thiếu og:description`).toBeTruthy();
     }
   });
 
   it('mọi trang THẬT đều có og:url (404 là ngoại lệ có chủ ý)', () => {
-    for (const { duong, html } of cacTrang()) {
-      if (KHONG_CAN_URL.has(duong)) {
+    for (const { urlPath, html } of cacTrang()) {
+      if (KHONG_CAN_URL.has(urlPath)) {
         // Đối chứng ngược cho chính ngoại lệ: nếu ngày nào đó 404 có og:url thì
         // gần như chắc chắn ai đó đã gắn `pageMeta` vào nó mà không đọc lý do.
-        expect(thePropertyContent(html, 'og:url'), `${duong} KHÔNG được có og:url`).toBeNull();
+        expect(thePropertyContent(html, 'og:url'), `${urlPath} KHÔNG được có og:url`).toBeNull();
         continue;
       }
-      expect(thePropertyContent(html, 'og:url'), `${duong} thiếu og:url`).toBeTruthy();
+      expect(thePropertyContent(html, 'og:url'), `${urlPath} thiếu og:url`).toBeTruthy();
     }
   });
 
   it('og:title KHÁC NHAU giữa các trang — đây là phần hôm qua còn đỏ', () => {
-    const ds = cacTrang();
+    const list = cacTrang();
     const theo = new Map<string, string[]>();
-    for (const { duong, html } of ds) {
+    for (const { urlPath, html } of list) {
       const t = thePropertyContent(html, 'og:title') ?? '(thiếu)';
-      theo.set(t, [...(theo.get(t) ?? []), duong]);
+      theo.set(t, [...(theo.get(t) ?? []), urlPath]);
     }
     const trung = [...theo.entries()].filter(([, ds2]) => ds2.length > 1);
     expect(
@@ -87,20 +87,20 @@ describe.skipIf(!coOut)('bề mặt chia sẻ', () => {
   });
 
   it('og:url của mỗi trang trỏ đúng đường dẫn của chính nó', () => {
-    for (const { duong, html } of cacTrang()) {
-      if (KHONG_CAN_URL.has(duong)) continue;
+    for (const { urlPath, html } of cacTrang()) {
+      if (KHONG_CAN_URL.has(urlPath)) continue;
       const u = thePropertyContent(html, 'og:url') ?? '';
-      expect(u, `${duong} có og:url = "${u}"`).toContain(duong);
+      expect(u, `${urlPath} có og:url = "${u}"`).toContain(urlPath);
     }
   });
 
   it('không một thẻ meta nào mang dấu [?] chờ duyệt giọng', () => {
     // Dấu `[?]` là cơ chế duyệt NỘI BỘ. Lọt ra thẻ meta là nó bị máy khác đọc và
     // hiện lại nguyên văn trong thẻ chia sẻ — ngoài tầm với của mọi lượt sửa sau.
-    for (const { duong, html } of cacTrang()) {
+    for (const { urlPath, html } of cacTrang()) {
       for (const k of ['og:title', 'og:description', 'twitter:title', 'twitter:description']) {
         const v = thePropertyContent(html, k) ?? '';
-        expect(v, `${duong} — ${k} còn dấu [?]`).not.toContain('[?]');
+        expect(v, `${urlPath} — ${k} còn dấu [?]`).not.toContain('[?]');
       }
     }
   });

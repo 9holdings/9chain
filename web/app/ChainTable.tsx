@@ -24,34 +24,34 @@ import { readDirectory } from '@/lib/directory';
  * mốc, nhưng nhớ rằng phục hồi từ backup cũ sẽ mang chúng quay lại.
  */
 type Chain = { name: string; chainId: number; admin?: string; presetName?: string; presetTen?: string };
-type TT = { pha: 'tai' } | { pha: 'xong'; ds: Chain[] } | { pha: 'hong' };
+type TT = { phase: 'tai' } | { phase: 'xong'; list: Chain[] } | { phase: 'hong' };
 
 export function ChainTable() {
   const t = useT();
-  const [tt, datTt] = useState<TT>({ pha: 'tai' });
-  const [lan, datLan] = useState(0);
+  const [state, setState] = useState<TT>({ phase: 'tai' });
+  const [round, setRound] = useState(0);
 
   useEffect(() => {
-    let huy = false;
-    datTt({ pha: 'tai' });
+    let cancelled = false;
+    setState({ phase: 'tai' });
     // Hạn giờ (Đ1-8) vẫn còn, nay nằm trong `lib/directory.ts` cùng với lượt đọc:
     // đây là một lượt ĐỌC tệp tĩnh, và không có hạn thì một kết nối treo để bảng ở
     // khung xương vĩnh viễn — trang trông như đang tải mãi mãi, và người dùng không
     // có gì để bấm. Lượt đọc đó DÙNG CHUNG với `useNetworkStats` ở cùng trang này.
     readDirectory()
       .then((j) => {
-        if (huy) return;
-        datTt({ pha: 'xong', ds: Array.isArray(j?.chains) ? j.chains : [] });
+        if (cancelled) return;
+        setState({ phase: 'xong', list: Array.isArray(j?.chains) ? j.chains : [] });
       })
       .catch(() => {
-        if (!huy) datTt({ pha: 'hong' });
+        if (!cancelled) setState({ phase: 'hong' });
       });
     return () => {
-      huy = true;
+      cancelled = true;
     };
-  }, [lan]);
+  }, [round]);
 
-  if (tt.pha === 'tai') {
+  if (state.phase === 'tai') {
     return (
       <Card className="p-5">
         <span className="sr-only">{t.common.loading}</span>
@@ -64,14 +64,14 @@ export function ChainTable() {
     );
   }
 
-  if (tt.pha === 'hong') return <ErrorState thuLai={() => datLan((n) => n + 1)} />;
+  if (state.phase === 'hong') return <ErrorState onRetry={() => setRound((n) => n + 1)} />;
 
-  if (!tt.ds.length) {
+  if (!state.list.length) {
     return (
       <EmptyState
-        tieuDe={t.home.emptyTitle}
-        moTa={t.home.emptyDesc}
-        hanhDong={
+        title={t.home.emptyTitle}
+        desc={t.home.emptyDesc}
+        action={
           <a
             href="/create-chain/"
             className="inline-flex h-11 items-center justify-center rounded-btn-lg bg-gold px-5 text-sm font-semibold text-navy shadow-cta hover:bg-gold-hover"
@@ -118,7 +118,7 @@ export function ChainTable() {
             </tr>
           </thead>
           <tbody>
-            {tt.ds.map((c) => (
+            {state.list.map((c) => (
               <tr key={c.chainId} className="border-b border-line-soft last:border-0">
                 <th scope="row" className="px-4 py-3 text-start font-semibold text-ink">
                   {c.name}

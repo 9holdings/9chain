@@ -56,17 +56,17 @@ describe('waitForProgress', () => {
     // Đây là ca đã treo 900 giây. `running` luôn false vì việc chưa vào hàng đợi.
     datFetch([{ body: XONG }]);
     const t0 = Date.now();
-    const kq = await waitForProgress('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => true });
+    const check = await waitForProgress('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => true });
     expect(Date.now() - t0, 'phải thoát gần như tức thì, không chờ hết trần').toBeLessThan(2000);
-    expect(kq).not.toBeNull();
+    expect(check).not.toBeNull();
   });
 
   it('KHÔNG thoát sớm khi chưa có tín hiệu từ chối — 524 phải chờ tới cùng', async () => {
     // Cloudflare cắt ở ~100s nhưng server vẫn làm: đây là ca PHẢI kiên nhẫn.
     // Chuỗi: chạy → chạy → xong. Nếu hàm thoát sớm thì nó trả về lúc còn `running`.
     datFetch([{ body: CHAY }, { body: CHAY }, { body: XONG }]);
-    const kq = await waitForProgress('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => false });
-    expect(kq?.running, 'phải chờ tới khi running=false').toBe(false);
+    const check = await waitForProgress('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => false });
+    expect(check?.running, 'phải chờ tới khi running=false').toBe(false);
   });
 
   it('đã thấy running rồi thì tín hiệu từ chối KHÔNG còn được nghe', async () => {
@@ -76,8 +76,8 @@ describe('waitForProgress', () => {
     let batDauTuChoi = false;
     const p = waitForProgress('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => batDauTuChoi });
     setTimeout(() => { batDauTuChoi = true; }, 12); // bật SAU khi đã thấy running
-    const kq = await p;
-    expect(kq?.running, 'đã thấy chạy thì phải theo tới cùng').toBe(false);
+    const check = await p;
+    expect(check?.running, 'đã thấy chạy thì phải theo tới cùng').toBe(false);
   });
 
   it('không kết luận "xong" trước khi thấy running lần nào', async () => {
@@ -88,9 +88,9 @@ describe('waitForProgress', () => {
       const b = solan <= 2 ? XONG : solan <= 4 ? CHAY : XONG;
       return { ok: true, status: 200, text: async () => JSON.stringify(b) } as unknown as Response;
     }) as typeof fetch;
-    const kq = await waitForProgress('token', { moiMs: 5, tranGiay: 30 });
+    const check = await waitForProgress('token', { moiMs: 5, tranGiay: 30 });
     expect(solan, 'phải đọc quá 2 nhịp đầu chứ không kết luận ngay').toBeGreaterThan(4);
-    expect(kq?.running).toBe(false);
+    expect(check?.running).toBe(false);
   });
 });
 

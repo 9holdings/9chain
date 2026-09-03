@@ -57,7 +57,7 @@ export const TITLE_BY_PATH: Record<string, (t: Dict) => string | null> = {
 };
 
 /** Tiêu đề cho mọi đường KHÔNG có trong bảng — tức trang 404. */
-const KHONG_THAY = (t: Dict) => t.notFound.title;
+const NOT_FOUND_TITLE = (t: Dict) => t.notFound.title;
 
 /**
  * Đặt `document.title` theo ngôn ngữ đang chọn. Gọi ĐÚNG MỘT LẦN, trong layout.
@@ -69,14 +69,14 @@ const KHONG_THAY = (t: Dict) => t.notFound.title;
  */
 export function useLocalisedTitle(): void {
   const t = useT();
-  const duong = usePathname();
+  const urlPath = usePathname();
 
   useEffect(() => {
     // `usePathname()` có thể trả đường KHÔNG có gạch chéo cuối tuỳ cách vào trang,
     // trong khi bảng khai theo `trailingSlash: true` của `next.config.ts`. Chuẩn hoá
     // một lần ở đây, thay vì khai hai khoá cho mỗi trang.
-    const d = duong === '/' ? '/' : duong.endsWith('/') ? duong : `${duong}/`;
-    const lay = TITLE_BY_PATH[d] ?? KHONG_THAY;
+    const d = urlPath === '/' ? '/' : urlPath.endsWith('/') ? urlPath : `${urlPath}/`;
+    const lay = TITLE_BY_PATH[d] ?? NOT_FOUND_TITLE;
     const tran = lay(t);
     const muon =
       tran === null
@@ -116,5 +116,5 @@ export function useLocalisedTitle(): void {
     });
     canh.observe(the, { childList: true, characterData: true, subtree: true });
     return () => canh.disconnect();
-  }, [t, duong]);
+  }, [t, urlPath]);
 }

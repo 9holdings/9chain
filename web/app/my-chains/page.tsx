@@ -5,15 +5,15 @@ import { pageMeta } from '@/lib/seo';
 import { MyChainsScreen } from './MyChainsScreen';
 
 export const metadata: Metadata = pageMeta({
-  tieuDe: EN.myChains.title,
-  moTa: EN.myChains.desc,
-  duong: '/my-chains/',
+  title: EN.myChains.title,
+  desc: EN.myChains.desc,
+  urlPath: '/my-chains/',
 });
 
 export default function TrangChainCuaToi() {
   return (
     <div className="khung py-10 md:py-14">
-      <PageHeader nhom="myChains" />
+      <PageHeader group="myChains" />
       <MyChainsScreen />
     </div>
   );

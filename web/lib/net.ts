@@ -34,17 +34,17 @@ export const READ_TIMEOUT_MS = 12_000;
 export type FailureKind = 'hetGio' | 'http' | 'khongPhaiJson' | 'dutMang';
 
 export class NetworkError extends Error {
-  readonly loai: FailureKind;
+  readonly kind: FailureKind;
   readonly status: number;
-  constructor(loai: FailureKind, message: string, status = 0) {
+  constructor(kind: FailureKind, message: string, status = 0) {
     super(message);
     this.name = 'NetworkError';
-    this.loai = loai;
+    this.kind = kind;
     this.status = status;
   }
   /** Server đã trả lời và trả lời là "không" ⇒ thử lại vô ích. */
   get thuLaiVoIch(): boolean {
-    return this.loai === 'http' && this.status >= 400 && this.status < 500;
+    return this.kind === 'http' && this.status >= 400 && this.status < 500;
   }
 }
 
@@ -90,8 +90,8 @@ export async function fetchJson<T = unknown>(
     );
   }
   if (!r.ok) {
-    const loi = (j as { error?: string })?.error;
-    throw new NetworkError('http', loi || `HTTP ${r.status}`, r.status);
+    const failure = (j as { error?: string })?.error;
+    throw new NetworkError('http', failure || `HTTP ${r.status}`, r.status);
   }
   return j as T;
 }

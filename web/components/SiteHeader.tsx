@@ -16,7 +16,7 @@ import { cx } from './ui';
  * Trên nền navy nên vòng focus tự lật về vàng gốc (luật `.bg-navy` ở globals.css).
  */
 
-type Muc = { chu: string; href: string; ngoai?: boolean };
+type Item = { ownerAddr: string; href: string; external?: boolean };
 
 // `/create-chain/`, `/my-chains/`, `/compare/` là trang của bản export.
 // `/chains/` do Caddy proxy sang container khác — vẫn là thẻ <a> thật như mọi mục
@@ -31,48 +31,48 @@ type Muc = { chu: string; href: string; ngoai?: boolean };
 // tiếng Anh — và không có lỗi nào báo, vì mã vẫn chạy đúng.
 // Đường dẫn thì KHÔNG đổi theo ngôn ngữ (mỗi trang chỉ có một URL), nên chỉ phần
 // chữ nhận `t`.
-function dungMuc(t: Dict): Muc[] {
+function buildItems(t: Dict): Item[] {
   return [
-    { chu: t.nav.home, href: '/' },
-    { chu: t.nav.faucet, href: '/faucet/' },
-    { chu: t.nav.launch, href: '/create-chain/' },
-    { chu: t.nav.myChains, href: '/my-chains/' },
-    { chu: t.nav.compare, href: '/compare/' },
-    { chu: t.nav.directory, href: '/chains/' },
+    { ownerAddr: t.nav.home, href: '/' },
+    { ownerAddr: t.nav.faucet, href: '/faucet/' },
+    { ownerAddr: t.nav.launch, href: '/create-chain/' },
+    { ownerAddr: t.nav.myChains, href: '/my-chains/' },
+    { ownerAddr: t.nav.compare, href: '/compare/' },
+    { ownerAddr: t.nav.directory, href: '/chains/' },
   ];
 }
 
 export function SiteHeader() {
   const t = useT();
-  const MUC = dungMuc(t);
-  const [moNgan, datMoNgan] = useState(false);
-  const nutRef = useRef<HTMLButtonElement>(null);
-  const nganRef = useRef<HTMLDivElement>(null);
+  const ITEMS = buildItems(t);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   // Esc đóng ngăn kéo, và tiêu điểm QUAY VỀ nút đã mở nó. Thiếu vế thứ hai thì
   // người đi bằng bàn phím bị ném về đầu trang mỗi lần đóng menu.
   useEffect(() => {
-    if (!moNgan) return;
+    if (!drawerOpen) return;
     function phim(e: KeyboardEvent) {
       if (e.key === 'Escape') {
-        datMoNgan(false);
-        nutRef.current?.focus();
+        setDrawerOpen(false);
+        buttonRef.current?.focus();
       }
     }
     document.addEventListener('keydown', phim);
     return () => document.removeEventListener('keydown', phim);
-  }, [moNgan]);
+  }, [drawerOpen]);
 
   // Khoá cuộn nền khi ngăn kéo mở — nếu không, cuộn trên ngăn kéo sẽ cuộn trang
   // phía sau và người dùng mất chỗ đang đọc.
   useEffect(() => {
-    if (!moNgan) return;
+    if (!drawerOpen) return;
     const cu = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = cu;
     };
-  }, [moNgan]);
+  }, [drawerOpen]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-line-dark bg-navy">
@@ -94,20 +94,20 @@ export function SiteHeader() {
               ĐỪNG sửa bằng cách nắn lại `viewBox` hay giãn chữ trong `BrandLockup` —
               hình học ở đó là bộ kit của David, xem chú thích đầu tệp đó. Chỉ đổi
               chiều cao hiển thị. */}
-          <BrandLockup nen="toi" cao={36} nhan={t.common.productName} className="flex-none" />
+          <BrandLockup background="toi" height={36} label={t.common.productName} className="flex-none" />
           <span className="rounded-chip border border-line-dark-2 px-1.5 py-0.5 font-sans text-[11px] font-semibold text-gold-muted">
             A1
           </span>
         </a>
 
         <nav aria-label={t.nav.home} className="hidden items-center gap-1 md:flex">
-          {MUC.map((m) => (
+          {ITEMS.map((m) => (
             <a
               key={m.href}
               href={m.href}
               className="rounded-btn px-3 py-2 text-sm font-semibold text-on-dark-2 hover:bg-navy-hover hover:text-on-dark"
             >
-              {m.chu}
+              {m.ownerAddr}
             </a>
           ))}
           <a
@@ -126,15 +126,15 @@ export function SiteHeader() {
           <LanguagePicker />
           <ThemeToggle />
           <button
-            ref={nutRef}
+            ref={buttonRef}
             type="button"
-            onClick={() => datMoNgan((v) => !v)}
-            aria-expanded={moNgan}
+            onClick={() => setDrawerOpen((v) => !v)}
+            aria-expanded={drawerOpen}
             aria-controls="ngan-dieu-huong"
-            aria-label={moNgan ? t.common.closeMenu : t.common.openMenu}
+            aria-label={drawerOpen ? t.common.closeMenu : t.common.openMenu}
             className="inline-flex h-10 w-10 items-center justify-center rounded-btn border border-line-dark text-on-dark-2 hover:bg-navy-hover md:hidden"
           >
-            <span aria-hidden="true">{moNgan ? '✕' : '☰'}</span>
+            <span aria-hidden="true">{drawerOpen ? '✕' : '☰'}</span>
           </button>
         </div>
       </div>
@@ -143,18 +143,18 @@ export function SiteHeader() {
           `aria-controls` luôn trỏ tới một phần tử có thật. */}
       <div
         id="ngan-dieu-huong"
-        ref={nganRef}
-        hidden={!moNgan}
+        ref={drawerRef}
+        hidden={!drawerOpen}
         className={cx('border-t border-line-dark bg-navy-panel md:hidden')}
       >
         <nav aria-label={t.common.openMenu} className="khung flex flex-col py-2">
-          {MUC.map((m) => (
+          {ITEMS.map((m) => (
             <a
               key={m.href}
               href={m.href}
               className="rounded-btn px-3 py-3 text-base font-semibold text-on-dark hover:bg-navy-hover"
             >
-              {m.chu}
+              {m.ownerAddr}
             </a>
           ))}
           <a

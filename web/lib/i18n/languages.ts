@@ -50,14 +50,14 @@ export type ReviewLevel = 'goc' | 'nguoi' | 'may';
 
 export type Language = {
   /** Mã BCP-47, dùng thẳng cho thuộc tính `lang` của <html>. */
-  ma: string;
+  code: string;
   /** Tên gọi TRONG CHÍNH thứ tiếng đó — người tìm ngôn ngữ của mình tìm bằng tên này. */
   ten: string;
   /** Tên tiếng Anh, cho `aria-label` và cho người không đọc được bảng chữ kia. */
-  tenAnh: string;
+  englishName: string;
   /** Chiều viết. Chỉ 3/30 là `'rtl'`. */
-  chieu: 'ltr' | 'rtl';
-  soat: ReviewLevel;
+  dir: 'ltr' | 'rtl';
+  review: ReviewLevel;
 };
 
 /**
@@ -69,14 +69,14 @@ export type Language = {
  * màn hình chọn giọng theo đó. Gõ sai một mã là cả trang bị đọc bằng ngữ âm khác.
  */
 export const LANGUAGES: readonly Language[] = [
-  { ma: 'en', ten: 'English', tenAnh: 'English', chieu: 'ltr', soat: 'goc' },
-  { ma: 'zh', ten: '中文（简体）', tenAnh: 'Chinese (Simplified)', chieu: 'ltr', soat: 'may' },
-  { ma: 'hi', ten: 'हिन्दी', tenAnh: 'Hindi', chieu: 'ltr', soat: 'may' },
-  { ma: 'es', ten: 'Español', tenAnh: 'Spanish', chieu: 'ltr', soat: 'may' },
-  { ma: 'ar', ten: 'العربية', tenAnh: 'Arabic', chieu: 'rtl', soat: 'may' },
-  { ma: 'fr', ten: 'Français', tenAnh: 'French', chieu: 'ltr', soat: 'may' },
-  { ma: 'bn', ten: 'বাংলা', tenAnh: 'Bengali', chieu: 'ltr', soat: 'may' },
-  { ma: 'pt', ten: 'Português', tenAnh: 'Portuguese', chieu: 'ltr', soat: 'may' },
+  { code: 'en', ten: 'English', englishName: 'English', dir: 'ltr', review: 'goc' },
+  { code: 'zh', ten: '中文（简体）', englishName: 'Chinese (Simplified)', dir: 'ltr', review: 'may' },
+  { code: 'hi', ten: 'हिन्दी', englishName: 'Hindi', dir: 'ltr', review: 'may' },
+  { code: 'es', ten: 'Español', englishName: 'Spanish', dir: 'ltr', review: 'may' },
+  { code: 'ar', ten: 'العربية', englishName: 'Arabic', dir: 'rtl', review: 'may' },
+  { code: 'fr', ten: 'Français', englishName: 'French', dir: 'ltr', review: 'may' },
+  { code: 'bn', ten: 'বাংলা', englishName: 'Bengali', dir: 'ltr', review: 'may' },
+  { code: 'pt', ten: 'Português', englishName: 'Portuguese', dir: 'ltr', review: 'may' },
   // ── VỊ TRÍ THỨ 9 — David chốt. Xem quyết định ③ ở đầu file. ──────────────────
   // Bản dịch DUY NHẤT có người soát: David đã duyệt toàn bộ 2026-08-27.
   // ⚠️ Chú thích cũ ở đây gọi `vi` là "bản GỐC mà mọi bản khác dịch ra từ đó". SAI,
@@ -84,28 +84,28 @@ export const LANGUAGES: readonly Language[] = [
   // ghi rõ *"Mọi bản dịch khác dịch RA TỪ ĐÂY, không phải từ `vi.ts`"* — dịch qua
   // hai tầng là nhân đôi chỗ để nghĩa trôi đi. `vi` là bản dịch đầu tiên và là bản
   // được soát, không phải bản gốc.
-  { ma: 'vi', ten: 'Tiếng Việt', tenAnh: 'Vietnamese', chieu: 'ltr', soat: 'nguoi' },
-  { ma: 'ru', ten: 'Русский', tenAnh: 'Russian', chieu: 'ltr', soat: 'may' },
-  { ma: 'ur', ten: 'اردو', tenAnh: 'Urdu', chieu: 'rtl', soat: 'may' },
-  { ma: 'id', ten: 'Bahasa Indonesia', tenAnh: 'Indonesian', chieu: 'ltr', soat: 'may' },
-  { ma: 'de', ten: 'Deutsch', tenAnh: 'German', chieu: 'ltr', soat: 'may' },
-  { ma: 'ja', ten: '日本語', tenAnh: 'Japanese', chieu: 'ltr', soat: 'may' },
-  { ma: 'mr', ten: 'मराठी', tenAnh: 'Marathi', chieu: 'ltr', soat: 'may' },
-  { ma: 'te', ten: 'తెలుగు', tenAnh: 'Telugu', chieu: 'ltr', soat: 'may' },
-  { ma: 'tr', ten: 'Türkçe', tenAnh: 'Turkish', chieu: 'ltr', soat: 'may' },
-  { ma: 'ta', ten: 'தமிழ்', tenAnh: 'Tamil', chieu: 'ltr', soat: 'may' },
-  { ma: 'ko', ten: '한국어', tenAnh: 'Korean', chieu: 'ltr', soat: 'may' },
-  { ma: 'it', ten: 'Italiano', tenAnh: 'Italian', chieu: 'ltr', soat: 'may' },
-  { ma: 'th', ten: 'ไทย', tenAnh: 'Thai', chieu: 'ltr', soat: 'may' },
-  { ma: 'gu', ten: 'ગુજરાતી', tenAnh: 'Gujarati', chieu: 'ltr', soat: 'may' },
-  { ma: 'fa', ten: 'فارسی', tenAnh: 'Persian', chieu: 'rtl', soat: 'may' },
-  { ma: 'pl', ten: 'Polski', tenAnh: 'Polish', chieu: 'ltr', soat: 'may' },
-  { ma: 'uk', ten: 'Українська', tenAnh: 'Ukrainian', chieu: 'ltr', soat: 'may' },
-  { ma: 'ms', ten: 'Bahasa Melayu', tenAnh: 'Malay', chieu: 'ltr', soat: 'may' },
-  { ma: 'nl', ten: 'Nederlands', tenAnh: 'Dutch', chieu: 'ltr', soat: 'may' },
-  { ma: 'tl', ten: 'Filipino', tenAnh: 'Filipino', chieu: 'ltr', soat: 'may' },
-  { ma: 'sw', ten: 'Kiswahili', tenAnh: 'Swahili', chieu: 'ltr', soat: 'may' },
-  { ma: 'ha', ten: 'Hausa', tenAnh: 'Hausa', chieu: 'ltr', soat: 'may' },
+  { code: 'vi', ten: 'Tiếng Việt', englishName: 'Vietnamese', dir: 'ltr', review: 'nguoi' },
+  { code: 'ru', ten: 'Русский', englishName: 'Russian', dir: 'ltr', review: 'may' },
+  { code: 'ur', ten: 'اردو', englishName: 'Urdu', dir: 'rtl', review: 'may' },
+  { code: 'id', ten: 'Bahasa Indonesia', englishName: 'Indonesian', dir: 'ltr', review: 'may' },
+  { code: 'de', ten: 'Deutsch', englishName: 'German', dir: 'ltr', review: 'may' },
+  { code: 'ja', ten: '日本語', englishName: 'Japanese', dir: 'ltr', review: 'may' },
+  { code: 'mr', ten: 'मराठी', englishName: 'Marathi', dir: 'ltr', review: 'may' },
+  { code: 'te', ten: 'తెలుగు', englishName: 'Telugu', dir: 'ltr', review: 'may' },
+  { code: 'tr', ten: 'Türkçe', englishName: 'Turkish', dir: 'ltr', review: 'may' },
+  { code: 'ta', ten: 'தமிழ்', englishName: 'Tamil', dir: 'ltr', review: 'may' },
+  { code: 'ko', ten: '한국어', englishName: 'Korean', dir: 'ltr', review: 'may' },
+  { code: 'it', ten: 'Italiano', englishName: 'Italian', dir: 'ltr', review: 'may' },
+  { code: 'th', ten: 'ไทย', englishName: 'Thai', dir: 'ltr', review: 'may' },
+  { code: 'gu', ten: 'ગુજરાતી', englishName: 'Gujarati', dir: 'ltr', review: 'may' },
+  { code: 'fa', ten: 'فارسی', englishName: 'Persian', dir: 'rtl', review: 'may' },
+  { code: 'pl', ten: 'Polski', englishName: 'Polish', dir: 'ltr', review: 'may' },
+  { code: 'uk', ten: 'Українська', englishName: 'Ukrainian', dir: 'ltr', review: 'may' },
+  { code: 'ms', ten: 'Bahasa Melayu', englishName: 'Malay', dir: 'ltr', review: 'may' },
+  { code: 'nl', ten: 'Nederlands', englishName: 'Dutch', dir: 'ltr', review: 'may' },
+  { code: 'tl', ten: 'Filipino', englishName: 'Filipino', dir: 'ltr', review: 'may' },
+  { code: 'sw', ten: 'Kiswahili', englishName: 'Swahili', dir: 'ltr', review: 'may' },
+  { code: 'ha', ten: 'Hausa', englishName: 'Hausa', dir: 'ltr', review: 'may' },
 ] as const;
 
 /** Mã của ngôn ngữ mặc định. Đổi giá trị này là đổi thứ người lạ gặp đầu tiên. */
@@ -114,11 +114,11 @@ export const DEFAULT_CODE = 'en';
 /** Khoá `localStorage`. Cùng tiền tố `9chain-` với `9chain-theme`. */
 export const STORAGE_KEY = '9chain-lang';
 
-const THEO_MA = new Map(LANGUAGES.map((n) => [n.ma, n]));
+const THEO_MA = new Map(LANGUAGES.map((n) => [n.code, n]));
 
 /** Có phải một mã trong sổ không. Dùng để lọc giá trị đọc từ `localStorage`. */
-export function isValidCode(ma: string | null | undefined): boolean {
-  return !!ma && THEO_MA.has(ma);
+export function isValidCode(code: string | null | undefined): boolean {
+  return !!code && THEO_MA.has(code);
 }
 
 /**
@@ -127,8 +127,8 @@ export function isValidCode(ma: string | null | undefined): boolean {
  * `undefined` ở đó biến thành `lang="undefined"` trên <html> — trình đọc màn hình
  * mất giọng mà không có lỗi nào báo.
  */
-export function lookup(ma: string | null | undefined): Language {
-  return (ma && THEO_MA.get(ma)) || THEO_MA.get(DEFAULT_CODE)!;
+export function lookup(code: string | null | undefined): Language {
+  return (code && THEO_MA.get(code)) || THEO_MA.get(DEFAULT_CODE)!;
 }
 
 /**

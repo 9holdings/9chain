@@ -16,7 +16,7 @@ type ThongTin = {
   global: { remaining: number; max: number };
 };
 
-type TrangThaiTin = { pha: 'tai' } | { pha: 'xong'; tin: ThongTin } | { pha: 'hong' };
+type TrangThaiTin = { phase: 'tai' } | { phase: 'xong'; quota: ThongTin } | { phase: 'hong' };
 
 // 🔴 `getWallet` đến từ `@/lib/wallet` — TRƯỚC ĐÂY tệp này có bản chép tay riêng, và bản
 // đó bốc thẳng `window.ethereum`. Hai bản song song nghĩa là hai cách chọn ví khác
@@ -26,30 +26,30 @@ type TrangThaiTin = { pha: 'tai' } | { pha: 'xong'; tin: ThongTin } | { pha: 'ho
 export function FaucetForm() {
   const t = useT();
   const [diaChi, datDiaChi] = useState('');
-  const [dangGui, datDangGui] = useState(false);
-  const [ketQua, datKetQua] = useState<{ txHash: string; amount: string } | null>(null);
-  const [loiGui, datLoiGui] = useState<string | null>(null);
-  const [tin, datTin] = useState<TrangThaiTin>({ pha: 'tai' });
-  const [viTrangThai, datViTrangThai] = useState<'chua' | 'xong' | 'errors' | 'tuChoi' | 'khongCo'>('chua');
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState<{ txHash: string; amount: string } | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [quota, setQuota] = useState<TrangThaiTin>({ phase: 'tai' });
+  const [walletState, setWalletState] = useState<'chua' | 'xong' | 'errors' | 'tuChoi' | 'khongCo'>('chua');
   // Nguyên văn mã + thông điệp của ví. Hiện ra chứ không nuốt — xem chú thích ở `themMang`.
-  const [viLoi, datViLoi] = useState<string | null>(null);
+  const [walletFailure, setWalletFailure] = useState<string | null>(null);
 
   // Chỉ kiểm khi người dùng đã gõ gì đó — báo đỏ vào một ô trống mà họ chưa chạm
   // tới là mắng trước khi hỏi.
-  const kq = diaChi.trim() ? checkAddress(diaChi, t.faucet.addressLabel) : null;
-  const hopLe = kq?.ok === true;
+  const check = diaChi.trim() ? checkAddress(diaChi, t.faucet.addressLabel) : null;
+  const hopLe = check?.ok === true;
 
   const napTin = useCallback(async () => {
-    datTin({ pha: 'tai' });
+    setQuota({ phase: 'tai' });
     try {
       // Hạn giờ (Đ1-8) — an toàn ở đây: `/api/info` là lượt ĐỌC hạn mức, không tiêu
       // suất và không đụng chain. (Đường tiêu suất là `/api/drip` bên dưới.)
-      const tin = await fetchJson<ThongTin>(`${faucetOrigin()}/api/info`, {}, READ_TIMEOUT_MS / 1000);
-      datTin({ pha: 'xong', tin });
+      const quota = await fetchJson<ThongTin>(`${faucetOrigin()}/api/info`, {}, READ_TIMEOUT_MS / 1000);
+      setQuota({ phase: 'xong', quota });
     } catch {
       // Không đọc được hạn mức KHÔNG phải lỗi chặn: người dùng vẫn xin được, chỉ là
       // không biết trước còn mấy lượt. Nói đúng điều đó thay vì dựng một màn lỗi.
-      datTin({ pha: 'hong' });
+      setQuota({ phase: 'hong' });
     }
   }, []);
 
@@ -68,97 +68,97 @@ export function FaucetForm() {
    */
   async function themMang() {
     const v = getWallet();
-    if (!v) return datViTrangThai('khongCo');
+    if (!v) return setWalletState('khongCo');
     try {
       await v.request({ method: 'wallet_addEthereumChain', params: [addNetworkParams()] });
-      datViTrangThai('xong');
-      datViLoi(null);
+      setWalletState('xong');
+      setWalletFailure(null);
     } catch (e) {
       const l = readWalletError(e);
-      datViTrangThai(l.tuChoi ? 'tuChoi' : 'errors');
-      datViLoi(l.chu);
+      setWalletState(l.tuChoi ? 'tuChoi' : 'errors');
+      setWalletFailure(l.ownerAddr);
     }
   }
 
   async function gui() {
-    if (!kq?.ok) return;
-    datDangGui(true);
-    datLoiGui(null);
-    datKetQua(null);
+    if (!check?.ok) return;
+    setSending(true);
+    setSendError(null);
+    setResult(null);
     try {
       const r = await fetch(`${faucetOrigin()}/api/drip`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ address: kq.diaChi }),
+        body: JSON.stringify({ address: check.diaChi }),
       });
       const j = (await r.json()) as { txHash?: string; amount?: string; error?: string };
       if (!r.ok || !j.txHash) throw new Error(j.error || `HTTP ${r.status}`);
-      datKetQua({ txHash: j.txHash, amount: j.amount ?? '?' });
+      setResult({ txHash: j.txHash, amount: j.amount ?? '?' });
       // Xin xong thì hạn mức đã đổi — đọc lại để con số trên màn khớp sự thật.
       void napTin();
     } catch (e) {
-      datLoiGui(interpolate(t.faucet.genericError, { chiTiet: String((e as Error).message ?? e) }));
+      setSendError(interpolate(t.faucet.genericError, { chiTiet: String((e as Error).message ?? e) }));
     } finally {
-      datDangGui(false);
+      setSending(false);
     }
   }
 
-  const hetSuat = tin.pha === 'xong' && tin.tin.perIp.remaining === 0;
+  const hetSuat = quota.phase === 'xong' && quota.quota.perIp.remaining === 0;
 
   return (
     <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <Card className="p-5 md:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-lg font-bold text-ink">{t.faucet.title}</h2>
-          <HanMuc tin={tin} thuLai={napTin} />
+          <HanMuc quota={quota} onRetry={napTin} />
         </div>
 
         <div className="mt-5 flex flex-col gap-2">
-          <Button kieu="vien" onClick={themMang}>
-            {viTrangThai === 'xong' ? t.faucet.addNetworkDone : t.faucet.addNetwork}
+          <Button variant="vien" onClick={themMang}>
+            {walletState === 'xong' ? t.faucet.addNetworkDone : t.faucet.addNetwork}
           </Button>
-          {viTrangThai === 'tuChoi' && <p className="text-sm text-body-2">{t.faucet.addNetworkRejected}</p>}
-          {viTrangThai === 'errors' && (
+          {walletState === 'tuChoi' && <p className="text-sm text-body-2">{t.faucet.addNetworkRejected}</p>}
+          {walletState === 'errors' && (
             <div className="text-sm text-body-2">
               <p>{t.faucet.addNetworkError}</p>
-              {viLoi && <p className="mt-1 break-words font-mono text-xs text-muted">{viLoi}</p>}
+              {walletFailure && <p className="mt-1 break-words font-mono text-xs text-muted">{walletFailure}</p>}
             </div>
           )}
-          {viTrangThai === 'khongCo' && <p className="text-sm text-body-2">{t.faucet.noWallet}</p>}
+          {walletState === 'khongCo' && <p className="text-sm text-body-2">{t.faucet.noWallet}</p>}
         </div>
 
         <div className="mt-6">
           <Field
-            nhan={t.faucet.addressLabel}
-            moTa={t.faucet.addressHelp}
+            label={t.faucet.addressLabel}
+            desc={t.faucet.addressHelp}
             placeholder={t.faucet.addressPlaceholder}
             value={diaChi}
             onChange={(e) => datDiaChi(e.target.value)}
             spellCheck={false}
             autoComplete="off"
             inputMode="text"
-            loi={kq && !kq.ok ? kq.loi : undefined}
-            goiY={kq && !kq.ok && kq.goiY ? kq.goiY : undefined}
+            failure={check && !check.ok ? check.failure : undefined}
+            hint={check && !check.ok && check.hint ? check.hint : undefined}
           />
         </div>
 
         {hetSuat && (
           <div className="mt-4">
-            <Note kieu="canhBao">
+            <Note variant="canhBao">
               {interpolate(t.faucet.quotaExhausted, {
-                phut: Math.max(1, Math.ceil((tin.pha === 'xong' ? tin.tin.perIp.retryAfter : 60) / 60)),
+                phut: Math.max(1, Math.ceil((quota.phase === 'xong' ? quota.quota.perIp.retryAfter : 60) / 60)),
               })}
             </Note>
           </div>
         )}
 
         <div className="mt-5">
-          <Button co="to" onClick={gui} isRunning={dangGui} disabled={!hopLe || hetSuat}>
-            {dangGui ? t.faucet.sending : t.faucet.requestCta}
+          <Button co="to" onClick={gui} isRunning={sending} disabled={!hopLe || hetSuat}>
+            {sending ? t.faucet.sending : t.faucet.requestCta}
           </Button>
         </div>
 
-        {ketQua && (
+        {result && (
           <div
             // `role="status"` để trình đọc màn hình đọc kết quả ngay, không cần
             // người dùng tự đi tìm xem chuyện gì vừa xảy ra.
@@ -167,14 +167,14 @@ export function FaucetForm() {
           >
             <p className="text-sm font-semibold text-success-ink">
               {interpolate(t.faucet.sentOk, {
-                so: ketQua.amount,
+                so: result.amount,
                 kyHieu: CHAIN.kyHieu,
-                diaChi: shortenAddress(kq?.ok ? kq.diaChi : diaChi),
+                diaChi: shortenAddress(check?.ok ? check.diaChi : diaChi),
               })}
             </p>
             <a
               className="mt-2 inline-block text-sm font-semibold text-gold-ink-strong underline"
-              href={`${explorerOrigin()}/tx/${ketQua.txHash}`}
+              href={`${explorerOrigin()}/tx/${result.txHash}`}
               target="_blank"
               rel="noreferrer"
             >
@@ -183,9 +183,9 @@ export function FaucetForm() {
           </div>
         )}
 
-        {loiGui && (
+        {sendError && (
           <div className="mt-5">
-            <ErrorState tieuDe={loiGui} moTa="" thuLai={gui} />
+            <ErrorState title={sendError} desc="" onRetry={gui} />
           </div>
         )}
       </Card>
@@ -195,9 +195,9 @@ export function FaucetForm() {
   );
 }
 
-function HanMuc({ tin, thuLai }: { tin: TrangThaiTin; thuLai: () => void }) {
+function HanMuc({ quota, onRetry }: { quota: TrangThaiTin; onRetry: () => void }) {
   const t = useT();
-  if (tin.pha === 'tai') {
+  if (quota.phase === 'tai') {
     return (
       <span className="flex items-center gap-2">
         <span className="sr-only">{t.common.loading}</span>
@@ -205,18 +205,18 @@ function HanMuc({ tin, thuLai }: { tin: TrangThaiTin; thuLai: () => void }) {
       </span>
     );
   }
-  if (tin.pha === 'hong') {
+  if (quota.phase === 'hong') {
     return (
-      <button type="button" onClick={thuLai} className="text-sm text-muted underline">
+      <button type="button" onClick={onRetry} className="text-sm text-muted underline">
         {t.faucet.quotaUnreadable}
       </button>
     );
   }
-  const { perIp } = tin.tin;
+  const { perIp } = quota.quota;
   return (
     <span className="flex items-center gap-2 text-sm text-body-2">
       {t.faucet.quotaLabel}
-      <Badge kieu={perIp.remaining > 0 ? 'tot' : 'canhBao'}>
+      <Badge variant={perIp.remaining > 0 ? 'tot' : 'canhBao'}>
         {interpolate(t.faucet.quotaFormat, { con: perIp.remaining, tong: perIp.max, gio: perIp.windowHours })}
       </Badge>
     </span>
@@ -232,10 +232,10 @@ function ThongSoMang() {
   useEffect(() => datRpc(rpcCChain()), []);
 
   const dong = [
-    { nhan: t.faucet.settingsRpc, gt: rpc },
-    { nhan: t.faucet.settingsChainId, gt: `${CHAIN.chainId} (${CHAIN.chainIdHex})` },
-    { nhan: t.faucet.settingsSymbol, gt: CHAIN.kyHieu },
-    { nhan: t.faucet.settingsDecimals, gt: String(CHAIN.thapPhan) },
+    { label: t.faucet.settingsRpc, value: rpc },
+    { label: t.faucet.settingsChainId, value: `${CHAIN.chainId} (${CHAIN.chainIdHex})` },
+    { label: t.faucet.settingsSymbol, value: CHAIN.kyHieu },
+    { label: t.faucet.settingsDecimals, value: String(CHAIN.decimals) },
   ];
 
   return (
@@ -243,10 +243,10 @@ function ThongSoMang() {
       <h2 className="font-display text-base font-bold text-ink">{t.faucet.settingsTitle}</h2>
       <dl className="mt-4 flex flex-col gap-3">
         {dong.map((d) => (
-          <div key={d.nhan} className="flex flex-col gap-1">
-            <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{d.nhan}</dt>
+          <div key={d.label} className="flex flex-col gap-1">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{d.label}</dt>
             <dd className="min-w-0">
-              {d.gt ? <Copyable giaTri={d.gt} nhan={d.nhan} /> : <Skeleton className="h-6 w-full" />}
+              {d.value ? <Copyable value={d.value} label={d.label} /> : <Skeleton className="h-6 w-full" />}
             </dd>
           </div>
         ))}

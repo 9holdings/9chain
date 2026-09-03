@@ -30,11 +30,11 @@
  * @param n   số nguyên (chiều cao block, số chain…)
  * @param ma  mã BCP-47 của ngôn ngữ đang chọn — lấy từ `useLanguage().ma`
  */
-export function formatNumber(n: number, ma: string): string {
+export function formatNumber(n: number, code: string): string {
   try {
     // `-u-nu-latn` = ép hệ chữ số Latin. Phần còn lại của locale (dấu phân cách,
     // cách nhóm chữ số — `hi` nhóm 2 chữ số sau nhóm 3 đầu) vẫn theo ngôn ngữ.
-    return new Intl.NumberFormat(`${ma}-u-nu-latn`).format(n);
+    return new Intl.NumberFormat(`${code}-u-nu-latn`).format(n);
   } catch {
     // 🔴 KHÔNG rơi về `vi-VN` — đó chính là lỗi đang sửa. Rơi về `en` (mặc định của
     // site) thì cùng lắm là một người đọc thấy quy ước của ngôn ngữ mặc định, chứ

@@ -5,15 +5,15 @@ import { pageMeta } from '@/lib/seo';
 import { CreateChainScreen } from './CreateChainScreen';
 
 export const metadata: Metadata = pageMeta({
-  tieuDe: EN.launch.title,
-  moTa: EN.launch.desc,
-  duong: '/create-chain/',
+  title: EN.launch.title,
+  desc: EN.launch.desc,
+  urlPath: '/create-chain/',
 });
 
 export default function TrangDeChain() {
   return (
     <div className="khung py-10 md:py-14">
-      <PageHeader nhom="launch" />
+      <PageHeader group="launch" />
       <CreateChainScreen />
     </div>
   );

@@ -17,8 +17,8 @@ export const CHAIN = {
   /** 🔴 MetaMask CHỈ nhận chainId dạng hex. Truyền số thập phân là lỗi ngay. */
   chainIdHex: '0x218711a09',
   kyHieu: 'LOVE9',
-  tenDayDu: 'LOVE9',
-  thapPhan: 18,
+  currencyName: 'LOVE9',
+  decimals: 18,
   /**
    * networkID của avalanchego là uint32 — KHÔNG phải số 9 tỷ ở trên.
    *
@@ -48,7 +48,7 @@ export const CHAIN = {
 } as const;
 
 /** Tên miền mặc định khi không đọc được `location` (lúc build tĩnh). */
-const HOST_MAC_DINH = 'a1.9chain.org';
+const DEFAULT_HOST = 'a1.9chain.org';
 
 /**
  * RPC origin baked into the prerendered HTML, for `<link rel="preconnect">` only.
@@ -64,11 +64,11 @@ const HOST_MAC_DINH = 'a1.9chain.org';
  * The two agree everywhere it matters: `rpcOrigin()` returns this exact value on
  * localhost, and on the public site the hostname IS `a1.9chain.org`.
  */
-export const RPC_ORIGIN_HINT = `https://rpc-${HOST_MAC_DINH}`;
+export const RPC_ORIGIN_HINT = `https://rpc-${DEFAULT_HOST}`;
 
 function host(): string {
-  if (typeof window === 'undefined') return HOST_MAC_DINH;
-  return window.location.hostname || HOST_MAC_DINH;
+  if (typeof window === 'undefined') return DEFAULT_HOST;
+  return window.location.hostname || DEFAULT_HOST;
 }
 
 /** Gốc RPC công khai, suy từ chính tên miền đang mở. */
@@ -76,7 +76,7 @@ export function rpcOrigin(): string {
   const h = host();
   // Dev trên máy: không có `rpc-localhost`, đi thẳng ra mạng công khai.
   if (h === 'localhost' || h === '127.0.0.1' || h.endsWith('.local')) {
-    return `https://rpc-${HOST_MAC_DINH}`;
+    return `https://rpc-${DEFAULT_HOST}`;
   }
   return `${window.location.protocol}//rpc-${h}`;
 }
@@ -88,9 +88,9 @@ export function rpcCChain(): string {
 
 /** Gốc của faucet API. Cùng tên miền với trang, nên đường tương đối là đủ. */
 export function faucetOrigin(): string {
-  if (typeof window === 'undefined') return `https://${HOST_MAC_DINH}/faucet`;
+  if (typeof window === 'undefined') return `https://${DEFAULT_HOST}/faucet`;
   const h = host();
-  if (h === 'localhost' || h === '127.0.0.1') return `https://${HOST_MAC_DINH}/faucet`;
+  if (h === 'localhost' || h === '127.0.0.1') return `https://${DEFAULT_HOST}/faucet`;
   return `${window.location.protocol}//${h}/faucet`;
 }
 
@@ -111,9 +111,9 @@ export function explorerOrigin(): string {
  * trạng thái vẫn xanh. Đo bằng `content-type` chứ đừng đo bằng mã HTTP.
  */
 export function brandOrigin(): string {
-  if (typeof window === 'undefined') return `https://${HOST_MAC_DINH}/brand`;
+  if (typeof window === 'undefined') return `https://${DEFAULT_HOST}/brand`;
   const h = host();
-  if (h === 'localhost' || h === '127.0.0.1') return `https://${HOST_MAC_DINH}/brand`;
+  if (h === 'localhost' || h === '127.0.0.1') return `https://${DEFAULT_HOST}/brand`;
   return `${window.location.protocol}//${h}/brand`;
 }
 
@@ -150,7 +150,7 @@ export function addNetworkParams() {
   return {
     chainId: CHAIN.chainIdHex,
     chainName: CHAIN.ten,
-    nativeCurrency: { name: CHAIN.tenDayDu, symbol: CHAIN.kyHieu, decimals: CHAIN.thapPhan },
+    nativeCurrency: { name: CHAIN.currencyName, symbol: CHAIN.kyHieu, decimals: CHAIN.decimals },
     rpcUrls: [rpcCChain()],
     blockExplorerUrls: [explorerOrigin()],
     iconUrls: [love9IconUrl()],

@@ -11,10 +11,10 @@ import { interpolate, useT } from '@/lib/i18n';
  * 🔴 Mọi chú thích về VÌ SAO từng câu được viết như vậy nằm ở khối `reGenesis` trong
  * `lib/i18n/dicts/vi.ts` và `lib/i18n/en.ts`. Đọc ở đó trước khi sửa chữ.
  */
-function Muc({ tieuDe, children }: { tieuDe: string; children: React.ReactNode }) {
+function Item({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-10">
-      <h2 className="font-display text-xl font-extrabold text-ink md:text-2xl">{tieuDe}</h2>
+      <h2 className="font-display text-xl font-extrabold text-ink md:text-2xl">{title}</h2>
       <div className="mt-3 flex flex-col gap-3 text-base text-body">{children}</div>
     </section>
   );
@@ -43,19 +43,19 @@ export function RebuildContent() {
           không ai mất token — vì thế câu chữ nói "nếu bạn có token trước đó", không
           nói "không ai mất gì". */}
       <div className="mt-6">
-        <Note kieu="canhBao">
+        <Note variant="canhBao">
           <p className="font-semibold">{t.rebuild.alreadyTitle}</p>
           <p className="mt-1">{t.rebuild.alreadyDesc}</p>
         </Note>
       </div>
 
-      <Muc tieuDe={t.rebuild.whyTitle}>
+      <Item title={t.rebuild.whyTitle}>
         <p>{t.rebuild.why1}</p>
         <p>{t.rebuild.why2}</p>
         <p>{t.rebuild.why3}</p>
-      </Muc>
+      </Item>
 
-      <Muc tieuDe={t.rebuild.lostTitle}>
+      <Item title={t.rebuild.lostTitle}>
         <p>{t.rebuild.lostDesc}</p>
         <ul className="flex list-disc flex-col gap-2 ps-5">
           <li>{t.rebuild.lost1}</li>
@@ -63,13 +63,13 @@ export function RebuildContent() {
           <li>{t.rebuild.lost3}</li>
           <li>{t.rebuild.lost4}</li>
         </ul>
-      </Muc>
+      </Item>
 
-      <Muc tieuDe={t.rebuild.keptTitle}>
+      <Item title={t.rebuild.keptTitle}>
         <p>{t.rebuild.keptDesc}</p>
-      </Muc>
+      </Item>
 
-      <Muc tieuDe={t.rebuild.toDoTitle}>
+      <Item title={t.rebuild.toDoTitle}>
         <p className="font-semibold text-ink">{t.rebuild.toDoBefore}</p>
         <ul className="flex list-disc flex-col gap-2 ps-5">
           <li>{t.rebuild.toDo1}</li>
@@ -98,25 +98,25 @@ export function RebuildContent() {
             {t.nav.myChains}
           </a>
         </p>
-      </Muc>
+      </Item>
 
       {/* Đứng NGAY SAU "Bạn cần làm gì": mục trên nói việc phải làm, mục này nói
           cái sẽ thấy nếu không làm. Đảo thứ tự là bắt người đọc nhớ một cảnh báo
           trừu tượng trước khi biết nó dẫn tới thao tác nào. */}
-      <Muc tieuDe={t.rebuild.silentTitle}>
+      <Item title={t.rebuild.silentTitle}>
         <p>{interpolate(t.rebuild.silentDesc, { chainId: CHAIN.chainId })}</p>
         <ul className="flex list-disc flex-col gap-2 ps-5">
           <li>{t.rebuild.silent1}</li>
           <li>{t.rebuild.silent2}</li>
         </ul>
-      </Muc>
+      </Item>
 
-      <Muc tieuDe={t.rebuild.repeatTitle}>
+      <Item title={t.rebuild.repeatTitle}>
         <p>{t.rebuild.repeatDesc}</p>
-      </Muc>
+      </Item>
 
       <div className="mt-10">
-        <Note kieu="canhBao">
+        <Note variant="canhBao">
           <p className="font-semibold">{t.rebuild.dateNote}</p>
           <p className="mt-1">{interpolate(t.rebuild.dateNoteDesc, { ngay })}</p>
         </Note>

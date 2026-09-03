@@ -21,29 +21,29 @@ import { formatNumber } from '@/lib/numbers';
  *    được bình thường.
  */
 
-type TieuChi = { k: string; loai: 'kienTruc' | 'song'; a: number; c: number; w: number; note: string };
+type TieuChi = { k: string; kind: 'kienTruc' | 'song'; a: number; c: number; w: number; note: string };
 
 // Giữ nguyên bộ tiêu chí + điểm của bản dashboard cũ (`local-net/dashboard/index.html`)
 // và của `docs/A1-vs-C1-SCORECARD.md`. KHÔNG chấm lại ở đây: đổi điểm là một quyết
 // định về sản phẩm, phải đi qua tài liệu, không lẫn vào một lượt dựng giao diện.
 const GOC: TieuChi[] = [
-  { k: 'Phi tập trung (validator tối đa)', loai: 'kienTruc', a: 5, c: 2, w: 4, note: 'Trần GIAO THỨC: Snowman ~nghìn node vs CometBFT ~150. A1 HÔM NAY: 9 node, một máy, một nhà cung cấp' },
-  { k: 'Finality', loai: 'kienTruc', a: 5, c: 3, w: 3, note: '~1–2s vs ~5–6s' },
-  { k: 'Độ chín EVM', loai: 'kienTruc', a: 5, c: 2, w: 4, note: 'coreth production vs Cosmos EVM pre-v1' },
-  { k: 'Tương thích ví/DeFi retail', loai: 'kienTruc', a: 5, c: 3, w: 4, note: 'MetaMask/EVM đầy đủ' },
-  { k: 'UX đẻ chain', loai: 'song', a: 4, c: 4, w: 3, note: 'cả hai có console; A1 đo được ~170s/lượt' },
-  { k: 'Interop rộng', loai: 'song', a: 3, c: 5, w: 4, note: 'Warp/ICM nội hệ (A1 đã chuyển được tài sản, M6.2) vs IBC rộng' },
-  { k: 'Chi phí vận hành / chain', loai: 'kienTruc', a: 4, c: 3, w: 2, note: 'node + plugin vs K8s operator' },
-  { k: 'Bootstrap network-effect', loai: 'kienTruc', a: 2, c: 4, w: 3, note: 'đảo riêng vs IBC cắm sẵn kinh tế Cosmos' },
-  { k: 'Bảo mật kinh tế public', loai: 'kienTruc', a: 4, c: 3, w: 3, note: 'PoS token-secured sẵn' },
-  { k: 'Chi phí chuyển đổi (đội)', loai: 'kienTruc', a: 2, c: 5, w: 2, note: 'A1 mới vs C1 đã chạy nhiều tháng' },
+  { k: 'Phi tập trung (validator tối đa)', kind: 'kienTruc', a: 5, c: 2, w: 4, note: 'Trần GIAO THỨC: Snowman ~nghìn node vs CometBFT ~150. A1 HÔM NAY: 9 node, một máy, một nhà cung cấp' },
+  { k: 'Finality', kind: 'kienTruc', a: 5, c: 3, w: 3, note: '~1–2s vs ~5–6s' },
+  { k: 'Độ chín EVM', kind: 'kienTruc', a: 5, c: 2, w: 4, note: 'coreth production vs Cosmos EVM pre-v1' },
+  { k: 'Tương thích ví/DeFi retail', kind: 'kienTruc', a: 5, c: 3, w: 4, note: 'MetaMask/EVM đầy đủ' },
+  { k: 'UX đẻ chain', kind: 'song', a: 4, c: 4, w: 3, note: 'cả hai có console; A1 đo được ~170s/lượt' },
+  { k: 'Interop rộng', kind: 'song', a: 3, c: 5, w: 4, note: 'Warp/ICM nội hệ (A1 đã chuyển được tài sản, M6.2) vs IBC rộng' },
+  { k: 'Chi phí vận hành / chain', kind: 'kienTruc', a: 4, c: 3, w: 2, note: 'node + plugin vs K8s operator' },
+  { k: 'Bootstrap network-effect', kind: 'kienTruc', a: 2, c: 4, w: 3, note: 'đảo riêng vs IBC cắm sẵn kinh tế Cosmos' },
+  { k: 'Bảo mật kinh tế public', kind: 'kienTruc', a: 4, c: 3, w: 3, note: 'PoS token-secured sẵn' },
+  { k: 'Chi phí chuyển đổi (đội)', kind: 'kienTruc', a: 2, c: 5, w: 2, note: 'A1 mới vs C1 đã chạy nhiều tháng' },
 ];
 
 export function ComparisonTable() {
   const t = useT();
-  const { ma } = useLanguage();
+  const { code } = useLanguage();
   const [ts, datTs] = useState<number[]>(GOC.map((c) => c.w));
-  const { tt } = useNetworkStats();
+  const { state } = useNetworkStats();
 
   const diemA = GOC.reduce((t, c, i) => t + c.a * ts[i], 0);
   const diemC = GOC.reduce((t, c, i) => t + c.c * ts[i], 0);
@@ -51,7 +51,7 @@ export function ComparisonTable() {
 
   return (
     <div className="mt-8 flex flex-col gap-6">
-      <Note kieu="canhBao">
+      <Note variant="canhBao">
         <strong className="block font-semibold">{t.compare.selfScoreTitle}</strong>
         <span className="mt-1 block">{t.compare.selfScoreDesc}</span>
       </Note>
@@ -63,16 +63,16 @@ export function ComparisonTable() {
               `null` ô này vắng. Xem `lib/stats.ts` cho vì sao một nguồn hỏng không
               còn kéo theo hai ô kia. */}
           {(() => {
-            const s = tt.pha === 'xong' ? tt.so : null;
+            const s = state.phase === 'xong' ? state.so : null;
             return [
               {
                 n: t.compare.a1Validators,
-                v: !s ? undefined : s.validatorTong === null ? null : `${s.validatorKetNoi}/${s.validatorTong}`,
+                v: !s ? undefined : s.validatorsTotal === null ? null : `${s.validatorsConnected}/${s.validatorsTotal}`,
               },
-              { n: t.compare.a1Chains, v: !s ? undefined : s.soL1 === null ? null : String(s.soL1) },
+              { n: t.compare.a1Chains, v: !s ? undefined : s.l1Count === null ? null : String(s.l1Count) },
               {
                 n: t.compare.a1Blocks,
-                v: !s ? undefined : s.chieuCaoBlock === null ? null : formatNumber(s.chieuCaoBlock, ma),
+                v: !s ? undefined : s.blockHeight === null ? null : formatNumber(s.blockHeight, code),
               },
             ];
           })().map((x) => (
@@ -81,7 +81,7 @@ export function ComparisonTable() {
               <dd className="font-display text-2xl font-extrabold text-ink">
                 {x.v !== undefined && x.v !== null ? (
                   x.v
-                ) : x.v === null || tt.pha === 'hong' ? (
+                ) : x.v === null || state.phase === 'hong' ? (
                   <span className="font-sans text-sm font-normal text-muted">{t.compare.cannotMeasure}</span>
                 ) : (
                   <><span className="sr-only">{t.compare.measuring}</span><Skeleton className="h-8 w-16" /></>
@@ -122,8 +122,8 @@ export function ComparisonTable() {
                     <span className="mt-0.5 block text-xs font-normal text-body-2">{c.note}</span>
                   </th>
                   <td className="px-3 py-3">
-                    <Badge kieu={c.loai === 'song' ? 'tot' : 'trungTinh'}>
-                      {c.loai === 'song' ? t.compare.kindLiveData : t.compare.kindArchitecture}
+                    <Badge variant={c.kind === 'song' ? 'tot' : 'trungTinh'}>
+                      {c.kind === 'song' ? t.compare.kindLiveData : t.compare.kindArchitecture}
                     </Badge>
                   </td>
                   <td className="px-3 py-3 text-center font-mono font-bold text-ink">{c.a}</td>

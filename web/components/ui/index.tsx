@@ -27,6 +27,12 @@ const NUT_CHUNG =
   'inline-flex items-center justify-center gap-2 font-semibold transition-colors ' +
   'disabled:opacity-55 disabled:cursor-not-allowed select-none';
 
+// 🔴 KHOÁ Ở ĐÂY PHẢI TRÙNG TỪNG CHỮ với union `KieuNut` bên trên, và union đó là
+// CHUỖI. Đợt đổi tên định danh `2026-09-03` sửa khoá `phu` thành `note` (nó cũng là
+// tên một prop ở chỗ khác) trong khi `'phu'` trong union — một chuỗi — thì không đổi.
+// `tsc` bắt ngay, nhưng đây là lời nhắc: tên nào tồn tại ĐỒNG THỜI dưới dạng định
+// danh và dưới dạng chuỗi thì phải đổi CẢ HAI trong một lượt, hoặc không đổi gì.
+// Cả bộ từ vựng biến thể (`chinh`/`phu`/`vien`/`tron`, `vua`/`to`) để lượt riêng.
 const NUT_KIEU: Record<KieuNut, string> = {
   // Vàng là màu CTA của thương hiệu; chữ trên nền vàng phải là navy, không phải trắng.
   chinh: 'bg-gold text-navy hover:bg-gold-hover shadow-cta',
@@ -41,13 +47,13 @@ const NUT_CO: Record<CoNut, string> = {
 };
 
 export function Button({
-  kieu = 'chinh',
+  variant = 'chinh',
   co = 'vua',
   isRunning = false,
   className,
   children,
   ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement> & { kieu?: KieuNut; co?: CoNut; isRunning?: boolean }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: KieuNut; co?: CoNut; isRunning?: boolean }) {
   return (
     <button
       {...rest}
@@ -55,7 +61,7 @@ export function Button({
       // nút đang bận, mà chữ đổi thì họ chỉ nghe lại khi tự điều hướng tới nó.
       aria-busy={isRunning || undefined}
       disabled={rest.disabled || isRunning}
-      className={cx(NUT_CHUNG, NUT_KIEU[kieu], NUT_CO[co], className)}
+      className={cx(NUT_CHUNG, NUT_KIEU[variant], NUT_CO[co], className)}
     >
       {isRunning && <VongXoay />}
       {children}
@@ -92,18 +98,18 @@ export function Card({
 /* ───────────────────────────────────────────────────────────────── Field */
 
 export function Field({
-  nhan,
-  moTa,
-  loi,
-  goiY,
+  label,
+  desc,
+  failure,
+  hint,
   id,
   className,
   ...rest
 }: InputHTMLAttributes<HTMLInputElement> & {
-  nhan: string;
-  moTa?: string;
-  loi?: string;
-  goiY?: ReactNode;
+  label: string;
+  desc?: string;
+  failure?: string;
+  hint?: ReactNode;
 }) {
   const tuSinh = useId();
   const idThat = id ?? tuSinh;
@@ -112,11 +118,11 @@ export function Field({
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={idThat} className="text-sm font-semibold text-ink">
-        {nhan}
+        {label}
       </label>
-      {moTa && (
+      {desc && (
         <p id={idMoTa} className="text-sm text-muted">
-          {moTa}
+          {desc}
         </p>
       )}
       <input
@@ -124,21 +130,21 @@ export function Field({
         id={idThat}
         // Nối CẢ hai id: trình đọc màn hình đọc mô tả rồi tới lỗi. Chỉ trỏ vào lỗi
         // là người dùng mất luôn phần hướng dẫn ngay khi họ cần nó nhất.
-        aria-describedby={cx(moTa && idMoTa, loi && idLoi) || undefined}
-        aria-invalid={loi ? true : undefined}
+        aria-describedby={cx(desc && idMoTa, failure && idLoi) || undefined}
+        aria-invalid={failure ? true : undefined}
         className={cx(
           'h-12 w-full rounded-btn border bg-surface px-3 font-mono text-sm text-ink',
           'placeholder:text-muted placeholder:font-sans',
-          loi ? 'border-danger' : 'border-line-strong',
+          failure ? 'border-danger' : 'border-line-strong',
           className,
         )}
       />
-      {loi && (
+      {failure && (
         // `role="alert"` để lỗi được đọc lên ngay khi xuất hiện, không phải chờ
         // người dùng tự di chuyển tới.
         <p id={idLoi} role="alert" className="text-sm font-medium text-danger">
-          {loi}
-          {goiY && <span className="block font-normal text-muted">{goiY}</span>}
+          {failure}
+          {hint && <span className="block font-normal text-muted">{hint}</span>}
         </p>
       )}
     </div>
@@ -155,12 +161,12 @@ const NHAN_KIEU: Record<KieuNhan, string> = {
   xau: 'bg-surface-alt text-danger border-line-strong',
 };
 
-export function Badge({ kieu = 'trungTinh', children }: { kieu?: KieuNhan; children: ReactNode }) {
+export function Badge({ variant = 'trungTinh', children }: { variant?: KieuNhan; children: ReactNode }) {
   return (
     <span
       className={cx(
         'inline-flex items-center gap-1 rounded-chip border px-2 py-0.5 text-xs font-semibold',
-        NHAN_KIEU[kieu],
+        NHAN_KIEU[variant],
       )}
     >
       {children}
@@ -197,27 +203,27 @@ export function Skeleton({ className }: { className?: string }) {
  *    `<h2>` — đây là thứ `axe-core` KHÔNG bắt được (nó không biết một `<p>` *đáng
  *    lẽ* phải là heading), nên nó nằm trong nhóm "a11y ngoài tầm axe" của Đ1-9.
  */
-export function EmptyState({ tieuDe, moTa, hanhDong }: { tieuDe: string; moTa?: string; hanhDong?: ReactNode }) {
+export function EmptyState({ title, desc, action }: { title: string; desc?: string; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-card border border-dashed border-line-strong bg-surface px-6 py-10 text-center shadow-card">
-      <h2 className="font-display text-lg font-semibold text-ink">{tieuDe}</h2>
-      {moTa && <p className="max-w-prose text-sm text-body-2">{moTa}</p>}
-      {hanhDong}
+      <h2 className="font-display text-lg font-semibold text-ink">{title}</h2>
+      {desc && <p className="max-w-prose text-sm text-body-2">{desc}</p>}
+      {action}
     </div>
   );
 }
 
-export function ErrorState({ tieuDe, moTa, thuLai }: { tieuDe?: string; moTa?: string; thuLai?: () => void }) {
+export function ErrorState({ title, desc, onRetry }: { title?: string; desc?: string; onRetry?: () => void }) {
   const t = useT();
   return (
     <div
       role="alert"
       className="flex flex-col items-start gap-3 rounded-card border border-line-strong bg-surface px-5 py-4"
     >
-      <p className="font-semibold text-ink">{tieuDe ?? t.errors.unreachable}</p>
-      <p className="text-sm text-body-2">{moTa ?? t.errors.unreachableDesc}</p>
-      {thuLai && (
-        <Button kieu="vien" onClick={thuLai}>
+      <p className="font-semibold text-ink">{title ?? t.errors.unreachable}</p>
+      <p className="text-sm text-body-2">{desc ?? t.errors.unreachableDesc}</p>
+      {onRetry && (
+        <Button variant="vien" onClick={onRetry}>
           {t.common.retry}
         </Button>
       )}
@@ -227,25 +233,25 @@ export function ErrorState({ tieuDe, moTa, thuLai }: { tieuDe?: string; moTa?: s
 
 /* ───────────────────────────────────────────────────────────────── Copyable */
 
-export function Copyable({ giaTri, nhan, className }: { giaTri: string; nhan?: string; className?: string }) {
+export function Copyable({ value, label, className }: { value: string; label?: string; className?: string }) {
   const t = useT();
-  const [daChep, datDaChep] = useState(false);
+  const [copied, setCopied] = useState(false);
   useEffect(() => {
-    if (!daChep) return;
-    const t = setTimeout(() => datDaChep(false), 1600);
+    if (!copied) return;
+    const t = setTimeout(() => setCopied(false), 1600);
     return () => clearTimeout(t);
-  }, [daChep]);
+  }, [copied]);
 
   return (
     <button
       type="button"
       // Nhãn phải nói RÕ chép cái gì — "Sao chép" một mình thì trong danh sách 5 nút
       // giống hệt nhau, người dùng trình đọc màn hình không biết mình đang ở nút nào.
-      aria-label={`${t.common.copy} ${nhan ?? giaTri}`}
+      aria-label={`${t.common.copy} ${label ?? value}`}
       onClick={async () => {
         try {
-          await navigator.clipboard.writeText(giaTri);
-          datDaChep(true);
+          await navigator.clipboard.writeText(value);
+          setCopied(true);
         } catch {
           /* Trình duyệt từ chối clipboard (thiếu quyền / không phải HTTPS): im lặng
              là đúng ở đây — người dùng vẫn bôi đen chép tay được, còn hiện lỗi đỏ
@@ -258,14 +264,14 @@ export function Copyable({ giaTri, nhan, className }: { giaTri: string; nhan?: s
         className,
       )}
     >
-      <span className="truncate">{giaTri}</span>
+      <span className="truncate">{value}</span>
       <span aria-hidden="true" className="shrink-0 text-muted">
-        {daChep ? '✓' : '⧉'}
+        {copied ? '✓' : '⧉'}
       </span>
       {/* Thông báo cho trình đọc màn hình — vùng live riêng, không phụ thuộc vào
           việc dấu ✓ có được đọc hay không. */}
       <span className="sr-only" role="status">
-        {daChep ? t.common.copied : ''}
+        {copied ? t.common.copied : ''}
       </span>
     </button>
   );
@@ -273,12 +279,12 @@ export function Copyable({ giaTri, nhan, className }: { giaTri: string; nhan?: s
 
 /* ───────────────────────────────────────────────────────────────── Callout */
 
-export function Note({ kieu = 'thuong', children }: { kieu?: 'thuong' | 'canhBao'; children: ReactNode }) {
+export function Note({ variant = 'thuong', children }: { variant?: 'thuong' | 'canhBao'; children: ReactNode }) {
   return (
     <div
       className={cx(
         'rounded-card border px-4 py-3 text-sm',
-        kieu === 'canhBao'
+        variant === 'canhBao'
           ? 'border-dev-line bg-gold-tint-2 text-dev-ink'
           : 'border-line bg-surface-alt text-body',
       )}
@@ -312,11 +318,11 @@ const MAU: Record<StepStatus, string> = {
  * `aria-live="polite"` để người dùng trình đọc màn hình nghe được tiến trình mà
  * không bị cắt ngang; `role="list"` giữ ngữ nghĩa danh sách khi đã bỏ dấu chấm.
  */
-export function Steps({ buoc, ghiChu }: { buoc: Step[]; ghiChu?: string }) {
+export function Steps({ steps, footnote }: { steps: Step[]; footnote?: string }) {
   return (
     <div aria-live="polite">
       <ol role="list" className="flex flex-col gap-2">
-        {buoc.map((b) => (
+        {steps.map((b) => (
           <li key={b.code} className="flex items-baseline gap-3 text-sm">
             <span aria-hidden="true" className={cx('w-4 shrink-0 font-mono', MAU[b.status])}>
               {DAU[b.status]}
@@ -333,7 +339,7 @@ export function Steps({ buoc, ghiChu }: { buoc: Step[]; ghiChu?: string }) {
           </li>
         ))}
       </ol>
-      {ghiChu && <p className="mt-3 text-sm text-muted">{ghiChu}</p>}
+      {footnote && <p className="mt-3 text-sm text-muted">{footnote}</p>}
     </div>
   );
 }

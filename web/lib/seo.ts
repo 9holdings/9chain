@@ -64,28 +64,28 @@ export function composeHomeTitle(tenSanPham: string, tagTitle: string): string {
 }
 
 export function pageMeta({
-  tieuDe,
-  moTa,
-  duong,
+  title,
+  desc,
+  urlPath,
 }: {
   /** Tiêu đề TRẦN của trang, chưa nối tên sản phẩm. */
-  tieuDe: string;
-  moTa: string;
+  title: string;
+  desc: string;
   /** Đường dẫn canonical, luôn có gạch chéo cuối. Ví dụ `/faucet/`. */
-  duong: string;
+  urlPath: string;
 }): Metadata {
   // Dấu `[?]` là cơ chế duyệt giọng NỘI BỘ (xem đầu `vi.ts`). Nó không được đi ra
   // thẻ meta — nơi đó chữ bị máy khác đọc và hiện lại nguyên văn trong thẻ chia sẻ,
   // ngoài tầm với của mọi lượt sửa sau này. Cắt ở ĐÂY là hợp lệ; cắt ở tầng render
   // của trang thì KHÔNG — xem mục "cố ý không làm" số 15 trong lộ trình.
-  const t = composeTitle(tieuDe, EN.common.productName);
-  const d = stripReviewMark(moTa);
+  const t = composeTitle(title, EN.common.productName);
+  const d = stripReviewMark(desc);
 
   return {
     title: t,
     description: d,
-    alternates: { canonical: duong },
-    openGraph: { type: 'website', siteName: EN.common.productName, title: t, description: d, url: duong },
+    alternates: { canonical: urlPath },
+    openGraph: { type: 'website', siteName: EN.common.productName, title: t, description: d, url: urlPath },
     twitter: { card: 'summary_large_image', title: t, description: d },
   };
 }

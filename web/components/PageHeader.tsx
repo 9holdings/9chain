@@ -25,11 +25,11 @@ import { useT } from '@/lib/i18n';
  */
 type NhomCoDauTrang = 'faucet' | 'launch' | 'myChains' | 'compare';
 
-export function PageHeader({ nhom, rong }: { nhom: NhomCoDauTrang; rong?: 'hep' | 'vua' }) {
+export function PageHeader({ group, width }: { group: NhomCoDauTrang; width?: 'hep' | 'vua' }) {
   const t = useT();
-  const g = t[nhom];
+  const g = t[group];
   return (
-    <header className={rong === 'vua' ? 'max-w-3xl' : 'max-w-2xl'}>
+    <header className={width === 'vua' ? 'max-w-3xl' : 'max-w-2xl'}>
       <h1 className="font-display text-2xl font-extrabold text-ink md:text-3xl">{g.title}</h1>
       <p className="mt-3 text-base text-body">{g.desc}</p>
     </header>

@@ -33,58 +33,58 @@ import { LANGUAGES } from '@/lib/i18n/languages';
  */
 export function LanguagePicker() {
   const t = useT();
-  const { ma, ngonNgu, dangNap, datNgonNgu } = useLanguage();
-  const [mo, datMo] = useState(false);
-  const boc = useRef<HTMLDetailsElement>(null);
+  const { code, language, loading, setLanguage } = useLanguage();
+  const [opened, setOpened] = useState(false);
+  const wrapRef = useRef<HTMLDetailsElement>(null);
 
   // Bấm ra ngoài thì đóng. Esc do `<details>` lo sẵn.
   useEffect(() => {
-    if (!mo) return;
-    const ngoai = (e: MouseEvent) => {
-      if (boc.current && !boc.current.contains(e.target as Node)) datMo(false);
+    if (!opened) return;
+    const external = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpened(false);
     };
-    document.addEventListener('mousedown', ngoai);
-    return () => document.removeEventListener('mousedown', ngoai);
-  }, [mo]);
+    document.addEventListener('mousedown', external);
+    return () => document.removeEventListener('mousedown', external);
+  }, [opened]);
 
   return (
     <details
-      ref={boc}
-      open={mo}
-      onToggle={(e) => datMo((e.currentTarget as HTMLDetailsElement).open)}
+      ref={wrapRef}
+      open={opened}
+      onToggle={(e) => setOpened((e.currentTarget as HTMLDetailsElement).open)}
       className="relative"
     >
       <summary
         className="tap-target flex cursor-pointer list-none items-center gap-1.5 rounded-btn border border-line-dark px-2.5 py-1.5 text-sm text-on-dark-2 transition-colors hover:border-gold hover:text-gold"
-        aria-label={`${t.langPicker.label}: ${ngonNgu.tenAnh}`}
+        aria-label={`${t.langPicker.label}: ${language.englishName}`}
       >
         <span aria-hidden="true" className="font-mono text-xs font-bold uppercase">
-          {ma}
+          {code}
         </span>
-        <span className="hidden sm:inline">{ngonNgu.ten}</span>
-        {dangNap && <span className="sr-only">{t.common.loading}</span>}
+        <span className="hidden sm:inline">{language.ten}</span>
+        {loading && <span className="sr-only">{t.common.loading}</span>}
       </summary>
 
       <div className="absolute end-0 z-50 mt-2 max-h-[70vh] w-64 overflow-y-auto rounded-card border border-line bg-surface p-1.5 shadow-card">
         <ul>
           {LANGUAGES.map((n) => {
-            const co = hasDictionary(n.ma);
-            const dangChon = n.ma === ma;
+            const co = hasDictionary(n.code);
+            const dangChon = n.code === code;
             return (
-              <li key={n.ma}>
+              <li key={n.code}>
                 <button
                   type="button"
                   disabled={!co}
                   onClick={() => {
-                    datNgonNgu(n.ma);
-                    datMo(false);
+                    setLanguage(n.code);
+                    setOpened(false);
                   }}
                   aria-current={dangChon ? 'true' : undefined}
                   // Nhãn đầy đủ cho trình đọc màn hình: tên bản địa không giúp được
                   // người đang dùng giọng đọc của một thứ tiếng khác.
                   aria-label={
-                    `${n.tenAnh}` +
-                    (n.soat === 'may' ? ` — ${t.langPicker.machineBadge}` : '') +
+                    `${n.englishName}` +
+                    (n.review === 'may' ? ` — ${t.langPicker.machineBadge}` : '') +
                     (co ? '' : ` — ${t.langPicker.notAvailable}`)
                   }
                   className={
@@ -96,10 +96,10 @@ export function LanguagePicker() {
                   <span className="flex min-w-0 flex-col">
                     {/* `lang` trên chính mục: trình đọc màn hình đổi giọng đúng chỗ,
                         nếu không nó đọc "Tiếng Việt" bằng ngữ âm tiếng Anh. */}
-                    <span lang={n.ma} dir={n.chieu} className="truncate">
+                    <span lang={n.code} dir={n.dir} className="truncate">
                       {n.ten}
                     </span>
-                    <span className="truncate text-xs text-muted">{n.tenAnh}</span>
+                    <span className="truncate text-xs text-muted">{n.englishName}</span>
                   </span>
                   {/* 🔴 NHÃN "máy dịch" TỪNG ĐỨNG Ở ĐÂY, GỠ `2026-09-03` — David chốt.
                       28/30 dòng đều mang nhãn, nên nó không còn phân biệt được gì

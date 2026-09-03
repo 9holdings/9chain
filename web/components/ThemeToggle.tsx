@@ -12,12 +12,12 @@ import { useT } from '@/lib/i18n';
  */
 export function ThemeToggle() {
   const t = useT();
-  const [toi, datToi] = useState<boolean | null>(null);
+  const [dark, setDark] = useState<boolean | null>(null);
 
   // Đọc trạng thái THẬT từ DOM (ThemeScript đã đặt trước khi vẽ), không tự đoán lại
   // từ localStorage: hai nguồn sự thật cho cùng một thứ là hai thứ phải giữ cho khớp.
   useEffect(() => {
-    datToi(document.documentElement.getAttribute('data-theme') === 'dark');
+    setDark(document.documentElement.getAttribute('data-theme') === 'dark');
   }, []);
 
   function doi() {
@@ -30,24 +30,24 @@ export function ThemeToggle() {
     } catch {
       /* Không lưu được thì vẫn đổi cho phiên này — thà đổi tạm còn hơn nút chết. */
     }
-    datToi(moi);
+    setDark(moi);
     // Gỡ cờ ở khung hình kế tiếp, khi màu mới đã được vẽ xong.
     requestAnimationFrame(() => requestAnimationFrame(() => html.removeAttribute('data-theme-switching')));
   }
 
   // Trước khi biết trạng thái, vẽ nút với nhãn trung tính thay vì không vẽ gì:
   // nút biến mất rồi hiện lại làm nhảy bố cục thanh điều hướng.
-  const nhan = toi === null ? t.common.switchToDark : toi ? t.common.switchToLight : t.common.switchToDark;
+  const label = dark === null ? t.common.switchToDark : dark ? t.common.switchToLight : t.common.switchToDark;
 
   return (
     <button
       type="button"
       onClick={doi}
-      aria-label={nhan}
-      title={nhan}
+      aria-label={label}
+      title={label}
       className="inline-flex h-10 w-10 items-center justify-center rounded-btn border border-line-dark text-on-dark-2 hover:text-on-dark hover:bg-navy-hover"
     >
-      <span aria-hidden="true">{toi ? '☀' : '☾'}</span>
+      <span aria-hidden="true">{dark ? '☀' : '☾'}</span>
     </button>
   );
 }

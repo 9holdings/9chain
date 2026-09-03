@@ -41,9 +41,9 @@ export type LoadTestStatus = {
 };
 
 export type LoadTestState =
-  | { pha: 'dangTai' }
-  | { pha: 'xong'; tt: LoadTestStatus }
-  | { pha: 'hong'; viSao: string };
+  | { phase: 'dangTai' }
+  | { phase: 'xong'; state: LoadTestStatus }
+  | { phase: 'hong'; why: string };
 
 const DUONG = '/chains/data/heartbeat.json';
 
@@ -84,9 +84,9 @@ function docDuoc(j: unknown): LoadTestStatus | null {
 }
 
 /** A reading counts as live only if the pump says so AND the file is recent. */
-export function isRunning(tt: LoadTestStatus, bayGio = Date.now()): boolean {
-  if (!tt.running) return false;
-  const luc = Date.parse(tt.updatedAt);
+export function isRunning(state: LoadTestStatus, bayGio = Date.now()): boolean {
+  if (!state.running) return false;
+  const luc = Date.parse(state.updatedAt);
   if (Number.isNaN(luc)) return false;
   return bayGio - luc <= CU_QUA_MS;
 }
@@ -99,35 +99,35 @@ export function isRunning(tt: LoadTestStatus, bayGio = Date.now()): boolean {
  * page whose whole purpose is a number that moves, so it polls.
  */
 export function useLoadTest(nhipMs = 0): LoadTestState {
-  const [tt, datTt] = useState<LoadTestState>({ pha: 'dangTai' });
+  const [state, setState] = useState<LoadTestState>({ phase: 'dangTai' });
 
   useEffect(() => {
-    let huy = false;
+    let cancelled = false;
     let hen: ReturnType<typeof setTimeout> | undefined;
 
     async function doc() {
       try {
         const j = await fetchJson<unknown>(DUONG, {}, READ_TIMEOUT_MS / 1000);
-        if (huy) return;
+        if (cancelled) return;
         const d = docDuoc(j);
-        datTt(d ? { pha: 'xong', tt: d } : { pha: 'hong', viSao: 'unexpected status format' });
+        setState(d ? { phase: 'xong', state: d } : { phase: 'hong', why: 'unexpected status format' });
       } catch (e) {
-        if (huy) return;
-        datTt({ pha: 'hong', viSao: e instanceof Error ? e.message : 'could not read status' });
+        if (cancelled) return;
+        setState({ phase: 'hong', why: e instanceof Error ? e.message : 'could not read status' });
       } finally {
         // Chain the next read from the end of this one rather than on an interval:
         // an interval on a slow network stacks requests on top of each other, and a
         // hidden tab throttles them into a burst when it comes back.
-        if (!huy && nhipMs > 0) hen = setTimeout(doc, nhipMs);
+        if (!cancelled && nhipMs > 0) hen = setTimeout(doc, nhipMs);
       }
     }
 
     doc();
     return () => {
-      huy = true;
+      cancelled = true;
       if (hen) clearTimeout(hen);
     };
   }, [nhipMs]);
 
-  return tt;
+  return state;
 }

@@ -41,12 +41,12 @@ import { guessLanguage, STORAGE_KEY, isValidCode, DEFAULT_CODE, LANGUAGES, looku
  */
 
 type BoiCanh = {
-  ma: string;
-  ngonNgu: Language;
+  code: string;
+  language: Language;
   t: Dict;
   /** `true` khi đang nạp chunk của một ngôn ngữ khác EN. Dùng để tránh nháy chữ. */
-  dangNap: boolean;
-  datNgonNgu: (ma: string) => void;
+  loading: boolean;
+  setLanguage: (code: string) => void;
 };
 
 const Ctx = createContext<BoiCanh | null>(null);
@@ -100,8 +100,8 @@ const LOADERS: Record<string, () => Promise<{ default: Dict }>> = {
  * đã dùng được rồi lặng lẽ rơi về tiếng Anh là đúng kiểu hỏng tệ nhất: người dùng
  * chọn tiếng của mình, thấy tiếng Anh, và không có gì nói cho họ biết vì sao.
  */
-export function hasDictionary(ma: string): boolean {
-  return ma === DEFAULT_CODE || ma in LOADERS;
+export function hasDictionary(code: string): boolean {
+  return code === DEFAULT_CODE || code in LOADERS;
 }
 
 
@@ -110,7 +110,7 @@ export function hasDictionary(ma: string): boolean {
  * và ngược lại. Chỉ chạy ở dev — ở sản phẩm nó chỉ tốn byte mà không cứu được ai.
  */
 export function checkLoaders(): string[] {
-  const trongSo = LANGUAGES.map((n) => n.ma).filter((m) => m !== DEFAULT_CODE);
+  const trongSo = LANGUAGES.map((n) => n.code).filter((m) => m !== DEFAULT_CODE);
   const trongNap = Object.keys(LOADERS);
   return [
     ...trongSo.filter((m) => !trongNap.includes(m)).map((m) => `${m}: có trong sổ, THIẾU trong LOADERS`),
@@ -150,63 +150,63 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // sinh sẵn ở tiếng Anh; nếu lượt render đầu trên trình duyệt đã khác HTML thì
   // React báo lệch hydrate và bỏ cả cây. Đọc lựa chọn ở `useEffect` — tức SAU khi
   // hydrate xong — là cách duy nhất đúng ở đây.
-  const [ma, datMa] = useState<string>(DEFAULT_CODE);
-  const [tu, datTu] = useState<Dict>(EN);
-  const [dangNap, datDangNap] = useState(false);
+  const [code, setCode] = useState<string>(DEFAULT_CODE);
+  const [dict, setDict] = useState<Dict>(EN);
+  const [loading, datDangNap] = useState(false);
 
   useEffect(() => {
     const m = maBanDau();
-    if (m !== DEFAULT_CODE) datMa(m);
+    if (m !== DEFAULT_CODE) setCode(m);
   }, []);
 
   useEffect(() => {
-    let huy = false;
-    if (ma === DEFAULT_CODE) {
-      datTu(EN);
+    let cancelled = false;
+    if (code === DEFAULT_CODE) {
+      setDict(EN);
       datDangNap(false);
       return;
     }
-    const nap = LOADERS[ma];
+    const nap = LOADERS[code];
     if (!nap) {
       // Lệch sổ — `checkLoaders()` đáng lẽ đã bắt ở dev. Rơi về EN, đừng để trang trắng.
-      datTu(EN);
+      setDict(EN);
       return;
     }
     datDangNap(true);
     nap()
       .then((m) => {
-        if (huy) return;
-        datTu(m.default);
+        if (cancelled) return;
+        setDict(m.default);
         datDangNap(false);
       })
       .catch(() => {
         // Chunk nạp hỏng (mạng đứt, bản deploy cũ). Giữ EN — đọc được bằng thứ
         // tiếng khác vẫn hơn nhìn một trang trống.
-        if (!huy) {
-          datTu(EN);
+        if (!cancelled) {
+          setDict(EN);
           datDangNap(false);
         }
       });
     return () => {
-      huy = true;
+      cancelled = true;
     };
-  }, [ma]);
+  }, [code]);
 
   // 🔴 `lang` và `dir` phải đổi CÙNG từ điển. `lang` sai thì trình đọc màn hình
   // chọn giọng sai — cả trang bị đọc bằng ngữ âm khác. `dir` sai thì tiếng Ả Rập,
   // Urdu và Ba Tư (3/30) hiện ngược chiều.
   useEffect(() => {
-    const n = lookup(ma);
-    document.documentElement.setAttribute('lang', n.ma);
-    document.documentElement.setAttribute('dir', n.chieu);
-  }, [ma]);
+    const n = lookup(code);
+    document.documentElement.setAttribute('lang', n.code);
+    document.documentElement.setAttribute('dir', n.dir);
+  }, [code]);
 
-  const datNgonNgu = useCallback((moi: string) => {
+  const setLanguage = useCallback((moi: string) => {
     // Bộ chọn đã vô hiệu hoá mục không có từ điển, nhưng chặn ở đây nữa: một lời
     // gọi từ chỗ khác (deep link, console) không được đặt site vào trạng thái
     // `lang` nói một đằng, chữ một nẻo.
     if (!isValidCode(moi) || !hasDictionary(moi)) return;
-    datMa(moi);
+    setCode(moi);
     try {
       window.localStorage.setItem(STORAGE_KEY, moi);
     } catch {
@@ -214,12 +214,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const giaTri = useMemo<BoiCanh>(
-    () => ({ ma, ngonNgu: lookup(ma), t: tu, dangNap, datNgonNgu }),
-    [ma, tu, dangNap, datNgonNgu],
+  const value = useMemo<BoiCanh>(
+    () => ({ code, language: lookup(code), t: dict, loading, setLanguage }),
+    [code, dict, loading, setLanguage],
   );
 
-  return <Ctx.Provider value={giaTri}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
 /**
@@ -237,9 +237,9 @@ export function useT(): Dict {
 export function useLanguage() {
   const c = useContext(Ctx);
   return {
-    ma: c?.ma ?? DEFAULT_CODE,
-    ngonNgu: c?.ngonNgu ?? lookup(DEFAULT_CODE),
-    dangNap: c?.dangNap ?? false,
-    datNgonNgu: c?.datNgonNgu ?? (() => {}),
+    code: c?.code ?? DEFAULT_CODE,
+    language: c?.language ?? lookup(DEFAULT_CODE),
+    loading: c?.loading ?? false,
+    setLanguage: c?.setLanguage ?? (() => {}),
   };
 }

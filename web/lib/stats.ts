@@ -37,16 +37,16 @@ import { readDirectory } from './directory';
  * Điều bị cấm là **một con số sai**, không phải **một ô khai là vắng**.
  */
 export type NetworkNumbers = {
-  validatorTong: number | null;
-  validatorKetNoi: number | null;
-  soL1: number | null;
-  chieuCaoBlock: number | null;
+  validatorsTotal: number | null;
+  validatorsConnected: number | null;
+  l1Count: number | null;
+  blockHeight: number | null;
 };
 
 export type StatsState =
-  | { pha: 'dangTai' }
-  | { pha: 'xong'; so: NetworkNumbers }
-  | { pha: 'hong'; viSao: string };
+  | { phase: 'dangTai' }
+  | { phase: 'xong'; so: NetworkNumbers }
+  | { phase: 'hong'; why: string };
 
 async function jsonRpc(url: string, method: string, params: unknown[] = [], hanGiay = READ_TIMEOUT_MS / 1000) {
   // Hạn giờ ở đây là AN TOÀN và bắt buộc: đây là các lượt ĐỌC ngắn của trang chủ.
@@ -65,14 +65,14 @@ async function jsonRpc(url: string, method: string, params: unknown[] = [], hanG
   return j.result;
 }
 
-export function useNetworkStats(): { tt: StatsState; napLai: () => void } {
-  const [tt, datTt] = useState<StatsState>({ pha: 'dangTai' });
-  const [lan, datLan] = useState(0);
+export function useNetworkStats(): { state: StatsState; reload: () => void } {
+  const [state, setState] = useState<StatsState>({ phase: 'dangTai' });
+  const [round, setRound] = useState(0);
 
   useEffect(() => {
-    let huy = false;
+    let cancelled = false;
     (async () => {
-      datTt({ pha: 'dangTai' });
+      setState({ phase: 'dangTai' });
       // 🔴 `allSettled`, KHÔNG `all` (Đ1-8). Ba nguồn độc lập nhau về mặt sự thật —
       // số validator không phụ thuộc vào việc danh bạ L1 có đọc được hay không — nên
       // buộc chúng sống chết cùng nhau là tự tạo ra một điểm hỏng chung không có
@@ -88,11 +88,11 @@ export function useNetworkStats(): { tt: StatsState; napLai: () => void } {
         // millisecond until 2026-09-03.
         readDirectory(),
       ]);
-      if (huy) return;
+      if (cancelled) return;
 
-      const ds = rVld.status === 'fulfilled' ? rVld.value?.validators ?? [] : null;
-      const cao = rCao.status === 'fulfilled' ? Number(rCao.value) : null;
-      const soL1 =
+      const list = rVld.status === 'fulfilled' ? rVld.value?.validators ?? [] : null;
+      const height = rCao.status === 'fulfilled' ? Number(rCao.value) : null;
+      const l1Count =
         rDanhBa.status === 'fulfilled' && Array.isArray(rDanhBa.value?.chains)
           ? rDanhBa.value.chains.length
           : null;
@@ -101,27 +101,27 @@ export function useNetworkStats(): { tt: StatsState; napLai: () => void } {
       // Phân biệt hai ca đó là việc của giao diện: một dòng chữ nhạt vs ba ô gạch
       // ngang. Gộp chúng lại là nói với người đọc rằng mạng chết trong khi có thể
       // chỉ là một tệp tĩnh chưa kịp ghi.
-      if (ds === null && cao === null && soL1 === null) {
+      if (list === null && height === null && l1Count === null) {
         const dau = [rVld, rCao, rDanhBa].find((r) => r.status === 'rejected');
         const l = dau && dau.status === 'rejected' ? (dau.reason as NetworkError | Error) : null;
-        datTt({ pha: 'hong', viSao: l?.message ?? 'không gọi được mạng' });
+        setState({ phase: 'hong', why: l?.message ?? 'không gọi được mạng' });
         return;
       }
 
-      datTt({
-        pha: 'xong',
+      setState({
+        phase: 'xong',
         so: {
-          validatorTong: ds === null ? null : ds.length,
-          validatorKetNoi: ds === null ? null : ds.filter((v) => v.connected).length,
-          soL1,
-          chieuCaoBlock: cao,
+          validatorsTotal: list === null ? null : list.length,
+          validatorsConnected: list === null ? null : list.filter((v) => v.connected).length,
+          l1Count,
+          blockHeight: height,
         },
       });
     })();
     return () => {
-      huy = true;
+      cancelled = true;
     };
-  }, [lan]);
+  }, [round]);
 
-  return { tt, napLai: () => datLan((n) => n + 1) };
+  return { state, reload: () => setRound((n) => n + 1) };
 }

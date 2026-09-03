@@ -42,26 +42,26 @@ export function SiteFooter() {
   const t = useT();
   const cot = [
     {
-      tieuDe: t.footer.tryIt,
-      muc: [
-        { href: '/faucet/', nhan: t.nav.faucet },
-        { href: '/create-chain/', nhan: t.nav.launch },
-        { href: '/my-chains/', nhan: t.nav.myChains },
+      title: t.footer.tryIt,
+      items: [
+        { href: '/faucet/', label: t.nav.faucet },
+        { href: '/create-chain/', label: t.nav.launch },
+        { href: '/my-chains/', label: t.nav.myChains },
       ],
     },
     {
-      tieuDe: t.footer.explore,
-      muc: [
-        { href: '/chains/', nhan: t.nav.directory },
-        { href: '/compare/', nhan: t.nav.compare },
-        { href: explorerOrigin(), nhan: t.footer.explorer, ngoai: true },
+      title: t.footer.explore,
+      items: [
+        { href: '/chains/', label: t.nav.directory },
+        { href: '/compare/', label: t.nav.compare },
+        { href: explorerOrigin(), label: t.footer.explorer, external: true },
       ],
     },
     {
-      tieuDe: t.footer.about,
-      muc: [
-        { href: 'https://9chain.org/', nhan: t.footer.mainSite, ngoai: true },
-        { href: '/re-genesis/', nhan: t.footer.rebuildPlan },
+      title: t.footer.about,
+      items: [
+        { href: 'https://9chain.org/', label: t.footer.mainSite, external: true },
+        { href: '/re-genesis/', label: t.footer.rebuildPlan },
       ],
     },
   ];
@@ -76,22 +76,22 @@ export function SiteFooter() {
                 Khác header: header luôn navy nên luôn dùng bản nền tối. */}
             {/* 26 → 34 cùng lượt với header (`2026-09-03`) — giữ nguyên nếp cũ là
                 chân trang nhỏ hơn header một bậc, chứ không phóng to riêng một chỗ. */}
-            <BrandLockup nen="theo-theme" cao={34} nhan={t.common.productName} />
+            <BrandLockup background="theo-theme" height={34} label={t.common.productName} />
             <p className="max-w-xs">{t.common.shortDesc}</p>
           </div>
 
           <nav aria-label={t.footer.navLabel} className="grid grid-cols-2 gap-x-10 gap-y-7 sm:grid-cols-3">
             {cot.map((c) => (
-              <div key={c.tieuDe} className="flex flex-col gap-2">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-muted">{c.tieuDe}</h2>
+              <div key={c.title} className="flex flex-col gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-muted">{c.title}</h2>
                 <ul className="flex flex-col gap-2">
-                  {c.muc.map((m) => (
+                  {c.items.map((m) => (
                     <li key={m.href}>
-                      {'ngoai' in m && m.ngoai ? (
-                        <NgoaiTrang href={m.href}>{m.nhan}</NgoaiTrang>
+                      {'ngoai' in m && m.external ? (
+                        <NgoaiTrang href={m.href}>{m.label}</NgoaiTrang>
                       ) : (
                         <a href={m.href} className="hover:text-ink hover:underline">
-                          {m.nhan}
+                          {m.label}
                         </a>
                       )}
                     </li>

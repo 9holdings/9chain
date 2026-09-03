@@ -11,6 +11,6 @@
  * Thiếu khoá thì GIỮ NGUYÊN dấu ngoặc — một chỗ trống lặng lẽ đọc như dữ liệu bị mất,
  * còn `{so}` lộ ra thì sửa được ngay.
  */
-export function interpolate(mau: string, gt: Record<string, string | number>): string {
-  return mau.replace(/\{(\w+)\}/g, (nguyen, k) => (k in gt ? String(gt[k]) : nguyen));
+export function interpolate(mau: string, value: Record<string, string | number>): string {
+  return mau.replace(/\{(\w+)\}/g, (nguyen, k) => (k in value ? String(value[k]) : nguyen));
 }

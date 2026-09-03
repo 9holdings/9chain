@@ -38,13 +38,13 @@ describe('fetchJson — ba kiểu hỏng phải phân biệt được', () => {
   it('máy chủ CHẬM/treo ⇒ hetGio, không treo mãi', async () => {
     gia({ treo: true });
     // Hạn 0,05s để bài kiểm không tự nó chậm.
-    await expect(fetchJson('/x', {}, 0.05)).rejects.toMatchObject({ loai: 'hetGio' });
+    await expect(fetchJson('/x', {}, 0.05)).rejects.toMatchObject({ kind: 'hetGio' });
   });
 
   it('máy chủ CHẾT (500) ⇒ http, và thử lại KHÔNG vô ích', async () => {
     gia({ status: 500, body: '{"error":"vo"}' });
     const e = await fetchJson('/x').catch((x) => x as NetworkError);
-    expect(e.loai).toBe('http');
+    expect(e.kind).toBe('http');
     expect(e.status).toBe(500);
     expect(e.thuLaiVoIch).toBe(false);
   });
@@ -60,13 +60,13 @@ describe('fetchJson — ba kiểu hỏng phải phân biệt được', () => {
     // Ca thật: request rơi xuống Blockscout ở gốc `/` và ta nhận về khung HTML.
     gia({ status: 200, body: '<!DOCTYPE html><html><body>Blockscout</body></html>' });
     const e = await fetchJson('/x').catch((x) => x as NetworkError);
-    expect(e.loai).toBe('khongPhaiJson');
+    expect(e.kind).toBe('khongPhaiJson');
     expect(e.message).toMatch(/đường dẫn/i);
   });
 
   it('đứt mạng ⇒ dutMang, KHÔNG bị nhầm thành hetGio', async () => {
     gia({ nem: new TypeError('Failed to fetch') });
-    await expect(fetchJson('/x')).rejects.toMatchObject({ loai: 'dutMang' });
+    await expect(fetchJson('/x')).rejects.toMatchObject({ kind: 'dutMang' });
   });
 
   it('không truyền hanGiay ⇒ KHÔNG gắn signal (mặc định là không hạn giờ)', async () => {
@@ -118,8 +118,8 @@ describe('KHÔNG hạn giờ cho /api/create và /api/revoke', () => {
    * còn nguy hơn cổng không có: người ta học cách bỏ qua nó.
    * ⇒ Cân ngoặc thật, đừng đếm ký tự.
    */
-  function demThamSo(src: string, tu: number): number {
-    let sau = 0, so = 1, i = tu, trong: string | null = null;
+  function demThamSo(src: string, dict: number): number {
+    let sau = 0, so = 1, i = dict, trong: string | null = null;
     for (; i < src.length; i++) {
       const c = src[i], truoc = src[i - 1];
       if (trong) { if (c === trong && truoc !== '\\') trong = null; continue; }
@@ -139,8 +139,8 @@ describe('KHÔNG hạn giờ cho /api/create và /api/revoke', () => {
       let m: RegExpExecArray | null;
       while ((m = re.exec(s))) {
         // Bắt đầu đếm ngay sau dấu `(` mở của lượt gọi.
-        const mo = s.indexOf('(', m.index);
-        if (demThamSo(s, mo + 1) >= 4) pham.push(`${path.relative(GOC, p)} (${m[1]})`);
+        const opened = s.indexOf('(', m.index);
+        if (demThamSo(s, opened + 1) >= 4) pham.push(`${path.relative(GOC, p)} (${m[1]})`);
       }
     }
     expect(

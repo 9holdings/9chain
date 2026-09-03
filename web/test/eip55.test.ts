@@ -37,12 +37,12 @@ describe('EIP-55', () => {
 
   it('từ chối địa chỉ sai checksum, và gợi ý đường thoát', () => {
     const hong = '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAeD'; // đổi ký tự cuối
-    const kq = checkAddress(hong);
-    expect(kq.ok).toBe(false);
-    if (!kq.ok) {
-      expect(kq.loi).toMatch(/checksum/i);
+    const check = checkAddress(hong);
+    expect(check.ok).toBe(false);
+    if (!check.ok) {
+      expect(check.failure).toMatch(/checksum/i);
       // Gợi ý phải là đường đi TIẾP được, không phải một lời trách.
-      expect(kq.goiY).toBe(hong.toLowerCase());
+      expect(check.hint).toBe(hong.toLowerCase());
     }
   });
 

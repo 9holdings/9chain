@@ -56,33 +56,33 @@ type Props = {
    * `'theo-theme'` — chữ đổi theo `html[data-theme]`, qua biến `--mau-chu-logo`
    *   khai trong `globals.css`. Dùng cho chỗ nền tự đổi (chân trang).
    */
-  nen?: 'toi' | 'sang' | 'theo-theme';
+  background?: 'toi' | 'sang' | 'theo-theme';
   /** Chiều cao hiển thị, px. Tỉ lệ khoá ở 360:128 nên rộng = cao × 2,8125. */
-  cao?: number;
+  height?: number;
   className?: string;
   /**
    * Chữ thay thế cho trình đọc màn hình. Để rỗng khi cạnh logo đã có chữ
    * "9Chain" hiện ra rồi — đọc lên hai lần là tệ hơn im lặng.
    */
-  nhan?: string;
+  label?: string;
 };
 
-export function BrandLockup({ nen = 'theo-theme', cao = 30, className, nhan }: Props) {
+export function BrandLockup({ background = 'theo-theme', height = 30, className, label }: Props) {
   const mauChu =
-    nen === 'toi' ? TEXT_ON_DARK : nen === 'sang' ? TEXT_ON_LIGHT : 'var(--mau-chu-logo)';
+    background === 'toi' ? TEXT_ON_DARK : background === 'sang' ? TEXT_ON_LIGHT : 'var(--mau-chu-logo)';
 
   return (
     <svg
       viewBox="0 0 360 128"
-      height={cao}
-      width={cao * (360 / 128)}
+      height={height}
+      width={height * (360 / 128)}
       className={className}
-      role={nhan ? 'img' : undefined}
-      aria-label={nhan || undefined}
-      aria-hidden={nhan ? undefined : 'true'}
+      role={label ? 'img' : undefined}
+      aria-label={label || undefined}
+      aria-hidden={label ? undefined : 'true'}
       focusable="false"
     >
-      {nhan ? <title>{nhan}</title> : null}
+      {label ? <title>{label}</title> : null}
       {/* Dấu — nguyên văn từ kit, không đổi một con số nào. */}
       <g transform="translate(16 16)">
         <g fill="none" stroke={MARK_GOLD} strokeWidth="6.5">

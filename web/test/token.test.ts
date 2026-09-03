@@ -40,12 +40,12 @@ describe('hệ token', () => {
     const boChuThich = (s: string) =>
       s.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
 
-    const duong = ['components/ui/index.tsx', 'components/SiteHeader.tsx', 'app/faucet/FaucetForm.tsx'];
-    for (const d of duong) {
+    const urlPath = ['components/ui/index.tsx', 'components/SiteHeader.tsx', 'app/faucet/FaucetForm.tsx'];
+    for (const d of urlPath) {
       const p = path.resolve(__dirname, '..', d);
       if (!existsSync(p)) continue;
-      const ma = boChuThich(readFileSync(p, 'utf8'));
-      expect(ma, `${d} không được chứa mã hex trong MÃ (chú thích thì được)`).not.toMatch(
+      const code = boChuThich(readFileSync(p, 'utf8'));
+      expect(code, `${d} không được chứa mã hex trong MÃ (chú thích thì được)`).not.toMatch(
         /#[0-9a-fA-F]{6}\b/,
       );
     }

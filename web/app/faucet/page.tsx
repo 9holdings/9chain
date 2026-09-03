@@ -5,15 +5,15 @@ import { pageMeta } from '@/lib/seo';
 import { FaucetForm } from './FaucetForm';
 
 export const metadata: Metadata = pageMeta({
-  tieuDe: EN.faucet.title,
-  moTa: EN.faucet.desc,
-  duong: '/faucet/',
+  title: EN.faucet.title,
+  desc: EN.faucet.desc,
+  urlPath: '/faucet/',
 });
 
 export default function TrangFaucet() {
   return (
     <div className="khung py-10 md:py-14">
-      <PageHeader nhom="faucet" />
+      <PageHeader group="faucet" />
       <FaucetForm />
     </div>
   );
