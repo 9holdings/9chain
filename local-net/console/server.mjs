@@ -671,7 +671,7 @@ async function trackSubnetsLanLuot(trackList) {
   const raw = await docker([...COMPOSE, "config", "--services"]);
   const services = raw.split("\n").map(s => s.trim())
     .filter(s => /^[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(s));
-  if (!services.length) throw new Error("không đọc được danh sách service từ compose");
+  if (!services.length) throw new Error("could not read the service list from compose");
   if (!services.includes(NODE_CONTAINER)) {
     // Không có node phục vụ RPC công khai trong danh sách = ta đang hiểu sai
     // compose. Dừng lại thay vì restart mò một loạt container lạ.
@@ -870,7 +870,38 @@ async function createChain({ name, chainId, admin, preset }) {
   if (theHe.trangThai !== "khop") throw new Error(theHe.vi);
 
   name = String(name || "").trim();
-  if (!/^[A-Za-z0-9 ]{2,32}$/.test(name)) throw new Error("Tên chỉ gồm chữ/số/space (2–32 ký tự)");
+  /**
+   * 🔴 NAME THE VIOLATION, NOT JUST THE RULE — measured on a real user, 2026-09-03.
+   *
+   * David typed `9S Union`, which satisfies this rule, and was refused. The character between the
+   * words was a NON-BREAKING SPACE (U+00A0), pasted rather than typed. Four different characters
+   * fail here while looking exactly like a space — U+00A0, U+202F, U+2009 — and U+200B is
+   * invisible entirely.
+   *
+   * The old message stated the rule and stopped: *"only letters, digits and spaces"*. Read while
+   * looking at a field containing letters, digits and what appears to be a space, that is worse
+   * than saying nothing: it is a true sentence that makes a correct-looking input seem correct,
+   * so the reader doubts the tool instead of the character. An error about an INVISIBLE cause
+   * must point at the cause.
+   *
+   * ⚠️ Two failure modes shared one message, which hid both: a bad CHARACTER and a bad LENGTH.
+   * They are told apart now, because "the name is too short" and "there is a NBSP in it" have
+   * nothing to do with each other and no shared remedy.
+   */
+  if (!/^[A-Za-z0-9 ]{2,32}$/.test(name)) {
+    const chars = [...String(name)];
+    const at = chars.findIndex((c) => !/[A-Za-z0-9 ]/.test(c));
+    if (at >= 0) {
+      const cp = chars[at].codePointAt(0).toString(16).toUpperCase().padStart(4, "0");
+      throw new Error(
+        `Name may contain only letters, digits and spaces. Character ${at + 1} is U+${cp}` +
+        (cp === "00A0" || cp === "202F" || cp === "2009" || cp === "200B"
+          ? " — an invisible space lookalike, almost always from pasting. Retype the name by hand."
+          : ` (${JSON.stringify(chars[at])}) — remove it.`)
+      );
+    }
+    throw new Error(`Name must be 2-32 characters long; this one is ${chars.length}.`);
+  }
 
   // Trường vắng mặt / rỗng = "dùng mặc định". Nhưng nếu người dùng ĐÃ nhập gì đó
   // thì không bao giờ âm thầm rơi về mặc định — im lặng ở đây nghĩa là trao chain
@@ -935,7 +966,7 @@ async function createChain({ name, chainId, admin, preset }) {
   const taken = new Set(daDung.map(c => c.chainId));
   if (chainId !== undefined && chainId !== null && String(chainId).trim() !== "") {
     const n = Number(chainId);
-    if (!Number.isSafeInteger(n) || n <= 0) throw new Error("Chain ID EVM phải là số nguyên dương");
+    if (!Number.isSafeInteger(n) || n <= 0) throw new Error("The EVM chain ID must be a positive integer");
     if (taken.has(n)) {
       const cu = daDung.find(c => c.chainId === n);
       throw new Error(state.chains.includes(cu)
@@ -947,7 +978,7 @@ async function createChain({ name, chainId, admin, preset }) {
     // cũng khác. Trùng sổ NHÀ ⇒ đổi số hoặc hỏi chủ cũ. Trùng sổ CÔNG KHAI ⇒ không ai
     // hỏi được ai, chỉ có đường chọn số khác.
     if (chainIdDaChiem.has(n)) {
-      throw new Error(`Chain ID ${n} đã thuộc về "${chainIdDaChiem.get(n)}" trong sổ chainId công khai ` +
+      throw new Error(`Chain ID ${n} already belongs to "${chainIdDaChiem.get(n)}" in the public chainId registry ` +
         `(chainid.network, tra ${chainIdChiemNgayTra}). Ví đọc chainId chứ không đọc tên mạng, ` +
         `nên chain của bạn sẽ không phân biệt được với chuỗi đó trong MetaMask. Chọn số khác.`);
     }
@@ -1029,7 +1060,7 @@ async function createChain({ name, chainId, admin, preset }) {
     "--uri", API, "--genesis", inContainer, "--name", name]);
   const subnetID = (out.match(/SUBNET_ID=([A-Za-z0-9]+)/) || [])[1];
   const blockchainID = (out.match(/BLOCKCHAIN_ID=([A-Za-z0-9]+)/) || [])[1];
-  if (!subnetID || !blockchainID) throw new Error("Không parse được ID:\n" + out);
+  if (!subnetID || !blockchainID) throw new Error("could not parse the IDs out of the CLI output:\n" + out);
 
   buocXong("subnet");
 
@@ -1129,7 +1160,7 @@ async function createChain({ name, chainId, admin, preset }) {
  */
 async function thuHoiChain({ name, xacNhan }) {
   name = String(name || "").trim();
-  if (!name) throw new Error("Thiếu tên chain cần thu hồi");
+  if (!name) throw new Error("Missing the name of the chain to revoke");
 
   const state = loadState();
   const idx = state.chains.findIndex(c => c.name === name);
@@ -1241,7 +1272,7 @@ function blockedByRate(req, res, limiter, khoa = null) {
   const r = limiter(khoa || clientIp(req, TRUST_PROXY));
   if (r.ok) return false;
   res.writeHead(429, { "content-type": "application/json", "retry-after": String(r.retryAfter) });
-  res.end(JSON.stringify({ error: `vượt hạn mức (${r.name}), thử lại sau ${r.retryAfter}s` }));
+  res.end(JSON.stringify({ error: `rate limit exceeded (${r.name}), try again in ${r.retryAfter}s` }));
   return true;
 }
 
@@ -1264,8 +1295,8 @@ function blockedByAuth(req, res) {
   // 401 kèm WWW-Authenticate để client biết cách gửi lại.
   res.writeHead(401, { "content-type": "application/json", "www-authenticate": "Bearer" });
   res.end(JSON.stringify({
-    error: "chưa xác thực — dùng token vận hành (Authorization: Bearer <A1_CONSOLE_TOKEN>) " +
-           "hoặc đăng nhập bằng ví qua /api/siwe/nonce → /api/siwe/login",
+    error: "not authenticated — use the operator token (Authorization: Bearer <A1_CONSOLE_TOKEN>) " +
+           "or sign in with a wallet via /api/siwe/nonce then /api/siwe/login",
   }));
   return null;
 }
@@ -1408,10 +1439,15 @@ const server = http.createServer(async (req, res) => {
       // Placed after authentication (there is no identity to judge before it) and before any
       // money is spent or any node is touched.
       if (!laThuHoi) {
-        const phep = mayCreateL1(ai);
+        // 🔴 PASS THE LIST EXPLICITLY. An earlier version called `mayCreateL1(ai)` and relied on a
+        // default binding that no longer existed once the rule moved to `lib/l1-allowlist.mjs`,
+        // so every wallet was refused with "A1_L1_ALLOWLIST is unset" while it was demonstrably
+        // set. The library now THROWS on a missing list rather than treating it as empty — the
+        // two are not the same thing, and collapsing them is what let this ship.
+        const phep = mayCreateL1(ai, L1_ALLOWLIST);
         if (!phep.ok) {
           return send(res, 403, {
-            error: `Chain creation is by invitation while the network has ${MAX_L1} L1 slots in total — ${phep.why}.`,
+            error: `Chain creation is by invitation while the network has only ${MAX_L1} L1 slots in total: ${phep.why}.`,
           });
         }
       }
