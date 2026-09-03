@@ -443,6 +443,39 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       chain **chưa bao giờ chạy trên g1** ⇒ runbook dặn: **đẻ một L1 thật rồi thu hồi TRƯỚC khi nói
       với ai**. Bật cửa rồi mới thử là để người lạ gặp lỗi trước mình.
 
+- [x] **P-37 — 🟢 `Adam Chain` + `Eva Chain`: đường đẻ chain ĐÃ CHẠY THẬT trên g1** (D-170)
+      `#9001000000` · `#9001000001` — chainId đúng khối g1, RPC trả lời, sổ công khai
+      **`2 live · 0 retired`**, mỗi chain **trả lời đúng như được quảng cáo**. Lần đầu toàn bộ
+      đường — SIWE → giao diện → ~170 giây → P-Chain → RPC của L1 — chạy trọn trên thế hệ này.
+      🔵 David đi bằng **giao diện công khai, không bằng API** — đó là lý do lượt này chứng minh
+      được thứ một lượt `curl` không chứng minh được.
+      **Giá một lượt, hai phép đo độc lập trùng khít:** Adam `0,00023015` · Eva `0,000230148`.
+      🟢 Kèm: console bản vá nhãn tiếng Anh **đã deploy** — `console-deploy.sh` tự nghiệm thu
+      `20 khớp · 0 lệch · 0 thiếu · 0 mồ côi`.
+
+- [x] **P-38 — 🔴 CỬA TỰ PHỤC VỤ MỞ RA 13 CHỖ VĨNH VIỄN MÀ KHÔNG CÓ CỔNG — đã đóng lại** (D-170)
+      Trần thật đọc từ upstream: `maxNumTrackedSubnets = 16` (`peer.go:39`), cưỡng chế lúc bắt
+      tay, vượt là `p.StartClose()` — **cắt kết nối, mạng vỡ chứ không chậm đi**. Trần **mỗi
+      node**; mô hình *mọi validator track mọi L1* làm trần mạng **bằng** trần node ⇒ `MAX_L1=15`.
+      **Số học cho câu "108 chain":** `108 × V ≤ N × 16` ⇒ trên 9 node hiện tại mỗi L1 được
+      **1,33 validator** (không phải blockchain); 108×5 cần **≥34 node**, 108×9 cần **≥61 node**.
+      Thoát trần = **ACP-77**, và đó là **quyết định kinh tế** chờ David, không phải việc kỹ thuật.
+      🔴 **Thiệt hại của "tạo bậy" SỐNG SÓT QUA RE-GENESIS:** chain bị xoá nhưng **tên + chainId ở
+      lại `chainid-issued.json` mãi mãi** (cấp lại một chainId là để chữ ký chain cũ phát lại
+      được). Sổ **chỉ phình không co**, và đang **sạch tuyệt đối** sau lượt thả 49 id + 54 tên
+      trước ngày G ⇒ mỗi tên bậy từ giờ là vết bẩn **không tẩy được**.
+      ✅ **Đóng lại `03/09`**, nghiệm thu **hai chiều** bằng `--probe`: lúc mở *"cửa không trả lời
+      — thứ SAU cửa mới từ chối"*, lúc đóng *"chính CỬA trả lời"*.
+      🔴 **Bài học không phải về mã:** tự phục vụ đúng khi nguồn lực gần vô hạn. **13 chỗ vĩnh
+      viễn là con số của một DANH SÁCH MỜI, không phải của một cái cửa mở** — và **không cổng kỹ
+      thuật nào bắt được loại lệch giữa hình dạng sản phẩm và thứ đang thật sự có.**
+
+- [human] **P-39 — làm cổng trước khi mở lại; và chưa có cách GIỮ TRƯỚC TÊN**
+      Rẻ nhất: **allowlist ví** (~20 dòng, nối vào SIWE sẵn có). Rào bằng tiền **vô dụng** ở phí
+      `0,00023`. Hàng đợi duyệt cần UI ở `web/` — worktree khác, luật cứng #4.
+      ⚠️ `gen-chainid-issued.mjs` **sinh** sổ từ chain đã tạo, **không đặt chỗ** ⇒ hôm nay cách duy
+      nhất giữ một cái tên là **tạo chain bằng tên đó**.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
