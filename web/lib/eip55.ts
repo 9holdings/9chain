@@ -1,22 +1,22 @@
 /**
- * EIP-55 phía trình duyệt — bản TypeScript của `local-net/lib/eip55.mjs`.
+ * EIP-55 in the browser — the TypeScript twin of `local-net/lib/eip55.mjs`.
  *
- * ═══ VÌ SAO ĐỊA CHỈ PHẢI KIỂM KHẮT KHE Ở NGAY Ô NHẬP ═══
- * Genesis của một L1 đã đẻ là **bất biến**. Gõ sai một ký tự hex trong địa chỉ chủ
- * chain vẫn "đúng hình thức" (vẫn là 40 hex) và chain ra đời **vĩnh viễn vô chủ** —
- * không lỗi, không dấu hiệu, không ai lấy lại được. Đây là lớp lỗi tệ nhất của cả
- * dự án. Checksum EIP-55 bắt được đúng loại sai đó, nên nó phải chạy **lúc người ta
- * đang gõ**, không phải lúc server từ chối.
+ * ═══ WHY THE ADDRESS IS CHECKED STRICTLY RIGHT AT THE INPUT ═══
+ * A launched L1's genesis is **immutable**. One mistyped hex character in the chain owner's
+ * address is still "well formed" (still 40 hex) and the chain is born **permanently ownerless**
+ * — no error, no sign, nobody can recover it. This is the worst class of failure in the whole
+ * project. The EIP-55 checksum catches exactly that kind of mistake, so it has to run **while
+ * the person is typing**, not when the server refuses.
  *
- * ═══ VÌ SAO CHÉP CHỨ KHÔNG IMPORT FILE .mjs ═══
- * `local-net/lib/eip55.mjs` nằm NGOÀI thư mục `web/`. Kéo nó qua biên bundler là
- * thêm một đường phụ thuộc mà `next build` phải giữ đúng mãi mãi, đổi lấy việc
- * khỏi chép ~40 dòng. Thay vào đó: chép, rồi **đo trôi lệch bằng test** —
- * `web/test/eip55.test.ts` chạy CẢ HAI bản trên cùng một bộ vector (gồm vector
- * ngẫu nhiên) và bắt chúng phải trả về y hệt nhau. Cùng cách đã dùng cho tokens.
+ * ═══ WHY THIS IS A COPY RATHER THAN AN IMPORT OF THE .mjs ═══
+ * `local-net/lib/eip55.mjs` lives OUTSIDE the `web/` directory. Dragging it across the bundler
+ * boundary adds a dependency path that `next build` would have to keep working forever, in
+ * exchange for not copying ~40 lines. Instead: copy, then **measure the drift with a test** —
+ * `web/test/eip55.test.ts` runs BOTH versions over the same vectors (including random ones) and
+ * requires identical results. The same approach used for the tokens.
  *
- * keccak-256 viết tay (không phải sha3-256 của WebCrypto — chúng KHÁC nhau ở phần
- * đệm; nhầm hai thứ này cho ra checksum sai mà vẫn "chạy").
+ * keccak-256 written out by hand (not WebCrypto's sha3-256 — they DIFFER in the padding;
+ * confusing the two produces a wrong checksum that still "works").
  */
 
 const RC: bigint[] = [
@@ -56,7 +56,7 @@ export function keccak256(bytes: Uint8Array): Uint8Array {
   const pad = rate - (bytes.length % rate);
   const input = new Uint8Array(bytes.length + pad);
   input.set(bytes);
-  input[bytes.length] = 0x01; // 🔴 0x01, KHÔNG phải 0x06 — 0x06 là SHA3-256 chuẩn NIST
+  input[bytes.length] = 0x01; // 🔴 0x01, NOT 0x06 — 0x06 is the NIST-standard SHA3-256
   input[input.length - 1] |= 0x80;
 
   const A = new Array<bigint>(25).fill(0n);
@@ -82,7 +82,7 @@ export function keccak256(bytes: Uint8Array): Uint8Array {
 const hex = (bytes: Uint8Array): string =>
   [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
 
-/** Địa chỉ EVM dạng EIP-55 (viết hoa/thường theo checksum). */
+/** An EVM address in EIP-55 form (upper/lower case following the checksum). */
 export function toChecksumAddress(addr: string): string {
   const lower = addr.replace(/^0x/i, '').toLowerCase();
   const h = hex(keccak256(new TextEncoder().encode(lower)));
@@ -92,23 +92,23 @@ export function toChecksumAddress(addr: string): string {
 }
 
 /**
- * 🔴 TRẢ VỀ MÃ, KHÔNG TRẢ VỀ CÂU CHỮ (đổi 2026-09-03).
- * Tệp này là hàm thuần — nó không gọi được `useT()`, nên mọi câu nó tự dựng đều bị
- * đóng băng ở MỘT ngôn ngữ. Bản trước giữ bốn thông báo tiếng Việt cắm cứng và
- * `FaucetForm` in thẳng chúng ra, tức người đọc ở cả 30 ngôn ngữ nhận tiếng Việt
- * đúng lúc họ đang gõ sai một địa chỉ. Nay chỗ render tra `t.errors[…]` theo `code`.
+ * 🔴 RETURNS A CODE, NOT A SENTENCE (changed 2026-09-03).
+ * This file holds pure functions — it cannot call `useT()`, so every sentence it builds itself
+ * is frozen in ONE language. The previous version held four hard-coded Vietnamese messages and
+ * `FaucetForm` printed them straight out, meaning readers in all 30 languages got Vietnamese
+ * exactly while mistyping an address. The render site now looks up `t.errors[…]` by `code`.
  */
 export type AddressCheck =
   | { ok: true; address: string }
   | { ok: false; code: 'empty' | 'format' | 'checksum' | 'zero'; hint?: string };
 
 /**
- * Kiểm + chuẩn hoá địa chỉ người dùng nhập. **Trả kết quả, không ném lỗi** — ở giao
- * diện, một ô đang gõ dở là trạng thái bình thường chứ không phải sự cố; try/catch
- * quanh mỗi phím gõ là dùng ngoại lệ làm luồng điều khiển.
+ * Validate + normalise a user-entered address. **Returns a result, does not throw** — in a UI, a
+ * half-typed field is a normal state rather than an incident; a try/catch around every keystroke
+ * is using exceptions as control flow.
  *
- * Địa chỉ toàn hoa hoặc toàn thường được chấp nhận (không mang thông tin checksum);
- * hoa/thường lẫn lộn thì BẮT BUỘC khớp EIP-55.
+ * All-upper or all-lower addresses are accepted (they carry no checksum information); mixed case
+ * MUST match EIP-55.
  */
 export function checkAddress(raw: string): AddressCheck {
   const s = (raw ?? '').trim();
@@ -118,15 +118,15 @@ export function checkAddress(raw: string): AddressCheck {
   const mixedCase = /[a-f]/.test(body) && /[A-F]/.test(body);
   const canonical = toChecksumAddress(s);
   if (mixedCase && s !== canonical) {
-    // `hint` là đường thoát: toàn chữ thường KHÔNG mang thông tin checksum nên luôn
-    // được chấp nhận, và đó là thứ người dán sai một ký tự cần nhất.
+    // `hint` is the way out: an all-lowercase address carries NO checksum information and is
+    // therefore always accepted, and that is exactly what someone who mispasted one character needs.
     return { ok: false, code: 'checksum', hint: s.toLowerCase() };
   }
   if (/^0x0{40}$/.test(s)) return { ok: false, code: 'zero' };
   return { ok: true, address: canonical };
 }
 
-/** Rút gọn để hiện trên giao diện hẹp. Giữ đủ hai đầu để người ta đối chiếu được. */
+/** Shorten for display in a narrow UI. Keep enough of both ends that a person can compare. */
 export function shortenAddress(addr: string, head = 6, tail = 4): string {
   if (!addr || addr.length <= head + tail + 2) return addr;
   return `${addr.slice(0, head + 2)}…${addr.slice(-tail)}`;

@@ -1,9 +1,9 @@
 /**
- * check-static-export.mjs — bẫy RIÊNG của `output: 'export'`, thứ build vẫn xanh mà trang chết.
+ * check-static-export.mjs — traps SPECIFIC to `output: 'export'`, where the build is green and the
+ * page is dead.
  *
- * Cả hai bẫy dưới đây đều **không làm build đỏ** và **không làm `curl` đỏ** — chúng
- * chỉ hiện ra trong trình duyệt thật, nên nếu không có phép đo tự động thì chúng chỉ
- * bị phát hiện bởi người dùng.
+ * Neither trap below **makes the build red** or **makes `curl` red** — they only appear in a real
+ * browser, so without an automatic measurement they are found only by users.
  */
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
@@ -28,15 +28,15 @@ function quet(dir, duoi, ra = []) {
 let hong = 0;
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   BẪY 1 — <Suspense> thừa làm cả trang TREO Ở KHUNG XƯƠNG VĨNH VIỄN.
+   TRAP 1 — a stray <Suspense> leaves the whole page STUCK IN ITS SKELETON FOREVER.
 
-   Với `output:'export'`, nếu component bên trong <Suspense> KHÔNG còn đọc
-   `useSearchParams()` thì Next vẫn ghi HTML ra là **fallback** kèm marker
-   `<template id="B:N">`, và biên đó **không bao giờ được giải** trên trình duyệt:
-   `<main>` đứng nguyên ở kích thước khung xương trong khi toàn bộ nội dung nằm im
-   trong một `<div hidden>` cuối trang. Trang hiện ra như đang tải mãi mãi.
+   With `output:'export'`, if the component inside <Suspense> no longer reads
+   `useSearchParams()`, Next still writes the HTML out as the **fallback** together with a
+   `<template id="B:N">` marker, and that boundary is **never resolved** in the browser:
+   `<main>` stays at skeleton size while the entire content sits inert in a `<div hidden>` at
+   the end of the page. The page looks like it is loading forever.
 
-   Đã cắn thật ở trang chủ explorer (9chain). Cổng kiểm chính là dòng dưới.
+   This genuinely bit the explorer home page (9chain). The check itself is the line below.
    ───────────────────────────────────────────────────────────────────────────── */
 {
   const dinh = [];
@@ -56,14 +56,14 @@ let hong = 0;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   BẪY 2 — `next/link` trỏ tới đường dẫn KHÔNG PHẢI route của Next.
+   TRAP 2 — `next/link` pointing at a path that is NOT a Next route.
 
-   `/console/`, `/chains/`, `/dashboard/` chỉ tồn tại nhờ Caddy proxy sang dịch vụ
-   khác — chúng KHÔNG có trong bản export. Bấm một `<Link>` tới đó thì router đi
-   lấy payload RSC ở `<đường dẫn>/index.txt`; file đó không tồn tại, edge trả về
-   trang khác, và người dùng rơi vào chỗ lạ. `prefetch={false}` KHÔNG cứu được,
-   `router.push()` dính y hệt.
-   ⇒ Với mọi đường dẫn do EDGE phục vụ, phải dùng thẻ `<a>` thật.
+   `/console/`, `/chains/` and `/dashboard/` exist only because Caddy proxies them to another
+   service — they are NOT in this export. Clicking a `<Link>` to one makes the router fetch an
+   RSC payload from `<path>/index.txt`; that file does not exist, the edge returns something
+   else, and the user lands somewhere strange. `prefetch={false}` does NOT save it, and
+   `router.push()` hits it identically.
+   ⇒ For every path served by the EDGE, use a real `<a>` tag.
    ───────────────────────────────────────────────────────────────────────────── */
 {
   const NGOAI_NEXT = ['/console/', '/chains/', '/dashboard/', '/lite/'];

@@ -1,44 +1,44 @@
 /**
- * Định dạng số nguyên theo ngôn ngữ người đọc đang chọn.
+ * Format whole numbers in the language the reader has chosen.
  *
- * ═══ LỖI NÀY SINH RA TỪ ĐÂU ═══
- * `NetworkStats.tsx` và `ComparisonTable.tsx` gọi `toLocaleString('vi-VN')` — một
- * locale **cắm cứng**, viết từ thời site chỉ có tiếng Việt. Sau khi site lên 30 ngôn
- * ngữ, chiều cao block hiện ra kiểu Việt (`1.234.567`) cho **mọi** người đọc; người
- * đọc tiếng Anh chờ `1,234,567`, và với họ dấu chấm đó đọc ra thành số thập phân.
+ * ═══ WHERE THIS BUG CAME FROM ═══
+ * `NetworkStats.tsx` and `ComparisonTable.tsx` called `toLocaleString('vi-VN')` — a **hard-coded**
+ * locale, written when the site was Vietnamese only. Once the site went to 30 languages, block
+ * height rendered Vietnamese-style (`1.234.567`) for **every** reader; an English reader expects
+ * `1,234,567`, and to them that dot reads as a decimal point.
  *
- * 🔴 VÌ SAO KHÔNG CỔNG NÀO BẮT ĐƯỢC, VÀ VÌ SAO NÓ SẼ CÒN ẨN TIẾP:
- * Hôm nay mạng vừa sinh lại (thế hệ g0) nên `eth_blockNumber` = **1**. Một chữ số
- * thì **không có dấu phân cách nào** ⇒ mọi ngôn ngữ in ra y hệt nhau ⇒ triệu chứng
- * bằng 0. Nó chỉ lộ khi chuỗi vượt 1.000 block — và `01/09` mạng lại sinh lại về 1,
- * nên cửa sổ ẩn mở thêm một lượt nữa.
- * ⇒ Đây là lớp lỗi mà **chính phép reset mạng làm triệu chứng biến mất trong khi
- *   khuyết tật ở nguyên đó**. Vì vậy bài kiểm dưới `test/so.test.ts` đo THẲNG hàm
- *   này với số đủ lớn, KHÔNG đo qua mạng — một bài kiểm đọc chiều cao block thật sẽ
- *   xanh hôm nay và xanh cả sau ngày G, mà không chứng minh gì.
+ * 🔴 WHY NO GATE CAUGHT IT, AND WHY IT WILL STAY HIDDEN LONGER:
+ * The network had just been reborn (generation g0), so `eth_blockNumber` = **1**. A single digit
+ * has **no separator at all** ⇒ every language prints it identically ⇒ zero symptoms. It only
+ * surfaces once the chain passes 1,000 blocks — and on `01/09` the network was reborn back to 1,
+ * so the window of invisibility opened again.
+ * ⇒ This is the class of bug where **the network reset itself makes the symptom disappear while
+ *   the defect stays exactly where it was**. Which is why the test in `test/so.test.ts` measures
+ *   this function DIRECTLY with a large enough number, and NOT through the network — a test that
+ *   read the real block height would be green today and green after G-day, proving nothing.
  *
- * ═══ QUYẾT ĐỊNH: GIỮ CHỮ SỐ LATIN (`-u-nu-latn`) ═══
- * `Intl` mặc định cho `ar` ra chữ số Ả Rập-Ấn: `٤٬٣٠٠`. Đúng về mặt bản địa hoá,
- * nhưng SAI về mặt việc người ta làm với con số này: chiều cao block là thứ để
- * **đối chiếu** với explorer, với ví, với phản hồi RPC — cả ba đều in chữ số Latin.
- * Một con số không đối chiếu được thì không còn là số liệu.
- * ⇒ Lấy **dấu phân cách** theo ngôn ngữ (thứ giúp đọc), giữ **chữ số** Latin (thứ
- *   giúp đối chiếu). Ghi ở `DECISIONS.md` D-web-2.
+ * ═══ THE DECISION: KEEP LATIN DIGITS (`-u-nu-latn`) ═══
+ * By default `Intl` gives `ar` Arabic-Indic digits: `٤٬٣٠٠`. Correct as localisation, but WRONG
+ * for what people do with this number: block height is something you **compare** against the
+ * explorer, against a wallet, against an RPC response — all three of which print Latin digits.
+ * A number you cannot compare is no longer a measurement.
+ * ⇒ Take the **separators** from the language (which helps reading), keep the **digits** Latin
+ *   (which helps comparing). Recorded in `DECISIONS.md` as D-web-2.
  */
 
 /**
- * @param n   số nguyên (chiều cao block, số chain…)
- * @param ma  mã BCP-47 của ngôn ngữ đang chọn — lấy từ `useLanguage().ma`
+ * @param n   a whole number (block height, chain count…)
+ * @param ma  the BCP-47 code of the chosen language — from `useLanguage().ma`
  */
 export function formatNumber(n: number, code: string): string {
   try {
-    // `-u-nu-latn` = ép hệ chữ số Latin. Phần còn lại của locale (dấu phân cách,
-    // cách nhóm chữ số — `hi` nhóm 2 chữ số sau nhóm 3 đầu) vẫn theo ngôn ngữ.
+    // `-u-nu-latn` = force the Latin digit system. The rest of the locale (separators, and how
+    // digits are grouped — `hi` groups in 2s after the first group of 3) still follows the language.
     return new Intl.NumberFormat(`${code}-u-nu-latn`).format(n);
   } catch {
-    // 🔴 KHÔNG rơi về `vi-VN` — đó chính là lỗi đang sửa. Rơi về `en` (mặc định của
-    // site) thì cùng lắm là một người đọc thấy quy ước của ngôn ngữ mặc định, chứ
-    // không phải quy ước của một ngôn ngữ thứ ba mà họ không chọn.
+    // 🔴 Do NOT fall back to `vi-VN` — that is the very bug being fixed. Falling back to `en` (the
+    // site default) means at worst a reader sees the default language's convention, rather than
+    // the convention of some third language they never chose.
     return new Intl.NumberFormat('en').format(n);
   }
 }

@@ -1,31 +1,31 @@
 #!/usr/bin/env node
 /**
- * check-no-marker.mjs — không một dấu `[?]` nào được đi ra bản dựng.
+ * check-no-marker.mjs — not one `[?]` mark may reach the build.
  * (Đ1-3, 2026-08-27)
  *
- * ═══ SỰ CỐ BÀI NÀY SINH RA ĐỂ CHẶN ═══
- * `[?]` là cơ chế NỘI BỘ để David duyệt giọng (xem đầu `lib/i18n/vi.ts`). Nó không
- * bao giờ được ra tới mắt người dùng. Nhưng đo `27/08` trên mạng công khai:
+ * ═══ THE INCIDENT THIS EXISTS TO PREVENT ═══
+ * `[?]` is an INTERNAL mechanism for David to approve the voice (see the top of `lib/i18n/vi.ts`).
+ * It must never reach a user's eyes. But measured `27/08` on the public site:
  *
- *     /re-genesis/    64 dấu   ← gồm cả <h1> và MỌI <h2>
- *     /faucet/         9 dấu
- *     / và 4 trang khác 6 dấu mỗi trang  ← dải banner nằm trong layout gốc
+ *     /re-genesis/    64 marks   ← including the <h1> and EVERY <h2>
+ *     /faucet/         9 marks
+ *     / and 4 other pages, 6 marks each  ← the banner strip lives in the root layout
  *
- * `/re-genesis/` là trang nói với người lạ rằng tài sản của họ sắp bị xoá. Một dấu
- * ngoặc-hỏi sau mỗi câu cảnh báo đọc đúng nghĩa đen của nó.
+ * `/re-genesis/` is the page that tells strangers their assets are about to be erased. A question
+ * mark in brackets after every warning reads exactly as it looks.
  *
- * 🔴 VÌ SAO KHÔNG CHỐT Ở `vi.ts` MÀ CHỐT Ở `out/`:
- * Chuỗi có thể lọt ra sản phẩm bằng nhiều đường khác ngoài từ điển — chữ viết thẳng
- * trong JSX, `aria-label`, `alt`, thẻ meta. Đo tệp nguồn là đo một đại lượng TƯƠNG
- * QUAN với thứ ta quan tâm; đo `out/` là đo CHÍNH nó. Dự án này đã trả giá nhiều lần
- * cho việc đo nhầm đại lượng (cổng liên kết thử alias rồi in ra đường gốc; cổng
- * `<title>` xanh trong khi `og:*` dùng chung).
+ * 🔴 WHY THIS IS ENFORCED AT `out/` AND NOT AT `vi.ts`:
+ * Strings can reach the product by routes other than the dictionary — text written straight into
+ * JSX, `aria-label`, `alt`, meta tags. Measuring the source measures a quantity CORRELATED with
+ * what we care about; measuring `out/` measures the thing ITSELF. This project has paid several
+ * times for measuring the wrong quantity (the link gate trying an alias and then printing the
+ * canonical path; the `<title>` gate green while `og:*` was shared).
  *
- * 🔴 VÀ TUYỆT ĐỐI KHÔNG "sửa" bằng cách cắt dấu ở tầng render. Làm thế là giấu khỏi
- * mắt David — phá đúng cơ chế mà dấu này dựng ra. Cách sửa đúng chỉ có một: đưa
- * chuỗi cho David duyệt, rồi gỡ dấu trong `vi.ts`.
+ * 🔴 AND ABSOLUTELY DO NOT "fix" this by stripping the mark in the render layer. That hides it
+ * from David — destroying the very mechanism the mark exists for. There is exactly one correct
+ * fix: put the string in front of David, then remove the mark in `vi.ts`.
  *
- * Chạy trong `postbuild`. Ra 0 = sạch. Ra 1 = có dấu lọt ra sản phẩm.
+ * Runs in `postbuild`. Exit 0 = clean. Exit 1 = a mark reached the product.
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
@@ -40,14 +40,14 @@ if (!existsSync(RA)) {
   process.exit(1);
 }
 
-/** Chỉ soi tệp người đọc được: HTML và payload RSC. Không soi chunk JS đã nén tên. */
+/** Only inspect files a person reads: HTML and RSC payloads. Not the name-hashed JS chunks. */
 const DUOI = new Set(['.html', '.txt', '.xml', '.webmanifest']);
 
 function quet(dir, ra = []) {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
     if (e.isDirectory()) {
-      if (e.name === '_next') continue; // chunk JS: tên đã băm, không phải bề mặt chữ
+      if (e.name === '_next') continue; // JS chunks: hashed names, not a text surface
       quet(p, ra);
     } else if (DUOI.has(path.extname(e.name))) ra.push(p);
   }
@@ -59,7 +59,7 @@ for (const f of quet(RA)) {
   const noi = readFileSync(f, 'utf8');
   if (!noi.includes(DAU)) continue;
   const so = noi.split(DAU).length - 1;
-  // Lấy một mẫu ngắn quanh dấu ĐẦU TIÊN để người sửa biết ngay câu nào.
+  // Take a short sample around the FIRST mark so whoever fixes it knows immediately which sentence.
   const i = noi.indexOf(DAU);
   const mau = noi
     .slice(Math.max(0, i - 60), i + 3)

@@ -7,37 +7,38 @@ import { useT, useLanguage } from '@/lib/i18n';
 import { formatNumber } from '@/lib/numbers';
 
 /**
- * Bảng so sánh A1 ↔ C1.
+ * The A1 ↔ C1 comparison table.
  *
- * 🔴 HAI LUẬT CỦA MÀN NÀY, cả hai đều về TÍNH TRUNG THỰC chứ không về giao diện:
+ * 🔴 TWO RULES FOR THIS SCREEN, both about HONESTY rather than about the interface:
  *
- * 1. **Tự chấm thì phải ghi rõ là tự chấm.** Điểm A1/C1 dưới đây do đội đặt, không
- *    phải đo độc lập. Một bảng điểm không khai điều đó thì nó không phải bằng chứng,
- *    nó là quảng cáo có bảng biểu — và A1 là bên đang trình bày.
+ * 1. **If we score ourselves, we say so.** The A1/C1 scores below are set by the team, not
+ *    independently measured. A scorecard that does not declare that is not evidence, it is
+ *    advertising in a table — and A1 is the party doing the presenting.
  *
- * 2. **C1 vắng mặt phải trông như VẮNG MẶT, không như HỎNG.** Số C1 cần URL Cosmos
- *    REST mà dự án chưa có (H-5). Vẽ một khối lỗi đỏ ở chỗ đó là nói sai về C1; để
- *    trống cũng vậy. Nói thẳng "chưa nối được" + vì sao, rồi phần còn lại vẫn dùng
- *    được bình thường.
+ * 2. **C1 being absent must look like ABSENT, not like BROKEN.** C1's numbers need a Cosmos
+ *    REST URL the project does not have (H-5). Drawing a red error block there misrepresents
+ *    C1; so does leaving it blank. Say plainly "not connected yet" and why, and let the rest of
+ *    the page keep working normally.
  */
 
 /**
- * Một tiêu chí: ĐIỂM ở lại trong mã, CHỮ nằm trong từ điển.
+ * One criterion: the SCORES stay in the code, the WORDS live in the dictionary.
  *
- * 🔴 Ranh giới đó có chủ ý và đã trả giá. Trước `2026-09-03` cả tên tiêu chí lẫn ghi
- * chú đều là chuỗi tiếng Việt cắm cứng trong mảng dưới đây — tức toàn bộ THÂN bảng
- * so sánh, phần dài nhất và mang nhiều lập luận nhất của màn này, hiện ra bằng tiếng
- * Việt cho người đọc ở cả 30 ngôn ngữ. Bộ soát chuỗi cũ mù với nó vì nó chỉ đọc văn
- * bản JSX và thuộc tính, còn đây là chữ nằm trong DỮ LIỆU.
+ * 🔴 That boundary is deliberate and it was paid for. Before `2026-09-03` both the criterion
+ * names and the notes were hard-coded Vietnamese strings in the array below — meaning the whole
+ * BODY of the comparison table, the longest and most argued-over part of this screen, rendered
+ * in Vietnamese for readers in all 30 languages. The old string audit was blind to it because it
+ * only read JSX text and attributes, while this is text held in DATA.
  *
- * `id` là khoá tra trong `t.compare` (`crit<Id>` và `note<Id>`) — nối bằng ghép chuỗi
- * chứ không tra động ở chỗ gọi, để `check-dict-values` và `tsc` còn thấy được liên hệ.
+ * `id` is the lookup key inside `t.compare` (`crit<Id>` and `note<Id>`) — built by concatenation
+ * rather than looked up dynamically at the call site, so `check-dict-values` and `tsc` can still
+ * see the relationship.
  */
 type Criterion = { id: string; kind: 'kienTruc' | 'song'; a: number; c: number; w: number };
 
-// Giữ nguyên bộ tiêu chí + điểm của bản dashboard cũ (`local-net/dashboard/index.html`)
-// và của `docs/A1-vs-C1-SCORECARD.md`. KHÔNG chấm lại ở đây: đổi điểm là một quyết
-// định về sản phẩm, phải đi qua tài liệu, không lẫn vào một lượt dựng giao diện.
+// Keeping the criteria and scores of the old dashboard (`local-net/dashboard/index.html`)
+// and of `docs/A1-vs-C1-SCORECARD.md`. Do NOT re-score here: changing a score is a product
+// decision, it goes through the documents, and it does not get mixed into a UI pass.
 const GOC: Criterion[] = [
   { id: 'Decentralisation', kind: 'kienTruc', a: 5, c: 2, w: 4 },
   { id: 'Finality', kind: 'kienTruc', a: 5, c: 3, w: 3 },
@@ -53,10 +54,10 @@ const GOC: Criterion[] = [
 
 export function ComparisonTable() {
   const t = useT();
-  // Tra theo `id`. Khoá GHÉP nên `tsc` không kiểm được, và `i18n-shape` cũng mù —
-  // nó so 30 từ điển VỚI NHAU, nên "cả 30 cùng thiếu" là hợp lệ với nó. Thứ canh
-  // đúng chuyện này là `test/compare-criteria.test.ts`, nối mảng dưới đây với từ
-  // điển theo CẢ HAI CHIỀU.
+  // Looked up by `id`. The key is CONCATENATED so `tsc` cannot check it, and `i18n-shape` is
+  // blind too — it compares the 30 dictionaries WITH EACH OTHER, so "all 30 missing it" is
+  // valid to it. What actually guards this is `test/compare-criteria.test.ts`, joining the
+  // array below to the dictionary in BOTH DIRECTIONS.
   const ten = (c: Criterion) => (t.compare as Record<string, string>)[`crit${c.id}`];
   const ghiChu = (c: Criterion) => (t.compare as Record<string, string>)[`note${c.id}`];
   const { code } = useLanguage();
@@ -77,9 +78,9 @@ export function ComparisonTable() {
       <Card className="p-5">
         <h2 className="font-display text-base font-bold text-ink">{t.compare.liveDataTitle}</h2>
         <dl className="mt-4 grid gap-4 sm:grid-cols-3">
-          {/* Ba trạng thái MỖI Ô (Đ1-8): `undefined` đang đo · `string` đo được ·
-              `null` ô này vắng. Xem `lib/stats.ts` cho vì sao một nguồn hỏng không
-              còn kéo theo hai ô kia. */}
+          {/* Three states PER CELL (Đ1-8): `undefined` measuring · `string` measured ·
+              `null` this cell is absent. See `lib/stats.ts` for why one failing source no
+              longer drags the other two down with it. */}
           {(() => {
             const s = state.phase === 'done' ? state.numbers : null;
             return [
@@ -108,7 +109,7 @@ export function ComparisonTable() {
             </div>
           ))}
         </dl>
-        {/* C1 vắng mặt: nói thẳng là VẮNG, không vẽ khối lỗi. */}
+        {/* C1 absent: say plainly it is ABSENT, do not draw an error block. */}
         <div className="mt-5 rounded-card border border-dashed border-line-strong bg-surface-alt px-4 py-3">
           <p className="text-sm font-semibold text-body">{t.compare.c1Unreachable}</p>
           <p className="mt-1 text-sm text-body-2">{t.compare.c1UnreachableDesc}</p>
@@ -148,8 +149,8 @@ export function ComparisonTable() {
                   <td className="px-3 py-3 text-center font-mono font-bold text-ink">{c.c}</td>
                   <td className="px-3 py-3">
                     <label className="flex items-center gap-2">
-                      {/* Nhãn ẩn: một thanh trượt không nhãn thì trình đọc màn hình
-                          chỉ đọc "slider" — trong bảng 10 dòng là vô nghĩa. */}
+                      {/* Hidden label: an unlabelled slider is announced by a screen reader as just
+                          "slider" — meaningless in a table of 10 rows. */}
                       <span className="sr-only">{`${t.compare.colWeight}: ${ten(c)}`}</span>
                       <input
                         type="range" min={0} max={5} step={1} value={ts[i]}
@@ -182,8 +183,8 @@ export function ComparisonTable() {
             {diemA === diemC ? t.compare.tied : `${diemA > diemC ? 'A1' : 'C1'} ${t.compare.leads}`}
           </p>
         </div>
-        {/* Thanh tỉ lệ chỉ là hình minh hoạ cho hai con số ĐÃ hiện ở trên — nên nó
-            aria-hidden, không phải một thông tin thứ hai phải đọc lại. */}
+        {/* The ratio bar is only an illustration of two numbers ALREADY shown above — so it is
+            aria-hidden, not a second piece of information to read out again. */}
         <div aria-hidden="true" className="mt-4 flex h-5 overflow-hidden rounded-chip">
           <div className="bg-gold" style={{ width: `${(diemA / tong) * 100}%` }} />
           <div className="bg-vision-dot" style={{ width: `${(diemC / tong) * 100}%` }} />

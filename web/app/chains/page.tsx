@@ -25,10 +25,10 @@ export const metadata: Metadata = pageMeta({
 
 export default function Trang() {
   return (
-    // 🔴 KHÔNG đặt `<h1>` ở đây. Đây là server component, nó chạy LÚC BUILD, nên mọi
-    // chữ viết ở đây bị đóng băng ở tiếng Anh cho cả 30 ngôn ngữ. Bản đầu của trang
-    // này làm đúng thế và đo được ngay: nội dung hiện ra tiếng Ả Rập, `<h1>` vẫn
-    // "L1 directory". Tiêu đề nằm trong `DirectoryContent` (client) cùng câu dẫn.
+    // 🔴 Do NOT put an `<h1>` here. This is a server component, it runs at BUILD time, so every
+    // word written here is frozen in English for all 30 languages. The first version of this page
+    // did exactly that and it was measured immediately: the content rendered in Arabic while the
+    // `<h1>` still read "L1 directory". The heading lives in `DirectoryContent` (client) with its lead line.
     <div className="khung py-10 md:py-14">
       <DirectoryContent />
     </div>

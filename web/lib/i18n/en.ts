@@ -1,21 +1,21 @@
 /**
  * English — DEFAULT language and SOURCE OF TRUTH for keys.
- * (Đa ngôn ngữ, 2026-08-27. Bản tiếng Việt gốc: `vi.ts` — đọc ở đó để biết VÌ SAO
- * mỗi câu được viết như vậy; chú thích lý do giữ nguyên bên đó, không nhân đôi.)
+ * (i18n, 2026-08-27. The original Vietnamese: `vi.ts` — read there for WHY each sentence is
+ * worded as it is; the reasoning stays there rather than being duplicated.)
  *
- * ═══ VÌ SAO TỆP NÀY ĐẶC BIỆT ═══
- * 1. Nó đi CÙNG BUNDLE — 29 ngôn ngữ còn lại nạp theo chunk. Nó phải có mặt ở khung
- *    hình đầu tiên, và nó là bản rơi về khi một chunk nạp hỏng.
- * 2. Nó định nghĩa kiểu `Dict`. Thiếu một khoá ở đây là khoá đó không tồn tại với cả
- *    30 ngôn ngữ; thừa một khoá là 29 bản dịch kia đỏ ở `tsc`.
- * 3. Mọi bản dịch khác dịch RA TỪ ĐÂY, không phải từ `vi.ts`. Dịch qua hai tầng là
- *    nhân đôi chỗ để nghĩa trôi đi.
+ * ═══ WHY THIS FILE IS SPECIAL ═══
+ * 1. It travels IN THE BUNDLE — the other 29 languages load as chunks. It must be present in the
+ *    first frame, and it is the fallback when a chunk fails to load.
+ * 2. It defines the `Dict` type. A key missing here does not exist for any of the 30 languages;
+ *    an extra key makes the other 29 translations red under `tsc`.
+ * 3. Every other translation is made FROM HERE, not from `vi.ts`. Translating through two layers
+ *    doubles the places meaning can drift.
  *
- * 🔴 BA CÂU KHÔNG ĐƯỢC LÀM NHẸ ĐI KHI DỊCH SANG BẤT KỲ THỨ TIẾNG NÀO:
- *    `reGenesis.*` (mạng sẽ bị xoá) · `deChain.soatMoTa` (cửa một chiều) ·
- *    `chainCuaToi.thuHoiY*` (thu hồi không trả lại tên).
- *    Chúng nói "vĩnh viễn" và "không sửa được" để chặn người dùng mất tài sản vì
- *    tưởng làm lại được. Dịch cho êm tai là gỡ mất đúng thứ chúng sinh ra để làm.
+ * 🔴 THREE SENTENCES THAT MUST NOT BE SOFTENED IN ANY LANGUAGE:
+ *    `reGenesis.*` (the network will be erased) · `deChain.soatMoTa` (a one-way door) ·
+ *    `chainCuaToi.thuHoiY*` (revoking does not give the name back).
+ *    They say "permanently" and "cannot be undone" to stop users losing assets by assuming it can
+ *    be redone. Translating them to sound gentler removes the exact thing they exist to do.
  */
 export const EN = {
   common: {
@@ -162,11 +162,11 @@ export const EN = {
       'A1 and C1, we keep the right to rebuild the network when something inside genesis has to ' +
       'change. What we commit to is telling you in advance, and saying plainly what is lost.',
 
-    // 🔴 Thêm 2026-08-27 (D-081). Mạng công khai ĐÃ sinh lại một lượt HÔM NAY,
-    // trước ngày G. Cảnh báo về 01/09 vẫn đúng và vẫn cần — sẽ còn một lượt nữa —
-    // nhưng người có token trước hôm nay quay lại sẽ thấy số dư 0 mà trang không
-    // giải thích gì. Đường cơ sở sáng nay chứng minh KHÔNG ai mất chain; faucet thì
-    // KHÔNG có sổ bền nên không chứng minh được là không ai mất token.
+    // 🔴 Added 2026-08-27 (D-081). The public network HAS already been reborn once TODAY,
+    // before G-day. The warning about 01/09 is still correct and still needed — there will be
+    // one more — but anyone who held tokens before today and comes back sees a zero balance with
+    // no explanation on the page. This morning's baseline proves NOBODY lost a chain; the faucet
+    // has NO durable ledger, so it cannot prove nobody lost tokens.
     alreadyTitle: 'Already rebuilt once on 2026-08-27',
     alreadyDesc:
       'A1 was already rebuilt once on 2026-08-27, before the date below. If you held test tokens before then, your balance is now 0 — that is correct, not a fault in your wallet. No user chain was lost: the directory held only automated test chains. Request tokens again from the faucet.',
@@ -558,7 +558,7 @@ export const EN = {
     genericError: 'Could not send. {detail}',
   },
 
-  /** Bộ chọn ngôn ngữ. Xem `components/LanguagePicker.tsx` cho lý do từng nhãn. */
+  /** The language picker. See `components/LanguagePicker.tsx` for the reasoning behind each label. */
   langPicker: {
     label: 'Language',
     machineBadge: 'machine',
@@ -595,17 +595,17 @@ export const EN = {
 } as const;
 
 /**
- * Kiểu của MỌI từ điển. 29 bản dịch phải khớp đúng hình dạng này.
+ * The type of EVERY dictionary. All 29 translations must match this shape exactly.
  *
- * 🔴 PHẢI NỚI KIỂU, KHÔNG ĐƯỢC DÙNG THẲNG `typeof EN`.
- * `EN` khai `as const` nên `typeof EN` là kiểu CHỮ NGUYÊN VĂN TIẾNG ANH — tức
- * `moTaNgan` có kiểu `"9Chain's public testnet — …"`, và **không một bản dịch nào
- * gán được vào đó**. Đo thật khi thử: `tsc` báo
+ * 🔴 THE TYPE MUST BE WIDENED; `typeof EN` CANNOT BE USED DIRECTLY.
+ * `EN` is declared `as const`, so `typeof EN` is a type of ENGLISH STRING LITERALS — meaning
+ * `moTaNgan` has the type `"9Chain's public testnet — …"`, and **no translation can be assigned
+ * to it**. Measured when trying: `tsc` reports
  *   Type '"Testnet công khai của 9Chain…"' is not assignable to type '"9Chain's public…"'
- * Đọc thoáng qua thì tưởng bản dịch sai; thật ra là kiểu sai.
+ * At a glance that reads as a broken translation; in fact the type is wrong.
  *
- * `SauChuoi` giữ nguyên HÌNH DẠNG (khoá nào, lồng mấy tầng) nhưng nới mọi lá thành
- * `string` — đúng thứ ta muốn khoá lại: cấu trúc thì cứng, nội dung thì tự do.
+ * `SauChuoi` preserves the SHAPE (which keys, how deeply nested) while widening every leaf to
+ * `string` — exactly what we want to lock: rigid structure, free content.
  */
 type SauChuoi<T> = { [K in keyof T]: T[K] extends string ? string : SauChuoi<T[K]> };
 export type Dict = SauChuoi<typeof EN>;

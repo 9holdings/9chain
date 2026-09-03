@@ -39,7 +39,7 @@ type Probe = {
   blocks?: number;
   validators?: number | null;
   rpcOk: boolean;
-  /** `true` khi KHÔNG THỂ đo (thiếu `blockchainID`) — khác hẳn "đo và thất bại". */
+  /** `true` when it CANNOT be measured (no `blockchainID`) — quite different from "measured and failed". */
   unknown?: boolean;
 };
 
@@ -79,11 +79,11 @@ async function subnetValidators(subnetID: string): Promise<number> {
 }
 
 /**
- * 🔴 `blockchainID` CÓ THỂ THIẾU, và ca đó KHÔNG được báo là "không phản hồi".
- * Một bản ghi thiếu khoá này thì không có gì để hỏi — ta chưa hề gọi RPC. Báo
- * "không phản hồi" là khai một phép đo đã thực hiện và thất bại, trong khi phép đo
- * chưa từng chạy. Trả `validators: undefined` để thẻ rơi vào nhánh "chưa rõ", đúng
- * thứ đã xảy ra.
+ * 🔴 `blockchainID` CAN BE MISSING, and that case must NOT be reported as "not answering".
+ * A record without this key has nothing to ask — we never made an RPC call at all. Reporting
+ * "not answering" claims a measurement was made and failed, when the measurement never ran.
+ * Return `validators: undefined` so the card falls into the "unclear" branch, which is what
+ * actually happened.
  */
 async function probeChain(c: { blockchainID?: string; subnetID?: string | null }): Promise<Probe> {
   if (!c.blockchainID) return { rpc: '—', rpcOk: false, validators: undefined, unknown: true };

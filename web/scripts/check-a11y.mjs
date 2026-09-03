@@ -1,21 +1,19 @@
 /**
- * check-a11y.mjs — chạy axe-core trên **HTML THẬT đã xuất ra**, không trên bản render giả.
+ * check-a11y.mjs — runs axe-core against **the REAL exported HTML**, not against a fake render.
  *
- * ═══ VÌ SAO ĐO Ở ĐÂY CHỨ KHÔNG PHẢI TRONG VITEST ═══
- * Cách thông thường là render component trong jsdom rồi soi. Nhưng dự án này đã trả
- * giá nhiều lần cho việc nghiệm thu thứ mình dựng thay vì thứ thật sự được phục vụ
- * ("đã chép ≠ đang chạy" — HANDOFF ghi ít nhất bốn lần). Thứ Caddy phục vụ là
- * `out/**.html`. Đo đúng file đó thì một lỗi ở khâu build (component bị cây rung
- * loại mất, thuộc tính rơi lúc render tĩnh) cũng bị bắt, còn render lại trong test
- * thì không.
+ * ═══ WHY IT IS MEASURED HERE AND NOT IN VITEST ═══
+ * The usual approach is to render a component in jsdom and inspect that. But this project has
+ * paid repeatedly for accepting what it built instead of what is actually served ("copied ≠
+ * running" — HANDOFF records it at least four times). What Caddy serves is `out/` HTML. Measuring
+ * those exact files also catches a fault introduced during the build (a component tree-shaken
+ * away, an attribute dropped in static rendering); re-rendering in a test does not.
  *
- * ⚠️ GIỚI HẠN PHẢI NÓI RÕ: đây là ảnh chụp TĨNH, trước khi React hydrate. Nó bắt
- * được cấu trúc, nhãn, tương phản, thứ bậc tiêu đề — nhưng KHÔNG bắt được trạng
- * thái chỉ xuất hiện sau tương tác (ngăn kéo mở, thông báo lỗi của ô nhập). Những
- * thứ đó phải soi bằng tay trên trang công khai; đừng đọc "axe sạch" thành "a11y
- * xong".
+ * ⚠️ A LIMIT THAT MUST BE STATED: this is a STATIC snapshot, taken before React hydrates. It
+ * catches structure, labels, contrast and heading hierarchy — but NOT any state that only
+ * appears after interaction (an open drawer, a field's error message). Those must be inspected
+ * by hand on the public site; do not read "axe is clean" as "accessibility is done".
  *
- * Chạy tự động ở `postbuild`.
+ * Runs automatically in `postbuild`.
  */
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
@@ -36,8 +34,8 @@ function timHtml(dir) {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
     if (e.isDirectory()) ra.push(...timHtml(p));
-    // Bỏ trang lỗi dựng sẵn của Next: chúng không nằm trong đường đi của người dùng
-    // và chứa khung rỗng, nên chỉ tạo nhiễu.
+    // Skip Next's pre-built error pages: they are not on any user path and they contain empty
+    // shells, so they only add noise.
     else if (e.name.endsWith('.html') && !/^(404|_error)\.html$/.test(e.name)) ra.push(p);
   }
   return ra;
@@ -52,12 +50,12 @@ if (!files.length) {
 let tongLoi = 0;
 for (const f of files) {
   const ten = path.relative(RA, f).replace(/\\/g, '/');
-  // `runScripts: 'outside-only'` là BẮT BUỘC để `window.eval` thật sự chạy trong
-  // ngữ cảnh của trang. Mặc định jsdom không cho chạy script nào, và khi đó
-  // `window.eval(axe.source)` im lặng không làm gì — `window.axe` là `undefined` và
-  // lỗi hiện ra ở tận dòng gọi `.run()`, đọc như axe hỏng chứ không như thiếu cờ.
-  // Cố ý KHÔNG bật `'dangerously'`: script của chính trang không được chạy ở đây,
-  // ta chỉ đo ảnh chụp tĩnh.
+  // `runScripts: 'outside-only'` is REQUIRED for `window.eval` to actually run in the page
+  // context. By default jsdom runs no scripts at all, and then `window.eval(axe.source)`
+  // silently does nothing — `window.axe` is `undefined` and the error surfaces down at the
+  // `.run()` call, reading as "axe is broken" rather than "a flag is missing".
+  // Deliberately NOT `'dangerously'`: the page's own scripts must not run here, we are only
+  // measuring a static snapshot.
   const dom = new JSDOM(readFileSync(f, 'utf8'), {
     pretendToBeVisual: true,
     runScripts: 'outside-only',
@@ -67,10 +65,10 @@ for (const f of files) {
   window.eval(axe.source);
 
   const kq = await window.axe.run(window.document, {
-    // `color-contrast` cần layout thật để tính màu nền kế thừa — jsdom không có
-    // layout engine nên nó cho ra cả dương tính giả lẫn âm tính giả. Tương phản của
-    // dự án này được bảo đảm ở tầng TOKEN (9Scan đã đo và ghi lý do từng giá trị),
-    // nên tắt ở đây là trung thực hơn là báo cáo một con số không có nghĩa.
+    // `color-contrast` needs real layout to compute inherited background colours — jsdom has no
+    // layout engine, so it produces both false positives and false negatives. This project's
+    // contrast is guaranteed at the TOKEN layer (9Scan measured it and recorded the reason for
+    // each value), so disabling it here is more honest than reporting a meaningless number.
     rules: { 'color-contrast': { enabled: false } },
     resultTypes: ['violations'],
   });
@@ -83,13 +81,13 @@ for (const f of files) {
       for (const n of v.nodes.slice(0, 3)) console.log(`      ${n.html.slice(0, 120)}`);
     }
   } else {
-    // 🔴 IN RA SỐ ĐIỀU KHIỂN THẬT SỰ ĐƯỢC SOI, không chỉ in ✓.
-    // Hai trang sau cửa ví (`create-chain`, `my-chains`) xuất ra HTML chỉ có khung
-    // site: 3 nút (đổi nền, mở menu, "Kết nối ví"), **0 input, 0 select**. Nghĩa là
-    // axe-core CHƯA TỪNG soi ô nhập tên chain, `<select>` kiểu chain, màn soát lại,
-    // thanh tiến trình — và ô "gõ lại tên chain" ở màn thu hồi, thứ duy nhất đứng
-    // giữa một cú bấm và việc giết một chain.
-    // In con số ra thì khoảng trống đó tự lộ mỗi lần chạy, thay vì nấp sau một dấu ✓.
+    // 🔴 PRINT THE NUMBER OF CONTROLS ACTUALLY INSPECTED, not just a ✓.
+    // The two pages behind the wallet gate (`create-chain`, `my-chains`) export HTML containing
+    // only the site chrome: 3 buttons (theme toggle, open menu, "Connect wallet"), **0 inputs,
+    // 0 selects**. Which means axe-core has NEVER inspected the chain-name field, the chain-type
+    // `<select>`, the review screen, the progress bar — or the "retype the chain name" field on
+    // the revoke screen, the only thing standing between one click and killing a chain.
+    // Printing the number makes that gap surface on every run, instead of hiding behind a ✓.
     const d = window.document;
     const dem = ['button', 'input', 'select', 'a[href]', '[role]']
       .map((k) => `${k}=${d.querySelectorAll(k).length}`)

@@ -1,26 +1,26 @@
 #!/usr/bin/env node
 /**
- * check-title-map.mjs — bảng tiêu đề phía client phải phủ ĐÚNG các trang có thật.
+ * check-title-map.mjs — the client-side title table must cover EXACTLY the pages that exist.
  *
- * Ra 0 = khớp hai chiều. Ra 1 = lệch. Ra 2 = không đo được.
+ * Exit 0 = matched in both directions. Exit 1 = mismatched. Exit 2 = could not measure.
  *
- * ═══ VÌ SAO CỔNG NÀY TỒN TẠI ═══
- * `metadata` của Next sinh lúc build nên `<title>` vĩnh viễn tiếng Anh cho cả 30
- * ngôn ngữ. `lib/pageTitle.ts` vá điều đó bằng MỘT bảng `đường dẫn → khoá từ điển`, đặt
- * ở layout. Gom về một chỗ là để không phải nhớ tám lời gọi — nhưng nó đổi lấy một
- * điểm hỏng mới: **thêm trang mà quên bảng thì trang đó rơi vào nhánh 404**, và tab
- * mang tiêu đề *"This page does not exist"* trong khi nội dung hiện ra hoàn toàn
- * bình thường. Không lỗi, không cảnh báo, và người duy nhất thấy là người dùng.
+ * ═══ WHY THIS GATE EXISTS ═══
+ * Next's `metadata` is generated at build time, so `<title>` is permanently English for all 30
+ * languages. `lib/pageTitle.ts` patches that with ONE `path → dictionary key` table, mounted in
+ * the layout. Gathering it in one place saves remembering eight separate calls — but it trades
+ * that for a new failure point: **add a page and forget the table, and that page falls into the
+ * 404 branch**, so the tab reads *"This page does not exist"* while the content renders perfectly
+ * normally. No error, no warning, and the only person who sees it is the user.
  *
- * Cùng họ với `check-routes.mjs` (trang mới mà quên Caddyfile) — và với `/re-genesis/`
- * đã sinh ra ở commit `0d65eca` mà không ai thêm vào danh sách, nên dải banner dẫn
- * thẳng vào 404 suốt nhiều ngày.
+ * Same family as `check-routes.mjs` (a new page with no Caddyfile entry) — and as `/re-genesis/`,
+ * which was created in commit `0d65eca` without anyone adding it to the list, so the banner strip
+ * led straight to a 404 for days.
  *
- * ═══ ĐO HAI CHIỀU, KHÔNG MỘT CHIỀU ═══
- *   • trang có trong `out/` mà THIẾU trong bảng ⇒ tab mang tiêu đề 404
- *   • khoá có trong bảng mà KHÔNG có trang ⇒ bảng nói về một trang không tồn tại,
- *     tức nó đã lạc hậu và không ai biết
- * Một cổng chỉ đo chiều thứ nhất sẽ xanh mãi sau khi ai đó xoá một trang.
+ * ═══ MEASURED IN BOTH DIRECTIONS, NOT ONE ═══
+ *   • a page in `out/` MISSING from the table ⇒ the tab carries the 404 title
+ *   • a key in the table with NO page ⇒ the table describes a page that does not exist, i.e. it
+ *     has gone stale and nobody knows
+ * A gate measuring only the first direction stays green forever after someone deletes a page.
  */
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
@@ -28,13 +28,13 @@ import { fileURLToPath } from 'node:url';
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RA = path.join(GOC, 'out');
-// 🔴 TỆP ĐỔI TÊN `tieuDe.ts` → `pageTitle.ts` (2026-09-03, luật mã tiếng Anh).
-// Đường dẫn ở đây ghép bằng HAI đối số (`'lib', 'tieuDe.ts'`) nên bộ đổi tên tự động
-// — chỉ khớp dạng `lib/tieuDe.ts` liền một chuỗi — đã bỏ sót nó, trong khi các CHÚ
-// THÍCH quanh nó thì đã đổi. Cổng in "không thấy lib/pageTitle.ts" và thoát 2: một
-// thông báo đúng về một đường dẫn nó KHÔNG thật sự đang tra. Đó là hình dạng khó lần
-// nhất — tài liệu nói một đằng, mã làm một nẻo — và nó chỉ lộ ra vì cổng từ chối
-// xanh khi không mở được tệp.
+// 🔴 THE FILE WAS RENAMED `tieuDe.ts` → `pageTitle.ts` (2026-09-03, the English-code rule).
+// The path here is built from TWO arguments (`'lib', 'tieuDe.ts'`), so the automatic renamer —
+// which only matched `lib/tieuDe.ts` as one contiguous string — missed it, while the COMMENTS
+// around it had already been updated. The gate printed "cannot find lib/pageTitle.ts" and exited
+// 2: a message that was true about a path it was NOT actually looking up. That is the hardest
+// shape to trace — the documentation says one thing and the code does another — and it only
+// surfaced because the gate refuses to go green when it cannot open a file.
 const BANG = path.join(GOC, 'lib', 'pageTitle.ts');
 
 if (!existsSync(RA)) {
@@ -46,13 +46,13 @@ if (!existsSync(BANG)) {
   process.exit(2);
 }
 
-// ── Khoá khai trong bảng ────────────────────────────────────────────────────
+// ── Keys declared in the table ───────────────────────────────────────────────
 const src = readFileSync(BANG, 'utf8');
-// 🔴 `[\s\S]*?` chứ KHÔNG `[^=]*`. Khai báo mang chú thích kiểu
-// `Record<string, (t: Dict) => string | null>`, và `[^=]*` dừng ngay ở dấu `=` bên
-// trong `=>` ⇒ không bao giờ khớp. `=\s*\{` thì không nhầm với `=>` được (sau `=` là
-// `>`, không phải `{`). Bản đầu của cổng này dính đúng thế và trả mã 2 — nó từ chối
-// đi qua thay vì xanh giả, và đó là lý do nhánh "không đo được" phải tồn tại.
+// 🔴 `[\s\S]*?` and NOT `[^=]*`. The declaration carries a type annotation like
+// `Record<string, (t: Dict) => string | null>`, and `[^=]*` stops at the `=` inside the `=>`
+// ⇒ it never matches. `=\s*\{` cannot be confused with `=>` (after `=` comes `>`, not `{`).
+// The first version of this gate hit exactly that and returned exit 2 — it refused to pass
+// rather than go falsely green, and that is why the "could not measure" branch has to exist.
 const khoi = src.match(/TITLE_BY_PATH[\s\S]*?=\s*\{([\s\S]*?)\n\};/);
 if (!khoi) {
   console.log('   ✗ không tách được khối `TITLE_BY_PATH` trong lib/pageTitle.ts');
@@ -61,18 +61,18 @@ if (!khoi) {
 }
 const khaiBang = [...khoi[1].matchAll(/'([^']+)':/g)].map((m) => m[1]).sort();
 
-// ── Trang có thật trong out/ ────────────────────────────────────────────────
+// ── Pages that actually exist in out/ ────────────────────────────────────────
 /**
- * 🔴 `404/index.html` và `404.html` KHÔNG tính là trang.
- * Trang 404 CỐ Ý không nằm trong bảng: nó là nhánh rơi về cho mọi đường lạ, nên khai
- * nó vào bảng vừa vô nghĩa vừa che mất đúng thứ cổng này muốn bắt.
+ * 🔴 `404/index.html` and `404.html` do NOT count as pages.
+ * The 404 page is DELIBERATELY absent from the table: it is the fallback for every unknown path,
+ * so declaring it would be both meaningless and would mask the very thing this gate looks for.
  */
 const BO_QUA = new Set(['/404/', '/404.html']);
 function timTrang(dir, tien = '/', ra = []) {
   for (const e of readdirSync(dir)) {
     const p = path.join(dir, e);
-    // `chains` ĐÃ RA KHỎI danh sách loại trừ (2026-09-03): `/chains/` nay là một
-    // route Next thật, nên nó PHẢI có khoá trong bảng như mọi trang khác.
+    // `chains` has LEFT the exclusion list (2026-09-03): `/chains/` is now a real Next route, so
+    // it MUST have a key in the table like every other page.
     if (e === '_next' || e === 'brand') continue;
     if (statSync(p).isDirectory()) timTrang(p, `${tien}${e}/`, ra);
     else if (e === 'index.html') ra.push(tien);

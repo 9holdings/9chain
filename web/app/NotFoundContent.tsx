@@ -2,7 +2,7 @@
 
 import { useT } from '@/lib/i18n';
 
-/** Thân trang 404 — tách khỏi `not-found.tsx` (server, giữ `metadata` + `noindex`). */
+/** The 404 page body — split out of `not-found.tsx` (a server component, which keeps `metadata` + `noindex`). */
 export function NotFoundContent() {
   const t = useT().notFound;
   return (

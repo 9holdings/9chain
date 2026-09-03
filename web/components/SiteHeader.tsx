@@ -31,7 +31,6 @@ type Item = { label: string; href: string; external?: boolean };
 // a silent trap: change language and THE WHOLE PAGE flips while the nav bar alone stays in
 // English — with no error reported, because the code still runs correctly.
 // The paths do NOT change with language (each page has one URL), so only the text takes `t`.
-// chữ nhận `t`.
 function buildItems(t: Dict): Item[] {
   return [
     { label: t.nav.home, href: '/' },

@@ -1,38 +1,38 @@
 #!/usr/bin/env node
 /**
- * check-dict-values.mjs — GIÁ TRỊ bản dịch chỉ được đổi khi có người CỐ Ý đổi nó.
+ * check-dict-values.mjs — a translated VALUE may only change when somebody changes it DELIBERATELY.
  *
- * Ra 0 = khớp sổ. Ra 1 = có bản dịch đổi mà không khai. Ra 2 = không đo được.
- * Ghi lại sổ sau khi đã cố ý sửa bản dịch:  node scripts/check-dict-values.mjs --accept
+ * Exit 0 = matches the ledger. Exit 1 = a translation changed undeclared. Exit 2 = could not measure.
+ * Re-record the ledger after an intentional edit:  node scripts/check-dict-values.mjs --accept
  *
- * ═══ VÌ SAO CÓ CỔNG NÀY — NÓ ĐÃ ĐỎ THẬT ═══
- * Ngày `2026-09-03`, ba lượt đổi định danh Việt→Anh chạy trên toàn cây `web/`. Từ
- * điển cũng là `.ts`, nên bộ đổi tên coi chúng như mã và đổi **năm** chỗ trong bản
- * tiếng Tây Ban Nha: `Tu monedero` (ví CỦA BẠN) thành `Dict monedero` — vì `tu` nằm
- * trong bảng ánh xạ `tuDien → dict`. Người đọc tiếng Tây Ban Nha nhận một câu vô
- * nghĩa ở bốn màn, trong đó có nhãn ô nhập địa chỉ ví của faucet.
+ * ═══ WHY THIS GATE EXISTS — IT HAS BEEN GENUINELY RED ═══
+ * On `2026-09-03`, three Vietnamese→English identifier renames ran over the whole of `web/`.
+ * Dictionaries are `.ts` too, so the renamer treated them as code and rewrote **five** places in
+ * the Spanish translation: `Tu monedero` (YOUR wallet) became `Dict monedero` — because `tu` was
+ * in the `tuDien → dict` map. Spanish readers got a meaningless sentence on four screens, one of
+ * them the label on the faucet's wallet-address field.
  *
- * 🔴 **Không một cổng nào trong cây này thấy được**, vì không cổng nào đọc NỘI DUNG
- * bản dịch:
- *   • `tsc` xanh — `'Dict monedero'` là một chuỗi hợp lệ y như mọi chuỗi khác.
- *   • `i18n-shape` xanh — nó so BỘ KHOÁ và BỘ CHỖ GIỮ CHỖ giữa 30 từ điển, không so chữ.
- *   • `check-interpolate` xanh — chuỗi này không có chỗ giữ chỗ nào.
- *   • build/axe/budget xanh — chữ vẫn là chữ, dài ngắn không đổi.
- * Đây đúng lớp lỗi "mọi cổng xanh vì cùng đo sai đại lượng". Cổng duy nhất bắt được
- * là cổng đọc chính chữ mà người ta sẽ đọc, và nhớ nó từng là chữ gì.
+ * 🔴 **Not one gate in this tree could see it**, because no gate reads the CONTENT of a translation:
+ *   • `tsc` green — `'Dict monedero'` is a valid string like any other.
+ *   • `i18n-shape` green — it compares KEY SETS and PLACEHOLDER SETS across the 30, not the words.
+ *   • `check-interpolate` green — this string has no placeholders at all.
+ *   • build/axe/budget green — text is still text, and the same length.
+ * This is exactly the "every gate is green because they all measure the wrong quantity" class.
+ * The only gate that catches it is one that reads the very words people will read, and remembers
+ * what those words used to be.
  *
- * ═══ NÓ LÀ BÁNH CÓC, KHÔNG PHẢI ĐÓNG BĂNG ═══
- * Thêm khoá mới thì **cho qua** (in ra để biết) — vì `i18n-shape` đã canh bộ khoá 30
- * ngôn ngữ phải khớp `en`, và một lượt đổi tên không bao giờ THÊM khoá. Đổi giá trị
- * một khoá đã có thì **chặn**, cho tới khi có người chạy `--accept`. Chiều đó có chủ
- * ý: việc tôi làm hằng ngày (thêm khoá) không bị hỏi, còn việc hiếm và nguy hiểm
- * (chữ đã dịch tự nhiên khác đi) thì phải có người ký.
+ * ═══ IT IS A RATCHET, NOT A FREEZE ═══
+ * Adding a new key **passes** (it is reported, so you know) — because `i18n-shape` already
+ * requires the 30 key sets to match `en`, and a rename never ADDS a key. Changing the value of an
+ * existing key **blocks**, until someone runs `--accept`. That direction is deliberate: the thing
+ * I do daily (add keys) is never questioned, while the rare and dangerous thing (already
+ * translated words spontaneously differing) requires a signature.
  *
- * ⚠️ RANH GIỚI: cổng đọc được chuỗi một dòng VÀ chuỗi nối nhiều dòng (`'…' + '…'`).
- * Nó **không** đọc được giá trị dựng bằng biến hay hàm. Bản quét đầu tiên tôi viết
- * chỉ đọc một dòng, và đúng vì thế nó bỏ sót 1 trong 5 chỗ hỏng tiếng Tây Ban Nha —
- * chỗ duy nhất nằm trong chuỗi nối. Cổng đếm và KHAI RA số giá trị nó không đọc nổi;
- * một cổng im lặng bỏ qua thứ nó không hiểu là cổng nói dối về độ phủ.
+ * ⚠️ LIMITS: the gate reads single-line strings AND multi-line concatenations (`'…' + '…'`). It
+ * does **not** read a value built from a variable or a function call. The first scan I wrote read
+ * only single lines, and precisely because of that it missed 1 of the 5 Spanish breakages — the
+ * one inside a concatenation. The gate counts and DECLARES how many values it could not read;
+ * a gate that silently skips what it does not understand is a gate lying about its coverage.
  */
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
@@ -44,8 +44,8 @@ const I18N = path.join(WEB, 'lib/i18n');
 const DICTS = path.join(I18N, 'dicts');
 const LOCK = path.join(I18N, 'values.lock.json');
 const ACCEPT = process.argv.includes('--accept');
-// `--list-skipped` in ra ĐÍCH DANH những giá trị bộ đọc không dựng lại được, để người
-// đọc tự thẩm phần cổng này KHÔNG canh — thay vì tin một con số tổng.
+// `--list-skipped` prints BY NAME the values the reader could not reconstruct, so a person can
+// judge the part this gate does NOT guard — rather than trusting a single total.
 const LIST_SKIPPED = process.argv.includes('--list-skipped');
 
 const fail = (m) => {
@@ -58,11 +58,11 @@ const cannotMeasure = (m) => {
 };
 
 /**
- * Đọc một tệp từ điển thành `{ "group.key": value }`.
+ * Read one dictionary file into `{ "group.key": value }`.
  *
- * Cắt chú thích trước, rồi đi theo dòng: `  group: {` mở nhóm, `key: 'giá trị'` là
- * một mục, và một dòng kết thúc bằng `+` thì nối tiếp dòng sau. Trả kèm `skipped`:
- * số mục có giá trị mà bộ đọc này không dựng lại được thành chuỗi thuần.
+ * Strip comments first, then walk the lines: `  group: {` opens a group, `key: 'value'` is an
+ * entry, and a line ending in `+` continues onto the next. Also returns `skipped`: the number of
+ * entries whose value this reader could not reconstruct as a plain string.
  */
 function readDict(file) {
   const src = readFileSync(file, 'utf8')
@@ -82,12 +82,12 @@ function readDict(file) {
     const m = /^\s*(\w+):\s*(.*)$/.exec(lines[i]);
     if (!m || m[2].startsWith('{')) continue;
 
-    // Gom cả biểu thức giá trị. Hai kiểu xuống dòng đều phải đọc được:
-    //   • `key:` rồi giá trị bắt đầu ở DÒNG SAU  (prettier làm thế khi dòng quá dài)
-    //   • `'…' +` nối sang dòng sau
-    // 🔴 Bản đầu bỏ hẳn kiểu thứ nhất — và đúng chỗ đó là nơi lỗi `Dict monedero`
-    // thứ năm nằm, nên cổng XANH khi tôi tiêm lại lỗi thật để thử. Một cổng bỏ qua
-    // im lặng thứ nó không đọc được thì không chứng minh gì.
+    // Gather the whole value expression. Both kinds of line break must be readable:
+    //   • `key:` with the value starting ON THE NEXT LINE  (what prettier does when a line is too long)
+    //   • `'…' +` continuing onto the next line
+    // 🔴 The first version dropped the first kind entirely — and that is exactly where the fifth
+    // `Dict monedero` breakage lived, so the gate was GREEN when I re-injected the real bug to
+    // test it. A gate that silently skips what it cannot read proves nothing.
     let expr = m[2];
     let j = i;
     while ((expr.trim() === '' || /\+\s*$/.test(expr)) && j + 1 < lines.length) {
@@ -96,10 +96,10 @@ function readDict(file) {
     i = j;
     expr = expr.replace(/,\s*$/, '').trim();
 
-    // Chỉ nhận chuỗi thuần và phép nối chuỗi thuần. CẢ HAI kiểu nháy: bản dịch dùng
-    // nháy kép mỗi khi trong câu có dấu nháy đơn (`"9Chain's public testnet…"`), và
-    // bản đầu chỉ đọc nháy đơn nên bỏ trắng 8 câu — một trong số đó là
-    // `common.shortDesc`, câu đứng ngay dưới `<h1>` của trang chủ.
+    // Accept only plain strings and concatenations of plain strings. BOTH quote styles: a
+    // translation uses double quotes whenever the sentence contains an apostrophe
+    // (`"9Chain's public testnet…"`), and the first version read only single quotes, so it left 8
+    // sentences unguarded — one of them `common.shortDesc`, the line directly under the home page `<h1>`.
     const LIT = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g;
     const parts = [...expr.matchAll(LIT)].map((x) => x[0].slice(1, -1));
     const noiSach = parts.length > 0 && expr.replace(LIT, '').replace(/[+\s]/g, '') === '';
@@ -117,7 +117,7 @@ function readDict(file) {
 
 const short = (s) => createHash('sha1').update(s, 'utf8').digest('hex').slice(0, 12);
 
-// ── đọc cả 30 ────────────────────────────────────────────────────────────────
+// ── read all 30 ──────────────────────────────────────────────────────────────
 if (!existsSync(DICTS)) {
   cannotMeasure(`không thấy ${path.relative(WEB, DICTS)}`);
   process.exit(process.exitCode);
@@ -143,7 +143,7 @@ for (const [lang, file] of files) {
   tongKey += Object.keys(values).length;
 }
 
-// ── ghi sổ ───────────────────────────────────────────────────────────────────
+// ── write the ledger ─────────────────────────────────────────────────────────
 if (ACCEPT) {
   const lock = {};
   for (const lang of Object.keys(now).sort()) {
@@ -155,7 +155,7 @@ if (ACCEPT) {
   process.exit(0);
 }
 
-// ── đối chiếu ────────────────────────────────────────────────────────────────
+// ── reconcile ────────────────────────────────────────────────────────────────
 if (!existsSync(LOCK)) {
   cannotMeasure(`chưa có sổ ${path.relative(WEB, LOCK)} — chạy \`--accept\` một lần để lập`);
   process.exit(process.exitCode);

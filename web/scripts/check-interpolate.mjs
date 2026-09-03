@@ -1,29 +1,30 @@
 #!/usr/bin/env node
 /**
- * check-interpolate.mjs — mọi lời gọi `interpolate()` phải cấp ĐÚNG bộ chỗ giữ chỗ
- * mà chuỗi của nó khai.
+ * check-interpolate.mjs — every `interpolate()` call must supply EXACTLY the placeholders its
+ * string declares.
  *
- * Ra 0 = khớp. Ra 1 = lệch. Ra 2 = không đo được.
+ * Exit 0 = matched. Exit 1 = mismatched. Exit 2 = could not measure.
  *
- * ═══ VÌ SAO CỔNG NÀY PHẢI CÓ TRƯỚC KHI ĐỔI TÊN CHỖ GIỮ CHỖ ═══
- * `interpolate(s, o)` chỉ thay những khoá nó tìm thấy trong `o`. Khoá lệch một chữ
- * thì nó **không báo gì**: chuỗi đi ra nguyên văn `{date}` giữa câu, người đọc thấy
- * một dấu ngoặc lạ, và không có gì trong cây này bắt được —
- *   • `tsc` không thấy: tham số thứ hai là `Record<string, …>`, mọi khoá đều hợp kiểu.
- *   • `i18n-shape` không thấy: nó so chỗ giữ chỗ GIỮA 30 TỪ ĐIỂN với nhau, tức nó
- *     bắt được "bản dịch làm mất `{ngay}`" nhưng mù với "chỗ gọi truyền `{date}`".
- *   • axe/build/test không thấy: chuỗi vẫn là chuỗi.
- * Đây đúng lớp lỗi mà lát đổi tên `2026-09-03` sắp đi vào, nên đo trước rồi mới sửa.
+ * ═══ WHY THIS GATE HAD TO EXIST BEFORE RENAMING ANY PLACEHOLDER ═══
+ * `interpolate(s, o)` replaces only the keys it finds in `o`. A key that is one letter off
+ * produces **no report at all**: the string goes out with a literal `{date}` mid-sentence, the
+ * reader sees a stray brace, and nothing in this tree catches it —
+ *   • `tsc` cannot see it: the second argument is a `Record<string, …>`, every key type-checks.
+ *   • `i18n-shape` cannot see it: it compares placeholders BETWEEN THE 30 DICTIONARIES, so it
+ *     catches "a translation lost `{ngay}`" but is blind to "the call site passes `{date}`".
+ *   • axe/build/test cannot see it: a string is still a string.
+ * That is exactly the class of bug the `2026-09-03` rename was about to walk into, so the
+ * measurement came before the edit.
  *
- * ═══ ĐO HAI CHIỀU ═══
- *   • chuỗi khai `{x}` mà lời gọi KHÔNG cấp  ⇒ người dùng đọc thấy `{x}`
- *   • lời gọi cấp `y` mà chuỗi KHÔNG khai    ⇒ dữ liệu bị bỏ im lặng (thường là
- *     dấu vết của một lượt đổi tên nửa vời)
+ * ═══ MEASURED IN BOTH DIRECTIONS ═══
+ *   • the string declares `{x}` and the call does NOT supply it ⇒ the user reads `{x}`
+ *   • the call supplies `y` and the string does NOT declare it  ⇒ data is dropped silently
+ *     (usually the trace of a half-finished rename)
  *
- * ⚠️ RANH GIỚI, ĐỌC TRƯỚC KHI TIN: cổng này chỉ đọc được lời gọi mà đối số thứ nhất
- * là một ĐƯỜNG KHOÁ TĨNH (`t.faucet.quotaFormat`, `EN.rebuild.title`). Lời gọi với
- * chuỗi dựng động hoặc biến trung gian thì nó BỎ QUA và **nói ra là đã bỏ qua** —
- * một cổng im lặng bỏ qua thứ nó không hiểu là một cổng nói dối về độ phủ.
+ * ⚠️ LIMITS, READ BEFORE TRUSTING IT: this gate can only read calls whose first argument is a
+ * STATIC KEY PATH (`t.faucet.quotaFormat`, `EN.rebuild.title`). A call built from a dynamic
+ * string or an intermediate variable is SKIPPED, and it **says that it skipped** — a gate that
+ * silently skips what it does not understand is a gate lying about its coverage.
  */
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
@@ -37,7 +38,7 @@ if (!existsSync(EN)) {
   process.exit(2);
 }
 
-/** Đọc `en.ts` thành bản đồ `đường.khoá` -> chuỗi. Đủ cho việc lấy `{…}`. */
+/** Read `en.ts` into a `path.key` -> string map. Enough to extract the `{…}`. */
 function docEn() {
   const src = readFileSync(EN, 'utf8');
   const ra = new Map();
@@ -55,11 +56,11 @@ function docEn() {
     if (!nhom) continue;
     const mKhoa = dong.match(/^    ([a-zA-Z][A-Za-z0-9]*):\s*(.*)$/);
     if (!mKhoa) continue;
-    // Chuỗi có thể nối nhiều dòng bằng `+`; ở đây chỉ cần các `{…}`, nên gom thô:
-    // lấy phần còn lại của khối cho tới dòng có khoá kế tiếp.
+    // A string can be concatenated across lines with `+`; only the `{…}` matter here, so gather
+    // roughly: take the rest of the block up to the line holding the next key.
     ra.set(`${nhom}.${mKhoa[1]}`, mKhoa[2]);
   }
-  // Lượt hai: gộp phần nối dòng vào giá trị
+  // Second pass: fold the continuation lines into the value
   const dong = src.split('\n');
   for (let i = 0; i < dong.length; i++) {
     const m = dong[i].match(/^    ([a-zA-Z][A-Za-z0-9]*):\s*$/);
@@ -70,7 +71,7 @@ function docEn() {
       gom += dong[j];
       j++;
     }
-    // tìm nhóm gần nhất phía trên
+    // find the nearest group above
     for (let k = i; k >= 0; k--) {
       const mn = dong[k].match(/^  ([a-zA-Z][A-Za-z0-9]*): \{/);
       if (mn) {
@@ -106,7 +107,7 @@ for (const goc of ['app', 'components', 'lib']) {
     const rel = path.relative(GOC, p).replace(/\\/g, '/');
     if (rel === 'lib/i18n/en.ts' || rel === 'lib/i18n/interpolate.ts') continue;
     const src = readFileSync(p, 'utf8');
-    // `interpolate(<đường khoá>, { a: …, b: … })`
+    // `interpolate(<key path>, { a: …, b: … })`
     const re = /interpolate\(\s*(?:t|EN)\.([A-Za-z0-9.]+)\s*,\s*\{([^{}]*)\}/g;
     for (const m of src.matchAll(re)) {
       const duong = m[1];
@@ -117,11 +118,11 @@ for (const goc of ['app', 'components', 'lib']) {
         continue;
       }
       const can = cho(chuoi);
-      // 🔴 PHẢI ĐỌC CẢ CÚ PHÁP VIẾT TẮT `{ error }`, KHÔNG CHỈ `{ error: x }`.
-      // Bản đầu của cổng này chỉ khớp dạng `khoá:` và lập tức tố ba lời gọi HOÀN TOÀN
-      // ĐÚNG (`interpolate(t.rebuild.title, { ngay })`) là thiếu chỗ giữ chỗ. Một cổng
-      // báo động giả ở lượt chạy đầu tiên là cổng sắp bị vô hiệu hoá bằng tay — và
-      // đúng ở đây thì mất luôn phép đo duy nhất bắt được lớp hỏng im lặng này.
+      // 🔴 IT MUST READ SHORTHAND `{ error }` TOO, NOT ONLY `{ error: x }`.
+      // The first version of this gate matched only the `key:` form and immediately accused three
+      // COMPLETELY CORRECT calls (`interpolate(t.rebuild.title, { ngay })`) of missing a
+      // placeholder. A gate that false-alarms on its very first run is a gate about to be disabled
+      // by hand — and here that would mean losing the only measurement that catches this silent failure.
       const cap = [
         ...[...m[2].matchAll(/(?:^|,)\s*([A-Za-z0-9_]+)\s*:/g)].map((x) => x[1]),
         ...[...m[2].matchAll(/(?:^|,)\s*([A-Za-z0-9_]+)\s*(?=,|$)/g)].map((x) => x[1]),

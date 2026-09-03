@@ -3,25 +3,25 @@
 import { useT } from '@/lib/i18n';
 
 /**
- * Đầu trang (`<h1>` + câu dẫn) cho bốn màn có cùng hình dạng.
- * (Đa ngôn ngữ, 2026-08-27)
+ * The page header (`<h1>` + lead line) for the four screens that share this shape.
+ * (i18n, 2026-08-27)
  *
- * ═══ VÌ SAO PHẢI TÁCH RA THÀNH COMPONENT CLIENT ═══
- * `page.tsx` là **server component** — nó phải thế, vì `export const metadata` chỉ
- * hợp lệ ở server component. Nhưng server component chạy lúc BUILD, khi chưa có
- * trình duyệt và chưa có ngôn ngữ nào "đang chọn". Chữ nào cần đổi theo ngôn ngữ thì
- * buộc phải nằm dưới một biên client.
+ * ═══ WHY THIS HAD TO BECOME A CLIENT COMPONENT ═══
+ * `page.tsx` is a **server component** — it has to be, because `export const metadata` is only
+ * valid in one. But a server component runs at BUILD time, when there is no browser and no
+ * "currently chosen" language. Any text that must change with the language has to live below a
+ * client boundary.
  *
- * ⇒ Ranh giới của cả site: **`metadata` ở server (tiếng Anh, cố định lúc build) ·
- * chữ hiển thị ở client (đổi theo lựa chọn của người đọc).**
+ * ⇒ The boundary for the whole site: **`metadata` on the server (English, fixed at build time) ·
+ * displayed text on the client (following the reader's choice).**
  *
- * 🔴 PROP LÀ MỘT CHUỖI, KHÔNG PHẢI MỘT HÀM. Server component không truyền hàm sang
- * client được (không tuần tự hoá được). Nên chỗ này nhận **tên nhóm khoá** rồi tự
- * tra, thay vì nhận sẵn hai chuỗi đã dịch — nhận chuỗi đã dịch thì server phải biết
- * ngôn ngữ, mà nó không biết.
+ * 🔴 THE PROP IS A STRING, NOT A FUNCTION. A server component cannot pass a function to a client
+ * component (it is not serialisable). So this one takes the **name of a key group** and looks it
+ * up itself, rather than receiving two already-translated strings — receiving translated strings
+ * would require the server to know the language, and it does not.
  *
- * Bốn nhóm dưới đây đều có đúng cặp `title` + `desc`. Kiểu `HeaderGroup` khoá
- * việc đó lại: thêm một nhóm thiếu một trong hai khoá là `tsc` đỏ ngay tại đây.
+ * The four groups below each have exactly a `title` + `desc` pair. The `HeaderGroup` type locks
+ * that in: adding a group missing either key is `tsc`-red right here.
  */
 type HeaderGroup = 'faucet' | 'launch' | 'myChains' | 'compare';
 

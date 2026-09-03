@@ -1,23 +1,24 @@
 /**
- * sync-tokens.mjs — chép hệ token từ 9Scan-A1 sang `web/app/tokens.css`.
+ * sync-tokens.mjs — copy the token system from 9Scan-A1 into `web/app/tokens.css`.
  *
- * ═══ VÌ SAO CHÉP CHỨ KHÔNG DÙNG PACKAGE CHUNG ═══
- * 9Chain **đã có** hệ thiết kế đang chạy thật, tự nhận là "nguồn sự thật duy nhất
- * cho màu/chữ/shape", sống trong `9Scan-A1/app/globals.css`. Việc của A1 không phải
- * nghĩ ra một giao diện — là dọn về đúng hệ đã có. Vẽ hệ thứ hai là chủ động tạo ra
- * đúng sự thiếu nhất quán mà mốc M10 sinh ra để xoá.
+ * ═══ WHY COPY RATHER THAN SHARE A PACKAGE ═══
+ * 9Chain **already has** a design system running in production, which describes itself as "the
+ * single source of truth for colour/type/shape", living in `9Scan-A1/app/globals.css`. A1's job
+ * is not to invent an interface — it is to move onto the system that already exists. Drawing a
+ * second system would actively create the very inconsistency milestone M10 exists to remove.
  *
- * Nhưng KHÔNG gom vào một package nội bộ: hai repo độc lập, deploy độc lập, một
- * package chung kéo theo ràng buộc phiên bản mà lợi ích không bù nổi. Bản chép +
- * **một phép đo trôi lệch** là đủ và trung thực hơn.
+ * But NOT gathered into an internal package: two independent repos, deployed independently, and a
+ * shared package drags in version coupling the benefit cannot repay. A copy plus **one drift
+ * measurement** is sufficient and more honest.
  *
- * ═══ HASH LÀ CỦA KHỐI TOKEN, KHÔNG PHẢI CỦA CẢ FILE ═══
- * `globals.css` bên 9Scan còn chứa animation, layer components, luật RTL… — những
- * thứ họ sửa liên tục và A1 không quan tâm. Băm cả file thì phép đo trôi lệch sẽ
- * kêu mỗi lần họ đụng bất cứ gì, tức là kêu tới lúc không ai nghe nữa. Băm đúng hai
- * khối `@theme` + `html[data-theme='dark']` thì nó chỉ kêu khi **màu thật sự đổi**.
+ * ═══ THE HASH COVERS THE TOKEN BLOCKS, NOT THE WHOLE FILE ═══
+ * 9Scan's `globals.css` also contains animations, a components layer, RTL rules… — things they
+ * change constantly and A1 does not care about. Hashing the whole file would make the drift
+ * measurement fire every time they touch anything, i.e. fire until nobody listens any more.
+ * Hashing exactly the `@theme` + `html[data-theme='dark']` blocks makes it fire only when the
+ * **colours actually change**.
  *
- * Chạy:  node web/scripts/sync-tokens.mjs [--nguon <đường dẫn globals.css>]
+ * Run:  node web/scripts/sync-tokens.mjs [--nguon <path to globals.css>]
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -32,7 +33,7 @@ const NGUON = i >= 0 && args[i + 1]
   ? args[i + 1]
   : path.resolve("C:/PROJECTS/9Scan-A1/app/globals.css");
 
-/** Cắt một khối `<mở> { … }` cân bằng ngoặc, kể cả khi bên trong có ngoặc lồng. */
+/** Cut a brace-balanced `<opener> { … }` block, including nested braces. */
 export function catKhoi(css, moDau) {
   const batDau = css.indexOf(moDau);
   if (batDau < 0) throw new Error(`không tìm thấy khối "${moDau}" trong nguồn`);
@@ -48,15 +49,15 @@ export function catKhoi(css, moDau) {
 }
 
 export function bam(s) {
-  // Chuẩn hoá xuống dòng trước khi băm: hai repo có `.gitattributes * -text`, nhưng
-  // một lượt chép tay qua Windows vẫn có thể đổi CRLF/LF và làm hash lệch ở chỗ
-  // KHÔNG có gì đổi về màu — đúng loại báo động giả giết một phép đo.
+  // Normalise line endings before hashing: both repos have `.gitattributes * -text`, but a
+  // manual copy through Windows can still flip CRLF/LF and shift the hash where NOTHING about
+  // the colours changed — exactly the kind of false alarm that kills a measurement.
   return createHash("sha256").update(s.replace(/\r\n/g, "\n")).digest("hex").slice(0, 16);
 }
 
-// So bằng `pathToFileURL`, KHÔNG nối chuỗi "file://" + argv[1]: trên Windows
-// `import.meta.url` là `file:///C:/…` (BA gạch) nên phép nối tay không bao giờ khớp
-// và script im lặng không làm gì — đúng kiểu hỏng không có thông báo nào.
+// Compare using `pathToFileURL`, NOT by concatenating "file://" + argv[1]: on Windows
+// `import.meta.url` is `file:///C:/…` (THREE slashes), so a hand-built string never matches
+// and the script silently does nothing — precisely the kind of failure that reports nothing.
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const css = readFileSync(NGUON, "utf8");
   const theme = catKhoi(css, "@theme");

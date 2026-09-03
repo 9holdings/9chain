@@ -5,19 +5,19 @@ import { interpolate } from '../lib/i18n';
 import vi from '../lib/i18n/dicts/vi';
 
 /**
- * Giữ cho việc tách chuỗi KHÔNG bị bào mòn.
+ * Keep the string extraction from eroding.
  *
- * Cách nó bị bào mòn luôn giống nhau: một người thêm một chuỗi thẳng vào JSX vì
- * "chỉ một chữ thôi". Bài này bắt đúng lúc đó, chứ không phải lúc đi dịch.
+ * The way it erodes is always the same: someone adds a string straight into JSX because "it is
+ * only one word". This test catches that moment, rather than the moment of translating.
  *
- * 🔴 TỪ 2026-08-27 LUẬT NÀY ĐẮT HƠN TRƯỚC, KHÔNG RẺ ĐI.
- * Trước đây site chỉ có tiếng Việt, nên một chuỗi lọt vào JSX chỉ là chuyện dọn dẹp.
- * Nay site có **30 ngôn ngữ**: một chuỗi viết thẳng trong JSX là một câu **không bao
- * giờ dịch được**, và nó sẽ đứng nguyên tiếng Việt giữa một trang tiếng Ả Rập —
- * không lỗi, không cảnh báo, chỉ người đọc chịu.
- * Bài này vẫn quét chữ có dấu tiếng Việt vì đó là thứ dễ nhận nhất; nó KHÔNG bắt
- * được chuỗi tiếng Anh viết thẳng. Cổng thật cho chuyện đó là `useT()` — mã không
- * lấy chữ từ đâu khác được.
+ * 🔴 SINCE 2026-08-27 THIS RULE COSTS MORE, NOT LESS.
+ * The site used to be Vietnamese only, so a string leaking into JSX was merely untidy. The site
+ * now has **30 languages**: a string written straight into JSX is a sentence that can **never be
+ * translated**, and it will sit there in Vietnamese in the middle of an Arabic page — no error,
+ * no warning, only the reader bears it.
+ * This test still scans for accented Vietnamese characters because that is the easiest signal;
+ * it does NOT catch an English string written inline. The real gate for that is `useT()` — the
+ * code has nowhere else to get text from.
  */
 
 const GOC = path.resolve(__dirname, '..');
@@ -34,7 +34,7 @@ function docTsx(dir: string, ra: string[] = []): string[] {
 
 describe('i18n', () => {
   it('interpolate() giữ nguyên khoá thiếu thay vì để trống', () => {
-    // Một chỗ trống lặng lẽ đọc như dữ liệu bị mất; `{total}` lộ ra thì sửa được ngay.
+    // A silent blank reads as lost data; a visible `{total}` can be fixed immediately.
     expect(interpolate('còn {left}/{total}', { left: 3 })).toBe('còn 3/{total}');
   });
 
@@ -43,13 +43,13 @@ describe('i18n', () => {
   });
 
   it('không có chuỗi tiếng Việt viết thẳng trong JSX', () => {
-    // Dấu hiệu: chữ có dấu tiếng Việt nằm giữa hai thẻ JSX. Không bắt được 100%
-    // mọi cách viết, nhưng bắt đúng cách người ta hay làm nhất.
+    // The signal: accented Vietnamese characters sitting between two JSX tags. It does not catch
+    // 100% of every possible spelling, but it catches the way people actually do it.
     const nghiVan: string[] = [];
     for (const f of docTsx(GOC)) {
       const noi = readFileSync(f, 'utf8');
       for (const [i, dong] of noi.split('\n').entries()) {
-        if (/^\s*(\/\/|\*|\/\*)/.test(dong)) continue; // chú thích thì được
+        if (/^\s*(\/\/|\*|\/\*)/.test(dong)) continue; // comments are fine
         if (/>\s*[^<>{}\n]*[àáảãạăâèéẻẽẹêìíỉĩịòóỏõọôơùúủũụưỳýỷỹỵđ][^<>{}\n]*\s*</i.test(dong)) {
           nghiVan.push(`${path.relative(GOC, f).replace(/\\/g, '/')}:${i + 1}  ${dong.trim().slice(0, 70)}`);
         }

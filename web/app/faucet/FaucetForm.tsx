@@ -18,10 +18,10 @@ type ThongTin = {
 
 type TrangThaiTin = { phase: 'tai' } | { phase: 'xong'; quota: ThongTin } | { phase: 'hong' };
 
-// 🔴 `getWallet` đến từ `@/lib/wallet` — TRƯỚC ĐÂY tệp này có bản chép tay riêng, và bản
-// đó bốc thẳng `window.ethereum`. Hai bản song song nghĩa là hai cách chọn ví khác
-// nhau trong cùng một sản phẩm: faucet nói chuyện với ví này, màn đẻ chain với ví
-// kia, và không màn nào nói cho người dùng biết. Một nguồn duy nhất, xem lib/wallet.
+// 🔴 `getWallet` comes from `@/lib/wallet` — this file USED to have its own hand-copied
+// version, and that one grabbed `window.ethereum` directly. Two parallel versions means two
+// different ways of choosing a wallet inside one product: the faucet talks to one wallet, the
+// launch screen to another, and neither screen tells the user. One source; see lib/wallet.
 
 export function FaucetForm() {
   const t = useT();
@@ -31,15 +31,15 @@ export function FaucetForm() {
   const [sendError, setSendError] = useState<string | null>(null);
   const [quota, setQuota] = useState<TrangThaiTin>({ phase: 'tai' });
   const [walletState, setWalletState] = useState<'chua' | 'xong' | 'errors' | 'tuChoi' | 'khongCo'>('chua');
-  // Nguyên văn mã + thông điệp của ví. Hiện ra chứ không nuốt — xem chú thích ở `themMang`.
+  // The wallet's code and message verbatim. Shown, not swallowed — see the comment on `themMang`.
   const [walletFailure, setWalletFailure] = useState<string | null>(null);
 
-  // Chỉ kiểm khi người dùng đã gõ gì đó — báo đỏ vào một ô trống mà họ chưa chạm
-  // tới là mắng trước khi hỏi.
+  // Only validate once the user has typed something — flashing red at an empty field they have
+  // not touched is scolding before asking.
   const check = diaChi.trim() ? checkAddress(diaChi) : null;
-  // 🔴 Câu chữ tra Ở ĐÂY, không nằm trong `lib/eip55.ts`. Hàm thuần không gọi được
-  // `useT()`, nên mọi câu nó tự dựng sẽ đóng băng ở một ngôn ngữ — xem chú thích ở
-  // khối `errors` trong `lib/i18n/en.ts`.
+  // 🔴 The wording is looked up HERE, not inside `lib/eip55.ts`. A pure function cannot call
+  // `useT()`, so every sentence it builds itself is frozen in one language — see the comment on
+  // the `errors` block in `lib/i18n/en.ts`.
   const CHECK_MSG = {
     empty: t.errors.addressEmpty,
     format: t.errors.addressFormat,
@@ -51,13 +51,13 @@ export function FaucetForm() {
   const napTin = useCallback(async () => {
     setQuota({ phase: 'tai' });
     try {
-      // Hạn giờ (Đ1-8) — an toàn ở đây: `/api/info` là lượt ĐỌC hạn mức, không tiêu
-      // suất và không đụng chain. (Đường tiêu suất là `/api/drip` bên dưới.)
+      // Timeout (Đ1-8) — safe here: `/api/info` is a READ of the quota, it spends nothing and does
+      // not touch the chain. (The spending path is `/api/drip` below.)
       const quota = await fetchJson<ThongTin>(`${faucetOrigin()}/api/info`, {}, READ_TIMEOUT_MS / 1000);
       setQuota({ phase: 'xong', quota });
     } catch {
-      // Không đọc được hạn mức KHÔNG phải lỗi chặn: người dùng vẫn xin được, chỉ là
-      // không biết trước còn mấy lượt. Nói đúng điều đó thay vì dựng một màn lỗi.
+      // Failing to read the quota is NOT a blocking error: the user can still request, they just do
+      // not know in advance how many attempts remain. Say exactly that rather than build an error screen.
       setQuota({ phase: 'hong' });
     }
   }, []);
@@ -67,13 +67,13 @@ export function FaucetForm() {
   }, [napTin]);
 
   /**
-   * 🔴 KHÔNG `catch {}` Ở ĐÂY. Bản trước nuốt sạch lỗi rồi hiện đúng một câu
-   * "Ví từ chối hoặc chưa cài" — gộp hai nguyên nhân khác hẳn nhau vào một chữ
-   * "hoặc", nên khi nút này hỏng thật thì cả người dùng lẫn người sửa đều không có
-   * gì để lần. Đã trả giá 2026-08-26.
+   * 🔴 NO `catch {}` HERE. The previous version swallowed every error and showed one sentence,
+   * "The wallet refused or is not installed" — merging two completely different causes under an
+   * "or", so when this button genuinely broke neither the user nor whoever was fixing it had
+   * anything to follow. Paid for on 2026-08-26.
    *
-   * Cách đọc mã lỗi đã rút sang `readWalletError()` trong `lib/wallet.ts` — ba nút khác
-   * trong site cần đúng khuôn này, và trước đó chúng `catch {}` trắng.
+   * Reading the error code has moved into `readWalletError()` in `lib/wallet.ts` — three other
+   * buttons on the site need exactly this shape, and before that they had an empty `catch {}`.
    */
   async function themMang() {
     const v = getWallet();
@@ -103,7 +103,7 @@ export function FaucetForm() {
       const j = (await r.json()) as { txHash?: string; amount?: string; error?: string };
       if (!r.ok || !j.txHash) throw new Error(j.error || `HTTP ${r.status}`);
       setResult({ txHash: j.txHash, amount: j.amount ?? '?' });
-      // Xin xong thì hạn mức đã đổi — đọc lại để con số trên màn khớp sự thật.
+      // After a successful request the quota has changed — re-read it so the number on screen matches the truth.
       void napTin();
     } catch (e) {
       setSendError(interpolate(t.faucet.genericError, { detail: String((e as Error).message ?? e) }));
@@ -169,8 +169,8 @@ export function FaucetForm() {
 
         {result && (
           <div
-            // `role="status"` để trình đọc màn hình đọc kết quả ngay, không cần
-            // người dùng tự đi tìm xem chuyện gì vừa xảy ra.
+            // `role="status"` so a screen reader announces the result immediately, without the user
+            // having to go looking for what just happened.
             role="status"
             className="mt-5 rounded-card border border-success-line bg-success-bg px-4 py-3"
           >
@@ -234,9 +234,9 @@ function HanMuc({ quota, onRetry }: { quota: TrangThaiTin; onRetry: () => void }
 
 function ThongSoMang() {
   const t = useT();
-  // Suy từ `location` lúc chạy — KHÔNG cắm cứng. Trang public cắm `localhost` là
-  // trình duyệt người xem phân giải thành máy họ; explorer và dashboard của dự án
-  // này đều đã dính đúng lỗi đó.
+  // Derived from `location` at runtime — NOT hard-coded. A public page with `localhost` in it
+  // has the visitor's browser resolve that to their own machine; both this project's explorer
+  // and its dashboard hit exactly that fault.
   const [rpc, datRpc] = useState('');
   useEffect(() => datRpc(rpcCChain()), []);
 
@@ -275,10 +275,11 @@ function ThongSoMang() {
           </dd>
         </div>
       </dl>
-      {/* Vì sao dòng này đáng chỗ trên màn: người đọc `docs/TOKENOMICS.md` thấy
-          "LOVE9 có 9 chữ số thập phân" rồi mở ví thấy 18 sẽ kết luận tài liệu sai.
-          Cả hai đều đúng — P/X-Chain đếm nano, C-Chain là EVM — nhưng không ai tự
-          suy ra được điều đó. Một câu ở đây rẻ hơn một hiểu nhầm về tokenomics. */}
+      {/* Why this line earns its space on screen: a reader of `docs/TOKENOMICS.md` who sees
+          "LOVE9 has 9 decimals" and then opens their wallet and sees 18 will conclude the
+          document is wrong. Both are correct — P/X-Chain count in nano, C-Chain is EVM — but
+          nobody works that out on their own. One sentence here is cheaper than a
+          misunderstanding about the tokenomics. */}
       <p className="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-muted">
         {t.faucet.decimalsHelp}
       </p>

@@ -4,20 +4,21 @@ import path from 'node:path';
 import { EN } from '../lib/i18n/en';
 
 /**
- * Mỗi tiêu chí của bảng /compare/ phải có ĐỦ tên + ghi chú trong từ điển, và ngược
- * lại từ điển không được ôm khoá đã bỏ.
+ * Every criterion in the /compare/ table must have BOTH a name and a note in the dictionary, and
+ * conversely the dictionary must not hold keys for criteria that are gone.
  *
- * ═══ VÌ SAO KHÔNG CỔNG NÀO KHÁC THẤY ĐƯỢC ═══
- * `ComparisonTable` tra chữ bằng khoá GHÉP: `t.compare['crit' + c.id]`. Ghép chuỗi
- * nên `tsc` không kiểm được, và một `id` gõ sai in ra `undefined` — nguyên một ô
- * trống ở giữa bảng, ở **cả 30 ngôn ngữ cùng lúc**, không lỗi, không cảnh báo.
- *   • `i18n-shape` mù: nó so 30 từ điển VỚI NHAU, nên "cả 30 cùng thiếu" là hợp lệ.
- *   • `check-dict-values` mù: giá trị không đổi, chỉ là không ai tra tới.
- *   • `check-interpolate` mù: những khoá này không có chỗ giữ chỗ.
- * ⇒ Phép đo đúng là nối MẢNG TIÊU CHÍ với TỪ ĐIỂN, và phải đo CẢ HAI CHIỀU.
+ * ═══ WHY NO OTHER GATE CAN SEE THIS ═══
+ * `ComparisonTable` looks text up by a CONCATENATED key: `t.compare['crit' + c.id]`. Being a
+ * concatenation, `tsc` cannot check it, and a mistyped `id` renders `undefined` — a blank cell in
+ * the middle of the table, in **all 30 languages at once**, with no error and no warning.
+ *   • `i18n-shape` is blind: it compares the 30 dictionaries WITH EACH OTHER, so "all 30 missing
+ *     it" is perfectly valid.
+ *   • `check-dict-values` is blind: no value changed, it is only that nobody reads it.
+ *   • `check-interpolate` is blind: these keys have no placeholders.
+ * ⇒ The right measurement joins the CRITERIA ARRAY to the DICTIONARY, in BOTH DIRECTIONS.
  *
- * Đọc `id` thẳng từ mã nguồn thay vì import mảng: `GOC` không được export, và export
- * nó chỉ để bài kiểm đọc được là để bài kiểm đổi hình dạng của sản phẩm.
+ * The `id`s are read straight from the source rather than importing the array: `GOC` is not
+ * exported, and exporting it just so a test can read it means letting the test reshape the product.
  */
 const NGUON = path.resolve(__dirname, '..', 'app', 'compare', 'ComparisonTable.tsx');
 
@@ -27,8 +28,8 @@ describe('bảng /compare/ — tiêu chí ↔ từ điển', () => {
   const compare = EN.compare as unknown as Record<string, string>;
 
   it('đọc được mảng tiêu chí (nếu không, mọi khẳng định dưới đây là xanh giả)', () => {
-    // 🔴 Không có dòng này thì một lượt đổi hình dạng mảng làm `ids` rỗng, và mọi
-    // vòng lặp bên dưới chạy 0 lần rồi báo xanh — cổng tự tắt mà không ai biết.
+    // 🔴 Without this line, a change to the array's shape leaves `ids` empty and every loop
+    // below runs zero times and reports green — the gate switching itself off unnoticed.
     expect(ids.length, 'không đọc ra tiêu chí nào từ ComparisonTable.tsx').toBeGreaterThan(0);
     expect(ids.length).toBe(new Set(ids).size);
   });

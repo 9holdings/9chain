@@ -4,14 +4,14 @@ import path from 'node:path';
 import { formatNumber } from '../lib/numbers';
 
 /**
- * Cổng định dạng số theo ngôn ngữ.
+ * The gate for language-aware number formatting.
  *
- * 🔴 BÀI KIỂM NÀY CỐ Ý KHÔNG ĐỌC CHIỀU CAO BLOCK THẬT.
- * Mạng vừa sinh lại nên `eth_blockNumber` = 1, và một chữ số thì **mọi ngôn ngữ in
- * ra y hệt nhau**. Một bài kiểm đo qua mạng sẽ xanh hôm nay, xanh sau ngày G (mạng
- * lại về 1), và **không chứng minh gì cả** — đúng lớp "cổng xanh vì đo sai đại
- * lượng" mà dự án đã trả giá nhiều lần. Nên: đo thẳng hàm, với số đủ lớn để dấu
- * phân cách buộc phải xuất hiện.
+ * 🔴 THIS TEST DELIBERATELY DOES NOT READ THE REAL BLOCK HEIGHT.
+ * The network was just reborn, so `eth_blockNumber` = 1, and with a single digit **every language
+ * prints it identically**. A test measured through the network would be green today, green after
+ * G-day (the network returns to 1), and **prove nothing at all** — precisely the "green because
+ * it measures the wrong quantity" class this project has paid for repeatedly. So: measure the
+ * function directly, with a number large enough to force a separator to appear.
  */
 describe('định dạng số theo ngôn ngữ', () => {
   const N = 1_234_567;
@@ -26,18 +26,19 @@ describe('định dạng số theo ngôn ngữ', () => {
   });
 
   /**
-   * 🔴 ĐỐI CHỨNG NGƯỢC — vế quan trọng nhất của cả tệp.
-   * Lỗi đang sửa là "mọi ngôn ngữ đều ra kiểu Việt". Nếu ai đó lỡ cắm cứng lại một
-   * locale, hai vế trên VẪN có thể xanh (vi và de trùng nhau). Bài này đòi hai
-   * ngôn ngữ phải ra KHÁC NHAU — tức hàm thật sự đọc tham số `ma`.
+   * 🔴 THE REVERSE CHECK — the most important half of this file.
+   * The bug being fixed is "every language comes out Vietnamese-style". If someone hard-codes a
+   * locale again, the two assertions above can STILL be green (vi and de coincide). This one
+   * requires two languages to come out DIFFERENT — i.e. the function genuinely reads its `ma`
+   * argument.
    */
   it('hai ngôn ngữ khác quy ước phải ra khác nhau', () => {
     expect(formatNumber(N, 'en')).not.toBe(formatNumber(N, 'vi'));
   });
 
   it('giữ chữ số Latin kể cả ở ngôn ngữ có hệ chữ số riêng (D-web-2)', () => {
-    // `ar` mặc định ra chữ số Ả Rập-Ấn `١٢٣`. Chiều cao block phải đối chiếu được
-    // với explorer và ví — cả hai in chữ số Latin.
+    // `ar` defaults to Arabic-Indic digits `١٢٣`. Block height has to be comparable against the
+    // explorer and a wallet — both of which print Latin digits.
     const s = formatNumber(N, 'ar');
     expect(s).toMatch(/[0-9]/);
     expect(s).not.toMatch(/[٠-٩۰-۹]/);
@@ -49,8 +50,8 @@ describe('định dạng số theo ngôn ngữ', () => {
 });
 
 /**
- * Cổng chống tái phát: không ai được cắm cứng locale vào lời gọi định dạng nữa.
- * Đặt ở đây chứ không ở lint vì lý do phải đọc được: nó mang theo VÌ SAO.
+ * A regression gate: nobody may hard-code a locale into a formatting call again.
+ * It lives here rather than in the linter for a readable reason: it carries the WHY with it.
  */
 describe('không còn locale cắm cứng', () => {
   const GOC = path.resolve(__dirname, '..');
@@ -69,23 +70,23 @@ describe('không còn locale cắm cứng', () => {
   it('không tệp nguồn nào gọi toLocaleString với locale cố định', () => {
     const pham: string[] = [];
     for (const p of quet(GOC)) {
-      // `lib/numbers.ts` được phép — nó là chỗ DUY NHẤT biết về locale, và nó đọc tham số.
-      // 🔴 TÊN TỆP ĐỔI `so.ts` → `numbers.ts` (2026-09-03, luật mã tiếng Anh), và
-      // danh sách miễn trừ này vẫn trỏ tên cũ ⇒ nó thôi khớp, nên bài kiểm tố CHÍNH
-      // bản vá mà nó sinh ra để bảo vệ. Một miễn trừ cắm theo TÊN TỆP là thứ hỏng
-      // im lặng mỗi lượt đổi tên; ở đây nó hỏng theo chiều an toàn (đỏ, không xanh
-      // giả) nên bắt được ngay.
+      // `lib/numbers.ts` is allowed — it is the ONLY place that knows about locales, and it reads its argument.
+      // 🔴 THE FILE WAS RENAMED `so.ts` → `numbers.ts` (2026-09-03, the English-code rule), and
+      // this exemption list still pointed at the old name ⇒ it stopped matching, so the test
+      // accused THE VERY FIX it exists to protect. An exemption keyed by FILE NAME is something
+      // that breaks silently on every rename; here it broke in the safe direction (red, not falsely
+      // green) so it was caught immediately.
       if (p.endsWith(`lib${path.sep}numbers.ts`)) continue;
-      // 🔴 BỎ CHÚ THÍCH TRƯỚC KHI QUÉT (sửa 2026-09-03).
-      // Bản trước quét cả tệp, nên nó tố `app/chains/DirectoryContent.tsx` chỉ vì chú
-      // thích đầu tệp đó GIẢI THÍCH luật này bằng cách nêu ví dụ
-      // `toLocaleString('vi-VN')`. Một cổng kêu về chính tài liệu của nó là cổng sắp
-      // bị ai đó gỡ — và lúc đó mất luôn phép đo thật. Thứ tới được trình duyệt là
-      // MÃ, nên chỉ quét mã.
+      // 🔴 STRIP COMMENTS BEFORE SCANNING (fixed 2026-09-03).
+      // The previous version scanned whole files, so it accused `app/chains/DirectoryContent.tsx`
+      // purely because that file's header comment EXPLAINS this rule by citing
+      // `toLocaleString('vi-VN')` as an example. A gate that complains about its own documentation
+      // is a gate somebody is about to remove — and with it the real measurement. What reaches the
+      // browser is the CODE, so scan only the code.
       const noiDung = readFileSync(p, 'utf8')
         .replace(/\/\*[\s\S]*?\*\//g, '')
         .replace(/^\s*\/\/.*$/gm, '');
-      // Bắt `toLocaleString('xx')` / `Intl.NumberFormat('xx')` với chuỗi nguyên văn.
+      // Catch `toLocaleString('xx')` / `Intl.NumberFormat('xx')` with a literal string.
       if (/(toLocaleString|Intl\.(NumberFormat|DateTimeFormat))\(\s*['"]/.test(noiDung)) {
         pham.push(path.relative(GOC, p));
       }

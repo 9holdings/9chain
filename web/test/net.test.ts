@@ -4,20 +4,21 @@ import path from 'node:path';
 import { fetchJson, NetworkError, READ_TIMEOUT_MS } from '../lib/net';
 
 /**
- * Lưới an toàn mạng (Đ1-8).
+ * The network safety net (Đ1-8).
  *
- * Điều kiện qua của mục này là *"giả lập API chết/chậm/trả rác, màn hình không
- * treo"*. Ba ca đó ở dưới. Nhưng phần **đắt nhất** của tệp là khối cuối: cổng canh
- * ràng buộc *"KHÔNG hạn giờ cho `/api/create` và `/api/revoke`"*.
+ * The acceptance condition for this item was *"simulate a dead/slow/garbage API and the screen
+ * must not hang"*. Those three cases are below. But the **most valuable** part of this file is
+ * the last block: the gate guarding the constraint *"NO timeout on `/api/create` and
+ * `/api/revoke`"*.
  */
 afterEach(() => vi.unstubAllGlobals());
 
-/** Dựng một `fetch` giả trả về đúng thứ ta muốn thử. */
+/** Build a fake `fetch` returning exactly what we want to test. */
 function gia(opts: { status?: number; body?: string; treo?: boolean; nem?: Error }) {
   vi.stubGlobal('fetch', (_u: string, init?: RequestInit) => {
     if (opts.nem) return Promise.reject(opts.nem);
     if (opts.treo) {
-      // Treo THẬT, nhưng tôn trọng signal — đúng như một máy chủ không trả lời.
+      // A REAL hang, but one that respects the signal — exactly like a server that never answers.
       return new Promise<Response>((_res, rej) => {
         init?.signal?.addEventListener('abort', () => {
           const e = new Error('timed out');
@@ -37,7 +38,7 @@ function gia(opts: { status?: number; body?: string; treo?: boolean; nem?: Error
 describe('fetchJson — ba kiểu hỏng phải phân biệt được', () => {
   it('máy chủ CHẬM/treo ⇒ timeout, không treo mãi', async () => {
     gia({ treo: true });
-    // Hạn 0,05s để bài kiểm không tự nó chậm.
+    // A 0.05s limit so the test itself is not slow.
     await expect(fetchJson('/x', {}, 0.05)).rejects.toMatchObject({ kind: 'timeout' });
   });
 
@@ -57,14 +58,14 @@ describe('fetchJson — ba kiểu hỏng phải phân biệt được', () => {
   });
 
   it('máy chủ trả RÁC (HTML) ⇒ notJson, và câu lỗi phải nghi ĐỊNH TUYẾN', async () => {
-    // Ca thật: request rơi xuống Blockscout ở gốc `/` và ta nhận về khung HTML.
+    // The real case: the request falls through to Blockscout at the root `/` and we get an HTML shell.
     gia({ status: 200, body: '<!DOCTYPE html><html><body>Blockscout</body></html>' });
     const e = (await fetchJson('/x').catch((x) => x)) as NetworkError;
     expect(e.kind).toBe('notJson');
-    // 🔴 So HÌNH DẠNG lỗi, không so câu chữ (đổi 2026-09-03). `NetworkError.message`
-    // nay là chữ CHO LẬP TRÌNH VIÊN — người dùng đọc câu do `describeFailure()` tra
-    // trong từ điển. Một bài so chuỗi ở đây vừa khoá cứng một ngôn ngữ, vừa đỏ mỗi
-    // lần ai đó chỉnh chữ, tức nó đo sai đại lượng.
+    // 🔴 Compare the SHAPE of the failure, not the wording (changed 2026-09-03).
+    // `NetworkError.message` is now text FOR DEVELOPERS — the user reads the sentence
+    // `describeFailure()` looks up in the dictionary. A string comparison here would both pin one
+    // language and go red whenever someone edits the wording, i.e. it measures the wrong quantity.
     expect(e.status).toBe(200);
     expect(e.message).toMatch(/not JSON/i);
   });
@@ -84,21 +85,21 @@ describe('fetchJson — ba kiểu hỏng phải phân biệt được', () => {
     expect(thay?.signal).toBeUndefined();
 
     await fetchJson('/x', {}, READ_TIMEOUT_MS / 1000);
-    expect(thay?.signal).toBeDefined(); // có yêu cầu thì mới có
+    expect(thay?.signal).toBeDefined(); // only present when asked for
   });
 });
 
 /**
- * 🔴 CỔNG QUAN TRỌNG NHẤT TỆP NÀY.
+ * 🔴 THE MOST IMPORTANT GATE IN THIS FILE.
  *
- * `/api/create` và `/api/revoke` mất ~170–300 giây thật. Một `AbortSignal.timeout`
- * ở đó sẽ **huỷ request của trình duyệt trong khi server vẫn đang đẻ chain**: người
- * dùng thấy "lỗi", chain vẫn ra đời, họ bấm lại — và trên mạng này **tên đã dùng
- * không bao giờ được cấp lại**, kể cả cho chain đã thu hồi.
+ * `/api/create` and `/api/revoke` genuinely take ~170–300 seconds. An `AbortSignal.timeout` there
+ * **cancels the browser's request while the server is still launching the chain**: the user sees
+ * an "error", the chain is created anyway, they press again — and on this network **a name once
+ * used is never reissued**, not even for a revoked chain.
  *
- * Đây là lớp lỗi mà bài kiểm chạy được KHÔNG bắt nổi: muốn tái hiện phải có một
- * thao tác 170 giây thật. Nên cổng này đọc **mã nguồn** — nó rẻ, và nó canh đúng
- * thứ con người sẽ vô tình phá khi "dọn dẹp cho nhất quán".
+ * This is a class of failure a runnable test CANNOT catch: reproducing it would require a real
+ * 170-second operation. So this gate reads the **source code** — it is cheap, and it guards
+ * exactly what a human will accidentally break while "tidying up for consistency".
  */
 describe('KHÔNG hạn giờ cho /api/create và /api/revoke', () => {
   const GOC = path.resolve(__dirname, '..');
@@ -115,13 +116,13 @@ describe('KHÔNG hạn giờ cho /api/create và /api/revoke', () => {
   }
 
   /**
-   * Đếm tham số ở TẦNG NGOÀI CÙNG của một lượt gọi.
+   * Count the arguments at the OUTERMOST level of a call.
    *
-   * ⚠️ Bản đầu của cổng này dùng regex đếm dấu phẩy — và nó **báo oan** ngay lần chạy
-   * đầu: `callConsole('/api/revoke', token, { name, xacNhan })` chỉ có 3 tham số,
-   * nhưng dấu phẩy BÊN TRONG object literal làm regex tưởng có 4. Một cổng báo oan
-   * còn nguy hơn cổng không có: người ta học cách bỏ qua nó.
-   * ⇒ Cân ngoặc thật, đừng đếm ký tự.
+   * ⚠️ The first version of this gate counted commas with a regex — and it **falsely accused** on
+   * its very first run: `callConsole('/api/revoke', token, { name, xacNhan })` has only 3
+   * arguments, but the commas INSIDE the object literal made the regex see 4. A gate that
+   * false-accuses is more dangerous than no gate: people learn to ignore it.
+   * ⇒ Balance the braces properly; do not count characters.
    */
   function demThamSo(src: string, dict: number): number {
     let sau = 0, so = 1, i = dict, trong: string | null = null;
@@ -143,7 +144,7 @@ describe('KHÔNG hạn giờ cho /api/create và /api/revoke', () => {
       const re = /callConsole\s*(?:<[^>]*>)?\s*\(\s*['"]\/api\/(create|revoke)['"]/g;
       let m: RegExpExecArray | null;
       while ((m = re.exec(s))) {
-        // Bắt đầu đếm ngay sau dấu `(` mở của lượt gọi.
+        // Start counting immediately after the call's opening `(`.
         const opened = s.indexOf('(', m.index);
         if (demThamSo(s, opened + 1) >= 4) pham.push(`${path.relative(GOC, p)} (${m[1]})`);
       }
@@ -157,7 +158,7 @@ describe('KHÔNG hạn giờ cho /api/create và /api/revoke', () => {
 
   it('`callConsole` vẫn mặc định KHÔNG hạn giờ (chiều an toàn)', () => {
     const s = readFileSync(path.join(GOC, 'lib', 'wallet.ts'), 'utf8');
-    // Tham số phải là tuỳ chọn (`hanGiay?:`) và signal chỉ gắn khi có nó.
+    // The parameter must be optional (`hanGiay?:`) and the signal only attached when it is present.
     expect(s).toMatch(/hanGiay\?\s*:\s*number/);
     expect(s).toMatch(/hanGiay\s*\?\s*\{\s*signal:\s*AbortSignal\.timeout/);
   });

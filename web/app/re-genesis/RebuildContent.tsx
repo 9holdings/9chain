@@ -5,11 +5,11 @@ import { CHAIN } from '@/lib/chain';
 import { interpolate, useT } from '@/lib/i18n';
 
 /**
- * Thân trang re-genesis — tách khỏi `page.tsx` (server component, giữ `metadata`).
- * Lý do đầy đủ: `components/PageHeader.tsx`.
+ * The re-genesis page body — split out of `page.tsx` (a server component, which keeps `metadata`).
+ * Full reasoning: `components/PageHeader.tsx`.
  *
- * 🔴 Mọi chú thích về VÌ SAO từng câu được viết như vậy nằm ở khối `reGenesis` trong
- * `lib/i18n/dicts/vi.ts` và `lib/i18n/en.ts`. Đọc ở đó trước khi sửa chữ.
+ * 🔴 Every comment about WHY each sentence is worded as it is lives in the `reGenesis` block in
+ * `lib/i18n/dicts/vi.ts` and `lib/i18n/en.ts`. Read there before editing the words.
  */
 function Item({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -33,15 +33,14 @@ export function RebuildContent() {
         <p className="mt-3 text-base text-body">{t.rebuild.desc}</p>
       </header>
 
-      {/* 🔴 ĐỨNG TRƯỚC MỌI THỨ, KỂ CẢ "vì sao" (D-081, 2026-08-27).
-          Mạng công khai ĐÃ sinh lại một lượt HÔM NAY, trước ngày G. Cảnh báo về
-          01/09 bên dưới vẫn đúng và vẫn cần — sẽ còn một lượt nữa — nhưng người có
-          token trước hôm nay quay lại sẽ thấy số dư 0 và trang chỉ nói chuyện tương
-          lai. Họ sẽ kết luận ví mình hỏng.
-          ⚠️ Đường cơ sở sáng nay chứng minh KHÔNG chain người dùng nào mất. Faucet
-          thì KHÔNG có sổ bền (chỉ `Map` trong bộ nhớ) nên KHÔNG chứng minh được là
-          không ai mất token — vì thế câu chữ nói "nếu bạn có token trước đó", không
-          nói "không ai mất gì". */}
+      {/* 🔴 BEFORE EVERYTHING ELSE, INCLUDING THE "why" (D-081, 2026-08-27).
+          The public network HAS already been reborn once TODAY, before G-day. The warning about
+          01/09 below is still correct and still needed — there will be one more — but anyone who
+          held tokens before today and comes back sees a zero balance while the page talks only
+          about the future. They will conclude their wallet is broken.
+          ⚠️ This morning's baseline proves NO user chain was lost. The faucet has NO durable
+          ledger (only an in-memory `Map`), so it CANNOT prove nobody lost tokens — which is why
+          the wording says "if you held tokens before then", not "nobody lost anything". */}
       <div className="mt-6">
         <Note tone="warn">
           <p className="font-semibold">{t.rebuild.alreadyTitle}</p>
@@ -80,13 +79,13 @@ export function RebuildContent() {
           <li>{t.rebuild.toDo3}</li>
           <li>{t.rebuild.toDo4}</li>
         </ul>
-        {/* 🔴 ĐƯỜNG ĐI, KHÔNG PHẢI NÚT GỌI VÍ (Đ1-13, 2026-08-27).
-            Đo `27/08`: trang này nhắc chữ "faucet" **13 lần** mà thân trang có
-            **0 `href`** — hai liên kết `/faucet/` duy nhất trong HTML đều là của
-            thanh điều hướng. Trang bảo người ta đi làm một việc rồi không chỉ đường.
-            ⚠️ CỐ Ý chỉ thêm thẻ `<a>`, KHÔNG chép nút "Thêm mạng vào ví" sang đây.
-            Luật cũ ở `vi.ts` đúng và giữ nguyên: trang này là trang ĐỌC, mọi thao
-            tác gọi ví phải nằm ở màn có ngữ cảnh xử lý lỗi của nó. */}
+        {/* 🔴 A WAY THROUGH, NOT A WALLET BUTTON (Đ1-13, 2026-08-27).
+            Measured `27/08`: this page says the word "faucet" **13 times** while its body has
+            **0 `href`s** — the only two `/faucet/` links in the HTML belong to the nav bar. The
+            page tells people to go and do something and then gives them no directions.
+            ⚠️ DELIBERATELY only an `<a>` tag; the "Add network to wallet" button is NOT copied
+            here. The existing rule in `vi.ts` is right and stands: this is a READING page, and
+            every wallet-invoking action belongs on a screen that has the error handling for it. */}
         <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-base">
           <a href="/faucet/" className="font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
             {t.nav.faucet}
@@ -100,9 +99,9 @@ export function RebuildContent() {
         </p>
       </Item>
 
-      {/* Đứng NGAY SAU "Bạn cần làm gì": mục trên nói việc phải làm, mục này nói
-          cái sẽ thấy nếu không làm. Đảo thứ tự là bắt người đọc nhớ một cảnh báo
-          trừu tượng trước khi biết nó dẫn tới thao tác nào. */}
+      {/* Placed DIRECTLY AFTER "What you need to do": that section says what to do, this one
+          says what you will see if you do not. Reversing the order asks the reader to remember an
+          abstract warning before knowing which action it leads to. */}
       <Item title={t.rebuild.silentTitle}>
         <p>{interpolate(t.rebuild.silentDesc, { chainId: CHAIN.chainId })}</p>
         <ul className="flex list-disc flex-col gap-2 ps-5">

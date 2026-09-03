@@ -3,31 +3,31 @@ import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 
 /**
- * Trang 404 viết THẲNG trong Caddyfile — bắt nó trôi lệch khỏi hệ nhận diện.
- * (Đ1-2 đường (b), 2026-08-27)
+ * The 404 page written DIRECTLY into the Caddyfile — catching it drifting from the design system.
+ * (Đ1-2, path (b), 2026-08-27)
  *
- * ═══ VÌ SAO BÀI NÀY TỒN TẠI ═══
- * David chọn đường (b): trang 404 tự chứa, viết thẳng vào `local-net/deploy/Caddyfile`,
- * vì bản Caddy đang chạy không có `replace_status` nên không trả được `out/404.html`
- * kèm mã 404, mà trả kèm mã 200 thì thành soft 404.
+ * ═══ WHY THIS SUITE EXISTS ═══
+ * David chose path (b): a self-contained 404 page written straight into
+ * `local-net/deploy/Caddyfile`, because the running Caddy build has no `replace_status` and so
+ * cannot serve `out/404.html` with a 404 status, and serving it with a 200 makes it a soft 404.
  *
- * 🔴 CÁI GIÁ ĐÃ ĐƯỢC NÓI TRƯỚC KHI CHỌN: nội dung bị nhân đôi, và bản trong Caddyfile
- * **không đọc `tokens.css`**. Nghĩa là ngày nào 9Scan đổi màu thương hiệu → A1 chạy
- * `sync-tokens.mjs` → `tokens.css` đổi → còn trang 404 **giữ nguyên màu cũ, im lặng**.
- * Không ai mở trang 404 ra xem sau một lượt đổi màu.
+ * 🔴 THE COST WAS STATED BEFORE THE CHOICE WAS MADE: the content is duplicated, and the copy in
+ * the Caddyfile **does not read `tokens.css`**. Which means the day 9Scan changes a brand colour →
+ * A1 runs `sync-tokens.mjs` → `tokens.css` changes → and the 404 page **keeps the old colours,
+ * silently**. Nobody opens the 404 page to look after a colour change.
  *
- * Bài này biến đúng cái bẫy đó thành phép đo: rút mọi mã màu ra khỏi khối 404 trong
- * Caddyfile, rồi đòi từng mã phải CÓ MẶT trong `tokens.css`. Trôi lệch ⇒ đỏ.
+ * This suite turns that exact trap into a measurement: extract every colour code from the 404
+ * block in the Caddyfile, and require each one to BE PRESENT in `tokens.css`. Drift ⇒ red.
  *
- * ⚠️ Bài này KHÔNG đòi hai bên giống nhau về bố cục hay câu chữ — chỉ đòi **bảng màu
- * là tập con**. Đòi hơn thế là biến một cổng hữu ích thành một cổng hay kêu oan.
+ * ⚠️ It does NOT require the two to match in layout or wording — only that the **palette is a
+ * subset**. Asking for more turns a useful gate into one that cries wolf.
  */
 const CADDY = path.resolve(__dirname, '..', '..', 'local-net', 'deploy', 'Caddyfile');
 const TOKENS = path.resolve(__dirname, '..', 'app', 'tokens.css');
 
 const coCaddy = existsSync(CADDY);
 
-/** Cắt đúng khối `respond <<HTML … HTML 404`. */
+/** Extract exactly the `respond <<HTML … HTML 404` block. */
 function khoi404(): string | null {
   const s = readFileSync(CADDY, 'utf8');
   const i = s.indexOf('respond <<HTML');
@@ -39,8 +39,8 @@ function khoi404(): string | null {
 describe.skipIf(!coCaddy)('trang 404 trong Caddyfile', () => {
   it('vẫn còn trong Caddyfile và trả đúng mã 404', () => {
     const s = readFileSync(CADDY, 'utf8');
-    // `respond … 404` là thứ phân biệt trang lỗi thật với soft 404. Nếu ai đó gỡ
-    // con số đó đi thì trang vẫn hiện ra y hệt — và lỗi trở nên vô hình.
+    // `respond … 404` is what separates a real error page from a soft 404. If someone removes
+    // that number the page still renders identically — and the error becomes invisible.
     expect(s, 'thiếu khối respond trả 404').toContain('HTML 404');
     expect(s, 'thiếu matcher status 404').toMatch(/@loi404\s+status\s+404/);
   });
@@ -48,8 +48,8 @@ describe.skipIf(!coCaddy)('trang 404 trong Caddyfile', () => {
   it('KHÔNG kéo tài nguyên ngoài — nó phải sống được khi mọi thứ khác đã hỏng', () => {
     const k = khoi404();
     expect(k).toBeTruthy();
-    // Người ta rơi vào trang này lúc thứ khác đang hỏng. Mỗi tài nguyên ngoài là
-    // thêm một cách để nó chết cùng lúc với thứ nó đang thay thế.
+    // People land on this page while something else is broken. Every external resource is one more
+    // way for it to die at the same moment as the thing it is standing in for.
     expect(k!, 'không được có <script>').not.toMatch(/<script/i);
     expect(k!, 'không được có <link rel=…>').not.toMatch(/<link\s/i);
     expect(k!, 'không được có <img>').not.toMatch(/<img\s/i);
@@ -75,12 +75,12 @@ describe.skipIf(!coCaddy)('trang 404 trong Caddyfile', () => {
 
   it('có đủ ba đường ra, và chúng là đường THẬT của site', () => {
     const k = khoi404()!;
-    // Một trang 404 không có đường ra thì chỉ đổi ngôn ngữ của ngõ cụt.
+    // A 404 page with no way out only changes the language of the dead end.
     for (const d of ['href="/"', 'href="/faucet/"', 'href="/create-chain/"']) {
       expect(k, `thiếu đường ra ${d}`).toContain(d);
     }
-    // 🔴 Ba đường này phải nằm trong `@trangmoi`, nếu không chính trang 404 lại dẫn
-    // vào 404 — `check-routes.mjs` canh phần đó, đây chỉ canh phần câu chữ.
+    // 🔴 These three paths must be in `@trangmoi`, otherwise the 404 page itself leads into a
+    // 404 — `check-routes.mjs` guards that part; this only guards the wording.
     const s = readFileSync(CADDY, 'utf8');
     const dsTrangMoi = s.match(/@trangmoi\s+path\s+([^\n]*)/)?.[1] ?? '';
     expect(dsTrangMoi, '/faucet/* phải có route').toContain('/faucet/*');
@@ -88,8 +88,8 @@ describe.skipIf(!coCaddy)('trang 404 trong Caddyfile', () => {
   });
 
   it('không mang dấu [?] chờ duyệt giọng ra mạng công khai', () => {
-    // Caddyfile không đi qua `pnpm build` nên cổng chặn `[?]` ở `out/` không với tới
-    // đây. Trang này lại là trang người lạ hay gặp nhất khi gõ sai.
+    // The Caddyfile does not pass through `pnpm build`, so the `[?]` gate over `out/` cannot reach
+    // here. And this is the page a stranger most often meets after a typo.
     expect(khoi404()!).not.toContain('[?]');
   });
 });

@@ -1,35 +1,36 @@
 /**
- * check-links.mjs — mọi liên kết nội bộ trên trang đã deploy phải sống.
+ * check-links.mjs — every internal link on the deployed site must be alive.
  *
- * ═══ VÌ SAO CẦN MỘT PHÉP ĐO RIÊNG ═══
- * Trang này trỏ sang ba loại đích khác nhau, và chỉ MỘT loại được Next kiểm:
- *   1. route của chính bản export (`/faucet/`, `/create-chain/`) — build sẽ đỏ nếu thiếu;
- *   2. đường do **Caddy** phục vụ từ dịch vụ khác (`/console/`, `/chains/`) — Next
- *      không biết chúng tồn tại, nên gõ sai là **404 im lặng**;
- *   3. tên miền ngoài (9Scan) — đổi bên kia thì bên này không hay biết.
- * Loại (2) là chỗ nguy hiểm: nó trông y hệt loại (1) trong mã.
+ * ═══ WHY THIS NEEDS ITS OWN MEASUREMENT ═══
+ * This site points at three kinds of destination, and Next only checks ONE of them:
+ *   1. routes of this export (`/faucet/`, `/create-chain/`) — the build goes red if one is missing;
+ *   2. paths served by **Caddy** from another service (`/console/`, `/chains/`) — Next does not
+ *      know they exist, so a typo is a **silent 404**;
+ *   3. external domains (9Scan) — a change on their side is invisible here.
+ * Kind (2) is the dangerous one: in the code it looks exactly like kind (1).
  *
- * Chạy SAU khi deploy, đo qua tên miền công khai:
+ * Run AFTER deploying, measured through the public domain:
  *   node web/scripts/check-links.mjs [https://a1.9chain.org]
  *
- * 🔴 ĐƯỜNG LUI `/moi/` ĐÃ TỪNG BIẾN BÀI NÀY THÀNH BÀI KIỂM VÔ DỤNG — 2026-08-27.
+ * 🔴 THE `/moi/` FALLBACK ONCE TURNED THIS INTO A USELESS TEST — 2026-08-27.
  *
- * Bản cũ: thử `/x/`, hỏng thì thử `/moi/x/`, đạt một trong hai là **in ra đường dẫn
- * gốc** kèm ✓. Đường lui đó có từ thời gốc `/` còn là Blockscout và site sống dưới
- * `/moi/`. M10.3 đã đưa site lên gốc, nhưng đường lui ở lại — và `/moi/*` vẫn phục
- * vụ TOÀN BỘ site tĩnh, nên nó **luôn luôn đạt**. Hệ quả: một trang chết ở đường
- * canonical vẫn được báo ✓ kèm đúng `<title>`, vì cái title đó lấy từ alias.
+ * The old version: try `/x/`, and on failure try `/moi/x/`; if either passed it **printed the
+ * canonical path** with a ✓. That fallback dated from when the root `/` was still Blockscout and
+ * the site lived under `/moi/`. M10.3 moved the site to the root, but the fallback stayed — and
+ * `/moi/*` still serves the ENTIRE static site, so it **always passes**. The consequence: a page
+ * dead at its canonical path was still reported ✓ with the correct `<title>`, because that title
+ * came from the alias.
  *
- * Đã trả giá thật: `/re-genesis/` **404 trên mạng công khai** (rơi xuống Blockscout,
- * bị strip trailing slash rồi 404) suốt từ lúc trang ra đời, trong khi mọi lượt
- * `web-deploy.sh` đều in `✓ /re-genesis/ 200`. Dải cảnh báo ngày G nằm trên MỌI
- * trang và trỏ vào đúng đường đó. Nguyên nhân gốc ở `Caddyfile:328` — danh sách
- * `@trangmoi` không có `/re-genesis/*`.
+ * The real cost: `/re-genesis/` was **404 on the public network** (falling through to Blockscout,
+ * trailing slash stripped, then 404) from the day it was created, while every run of
+ * `web-deploy.sh` printed `✓ /re-genesis/ 200`. The G-day warning strip was on EVERY page and
+ * pointed at exactly that path. Root cause at `Caddyfile:328` — the `@trangmoi` list had no
+ * `/re-genesis/*`.
  *
- * Nay: **đường canonical là thứ được chấm.** Alias chỉ dùng để CHẨN ĐOÁN — sống ở
- * alias mà chết ở canonical là một loại hỏng RIÊNG, và nó được gọi đúng tên như
- * vậy, vì nó chỉ thẳng vào một route còn thiếu trong Caddyfile.
- * Đặt `A1_TIEN_TO=` (rỗng) để tắt hẳn phần chẩn đoán này.
+ * Now: **the canonical path is what is graded.** The alias is used only for DIAGNOSIS — alive at
+ * the alias but dead at the canonical is its OWN kind of failure, and it is named as such,
+ * because it points straight at a route missing from the Caddyfile.
+ * Set `A1_TIEN_TO=` (empty) to switch that diagnosis off entirely.
  */
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
@@ -54,12 +55,12 @@ function quet(dir, ra = []) {
   return ra;
 }
 
-const dich = new Map(); // đường dẫn -> [trang nguồn]
+const dich = new Map(); // path -> [source pages]
 for (const f of quet(RA)) {
   const tu = path.relative(RA, f).replace(/\\/g, '/');
   for (const m of readFileSync(f, 'utf8').matchAll(/href="(\/[^"#?]*)"/g)) {
     const d = m[1];
-    // Bỏ tài nguyên tĩnh: chúng đã được `web-deploy.sh` kiểm bằng một chunk thật.
+    // Skip static assets: `web-deploy.sh` already checks those with one real chunk.
     if (d.startsWith('/_next/') || /\.(css|js|png|svg|ico|webmanifest)$/.test(d)) continue;
     if (!dich.has(d)) dich.set(d, []);
     dich.get(d).push(tu);
@@ -67,15 +68,15 @@ for (const f of quet(RA)) {
 }
 
 /**
- * 🔴 ĐO NỘI DUNG, KHÔNG ĐO MÃ TRẠNG THÁI.
+ * 🔴 MEASURE THE CONTENT, NOT THE STATUS CODE.
  *
- * Gốc `/` là Blockscout, và nó là SPA: mọi đường dẫn lạ đều trả **HTTP 200** kèm
- * khung rỗng, không phải 404. Nên một bài kiểm liên kết chỉ nhìn mã sẽ **toàn màu
- * xanh** trong khi người dùng bấm vào và thấy trang trắng — đã ra xanh giả đúng thế
- * 2026-08-25 với `/tc-a/` và `/create-chain/`.
+ * The root `/` is Blockscout, and it is an SPA: every unknown path returns **HTTP 200** with an
+ * empty shell, not a 404. So a link check that only looks at the code comes back **all green**
+ * while users click through to a blank page — that exact false green happened on 2026-08-25 with
+ * `/tc-a/` and `/create-chain/`.
  *
- * Dấu hiệu "đúng trang": có `<title>` KHÔNG rỗng. Trang của ta luôn có; khung rỗng
- * của Blockscout thì không.
+ * The "this is the right page" signal: a NON-EMPTY `<title>`. Our pages always have one;
+ * Blockscout's empty shell does not.
  */
 async function thu(url) {
   try {
@@ -100,9 +101,9 @@ for (const [d, nguon] of [...dich].sort()) {
     continue;
   }
 
-  // Canonical đã chết. Hỏi alias MỘT câu duy nhất: đây là "chưa deploy" hay là
-  // "thiếu route"? Hai thứ đó sửa ở hai nơi khác nhau, nên phải phân biệt được —
-  // nhưng cả hai đều là HỎNG, alias sống không cứu được đường canonical.
+  // The canonical path is dead. Ask the alias ONE question: is this "not deployed yet" or
+  // "route missing"? Those are fixed in two different places, so they must be told apart —
+  // but both are FAILURES; a live alias does not rescue the canonical path.
   const alias = TIEN_TO && !d.startsWith(TIEN_TO) ? await thu(`${NEN}${TIEN_TO}${d}`) : null;
   hong++;
   const maGoc = `${goc.ma}${goc.ma === 200 ? '(khung rỗng)' : ''}`;
@@ -124,20 +125,22 @@ if (chiSongOAlias) {
 console.log(hong ? `\n✗ ${hong}/${dich.size} liên kết chết` : `\n✓ ${dich.size}/${dich.size} liên kết sống`);
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   CỔNG NGÀY G — chỉ bật bằng `A1_SAU_NGAY_G=1` (Đ1-12, 2026-08-27)
+   THE G-DAY GATE — only enabled with `A1_SAU_NGAY_G=1` (Đ1-12, 2026-08-27)
 
-   🔴 VÌ SAO PHẢI CÓ, DÙ ĐÃ CÓ RUNBOOK: bộ đo hiện tại chỉ đòi `<title>` khác rỗng.
-   Sau `01/09`, title `A1 sinh lại ngày 01/09/2026` **vẫn khác rỗng** — nên nó xanh
-   trên một trang nói ở THÌ TƯƠNG LAI về một việc ĐÃ XẢY RA. Xanh giả, đúng lúc đắt
-   nhất, và không ai nhìn ra vì con số cổng vẫn đẹp.
+   🔴 WHY IT IS NEEDED DESPITE THE RUNBOOK: the current measurement only requires a non-empty
+   `<title>`. After `01/09`, the title `A1 is being rebuilt on 2026-09-01` is **still non-empty**
+   — so it goes green on a page speaking in the FUTURE TENSE about something that HAS ALREADY
+   HAPPENED. A false green at the most expensive possible moment, and nobody notices because the
+   gate's numbers still look fine.
 
-   Cổng này đo NỘI DUNG, và đo ở HAI trang khác nhau có chủ ý: dải banner nằm trong
-   layout gốc, nên "trang này đúng, trang kia còn bản cũ" là dấu hiệu `web/out` chép
-   thiếu — đúng bẫy inode bind-mount đã cắn `25/08`. Đo một trang thì không thấy.
+   This gate measures CONTENT, and deliberately measures TWO different pages: the banner strip
+   lives in the root layout, so "this page is right, that page still has the old copy" is the
+   signature of an incomplete `web/out` copy — exactly the bind-mount inode trap that bit on
+   `25/08`. Measuring one page cannot see it.
 
-   Bật bằng biến môi trường chứ không bật mặc định: hôm nay nó PHẢI đỏ (trang đang
-   đúng ở thì tương lai), và một cổng đỏ mặc định trong 5 ngày sẽ bị bỏ qua.
-   Chạy thử hôm nay để xác nhận nó biết đỏ:
+   Enabled by an environment variable rather than by default: today it MUST be red (the page is
+   correctly in the future tense), and a gate that is red by default for 5 days gets ignored.
+   Run it today to confirm it knows how to be red:
        A1_SAU_NGAY_G=1 node scripts/check-links.mjs
    ═══════════════════════════════════════════════════════════════════════════ */
 let hongNgayG = 0;
@@ -164,9 +167,9 @@ if (process.env.A1_SAU_NGAY_G === '1') {
       hongNgayG++;
     }
   };
-  // Bản công bố đã lên: trang re-genesis nói ở thì QUÁ KHỨ…
+  // The announcement is live: the re-genesis page speaks in the PAST tense…
   await doNoiDung('/re-genesis/', 'đã sinh lại', true);
-  // …và ĐỐI CHỨNG NGƯỢC: dải cảnh báo thì tương lai không còn ở trang khác.
+  // …and THE REVERSE CHECK: the future-tense warning strip is gone from the other page.
   await doNoiDung('/faucet/', 'sẽ bị xoá', false);
   console.log(hongNgayG ? `\n✗ cổng ngày G: ${hongNgayG} phép đo chưa đạt` : '\n✓ cổng ngày G đạt');
 }

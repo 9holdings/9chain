@@ -7,21 +7,21 @@ import { useT } from '@/lib/i18n';
 import { readDirectory } from '@/lib/directory';
 
 /**
- * Danh sách L1 đã có, đọc từ hợp đồng dữ liệu `console-chains.json`.
+ * The list of existing L1s, read from the `console-chains.json` data contract.
  *
- * 🔴 KHOÁ THIẾU LÀ TRẠNG THÁI HỢP LỆ, KHÔNG PHẢI LỖI. Chain đẻ trước khi console có
- * trường `admin`/`presetName` sẽ không có hai khoá đó (OmegaChain là một). Bản chép
- * tay cũ của trang danh bạ từng để `undefined` lọt ra mặt người dùng. Ở đây: thiếu
- * chủ ⇒ "mặc định của hệ thống"; thiếu kiểu ⇒ để trống, không bịa.
+ * 🔴 A MISSING KEY IS A VALID STATE, NOT AN ERROR. Chains launched before the console had an
+ * `admin`/`presetName` field simply do not have those two keys (OmegaChain is one). The old
+ * hand-written directory page used to let `undefined` reach the user's screen. Here: no owner ⇒
+ * "system default"; no type ⇒ leave it blank, do not invent one.
  *
- * ⚠️ Trang này CHỈ ĐỌC. Danh bạ đầy đủ (đo sống/chết bằng số validator của subnet)
- * là của 9Scan-A1 — A1 không lấn sân, chỉ mượn dữ liệu để dẫn người dùng.
+ * ⚠️ This page is READ-ONLY. The full directory (measuring alive/dead by a subnet's validator
+ * count) belongs to 9Scan-A1 — A1 does not encroach, it only borrows the data to guide users.
  */
 /**
- * `presetTen` là khoá CŨ, viết bởi console trước lần chuẩn hoá tên tiếng Anh
- * (2026-08-26). Bản ghi đẻ trước mốc đó vẫn mang nó, và bản ghi ĐÃ ĐẺ thì không
- * viết lại — nên đọc cả hai. Bỏ nhánh cũ đi được khi không còn bản ghi nào trước
- * mốc, nhưng nhớ rằng phục hồi từ backup cũ sẽ mang chúng quay lại.
+ * `presetTen` is the OLD key, written by the console before the English naming pass (2026-08-26).
+ * Records created before that date still carry it, and records ALREADY WRITTEN are not rewritten
+ * — so read both. The old branch can go once no pre-cutoff record remains, but remember that
+ * restoring an old backup brings them back.
  */
 type Chain = { name: string; chainId: number; admin?: string; presetName?: string; presetTen?: string };
 type TT = { phase: 'tai' } | { phase: 'xong'; list: Chain[] } | { phase: 'hong' };
@@ -34,10 +34,10 @@ export function ChainTable() {
   useEffect(() => {
     let cancelled = false;
     setState({ phase: 'tai' });
-    // Hạn giờ (Đ1-8) vẫn còn, nay nằm trong `lib/directory.ts` cùng với lượt đọc:
-    // đây là một lượt ĐỌC tệp tĩnh, và không có hạn thì một kết nối treo để bảng ở
-    // khung xương vĩnh viễn — trang trông như đang tải mãi mãi, và người dùng không
-    // có gì để bấm. Lượt đọc đó DÙNG CHUNG với `useNetworkStats` ở cùng trang này.
+    // The timeout (Đ1-8) is still there, now inside `lib/directory.ts` alongside the read: this is
+    // a READ of a static file, and without a limit one hung connection leaves the table as a
+    // skeleton forever — the page looks like it is loading indefinitely and the user has nothing
+    // to click. That read is SHARED with `useNetworkStats` on this same page.
     readDirectory()
       .then((j) => {
         if (cancelled) return;
@@ -85,14 +85,15 @@ export function ChainTable() {
 
   return (
     <>
-      {/* 🔴 CHÚ THÍCH NÀY CHỈ HIỆN KHI BẢNG CÓ DÒNG (Đ1-4).
-          Trước 2026-08-27 câu "Mỗi dòng là một chain thật đang chạy" nằm ở `<p>` dưới
-          `<h1>` — tức nó hiện ra KỂ CẢ khi bảng rỗng, và lúc đó nó trỏ vào những dòng
-          không tồn tại. Đặt ở đây thì câu chỉ tồn tại cùng lúc với thứ nó mô tả. */}
+      {/* 🔴 THIS NOTE ONLY APPEARS WHEN THE TABLE HAS ROWS (Đ1-4).
+          Before 2026-08-27 the sentence "Each row is a real chain that is running" sat in a `<p>`
+          under the `<h1>` — meaning it appeared EVEN WHEN the table was empty, at which point it
+          pointed at rows that did not exist. Placed here, the sentence only exists at the same
+          time as the thing it describes. */}
       <p className="mb-3 text-sm text-body">{t.home.tableCaption}</p>
       <Card className="overflow-hidden">
-      {/* Bảng rộng phải cuộn TRONG khung của nó — để cả trang cuộn ngang là hỏng
-          bố cục ở điện thoại, và đó là lỗi hay gặp nhất với bảng. */}
+      {/* A wide table must scroll INSIDE its own frame — letting the whole page scroll
+          horizontally breaks the layout on a phone, and that is the most common fault with tables. */}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[34rem] border-collapse text-sm">
           <caption className="sr-only">{t.home.tableCaption}</caption>

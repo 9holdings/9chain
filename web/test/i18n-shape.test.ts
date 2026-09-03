@@ -5,27 +5,27 @@ import { EN } from '../lib/i18n/en';
 import { LANGUAGES, DEFAULT_CODE } from '../lib/i18n/languages';
 
 /**
- * Hình dạng khoá phải KHỚP TUYỆT ĐỐI giữa 30 từ điển.
- * (Đa ngôn ngữ, 2026-08-27)
+ * The key shape must MATCH EXACTLY across all 30 dictionaries.
+ * (i18n, 2026-08-27)
  *
- * ═══ VÌ SAO ĐÂY LÀ CỔNG QUAN TRỌNG NHẤT CỦA CẢ HỆ ═══
- * Một khoá thiếu trong bản dịch KHÔNG làm hỏng build và KHÔNG ném lỗi lúc chạy —
- * nó chỉ hiện ra `undefined` ở giữa một câu, hoặc tệ hơn: rơi về tiếng Anh trong khi
- * mọi câu quanh nó là tiếng khác. Người dùng thấy một trang lai, không có gì báo cho
- * đội biết. Với 30 ngôn ngữ × 246 khoá = 7.380 chỗ để chuyện đó xảy ra.
+ * ═══ WHY THIS IS THE MOST IMPORTANT GATE IN THE WHOLE SYSTEM ═══
+ * A key missing from a translation does NOT break the build and does NOT throw at runtime —
+ * it simply renders `undefined` in the middle of a sentence, or worse: falls back to English
+ * while every sentence around it is in another language. The user sees a hybrid page and
+ * nothing tells the team. With 30 languages × 246 keys that is 7,380 places for it to happen.
  *
- * `tsc` bắt được phần lớn nhờ `type Dict = typeof EN`, nhưng KHÔNG bắt được:
- *   • khoá thừa (TS cho phép object rộng hơn ở một số vị trí)
- *   • `{chỗ}` bị dịch mất hoặc gõ sai — `{ten}` thành `{name}` thì `interpolate()` giữ
- *     nguyên dấu ngoặc và người dùng đọc thấy `{name}` giữa câu
- *   • chuỗi rỗng — hợp kiểu, nhưng trên màn hình là một khoảng trắng
+ * `tsc` catches most of it thanks to `type Dict = typeof EN`, but it does NOT catch:
+ *   • extra keys (TS permits a wider object in some positions)
+ *   • a `{placeholder}` translated away or mistyped — `{ten}` becoming `{name}` leaves
+ *     `interpolate()` holding the braces, and the user reads `{name}` mid-sentence
+ *   • an empty string — well typed, but blank on screen
  *
- * Bài này bắt cả ba, và nó chạy trên MỌI từ điển có mặt trong `dicts/`.
+ * This suite catches all three, and it runs over EVERY dictionary present in `dicts/`.
  */
 
 const THU_MUC = path.resolve(__dirname, '..', 'lib', 'i18n', 'dicts');
 
-/** Bẹt một object lồng thành danh sách đường khoá: `chung.dangTai`. */
+/** Flatten a nested object into a list of key paths: `chung.dangTai`. */
 function betKhoa(o: unknown, tien = ''): string[] {
   if (o === null || typeof o !== 'object') return [tien];
   return Object.entries(o as Record<string, unknown>).flatMap(([k, v]) =>
@@ -33,7 +33,7 @@ function betKhoa(o: unknown, tien = ''): string[] {
   );
 }
 
-/** Lấy mọi `{chỗ}` trong một chuỗi, đã sắp xếp để so được. */
+/** Collect every `{placeholder}` in a string, sorted so they can be compared. */
 function cacCho(s: string): string[] {
   return [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
 }
@@ -44,7 +44,7 @@ function layGiaTri(o: unknown, urlPath: string): unknown {
 
 const KHOA_EN = betKhoa(EN).sort();
 
-/** Khoá CỐ Ý để rỗng — điền vào đúng ngày G. Xem `reGenesisXong` trong `en.ts`. */
+/** Keys DELIBERATELY left empty — filled in on G-day itself. See `reGenesisXong` in `en.ts`. */
 const DUOC_RONG = new Set(['rebuildDone.archiveUrl', 'rebuildDone.archiveSha256', 'myChains.colActions']);
 
 describe('sổ đăng ký ngôn ngữ', () => {
@@ -55,15 +55,15 @@ describe('sổ đăng ký ngôn ngữ', () => {
   });
 
   it('tiếng Việt ở ĐÚNG vị trí thứ 9 — David chốt', () => {
-    // Vị trí này là một yêu cầu sản phẩm, không phải hệ quả của bảng xếp hạng nào.
-    // Không có bài kiểm thì lần sắp xếp lại đầu tiên sẽ lặng lẽ đẩy nó đi chỗ khác.
+    // This position is a product requirement, not the result of any ranking.
+    // Without a test the first re-sort would quietly move it somewhere else.
     expect(LANGUAGES.findIndex((n) => n.code === 'vi')).toBe(8);
   });
 
   it('không mã nào trùng, và mọi mã đều hợp lệ cho <html lang>', () => {
     const code = LANGUAGES.map((n) => n.code);
     expect(new Set(code).size).toBe(code.length);
-    // Mã sai đi thẳng vào `<html lang>` và trình đọc màn hình chọn giọng theo đó.
+    // A wrong code goes straight into `<html lang>` and screen readers pick their voice from it.
     for (const m of code) expect(m, `mã lạ: ${m}`).toMatch(/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/);
   });
 
@@ -73,17 +73,17 @@ describe('sổ đăng ký ngôn ngữ', () => {
   });
 
   it('khai mức độ soát — và tiếng Việt là bản có người soát', () => {
-    // 🔴 Trường này tồn tại để bộ chọn KHÔNG bày 30 ngôn ngữ trông ngang nhau trong
-    // khi 29 bản là máy dịch. Site này nói với người lạ rằng tài sản của họ sẽ bị
-    // xoá — giấu mức độ soát ở đó là đúng lớp lỗi dự án vừa gỡ khỏi trang chủ.
+    // 🔴 This field exists so the picker does NOT present 30 languages as equals while 29 are
+    // machine-translated. This site tells strangers their assets will be erased — hiding the
+    // review level there is the same class of failure just removed from the home page.
     for (const n of LANGUAGES) expect(['source', 'human', 'machine']).toContain(n.review);
     expect(LANGUAGES.find((n) => n.code === 'vi')?.review).toBe('human');
 
-    // 🔴 ĐÚNG MỘT bản gốc, và nó phải là ngôn ngữ mặc định.
-    // Bản trước của bài này chỉ đòi `soat` nằm trong tập hợp lệ, nên nó xanh trong
-    // suốt quãng `en` bị khai là `'may'` — tức trình đọc màn hình đọc "English —
-    // máy dịch" về chính bản gốc, và không cổng nào thấy. Một tập hợp lệ không
-    // thay được một phép so với sự thật.
+    // 🔴 EXACTLY ONE source, and it must be the default language.
+    // The previous version of this test only required `soat` to be in the valid set, so it was
+    // green for the whole period `en` was declared as `'may'` — meaning screen readers announced
+    // "English — machine translated" about the source itself, and no gate saw it. A valid set is
+    // not a substitute for a comparison against the truth.
     const goc = LANGUAGES.filter((n) => n.review === 'source');
     expect(goc.map((n) => n.code)).toEqual([DEFAULT_CODE]);
   });
@@ -94,7 +94,7 @@ describe('hình dạng từ điển', () => {
   const cacTep = coThuMuc ? readdirSync(THU_MUC).filter((f) => f.endsWith('.ts')) : [];
 
   it('mọi ngôn ngữ trong sổ (trừ EN) đều có tệp từ điển', () => {
-    if (!coThuMuc) return; // chưa dựng xong — không bắt đỏ ở giai đoạn dở dang
+    if (!coThuMuc) return; // not built yet — do not go red during the half-built stage
     const caned = LANGUAGES.map((n) => n.code).filter((m) => m !== DEFAULT_CODE);
     const dangCo = cacTep.map((f) => f.replace(/\.ts$/, ''));
     const thieu = caned.filter((m) => !dangCo.includes(m));
@@ -114,8 +114,8 @@ describe('hình dạng từ điển', () => {
       });
 
       it('giữ nguyên mọi {chỗ} của bản gốc', async () => {
-        // `interpolate()` chỉ thay khoá nó biết. Dịch `{ten}` thành `{name}` là người dùng
-        // đọc thấy nguyên chữ `{name}` giữa câu — không lỗi, không ai hay.
+        // `interpolate()` only replaces keys it knows. Translating `{ten}` into `{name}` means the
+        // user reads the literal text `{name}` mid-sentence — no error, nobody notices.
         const m = await import(`../lib/i18n/dicts/${code}`);
         const lech: string[] = [];
         for (const k of KHOA_EN) {
@@ -144,9 +144,9 @@ describe('hình dạng từ điển', () => {
 
 describe('đoán ngôn ngữ cho người mới', () => {
   it('trình duyệt tiếng Việt ⇒ tiếng Việt, KHÔNG phải mặc định', async () => {
-    // 🔴 Đây là phép đo bảo vệ người dùng hiện tại. Đổi mặc định sang tiếng Anh mà
-    // cơ chế này hỏng thì mọi người Việt đang dùng site đột nhiên thấy tiếng Anh —
-    // một thay đổi họ không yêu cầu và không hiểu vì sao.
+    // 🔴 This measurement protects existing users. If the default moves to English while this
+    // mechanism is broken, every Vietnamese user of the site suddenly sees English — a change
+    // they did not ask for and cannot explain.
     const { guessLanguage } = await import('../lib/i18n/languages');
     expect(guessLanguage(['vi-VN', 'vi', 'en'])).toBe('vi');
     expect(guessLanguage(['vi'])).toBe('vi');
@@ -154,9 +154,9 @@ describe('đoán ngôn ngữ cho người mới', () => {
 
   it('lấy ngôn ngữ ĐẦU TIÊN mà site có, không phải cái khớp cuối', async () => {
     const { guessLanguage } = await import('../lib/i18n/languages');
-    // Người đặt tiếng Nhật trước tiếng Anh thì phải nhận tiếng Nhật — nhưng `ja`
-    // chưa có từ điển nên sổ vẫn khai nó, và provider sẽ rơi về EN khi nạp hỏng.
-    // Ở TẦNG NÀY chỉ hỏi "sổ có mã đó không", đúng phạm vi của hàm.
+    // Someone with Japanese ahead of English must get Japanese — but `ja` has no dictionary yet,
+    // so the registry still declares it and the provider falls back to EN when the load fails.
+    // AT THIS LAYER we only ask "is that code in the registry", which is this function's scope.
     expect(guessLanguage(['ja-JP', 'en-US'])).toBe('ja');
     expect(guessLanguage(['xx-YY', 'vi-VN'])).toBe('vi');
   });
@@ -171,16 +171,16 @@ describe('đoán ngôn ngữ cho người mới', () => {
 
 describe('chặn ngôn ngữ chưa có từ điển', () => {
   it('hasDictionary() nói ĐÚNG cái gì nạp được, không nói cái gì có trong sổ', async () => {
-    // 🔴 Bug bắt được lúc viết test, không phải lúc chạy: sổ khai đủ 30 ngôn ngữ
-    // trong khi chỉ một phần có từ điển. Nếu `maBanDau()` chỉ lọc qua `isValidCode()`
-    // thì người dùng trình duyệt tiếng Nhật nhận `ma = 'ja'`, chữ rơi về tiếng Anh,
-    // NHƯNG `<html lang>` bị đặt thành `ja` ⇒ trình đọc màn hình đọc tiếng Anh bằng
-    // ngữ âm tiếng Nhật. Không lỗi, không cảnh báo, người dùng bằng mắt không thấy.
+    // 🔴 A bug caught while writing the test, not at runtime: the registry declares all 30
+    // languages while only some have dictionaries. If `maBanDau()` filtered only through
+    // `isValidCode()`, a user with a Japanese browser would get `ma = 'ja'`, the text would fall
+    // back to English, BUT `<html lang>` would be set to `ja` ⇒ the screen reader reads English
+    // in Japanese phonetics. No error, no warning, and a sighted user sees nothing.
     //
-    // ⚠️ BÀI NÀY TỰ BẢO TRÌ. Bản đầu gọi thẳng tên `ja`, và nó đỏ ngay lúc `ja` có
-    // từ điển — tức nó bắt tôi sửa test mỗi lô thay vì bắt lỗi thật. Nay nó TỰ TÌM
-    // một ngôn ngữ còn thiếu. Khi đủ 30 bản thì không còn ca nào để thử, và bài
-    // chuyển sang khẳng định đúng điều đó thay vì im lặng bỏ qua.
+    // ⚠️ THIS TEST MAINTAINS ITSELF. The first version named `ja` directly, and it went red the
+    // moment `ja` got a dictionary — i.e. it made me edit the test with every batch instead of
+    // catching real bugs. It now FINDS a missing language by itself. Once all 30 exist there is
+    // no case left to try, and the test asserts exactly that rather than skipping silently.
     const { hasDictionary } = await import('../lib/i18n');
     const { isValidCode, DEFAULT_CODE } = await import('../lib/i18n/languages');
 
@@ -192,13 +192,13 @@ describe('chặn ngôn ngữ chưa có từ điển', () => {
     const conThieu = LANGUAGES.map((n) => n.code).filter((m) => m !== DEFAULT_CODE && !dangCo.includes(m));
 
     if (conThieu.length === 0) {
-      // Đủ 30 bản — không còn ca nào để thử. Khẳng định thẳng thay vì bỏ qua lặng lẽ.
+      // All 30 present — no case left to try. Assert it outright rather than skipping silently.
       for (const n of LANGUAGES) expect(hasDictionary(n.code), `${n.code} phải nạp được`).toBe(true);
       return;
     }
 
     const thu = conThieu[0];
-    // Hai khẳng định này CÙNG NHAU mới là phép đo: mã hợp lệ theo sổ NHƯNG chưa nạp được.
+    // These two assertions TOGETHER are the measurement: a code valid per the registry BUT not loadable.
     expect(isValidCode(thu), `sổ CÓ khai ${thu}`).toBe(true);
     expect(hasDictionary(thu), `${thu} chưa có từ điển ⇒ không được chọn`).toBe(false);
   });

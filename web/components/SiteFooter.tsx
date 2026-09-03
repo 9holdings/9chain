@@ -5,29 +5,29 @@ import { CHAIN, explorerOrigin } from '@/lib/chain';
 import { BrandLockup } from './BrandLockup';
 
 /**
- * Chân trang (Đ1-13, 2026-08-27).
+ * The site footer (Đ1-13, 2026-08-27).
  *
- * Bản trước có **0 liên kết** — chỉ logo + hai dòng chữ. Mọi đường đi của site nằm
- * hết ở thanh điều hướng trên cùng, nên người đọc tới cuối trang là tới ngõ cụt.
+ * The previous version had **0 links** — just a logo and two lines of text. Every path through
+ * the site lived in the top nav bar, so a reader reaching the bottom of the page reached a dead end.
  *
- * 🔴 CHỈ ĐẶT LIÊN KẾT ĐÃ ĐO LÀ SỐNG. Đo `27/08`:
+ * 🔴 ONLY LINKS MEASURED TO BE ALIVE. Measured `27/08`:
  *     https://a1.9scan.org      → 200
  *     https://9chain.org/       → 200
- *     https://9chain.org/docs/  → 404  ⇒ CỐ Ý không có mục tài liệu ở đây
- * Một chân trang đầy liên kết hỏng tệ hơn một chân trang rỗng: nó hứa rồi nuốt lời
- * ngay tại chỗ. (Trang chủ 9Scan-A1 hiện đang có đúng hai liên kết chết vào
- * `/docs/` — đã báo họ, không chép sang đây.)
+ *     https://9chain.org/docs/  → 404  ⇒ DELIBERATELY no documentation entry here
+ * A footer full of broken links is worse than an empty one: it makes a promise and breaks it on
+ * the spot. (The 9Scan-A1 home page currently has exactly two dead links into `/docs/` — they
+ * have been told, and it is not being copied here.)
  *
- * ⚠️ Mục "liên hệ / báo lỗi" CỐ Ý chưa có — kênh thật là câu hỏi **D2** David chưa
- * trả lời. Bịa một địa chỉ để chân trang trông đầy đủ là thứ tệ nhất ở đây: người ta
- * sẽ viết vào đó và không ai đọc.
+ * ⚠️ A "contact / report a bug" entry is DELIBERATELY absent — the real channel is question **D2**,
+ * which David has not answered. Inventing an address to make the footer look complete is the worst
+ * thing here: people would write to it and nobody would read it.
  *
- * 🔴 `/re-genesis/` NẰM Ở ĐÂY LÀ CÓ CHỦ Ý, không phải cho đủ chỗ. Hôm nay nó có ĐÚNG
- * MỘT đường vào — dải banner — mà dải đó **được lên lịch gỡ vào ngày G**. Gỡ xong là
- * trang cảnh báo mất luôn đường vào cuối cùng, đúng lúc người ta cần đọc lại nó nhất.
+ * 🔴 `/re-genesis/` IS HERE ON PURPOSE, not as filler. Today it has EXACTLY ONE way in — the
+ * banner strip — and that strip is **scheduled to be removed on G-day**. Once it goes, the warning
+ * page loses its last entrance, exactly when people most need to read it again.
  */
 
-/** Một liên kết ngoài: luôn `rel` an toàn, và nói cho trình đọc màn hình biết nó mở tab mới. */
+/** An external link: always a safe `rel`, and it tells screen readers it opens a new tab. */
 function NgoaiTrang({ href, children }: { href: string; children: React.ReactNode }) {
   const t = useT();
   return (
@@ -71,11 +71,11 @@ export function SiteFooter() {
       <div className="khung py-10 text-sm text-body-2">
         <div className="flex flex-col gap-8 md:flex-row md:justify-between">
           <div className="flex flex-col gap-3">
-            {/* Chân trang dùng `bg-surface` — nền ĐỔI theo theme (trắng ở bản sáng,
-                #131c33 ở bản tối) ⇒ logo phải đổi theo, nên `nen="theo-theme"`.
-                Khác header: header luôn navy nên luôn dùng bản nền tối. */}
-            {/* 26 → 34 cùng lượt với header (`2026-09-03`) — giữ nguyên nếp cũ là
-                chân trang nhỏ hơn header một bậc, chứ không phóng to riêng một chỗ. */}
+            {/* The footer uses `bg-surface` — a background that CHANGES with the theme (white in
+                light, #131c33 in dark) ⇒ the logo has to follow, hence `nen="theo-theme"`.
+                Unlike the header: the header is always navy, so it always uses the dark version. */}
+            {/* 26 → 34 in the same pass as the header (`2026-09-03`) — keeping the existing convention
+                that the footer sits one step below the header, rather than enlarging one place alone. */}
             <BrandLockup background="auto" height={34} label={t.common.productName} />
             <p className="max-w-xs">{t.common.shortDesc}</p>
           </div>

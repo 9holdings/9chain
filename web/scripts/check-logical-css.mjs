@@ -6,9 +6,9 @@
  *
  * ═══ WHY THIS GATE EXISTS ═══
  * Three of the thirty languages are right-to-left (`ar`, `fa`, `ur`), and the project
- * has been telling itself since 2026-08-28 that this costs nothing: *"bộ component vốn
- * dùng thuộc tính logic (`ms-`, `end-`, `text-start`) nên không phải sửa một dòng nào
- * cho hướng viết. Giữ nếp đó."*
+ * has been telling itself since 2026-08-28 that this costs nothing — the handoff note read, in
+ * translation: *"the component set already uses logical properties (`ms-`, `end-`, `text-start`),
+ * so not one line needs changing for writing direction. Keep it that way."*
  *
  * That claim was false when it was written, and nothing could tell. The i18n audit of
  * 2026-09-03 measured the RUNNING site in Persian and Arabic and found ELEVEN physical
@@ -46,9 +46,9 @@ const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const QUET = ['app', 'components'];
 
 /**
- * Mỗi lớp vật lý đi kèm lớp logic thay thế — thông báo phải NÓI ĐƯỢC phải đổi thành
- * gì. Một cổng chỉ hô "sai rồi" thì người đọc nó vẫn phải đi tra tài liệu Tailwind,
- * và lần thứ ba thì họ tắt cổng.
+ * Every physical class comes with its logical replacement — the message must SAY what to change
+ * it to. A gate that only shouts "wrong" leaves its reader to go and look up the Tailwind docs,
+ * and by the third time they switch the gate off.
  */
 const LUAT = [
   [/\btext-left\b/g, 'text-start'],
@@ -66,9 +66,9 @@ const LUAT = [
 ];
 
 /**
- * Miễn trừ — phải ghi LÝ DO, và lý do phải là "chỗ này thật sự vật lý", không phải
- * "chỗ này sửa phiền". Rỗng là trạng thái đúng; mỗi dòng thêm vào đây là một chỗ RTL
- * sẽ sai và ta chấp nhận nó một cách có ý thức.
+ * Exemptions — a REASON is required, and the reason must be "this place really is physical", not
+ * "this place is annoying to fix". Empty is the correct state; every line added here is a place
+ * RTL will be wrong and we accept it knowingly.
  */
 const MIEN_TRU = [];
 
@@ -87,10 +87,10 @@ for (const goc of QUET) {
     const rel = path.relative(GOC, p).replace(/\\/g, '/');
     if (MIEN_TRU.some((m) => m.tep === rel)) continue;
     const src = readFileSync(p, 'utf8');
-    // 🔴 CHỈ ĐỌC TRONG `className` — không quét cả tệp.
-    // Quét cả tệp thì mọi chú thích nhắc tới `pl-5` (kể cả chú thích GIẢI THÍCH luật
-    // này) đều thành vi phạm, và một cổng kêu về chính tài liệu của nó là cổng sắp
-    // bị gỡ. Chuỗi trong `className` mới là thứ tới được trình duyệt.
+    // 🔴 READ ONLY INSIDE `className` — do not scan the whole file.
+    // Scanning the whole file makes every comment mentioning `pl-5` (including the comment
+    // EXPLAINING this rule) a violation, and a gate that complains about its own documentation is
+    // a gate about to be deleted. The string inside `className` is what reaches the browser.
     for (const m of src.matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\}|\{'([^']*)'\})/g)) {
       const lop = m[1] ?? m[2] ?? m[3] ?? '';
       const dong = src.slice(0, m.index).split('\n').length;

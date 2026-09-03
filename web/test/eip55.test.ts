@@ -1,15 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { toChecksumAddress, checkAddress, shortenAddress } from '../lib/eip55';
-// `allowJs` cho TS suy kiểu thẳng từ file .mjs — không cần khai báo kiểu riêng.
+// `allowJs` lets TS infer types straight from the .mjs file — no separate declaration needed.
 import { toChecksumAddress as chuanGoc } from '../../local-net/lib/eip55.mjs';
 
 /**
- * Bản TS ở `web/lib/eip55.ts` là bản CHÉP của `local-net/lib/eip55.mjs` (lý do ở
- * đầu file đó). Bài này là phép đo trôi lệch: hai bản phải cho ra **y hệt** nhau.
+ * The TS version in `web/lib/eip55.ts` is a COPY of `local-net/lib/eip55.mjs` (the reasoning is at
+ * the top of that file). This suite is the drift measurement: both versions must produce
+ * **identical** results.
  *
- * 🔴 Vì sao đắt: địa chỉ chủ chain đi vào genesis BẤT BIẾN. Nếu bản trình duyệt
- * chấp nhận một địa chỉ mà bản server từ chối (hoặc ngược lại), người dùng gặp một
- * lỗi không giải thích được ở đúng thao tác không làm lại được.
+ * 🔴 Why it is expensive: the chain owner's address goes into an IMMUTABLE genesis. If the browser
+ * version accepts an address the server version rejects (or the reverse), the user hits an
+ * inexplicable error at exactly the operation that cannot be redone.
  */
 describe('EIP-55', () => {
   const VECTOR = [
@@ -24,8 +25,8 @@ describe('EIP-55', () => {
   });
 
   it('trùng từng ký tự với bản .mjs đang chạy trên server', () => {
-    // Vector ngẫu nhiên tất định: một bộ cố định chỉ chứng minh hai bản cùng thuộc
-    // vài trường hợp, còn 200 địa chỉ trải đều mới bắt được lệch ở nhánh hiếm.
+    // Deterministic random vectors: a fixed set only proves the two agree on a handful of cases,
+    // while 200 evenly spread addresses catch a divergence in a rare branch.
     let x = 123456789n;
     for (let i = 0; i < 200; i++) {
       x = (x * 6364136223846793005n + 1442695040888963407n) & ((1n << 64n) - 1n);
@@ -36,15 +37,15 @@ describe('EIP-55', () => {
   });
 
   it('từ chối địa chỉ sai checksum, và gợi ý đường thoát', () => {
-    const hong = '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAeD'; // đổi ký tự cuối
+    const hong = '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAeD'; // last character changed
     const check = checkAddress(hong);
     expect(check.ok).toBe(false);
     if (!check.ok) {
-      // 🔴 So MÃ, không so câu chữ (đổi 2026-09-03). `checkAddress` nay trả về mã và
-      // chỗ render tra câu trong từ điển, nên một bài kiểm so chuỗi sẽ vừa khoá cứng
-      // một ngôn ngữ vừa đỏ mỗi lần ai đó sửa câu.
+      // 🔴 Compare the CODE, not the wording (changed 2026-09-03). `checkAddress` now returns a code
+      // and the render site looks the sentence up in the dictionary, so a string-comparing test would
+      // both pin one language and go red whenever someone edits the wording.
       expect(check.code).toBe('checksum');
-      // Gợi ý phải là đường đi TIẾP được, không phải một lời trách.
+      // The hint has to be a way FORWARD, not a reproach.
       expect(check.hint).toBe(hong.toLowerCase());
     }
   });

@@ -1,20 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
-// `allowJs` cho TS suy kiểu thẳng từ file .mjs — không cần khai báo kiểu riêng.
+// `allowJs` lets TS infer types straight from the .mjs file — no separate declaration needed.
 import { catKhoi, bam } from '../scripts/sync-tokens.mjs';
 
 /**
- * Bắt TRÔI LỆCH hệ token giữa A1 và 9Scan-A1.
+ * Catch DRIFT in the token system between A1 and 9Scan-A1.
  *
- * Hai repo cố tình độc lập (không gom vào package chung — xem đầu
- * `scripts/sync-tokens.mjs`), nên "cùng một hệ màu" là một lời hứa không có gì
- * bảo đảm ngoài phép đo này. Không có nó, hai bề mặt của cùng một sản phẩm sẽ lệch
- * nhau dần và không ai phát hiện cho tới lúc người dùng bấm qua lại giữa hai bên.
+ * The two repos are deliberately independent (not gathered into a shared package — see the top of
+ * `scripts/sync-tokens.mjs`), so "the same colour system" is a promise with nothing behind it
+ * except this measurement. Without it, two surfaces of the same product drift apart gradually and
+ * nobody notices until a user clicks back and forth between them.
  *
- * 🔴 Bài này BỎ QUA nếu không thấy repo 9Scan, và nói rõ là đã bỏ qua. Bắt nó đỏ ở
- * máy không có repo kia là dạy người ta bỏ qua kết quả test — đắt hơn nhiều so với
- * việc thiếu một phép đo.
+ * 🔴 This test SKIPS if the 9Scan repo is not present, and says so. Making it red on a machine
+ * without the other repo teaches people to ignore test results — far more expensive than one
+ * missing measurement.
  */
 const NGUON = 'C:/PROJECTS/9Scan-A1/app/globals.css';
 const TOKENS = path.resolve(__dirname, '..', 'app', 'tokens.css');
@@ -26,17 +26,17 @@ describe('hệ token', () => {
   });
 
   it('không hardcode hex ngoài khối token', () => {
-    // Mọi mã màu phải nằm trong tokens.css. Một hex lọt vào component là chỗ đầu
-    // tiên hai bề mặt bắt đầu lệch nhau, và nó không bao giờ tự lộ ra.
+    // Every colour code must live in tokens.css. A hex leaking into a component is the first place
+    // two surfaces start to diverge, and it never reveals itself.
     //
-    // 🔴 NỚI 2026-08-27, và nói rõ vì sao để lần sau không ai nới thêm:
-    // bài này đọc CẢ CHÚ THÍCH, nên một chú thích ghi lại phép đo — ví dụ
-    // *"`bg-surface-alt` trùng byte với nền trang: sáng #f5f7fb / tối #0a1122"* —
-    // cũng làm nó đỏ. Nhưng hex trong chú thích là **bằng chứng của một phép đo**,
-    // không phải màu đang được vẽ ra; nó không thể trôi lệch vì nó không chạy.
-    // Cấm nó là dạy người ta viết chú thích mơ hồ ("màu nền hơi giống nhau"), tức
-    // làm hỏng đúng thứ dự án này dựa vào.
-    // ⇒ Cắt chú thích TRƯỚC khi soi. Ý định của bài không đổi: hex trong **MÃ** vẫn cấm.
+    // 🔴 RELAXED 2026-08-27, with the reason stated so nobody relaxes it further:
+    // this test reads COMMENTS TOO, so a comment recording a measurement — for example
+    // *"`bg-surface-alt` is byte-identical to the page background: light #f5f7fb / dark #0a1122"* —
+    // also turned it red. But a hex in a comment is **evidence of a measurement**, not a colour
+    // being painted; it cannot drift because it does not run.
+    // Banning it teaches people to write vague comments ("the backgrounds look a bit similar"),
+    // i.e. it breaks exactly what this project depends on.
+    // ⇒ Strip comments BEFORE scanning. The intent is unchanged: a hex in the **CODE** is still banned.
     const boChuThich = (s: string) =>
       s.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
 

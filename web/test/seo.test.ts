@@ -3,26 +3,27 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 /**
- * Bắt trôi lệch BỀ MẶT CHIA SẺ (Đ1-5, 2026-08-27).
+ * Catch drift on the SHARE SURFACE (Đ1-5, 2026-08-27).
  *
- * ═══ VÌ SAO BÀI NÀY TỒN TẠI ═══
- * Trước lượt vá, `og:title` / `og:description` / `twitter:*` **giống hệt nhau trên
- * cả 6 trang** — đều là nội dung trang chủ. Dán `/re-genesis/` vào nhóm chat thì
- * hiện ra lời mời "đẻ chain của bạn mất khoảng ba phút", ngược hẳn điều trang nói.
+ * ═══ WHY THIS SUITE EXISTS ═══
+ * Before the fix, `og:title` / `og:description` / `twitter:*` were **identical across all 6
+ * pages** — all of them the home page's content. Pasting `/re-genesis/` into a group chat
+ * surfaced the invitation "launching your chain takes about three minutes", the exact opposite of
+ * what the page says.
  *
- * 🔴 KHÔNG MỘT CỔNG NÀO BẮT ĐƯỢC, và lý do đáng nhớ: mọi cổng hiện có đo `<title>`,
- * mà `<title>` thì ĐÃ riêng từ lâu. Đo đúng đại lượng nghĩa là đo `og:title`, chứ
- * không phải đo một thứ tương quan với nó.
+ * 🔴 NOT ONE GATE CAUGHT IT, and the reason is worth remembering: every existing gate measured
+ * `<title>`, and `<title>` had been per-page for a long time. Measuring the right quantity means
+ * measuring `og:title`, not something correlated with it.
  *
- * 🔴 BÀI NÀY ĐỌC `out/`, KHÔNG ĐỌC MÃ NGUỒN. Nó phải chứng minh thứ ĐÃ XUẤT RA —
- * `metadata` đúng trong `.tsx` mà Next không sinh thẻ thì vẫn hỏng y như cũ.
- * Bỏ qua (không đỏ) khi chưa có `out/`: bắt nó đỏ ở máy chưa build là dạy người ta
- * bỏ qua kết quả test — đắt hơn nhiều so với thiếu một phép đo.
+ * 🔴 THIS SUITE READS `out/`, NOT THE SOURCE. It has to prove what was ACTUALLY EXPORTED —
+ * correct `metadata` in a `.tsx` that Next then fails to emit as tags is broken all the same.
+ * It skips (rather than failing) when `out/` is absent: going red on a machine that has not built
+ * teaches people to ignore test results — far more expensive than one missing measurement.
  */
 const OUT = path.resolve(__dirname, '..', 'out');
 const coOut = existsSync(OUT);
 
-/** Đọc mọi `index.html` cấp một trong `out/`, kèm `404.html` ở gốc. */
+/** Read every top-level `index.html` in `out/`, plus the `404.html` at the root. */
 function cacTrang(): { urlPath: string; html: string }[] {
   const list: { urlPath: string; html: string }[] = [];
   const goc = path.join(OUT, 'index.html');
@@ -36,7 +37,7 @@ function cacTrang(): { urlPath: string; html: string }[] {
 }
 
 function thePropertyContent(html: string, khoa: string): string | null {
-  // Next có thể xuất `property="og:title" content="…"` theo cả hai thứ tự thuộc tính.
+  // Next can emit `property="og:title" content="…"` with the attributes in either order.
   const a = html.match(new RegExp(`<meta[^>]+(?:property|name)="${khoa}"[^>]+content="([^"]*)"`, 'i'));
   if (a) return a[1];
   const b = html.match(new RegExp(`<meta[^>]+content="([^"]*)"[^>]+(?:property|name)="${khoa}"`, 'i'));
@@ -45,11 +46,11 @@ function thePropertyContent(html: string, khoa: string): string | null {
 
 describe.skipIf(!coOut)('bề mặt chia sẻ', () => {
   /**
-   * `/404/` CỐ Ý không có `og:url` — và cũng không có `canonical`.
-   * Một trang lỗi không có URL chính tắc: nó là câu trả lời cho **mọi** đường sai,
-   * không phải một tài liệu ở một địa chỉ. Khai `og:url` cho nó là mời bò tìm kiếm
-   * coi đó là một trang thật (nó đã mang `noindex`, nhưng hai tầng nói cùng một
-   * điều thì rẻ). Ngoại lệ này hẹp và có lý do — đừng nới thành "bỏ qua 404".
+   * `/404/` DELIBERATELY has no `og:url` — and no `canonical` either.
+   * An error page has no canonical URL: it is the answer to **every** wrong path, not a document
+   * at one address. Declaring `og:url` for it invites crawlers to treat it as a real page (it
+   * already carries `noindex`, but two layers saying the same thing is cheap). This exemption is
+   * narrow and reasoned — do not widen it into "skip the 404".
    */
   const KHONG_CAN_URL = new Set(['/404/']);
 
@@ -63,8 +64,8 @@ describe.skipIf(!coOut)('bề mặt chia sẻ', () => {
   it('mọi trang THẬT đều có og:url (404 là ngoại lệ có chủ ý)', () => {
     for (const { urlPath, html } of cacTrang()) {
       if (KHONG_CAN_URL.has(urlPath)) {
-        // Đối chứng ngược cho chính ngoại lệ: nếu ngày nào đó 404 có og:url thì
-        // gần như chắc chắn ai đó đã gắn `pageMeta` vào nó mà không đọc lý do.
+        // The reverse check for the exemption itself: if the 404 ever gains an og:url, almost
+        // certainly somebody attached `pageMeta` to it without reading the reason.
         expect(thePropertyContent(html, 'og:url'), `${urlPath} KHÔNG được có og:url`).toBeNull();
         continue;
       }
@@ -95,8 +96,8 @@ describe.skipIf(!coOut)('bề mặt chia sẻ', () => {
   });
 
   it('không một thẻ meta nào mang dấu [?] chờ duyệt giọng', () => {
-    // Dấu `[?]` là cơ chế duyệt NỘI BỘ. Lọt ra thẻ meta là nó bị máy khác đọc và
-    // hiện lại nguyên văn trong thẻ chia sẻ — ngoài tầm với của mọi lượt sửa sau.
+    // The `[?]` mark is an INTERNAL review mechanism. Leaking into a meta tag means other machines
+    // read it and reproduce it verbatim in the share card — beyond the reach of any later edit.
     for (const { urlPath, html } of cacTrang()) {
       for (const k of ['og:title', 'og:description', 'twitter:title', 'twitter:description']) {
         const v = thePropertyContent(html, k) ?? '';
@@ -110,9 +111,9 @@ describe('sitemap.xml', () => {
   const P = path.resolve(__dirname, '..', 'public', 'sitemap.xml');
 
   it('khai đúng namespace sitemaps.org (CÓ chữ "s")', () => {
-    // Namespace sai không làm hỏng cú pháp XML, nên không phép đo nào ở tầng vận
-    // chuyển bắt được — bộ máy tìm kiếm chỉ lặng lẽ bỏ qua cả tệp. Bản trước
-    // 2026-08-27 khai `www.sitemap.org`, thiếu đúng một ký tự.
+    // A wrong namespace does not break XML syntax, so no measurement at the transport layer
+    // catches it — the search engine simply ignores the whole file in silence. The version before
+    // 2026-08-27 declared `www.sitemap.org`, one character short.
     const s = readFileSync(P, 'utf8');
     const ns = s.match(/<urlset[^>]+xmlns="([^"]+)"/)?.[1];
     expect(ns).toBe('http://www.sitemaps.org/schemas/sitemap/0.9');

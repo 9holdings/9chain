@@ -3,14 +3,14 @@ import { EN } from '@/lib/i18n/en';
 import { NotFoundContent } from './NotFoundContent';
 
 /**
- * 🔴 `noindex` LÀ PHẦN QUAN TRỌNG NHẤT CỦA KHỐI NÀY, KHÔNG PHẢI TIÊU ĐỀ.
- * Caddy trả trang này kèm `replace_status 404`, nên bò tìm kiếm đã hiểu đúng. Nhưng
- * hai tầng nói cùng một điều thì rẻ, còn một tầng nói sai thì đắt: nếu ai đó sau này
- * gỡ `replace_status` (hoặc phục vụ `/404.html` trực tiếp, khi đó nginx trả **200**)
- * thì `noindex` là thứ duy nhất còn ngăn trang lỗi vào chỉ mục tìm kiếm.
+ * 🔴 `noindex` IS THE MOST IMPORTANT PART OF THIS BLOCK, NOT THE TITLE.
+ * Caddy serves this page with `replace_status 404`, so search crawlers already understand. But
+ * two layers saying the same thing is cheap, while one layer saying the wrong thing is expensive:
+ * if someone later removes `replace_status` (or serves `/404.html` directly, where nginx returns
+ * **200**), `noindex` is the only thing left keeping an error page out of the search index.
  *
- * Tiêu đề riêng cũng cần: không có nó, trang này kế thừa `og:*` của trang chủ, và
- * `test/seo.test.ts` bắt đúng — `/` và `/404/` dùng chung một `og:title`.
+ * A page-specific title is needed too: without it this page inherits the home page's `og:*`, and
+ * `test/seo.test.ts` catches exactly that — `/` and `/404/` sharing one `og:title`.
  */
 export const metadata: Metadata = {
   title: `${EN.notFound.title.replace(' [?]', '')} — ${EN.common.productName}`,
@@ -25,27 +25,27 @@ export const metadata: Metadata = {
 };
 
 /**
- * Trang 404 (Đ1-2, 2026-08-27).
+ * The 404 page (Đ1-2, 2026-08-27).
  *
- * ═══ VÌ SAO TRANG NÀY ĐÁNG MỘT VÉ RIÊNG ═══
- * Đo trước khi vá: mọi URL sai trên `a1.9chain.org` trả vỏ 404 của Blockscout —
- * 75.964 byte, tiếng Anh, `<title>` rỗng, `grep -ci 9chain` = **0**, và **không một
- * `href` nào** dẫn về site. Ba đường của chính mình (`/create-chain`, `/my-chains`,
- * `/compare` thiếu gạch chéo) rơi vào đó, mà nút vàng chính của trang chủ trỏ đúng
- * một trong ba. Cả hai vế đã vá trong cùng lượt Caddy (Đ1-1).
+ * ═══ WHY THIS PAGE EARNS ITS OWN TICKET ═══
+ * Measured before the fix: every wrong URL on `a1.9chain.org` returned Blockscout's 404 shell —
+ * 75,964 bytes, in English, with an empty `<title>`, `grep -ci 9chain` = **0**, and **not one
+ * `href`** leading back to the site. Three of our own paths (`/create-chain`, `/my-chains`,
+ * `/compare` without a trailing slash) landed there, and the home page's main gold button pointed
+ * at one of the three. Both halves were fixed in the same Caddy pass (Đ1-1).
  *
- * 🔴 PHẦN ĐẮT NHẤT KHÔNG NẰM Ở ĐÂY MÀ Ở CADDY. Next xuất tĩnh sinh `out/404.html`,
- * nhưng nginx phục vụ tệp đó chỉ khi Caddy ĐỊNH TUYẾN tới. Mà 404 này do upstream
- * (Blockscout) trả về, nên `handle_errors` không bắt được — phải dùng
- * `handle_response` + `replace_status 404`. Xem khối cuối `local-net/deploy/Caddyfile`.
- * ⇒ Sửa một mình tệp này thì KHÔNG có gì đổi trên mạng công khai.
+ * 🔴 THE EXPENSIVE PART IS NOT HERE, IT IS IN CADDY. Next's static export produces `out/404.html`,
+ * but nginx only serves that file if Caddy ROUTES to it. And this 404 comes from the upstream
+ * (Blockscout), so `handle_errors` cannot catch it — it needs `handle_response` +
+ * `replace_status 404`. See the last block of `local-net/deploy/Caddyfile`.
+ * ⇒ Editing this file alone changes NOTHING on the public site.
  *
- * 🔴 TRANG TĨNH THUẦN — KHÔNG `fetch`, KHÔNG hook, KHÔNG `'use client'`.
- * Nó là chỗ người ta rơi vào khi thứ khác đã hỏng; nó phải là trang ÍT có khả năng
- * hỏng nhất trong cả site. Đừng thêm số liệu sống vào đây.
+ * 🔴 A PURELY STATIC PAGE — NO `fetch`, NO hooks, NO `'use client'`.
+ * It is where people land when something else has already broken; it must be the page LEAST
+ * likely to break on the whole site. Do not add live numbers here.
  *
- * Điều hướng dùng `<a>` chứ không `next/link`: `check-static-export.mjs` bắt buộc
- * mọi đường do edge phục vụ đều đi bằng thẻ `<a>` — và đây đúng là một trong số đó.
+ * Navigation uses `<a>` rather than `next/link`: `check-static-export.mjs` requires every
+ * edge-served path to travel through an `<a>` tag — and this is one of them.
  */
 export default function KhongThay() {
   return <NotFoundContent />;

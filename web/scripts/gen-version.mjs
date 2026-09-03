@@ -1,30 +1,32 @@
 #!/usr/bin/env node
 /**
- * gen-version.mjs — mỏ neo phiên bản cho bản dựng tĩnh. (Đ1-11b, phần 1)
+ * gen-version.mjs — the version anchor for a static build. (Đ1-11b, part 1)
  *
- * ═══ SỰ CỐ CÓ THẬT MÀ TỆP NÀY ĐÓNG ═══
- * `/version.txt` đã được thêm vào `@trangmoi` của Caddyfile từ **Đ1-1** — nhưng
- * không có gì sinh ra tệp đó. Đo `27/08` trên mạng công khai:
+ * ═══ THE REAL INCIDENT THIS FILE CLOSES ═══
+ * `/version.txt` was added to the Caddyfile's `@trangmoi` back in **Đ1-1** — but nothing ever
+ * produced that file. Measured `27/08` against the public site:
  *
  *     https://a1.9chain.org/version.txt  →  404, nginx, content-type: text/html
  *
- * Tức là **route lên trước sản phẩm**, và kết quả là một đường chết đang phục vụ
- * công khai. `check-routes.mjs` xanh suốt vì nó hỏi *"mọi tệp trong out/ đã có route
- * chưa?"* — chiều ngược lại (*"mọi route đã có tệp chưa?"*) không ai hỏi.
- * ⇒ Cùng họ với `/moi/` che một trang 404 thật, và với `og:*` dùng chung: **cổng
- *   xanh vì nó đo một chiều của một quan hệ hai chiều.** Chiều kia nay đã có cổng.
+ * That is **the route shipping ahead of the product**, and the result was a dead path being
+ * served publicly. `check-routes.mjs` stayed green throughout because it asks *"does every file
+ * in out/ have a route?"* — the other direction (*"does every route have a file?"*) was asked by
+ * nobody.
+ * ⇒ Same family as `/moi/` masking a genuine 404, and as the shared `og:*`: **a gate is green
+ *   because it measures one direction of a two-directional relationship.** The other direction
+ *   now has a gate.
  *
- * ═══ MỎ NEO NÀY DÙNG ĐỂ LÀM GÌ ═══
- * Trả lời được một câu mà không phép đo nào khác trên site trả lời được:
- * **"cái đang phục vụ ngoài kia có đúng là cái tôi vừa dựng không?"**
- * `curl https://a1.9chain.org/version.txt` phải khớp từng byte với
- * `cat web/out/version.txt`. Lệch = HTML cũ còn trong cache/đĩa, hoặc lượt chép hụt.
+ * ═══ WHAT THIS ANCHOR IS FOR ═══
+ * It answers a question no other measurement on the site can answer:
+ * **"is what is being served out there really what I just built?"**
+ * `curl https://a1.9chain.org/version.txt` must match `cat web/out/version.txt` byte for byte.
+ * A mismatch = old HTML still in cache or on disk, or an incomplete copy.
  *
- * 🔴 PHẢI CÓ `dirty` — và đó là nửa quan trọng hơn của tệp này.
- * Một mỏ neo chỉ mang SHA sẽ nói dối rất tự tin khi ai đó dựng từ cây làm việc còn
- * sửa dở: SHA trỏ vào một commit KHÔNG chứa thứ vừa lên sóng. Khai `dirty` biến câu
- * "bản này là commit X" thành "bản này là commit X **cộng thứ chưa commit**" — câu
- * thứ hai đúng, câu thứ nhất là một lời khai sai có chữ ký.
+ * 🔴 `dirty` IS REQUIRED — and it is the more important half of this file.
+ * An anchor carrying only a SHA lies with great confidence when someone builds from a working
+ * tree with uncommitted edits: the SHA points at a commit that does NOT contain what just went
+ * live. Declaring `dirty` turns "this build is commit X" into "this build is commit X **plus
+ * uncommitted work**" — the second sentence is true, the first is a signed false statement.
  */
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, existsSync, readdirSync } from 'node:fs';
@@ -38,7 +40,7 @@ function git(...args) {
   try {
     return execFileSync('git', args, { cwd: GOC, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
   } catch {
-    // Không có git (container dựng sạch) không phải lỗi — nhưng KHÔNG bịa một SHA.
+    // No git (a clean build container) is not an error — but do NOT invent a SHA.
     return null;
   }
 }
@@ -50,12 +52,12 @@ if (!existsSync(OUT)) {
 
 const sha = git('rev-parse', '--short=12', 'HEAD') ?? 'khong-co-git';
 const nhanh = git('rev-parse', '--abbrev-ref', 'HEAD') ?? '?';
-// `status --porcelain` rỗng = cây sạch. Bất kỳ dòng nào = có thứ chưa commit.
+// An empty `status --porcelain` = a clean tree. Any line at all = uncommitted work.
 const bo = git('status', '--porcelain');
 const dirty = bo === null ? 'khong-biet' : bo.length > 0 ? 'co' : 'khong';
 
-// Đếm chunk để lượt deploy có một con số đối chiếu rẻ (Đ1-11b phần 2 sẽ so DANH SÁCH,
-// không chỉ số đếm — số đếm bằng nhau vẫn có thể là hai bộ tệp khác nhau).
+// Count the chunks so a deploy has one cheap number to compare against (Đ1-11b part 2 will
+// compare the LIST, not just the count — two different file sets can have the same count).
 const thuMucChunk = path.join(OUT, '_next', 'static', 'chunks');
 const soChunk = existsSync(thuMucChunk) ? readdirSync(thuMucChunk).filter((f) => f.endsWith('.js')).length : 0;
 
@@ -68,8 +70,8 @@ const noiDung =
     `so-chunk-js=${soChunk}`,
   ].join('\n') + '\n';
 
-// LF tường minh: repo chạy trên Windows, và CRLF ở đây làm mọi phép so byte-đối-byte
-// giữa `curl` và `cat` lệch mà không ai hiểu vì sao (cùng bẫy đã cắn `sha256sum -c`).
+// LF explicitly: the repo runs on Windows, and CRLF here makes every byte-for-byte comparison
+// between `curl` and `cat` differ for no visible reason (the same trap that bit `sha256sum -c`).
 writeFileSync(path.join(OUT, 'version.txt'), noiDung, { encoding: 'utf8' });
 
 console.log(`✓ version.txt — ${sha} (${nhanh}) · chưa commit: ${dirty} · ${soChunk} chunk`);
