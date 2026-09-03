@@ -14,6 +14,7 @@ còn bắt-tất-cả vào cổng `8100` trống (P-52); và `/` khai 9 validato
 rollout hai lượt `15:16–15:27Z` và `16:03–16:07Z` ⇒ 9 node trẻ lại; mẫu đo tải `19:30Z` tự in tuổi.
 Lệnh đo nay là tệp: `scripts/measure-node-load.sh`.
 🔴 **D-178, hai mẫu đo tải:** mỗi L1 track thêm ≈ **0,05 core/node + 53 MiB**, dù chain im; nay **6 L1** (BBWay · 9Mall · 9Cashback đẻ chiều nay). Trần 15 ≈ **6–7 core cho 9 node trên máy 8 lõi** — đưa vào ACP-77.
+🟢 **D-179 (P-54 XONG, deploy PID 2657315):** console nhận `symbol` cho token native của L1, cấm `LOVE9`, ghi vào sổ khi chủ chain chọn; **người dùng vẫn thấy LOVE9 cho tới khi `web-home` làm P-55** (ô nhập + `addChain` đọc `symbol ?? symbolFromName(name)`). Mốc `L1-CUSTOM` P-54→P-62 ở đầu PROGRESS.
 Trước đó **2026-09-02** chiều — 🟢🟢 **CHẶN SỐ 1 HẾT CHẶN: `genesis.json` NAY TẢI ĐƯỢC TỪ NGOÀI**
 (D-158). Đã đẩy `official` + `origin`, nghiệm thu **bằng tay** trên đúng đường người lạ đi.
 🔴 Hoá ra không phải *"chưa ai tải lên"*: tệp **không được git theo dõi** — byte cả thế giới cần
