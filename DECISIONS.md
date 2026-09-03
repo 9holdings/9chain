@@ -8428,3 +8428,38 @@ năng lớn khách dựng lại `--data-dir` và mất `staker.crt` (đổi danh
 nhận thưởng**, cọc trả về `2026-09-17`. Bảng *"Things that will cost you hours"* trong
 `RUN-A-VALIDATOR.md` **chưa dặn giữ `staker.crt`/`staker.key`** và chưa nói node sau NAT vẫn validate
 nhưng nên mở 9651. Kèm: `check-live-page` vẫn đỏ (`/` khai 9 validator, chain có 10 — `web-home`).
+
+## D-181 — **Hướng dẫn validator TỰ XOÁ danh tính node của người đọc: mount `./staking` vào đường node không đọc, rồi "Starting over" bảo xoá volume chứa khoá** (`2026-09-03` đêm, P-64)
+
+**Nghi vấn từ D-180:** khách đầu tiên cọc bằng `NodeID-DZJum…` nhưng node nối vào từ cùng IP là
+`NodeID-HV3b…`. Đọc lại `RUN-A-VALIDATOR.md` Bước 4: lệnh chạy mount `-v "$PWD/staking":/9chain-a1/node`
+nhưng **không truyền cờ `--staking-tls-*`** nào ⇒ avalanchego dùng đường mặc định
+`~/.avalanchego/staking/` (`config/flags.go:50-53`), tức **nằm trong volume `a1-data`**; thư mục
+`./staking` trên host **trống, không tệp nào được ghi**. Mục *"Starting over"* ngay dưới bảo *"delete the
+data directory first"* ⇒ người đọc làm đúng hướng dẫn là **mất `staker.crt` = đổi NodeID**, cọc dính vào
+node không còn tồn tại, uptime 14 % (đo D-180), không thưởng, chờ `endTime`.
+
+**Không sửa bằng cách thêm cờ đường dẫn:** `config.go:733` — đặt cờ mà tệp chưa có thì node **từ chối
+chạy** (`couldn't find staking key`), không tự sinh. Cách đúng: mount `./staking` vào **đúng đường mặc
+định** `/root/.avalanchego/staking` (bind lồng trong volume) ⇒ node tự sinh ba tệp ra host lần đầu, xoá
+volume không đụng tới.
+
+**Đối chứng THẬT trên image `9chain-a1/node:g1`, Docker cục bộ, không bootstrap peer (không chạm mạng
+công khai), script `p64-check.sh`:**
+
+| mount | boot 1 | `docker volume rm` rồi boot 2 | kết luận |
+|---|---|---|---|
+| **mới** `./staking → /root/.avalanchego/staking` | `NodeID-DsxT…`, `./staking` có 3 tệp | `NodeID-DsxT…` | ✓ danh tính sống |
+| **cũ** `./staking → /9chain-a1/node` | `NodeID-GnGR…`, `./staking` **0 tệp** | `NodeID-DUdP…` | 🔴 đổi NodeID — đúng hình dạng của khách `03/09` |
+
+**Đã sửa trong hướng dẫn:** mount mới ở Bước 4 · mục mới *"Your identity is three files, and your bond is
+tied to it"* (kể luôn phiên bản cũ đã sai ở đâu — người đã dính đọc thấy mình) · *"Starting over"* nay là
+`docker volume rm a1-data`, **giữ `./staking`** · đoạn *"Behind NAT"* (validate được qua kết nối tự mở,
+nhưng không ai gọi vào được, `ingressConnectionCount` 0, cổng reachability liệt kê là undialable — đo
+`03/09`) · hai dòng bảng *"hours"*. Ba cổng đọc hướng dẫn (`check-validator-onboarding` ·
+`check-doc-drift` · `check-genesis-published`) xanh sau sửa.
+
+**Bài học §2:** hướng dẫn có cổng canh **con số** nó trích (81 · 9 · 9) mà không cổng nào canh **lệnh nó
+bảo gõ** có làm điều nó nói không. Một dòng `-v` trỏ vào đường không ai đọc trông y hệt dòng đúng.
+Đối chứng cho lệnh trong tài liệu = **chạy lệnh đó** trên image thật, cả chiều đúng lẫn chiều sai.
+Nợ: khách `DZJum…` vẫn kẹt tới `2026-09-17`; A1 không có kênh liên hệ ngoài issue tracker công khai.

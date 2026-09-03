@@ -207,7 +207,7 @@ meaning what it meant the day you saved it.
 ```bash
 docker run -d --name a1-node \
   -v "$PWD/genesis.json":/9chain-a1/net/genesis.json:ro \
-  -v "$PWD/staking":/9chain-a1/node \
+  -v "$PWD/staking":/root/.avalanchego/staking \
   -v a1-data:/root/.avalanchego \
   -p 0.0.0.0:9651:9651 \
   9chain-a1/node:g1 \
@@ -236,12 +236,36 @@ docker run -d --name a1-node \
 
 **`--staking-port` 9651 must be reachable from the Internet.** That one is meant to be open.
 
+### Your identity is three files, and your bond is tied to it
+
+On first start the node writes `staker.key`, `staker.crt` and `signer.key` into its staking
+directory. **Your NodeID is derived from `staker.crt`.** The `-v "$PWD/staking":…` line above puts
+those three files in `./staking` on your host, outside the data volume, so that the data can be
+thrown away and the identity cannot be — by accident.
+
+🔴 **Lose those files and you are a different node.** Your bond stays attached to the old NodeID,
+which no longer exists anywhere; the new node validates nothing, earns nothing, and the stake sits
+until the term ends. Measured on 2026-09-03, the first outside validator on this network: the
+NodeID that staked and the NodeID that connected were different, from the same address, and the
+staked one sat at **14% uptime** — below the reward floor — with nothing to do but wait for
+`endTime`. Earlier versions of this page mounted `./staking` at a path the node never read, so the
+identity lived in the data volume and *Starting over* below deleted it. That is almost certainly
+what happened.
+
+Back `./staking` up before you stake, and never regenerate it. If you must move the node to another
+machine, move that directory with it.
+
 ### Starting over
 
-If you previously ran a node of an earlier generation, **delete the data directory first**. The
-network name is part of the database path (`<db-dir>/9chain-a1-g1/`), so a stale directory does
-not cause an error — the node simply bootstraps into an empty folder and looks fine while being
-on nothing.
+If you previously ran a node of an earlier generation, **delete the data volume, keep `./staking`**:
+
+```bash
+docker rm -f a1-node && docker volume rm a1-data      # ./staking is untouched
+```
+
+The network name is part of the database path (`<db-dir>/9chain-a1-g1/`), so a stale directory
+does not cause an error — the node simply bootstraps into an empty folder and looks fine while
+being on nothing. Deleting the identity with it is the mistake described one section up.
 
 ---
 
@@ -400,6 +424,13 @@ provably reachable while this counter sat at **0** for hours. avalanchego cannot
 "nobody dialled in" from "unreachable", but validator uptime is measured over connections, so a
 lasting 0 is a real problem even when your port tests open.
 
+**Behind NAT.** A node behind a home router can bootstrap and validate — every connection it holds
+is one it opened itself. But nobody can open one *to* you: if your outbound connections drop, nothing
+brings you back, `ingressConnectionCount` stays at 0, and the network's own reachability check lists
+your announced address as undialable (it did, for the first outside validator, on 2026-09-03).
+Forward 9651 on the router and set `--public-ip` to the address that forwarding answers on — not the
+address the container sees.
+
 **Your RPC is yours.** Nothing requires you to expose one, and we would rather you did not expose
 port 9650 at all.
 
@@ -412,6 +443,8 @@ port 9650 at all.
 | `git am` **without** `--keep-cr` | tree hash will not match, and nothing tells you why |
 | omitting `--build-arg A1_COMMIT=` | binary cannot be told apart from any other build |
 | reusing an old `--data-dir` | node bootstraps into an empty database and looks healthy |
+| deleting the data volume with `staking/` inside it | new NodeID; your bond belongs to a node that no longer exists (measured 2026-09-03: 14% uptime, no reward) |
+| validating from behind NAT with 9651 not forwarded | works while your own connections hold, and nobody can reach you when they do not; the reachability check lists you as undialable |
 | asking for `AVAX` | fails on purpose; the asset is `LOVE9` |
 | publishing port 9650 | Docker's DNAT bypasses `ufw`; your admin API is exposed while the firewall says it is not |
 | expecting to stake from X-Chain balance | staking is on P-Chain; export first |
