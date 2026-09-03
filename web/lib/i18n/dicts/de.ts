@@ -30,10 +30,10 @@ export const de: Dict = {
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',
-    banner: 'A1 wurde am {ngay} neu aufgebaut. Alle vorher entstandenen Guthaben und Chains existieren nicht mehr.',
+    banner: 'A1 wurde am {date} neu aufgebaut. Alle vorher entstandenen Guthaben und Chains existieren nicht mehr.',
     bannerLink: 'Was das bedeutet',
     badge: 'Neu aufgebaut',
-    title: 'A1 wurde am {ngay} neu aufgebaut',
+    title: 'A1 wurde am {date} neu aufgebaut',
     desc:
       'Das Testnetz A1 wurde ab Block 0 neu aufgebaut. Chains, Guthaben und Transaktionsverlauf, ' +
       'die vor diesem Datum entstanden sind, existieren nicht mehr — nicht versteckt, sondern weg. ' +
@@ -62,10 +62,10 @@ export const de: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1 wird am {ngay} neu aufgebaut — alle vorher entstandenen Chains, Guthaben und Transaktionen werden gelöscht.',
+    banner: 'A1 wird am {date} neu aufgebaut — alle vorher entstandenen Chains, Guthaben und Transaktionen werden gelöscht.',
     bannerLink: 'Details',
     badge: 'Neuaufbau steht bevor',
-    title: 'A1 wird am {ngay} neu aufgebaut',
+    title: 'A1 wird am {date} neu aufgebaut',
     desc:
       'Das gesamte Testnetz A1 wird ab Block 0 neu aufgebaut. Alles, was vor diesem Datum entstanden ' +
       'ist, verschwindet — nicht versteckt, sondern nicht mehr existent. Diese Seite sagt genau, was ' +
@@ -139,7 +139,7 @@ export const de: Dict = {
       'A1 wurde am 2026-08-27 bereits einmal neu aufgebaut, vor dem unten genannten Datum. Wenn Sie davor Test-Token hatten, ist Ihr Guthaben jetzt 0 — das ist richtig und kein Fehler Ihrer Wallet. Es ging keine Nutzer-Chain verloren: im Verzeichnis standen damals nur automatisierte Test-Chains. Fordern Sie beim Faucet erneut Token an.',
     dateNote: 'Das Datum kann sich verschieben',
     dateNoteDesc:
-      'Das Datum {ngay} hängt von einer vorgelagerten Freigabeprüfung ab. Verschiebt es sich, ändern ' +
+      'Das Datum {date} hängt von einer vorgelagerten Freigabeprüfung ab. Verschiebt es sich, ändern ' +
       'wir das Datum auf dieser Seite, statt zu schweigen.',
   },
 
@@ -261,7 +261,7 @@ export const de: Dict = {
     nameInvalid: 'Der Name darf nur Buchstaben, Ziffern und Leerzeichen enthalten, 2 bis 32 Zeichen lang.',
     typeLabel: 'Chain-Typ',
     typeHelp: 'Einmal gewählt, ist es fest — der Genesis einer Chain lässt sich nicht bearbeiten.',
-    slotsLeft: 'Noch {con}/{tong} Plätze',
+    slotsLeft: 'Noch {left}/{total} Plätze',
     slotsFull: 'Keine Plätze mehr',
     slotsFullDesc:
       'Im aktuellen Modell verfolgt jeder Validator jede L1, und das Protokoll trennt einen Knoten, ' +
@@ -273,20 +273,20 @@ export const de: Dict = {
       'Der Genesis einer gestarteten L1 ist UNVERÄNDERLICH. Nach diesem Schritt lassen sich Name, ' +
       'Chain-Typ und Besitzer nicht mehr ändern — und ein Widerruf gibt Name und Chain ID ebenfalls nicht zurück.',
     reviewRebuild:
-      'Noch eines, bevor Sie drücken: A1 baut am {ngay} das gesamte Netzwerk neu auf. Die Chain, die ' +
+      'Noch eines, bevor Sie drücken: A1 baut am {date} das gesamte Netzwerk neu auf. Die Chain, die ' +
       'Sie heute starten, wird zusammen mit dem alten Netzwerk gelöscht — nicht versteckt, sondern weg.',
     reviewName: 'Chain-Name',
     reviewType: 'Chain-Typ',
     reviewOwner: 'Besitzer',
     reviewBack: 'Zurück und bearbeiten',
     reviewConfirm: 'Ich habe geprüft — Chain starten',
-    launching: 'Chain „{ten}" wird gestartet',
+    launching: 'Chain „{name}" wird gestartet',
     launchingDesc:
       'Die Knoten starten NACHEINANDER neu, damit das Netzwerk nie das Quorum verliert — deshalb ist ' +
       'es langsam, und das ist Absicht. Schließen Sie den Tab nicht; falls doch, wird die Chain trotzdem gebaut.',
-    etaRemaining: 'Noch etwa {phut} Minuten',
+    etaRemaining: 'Noch etwa {minutes} Minuten',
     preparing: 'Wird vorbereitet…',
-    doneTitle: 'Fertig — Chain „{ten}" läuft',
+    doneTitle: 'Fertig — Chain „{name}" läuft',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Chain zur Wallet hinzufügen',
@@ -294,10 +294,10 @@ export const de: Dict = {
     doneActivate: 'Chain aktivieren (Block 1 öffnen)',
     doneActivated: 'Aktiviert',
     doneActivating: 'Warte auf Wallet…',
-    doneAddWalletError: 'Die Chain konnte nicht zu Ihrer Wallet hinzugefügt werden. {chiTiet}',
-    doneActivateError: 'Die Chain konnte nicht aktiviert werden. {chiTiet}',
+    doneAddWalletError: 'Die Chain konnte nicht zu Ihrer Wallet hinzugefügt werden. {detail}',
+    doneActivateError: 'Die Chain konnte nicht aktiviert werden. {detail}',
     launchAnother: 'Weitere Chain starten',
-    launchError: 'Die Chain konnte nicht gestartet werden. {chiTiet}',
+    launchError: 'Die Chain konnte nicht gestartet werden. {detail}',
     unknownError: 'Nach Abschluss des Laufs erschien die Chain nicht im Verzeichnis.',
     noteTitle: 'Die erste Transaktion einer neuen Chain',
     noteHow: 'Vertrauen Sie der Gas-Schätzung der ersten Transaktion nicht. Am günstigsten öffnen Sie Block 1 mit einer gewöhnlichen Überweisung — drücken Sie unten „Chain aktivieren".',
@@ -314,7 +314,7 @@ export const de: Dict = {
     colType: 'Typ',
     colStatus: 'Status',
     colActions: '',
-    validatorCount: '{so} Validatoren',
+    validatorCount: '{count} Validatoren',
     measuring: 'wird gemessen',
     cannotMeasure: 'Messung nicht möglich',
     statusHelp: 'Gemessen an der Validatorenzahl des Subnetzes, nicht an der Blockhöhe.',
@@ -326,9 +326,9 @@ export const de: Dict = {
     walletSettings: 'Wallet-Einstellungen',
     addToWallet: 'Zur Wallet hinzufügen',
     addedToWallet: 'Hinzugefügt',
-    addWalletError: 'Konnte nicht zu Ihrer Wallet hinzugefügt werden. {chiTiet}',
+    addWalletError: 'Konnte nicht zu Ihrer Wallet hinzugefügt werden. {detail}',
     revoke: 'Widerrufen',
-    revokeTitle: '„{ten}" widerrufen?',
+    revokeTitle: '„{name}" widerrufen?',
     revokeWarn1: 'Die Chain stellt den RPC-Dienst sofort ein und verschwindet aus dem öffentlichen Verzeichnis.',
     revokeWarn2:
       'Ein Widerruf löscht das Subnetz auf der P-Chain NICHT — was dort erzeugt wurde, lässt sich nicht ' +
@@ -343,9 +343,9 @@ export const de: Dict = {
     revokeNameMismatch: 'Das stimmt nicht mit dem Chain-Namen überein.',
     revokeConfirm: 'Endgültig widerrufen',
     revokeCancel: 'Abbrechen',
-    revoking: '„{ten}" wird widerrufen — etwa drei Minuten',
-    revokeDone: '„{ten}" widerrufen. Noch {con}/{tong} Plätze.',
-    revokeError: 'Widerruf nicht möglich. {chiTiet}',
+    revoking: '„{name}" wird widerrufen — etwa drei Minuten',
+    revokeDone: '„{name}" widerrufen. Noch {left}/{total} Plätze.',
+    revokeError: 'Widerruf nicht möglich. {detail}',
     revokeUnknown: 'Nach Abschluss des Laufs steht die Chain weiterhin im Verzeichnis.',
     revokedBadge: 'Widerrufen',
     revokedDesc: 'Name und Chain ID bleiben in diesem Netzwerk reserviert.',
@@ -399,10 +399,10 @@ export const de: Dict = {
     addNetworkError: 'Ihre Wallet konnte das Netzwerk nicht hinzufügen. Fügen Sie es manuell mit den Einstellungen daneben hinzu — und senden Sie die Zeile unten an das Team:',
     noWallet: 'In diesem Browser wurde keine Wallet gefunden. Installieren Sie MetaMask und laden Sie die Seite neu.',
     quotaLabel: 'Verbleibendes Kontingent',
-    quotaFormat: '{con}/{tong} Anfragen pro {gio} Stunden',
-    quotaExhausted: 'Sie haben Ihr gesamtes Kontingent verbraucht. Versuchen Sie es in {phut} Minuten erneut.',
+    quotaFormat: '{left}/{total} Anfragen pro {hours} Stunden',
+    quotaExhausted: 'Sie haben Ihr gesamtes Kontingent verbraucht. Versuchen Sie es in {minutes} Minuten erneut.',
     quotaUnreadable: 'Ihr Kontingent konnte nicht gelesen werden — Sie können weiterhin anfragen, wissen nur nicht, wie viele übrig sind.',
-    sentOk: '{so} {kyHieu} an {diaChi} gesendet',
+    sentOk: '{count} {symbol} an {address} gesendet',
     viewTransaction: 'Transaktion ansehen',
     settingsTitle: 'Netzwerkeinstellungen',
     settingsRpc: 'RPC',
@@ -413,7 +413,7 @@ export const de: Dict = {
     decimalsHelp:
       'Wallets zeigen 18 Dezimalstellen, weil die C-Chain die EVM ausführt. Auf der P/X-Chain wird ' +
       'LOVE9 mit 9 Dezimalstellen gezählt. Eine Münze, zwei Skalen — nicht zwei verschiedene Token.',
-    genericError: 'Senden nicht möglich. {chiTiet}',
+    genericError: 'Senden nicht möglich. {detail}',
   },
 
   langPicker: {

@@ -34,12 +34,12 @@ function docTsx(dir: string, ra: string[] = []): string[] {
 
 describe('i18n', () => {
   it('interpolate() giữ nguyên khoá thiếu thay vì để trống', () => {
-    // Một chỗ trống lặng lẽ đọc như dữ liệu bị mất; `{so}` lộ ra thì sửa được ngay.
-    expect(interpolate('còn {con}/{tong}', { con: 3 })).toBe('còn 3/{tong}');
+    // Một chỗ trống lặng lẽ đọc như dữ liệu bị mất; `{total}` lộ ra thì sửa được ngay.
+    expect(interpolate('còn {left}/{total}', { left: 3 })).toBe('còn 3/{total}');
   });
 
   it('interpolate() thay đúng mọi khoá có mặt', () => {
-    expect(interpolate(vi.faucet.quotaFormat, { con: 3, tong: 5, gio: 1 })).toBe('3/5 lượt trong 1 giờ');
+    expect(interpolate(vi.faucet.quotaFormat, { left: 3, total: 5, hours: 1 })).toBe('3/5 lượt trong 1 giờ');
   });
 
   it('không có chuỗi tiếng Việt viết thẳng trong JSX', () => {

@@ -31,11 +31,11 @@ export const id: Dict = {
     archiveUrl: '',
     archiveSha256: '',
 
-    banner: 'A1 dibangun ulang pada {ngay}. Setiap saldo dan rantai yang dibuat sebelum tanggal itu sudah tidak ada.',
+    banner: 'A1 dibangun ulang pada {date}. Setiap saldo dan rantai yang dibuat sebelum tanggal itu sudah tidak ada.',
     bannerLink: 'Apa artinya',
     badge: 'Dibangun ulang',
 
-    title: 'A1 dibangun ulang pada {ngay}',
+    title: 'A1 dibangun ulang pada {date}',
     desc:
       'Jaringan uji A1 telah dibangun ulang dari blok 0. Rantai, saldo, dan riwayat transaksi ' +
       'yang dibuat sebelum tanggal itu sudah tidak ada — bukan disembunyikan, melainkan lenyap. ' +
@@ -67,11 +67,11 @@ export const id: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1 akan dibangun ulang pada {ngay} — setiap rantai, saldo, dan transaksi yang dibuat sebelumnya akan dihapus.',
+    banner: 'A1 akan dibangun ulang pada {date} — setiap rantai, saldo, dan transaksi yang dibuat sebelumnya akan dihapus.',
     bannerLink: 'Rincian',
     badge: 'Pembangunan ulang akan datang',
 
-    title: 'A1 akan dibangun ulang pada {ngay}',
+    title: 'A1 akan dibangun ulang pada {date}',
     desc:
       'Seluruh jaringan uji A1 akan dibangun ulang dari blok 0. Semua yang dibuat sebelum tanggal ' +
       'itu akan hilang — bukan disembunyikan, melainkan tidak lagi ada. Halaman ini menyatakan ' +
@@ -150,7 +150,7 @@ export const id: Dict = {
       'A1 sudah pernah dibangun ulang sekali pada 2026-08-27, sebelum tanggal di bawah ini. Jika Anda memegang token uji sebelum itu, saldo Anda kini 0 — itu benar, bukan kerusakan pada dompet Anda. Tidak ada rantai pengguna yang hilang: direktori hanya berisi rantai uji otomatis. Minta token lagi dari faucet.',
     dateNote: 'Tanggal dapat bergeser',
     dateNoteDesc:
-      'Tanggal {ngay} bergantung pada pemeriksaan go/no-go sebelumnya. Jika bergeser, kami akan ' +
+      'Tanggal {date} bergantung pada pemeriksaan go/no-go sebelumnya. Jika bergeser, kami akan ' +
       'mengubah tanggal di halaman ini, bukan berdiam diri.',
   },
 
@@ -280,7 +280,7 @@ export const id: Dict = {
     nameInvalid: 'Nama hanya boleh berisi huruf, angka, dan spasi, sepanjang 2–32 karakter.',
     typeLabel: 'Jenis rantai',
     typeHelp: 'Setelah dipilih, ini tetap — genesis sebuah rantai tidak dapat disunting.',
-    slotsLeft: '{con}/{tong} slot tersisa',
+    slotsLeft: '{left}/{total} slot tersisa',
     slotsFull: 'Tidak ada slot tersisa',
     slotsFullDesc:
       'Model saat ini membuat setiap validator melacak setiap L1, dan protokol mengeluarkan node ' +
@@ -295,7 +295,7 @@ export const id: Dict = {
       'maupun chain ID.',
     reviewRebuild:
       'Satu hal lagi yang perlu diketahui sebelum menekan: A1 membangun ulang seluruh jaringan pada ' +
-      '{ngay}. Rantai yang Anda luncurkan hari ini akan terhapus bersama jaringan lama — bukan ' +
+      '{date}. Rantai yang Anda luncurkan hari ini akan terhapus bersama jaringan lama — bukan ' +
       'disembunyikan, melainkan lenyap.',
     reviewName: 'Nama rantai',
     reviewType: 'Jenis rantai',
@@ -303,14 +303,14 @@ export const id: Dict = {
     reviewBack: 'Kembali dan sunting',
     reviewConfirm: 'Saya sudah meninjau — luncurkan rantainya',
 
-    launching: 'Meluncurkan rantai “{ten}”',
+    launching: 'Meluncurkan rantai “{name}”',
     launchingDesc:
       'Node dimulai ulang SATU PER SATU agar jaringan tidak pernah kehilangan kuorum — itulah ' +
       'sebabnya lambat, dan itu disengaja. Jangan tutup tab; kalaupun ditutup, rantainya tetap dibangun.',
-    etaRemaining: 'Sekitar {phut} menit lagi',
+    etaRemaining: 'Sekitar {minutes} menit lagi',
     preparing: 'Menyiapkan…',
 
-    doneTitle: 'Selesai — rantai “{ten}” berjalan',
+    doneTitle: 'Selesai — rantai “{name}” berjalan',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Tambahkan rantai ke dompet',
@@ -318,11 +318,11 @@ export const id: Dict = {
     doneActivate: 'Aktifkan rantai (buka blok 1)',
     doneActivated: 'Diaktifkan',
     doneActivating: 'Menunggu dompet…',
-    doneAddWalletError: 'Tidak dapat menambahkan rantai ke dompet Anda. {chiTiet}',
-    doneActivateError: 'Tidak dapat mengaktifkan rantai. {chiTiet}',
+    doneAddWalletError: 'Tidak dapat menambahkan rantai ke dompet Anda. {detail}',
+    doneActivateError: 'Tidak dapat mengaktifkan rantai. {detail}',
 
     launchAnother: 'Luncurkan rantai lain',
-    launchError: 'Tidak dapat meluncurkan rantai. {chiTiet}',
+    launchError: 'Tidak dapat meluncurkan rantai. {detail}',
     unknownError: 'Rantai tidak muncul di direktori setelah proses selesai.',
     noteTitle: 'Transaksi pertama pada rantai baru',
     noteHow:
@@ -343,7 +343,7 @@ export const id: Dict = {
     colStatus: 'Status',
     colActions: '',
 
-    validatorCount: '{so} validator',
+    validatorCount: '{count} validator',
     measuring: 'mengukur',
     cannotMeasure: 'tidak dapat diukur',
     statusHelp: 'Diukur dari jumlah validator subnet, bukan dari tinggi blok.',
@@ -356,10 +356,10 @@ export const id: Dict = {
     walletSettings: 'Pengaturan dompet',
     addToWallet: 'Tambahkan ke dompet',
     addedToWallet: 'Ditambahkan',
-    addWalletError: 'Tidak dapat menambahkannya ke dompet Anda. {chiTiet}',
+    addWalletError: 'Tidak dapat menambahkannya ke dompet Anda. {detail}',
 
     revoke: 'Cabut',
-    revokeTitle: 'Cabut “{ten}”?',
+    revokeTitle: 'Cabut “{name}”?',
     revokeWarn1: 'Rantai langsung berhenti melayani RPC dan hilang dari direktori publik.',
     revokeWarn2:
       'Pencabutan TIDAK menghapus subnet di P-Chain — apa yang sudah dibuat di sana tidak dapat ' +
@@ -374,9 +374,9 @@ export const id: Dict = {
     revokeNameMismatch: 'Itu tidak cocok dengan nama rantai.',
     revokeConfirm: 'Cabut permanen',
     revokeCancel: 'Batal',
-    revoking: 'Mencabut “{ten}” — sekitar tiga menit',
-    revokeDone: '“{ten}” dicabut. {con}/{tong} slot tersisa.',
-    revokeError: 'Tidak dapat mencabut. {chiTiet}',
+    revoking: 'Mencabut “{name}” — sekitar tiga menit',
+    revokeDone: '“{name}” dicabut. {left}/{total} slot tersisa.',
+    revokeError: 'Tidak dapat mencabut. {detail}',
     revokeUnknown: 'Rantai masih ada di direktori setelah proses selesai.',
 
     revokedBadge: 'Dicabut',
@@ -438,10 +438,10 @@ export const id: Dict = {
     addNetworkError: 'Dompet Anda tidak dapat menambahkan jaringan. Tambahkan manual memakai pengaturan di sebelah ini — dan kirim baris di bawah kepada tim:',
     noWallet: 'Tidak ada dompet di peramban ini. Pasang MetaMask lalu muat ulang halaman.',
     quotaLabel: 'Sisa kuota',
-    quotaFormat: '{con}/{tong} permintaan per {gio} jam',
-    quotaExhausted: 'Anda sudah memakai seluruh kuota. Coba lagi dalam {phut} menit.',
+    quotaFormat: '{left}/{total} permintaan per {hours} jam',
+    quotaExhausted: 'Anda sudah memakai seluruh kuota. Coba lagi dalam {minutes} menit.',
     quotaUnreadable: 'Tidak dapat membaca kuota Anda — Anda tetap bisa meminta, hanya saja tidak tahu sisanya berapa.',
-    sentOk: 'Mengirim {so} {kyHieu} ke {diaChi}',
+    sentOk: 'Mengirim {count} {symbol} ke {address}',
     viewTransaction: 'Lihat transaksi',
     settingsTitle: 'Pengaturan jaringan',
     settingsRpc: 'RPC',
@@ -452,7 +452,7 @@ export const id: Dict = {
     decimalsHelp:
       'Dompet menampilkan 18 desimal karena C-Chain menjalankan EVM. Di P/X-Chain, LOVE9 dihitung ' +
       'dalam 9 desimal. Satu koin, dua skala — bukan dua token berbeda.',
-    genericError: 'Tidak dapat mengirim. {chiTiet}',
+    genericError: 'Tidak dapat mengirim. {detail}',
   },
 
   langPicker: {

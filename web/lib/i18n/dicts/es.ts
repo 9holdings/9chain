@@ -30,10 +30,10 @@ export const es: Dict = {
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',
-    banner: 'A1 se reconstruyó el {ngay}. Todos los saldos y cadenas creados antes de esa fecha ya no existen.',
+    banner: 'A1 se reconstruyó el {date}. Todos los saldos y cadenas creados antes de esa fecha ya no existen.',
     bannerLink: 'Qué significa esto',
     badge: 'Reconstruida',
-    title: 'A1 se reconstruyó el {ngay}',
+    title: 'A1 se reconstruyó el {date}',
     desc:
       'La red de pruebas A1 se ha reconstruido desde el bloque 0. Las cadenas, los saldos y el ' +
       'historial de transacciones creados antes de esa fecha ya no existen: no están ocultos, ' +
@@ -62,10 +62,10 @@ export const es: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1 se reconstruye el {ngay}: todas las cadenas, saldos y transacciones creados antes serán borrados.',
+    banner: 'A1 se reconstruye el {date}: todas las cadenas, saldos y transacciones creados antes serán borrados.',
     bannerLink: 'Detalles',
     badge: 'Reconstrucción próxima',
-    title: 'A1 se reconstruye el {ngay}',
+    title: 'A1 se reconstruye el {date}',
     desc:
       'Toda la red de pruebas A1 se reconstruirá desde el bloque 0. Todo lo creado antes de esa ' +
       'fecha desaparecerá: no quedará oculto, dejará de existir. Esta página dice exactamente ' +
@@ -140,7 +140,7 @@ export const es: Dict = {
       'A1 ya se reconstruyó una vez el 2026-08-27, antes de la fecha indicada abajo. Si tenías tokens de prueba antes de eso, tu saldo ahora es 0: eso es correcto, no es un fallo de tu monedero. No se perdió ninguna cadena de usuario: el directorio solo contenía cadenas de prueba automatizadas. Vuelve a pedir tokens en el grifo.',
     dateNote: 'La fecha puede moverse',
     dateNoteDesc:
-      'La fecha {ngay} depende de una comprobación previa. Si se retrasa, cambiaremos la fecha en ' +
+      'La fecha {date} depende de una comprobación previa. Si se retrasa, cambiaremos la fecha en ' +
       'esta página en lugar de guardar silencio.',
   },
 
@@ -262,7 +262,7 @@ export const es: Dict = {
     nameInvalid: 'El nombre solo puede contener letras, dígitos y espacios, con una longitud de 2 a 32 caracteres.',
     typeLabel: 'Tipo de cadena',
     typeHelp: 'Una vez elegido queda fijo: el génesis de una cadena no se puede editar.',
-    slotsLeft: 'Quedan {con}/{tong} plazas',
+    slotsLeft: 'Quedan {left}/{total} plazas',
     slotsFull: 'No quedan plazas',
     slotsFullDesc:
       'El modelo actual hace que cada validador siga todas las L1, y el protocolo expulsa a un nodo ' +
@@ -274,20 +274,20 @@ export const es: Dict = {
       'El génesis de una L1 lanzada es INMUTABLE. Después de este paso no se pueden cambiar el ' +
       'nombre, el tipo de cadena ni el propietario, y revocar tampoco devuelve el nombre ni el Chain ID.',
     reviewRebuild:
-      'Una cosa más antes de pulsar: A1 reconstruye toda la red el {ngay}. La cadena que lances hoy ' +
+      'Una cosa más antes de pulsar: A1 reconstruye toda la red el {date}. La cadena que lances hoy ' +
       'será borrada junto con la red antigua: no oculta, desaparecida.',
     reviewName: 'Nombre de la cadena',
     reviewType: 'Tipo de cadena',
     reviewOwner: 'Propietario',
     reviewBack: 'Volver y editar',
     reviewConfirm: 'Lo he revisado: lanzar la cadena',
-    launching: 'Lanzando la cadena «{ten}»',
+    launching: 'Lanzando la cadena «{name}»',
     launchingDesc:
       'Los nodos se reinician DE UNO EN UNO para que la red nunca pierda el quórum: por eso es lento, ' +
       'y es deliberado. No cierres la pestaña; si lo haces, la cadena se construye igualmente.',
-    etaRemaining: 'Faltan unos {phut} minutos',
+    etaRemaining: 'Faltan unos {minutes} minutos',
     preparing: 'Preparando…',
-    doneTitle: 'Listo: la cadena «{ten}» está funcionando',
+    doneTitle: 'Listo: la cadena «{name}» está funcionando',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Añadir la cadena al monedero',
@@ -295,10 +295,10 @@ export const es: Dict = {
     doneActivate: 'Activar la cadena (abrir el bloque 1)',
     doneActivated: 'Activada',
     doneActivating: 'Esperando al monedero…',
-    doneAddWalletError: 'No se pudo añadir la cadena a tu monedero. {chiTiet}',
-    doneActivateError: 'No se pudo activar la cadena. {chiTiet}',
+    doneAddWalletError: 'No se pudo añadir la cadena a tu monedero. {detail}',
+    doneActivateError: 'No se pudo activar la cadena. {detail}',
     launchAnother: 'Lanzar otra cadena',
-    launchError: 'No se pudo lanzar la cadena. {chiTiet}',
+    launchError: 'No se pudo lanzar la cadena. {detail}',
     unknownError: 'La cadena no apareció en el directorio después de terminar la ejecución.',
     noteTitle: 'La primera transacción de una cadena nueva',
     noteHow: 'No confíes en la estimación de gas de la primera transacción. La forma más barata de abrir el bloque 1 es una transferencia normal: pulsa «Activar la cadena» abajo.',
@@ -315,7 +315,7 @@ export const es: Dict = {
     colType: 'Tipo',
     colStatus: 'Estado',
     colActions: '',
-    validatorCount: '{so} validadores',
+    validatorCount: '{count} validadores',
     measuring: 'midiendo',
     cannotMeasure: 'no se pudo medir',
     statusHelp: 'Medido por el número de validadores de la subred, no por la altura de bloque.',
@@ -327,9 +327,9 @@ export const es: Dict = {
     walletSettings: 'Configuración del monedero',
     addToWallet: 'Añadir al monedero',
     addedToWallet: 'Añadida',
-    addWalletError: 'No se pudo añadir a tu monedero. {chiTiet}',
+    addWalletError: 'No se pudo añadir a tu monedero. {detail}',
     revoke: 'Revocar',
-    revokeTitle: '¿Revocar «{ten}»?',
+    revokeTitle: '¿Revocar «{name}»?',
     revokeWarn1: 'La cadena deja de servir RPC inmediatamente y desaparece del directorio público.',
     revokeWarn2:
       'Revocar NO elimina la subred en la P-Chain: lo que se creó allí no se puede quitar mientras ' +
@@ -343,9 +343,9 @@ export const es: Dict = {
     revokeNameMismatch: 'No coincide con el nombre de la cadena.',
     revokeConfirm: 'Revocar permanentemente',
     revokeCancel: 'Cancelar',
-    revoking: 'Revocando «{ten}»: unos tres minutos',
-    revokeDone: '«{ten}» revocada. Quedan {con}/{tong} plazas.',
-    revokeError: 'No se pudo revocar. {chiTiet}',
+    revoking: 'Revocando «{name}»: unos tres minutos',
+    revokeDone: '«{name}» revocada. Quedan {left}/{total} plazas.',
+    revokeError: 'No se pudo revocar. {detail}',
     revokeUnknown: 'La cadena sigue en el directorio después de terminar la ejecución.',
     revokedBadge: 'Revocada',
     revokedDesc: 'El nombre y el Chain ID siguen reservados en esta red.',
@@ -400,10 +400,10 @@ export const es: Dict = {
     addNetworkError: 'Dict monedero no pudo añadir la red. Añádela a mano con la configuración de al lado y envía la línea de abajo al equipo:',
     noWallet: 'No se encontró ningún monedero en este navegador. Instala MetaMask y recarga la página.',
     quotaLabel: 'Cuota restante',
-    quotaFormat: '{con}/{tong} solicitudes cada {gio} horas',
-    quotaExhausted: 'Has agotado toda tu cuota. Inténtalo de nuevo en {phut} minutos.',
+    quotaFormat: '{left}/{total} solicitudes cada {hours} horas',
+    quotaExhausted: 'Has agotado toda tu cuota. Inténtalo de nuevo en {minutes} minutos.',
     quotaUnreadable: 'No se pudo leer tu cuota: aún puedes solicitar, solo que no sabrás cuántas te quedan.',
-    sentOk: 'Se enviaron {so} {kyHieu} a {diaChi}',
+    sentOk: 'Se enviaron {count} {symbol} a {address}',
     viewTransaction: 'Ver la transacción',
     settingsTitle: 'Configuración de red',
     settingsRpc: 'RPC',
@@ -414,7 +414,7 @@ export const es: Dict = {
     decimalsHelp:
       'Los monederos muestran 18 decimales porque la C-Chain ejecuta la EVM. En la P/X-Chain, LOVE9 ' +
       'se cuenta con 9 decimales. Una misma moneda, dos escalas: no son dos tokens distintos.',
-    genericError: 'No se pudo enviar. {chiTiet}',
+    genericError: 'No se pudo enviar. {detail}',
   },
 
   langPicker: {

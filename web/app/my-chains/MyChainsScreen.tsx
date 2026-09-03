@@ -164,7 +164,7 @@ export function MyChainsScreen() {
       conSong = st.chains.some((x) => x.name === c.name);
       if (!conSong) {
         setFinished(interpolate(t.myChains.revokeDone, {
-          ten: c.name, con: st.tran - st.chains.length, tong: st.tran,
+          name: c.name, left: st.tran - st.chains.length, total: st.tran,
         }));
       }
     } catch {
@@ -172,7 +172,7 @@ export function MyChainsScreen() {
     }
     if (conSong) {
       setRevokeError(interpolate(t.myChains.revokeError, {
-        chiTiet: check?.error ?? loiPost ?? t.myChains.revokeUnknown,
+        detail: check?.error ?? loiPost ?? t.myChains.revokeUnknown,
       }));
     }
 
@@ -202,14 +202,14 @@ export function MyChainsScreen() {
     return (
       <Card className="mt-8 max-w-2xl p-5 md:p-6">
         <h2 className="font-display text-lg font-bold text-ink">
-          {interpolate(t.myChains.revoking, { ten: running.ten })}
+          {interpolate(t.myChains.revoking, { name: running.ten })}
         </h2>
         <div className="mt-4">
           {progress?.steps?.length ? (
             <Steps
               steps={progress.steps}
               footnote={progress.etaSeconds
-                ? interpolate(t.launch.etaRemaining, { phut: Math.max(1, Math.ceil(progress.etaSeconds / 60)) })
+                ? interpolate(t.launch.etaRemaining, { minutes: Math.max(1, Math.ceil(progress.etaSeconds / 60)) })
                 : undefined}
             />
           ) : (
@@ -271,7 +271,7 @@ export function MyChainsScreen() {
                         ) : v === 0 ? (
                           <Badge tone="warn">{t.myChains.noValidators}</Badge>
                         ) : (
-                          <Badge tone="good">{interpolate(t.myChains.validatorCount, { so: v })}</Badge>
+                          <Badge tone="good">{interpolate(t.myChains.validatorCount, { count: v })}</Badge>
                         )}
                       </p>
                       <p className="mt-1 text-xs text-muted">{t.myChains.statusHelp}</p>
@@ -310,7 +310,7 @@ export function MyChainsScreen() {
                                 finished: false,
                                 ownerAddr: l.tuChoi
                                   ? t.common.walletRejected
-                                  : interpolate(t.myChains.addWalletError, { chiTiet: l.ownerAddr ?? '' }),
+                                  : interpolate(t.myChains.addWalletError, { detail: l.ownerAddr ?? '' }),
                               },
                             }));
                           }
@@ -356,7 +356,7 @@ export function MyChainsScreen() {
       {revoking && (
         <Card className="border-dev-line p-5">
           <h2 className="font-display text-lg font-bold text-ink">
-            {interpolate(t.myChains.revokeTitle, { ten: revoking.name })}
+            {interpolate(t.myChains.revokeTitle, { name: revoking.name })}
           </h2>
           <ul className="mt-3 flex list-disc flex-col gap-2 ps-5 text-sm text-body">
             <li>{t.myChains.revokeWarn1}</li>

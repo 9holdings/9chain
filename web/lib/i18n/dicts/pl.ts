@@ -30,11 +30,11 @@ export const pl: Dict = {
     archiveUrl: '',
     archiveSha256: '',
 
-    banner: 'A1 została odbudowana {ngay}. Każde saldo i każdy łańcuch utworzone przed tą datą już nie istnieją.',
+    banner: 'A1 została odbudowana {date}. Każde saldo i każdy łańcuch utworzone przed tą datą już nie istnieją.',
     bannerLink: 'Co to oznacza',
     badge: 'Odbudowana',
 
-    title: 'A1 została odbudowana {ngay}',
+    title: 'A1 została odbudowana {date}',
     desc:
       'Sieć testowa A1 została odbudowana od bloku 0. Łańcuchy, salda i historia transakcji ' +
       'utworzone przed tą datą już nie istnieją — nie są ukryte, po prostu ich nie ma. ' +
@@ -66,11 +66,11 @@ export const pl: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1 zostanie odbudowana {ngay} — każdy łańcuch, saldo i transakcja utworzone wcześniej zostaną skasowane.',
+    banner: 'A1 zostanie odbudowana {date} — każdy łańcuch, saldo i transakcja utworzone wcześniej zostaną skasowane.',
     bannerLink: 'Szczegóły',
     badge: 'Nadchodzi odbudowa',
 
-    title: 'A1 zostanie odbudowana {ngay}',
+    title: 'A1 zostanie odbudowana {date}',
     desc:
       'Cała sieć testowa A1 zostanie odbudowana od bloku 0. Wszystko, co powstało przed tą datą, ' +
       'zniknie — nie zostanie ukryte, lecz przestanie istnieć. Ta strona mówi dokładnie, co zostanie ' +
@@ -144,7 +144,7 @@ export const pl: Dict = {
       'A1 została już raz odbudowana 2026-08-27, przed datą podaną poniżej. Jeśli miałeś wcześniej tokeny testowe, twoje saldo wynosi teraz 0 — to jest prawidłowe, a nie usterka portfela. Żaden łańcuch użytkownika nie przepadł: w katalogu były wyłącznie automatyczne łańcuchy testowe. Poproś ponownie o tokeny w kranie.',
     dateNote: 'Data może się przesunąć',
     dateNoteDesc:
-      'Data {ngay} zależy od wcześniejszej kontroli go/no-go. Jeśli się przesunie, zmienimy datę na ' +
+      'Data {date} zależy od wcześniejszej kontroli go/no-go. Jeśli się przesunie, zmienimy datę na ' +
       'tej stronie, zamiast milczeć.',
   },
 
@@ -274,7 +274,7 @@ export const pl: Dict = {
     nameInvalid: 'Nazwa może zawierać wyłącznie litery, cyfry i spacje, o długości 2–32 znaków.',
     typeLabel: 'Typ łańcucha',
     typeHelp: 'Po wybraniu jest już stały — genesis łańcucha nie da się edytować.',
-    slotsLeft: 'Pozostało miejsc: {con}/{tong}',
+    slotsLeft: 'Pozostało miejsc: {left}/{total}',
     slotsFull: 'Brak wolnych miejsc',
     slotsFullDesc:
       'W obecnym modelu każdy walidator śledzi każdą sieć L1, a protokół odrzuca węzeł deklarujący ' +
@@ -287,7 +287,7 @@ export const pl: Dict = {
       'Genesis uruchomionej sieci L1 jest NIEZMIENNY. Po tym kroku nazwy, typu łańcucha ani właściciela ' +
       'nie da się zmienić — a cofnięcie również nie zwróci nazwy ani chain ID.',
     reviewRebuild:
-      'Jeszcze jedno, zanim naciśniesz: A1 odbudowuje całą sieć {ngay}. Łańcuch, który uruchomisz ' +
+      'Jeszcze jedno, zanim naciśniesz: A1 odbudowuje całą sieć {date}. Łańcuch, który uruchomisz ' +
       'dzisiaj, zostanie skasowany razem ze starą siecią — nie ukryty, lecz usunięty.',
     reviewName: 'Nazwa łańcucha',
     reviewType: 'Typ łańcucha',
@@ -295,14 +295,14 @@ export const pl: Dict = {
     reviewBack: 'Wróć i popraw',
     reviewConfirm: 'Sprawdziłem — uruchom łańcuch',
 
-    launching: 'Uruchamianie łańcucha „{ten}"',
+    launching: 'Uruchamianie łańcucha „{name}"',
     launchingDesc:
       'Węzły restartują się PO KOLEI, żeby sieć nigdy nie straciła kworum — dlatego jest wolno, i jest ' +
       'to zamierzone. Nie zamykaj karty; jeśli ją zamkniesz, łańcuch i tak zostanie zbudowany.',
-    etaRemaining: 'Pozostało około {phut} minut',
+    etaRemaining: 'Pozostało około {minutes} minut',
     preparing: 'Przygotowywanie…',
 
-    doneTitle: 'Gotowe — łańcuch „{ten}" działa',
+    doneTitle: 'Gotowe — łańcuch „{name}" działa',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Dodaj łańcuch do portfela',
@@ -310,11 +310,11 @@ export const pl: Dict = {
     doneActivate: 'Aktywuj łańcuch (otwórz blok 1)',
     doneActivated: 'Aktywowany',
     doneActivating: 'Czekam na portfel…',
-    doneAddWalletError: 'Nie udało się dodać łańcucha do portfela. {chiTiet}',
-    doneActivateError: 'Nie udało się aktywować łańcucha. {chiTiet}',
+    doneAddWalletError: 'Nie udało się dodać łańcucha do portfela. {detail}',
+    doneActivateError: 'Nie udało się aktywować łańcucha. {detail}',
 
     launchAnother: 'Uruchom kolejny łańcuch',
-    launchError: 'Nie udało się uruchomić łańcucha. {chiTiet}',
+    launchError: 'Nie udało się uruchomić łańcucha. {detail}',
     unknownError: 'Po zakończeniu operacji łańcuch nie pojawił się w katalogu.',
     noteTitle: 'Pierwsza transakcja na nowym łańcuchu',
     noteHow:
@@ -335,7 +335,7 @@ export const pl: Dict = {
     colStatus: 'Stan',
     colActions: '',
 
-    validatorCount: 'Walidatorów: {so}',
+    validatorCount: 'Walidatorów: {count}',
     measuring: 'pomiar',
     cannotMeasure: 'nie udało się zmierzyć',
     statusHelp: 'Mierzone liczbą walidatorów podsieci, a nie wysokością bloku.',
@@ -348,10 +348,10 @@ export const pl: Dict = {
     walletSettings: 'Ustawienia portfela',
     addToWallet: 'Dodaj do portfela',
     addedToWallet: 'Dodano',
-    addWalletError: 'Nie udało się dodać do portfela. {chiTiet}',
+    addWalletError: 'Nie udało się dodać do portfela. {detail}',
 
     revoke: 'Cofnij',
-    revokeTitle: 'Cofnąć „{ten}"?',
+    revokeTitle: 'Cofnąć „{name}"?',
     revokeWarn1: 'Łańcuch natychmiast przestaje obsługiwać RPC i znika z publicznego katalogu.',
     revokeWarn2:
       'Cofnięcie NIE usuwa podsieci na P-Chain — tego, co tam powstało, nie da się usunąć, dopóki ta ' +
@@ -365,9 +365,9 @@ export const pl: Dict = {
     revokeNameMismatch: 'To nie zgadza się z nazwą łańcucha.',
     revokeConfirm: 'Cofnij trwale',
     revokeCancel: 'Anuluj',
-    revoking: 'Cofanie „{ten}" — około trzech minut',
-    revokeDone: 'Cofnięto „{ten}". Pozostało miejsc: {con}/{tong}.',
-    revokeError: 'Nie udało się cofnąć. {chiTiet}',
+    revoking: 'Cofanie „{name}" — około trzech minut',
+    revokeDone: 'Cofnięto „{name}". Pozostało miejsc: {left}/{total}.',
+    revokeError: 'Nie udało się cofnąć. {detail}',
     revokeUnknown: 'Po zakończeniu operacji łańcuch nadal jest w katalogu.',
 
     revokedBadge: 'Cofnięty',
@@ -429,10 +429,10 @@ export const pl: Dict = {
     addNetworkError: 'Twój portfel nie zdołał dodać sieci. Dodaj ją ręcznie, korzystając z ustawień obok — i wyślij zespołowi poniższą linijkę:',
     noWallet: 'Nie znaleziono portfela w tej przeglądarce. Zainstaluj MetaMask i odśwież stronę.',
     quotaLabel: 'Pozostały limit',
-    quotaFormat: '{con}/{tong} żądań na {gio} godzin',
-    quotaExhausted: 'Wykorzystałeś cały swój limit. Spróbuj ponownie za {phut} minut.',
+    quotaFormat: '{left}/{total} żądań na {hours} godzin',
+    quotaExhausted: 'Wykorzystałeś cały swój limit. Spróbuj ponownie za {minutes} minut.',
     quotaUnreadable: 'Nie udało się odczytać twojego limitu — nadal możesz poprosić, po prostu nie będziesz wiedzieć, ile zostało.',
-    sentOk: 'Wysłano {so} {kyHieu} na adres {diaChi}',
+    sentOk: 'Wysłano {count} {symbol} na adres {address}',
     viewTransaction: 'Zobacz transakcję',
     settingsTitle: 'Ustawienia sieci',
     settingsRpc: 'RPC',
@@ -443,7 +443,7 @@ export const pl: Dict = {
     decimalsHelp:
       'Portfele pokazują 18 miejsc po przecinku, bo C-Chain uruchamia EVM. Na P/X-Chain LOVE9 liczy ' +
       'się w 9 miejscach. Jedna moneta, dwie skale — nie dwa różne tokeny.',
-    genericError: 'Nie udało się wysłać. {chiTiet}',
+    genericError: 'Nie udało się wysłać. {detail}',
   },
 
   langPicker: {

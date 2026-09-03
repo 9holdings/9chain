@@ -28,7 +28,7 @@ export function RebuildContent() {
     <div className="khung max-w-3xl py-10 md:py-14">
       <header>
         <h1 className="font-display text-2xl font-extrabold text-ink md:text-3xl">
-          {interpolate(t.rebuild.title, { ngay })}
+          {interpolate(t.rebuild.title, { date: ngay })}
         </h1>
         <p className="mt-3 text-base text-body">{t.rebuild.desc}</p>
       </header>
@@ -118,7 +118,7 @@ export function RebuildContent() {
       <div className="mt-10">
         <Note tone="warn">
           <p className="font-semibold">{t.rebuild.dateNote}</p>
-          <p className="mt-1">{interpolate(t.rebuild.dateNoteDesc, { ngay })}</p>
+          <p className="mt-1">{interpolate(t.rebuild.dateNoteDesc, { date: ngay })}</p>
         </Note>
       </div>
     </div>

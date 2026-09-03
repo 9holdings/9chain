@@ -29,10 +29,10 @@ export const zh: Dict = {
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',
-    banner: 'A1 已于 {ngay} 重建。该日期之前创建的所有余额和链均已不存在。',
+    banner: 'A1 已于 {date} 重建。该日期之前创建的所有余额和链均已不存在。',
     bannerLink: '这意味着什么',
     badge: '已重建',
-    title: 'A1 已于 {ngay} 重建',
+    title: 'A1 已于 {date} 重建',
     desc:
       'A1 测试网络已从区块 0 重建。该日期之前创建的链、余额和交易历史均已不存在 —— ' +
       '不是被隐藏，而是彻底消失。本页说明您现在看到的情况以及应当如何处理。',
@@ -54,10 +54,10 @@ export const zh: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1 将于 {ngay} 重建 —— 在此之前创建的所有链、余额和交易都将被抹除。',
+    banner: 'A1 将于 {date} 重建 —— 在此之前创建的所有链、余额和交易都将被抹除。',
     bannerLink: '详情',
     badge: '即将重建',
-    title: 'A1 将于 {ngay} 重建',
+    title: 'A1 将于 {date} 重建',
     desc:
       '整个 A1 测试网络将从区块 0 重建。该日期之前创建的一切都将消失 —— 不是被隐藏，' +
       '而是不复存在。本页明确说明会失去什么，以及您需要做什么。',
@@ -120,7 +120,7 @@ export const zh: Dict = {
     alreadyDesc:
       'A1 已在 2026-08-27 重建过一次，早于下方的日期。如果您在那之前持有测试代币，现在余额为 0 —— 这是正确的，不是您的钱包出了问题。没有用户的链丢失：当时目录中只有自动化测试链。请到水龙头重新领取代币。',
     dateNote: '日期可能推迟',
-    dateNoteDesc: '{ngay} 这一日期取决于之前的一道放行检查。若推迟，我们会更改本页的日期，而不是保持沉默。',
+    dateNoteDesc: '{date} 这一日期取决于之前的一道放行检查。若推迟，我们会更改本页的日期，而不是保持沉默。',
   },
 
   footer: {
@@ -241,7 +241,7 @@ export const zh: Dict = {
     nameInvalid: '名称只能包含字母、数字和空格，长度为 2–32 个字符。',
     typeLabel: '链类型',
     typeHelp: '一经选定即固定 —— 链的创世区块无法编辑。',
-    slotsLeft: '剩余 {con}/{tong} 个名额',
+    slotsLeft: '剩余 {left}/{total} 个名额',
     slotsFull: '名额已满',
     slotsFullDesc:
       '当前模式要求每个验证者跟踪每一条 L1，而协议会断开声明超过 16 个子网的节点。' +
@@ -252,20 +252,20 @@ export const zh: Dict = {
       '已启动 L1 的创世区块是不可更改的。此步骤之后，名称、链类型和所有者都无法更改 —— ' +
       '撤销也不会归还名称和链 ID。',
     reviewRebuild:
-      '按下之前还需知道一件事：A1 将于 {ngay} 重建整个网络。您今天启动的链将随旧网络一同被抹除 —— ' +
+      '按下之前还需知道一件事：A1 将于 {date} 重建整个网络。您今天启动的链将随旧网络一同被抹除 —— ' +
       '不是被隐藏，而是彻底消失。',
     reviewName: '链名称',
     reviewType: '链类型',
     reviewOwner: '所有者',
     reviewBack: '返回修改',
     reviewConfirm: '我已确认 —— 启动该链',
-    launching: '正在启动链 “{ten}”',
+    launching: '正在启动链 “{name}”',
     launchingDesc:
       '各节点逐一重启，以确保网络始终不失去法定人数 —— 这就是它慢的原因，而且是有意的。' +
       '请不要关闭标签页；即使关闭，链仍会继续构建。',
-    etaRemaining: '大约还需 {phut} 分钟',
+    etaRemaining: '大约还需 {minutes} 分钟',
     preparing: '准备中…',
-    doneTitle: '完成 —— 链 “{ten}” 正在运行',
+    doneTitle: '完成 —— 链 “{name}” 正在运行',
     doneChainId: '链 ID',
     doneRpc: 'RPC',
     doneAddWallet: '将链添加到钱包',
@@ -273,10 +273,10 @@ export const zh: Dict = {
     doneActivate: '激活链（打开区块 1）',
     doneActivated: '已激活',
     doneActivating: '等待钱包…',
-    doneAddWalletError: '无法将该链添加到您的钱包。{chiTiet}',
-    doneActivateError: '无法激活该链。{chiTiet}',
+    doneAddWalletError: '无法将该链添加到您的钱包。{detail}',
+    doneActivateError: '无法激活该链。{detail}',
     launchAnother: '再启动一条链',
-    launchError: '无法启动该链。{chiTiet}',
+    launchError: '无法启动该链。{detail}',
     unknownError: '运行结束后，该链未出现在目录中。',
     noteTitle: '新链上的第一笔交易',
     noteHow: '不要相信第一笔交易的 gas 估算。打开区块 1 最省事的方式是一笔普通转账 —— 请按下方的“激活链”。',
@@ -293,7 +293,7 @@ export const zh: Dict = {
     colType: '类型',
     colStatus: '状态',
     colActions: '',
-    validatorCount: '{so} 个验证者',
+    validatorCount: '{count} 个验证者',
     measuring: '测量中',
     cannotMeasure: '无法测量',
     statusHelp: '以子网的验证者数量衡量，而不是以区块高度衡量。',
@@ -304,9 +304,9 @@ export const zh: Dict = {
     walletSettings: '钱包参数',
     addToWallet: '添加到钱包',
     addedToWallet: '已添加',
-    addWalletError: '无法将其添加到您的钱包。{chiTiet}',
+    addWalletError: '无法将其添加到您的钱包。{detail}',
     revoke: '撤销',
-    revokeTitle: '撤销 “{ten}”？',
+    revokeTitle: '撤销 “{name}”？',
     revokeWarn1: '该链会立即停止提供 RPC 服务，并从公共目录中消失。',
     revokeWarn2:
       '撤销并不会删除 P 链上的子网 —— 只要本网络还在运行，那里创建的东西就无法移除。' +
@@ -319,9 +319,9 @@ export const zh: Dict = {
     revokeNameMismatch: '与链名称不符。',
     revokeConfirm: '永久撤销',
     revokeCancel: '取消',
-    revoking: '正在撤销 “{ten}” —— 大约三分钟',
-    revokeDone: '已撤销 “{ten}”。剩余 {con}/{tong} 个名额。',
-    revokeError: '无法撤销。{chiTiet}',
+    revoking: '正在撤销 “{name}” —— 大约三分钟',
+    revokeDone: '已撤销 “{name}”。剩余 {left}/{total} 个名额。',
+    revokeError: '无法撤销。{detail}',
     revokeUnknown: '运行结束后，该链仍在目录中。',
     revokedBadge: '已撤销',
     revokedDesc: '名称和链 ID 在本网络上保持占用。',
@@ -374,10 +374,10 @@ export const zh: Dict = {
     addNetworkError: '您的钱包无法添加该网络。请使用旁边的参数手动添加 —— 并把下面这行发给团队：',
     noWallet: '在此浏览器中未找到钱包。请安装 MetaMask 后重新加载页面。',
     quotaLabel: '剩余额度',
-    quotaFormat: '每 {gio} 小时 {con}/{tong} 次',
-    quotaExhausted: '您已用完全部额度。请在 {phut} 分钟后重试。',
+    quotaFormat: '每 {hours} 小时 {left}/{total} 次',
+    quotaExhausted: '您已用完全部额度。请在 {minutes} 分钟后重试。',
     quotaUnreadable: '无法读取您的额度 —— 您仍然可以申请，只是不知道还剩几次。',
-    sentOk: '已向 {diaChi} 发送 {so} {kyHieu}',
+    sentOk: '已向 {address} 发送 {count} {symbol}',
     viewTransaction: '查看交易',
     settingsTitle: '网络参数',
     settingsRpc: 'RPC',
@@ -388,7 +388,7 @@ export const zh: Dict = {
     decimalsHelp:
       '钱包显示 18 位小数，因为 C 链运行 EVM。在 P/X 链上，LOVE9 以 9 位小数计。' +
       '同一种币，两套刻度 —— 不是两种不同的代币。',
-    genericError: '发送失败。{chiTiet}',
+    genericError: '发送失败。{detail}',
   },
 
   langPicker: {

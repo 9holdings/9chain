@@ -31,11 +31,11 @@ export const it: Dict = {
     archiveUrl: '',
     archiveSha256: '',
 
-    banner: 'A1 è stata ricostruita il {ngay}. Ogni saldo e ogni catena creati prima di quella data non esistono più.',
+    banner: 'A1 è stata ricostruita il {date}. Ogni saldo e ogni catena creati prima di quella data non esistono più.',
     bannerLink: 'Che cosa significa',
     badge: 'Ricostruita',
 
-    title: 'A1 è stata ricostruita il {ngay}',
+    title: 'A1 è stata ricostruita il {date}',
     desc:
       'La rete di test A1 è stata ricostruita dal blocco 0. Catene, saldi e cronologia delle ' +
       'transazioni creati prima di quella data non esistono più — non sono nascosti, sono spariti. ' +
@@ -67,11 +67,11 @@ export const it: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1 verrà ricostruita il {ngay} — ogni catena, saldo e transazione creati prima di allora saranno cancellati.',
+    banner: 'A1 verrà ricostruita il {date} — ogni catena, saldo e transazione creati prima di allora saranno cancellati.',
     bannerLink: 'Dettagli',
     badge: 'Ricostruzione in arrivo',
 
-    title: 'A1 verrà ricostruita il {ngay}',
+    title: 'A1 verrà ricostruita il {date}',
     desc:
       'L’intera rete di test A1 verrà ricostruita dal blocco 0. Tutto ciò che è stato creato prima ' +
       'di quella data sparirà — non sarà nascosto, semplicemente non esisterà più. Questa pagina dice ' +
@@ -149,7 +149,7 @@ export const it: Dict = {
       'A1 è già stata ricostruita una volta il 2026-08-27, prima della data qui sotto. Se prima di allora avevi token di test, il tuo saldo ora è 0 — è corretto, non è un guasto del tuo wallet. Nessuna catena degli utenti è andata persa: l’elenco conteneva solo catene di test automatiche. Richiedi di nuovo i token dal faucet.',
     dateNote: 'La data può slittare',
     dateNoteDesc:
-      'La data {ngay} dipende da un controllo go/no-go precedente. Se slitta, cambieremo la data su ' +
+      'La data {date} dipende da un controllo go/no-go precedente. Se slitta, cambieremo la data su ' +
       'questa pagina invece di restare in silenzio.',
   },
 
@@ -279,7 +279,7 @@ export const it: Dict = {
     nameInvalid: 'Il nome può contenere solo lettere, cifre e spazi, per una lunghezza di 2–32 caratteri.',
     typeLabel: 'Tipo di catena',
     typeHelp: 'Una volta scelto è fisso — il genesis di una catena non è modificabile.',
-    slotsLeft: '{con}/{tong} posti liberi',
+    slotsLeft: '{left}/{total} posti liberi',
     slotsFull: 'Nessun posto libero',
     slotsFullDesc:
       'Il modello attuale fa sì che ogni validatore segua ogni L1, e il protocollo espelle un nodo ' +
@@ -292,7 +292,7 @@ export const it: Dict = {
       'Il genesis di una L1 avviata è IMMUTABILE. Dopo questo passaggio nome, tipo di catena e ' +
       'proprietario non possono essere cambiati — e nemmeno la revoca restituirà nome e chain ID.',
     reviewRebuild:
-      'Un’altra cosa da sapere prima di premere: A1 ricostruisce l’intera rete il {ngay}. La catena ' +
+      'Un’altra cosa da sapere prima di premere: A1 ricostruisce l’intera rete il {date}. La catena ' +
       'che avvii oggi verrà cancellata insieme alla vecchia rete — non nascosta, sparita.',
     reviewName: 'Nome della catena',
     reviewType: 'Tipo di catena',
@@ -300,14 +300,14 @@ export const it: Dict = {
     reviewBack: 'Torna indietro e modifica',
     reviewConfirm: 'Ho controllato — avvia la catena',
 
-    launching: 'Avvio della catena “{ten}”',
+    launching: 'Avvio della catena “{name}”',
     launchingDesc:
       'I nodi si riavviano UNO ALLA VOLTA perché la rete non perda mai il quorum — è per questo che ' +
       'è lento, ed è voluto. Non chiudere la scheda; se la chiudi, la catena viene comunque costruita.',
-    etaRemaining: 'Circa {phut} minuti rimasti',
+    etaRemaining: 'Circa {minutes} minuti rimasti',
     preparing: 'Preparazione…',
 
-    doneTitle: 'Fatto — la catena “{ten}” è attiva',
+    doneTitle: 'Fatto — la catena “{name}” è attiva',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Aggiungi la catena al wallet',
@@ -315,11 +315,11 @@ export const it: Dict = {
     doneActivate: 'Attiva la catena (apri il blocco 1)',
     doneActivated: 'Attivata',
     doneActivating: 'In attesa del wallet…',
-    doneAddWalletError: 'Impossibile aggiungere la catena al tuo wallet. {chiTiet}',
-    doneActivateError: 'Impossibile attivare la catena. {chiTiet}',
+    doneAddWalletError: 'Impossibile aggiungere la catena al tuo wallet. {detail}',
+    doneActivateError: 'Impossibile attivare la catena. {detail}',
 
     launchAnother: 'Avvia un’altra catena',
-    launchError: 'Impossibile avviare la catena. {chiTiet}',
+    launchError: 'Impossibile avviare la catena. {detail}',
     unknownError: 'La catena non è comparsa nell’elenco al termine dell’operazione.',
     noteTitle: 'La prima transazione su una catena nuova',
     noteHow:
@@ -340,7 +340,7 @@ export const it: Dict = {
     colStatus: 'Stato',
     colActions: '',
 
-    validatorCount: '{so} validatori',
+    validatorCount: '{count} validatori',
     measuring: 'misurazione',
     cannotMeasure: 'impossibile misurare',
     statusHelp: 'Misurato dal numero di validatori della subnet, non dall’altezza dei blocchi.',
@@ -353,10 +353,10 @@ export const it: Dict = {
     walletSettings: 'Impostazioni del wallet',
     addToWallet: 'Aggiungi al wallet',
     addedToWallet: 'Aggiunta',
-    addWalletError: 'Impossibile aggiungerla al tuo wallet. {chiTiet}',
+    addWalletError: 'Impossibile aggiungerla al tuo wallet. {detail}',
 
     revoke: 'Revoca',
-    revokeTitle: 'Revocare “{ten}”?',
+    revokeTitle: 'Revocare “{name}”?',
     revokeWarn1: 'La catena smette subito di servire RPC e sparisce dall’elenco pubblico.',
     revokeWarn2:
       'La revoca NON elimina la subnet sulla P-Chain — ciò che è stato creato lì non può essere ' +
@@ -371,9 +371,9 @@ export const it: Dict = {
     revokeNameMismatch: 'Non corrisponde al nome della catena.',
     revokeConfirm: 'Revoca definitivamente',
     revokeCancel: 'Annulla',
-    revoking: 'Revoca di “{ten}” — circa tre minuti',
-    revokeDone: '“{ten}” revocata. {con}/{tong} posti liberi.',
-    revokeError: 'Impossibile revocare. {chiTiet}',
+    revoking: 'Revoca di “{name}” — circa tre minuti',
+    revokeDone: '“{name}” revocata. {left}/{total} posti liberi.',
+    revokeError: 'Impossibile revocare. {detail}',
     revokeUnknown: 'La catena è ancora nell’elenco al termine dell’operazione.',
 
     revokedBadge: 'Revocata',
@@ -435,10 +435,10 @@ export const it: Dict = {
     addNetworkError: 'Il tuo wallet non è riuscito ad aggiungere la rete. Aggiungila a mano con le impostazioni qui accanto — e invia al team la riga sottostante:',
     noWallet: 'Nessun wallet trovato in questo browser. Installa MetaMask e ricarica la pagina.',
     quotaLabel: 'Quota rimanente',
-    quotaFormat: '{con}/{tong} richieste ogni {gio} ore',
-    quotaExhausted: 'Hai esaurito tutta la tua quota. Riprova tra {phut} minuti.',
+    quotaFormat: '{left}/{total} richieste ogni {hours} ore',
+    quotaExhausted: 'Hai esaurito tutta la tua quota. Riprova tra {minutes} minuti.',
     quotaUnreadable: 'Impossibile leggere la tua quota — puoi comunque fare richiesta, semplicemente non saprai quante ne restano.',
-    sentOk: 'Inviati {so} {kyHieu} a {diaChi}',
+    sentOk: 'Inviati {count} {symbol} a {address}',
     viewTransaction: 'Vedi la transazione',
     settingsTitle: 'Impostazioni di rete',
     settingsRpc: 'RPC',
@@ -449,7 +449,7 @@ export const it: Dict = {
     decimalsHelp:
       'I wallet mostrano 18 decimali perché la C-Chain esegue l’EVM. Sulla P/X-Chain LOVE9 si conta ' +
       'con 9 decimali. Una sola moneta, due scale — non due token diversi.',
-    genericError: 'Invio non riuscito. {chiTiet}',
+    genericError: 'Invio non riuscito. {detail}',
   },
 
   langPicker: {

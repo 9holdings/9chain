@@ -101,11 +101,11 @@ export const vi: Dict = {
     archiveUrl: '',
     archiveSha256: '',
 
-    banner: 'A1 đã sinh lại ngày {ngay}. Mọi số dư và chain tạo trước ngày đó không còn tồn tại.',
+    banner: 'A1 đã sinh lại ngày {date}. Mọi số dư và chain tạo trước ngày đó không còn tồn tại.',
     bannerLink: 'Điều này nghĩa là gì',
     badge: 'Đã sinh lại',
 
-    title: 'A1 đã sinh lại ngày {ngay}',
+    title: 'A1 đã sinh lại ngày {date}',
     desc:
       'Mạng thử nghiệm A1 đã được dựng lại từ block 0. Chain, số dư và lịch sử giao dịch ' +
       'tạo trước ngày đó không còn tồn tại — không phải bị ẩn, mà là không còn. ' +
@@ -138,7 +138,7 @@ export const vi: Dict = {
   /**
    * Re-genesis — xem `PLAN-REGENESIS-2026-09-01.md`, mục O3 và luật "nhiều lần cài".
    *
-   * 🔴 NGÀY NẰM Ở ĐÚNG MỘT CHỖ (`ngay`), mọi chuỗi khác nội suy `{ngay}` qua `interpolate()`.
+   * 🔴 NGÀY NẰM Ở ĐÚNG MỘT CHỖ (`ngay`), mọi chuỗi khác nội suy `{date}` qua `interpolate()`.
    * Cổng GO/NO-GO là 29/08 và sàn cứng là 06/09 — ngày này TRƯỢT ĐƯỢC. Chép ngày ra
    * nhiều chuỗi là tự đặt bẫy: lúc trượt sẽ sửa được chỗ này, sót chỗ kia, và trang
    * lại nói hai ngày khác nhau ở hai màn.
@@ -149,11 +149,11 @@ export const vi: Dict = {
    */
   rebuild: {
     date: '01/09/2026',
-    banner: 'Mạng A1 sinh lại ngày {ngay} — mọi chain, số dư và lịch sử tạo trước ngày đó sẽ bị xoá.',
+    banner: 'Mạng A1 sinh lại ngày {date} — mọi chain, số dư và lịch sử tạo trước ngày đó sẽ bị xoá.',
     bannerLink: 'Chi tiết',
     badge: 'Sắp sinh lại',
 
-    title: 'A1 sinh lại ngày {ngay}',
+    title: 'A1 sinh lại ngày {date}',
     desc:
       'Toàn bộ mạng thử nghiệm A1 sẽ được dựng lại từ block 0. Mọi thứ tạo ra trước ngày ' +
       'đó sẽ không còn — không phải bị ẩn đi, mà là không còn tồn tại. Trang này nói rõ ' +
@@ -247,7 +247,7 @@ export const vi: Dict = {
       'A1 đã sinh lại một lượt ngày 27/08/2026, trước ngày ghi bên dưới. Nếu bạn có token thử trước đó thì số dư nay là 0 — con số đó đúng, không phải ví bạn hỏng. Không chain nào của người dùng bị mất: danh bạ khi ấy chỉ có chain do máy kiểm thử sinh ra. Hãy xin lại token ở trang faucet.',
     dateNote: 'Ngày có thể trượt',
     dateNoteDesc:
-      'Ngày {ngay} phụ thuộc một cổng kiểm trước đó. Nếu trượt, chúng tôi sẽ đổi ngày trên ' +
+      'Ngày {date} phụ thuộc một cổng kiểm trước đó. Nếu trượt, chúng tôi sẽ đổi ngày trên ' +
       'trang này thay vì im lặng.',
   },
 
@@ -451,7 +451,7 @@ export const vi: Dict = {
     nameInvalid: 'Tên chỉ gồm chữ, số và dấu cách, dài 2–32 ký tự.',
     typeLabel: 'Kiểu chain',
     typeHelp: 'Chọn xong là cố định — genesis của chain không sửa lại được.',
-    slotsLeft: 'Còn {con}/{tong} chỗ',
+    slotsLeft: 'Còn {left}/{total} chỗ',
     slotsFull: 'Đã hết chỗ',
     slotsFullDesc:
       'Mô hình hiện tại cho mọi validator track mọi L1, mà giao thức cắt kết nối node khai quá 16 subnet. ' +
@@ -464,7 +464,7 @@ export const vi: Dict = {
       'Genesis của một L1 đã đẻ là BẤT BIẾN. Sau bước này không sửa được tên, kiểu chain ' +
       'hay chủ sở hữu — thu hồi cũng không trả lại tên và chain ID.',
     reviewRebuild:
-      'Và một điều nữa phải biết trước khi bấm: A1 sinh lại toàn mạng ngày {ngay}. ' +
+      'Và một điều nữa phải biết trước khi bấm: A1 sinh lại toàn mạng ngày {date}. ' +
       'Chain bạn đẻ hôm nay sẽ bị xoá cùng mạng cũ — không phải ẩn đi, mà là không còn.',
     reviewName: 'Tên chain',
     reviewType: 'Kiểu chain',
@@ -473,15 +473,15 @@ export const vi: Dict = {
     reviewConfirm: 'Tôi đã soát, đẻ chain',
 
     // ── bước 4: tiến trình
-    launching: 'Đang đẻ chain “{ten}”',
+    launching: 'Đang đẻ chain “{name}”',
     launchingDesc:
       'Năm node restart LẦN LƯỢT để mạng không mất quorum — vì vậy nó chậm, và đó là chủ ý. ' +
       'Đừng đóng tab; nếu lỡ đóng, chain vẫn tiếp tục được dựng.',
-    etaRemaining: 'Còn khoảng {phut} phút',
+    etaRemaining: 'Còn khoảng {minutes} phút',
     preparing: 'Đang chuẩn bị…',
 
     // ── bước 5: xong
-    doneTitle: 'Xong — chain “{ten}” đang chạy',
+    doneTitle: 'Xong — chain “{name}” đang chạy',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Thêm chain vào ví',
@@ -491,11 +491,11 @@ export const vi: Dict = {
     doneActivating: 'Đang chờ ví…',
     // Ba chuỗi này lấp đúng chỗ trước đây `catch {}` trắng — nút hỏng mà không một
     // chữ nào hiện ra, người dùng bấm lại vô hạn.
-    doneAddWalletError: 'Không thêm được chain vào ví. {chiTiet}',
-    doneActivateError: 'Không kích hoạt được chain. {chiTiet}',
+    doneAddWalletError: 'Không thêm được chain vào ví. {detail}',
+    doneActivateError: 'Không kích hoạt được chain. {detail}',
 
     launchAnother: 'Đẻ chain khác',
-    launchError: 'Không đẻ được chain. {chiTiet}',
+    launchError: 'Không đẻ được chain. {detail}',
     unknownError: 'Chain không xuất hiện trong danh bạ sau khi lượt chạy kết thúc.',
     noteTitle: 'Giao dịch đầu tiên của chain mới',
     noteHow:
@@ -516,7 +516,7 @@ export const vi: Dict = {
     colStatus: 'Tình trạng',
     colActions: '',
 
-    validatorCount: '{so} validator',
+    validatorCount: '{count} validator',
     measuring: 'đang đo',
     cannotMeasure: 'chưa đo được',
     // Vì sao đo bằng validator chứ không bằng chiều cao block — xem chú thích trong mã.
@@ -529,10 +529,10 @@ export const vi: Dict = {
     walletSettings: 'Thông số cho ví',
     addToWallet: 'Thêm vào ví',
     addedToWallet: 'Đã thêm',
-    addWalletError: 'Không thêm được vào ví. {chiTiet}',
+    addWalletError: 'Không thêm được vào ví. {detail}',
 
     revoke: 'Thu hồi',
-    revokeTitle: 'Thu hồi “{ten}”?',
+    revokeTitle: 'Thu hồi “{name}”?',
     revokeWarn1: 'Chain ngừng phục vụ RPC ngay lập tức và biến khỏi danh bạ công khai.',
     revokeWarn2:
       'Thu hồi KHÔNG xoá subnet trên P-Chain — thứ đã đẻ ra ở đó thì không gỡ được, ' +
@@ -546,9 +546,9 @@ export const vi: Dict = {
     revokeNameMismatch: 'Chưa khớp tên chain.',
     revokeConfirm: 'Thu hồi vĩnh viễn',
     revokeCancel: 'Hủy',
-    revoking: 'Đang thu hồi “{ten}” — khoảng ba phút',
-    revokeDone: 'Đã thu hồi “{ten}”. Còn {con}/{tong} chỗ.',
-    revokeError: 'Không thu hồi được. {chiTiet}',
+    revoking: 'Đang thu hồi “{name}” — khoảng ba phút',
+    revokeDone: 'Đã thu hồi “{name}”. Còn {left}/{total} chỗ.',
+    revokeError: 'Không thu hồi được. {detail}',
     revokeUnknown: 'Chain vẫn còn trong danh bạ sau khi lượt chạy kết thúc.',
 
     revokedBadge: 'Đã thu hồi',
@@ -616,10 +616,10 @@ export const vi: Dict = {
     addNetworkError: 'Ví không thêm được mạng. Thêm tay bằng thông số bên cạnh — và gửi dòng dưới đây cho đội kỹ thuật:',
     noWallet: 'Không thấy ví trong trình duyệt. Cài MetaMask rồi tải lại trang.',
     quotaLabel: 'Hạn mức còn lại',
-    quotaFormat: '{con}/{tong} lượt trong {gio} giờ',
-    quotaExhausted: 'Bạn đã dùng hết hạn mức. Thử lại sau {phut} phút.',
+    quotaFormat: '{left}/{total} lượt trong {hours} giờ',
+    quotaExhausted: 'Bạn đã dùng hết hạn mức. Thử lại sau {minutes} phút.',
     quotaUnreadable: 'Chưa đọc được hạn mức — bạn vẫn xin được, chỉ là không biết trước còn mấy lượt.',
-    sentOk: 'Đã gửi {so} {kyHieu} tới {diaChi}',
+    sentOk: 'Đã gửi {count} {symbol} tới {address}',
     viewTransaction: 'Xem giao dịch',
     settingsTitle: 'Thông số mạng',
     settingsRpc: 'RPC',
@@ -633,7 +633,7 @@ export const vi: Dict = {
     decimalsHelp:
       'Ví hiện 18 chữ số vì C-Chain chạy EVM. Trên P/X-Chain, LOVE9 đếm bằng 9 chữ số. ' +
       'Cùng một đồng, hai thang đo — không phải hai loại token.',
-    genericError: 'Không gửi được. {chiTiet}',
+    genericError: 'Không gửi được. {detail}',
   },
 
   /** Bộ chọn ngôn ngữ. Xem `components/LanguagePicker.tsx` cho lý do từng nhãn. */

@@ -30,11 +30,11 @@ export const sw: Dict = {
     archiveUrl: '',
     archiveSha256: '',
 
-    banner: 'A1 ilijengwa upya tarehe {ngay}. Kila salio na kila mnyororo vilivyoundwa kabla ya tarehe hiyo havipo tena.',
+    banner: 'A1 ilijengwa upya tarehe {date}. Kila salio na kila mnyororo vilivyoundwa kabla ya tarehe hiyo havipo tena.',
     bannerLink: 'Maana yake ni nini',
     badge: 'Imejengwa upya',
 
-    title: 'A1 ilijengwa upya tarehe {ngay}',
+    title: 'A1 ilijengwa upya tarehe {date}',
     desc:
       'Mtandao wa majaribio wa A1 umejengwa upya kuanzia kizuizi 0. Minyororo, salio na historia ya ' +
       'miamala vilivyoundwa kabla ya tarehe hiyo havipo tena — havijafichwa, vimetoweka. ' +
@@ -66,11 +66,11 @@ export const sw: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1 itajengwa upya tarehe {ngay} — kila mnyororo, salio na muamala vilivyoundwa kabla ya hapo vitafutwa.',
+    banner: 'A1 itajengwa upya tarehe {date} — kila mnyororo, salio na muamala vilivyoundwa kabla ya hapo vitafutwa.',
     bannerLink: 'Maelezo',
     badge: 'Ujenzi upya unakuja',
 
-    title: 'A1 itajengwa upya tarehe {ngay}',
+    title: 'A1 itajengwa upya tarehe {date}',
     desc:
       'Mtandao mzima wa majaribio wa A1 utajengwa upya kuanzia kizuizi 0. Kila kitu kilichoundwa kabla ' +
       'ya tarehe hiyo kitatoweka — hakitafichwa, bali hakitakuwapo tena. Ukurasa huu unaeleza kwa usahihi ' +
@@ -145,7 +145,7 @@ export const sw: Dict = {
       'A1 tayari ilijengwa upya mara moja tarehe 2026-08-27, kabla ya tarehe iliyo hapa chini. Kama ulikuwa na tokeni za majaribio kabla ya hapo, salio lako sasa ni 0 — hiyo ni sahihi, si hitilafu ya pochi yako. Hakuna mnyororo wa mtumiaji uliopotea: orodha ilikuwa na minyororo ya majaribio ya kiotomatiki pekee. Omba tena tokeni kwenye bomba.',
     dateNote: 'Tarehe inaweza kusogezwa',
     dateNoteDesc:
-      'Tarehe {ngay} inategemea ukaguzi wa go/no-go uliotangulia. Ikisogezwa, tutabadilisha tarehe ' +
+      'Tarehe {date} inategemea ukaguzi wa go/no-go uliotangulia. Ikisogezwa, tutabadilisha tarehe ' +
       'kwenye ukurasa huu badala ya kunyamaza.',
   },
 
@@ -275,7 +275,7 @@ export const sw: Dict = {
     nameInvalid: 'Jina linaweza kuwa na herufi, tarakimu na nafasi pekee, lenye urefu wa herufi 2–32.',
     typeLabel: 'Aina ya mnyororo',
     typeHelp: 'Ikishachaguliwa haibadiliki — genesis ya mnyororo haiwezi kuhaririwa.',
-    slotsLeft: 'Nafasi {con}/{tong} zimebaki',
+    slotsLeft: 'Nafasi {left}/{total} zimebaki',
     slotsFull: 'Hakuna nafasi iliyobaki',
     slotsFullDesc:
       'Muundo wa sasa hufanya kila mthibitishaji afuatilie kila L1, na itifaki huondoa nodi inayotangaza ' +
@@ -288,7 +288,7 @@ export const sw: Dict = {
       'Genesis ya L1 iliyozinduliwa HAIBADILIKI. Baada ya hatua hii, jina, aina ya mnyororo na mmiliki ' +
       'haviwezi kubadilishwa — na kubatilisha pia hakutarudisha jina wala chain ID.',
     reviewRebuild:
-      'Jambo moja zaidi la kujua kabla hujabonyeza: A1 hujenga upya mtandao mzima tarehe {ngay}. ' +
+      'Jambo moja zaidi la kujua kabla hujabonyeza: A1 hujenga upya mtandao mzima tarehe {date}. ' +
       'Mnyororo unaouzindua leo utafutwa pamoja na mtandao wa zamani — hautafichwa, utatoweka.',
     reviewName: 'Jina la mnyororo',
     reviewType: 'Aina ya mnyororo',
@@ -296,14 +296,14 @@ export const sw: Dict = {
     reviewBack: 'Rudi na uhariri',
     reviewConfirm: 'Nimekagua — zindua mnyororo',
 
-    launching: 'Inazindua mnyororo “{ten}”',
+    launching: 'Inazindua mnyororo “{name}”',
     launchingDesc:
       'Nodi huanzishwa upya MOJA BAADA YA NYINGINE ili mtandao usipoteze akidi kamwe — ndiyo maana ni ' +
       'polepole, na hilo limekusudiwa. Usifunge kichupo; ukikifunga, mnyororo bado utajengwa.',
-    etaRemaining: 'Zimebaki takriban dakika {phut}',
+    etaRemaining: 'Zimebaki takriban dakika {minutes}',
     preparing: 'Inajiandaa…',
 
-    doneTitle: 'Imekamilika — mnyororo “{ten}” unafanya kazi',
+    doneTitle: 'Imekamilika — mnyororo “{name}” unafanya kazi',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Ongeza mnyororo kwenye pochi',
@@ -311,11 +311,11 @@ export const sw: Dict = {
     doneActivate: 'Washa mnyororo (fungua kizuizi 1)',
     doneActivated: 'Umewashwa',
     doneActivating: 'Inasubiri pochi…',
-    doneAddWalletError: 'Mnyororo haukuweza kuongezwa kwenye pochi yako. {chiTiet}',
-    doneActivateError: 'Mnyororo haukuweza kuwashwa. {chiTiet}',
+    doneAddWalletError: 'Mnyororo haukuweza kuongezwa kwenye pochi yako. {detail}',
+    doneActivateError: 'Mnyororo haukuweza kuwashwa. {detail}',
 
     launchAnother: 'Zindua mnyororo mwingine',
-    launchError: 'Mnyororo haukuweza kuzinduliwa. {chiTiet}',
+    launchError: 'Mnyororo haukuweza kuzinduliwa. {detail}',
     unknownError: 'Mnyororo haukuonekana kwenye orodha baada ya kazi kukamilika.',
     noteTitle: 'Muamala wa kwanza kwenye mnyororo mpya',
     noteHow:
@@ -336,7 +336,7 @@ export const sw: Dict = {
     colStatus: 'Hali',
     colActions: '',
 
-    validatorCount: 'Wathibitishaji {so}',
+    validatorCount: 'Wathibitishaji {count}',
     measuring: 'inapima',
     cannotMeasure: 'haikupimika',
     statusHelp: 'Hupimwa kwa idadi ya wathibitishaji wa subneti, si kwa urefu wa kizuizi.',
@@ -348,10 +348,10 @@ export const sw: Dict = {
     walletSettings: 'Mipangilio ya pochi',
     addToWallet: 'Ongeza kwenye pochi',
     addedToWallet: 'Umeongezwa',
-    addWalletError: 'Haikuweza kuongezwa kwenye pochi yako. {chiTiet}',
+    addWalletError: 'Haikuweza kuongezwa kwenye pochi yako. {detail}',
 
     revoke: 'Batilisha',
-    revokeTitle: 'Batilisha “{ten}”?',
+    revokeTitle: 'Batilisha “{name}”?',
     revokeWarn1: 'Mnyororo huacha mara moja kutoa RPC na hutoweka kwenye orodha ya umma.',
     revokeWarn2:
       'Kubatilisha HAKUFUTI subneti kwenye P-Chain — kilichoundwa hapo hakiwezi kuondolewa muda wote ' +
@@ -366,9 +366,9 @@ export const sw: Dict = {
     revokeNameMismatch: 'Hilo halilingani na jina la mnyororo.',
     revokeConfirm: 'Batilisha kabisa',
     revokeCancel: 'Ghairi',
-    revoking: 'Inabatilisha “{ten}” — takriban dakika tatu',
-    revokeDone: '“{ten}” imebatilishwa. Nafasi {con}/{tong} zimebaki.',
-    revokeError: 'Haikuweza kubatilishwa. {chiTiet}',
+    revoking: 'Inabatilisha “{name}” — takriban dakika tatu',
+    revokeDone: '“{name}” imebatilishwa. Nafasi {left}/{total} zimebaki.',
+    revokeError: 'Haikuweza kubatilishwa. {detail}',
     revokeUnknown: 'Mnyororo bado uko kwenye orodha baada ya kazi kukamilika.',
 
     revokedBadge: 'Imebatilishwa',
@@ -430,10 +430,10 @@ export const sw: Dict = {
     addNetworkError: 'Pochi yako haikuweza kuongeza mtandao. Uongeze kwa mkono ukitumia mipangilio iliyo kando — na utumie timu mstari ulio hapa chini:',
     noWallet: 'Hakuna pochi iliyopatikana kwenye kivinjari hiki. Sakinisha MetaMask kisha upakie ukurasa upya.',
     quotaLabel: 'Kiasi kilichobaki',
-    quotaFormat: 'Maombi {con}/{tong} kwa kila saa {gio}',
-    quotaExhausted: 'Umetumia kiasi chako chote. Jaribu tena baada ya dakika {phut}.',
+    quotaFormat: 'Maombi {left}/{total} kwa kila saa {hours}',
+    quotaExhausted: 'Umetumia kiasi chako chote. Jaribu tena baada ya dakika {minutes}.',
     quotaUnreadable: 'Kiasi chako hakikusomeka — bado unaweza kuomba, ila hutajua kimebaki kiasi gani.',
-    sentOk: 'Zimetumwa {so} {kyHieu} kwenda {diaChi}',
+    sentOk: 'Zimetumwa {count} {symbol} kwenda {address}',
     viewTransaction: 'Tazama muamala',
     settingsTitle: 'Mipangilio ya mtandao',
     settingsRpc: 'RPC',
@@ -444,7 +444,7 @@ export const sw: Dict = {
     decimalsHelp:
       'Pochi huonyesha desimali 18 kwa sababu C-Chain huendesha EVM. Kwenye P/X-Chain, LOVE9 huhesabiwa ' +
       'kwa desimali 9. Sarafu moja, vipimo viwili — si tokeni mbili tofauti.',
-    genericError: 'Haikuweza kutumwa. {chiTiet}',
+    genericError: 'Haikuweza kutumwa. {detail}',
   },
 
   langPicker: {

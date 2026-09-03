@@ -47,11 +47,11 @@ export const EN = {
     archiveUrl: '',
     archiveSha256: '',
 
-    banner: 'A1 was rebuilt on {ngay}. Every balance and chain created before that date no longer exists.',
+    banner: 'A1 was rebuilt on {date}. Every balance and chain created before that date no longer exists.',
     bannerLink: 'What this means',
     badge: 'Rebuilt',
 
-    title: 'A1 was rebuilt on {ngay}',
+    title: 'A1 was rebuilt on {date}',
     desc:
       'The A1 test network has been rebuilt from block 0. Chains, balances and transaction ' +
       'history created before that date no longer exist — not hidden, gone. ' +
@@ -83,11 +83,11 @@ export const EN = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1 is being rebuilt on {ngay} — every chain, balance and transaction created before then will be erased.',
+    banner: 'A1 is being rebuilt on {date} — every chain, balance and transaction created before then will be erased.',
     bannerLink: 'Details',
     badge: 'Rebuild coming',
 
-    title: 'A1 is being rebuilt on {ngay}',
+    title: 'A1 is being rebuilt on {date}',
     desc:
       'The entire A1 test network will be rebuilt from block 0. Everything created before ' +
       'that date will be gone — not hidden, but no longer in existence. This page says ' +
@@ -168,7 +168,7 @@ export const EN = {
       'A1 was already rebuilt once on 2026-08-27, before the date below. If you held test tokens before then, your balance is now 0 — that is correct, not a fault in your wallet. No user chain was lost: the directory held only automated test chains. Request tokens again from the faucet.',
     dateNote: 'The date can slip',
     dateNoteDesc:
-      'The date {ngay} depends on an earlier go/no-go check. If it slips, we will change the date ' +
+      'The date {date} depends on an earlier go/no-go check. If it slips, we will change the date ' +
       'on this page rather than stay silent.',
   },
 
@@ -363,7 +363,7 @@ export const EN = {
     nameInvalid: 'The name may contain only letters, digits and spaces, 2–32 characters long.',
     typeLabel: 'Chain type',
     typeHelp: 'Once chosen it is fixed — a chain’s genesis cannot be edited.',
-    slotsLeft: '{con}/{tong} slots left',
+    slotsLeft: '{left}/{total} slots left',
     slotsFull: 'No slots left',
     slotsFullDesc:
       'The current model has every validator track every L1, and the protocol drops a node that ' +
@@ -376,7 +376,7 @@ export const EN = {
       'The genesis of a launched L1 is IMMUTABLE. After this step the name, chain type and owner ' +
       'cannot be changed — and revoking will not give the name and chain ID back either.',
     reviewRebuild:
-      'One more thing to know before you press: A1 rebuilds the whole network on {ngay}. The chain ' +
+      'One more thing to know before you press: A1 rebuilds the whole network on {date}. The chain ' +
       'you launch today will be erased along with the old network — not hidden, gone.',
     reviewName: 'Chain name',
     reviewType: 'Chain type',
@@ -384,14 +384,14 @@ export const EN = {
     reviewBack: 'Go back and edit',
     reviewConfirm: 'I have reviewed — launch the chain',
 
-    launching: 'Launching chain “{ten}”',
+    launching: 'Launching chain “{name}”',
     launchingDesc:
       'The nodes restart ONE AT A TIME so the network never loses quorum — that is why it is slow, ' +
       'and it is deliberate. Do not close the tab; if you do, the chain is still built.',
-    etaRemaining: 'About {phut} minutes left',
+    etaRemaining: 'About {minutes} minutes left',
     preparing: 'Preparing…',
 
-    doneTitle: 'Done — chain “{ten}” is running',
+    doneTitle: 'Done — chain “{name}” is running',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Add chain to wallet',
@@ -399,11 +399,11 @@ export const EN = {
     doneActivate: 'Activate chain (open block 1)',
     doneActivated: 'Activated',
     doneActivating: 'Waiting for wallet…',
-    doneAddWalletError: 'Could not add the chain to your wallet. {chiTiet}',
-    doneActivateError: 'Could not activate the chain. {chiTiet}',
+    doneAddWalletError: 'Could not add the chain to your wallet. {detail}',
+    doneActivateError: 'Could not activate the chain. {detail}',
 
     launchAnother: 'Launch another chain',
-    launchError: 'Could not launch the chain. {chiTiet}',
+    launchError: 'Could not launch the chain. {detail}',
     unknownError: 'The chain did not appear in the directory after the run finished.',
     noteTitle: 'The first transaction on a new chain',
     noteHow:
@@ -424,7 +424,7 @@ export const EN = {
     colStatus: 'Status',
     colActions: '',
 
-    validatorCount: '{so} validators',
+    validatorCount: '{count} validators',
     measuring: 'measuring',
     cannotMeasure: 'could not measure',
     statusHelp: "Measured by the subnet's validator count, not by block height.",
@@ -436,10 +436,10 @@ export const EN = {
     walletSettings: 'Wallet settings',
     addToWallet: 'Add to wallet',
     addedToWallet: 'Added',
-    addWalletError: 'Could not add it to your wallet. {chiTiet}',
+    addWalletError: 'Could not add it to your wallet. {detail}',
 
     revoke: 'Revoke',
-    revokeTitle: 'Revoke “{ten}”?',
+    revokeTitle: 'Revoke “{name}”?',
     revokeWarn1: 'The chain stops serving RPC immediately and disappears from the public directory.',
     revokeWarn2:
       'Revoking does NOT delete the subnet on the P-Chain — what was created there cannot be ' +
@@ -453,9 +453,9 @@ export const EN = {
     revokeNameMismatch: 'That does not match the chain name.',
     revokeConfirm: 'Revoke permanently',
     revokeCancel: 'Cancel',
-    revoking: 'Revoking “{ten}” — about three minutes',
-    revokeDone: 'Revoked “{ten}”. {con}/{tong} slots left.',
-    revokeError: 'Could not revoke. {chiTiet}',
+    revoking: 'Revoking “{name}” — about three minutes',
+    revokeDone: 'Revoked “{name}”. {left}/{total} slots left.',
+    revokeError: 'Could not revoke. {detail}',
     revokeUnknown: 'The chain is still in the directory after the run finished.',
 
     revokedBadge: 'Revoked',
@@ -517,10 +517,10 @@ export const EN = {
     addNetworkError: 'Your wallet could not add the network. Add it manually using the settings beside this — and send the line below to the team:',
     noWallet: 'No wallet found in this browser. Install MetaMask and reload the page.',
     quotaLabel: 'Remaining quota',
-    quotaFormat: '{con}/{tong} requests per {gio} hours',
-    quotaExhausted: 'You have used your whole quota. Try again in {phut} minutes.',
+    quotaFormat: '{left}/{total} requests per {hours} hours',
+    quotaExhausted: 'You have used your whole quota. Try again in {minutes} minutes.',
     quotaUnreadable: 'Could not read your quota — you can still request, you just will not know how many are left.',
-    sentOk: 'Sent {so} {kyHieu} to {diaChi}',
+    sentOk: 'Sent {count} {symbol} to {address}',
     viewTransaction: 'View transaction',
     settingsTitle: 'Network settings',
     settingsRpc: 'RPC',
@@ -531,7 +531,7 @@ export const EN = {
     decimalsHelp:
       'Wallets show 18 decimals because the C-Chain runs the EVM. On the P/X-Chain, LOVE9 counts ' +
       'in 9 decimals. One coin, two scales — not two different tokens.',
-    genericError: 'Could not send. {chiTiet}',
+    genericError: 'Could not send. {detail}',
   },
 
   /** Bộ chọn ngôn ngữ. Xem `components/LanguagePicker.tsx` cho lý do từng nhãn. */

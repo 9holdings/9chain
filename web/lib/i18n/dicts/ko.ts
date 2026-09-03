@@ -31,11 +31,11 @@ export const ko: Dict = {
     archiveUrl: '',
     archiveSha256: '',
 
-    banner: 'A1은 {ngay}에 재구축되었습니다. 그 이전에 만들어진 모든 잔액과 체인은 더 이상 존재하지 않습니다.',
+    banner: 'A1은 {date}에 재구축되었습니다. 그 이전에 만들어진 모든 잔액과 체인은 더 이상 존재하지 않습니다.',
     bannerLink: '무슨 뜻인가요',
     badge: '재구축됨',
 
-    title: 'A1은 {ngay}에 재구축되었습니다',
+    title: 'A1은 {date}에 재구축되었습니다',
     desc:
       'A1 테스트 네트워크는 블록 0부터 다시 구축되었습니다. 그 날짜 이전에 만들어진 체인, 잔액, ' +
       '거래 내역은 더 이상 존재하지 않습니다 — 숨겨진 것이 아니라 사라졌습니다. ' +
@@ -67,11 +67,11 @@ export const ko: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1은 {ngay}에 재구축됩니다 — 그 전에 만들어진 모든 체인, 잔액, 거래가 삭제됩니다.',
+    banner: 'A1은 {date}에 재구축됩니다 — 그 전에 만들어진 모든 체인, 잔액, 거래가 삭제됩니다.',
     bannerLink: '자세히',
     badge: '재구축 예정',
 
-    title: 'A1은 {ngay}에 재구축됩니다',
+    title: 'A1은 {date}에 재구축됩니다',
     desc:
       'A1 테스트 네트워크 전체가 블록 0부터 다시 구축됩니다. 그 날짜 이전에 만들어진 모든 것이 ' +
       '사라집니다 — 숨겨지는 것이 아니라 더 이상 존재하지 않게 됩니다. 이 페이지는 무엇이 사라지고 ' +
@@ -144,7 +144,7 @@ export const ko: Dict = {
       'A1은 아래 날짜 이전인 2026-08-27에 이미 한 번 재구축되었습니다. 그 전에 테스트 토큰을 보유하고 계셨다면 잔액은 지금 0입니다 — 이는 정상이며 지갑의 오류가 아닙니다. 사용자 체인은 하나도 사라지지 않았습니다. 목록에는 자동 테스트 체인만 있었습니다. 포시트에서 토큰을 다시 요청하십시오.',
     dateNote: '날짜는 미뤄질 수 있습니다',
     dateNoteDesc:
-      '{ngay}이라는 날짜는 그 전에 이루어지는 go/no-go 점검에 달려 있습니다. 미뤄질 경우 침묵하지 않고 ' +
+      '{date}이라는 날짜는 그 전에 이루어지는 go/no-go 점검에 달려 있습니다. 미뤄질 경우 침묵하지 않고 ' +
       '이 페이지의 날짜를 바꾸겠습니다.',
   },
 
@@ -274,7 +274,7 @@ export const ko: Dict = {
     nameInvalid: '이름에는 문자, 숫자, 공백만 사용할 수 있으며 길이는 2–32자여야 합니다.',
     typeLabel: '체인 유형',
     typeHelp: '한 번 선택하면 고정됩니다 — 체인의 genesis는 수정할 수 없습니다.',
-    slotsLeft: '{con}/{tong}개 자리 남음',
+    slotsLeft: '{left}/{total}개 자리 남음',
     slotsFull: '남은 자리가 없습니다',
     slotsFullDesc:
       '현재 방식에서는 모든 검증자가 모든 L1을 추적하며, 16개를 넘는 서브넷을 선언한 노드는 프로토콜이 ' +
@@ -286,7 +286,7 @@ export const ko: Dict = {
       '실행된 L1의 genesis는 변경할 수 없습니다. 이 단계 이후에는 이름, 체인 유형, 소유자를 바꿀 수 ' +
       '없으며 — 철회하더라도 이름과 chain ID는 돌려받지 못합니다.',
     reviewRebuild:
-      '누르기 전에 한 가지 더 알아 두십시오. A1은 {ngay}에 네트워크 전체를 재구축합니다. 오늘 실행하는 ' +
+      '누르기 전에 한 가지 더 알아 두십시오. A1은 {date}에 네트워크 전체를 재구축합니다. 오늘 실행하는 ' +
       '체인은 이전 네트워크와 함께 삭제됩니다 — 숨겨지는 것이 아니라 사라집니다.',
     reviewName: '체인 이름',
     reviewType: '체인 유형',
@@ -294,14 +294,14 @@ export const ko: Dict = {
     reviewBack: '돌아가서 수정',
     reviewConfirm: '확인했습니다 — 체인 실행',
 
-    launching: '“{ten}” 체인을 실행하는 중',
+    launching: '“{name}” 체인을 실행하는 중',
     launchingDesc:
       '네트워크가 정족수를 잃지 않도록 노드를 하나씩 순서대로 재시작합니다 — 그래서 느리며, 이는 ' +
       '의도된 것입니다. 탭을 닫지 마십시오. 닫더라도 체인은 계속 만들어집니다.',
-    etaRemaining: '약 {phut}분 남음',
+    etaRemaining: '약 {minutes}분 남음',
     preparing: '준비 중…',
 
-    doneTitle: '완료 — “{ten}” 체인이 실행 중입니다',
+    doneTitle: '완료 — “{name}” 체인이 실행 중입니다',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: '지갑에 체인 추가',
@@ -309,11 +309,11 @@ export const ko: Dict = {
     doneActivate: '체인 활성화(블록 1 열기)',
     doneActivated: '활성화됨',
     doneActivating: '지갑 대기 중…',
-    doneAddWalletError: '체인을 지갑에 추가하지 못했습니다. {chiTiet}',
-    doneActivateError: '체인을 활성화하지 못했습니다. {chiTiet}',
+    doneAddWalletError: '체인을 지갑에 추가하지 못했습니다. {detail}',
+    doneActivateError: '체인을 활성화하지 못했습니다. {detail}',
 
     launchAnother: '체인 하나 더 실행',
-    launchError: '체인을 실행하지 못했습니다. {chiTiet}',
+    launchError: '체인을 실행하지 못했습니다. {detail}',
     unknownError: '작업이 끝난 뒤에도 체인이 목록에 나타나지 않았습니다.',
     noteTitle: '새 체인에서의 첫 거래',
     noteHow:
@@ -334,7 +334,7 @@ export const ko: Dict = {
     colStatus: '상태',
     colActions: '',
 
-    validatorCount: '검증자 {so}개',
+    validatorCount: '검증자 {count}개',
     measuring: '측정 중',
     cannotMeasure: '측정하지 못함',
     statusHelp: '블록 높이가 아니라 서브넷의 검증자 수로 측정합니다.',
@@ -346,10 +346,10 @@ export const ko: Dict = {
     walletSettings: '지갑 설정',
     addToWallet: '지갑에 추가',
     addedToWallet: '추가됨',
-    addWalletError: '지갑에 추가하지 못했습니다. {chiTiet}',
+    addWalletError: '지갑에 추가하지 못했습니다. {detail}',
 
     revoke: '철회',
-    revokeTitle: '“{ten}”을(를) 철회할까요?',
+    revokeTitle: '“{name}”을(를) 철회할까요?',
     revokeWarn1: '체인은 즉시 RPC 제공을 중단하고 공개 목록에서 사라집니다.',
     revokeWarn2:
       '철회해도 P-Chain의 서브넷은 삭제되지 않습니다 — 그곳에 만들어진 것은 이 네트워크가 도는 동안 ' +
@@ -362,9 +362,9 @@ export const ko: Dict = {
     revokeNameMismatch: '체인 이름과 일치하지 않습니다.',
     revokeConfirm: '영구히 철회',
     revokeCancel: '취소',
-    revoking: '“{ten}” 철회 중 — 약 3분',
-    revokeDone: '“{ten}”을(를) 철회했습니다. {con}/{tong}개 자리 남음.',
-    revokeError: '철회하지 못했습니다. {chiTiet}',
+    revoking: '“{name}” 철회 중 — 약 3분',
+    revokeDone: '“{name}”을(를) 철회했습니다. {left}/{total}개 자리 남음.',
+    revokeError: '철회하지 못했습니다. {detail}',
     revokeUnknown: '작업이 끝난 뒤에도 체인이 목록에 남아 있습니다.',
 
     revokedBadge: '철회됨',
@@ -424,10 +424,10 @@ export const ko: Dict = {
     addNetworkError: '지갑이 네트워크를 추가하지 못했습니다. 옆의 설정으로 직접 추가하시고 — 아래 줄을 팀에 보내 주십시오:',
     noWallet: '이 브라우저에서 지갑을 찾을 수 없습니다. MetaMask를 설치하고 페이지를 새로고침하십시오.',
     quotaLabel: '남은 할당량',
-    quotaFormat: '{gio}시간당 {con}/{tong}회 요청',
-    quotaExhausted: '할당량을 모두 사용하셨습니다. {phut}분 뒤에 다시 시도하십시오.',
+    quotaFormat: '{hours}시간당 {left}/{total}회 요청',
+    quotaExhausted: '할당량을 모두 사용하셨습니다. {minutes}분 뒤에 다시 시도하십시오.',
     quotaUnreadable: '할당량을 읽지 못했습니다 — 요청은 여전히 가능하지만 몇 번 남았는지는 알 수 없습니다.',
-    sentOk: '{diaChi}(으)로 {so} {kyHieu}를 보냈습니다',
+    sentOk: '{address}(으)로 {count} {symbol}를 보냈습니다',
     viewTransaction: '거래 보기',
     settingsTitle: '네트워크 설정',
     settingsRpc: 'RPC',
@@ -438,7 +438,7 @@ export const ko: Dict = {
     decimalsHelp:
       'C-Chain이 EVM을 구동하기 때문에 지갑은 소수점 18자리를 표시합니다. P/X-Chain에서 LOVE9는 소수점 ' +
       '9자리로 셉니다. 하나의 코인, 두 개의 척도 — 서로 다른 두 토큰이 아닙니다.',
-    genericError: '보내지 못했습니다. {chiTiet}',
+    genericError: '보내지 못했습니다. {detail}',
   },
 
   langPicker: {

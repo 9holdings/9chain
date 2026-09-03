@@ -30,10 +30,10 @@ export const fr: Dict = {
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',
-    banner: 'A1 a été reconstruit le {ngay}. Tous les soldes et toutes les chaînes créés avant cette date n’existent plus.',
+    banner: 'A1 a été reconstruit le {date}. Tous les soldes et toutes les chaînes créés avant cette date n’existent plus.',
     bannerLink: 'Ce que cela signifie',
     badge: 'Reconstruit',
-    title: 'A1 a été reconstruit le {ngay}',
+    title: 'A1 a été reconstruit le {date}',
     desc:
       'Le réseau de test A1 a été reconstruit depuis le bloc 0. Les chaînes, les soldes et ' +
       'l’historique des transactions créés avant cette date n’existent plus — ils ne sont pas ' +
@@ -63,10 +63,10 @@ export const fr: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1 sera reconstruit le {ngay} — toutes les chaînes, tous les soldes et toutes les transactions créés avant seront effacés.',
+    banner: 'A1 sera reconstruit le {date} — toutes les chaînes, tous les soldes et toutes les transactions créés avant seront effacés.',
     bannerLink: 'Détails',
     badge: 'Reconstruction à venir',
-    title: 'A1 sera reconstruit le {ngay}',
+    title: 'A1 sera reconstruit le {date}',
     desc:
       'L’ensemble du réseau de test A1 sera reconstruit depuis le bloc 0. Tout ce qui a été créé ' +
       'avant cette date disparaîtra — non pas masqué, mais purement et simplement supprimé. Cette ' +
@@ -142,7 +142,7 @@ export const fr: Dict = {
       'A1 a déjà été reconstruit une fois le 2026-08-27, avant la date indiquée ci-dessous. Si vous déteniez des jetons de test auparavant, votre solde est désormais de 0 — c’est correct, ce n’est pas une panne de votre portefeuille. Aucune chaîne d’utilisateur n’a été perdue : l’annuaire ne contenait que des chaînes de test automatisées. Redemandez des jetons au robinet.',
     dateNote: 'La date peut glisser',
     dateNoteDesc:
-      'La date du {ngay} dépend d’un contrôle préalable. En cas de report, nous modifierons la date ' +
+      'La date du {date} dépend d’un contrôle préalable. En cas de report, nous modifierons la date ' +
       'sur cette page plutôt que de rester silencieux.',
   },
 
@@ -264,7 +264,7 @@ export const fr: Dict = {
     nameInvalid: 'Le nom ne peut contenir que des lettres, des chiffres et des espaces, sur 2 à 32 caractères.',
     typeLabel: 'Type de chaîne',
     typeHelp: 'Une fois choisi, c’est définitif — le genesis d’une chaîne ne peut pas être modifié.',
-    slotsLeft: '{con}/{tong} places restantes',
+    slotsLeft: '{left}/{total} places restantes',
     slotsFull: 'Plus aucune place',
     slotsFullDesc:
       'Le modèle actuel fait suivre toutes les L1 par chaque validateur, et le protocole écarte un ' +
@@ -276,21 +276,21 @@ export const fr: Dict = {
       'Le genesis d’une L1 lancée est IMMUABLE. Après cette étape, le nom, le type de chaîne et le ' +
       'propriétaire ne peuvent plus être modifiés — et une révocation ne rendra ni le nom ni le Chain ID.',
     reviewRebuild:
-      'Encore une chose avant de valider : A1 reconstruit tout le réseau le {ngay}. La chaîne que vous ' +
+      'Encore une chose avant de valider : A1 reconstruit tout le réseau le {date}. La chaîne que vous ' +
       'lancez aujourd’hui sera effacée avec l’ancien réseau — non pas masquée, mais supprimée.',
     reviewName: 'Nom de la chaîne',
     reviewType: 'Type de chaîne',
     reviewOwner: 'Propriétaire',
     reviewBack: 'Revenir et modifier',
     reviewConfirm: 'J’ai vérifié — lancer la chaîne',
-    launching: 'Lancement de la chaîne « {ten} »',
+    launching: 'Lancement de la chaîne « {name} »',
     launchingDesc:
       'Les nœuds redémarrent UN PAR UN pour que le réseau ne perde jamais le quorum — c’est pour cela ' +
       'que c’est lent, et c’est délibéré. Ne fermez pas l’onglet ; si vous le faites, la chaîne est ' +
       'construite quand même.',
-    etaRemaining: 'Environ {phut} minutes restantes',
+    etaRemaining: 'Environ {minutes} minutes restantes',
     preparing: 'Préparation…',
-    doneTitle: 'Terminé — la chaîne « {ten} » tourne',
+    doneTitle: 'Terminé — la chaîne « {name} » tourne',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Ajouter la chaîne au portefeuille',
@@ -298,10 +298,10 @@ export const fr: Dict = {
     doneActivate: 'Activer la chaîne (ouvrir le bloc 1)',
     doneActivated: 'Activée',
     doneActivating: 'En attente du portefeuille…',
-    doneAddWalletError: 'Impossible d’ajouter la chaîne à votre portefeuille. {chiTiet}',
-    doneActivateError: 'Impossible d’activer la chaîne. {chiTiet}',
+    doneAddWalletError: 'Impossible d’ajouter la chaîne à votre portefeuille. {detail}',
+    doneActivateError: 'Impossible d’activer la chaîne. {detail}',
     launchAnother: 'Lancer une autre chaîne',
-    launchError: 'Impossible de lancer la chaîne. {chiTiet}',
+    launchError: 'Impossible de lancer la chaîne. {detail}',
     unknownError: 'La chaîne n’est pas apparue dans l’annuaire après la fin de l’exécution.',
     noteTitle: 'La première transaction d’une nouvelle chaîne',
     noteHow: 'Ne vous fiez pas à l’estimation de gaz de la première transaction. Le moyen le moins coûteux d’ouvrir le bloc 1 est un simple transfert — appuyez sur « Activer la chaîne » ci-dessous.',
@@ -318,7 +318,7 @@ export const fr: Dict = {
     colType: 'Type',
     colStatus: 'État',
     colActions: '',
-    validatorCount: '{so} validateurs',
+    validatorCount: '{count} validateurs',
     measuring: 'mesure en cours',
     cannotMeasure: 'mesure impossible',
     statusHelp: 'Mesuré par le nombre de validateurs du sous-réseau, et non par la hauteur de bloc.',
@@ -330,9 +330,9 @@ export const fr: Dict = {
     walletSettings: 'Paramètres du portefeuille',
     addToWallet: 'Ajouter au portefeuille',
     addedToWallet: 'Ajoutée',
-    addWalletError: 'Impossible de l’ajouter à votre portefeuille. {chiTiet}',
+    addWalletError: 'Impossible de l’ajouter à votre portefeuille. {detail}',
     revoke: 'Révoquer',
-    revokeTitle: 'Révoquer « {ten} » ?',
+    revokeTitle: 'Révoquer « {name} » ?',
     revokeWarn1: 'La chaîne cesse immédiatement de servir le RPC et disparaît de l’annuaire public.',
     revokeWarn2:
       'La révocation ne supprime PAS le sous-réseau sur la P-Chain — ce qui y a été créé ne peut pas ' +
@@ -347,9 +347,9 @@ export const fr: Dict = {
     revokeNameMismatch: 'Cela ne correspond pas au nom de la chaîne.',
     revokeConfirm: 'Révoquer définitivement',
     revokeCancel: 'Annuler',
-    revoking: 'Révocation de « {ten} » — environ trois minutes',
-    revokeDone: '« {ten} » révoquée. {con}/{tong} places restantes.',
-    revokeError: 'Révocation impossible. {chiTiet}',
+    revoking: 'Révocation de « {name} » — environ trois minutes',
+    revokeDone: '« {name} » révoquée. {left}/{total} places restantes.',
+    revokeError: 'Révocation impossible. {detail}',
     revokeUnknown: 'La chaîne est toujours dans l’annuaire après la fin de l’exécution.',
     revokedBadge: 'Révoquée',
     revokedDesc: 'Le nom et le Chain ID restent réservés sur ce réseau.',
@@ -404,10 +404,10 @@ export const fr: Dict = {
     addNetworkError: 'Votre portefeuille n’a pas pu ajouter le réseau. Ajoutez-le manuellement avec les paramètres ci-contre — et envoyez la ligne ci-dessous à l’équipe :',
     noWallet: 'Aucun portefeuille détecté dans ce navigateur. Installez MetaMask puis rechargez la page.',
     quotaLabel: 'Quota restant',
-    quotaFormat: '{con}/{tong} demandes par {gio} heures',
-    quotaExhausted: 'Vous avez utilisé tout votre quota. Réessayez dans {phut} minutes.',
+    quotaFormat: '{left}/{total} demandes par {hours} heures',
+    quotaExhausted: 'Vous avez utilisé tout votre quota. Réessayez dans {minutes} minutes.',
     quotaUnreadable: 'Impossible de lire votre quota — vous pouvez quand même faire une demande, vous ne saurez simplement pas combien il en reste.',
-    sentOk: '{so} {kyHieu} envoyés à {diaChi}',
+    sentOk: '{count} {symbol} envoyés à {address}',
     viewTransaction: 'Voir la transaction',
     settingsTitle: 'Paramètres réseau',
     settingsRpc: 'RPC',
@@ -418,7 +418,7 @@ export const fr: Dict = {
     decimalsHelp:
       'Les portefeuilles affichent 18 décimales parce que la C-Chain exécute l’EVM. Sur la P/X-Chain, ' +
       'LOVE9 se compte en 9 décimales. Une seule pièce, deux échelles — pas deux jetons différents.',
-    genericError: 'Envoi impossible. {chiTiet}',
+    genericError: 'Envoi impossible. {detail}',
   },
 
   langPicker: {

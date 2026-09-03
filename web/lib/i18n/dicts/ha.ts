@@ -31,11 +31,11 @@ export const ha: Dict = {
     archiveUrl: '',
     archiveSha256: '',
 
-    banner: 'An sake gina A1 a {ngay}. Duk wani ma’auni da sarƙa da aka ƙirƙira kafin wannan ranar ba su nan kuma.',
+    banner: 'An sake gina A1 a {date}. Duk wani ma’auni da sarƙa da aka ƙirƙira kafin wannan ranar ba su nan kuma.',
     bannerLink: 'Menene ma’anar wannan',
     badge: 'An sake ginawa',
 
-    title: 'An sake gina A1 a {ngay}',
+    title: 'An sake gina A1 a {date}',
     desc:
       'An sake gina hanyar gwaji ta A1 daga toshe 0. Sarƙoƙi, ma’aunai da tarihin mu’amaloli da aka ' +
       'ƙirƙira kafin wannan ranar ba su nan kuma — ba a ɓoye su ba, sun ɓace. ' +
@@ -67,11 +67,11 @@ export const ha: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'Za a sake gina A1 a {ngay} — duk wata sarƙa, ma’auni da mu’amala da aka ƙirƙira kafin nan za a share su.',
+    banner: 'Za a sake gina A1 a {date} — duk wata sarƙa, ma’auni da mu’amala da aka ƙirƙira kafin nan za a share su.',
     bannerLink: 'Cikakken bayani',
     badge: 'Sake ginawa na zuwa',
 
-    title: 'Za a sake gina A1 a {ngay}',
+    title: 'Za a sake gina A1 a {date}',
     desc:
       'Za a sake gina duk hanyar gwaji ta A1 daga toshe 0. Duk abin da aka ƙirƙira kafin wannan ranar ' +
       'zai ɓace — ba a ɓoye shi ba, sai dai ba zai ƙara wanzuwa ba. Wannan shafin yana faɗi daidai abin ' +
@@ -148,7 +148,7 @@ export const ha: Dict = {
       'An riga an sake gina A1 sau ɗaya a 2026-08-27, kafin ranar da ke ƙasa. Idan ka riƙe alamun gwaji kafin nan, ma’aunin ka yanzu 0 ne — hakan daidai ne, ba lalacewar walat ɗinka ba ce. Babu wata sarƙar mai amfani da ta ɓace: jerin yana ɗauke da sarƙoƙin gwaji na atomatik kaɗai. Sake neman alamu daga famfon.',
     dateNote: 'Ranar tana iya jinkirtawa',
     dateNoteDesc:
-      'Ranar {ngay} ta dogara ga binciken go/no-go da ya gabata. Idan ta jinkirta, za mu canza ranar ' +
+      'Ranar {date} ta dogara ga binciken go/no-go da ya gabata. Idan ta jinkirta, za mu canza ranar ' +
       'a wannan shafin maimakon mu yi shiru.',
   },
 
@@ -278,7 +278,7 @@ export const ha: Dict = {
     nameInvalid: 'Sunan zai iya ƙunsar haruffa, lambobi da sarari kaɗai, tsawon haruffa 2–32.',
     typeLabel: 'Nau’in sarƙa',
     typeHelp: 'Da zarar an zaɓa, ya tsaya — ba a iya gyara genesis na sarƙa.',
-    slotsLeft: 'Sauran wurare {con}/{tong}',
+    slotsLeft: 'Sauran wurare {left}/{total}',
     slotsFull: 'Babu sauran wuri',
     slotsFullDesc:
       'Tsarin na yanzu yana sa kowane mai tabbatarwa ya bi kowace L1, kuma ka’idar tana fitar da kumburin ' +
@@ -291,7 +291,7 @@ export const ha: Dict = {
       'Genesis na L1 da aka ƙaddamar BA YA CANZAWA. Bayan wannan matakin, ba a iya canza suna, nau’in ' +
       'sarƙa da mai ita — kuma janyewa ma ba zai mayar da suna da chain ID ba.',
     reviewRebuild:
-      'Wani abu kuma da ya kamata ka sani kafin ka danna: A1 tana sake gina duk hanyar sadarwa a {ngay}. ' +
+      'Wani abu kuma da ya kamata ka sani kafin ka danna: A1 tana sake gina duk hanyar sadarwa a {date}. ' +
       'Sarƙar da ka ƙaddamar yau za a share ta tare da tsohuwar hanyar sadarwa — ba a ɓoye ta ba, za ta ɓace.',
     reviewName: 'Sunan sarƙa',
     reviewType: 'Nau’in sarƙa',
@@ -299,14 +299,14 @@ export const ha: Dict = {
     reviewBack: 'Koma ka gyara',
     reviewConfirm: 'Na duba — ƙaddamar da sarƙar',
 
-    launching: 'Ana ƙaddamar da sarƙar “{ten}”',
+    launching: 'Ana ƙaddamar da sarƙar “{name}”',
     launchingDesc:
       'Kumburai suna sake farawa ƊAYA BAYAN ƊAYA don hanyar sadarwa kada ta taɓa rasa ƙuruma — shi ya sa ' +
       'yake jinkiri, kuma an yi haka da gangan. Kada ka rufe shafin; ko ka rufe, za a ci gaba da gina sarƙar.',
-    etaRemaining: 'Sauran kusan minti {phut}',
+    etaRemaining: 'Sauran kusan minti {minutes}',
     preparing: 'Ana shirya…',
 
-    doneTitle: 'An gama — sarƙar “{ten}” tana gudana',
+    doneTitle: 'An gama — sarƙar “{name}” tana gudana',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Ƙara sarƙa a walat',
@@ -314,11 +314,11 @@ export const ha: Dict = {
     doneActivate: 'Kunna sarƙa (buɗe toshe 1)',
     doneActivated: 'An kunna',
     doneActivating: 'Ana jiran walat…',
-    doneAddWalletError: 'Ba a iya ƙara sarƙar a walat ɗinka ba. {chiTiet}',
-    doneActivateError: 'Ba a iya kunna sarƙar ba. {chiTiet}',
+    doneAddWalletError: 'Ba a iya ƙara sarƙar a walat ɗinka ba. {detail}',
+    doneActivateError: 'Ba a iya kunna sarƙar ba. {detail}',
 
     launchAnother: 'Ƙaddamar da wata sarƙa',
-    launchError: 'Ba a iya ƙaddamar da sarƙar ba. {chiTiet}',
+    launchError: 'Ba a iya ƙaddamar da sarƙar ba. {detail}',
     unknownError: 'Sarƙar ba ta bayyana a jerin ba bayan aikin ya kammala.',
     noteTitle: 'Mu’amala ta farko a sabuwar sarƙa',
     noteHow:
@@ -339,7 +339,7 @@ export const ha: Dict = {
     colStatus: 'Yanayi',
     colActions: '',
 
-    validatorCount: 'Masu tabbatarwa {so}',
+    validatorCount: 'Masu tabbatarwa {count}',
     measuring: 'ana auna',
     cannotMeasure: 'ba a iya auna ba',
     statusHelp: 'Ana auna ta adadin masu tabbatarwa na subnet, ba ta tsayin toshe ba.',
@@ -351,10 +351,10 @@ export const ha: Dict = {
     walletSettings: 'Saitunan walat',
     addToWallet: 'Ƙara a walat',
     addedToWallet: 'An ƙara',
-    addWalletError: 'Ba a iya ƙara ta a walat ɗinka ba. {chiTiet}',
+    addWalletError: 'Ba a iya ƙara ta a walat ɗinka ba. {detail}',
 
     revoke: 'Janye',
-    revokeTitle: 'A janye “{ten}”?',
+    revokeTitle: 'A janye “{name}”?',
     revokeWarn1: 'Sarƙar tana daina bayar da RPC nan take kuma tana ɓacewa daga jerin jama’a.',
     revokeWarn2:
       'Janyewa BA YA share subnet a P-Chain — abin da aka ƙirƙira a can ba za a iya cire shi ba muddin ' +
@@ -368,9 +368,9 @@ export const ha: Dict = {
     revokeNameMismatch: 'Wannan bai dace da sunan sarƙar ba.',
     revokeConfirm: 'Janye har abada',
     revokeCancel: 'Soke',
-    revoking: 'Ana janye “{ten}” — kusan minti uku',
-    revokeDone: 'An janye “{ten}”. Sauran wurare {con}/{tong}.',
-    revokeError: 'Ba a iya janyewa ba. {chiTiet}',
+    revoking: 'Ana janye “{name}” — kusan minti uku',
+    revokeDone: 'An janye “{name}”. Sauran wurare {left}/{total}.',
+    revokeError: 'Ba a iya janyewa ba. {detail}',
     revokeUnknown: 'Sarƙar na nan a jerin bayan aikin ya kammala.',
 
     revokedBadge: 'An janye',
@@ -432,10 +432,10 @@ export const ha: Dict = {
     addNetworkError: 'Walat ɗinka bai iya ƙara hanyar sadarwa ba. Ƙara ta da hannu ta amfani da saitunan da ke gefe — sannan ka aika wa ƙungiyar layin da ke ƙasa:',
     noWallet: 'Ba a sami walat a wannan burauzar ba. Girka MetaMask sannan ka sake loda shafin.',
     quotaLabel: 'Sauran ƙima',
-    quotaFormat: 'Buƙatu {con}/{tong} a kowace awa {gio}',
-    quotaExhausted: 'Ka yi amfani da duk ƙimarka. Sake gwadawa bayan minti {phut}.',
+    quotaFormat: 'Buƙatu {left}/{total} a kowace awa {hours}',
+    quotaExhausted: 'Ka yi amfani da duk ƙimarka. Sake gwadawa bayan minti {minutes}.',
     quotaUnreadable: 'Ba a iya karanta ƙimarka ba — har yanzu kana iya nema, sai dai ba za ka san nawa ya rage ba.',
-    sentOk: 'An aika {so} {kyHieu} zuwa {diaChi}',
+    sentOk: 'An aika {count} {symbol} zuwa {address}',
     viewTransaction: 'Duba mu’amalar',
     settingsTitle: 'Saitunan hanyar sadarwa',
     settingsRpc: 'RPC',
@@ -446,7 +446,7 @@ export const ha: Dict = {
     decimalsHelp:
       'Walat suna nuna ma’auni na goma 18 domin C-Chain tana gudanar da EVM. A P/X-Chain, ana ƙidaya ' +
       'LOVE9 da ma’auni na goma 9. Tsabar kuɗi ɗaya, ma’auni biyu — ba alamu biyu daban ba.',
-    genericError: 'Ba a iya aikawa ba. {chiTiet}',
+    genericError: 'Ba a iya aikawa ba. {detail}',
   },
 
   langPicker: {

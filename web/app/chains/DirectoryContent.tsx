@@ -283,7 +283,7 @@ function ChainCard({
         ? ['bad', t.myChains.noValidators, t.myChains.noValidatorsDesc]
         : probe.validators === null || probe.validators === undefined
           ? ['warn', t.directory.unclear, t.directory.unclearDesc]
-          : ['good', t.directory.running, interpolate(t.myChains.validatorCount, { so: probe.validators })];
+          : ['good', t.directory.running, interpolate(t.myChains.validatorCount, { count: probe.validators })];
 
   const admin = typeof record.admin === 'string' ? record.admin.trim() : '';
   const preset = (record.presetName ?? record.presetTen ?? '').trim();
@@ -357,7 +357,7 @@ function AddToWallet({ name, chainIdHex, rpc }: { name: string; chainIdHex: stri
             });
             setMsg(t.myChains.addedToWallet);
           } catch (e) {
-            setMsg(interpolate(t.myChains.addWalletError, { chiTiet: e instanceof Error ? e.message : '' }));
+            setMsg(interpolate(t.myChains.addWalletError, { detail: e instanceof Error ? e.message : '' }));
           }
         }}
       >

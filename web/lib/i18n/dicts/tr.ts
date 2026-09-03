@@ -31,11 +31,11 @@ export const tr: Dict = {
     archiveUrl: '',
     archiveSha256: '',
 
-    banner: 'A1, {ngay} tarihinde yeniden kuruldu. O tarihten önce oluşturulan her bakiye ve her zincir artık yok.',
+    banner: 'A1, {date} tarihinde yeniden kuruldu. O tarihten önce oluşturulan her bakiye ve her zincir artık yok.',
     bannerLink: 'Bu ne demek',
     badge: 'Yeniden kuruldu',
 
-    title: 'A1, {ngay} tarihinde yeniden kuruldu',
+    title: 'A1, {date} tarihinde yeniden kuruldu',
     desc:
       'A1 test ağı blok 0’dan itibaren yeniden kuruldu. O tarihten önce oluşturulan zincirler, ' +
       'bakiyeler ve işlem geçmişi artık yok — gizlenmedi, ortadan kalktı. ' +
@@ -67,11 +67,11 @@ export const tr: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1, {ngay} tarihinde yeniden kurulacak — o tarihten önce oluşturulan her zincir, bakiye ve işlem silinecek.',
+    banner: 'A1, {date} tarihinde yeniden kurulacak — o tarihten önce oluşturulan her zincir, bakiye ve işlem silinecek.',
     bannerLink: 'Ayrıntılar',
     badge: 'Yeniden kurulum yaklaşıyor',
 
-    title: 'A1, {ngay} tarihinde yeniden kurulacak',
+    title: 'A1, {date} tarihinde yeniden kurulacak',
     desc:
       'A1 test ağının tamamı blok 0’dan itibaren yeniden kurulacak. O tarihten önce oluşturulan ' +
       'her şey gidecek — gizlenmeyecek, artık var olmayacak. Bu sayfa tam olarak neyin kaybolacağını ' +
@@ -143,7 +143,7 @@ export const tr: Dict = {
       'A1, aşağıdaki tarihten önce, 2026-08-27 tarihinde bir kez zaten yeniden kuruldu. O tarihten önce test jetonlarınız varsa bakiyeniz şimdi 0 — bu doğrudur, cüzdanınızdaki bir arıza değildir. Hiçbir kullanıcı zinciri kaybolmadı: dizinde yalnızca otomatik test zincirleri vardı. Musluktan yeniden jeton isteyin.',
     dateNote: 'Tarih kayabilir',
     dateNoteDesc:
-      '{ngay} tarihi önceki bir git/gitme denetimine bağlıdır. Kayarsa, susmak yerine bu sayfadaki ' +
+      '{date} tarihi önceki bir git/gitme denetimine bağlıdır. Kayarsa, susmak yerine bu sayfadaki ' +
       'tarihi değiştireceğiz.',
   },
 
@@ -273,7 +273,7 @@ export const tr: Dict = {
     nameInvalid: 'Ad yalnızca harf, rakam ve boşluk içerebilir; uzunluğu 2–32 karakter olmalıdır.',
     typeLabel: 'Zincir türü',
     typeHelp: 'Bir kez seçildikten sonra sabittir — bir zincirin genesis’i düzenlenemez.',
-    slotsLeft: '{con}/{tong} yuva kaldı',
+    slotsLeft: '{left}/{total} yuva kaldı',
     slotsFull: 'Hiç yuva kalmadı',
     slotsFullDesc:
       'Mevcut modelde her doğrulayıcı her L1’i izler ve protokol, 16’dan fazla alt ağ bildiren bir ' +
@@ -286,7 +286,7 @@ export const tr: Dict = {
       'Başlatılmış bir L1’in genesis’i DEĞİŞTİRİLEMEZ. Bu adımdan sonra ad, zincir türü ve sahip ' +
       'değiştirilemez — ve iptal etmek de adı ve chain ID’yi geri vermez.',
     reviewRebuild:
-      'Basmadan önce bilinmesi gereken bir şey daha: A1, {ngay} tarihinde tüm ağı yeniden kurar. ' +
+      'Basmadan önce bilinmesi gereken bir şey daha: A1, {date} tarihinde tüm ağı yeniden kurar. ' +
       'Bugün başlattığınız zincir eski ağla birlikte silinecek — gizlenmeyecek, yok olacak.',
     reviewName: 'Zincir adı',
     reviewType: 'Zincir türü',
@@ -294,14 +294,14 @@ export const tr: Dict = {
     reviewBack: 'Geri dön ve düzenle',
     reviewConfirm: 'Gözden geçirdim — zinciri başlat',
 
-    launching: '“{ten}” zinciri başlatılıyor',
+    launching: '“{name}” zinciri başlatılıyor',
     launchingDesc:
       'Ağ hiçbir zaman çoğunluğunu kaybetmesin diye düğümler BİRER BİRER yeniden başlatılır — bu ' +
       'yüzden yavaştır ve bu bilinçlidir. Sekmeyi kapatmayın; kapatsanız bile zincir yine kurulur.',
-    etaRemaining: 'Yaklaşık {phut} dakika kaldı',
+    etaRemaining: 'Yaklaşık {minutes} dakika kaldı',
     preparing: 'Hazırlanıyor…',
 
-    doneTitle: 'Tamam — “{ten}” zinciri çalışıyor',
+    doneTitle: 'Tamam — “{name}” zinciri çalışıyor',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Zinciri cüzdana ekle',
@@ -309,11 +309,11 @@ export const tr: Dict = {
     doneActivate: 'Zinciri etkinleştir (blok 1’i aç)',
     doneActivated: 'Etkinleştirildi',
     doneActivating: 'Cüzdan bekleniyor…',
-    doneAddWalletError: 'Zincir cüzdanınıza eklenemedi. {chiTiet}',
-    doneActivateError: 'Zincir etkinleştirilemedi. {chiTiet}',
+    doneAddWalletError: 'Zincir cüzdanınıza eklenemedi. {detail}',
+    doneActivateError: 'Zincir etkinleştirilemedi. {detail}',
 
     launchAnother: 'Başka bir zincir başlat',
-    launchError: 'Zincir başlatılamadı. {chiTiet}',
+    launchError: 'Zincir başlatılamadı. {detail}',
     unknownError: 'İşlem bittikten sonra zincir dizinde görünmedi.',
     noteTitle: 'Yeni bir zincirdeki ilk işlem',
     noteHow:
@@ -334,7 +334,7 @@ export const tr: Dict = {
     colStatus: 'Durum',
     colActions: '',
 
-    validatorCount: '{so} doğrulayıcı',
+    validatorCount: '{count} doğrulayıcı',
     measuring: 'ölçülüyor',
     cannotMeasure: 'ölçülemedi',
     statusHelp: 'Alt ağın doğrulayıcı sayısıyla ölçülür, blok yüksekliğiyle değil.',
@@ -346,10 +346,10 @@ export const tr: Dict = {
     walletSettings: 'Cüzdan ayarları',
     addToWallet: 'Cüzdana ekle',
     addedToWallet: 'Eklendi',
-    addWalletError: 'Cüzdanınıza eklenemedi. {chiTiet}',
+    addWalletError: 'Cüzdanınıza eklenemedi. {detail}',
 
     revoke: 'İptal et',
-    revokeTitle: '“{ten}” iptal edilsin mi?',
+    revokeTitle: '“{name}” iptal edilsin mi?',
     revokeWarn1: 'Zincir hemen RPC hizmetini durdurur ve genel dizinden kaybolur.',
     revokeWarn2:
       'İptal etmek P-Chain üzerindeki alt ağı SİLMEZ — orada oluşturulan şey, bu ağ çalıştığı sürece ' +
@@ -363,9 +363,9 @@ export const tr: Dict = {
     revokeNameMismatch: 'Bu, zincir adıyla eşleşmiyor.',
     revokeConfirm: 'Kalıcı olarak iptal et',
     revokeCancel: 'Vazgeç',
-    revoking: '“{ten}” iptal ediliyor — yaklaşık üç dakika',
-    revokeDone: '“{ten}” iptal edildi. {con}/{tong} yuva kaldı.',
-    revokeError: 'İptal edilemedi. {chiTiet}',
+    revoking: '“{name}” iptal ediliyor — yaklaşık üç dakika',
+    revokeDone: '“{name}” iptal edildi. {left}/{total} yuva kaldı.',
+    revokeError: 'İptal edilemedi. {detail}',
     revokeUnknown: 'İşlem bittikten sonra zincir hâlâ dizinde.',
 
     revokedBadge: 'İptal edildi',
@@ -426,10 +426,10 @@ export const tr: Dict = {
     addNetworkError: 'Cüzdanınız ağı ekleyemedi. Yandaki ayarları kullanarak elle ekleyin — ve aşağıdaki satırı ekibe gönderin:',
     noWallet: 'Bu tarayıcıda cüzdan bulunamadı. MetaMask kurun ve sayfayı yeniden yükleyin.',
     quotaLabel: 'Kalan kota',
-    quotaFormat: '{gio} saatte {con}/{tong} istek',
-    quotaExhausted: 'Tüm kotanızı kullandınız. {phut} dakika sonra yeniden deneyin.',
+    quotaFormat: '{hours} saatte {left}/{total} istek',
+    quotaExhausted: 'Tüm kotanızı kullandınız. {minutes} dakika sonra yeniden deneyin.',
     quotaUnreadable: 'Kotanız okunamadı — yine de istekte bulunabilirsiniz, sadece ne kadar kaldığını bilemezsiniz.',
-    sentOk: '{diaChi} adresine {so} {kyHieu} gönderildi',
+    sentOk: '{address} adresine {count} {symbol} gönderildi',
     viewTransaction: 'İşlemi görüntüle',
     settingsTitle: 'Ağ ayarları',
     settingsRpc: 'RPC',
@@ -440,7 +440,7 @@ export const tr: Dict = {
     decimalsHelp:
       'Cüzdanlar 18 ondalık gösterir, çünkü C-Chain EVM çalıştırır. P/X-Chain üzerinde LOVE9 9 ' +
       'ondalıkla sayılır. Tek bir para, iki ölçek — iki farklı jeton değil.',
-    genericError: 'Gönderilemedi. {chiTiet}',
+    genericError: 'Gönderilemedi. {detail}',
   },
 
   langPicker: {

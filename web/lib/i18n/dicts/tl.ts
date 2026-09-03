@@ -31,11 +31,11 @@ export const tl: Dict = {
     archiveUrl: '',
     archiveSha256: '',
 
-    banner: 'Muling itinayo ang A1 noong {ngay}. Ang bawat balanse at chain na nalikha bago ang petsang iyon ay wala na.',
+    banner: 'Muling itinayo ang A1 noong {date}. Ang bawat balanse at chain na nalikha bago ang petsang iyon ay wala na.',
     bannerLink: 'Ano ang ibig sabihin nito',
     badge: 'Muling itinayo',
 
-    title: 'Muling itinayo ang A1 noong {ngay}',
+    title: 'Muling itinayo ang A1 noong {date}',
     desc:
       'Muling itinayo ang test network na A1 mula sa block 0. Ang mga chain, balanse at kasaysayan ng ' +
       'transaksyon na nalikha bago ang petsang iyon ay wala na — hindi nakatago, kundi tuluyang nawala. ' +
@@ -68,11 +68,11 @@ export const tl: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'Muling itatayo ang A1 sa {ngay} — buburahin ang bawat chain, balanse at transaksyong nalikha bago noon.',
+    banner: 'Muling itatayo ang A1 sa {date} — buburahin ang bawat chain, balanse at transaksyong nalikha bago noon.',
     bannerLink: 'Mga detalye',
     badge: 'Paparating na muling pagtatayo',
 
-    title: 'Muling itatayo ang A1 sa {ngay}',
+    title: 'Muling itatayo ang A1 sa {date}',
     desc:
       'Muling itatayo ang buong test network na A1 mula sa block 0. Mawawala ang lahat ng nalikha bago ' +
       'ang petsang iyon — hindi itatago, kundi tuluyang hindi na iiral. Sinasabi ng pahinang ito nang ' +
@@ -153,7 +153,7 @@ export const tl: Dict = {
       'Muli nang naitayo ang A1 minsan noong 2026-08-27, bago ang petsang nasa ibaba. Kung may hawak kang test token bago niyon, 0 na ang iyong balanse ngayon — tama iyon, hindi ito depekto ng iyong wallet. Walang chain ng gumagamit ang nawala: mga awtomatikong test chain lamang ang nasa direktoryo. Humingi muli ng token sa faucet.',
     dateNote: 'Maaaring maantala ang petsa',
     dateNoteDesc:
-      'Nakasalalay ang petsang {ngay} sa isang naunang go/no-go na pagsusuri. Kung maantala ito, ' +
+      'Nakasalalay ang petsang {date} sa isang naunang go/no-go na pagsusuri. Kung maantala ito, ' +
       'babaguhin namin ang petsa sa pahinang ito sa halip na manahimik.',
   },
 
@@ -283,7 +283,7 @@ export const tl: Dict = {
     nameInvalid: 'Maaari lamang maglaman ang pangalan ng mga letra, numero at espasyo, na may haba na 2–32 karakter.',
     typeLabel: 'Uri ng chain',
     typeHelp: 'Kapag napili na, nakapirmi na ito — hindi mae-edit ang genesis ng isang chain.',
-    slotsLeft: '{con}/{tong} puwang ang natitira',
+    slotsLeft: '{left}/{total} puwang ang natitira',
     slotsFull: 'Wala nang natitirang puwang',
     slotsFullDesc:
       'Sa kasalukuyang modelo, sinusubaybayan ng bawat validator ang bawat L1, at inaalis ng protocol ang ' +
@@ -296,7 +296,7 @@ export const tl: Dict = {
       'HINDI MABABAGO ang genesis ng inilunsad nang L1. Pagkatapos ng hakbang na ito, hindi na mapapalitan ' +
       'ang pangalan, uri ng chain at may-ari — at hindi rin ibabalik ng pagbawi ang pangalan at chain ID.',
     reviewRebuild:
-      'Isa pang dapat mong malaman bago pindutin: muling itatayo ng A1 ang buong network sa {ngay}. Ang ' +
+      'Isa pang dapat mong malaman bago pindutin: muling itatayo ng A1 ang buong network sa {date}. Ang ' +
       'chain na ilulunsad mo ngayon ay buburahin kasama ng lumang network — hindi itatago, kundi mawawala.',
     reviewName: 'Pangalan ng chain',
     reviewType: 'Uri ng chain',
@@ -304,14 +304,14 @@ export const tl: Dict = {
     reviewBack: 'Bumalik at baguhin',
     reviewConfirm: 'Nasuri ko na — ilunsad ang chain',
 
-    launching: 'Inilulunsad ang chain na “{ten}”',
+    launching: 'Inilulunsad ang chain na “{name}”',
     launchingDesc:
       'ISA-ISANG nagre-restart ang mga node para hindi kailanman mawalan ng quorum ang network — kaya ito ' +
       'mabagal, at sinadya ito. Huwag isara ang tab; kung isara mo man, maitatayo pa rin ang chain.',
-    etaRemaining: 'Mga {phut} minuto na lang',
+    etaRemaining: 'Mga {minutes} minuto na lang',
     preparing: 'Naghahanda…',
 
-    doneTitle: 'Tapos na — tumatakbo na ang chain na “{ten}”',
+    doneTitle: 'Tapos na — tumatakbo na ang chain na “{name}”',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Idagdag ang chain sa wallet',
@@ -319,11 +319,11 @@ export const tl: Dict = {
     doneActivate: 'I-activate ang chain (buksan ang block 1)',
     doneActivated: 'Na-activate',
     doneActivating: 'Naghihintay sa wallet…',
-    doneAddWalletError: 'Hindi naidagdag ang chain sa iyong wallet. {chiTiet}',
-    doneActivateError: 'Hindi na-activate ang chain. {chiTiet}',
+    doneAddWalletError: 'Hindi naidagdag ang chain sa iyong wallet. {detail}',
+    doneActivateError: 'Hindi na-activate ang chain. {detail}',
 
     launchAnother: 'Maglunsad ng isa pang chain',
-    launchError: 'Hindi nailunsad ang chain. {chiTiet}',
+    launchError: 'Hindi nailunsad ang chain. {detail}',
     unknownError: 'Hindi lumitaw ang chain sa direktoryo pagkatapos matapos ang proseso.',
     noteTitle: 'Ang unang transaksyon sa bagong chain',
     noteHow:
@@ -344,7 +344,7 @@ export const tl: Dict = {
     colStatus: 'Katayuan',
     colActions: '',
 
-    validatorCount: '{so} validator',
+    validatorCount: '{count} validator',
     measuring: 'sinusukat',
     cannotMeasure: 'hindi masukat',
     statusHelp: 'Sinusukat sa bilang ng validator ng subnet, hindi sa taas ng block.',
@@ -357,10 +357,10 @@ export const tl: Dict = {
     walletSettings: 'Mga setting ng wallet',
     addToWallet: 'Idagdag sa wallet',
     addedToWallet: 'Naidagdag',
-    addWalletError: 'Hindi ito naidagdag sa iyong wallet. {chiTiet}',
+    addWalletError: 'Hindi ito naidagdag sa iyong wallet. {detail}',
 
     revoke: 'Bawiin',
-    revokeTitle: 'Bawiin ang “{ten}”?',
+    revokeTitle: 'Bawiin ang “{name}”?',
     revokeWarn1: 'Agad na hihinto ang chain sa paghahatid ng RPC at mawawala ito sa pampublikong direktoryo.',
     revokeWarn2:
       'HINDI binubura ng pagbawi ang subnet sa P-Chain — ang nalikha roon ay hindi maaalis hangga\'t ' +
@@ -375,9 +375,9 @@ export const tl: Dict = {
     revokeNameMismatch: 'Hindi ito tumutugma sa pangalan ng chain.',
     revokeConfirm: 'Bawiin nang permanente',
     revokeCancel: 'Kanselahin',
-    revoking: 'Binabawi ang “{ten}” — mga tatlong minuto',
-    revokeDone: 'Nabawi ang “{ten}”. {con}/{tong} puwang ang natitira.',
-    revokeError: 'Hindi nabawi. {chiTiet}',
+    revoking: 'Binabawi ang “{name}” — mga tatlong minuto',
+    revokeDone: 'Nabawi ang “{name}”. {left}/{total} puwang ang natitira.',
+    revokeError: 'Hindi nabawi. {detail}',
     revokeUnknown: 'Nasa direktoryo pa rin ang chain pagkatapos matapos ang proseso.',
 
     revokedBadge: 'Nabawi',
@@ -439,10 +439,10 @@ export const tl: Dict = {
     addNetworkError: 'Hindi naidagdag ng iyong wallet ang network. Idagdag ito nang mano-mano gamit ang mga setting sa tabi nito — at ipadala sa koponan ang linya sa ibaba:',
     noWallet: 'Walang wallet na natagpuan sa browser na ito. Mag-install ng MetaMask at i-reload ang pahina.',
     quotaLabel: 'Natitirang quota',
-    quotaFormat: '{con}/{tong} kahilingan bawat {gio} oras',
-    quotaExhausted: 'Nagamit mo na ang buong quota mo. Subukan muli pagkatapos ng {phut} minuto.',
+    quotaFormat: '{left}/{total} kahilingan bawat {hours} oras',
+    quotaExhausted: 'Nagamit mo na ang buong quota mo. Subukan muli pagkatapos ng {minutes} minuto.',
     quotaUnreadable: 'Hindi nabasa ang iyong quota — puwede ka pa ring humingi, hindi mo lang malalaman kung ilan ang natitira.',
-    sentOk: 'Naipadala ang {so} {kyHieu} sa {diaChi}',
+    sentOk: 'Naipadala ang {count} {symbol} sa {address}',
     viewTransaction: 'Tingnan ang transaksyon',
     settingsTitle: 'Mga setting ng network',
     settingsRpc: 'RPC',
@@ -453,7 +453,7 @@ export const tl: Dict = {
     decimalsHelp:
       'Nagpapakita ang mga wallet ng 18 decimal dahil nagpapatakbo ng EVM ang C-Chain. Sa P/X-Chain, ' +
       'binibilang ang LOVE9 sa 9 decimal. Iisang barya, dalawang sukatan — hindi dalawang magkaibang token.',
-    genericError: 'Hindi naipadala. {chiTiet}',
+    genericError: 'Hindi naipadala. {detail}',
   },
 
   langPicker: {

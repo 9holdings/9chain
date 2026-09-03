@@ -97,7 +97,7 @@ export function FaucetForm() {
       // Xin xong thì hạn mức đã đổi — đọc lại để con số trên màn khớp sự thật.
       void napTin();
     } catch (e) {
-      setSendError(interpolate(t.faucet.genericError, { chiTiet: String((e as Error).message ?? e) }));
+      setSendError(interpolate(t.faucet.genericError, { detail: String((e as Error).message ?? e) }));
     } finally {
       setSending(false);
     }
@@ -146,7 +146,7 @@ export function FaucetForm() {
           <div className="mt-4">
             <Note tone="warn">
               {interpolate(t.faucet.quotaExhausted, {
-                phut: Math.max(1, Math.ceil((quota.phase === 'xong' ? quota.quota.perIp.retryAfter : 60) / 60)),
+                minutes: Math.max(1, Math.ceil((quota.phase === 'xong' ? quota.quota.perIp.retryAfter : 60) / 60)),
               })}
             </Note>
           </div>
@@ -167,9 +167,9 @@ export function FaucetForm() {
           >
             <p className="text-sm font-semibold text-success-ink">
               {interpolate(t.faucet.sentOk, {
-                so: result.amount,
-                kyHieu: CHAIN.kyHieu,
-                diaChi: shortenAddress(check?.ok ? check.diaChi : diaChi),
+                count: result.amount,
+                symbol: CHAIN.kyHieu,
+                address: shortenAddress(check?.ok ? check.diaChi : diaChi),
               })}
             </p>
             <a
@@ -217,7 +217,7 @@ function HanMuc({ quota, onRetry }: { quota: TrangThaiTin; onRetry: () => void }
     <span className="flex items-center gap-2 text-sm text-body-2">
       {t.faucet.quotaLabel}
       <Badge tone={perIp.remaining > 0 ? 'good' : 'warn'}>
-        {interpolate(t.faucet.quotaFormat, { con: perIp.remaining, tong: perIp.max, gio: perIp.windowHours })}
+        {interpolate(t.faucet.quotaFormat, { left: perIp.remaining, total: perIp.max, hours: perIp.windowHours })}
       </Badge>
     </span>
   );

@@ -53,7 +53,7 @@ export const TITLE_BY_PATH: Record<string, (t: Dict) => string | null> = {
   '/compare/': (t) => t.compare.title,
   '/chains/': (t) => t.nav.directory,
   '/live/': (t) => t.loadTest.title,
-  '/re-genesis/': (t) => interpolate(t.rebuild.title, { ngay: t.rebuild.date }),
+  '/re-genesis/': (t) => interpolate(t.rebuild.title, { date: t.rebuild.date }),
 };
 
 /** Tiêu đề cho mọi đường KHÔNG có trong bảng — tức trang 404. */

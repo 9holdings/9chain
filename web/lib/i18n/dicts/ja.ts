@@ -30,10 +30,10 @@ export const ja: Dict = {
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',
-    banner: 'A1 は {ngay} に再構築されました。それ以前に作られた残高とチェーンはすべて存在しません。',
+    banner: 'A1 は {date} に再構築されました。それ以前に作られた残高とチェーンはすべて存在しません。',
     bannerLink: 'これが意味すること',
     badge: '再構築済み',
-    title: 'A1 は {ngay} に再構築されました',
+    title: 'A1 は {date} に再構築されました',
     desc:
       'テストネットワーク A1 はブロック 0 から再構築されました。その日より前に作られたチェーン、' +
       '残高、取引履歴はもう存在しません。隠されたのではなく、消えました。' +
@@ -62,10 +62,10 @@ export const ja: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1 は {ngay} に再構築されます。それ以前に作られたチェーン、残高、取引はすべて消去されます。',
+    banner: 'A1 は {date} に再構築されます。それ以前に作られたチェーン、残高、取引はすべて消去されます。',
     bannerLink: '詳細',
     badge: '再構築予定',
-    title: 'A1 は {ngay} に再構築されます',
+    title: 'A1 は {date} に再構築されます',
     desc:
       'テストネットワーク A1 全体がブロック 0 から再構築されます。その日より前に作られたものは' +
       'すべて消えます。隠れるのではなく、存在しなくなります。' +
@@ -139,7 +139,7 @@ export const ja: Dict = {
       'A1 は下記の日付より前、2026-08-27 に一度すでに再構築されています。それ以前にテスト用トークンをお持ちだった場合、残高は現在 0 です。これは正しい表示であり、ウォレットの不具合ではありません。ユーザーのチェーンは失われていません。当時ディレクトリにあったのは自動テスト用のチェーンだけでした。フォーセットからトークンを取り直してください。',
     dateNote: '日付はずれる可能性があります',
     dateNoteDesc:
-      '{ngay} という日付は、その前段のチェックに依存します。ずれた場合、黙っているのではなく' +
+      '{date} という日付は、その前段のチェックに依存します。ずれた場合、黙っているのではなく' +
       'このページの日付を書き換えます。',
   },
 
@@ -261,7 +261,7 @@ export const ja: Dict = {
     nameInvalid: '名前に使えるのは英数字とスペースのみで、長さは 2〜32 文字です。',
     typeLabel: 'チェーンの種類',
     typeHelp: '一度選ぶと固定されます。チェーンのジェネシスは編集できません。',
-    slotsLeft: '残り {con}/{tong} 枠',
+    slotsLeft: '残り {left}/{total} 枠',
     slotsFull: '空き枠なし',
     slotsFullDesc:
       '現在の方式ではすべてのバリデータがすべての L1 を追跡し、17 以上のサブネットを宣言した' +
@@ -273,20 +273,20 @@ export const ja: Dict = {
       '立ち上げた L1 のジェネシスは変更できません。この手順のあと、名前・チェーンの種類・所有者は' +
       '変更できず、取り消しても名前とチェーン ID は戻りません。',
     reviewRebuild:
-      '押す前にもう一つ。A1 は {ngay} にネットワーク全体を再構築します。今日立ち上げるチェーンは' +
+      '押す前にもう一つ。A1 は {date} にネットワーク全体を再構築します。今日立ち上げるチェーンは' +
       '旧ネットワークとともに消去されます。隠れるのではなく、消えます。',
     reviewName: 'チェーン名',
     reviewType: 'チェーンの種類',
     reviewOwner: '所有者',
     reviewBack: '戻って修正',
     reviewConfirm: '確認しました — チェーンを立ち上げる',
-    launching: 'チェーン「{ten}」を作成中',
+    launching: 'チェーン「{name}」を作成中',
     launchingDesc:
       'ネットワークが定足数を失わないよう、ノードは 1 台ずつ再起動します。そのため時間がかかりますが、' +
       'それは意図的です。タブは閉じないでください。閉じてもチェーンの構築は続きます。',
-    etaRemaining: '残り約 {phut} 分',
+    etaRemaining: '残り約 {minutes} 分',
     preparing: '準備中…',
-    doneTitle: '完了 — チェーン「{ten}」が稼働中です',
+    doneTitle: '完了 — チェーン「{name}」が稼働中です',
     doneChainId: 'チェーン ID',
     doneRpc: 'RPC',
     doneAddWallet: 'チェーンをウォレットに追加',
@@ -294,10 +294,10 @@ export const ja: Dict = {
     doneActivate: 'チェーンを有効化（ブロック 1 を開く）',
     doneActivated: '有効化済み',
     doneActivating: 'ウォレットを待っています…',
-    doneAddWalletError: 'チェーンをウォレットに追加できませんでした。{chiTiet}',
-    doneActivateError: 'チェーンを有効化できませんでした。{chiTiet}',
+    doneAddWalletError: 'チェーンをウォレットに追加できませんでした。{detail}',
+    doneActivateError: 'チェーンを有効化できませんでした。{detail}',
     launchAnother: '別のチェーンを立ち上げる',
-    launchError: 'チェーンを立ち上げられませんでした。{chiTiet}',
+    launchError: 'チェーンを立ち上げられませんでした。{detail}',
     unknownError: '処理の終了後、チェーンはディレクトリに現れませんでした。',
     noteTitle: '新しいチェーンでの最初の取引',
     noteHow: '最初の取引のガス見積もりは当てになりません。ブロック 1 を開く最も安い方法は通常の送金です。下の「チェーンを有効化」を押してください。',
@@ -314,7 +314,7 @@ export const ja: Dict = {
     colType: '種類',
     colStatus: '状態',
     colActions: '',
-    validatorCount: 'バリデータ {so}',
+    validatorCount: 'バリデータ {count}',
     measuring: '計測中',
     cannotMeasure: '計測できません',
     statusHelp: 'ブロック高ではなく、サブネットのバリデータ数で測ります。',
@@ -325,9 +325,9 @@ export const ja: Dict = {
     walletSettings: 'ウォレット用の設定',
     addToWallet: 'ウォレットに追加',
     addedToWallet: '追加済み',
-    addWalletError: 'ウォレットに追加できませんでした。{chiTiet}',
+    addWalletError: 'ウォレットに追加できませんでした。{detail}',
     revoke: '取り消す',
-    revokeTitle: '「{ten}」を取り消しますか？',
+    revokeTitle: '「{name}」を取り消しますか？',
     revokeWarn1: 'チェーンは直ちに RPC の提供を停止し、公開ディレクトリから消えます。',
     revokeWarn2:
       '取り消しても P-Chain 上のサブネットは削除されません。このネットワークが動いている限り、' +
@@ -341,9 +341,9 @@ export const ja: Dict = {
     revokeNameMismatch: 'チェーン名と一致しません。',
     revokeConfirm: '恒久的に取り消す',
     revokeCancel: 'キャンセル',
-    revoking: '「{ten}」を取り消し中 — 約 3 分',
-    revokeDone: '「{ten}」を取り消しました。残り {con}/{tong} 枠。',
-    revokeError: '取り消せませんでした。{chiTiet}',
+    revoking: '「{name}」を取り消し中 — 約 3 分',
+    revokeDone: '「{name}」を取り消しました。残り {left}/{total} 枠。',
+    revokeError: '取り消せませんでした。{detail}',
     revokeUnknown: '処理の終了後もチェーンはディレクトリに残っています。',
     revokedBadge: '取り消し済み',
     revokedDesc: '名前とチェーン ID はこのネットワークで予約されたままです。',
@@ -397,10 +397,10 @@ export const ja: Dict = {
     addNetworkError: 'ウォレットがネットワークを追加できませんでした。隣の設定を使って手動で追加し、下の行をチームに送ってください：',
     noWallet: 'このブラウザにウォレットが見つかりません。MetaMask をインストールしてページを再読み込みしてください。',
     quotaLabel: '残りの上限',
-    quotaFormat: '{gio} 時間あたり {con}/{tong} 回',
-    quotaExhausted: '上限をすべて使い切りました。{phut} 分後にもう一度お試しください。',
+    quotaFormat: '{hours} 時間あたり {left}/{total} 回',
+    quotaExhausted: '上限をすべて使い切りました。{minutes} 分後にもう一度お試しください。',
     quotaUnreadable: '上限を読み取れませんでした。申請自体は可能ですが、残り回数はわかりません。',
-    sentOk: '{diaChi} へ {so} {kyHieu} を送信しました',
+    sentOk: '{address} へ {count} {symbol} を送信しました',
     viewTransaction: '取引を見る',
     settingsTitle: 'ネットワーク設定',
     settingsRpc: 'RPC',
@@ -411,7 +411,7 @@ export const ja: Dict = {
     decimalsHelp:
       'C-Chain は EVM を動かすため、ウォレットは 18 桁で表示します。P/X-Chain では LOVE9 は 9 桁で' +
       '数えます。同じ 1 種類のコインを 2 つの尺度で見ているだけで、別のトークンではありません。',
-    genericError: '送信できませんでした。{chiTiet}',
+    genericError: '送信できませんでした。{detail}',
   },
 
   langPicker: {

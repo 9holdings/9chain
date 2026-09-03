@@ -31,11 +31,11 @@ export const nl: Dict = {
     archiveUrl: '',
     archiveSha256: '',
 
-    banner: 'A1 is op {ngay} opnieuw opgebouwd. Elk saldo en elke chain van vóór die datum bestaat niet meer.',
+    banner: 'A1 is op {date} opnieuw opgebouwd. Elk saldo en elke chain van vóór die datum bestaat niet meer.',
     bannerLink: 'Wat dit betekent',
     badge: 'Opnieuw opgebouwd',
 
-    title: 'A1 is op {ngay} opnieuw opgebouwd',
+    title: 'A1 is op {date} opnieuw opgebouwd',
     desc:
       'Het A1-testnetwerk is vanaf blok 0 opnieuw opgebouwd. Chains, saldi en transactiegeschiedenis ' +
       'van vóór die datum bestaan niet meer — niet verborgen, maar weg. ' +
@@ -67,11 +67,11 @@ export const nl: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1 wordt op {ngay} opnieuw opgebouwd — elke chain, elk saldo en elke transactie van daarvóór wordt gewist.',
+    banner: 'A1 wordt op {date} opnieuw opgebouwd — elke chain, elk saldo en elke transactie van daarvóór wordt gewist.',
     bannerLink: 'Details',
     badge: 'Heropbouw komt eraan',
 
-    title: 'A1 wordt op {ngay} opnieuw opgebouwd',
+    title: 'A1 wordt op {date} opnieuw opgebouwd',
     desc:
       'Het volledige A1-testnetwerk wordt vanaf blok 0 opnieuw opgebouwd. Alles wat vóór die datum is ' +
       'gemaakt zal weg zijn — niet verborgen, maar niet langer bestaand. Deze pagina zegt precies wat ' +
@@ -149,7 +149,7 @@ export const nl: Dict = {
       'A1 is al één keer opnieuw opgebouwd op 2026-08-27, vóór de datum hieronder. Had je daarvóór testtokens, dan is je saldo nu 0 — dat klopt, het is geen storing in je wallet. Er is geen enkele gebruikerschain verloren gegaan: de lijst bevatte alleen automatische testchains. Vraag opnieuw tokens aan bij de kraan.',
     dateNote: 'De datum kan opschuiven',
     dateNoteDesc:
-      'De datum {ngay} hangt af van een eerdere go/no-go-controle. Schuift die op, dan wijzigen we de ' +
+      'De datum {date} hangt af van een eerdere go/no-go-controle. Schuift die op, dan wijzigen we de ' +
       'datum op deze pagina in plaats van te zwijgen.',
   },
 
@@ -279,7 +279,7 @@ export const nl: Dict = {
     nameInvalid: 'De naam mag alleen letters, cijfers en spaties bevatten, met een lengte van 2–32 tekens.',
     typeLabel: 'Type chain',
     typeHelp: 'Eenmaal gekozen ligt dit vast — de genesis van een chain kan niet worden bewerkt.',
-    slotsLeft: '{con}/{tong} plekken over',
+    slotsLeft: '{left}/{total} plekken over',
     slotsFull: 'Geen plekken meer',
     slotsFullDesc:
       'In het huidige model volgt elke validator elke L1, en het protocol verwijdert een node die meer ' +
@@ -293,7 +293,7 @@ export const nl: Dict = {
       'en de eigenaar niet meer worden gewijzigd — en intrekken geeft de naam en het chain ID ook niet ' +
       'terug.',
     reviewRebuild:
-      'Nog iets om te weten voordat je drukt: A1 bouwt het hele netwerk opnieuw op op {ngay}. De chain ' +
+      'Nog iets om te weten voordat je drukt: A1 bouwt het hele netwerk opnieuw op op {date}. De chain ' +
       'die je vandaag start wordt samen met het oude netwerk gewist — niet verborgen, maar weg.',
     reviewName: 'Naam van de chain',
     reviewType: 'Type chain',
@@ -301,14 +301,14 @@ export const nl: Dict = {
     reviewBack: 'Terug en aanpassen',
     reviewConfirm: 'Ik heb het gecontroleerd — start de chain',
 
-    launching: 'Chain “{ten}" wordt gestart',
+    launching: 'Chain “{name}" wordt gestart',
     launchingDesc:
       'De nodes herstarten ÉÉN VOOR ÉÉN zodat het netwerk nooit het quorum verliest — daarom duurt het ' +
       'lang, en dat is opzet. Sluit het tabblad niet; doe je dat toch, dan wordt de chain alsnog gebouwd.',
-    etaRemaining: 'Nog ongeveer {phut} minuten',
+    etaRemaining: 'Nog ongeveer {minutes} minuten',
     preparing: 'Voorbereiden…',
 
-    doneTitle: 'Klaar — chain “{ten}" draait',
+    doneTitle: 'Klaar — chain “{name}" draait',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Chain aan wallet toevoegen',
@@ -316,11 +316,11 @@ export const nl: Dict = {
     doneActivate: 'Chain activeren (blok 1 openen)',
     doneActivated: 'Geactiveerd',
     doneActivating: 'Wachten op wallet…',
-    doneAddWalletError: 'Kon de chain niet aan je wallet toevoegen. {chiTiet}',
-    doneActivateError: 'Kon de chain niet activeren. {chiTiet}',
+    doneAddWalletError: 'Kon de chain niet aan je wallet toevoegen. {detail}',
+    doneActivateError: 'Kon de chain niet activeren. {detail}',
 
     launchAnother: 'Nog een chain starten',
-    launchError: 'Kon de chain niet starten. {chiTiet}',
+    launchError: 'Kon de chain niet starten. {detail}',
     unknownError: 'De chain verscheen na afloop niet in de lijst.',
     noteTitle: 'De eerste transactie op een nieuwe chain',
     noteHow:
@@ -341,7 +341,7 @@ export const nl: Dict = {
     colStatus: 'Status',
     colActions: '',
 
-    validatorCount: '{so} validators',
+    validatorCount: '{count} validators',
     measuring: 'meten',
     cannotMeasure: 'kon niet meten',
     statusHelp: 'Gemeten aan het aantal validators van het subnet, niet aan de blokhoogte.',
@@ -354,10 +354,10 @@ export const nl: Dict = {
     walletSettings: 'Wallet-instellingen',
     addToWallet: 'Toevoegen aan wallet',
     addedToWallet: 'Toegevoegd',
-    addWalletError: 'Kon het niet aan je wallet toevoegen. {chiTiet}',
+    addWalletError: 'Kon het niet aan je wallet toevoegen. {detail}',
 
     revoke: 'Intrekken',
-    revokeTitle: '“{ten}" intrekken?',
+    revokeTitle: '“{name}" intrekken?',
     revokeWarn1: 'De chain stopt onmiddellijk met RPC en verdwijnt uit de openbare lijst.',
     revokeWarn2:
       'Intrekken verwijdert het subnet op de P-Chain NIET — wat daar is aangemaakt kan niet worden ' +
@@ -372,9 +372,9 @@ export const nl: Dict = {
     revokeNameMismatch: 'Dat komt niet overeen met de naam van de chain.',
     revokeConfirm: 'Definitief intrekken',
     revokeCancel: 'Annuleren',
-    revoking: '“{ten}" wordt ingetrokken — ongeveer drie minuten',
-    revokeDone: '“{ten}" ingetrokken. {con}/{tong} plekken over.',
-    revokeError: 'Kon niet intrekken. {chiTiet}',
+    revoking: '“{name}" wordt ingetrokken — ongeveer drie minuten',
+    revokeDone: '“{name}" ingetrokken. {left}/{total} plekken over.',
+    revokeError: 'Kon niet intrekken. {detail}',
     revokeUnknown: 'De chain staat na afloop nog steeds in de lijst.',
 
     revokedBadge: 'Ingetrokken',
@@ -436,10 +436,10 @@ export const nl: Dict = {
     addNetworkError: 'Je wallet kon het netwerk niet toevoegen. Voeg het handmatig toe met de instellingen hiernaast — en stuur onderstaande regel naar het team:',
     noWallet: 'Geen wallet gevonden in deze browser. Installeer MetaMask en herlaad de pagina.',
     quotaLabel: 'Resterend quotum',
-    quotaFormat: '{con}/{tong} aanvragen per {gio} uur',
-    quotaExhausted: 'Je hebt je hele quotum gebruikt. Probeer het over {phut} minuten opnieuw.',
+    quotaFormat: '{left}/{total} aanvragen per {hours} uur',
+    quotaExhausted: 'Je hebt je hele quotum gebruikt. Probeer het over {minutes} minuten opnieuw.',
     quotaUnreadable: 'Kon je quotum niet lezen — je kunt nog steeds aanvragen, je weet alleen niet hoeveel er over is.',
-    sentOk: '{so} {kyHieu} gestuurd naar {diaChi}',
+    sentOk: '{count} {symbol} gestuurd naar {address}',
     viewTransaction: 'Transactie bekijken',
     settingsTitle: 'Netwerkinstellingen',
     settingsRpc: 'RPC',
@@ -450,7 +450,7 @@ export const nl: Dict = {
     decimalsHelp:
       'Wallets tonen 18 decimalen omdat de C-Chain de EVM draait. Op de P/X-Chain telt LOVE9 in 9 ' +
       'decimalen. Eén munt, twee schalen — geen twee verschillende tokens.',
-    genericError: 'Versturen mislukt. {chiTiet}',
+    genericError: 'Versturen mislukt. {detail}',
   },
 
   langPicker: {

@@ -179,7 +179,7 @@ export function CreateChainScreen() {
       }
     } catch { /* đọc danh bạ hỏng — rơi xuống nhánh báo lỗi bên dưới */ }
 
-    setLaunchError(interpolate(t.launch.launchError, { chiTiet: tt2?.error ?? loiPost ?? t.launch.unknownError }));
+    setLaunchError(interpolate(t.launch.launchError, { detail: tt2?.error ?? loiPost ?? t.launch.unknownError }));
     setPhase('nhap');
   }
 
@@ -225,7 +225,7 @@ export function CreateChainScreen() {
               <h2 className="font-display text-lg font-bold text-ink">{t.launch.title}</h2>
               {/* 🔴 Trần hiện TRƯỚC khi người ta bỏ công, không phải lúc bị từ chối. */}
               <Badge tone={hetCho ? 'warn' : 'good'}>
-                {hetCho ? t.launch.slotsFull : interpolate(t.launch.slotsLeft, { con: tran - soChain, tong: tran })}
+                {hetCho ? t.launch.slotsFull : interpolate(t.launch.slotsLeft, { left: tran - soChain, total: tran })}
               </Badge>
             </div>
 
@@ -304,7 +304,7 @@ export function CreateChainScreen() {
                   đây là giây cuối trước cửa một chiều, và là chỗ duy nhất chắc chắn
                   người dùng đang đọc. Gỡ cùng lúc với dải banner sau ngày G. */}
               <Note tone="warn">
-                {interpolate(t.launch.reviewRebuild, { ngay: t.rebuild.date })}
+                {interpolate(t.launch.reviewRebuild, { date: t.rebuild.date })}
               </Note>
             </div>
             <dl className="mt-5 flex flex-col gap-3">
@@ -333,7 +333,7 @@ export function CreateChainScreen() {
         {phase === 'chay' && (
           <>
             <h2 className="font-display text-lg font-bold text-ink">
-              {interpolate(t.launch.launching, { ten: tenSach })}
+              {interpolate(t.launch.launching, { name: tenSach })}
             </h2>
             <p className="mt-2 text-sm text-body-2">{t.launch.launchingDesc}</p>
             <div className="mt-5">
@@ -342,7 +342,7 @@ export function CreateChainScreen() {
                   steps={progress.steps}
                   footnote={
                     progress.etaSeconds
-                      ? interpolate(t.launch.etaRemaining, { phut: Math.max(1, Math.ceil(progress.etaSeconds / 60)) })
+                      ? interpolate(t.launch.etaRemaining, { minutes: Math.max(1, Math.ceil(progress.etaSeconds / 60)) })
                       : undefined
                   }
                 />
@@ -356,7 +356,7 @@ export function CreateChainScreen() {
         {phase === 'xong' && result && (
           <>
             <h2 className="font-display text-lg font-bold text-success-ink">
-              {interpolate(t.launch.doneTitle, { ten: result.name })}
+              {interpolate(t.launch.doneTitle, { name: result.name })}
             </h2>
             <dl className="mt-4 flex flex-col gap-3">
               <div>
@@ -403,7 +403,7 @@ export function CreateChainScreen() {
                   } catch (e) {
                     const l = readWalletError(e);
                     setAddWalletError(
-                      l.tuChoi ? t.common.walletRejected : interpolate(t.launch.doneAddWalletError, { chiTiet: l.ownerAddr ?? '' }),
+                      l.tuChoi ? t.common.walletRejected : interpolate(t.launch.doneAddWalletError, { detail: l.ownerAddr ?? '' }),
                     );
                   }
                 }}
@@ -425,7 +425,7 @@ export function CreateChainScreen() {
                     setActivated('chua');
                     const l = readWalletError(e);
                     setActivateError(
-                      l.tuChoi ? t.common.walletRejected : interpolate(t.launch.doneActivateError, { chiTiet: l.ownerAddr ?? '' }),
+                      l.tuChoi ? t.common.walletRejected : interpolate(t.launch.doneActivateError, { detail: l.ownerAddr ?? '' }),
                     );
                   }
                 }}

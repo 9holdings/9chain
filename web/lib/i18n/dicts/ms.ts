@@ -31,11 +31,11 @@ export const ms: Dict = {
     archiveUrl: '',
     archiveSha256: '',
 
-    banner: 'A1 telah dibina semula pada {ngay}. Setiap baki dan rantaian yang dicipta sebelum tarikh itu tidak wujud lagi.',
+    banner: 'A1 telah dibina semula pada {date}. Setiap baki dan rantaian yang dicipta sebelum tarikh itu tidak wujud lagi.',
     bannerLink: 'Apa maksudnya',
     badge: 'Dibina semula',
 
-    title: 'A1 telah dibina semula pada {ngay}',
+    title: 'A1 telah dibina semula pada {date}',
     desc:
       'Rangkaian ujian A1 telah dibina semula dari blok 0. Rantaian, baki dan sejarah transaksi yang ' +
       'dicipta sebelum tarikh itu tidak wujud lagi — bukan disembunyikan, tetapi hilang terus. ' +
@@ -67,11 +67,11 @@ export const ms: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A1 akan dibina semula pada {ngay} — setiap rantaian, baki dan transaksi yang dicipta sebelum itu akan dipadam.',
+    banner: 'A1 akan dibina semula pada {date} — setiap rantaian, baki dan transaksi yang dicipta sebelum itu akan dipadam.',
     bannerLink: 'Butiran',
     badge: 'Pembinaan semula akan datang',
 
-    title: 'A1 akan dibina semula pada {ngay}',
+    title: 'A1 akan dibina semula pada {date}',
     desc:
       'Seluruh rangkaian ujian A1 akan dibina semula dari blok 0. Segala yang dicipta sebelum tarikh ' +
       'itu akan hilang — bukan disembunyikan, tetapi tidak lagi wujud. Halaman ini menyatakan dengan ' +
@@ -151,7 +151,7 @@ export const ms: Dict = {
       'A1 sudah pernah dibina semula sekali pada 2026-08-27, sebelum tarikh di bawah. Jika anda memegang token ujian sebelum itu, baki anda kini 0 — itu betul, bukan kerosakan pada dompet anda. Tiada rantaian pengguna yang hilang: direktori hanya mengandungi rantaian ujian automatik. Minta token sekali lagi daripada faucet.',
     dateNote: 'Tarikh boleh beranjak',
     dateNoteDesc:
-      'Tarikh {ngay} bergantung pada semakan go/no-go sebelumnya. Jika ia beranjak, kami akan menukar ' +
+      'Tarikh {date} bergantung pada semakan go/no-go sebelumnya. Jika ia beranjak, kami akan menukar ' +
       'tarikh di halaman ini dan bukannya berdiam diri.',
   },
 
@@ -281,7 +281,7 @@ export const ms: Dict = {
     nameInvalid: 'Nama hanya boleh mengandungi huruf, angka dan ruang, sepanjang 2–32 aksara.',
     typeLabel: 'Jenis rantaian',
     typeHelp: 'Setelah dipilih ia kekal — genesis sesebuah rantaian tidak boleh disunting.',
-    slotsLeft: '{con}/{tong} slot berbaki',
+    slotsLeft: '{left}/{total} slot berbaki',
     slotsFull: 'Tiada slot berbaki',
     slotsFullDesc:
       'Model semasa membuatkan setiap pengesah menjejaki setiap L1, dan protokol menyingkirkan nod yang ' +
@@ -295,7 +295,7 @@ export const ms: Dict = {
       'rantaian dan pemilik tidak boleh ditukar — dan pembatalan juga tidak akan memulangkan nama serta ' +
       'chain ID.',
     reviewRebuild:
-      'Satu lagi perkara sebelum anda menekan: A1 membina semula seluruh rangkaian pada {ngay}. ' +
+      'Satu lagi perkara sebelum anda menekan: A1 membina semula seluruh rangkaian pada {date}. ' +
       'Rantaian yang anda lancarkan hari ini akan dipadam bersama rangkaian lama — bukan disembunyikan, ' +
       'tetapi hilang.',
     reviewName: 'Nama rantaian',
@@ -304,14 +304,14 @@ export const ms: Dict = {
     reviewBack: 'Kembali dan sunting',
     reviewConfirm: 'Saya telah menyemak — lancarkan rantaian',
 
-    launching: 'Melancarkan rantaian “{ten}”',
+    launching: 'Melancarkan rantaian “{name}”',
     launchingDesc:
       'Nod dimulakan semula SATU DEMI SATU supaya rangkaian tidak pernah kehilangan kuorum — itulah ' +
       'sebabnya ia perlahan, dan ia disengajakan. Jangan tutup tab; jika ditutup pun, rantaian tetap dibina.',
-    etaRemaining: 'Kira-kira {phut} minit lagi',
+    etaRemaining: 'Kira-kira {minutes} minit lagi',
     preparing: 'Menyediakan…',
 
-    doneTitle: 'Selesai — rantaian “{ten}” sedang berjalan',
+    doneTitle: 'Selesai — rantaian “{name}” sedang berjalan',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Tambah rantaian ke dompet',
@@ -319,11 +319,11 @@ export const ms: Dict = {
     doneActivate: 'Aktifkan rantaian (buka blok 1)',
     doneActivated: 'Diaktifkan',
     doneActivating: 'Menunggu dompet…',
-    doneAddWalletError: 'Tidak dapat menambah rantaian ke dompet anda. {chiTiet}',
-    doneActivateError: 'Tidak dapat mengaktifkan rantaian. {chiTiet}',
+    doneAddWalletError: 'Tidak dapat menambah rantaian ke dompet anda. {detail}',
+    doneActivateError: 'Tidak dapat mengaktifkan rantaian. {detail}',
 
     launchAnother: 'Lancarkan satu lagi rantaian',
-    launchError: 'Tidak dapat melancarkan rantaian. {chiTiet}',
+    launchError: 'Tidak dapat melancarkan rantaian. {detail}',
     unknownError: 'Rantaian tidak muncul dalam direktori selepas proses selesai.',
     noteTitle: 'Transaksi pertama pada rantaian baharu',
     noteHow:
@@ -344,7 +344,7 @@ export const ms: Dict = {
     colStatus: 'Status',
     colActions: '',
 
-    validatorCount: '{so} pengesah',
+    validatorCount: '{count} pengesah',
     measuring: 'mengukur',
     cannotMeasure: 'tidak dapat diukur',
     statusHelp: 'Diukur daripada bilangan pengesah subnet, bukan daripada ketinggian blok.',
@@ -356,10 +356,10 @@ export const ms: Dict = {
     walletSettings: 'Tetapan dompet',
     addToWallet: 'Tambah ke dompet',
     addedToWallet: 'Ditambah',
-    addWalletError: 'Tidak dapat menambahkannya ke dompet anda. {chiTiet}',
+    addWalletError: 'Tidak dapat menambahkannya ke dompet anda. {detail}',
 
     revoke: 'Batalkan',
-    revokeTitle: 'Batalkan “{ten}”?',
+    revokeTitle: 'Batalkan “{name}”?',
     revokeWarn1: 'Rantaian berhenti memberikan RPC serta-merta dan hilang daripada direktori awam.',
     revokeWarn2:
       'Pembatalan TIDAK memadamkan subnet pada P-Chain — apa yang telah dicipta di sana tidak boleh ' +
@@ -374,9 +374,9 @@ export const ms: Dict = {
     revokeNameMismatch: 'Ia tidak sepadan dengan nama rantaian.',
     revokeConfirm: 'Batalkan secara kekal',
     revokeCancel: 'Batal',
-    revoking: 'Membatalkan “{ten}” — kira-kira tiga minit',
-    revokeDone: '“{ten}” dibatalkan. {con}/{tong} slot berbaki.',
-    revokeError: 'Tidak dapat membatalkan. {chiTiet}',
+    revoking: 'Membatalkan “{name}” — kira-kira tiga minit',
+    revokeDone: '“{name}” dibatalkan. {left}/{total} slot berbaki.',
+    revokeError: 'Tidak dapat membatalkan. {detail}',
     revokeUnknown: 'Rantaian masih ada dalam direktori selepas proses selesai.',
 
     revokedBadge: 'Dibatalkan',
@@ -438,10 +438,10 @@ export const ms: Dict = {
     addNetworkError: 'Dompet anda tidak dapat menambah rangkaian. Tambah secara manual menggunakan tetapan di sebelah ini — dan hantar baris di bawah kepada pasukan:',
     noWallet: 'Tiada dompet ditemui dalam pelayar ini. Pasang MetaMask dan muat semula halaman.',
     quotaLabel: 'Baki kuota',
-    quotaFormat: '{con}/{tong} permintaan setiap {gio} jam',
-    quotaExhausted: 'Anda telah menggunakan keseluruhan kuota anda. Cuba lagi dalam {phut} minit.',
+    quotaFormat: '{left}/{total} permintaan setiap {hours} jam',
+    quotaExhausted: 'Anda telah menggunakan keseluruhan kuota anda. Cuba lagi dalam {minutes} minit.',
     quotaUnreadable: 'Tidak dapat membaca kuota anda — anda masih boleh membuat permintaan, cuma tidak tahu berapa yang berbaki.',
-    sentOk: 'Menghantar {so} {kyHieu} ke {diaChi}',
+    sentOk: 'Menghantar {count} {symbol} ke {address}',
     viewTransaction: 'Lihat transaksi',
     settingsTitle: 'Tetapan rangkaian',
     settingsRpc: 'RPC',
@@ -452,7 +452,7 @@ export const ms: Dict = {
     decimalsHelp:
       'Dompet memaparkan 18 tempat perpuluhan kerana C-Chain menjalankan EVM. Pada P/X-Chain, LOVE9 ' +
       'dikira dengan 9 tempat perpuluhan. Satu syiling, dua skala — bukan dua token berbeza.',
-    genericError: 'Tidak dapat menghantar. {chiTiet}',
+    genericError: 'Tidak dapat menghantar. {detail}',
   },
 
   langPicker: {

@@ -30,10 +30,10 @@ export const pt: Dict = {
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',
-    banner: 'A A1 foi reconstruída em {ngay}. Todos os saldos e cadeias criados antes dessa data não existem mais.',
+    banner: 'A A1 foi reconstruída em {date}. Todos os saldos e cadeias criados antes dessa data não existem mais.',
     bannerLink: 'O que isso significa',
     badge: 'Reconstruída',
-    title: 'A A1 foi reconstruída em {ngay}',
+    title: 'A A1 foi reconstruída em {date}',
     desc:
       'A rede de testes A1 foi reconstruída a partir do bloco 0. Cadeias, saldos e histórico de ' +
       'transações criados antes dessa data não existem mais — não estão ocultos, sumiram. ' +
@@ -62,10 +62,10 @@ export const pt: Dict = {
 
   rebuild: {
     date: '2026-09-01',
-    banner: 'A A1 será reconstruída em {ngay} — todas as cadeias, saldos e transações criados antes disso serão apagados.',
+    banner: 'A A1 será reconstruída em {date} — todas as cadeias, saldos e transações criados antes disso serão apagados.',
     bannerLink: 'Detalhes',
     badge: 'Reconstrução a caminho',
-    title: 'A A1 será reconstruída em {ngay}',
+    title: 'A A1 será reconstruída em {date}',
     desc:
       'Toda a rede de testes A1 será reconstruída a partir do bloco 0. Tudo que foi criado antes ' +
       'dessa data desaparecerá — não ficará oculto, deixará de existir. Esta página diz exatamente ' +
@@ -139,7 +139,7 @@ export const pt: Dict = {
       'A A1 já foi reconstruída uma vez em 2026-08-27, antes da data abaixo. Se você tinha tokens de teste antes disso, seu saldo agora é 0 — isso está correto, não é falha da sua carteira. Nenhuma cadeia de usuário foi perdida: o diretório continha apenas cadeias de teste automatizadas. Peça tokens na torneira de novo.',
     dateNote: 'A data pode escorregar',
     dateNoteDesc:
-      'A data {ngay} depende de uma verificação anterior. Se ela atrasar, mudaremos a data nesta ' +
+      'A data {date} depende de uma verificação anterior. Se ela atrasar, mudaremos a data nesta ' +
       'página em vez de ficar em silêncio.',
   },
 
@@ -261,7 +261,7 @@ export const pt: Dict = {
     nameInvalid: 'O nome só pode conter letras, dígitos e espaços, com 2 a 32 caracteres.',
     typeLabel: 'Tipo de cadeia',
     typeHelp: 'Uma vez escolhido, fica fixo — o genesis de uma cadeia não pode ser editado.',
-    slotsLeft: 'Restam {con}/{tong} vagas',
+    slotsLeft: 'Restam {left}/{total} vagas',
     slotsFull: 'Sem vagas',
     slotsFullDesc:
       'O modelo atual faz cada validador acompanhar todas as L1, e o protocolo derruba um nó que ' +
@@ -273,20 +273,20 @@ export const pt: Dict = {
       'O genesis de uma L1 lançada é IMUTÁVEL. Depois deste passo o nome, o tipo de cadeia e o dono ' +
       'não podem ser alterados — e revogar também não devolve o nome nem o Chain ID.',
     reviewRebuild:
-      'Mais uma coisa antes de apertar: a A1 reconstrói a rede inteira em {ngay}. A cadeia que você ' +
+      'Mais uma coisa antes de apertar: a A1 reconstrói a rede inteira em {date}. A cadeia que você ' +
       'lançar hoje será apagada junto com a rede antiga — não escondida, sumida.',
     reviewName: 'Nome da cadeia',
     reviewType: 'Tipo de cadeia',
     reviewOwner: 'Dono',
     reviewBack: 'Voltar e editar',
     reviewConfirm: 'Eu revisei — lançar a cadeia',
-    launching: 'Lançando a cadeia “{ten}”',
+    launching: 'Lançando a cadeia “{name}”',
     launchingDesc:
       'Os nós reiniciam UM DE CADA VEZ para a rede nunca perder o quórum — é por isso que é lento, e ' +
       'é proposital. Não feche a aba; se fechar, a cadeia é construída mesmo assim.',
-    etaRemaining: 'Faltam cerca de {phut} minutos',
+    etaRemaining: 'Faltam cerca de {minutes} minutos',
     preparing: 'Preparando…',
-    doneTitle: 'Pronto — a cadeia “{ten}” está rodando',
+    doneTitle: 'Pronto — a cadeia “{name}” está rodando',
     doneChainId: 'Chain ID',
     doneRpc: 'RPC',
     doneAddWallet: 'Adicionar a cadeia à carteira',
@@ -294,10 +294,10 @@ export const pt: Dict = {
     doneActivate: 'Ativar a cadeia (abrir o bloco 1)',
     doneActivated: 'Ativada',
     doneActivating: 'Aguardando a carteira…',
-    doneAddWalletError: 'Não foi possível adicionar a cadeia à sua carteira. {chiTiet}',
-    doneActivateError: 'Não foi possível ativar a cadeia. {chiTiet}',
+    doneAddWalletError: 'Não foi possível adicionar a cadeia à sua carteira. {detail}',
+    doneActivateError: 'Não foi possível ativar a cadeia. {detail}',
     launchAnother: 'Lançar outra cadeia',
-    launchError: 'Não foi possível lançar a cadeia. {chiTiet}',
+    launchError: 'Não foi possível lançar a cadeia. {detail}',
     unknownError: 'A cadeia não apareceu no diretório depois que a execução terminou.',
     noteTitle: 'A primeira transação de uma cadeia nova',
     noteHow: 'Não confie na estimativa de gas da primeira transação. O jeito mais barato de abrir o bloco 1 é uma transferência comum — aperte “Ativar a cadeia” abaixo.',
@@ -314,7 +314,7 @@ export const pt: Dict = {
     colType: 'Tipo',
     colStatus: 'Estado',
     colActions: '',
-    validatorCount: '{so} validadores',
+    validatorCount: '{count} validadores',
     measuring: 'medindo',
     cannotMeasure: 'não foi possível medir',
     statusHelp: 'Medido pela contagem de validadores da sub-rede, não pela altura do bloco.',
@@ -325,9 +325,9 @@ export const pt: Dict = {
     walletSettings: 'Configurações da carteira',
     addToWallet: 'Adicionar à carteira',
     addedToWallet: 'Adicionada',
-    addWalletError: 'Não foi possível adicioná-la à sua carteira. {chiTiet}',
+    addWalletError: 'Não foi possível adicioná-la à sua carteira. {detail}',
     revoke: 'Revogar',
-    revokeTitle: 'Revogar “{ten}”?',
+    revokeTitle: 'Revogar “{name}”?',
     revokeWarn1: 'A cadeia para de servir RPC imediatamente e some do diretório público.',
     revokeWarn2:
       'Revogar NÃO apaga a sub-rede na P-Chain — o que foi criado ali não pode ser removido enquanto ' +
@@ -340,9 +340,9 @@ export const pt: Dict = {
     revokeNameMismatch: 'Isso não confere com o nome da cadeia.',
     revokeConfirm: 'Revogar permanentemente',
     revokeCancel: 'Cancelar',
-    revoking: 'Revogando “{ten}” — cerca de três minutos',
-    revokeDone: '“{ten}” revogada. Restam {con}/{tong} vagas.',
-    revokeError: 'Não foi possível revogar. {chiTiet}',
+    revoking: 'Revogando “{name}” — cerca de três minutos',
+    revokeDone: '“{name}” revogada. Restam {left}/{total} vagas.',
+    revokeError: 'Não foi possível revogar. {detail}',
     revokeUnknown: 'A cadeia ainda está no diretório depois que a execução terminou.',
     revokedBadge: 'Revogada',
     revokedDesc: 'Nome e Chain ID continuam reservados nesta rede.',
@@ -395,10 +395,10 @@ export const pt: Dict = {
     addNetworkError: 'Sua carteira não conseguiu adicionar a rede. Adicione manualmente com as configurações ao lado — e envie a linha abaixo para a equipe:',
     noWallet: 'Nenhuma carteira encontrada neste navegador. Instale a MetaMask e recarregue a página.',
     quotaLabel: 'Cota restante',
-    quotaFormat: '{con}/{tong} pedidos a cada {gio} horas',
-    quotaExhausted: 'Você usou toda a sua cota. Tente de novo em {phut} minutos.',
+    quotaFormat: '{left}/{total} pedidos a cada {hours} horas',
+    quotaExhausted: 'Você usou toda a sua cota. Tente de novo em {minutes} minutos.',
     quotaUnreadable: 'Não foi possível ler sua cota — você ainda pode pedir, só não vai saber quantos restam.',
-    sentOk: 'Enviados {so} {kyHieu} para {diaChi}',
+    sentOk: 'Enviados {count} {symbol} para {address}',
     viewTransaction: 'Ver a transação',
     settingsTitle: 'Configurações de rede',
     settingsRpc: 'RPC',
@@ -409,7 +409,7 @@ export const pt: Dict = {
     decimalsHelp:
       'As carteiras mostram 18 casas decimais porque a C-Chain roda a EVM. Na P/X-Chain, o LOVE9 é ' +
       'contado em 9 casas. Uma moeda só, duas escalas — não são dois tokens diferentes.',
-    genericError: 'Não foi possível enviar. {chiTiet}',
+    genericError: 'Não foi possível enviar. {detail}',
   },
 
   langPicker: {
