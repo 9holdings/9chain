@@ -51,6 +51,7 @@ export const TIEU_DE_THEO_DUONG: Record<string, (t: Tu) => string | null> = {
   '/create-chain/': (t) => t.launch.title,
   '/my-chains/': (t) => t.myChains.title,
   '/compare/': (t) => t.compare.title,
+  '/chains/': (t) => t.nav.directory,
   '/live/': (t) => t.loadTest.title,
   '/re-genesis/': (t) => dien(t.rebuild.title, { ngay: t.rebuild.date }),
 };

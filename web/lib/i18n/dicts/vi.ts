@@ -350,6 +350,58 @@ export const vi: Tu = {
     cannotMeasure: 'Chưa đọc được số liệu mạng',
     cannotMeasureDesc: 'Trang vẫn dùng được — đây chỉ là phần hiển thị tình trạng.',
   },
+  /**
+   * Danh bạ L1 (`/chains/`). Chuyển vào từ điển `2026-09-03`.
+   *
+   * 🔴 CHỮ Ở ĐÂY LÀ BẢN CHUYỂN NGUYÊN VĂN từ trang HTML tự viết cũ, KHÔNG viết lại.
+   * Giọng đó David đã duyệt và đã chạy công khai nhiều tuần; viết lại cho "hay hơn"
+   * là đánh đổi một bản đã được soát lấy một bản chưa ai đọc.
+   */
+  directory: {
+    lede: 'Mọi chain trên testnet A1 và tình trạng thật của nó.',
+
+    howToTitle: 'Đọc bảng này thế nào.',
+    howToBody:
+      'Avalanche không đẻ block rỗng — chain chỉ sinh block khi có giao dịch, nên “số block ' +
+      'đứng yên” là bình thường, không phải chain chết. Ngược lại, một chain không có validator ' +
+      'vẫn trả lời RPC, vẫn cho đọc số dư, ví vẫn kết nối được — nhưng giao dịch treo vô hạn. ' +
+      'Vì vậy dấu hiệu sống thật ở đây là số validator của subnet, lấy trực tiếp từ P-Chain, ' +
+      'chứ không phải chiều cao block.',
+    ownerTitle: 'Chủ sở hữu (admin)',
+    ownerBody:
+      'là địa chỉ người bấm nút đẻ chain khai báo lúc tạo: nó giữ toàn bộ token genesis và ' +
+      'quyền chỉnh phí của chain đó — chain thuộc về họ, không thuộc về quỹ. Chain đẻ trước ' +
+      'khi console có ô này hiện là mặc định của hệ thống.',
+
+    mainNetwork: 'MẠNG CHÍNH',
+    mainNetworkDesc: 'C-Chain của testnet A1 — nơi faucet và explorer làm việc.',
+
+    running: 'ĐANG CHẠY',
+    notAnswering: 'KHÔNG PHẢN HỒI',
+    notAnsweringDesc: 'RPC không trả lời — node có thể chưa track subnet này.',
+    unclear: 'CHƯA RÕ',
+    unclearDesc: 'Không đọc được tập validator từ P-Chain.',
+
+    ownerAdmin: 'Chủ sở hữu (admin)',
+    blocks: 'Số block',
+    subnetValidators: 'Validator của subnet',
+    created: 'Tạo lúc',
+    revokedAt: 'Thu hồi lúc',
+    copyOwner: 'Chép địa chỉ chủ sở hữu',
+
+    revoked: 'ĐÃ THU HỒI',
+    revokedDesc:
+      'Chain này đã ngừng phục vụ: không node nào còn chạy nó, RPC không còn trả lời. Nếu bạn ' +
+      'từng thêm mạng này vào ví, hãy xoá nó đi — để lại chỉ khiến ví báo lỗi kết nối.',
+    neverReissued: 'không cấp lại cho chain khác',
+    revokedGroup: 'Đã thu hồi ({count})',
+
+    listError: 'Không đọc được danh sách chain ({error}). Vẫn hiển thị mạng chính bên dưới.',
+    footSummary: '{count} L1 đang chạy + mạng chính',
+    footRevoked: '{count} đã thu hồi',
+    footUpdated: 'cập nhật lúc {time}',
+  },
+
 
   loadTest: {
     badge: 'Bài bơm tải',

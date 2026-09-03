@@ -76,7 +76,15 @@ describe('không còn locale cắm cứng', () => {
       // im lặng mỗi lượt đổi tên; ở đây nó hỏng theo chiều an toàn (đỏ, không xanh
       // giả) nên bắt được ngay.
       if (p.endsWith(`lib${path.sep}numbers.ts`)) continue;
-      const noiDung = readFileSync(p, 'utf8');
+      // 🔴 BỎ CHÚ THÍCH TRƯỚC KHI QUÉT (sửa 2026-09-03).
+      // Bản trước quét cả tệp, nên nó tố `app/chains/DirectoryContent.tsx` chỉ vì chú
+      // thích đầu tệp đó GIẢI THÍCH luật này bằng cách nêu ví dụ
+      // `toLocaleString('vi-VN')`. Một cổng kêu về chính tài liệu của nó là cổng sắp
+      // bị ai đó gỡ — và lúc đó mất luôn phép đo thật. Thứ tới được trình duyệt là
+      // MÃ, nên chỉ quét mã.
+      const noiDung = readFileSync(p, 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/^\s*\/\/.*$/gm, '');
       // Bắt `toLocaleString('xx')` / `Intl.NumberFormat('xx')` với chuỗi nguyên văn.
       if (/(toLocaleString|Intl\.(NumberFormat|DateTimeFormat))\(\s*['"]/.test(noiDung)) {
         pham.push(path.relative(GOC, p));

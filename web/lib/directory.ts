@@ -26,6 +26,19 @@ export type ChainRecord = {
   admin?: string;
   presetName?: string;
   presetTen?: string;
+  /**
+   * Fields the directory page needs and `ChainTable` does not. Optional because a
+   * record written before the console emitted them simply lacks the key — a MISSING
+   * key here is a valid state, not an error, and the reading code must never let
+   * `undefined` reach the screen. Same rule the `admin`/`presetName` keys already
+   * follow; see the comment in `app/ChainTable.tsx`.
+   */
+  subnetID?: string | null;
+  blockchainID?: string;
+  createdAt?: string;
+  /** Written by the console when a chain is revoked. `thuHoiLuc` is the pre-2026-08-26 name. */
+  revokedAt?: string;
+  thuHoiLuc?: string;
 };
 
 let inFlight: Promise<{ chains?: ChainRecord[] }> | null = null;

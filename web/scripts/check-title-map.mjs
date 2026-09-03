@@ -71,7 +71,9 @@ const BO_QUA = new Set(['/404/', '/404.html']);
 function timTrang(dir, tien = '/', ra = []) {
   for (const e of readdirSync(dir)) {
     const p = path.join(dir, e);
-    if (e === '_next' || e === 'brand' || e === 'chains') continue;
+    // `chains` ĐÃ RA KHỎI danh sách loại trừ (2026-09-03): `/chains/` nay là một
+    // route Next thật, nên nó PHẢI có khoá trong bảng như mọi trang khác.
+    if (e === '_next' || e === 'brand') continue;
     if (statSync(p).isDirectory()) timTrang(p, `${tien}${e}/`, ra);
     else if (e === 'index.html') ra.push(tien);
   }
