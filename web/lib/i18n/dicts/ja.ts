@@ -10,121 +10,121 @@ import type { Tu } from '../en';
  * 出さないためです。
  */
 export const ja: Tu = {
-  chung: {
-    tenSanPham: '9Chain Testnet A1',
-    moTaNgan: '9Chain の公開テストネット — Avalanche エンジンで動く独立したネットワーク',
-    tagTitle: 'Avalanche エンジンで動く独立したネットワーク',
-    viTuChoi: 'ウォレットでリクエストを拒否しました。何も変わっていません。',
-    dangTai: '読み込み中…',
-    thuLai: '再試行',
-    saoChep: 'コピー',
-    daChep: 'コピーしました',
-    dong: '閉じる',
-    moMenu: 'メニューを開く',
-    dongMenu: 'メニューを閉じる',
-    chuyenSangToi: 'ダークモードに切り替え',
-    chuyenSangSang: 'ライトモードに切り替え',
-    boQuaToiNoiDung: '本文へスキップ',
+  common: {
+    productName: '9Chain Testnet A1',
+    shortDesc: '9Chain の公開テストネット — Avalanche エンジンで動く独立したネットワーク',
+    tagline: 'Avalanche エンジンで動く独立したネットワーク',
+    walletRejected: 'ウォレットでリクエストを拒否しました。何も変わっていません。',
+    loading: '読み込み中…',
+    retry: '再試行',
+    copy: 'コピー',
+    copied: 'コピーしました',
+    close: '閉じる',
+    openMenu: 'メニューを開く',
+    closeMenu: 'メニューを閉じる',
+    switchToDark: 'ダークモードに切り替え',
+    switchToLight: 'ライトモードに切り替え',
+    skipToContent: '本文へスキップ',
   },
 
-  reGenesisXong: {
-    luuUrl: '',
-    luuSha256: '',
-    bang: 'A1 は {ngay} に再構築されました。それ以前に作られた残高とチェーンはすべて存在しません。',
-    bangNut: 'これが意味すること',
-    nhan: '再構築済み',
-    tieuDe: 'A1 は {ngay} に再構築されました',
-    moTa:
+  rebuildDone: {
+    archiveUrl: '',
+    archiveSha256: '',
+    banner: 'A1 は {ngay} に再構築されました。それ以前に作られた残高とチェーンはすべて存在しません。',
+    bannerLink: 'これが意味すること',
+    badge: '再構築済み',
+    title: 'A1 は {ngay} に再構築されました',
+    desc:
       'テストネットワーク A1 はブロック 0 から再構築されました。その日より前に作られたチェーン、' +
       '残高、取引履歴はもう存在しません。隠されたのではなく、消えました。' +
       'このページでは、いま見えているものと、これからすべきことを説明します。',
-    thayGiTieuDe: '何が見えるか',
-    thayGi1:
+    willSeeTitle: '何が見えるか',
+    willSee1:
       'ウォレットは今も接続でき、正しいネットワーク名と同じチェーン ID {chainId} を表示します。' +
       'これは意図的なものです。ただし残高は 0 になります。',
-    thayGi2:
+    willSee2:
       'あなたが立ち上げた L1 はすべてディレクトリから消えました。名前とチェーン ID は再び空きとなり、' +
       '誰でも取得できます。',
-    thayGi3:
+    willSee3:
       '署名済みでまだ送信していない取引がある場合、いま送信しないでください。' +
       'それはもう存在しないネットワークのものです。',
-    lamGiTieuDe: 'すべきこと',
-    lamGi1: 'フォーセットからテスト用トークンを取り直してください。上限は全員分がリセットされています。',
-    lamGi2:
+    toDoTitle: 'すべきこと',
+    toDo1: 'フォーセットからテスト用トークンを取り直してください。上限は全員分がリセットされています。',
+    toDo2:
       '古い L1 はウォレットから 1 つずつ削除してください。それぞれ固有のチェーン ID を持ち、' +
       'いまは何も指していません。メインの A1 ネットワークは削除不要です。設定は変わっていません。',
-    lamGi3: '必要ならチェーンを立ち上げ直してください。以前の名前は他の人が取得しているかもしれません。',
-    luuTieuDe: '旧ネットワークのアーカイブ',
-    luuMoTa:
+    toDo3: '必要ならチェーンを立ち上げ直してください。以前の名前は他の人が取得しているかもしれません。',
+    archiveTitle: '旧ネットワークのアーカイブ',
+    archiveDesc:
       '再構築前のネットワークの最終状態は書き出され、ハッシュが公開されています。' +
       '確認したい人は誰でも検証できます。',
   },
 
-  reGenesis: {
-    ngay: '2026-09-01',
-    bang: 'A1 は {ngay} に再構築されます。それ以前に作られたチェーン、残高、取引はすべて消去されます。',
-    bangNut: '詳細',
-    nhan: '再構築予定',
-    tieuDe: 'A1 は {ngay} に再構築されます',
-    moTa:
+  rebuild: {
+    date: '2026-09-01',
+    banner: 'A1 は {ngay} に再構築されます。それ以前に作られたチェーン、残高、取引はすべて消去されます。',
+    bannerLink: '詳細',
+    badge: '再構築予定',
+    title: 'A1 は {ngay} に再構築されます',
+    desc:
       'テストネットワーク A1 全体がブロック 0 から再構築されます。その日より前に作られたものは' +
       'すべて消えます。隠れるのではなく、存在しなくなります。' +
       'このページには、何が失われ、あなたが何をすべきかを正確に記します。',
-    viSaoTieuDe: 'なぜ再構築が必要か',
-    viSao1:
+    whyTitle: 'なぜ再構築が必要か',
+    why1:
       'ネットワークのジェネシスは変更できません。まさにそれが信頼の根拠です。' +
       '作った者を含め、誰もブロック 0 に書かれた数値を変えられません。',
-    viSao2:
+    why2:
       'その代償として、ジェネシス内の数値を変えるにはネットワークを一から作り直すしかありません。' +
       'A1 は総供給量を 9,000,000,000 LOVE9 に引き上げ、ステーキング関連のパラメータ一式を' +
       'すべて計算し直す必要がありました。',
-    viSao3:
+    why3:
       'これはテストネットであり、再構築はテストネットに許された行為です。むしろテストネットが' +
       '存在する理由がこれです。こうした変更をメインネットではなくここで起こすためです。',
-    matTieuDe: '失われるもの',
-    matMoTa: '例外なくすべて：',
-    mat1: 'ユーザーが立ち上げたすべての L1。問題なく動いているチェーンも含みます。',
-    mat2: 'すべての LOVE9 残高。フォーセットで受け取ったトークンも含みます。',
-    mat3: 'すべての取引とブロック、C-Chain・P-Chain・X-Chain の全履歴。',
-    mat4: 'すべてのバリデータとすべての委任。',
-    conTieuDe: '残るもの',
-    conMoTa:
+    lostTitle: '失われるもの',
+    lostDesc: '例外なくすべて：',
+    lost1: 'ユーザーが立ち上げたすべての L1。問題なく動いているチェーンも含みます。',
+    lost2: 'すべての LOVE9 残高。フォーセットで受け取ったトークンも含みます。',
+    lost3: 'すべての取引とブロック、C-Chain・P-Chain・X-Chain の全履歴。',
+    lost4: 'すべてのバリデータとすべての委任。',
+    keptTitle: '残るもの',
+    keptDesc:
       '削除の前に、終わるネットワーク全体がハッシュ付きで書き出され公開されます。記録は検証可能な' +
       'まま残ります。実行したネットワークが消えたあとも、起きたことは確認できます。' +
       'アーカイブのリンクは再構築当日にここへ掲載します。',
-    lamTieuDe: 'すべきこと',
-    lamTruoc: '再構築の前：',
-    lam1:
+    toDoTitle: 'すべきこと',
+    toDoBefore: '再構築の前：',
+    toDo1:
       'データが残ることを前提にしたものを、いま A1 の上に作らないでください。アイデアを試すのは' +
       '構いません。ただ、現在のチェーンを保管場所として扱わないでください。',
-    lamSau: '再構築のあと：',
-    lam2:
+    toDoAfter: '再構築のあと：',
+    toDo2:
       '追加した L1 はウォレットから 1 つずつ削除してください。それらのチェーンはもう存在せず、' +
       'それを指したままのウォレットはただ動かないだけです。メインの A1 ネットワークは削除不要です。' +
       '設定は変わっていません。',
-    lam3:
+    toDo3:
       'ウォレットにまだ A1 ネットワークがない場合は、設定を手入力せず、フォーセットのページにある' +
       'ボタンから追加してください。',
-    lam4: 'フォーセットからトークンを取り直し、必要ならチェーンを立ち上げ直してください。',
-    imLangTieuDe: 'ウォレットは何も警告しません',
-    imLangMoTa:
+    toDo4: 'フォーセットからトークンを取り直し、必要ならチェーンを立ち上げ直してください。',
+    silentTitle: 'ウォレットは何も警告しません',
+    silentDesc:
       '新しいネットワークはチェーン ID {chainId}、同じ RPC アドレス、同じ名前をそのまま保ちます。' +
       'これは意図的です。すでに公開したすべての資料や手順書が正しいままであるようにするためです。' +
       'その代償として、ウォレットには別のネットワークに接続したという手がかりが一切ありません。' +
       'そのため以下の二つは、何も知らせないまま起こります。',
-    imLang1:
+    silent1:
       '古い設定のウォレットは今も接続でき、正しいネットワーク名を表示し、残高 0 と報告します。' +
       'その数字は正しいです。以前のトークンは隠れているのではなく、存在しません。' +
       'ネットワークを追加し直す必要はありません。フォーセットで新しいトークンを受け取るだけです。' +
       '取引が詰まっている、あるいは連番が違うと表示される場合は、ウォレット内のそのネットワークの' +
       'アクティビティ履歴を消去してください。ウォレットは死んだチェーンの取引カウントを覚えたままで、' +
       '新しいチェーンは 0 から数え直しています。',
-    imLang2:
+    silent2:
       '署名済みで未送信の取引がまだ残っているなら、破棄してください。チェーン ID が変わっていないため、' +
       'その署名は新しいネットワークでも有効です。ウォレットが空のうちは失敗しますが、' +
       'フォーセットでトークンを受け取った瞬間に実行可能になり、思いがけない時に通ることがあります。',
-    lapTieuDe: 'またこういうことは起きるのか',
-    lapMoTa:
+    repeatTitle: 'またこういうことは起きるのか',
+    repeatDesc:
       '起こり得ます。A1 は依然としてテストネットであり、コミュニティが A1 と C1 のどちらを' +
       'メインネットの方向とするか決めるまで、ジェネシス内の何かを変える必要が生じたときには' +
       'ネットワークを再構築する権利を保持します。約束するのは、事前に知らせること、そして' +
@@ -134,62 +134,62 @@ export const ja: Tu = {
     // nhưng người có token trước hôm nay quay lại sẽ thấy số dư 0 mà trang không
     // giải thích gì. Đường cơ sở sáng nay chứng minh KHÔNG ai mất chain; faucet thì
     // KHÔNG có sổ bền nên không chứng minh được là không ai mất token.
-    daXayRaTieuDe: '2026-08-27 に一度すでに再構築済み',
-    daXayRaMoTa:
+    alreadyTitle: '2026-08-27 に一度すでに再構築済み',
+    alreadyDesc:
       'A1 は下記の日付より前、2026-08-27 に一度すでに再構築されています。それ以前にテスト用トークンをお持ちだった場合、残高は現在 0 です。これは正しい表示であり、ウォレットの不具合ではありません。ユーザーのチェーンは失われていません。当時ディレクトリにあったのは自動テスト用のチェーンだけでした。フォーセットからトークンを取り直してください。',
-    ngayLuuY: '日付はずれる可能性があります',
-    ngayLuuYMoTa:
+    dateNote: '日付はずれる可能性があります',
+    dateNoteDesc:
       '{ngay} という日付は、その前段のチェックに依存します。ずれた場合、黙っているのではなく' +
       'このページの日付を書き換えます。',
   },
 
-  chanTrang: {
-    dungThu: '試す',
-    kham: 'ネットワークを見る',
-    veDuAn: 'プロジェクトについて',
+  footer: {
+    tryIt: '試す',
+    explore: 'ネットワークを見る',
+    about: 'プロジェクトについて',
     explorer: '9Scan-A1 エクスプローラ',
-    trangChinh: '9Chain 公式サイト',
-    moTabMoi: '（新しいタブで開きます）',
-    nhanNav: 'フッターのリンク',
-    reGenesis: 'ネットワーク再構築の計画',
+    mainSite: '9Chain 公式サイト',
+    opensNewTab: '（新しいタブで開きます）',
+    navLabel: 'フッターのリンク',
+    rebuildPlan: 'ネットワーク再構築の計画',
   },
 
-  dieuHuong: {
-    trangChu: 'ホーム',
+  nav: {
+    home: 'ホーム',
     faucet: 'テスト用トークンを取得',
-    console: 'チェーンを立ち上げる',
-    chainCuaToi: 'マイチェーン',
-    bang: 'A1 ↔ C1',
-    danhBa: 'L1 ディレクトリ',
+    launch: 'チェーンを立ち上げる',
+    myChains: 'マイチェーン',
+    compare: 'A1 ↔ C1',
+    directory: 'L1 ディレクトリ',
     explorer: 'エクスプローラ',
-    banGiao: '9Scan-A1 を新しいタブで開く',
+    explorerAria: '9Scan-A1 を新しいタブで開く',
   },
 
-  trangChu: {
-    nhanTestnet: 'テストネット — トークンに実際の価値はありません',
-    nutChinh: '自分のチェーンを立ち上げる',
-    nutPhu: 'まずテスト用トークンを取得',
-    cTieuDe: 'A1 で自分専用のチェーンを立ち上げる',
-    cPhu: '署名に使うウォレットが所有する、あなた専用の L1。テストネットワーク上で実際に動きます。所要時間は約 3 分です。',
-    cBangChuThich: '各行は A1 上で実際に動いているチェーンで、それぞれに所有者がいます。',
-    cCot: 'チェーン',
-    cCotKieu: '種類',
-    cCotChu: '所有者',
-    cMacDinh: 'システム既定',
-    cTrong: 'まだ稼働中の L1 はありません',
-    cTrongMoTa: 'あなたが最初になります。チェーンが起動すると、ディレクトリはすぐ更新されます。',
-    tuTo: '9 つのバリデータは現在すべて同じサーバー・同じ事業者で動いています。プロトコル上は分散していますが、インフラ上はまだです。',
-    blockDungYen: 'Avalanche は空のブロックを作らないため、誰も取引していない間ブロック高が動かないのは正常です。稼働の指標は隣のバリデータ数です。',
+  home: {
+    testnetBadge: 'テストネット — トークンに実際の価値はありません',
+    primaryCta: '自分のチェーンを立ち上げる',
+    secondaryCta: 'まずテスト用トークンを取得',
+    title: 'A1 で自分専用のチェーンを立ち上げる',
+    subtitle: '署名に使うウォレットが所有する、あなた専用の L1。テストネットワーク上で実際に動きます。所要時間は約 3 分です。',
+    tableCaption: '各行は A1 上で実際に動いているチェーンで、それぞれに所有者がいます。',
+    colChain: 'チェーン',
+    colType: '種類',
+    colOwner: '所有者',
+    systemDefault: 'システム既定',
+    emptyTitle: 'まだ稼働中の L1 はありません',
+    emptyDesc: 'あなたが最初になります。チェーンが起動すると、ディレクトリはすぐ更新されます。',
+    disclosure: '9 つのバリデータは現在すべて同じサーバー・同じ事業者で動いています。プロトコル上は分散していますが、インフラ上はまだです。',
+    idleBlocksNote: 'Avalanche は空のブロックを作らないため、誰も取引していない間ブロック高が動かないのは正常です。稼働の指標は隣のバリデータ数です。',
   },
 
-  soLieu: {
-    tieuDe: 'ネットワークは稼働中',
-    validator: '接続中のバリデータ',
-    soL1: '稼働中の L1',
-    chieuCao: 'C-Chain ブロック',
-    dangDo: 'ネットワークを計測中…',
-    khongDo: 'ネットワーク統計を読み取れませんでした',
-    khongDoMoTa: 'ページは問題なく使えます。これは状態表示だけです。',
+  stats: {
+    title: 'ネットワークは稼働中',
+    validators: '接続中のバリデータ',
+    l1Count: '稼働中の L1',
+    blockHeight: 'C-Chain ブロック',
+    measuring: 'ネットワークを計測中…',
+    cannotMeasure: 'ネットワーク統計を読み取れませんでした',
+    cannotMeasureDesc: 'ページは問題なく使えます。これは状態表示だけです。',
   },
 
   loadTest: {
@@ -214,200 +214,200 @@ export const ja: Tu = {
     notMeasuredMore: 'ページは問題なく使えます。これは状態表示だけです。',
   },
 
-  deChain: {
-    tieuDe: '自分のチェーンを立ち上げる',
-    moTa: 'あなたのウォレットが所有する専用 L1。本人確認のために一度署名し、内容を確認すると、ネットワークが約 3 分でチェーンを構築します。',
-    noiVi: 'ウォレットを接続',
-    dangNoi: '接続中…',
-    kyDeVao: '署名してログイン',
-    dangKy: '署名を待っています…',
-    viCuaBan: 'あなたのウォレット',
-    laChuChain: 'チェーンはこのウォレットのものになります。アドレスは署名から取得され、誰も手入力しません。',
-    khongCoVi: 'このブラウザにウォレットが見つかりません。MetaMask をインストールしてページを再読み込みしてください。',
-    tuChoiKy: '署名を拒否しました。何も作成されていません。',
-    doiVi: '別のウォレットを使う',
-    nhanTen: 'チェーン名',
-    goiYTen: '例：MyChain',
-    moTaTen: '英数字とスペース。2〜32 文字。このネットワークでは、一度使われた名前は二度と割り当てられません。取り消されたチェーンの名前も同様です。',
-    tenXau: '名前に使えるのは英数字とスペースのみで、長さは 2〜32 文字です。',
-    nhanKieu: 'チェーンの種類',
-    moTaKieu: '一度選ぶと固定されます。チェーンのジェネシスは編集できません。',
-    conCho: '残り {con}/{tong} 枠',
-    hetCho: '空き枠なし',
-    hetChoMoTa:
+  launch: {
+    title: '自分のチェーンを立ち上げる',
+    desc: 'あなたのウォレットが所有する専用 L1。本人確認のために一度署名し、内容を確認すると、ネットワークが約 3 分でチェーンを構築します。',
+    connectWallet: 'ウォレットを接続',
+    connecting: '接続中…',
+    signIn: '署名してログイン',
+    signing: '署名を待っています…',
+    yourWallet: 'あなたのウォレット',
+    youWillOwn: 'チェーンはこのウォレットのものになります。アドレスは署名から取得され、誰も手入力しません。',
+    noWallet: 'このブラウザにウォレットが見つかりません。MetaMask をインストールしてページを再読み込みしてください。',
+    signRejected: '署名を拒否しました。何も作成されていません。',
+    switchWallet: '別のウォレットを使う',
+    nameLabel: 'チェーン名',
+    namePlaceholder: '例：MyChain',
+    nameHelp: '英数字とスペース。2〜32 文字。このネットワークでは、一度使われた名前は二度と割り当てられません。取り消されたチェーンの名前も同様です。',
+    nameInvalid: '名前に使えるのは英数字とスペースのみで、長さは 2〜32 文字です。',
+    typeLabel: 'チェーンの種類',
+    typeHelp: '一度選ぶと固定されます。チェーンのジェネシスは編集できません。',
+    slotsLeft: '残り {con}/{tong} 枠',
+    slotsFull: '空き枠なし',
+    slotsFullDesc:
       '現在の方式ではすべてのバリデータがすべての L1 を追跡し、17 以上のサブネットを宣言した' +
       'ノードはプロトコルによって切断されます。これは引き上げられない上限です。' +
       'チェーンを取り消すと枠が 1 つ戻ります。',
-    soatLai: '送信前に確認',
-    soatTieuDe: '確認 — これは片道の扉です',
-    soatMoTa:
+    reviewCta: '送信前に確認',
+    reviewTitle: '確認 — これは片道の扉です',
+    reviewDesc:
       '立ち上げた L1 のジェネシスは変更できません。この手順のあと、名前・チェーンの種類・所有者は' +
       '変更できず、取り消しても名前とチェーン ID は戻りません。',
-    soatReGenesis:
+    reviewRebuild:
       '押す前にもう一つ。A1 は {ngay} にネットワーク全体を再構築します。今日立ち上げるチェーンは' +
       '旧ネットワークとともに消去されます。隠れるのではなく、消えます。',
-    soatTen: 'チェーン名',
-    soatKieu: 'チェーンの種類',
-    soatChu: '所有者',
-    soatQuayLai: '戻って修正',
-    soatDongY: '確認しました — チェーンを立ち上げる',
-    dangDe: 'チェーン「{ten}」を作成中',
-    dangDeMoTa:
+    reviewName: 'チェーン名',
+    reviewType: 'チェーンの種類',
+    reviewOwner: '所有者',
+    reviewBack: '戻って修正',
+    reviewConfirm: '確認しました — チェーンを立ち上げる',
+    launching: 'チェーン「{ten}」を作成中',
+    launchingDesc:
       'ネットワークが定足数を失わないよう、ノードは 1 台ずつ再起動します。そのため時間がかかりますが、' +
       'それは意図的です。タブは閉じないでください。閉じてもチェーンの構築は続きます。',
-    conKhoang: '残り約 {phut} 分',
-    dangChuanBi: '準備中…',
-    xongTieuDe: '完了 — チェーン「{ten}」が稼働中です',
-    xongChainId: 'チェーン ID',
-    xongRpc: 'RPC',
-    xongThemVi: 'チェーンをウォレットに追加',
-    xongDaThem: 'ウォレットに追加しました',
-    xongKichHoat: 'チェーンを有効化（ブロック 1 を開く）',
-    xongDaKichHoat: '有効化済み',
-    xongDangKichHoat: 'ウォレットを待っています…',
-    xongThemViLoi: 'チェーンをウォレットに追加できませんでした。{chiTiet}',
-    xongKichHoatLoi: 'チェーンを有効化できませんでした。{chiTiet}',
-    deTiep: '別のチェーンを立ち上げる',
-    loiDe: 'チェーンを立ち上げられませんでした。{chiTiet}',
-    loiKhongRo: '処理の終了後、チェーンはディレクトリに現れませんでした。',
-    luuYTieuDe: '新しいチェーンでの最初の取引',
-    luuYCachLam: '最初の取引のガス見積もりは当てになりません。ブロック 1 を開く最も安い方法は通常の送金です。下の「チェーンを有効化」を押してください。',
+    etaRemaining: '残り約 {phut} 分',
+    preparing: '準備中…',
+    doneTitle: '完了 — チェーン「{ten}」が稼働中です',
+    doneChainId: 'チェーン ID',
+    doneRpc: 'RPC',
+    doneAddWallet: 'チェーンをウォレットに追加',
+    doneAdded: 'ウォレットに追加しました',
+    doneActivate: 'チェーンを有効化（ブロック 1 を開く）',
+    doneActivated: '有効化済み',
+    doneActivating: 'ウォレットを待っています…',
+    doneAddWalletError: 'チェーンをウォレットに追加できませんでした。{chiTiet}',
+    doneActivateError: 'チェーンを有効化できませんでした。{chiTiet}',
+    launchAnother: '別のチェーンを立ち上げる',
+    launchError: 'チェーンを立ち上げられませんでした。{chiTiet}',
+    unknownError: '処理の終了後、チェーンはディレクトリに現れませんでした。',
+    noteTitle: '新しいチェーンでの最初の取引',
+    noteHow: '最初の取引のガス見積もりは当てになりません。ブロック 1 を開く最も安い方法は通常の送金です。下の「チェーンを有効化」を押してください。',
   },
 
-  chainCuaToi: {
-    tieuDe: 'マイチェーン',
-    moTa: 'ログインに使ったウォレットが所有する L1 です。取り消せますが、先に警告をお読みください。',
-    noiVi: 'ウォレットを接続してチェーンを表示',
-    trongTieuDe: 'このウォレットはまだチェーンを所有していません',
-    trongMoTa: '1 つ立ち上げて戻ってきてください。すぐここに表示されます。',
-    trongNut: '自分のチェーンを立ち上げる',
-    cotChain: 'チェーン',
-    cotKieu: '種類',
-    cotSong: '状態',
-    cotViec: '',
-    songDo: 'バリデータ {so}',
-    songDangDo: '計測中',
-    songKhongDo: '計測できません',
-    songGiaiThich: 'ブロック高ではなく、サブネットのバリデータ数で測ります。',
-    khongValidator: 'バリデータ 0',
-    khongValidatorMoTa:
+  myChains: {
+    title: 'マイチェーン',
+    desc: 'ログインに使ったウォレットが所有する L1 です。取り消せますが、先に警告をお読みください。',
+    connectWallet: 'ウォレットを接続してチェーンを表示',
+    emptyTitle: 'このウォレットはまだチェーンを所有していません',
+    emptyDesc: '1 つ立ち上げて戻ってきてください。すぐここに表示されます。',
+    emptyCta: '自分のチェーンを立ち上げる',
+    colChain: 'チェーン',
+    colType: '種類',
+    colStatus: '状態',
+    colActions: '',
+    validatorCount: 'バリデータ {so}',
+    measuring: '計測中',
+    cannotMeasure: '計測できません',
+    statusHelp: 'ブロック高ではなく、サブネットのバリデータ数で測ります。',
+    noValidators: 'バリデータ 0',
+    noValidatorsDesc:
       'このチェーンは取引を一つも確定できません。サブネットにバリデータがいないためです。' +
       'RPC には応答し、ウォレットも接続できるので、他に見分ける手がかりはありません。',
-    thongSo: 'ウォレット用の設定',
-    themVaoVi: 'ウォレットに追加',
-    daThemVaoVi: '追加済み',
-    themViLoi: 'ウォレットに追加できませんでした。{chiTiet}',
-    thuHoi: '取り消す',
-    thuHoiTieuDe: '「{ten}」を取り消しますか？',
-    thuHoiY1: 'チェーンは直ちに RPC の提供を停止し、公開ディレクトリから消えます。',
-    thuHoiY2:
+    walletSettings: 'ウォレット用の設定',
+    addToWallet: 'ウォレットに追加',
+    addedToWallet: '追加済み',
+    addWalletError: 'ウォレットに追加できませんでした。{chiTiet}',
+    revoke: '取り消す',
+    revokeTitle: '「{ten}」を取り消しますか？',
+    revokeWarn1: 'チェーンは直ちに RPC の提供を停止し、公開ディレクトリから消えます。',
+    revokeWarn2:
       '取り消しても P-Chain 上のサブネットは削除されません。このネットワークが動いている限り、' +
       'そこで作られたものは取り除けません。すでにこのチェーンを追加した人のウォレットからも消えません。',
-    thuHoiY3:
+    revokeWarn3:
       '名前とチェーン ID は予約されたままとなり、このネットワークで誰かに再発行されることは' +
       '決してありません。チェーン ID を再発行すると、以前の利用者のウォレットが黙って別人の' +
       'チェーンを指すことになります。',
-    thuHoiY4: 'その代わり、15 枠のうち 1 枠が戻ります。',
-    thuHoiGoNhan: '確認のためチェーン名を正確に入力してください',
-    thuHoiSaiTen: 'チェーン名と一致しません。',
-    thuHoiXacNhan: '恒久的に取り消す',
-    thuHoiHuy: 'キャンセル',
-    thuHoiDangChay: '「{ten}」を取り消し中 — 約 3 分',
-    thuHoiXong: '「{ten}」を取り消しました。残り {con}/{tong} 枠。',
-    thuHoiLoi: '取り消せませんでした。{chiTiet}',
-    thuHoiKhongRo: '処理の終了後もチェーンはディレクトリに残っています。',
-    daThuHoi: '取り消し済み',
-    daThuHoiMoTa: '名前とチェーン ID はこのネットワークで予約されたままです。',
+    revokeWarn4: 'その代わり、15 枠のうち 1 枠が戻ります。',
+    revokeTypeLabel: '確認のためチェーン名を正確に入力してください',
+    revokeNameMismatch: 'チェーン名と一致しません。',
+    revokeConfirm: '恒久的に取り消す',
+    revokeCancel: 'キャンセル',
+    revoking: '「{ten}」を取り消し中 — 約 3 分',
+    revokeDone: '「{ten}」を取り消しました。残り {con}/{tong} 枠。',
+    revokeError: '取り消せませんでした。{chiTiet}',
+    revokeUnknown: '処理の終了後もチェーンはディレクトリに残っています。',
+    revokedBadge: '取り消し済み',
+    revokedDesc: '名前とチェーン ID はこのネットワークで予約されたままです。',
   },
 
-  bang: {
-    tieuDe: 'A1 ↔ C1 — 比較',
-    moTa:
+  compare: {
+    title: 'A1 ↔ C1 — 比較',
+    desc:
       '9Chain は同じ製品のテストネットを 2 つ並行して運用しており、違いはエンジンです。' +
       'A1 は Avalanche エンジン、C1 は Cosmos エンジンです。この表は両方向の間の' +
       'トレードオフを記録したもので、誰でも反論できるよう公開しています。' +
       'C1 側にはまだ実測値がありません。',
-    tuChamTieuDe: '以下の点数はチームによる自己評価であり、独立した計測ではありません',
-    tuChamMoTa:
+    selfScoreTitle: '以下の点数はチームによる自己評価であり、独立した計測ではありません',
+    selfScoreDesc:
       '「計測方法」の列に、各基準をどう確認したかを記しています。日付入りの計測がない基準は' +
       'データではなく設計上の判断です。重みはあなたが決め、点数はそれに従います。',
-    cotSo: '#',
-    cotTieuChi: '基準',
-    cotLoai: '種別',
-    cotA1: 'A1',
-    cotC1: 'C1',
-    cotTrongSo: '重み',
-    loaiKienTruc: '設計',
-    loaiSong: '実測値',
-    tongDiem: 'あなたの重みによる合計点',
-    hoaNhau: '同点',
-    dangDan: 'リード',
-    soLieuTieuDe: 'ライブデータ',
-    a1Validator: 'A1 — 接続中のバリデータ',
-    a1Chain: 'A1 — 稼働中の L1',
-    a1Block: 'A1 — C-Chain ブロック',
-    c1Vang: 'C1 — 到達できません',
-    c1VangMoTa:
+    colNo: '#',
+    colCriterion: '基準',
+    colKind: '種別',
+    colA1: 'A1',
+    colC1: 'C1',
+    colWeight: '重み',
+    kindArchitecture: '設計',
+    kindLiveData: '実測値',
+    totalScore: 'あなたの重みによる合計点',
+    tied: '同点',
+    leads: 'リード',
+    liveDataTitle: 'ライブデータ',
+    a1Validators: 'A1 — 接続中のバリデータ',
+    a1Chains: 'A1 — 稼働中の L1',
+    a1Blocks: 'A1 — C-Chain ブロック',
+    c1Unreachable: 'C1 — 到達できません',
+    c1UnreachableDesc:
       'C1 の Cosmos REST の URL（ポート 1317）が必要です。表は引き続き使えます。A1 側は実測値、' +
       'C1 側は他の基準と同じく設計上の判断です。',
-    dangDo: '計測中…',
-    khongDo: '計測できません',
+    measuring: '計測中…',
+    cannotMeasure: '計測できません',
   },
 
   faucet: {
-    tieuDe: 'テスト用トークンを取得',
-    moTa: 'A1 テストネットの LOVE9 に実際の価値はありません。テスト中にガスを払えるようにするためのものです。ウォレットアドレスを入力すれば、すぐ送ります。',
-    nhanDiaChi: 'あなたのウォレットアドレス',
-    goiYDiaChi: '0x…（16 進数 40 文字）',
-    nutXin: 'トークンを送ってもらう',
-    dangGui: '送信中…',
-    danChoDiaChi: 'トークンを受け取るウォレットアドレスを貼り付けてください。まだの場合は上の「ネットワークをウォレットに追加」を押してください。',
-    themMang: 'ネットワークをウォレットに追加',
-    themMangXong: 'ウォレットに追加しました',
-    themMangTuChoi: 'ウォレットで拒否を押しました。ネットワークを追加したい場合はもう一度押してください。',
-    themMangLoi: 'ウォレットがネットワークを追加できませんでした。隣の設定を使って手動で追加し、下の行をチームに送ってください：',
-    khongCoVi: 'このブラウザにウォレットが見つかりません。MetaMask をインストールしてページを再読み込みしてください。',
-    hanMucConLai: '残りの上限',
-    hanMucCachDoc: '{gio} 時間あたり {con}/{tong} 回',
-    hanMucHet: '上限をすべて使い切りました。{phut} 分後にもう一度お試しください。',
-    hanMucKhongDoc: '上限を読み取れませんでした。申請自体は可能ですが、残り回数はわかりません。',
-    thanhCong: '{diaChi} へ {so} {kyHieu} を送信しました',
-    xemGiaoDich: '取引を見る',
-    thongSoMang: 'ネットワーク設定',
-    thongSoRpc: 'RPC',
-    thongSoChainId: 'チェーン ID',
-    thongSoKyHieu: 'シンボル',
-    thongSoThapPhan: '小数桁',
-    thongSoExplorer: 'エクスプローラ',
-    thapPhanGiaiThich:
+    title: 'テスト用トークンを取得',
+    desc: 'A1 テストネットの LOVE9 に実際の価値はありません。テスト中にガスを払えるようにするためのものです。ウォレットアドレスを入力すれば、すぐ送ります。',
+    addressLabel: 'あなたのウォレットアドレス',
+    addressPlaceholder: '0x…（16 進数 40 文字）',
+    requestCta: 'トークンを送ってもらう',
+    sending: '送信中…',
+    addressHelp: 'トークンを受け取るウォレットアドレスを貼り付けてください。まだの場合は上の「ネットワークをウォレットに追加」を押してください。',
+    addNetwork: 'ネットワークをウォレットに追加',
+    addNetworkDone: 'ウォレットに追加しました',
+    addNetworkRejected: 'ウォレットで拒否を押しました。ネットワークを追加したい場合はもう一度押してください。',
+    addNetworkError: 'ウォレットがネットワークを追加できませんでした。隣の設定を使って手動で追加し、下の行をチームに送ってください：',
+    noWallet: 'このブラウザにウォレットが見つかりません。MetaMask をインストールしてページを再読み込みしてください。',
+    quotaLabel: '残りの上限',
+    quotaFormat: '{gio} 時間あたり {con}/{tong} 回',
+    quotaExhausted: '上限をすべて使い切りました。{phut} 分後にもう一度お試しください。',
+    quotaUnreadable: '上限を読み取れませんでした。申請自体は可能ですが、残り回数はわかりません。',
+    sentOk: '{diaChi} へ {so} {kyHieu} を送信しました',
+    viewTransaction: '取引を見る',
+    settingsTitle: 'ネットワーク設定',
+    settingsRpc: 'RPC',
+    settingsChainId: 'チェーン ID',
+    settingsSymbol: 'シンボル',
+    settingsDecimals: '小数桁',
+    settingsExplorer: 'エクスプローラ',
+    decimalsHelp:
       'C-Chain は EVM を動かすため、ウォレットは 18 桁で表示します。P/X-Chain では LOVE9 は 9 桁で' +
       '数えます。同じ 1 種類のコインを 2 つの尺度で見ているだけで、別のトークンではありません。',
-    loiChung: '送信できませんでした。{chiTiet}',
+    genericError: '送信できませんでした。{chiTiet}',
   },
 
-  chonNgonNgu: {
-    nhan: '言語',
-    mayDich: '機械翻訳',
-    mayDichGiaiThich: '人が確認したのはベトナム語版だけです。他の翻訳は機械によるもので誤りを含む可能性があります。英語版が基準です。',
-    chuaCo: 'まだ利用できません',
+  langPicker: {
+    label: '言語',
+    machineBadge: '機械翻訳',
+    machineNote: '人が確認したのはベトナム語版だけです。他の翻訳は機械によるもので誤りを含む可能性があります。英語版が基準です。',
+    notAvailable: 'まだ利用できません',
   },
 
-  loi: {
-    khongKetNoi: 'ネットワークに接続できませんでした',
-    khongKetNoiMoTa: 'ネットワークが混雑しているか、接続が切れた可能性があります。',
-    trongRong: 'ここにはまだ何もありません',
+  errors: {
+    unreachable: 'ネットワークに接続できませんでした',
+    unreachableDesc: 'ネットワークが混雑しているか、接続が切れた可能性があります。',
+    empty: 'ここにはまだ何もありません',
   },
 
-  khongThay: {
-    ma: '404',
-    tieuDe: 'このページは存在しません',
-    moTa: '開いたアドレスは 9Chain Testnet A1 に存在しません。名前が変わったか、コピーの際に URL の文字が欠けた可能性があります。',
-    dayLaGi: 'よく使われる 3 つのページ：',
-    nhanNav: '次にどこへ',
-    veTrangChu: 'ホームに戻る',
-    diFaucet: 'テスト用トークンを取得',
-    diDeChain: '自分のチェーンを立ち上げる',
-    timGiaoDich: '取引かアドレスをお探しですか？ハッシュを確認してもう一度お試しください。',
+  notFound: {
+    code: '404',
+    title: 'このページは存在しません',
+    desc: '開いたアドレスは 9Chain Testnet A1 に存在しません。名前が変わったか、コピーの際に URL の文字が欠けた可能性があります。',
+    topPagesTitle: 'よく使われる 3 つのページ：',
+    navLabel: '次にどこへ',
+    goHome: 'ホームに戻る',
+    goFaucet: 'テスト用トークンを取得',
+    goLaunch: '自分のチェーンを立ち上げる',
+    lookingForTx: '取引かアドレスをお探しですか？ハッシュを確認してもう一度お試しください。',
   },
 };
 

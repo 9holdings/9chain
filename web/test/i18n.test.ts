@@ -39,7 +39,7 @@ describe('i18n', () => {
   });
 
   it('dien() thay đúng mọi khoá có mặt', () => {
-    expect(dien(vi.faucet.hanMucCachDoc, { con: 3, tong: 5, gio: 1 })).toBe('3/5 lượt trong 1 giờ');
+    expect(dien(vi.faucet.quotaFormat, { con: 3, tong: 5, gio: 1 })).toBe('3/5 lượt trong 1 giờ');
   });
 
   it('không có chuỗi tiếng Việt viết thẳng trong JSX', () => {

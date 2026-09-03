@@ -13,7 +13,7 @@ import { trangMeta } from '@/lib/seo';
  * 🔴 HÔM NAY TRANG NÀY VIẾT Ở THÌ TƯƠNG LAI. Đúng ngày G nó phải được thay bằng bản
  * công bố ở thì quá khứ ("đã sinh lại"), kèm đường dẫn bản lưu và mã băm.
  *
- * ✅ BẢN CÔNG BỐ ĐÃ VIẾT SẴN — ở khối `EN.reGenesisXong` trong `lib/i18n/vi.ts`.
+ * ✅ BẢN CÔNG BỐ ĐÃ VIẾT SẴN — ở khối `EN.rebuildDone` trong `lib/i18n/vi.ts`.
  * Ngày G chỉ phải: đổi trang này đọc `reGenesisXong` thay cho `reGenesis`, rồi điền
  * `luuUrl` + `luuSha256`. KHÔNG phải viết văn.
  * Quy trình đầy đủ (điều kiện vào, thứ tự, cách nghiệm thu): mục **D-web** trong
@@ -42,8 +42,8 @@ import { trangMeta } from '@/lib/seo';
 // `<title>` vẫn xanh suốt thời gian đó.
 // `trangMeta` tự cắt dấu `[?]` — không gọi `.replace()` ở đây nữa.
 export const metadata: Metadata = trangMeta({
-  tieuDe: dien(EN.reGenesis.tieuDe, { ngay: EN.reGenesis.ngay }),
-  moTa: EN.reGenesis.moTa,
+  tieuDe: dien(EN.rebuild.title, { ngay: EN.rebuild.date }),
+  moTa: EN.rebuild.desc,
   duong: '/re-genesis/',
 });
 

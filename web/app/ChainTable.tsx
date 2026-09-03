@@ -54,7 +54,7 @@ export function ChainTable() {
   if (tt.pha === 'tai') {
     return (
       <The className="p-5">
-        <span className="sr-only">{t.chung.dangTai}</span>
+        <span className="sr-only">{t.common.loading}</span>
         <div className="flex flex-col gap-3">
           {[0, 1, 2].map((i) => (
             <Xuong key={i} className="h-10 w-full" />
@@ -69,14 +69,14 @@ export function ChainTable() {
   if (!tt.ds.length) {
     return (
       <TrongRong
-        tieuDe={t.trangChu.cTrong}
-        moTa={t.trangChu.cTrongMoTa}
+        tieuDe={t.home.emptyTitle}
+        moTa={t.home.emptyDesc}
         hanhDong={
           <a
             href="/create-chain/"
             className="inline-flex h-11 items-center justify-center rounded-btn-lg bg-gold px-5 text-sm font-semibold text-navy shadow-cta hover:bg-gold-hover"
           >
-            {t.trangChu.nutChinh}
+            {t.home.primaryCta}
           </a>
         }
       />
@@ -89,13 +89,13 @@ export function ChainTable() {
           Trước 2026-08-27 câu "Mỗi dòng là một chain thật đang chạy" nằm ở `<p>` dưới
           `<h1>` — tức nó hiện ra KỂ CẢ khi bảng rỗng, và lúc đó nó trỏ vào những dòng
           không tồn tại. Đặt ở đây thì câu chỉ tồn tại cùng lúc với thứ nó mô tả. */}
-      <p className="mb-3 text-sm text-body">{t.trangChu.cBangChuThich}</p>
+      <p className="mb-3 text-sm text-body">{t.home.tableCaption}</p>
       <The className="overflow-hidden">
       {/* Bảng rộng phải cuộn TRONG khung của nó — để cả trang cuộn ngang là hỏng
           bố cục ở điện thoại, và đó là lỗi hay gặp nhất với bảng. */}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[34rem] border-collapse text-sm">
-          <caption className="sr-only">{t.trangChu.cBangChuThich}</caption>
+          <caption className="sr-only">{t.home.tableCaption}</caption>
           {/* 🔴 `text-start` MUST BE ON EVERY `<th>`, NOT ONLY ON THE `<tr>`.
               Measured on the deployed site 2026-09-03: with `text-left` on the `<tr>`
               the column headers picked it up, but switching to `text-start` moved them
@@ -107,13 +107,13 @@ export function ChainTable() {
           <thead>
             <tr className="border-b border-line bg-surface-alt text-start">
               <th scope="col" className="px-4 py-3 text-start font-semibold text-ink">
-                {t.trangChu.cCot}
+                {t.home.colChain}
               </th>
               <th scope="col" className="px-4 py-3 text-start font-semibold text-ink">
-                {t.trangChu.cCotKieu}
+                {t.home.colType}
               </th>
               <th scope="col" className="px-4 py-3 text-start font-semibold text-ink">
-                {t.trangChu.cCotChu}
+                {t.home.colOwner}
               </th>
             </tr>
           </thead>
@@ -131,7 +131,7 @@ export function ChainTable() {
                   {typeof c.admin === 'string' && c.admin.trim() ? (
                     rutGon(c.admin)
                   ) : (
-                    <span className="font-sans text-muted">{t.trangChu.cMacDinh}</span>
+                    <span className="font-sans text-muted">{t.home.systemDefault}</span>
                   )}
                 </td>
               </tr>

@@ -18,8 +18,8 @@
  *    tưởng làm lại được. Dịch cho êm tai là gỡ mất đúng thứ chúng sinh ra để làm.
  */
 export const EN = {
-  chung: {
-    tenSanPham: '9Chain Testnet A1',
+  common: {
+    productName: '9Chain Testnet A1',
     // "running ON Avalanche" was WRONG and removed 2026-08-27 — A1 is a separate
     // network, not a subnet of Avalanche. See `vi.ts` for the measurement.
     // ⚠️ This comment used to name networkID `9001`. That number died the same day
@@ -27,133 +27,133 @@ export const EN = {
     // (D-081) and now answers `999999999`. A comment that carries a live constant
     // rots silently — `lib/chain.ts` is the single source, and
     // `check-chain-id.mjs` is what actually holds it to the running network.
-    moTaNgan: "9Chain's public testnet — an independent network running the Avalanche engine",
-    tagTitle: 'an independent network on the Avalanche engine',
-    viTuChoi: 'You rejected the request in your wallet. Nothing has changed.',
-    dangTai: 'Loading…',
-    thuLai: 'Try again',
-    saoChep: 'Copy',
-    daChep: 'Copied',
-    dong: 'Close',
-    moMenu: 'Open menu',
-    dongMenu: 'Close menu',
-    chuyenSangToi: 'Switch to dark mode',
-    chuyenSangSang: 'Switch to light mode',
-    boQuaToiNoiDung: 'Skip to main content',
+    shortDesc: "9Chain's public testnet — an independent network running the Avalanche engine",
+    tagline: 'an independent network on the Avalanche engine',
+    walletRejected: 'You rejected the request in your wallet. Nothing has changed.',
+    loading: 'Loading…',
+    retry: 'Try again',
+    copy: 'Copy',
+    copied: 'Copied',
+    close: 'Close',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
+    switchToDark: 'Switch to dark mode',
+    switchToLight: 'Switch to light mode',
+    skipToContent: 'Skip to main content',
   },
 
   /** Announcement text for AFTER the reset. Written ahead of time — see `vi.ts`. */
-  reGenesisXong: {
-    luuUrl: '',
-    luuSha256: '',
+  rebuildDone: {
+    archiveUrl: '',
+    archiveSha256: '',
 
-    bang: 'A1 was rebuilt on {ngay}. Every balance and chain created before that date no longer exists.',
-    bangNut: 'What this means',
-    nhan: 'Rebuilt',
+    banner: 'A1 was rebuilt on {ngay}. Every balance and chain created before that date no longer exists.',
+    bannerLink: 'What this means',
+    badge: 'Rebuilt',
 
-    tieuDe: 'A1 was rebuilt on {ngay}',
-    moTa:
+    title: 'A1 was rebuilt on {ngay}',
+    desc:
       'The A1 test network has been rebuilt from block 0. Chains, balances and transaction ' +
       'history created before that date no longer exist — not hidden, gone. ' +
       'This page explains what you are seeing and what to do.',
 
-    thayGiTieuDe: 'What you will see',
-    thayGi1:
+    willSeeTitle: 'What you will see',
+    willSee1:
       'Your wallet still connects, still shows the right network name and the same Chain ID ' +
       '{chainId} — that was deliberate. But your balance will be 0.',
-    thayGi2:
+    willSee2:
       'Every L1 you launched is gone from the directory. Their names and Chain IDs are free ' +
       'again, and anyone can claim them.',
-    thayGi3:
+    willSee3:
       'If you signed a transaction but never broadcast it, do not broadcast it now — it ' +
       'belongs to a network that no longer exists.',
 
-    lamGiTieuDe: 'What you need to do',
-    lamGi1: 'Request test tokens again from the faucet. Limits have been reset for everyone.',
-    lamGi2:
+    toDoTitle: 'What you need to do',
+    toDo1: 'Request test tokens again from the faucet. Limits have been reset for everyone.',
+    toDo2:
       'Remove each individual L1 from your wallet — they have their own Chain IDs and now ' +
       'point at nothing. The main A1 network does NOT need removing; its settings are unchanged.',
-    lamGi3: 'Launch your chain again if you need it. Someone else may have taken the old name.',
+    toDo3: 'Launch your chain again if you need it. Someone else may have taken the old name.',
 
-    luuTieuDe: 'Archive of the old network',
-    luuMoTa:
+    archiveTitle: 'Archive of the old network',
+    archiveDesc:
       'The final state of the network before the rebuild was exported and its hash published, ' +
       'so anyone who wants to check it can.',
   },
 
-  reGenesis: {
-    ngay: '2026-09-01',
-    bang: 'A1 is being rebuilt on {ngay} — every chain, balance and transaction created before then will be erased.',
-    bangNut: 'Details',
-    nhan: 'Rebuild coming',
+  rebuild: {
+    date: '2026-09-01',
+    banner: 'A1 is being rebuilt on {ngay} — every chain, balance and transaction created before then will be erased.',
+    bannerLink: 'Details',
+    badge: 'Rebuild coming',
 
-    tieuDe: 'A1 is being rebuilt on {ngay}',
-    moTa:
+    title: 'A1 is being rebuilt on {ngay}',
+    desc:
       'The entire A1 test network will be rebuilt from block 0. Everything created before ' +
       'that date will be gone — not hidden, but no longer in existence. This page says ' +
       'exactly what is lost and what you need to do.',
 
-    viSaoTieuDe: 'Why a rebuild is necessary',
-    viSao1:
+    whyTitle: 'Why a rebuild is necessary',
+    why1:
       "A network's genesis is immutable. That is precisely what makes it trustworthy — nobody, " +
       'including the people who built it, can change a number once it is written into block 0.',
-    viSao2:
+    why2:
       'The price of that: changing a number inside genesis leaves no option except rebuilding ' +
       'the network from scratch. A1 raised total supply to 9,000,000,000 LOVE9, and the whole ' +
       'range of staking parameters had to be recalculated to match.',
-    viSao3:
+    why3:
       'This is a testnet, and rebuilding is something a testnet is allowed to do. In fact it is ' +
       'why testnets exist: so changes like this happen here, and not on mainnet.',
 
-    matTieuDe: 'What will be lost',
-    matMoTa: 'Everything, without exception:',
-    mat1: 'Every user-launched L1, including chains that are running perfectly well.',
-    mat2: 'Every LOVE9 balance, including tokens received from the faucet.',
-    mat3: 'Every transaction, every block, the entire history of the C-Chain, P-Chain and X-Chain.',
-    mat4: 'Every validator and every delegation.',
+    lostTitle: 'What will be lost',
+    lostDesc: 'Everything, without exception:',
+    lost1: 'Every user-launched L1, including chains that are running perfectly well.',
+    lost2: 'Every LOVE9 balance, including tokens received from the faucet.',
+    lost3: 'Every transaction, every block, the entire history of the C-Chain, P-Chain and X-Chain.',
+    lost4: 'Every validator and every delegation.',
 
-    conTieuDe: 'What is kept',
-    conMoTa:
+    keptTitle: 'What is kept',
+    keptDesc:
       'Before the deletion, the entire dying network will be exported with a published hash, so ' +
       'the record stays verifiable. What happened can still be checked, even once the network ' +
       'that ran it is gone. The archive link will be posted here on the day of the rebuild.',
 
-    lamTieuDe: 'What you need to do',
-    lamTruoc: 'Before the rebuild:',
-    lam1:
+    toDoTitle: 'What you need to do',
+    toDoBefore: 'Before the rebuild:',
+    toDo1:
       'Do not build anything on A1 right now that depends on data surviving. If you are trying ' +
       'out an idea, go ahead — just do not treat the current chain as storage.',
-    lamSau: 'After the rebuild:',
-    lam2:
+    toDoAfter: 'After the rebuild:',
+    toDo2:
       'Remove from your wallet each individual L1 you added — those chains no longer exist, and a ' +
       'wallet pointing at them will simply sit there. The main A1 network needs no removal: its ' +
       'settings are unchanged.',
-    lam3:
+    toDo3:
       "If your wallet does not have the A1 network yet, add it with the button on the faucet page " +
       'rather than typing the settings by hand.',
-    lam4: 'Request tokens from the faucet again, and launch your chain again if you want it.',
+    toDo4: 'Request tokens from the faucet again, and launch your chain again if you want it.',
 
-    imLangTieuDe: 'Your wallet will not warn you',
-    imLangMoTa:
+    silentTitle: 'Your wallet will not warn you',
+    silentDesc:
       'The new network keeps Chain ID {chainId}, the same RPC address and the same name as the old ' +
       'one. That is deliberate — so every document and guide already published stays correct. The ' +
       'price is that your wallet has no signal at all that it just connected to a different ' +
       'network. The two things below will therefore happen silently.',
-    imLang1:
+    silent1:
       'A wallet with the old configuration still connects, still shows the right network name, and ' +
       'will report a balance of 0. That number is CORRECT: your old tokens no longer exist, they ' +
       'are not hidden. You do not need to re-add the network — just request new tokens from the ' +
       'faucet. If your wallet reports a stuck transaction or a wrong sequence number, clear that ' +
       "network's activity data in the wallet: it still remembers the transaction count of a chain " +
       'that is dead, while the new chain counts from 0.',
-    imLang2:
+    silent2:
       'If you still hold a signed transaction that was never broadcast, discard it. The signature ' +
       'is still valid on the new network, because the Chain ID did not change. It will fail while ' +
       'the wallet is empty — but the moment you request tokens from the faucet it becomes ' +
       'spendable, and it may go through at a time you do not expect.',
 
-    lapTieuDe: 'Will this happen again',
-    lapMoTa:
+    repeatTitle: 'Will this happen again',
+    repeatDesc:
       'Possibly. A1 is still a testnet, and until the community picks a mainnet direction between ' +
       'A1 and C1, we keep the right to rebuild the network when something inside genesis has to ' +
       'change. What we commit to is telling you in advance, and saying plainly what is lost.',
@@ -163,64 +163,64 @@ export const EN = {
     // nhưng người có token trước hôm nay quay lại sẽ thấy số dư 0 mà trang không
     // giải thích gì. Đường cơ sở sáng nay chứng minh KHÔNG ai mất chain; faucet thì
     // KHÔNG có sổ bền nên không chứng minh được là không ai mất token.
-    daXayRaTieuDe: 'Already rebuilt once on 2026-08-27',
-    daXayRaMoTa:
+    alreadyTitle: 'Already rebuilt once on 2026-08-27',
+    alreadyDesc:
       'A1 was already rebuilt once on 2026-08-27, before the date below. If you held test tokens before then, your balance is now 0 — that is correct, not a fault in your wallet. No user chain was lost: the directory held only automated test chains. Request tokens again from the faucet.',
-    ngayLuuY: 'The date can slip',
-    ngayLuuYMoTa:
+    dateNote: 'The date can slip',
+    dateNoteDesc:
       'The date {ngay} depends on an earlier go/no-go check. If it slips, we will change the date ' +
       'on this page rather than stay silent.',
   },
 
-  chanTrang: {
-    dungThu: 'Try it',
-    kham: 'Explore',
-    veDuAn: 'About',
+  footer: {
+    tryIt: 'Try it',
+    explore: 'Explore',
+    about: 'About',
     explorer: '9Scan-A1 explorer',
-    trangChinh: '9Chain main site',
-    moTabMoi: '(opens in a new tab)',
-    nhanNav: 'Footer links',
-    reGenesis: 'Network rebuild plan',
+    mainSite: '9Chain main site',
+    opensNewTab: '(opens in a new tab)',
+    navLabel: 'Footer links',
+    rebuildPlan: 'Network rebuild plan',
   },
 
-  dieuHuong: {
-    trangChu: 'Home',
+  nav: {
+    home: 'Home',
     faucet: 'Get test tokens',
-    console: 'Launch a chain',
-    chainCuaToi: 'My chains',
-    bang: 'A1 ↔ C1',
-    danhBa: 'L1 directory',
+    launch: 'Launch a chain',
+    myChains: 'My chains',
+    compare: 'A1 ↔ C1',
+    directory: 'L1 directory',
     explorer: 'Explorer',
-    banGiao: 'Open 9Scan-A1 in a new tab',
+    explorerAria: 'Open 9Scan-A1 in a new tab',
   },
 
-  trangChu: {
-    nhanTestnet: 'Testnet — tokens have no real value',
-    nutChinh: 'Launch your chain',
-    nutPhu: 'Get test tokens first',
+  home: {
+    testnetBadge: 'Testnet — tokens have no real value',
+    primaryCta: 'Launch your chain',
+    secondaryCta: 'Get test tokens first',
 
-    cTieuDe: 'Launch your own chain on A1',
-    cPhu: 'An L1 of your own, owned by the wallet you sign with, running for real on the test network. Takes about three minutes.',
-    cBangChuThich: 'Each row is a real chain running on A1, with its own owner.',
-    cCot: 'Chain',
-    cCotKieu: 'Type',
-    cCotChu: 'Owner',
-    cMacDinh: 'system default',
-    cTrong: 'No L1 is running yet',
-    cTrongMoTa: 'You would be the first. The directory updates as soon as your chain is up.',
+    title: 'Launch your own chain on A1',
+    subtitle: 'An L1 of your own, owned by the wallet you sign with, running for real on the test network. Takes about three minutes.',
+    tableCaption: 'Each row is a real chain running on A1, with its own owner.',
+    colChain: 'Chain',
+    colType: 'Type',
+    colOwner: 'Owner',
+    systemDefault: 'system default',
+    emptyTitle: 'No L1 is running yet',
+    emptyDesc: 'You would be the first. The directory updates as soon as your chain is up.',
 
-    tuTo: 'All 9 validators currently run on the same server, with the same provider — decentralised at the protocol level, not yet at the infrastructure level.',
-    blockDungYen: 'Avalanche does not produce empty blocks, so a block height that stays still while nobody is transacting is normal. The liveness measure is the validator count next to it.',
+    disclosure: 'All 9 validators currently run on the same server, with the same provider — decentralised at the protocol level, not yet at the infrastructure level.',
+    idleBlocksNote: 'Avalanche does not produce empty blocks, so a block height that stays still while nobody is transacting is normal. The liveness measure is the validator count next to it.',
   },
 
-  soLieu: {
-    tieuDe: 'Network is live',
-    validator: 'Validators connected',
-    soL1: 'L1s running',
-    chieuCao: 'C-Chain block',
-    dangDo: 'Measuring the network…',
-    khongDo: 'Could not read network stats',
-    khongDoMoTa: 'The page still works — this is only the status display.',
+  stats: {
+    title: 'Network is live',
+    validators: 'Validators connected',
+    l1Count: 'L1s running',
+    blockHeight: 'C-Chain block',
+    measuring: 'Measuring the network…',
+    cannotMeasure: 'Could not read network stats',
+    cannotMeasureDesc: 'The page still works — this is only the status display.',
   },
 
   /**
@@ -271,227 +271,227 @@ export const EN = {
     notMeasuredMore: 'The page still works — this is only the status display.',
   },
 
-  deChain: {
-    tieuDe: 'Launch your chain',
-    moTa:
+  launch: {
+    title: 'Launch your chain',
+    desc:
       'A dedicated L1, owned by your wallet. You sign once to prove who you are, review, ' +
       'and the network builds the chain in about three minutes.',
 
-    noiVi: 'Connect wallet',
-    dangNoi: 'Connecting…',
-    kyDeVao: 'Sign in',
-    dangKy: 'Waiting for signature…',
-    viCuaBan: 'Your wallet',
-    laChuChain: 'The chain will belong to this wallet. The address comes from your signature — nobody types it in.',
-    khongCoVi: 'No wallet found in this browser. Install MetaMask and reload the page.',
-    tuChoiKy: 'You declined to sign. Nothing was created.',
-    doiVi: 'Use a different wallet',
+    connectWallet: 'Connect wallet',
+    connecting: 'Connecting…',
+    signIn: 'Sign in',
+    signing: 'Waiting for signature…',
+    yourWallet: 'Your wallet',
+    youWillOwn: 'The chain will belong to this wallet. The address comes from your signature — nobody types it in.',
+    noWallet: 'No wallet found in this browser. Install MetaMask and reload the page.',
+    signRejected: 'You declined to sign. Nothing was created.',
+    switchWallet: 'Use a different wallet',
 
-    nhanTen: 'Chain name',
-    goiYTen: 'For example: MyChain',
-    moTaTen:
+    nameLabel: 'Chain name',
+    namePlaceholder: 'For example: MyChain',
+    nameHelp:
       'Letters, digits and spaces. 2–32 characters. On this network a name that has been used ' +
       'is never reissued — not even for a revoked chain.',
-    tenXau: 'The name may contain only letters, digits and spaces, 2–32 characters long.',
-    nhanKieu: 'Chain type',
-    moTaKieu: 'Once chosen it is fixed — a chain’s genesis cannot be edited.',
-    conCho: '{con}/{tong} slots left',
-    hetCho: 'No slots left',
-    hetChoMoTa:
+    nameInvalid: 'The name may contain only letters, digits and spaces, 2–32 characters long.',
+    typeLabel: 'Chain type',
+    typeHelp: 'Once chosen it is fixed — a chain’s genesis cannot be edited.',
+    slotsLeft: '{con}/{tong} slots left',
+    slotsFull: 'No slots left',
+    slotsFullDesc:
       'The current model has every validator track every L1, and the protocol drops a node that ' +
       'declares more than 16 subnets. This is a hard ceiling and cannot be raised. Revoking a ' +
       'chain returns a slot.',
-    soatLai: 'Review before submitting',
+    reviewCta: 'Review before submitting',
 
-    soatTieuDe: 'Review — this is a one-way door',
-    soatMoTa:
+    reviewTitle: 'Review — this is a one-way door',
+    reviewDesc:
       'The genesis of a launched L1 is IMMUTABLE. After this step the name, chain type and owner ' +
       'cannot be changed — and revoking will not give the name and chain ID back either.',
-    soatReGenesis:
+    reviewRebuild:
       'One more thing to know before you press: A1 rebuilds the whole network on {ngay}. The chain ' +
       'you launch today will be erased along with the old network — not hidden, gone.',
-    soatTen: 'Chain name',
-    soatKieu: 'Chain type',
-    soatChu: 'Owner',
-    soatQuayLai: 'Go back and edit',
-    soatDongY: 'I have reviewed — launch the chain',
+    reviewName: 'Chain name',
+    reviewType: 'Chain type',
+    reviewOwner: 'Owner',
+    reviewBack: 'Go back and edit',
+    reviewConfirm: 'I have reviewed — launch the chain',
 
-    dangDe: 'Launching chain “{ten}”',
-    dangDeMoTa:
+    launching: 'Launching chain “{ten}”',
+    launchingDesc:
       'The nodes restart ONE AT A TIME so the network never loses quorum — that is why it is slow, ' +
       'and it is deliberate. Do not close the tab; if you do, the chain is still built.',
-    conKhoang: 'About {phut} minutes left',
-    dangChuanBi: 'Preparing…',
+    etaRemaining: 'About {phut} minutes left',
+    preparing: 'Preparing…',
 
-    xongTieuDe: 'Done — chain “{ten}” is running',
-    xongChainId: 'Chain ID',
-    xongRpc: 'RPC',
-    xongThemVi: 'Add chain to wallet',
-    xongDaThem: 'Added to wallet',
-    xongKichHoat: 'Activate chain (open block 1)',
-    xongDaKichHoat: 'Activated',
-    xongDangKichHoat: 'Waiting for wallet…',
-    xongThemViLoi: 'Could not add the chain to your wallet. {chiTiet}',
-    xongKichHoatLoi: 'Could not activate the chain. {chiTiet}',
+    doneTitle: 'Done — chain “{ten}” is running',
+    doneChainId: 'Chain ID',
+    doneRpc: 'RPC',
+    doneAddWallet: 'Add chain to wallet',
+    doneAdded: 'Added to wallet',
+    doneActivate: 'Activate chain (open block 1)',
+    doneActivated: 'Activated',
+    doneActivating: 'Waiting for wallet…',
+    doneAddWalletError: 'Could not add the chain to your wallet. {chiTiet}',
+    doneActivateError: 'Could not activate the chain. {chiTiet}',
 
-    deTiep: 'Launch another chain',
-    loiDe: 'Could not launch the chain. {chiTiet}',
-    loiKhongRo: 'The chain did not appear in the directory after the run finished.',
-    luuYTieuDe: 'The first transaction on a new chain',
-    luuYCachLam:
+    launchAnother: 'Launch another chain',
+    launchError: 'Could not launch the chain. {chiTiet}',
+    unknownError: 'The chain did not appear in the directory after the run finished.',
+    noteTitle: 'The first transaction on a new chain',
+    noteHow:
       'Do not trust the gas estimate for the first transaction. The cheapest way to open block 1 ' +
       'is an ordinary transfer — press “Activate chain” below.',
   },
 
-  chainCuaToi: {
-    tieuDe: 'My chains',
-    moTa: 'The L1s owned by the wallet you signed in with. They can be revoked, but read the warning first.',
-    noiVi: 'Connect your wallet to see your chains',
-    trongTieuDe: 'This wallet does not own any chain yet',
-    trongMoTa: 'Launch one and come back — it will show up here immediately.',
-    trongNut: 'Launch your chain',
+  myChains: {
+    title: 'My chains',
+    desc: 'The L1s owned by the wallet you signed in with. They can be revoked, but read the warning first.',
+    connectWallet: 'Connect your wallet to see your chains',
+    emptyTitle: 'This wallet does not own any chain yet',
+    emptyDesc: 'Launch one and come back — it will show up here immediately.',
+    emptyCta: 'Launch your chain',
 
-    cotChain: 'Chain',
-    cotKieu: 'Type',
-    cotSong: 'Status',
-    cotViec: '',
+    colChain: 'Chain',
+    colType: 'Type',
+    colStatus: 'Status',
+    colActions: '',
 
-    songDo: '{so} validators',
-    songDangDo: 'measuring',
-    songKhongDo: 'could not measure',
-    songGiaiThich: "Measured by the subnet's validator count, not by block height.",
-    khongValidator: '0 validators',
-    khongValidatorMoTa:
+    validatorCount: '{so} validators',
+    measuring: 'measuring',
+    cannotMeasure: 'could not measure',
+    statusHelp: "Measured by the subnet's validator count, not by block height.",
+    noValidators: '0 validators',
+    noValidatorsDesc:
       'This chain can NOT finalise any transaction: the subnet has no validators. It still answers ' +
       'RPC calls and wallets still connect, so there is no other visible sign.',
 
-    thongSo: 'Wallet settings',
-    themVaoVi: 'Add to wallet',
-    daThemVaoVi: 'Added',
-    themViLoi: 'Could not add it to your wallet. {chiTiet}',
+    walletSettings: 'Wallet settings',
+    addToWallet: 'Add to wallet',
+    addedToWallet: 'Added',
+    addWalletError: 'Could not add it to your wallet. {chiTiet}',
 
-    thuHoi: 'Revoke',
-    thuHoiTieuDe: 'Revoke “{ten}”?',
-    thuHoiY1: 'The chain stops serving RPC immediately and disappears from the public directory.',
-    thuHoiY2:
+    revoke: 'Revoke',
+    revokeTitle: 'Revoke “{ten}”?',
+    revokeWarn1: 'The chain stops serving RPC immediately and disappears from the public directory.',
+    revokeWarn2:
       'Revoking does NOT delete the subnet on the P-Chain — what was created there cannot be ' +
       'removed for as long as this network runs. It also does not remove the network from the ' +
       'wallets of people who already added this chain.',
-    thuHoiY3:
+    revokeWarn3:
       'The name and Chain ID stay reserved and are NEVER reissued to anyone on this network. ' +
       "Reissuing a Chain ID would let a former user's wallet quietly point at somebody else's chain.",
-    thuHoiY4: 'In return, one slot out of the 15 is given back.',
-    thuHoiGoNhan: 'Type the chain name exactly to confirm',
-    thuHoiSaiTen: 'That does not match the chain name.',
-    thuHoiXacNhan: 'Revoke permanently',
-    thuHoiHuy: 'Cancel',
-    thuHoiDangChay: 'Revoking “{ten}” — about three minutes',
-    thuHoiXong: 'Revoked “{ten}”. {con}/{tong} slots left.',
-    thuHoiLoi: 'Could not revoke. {chiTiet}',
-    thuHoiKhongRo: 'The chain is still in the directory after the run finished.',
+    revokeWarn4: 'In return, one slot out of the 15 is given back.',
+    revokeTypeLabel: 'Type the chain name exactly to confirm',
+    revokeNameMismatch: 'That does not match the chain name.',
+    revokeConfirm: 'Revoke permanently',
+    revokeCancel: 'Cancel',
+    revoking: 'Revoking “{ten}” — about three minutes',
+    revokeDone: 'Revoked “{ten}”. {con}/{tong} slots left.',
+    revokeError: 'Could not revoke. {chiTiet}',
+    revokeUnknown: 'The chain is still in the directory after the run finished.',
 
-    daThuHoi: 'Revoked',
-    daThuHoiMoTa: 'Name and Chain ID stay reserved on this network.',
+    revokedBadge: 'Revoked',
+    revokedDesc: 'Name and Chain ID stay reserved on this network.',
   },
 
-  bang: {
-    tieuDe: 'A1 ↔ C1 — comparison',
-    moTa:
+  compare: {
+    title: 'A1 ↔ C1 — comparison',
+    desc:
       '9Chain runs TWO testnets of the same product side by side, differing in engine: ' +
       'A1 on the Avalanche engine, C1 on the Cosmos engine. This table records the trade-offs ' +
       'between the two directions, published so anyone can argue with it — the C1 side has no ' +
       'live measurements yet.',
 
-    tuChamTieuDe: 'The scores below are SELF-ASSESSED by the team, not independently measured',
-    tuChamMoTa:
+    selfScoreTitle: 'The scores below are SELF-ASSESSED by the team, not independently measured',
+    selfScoreDesc:
       'The "how it is measured" column says how each criterion was checked. Any criterion without ' +
       'a dated measurement is an architectural judgement, not data. The weights are yours to set — ' +
       'the score follows.',
 
-    cotSo: '#',
-    cotTieuChi: 'Criterion',
-    cotLoai: 'Type',
-    cotA1: 'A1',
-    cotC1: 'C1',
-    cotTrongSo: 'Weight',
-    loaiKienTruc: 'architecture',
-    loaiSong: 'live data',
+    colNo: '#',
+    colCriterion: 'Criterion',
+    colKind: 'Type',
+    colA1: 'A1',
+    colC1: 'C1',
+    colWeight: 'Weight',
+    kindArchitecture: 'architecture',
+    kindLiveData: 'live data',
 
-    tongDiem: 'Total score using your weights',
-    hoaNhau: 'Tied',
-    dangDan: 'leads',
+    totalScore: 'Total score using your weights',
+    tied: 'Tied',
+    leads: 'leads',
 
-    soLieuTieuDe: 'Live data',
-    a1Validator: 'A1 — validators connected',
-    a1Chain: 'A1 — L1s running',
-    a1Block: 'A1 — C-Chain block',
-    c1Vang: 'C1 — not reachable',
-    c1VangMoTa:
+    liveDataTitle: 'Live data',
+    a1Validators: 'A1 — validators connected',
+    a1Chains: 'A1 — L1s running',
+    a1Blocks: 'A1 — C-Chain block',
+    c1Unreachable: 'C1 — not reachable',
+    c1UnreachableDesc:
       "C1's Cosmos REST URL (port 1317) is needed. The table still works: the A1 side is live data, " +
       'the C1 side is an architectural judgement like the remaining criteria.',
-    dangDo: 'measuring…',
-    khongDo: 'could not measure',
+    measuring: 'measuring…',
+    cannotMeasure: 'could not measure',
   },
 
   faucet: {
-    tieuDe: 'Get test tokens',
-    moTa:
+    title: 'Get test tokens',
+    desc:
       'LOVE9 on the A1 testnet has no real value — it exists so you can pay gas while testing. ' +
       'Enter a wallet address and we send some straight away.',
-    nhanDiaChi: 'Your wallet address',
-    goiYDiaChi: '0x… (40 hex characters)',
-    nutXin: 'Send me tokens',
-    dangGui: 'Sending…',
-    danChoDiaChi: 'Paste the wallet address that should receive the tokens. Press “Add network to wallet” above if you have not yet.',
-    themMang: 'Add network to wallet',
-    themMangXong: 'Added to wallet',
-    themMangTuChoi: 'You pressed reject in your wallet. Press again if you want to add the network.',
-    themMangLoi: 'Your wallet could not add the network. Add it manually using the settings beside this — and send the line below to the team:',
-    khongCoVi: 'No wallet found in this browser. Install MetaMask and reload the page.',
-    hanMucConLai: 'Remaining quota',
-    hanMucCachDoc: '{con}/{tong} requests per {gio} hours',
-    hanMucHet: 'You have used your whole quota. Try again in {phut} minutes.',
-    hanMucKhongDoc: 'Could not read your quota — you can still request, you just will not know how many are left.',
-    thanhCong: 'Sent {so} {kyHieu} to {diaChi}',
-    xemGiaoDich: 'View transaction',
-    thongSoMang: 'Network settings',
-    thongSoRpc: 'RPC',
-    thongSoChainId: 'Chain ID',
-    thongSoKyHieu: 'Symbol',
-    thongSoThapPhan: 'Decimals',
-    thongSoExplorer: 'Explorer',
-    thapPhanGiaiThich:
+    addressLabel: 'Your wallet address',
+    addressPlaceholder: '0x… (40 hex characters)',
+    requestCta: 'Send me tokens',
+    sending: 'Sending…',
+    addressHelp: 'Paste the wallet address that should receive the tokens. Press “Add network to wallet” above if you have not yet.',
+    addNetwork: 'Add network to wallet',
+    addNetworkDone: 'Added to wallet',
+    addNetworkRejected: 'You pressed reject in your wallet. Press again if you want to add the network.',
+    addNetworkError: 'Your wallet could not add the network. Add it manually using the settings beside this — and send the line below to the team:',
+    noWallet: 'No wallet found in this browser. Install MetaMask and reload the page.',
+    quotaLabel: 'Remaining quota',
+    quotaFormat: '{con}/{tong} requests per {gio} hours',
+    quotaExhausted: 'You have used your whole quota. Try again in {phut} minutes.',
+    quotaUnreadable: 'Could not read your quota — you can still request, you just will not know how many are left.',
+    sentOk: 'Sent {so} {kyHieu} to {diaChi}',
+    viewTransaction: 'View transaction',
+    settingsTitle: 'Network settings',
+    settingsRpc: 'RPC',
+    settingsChainId: 'Chain ID',
+    settingsSymbol: 'Symbol',
+    settingsDecimals: 'Decimals',
+    settingsExplorer: 'Explorer',
+    decimalsHelp:
       'Wallets show 18 decimals because the C-Chain runs the EVM. On the P/X-Chain, LOVE9 counts ' +
       'in 9 decimals. One coin, two scales — not two different tokens.',
-    loiChung: 'Could not send. {chiTiet}',
+    genericError: 'Could not send. {chiTiet}',
   },
 
   /** Bộ chọn ngôn ngữ. Xem `components/ChonNgonNgu.tsx` cho lý do từng nhãn. */
-  chonNgonNgu: {
-    nhan: 'Language',
-    mayDich: 'machine',
-    mayDichGiaiThich: 'Only Vietnamese has been reviewed by a person. The other translations are machine-made and may be wrong — the English version is the source of truth.',
-    chuaCo: 'not yet available',
+  langPicker: {
+    label: 'Language',
+    machineBadge: 'machine',
+    machineNote: 'Only Vietnamese has been reviewed by a person. The other translations are machine-made and may be wrong — the English version is the source of truth.',
+    notAvailable: 'not yet available',
   },
 
-  loi: {
-    khongKetNoi: 'Could not reach the network',
-    khongKetNoiMoTa: 'The network may be busy, or your connection may have dropped.',
-    trongRong: 'Nothing here yet',
+  errors: {
+    unreachable: 'Could not reach the network',
+    unreachableDesc: 'The network may be busy, or your connection may have dropped.',
+    empty: 'Nothing here yet',
   },
 
-  khongThay: {
-    ma: '404',
-    tieuDe: 'This page does not exist',
-    moTa:
+  notFound: {
+    code: '404',
+    title: 'This page does not exist',
+    desc:
       'The address you opened does not exist on 9Chain Testnet A1. ' +
       'It may have been renamed, or the URL may have lost a few characters when it was copied.',
-    dayLaGi: 'The three most used pages:',
-    nhanNav: 'Where to go next',
-    veTrangChu: 'Back to home',
-    diFaucet: 'Get test tokens',
-    diDeChain: 'Launch your chain',
-    timGiaoDich: 'Looking for a transaction or an address? Check the hash and try again.',
+    topPagesTitle: 'The three most used pages:',
+    navLabel: 'Where to go next',
+    goHome: 'Back to home',
+    goFaucet: 'Get test tokens',
+    goLaunch: 'Launch your chain',
+    lookingForTx: 'Looking for a transaction or an address? Check the hash and try again.',
   },
 } as const;
 

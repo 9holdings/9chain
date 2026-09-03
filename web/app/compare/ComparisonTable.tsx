@@ -52,12 +52,12 @@ export function ComparisonTable() {
   return (
     <div className="mt-8 flex flex-col gap-6">
       <LuuY kieu="canhBao">
-        <strong className="block font-semibold">{t.bang.tuChamTieuDe}</strong>
-        <span className="mt-1 block">{t.bang.tuChamMoTa}</span>
+        <strong className="block font-semibold">{t.compare.selfScoreTitle}</strong>
+        <span className="mt-1 block">{t.compare.selfScoreDesc}</span>
       </LuuY>
 
       <The className="p-5">
-        <h2 className="font-display text-base font-bold text-ink">{t.bang.soLieuTieuDe}</h2>
+        <h2 className="font-display text-base font-bold text-ink">{t.compare.liveDataTitle}</h2>
         <dl className="mt-4 grid gap-4 sm:grid-cols-3">
           {/* Ba trạng thái MỖI Ô (Đ1-8): `undefined` đang đo · `string` đo được ·
               `null` ô này vắng. Xem `lib/stats.ts` cho vì sao một nguồn hỏng không
@@ -66,12 +66,12 @@ export function ComparisonTable() {
             const s = tt.pha === 'xong' ? tt.so : null;
             return [
               {
-                n: t.bang.a1Validator,
+                n: t.compare.a1Validators,
                 v: !s ? undefined : s.validatorTong === null ? null : `${s.validatorKetNoi}/${s.validatorTong}`,
               },
-              { n: t.bang.a1Chain, v: !s ? undefined : s.soL1 === null ? null : String(s.soL1) },
+              { n: t.compare.a1Chains, v: !s ? undefined : s.soL1 === null ? null : String(s.soL1) },
               {
-                n: t.bang.a1Block,
+                n: t.compare.a1Blocks,
                 v: !s ? undefined : s.chieuCaoBlock === null ? null : dinhDangSo(s.chieuCaoBlock, ma),
               },
             ];
@@ -82,9 +82,9 @@ export function ComparisonTable() {
                 {x.v !== undefined && x.v !== null ? (
                   x.v
                 ) : x.v === null || tt.pha === 'hong' ? (
-                  <span className="font-sans text-sm font-normal text-muted">{t.bang.khongDo}</span>
+                  <span className="font-sans text-sm font-normal text-muted">{t.compare.cannotMeasure}</span>
                 ) : (
-                  <><span className="sr-only">{t.bang.dangDo}</span><Xuong className="h-8 w-16" /></>
+                  <><span className="sr-only">{t.compare.measuring}</span><Xuong className="h-8 w-16" /></>
                 )}
               </dd>
             </div>
@@ -92,25 +92,25 @@ export function ComparisonTable() {
         </dl>
         {/* C1 vắng mặt: nói thẳng là VẮNG, không vẽ khối lỗi. */}
         <div className="mt-5 rounded-card border border-dashed border-line-strong bg-surface-alt px-4 py-3">
-          <p className="text-sm font-semibold text-body">{t.bang.c1Vang}</p>
-          <p className="mt-1 text-sm text-body-2">{t.bang.c1VangMoTa}</p>
+          <p className="text-sm font-semibold text-body">{t.compare.c1Unreachable}</p>
+          <p className="mt-1 text-sm text-body-2">{t.compare.c1UnreachableDesc}</p>
         </div>
       </The>
 
       <The className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[46rem] border-collapse text-sm">
-            <caption className="sr-only">{t.bang.tieuDe}</caption>
+            <caption className="sr-only">{t.compare.title}</caption>
             {/* `text-start` on each `<th>` — same issue as documented in
                 `app/ChainTable.tsx`. The two `text-center` cells are DELIBERATE. */}
             <thead>
               <tr className="border-b border-line bg-surface-alt text-start">
-                <th scope="col" className="px-3 py-3 text-start font-semibold text-ink">{t.bang.cotSo}</th>
-                <th scope="col" className="px-3 py-3 text-start font-semibold text-ink">{t.bang.cotTieuChi}</th>
-                <th scope="col" className="px-3 py-3 text-start font-semibold text-ink">{t.bang.cotLoai}</th>
-                <th scope="col" className="px-3 py-3 text-center font-semibold text-ink">{t.bang.cotA1}</th>
-                <th scope="col" className="px-3 py-3 text-center font-semibold text-ink">{t.bang.cotC1}</th>
-                <th scope="col" className="px-3 py-3 text-start font-semibold text-ink">{t.bang.cotTrongSo}</th>
+                <th scope="col" className="px-3 py-3 text-start font-semibold text-ink">{t.compare.colNo}</th>
+                <th scope="col" className="px-3 py-3 text-start font-semibold text-ink">{t.compare.colCriterion}</th>
+                <th scope="col" className="px-3 py-3 text-start font-semibold text-ink">{t.compare.colKind}</th>
+                <th scope="col" className="px-3 py-3 text-center font-semibold text-ink">{t.compare.colA1}</th>
+                <th scope="col" className="px-3 py-3 text-center font-semibold text-ink">{t.compare.colC1}</th>
+                <th scope="col" className="px-3 py-3 text-start font-semibold text-ink">{t.compare.colWeight}</th>
               </tr>
             </thead>
             <tbody>
@@ -123,7 +123,7 @@ export function ComparisonTable() {
                   </th>
                   <td className="px-3 py-3">
                     <Nhan kieu={c.loai === 'song' ? 'tot' : 'trungTinh'}>
-                      {c.loai === 'song' ? t.bang.loaiSong : t.bang.loaiKienTruc}
+                      {c.loai === 'song' ? t.compare.kindLiveData : t.compare.kindArchitecture}
                     </Nhan>
                   </td>
                   <td className="px-3 py-3 text-center font-mono font-bold text-ink">{c.a}</td>
@@ -132,7 +132,7 @@ export function ComparisonTable() {
                     <label className="flex items-center gap-2">
                       {/* Nhãn ẩn: một thanh trượt không nhãn thì trình đọc màn hình
                           chỉ đọc "slider" — trong bảng 10 dòng là vô nghĩa. */}
-                      <span className="sr-only">{`${t.bang.cotTrongSo}: ${c.k}`}</span>
+                      <span className="sr-only">{`${t.compare.colWeight}: ${c.k}`}</span>
                       <input
                         type="range" min={0} max={5} step={1} value={ts[i]}
                         onChange={(e) => datTs((v) => v.map((x, j) => (j === i ? +e.target.value : x)))}
@@ -149,7 +149,7 @@ export function ComparisonTable() {
       </The>
 
       <The className="p-5">
-        <h2 className="font-display text-base font-bold text-ink">{t.bang.tongDiem}</h2>
+        <h2 className="font-display text-base font-bold text-ink">{t.compare.totalScore}</h2>
         <div className="mt-4 flex flex-wrap items-baseline gap-6">
           {[
             { t: 'A1', d: diemA, mau: 'text-gold-ink-strong' },
@@ -161,7 +161,7 @@ export function ComparisonTable() {
             </p>
           ))}
           <p className="text-sm font-semibold text-body">
-            {diemA === diemC ? t.bang.hoaNhau : `${diemA > diemC ? 'A1' : 'C1'} ${t.bang.dangDan}`}
+            {diemA === diemC ? t.compare.tied : `${diemA > diemC ? 'A1' : 'C1'} ${t.compare.leads}`}
           </p>
         </div>
         {/* Thanh tỉ lệ chỉ là hình minh hoạ cho hai con số ĐÃ hiện ở trên — nên nó

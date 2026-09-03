@@ -37,7 +37,7 @@ export function ThemeToggle() {
 
   // Trước khi biết trạng thái, vẽ nút với nhãn trung tính thay vì không vẽ gì:
   // nút biến mất rồi hiện lại làm nhảy bố cục thanh điều hướng.
-  const nhan = toi === null ? t.chung.chuyenSangToi : toi ? t.chung.chuyenSangSang : t.chung.chuyenSangToi;
+  const nhan = toi === null ? t.common.switchToDark : toi ? t.common.switchToLight : t.common.switchToDark;
 
   return (
     <button

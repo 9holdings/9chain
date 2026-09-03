@@ -53,7 +53,7 @@ export function MyChainsScreen() {
 
   const [tt, datTt] = useState<TrangThai | null>(null);
   const [loiTai, datLoiTai] = useState(false);
-  const [vld, datVld] = useState<Record<string, number | 'dang' | 'loi'>>({});
+  const [vld, datVld] = useState<Record<string, number | 'dang' | 'errors'>>({});
 
   // Kết quả bấm "Thêm vào ví", THEO TỪNG CHAIN — màn này vẽ nhiều chain một lúc, nên
   // một ô lỗi dùng chung sẽ dán lỗi của chain này lên thẻ của chain khác.
@@ -86,7 +86,7 @@ export function MyChainsScreen() {
       await nap(p.token);
     } catch (e) {
       const m = String((e as Error).message ?? e);
-      datLoiVi(m === 'KHONG_CO_VI' ? t.deChain.khongCoVi : /rejected|denied|4001/i.test(m) ? t.deChain.tuChoiKy : m);
+      datLoiVi(m === 'KHONG_CO_VI' ? t.launch.noWallet : /rejected|denied|4001/i.test(m) ? t.launch.signRejected : m);
     } finally {
       datDangNoi(false);
     }
@@ -112,7 +112,7 @@ export function MyChainsScreen() {
       datVld((v) => ({ ...v, [c.subnetID]: 'dang' }));
       demValidator(c.subnetID)
         .then((n) => datVld((v) => ({ ...v, [c.subnetID]: n })))
-        .catch(() => datVld((v) => ({ ...v, [c.subnetID]: 'loi' })));
+        .catch(() => datVld((v) => ({ ...v, [c.subnetID]: 'errors' })));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tt, phien]);
@@ -163,7 +163,7 @@ export function MyChainsScreen() {
       datTt(st);
       conSong = st.chains.some((x) => x.name === c.name);
       if (!conSong) {
-        datXong(dien(t.chainCuaToi.thuHoiXong, {
+        datXong(dien(t.myChains.revokeDone, {
           ten: c.name, con: st.tran - st.chains.length, tong: st.tran,
         }));
       }
@@ -171,8 +171,8 @@ export function MyChainsScreen() {
       datLoiTai(true);
     }
     if (conSong) {
-      datLoiThuHoi(dien(t.chainCuaToi.thuHoiLoi, {
-        chiTiet: kq?.error ?? loiPost ?? t.chainCuaToi.thuHoiKhongRo,
+      datLoiThuHoi(dien(t.myChains.revokeError, {
+        chiTiet: kq?.error ?? loiPost ?? t.myChains.revokeUnknown,
       }));
     }
 
@@ -186,14 +186,14 @@ export function MyChainsScreen() {
   if (!phien) {
     return (
       <The className="mt-8 max-w-xl p-5 md:p-6">
-        <h2 className="font-display text-lg font-bold text-ink">{t.chainCuaToi.noiVi}</h2>
+        <h2 className="font-display text-lg font-bold text-ink">{t.myChains.connectWallet}</h2>
         <div className="mt-4">
           <Nut co="to" onClick={vao} dangChay={dangNoi}>
-            {dangNoi ? t.deChain.dangKy : t.deChain.noiVi}
+            {dangNoi ? t.launch.signing : t.launch.connectWallet}
           </Nut>
         </div>
         {loiVi && <div className="mt-4"><CoLoi tieuDe={loiVi} moTa="" thuLai={vao} /></div>}
-        {!layVi() && <div className="mt-4"><LuuY kieu="canhBao">{t.deChain.khongCoVi}</LuuY></div>}
+        {!layVi() && <div className="mt-4"><LuuY kieu="canhBao">{t.launch.noWallet}</LuuY></div>}
       </The>
     );
   }
@@ -202,18 +202,18 @@ export function MyChainsScreen() {
     return (
       <The className="mt-8 max-w-2xl p-5 md:p-6">
         <h2 className="font-display text-lg font-bold text-ink">
-          {dien(t.chainCuaToi.thuHoiDangChay, { ten: chay.ten })}
+          {dien(t.myChains.revoking, { ten: chay.ten })}
         </h2>
         <div className="mt-4">
           {tienTrinh?.steps?.length ? (
             <CacBuoc
               buoc={tienTrinh.steps}
               ghiChu={tienTrinh.etaSeconds
-                ? dien(t.deChain.conKhoang, { phut: Math.max(1, Math.ceil(tienTrinh.etaSeconds / 60)) })
+                ? dien(t.launch.etaRemaining, { phut: Math.max(1, Math.ceil(tienTrinh.etaSeconds / 60)) })
                 : undefined}
             />
           ) : (
-            <p className="text-sm text-muted">{t.deChain.dangChuanBi}</p>
+            <p className="text-sm text-muted">{t.launch.preparing}</p>
           )}
         </div>
       </The>
@@ -224,7 +224,7 @@ export function MyChainsScreen() {
   if (!tt) {
     return (
       <The className="mt-8 p-5">
-        <span className="sr-only">{t.chung.dangTai}</span>
+        <span className="sr-only">{t.common.loading}</span>
         <div className="flex flex-col gap-3">{[0, 1].map((i) => <Xuong key={i} className="h-12 w-full" />)}</div>
       </The>
     );
@@ -241,11 +241,11 @@ export function MyChainsScreen() {
 
       {!cuaToi.length && !cuaToiDaThuHoi.length ? (
         <TrongRong
-          tieuDe={t.chainCuaToi.trongTieuDe}
-          moTa={t.chainCuaToi.trongMoTa}
+          tieuDe={t.myChains.emptyTitle}
+          moTa={t.myChains.emptyDesc}
           hanhDong={
             <a href="/create-chain/" className="inline-flex h-11 items-center rounded-btn bg-gold px-4 text-sm font-semibold text-navy hover:bg-gold-hover">
-              {t.chainCuaToi.trongNut}
+              {t.myChains.emptyCta}
             </a>
           }
         />
@@ -265,29 +265,29 @@ export function MyChainsScreen() {
                       <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                         {(c.presetName ?? c.presetTen) && <Nhan>{c.presetName ?? c.presetTen}</Nhan>}
                         {v === undefined || v === 'dang' ? (
-                          <span className="text-muted">{t.chainCuaToi.songDangDo}</span>
-                        ) : v === 'loi' ? (
-                          <span className="text-muted">{t.chainCuaToi.songKhongDo}</span>
+                          <span className="text-muted">{t.myChains.measuring}</span>
+                        ) : v === 'errors' ? (
+                          <span className="text-muted">{t.myChains.cannotMeasure}</span>
                         ) : v === 0 ? (
-                          <Nhan kieu="canhBao">{t.chainCuaToi.khongValidator}</Nhan>
+                          <Nhan kieu="canhBao">{t.myChains.noValidators}</Nhan>
                         ) : (
-                          <Nhan kieu="tot">{dien(t.chainCuaToi.songDo, { so: v })}</Nhan>
+                          <Nhan kieu="tot">{dien(t.myChains.validatorCount, { so: v })}</Nhan>
                         )}
                       </p>
-                      <p className="mt-1 text-xs text-muted">{t.chainCuaToi.songGiaiThich}</p>
+                      <p className="mt-1 text-xs text-muted">{t.myChains.statusHelp}</p>
                       {v === 0 && (
                         <p className="mt-2 max-w-prose text-sm font-semibold text-dev-ink">
-                          {t.chainCuaToi.khongValidatorMoTa}
+                          {t.myChains.noValidatorsDesc}
                         </p>
                       )}
                     </div>
                     <Nut kieu="vien" onClick={() => { datDangThuHoi(c); datGoTen(''); }}>
-                      {t.chainCuaToi.thuHoi}
+                      {t.myChains.revoke}
                     </Nut>
                   </div>
 
                   <dl className="mt-4 flex flex-col gap-2">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{t.chainCuaToi.thongSo}</dt>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{t.myChains.walletSettings}</dt>
                     <dd className="flex flex-wrap gap-2">
                       {c.rpc && <ChepDuoc giaTri={c.rpc} nhan="RPC" />}
                       <ChepDuoc giaTri={String(c.chainId)} nhan="Chain ID" />
@@ -309,14 +309,14 @@ export function MyChainsScreen() {
                               [c.chainId]: {
                                 xong: false,
                                 chu: l.tuChoi
-                                  ? t.chung.viTuChoi
-                                  : dien(t.chainCuaToi.themViLoi, { chiTiet: l.chu ?? '' }),
+                                  ? t.common.walletRejected
+                                  : dien(t.myChains.addWalletError, { chiTiet: l.chu ?? '' }),
                               },
                             }));
                           }
                         }}
                       >
-                        {themVi[c.chainId]?.xong ? t.chainCuaToi.daThemVaoVi : t.chainCuaToi.themVaoVi}
+                        {themVi[c.chainId]?.xong ? t.myChains.addedToWallet : t.myChains.addToWallet}
                       </Nut>
                       {/* Vùng live thường trú cho TỪNG thẻ chain — xem chú thích cùng
                           loại ở CreateChainScreen. */}
@@ -344,8 +344,8 @@ export function MyChainsScreen() {
                   <span className="ms-2 font-mono text-xs font-normal">#{c.chainId}</span>
                 </h2>
                 <p className="mt-1 text-sm">
-                  <Nhan kieu="xau">{t.chainCuaToi.daThuHoi}</Nhan>
-                  <span className="ms-2 text-muted">{t.chainCuaToi.daThuHoiMoTa}</span>
+                  <Nhan kieu="xau">{t.myChains.revokedBadge}</Nhan>
+                  <span className="ms-2 text-muted">{t.myChains.revokedDesc}</span>
                 </p>
               </The>
             </li>
@@ -356,34 +356,34 @@ export function MyChainsScreen() {
       {dangThuHoi && (
         <The className="border-dev-line p-5">
           <h2 className="font-display text-lg font-bold text-ink">
-            {dien(t.chainCuaToi.thuHoiTieuDe, { ten: dangThuHoi.name })}
+            {dien(t.myChains.revokeTitle, { ten: dangThuHoi.name })}
           </h2>
           <ul className="mt-3 flex list-disc flex-col gap-2 ps-5 text-sm text-body">
-            <li>{t.chainCuaToi.thuHoiY1}</li>
+            <li>{t.myChains.revokeWarn1}</li>
             {/* Hai điều người dùng KHÔNG đoán được — phải nói thẳng, không rút gọn. */}
-            <li className="font-semibold">{t.chainCuaToi.thuHoiY2}</li>
-            <li className="font-semibold">{t.chainCuaToi.thuHoiY3}</li>
-            <li>{t.chainCuaToi.thuHoiY4}</li>
+            <li className="font-semibold">{t.myChains.revokeWarn2}</li>
+            <li className="font-semibold">{t.myChains.revokeWarn3}</li>
+            <li>{t.myChains.revokeWarn4}</li>
           </ul>
           <div className="mt-4 max-w-sm">
             {/* Gõ lại tên: cùng luật với đường API (`xacNhan`). Một nút "Xoá" bấm
                 nhầm được thì cửa một chiều trở thành một cú trượt tay. */}
             <O
-              nhan={t.chainCuaToi.thuHoiGoNhan}
+              nhan={t.myChains.revokeTypeLabel}
               placeholder={dangThuHoi.name}
               value={goTen}
               onChange={(e) => datGoTen(e.target.value)}
               autoComplete="off"
               spellCheck={false}
-              loi={goTen && goTen !== dangThuHoi.name ? t.chainCuaToi.thuHoiSaiTen : undefined}
+              loi={goTen && goTen !== dangThuHoi.name ? t.myChains.revokeNameMismatch : undefined}
             />
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <Nut disabled={goTen !== dangThuHoi.name} onClick={() => thucHienThuHoi(dangThuHoi)}>
-              {t.chainCuaToi.thuHoiXacNhan}
+              {t.myChains.revokeConfirm}
             </Nut>
             <Nut kieu="tron" onClick={() => { datDangThuHoi(null); datGoTen(''); }}>
-              {t.chainCuaToi.thuHoiHuy}
+              {t.myChains.revokeCancel}
             </Nut>
           </div>
         </The>

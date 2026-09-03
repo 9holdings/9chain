@@ -47,16 +47,16 @@ import { ghepTieuDe, ghepTieuDeGoc } from './seo';
  */
 export const TIEU_DE_THEO_DUONG: Record<string, (t: Tu) => string | null> = {
   '/': () => null,
-  '/faucet/': (t) => t.faucet.tieuDe,
-  '/create-chain/': (t) => t.deChain.tieuDe,
-  '/my-chains/': (t) => t.chainCuaToi.tieuDe,
-  '/compare/': (t) => t.bang.tieuDe,
+  '/faucet/': (t) => t.faucet.title,
+  '/create-chain/': (t) => t.launch.title,
+  '/my-chains/': (t) => t.myChains.title,
+  '/compare/': (t) => t.compare.title,
   '/live/': (t) => t.loadTest.title,
-  '/re-genesis/': (t) => dien(t.reGenesis.tieuDe, { ngay: t.reGenesis.ngay }),
+  '/re-genesis/': (t) => dien(t.rebuild.title, { ngay: t.rebuild.date }),
 };
 
 /** Tiêu đề cho mọi đường KHÔNG có trong bảng — tức trang 404. */
-const KHONG_THAY = (t: Tu) => t.khongThay.tieuDe;
+const KHONG_THAY = (t: Tu) => t.notFound.title;
 
 /**
  * Đặt `document.title` theo ngôn ngữ đang chọn. Gọi ĐÚNG MỘT LẦN, trong layout.
@@ -79,7 +79,7 @@ export function useTieuDeTheoNgonNgu(): void {
     const tran = lay(t);
     document.title =
       tran === null
-        ? ghepTieuDeGoc(t.chung.tenSanPham, t.chung.tagTitle)
-        : ghepTieuDe(tran, t.chung.tenSanPham);
+        ? ghepTieuDeGoc(t.common.productName, t.common.tagline)
+        : ghepTieuDe(tran, t.common.productName);
   }, [t, duong]);
 }

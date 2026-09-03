@@ -10,192 +10,192 @@ import type { Tu } from '../en';
  * kaybetmesin diye.
  */
 export const tr: Tu = {
-  chung: {
-    tenSanPham: '9Chain Testnet A1',
-    moTaNgan: "9Chain'in genel test ağı — Avalanche motorunda çalışan bağımsız bir ağ",
-    tagTitle: 'Avalanche motorunda çalışan bağımsız bir ağ',
-    viTuChoi: 'İsteği cüzdanınızda reddettiniz. Hiçbir şey değişmedi.',
-    dangTai: 'Yükleniyor…',
-    thuLai: 'Yeniden dene',
-    saoChep: 'Kopyala',
-    daChep: 'Kopyalandı',
-    dong: 'Kapat',
-    moMenu: 'Menüyü aç',
-    dongMenu: 'Menüyü kapat',
-    chuyenSangToi: 'Koyu moda geç',
-    chuyenSangSang: 'Açık moda geç',
-    boQuaToiNoiDung: 'Ana içeriğe geç',
+  common: {
+    productName: '9Chain Testnet A1',
+    shortDesc: "9Chain'in genel test ağı — Avalanche motorunda çalışan bağımsız bir ağ",
+    tagline: 'Avalanche motorunda çalışan bağımsız bir ağ',
+    walletRejected: 'İsteği cüzdanınızda reddettiniz. Hiçbir şey değişmedi.',
+    loading: 'Yükleniyor…',
+    retry: 'Yeniden dene',
+    copy: 'Kopyala',
+    copied: 'Kopyalandı',
+    close: 'Kapat',
+    openMenu: 'Menüyü aç',
+    closeMenu: 'Menüyü kapat',
+    switchToDark: 'Koyu moda geç',
+    switchToLight: 'Açık moda geç',
+    skipToContent: 'Ana içeriğe geç',
   },
 
-  reGenesisXong: {
-    luuUrl: '',
-    luuSha256: '',
+  rebuildDone: {
+    archiveUrl: '',
+    archiveSha256: '',
 
-    bang: 'A1, {ngay} tarihinde yeniden kuruldu. O tarihten önce oluşturulan her bakiye ve her zincir artık yok.',
-    bangNut: 'Bu ne demek',
-    nhan: 'Yeniden kuruldu',
+    banner: 'A1, {ngay} tarihinde yeniden kuruldu. O tarihten önce oluşturulan her bakiye ve her zincir artık yok.',
+    bannerLink: 'Bu ne demek',
+    badge: 'Yeniden kuruldu',
 
-    tieuDe: 'A1, {ngay} tarihinde yeniden kuruldu',
-    moTa:
+    title: 'A1, {ngay} tarihinde yeniden kuruldu',
+    desc:
       'A1 test ağı blok 0’dan itibaren yeniden kuruldu. O tarihten önce oluşturulan zincirler, ' +
       'bakiyeler ve işlem geçmişi artık yok — gizlenmedi, ortadan kalktı. ' +
       'Bu sayfa ne gördüğünüzü ve ne yapmanız gerektiğini anlatır.',
 
-    thayGiTieuDe: 'Ne göreceksiniz',
-    thayGi1:
+    willSeeTitle: 'Ne göreceksiniz',
+    willSee1:
       'Cüzdanınız yine bağlanır, doğru ağ adını ve aynı Chain ID {chainId} değerini gösterir — ' +
       'bu bilinçliydi. Ama bakiyeniz 0 olacak.',
-    thayGi2:
+    willSee2:
       'Başlattığınız her L1 dizinden silindi. Adları ve Chain ID’leri yeniden serbest; ' +
       'artık herkes onları alabilir.',
-    thayGi3:
+    willSee3:
       'Bir işlemi imzaladıysanız ama hiç yayınlamadıysanız, şimdi yayınlamayın — ' +
       'o işlem artık var olmayan bir ağa ait.',
 
-    lamGiTieuDe: 'Ne yapmanız gerekiyor',
-    lamGi1: 'Musluktan yeniden test jetonu isteyin. Sınırlar herkes için sıfırlandı.',
-    lamGi2:
+    toDoTitle: 'Ne yapmanız gerekiyor',
+    toDo1: 'Musluktan yeniden test jetonu isteyin. Sınırlar herkes için sıfırlandı.',
+    toDo2:
       'Her bir L1’i cüzdanınızdan kaldırın — kendi Chain ID’leri var ve artık hiçbir yeri ' +
       'göstermiyorlar. Ana A1 ağını kaldırmanıza GEREK YOK; ayarları değişmedi.',
-    lamGi3: 'Gerekiyorsa zincirinizi yeniden başlatın. Eski adı bir başkası almış olabilir.',
+    toDo3: 'Gerekiyorsa zincirinizi yeniden başlatın. Eski adı bir başkası almış olabilir.',
 
-    luuTieuDe: 'Eski ağın arşivi',
-    luuMoTa:
+    archiveTitle: 'Eski ağın arşivi',
+    archiveDesc:
       'Yeniden kurulumdan önce ağın son durumu dışa aktarıldı ve özeti (hash) yayımlandı; ' +
       'böylece kontrol etmek isteyen herkes edebilir.',
   },
 
-  reGenesis: {
-    ngay: '2026-09-01',
-    bang: 'A1, {ngay} tarihinde yeniden kurulacak — o tarihten önce oluşturulan her zincir, bakiye ve işlem silinecek.',
-    bangNut: 'Ayrıntılar',
-    nhan: 'Yeniden kurulum yaklaşıyor',
+  rebuild: {
+    date: '2026-09-01',
+    banner: 'A1, {ngay} tarihinde yeniden kurulacak — o tarihten önce oluşturulan her zincir, bakiye ve işlem silinecek.',
+    bannerLink: 'Ayrıntılar',
+    badge: 'Yeniden kurulum yaklaşıyor',
 
-    tieuDe: 'A1, {ngay} tarihinde yeniden kurulacak',
-    moTa:
+    title: 'A1, {ngay} tarihinde yeniden kurulacak',
+    desc:
       'A1 test ağının tamamı blok 0’dan itibaren yeniden kurulacak. O tarihten önce oluşturulan ' +
       'her şey gidecek — gizlenmeyecek, artık var olmayacak. Bu sayfa tam olarak neyin kaybolacağını ' +
       've ne yapmanız gerektiğini söyler.',
 
-    viSaoTieuDe: 'Yeniden kurulum neden gerekli',
-    viSao1:
+    whyTitle: 'Yeniden kurulum neden gerekli',
+    why1:
       'Bir ağın genesis’i değiştirilemez. Onu güvenilir kılan da tam olarak budur — onu kuranlar ' +
       'dahil hiç kimse, blok 0’a yazıldıktan sonra bir sayıyı değiştiremez.',
-    viSao2:
+    why2:
       'Bunun bedeli şu: genesis içindeki bir sayıyı değiştirmek, ağı sıfırdan yeniden kurmaktan ' +
       'başka seçenek bırakmaz. A1 toplam arzı 9.000.000.000 LOVE9’a çıkardı ve buna uyacak şekilde ' +
       'staking parametrelerinin tüm aralığı yeniden hesaplanmak zorunda kaldı.',
-    viSao3:
+    why3:
       'Burası bir test ağı ve yeniden kurulmak bir test ağının hakkı. Aslında test ağları tam da ' +
       'bunun için var: böyle değişiklikler burada olsun, ana ağda değil.',
 
-    matTieuDe: 'Ne kaybolacak',
-    matMoTa: 'İstisnasız her şey:',
-    mat1: 'Kullanıcıların başlattığı her L1 — gayet iyi çalışanlar dahil.',
-    mat2: 'Her LOVE9 bakiyesi — musluktan alınan jetonlar dahil.',
-    mat3: 'Her işlem, her blok, C-Chain, P-Chain ve X-Chain’in tüm geçmişi.',
-    mat4: 'Her doğrulayıcı ve her delegasyon.',
+    lostTitle: 'Ne kaybolacak',
+    lostDesc: 'İstisnasız her şey:',
+    lost1: 'Kullanıcıların başlattığı her L1 — gayet iyi çalışanlar dahil.',
+    lost2: 'Her LOVE9 bakiyesi — musluktan alınan jetonlar dahil.',
+    lost3: 'Her işlem, her blok, C-Chain, P-Chain ve X-Chain’in tüm geçmişi.',
+    lost4: 'Her doğrulayıcı ve her delegasyon.',
 
-    conTieuDe: 'Ne saklanacak',
-    conMoTa:
+    keptTitle: 'Ne saklanacak',
+    keptDesc:
       'Silmeden önce ölmekte olan ağın tamamı dışa aktarılacak ve özeti yayımlanacak; böylece kayıt ' +
       'doğrulanabilir kalacak. Onu çalıştıran ağ ortadan kalktıktan sonra bile olanlar kontrol ' +
       'edilebilecek. Arşiv bağlantısı yeniden kurulum günü burada paylaşılacak.',
 
-    lamTieuDe: 'Ne yapmanız gerekiyor',
-    lamTruoc: 'Yeniden kurulumdan önce:',
-    lam1:
+    toDoTitle: 'Ne yapmanız gerekiyor',
+    toDoBefore: 'Yeniden kurulumdan önce:',
+    toDo1:
       'Şu anda A1 üzerinde verinin kalıcı olmasına bağlı bir şey inşa etmeyin. Bir fikri deniyorsanız ' +
       'buyurun — yeter ki mevcut zinciri depolama gibi görmeyin.',
-    lamSau: 'Yeniden kurulumdan sonra:',
-    lam2:
+    toDoAfter: 'Yeniden kurulumdan sonra:',
+    toDo2:
       'Eklediğiniz her L1’i cüzdanınızdan kaldırın — o zincirler artık yok ve onları gösteren bir ' +
       'cüzdan öylece bekler. Ana A1 ağını kaldırmaya gerek yok: ayarları değişmedi.',
-    lam3:
+    toDo3:
       'Cüzdanınızda A1 ağı henüz yoksa, ayarları elle yazmak yerine musluk sayfasındaki düğmeyle ekleyin.',
-    lam4: 'Musluktan yeniden jeton isteyin ve isterseniz zincirinizi yeniden başlatın.',
+    toDo4: 'Musluktan yeniden jeton isteyin ve isterseniz zincirinizi yeniden başlatın.',
 
-    imLangTieuDe: 'Cüzdanınız sizi uyarmayacak',
-    imLangMoTa:
+    silentTitle: 'Cüzdanınız sizi uyarmayacak',
+    silentDesc:
       'Yeni ağ, eskisiyle aynı Chain ID {chainId}, aynı RPC adresi ve aynı adı korur. Bu bilinçli — ' +
       'böylece daha önce yayımlanmış her belge ve kılavuz doğru kalır. Bedeli ise cüzdanınızın, az ' +
       'önce farklı bir ağa bağlandığına dair hiçbir sinyale sahip olmamasıdır. Bu yüzden aşağıdaki ' +
       'iki şey sessizce gerçekleşecek.',
-    imLang1:
+    silent1:
       'Eski yapılandırmadaki bir cüzdan yine bağlanır, doğru ağ adını gösterir ve bakiyeyi 0 olarak ' +
       'bildirir. Bu sayı DOĞRUDUR: eski jetonlarınız artık yok, gizlenmiş değiller. Ağı yeniden ' +
       'eklemenize gerek yok — sadece musluktan yeni jeton isteyin. Cüzdan takılı bir işlem ya da ' +
       'yanlış sıra numarası bildirirse, o ağın etkinlik verisini cüzdanda temizleyin: cüzdan hâlâ ' +
       'ölmüş bir zincirin işlem sayısını hatırlıyor, oysa yeni zincir 0’dan sayıyor.',
-    imLang2:
+    silent2:
       'Hiç yayınlanmamış imzalı bir işlem hâlâ elinizdeyse onu atın. Chain ID değişmediği için imza ' +
       'yeni ağda da geçerlidir. Cüzdan boşken başarısız olur — ama musluktan jeton istediğiniz anda ' +
       'harcanabilir hale gelir ve beklemediğiniz bir zamanda geçebilir.',
 
-    lapTieuDe: 'Bu yine olacak mı',
-    lapMoTa:
+    repeatTitle: 'Bu yine olacak mı',
+    repeatDesc:
       'Olabilir. A1 hâlâ bir test ağı ve topluluk A1 ile C1 arasında ana ağ yönünü seçene kadar, ' +
       'genesis içinde bir şeyin değişmesi gerektiğinde ağı yeniden kurma hakkımızı saklı tutuyoruz. ' +
       'Söz verdiğimiz şey, size önceden haber vermek ve neyin kaybolacağını açıkça söylemektir.',
 
-    daXayRaTieuDe: '2026-08-27 tarihinde bir kez zaten yeniden kuruldu',
-    daXayRaMoTa:
+    alreadyTitle: '2026-08-27 tarihinde bir kez zaten yeniden kuruldu',
+    alreadyDesc:
       'A1, aşağıdaki tarihten önce, 2026-08-27 tarihinde bir kez zaten yeniden kuruldu. O tarihten önce test jetonlarınız varsa bakiyeniz şimdi 0 — bu doğrudur, cüzdanınızdaki bir arıza değildir. Hiçbir kullanıcı zinciri kaybolmadı: dizinde yalnızca otomatik test zincirleri vardı. Musluktan yeniden jeton isteyin.',
-    ngayLuuY: 'Tarih kayabilir',
-    ngayLuuYMoTa:
+    dateNote: 'Tarih kayabilir',
+    dateNoteDesc:
       '{ngay} tarihi önceki bir git/gitme denetimine bağlıdır. Kayarsa, susmak yerine bu sayfadaki ' +
       'tarihi değiştireceğiz.',
   },
 
-  chanTrang: {
-    dungThu: 'Deneyin',
-    kham: 'Keşfedin',
-    veDuAn: 'Hakkında',
+  footer: {
+    tryIt: 'Deneyin',
+    explore: 'Keşfedin',
+    about: 'Hakkında',
     explorer: '9Scan-A1 gezgini',
-    trangChinh: '9Chain ana sitesi',
-    moTabMoi: '(yeni sekmede açılır)',
-    nhanNav: 'Alt bilgi bağlantıları',
-    reGenesis: 'Ağ yeniden kurulum planı',
+    mainSite: '9Chain ana sitesi',
+    opensNewTab: '(yeni sekmede açılır)',
+    navLabel: 'Alt bilgi bağlantıları',
+    rebuildPlan: 'Ağ yeniden kurulum planı',
   },
 
-  dieuHuong: {
-    trangChu: 'Ana sayfa',
+  nav: {
+    home: 'Ana sayfa',
     faucet: 'Test jetonu al',
-    console: 'Zincir başlat',
-    chainCuaToi: 'Zincirlerim',
-    bang: 'A1 ↔ C1',
-    danhBa: 'L1 dizini',
+    launch: 'Zincir başlat',
+    myChains: 'Zincirlerim',
+    compare: 'A1 ↔ C1',
+    directory: 'L1 dizini',
     explorer: 'Gezgin',
-    banGiao: '9Scan-A1’i yeni sekmede aç',
+    explorerAria: '9Scan-A1’i yeni sekmede aç',
   },
 
-  trangChu: {
-    nhanTestnet: 'Test ağı — jetonların gerçek değeri yok',
-    nutChinh: 'Zincirinizi başlatın',
-    nutPhu: 'Önce test jetonu alın',
+  home: {
+    testnetBadge: 'Test ağı — jetonların gerçek değeri yok',
+    primaryCta: 'Zincirinizi başlatın',
+    secondaryCta: 'Önce test jetonu alın',
 
-    cTieuDe: 'A1 üzerinde kendi zincirinizi başlatın',
-    cPhu: 'Size ait bir L1; sahibi imza attığınız cüzdan, test ağında gerçekten çalışıyor. Yaklaşık üç dakika sürer.',
-    cBangChuThich: 'Her satır A1 üzerinde çalışan gerçek bir zincirdir ve kendi sahibi vardır.',
-    cCot: 'Zincir',
-    cCotKieu: 'Tür',
-    cCotChu: 'Sahip',
-    cMacDinh: 'sistem varsayılanı',
-    cTrong: 'Henüz çalışan bir L1 yok',
-    cTrongMoTa: 'İlk siz olurdunuz. Zinciriniz açılır açılmaz dizin güncellenir.',
+    title: 'A1 üzerinde kendi zincirinizi başlatın',
+    subtitle: 'Size ait bir L1; sahibi imza attığınız cüzdan, test ağında gerçekten çalışıyor. Yaklaşık üç dakika sürer.',
+    tableCaption: 'Her satır A1 üzerinde çalışan gerçek bir zincirdir ve kendi sahibi vardır.',
+    colChain: 'Zincir',
+    colType: 'Tür',
+    colOwner: 'Sahip',
+    systemDefault: 'sistem varsayılanı',
+    emptyTitle: 'Henüz çalışan bir L1 yok',
+    emptyDesc: 'İlk siz olurdunuz. Zinciriniz açılır açılmaz dizin güncellenir.',
 
-    tuTo: 'Şu anda 9 doğrulayıcının tamamı aynı sunucuda, aynı sağlayıcıda çalışıyor — protokol düzeyinde merkeziyetsiz, altyapı düzeyinde henüz değil.',
-    blockDungYen: 'Avalanche boş blok üretmez; bu yüzden kimse işlem yapmazken blok yüksekliğinin sabit kalması normaldir. Canlılık ölçüsü yanındaki doğrulayıcı sayısıdır.',
+    disclosure: 'Şu anda 9 doğrulayıcının tamamı aynı sunucuda, aynı sağlayıcıda çalışıyor — protokol düzeyinde merkeziyetsiz, altyapı düzeyinde henüz değil.',
+    idleBlocksNote: 'Avalanche boş blok üretmez; bu yüzden kimse işlem yapmazken blok yüksekliğinin sabit kalması normaldir. Canlılık ölçüsü yanındaki doğrulayıcı sayısıdır.',
   },
 
-  soLieu: {
-    tieuDe: 'Ağ çalışıyor',
-    validator: 'Bağlı doğrulayıcı',
-    soL1: 'Çalışan L1',
-    chieuCao: 'C-Chain bloğu',
-    dangDo: 'Ağ ölçülüyor…',
-    khongDo: 'Ağ istatistikleri okunamadı',
-    khongDoMoTa: 'Sayfa yine de çalışıyor — bu yalnızca durum göstergesi.',
+  stats: {
+    title: 'Ağ çalışıyor',
+    validators: 'Bağlı doğrulayıcı',
+    l1Count: 'Çalışan L1',
+    blockHeight: 'C-Chain bloğu',
+    measuring: 'Ağ ölçülüyor…',
+    cannotMeasure: 'Ağ istatistikleri okunamadı',
+    cannotMeasureDesc: 'Sayfa yine de çalışıyor — bu yalnızca durum göstergesi.',
   },
 
   loadTest: {
@@ -220,225 +220,225 @@ export const tr: Tu = {
     notMeasuredMore: 'Sayfa yine de çalışıyor — bu yalnızca durum göstergesi.',
   },
 
-  deChain: {
-    tieuDe: 'Zincirinizi başlatın',
-    moTa:
+  launch: {
+    title: 'Zincirinizi başlatın',
+    desc:
       'Cüzdanınıza ait özel bir L1. Kim olduğunuzu kanıtlamak için bir kez imzalarsınız, gözden ' +
       'geçirirsiniz ve ağ zinciri yaklaşık üç dakikada kurar.',
 
-    noiVi: 'Cüzdanı bağla',
-    dangNoi: 'Bağlanıyor…',
-    kyDeVao: 'Oturum aç',
-    dangKy: 'İmza bekleniyor…',
-    viCuaBan: 'Cüzdanınız',
-    laChuChain: 'Zincir bu cüzdana ait olacak. Adres imzanızdan gelir — kimse elle yazmaz.',
-    khongCoVi: 'Bu tarayıcıda cüzdan bulunamadı. MetaMask kurun ve sayfayı yeniden yükleyin.',
-    tuChoiKy: 'İmzalamayı reddettiniz. Hiçbir şey oluşturulmadı.',
-    doiVi: 'Başka bir cüzdan kullan',
+    connectWallet: 'Cüzdanı bağla',
+    connecting: 'Bağlanıyor…',
+    signIn: 'Oturum aç',
+    signing: 'İmza bekleniyor…',
+    yourWallet: 'Cüzdanınız',
+    youWillOwn: 'Zincir bu cüzdana ait olacak. Adres imzanızdan gelir — kimse elle yazmaz.',
+    noWallet: 'Bu tarayıcıda cüzdan bulunamadı. MetaMask kurun ve sayfayı yeniden yükleyin.',
+    signRejected: 'İmzalamayı reddettiniz. Hiçbir şey oluşturulmadı.',
+    switchWallet: 'Başka bir cüzdan kullan',
 
-    nhanTen: 'Zincir adı',
-    goiYTen: 'Örnek: MyChain',
-    moTaTen:
+    nameLabel: 'Zincir adı',
+    namePlaceholder: 'Örnek: MyChain',
+    nameHelp:
       'Harf, rakam ve boşluk. 2–32 karakter. Bu ağda bir kez kullanılmış bir ad asla yeniden ' +
       'verilmez — iptal edilmiş bir zincir için bile.',
-    tenXau: 'Ad yalnızca harf, rakam ve boşluk içerebilir; uzunluğu 2–32 karakter olmalıdır.',
-    nhanKieu: 'Zincir türü',
-    moTaKieu: 'Bir kez seçildikten sonra sabittir — bir zincirin genesis’i düzenlenemez.',
-    conCho: '{con}/{tong} yuva kaldı',
-    hetCho: 'Hiç yuva kalmadı',
-    hetChoMoTa:
+    nameInvalid: 'Ad yalnızca harf, rakam ve boşluk içerebilir; uzunluğu 2–32 karakter olmalıdır.',
+    typeLabel: 'Zincir türü',
+    typeHelp: 'Bir kez seçildikten sonra sabittir — bir zincirin genesis’i düzenlenemez.',
+    slotsLeft: '{con}/{tong} yuva kaldı',
+    slotsFull: 'Hiç yuva kalmadı',
+    slotsFullDesc:
       'Mevcut modelde her doğrulayıcı her L1’i izler ve protokol, 16’dan fazla alt ağ bildiren bir ' +
       'düğümü dışarı atar. Bu katı bir tavandır ve yükseltilemez. Bir zinciri iptal etmek bir yuvayı ' +
       'geri verir.',
-    soatLai: 'Göndermeden önce gözden geçirin',
+    reviewCta: 'Göndermeden önce gözden geçirin',
 
-    soatTieuDe: 'Gözden geçirme — bu tek yönlü bir kapı',
-    soatMoTa:
+    reviewTitle: 'Gözden geçirme — bu tek yönlü bir kapı',
+    reviewDesc:
       'Başlatılmış bir L1’in genesis’i DEĞİŞTİRİLEMEZ. Bu adımdan sonra ad, zincir türü ve sahip ' +
       'değiştirilemez — ve iptal etmek de adı ve chain ID’yi geri vermez.',
-    soatReGenesis:
+    reviewRebuild:
       'Basmadan önce bilinmesi gereken bir şey daha: A1, {ngay} tarihinde tüm ağı yeniden kurar. ' +
       'Bugün başlattığınız zincir eski ağla birlikte silinecek — gizlenmeyecek, yok olacak.',
-    soatTen: 'Zincir adı',
-    soatKieu: 'Zincir türü',
-    soatChu: 'Sahip',
-    soatQuayLai: 'Geri dön ve düzenle',
-    soatDongY: 'Gözden geçirdim — zinciri başlat',
+    reviewName: 'Zincir adı',
+    reviewType: 'Zincir türü',
+    reviewOwner: 'Sahip',
+    reviewBack: 'Geri dön ve düzenle',
+    reviewConfirm: 'Gözden geçirdim — zinciri başlat',
 
-    dangDe: '“{ten}” zinciri başlatılıyor',
-    dangDeMoTa:
+    launching: '“{ten}” zinciri başlatılıyor',
+    launchingDesc:
       'Ağ hiçbir zaman çoğunluğunu kaybetmesin diye düğümler BİRER BİRER yeniden başlatılır — bu ' +
       'yüzden yavaştır ve bu bilinçlidir. Sekmeyi kapatmayın; kapatsanız bile zincir yine kurulur.',
-    conKhoang: 'Yaklaşık {phut} dakika kaldı',
-    dangChuanBi: 'Hazırlanıyor…',
+    etaRemaining: 'Yaklaşık {phut} dakika kaldı',
+    preparing: 'Hazırlanıyor…',
 
-    xongTieuDe: 'Tamam — “{ten}” zinciri çalışıyor',
-    xongChainId: 'Chain ID',
-    xongRpc: 'RPC',
-    xongThemVi: 'Zinciri cüzdana ekle',
-    xongDaThem: 'Cüzdana eklendi',
-    xongKichHoat: 'Zinciri etkinleştir (blok 1’i aç)',
-    xongDaKichHoat: 'Etkinleştirildi',
-    xongDangKichHoat: 'Cüzdan bekleniyor…',
-    xongThemViLoi: 'Zincir cüzdanınıza eklenemedi. {chiTiet}',
-    xongKichHoatLoi: 'Zincir etkinleştirilemedi. {chiTiet}',
+    doneTitle: 'Tamam — “{ten}” zinciri çalışıyor',
+    doneChainId: 'Chain ID',
+    doneRpc: 'RPC',
+    doneAddWallet: 'Zinciri cüzdana ekle',
+    doneAdded: 'Cüzdana eklendi',
+    doneActivate: 'Zinciri etkinleştir (blok 1’i aç)',
+    doneActivated: 'Etkinleştirildi',
+    doneActivating: 'Cüzdan bekleniyor…',
+    doneAddWalletError: 'Zincir cüzdanınıza eklenemedi. {chiTiet}',
+    doneActivateError: 'Zincir etkinleştirilemedi. {chiTiet}',
 
-    deTiep: 'Başka bir zincir başlat',
-    loiDe: 'Zincir başlatılamadı. {chiTiet}',
-    loiKhongRo: 'İşlem bittikten sonra zincir dizinde görünmedi.',
-    luuYTieuDe: 'Yeni bir zincirdeki ilk işlem',
-    luuYCachLam:
+    launchAnother: 'Başka bir zincir başlat',
+    launchError: 'Zincir başlatılamadı. {chiTiet}',
+    unknownError: 'İşlem bittikten sonra zincir dizinde görünmedi.',
+    noteTitle: 'Yeni bir zincirdeki ilk işlem',
+    noteHow:
       'İlk işlem için gaz tahminine güvenmeyin. Blok 1’i açmanın en ucuz yolu sıradan bir ' +
       'transferdir — aşağıdaki “Zinciri etkinleştir” düğmesine basın.',
   },
 
-  chainCuaToi: {
-    tieuDe: 'Zincirlerim',
-    moTa: 'Oturum açtığınız cüzdana ait L1’ler. İptal edilebilirler, ama önce uyarıyı okuyun.',
-    noiVi: 'Zincirlerinizi görmek için cüzdanınızı bağlayın',
-    trongTieuDe: 'Bu cüzdanın henüz hiçbir zinciri yok',
-    trongMoTa: 'Bir tane başlatın ve geri dönün — hemen burada görünecek.',
-    trongNut: 'Zincirinizi başlatın',
+  myChains: {
+    title: 'Zincirlerim',
+    desc: 'Oturum açtığınız cüzdana ait L1’ler. İptal edilebilirler, ama önce uyarıyı okuyun.',
+    connectWallet: 'Zincirlerinizi görmek için cüzdanınızı bağlayın',
+    emptyTitle: 'Bu cüzdanın henüz hiçbir zinciri yok',
+    emptyDesc: 'Bir tane başlatın ve geri dönün — hemen burada görünecek.',
+    emptyCta: 'Zincirinizi başlatın',
 
-    cotChain: 'Zincir',
-    cotKieu: 'Tür',
-    cotSong: 'Durum',
-    cotViec: '',
+    colChain: 'Zincir',
+    colType: 'Tür',
+    colStatus: 'Durum',
+    colActions: '',
 
-    songDo: '{so} doğrulayıcı',
-    songDangDo: 'ölçülüyor',
-    songKhongDo: 'ölçülemedi',
-    songGiaiThich: 'Alt ağın doğrulayıcı sayısıyla ölçülür, blok yüksekliğiyle değil.',
-    khongValidator: '0 doğrulayıcı',
-    khongValidatorMoTa:
+    validatorCount: '{so} doğrulayıcı',
+    measuring: 'ölçülüyor',
+    cannotMeasure: 'ölçülemedi',
+    statusHelp: 'Alt ağın doğrulayıcı sayısıyla ölçülür, blok yüksekliğiyle değil.',
+    noValidators: '0 doğrulayıcı',
+    noValidatorsDesc:
       'Bu zincir hiçbir işlemi kesinleştiremez: alt ağın doğrulayıcısı yok. Yine de RPC çağrılarına ' +
       'yanıt verir ve cüzdanlar yine bağlanır; bu yüzden başka görünür bir işaret yoktur.',
 
-    thongSo: 'Cüzdan ayarları',
-    themVaoVi: 'Cüzdana ekle',
-    daThemVaoVi: 'Eklendi',
-    themViLoi: 'Cüzdanınıza eklenemedi. {chiTiet}',
+    walletSettings: 'Cüzdan ayarları',
+    addToWallet: 'Cüzdana ekle',
+    addedToWallet: 'Eklendi',
+    addWalletError: 'Cüzdanınıza eklenemedi. {chiTiet}',
 
-    thuHoi: 'İptal et',
-    thuHoiTieuDe: '“{ten}” iptal edilsin mi?',
-    thuHoiY1: 'Zincir hemen RPC hizmetini durdurur ve genel dizinden kaybolur.',
-    thuHoiY2:
+    revoke: 'İptal et',
+    revokeTitle: '“{ten}” iptal edilsin mi?',
+    revokeWarn1: 'Zincir hemen RPC hizmetini durdurur ve genel dizinden kaybolur.',
+    revokeWarn2:
       'İptal etmek P-Chain üzerindeki alt ağı SİLMEZ — orada oluşturulan şey, bu ağ çalıştığı sürece ' +
       'kaldırılamaz. Ayrıca bu zinciri daha önce eklemiş kişilerin cüzdanlarından da ağı kaldırmaz.',
-    thuHoiY3:
+    revokeWarn3:
       'Ad ve Chain ID ayrılmış kalır ve bu ağda ASLA kimseye yeniden verilmez. Bir Chain ID’yi ' +
       'yeniden vermek, eski bir kullanıcının cüzdanının sessizce bir başkasının zincirini ' +
       'göstermesine yol açardı.',
-    thuHoiY4: 'Karşılığında 15 yuvadan biri geri verilir.',
-    thuHoiGoNhan: 'Onaylamak için zincir adını birebir yazın',
-    thuHoiSaiTen: 'Bu, zincir adıyla eşleşmiyor.',
-    thuHoiXacNhan: 'Kalıcı olarak iptal et',
-    thuHoiHuy: 'Vazgeç',
-    thuHoiDangChay: '“{ten}” iptal ediliyor — yaklaşık üç dakika',
-    thuHoiXong: '“{ten}” iptal edildi. {con}/{tong} yuva kaldı.',
-    thuHoiLoi: 'İptal edilemedi. {chiTiet}',
-    thuHoiKhongRo: 'İşlem bittikten sonra zincir hâlâ dizinde.',
+    revokeWarn4: 'Karşılığında 15 yuvadan biri geri verilir.',
+    revokeTypeLabel: 'Onaylamak için zincir adını birebir yazın',
+    revokeNameMismatch: 'Bu, zincir adıyla eşleşmiyor.',
+    revokeConfirm: 'Kalıcı olarak iptal et',
+    revokeCancel: 'Vazgeç',
+    revoking: '“{ten}” iptal ediliyor — yaklaşık üç dakika',
+    revokeDone: '“{ten}” iptal edildi. {con}/{tong} yuva kaldı.',
+    revokeError: 'İptal edilemedi. {chiTiet}',
+    revokeUnknown: 'İşlem bittikten sonra zincir hâlâ dizinde.',
 
-    daThuHoi: 'İptal edildi',
-    daThuHoiMoTa: 'Ad ve Chain ID bu ağda ayrılmış kalır.',
+    revokedBadge: 'İptal edildi',
+    revokedDesc: 'Ad ve Chain ID bu ağda ayrılmış kalır.',
   },
 
-  bang: {
-    tieuDe: 'A1 ↔ C1 — karşılaştırma',
-    moTa:
+  compare: {
+    title: 'A1 ↔ C1 — karşılaştırma',
+    desc:
       '9Chain, aynı ürünün İKİ test ağını yan yana çalıştırır; fark motorda: A1 Avalanche motorunda, ' +
       'C1 Cosmos motorunda. Bu tablo iki yön arasındaki ödünleşimleri kayda geçirir ve herkes itiraz ' +
       'edebilsin diye yayımlanmıştır — C1 tarafında henüz canlı ölçüm yok.',
 
-    tuChamTieuDe: 'Aşağıdaki puanlar ekip tarafından KENDİ KENDİNE verilmiştir, bağımsız olarak ölçülmemiştir',
-    tuChamMoTa:
+    selfScoreTitle: 'Aşağıdaki puanlar ekip tarafından KENDİ KENDİNE verilmiştir, bağımsız olarak ölçülmemiştir',
+    selfScoreDesc:
       '"Nasıl ölçüldü" sütunu her ölçütün nasıl denetlendiğini söyler. Tarihli bir ölçümü olmayan ' +
       'her ölçüt bir mimari değerlendirmedir, veri değildir. Ağırlıkları siz belirlersiniz — puan ' +
       'ona göre oluşur.',
 
-    cotSo: '#',
-    cotTieuChi: 'Ölçüt',
-    cotLoai: 'Tür',
-    cotA1: 'A1',
-    cotC1: 'C1',
-    cotTrongSo: 'Ağırlık',
-    loaiKienTruc: 'mimari',
-    loaiSong: 'canlı veri',
+    colNo: '#',
+    colCriterion: 'Ölçüt',
+    colKind: 'Tür',
+    colA1: 'A1',
+    colC1: 'C1',
+    colWeight: 'Ağırlık',
+    kindArchitecture: 'mimari',
+    kindLiveData: 'canlı veri',
 
-    tongDiem: 'Sizin ağırlıklarınızla toplam puan',
-    hoaNhau: 'Berabere',
-    dangDan: 'önde',
+    totalScore: 'Sizin ağırlıklarınızla toplam puan',
+    tied: 'Berabere',
+    leads: 'önde',
 
-    soLieuTieuDe: 'Canlı veri',
-    a1Validator: 'A1 — bağlı doğrulayıcı',
-    a1Chain: 'A1 — çalışan L1',
-    a1Block: 'A1 — C-Chain bloğu',
-    c1Vang: 'C1 — erişilemiyor',
-    c1VangMoTa:
+    liveDataTitle: 'Canlı veri',
+    a1Validators: 'A1 — bağlı doğrulayıcı',
+    a1Chains: 'A1 — çalışan L1',
+    a1Blocks: 'A1 — C-Chain bloğu',
+    c1Unreachable: 'C1 — erişilemiyor',
+    c1UnreachableDesc:
       'C1’in Cosmos REST adresi (port 1317) gerekiyor. Tablo yine de çalışır: A1 tarafı canlı veridir, ' +
       'C1 tarafı ise kalan ölçütler gibi bir mimari değerlendirmedir.',
-    dangDo: 'ölçülüyor…',
-    khongDo: 'ölçülemedi',
+    measuring: 'ölçülüyor…',
+    cannotMeasure: 'ölçülemedi',
   },
 
   faucet: {
-    tieuDe: 'Test jetonu al',
-    moTa:
+    title: 'Test jetonu al',
+    desc:
       'A1 test ağındaki LOVE9’un gerçek bir değeri yoktur — test ederken gaz ödeyebilesiniz diye ' +
       'vardır. Bir cüzdan adresi girin, hemen bir miktar gönderelim.',
-    nhanDiaChi: 'Cüzdan adresiniz',
-    goiYDiaChi: '0x… (40 onaltılık karakter)',
-    nutXin: 'Bana jeton gönder',
-    dangGui: 'Gönderiliyor…',
-    danChoDiaChi: 'Jetonları alacak cüzdan adresini yapıştırın. Henüz yapmadıysanız yukarıdaki “Ağı cüzdana ekle” düğmesine basın.',
-    themMang: 'Ağı cüzdana ekle',
-    themMangXong: 'Cüzdana eklendi',
-    themMangTuChoi: 'Cüzdanınızda reddet’e bastınız. Ağı eklemek isterseniz yeniden basın.',
-    themMangLoi: 'Cüzdanınız ağı ekleyemedi. Yandaki ayarları kullanarak elle ekleyin — ve aşağıdaki satırı ekibe gönderin:',
-    khongCoVi: 'Bu tarayıcıda cüzdan bulunamadı. MetaMask kurun ve sayfayı yeniden yükleyin.',
-    hanMucConLai: 'Kalan kota',
-    hanMucCachDoc: '{gio} saatte {con}/{tong} istek',
-    hanMucHet: 'Tüm kotanızı kullandınız. {phut} dakika sonra yeniden deneyin.',
-    hanMucKhongDoc: 'Kotanız okunamadı — yine de istekte bulunabilirsiniz, sadece ne kadar kaldığını bilemezsiniz.',
-    thanhCong: '{diaChi} adresine {so} {kyHieu} gönderildi',
-    xemGiaoDich: 'İşlemi görüntüle',
-    thongSoMang: 'Ağ ayarları',
-    thongSoRpc: 'RPC',
-    thongSoChainId: 'Chain ID',
-    thongSoKyHieu: 'Sembol',
-    thongSoThapPhan: 'Ondalık',
-    thongSoExplorer: 'Gezgin',
-    thapPhanGiaiThich:
+    addressLabel: 'Cüzdan adresiniz',
+    addressPlaceholder: '0x… (40 onaltılık karakter)',
+    requestCta: 'Bana jeton gönder',
+    sending: 'Gönderiliyor…',
+    addressHelp: 'Jetonları alacak cüzdan adresini yapıştırın. Henüz yapmadıysanız yukarıdaki “Ağı cüzdana ekle” düğmesine basın.',
+    addNetwork: 'Ağı cüzdana ekle',
+    addNetworkDone: 'Cüzdana eklendi',
+    addNetworkRejected: 'Cüzdanınızda reddet’e bastınız. Ağı eklemek isterseniz yeniden basın.',
+    addNetworkError: 'Cüzdanınız ağı ekleyemedi. Yandaki ayarları kullanarak elle ekleyin — ve aşağıdaki satırı ekibe gönderin:',
+    noWallet: 'Bu tarayıcıda cüzdan bulunamadı. MetaMask kurun ve sayfayı yeniden yükleyin.',
+    quotaLabel: 'Kalan kota',
+    quotaFormat: '{gio} saatte {con}/{tong} istek',
+    quotaExhausted: 'Tüm kotanızı kullandınız. {phut} dakika sonra yeniden deneyin.',
+    quotaUnreadable: 'Kotanız okunamadı — yine de istekte bulunabilirsiniz, sadece ne kadar kaldığını bilemezsiniz.',
+    sentOk: '{diaChi} adresine {so} {kyHieu} gönderildi',
+    viewTransaction: 'İşlemi görüntüle',
+    settingsTitle: 'Ağ ayarları',
+    settingsRpc: 'RPC',
+    settingsChainId: 'Chain ID',
+    settingsSymbol: 'Sembol',
+    settingsDecimals: 'Ondalık',
+    settingsExplorer: 'Gezgin',
+    decimalsHelp:
       'Cüzdanlar 18 ondalık gösterir, çünkü C-Chain EVM çalıştırır. P/X-Chain üzerinde LOVE9 9 ' +
       'ondalıkla sayılır. Tek bir para, iki ölçek — iki farklı jeton değil.',
-    loiChung: 'Gönderilemedi. {chiTiet}',
+    genericError: 'Gönderilemedi. {chiTiet}',
   },
 
-  chonNgonNgu: {
-    nhan: 'Dil',
-    mayDich: 'makine',
-    mayDichGiaiThich: 'Yalnızca Vietnamca sürüm bir insan tarafından incelendi. Diğer çeviriler makine yapımıdır ve yanlış olabilir — İngilizce sürüm doğruluğun kaynağıdır.',
-    chuaCo: 'henüz yok',
+  langPicker: {
+    label: 'Dil',
+    machineBadge: 'makine',
+    machineNote: 'Yalnızca Vietnamca sürüm bir insan tarafından incelendi. Diğer çeviriler makine yapımıdır ve yanlış olabilir — İngilizce sürüm doğruluğun kaynağıdır.',
+    notAvailable: 'henüz yok',
   },
 
-  loi: {
-    khongKetNoi: 'Ağa ulaşılamadı',
-    khongKetNoiMoTa: 'Ağ yoğun olabilir ya da bağlantınız kopmuş olabilir.',
-    trongRong: 'Burada henüz bir şey yok',
+  errors: {
+    unreachable: 'Ağa ulaşılamadı',
+    unreachableDesc: 'Ağ yoğun olabilir ya da bağlantınız kopmuş olabilir.',
+    empty: 'Burada henüz bir şey yok',
   },
 
-  khongThay: {
-    ma: '404',
-    tieuDe: 'Bu sayfa yok',
-    moTa:
+  notFound: {
+    code: '404',
+    title: 'Bu sayfa yok',
+    desc:
       'Açtığınız adres 9Chain Testnet A1 üzerinde bulunmuyor. ' +
       'Adı değişmiş olabilir ya da kopyalanırken URL’den birkaç karakter eksilmiş olabilir.',
-    dayLaGi: 'En çok kullanılan üç sayfa:',
-    nhanNav: 'Şimdi nereye',
-    veTrangChu: 'Ana sayfaya dön',
-    diFaucet: 'Test jetonu al',
-    diDeChain: 'Zincirinizi başlatın',
-    timGiaoDich: 'Bir işlem ya da adres mi arıyorsunuz? Özeti kontrol edip yeniden deneyin.',
+    topPagesTitle: 'En çok kullanılan üç sayfa:',
+    navLabel: 'Şimdi nereye',
+    goHome: 'Ana sayfaya dön',
+    goFaucet: 'Test jetonu al',
+    goLaunch: 'Zincirinizi başlatın',
+    lookingForTx: 'Bir işlem ya da adres mi arıyorsunuz? Özeti kontrol edip yeniden deneyin.',
   },
 };
 

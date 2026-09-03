@@ -78,14 +78,14 @@ export function trangMeta({
   // thẻ meta — nơi đó chữ bị máy khác đọc và hiện lại nguyên văn trong thẻ chia sẻ,
   // ngoài tầm với của mọi lượt sửa sau này. Cắt ở ĐÂY là hợp lệ; cắt ở tầng render
   // của trang thì KHÔNG — xem mục "cố ý không làm" số 15 trong lộ trình.
-  const t = ghepTieuDe(tieuDe, EN.chung.tenSanPham);
+  const t = ghepTieuDe(tieuDe, EN.common.productName);
   const d = boDauDuyet(moTa);
 
   return {
     title: t,
     description: d,
     alternates: { canonical: duong },
-    openGraph: { type: 'website', siteName: EN.chung.tenSanPham, title: t, description: d, url: duong },
+    openGraph: { type: 'website', siteName: EN.common.productName, title: t, description: d, url: duong },
     twitter: { card: 'summary_large_image', title: t, description: d },
   };
 }

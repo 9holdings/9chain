@@ -45,7 +45,7 @@ function layGiaTri(o: unknown, duong: string): unknown {
 const KHOA_EN = betKhoa(EN).sort();
 
 /** Khoá CỐ Ý để rỗng — điền vào đúng ngày G. Xem `reGenesisXong` trong `en.ts`. */
-const DUOC_RONG = new Set(['reGenesisXong.luuUrl', 'reGenesisXong.luuSha256', 'chainCuaToi.cotViec']);
+const DUOC_RONG = new Set(['rebuildDone.archiveUrl', 'rebuildDone.archiveSha256', 'myChains.colActions']);
 
 describe('sổ đăng ký ngôn ngữ', () => {
   it('đúng 30 ngôn ngữ, tiếng Anh mặc định và đứng đầu', () => {

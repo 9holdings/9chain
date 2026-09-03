@@ -27,9 +27,9 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
     return (
       <div className={gop('mt-8 text-sm', toi ? 'text-on-dark-3' : 'text-muted')}>
         <button type="button" onClick={napLai} className="underline">
-          {t.soLieu.khongDo}
+          {t.stats.cannotMeasure}
         </button>
-        <span className="ms-2">{t.soLieu.khongDoMoTa}</span>
+        <span className="ms-2">{t.stats.cannotMeasureDesc}</span>
       </div>
     );
   }
@@ -46,18 +46,18 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
    */
   const s = tt.pha === 'xong' ? tt.so : null;
   const o: { nhan: string; gt: string | null | undefined }[] = !s
-    ? [{ nhan: t.soLieu.validator }, { nhan: t.soLieu.soL1 }, { nhan: t.soLieu.chieuCao }].map((x) => ({
+    ? [{ nhan: t.stats.validators }, { nhan: t.stats.l1Count }, { nhan: t.stats.blockHeight }].map((x) => ({
         ...x,
         gt: undefined, // chưa đo xong ⇒ cả ba ô là khung xương
       }))
     : [
         {
-          nhan: t.soLieu.validator,
+          nhan: t.stats.validators,
           gt: s.validatorTong === null ? null : `${s.validatorKetNoi}/${s.validatorTong}`,
         },
-        { nhan: t.soLieu.soL1, gt: s.soL1 === null ? null : String(s.soL1) },
+        { nhan: t.stats.l1Count, gt: s.soL1 === null ? null : String(s.soL1) },
         {
-          nhan: t.soLieu.chieuCao,
+          nhan: t.stats.blockHeight,
           gt: s.chieuCaoBlock === null ? null : dinhDangSo(s.chieuCaoBlock, ma),
         },
       ];
@@ -65,7 +65,7 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
   return (
     <div className="mt-8">
       <div className="flex items-center gap-2">
-        <Nhan kieu="tot">{t.soLieu.tieuDe}</Nhan>
+        <Nhan kieu="tot">{t.stats.title}</Nhan>
       </div>
       <dl className="mt-3 grid grid-cols-3 gap-4 sm:max-w-lg">
         {o.map((x) => (
@@ -80,13 +80,13 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
                    không thì với họ ô vắng và ô bằng 0 là một. */
                 <>
                   <span aria-hidden="true">—</span>
-                  <span className="sr-only">{t.soLieu.khongDo}</span>
+                  <span className="sr-only">{t.stats.cannotMeasure}</span>
                 </>
               ) : (
                 <>
                   {/* Khung xương có nhãn cho trình đọc màn hình — nếu không, người
                       dùng nghe một danh sách rỗng và không biết đang chờ gì. */}
-                  <span className="sr-only">{t.soLieu.dangDo}</span>
+                  <span className="sr-only">{t.stats.measuring}</span>
                   <Xuong className="h-8 w-16" />
                 </>
               )}

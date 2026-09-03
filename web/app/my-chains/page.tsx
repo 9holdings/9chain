@@ -5,15 +5,15 @@ import { trangMeta } from '@/lib/seo';
 import { MyChainsScreen } from './MyChainsScreen';
 
 export const metadata: Metadata = trangMeta({
-  tieuDe: EN.chainCuaToi.tieuDe,
-  moTa: EN.chainCuaToi.moTa,
+  tieuDe: EN.myChains.title,
+  moTa: EN.myChains.desc,
   duong: '/my-chains/',
 });
 
 export default function TrangChainCuaToi() {
   return (
     <div className="khung py-10 md:py-14">
-      <DauTrang nhom="chainCuaToi" />
+      <DauTrang nhom="myChains" />
       <MyChainsScreen />
     </div>
   );

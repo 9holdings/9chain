@@ -36,9 +36,9 @@ export const metadata: Metadata = {
   // `<link rel="canonical">` THẬT trong HTML đã xuất, nên trỏ nó vào một tên miền
   // chưa phục vụ là ghi một điều sai vào sản phẩm đang chạy.
   metadataBase: new URL('https://a1.9chain.org'),
-  applicationName: EN.chung.tenSanPham,
-  title: `${EN.chung.tenSanPham} — ${EN.chung.tagTitle}`,
-  description: EN.trangChu.cPhu,
+  applicationName: EN.common.productName,
+  title: `${EN.common.productName} — ${EN.common.tagline}`,
+  description: EN.home.subtitle,
   alternates: { canonical: '/' },
   // Trước đây trang KHÔNG có favicon nào. Dùng luôn dấu LOVE9 David đưa.
   // Đường dẫn tuyệt đối theo gốc site — `/brand/*` có route riêng trong Caddy.
@@ -71,9 +71,9 @@ export const metadata: Metadata = {
     // cho từng ngôn ngữ; đó là đổi kiến trúc, không phải đổi một dòng.
     locale: 'en_US',
     url: '/',
-    siteName: EN.chung.tenSanPham,
-    title: `${EN.chung.tenSanPham} — ${EN.chung.tagTitle}`,
-    description: EN.trangChu.cPhu,
+    siteName: EN.common.productName,
+    title: `${EN.common.productName} — ${EN.common.tagline}`,
+    description: EN.home.subtitle,
     // 🔴 PHẢI LÀ PNG THẬT. Telegram, X, Zalo và Facebook đều KHÔNG render SVG
     // trong thẻ preview — khai SVG ở đây là thẻ chia sẻ trống trơn, và không có
     // lỗi nào báo. Ảnh sinh bằng `node web/scripts/gen-og.mjs` (chainId đọc
@@ -84,14 +84,14 @@ export const metadata: Metadata = {
         width: 1200,
         height: 630,
         type: 'image/png',
-        alt: `${EN.chung.tenSanPham} — chainId ${CHAIN.chainId}, ${CHAIN.kyHieu}`,
+        alt: `${EN.common.productName} — chainId ${CHAIN.chainId}, ${CHAIN.kyHieu}`,
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${EN.chung.tenSanPham} — ${EN.chung.tagTitle}`,
-    description: EN.trangChu.cPhu,
+    title: `${EN.common.productName} — ${EN.common.tagline}`,
+    description: EN.home.subtitle,
     images: ['/brand/og-9chain-a1.png'],
   },
 };

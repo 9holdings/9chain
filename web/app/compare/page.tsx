@@ -5,15 +5,15 @@ import { trangMeta } from '@/lib/seo';
 import { ComparisonTable } from './ComparisonTable';
 
 export const metadata: Metadata = trangMeta({
-  tieuDe: EN.bang.tieuDe,
-  moTa: EN.bang.moTa,
+  tieuDe: EN.compare.title,
+  moTa: EN.compare.desc,
   duong: '/compare/',
 });
 
 export default function TrangBang() {
   return (
     <div className="khung py-10 md:py-14">
-      <DauTrang nhom="bang" rong="vua" />
+      <DauTrang nhom="compare" rong="vua" />
       <ComparisonTable />
     </div>
   );

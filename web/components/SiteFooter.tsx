@@ -33,7 +33,7 @@ function NgoaiTrang({ href, children }: { href: string; children: React.ReactNod
   return (
     <a href={href} target="_blank" rel="noopener noreferrer" className="hover:text-ink hover:underline">
       {children}
-      <span className="sr-only"> {t.chanTrang.moTabMoi}</span>
+      <span className="sr-only"> {t.footer.opensNewTab}</span>
     </a>
   );
 }
@@ -42,26 +42,26 @@ export function SiteFooter() {
   const t = useT();
   const cot = [
     {
-      tieuDe: t.chanTrang.dungThu,
+      tieuDe: t.footer.tryIt,
       muc: [
-        { href: '/faucet/', nhan: t.dieuHuong.faucet },
-        { href: '/create-chain/', nhan: t.dieuHuong.console },
-        { href: '/my-chains/', nhan: t.dieuHuong.chainCuaToi },
+        { href: '/faucet/', nhan: t.nav.faucet },
+        { href: '/create-chain/', nhan: t.nav.launch },
+        { href: '/my-chains/', nhan: t.nav.myChains },
       ],
     },
     {
-      tieuDe: t.chanTrang.kham,
+      tieuDe: t.footer.explore,
       muc: [
-        { href: '/chains/', nhan: t.dieuHuong.danhBa },
-        { href: '/compare/', nhan: t.dieuHuong.bang },
-        { href: explorerGoc(), nhan: t.chanTrang.explorer, ngoai: true },
+        { href: '/chains/', nhan: t.nav.directory },
+        { href: '/compare/', nhan: t.nav.compare },
+        { href: explorerGoc(), nhan: t.footer.explorer, ngoai: true },
       ],
     },
     {
-      tieuDe: t.chanTrang.veDuAn,
+      tieuDe: t.footer.about,
       muc: [
-        { href: 'https://9chain.org/', nhan: t.chanTrang.trangChinh, ngoai: true },
-        { href: '/re-genesis/', nhan: t.chanTrang.reGenesis },
+        { href: 'https://9chain.org/', nhan: t.footer.mainSite, ngoai: true },
+        { href: '/re-genesis/', nhan: t.footer.rebuildPlan },
       ],
     },
   ];
@@ -76,11 +76,11 @@ export function SiteFooter() {
                 Khác header: header luôn navy nên luôn dùng bản nền tối. */}
             {/* 26 → 34 cùng lượt với header (`2026-09-03`) — giữ nguyên nếp cũ là
                 chân trang nhỏ hơn header một bậc, chứ không phóng to riêng một chỗ. */}
-            <BrandLockup nen="theo-theme" cao={34} nhan={t.chung.tenSanPham} />
-            <p className="max-w-xs">{t.chung.moTaNgan}</p>
+            <BrandLockup nen="theo-theme" cao={34} nhan={t.common.productName} />
+            <p className="max-w-xs">{t.common.shortDesc}</p>
           </div>
 
-          <nav aria-label={t.chanTrang.nhanNav} className="grid grid-cols-2 gap-x-10 gap-y-7 sm:grid-cols-3">
+          <nav aria-label={t.footer.navLabel} className="grid grid-cols-2 gap-x-10 gap-y-7 sm:grid-cols-3">
             {cot.map((c) => (
               <div key={c.tieuDe} className="flex flex-col gap-2">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-muted">{c.tieuDe}</h2>

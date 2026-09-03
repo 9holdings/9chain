@@ -23,15 +23,15 @@ import { useT } from '@/lib/i18n';
  * Bốn nhóm dưới đây đều có đúng cặp `tieuDe` + `moTa`. Kiểu `NhomCoDauTrang` khoá
  * việc đó lại: thêm một nhóm thiếu một trong hai khoá là `tsc` đỏ ngay tại đây.
  */
-type NhomCoDauTrang = 'faucet' | 'deChain' | 'chainCuaToi' | 'bang';
+type NhomCoDauTrang = 'faucet' | 'launch' | 'myChains' | 'compare';
 
 export function DauTrang({ nhom, rong }: { nhom: NhomCoDauTrang; rong?: 'hep' | 'vua' }) {
   const t = useT();
   const g = t[nhom];
   return (
     <header className={rong === 'vua' ? 'max-w-3xl' : 'max-w-2xl'}>
-      <h1 className="font-display text-2xl font-extrabold text-ink md:text-3xl">{g.tieuDe}</h1>
-      <p className="mt-3 text-base text-body">{g.moTa}</p>
+      <h1 className="font-display text-2xl font-extrabold text-ink md:text-3xl">{g.title}</h1>
+      <p className="mt-3 text-base text-body">{g.desc}</p>
     </header>
   );
 }

@@ -13,14 +13,14 @@ import { NoiDungKhongThay } from './NoiDungKhongThay';
  * `test/seo.test.ts` bắt đúng — `/` và `/404/` dùng chung một `og:title`.
  */
 export const metadata: Metadata = {
-  title: `${EN.khongThay.tieuDe.replace(' [?]', '')} — ${EN.chung.tenSanPham}`,
-  description: EN.khongThay.moTa.replace(/ \[\?\]/g, ''),
+  title: `${EN.notFound.title.replace(' [?]', '')} — ${EN.common.productName}`,
+  description: EN.notFound.desc.replace(/ \[\?\]/g, ''),
   robots: { index: false, follow: true },
   openGraph: {
     type: 'website',
-    siteName: EN.chung.tenSanPham,
-    title: `${EN.khongThay.tieuDe.replace(' [?]', '')} — ${EN.chung.tenSanPham}`,
-    description: EN.khongThay.moTa.replace(/ \[\?\]/g, ''),
+    siteName: EN.common.productName,
+    title: `${EN.notFound.title.replace(' [?]', '')} — ${EN.common.productName}`,
+    description: EN.notFound.desc.replace(/ \[\?\]/g, ''),
   },
 };
 

@@ -56,13 +56,13 @@ export function ChonNgonNgu() {
     >
       <summary
         className="tap-target flex cursor-pointer list-none items-center gap-1.5 rounded-btn border border-line-dark px-2.5 py-1.5 text-sm text-on-dark-2 transition-colors hover:border-gold hover:text-gold"
-        aria-label={`${t.chonNgonNgu.nhan}: ${ngonNgu.tenAnh}`}
+        aria-label={`${t.langPicker.label}: ${ngonNgu.tenAnh}`}
       >
         <span aria-hidden="true" className="font-mono text-xs font-bold uppercase">
           {ma}
         </span>
         <span className="hidden sm:inline">{ngonNgu.ten}</span>
-        {dangNap && <span className="sr-only">{t.chung.dangTai}</span>}
+        {dangNap && <span className="sr-only">{t.common.loading}</span>}
       </summary>
 
       <div className="absolute end-0 z-50 mt-2 max-h-[70vh] w-64 overflow-y-auto rounded-card border border-line bg-surface p-1.5 shadow-card">
@@ -84,8 +84,8 @@ export function ChonNgonNgu() {
                   // người đang dùng giọng đọc của một thứ tiếng khác.
                   aria-label={
                     `${n.tenAnh}` +
-                    (n.soat === 'may' ? ` — ${t.chonNgonNgu.mayDich}` : '') +
-                    (co ? '' : ` — ${t.chonNgonNgu.chuaCo}`)
+                    (n.soat === 'may' ? ` — ${t.langPicker.machineBadge}` : '') +
+                    (co ? '' : ` — ${t.langPicker.notAvailable}`)
                   }
                   className={
                     'flex w-full items-center justify-between gap-2 rounded-btn px-3 py-2 text-start text-sm ' +
@@ -112,14 +112,14 @@ export function ChonNgonNgu() {
                       "người đọc biết được bản này chưa ai soát", không phải "phải có
                       một cái chip trên mỗi dòng". */}
                   {!co ? (
-                    <span className="shrink-0 text-xs text-muted">{t.chonNgonNgu.chuaCo}</span>
+                    <span className="shrink-0 text-xs text-muted">{t.langPicker.notAvailable}</span>
                   ) : null}
                 </button>
               </li>
             );
           })}
         </ul>
-        <p className="border-t border-line px-3 py-2 text-xs text-muted">{t.chonNgonNgu.mayDichGiaiThich}</p>
+        <p className="border-t border-line px-3 py-2 text-xs text-muted">{t.langPicker.machineNote}</p>
       </div>
     </details>
   );

@@ -5,8 +5,8 @@ import { trangMeta } from '@/lib/seo';
 import { FaucetForm } from './FaucetForm';
 
 export const metadata: Metadata = trangMeta({
-  tieuDe: EN.faucet.tieuDe,
-  moTa: EN.faucet.moTa,
+  tieuDe: EN.faucet.title,
+  moTa: EN.faucet.desc,
   duong: '/faucet/',
 });
 

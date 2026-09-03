@@ -33,12 +33,12 @@ type Muc = { chu: string; href: string; ngoai?: boolean };
 // chữ nhận `t`.
 function dungMuc(t: Tu): Muc[] {
   return [
-    { chu: t.dieuHuong.trangChu, href: '/' },
-    { chu: t.dieuHuong.faucet, href: '/faucet/' },
-    { chu: t.dieuHuong.console, href: '/create-chain/' },
-    { chu: t.dieuHuong.chainCuaToi, href: '/my-chains/' },
-    { chu: t.dieuHuong.bang, href: '/compare/' },
-    { chu: t.dieuHuong.danhBa, href: '/chains/' },
+    { chu: t.nav.home, href: '/' },
+    { chu: t.nav.faucet, href: '/faucet/' },
+    { chu: t.nav.launch, href: '/create-chain/' },
+    { chu: t.nav.myChains, href: '/my-chains/' },
+    { chu: t.nav.compare, href: '/compare/' },
+    { chu: t.nav.directory, href: '/chains/' },
   ];
 }
 
@@ -94,13 +94,13 @@ export function SiteHeader() {
               ĐỪNG sửa bằng cách nắn lại `viewBox` hay giãn chữ trong `BrandLockup` —
               hình học ở đó là bộ kit của David, xem chú thích đầu tệp đó. Chỉ đổi
               chiều cao hiển thị. */}
-          <BrandLockup nen="toi" cao={36} nhan={t.chung.tenSanPham} className="flex-none" />
+          <BrandLockup nen="toi" cao={36} nhan={t.common.productName} className="flex-none" />
           <span className="rounded-chip border border-line-dark-2 px-1.5 py-0.5 font-sans text-[11px] font-semibold text-gold-muted">
             A1
           </span>
         </a>
 
-        <nav aria-label={t.dieuHuong.trangChu} className="hidden items-center gap-1 md:flex">
+        <nav aria-label={t.nav.home} className="hidden items-center gap-1 md:flex">
           {MUC.map((m) => (
             <a
               key={m.href}
@@ -114,10 +114,10 @@ export function SiteHeader() {
             href={explorerGoc()}
             target="_blank"
             rel="noreferrer"
-            aria-label={t.dieuHuong.banGiao}
+            aria-label={t.nav.explorerAria}
             className="rounded-btn px-3 py-2 text-sm font-semibold text-on-dark-2 hover:bg-navy-hover hover:text-on-dark"
           >
-            {t.dieuHuong.explorer}
+            {t.nav.explorer}
             <span aria-hidden="true"> ↗</span>
           </a>
         </nav>
@@ -131,7 +131,7 @@ export function SiteHeader() {
             onClick={() => datMoNgan((v) => !v)}
             aria-expanded={moNgan}
             aria-controls="ngan-dieu-huong"
-            aria-label={moNgan ? t.chung.dongMenu : t.chung.moMenu}
+            aria-label={moNgan ? t.common.closeMenu : t.common.openMenu}
             className="inline-flex h-10 w-10 items-center justify-center rounded-btn border border-line-dark text-on-dark-2 hover:bg-navy-hover md:hidden"
           >
             <span aria-hidden="true">{moNgan ? '✕' : '☰'}</span>
@@ -147,7 +147,7 @@ export function SiteHeader() {
         hidden={!moNgan}
         className={gop('border-t border-line-dark bg-navy-panel md:hidden')}
       >
-        <nav aria-label={t.chung.moMenu} className="khung flex flex-col py-2">
+        <nav aria-label={t.common.openMenu} className="khung flex flex-col py-2">
           {MUC.map((m) => (
             <a
               key={m.href}
@@ -163,7 +163,7 @@ export function SiteHeader() {
             rel="noreferrer"
             className="rounded-btn px-3 py-3 text-base font-semibold text-on-dark hover:bg-navy-hover"
           >
-            {t.dieuHuong.explorer}
+            {t.nav.explorer}
             <span aria-hidden="true"> ↗</span>
           </a>
         </nav>

@@ -22,15 +22,15 @@ function Muc({ tieuDe, children }: { tieuDe: string; children: React.ReactNode }
 
 export function NoiDungReGenesis() {
   const t = useT();
-  const ngay = t.reGenesis.ngay;
+  const ngay = t.rebuild.date;
 
   return (
     <div className="khung max-w-3xl py-10 md:py-14">
       <header>
         <h1 className="font-display text-2xl font-extrabold text-ink md:text-3xl">
-          {dien(t.reGenesis.tieuDe, { ngay })}
+          {dien(t.rebuild.title, { ngay })}
         </h1>
-        <p className="mt-3 text-base text-body">{t.reGenesis.moTa}</p>
+        <p className="mt-3 text-base text-body">{t.rebuild.desc}</p>
       </header>
 
       {/* 🔴 ĐỨNG TRƯỚC MỌI THỨ, KỂ CẢ "vì sao" (D-081, 2026-08-27).
@@ -44,41 +44,41 @@ export function NoiDungReGenesis() {
           nói "không ai mất gì". */}
       <div className="mt-6">
         <LuuY kieu="canhBao">
-          <p className="font-semibold">{t.reGenesis.daXayRaTieuDe}</p>
-          <p className="mt-1">{t.reGenesis.daXayRaMoTa}</p>
+          <p className="font-semibold">{t.rebuild.alreadyTitle}</p>
+          <p className="mt-1">{t.rebuild.alreadyDesc}</p>
         </LuuY>
       </div>
 
-      <Muc tieuDe={t.reGenesis.viSaoTieuDe}>
-        <p>{t.reGenesis.viSao1}</p>
-        <p>{t.reGenesis.viSao2}</p>
-        <p>{t.reGenesis.viSao3}</p>
+      <Muc tieuDe={t.rebuild.whyTitle}>
+        <p>{t.rebuild.why1}</p>
+        <p>{t.rebuild.why2}</p>
+        <p>{t.rebuild.why3}</p>
       </Muc>
 
-      <Muc tieuDe={t.reGenesis.matTieuDe}>
-        <p>{t.reGenesis.matMoTa}</p>
+      <Muc tieuDe={t.rebuild.lostTitle}>
+        <p>{t.rebuild.lostDesc}</p>
         <ul className="flex list-disc flex-col gap-2 ps-5">
-          <li>{t.reGenesis.mat1}</li>
-          <li>{t.reGenesis.mat2}</li>
-          <li>{t.reGenesis.mat3}</li>
-          <li>{t.reGenesis.mat4}</li>
+          <li>{t.rebuild.lost1}</li>
+          <li>{t.rebuild.lost2}</li>
+          <li>{t.rebuild.lost3}</li>
+          <li>{t.rebuild.lost4}</li>
         </ul>
       </Muc>
 
-      <Muc tieuDe={t.reGenesis.conTieuDe}>
-        <p>{t.reGenesis.conMoTa}</p>
+      <Muc tieuDe={t.rebuild.keptTitle}>
+        <p>{t.rebuild.keptDesc}</p>
       </Muc>
 
-      <Muc tieuDe={t.reGenesis.lamTieuDe}>
-        <p className="font-semibold text-ink">{t.reGenesis.lamTruoc}</p>
+      <Muc tieuDe={t.rebuild.toDoTitle}>
+        <p className="font-semibold text-ink">{t.rebuild.toDoBefore}</p>
         <ul className="flex list-disc flex-col gap-2 ps-5">
-          <li>{t.reGenesis.lam1}</li>
+          <li>{t.rebuild.toDo1}</li>
         </ul>
-        <p className="mt-2 font-semibold text-ink">{t.reGenesis.lamSau}</p>
+        <p className="mt-2 font-semibold text-ink">{t.rebuild.toDoAfter}</p>
         <ul className="flex list-disc flex-col gap-2 ps-5">
-          <li>{t.reGenesis.lam2}</li>
-          <li>{t.reGenesis.lam3}</li>
-          <li>{t.reGenesis.lam4}</li>
+          <li>{t.rebuild.toDo2}</li>
+          <li>{t.rebuild.toDo3}</li>
+          <li>{t.rebuild.toDo4}</li>
         </ul>
         {/* 🔴 ĐƯỜNG ĐI, KHÔNG PHẢI NÚT GỌI VÍ (Đ1-13, 2026-08-27).
             Đo `27/08`: trang này nhắc chữ "faucet" **13 lần** mà thân trang có
@@ -89,13 +89,13 @@ export function NoiDungReGenesis() {
             tác gọi ví phải nằm ở màn có ngữ cảnh xử lý lỗi của nó. */}
         <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-base">
           <a href="/faucet/" className="font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
-            {t.dieuHuong.faucet}
+            {t.nav.faucet}
           </a>
           <a href="/create-chain/" className="font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
-            {t.dieuHuong.console}
+            {t.nav.launch}
           </a>
           <a href="/my-chains/" className="font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
-            {t.dieuHuong.chainCuaToi}
+            {t.nav.myChains}
           </a>
         </p>
       </Muc>
@@ -103,22 +103,22 @@ export function NoiDungReGenesis() {
       {/* Đứng NGAY SAU "Bạn cần làm gì": mục trên nói việc phải làm, mục này nói
           cái sẽ thấy nếu không làm. Đảo thứ tự là bắt người đọc nhớ một cảnh báo
           trừu tượng trước khi biết nó dẫn tới thao tác nào. */}
-      <Muc tieuDe={t.reGenesis.imLangTieuDe}>
-        <p>{dien(t.reGenesis.imLangMoTa, { chainId: CHAIN.chainId })}</p>
+      <Muc tieuDe={t.rebuild.silentTitle}>
+        <p>{dien(t.rebuild.silentDesc, { chainId: CHAIN.chainId })}</p>
         <ul className="flex list-disc flex-col gap-2 ps-5">
-          <li>{t.reGenesis.imLang1}</li>
-          <li>{t.reGenesis.imLang2}</li>
+          <li>{t.rebuild.silent1}</li>
+          <li>{t.rebuild.silent2}</li>
         </ul>
       </Muc>
 
-      <Muc tieuDe={t.reGenesis.lapTieuDe}>
-        <p>{t.reGenesis.lapMoTa}</p>
+      <Muc tieuDe={t.rebuild.repeatTitle}>
+        <p>{t.rebuild.repeatDesc}</p>
       </Muc>
 
       <div className="mt-10">
         <LuuY kieu="canhBao">
-          <p className="font-semibold">{t.reGenesis.ngayLuuY}</p>
-          <p className="mt-1">{dien(t.reGenesis.ngayLuuYMoTa, { ngay })}</p>
+          <p className="font-semibold">{t.rebuild.dateNote}</p>
+          <p className="mt-1">{dien(t.rebuild.dateNoteDesc, { ngay })}</p>
         </LuuY>
       </div>
     </div>

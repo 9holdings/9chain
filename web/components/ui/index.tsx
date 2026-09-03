@@ -214,11 +214,11 @@ export function CoLoi({ tieuDe, moTa, thuLai }: { tieuDe?: string; moTa?: string
       role="alert"
       className="flex flex-col items-start gap-3 rounded-card border border-line-strong bg-surface px-5 py-4"
     >
-      <p className="font-semibold text-ink">{tieuDe ?? t.loi.khongKetNoi}</p>
-      <p className="text-sm text-body-2">{moTa ?? t.loi.khongKetNoiMoTa}</p>
+      <p className="font-semibold text-ink">{tieuDe ?? t.errors.unreachable}</p>
+      <p className="text-sm text-body-2">{moTa ?? t.errors.unreachableDesc}</p>
       {thuLai && (
         <Nut kieu="vien" onClick={thuLai}>
-          {t.chung.thuLai}
+          {t.common.retry}
         </Nut>
       )}
     </div>
@@ -241,7 +241,7 @@ export function ChepDuoc({ giaTri, nhan, className }: { giaTri: string; nhan?: s
       type="button"
       // Nhãn phải nói RÕ chép cái gì — "Sao chép" một mình thì trong danh sách 5 nút
       // giống hệt nhau, người dùng trình đọc màn hình không biết mình đang ở nút nào.
-      aria-label={`${t.chung.saoChep} ${nhan ?? giaTri}`}
+      aria-label={`${t.common.copy} ${nhan ?? giaTri}`}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(giaTri);
@@ -265,7 +265,7 @@ export function ChepDuoc({ giaTri, nhan, className }: { giaTri: string; nhan?: s
       {/* Thông báo cho trình đọc màn hình — vùng live riêng, không phụ thuộc vào
           việc dấu ✓ có được đọc hay không. */}
       <span className="sr-only" role="status">
-        {daChep ? t.chung.daChep : ''}
+        {daChep ? t.common.copied : ''}
       </span>
     </button>
   );
