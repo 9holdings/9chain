@@ -1,6 +1,10 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-02** chiều — 🟢🟢 **CHẶN SỐ 1 HẾT CHẶN: `genesis.json` NAY TẢI ĐƯỢC TỪ NGOÀI**
+Cập nhật: **2026-09-03** — 🟢 **BA L1 ĐẦU TIÊN SỐNG (Adam · Eva · 9S Union), cửa MỞ với allowlist một
+ví, ví factory đã nạp, bơm chạy tới `09/09`.** Preflight `47 đạt · 1 đỏ` (đỏ = `web-home`). Còn
+**12/15 chỗ vĩnh viễn**. 🔴 3 tệp đã deploy nhưng commit cuối **CHƯA ĐẨY**. Đọc mục **CHỐT PHIÊN
+`2026-09-03`** ngay dưới — gotchas ở đó là thứ đắt nhất của ngày.
+Trước đó **2026-09-02** chiều — 🟢🟢 **CHẶN SỐ 1 HẾT CHẶN: `genesis.json` NAY TẢI ĐƯỢC TỪ NGOÀI**
 (D-158). Đã đẩy `official` + `origin`, nghiệm thu **bằng tay** trên đúng đường người lạ đi.
 🔴 Hoá ra không phải *"chưa ai tải lên"*: tệp **không được git theo dõi** — byte cả thế giới cần
 nằm ở **hai chỗ vận hành, không repo/sao lưu/release nào**, và **không cổng nào đo một sự vắng
@@ -70,6 +74,66 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 > `HANDOFF.md` thắng về **số đo**. Backlog: [`PROGRESS.md`](PROGRESS.md).
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
+
+### 🆕 CHỐT PHIÊN `2026-09-03` — BA L1 SỐNG, CỔNG MỜI CHẠY, CÒN 12 CHỖ
+
+**TL;DR:** `Adam Chain #9001000000` · `Eva Chain #9001000001` · `9S Union #9001000002` — ba L1
+đầu tiên trên g1, tạo qua **giao diện công khai** bằng ví `0x1e8c…3292C`. Cửa đẻ chain **MỞ** với
+**allowlist một ví** (chính ví đó). Bơm chạy, tự dừng `09/09 05:39:09Z`. Preflight `47 đạt · 1 đỏ`
+(đỏ = `web-home`, không phải A1). **Còn 12/15 chỗ, vĩnh viễn.**
+
+```
+git      : 3 tệp ĐÃ deploy lên server nhưng commit CUỐI PHIÊN — CHƯA ĐẨY (chờ David)
+server   : console PID 2527217 (12:20Z), sha256 khớp repo · A1_DE_CHAIN_MO=1 · A1_L1_ALLOWLIST=0x1e8c…3292C
+```
+
+#### Đã xong hôm nay (mỗi mục có nghiệm thu thật — xem D-160→D-175)
+- B-12 số thật · bánh cóc §0 chốt (`5709`) · 2 cổng đường validator ngoài · tỉa 40→8 việc tay
+- B-13(b) `--offset-ms 3000` đo bằng `block.timestamp` · lệch 9 node = 0 **đo**, liên máy **~µs** (NTP)
+- nạp ví factory (D-169) · bơm chạy lại + `network`/`networkID` đo từ node (D-168)
+- nội dung Adam/Eva = **đúng hai câu đã khắc**, đóng băng trong `docs/block-adam/CANON.txt` (D-173)
+- cổng `check-validator-onboarding` · `check-outsider-bootstrap` · `check-deploy-imports` (D-175)
+- allowlist (D-171) — **và nó hỏng lúc ship, đã vá**: chỗ gọi truyền 1 tham số, thư viện nay THROW
+
+#### ⚠️ Việc tiếp — ai làm
+- **[human] 09/09** — bơm tự dừng; trước cửa sổ chạy `node scripts/check-clock-skew.mjs` (chain
+  đang đẻ block ⇒ nguồn [1]). Lệnh nghi lễ: `docs/CEREMONY-2026-09-09.md`. Adam/Eva payload:
+  `--adam-data docs/engrave/dedication.txt --eva-data docs/engrave/dedication_eva.txt`.
+- **[human] đẩy** commit cuối (`git push origin main && git push official main`) — kiểm §4 trước.
+- **[autopilot] đo tải 3 L1 lúc node ~4h tuổi** (≈`17:20Z` 03/09): mẫu nền 2 L1 lúc `11:43:42Z` =
+  CPU `0.952` core · RAM 9 node `5270 MiB`. Mẫu sớm (node 5 phút): CPU `1.224` · RAM `1412` —
+  **KHÔNG so được** (node trẻ, mất heap). Dùng lệnh cgroup trong D-175/P-48 (60s, `cpu.stat` +
+  `memory.current`), KHÔNG dùng `docker stats`.
+- **[human] thêm ví mời**: sửa `A1_L1_ALLOWLIST` trong `console.env` (phẩy) + `console-restart.sh`.
+- **[human]** ACP-77 quyết định kinh tế (trần 15 vs 108) · node Hetzner stake (đường đã dọn, D-166).
+- **[nợ, cho web-home]** server nên phát **mã lỗi** bên cạnh câu chữ; `web/` đã có từ điển 30
+  ngôn ngữ (`tenXau`) nhưng đang in chuỗi thô của server. Luật cứng #4 — A1 không đụng `web/`.
+
+#### 🔴 GOTCHAS phiên này — đọc trước khi dựng cổng/deploy
+1. **Thêm `import` vào console = phải thêm tệp vào `manifest-deploy.json`**, nếu không deploy chở
+   thiếu và console CHẾT (đã xảy ra 2 phút, `11:28Z`). `check-deploy-imports` nay chặn — chạy nó
+   TRƯỚC `console-deploy.sh`.
+2. **Reverse control có thể mã hoá đúng cái bug nó phải ngăn** (`undefined` ≡ empty). Kiểm CHỖ NỐI,
+   không chỉ kiểm hàm; `undefined` phải THROW.
+3. **`docker stats --no-stream` không đáng tin** (in y hệt `563,2%` hai lần). Đo bằng cgroup
+   `cpu.stat usage_usec` delta/60s.
+4. **`ssh 'date'` để đo lệch đồng hồ liên máy là SAI ba bậc** (RTT khác nhau ⇒ thiên lệch không
+   triệt tiêu). Hỏi `chronyc tracking` / `timedatectl show-timesync`.
+5. **Ký tự vô hình trong tên chain**: U+00A0/202F/2009/200B trượt `/^[A-Za-z0-9 ]/` mà trông như
+   dấu cách. Thông báo nay nêu đích danh `Character N is U+XXXX`.
+6. **Test bám vào văn xuôi thông báo** (`generation-test.mjs`) — đổi chữ là đỏ vì lý do không liên
+   quan. Grep phụ thuộc trước khi đổi chuỗi, và grep CẢ tệp test.
+7. **`Edit` chuẩn hoá xuống dòng tệp trộn CRLF/LF** (`DECISIONS.md`): xem `git diff --stat` ngay;
+   khôi phục bằng `git checkout HEAD -- <tệp>` rồi append nhị phân.
+8. **Bấm `Ctrl+J` trong nano = justify (gộp dòng)** — `Ctrl+X` → `N` để thoát không lưu.
+
+#### Lệnh hữu ích
+```bash
+node scripts/gday-preflight.mjs                    # 48 muc; 47 dat · 1 do (web-home)
+node scripts/reopen-chain-creation.mjs --probe     # 4 buoc, cua mo/dong do THAT
+node scripts/check-deploy-imports.mjs && bash local-net/deploy/console-deploy.sh   # THU TU NAY
+node scripts/check-clock-skew.mjs                  # B-13(b); chon nguon [1] khi chain de block
+```
 
 ### 🆕🆕🆕🆕🆕 `2026-09-02` tối — **B-13(b) ĐÓNG NỬA A1: `--offset-ms 3000`** (D-164)
 
