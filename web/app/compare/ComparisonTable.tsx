@@ -101,8 +101,8 @@ export function ComparisonTable() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[46rem] border-collapse text-sm">
             <caption className="sr-only">{t.bang.tieuDe}</caption>
-            {/* `text-start` trên từng `<th>` — xem chú thích cùng vấn đề trong
-                `app/ChainTable.tsx`. Hai ô `text-center` là CỐ Ý, đừng dọn. */}
+            {/* `text-start` on each `<th>` — same issue as documented in
+                `app/ChainTable.tsx`. The two `text-center` cells are DELIBERATE. */}
             <thead>
               <tr className="border-b border-line bg-surface-alt text-start">
                 <th scope="col" className="px-3 py-3 text-start font-semibold text-ink">{t.bang.cotSo}</th>
