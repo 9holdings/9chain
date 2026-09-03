@@ -646,6 +646,17 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       `a1.9scan.org` · bỏ `/api/*` `/socket/*` · `check-routes.mjs` có ca dựa trên "Blockscout trả 404".
       Kèm: `check-live-page` đỏ — `/` khai 9 validator, P-Chain có **10**.
 
+- [x] **P-53 — đo tải L1 hai mẫu: mỗi L1 track thêm ≈ 0,05 core/node + 53 MiB, dù chain im** (D-178)
+      Việc P-48 để lại. `scripts/measure-node-load.sh`, cgroup, trên node đang chạy.
+      `14:49Z` **3 L1** node ~90 phút: 9 node `1,199` core · `3.531` MiB, mỗi node **~0,07** (node-1
+      `0,658` do Blockscout). `17:21Z` **6 L1** (ví allowlist đẻ BBWay · 9Mall · 9Cashback chiều nay)
+      node ~75 phút: `2,277` core · `4.103` MiB, mỗi node **0,23–0,26**, node-1 ngang các node.
+      Trong node-2: `avalanchego` 19,8 % · sáu plugin subnet-evm 0,5 % / 53 MiB mỗi cái ⇒ chi phí ở
+      **đồng thuận của tiến trình chính**, không ở plugin.
+      🔴 **Ngoại suy sơ bộ:** trần 15 L1 ≈ `0,7–0,8` core/node = **6–7 core cho 9 node trên máy 8 lõi**
+      trước khi có giao dịch nào trên L1; 108 L1 bất khả thi trên một máy. Đưa vào ACP-77.
+      ⚠️ Mẫu `19:30Z` (node ~3,3 h) sẽ ghi bù vào D-178; đọc tuổi node trước khi so.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
