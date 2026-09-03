@@ -8075,3 +8075,63 @@ thời gian là **VẬN CHUYỂN** (`0,3–2,9 s` qua hostname công khai, đo `
 
 ⚠️ Nhưng điều đó **không** làm B-13(b) thành thừa: nó nói *"đừng lo đồng hồ"*, không nói *"đừng đo"*.
 Ngày một máy rơi khỏi NTP là ngày con số này đổi, và không gì báo trừ khi có người hỏi.
+
+---
+
+## D-175 — **Tôi làm console CHẾT hai phút, và cổng drift báo "mọi tệp khớp từng byte" suốt lúc đó** (`2026-09-03`)
+
+David: *"deploy console rồi mở lại cửa với allowlist."* Cả hai đã xong — nhưng ở giữa có một sự cố
+do tôi gây ra, và **cách nó không bị bắt** đáng ghi hơn chính sự cố.
+
+### Chuyện gì xảy ra
+
+`console/server.mjs` thêm **một dòng**: `import … from "../lib/l1-allowlist.mjs"`.
+`manifest-deploy.json` liệt kê **từng phụ thuộc bằng tay** (`eip55.mjs`, `guard.mjs`,
+`presets.mjs`…) và tôi không thêm tệp mới vào đó. `console-deploy.sh` chở `server.mjs` sang mà
+**không chở thứ nó import** ⇒ console không khởi động nổi ⇒ `localhost:8091` không trả lời trong
+khoảng **`11:28`–`11:30`**.
+
+### 🔴 Và cổng drift báo mọi thứ ổn — ĐÚNG theo phạm vi của nó
+
+`check-deploy-drift` in *"mọi tệp trong phạm vi khớp từng byte"* **trong lúc console đã chết**. Nó
+không sai: nó so **những tệp nó được bảo**, và một phụ thuộc không ai khai **không nằm trong số
+đó**. ⇒ Bài học D-158 lần thứ **ba**: **không cổng nào đo một sự VẮNG MẶT.** Một tệp chưa từng được
+khai thì không thể "thiếu" khỏi bất cứ danh sách nào.
+
+⚠️ Và trang tĩnh **vẫn trả 200 suốt thời gian đó** — Caddy phục vụ `/create-chain/` từ `web/`, chỉ
+`/console/*` là mất. Một trang chủ xanh **không chứng minh gì** về console. Đó là lý do cổng mới
+đọc **ĐỒ THỊ IMPORT**, không đọc một trang.
+
+### Cổng mới: `scripts/check-deploy-imports.mjs`
+
+So **hai thứ trong repo** — thứ mã thật sự với tới (đọc `import` đệ quy) và thứ manifest sẽ chở —
+nên **không cần mạng, không cần server**, và **chạy được TRƯỚC lượt deploy**. Sự cố nó ngăn chỉ
+nhìn thấy được **SAU** deploy, tức thời điểm tệ nhất để biết.
+
+**Nghiệm thu 13 đối chứng**, và quan trọng hơn: **đối chứng trên byte thật của chính sự cố** —
+chĩa vào manifest ở trạng thái lúc hỏng, nó gọi đúng tên `local-net/lib/l1-allowlist.mjs`.
+
+⚠️ Khai rõ phạm vi: chỉ theo **import tương đối** (`./x`, `../lib/y`), vì đó mới là tệp deploy phải
+chở. `ethers`, `node:fs` là gói/built-in, cài bằng đường khác. `import(bien)` tính động thì **báo
+ra**, không im lặng bỏ qua.
+
+### 🔴 Và nó tìm thêm một lỗi CÓ SẴN: faucet đang sống nhờ MAY
+
+`faucet` cần `local-net/lib/guard.mjs` nhưng **không tự chở**. Nó chạy được **chỉ vì nhóm
+`console` chở tệp đó sang cùng một máy**. Deploy faucet lên một máy không có console là faucet
+chết — và không gì báo trước.
+⇒ Đây là **phụ thuộc đi mượn**: đúng hôm nay, đúng nhờ một sự trùng hợp về bố cục, không nhờ một
+lời khai nào. Đã khai vào manifest.
+
+### Kèm: tôi lại suýt ghi đè cả tệp
+
+Lượt sửa manifest đầu tiên dùng `JSON.stringify(j,null,1)` ⇒ **93 thêm / 91 bớt** cho **một dòng
+cần thêm**, vì thụt lề đổi hết. Bắt được nhờ xem `git diff --stat` **ngay sau** lượt sửa bằng
+script — đúng thói quen HANDOFF đã dặn. Khôi phục byte gốc rồi chèn bằng **chuỗi**, còn **2 thêm /
+0 bớt**.
+
+### Trạng thái cuối
+
+Console sống lại (`HTTP 200`), cửa **MỞ** với cổng mời **một ví**, và cả hai đo trên **tiến trình
+đang chạy** (`/proc/<pid>/environ`), không đọc tệp cấu hình rồi tin. `reopen-chain-creation --probe`
+**cả bốn xanh**.

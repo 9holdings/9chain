@@ -574,6 +574,45 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       ⚠️ Không làm B-13(b) thành thừa: nó nói *"đừng lo đồng hồ"*, không nói *"đừng đo"* — ngày một
       máy rơi khỏi NTP là ngày con số đổi, và không gì báo trừ khi có người hỏi.
 
+- [x] **P-47 — 🔴 tôi làm CONSOLE CHẾT hai phút, và cổng drift báo "khớp từng byte" suốt lúc đó** (D-175)
+      `server.mjs` thêm **một dòng import**; `manifest-deploy.json` liệt kê phụ thuộc **bằng tay**
+      và tôi quên thêm ⇒ deploy chở `server.mjs` mà **không chở thứ nó import** ⇒ console không
+      khởi động nổi, `localhost:8091` im từ `11:28` tới `11:30`.
+      🔴 **Cổng drift báo mọi thứ ổn — ĐÚNG theo phạm vi của nó:** nó so **những tệp nó được bảo**,
+      mà một phụ thuộc không ai khai **không nằm trong số đó**. Bài học D-158 lần thứ **BA**:
+      **không cổng nào đo một sự VẮNG MẶT.**
+      ⚠️ Trang tĩnh **vẫn 200 suốt thời gian đó** (Caddy phục vụ `/create-chain/` từ `web/`) — một
+      trang chủ xanh **không chứng minh gì** về console.
+      ✅ Khôi phục: chép tệp thiếu, restart, `HTTP 200`, và script tự khai *"cũ: **không có**"* —
+      xác nhận nó đã chết thật chứ không phải tôi đoán.
+
+- [x] **P-48 — cổng mới `check-deploy-imports.mjs`: manifest có chở đủ thứ mã IMPORT không** (D-175)
+      So **hai thứ trong repo** — đồ thị import đệ quy của mã ↔ danh sách manifest — nên **không
+      cần mạng, không cần server**, và **chạy được TRƯỚC lượt deploy**. Sự cố nó ngăn chỉ nhìn thấy
+      được **SAU** deploy, tức thời điểm tệ nhất để biết.
+      **Điều kiện qua:** bắt được **chính sự cố vừa xảy ra**, trên byte thật.
+      ✅ **ĐẠT — 13 đối chứng** + **đối chứng âm trên trạng thái manifest lúc hỏng**: nó gọi đúng
+      tên `local-net/lib/l1-allowlist.mjs`. Đã nối vào preflight **hai mục** (nhóm 2, không phải
+      nhóm 3 — vì nó phải chặn *trước* khi deploy).
+      ⚠️ Khai rõ phạm vi: chỉ theo **import tương đối**; gói/built-in cài bằng đường khác;
+      `import(biến)` tính động thì **báo ra**, không im lặng bỏ qua.
+      🔴 **Và nó tìm thêm một lỗi CÓ SẴN: `faucet` đang sống nhờ MAY** — nó cần `guard.mjs` nhưng
+      **không tự chở**, chạy được **chỉ vì nhóm `console` chở tệp đó sang cùng một máy**. Deploy
+      faucet lên máy không có console là faucet chết. **Phụ thuộc đi mượn** — đúng nhờ trùng hợp về
+      bố cục, không nhờ lời khai nào. Đã khai.
+      🟡 Kèm: lượt sửa manifest đầu dùng `JSON.stringify` ⇒ **93 thêm / 91 bớt** cho một dòng. Bắt
+      được nhờ xem `git diff --stat` **ngay sau** lượt sửa bằng script; khôi phục byte gốc rồi chèn
+      bằng chuỗi ⇒ còn **2 thêm / 0 bớt**.
+
+- [x] **P-49 — cửa MỞ LẠI với cổng mời** (D-171 · D-175)
+      `A1_L1_ALLOWLIST=0x1e8c889B6b3b32017680E72549583EA1b1d3292C` — ví đã tạo Adam và Eva, lấy
+      **từ sổ chain** chứ không gõ tay, và kiểm checksum EIP-55 + chạy khô cổng **trước** khi đưa
+      lên server.
+      ✅ Đo trên **tiến trình đang chạy** (`/proc/<pid>/environ`), không đọc tệp cấu hình rồi tin:
+      `A1_DE_CHAIN_MO=1` · `A1_L1_ALLOWLIST=0x1e8c…3292C`. `reopen-chain-creation --probe` **cả bốn
+      xanh**.
+      ⚠️ Còn **13 chỗ** vĩnh viễn; thêm ví vào danh sách là sửa `A1_L1_ALLOWLIST` + restart.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
