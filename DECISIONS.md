@@ -7727,3 +7727,64 @@ Kiểm hai phương thức **tồn tại thật** trước khi ship (`9chain-a1-
 
 Bơm chạy tới `2026-09-09T05:39:09Z` rồi **tự dừng** — 30 phút trước mốc thiêng, không ai phải nhớ
 (D-149 giữ nguyên: cửa sổ nghi lễ là chain YÊN TĨNH).
+
+---
+
+## D-169 — **Ví `chain-factory` đã nạp: cái đỏ chặn năm phiên đã hết** (`2026-09-03`)
+
+David bấm, A1 đo và soạn đường. Ba bước, mỗi bước nghiệm thu **trên chain**, không tin lời khai
+của công cụ.
+
+### Console cầm khoá mới — đo trên TIẾN TRÌNH, không trên tệp
+
+Khoá factory xoay `02/09` (D-159) nhưng console trên server **vẫn cầm bản cũ**: vân tay
+`1dc334145c8a1abc` ≠ `db4de94ee21fec48`. Thứ tự vì thế **load-bearing**: nạp tiền trước khi đổi
+khoá là nạp vào một ví **console không ký được**.
+
+```
+console.env sua luc : 06:38:08   (799 byte, 9 bien con du)
+console khoi dong   : 06:38:50   <- SAU 42 giay
+/proc/2391212/environ -> db4de94e...0a97   <- khoa MOI trong TIEN TRINH SONG
+```
+
+🔴 **Phép đo cuối là phép đo đúng.** Đọc `console.env` chỉ chứng minh **tệp** đã đổi; đọc
+`/proc/<pid>/environ` chứng minh **tiến trình đang phục vụ** đang cầm khoá đó. Dự án này đã cháy
+vì lẫn hai thứ (D-088: cổng xanh trong khi bản cũ vẫn đang chạy).
+
+### Hai chặng, và số học khép kín
+
+```
+chang A  quy foundation -> factory tren X   1000 LOVE9
+         quy: 71,000,009 -> 70,999,008.999   voi 1,000.001  (1000 + phi 0,001)
+chang B  factory X -> P cua chinh no          999 LOVE9
+         cuoi cung: X 0.999 · P 998.99999173  ~9.989 luot de chain
+```
+
+**Quỹ không phải lựa chọn — nó là phép đo.** Đo trên X-Chain: `foundation` **71.000.009**, còn
+`staking`/`ecosystem`/`faucet`/`private-sale`/`team` đều **0 trên X**. Chặng A cần tiền **trên X**
+⇒ `foundation` là quỹ duy nhất chạy được. `allocation.md` nói về **phân bổ**, không nói tiền đang
+nằm ở **chain nào** — chép tên quỹ từ đó là chọn theo bảng thay vì theo số dư.
+
+**Số `1000` do David chốt**, biết rằng số dư ví **là bán kính thiệt hại** nếu server bị chiếm — vì
+khoá này do console trên máy công khai giữ, và đã phải xoay một lần vì rò rỉ.
+
+### 🔴 Runbook có HAI lỗi, cả hai chỉ lộ ra khi CHẠY
+
+**(a) Hai con số mâu thuẫn.** Khối lệnh ghi `1000`/`999`, ghi chú ngay dưới ghi *"số `100`/`99` là
+gợi ý"* — suốt hai ngày. Một runbook đưa ra hai con số thì người bấm phải **đoán**, và đoán sai ở
+đây là tiền thật. Nay một con số duy nhất, kèm bản cũ giữ lại có dấu miễn trừ.
+
+**(b) 🔴 Phép kiểm tồn tại nhưng KHÔNG CHẶN.** `wallet-over-tunnel.mjs` **có** `process.exit(1)`
+khi dựng ảnh hỏng (dòng 81) — nó báo đúng. Nhưng khối lệnh nối `cho_vi && curl` bằng `&&` mà
+**quên nối lượt dựng ví**, nên Docker Desktop chưa chạy ⇒ build hỏng ⇒ shell **rơi thẳng** vào
+`cho_vi` và đếm **600 giây** chờ một cái ví không thể tồn tại.
+⇒ Đây là **cùng một lớp lỗi với ba lỗi khác của tôi trong hai ngày**: bánh cóc §0 đo mà không
+chốt · `wc -l` là chú thích chứ không phải cổng · cảnh báo tuổi block nằm trong văn xuôi rồi vẫn
+tính bù từ nó. **Một phép kiểm không chặn được thứ nó cảnh báo thì chưa phải phép kiểm.**
+Nay cả hai chặng nối `&&` từ đầu tới cuối, cộng một dòng kiểm Docker đứng trước.
+
+### Trạng thái
+
+`reopen-chain-creation`: **1 ✓ · 2 ✓ · 3 ✓ · 4 chưa đo**. Bước 4 (bật cửa) **chưa làm** — và
+runbook dặn: sau khi ba bước xanh thì **đẻ một L1 thật rồi thu hồi trước khi nói với ai**, vì
+đường đẻ chain **chưa bao giờ chạy trên g1**.
