@@ -65,9 +65,14 @@ cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang g
       ✅ `local-net/lib/genesis-stakers.mjs`: sáng lập = `initialStakers` genesis đã theo dõi, vắng
       tệp ⇒ THROW. Đối chứng +11 / 26→34 ca, fixture đúng hình đã đo, đỏ thật cả hai chiều.
       ✅ Chạy thật `20:25Z`: `watch-network` exit 0 (vàng: khách uptime 13,9 %) · bootstrap PASS.
-- [ ] **P-64 — `RUN-A-VALIDATOR.md`: hai dòng bẫy** — giữ `staker.crt`/`staker.key` (mất là đổi
-      NodeID, cọc thành vô nghĩa; khách đầu tiên có vẻ đã dính: NodeID cọc ≠ NodeID nối) · node sau
-      NAT validate được nhưng uptime đo qua kết nối, nên mở 9651.
+- [x] **P-64 — `RUN-A-VALIDATOR.md` tự xoá danh tính node của người đọc** (D-181) — *xong `03/09` đêm*
+      Không phải "hai dòng bẫy": lệnh chạy mount `./staking` vào đường node **không đọc**, khoá nằm trong
+      volume `a1-data`, và "Starting over" bảo xoá đúng volume đó ⇒ đổi NodeID (hình dạng khách `03/09`).
+      ✅ Sửa mount về `/root/.avalanchego/staking` (thêm cờ đường dẫn thì node từ chối chạy khi tệp chưa
+      có — `config.go:733`) · mục "Your identity is three files" · "Starting over" giữ `./staking` ·
+      đoạn "Behind NAT" · 2 dòng bảng.
+      ✅ **Đối chứng thật trên image g1** (Docker cục bộ, không peer): mount mới giữ NodeID qua
+      `volume rm`; mount cũ **đổi NodeID**, `./staking` 0 tệp. 3 cổng đọc hướng dẫn xanh.
 
 ---
 
