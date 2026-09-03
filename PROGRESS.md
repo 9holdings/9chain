@@ -629,6 +629,23 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       ✅ Kèm `scripts/measure-node-load.sh` (cgroup, đối chứng đỏ): mẫu `14:49Z` 3 L1 · 9 node
       `1,199 core · 3.531 MiB`; mẫu "4 h tuổi" dời `≈19:30Z` vì console rollout `15:16–15:27Z`.
 
+- [x] **P-51 — Blockscout NGHỈ HẲN (David chốt, sau khi đo state g1 cũng đã tỉa)** (D-177)
+      `eth_getBalance` tại block g1 chỉ trả lời ở bội số 4096 ⇒ index lại từ 0 = dựng lại vòng lặp
+      D-176 với địa chỉ g1. Blockscout cần node archive; A1 không có.
+      ✅ **B-17 đủ bốn bước:** liệt kê 12 container · truy cập thật 72 h = **2 lượt người** · dữ liệu
+      bind **giữ trên đĩa** (3,1 G + 64 M + 2,0 G, David xoá sau) · `down -t 60` `16:05Z` · đối chứng
+      0 container, `a1net` còn, 9 node + faucet + console + 9scan không đổi.
+      ✅ **Đo trên node:** node-1 `435 → 9,8` gọi/s · `0,658 → 0,232` core · loadavg 1m `13,3 → 7,9`.
+      ✅ **Đo trên bề mặt công khai:** `/` `/faucet/` `/create-chain/` `/chains/` 200 · 9Scan 200 ·
+      bơm không gián đoạn · MetaMask đã trỏ 9Scan từ trước.
+
+- [nợ, web-home] **P-52 — 🔴 trang 404 công khai GÃY vì được dựng trên vỏ 404 của Blockscout** (D-177)
+      Caddy còn bắt-tất-cả `A1_ROOT_UPSTREAM=127.0.0.1:8100` + `handle /api/*` `/socket/*` ⇒ mọi đường
+      lạ, kể cả `/404/`, trả **`502`**; `/blocks` `/tx/*` `/address/*` cũng 502. Đo `16:08Z`.
+      Việc (luật cứng #4): gốc trả trang 404 tĩnh · `/blocks` `/tx/*` `/address/*` → `308` sang
+      `a1.9scan.org` · bỏ `/api/*` `/socket/*` · `check-routes.mjs` có ca dựa trên "Blockscout trả 404".
+      Kèm: `check-live-page` đỏ — `/` khai 9 validator, P-Chain có **10**.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
