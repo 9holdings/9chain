@@ -25,6 +25,10 @@ export const te: Dict = {
     switchToDark: 'ముదురు మోడ్‌కు మారండి',
     switchToLight: 'వెలుతురు మోడ్‌కు మారండి',
     skipToContent: 'ప్రధాన విషయానికి వెళ్లండి',
+    stepDone: ' — పూర్తయింది',
+    stepRunning: ' — నడుస్తోంది',
+    stepFailed: ' — విఫలమైంది',
+    stepPending: ' — పెండింగ్',
   },
 
   rebuildDone: {
@@ -454,6 +458,13 @@ export const te: Dict = {
     unreachable: 'నెట్‌వర్క్‌ను చేరుకోలేకపోయాము',
     unreachableDesc: 'నెట్‌వర్క్ రద్దీగా ఉండవచ్చు, లేదా మీ కనెక్షన్ తెగిపోయి ఉండవచ్చు.',
     empty: 'ఇక్కడ ఇంకా ఏమీ లేదు',
+    addressEmpty: '{label} ఖాళీగా ఉండకూడదు',
+    addressFormat: '{label} 0x తర్వాత 40 హెక్స్ అక్షరాలు ఉండాలి',
+    addressChecksum: '{label} EIP-55 చెక్‌సమ్ సరిపోలడం లేదు — ఒక అక్షరం తప్పుగా టైప్ అయ్యిందో లేదా అతికించినప్పుడు పోయిందో అయ్యే అవకాశం ఎక్కువ',
+    addressZero: '{label} సున్నా చిరునామా కాకూడదు — దాని కీ ఎవరి వద్దా లేదు',
+    timeout: '{seconds}s లోపు సమాధానం రాలేదు',
+    notJson: 'సమాధానం JSON కాదు (HTTP {status}) — అభ్యర్థన తప్పు చోటుకు వెళ్లిన అవకాశం ఎక్కువ',
+    noWallet: 'ఈ బ్రౌజర్‌లో వాలెట్ కనిపించలేదు.',
   },
 
   notFound: {

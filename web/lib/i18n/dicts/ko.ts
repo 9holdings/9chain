@@ -25,6 +25,10 @@ export const ko: Dict = {
     switchToDark: '다크 모드로 전환',
     switchToLight: '라이트 모드로 전환',
     skipToContent: '본문으로 건너뛰기',
+    stepDone: ' — 완료',
+    stepRunning: ' — 진행 중',
+    stepFailed: ' — 실패',
+    stepPending: ' — 대기',
   },
 
   rebuildDone: {
@@ -452,6 +456,13 @@ export const ko: Dict = {
     unreachable: '네트워크에 연결하지 못했습니다',
     unreachableDesc: '네트워크가 혼잡하거나 연결이 끊겼을 수 있습니다.',
     empty: '여기에는 아직 아무것도 없습니다',
+    addressEmpty: '{label}은(는) 비워 둘 수 없습니다',
+    addressFormat: '{label}은(는) 0x 뒤에 16진수 40자여야 합니다',
+    addressChecksum: '{label}의 EIP-55 체크섬이 맞지 않습니다. 한 글자를 잘못 입력했거나 붙여넣을 때 빠졌을 가능성이 큽니다',
+    addressZero: '{label}에 영 주소는 쓸 수 없습니다. 그 키는 아무도 갖고 있지 않습니다',
+    timeout: '{seconds}초가 지나도 응답이 없습니다',
+    notJson: '응답이 JSON이 아니었습니다(HTTP {status}). 요청이 잘못된 곳으로 전달되었을 가능성이 큽니다',
+    noWallet: '이 브라우저에서 지갑을 찾을 수 없습니다.',
   },
 
   notFound: {

@@ -61,7 +61,12 @@ describe('fetchJson — ba kiểu hỏng phải phân biệt được', () => {
     gia({ status: 200, body: '<!DOCTYPE html><html><body>Blockscout</body></html>' });
     const e = (await fetchJson('/x').catch((x) => x)) as NetworkError;
     expect(e.kind).toBe('notJson');
-    expect(e.message).toMatch(/đường dẫn/i);
+    // 🔴 So HÌNH DẠNG lỗi, không so câu chữ (đổi 2026-09-03). `NetworkError.message`
+    // nay là chữ CHO LẬP TRÌNH VIÊN — người dùng đọc câu do `describeFailure()` tra
+    // trong từ điển. Một bài so chuỗi ở đây vừa khoá cứng một ngôn ngữ, vừa đỏ mỗi
+    // lần ai đó chỉnh chữ, tức nó đo sai đại lượng.
+    expect(e.status).toBe(200);
+    expect(e.message).toMatch(/not JSON/i);
   });
 
   it('đứt mạng ⇒ offline, KHÔNG bị nhầm thành timeout', async () => {

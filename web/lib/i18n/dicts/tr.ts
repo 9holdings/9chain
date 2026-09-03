@@ -25,6 +25,10 @@ export const tr: Dict = {
     switchToDark: 'Koyu moda geç',
     switchToLight: 'Açık moda geç',
     skipToContent: 'Ana içeriğe geç',
+    stepDone: ' — tamam',
+    stepRunning: ' — çalışıyor',
+    stepFailed: ' — başarısız',
+    stepPending: ' — bekliyor',
   },
 
   rebuildDone: {
@@ -454,6 +458,13 @@ export const tr: Dict = {
     unreachable: 'Ağa ulaşılamadı',
     unreachableDesc: 'Ağ yoğun olabilir ya da bağlantınız kopmuş olabilir.',
     empty: 'Burada henüz bir şey yok',
+    addressEmpty: '{label} boş olamaz',
+    addressFormat: '{label} 0x ve ardından 40 onaltılık karakter olmalı',
+    addressChecksum: '{label} EIP-55 sağlama toplamını geçemiyor — büyük olasılıkla bir karakter yanlış yazıldı ya da yapıştırırken kayboldu',
+    addressZero: '{label} sıfır adres olamaz — anahtarı kimsede değil',
+    timeout: '{seconds}s sonra hâlâ yanıt yok',
+    notJson: 'Yanıt JSON değildi (HTTP {status}) — istek büyük olasılıkla yanlış yere yönlendirildi',
+    noWallet: 'Bu tarayıcıda cüzdan bulunamadı.',
   },
 
   notFound: {

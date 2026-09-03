@@ -25,6 +25,10 @@ export const tl: Dict = {
     switchToDark: 'Lumipat sa madilim na mode',
     switchToLight: 'Lumipat sa maliwanag na mode',
     skipToContent: 'Lumaktaw sa pangunahing nilalaman',
+    stepDone: ' — tapos',
+    stepRunning: ' — tumatakbo',
+    stepFailed: ' — nabigo',
+    stepPending: ' — naghihintay',
   },
 
   rebuildDone: {
@@ -467,6 +471,13 @@ export const tl: Dict = {
     unreachable: 'Hindi naabot ang network',
     unreachableDesc: 'Maaaring abala ang network, o naputol ang iyong koneksyon.',
     empty: 'Wala pang laman dito',
+    addressEmpty: 'Hindi maaaring walang laman ang {label}',
+    addressFormat: 'Ang {label} ay kailangang 0x na sinusundan ng 40 hex na karakter',
+    addressChecksum: 'Hindi pumasa ang {label} sa EIP-55 checksum nito — malamang may isang karakter na mali ang pagkakatipa o nawala noong i-paste',
+    addressZero: 'Hindi maaaring zero address ang {label} — walang may hawak ng susi nito',
+    timeout: 'Walang sagot pagkatapos ng {seconds}s',
+    notJson: 'Hindi JSON ang sagot (HTTP {status}) — malamang naruta ang kahilingan sa maling lugar',
+    noWallet: 'Walang wallet na nakita sa browser na ito.',
   },
 
   notFound: {

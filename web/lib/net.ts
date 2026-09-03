@@ -1,5 +1,7 @@
 'use client';
 
+import { interpolate } from '@/lib/i18n';
+
 /**
  * Lưới an toàn cho mọi lượt gọi mạng NGẮN của site. (Đ1-8)
  *
@@ -36,11 +38,21 @@ export type FailureKind = 'timeout' | 'http' | 'notJson' | 'offline';
 export class NetworkError extends Error {
   readonly kind: FailureKind;
   readonly status: number;
-  constructor(kind: FailureKind, message: string, status = 0) {
+  /** Số giây đã chờ, chỉ có khi `kind === 'timeout'` — chỗ render cần nó để dựng câu. */
+  readonly timeoutSeconds: number;
+  /**
+   * ⚠️ `message` là chữ CHO LẬP TRÌNH VIÊN (console, log). Nó **không** được đưa
+   * thẳng ra màn hình: tệp này là hàm thuần, không gọi được `useT()`, nên mọi câu nó
+   * tự dựng đều đóng băng ở một ngôn ngữ. Bản trước giữ ba câu tiếng Việt ở đây và
+   * hai chỗ render ghép chúng vào `{detail}` — tức người đọc ở cả 30 ngôn ngữ nhận
+   * tiếng Việt đúng lúc mạng chậm. Dùng `describeFailure()` ở cuối tệp.
+   */
+  constructor(kind: FailureKind, message: string, status = 0, timeoutSeconds = 0) {
     super(message);
     this.name = 'NetworkError';
     this.kind = kind;
     this.status = status;
+    this.timeoutSeconds = timeoutSeconds;
   }
   /** Server đã trả lời và trả lời là "không" ⇒ thử lại vô ích. */
   get retryPointless(): boolean {
@@ -72,9 +84,9 @@ export async function fetchJson<T = unknown>(
     // `AbortSignal.timeout` ném `TimeoutError`; đứt mạng ném `TypeError`.
     const ten = (e as Error)?.name;
     if (ten === 'TimeoutError' || ten === 'AbortError') {
-      throw new NetworkError('timeout', `quá ${hanGiay}s không có trả lời`);
+      throw new NetworkError('timeout', `no answer after ${hanGiay}s`, 0, hanGiay);
     }
-    throw new NetworkError('offline', (e as Error)?.message ?? 'không gọi được');
+    throw new NetworkError('offline', (e as Error)?.message ?? 'request failed');
   }
 
   const t = await r.text();
@@ -85,7 +97,7 @@ export async function fetchJson<T = unknown>(
     // Nói rõ đây là nghi vấn ĐỊNH TUYẾN, kèm mã HTTP để phân biệt với lỗi thật.
     throw new NetworkError(
       'notJson',
-      `đáp án không phải JSON (HTTP ${r.status}) — nhiều khả năng đường dẫn bị giải sai`,
+      `answer was not JSON (HTTP ${r.status}) — most likely the path resolved wrongly`,
       r.status,
     );
   }
@@ -94,4 +106,24 @@ export async function fetchJson<T = unknown>(
     throw new NetworkError('http', failure || `HTTP ${r.status}`, r.status);
   }
   return j as T;
+}
+
+/**
+ * Dịch một lượt hỏng thành câu NGƯỜI ĐỌC hiểu, ở ngôn ngữ họ đang chọn.
+ *
+ * Ba kiểu hỏng ở đầu tệp chỉ có ích nếu người đọc phân biệt được chúng — nên chỗ nào
+ * hiện lỗi mạng cho người dùng thì gọi hàm này, đừng ghép `e.message`. Kiểu không có
+ * câu riêng (`http`, `offline`) rơi về thông điệp kỹ thuật: nó không đẹp, nhưng nó là
+ * thứ dán được cho đội, và im lặng thì tệ hơn.
+ */
+export function describeFailure(e: unknown, t: { timeout: string; notJson: string }): string {
+  // Đọc theo HÌNH DẠNG, không theo lớp: `ConsoleError` trong `lib/wallet.ts` mang
+  // đúng ba trường này và cũng cần được dịch. Ràng vào `instanceof NetworkError` là
+  // để lọt một nửa số đường ra màn hình.
+  const x = e as Partial<NetworkError>;
+  if (typeof x?.kind === 'string') {
+    if (x.kind === 'timeout') return interpolate(t.timeout, { seconds: String(x.timeoutSeconds ?? 0) });
+    if (x.kind === 'notJson') return interpolate(t.notJson, { status: String(x.status ?? 0) });
+  }
+  return e instanceof Error ? e.message : String(e);
 }

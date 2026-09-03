@@ -24,6 +24,10 @@ export const zh: Dict = {
     switchToDark: '切换到深色模式',
     switchToLight: '切换到浅色模式',
     skipToContent: '跳到主要内容',
+    stepDone: '—— 完成',
+    stepRunning: '—— 进行中',
+    stepFailed: '—— 失败',
+    stepPending: '—— 等待中',
   },
 
   rebuildDone: {
@@ -402,6 +406,13 @@ export const zh: Dict = {
     unreachable: '无法连接到网络',
     unreachableDesc: '网络可能繁忙，或者您的连接已中断。',
     empty: '这里还没有内容',
+    addressEmpty: '{label} 不能为空',
+    addressFormat: '{label} 必须是 0x 加 40 位十六进制字符',
+    addressChecksum: '{label} 的 EIP-55 校验和不通过 —— 很可能有一个字符打错或粘贴时丢失',
+    addressZero: '{label} 不能是零地址 —— 没有人持有它的私钥',
+    timeout: '{seconds} 秒内没有响应',
+    notJson: '返回的内容不是 JSON（HTTP {status}）—— 很可能请求被路由到了错误的地方',
+    noWallet: '在这个浏览器中没有找到钱包。',
   },
 
   notFound: {

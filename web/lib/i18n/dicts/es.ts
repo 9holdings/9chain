@@ -25,6 +25,10 @@ export const es: Dict = {
     switchToDark: 'Cambiar a modo oscuro',
     switchToLight: 'Cambiar a modo claro',
     skipToContent: 'Saltar al contenido principal',
+    stepDone: ' — hecho',
+    stepRunning: ' — en marcha',
+    stepFailed: ' — falló',
+    stepPending: ' — pendiente',
   },
 
   rebuildDone: {
@@ -40,7 +44,7 @@ export const es: Dict = {
       'desaparecieron. Esta página explica qué estás viendo y qué hacer.',
     willSeeTitle: 'Qué vas a ver',
     willSee1:
-      'Dict monedero sigue conectando, sigue mostrando el nombre de red correcto y el mismo Chain ID ' +
+      'Tu monedero sigue conectando, sigue mostrando el nombre de red correcto y el mismo Chain ID ' +
       '{chainId}: fue deliberado. Pero tu saldo será 0.',
     willSee2:
       'Todas las L1 que lanzaste desaparecieron del directorio. Sus nombres y Chain ID quedaron ' +
@@ -106,7 +110,7 @@ export const es: Dict = {
       'Si tu monedero aún no tiene la red A1, añádela con el botón de la página del grifo en lugar ' +
       'de escribir la configuración a mano.',
     toDo4: 'Vuelve a pedir tokens en el grifo y lanza de nuevo tu cadena si la quieres.',
-    silentTitle: 'Dict monedero no te avisará',
+    silentTitle: 'Tu monedero no te avisará',
     silentDesc:
       'La nueva red conserva el Chain ID {chainId}, la misma dirección RPC y el mismo nombre que la ' +
       'anterior. Fue deliberado, para que cada documento y guía ya publicados sigan siendo correctos. ' +
@@ -251,7 +255,7 @@ export const es: Dict = {
     connecting: 'Conectando…',
     signIn: 'Firmar para entrar',
     signing: 'Esperando la firma…',
-    yourWallet: 'Dict monedero',
+    yourWallet: 'Tu monedero',
     youWillOwn: 'La cadena pertenecerá a este monedero. La dirección viene de tu firma: nadie la escribe a mano.',
     noWallet: 'No se encontró ningún monedero en este navegador. Instala MetaMask y recarga la página.',
     signRejected: 'Rechazaste firmar. No se creó nada.',
@@ -389,7 +393,7 @@ export const es: Dict = {
   faucet: {
     title: 'Obtener tokens de prueba',
     desc: 'LOVE9 en la testnet A1 no tiene valor real: existe para que puedas pagar gas mientras pruebas. Introduce una dirección de monedero y te enviamos enseguida.',
-    addressLabel: 'Dict dirección de monedero',
+    addressLabel: 'Tu dirección de monedero',
     addressPlaceholder: '0x… (40 caracteres hexadecimales)',
     requestCta: 'Envíame tokens',
     sending: 'Enviando…',
@@ -397,7 +401,7 @@ export const es: Dict = {
     addNetwork: 'Añadir la red al monedero',
     addNetworkDone: 'Añadida al monedero',
     addNetworkRejected: 'Pulsaste rechazar en tu monedero. Vuelve a pulsar si quieres añadir la red.',
-    addNetworkError: 'Dict monedero no pudo añadir la red. Añádela a mano con la configuración de al lado y envía la línea de abajo al equipo:',
+    addNetworkError: 'Tu monedero no pudo añadir la red. Añádela a mano con la configuración de al lado y envía la línea de abajo al equipo:',
     noWallet: 'No se encontró ningún monedero en este navegador. Instala MetaMask y recarga la página.',
     quotaLabel: 'Cuota restante',
     quotaFormat: '{left}/{total} solicitudes cada {hours} horas',
@@ -428,6 +432,13 @@ export const es: Dict = {
     unreachable: 'No se pudo llegar a la red',
     unreachableDesc: 'Puede que la red esté ocupada o que tu conexión se haya cortado.',
     empty: 'Aquí todavía no hay nada',
+    addressEmpty: '{label} no puede estar vacío',
+    addressFormat: '{label} debe ser 0x seguido de 40 caracteres hexadecimales',
+    addressChecksum: '{label} no pasa su suma de verificación EIP-55: lo más probable es que se haya escrito mal un carácter o se haya perdido al pegar',
+    addressZero: '{label} no puede ser la dirección cero: nadie tiene su clave',
+    timeout: 'Sin respuesta después de {seconds}s',
+    notJson: 'La respuesta no era JSON (HTTP {status}): lo más probable es que la petición se haya dirigido al lugar equivocado',
+    noWallet: 'No se encontró ninguna cartera en este navegador.',
   },
 
   notFound: {

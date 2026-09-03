@@ -25,6 +25,10 @@ export const ru: Dict = {
     switchToDark: 'Переключить на тёмную тему',
     switchToLight: 'Переключить на светлую тему',
     skipToContent: 'Перейти к основному содержимому',
+    stepDone: ' — готово',
+    stepRunning: ' — выполняется',
+    stepFailed: ' — сбой',
+    stepPending: ' — ожидание',
   },
 
   rebuildDone: {
@@ -422,6 +426,13 @@ export const ru: Dict = {
     unreachable: 'Не удалось связаться с сетью',
     unreachableDesc: 'Возможно, сеть занята или ваше соединение прервалось.',
     empty: 'Здесь пока ничего нет',
+    addressEmpty: '{label} не может быть пустым',
+    addressFormat: '{label} должен быть 0x и затем 40 шестнадцатеричных символов',
+    addressChecksum: '{label} не проходит контрольную сумму EIP-55 — скорее всего, один символ набран неверно или потерян при вставке',
+    addressZero: '{label} не может быть нулевым адресом — ключа от него ни у кого нет',
+    timeout: 'Нет ответа спустя {seconds}s',
+    notJson: 'Ответ пришёл не в JSON (HTTP {status}) — скорее всего, запрос ушёл не туда',
+    noWallet: 'В этом браузере кошелёк не найден.',
   },
 
   notFound: {

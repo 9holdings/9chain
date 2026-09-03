@@ -27,6 +27,10 @@ export const fa: Dict = {
     switchToDark: 'رفتن به حالت تیره',
     switchToLight: 'رفتن به حالت روشن',
     skipToContent: 'پرش به محتوای اصلی',
+    stepDone: '‏ — انجام شد',
+    stepRunning: '‏ — در حال اجرا',
+    stepFailed: '‏ — ناموفق',
+    stepPending: '‏ — در انتظار',
   },
 
   rebuildDone: {
@@ -453,6 +457,13 @@ export const fa: Dict = {
     unreachable: 'دسترسی به شبکه ممکن نشد',
     unreachableDesc: 'ممکن است شبکه شلوغ باشد، یا اتصال شما قطع شده باشد.',
     empty: 'اینجا هنوز چیزی نیست',
+    addressEmpty: '{label} نمی‌تواند خالی باشد',
+    addressFormat: '{label} باید 0x و سپس ۴۰ نویسهٔ شانزده‌شانزدهی باشد',
+    addressChecksum: '{label} از بررسی EIP-55 رد می‌شود — به احتمال زیاد یک نویسه اشتباه تایپ شده یا هنگام چسباندن افتاده است',
+    addressZero: '{label} نمی‌تواند نشانی صفر باشد — کلیدش دست هیچ‌کس نیست',
+    timeout: 'پس از {seconds} ثانیه پاسخی نیامد',
+    notJson: 'پاسخ JSON نبود (HTTP {status}) — به احتمال زیاد درخواست به جای نادرست هدایت شده',
+    noWallet: 'در این مرورگر کیف‌پولی پیدا نشد.',
   },
 
   notFound: {

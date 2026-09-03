@@ -40,7 +40,10 @@ describe('EIP-55', () => {
     const check = checkAddress(hong);
     expect(check.ok).toBe(false);
     if (!check.ok) {
-      expect(check.failure).toMatch(/checksum/i);
+      // 🔴 So MÃ, không so câu chữ (đổi 2026-09-03). `checkAddress` nay trả về mã và
+      // chỗ render tra câu trong từ điển, nên một bài kiểm so chuỗi sẽ vừa khoá cứng
+      // một ngôn ngữ vừa đỏ mỗi lần ai đó sửa câu.
+      expect(check.code).toBe('checksum');
       // Gợi ý phải là đường đi TIẾP được, không phải một lời trách.
       expect(check.hint).toBe(hong.toLowerCase());
     }

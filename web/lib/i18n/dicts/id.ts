@@ -25,6 +25,10 @@ export const id: Dict = {
     switchToDark: 'Beralih ke mode gelap',
     switchToLight: 'Beralih ke mode terang',
     skipToContent: 'Lompat ke konten utama',
+    stepDone: ' — selesai',
+    stepRunning: ' — berjalan',
+    stepFailed: ' — gagal',
+    stepPending: ' — menunggu',
   },
 
   rebuildDone: {
@@ -466,6 +470,13 @@ export const id: Dict = {
     unreachable: 'Tidak dapat menjangkau jaringan',
     unreachableDesc: 'Jaringan mungkin sedang sibuk, atau koneksi Anda terputus.',
     empty: 'Belum ada apa-apa di sini',
+    addressEmpty: '{label} tidak boleh kosong',
+    addressFormat: '{label} harus 0x diikuti 40 karakter heksadesimal',
+    addressChecksum: '{label} gagal checksum EIP-55 — kemungkinan besar ada satu karakter salah ketik atau hilang saat menempel',
+    addressZero: '{label} tidak boleh alamat nol — tidak ada yang memegang kuncinya',
+    timeout: 'Tidak ada jawaban setelah {seconds}s',
+    notJson: 'Jawabannya bukan JSON (HTTP {status}) — kemungkinan besar permintaan diarahkan ke tempat yang salah',
+    noWallet: 'Tidak ada wallet yang ditemukan di peramban ini.',
   },
 
   notFound: {

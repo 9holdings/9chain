@@ -24,6 +24,10 @@ export const mr: Dict = {
     switchToDark: 'गडद मोडवर जा',
     switchToLight: 'उजळ मोडवर जा',
     skipToContent: 'मुख्य मजकुराकडे जा',
+    stepDone: ' — पूर्ण',
+    stepRunning: ' — चालू',
+    stepFailed: ' — अपयशी',
+    stepPending: ' — प्रलंबित',
   },
 
   rebuildDone: {
@@ -453,6 +457,13 @@ export const mr: Dict = {
     unreachable: 'नेटवर्कपर्यंत पोहोचता आले नाही',
     unreachableDesc: 'नेटवर्क व्यस्त असू शकते, किंवा तुमचे कनेक्शन तुटले असू शकते.',
     empty: 'इथे अजून काहीही नाही',
+    addressEmpty: '{label} रिकामे असू शकत नाही',
+    addressFormat: '{label} 0x नंतर 40 हेक्स अक्षरे असावे',
+    addressChecksum: '{label} चा EIP-55 चेकसम जुळत नाही — बहुधा एक अक्षर चुकीचे टाइप झाले किंवा चिकटवताना गळले',
+    addressZero: '{label} शून्य पत्ता असू शकत नाही — त्याची किल्ली कोणाकडेही नाही',
+    timeout: '{seconds}s मध्ये उत्तर आले नाही',
+    notJson: 'उत्तर JSON नव्हते (HTTP {status}) — बहुधा विनंती चुकीच्या ठिकाणी गेली',
+    noWallet: 'या ब्राउझरमध्ये वॉलेट सापडले नाही.',
   },
 
   notFound: {

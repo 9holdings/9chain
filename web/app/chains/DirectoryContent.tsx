@@ -6,7 +6,7 @@ import { useT, useLanguage } from '@/lib/i18n';
 import { interpolate } from '@/lib/i18n/interpolate';
 import { formatNumber } from '@/lib/numbers';
 import { rpcOrigin, addNetworkParams } from '@/lib/chain';
-import { fetchJson, READ_TIMEOUT_MS } from '@/lib/net';
+import { fetchJson, describeFailure, READ_TIMEOUT_MS } from '@/lib/net';
 import { readDirectory, type ChainRecord } from '@/lib/directory';
 
 /**
@@ -357,7 +357,7 @@ function AddToWallet({ name, chainIdHex, rpc }: { name: string; chainIdHex: stri
             });
             setMsg(t.myChains.addedToWallet);
           } catch (e) {
-            setMsg(interpolate(t.myChains.addWalletError, { detail: e instanceof Error ? e.message : '' }));
+            setMsg(interpolate(t.myChains.addWalletError, { detail: describeFailure(e, t.errors) }));
           }
         }}
       >

@@ -25,6 +25,10 @@ export const ha: Dict = {
     switchToDark: 'Canja zuwa yanayin duhu',
     switchToLight: 'Canja zuwa yanayin haske',
     skipToContent: 'Tsallake zuwa babban abun ciki',
+    stepDone: ' — an gama',
+    stepRunning: ' — yana gudana',
+    stepFailed: ' — ya gaza',
+    stepPending: ' — jira',
   },
 
   rebuildDone: {
@@ -460,6 +464,13 @@ export const ha: Dict = {
     unreachable: 'Ba a iya isa ga hanyar sadarwa ba',
     unreachableDesc: 'Wataƙila hanyar sadarwa tana da aiki mai yawa, ko kuma haɗinka ya yanke.',
     empty: 'Babu komai a nan tukuna',
+    addressEmpty: '{label} ba zai iya kasancewa fanko ba',
+    addressFormat: '{label} dole ya kasance 0x sannan haruffa 40 na heks',
+    addressChecksum: '{label} bai ci jarrabawar EIP-55 checksum ba — mai yiwuwa an rubuta harafi ɗaya ba daidai ba ko ya ɓace lokacin liƙawa',
+    addressZero: '{label} ba zai iya kasancewa adireshin sifili ba — babu wanda ke riƙe makullinsa',
+    timeout: 'Babu amsa bayan {seconds}s',
+    notJson: 'Amsar ba JSON ba ce (HTTP {status}) — mai yiwuwa an tura buƙatar wuri mara kyau',
+    noWallet: 'Ba a sami wallet a wannan burauzar ba.',
   },
 
   notFound: {

@@ -24,6 +24,10 @@ export const hi: Dict = {
     switchToDark: 'डार्क मोड पर जाएँ',
     switchToLight: 'लाइट मोड पर जाएँ',
     skipToContent: 'मुख्य सामग्री पर जाएँ',
+    stepDone: ' — पूरा',
+    stepRunning: ' — चल रहा है',
+    stepFailed: ' — विफल',
+    stepPending: ' — प्रतीक्षित',
   },
 
   rebuildDone: {
@@ -417,6 +421,13 @@ export const hi: Dict = {
     unreachable: 'नेटवर्क तक नहीं पहुँच सके',
     unreachableDesc: 'नेटवर्क व्यस्त हो सकता है, या आपका कनेक्शन टूट गया हो।',
     empty: 'यहाँ अभी कुछ नहीं है',
+    addressEmpty: '{label} खाली नहीं हो सकता',
+    addressFormat: '{label} 0x के बाद 40 हेक्स अक्षर होना चाहिए',
+    addressChecksum: '{label} का EIP-55 चेकसम मेल नहीं खाता — शायद एक अक्षर गलत टाइप हुआ या चिपकाते समय छूट गया',
+    addressZero: '{label} शून्य पता नहीं हो सकता — उसकी कुंजी किसी के पास नहीं है',
+    timeout: '{seconds}s में कोई उत्तर नहीं',
+    notJson: 'उत्तर JSON नहीं था (HTTP {status}) — शायद अनुरोध गलत जगह पहुँच गया',
+    noWallet: 'इस ब्राउज़र में कोई वॉलेट नहीं मिला।',
   },
 
   notFound: {

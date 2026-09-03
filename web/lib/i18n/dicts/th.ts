@@ -25,6 +25,10 @@ export const th: Dict = {
     switchToDark: 'สลับเป็นโหมดมืด',
     switchToLight: 'สลับเป็นโหมดสว่าง',
     skipToContent: 'ข้ามไปยังเนื้อหาหลัก',
+    stepDone: ' — เสร็จ',
+    stepRunning: ' — กำลังทำงาน',
+    stepFailed: ' — ล้มเหลว',
+    stepPending: ' — รออยู่',
   },
 
   rebuildDone: {
@@ -449,6 +453,13 @@ export const th: Dict = {
     unreachable: 'เข้าถึงเครือข่ายไม่ได้',
     unreachableDesc: 'เครือข่ายอาจกำลังหนาแน่น หรือการเชื่อมต่อของคุณอาจหลุด',
     empty: 'ที่นี่ยังไม่มีอะไร',
+    addressEmpty: '{label} ต้องไม่ว่าง',
+    addressFormat: '{label} ต้องเป็น 0x ตามด้วยอักขระฐานสิบหก 40 ตัว',
+    addressChecksum: '{label} ไม่ผ่านการตรวจสอบ EIP-55 — น่าจะพิมพ์ผิดหนึ่งตัวอักษรหรือหายไปตอนวาง',
+    addressZero: '{label} ต้องไม่ใช่ที่อยู่ศูนย์ — ไม่มีใครถือกุญแจของมัน',
+    timeout: 'ไม่มีคำตอบหลังจาก {seconds} วินาที',
+    notJson: 'คำตอบไม่ใช่ JSON (HTTP {status}) — คำขอน่าจะถูกส่งไปผิดที่',
+    noWallet: 'ไม่พบกระเป๋าเงินในเบราว์เซอร์นี้',
   },
 
   notFound: {

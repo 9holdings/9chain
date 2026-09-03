@@ -36,7 +36,16 @@ export function FaucetForm() {
 
   // Chỉ kiểm khi người dùng đã gõ gì đó — báo đỏ vào một ô trống mà họ chưa chạm
   // tới là mắng trước khi hỏi.
-  const check = diaChi.trim() ? checkAddress(diaChi, t.faucet.addressLabel) : null;
+  const check = diaChi.trim() ? checkAddress(diaChi) : null;
+  // 🔴 Câu chữ tra Ở ĐÂY, không nằm trong `lib/eip55.ts`. Hàm thuần không gọi được
+  // `useT()`, nên mọi câu nó tự dựng sẽ đóng băng ở một ngôn ngữ — xem chú thích ở
+  // khối `errors` trong `lib/i18n/en.ts`.
+  const CHECK_MSG = {
+    empty: t.errors.addressEmpty,
+    format: t.errors.addressFormat,
+    checksum: t.errors.addressChecksum,
+    zero: t.errors.addressZero,
+  } as const;
   const hopLe = check?.ok === true;
 
   const napTin = useCallback(async () => {
@@ -75,8 +84,8 @@ export function FaucetForm() {
       setWalletFailure(null);
     } catch (e) {
       const l = readWalletError(e);
-      setWalletState(l.tuChoi ? 'tuChoi' : 'errors');
-      setWalletFailure(l.ownerAddr);
+      setWalletState(l.rejected ? 'tuChoi' : 'errors');
+      setWalletFailure(l.noWallet ? t.errors.noWallet : l.detail);
     }
   }
 
@@ -89,7 +98,7 @@ export function FaucetForm() {
       const r = await fetch(`${faucetOrigin()}/api/drip`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ address: check.diaChi }),
+        body: JSON.stringify({ address: check.address }),
       });
       const j = (await r.json()) as { txHash?: string; amount?: string; error?: string };
       if (!r.ok || !j.txHash) throw new Error(j.error || `HTTP ${r.status}`);
@@ -137,7 +146,7 @@ export function FaucetForm() {
             spellCheck={false}
             autoComplete="off"
             inputMode="text"
-            failure={check && !check.ok ? check.failure : undefined}
+            failure={check && !check.ok ? interpolate(CHECK_MSG[check.code], { label: t.faucet.addressLabel }) : undefined}
             hint={check && !check.ok && check.hint ? check.hint : undefined}
           />
         </div>
@@ -169,7 +178,7 @@ export function FaucetForm() {
               {interpolate(t.faucet.sentOk, {
                 count: result.amount,
                 symbol: CHAIN.kyHieu,
-                address: shortenAddress(check?.ok ? check.diaChi : diaChi),
+                address: shortenAddress(check?.ok ? check.address : diaChi),
               })}
             </p>
             <a

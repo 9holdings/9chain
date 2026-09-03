@@ -25,6 +25,10 @@ export const nl: Dict = {
     switchToDark: 'Naar donkere modus',
     switchToLight: 'Naar lichte modus',
     skipToContent: 'Naar hoofdinhoud',
+    stepDone: ' — klaar',
+    stepRunning: ' — bezig',
+    stepFailed: ' — mislukt',
+    stepPending: ' — wachtend',
   },
 
   rebuildDone: {
@@ -464,6 +468,13 @@ export const nl: Dict = {
     unreachable: 'Kon het netwerk niet bereiken',
     unreachableDesc: 'Het netwerk is mogelijk druk, of je verbinding is weggevallen.',
     empty: 'Hier is nog niets',
+    addressEmpty: '{label} mag niet leeg zijn',
+    addressFormat: '{label} moet 0x zijn, gevolgd door 40 hexadecimale tekens',
+    addressChecksum: '{label} haalt zijn EIP-55-controlesom niet — waarschijnlijk is één teken verkeerd getypt of bij het plakken verloren',
+    addressZero: '{label} mag niet het nuladres zijn — niemand heeft daarvan de sleutel',
+    timeout: 'Geen antwoord na {seconds}s',
+    notJson: 'Het antwoord was geen JSON (HTTP {status}) — het verzoek is waarschijnlijk naar de verkeerde plek gerouteerd',
+    noWallet: 'Geen wallet gevonden in deze browser.',
   },
 
   notFound: {

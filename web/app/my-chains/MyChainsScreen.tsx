@@ -5,7 +5,7 @@ import { Button, Card, Field, Badge, Skeleton, ErrorState, Note, Copyable, Empty
 import { shortenAddress } from '@/lib/eip55';
 import { rpcOrigin } from '@/lib/chain';
 import { interpolate, useT } from '@/lib/i18n';
-import { fetchJson, READ_TIMEOUT_MS } from '@/lib/net';
+import { fetchJson, describeFailure, READ_TIMEOUT_MS } from '@/lib/net';
 import { getWallet, connectWallet, siweSignIn, callConsole, addL1ToWallet, waitForProgress, readWalletError, ConsoleError, type WalletSession, CONSOLE_TIMEOUT_S} from '@/lib/wallet';
 
 type Chain = {
@@ -58,7 +58,7 @@ export function MyChainsScreen() {
   // Kết quả bấm "Thêm vào ví", THEO TỪNG CHAIN — màn này vẽ nhiều chain một lúc, nên
   // một ô lỗi dùng chung sẽ dán lỗi của chain này lên thẻ của chain khác.
   // Bản trước `catch {}` trắng: bấm xong không có gì đổi, cả lúc được lẫn lúc hỏng.
-  const [addedToWallet, setAddedToWallet] = useState<Record<number, { finished: true } | { finished: false; ownerAddr: string }>>({});
+  const [addedToWallet, setAddedToWallet] = useState<Record<number, { finished: true } | { finished: false; message: string }>>({});
 
   const [revoking, setRevoking] = useState<Chain | null>(null);
   const [typedName, setTypedName] = useState('');
@@ -148,7 +148,7 @@ export function MyChainsScreen() {
     let biTuChoi = false;
     const post = callConsole('/api/revoke', session.token, { name: c.name, xacNhan: c.name })
       .catch((e) => {
-        loiPost = String((e as Error).message ?? e);
+        loiPost = describeFailure(e, t.errors);
         if (e instanceof ConsoleError && e.laTuChoiThat) biTuChoi = true;
       });
 
@@ -308,9 +308,11 @@ export function MyChainsScreen() {
                               ...s,
                               [c.chainId]: {
                                 finished: false,
-                                ownerAddr: l.tuChoi
+                                message: l.rejected
                                   ? t.common.walletRejected
-                                  : interpolate(t.myChains.addWalletError, { detail: l.ownerAddr ?? '' }),
+                                  : l.noWallet
+                                    ? t.errors.noWallet
+                                    : interpolate(t.myChains.addWalletError, { detail: l.detail ?? '' }),
                               },
                             }));
                           }
@@ -323,7 +325,7 @@ export function MyChainsScreen() {
                       <div role="status" aria-live="polite" className="mt-2 empty:hidden">
                         {addedToWallet[c.chainId]?.finished === false && (
                           <p className="text-sm text-danger">
-                            {(addedToWallet[c.chainId] as { ownerAddr: string }).ownerAddr}
+                            {(addedToWallet[c.chainId] as { message: string }).message}
                           </p>
                         )}
                       </div>

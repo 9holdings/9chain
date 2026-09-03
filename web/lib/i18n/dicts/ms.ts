@@ -25,6 +25,10 @@ export const ms: Dict = {
     switchToDark: 'Tukar ke mod gelap',
     switchToLight: 'Tukar ke mod cerah',
     skipToContent: 'Langkau ke kandungan utama',
+    stepDone: ' — selesai',
+    stepRunning: ' — berjalan',
+    stepFailed: ' — gagal',
+    stepPending: ' — menunggu',
   },
 
   rebuildDone: {
@@ -466,6 +470,13 @@ export const ms: Dict = {
     unreachable: 'Tidak dapat menghubungi rangkaian',
     unreachableDesc: 'Rangkaian mungkin sibuk, atau sambungan anda mungkin terputus.',
     empty: 'Belum ada apa-apa di sini',
+    addressEmpty: '{label} tidak boleh kosong',
+    addressFormat: '{label} mesti 0x diikuti 40 aksara heksadesimal',
+    addressChecksum: '{label} gagal checksum EIP-55 — berkemungkinan besar satu aksara tersilap taip atau hilang semasa menampal',
+    addressZero: '{label} tidak boleh menjadi alamat sifar — tiada sesiapa memegang kuncinya',
+    timeout: 'Tiada jawapan selepas {seconds}s',
+    notJson: 'Jawapan bukan JSON (HTTP {status}) — permintaan berkemungkinan besar dihalakan ke tempat yang salah',
+    noWallet: 'Tiada wallet ditemui dalam pelayar ini.',
   },
 
   notFound: {

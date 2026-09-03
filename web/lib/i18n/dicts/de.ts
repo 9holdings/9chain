@@ -25,6 +25,10 @@ export const de: Dict = {
     switchToDark: 'Zum dunklen Modus wechseln',
     switchToLight: 'Zum hellen Modus wechseln',
     skipToContent: 'Zum Hauptinhalt springen',
+    stepDone: ' — fertig',
+    stepRunning: ' — läuft',
+    stepFailed: ' — fehlgeschlagen',
+    stepPending: ' — offen',
   },
 
   rebuildDone: {
@@ -427,6 +431,13 @@ export const de: Dict = {
     unreachable: 'Das Netzwerk war nicht erreichbar',
     unreachableDesc: 'Das Netzwerk ist vielleicht ausgelastet, oder Ihre Verbindung ist abgebrochen.',
     empty: 'Hier gibt es noch nichts',
+    addressEmpty: '{label} darf nicht leer sein',
+    addressFormat: '{label} muss 0x und danach 40 Hex-Zeichen sein',
+    addressChecksum: '{label} scheitert an seiner EIP-55-Prüfsumme — am wahrscheinlichsten wurde ein Zeichen falsch getippt oder beim Einfügen verloren',
+    addressZero: '{label} darf nicht die Null-Adresse sein — niemand hält deren Schlüssel',
+    timeout: 'Keine Antwort nach {seconds}s',
+    notJson: 'Die Antwort war kein JSON (HTTP {status}) — die Anfrage wurde wahrscheinlich falsch geroutet',
+    noWallet: 'In diesem Browser wurde keine Wallet gefunden.',
   },
 
   notFound: {

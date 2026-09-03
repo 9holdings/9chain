@@ -24,6 +24,10 @@ export const pl: Dict = {
     switchToDark: 'Przełącz na tryb ciemny',
     switchToLight: 'Przełącz na tryb jasny',
     skipToContent: 'Przejdź do treści głównej',
+    stepDone: ' — gotowe',
+    stepRunning: ' — trwa',
+    stepFailed: ' — nieudane',
+    stepPending: ' — oczekuje',
   },
 
   rebuildDone: {
@@ -457,6 +461,13 @@ export const pl: Dict = {
     unreachable: 'Nie udało się połączyć z siecią',
     unreachableDesc: 'Sieć może być zajęta albo twoje połączenie zostało przerwane.',
     empty: 'Jeszcze nic tu nie ma',
+    addressEmpty: '{label} nie może być puste',
+    addressFormat: '{label} musi być 0x, a po nim 40 znaków szesnastkowych',
+    addressChecksum: '{label} nie przechodzi swojej sumy kontrolnej EIP-55 — najprawdopodobniej jeden znak został błędnie wpisany albo zgubiony przy wklejaniu',
+    addressZero: '{label} nie może być adresem zerowym — nikt nie ma do niego klucza',
+    timeout: 'Brak odpowiedzi po {seconds}s',
+    notJson: 'Odpowiedź nie była JSON-em (HTTP {status}) — żądanie najprawdopodobniej trafiło w złe miejsce',
+    noWallet: 'W tej przeglądarce nie znaleziono portfela.',
   },
 
   notFound: {

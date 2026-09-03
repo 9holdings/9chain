@@ -24,6 +24,10 @@ export const gu: Dict = {
     switchToDark: 'ઘેરા મોડમાં જાઓ',
     switchToLight: 'આછા મોડમાં જાઓ',
     skipToContent: 'મુખ્ય સામગ્રી પર જાઓ',
+    stepDone: ' — પૂર્ણ',
+    stepRunning: ' — ચાલુ',
+    stepFailed: ' — નિષ્ફળ',
+    stepPending: ' — બાકી',
   },
 
   rebuildDone: {
@@ -451,6 +455,13 @@ export const gu: Dict = {
     unreachable: 'નેટવર્ક સુધી પહોંચી શકાયું નહીં',
     unreachableDesc: 'નેટવર્ક વ્યસ્ત હોઈ શકે, અથવા તમારું જોડાણ તૂટી ગયું હોઈ શકે.',
     empty: 'અહીં હજી કશું નથી',
+    addressEmpty: '{label} ખાલી ન હોઈ શકે',
+    addressFormat: '{label} 0x પછી 40 હેક્સ અક્ષરો હોવા જોઈએ',
+    addressChecksum: '{label} નો EIP-55 ચેકસમ મળતો નથી — સંભવતઃ એક અક્ષર ખોટો લખાયો કે ચિપકાવતી વખતે ખૂટી ગયો',
+    addressZero: '{label} શૂન્ય સરનામું ન હોઈ શકે — તેની ચાવી કોઈ પાસે નથી',
+    timeout: '{seconds}s પછી પણ કોઈ જવાબ નથી',
+    notJson: 'જવાબ JSON ન હતો (HTTP {status}) — વિનંતી ખોટી જગ્યાએ પહોંચી હોવાની શક્યતા વધુ',
+    noWallet: 'આ બ્રાઉઝરમાં કોઈ વૉલેટ મળ્યું નથી.',
   },
 
   notFound: {

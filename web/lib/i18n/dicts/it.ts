@@ -25,6 +25,10 @@ export const it: Dict = {
     switchToDark: 'Passa alla modalità scura',
     switchToLight: 'Passa alla modalità chiara',
     skipToContent: 'Vai al contenuto principale',
+    stepDone: ' — fatto',
+    stepRunning: ' — in corso',
+    stepFailed: ' — fallito',
+    stepPending: ' — in attesa',
   },
 
   rebuildDone: {
@@ -463,6 +467,13 @@ export const it: Dict = {
     unreachable: 'Impossibile raggiungere la rete',
     unreachableDesc: 'La rete potrebbe essere occupata, oppure la tua connessione è caduta.',
     empty: 'Qui non c’è ancora nulla',
+    addressEmpty: '{label} non può essere vuoto',
+    addressFormat: '{label} deve essere 0x seguito da 40 caratteri esadecimali',
+    addressChecksum: '{label} non supera il suo checksum EIP-55: molto probabilmente un carattere è stato digitato male o perso incollando',
+    addressZero: '{label} non può essere l’indirizzo zero: nessuno ne detiene la chiave',
+    timeout: 'Nessuna risposta dopo {seconds}s',
+    notJson: 'La risposta non era JSON (HTTP {status}): la richiesta è stata probabilmente instradata nel posto sbagliato',
+    noWallet: 'Nessun portafoglio trovato in questo browser.',
   },
 
   notFound: {

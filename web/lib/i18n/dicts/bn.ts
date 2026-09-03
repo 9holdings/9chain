@@ -24,6 +24,10 @@ export const bn: Dict = {
     switchToDark: 'ডার্ক মোডে যান',
     switchToLight: 'লাইট মোডে যান',
     skipToContent: 'মূল বিষয়বস্তুতে যান',
+    stepDone: ' — সম্পন্ন',
+    stepRunning: ' — চলছে',
+    stepFailed: ' — ব্যর্থ',
+    stepPending: ' — অপেক্ষমাণ',
   },
 
   rebuildDone: {
@@ -451,6 +455,13 @@ export const bn: Dict = {
     unreachable: 'নেটওয়ার্কে পৌঁছানো যায়নি',
     unreachableDesc: 'নেটওয়ার্ক ব্যস্ত থাকতে পারে, অথবা আপনার সংযোগ বিচ্ছিন্ন হয়ে থাকতে পারে।',
     empty: 'এখানে এখনও কিছু নেই',
+    addressEmpty: '{label} খালি রাখা যাবে না',
+    addressFormat: '{label} অবশ্যই 0x এবং তারপর ৪০টি হেক্স অক্ষর হতে হবে',
+    addressChecksum: '{label}-এর EIP-55 চেকসাম মেলে না — সম্ভবত একটি অক্ষর ভুল টাইপ হয়েছে বা পেস্ট করার সময় হারিয়ে গেছে',
+    addressZero: '{label} শূন্য ঠিকানা হতে পারে না — এর চাবি কারও কাছে নেই',
+    timeout: '{seconds} সেকেন্ডেও কোনো উত্তর নেই',
+    notJson: 'উত্তর JSON ছিল না (HTTP {status}) — সম্ভবত অনুরোধ ভুল জায়গায় গেছে',
+    noWallet: 'এই ব্রাউজারে কোনো ওয়ালেট পাওয়া যায়নি।',
   },
 
   notFound: {

@@ -25,6 +25,10 @@ export const uk: Dict = {
     switchToDark: 'Перемкнути на темний режим',
     switchToLight: 'Перемкнути на світлий режим',
     skipToContent: 'Перейти до основного вмісту',
+    stepDone: ' — готово',
+    stepRunning: ' — виконується',
+    stepFailed: ' — збій',
+    stepPending: ' — очікує',
   },
 
   rebuildDone: {
@@ -456,6 +460,13 @@ export const uk: Dict = {
     unreachable: 'Не вдалося зв’язатися з мережею',
     unreachableDesc: 'Мережа може бути завантажена, або ваше з’єднання обірвалося.',
     empty: 'Тут поки що нічого немає',
+    addressEmpty: '{label} не може бути порожнім',
+    addressFormat: '{label} має бути 0x і далі 40 шістнадцяткових символів',
+    addressChecksum: '{label} не проходить свою контрольну суму EIP-55 — найімовірніше один символ набрано хибно або втрачено під час вставляння',
+    addressZero: '{label} не може бути нульовою адресою — ключа до неї ні в кого немає',
+    timeout: 'Немає відповіді через {seconds}s',
+    notJson: 'Відповідь не була JSON (HTTP {status}) — запит найімовірніше пішов не туди',
+    noWallet: 'У цьому браузері гаманця не знайдено.',
   },
 
   notFound: {

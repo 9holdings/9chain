@@ -17,6 +17,7 @@
  * bên hiểu khác nhau về thứ vừa được ký, và khi đó chữ ký chứng minh sai thứ.
  */
 import { faucetOrigin } from './chain';
+import type { FailureKind } from './net';
 
 /**
  * Hạn giờ cho các lượt gọi console NGẮN (`/api/status`, `/api/progress`). (Đ1-8)
@@ -130,7 +131,7 @@ export type WalletSession = { diaChi: string; token: string };
 
 export async function connectWallet(): Promise<string> {
   const v = getWallet();
-  if (!v) throw new Error('KHONG_CO_VI');
+  if (!v) throw new Error(NO_WALLET);
   const list = (await v.request({ method: 'eth_requestAccounts' })) as string[];
   if (!list?.length) throw new Error('KHONG_CHON_VI');
   return list[0];
@@ -138,7 +139,7 @@ export async function connectWallet(): Promise<string> {
 
 export async function siweSignIn(diaChi: string): Promise<WalletSession> {
   const v = getWallet();
-  if (!v) throw new Error('KHONG_CO_VI');
+  if (!v) throw new Error(NO_WALLET);
 
   const rn = await fetch(`${consoleOrigin()}/api/siwe/nonce?address=${encodeURIComponent(diaChi)}`, {
     cache: 'no-store',
@@ -184,10 +185,21 @@ export async function siweSignIn(diaChi: string): Promise<WalletSession> {
  */
 export class ConsoleError extends Error {
   readonly status: number;
-  constructor(thongDiep: string, status: number) {
-    super(thongDiep);
+  /**
+   * Cùng hình dạng với `NetworkError` để `describeFailure()` đọc được cả hai.
+   *
+   * ⚠️ `message` là chữ CHO LẬP TRÌNH VIÊN. Nó bị ghép vào `{detail}` ở màn đẻ chain
+   * và màn thu hồi, nên hồi nó còn là tiếng Việt thì người đọc ở cả 30 ngôn ngữ nhận
+   * tiếng Việt đúng lúc console hết giờ. Chỗ render gọi `describeFailure(e, t.errors)`.
+   */
+  readonly kind: FailureKind;
+  readonly timeoutSeconds: number;
+  constructor(message: string, status: number, kind: FailureKind = 'http', timeoutSeconds = 0) {
+    super(message);
     this.name = 'ConsoleError';
     this.status = status;
+    this.kind = kind;
+    this.timeoutSeconds = timeoutSeconds;
   }
   /** Server đã trả lời và trả lời là "không" ⇒ việc chưa bắt đầu, dừng được. */
   get laTuChoiThat(): boolean {
@@ -233,7 +245,12 @@ export async function callConsole<T = unknown>(
     // Nhầm chiều này là kiểu hỏng đắt nhất: bỏ cuộc giữa một việc đang chạy đúng.
     const ten = (e as Error)?.name;
     const het = ten === 'TimeoutError' || ten === 'AbortError';
-    throw new ConsoleError(het ? `quá ${hanGiay}s không có trả lời` : String((e as Error)?.message ?? e), 0);
+    throw new ConsoleError(
+      het ? `no answer after ${hanGiay}s` : String((e as Error)?.message ?? e),
+      0,
+      het ? 'timeout' : 'offline',
+      het ? (hanGiay ?? 0) : 0,
+    );
   }
   const t = await r.text();
   let j: unknown;
@@ -244,7 +261,11 @@ export async function callConsole<T = unknown>(
     // proxy sai) thì request rơi vào Blockscout ở gốc và ta nhận về HTML. Không nói
     // rõ thì lỗi hiện ra là "JSON parse error" — đọc như lỗi dữ liệu chứ không như
     // lỗi định tuyến, và người sửa đi tìm ở đúng chỗ không có gì.
-    throw new ConsoleError(`đáp án không phải JSON (HTTP ${r.status}) — kiểm tra đường dẫn console`, r.status);
+    throw new ConsoleError(
+      `answer was not JSON (HTTP ${r.status}) — check the console path`,
+      r.status,
+      'notJson',
+    );
   }
   if (!r.ok) throw new ConsoleError((j as { error?: string }).error || `HTTP ${r.status}`, r.status);
   return j as T;
@@ -346,23 +367,39 @@ export async function waitForProgress(
  * Mọi mã khác: hiện NGUYÊN VĂN mã + thông điệp của ví. Đó là thứ duy nhất phân biệt
  * "tham số của ta sai" với "ví không chịu".
  */
-export type WalletError = { tuChoi: boolean; ownerAddr: string | null };
+/**
+ * 🔴 TRẢ CỜ + CHI TIẾT KỸ THUẬT, KHÔNG TRẢ CÂU ĐÃ DỊCH (đổi 2026-09-03).
+ * `noWallet` là một TÌNH HUỐNG, không phải một câu: chỗ render tra `t.errors.noWallet`.
+ * `detail` thì ngược lại — nó là mã lỗi + thông điệp NGUYÊN VĂN của ví, thứ duy nhất
+ * phân biệt "tham số của ta sai" với "ví không chịu", nên nó KHÔNG được dịch.
+ */
+/** Cờ nội bộ, KHÔNG bao giờ tới mắt người dùng — xem `WalletError.noWallet`. */
+const NO_WALLET = 'NO_WALLET_IN_BROWSER';
+
+export type WalletError = { rejected: boolean; noWallet: boolean; detail: string | null };
 
 export function readWalletError(e: unknown): WalletError {
   const err = e as { code?: number; message?: string };
-  if (err?.code === 4001) return { tuChoi: true, ownerAddr: null };
-  if ((e as Error)?.message === 'KHONG_CO_VI') {
-    return { tuChoi: false, ownerAddr: 'Không thấy ví trong trình duyệt.' };
+  if (err?.code === 4001) return { rejected: true, noWallet: false, detail: null };
+  if ((e as Error)?.message === NO_WALLET) {
+    return { rejected: false, noWallet: true, detail: null };
   }
-  const ten = activeWalletName();
-  const khac = listWallets()
+  const active = activeWalletName();
+  const others = listWallets()
     .map((x) => x.name)
-    .filter((n) => n !== ten);
-  const them =
+    .filter((n) => n !== active);
+  // Phần phụ này là DỮ LIỆU CHẨN ĐOÁN, cố ý không dịch: nó chép nguyên tên extension
+  // và mã lỗi để người dùng dán thẳng cho đội. Dịch nó đi là làm mất thứ duy nhất
+  // phân biệt "nhầm ví" với "ví từ chối" — xem chú thích `-32601` ở trên.
+  const extra =
     err?.code === -32601
-      ? ` — ví đang dùng: ${ten ?? 'không rõ'}${khac.length ? `; ví khác đang cài: ${khac.join(', ')}` : ''}`
+      ? ` — active wallet: ${active ?? 'unknown'}${others.length ? `; also installed: ${others.join(', ')}` : ''}`
       : '';
-  return { tuChoi: false, ownerAddr: `${err?.code ?? '?'} · ${err?.message ?? String(e)}${them}` };
+  return {
+    rejected: false,
+    noWallet: false,
+    detail: `${err?.code ?? '?'} · ${err?.message ?? String(e)}${extra}`,
+  };
 }
 
 export async function addL1ToWallet(p: {
@@ -372,7 +409,7 @@ export async function addL1ToWallet(p: {
   kyHieu: string;
 }): Promise<void> {
   const v = getWallet();
-  if (!v) throw new Error('KHONG_CO_VI');
+  if (!v) throw new Error(NO_WALLET);
   await v.request({
     method: 'wallet_addEthereumChain',
     params: [
@@ -389,7 +426,7 @@ export async function addL1ToWallet(p: {
 /** Gửi một giao dịch CHUYỂN TIỀN THƯỜNG để mở block 1 của chain vừa đẻ. */
 export async function activateChain(chainIdHex: string, tuDiaChi: string): Promise<string> {
   const v = getWallet();
-  if (!v) throw new Error('KHONG_CO_VI');
+  if (!v) throw new Error(NO_WALLET);
   await v.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainIdHex }] });
   // 🔴 21.000 gas là HẰNG SỐ của EVM cho một lượt chuyển tiền thường ⇒ không cần
   // `eth_estimateGas`, nên không dính bẫy "ước lượng THIẾU cho giao dịch đầu tiên

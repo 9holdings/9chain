@@ -321,6 +321,7 @@ const STEP_COLOUR: Record<StepStatus, string> = {
  * không bị cắt ngang; `role="list"` giữ ngữ nghĩa danh sách khi đã bỏ dấu chấm.
  */
 export function Steps({ steps, footnote }: { steps: Step[]; footnote?: string }) {
+  const t = useT();
   return (
     <div aria-live="polite">
       <ol role="list" className="flex flex-col gap-2">
@@ -334,7 +335,13 @@ export function Steps({ steps, footnote }: { steps: Step[]; footnote?: string })
               {/* Trạng thái phải nằm trong CHỮ, không chỉ trong ký hiệu và màu:
                   ký hiệu bị aria-hidden, còn màu thì người mù màu không đọc được. */}
               <span className="sr-only">
-                {b.status === 'done' ? ' — xong' : b.status === 'running' ? ' — đang chạy' : b.status === 'failed' ? ' — hỏng' : ' — chờ'}
+                {b.status === 'done'
+                  ? t.common.stepDone
+                  : b.status === 'running'
+                    ? t.common.stepRunning
+                    : b.status === 'failed'
+                      ? t.common.stepFailed
+                      : t.common.stepPending}
               </span>
             </span>
             {b.ms ? <span className="font-mono text-xs text-muted">{(b.ms / 1000).toFixed(1)}s</span> : null}

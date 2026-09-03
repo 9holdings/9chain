@@ -16,7 +16,7 @@ import { cx } from './ui';
  * Trên nền navy nên vòng focus tự lật về vàng gốc (luật `.bg-navy` ở globals.css).
  */
 
-type Item = { ownerAddr: string; href: string; external?: boolean };
+type Item = { label: string; href: string; external?: boolean };
 
 // `/create-chain/`, `/my-chains/`, `/compare/` là trang của bản export.
 // `/chains/` do Caddy proxy sang container khác — vẫn là thẻ <a> thật như mọi mục
@@ -33,12 +33,12 @@ type Item = { ownerAddr: string; href: string; external?: boolean };
 // chữ nhận `t`.
 function buildItems(t: Dict): Item[] {
   return [
-    { ownerAddr: t.nav.home, href: '/' },
-    { ownerAddr: t.nav.faucet, href: '/faucet/' },
-    { ownerAddr: t.nav.launch, href: '/create-chain/' },
-    { ownerAddr: t.nav.myChains, href: '/my-chains/' },
-    { ownerAddr: t.nav.compare, href: '/compare/' },
-    { ownerAddr: t.nav.directory, href: '/chains/' },
+    { label: t.nav.home, href: '/' },
+    { label: t.nav.faucet, href: '/faucet/' },
+    { label: t.nav.launch, href: '/create-chain/' },
+    { label: t.nav.myChains, href: '/my-chains/' },
+    { label: t.nav.compare, href: '/compare/' },
+    { label: t.nav.directory, href: '/chains/' },
   ];
 }
 
@@ -107,7 +107,7 @@ export function SiteHeader() {
               href={m.href}
               className="rounded-btn px-3 py-2 text-sm font-semibold text-on-dark-2 hover:bg-navy-hover hover:text-on-dark"
             >
-              {m.ownerAddr}
+              {m.label}
             </a>
           ))}
           <a
@@ -154,7 +154,7 @@ export function SiteHeader() {
               href={m.href}
               className="rounded-btn px-3 py-3 text-base font-semibold text-on-dark hover:bg-navy-hover"
             >
-              {m.ownerAddr}
+              {m.label}
             </a>
           ))}
           <a

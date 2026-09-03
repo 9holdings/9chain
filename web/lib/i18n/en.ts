@@ -40,6 +40,10 @@ export const EN = {
     switchToDark: 'Switch to dark mode',
     switchToLight: 'Switch to light mode',
     skipToContent: 'Skip to main content',
+    stepDone: ' — done',
+    stepRunning: ' — running',
+    stepFailed: ' — failed',
+    stepPending: ' — pending',
   },
 
   /** Announcement text for AFTER the reset. Written ahead of time — see `vi.ts`. */
@@ -546,6 +550,13 @@ export const EN = {
     unreachable: 'Could not reach the network',
     unreachableDesc: 'The network may be busy, or your connection may have dropped.',
     empty: 'Nothing here yet',
+    addressEmpty: '{label} must not be empty',
+    addressFormat: '{label} must be 0x followed by 40 hex characters',
+    addressChecksum: '{label} fails its EIP-55 checksum — most likely one character was mistyped or lost when pasting',
+    addressZero: '{label} must not be the zero address — nobody holds its key',
+    timeout: 'No answer after {seconds}s',
+    notJson: 'The answer was not JSON (HTTP {status}) — most likely the request was routed to the wrong place',
+    noWallet: 'No wallet found in this browser.',
   },
 
   notFound: {

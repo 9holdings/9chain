@@ -26,6 +26,10 @@ export const ur: Dict = {
     switchToDark: 'ڈارک موڈ پر جائیں',
     switchToLight: 'لائٹ موڈ پر جائیں',
     skipToContent: 'مرکزی مواد پر جائیں',
+    stepDone: '‏ — مکمل',
+    stepRunning: '‏ — جاری',
+    stepFailed: '‏ — ناکام',
+    stepPending: '‏ — زیرِ التوا',
   },
 
   rebuildDone: {
@@ -456,6 +460,13 @@ export const ur: Dict = {
     unreachable: 'نیٹ ورک تک نہیں پہنچا جا سکا',
     unreachableDesc: 'ہو سکتا ہے نیٹ ورک مصروف ہو، یا آپ کا رابطہ منقطع ہو گیا ہو۔',
     empty: 'یہاں ابھی کچھ نہیں',
+    addressEmpty: '{label} خالی نہیں ہو سکتا',
+    addressFormat: '{label} کو 0x اور اس کے بعد 40 ہیکس حروف ہونا چاہیے',
+    addressChecksum: '{label} کا EIP-55 چیک سم پورا نہیں ہوتا — غالباً ایک حرف غلط ٹائپ ہوا یا چسپاں کرتے وقت رہ گیا',
+    addressZero: '{label} صفر پتہ نہیں ہو سکتا — اس کی کلید کسی کے پاس نہیں',
+    timeout: '{seconds} سیکنڈ میں کوئی جواب نہیں',
+    notJson: 'جواب JSON نہیں تھا (HTTP {status}) — غالباً درخواست غلط جگہ پہنچی',
+    noWallet: 'اس براؤزر میں کوئی والٹ نہیں ملا۔',
   },
 
   notFound: {

@@ -77,6 +77,10 @@ export const vi: Dict = {
     switchToDark: 'Chuyển sang nền tối',
     switchToLight: 'Chuyển sang nền sáng',
     skipToContent: 'Bỏ qua, tới nội dung chính',
+    stepDone: ' — xong',
+    stepRunning: ' — đang chạy',
+    stepFailed: ' — hỏng',
+    stepPending: ' — chờ',
   },
 
   /**
@@ -648,6 +652,13 @@ export const vi: Dict = {
     unreachable: 'Không kết nối được tới mạng',
     unreachableDesc: 'Có thể mạng đang bận hoặc đường truyền của bạn bị gián đoạn.',
     empty: 'Chưa có gì ở đây',
+    addressEmpty: '{label} không được để trống',
+    addressFormat: '{label} phải là 0x + 40 ký tự hex',
+    addressChecksum: '{label} sai checksum EIP-55 — nhiều khả năng gõ hoặc dán nhầm một ký tự',
+    addressZero: '{label} không được là địa chỉ 0 — không ai giữ khoá của nó',
+    timeout: 'Quá {seconds}s không có trả lời',
+    notJson: 'Đáp án không phải JSON (HTTP {status}) — nhiều khả năng đường dẫn bị giải sai',
+    noWallet: 'Không thấy ví trong trình duyệt này.',
   },
 
   /**

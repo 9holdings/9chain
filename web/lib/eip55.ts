@@ -91,9 +91,16 @@ export function toChecksumAddress(addr: string): string {
   return out;
 }
 
+/**
+ * 🔴 TRẢ VỀ MÃ, KHÔNG TRẢ VỀ CÂU CHỮ (đổi 2026-09-03).
+ * Tệp này là hàm thuần — nó không gọi được `useT()`, nên mọi câu nó tự dựng đều bị
+ * đóng băng ở MỘT ngôn ngữ. Bản trước giữ bốn thông báo tiếng Việt cắm cứng và
+ * `FaucetForm` in thẳng chúng ra, tức người đọc ở cả 30 ngôn ngữ nhận tiếng Việt
+ * đúng lúc họ đang gõ sai một địa chỉ. Nay chỗ render tra `t.errors[…]` theo `code`.
+ */
 export type AddressCheck =
-  | { ok: true; diaChi: string }
-  | { ok: false; failure: string; hint?: string };
+  | { ok: true; address: string }
+  | { ok: false; code: 'empty' | 'format' | 'checksum' | 'zero'; hint?: string };
 
 /**
  * Kiểm + chuẩn hoá địa chỉ người dùng nhập. **Trả kết quả, không ném lỗi** — ở giao
@@ -103,30 +110,24 @@ export type AddressCheck =
  * Địa chỉ toàn hoa hoặc toàn thường được chấp nhận (không mang thông tin checksum);
  * hoa/thường lẫn lộn thì BẮT BUỘC khớp EIP-55.
  */
-export function checkAddress(raw: string, label = 'Địa chỉ'): AddressCheck {
+export function checkAddress(raw: string): AddressCheck {
   const s = (raw ?? '').trim();
-  if (!s) return { ok: false, failure: `${label} không được để trống` };
-  if (!/^0x[0-9a-fA-F]{40}$/.test(s)) {
-    return { ok: false, failure: `${label} phải là 0x + 40 ký tự hex` };
-  }
+  if (!s) return { ok: false, code: 'empty' };
+  if (!/^0x[0-9a-fA-F]{40}$/.test(s)) return { ok: false, code: 'format' };
   const body = s.slice(2);
-  const lanLon = /[a-f]/.test(body) && /[A-F]/.test(body);
-  const chuan = toChecksumAddress(s);
-  if (lanLon && s !== chuan) {
-    return {
-      ok: false,
-      failure: `${label} sai checksum EIP-55 — nhiều khả năng gõ/dán nhầm một ký tự`,
-      hint: s.toLowerCase(),
-    };
+  const mixedCase = /[a-f]/.test(body) && /[A-F]/.test(body);
+  const canonical = toChecksumAddress(s);
+  if (mixedCase && s !== canonical) {
+    // `hint` là đường thoát: toàn chữ thường KHÔNG mang thông tin checksum nên luôn
+    // được chấp nhận, và đó là thứ người dán sai một ký tự cần nhất.
+    return { ok: false, code: 'checksum', hint: s.toLowerCase() };
   }
-  if (/^0x0{40}$/.test(s)) {
-    return { ok: false, failure: `${label} không được là địa chỉ 0 (không ai giữ khoá)` };
-  }
-  return { ok: true, diaChi: chuan };
+  if (/^0x0{40}$/.test(s)) return { ok: false, code: 'zero' };
+  return { ok: true, address: canonical };
 }
 
 /** Rút gọn để hiện trên giao diện hẹp. Giữ đủ hai đầu để người ta đối chiếu được. */
-export function shortenAddress(addr: string, dau = 6, cuoi = 4): string {
-  if (!addr || addr.length <= dau + cuoi + 2) return addr;
-  return `${addr.slice(0, dau + 2)}…${addr.slice(-cuoi)}`;
+export function shortenAddress(addr: string, head = 6, tail = 4): string {
+  if (!addr || addr.length <= head + tail + 2) return addr;
+  return `${addr.slice(0, head + 2)}…${addr.slice(-tail)}`;
 }

@@ -24,6 +24,10 @@ export const sw: Dict = {
     switchToDark: 'Badilisha kwenda hali ya giza',
     switchToLight: 'Badilisha kwenda hali ya mwanga',
     skipToContent: 'Rukia hadi maudhui makuu',
+    stepDone: ' — imekamilika',
+    stepRunning: ' — inaendesha',
+    stepFailed: ' — imeshindikana',
+    stepPending: ' — inasubiri',
   },
 
   rebuildDone: {
@@ -458,6 +462,13 @@ export const sw: Dict = {
     unreachable: 'Mtandao haukufikika',
     unreachableDesc: 'Mtandao waweza kuwa na shughuli nyingi, au muunganisho wako umekatika.',
     empty: 'Bado hakuna kitu hapa',
+    addressEmpty: '{label} haiwezi kuwa tupu',
+    addressFormat: '{label} lazima liwe 0x likifuatiwa na herufi 40 za heksadesimali',
+    addressChecksum: '{label} haipiti hesabu yake ya ukaguzi ya EIP-55 — kuna uwezekano mkubwa herufi moja iliandikwa vibaya au ilipotea ulipobandika',
+    addressZero: '{label} haiwezi kuwa anwani sifuri — hakuna mtu anayeshikilia ufunguo wake',
+    timeout: 'Hakuna jibu baada ya sekunde {seconds}',
+    notJson: 'Jibu hakikuwa JSON (HTTP {status}) — kuna uwezekano mkubwa ombi lilielekezwa mahali pasipo sahihi',
+    noWallet: 'Hakuna pochi iliyopatikana katika kivinjari hiki.',
   },
 
   notFound: {

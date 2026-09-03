@@ -27,6 +27,10 @@ export const ar: Dict = {
     switchToDark: 'التبديل إلى الوضع الداكن',
     switchToLight: 'التبديل إلى الوضع الفاتح',
     skipToContent: 'تخطَّ إلى المحتوى الرئيسي',
+    stepDone: '‏ — تمّ',
+    stepRunning: '‏ — قيد التنفيذ',
+    stepFailed: '‏ — فشل',
+    stepPending: '‏ — في الانتظار',
   },
 
   rebuildDone: {
@@ -411,6 +415,13 @@ export const ar: Dict = {
     unreachable: 'تعذّر الوصول إلى الشبكة',
     unreachableDesc: 'قد تكون الشبكة مشغولة، أو انقطع اتصالك.',
     empty: 'لا شيء هنا بعد',
+    addressEmpty: 'لا يجوز أن يكون {label} فارغًا',
+    addressFormat: 'يجب أن يكون {label} على شكل 0x متبوعًا بأربعين حرفًا ست عشريًّا',
+    addressChecksum: 'لا يجتاز {label} تحقّق EIP-55 — غالبًا أُخطئ في كتابة حرف أو فُقد حرف عند اللصق',
+    addressZero: 'لا يجوز أن يكون {label} العنوان الصفري — لا أحد يملك مفتاحه',
+    timeout: 'لا جواب بعد {seconds} ثانية',
+    notJson: 'لم يكن الجواب JSON (HTTP {status}) — غالبًا وُجّه الطلب إلى المكان الخطأ',
+    noWallet: 'لم يُعثر على محفظة في هذا المتصفّح.',
   },
 
   notFound: {

@@ -25,6 +25,10 @@ export const ja: Dict = {
     switchToDark: 'ダークモードに切り替え',
     switchToLight: 'ライトモードに切り替え',
     skipToContent: '本文へスキップ',
+    stepDone: '（完了）',
+    stepRunning: '（実行中）',
+    stepFailed: '（失敗）',
+    stepPending: '（待機中）',
   },
 
   rebuildDone: {
@@ -425,6 +429,13 @@ export const ja: Dict = {
     unreachable: 'ネットワークに接続できませんでした',
     unreachableDesc: 'ネットワークが混雑しているか、接続が切れた可能性があります。',
     empty: 'ここにはまだ何もありません',
+    addressEmpty: '{label} は空にできません',
+    addressFormat: '{label} は 0x のあとに 16 進数 40 文字である必要があります',
+    addressChecksum: '{label} の EIP-55 チェックサムが合いません。1 文字打ち間違えたか、貼り付けのときに欠けた可能性が高いです',
+    addressZero: '{label} にゼロアドレスは使えません。その鍵は誰も持っていません',
+    timeout: '{seconds} 秒たっても応答がありません',
+    notJson: '応答が JSON ではありませんでした（HTTP {status}）。リクエストが誤った場所に振り分けられた可能性が高いです',
+    noWallet: 'このブラウザにウォレットが見つかりません。',
   },
 
   notFound: {

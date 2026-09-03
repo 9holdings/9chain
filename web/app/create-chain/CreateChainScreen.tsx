@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Field, Badge, Skeleton, ErrorState, Note, Copyable, Steps, type Step } from '@/components/ui';
 import { shortenAddress } from '@/lib/eip55';
 import { interpolate, useT } from '@/lib/i18n';
+import { describeFailure } from '@/lib/net';
 import {
   getWallet, connectWallet, siweSignIn, callConsole, addL1ToWallet, activateChain, waitForProgress, ConsoleError,
   readWalletError, type WalletSession, CONSOLE_TIMEOUT_S} from '@/lib/wallet';
@@ -151,7 +152,7 @@ export function CreateChainScreen() {
     const post = callConsole<KetQua>('/api/create', session.token, { name: ten.trim(), preset })
       .then((k) => { kqPost = k; })
       .catch((e) => {
-        loiPost = String((e as Error).message ?? e);
+        loiPost = describeFailure(e, t.errors);
         if (e instanceof ConsoleError && e.laTuChoiThat) biTuChoi = true;
       });
 
@@ -403,7 +404,11 @@ export function CreateChainScreen() {
                   } catch (e) {
                     const l = readWalletError(e);
                     setAddWalletError(
-                      l.tuChoi ? t.common.walletRejected : interpolate(t.launch.doneAddWalletError, { detail: l.ownerAddr ?? '' }),
+                      l.rejected
+                        ? t.common.walletRejected
+                        : l.noWallet
+                          ? t.errors.noWallet
+                          : interpolate(t.launch.doneAddWalletError, { detail: l.detail ?? '' }),
                     );
                   }
                 }}
@@ -425,7 +430,11 @@ export function CreateChainScreen() {
                     setActivated('chua');
                     const l = readWalletError(e);
                     setActivateError(
-                      l.tuChoi ? t.common.walletRejected : interpolate(t.launch.doneActivateError, { detail: l.ownerAddr ?? '' }),
+                      l.rejected
+                        ? t.common.walletRejected
+                        : l.noWallet
+                          ? t.errors.noWallet
+                          : interpolate(t.launch.doneActivateError, { detail: l.detail ?? '' }),
                     );
                   }
                 }}

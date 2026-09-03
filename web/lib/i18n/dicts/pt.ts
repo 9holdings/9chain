@@ -25,6 +25,10 @@ export const pt: Dict = {
     switchToDark: 'Mudar para o modo escuro',
     switchToLight: 'Mudar para o modo claro',
     skipToContent: 'Pular para o conteúdo principal',
+    stepDone: ' — concluído',
+    stepRunning: ' — em curso',
+    stepFailed: ' — falhou',
+    stepPending: ' — pendente',
   },
 
   rebuildDone: {
@@ -423,6 +427,13 @@ export const pt: Dict = {
     unreachable: 'Não foi possível alcançar a rede',
     unreachableDesc: 'A rede pode estar ocupada, ou sua conexão pode ter caído.',
     empty: 'Nada aqui ainda',
+    addressEmpty: '{label} não pode estar vazio',
+    addressFormat: '{label} tem de ser 0x seguido de 40 caracteres hexadecimais',
+    addressChecksum: '{label} não passa a sua soma de verificação EIP-55 — o mais provável é que um carácter tenha sido mal escrito ou perdido ao colar',
+    addressZero: '{label} não pode ser o endereço zero — ninguém detém a sua chave',
+    timeout: 'Sem resposta após {seconds}s',
+    notJson: 'A resposta não era JSON (HTTP {status}) — o pedido foi provavelmente encaminhado para o lugar errado',
+    noWallet: 'Não foi encontrada nenhuma carteira neste navegador.',
   },
 
   notFound: {
