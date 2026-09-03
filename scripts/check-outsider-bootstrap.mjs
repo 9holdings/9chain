@@ -48,6 +48,21 @@
  * cannot even dial the host's public IP (D-089). This gate is only meaningful run from a machine
  * that is not the server. It says so in its own output rather than assuming.
  *
+ * ## 🔴 WHOSE PORTS (changed 2026-09-03, the evening the first outsider staked)
+ *
+ * The first guest validator ran behind NAT: connected OUTBOUND to the beacon, announced
+ * `(guest validator IP, withheld):9651`, and nobody could dial it back. This gate scored "1 of 10 announced
+ * addresses refuse a connection — FAIL", which is true of that address and false about the
+ * question in the title: 99.99% of stake was dialable, and a stranger bootstraps fine. Red for a
+ * reason that is not the gate's reason (D-153), and it would recur for every guest behind NAT —
+ * i.e. for most home validators this project invites.
+ *
+ * ⇒ The "must be 100% open" rule applies to the FOUNDING SET — genesis `initialStakers`, the nodes
+ *   this project runs and can fix (`local-net/lib/genesis-stakers.mjs`). Guests are dialled and
+ *   listed, and they count toward stake coverage — which is the only number bootstrap actually
+ *   gates on — but a closed guest port is reported, not scored: it is theirs to open, and the
+ *   guide tells them why they would want to (uptime is measured over connections).
+ *
  * ## HONEST FAILURE MODES — a gate about the network must not blame the network for itself
  *
  * If EVERY probe fails, the likeliest explanation is the prober's own connectivity, not nine
@@ -68,6 +83,7 @@
  */
 import net from "node:net";
 import { request } from "../local-net/lib/chain-ledger.mjs";
+import { genesisStakerIDs, partitionByFounding } from "../local-net/lib/genesis-stakers.mjs";
 
 const ARGV = process.argv.slice(2);
 const SELF_TEST = ARGV.includes("--self-test");
@@ -140,6 +156,22 @@ export function assessReachability({ attempted, open }) {
   return { verdict: "fail", why: `${attempted - open} of ${attempted} announced addresses refuse a connection — the network is answering, so these failures are real` };
 }
 
+/**
+ * The junction: founders are scored, guests are reported. Tested as ONE function because the
+ * defect of 2026-09-03 lived exactly here — each half was right and the join was wrong (D-171).
+ *
+ * `founders` / `guests` are `{ attempted, open }` tallies. The verdict is the founders' verdict;
+ * the guests only change the sentence.
+ */
+export function assessDialability({ founders, guests }) {
+  const verdict = assessReachability(founders);
+  const guestNote = guests.attempted === 0
+    ? ""
+    : ` Guests: ${guests.open} of ${guests.attempted} announced address(es) dialable — ${guests.attempted - guests.open === 0
+      ? "all open" : "the closed ones are theirs to open (NAT/firewall), and count only through stake coverage"}.`;
+  return { verdict: verdict.verdict, why: `founding nodes: ${verdict.why}.${guestNote}` };
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
    The run
    ══════════════════════════════════════════════════════════════════════════ */
@@ -205,28 +237,42 @@ async function main() {
   const weightOf = new Map(validators.map((v) => [v.nodeID, BigInt(v.weight ?? 0)]));
   const totalWeight = [...weightOf.values()].reduce((a, b) => a + b, 0n);
 
-  let attempted = 0, open = 0, reachableWeight = 0n;
+  // 🔴 Founders are scored, guests are reported — see the header. The founding set is read from
+  // the tracked genesis and a missing artefact THROWS (exit 2), never "no founders".
+  const founding = genesisStakerIDs();
+  const { founders: founderRows, missingFounders } = partitionByFounding(members, founding);
+  const isFounder = new Set(founderRows.map((m) => m.nodeID));
+
+  const tally = { founders: { attempted: 0, open: 0 }, guests: { attempted: 0, open: 0 } };
+  let reachableWeight = 0n;
   console.log("  node                                          announced          dialled");
   for (const m of members) {
     const a = announcedAddress(m);
+    const role = isFounder.has(m.nodeID) ? "founders" : "guests";
     if (!a.ok) {
       console.log(`  ${m.nodeID}  🔴 ${a.why}`);
       continue;
     }
-    attempted++;
+    tally[role].attempted++;
     const r = await probe(a.address);
-    if (r.open) { open++; reachableWeight += weightOf.get(m.nodeID) ?? 0n; }
-    console.log(`  ${String(m.nodeID).padEnd(45)} ${a.address.padEnd(22)} ${r.open ? "open" : `🔴 ${r.why}`}${m.self ? "   (the node we asked)" : ""}`);
+    if (r.open) { tally[role].open++; reachableWeight += weightOf.get(m.nodeID) ?? 0n; }
+    const tag = m.self ? "   (the node we asked)" : role === "guests" ? "   (guest — not in genesis)" : "";
+    console.log(`  ${String(m.nodeID).padEnd(45)} ${a.address.padEnd(22)} ${r.open ? "open" : `${role === "guests" ? "⚪" : "🔴"} ${r.why}`}${tag}`);
+  }
+  if (missingFounders.length) {
+    console.log(`  ⚪ founding node(s) not in the peer list of the node asked: ${missingFounders.join(", ")}`);
   }
   console.log();
 
-  const announcedCount = members.filter((m) => announcedAddress(m).ok).length;
-  say(announcedCount === members.length
-    ? { verdict: "ok", why: `all ${members.length} known nodes announce a routable address, not a Docker-internal one` }
-    : { verdict: "fail", why: `${members.length - announcedCount} of ${members.length} nodes announce only an internal address — a stranger is gossiped an address they cannot dial (D-118b)` },
+  // Announcing a private address is a founders' defect by construction: it is what
+  // `open-p2p-all-nodes.py` sets, and a guest's claim is whatever they configured.
+  const founderAnnounced = founderRows.filter((m) => announcedAddress(m).ok).length;
+  say(founderAnnounced === founderRows.length
+    ? { verdict: "ok", why: `all ${founderRows.length} founding nodes announce a routable address, not a Docker-internal one (${members.length - founderRows.length} guest(s) listed above)` }
+    : { verdict: "fail", why: `${founderRows.length - founderAnnounced} of ${founderRows.length} founding nodes announce only an internal address — a stranger is gossiped an address they cannot dial (D-118b)` },
   "the network hands strangers routable addresses");
 
-  say(assessReachability({ attempted, open }), "those addresses accept a connection from outside");
+  say(assessDialability(tally), "those addresses accept a connection from outside");
   say(assessStakeCoverage(reachableWeight, totalWeight), "that is enough stake to bootstrap");
 
   console.log(`\n${worst === 0 ? "✅ PASS" : worst === 2 ? "⚪ INCONCLUSIVE" : "🔴 FAIL"} — a stranger `
@@ -272,6 +318,25 @@ function selfTest() {
     assessReachability({ attempted: 9, open: 0 }).verdict, "inconclusive");
   ok("nothing announced ⇒ inconclusive here, and the announce check is what reddens",
     assessReachability({ attempted: 0, open: 0 }).verdict, "inconclusive");
+
+  console.log("\n── 🔴 founders are scored, guests are reported — the join, not the halves (D-171) ──");
+  // The shape measured 2026-09-03: nine founders open, one guest behind NAT. Before this change
+  // the gate said FAIL; a stranger could bootstrap the whole time.
+  const natGuest = assessDialability({ founders: { attempted: 9, open: 9 }, guests: { attempted: 1, open: 0 } });
+  ok("🔴 THE 2026-09-03 SHAPE — 9/9 founders open, 1 guest behind NAT ⇒ PASSES", natGuest.verdict, "ok");
+  ok("… and the sentence says the guest port is theirs to open", /theirs to open/.test(natGuest.why), true);
+  ok("🔴 a FOUNDER closed still FAILS, however many guests are open",
+    assessDialability({ founders: { attempted: 9, open: 8 }, guests: { attempted: 3, open: 3 } }).verdict, "fail");
+  ok("🔴 every founder closed is INCONCLUSIVE even when a guest answers — that is this machine, not nine firewalls",
+    assessDialability({ founders: { attempted: 9, open: 0 }, guests: { attempted: 1, open: 1 } }).verdict, "inconclusive");
+  ok("no guests ⇒ the founders' verdict, no guest sentence",
+    /Guests/.test(assessDialability({ founders: { attempted: 9, open: 9 }, guests: { attempted: 0, open: 0 } }).why), false);
+  const F = new Set(["NodeID-A", "NodeID-B"]);
+  const split = partitionByFounding([{ nodeID: "NodeID-A" }, { nodeID: "NodeID-GUEST" }], F);
+  ok("partition: a genesis staker is a founder", split.founders.length, 1);
+  ok("partition: anyone else is a guest", split.guests.length, 1);
+  ok("🔴 partition: a founder ABSENT from the peer list is NAMED — absence is what a filter cannot show",
+    split.missingFounders.join(","), "NodeID-B");
 
   console.log("\n── stake coverage: WEIGHT, never headcount ──");
   const W = (n) => BigInt(n) * 999_999_000_000_000n;

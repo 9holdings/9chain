@@ -57,6 +57,20 @@ cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang g
 
 ---
 
+## 🟢 PHIÊN `2026-09-03` ĐÊM — HAI CỔNG ĐỎ VÌ VALIDATOR KHÁCH ĐẦU TIÊN (D-180)
+
+- [x] **P-63 — `watch-network` + `check-outsider-bootstrap` đo BỘ SÁNG LẬP, kể về khách** (D-180)
+      Người ngoài đầu tiên stake (`15:45Z`, 14 ngày, sau NAT) ⇒ preflight `47 · 3 đỏ`, hai đỏ mới
+      không nói gì về mạng: B-12 đọc hạn của khách, cổng bootstrap bắt khách phải mở cổng.
+      ✅ `local-net/lib/genesis-stakers.mjs`: sáng lập = `initialStakers` genesis đã theo dõi, vắng
+      tệp ⇒ THROW. Đối chứng +11 / 26→34 ca, fixture đúng hình đã đo, đỏ thật cả hai chiều.
+      ✅ Chạy thật `20:25Z`: `watch-network` exit 0 (vàng: khách uptime 13,9 %) · bootstrap PASS.
+- [ ] **P-64 — `RUN-A-VALIDATOR.md`: hai dòng bẫy** — giữ `staker.crt`/`staker.key` (mất là đổi
+      NodeID, cọc thành vô nghĩa; khách đầu tiên có vẻ đã dính: NodeID cọc ≠ NodeID nối) · node sau
+      NAT validate được nhưng uptime đo qua kết nối, nên mở 9651.
+
+---
+
 ## 🟢 PHIÊN `2026-09-02` — PHÁT HÀNH GENESIS + BẢN GHI SUÝT BỊ XOÁ (D-158)
 
 - [x] **P-1 — `genesis.json` vào đường được git theo dõi** (D-158)

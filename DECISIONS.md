@@ -8385,3 +8385,46 @@ Hợp đồng: `POST /api/create` nhận thêm `symbol` (tuỳ chọn); lỗi tr
 thêm ô ký hiệu (gợi ý sẵn theo luật dự phòng), `addChain` dùng `symbol ?? symbolFromName(name)` —
 **không bao giờ** `'LOVE9'`; trang "Done" nói rõ 50M là xăng của chain riêng; `/chains/` hiện ký hiệu.
 Chừng nào `web/` chưa đổi, người dùng **vẫn thấy LOVE9** — nửa console là điều kiện cần, chưa đủ.
+
+## D-180 — **Hai cổng đỏ vì validator KHÁCH đầu tiên: dân số của phép đo là BỘ SÁNG LẬP, không phải "mọi validator"** (`2026-09-03` đêm)
+
+**Đo `20:1xZ`:** preflight `47 đạt · 3 đỏ`. Hai đỏ MỚI, cùng một nguyên nhân — người ngoài đầu tiên
+stake lên g1 lúc `15:45Z` (`NodeID-DZJum…`, cọc 14 ngày đúng ví dụ `--days 14` trong
+`RUN-A-VALIDATOR.md`, node sau NAT tại `(guest validator IP, withheld)`, **không phải** máy Hetzner `95.217.60.140`):
+
+| cổng | in ra | sự thật |
+|---|---|---|
+| `watch-network` | *"số validator 10 (mong 9)"* · *"B-12 hết hạn sớm nhất 14 ngày"* | 9 node sáng lập đủ, hạn sớm nhất của chúng **307 ngày** |
+| `check-outsider-bootstrap` | *"1 of 10 announced addresses refuse — FAIL"* | 9/9 node A1 mở, **99,99 % stake** quay số được, người lạ bootstrap bình thường |
+
+**Lớp lỗi §2, hình dạng D-153:** đỏ vì lý do không phải lý do của cổng. Cả hai cổng viết lúc *"mọi
+validator"* và *"9 node A1 chạy"* là **cùng một tập**, nên đo tập thứ nhất mà nghĩ là tập thứ hai.
+B-12 là *"node sáng lập cuối rụng thì mạng DỪNG"*; hạn của một khách hết thì **không dừng gì**. Cổng
+bootstrap hỏi *"người lạ có bootstrap được không"* — đại lượng thật là **≥ 80 % stake** (mục 3, xanh
+suốt), không phải *"100 % cổng khai mở"*. **Và mỗi khách vào là preflight đỏ thêm một lần** — đường
+onboarding dự án mời người ta đi sẽ làm đỏ chính preflight của dự án, cho tới khi người đọc học cách
+lướt (D-070).
+
+**Quyết định:** dân số cổng chịu trách nhiệm = **`initialStakers` của genesis đã theo dõi**
+(`docs/genesis/genesis-g<N>.json`, D-158), đọc qua thư viện mới `local-net/lib/genesis-stakers.mjs`
+— **không chép NodeID** vào đâu (D-113, D-150); tệp vắng thì **THROW** chứ không thành *"0 sáng lập"*
+(nếu không, B-12 thành cổng không bao giờ đỏ được — D-153 chiều ngược). Khách được **đo và kể**, không
+bao giờ là đỏ phía A1:
+- `watch-network`: *"founding validators present"* phải = 9, **nêu tên** node sáng lập vắng; B-12 tính
+  trên sáng lập; dòng riêng *"guest validators"* **vàng** khi khách không nối / uptime < 80 % (sàn thưởng)
+  — đó là **lỗi của đường onboarding**, và dòng đó nói thế.
+- `check-outsider-bootstrap`: luật *"100 % mở"* áp cho sáng lập; khách được quay số, in ⚪, chỉ tính
+  qua stake coverage. Hàm `assessDialability` kiểm **CHỖ NỐI** chứ không chỉ hai nửa (D-171).
+
+**Nghiệm thu:** đối chứng `watch-network` +11 ca, `check-outsider-bootstrap` 26 → **34** ca, fixture
+đúng hình dạng đã đo (9 sáng lập 306–362 ngày + 1 khách 14 ngày, uptime 14,6 %); ca đỏ thật: sáng lập
+vắng ⇒ 8 + tên · sáng lập 30 ngày ⇒ đỏ · sáng lập đóng cổng ⇒ FAIL dù khách mở. Chạy thật `20:25Z`:
+`watch-network` **✅ exit 0** (vàng: khách `DZJum…` uptime 13,9 %) · `check-outsider-bootstrap`
+**✅ PASS**. Bánh cóc §0: nợ `5709 → 5700`. Hetzner **không** có ngoại lệ: node 10 không nằm trong
+genesis, sẽ được chấm là khách cho tới khi có quyết định **bằng mã**.
+
+**Việc lộ ra, chưa làm:** `NodeID-DZJum…` đang cọc **≠** `NodeID-HV3b…` đang nối từ cùng IP ⇒ khả
+năng lớn khách dựng lại `--data-dir` và mất `staker.crt` (đổi danh tính) — uptime 13,9 % nên **không
+nhận thưởng**, cọc trả về `2026-09-17`. Bảng *"Things that will cost you hours"* trong
+`RUN-A-VALIDATOR.md` **chưa dặn giữ `staker.crt`/`staker.key`** và chưa nói node sau NAT vẫn validate
+nhưng nên mở 9651. Kèm: `check-live-page` vẫn đỏ (`/` khai 9 validator, chain có 10 — `web-home`).

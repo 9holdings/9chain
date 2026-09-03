@@ -712,6 +712,11 @@ nhất"*. Sau khi node 1 hết hạn, `getCurrentValidators` **thôi liệt kê 
 sang node 2. Nhưng so le là **7 ngày**, mà ngưỡng đỏ là **45** ⇒ mọi mốc còn lại đều ≤ 56 ngày,
 tức nằm sâu trong vùng đỏ. Suy ra từ **so le đã đo** + **hằng số đã đọc trong mã**, không từ trí nhớ.
 
+🔴 **Dân số của cổng đổi `2026-09-03` đêm (D-180): B-12 tính trên BỘ SÁNG LẬP** (`initialStakers` của
+genesis đã theo dõi), không trên *mọi* validator. Khách đầu tiên cọc **14 ngày** đúng ví dụ trong tài liệu
+và cổng đỏ *"B-12: 14 ngày"* — đỏ vì lý do không phải lý do của nó (D-153). Hạn của một khách hết thì
+**không dừng gì**; khách nay có dòng riêng, vàng khi không nhận thưởng.
+
 🔴 **Còn lại đúng nửa NGƯỜI, và chỉ David làm được:** lịch nhắc ở nơi sống lâu hơn một phiên làm
 việc (không phải tệp trong repo — repo không đánh thức ai), + **tên người chịu trách nhiệm**.
 Mốc đáng đặt là **`2027-03-09`**, chỗ cổng chuyển vàng: đặt vào chỗ nó chuyển ĐỎ là để lời nhắc
