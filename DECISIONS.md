@@ -8324,3 +8324,52 @@ sát 8 lõi **trước khi** có giao dịch nào trên L1.
 ⚠️ Hai mẫu cùng tuổi ~80 phút nên phép so hợp lệ về **hình dạng**; con số tuyệt đối còn đổi khi
 node lớn (heap, cache). Mẫu `19:30Z` (node ~3,3 h, đã hẹn) sẽ ghi bù vào đây. Đọc **tuổi** trước khi
 so bất kỳ mẫu nào — script in sẵn.
+
+## D-179 — **Ký hiệu token native của L1: console nhận, kiểm, từ chối `LOVE9`, ghi vào sổ — nửa còn lại là `web-home`** (`2026-09-03`)
+
+David, ngay sau khi đẻ *9Cashback Chain*: *"tôi vừa tạo 1 Chain thì thấy có 50M này là sao"* — MetaMask
+in **"50.00M LOVE9"**. Rồi: *"ghi thành mốc trong PROGRESS đi, làm ký hiệu token trước."*
+
+### Chuyện gì đang xảy ra với 50M
+
+Console ghi vào `alloc` của genesis mỗi L1 đúng một dòng: ví admin nhận `0x295BE96E64066972000000`
+wei = **50.000.000 token native của chính L1 đó** (khuôn subnet-evm cấp số này cho `ewoq`; console
+thay bằng ví người tạo, D-114). Nó là xăng của chain con, **không cầu, không đổi được sang LOVE9**.
+Nhưng `web/` đưa `nativeCurrency.symbol = 'LOVE9'` **cứng** cho mọi L1 (`CreateChainScreen.tsx:401`,
+`wallet.ts:433`) ⇒ một số dư test mang tên đồng tiền thật của mạng. Một người lạ đọc dòng đó tin rằng
+mình có 50 triệu LOVE9. Lớp nhầm *"cùng tên, khác đại lượng"* — §2, lần nữa, ở ví người dùng.
+
+### Nửa console (repo này) — `lib/l1-symbol.mjs` + `createChain({ …, symbol })`
+
+| luật | vì sao | đối chứng |
+|---|---|---|
+| 2–8 ký tự `A-Z0-9`, **viết hoa** | ví hiển thị hoa và cắt ngắn; `wallet_addEthereumChain` vỡ với dấu cách. Chữ thường **bị từ chối, không tự upcase**: người gõ `love9` phải thấy `LOVE9` bị cấm, không phải thấy input tự biến đổi rồi bị từ chối vì lý do khác | `cash9` → *"character 1 is "c". Write it as CASH9."* |
+| cấm `LOVE9` `AVAX` `ETH` `BTC` `USDT` `USDC` | LOVE9 là lý do tệp này tồn tại; các tên kia là tên ví nào cũng tin | `LOVE9` → *"reserved — it is the network's own coin…"* |
+| duy nhất, không phân biệt hoa thường, **kể cả chain đã thu hồi** | ký hiệu nhận diện chain với người như chainId với ví; chain thu hồi vẫn nằm trong ví ai đó (cùng lý do giữ chainId, D-069) | `BBWAY` → *"already used by "BBWay Chain" (its fallback symbol…)"* |
+| gọi tên ký tự lạ theo code point | cùng bài tên chain `9S Union` U+00A0 (D-175) | `CA SH` → *"Character 3 is U+00A0 — an invisible space lookalike…"* |
+| sổ vắng ⇒ **THROW**, không coi là rỗng | hình dạng D-171: chỗ gọi quên tham số thì cổng xanh giả | test: *"ledger must be an array"* |
+
+Ký hiệu **tuỳ chọn**: vắng ⇒ bản ghi **không có khoá** `symbol`, người đọc áp **luật dự phòng**
+`symbolFromName` (bỏ đuôi "Chain", lấy chữ-số, hoa, 6 ký tự: `BBWay Chain → BBWAY`, `9S Union →
+9SUNIO`). Luật dự phòng là **luật hiển thị, không bao giờ ghi vào sổ** — ghi một phỏng đoán vào sổ là
+biến nó thành quyết định của chủ chain. Sáu chain g1 đã đẻ trước hôm nay đi đường này.
+
+### Nghiệm thu
+
+- 30 đối chứng `symbol-test.mjs`, mỗi ca **khẳng định câu lỗi của đúng luật nó kiểm** (bài D-161:
+  cổng có nhiều nghĩa vụ thì ca phải nói nó kiểm nghĩa vụ nào).
+- Hai tệp mới vào `manifest-deploy.json` **trước** deploy, `check-deploy-imports` xanh (bài D-175);
+  `console-deploy.sh` nay chạy `symbol-test` cùng bốn bộ kia.
+- Deploy `16:5xZ`: PID `2527217 → 2657315` · drift **23 khớp · 0 lệch** · env tiến trình mới vẫn
+  `A1_DE_CHAIN_MO=1` + allowlist.
+- **Trên sản phẩm**, token dùng tại chỗ trên server, chốt `chainId: -1` đứng SAU phép kiểm ký hiệu để
+  ca hợp lệ cũng bị chặn trước khi đụng node: bốn ca đỏ đúng câu · `CASH9` đi qua tới *"The EVM chain
+  ID must be a positive integer"* · đường không ký hiệu y nguyên · sổ công khai **6 chain, không đổi**.
+
+### Nửa `web-home` (P-55, luật cứng #4 — A1 không đụng `web/`)
+
+Hợp đồng: `POST /api/create` nhận thêm `symbol` (tuỳ chọn); lỗi trả `400 {error}` bằng câu người
+đọc được; bản ghi trong `console-chains.json` có `symbol` **chỉ khi** chủ chain chọn. Trang launch
+thêm ô ký hiệu (gợi ý sẵn theo luật dự phòng), `addChain` dùng `symbol ?? symbolFromName(name)` —
+**không bao giờ** `'LOVE9'`; trang "Done" nói rõ 50M là xăng của chain riêng; `/chains/` hiện ký hiệu.
+Chừng nào `web/` chưa đổi, người dùng **vẫn thấy LOVE9** — nửa console là điều kiện cần, chưa đủ.

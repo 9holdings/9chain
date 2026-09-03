@@ -17,16 +17,18 @@ mở ra phải có **rào ở cả API lẫn giao diện**, tên khoá **lấy t
 trong im lặng), và tổ hợp làm chain chết lúc sinh (`minBaseFee 0`, `txAllowList` không có chủ) **bị
 cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang gây nhầm trước, khác biệt thật sau.
 
-- [ ] **P-54 — KÝ HIỆU TOKEN NATIVE của L1 (phía console)** — *làm trước*
+- [x] **P-54 — KÝ HIỆU TOKEN NATIVE của L1 (phía console)** (D-179) — *làm trước, ĐÃ XONG `03/09`*
       Hôm nay trang web đưa `symbol: 'LOVE9'` cứng vào MetaMask cho MỌI L1 ⇒ *"50.00M LOVE9"* trông
       như LOVE9 thật, mà nó là token riêng của chain con, không cầu, không đổi được.
-      Việc: API tạo chain nhận `symbol` (tuỳ chọn) · kiểm chặt (2–8 ký tự `A-Z0-9`, viết hoa,
-      **cấm `LOVE9`/`AVAX`/`ETH` và các ký hiệu đã dùng**, chỉ ra đích danh ký tự lạ như tên chain)
-      · ghi vào sổ chain `console-chains.json` (khoá THÊM, an toàn với `/chains/`) · trả về trong
-      kết quả tạo · chain cũ thiếu khoá ⇒ trang tự suy `symbol` từ tên, không bao giờ `undefined`.
-      **Điều kiện qua:** đối chứng ngược thấy ĐỎ đúng lý do cho từng luật (rỗng, thường, dài, `LOVE9`,
-      trùng, ký tự vô hình) · `check-chain-ledger` vẫn xanh với khoá mới · deploy đúng thứ tự
-      `check-deploy-imports` → `console-deploy.sh` · đo trên `/api/chains` công khai.
+      ✅ `lib/l1-symbol.mjs` + `createChain({…, symbol})`: 2–8 `A-Z0-9` hoa · cấm `LOVE9/AVAX/ETH/BTC/
+      USDT/USDC` · duy nhất kể cả chain đã thu hồi · ký tự lạ nêu code point · sổ vắng ⇒ THROW.
+      Vắng ⇒ không ghi khoá, người đọc áp `symbolFromName` (`BBWay Chain → BBWAY`); phỏng đoán
+      **không bao giờ** vào sổ.
+      ✅ **30 đối chứng**, mỗi ca khẳng định câu lỗi của đúng luật nó kiểm · manifest + `check-deploy-
+      imports` xanh TRƯỚC deploy · `console-deploy.sh` chạy `symbol-test`.
+      ✅ **Đo trên sản phẩm** (PID `2657315`, drift 23/0/0): `LOVE9` · `BBWAY` · `cash9` · `CA<NBSP>SH`
+      đỏ đúng câu; `CASH9` đi qua tới chốt `chainId -1`; sổ công khai **6 chain, không đổi**.
+      ⚠️ Người dùng **vẫn thấy LOVE9** cho tới khi P-55 xong — nửa console là điều kiện cần.
 - [ ] **P-55 — ký hiệu token: phía `web-home`** (luật cứng #4 — A1 không đụng `web/`)
       Ô nhập ký hiệu trên trang launch (mặc định gợi ý từ tên chain) · `addChain` dùng
       `symbol` của bản ghi thay cho `'LOVE9'` cứng (`CreateChainScreen.tsx:401`, `wallet.ts:433`) ·
