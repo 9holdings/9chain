@@ -20,7 +20,7 @@
  * của họ sắp bị xoá.
  * ⇒ Không giấu chuyện đó sau 30 lá cờ trông ngang nhau. Ngôn ngữ `soat: 'may'` được
  *   khai ra trong `aria-label` của từng mục, cộng một câu giải thích ở chân bộ chọn
- *   (`components/ChonNgonNgu.tsx`).
+ *   (`components/LanguagePicker.tsx`).
  *   ⚠️ Chú thích cũ trỏ vào `BanDich.tsx` — **tệp đó không tồn tại**, và chưa bao giờ
  *   tồn tại trong cây này. Một con trỏ chết trong tài liệu đắt đúng bằng lúc người
  *   sau đi tìm nó để sửa lời khai và không tìm thấy gì.

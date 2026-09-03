@@ -5,7 +5,7 @@ import { Nut, The, O, Nhan, Xuong, CoLoi, LuuY, ChepDuoc, TrongRong, CacBuoc, ty
 import { rutGon } from '@/lib/eip55';
 import { rpcGoc } from '@/lib/chain';
 import { dien, useT } from '@/lib/i18n';
-import { docJson, HAN_DOC_MS } from '@/lib/mang';
+import { docJson, HAN_DOC_MS } from '@/lib/net';
 import { layVi, noiVi, dangNhapSiwe, goiConsole, themL1VaoVi, choTienTrinhXong, docLoiVi, LoiConsole, type PhienVi, HAN_CONSOLE_GIAY} from '@/lib/wallet';
 
 type Chain = {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { docJson, HAN_DOC_MS } from './mang';
+import { docJson, HAN_DOC_MS } from './net';
 
 /**
  * Status of the disclosed synthetic load test, published by `heartbeat-pump.mjs`.

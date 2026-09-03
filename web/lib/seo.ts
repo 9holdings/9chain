@@ -46,7 +46,7 @@ export const boDauDuyet = (s: string) => s.replace(/ \[\?\]/g, '');
 /**
  * KHUÔN TIÊU ĐỀ TRANG — **nguồn duy nhất**, dùng bởi CẢ HAI đường:
  *   • `trangMeta()` ngay dưới, chạy lúc BUILD, luôn với `EN`
- *   • `useTieuDeTrang()` trong `lib/tieuDe.ts`, chạy trên TRÌNH DUYỆT với từ điển
+ *   • `useTieuDeTrang()` trong `lib/pageTitle.ts`, chạy trên TRÌNH DUYỆT với từ điển
  *     người đọc đang chọn
  *
  * 🔴 VÌ SAO PHẢI LÀ MỘT HÀM CHỨ KHÔNG PHẢI HAI CHỖ GHÉP CHUỖI GIỐNG NHAU:

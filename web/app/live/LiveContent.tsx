@@ -3,11 +3,11 @@
 import { ChepDuoc, LuuY, Nhan, Xuong } from '@/components/ui';
 import { dien, useNgonNgu, useT } from '@/lib/i18n';
 import { dangChay, useLoadTest } from '@/lib/loadTest';
-import { dinhDangSo } from '@/lib/so';
+import { dinhDangSo } from '@/lib/numbers';
 
 /**
  * Body of `/live`. Split from `page.tsx` so the page file stays a server component
- * and keeps its `metadata` — same reason as `components/DauTrang.tsx`.
+ * and keeps its `metadata` — same reason as `components/PageHeader.tsx`.
  *
  * Polls, unlike the home page stat strip. `lib/stats.ts` argues at length that the
  * home page should read once and not poll, and that argument is right for a page

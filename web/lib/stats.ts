@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { rpcGoc, rpcCChain } from './chain';
-import { docJson, HAN_DOC_MS, LoiMang } from './mang';
+import { docJson, HAN_DOC_MS, LoiMang } from './net';
 import { readDirectory } from './directory';
 
 /**
@@ -51,7 +51,7 @@ export type TrangThaiSoLieu =
 async function jsonRpc(url: string, method: string, params: unknown[] = [], hanGiay = HAN_DOC_MS / 1000) {
   // Hạn giờ ở đây là AN TOÀN và bắt buộc: đây là các lượt ĐỌC ngắn của trang chủ.
   // (Ràng buộc "không hạn giờ" chỉ áp cho `/api/create` và `/api/revoke` — xem
-  // `lib/mang.ts`. Không đường nào trong tệp này chạm tới chúng.)
+  // `lib/net.ts`. Không đường nào trong tệp này chạm tới chúng.)
   const j = await docJson<{ result?: unknown; error?: { message?: string } }>(
     url,
     {

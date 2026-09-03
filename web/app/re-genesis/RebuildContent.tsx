@@ -6,7 +6,7 @@ import { dien, useT } from '@/lib/i18n';
 
 /**
  * Thân trang re-genesis — tách khỏi `page.tsx` (server component, giữ `metadata`).
- * Lý do đầy đủ: `components/DauTrang.tsx`.
+ * Lý do đầy đủ: `components/PageHeader.tsx`.
  *
  * 🔴 Mọi chú thích về VÌ SAO từng câu được viết như vậy nằm ở khối `reGenesis` trong
  * `lib/i18n/dicts/vi.ts` và `lib/i18n/en.ts`. Đọc ở đó trước khi sửa chữ.

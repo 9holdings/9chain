@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useT } from './i18n';
 import type { Tu } from './i18n/en';
-import { dien } from './i18n/dien';
+import { dien } from './i18n/interpolate';
 import { ghepTieuDe, ghepTieuDeGoc } from './seo';
 
 /**

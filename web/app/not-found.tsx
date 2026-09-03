@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { EN } from '@/lib/i18n/en';
-import { NoiDungKhongThay } from './NoiDungKhongThay';
+import { NoiDungKhongThay } from './NotFoundContent';
 
 /**
  * 🔴 `noindex` LÀ PHẦN QUAN TRỌNG NHẤT CỦA KHỐI NÀY, KHÔNG PHẢI TIÊU ĐỀ.

@@ -10,8 +10,8 @@ import {
   type ReactNode,
 } from 'react';
 import { EN, type Tu } from './en';
-export { dien } from './dien';
-import { doanNgonNgu, KHOA_LUU, laMaHopLe, MAC_DINH, NGON_NGU, tra, type NgonNgu } from './ngonNgu';
+export { dien } from './interpolate';
+import { doanNgonNgu, KHOA_LUU, laMaHopLe, MAC_DINH, NGON_NGU, tra, type NgonNgu } from './languages';
 
 /**
  * Bộ máy đa ngôn ngữ của a1.9chain.org — 30 ngôn ngữ, tiếng Anh mặc định.

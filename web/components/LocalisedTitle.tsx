@@ -1,6 +1,6 @@
 'use client';
 
-import { useTieuDeTheoNgonNgu } from '@/lib/tieuDe';
+import { useTieuDeTheoNgonNgu } from '@/lib/pageTitle';
 
 /**
  * Vỏ component cho `useTieuDeTheoNgonNgu()` — không vẽ gì cả.

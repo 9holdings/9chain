@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { coTuDien, useNgonNgu, useT } from '@/lib/i18n';
-import { NGON_NGU } from '@/lib/i18n/ngonNgu';
+import { NGON_NGU } from '@/lib/i18n/languages';
 
 /**
  * Bộ chọn ngôn ngữ — 30 ngôn ngữ, tiếng Anh mặc định, tiếng Việt ở vị trí thứ 9.

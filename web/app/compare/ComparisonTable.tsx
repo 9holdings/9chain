@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { The, Nhan, Xuong, LuuY, gop } from '@/components/ui';
 import { useSoLieu } from '@/lib/stats';
 import { useT, useNgonNgu } from '@/lib/i18n';
-import { dinhDangSo } from '@/lib/so';
+import { dinhDangSo } from '@/lib/numbers';
 
 /**
  * Bảng so sánh A1 ↔ C1.

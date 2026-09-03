@@ -8,7 +8,7 @@ import { useT } from '@/lib/i18n';
 /**
  * Thân trang chủ — tách khỏi `page.tsx` vì `page.tsx` phải là server component
  * (`export const metadata` chỉ hợp lệ ở đó), mà server component chạy lúc BUILD nên
- * không biết người đọc chọn ngôn ngữ nào. Xem `components/DauTrang.tsx`.
+ * không biết người đọc chọn ngôn ngữ nào. Xem `components/PageHeader.tsx`.
  */
 export function NoiDungTrangChu() {
   const t = useT();

@@ -2,9 +2,9 @@
 
 import { useSoLieu } from '@/lib/stats';
 import { Xuong, Nhan } from './ui';
-import { gop } from '@/lib/gop';
+import { gop } from '@/lib/cx';
 import { useT, useNgonNgu } from '@/lib/i18n';
-import { dinhDangSo } from '@/lib/so';
+import { dinhDangSo } from '@/lib/numbers';
 
 /**
  * Dải số liệu sống — thứ làm trang "trông như sản phẩm đang chạy" thay vì mockup.

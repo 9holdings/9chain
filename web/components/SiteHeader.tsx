@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ThemeToggle } from './ThemeToggle';
-import { ChonNgonNgu } from './ChonNgonNgu';
+import { ChonNgonNgu } from './LanguagePicker';
 import { BrandLockup } from './BrandLockup';
 import { useT } from '@/lib/i18n';
 import type { Tu } from '@/lib/i18n/en';

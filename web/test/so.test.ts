@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { dinhDangSo } from '../lib/so';
+import { dinhDangSo } from '../lib/numbers';
 
 /**
  * Cổng định dạng số theo ngôn ngữ.
@@ -69,8 +69,13 @@ describe('không còn locale cắm cứng', () => {
   it('không tệp nguồn nào gọi toLocaleString với locale cố định', () => {
     const pham: string[] = [];
     for (const p of quet(GOC)) {
-      // `lib/so.ts` được phép — nó là chỗ DUY NHẤT biết về locale, và nó đọc tham số.
-      if (p.endsWith(`lib${path.sep}so.ts`)) continue;
+      // `lib/numbers.ts` được phép — nó là chỗ DUY NHẤT biết về locale, và nó đọc tham số.
+      // 🔴 TÊN TỆP ĐỔI `so.ts` → `numbers.ts` (2026-09-03, luật mã tiếng Anh), và
+      // danh sách miễn trừ này vẫn trỏ tên cũ ⇒ nó thôi khớp, nên bài kiểm tố CHÍNH
+      // bản vá mà nó sinh ra để bảo vệ. Một miễn trừ cắm theo TÊN TỆP là thứ hỏng
+      // im lặng mỗi lượt đổi tên; ở đây nó hỏng theo chiều an toàn (đỏ, không xanh
+      // giả) nên bắt được ngay.
+      if (p.endsWith(`lib${path.sep}numbers.ts`)) continue;
       const noiDung = readFileSync(p, 'utf8');
       // Bắt `toLocaleString('xx')` / `Intl.NumberFormat('xx')` với chuỗi nguyên văn.
       if (/(toLocaleString|Intl\.(NumberFormat|DateTimeFormat))\(\s*['"]/.test(noiDung)) {
@@ -79,7 +84,7 @@ describe('không còn locale cắm cứng', () => {
     }
     expect(
       pham,
-      `dùng \`dinhDangSo(n, ma)\` trong \`lib/so.ts\` thay vì cắm cứng locale — xem chú thích ở đó. Phạm: ${pham.join(', ')}`,
+      `dùng \`dinhDangSo(n, ma)\` trong \`lib/numbers.ts\` thay vì cắm cứng locale — xem chú thích ở đó. Phạm: ${pham.join(', ')}`,
     ).toEqual([]);
   });
 });

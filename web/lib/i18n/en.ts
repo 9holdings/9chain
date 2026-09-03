@@ -466,7 +466,7 @@ export const EN = {
     genericError: 'Could not send. {chiTiet}',
   },
 
-  /** Bộ chọn ngôn ngữ. Xem `components/ChonNgonNgu.tsx` cho lý do từng nhãn. */
+  /** Bộ chọn ngôn ngữ. Xem `components/LanguagePicker.tsx` cho lý do từng nhãn. */
   langPicker: {
     label: 'Language',
     machineBadge: 'machine',

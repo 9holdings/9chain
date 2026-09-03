@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { EN } from '@/lib/i18n/en';
 import { trangMeta } from '@/lib/seo';
-import { NoiDungLive } from './NoiDungLive';
+import { NoiDungLive } from './LiveContent';
 
 /**
  * `/live` — the full disclosure page for the synthetic load test.

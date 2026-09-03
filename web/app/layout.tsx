@@ -4,12 +4,12 @@ import './globals.css';
 import { SiteHeader } from '@/components/SiteHeader';
 import { LoadTestBanner } from '@/components/LoadTestBanner';
 import { EarlyHints } from '@/components/EarlyHints';
-import { TieuDeTheoNgonNgu } from '@/components/TieuDeTheoNgonNgu';
+import { TieuDeTheoNgonNgu } from '@/components/LocalisedTitle';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ThemeScript } from '@/components/ThemeScript';
 import { EN } from '@/lib/i18n/en';
 import { NhaCungCapNgonNgu } from '@/lib/i18n';
-import { BoQuaToiNoiDung } from '@/components/BoQuaToiNoiDung';
+import { BoQuaToiNoiDung } from '@/components/SkipToContent';
 import { CHAIN } from '@/lib/chain';
 
 // Cùng ba font và cùng tên biến với 9Scan-A1 — `tokens.css` trỏ vào
@@ -126,7 +126,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NhaCungCapNgonNgu>
           {/* Đổi `<title>` theo ngôn ngữ đã chọn — `metadata` ở trên sinh lúc build
               nên nó VĨNH VIỄN tiếng Anh cho cả 30 bản. Không vẽ gì; phải nằm TRONG
-              provider mới đọc được từ điển. Xem `lib/tieuDe.ts` cho cả phần thẻ chia
+              provider mới đọc được từ điển. Xem `lib/pageTitle.ts` cho cả phần thẻ chia
               sẻ mà cách này KHÔNG vá được. */}
           <TieuDeTheoNgonNgu />
           <BoQuaToiNoiDung />

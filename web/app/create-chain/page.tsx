@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { EN } from '@/lib/i18n/en';
-import { DauTrang } from '@/components/DauTrang';
+import { DauTrang } from '@/components/PageHeader';
 import { trangMeta } from '@/lib/seo';
 import { CreateChainScreen } from './CreateChainScreen';
 

@@ -584,7 +584,7 @@ export const vi: Tu = {
     genericError: 'Không gửi được. {chiTiet}',
   },
 
-  /** Bộ chọn ngôn ngữ. Xem `components/ChonNgonNgu.tsx` cho lý do từng nhãn. */
+  /** Bộ chọn ngôn ngữ. Xem `components/LanguagePicker.tsx` cho lý do từng nhãn. */
   langPicker: {
     label: 'Ngôn ngữ',
     machineBadge: 'máy dịch',

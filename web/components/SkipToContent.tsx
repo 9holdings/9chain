@@ -7,7 +7,7 @@ import { useT } from '@/lib/i18n';
  *
  * Tách thành component client CHỈ vì một lý do: chữ của nó phải đổi theo ngôn ngữ,
  * mà `layout.tsx` là server component (nó phải thế — `export const metadata` chỉ
- * hợp lệ ở server). Xem `components/DauTrang.tsx` cho ranh giới chung của cả site.
+ * hợp lệ ở server). Xem `components/PageHeader.tsx` cho ranh giới chung của cả site.
  *
  * 🔴 Nó phải đứng TRƯỚC mọi thứ trong `<body>`. Đó là toàn bộ công dụng: người đi
  * bằng bàn phím không phải đi qua cả thanh điều hướng ở mỗi trang.

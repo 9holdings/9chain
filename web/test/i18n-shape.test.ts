@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { EN } from '../lib/i18n/en';
-import { NGON_NGU, MAC_DINH } from '../lib/i18n/ngonNgu';
+import { NGON_NGU, MAC_DINH } from '../lib/i18n/languages';
 
 /**
  * Hình dạng khoá phải KHỚP TUYỆT ĐỐI giữa 30 từ điển.
@@ -147,13 +147,13 @@ describe('đoán ngôn ngữ cho người mới', () => {
     // 🔴 Đây là phép đo bảo vệ người dùng hiện tại. Đổi mặc định sang tiếng Anh mà
     // cơ chế này hỏng thì mọi người Việt đang dùng site đột nhiên thấy tiếng Anh —
     // một thay đổi họ không yêu cầu và không hiểu vì sao.
-    const { doanNgonNgu } = await import('../lib/i18n/ngonNgu');
+    const { doanNgonNgu } = await import('../lib/i18n/languages');
     expect(doanNgonNgu(['vi-VN', 'vi', 'en'])).toBe('vi');
     expect(doanNgonNgu(['vi'])).toBe('vi');
   });
 
   it('lấy ngôn ngữ ĐẦU TIÊN mà site có, không phải cái khớp cuối', async () => {
-    const { doanNgonNgu } = await import('../lib/i18n/ngonNgu');
+    const { doanNgonNgu } = await import('../lib/i18n/languages');
     // Người đặt tiếng Nhật trước tiếng Anh thì phải nhận tiếng Nhật — nhưng `ja`
     // chưa có từ điển nên sổ vẫn khai nó, và provider sẽ rơi về EN khi nạp hỏng.
     // Ở TẦNG NÀY chỉ hỏi "sổ có mã đó không", đúng phạm vi của hàm.
@@ -162,7 +162,7 @@ describe('đoán ngôn ngữ cho người mới', () => {
   });
 
   it('không khớp gì hoặc danh sách rỗng ⇒ mặc định', async () => {
-    const { doanNgonNgu, MAC_DINH } = await import('../lib/i18n/ngonNgu');
+    const { doanNgonNgu, MAC_DINH } = await import('../lib/i18n/languages');
     expect(doanNgonNgu(['xx', 'yy'])).toBe(MAC_DINH);
     expect(doanNgonNgu([])).toBe(MAC_DINH);
     expect(doanNgonNgu(undefined)).toBe(MAC_DINH);
@@ -182,7 +182,7 @@ describe('chặn ngôn ngữ chưa có từ điển', () => {
     // một ngôn ngữ còn thiếu. Khi đủ 30 bản thì không còn ca nào để thử, và bài
     // chuyển sang khẳng định đúng điều đó thay vì im lặng bỏ qua.
     const { coTuDien } = await import('../lib/i18n');
-    const { laMaHopLe, MAC_DINH } = await import('../lib/i18n/ngonNgu');
+    const { laMaHopLe, MAC_DINH } = await import('../lib/i18n/languages');
 
     expect(coTuDien(MAC_DINH), 'mặc định luôn nạp được').toBe(true);
 

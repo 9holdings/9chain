@@ -5,7 +5,7 @@ import { Nut, The, O, Nhan, Xuong, CoLoi, ChepDuoc, LuuY } from '@/components/ui
 import { kiemDiaChi, rutGon } from '@/lib/eip55';
 import { CHAIN, faucetGoc, rpcCChain, explorerGoc, thamSoThemMang } from '@/lib/chain';
 import { dien, useT } from '@/lib/i18n';
-import { docJson, HAN_DOC_MS } from '@/lib/mang';
+import { docJson, HAN_DOC_MS } from '@/lib/net';
 import { layVi, docLoiVi } from '@/lib/wallet';
 
 type ThongTin = {

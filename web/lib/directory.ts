@@ -1,6 +1,6 @@
 'use client';
 
-import { docJson, HAN_DOC_MS } from './mang';
+import { docJson, HAN_DOC_MS } from './net';
 
 /**
  * One read of the L1 directory (`console-chains.json`) shared by every caller.

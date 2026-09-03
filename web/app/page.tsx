@@ -1,4 +1,4 @@
-import { NoiDungTrangChu } from './NoiDungTrangChu';
+import { NoiDungTrangChu } from './HomeContent';
 
 /**
  * TRANG CHỦ — **David chọn bản C ngày 2026-08-26** (M10.3, U-3).

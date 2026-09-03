@@ -6,7 +6,7 @@
  *
  * ═══ VÌ SAO CỔNG NÀY TỒN TẠI ═══
  * `metadata` của Next sinh lúc build nên `<title>` vĩnh viễn tiếng Anh cho cả 30
- * ngôn ngữ. `lib/tieuDe.ts` vá điều đó bằng MỘT bảng `đường dẫn → khoá từ điển`, đặt
+ * ngôn ngữ. `lib/pageTitle.ts` vá điều đó bằng MỘT bảng `đường dẫn → khoá từ điển`, đặt
  * ở layout. Gom về một chỗ là để không phải nhớ tám lời gọi — nhưng nó đổi lấy một
  * điểm hỏng mới: **thêm trang mà quên bảng thì trang đó rơi vào nhánh 404**, và tab
  * mang tiêu đề *"This page does not exist"* trong khi nội dung hiện ra hoàn toàn
@@ -28,14 +28,21 @@ import { fileURLToPath } from 'node:url';
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RA = path.join(GOC, 'out');
-const BANG = path.join(GOC, 'lib', 'tieuDe.ts');
+// 🔴 TỆP ĐỔI TÊN `tieuDe.ts` → `pageTitle.ts` (2026-09-03, luật mã tiếng Anh).
+// Đường dẫn ở đây ghép bằng HAI đối số (`'lib', 'tieuDe.ts'`) nên bộ đổi tên tự động
+// — chỉ khớp dạng `lib/tieuDe.ts` liền một chuỗi — đã bỏ sót nó, trong khi các CHÚ
+// THÍCH quanh nó thì đã đổi. Cổng in "không thấy lib/pageTitle.ts" và thoát 2: một
+// thông báo đúng về một đường dẫn nó KHÔNG thật sự đang tra. Đó là hình dạng khó lần
+// nhất — tài liệu nói một đằng, mã làm một nẻo — và nó chỉ lộ ra vì cổng từ chối
+// xanh khi không mở được tệp.
+const BANG = path.join(GOC, 'lib', 'pageTitle.ts');
 
 if (!existsSync(RA)) {
   console.log('   ✗ chưa có out/ — chạy `pnpm build` trước');
   process.exit(2);
 }
 if (!existsSync(BANG)) {
-  console.log('   ✗ không thấy lib/tieuDe.ts');
+  console.log('   ✗ không thấy lib/pageTitle.ts');
   process.exit(2);
 }
 
@@ -48,7 +55,7 @@ const src = readFileSync(BANG, 'utf8');
 // đi qua thay vì xanh giả, và đó là lý do nhánh "không đo được" phải tồn tại.
 const khoi = src.match(/TIEU_DE_THEO_DUONG[\s\S]*?=\s*\{([\s\S]*?)\n\};/);
 if (!khoi) {
-  console.log('   ✗ không tách được khối `TIEU_DE_THEO_DUONG` trong lib/tieuDe.ts');
+  console.log('   ✗ không tách được khối `TIEU_DE_THEO_DUONG` trong lib/pageTitle.ts');
   console.log('     Nếu vừa đổi cấu trúc, sửa bộ tách ở đây — ĐỪNG gỡ cổng.');
   process.exit(2);
 }
@@ -86,7 +93,7 @@ if (thua.length) {
 }
 if (thieu.length || thua.length) {
   console.log('\n✗ Bảng tiêu đề lệch với các trang có thật. Sửa `TIEU_DE_THEO_DUONG`');
-  console.log('  trong lib/tieuDe.ts — và nhớ khoá `tieuDe` phải TRÙNG với thứ');
+  console.log('  trong lib/pageTitle.ts — và nhớ khoá `tieuDe` phải TRÙNG với thứ');
   console.log('  `page.tsx` truyền cho `trangMeta()`, nếu không tiêu đề sẽ nhảy một');
   console.log('  nhịp lúc hydrate (HTML một câu, JS thay bằng câu khác).');
   process.exit(1);

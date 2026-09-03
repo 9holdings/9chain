@@ -2,7 +2,7 @@
 
 import { dien, useT } from '@/lib/i18n';
 import { dangChay, useLoadTest } from '@/lib/loadTest';
-import { dinhDangSo } from '@/lib/so';
+import { dinhDangSo } from '@/lib/numbers';
 import { useNgonNgu } from '@/lib/i18n';
 
 /**

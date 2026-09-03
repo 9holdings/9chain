@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { EN } from '@/lib/i18n/en';
-import { dien } from '@/lib/i18n/dien';
-import { NoiDungReGenesis } from './NoiDungReGenesis';
+import { dien } from '@/lib/i18n/interpolate';
+import { NoiDungReGenesis } from './RebuildContent';
 // Chain ID lấy từ NGUỒN SỰ THẬT của mã, không gõ tay vào từ điển: nếu ngày nào đó
 // số này đổi thật thì câu chữ trên trang đổi theo, không có đường để hai chỗ lệch.
 import { CHAIN } from '@/lib/chain';

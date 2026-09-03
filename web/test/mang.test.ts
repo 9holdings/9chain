@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { docJson, LoiMang, HAN_DOC_MS } from '../lib/mang';
+import { docJson, LoiMang, HAN_DOC_MS } from '../lib/net';
 
 /**
  * Lưới an toàn mạng (Đ1-8).
