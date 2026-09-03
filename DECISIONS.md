@@ -7854,3 +7854,62 @@ phục vụ lên một nguồn lực khan hiếm và bất khả hồi là lệc
 
 `gen-chainid-issued.mjs` **sinh** sổ từ chain đã tạo, không đặt chỗ. Hôm nay cách duy nhất giữ một
 cái tên là **tạo chain bằng tên đó** — đúng việc David vừa làm với `Adam`/`Eva`.
+
+---
+
+## D-171 — **Cổng mời tạo L1: một danh sách ví, và ba quyết định thiết kế đắt hơn đoạn mã** (`2026-09-03`)
+
+David: *"làm cổng allowlist ví đi."* Mã thì nhỏ; ba quyết định quanh nó mới là phần đáng ghi.
+
+### ① FAIL CLOSED — biến thiếu nghĩa là KHÔNG AI tạo được
+
+Danh sách rỗng hoặc chưa đặt ⇒ **không ví nào tạo được chain**, chỉ token vận hành. Theo đúng luật
+mà `A1_DE_CHAIN_MO` đã đặt trong chính tệp này: *"chỉ đúng chuỗi `1` mới mở; thiếu biến · `0` ·
+`true` · `yes` · rỗng — tất cả là ĐÓNG."* Một cổng an toàn nhận nhiều cách nói *"cho phép"* là một
+cổng **mở nhầm**, và một allowlist **rơi về MỞ** khi thiếu biến là dạng thuần khiết nhất của lỗi
+đó — hỏng **trong im lặng**, vì nhìn từ ngoài chẳng có gì bất thường.
+⇒ Kèm một dòng khai lúc khởi động cho **cả hai** trạng thái, không chỉ trạng thái thú vị:
+`🔒 TRỐNG — KHÔNG ví nào tạo được chain` / `✉️ N ví trong danh sách`. *"Tôi quên đặt biến"* không
+được phép đọc giống *"nó đang chạy tốt"*.
+
+### ② CHỈ CHẶN TẠO — không bao giờ chặn THU HỒI
+
+`/api/revoke` đã kiểm chủ sở hữu (ví chỉ thu hồi được chain của chính mình). Nếu allowlist chặn cả
+thu hồi thì **gỡ một ví khỏi danh sách sẽ NHỐT chain của ví đó**: họ không thu hồi được, và không
+ai khác thu hồi được nếu không có token vận hành.
+🔴 **Một cổng có thể nhốt tài sản của người dùng ở bên trong thì không phải tính năng an toàn.**
+Đây là chỗ dễ sai nhất của mọi allowlist, và nó không lộ ra cho tới ngày có người bị gỡ khỏi danh
+sách — tức lúc muộn nhất có thể.
+
+### ③ Hàm thuần phải NẰM Ở NƠI IMPORT ĐƯỢC — và tôi suýt lặp lại nợ của chính mình
+
+Bản đầu đặt `mayCreateL1` trong `console/server.mjs`. Viết xong bài đối chứng thì không chạy nổi:
+tệp đó đọc `A1_CONSOLE_TOKEN` **lúc import** và `process.exit(1)` khi thiếu ⇒ import để kiểm **một
+hàm thuần** là chạy cả phần khởi động của một máy chủ rồi chết.
+
+Đúng cái nợ tôi tự ghi **sáng cùng ngày** (D-161): `check-patch-count.mjs` export `exemptLines`
+nhưng gọi `process.exit(main())` ở cấp cao nhất, nên một cổng khác cần đúng hàm đó đã phải **CHÉP
+TAY** — thành bản khai thứ ba của một luật (§6).
+⇒ Tách ra `local-net/lib/l1-allowlist.mjs`: `parseAllowlist` + `mayCreateL1`, thuần, có
+`--self-test` của riêng nó. **Một luật quyết định ai được tiêu một nguồn lực vĩnh viễn thì phải
+kiểm được một mình.**
+
+### Chi tiết đáng giữ
+
+- **Phân tích địa chỉ HỎNG ⇒ FATAL, không bỏ qua dòng đó.** Một danh sách ngắn hơn một dòng so với
+  điều người vận hành tin là **đúng lỗi cổng này sinh ra để chặn, quay ngược vào trong** — và một
+  dòng bị bỏ qua thì trông y hệt không có gì. Dùng lại `parseEvmAddress` (cùng bộ phân tích với
+  địa chỉ admin) nên **sai checksum EIP-55 cũng bị bắt** — đó là cách một ký tự gõ nhầm lộ ra.
+- **So sánh viết thường.** Checksum EIP-55 là **cách trình bày, không phải danh tính**; từ chối một
+  ví đúng chỉ vì nó được dán ở kiểu chữ khác là một **đỏ giả** trên đúng con đường mà một đỏ giả
+  làm người ta mất lời mời.
+- **Kiểu danh tính lạ ⇒ TỪ CHỐI, không cho qua.** Thêm một kiểu đăng nhập thứ ba trong tương lai
+  thì phải sửa cổng **có chủ ý**, chứ không được âm thầm được nhận.
+
+**Nghiệm thu: 17 đối chứng ngược** (gồm *rỗng ⇒ đóng*, *undefined ⇒ đóng*, *kiểu lạ ⇒ đóng*,
+*checksum sai ⇒ ném*), cộng **ba trạng thái khởi động chạy thật**: 2 ví ⇒ khai đủ · không đặt biến
+⇒ `🔒 TRỐNG` · địa chỉ hỏng ⇒ **FATAL, từ chối khởi động**.
+
+⚠️ **Chưa deploy và cửa vẫn đóng.** Mở lại cần: đặt `A1_L1_ALLOWLIST`, deploy console, rồi mới
+`A1_DE_CHAIN_MO=1`. Thứ tự đó là phép kiểm — bật cửa trước khi có danh sách là mở lại đúng cái lỗ
+vừa đóng.
