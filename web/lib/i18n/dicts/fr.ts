@@ -181,7 +181,7 @@ export const fr: Tu = {
     cMacDinh: 'valeur par défaut du système',
     cTrong: 'Aucune L1 ne tourne pour l’instant',
     cTrongMoTa: 'Vous seriez le premier. L’annuaire se met à jour dès que votre chaîne est active.',
-    tuTo: '9 des 10 validateurs tournent sur un même serveur, chez un même fournisseur ; le dixième tourne chez un fournisseur différent. Décentralisé au niveau du protocole, et seulement au début de l’être au niveau de l’infrastructure.',
+    tuTo: 'Les 9 validateurs tournent actuellement sur le même serveur, chez le même hébergeur — décentralisé au niveau du protocole, pas encore au niveau de l’infrastructure.',
     blockDungYen: 'Avalanche ne produit pas de blocs vides : une hauteur de bloc qui ne bouge pas alors que personne ne transige est donc normale. La mesure de vivacité, c’est le nombre de validateurs à côté.',
   },
 

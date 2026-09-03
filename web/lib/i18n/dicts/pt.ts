@@ -178,7 +178,7 @@ export const pt: Tu = {
     cMacDinh: 'padrão do sistema',
     cTrong: 'Nenhuma L1 rodando ainda',
     cTrongMoTa: 'Você seria o primeiro. O diretório atualiza assim que sua cadeia estiver no ar.',
-    tuTo: '9 dos 10 validadores funcionam num mesmo servidor e com um mesmo fornecedor; o décimo funciona num fornecedor diferente. Descentralizado ao nível do protocolo, e apenas a começar a sê-lo ao nível da infraestrutura.',
+    tuTo: 'Os 9 validadores rodam hoje no mesmo servidor, com o mesmo provedor — descentralizado no nível do protocolo, ainda não no nível da infraestrutura.',
     blockDungYen: 'A Avalanche não produz blocos vazios, então uma altura de bloco parada enquanto ninguém transaciona é normal. A medida de atividade é a contagem de validadores ao lado.',
   },
 

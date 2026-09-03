@@ -192,7 +192,7 @@ export const ms: Tu = {
     cTrong: 'Belum ada L1 yang berjalan',
     cTrongMoTa: 'Anda akan menjadi yang pertama. Direktori dikemas kini sebaik sahaja rantaian anda hidup.',
 
-    tuTo: '9 daripada 10 pengesah berjalan pada satu pelayan dengan satu penyedia; yang kesepuluh berjalan pada penyedia yang berbeza. Ternyahpusat pada peringkat protokol, dan baru bermula pada peringkat infrastruktur.',
+    tuTo: 'Kesemua 9 pengesah kini berjalan pada pelayan yang sama, dengan penyedia yang sama — terdesentralisasi pada peringkat protokol, belum lagi pada peringkat infrastruktur.',
     blockDungYen: 'Avalanche tidak menghasilkan blok kosong, jadi ketinggian blok yang kekal tidak berubah ketika tiada sesiapa membuat transaksi adalah normal. Ukuran hidupnya ialah bilangan pengesah di sebelahnya.',
   },
 

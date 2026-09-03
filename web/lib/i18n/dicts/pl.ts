@@ -185,7 +185,7 @@ export const pl: Tu = {
     cTrong: 'Żadna sieć L1 jeszcze nie działa',
     cTrongMoTa: 'Byłbyś pierwszy. Katalog aktualizuje się, gdy tylko twój łańcuch wystartuje.',
 
-    tuTo: '9 z 10 walidatorów działa na jednym serwerze u jednego dostawcy; dziesiąty działa u innego dostawcy. Zdecentralizowane na poziomie protokołu, a na poziomie infrastruktury dopiero się zaczyna.',
+    tuTo: 'Wszystkie 9 walidatorów działa obecnie na tym samym serwerze, u tego samego dostawcy — zdecentralizowane na poziomie protokołu, jeszcze nie na poziomie infrastruktury.',
     blockDungYen: 'Avalanche nie produkuje pustych bloków, więc wysokość bloku stojąca w miejscu, gdy nikt nie wykonuje transakcji, jest normalna. Miarą życia jest liczba walidatorów obok.',
   },
 

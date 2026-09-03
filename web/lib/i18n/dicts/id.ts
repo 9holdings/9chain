@@ -191,7 +191,7 @@ export const id: Tu = {
     cTrong: 'Belum ada L1 yang berjalan',
     cTrongMoTa: 'Anda akan menjadi yang pertama. Direktori diperbarui begitu rantai Anda menyala.',
 
-    tuTo: '9 dari 10 validator berjalan di satu server dengan satu penyedia; yang kesepuluh berjalan di penyedia yang berbeda. Terdesentralisasi pada tingkat protokol, dan baru mulai pada tingkat infrastruktur.',
+    tuTo: 'Ke-9 validator saat ini berjalan di server yang sama, dengan penyedia yang sama — terdesentralisasi pada tingkat protokol, belum pada tingkat infrastruktur.',
     blockDungYen: 'Avalanche tidak memproduksi blok kosong, jadi tinggi blok yang diam saat tidak ada yang bertransaksi adalah hal normal. Ukuran hidup-matinya adalah jumlah validator di sebelahnya.',
   },
 

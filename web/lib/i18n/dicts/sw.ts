@@ -186,7 +186,7 @@ export const sw: Tu = {
     cTrong: 'Hakuna L1 inayoendeshwa bado',
     cTrongMoTa: 'Ungekuwa wa kwanza. Orodha husasishwa mara tu mnyororo wako unapoanza kufanya kazi.',
 
-    tuTo: 'Vithibitishaji 9 kati ya 10 vinafanya kazi kwenye seva moja na mtoa huduma mmoja; cha kumi kinafanya kazi kwa mtoa huduma tofauti. Ugatuzi upo katika ngazi ya itifaki, na katika ngazi ya miundombinu unaanza tu.',
+    tuTo: 'Wathibitishaji wote 9 kwa sasa wanaendeshwa kwenye seva ile ile, kwa mtoa huduma yule yule — umegatuliwa katika ngazi ya itifaki, bado si katika ngazi ya miundombinu.',
     blockDungYen: 'Avalanche haitengenezi vizuizi vitupu, kwa hiyo urefu wa kizuizi kubaki palepale wakati hakuna anayefanya muamala ni jambo la kawaida. Kipimo cha uhai ni idadi ya wathibitishaji iliyo kando yake.',
   },
 
