@@ -10,12 +10,14 @@ import { pageMeta } from '@/lib/seo';
 /**
  * The re-genesis page — saying in advance what is about to be lost.
  *
- * 🔴 TODAY THIS PAGE IS WRITTEN IN THE FUTURE TENSE. On G-day itself it must be replaced with the
- * past-tense announcement ("has been rebuilt"), together with the backup link and hash.
+ * ✅ SWITCHED TO THE PAST TENSE ON `2026-09-04`. G-day ran on `2026-09-01`, and for three days
+ * after it this page still announced the rebuild in the future tense. Nothing in the code can
+ * know on its own that the day has passed — the switch is manual, and the measurement that says
+ * whether it has been done is `check-links.mjs` under `A1_SAU_NGAY_G=1`.
  *
- * ✅ THE ANNOUNCEMENT IS ALREADY WRITTEN — in the `EN.rebuildDone` block in `lib/i18n/vi.ts`.
- * On G-day all that is needed: point this page at `reGenesisXong` instead of `reGenesis`, then
- * fill in `luuUrl` + `luuSha256`. NO prose to write.
+ * ⏳ STILL OUTSTANDING: `rebuildDone.archiveUrl` and `archiveSha256` are empty, so the archive
+ * section hides itself (see `RebuildContent`). Paste those two values in when the G-day backup
+ * has a published URL and hash; no prose needs writing.
  * The full procedure (entry conditions, order, how it is accepted): section **D-web** in
  * `docs/NGAY-G-A1-CON-LAI.md`.
  *
@@ -42,8 +44,8 @@ import { pageMeta } from '@/lib/seo';
 // every gate measuring `<title>` stayed green throughout.
 // `pageMeta` strips the `[?]` mark itself — no `.replace()` call here any more.
 export const metadata: Metadata = pageMeta({
-  title: interpolate(EN.rebuild.title, { date: EN.rebuild.date }),
-  desc: EN.rebuild.desc,
+  title: interpolate(EN.rebuildDone.title, { date: EN.rebuild.date }),
+  desc: EN.rebuildDone.desc,
   urlPath: '/re-genesis/',
 });
 

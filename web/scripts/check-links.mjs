@@ -167,10 +167,43 @@ if (process.env.A1_SAU_NGAY_G === '1') {
       hongNgayG++;
     }
   };
-  // The announcement is live: the re-genesis page speaks in the PAST tense…
-  await doNoiDung('/re-genesis/', 'đã sinh lại', true);
-  // …and THE REVERSE CHECK: the future-tense warning strip is gone from the other page.
-  await doNoiDung('/faucet/', 'sẽ bị xoá', false);
+  /* 🔴 THE PHRASES ARE READ OUT OF `en.ts`, NOT HARD-CODED — fixed 2026-09-04.
+     Until today this gate looked for the Vietnamese strings 'đã sinh lại' and 'sẽ bị xoá'. The
+     site's default language became English on 2026-08-27, and `output: 'export'` builds every
+     page's HTML from `EN` — so those two phrases could never appear again in the deployed HTML.
+     The consequence ran in both directions at once:
+       · the "must contain" check was permanently red, for a reason that had nothing to do with
+         whether the page had actually been switched;
+       · the "must NOT contain" check was permanently GREEN — a false green that would have
+         stayed green even with the old banner still on every page.
+     Reading the phrases from the dictionary means the gate cannot drift from the words, and a
+     reworded announcement updates the measurement instead of silently disabling it. */
+  const EN_SRC = readFileSync(path.join(GOC, 'lib', 'i18n', 'en.ts'), 'utf8');
+  const khoa = (nhom, ten) => {
+    const m = new RegExp(`^  ${nhom}: \\{[\\s\\S]*?^    ${ten}: '((?:[^'\\\\]|\\\\.)*)'`, 'm').exec(EN_SRC);
+    return m ? m[1] : null;
+  };
+  const ngay = khoa('rebuild', 'date');
+  const daXong = khoa('rebuildDone', 'title');
+  const sapToi = khoa('rebuild', 'title');
+  if (!ngay || !daXong || !sapToi) {
+    // Refuse to measure rather than measure nothing: a renamed key must not quietly switch this
+    // gate off. Same reasoning as the `disclosure` lookup in check-decentralisation-claim.mjs.
+    console.log('  ? không đọc được `rebuild.date` / `rebuild.title` / `rebuildDone.title` trong en.ts');
+    hongNgayG++;
+  } else {
+    const cauDaXong = daXong.replace('{date}', ngay);
+    const cauSapToi = sapToi.replace('{date}', ngay);
+    // The announcement is live: the re-genesis page speaks in the PAST tense…
+    await doNoiDung('/re-genesis/', cauDaXong, true);
+    // …and on the SAME page the future-tense sentence must be gone — the two are separate
+    // measurements because a half-finished switch leaves both present at once.
+    await doNoiDung('/re-genesis/', cauSapToi, false);
+    // …and THE REVERSE CHECK ON ANOTHER PAGE: the future-tense strip lived in the root layout, so
+    // "this page is right, that page still has the old copy" is the signature of an incomplete
+    // `web/out` copy — exactly the bind-mount inode trap of 25/08. One page cannot show that.
+    await doNoiDung('/faucet/', cauSapToi, false);
+  }
   console.log(hongNgayG ? `\n✗ cổng ngày G: ${hongNgayG} phép đo chưa đạt` : '\n✓ cổng ngày G đạt');
 }
 
