@@ -15,6 +15,7 @@ import { promisify } from "node:util";
 import path from "node:path";
 import { clientIp, rateLimit, requireToken, requireSecret, requireInt, serialQueue } from "../lib/guard.mjs";
 import { parseEvmAddress } from "../lib/eip55.mjs";
+import { parseAllowlist, mayCreateL1 } from "../lib/l1-allowlist.mjs";
 import { apDungPreset, danhSachPreset } from "../lib/presets.mjs";
 import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
 import { siwe } from "./siwe.mjs";
@@ -243,6 +244,57 @@ let L1_ADMIN;
 try {
   L1_ADMIN = parseEvmAddress(process.env.A1_L1_ADMIN || EWOQ, "A1_L1_ADMIN");
 } catch (e) {
+  console.error(`FATAL: ${e.message}`);
+  process.exit(1);
+}
+
+/**
+ * WHO MAY CREATE AN L1 — the wallet allowlist (D-171).
+ *
+ * ═══ 🔴 WHY IT EXISTS ═══
+ *
+ * Until 2026-09-03 anyone who could sign a SIWE message could create a chain, and the only limits
+ * were rate limits. Measured that day, that is a much bigger door than it looks:
+ *
+ *   · `MAX_L1` is **15**, and it is not a number anyone can raise: `maxNumTrackedSubnets = 16` in
+ *     `network/peer/peer.go:39` is enforced at handshake and exceeding it calls `p.StartClose()` —
+ *     every peer drops the node. Two are used, so **13 slots exist, ever**.
+ *   · A junk chain does not cost a slot, it costs a NAME, **permanently and across generations**:
+ *     re-genesis erases the chain but `chainid-issued.json` keeps the name and chainId blocked
+ *     forever, because reissuing a chainId is what would let an old chain's signatures replay on
+ *     a new one. That ledger only ever grows.
+ *
+ * ⇒ Self-service is the right shape when the resource is effectively unlimited. Thirteen
+ *   permanent slots is the size of an INVITATION LIST, and no technical gate detects that kind of
+ *   mismatch between a product's shape and what it actually has.
+ *
+ * ═══ 🔴 FAIL CLOSED, and deliberately so ═══
+ *
+ * Unset or empty ⇒ **no wallet may create**; only the operator token can. This follows the rule
+ * `A1_DE_CHAIN_MO` already sets in this file: a safety gate that accepts many ways of saying
+ * "allow" is a gate that opens by accident. An allowlist that falls open when its variable is
+ * missing is exactly that — and the failure would be silent, because nothing looks wrong.
+ * The startup line below says out loud which state it is in, so "I forgot to set it" cannot be
+ * mistaken for "it is working".
+ *
+ * ═══ 🔴 IT GATES CREATION ONLY — NEVER REVOCATION ═══
+ *
+ * `/api/revoke` already checks that the signer owns the chain. If the allowlist also gated
+ * revocation, then removing someone from the list would STRAND their chain: they could not
+ * revoke it, and neither could anyone else without the operator token. A gate that can trap a
+ * user's own property inside is not a safety feature.
+ *
+ * The rule itself lives in `../lib/l1-allowlist.mjs` — importable, and therefore testable without
+ * starting a server. This file exits at import time when `A1_CONSOLE_TOKEN` is missing, so a pure
+ * function kept in here could only be verified by copying it somewhere else, which is how one
+ * rule becomes three declarations (CLAUDE.md section 6).
+ */
+let L1_ALLOWLIST;
+try {
+  L1_ALLOWLIST = parseAllowlist(process.env.A1_L1_ALLOWLIST, parseEvmAddress);
+} catch (e) {
+  // 🔴 Refuse to start rather than silently drop an entry. A list quietly one shorter than the
+  // operator believes is the failure this whole gate exists to prevent, pointing inward.
   console.error(`FATAL: ${e.message}`);
   process.exit(1);
 }
@@ -1350,6 +1402,19 @@ const server = http.createServer(async (req, res) => {
       // loạn vẫn bị chặn — và trần 15 L1 chặn nốt phần còn lại.
       if (ai.kieu === "vi" &&
           blockedByRate(req, res, laThuHoi ? limitRevoke : limitCreate, `vi:${ai.diaChi}`)) return;
+
+      // 🔴 The invite list — CREATION ONLY. Revocation must stay open to the chain's owner, or
+      // removing a wallet from the list would trap that wallet's chain (see mayCreateL1).
+      // Placed after authentication (there is no identity to judge before it) and before any
+      // money is spent or any node is touched.
+      if (!laThuHoi) {
+        const phep = mayCreateL1(ai);
+        if (!phep.ok) {
+          return send(res, 403, {
+            error: `Chain creation is by invitation while the network has ${MAX_L1} L1 slots in total — ${phep.why}.`,
+          });
+        }
+      }
       try {
         const tham = JSON.parse((await docBody(req)) || "{}");
 
@@ -1405,6 +1470,12 @@ server.listen(PORT, HOST, () => {
   console.log(DE_CHAIN_MO
     ? `  đẻ chain: 🔓 MỞ (A1_DE_CHAIN_MO=1)`
     : `  đẻ chain: 🔒 ĐÓNG — mọi lượt tạo bị từ chối. Mở sau ngày G bằng A1_DE_CHAIN_MO=1 (D-087)`);
+  // Same rule, for the invite list: print the STATE, not only the interesting half. An empty
+  // list is the fail-closed default and it is indistinguishable from a forgotten variable
+  // anywhere except here — so here it says so in words.
+  console.log(L1_ALLOWLIST.size
+    ? `  mời tạo : ✉️  ${L1_ALLOWLIST.size} ví trong danh sách (A1_L1_ALLOWLIST) · token vận hành không bị chặn`
+    : `  mời tạo : 🔒 TRỐNG — KHÔNG ví nào tạo được chain (chỉ token vận hành). Đặt A1_L1_ALLOWLIST=0x…,0x… để mời`);
   // Đo thế hệ NGAY lúc khởi động để người vận hành thấy, nhưng KHÔNG dùng kết quả
   // này làm quyết định: `createChain` đo lại mỗi lượt. Một con số nhớ từ lúc boot
   // sống sót qua đúng thứ nó sinh ra để bắt.

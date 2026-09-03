@@ -476,6 +476,34 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       ⚠️ `gen-chainid-issued.mjs` **sinh** sổ từ chain đã tạo, **không đặt chỗ** ⇒ hôm nay cách duy
       nhất giữ một cái tên là **tạo chain bằng tên đó**.
 
+- [x] **P-40 — cổng MỜI TẠO L1 (allowlist ví)** (D-171)
+      David: *"làm cổng allowlist ví đi."* Mã nhỏ; **ba quyết định thiết kế** mới là phần đắt:
+      ① 🔴 **FAIL CLOSED** — biến thiếu/rỗng ⇒ **không ví nào** tạo được, chỉ token vận hành. Theo
+      đúng luật `A1_DE_CHAIN_MO` đã đặt trong chính tệp đó. Một allowlist **rơi về MỞ** khi thiếu
+      biến là dạng thuần khiết nhất của lỗi *"cổng mở nhầm"*, và nó hỏng **trong im lặng**. Kèm
+      dòng khai lúc khởi động cho **cả hai** trạng thái — *"tôi quên đặt biến"* không được đọc
+      giống *"nó đang chạy tốt"*.
+      ② 🔴 **CHỈ chặn TẠO, không chặn THU HỒI** — `/api/revoke` đã kiểm chủ sở hữu; chặn cả thu hồi
+      thì **gỡ một ví khỏi danh sách là NHỐT chain của ví đó**. **Một cổng có thể nhốt tài sản
+      người dùng bên trong thì không phải tính năng an toàn**, và nó chỉ lộ ra vào ngày có người bị
+      gỡ — lúc muộn nhất có thể.
+      ③ 🔴 **Hàm thuần phải nằm ở nơi IMPORT ĐƯỢC.** Bản đầu đặt trong `console/server.mjs` —
+      không kiểm nổi, vì tệp đó `process.exit(1)` lúc import khi thiếu `A1_CONSOLE_TOKEN`. **Đúng
+      cái nợ tôi tự ghi sáng cùng ngày** (D-161: `check-patch-count` khiến một cổng khác phải CHÉP
+      TAY một hàm) ⇒ tách `local-net/lib/l1-allowlist.mjs`, thuần, tự kiểm được.
+      **Điều kiện qua:** thấy đỏ ở mọi chiều sai, và ba trạng thái khởi động khai đúng.
+      ✅ **ĐẠT — 17 đối chứng ngược** (rỗng ⇒ đóng · `undefined` ⇒ đóng · kiểu danh tính lạ ⇒ đóng ·
+      checksum EIP-55 sai ⇒ **ném**) + **ba trạng thái chạy thật**: 2 ví ⇒ khai đủ · không đặt biến
+      ⇒ `🔒 TRỐNG` · địa chỉ hỏng ⇒ **FATAL, từ chối khởi động**.
+      🔵 So sánh **viết thường**: checksum EIP-55 là **cách trình bày, không phải danh tính** — từ
+      chối một ví đúng vì kiểu chữ là một **đỏ giả** trên đúng đường mà đỏ giả làm người ta mất lời mời.
+
+- [human] **P-41 — mở lại cửa: THỨ TỰ là phép kiểm**
+      ① đặt `A1_L1_ALLOWLIST=0x…,0x…` trong `console.env` ② `bash local-net/deploy/console-deploy.sh`
+      ③ **rồi mới** `A1_DE_CHAIN_MO=1` + restart.
+      🔴 Bật cửa trước khi có danh sách là **mở lại đúng cái lỗ vừa đóng**. Đo bằng
+      `node scripts/reopen-chain-creation.mjs --probe`, và đọc dòng `mời tạo` trong log console.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
