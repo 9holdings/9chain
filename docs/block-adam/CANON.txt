@@ -24,6 +24,31 @@
 9s_union_message  84846f452db83644231895a65f75706d3a435df827b88a1b18852ec4670d5b78  182 bytes  en
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# ADAM AND EVA — David decided 2026-09-03: THE SAME BYTES ALREADY IN GENESIS
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# The content of the Adam and Eva transactions was written down nowhere until now; the ceremony
+# script said so itself and defaulted to empty. David chose the two dedications already engraved
+# into block 0, so Block Adam and Block Eva carry the same sentences the genesis carries.
+#
+# 🔴 THERE IS NO SECOND COPY OF THESE BYTES, AND THAT IS THE DESIGN. The files below are the
+# ENGRAVED files themselves — `--adam-data docs/engrave/dedication.txt`. Copying them here would
+# have created two files that must be kept identical by somebody remembering to, and this project
+# has paid for that shape repeatedly (CLAUDE.md section 6). Pointing at the originals makes the
+# identity STRUCTURAL: there is one set of bytes, so it cannot drift.
+#
+# 🔴 The digests below are DELIBERATELY the same as the ones in `docs/engrave/CANON.txt`, and that
+# duplication is the proof rather than a smell: two independent canons asserting one digest means
+# a change to either file is caught by the other. If these ever disagree, the engraved text and
+# the ceremonial text have parted — which is exactly the thing worth being unable to do quietly.
+#
+# Verify without trusting this file:
+#   sha256sum docs/engrave/dedication.txt docs/engrave/dedication_eva.txt
+
+adam_message  19f90a317851933e88fb288949a44b18f87103b2d7947b80d557f05d425a236c  25 bytes  en
+eva_message  747ebe59ab6a152e962a2c3f215f46a8a30a82265210cb4fd6ee4bd31ffc97df  45 bytes  en
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # WHERE IT GETS ANCHORED — David, 2026-09-01 10:10Z
 # ═══════════════════════════════════════════════════════════════════════════════
 #
