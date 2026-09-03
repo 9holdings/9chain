@@ -7966,3 +7966,52 @@ cái sau cũng nên được ghi ra chứ không để mặc định trôi qua. 
 được: `dedication` (25 byte) và `dedication_eva` (45 byte).
 ⚠️ Byte đến **sau** ngày thì không đóng băng được nữa — đúng bài học lúc khắc genesis, và nay cổng
 đã **cưỡng chế** bài học đó thay vì chỉ nhắc nó.
+
+---
+
+## D-173 — **Adam và Eva mang ĐÚNG hai câu đã khắc vào genesis — và không có bản chép thứ hai** (David chốt `2026-09-03`)
+
+Câu hỏi treo từ D-146: nội dung hai giao dịch nghi lễ. David chốt: **đúng hai câu đã nằm trong
+block 0**.
+
+```
+adam_message  docs/engrave/dedication.txt       25 byte  19f90a31…5a236c
+eva_message   docs/engrave/dedication_eva.txt   45 byte  747ebe59…fc97df
+```
+
+⇒ Block Adam và Block Eva mang **cùng chữ** với thứ đã được khắc vào genesis. Không phải một câu
+mới viết cho dịp này, mà là **chính câu đã ở đó từ block 0**.
+
+### 🔴 KHÔNG chép byte sang tệp mới — và đó là quyết định, không phải lười
+
+Đường hiển nhiên là chép hai tệp sang `docs/block-adam/`. Không làm, vì chép tạo ra **hai tệp phải
+giữ giống nhau bằng cách ai đó nhớ** — đúng hình dạng §6 mà dự án đã trả giá nhiều lần (`A1Gen`
+chép tay ở hai ngôn ngữ · `stale-ok` ba bản cài đặt · và chính cái lỗ D-172 vừa vá).
+
+Trỏ thẳng `--adam-data docs/engrave/dedication.txt` làm sự trùng khớp trở thành **CẤU TRÚC**: chỉ
+có **một** bộ byte, nên nó **không thể trôi lệch**. Câu *"Block Adam mang chữ của genesis"* không
+còn là một lời hứa cần được duy trì — nó là một **sự kiện của hệ thống tệp**.
+
+### 🔴 Vân tay nằm ở HAI canon, và đó là bằng chứng chứ không phải trùng lặp thừa
+
+`docs/engrave/CANON.txt` và `docs/block-adam/CANON.txt` cùng khai một digest. Ở chỗ khác thì đó là
+mùi của bản khai thứ hai; ở đây nó là **phép đối chứng chéo**: sửa một bên là bên kia bắt được.
+Ngày hai canon bất đồng là ngày **chữ khắc và chữ nghi lễ đã tách nhau** — và đó đúng là thứ đáng
+được **không thể làm trong im lặng**.
+
+⚠️ Khác biệt so với một bản khai thứ hai thật sự: hai dòng này khai **cùng một tệp**, không phải
+hai nguồn sự thật cạnh tranh. Chúng không thể lệch mà không có một tệp bị sửa.
+
+### Nghiệm thu — hai chiều, trên đường thật
+
+```
+dung byte      -> ✓ Adam 25B 19f90a317851…  ·  Eva 45B 747ebe59ab6a…  (both match CANON)   EXIT 0
+lech MOT ky tu -> 🔴 REFUSING: does NOT match the digest CANON froze for `adam_message`     EXIT 2
+```
+
+🔴 Bản lệch **giữ nguyên 25 byte** (đổi dấu chấm cuối thành dấu than) — nên phép kiểm này chứng
+minh cổng đo **NỘI DUNG**, không đo **kích thước**. Một cổng chỉ đếm byte sẽ cho bản đó đi qua, và
+byte sai lên chain vĩnh viễn.
+
+✅ Tệp khắc chữ **không bị chạm một byte nào** — `check-evidence` xanh, digest đo lại vẫn khớp. Chỉ
+canon nghi lễ được thêm dòng.

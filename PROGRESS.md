@@ -530,6 +530,23 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       đúng hình dạng dòng `9s_union_message`, rồi truyền `--adam-data` / `--eva-data`.
       ⚠️ Byte đến **sau** ngày thì không đóng băng được nữa — nay cổng **cưỡng chế** điều đó.
 
+- [x] **P-44 — ✅ nội dung Adam/Eva ĐÃ CHỐT VÀ ĐÓNG BĂNG** (D-173, David chốt `03/09`)
+      Câu treo từ D-146 nay có đáp án: **đúng hai câu đã khắc vào genesis**.
+      `adam_message` 25 byte `19f90a31…` · `eva_message` 45 byte `747ebe59…` ⇒ Block Adam và Block
+      Eva mang **cùng chữ** với thứ đã nằm trong block 0, không phải câu mới viết cho dịp này.
+      🔴 **KHÔNG chép byte sang tệp mới** — cờ trỏ thẳng vào `docs/engrave/dedication*.txt`. Chép
+      là tạo ra hai tệp phải giữ giống nhau **bằng cách ai đó nhớ**, đúng hình dạng §6 mà dự án đã
+      trả giá nhiều lần. Trỏ bản gốc làm sự trùng khớp thành **CẤU TRÚC**: một bộ byte, **không
+      thể trôi lệch** — *"Block Adam mang chữ của genesis"* thôi là lời hứa cần duy trì, nó thành
+      **sự kiện của hệ thống tệp**.
+      🔵 Vân tay nằm ở **hai canon** (`engrave` và `block-adam`) — ở đây là **đối chứng chéo**, không
+      phải bản khai thứ hai: chúng khai **cùng một tệp**, nên không thể lệch mà không có tệp bị sửa.
+      **Điều kiện qua:** đúng byte ⇒ qua; lệch **một ký tự** ⇒ chặn.
+      ✅ **ĐẠT hai chiều trên đường thật:** `EXIT 0` với *"both match CANON"*; bản đổi **dấu chấm
+      cuối thành dấu than** — **vẫn đúng 25 byte** — ⇒ `EXIT 2`. Bản lệch giữ nguyên độ dài nên
+      phép kiểm này chứng minh cổng đo **NỘI DUNG**, không đo **kích thước**.
+      ✅ Tệp khắc chữ **không bị chạm một byte**: `check-evidence` xanh, digest đo lại vẫn khớp.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
