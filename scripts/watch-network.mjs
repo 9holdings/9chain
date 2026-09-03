@@ -25,6 +25,19 @@
  *
  * ⚠️ **Chỉ đọc.** Không gửi giao dịch, không ghi gì lên server, không đụng mạng.
  *
+ * ═══ 🔴 WHICH VALIDATORS (changed 2026-09-03, the evening the first outsider staked) ═══
+ *
+ * Until then "every validator" and "the nine nodes this project runs" were the same set, and this
+ * gate measured the first while meaning the second. The first guest staked for 14 days from a node
+ * behind NAT — following the guide to the letter — and this gate went red twice for it:
+ * "validators 10, expected 9" and "B-12 earliest expiry 14 days". Neither is B-12. B-12 is the
+ * network STOPPING when the last FOUNDING term ends; a guest's term ending stops nothing.
+ *
+ * ⇒ Headcount and B-12 are scored over the FOUNDING SET (`initialStakers` of the tracked
+ *   genesis, via `local-net/lib/genesis-stakers.mjs`). Guests get their own line: counted,
+ *   warned about when they are not earning (uptime under the reward floor), never a red here —
+ *   a guest who cannot earn is a defect of the ONBOARDING PATH, and that is what the line says.
+ *
  * Dùng:
  *   node scripts/watch-network.mjs
  *   node scripts/watch-network.mjs --no-ssh     # bỏ các mục cần ssh (supplyCap, drift)
@@ -37,6 +50,7 @@ import { fileURLToPath } from "node:url";
 import { A1_GEN, NETWORK_ID, TEN_MANG } from "../local-net/lib/chainid.mjs";
 import { SSH_HOST, SSH_KEY } from "../local-net/lib/server.mjs";
 import { VI_FACTORY_THEO_THE_HE } from "../local-net/lib/factory-wallets.mjs";
+import { genesisStakerIDs, partitionByFounding } from "../local-net/lib/genesis-stakers.mjs";
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -53,12 +67,18 @@ const VI_FACTORY = lay("--wallet", VI_FACTORY_THEO_THE_HE[A1_GEN] ?? null);
 
 // ─── Ngưỡng — khai ở MỘT chỗ, và bài đối chứng lái được chúng ───
 export const NGUONG = {
+  // FOUNDING nodes expected in the validator set — the `initialStakers` of genesis, not the
+  // total headcount. Guests raise the total and must not move this number (see header).
   soNodeMongDoi: 9,
   // B-12: node ĐẦU rụng ở ~ngày 309, còn 8 node chạy ⇒ có ~56 ngày để phản ứng.
   // Vàng ở 120 ngày là để lời nhắc đến **trước** khi cần gấp; đỏ ở 45 vì gia hạn
   // validator không phải việc làm trong một buổi chiều.
   ngayHetHanVang: 120,
   ngayHetHanDo: 45,
+  // Uptime below this earns nothing — the network's own reward floor, quoted in
+  // `docs/RUN-A-VALIDATOR.md` ("Rewards require 80%"). A guest under it is a WARNING, not a red:
+  // the network is fine, the guest is not, and the onboarding path is what let that happen.
+  uptimeThuongToiThieu: 80,
   /**
    * 🔴 THIS BALANCE IS NOT A CAPACITY, AND THIS COMMENT USED TO SAY IT WAS.
    *
@@ -114,6 +134,32 @@ export function chamDiem(mucs) {
   return { ma: coDo ? 1 : coKhongDo ? 2 : 0, dong };
 }
 
+/**
+ * Split the live validator set into founders and guests and read off what each line scores on.
+ * Pure — the reverse controls drive it with fixtures.
+ *
+ * Returns `null` fields for "could not read" so the caller scores them as NOT MEASURED (exit 2),
+ * never as passed. `guestsNotEarning` names guests under the reward floor or not connected to the
+ * node asked: those are the guests the onboarding path failed, and the warning says so.
+ */
+export function assessValidatorSet(validators, foundingIDs, nowMs = Date.now()) {
+  if (!Array.isArray(validators)) {
+    return { foundersPresent: null, missingFounders: [], guests: [], guestsNotEarning: [], earliestFounderEndDays: null, earliestGuestEndDays: null };
+  }
+  const days = (sec) => Math.round((Number(sec) * 1000 - nowMs) / 86_400_000);
+  const { founders, guests, missingFounders } = partitionByFounding(validators, foundingIDs);
+  const guestsNotEarning = guests.filter((g) => g.connected === false || Number(g.uptime) < NGUONG.uptimeThuongToiThieu);
+  const earliest = (rows) => (rows.length ? days(Math.min(...rows.map((v) => Number(v.endTime)))) : null);
+  return {
+    foundersPresent: founders.length,
+    missingFounders,
+    guests,
+    guestsNotEarning,
+    earliestFounderEndDays: earliest(founders),
+    earliestGuestEndDays: earliest(guests),
+  };
+}
+
 async function rpc(duong, method, params = {}) {
   const r = await fetch(RPC + duong, {
     method: "POST", headers: { "content-type": "application/json" },
@@ -147,8 +193,6 @@ function supplyCapTuGo() {
 }
 
 async function doMang() {
-  const ngay = (giay) => Math.round((giay * 1000 - Date.now()) / 86_400_000);
-
   const ten = await thu(() => rpc("/ext/info", "info.getNetworkName").then((r) => r.networkName));
   const nid = await thu(() => rpc("/ext/info", "info.getNetworkID").then((r) => Number(r.networkID)));
   const peers = await thu(() => rpc("/ext/info", "info.peers").then((r) => Number(r.numPeers)));
@@ -173,20 +217,33 @@ async function doMang() {
     return r.status;
   });
 
-  const hanSom = vals?.length ? Math.min(...vals.map((v) => Number(v.endTime))) : null;
+  // 🔴 The founding set comes from the tracked genesis and a missing artefact THROWS: an unknown
+  // founding set must not score as "no founders" (see genesis-stakers.mjs).
+  const founding = genesisStakerIDs();
+  const set = assessValidatorSet(vals, founding);
+  const guestNote = set.guests.length === 0
+    ? "no guest validators yet"
+    : `${set.guests.length} guest(s); ${set.guestsNotEarning.length} not earning (disconnected or uptime < ${NGUONG.uptimeThuongToiThieu}%)`
+      + (set.guestsNotEarning.length ? `: ${set.guestsNotEarning.map((g) => `${g.nodeID} uptime ${Number(g.uptime).toFixed(1)}%`).join(", ")}` : "")
+      + (set.earliestGuestEndDays !== null ? ` · earliest guest term ends in ${set.earliestGuestEndDays} day(s)` : "");
 
   return [
     muc("tên mạng ↔ A1_GEN của repo", ten,
       (v) => (v === TEN_MANG ? "dat" : "do"), `repo dựng cho g${A1_GEN} = "${TEN_MANG}"`),
     muc("networkID ↔ A1_GEN của repo", nid,
       (v) => (v === NETWORK_ID ? "dat" : "do"), `repo mong ${NETWORK_ID}`),
-    muc("số validator", vals?.length ?? null,
-      (v) => (v === NGUONG.soNodeMongDoi ? "dat" : "do"), `mong ${NGUONG.soNodeMongDoi}`),
+    muc("founding validators present", set.foundersPresent,
+      (v) => (v === NGUONG.soNodeMongDoi ? "dat" : "do"),
+      set.missingFounders.length
+        ? `expected ${NGUONG.soNodeMongDoi}; MISSING ${set.missingFounders.join(", ")}`
+        : `expected ${NGUONG.soNodeMongDoi} (genesis initialStakers); total in set ${vals?.length ?? "?"}`),
+    muc("guest validators (not in genesis)", vals ? set.guests.length : null,
+      () => (set.guestsNotEarning.length ? "vang" : "dat"), guestNote),
     muc("peer node-1 thấy", peers,
       (v) => (v >= NGUONG.soNodeMongDoi - 1 ? "dat" : "do"), `mong ≥ ${NGUONG.soNodeMongDoi - 1}`),
-    muc("B-12 · validator hết hạn sớm nhất (ngày nữa)", hanSom === null ? null : ngay(hanSom),
+    muc("B-12 · earliest FOUNDING term end (days)", set.earliestFounderEndDays,
       (v) => (v <= NGUONG.ngayHetHanDo ? "do" : v <= NGUONG.ngayHetHanVang ? "vang" : "dat"),
-      hanSom ? new Date(hanSom * 1000).toISOString().slice(0, 10) : ""),
+      set.earliestFounderEndDays === null ? "" : "founders only — a guest's term ending stops nothing"),
     muc("số dư chain-factory (LOVE9)", soDu,
       (v) => (v <= NGUONG.factoryDo ? "do" : v <= NGUONG.factoryVang ? "vang" : "dat"),
       VI_FACTORY === null
@@ -224,6 +281,37 @@ function tuKiem() {
     if (ra === mong) console.log(`  ✓ còn ${ngay} ngày ⇒ ${mong}`);
     else { console.log(`  ✗ còn ${ngay} ngày ⇒ mong ${mong}, ra ${ra}`); hong++; }
   }
+
+  // ── founders vs guests: the population B-12 and the headcount are scored over ──
+  // Fixture = the shape measured on g1 on 2026-09-03 20:1xZ: nine founders 306–362 days out, one
+  // guest 14 days out, disconnected, uptime 14.6%. Before this change the gate read that as
+  // "10 validators, expected 9" and "B-12: 14 days" — two reds, neither about the network.
+  console.log("\n══ REVERSE CONTROLS — founding set vs guests ══");
+  const NOW = Date.UTC(2026, 8, 3, 20, 0, 0);
+  const at = (d) => (NOW + d * 86_400_000) / 1000;
+  const founders = Array.from({ length: 9 }, (_, i) => ({ nodeID: `NodeID-F${i}`, endTime: at(306 + 7 * i), connected: true, uptime: 99.99 }));
+  const FOUNDING = new Set(founders.map((f) => f.nodeID));
+  const guest14 = { nodeID: "NodeID-GUEST", endTime: at(14), connected: false, uptime: 14.57 };
+  const chk = (label, got, want) => {
+    if (got === want) console.log(`  ✓ ${label}`);
+    else { console.log(`  ✗ ${label} — expected ${want}, got ${got}`); hong++; }
+  };
+  const live = assessValidatorSet([...founders, guest14], FOUNDING, NOW);
+  chk("🔴 THE 2026-09-03 SHAPE — 9 founders + 1 guest: founders present is 9, not 10", live.foundersPresent, 9);
+  chk("🔴 … and B-12 reads the earliest FOUNDER (306 d), not the guest (14 d)", live.earliestFounderEndDays, 306);
+  chk("… the guest's 14 days is reported on its own line", live.earliestGuestEndDays, 14);
+  chk("… a disconnected guest at 14.6% uptime is named as not earning", live.guestsNotEarning.length, 1);
+  chk("… the gate stays GREEN on that shape (B-12 threshold on 306 d)", chamHan(live.earliestFounderEndDays), "dat");
+  const noGuest = assessValidatorSet(founders, FOUNDING, NOW);
+  chk("no guests ⇒ zero guests, zero not earning", `${noGuest.guests.length}/${noGuest.guestsNotEarning.length}`, "0/0");
+  const oneGone = assessValidatorSet([...founders.slice(1), guest14], FOUNDING, NOW);
+  chk("🔴 a founder MISSING is still counted — 8 present, and the guest does not fill the seat", oneGone.foundersPresent, 8);
+  chk("🔴 … and the missing founder is NAMED, because absence is what a filter cannot show", oneGone.missingFounders.join(","), "NodeID-F0");
+  const shortFounder = assessValidatorSet([{ ...founders[0], endTime: at(30) }, ...founders.slice(1)], FOUNDING, NOW);
+  chk("🔴 a FOUNDER at 30 days is still RED — the founding population is what B-12 is about", chamHan(shortFounder.earliestFounderEndDays), "do");
+  const earningGuest = assessValidatorSet([...founders, { ...guest14, connected: true, uptime: 95 }], FOUNDING, NOW);
+  chk("a connected guest above the reward floor is not flagged", earningGuest.guestsNotEarning.length, 0);
+  chk("🔴 an unreadable validator set is NOT MEASURED (null), never zero founders", assessValidatorSet(null, FOUNDING, NOW).foundersPresent, null);
   return hong;
 }
 
