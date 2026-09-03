@@ -1,68 +1,68 @@
 import { Outfit } from 'next/font/google';
 
 /**
- * Logo khoá ngang 9Chain — dấu + chữ, **nguyên bản từ bộ kit của David**
- * (`9chain-lockup-dark.svg` / `9chain-lockup-light-transparent.svg`, đưa
- * `2026-08-27`). Bản gốc nằm ở `public/brand/`.
+ * The 9Chain horizontal lockup — mark + wordmark, **verbatim from David's kit**
+ * (`9chain-lockup-dark.svg` / `9chain-lockup-light-transparent.svg`, delivered `2026-08-27`).
+ * The originals live in `public/brand/`.
  *
- * ═══ 🔴 KHÔNG CHẾ LẠI. ĐÂY LÀ YÊU CẦU CỦA DAVID, KHÔNG PHẢI GU CỦA TÔI. ═══
- * Giữ NGUYÊN: hình học, tỉ lệ, `viewBox 0 0 360 128`, `stroke-width 6.5`,
- * `font-size 57`, `letter-spacing -0.01em`, và **màu**:
+ * ═══ 🔴 DO NOT REWORK IT. THIS IS DAVID'S REQUIREMENT, NOT MY TASTE. ═══
+ * Keep UNCHANGED: geometry, proportions, `viewBox 0 0 360 128`, `stroke-width 6.5`,
+ * `font-size 57`, `letter-spacing -0.01em`, and the **colours**:
  *
- *     dấu       #F5C542   — mọi nền
- *     chữ       #FFFFFF   — trên nền TỐI
- *     chữ       #0D1733   — trên nền SÁNG
+ *     mark        #F5C542   — on every background
+ *     wordmark    #FFFFFF   — on a DARK background
+ *     wordmark    #0D1733   — on a LIGHT background
  *
- * Hai màu chữ đó là thứ bộ kit quy định cho hai nền, nên đổi chữ theo theme
- * KHÔNG phải là chế lại — đó chính là cách dùng đúng của kit.
+ * Those two wordmark colours are what the kit specifies for the two backgrounds, so switching
+ * the wordmark with the theme is NOT reworking it — it is exactly how the kit is meant to be used.
  *
- * ⚠️ `#F5C542` KHÁC `--color-gold` (`#ffcb24`) của hệ token, và điều đó có chủ ý
- * (David chốt `2026-08-27`). Đừng "dọn dẹp" bằng cách cho dấu ăn theo token —
- * xem `docs/BRAND-AUDIT-2026-08-27.md`.
+ * ⚠️ `#F5C542` is NOT the token system's `--color-gold` (`#ffcb24`), and that is deliberate
+ * (David's decision, `2026-08-27`). Do not "tidy this up" by making the mark follow the token —
+ * see `docs/BRAND-AUDIT-2026-08-27.md`.
  *
- * ═══ 🔴 VÌ SAO PHẢI NẠP FONT `Outfit` Ở ĐÂY ═══
- * SVG trong kit khai `font-family="Outfit, Arial, sans-serif"`. Outfit **không
- * có sẵn trên máy hầu hết người dùng**, nên nếu chỉ chép SVG vào là chữ rơi về
- * **Arial** — logo sai font mà không có lỗi nào báo. Đó là lý do component này
- * tồn tại thay vì một thẻ `<img src="/brand/....svg">`: `<img>` render SVG trong
- * ngữ cảnh riêng và **không** với tới được font của trang.
+ * ═══ 🔴 WHY THE `Outfit` FONT HAS TO BE LOADED HERE ═══
+ * The kit's SVG declares `font-family="Outfit, Arial, sans-serif"`. Outfit is **not installed on
+ * most users' machines**, so simply copying the SVG in makes the wordmark fall back to **Arial**
+ * — the logo in the wrong font, with no error reported. That is why this component exists rather
+ * than an `<img src="/brand/....svg">` tag: `<img>` renders the SVG in its own context and
+ * **cannot** reach the page's fonts.
  *
- * ⚠️ NẠP QUA `.style.fontFamily`, TUYỆT ĐỐI KHÔNG QUA BIẾN CSS.
- * Ba font giao diện của site hiện KHÔNG chạy vì đúng cái bẫy đó: `@theme` đổ
- * `--font-sans: var(--font-instrument)` vào `:root` (`<html>`) trong khi lớp
- * `__variable_*` của `next/font` nằm ở `<body>` ⇒ `var()` không giải được ⇒ cả
- * khai báo thành guaranteed-invalid. Ở đây `outfit.style.fontFamily` là một
- * chuỗi họ chữ THẬT, đặt thẳng vào `style` của phần tử — không đi qua `:root`,
- * nên không dính bẫy. Xem `docs/BRAND-AUDIT-2026-08-27.md` mục B.
+ * ⚠️ LOAD IT VIA `.style.fontFamily`, NEVER VIA A CSS VARIABLE.
+ * The site's three UI fonts currently do not run because of exactly that trap: `@theme` emits
+ * `--font-sans: var(--font-instrument)` onto `:root` (`<html>`) while `next/font`'s
+ * `__variable_*` class sits on `<body>` ⇒ the `var()` cannot resolve ⇒ the whole declaration
+ * becomes guaranteed-invalid. Here `outfit.style.fontFamily` is a REAL font-family string put
+ * directly into the element's `style` — it never goes through `:root`, so it avoids the trap.
+ * See `docs/BRAND-AUDIT-2026-08-27.md`, section B.
  *
- * Và vì lý do đó, tệp này **không** đụng `tokens.css` (có vân tay chống trôi
- * lệch) lẫn `--font-*`. Nó độc lập với cụm B1+B2 đang chờ David chốt.
+ * And for that reason this file touches neither `tokens.css` (which carries an anti-drift
+ * fingerprint) nor `--font-*`. It is independent of the B1+B2 cluster awaiting David's decision.
  */
 
-// `subsets: ['latin']` là đủ và đúng: chữ trong logo là "9Chain" — toàn ASCII.
-// Đây là font của LOGO, không phải font giao diện; nó không thay thế gì cả.
+// `subsets: ['latin']` is both sufficient and correct: the wordmark reads "9Chain" — pure ASCII.
+// This is the LOGO's font, not a UI font; it replaces nothing.
 const outfit = Outfit({ subsets: ['latin'], weight: ['700'], display: 'swap' });
 
-/** Màu chữ theo nền, đúng như bộ kit quy định. */
+/** Wordmark colour by background, exactly as the kit specifies. */
 export const TEXT_ON_DARK = '#FFFFFF';
 export const TEXT_ON_LIGHT = '#0D1733';
-/** Vàng của dấu — giống nhau ở mọi nền. */
+/** The mark's gold — identical on every background. */
 export const MARK_GOLD = '#F5C542';
 
 type Props = {
   /**
-   * `'dark'`  — nền luôn tối (header của site luôn là `bg-navy`) ⇒ chữ trắng.
-   * `'light'` — nền luôn sáng ⇒ chữ navy.
-   * `'auto'` — chữ đổi theo `html[data-theme]`, qua biến `--mau-chu-logo`
-   *   khai trong `globals.css`. Dùng cho chỗ nền tự đổi (chân trang).
+   * `'dark'`  — always a dark background (the site header is always `bg-navy`) ⇒ white wordmark.
+   * `'light'` — always a light background ⇒ navy wordmark.
+   * `'auto'`  — the wordmark follows `html[data-theme]`, through the `--mau-chu-logo` variable
+   *   declared in `globals.css`. For places where the background changes by itself (the footer).
    */
   background?: 'dark' | 'light' | 'auto';
-  /** Chiều cao hiển thị, px. Tỉ lệ khoá ở 360:128 nên rộng = cao × 2,8125. */
+  /** Display height in px. The ratio is locked at 360:128, so width = height × 2.8125. */
   height?: number;
   className?: string;
   /**
-   * Chữ thay thế cho trình đọc màn hình. Để rỗng khi cạnh logo đã có chữ
-   * "9Chain" hiện ra rồi — đọc lên hai lần là tệ hơn im lặng.
+   * Alternative text for screen readers. Leave it empty when the word "9Chain" is already
+   * visible next to the logo — reading it out twice is worse than saying nothing.
    */
   label?: string;
 };
@@ -83,7 +83,7 @@ export function BrandLockup({ background = 'auto', height = 30, className, label
       focusable="false"
     >
       {label ? <title>{label}</title> : null}
-      {/* Dấu — nguyên văn từ kit, không đổi một con số nào. */}
+      {/* The mark — verbatim from the kit, not one number changed. */}
       <g transform="translate(16 16)">
         <g fill="none" stroke={MARK_GOLD} strokeWidth="6.5">
           <polygon points="48,14 77.4,65 18.6,65" transform="rotate(20 48 48)" />
@@ -100,7 +100,7 @@ export function BrandLockup({ background = 'auto', height = 30, className, label
         fill={mauChu}
         textAnchor="start"
         dominantBaseline="central"
-        // Xem chú thích đầu tệp: đặt thẳng vào `style`, không qua biến CSS.
+        // See the comment at the top of this file: set directly in `style`, never through a CSS variable.
         style={{ fontFamily: outfit.style.fontFamily }}
       >
         9Chain

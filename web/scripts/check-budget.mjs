@@ -1,71 +1,70 @@
 /**
- * check-budget.mjs — trần dung lượng **lần tải đầu của MỘT trang, đo sau khi nén**.
+ * check-budget.mjs — the size ceiling for **ONE page's first load, measured after compression**.
  *
- * Vì sao có: đây là trang testnet, người xem có thể ở đường truyền yếu, và cái giá
- * của việc thêm một bước build (M10.1) là bundle có thể phình lên mà không ai để ý
- * — bốn trang HTML viết tay trước đó **không có JS nào cả**. Một con số có trần thì
- * mỗi lần vượt là một quyết định có ý thức; không có trần thì nó chỉ tăng.
+ * Why it exists: this is a testnet site, visitors may be on a weak connection, and the price
+ * of adding a build step (M10.1) is that the bundle can grow without anyone noticing — the
+ * four hand-written HTML pages that came before had **no JS at all**. A number with a ceiling
+ * makes every overrun a conscious decision; without one it only ever goes up.
  *
- * ═══ BỐN PHÉP ĐO SAI ĐÃ THỬ VÀ ĐÃ BỎ ═══
- * 1. **Cộng mọi file trong `chunks/`** — ra 800 KB, nhưng đó là tổng của MỌI trang
- *    cộng lại; không người dùng nào tải chừng đó. Một con số không ai phải trả thì
- *    không phải là ngân sách.
- * 2. **Đo dung lượng chưa nén** — Caddy trả JS đã nén, nên con số chưa nén cao gấp
- *    ~5 lần thứ thật sự đi qua đường truyền. Ngân sách đặt trên nó hoặc là quá chặt
- *    (chặn oan) hoặc là quá lỏng (không bao giờ kêu).
- * 3. 🔴 **Bắt mọi `/_next/static/*.js` bằng regex trên HTML** (bản tới 2026-08-27).
- *    Nó nuốt luôn `polyfills-*.js`, mà thẻ của tệp đó mang **`noModule=""`** — theo
- *    định nghĩa, **mọi trình duyệt hiểu ES module đều BỎ QUA nó**. Đo thật trên
- *    https://a1.9chain.org bằng Chrome (2026-08-27): trong 8 tệp JS mà regex đếm,
- *    trình duyệt chỉ tải **7**; polyfills **không có một request nào**. 38,7 KB =
- *    **25,5% của trần** là dung lượng không ai trả. Nay chỉ đếm script KHÔNG có
- *    `noModule`, và phép đếm đó khớp **đúng 7/7** với danh sách request thật.
- * 4. 🔴 **Chỉ đếm JS** (bản tới 2026-08-27) — trong khi tiêu đề file tự nhận đo
- *    "thứ một người mở trang đó thật sự phải tải". CSS thì **ai cũng tải**, luôn
- *    luôn, và nó là `<link>` chặn render. Bỏ nó ra ngoài là để một khoản chi cố định
- *    nằm ngoài mọi ngân sách. Nay đếm cả HTML + CSS.
+ * ═══ FOUR WRONG MEASUREMENTS, TRIED AND ABANDONED ═══
+ * 1. **Summing every file in `chunks/`** — gives 800 KB, but that is the total across EVERY
+ *    page; no user downloads that much. A number nobody pays is not a budget.
+ * 2. **Measuring uncompressed size** — Caddy serves compressed JS, so the uncompressed number
+ *    is about 5× what actually crosses the wire. A budget built on it is either far too tight
+ *    (blocking wrongly) or far too loose (never firing).
+ * 3. 🔴 **Matching every `/_next/static/*.js` with a regex over the HTML** (the version up to
+ *    2026-08-27). It swallowed `polyfills-*.js`, whose tag carries **`noModule=""`** — by
+ *    definition, **every browser that understands ES modules IGNORES it**. Measured for real
+ *    on https://a1.9chain.org in Chrome (2026-08-27): of the 8 JS files the regex counted, the
+ *    browser fetched **7**; polyfills produced **not one request**. 38.7 KB = **25.5% of the
+ *    ceiling** that nobody pays. It now counts only scripts WITHOUT `noModule`, and that count
+ *    matches the real request list **exactly, 7 for 7**.
+ * 4. 🔴 **Counting JS only** (also up to 2026-08-27) — while the file's own title claimed to
+ *    measure "what someone opening that page actually has to download". CSS is downloaded by
+ *    **everyone**, always, and it is a render-blocking `<link>`. Leaving it out puts a fixed
+ *    cost outside every budget. HTML + CSS are now counted too.
  *
- * Phép đo đang dùng: với TỪNG trang HTML, cộng **chính tệp HTML** + **CSS trong
- * `<link rel=stylesheet>`** + **JS trong `<script src>` KHÔNG mang `noModule`**,
- * mỗi thứ nén gzip. Đó là những tệp trình duyệt tải **không điều kiện** khi mở trang.
+ * The measurement in use: for EACH HTML page, sum **the HTML file itself** + **the CSS in
+ * `<link rel=stylesheet>`** + **the JS in `<script src>` WITHOUT `noModule`**, each gzipped.
+ * Those are the files a browser fetches **unconditionally** when the page opens.
  *
- * ═══ RANH GIỚI CỦA PHÉP ĐO — ĐỌC TRƯỚC KHI TIN CON SỐ ═══
+ * ═══ THE LIMITS OF THIS MEASUREMENT — READ BEFORE TRUSTING THE NUMBER ═══
  *
- * ▸ **Font KHÔNG nằm trong số bị chặn.** Không phải vì nó rẻ, mà vì tải hay không
- *   là **có điều kiện**: `next/font` cắt mỗi bộ chữ thành nhiều tệp theo
- *   `unicode-range`, trình duyệt chỉ lấy tệp nào có ký tự trang thật sự dùng — VÀ
- *   chỉ khi có quy tắc CSS nào đó thật sự áp bộ chữ đó lên một phần tử. Vế thứ hai
- *   cần chạy cả tầng cascade mới biết, mà script này chỉ đọc tệp tĩnh.
- *   Nên font được in ra như một **trần trên chẩn đoán**, không dùng để chặn.
+ * ▸ **Fonts are NOT part of what blocks.** Not because they are cheap, but because whether
+ *   they are fetched is **conditional**: `next/font` splits each typeface into several files
+ *   by `unicode-range`, and the browser takes only the files holding characters the page
+ *   actually uses — AND only if some CSS rule genuinely applies that typeface to an element.
+ *   Deciding the second half requires running the whole cascade, and this script only reads
+ *   static files. So fonts are printed as a **diagnostic upper bound**, never used to block.
  *
- *   🔴 ĐO THẬT 2026-08-27 trên site đang chạy — **con số thật là 0 KB, không phải
- *   trần trên**: `document.fonts` khai **27 mặt chữ, `loaded` = 0**, và không một
- *   request `.woff2` nào. Lý do: `tokens.css` khai `--font-sans: var(--font-instrument)`
- *   trong `@theme` ⇒ Tailwind v4 đổ vào **`:root` (`<html>`)**, nhưng các lớp
- *   `__variable_*` của `next/font` lại nằm trên **`<body>`** (`layout.tsx`). Ở `:root`
- *   thì `--font-instrument` chưa tồn tại và không có giá trị lui, nên `--font-sans`
- *   thành *guaranteed-invalid*, và `font-family: var(--font-sans)` rơi hết về bộ chữ
- *   hệ thống. Đo được: `getComputedStyle` của MỌI phần tử trên trang chủ trả về
- *   **đúng một** họ chữ — stack mặc định của Tailwind.
- *   ⇒ Ba bộ chữ thương hiệu **hiện không chạy ở đâu cả**. Ngày nào vá chỗ đó thì
- *   dòng font dưới đây thành chi phí THẬT (cỡ 120 KB cho trang chủ) và **phải xem
- *   lại trần** — đừng vá font rồi để nguyên con số này.
+ *   🔴 MEASURED FOR REAL 2026-08-27 against the live site — **the true figure is 0 KB, not an
+ *   upper bound**: `document.fonts` declares **27 faces with `loaded` = 0**, and there is not
+ *   one `.woff2` request. The reason: `tokens.css` declares `--font-sans: var(--font-instrument)`
+ *   inside `@theme` ⇒ Tailwind v4 emits it onto **`:root` (`<html>`)**, while `next/font`'s
+ *   `__variable_*` classes sit on **`<body>`** (`layout.tsx`). At `:root` `--font-instrument`
+ *   does not exist yet and there is no fallback, so `--font-sans` becomes *guaranteed-invalid*
+ *   and `font-family: var(--font-sans)` collapses to the system stack. Measured:
+ *   `getComputedStyle` of EVERY element on the home page returns **exactly one** family — the
+ *   Tailwind default stack.
+ *   ⇒ The three brand typefaces are **currently running nowhere at all**. The day that is
+ *   fixed, the font line below becomes a REAL cost (roughly 120 KB for the home page) and
+ *   **the ceiling must be revisited** — do not fix the fonts and leave this number alone.
  *
- * ▸ **Số này là số nén CỤC BỘ, không phải byte CDN.** Đối chiếu với Chrome qua
- *   Cloudflare, trang chủ 2026-08-27: JS 112,9 KB ở đây / **117,3 KB** thật (−3,9%),
- *   CSS 6,5 / 6,7 (−3,2%), HTML 4,8 / 5,4 (−11,3%). Không mức gzip nào khớp cả ba
- *   cùng lúc (JS khớp level 4, CSS nằm giữa 4–5, HTML còn tệ hơn level 1) ⇒ CDN
- *   không dùng một mức duy nhất, và đuổi theo cho khớp từng byte là việc vô ích.
- *   Giữ level mặc định của Node cho **ổn định và so sánh được giữa các lượt build**;
- *   con số thật cao hơn **vài phần trăm**, trần 160 đã chừa chỗ cho khoảng đó.
+ * ▸ **This is a LOCAL compressed number, not CDN bytes.** Compared against Chrome through
+ *   Cloudflare, home page 2026-08-27: JS 112.9 KB here / **117.3 KB** real (−3.9%), CSS
+ *   6.5 / 6.7 (−3.2%), HTML 4.8 / 5.4 (−11.3%). No single gzip level matches all three at once
+ *   (JS matches level 4, CSS sits between 4 and 5, HTML is worse than level 1) ⇒ the CDN does
+ *   not use one fixed level, and chasing a byte-for-byte match is wasted effort. Keep Node's
+ *   default level for **stability and comparability between builds**; the real figure runs a
+ *   **few percent** higher, and the 160 ceiling already leaves room for that.
  */
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// Đổi tên từ `A1_TRAN_JS_KB` khi phép đo hết chỉ-đo-JS. Không nơi nào khác trong
-// repo đặt biến cũ (đã grep) — nhưng nếu ai còn nó trong shell thì nay nó câm.
+// Renamed from `A1_TRAN_JS_KB` when the measurement stopped being JS-only. Nothing else in
+// the repo sets the old variable (grepped) — but if anyone still has it in a shell, it is now inert.
 const TRAN_KB = Number(process.env.A1_TRAN_KB || 160);
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RA = path.join(GOC, 'out');
@@ -85,7 +84,7 @@ function timHtml(dir, ra = []) {
 }
 
 const nenCache = new Map();
-/** KB sau gzip của một tệp trong `out/`, tra theo đường dẫn tuyệt đối kiểu web. */
+/** Gzipped KB of a file in `out/`, looked up by absolute web-style path. */
 function kbNen(duongTuongDoi) {
   if (nenCache.has(duongTuongDoi)) return nenCache.get(duongTuongDoi);
   const p = path.join(RA, duongTuongDoi.replace(/^\//, ''));
@@ -95,10 +94,10 @@ function kbNen(duongTuongDoi) {
 }
 
 /**
- * Tách `<script src>` thành hai nhóm. `noModule` là ranh giới thật, không phải chi
- * tiết vặt: trình duyệt hiểu ES module bỏ qua thẻ đó, còn trình duyệt cũ thì chưa
- * bao giờ chạy nổi trang này. Đọc thuộc tính trên CHÍNH thẻ, không đoán theo tên tệp
- * — tên tệp là quy ước của Next, nó đổi lúc nào cũng được.
+ * Split `<script src>` into two groups. `noModule` is a real boundary, not a detail: a browser
+ * that understands ES modules ignores that tag, and a browser that does not could never have
+ * run this page in the first place. Read the attribute off THE TAG ITSELF, do not infer it
+ * from the filename — the filename is a Next convention and can change at any time.
  */
 function chiaScript(html) {
   const dungModule = new Set();
@@ -123,7 +122,7 @@ function timCss(html) {
   return [...ra];
 }
 
-/** Ký tự trang thật sự hiển thị — bỏ script/style rồi bỏ thẻ. Đủ cho chẩn đoán. */
+/** The characters the page actually displays — strip script/style, then strip tags. Enough for a diagnostic. */
 function kyTuCuaTrang(html) {
   const chu = html
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
@@ -132,7 +131,7 @@ function kyTuCuaTrang(html) {
   return new Set([...chu].map((c) => c.codePointAt(0)));
 }
 
-/** `u+0100-02ba` · `u+00??` · `u+0131` → [đầu, cuối]. */
+/** `u+0100-02ba` · `u+00??` · `u+0131` → [start, end]. */
 function docUnicodeRange(txt) {
   const ra = [];
   for (const phan of txt.split(',')) {
@@ -152,9 +151,10 @@ function docUnicodeRange(txt) {
 }
 
 /**
- * Trần trên của font: các tệp có `unicode-range` giao với ký tự của trang. Không
- * gzip — `.woff2` đã nén sẵn, nén lại là bịa ra một con số nhỏ hơn thứ đi qua dây.
- * Thiếu `unicode-range` ⇒ coi như phủ mọi ký tự (đúng theo chuẩn CSS).
+ * An upper bound for fonts: the files whose `unicode-range` intersects the page's characters.
+ * Not gzipped — `.woff2` is already compressed, and compressing it again invents a number
+ * smaller than what crosses the wire. A missing `unicode-range` ⇒ treat it as covering every
+ * character (which is what the CSS standard says).
  */
 function fontCoThe(cssPaths, kyTu) {
   const ra = new Map();

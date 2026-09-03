@@ -3,34 +3,36 @@
 import { interpolate } from '@/lib/i18n';
 
 /**
- * Lưới an toàn cho mọi lượt gọi mạng NGẮN của site. (Đ1-8)
+ * The safety net for every SHORT network call on the site. (Đ1-8)
  *
- * ═══ 🔴 RÀNG BUỘC SỐ MỘT, ĐỌC TRƯỚC KHI DÙNG Ở ĐÂU KHÁC ═══
- * **KHÔNG ĐƯỢC đặt hạn giờ cho `/api/create` và `/api/revoke`.**
- * Hai thao tác đó mất ~170–300 giây thật (node khởi động lại LẦN LƯỢT để mạng không
- * mất quorum). Một `AbortSignal.timeout` ở đó sẽ **huỷ request của trình duyệt trong
- * khi server vẫn đang đẻ chain** — người dùng thấy "lỗi", chain vẫn ra đời, và họ đi
- * bấm lại. Đó là kiểu hỏng đắt nhất màn này có thể có.
- * ⇒ Vì vậy `fetchJson` **mặc định KHÔNG có hạn giờ**. Hạn giờ là thứ phải **bật ra**,
- *   không phải thứ phải nhớ tắt đi. Chọn chiều đó có chủ ý: lỡ quên bật thì cùng lắm
- *   chậm như hôm nay; lỡ quên tắt thì gãy một đường không sửa lại được.
+ * ═══ 🔴 CONSTRAINT NUMBER ONE, READ BEFORE USING THIS ANYWHERE ELSE ═══
+ * **Do NOT set a timeout on `/api/create` or `/api/revoke`.**
+ * Those two operations genuinely take ~170–300 seconds (the nodes restart ONE AT A TIME so the
+ * network never loses quorum). An `AbortSignal.timeout` there **cancels the browser's request
+ * while the server is still launching the chain** — the user sees an "error", the chain is
+ * created anyway, and they go and press the button again. That is the most expensive failure
+ * this screen can have.
+ * ⇒ So `fetchJson` has **NO timeout by default**. A timeout is something you must **switch on**,
+ *   not something you must remember to switch off. That direction is deliberate: forgetting to
+ *   switch it on costs at worst the slowness we have today; forgetting to switch it off breaks
+ *   a path that cannot be repaired.
  *
- * ═══ VÌ SAO KHÔNG CHỈ LÀ `try/catch` ═══
- * Ba kiểu hỏng dưới đây trông y hệt nhau nếu chỉ bắt `catch`:
- *   • **hết giờ**      — mạng chậm/treo. Thử lại thường ăn.
- *   • **HTTP 4xx/5xx** — server ĐÃ trả lời và trả lời là "không". Thử lại vô ích.
- *   • **không phải JSON** — thường là **định tuyến sai**: request rơi xuống
- *     Blockscout ở gốc `/` và ta nhận về HTML. Đây là lỗi hạ tầng, không phải lỗi dữ
- *     liệu, và nếu không nói rõ thì người sửa đi tìm ở đúng chỗ không có gì.
- * Trộn cả ba thành một câu "không tải được" là vứt đi thông tin đắt nhất mà lượt
- * hỏng vừa sinh ra.
+ * ═══ WHY THIS IS NOT JUST `try/catch` ═══
+ * These three failures look identical if all you do is `catch`:
+ *   • **timeout**        — slow or hung network. Retrying usually works.
+ *   • **HTTP 4xx/5xx**   — the server ANSWERED, and the answer was "no". Retrying is pointless.
+ *   • **not JSON**       — usually **misrouting**: the request fell through to Blockscout at the
+ *     root `/` and we got HTML back. This is an infrastructure fault, not a data fault, and if
+ *     we do not say so, whoever fixes it goes looking in a place where nothing is wrong.
+ * Collapsing all three into one "could not load" throws away the most valuable information the
+ * failure just produced.
  *
- * ⚠️ `r.ok` PHẢI được kiểm. `fetch` **không** ném lỗi khi HTTP 404/500 — nó chỉ ném
- * khi mạng đứt. Bỏ qua `r.ok` là để một trang lỗi đi tiếp vào `JSON.parse` và hỏng ở
- * một chỗ chẳng liên quan gì.
+ * ⚠️ `r.ok` MUST be checked. `fetch` does **not** throw on HTTP 404/500 — it only throws when
+ * the network drops. Skipping `r.ok` lets an error page travel on into `JSON.parse` and fail
+ * somewhere entirely unrelated.
  */
 
-/** Hạn mặc định cho một lượt ĐỌC ngắn (số liệu, danh bạ, hạn mức faucet). */
+/** The default limit for a short READ (stats, directory, faucet quota). */
 export const READ_TIMEOUT_MS = 12_000;
 
 export type FailureKind = 'timeout' | 'http' | 'notJson' | 'offline';
@@ -38,14 +40,14 @@ export type FailureKind = 'timeout' | 'http' | 'notJson' | 'offline';
 export class NetworkError extends Error {
   readonly kind: FailureKind;
   readonly status: number;
-  /** Số giây đã chờ, chỉ có khi `kind === 'timeout'` — chỗ render cần nó để dựng câu. */
+  /** Seconds already waited; only meaningful when `kind === 'timeout'` — the render site needs it to build the sentence. */
   readonly timeoutSeconds: number;
   /**
-   * ⚠️ `message` là chữ CHO LẬP TRÌNH VIÊN (console, log). Nó **không** được đưa
-   * thẳng ra màn hình: tệp này là hàm thuần, không gọi được `useT()`, nên mọi câu nó
-   * tự dựng đều đóng băng ở một ngôn ngữ. Bản trước giữ ba câu tiếng Việt ở đây và
-   * hai chỗ render ghép chúng vào `{detail}` — tức người đọc ở cả 30 ngôn ngữ nhận
-   * tiếng Việt đúng lúc mạng chậm. Dùng `describeFailure()` ở cuối tệp.
+   * ⚠️ `message` is text FOR DEVELOPERS (console, logs). It must **not** be put straight on the
+   * screen: this file holds pure functions and cannot call `useT()`, so every sentence it builds
+   * itself is frozen in one language. The previous version kept three Vietnamese sentences here
+   * and two render sites spliced them into `{detail}` — meaning readers in all thirty languages
+   * got Vietnamese exactly when the network was slow. Use `describeFailure()` at the end of this file.
    */
   constructor(kind: FailureKind, message: string, status = 0, timeoutSeconds = 0) {
     super(message);
@@ -54,18 +56,17 @@ export class NetworkError extends Error {
     this.status = status;
     this.timeoutSeconds = timeoutSeconds;
   }
-  /** Server đã trả lời và trả lời là "không" ⇒ thử lại vô ích. */
+  /** The server answered and the answer was "no" ⇒ retrying is pointless. */
   get retryPointless(): boolean {
     return this.kind === 'http' && this.status >= 400 && this.status < 500;
   }
 }
 
 /**
- * Đọc JSON từ một URL, có phân loại lỗi.
+ * Read JSON from a URL, with the failure classified.
  *
- * @param hanGiay  Hạn giờ tính bằng **giây**. Bỏ trống = **KHÔNG hạn giờ** (xem
- *                 ràng buộc số một ở đầu tệp). Truyền `READ_TIMEOUT_MS / 1000` cho các
- *                 lượt đọc ngắn.
+ * @param hanGiay  Timeout in **seconds**. Omitted = **NO timeout** (see constraint number one
+ *                 at the top of this file). Pass `READ_TIMEOUT_MS / 1000` for short reads.
  */
 export async function fetchJson<T = unknown>(
   url: string,
@@ -77,11 +78,11 @@ export async function fetchJson<T = unknown>(
     r = await fetch(url, {
       cache: 'no-store',
       ...init,
-      // `AbortSignal.timeout` CHỈ khi được yêu cầu tường minh.
+      // `AbortSignal.timeout` ONLY when explicitly asked for.
       ...(hanGiay ? { signal: AbortSignal.timeout(hanGiay * 1000) } : {}),
     });
   } catch (e) {
-    // `AbortSignal.timeout` ném `TimeoutError`; đứt mạng ném `TypeError`.
+    // `AbortSignal.timeout` throws `TimeoutError`; a dropped network throws `TypeError`.
     const ten = (e as Error)?.name;
     if (ten === 'TimeoutError' || ten === 'AbortError') {
       throw new NetworkError('timeout', `no answer after ${hanGiay}s`, 0, hanGiay);
@@ -94,7 +95,7 @@ export async function fetchJson<T = unknown>(
   try {
     j = JSON.parse(t);
   } catch {
-    // Nói rõ đây là nghi vấn ĐỊNH TUYẾN, kèm mã HTTP để phân biệt với lỗi thật.
+    // Say plainly that this is a ROUTING suspicion, with the HTTP status so it can be told apart from a real error.
     throw new NetworkError(
       'notJson',
       `answer was not JSON (HTTP ${r.status}) — most likely the path resolved wrongly`,
@@ -109,17 +110,17 @@ export async function fetchJson<T = unknown>(
 }
 
 /**
- * Dịch một lượt hỏng thành câu NGƯỜI ĐỌC hiểu, ở ngôn ngữ họ đang chọn.
+ * Turn a failure into a sentence THE READER understands, in the language they chose.
  *
- * Ba kiểu hỏng ở đầu tệp chỉ có ích nếu người đọc phân biệt được chúng — nên chỗ nào
- * hiện lỗi mạng cho người dùng thì gọi hàm này, đừng ghép `e.message`. Kiểu không có
- * câu riêng (`http`, `offline`) rơi về thông điệp kỹ thuật: nó không đẹp, nhưng nó là
- * thứ dán được cho đội, và im lặng thì tệ hơn.
+ * The three failure kinds at the top of this file are only useful if the reader can tell them
+ * apart — so anywhere a network error is shown to a user, call this instead of splicing in
+ * `e.message`. Kinds without their own sentence (`http`, `offline`) fall back to the technical
+ * message: it is not pretty, but it is something they can paste to the team, and silence is worse.
  */
 export function describeFailure(e: unknown, t: { timeout: string; notJson: string }): string {
-  // Đọc theo HÌNH DẠNG, không theo lớp: `ConsoleError` trong `lib/wallet.ts` mang
-  // đúng ba trường này và cũng cần được dịch. Ràng vào `instanceof NetworkError` là
-  // để lọt một nửa số đường ra màn hình.
+  // Match on SHAPE, not on class: `ConsoleError` in `lib/wallet.ts` carries exactly these three
+  // fields and needs translating too. Binding to `instanceof NetworkError` would let half the
+  // paths reach the screen untranslated.
   const x = e as Partial<NetworkError>;
   if (typeof x?.kind === 'string') {
     if (x.kind === 'timeout') return interpolate(t.timeout, { seconds: String(x.timeoutSeconds ?? 0) });

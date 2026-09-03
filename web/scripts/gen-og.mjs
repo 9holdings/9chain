@@ -1,41 +1,42 @@
 /**
- * gen-og.mjs — sinh ảnh chia sẻ (Open Graph) cho 9Chain Testnet A1.
+ * gen-og.mjs — generates the share (Open Graph) image for 9Chain Testnet A1.
  *
- * ═══ VÌ SAO CÓ TỆP NÀY THAY VÌ MỘT PNG CHÉP TAY ═══
- * Ảnh OG mang **con số** (chainId) và **tên mạng**. Số đó đã đổi một lần
- * (re-genesis) và sẽ còn đổi. Một PNG chép tay là chỗ con số cũ nằm lại mà không
- * cổng nào bắt được — nó không phải mã, không ai chạy test lên nó.
- * Ở đây chainId đọc thẳng từ `web/lib/chain.ts`, nên sinh lại là đúng theo mã.
+ * ═══ WHY THIS FILE EXISTS INSTEAD OF A HAND-MADE PNG ═══
+ * The OG image carries a **number** (the chainId) and the **network name**. That number has
+ * already changed once (re-genesis) and will change again. A hand-made PNG is a place where
+ * the old number sits on with no gate able to catch it — it is not code, and nobody runs
+ * tests against it. Here the chainId is read straight out of `web/lib/chain.ts`, so
+ * regenerating is by definition in step with the code.
  *
- * ═══ 🔴 CHẠY TAY, KHÔNG NẰM TRONG `postbuild` ═══
- * `sharp` là dependency GIÁN TIẾP (của Next), không phải của dự án. Đưa nó vào
- * đường build là biến một thứ có thể biến mất sau `pnpm update` thành cổng chặn
- * deploy. Ảnh sinh ra được **commit vào repo**; chạy lại khi đổi nhận diện hoặc
- * đổi chainId:
+ * ═══ 🔴 RUN BY HAND, NOT PART OF `postbuild` ═══
+ * `sharp` is an INDIRECT dependency (Next's), not one of ours. Putting it on the build path
+ * would turn something that can vanish after a `pnpm update` into a gate that blocks deploys.
+ * The generated image is **committed to the repo**; regenerate it when the branding or the
+ * chainId changes:
  *
  *     node web/scripts/gen-og.mjs
  *
- * ═══ 🔴 LOGO ĐƯỢC DÁN NGUYÊN BẢN, KHÔNG VẼ LẠI ═══
- * Phần logo trong ảnh này là `public/brand/9chain-lockup-dark@2x.png` — tệp
- * NGUYÊN BẢN từ bộ kit của David, dán vào chứ không dựng lại bằng SVG.
+ * ═══ 🔴 THE LOGO IS PASTED VERBATIM, NEVER REDRAWN ═══
+ * The logo in this image is `public/brand/9chain-lockup-dark@2x.png` — the ORIGINAL file from
+ * David's kit, pasted in rather than rebuilt as SVG.
  *
- * Vì sao quan trọng: chữ "9Chain" trong kit dùng font **Outfit 700**, mà Outfit
- * không có trên máy này. Dựng lại bằng SVG `<text font-family="Outfit,…">` rồi
- * render bằng librsvg sẽ âm thầm rơi về Arial — ra một logo SAI FONT mà trông
- * vẫn "ổn", và không có phép đo nào bắt được. Dán ảnh đã render sẵn thì font,
- * màu, tỉ lệ đều đúng theo định nghĩa.
+ * Why that matters: the word "9Chain" in the kit uses **Outfit 700**, and Outfit is not
+ * installed on this machine. Rebuilding it as SVG `<text font-family="Outfit,…">` and
+ * rendering through librsvg would silently fall back to Arial — producing a logo in the WRONG
+ * FONT that still looks "fine", with no measurement able to catch it. Pasting the
+ * already-rendered image makes the font, the colours and the proportions correct by definition.
  *
- * Nền lockup của kit là `#0D1733` bo góc, nên canvas ở đây cũng phải là ĐÚNG
- * `#0D1733` — lệch một sắc là lộ ngay khối chữ nhật quanh logo.
+ * The kit's lockup background is `#0D1733` with rounded corners, so the canvas here must be
+ * EXACTLY `#0D1733` — one shade off and the rectangle around the logo becomes visible.
  *
- * ⚠️ Chữ PHỤ (nhãn "TESTNET A1", dòng chainId) dùng font hệ thống. Đó không phải
- * logo, nên không thuộc ràng buộc "giữ nguyên font logo". Và cố ý KHÔNG dùng ba
- * font thương hiệu của site: chúng hiện không chạy trên chính site (xem
- * `docs/BRAND-AUDIT-2026-08-27.md` mục B), nên nhúng vào đây là khai một nhận
- * diện mà trang thật chưa có.
+ * ⚠️ The SECONDARY text (the "TESTNET A1" label, the chainId line) uses system fonts. It is
+ * not the logo, so the "keep the logo's font" constraint does not apply. And it deliberately
+ * does NOT use the site's three brand fonts: those currently do not run on the site itself
+ * (see `docs/BRAND-AUDIT-2026-08-27.md`, section B), so embedding them here would advertise
+ * an identity the real page does not yet have.
  *
- * Ảnh là PNG THẬT, không phải SVG: Telegram, X, Zalo và Facebook đều không render
- * SVG trong thẻ preview — đó là lý do `og:image` phải là ảnh raster.
+ * The image is a REAL PNG, not an SVG: Telegram, X, Zalo and Facebook all refuse to render
+ * SVG in a preview card — which is why `og:image` has to be a raster image.
  */
 
 import { createRequire } from 'node:module';
@@ -46,7 +47,7 @@ import { dirname, join } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const GOC = join(__dirname, '..');
 
-// `sharp` nằm trong store của pnpm chứ không được hoist ra `node_modules/sharp`.
+// `sharp` lives in pnpm's store rather than being hoisted to `node_modules/sharp`.
 const require = createRequire(import.meta.url);
 let sharp;
 try {
@@ -61,8 +62,8 @@ try {
   sharp = require(join(GOC, duong));
 }
 
-// ═══ Nguồn sự thật cho con số ═══
-// Đọc từ chính `lib/chain.ts` thay vì gõ lại — đó là điểm của tệp này.
+// ═══ Source of truth for the number ═══
+// Read from `lib/chain.ts` itself rather than retyped — that is the point of this file.
 const { readFileSync } = await import('node:fs');
 const chainTs = readFileSync(join(GOC, 'lib/chain.ts'), 'utf8');
 const doc = (khoa, mac) => (chainTs.match(new RegExp(`${khoa}:\\s*'?([^,'\\n]+)'?`)) ?? [, mac])[1].trim();
@@ -71,9 +72,9 @@ const CHAIN_ID = doc('chainId', '9000000009');
 const KY_HIEU = doc('kyHieu', 'LOVE9');
 const TEN = doc('ten', '9Chain Testnet A1');
 
-// ═══ Màu ═══
-// navy lấy từ tokens.css; vàng lấy từ DẤU (9chain.org), không phải từ token giao
-// diện — xem `components/BrandLockup.tsx` về vì sao hai sắc vàng cùng tồn tại.
+// ═══ Colours ═══
+// navy comes from tokens.css; the gold comes from the MARK (9chain.org), not from a UI
+// token — see `components/BrandLockup.tsx` for why two golds coexist.
 const NAVY = '#0d1733';
 const MARK_GOLD = '#F5C542';
 const MO = '#8f9cba';
@@ -84,33 +85,33 @@ const H = 630;
 const CHU = "'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif";
 const MONO = "'Cascadia Mono',Consolas,'Courier New',monospace";
 
-// ═══ Bước 1: LOGO NGUYÊN BẢN — bóc thẻ, đo tỉ lệ thật ═══
+// ═══ Step 1: THE ORIGINAL LOGO — strip the card, measure the real proportions ═══
 //
-// 🔴 TỆP KIT KHÔNG PHẢI LOGO TRẦN — NÓ LÀ MỘT THẺ TRÌNH BÀY.
-// Nền `#0D1733`, **viền 2px `#1C2A4D`**, bo góc. (Đo pixel: (387,0) ra
-// [28,42,77]; từ y=2 vào ra [13,23,51].) Dán nguyên si lên canvas navy thì nền
-// hoà vào hoàn hảo, nhưng **viền và bốn góc bo nổi lên thành một khung mờ quanh
-// logo** — trông đúng như một lỗi ghép ảnh. Đã thấy tận mắt ở hai lượt sinh đầu.
+// 🔴 THE KIT FILE IS NOT A BARE LOGO — IT IS A PRESENTATION CARD.
+// Background `#0D1733`, a **2px `#1C2A4D` border**, rounded corners. (Pixel-measured:
+// (387,0) reads [28,42,77]; from y=2 inward it reads [13,23,51].) Pasted as-is onto the
+// navy canvas the background blends perfectly, but **the border and the four rounded
+// corners surface as a faint frame around the logo** — looking exactly like a compositing bug. Seen with my own eyes on the first two runs.
 //
-// ⚠️ `.trim()` MỘT MÌNH KHÔNG ĐỦ — đã thử và nó không cắt được viền.
-// `trim()` lấy màu tham chiếu từ **pixel góc trên-trái**, mà góc đó đang TRONG
-// SUỐT (bo góc, alpha 0). Nên nó chỉ gặm bốn góc trong suốt rồi dừng ngay khi
-// chạm viền đục — thẻ vẫn còn nguyên. Ảnh sinh ra vẫn lộ khung mờ.
+// ⚠️ `.trim()` ON ITS OWN IS NOT ENOUGH — tried, and it does not remove the border.
+// `trim()` takes its reference colour from the **top-left pixel**, and that corner is
+// TRANSPARENT (rounded corner, alpha 0). So it nibbles the four transparent corners and
+// stops the instant it meets the opaque border — the card survives intact, and the generated image still shows the faint frame.
 //
-// Thứ tự đúng, hai bước:
-//   1. `extract` cắt cứng lề chứa viền + bo góc (8px ở thang 774 là dư).
-//   2. `trim` với **nền khai tường minh** `#0D1733` ⇒ gặm hết nền đặc còn lại,
-//      để lại đúng vùng có mực: dấu + chữ.
-// Đây là bóc BAO BÌ, không đụng vào logo — hình học, màu và font nguyên vẹn.
-// Tỉ lệ lấy TỪ KẾT QUẢ trim chứ không giả định 774:364, vì bóc thẻ đổi khung.
+// The correct order, in two steps:
+//   1. `extract` cuts a hard margin covering border + rounded corners (8px at scale 774 is plenty).
+//   2. `trim` with the background **stated explicitly** as `#0D1733` ⇒ eats the remaining
+//      solid background, leaving exactly the inked area: the mark plus the wordmark.
+// This is unwrapping PACKAGING, not touching the logo — geometry, colour and font are intact.
+// The proportions come FROM THE TRIM RESULT, not from an assumed 774:364, because stripping the card changes the frame.
 const logoGoc = join(GOC, 'public/brand/9chain-lockup-dark@2x.png');
 
-const LOGO_W = 560; // rộng của LOGO (sau khi bóc thẻ) — chừa lề thở hai bên
+const LOGO_W = 560; // width of the LOGO (after the card is stripped) — leaving breathing room on both sides
 
-const LE = 24; // trùm viền 2px + trọn bán kính bo góc (đo: 8px còn sót vệt góc)
+const LE = 24; // covers the 2px border plus the full corner radius (measured: 8px still left a corner smudge)
 const trimmed = await sharp(logoGoc)
   .extract({ left: LE, top: LE, width: 774 - LE * 2, height: 364 - LE * 2 })
-  .flatten({ background: '#0D1733' }) // bỏ alpha để trim có nền đặc mà bám vào
+  .flatten({ background: '#0D1733' }) // drop the alpha so trim has a solid background to grip
   .trim({ background: '#0D1733', threshold: 10 })
   .png()
   .toBuffer();
@@ -121,8 +122,8 @@ const LOGO_Y = 168;
 
 const logo = await sharp(trimmed).resize(LOGO_W, LOGO_H, { fit: 'fill' }).png().toBuffer();
 
-// ═══ Bước 2: nền + chữ phụ ═══
-// Dựng SAU khi biết `LOGO_H` thật, vì nhãn và dòng chainId phải xếp theo đáy logo.
+// ═══ Step 2: background + secondary text ═══
+// Built AFTER the real `LOGO_H` is known, because the label and the chainId line have to align to the logo's baseline.
 const nenSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <rect width="${W}" height="${H}" fill="${NAVY}"/>
   <rect x="24" y="24" width="${W - 48}" height="${H - 48}" rx="28"

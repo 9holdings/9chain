@@ -5,31 +5,31 @@ import { hasDictionary, useLanguage, useT } from '@/lib/i18n';
 import { LANGUAGES } from '@/lib/i18n/languages';
 
 /**
- * Bộ chọn ngôn ngữ — 30 ngôn ngữ, tiếng Anh mặc định, tiếng Việt ở vị trí thứ 9.
+ * The language picker — 30 languages, English by default, Vietnamese in position 9.
  *
- * ═══ HAI ĐIỀU BỘ CHỌN NÀY NÓI RA THAY VÌ GIẤU ═══
+ * ═══ TWO THINGS THIS PICKER SAYS OUT LOUD INSTEAD OF HIDING ═══
  *
- * 1. 🔴 **MỨC ĐỘ SOÁT.** 28/30 bản là máy dịch (30 trừ bản gốc `en` và bản `vi`
- *    đã có người soát). Site này nói với người lạ rằng tài
- *    sản của họ sẽ bị xoá vĩnh viễn — một câu dịch sai ở `/re-genesis/` không phải
- *    lỗi chính tả, mà là một người không hiểu mình sắp mất tiền. Bày 30 mục trông
- *    ngang nhau là để người đọc tự suy ra một điều không đúng; đó đúng lớp lỗi dự án
- *    đã gỡ khỏi trang chủ ngày `27/08` ("9 validator" đứng một mình).
- *    ⇒ Bản chưa có người soát mang nhãn, và nhãn đó cũng vào `aria-label`.
+ * 1. 🔴 **REVIEW LEVEL.** 28 of 30 are machine-translated (30 minus the `en` source and the
+ *    reviewed `vi`). This site tells strangers their assets will be erased permanently — a
+ *    mistranslated sentence on `/re-genesis/` is not a typo, it is a person who does not
+ *    understand they are about to lose money. Presenting 30 entries that all look equal invites
+ *    the reader to conclude something untrue; that is the same class of failure the project
+ *    removed from the home page on `27/08` ("9 validators" standing alone).
+ *    ⇒ Unreviewed translations carry a mark, and that mark goes into the `aria-label` too.
  *
- * 2. 🔴 **NGÔN NGỮ CHƯA CÓ TỪ ĐIỂN.** Trong lúc 28 bản còn đang dựng, chúng bị
- *    **vô hiệu hoá** chứ không chọn được rồi lặng lẽ rơi về tiếng Anh. Rơi im lặng
- *    là kiểu hỏng tệ nhất ở đây: người dùng chọn tiếng của mình, nhận tiếng Anh, và
- *    không có gì nói cho họ biết vì sao.
+ * 2. 🔴 **LANGUAGES WITH NO DICTIONARY YET.** While the other 28 were being built they were
+ *    **disabled**, rather than selectable and then silently falling back to English. A silent
+ *    fallback is the worst failure here: the user picks their own language, receives English,
+ *    and nothing tells them why.
  *
- * ⚠️ KHÔNG dùng ảnh cờ — hai lý do, cái nào cũng đủ (chép nguyên từ 9Scan-A1):
- *    (a) cờ là QUỐC GIA chứ không phải ngôn ngữ; tiếng Ả Rập có 20+ nước, tiếng Anh
- *        không thuộc nước nào — gắn một lá cờ là chọn phe.
- *    (b) ảnh cờ từng gọi thẳng CDN bên thứ ba từ trình duyệt người dùng: 30 request
- *        lộ IP của họ cho một bên không liên quan gì tới dự án.
+ * ⚠️ NO flag images — two reasons, either one sufficient (taken verbatim from 9Scan-A1):
+ *    (a) a flag is a COUNTRY, not a language; Arabic spans 20+ countries and English belongs to
+ *        none of them — attaching one flag is taking a side.
+ *    (b) flag images used to be fetched straight from a third-party CDN by the user's browser:
+ *        30 requests exposing their IP to a party with nothing to do with this project.
  *
- * Dùng `<details>`/`<summary>` thay cho menu tự viết: nó mở/đóng được bằng bàn phím
- * mà không cần một dòng JS nào, và không đẻ thêm bẫy tiêu điểm.
+ * Uses `<details>`/`<summary>` instead of a hand-written menu: it opens and closes from the
+ * keyboard without a single line of JS, and adds no focus traps.
  */
 export function LanguagePicker() {
   const t = useT();
@@ -37,7 +37,7 @@ export function LanguagePicker() {
   const [opened, setOpened] = useState(false);
   const wrapRef = useRef<HTMLDetailsElement>(null);
 
-  // Bấm ra ngoài thì đóng. Esc do `<details>` lo sẵn.
+  // Click outside to close. Esc is already handled by `<details>`.
   useEffect(() => {
     if (!opened) return;
     const external = (e: MouseEvent) => {
@@ -80,8 +80,8 @@ export function LanguagePicker() {
                     setOpened(false);
                   }}
                   aria-current={dangChon ? 'true' : undefined}
-                  // Nhãn đầy đủ cho trình đọc màn hình: tên bản địa không giúp được
-                  // người đang dùng giọng đọc của một thứ tiếng khác.
+                  // The full label for screen readers: an endonym does not help someone
+                  // listening through a voice for a different language.
                   aria-label={
                     `${n.englishName}` +
                     (n.review === 'machine' ? ` — ${t.langPicker.machineBadge}` : '') +
@@ -94,23 +94,23 @@ export function LanguagePicker() {
                   }
                 >
                   <span className="flex min-w-0 flex-col">
-                    {/* `lang` trên chính mục: trình đọc màn hình đổi giọng đúng chỗ,
-                        nếu không nó đọc "Tiếng Việt" bằng ngữ âm tiếng Anh. */}
+                    {/* `lang` on the entry itself: the screen reader switches voice in the right
+                        place, otherwise it reads "Tiếng Việt" in English phonetics. */}
                     <span lang={n.code} dir={n.dir} className="truncate">
                       {n.ten}
                     </span>
                     <span className="truncate text-xs text-muted">{n.englishName}</span>
                   </span>
-                  {/* 🔴 NHÃN "máy dịch" TỪNG ĐỨNG Ở ĐÂY, GỠ `2026-09-03` — David chốt.
-                      28/30 dòng đều mang nhãn, nên nó không còn phân biệt được gì
-                      bằng mắt: thứ hiếm là dòng KHÔNG có nhãn, và mắt người đọc một
-                      danh sách 30 mục thì bỏ qua thứ lặp lại ở mọi dòng. Nó chỉ làm
-                      danh sách rối.
-                      Lời khai KHÔNG mất, nó đổi chỗ: `aria-label` của chính nút này
-                      vẫn nói ra, và câu giải thích đầy đủ ở chân danh sách bên dưới
-                      vẫn đứng nguyên. Xem chú thích §1 đầu tệp — điều phải giữ là
-                      "người đọc biết được bản này chưa ai soát", không phải "phải có
-                      một cái chip trên mỗi dòng". */}
+                  {/* 🔴 THE "machine translated" CHIP USED TO SIT HERE, REMOVED `2026-09-03` — David's
+                      decision. 28 of 30 rows carried it, so visually it distinguished nothing:
+                      the rare thing is a row WITHOUT the mark, and a reader scanning a list of
+                      30 entries filters out whatever repeats on every line. It only made the
+                      list noisy.
+                      The disclosure is NOT lost, it moved: this button's own `aria-label` still
+                      states it, and the full explanation at the foot of the list is untouched.
+                      See §1 at the top of this file — what must be preserved is "the reader can
+                      tell this translation has not been reviewed", not "there must be a chip on
+                      every row". */}
                   {!co ? (
                     <span className="shrink-0 text-xs text-muted">{t.langPicker.notAvailable}</span>
                   ) : null}

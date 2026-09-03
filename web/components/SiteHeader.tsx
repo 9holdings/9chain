@@ -10,26 +10,27 @@ import { explorerOrigin } from '@/lib/chain';
 import { cx } from './ui';
 
 /**
- * Thanh điều hướng. Tên component trùng với 9Scan-A1 có chủ đích — người sang lại
- * giữa hai bên không được thấy đứt gãy, và người sửa mã đọc hai repo như một.
+ * The navigation bar. The component name deliberately matches 9Scan-A1's — a person crossing
+ * between the two must not feel a seam, and a person editing the code reads both repos as one.
  *
- * Trên nền navy nên vòng focus tự lật về vàng gốc (luật `.bg-navy` ở globals.css).
+ * It sits on navy, so the focus ring flips to the source gold automatically (the `.bg-navy`
+ * rule in globals.css).
  */
 
 type Item = { label: string; href: string; external?: boolean };
 
-// `/create-chain/`, `/my-chains/`, `/compare/` là trang của bản export.
-// `/chains/` do Caddy proxy sang container khác — vẫn là thẻ <a> thật như mọi mục
-// khác ở đây, nên không dính bẫy `next/link` trỏ vào đường không phải route Next.
+// `/create-chain/`, `/my-chains/` and `/compare/` are pages of this export.
+// `/chains/` is proxied by Caddy to a different container — still a real <a> tag like every
+// other entry here, so it avoids the `next/link` trap of pointing at a non-Next route.
 //
-// Console CŨ (`/console/`) vẫn sống và vẫn là đường của người vận hành; nó rời khỏi
-// thanh điều hướng khi M10.7 dọn, chứ không bị gỡ trong cùng một lượt.
-// 🔴 ĐỔI TỪ HẰNG SỐ MODULE THÀNH HÀM (đa ngôn ngữ, 2026-08-27).
-// Bản cũ dựng mảng này ở PHẠM VI MODULE, tức nó bị đóng băng với từ điển có mặt lúc
-// tệp được nạp. Với một từ điển tĩnh thì không sao; với `useT()` thì đó là một cái
-// bẫy im lặng: đổi ngôn ngữ xong CẢ TRANG lật, riêng thanh điều hướng đứng nguyên
-// tiếng Anh — và không có lỗi nào báo, vì mã vẫn chạy đúng.
-// Đường dẫn thì KHÔNG đổi theo ngôn ngữ (mỗi trang chỉ có một URL), nên chỉ phần
+// The OLD console (`/console/`) is still alive and still the operator's path; it leaves this
+// nav bar when M10.7 tidies up, rather than being pulled in the same pass.
+// 🔴 CHANGED FROM A MODULE CONSTANT INTO A FUNCTION (i18n, 2026-08-27).
+// The old version built this array at MODULE SCOPE, i.e. frozen with whatever dictionary was
+// present when the file loaded. With a static dictionary that is harmless; with `useT()` it is
+// a silent trap: change language and THE WHOLE PAGE flips while the nav bar alone stays in
+// English — with no error reported, because the code still runs correctly.
+// The paths do NOT change with language (each page has one URL), so only the text takes `t`.
 // chữ nhận `t`.
 function buildItems(t: Dict): Item[] {
   return [
@@ -49,8 +50,8 @@ export function SiteHeader() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  // Esc đóng ngăn kéo, và tiêu điểm QUAY VỀ nút đã mở nó. Thiếu vế thứ hai thì
-  // người đi bằng bàn phím bị ném về đầu trang mỗi lần đóng menu.
+  // Esc closes the drawer, and focus RETURNS to the button that opened it. Without the second
+  // half, a keyboard user is thrown back to the top of the page every time the menu closes.
   useEffect(() => {
     if (!drawerOpen) return;
     function phim(e: KeyboardEvent) {
@@ -63,8 +64,8 @@ export function SiteHeader() {
     return () => document.removeEventListener('keydown', phim);
   }, [drawerOpen]);
 
-  // Khoá cuộn nền khi ngăn kéo mở — nếu không, cuộn trên ngăn kéo sẽ cuộn trang
-  // phía sau và người dùng mất chỗ đang đọc.
+  // Lock background scrolling while the drawer is open — otherwise scrolling on the drawer
+  // scrolls the page behind it and the user loses their place.
   useEffect(() => {
     if (!drawerOpen) return;
     const cu = document.body.style.overflow;
@@ -77,23 +78,23 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-line-dark bg-navy">
       <div className="khung flex h-16 items-center justify-between gap-4">
-        {/* Logo NGUYÊN BẢN từ bộ kit — dấu + chữ "9Chain" đã nằm trong lockup, nên
-            KHÔNG viết lại chữ "9Chain" bằng font giao diện cạnh nó nữa (trước đây
-            header ghép tay `◆` + chữ; đó là chế lại logo).
-            Thanh này luôn `bg-navy` ở CẢ HAI theme ⇒ luôn dùng bản nền tối.
-            Chip "A1" giữ nguyên: nó là nhãn phiên bản mạng, không thuộc logo. */}
+        {/* The ORIGINAL logo from the kit — the mark and the word "9Chain" are both inside the
+            lockup, so the word "9Chain" is NOT written again in a UI font beside it (the header
+            used to hand-assemble `◆` + the word; that was reworking the logo).
+            This bar is always `bg-navy` in BOTH themes ⇒ always the dark-background version.
+            The "A1" chip stays: it is a network version label, not part of the logo. */}
         <a href="/" className="flex items-center gap-2">
-          {/* 🔴 CAO 28 → 36 (`2026-09-03`, David: "logo nhỏ quá, nhìn như bị lỗi").
-              Con số đo được, không phải gu: trang chính `www.9chain.org` đặt lockup
-              của nó ở **104 × 27 px** trong một thanh cao 57 px. Ở đây thanh cao 64
-              px (`h-16`), và lockup của bộ kit có tỉ lệ 360:128 — tức nó gói NHIỀU
-              lề trong hơn bản của trang chính, nên cùng một chiều CAO cho ra chữ
-              nhỏ hơn hẳn. Khớp theo thứ mắt thật sự đọc — bề ngang và cỡ chữ:
-                cao 28 → rộng 78,8 px · chữ 12,5 px   (bản cũ, nhỏ hơn trang chính)
-                cao 36 → rộng 101,3 px · chữ 16,0 px  ≈ 104 px của www.9chain.org
-              ĐỪNG sửa bằng cách nắn lại `viewBox` hay giãn chữ trong `BrandLockup` —
-              hình học ở đó là bộ kit của David, xem chú thích đầu tệp đó. Chỉ đổi
-              chiều cao hiển thị. */}
+          {/* 🔴 HEIGHT 28 → 36 (`2026-09-03`, David: "the logo is too small, it looks broken").
+              A measured number, not taste: the main site `www.9chain.org` places its lockup at
+              **104 × 27 px** inside a 57 px bar. Here the bar is 64 px (`h-16`), and the kit's
+              lockup has a 360:128 ratio — meaning it packs MORE internal padding than the main
+              site's version, so the same HEIGHT produces noticeably smaller lettering. Matched
+              on what the eye actually reads — the width and the type size:
+                height 28 → 78.8 px wide · 12.5 px type  (the old one, smaller than the main site)
+                height 36 → 101.3 px wide · 16.0 px type ≈ the 104 px of www.9chain.org
+              Do NOT fix this by reshaping the `viewBox` or stretching the type in `BrandLockup` —
+              that geometry is David's kit, see the comment at the top of that file. Change only
+              the display height. */}
           <BrandLockup background="dark" height={36} label={t.common.productName} className="flex-none" />
           <span className="rounded-chip border border-line-dark-2 px-1.5 py-0.5 font-sans text-[11px] font-semibold text-gold-muted">
             A1
@@ -139,8 +140,8 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* Ngăn kéo điện thoại. Ẩn bằng `hidden` chứ không bằng unmount để
-          `aria-controls` luôn trỏ tới một phần tử có thật. */}
+      {/* The mobile drawer. Hidden with `hidden` rather than unmounted so that
+          `aria-controls` always points at an element that exists. */}
       <div
         id="ngan-dieu-huong"
         ref={drawerRef}

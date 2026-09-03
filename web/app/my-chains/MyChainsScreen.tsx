@@ -15,21 +15,21 @@ type Chain = {
 type TrangThai = { tran: number; chains: Chain[]; retired: Chain[]; viDangNhap: string | null };
 type Progress = { running: boolean; steps: Step[]; etaSeconds: number };
 
-/** Số validator của một subnet — PHÉP ĐO SỐNG/CHẾT ĐÚNG.
+/** A subnet's validator count — THE CORRECT ALIVE/DEAD MEASUREMENT.
  *
- * 🔴 KHÔNG đo bằng chiều cao block: **Avalanche không đẻ block rỗng**, nên một chain
- * hoàn toàn khoẻ mà chưa ai giao dịch vẫn đứng ở block 0 — số block đứng yên là
- * BÌNH THƯỜNG, không phải chain chết.
+ * 🔴 Do NOT measure by block height: **Avalanche does not produce empty blocks**, so a
+ * perfectly healthy chain nobody has transacted on still sits at block 0 — a block count that
+ * does not move is NORMAL, not a dead chain.
  *
- * 🔴 Và chỉ dùng phép đo này cho chain ĐANG SỐNG. Thu hồi **không** rút node khỏi
- * tập validator P-Chain, nên `getCurrentValidators` **vẫn trả đủ 5 validator cho
- * chain đã chết hẳn** — đem nó đo chain đã thu hồi thì nó nói dối rất thuyết phục.
- * Chain đã thu hồi vẽ từ mảng `retired` với nhãn riêng.
+ * 🔴 And only use this measurement on a LIVE chain. Revoking does **not** remove the nodes from
+ * the P-Chain validator set, so `getCurrentValidators` **still returns all 5 validators for a
+ * chain that is thoroughly dead** — pointed at a revoked chain it lies very convincingly.
+ * Revoked chains are rendered from the `retired` array with their own label.
  */
 async function demValidator(subnetID: string): Promise<number> {
-  // Hạn giờ (Đ1-8) — an toàn: đây là lượt ĐỌC số validator của một subnet, không
-  // phải `/api/create` hay `/api/revoke`. Không có hạn thì một RPC treo để cột
-  // "tình trạng" quay mãi, và người dùng ngồi nhìn một cái vòng không bao giờ dừng.
+  // Timeout (Đ1-8) — safe here: this is a READ of a subnet's validator count, not
+  // `/api/create` or `/api/revoke`. Without a limit, one hung RPC leaves the "status" column
+  // spinning forever, and the user sits watching a wheel that never stops.
   const j = await fetchJson<{ result?: { validators?: unknown[] }; error?: { message?: string } }>(
     `${rpcOrigin()}/ext/bc/P`,
     {
@@ -55,9 +55,9 @@ export function MyChainsScreen() {
   const [loadError, setLoadError] = useState(false);
   const [validators, setValidators] = useState<Record<string, number | 'dang' | 'errors'>>({});
 
-  // Kết quả bấm "Thêm vào ví", THEO TỪNG CHAIN — màn này vẽ nhiều chain một lúc, nên
-  // một ô lỗi dùng chung sẽ dán lỗi của chain này lên thẻ của chain khác.
-  // Bản trước `catch {}` trắng: bấm xong không có gì đổi, cả lúc được lẫn lúc hỏng.
+  // The result of pressing "Add to wallet", PER CHAIN — this screen renders several chains at
+  // once, so a single shared error slot would paste one chain's error onto another's card.
+  // The previous version had an empty `catch {}`: pressing it changed nothing, on success or failure.
   const [addedToWallet, setAddedToWallet] = useState<Record<number, { finished: true } | { finished: false; message: string }>>({});
 
   const [revoking, setRevoking] = useState<Chain | null>(null);
@@ -99,16 +99,16 @@ export function MyChainsScreen() {
     (c) => session && typeof c.admin === 'string' && c.admin.toLowerCase() === session.diaChi.toLowerCase(),
   );
 
-  // Đo validator cho từng chain SỐNG, mỗi chain một lần. Đo song song vì chúng độc
-  // lập; một chain đo hỏng không được kéo cả bảng xuống.
+  // Measure validators for each LIVE chain, once each. In parallel because they are independent;
+  // one chain failing to measure must not drag the whole table down.
   useEffect(() => {
     for (const c of cuaToi) {
       if (c.subnetID in validators) continue;
-      // 🔴 Sentinel là `'dang'`, KHÔNG phải 0. **0 validator là một trạng thái
-      // THẬT và nguy hiểm**: subnet mới đẻ có tập validator RỖNG, chain đó vẫn trả
-      // lời `eth_chainId`, vẫn đọc được số dư, MetaMask vẫn kết nối — chỉ là **giao
-      // dịch không bao giờ chốt**. Dùng 0 làm "đang tải" là che đúng cái trạng thái
-      // không có dấu hiệu bề ngoài nào khác để nhận ra.
+      // 🔴 The sentinel is `'dang'`, NOT 0. **0 validators is a REAL and dangerous state**:
+      // a freshly created subnet has an EMPTY validator set — that chain still answers
+      // `eth_chainId`, balances still read, MetaMask still connects — it is only that
+      // **transactions never finalise**. Using 0 as "loading" hides precisely the state that has
+      // no other outward sign to recognise it by.
       setValidators((v) => ({ ...v, [c.subnetID]: 'dang' }));
       demValidator(c.subnetID)
         .then((n) => setValidators((v) => ({ ...v, [c.subnetID]: n })))
@@ -117,14 +117,14 @@ export function MyChainsScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, session]);
 
-  // Poll tiến trình CHỈ trong lúc thu hồi — có điểm dừng rõ.
+  // Poll progress ONLY while a revoke is running — it has a clear end.
   const dongHo = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
     if (!running || !session) return;
     const doc = async () => {
       try {
         setProgress(await callConsole<Progress>('/api/progress', session.token, undefined, CONSOLE_TIMEOUT_S));
-      } catch { /* một nhịp hỏng không phải lý do bỏ cuộc — server vẫn đang chạy */ }
+      } catch { /* one failed beat is no reason to give up — the server is still working */ }
     };
     void doc();
     dongHo.current = setInterval(doc, 2000);
@@ -137,13 +137,13 @@ export function MyChainsScreen() {
     setRevoking(null);
     setRunning({ ten: c.name });
 
-    // 🔴 KHÔNG `await` cái POST này để kết luận. Thao tác mất ~170 giây, Cloudflare
-    // cắt kết nối ở ~100 giây (HTTP 524) ⇒ qua tên miền công khai, POST **luôn**
-    // hỏng trong khi server vẫn làm xong. Xem `waitForProgress`.
-    // 🔴 Nhưng 4xx thì KHÁC 524 — xem chú thích dài ở `CreateChainScreen.de()` và ở
-    // `ConsoleError`. Server trả lời "không" (token hết hạn, tên không khớp xác nhận…)
-    // nghĩa là việc chưa bắt đầu, và bắt người dùng nhìn thanh tiến trình thêm vài
-    // phút cho một việc không tồn tại là nói dối theo một kiểu khác.
+    // 🔴 Do NOT `await` this POST to reach a conclusion. The operation takes ~170 seconds,
+    // Cloudflare closes the connection at ~100 seconds (HTTP 524) ⇒ over the public domain the
+    // POST **always** fails while the server finishes anyway. See `waitForProgress`.
+    // 🔴 But a 4xx is NOT a 524 — see the long comment in `CreateChainScreen.de()` and on
+    // `ConsoleError`. The server answering "no" (expired token, name not matching the
+    // confirmation…) means the work never started, and making the user watch a progress bar for
+    // several more minutes for work that does not exist is lying in a different way.
     let loiPost: string | null = null;
     let biTuChoi = false;
     const post = callConsole('/api/revoke', session.token, { name: c.name, xacNhan: c.name })
@@ -155,7 +155,7 @@ export function MyChainsScreen() {
     const check = await waitForProgress(session.token, { tuChoiSom: () => biTuChoi });
     await post.catch(() => {});
 
-    // Sự thật nằm ở DANH BẠ, không ở mã HTTP: thu hồi thành công ⇔ chain không còn
+    // The truth lives in the DIRECTORY, not in the HTTP status: a revoke succeeded ⇔ the chain
     // trong `chains`.
     let conSong = true;
     try {
@@ -181,7 +181,7 @@ export function MyChainsScreen() {
     setTypedName('');
   }
 
-  /* ───────────────────────────────────────────────────────────── giao diện */
+  /* ──────────────────────────────────────────────────────────────────── UI */
 
   if (!session) {
     return (
@@ -320,8 +320,8 @@ export function MyChainsScreen() {
                       >
                         {addedToWallet[c.chainId]?.finished ? t.myChains.addedToWallet : t.myChains.addToWallet}
                       </Button>
-                      {/* Vùng live thường trú cho TỪNG thẻ chain — xem chú thích cùng
-                          loại ở CreateChainScreen. */}
+                      {/* A permanent live region for EACH chain card — see the comment of the
+                          same kind in CreateChainScreen. */}
                       <div role="status" aria-live="polite" className="mt-2 empty:hidden">
                         {addedToWallet[c.chainId]?.finished === false && (
                           <p className="text-sm text-danger">
@@ -338,8 +338,8 @@ export function MyChainsScreen() {
 
           {cuaToiDaThuHoi.map((c) => (
             <li key={`r-${c.chainId}`}>
-              {/* Chain đã thu hồi vẽ từ mảng `retired` với NHÃN RIÊNG — tuyệt đối
-                  không đem đo bằng heuristic chain sống (xem demValidator). */}
+              {/* Revoked chains are rendered from the `retired` array with THEIR OWN LABEL —
+                  never measured with the live-chain heuristic (see demValidator). */}
               <Card className="border-dashed p-5 opacity-80">
                 <h2 className="font-display text-base font-bold text-muted">
                   {c.name}
@@ -362,14 +362,14 @@ export function MyChainsScreen() {
           </h2>
           <ul className="mt-3 flex list-disc flex-col gap-2 ps-5 text-sm text-body">
             <li>{t.myChains.revokeWarn1}</li>
-            {/* Hai điều người dùng KHÔNG đoán được — phải nói thẳng, không rút gọn. */}
+            {/* The two things a user cannot guess — say them plainly, do not abbreviate. */}
             <li className="font-semibold">{t.myChains.revokeWarn2}</li>
             <li className="font-semibold">{t.myChains.revokeWarn3}</li>
             <li>{t.myChains.revokeWarn4}</li>
           </ul>
           <div className="mt-4 max-w-sm">
-            {/* Gõ lại tên: cùng luật với đường API (`xacNhan`). Một nút "Xoá" bấm
-                nhầm được thì cửa một chiều trở thành một cú trượt tay. */}
+            {/* Retype the name: the same rule as the API path (`xacNhan`). A "Delete" button
+                that can be pressed by accident turns a one-way door into a slip of the hand. */}
             <Field
               label={t.myChains.revokeTypeLabel}
               placeholder={revoking.name}

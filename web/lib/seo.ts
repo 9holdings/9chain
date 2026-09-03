@@ -2,63 +2,64 @@ import type { Metadata } from 'next';
 import { EN } from '@/lib/i18n/en';
 
 /**
- * Thẻ chia sẻ cho từng trang (Đ1-5, 2026-08-27).
+ * Per-page share cards (Đ1-5, 2026-08-27).
  *
- * ═══ LỖI ĐANG VÁ, VÀ VÌ SAO KHÔNG CỔNG NÀO BẮT ĐƯỢC ═══
- * Đo `27/08`: `og:title`, `og:description`, `twitter:*` **giống hệt nhau trên cả 6
- * trang** — đều là nội dung của trang chủ. Từng trang có khai `title`/`description`
- * riêng, nhưng KHÔNG khai `openGraph`, mà `openGraph` của `layout.tsx` thì không tự
- * kế thừa `title` của trang con: Next lấy nguyên khối `openGraph` gần nhất.
+ * ═══ THE BUG BEING FIXED, AND WHY NO GATE CAUGHT IT ═══
+ * Measured `27/08`: `og:title`, `og:description` and `twitter:*` were **identical across all
+ * 6 pages** — all of them the home page's content. Each page did declare its own
+ * `title`/`description`, but none declared `openGraph`, and `layout.tsx`'s `openGraph` does
+ * not inherit a child page's `title`: Next takes the nearest `openGraph` block whole.
  *
- * Cái giá cụ thể: dán `/re-genesis/` vào một nhóm chat thì thứ hiện lên là lời mời
- * *"đẻ chain của bạn mất khoảng ba phút"* — NGƯỢC HẲN điều trang muốn nói, đúng
- * tuần cần nó nhất.
+ * The concrete cost: pasting `/re-genesis/` into a group chat showed the invitation
+ * *"launching your chain takes about three minutes"* — the EXACT OPPOSITE of what that page
+ * needs to say, in the week it mattered most.
  *
- * 🔴 ĐÂY LÀ CA "XANH GIẢ" KINH ĐIỂN, ghi lại vì nó sẽ tái diễn ở chỗ khác:
- * mọi cổng kiểm hiện có đo `<title>` — và `<title>` thì ĐÃ riêng từ lâu. Phép đo
- * đúng đại lượng nằm ở `test/seo.test.ts`: nó đọc từng `index.html` trong `out/`
- * và đòi `og:title` KHÁC nhau giữa các trang.
- * Cổng đó đáng tin vì **hôm nay nó ĐỎ** — đã chạy thử trên bản build cũ:
- *   ✗ og:title bị dùng chung  ·  ✗ /compare/ có og:url = "https://a1.9chain.org/"
+ * 🔴 THIS IS THE CLASSIC "FALSE GREEN", written down because it will recur elsewhere:
+ * every existing gate measured `<title>` — and `<title>` had been per-page for a long time.
+ * The measurement of the right quantity lives in `test/seo.test.ts`: it reads each
+ * `index.html` in `out/` and requires `og:title` to DIFFER between pages.
+ * That gate is trustworthy because **it was RED the day it was written** — run against the
+ * old build:
+ *   ✗ og:title shared  ·  ✗ /compare/ had og:url = "https://a1.9chain.org/"
  *
- * ⚠️ Đừng viết đường dẫn dạng `out` + `/` + hai dấu sao + `/` trong chú thích KHỐI:
- * cặp ký tự đó đóng luôn khối chú thích, và lỗi hiện ra ở tận dòng dưới nên rất
- * khó lần. Bản đầu của tệp này dính đúng thế.
+ * ⚠️ Do not write a path as `out` + `/` + two asterisks + `/` inside a BLOCK comment: that
+ * character pair closes the comment, and the error surfaces lines further down, making it very
+ * hard to trace. The first version of this file did exactly that.
  *
- * 🔴 DÙNG `EN` TĨNH, KHÔNG DÙNG `useT()` — và đó KHÔNG phải thiếu sót.
- * `metadata` được Next sinh lúc BUILD, trước khi có trình duyệt, nên ở đó không có
- * ngôn ngữ nào "đang chọn" cả. Với `output: 'export'` mỗi trang chỉ có MỘT bản HTML,
- * nên thẻ meta buộc phải ở một thứ tiếng — và đó là tiếng Anh, ngôn ngữ mặc định.
- * ⚠️ Hệ quả đã biết, ghi ra để không ai tưởng là lỗi: người đọc tiếng Việt dán liên
- * kết vào nhóm chat vẫn thấy thẻ chia sẻ tiếng Anh. Muốn thẻ theo ngôn ngữ thì phải
- * có URL riêng cho từng ngôn ngữ (`/vi/faucet/`…) — một quyết định kiến trúc khác,
- * đắt hơn nhiều, chưa làm.
+ * 🔴 USES A STATIC `EN`, NOT `useT()` — and that is NOT an oversight.
+ * Next generates `metadata` at BUILD time, before any browser exists, so there is no
+ * "currently chosen" language there at all. With `output: 'export'` each page has exactly ONE
+ * HTML file, so the meta tags must be in one language — and that language is English, the default.
+ * ⚠️ A known consequence, written down so nobody mistakes it for a bug: a Vietnamese reader
+ * pasting a link into a group chat still sees an English share card. Language-aware cards would
+ * require a separate URL per language (`/vi/faucet/`…) — a different architectural decision,
+ * far more expensive, and not done.
  *
- * Dùng: `export const metadata = pageMeta({ tieuDe, moTa, duong })`.
- * Không gõ lại chuỗi ở lời gọi — truyền đúng biến đã dùng cho `title`.
+ * Usage: `export const metadata = pageMeta({ tieuDe, moTa, duong })`.
+ * Do not retype the strings at the call site — pass the same variable used for `title`.
  */
 /**
- * Cắt dấu duyệt giọng `[?]`. Xem lý do ở chú thích trong `pageMeta`.
- * Xuất ra ngoài để đường phía client dùng ĐÚNG một hàm này, không chép lại regex.
+ * Strip the `[?]` voice-review mark. See the reason in the comment on `pageMeta`.
+ * Exported so the client-side path uses THIS one function rather than copying the regex.
  */
 export const stripReviewMark = (s: string) => s.replace(/ \[\?\]/g, '');
 
 /**
- * KHUÔN TIÊU ĐỀ TRANG — **nguồn duy nhất**, dùng bởi CẢ HAI đường:
- *   • `pageMeta()` ngay dưới, chạy lúc BUILD, luôn với `EN`
- *   • `useTieuDeTrang()` trong `lib/pageTitle.ts`, chạy trên TRÌNH DUYỆT với từ điển
- *     người đọc đang chọn
+ * THE PAGE TITLE SHAPE — **the single source**, used by BOTH paths:
+ *   • `pageMeta()` just below, running at BUILD time, always with `EN`
+ *   • `useTieuDeTrang()` in `lib/pageTitle.ts`, running IN THE BROWSER with the reader's
+ *     chosen dictionary
  *
- * 🔴 VÌ SAO PHẢI LÀ MỘT HÀM CHỨ KHÔNG PHẢI HAI CHỖ GHÉP CHUỖI GIỐNG NHAU:
- * hai đường ghép độc lập sẽ trôi lệch ở lần đầu ai đó đổi dấu gạch ngang hay thứ tự
- * — và khi đó tiêu đề **nhảy** lúc hydrate xong (tab đổi chữ trước mắt người dùng)
- * mà không có lỗi nào báo, vì cả hai chuỗi đều "đúng". Một hàm thì không lệch được.
+ * 🔴 WHY THIS HAS TO BE A FUNCTION AND NOT TWO IDENTICAL-LOOKING CONCATENATIONS:
+ * two independent concatenations drift the first time someone changes a dash or the order —
+ * and at that point the title **jumps** on hydration (the tab changes its text in front of the
+ * user) with no error reported, because both strings are "correct". One function cannot drift.
  */
 export function composeTitle(tieuDeTran: string, tenSanPham: string): string {
   return `${stripReviewMark(tieuDeTran)} — ${tenSanPham}`;
 }
 
-/** Khuôn tiêu đề của TRANG CHỦ — khác các trang con: tên sản phẩm đứng TRƯỚC. */
+/** The HOME PAGE title shape — different from the sub-pages: the product name comes FIRST. */
 export function composeHomeTitle(tenSanPham: string, tagTitle: string): string {
   return `${stripReviewMark(tenSanPham)} — ${stripReviewMark(tagTitle)}`;
 }
@@ -68,16 +69,16 @@ export function pageMeta({
   desc,
   urlPath,
 }: {
-  /** Tiêu đề TRẦN của trang, chưa nối tên sản phẩm. */
+  /** The page's BARE title, before the product name is joined on. */
   title: string;
   desc: string;
-  /** Đường dẫn canonical, luôn có gạch chéo cuối. Ví dụ `/faucet/`. */
+  /** The canonical path, always with a trailing slash. For example `/faucet/`. */
   urlPath: string;
 }): Metadata {
-  // Dấu `[?]` là cơ chế duyệt giọng NỘI BỘ (xem đầu `vi.ts`). Nó không được đi ra
-  // thẻ meta — nơi đó chữ bị máy khác đọc và hiện lại nguyên văn trong thẻ chia sẻ,
-  // ngoài tầm với của mọi lượt sửa sau này. Cắt ở ĐÂY là hợp lệ; cắt ở tầng render
-  // của trang thì KHÔNG — xem mục "cố ý không làm" số 15 trong lộ trình.
+  // The `[?]` mark is an INTERNAL voice-review mechanism (see the top of `vi.ts`). It must not
+  // reach a meta tag — there the text is read by other machines and reproduced verbatim in the
+  // share card, beyond the reach of any later edit. Stripping it HERE is legitimate; stripping
+  // it in the page's render layer is NOT — see "deliberately not doing" item 15 in the roadmap.
   const t = composeTitle(title, EN.common.productName);
   const d = stripReviewMark(desc);
 
