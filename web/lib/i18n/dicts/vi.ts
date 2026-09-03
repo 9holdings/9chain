@@ -340,7 +340,7 @@ export const vi: Dict = {
     // (`139.99.145.13`, cùng máy chạy Caddy + faucet + console). Để một con số đúng
     // đứng ở vị trí gợi ra kết luận sai thì site không nói dối bằng câu chữ, nhưng
     // vẫn để người đọc tự rút ra điều không đúng. Đây là chỗ rẻ nhất để nói thẳng.
-    disclosure: '9 validator hiện chạy trên cùng một máy chủ, cùng một nhà cung cấp — phân tán về giao thức, chưa phân tán về hạ tầng.',
+    disclosure: '9 trong số 10 validator chạy trên cùng một máy chủ, cùng một nhà cung cấp; validator thứ mười tham gia từ nơi khác và chỉ trực tuyến chập chờn — phân tán về giao thức, chưa phân tán về hạ tầng.',
     // Đo 10 mẫu/5 phút: P-Chain đứng yên, C-Chain đứng yên. Đây là BÌNH THƯỜNG.
     idleBlocksNote: 'Avalanche không đẻ block rỗng, nên số block đứng yên khi chưa ai giao dịch là bình thường. Phép đo sống/chết là số validator ở ô bên cạnh.',
   },

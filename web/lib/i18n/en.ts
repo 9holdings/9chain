@@ -213,7 +213,7 @@ export const EN = {
     emptyTitle: 'No L1 is running yet',
     emptyDesc: 'You would be the first. The directory updates as soon as your chain is up.',
 
-    disclosure: 'All 9 validators currently run on the same server, with the same provider — decentralised at the protocol level, not yet at the infrastructure level.',
+    disclosure: '9 of the 10 validators run on the same server, with the same provider; the tenth joined from elsewhere and is online only intermittently — decentralised at the protocol level, not yet at the infrastructure level.',
     idleBlocksNote: 'Avalanche does not produce empty blocks, so a block height that stays still while nobody is transacting is normal. The liveness measure is the validator count next to it.',
   },
 

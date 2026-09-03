@@ -185,7 +185,7 @@ export const fr: Dict = {
     systemDefault: 'valeur par défaut du système',
     emptyTitle: 'Aucune L1 ne tourne pour l’instant',
     emptyDesc: 'Vous seriez le premier. L’annuaire se met à jour dès que votre chaîne est active.',
-    disclosure: 'Les 9 validateurs tournent actuellement sur le même serveur, chez le même hébergeur — décentralisé au niveau du protocole, pas encore au niveau de l’infrastructure.',
+    disclosure: '9 des 10 validateurs tournent sur le même serveur, chez le même fournisseur ; le dixième a rejoint le réseau depuis ailleurs et n’est en ligne que par intermittence — décentralisé au niveau du protocole, pas encore au niveau de l’infrastructure.',
     idleBlocksNote: 'Avalanche ne produit pas de blocs vides : une hauteur de bloc qui ne bouge pas alors que personne ne transige est donc normale. La mesure de vivacité, c’est le nombre de validateurs à côté.',
   },
 

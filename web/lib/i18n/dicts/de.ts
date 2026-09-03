@@ -182,7 +182,7 @@ export const de: Dict = {
     systemDefault: 'Systemvorgabe',
     emptyTitle: 'Es läuft noch keine L1',
     emptyDesc: 'Sie wären die erste Person. Das Verzeichnis aktualisiert sich, sobald Ihre Chain läuft.',
-    disclosure: 'Alle 9 Validatoren laufen derzeit auf demselben Server beim selben Anbieter — auf Protokollebene dezentral, auf Infrastrukturebene noch nicht.',
+    disclosure: '9 der 10 Validatoren laufen auf demselben Server, beim selben Anbieter; der zehnte kam von anderswo dazu und ist nur zeitweise online — dezentral auf Protokollebene, noch nicht auf Infrastrukturebene.',
     idleBlocksNote: 'Avalanche erzeugt keine leeren Blöcke; eine stehende Blockhöhe ist daher normal, solange niemand Transaktionen sendet. Das Maß für Lebendigkeit ist die Validatorenzahl daneben.',
   },
 

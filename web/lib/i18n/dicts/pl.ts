@@ -189,7 +189,7 @@ export const pl: Dict = {
     emptyTitle: 'Żadna sieć L1 jeszcze nie działa',
     emptyDesc: 'Byłbyś pierwszy. Katalog aktualizuje się, gdy tylko twój łańcuch wystartuje.',
 
-    disclosure: 'Wszystkie 9 walidatorów działa obecnie na tym samym serwerze, u tego samego dostawcy — zdecentralizowane na poziomie protokołu, jeszcze nie na poziomie infrastruktury.',
+    disclosure: '9 z 10 walidatorów działa na tym samym serwerze i u tego samego dostawcy; dziesiąty dołączył skądinąd i bywa w sieci tylko z przerwami — zdecentralizowane na poziomie protokołu, jeszcze nie na poziomie infrastruktury.',
     idleBlocksNote: 'Avalanche nie produkuje pustych bloków, więc wysokość bloku stojąca w miejscu, gdy nikt nie wykonuje transakcji, jest normalna. Miarą życia jest liczba walidatorów obok.',
   },
 

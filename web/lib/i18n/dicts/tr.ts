@@ -188,7 +188,7 @@ export const tr: Dict = {
     emptyTitle: 'Henüz çalışan bir L1 yok',
     emptyDesc: 'İlk siz olurdunuz. Zinciriniz açılır açılmaz dizin güncellenir.',
 
-    disclosure: 'Şu anda 9 doğrulayıcının tamamı aynı sunucuda, aynı sağlayıcıda çalışıyor — protokol düzeyinde merkeziyetsiz, altyapı düzeyinde henüz değil.',
+    disclosure: '10 doğrulayıcıdan 9’u aynı sunucuda, aynı sağlayıcıda çalışıyor; onuncusu başka bir yerden katıldı ve yalnızca aralıklı olarak çevrimiçi — protokol düzeyinde merkeziyetsiz, altyapı düzeyinde henüz değil.',
     idleBlocksNote: 'Avalanche boş blok üretmez; bu yüzden kimse işlem yapmazken blok yüksekliğinin sabit kalması normaldir. Canlılık ölçüsü yanındaki doğrulayıcı sayısıdır.',
   },
 

@@ -198,7 +198,7 @@ export const tl: Dict = {
     emptyTitle: 'Wala pang L1 na tumatakbo',
     emptyDesc: 'Ikaw ang magiging una. Nag-a-update ang direktoryo sa oras na umandar ang iyong chain.',
 
-    disclosure: 'Lahat ng 9 validator ay kasalukuyang tumatakbo sa iisang server, sa iisang provider — desentralisado sa antas ng protocol, hindi pa sa antas ng imprastraktura.',
+    disclosure: '9 sa 10 validator ang tumatakbo sa iisang server, sa iisang provider; ang ikasampu ay sumali mula sa ibang lugar at paputol-putol lamang ang pagiging online — desentralisado sa antas ng protocol, hindi pa sa antas ng imprastruktura.',
     idleBlocksNote: 'Hindi gumagawa ng walang lamang block ang Avalanche, kaya normal lang na hindi gumagalaw ang taas ng block kapag walang nagtatransaksyon. Ang sukatan ng buhay ay ang bilang ng validator sa tabi nito.',
   },
 

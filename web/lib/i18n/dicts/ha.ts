@@ -193,7 +193,7 @@ export const ha: Dict = {
     emptyTitle: 'Babu wata L1 da ke gudana tukuna',
     emptyDesc: 'Kai za ka zama na farko. Jerin yana sabuntawa da zarar sarƙarka ta fara aiki.',
 
-    disclosure: 'Duk masu tabbatarwa 9 a yanzu suna gudana a uwar garke ɗaya, da mai bayarwa ɗaya — an rarraba a matakin ka’ida, ba a matakin ababen more rayuwa ba tukuna.',
+    disclosure: 'Masu tabbatarwa 9 daga cikin 10 suna gudana a kan uwar garke ɗaya, tare da mai bayarwa ɗaya; na goma ya shiga daga wani wuri kuma yana kan layi lokaci-lokaci kawai — an rarraba iko a matakin yarjejeniya, amma ba a matakin ababen more rayuwa ba tukuna.',
     idleBlocksNote: 'Avalanche ba ya samar da toshe fanko, don haka tsayin toshe da ya tsaya cak yayin da babu wanda ke yin mu’amala abu ne na yau da kullum. Ma’aunin rayuwa shine adadin masu tabbatarwa da ke gefensa.',
   },
 

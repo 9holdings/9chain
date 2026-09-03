@@ -195,7 +195,7 @@ export const id: Dict = {
     emptyTitle: 'Belum ada L1 yang berjalan',
     emptyDesc: 'Anda akan menjadi yang pertama. Direktori diperbarui begitu rantai Anda menyala.',
 
-    disclosure: 'Ke-9 validator saat ini berjalan di server yang sama, dengan penyedia yang sama — terdesentralisasi pada tingkat protokol, belum pada tingkat infrastruktur.',
+    disclosure: '9 dari 10 validator berjalan di server yang sama, dengan penyedia yang sama; yang kesepuluh bergabung dari tempat lain dan hanya daring sesekali — terdesentralisasi di tingkat protokol, belum di tingkat infrastruktur.',
     idleBlocksNote: 'Avalanche tidak memproduksi blok kosong, jadi tinggi blok yang diam saat tidak ada yang bertransaksi adalah hal normal. Ukuran hidup-matinya adalah jumlah validator di sebelahnya.',
   },
 
