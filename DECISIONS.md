@@ -7672,3 +7672,58 @@ nối chúng**. Đã nối: runbook nay có bước **2b · nạp ví bơm** kè
 Container `exited`, `restarts=3`, **không lặp** — `on-failure:3` làm đúng việc nó được chọn để
 làm. Env trong container **đã đúng**, nên sau khi nạp ví chỉ cần `docker start`, **không** phải
 dựng lại. Nguồn tiền và số tiền là **quyết định của David**, không phải mặc định.
+
+---
+
+## D-168 — **B-13(b) đo lại bằng ĐÚNG đại lượng; và lượt bật bơm tự tay xoá mỏ neo thế hệ khỏi bề mặt công khai** (`2026-09-03`)
+
+David nạp chín ví (chín lượt faucet, **9/9 trả `txHash`**), A1 làm phần còn lại.
+
+### Đo, không tin lời khai
+
+Faucet nói đã gửi; **đo trên chain** mới tính: `9/9` ví giữ đúng `9.00 LOVE9`, và chain đi từ
+block **22 → 35** (chín lượt drip = chín block, vì C-Chain không đẻ block rỗng).
+Bật bơm: `status=running`, `restarts=0`, phanh đĩa in `89% free (floor 20%)`.
+Đối chứng sản phẩm: **11 block trong 20 giây**, block cuối **1 giây tuổi**.
+
+### ✅ B-13(b) — số đo bằng nguồn ĐÚNG
+
+Hôm qua chain rảnh nên phải rơi về nguồn gossip. Hôm nay nguồn **[1] `block.timestamp`** — thứ
+nghi lễ **literally so sánh** — dùng được, và cổng **tự chọn** nó vì block chỉ 1 giây tuổi:
+
+```
+[1] block.timestamp   -1419ms ± 640ms   <- NGUON DUOC CHON
+[2] peers gossip       -260ms ± 640ms
+bien xau nhat: node cham 1544ms
+=> --offset-ms 3000   (san phu ~2 lan)   EXIT 0
+```
+
+Con số công bố **không đổi**, nhưng nay nó đứng trên phép đo đúng đại lượng thay vì một nguồn thay
+thế. ⚠️ Nguồn [1] đọc âm hơn [2] khoảng một giây — đó là **tuổi block** còn sót (sàn block 2s), và
+nó đẩy về phía **an toàn**, đúng như tệp đã dặn: đừng "sửa" bằng số học.
+
+### 🔴 Và lượt bật bơm tự tay gây một hồi quy trên bề mặt công khai
+
+Bản `heartbeat.json` seed tay cho g1 có `network: "9chain-a1-g1"` và `networkID: 999999998`.
+**Lượt publish đầu tiên của bơm ghi đè tệp mà không có hai trường đó** ⇒ trang công khai nói về
+thông lượng của **một chain không tên**.
+
+⇒ Đúng lớp lỗi D-150/D-154/D-158: **một con số đã công bố mà không khai nó đến từ chain nào thì
+sống sót qua re-genesis và nói dối sau đó.** Và lần này nó **do chính lượt sửa của tôi tạo ra** —
+tôi bật một tiến trình ghi đè một tệp mà không hỏi tiến trình đó ghi những gì.
+
+**Vá — và vá bằng PHÉP ĐO, không bằng hằng số:** bơm nay hỏi chính node
+(`info.getNetworkID` + `info.getNetworkName`) rồi in vào tệp. Một hằng số ở đây sẽ là **bản khai
+thứ ba của `A1Gen` ở ngôn ngữ thứ ba** (§6), và nó sẽ **đọc vẫn đúng thêm một thế hệ nữa sau khi
+đã sai**. Không đo được thì in `null`, **không phải bỏ trường**: thiếu khoá đọc ra *"bản build cũ"*,
+`null` đọc ra *"lượt chạy này không đo được"* — chỉ cái sau là thật.
+
+Kiểm hai phương thức **tồn tại thật** trước khi ship (`9chain-a1-g1` / `999999998`), ship, restart
+(mã bind-mount nên `restart` đọc lại được; env không đổi nên **không** cần dựng lại), rồi đối chứng
+**trên bề mặt công khai**: `network: 9chain-a1-g1` · `networkID: 999999998` · `running: true` ·
+`8.85 TPS` — **khớp mạng sống**.
+
+### Trạng thái
+
+Bơm chạy tới `2026-09-09T05:39:09Z` rồi **tự dừng** — 30 phút trước mốc thiêng, không ai phải nhớ
+(D-149 giữ nguyên: cửa sổ nghi lễ là chain YÊN TĨNH).

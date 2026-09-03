@@ -312,10 +312,61 @@ async function stopRequested() {
   }
 }
 
+/**
+ * WHICH NETWORK this telemetry describes — measured from the node, never from a constant.
+ *
+ * 🔴 Added 2026-09-03 after a regression this file caused on the public surface. The
+ * hand-seeded `heartbeat.json` written for g1 carried `network` and `networkID`; the first
+ * publish by the pump OVERWROTE the file without them, and the page the public reads was left
+ * describing throughput on an unnamed chain. This project has been burned repeatedly by a
+ * published figure with no generation anchor (D-150, D-154, D-158) — a number that does not say
+ * which chain it came from is exactly the thing that survives a re-genesis and lies afterwards.
+ *
+ * Measured, not configured: the pump already talks to a node, and the node knows its own
+ * identity. A constant here would be a second declaration of `A1Gen` in a third language
+ * (CLAUDE.md section 6), and it would keep reading correct for one generation after it stopped
+ * being true.
+ *
+ * Unknown is published as `null` rather than omitted: a missing key reads as "this build is old",
+ * a null reads as "this run could not measure it", and only the second one is true.
+ */
+const INFO_URL = new URL(RPC).origin + "/ext/info";
+let netId = null;
+let netName = null;
+
+async function measureNetworkIdentity() {
+  const ask = async (method) => {
+    const r = await fetch(INFO_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params: {} }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!r.ok) return null;
+    return (await r.json())?.result ?? null;
+  };
+  try {
+    if (netId === null) {
+      const v = Number((await ask("info.getNetworkID"))?.networkID);
+      if (Number.isInteger(v)) netId = v;
+    }
+    if (netName === null) {
+      const v = (await ask("info.getNetworkName"))?.networkName;
+      if (typeof v === "string" && v) netName = v;
+    }
+  } catch {
+    // Telemetry must not refuse to publish over a label. Retried on the next pass.
+  }
+}
+
 async function publish(height) {
   const w = windowRate();
+  if (netId === null || netName === null) await measureNetworkIdentity();
   const doc = {
     schema: 1,
+    // ── which chain these numbers are about, asked of the node itself ──
+    network: netName,
+    networkID: netId,
     // ── disclosure, and the reason this file is allowed to exist ──
     synthetic: true,
     label: "9Chain A1 public load test",

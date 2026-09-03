@@ -387,6 +387,28 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       `docker start 9chain-a1-heartbeat`, rồi đối chứng **(4)**: `eth_blockNumber` hai lần cách
       20 giây, số sau phải **lớn hơn** số trước.
 
+- [x] **P-32 — bơm nhịp ĐANG CHẠY; B-13(b) đo lại bằng ĐÚNG đại lượng** (D-168)
+      David nạp chín ví (chín lượt faucet, **9/9 trả `txHash`**). **Đo trên chain, không tin lời
+      khai:** `9/9` ví giữ đúng `9.00 LOVE9`, chain đi **22 → 35** (chín drip = chín block).
+      ✅ Bật bơm: `status=running`, `restarts=0`, phanh đĩa `89% free (floor 20%)`.
+      ✅ Đối chứng sản phẩm: **11 block/20 giây**, block cuối **1 giây tuổi**.
+      ✅ **B-13(b) nay đứng trên nguồn [1] `block.timestamp`** — thứ nghi lễ literally so sánh —
+      thay cho nguồn gossip hôm qua; cổng **tự chọn** nó vì block đủ tươi:
+      `[1] -1419ms ±640` · `[2] -260ms ±640` · biên xấu nhất node chậm **1544ms**
+      ⇒ **`--offset-ms 3000` giữ nguyên**, sàn phủ ~2 lần, `EXIT 0`.
+
+- [x] **P-33 — 🔴 lượt bật bơm TỰ TAY xoá mỏ neo thế hệ khỏi bề mặt công khai** (D-168)
+      Bản `heartbeat.json` seed tay cho g1 có `network`/`networkID`. **Lượt publish đầu của bơm ghi
+      đè tệp mà không có hai trường đó** ⇒ trang công khai nói về thông lượng của **một chain không
+      tên**. Đúng lớp D-150/D-154/D-158 — **và lần này do chính lượt sửa của tôi tạo ra**: tôi bật
+      một tiến trình ghi đè một tệp mà **không hỏi nó ghi những gì**.
+      ✅ Vá bằng **PHÉP ĐO, không bằng hằng số**: bơm hỏi chính node (`info.getNetworkID` +
+      `info.getNetworkName`). Hằng số ở đây sẽ là **bản khai thứ ba của `A1Gen` ở ngôn ngữ thứ ba**
+      (§6) và sẽ **đọc vẫn đúng thêm một thế hệ sau khi đã sai**. Không đo được thì in `null`,
+      **không bỏ trường** — thiếu khoá đọc ra *"build cũ"*, `null` đọc ra *"lượt này không đo được"*.
+      Kiểm hai phương thức **tồn tại thật** trước khi ship · trùng byte hai đầu · đối chứng **trên
+      bề mặt công khai**: `9chain-a1-g1` / `999999998` / `running: true` / `8.85 TPS`.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
