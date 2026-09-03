@@ -172,19 +172,24 @@ cho_vi() {   # $1 = địa chỉ X mong đợi
 **CHẶNG A** — quỹ Foundation → factory, **trên X**:
 
 ```bash
+# 🔴 Docker Desktop phải ĐANG CHẠY. Kiểm trước, đừng để biết sau 10 phút.
+docker version --format '{{.Server.Version}}' || { echo "🔴 Docker Desktop chua chay — mo no roi lam lai"; }
+
 docker rm -f 9chain-a1-vi-ham 2>/dev/null
-node scripts/wallet-over-tunnel.mjs --wallet-key local-net/net-g1/keys.txt --fund foundation --port 8090
-cho_vi "$QUY_X" && curl -sS -X POST -H 'content-type: application/json' \
-  -d "{\"to\":\"$DICH_X\",\"amount\":\"1000\"}" http://127.0.0.1:8090/api/send-x
+node scripts/wallet-over-tunnel.mjs --wallet-key local-net/net-g1/keys.txt --fund foundation --port 8090 \
+  && cho_vi "$QUY_X" \
+  && curl -sS -X POST -H 'content-type: application/json' \
+     -d "{\"to\":\"$DICH_X\",\"amount\":\"1000\"}" http://127.0.0.1:8090/api/send-x
 docker rm -f 9chain-a1-vi-ham
 ```
 
 **CHẶNG B** — factory X → P **của chính nó** (khoá KHÁC ⇒ phải dựng lại ví):
 
 ```bash
-node scripts/wallet-over-tunnel.mjs --wallet-key ~/9chain-a1-keys/g1/chain-factory-key.txt --port 8090
-cho_vi "$DICH_X" && curl -sS -X POST -H 'content-type: application/json' \
-  -d '{"amount":"999"}' http://127.0.0.1:8090/api/x-to-p
+node scripts/wallet-over-tunnel.mjs --wallet-key ~/9chain-a1-keys/g1/chain-factory-key.txt --port 8090 \
+  && cho_vi "$DICH_X" \
+  && curl -sS -X POST -H 'content-type: application/json' \
+     -d '{"amount":"999"}' http://127.0.0.1:8090/api/x-to-p
 docker rm -f 9chain-a1-vi-ham
 ```
 
@@ -205,7 +210,23 @@ chạy được**. `enter.sh` nay tổng hợp tiêu đề **trong ống, không
 `FATAL … không có khối quỹ nào`: đó là **công cụ kiểm hỏng, không phải khoá hỏng** (D-116).
 ⚠️ Ảnh node **không có `ps`/`pkill`** ⇒ không dừng được ví bằng cách thường; dựng lại container
 (hoặc dùng cổng khác) là đường đúng.
-⚠️ Số `100`/`99` là **gợi ý**: g0 chạy suốt với **~90 LOVE9**; chặng B phải chừa phí. **David
+✅ **David chốt `2026-09-03`: `1000` / `999`, quỹ `foundation`.** Hai con số trong khối lệnh trên
+là con số thật, không phải chỗ điền. ~**10.000 lượt đẻ chain** ở mức `~0,1 LOVE9`/lượt (D-091).
+
+🔴 **Quỹ không phải lựa chọn — nó là PHÉP ĐO.** Đo `03/09` trên X-Chain: `foundation`
+**71.000.009 LOVE9**, còn `staking` · `ecosystem` · `faucet` · `private-sale` · `team` đều **0
+trên X**. Chặng A cần tiền **trên X**, nên `foundation` là quỹ duy nhất chạy được. Đừng chép một
+tên quỹ khác từ `allocation.md` — bảng đó nói về **phân bổ**, không nói tiền **đang nằm ở chain nào**.
+
+⚠️ **Bán kính thiệt hại, nói ra để lần sau còn cân lại:** khoá ví này do **console trên server
+công khai** giữ, và nó **đã phải xoay một lần vì rò rỉ** (`02/09`, D-159). Số dư trong ví **là**
+bán kính nếu server bị chiếm. `1000` được chọn khi biết điều đó, đổi lấy việc thôi phải nạp lại
+(mỗi lượt nạp tốn hai lượt dựng ví, mỗi lượt `go run` biên dịch ~4 phút).
+
+⚠️ *(Nguyên văn cũ, giữ để đối chiếu: "Số `100`/`99` là gợi ý: g0 chạy suốt với ~90 LOVE9; chặng B
+phải chừa phí." Câu đó **mâu thuẫn với khối lệnh ngay trên nó** suốt hai ngày — một runbook đưa
+ra hai con số thì người bấm phải đoán, và đoán sai ở đây là tiền thật.)* <!-- stale-ok -->
+⚠️ Chặng B phải chừa phí xuất trên X, nên `999` chứ không `1000`. **David
 chọn số và chọn quỹ nào trả** — đây là tiền thật trên mạng công khai.
 
 **Nghiệm thu — ĐO TRÊN NODE, đừng tin ví:**

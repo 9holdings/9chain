@@ -409,6 +409,40 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       Kiểm hai phương thức **tồn tại thật** trước khi ship · trùng byte hai đầu · đối chứng **trên
       bề mặt công khai**: `9chain-a1-g1` / `999999998` / `running: true` / `8.85 TPS`.
 
+- [x] **P-34 — 🟢 VÍ `chain-factory` ĐÃ NẠP: cái đỏ chặn NĂM PHIÊN đã hết** (D-169)
+      David bấm, A1 đo và soạn đường. `preflight 46 đạt · 2 đỏ → **47 đạt · 1 đỏ**`, và cái đỏ còn
+      lại (`check-live-page`) thuộc worktree `web-home` — **không phải việc A1** (luật cứng #4).
+      **Điều kiện qua:** mọi bước nghiệm thu **trên chain**, không tin lời khai công cụ.
+      ✅ **Console cầm khoá mới — đo trên TIẾN TRÌNH, không trên tệp.** Khoá xoay `02/09` nhưng
+      console vẫn cầm bản cũ (`1dc33414…` ≠ `db4de94e…`) ⇒ thứ tự **load-bearing**: nạp trước khi
+      đổi khoá là nạp vào ví **console không ký được**. Nghiệm thu: `console.env` sửa `06:38:08` ·
+      console khởi động `06:38:50` (**sau 42 giây**) · `/proc/2391212/environ` → `db4de94e…` —
+      **khoá mới nằm trong tiến trình SỐNG**. Đọc tệp chỉ chứng minh **tệp** đổi; đọc `environ`
+      chứng minh **thứ đang phục vụ** đổi (bài học D-088).
+      ✅ **Hai chặng, số học khép kín:** A `foundation → factory trên X` 1000 (quỹ vơi
+      **1.000,001** = 1000 + phí 0,001) · B `factory X → P của chính nó` 999 ⇒ cuối cùng
+      **X 0,999 · P 998,99999173** ≈ **9.989 lượt đẻ chain**.
+      🔵 **Quỹ không phải lựa chọn — là PHÉP ĐO:** đo trên X-Chain, `foundation` có 71.000.009 còn
+      năm quỹ kia **0 trên X**. `allocation.md` nói về **phân bổ**, không nói tiền nằm ở **chain
+      nào** — chọn theo bảng thay vì theo số dư là chọn nhầm.
+
+- [x] **P-35 — 🔴 runbook có HAI lỗi, cả hai chỉ lộ ra khi CHẠY** (D-169)
+      **(a) hai con số mâu thuẫn** — khối lệnh `1000/999`, ghi chú ngay dưới `100/99`, suốt hai
+      ngày. Người bấm phải **đoán**, và đoán sai ở đây là tiền thật. Nay một con số duy nhất.
+      **(b) 🔴 phép kiểm TỒN TẠI nhưng KHÔNG CHẶN** — `wallet-over-tunnel.mjs` **có**
+      `process.exit(1)` khi dựng ảnh hỏng (dòng 81), nhưng khối lệnh nối `cho_vi && curl` bằng `&&`
+      mà **quên nối lượt dựng ví** ⇒ Docker Desktop chưa chạy ⇒ build hỏng ⇒ shell **rơi thẳng**
+      vào `cho_vi`, đếm **600 giây** chờ một cái ví không thể tồn tại.
+      ⇒ **Cùng lớp với ba lỗi khác của tôi trong hai ngày:** bánh cóc §0 đo mà không chốt ·
+      `wc -l` là chú thích chứ không phải cổng · cảnh báo tuổi block nằm trong văn xuôi rồi vẫn
+      tính bù từ nó. **Một phép kiểm không chặn được thứ nó cảnh báo thì chưa phải phép kiểm.**
+      ✅ Cả hai chặng nay nối `&&` từ đầu tới cuối, cộng một dòng kiểm Docker đứng trước.
+
+- [human] **P-36 — bước 4: bật cửa `A1_DE_CHAIN_MO=1` — CHƯA LÀM, và runbook dặn ĐỪNG vội**
+      Ba bước đầu xanh (`reopen-chain-creation`: `1 ✓ · 2 ✓ · 3 ✓ · 4 chưa đo`). Nhưng đường đẻ
+      chain **chưa bao giờ chạy trên g1** ⇒ runbook dặn: **đẻ một L1 thật rồi thu hồi TRƯỚC khi nói
+      với ai**. Bật cửa rồi mới thử là để người lạ gặp lỗi trước mình.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
