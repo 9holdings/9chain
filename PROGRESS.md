@@ -547,6 +547,33 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       phép kiểm này chứng minh cổng đo **NỘI DUNG**, không đo **kích thước**.
       ✅ Tệp khắc chữ **không bị chạm một byte**: `check-evidence` xanh, digest đo lại vẫn khớp.
 
+- [x] **P-45 — lệch đồng hồ 9 node: kết luận ĐÚNG, lý do SAI** (D-174)
+      David: *"đo lệch đồng hồ 9 node đi."* Kết luận cũ (*lệch = 0*) **không đổi**, nhưng nay là
+      **phép đo** chứ không phải lời khẳng định trong chú thích.
+      🔴 **Lý do đã ghi thì SAI:** câu *"Docker không dùng time namespace"* **sai trên chính máy
+      này** — đo được **chín namespace riêng**, khác nhau và khác host. Kết luận sống sót vì lý do
+      **khác**: time namespace ảo hoá `CLOCK_MONOTONIC`/`BOOTTIME`, **không** ảo hoá
+      `CLOCK_REALTIME`; và offset boottime ở đây bằng **0** (`/proc/uptime` tăng đúng theo chi phí
+      từng luột `exec`). `date` trong từng container, **kẹp giữa hai lần đọc đồng hồ host**, đều
+      **lọt giữa** cả chín (cửa sổ 59–110 ms) ⇒ một đồng hồ chung.
+      ⇒ **Đúng đáp án, sai lý do — nguy hiểm HAI chiều:** người sau tra lý do, thấy có namespace,
+      tưởng tiền đề vỡ và đi sửa thứ không hỏng; hoặc ai đó làm vỡ lý do THẬT trong khi lý do đã
+      ghi vẫn đọc thấy ổn.
+
+- [x] **P-46 — 🔴 tôi dùng đúng phương pháp mà chính tệp đó đã BÁC, sai ba bậc** (D-174)
+      Để trả lời *"hai máy khác nhau thì sao"*, tôi chạy `ssh 'date'` tới hai máy chủ rồi lấy hiệu,
+      lập luận *"thiên lệch ssh nằm trong cả hai nên triệt tiêu"* ⇒ ra **`-658 ms`**.
+      Lập luận đó **chỉ đúng khi thiên lệch BẰNG NHAU**; hai RTT là **3372 ms** và **1911 ms**, gần
+      gấp đôi nhau ⇒ phần lớn con số là **chênh lệch bắt tay ssh**. Và bảng ngay trong tiêu đề tệp
+      **đã loại `ssh`** vì đúng lý do đó.
+      ✅ **Cách đúng — hỏi chính máy đó, đừng bấm giờ một cái shell:** OVH (chrony, stratum 3)
+      **14 µs** nhanh hơn NTP, RMS `124 µs`; Hetzner (timesyncd, stratum 2) jitter **72 µs**.
+      ⇒ Lệch liên máy chặn ở cỡ **vài trăm micro giây** — số của tôi **sai ba bậc**.
+      🔵 **Hệ quả cho Block Adam:** sàn `3000 ms` cao hơn lệch đồng hồ liên máy **bốn bậc**. Sau O4
+      đồng hồ **vẫn không phải rủi ro**; thứ tiêu thời gian là **VẬN CHUYỂN** (`0,3–2,9 s`).
+      ⚠️ Không làm B-13(b) thành thừa: nó nói *"đừng lo đồng hồ"*, không nói *"đừng đo"* — ngày một
+      máy rơi khỏi NTP là ngày con số đổi, và không gì báo trừ khi có người hỏi.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
