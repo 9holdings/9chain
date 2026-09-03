@@ -96,15 +96,23 @@ export function ChainTable() {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[34rem] border-collapse text-sm">
           <caption className="sr-only">{t.trangChu.cBangChuThich}</caption>
+          {/* 🔴 `text-start` PHẢI ĐẶT TRÊN TỪNG `<th>`, KHÔNG CHỈ TRÊN `<tr>`.
+              Đo được trên bản đang chạy 2026-09-03: `text-left` trên `<tr>` thì ô
+              tiêu đề cột nhận `left`, nhưng đổi sang `text-start` thì chúng nhảy về
+              `center` — tức đường kế thừa từ `<tr>` xuống `<th>` KHÔNG tương đương
+              giữa hai lớp này, và bản vá RTL đã lặng lẽ đổi căn lề của bảng ở CẢ
+              bản tiếng Anh. Đặt thẳng lên `<th>` thì không phụ thuộc kế thừa nữa,
+              nên đúng ở cả hai chiều viết. Giữ `text-start` trên `<tr>` cho các
+              `<td>` bên dưới. */}
           <thead>
             <tr className="border-b border-line bg-surface-alt text-start">
-              <th scope="col" className="px-4 py-3 font-semibold text-ink">
+              <th scope="col" className="px-4 py-3 text-start font-semibold text-ink">
                 {t.trangChu.cCot}
               </th>
-              <th scope="col" className="px-4 py-3 font-semibold text-ink">
+              <th scope="col" className="px-4 py-3 text-start font-semibold text-ink">
                 {t.trangChu.cCotKieu}
               </th>
-              <th scope="col" className="px-4 py-3 font-semibold text-ink">
+              <th scope="col" className="px-4 py-3 text-start font-semibold text-ink">
                 {t.trangChu.cCotChu}
               </th>
             </tr>
