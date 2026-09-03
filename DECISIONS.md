@@ -8224,3 +8224,64 @@ allowlist. Hệ quả cho P-48-đo-tải: **9 node trẻ lại**, mốc "4 h tu�
 Kèm: `scripts/measure-node-load.sh` — lệnh cgroup mà HANDOFF trỏ tới "D-175/P-48" **chưa từng được
 ghi ở đâu**; nay là tệp, có đối chứng đỏ (filter không khớp ⇒ `exit 1`), mẫu `14:49Z` (3 L1, node
 90 phút): 9 node `1,199 core · 3.531 MiB`, node-1 `0,658` / 8 node kia `~0,07`.
+
+## D-177 — **Blockscout NGHỈ HẲN: node-1 từ 435 xuống 9,8 lời gọi/giây, và trang 404 công khai gãy theo** (`2026-09-03`)
+
+David, sau D-176: *"xoá DB Blockscout, index lại g1 đi"* — rồi hai phút sau: *"Cho Blockscout nghỉ
+hẳn, vì 9Scan-A1 đã được chốt làm explorer."* Phép đo giữa hai câu ủng hộ câu sau.
+
+### Vì sao index lại KHÔNG chữa được
+
+Hỏi node-1 `eth_getBalance` cho ví bơm tại các block **g1**: chỉ `0x1000` `0x2000` `0x3000` `0x4000`
+(bội số `4096` — chu kỳ commit state của coreth) trả lời; `0x12` `0xbe0` `0x1001` `0x3521` `0x4400` đều
+`missing trie node`. Blockscout xin số dư **tại block địa chỉ xuất hiện**, tức gần như không bao giờ
+là bội số 4096 ⇒ index lại từ 0 sẽ dựng lại đúng vòng lặp D-176, lần này với địa chỉ g1. Blockscout
+cần **node archive**; A1 không có và không nên đổi node validator thành archive vì một explorer thứ
+hai.
+
+### Liệt kê → lưu → xoá → đối chứng (B-17)
+
+| bước | số đo |
+|---|---|
+| **LIỆT KÊ** | 12 container của project compose (9 chạy · 3 exited); mạng `docker-compose_default`; **`a1net` là external, không thuộc lượt xoá** |
+| **truy cập thật 72 h** | Caddy: 749 hit, **743 là frontend Blockscout tự thăm dò** (`main-page/indexing-status`, `account-abstraction`), **2 lượt `/blocks` của người** |
+| **LƯU** | không dump: dữ liệu là **hai thế hệ chết trộn nhau**, tái tạo được từ chain g1 nếu cần; bản ghi g0 đã có `docs/o2-g0-final/` + `docs/archive/heartbeat-g0-final-*`. **Thư mục bind giữ nguyên trên đĩa**: `blockscout-db-data` 3,1 G · `stats-db-data` 64 M · `logs` 2,0 G — David xoá sau, cùng cách B-17 |
+| **XOÁ** | `compose down -t 60` `16:05:04 → 16:06:07Z` |
+| **ĐỐI CHỨNG** | 0 container còn lại · mạng project đã gỡ · `net_a1net` còn · 9 node + caddy + faucet + heartbeat + console + 9scan **không đổi** |
+
+### Đo sau, trên node và trên bề mặt công khai
+
+```
+node-1  API C-chain  435/s  ->   9,8/s      CPU  0,658 core  ->  0,232 core
+host    loadavg 1m   13,3   ->   7,9
+```
+
+`/` `/faucet/` `/create-chain/` `/chains/` **200** · `a1.9scan.org` **200** · `rpc-a1` sống · bơm
+`9,00 tx/s` không gián đoạn. `web/lib/chain.ts` đã trỏ `blockExplorerUrls` sang `a1.9scan.org` từ
+trước ⇒ MetaMask không mất explorer.
+
+### 🔴 Nhưng trang 404 công khai gãy — và nó gãy vì được DỰNG TRÊN Blockscout
+
+Caddy giữ `A1_ROOT_UPSTREAM=127.0.0.1:8100` làm bắt-tất-cả ở gốc, cộng `handle /api/*` và
+`/socket/*` cùng trỏ vào đó. Trang 404 riêng (`web/app/not-found.tsx`) được phục vụ qua
+`handle_response` **trên cái 404 mà Blockscout trả** cho đường lạ. Nay upstream trống ⇒ mọi đường lạ,
+**kể cả `/404/`**, trả `502 error code: 502` (chữ của Cloudflare). `/blocks` `/tx/*` `/address/*`
+`/api/v2/*` cũng 502. Đo `16:08Z`.
+
+⇒ Đây là **luật cứng #4**: Caddyfile thuộc `web-home`. Việc cho `web-home`, đủ để không phải dò:
+- bắt-tất-cả ở gốc: bỏ `reverse_proxy {$A1_ROOT_UPSTREAM}`, trả thẳng trang 404 tĩnh;
+- `/blocks` `/txs` `/tx/*` `/address/*` `/token/*` → `redir https://a1.9scan.org{uri} 308`;
+- bỏ `handle /api/*` và `/socket/*` (chỉ Blockscout dùng); `A1_ROOT_UPSTREAM` trong `caddy.env` hết
+  việc; chú thích ở `local-net/deploy/caddy.compose.yml` dòng 11 kể về Blockscout.
+- `check-routes.mjs` của `web-home` có ca dựa trên *"Blockscout trả 404"* — sửa cùng lượt.
+
+Phía A1 không còn gì gọi Blockscout trên đường sản phẩm: `load-test.mjs` hỏi tuỳ chọn và nuốt lỗi
+(`blockscoutCao` → `null`); `up-all.sh`/`down-all.sh` là máy dev. `explorer-full/` giữ làm bản ghi
+cách dựng, không xoá.
+
+### Thấy trong lúc làm, không thuộc lượt này
+
+- `check-live-page` **đỏ**: `/` khai *"9 validators"* — P-Chain có **10** (đo `16:09Z`). Trang chủ
+  thuộc `web-home`; con số thì đáng mừng.
+- Console rollout **lần hai** `16:03–16:07Z` (9 node lại trẻ) — hai lượt đẻ/thu hồi L1 trong một
+  giờ từ ví allowlist. Mẫu đo tải `19:30Z` sẽ tự in tuổi node; đọc tuổi trước khi so.

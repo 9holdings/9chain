@@ -4,13 +4,15 @@ Cập nhật: **2026-09-03** — 🟢 **BA L1 ĐẦU TIÊN SỐNG (Adam · Eva �
 ví, ví factory đã nạp, bơm chạy tới `09/09`.** Preflight `47 đạt · 1 đỏ` (đỏ = `web-home`). Còn
 **12/15 chỗ vĩnh viễn**. 🔴 3 tệp đã deploy nhưng commit cuối **CHƯA ĐẨY**. Đọc mục **CHỐT PHIÊN
 `2026-09-03`** ngay dưới — gotchas ở đó là thứ đắt nhất của ngày.
-🔴 **Chiều `03/09` (D-176):** node-1 ăn gấp 10 node kia vì **Blockscout đuổi theo DB của HAI thế hệ
-chết** (block `0` ba hash, `max 107.875`, công khai khai `107.850 block`) — DB **chưa ai xoá khi
-re-genesis**. Cờ tắt coin-balance fetcher **làm explorer đứng** (v9.0.2), đã **hoàn nguyên** `15:42Z`;
-trạng thái Blockscout = như trước, node-1 vẫn ~435 gọi/s. **David quyết:** xoá DB index lại g1, hay
-cho Blockscout nghỉ. ⚠️ `stats` nay chạy (crash-loop vô hại, proxy cần tên nó). ⚠️ Console rollout
-`15:16–15:27Z` ⇒ 9 node trẻ lại, mẫu đo tải "4 h" dời `≈19:30Z`. Lệnh đo nay là tệp:
-`scripts/measure-node-load.sh`.
+🔴 **Chiều `03/09` (D-176 · D-177): BLOCKSCOUT ĐÃ NGHỈ HẲN** — David chốt sau khi đo: node-1 ăn gấp 10
+node kia vì Blockscout đuổi theo **DB của hai thế hệ chết** (block `0` ba hash, công khai khai
+`107.850 block`), và state g1 tại block cũ **cũng đã tỉa** nên index lại không chữa được. Cờ tắt
+coin-balance fetcher **làm explorer đứng** (v9.0.2) — đã hoàn nguyên rồi mới `down`. Sau: node-1
+`435 → 9,8` gọi/s · `0,658 → 0,232` core. Dữ liệu bind (3,1 G + 2,0 G log) **còn trên đĩa**, David
+xoá sau. 🔴 **Cho `web-home`:** trang 404 công khai và `/blocks` `/tx/*` `/api/*` nay **502** — Caddy
+còn bắt-tất-cả vào cổng `8100` trống (P-52); và `/` khai 9 validator, P-Chain có **10**. ⚠️ Console
+rollout hai lượt `15:16–15:27Z` và `16:03–16:07Z` ⇒ 9 node trẻ lại; mẫu đo tải `19:30Z` tự in tuổi.
+Lệnh đo nay là tệp: `scripts/measure-node-load.sh`.
 Trước đó **2026-09-02** chiều — 🟢🟢 **CHẶN SỐ 1 HẾT CHẶN: `genesis.json` NAY TẢI ĐƯỢC TỪ NGOÀI**
 (D-158). Đã đẩy `official` + `origin`, nghiệm thu **bằng tay** trên đúng đường người lạ đi.
 🔴 Hoá ra không phải *"chưa ai tải lên"*: tệp **không được git theo dõi** — byte cả thế giới cần
