@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { rpcGoc, rpcCChain } from './chain';
 import { docJson, HAN_DOC_MS, LoiMang } from './mang';
+import { readDirectory } from './directory';
 
 /**
  * Số liệu sống của mạng, cho trang chủ.
@@ -82,7 +83,10 @@ export function useSoLieu(): { tt: TrangThaiSoLieu; napLai: () => void } {
           validators?: { connected?: boolean }[];
         }>,
         jsonRpc(rpcCChain(), 'eth_blockNumber') as Promise<string>,
-        docJson<{ chains?: unknown[] }>('/chains/data/console-chains.json', {}, HAN_DOC_MS / 1000),
+        // Shared with `ChainTable`, which reads the same file on this same page —
+        // see `lib/directory.ts`. Two identical requests left here at the same
+        // millisecond until 2026-09-03.
+        readDirectory(),
       ]);
       if (huy) return;
 

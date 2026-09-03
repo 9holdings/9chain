@@ -41,6 +41,22 @@ export const CHAIN = {
 /** Tên miền mặc định khi không đọc được `location` (lúc build tĩnh). */
 const HOST_MAC_DINH = 'a1.9chain.org';
 
+/**
+ * RPC origin baked into the prerendered HTML, for `<link rel="preconnect">` only.
+ *
+ * 🔴 This is NOT a second source of truth for where the site talks to the network —
+ * `rpcGoc()` below still derives that from the page's own hostname at runtime, and it
+ * stays the only thing any request goes through. A preconnect is a *hint*: pointing it
+ * at the wrong host costs one idle socket and nothing else, while `rpcGoc()` pointing
+ * at the wrong host breaks the page. Keeping the hint constant is what lets it sit in
+ * static HTML at all, since the head is written at build time when there is no
+ * `location` to read.
+ *
+ * The two agree everywhere it matters: `rpcGoc()` returns this exact value on
+ * localhost, and on the public site the hostname IS `a1.9chain.org`.
+ */
+export const RPC_ORIGIN_HINT = `https://rpc-${HOST_MAC_DINH}`;
+
 function host(): string {
   if (typeof window === 'undefined') return HOST_MAC_DINH;
   return window.location.hostname || HOST_MAC_DINH;

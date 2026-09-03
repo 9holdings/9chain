@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import { Sora, Instrument_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { SiteHeader } from '@/components/SiteHeader';
-import { ReGenesisBanner } from '@/components/ReGenesisBanner';
 import { LoadTestBanner } from '@/components/LoadTestBanner';
+import { EarlyHints } from '@/components/EarlyHints';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ThemeScript } from '@/components/ThemeScript';
 import { EN } from '@/lib/i18n/en';
@@ -105,6 +105,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
         <ThemeScript />
+        <EarlyHints />
       </head>
       <body className={`${sora.variable} ${instrument.variable} ${jetbrains.variable} flex min-h-dvh flex-col`}>
         {/* 🔴 PROVIDER BỌC TOÀN BỘ <body>, KHÔNG BỌC TỪNG PHẦN.
@@ -113,14 +114,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             hình. Cả cây phải lật cùng một lúc — xem `lib/i18n/index.tsx`. */}
         <NhaCungCapNgonNgu>
           <BoQuaToiNoiDung />
-          {/* Dải cảnh báo đứng SAU lối tắt bàn phím, TRƯỚC header: người đi bàn phím
-              vẫn nhảy thẳng được vào nội dung, còn người đọc bằng mắt thì thấy nó
-              trước mọi thứ khác. Gỡ dải này sau ngày G — xem chú thích trong file. */}
-          <ReGenesisBanner />
-          {/* Dải bài bơm tải đứng SAU dải re-genesis: mất tiền vì mạng bị xoá là
-              tin quan trọng hơn "số liệu bạn đang nhìn là do chúng tôi tự sinh".
-              Dải này TỰ BIẾN MẤT khi bài bơm dừng — không phải việc tay như dải
-              trên; xem `components/LoadTestBanner.tsx`. */}
+          {/* 🔴 `ReGenesisBanner` ĐÃ GỠ `2026-09-03` — David chốt.
+              Dải đó nói "A1 sẽ sinh lại ngày 01/09/2026, mọi thứ tạo trước đó sẽ bị
+              xoá". Ngày G đã qua, nên câu đó nói ở thì tương lai về một việc **đã
+              xảy ra rồi** — đúng thứ chú thích trong chính file đó dặn phải gỡ bằng
+              tay khi qua ngày G (không có gì trong mã tự biết ngày G đã tới).
+              Từ điển vẫn giữ `reGenesis.*` và `reGenesisXong.*`, và trang
+              `/re-genesis/` vẫn sống + vẫn có liên kết ở chân trang: người mở ví
+              thấy số dư 0 vẫn phải tìm được lời giải. Thứ bị gỡ là **dải trên mọi
+              trang**, không phải lời giải thích.
+
+              Dải bài bơm tải thì Ở LẠI: nó TỰ BIẾN MẤT khi bài bơm dừng — không
+              phải việc tay; xem `components/LoadTestBanner.tsx`. */}
           <LoadTestBanner />
           <SiteHeader />
           <main id="noi-dung" className="flex-1">

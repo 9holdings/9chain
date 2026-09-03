@@ -83,7 +83,18 @@ export function SiteHeader() {
             Thanh này luôn `bg-navy` ở CẢ HAI theme ⇒ luôn dùng bản nền tối.
             Chip "A1" giữ nguyên: nó là nhãn phiên bản mạng, không thuộc logo. */}
         <a href="/" className="flex items-center gap-2">
-          <BrandLockup nen="toi" cao={28} nhan={t.chung.tenSanPham} className="flex-none" />
+          {/* 🔴 CAO 28 → 36 (`2026-09-03`, David: "logo nhỏ quá, nhìn như bị lỗi").
+              Con số đo được, không phải gu: trang chính `www.9chain.org` đặt lockup
+              của nó ở **104 × 27 px** trong một thanh cao 57 px. Ở đây thanh cao 64
+              px (`h-16`), và lockup của bộ kit có tỉ lệ 360:128 — tức nó gói NHIỀU
+              lề trong hơn bản của trang chính, nên cùng một chiều CAO cho ra chữ
+              nhỏ hơn hẳn. Khớp theo thứ mắt thật sự đọc — bề ngang và cỡ chữ:
+                cao 28 → rộng 78,8 px · chữ 12,5 px   (bản cũ, nhỏ hơn trang chính)
+                cao 36 → rộng 101,3 px · chữ 16,0 px  ≈ 104 px của www.9chain.org
+              ĐỪNG sửa bằng cách nắn lại `viewBox` hay giãn chữ trong `BrandLockup` —
+              hình học ở đó là bộ kit của David, xem chú thích đầu tệp đó. Chỉ đổi
+              chiều cao hiển thị. */}
+          <BrandLockup nen="toi" cao={36} nhan={t.chung.tenSanPham} className="flex-none" />
           <span className="rounded-chip border border-line-dark-2 px-1.5 py-0.5 font-sans text-[11px] font-semibold text-gold-muted">
             A1
           </span>

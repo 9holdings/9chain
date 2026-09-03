@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { The, Xuong, CoLoi, TrongRong, Nhan } from '@/components/ui';
 import { rutGon } from '@/lib/eip55';
 import { useT } from '@/lib/i18n';
-import { docJson, HAN_DOC_MS } from '@/lib/mang';
+import { readDirectory } from '@/lib/directory';
 
 /**
  * Danh sách L1 đã có, đọc từ hợp đồng dữ liệu `console-chains.json`.
@@ -34,10 +34,11 @@ export function ChainTable() {
   useEffect(() => {
     let huy = false;
     datTt({ pha: 'tai' });
-    // Hạn giờ (Đ1-8): đây là một lượt ĐỌC tệp tĩnh. Không có hạn thì một kết nối
-    // treo để bảng ở khung xương vĩnh viễn — trang trông như đang tải mãi mãi, và
-    // người dùng không có gì để bấm.
-    docJson<{ chains?: Chain[] }>('/chains/data/console-chains.json', {}, HAN_DOC_MS / 1000)
+    // Hạn giờ (Đ1-8) vẫn còn, nay nằm trong `lib/directory.ts` cùng với lượt đọc:
+    // đây là một lượt ĐỌC tệp tĩnh, và không có hạn thì một kết nối treo để bảng ở
+    // khung xương vĩnh viễn — trang trông như đang tải mãi mãi, và người dùng không
+    // có gì để bấm. Lượt đọc đó DÙNG CHUNG với `useSoLieu` ở cùng trang này.
+    readDirectory()
       .then((j) => {
         if (huy) return;
         datTt({ pha: 'xong', ds: Array.isArray(j?.chains) ? j.chains : [] });

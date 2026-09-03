@@ -100,15 +100,18 @@ export function ChonNgonNgu() {
                     </span>
                     <span className="truncate text-xs text-muted">{n.tenAnh}</span>
                   </span>
+                  {/* 🔴 NHÃN "máy dịch" TỪNG ĐỨNG Ở ĐÂY, GỠ `2026-09-03` — David chốt.
+                      29/30 dòng đều mang nhãn, nên nó không còn phân biệt được gì
+                      bằng mắt: thứ hiếm là dòng KHÔNG có nhãn, và mắt người đọc một
+                      danh sách 30 mục thì bỏ qua thứ lặp lại ở mọi dòng. Nó chỉ làm
+                      danh sách rối.
+                      Lời khai KHÔNG mất, nó đổi chỗ: `aria-label` của chính nút này
+                      vẫn nói ra, và câu giải thích đầy đủ ở chân danh sách bên dưới
+                      vẫn đứng nguyên. Xem chú thích §1 đầu tệp — điều phải giữ là
+                      "người đọc biết được bản này chưa ai soát", không phải "phải có
+                      một cái chip trên mỗi dòng". */}
                   {!co ? (
                     <span className="shrink-0 text-xs text-muted">{t.chonNgonNgu.chuaCo}</span>
-                  ) : n.soat === 'may' ? (
-                    <span
-                      className="shrink-0 rounded-btn border border-line px-1.5 py-0.5 text-[11px] text-muted"
-                      title={t.chonNgonNgu.mayDichGiaiThich}
-                    >
-                      {t.chonNgonNgu.mayDich}
-                    </span>
                   ) : null}
                 </button>
               </li>

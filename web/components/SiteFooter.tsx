@@ -74,7 +74,9 @@ export function SiteFooter() {
             {/* Chân trang dùng `bg-surface` — nền ĐỔI theo theme (trắng ở bản sáng,
                 #131c33 ở bản tối) ⇒ logo phải đổi theo, nên `nen="theo-theme"`.
                 Khác header: header luôn navy nên luôn dùng bản nền tối. */}
-            <BrandLockup nen="theo-theme" cao={26} nhan={t.chung.tenSanPham} />
+            {/* 26 → 34 cùng lượt với header (`2026-09-03`) — giữ nguyên nếp cũ là
+                chân trang nhỏ hơn header một bậc, chứ không phóng to riêng một chỗ. */}
+            <BrandLockup nen="theo-theme" cao={34} nhan={t.chung.tenSanPham} />
             <p className="max-w-xs">{t.chung.moTaNgan}</p>
           </div>
 
