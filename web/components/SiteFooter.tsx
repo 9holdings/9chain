@@ -76,7 +76,7 @@ export function SiteFooter() {
                 Khác header: header luôn navy nên luôn dùng bản nền tối. */}
             {/* 26 → 34 cùng lượt với header (`2026-09-03`) — giữ nguyên nếp cũ là
                 chân trang nhỏ hơn header một bậc, chứ không phóng to riêng một chỗ. */}
-            <BrandLockup background="theo-theme" height={34} label={t.common.productName} />
+            <BrandLockup background="auto" height={34} label={t.common.productName} />
             <p className="max-w-xs">{t.common.shortDesc}</p>
           </div>
 

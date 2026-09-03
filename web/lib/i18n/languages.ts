@@ -46,7 +46,7 @@
  * trong quy trình ấy: nó không được dịch, nên không có gì để soát lại. Gộp hai thứ
  * vào một nhãn là làm mất chính sự phân biệt mà trường này sinh ra để giữ.
  */
-export type ReviewLevel = 'goc' | 'nguoi' | 'may';
+export type ReviewLevel = 'source' | 'human' | 'machine';
 
 export type Language = {
   /** Mã BCP-47, dùng thẳng cho thuộc tính `lang` của <html>. */
@@ -69,14 +69,14 @@ export type Language = {
  * màn hình chọn giọng theo đó. Gõ sai một mã là cả trang bị đọc bằng ngữ âm khác.
  */
 export const LANGUAGES: readonly Language[] = [
-  { code: 'en', ten: 'English', englishName: 'English', dir: 'ltr', review: 'goc' },
-  { code: 'zh', ten: '中文（简体）', englishName: 'Chinese (Simplified)', dir: 'ltr', review: 'may' },
-  { code: 'hi', ten: 'हिन्दी', englishName: 'Hindi', dir: 'ltr', review: 'may' },
-  { code: 'es', ten: 'Español', englishName: 'Spanish', dir: 'ltr', review: 'may' },
-  { code: 'ar', ten: 'العربية', englishName: 'Arabic', dir: 'rtl', review: 'may' },
-  { code: 'fr', ten: 'Français', englishName: 'French', dir: 'ltr', review: 'may' },
-  { code: 'bn', ten: 'বাংলা', englishName: 'Bengali', dir: 'ltr', review: 'may' },
-  { code: 'pt', ten: 'Português', englishName: 'Portuguese', dir: 'ltr', review: 'may' },
+  { code: 'en', ten: 'English', englishName: 'English', dir: 'ltr', review: 'source' },
+  { code: 'zh', ten: '中文（简体）', englishName: 'Chinese (Simplified)', dir: 'ltr', review: 'machine' },
+  { code: 'hi', ten: 'हिन्दी', englishName: 'Hindi', dir: 'ltr', review: 'machine' },
+  { code: 'es', ten: 'Español', englishName: 'Spanish', dir: 'ltr', review: 'machine' },
+  { code: 'ar', ten: 'العربية', englishName: 'Arabic', dir: 'rtl', review: 'machine' },
+  { code: 'fr', ten: 'Français', englishName: 'French', dir: 'ltr', review: 'machine' },
+  { code: 'bn', ten: 'বাংলা', englishName: 'Bengali', dir: 'ltr', review: 'machine' },
+  { code: 'pt', ten: 'Português', englishName: 'Portuguese', dir: 'ltr', review: 'machine' },
   // ── VỊ TRÍ THỨ 9 — David chốt. Xem quyết định ③ ở đầu file. ──────────────────
   // Bản dịch DUY NHẤT có người soát: David đã duyệt toàn bộ 2026-08-27.
   // ⚠️ Chú thích cũ ở đây gọi `vi` là "bản GỐC mà mọi bản khác dịch ra từ đó". SAI,
@@ -84,28 +84,28 @@ export const LANGUAGES: readonly Language[] = [
   // ghi rõ *"Mọi bản dịch khác dịch RA TỪ ĐÂY, không phải từ `vi.ts`"* — dịch qua
   // hai tầng là nhân đôi chỗ để nghĩa trôi đi. `vi` là bản dịch đầu tiên và là bản
   // được soát, không phải bản gốc.
-  { code: 'vi', ten: 'Tiếng Việt', englishName: 'Vietnamese', dir: 'ltr', review: 'nguoi' },
-  { code: 'ru', ten: 'Русский', englishName: 'Russian', dir: 'ltr', review: 'may' },
-  { code: 'ur', ten: 'اردو', englishName: 'Urdu', dir: 'rtl', review: 'may' },
-  { code: 'id', ten: 'Bahasa Indonesia', englishName: 'Indonesian', dir: 'ltr', review: 'may' },
-  { code: 'de', ten: 'Deutsch', englishName: 'German', dir: 'ltr', review: 'may' },
-  { code: 'ja', ten: '日本語', englishName: 'Japanese', dir: 'ltr', review: 'may' },
-  { code: 'mr', ten: 'मराठी', englishName: 'Marathi', dir: 'ltr', review: 'may' },
-  { code: 'te', ten: 'తెలుగు', englishName: 'Telugu', dir: 'ltr', review: 'may' },
-  { code: 'tr', ten: 'Türkçe', englishName: 'Turkish', dir: 'ltr', review: 'may' },
-  { code: 'ta', ten: 'தமிழ்', englishName: 'Tamil', dir: 'ltr', review: 'may' },
-  { code: 'ko', ten: '한국어', englishName: 'Korean', dir: 'ltr', review: 'may' },
-  { code: 'it', ten: 'Italiano', englishName: 'Italian', dir: 'ltr', review: 'may' },
-  { code: 'th', ten: 'ไทย', englishName: 'Thai', dir: 'ltr', review: 'may' },
-  { code: 'gu', ten: 'ગુજરાતી', englishName: 'Gujarati', dir: 'ltr', review: 'may' },
-  { code: 'fa', ten: 'فارسی', englishName: 'Persian', dir: 'rtl', review: 'may' },
-  { code: 'pl', ten: 'Polski', englishName: 'Polish', dir: 'ltr', review: 'may' },
-  { code: 'uk', ten: 'Українська', englishName: 'Ukrainian', dir: 'ltr', review: 'may' },
-  { code: 'ms', ten: 'Bahasa Melayu', englishName: 'Malay', dir: 'ltr', review: 'may' },
-  { code: 'nl', ten: 'Nederlands', englishName: 'Dutch', dir: 'ltr', review: 'may' },
-  { code: 'tl', ten: 'Filipino', englishName: 'Filipino', dir: 'ltr', review: 'may' },
-  { code: 'sw', ten: 'Kiswahili', englishName: 'Swahili', dir: 'ltr', review: 'may' },
-  { code: 'ha', ten: 'Hausa', englishName: 'Hausa', dir: 'ltr', review: 'may' },
+  { code: 'vi', ten: 'Tiếng Việt', englishName: 'Vietnamese', dir: 'ltr', review: 'human' },
+  { code: 'ru', ten: 'Русский', englishName: 'Russian', dir: 'ltr', review: 'machine' },
+  { code: 'ur', ten: 'اردو', englishName: 'Urdu', dir: 'rtl', review: 'machine' },
+  { code: 'id', ten: 'Bahasa Indonesia', englishName: 'Indonesian', dir: 'ltr', review: 'machine' },
+  { code: 'de', ten: 'Deutsch', englishName: 'German', dir: 'ltr', review: 'machine' },
+  { code: 'ja', ten: '日本語', englishName: 'Japanese', dir: 'ltr', review: 'machine' },
+  { code: 'mr', ten: 'मराठी', englishName: 'Marathi', dir: 'ltr', review: 'machine' },
+  { code: 'te', ten: 'తెలుగు', englishName: 'Telugu', dir: 'ltr', review: 'machine' },
+  { code: 'tr', ten: 'Türkçe', englishName: 'Turkish', dir: 'ltr', review: 'machine' },
+  { code: 'ta', ten: 'தமிழ்', englishName: 'Tamil', dir: 'ltr', review: 'machine' },
+  { code: 'ko', ten: '한국어', englishName: 'Korean', dir: 'ltr', review: 'machine' },
+  { code: 'it', ten: 'Italiano', englishName: 'Italian', dir: 'ltr', review: 'machine' },
+  { code: 'th', ten: 'ไทย', englishName: 'Thai', dir: 'ltr', review: 'machine' },
+  { code: 'gu', ten: 'ગુજરાતી', englishName: 'Gujarati', dir: 'ltr', review: 'machine' },
+  { code: 'fa', ten: 'فارسی', englishName: 'Persian', dir: 'rtl', review: 'machine' },
+  { code: 'pl', ten: 'Polski', englishName: 'Polish', dir: 'ltr', review: 'machine' },
+  { code: 'uk', ten: 'Українська', englishName: 'Ukrainian', dir: 'ltr', review: 'machine' },
+  { code: 'ms', ten: 'Bahasa Melayu', englishName: 'Malay', dir: 'ltr', review: 'machine' },
+  { code: 'nl', ten: 'Nederlands', englishName: 'Dutch', dir: 'ltr', review: 'machine' },
+  { code: 'tl', ten: 'Filipino', englishName: 'Filipino', dir: 'ltr', review: 'machine' },
+  { code: 'sw', ten: 'Kiswahili', englishName: 'Swahili', dir: 'ltr', review: 'machine' },
+  { code: 'ha', ten: 'Hausa', englishName: 'Hausa', dir: 'ltr', review: 'machine' },
 ] as const;
 
 /** Mã của ngôn ngữ mặc định. Đổi giá trị này là đổi thứ người lạ gặp đầu tiên. */

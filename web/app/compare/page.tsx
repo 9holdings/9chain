@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMeta({
 export default function TrangBang() {
   return (
     <div className="khung py-10 md:py-14">
-      <PageHeader group="compare" width="vua" />
+      <PageHeader group="compare" width="wide" />
       <ComparisonTable />
     </div>
   );

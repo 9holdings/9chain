@@ -76,15 +76,15 @@ describe('sổ đăng ký ngôn ngữ', () => {
     // 🔴 Trường này tồn tại để bộ chọn KHÔNG bày 30 ngôn ngữ trông ngang nhau trong
     // khi 29 bản là máy dịch. Site này nói với người lạ rằng tài sản của họ sẽ bị
     // xoá — giấu mức độ soát ở đó là đúng lớp lỗi dự án vừa gỡ khỏi trang chủ.
-    for (const n of LANGUAGES) expect(['goc', 'nguoi', 'may']).toContain(n.review);
-    expect(LANGUAGES.find((n) => n.code === 'vi')?.review).toBe('nguoi');
+    for (const n of LANGUAGES) expect(['source', 'human', 'machine']).toContain(n.review);
+    expect(LANGUAGES.find((n) => n.code === 'vi')?.review).toBe('human');
 
     // 🔴 ĐÚNG MỘT bản gốc, và nó phải là ngôn ngữ mặc định.
     // Bản trước của bài này chỉ đòi `soat` nằm trong tập hợp lệ, nên nó xanh trong
     // suốt quãng `en` bị khai là `'may'` — tức trình đọc màn hình đọc "English —
     // máy dịch" về chính bản gốc, và không cổng nào thấy. Một tập hợp lệ không
     // thay được một phép so với sự thật.
-    const goc = LANGUAGES.filter((n) => n.review === 'goc');
+    const goc = LANGUAGES.filter((n) => n.review === 'source');
     expect(goc.map((n) => n.code)).toEqual([DEFAULT_CODE]);
   });
 });

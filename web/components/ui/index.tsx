@@ -20,40 +20,42 @@ export { cx };
 
 /* ───────────────────────────────────────────────────────────────── Button */
 
-type KieuNut = 'chinh' | 'phu' | 'vien' | 'tron';
-type CoNut = 'vua' | 'to';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
+type ButtonSize = 'md' | 'lg';
 
-const NUT_CHUNG =
+const BUTTON_BASE =
   'inline-flex items-center justify-center gap-2 font-semibold transition-colors ' +
   'disabled:opacity-55 disabled:cursor-not-allowed select-none';
 
-// 🔴 KHOÁ Ở ĐÂY PHẢI TRÙNG TỪNG CHỮ với union `KieuNut` bên trên, và union đó là
+// 🔴 KHOÁ Ở ĐÂY PHẢI TRÙNG TỪNG CHỮ với union `ButtonVariant` bên trên, và union đó là
 // CHUỖI. Đợt đổi tên định danh `2026-09-03` sửa khoá `phu` thành `note` (nó cũng là
 // tên một prop ở chỗ khác) trong khi `'phu'` trong union — một chuỗi — thì không đổi.
 // `tsc` bắt ngay, nhưng đây là lời nhắc: tên nào tồn tại ĐỒNG THỜI dưới dạng định
 // danh và dưới dạng chuỗi thì phải đổi CẢ HAI trong một lượt, hoặc không đổi gì.
-// Cả bộ từ vựng biến thể (`chinh`/`phu`/`vien`/`tron`, `vua`/`to`) để lượt riêng.
-const NUT_KIEU: Record<KieuNut, string> = {
+// Cả bộ từ vựng biến thể (`primary`/`secondary`/`outline`/`ghost`, `md`/`lg`) đã đổi cùng lượt này —
+// xem commit 2026-09-03: union là CHUỖI nên `tsc` đối chiếu từng giá trị, khác hẳn
+// chỗ giữ chỗ `{…}` mà không kiểu nào canh.
+const BUTTON_VARIANT: Record<ButtonVariant, string> = {
   // Vàng là màu CTA của thương hiệu; chữ trên nền vàng phải là navy, không phải trắng.
-  chinh: 'bg-gold text-navy hover:bg-gold-hover shadow-cta',
-  phu: 'bg-navy text-on-dark hover:bg-navy-hover',
-  vien: 'border border-line-strong bg-surface text-ink hover:bg-surface-alt',
-  tron: 'text-body hover:text-ink hover:bg-surface-alt',
+  primary: 'bg-gold text-navy hover:bg-gold-hover shadow-cta',
+  secondary: 'bg-navy text-on-dark hover:bg-navy-hover',
+  outline: 'border border-line-strong bg-surface text-ink hover:bg-surface-alt',
+  ghost: 'text-body hover:text-ink hover:bg-surface-alt',
 };
 
-const NUT_CO: Record<CoNut, string> = {
-  vua: 'h-11 px-4 text-sm rounded-btn',
-  to: 'h-13 px-6 text-base rounded-btn-lg',
+const BUTTON_SIZE: Record<ButtonSize, string> = {
+  md: 'h-11 px-4 text-sm rounded-btn',
+  lg: 'h-13 px-6 text-base rounded-btn-lg',
 };
 
 export function Button({
-  variant = 'chinh',
-  co = 'vua',
+  variant = 'primary',
+  size = 'md',
   isRunning = false,
   className,
   children,
   ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: KieuNut; co?: CoNut; isRunning?: boolean }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; size?: ButtonSize; isRunning?: boolean }) {
   return (
     <button
       {...rest}
@@ -61,7 +63,7 @@ export function Button({
       // nút đang bận, mà chữ đổi thì họ chỉ nghe lại khi tự điều hướng tới nó.
       aria-busy={isRunning || undefined}
       disabled={rest.disabled || isRunning}
-      className={cx(NUT_CHUNG, NUT_KIEU[variant], NUT_CO[co], className)}
+      className={cx(BUTTON_BASE, BUTTON_VARIANT[variant], BUTTON_SIZE[size], className)}
     >
       {isRunning && <VongXoay />}
       {children}
@@ -153,20 +155,20 @@ export function Field({
 
 /* ───────────────────────────────────────────────────────────────── Badge */
 
-type KieuNhan = 'trungTinh' | 'tot' | 'canhBao' | 'xau';
-const NHAN_KIEU: Record<KieuNhan, string> = {
-  trungTinh: 'bg-vision-bg text-vision-ink border-vision-line',
-  tot: 'bg-success-bg text-success-ink border-success-line',
-  canhBao: 'bg-gold-tint text-dev-ink border-dev-line',
-  xau: 'bg-surface-alt text-danger border-line-strong',
+type BadgeTone = 'neutral' | 'good' | 'warn' | 'bad';
+const BADGE_TONE: Record<BadgeTone, string> = {
+  neutral: 'bg-vision-bg text-vision-ink border-vision-line',
+  good: 'bg-success-bg text-success-ink border-success-line',
+  warn: 'bg-gold-tint text-dev-ink border-dev-line',
+  bad: 'bg-surface-alt text-danger border-line-strong',
 };
 
-export function Badge({ variant = 'trungTinh', children }: { variant?: KieuNhan; children: ReactNode }) {
+export function Badge({ tone = 'neutral', children }: { tone?: BadgeTone; children: ReactNode }) {
   return (
     <span
       className={cx(
         'inline-flex items-center gap-1 rounded-chip border px-2 py-0.5 text-xs font-semibold',
-        NHAN_KIEU[variant],
+        BADGE_TONE[tone],
       )}
     >
       {children}
@@ -223,7 +225,7 @@ export function ErrorState({ title, desc, onRetry }: { title?: string; desc?: st
       <p className="font-semibold text-ink">{title ?? t.errors.unreachable}</p>
       <p className="text-sm text-body-2">{desc ?? t.errors.unreachableDesc}</p>
       {onRetry && (
-        <Button variant="vien" onClick={onRetry}>
+        <Button variant="outline" onClick={onRetry}>
           {t.common.retry}
         </Button>
       )}
@@ -279,12 +281,12 @@ export function Copyable({ value, label, className }: { value: string; label?: s
 
 /* ───────────────────────────────────────────────────────────────── Callout */
 
-export function Note({ variant = 'thuong', children }: { variant?: 'thuong' | 'canhBao'; children: ReactNode }) {
+export function Note({ tone = 'info', children }: { tone?: 'info' | 'warn'; children: ReactNode }) {
   return (
     <div
       className={cx(
         'rounded-card border px-4 py-3 text-sm',
-        variant === 'canhBao'
+        tone === 'warn'
           ? 'border-dev-line bg-gold-tint-2 text-dev-ink'
           : 'border-line bg-surface-alt text-body',
       )}
@@ -299,8 +301,8 @@ export function Note({ variant = 'thuong', children }: { variant?: 'thuong' | 'c
 export type StepStatus = 'pending' | 'running' | 'done' | 'failed';
 export type Step = { code: string; label: string; status: StepStatus; ms?: number };
 
-const DAU: Record<StepStatus, string> = { pending: '○', running: '◐', done: '✓', failed: '✕' };
-const MAU: Record<StepStatus, string> = {
+const STEP_GLYPH: Record<StepStatus, string> = { pending: '○', running: '◐', done: '✓', failed: '✕' };
+const STEP_COLOUR: Record<StepStatus, string> = {
   pending: 'text-muted',
   running: 'text-gold-ink-strong',
   done: 'text-success-ink',
@@ -324,8 +326,8 @@ export function Steps({ steps, footnote }: { steps: Step[]; footnote?: string })
       <ol role="list" className="flex flex-col gap-2">
         {steps.map((b) => (
           <li key={b.code} className="flex items-baseline gap-3 text-sm">
-            <span aria-hidden="true" className={cx('w-4 shrink-0 font-mono', MAU[b.status])}>
-              {DAU[b.status]}
+            <span aria-hidden="true" className={cx('w-4 shrink-0 font-mono', STEP_COLOUR[b.status])}>
+              {STEP_GLYPH[b.status]}
             </span>
             <span className={cx('flex-1', b.status === 'pending' ? 'text-muted' : 'text-body')}>
               {b.label}

@@ -84,7 +84,7 @@ export function LanguagePicker() {
                   // người đang dùng giọng đọc của một thứ tiếng khác.
                   aria-label={
                     `${n.englishName}` +
-                    (n.review === 'may' ? ` — ${t.langPicker.machineBadge}` : '') +
+                    (n.review === 'machine' ? ` — ${t.langPicker.machineBadge}` : '') +
                     (co ? '' : ` — ${t.langPicker.notAvailable}`)
                   }
                   className={

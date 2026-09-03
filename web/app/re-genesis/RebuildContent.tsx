@@ -43,7 +43,7 @@ export function RebuildContent() {
           không ai mất token — vì thế câu chữ nói "nếu bạn có token trước đó", không
           nói "không ai mất gì". */}
       <div className="mt-6">
-        <Note variant="canhBao">
+        <Note tone="warn">
           <p className="font-semibold">{t.rebuild.alreadyTitle}</p>
           <p className="mt-1">{t.rebuild.alreadyDesc}</p>
         </Note>
@@ -116,7 +116,7 @@ export function RebuildContent() {
       </Item>
 
       <div className="mt-10">
-        <Note variant="canhBao">
+        <Note tone="warn">
           <p className="font-semibold">{t.rebuild.dateNote}</p>
           <p className="mt-1">{interpolate(t.rebuild.dateNoteDesc, { ngay })}</p>
         </Note>

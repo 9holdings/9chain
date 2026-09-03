@@ -65,7 +65,7 @@ export function NetworkStats({ tren = 'sang' }: { tren?: 'sang' | 'toi' }) {
   return (
     <div className="mt-8">
       <div className="flex items-center gap-2">
-        <Badge variant="tot">{t.stats.title}</Badge>
+        <Badge tone="good">{t.stats.title}</Badge>
       </div>
       <dl className="mt-3 grid grid-cols-3 gap-4 sm:max-w-lg">
         {o.map((x) => (

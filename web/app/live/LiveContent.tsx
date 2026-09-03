@@ -61,7 +61,7 @@ export function LiveContent() {
     <div className="khung max-w-3xl py-10 md:py-14">
       <header>
         <div className="flex items-center gap-2">
-          <Badge variant={song ? 'tot' : 'trungTinh'}>
+          <Badge tone={song ? 'good' : 'neutral'}>
             {song ? t.loadTest.running : t.loadTest.stopped}
           </Badge>
         </div>

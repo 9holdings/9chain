@@ -188,12 +188,12 @@ export function MyChainsScreen() {
       <Card className="mt-8 max-w-xl p-5 md:p-6">
         <h2 className="font-display text-lg font-bold text-ink">{t.myChains.connectWallet}</h2>
         <div className="mt-4">
-          <Button co="to" onClick={vao} isRunning={connecting}>
+          <Button size="lg" onClick={vao} isRunning={connecting}>
             {connecting ? t.launch.signing : t.launch.connectWallet}
           </Button>
         </div>
         {walletFailure && <div className="mt-4"><ErrorState title={walletFailure} desc="" onRetry={vao} /></div>}
-        {!getWallet() && <div className="mt-4"><Note variant="canhBao">{t.launch.noWallet}</Note></div>}
+        {!getWallet() && <div className="mt-4"><Note tone="warn">{t.launch.noWallet}</Note></div>}
       </Card>
     );
   }
@@ -269,9 +269,9 @@ export function MyChainsScreen() {
                         ) : v === 'errors' ? (
                           <span className="text-muted">{t.myChains.cannotMeasure}</span>
                         ) : v === 0 ? (
-                          <Badge variant="canhBao">{t.myChains.noValidators}</Badge>
+                          <Badge tone="warn">{t.myChains.noValidators}</Badge>
                         ) : (
-                          <Badge variant="tot">{interpolate(t.myChains.validatorCount, { so: v })}</Badge>
+                          <Badge tone="good">{interpolate(t.myChains.validatorCount, { so: v })}</Badge>
                         )}
                       </p>
                       <p className="mt-1 text-xs text-muted">{t.myChains.statusHelp}</p>
@@ -281,7 +281,7 @@ export function MyChainsScreen() {
                         </p>
                       )}
                     </div>
-                    <Button variant="vien" onClick={() => { setRevoking(c); setTypedName(''); }}>
+                    <Button variant="outline" onClick={() => { setRevoking(c); setTypedName(''); }}>
                       {t.myChains.revoke}
                     </Button>
                   </div>
@@ -297,7 +297,7 @@ export function MyChainsScreen() {
                   {c.rpc && (
                     <div className="mt-3">
                       <Button
-                        variant="tron"
+                        variant="ghost"
                         onClick={async () => {
                           try {
                             await addL1ToWallet({ chainIdHex: '0x' + c.chainId.toString(16), name: c.name, rpc: c.rpc!, kyHieu: 'LOVE9' });
@@ -344,7 +344,7 @@ export function MyChainsScreen() {
                   <span className="ms-2 font-mono text-xs font-normal">#{c.chainId}</span>
                 </h2>
                 <p className="mt-1 text-sm">
-                  <Badge variant="xau">{t.myChains.revokedBadge}</Badge>
+                  <Badge tone="bad">{t.myChains.revokedBadge}</Badge>
                   <span className="ms-2 text-muted">{t.myChains.revokedDesc}</span>
                 </p>
               </Card>
@@ -382,7 +382,7 @@ export function MyChainsScreen() {
             <Button disabled={typedName !== revoking.name} onClick={() => thucHienThuHoi(revoking)}>
               {t.myChains.revokeConfirm}
             </Button>
-            <Button variant="tron" onClick={() => { setRevoking(null); setTypedName(''); }}>
+            <Button variant="ghost" onClick={() => { setRevoking(null); setTypedName(''); }}>
               {t.myChains.revokeCancel}
             </Button>
           </div>

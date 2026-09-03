@@ -114,7 +114,7 @@ export function FaucetForm() {
         </div>
 
         <div className="mt-5 flex flex-col gap-2">
-          <Button variant="vien" onClick={themMang}>
+          <Button variant="outline" onClick={themMang}>
             {walletState === 'xong' ? t.faucet.addNetworkDone : t.faucet.addNetwork}
           </Button>
           {walletState === 'tuChoi' && <p className="text-sm text-body-2">{t.faucet.addNetworkRejected}</p>}
@@ -144,7 +144,7 @@ export function FaucetForm() {
 
         {hetSuat && (
           <div className="mt-4">
-            <Note variant="canhBao">
+            <Note tone="warn">
               {interpolate(t.faucet.quotaExhausted, {
                 phut: Math.max(1, Math.ceil((quota.phase === 'xong' ? quota.quota.perIp.retryAfter : 60) / 60)),
               })}
@@ -153,7 +153,7 @@ export function FaucetForm() {
         )}
 
         <div className="mt-5">
-          <Button co="to" onClick={gui} isRunning={sending} disabled={!hopLe || hetSuat}>
+          <Button size="lg" onClick={gui} isRunning={sending} disabled={!hopLe || hetSuat}>
             {sending ? t.faucet.sending : t.faucet.requestCta}
           </Button>
         </div>
@@ -216,7 +216,7 @@ function HanMuc({ quota, onRetry }: { quota: TrangThaiTin; onRetry: () => void }
   return (
     <span className="flex items-center gap-2 text-sm text-body-2">
       {t.faucet.quotaLabel}
-      <Badge variant={perIp.remaining > 0 ? 'tot' : 'canhBao'}>
+      <Badge tone={perIp.remaining > 0 ? 'good' : 'warn'}>
         {interpolate(t.faucet.quotaFormat, { con: perIp.remaining, tong: perIp.max, gio: perIp.windowHours })}
       </Badge>
     </span>

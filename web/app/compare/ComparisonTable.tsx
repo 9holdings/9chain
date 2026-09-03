@@ -51,7 +51,7 @@ export function ComparisonTable() {
 
   return (
     <div className="mt-8 flex flex-col gap-6">
-      <Note variant="canhBao">
+      <Note tone="warn">
         <strong className="block font-semibold">{t.compare.selfScoreTitle}</strong>
         <span className="mt-1 block">{t.compare.selfScoreDesc}</span>
       </Note>
@@ -122,7 +122,7 @@ export function ComparisonTable() {
                     <span className="mt-0.5 block text-xs font-normal text-body-2">{c.note}</span>
                   </th>
                   <td className="px-3 py-3">
-                    <Badge variant={c.kind === 'song' ? 'tot' : 'trungTinh'}>
+                    <Badge tone={c.kind === 'song' ? 'good' : 'neutral'}>
                       {c.kind === 'song' ? t.compare.kindLiveData : t.compare.kindArchitecture}
                     </Badge>
                   </td>

@@ -273,17 +273,17 @@ function ChainCard({
   const t = useT();
 
   /** Badge + one-line reason. See the file header: validators decide, not RPC. */
-  const [variant, label, why]: ['tot' | 'xau' | 'canhBao' | 'trungTinh', string, string] = isMain
-    ? ['trungTinh', t.directory.mainNetwork, t.directory.mainNetworkDesc]
+  const [variant, label, why]: ['good' | 'bad' | 'warn' | 'neutral', string, string] = isMain
+    ? ['neutral', t.directory.mainNetwork, t.directory.mainNetworkDesc]
     : probe.unknown
-      ? ['canhBao', t.directory.unclear, t.directory.unclearDesc]
+      ? ['warn', t.directory.unclear, t.directory.unclearDesc]
       : !probe.rpcOk
-      ? ['xau', t.directory.notAnswering, t.directory.notAnsweringDesc]
+      ? ['bad', t.directory.notAnswering, t.directory.notAnsweringDesc]
       : probe.validators === 0
-        ? ['xau', t.myChains.noValidators, t.myChains.noValidatorsDesc]
+        ? ['bad', t.myChains.noValidators, t.myChains.noValidatorsDesc]
         : probe.validators === null || probe.validators === undefined
-          ? ['canhBao', t.directory.unclear, t.directory.unclearDesc]
-          : ['tot', t.directory.running, interpolate(t.myChains.validatorCount, { so: probe.validators })];
+          ? ['warn', t.directory.unclear, t.directory.unclearDesc]
+          : ['good', t.directory.running, interpolate(t.myChains.validatorCount, { so: probe.validators })];
 
   const admin = typeof record.admin === 'string' ? record.admin.trim() : '';
   const preset = (record.presetName ?? record.presetTen ?? '').trim();
@@ -292,7 +292,7 @@ function ChainCard({
     <Card className="p-5">
       <div className="mb-3 flex flex-wrap items-center gap-2.5">
         <h2 className="text-base font-bold text-ink">{record.name}</h2>
-        <Badge variant={variant}>{label}</Badge>
+        <Badge tone={variant}>{label}</Badge>
       </div>
       <p className="-mt-1.5 mb-3 text-sm text-muted">{why}</p>
 
@@ -339,7 +339,7 @@ function AddToWallet({ name, chainIdHex, rpc }: { name: string; chainIdHex: stri
   return (
     <>
       <Button
-        co="vua"
+        size="md"
         onClick={async () => {
           const eth = (window as { ethereum?: { request: (a: unknown) => Promise<unknown> } }).ethereum;
           if (!eth) {
@@ -394,7 +394,7 @@ function RetiredCard({ record, code }: { record: RetiredRecord; code: string }) 
     <Card className="p-5 opacity-75">
       <div className="mb-3 flex flex-wrap items-center gap-2.5">
         <h2 className="text-base font-bold text-muted line-through">{record.name}</h2>
-        <Badge variant="trungTinh">{t.directory.revoked}</Badge>
+        <Badge tone="neutral">{t.directory.revoked}</Badge>
       </div>
       <p className="-mt-1.5 mb-3 text-sm text-muted">{t.directory.revokedDesc}</p>
       <Row k={t.directory.ownerAdmin}>

@@ -31,7 +31,7 @@
 /** Hạn mặc định cho một lượt ĐỌC ngắn (số liệu, danh bạ, hạn mức faucet). */
 export const READ_TIMEOUT_MS = 12_000;
 
-export type FailureKind = 'hetGio' | 'http' | 'khongPhaiJson' | 'dutMang';
+export type FailureKind = 'timeout' | 'http' | 'notJson' | 'offline';
 
 export class NetworkError extends Error {
   readonly kind: FailureKind;
@@ -43,7 +43,7 @@ export class NetworkError extends Error {
     this.status = status;
   }
   /** Server đã trả lời và trả lời là "không" ⇒ thử lại vô ích. */
-  get thuLaiVoIch(): boolean {
+  get retryPointless(): boolean {
     return this.kind === 'http' && this.status >= 400 && this.status < 500;
   }
 }
@@ -72,9 +72,9 @@ export async function fetchJson<T = unknown>(
     // `AbortSignal.timeout` ném `TimeoutError`; đứt mạng ném `TypeError`.
     const ten = (e as Error)?.name;
     if (ten === 'TimeoutError' || ten === 'AbortError') {
-      throw new NetworkError('hetGio', `quá ${hanGiay}s không có trả lời`);
+      throw new NetworkError('timeout', `quá ${hanGiay}s không có trả lời`);
     }
-    throw new NetworkError('dutMang', (e as Error)?.message ?? 'không gọi được');
+    throw new NetworkError('offline', (e as Error)?.message ?? 'không gọi được');
   }
 
   const t = await r.text();
@@ -84,7 +84,7 @@ export async function fetchJson<T = unknown>(
   } catch {
     // Nói rõ đây là nghi vấn ĐỊNH TUYẾN, kèm mã HTTP để phân biệt với lỗi thật.
     throw new NetworkError(
-      'khongPhaiJson',
+      'notJson',
       `đáp án không phải JSON (HTTP ${r.status}) — nhiều khả năng đường dẫn bị giải sai`,
       r.status,
     );

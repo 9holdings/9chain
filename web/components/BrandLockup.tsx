@@ -51,12 +51,12 @@ export const MARK_GOLD = '#F5C542';
 
 type Props = {
   /**
-   * `'toi'`  — nền luôn tối (header của site luôn là `bg-navy`) ⇒ chữ trắng.
-   * `'sang'` — nền luôn sáng ⇒ chữ navy.
-   * `'theo-theme'` — chữ đổi theo `html[data-theme]`, qua biến `--mau-chu-logo`
+   * `'dark'`  — nền luôn tối (header của site luôn là `bg-navy`) ⇒ chữ trắng.
+   * `'light'` — nền luôn sáng ⇒ chữ navy.
+   * `'auto'` — chữ đổi theo `html[data-theme]`, qua biến `--mau-chu-logo`
    *   khai trong `globals.css`. Dùng cho chỗ nền tự đổi (chân trang).
    */
-  background?: 'toi' | 'sang' | 'theo-theme';
+  background?: 'dark' | 'light' | 'auto';
   /** Chiều cao hiển thị, px. Tỉ lệ khoá ở 360:128 nên rộng = cao × 2,8125. */
   height?: number;
   className?: string;
@@ -67,9 +67,9 @@ type Props = {
   label?: string;
 };
 
-export function BrandLockup({ background = 'theo-theme', height = 30, className, label }: Props) {
+export function BrandLockup({ background = 'auto', height = 30, className, label }: Props) {
   const mauChu =
-    background === 'toi' ? TEXT_ON_DARK : background === 'sang' ? TEXT_ON_LIGHT : 'var(--mau-chu-logo)';
+    background === 'dark' ? TEXT_ON_DARK : background === 'light' ? TEXT_ON_LIGHT : 'var(--mau-chu-logo)';
 
   return (
     <svg

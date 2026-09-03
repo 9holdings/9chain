@@ -191,7 +191,7 @@ export function CreateChainScreen() {
         <h2 className="font-display text-lg font-bold text-ink">{t.launch.connectWallet}</h2>
         <p className="mt-2 text-sm text-body-2">{t.launch.youWillOwn}</p>
         <div className="mt-5">
-          <Button co="to" onClick={vao} isRunning={connecting}>
+          <Button size="lg" onClick={vao} isRunning={connecting}>
             {connecting ? t.launch.signing : t.launch.connectWallet}
           </Button>
         </div>
@@ -202,7 +202,7 @@ export function CreateChainScreen() {
         )}
         {!getWallet() && (
           <div className="mt-4">
-            <Note variant="canhBao">{t.launch.noWallet}</Note>
+            <Note tone="warn">{t.launch.noWallet}</Note>
           </div>
         )}
       </Card>
@@ -224,14 +224,14 @@ export function CreateChainScreen() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-lg font-bold text-ink">{t.launch.title}</h2>
               {/* 🔴 Trần hiện TRƯỚC khi người ta bỏ công, không phải lúc bị từ chối. */}
-              <Badge variant={hetCho ? 'canhBao' : 'tot'}>
+              <Badge tone={hetCho ? 'warn' : 'good'}>
                 {hetCho ? t.launch.slotsFull : interpolate(t.launch.slotsLeft, { con: tran - soChain, tong: tran })}
               </Badge>
             </div>
 
             {hetCho && (
               <div className="mt-4">
-                <Note variant="canhBao">{t.launch.slotsFullDesc}</Note>
+                <Note tone="warn">{t.launch.slotsFullDesc}</Note>
               </div>
             )}
 
@@ -288,7 +288,7 @@ export function CreateChainScreen() {
             )}
 
             <div className="mt-6">
-              <Button co="to" disabled={!tenOk || hetCho || !state} onClick={() => setPhase('soat')}>
+              <Button size="lg" disabled={!tenOk || hetCho || !state} onClick={() => setPhase('soat')}>
                 {t.launch.reviewCta}
               </Button>
             </div>
@@ -299,11 +299,11 @@ export function CreateChainScreen() {
           <>
             <h2 className="font-display text-lg font-bold text-ink">{t.launch.reviewTitle}</h2>
             <div className="mt-3 flex flex-col gap-3">
-              <Note variant="canhBao">{t.launch.reviewDesc}</Note>
+              <Note tone="warn">{t.launch.reviewDesc}</Note>
               {/* Cảnh báo re-genesis đặt ở ĐÂY chứ không chỉ ở dải trên đầu trang:
                   đây là giây cuối trước cửa một chiều, và là chỗ duy nhất chắc chắn
                   người dùng đang đọc. Gỡ cùng lúc với dải banner sau ngày G. */}
-              <Note variant="canhBao">
+              <Note tone="warn">
                 {interpolate(t.launch.reviewRebuild, { ngay: t.rebuild.date })}
               </Note>
             </div>
@@ -320,10 +320,10 @@ export function CreateChainScreen() {
               ))}
             </dl>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Button co="to" onClick={de}>
+              <Button size="lg" onClick={de}>
                 {t.launch.reviewConfirm}
               </Button>
-              <Button co="to" variant="vien" onClick={() => setPhase('nhap')}>
+              <Button size="lg" variant="outline" onClick={() => setPhase('nhap')}>
                 {t.launch.reviewBack}
               </Button>
             </div>
@@ -389,7 +389,7 @@ export function CreateChainScreen() {
 
             <div className="mt-5 flex flex-wrap gap-3">
               <Button
-                variant="vien"
+                variant="outline"
                 onClick={async () => {
                   setAddWalletError(null);
                   try {
@@ -436,7 +436,7 @@ export function CreateChainScreen() {
               </Button>
 
               <Button
-                variant="tron"
+                variant="ghost"
                 onClick={() => {
                   setResult(null);
                   setProgress(null);

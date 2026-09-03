@@ -35,38 +35,38 @@ function gia(opts: { status?: number; body?: string; treo?: boolean; nem?: Error
 }
 
 describe('fetchJson — ba kiểu hỏng phải phân biệt được', () => {
-  it('máy chủ CHẬM/treo ⇒ hetGio, không treo mãi', async () => {
+  it('máy chủ CHẬM/treo ⇒ timeout, không treo mãi', async () => {
     gia({ treo: true });
     // Hạn 0,05s để bài kiểm không tự nó chậm.
-    await expect(fetchJson('/x', {}, 0.05)).rejects.toMatchObject({ kind: 'hetGio' });
+    await expect(fetchJson('/x', {}, 0.05)).rejects.toMatchObject({ kind: 'timeout' });
   });
 
   it('máy chủ CHẾT (500) ⇒ http, và thử lại KHÔNG vô ích', async () => {
     gia({ status: 500, body: '{"error":"vo"}' });
-    const e = await fetchJson('/x').catch((x) => x as NetworkError);
+    const e = (await fetchJson('/x').catch((x) => x)) as NetworkError;
     expect(e.kind).toBe('http');
     expect(e.status).toBe(500);
-    expect(e.thuLaiVoIch).toBe(false);
+    expect(e.retryPointless).toBe(false);
   });
 
   it('máy chủ TỪ CHỐI THẬT (401) ⇒ thử lại vô ích', async () => {
     gia({ status: 401, body: '{"error":"chưa xác thực"}' });
-    const e = await fetchJson('/x').catch((x) => x as NetworkError);
-    expect(e.thuLaiVoIch).toBe(true);
+    const e = (await fetchJson('/x').catch((x) => x)) as NetworkError;
+    expect(e.retryPointless).toBe(true);
     expect(e.message).toContain('chưa xác thực');
   });
 
-  it('máy chủ trả RÁC (HTML) ⇒ khongPhaiJson, và câu lỗi phải nghi ĐỊNH TUYẾN', async () => {
+  it('máy chủ trả RÁC (HTML) ⇒ notJson, và câu lỗi phải nghi ĐỊNH TUYẾN', async () => {
     // Ca thật: request rơi xuống Blockscout ở gốc `/` và ta nhận về khung HTML.
     gia({ status: 200, body: '<!DOCTYPE html><html><body>Blockscout</body></html>' });
-    const e = await fetchJson('/x').catch((x) => x as NetworkError);
-    expect(e.kind).toBe('khongPhaiJson');
+    const e = (await fetchJson('/x').catch((x) => x)) as NetworkError;
+    expect(e.kind).toBe('notJson');
     expect(e.message).toMatch(/đường dẫn/i);
   });
 
-  it('đứt mạng ⇒ dutMang, KHÔNG bị nhầm thành hetGio', async () => {
+  it('đứt mạng ⇒ offline, KHÔNG bị nhầm thành timeout', async () => {
     gia({ nem: new TypeError('Failed to fetch') });
-    await expect(fetchJson('/x')).rejects.toMatchObject({ kind: 'dutMang' });
+    await expect(fetchJson('/x')).rejects.toMatchObject({ kind: 'offline' });
   });
 
   it('không truyền hanGiay ⇒ KHÔNG gắn signal (mặc định là không hạn giờ)', async () => {

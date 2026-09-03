@@ -94,7 +94,7 @@ export function SiteHeader() {
               ĐỪNG sửa bằng cách nắn lại `viewBox` hay giãn chữ trong `BrandLockup` —
               hình học ở đó là bộ kit của David, xem chú thích đầu tệp đó. Chỉ đổi
               chiều cao hiển thị. */}
-          <BrandLockup background="toi" height={36} label={t.common.productName} className="flex-none" />
+          <BrandLockup background="dark" height={36} label={t.common.productName} className="flex-none" />
           <span className="rounded-chip border border-line-dark-2 px-1.5 py-0.5 font-sans text-[11px] font-semibold text-gold-muted">
             A1
           </span>

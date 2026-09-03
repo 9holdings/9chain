@@ -16,7 +16,7 @@ export function HomeContent() {
     <>
       <section className="bg-navy">
         <div className="khung py-14 md:py-20">
-          <Badge variant="canhBao">{t.home.testnetBadge}</Badge>
+          <Badge tone="warn">{t.home.testnetBadge}</Badge>
           {/* Dòng dẫn: chữ "A1" trong <h1> phải có nghĩa TRƯỚC khi được dùng.
               `moTaNgan` là chuỗi đã có sẵn và đã duyệt — không sinh chuỗi mới. */}
           <p className="mt-4 text-sm font-semibold uppercase tracking-wider text-on-dark-2">
