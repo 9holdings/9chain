@@ -8285,3 +8285,42 @@ cách dựng, không xoá.
   thuộc `web-home`; con số thì đáng mừng.
 - Console rollout **lần hai** `16:03–16:07Z` (9 node lại trẻ) — hai lượt đẻ/thu hồi L1 trong một
   giờ từ ví allowlist. Mẫu đo tải `19:30Z` sẽ tự in tuổi node; đọc tuổi trước khi so.
+
+## D-178 — **Đo tải L1: mỗi L1 track thêm tốn mỗi node ~0,05 core trong `avalanchego` + 53 MiB plugin, dù chain im — trần 15 sát máy 8 lõi** (`2026-09-03`)
+
+Việc P-48 để lại: *"đo tải 3 L1 lúc node ~4 h tuổi"*. Đo bằng `scripts/measure-node-load.sh`
+(cgroup v2 `cpu.stat` delta / `memory.current`, D-176). Hai mẫu — và **mẫu thứ hai không còn là 3 L1**:
+chiều nay ví allowlist đẻ thêm **BBWay Chain** `15:21Z` · **9Mall Chain** `15:28Z` · **9Cashback
+Chain** `16:08Z`, mỗi lượt kéo theo một rollout 9 node (`15:16–15:27Z`, `16:03–16:07Z`).
+
+| mẫu | L1 | tuổi node | cửa sổ | 9 node CPU | 9 node RAM | mỗi node CPU | loadavg 1m |
+|---|---|---|---|---|---|---|---|
+| `14:49:54Z` | **3** | ~90 phút | 20 s | `1,199` core (node-1 `0,658` **do Blockscout**, D-176) | `3.531` MiB | **~0,07** (8 node kia) | 11,6 |
+| `17:21:40Z` | **6** | ~75 phút | 60 s | `2,277` core (node-1 `0,292`, ngang các node) | `4.103` MiB | **0,23–0,26** | 3,04 |
+
+Mẫu nền cũ trong HANDOFF (`11:43:42Z`, 2 L1: `0,952` core · `5.270` MiB) **không có lệnh đo kèm** và
+gánh Blockscout ⇒ không so được; từ nay so bằng tệp này.
+
+### Chi phí nằm ở TIẾN TRÌNH CHÍNH, không ở plugin
+
+Trong cgroup node-2 (`17:2xZ`): `avalanchego` tích luỹ **19,8 %** CPU · `308 MiB`; **sáu** tiến trình
+subnet-evm (một cho mỗi L1) mỗi cái **0,5 %** · **53 MiB**. ⇒ mỗi L1 track thêm, kể cả khi **không có
+giao dịch nào**, tốn mỗi node: **~0,05 core** trong bộ đồng thuận/gossip của `avalanchego` (từ
+`0,07` lên `0,25` cho +3 L1) và **~53 MiB** RAM cố định cho plugin. Bơm 9 tx/s chỉ chạy trên C-Chain;
+sáu L1 đều im.
+
+### Ngoại suy, còn sơ bộ (hai mẫu, tuổi node gần nhau, chưa có mẫu 4 h)
+
+```
+tran 15 L1 :  ~0,7-0,8 core/node  =>  6-7 core cho 9 node  tren may 8 loi   <- SAT
+              ~15 x 53 = ~800 MiB plugin/node + ~300 base  => ~10 GB / 9 node   (may 64 GB: on)
+108 L1     :  bat kha thi tren mot may, theo CA HAI truc
+```
+
+⇒ Đưa thẳng vào quyết định **ACP-77 (trần 15 vs 108)**: nói *"108"* trên một máy là nói về một máy
+khác, hoặc về **nhiều máy** (O4). Và **trần 15 không phải "còn rộng"**: đầy 15 chỗ là máy này chạy
+sát 8 lõi **trước khi** có giao dịch nào trên L1.
+
+⚠️ Hai mẫu cùng tuổi ~80 phút nên phép so hợp lệ về **hình dạng**; con số tuyệt đối còn đổi khi
+node lớn (heap, cache). Mẫu `19:30Z` (node ~3,3 h, đã hẹn) sẽ ghi bù vào đây. Đọc **tuổi** trước khi
+so bất kỳ mẫu nào — script in sẵn.
