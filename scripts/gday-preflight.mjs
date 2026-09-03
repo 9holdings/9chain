@@ -113,6 +113,12 @@ const GATES = [
   { group: "2 · REPO GATES", name: "block-list ratchet — it may only grow (counter-check)", ...node("scripts/gen-chainid-issued.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "console GENERATION gate (generation-test)", ...node("local-net/console/generation-test.mjs") },
   { group: "2 · REPO GATES", name: "orphan-file classification (counter-check)", ...node("scripts/check-deploy-drift.mjs", "--self-test") },
+  // 🔴 Runs in group 2, not 3: it compares the repo against the manifest and needs no server, so
+  // it can refuse a bad deploy BEFORE the deploy. On 2026-09-03 the console was shipped without
+  // a file it imports and stayed down two minutes, while the drift gate — correctly, within its
+  // own scope — reported every file it knew about as matching. No gate measures an absence.
+  { group: "2 · REPO GATES", name: "deploy manifest ships every import (counter-check)", ...node("scripts/check-deploy-imports.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "deploy manifest ships every import", ...node("scripts/check-deploy-imports.mjs") },
   { group: "2 · REPO GATES", name: "chain-directory compaction (counter-check)", ...node("scripts/close-ledger-before-regenesis.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "network-watch scoring (counter-check)", ...node("scripts/watch-network.mjs", "--self-test") },
   // 🔴 THE SIX COUNTER-CHECKS BELOW EXISTED AND WERE NOT WIRED IN — measured 2026-08-31.
