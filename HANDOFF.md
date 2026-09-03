@@ -4,6 +4,13 @@ Cập nhật: **2026-09-03** — 🟢 **BA L1 ĐẦU TIÊN SỐNG (Adam · Eva �
 ví, ví factory đã nạp, bơm chạy tới `09/09`.** Preflight `47 đạt · 1 đỏ` (đỏ = `web-home`). Còn
 **12/15 chỗ vĩnh viễn**. 🔴 3 tệp đã deploy nhưng commit cuối **CHƯA ĐẨY**. Đọc mục **CHỐT PHIÊN
 `2026-09-03`** ngay dưới — gotchas ở đó là thứ đắt nhất của ngày.
+🔴 **Chiều `03/09` (D-176):** node-1 ăn gấp 10 node kia vì **Blockscout đuổi theo DB của HAI thế hệ
+chết** (block `0` ba hash, `max 107.875`, công khai khai `107.850 block`) — DB **chưa ai xoá khi
+re-genesis**. Cờ tắt coin-balance fetcher **làm explorer đứng** (v9.0.2), đã **hoàn nguyên** `15:42Z`;
+trạng thái Blockscout = như trước, node-1 vẫn ~435 gọi/s. **David quyết:** xoá DB index lại g1, hay
+cho Blockscout nghỉ. ⚠️ `stats` nay chạy (crash-loop vô hại, proxy cần tên nó). ⚠️ Console rollout
+`15:16–15:27Z` ⇒ 9 node trẻ lại, mẫu đo tải "4 h" dời `≈19:30Z`. Lệnh đo nay là tệp:
+`scripts/measure-node-load.sh`.
 Trước đó **2026-09-02** chiều — 🟢🟢 **CHẶN SỐ 1 HẾT CHẶN: `genesis.json` NAY TẢI ĐƯỢC TỪ NGOÀI**
 (D-158). Đã đẩy `official` + `origin`, nghiệm thu **bằng tay** trên đúng đường người lạ đi.
 🔴 Hoá ra không phải *"chưa ai tải lên"*: tệp **không được git theo dõi** — byte cả thế giới cần

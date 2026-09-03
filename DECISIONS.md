@@ -8135,3 +8135,92 @@ script — đúng thói quen HANDOFF đã dặn. Khôi phục byte gốc rồi c
 Console sống lại (`HTTP 200`), cửa **MỞ** với cổng mời **một ví**, và cả hai đo trên **tiến trình
 đang chạy** (`/proc/<pid>/environ`), không đọc tệp cấu hình rồi tin. `reopen-chain-creation --probe`
 **cả bốn xanh**.
+
+## D-176 — **Node-1 ăn gấp 10 lần node kia vì Blockscout đang đuổi theo HAI thế hệ đã chết — và cờ tôi bật để chữa làm explorer ĐỨNG** (`2026-09-03`)
+
+David: *"sao node-1 ăn gấp 10 lần node kia?"* rồi *"tắt cái coin balance fetcher của Blockscout đi."*
+Câu đầu có đáp án đo được. Câu sau làm xong, **hỏng**, và đã **hoàn nguyên** trong 28 phút. Điều đáng
+ghi không phải cái cờ — là **gốc rễ** nó để lộ, và **ba cái bẫy** nó kéo theo.
+
+### Đo: ai đang gọi node-1 (`15:0xZ`, trên server)
+
+| phép đo | node-1 | node-2 |
+|---|---|---|
+| `avalanche_api_calls{base="C"}` (delta 30 s) | **435/s** | **0/s** (chỉ health) |
+| CPU cgroup, cửa sổ 20 s | **0,658 core** | 0,070 |
+
+Node-1 là node duy nhất mở API ra host (`127.0.0.1:9650`), là beacon của 8 node kia; Caddy dùng
+`lb_policy first` nên node-2 chỉ dự phòng; bơm, faucet, console, 9Scan indexer, Blockscout **đều**
+trỏ `172.28.0.11:9650`. Bơm chỉ gửi 9 tx/s ⇒ phần còn lại là **thăm dò**. `tcpdump` 10 s, gói PUSH
+vào `:9650` theo nguồn: **Blockscout backend 1292/s (98 %)** · bơm 19/s · host (Caddy + console +
+9Scan) 5/s. Log Blockscout: **27.367 dòng `failed to fetch … missing trie node` / 60 s ≈ 456/s** —
+`eth_getBalance` tại block `3036` `3038` `13586` `13590` `13592`, state đã tỉa, **không bao giờ có lại**.
+
+### 🔴 Gốc rễ: DB Blockscout chưa từng được xoá khi re-genesis
+
+Hỏi thẳng Postgres (`blocks`): `max(number) = 107.875` · `125.491` dòng · `107.850` consensus. Block
+`0` có **ba hash**; block `1` có ba timestamp: `26/08 15:03` (diễn tập) · `27/08 15:28` (g0) ·
+`01/09 10:04` (g1). Block `20000` (`29/08`) và `100000` (`31/08`) — **của g0** — vẫn `consensus = true`.
+Chain g1 lúc đo cao **17.631**. ⇒ Mọi fetcher của Blockscout đang đuổi theo địa chỉ và block của
+một thế hệ chết: số dư tại block g0 (không có state), catchup tìm "block thiếu" tới 107k (không bao
+giờ tới). Hai vòng lặp nóng, thử lại sau `0 ms`, vô hạn.
+
+🔴 **Và nó đã ra bề mặt công khai:** `a1.9chain.org/api/v2/stats` khai **`total_blocks 107.850` ·
+`total_transactions 1.940.867`** cho một chain **17,6 k block**. Đúng lớp D-150 / D-154 — bảng phân
+bổ, sổ chain, nay đến explorer — và **không cổng nào so `total_blocks` của explorer với đầu chain**.
+
+### Cờ `INDEXER_DISABLE_ADDRESS_COIN_BALANCE_FETCHER=true` — bật, đo, hoàn nguyên
+
+Áp đúng đường tài liệu (`9chain-a1-overrides.blockscout.env` → `setup.sh` → `server.env.sh` →
+`compose up -d backend`, `stop_grace_period 5m` ⇒ kill lúc `15:20:21Z`). Kết quả theo thứ tự:
+
+| lúc | lỗi/60 s | gọi node-1/s | ghi chú |
+|---|---|---|---|
+| trước | 27.367 `missing trie` | 435 | |
+| `+1 min` | 145 | **59** | trông như thắng |
+| `+3 min` | 23.252 **`eaddrnotavail`** | 482 | **27.898 socket TIME-WAIT** tới node-1, dải cổng `32768–60999` cạn |
+| bật `tcp_tw_reuse=1` | 0 | **1.336 → 2.081** | node-1 **0,79 core** — tệ hơn trước |
+| DB | — | — | Blockscout **đứng ở 17401** từ `15:29:47Z`, đầu chain 17631 |
+
+Vì sao đứng: `Indexer.Block.Realtime.Fetcher` crash ở
+`GenServer.call(Indexer.Fetcher.CoinBalance.Realtime, {:buffer, …})` — bản v9.0.2 khoá **cả hai**
+GenServer (`Catchup` và `Realtime`) vào cùng một cờ, mà import block realtime **gọi thẳng** cái
+`Realtime` không kiểm nó còn sống. Tắt cờ = tắt luôn import. ⇒ **Hoàn nguyên** (`15:40–15:42Z`,
+`up -d -t 60`), đo lại: cờ **vắng** trong `/proc/<pid>/environ` · realtime chạy `17782 → 17787`,
+đầu chain `17792` · lỗi `24.164/60 s` · **414/s** · node-1 `0,939 core` (node vừa bị rollout dựng lại
+lúc `15:27Z`, 16 phút tuổi — chưa so được với 0,658).
+
+### ⚠️ Ba bẫy kéo theo, mỗi cái đã cắn thật
+
+1. 🔴 **Cạn cổng ephemeral là một cái PHANH vô hình.** `28.231 cổng / 60 s TIME-WAIT ≈ 470/s` — con
+   số `435/s` "ổn định" suốt 7 ngày **không phải nhịp của Blockscout, là trần của kernel**. Gỡ phanh
+   (`tcp_tw_reuse`) thì vòng lặp xấu chạy nhanh **gấp 5**. Trước khi "sửa" một giới hạn, hỏi: *nó
+   đang kìm cái gì?*
+2. 🔴 **Restart `proxy` = nginx KHÔNG LÊN** (`15:30:15Z`): `host not found in upstream "stats"` —
+   container `stats` đã `Exited (1)` **6 ngày trước**; nginx cũ sống vì phân giải từ `27/08`.
+   Đường công khai `/blocks` `/api/v2/*` trả **502 ≈ 3 phút** do tôi. Sửa: `up -d stats proxy`.
+   `stats` nay crash-loop (`restarts=11`, đợi backend khai trạng thái index) — vô hại với proxy vì
+   nginx chỉ cần **tên** lúc khởi động. Đúng bẫy `resolver` mà nginx của 9Scan đã ghi chú; tôi dẫm
+   lại ở nginx của Blockscout. **Đọc log của thứ mình sắp restart TRƯỚC khi restart.**
+3. 🔴 **502 của `/api/v2/stats` có TRƯỚC tôi** (log proxy: `15:14Z`, và `27/08`) — cùng nguyên nhân
+   `stats` chết. Suýt gán nó cho lượt recreate. Đo mốc thời gian trước khi nhận lỗi về mình — và
+   cũng trước khi **chối** nó.
+
+### Cùng lúc: console rollout 9 node (`15:16:49 → 15:27:47Z`)
+
+Nhìn thấy `docker compose up -d --no-deps 9chain-a1-node-5` **không phải của tôi**. Truy ra là
+rollout `track-subnets` của console (32 s/node, log `console.log`) — một lượt đẻ/thu hồi L1 từ ví
+allowlist. Hệ quả cho P-48-đo-tải: **9 node trẻ lại**, mốc "4 h tuổi" dời sang `≈19:30Z`.
+
+### Việc David quyết (A1 không tự làm — xoá dữ liệu công khai, luật §4)
+
+- **(a)** Xoá DB Blockscout, index lại g1 từ block 0 (17,8 k block, vài phút): `down` backend +
+  `db` + `stats-db` kèm volume, `up -d`. Hết cả hai vòng lặp, `total_blocks` về đúng.
+- **(b)** Cho Blockscout nghỉ: 9Scan-A1 là explorer đã chốt; `A1_ROOT_UPSTREAM` thuộc Caddy /
+  `web-home` (luật cứng #4).
+- **Nợ cổng:** `check-live-page` (hoặc cổng mới) so `total_blocks` của explorer với
+  `eth_blockNumber` — hai chiều, như D-154.
+
+Kèm: `scripts/measure-node-load.sh` — lệnh cgroup mà HANDOFF trỏ tới "D-175/P-48" **chưa từng được
+ghi ở đâu**; nay là tệp, có đối chứng đỏ (filter không khớp ⇒ `exit 1`), mẫu `14:49Z` (3 L1, node
+90 phút): 9 node `1,199 core · 3.531 MiB`, node-1 `0,658` / 8 node kia `~0,07`.
