@@ -78,9 +78,43 @@ export function useTieuDeTheoNgonNgu(): void {
     const d = duong === '/' ? '/' : duong.endsWith('/') ? duong : `${duong}/`;
     const lay = TIEU_DE_THEO_DUONG[d] ?? KHONG_THAY;
     const tran = lay(t);
-    document.title =
+    const muon =
       tran === null
         ? ghepTieuDeGoc(t.common.productName, t.common.tagline)
         : ghepTieuDe(tran, t.common.productName);
+
+    document.title = muon;
+
+    /**
+     * 🔴 CANH LẠI `<title>`, VÌ MỘT LẦN GHI KHÔNG ĐỦ — ĐO ĐƯỢC TRÊN MẠNG THẬT
+     * `2026-09-03`.
+     *
+     * Bản đầu chỉ có dòng `document.title = muon` ở trên. Nó chạy đúng khi người
+     * dùng đổi ngôn ngữ QUA BỘ CHỌN (đo: tiêu đề lật sang `L1 目录` rồi `Danh bạ L1`),
+     * nhưng ở **lượt tải đầu** — khi ngôn ngữ tới từ `localStorage` — tiêu đề đứng
+     * nguyên tiếng Anh trong khi `<html lang>` và cả trang đã sang tiếng Việt.
+     *
+     * Phép đo phân biệt hai ca đó là thứ chỉ ra nguyên nhân: khác biệt duy nhất giữa
+     * "tải đầu" và "đổi qua bộ chọn" là **hydrate**. Next dựng `<title>` từ
+     * `metadata` phía server, và lượt đối chiếu cây sau hydrate ghi lại giá trị đó
+     * SAU khi effect này đã ghi — nên bản dịch bị đè, im lặng.
+     *
+     * ⚠️ CÓ THỂ VÁ BẰNG `setTimeout(0)` — VÀ ĐÓ LÀ THỨ KHÔNG NÊN LÀM. Nó chỉ dịch
+     * chỗ mình vào cuối một hàng đợi mà mình không kiểm soát; lần Next đổi nhịp là
+     * lỗi quay lại, và quay lại IM LẶNG. `MutationObserver` không đua với ai: hễ có
+     * ai đổi `<title>` khác giá trị ta muốn thì đặt lại. Điều kiện `!==` giữ cho nó
+     * không tự gọi lại chính mình.
+     *
+     * An toàn ở đây vì mọi điều hướng trong site là TẢI LẠI TOÀN TRANG —
+     * `check-static-export.mjs` bắt buộc mọi đường đi bằng thẻ `<a>` — nên không có
+     * lượt đổi route phía client nào để observer này phải tranh chấp.
+     */
+    const the = document.querySelector('title');
+    if (!the) return;
+    const canh = new MutationObserver(() => {
+      if (document.title !== muon) document.title = muon;
+    });
+    canh.observe(the, { childList: true, characterData: true, subtree: true });
+    return () => canh.disconnect();
   }, [t, duong]);
 }
