@@ -613,6 +613,22 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       xanh**.
       ⚠️ Còn **13 chỗ** vĩnh viễn; thêm ví vào danh sách là sửa `A1_L1_ALLOWLIST` + restart.
 
+
+- [human] **P-50 — 🔴 node-1 ăn gấp 10 node kia: Blockscout đuổi theo DB của HAI thế hệ chết; cờ tắt fetcher làm explorer ĐỨNG, đã hoàn nguyên** (D-176)
+      Đo `15:0xZ`: node-1 **435 lời gọi API/s**, node-2 **0**; `tcpdump` chia theo nguồn: Blockscout
+      **98 %**. Lỗi `missing trie node` **27.367/60 s** — `eth_getBalance` tại block g0, state đã tỉa.
+      🔴 **Gốc:** Postgres của Blockscout có block `0` với **ba hash**, block `20000`/`100000` của g0
+      còn `consensus`, `max = 107.875` trong khi chain g1 cao 17,6 k. **Chưa ai xoá DB khi re-genesis.**
+      Bề mặt công khai `a1.9chain.org/api/v2/stats` khai **107.850 block · 1,94 M tx**.
+      🔴 Cờ `INDEXER_DISABLE_ADDRESS_COIN_BALANCE_FETCHER=true` (v9.0.2) tắt luôn GenServer mà import
+      realtime gọi ⇒ explorer đứng ở 17401. **Hoàn nguyên** `15:42Z`, đo: cờ vắng trong `/proc`,
+      realtime chạy lại, công khai 200. Kèm: cạn cổng ephemeral là **cái phanh** (435/s = trần
+      kernel); restart `proxy` làm nginx không lên vì `stats` đã chết 6 ngày (502 công khai ~3 phút).
+      **Việc David:** (a) xoá DB Blockscout, index lại g1 (vài phút) · (b) cho Blockscout nghỉ, 9Scan
+      là explorer. **Nợ cổng:** so `total_blocks` explorer ↔ `eth_blockNumber`, hai chiều.
+      ✅ Kèm `scripts/measure-node-load.sh` (cgroup, đối chứng đỏ): mẫu `14:49Z` 3 L1 · 9 node
+      `1,199 core · 3.531 MiB`; mẫu "4 h tuổi" dời `≈19:30Z` vì console rollout `15:16–15:27Z`.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
