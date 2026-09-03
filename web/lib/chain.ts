@@ -23,19 +23,28 @@ export const CHAIN = {
    * networkID của avalanchego là uint32 — KHÔNG phải số 9 tỷ ở trên.
    *
    * 🔴 ĐỔI 2026-08-27: `9001` → `999999999` (D-081, thế hệ **g0**).
-   * David yêu cầu chạy lại mạng công khai "để các chỉ số từ bây giờ là chuẩn nhất".
-   * Mạng mới khai `info.getNetworkName` = `9chain-a1-g0` và `networkID` = 999999999.
+   * 🔴 ĐỔI 2026-09-03: `999999999` → `999999998` — **ngày G đã chạy 01/09**, mạng
+   *   công khai nay là thế hệ **g1**. Đo thẳng trên mạng đang chạy trước khi sửa:
+   *   `info.getNetworkID` → 999999998 · `info.getNetworkName` → `9chain-a1-g1` ·
+   *   `eth_chainId` → 0x218711a09 (không đổi, đúng D-047).
    *
-   * ⚠️ Site ĐÃ HIỂN THỊ SAI số này một quãng: chân trang in "networkID 9001" trong
-   * khi mạng thật đã là 999999999. Không cổng nào bắt được, vì đây là một HẰNG SỐ
-   * chép tay — nó không sai về cú pháp, không sai về kiểu, chỉ sai về sự thật.
-   * ⇒ Nay có `local-net/deploy/check-chain-id.mjs`: đối chiếu khối này với mạng
-   *   ĐANG CHẠY trước mỗi lượt deploy. Đừng gỡ nó khi dọn dẹp.
+   * Số này KHÔNG tuỳ tiện: `network_ids.go` suy cả hai trục danh tính từ một biến
+   * `A1Gen` duy nhất — `A1ID = 999999999 − A1Gen` và `A1Name = "9chain-a1-g<A1Gen>"`.
+   * Thế hệ đếm XUỐNG từ đỉnh băng, nên mỗi lượt sinh lại số này GIẢM một.
+   *
+   * ⚠️ HẰNG SỐ NÀY ĐÃ SAI HAI LẦN, VÀ CẢ HAI LẦN ĐỀU CÙNG MỘT KIỂU: chân trang in
+   * "networkID 9001" khi mạng đã là 999999999 (27/08), rồi in "999999999" khi mạng
+   * đã là 999999998 (01/09 → 03/09, hai ngày trên mạng công khai). Nó là một HẰNG SỐ
+   * CHÉP TAY — không sai cú pháp, không sai kiểu, chỉ sai sự thật, nên `tsc`, test và
+   * axe đều xanh trong lúc trang nói dối.
+   * ⇒ Thứ DUY NHẤT bắt được là `local-net/deploy/check-chain-id.mjs`: nó hỏi mạng
+   *   ĐANG CHẠY trước mỗi lượt deploy. Lần này chính nó chặn đúng lượt deploy đang
+   *   diễn ra. Đừng gỡ nó khi dọn dẹp, và đừng "sửa" nó thành đo hằng số trong repo.
    *
    * `eth_chainId` thì KHÔNG đổi (D-047 giữ 9000000009) — hai số này độc lập nhau,
    * và đó chính là chỗ dễ nhầm: mạng đổi danh tính mà ví không thấy gì khác.
    */
-  networkId: 999999999,
+  networkId: 999999998,
 } as const;
 
 /** Tên miền mặc định khi không đọc được `location` (lúc build tĩnh). */
