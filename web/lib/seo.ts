@@ -37,6 +37,32 @@ import { EN } from '@/lib/i18n/en';
  * Dùng: `export const metadata = trangMeta({ tieuDe, moTa, duong })`.
  * Không gõ lại chuỗi ở lời gọi — truyền đúng biến đã dùng cho `title`.
  */
+/**
+ * Cắt dấu duyệt giọng `[?]`. Xem lý do ở chú thích trong `trangMeta`.
+ * Xuất ra ngoài để đường phía client dùng ĐÚNG một hàm này, không chép lại regex.
+ */
+export const boDauDuyet = (s: string) => s.replace(/ \[\?\]/g, '');
+
+/**
+ * KHUÔN TIÊU ĐỀ TRANG — **nguồn duy nhất**, dùng bởi CẢ HAI đường:
+ *   • `trangMeta()` ngay dưới, chạy lúc BUILD, luôn với `EN`
+ *   • `useTieuDeTrang()` trong `lib/tieuDe.ts`, chạy trên TRÌNH DUYỆT với từ điển
+ *     người đọc đang chọn
+ *
+ * 🔴 VÌ SAO PHẢI LÀ MỘT HÀM CHỨ KHÔNG PHẢI HAI CHỖ GHÉP CHUỖI GIỐNG NHAU:
+ * hai đường ghép độc lập sẽ trôi lệch ở lần đầu ai đó đổi dấu gạch ngang hay thứ tự
+ * — và khi đó tiêu đề **nhảy** lúc hydrate xong (tab đổi chữ trước mắt người dùng)
+ * mà không có lỗi nào báo, vì cả hai chuỗi đều "đúng". Một hàm thì không lệch được.
+ */
+export function ghepTieuDe(tieuDeTran: string, tenSanPham: string): string {
+  return `${boDauDuyet(tieuDeTran)} — ${tenSanPham}`;
+}
+
+/** Khuôn tiêu đề của TRANG CHỦ — khác các trang con: tên sản phẩm đứng TRƯỚC. */
+export function ghepTieuDeGoc(tenSanPham: string, tagTitle: string): string {
+  return `${boDauDuyet(tenSanPham)} — ${boDauDuyet(tagTitle)}`;
+}
+
 export function trangMeta({
   tieuDe,
   moTa,
@@ -52,9 +78,8 @@ export function trangMeta({
   // thẻ meta — nơi đó chữ bị máy khác đọc và hiện lại nguyên văn trong thẻ chia sẻ,
   // ngoài tầm với của mọi lượt sửa sau này. Cắt ở ĐÂY là hợp lệ; cắt ở tầng render
   // của trang thì KHÔNG — xem mục "cố ý không làm" số 15 trong lộ trình.
-  const sach = (s: string) => s.replace(/ \[\?\]/g, '');
-  const t = `${sach(tieuDe)} — ${EN.chung.tenSanPham}`;
-  const d = sach(moTa);
+  const t = ghepTieuDe(tieuDe, EN.chung.tenSanPham);
+  const d = boDauDuyet(moTa);
 
   return {
     title: t,

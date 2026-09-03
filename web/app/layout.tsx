@@ -4,6 +4,7 @@ import './globals.css';
 import { SiteHeader } from '@/components/SiteHeader';
 import { LoadTestBanner } from '@/components/LoadTestBanner';
 import { EarlyHints } from '@/components/EarlyHints';
+import { TieuDeTheoNgonNgu } from '@/components/TieuDeTheoNgonNgu';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ThemeScript } from '@/components/ThemeScript';
 import { EN } from '@/lib/i18n/en';
@@ -123,6 +124,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             nhau, và người dùng thấy một trang NỬA ANH NỬA VIỆT trong vài khung
             hình. Cả cây phải lật cùng một lúc — xem `lib/i18n/index.tsx`. */}
         <NhaCungCapNgonNgu>
+          {/* Đổi `<title>` theo ngôn ngữ đã chọn — `metadata` ở trên sinh lúc build
+              nên nó VĨNH VIỄN tiếng Anh cho cả 30 bản. Không vẽ gì; phải nằm TRONG
+              provider mới đọc được từ điển. Xem `lib/tieuDe.ts` cho cả phần thẻ chia
+              sẻ mà cách này KHÔNG vá được. */}
+          <TieuDeTheoNgonNgu />
           <BoQuaToiNoiDung />
           {/* 🔴 `ReGenesisBanner` ĐÃ GỠ `2026-09-03` — David chốt.
               Dải đó nói "A1 sẽ sinh lại ngày 01/09/2026, mọi thứ tạo trước đó sẽ bị
