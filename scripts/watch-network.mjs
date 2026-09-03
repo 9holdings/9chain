@@ -59,7 +59,33 @@ export const NGUONG = {
   // validator không phải việc làm trong một buổi chiều.
   ngayHetHanVang: 120,
   ngayHetHanDo: 45,
-  // Một lượt đẻ chain tiêu ~0,1 LOVE9 (đo D-091). Vàng ở 10 = còn ~100 lượt.
+  /**
+   * 🔴 THIS BALANCE IS NOT A CAPACITY, AND THIS COMMENT USED TO SAY IT WAS.
+   *
+   * It read: "one chain creation costs ~0.1 LOVE9 (D-091), so yellow at 10 = ~100 left."
+   * Both halves were wrong by 2026-09-03, and this file is what people actually read — so the
+   * wrong halves were the ones being quoted.
+   *
+   * ① **The 0.1 is the PRE-ETNA STATIC fee and is no longer charged.** `info.getTxFee` still
+   *    advertises `createSubnetTxFee: 0.1` and `createBlockchainTxFee: 0.1`, but P-Chain has
+   *    used DYNAMIC fees since Etna. Measured on g1 when the first L1 was created
+   *    (2026-09-03): **0.00023015 LOVE9** for the whole creation — about 869x less than the
+   *    static schedule predicts. `docs/PROGRESS.md` had already measured 0.000141468 on the dev
+   *    network and written "the static numbers are no longer used" — weeks before this comment
+   *    kept quoting them. A fact recorded in one place does not fix a number left in another.
+   *
+   * ② 🔴 **The binding limit is not money at all.** `local-net/console/server.mjs` refuses at
+   *    `MAX_L1` (15) because `TRAN_SUBNET_GIAO_THUC` is 16: a node declaring more than 16
+   *    subnets at handshake is dropped by EVERY peer — the network breaks, it does not slow
+   *    down. So the ceiling is ~15 chains, while this wallet at 999 LOVE9 could pay for
+   *    millions. Reading capacity off this balance overstates it by five orders of magnitude.
+   *    Raising it means changing the architecture (per-L1 validator sets / ACP-77), not a number.
+   *
+   * ⇒ The thresholds below stay where they are. They are a "the wallet is running dry" alarm
+   *   and nothing more, and at the measured price they are enormously conservative — which is
+   *   the safe direction for an alarm. What changed is that they no longer claim to say how
+   *   many chains are left, because they never could.
+   */
   factoryVang: 10,
   factoryDo: 1,
 };
@@ -165,7 +191,7 @@ async function doMang() {
       (v) => (v <= NGUONG.factoryDo ? "do" : v <= NGUONG.factoryVang ? "vang" : "dat"),
       VI_FACTORY === null
         ? `no factory wallet declared for g${A1_GEN}; measure another one with --wallet <P-addr>`
-        : "cạn ⇒ đẻ chain chết câm"),
+        : "empty ⇒ chain creation dies silently. NOT a capacity: the ceiling is MAX_L1 (15), set by the P2P subnet limit, not by this balance"),
     muc("supplyCap TRÊN NODE ĐANG CHẠY ↔ repo", capNode === null || capRepo === null ? null : capNode,
       (v) => (capRepo && v.includes(capRepo) ? "dat" : "do"), `repo khai ${capRepo ?? "?"}`),
     muc("faucet /api/supply", faucet, (v) => (v === "có số đo" ? "dat" : "do")),
