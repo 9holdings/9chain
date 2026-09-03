@@ -704,7 +704,7 @@ cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang g
       **đồng thuận của tiến trình chính**, không ở plugin.
       🔴 **Ngoại suy sơ bộ:** trần 15 L1 ≈ `0,7–0,8` core/node = **6–7 core cho 9 node trên máy 8 lõi**
       trước khi có giao dịch nào trên L1; 108 L1 bất khả thi trên một máy. Đưa vào ACP-77.
-      ⚠️ Mẫu `19:30Z` (node ~3,3 h) sẽ ghi bù vào D-178; đọc tuổi node trước khi so.
+      ✅ Mẫu `19:31Z` (node ~3,4 h, 6 L1): CPU `2,197` core — **không đổi theo tuổi**, ngoại suy đứng vững; RAM `5.828` MiB — **lớn theo tuổi**, so RAM phải cùng tuổi node.
 
 ---
 
