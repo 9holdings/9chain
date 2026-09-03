@@ -1,72 +1,74 @@
 /**
- * Sổ đăng ký ngôn ngữ — nguồn DUY NHẤT cho: mã, tên bản ngữ, chiều viết, thứ tự
- * hiển thị và **mức độ soát** của từng bản dịch.
+ * The language registry — the ONE source for: code, endonym, writing direction, display
+ * order and the **review level** of each translation.
  *
- * ═══ BA QUYẾT ĐỊNH CỦA DAVID, GHI RA ĐỂ ĐỪNG AI "SỬA LẠI CHO ĐÚNG" ═══
- * ① **Tiếng Anh là mặc định.** Site này tới 2026-08-27 chỉ có tiếng Việt và mặc
- *    định là tiếng Việt. Nay người lạ mở `a1.9chain.org` sẽ gặp tiếng Anh trước.
- * ② **Đúng 30 ngôn ngữ**, chọn theo số người nói trên thế giới.
- * ③ **Tiếng Việt đứng thứ 9 trong danh sách hiển thị** — không phải theo số người
- *    nói (nếu xếp theo đó nó rơi khoảng thứ 21). Đây là lựa chọn có chủ đích, hợp
- *    với mô-típ số 9 của dự án.
- * 🔴 Vì ③ là một NGOẠI LỆ CÓ CHỦ ĐÍCH nằm giữa một danh sách xếp theo quy tắc khác,
- *    nó trông y hệt một lỗi sắp xếp. Có `test/i18n.test.ts` khoá vị trí đó lại —
- *    ai "dọn cho đúng thứ tự" sẽ thấy test đỏ kèm lý do, thay vì đổi im lặng.
+ * ═══ THREE OF DAVID'S DECISIONS, WRITTEN DOWN SO NOBODY "CORRECTS" THEM ═══
+ * ① **English is the default.** Until 2026-08-27 this site was Vietnamese only and
+ *    defaulted to Vietnamese. A stranger opening `a1.9chain.org` now meets English first.
+ * ② **Exactly 30 languages**, chosen by number of speakers worldwide.
+ * ③ **Vietnamese sits 9th in the display list** — not by speaker count (by that it would
+ *    land around 21st). This is a deliberate choice, in keeping with the project's
+ *    motif of the number 9.
+ * 🔴 Because ③ is a DELIBERATE EXCEPTION sitting inside a list ordered by another rule,
+ *    it looks exactly like a sorting bug. `test/i18n.test.ts` pins that position — anyone
+ *    "tidying the order" gets a red test with the reason, instead of changing it silently.
  *
- * ═══ 🔴 `soat` — VÌ SAO MỘT TRƯỜNG NHƯ THẾ NÀY PHẢI TỒN TẠI ═══
- * `vi.ts` đặt luật `[?]`: chuỗi nào do agent tự nghĩ ra phải mang dấu cho tới khi
- * David duyệt GIỌNG. 28 bản dịch máy dưới đây là 28 tập chữ **không ai trong đội đọc
- * được để soát** — trong đó có `/re-genesis/`, trang báo với người lạ rằng tài sản
- * của họ sắp bị xoá.
- * ⇒ Không giấu chuyện đó sau 30 lá cờ trông ngang nhau. Ngôn ngữ `soat: 'may'` được
- *   khai ra trong `aria-label` của từng mục, cộng một câu giải thích ở chân bộ chọn
- *   (`components/LanguagePicker.tsx`).
- *   ⚠️ Chú thích cũ trỏ vào `BanDich.tsx` — **tệp đó không tồn tại**, và chưa bao giờ
- *   tồn tại trong cây này. Một con trỏ chết trong tài liệu đắt đúng bằng lúc người
- *   sau đi tìm nó để sửa lời khai và không tìm thấy gì.
- * ⚠️ ĐỪNG gỡ dòng khai đó để "trông chuyên nghiệp hơn". Nó chính là thứ phân biệt
- *   bộ 30 ngôn ngữ này với bộ 10 ngôn ngữ mà dự án anh em C1 đã phải GỠ BỎ ngày
- *   26/08 vì *"đa ngữ giả — bấm vào là tiếng Anh hết"*.
- * ⇒ Nâng một ngôn ngữ lên `'nguoi'` khi VÀ CHỈ KHI có người đọc được thứ tiếng đó
- *   soát xong. Đổi trường này là một lời khai, không phải một tinh chỉnh.
+ * ═══ 🔴 `soat` — WHY A FIELD LIKE THIS HAS TO EXIST ═══
+ * `vi.ts` sets the `[?]` rule: any string an agent invented carries a mark until David
+ * has approved its VOICE. The 28 machine translations below are 28 bodies of text **nobody
+ * on the team can read well enough to review** — including `/re-genesis/`, the page that
+ * tells strangers their assets are about to be erased.
+ * ⇒ Do not hide that behind 30 flags that all look equal. A `soat: 'may'` language is
+ *   declared in each entry's `aria-label`, plus a sentence of explanation at the foot of
+ *   the picker (`components/LanguagePicker.tsx`).
+ *   ⚠️ The old comment pointed at `BanDich.tsx` — **that file does not exist**, and never
+ *   existed in this tree. A dead pointer in documentation costs exactly what it costs when
+ *   the next person goes looking for it to fix the disclosure and finds nothing.
+ * ⚠️ Do NOT remove that disclosure to "look more professional". It is precisely what
+ *   separates these 30 languages from the 10 languages our sibling project C1 had to
+ *   REMOVE on 26/08 for being *"fake multilingual — click one and it is all English"*.
+ * ⇒ Raise a language to `'nguoi'` if AND ONLY IF somebody who reads that language has
+ *   reviewed it. Changing this field is a declaration, not a tweak.
  */
 
 /**
- * `'goc'` = BẢN GỐC, không phải bản dịch · `'nguoi'` = có người soát ·
- * `'may'` = máy dịch, chưa ai đọc lại.
+ * `'goc'` = THE SOURCE, not a translation · `'nguoi'` = reviewed by a person ·
+ * `'may'` = machine-translated, nobody has read it back.
  *
- * 🔴 `'goc'` THÊM 2026-09-03 VÌ TIẾNG ANH ĐANG BỊ KHAI SAI.
- * Trước đó chỉ có hai giá trị, nên `en` — thứ tiếng mà 29 bản kia DỊCH RA TỪ ĐÓ —
- * buộc phải nhận `'may'`. Hệ quả đo được trên bản đang chạy: `aria-label` của mục
- * đầu bộ chọn đọc lên là **"English — máy dịch"**, tức trình đọc màn hình nói ngược
- * lại đúng câu giải thích nằm ngay bên dưới nó ("bản tiếng Anh là nguồn sự thật").
+ * 🔴 `'goc'` WAS ADDED 2026-09-03 BECAUSE ENGLISH WAS BEING DECLARED WRONGLY.
+ * Before that there were only two values, so `en` — the language the other 29 are
+ * TRANSLATED FROM — was forced to take `'may'`. The measured consequence on the live
+ * build: the `aria-label` of the first entry in the picker read out as **"English —
+ * machine translated"**, i.e. the screen reader said the exact opposite of the sentence
+ * of explanation directly beneath it ("the English text is the source of truth").
  *
- * Vì sao KHÔNG nâng `en` lên `'nguoi'` cho gọn: `'nguoi'` là lời khai "có người đọc
- * được thứ tiếng đó soát xong" — một phép đo về QUY TRÌNH. Bản gốc thì không nằm
- * trong quy trình ấy: nó không được dịch, nên không có gì để soát lại. Gộp hai thứ
- * vào một nhãn là làm mất chính sự phân biệt mà trường này sinh ra để giữ.
+ * Why NOT just promote `en` to `'nguoi'` and be done: `'nguoi'` is the claim "somebody
+ * who reads that language has reviewed it" — a measurement about a PROCESS. The source
+ * is not in that process: it was never translated, so there is nothing to review back.
+ * Merging the two under one label destroys the very distinction this field exists to keep.
  */
 export type ReviewLevel = 'source' | 'human' | 'machine';
 
 export type Language = {
-  /** Mã BCP-47, dùng thẳng cho thuộc tính `lang` của <html>. */
+  /** BCP-47 code, used directly for the `lang` attribute of <html>. */
   code: string;
-  /** Tên gọi TRONG CHÍNH thứ tiếng đó — người tìm ngôn ngữ của mình tìm bằng tên này. */
+  /** The name IN that language itself — how someone finds their own language. */
   ten: string;
-  /** Tên tiếng Anh, cho `aria-label` và cho người không đọc được bảng chữ kia. */
+  /** The English name, for `aria-label` and for readers of a different script. */
   englishName: string;
-  /** Chiều viết. Chỉ 3/30 là `'rtl'`. */
+  /** Writing direction. Only 3 of 30 are `'rtl'`. */
   dir: 'ltr' | 'rtl';
   review: ReviewLevel;
 };
 
 /**
- * Thứ tự Ở ĐÂY LÀ THỨ TỰ HIỂN THỊ, không phải bảng xếp hạng số người nói.
- * Tiếng Anh đứng đầu vì nó là mặc định; tiếng Việt ở vị trí **thứ 9** (chỉ số 8).
- * Phần còn lại xếp xấp xỉ theo tổng số người nói.
+ * The order HERE IS THE DISPLAY ORDER, not a ranking by speaker count.
+ * English is first because it is the default; Vietnamese sits **9th** (index 8).
+ * The rest are roughly by total number of speakers.
  *
- * ⚠️ `ma` phải là mã BCP-47 hợp lệ — nó đi thẳng vào `<html lang>`, và trình đọc
- * màn hình chọn giọng theo đó. Gõ sai một mã là cả trang bị đọc bằng ngữ âm khác.
+ * ⚠️ `ma` must be a valid BCP-47 code — it goes straight into `<html lang>`, and screen
+ * readers pick their voice from it. One mistyped code has the whole page read out in the
+ * phonetics of another language.
  */
 export const LANGUAGES: readonly Language[] = [
   { code: 'en', ten: 'English', englishName: 'English', dir: 'ltr', review: 'source' },
@@ -77,13 +79,13 @@ export const LANGUAGES: readonly Language[] = [
   { code: 'fr', ten: 'Français', englishName: 'French', dir: 'ltr', review: 'machine' },
   { code: 'bn', ten: 'বাংলা', englishName: 'Bengali', dir: 'ltr', review: 'machine' },
   { code: 'pt', ten: 'Português', englishName: 'Portuguese', dir: 'ltr', review: 'machine' },
-  // ── VỊ TRÍ THỨ 9 — David chốt. Xem quyết định ③ ở đầu file. ──────────────────
-  // Bản dịch DUY NHẤT có người soát: David đã duyệt toàn bộ 2026-08-27.
-  // ⚠️ Chú thích cũ ở đây gọi `vi` là "bản GỐC mà mọi bản khác dịch ra từ đó". SAI,
-  // và sai theo hướng dẫn người sau đi nhầm: `en.ts` mới là nguồn của khoá, và nó
-  // ghi rõ *"Mọi bản dịch khác dịch RA TỪ ĐÂY, không phải từ `vi.ts`"* — dịch qua
-  // hai tầng là nhân đôi chỗ để nghĩa trôi đi. `vi` là bản dịch đầu tiên và là bản
-  // được soát, không phải bản gốc.
+  // ── POSITION 9 — David's decision. See decision ③ at the top of this file. ───────
+  // The ONLY translation reviewed by a person: David approved all of it on 2026-08-27.
+  // ⚠️ The old comment here called `vi` "the SOURCE all the others are translated from".
+  // That is WRONG, and wrong in the direction that misleads whoever comes next: `en.ts`
+  // is the source of the keys, and it says so plainly — *"Every other translation is made
+  // FROM HERE, not from `vi.ts`"* — because translating through two layers doubles the
+  // places meaning can drift. `vi` is the first translation, and the reviewed one, not the source.
   { code: 'vi', ten: 'Tiếng Việt', englishName: 'Vietnamese', dir: 'ltr', review: 'human' },
   { code: 'ru', ten: 'Русский', englishName: 'Russian', dir: 'ltr', review: 'machine' },
   { code: 'ur', ten: 'اردو', englishName: 'Urdu', dir: 'rtl', review: 'machine' },
@@ -108,43 +110,44 @@ export const LANGUAGES: readonly Language[] = [
   { code: 'ha', ten: 'Hausa', englishName: 'Hausa', dir: 'ltr', review: 'machine' },
 ] as const;
 
-/** Mã của ngôn ngữ mặc định. Đổi giá trị này là đổi thứ người lạ gặp đầu tiên. */
+/** The default language's code. Changing this changes what a stranger meets first. */
 export const DEFAULT_CODE = 'en';
 
-/** Khoá `localStorage`. Cùng tiền tố `9chain-` với `9chain-theme`. */
+/** `localStorage` key. Same `9chain-` prefix as `9chain-theme`. */
 export const STORAGE_KEY = '9chain-lang';
 
 const THEO_MA = new Map(LANGUAGES.map((n) => [n.code, n]));
 
-/** Có phải một mã trong sổ không. Dùng để lọc giá trị đọc từ `localStorage`. */
+/** Whether a code is in the registry. Used to filter what comes back from `localStorage`. */
 export function isValidCode(code: string | null | undefined): boolean {
   return !!code && THEO_MA.has(code);
 }
 
 /**
- * Tra một mã ra bản ghi. Mã lạ ⇒ trả về bản ghi của ngôn ngữ mặc định.
- * 🔴 KHÔNG trả `undefined`: mọi chỗ gọi hàm này đều đang dựng giao diện, và một
- * `undefined` ở đó biến thành `lang="undefined"` trên <html> — trình đọc màn hình
- * mất giọng mà không có lỗi nào báo.
+ * Look a code up. An unknown code ⇒ return the default language's record.
+ * 🔴 Never returns `undefined`: every caller is building UI, and an `undefined` there
+ * becomes `lang="undefined"` on <html> — the screen reader loses its voice with no error
+ * reported anywhere.
  */
 export function lookup(code: string | null | undefined): Language {
   return (code && THEO_MA.get(code)) || THEO_MA.get(DEFAULT_CODE)!;
 }
 
 /**
- * Đoán ngôn ngữ cho NGƯỜI MỚI — người chưa từng chọn gì.
+ * Guess the language for a NEWCOMER — someone who has never chosen one.
  *
- * 🔴 HÀM THUẦN, TÁCH KHỎI REACT CÓ CHỦ Ý. Đây là logic quyết định thứ tiếng mà mọi
- * người lạ nhìn thấy đầu tiên; để nó nằm trong một `useEffect` thì không kiểm được
- * bằng test, và cách duy nhất để thử là giả lập `navigator` trên trình duyệt — mà
- * tải lại trang là mất giả lập. Đã thử và không đo được.
+ * 🔴 A PURE FUNCTION, KEPT OUT OF REACT ON PURPOSE. This is the logic that decides which
+ * language every stranger sees first; inside a `useEffect` it cannot be covered by a test,
+ * and the only way to try it would be to fake `navigator` in a browser — where reloading
+ * the page loses the fake. Tried, and could not be measured.
  *
- * Luật: lấy ngôn ngữ đầu tiên trong danh sách của trình duyệt mà site có trong sổ.
- * `vi-VN` khớp `vi` (cắt phần sau dấu gạch). Không khớp gì thì về mặc định.
+ * The rule: take the first language in the browser's list that this site has in the
+ * registry. `vi-VN` matches `vi` (cut at the dash). No match at all falls back to the default.
  *
- * ⚠️ Với `output: 'export'`, HTML luôn ship ở tiếng Anh rồi mới lật sau khi hydrate.
- * Người đọc tiếng Việt vì thế thấy MỘT NHÁY tiếng Anh. Đó là cái giá của xuất tĩnh,
- * đã biết trước, không phải lỗi — muốn hết thì phải có URL riêng cho từng ngôn ngữ.
+ * ⚠️ With `output: 'export'`, the HTML always ships in English and only flips after
+ * hydration. A Vietnamese reader therefore sees ONE FLASH of English. That is the price of
+ * static export, known in advance, not a bug — removing it would require a separate URL
+ * per language.
  */
 export function guessLanguage(cuaTrinhDuyet: readonly string[] | undefined): string {
   for (const l of cuaTrinhDuyet ?? []) {

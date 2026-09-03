@@ -6,7 +6,7 @@ import { shortenAddress } from '@/lib/eip55';
 import { rpcOrigin } from '@/lib/chain';
 import { interpolate, useT } from '@/lib/i18n';
 import { fetchJson, describeFailure, READ_TIMEOUT_MS } from '@/lib/net';
-import { getWallet, connectWallet, siweSignIn, callConsole, addL1ToWallet, waitForProgress, readWalletError, ConsoleError, type WalletSession, CONSOLE_TIMEOUT_S} from '@/lib/wallet';
+import { getWallet, connectWallet, siweSignIn, callConsole, addL1ToWallet, waitForProgress, readWalletError, ConsoleError, NO_WALLET, type WalletSession, CONSOLE_TIMEOUT_S} from '@/lib/wallet';
 
 type Chain = {
   name: string; chainId: number; subnetID: string; blockchainID: string;
@@ -86,7 +86,7 @@ export function MyChainsScreen() {
       await nap(p.token);
     } catch (e) {
       const m = String((e as Error).message ?? e);
-      setWalletFailure(m === 'KHONG_CO_VI' ? t.launch.noWallet : /rejected|denied|4001/i.test(m) ? t.launch.signRejected : m);
+      setWalletFailure(m === NO_WALLET ? t.launch.noWallet : /rejected|denied|4001/i.test(m) ? t.launch.signRejected : m);
     } finally {
       setConnecting(false);
     }

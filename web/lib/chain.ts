@@ -1,53 +1,56 @@
 /**
- * Hằng số nhận dạng mạng 9Chain-A1 + cách suy ra endpoint.
+ * 9Chain-A1 network identity constants + how the endpoints are derived.
  *
- * 🔴 KHÔNG BAO GIỜ CẮM CỨNG `localhost` VÀO TRANG CÔNG KHAI. Trình duyệt của người
- * xem phân giải `localhost` thành MÁY HỌ — trang tải từ server mà số liệu lấy từ
- * máy khách, và nó hỏng câm: ai mở trang cũng thấy "mạng chết". Explorer và
- * dashboard của dự án này đều đã dính đúng lỗi đó một lần.
+ * 🔴 NEVER HARD-CODE `localhost` INTO A PUBLIC PAGE. A visitor's browser resolves
+ * `localhost` to THEIR OWN MACHINE — the page loads from the server while the numbers
+ * come from the client, and it fails silently: everyone who opens the page sees "the
+ * network is dead". Both this project's explorer and its dashboard hit exactly that once.
  *
- * Quy ước đã dùng thật: trang ở `<host>`, RPC ở `rpc-<host>`. Suy từ
- * `location.hostname` lúc chạy nên một bản build phục vụ được cả tên miền công
- * khai lẫn `localhost` khi dev.
+ * The convention actually in use: the page is at `<host>`, the RPC at `rpc-<host>`.
+ * Derived from `location.hostname` at runtime, so one build serves both the public
+ * domain and `localhost` during development.
  */
 export const CHAIN = {
   ten: '9Chain Testnet A1',
-  /** EVM chainId — số thập phân, dùng để hiển thị. */
+  /** EVM chainId — decimal, for display. */
   chainId: 9000000009,
-  /** 🔴 MetaMask CHỈ nhận chainId dạng hex. Truyền số thập phân là lỗi ngay. */
+  /** 🔴 MetaMask ONLY accepts a hex chainId. Passing decimal fails immediately. */
   chainIdHex: '0x218711a09',
   kyHieu: 'LOVE9',
   currencyName: 'LOVE9',
   decimals: 18,
   /**
-   * networkID của avalanchego là uint32 — KHÔNG phải số 9 tỷ ở trên.
+   * avalanchego's networkID is a uint32 — NOT the nine-billion number above.
    *
-   * 🔴 ĐỔI 2026-08-27: `9001` → `999999999` (D-081, thế hệ **g0**).
-   * 🔴 ĐỔI 2026-09-03: `999999999` → `999999998` — **ngày G đã chạy 01/09**, mạng
-   *   công khai nay là thế hệ **g1**. Đo thẳng trên mạng đang chạy trước khi sửa:
-   *   `info.getNetworkID` → 999999998 · `info.getNetworkName` → `9chain-a1-g1` ·
-   *   `eth_chainId` → 0x218711a09 (không đổi, đúng D-047).
+   * 🔴 CHANGED 2026-08-27: `9001` → `999999999` (D-081, generation **g0**).
+   * 🔴 CHANGED 2026-09-03: `999999999` → `999999998` — **G-day ran on 01/09**, so the
+   *   public network is now generation **g1**. Measured directly against the running
+   *   network before editing: `info.getNetworkID` → 999999998 · `info.getNetworkName` →
+   *   `9chain-a1-g1` · `eth_chainId` → 0x218711a09 (unchanged, per D-047).
    *
-   * Số này KHÔNG tuỳ tiện: `network_ids.go` suy cả hai trục danh tính từ một biến
-   * `A1Gen` duy nhất — `A1ID = 999999999 − A1Gen` và `A1Name = "9chain-a1-g<A1Gen>"`.
-   * Thế hệ đếm XUỐNG từ đỉnh băng, nên mỗi lượt sinh lại số này GIẢM một.
+   * This number is not arbitrary: `network_ids.go` derives both identity axes from one
+   * variable `A1Gen` — `A1ID = 999999999 − A1Gen` and `A1Name = "9chain-a1-g<A1Gen>"`.
+   * Generations count DOWN from the top of the reserved band, so each rebirth DECREASES
+   * this number by one.
    *
-   * ⚠️ HẰNG SỐ NÀY ĐÃ SAI HAI LẦN, VÀ CẢ HAI LẦN ĐỀU CÙNG MỘT KIỂU: chân trang in
-   * "networkID 9001" khi mạng đã là 999999999 (27/08), rồi in "999999999" khi mạng
-   * đã là 999999998 (01/09 → 03/09, hai ngày trên mạng công khai). Nó là một HẰNG SỐ
-   * CHÉP TAY — không sai cú pháp, không sai kiểu, chỉ sai sự thật, nên `tsc`, test và
-   * axe đều xanh trong lúc trang nói dối.
-   * ⇒ Thứ DUY NHẤT bắt được là `local-net/deploy/check-chain-id.mjs`: nó hỏi mạng
-   *   ĐANG CHẠY trước mỗi lượt deploy. Lần này chính nó chặn đúng lượt deploy đang
-   *   diễn ra. Đừng gỡ nó khi dọn dẹp, và đừng "sửa" nó thành đo hằng số trong repo.
+   * ⚠️ THIS CONSTANT HAS BEEN WRONG TWICE, BOTH TIMES THE SAME WAY: the footer printed
+   * "networkID 9001" when the network was already 999999999 (27/08), then printed
+   * "999999999" when the network was already 999999998 (01/09 → 03/09, two days live on
+   * the public site). It is a HAND-COPIED CONSTANT — no syntax error, no type error, only
+   * a false statement, so `tsc`, the tests and axe are all green while the page lies.
+   * ⇒ The ONLY thing that catches it is `local-net/deploy/check-chain-id.mjs`: it asks the
+   *   RUNNING network before every deploy. This time it blocked the very deploy in
+   *   progress. Do not remove it during a cleanup, and do not "fix" it into reading a
+   *   constant out of the repo.
    *
-   * `eth_chainId` thì KHÔNG đổi (D-047 giữ 9000000009) — hai số này độc lập nhau,
-   * và đó chính là chỗ dễ nhầm: mạng đổi danh tính mà ví không thấy gì khác.
+   * `eth_chainId` does NOT change (D-047 keeps 9000000009) — the two numbers are
+   * independent, and that is exactly where the confusion lives: the network changes
+   * identity while the wallet sees nothing different.
    */
   networkId: 999999998,
 } as const;
 
-/** Tên miền mặc định khi không đọc được `location` (lúc build tĩnh). */
+/** Default domain when `location` cannot be read (during the static build). */
 const DEFAULT_HOST = 'a1.9chain.org';
 
 /**
@@ -71,22 +74,22 @@ function host(): string {
   return window.location.hostname || DEFAULT_HOST;
 }
 
-/** Gốc RPC công khai, suy từ chính tên miền đang mở. */
+/** The public RPC origin, derived from whichever domain is open. */
 export function rpcOrigin(): string {
   const h = host();
-  // Dev trên máy: không có `rpc-localhost`, đi thẳng ra mạng công khai.
+  // Local dev: there is no `rpc-localhost`, so go straight out to the public network.
   if (h === 'localhost' || h === '127.0.0.1' || h.endsWith('.local')) {
     return `https://rpc-${DEFAULT_HOST}`;
   }
   return `${window.location.protocol}//rpc-${h}`;
 }
 
-/** RPC của C-Chain — mạng chính, thứ ví người dùng kết nối vào. */
+/** The C-Chain RPC — the main network, the one a user's wallet connects to. */
 export function rpcCChain(): string {
   return `${rpcOrigin()}/ext/bc/C/rpc`;
 }
 
-/** Gốc của faucet API. Cùng tên miền với trang, nên đường tương đối là đủ. */
+/** The faucet API origin. Same domain as the page, so a relative path is enough. */
 export function faucetOrigin(): string {
   if (typeof window === 'undefined') return `https://${DEFAULT_HOST}/faucet`;
   const h = host();
@@ -94,21 +97,21 @@ export function faucetOrigin(): string {
   return `${window.location.protocol}//${h}/faucet`;
 }
 
-/** Explorer (9Scan-A1) — dự án khác, chỉ liên kết sang. */
+/** Explorer (9Scan-A1) — a separate project, we only link to it. */
 export function explorerOrigin(): string {
   return 'https://a1.9scan.org';
 }
 
 /**
- * Biểu tượng LOVE9 — URL TUYỆT ĐỐI, và bắt buộc phải tuyệt đối.
+ * The LOVE9 mark — an ABSOLUTE URL, and it has to be absolute.
  *
- * Ví đọc URL này ở tiến trình của NÓ, không ở ngữ cảnh trang, nên đường dẫn tương
- * đối (`/brand/…`) là vô nghĩa với ví — nó không có gốc nào để giải ra.
+ * The wallet reads this URL in ITS OWN process, not in the page's context, so a relative
+ * path (`/brand/…`) is meaningless to it — there is no base for it to resolve against.
  *
- * 🔴 Đường `/brand/*` phải có route riêng trong Caddy. Gốc `/` là Blockscout,
- * mà Blockscout là SPA trả **HTTP 200 kèm khung rỗng** cho mọi đường lạ — nên quên
- * route thì ảnh "tải được" 200, ví chỉ hiện ô trống, và mọi phép kiểm bằng mã
- * trạng thái vẫn xanh. Đo bằng `content-type` chứ đừng đo bằng mã HTTP.
+ * 🔴 The `/brand/*` path needs its own route in Caddy. The root `/` is Blockscout, and
+ * Blockscout is an SPA that returns **HTTP 200 with an empty shell** for any unknown path
+ * — so a forgotten route means the image "loads" with a 200, the wallet shows an empty
+ * box, and every status-code check stays green. Measure by `content-type`, not by HTTP status.
  */
 export function brandOrigin(): string {
   if (typeof window === 'undefined') return `https://${DEFAULT_HOST}/brand`;
@@ -117,34 +120,35 @@ export function brandOrigin(): string {
   return `${window.location.protocol}//${h}/brand`;
 }
 
-/** PNG 256px của LOVE9 — cỡ ví hay dùng nhất, và có nền nên không lẫn vào theme tối. */
+/** 256px PNG of LOVE9 — the size wallets use most, and it has a background so it does not vanish into a dark theme. */
 export function love9IconUrl(): string {
   return `${brandOrigin()}/love9-navy-inverse-256px.png`;
 }
 
 /**
- * Tham số để thêm mạng vào ví — đúng khuôn EIP-3085.
+ * Parameters for adding the network to a wallet — the EIP-3085 shape.
  *
- * 🔴 `iconUrls` — ĐÃ ĐO 2026-08-26, VÀ NÓ KHÔNG ĂN. ĐỪNG THỬ LẠI.
+ * 🔴 `iconUrls` — MEASURED 2026-08-26, AND IT DOES NOT WORK. DO NOT TRY AGAIN.
  *
- * Tham số này CÓ trong chuẩn EIP-3085 và CÓ trong ví dụ của chính tài liệu
- * MetaMask, nên nhìn vào tài liệu thì tưởng là làm được. Đo thật: thêm mạng thành
- * công qua MetaMask (màn xác nhận "Update 9Chain Testnet A1" hiện đúng Network +
- * RPC, **không hiện icon nào**), rồi mở tab Tokens — LOVE9 vẫn là **vòng tròn xám
- * chữ "L9"**. MetaMask không cho đặt icon cho **token GỐC**, dù chuẩn khai có.
+ * This parameter IS in the EIP-3085 standard and IS in MetaMask's own documented example,
+ * so reading the docs makes it look achievable. What actually happened: adding the network
+ * through MetaMask succeeded (the "Update 9Chain Testnet A1" confirmation screen showed
+ * the right Network + RPC and **no icon at all**), then the Tokens tab still showed LOVE9
+ * as a **grey circle reading "L9"**. MetaMask does not let you set an icon for the
+ * **NATIVE token**, even though the standard defines one.
  *
- * GIỮ LẠI dòng này chứ không xoá: nó đúng chuẩn, không tốn gì, và ăn ngay nếu ví
- * nào đó (hoặc MetaMask bản sau) chịu vẽ. Cái đắt là **phép đo**, nên ghi ở đây để
- * không ai điều tra lại từ đầu.
+ * KEPT rather than deleted: it is standards-correct, costs nothing, and starts working the
+ * day some wallet (or a later MetaMask) chooses to render it. The expensive part was the
+ * MEASUREMENT, so it is written down here to stop anyone investigating it from scratch.
  *
- * Đường CÒN LẠI nếu một ngày thật sự cần icon trong ví:
- *   • Token ERC-20 thì `wallet_watchAsset` (EIP-747) nhận thẳng `image` — chạy được.
- *     Nhưng LOVE9 là coin GỐC, nên muốn vậy phải đẻ một bản wrap (WLOVE9); đổi
- *     kiến trúc token chỉ để lấy một cái icon là món hời tồi.
- *   • Vào registry của chính MetaMask: thực tế chỉ dành cho mainnet, và với một
- *     testnet mang chainId tự chọn thì gần như chắc chắn không được nhận.
- * ⇒ Chỗ ta THẬT SỰ kiểm soát nhận diện là trang của mình và explorer 9Scan-A1 —
- *   cả hai đã dùng dấu LOVE9 (favicon + `/brand/`).
+ * The remaining routes, if a wallet icon ever genuinely matters:
+ *   • For an ERC-20, `wallet_watchAsset` (EIP-747) takes `image` directly — that works.
+ *     But LOVE9 is the NATIVE coin, so this would mean minting a wrapped version (WLOVE9);
+ *     changing the token architecture just to get an icon is a bad trade.
+ *   • Getting into MetaMask's own registry: in practice mainnet-only, and for a testnet on
+ *     a self-assigned chainId it would almost certainly be refused.
+ * ⇒ The places we ACTUALLY control the identity are our own site and the 9Scan-A1 explorer
+ *   — both already carry the LOVE9 mark (favicon + `/brand/`).
  */
 export function addNetworkParams() {
   return {

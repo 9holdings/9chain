@@ -14,37 +14,38 @@ export { interpolate } from './interpolate';
 import { guessLanguage, STORAGE_KEY, isValidCode, DEFAULT_CODE, LANGUAGES, lookup, type Language } from './languages';
 
 /**
- * Bộ máy đa ngôn ngữ của a1.9chain.org — 30 ngôn ngữ, tiếng Anh mặc định.
+ * The multilingual engine for a1.9chain.org — 30 languages, English by default.
  *
- * ═══ BA RÀNG BUỘC, MỖI CÁI LÀ MỘT CÁI BẪY ĐÃ CÓ NGƯỜI TRẢ TIỀN ═══
- * Chép từ 9Scan-A1 (`lib/i18n/explorer/index.ts`), họ đã đi trước và đo được giá.
+ * ═══ THREE CONSTRAINTS, EACH ONE A TRAP SOMEBODY ALREADY PAID FOR ═══
+ * Copied from 9Scan-A1 (`lib/i18n/explorer/index.ts`); they went first and measured the cost.
  *
- * 1. 🔴 **KHÔNG thêm biên `<Suspense>`, KHÔNG dùng `use()`/`lazy()`.**
- *    Với `output: 'export'`, một biên Suspense thừa làm Next ghi ra HTML khung
- *    xương kèm marker `<template id="B:1">`, và biên đó **không bao giờ được giải**
- *    trên trình duyệt. Dùng `useState` + `useEffect`.
- *    (Cổng `scripts/check-static-export.mjs` của ta đã canh đúng việc này từ trước.)
+ * 1. 🔴 **Do NOT add a `<Suspense>` boundary, do NOT use `use()`/`lazy()`.**
+ *    With `output: 'export'`, a stray Suspense boundary makes Next write out skeleton HTML
+ *    carrying a `<template id="B:1">` marker, and that boundary is **never resolved** in
+ *    the browser. Use `useState` + `useEffect`.
+ *    (Our own gate `scripts/check-static-export.mjs` has been watching for this all along.)
  *
- * 2. 🔴 **MỘT provider cho cả cây.** Nếu mỗi hook tự nạp từ điển thì các component
- *    đổi trạng thái ở những nhịp khác nhau, và người dùng thấy một trang **nửa
- *    tiếng Anh nửa tiếng Việt** trong vài khung hình. Cả cây phải lật cùng lúc.
+ * 2. 🔴 **ONE provider for the whole tree.** If each hook loaded its own dictionary, the
+ *    components would change state on different beats and the user would see a page that
+ *    is **half English, half Vietnamese** for a few frames. The whole tree has to flip at once.
  *
- * 3. 🔴 **`LOADERS` phải là các lời gọi `import()` TĨNH, viết tay từng dòng.**
- *    `import(\`./dicts/${ma}\`)` với biến khiến bundler gom CẢ THƯ MỤC vào một
- *    chunk — tức quay về đúng chỗ cũ mà trông như đã sửa.
- *    Phép đo của 9Scan: nhập tĩnh 30 từ điển đưa First Load JS từ **264 kB lên
- *    528 kB**. Trần của ta là 160 KB gzip và trang nặng nhất đang ở 130 KB.
+ * 3. 🔴 **`LOADERS` must be STATIC `import()` calls, written out line by line.**
+ *    `import(\`./dicts/${ma}\`)` with a variable makes the bundler pull THE WHOLE FOLDER
+ *    into one chunk — i.e. straight back where we started, while looking fixed.
+ *    9Scan's measurement: statically importing all 30 dictionaries took First Load JS from
+ *    **264 kB to 528 kB**. Our ceiling is 160 KB gzip and the heaviest page sits at 130 KB.
  *
- * ═══ VÌ SAO TIẾNG ANH ĐI CÙNG BUNDLE, 29 BẢN KIA THÌ KHÔNG ═══
- * `EN` là **nguồn sự thật của khoá** và là bản rơi về khi một khoá thiếu hoặc khi
- * chunk nạp hỏng. Nó phải có mặt ngay từ khung hình đầu, không chờ mạng.
+ * ═══ WHY ENGLISH TRAVELS IN THE BUNDLE AND THE OTHER 29 DO NOT ═══
+ * `EN` is **the source of truth for the keys** and the fallback whenever a key is missing or
+ * a chunk fails to load. It has to be present from the very first frame, without waiting on
+ * the network.
  */
 
 type BoiCanh = {
   code: string;
   language: Language;
   t: Dict;
-  /** `true` khi đang nạp chunk của một ngôn ngữ khác EN. Dùng để tránh nháy chữ. */
+  /** `true` while a non-EN chunk is loading. Used to avoid text flashing. */
   loading: boolean;
   setLanguage: (code: string) => void;
 };
@@ -52,9 +53,9 @@ type BoiCanh = {
 const Ctx = createContext<BoiCanh | null>(null);
 
 /**
- * 🔴 VIẾT TAY TỪNG DÒNG — xem ràng buộc 3 ở trên. Đừng gom thành vòng lặp.
- * Thiếu một dòng ở đây = người dùng chọn tiếng của mình rồi nhận lại tiếng Anh,
- * **không lỗi, không cảnh báo**, chỉ có họ chịu. `checkLoaders()` bên dưới bắt việc đó.
+ * 🔴 WRITTEN OUT LINE BY LINE — see constraint 3 above. Do not fold it into a loop.
+ * A missing line here = the user picks their own language and gets English back,
+ * **no error, no warning**, and only they bear it. `checkLoaders()` below catches that.
  */
 const LOADERS: Record<string, () => Promise<{ default: Dict }>> = {
   zh: () => import('./dicts/zh'),
@@ -89,16 +90,16 @@ const LOADERS: Record<string, () => Promise<{ default: Dict }>> = {
 };
 
 /**
- * 🔴 ĐANG DỰNG DỞ CÓ CHỦ Ý — 28 từ điển còn lại chưa có (2026-08-27).
+ * 🔴 DELIBERATELY HALF-BUILT — the other 28 dictionaries do not exist yet (2026-08-27).
  *
- * Sổ khai 30 ngôn ngữ; `LOADERS` mới có 2 (EN trong bundle + VI). Đó KHÔNG phải lỗi
- * quên: làm lát cắt dọc EN+VI chạy trước rồi mới sinh 28 bản còn lại là để nếu bộ
- * máy sai thì phát hiện sau HAI từ điển, không phải sau ba mươi.
+ * The registry declares 30 languages; `LOADERS` has 2 (EN in the bundle + VI). That is NOT
+ * an oversight: building a vertical slice of EN+VI first, and only then generating the other
+ * 28, means that if the engine is wrong we find out after TWO dictionaries, not after thirty.
  *
- * ⚠️ Trong lúc dở dang, ngôn ngữ chưa có từ điển PHẢI hiện ra là **chưa có** trong
- * bộ chọn — `hasDictionary()` bên dưới là thứ bộ chọn dùng để biết. Để chúng trông như
- * đã dùng được rồi lặng lẽ rơi về tiếng Anh là đúng kiểu hỏng tệ nhất: người dùng
- * chọn tiếng của mình, thấy tiếng Anh, và không có gì nói cho họ biết vì sao.
+ * ⚠️ While it is half-built, a language with no dictionary MUST appear as **unavailable** in
+ * the picker — `hasDictionary()` below is what the picker consults. Letting them look usable
+ * and then silently falling back to English is the worst kind of failure: the user picks
+ * their own language, sees English, and nothing tells them why.
  */
 export function hasDictionary(code: string): boolean {
   return code === DEFAULT_CODE || code in LOADERS;
@@ -106,8 +107,9 @@ export function hasDictionary(code: string): boolean {
 
 
 /**
- * Cổng chặn LỆCH SỔ: mọi ngôn ngữ trong sổ (trừ EN) phải có một dòng trong `LOADERS`,
- * và ngược lại. Chỉ chạy ở dev — ở sản phẩm nó chỉ tốn byte mà không cứu được ai.
+ * A gate against REGISTRY DRIFT: every language in the registry (except EN) must have a line
+ * in `LOADERS`, and vice versa. Dev only — in production it would only cost bytes without
+ * saving anyone.
  */
 export function checkLoaders(): string[] {
   const trongSo = LANGUAGES.map((n) => n.code).filter((m) => m !== DEFAULT_CODE);
@@ -119,19 +121,19 @@ export function checkLoaders(): string[] {
 }
 
 /**
- * Đọc lựa chọn đã lưu. Không có thì đoán theo ngôn ngữ trình duyệt, rồi mới về EN.
+ * Read the saved choice. Failing that, guess from the browser's languages, then fall back to EN.
  *
- * 🔴 LỌC QUA `hasDictionary()` Ở CẢ HAI ĐƯỜNG — bug này bắt được lúc viết test, không
- * phải lúc chạy. `isValidCode()` chỉ hỏi "sổ có mã này không", mà sổ khai đủ 30 trong
- * khi mới 2 từ điển tồn tại. Không lọc thì:
- *   • người dùng trình duyệt tiếng Nhật ⇒ `ma = 'ja'` ⇒ `LOADERS['ja']` không có ⇒
- *     chữ rơi về tiếng Anh, NHƯNG `<html lang>` vẫn bị đặt thành `ja`.
- *   • trình đọc màn hình đọc **tiếng Anh bằng ngữ âm tiếng Nhật** — không lỗi, không
- *     cảnh báo, và người dùng bằng mắt không thấy gì bất thường để báo lại.
- * Cùng lớp lỗi với `lang="undefined"` mà `lookup()` sinh ra để chặn.
+ * 🔴 FILTER THROUGH `hasDictionary()` ON BOTH PATHS — this bug was caught while writing the
+ * test, not at runtime. `isValidCode()` only asks "is this code in the registry", and the
+ * registry declares all 30 while only 2 dictionaries exist. Without the filter:
+ *   • a user with a Japanese browser ⇒ `ma = 'ja'` ⇒ `LOADERS['ja']` is absent ⇒ the text
+ *     falls back to English, BUT `<html lang>` is still set to `ja`.
+ *   • the screen reader then reads **English in Japanese phonetics** — no error, no warning,
+ *     and a sighted user sees nothing odd to report.
+ * Same class of failure as the `lang="undefined"` that `lookup()` exists to prevent.
  *
- * Áp cho cả giá trị đã LƯU: một ngôn ngữ có thể bị gỡ khỏi `LOADERS` về sau, và lúc
- * đó `localStorage` của người dùng vẫn còn trỏ vào nó.
+ * Applies to the SAVED value too: a language can be removed from `LOADERS` later, and the
+ * user's `localStorage` will still be pointing at it.
  */
 function maBanDau(): string {
   if (typeof window === 'undefined') return DEFAULT_CODE;
@@ -139,17 +141,17 @@ function maBanDau(): string {
     const luu = window.localStorage.getItem(STORAGE_KEY);
     if (luu && isValidCode(luu) && hasDictionary(luu)) return luu;
   } catch {
-    /* Chế độ riêng tư / chặn cookie: không đọc được thì coi như chưa chọn bao giờ. */
+    /* Private mode / blocked cookies: if it cannot be read, treat it as never chosen. */
   }
   const doan = guessLanguage(navigator.languages ?? [navigator.language]);
   return hasDictionary(doan) ? doan : DEFAULT_CODE;
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  // 🔴 Khởi tạo bằng DEFAULT_CODE, KHÔNG bằng `maBanDau()`. Với xuất tĩnh, HTML được
-  // sinh sẵn ở tiếng Anh; nếu lượt render đầu trên trình duyệt đã khác HTML thì
-  // React báo lệch hydrate và bỏ cả cây. Đọc lựa chọn ở `useEffect` — tức SAU khi
-  // hydrate xong — là cách duy nhất đúng ở đây.
+  // 🔴 Initialise with DEFAULT_CODE, NOT with `maBanDau()`. Under static export the HTML is
+  // pre-generated in English; if the first render in the browser already differs from that
+  // HTML, React reports a hydration mismatch and throws the whole tree away. Reading the
+  // choice in a `useEffect` — i.e. AFTER hydration — is the only correct approach here.
   const [code, setCode] = useState<string>(DEFAULT_CODE);
   const [dict, setDict] = useState<Dict>(EN);
   const [loading, datDangNap] = useState(false);
@@ -168,7 +170,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
     const nap = LOADERS[code];
     if (!nap) {
-      // Lệch sổ — `checkLoaders()` đáng lẽ đã bắt ở dev. Rơi về EN, đừng để trang trắng.
+      // Registry drift — `checkLoaders()` should have caught this in dev. Fall back to EN rather than a blank page.
       setDict(EN);
       return;
     }
@@ -180,8 +182,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         datDangNap(false);
       })
       .catch(() => {
-        // Chunk nạp hỏng (mạng đứt, bản deploy cũ). Giữ EN — đọc được bằng thứ
-        // tiếng khác vẫn hơn nhìn một trang trống.
+        // The chunk failed to load (network dropped, stale deploy). Keep EN — being readable
+        // in another language still beats staring at an empty page.
         if (!cancelled) {
           setDict(EN);
           datDangNap(false);
@@ -192,9 +194,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     };
   }, [code]);
 
-  // 🔴 `lang` và `dir` phải đổi CÙNG từ điển. `lang` sai thì trình đọc màn hình
-  // chọn giọng sai — cả trang bị đọc bằng ngữ âm khác. `dir` sai thì tiếng Ả Rập,
-  // Urdu và Ba Tư (3/30) hiện ngược chiều.
+  // 🔴 `lang` and `dir` must change WITH the dictionary. A wrong `lang` makes the screen
+  // reader pick the wrong voice — the whole page read in another language's phonetics. A
+  // wrong `dir` makes Arabic, Urdu and Persian (3 of 30) run the wrong way.
   useEffect(() => {
     const n = lookup(code);
     document.documentElement.setAttribute('lang', n.code);
@@ -202,15 +204,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, [code]);
 
   const setLanguage = useCallback((moi: string) => {
-    // Bộ chọn đã vô hiệu hoá mục không có từ điển, nhưng chặn ở đây nữa: một lời
-    // gọi từ chỗ khác (deep link, console) không được đặt site vào trạng thái
-    // `lang` nói một đằng, chữ một nẻo.
+    // The picker already disables entries with no dictionary, but block it here as well: a
+    // call from somewhere else (a deep link, the console) must not put the site into a state
+    // where `lang` says one thing and the text says another.
     if (!isValidCode(moi) || !hasDictionary(moi)) return;
     setCode(moi);
     try {
       window.localStorage.setItem(STORAGE_KEY, moi);
     } catch {
-      /* Không lưu được thì lựa chọn chỉ sống hết phiên này — vẫn hơn là không cho đổi. */
+      /* If it cannot be saved, the choice lives only for this session — still better than refusing to change. */
     }
   }, []);
 
@@ -223,17 +225,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 }
 
 /**
- * Lấy từ điển đang dùng.
+ * Get the dictionary in use.
  *
- * ⚠️ Gọi NGOÀI provider thì rơi về EN thay vì ném lỗi. Lý do: những chỗ như trang
- * 404 hoặc một component được dựng riêng trong test không nhất thiết có provider,
- * và làm trắng trang vì thiếu context là đổi một lỗi chữ lấy một lỗi chết trang.
+ * ⚠️ Called OUTSIDE the provider it falls back to EN rather than throwing. The reason:
+ * places like the 404 page, or a component mounted on its own in a test, do not necessarily
+ * have a provider, and blanking the page over a missing context trades a text problem for
+ * a dead page.
  */
 export function useT(): Dict {
   return useContext(Ctx)?.t ?? EN;
 }
 
-/** Trạng thái ngôn ngữ — cho bộ chọn và cho những chỗ cần biết chiều viết. */
+/** Language state — for the picker and for anywhere that needs the writing direction. */
 export function useLanguage() {
   const c = useContext(Ctx);
   return {

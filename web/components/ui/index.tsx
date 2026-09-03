@@ -1,20 +1,21 @@
 'use client';
 
 /**
- * Bộ component tự viết — KHÔNG shadcn/MUI/Radix/Ant.
+ * Our own component set — NO shadcn/MUI/Radix/Ant.
  *
- * Mọi màu đi qua token (`bg-surface`, `text-ink`…), không hardcode hex ở đây. Mọi
- * thứ bấm được phải có vòng focus (luật nền ở `globals.css` lo phần đó) và nhãn cho
- * trình đọc màn hình.
+ * Every colour goes through a token (`bg-surface`, `text-ink`…); no hex is hard-coded here.
+ * Everything clickable gets a focus ring (the base rules in `globals.css` handle that) and a
+ * label for screen readers.
  *
- * Gom vào MỘT file thay vì mỗi component một file: bộ này nhỏ và luôn được đọc cùng
- * nhau; tách ra thành 12 file 20 dòng làm việc "xem primitive nào đã có" tốn thêm
- * một vòng mở thư mục — mà đó chính là lúc người ta bỏ cuộc và viết style rời rạc.
+ * Gathered into ONE file rather than one file per component: the set is small and always read
+ * together; splitting it into 12 files of 20 lines makes "which primitive already exists"
+ * cost an extra trip through a directory — and that is precisely the moment somebody gives up
+ * and writes loose one-off styles.
  */
 import { useEffect, useId, useState, type ReactNode, type ButtonHTMLAttributes, type InputHTMLAttributes } from 'react';
 import { useT } from '@/lib/i18n';
-// `cx` sống ở `lib/cx.ts` (ngoài ranh giới client) và được xuất lại ở đây cho
-// tiện — xem chú thích trong file đó về vì sao không định nghĩa tại chỗ.
+// `cx` lives in `lib/cx.ts` (outside the client boundary) and is re-exported here for
+// convenience — see the comment in that file for why it is not defined in place.
 import { cx } from '@/lib/cx';
 export { cx };
 
@@ -27,16 +28,16 @@ const BUTTON_BASE =
   'inline-flex items-center justify-center gap-2 font-semibold transition-colors ' +
   'disabled:opacity-55 disabled:cursor-not-allowed select-none';
 
-// 🔴 KHOÁ Ở ĐÂY PHẢI TRÙNG TỪNG CHỮ với union `ButtonVariant` bên trên, và union đó là
-// CHUỖI. Đợt đổi tên định danh `2026-09-03` sửa khoá `phu` thành `note` (nó cũng là
-// tên một prop ở chỗ khác) trong khi `'phu'` trong union — một chuỗi — thì không đổi.
-// `tsc` bắt ngay, nhưng đây là lời nhắc: tên nào tồn tại ĐỒNG THỜI dưới dạng định
-// danh và dưới dạng chuỗi thì phải đổi CẢ HAI trong một lượt, hoặc không đổi gì.
-// Cả bộ từ vựng biến thể (`primary`/`secondary`/`outline`/`ghost`, `md`/`lg`) đã đổi cùng lượt này —
-// xem commit 2026-09-03: union là CHUỖI nên `tsc` đối chiếu từng giá trị, khác hẳn
-// chỗ giữ chỗ `{…}` mà không kiểu nào canh.
+// 🔴 THE KEYS HERE MUST MATCH THE `ButtonVariant` UNION ABOVE CHARACTER FOR CHARACTER, and
+// that union is made of STRINGS. The `2026-09-03` identifier rename changed the key `phu` to
+// `note` (it was also a prop name elsewhere) while `'phu'` in the union — a string — did not
+// change. `tsc` caught it immediately, but take it as a reminder: a name that exists BOTH as
+// an identifier and as a string must be changed in BOTH places in one pass, or not at all.
+// The whole variant vocabulary (`primary`/`secondary`/`outline`/`ghost`, `md`/`lg`) changed in
+// that same pass — see the 2026-09-03 commit: the union is made of STRINGS, so `tsc` checks
+// each value, quite unlike the `{…}` placeholders that no type guards at all.
 const BUTTON_VARIANT: Record<ButtonVariant, string> = {
-  // Vàng là màu CTA của thương hiệu; chữ trên nền vàng phải là navy, không phải trắng.
+  // Gold is the brand CTA colour; text on gold must be navy, never white.
   primary: 'bg-gold text-navy hover:bg-gold-hover shadow-cta',
   secondary: 'bg-navy text-on-dark hover:bg-navy-hover',
   outline: 'border border-line-strong bg-surface text-ink hover:bg-surface-alt',
@@ -59,8 +60,8 @@ export function Button({
   return (
     <button
       {...rest}
-      // `aria-busy` chứ không chỉ đổi chữ: người dùng trình đọc màn hình cần biết
-      // nút đang bận, mà chữ đổi thì họ chỉ nghe lại khi tự điều hướng tới nó.
+      // `aria-busy`, not just changed text: a screen-reader user needs to know the button is
+      // busy, and a text change only reaches them if they navigate back to it themselves.
       aria-busy={isRunning || undefined}
       disabled={rest.disabled || isRunning}
       className={cx(BUTTON_BASE, BUTTON_VARIANT[variant], BUTTON_SIZE[size], className)}
@@ -130,8 +131,8 @@ export function Field({
       <input
         {...rest}
         id={idThat}
-        // Nối CẢ hai id: trình đọc màn hình đọc mô tả rồi tới lỗi. Chỉ trỏ vào lỗi
-        // là người dùng mất luôn phần hướng dẫn ngay khi họ cần nó nhất.
+        // Join BOTH ids: the screen reader reads the description and then the error. Pointing only
+        // at the error takes the guidance away exactly when the user needs it most.
         aria-describedby={cx(desc && idMoTa, failure && idLoi) || undefined}
         aria-invalid={failure ? true : undefined}
         className={cx(
@@ -142,8 +143,8 @@ export function Field({
         )}
       />
       {failure && (
-        // `role="alert"` để lỗi được đọc lên ngay khi xuất hiện, không phải chờ
-        // người dùng tự di chuyển tới.
+        // `role="alert"` so the error is announced the moment it appears, rather than waiting for
+        // the user to navigate to it.
         <p id={idLoi} role="alert" className="text-sm font-medium text-danger">
           {failure}
           {hint && <span className="block font-normal text-muted">{hint}</span>}
@@ -190,20 +191,21 @@ export function Skeleton({ className }: { className?: string }) {
 /* ─────────────────────────────────────────────────────── Empty / Error state */
 
 /**
- * Trạng thái rỗng — phải đọc như một LỜI MỜI, không như một ô trống.
+ * The empty state — it must read as an INVITATION, not as a blank box.
  *
- * 🔴 SỬA 2026-08-27 (Đ1-4), hai chỗ, cả hai đều đo được:
+ * 🔴 FIXED 2026-08-27 (Đ1-4), in two places, both measured:
  *
- * 1. `bg-surface-alt` **trùng byte với nền trang** ở CẢ HAI chủ đề
- *    (sáng `#f5f7fb` / tối `#0a1122`). Nghĩa là khối này trước đây không có nền —
- *    chỉ có một đường gạch đứt lơ lửng. Đổi sang `bg-surface` (thẻ) + `shadow-card`
- *    để nó nổi lên như một thẻ thật. Giữ `border-dashed` vì nét đứt là thứ nói
- *    "chỗ này sẽ có nội dung", khác với thẻ đặc = "nội dung đây rồi".
+ * 1. `bg-surface-alt` is **byte-identical to the page background** in BOTH themes
+ *    (light `#f5f7fb` / dark `#0a1122`). Which means this block previously had no background
+ *    at all — just a dashed outline floating in space. Changed to `bg-surface` (card) +
+ *    `shadow-card` so it lifts like a real card. `border-dashed` stays, because the dashed
+ *    edge is what says "content will appear here", as opposed to a solid card = "here is the
+ *    content".
  *
- * 2. Tiêu đề là `<p>`. Trong `ChainTable` nó đứng đúng chỗ một tiêu đề mục phải
- *    đứng, nên trình đọc màn hình nhảy qua nó khi duyệt theo cấu trúc. Đổi thành
- *    `<h2>` — đây là thứ `axe-core` KHÔNG bắt được (nó không biết một `<p>` *đáng
- *    lẽ* phải là heading), nên nó nằm trong nhóm "a11y ngoài tầm axe" của Đ1-9.
+ * 2. The heading was a `<p>`. Inside `ChainTable` it sits exactly where a section heading
+ *    belongs, so a screen reader skipped past it when browsing by structure. Changed to
+ *    `<h2>` — something `axe-core` CANNOT catch (it has no way to know a `<p>` *ought* to be
+ *    a heading), so it belongs to the "a11y beyond axe" group of Đ1-9.
  */
 export function EmptyState({ title, desc, action }: { title: string; desc?: string; action?: ReactNode }) {
   return (
@@ -247,17 +249,17 @@ export function Copyable({ value, label, className }: { value: string; label?: s
   return (
     <button
       type="button"
-      // Nhãn phải nói RÕ chép cái gì — "Sao chép" một mình thì trong danh sách 5 nút
-      // giống hệt nhau, người dùng trình đọc màn hình không biết mình đang ở nút nào.
+      // The label must say WHAT is being copied — "Copy" on its own leaves a screen-reader user
+      // unable to tell which of five identical buttons they are on.
       aria-label={`${t.common.copy} ${label ?? value}`}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(value);
           setCopied(true);
         } catch {
-          /* Trình duyệt từ chối clipboard (thiếu quyền / không phải HTTPS): im lặng
-             là đúng ở đây — người dùng vẫn bôi đen chép tay được, còn hiện lỗi đỏ
-             cho một thao tác tiện ích thì ồn hơn giá trị nó mang lại. */
+          /* The browser refused the clipboard (missing permission / not HTTPS): staying silent
+             is right here — the user can still select and copy by hand, and showing a red error
+             for a convenience action is noisier than the value it carries. */
         }
       }}
       className={cx(
@@ -270,8 +272,8 @@ export function Copyable({ value, label, className }: { value: string; label?: s
       <span aria-hidden="true" className="shrink-0 text-muted">
         {copied ? '✓' : '⧉'}
       </span>
-      {/* Thông báo cho trình đọc màn hình — vùng live riêng, không phụ thuộc vào
-          việc dấu ✓ có được đọc hay không. */}
+      {/* Announcement for screen readers — its own live region, not dependent on whether
+          the ✓ mark happens to be read out. */}
       <span className="sr-only" role="status">
         {copied ? t.common.copied : ''}
       </span>
@@ -310,15 +312,15 @@ const STEP_COLOUR: Record<StepStatus, string> = {
 };
 
 /**
- * Danh sách BƯỚC cho thao tác dài.
+ * A list of STEPS for a long operation.
  *
- * 🔴 Vì sao không phải spinner: một lượt đẻ chain mất **~170 giây** và đó là CHỦ Ý
- * (5 node restart lần lượt để mạng không mất quorum). Một vòng xoay 170 giây đọc là
- * "hỏng rồi" — người dùng tải lại trang và bấm lại, và lần bấm thứ hai là một chain
- * thừa ăn mất một slot trong trần 15.
+ * 🔴 Why not a spinner: launching a chain takes **~170 seconds** and that is DELIBERATE
+ * (5 nodes restart one at a time so the network never loses quorum). A 170-second spinner
+ * reads as "it broke" — the user reloads and presses again, and that second press is a
+ * surplus chain eating one of the 15 slots.
  *
- * `aria-live="polite"` để người dùng trình đọc màn hình nghe được tiến trình mà
- * không bị cắt ngang; `role="list"` giữ ngữ nghĩa danh sách khi đã bỏ dấu chấm.
+ * `aria-live="polite"` so a screen-reader user hears the progress without being interrupted;
+ * `role="list"` keeps the list semantics now that the bullets are gone.
  */
 export function Steps({ steps, footnote }: { steps: Step[]; footnote?: string }) {
   const t = useT();
@@ -332,8 +334,8 @@ export function Steps({ steps, footnote }: { steps: Step[]; footnote?: string })
             </span>
             <span className={cx('flex-1', b.status === 'pending' ? 'text-muted' : 'text-body')}>
               {b.label}
-              {/* Trạng thái phải nằm trong CHỮ, không chỉ trong ký hiệu và màu:
-                  ký hiệu bị aria-hidden, còn màu thì người mù màu không đọc được. */}
+              {/* The status has to be in the TEXT, not only in the glyph and the colour:
+                  the glyph is aria-hidden, and a colour-blind reader cannot read the colour. */}
               <span className="sr-only">
                 {b.status === 'done'
                   ? t.common.stepDone

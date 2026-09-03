@@ -7,28 +7,29 @@ import { interpolate, useT } from '@/lib/i18n';
 import { describeFailure } from '@/lib/net';
 import {
   getWallet, connectWallet, siweSignIn, callConsole, addL1ToWallet, activateChain, waitForProgress, ConsoleError,
-  readWalletError, type WalletSession, CONSOLE_TIMEOUT_S} from '@/lib/wallet';
+  readWalletError, NO_WALLET, type WalletSession, CONSOLE_TIMEOUT_S} from '@/lib/wallet';
 
 /**
- * Màn đẻ chain — màn khó nhất của M10, và ba sự thật của SẢN PHẨM ép hình dạng nó,
- * không phải thẩm mỹ:
+ * The chain-launch screen — the hardest screen in M10, and three PRODUCT truths force its
+ * shape, not aesthetics:
  *
- * 1. 🔴 **Một lượt mất ~170 giây, và đó là CHỦ Ý** (5 node restart lần lượt để mạng
- *    không mất quorum; đổi lại RPC công khai chỉ gián đoạn 0,5s thay vì 6,0s).
- *    ⇒ **tiến trình theo BƯỚC**, không phải vòng xoay. Vòng xoay 170 giây đọc là
- *    "hỏng rồi", và lần bấm lại là một chain thừa ăn mất một slot trong trần 15.
- * 2. 🔴 **Genesis là BẤT BIẾN** ⇒ đây là **cửa một chiều**, phải có bước soát lại.
- * 3. 🔴 **Đăng nhập bằng ví thì `admin` bị ÉP = địa chỉ đã ký** ⇒ địa chỉ hiện ra
- *    như một **sự thật**, không phải một ô nhập. Ô nhập tay chỉ có ở đường token
- *    vận hành — mà đường đó không đi qua trang này.
+ * 1. 🔴 **One run takes ~170 seconds, and that is DELIBERATE** (5 nodes restart one at a
+ *    time so the network never loses quorum; in exchange the public RPC is interrupted for
+ *    0.5s instead of 6.0s).
+ *    ⇒ **progress shown as STEPS**, not a spinner. A 170-second spinner reads as "it broke",
+ *    and the retry is a surplus chain eating one of the 15 slots.
+ * 2. 🔴 **Genesis is IMMUTABLE** ⇒ this is a **one-way door**, so there must be a review step.
+ * 3. 🔴 **Signing in with a wallet FORCES `admin` = the signing address** ⇒ the address is
+ *    presented as a **fact**, not as an input field. A manual field exists only on the
+ *    operator-token path — and that path does not go through this page.
  */
 
-// 🔴 CÁC TRƯỜNG NÀY LÀ HỢP ĐỒNG VỚI `/api/status` CỦA CONSOLE — không phải tên ta tự đặt.
-// Console (`local-net/lib/presets.mjs`) trả `{ id, name, desc }`. Trước 2026-08-30 tệp này
-// khai `{ id, ten, moTa }`, tức tên CŨ từ thời id preset còn tiếng Việt (D-108) — nên
-// `p.ten` luôn `undefined` và **mọi dòng trong ô chọn hiện ra TRỐNG**: người dùng phải
-// chọn cấu hình VĨNH VIỄN cho chain của mình bằng cách bấm mù vào ô trắng.
-// TypeScript không bắt được vì dữ liệu đến từ mạng, không từ mã.
+// 🔴 THESE FIELDS ARE A CONTRACT WITH THE CONSOLE'S `/api/status` — not names of our choosing.
+// The console (`local-net/lib/presets.mjs`) returns `{ id, name, desc }`. Before 2026-08-30
+// this file declared `{ id, ten, moTa }`, i.e. the OLD names from when preset ids were still
+// Vietnamese (D-108) — so `p.ten` was always `undefined` and **every row in the picker
+// rendered BLANK**: users had to choose their chain's PERMANENT configuration by clicking
+// blindly on white space. TypeScript could not catch it because the data comes off the network, not out of the code.
 type Preset = { id: string; name: string; desc?: string };
 type TrangThai = {
   tran: number;
@@ -52,10 +53,10 @@ export function CreateChainScreen() {
 
   const [state, setState] = useState<TrangThai | null>(null);
   const [ten, datTen] = useState('');
-  // Giá trị khởi tạo chỉ sống tới lượt `/api/status` đầu tiên: nếu id này không có trong
-  // danh sách console trả về thì hiệu ứng bên dưới thay nó bằng preset đầu tiên. Vẫn phải
-  // đúng — `'chuan'` là id thời preset còn tiếng Việt (D-108), và API **không có bí danh**
-  // cho id cũ, nên một lượt gửi trước khi status kịp về sẽ bị từ chối thẳng.
+  // The initial value only lives until the first `/api/status`: if this id is not in the list
+  // the console returns, the effect below replaces it with the first preset. It still has to
+  // be right — `'chuan'` is the id from when presets were Vietnamese (D-108), and the API has
+  // **no alias** for old ids, so a submit before status arrives would be refused outright.
   const [preset, datPreset] = useState('standard');
 
   const [progress, setProgress] = useState<Progress | null>(null);
@@ -64,14 +65,14 @@ export function CreateChainScreen() {
 
   const [walletAdded, setWalletAdded] = useState(false);
   const [activated, setActivated] = useState<'chua' | 'dang' | 'xong'>('chua');
-  // Hai ô lỗi này thay cho `catch {}` trắng của bản trước. Giữ RIÊNG cho từng nút:
-  // gộp chung thì bấm nút này lại xoá lời giải thích của nút kia.
+  // These two error slots replace the previous version's empty `catch {}`. Kept SEPARATE per
+  // button: merging them means pressing one button erases the other one's explanation.
   const [addWalletError, setAddWalletError] = useState<string | null>(null);
   const [activateError, setActivateError] = useState<string | null>(null);
 
-  // Tên gợi ý từ trang chủ bản B (`/console/?ten=…`) — nhận cả ở đây để hai bản
-  // dùng chung một đường. Không tự điền nếu tên xấu: điền một giá trị sai rồi bắt
-  // người ta sửa còn tệ hơn để trống.
+  // A suggested name from home-page variant B (`/console/?ten=…`) — accepted here too so both
+  // variants share one path. Not auto-filled if the name is bad: filling in a wrong value and
+  // making someone correct it is worse than leaving it empty.
   useEffect(() => {
     const q = new URLSearchParams(window.location.search).get('ten');
     if (q && TEN_HOP_LE.test(q.trim())) datTen(q.trim());
@@ -95,7 +96,7 @@ export function CreateChainScreen() {
     } catch (e) {
       const m = String((e as Error).message ?? e);
       setWalletFailure(
-        m === 'KHONG_CO_VI' ? t.launch.noWallet
+        m === NO_WALLET ? t.launch.noWallet
           : /user rejected|denied|4001/i.test(m) ? t.launch.signRejected
           : m,
       );
@@ -104,12 +105,12 @@ export function CreateChainScreen() {
     }
   }
 
-  /* ── Vòng đọc tiến trình ──────────────────────────────────────────────────
-     Poll 2 giây một lần TRONG LÚC đang đẻ, và chỉ khi đó. Đây là chỗ duy nhất
-     trong cả trang có polling: nó có điểm dừng rõ (lượt đẻ kết thúc), khác hẳn
-     một trang chủ poll mãi mãi.
-     `/api/progress` cố ý rẻ — nó không chạm docker hay RPC, chỉ trả lại thứ đã
-     ghi sẵn trong bộ nhớ console. */
+  /* ── The progress polling loop ─────────────────────────────────────────────
+     Poll every 2 seconds WHILE a launch is running, and only then. This is the only
+     polling anywhere on the site: it has a clear end (the launch finishes), quite unlike
+     a home page that polls forever.
+     `/api/progress` is deliberately cheap — it touches neither docker nor RPC, it just
+     returns what the console already holds in memory. */
   const dongHo = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
     if (phase !== 'chay' || !session) return;
@@ -117,8 +118,8 @@ export function CreateChainScreen() {
       try {
         setProgress(await callConsole<Progress>('/api/progress', session.token, undefined, CONSOLE_TIMEOUT_S));
       } catch {
-        /* Một nhịp đọc hỏng KHÔNG phải lý do để bỏ cuộc: lượt đẻ vẫn đang chạy ở
-           server. Giữ nguyên bước cuối đã biết và đọc lại ở nhịp sau. */
+        /* One failed read is NOT a reason to give up: the launch is still running on the
+           server. Keep the last known step and read again on the next beat. */
       }
     };
     void doc();
@@ -133,19 +134,19 @@ export function CreateChainScreen() {
     setLaunchError(null);
     setPhase('chay');
 
-    // 🔴 KHÔNG kết luận từ cái POST này. Đẻ chain mất ~170 giây; Cloudflare cắt kết
-    // nối ở ~100 giây và trả HTTP 524, nên qua tên miền công khai lượt POST **luôn**
-    // hỏng trong khi chain vẫn được đẻ xong. Báo "không đẻ được" lúc đó là mời người
-    // dùng bấm lại một việc đã xong — và chain thừa ăn mất một slot trong trần 15,
-    // vĩnh viễn giữ luôn tên và chainId. Xem `waitForProgress`.
+    // 🔴 DO NOT conclude anything from this POST. Launching a chain takes ~170 seconds;
+    // Cloudflare closes the connection at ~100 seconds and returns HTTP 524, so over the
+    // public domain the POST **always** fails while the chain is created successfully anyway.
+    // Reporting "could not launch" at that point invites the user to redo something already
+    // done — and the surplus chain eats one of the 15 slots, permanently holding its name and chainId. See `waitForProgress`.
     //
-    // 🔴 NHƯNG "không kết luận được" ≠ "chờ tới cùng trong mọi trường hợp".
-    // Đo 2026-08-27: POST với token hỏng bị từ chối **401 trong 0,831 giây**, mà màn
-    // hình vẫn đứng im tới trần chờ, vì `waitForProgress` chỉ thoát khi đã thấy
-    // `running` rồi lại thấy hết chạy — mà từ chối sớm thì `running` không bao giờ
-    // bật. Người dùng nhìn một thanh tiến trình cho một việc **chưa hề bắt đầu**.
-    // `tuChoiSom` vá đúng ca đó và CHỈ ca đó: 4xx = server đã trả lời và trả lời
-    // "không". 524/5xx/đứt mạng vẫn chờ tới cùng, vì đó mới là ca Cloudflare cắt.
+    // 🔴 BUT "inconclusive" ≠ "wait to the end in every case".
+    // Measured 2026-08-27: a POST with a bad token was refused **401 in 0.831 seconds**, and
+    // the screen still sat frozen to the full wait ceiling, because `waitForProgress` only
+    // exits once it has seen `running` and then seen it stop — and on an early refusal
+    // `running` never turns on at all. The user watches a progress bar for work that **never started**.
+    // `tuChoiSom` fixes that case and ONLY that case: 4xx = the server answered and the answer
+    // was "no". 524/5xx/network drop still waits to the end, because that is the Cloudflare-cut case.
     let kqPost: KetQua | null = null;
     let loiPost: string | null = null;
     let biTuChoi = false;
@@ -166,25 +167,25 @@ export function CreateChainScreen() {
       return;
     }
 
-    // POST không về được ⇒ hỏi DANH BẠ xem chain có thật sự tồn tại không.
+    // The POST never came back ⇒ ask the DIRECTORY whether the chain actually exists.
     try {
       const st = await callConsole<{ chains: KetQua[] } & TrangThai>('/api/status', session.token, undefined, CONSOLE_TIMEOUT_S);
       setState(st);
       const co = st.chains.find((c) => c.name === ten.trim());
       if (co) {
-        // Danh bạ không mang `luuY` (nó do `/api/create` sinh ra), nên dựng lại lời
-        // dặn ở đây thay vì im lặng bỏ mất nó.
+        // The directory does not carry `luuY` (that is produced by `/api/create`), so rebuild the
+        // instruction here rather than silently losing it.
         setResult({ ...co, luuY: { title: t.launch.noteTitle, cachLam: t.launch.noteHow } });
         setPhase('xong');
         return;
       }
-    } catch { /* đọc danh bạ hỏng — rơi xuống nhánh báo lỗi bên dưới */ }
+    } catch { /* reading the directory failed — fall through to the error branch below */ }
 
     setLaunchError(interpolate(t.launch.launchError, { detail: tt2?.error ?? loiPost ?? t.launch.unknownError }));
     setPhase('nhap');
   }
 
-  /* ─────────────────────────────────────────────────────────────── giao diện */
+  /* ──────────────────────────────────────────────────────────────────── UI */
 
   if (phase === 'vi') {
     return (
@@ -224,7 +225,7 @@ export function CreateChainScreen() {
           <>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-lg font-bold text-ink">{t.launch.title}</h2>
-              {/* 🔴 Trần hiện TRƯỚC khi người ta bỏ công, không phải lúc bị từ chối. */}
+              {/* 🔴 Show the ceiling BEFORE someone invests effort, not when they are refused. */}
               <Badge tone={hetCho ? 'warn' : 'good'}>
                 {hetCho ? t.launch.slotsFull : interpolate(t.launch.slotsLeft, { left: tran - soChain, total: tran })}
               </Badge>
@@ -255,8 +256,8 @@ export function CreateChainScreen() {
                 <p id="kieu-chain-mota" className="text-sm text-muted">
                   {t.launch.typeHelp}
                 </p>
-                {/* Danh sách do SERVER cấp, không cắm cứng ở client: cắm cứng là hai
-                    nơi phải giữ cho khớp, và bên trôi lệch sẽ là bên người dùng thấy. */}
+                {/* The list comes from the SERVER, not hard-coded on the client: hard-coding
+                    means two places to keep in step, and the one that drifts is the one users see. */}
                 {state ? (
                   <select
                     id="kieu-chain"
@@ -275,8 +276,8 @@ export function CreateChainScreen() {
                   <Skeleton className="h-12 w-full" />
                 )}
                 {presetHienTai?.desc && (
-                  // Mô tả hiện NGAY DƯỚI ô chọn: genesis bất biến nên người dùng chỉ
-                  // có đúng một lần đọc.
+                  // The description shows DIRECTLY UNDER the picker: genesis is immutable, so the
+                  // user gets exactly one chance to read it.
                   <p className="text-sm text-body-2">{presetHienTai.desc}</p>
                 )}
               </div>
@@ -301,9 +302,9 @@ export function CreateChainScreen() {
             <h2 className="font-display text-lg font-bold text-ink">{t.launch.reviewTitle}</h2>
             <div className="mt-3 flex flex-col gap-3">
               <Note tone="warn">{t.launch.reviewDesc}</Note>
-              {/* Cảnh báo re-genesis đặt ở ĐÂY chứ không chỉ ở dải trên đầu trang:
-                  đây là giây cuối trước cửa một chiều, và là chỗ duy nhất chắc chắn
-                  người dùng đang đọc. Gỡ cùng lúc với dải banner sau ngày G. */}
+              {/* The re-genesis warning sits HERE and not only in the strip at the top of
+                  the page: this is the last second before a one-way door, and the one place we
+                  know for certain the user is reading. Remove it together with the banner strip after G-day. */}
               <Note tone="warn">
                 {interpolate(t.launch.reviewRebuild, { date: t.rebuild.date })}
               </Note>
@@ -374,11 +375,11 @@ export function CreateChainScreen() {
               </div>
             </dl>
 
-            {/* 🔴 `luuY` là một VIỆC BẤM ĐƯỢC, không phải một đoạn văn cảnh báo.
-                Bẫy: `eth_estimateGas` ước lượng THIẾU cho giao dịch ĐẦU TIÊN của
-                chain vừa đẻ (D-025) và hỏng câm. Cách rẻ nhất để mở block 1 là một
-                giao dịch chuyển tiền thường — 21.000 gas là hằng số EVM nên không
-                cần ước lượng. Nút dưới đây làm đúng việc đó. */}
+            {/* 🔴 `luuY` is a CLICKABLE ACTION, not a paragraph of warning.
+                The trap: `eth_estimateGas` under-estimates for the FIRST transaction of a
+                freshly launched chain (D-025) and fails silently. The cheapest way to open
+                block 1 is an ordinary transfer — 21,000 gas is an EVM constant, so no estimate
+                is needed. The button below does exactly that. */}
             {result.luuY && (
               <div className="mt-5">
                 <Note>
@@ -461,10 +462,10 @@ export function CreateChainScreen() {
               </Button>
             </div>
 
-            {/* 🔴 Vùng live THƯỜNG TRÚ, không phải sinh ra cùng nội dung. Trình đọc
-                màn hình chỉ theo dõi vùng live đã có sẵn trong DOM — chèn cả vùng
-                lẫn chữ vào cùng lúc thì nó không đọc gì. Đây là khuôn `Copyable`
-                đang làm đúng, và là khuôn `Steps` đang làm sai. */}
+            {/* 🔴 A PERMANENT live region, not one created along with its content. Screen
+                readers only watch a live region that was already in the DOM — insert the
+                region and the text together and nothing gets announced. This is the shape
+                `Copyable` gets right, and the shape `Steps` gets wrong. */}
             <div role="status" aria-live="polite" className="mt-4 flex flex-col gap-2 empty:hidden">
               {addWalletError && <p className="text-sm text-danger">{addWalletError}</p>}
               {activateError && <p className="text-sm text-danger">{activateError}</p>}
