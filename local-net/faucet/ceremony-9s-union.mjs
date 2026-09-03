@@ -173,25 +173,53 @@ function makeScore(log = console.log) {
  * BEFORE anyone needs it. Reading the file is not enough; a file can drift. The digest is what
  * says it did not.
  */
-function loadMessage(messageFile = MESSAGE_FILE, canonFile = CANON_FILE) {
-  if (!existsSync(messageFile)) return { error: `missing ${messageFile}` };
-  const bytes = readFileSync(messageFile);
+/** One CANON row: `<id>  <sha256>  <N> bytes  …`. Returns null when the id is not declared. */
+export function frozenFromCanon(id, canonText) {
+  const m = String(canonText ?? "").match(new RegExp(`^${id}\\s+([0-9a-f]{64})\\s+(\\d+)\\s+bytes`, "m"));
+  return m ? { digest: m[1], size: Number(m[2]) } : null;
+}
+
+/**
+ * Bytes that are going ON CHAIN FOREVER, checked against the digest frozen in CANON.
+ *
+ * 🔴 ONE function for every such file, because there used to be two and only one of them checked.
+ * `loadMessage` compared the 9S Union bytes against CANON — digest AND length — and refused on any
+ * mismatch. `loadPayload`, the path Adam and Eva travel, was three lines: read the file, hex it,
+ * send it. No digest, no length, no CANON. A comma added to `adam.txt` at the last minute would
+ * have gone on chain permanently with nothing raising a word.
+ *
+ * The rule was right and it was applied to the half somebody had thought about — the 9S Union
+ * message was known to carry text, while Adam and Eva were still undecided when this was written.
+ * "Undecided" is exactly when a file needs the guard, not when it stops needing one.
+ * (Found 2026-09-03, the same shape as four other defects the same week.)
+ */
+export function loadFrozen(file, id, canonFile = CANON_FILE, fs = { existsSync, readFileSync }) {
+  if (!fs.existsSync(file)) return { error: `missing ${file}` };
+  const bytes = fs.readFileSync(file);
   const digest = sha256(bytes);
-  let frozen = null;
-  if (existsSync(canonFile)) {
-    const m = readFileSync(canonFile, "utf8").match(/^9s_union_message\s+([0-9a-f]{64})\s+(\d+)\s+bytes/m);
-    if (m) frozen = { digest: m[1], size: Number(m[2]) };
-  }
-  if (!frozen) return { error: `CANON carries no 9s_union_message line (${canonFile})`, bytes, digest };
-  if (frozen.digest !== digest) return { error: "message file does NOT match the frozen digest — refusing", bytes, digest, frozen };
-  if (frozen.size !== bytes.length) return { error: `message file is ${bytes.length} bytes, CANON froze ${frozen.size}`, bytes, digest, frozen };
+  const frozen = fs.existsSync(canonFile) ? frozenFromCanon(id, fs.readFileSync(canonFile, "utf8")) : null;
+  if (!frozen) return { error: `CANON carries no \`${id}\` line (${canonFile}) — freeze the bytes before the day`, bytes, digest };
+  if (frozen.digest !== digest) return { error: `${file} does NOT match the digest CANON froze for \`${id}\` — refusing`, bytes, digest, frozen };
+  if (frozen.size !== bytes.length) return { error: `${file} is ${bytes.length} bytes, CANON froze ${frozen.size} for \`${id}\``, bytes, digest, frozen };
   return { bytes, digest, frozen };
 }
 
-function loadPayload(file) {
-  if (!file) return "0x";
-  const b = readFileSync(file);
-  return "0x" + b.toString("hex");
+function loadMessage(messageFile = MESSAGE_FILE, canonFile = CANON_FILE) {
+  return loadFrozen(messageFile, "9s_union_message", canonFile);
+}
+
+/**
+ * Adam's or Eva's payload.
+ *
+ * No file ⇒ `0x`, and that stays a legitimate choice: sending them empty is a decision, not an
+ * omission. But a file that IS given must be frozen in CANON like everything else that lands on
+ * this chain permanently — supplying bytes is precisely the moment the guard starts to matter.
+ */
+export function loadPayload(file, id, canonFile = CANON_FILE) {
+  if (!file) return { hex: "0x", declared: false };
+  const r = loadFrozen(file, id, canonFile);
+  if (r.error) return { error: r.error };
+  return { hex: "0x" + r.bytes.toString("hex"), declared: true, digest: r.digest, size: r.bytes.length };
 }
 
 // ───────────────────────────── chain adapter ─────────────────────────────
@@ -674,6 +702,33 @@ function selfTest() {
       const bad = loadMessage(MESSAGE_FILE, path.join(HERE, "does-not-exist.txt"));
       cases.push(["a missing CANON line refuses the run", !!bad.error]);
     }
+    // 9b — 🔴 THE HOLE FOUND 2026-09-03: Adam/Eva went on chain with NO digest check at all.
+    // These pin the fix in both directions, on a fake CANON so no real bytes are involved.
+    {
+      const fakeCanon = "adam_message  " + "a".repeat(64) + "  7 bytes  en\n";
+      const mem = (files) => ({
+        existsSync: (p) => p in files,
+        readFileSync: (p) => files[p],
+      });
+      const seven = Buffer.from("ABCDEFG");
+      const rightDigest = sha256(seven);
+      const goodCanon = `adam_message  ${rightDigest}  7 bytes  en\n`;
+
+      cases.push(["no --adam-data ⇒ empty payload, and that stays a legitimate choice",
+        loadPayload(null, "adam_message").hex === "0x"]);
+      cases.push(["🔴 a payload file with NO CANON line REFUSES — this is the hole that existed",
+        !!loadPayload("/f", "adam_message", "/c", mem({ "/f": seven })).error]);
+      cases.push(["🔴 a payload whose bytes do not match the frozen digest REFUSES",
+        !!loadFrozen("/f", "adam_message", "/c", mem({ "/f": seven, "/c": fakeCanon })).error]);
+      cases.push(["🔴 right digest but wrong LENGTH still refuses — both halves are checked",
+        !!loadFrozen("/f", "adam_message", "/c",
+          mem({ "/f": seven, "/c": `adam_message  ${rightDigest}  9 bytes  en\n` })).error]);
+      cases.push(["a payload matching CANON exactly is accepted",
+        !loadFrozen("/f", "adam_message", "/c", mem({ "/f": seven, "/c": goodCanon })).error]);
+      cases.push(["🔴 the id is anchored — an `eva_message` row does not satisfy `adam_message`",
+        !!loadFrozen("/f", "adam_message", "/c",
+          mem({ "/f": seven, "/c": goodCanon.replace("adam_", "eva_") })).error]);
+    }
     // 10 — …and accept the real, unmodified pair (the mirror of case 9).
     {
       const good = loadMessage();
@@ -791,12 +846,26 @@ async function main() {
   console.log("              node's skew, and on an idle chain age dominates: a 10s-old block reads");
   console.log("              as -10s of \"skew\". Only a chain producing blocks gives B-13(b) a number.");
 
-  const adamData = loadPayload(ADAM_DATA_FILE);
-  const evaData = loadPayload(EVA_DATA_FILE);
-  if (adamData === "0x" || evaData === "0x") {
+  const adamP = loadPayload(ADAM_DATA_FILE, "adam_message");
+  const evaP = loadPayload(EVA_DATA_FILE, "eva_message");
+  // 🔴 REFUSE, do not warn. These bytes are permanent, and a payload that does not match the
+  // frozen digest is the one case where continuing is worse than stopping: the ceremony happens
+  // once, and the wrong text cannot be taken back off the chain afterwards.
+  for (const [ten, p] of [["Adam", adamP], ["Eva", evaP]]) {
+    if (p.error) {
+      console.error(`\n🔴 REFUSING: ${ten} payload — ${p.error}`);
+      console.error("   Freeze the bytes in docs/block-adam/CANON.txt first (same shape as");
+      console.error("   `9s_union_message`), then run again. Bytes decided on the day cannot be frozen.");
+      return 2;
+    }
+  }
+  const adamData = adamP.hex, evaData = evaP.hex;
+  if (!adamP.declared || !evaP.declared) {
     console.log("\n  ⚠️ Adam/Eva carry NO payload. Nothing anywhere specifies what they should contain;");
     console.log("     if they are meant to carry text, freeze the bytes first and pass --adam-data /");
     console.log("     --eva-data. Bytes decided on the day cannot be frozen beforehand.");
+  } else {
+    console.log(`\n  ✓ Adam ${adamP.size}B ${adamP.digest.slice(0, 12)}…  ·  Eva ${evaP.size}B ${evaP.digest.slice(0, 12)}…  (both match CANON)`);
   }
 
   if (!SEND) {

@@ -7913,3 +7913,56 @@ kiểm được một mình.**
 ⚠️ **Chưa deploy và cửa vẫn đóng.** Mở lại cần: đặt `A1_L1_ALLOWLIST`, deploy console, rồi mới
 `A1_DE_CHAIN_MO=1`. Thứ tự đó là phép kiểm — bật cửa trước khi có danh sách là mở lại đúng cái lỗ
 vừa đóng.
+
+---
+
+## D-172 — **Byte của Adam/Eva đi lên chain VĨNH VIỄN mà không qua một phép kiểm nào** (`2026-09-03`)
+
+David hỏi *"nội dung Adam và Eva khai ở đâu"*. Trả lời: **chưa ở đâu cả** — và chính kịch bản nghi
+lễ tự khai điều đó trong tiêu đề (*"WHAT NOTHING SPECIFIES, AND THIS FILE DOES NOT INVENT"*). Không
+khai gì thì Adam/Eva vẫn được gửi, **rỗng**, và nghi lễ vẫn chạy.
+
+Nhưng đi tìm chỗ khai thì lộ ra một lỗ.
+
+### 🔴 Lỗ: một luật, hai đường, chỉ MỘT đường có cổng
+
+| đường | kiểm gì |
+|---|---|
+| thông điệp `9S Union` (`loadMessage`) | so **vân tay** VÀ **số byte** với CANON ⇒ lệch là **từ chối chạy** |
+| Adam / Eva (`loadPayload`) | `readFileSync` → hex → **gửi**. Không vân tay, không độ dài, không CANON |
+
+Ba dòng, không một phép so nào. Thêm một dấu phẩy vào `adam.txt` lúc phút chót thì byte đó lên
+chain **vĩnh viễn** và **không gì kêu một tiếng**.
+
+**Vì sao lỗ tồn tại:** thông điệp `9S Union` được bảo vệ vì lúc viết, **ai cũng biết nó mang chữ**.
+Adam/Eva thì **chưa ai quyết**, nên chúng đi đường không có cổng. 🔴 *"Chưa quyết"* chính là lúc một
+tệp **CẦN** cổng nhất, không phải lúc nó thôi cần — vì đúng lúc người ta quyết là lúc byte xuất
+hiện, và lúc đó thì đã sát ngày.
+
+⇒ Cùng lớp với bốn lỗi khác cùng tuần: **luật đúng, áp cho nửa mà ai đó đã nghĩ tới.**
+
+### Vá: gom về MỘT hàm, không thêm bản kiểm thứ hai
+
+`loadFrozen(file, id, canonFile)` — dùng chung cho cả `9s_union_message` lẫn `adam_message` /
+`eva_message`. Thêm một cổng thứ hai song song sẽ là **bản khai thứ hai của cùng một luật** (§6),
+đúng thứ đẻ ra chính cái lỗ này.
+
+- **Không truyền tệp ⇒ `0x`, và đó vẫn là lựa chọn hợp lệ** — gửi rỗng là một **quyết định**,
+  không phải một thiếu sót. Cổng chỉ siết khi **có** byte, vì cấp byte chính là lúc nó bắt đầu
+  quan trọng.
+- **Có tệp mà CANON chưa khai ⇒ TỪ CHỐI** (`exit 2`), không cảnh báo. Nghi lễ xảy ra **một lần**,
+  và chữ sai **không gỡ khỏi chain được** — đây đúng là trường hợp chạy tiếp tệ hơn dừng lại.
+- **`id` neo hai đầu**: một dòng `eva_message` **không** thoả `adam_message`.
+
+**Nghiệm thu: 12 → 18 đối chứng**, gồm *sai vân tay ⇒ từ chối* · *đúng vân tay nhưng SAI ĐỘ DÀI ⇒
+vẫn từ chối* (kiểm **cả hai** nửa) · *id lệch ⇒ từ chối*. Và **đối chứng trên đường thật, hai
+chiều**: payload có thật mà CANON chưa khai ⇒ `EXIT 2` kèm lời khuyên trỏ đúng việc phải làm;
+không khai gì ⇒ `EXIT 0`, chạy bình thường với cảnh báo cũ.
+
+### Còn lại là việc David, và có hạn
+
+Soạn chữ cho Adam/Eva **hoặc chốt rằng chúng cố ý để rỗng** — cả hai đều là quyết định hợp lệ, và
+cái sau cũng nên được ghi ra chứ không để mặc định trôi qua. Bản khắc genesis có sẵn hai câu dùng
+được: `dedication` (25 byte) và `dedication_eva` (45 byte).
+⚠️ Byte đến **sau** ngày thì không đóng băng được nữa — đúng bài học lúc khắc genesis, và nay cổng
+đã **cưỡng chế** bài học đó thay vì chỉ nhắc nó.

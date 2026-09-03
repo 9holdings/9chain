@@ -504,6 +504,32 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
       🔴 Bật cửa trước khi có danh sách là **mở lại đúng cái lỗ vừa đóng**. Đo bằng
       `node scripts/reopen-chain-creation.mjs --probe`, và đọc dòng `mời tạo` trong log console.
 
+- [x] **P-42 — 🔴 byte Adam/Eva lên chain VĨNH VIỄN mà không qua phép kiểm nào** (D-172)
+      David hỏi *"nội dung Adam/Eva khai ở đâu"* → **chưa ở đâu cả**, và đi tìm chỗ khai thì lộ lỗ.
+      **Một luật, hai đường, chỉ MỘT đường có cổng:** `loadMessage` so **vân tay + số byte** với
+      CANON rồi từ chối nếu lệch; `loadPayload` (đường của Adam/Eva) là **ba dòng** —
+      `readFileSync` → hex → gửi. Thêm một dấu phẩy phút chót là byte đó lên chain vĩnh viễn,
+      **không gì kêu**.
+      🔴 **Vì sao:** `9S Union` được bảo vệ vì ai cũng biết nó mang chữ; Adam/Eva **chưa ai quyết**
+      nên đi đường không cổng. ***"Chưa quyết" là lúc một tệp CẦN cổng nhất*** — vì lúc người ta
+      quyết cũng là lúc byte xuất hiện, và khi đó đã sát ngày.
+      **Điều kiện qua:** gom về **một** hàm (không thêm bản kiểm thứ hai — §6), và thấy đỏ ở mọi
+      chiều sai **trên đường thật**.
+      ✅ **ĐẠT.** `loadFrozen(file, id, canon)` dùng chung cho cả ba tệp. Không truyền tệp ⇒ `0x`
+      **vẫn hợp lệ** (gửi rỗng là quyết định, không phải thiếu sót); có tệp mà CANON chưa khai ⇒
+      **TỪ CHỐI `exit 2`**, không cảnh báo — nghi lễ xảy ra **một lần** và chữ sai không gỡ khỏi
+      chain được. **12 → 18 đối chứng** (sai vân tay · đúng vân tay nhưng **sai độ dài** · **id
+      lệch** đều từ chối) + **đối chứng đường thật hai chiều**: có payload chưa khai ⇒ `EXIT 2`;
+      không khai gì ⇒ `EXIT 0`.
+
+- [human] **P-43 — chốt nội dung Adam/Eva, hạn `2026-09-07`**
+      Soạn chữ **hoặc chốt rằng chúng cố ý để rỗng** — cả hai hợp lệ, và cái sau cũng nên **ghi ra**
+      chứ đừng để mặc định trôi qua. Gợi ý có sẵn từ bản khắc genesis: `dedication` (25 byte) và
+      `dedication_eva` (45 byte).
+      Cách khai: byte vào tệp dưới `docs/block-adam/`, **vân tay đóng băng vào `CANON.txt`** theo
+      đúng hình dạng dòng `9s_union_message`, rồi truyền `--adam-data` / `--eva-data`.
+      ⚠️ Byte đến **sau** ngày thì không đóng băng được nữa — nay cổng **cưỡng chế** điều đó.
+
 ---
 
 ## 🔵 PHIÊN QUÉT LẠI (2026-08-28, khuya) — 3 mốc, đều sinh từ một bản quét toàn diện
