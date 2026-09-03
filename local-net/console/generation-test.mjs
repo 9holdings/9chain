@@ -119,7 +119,17 @@ console.log("\n── 1. KHỚP → cổng phải CHO ĐI QUA ──");
   traLoi = { networkID: String(NETWORK_ID), networkName: TEN_MANG };
   const loi = await thu();
   kiem("không phải lỗi thế hệ (cổng đã mở)", !/THẾ HỆ/i.test(loi), loi.slice(0, 60));
-  kiem("đi tới được phép kiểm KẾ TIẾP (tên sai)", /Tên chỉ gồm/.test(loi), loi.slice(0, 60));
+  // 🔴 This asserts on PROSE, and that is a known weakness rather than an oversight. It broke on
+  // 2026-09-03 when the user-facing errors were translated to English — the rule had not changed
+  // at all, only its wording, and this gate went red for a reason that had nothing to do with
+  // what it measures (the generation gate letting the request through to the NEXT check).
+  //
+  // ⚠️ The durable fix is a stable machine-readable error CODE beside the human message, which
+  // `web/` also needs so it can localise from its own dictionary instead of printing the server's
+  // raw sentence. That spans two worktrees (hard rule #4), so it is written down here rather than
+  // done here. Until then, match a fragment broad enough to survive rewording.
+  kiem("đi tới được phép kiểm KẾ TIẾP (tên sai)",
+    /only letters, digits and spaces|2-32 characters long/.test(loi), loi.slice(0, 60));
 }
 
 console.log("\n── 2. 🔴 BẪY ĐÃ ĐO: node trả networkID là CHUỖI, không phải số ──");

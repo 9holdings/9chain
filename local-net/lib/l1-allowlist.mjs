@@ -72,17 +72,31 @@ export function parseAllowlist(raw, parseAddr) {
  * ever added, this gate must be updated deliberately rather than silently admitting it.
  */
 export function mayCreateL1(ai, allow) {
+  // 🔴 `undefined` IS NOT `empty`, AND COLLAPSING THEM HID A REAL BUG FOR AN HOUR.
+  //
+  // The first version treated a missing `allow` as an empty list and refused politely. That reads
+  // like caution and is the opposite: an EMPTY list is a deliberate operator state, while an
+  // ABSENT one is a programming error. On 2026-09-03 the call site in `console/server.mjs` passed
+  // one argument — the default binding was lost when this function moved out of that file — so
+  // every wallet was refused with "A1_L1_ALLOWLIST is unset" while the variable was demonstrably
+  // set, present in `console.env` AND in `/proc/<pid>/environ`.
+  //
+  // ⚠️ And the reverse control ENCODED THE BUG AS CORRECT: a case asserting *"a MISSING list also
+  // refuses — same as empty, not a bypass"* made the wrong behaviour look like a virtue, so 17
+  // green controls could not see it. A test can lock in the defect it was written to prevent.
+  //
+  // Failing closed is why this cost an hour instead of being a hole: nobody could create, rather
+  // than everybody. That is the design working — but working is not the same as being right.
+  if (allow === undefined || allow === null) {
+    throw new Error("mayCreateL1: the allowlist argument is missing — that is a wiring bug, not an empty list");
+  }
   if (!ai) return { ok: false, why: "not authenticated" };
   if (ai.kieu === "vanHanh") return { ok: true, why: "operator token" };
   if (ai.kieu !== "vi" || typeof ai.diaChi !== "string" || !ai.diaChi) {
     return { ok: false, why: "unrecognised identity kind — refused rather than assumed" };
   }
-  if (!allow || allow.size === 0) {
-    return {
-      ok: false,
-      why: "chain creation is by invitation and no wallet is on the list yet "
-         + "(A1_L1_ALLOWLIST is unset on this server)",
-    };
+  if (allow.size === 0) {
+    return { ok: false, why: "no wallet is on the invite list yet (A1_L1_ALLOWLIST is unset on this server)" };
   }
   if (!allow.has(ai.diaChi.toLowerCase())) {
     return { ok: false, why: `wallet ${ai.diaChi} is not on the invite list` };
@@ -109,8 +123,14 @@ if (process.argv[1]?.endsWith("l1-allowlist.mjs") && process.argv.includes("--se
   ok("the operator token is allowed even with an EMPTY list", mayCreateL1({ kieu: "vanHanh" }, new Set()).ok, true);
   ok("🔴 an EMPTY list refuses every wallet — it fails CLOSED, never open",
     mayCreateL1({ kieu: "vi", diaChi: A }, new Set()).ok, false);
-  ok("🔴 a MISSING list (undefined) also refuses — same as empty, not a bypass",
-    mayCreateL1({ kieu: "vi", diaChi: A }, undefined).ok, false);
+  // 🔴 THIS CASE USED TO ASSERT THE BUG. It read "a MISSING list also refuses — same as empty,
+  // not a bypass", which sounds careful and was wrong: it made a WIRING ERROR indistinguishable
+  // from a deliberate empty list, and that is exactly how the call site shipped passing one
+  // argument while 17 green controls said the gate was fine. It now demands a THROW.
+  ok("🔴 a MISSING list is a WIRING BUG and must THROW, not refuse politely",
+    (() => { try { mayCreateL1({ kieu: "vi", diaChi: A }, undefined); return "no throw"; } catch { return "threw"; } })(), "threw");
+  ok("🔴 …and null is the same mistake",
+    (() => { try { mayCreateL1({ kieu: "vi", diaChi: A }, null); return "no throw"; } catch { return "threw"; } })(), "threw");
   ok("a wallet on the list is allowed", mayCreateL1({ kieu: "vi", diaChi: A }, list).ok, true);
   ok("🔴 a wallet NOT on the list is refused", mayCreateL1({ kieu: "vi", diaChi: B }, list).ok, false);
   ok("🔴 casing does not decide identity — the same wallet lowercased is still allowed",
