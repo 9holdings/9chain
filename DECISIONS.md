@@ -8325,6 +8325,18 @@ sát 8 lõi **trước khi** có giao dịch nào trên L1.
 node lớn (heap, cache). Mẫu `19:30Z` (node ~3,3 h, đã hẹn) sẽ ghi bù vào đây. Đọc **tuổi** trước khi
 so bất kỳ mẫu nào — script in sẵn.
 
+### Bổ sung — mẫu `19:31Z`, node ~3,4 h tuổi, vẫn 6 L1
+
+| mẫu | tuổi node | 9 node CPU | 9 node RAM | mỗi node RAM | loadavg 1m |
+|---|---|---|---|---|---|
+| `17:21Z` | ~75 phút | `2,277` core | `4.103` MiB | ~455 MiB | 3,04 |
+| `19:31Z` | ~204 phút | **`2,197`** core | **`5.828`** MiB | ~640 MiB | 2,57 |
+
+⇒ **CPU không đổi theo tuổi** (chênh 3,5 %, trong nhiễu) — con số `~0,05 core/L1/node` và ngoại suy trần
+15 ở trên **đứng vững**. **RAM lớn theo tuổi**, không theo số L1: +1,7 GB cho 9 node trong 2 giờ,
+chưa thấy trần. Mẫu nền `11:43Z` (2 L1 · `5.270` MiB) hôm sáng nay đọc được: node hôm đó già hơn.
+Mọi phép so RAM về sau phải **cùng tuổi node**, hoặc đo dài tới khi phẳng.
+
 ## D-179 — **Ký hiệu token native của L1: console nhận, kiểm, từ chối `LOVE9`, ghi vào sổ — nửa còn lại là `web-home`** (`2026-09-03`)
 
 David, ngay sau khi đẻ *9Cashback Chain*: *"tôi vừa tạo 1 Chain thì thấy có 50M này là sao"* — MetaMask
