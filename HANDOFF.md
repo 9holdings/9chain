@@ -1007,7 +1007,7 @@ smoke test **20/20 đạt** · đẻ chain đầy đủ có gửi giao dịch th
 
 ## TL;DR
 **Testnet công khai ĐÃ LIVE**: https://a1.9chain.org · RPC https://rpc-a1.9chain.org
-5 validator chạy trên server nhà cung cấp `139.99.145.13`, Blockscout index đầy đủ, faucet + nút "Thêm vào MetaMask" hoạt động. **P0 #1/#2/#3 đều PASS.**
+5 validator chạy trên server `139.99.145.13`, Blockscout index đầy đủ, faucet + nút "Thêm vào MetaMask" hoạt động. **P0 #1/#2/#3 đều PASS.**
 
 🔴 **CONSOLE ĐẺ CHAIN ĐÃ CÔNG KHAI (2026-08-25): https://a1.9chain.org/console/** — đăng nhập bằng chữ ký ví, `admin` bị ép = địa chỉ đã ký. Người lạ đẻ được chain của chính họ. Còn **13 suất** (danh bạ 2 L1; trần mềm console 15, trần cứng giao thức 16).
 🔴 **Origin CHỈ phục vụ qua Cloudflare.** Nối thẳng vào `139.99.145.13:443` → **403** cho cả ba tên miền. Kiểm: `bash local-net/deploy/check-ports.sh`.
@@ -1042,7 +1042,7 @@ Mỗi bản ghi nay có thêm `presetTen` (tên kiểu chain do console ghi lúc
 khỏi phải tự dịch id → tên và trôi lệch — bản chép tay cũ đã trôi một lần). **Dấu hiệu sống là SỐ VALIDATOR của subnet**, không phải chiều cao block. Mỗi L1 hiện thêm **Chủ sở hữu (admin)**; chain đẻ trước khi có ô này (OmegaChain) hiện "mặc định của hệ thống", không được để lọt `undefined`. |
 | RPC công khai | https://rpc-a1.9chain.org/ext/bc/C/rpc |
 | MetaMask | Chain ID `9000000009` · Symbol `LOVE9` (có nút 1 cú bấm ở `/faucet/` và `/lite/`) |
-| Server | `139.99.145.13` (`(không công bố)`), Ubuntu LTS, 8 luồng / 62GB / RAID1 410GB |
+| Server | `139.99.145.13` — một máy chuyên dụng, 8 luồng / 62GB / RAID1. Hostname, phiên bản OS và model máy **không công bố**; xem `docs/DEPLOY-KSGAME.md` trong repo riêng tư |
 | SSH | `ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST"` (chỉ đăng nhập bằng khoá) — hai biến này lấy giá trị mặc định trong `local-net/deploy/web-deploy.sh`, thư mục **không** có trên bản công khai; `export` chúng một lượt rồi mọi lệnh ssh/scp trong tài liệu này chạy được nguyên văn |
 | DNS | 2 A record → `139.99.145.13`, Cloudflare **Proxied**, SSL/TLS mode **Full** |
 

@@ -411,7 +411,7 @@ nhận vì mạng mới không còn ai dùng chain cũ".
 
 | | |
 |---|---|
-| khối IPv6 của máy | `(không công bố)/**56**` — **256 khối /64**, dư sức mỗi node một địa chỉ |
+| khối IPv6 của máy | nhà cung cấp cấp một khối `/56` — **256 khối /64**, dư sức mỗi node một địa chỉ (địa chỉ cụ thể không công bố) |
 | đường ra IPv6 | có default route, **ra Internet được** (đã curl thật qua v6) |
 | IPv6 của Docker | **TẮT** (`bridge.EnableIPv6 = false`) |
 | cổng P2P 9651 | **KHÔNG node nào publish** — đúng tiền đề của M3 |

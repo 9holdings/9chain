@@ -253,9 +253,9 @@ docker logs 9chain-a1-node-1 2>&1 | head -1 | grep -o '"maxValidatorStake":[0-9]
 - **Supply cap 720,000,000 LOVE9** — đang kế thừa từ Avalanche, chưa ai chốt. Sau mainnet không đổi được.
 - **% phân bổ + lịch vesting** — đang chạy theo bảng đề xuất, chưa có phê duyệt kinh doanh/pháp lý.
 
-## Bootstrap server máy chủ (2026-08-24) — XONG
+## Bootstrap máy chủ (2026-08-24) — XONG
 
-Server `139.99.145.13` (`(không công bố)`, Ubuntu LTS LTS, 8 luồng, 62GB RAM, `/dev/md3` 410GB RAID1).
+Server `139.99.145.13` — 8 luồng, 62GB RAM, RAID1. Hostname và phiên bản OS không công bố.
 
 Chạy `local-net/deploy/ksgame-bootstrap.sh`. Kiểm chứng sau khi chạy:
 
