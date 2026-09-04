@@ -83,12 +83,22 @@ function timHtml(dir, ra = []) {
   return ra;
 }
 
+/** `/_next/static/x.js?dpl=abc` → `/_next/static/x.js`. Asset URLs carry a per-deploy query; files do not. */
+const boQuery = (u) => u.split('?')[0];
+
 const nenCache = new Map();
 /** Gzipped KB of a file in `out/`, looked up by absolute web-style path. */
 function kbNen(duongTuongDoi) {
   if (nenCache.has(duongTuongDoi)) return nenCache.get(duongTuongDoi);
-  const p = path.join(RA, duongTuongDoi.replace(/^\//, ''));
-  const kb = existsSync(p) ? gzipSync(readFileSync(p)).length / 1024 : 0;
+  const p = path.join(RA, boQuery(duongTuongDoi).replace(/^\//, ''));
+  // 🔴 A referenced file that does NOT exist is a broken page, not a 0 KB page. Measured
+  // 2026-09-04: `?dpl=` (next.config `deploymentId`) made every lookup miss, every page
+  // reported `js = 0.0`, and this gate stayed green while measuring nothing.
+  if (!existsSync(p)) {
+    console.log(`✗ HTML references ${duongTuongDoi} but out/ has no such file`);
+    process.exit(1);
+  }
+  const kb = gzipSync(readFileSync(p)).length / 1024;
   nenCache.set(duongTuongDoi, kb);
   return kb;
 }
@@ -159,8 +169,11 @@ function docUnicodeRange(txt) {
 function fontCoThe(cssPaths, kyTu) {
   const ra = new Map();
   for (const cssPath of cssPaths) {
-    const p = path.join(RA, cssPath.replace(/^\//, ''));
-    if (!existsSync(p)) continue;
+    const p = path.join(RA, boQuery(cssPath).replace(/^\//, ''));
+    if (!existsSync(p)) {
+      console.log(`✗ HTML references ${cssPath} but out/ has no such file`);
+      process.exit(1);
+    }
     const css = readFileSync(p, 'utf8');
     for (const m of css.matchAll(/@font-face\s*\{([^}]*)\}/g)) {
       const than = m[1];
