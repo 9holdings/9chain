@@ -20,6 +20,9 @@
  * Cả hai lô **đã lên sóng trước khi được duyệt** — duyệt ở đây là bắt kịp lời khai, không
  * phải mở cổng cho chúng ra. 28 bản máy dịch vẫn `review: 'machine'`, không đổi.
  *
+ * Lô thứ ba cùng ngày, David duyệt `2026-09-04` (đêm): `faucet.addressFromWallet` và
+ * `faucet.useWalletAddress` — sinh ra khi ô địa chỉ faucet biết tự điền từ ví.
+ *
  * 🔴 `home.disclosure` là chuỗi DUY NHẤT trong lô khai một sự thật VỀ MẠNG, nên nó được
  * duyệt KÈM PHÉP ĐO của đúng ngày duyệt — `check-decentralisation-claim.mjs` `04/09`:
  * mạng báo **11 validator, 10 connected**, khớp câu "9 trong số 11 … chỉ một trong hai

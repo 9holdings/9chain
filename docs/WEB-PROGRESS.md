@@ -394,10 +394,10 @@ vượt trần 160).
 
 ---
 
-## 🔴 Chuỗi tiếng Việt `2026-09-04` (lô sau) — **CHỜ DUYỆT GIỌNG**
+## ✅ Chuỗi tiếng Việt `2026-09-04` (lô sau) — **DAVID ĐÃ DUYỆT `2026-09-04`**
 
 Sinh ra từ lượt "ô địa chỉ tự điền từ ví" (David báo từ điện thoại, xem `WORKTREE-WEB.md`).
-29 bản kia là máy dịch từ tiếng Anh, đã khai `review: 'machine'`.
+29 bản kia là máy dịch từ tiếng Anh, đã khai `review: 'machine'` — lượt duyệt không chạm tới.
 
 | Khoá | Tiếng Việt đang chạy |
 |---|---|

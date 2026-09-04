@@ -42,7 +42,35 @@ describe.skipIf(!coCaddy)('trang 404 trong Caddyfile', () => {
     // `respond … 404` is what separates a real error page from a soft 404. If someone removes
     // that number the page still renders identically — and the error becomes invisible.
     expect(s, 'the respond block returning 404 is missing').toContain('HTML 404');
-    expect(s, 'the 404 status matcher is missing').toMatch(/@loi404\s+status\s+404/);
+  });
+
+  /**
+   * 🔴 THIS ASSERTION REPLACES ONE THAT DEMANDED `@loi404 status 404` — i.e. it demanded the very
+   * mechanism that failed (changed 2026-09-04).
+   *
+   * The page used to be built inside `handle_response @loi404` on the root `reverse_proxy`, so it
+   * only ever appeared when the upstream ANSWERED with a 404. When Blockscout was removed there
+   * was nothing left to answer: Caddy failed at the dial, returned a plain **502**, and the
+   * branded page — carefully written, colour-checked by this very suite — was dead for days while
+   * every test here stayed green, because they all read the file and none read the SHAPE.
+   *
+   * The invariant that actually matters: an error page must not be a branch of some other
+   * service's reply. So the `respond … 404` must sit directly in a `handle`, not nested inside a
+   * `handle_response`.
+   */
+  it('does not hide the 404 page inside a handle_response branch', () => {
+    const s = readFileSync(CADDY, 'utf8');
+    const i = s.indexOf('respond <<HTML');
+    // Look at what encloses it: walk back to the nearest block opener and require it not to be a
+    // `handle_response` (which only runs when an upstream replied).
+    const truoc = s.slice(0, i);
+    const moiNhat = Math.max(truoc.lastIndexOf('handle_response'), truoc.lastIndexOf('reverse_proxy'));
+    const dongHandle = truoc.lastIndexOf('\thandle {');
+    expect(
+      dongHandle > moiNhat,
+      'the branded 404 is nested under a reverse_proxy/handle_response again — it will vanish the ' +
+        'day that upstream is unreachable, exactly as it did on 2026-09-04',
+    ).toBe(true);
   });
 
   it('pulls in NO external resources — it has to work when everything else is broken', () => {
