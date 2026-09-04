@@ -2,6 +2,56 @@
 
 ---
 
+## HANDOFF — cập nhật 2026-09-04 (tối) — KHÁCH KHÔNG BẤM ĐƯỢC NÚT NÀO suốt 28 giờ
+
+**TL;DR.** David hướng dẫn khách nhận LOVE9: máy David bấm "Thêm mạng vào ví" được, đổi
+Tiếng Việt được; máy khách thì **không có phản ứng gì**. Đo từ ngoài như một khách lạ:
+`/_next/static/chunks/main-app-<hash>.js` → **404 text/html · `cf-cache-status: HIT` ·
+`Age: 102440`** trong khi origin có tệp (200 khi lách cache). Đó là chunk khởi động React,
+nên trang hiện ra đủ chữ mà **không một nút nào có handler**. Máy David chạy vì trình
+duyệt của David còn giữ bản tốt (`immutable` một năm); khách thì ăn đúng bản 404 ở biên.
+
+**Vì sao có cái 404 đó:** `web-deploy.sh` xoá sạch `out/` rồi chép — HTML lên trước
+`_next/`; một lượt tải rơi vào cửa sổ ấy. **Vì sao nó sống 28 giờ:** Caddy gắn
+`Cache-Control: immutable` lên `/_next/static/*` **cho MỌI mã trạng thái** (commit
+`b6ac435`, 03/09 07:36Z — cái 404 được cache lúc 03/09 ~08:47Z, đúng lượt deploy đầu tiên
+sau đó). **Vì sao cổng deploy xanh:** nó chỉ gọi chunk **ĐẦU TIÊN** trong HTML, chunk đó
+có sẵn ở biên. Purge Cloudflare một mình **không cứu được** khách đã mở trang: trình duyệt
+của họ cũng đã cache cái 404 đó một năm.
+
+✅ **ĐÃ VÁ + DEPLOY `2026-09-04 13:26Z` — commit `7d56529`**, ba lớp, mỗi lớp có đối chứng:
+
+| Lớp | Gì | Đối chứng |
+|---|---|---|
+| Next | `next.config.ts` `deploymentId` = SHA 12 ký tự (khớp `version.txt`; cây bẩn thêm dấu thời gian) ⇒ mọi URL tài nguyên mang **`?dpl=<sha>`**, kể cả trong `index.txt` (RSC) và app-router ⇒ **mỗi lượt deploy là khoá cache mới**, bản độc cũ không bao giờ được hỏi lại | `main-app-…js?dpl=7d56529ad9b8` → 200 JS từ máy lạ |
+| Caddy | khối `/_next/*`: `immutable` chỉ gắn cho **2xx** qua `handle_response`; **4xx/5xx mang `no-store`**. Đo trước trên Caddy 2.11 + nginx thật bằng Docker (4 ca) rồi mới lên server | chunk bịa: trước `immutable` → sau `no-store · BYPASS` |
+| Deploy | `web-deploy.sh`: chép `_next/` **TRƯỚC**, HTML sau, xoá thừa **SAU CÙNG**; cổng gọi **MỌI** tài nguyên HTML tham chiếu (đúng URL, cả `?dpl=`), đòi 200 + content-type; đòi HTML có `dpl=`; đòi chunk bịa **404 KHÔNG `immutable`** | cổng đã được nhìn thấy **ĐỎ trên site sống** vì đúng hai lý do đó trước khi vá |
+
+Kèm: `check-budget.mjs` in `js = 0.0` cho mọi trang ngay lượt build đầu có `?dpl=` (không
+tìm thấy tệp ⇒ đếm 0 ⇒ **xanh giả**). Nay bỏ query khi tra tệp và **tệp không có = đỏ**.
+
+Nghiệm thu trên trình duyệt sạch (Browser pane, không cache): React gắn `onClick` vào nút,
+bấm "Thêm mạng vào ví" ra *"Không thấy ví trong trình duyệt…"* (pane không có MetaMask —
+đúng), mở menu ngôn ngữ chọn English ⇒ `lang=en`, tiêu đề + h1 đổi. `caddy-deploy.sh` báo
+✗ cho `testnet-a1.*` 525 — tên cũ đã chết từ trước, không do lượt này.
+
+**Khách cũ chỉ cần tải lại trang** (HTML `no-cache` ⇒ lấy HTML mới ⇒ URL mới). Không cần
+purge Cloudflare. Chưa lên `official` — vẫn là quyết định của David (`publish-official.sh`).
+
+### Gotchas của phiên này
+
+- 🔴 **`immutable` là lời khai về NỘI DUNG, không phải về URL** — gắn theo path là gắn cả
+  lên 404. Một 404 được cache một năm không tự lành; nó chỉ chết khi URL đổi.
+- 🔴 **"Máy tôi được, máy khách không" = cache.** Đo bằng máy lạ (`curl -A guest`) và đọc
+  **`Age` + `cf-cache-status`** chứ không chỉ mã HTTP; rồi lách cache bằng `?x=` để tách
+  "origin hỏng" khỏi "biên giữ bản hỏng".
+- **Cổng gọi "một chunk đại diện" không đại diện cho gì** — chunk hỏng là chunk bất kỳ.
+- `copy_response` của Caddy **tự chép header** upstream; thêm `copy_response_headers` là
+  mỗi header lặp đôi. `header … defer` bên trong `handle_response` đè được header nginx.
+- Browser pane: ảnh chụp bị phóng to sau `resize_window`; đo tương tác bằng DOM/JS chắc hơn.
+
+---
+
 ## HANDOFF — cập nhật 2026-09-04 (chiều) — `/chains/` thiết kế lại cho 108+ L1
 
 **TL;DR.** Trang danh bạ L1 không còn là "mỗi chain một thẻ, đo hết mỗi 10 giây". Nay là
