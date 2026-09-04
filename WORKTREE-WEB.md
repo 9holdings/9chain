@@ -2,6 +2,80 @@
 
 ---
 
+## HANDOFF — cập nhật 2026-09-04 (site nói đúng thì · repo công khai hết runbook · web/ hết tiếng Việt)
+
+**TL;DR.** Site đã deploy `674a93f`, nói đúng sự thật về validator và đã chuyển
+`/re-genesis/` sang **thì quá khứ** (nó nói thì tương lai suốt 3 ngày sau ngày G).
+Repo công khai `9holdings/9chain` **không còn mang runbook vận hành** — cả `main` lẫn
+`web-home` đã viết lại lịch sử, và có hook chặn push thẳng. `web/` nay **hết tiếng
+Việt** (chú thích + chuỗi). Test **142/143** (đỏ duy nhất vẫn là vân tay token).
+
+### Đã xong — đều đo trên mạng thật hoặc clone lại từ Internet
+
+| | |
+|---|---|
+| **Câu tự-tố** | `home.disclosure` × 30 — **validator thứ 10 là của NGƯỜI NGOÀI** (81 LOVE9, uptime 14,8%, offline). Cả hai bản đã duyệt đều hết đúng: bản cũ nói thiếu, bản trước đó nói quá |
+| **`/re-genesis/`** | Chuyển sang khối `rebuildDone` (35 khoá → 17, chung 9 ⇒ **dựng lại thân trang**). Mục bản lưu tự ẩn vì `archiveUrl`/`archiveSha256` còn rỗng |
+| **Cổng ngày G** | Hỏng **cả hai chiều**: tìm chuỗi tiếng Việt trên site mặc định tiếng Anh ⇒ vế "phải CÓ" đỏ vĩnh viễn, vế "phải KHÔNG có" **xanh giả**. Nay đọc chuỗi từ `en.ts` |
+| **Lát 1d** | **1.731 dòng chú thích / 55 tệp** sang tiếng Anh. Còn 4 dòng cố ý (ví dụ tiếng Việt làm bằng chứng) |
+| **Chuỗi `web/`** | **234 chuỗi** chương trình in ra: tên bài kiểm, đầu ra cổng, khoá `version.txt` (`nhanh`→`branch`…). Còn 1 chuỗi cố ý |
+| **Repo công khai** | `local-net/deploy/**` + `docs/DEPLOY-KSGAME.md` + mẫu SSH + bảng cấu hình máy **đã gỡ khỏi CẢ `main` và `web-home`**, kể cả lịch sử |
+| **Công cụ + hook** | `local-net/deploy/publish-official.sh` (3 cổng tự đối chứng) · mục 4 của `pre-push` dùng chung chặn push thẳng |
+
+### 🔴 Phiên sau bắt đầu từ đâu
+
+1. **`[human]` CHỐT PHẠM VI DỊCH.** Tôi dịch 155 chuỗi trong `local-net/` rồi phát hiện
+   **`main` đi trước worktree này 2.973+/8.232− trên 64 tệp `local-net/`** — phiên
+   `9chain-a1-c0` đã dịch xong `console/server.mjs` và đổi cả cấu trúc `presets.mjs`
+   (`ten:`→`name:`). **Đã hoàn nguyên toàn bộ.** Chọn một:
+   - chia phạm vi: họ giữ `local-net/` + tài liệu, worktree này chỉ `web/`; **hoặc**
+   - hoà `main` vào `web-home` trước rồi mới làm tiếp.
+2. **`[human]` `archiveUrl` + `archiveSha256`** của bản lưu ngày G → dán vào
+   `rebuildDone` (30 tệp), mục bản lưu tự hiện. Không phải viết chữ nào.
+3. **`[human]` `test/token.test.ts` đỏ** vì 9Scan-A1 đổi bộ chữ (Sora→Manrope,
+   Instrument Sans→Inter). Chạy `sync-tokens.mjs` là **đổi bộ chữ của cả site** —
+   quyết định thương hiệu, không phải việc dọn dẹp.
+4. Deploy gần nhất là `674a93f`; các commit sau đó chỉ đụng công cụ/tài liệu nên
+   `web/out` không đổi ngoài `version.txt`.
+
+### 🔴 GOTCHAS — bẫy đã trả giá trong phiên này
+
+- **`set -o pipefail` + lệnh thoát sớm ở cuối ống = cổng nói dối.** Cắn **hai lần**
+  trong `publish-official.sh`: `git grep` thoát 1 khi **không tìm thấy gì** (kết quả
+  sạch thành lỗi ⇒ cổng chỉ có thể ĐỎ), và `git show … | grep -q` thoát sớm khi
+  **KHỚP** ⇒ SIGPIPE ⇒ lượt khớp thành lỗi (cổng tố oan một tệp bình thường).
+  ⇒ Ghi ra tệp rồi grep tệp, hoặc `|| true`.
+- **Đọc repo tưởng là sự thật.** `local-net/` ở worktree này lạc hậu 8.232 dòng so với
+  `main`; chỉ lượt **hỏi console đang chạy** mới lộ ra (nó trả tiếng Anh tôi không viết).
+- **Đổi tên đường dẫn phải neo bằng `/` cuối.** `local-net/deploy` khớp luôn
+  `local-net/deploy-test/` — 5 báo động giả.
+- **`sorted(os.walk(...))` vét hết cây trước** khi `d[:]` kịp cắt ⇒ bộ đếm bò vào
+  `node_modules`, báo 40 nghìn địa danh Na Uy là "chuỗi chưa dịch".
+- **Cổng đối chứng "mọi blob trùng byte" sai** khi có `--replace-text`: nó *cố ý* đổi
+  nội dung. Bất biến đúng: bộ đường dẫn khớp + blob nào khác thì bản gốc phải chứa
+  literal đã khai.
+- **`info.peers`: đọc `publicIP`, KHÔNG đọc `ip`.** Một nút của ta khai `172.28.0.1`
+  (gateway Docker); đếm theo `ip` ra "3 máy", thật ra 9 nút trên **một** máy.
+- **Đừng viết ngày tháng vào `home.disclosure`.** Cổng bóc mọi số nguyên rồi lấy
+  `Math.max` làm "số validator được khai" ⇒ "3 September" thành lời khai "3 validator".
+  Nay cổng từ chối đo nếu gặp tên tháng / năm 4 chữ số.
+- **Chuỗi tiếng Việt trong `test/i18n.test.ts` PHẢI giữ** — nó là đầu ra của chính từ
+  điển tiếng Việt đang được kiểm, không phải dữ liệu tuỳ ý.
+
+### Lệnh hữu ích
+
+```bash
+cd web && npx next build && npm run postbuild     # 10 cổng
+bash local-net/deploy/web-deploy.sh               # deploy (4 cổng chặn trước khi chép)
+cd web && A1_SAU_NGAY_G=1 node scripts/check-links.mjs   # cổng ngày G, đo site thật
+bash local-net/deploy/publish-official.sh <nhánh đích> [ref nguồn]   # ĐƯỜNG DUY NHẤT lên repo công khai
+git push origin web-home                          # sao lưu riêng tư (không bị hook chặn)
+```
+
+⚠️ `git push official …` **hỏng non-fast-forward** — đó là lưới an toàn, không phải sự cố.
+
+---
+
 ## HANDOFF — cập nhật 2026-08-29 (bơm nhịp sống + dọn hai câu nói sai)
 
 **TL;DR.** A1 công khai đang chạy **9 tx/s traffic tổng hợp, có công bố rõ**, dưới
