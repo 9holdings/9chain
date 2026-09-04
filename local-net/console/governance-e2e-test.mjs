@@ -37,6 +37,7 @@ const OTHER = "0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC";
 const BC = "bcGovChainTest1111111111111111111111111111111111";
 const SUB = "subGovChainTest111111111111111111111111111111111";
 const FEE_MANAGER = "0x0200000000000000000000000000000000000003";
+const DEPLOYER_ALLOWLIST = "0x0200000000000000000000000000000000000000";
 const NATIVE_MINTER = "0x0200000000000000000000000000000000000001";
 
 let pass = 0, fail = 0;
@@ -68,6 +69,12 @@ const roles = new Map([                                 // `${precompile}|${addr
   [`${FEE_MANAGER}|${OWNER.toLowerCase()}`, 2], [`${NATIVE_MINTER}|${OWNER.toLowerCase()}`, 2],
   [`${FEE_MANAGER}|${NEW_OWNER.toLowerCase()}`, 2], [`${NATIVE_MINTER}|${NEW_OWNER.toLowerCase()}`, 0],
 ]);
+// The chain head this fake node reports, and which precompiles answer with NOTHING because they are
+// not live at that head. Both are mutated by the cases below; both model states a real idle L1 sits
+// in for hours at a time.
+let headTime = Math.floor(Date.now() / 1000);
+const notLiveAtHead = new Set();
+
 const fakeNode = createServer((req, res) => {
   let b = "";
   req.on("data", (d) => { b += d; });
@@ -80,11 +87,22 @@ const fakeNode = createServer((req, res) => {
     if (m.method === "info.getNetworkName") return reply({ networkName: TEN_MANG });
     if (!req.url.includes(`/ext/bc/${BC}/rpc`)) return err(`unknown chain path ${req.url}`);
     if (m.method === "eth_getChainConfig") return reply({ ...GENESIS_CFG, upgrades: nodeUpgrades.length ? { precompileUpgrades: nodeUpgrades } : {} });
+    // 🔴 The chain's HEAD, which is the clock that decides whether a precompile is live. `headTime`
+    // is deliberately controllable per case: on a real idle L1 it sits hours behind the wall clock,
+    // and that gap is what took `/api/governance` down on 2026-09-04 (SBull Chain, 400).
+    if (m.method === "eth_getBlockByNumber") {
+      return reply({ number: "0x1", timestamp: "0x" + headTime.toString(16) });
+    }
     if (m.method === "eth_call") {
       const { to, data } = m.params[0];
       if (!String(data).startsWith("0xeb54dae1")) return err("unexpected selector");
       const addr = "0x" + String(data).slice(10 + 24).toLowerCase();
-      const code = roles.get(`${to.toLowerCase()}|${addr}`) ?? 0;
+      // A precompile that is not live at the head answers with NOTHING — that is the EVM's real
+      // behaviour for an account with no code, and reproducing it here is the whole point of this
+      // case. Anything else would let the console pass a test it fails on the network.
+      const key = `${to.toLowerCase()}|${addr}`;
+      if (notLiveAtHead.has(to.toLowerCase())) return reply("0x");
+      const code = roles.get(key) ?? 0;
       return reply("0x" + code.toString(16).padStart(64, "0"));
     }
     return err(`not simulated: ${m.method}`);
@@ -224,6 +242,44 @@ console.log("\n── 6. owner transfer: chain first, ledger second ──");
   ok("ledger: admin replaced, previousAdmins keeps the history", led.admin === NEW_OWNER && led.previousAdmins?.length === 1 && led.previousAdmins[0].address === OWNER);
   const g = await call("/api/governance?name=" + encodeURIComponent("Gov Chain"));
   ok("governance view follows: new admin, measured roles", g.j?.admin === NEW_OWNER && g.j?.adminRoles?.feeManager === "admin");
+}
+
+console.log("\n── 🔴 WHICH CLOCK: an upgrade past its moment on the WALL but not yet in a BLOCK ──");
+{
+  // This is the state that took /api/governance down on the live network (SBull Chain,
+  // 2026-09-04 17:08Z, HTTP 400). A precompile activates in the first block whose TIMESTAMP reaches
+  // the activation moment, and subnet-evm builds a block only when there is a transaction — so on a
+  // chain nobody uses, the wall clock sails past the activation and the chain does not move. The
+  // console used to ask its own clock, call the precompile enabled, then ask the chain for a role
+  // and get `0x` back. The upgrade was fine; the QUESTION was asked against the wrong clock.
+  const now = Math.floor(Date.now() / 1000);
+  const activated = now - 600;                 // ten minutes ago by the wall clock
+  headTime = now - 4 * 3600;                   // …but the chain's head is four hours old
+  nodeUpgrades.length = 0;
+  nodeUpgrades.push({ contractDeployerAllowListConfig: { blockTimestamp: activated, adminAddresses: [NEW_OWNER] } });
+  notLiveAtHead.add(DEPLOYER_ALLOWLIST.toLowerCase());
+
+  const g = await call("/api/governance?name=" + encodeURIComponent("Gov Chain"));
+  ok("🔴 it answers 200 instead of blowing up on an empty readAllowList", g.status === 200, `${g.status} ${String(g.j?.error).slice(0, 140)}`);
+  ok("🔴 deployerAllowList is NOT reported as enabled — the chain has not reached the moment",
+    g.j?.precompiles?.deployerAllowList?.enabled === false, JSON.stringify(g.j?.precompiles?.deployerAllowList));
+  ok("it is still reported as PENDING, so nobody thinks the upgrade was lost",
+    g.j?.precompiles?.deployerAllowList?.pending?.at === activated);
+  ok("🔴 and the state has a NAME: waitingForABlock lists it",
+    Array.isArray(g.j?.waitingForABlock) && g.j.waitingForABlock.includes("deployerAllowList"), JSON.stringify(g.j?.waitingForABlock));
+  ok("the chain's head is returned beside the server's clock, so a page need not guess",
+    g.j?.chainHead?.timestamp === headTime && typeof g.j?.now === "number");
+  ok("no role is claimed for a precompile that is not live", !("deployerAllowList" in (g.j?.adminRoles ?? {})));
+
+  // …and the other direction: once the chain's head passes the moment, it really is enabled.
+  headTime = now;
+  notLiveAtHead.delete(DEPLOYER_ALLOWLIST.toLowerCase());
+  roles.set(`${DEPLOYER_ALLOWLIST.toLowerCase()}|${NEW_OWNER.toLowerCase()}`, 2);
+  const h = await call("/api/governance?name=" + encodeURIComponent("Gov Chain"));
+  ok("once the chain's HEAD passes the moment ⇒ enabled, and the role is measured",
+    h.j?.precompiles?.deployerAllowList?.enabled === true && h.j?.adminRoles?.deployerAllowList === "admin",
+    JSON.stringify({ p: h.j?.precompiles?.deployerAllowList, r: h.j?.adminRoles }));
+  ok("waitingForABlock is empty again", (h.j?.waitingForABlock ?? []).length === 0);
 }
 
 console.log(`\n${fail ? "✗" : "✅"} ${pass} passed · ${fail} failed`);

@@ -8824,3 +8824,101 @@ manifest chưa mang — deploy lúc đó sẽ đẩy một console **không kh�
 
 **Luật rút ra:** genesis cài **CODE** thì đừng bao giờ cho nó thứ cần **CONSTRUCTOR**; và với một tài sản bất
 biến, phép đo đáng tin duy nhất là **chạy nó**, ở nơi chạy được mà không tiêu gì.
+
+---
+
+## D-190 — **Lượt nâng cấp L1 THẬT đầu tiên trên mạng g1: 9 node × 33 s, và ba số đo phân biệt "đã restart" với "vẫn khoẻ"** (`2026-09-04` tối)
+
+David: *"2 làm luôn"* → chạy lượt nâng cấp thật mà D-184 để lại làm việc `[human]`. Chain: **SBull Chain**
+(David chọn), `deployerAllowList enable`.
+
+**Trước khi bấm, lượt khảo sát ra ba sự thật đổi cách chọn:**
+1. **Không chain nào thuộc ví mặc định của console** (`0xf408…216d`). Mười chain thuộc ví mời thứ nhất
+   `0x1e8c…292C`, riêng **Agape Chain** thuộc ví mời thứ hai `0x5eE9…` ⇒ **không phải của ta để đụng**.
+2. **Cả 11 chain đều có đúng 1 block.** Tiêu chí *"chain ít người dùng"* trong HANDOFF **không phân biệt
+   được gì** — phải chọn theo **ý nghĩa** (loại Adam · Eva · 9S Union vì là chain nghi lễ), không theo tải.
+3. **Token vận hành lên kế hoạch nâng cấp được cho chain nó không sở hữu.** `upgrade.json` khai
+   `adminAddresses` là ví **chủ chain**, không phải ví console. Đúng thiết kế, nhưng phải biết.
+
+**Lượt 1 THẤT BẠI, và cái thất bại đó là toàn bộ giá trị của việc chạy thật** — xem **D-189**: rollout báo
+9 node `done` trong **12 giây** mà **không node nào restart**. Phép nghiệm thu cuối của D-184 bắt được và
+**không ghi gì**. Tệp còn lại là **bom hẹn giờ** ⇒ đã gỡ theo LIỆT KÊ → XOÁ → ĐỐI CHỨNG.
+
+**Lượt 2, sau khi vá (D-189) và deploy:**
+
+| Đại lượng | Lượt 1 (hỏng) | Lượt 2 (thật) |
+|---|---|---|
+| mỗi node | **0,4 s** | **32,3–33,2 s** |
+| tổng | 12 s | **299 s** |
+| `.State.StartedAt` | `14:16:10Z` — không đổi | **`16:49`–`16:54`** — cả 9 đều đổi |
+| node khai `upgrades` | `{}` | `contractDeployerAllowListConfig@1788541500` |
+| sổ | không ghi gì | có `upgrades[]` đủ `by: operator` |
+
+**Nghiệm thu độc lập** (không đọc câu trả lời của chính console): `check-l1-upgrades.mjs` **12 đạt · 0 đỏ ·
+0 phát hiện**, đo đĩa ↔ 9 node ↔ sổ cho **cả 11 chain**. `/api/governance` khai đúng trạng thái **chờ**:
+`enabled:false · everConfigured:true · pending:{at:1788541500}`.
+
+🔴 **Cổng M3 tự chứng minh một quyết định thiết kế của nó trên dữ liệu thật:** node trả `adminAddresses`
+**viết thường** (`0x1e8c889b6b…`) còn tệp đĩa mang **checksum EIP-55** (`0x1e8c889B6b…`). So byte thì đỏ;
+so **hình dạng** (`khoá@mốc`) thì xanh. D-186 đoán trước điều này từ nguồn — nay có bằng chứng.
+
+**Lỗi tài liệu chỉ lộ ra khi chạy thật:** `/api/upgrade` và `/api/transfer-owner` đòi
+`"confirm": "<TÊN CHAIN>"` — **gõ lại đúng tên chain** — chứ không phải `"confirm": true`
+(`server.mjs:1592`, `:1648`). `docs/API-CONSOLE-L1.md` viết sai từ lúc sinh ra tới `04/09`; đã sửa.
+
+**Ca vẫn CHƯA đo:** *"gãy ở node thứ k > 1 rồi chạy đường lùi"*. Lượt này đi trơn cả 9 node. Đường lùi có
+**42 đối chứng** trong `governance-e2e-test.mjs` nhưng **chưa lần nào chạy trên mạng thật**.
+
+**Luật rút ra:** *"chạy thật một lượt"* không phải nghi thức — nó là **phép đo duy nhất** tìm ra được cả
+một rollout không restart gì lẫn một tài liệu sai. Và với mọi thao tác nhiều bước: hỏi **"bước này đã XẢY RA
+chưa"**, đừng hỏi **"hệ thống có còn khoẻ không"** — thứ chưa từng xảy ra thì không làm gì hỏng cả.
+
+---
+
+## D-191 — **`/api/governance` chết trên chính chain vừa nâng cấp: nó hỏi ĐỒNG HỒ CỦA SERVER, còn chain trả lời theo MỐC CỦA BLOCK** (`2026-09-04` tối)
+
+Phát hiện bằng cách đo tiếp sau D-190, không phải bằng đọc mã. Sau khi mốc kích hoạt `17:05:00Z` đi qua,
+`GET /api/governance?name=SBull Chain` trả **HTTP 400**: `decodeRole: expected a 32-byte hex word, got "0x"`.
+Nghĩa là **trang "quản trị chain của tôi" (P-60) sẽ chết** trên đúng chain vừa được nâng cấp — bề mặt người
+dùng, không phải chuyện nội bộ.
+
+**🔴 Sự thật nằm dưới, và nó là một tính chất của Avalanche chứ không phải một con bug:**
+**precompile kích hoạt trong block đầu tiên có MỐC THỜI GIAN đạt tới mốc kích hoạt**, mà subnet-evm **chỉ
+dựng block khi có giao dịch**. Nên trên một L1 **không ai dùng**, đồng hồ treo tường đi qua mốc còn chain
+**đứng yên** — precompile **chưa tồn tại**, với bất kỳ ai.
+
+Đo được, và bằng một **đối chứng sạch trên cùng một node**:
+
+| Lời gọi | Trả về |
+|---|---|
+| `readAllowList(owner)` trên **FeeManager** (bật từ genesis) | `0x…02` = **Admin** |
+| `readAllowList(owner)` trên **deployerAllowList** (vừa nâng cấp) | **`0x`** — rỗng |
+| block mới nhất của SBull Chain | **số 1**, mốc `12:47:53Z` — **trước mốc kích hoạt 15.427 giây** |
+
+Cùng node, cùng selector, cùng hình dạng lời gọi ⇒ lời gọi không sai; **precompile không có mặt ở block đó**.
+
+**Đã sửa — ba thứ, và thứ hai quan trọng hơn thứ nhất:**
+1. `quanTri` đọc `eth_getBlockByNumber("latest")` và tính trạng thái theo **mốc của đầu chain**, không theo
+   `Date.now()`. Trả về **cả hai** (`chainHead` và `now`) để giao diện khỏi phải đoán, cộng một trạng thái
+   **có tên**: `waitingForABlock` — *"đã tới giờ trên đồng hồ, chưa tới trong block nào"*.
+2. 🔴 **Đổi nguồn sự thật: tính từ danh sách của NODE, không từ tệp trên ĐĨA.** Đĩa là thứ console **định
+   làm**; `cfg.upgrades.precompileUpgrades` là thứ node **đã nạp và sẽ chạy**. Hai cái chỉ khác nhau khi có
+   chuyện — và `04/09` đã có chuyện (D-189: ghi tệp mà không restart gì). Báo theo đĩa là khoe một precompile
+   **không tồn tại**. Kèm cờ `diskDiffersFromNode` để lệch thì lộ ra chứ không bị giấu.
+3. `decodeRole("0x")` nay có **câu riêng** nói đúng nguyên nhân — bản cũ (*"expected a 32-byte hex word"*)
+   đẩy người đọc đi tìm lỗi mã hoá không hề tồn tại.
+
+**Đối chứng:** node giả trong `governance-e2e-test.mjs` nay phục vụ `eth_getBlockByNumber` với **mốc đầu chain
+điều khiển được**, và trả **`0x`** cho precompile chưa sống — đúng hành vi thật của EVM với một tài khoản
+không có mã. **8 ca mới (42 → 50)**, cả hai chiều: đầu chain **chưa** tới mốc ⇒ `enabled:false` + `pending` +
+`waitingForABlock`, **không** khai vai trò nào; đầu chain **đã** qua mốc ⇒ `enabled:true` + vai trò đo được.
+`l1-upgrade --self-test` 62 → **64** (hai ca cho câu lỗi mới). Đo lại trên sản phẩm sau deploy: **200**,
+`chainHead 12:47:53Z` · `now 17:14:39Z` · `waitingForABlock ["deployerAllowList"]` · `diskDiffersFromNode false`.
+
+**Hệ quả cho `web-home` (P-60), đã ghi vào `docs/API-CONSOLE-L1.md`:** đừng hiện *"đã bật"* chỉ vì đồng hồ đã
+qua mốc. Ba trạng thái, không phải hai: **chưa lên lịch · đã lên lịch, chờ block · đang sống**. Trên một chain
+im lìm, trạng thái giữa có thể kéo dài **vô hạn** — và lối thoát là **một giao dịch bất kỳ**.
+
+**Luật rút ra:** khi hỏi *"cái này đã có hiệu lực chưa"*, phải hỏi **đúng đồng hồ**, và đồng hồ đó là **của
+thứ đang được hỏi**, không phải của cái máy đang đứng hỏi. Cùng một họ với D-189 (*"đã restart chưa"* thay vì
+*"còn khoẻ không"*) và D-186 (*"có ai thật sự trả lời không"*).

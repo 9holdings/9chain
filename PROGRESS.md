@@ -68,7 +68,13 @@ cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang g
 - [~] **P-60 — trang "Quản trị chain của tôi"** — ✅ nửa console `04/09` (D-184: `GET /api/governance` đo vai trò + precompile đang bật/chờ) · ⏳ `web-home`: gọi precompile qua MetaMask (đổi phí, mint, thêm
       bớt quyền, đổi nơi nhận phí, chuyển admin sang ví khác/multisig). Không đụng console — chủ
       chain đã có quyền, chỉ thiếu giao diện. Chủ yếu là việc `web-home`.
-- [x] **P-61 — bật precompile SAU genesis qua `upgrade.json`** — ✅ `04/09` (D-184: `/api/upgrade-preview` + `/api/upgrade`, mốc = now+15′, rollout đo sức khoẻ CỦA CHAIN từng node, đường lùi; ⚠️ lượt nâng cấp THẬT trên mạng chưa chạy — David bấm) (rollout 9 node, việc console):
+- [x] **P-61 — bật precompile SAU genesis qua `upgrade.json`** — ✅ `04/09` (D-184) · ✅ **ĐÃ CHẠY THẬT TRÊN MẠNG `04/09` tối** (D-190: SBull Chain `deployerAllowList enable`, 9 node × ~33 s, tổng 299 s, `check-l1-upgrades` 12/0)
+      🔴 **Lượt đầu THẤT BẠI và đó là toàn bộ giá trị của việc chạy thật** (D-189): rollout báo 9 node
+      `done` trong **12 giây** mà **không node nào restart** — `compose up -d --no-deps` chỉ dựng lại
+      container khi cấu hình đổi, mà lúc nâng cấp danh sách track **y hệt**. Mọi phép kiểm sức khoẻ qua
+      ngay vì node **chưa từng xuống**. Đã vá: `forceRestart` + `--force-recreate` **và đo
+      `.State.StartedAt` phải đổi** (`restartProven`, 7 đối chứng, 55 → 62).
+      ⏳ Ca **chưa đo**: gãy ở node thứ k > 1 rồi chạy **đường lùi** — lượt thật đi trơn cả 9 node. (rollout 9 node, việc console):
       để chain "lớn lên" thay vì phải chọn hết lúc launch.
 - [~] **P-62 — bản xem trước genesis + câu "chain này làm được / không làm được gì" để ký** — ✅ nửa console `04/09` (D-183: `POST /api/preview`, cùng đường mã với create, trả `genesis + options + facts/can/cannot`, không ghi gì; đo `200` trên `a1.9chain.org`) · ⏳ nửa `web-home`: màn hình + câu ký —
       chặn cuối trước khi tiêu một chỗ vĩnh viễn.

@@ -1683,7 +1683,50 @@ async function quanTri(name) {
   const cfg = await rpc(rpcPath, "eth_getChainConfig");
   const disk = docUpgradeFile(chain.blockchainID);
   const now = Math.floor(Date.now() / 1000);
-  const precompiles = activePrecompiles(cfg, disk.list, now);
+
+  // ═══ 🔴 WHICH CLOCK DECIDES WHETHER A PRECOMPILE IS LIVE ═══
+  //
+  // Not this server's. A precompile activates in the first block whose TIMESTAMP reaches the
+  // activation moment, and subnet-evm builds a block only when there is a transaction. So on a
+  // chain nobody uses, wall-clock time passes the activation and the chain stays exactly where it
+  // was — the precompile does not exist yet, for anyone.
+  //
+  // Measured on SBull Chain 2026-09-04 17:08Z, and it took the page down: the upgrade activated at
+  // 17:05Z by the clock, this function called it enabled, then asked the chain for its admin role
+  // and got back `0x` because the latest block was still block 1 from 12:47Z — four hours before
+  // the activation. `decodeRole` threw, correctly, and `/api/governance` answered 400 for that
+  // chain. The upgrade was fine; the QUESTION was asked against the wrong clock.
+  //
+  // The chain's own head is the only clock that can answer this, so it is the one used.
+  let chainHead = null;
+  try {
+    const b = await rpc(rpcPath, "eth_getBlockByNumber", ["latest", false]);
+    chainHead = { number: Number(BigInt(b.number)), timestamp: Number(BigInt(b.timestamp)) };
+  } catch { /* leave null; reported below rather than guessed at */ }
+  // No head means no answer, not "assume now": guessing here is what produced the 400 above.
+  const at = chainHead ? chainHead.timestamp : 0;
+
+  // ═══ 🔴 WHICH LIST IS THE TRUTH: the NODE's, not the disk's ═══
+  //
+  // `disk.list` is what this console INTENDED; `cfg.upgrades.precompileUpgrades` is what the node
+  // actually loaded and will execute. They are the same at rest and different exactly when
+  // something went wrong — and on 2026-09-04 something did: a rollout wrote the file and restarted
+  // nothing, so the disk said "enabled" while all nine nodes ran the old rules (D-189). Reporting
+  // the disk's view would have shown a live precompile that did not exist.
+  //
+  // So the view is computed from the node, and the divergence is reported rather than hidden.
+  const nodeList = cfg?.upgrades?.precompileUpgrades ?? [];
+  const precompiles = activePrecompiles(cfg, nodeList, at);
+  const diskDiffersFromNode = upgradeShape(disk.list) !== upgradeShape(nodeList);
+  // An upgrade whose moment has passed on the clock but not yet in a block. Naming this state is
+  // the whole point — "scheduled" and "live" are different, and a page that shows the second when
+  // the truth is the first is lying to the person who has to act on it.
+  const waitingForABlock = [];
+  for (const n of UPGRADABLE_PRECOMPILES) {
+    const p = precompiles[n];
+    if (!p.enabled && p.pending && chainHead && now >= p.pending.at) waitingForABlock.push(n);
+  }
+
   const adminRoles = { feeManager: (await docVaiTro(rpcPath, PRECOMPILE_ADDRESS.feeManager, chain.admin)).name };
   for (const n of UPGRADABLE_PRECOMPILES) if (precompiles[n].enabled) adminRoles[n] = (await docVaiTro(rpcPath, PRECOMPILE_ADDRESS[n], chain.admin)).name;
   return {
@@ -1691,6 +1734,15 @@ async function quanTri(name) {
     addresses: PRECOMPILE_ADDRESS, upgradable: UPGRADABLE_PRECOMPILES,
     upgradeFile: disk.list, upgrades: chain.upgrades ?? [], previousAdmins: chain.previousAdmins ?? [],
     lead: { min: MIN_LEAD_SECONDS, max: MAX_LEAD_SECONDS }, now,
+    // `chainHead` is what `precompiles` was computed against; `now` is this server's clock. They
+    // are both returned so a page can say "scheduled, waiting for the chain's next block" instead
+    // of picking one and being wrong.
+    chainHead,
+    waitingForABlock,
+    // 🔴 True means the file on disk is not the file the nodes are running. Never a normal state:
+    // it is either a rollout that did not restart anything (D-189) or an edit nobody rolled out.
+    // `scripts/check-l1-upgrades.mjs` measures the same thing across all nine nodes and every chain.
+    diskDiffersFromNode,
   };
 }
 

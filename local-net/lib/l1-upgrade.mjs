@@ -352,6 +352,19 @@ export function encodeReadAllowList(address) {
 
 /** The role word from an `eth_call` result. Anything unexpected is an error, never "none". */
 export function decodeRole(hex) {
+  // 🔴 `0x` is not corruption — it is what the EVM returns when the precompile is NOT PRESENT at
+  // the block the call ran against. On 2026-09-04 this arrived because a scheduled upgrade had
+  // passed its activation moment on the WALL CLOCK while the chain's latest block was still hours
+  // older, so the precompile did not exist yet for anyone. The old message ("expected a 32-byte hex
+  // word") sent the reader looking for an encoding bug that was not there. Name the real cause.
+  if (hex === "0x" || hex === "0x0" || hex === "") {
+    throw new Error(
+      "decodeRole: the call returned nothing, which means this precompile does not exist at the " +
+      "block it ran against. Either it was never enabled, or its upgrade is scheduled and the chain " +
+      "has not yet produced a block at or after the activation timestamp — an idle L1 produces no " +
+      "blocks, so wall-clock time passing is not enough."
+    );
+  }
   if (typeof hex !== "string" || !/^0x[0-9a-fA-F]{64}$/.test(hex)) throw new Error(`decodeRole: expected a 32-byte hex word, got ${JSON.stringify(hex)}`);
   const n = Number(BigInt(hex));
   if (!(n in ROLE)) throw new Error(`decodeRole: unknown role ${n}`);
@@ -409,6 +422,13 @@ if (process.argv[1]?.endsWith("l1-upgrade.mjs") && process.argv.includes("--self
     ok("decodeRole 0 = none", decodeRole("0x" + "0".repeat(64)).name === "none");
     throwsWith("🔴 an unknown role is an error, not 'none'", () => decodeRole("0x" + "0".repeat(63) + "9"), "unknown role");
     throwsWith("🔴 a short word is an error", () => decodeRole("0x02"), "32-byte");
+    // 🔴 The empty answer gets its OWN sentence. It is not an encoding fault, it is "the precompile
+    // is not there at that block", and on 2026-09-04 the generic message sent the reader hunting an
+    // encoding bug while the real cause was an upgrade scheduled but not yet in any block.
+    throwsWith("🔴 `0x` names the real cause: the precompile is not present at that block",
+      () => decodeRole("0x"), "does not exist at the block it ran against");
+    throwsWith("🔴 …and it explains why wall-clock time is not enough on an idle L1",
+      () => decodeRole("0x"), "an idle L1 produces no blocks");
   }
 
   console.log("\n── activePrecompiles ──");

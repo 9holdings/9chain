@@ -226,12 +226,36 @@ làm thế là từ chối đúng dạng nhiều công cụ phát ra.
     "rewardManager":     "0x0200000000000000000000000000000000000004"
   },
   "upgradable": [...], "upgradeFile": …, "upgrades": [], "previousAdmins": [...],
-  "lead": …, "now": …
+  "lead": …,
+  "now": 1788542079,                                  // đồng hồ của SERVER
+  "chainHead": { "number": 1, "timestamp": 1788526073 },   // 🔴 đồng hồ của CHAIN
+  "waitingForABlock": ["deployerAllowList"],
+  "diskDiffersFromNode": false
 }
 ```
 
 - **`feeManager` và `warp` LUÔN bật** — chúng đến từ khuôn, không chọn được. Giao diện đừng cho tắt.
 - **`pending`** ≠ null ⇒ có một nâng cấp **đã lên lịch, chưa tới mốc**. Hiện đồng hồ đếm ngược.
+
+#### 🔴 BA trạng thái, không phải hai — và cái ở giữa có thể kéo dài vô hạn
+
+Precompile kích hoạt trong **block đầu tiên có mốc thời gian đạt tới mốc kích hoạt**, mà subnet-evm **chỉ
+dựng block khi có giao dịch**. Trên một L1 **không ai dùng**, đồng hồ treo tường đi qua mốc còn chain
+**đứng yên**.
+
+| Trạng thái | Đọc từ đâu | Giao diện phải nói |
+|---|---|---|
+| chưa lên lịch | `pending: null`, `enabled: false` | *"chưa bật"* |
+| **đã lên lịch, CHỜ BLOCK** | `enabled: false` · `pending` ≠ null · tên nằm trong **`waitingForABlock`** | *"đã lên lịch; sẽ có hiệu lực ở block tiếp theo của chain — hãy gửi một giao dịch bất kỳ"* |
+| đang sống | `enabled: true` | *"đang bật"*, kèm vai trò trong `adminRoles` |
+
+🔴 **Đừng suy trạng thái từ `now`.** So `chainHead.timestamp` với `pending.at`. Đo thật `04/09 17:14Z`:
+đồng hồ server `17:14:39Z`, mốc kích hoạt `17:05:00Z` **đã qua**, nhưng `chainHead` vẫn là **block 1 lúc
+`12:47:53Z`** ⇒ precompile **chưa tồn tại**, và hỏi vai trò của nó trả về `0x`. Bản console trước `04/09`
+tối suy từ `now` và **trả HTTP 400** trên đúng chain vừa nâng cấp (D-191).
+
+- **`diskDiffersFromNode: true`** = tệp trên đĩa **không phải** tệp các node đang chạy. Không bao giờ là
+  trạng thái bình thường — hiện cảnh báo, đừng nuốt. (D-189: một rollout ghi tệp mà **không restart node nào**.)
 - **`addresses`** là địa chỉ MetaMask gọi tới. Đây là thứ P-60 cần: mọi nút `setAdmin`/`setEnabled`/
   `setNone`/`setFeeConfig`/`mint` là **giao dịch ví gửi thẳng lên chain con**, **không** qua console.
 
