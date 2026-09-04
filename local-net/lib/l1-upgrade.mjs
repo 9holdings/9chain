@@ -85,6 +85,31 @@ function tsOf(cfg, where) {
 }
 
 /**
+ * Did a container actually restart, given `.State.StartedAt` before and after?
+ *
+ * ═══ 🔴 WHY THIS IS A FUNCTION AND NOT AN `if` ═══
+ *
+ * Measured on the live network 2026-09-04 16:09Z: an upgrade rollout reported all nine nodes
+ * "done" in twelve seconds without restarting a single one. `compose up -d --no-deps` recreates a
+ * container only when its config changed, and on an upgrade the track list is identical, so compose
+ * did nothing. Every health check then passed instantly — because the node had never gone down.
+ * The rollout asked "is this node healthy" when the question it needed was "did this node restart".
+ *
+ * The rule has exactly one subtlety, and it is the one that inverts the answer: an UNKNOWN
+ * timestamp must never read as "unchanged" — two unreadable values compare equal, and equal would
+ * mean "restarted correctly" if written the obvious way round. So absence is failure, explicitly.
+ *
+ * @param {string|null} before  `.State.StartedAt`, or null when docker could not answer
+ * @param {string|null} after
+ * @returns {boolean} true ONLY when both are known and they differ
+ */
+export function restartProven(before, after) {
+  if (typeof before !== "string" || typeof after !== "string") return false;
+  if (before === "" || after === "") return false;
+  return before !== after;
+}
+
+/**
  * The comparable SHAPE of an upgrade list: `key@timestamp` per entry, `!` when disabling.
  *
  * 🔴 Deliberately NOT the bytes. A node echoes `adminAddresses` back in lower case while the file
@@ -461,6 +486,19 @@ if (process.argv[1]?.endsWith("l1-upgrade.mjs") && process.argv.includes("--self
     () => planUpgrade({ chainConfig: GEN, existingUpgrades: [{ contractNativeMinterConfig: { blockTimestamp: 5, adminAddresses: [A] } }], precompile: "txAllowList", action: "enable", admin: A, nowSeconds: NOW }, P), "disable should be true");
   throwsWith("🔴 missing chainConfig is a wiring bug", () => planUpgrade({ existingUpgrades: [], precompile: "txAllowList", action: "enable", admin: A, nowSeconds: NOW }, P), "chainConfig is required");
   throwsWith("🔴 missing existingUpgrades is a wiring bug, not an empty list", () => planUpgrade({ chainConfig: GEN, precompile: "txAllowList", action: "enable", admin: A, nowSeconds: NOW }, P), "must be a list");
+
+  console.log("\n── 🔴 restartProven — the rule that would have caught the 2026-09-04 rollout ──");
+  ok("two different timestamps ⇒ it restarted", restartProven("2026-09-04T14:16:10.8Z", "2026-09-04T16:20:01.2Z") === true);
+  ok("🔴 the SAME timestamp ⇒ it did NOT restart, whatever the health check says",
+    restartProven("2026-09-04T14:16:10.8Z", "2026-09-04T14:16:10.8Z") === false);
+  // The inversion that makes this worth being a function: two unknowns compare EQUAL, and "equal"
+  // written the obvious way round would mean "restarted correctly". Absence must be failure.
+  ok("🔴 both unknown ⇒ NOT proven (two unreadable values are equal, and equal must not mean success)",
+    restartProven(null, null) === false);
+  ok("🔴 before unknown ⇒ NOT proven", restartProven(null, "2026-09-04T16:20:01.2Z") === false);
+  ok("🔴 after unknown ⇒ NOT proven", restartProven("2026-09-04T14:16:10.8Z", null) === false);
+  ok("🔴 empty strings ⇒ NOT proven (docker printing nothing is not a timestamp)", restartProven("", "") === false);
+  ok("🔴 a non-string ⇒ NOT proven", restartProven(0, 1) === false);
 
   console.log("\n── ownerTransferVerdict ──");
   {

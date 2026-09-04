@@ -24,7 +24,7 @@ import {
   effectiveOptions, describeChain, parseContractLibrary, LIMITS, SELECTABLE_PRECOMPILES, REWARD_MODES,
 } from "../lib/l1-options.mjs";
 import {
-  planUpgrade, activePrecompiles, upgradeShape, encodeReadAllowList, decodeRole, ownerTransferVerdict,
+  planUpgrade, activePrecompiles, upgradeShape, restartProven, encodeReadAllowList, decodeRole, ownerTransferVerdict,
   PRECOMPILE_ADDRESS, UPGRADABLE_PRECOMPILES, MIN_LEAD_SECONDS, MAX_LEAD_SECONDS,
 } from "../lib/l1-upgrade.mjs";
 import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
@@ -701,7 +701,50 @@ async function chainSanSang(svc, subnetID, blockchainID) {
  * On failure the thrown error carries `daXong` (the services already restarted) so the caller
  * can undo them; the text lists them too, for a human reading the log.
  */
-async function trackSubnetsLanLuot(trackList, { requireChain } = {}) {
+/**
+ * When did this container's process last start? Used to prove a restart HAPPENED.
+ *
+ * 🔴 Returns null when docker cannot answer, and the caller must treat null as "unknown", never as
+ * "unchanged". An unreadable timestamp compared against another unreadable timestamp is equal, and
+ * equal would read as "it restarted correctly" — the exact inversion this whole check exists to
+ * prevent.
+ */
+async function nodeStartedAt(svc) {
+  try {
+    const out = await docker(["inspect", "--format", "{{.State.StartedAt}}", svc]);
+    const t = out.trim().split("\n").pop().trim();
+    return /^\d{4}-\d{2}-\d{2}T/.test(t) ? t : null;
+  } catch { return null; }
+}
+
+/**
+ * @param {string} trackList   comma-separated subnetIDs every node must track
+ * @param {object} opts
+ *   `requireChain`  — ALSO wait for this chain's own health check on each node (upgrade rollouts)
+ *   `forceRestart`  — 🔴 REQUIRED whenever the point of the rollout is to make nodes RE-READ A FILE
+ *
+ * ═══ 🔴 WHY `forceRestart` EXISTS (measured on the live network, 2026-09-04 16:09Z) ═══
+ *
+ * `compose up -d --no-deps <svc>` recreates a container only when its CONFIG CHANGED. On the create
+ * path `A1_TRACK_SUBNETS` gains a subnet, so it changes and the node really restarts — the log
+ * records about 32 s per node. On an UPGRADE the track list is IDENTICAL, so compose does nothing
+ * at all: the log recorded 0.4 s for all nine nodes, `docker inspect` showed every container still
+ * running from two hours earlier, and `upgrade.json` sat on disk unread.
+ *
+ * Every health check passed instantly — because the node had never gone down. That is "silence
+ * read as agreement" wearing a different costume: the rollout asked "is this node healthy" when the
+ * question it needed was "did this node restart".
+ *
+ * So this flag does two things, and the second matters more than the first:
+ *   1. `--force-recreate`, so the restart actually happens;
+ *   2. it MEASURES that it happened, by requiring `.State.StartedAt` to move. A rollout that cannot
+ *      prove the node restarted must fail loudly, not proceed to the next node.
+ *
+ * Only the final verification in `/api/upgrade` caught this, after all nine nodes had reported
+ * success. It recorded nothing, which is why nothing was corrupted — but nine "done" lines for nine
+ * no-ops is exactly the report that gets believed.
+ */
+async function trackSubnetsLanLuot(trackList, { requireChain, forceRestart = false } = {}) {
   // `docker()` gộp stdout VỚI stderr, mà compose hay in cảnh báo kiểu
   //   WARN[0000] The "A1_TRACK_SUBNETS" variable is not set. Defaulting to ...
   // Nhận nguyên si từng dòng làm tên service thì lệnh kế sẽ thành
@@ -753,8 +796,35 @@ async function trackSubnetsLanLuot(trackList, { requireChain } = {}) {
   for (const svc of thuTu) {
     const t0 = Date.now();
     buocChay(`node:${svc}`);
+    // 🔴 Read this BEFORE touching the container: it is the only evidence that the restart below
+    // was real. `null` means docker could not answer, and the check further down refuses to accept
+    // a comparison between two unknowns.
+    const truocKhiRestart = forceRestart ? await nodeStartedAt(svc) : null;
     // `--no-deps`: chỉ đụng đúng service này, không kéo theo service khác.
-    await docker([...COMPOSE, "up", "-d", "--no-deps", svc], { A1_TRACK_SUBNETS: trackList });
+    // `--force-recreate` only when the point is to make the node re-read a file on disk — see the
+    // header. Adding it unconditionally would recreate nine containers on every chain creation for
+    // no reason, which is a slower and riskier rollout, not a safer one.
+    await docker([
+      ...COMPOSE, "up", "-d", "--no-deps", ...(forceRestart ? ["--force-recreate"] : []), svc,
+    ], { A1_TRACK_SUBNETS: trackList });
+
+    if (forceRestart) {
+      // The container has a new start time, or the "restart" did not happen. Nine no-ops reported
+      // as nine successes is how a rollout lies (measured 2026-09-04).
+      const sauKhiRestart = await nodeStartedAt(svc);
+      if (!restartProven(truocKhiRestart, sauKhiRestart)) {
+        const err = new Error(
+          `${svc} did NOT actually restart` +
+          (truocKhiRestart === null || sauKhiRestart === null
+            ? ` — docker could not report .State.StartedAt (before=${truocKhiRestart}, after=${sauKhiRestart}), so the restart cannot be proven and must not be assumed`
+            : ` — .State.StartedAt is still ${sauKhiRestart}. The container was not recreated, so it never re-read its chain config directory, and every health check below would pass for a node that never went down.`) +
+          ` STOPPED. Done: ${nhatKy.map(n => n.svc).join(", ") || "(none)"}.`
+        );
+        err.daXong = nhatKy.map(n => n.svc);
+        err.hong = svc;
+        throw err;
+      }
+    }
 
     let sanSang = null;
     for (let i = 0; i < 45; i++) {           // 45 × 2s = 90s cho mỗi node
@@ -1533,7 +1603,13 @@ async function napCapChain(tham, ai) {
   const trackList = loadState().chains.map(c => c.subnetID).join(",");
   let nhatKy;
   try {
-    nhatKy = await trackSubnetsLanLuot(trackList, { requireChain: { subnetID: chain.subnetID, blockchainID: chain.blockchainID } });
+    // 🔴 `forceRestart` is NOT optional here. This rollout exists to make nine nodes re-read
+    // `upgrade.json`; without it compose sees an unchanged config and does nothing, and every node
+    // reports success in under a second (measured on the live network, 2026-09-04 16:09Z).
+    nhatKy = await trackSubnetsLanLuot(trackList, {
+      requireChain: { subnetID: chain.subnetID, blockchainID: chain.blockchainID },
+      forceRestart: true,
+    });
   } catch (e) {
     const undo = await hoanTacNangCap(chain, filePath, prev, e.daXong ?? [], e.hong);
     throw new Error(`${e.message} — UNDONE: ${undo}. Nothing was recorded; the chain keeps its previous rules.`);
