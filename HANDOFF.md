@@ -5,6 +5,13 @@ Cập nhật: **2026-09-03 tối** — 🟢 **BLOCKSCOUT ĐÃ NGHỈ HẲN · 6 
 CHƯA ĐẨY**. 🔴 Cho `web-home`: trang 404 công khai đang **502** (P-52) và MetaMask vẫn in **LOVE9** cho
 L1 (P-55). Đọc mục **CHỐT PHIÊN `2026-09-03` CHIỀU→TỐI** ngay dưới; mục **BA L1 SỐNG** (sáng cùng ngày)
 giữ nguyên bên dưới nó.
+🔴 **`2026-09-04`: `official/main` ĐÃ ĐƯỢC LỌC LẠI LỊCH SỬ (`fbfb3ff → 7f25b34`, 436 → 428 commit) — `git push official`
+TỪ NAY HỎNG non-fast-forward, và ĐỪNG force-push** (force là đưa cả runbook vận hành trở lại Internet). David chốt:
+repo công khai không mang `local-net/deploy/**`, `docs/DEPLOY-KSGAME.md`, `"$A1_SSH_HOST"`, `"$A1_SSH_KEY"`.
+Đường công bố duy nhất: `bash local-net/deploy/publish-official.sh <nhánh đích> [ref nguồn]` — script ở nhánh `web-home`,
+**chưa có trên `main`**. `main` cục bộ (`34e04cd`, 20 commit chưa công bố) không còn tổ tiên chung với `official/main`:
+**đừng `git pull official`**. `origin` (riêng tư) giữ nguyên; ref công khai cũ ở `origin/backup/official-*-20260904`.
+Đối chứng `04/09` từ phiên này: `official/main` 0 commit đụng `local-net/deploy`, 0 blob có chuỗi ssh; `main` còn 12 tệp.
 Trước đó **2026-09-02** chiều — 🟢🟢 **CHẶN SỐ 1 HẾT CHẶN: `genesis.json` NAY TẢI ĐƯỢC TỪ NGOÀI**
 (D-158). Đã đẩy `official` + `origin`, nghiệm thu **bằng tay** trên đúng đường người lạ đi.
 🔴 Hoá ra không phải *"chưa ai tải lên"*: tệp **không được git theo dõi** — byte cả thế giới cần
@@ -102,7 +109,7 @@ git    : 14 commit chưa đẩy — kiểm §4 (check-history-secrets --all-obje
   `chainId -1` (không tạo chain).
 
 #### ⚠️ Việc tiếp — ai làm
-- **[human] đẩy 14 commit** — `git push origin main && git push official main`, kiểm §4 trước.
+- **[human] đẩy 14 commit** — `git push origin main`, rồi `official` CHỈ qua `publish-official.sh` (xem cảnh báo đầu tệp), kiểm §4 trước.
 - **[web-home] P-52** 🔴 trang 404 công khai và `/blocks` `/tx/*` `/api/*` đang **502**: Caddy còn
   bắt-tất-cả vào `127.0.0.1:8100` trống. Gốc → trang 404 tĩnh · đường explorer → `308 a1.9scan.org` ·
   bỏ `handle /api/*` `/socket/*` · `check-routes.mjs` có ca "Blockscout trả 404".
@@ -165,7 +172,7 @@ server   : console PID 2527217 (12:20Z), sha256 khớp repo · A1_DE_CHAIN_MO=1 
 - **[human] 09/09** — bơm tự dừng; trước cửa sổ chạy `node scripts/check-clock-skew.mjs` (chain
   đang đẻ block ⇒ nguồn [1]). Lệnh nghi lễ: `docs/CEREMONY-2026-09-09.md`. Adam/Eva payload:
   `--adam-data docs/engrave/dedication.txt --eva-data docs/engrave/dedication_eva.txt`.
-- **[human] đẩy** commit cuối (`git push origin main && git push official main`) — kiểm §4 trước.
+- **[human] đẩy** commit cuối (`git push origin main`, rồi `official` CHỈ qua `publish-official.sh` (xem cảnh báo đầu tệp)) — kiểm §4 trước.
 - **[autopilot] đo tải 3 L1 lúc node ~4h tuổi** (≈`17:20Z` 03/09): mẫu nền 2 L1 lúc `11:43:42Z` =
   CPU `0.952` core · RAM 9 node `5270 MiB`. Mẫu sớm (node 5 phút): CPU `1.224` · RAM `1412` —
   **KHÔNG so được** (node trẻ, mất heap). Dùng lệnh cgroup trong D-175/P-48 (60s, `cpu.stat` +
