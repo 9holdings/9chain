@@ -105,14 +105,14 @@ for (const goc of QUET) {
 }
 
 if (hong) {
-  console.log(`\n✗ ${hong} lớp theo hướng VẬT LÝ — chúng sai ở 3/30 ngôn ngữ (ar · fa · ur).`);
-  console.log('  Lớp logic (`ps-`, `me-`, `border-s`, `text-start`, `start-`) tự lật theo `dir`,');
-  console.log('  nên chúng đúng ở CẢ HAI chiều mà không cần một luật riêng nào cho RTL.');
-  console.log('  Thật sự cần hướng vật lý? Thêm vào `MIEN_TRU` KÈM LÝ DO trong file này.');
+  console.log(`\n✗ ${hong} PHYSICAL-direction classes — they are wrong in 3 of 30 languages (ar · fa · ur).`);
+  console.log('  Logical classes (`ps-`, `me-`, `border-s`, `text-start`, `start-`) flip with `dir` by themselves,');
+  console.log('  so they are correct in BOTH directions without a single RTL-specific rule.');
+  console.log('  Genuinely need a physical direction? Add it to `MIEN_TRU` WITH A REASON in this file.');
   process.exit(1);
 }
 
-console.log('✓ không lớp CSS nào theo hướng vật lý — bố cục lật đúng ở cả 3 bản RTL.');
-console.log('  (Chỉ đo SỰ VẮNG MẶT của lớp vật lý. Bản RTL đọc có xuôi không thì phải có');
-console.log('   người đọc được thứ tiếng đó xem — xem chú thích đầu tệp.)');
+console.log('✓ no physical-direction CSS class — the layout flips correctly in all 3 RTL languages.');
+console.log('  (This measures only the ABSENCE of physical classes. Whether the RTL layout reads well');
+console.log('   needs someone who reads that language — see the comment at the top of this file.)');
 process.exit(0);

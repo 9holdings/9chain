@@ -13,14 +13,14 @@ import { formatNumber } from '../lib/numbers';
  * it measures the wrong quantity" class this project has paid for repeatedly. So: measure the
  * function directly, with a number large enough to force a separator to appear.
  */
-describe('định dạng số theo ngôn ngữ', () => {
+describe('number formatting by language', () => {
   const N = 1_234_567;
 
-  it('tiếng Anh dùng dấu phẩy', () => {
+  it('English uses commas', () => {
     expect(formatNumber(N, 'en')).toBe('1,234,567');
   });
 
-  it('tiếng Việt và tiếng Đức dùng dấu chấm', () => {
+  it('Vietnamese and German use dots', () => {
     expect(formatNumber(N, 'vi')).toBe('1.234.567');
     expect(formatNumber(N, 'de')).toBe('1.234.567');
   });
@@ -32,11 +32,11 @@ describe('định dạng số theo ngôn ngữ', () => {
    * requires two languages to come out DIFFERENT — i.e. the function genuinely reads its `ma`
    * argument.
    */
-  it('hai ngôn ngữ khác quy ước phải ra khác nhau', () => {
+  it('two languages with different conventions must differ', () => {
     expect(formatNumber(N, 'en')).not.toBe(formatNumber(N, 'vi'));
   });
 
-  it('giữ chữ số Latin kể cả ở ngôn ngữ có hệ chữ số riêng (D-web-2)', () => {
+  it('keeps Latin digits even in languages with their own numerals (D-web-2)', () => {
     // `ar` defaults to Arabic-Indic digits `١٢٣`. Block height has to be comparable against the
     // explorer and a wallet — both of which print Latin digits.
     const s = formatNumber(N, 'ar');
@@ -44,7 +44,7 @@ describe('định dạng số theo ngôn ngữ', () => {
     expect(s).not.toMatch(/[٠-٩۰-۹]/);
   });
 
-  it('mã ngôn ngữ rác không làm đổ, và KHÔNG rơi về vi-VN', () => {
+  it('a junk language code does not throw, and does NOT fall back to vi-VN', () => {
     expect(formatNumber(N, 'khong-phai-locale-!!')).toBe('1,234,567');
   });
 });
@@ -53,7 +53,7 @@ describe('định dạng số theo ngôn ngữ', () => {
  * A regression gate: nobody may hard-code a locale into a formatting call again.
  * It lives here rather than in the linter for a readable reason: it carries the WHY with it.
  */
-describe('không còn locale cắm cứng', () => {
+describe('no hard-coded locale is left', () => {
   const GOC = path.resolve(__dirname, '..');
   const BO_QUA = new Set(['node_modules', 'out', '.next', 'test']);
 
@@ -67,7 +67,7 @@ describe('không còn locale cắm cứng', () => {
     return ra;
   }
 
-  it('không tệp nguồn nào gọi toLocaleString với locale cố định', () => {
+  it('no source file calls toLocaleString with a fixed locale', () => {
     const pham: string[] = [];
     for (const p of quet(GOC)) {
       // `lib/numbers.ts` is allowed — it is the ONLY place that knows about locales, and it reads its argument.
@@ -93,7 +93,7 @@ describe('không còn locale cắm cứng', () => {
     }
     expect(
       pham,
-      `dùng \`formatNumber(n, ma)\` trong \`lib/numbers.ts\` thay vì cắm cứng locale — xem chú thích ở đó. Phạm: ${pham.join(', ')}`,
+      `use \`formatNumber(n, ma)\` from \`lib/numbers.ts\` instead of hard-coding a locale — see the comment there. Offenders: ${pham.join(', ')}`,
     ).toEqual([]);
   });
 });

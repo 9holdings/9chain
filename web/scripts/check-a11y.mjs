@@ -25,7 +25,7 @@ const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RA = path.join(GOC, 'out');
 
 if (!existsSync(RA)) {
-  console.error('✗ chưa có thư mục out/ — chạy `pnpm build` trước');
+  console.error('✗ no out/ directory yet — run `pnpm build` first');
   process.exit(1);
 }
 
@@ -43,7 +43,7 @@ function timHtml(dir) {
 
 const files = timHtml(RA);
 if (!files.length) {
-  console.error('✗ out/ không có file .html nào — build hỏng?');
+  console.error('✗ out/ has no .html file at all — did the build fail?');
   process.exit(1);
 }
 
@@ -99,7 +99,7 @@ for (const f of files) {
 
 console.log(
   tongLoi
-    ? `\n✗ axe-core: ${tongLoi} vi phạm trên ${files.length} trang`
-    : `\n✓ axe-core sạch trên ${files.length} trang (tắt color-contrast — xem chú thích đầu file)`,
+    ? `\n✗ axe-core: ${tongLoi} violations across ${files.length} pages`
+    : `\n✓ axe-core clean on ${files.length} pages (color-contrast disabled — see the comment at the top)`,
 );
 process.exit(tongLoi ? 1 : 0);

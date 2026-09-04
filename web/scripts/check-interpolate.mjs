@@ -34,7 +34,7 @@ const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const EN = path.join(GOC, 'lib', 'i18n', 'en.ts');
 
 if (!existsSync(EN)) {
-  console.log('   ✗ không thấy lib/i18n/en.ts');
+  console.log('   ✗ cannot find lib/i18n/en.ts');
   process.exit(2);
 }
 
@@ -133,20 +133,20 @@ for (const goc of ['app', 'components', 'lib']) {
       if (thieu.length || thua.length) {
         hong++;
         console.log(`  ✗ ${rel}:${dong}  interpolate(t.${duong}, …)`);
-        if (thieu.length) console.log(`      chuỗi cần {${thieu.join('} {')}} — lời gọi KHÔNG cấp`);
-        if (thua.length) console.log(`      lời gọi cấp ${thua.join(', ')} — chuỗi KHÔNG khai`);
+        if (thieu.length) console.log(`      the string needs {${thieu.join('} {')}} — the call does NOT supply it`);
+        if (thua.length) console.log(`      the call supplies ${thua.join(', ')} — the string does NOT declare it`);
       }
     }
   }
 }
 
-console.log(`   đã đo ${daDo} lời gọi có đường khoá tĩnh${boQua ? ` · bỏ qua ${boQua} lời gọi không tra được đường khoá` : ''}`);
+console.log(`   measured ${daDo} calls with a static key path${boQua ? ` · bỏ qua ${boQua} lời gọi không tra được đường khoá` : ''}`);
 if (hong) {
-  console.log(`\n✗ ${hong} lời gọi \`interpolate()\` lệch với chuỗi của nó.`);
-  console.log('  Hỏng này KHÔNG có ai báo: `interpolate` chỉ thay khoá nó biết, nên chỗ giữ chỗ');
-  console.log('  không được cấp sẽ đi thẳng ra màn hình dưới dạng `{tên}` giữa câu.');
-  console.log('  Sửa cả hai đầu — chuỗi trong CẢ 30 từ điển và khoá ở lời gọi — trong một lượt.');
+  console.log(`\n✗ ${hong} \`interpolate()\` calls disagree with their string.`);
+  console.log('  Nothing reports this failure: `interpolate` only replaces keys it knows, so a placeholder');
+  console.log('  that is not supplied goes straight to the screen as `{name}` mid-sentence.');
+  console.log('  Fix both ends — the string in ALL 30 dictionaries and the key at the call site — in one pass.');
   process.exit(1);
 }
-console.log('✓ mọi lời gọi `interpolate()` cấp đúng bộ chỗ giữ chỗ chuỗi của nó khai.');
+console.log('✓ every `interpolate()` call supplies exactly the placeholders its string declares.');
 process.exit(0);

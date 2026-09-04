@@ -38,11 +38,11 @@ const RA = path.join(GOC, 'out');
 const BANG = path.join(GOC, 'lib', 'pageTitle.ts');
 
 if (!existsSync(RA)) {
-  console.log('   ✗ chưa có out/ — chạy `pnpm build` trước');
+  console.log('   ✗ no out/ yet — run `pnpm build` first');
   process.exit(2);
 }
 if (!existsSync(BANG)) {
-  console.log('   ✗ không thấy lib/pageTitle.ts');
+  console.log('   ✗ cannot find lib/pageTitle.ts');
   process.exit(2);
 }
 
@@ -55,8 +55,8 @@ const src = readFileSync(BANG, 'utf8');
 // rather than go falsely green, and that is why the "could not measure" branch has to exist.
 const khoi = src.match(/TITLE_BY_PATH[\s\S]*?=\s*\{([\s\S]*?)\n\};/);
 if (!khoi) {
-  console.log('   ✗ không tách được khối `TITLE_BY_PATH` trong lib/pageTitle.ts');
-  console.log('     Nếu vừa đổi cấu trúc, sửa bộ tách ở đây — ĐỪNG gỡ cổng.');
+  console.log('   ✗ could not extract the `TITLE_BY_PATH` block from lib/pageTitle.ts');
+  console.log('     If the structure just changed, fix the extractor here — do NOT remove the gate.');
   process.exit(2);
 }
 const khaiBang = [...khoi[1].matchAll(/'([^']+)':/g)].map((m) => m[1]).sort();
@@ -84,22 +84,22 @@ const trangThat = timTrang(RA).filter((d) => !BO_QUA.has(d)).sort();
 const thieu = trangThat.filter((d) => !khaiBang.includes(d));
 const thua = khaiBang.filter((d) => !trangThat.includes(d));
 
-console.log(`   ${trangThat.length} trang trong out/ · ${khaiBang.length} khoá trong bảng`);
+console.log(`   ${trangThat.length} pages in out/ · ${khaiBang.length} keys in the table`);
 if (thieu.length) {
-  console.log(`   ✗ THIẾU trong bảng: ${thieu.join('  ')}`);
-  console.log('     ⇒ những trang này sẽ mang tiêu đề tab của trang 404.');
+  console.log(`   ✗ MISSING from the table: ${thieu.join('  ')}`);
+  console.log('     ⇒ these pages will carry the 404 page’s tab title.');
 }
 if (thua.length) {
-  console.log(`   ✗ THỪA trong bảng (không có trang): ${thua.join('  ')}`);
-  console.log('     ⇒ bảng đang nói về một trang không tồn tại.');
+  console.log(`   ✗ EXTRA in the table (no such page): ${thua.join('  ')}`);
+  console.log('     ⇒ the table describes a page that does not exist.');
 }
 if (thieu.length || thua.length) {
-  console.log('\n✗ Bảng tiêu đề lệch với các trang có thật. Sửa `TITLE_BY_PATH`');
-  console.log('  trong lib/pageTitle.ts — và nhớ khoá `tieuDe` phải TRÙNG với thứ');
-  console.log('  `page.tsx` truyền cho `pageMeta()`, nếu không tiêu đề sẽ nhảy một');
-  console.log('  nhịp lúc hydrate (HTML một câu, JS thay bằng câu khác).');
+  console.log('\n✗ The title table disagrees with the real pages. Fix `TITLE_BY_PATH`');
+  console.log('  in lib/pageTitle.ts — and remember the `tieuDe` key must MATCH what');
+  console.log('  `page.tsx` passes to `pageMeta()`, or the title will jump once on');
+  console.log('  hydration (the HTML says one thing, the JS replaces it with another).');
   process.exit(1);
 }
 
-console.log('✓ bảng tiêu đề phía client phủ đúng các trang có thật (khớp hai chiều).');
+console.log('✓ the client title table covers exactly the real pages (matched both ways).');
 process.exit(0);

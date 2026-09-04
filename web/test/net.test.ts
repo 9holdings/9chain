@@ -35,14 +35,14 @@ function gia(opts: { status?: number; body?: string; treo?: boolean; nem?: Error
   });
 }
 
-describe('fetchJson — ba kiểu hỏng phải phân biệt được', () => {
-  it('máy chủ CHẬM/treo ⇒ timeout, không treo mãi', async () => {
+describe('fetchJson — the three failures must be tellable apart', () => {
+  it('a SLOW/hung server ⇒ timeout, not a hang forever', async () => {
     gia({ treo: true });
     // A 0.05s limit so the test itself is not slow.
     await expect(fetchJson('/x', {}, 0.05)).rejects.toMatchObject({ kind: 'timeout' });
   });
 
-  it('máy chủ CHẾT (500) ⇒ http, và thử lại KHÔNG vô ích', async () => {
+  it('a DEAD server (500) ⇒ http, and retrying is NOT pointless', async () => {
     gia({ status: 500, body: '{"error":"vo"}' });
     const e = (await fetchJson('/x').catch((x) => x)) as NetworkError;
     expect(e.kind).toBe('http');
@@ -50,14 +50,14 @@ describe('fetchJson — ba kiểu hỏng phải phân biệt được', () => {
     expect(e.retryPointless).toBe(false);
   });
 
-  it('máy chủ TỪ CHỐI THẬT (401) ⇒ thử lại vô ích', async () => {
-    gia({ status: 401, body: '{"error":"chưa xác thực"}' });
+  it('a server that REALLY refuses (401) ⇒ retrying is pointless', async () => {
+    gia({ status: 401, body: '{"error":"not authenticated"}' });
     const e = (await fetchJson('/x').catch((x) => x)) as NetworkError;
     expect(e.retryPointless).toBe(true);
-    expect(e.message).toContain('chưa xác thực');
+    expect(e.message).toContain('not authenticated');
   });
 
-  it('máy chủ trả RÁC (HTML) ⇒ notJson, và câu lỗi phải nghi ĐỊNH TUYẾN', async () => {
+  it('a server returning GARBAGE (HTML) ⇒ notJson, and the error must suspect ROUTING', async () => {
     // The real case: the request falls through to Blockscout at the root `/` and we get an HTML shell.
     gia({ status: 200, body: '<!DOCTYPE html><html><body>Blockscout</body></html>' });
     const e = (await fetchJson('/x').catch((x) => x)) as NetworkError;
@@ -70,12 +70,12 @@ describe('fetchJson — ba kiểu hỏng phải phân biệt được', () => {
     expect(e.message).toMatch(/not JSON/i);
   });
 
-  it('đứt mạng ⇒ offline, KHÔNG bị nhầm thành timeout', async () => {
+  it('a dropped network ⇒ offline, NOT mistaken for a timeout', async () => {
     gia({ nem: new TypeError('Failed to fetch') });
     await expect(fetchJson('/x')).rejects.toMatchObject({ kind: 'offline' });
   });
 
-  it('không truyền hanGiay ⇒ KHÔNG gắn signal (mặc định là không hạn giờ)', async () => {
+  it('no hanGiay passed ⇒ NO signal attached (the default is no timeout)', async () => {
     let thay: RequestInit | undefined;
     vi.stubGlobal('fetch', (_u: string, init?: RequestInit) => {
       thay = init;
@@ -101,7 +101,7 @@ describe('fetchJson — ba kiểu hỏng phải phân biệt được', () => {
  * 170-second operation. So this gate reads the **source code** — it is cheap, and it guards
  * exactly what a human will accidentally break while "tidying up for consistency".
  */
-describe('KHÔNG hạn giờ cho /api/create và /api/revoke', () => {
+describe('NO timeout on /api/create and /api/revoke', () => {
   const GOC = path.resolve(__dirname, '..');
   const BO_QUA = new Set(['node_modules', 'out', '.next', 'test']);
 
@@ -137,7 +137,7 @@ describe('KHÔNG hạn giờ cho /api/create và /api/revoke', () => {
     return so;
   }
 
-  it('không lượt gọi nào tới hai đường đó truyền tham số hạn giờ', () => {
+  it('no call to either path passes a timeout argument', () => {
     const pham: string[] = [];
     for (const p of quet(GOC)) {
       const s = readFileSync(p, 'utf8');
@@ -151,12 +151,12 @@ describe('KHÔNG hạn giờ cho /api/create và /api/revoke', () => {
     }
     expect(
       pham,
-      `KHÔNG được đặt hạn giờ cho /api/create hay /api/revoke — thao tác mất ~170–300s, ` +
-        `huỷ giữa chừng thì server vẫn làm xong còn người dùng tưởng hỏng. Phạm: ${pham.join(', ')}`,
+      `A timeout must NEVER be set on /api/create or /api/revoke — they take ~170–300s, ` +
+        `and cancelling midway leaves the server finishing while the user believes it broke. Offenders: ${pham.join(', ')}`,
     ).toEqual([]);
   });
 
-  it('`callConsole` vẫn mặc định KHÔNG hạn giờ (chiều an toàn)', () => {
+  it('`callConsole` still defaults to NO timeout (the safe direction)', () => {
     const s = readFileSync(path.join(GOC, 'lib', 'wallet.ts'), 'utf8');
     // The parameter must be optional (`hanGiay?:`) and the signal only attached when it is present.
     expect(s).toMatch(/hanGiay\?\s*:\s*number/);

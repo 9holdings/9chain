@@ -36,7 +36,7 @@ const RA = path.join(GOC, 'out');
 const DAU = '[?]';
 
 if (!existsSync(RA)) {
-  console.log('✗ chưa có out/ — chạy `pnpm build` trước');
+  console.log('✗ no out/ yet — run `pnpm build` first');
   process.exit(1);
 }
 
@@ -72,17 +72,17 @@ for (const f of quet(RA)) {
 const tong = dinh.reduce((a, d) => a + d.so, 0);
 
 if (dinh.length) {
-  console.log(`\n✗ CÓ ${tong} DẤU "${DAU}" ĐI RA BẢN DỰNG — chúng sẽ hiện ra cho người đọc:`);
+  console.log(`\n✗ ${tong} "${DAU}" MARKS REACHED THE BUILD — readers will see them:`);
   for (const d of dinh.sort((a, b) => b.so - a.so)) {
-    console.log(`     ${String(d.so).padStart(3)} dấu · ${d.tep}`);
+    console.log(`     ${String(d.so).padStart(3)} marks · ${d.tep}`);
     console.log(`         …${d.mau}`);
   }
   console.log('');
-  console.log('  Dấu `[?]` là cơ chế NỘI BỘ để David duyệt giọng, không phải chữ của sản phẩm.');
-  console.log('  Sửa ĐÚNG: đưa chuỗi cho David duyệt rồi gỡ dấu trong web/lib/i18n/vi.ts.');
-  console.log('  🔴 Sửa SAI: cắt dấu ở tầng render — đó là giấu khỏi mắt David, tức phá');
-  console.log('     đúng cơ chế mà dấu này dựng ra. Xem chú thích đầu vi.ts.');
+  console.log('  The `[?]` mark is an INTERNAL mechanism for David to approve voice, not product text.');
+  console.log('  The RIGHT fix: put the string in front of David, then remove the mark in web/lib/i18n/vi.ts.');
+  console.log('  🔴 The WRONG fix: stripping the mark in the render layer — that hides it from David, destroying');
+  console.log('     the very mechanism the mark exists for. See the comment at the top of vi.ts.');
   process.exit(1);
 }
 
-console.log(`✓ không dấu "${DAU}" nào lọt ra bản dựng (${quet(RA).length} tệp chữ)`);
+console.log(`✓ no "${DAU}" mark reached the build (${quet(RA).length} text files)`);

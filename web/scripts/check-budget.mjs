@@ -70,7 +70,7 @@ const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RA = path.join(GOC, 'out');
 
 if (!existsSync(RA)) {
-  console.error('✗ chưa có thư mục out/ — chạy `pnpm build` trước');
+  console.error('✗ no out/ directory yet — run `pnpm build` first');
   process.exit(1);
 }
 
@@ -200,27 +200,27 @@ for (const f of timHtml(RA)) {
 }
 
 const so = (v, w = 6) => v.toFixed(1).padStart(w);
-console.log('   tổng   =  html +    js +   css        (font: trần trên, KHÔNG chặn)');
+console.log('   total  =  html +    js +   css        (fonts: an upper bound, NOT blocking)');
 for (const d of dong) {
   console.log(
     `   ${so(d.kb, 6)} KB gz = ${so(d.kbHtml, 5)} + ${so(d.kbJs, 5)} + ${so(d.kbCss, 5)}` +
       ` · ${String(d.soJs).padStart(2)} js` +
       `  ${d.ten}` +
-      (d.kbFont ? `   [font ≤ ${d.kbFont.toFixed(1)} KB / ${d.soFont} tệp]` : ''),
+      (d.kbFont ? `   [fonts ≤ ${d.kbFont.toFixed(1)} KB / ${d.soFont} files]` : ''),
   );
 }
 
 const boQua = dong[0]?.kbBoQua ?? 0;
 if (boQua) {
-  console.log(`   (không tính ${boQua.toFixed(1)} KB polyfills \`noModule\` — trình duyệt hiểu module bỏ qua)`);
+  console.log(`   (excluding ${boQua.toFixed(1)} KB of \`noModule\` polyfills — module-aware browsers skip them)`);
 }
 
 const vuot = teNhat.kb > TRAN_KB;
 console.log(
-  `${vuot ? '✗' : '✓'} trang nặng nhất: ${teNhat.ten} — ${teNhat.kb.toFixed(1)} KB gzip / trần ${TRAN_KB} KB`,
+  `${vuot ? '✗' : '✓'} heaviest page: ${teNhat.ten} — ${teNhat.kb.toFixed(1)} KB gzip / ceiling ${TRAN_KB} KB`,
 );
 if (vuot) {
-  console.log('  Vượt trần là một QUYẾT ĐỊNH, không phải một lỗi cần né: hoặc bỏ bớt,');
-  console.log('  hoặc nâng A1_TRAN_KB và ghi lý do vào DECISIONS.');
+  console.log('  Going over the ceiling is a DECISION, not a fault to dodge: either cut something,');
+  console.log('  or raise A1_TRAN_KB and write the reason into DECISIONS.');
 }
 process.exit(vuot ? 1 : 0);

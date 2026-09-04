@@ -42,7 +42,7 @@ const NEN = (process.argv[2] || 'https://a1.9chain.org').replace(/\/$/, '');
 const TIEN_TO = process.env.A1_TIEN_TO ?? '/moi';
 
 if (!existsSync(RA)) {
-  console.error('✗ chưa có out/ — chạy `pnpm build` trước');
+  console.error('✗ no out/ yet — run `pnpm build` first');
   process.exit(1);
 }
 
@@ -106,23 +106,23 @@ for (const [d, nguon] of [...dich].sort()) {
   // but both are FAILURES; a live alias does not rescue the canonical path.
   const alias = TIEN_TO && !d.startsWith(TIEN_TO) ? await thu(`${NEN}${TIEN_TO}${d}`) : null;
   hong++;
-  const maGoc = `${goc.ma}${goc.ma === 200 ? '(khung rỗng)' : ''}`;
+  const maGoc = `${goc.ma}${goc.ma === 200 ? '(empty shell)' : ''}`;
   if (alias?.ok) {
     chiSongOAlias++;
-    console.log(`  ✗ ${d.padEnd(18)} ${maGoc}  · SỐNG ở ${TIEN_TO}${d} — THIẾU ROUTE, không phải thiếu tệp`);
+    console.log(`  ✗ ${d.padEnd(18)} ${maGoc}  · ALIVE at ${TIEN_TO}${d} — MISSING ROUTE, not a missing file`);
   } else {
-    console.log(`  ✗ ${d.padEnd(18)} ${maGoc}  · dẫn từ: ${tuDau}`);
+    console.log(`  ✗ ${d.padEnd(18)} ${maGoc}  · linked from: ${tuDau}`);
   }
 }
 
 if (chiSongOAlias) {
   console.log(
-    `\n🔴 ${chiSongOAlias} đường sống ở "${TIEN_TO}" nhưng chết ở đường canonical.\n` +
-      `   Tệp ĐÃ lên server — thiếu là dòng route. Xem \`@trangmoi\` trong Caddyfile:\n` +
-      `   danh sách đó phải lớn lên theo mỗi trang mới, và đó đúng là chỗ hay bị quên.`,
+    `\n🔴 ${chiSongOAlias} paths are alive at "${TIEN_TO}" but dead at the canonical path.\n` +
+      `   The files ARE on the server — what is missing is the route line. See \`@trangmoi\` in the Caddyfile:\n` +
+      `   that list has to grow with every new page, and it is exactly what gets forgotten.`,
   );
 }
-console.log(hong ? `\n✗ ${hong}/${dich.size} liên kết chết` : `\n✓ ${dich.size}/${dich.size} liên kết sống`);
+console.log(hong ? `\n✗ ${hong}/${dich.size} links dead` : `\n✓ ${dich.size}/${dich.size} links alive`);
 
 /* ═══════════════════════════════════════════════════════════════════════════
    THE G-DAY GATE — only enabled with `A1_SAU_NGAY_G=1` (Đ1-12, 2026-08-27)
@@ -145,24 +145,24 @@ console.log(hong ? `\n✗ ${hong}/${dich.size} liên kết chết` : `\n✓ ${di
    ═══════════════════════════════════════════════════════════════════════════ */
 let hongNgayG = 0;
 if (process.env.A1_SAU_NGAY_G === '1') {
-  console.log('\n── CỔNG SAU NGÀY G (A1_SAU_NGAY_G=1) ──');
+  console.log('\n── POST-G-DAY GATE (A1_SAU_NGAY_G=1) ──');
   const doNoiDung = async (duong, chuoi, phaiCo) => {
     let html = '';
     try {
       const r = await fetch(`${NEN}${duong}`, { redirect: 'follow', signal: AbortSignal.timeout(20000) });
       html = await r.text();
     } catch (e) {
-      console.log(`  ✗ ${duong} — không tải được: ${e.message}`);
+      console.log(`  ✗ ${duong} — could not load: ${e.message}`);
       hongNgayG++;
       return;
     }
     const co = html.includes(chuoi);
     if (co === phaiCo) {
-      console.log(`  ✓ ${duong.padEnd(16)} ${phaiCo ? 'CÓ' : 'KHÔNG có'} "${chuoi}"`);
+      console.log(`  ✓ ${duong.padEnd(16)} ${phaiCo ? 'HAS' : 'does NOT have'} "${chuoi}"`);
     } else {
       console.log(
-        `  ✗ ${duong.padEnd(16)} ${phaiCo ? 'THIẾU' : 'VẪN CÒN'} "${chuoi}"` +
-          (phaiCo ? ' — trang chưa được thay bằng bản công bố' : ' — dải banner cũ chưa gỡ'),
+        `  ✗ ${duong.padEnd(16)} ${phaiCo ? 'MISSING' : 'STILL HAS'} "${chuoi}"` +
+          (phaiCo ? ' — the page has not been switched to the announcement' : ' — the old banner strip has not been removed'),
       );
       hongNgayG++;
     }
@@ -189,7 +189,7 @@ if (process.env.A1_SAU_NGAY_G === '1') {
   if (!ngay || !daXong || !sapToi) {
     // Refuse to measure rather than measure nothing: a renamed key must not quietly switch this
     // gate off. Same reasoning as the `disclosure` lookup in check-decentralisation-claim.mjs.
-    console.log('  ? không đọc được `rebuild.date` / `rebuild.title` / `rebuildDone.title` trong en.ts');
+    console.log('  ? could not read `rebuild.date` / `rebuild.title` / `rebuildDone.title` in en.ts');
     hongNgayG++;
   } else {
     const cauDaXong = daXong.replace('{date}', ngay);
@@ -204,7 +204,7 @@ if (process.env.A1_SAU_NGAY_G === '1') {
     // `web/out` copy — exactly the bind-mount inode trap of 25/08. One page cannot show that.
     await doNoiDung('/faucet/', cauSapToi, false);
   }
-  console.log(hongNgayG ? `\n✗ cổng ngày G: ${hongNgayG} phép đo chưa đạt` : '\n✓ cổng ngày G đạt');
+  console.log(hongNgayG ? `\n✗ G-day gate: ${hongNgayG} measurements not passing` : '\n✓ G-day gate passes');
 }
 
 process.exit(hong || hongNgayG ? 1 : 0);

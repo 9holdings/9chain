@@ -33,16 +33,19 @@ function docTsx(dir: string, ra: string[] = []): string[] {
 }
 
 describe('i18n', () => {
-  it('interpolate() giữ nguyên khoá thiếu thay vì để trống', () => {
+  it('interpolate() leaves a missing key visible instead of blank', () => {
     // A silent blank reads as lost data; a visible `{total}` can be fixed immediately.
-    expect(interpolate('còn {left}/{total}', { left: 3 })).toBe('còn 3/{total}');
+    expect(interpolate('{left}/{total} left', { left: 3 })).toBe('3/{total} left');
   });
 
-  it('interpolate() thay đúng mọi khoá có mặt', () => {
+  it('interpolate() substitutes every key that is present', () => {
+    // 🔴 Giá trị mong đợi PHẢI là tiếng Việt: nó là đầu ra của `vi.faucet.quotaFormat`, tức
+    // của chính từ điển đang được kiểm — không phải dữ liệu tuỳ ý. Lượt dịch chuỗi `2026-09-04`
+    // đổi nhầm nó sang tiếng Anh và bài kiểm đỏ ngay, đúng việc nó sinh ra để làm.
     expect(interpolate(vi.faucet.quotaFormat, { left: 3, total: 5, hours: 1 })).toBe('3/5 lượt trong 1 giờ');
   });
 
-  it('không có chuỗi tiếng Việt viết thẳng trong JSX', () => {
+  it('no Vietnamese string written straight into JSX', () => {
     // The signal: accented Vietnamese characters sitting between two JSX tags. It does not catch
     // 100% of every possible spelling, but it catches the way people actually do it.
     const nghiVan: string[] = [];
@@ -55,6 +58,6 @@ describe('i18n', () => {
         }
       }
     }
-    expect(nghiVan, `chuỗi phải qua lib/i18n/vi.ts:\n${nghiVan.join('\n')}`).toEqual([]);
+    expect(nghiVan, `strings must go through lib/i18n/vi.ts:\n${nghiVan.join('\n')}`).toEqual([]);
   });
 });

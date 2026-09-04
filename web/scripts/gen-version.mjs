@@ -46,7 +46,7 @@ function git(...args) {
 }
 
 if (!existsSync(OUT)) {
-  console.log(`✗ chưa có ${OUT} — gen-version phải chạy SAU \`next build\``);
+  console.log(`✗ no ${OUT} yet — gen-version must run AFTER \`next build\``);
   process.exit(1);
 }
 
@@ -54,7 +54,7 @@ const sha = git('rev-parse', '--short=12', 'HEAD') ?? 'khong-co-git';
 const nhanh = git('rev-parse', '--abbrev-ref', 'HEAD') ?? '?';
 // An empty `status --porcelain` = a clean tree. Any line at all = uncommitted work.
 const bo = git('status', '--porcelain');
-const dirty = bo === null ? 'khong-biet' : bo.length > 0 ? 'co' : 'khong';
+const dirty = bo === null ? 'khong-biet' : bo.length > 0 ? 'yes' : 'no';
 
 // Count the chunks so a deploy has one cheap number to compare against (Đ1-11b part 2 will
 // compare the LIST, not just the count — two different file sets can have the same count).
@@ -64,17 +64,17 @@ const soChunk = existsSync(thuMucChunk) ? readdirSync(thuMucChunk).filter((f) =>
 const noiDung =
   [
     `commit=${sha}`,
-    `nhanh=${nhanh}`,
-    `con-sua-chua-commit=${dirty}`,
-    `dung-luc=${new Date().toISOString()}`,
-    `so-chunk-js=${soChunk}`,
+    `branch=${nhanh}`,
+    `uncommitted=${dirty}`,
+    `built-at=${new Date().toISOString()}`,
+    `js-chunks=${soChunk}`,
   ].join('\n') + '\n';
 
 // LF explicitly: the repo runs on Windows, and CRLF here makes every byte-for-byte comparison
 // between `curl` and `cat` differ for no visible reason (the same trap that bit `sha256sum -c`).
 writeFileSync(path.join(OUT, 'version.txt'), noiDung, { encoding: 'utf8' });
 
-console.log(`✓ version.txt — ${sha} (${nhanh}) · chưa commit: ${dirty} · ${soChunk} chunk`);
-if (dirty === 'co') {
-  console.log('   ⚠️ cây làm việc CÒN SỬA CHƯA COMMIT — bản dựng này không tái lập được từ SHA trên.');
+console.log(`✓ version.txt — ${sha} (${nhanh}) · uncommitted: ${dirty} · ${soChunk} chunks`);
+if (dirty === 'yes') {
+  console.log('   ⚠️ THE WORKING TREE HAS UNCOMMITTED CHANGES — this build cannot be reproduced from the SHA above.');
 }

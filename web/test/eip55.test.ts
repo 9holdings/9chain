@@ -20,11 +20,11 @@ describe('EIP-55', () => {
     '0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb',
   ];
 
-  it('khớp vector chuẩn của EIP-55', () => {
+  it('matches the EIP-55 reference vectors', () => {
     for (const v of VECTOR) expect(toChecksumAddress(v.toLowerCase())).toBe(v);
   });
 
-  it('trùng từng ký tự với bản .mjs đang chạy trên server', () => {
+  it('matches the .mjs running on the server character for character', () => {
     // Deterministic random vectors: a fixed set only proves the two agree on a handful of cases,
     // while 200 evenly spread addresses catch a divergence in a rare branch.
     let x = 123456789n;
@@ -36,7 +36,7 @@ describe('EIP-55', () => {
     }
   });
 
-  it('từ chối địa chỉ sai checksum, và gợi ý đường thoát', () => {
+  it('rejects a bad checksum, and offers a way forward', () => {
     const hong = '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAeD'; // last character changed
     const check = checkAddress(hong);
     expect(check.ok).toBe(false);
@@ -50,18 +50,18 @@ describe('EIP-55', () => {
     }
   });
 
-  it('chấp nhận toàn thường và toàn hoa (không mang thông tin checksum)', () => {
+  it('accepts all-lower and all-upper (they carry no checksum information)', () => {
     expect(checkAddress(VECTOR[0].toLowerCase()).ok).toBe(true);
     expect(checkAddress('0x' + VECTOR[0].slice(2).toUpperCase()).ok).toBe(true);
   });
 
-  it('từ chối địa chỉ 0 và chuỗi sai hình dạng', () => {
+  it('rejects the zero address and malformed strings', () => {
     expect(checkAddress('0x' + '0'.repeat(40)).ok).toBe(false);
     expect(checkAddress('0x123').ok).toBe(false);
     expect(checkAddress('').ok).toBe(false);
   });
 
-  it('rút gọn vẫn giữ đủ hai đầu để đối chiếu', () => {
+  it('shortening keeps enough of both ends to compare', () => {
     const r = shortenAddress(VECTOR[0]);
     expect(r.startsWith('0x5aAeb6')).toBe(true);
     expect(r.endsWith('eAed')).toBe(true);

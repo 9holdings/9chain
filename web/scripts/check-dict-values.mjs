@@ -53,7 +53,7 @@ const fail = (m) => {
   process.exitCode = 1;
 };
 const cannotMeasure = (m) => {
-  console.error(`? KHÔNG ĐO ĐƯỢC — ${m}`);
+  console.error(`? COULD NOT MEASURE — ${m}`);
   process.exitCode = 2;
 };
 
@@ -119,7 +119,7 @@ const short = (s) => createHash('sha1').update(s, 'utf8').digest('hex').slice(0,
 
 // ── read all 30 ──────────────────────────────────────────────────────────────
 if (!existsSync(DICTS)) {
-  cannotMeasure(`không thấy ${path.relative(WEB, DICTS)}`);
+  cannotMeasure(`cannot find ${path.relative(WEB, DICTS)}`);
   process.exit(process.exitCode);
 }
 const files = [
@@ -135,7 +135,7 @@ let tongKey = 0;
 for (const [lang, file] of files) {
   const { values, skipped } = readDict(file);
   if (Object.keys(values).length === 0) {
-    cannotMeasure(`${lang}: đọc ra 0 chuỗi — bộ đọc không hiểu tệp này`);
+    cannotMeasure(`${lang}: read 0 strings — the reader does not understand this file`);
     process.exit(process.exitCode);
   }
   now[lang] = values;
@@ -151,13 +151,13 @@ if (ACCEPT) {
     for (const k of Object.keys(now[lang]).sort()) lock[lang][k] = short(now[lang][k]);
   }
   writeFileSync(LOCK, JSON.stringify(lock, null, 1) + '\n', 'utf8');
-  console.log(`✓ đã ghi sổ ${path.relative(WEB, LOCK)} — ${files.length} ngôn ngữ · ${tongKey} chuỗi`);
+  console.log(`✓ ledger written to ${path.relative(WEB, LOCK)} — ${files.length} languages · ${tongKey} strings`);
   process.exit(0);
 }
 
 // ── reconcile ────────────────────────────────────────────────────────────────
 if (!existsSync(LOCK)) {
-  cannotMeasure(`chưa có sổ ${path.relative(WEB, LOCK)} — chạy \`--accept\` một lần để lập`);
+  cannotMeasure(`no ledger at ${path.relative(WEB, LOCK)} yet — run \`--accept\` once to create it`);
   process.exit(process.exitCode);
 }
 const lock = JSON.parse(readFileSync(LOCK, 'utf8'));
@@ -168,7 +168,7 @@ let mat = 0;
 for (const lang of Object.keys(now)) {
   const cu = lock[lang];
   if (!cu) {
-    console.log(`  + ${lang}: ngôn ngữ mới, chưa có trong sổ`);
+    console.log(`  + ${lang}: a new language, not in the ledger yet`);
     them += Object.keys(now[lang]).length;
     continue;
   }
@@ -179,7 +179,7 @@ for (const lang of Object.keys(now)) {
     }
     if (cu[k] !== short(v)) {
       doi++;
-      fail(`${lang}  ${k}  — bản dịch đã đổi mà không ai khai`);
+      fail(`${lang}  ${k}  — the translation changed and nobody declared it`);
       console.error(`      nay: ${JSON.stringify(v.slice(0, 90))}`);
     }
   }
@@ -188,14 +188,14 @@ for (const lang of Object.keys(now)) {
 
 if (doi) {
   console.error(
-    `\n${doi} bản dịch đổi ngoài sổ. Nếu đó là CỐ Ý: \`node scripts/check-dict-values.mjs --accept\`.\n` +
-      `Nếu KHÔNG: nhiều khả năng một lượt đổi tên/thay chuỗi vừa chạy trúng \`lib/i18n/\` — xem đầu tệp này.`,
+    `\n${doi} translations changed outside the ledger. If that was DELIBERATE: \`node scripts/check-dict-values.mjs --accept\`.\n` +
+      `If NOT: most likely a rename or text pass just ran over \`lib/i18n/\` — see the top of this file.`,
   );
 } else {
   console.log(
-    `✓ ${tongKey} chuỗi khớp sổ (${files.length} ngôn ngữ)` +
-      `${them ? ` · ${them} khoá mới chưa ghi sổ` : ''}` +
-      `${mat ? ` · ${mat} khoá trong sổ nay không còn` : ''}` +
-      `${tongSkipped ? ` · ${tongSkipped} giá trị bộ đọc KHÔNG đọc được` : ''}`,
+    `✓ ${tongKey} strings match the ledger (${files.length} languages)` +
+      `${them ? ` · ${them} new keys not yet in the ledger` : ''}` +
+      `${mat ? ` · ${mat} ledger keys no longer present` : ''}` +
+      `${tongSkipped ? ` · ${tongSkipped} values the reader COULD NOT read` : ''}`,
   );
 }

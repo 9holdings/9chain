@@ -47,32 +47,32 @@ const KHOA_EN = betKhoa(EN).sort();
 /** Keys DELIBERATELY left empty — filled in on G-day itself. See `reGenesisXong` in `en.ts`. */
 const DUOC_RONG = new Set(['rebuildDone.archiveUrl', 'rebuildDone.archiveSha256', 'myChains.colActions']);
 
-describe('sổ đăng ký ngôn ngữ', () => {
-  it('đúng 30 ngôn ngữ, tiếng Anh mặc định và đứng đầu', () => {
+describe('the language registry', () => {
+  it('exactly 30 languages, English the default and first', () => {
     expect(LANGUAGES.length).toBe(30);
     expect(DEFAULT_CODE).toBe('en');
     expect(LANGUAGES[0].code).toBe('en');
   });
 
-  it('tiếng Việt ở ĐÚNG vị trí thứ 9 — David chốt', () => {
+  it('Vietnamese at EXACTLY position 9 — David decided', () => {
     // This position is a product requirement, not the result of any ranking.
     // Without a test the first re-sort would quietly move it somewhere else.
     expect(LANGUAGES.findIndex((n) => n.code === 'vi')).toBe(8);
   });
 
-  it('không mã nào trùng, và mọi mã đều hợp lệ cho <html lang>', () => {
+  it('no duplicate codes, and every code is valid for <html lang>', () => {
     const code = LANGUAGES.map((n) => n.code);
     expect(new Set(code).size).toBe(code.length);
     // A wrong code goes straight into `<html lang>` and screen readers pick their voice from it.
-    for (const m of code) expect(m, `mã lạ: ${m}`).toMatch(/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/);
+    for (const m of code) expect(m, `unknown code: ${m}`).toMatch(/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/);
   });
 
-  it('mỗi ngôn ngữ khai đúng một chiều viết, và có đúng 3 bản RTL', () => {
+  it('each language declares one writing direction, and exactly 3 are RTL', () => {
     for (const n of LANGUAGES) expect(['ltr', 'rtl']).toContain(n.dir);
     expect(LANGUAGES.filter((n) => n.dir === 'rtl').map((n) => n.code).sort()).toEqual(['ar', 'fa', 'ur']);
   });
 
-  it('khai mức độ soát — và tiếng Việt là bản có người soát', () => {
+  it('declares a review level — and Vietnamese is the one a person reviewed', () => {
     // 🔴 This field exists so the picker does NOT present 30 languages as equals while 29 are
     // machine-translated. This site tells strangers their assets will be erased — hiding the
     // review level there is the same class of failure just removed from the home page.
@@ -89,31 +89,31 @@ describe('sổ đăng ký ngôn ngữ', () => {
   });
 });
 
-describe('hình dạng từ điển', () => {
+describe('dictionary shape', () => {
   const coThuMuc = existsSync(THU_MUC);
   const cacTep = coThuMuc ? readdirSync(THU_MUC).filter((f) => f.endsWith('.ts')) : [];
 
-  it('mọi ngôn ngữ trong sổ (trừ EN) đều có tệp từ điển', () => {
+  it('every language in the registry (except EN) has a dictionary file', () => {
     if (!coThuMuc) return; // not built yet — do not go red during the half-built stage
     const caned = LANGUAGES.map((n) => n.code).filter((m) => m !== DEFAULT_CODE);
     const dangCo = cacTep.map((f) => f.replace(/\.ts$/, ''));
     const thieu = caned.filter((m) => !dangCo.includes(m));
-    expect(thieu, `thiếu từ điển: ${thieu.join(', ')}`).toEqual([]);
+    expect(thieu, `missing dictionaries: ${thieu.join(', ')}`).toEqual([]);
   });
 
   for (const tep of cacTep) {
     const code = tep.replace(/\.ts$/, '');
     describe(code, () => {
-      it('khớp ĐÚNG bộ khoá của EN — không thiếu, không thừa', async () => {
+      it('matches EN’s key set EXACTLY — none missing, none extra', async () => {
         const m = await import(`../lib/i18n/dicts/${code}`);
         const khoa = betKhoa(m.default).sort();
         const thieu = KHOA_EN.filter((k) => !khoa.includes(k));
         const thua = khoa.filter((k) => !KHOA_EN.includes(k));
-        expect(thieu, `${code} THIẾU khoá: ${thieu.slice(0, 8).join(', ')}`).toEqual([]);
-        expect(thua, `${code} THỪA khoá: ${thua.slice(0, 8).join(', ')}`).toEqual([]);
+        expect(thieu, `${code} is MISSING keys: ${thieu.slice(0, 8).join(', ')}`).toEqual([]);
+        expect(thua, `${code} has EXTRA keys: ${thua.slice(0, 8).join(', ')}`).toEqual([]);
       });
 
-      it('giữ nguyên mọi {chỗ} của bản gốc', async () => {
+      it('keeps every {placeholder} of the source', async () => {
         // `interpolate()` only replaces keys it knows. Translating `{ten}` into `{name}` means the
         // user reads the literal text `{name}` mid-sentence — no error, nobody notices.
         const m = await import(`../lib/i18n/dicts/${code}`);
@@ -124,26 +124,26 @@ describe('hình dạng từ điển', () => {
           if (typeof goc !== 'string' || typeof ban !== 'string') continue;
           const a = cacCho(goc);
           const b = cacCho(ban);
-          if (a.join(',') !== b.join(',')) lech.push(`${k}: gốc {${a.join('} {')}} ≠ dịch {${b.join('} {')}}`);
+          if (a.join(',') !== b.join(',')) lech.push(`${k}: source {${a.join('} {')}} ≠ translation {${b.join('} {')}}`);
         }
-        expect(lech, `${code} lệch {chỗ}:\n  ${lech.slice(0, 6).join('\n  ')}`).toEqual([]);
+        expect(lech, `${code} placeholder mismatch:\n  ${lech.slice(0, 6).join('\n  ')}`).toEqual([]);
       });
 
-      it('không chuỗi nào rỗng ngoài những khoá cố ý để rỗng', async () => {
+      it('no empty strings except the keys deliberately left empty', async () => {
         const m = await import(`../lib/i18n/dicts/${code}`);
         const width = KHOA_EN.filter((k) => {
           if (DUOC_RONG.has(k)) return false;
           const v = layGiaTri(m.default, k);
           return typeof v === 'string' && v.trim() === '';
         });
-        expect(width, `${code} có chuỗi rỗng: ${width.join(', ')}`).toEqual([]);
+        expect(width, `${code} has empty strings: ${width.join(', ')}`).toEqual([]);
       });
     });
   }
 });
 
-describe('đoán ngôn ngữ cho người mới', () => {
-  it('trình duyệt tiếng Việt ⇒ tiếng Việt, KHÔNG phải mặc định', async () => {
+describe('guessing the language for a newcomer', () => {
+  it('a Vietnamese browser ⇒ Vietnamese, NOT the default', async () => {
     // 🔴 This measurement protects existing users. If the default moves to English while this
     // mechanism is broken, every Vietnamese user of the site suddenly sees English — a change
     // they did not ask for and cannot explain.
@@ -152,7 +152,7 @@ describe('đoán ngôn ngữ cho người mới', () => {
     expect(guessLanguage(['vi'])).toBe('vi');
   });
 
-  it('lấy ngôn ngữ ĐẦU TIÊN mà site có, không phải cái khớp cuối', async () => {
+  it('takes the FIRST language the site has, not the last match', async () => {
     const { guessLanguage } = await import('../lib/i18n/languages');
     // Someone with Japanese ahead of English must get Japanese — but `ja` has no dictionary yet,
     // so the registry still declares it and the provider falls back to EN when the load fails.
@@ -161,7 +161,7 @@ describe('đoán ngôn ngữ cho người mới', () => {
     expect(guessLanguage(['xx-YY', 'vi-VN'])).toBe('vi');
   });
 
-  it('không khớp gì hoặc danh sách rỗng ⇒ mặc định', async () => {
+  it('no match or an empty list ⇒ the default', async () => {
     const { guessLanguage, DEFAULT_CODE } = await import('../lib/i18n/languages');
     expect(guessLanguage(['xx', 'yy'])).toBe(DEFAULT_CODE);
     expect(guessLanguage([])).toBe(DEFAULT_CODE);
@@ -169,8 +169,8 @@ describe('đoán ngôn ngữ cho người mới', () => {
   });
 });
 
-describe('chặn ngôn ngữ chưa có từ điển', () => {
-  it('hasDictionary() nói ĐÚNG cái gì nạp được, không nói cái gì có trong sổ', async () => {
+describe('blocks a language with no dictionary yet', () => {
+  it('hasDictionary() reports what can be LOADED, not what is in the registry', async () => {
     // 🔴 A bug caught while writing the test, not at runtime: the registry declares all 30
     // languages while only some have dictionaries. If `maBanDau()` filtered only through
     // `isValidCode()`, a user with a Japanese browser would get `ma = 'ja'`, the text would fall
@@ -184,7 +184,7 @@ describe('chặn ngôn ngữ chưa có từ điển', () => {
     const { hasDictionary } = await import('../lib/i18n');
     const { isValidCode, DEFAULT_CODE } = await import('../lib/i18n/languages');
 
-    expect(hasDictionary(DEFAULT_CODE), 'mặc định luôn nạp được').toBe(true);
+    expect(hasDictionary(DEFAULT_CODE), 'the default always loads').toBe(true);
 
     const dangCo = existsSync(THU_MUC)
       ? readdirSync(THU_MUC).filter((f) => f.endsWith('.ts')).map((f) => f.replace(/\.ts$/, ''))
@@ -193,13 +193,13 @@ describe('chặn ngôn ngữ chưa có từ điển', () => {
 
     if (conThieu.length === 0) {
       // All 30 present — no case left to try. Assert it outright rather than skipping silently.
-      for (const n of LANGUAGES) expect(hasDictionary(n.code), `${n.code} phải nạp được`).toBe(true);
+      for (const n of LANGUAGES) expect(hasDictionary(n.code), `${n.code} must load`).toBe(true);
       return;
     }
 
     const thu = conThieu[0];
     // These two assertions TOGETHER are the measurement: a code valid per the registry BUT not loadable.
-    expect(isValidCode(thu), `sổ CÓ khai ${thu}`).toBe(true);
-    expect(hasDictionary(thu), `${thu} chưa có từ điển ⇒ không được chọn`).toBe(false);
+    expect(isValidCode(thu), `the registry DOES declare ${thu}`).toBe(true);
+    expect(hasDictionary(thu), `${thu} has no dictionary yet ⇒ must not be selectable`).toBe(false);
   });
 });

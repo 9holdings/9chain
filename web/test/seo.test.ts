@@ -44,7 +44,7 @@ function thePropertyContent(html: string, khoa: string): string | null {
   return b ? b[1] : null;
 }
 
-describe.skipIf(!coOut)('bề mặt chia sẻ', () => {
+describe.skipIf(!coOut)('the share surface', () => {
   /**
    * `/404/` DELIBERATELY has no `og:url` — and no `canonical` either.
    * An error page has no canonical URL: it is the answer to **every** wrong path, not a document
@@ -54,54 +54,54 @@ describe.skipIf(!coOut)('bề mặt chia sẻ', () => {
    */
   const KHONG_CAN_URL = new Set(['/404/']);
 
-  it('mọi trang đều có og:title và og:description', () => {
+  it('every page has og:title and og:description', () => {
     for (const { urlPath, html } of cacTrang()) {
-      expect(thePropertyContent(html, 'og:title'), `${urlPath} thiếu og:title`).toBeTruthy();
-      expect(thePropertyContent(html, 'og:description'), `${urlPath} thiếu og:description`).toBeTruthy();
+      expect(thePropertyContent(html, 'og:title'), `${urlPath} is missing og:title`).toBeTruthy();
+      expect(thePropertyContent(html, 'og:description'), `${urlPath} is missing og:description`).toBeTruthy();
     }
   });
 
-  it('mọi trang THẬT đều có og:url (404 là ngoại lệ có chủ ý)', () => {
+  it('every REAL page has og:url (the 404 is a deliberate exception)', () => {
     for (const { urlPath, html } of cacTrang()) {
       if (KHONG_CAN_URL.has(urlPath)) {
         // The reverse check for the exemption itself: if the 404 ever gains an og:url, almost
         // certainly somebody attached `pageMeta` to it without reading the reason.
-        expect(thePropertyContent(html, 'og:url'), `${urlPath} KHÔNG được có og:url`).toBeNull();
+        expect(thePropertyContent(html, 'og:url'), `${urlPath} must NOT have og:url`).toBeNull();
         continue;
       }
-      expect(thePropertyContent(html, 'og:url'), `${urlPath} thiếu og:url`).toBeTruthy();
+      expect(thePropertyContent(html, 'og:url'), `${urlPath} is missing og:url`).toBeTruthy();
     }
   });
 
-  it('og:title KHÁC NHAU giữa các trang — đây là phần hôm qua còn đỏ', () => {
+  it('og:title DIFFERS between pages — this is the half that was red yesterday', () => {
     const list = cacTrang();
     const theo = new Map<string, string[]>();
     for (const { urlPath, html } of list) {
-      const t = thePropertyContent(html, 'og:title') ?? '(thiếu)';
+      const t = thePropertyContent(html, 'og:title') ?? '(missing)';
       theo.set(t, [...(theo.get(t) ?? []), urlPath]);
     }
     const trung = [...theo.entries()].filter(([, ds2]) => ds2.length > 1);
     expect(
       trung,
-      `og:title bị dùng chung:\n${trung.map(([t, ds2]) => `  "${t}"\n    ← ${ds2.join(', ')}`).join('\n')}`,
+      `og:title is shared:\n${trung.map(([t, ds2]) => `  "${t}"\n    ← ${ds2.join(', ')}`).join('\n')}`,
     ).toEqual([]);
   });
 
-  it('og:url của mỗi trang trỏ đúng đường dẫn của chính nó', () => {
+  it('each page’s og:url points at its own path', () => {
     for (const { urlPath, html } of cacTrang()) {
       if (KHONG_CAN_URL.has(urlPath)) continue;
       const u = thePropertyContent(html, 'og:url') ?? '';
-      expect(u, `${urlPath} có og:url = "${u}"`).toContain(urlPath);
+      expect(u, `${urlPath} has og:url = "${u}"`).toContain(urlPath);
     }
   });
 
-  it('không một thẻ meta nào mang dấu [?] chờ duyệt giọng', () => {
+  it('not one meta tag carries a [?] voice-review mark', () => {
     // The `[?]` mark is an INTERNAL review mechanism. Leaking into a meta tag means other machines
     // read it and reproduce it verbatim in the share card — beyond the reach of any later edit.
     for (const { urlPath, html } of cacTrang()) {
       for (const k of ['og:title', 'og:description', 'twitter:title', 'twitter:description']) {
         const v = thePropertyContent(html, k) ?? '';
-        expect(v, `${urlPath} — ${k} còn dấu [?]`).not.toContain('[?]');
+        expect(v, `${urlPath} — ${k} still has a [?] mark`).not.toContain('[?]');
       }
     }
   });
@@ -110,7 +110,7 @@ describe.skipIf(!coOut)('bề mặt chia sẻ', () => {
 describe('sitemap.xml', () => {
   const P = path.resolve(__dirname, '..', 'public', 'sitemap.xml');
 
-  it('khai đúng namespace sitemaps.org (CÓ chữ "s")', () => {
+  it('declares the sitemaps.org namespace correctly (WITH the "s")', () => {
     // A wrong namespace does not break XML syntax, so no measurement at the transport layer
     // catches it — the search engine simply ignores the whole file in silence. The version before
     // 2026-08-27 declared `www.sitemap.org`, one character short.
@@ -119,10 +119,10 @@ describe('sitemap.xml', () => {
     expect(ns).toBe('http://www.sitemaps.org/schemas/sitemap/0.9');
   });
 
-  it('mọi <loc> đều là URL tuyệt đối trên đúng tên miền', () => {
+  it('every <loc> is an absolute URL on the right domain', () => {
     const s = readFileSync(P, 'utf8');
     const locs = [...s.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(locs.length).toBeGreaterThan(0);
-    for (const l of locs) expect(l, `<loc> lạ: ${l}`).toMatch(/^https:\/\/a1\.9chain\.org\//);
+    for (const l of locs) expect(l, `unexpected <loc>: ${l}`).toMatch(/^https:\/\/a1\.9chain\.org\//);
   });
 });

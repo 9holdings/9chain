@@ -52,24 +52,24 @@ const CHAY = { running: true, kind: 'create', name: 'X', steps: [], error: null,
 const XONG = { running: false, kind: 'create', name: 'X', steps: [], error: null, etaSeconds: 0 };
 
 describe('waitForProgress', () => {
-  it('thoát ngay khi POST bị TỪ CHỐI THẬT (4xx) và chưa từng thấy running', async () => {
+  it('exits at once when the POST is REALLY REFUSED (4xx) and running was never seen', async () => {
     // This is the case that hung for 900 seconds. `running` is always false because the work never queued.
     datFetch([{ body: XONG }]);
     const t0 = Date.now();
     const check = await waitForProgress('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => true });
-    expect(Date.now() - t0, 'phải thoát gần như tức thì, không chờ hết trần').toBeLessThan(2000);
+    expect(Date.now() - t0, 'must exit almost immediately, not wait out the ceiling').toBeLessThan(2000);
     expect(check).not.toBeNull();
   });
 
-  it('KHÔNG thoát sớm khi chưa có tín hiệu từ chối — 524 phải chờ tới cùng', async () => {
+  it('does NOT exit early without a refusal signal — a 524 must wait to the end', async () => {
     // Cloudflare cuts at ~100s but the server carries on: this is the case that MUST be patient.
     // Sequence: running → running → done. If the function exits early it returns while still `running`.
     datFetch([{ body: CHAY }, { body: CHAY }, { body: XONG }]);
     const check = await waitForProgress('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => false });
-    expect(check?.running, 'phải chờ tới khi running=false').toBe(false);
+    expect(check?.running, 'must wait until running=false').toBe(false);
   });
 
-  it('đã thấy running rồi thì tín hiệu từ chối KHÔNG còn được nghe', async () => {
+  it('once running has been seen, a refusal signal is NO LONGER listened to', async () => {
     // A token expiring midway is a late 4xx — but the work really is running on the server.
     // Giving up there recreates the "the UI lies" bug of 2026-08-25.
     datFetch([{ body: CHAY }, { body: CHAY }, { body: XONG }]);
@@ -77,10 +77,10 @@ describe('waitForProgress', () => {
     const p = waitForProgress('token', { moiMs: 5, tranGiay: 30, tuChoiSom: () => batDauTuChoi });
     setTimeout(() => { batDauTuChoi = true; }, 12); // turns on AFTER running has been seen
     const check = await p;
-    expect(check?.running, 'đã thấy chạy thì phải theo tới cùng').toBe(false);
+    expect(check?.running, 'having seen it run, it must follow through').toBe(false);
   });
 
-  it('không kết luận "xong" trước khi thấy running lần nào', async () => {
+  it('does not conclude "done" before ever seeing running', async () => {
     // `running=false` on the first beat is the state of the PREVIOUS run, not of ours.
     let solan = 0;
     globalThis.fetch = vitest.fn(async () => {
@@ -89,19 +89,19 @@ describe('waitForProgress', () => {
       return { ok: true, status: 200, text: async () => JSON.stringify(b) } as unknown as Response;
     }) as typeof fetch;
     const check = await waitForProgress('token', { moiMs: 5, tranGiay: 30 });
-    expect(solan, 'phải đọc quá 2 nhịp đầu chứ không kết luận ngay').toBeGreaterThan(4);
+    expect(solan, 'must read past the first 2 beats rather than concluding at once').toBeGreaterThan(4);
     expect(check?.running).toBe(false);
   });
 });
 
 describe('ConsoleError', () => {
-  it('phân biệt từ chối thật với Cloudflare cắt và với đứt mạng', () => {
-    expect(new ConsoleError('unauthorized', 401).laTuChoiThat, '401 = từ chối thật').toBe(true);
-    expect(new ConsoleError('trùng tên', 409).laTuChoiThat, '409 = từ chối thật').toBe(true);
-    expect(new ConsoleError('timeout', 524).laTuChoiThat, '524 = Cloudflare cắt, KHÔNG phải từ chối').toBe(false);
-    expect(new ConsoleError('bad gateway', 502).laTuChoiThat, '5xx = chưa kết luận được').toBe(false);
+  it('tells a real refusal apart from a Cloudflare cut and from a dropped network', () => {
+    expect(new ConsoleError('unauthorized', 401).laTuChoiThat, '401 = a real refusal').toBe(true);
+    expect(new ConsoleError('same name', 409).laTuChoiThat, '409 = a real refusal').toBe(true);
+    expect(new ConsoleError('timeout', 524).laTuChoiThat, '524 = Cloudflare cut, NOT a refusal').toBe(false);
+    expect(new ConsoleError('bad gateway', 502).laTuChoiThat, '5xx = inconclusive').toBe(false);
     // 🔴 `0` = no HTTP response at all. Treating it like a 4xx means giving up while the
     // server is still launching the chain — the worst case there is.
-    expect(new ConsoleError('failed to fetch', 0).laTuChoiThat, '0 = đứt mạng, KHÔNG kết luận').toBe(false);
+    expect(new ConsoleError('failed to fetch', 0).laTuChoiThat, '0 = dropped network, no conclusion').toBe(false);
   });
 });

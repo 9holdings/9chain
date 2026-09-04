@@ -56,7 +56,7 @@ try {
   const { globSync } = await import('node:fs');
   const [duong] = globSync('node_modules/.pnpm/sharp@*/node_modules/sharp', { cwd: GOC });
   if (!duong) {
-    console.error('✗ không tìm thấy `sharp`. Chạy `pnpm install` trong web/ trước.');
+    console.error('✗ `sharp` not found. Run `pnpm install` in web/ first.');
     process.exit(1);
   }
   sharp = require(join(GOC, duong));
@@ -129,9 +129,9 @@ const nenSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H
   <rect x="24" y="24" width="${W - 48}" height="${H - 48}" rx="28"
         fill="none" stroke="#24304d" stroke-width="2"/>
 
-  <!-- Nhãn TESTNET A1: thứ phân biệt ảnh này với ảnh của trang chính. Thiếu nó
-       thì dán link A1 vào đâu cũng trông như dán link 9chain.org.
-       Chữ phụ, không phải logo ⇒ font hệ thống là đúng chỗ. -->
+  <!-- The TESTNET A1 label: what tells this image apart from the main site's. Without it,
+       an A1 link pasted anywhere looks like a 9chain.org link.
+       Secondary text, not the logo ⇒ a system font is the right choice here. -->
   <rect x="${W / 2 - 116}" y="${LOGO_Y + LOGO_H + 40}" width="232" height="46" rx="10"
         fill="none" stroke="${MARK_GOLD}" stroke-width="2"/>
   <text x="${W / 2}" y="${LOGO_Y + LOGO_H + 72}" text-anchor="middle"
@@ -154,4 +154,4 @@ await sharp(Buffer.from(nenSvg))
 const { size } = await import('node:fs').then((m) => m.statSync(ra));
 console.log(`✓ ${ra}`);
 console.log(`  ${W}×${H} · ${(size / 1024).toFixed(1)} KB`);
-console.log(`  mạng: ${TEN} · chainId ${CHAIN_ID} · ${KY_HIEU}`);
+console.log(`  network: ${TEN} · chainId ${CHAIN_ID} · ${KY_HIEU}`);

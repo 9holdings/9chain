@@ -19,13 +19,13 @@ import { catKhoi, bam } from '../scripts/sync-tokens.mjs';
 const NGUON = 'C:/PROJECTS/9Scan-A1/app/globals.css';
 const TOKENS = path.resolve(__dirname, '..', 'app', 'tokens.css');
 
-describe('hệ token', () => {
-  it('tokens.css khai vân tay của chính nó', () => {
+describe('the token system', () => {
+  it('tokens.css declares its own fingerprint', () => {
     const css = readFileSync(TOKENS, 'utf8');
     expect(css).toMatch(/Vân tay: [0-9a-f]{16}/);
   });
 
-  it('không hardcode hex ngoài khối token', () => {
+  it('no hex hard-coded outside the token block', () => {
     // Every colour code must live in tokens.css. A hex leaking into a component is the first place
     // two surfaces start to diverge, and it never reveals itself.
     //
@@ -45,19 +45,19 @@ describe('hệ token', () => {
       const p = path.resolve(__dirname, '..', d);
       if (!existsSync(p)) continue;
       const code = boChuThich(readFileSync(p, 'utf8'));
-      expect(code, `${d} không được chứa mã hex trong MÃ (chú thích thì được)`).not.toMatch(
+      expect(code, `${d} must contain no hex in the CODE (comments are fine)`).not.toMatch(
         /#[0-9a-fA-F]{6}\b/,
       );
     }
   });
 
-  it.skipIf(!existsSync(NGUON))('vân tay khớp bản 9Scan-A1', () => {
+  it.skipIf(!existsSync(NGUON))('the fingerprint matches 9Scan-A1', () => {
     const goc = readFileSync(NGUON, 'utf8');
     const vanGoc = bam(catKhoi(goc, '@theme') + catKhoi(goc, "html[data-theme='dark'] {"));
     const vanChep = /Vân tay: ([0-9a-f]{16})/.exec(readFileSync(TOKENS, 'utf8'))?.[1];
     expect(
       vanChep,
-      'token đã trôi lệch — chạy `node web/scripts/sync-tokens.mjs` rồi soi lại giao diện',
+      'the tokens have drifted — run `node web/scripts/sync-tokens.mjs` then look over the UI again',
     ).toBe(vanGoc);
   });
 });

@@ -22,29 +22,29 @@ import { EN } from '../lib/i18n/en';
  */
 const NGUON = path.resolve(__dirname, '..', 'app', 'compare', 'ComparisonTable.tsx');
 
-describe('bảng /compare/ — tiêu chí ↔ từ điển', () => {
+describe('the /compare/ table — criteria ↔ dictionary', () => {
   const src = readFileSync(NGUON, 'utf8');
   const ids = [...src.matchAll(/\{ id: '(\w+)',/g)].map((m) => m[1]);
   const compare = EN.compare as unknown as Record<string, string>;
 
-  it('đọc được mảng tiêu chí (nếu không, mọi khẳng định dưới đây là xanh giả)', () => {
+  it('the criteria array can be read (otherwise every assertion below is a false green)', () => {
     // 🔴 Without this line, a change to the array's shape leaves `ids` empty and every loop
     // below runs zero times and reports green — the gate switching itself off unnoticed.
-    expect(ids.length, 'không đọc ra tiêu chí nào từ ComparisonTable.tsx').toBeGreaterThan(0);
+    expect(ids.length, 'no criteria could be read from ComparisonTable.tsx').toBeGreaterThan(0);
     expect(ids.length).toBe(new Set(ids).size);
   });
 
-  it('mọi tiêu chí có đủ tên và ghi chú', () => {
+  it('every criterion has both a name and a note', () => {
     for (const id of ids) {
-      expect(compare[`crit${id}`], `thiếu compare.crit${id}`).toBeTruthy();
-      expect(compare[`note${id}`], `thiếu compare.note${id}`).toBeTruthy();
+      expect(compare[`crit${id}`], `compare.crit${id} is missing`).toBeTruthy();
+      expect(compare[`note${id}`], `compare.note${id} is missing`).toBeTruthy();
     }
   });
 
-  it('từ điển không giữ tiêu chí đã bỏ khỏi bảng', () => {
+  it('the dictionary keeps no criterion the table has dropped', () => {
     const treo = Object.keys(compare)
       .filter((k) => /^(crit|note)[A-Z]/.test(k))
       .filter((k) => !ids.includes(k.replace(/^(crit|note)/, '')));
-    expect(treo, 'khoá tiêu chí không còn ai tra tới').toEqual([]);
+    expect(treo, 'criterion keys nobody looks up any more').toEqual([]);
   });
 });

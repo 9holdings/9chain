@@ -36,15 +36,15 @@ const NGUON = i >= 0 && args[i + 1]
 /** Cut a brace-balanced `<opener> { … }` block, including nested braces. */
 export function catKhoi(css, moDau) {
   const batDau = css.indexOf(moDau);
-  if (batDau < 0) throw new Error(`không tìm thấy khối "${moDau}" trong nguồn`);
+  if (batDau < 0) throw new Error(`block "${moDau}" not found in the source`);
   let sau = css.indexOf("{", batDau);
-  if (sau < 0) throw new Error(`khối "${moDau}" không có dấu {`);
+  if (sau < 0) throw new Error(`block "${moDau}" has no {`);
   let sau_ = sau, do_ = 0;
   for (; sau_ < css.length; sau_++) {
     if (css[sau_] === "{") do_++;
     else if (css[sau_] === "}") { do_--; if (do_ === 0) break; }
   }
-  if (do_ !== 0) throw new Error(`khối "${moDau}" không đóng ngoặc`);
+  if (do_ !== 0) throw new Error(`block "${moDau}" is not brace-closed`);
   return css.slice(batDau, sau_ + 1);
 }
 
@@ -107,6 +107,6 @@ ${shadowFix}
 
   const dich = path.resolve(path.dirname(NAY), "..", "app", "tokens.css");
   writeFileSync(dich, ra);
-  console.log(`✓ ${path.relative(process.cwd(), dich)} — vân tay ${van}`);
-  console.log(`  @theme ${theme.split("\n").length} dòng · dark ${dark.split("\n").length} dòng`);
+  console.log(`✓ ${path.relative(process.cwd(), dich)} — fingerprint ${van}`);
+  console.log(`  @theme ${theme.split("\n").length} lines · dark ${dark.split("\n").length} lines`);
 }

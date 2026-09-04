@@ -10,7 +10,7 @@ ngôn ngữ). Câu tự-tố về phi tập trung đã **sai trên mạng** (10 
 cấp) — đã sửa và đã dựng cổng canh. Test **139/140** (đỏ duy nhất vẫn là vân tay token).
 
 ✅ **ĐÃ DEPLOY `2026-08-29`** — David duyệt. `version.txt` = `55d705b8210e` ·
-`con-sua-chua-commit=khong` · 40 chunk.
+`uncommitted=no` · 40 chunk.
 
 ### Đã xong (đều đo trên mạng thật, qua Cloudflare)
 
@@ -127,7 +127,7 @@ cho hướng viết. Giữ nếp đó.
 
 - **Đ1-9** a11y ngoài tầm axe — bàn phím, `aria-live`, phóng 200%, `prefers-reduced-motion`.
 - **Đ1-11b phần 2–3** — phần 1 (`version.txt` + cổng route hai chiều) **XONG 28/08**.
-  Còn: so **DANH SÁCH** chunk lấy từ bản VỪA DỰNG (`so-chunk-js` hiện chỉ là số
+  Còn: so **DANH SÁCH** chunk lấy từ bản VỪA DỰNG (`js-chunks` hiện chỉ là số
   **đếm** — hai bộ tệp khác nhau vẫn có thể cùng số đếm) · `pnpm test` trong script ·
   `web-rollback.sh`.
   🔴 **TUYỆT ĐỐI không `mv out.new out`** — bẫy inode bind-mount, đã cắn 25/08.

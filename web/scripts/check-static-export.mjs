@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RA = path.join(GOC, 'out');
 if (!existsSync(RA)) {
-  console.error('✗ chưa có out/ — chạy `pnpm build` trước');
+  console.error('✗ no out/ yet — run `pnpm build` first');
   process.exit(1);
 }
 
@@ -47,11 +47,11 @@ let hong = 0;
   }
   if (dinh.length) {
     hong++;
-    console.log('✗ có biên <Suspense> KHÔNG BAO GIỜ giải — trang sẽ treo ở khung xương:');
+    console.log('✗ a <Suspense> boundary that is NEVER resolved — the page will hang in its skeleton:');
     for (const d of dinh) console.log(`   ${d}`);
-    console.log('   Gỡ <Suspense> nếu bên trong không còn đọc useSearchParams().');
+    console.log('   Remove the <Suspense> if what is inside no longer reads useSearchParams().');
   } else {
-    console.log('✓ không có biên <Suspense> treo');
+    console.log('✓ no hanging <Suspense> boundary');
   }
 }
 
@@ -79,11 +79,11 @@ let hong = 0;
   }
   if (dinh.length) {
     hong++;
-    console.log('✗ dùng <Link> cho đường dẫn KHÔNG phải route Next (edge phục vụ):');
+    console.log('✗ <Link> used for a path that is NOT a Next route (served by the edge):');
     for (const d of dinh) console.log(`   ${d}`);
-    console.log('   Đổi sang thẻ <a> thật.');
+    console.log('   Change it to a real <a> tag.');
   } else {
-    console.log('✓ mọi đường dẫn do edge phục vụ đều đi bằng thẻ <a>');
+    console.log('✓ every edge-served path travels through an <a> tag');
   }
 }
 
