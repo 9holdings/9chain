@@ -8463,3 +8463,33 @@ nhưng không ai gọi vào được, `ingressConnectionCount` 0, cổng reachab
 bảo gõ** có làm điều nó nói không. Một dòng `-v` trỏ vào đường không ai đọc trông y hệt dòng đúng.
 Đối chứng cho lệnh trong tài liệu = **chạy lệnh đó** trên image thật, cả chiều đúng lẫn chiều sai.
 Nợ: khách `DZJum…` vẫn kẹt tới `2026-09-17`; A1 không có kênh liên hệ ngoài issue tracker công khai.
+
+## D-182 — **Công bố 21 commit qua `publish-official.sh`: script sang `main` bằng tiếng Anh, bảng thay thế tách ra tệp dữ liệu, ngọn phải là commit MÃ** (`2026-09-04`)
+
+David: *"chép publish-official.sh sang main rồi công bố 20 commit."* Bối cảnh: phiên `web-home` đã lọc
+lại lịch sử `official/main` (`fbfb3ff → 7f25b34`, D-151 nối dài) và dựng lá chắn `pre-push` toàn máy;
+`main` cục bộ không còn tổ tiên chung với bản công khai.
+
+**Bốn điều phải giải trên đường đi, mỗi cái là một cổng đã ĐỎ thật:**
+
+| # | Cổng đỏ | Vì sao | Cách giải |
+|---|---|---|---|
+| 1 | `check-english-code`: 9 dòng Việt trong tệp mới | §0: tệp **mới trên `main`** phải Anh 100 %; 7 dòng là bảng thay thế (nội dung Việt xuất bản vào tài liệu Việt, **không được đổi** vì là đầu vào SHA tất định), 2 dòng do biến `TRUOC` trùng từ đánh dấu | dịch chú thích/thông báo, **dòng lệnh giữ nguyên** (diff dòng lệnh = 0 ngoài hai chuỗi echo) · bảng tách sang `publish-official.replace.txt` **trùng byte** với heredoc gốc (`cmp`), cổng không quét `.txt` · thêm guard: bảng có dòng `#`/trống ⇒ từ chối, vì `filter-repo --replace-text` không có cú pháp chú thích · `TRUOC/SAU → BEFORE/AFTER` |
+| 2 | `pre-push` mục 4: chặn push thẳng tới `9holdings/9chain` | phiên kia thêm handshake `A1_PUBLISH_OK=1` ở commit `c8d6581` **sau** lúc tôi chép | mirror: đặt biến **ngay tại dòng push**, không export đầu tệp |
+| 3 | `pre-push` mục 2: cụm có mã mà ngọn mang `[skip ci]` | `filter-repo` **cắt** commit rỗng "empty tip" mới nhất và cắt cả 4 commit chỉ chạm `local-net/deploy` ⇒ ngọn bản lọc là commit HANDOFF `[skip ci]` | ngọn phải là **commit chạm mã sống sót qua lọc**; dùng luôn việc đáng làm: sửa `check-remotes` (mục 4) |
+| 4 | `check-remotes` in *"official behind 456"* | `rev-list sha..main` trên hai lịch sử không liên quan đếm **cả `main`**, và câu đó đọc như lời mời `git push` — đúng lệnh cấm | `merge-base` quyết: không tổ tiên chung ⇒ **vàng, nêu tên lịch sử đã viết lại và script**, không in số; đối chứng 17/17 |
+
+**Kèm, tự quyết:** thêm `(guest validator IP, withheld)==>(guest validator IP, withheld)` vào bảng — IP validator khách nằm
+trong D-180/D-181; mạng phát nó qua `info.peers` nhưng tài liệu công khai vĩnh viễn không cần khắc.
+Dòng mới chỉ đụng blob của commit mới ⇒ SHA đã công bố **không đổi** (đo: `merge-base(7f25b34,
+official/main) = 7f25b34`, fast-forward `7f25b34..4e0438e`, 21 commit).
+
+**Nghiệm thu trên bề mặt công khai (fetch lại):** `local-net/deploy/` 0 tệp · `(guest validator IP, withheld)` 0 tệp ·
+`(model không công bố)` 0 tệp · script 0 tệp (đúng: nó nằm trong thư mục bị lọc) · `DECISIONS.md` công khai đọc
+*"(guest validator IP, withheld)"*. Tuyến sao lưu `origin` nhận `fbfb3ff..5efb316`. Trước khi đẩy: `check-history-secrets
+--all-objects` 0 vật liệu khoá · `check-remotes` đạt.
+
+**Luật rút ra:** (a) *"commit rỗng làm ngọn cho CI"* **không sống qua `filter-repo`** — ngọn của một cụm
+công bố phải là commit chạm mã **ngoài** thư mục bị lọc; (b) bảng thay thế là **đầu vào của SHA** — sửa nó là
+sửa lịch sử công khai, thêm dòng mới chỉ an toàn khi literal không xuất hiện trong blob cũ; (c) script chỉ
+có trên nhánh `web-home` thì `main` không công bố được — công cụ công bố phải ở **mọi** nhánh cần công bố.
