@@ -182,8 +182,13 @@ tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đ
 5. **`NETWORK_ID` của netgen NAY BẮT BUỘC** — mặc định cũ `9001` là thế hệ đã chết.
 6. **`A1Name` đổi đường dẫn DB** ⇒ binary mới chỉ lên cùng một lượt `down -v`.
 7. **Heredoc bash + Python nuốt dấu gạch chéo** — sửa mã Go có `\n` thì dùng công cụ sửa tệp.
-8. **`A1_CONSOLE_TOKEN` đổi `28/08`** — đọc từ `C:\Users\abc\9chain-a1-keys\console-token.txt`,
-   đừng dùng giá trị nhớ trong đầu.
+8. 🔴 **`A1_CONSOLE_TOKEN`: NGUỒN ĐÚNG LÀ `A1_CONSOLE_TOKEN` TRONG `~/9chain-a1/console.env` TRÊN
+   SERVER** — không phải `C:\Users\abc\9chain-a1-keys\console-token.txt`. Bẫy này **trỏ sai nguồn
+   từ `28/08` tới `04/09`**: tệp cục bộ đã lạc hậu, và ai theo nó thì gọi console công khai ra
+   **401** rồi đi tìm lỗi ở console. Đúng lớp lỗi §2 — *cổng/chỉ dẫn đo một đại lượng khác*. Cách
+   phân biệt trong 10 giây: `401` trên `a1.9chain.org` mà `/api/status` vẫn `200` ⇒ **token của
+   anh sai**, không phải console hỏng. Đừng dùng giá trị nhớ trong đầu, và đừng dùng tệp cục bộ
+   cho tới khi có người đồng bộ lại nó (việc David).
 9b. 🔴 **TÊN MIỀN SỐNG LÀ `a1.9chain.org`.** `testnet-a1.9chain.org` là tên **CŨ**: origin <!-- stale-ok: mục này TỒN TẠI để nói về cái tên đã nghỉ -->
    `308` sang tên mới, nhưng **Cloudflare trả `525` cho nó** ⇒ đo bằng tên cũ ra "trang chết"
    trong khi trang vẫn sống. Đã dính `28/08` và suýt khai một sự cố không có thật.

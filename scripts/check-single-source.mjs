@@ -64,6 +64,7 @@ export const CONSTRAINTS = [
       { file: "local-net/lib/server.mjs", why: "SOURCE — the .mjs side" },
       { file: "local-net/deploy/server-env.sh", why: "SOURCE — the bash side" },
       { file: "local-net/deploy/Caddyfile", why: "belongs to the web-home worktree (hard rule #4); appears only inside example curl/ssh COMMENTS" },
+      { file: "local-net/deploy/publish-official.sh", why: "🔴 DELIBERATE — this script is the LEAK DETECTOR for this very string: it must carry the literal in its `git grep` patterns, or it cannot find the leak. Sourcing it from server-env.sh would make the detector depend on the thing it audits, and one rename would turn the gate green while the string stayed at HEAD (D-182)." },
     ],
   },
   {
@@ -73,6 +74,7 @@ export const CONSTRAINTS = [
       { file: "local-net/lib/server.mjs", why: "SOURCE — the .mjs side" },
       { file: "local-net/deploy/server-env.sh", why: "SOURCE — the bash side" },
       { file: "local-net/deploy/Caddyfile", why: "different worktree; comments only" },
+      { file: "local-net/deploy/publish-official.sh", why: "🔴 DELIBERATE — same reason as the ssh destination above: the detector has to name what it hunts for." },
     ],
   },
   {

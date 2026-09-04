@@ -8493,3 +8493,96 @@ official/main) = 7f25b34`, fast-forward `7f25b34..4e0438e`, 21 commit).
 công bố phải là commit chạm mã **ngoài** thư mục bị lọc; (b) bảng thay thế là **đầu vào của SHA** — sửa nó là
 sửa lịch sử công khai, thêm dòng mới chỉ an toàn khi literal không xuất hiện trong blob cũ; (c) script chỉ
 có trên nhánh `web-home` thì `main` không công bố được — công cụ công bố phải ở **mọi** nhánh cần công bố.
+
+## D-183 — **Tuỳ chỉnh sâu khi TẠO chain (P-56 · P-57 · P-58) và bản xem trước khô `/api/preview` (nửa console của P-62): mọi rào là MÃ, không phải chú thích** (`2026-09-04` tối)
+
+David: *"hãy làm trước cho phần tạo chain"* (sau câu hỏi về quản trị L1 đã tạo và tuỳ chỉnh khi tạo mới).
+Bối cảnh: tới sáng nay `/api/create` nhận đúng `name · chainId · preset · symbol`; 50M token cứng cho ví
+chủ; sáu preset là cách duy nhất chạm precompile; genesis **bất biến** và mỗi chain chiếm một trong 15 chỗ
+vĩnh viễn ⇒ một tham số lọt sai là vĩnh viễn.
+
+**Đã làm — thư viện thuần `local-net/lib/l1-options.mjs` (70 đối chứng) + nối vào console:**
+
+| Mục | Đầu vào mới ở `/api/create` | Rào (ném lỗi TRƯỚC khi tiêu tiền) | Nguồn con số |
+|---|---|---|---|
+| P-56 | `allocations: [{address, tokens}]` | ≤ 50 địa chỉ · mỗi dòng ≥ 1 token · tổng ≤ 9.000.000.000 · EIP-55 · trùng địa chỉ ⇒ từ chối, **không gộp** · **ví chủ phải nhận > 0** (chủ 0 xăng thì không gọi được precompile nào — chain có chủ trên giấy, không có chủ trong thực tế) · vắng ⇒ 50M cho chủ, **trùng byte** hằng cũ `0x295BE96E64066972000000` (self-test khẳng định) | trần 9 tỷ = tổng cung mạng mẹ |
+| P-57 | `fees: {gasLimit, targetBlockRate, minBaseFee, baseFeeChangeDenominator}` | gasLimit 12M–60M · blockRate 1–10 s · minBaseFee **1 wei – 1000 gwei** (0 qua `Verify()` Go nhưng chain không đẻ nổi block — D-028, nay cấm bằng mã) · denominator 8–1000 (8 = EIP-1559) · **`targetGas` KHÔNG phải đầu vào**, luôn = 5× gasLimit · khoá lạ ⇒ ném và nêu tên đúng (`gaslimit` → *did you mean "gasLimit"*) | sàn/trần lấy từ khuôn và preset đã đo (M9.3) |
+| P-58 | `precompiles: {nativeMinter, deployerAllowList, txAllowList, rewardManager}` | ví chủ là admin **mọi** precompile bật · `rewardManager` = `burn` / `allowFeeRecipients` / `{mode:"rewardAddress", rewardAddress}` · cả hai chế độ thưởng cùng lúc ⇒ ném (`ErrCannotEnableBothRewards`, `rewardmanager/config.go:34`) · địa chỉ 0 làm nơi nhận ⇒ ném (subnet-evm hiểu là *tắt thưởng*) · `warp` không chọn được (khuôn luôn bật) | tên khoá chép từ `precompile/contracts/<tên>/module.go` — subnet-evm **bỏ qua khoá lạ trong im lặng** |
+| P-62 (console) | `POST /api/preview` — cùng thân, **cùng đường mã** (`planChain`) | trả genesis sẽ chạy + `options` hiệu lực + ba danh sách `facts / can / cannot` bằng câu người thường; **không ghi tệp, không mở tiến trình, không tiêu chỗ** | — |
+
+**Quyết định cấu trúc:** `createChain` tách thành `planChain` (mọi phép kiểm + dựng genesis trong bộ nhớ,
+không tác dụng phụ) và `launchChain` (ghi tệp, P-Chain, rollout). Xem trước và tạo thật đi **một** đường,
+nên mọi lời từ chối giống nhau từng chữ — đối chứng e2e khẳng định `preview.error === create.error`.
+**Preset và tuỳ chọn tường minh KHÔNG trộn:** `zero-fee` + `fees.minBaseFee 5` ⇒ từ chối, và câu lỗi
+in ra cách viết tường minh tương đương (`fees: { minBaseFee: 1 }`). Với genesis bất biến, câu *"cái nào
+thắng"* không bao giờ được trả lời trong im lặng. Bản ghi sổ chain thêm khoá `options` (số phí hiệu lực,
+precompile đã bật, chế độ thưởng, người nhận genesis) — đọc ngược từ **config cuối**, không từ đầu vào;
+khoá THÊM nên `/chains/` và `check-chain-ledger` không đổi. `/api/status` phát `limits ·
+selectablePrecompiles · rewardModes` từ **cùng hằng số** cổng thi hành, để giao diện không chép tay một bản
+sẽ trôi.
+
+**Nghiệm thu:** `l1-options --self-test` 70/70 · `options-e2e-test.mjs` **46/46 trên đường sản phẩm**
+(console thật chạy trong thư mục tạm, node giả, HTTP vào/JSON ra; 14 ca từ chối khẳng định **câu chữ**,
+và *"không ghi gì"* đo bằng thư mục trống) · 5 bài cũ + `check-deploy-imports` (**đã thấy ĐỎ** khi
+`l1-options.mjs` chưa vào manifest, đúng lý do) · deploy `console-deploy.sh` PID `2757843 → 2762156`,
+drift 25/0/0 · **trên bề mặt công khai** `https://a1.9chain.org/console/api/preview`: ca đầy đủ `200`
+(chainId `9001000009`, 2 người nhận, 60M gas, minter + reward `allowFeeRecipients`, 5 khoá config đúng
+tên) · `minBaseFee 0` ⇒ `400 "dead at birth"` · `zero-fee + fees` ⇒ `400 "cannot be combined"` · và
+**một đỏ đúng luật không cố ý**: token vận hành mặc định chủ = `A1_L1_ADMIN` server, bảng phân bổ thiếu
+ví đó ⇒ *"the owner … receives nothing"* — rào P-56 chạy thật trước khi ai kịp thử. Sau mọi ca: sổ chain
+**9**, `console-tmp` **64 tệp không đổi**, `/api/progress` `running:false`.
+
+**Còn lại, ai làm:** [web-home] ô nhập cho ba nhóm tuỳ chọn + màn xem trước gọi `/api/preview` + câu ký
+dưới `cannot` (P-62 nửa web) · [A1] P-59 thư viện hợp đồng trong `alloc` · P-61 `upgrade.json` ·
+`Genesis.Verify()` thật của Go **chưa** chạy ở bước khô — mới có bản chép JS (`verifyFeeConfig`), node vẫn
+chạy bản thật lúc tạo. **Chưa tạo chain thật nào bằng tuỳ chọn mới** — đường `launchChain` sau `planChain`
+là mã cũ nguyên vẹn, nhưng một lượt tạo thật với `allocations` nhiều địa chỉ là phép đo còn thiếu; tiêu
+một chỗ vĩnh viễn nên là việc **David bấm**.
+
+**Luật rút ra:** (a) đầu vào cho một artefact bất biến phải **từ chối khoá lạ** khi tầng dưới bỏ qua khoá
+lạ trong im lặng; (b) hai đường (xem trước / tạo) phải là **một hàm**, không phải hai bản chép; (c) tổ hợp
+cấm là **mã ném lỗi**, không phải dòng chú thích — D-028 đã trả giá hai chain cho một chú thích.
+
+## D-184 — **Quản trị L1 đã tạo (P-61 + đổi chủ): nâng cấp precompile SAU genesis qua `upgrade.json` với rollout kiểm sức khoẻ CỦA CHÍNH CHAIN và đường lùi; sổ chỉ đổi chủ SAU KHI chain nói vậy** (`2026-09-04` tối)
+
+David: *"tiếp tục"* (sau phần tạo chain) và *"có thể thay đổi địa chỉ owner của Chain được không?"*.
+Bối cảnh: console chỉ có tạo/thu hồi; chủ chain có quyền on-chain qua precompile nhưng không có cách
+"lớn lên" (bật precompile sau genesis) và không có cách đổi `admin` trong sổ.
+
+**Cơ chế (đọc từ nguồn, không từ trí nhớ):** subnet-evm đọc `<chain-config-dir>/<blockchainID>/upgrade.json`
+(`avalanchego/config/config.go:56,1144`), áp `precompileUpgrades` tại `blockTimestamp` (`params/extras/
+precompile_upgrade.go`). Luật: một khoá/mục · mốc đơn điệu · cùng khoá tăng ngặt · chỉ bật cái đang tắt và
+ngược lại · không hồi tố. 🔴 **Tệp không parse ⇒ VM chain KHÔNG khởi tạo trên node đó (`plugin/evm/vm.go:544`)
+trong khi mạng chính của node vẫn khoẻ** ⇒ rollout cũ (`nodeSanSang` chỉ đo P/X/C) sẽ đi hết 9 node và để
+L1 chết trên cả 9, mọi cổng xanh. Đo `04/09` trên SBull Chain: `health.health` với tag subnetID trả check
+khoá theo blockchainID ⇒ `chainSanSang` đo đúng đại lượng này trên từng node.
+
+**Đã làm — `local-net/lib/l1-upgrade.mjs` (55 đối chứng) + console:**
+
+| Việc | Cách | Rào |
+|---|---|---|
+| `POST /api/upgrade-preview` | cùng đường mã với `/api/upgrade` (`planUpgradeForChain`), không ghi gì | genesis lấy từ **node** (`eth_getChainConfig`), không từ khuôn repo · tệp đĩa ↔ node phải **khớp hình dạng** (khoá@mốc) trước khi nối thêm · tệp hỏng ⇒ LỖI, không phải "rỗng" |
+| `POST /api/upgrade` (+`confirm`) | ghi tệp (giữ `.prev-*`) → rollout 9 node **cùng danh sách track** với `requireChain` → **đo `eth_getChainConfig` trên node công khai** phải liệt kê mục mới → sổ thêm khoá `upgrades[]` | mốc kích hoạt = now + **15 phút** (3× rollout đo được), tối đa 7 ngày, **không phải đầu vào tự do** · một mục chờ/precompile · `feeManager`/`warp` không qua cửa này · chủ là admin mọi cái bật |
+| Đường lùi `hoanTacNangCap` | rollout gãy giữa chừng ⇒ khôi phục tệp cũ (hoặc gỡ tệp mới) rồi **restart lại các node đã nhận tệp mới + node gãy** | không để một validator nào kích hoạt bộ luật mà số còn lại không mang (= fork) · lỗi mang `daXong`/`hong` để chương trình lùi được, không chỉ người đọc log |
+| `POST /api/transfer-owner` (+`confirm`) | đo `readAllowList(new)` (selector `0xeb54dae1`, self-test tính lại từ keccak) trên FeeManager **và mọi precompile đang bật**; đủ Admin (2) mới sửa `admin` trong sổ, giữ `previousAdmins[]` | **sổ đi sau chain, không đi trước** · vai trò lạ ⇒ lỗi, không phải "none" · báo nếu chủ cũ vẫn Admin (gợi `setNone`) |
+| `GET /api/governance?name=` | ảnh chỉ đọc cho trang P-60: precompile đang bật/chờ, vai trò đo được của admin, địa chỉ precompile, lịch sử | — |
+
+**Nghiệm thu:** self-test 55/55 · `governance-e2e-test.mjs` **42/42 đường sản phẩm** (console thật, node giả
+trả `eth_getChainConfig` + `eth_call`; đường LÙI đo thật: `/api/upgrade` có `confirm` gãy ở compose ⇒ tệp bị
+gỡ, lỗi nói `UNDONE`, sổ không ghi, tiến trình đóng kind `upgrade`) · deploy PID `2762156 → 2776958`, drift
+27/0/0 · **công khai** `a1.9chain.org`: `/governance` SBull Chain đo admin `feeManager: admin` · xem trước
+`txAllowList enable` `200`, mốc `14:26Z` = now+15′ tròn phút, câu WONT cảnh báo người dùng hôm nay ·
+`feeManager` ⇒ `400` đúng câu · `transfer-owner` không `confirm` ⇒ `400` không đọc chain.
+🟢 **Kèm, không do tôi:** ví mời `0x5eE9…` đã tạo **Agape Chain** (`zero-fee`, `#9001000009`) qua đường
+`planChain` mới — bản ghi mang `options` (`minBaseFee "1"`, 50M cho chủ): phép đo "lượt tạo thật" của D-183
+đã xảy ra trên sản phẩm. Sổ chain **10**, còn 5/15.
+
+**Chưa làm / ai làm:** [David] **một lượt nâng cấp THẬT** (rollout 9 node, tiêu ~5 phút mạng) — đường lùi
+mới đo được ở ca gãy sớm, chưa đo ca gãy ở node thứ k>1 · [web-home] trang "quản trị chain của tôi" (P-60):
+gọi precompile qua MetaMask + hai màn xem trước · [A1] `Genesis.Verify()` Go ở bước khô; cổng canh
+`upgrade.json` trên đĩa ↔ node cho MỌI chain (nay chỉ kiểm lúc có yêu cầu).
+
+**Luật rút ra:** (a) *"node khoẻ"* là câu hỏi **về cái gì** — rollout cho một chain phải đo **chain đó** trên
+từng node; (b) tệp cấu hình mà node chỉ đọc lúc khởi động là **một phần của bộ luật đồng thuận** — mọi
+validator phải mang cùng bản trước mốc, nên mốc là **hàm của thời gian rollout**, không phải tuỳ chọn;
+(c) sổ mô tả quyền thì phải **đo quyền** trước khi ghi.
