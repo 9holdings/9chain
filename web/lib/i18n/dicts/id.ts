@@ -15,6 +15,8 @@ export const id: Dict = {
     shortDesc: 'Testnet publik 9Chain — jaringan mandiri yang berjalan di mesin Avalanche',
     tagline: 'jaringan mandiri di mesin Avalanche',
     walletRejected: 'Anda menolak permintaan di dompet Anda. Tidak ada yang berubah.',
+    noWalletMobile: 'Browser ponsel tidak bisa memasang ekstensi dompet. Buka halaman ini di dalam aplikasi MetaMask — browser bawaannya sudah memiliki dompet.',
+    openInMetaMask: 'Buka di aplikasi MetaMask',
     loading: 'Memuat…',
     retry: 'Coba lagi',
     copy: 'Salin',

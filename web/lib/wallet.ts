@@ -123,6 +123,29 @@ export function getWallet(): BrowserWallet | null {
   return w.ethereum ?? null;
 }
 
+/**
+ * True on a phone or tablet browser — where NO wallet extension can exist, so the sentence
+ * "install MetaMask and reload the page" is a dead end (reported by David 2026-09-04 while
+ * walking guests through the faucet on their phones). iPadOS reports itself as a Mac, hence
+ * the touch-point check. Safe to call during render: it answers `false` on the server.
+ */
+export function isMobileBrowser(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+}
+
+/**
+ * Deep link that opens THIS page inside the MetaMask app's own browser, where `window.ethereum`
+ * exists. Built from `window.location`, so it works on every host this site is served from and
+ * carries the hash state of `/chains/`. Format is MetaMask's documented `/dapp/<host><path>`.
+ */
+export function metamaskDeepLink(): string {
+  if (typeof window === 'undefined') return 'https://metamask.app.link/';
+  const { host, pathname, search, hash } = window.location;
+  return `https://metamask.app.link/dapp/${host}${pathname}${search}${hash}`;
+}
+
 /** Console API origin. Same domain as the page ⇒ a relative path is enough, and correct. */
 export function consoleOrigin(): string {
   if (typeof window === 'undefined') return '/console';

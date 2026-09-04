@@ -14,6 +14,8 @@ export const sw: Dict = {
     shortDesc: 'Mtandao wa majaribio wa umma wa 9Chain — mtandao huru unaoendeshwa kwa injini ya Avalanche',
     tagline: 'mtandao huru kwenye injini ya Avalanche',
     walletRejected: 'Ulikataa ombi kwenye pochi yako. Hakuna kilichobadilika.',
+    noWalletMobile: 'Kivinjari cha simu hakiwezi kuwa na kiendelezi cha pochi. Badala yake fungua ukurasa huu ndani ya programu ya MetaMask — kivinjari chake cha ndani kina pochi.',
+    openInMetaMask: 'Fungua kwenye programu ya MetaMask',
     loading: 'Inapakia…',
     retry: 'Jaribu tena',
     copy: 'Nakili',

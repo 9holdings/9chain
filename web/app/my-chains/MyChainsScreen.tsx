@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Field, Badge, Skeleton, ErrorState, Note, Copyable, EmptyState, Steps, type Step } from '@/components/ui';
 import { shortenAddress } from '@/lib/eip55';
+import { OpenInWallet } from '@/components/OpenInWallet';
 import { symbolOf } from '@/lib/l1-symbol';
 import { rpcOrigin } from '@/lib/chain';
 import { interpolate, useT } from '@/lib/i18n';
@@ -194,7 +195,7 @@ export function MyChainsScreen() {
           </Button>
         </div>
         {walletFailure && <div className="mt-4"><ErrorState title={walletFailure} desc="" onRetry={vao} /></div>}
-        {!getWallet() && <div className="mt-4"><Note tone="warn">{t.launch.noWallet}</Note></div>}
+        {!getWallet() && <div className="mt-4"><OpenInWallet fallback={<Note tone="warn">{t.launch.noWallet}</Note>} /></div>}
       </Card>
     );
   }

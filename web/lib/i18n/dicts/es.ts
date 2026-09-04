@@ -15,6 +15,8 @@ export const es: Dict = {
     shortDesc: 'Testnet pública de 9Chain — una red independiente que ejecuta el motor Avalanche',
     tagline: 'una red independiente con el motor Avalanche',
     walletRejected: 'Rechazaste la solicitud en tu monedero. No ha cambiado nada.',
+    noWalletMobile: 'El navegador del teléfono no puede tener una extensión de monedero. Abre esta página dentro de la app MetaMask: su navegador integrado ya tiene el monedero.',
+    openInMetaMask: 'Abrir en la app MetaMask',
     loading: 'Cargando…',
     retry: 'Reintentar',
     copy: 'Copiar',

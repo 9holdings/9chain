@@ -14,6 +14,8 @@ export const pl: Dict = {
     shortDesc: 'Publiczna sieć testowa 9Chain — niezależna sieć działająca na silniku Avalanche',
     tagline: 'niezależna sieć na silniku Avalanche',
     walletRejected: 'Odrzuciłeś żądanie w swoim portfelu. Nic się nie zmieniło.',
+    noWalletMobile: 'Przeglądarka w telefonie nie obsługuje rozszerzeń portfela. Otwórz tę stronę w aplikacji MetaMask — jej wbudowana przeglądarka ma portfel.',
+    openInMetaMask: 'Otwórz w aplikacji MetaMask',
     loading: 'Wczytywanie…',
     retry: 'Spróbuj ponownie',
     copy: 'Kopiuj',

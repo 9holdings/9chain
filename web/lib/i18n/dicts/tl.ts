@@ -15,6 +15,8 @@ export const tl: Dict = {
     shortDesc: 'Pampublikong testnet ng 9Chain — isang malayang network na tumatakbo sa makinang Avalanche',
     tagline: 'isang malayang network sa makinang Avalanche',
     walletRejected: 'Tinanggihan mo ang kahilingan sa iyong wallet. Walang nabago.',
+    noWalletMobile: 'Hindi kayang maglagay ng wallet extension ang browser ng telepono. Sa halip, buksan ang pahinang ito sa loob ng MetaMask app — may wallet na ang built-in browser nito.',
+    openInMetaMask: 'Buksan sa MetaMask app',
     loading: 'Naglo-load…',
     retry: 'Subukan muli',
     copy: 'Kopyahin',

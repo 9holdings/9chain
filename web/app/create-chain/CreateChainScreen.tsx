@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Field, Badge, Skeleton, ErrorState, Note, Copyable, Steps, type Step } from '@/components/ui';
 import { shortenAddress } from '@/lib/eip55';
+import { OpenInWallet } from '@/components/OpenInWallet';
 import { symbolOf } from '@/lib/l1-symbol';
 import { interpolate, useT } from '@/lib/i18n';
 import { describeFailure } from '@/lib/net';
@@ -205,7 +206,7 @@ export function CreateChainScreen() {
         )}
         {!getWallet() && (
           <div className="mt-4">
-            <Note tone="warn">{t.launch.noWallet}</Note>
+            <OpenInWallet fallback={<Note tone="warn">{t.launch.noWallet}</Note>} />
           </div>
         )}
       </Card>

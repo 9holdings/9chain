@@ -15,6 +15,8 @@ export const ms: Dict = {
     shortDesc: 'Rangkaian ujian awam 9Chain — rangkaian bebas yang berjalan pada enjin Avalanche',
     tagline: 'rangkaian bebas pada enjin Avalanche',
     walletRejected: 'Anda menolak permintaan itu dalam dompet anda. Tiada apa-apa yang berubah.',
+    noWalletMobile: 'Pelayar telefon tidak boleh memasang sambungan dompet. Sebaliknya, buka halaman ini di dalam aplikasi MetaMask — pelayar terbina dalamnya sudah ada dompet.',
+    openInMetaMask: 'Buka dalam aplikasi MetaMask',
     loading: 'Memuatkan…',
     retry: 'Cuba lagi',
     copy: 'Salin',

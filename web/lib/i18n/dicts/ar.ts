@@ -17,6 +17,8 @@ export const ar: Dict = {
     shortDesc: 'شبكة الاختبار العامة لـ 9Chain — شبكة مستقلة تعمل بمحرك Avalanche',
     tagline: 'شبكة مستقلة تعمل بمحرك Avalanche',
     walletRejected: 'لقد رفضت الطلب في محفظتك. لم يتغير شيء.',
+    noWalletMobile: 'لا يمكن لمتصفح الهاتف تثبيت إضافة محفظة. افتح هذه الصفحة داخل تطبيق MetaMask بدلاً من ذلك — فمتصفحه المدمج يحتوي على المحفظة.',
+    openInMetaMask: 'فتح في تطبيق MetaMask',
     loading: 'جارٍ التحميل…',
     retry: 'أعد المحاولة',
     copy: 'نسخ',

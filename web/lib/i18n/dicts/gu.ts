@@ -14,6 +14,8 @@ export const gu: Dict = {
     shortDesc: '9Chain નું જાહેર ટેસ્ટનેટ — Avalanche એન્જિન પર ચાલતું સ્વતંત્ર નેટવર્ક',
     tagline: 'Avalanche એન્જિન પર સ્વતંત્ર નેટવર્ક',
     walletRejected: 'તમે તમારા વૉલેટમાં વિનંતી નકારી. કશું બદલાયું નથી.',
+    noWalletMobile: 'ફોનના બ્રાઉઝરમાં વૉલેટ એક્સટેન્શન રાખી શકાતું નથી. તેના બદલે આ પેજ MetaMask ઍપની અંદર ખોલો — ઍપના પોતાના બ્રાઉઝરમાં વૉલેટ છે.',
+    openInMetaMask: 'MetaMask ઍપમાં ખોલો',
     loading: 'લોડ થઈ રહ્યું છે…',
     retry: 'ફરી પ્રયાસ કરો',
     copy: 'નકલ કરો',

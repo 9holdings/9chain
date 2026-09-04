@@ -15,6 +15,8 @@ export const fr: Dict = {
     shortDesc: 'Le testnet public de 9Chain — un réseau indépendant fonctionnant avec le moteur Avalanche',
     tagline: 'un réseau indépendant sur le moteur Avalanche',
     walletRejected: 'Vous avez refusé la demande dans votre portefeuille. Rien n’a changé.',
+    noWalletMobile: "Le navigateur d'un téléphone ne peut pas accueillir d'extension de portefeuille. Ouvrez plutôt cette page dans l'application MetaMask : son navigateur intégré contient le portefeuille.",
+    openInMetaMask: "Ouvrir dans l'application MetaMask",
     loading: 'Chargement…',
     retry: 'Réessayer',
     copy: 'Copier',

@@ -15,6 +15,8 @@ export const ha: Dict = {
     shortDesc: 'Hanyar sadarwa ta gwaji ta jama’a ta 9Chain — hanyar sadarwa mai zaman kanta da ke gudana a injin Avalanche',
     tagline: 'hanyar sadarwa mai zaman kanta a injin Avalanche',
     walletRejected: 'Ka ƙi buƙatar a cikin walat ɗinka. Babu abin da ya canza.',
+    noWalletMobile: 'Burauzar waya ba za ta iya ɗaukar ƙarin walat ba. Maimakon haka, buɗe wannan shafin a cikin manhajar MetaMask — burauzar da ke cikinta tana da walat.',
+    openInMetaMask: 'Buɗe a manhajar MetaMask',
     loading: 'Ana loda…',
     retry: 'Sake gwadawa',
     copy: 'Kwafa',

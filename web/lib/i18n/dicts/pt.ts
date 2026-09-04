@@ -15,6 +15,8 @@ export const pt: Dict = {
     shortDesc: 'Testnet pública da 9Chain — uma rede independente rodando o motor Avalanche',
     tagline: 'uma rede independente no motor Avalanche',
     walletRejected: 'Você recusou a solicitação na sua carteira. Nada mudou.',
+    noWalletMobile: 'O navegador do celular não pode ter uma extensão de carteira. Abra esta página dentro do app MetaMask — o navegador embutido dele já tem a carteira.',
+    openInMetaMask: 'Abrir no app MetaMask',
     loading: 'Carregando…',
     retry: 'Tentar de novo',
     copy: 'Copiar',

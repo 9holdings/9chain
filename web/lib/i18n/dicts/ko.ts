@@ -15,6 +15,8 @@ export const ko: Dict = {
     shortDesc: '9Chain의 공개 테스트넷 — Avalanche 엔진으로 구동되는 독립 네트워크',
     tagline: 'Avalanche 엔진 위의 독립 네트워크',
     walletRejected: '지갑에서 요청을 거부하셨습니다. 변경된 것은 없습니다.',
+    noWalletMobile: '휴대폰 브라우저에는 지갑 확장 프로그램을 설치할 수 없습니다. 대신 이 페이지를 MetaMask 앱 안에서 여세요. 앱에 내장된 브라우저에 지갑이 있습니다.',
+    openInMetaMask: 'MetaMask 앱에서 열기',
     loading: '불러오는 중…',
     retry: '다시 시도',
     copy: '복사',

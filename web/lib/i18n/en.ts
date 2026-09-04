@@ -30,6 +30,10 @@ export const EN = {
     shortDesc: "9Chain's public testnet — an independent network running the Avalanche engine",
     tagline: 'an independent network on the Avalanche engine',
     walletRejected: 'You rejected the request in your wallet. Nothing has changed.',
+    // Phone browsers cannot hold a wallet extension — the only working path there is to open
+    // the page INSIDE the MetaMask app (see `components/OpenInWallet.tsx`).
+    noWalletMobile: 'A phone browser cannot hold a wallet extension. Open this page inside the MetaMask app instead — its built-in browser has the wallet.',
+    openInMetaMask: 'Open in the MetaMask app',
     loading: 'Loading…',
     retry: 'Try again',
     copy: 'Copy',

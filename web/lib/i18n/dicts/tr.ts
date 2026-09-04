@@ -15,6 +15,8 @@ export const tr: Dict = {
     shortDesc: "9Chain'in genel test ağı — Avalanche motorunda çalışan bağımsız bir ağ",
     tagline: 'Avalanche motorunda çalışan bağımsız bir ağ',
     walletRejected: 'İsteği cüzdanınızda reddettiniz. Hiçbir şey değişmedi.',
+    noWalletMobile: 'Telefon tarayıcısına cüzdan eklentisi kurulamaz. Bunun yerine bu sayfayı MetaMask uygulamasının içinde açın — uygulamanın kendi tarayıcısında cüzdan vardır.',
+    openInMetaMask: 'MetaMask uygulamasında aç',
     loading: 'Yükleniyor…',
     retry: 'Yeniden dene',
     copy: 'Kopyala',

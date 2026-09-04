@@ -7,6 +7,7 @@ import { CHAIN, faucetOrigin, rpcCChain, explorerOrigin, addNetworkParams } from
 import { interpolate, useT } from '@/lib/i18n';
 import { fetchJson, READ_TIMEOUT_MS } from '@/lib/net';
 import { getWallet, readWalletError } from '@/lib/wallet';
+import { OpenInWallet, useMobileNoWallet } from '@/components/OpenInWallet';
 
 type ThongTin = {
   amount: string;
@@ -33,6 +34,9 @@ export function FaucetForm() {
   const [walletState, setWalletState] = useState<'chua' | 'xong' | 'errors' | 'tuChoi' | 'khongCo'>('chua');
   // The wallet's code and message verbatim. Shown, not swallowed — see the comment on `themMang`.
   const [walletFailure, setWalletFailure] = useState<string | null>(null);
+  // On a phone with no wallet, "install MetaMask and reload" is a dead end — `<OpenInWallet />`
+  // below offers the deep link instead, and the desktop sentence is suppressed.
+  const mobileNoWallet = useMobileNoWallet();
 
   // Only validate once the user has typed something — flashing red at an empty field they have
   // not touched is scolding before asking.
@@ -133,7 +137,8 @@ export function FaucetForm() {
               {walletFailure && <p className="mt-1 break-words font-mono text-xs text-muted">{walletFailure}</p>}
             </div>
           )}
-          {walletState === 'khongCo' && <p className="text-sm text-body-2">{t.faucet.noWallet}</p>}
+          {walletState === 'khongCo' && !mobileNoWallet && <p className="text-sm text-body-2">{t.faucet.noWallet}</p>}
+          <OpenInWallet />
         </div>
 
         <div className="mt-6">

@@ -14,6 +14,8 @@ export const zh: Dict = {
     shortDesc: '9Chain 公共测试网 — 运行 Avalanche 引擎的独立网络',
     tagline: '运行 Avalanche 引擎的独立网络',
     walletRejected: '您在钱包中拒绝了该请求。没有任何改动。',
+    noWalletMobile: '手机浏览器无法安装钱包扩展。请改在 MetaMask 应用内打开本页——应用自带的浏览器里有钱包。',
+    openInMetaMask: '在 MetaMask 应用中打开',
     loading: '加载中…',
     retry: '重试',
     copy: '复制',

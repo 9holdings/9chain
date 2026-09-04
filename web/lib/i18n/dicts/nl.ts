@@ -15,6 +15,8 @@ export const nl: Dict = {
     shortDesc: 'Het publieke testnet van 9Chain — een zelfstandig netwerk op de Avalanche-engine',
     tagline: 'een zelfstandig netwerk op de Avalanche-engine',
     walletRejected: 'Je hebt het verzoek in je wallet geweigerd. Er is niets veranderd.',
+    noWalletMobile: 'Een telefoonbrowser kan geen wallet-extensie hebben. Open deze pagina in plaats daarvan in de MetaMask-app: de ingebouwde browser daarvan heeft de wallet.',
+    openInMetaMask: 'Openen in de MetaMask-app',
     loading: 'Laden…',
     retry: 'Opnieuw proberen',
     copy: 'Kopiëren',

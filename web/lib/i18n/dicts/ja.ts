@@ -15,6 +15,8 @@ export const ja: Dict = {
     shortDesc: '9Chain の公開テストネット — Avalanche エンジンで動く独立したネットワーク',
     tagline: 'Avalanche エンジンで動く独立したネットワーク',
     walletRejected: 'ウォレットでリクエストを拒否しました。何も変わっていません。',
+    noWalletMobile: 'スマートフォンのブラウザにはウォレット拡張機能を入れられません。代わりにこのページを MetaMask アプリ内で開いてください。アプリ内蔵のブラウザにはウォレットがあります。',
+    openInMetaMask: 'MetaMask アプリで開く',
     loading: '読み込み中…',
     retry: '再試行',
     copy: 'コピー',

@@ -67,6 +67,8 @@ export const vi: Dict = {
     // nguyên văn (`deChain.viTuChoi` và `chainCuaToi.themViTuChoi`) — hai bản của
     // cùng một câu là hai chỗ để chúng lệch nhau về sau mà không ai thấy.
     walletRejected: 'Bạn đã từ chối trong ví. Chưa có gì thay đổi.',
+    noWalletMobile: 'Trình duyệt trên điện thoại không cài được tiện ích ví. Hãy mở trang này bên trong app MetaMask — trình duyệt có sẵn trong app đã có ví.',
+    openInMetaMask: 'Mở trong app MetaMask',
     loading: 'Đang tải…',
     retry: 'Thử lại',
     copy: 'Sao chép',
