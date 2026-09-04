@@ -121,3 +121,102 @@ describe.skipIf(!coCaddy)('trang 404 trong Caddyfile', () => {
     expect(khoi404()!).not.toContain('[?]');
   });
 });
+
+/**
+ * Legacy explorer links `/tx/<hash>` — the ONE thing allowed to jump the 404 page (2026-09-04).
+ *
+ * Blockscout used to live at the root of a1.9chain.org, so every link it emitted is of the form
+ * `a1.9chain.org/tx/<hash>`. Those are out in chats, docs and screenshots and cannot be recalled.
+ * David decided they should be handed to a1.9scan.org rather than die on the branded 404.
+ *
+ * 🔴 WHAT THIS SUITE GUARDS is the *narrowness* of that hand-off. Measured on 9Scan 2026-09-04:
+ * only `/tx/<64 hex>`, `/address/<40 hex>` and `/block/<number>` resolve there; `/block/<hash>`
+ * and truncated hashes are 404s on their side. Widening the regex to `0x[0-9a-fA-F]+` would look
+ * like a tidy-up and would silently trade OUR 404 page for a STRANGER'S 404 page — same dead end
+ * for the visitor, but now with wording and exits we do not control.
+ *
+ * The far end (does 9Scan still answer?) cannot be measured from a file, so `caddy-deploy.sh`
+ * follows the whole chain to a real 200 after every deploy. These two halves are deliberate: this
+ * one catches a careless edit, that one catches the other project moving house.
+ */
+/**
+ * Drop comment lines. This Caddyfile carries more prose than config — the comments discuss
+ * `reverse_proxy`, `handle_response` and `handle {` at length — so any structural assertion made
+ * against the raw text is really measuring the prose.
+ */
+function khongChuThich(s: string): string {
+  return s
+    .split('\n')
+    .map((d) => (/^\s*#/.test(d) ? '' : d))
+    .join('\n');
+}
+
+describe.skipIf(!coCaddy)('liên kết explorer cũ → 9Scan', () => {
+  const doc = () => readFileSync(CADDY, 'utf8');
+
+  it('still hands the three measured shapes to 9Scan', () => {
+    const s = doc();
+    expect(s, 'the @explorer_cu matcher is gone — legacy /tx/ links now dead-end on the 404 page').toContain('@explorer_cu');
+    expect(s, 'the redirect no longer points at 9Scan').toMatch(/redir\s+https:\/\/a1\.9scan\.org\{uri\}/);
+  });
+
+  it('demands EXACT hash lengths, so malformed links keep our own 404 page', () => {
+    const dong = doc().match(/@explorer_cu\s+path_regexp\s+\S+\s+(\S+)/)?.[1] ?? '';
+    expect(dong, 'the @explorer_cu regex could not be read at all').not.toBe('');
+    expect(dong, 'the transaction hash length (64) is no longer pinned').toContain('{64}');
+    expect(dong, 'the address length (40) is no longer pinned').toContain('{40}');
+    expect(
+      /0x\[0-9a-fA-F\]\+/.test(dong),
+      'the regex was widened to `0x[0-9a-fA-F]+`. Measured 2026-09-04: 9Scan 404s on truncated ' +
+        'hashes and on /block/<hash>. Handing those over swaps our 404 page for theirs — the ' +
+        'visitor is just as stuck, but now on a page whose wording and exits we do not own.',
+    ).toBe(false);
+    // /block/ takes a NUMBER. `/block/<hash>` is a 404 on their side, so it must not match here.
+    expect(dong, '/block/ must be restricted to digits').toMatch(/block\/\[0-9\]/);
+  });
+
+  it('is not nested inside a reverse_proxy or handle_response', () => {
+    // Same invariant, same reason as the 404 page above: a redirect that only fires when some
+    // other service answers dies the day that service is removed — and dies quietly.
+    //
+    // 🔴 READ DIRECTIVES, NOT PROSE. The first draft searched the raw text, so it matched the words
+    // `reverse_proxy` / `handle_response` inside the long comments this file is full of — and went
+    // red when the block was merely MOVED past a comment that discusses them. Measuring the wrong
+    // quantity is the failure mode this repo pays for most often, so strip comments first.
+    const s = khongChuThich(doc());
+    const i = s.indexOf('@explorer_cu');
+    expect(i, 'the explorer redirect is gone').toBeGreaterThan(-1);
+    const truoc = s.slice(0, i);
+    const upstream = Math.max(truoc.lastIndexOf('handle_response'), truoc.lastIndexOf('reverse_proxy'));
+    const blockDong = truoc.lastIndexOf('\thandle');
+    expect(blockDong > upstream, 'the explorer redirect got nested under an upstream reply').toBe(true);
+  });
+
+  it('sits BEFORE the catch-all handle, or the 404 page eats it', () => {
+    // Caddy evaluates sibling `handle` blocks in written order and the first match wins. Move this
+    // below the bare `handle {` and every legacy link silently goes back to the 404 page — with no
+    // config error, and with this file still containing a perfectly correct redirect rule.
+    //
+    // 🔴 SCOPE THIS TO THE `a1.9chain.org` SITE BLOCK. The first draft searched the whole file and
+    // found the catch-all belonging to the *rpc-a1* block (which has its own bare `handle {`), so
+    // it went red on a correct config. A gate that is red for the wrong reason is worse than no
+    // gate: the next person deletes it instead of reading it.
+    const s = khongChuThich(doc());
+    const batDau = s.indexOf('\na1.9chain.org {');
+    expect(batDau, 'the a1.9chain.org site block could not be located').toBeGreaterThan(-1);
+    // The site block ends where the next one starts (a domain at column 0 followed by ` {`).
+    const sau = s.slice(batDau + 1);
+    const ketThuc = sau.search(/\n[a-z0-9][a-z0-9.,\- ]*\{\s*\n/);
+    const khoi = ketThuc > -1 ? sau.slice(0, ketThuc) : sau;
+
+    const redirect = khoi.indexOf('@explorer_cu');
+    const batTatCa = khoi.indexOf('\n\thandle {\n');
+    expect(redirect, 'the explorer redirect is not in the a1.9chain.org site block').toBeGreaterThan(-1);
+    expect(batTatCa, 'the catch-all handle of a1.9chain.org could not be located').toBeGreaterThan(-1);
+    expect(
+      redirect < batTatCa,
+      'the explorer redirect now sits AFTER the catch-all `handle {` — Caddy takes the first ' +
+        'matching handle, so the 404 page swallows every legacy /tx/ link, silently.',
+    ).toBe(true);
+  });
+});
