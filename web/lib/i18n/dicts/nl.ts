@@ -195,7 +195,7 @@ export const nl: Dict = {
     emptyDesc: 'Jij zou de eerste zijn. De lijst wordt bijgewerkt zodra je chain draait.',
     moreChains: 'Bekijk alle {count} chains in de directory',
 
-    disclosure: '9 van de 10 validators draaien op dezelfde server, bij dezelfde aanbieder; de tiende sloot zich van elders aan en is slechts met tussenpozen online — gedecentraliseerd op protocolniveau, nog niet op infrastructuurniveau.',
+    disclosure: '9 van de 11 validators draaien op dezelfde server, bij dezelfde aanbieder; de andere twee sloten zich van elders aan en slechts één van hen is online — gedecentraliseerd op protocolniveau, nog niet op infrastructuurniveau.',
     idleBlocksNote: 'Avalanche produceert geen lege blokken, dus een blokhoogte die stilstaat terwijl niemand transacties doet is normaal. De maat voor leven is het aantal validators ernaast.',
   },
 

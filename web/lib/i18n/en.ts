@@ -216,7 +216,7 @@ export const EN = {
     // filters, is the directory. Added 2026-09-04 with the 108-L1 redesign of `/chains/`.
     moreChains: 'See all {count} chains in the directory',
 
-    disclosure: '9 of the 10 validators run on the same server, with the same provider; the tenth joined from elsewhere and is online only intermittently — decentralised at the protocol level, not yet at the infrastructure level.',
+    disclosure: '9 of the 11 validators run on the same server, with the same provider; the other two joined from elsewhere, and only one of them is online — decentralised at the protocol level, not yet at the infrastructure level.',
     idleBlocksNote: 'Avalanche does not produce empty blocks, so a block height that stays still while nobody is transacting is normal. The liveness measure is the validator count next to it.',
   },
 

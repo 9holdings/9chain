@@ -194,7 +194,7 @@ export const ha: Dict = {
     emptyDesc: 'Kai za ka zama na farko. Jerin yana sabuntawa da zarar sarƙarka ta fara aiki.',
     moreChains: 'Duba dukkan sarƙoƙi {count} a cikin jerin',
 
-    disclosure: 'Masu tabbatarwa 9 daga cikin 10 suna gudana a kan uwar garke ɗaya, tare da mai bayarwa ɗaya; na goma ya shiga daga wani wuri kuma yana kan layi lokaci-lokaci kawai — an rarraba iko a matakin yarjejeniya, amma ba a matakin ababen more rayuwa ba tukuna.',
+    disclosure: 'Masu tabbatarwa 9 daga cikin 11 suna gudana a kan uwar garke ɗaya, tare da mai bayarwa ɗaya; sauran biyun sun shiga daga wasu wurare kuma ɗaya ne kawai daga cikinsu ke kan layi — an rarraba iko a matakin yarjejeniya, amma ba a matakin ababen more rayuwa ba tukuna.',
     idleBlocksNote: 'Avalanche ba ya samar da toshe fanko, don haka tsayin toshe da ya tsaya cak yayin da babu wanda ke yin mu’amala abu ne na yau da kullum. Ma’aunin rayuwa shine adadin masu tabbatarwa da ke gefensa.',
   },
 

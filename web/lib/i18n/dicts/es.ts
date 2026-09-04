@@ -184,7 +184,7 @@ export const es: Dict = {
     emptyTitle: 'Todavía no hay ninguna L1 en funcionamiento',
     emptyDesc: 'Serías el primero. El directorio se actualiza en cuanto tu cadena esté activa.',
     moreChains: 'Ver las {count} cadenas en el directorio',
-    disclosure: '9 de los 10 validadores se ejecutan en el mismo servidor y con el mismo proveedor; el décimo se unió desde otro sitio y solo está en línea de forma intermitente: descentralizado en el nivel del protocolo, todavía no en el de la infraestructura.',
+    disclosure: '9 de los 11 validadores se ejecutan en el mismo servidor y con el mismo proveedor; los otros dos se unieron desde otro sitio y solo uno de ellos está en línea: descentralizado en el nivel del protocolo, todavía no en el de la infraestructura.',
     idleBlocksNote: 'Avalanche no produce bloques vacíos, así que una altura de bloque que no se mueve mientras nadie transacciona es normal. La medida de actividad es el número de validadores que aparece al lado.',
   },
 

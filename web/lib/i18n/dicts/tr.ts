@@ -189,7 +189,7 @@ export const tr: Dict = {
     emptyDesc: 'İlk siz olurdunuz. Zinciriniz açılır açılmaz dizin güncellenir.',
     moreChains: 'Dizindeki {count} zincirin tümünü gör',
 
-    disclosure: '10 doğrulayıcıdan 9’u aynı sunucuda, aynı sağlayıcıda çalışıyor; onuncusu başka bir yerden katıldı ve yalnızca aralıklı olarak çevrimiçi — protokol düzeyinde merkeziyetsiz, altyapı düzeyinde henüz değil.',
+    disclosure: '11 doğrulayıcıdan 9’u aynı sunucuda, aynı sağlayıcıda çalışıyor; diğer ikisi başka yerlerden katıldı ve yalnızca biri çevrimiçi — protokol düzeyinde merkeziyetsiz, altyapı düzeyinde henüz değil.',
     idleBlocksNote: 'Avalanche boş blok üretmez; bu yüzden kimse işlem yapmazken blok yüksekliğinin sabit kalması normaldir. Canlılık ölçüsü yanındaki doğrulayıcı sayısıdır.',
   },
 

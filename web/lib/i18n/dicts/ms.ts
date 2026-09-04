@@ -197,7 +197,7 @@ export const ms: Dict = {
     emptyDesc: 'Anda akan menjadi yang pertama. Direktori dikemas kini sebaik sahaja rantaian anda hidup.',
     moreChains: 'Lihat kesemua {count} rantaian dalam direktori',
 
-    disclosure: '9 daripada 10 pengesah berjalan pada pelayan yang sama, dengan pembekal yang sama; yang kesepuluh menyertai dari tempat lain dan hanya dalam talian sekali-sekala — terdesentralisasi pada peringkat protokol, belum lagi pada peringkat infrastruktur.',
+    disclosure: '9 daripada 11 pengesah berjalan pada pelayan yang sama, dengan pembekal yang sama; dua lagi menyertai dari tempat lain dan hanya satu daripadanya dalam talian — terdesentralisasi pada peringkat protokol, belum lagi pada peringkat infrastruktur.',
     idleBlocksNote: 'Avalanche tidak menghasilkan blok kosong, jadi ketinggian blok yang kekal tidak berubah ketika tiada sesiapa membuat transaksi adalah normal. Ukuran hidupnya ialah bilangan pengesah di sebelahnya.',
   },
 

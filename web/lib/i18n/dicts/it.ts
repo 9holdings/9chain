@@ -195,7 +195,7 @@ export const it: Dict = {
     emptyDesc: 'Saresti il primo. L’elenco si aggiorna appena la tua catena è attiva.',
     moreChains: 'Vedi tutte le {count} chain nella directory',
 
-    disclosure: '9 dei 10 validatori girano sullo stesso server, presso lo stesso fornitore; il decimo si è unito da altrove ed è online solo a intermittenza — decentralizzato a livello di protocollo, non ancora a livello di infrastruttura.',
+    disclosure: '9 degli 11 validatori girano sullo stesso server, presso lo stesso fornitore; gli altri due si sono uniti da altrove e solo uno di loro è online — decentralizzato a livello di protocollo, non ancora a livello di infrastruttura.',
     idleBlocksNote: 'Avalanche non produce blocchi vuoti, quindi un’altezza di blocco che resta ferma mentre nessuno effettua transazioni è normale. La misura di attività è il numero di validatori accanto.',
   },
 

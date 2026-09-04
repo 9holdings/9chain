@@ -183,7 +183,7 @@ export const pt: Dict = {
     emptyTitle: 'Nenhuma L1 rodando ainda',
     emptyDesc: 'Você seria o primeiro. O diretório atualiza assim que sua cadeia estiver no ar.',
     moreChains: 'Ver todas as {count} chains no diretório',
-    disclosure: '9 dos 10 validadores correm no mesmo servidor e no mesmo fornecedor; o décimo juntou-se a partir de outro lugar e só está em linha de forma intermitente — descentralizado ao nível do protocolo, ainda não ao nível da infraestrutura.',
+    disclosure: '9 dos 11 validadores correm no mesmo servidor e no mesmo fornecedor; os outros dois juntaram-se a partir de outro lugar e só um deles está em linha — descentralizado ao nível do protocolo, ainda não ao nível da infraestrutura.',
     idleBlocksNote: 'A Avalanche não produz blocos vazios, então uma altura de bloco parada enquanto ninguém transaciona é normal. A medida de atividade é a contagem de validadores ao lado.',
   },
 

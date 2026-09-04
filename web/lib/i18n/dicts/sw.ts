@@ -191,7 +191,7 @@ export const sw: Dict = {
     emptyDesc: 'Ungekuwa wa kwanza. Orodha husasishwa mara tu mnyororo wako unapoanza kufanya kazi.',
     moreChains: 'Tazama chain zote {count} kwenye orodha',
 
-    disclosure: 'Wathibitishaji 9 kati ya 10 wanaendeshwa kwenye seva ile ile, kwa mtoa huduma yule yule; wa kumi alijiunga kutoka mahali pengine na yuko mtandaoni mara kwa mara tu — imegatuliwa katika kiwango cha itifaki, bado si katika kiwango cha miundombinu.',
+    disclosure: 'Wathibitishaji 9 kati ya 11 wanaendeshwa kwenye seva ile ile, kwa mtoa huduma yule yule; wengine wawili walijiunga kutoka mahali pengine na ni mmoja tu kati yao aliye mtandaoni — imegatuliwa katika kiwango cha itifaki, bado si katika kiwango cha miundombinu.',
     idleBlocksNote: 'Avalanche haitengenezi vizuizi vitupu, kwa hiyo urefu wa kizuizi kubaki palepale wakati hakuna anayefanya muamala ni jambo la kawaida. Kipimo cha uhai ni idadi ya wathibitishaji iliyo kando yake.',
   },
 

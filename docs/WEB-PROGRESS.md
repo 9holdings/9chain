@@ -417,3 +417,4 @@ dịch từ tiếng Anh, đã khai `review: 'machine'`. Bản Việt dưới đ�
 | `directory.nativeToken` | Token gốc |
 | `directory.mismatch` 🔴 | SAI CHAIN |
 | `directory.mismatchDesc` 🔴 | RPC trả lời với Chain ID {got} thay vì {expected} — nhiều khả năng là lỗi định tuyến, không phải chain này. |
+| `home.disclosure` 🔴 *(đổi `04/09` — mạng 11 validator, khách thứ hai vào)* | 9 trong số 11 validator chạy trên cùng một máy chủ, cùng một nhà cung cấp; hai validator còn lại tham gia từ nơi khác, và chỉ một trong hai đang trực tuyến — phân tán về giao thức, chưa phân tán về hạ tầng. |
