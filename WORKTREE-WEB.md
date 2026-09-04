@@ -38,6 +38,19 @@ bấm "Thêm mạng vào ví" ra *"Không thấy ví trong trình duyệt…"* (
 **Khách cũ chỉ cần tải lại trang** (HTML `no-cache` ⇒ lấy HTML mới ⇒ URL mới). Không cần
 purge Cloudflare. Chưa lên `official` — vẫn là quyết định của David (`publish-official.sh`).
 
+### Kèm theo cùng buổi — KHÁCH DÙNG ĐIỆN THOẠI (`142a1c3`, deploy 13:4xZ)
+
+David báo: trình duyệt điện thoại không nối được app MetaMask. Đúng — Safari/Chrome trên
+điện thoại **không có `window.ethereum`**, và câu "Cài MetaMask rồi tải lại trang" là ngõ
+cụt ở đó. Đường chạy được là ngược lại: mở trang **bên trong app MetaMask** (trình duyệt
+trong app có ví). `components/OpenInWallet.tsx`: trên điện thoại không ví ⇒ ghi chú + thẻ
+`<a>` thật tới deep link `https://metamask.app.link/dapp/<host><path>` (dựng từ
+`window.location`, tính trong effect vì HTML là bản tĩnh). Nối vào faucet · launch · My
+chains; desktop giữ câu cũ. Hai khoá mới `common.noWalletMobile` / `common.openInMetaMask`
+× 30 (VI chờ duyệt ở cuối `docs/WEB-PROGRESS.md`). Đo trên Browser pane preset mobile
+(UA Android, không ví): link = `…/dapp/a1.9chain.org/faucet/`, câu desktop ẩn; desktop: 0 link.
+⚠️ Chưa bấm thật trên một chiếc điện thoại có app MetaMask — David thử là biết ngay.
+
 ### Gotchas của phiên này
 
 - 🔴 **`immutable` là lời khai về NỘI DUNG, không phải về URL** — gắn theo path là gắn cả
