@@ -22,6 +22,23 @@ Cổng mới thường trực trong `web-deploy.sh`: mọi tài nguyên HTML tha
 `?dpl=` phải có · **`check-server-text.mjs`** đo dữ liệu danh bạ SỐNG (console ở `main` deploy
 riêng, `web/` không thấy nó đổi) · số tệp khớp. Test **176, đỏ 1** — vẫn là vân tay token cũ.
 
+### ✅ DAVID ĐÃ THỬ TRÊN iPHONE THẬT `2026-09-04` — hai lời hứa hết là lời hứa
+
+David báo **"ok rồi"** sau khi mở `https://a1.9chain.org/faucet/` trên iPhone của mình:
+
+| Đã đo bằng ngón tay thật | |
+|---|---|
+| Ô địa chỉ **tự điền** sau khi thêm mạng vào ví | ✓ |
+| Chạm vào ô, trang **không còn tự phóng to** (lỗi 14px của iOS) | ✓ |
+
+🔴 **Đây là hai thứ mà mọi phép đo trước đó chỉ nói được "chắc là đúng".** Ví giả trong
+Browser pane chứng minh được *logic*; nó không chứng minh được Safari trên máy thật xử sự
+ra sao. Nay cả hai đã có phép đo trên thiết bị.
+
+⚠️ **VẪN CHƯA ĐO:** deep link `metamask.app.link` có mở app MetaMask **đúng trang faucet**
+hay không — lượt thử này diễn ra trong trình duyệt trên máy, không đi qua chặng Branch.
+Đừng đọc "ok rồi" rộng hơn hai dòng trong bảng.
+
 ### ✅ TRANG 404 SỐNG LẠI `2026-09-04` (đêm) — Caddy `a577ef8` · công khai `847ec80`
 
 **Trang 404 mang thương hiệu đã CHẾT LẶNG từ ngày Blockscout bị gỡ**, và chết theo một
