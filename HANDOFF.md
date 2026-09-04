@@ -1043,7 +1043,7 @@ khỏi phải tự dịch id → tên và trôi lệch — bản chép tay cũ �
 | RPC công khai | https://rpc-a1.9chain.org/ext/bc/C/rpc |
 | MetaMask | Chain ID `9000000009` · Symbol `LOVE9` (có nút 1 cú bấm ở `/faucet/` và `/lite/`) |
 | Server | `139.99.145.13` (`(không công bố)`), Ubuntu LTS, 8 luồng / 62GB / RAID1 410GB |
-| SSH | `ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST"` (key không passphrase, mật khẩu đã tắt) |
+| SSH | `ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST"` (chỉ đăng nhập bằng khoá) — hai biến này lấy giá trị mặc định trong `local-net/deploy/web-deploy.sh`, thư mục **không** có trên bản công khai; `export` chúng một lượt rồi mọi lệnh ssh/scp trong tài liệu này chạy được nguyên văn |
 | DNS | 2 A record → `139.99.145.13`, Cloudflare **Proxied**, SSL/TLS mode **Full** |
 
 **Ví chain-factory** (khoá trên server, `console.env`): P-Chain `P-love91vgh2whn746dzzvg0dj4w9rsqvlalcldvpueuvj` · **9 LOVE9** · khoá gốc ở `local-net/net-public/chain-factory-key.txt` (chỉ máy dev). Hết tiền thì nạp lại từ quỹ Foundation theo cách ghi ở `docs/VI-VAN-HANH.md`.
