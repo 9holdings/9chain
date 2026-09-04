@@ -54,6 +54,17 @@ cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang g
       để chain "lớn lên" thay vì phải chọn hết lúc launch.
 - [~] **P-62 — bản xem trước genesis + câu "chain này làm được / không làm được gì" để ký** — ✅ nửa console `04/09` (D-183: `POST /api/preview`, cùng đường mã với create, trả `genesis + options + facts/can/cannot`, không ghi gì; đo `200` trên `a1.9chain.org`) · ⏳ nửa `web-home`: màn hình + câu ký —
       chặn cuối trước khi tiêu một chỗ vĩnh viễn.
+- [x] **P-66 — cổng canh `upgrade.json` cho MỌI chain: đĩa ↔ 9 node ↔ sổ** — ✅ `04/09` đêm (D-186, M3)
+      `scripts/check-l1-upgrades.mjs`, đo **trên server** qua ssh (chỉ đọc), vào preflight **hai chỗ**
+      (luật ở nhóm 2, phép ĐO ở nhóm 3). Bắt ba kiểu hỏng lặng mà `/ext/health`, sổ và giao diện đều
+      không thấy: tệp ghi mà chưa rollout · rollout dừng giữa chừng (**tách đồng thuận có hẹn giờ**) ·
+      tệp xoá sau khi đã nạp. 🔴 Luật cứng: **im lặng không phải đồng thuận** — chín node cùng câm thì
+      "khớp" hoàn hảo, nên node câm là **phát hiện**, không phải lượt bỏ qua.
+      ✅ **18 đối chứng ngoại tuyến** + **1 đối chứng chạy trên dây thật mỗi lượt** (hỏi một
+      `blockchainID` không thể tồn tại, bắt buộc đọc ra `ok:false`). Đo `04/09`: 11 chain · 9 node ·
+      0 tệp `upgrade.json` ⇒ **12/0**.
+      ⚠️ `upgradeShape` chuyển về `lib/l1-upgrade.mjs` làm nguồn duy nhất ⇒ `check-deploy-drift` nay
+      **3 lệch** (server.mjs · l1-options.mjs · l1-upgrade.mjs). **[human] deploy** để đóng.
 - [x] **P-65 — đổi chủ chain trong sổ, SAU KHI chain đã đổi** — ✅ `04/09` (D-184): `POST /api/transfer-owner` đo `readAllowList(new)` trên FeeManager + mọi precompile đang bật, đủ Admin mới sửa `admin`, giữ `previousAdmins[]`; trên chain chủ tự `setAdmin`/`setNone` bằng MetaMask, không cần console.
 
 ---
