@@ -33,6 +33,38 @@ export const pt: Dict = {
     stepPending: ' — pendente',
   },
 
+  presets: {
+    standard: {
+      name: 'Padrão',
+      desc: 'Uma chain EVM comum. O dono recebe todos os tokens do genesis e o direito de alterar as taxas.',
+    },
+    'zero-fee': {
+      name: 'Taxas quase zero',
+      desc: 'baseFee = 1 wei, então a transação paga exatamente esse piso (uma transferência custa 0,000000000000021 LOVE9). Bom para jogos, experimentos e chains internas. Em troca: quase nada impede spam.',
+    },
+    'high-throughput': {
+      name: 'Alta vazão',
+      desc: 'Cinco vezes mais transações por bloco (gasLimit de 60 milhões em vez de 12). Bom para jogos, exchanges e qualquer coisa com fluxo constante de transações pequenas. Em troca: blocos mais pesados, e quem roda um nó desta chain precisa de uma máquina mais forte.',
+    },
+    mintable: {
+      name: 'Oferta cunhável',
+      desc: 'O dono pode cunhar mais token nativo a qualquer momento pelo precompile 0x0200000000000000000000000000000000000001. A oferta NÃO é fixa — quem usa esta chain precisa saber disso.',
+    },
+    'owner-deploy-only': {
+      name: 'Só o dono implanta contratos',
+      desc: 'Os demais ainda podem enviar transações e usar os contratos existentes, mas não implantar os seus. O dono concede esse direito a quem quiser pelo precompile 0x0200000000000000000000000000000000000000.',
+    },
+    permissioned: {
+      name: 'Com permissão (só remetentes aprovados)',
+      desc: 'Só endereços listados podem ENVIAR transações. Adequado a uma chain interna de empresa. ⚠️ É o preset mais rígido: uma carteira desconhecida que chegue aqui não consegue fazer nada.',
+    },
+  },
+  steps: {
+    genesis: 'Construindo o genesis',
+    subnet: 'Criando a subnet + blockchain na P-Chain',
+    rpc: 'Aguardando o RPC da L1 responder',
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',

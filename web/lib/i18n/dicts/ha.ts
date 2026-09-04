@@ -33,6 +33,38 @@ export const ha: Dict = {
     stepPending: ' — jira',
   },
 
+  presets: {
+    standard: {
+      name: 'Daidaitacce',
+      desc: 'Sarkar EVM ta yau da kullum. Mai ita yana karɓar duk tokens na genesis da ikon canza kuɗin fito.',
+    },
+    'zero-fee': {
+      name: 'Kuɗin fito kusan sifili',
+      desc: 'baseFee = 1 wei, don haka ma’amala tana biyan daidai wannan mafi ƙanƙanta (tura kuɗi ɗaya yana kashe 0.000000000000021 LOVE9). Ya dace da wasanni, gwaje-gwaje da sarƙoƙin cikin gida. Sakamakonsa: kusan babu abin da ke hana spam.',
+    },
+    'high-throughput': {
+      name: 'Babban aiki',
+      desc: 'Ma’amaloli sau biyar a kowane bulo (gasLimit miliyan 60 maimakon miliyan 12). Ya dace da wasanni, musaya da duk abin da ke da ƙananan ma’amaloli masu gudana koyaushe. Sakamakonsa: buloli sun fi nauyi, kuma duk wanda ke tafiyar da node na wannan sarkar yana buƙatar injin da ya fi ƙarfi.',
+    },
+    mintable: {
+      name: 'Wadata mai iya ƙaruwa',
+      desc: 'Mai ita zai iya ƙirƙirar ƙarin token na asali a kowane lokaci ta hanyar precompile 0x0200000000000000000000000000000000000001. Wadatar BA tabbatacciya ba ce — duk mai amfani da wannan sarkar ya kamata ya san haka.',
+    },
+    'owner-deploy-only': {
+      name: 'Mai ita kaɗai ke tura kwangiloli',
+      desc: 'Sauran har yanzu za su iya aika ma’amaloli su yi amfani da kwangilolin da ke akwai, amma ba za su iya tura nasu ba. Mai ita yana ba kowa wannan ikon ta hanyar precompile 0x0200000000000000000000000000000000000000.',
+    },
+    permissioned: {
+      name: 'Mai izini (masu aikawa da aka amince da su kaɗai)',
+      desc: 'Adiresoshin da ke cikin jerin ne kaɗai za su iya AIKA ma’amaloli. Ya dace da sarkar cikin gida ta kamfani. ⚠️ Wannan shi ne saitin mafi tsauri: walat ɗin da ba a sani ba da ya zo nan ba zai iya yin komai ba.',
+    },
+  },
+  steps: {
+    genesis: 'Ana gina genesis',
+    subnet: 'Ana ƙirƙirar subnet + blockchain a kan P-Chain',
+    rpc: 'Ana jiran RPC na L1 ya amsa',
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',

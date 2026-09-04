@@ -314,6 +314,8 @@
   "notFound.navLabel": "2f736b2d384f",
   "notFound.title": "d2b1cc121554",
   "notFound.topPagesTitle": "0232772857b2",
+  "presets.desc": "f74578b71a1d",
+  "presets.name": "66463d9cb6da",
   "rebuild.alreadyDesc": "8f5e9a2bcf29",
   "rebuild.alreadyTitle": "19c68a806656",
   "rebuild.badge": "10d9e2a726a9",
@@ -372,7 +374,10 @@
   "stats.l1Count": "11fc7aa955df",
   "stats.measuring": "a278a2add8b1",
   "stats.title": "e6b46a6df391",
-  "stats.validators": "c9024d17892a"
+  "stats.validators": "c9024d17892a",
+  "steps.genesis": "f22d12a18fd5",
+  "steps.rpc": "6a11c98d9a26",
+  "steps.subnet": "63c09b3d3325"
  },
  "bn": {
   "common.close": "0da383e018c0",
@@ -689,6 +694,8 @@
   "notFound.navLabel": "da4bbefc7d97",
   "notFound.title": "626ea891a53a",
   "notFound.topPagesTitle": "e6cece78f492",
+  "presets.desc": "263e26df7880",
+  "presets.name": "f51fb2b3d882",
   "rebuild.alreadyDesc": "fe6fb0572982",
   "rebuild.alreadyTitle": "7299d481a363",
   "rebuild.badge": "ad54bce618c7",
@@ -747,7 +754,10 @@
   "stats.l1Count": "bbf549754a80",
   "stats.measuring": "403b29ae49ab",
   "stats.title": "ba35e40c4f84",
-  "stats.validators": "0a435fbd7cfd"
+  "stats.validators": "0a435fbd7cfd",
+  "steps.genesis": "cd9e51926467",
+  "steps.rpc": "bc30d61fb74c",
+  "steps.subnet": "2f5f2cd2c84f"
  },
  "de": {
   "common.close": "44424b18700e",
@@ -1064,6 +1074,8 @@
   "notFound.navLabel": "a29721d0048a",
   "notFound.title": "2a2f25e7fb52",
   "notFound.topPagesTitle": "00fdd0a11214",
+  "presets.desc": "95ff5aecef57",
+  "presets.name": "4489f7a1450a",
   "rebuild.alreadyDesc": "af7a76ab95ad",
   "rebuild.alreadyTitle": "d8b93dc5579d",
   "rebuild.badge": "e7cb85371a8e",
@@ -1122,7 +1134,10 @@
   "stats.l1Count": "464834ee8b73",
   "stats.measuring": "d4c6e366608c",
   "stats.title": "1d0abb07294c",
-  "stats.validators": "1cc453be5ec2"
+  "stats.validators": "1cc453be5ec2",
+  "steps.genesis": "8159b10e1717",
+  "steps.rpc": "7eba69e82307",
+  "steps.subnet": "fc747a5f8323"
  },
  "en": {
   "common.close": "bbfa773e5a63",
@@ -1439,6 +1454,8 @@
   "notFound.navLabel": "0320ac9cef49",
   "notFound.title": "8e3dd6182cdd",
   "notFound.topPagesTitle": "f833f68af3bb",
+  "presets.desc": "acd9b0e6fb35",
+  "presets.name": "970a711a1158",
   "rebuild.alreadyDesc": "95161388875a",
   "rebuild.alreadyTitle": "3fb7f3cff76c",
   "rebuild.badge": "adc708ae308d",
@@ -1497,7 +1514,10 @@
   "stats.l1Count": "ae7f11b82295",
   "stats.measuring": "2a6e47af8532",
   "stats.title": "1865484aa2d9",
-  "stats.validators": "64ecf206bdc8"
+  "stats.validators": "64ecf206bdc8",
+  "steps.genesis": "f9379573aafa",
+  "steps.rpc": "f037beaa4619",
+  "steps.subnet": "ee2aee137877"
  },
  "es": {
   "common.close": "4b0816bbd5e9",
@@ -1814,6 +1834,8 @@
   "notFound.navLabel": "4730d83d4cd7",
   "notFound.title": "090236907644",
   "notFound.topPagesTitle": "9ff20c50e77b",
+  "presets.desc": "d362fb5aad4a",
+  "presets.name": "7f01b7b3d386",
   "rebuild.alreadyDesc": "82993e4cdf5d",
   "rebuild.alreadyTitle": "d19bb8cff55f",
   "rebuild.badge": "13dfd9a58661",
@@ -1872,7 +1894,10 @@
   "stats.l1Count": "af29f4b7129c",
   "stats.measuring": "63dc539ec613",
   "stats.title": "4c73a6ff1d14",
-  "stats.validators": "821afa70808a"
+  "stats.validators": "821afa70808a",
+  "steps.genesis": "c501da6983e4",
+  "steps.rpc": "77b8e4bf5048",
+  "steps.subnet": "eca162e9d0c4"
  },
  "fa": {
   "common.close": "4a0f283ed26f",
@@ -2189,6 +2214,8 @@
   "notFound.navLabel": "9698f8abd77c",
   "notFound.title": "8b65634a6e0d",
   "notFound.topPagesTitle": "442add1e59c9",
+  "presets.desc": "cf95bc65bc7a",
+  "presets.name": "79210d0e91ca",
   "rebuild.alreadyDesc": "4d096f0b7197",
   "rebuild.alreadyTitle": "566053fdf826",
   "rebuild.badge": "979f1814d5b2",
@@ -2247,7 +2274,10 @@
   "stats.l1Count": "37e0c7f0aa23",
   "stats.measuring": "e16614b43b6f",
   "stats.title": "6f9d159c453b",
-  "stats.validators": "8dd1e5272d20"
+  "stats.validators": "8dd1e5272d20",
+  "steps.genesis": "ad41ed8ad8d5",
+  "steps.rpc": "c8429ce7e6d5",
+  "steps.subnet": "704f41d08230"
  },
  "fr": {
   "common.close": "5ab4ec640d65",
@@ -2564,6 +2594,8 @@
   "notFound.navLabel": "1be8d13af141",
   "notFound.title": "1feaed2581a0",
   "notFound.topPagesTitle": "8acb70ebe3cc",
+  "presets.desc": "5307bd6a32b6",
+  "presets.name": "dbf964409edc",
   "rebuild.alreadyDesc": "d61f6f873f0d",
   "rebuild.alreadyTitle": "a70942ef1f5f",
   "rebuild.badge": "b54a221dc7e0",
@@ -2622,7 +2654,10 @@
   "stats.l1Count": "f7ddf34006cd",
   "stats.measuring": "a4f16896b0a9",
   "stats.title": "3c8eaa3f8b3f",
-  "stats.validators": "1e5330051a07"
+  "stats.validators": "1e5330051a07",
+  "steps.genesis": "bf5cc6052807",
+  "steps.rpc": "9fd01c4fa62c",
+  "steps.subnet": "34d54c8d459f"
  },
  "gu": {
   "common.close": "74b53d7702cd",
@@ -2939,6 +2974,8 @@
   "notFound.navLabel": "d982d8a7e773",
   "notFound.title": "cc0fdb6ab7e2",
   "notFound.topPagesTitle": "536a8d9bb056",
+  "presets.desc": "07206be12a85",
+  "presets.name": "91af6e32271c",
   "rebuild.alreadyDesc": "6c969564724a",
   "rebuild.alreadyTitle": "66912746fad8",
   "rebuild.badge": "4a117225a084",
@@ -2997,7 +3034,10 @@
   "stats.l1Count": "b92646b1032b",
   "stats.measuring": "53c3af1df396",
   "stats.title": "26a0dee6b99c",
-  "stats.validators": "566e2bd8f273"
+  "stats.validators": "566e2bd8f273",
+  "steps.genesis": "2f82303b123d",
+  "steps.rpc": "7bfedf824bf5",
+  "steps.subnet": "195451a2976f"
  },
  "ha": {
   "common.close": "a6a2b488de58",
@@ -3314,6 +3354,8 @@
   "notFound.navLabel": "1a7b0b85de40",
   "notFound.title": "7f657778fdac",
   "notFound.topPagesTitle": "026b61e65a32",
+  "presets.desc": "dc063bb08cff",
+  "presets.name": "a6d45c588918",
   "rebuild.alreadyDesc": "c161a6ed07d6",
   "rebuild.alreadyTitle": "ea52ad3bb89a",
   "rebuild.badge": "1a8b2e6b3651",
@@ -3372,7 +3414,10 @@
   "stats.l1Count": "9648e7b624c6",
   "stats.measuring": "903276a887ff",
   "stats.title": "6288c7c65f93",
-  "stats.validators": "ad1ae8aaa6ad"
+  "stats.validators": "ad1ae8aaa6ad",
+  "steps.genesis": "51628b60153b",
+  "steps.rpc": "8fd78bdaad3f",
+  "steps.subnet": "36f41ec8fe9d"
  },
  "hi": {
   "common.close": "6fac4ec8a029",
@@ -3689,6 +3734,8 @@
   "notFound.navLabel": "7a2d89454661",
   "notFound.title": "cc520addbde7",
   "notFound.topPagesTitle": "cc44f06b255a",
+  "presets.desc": "bfc241ac5f32",
+  "presets.name": "ac5a0d16d64c",
   "rebuild.alreadyDesc": "551c07e370fc",
   "rebuild.alreadyTitle": "86b6753e8af2",
   "rebuild.badge": "1bc216a5d698",
@@ -3747,7 +3794,10 @@
   "stats.l1Count": "01a85501399b",
   "stats.measuring": "ed75b26ab4ca",
   "stats.title": "008d69160017",
-  "stats.validators": "eb1521dc5444"
+  "stats.validators": "eb1521dc5444",
+  "steps.genesis": "6bd969326278",
+  "steps.rpc": "7169ee87b01c",
+  "steps.subnet": "8af148b02fdf"
  },
  "id": {
   "common.close": "06cde76b08c5",
@@ -4064,6 +4114,8 @@
   "notFound.navLabel": "aa1416b245e4",
   "notFound.title": "8fccc2687e67",
   "notFound.topPagesTitle": "acddea84f206",
+  "presets.desc": "f786fab44991",
+  "presets.name": "98da166242d9",
   "rebuild.alreadyDesc": "59e27fe0ce6d",
   "rebuild.alreadyTitle": "e312847c5842",
   "rebuild.badge": "3d1b65656d22",
@@ -4122,7 +4174,10 @@
   "stats.l1Count": "ad63213b562e",
   "stats.measuring": "eb061557037c",
   "stats.title": "49a4cb95a7d6",
-  "stats.validators": "827a5da010f2"
+  "stats.validators": "827a5da010f2",
+  "steps.genesis": "7ea8ab09b29f",
+  "steps.rpc": "cd89c6a7d797",
+  "steps.subnet": "9aa9b3984bc8"
  },
  "it": {
   "common.close": "a3be8a9af8b7",
@@ -4439,6 +4494,8 @@
   "notFound.navLabel": "428e625585f9",
   "notFound.title": "d94c380a427d",
   "notFound.topPagesTitle": "95e89dd60a7c",
+  "presets.desc": "0abb39d1e86a",
+  "presets.name": "4a62e1e7eb34",
   "rebuild.alreadyDesc": "6e0a8e8130a8",
   "rebuild.alreadyTitle": "4c8dd6d9581a",
   "rebuild.badge": "424cda0ddf3d",
@@ -4497,7 +4554,10 @@
   "stats.l1Count": "852264652f4f",
   "stats.measuring": "f1ca21c5bf84",
   "stats.title": "b2196aef42c5",
-  "stats.validators": "3f52eaf02a6f"
+  "stats.validators": "3f52eaf02a6f",
+  "steps.genesis": "e86c7b9e93fa",
+  "steps.rpc": "5cd713c771c7",
+  "steps.subnet": "4aeb52c57a5e"
  },
  "ja": {
   "common.close": "3da5c1855151",
@@ -4814,6 +4874,8 @@
   "notFound.navLabel": "d96cac8efeed",
   "notFound.title": "86eb6fd7c4d2",
   "notFound.topPagesTitle": "f69fd493676c",
+  "presets.desc": "b028c28b1096",
+  "presets.name": "3323facf5852",
   "rebuild.alreadyDesc": "ae16eb1f6253",
   "rebuild.alreadyTitle": "1c80ef7f4dab",
   "rebuild.badge": "26b1734b0dab",
@@ -4872,7 +4934,10 @@
   "stats.l1Count": "61f269bb9835",
   "stats.measuring": "3cd7301102e1",
   "stats.title": "32a3f1ab66b2",
-  "stats.validators": "9d02b236f878"
+  "stats.validators": "9d02b236f878",
+  "steps.genesis": "855e92644f80",
+  "steps.rpc": "90e25309662f",
+  "steps.subnet": "f365fd091805"
  },
  "ko": {
   "common.close": "94b7dba15907",
@@ -5189,6 +5254,8 @@
   "notFound.navLabel": "7964b03b0853",
   "notFound.title": "2b3f994be4d2",
   "notFound.topPagesTitle": "c98a81e0154e",
+  "presets.desc": "b75245ab4b7f",
+  "presets.name": "9bc331837e74",
   "rebuild.alreadyDesc": "75a36267ef60",
   "rebuild.alreadyTitle": "2497ee324d08",
   "rebuild.badge": "cbbde6e01268",
@@ -5247,7 +5314,10 @@
   "stats.l1Count": "44f31914c50f",
   "stats.measuring": "65b4389d9320",
   "stats.title": "4f3f251060b5",
-  "stats.validators": "0788162fba1e"
+  "stats.validators": "0788162fba1e",
+  "steps.genesis": "52f902f54680",
+  "steps.rpc": "80c484bf2076",
+  "steps.subnet": "17603e6d49b1"
  },
  "mr": {
   "common.close": "476349261622",
@@ -5564,6 +5634,8 @@
   "notFound.navLabel": "16264d0dd34a",
   "notFound.title": "0a7b139fac49",
   "notFound.topPagesTitle": "c72e02c4dca3",
+  "presets.desc": "2d1451a5653d",
+  "presets.name": "8d2c7d85320b",
   "rebuild.alreadyDesc": "dc1a4f7b67cb",
   "rebuild.alreadyTitle": "e96598814aef",
   "rebuild.badge": "42ca9d879d90",
@@ -5622,7 +5694,10 @@
   "stats.l1Count": "b3730a36bda3",
   "stats.measuring": "396f5f2a7492",
   "stats.title": "54c5bd2b8199",
-  "stats.validators": "28e9279a7cee"
+  "stats.validators": "28e9279a7cee",
+  "steps.genesis": "07cf8a4cc26d",
+  "steps.rpc": "bda04717d81e",
+  "steps.subnet": "1861cdbe667d"
  },
  "ms": {
   "common.close": "06cde76b08c5",
@@ -5939,6 +6014,8 @@
   "notFound.navLabel": "2f2a2b4ef379",
   "notFound.title": "e8ca040f885c",
   "notFound.topPagesTitle": "2445d5a54821",
+  "presets.desc": "5d2665a02dce",
+  "presets.name": "d135e1b6c4f8",
   "rebuild.alreadyDesc": "93ab428ac42f",
   "rebuild.alreadyTitle": "26950a73d3f4",
   "rebuild.badge": "4b9884ab2861",
@@ -5997,7 +6074,10 @@
   "stats.l1Count": "49b75b5d5414",
   "stats.measuring": "090624e050d2",
   "stats.title": "30c74f0e84f5",
-  "stats.validators": "c052bd8fab4c"
+  "stats.validators": "c052bd8fab4c",
+  "steps.genesis": "f714fc9678a8",
+  "steps.rpc": "cd89c6a7d797",
+  "steps.subnet": "4dfe70cafa0d"
  },
  "nl": {
   "common.close": "fe55d21027b7",
@@ -6314,6 +6394,8 @@
   "notFound.navLabel": "1475f4038339",
   "notFound.title": "8a5c43aad2d3",
   "notFound.topPagesTitle": "4002024ee1b0",
+  "presets.desc": "e1f1674c27de",
+  "presets.name": "c725466ea578",
   "rebuild.alreadyDesc": "f4e0cefd5040",
   "rebuild.alreadyTitle": "3dc59860a220",
   "rebuild.badge": "5e537652a618",
@@ -6372,7 +6454,10 @@
   "stats.l1Count": "2e9365c6f178",
   "stats.measuring": "c095beea967e",
   "stats.title": "2288157f107d",
-  "stats.validators": "371e13feccf2"
+  "stats.validators": "371e13feccf2",
+  "steps.genesis": "67df8b21d2f4",
+  "steps.rpc": "d015825e1e56",
+  "steps.subnet": "95209a7ebc13"
  },
  "pl": {
   "common.close": "7cf2ab82aaef",
@@ -6689,6 +6774,8 @@
   "notFound.navLabel": "38859a185597",
   "notFound.title": "7ed1e203bb88",
   "notFound.topPagesTitle": "8a84d71f97dc",
+  "presets.desc": "a7b576f0d73e",
+  "presets.name": "8ad9bf0bd19d",
   "rebuild.alreadyDesc": "9cd173a1a590",
   "rebuild.alreadyTitle": "c0e2ee7f8634",
   "rebuild.badge": "3885239c5612",
@@ -6747,7 +6834,10 @@
   "stats.l1Count": "5b0628ccf262",
   "stats.measuring": "a40bdbb022e7",
   "stats.title": "93e7cd011e7a",
-  "stats.validators": "142f1d5576a4"
+  "stats.validators": "142f1d5576a4",
+  "steps.genesis": "24bbccd325cb",
+  "steps.rpc": "ce7d91ed919e",
+  "steps.subnet": "9b8905ad79e2"
  },
  "pt": {
   "common.close": "7b2006fd7af8",
@@ -7064,6 +7154,8 @@
   "notFound.navLabel": "6e0caf694040",
   "notFound.title": "f47af0cb4987",
   "notFound.topPagesTitle": "7f333688b4e3",
+  "presets.desc": "00e2b441fd2f",
+  "presets.name": "6ba940f9fc94",
   "rebuild.alreadyDesc": "81b67603c4f3",
   "rebuild.alreadyTitle": "87a071a08a71",
   "rebuild.badge": "590c8a5b7c14",
@@ -7122,7 +7214,10 @@
   "stats.l1Count": "1328f6e2330f",
   "stats.measuring": "ed491ce7692d",
   "stats.title": "29f8abbc7b45",
-  "stats.validators": "821afa70808a"
+  "stats.validators": "821afa70808a",
+  "steps.genesis": "90ea4c011e60",
+  "steps.rpc": "b645febc090d",
+  "steps.subnet": "7bc1dcefdf98"
  },
  "ru": {
   "common.close": "4ae50d30739d",
@@ -7439,6 +7534,8 @@
   "notFound.navLabel": "0fea5bf245e6",
   "notFound.title": "3e9381a3cb04",
   "notFound.topPagesTitle": "8d7e2b5e1e62",
+  "presets.desc": "5ce47ad4c106",
+  "presets.name": "930c8d7c8079",
   "rebuild.alreadyDesc": "422e8edbc221",
   "rebuild.alreadyTitle": "14fe1fc16c64",
   "rebuild.badge": "e8ced0ea1d7c",
@@ -7497,7 +7594,10 @@
   "stats.l1Count": "b20c07c335df",
   "stats.measuring": "456b2f650dcc",
   "stats.title": "d7455ac878b3",
-  "stats.validators": "a8c56b4f4a41"
+  "stats.validators": "a8c56b4f4a41",
+  "steps.genesis": "b068911adce1",
+  "steps.rpc": "10a9462bec1d",
+  "steps.subnet": "08662f13cc99"
  },
  "sw": {
   "common.close": "b4401070b6a4",
@@ -7814,6 +7914,8 @@
   "notFound.navLabel": "1c0a07b4dc2b",
   "notFound.title": "c9876a4642ea",
   "notFound.topPagesTitle": "9a9794460895",
+  "presets.desc": "83b793459597",
+  "presets.name": "a8a78f68d240",
   "rebuild.alreadyDesc": "7a5db249832a",
   "rebuild.alreadyTitle": "bb8f64dadde5",
   "rebuild.badge": "19cd783b2615",
@@ -7872,7 +7974,10 @@
   "stats.l1Count": "88acd7742b2b",
   "stats.measuring": "5eb8359e7feb",
   "stats.title": "2369d0d1e4f2",
-  "stats.validators": "7f7762f7c7c8"
+  "stats.validators": "7f7762f7c7c8",
+  "steps.genesis": "30c57897267a",
+  "steps.rpc": "c8cdba74c6e9",
+  "steps.subnet": "d156725c3181"
  },
  "ta": {
   "common.close": "ac81bcc2d98f",
@@ -8189,6 +8294,8 @@
   "notFound.navLabel": "631ae89ce7ae",
   "notFound.title": "94724893bad0",
   "notFound.topPagesTitle": "1aea02a3c5ff",
+  "presets.desc": "74420b54e513",
+  "presets.name": "b15a0bf4eea1",
   "rebuild.alreadyDesc": "217d92620ba3",
   "rebuild.alreadyTitle": "04dcbd6142bb",
   "rebuild.badge": "31d2c022e40c",
@@ -8247,7 +8354,10 @@
   "stats.l1Count": "f174cbcf533c",
   "stats.measuring": "03db5163789f",
   "stats.title": "cc5c15bf5d14",
-  "stats.validators": "cdc7d139e316"
+  "stats.validators": "cdc7d139e316",
+  "steps.genesis": "dfd6ffdfcfcc",
+  "steps.rpc": "395dd73bd52d",
+  "steps.subnet": "b6664eb70b0c"
  },
  "te": {
   "common.close": "175805c69f4f",
@@ -8564,6 +8674,8 @@
   "notFound.navLabel": "a8648e6ccb22",
   "notFound.title": "c2fa9eb3fa07",
   "notFound.topPagesTitle": "0e497dce38f7",
+  "presets.desc": "795423ce9b29",
+  "presets.name": "4c5bcbe333f7",
   "rebuild.alreadyDesc": "70e3126a9903",
   "rebuild.alreadyTitle": "3cdbf88e0a76",
   "rebuild.badge": "bf7f7c6fb927",
@@ -8622,7 +8734,10 @@
   "stats.l1Count": "0a4d862ca384",
   "stats.measuring": "5eb186a9b530",
   "stats.title": "450a52d17dd6",
-  "stats.validators": "5d2b1584fa45"
+  "stats.validators": "5d2b1584fa45",
+  "steps.genesis": "bb87c0632191",
+  "steps.rpc": "ed9b914ee64a",
+  "steps.subnet": "10bb50b11e82"
  },
  "th": {
   "common.close": "96d79d763f12",
@@ -8939,6 +9054,8 @@
   "notFound.navLabel": "3dab88797d36",
   "notFound.title": "abaebb91f07e",
   "notFound.topPagesTitle": "c7bd9ea77270",
+  "presets.desc": "941b1080ffcc",
+  "presets.name": "ec98618995c6",
   "rebuild.alreadyDesc": "b2a6d1a7faf5",
   "rebuild.alreadyTitle": "29d9477d75e5",
   "rebuild.badge": "0672666339a8",
@@ -8997,7 +9114,10 @@
   "stats.l1Count": "8d0606672f1a",
   "stats.measuring": "c21b007d8f0a",
   "stats.title": "2e50ee61cf49",
-  "stats.validators": "d18f2a44f530"
+  "stats.validators": "d18f2a44f530",
+  "steps.genesis": "c489fe9679fe",
+  "steps.rpc": "9acdfd866698",
+  "steps.subnet": "ba4d6a3842f5"
  },
  "tl": {
   "common.close": "9cbab71cf795",
@@ -9314,6 +9434,8 @@
   "notFound.navLabel": "480d98ae0919",
   "notFound.title": "e453622ea203",
   "notFound.topPagesTitle": "faf24eaabce5",
+  "presets.desc": "9a1f990ff496",
+  "presets.name": "f4db42f8ce1f",
   "rebuild.alreadyDesc": "e3b259f2ea50",
   "rebuild.alreadyTitle": "6c5c9539dce1",
   "rebuild.badge": "427ac4835159",
@@ -9372,7 +9494,10 @@
   "stats.l1Count": "eb2d8cec5b31",
   "stats.measuring": "fc5d78647cf3",
   "stats.title": "694f6a2a958e",
-  "stats.validators": "74e55e73a293"
+  "stats.validators": "74e55e73a293",
+  "steps.genesis": "c6f72eca7b88",
+  "steps.rpc": "9bedf6af6289",
+  "steps.subnet": "6d94a63d1852"
  },
  "tr": {
   "common.close": "9e6ecd59558f",
@@ -9689,6 +9814,8 @@
   "notFound.navLabel": "c61d2a1b5843",
   "notFound.title": "d927658219ff",
   "notFound.topPagesTitle": "168bd07835c2",
+  "presets.desc": "05c50798c76c",
+  "presets.name": "a5737f5c7788",
   "rebuild.alreadyDesc": "d2c65570626e",
   "rebuild.alreadyTitle": "af53182af5fb",
   "rebuild.badge": "c878a0d4befc",
@@ -9747,7 +9874,10 @@
   "stats.l1Count": "8ca36024e68c",
   "stats.measuring": "c855c1c1a36b",
   "stats.title": "13d9c6cb4db8",
-  "stats.validators": "48cb613af1cd"
+  "stats.validators": "48cb613af1cd",
+  "steps.genesis": "661cc7eb57d3",
+  "steps.rpc": "103feda90556",
+  "steps.subnet": "1485f29c9a3c"
  },
  "uk": {
   "common.close": "a622766452d8",
@@ -10064,6 +10194,8 @@
   "notFound.navLabel": "a22cab280a0b",
   "notFound.title": "01b0ff31e5ff",
   "notFound.topPagesTitle": "bdec87f6d2a6",
+  "presets.desc": "a9e26be53a0b",
+  "presets.name": "e2aaa6880fcd",
   "rebuild.alreadyDesc": "2827725dc2e3",
   "rebuild.alreadyTitle": "0dc8586dc731",
   "rebuild.badge": "18f4e04b811c",
@@ -10122,7 +10254,10 @@
   "stats.l1Count": "e604d7dd060e",
   "stats.measuring": "160133729b02",
   "stats.title": "7095b835289b",
-  "stats.validators": "046e4055a2e8"
+  "stats.validators": "046e4055a2e8",
+  "steps.genesis": "3b8d445e52e0",
+  "steps.rpc": "fe9a2b1b8cc8",
+  "steps.subnet": "ab91ea66b281"
  },
  "ur": {
   "common.close": "2f0a2c520a55",
@@ -10439,6 +10574,8 @@
   "notFound.navLabel": "f8a7e1abdce7",
   "notFound.title": "4620e3544add",
   "notFound.topPagesTitle": "b07a61273943",
+  "presets.desc": "e041ab5897e9",
+  "presets.name": "f0b13b9370aa",
   "rebuild.alreadyDesc": "92ce09ccec6d",
   "rebuild.alreadyTitle": "e785c4ae5662",
   "rebuild.badge": "b3af5ff97b4f",
@@ -10497,7 +10634,10 @@
   "stats.l1Count": "c5a12ddcfd48",
   "stats.measuring": "9e16fe3eea3f",
   "stats.title": "e87d5a3bae9f",
-  "stats.validators": "c0c8cfdba598"
+  "stats.validators": "c0c8cfdba598",
+  "steps.genesis": "6474a085db36",
+  "steps.rpc": "8a2ba52ae36f",
+  "steps.subnet": "3ac6e152b7e9"
  },
  "vi": {
   "common.close": "d2b73ab2ada1",
@@ -10814,6 +10954,8 @@
   "notFound.navLabel": "0ec71687d32a",
   "notFound.title": "f6177bc9755f",
   "notFound.topPagesTitle": "d450142ed26a",
+  "presets.desc": "9649eb4d9ff8",
+  "presets.name": "86bb73988555",
   "rebuild.alreadyDesc": "166c7e62dfd8",
   "rebuild.alreadyTitle": "9f836e39ff2d",
   "rebuild.badge": "6d38474dff80",
@@ -10872,7 +11014,10 @@
   "stats.l1Count": "591fd01398f8",
   "stats.measuring": "6963bf9288a7",
   "stats.title": "9787b3455449",
-  "stats.validators": "9bf16cb73722"
+  "stats.validators": "9bf16cb73722",
+  "steps.genesis": "cc7c1fdbb91b",
+  "steps.rpc": "bb87c28ef8b5",
+  "steps.subnet": "8361f48ccbae"
  },
  "zh": {
   "common.close": "6c14bd7f6f9e",
@@ -11189,6 +11334,8 @@
   "notFound.navLabel": "aa9bb5025e59",
   "notFound.title": "f61b9e23b72b",
   "notFound.topPagesTitle": "78720b502a61",
+  "presets.desc": "711b72122a3c",
+  "presets.name": "2f9c811b037e",
   "rebuild.alreadyDesc": "d3e6cc925ed8",
   "rebuild.alreadyTitle": "6053ca1cd358",
   "rebuild.badge": "78cceb07f7d2",
@@ -11247,6 +11394,9 @@
   "stats.l1Count": "c3abde2bf979",
   "stats.measuring": "2e35d1e3123e",
   "stats.title": "af467c6468cb",
-  "stats.validators": "c102546d6057"
+  "stats.validators": "c102546d6057",
+  "steps.genesis": "c3e468ee38b8",
+  "steps.rpc": "cd2e12a53ed8",
+  "steps.subnet": "3b77c16999ef"
  }
 }

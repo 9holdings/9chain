@@ -169,8 +169,13 @@ export function isDefaultState(s: ListState): boolean {
 
 /* ──────────────────────────────────────────────────────────── filter · sort */
 
-export function presetOf(r: { presetName?: string; presetTen?: string }): string {
-  return (r.presetName ?? r.presetTen ?? '').trim();
+/**
+ * The type KEY of a record — the preset id when the record has one, the English name for
+ * records older than 2026-08-26. A key, not a label (labels live in `lib/serverText.ts`):
+ * it is what `#type=` carries and what grouping compares, so it must not depend on language.
+ */
+export function presetOf(r: { preset?: string; presetName?: string; presetTen?: string }): string {
+  return (r.preset ?? r.presetName ?? r.presetTen ?? '').trim();
 }
 
 export function ownerOf(r: { admin?: string }): string {

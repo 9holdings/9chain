@@ -33,6 +33,38 @@ export const fr: Dict = {
     stepPending: ' — en attente',
   },
 
+  presets: {
+    standard: {
+      name: 'Standard',
+      desc: 'Une chaîne EVM ordinaire. Le propriétaire reçoit tous les jetons du genesis et le droit de modifier les frais.',
+    },
+    'zero-fee': {
+      name: 'Frais quasi nuls',
+      desc: 'baseFee = 1 wei : une transaction paie exactement ce plancher (un transfert coûte 0,000000000000021 LOVE9). Idéal pour les jeux, les expériences et les chaînes internes. En contrepartie, presque rien ne freine le spam.',
+    },
+    'high-throughput': {
+      name: 'Haut débit',
+      desc: "Cinq fois plus de transactions par bloc (gasLimit de 60 millions au lieu de 12). Idéal pour les jeux, les plateformes d'échange et tout flux régulier de petites transactions. En contrepartie : des blocs plus lourds, et quiconque fait tourner un nœud de cette chaîne a besoin d'une machine plus puissante.",
+    },
+    mintable: {
+      name: 'Offre émettable',
+      desc: "Le propriétaire peut émettre davantage de jeton natif à tout moment via le précompilé 0x0200000000000000000000000000000000000001. L'offre n'est PAS fixe — quiconque utilise cette chaîne doit le savoir.",
+    },
+    'owner-deploy-only': {
+      name: 'Déploiement de contrats réservé au propriétaire',
+      desc: 'Les autres peuvent toujours envoyer des transactions et utiliser les contrats existants, mais pas déployer les leurs. Le propriétaire accorde ce droit à qui il veut via le précompilé 0x0200000000000000000000000000000000000000.',
+    },
+    permissioned: {
+      name: 'Sous permission (expéditeurs approuvés uniquement)',
+      desc: "Seules les adresses listées peuvent ENVOYER des transactions. Adapté à la chaîne interne d'une entreprise. ⚠️ C'est le préréglage le plus strict : un portefeuille inconnu qui arrive ici ne peut rien faire.",
+    },
+  },
+  steps: {
+    genesis: 'Construction du genesis',
+    subnet: 'Création du sous-réseau et de la chaîne sur la P-Chain',
+    rpc: 'En attente de réponse du RPC de la L1',
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',

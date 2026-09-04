@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Field, Badge, Skeleton, ErrorState, Note, Copyable, EmptyState, Steps, type Step } from '@/components/ui';
 import { shortenAddress } from '@/lib/eip55';
 import { OpenInWallet } from '@/components/OpenInWallet';
+import { presetLabelOf, localiseSteps } from '@/lib/serverText';
 import { symbolOf } from '@/lib/l1-symbol';
 import { rpcOrigin } from '@/lib/chain';
 import { interpolate, useT } from '@/lib/i18n';
@@ -12,7 +13,7 @@ import { getWallet, connectWallet, siweSignIn, callConsole, addL1ToWallet, waitF
 
 type Chain = {
   name: string; chainId: number; subnetID: string; blockchainID: string;
-  admin?: string; presetName?: string; presetTen?: string; rpc?: string; symbol?: string;
+  admin?: string; preset?: string; presetName?: string; presetTen?: string; rpc?: string; symbol?: string;
 };
 type TrangThai = { tran: number; chains: Chain[]; retired: Chain[]; viDangNhap: string | null };
 type Progress = { running: boolean; steps: Step[]; etaSeconds: number };
@@ -209,7 +210,7 @@ export function MyChainsScreen() {
         <div className="mt-4">
           {progress?.steps?.length ? (
             <Steps
-              steps={progress.steps}
+              steps={localiseSteps(t, progress.steps)}
               footnote={progress.etaSeconds
                 ? interpolate(t.launch.etaRemaining, { minutes: Math.max(1, Math.ceil(progress.etaSeconds / 60)) })
                 : undefined}
@@ -265,7 +266,7 @@ export function MyChainsScreen() {
                         <span className="ms-2 font-mono text-xs font-normal text-muted">#{c.chainId}</span>
                       </h2>
                       <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
-                        {(c.presetName ?? c.presetTen) && <Badge>{c.presetName ?? c.presetTen}</Badge>}
+                        {presetLabelOf(t, c) && <Badge>{presetLabelOf(t, c)}</Badge>}
                         {v === undefined || v === 'dang' ? (
                           <span className="text-muted">{t.myChains.measuring}</span>
                         ) : v === 'errors' ? (

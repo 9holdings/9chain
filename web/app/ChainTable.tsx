@@ -7,6 +7,7 @@ import { useT, useLanguage } from '@/lib/i18n';
 import { interpolate } from '@/lib/i18n/interpolate';
 import { formatNumber } from '@/lib/numbers';
 import { readDirectory, type ChainRecord } from '@/lib/directory';
+import { presetLabelOf } from '@/lib/serverText';
 import { sortEntries, type Entry } from '@/lib/directoryModel';
 import { symbolOf } from '@/lib/l1-symbol';
 
@@ -143,7 +144,7 @@ export function ChainTable() {
                   <span className="ms-2 font-mono text-xs font-normal text-muted">#{c.chainId}</span>
                 </th>
                 <td className="px-4 py-3 text-body-2">
-                  {(c.presetName ?? c.presetTen) ? <Badge>{c.presetName ?? c.presetTen}</Badge> : <span className="text-muted">—</span>}
+                  {presetLabelOf(t, c) ? <Badge>{presetLabelOf(t, c)}</Badge> : <span className="text-muted">—</span>}
                 </td>
                 <td className="px-4 py-3 font-mono text-xs text-body-2">
                   {typeof c.admin === 'string' && c.admin.trim() ? (

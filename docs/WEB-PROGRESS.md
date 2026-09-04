@@ -420,3 +420,10 @@ dịch từ tiếng Anh, đã khai `review: 'machine'`. Bản Việt dưới đ�
 | `home.disclosure` 🔴 *(đổi `04/09` — mạng 11 validator, khách thứ hai vào)* | 9 trong số 11 validator chạy trên cùng một máy chủ, cùng một nhà cung cấp; hai validator còn lại tham gia từ nơi khác, và chỉ một trong hai đang trực tuyến — phân tán về giao thức, chưa phân tán về hạ tầng. |
 | `common.noWalletMobile` *(thêm `04/09` — khách dùng điện thoại không thể "cài MetaMask rồi tải lại")* | Trình duyệt trên điện thoại không cài được tiện ích ví. Hãy mở trang này bên trong app MetaMask — trình duyệt có sẵn trong app đã có ví. |
 | `common.openInMetaMask` | Mở trong app MetaMask |
+| `presets.standard` *(thêm `04/09` — chữ console gửi ra, nay dịch theo MÃ)* | Tiêu chuẩn · Một chain EVM thường. Chủ chain nhận toàn bộ token genesis và quyền chỉnh phí. |
+| `presets.zero-fee` | Phí gần bằng 0 · baseFee = 1 wei, giao dịch trả đúng mức sàn đó (một lượt chuyển tốn 0,000000000000021 LOVE9). Hợp cho game, thử nghiệm và chain nội bộ. Đổi lại: gần như không có gì cản spam. |
+| `presets.high-throughput` | Thông lượng cao · Mỗi block chứa gấp năm lần số giao dịch (gasLimit 60 triệu thay vì 12 triệu). Hợp cho game, sàn giao dịch, mọi thứ có dòng giao dịch nhỏ đều đặn. Đổi lại: block nặng hơn, và ai chạy node cho chain này cần máy mạnh hơn. |
+| `presets.mintable` | Cung có thể in thêm · Chủ chain có thể in thêm token gốc bất cứ lúc nào qua precompile 0x02…01. Tổng cung KHÔNG cố định — ai dùng chain này cần biết điều đó. |
+| `presets.owner-deploy-only` | Chỉ chủ chain được triển khai hợp đồng · Mọi người khác vẫn gửi được giao dịch và dùng hợp đồng có sẵn, nhưng không triển khai hợp đồng riêng được. Chủ chain cấp quyền đó cho bất kỳ ai qua precompile 0x02…00. |
+| `presets.permissioned` | Có kiểm soát (chỉ ví được duyệt mới gửi) · Chỉ địa chỉ trong danh sách mới GỬI được giao dịch. Hợp cho chain nội bộ của công ty. ⚠️ Đây là kiểu chặt nhất: một ví lạ vào đây không làm được gì cả. |
+| `steps.genesis` / `.subnet` / `.rpc` | Đang dựng genesis · Đang tạo subnet + blockchain trên P-Chain · Đang chờ RPC của L1 trả lời |

@@ -32,6 +32,38 @@ export const pl: Dict = {
     stepPending: ' — oczekuje',
   },
 
+  presets: {
+    standard: {
+      name: 'Standardowy',
+      desc: 'Zwykły łańcuch EVM. Właściciel otrzymuje wszystkie tokeny z genesis i prawo zmiany opłat.',
+    },
+    'zero-fee': {
+      name: 'Niemal zerowe opłaty',
+      desc: 'baseFee = 1 wei, więc transakcja płaci dokładnie to minimum (przelew kosztuje 0,000000000000021 LOVE9). Dobre do gier, eksperymentów i łańcuchów wewnętrznych. Cena: prawie nic nie powstrzymuje spamu.',
+    },
+    'high-throughput': {
+      name: 'Wysoka przepustowość',
+      desc: 'Pięć razy więcej transakcji na blok (gasLimit 60 mln zamiast 12 mln). Dobre do gier, giełd i wszystkiego ze stałym strumieniem małych transakcji. Cena: cięższe bloki, a kto prowadzi węzeł tego łańcucha, potrzebuje mocniejszej maszyny.',
+    },
+    mintable: {
+      name: 'Dobijalna podaż',
+      desc: 'Właściciel może w każdej chwili wybić więcej natywnego tokena przez prekompilat 0x0200000000000000000000000000000000000001. Podaż NIE jest stała — każdy, kto używa tego łańcucha, musi o tym wiedzieć.',
+    },
+    'owner-deploy-only': {
+      name: 'Wdrażanie kontraktów tylko przez właściciela',
+      desc: 'Pozostali nadal mogą wysyłać transakcje i korzystać z istniejących kontraktów, ale nie mogą wdrażać własnych. Właściciel nadaje to prawo komukolwiek przez prekompilat 0x0200000000000000000000000000000000000000.',
+    },
+    permissioned: {
+      name: 'Z uprawnieniami (tylko zatwierdzeni nadawcy)',
+      desc: 'Tylko adresy z listy mogą WYSYŁAĆ transakcje. Odpowiednie dla wewnętrznego łańcucha firmy. ⚠️ To najsurowszy preset: nieznany portfel nie zrobi tu nic.',
+    },
+  },
+  steps: {
+    genesis: 'Budowanie genesis',
+    subnet: 'Tworzenie podsieci i łańcucha na P-Chain',
+    rpc: 'Oczekiwanie na odpowiedź RPC tego L1',
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',

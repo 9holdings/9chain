@@ -33,6 +33,38 @@ export const id: Dict = {
     stepPending: ' — menunggu',
   },
 
+  presets: {
+    standard: {
+      name: 'Standar',
+      desc: 'Chain EVM biasa. Pemilik menerima seluruh token genesis dan hak mengubah biaya.',
+    },
+    'zero-fee': {
+      name: 'Biaya nyaris nol',
+      desc: 'baseFee = 1 wei, jadi transaksi membayar tepat batas bawah itu (satu transfer berbiaya 0,000000000000021 LOVE9). Cocok untuk game, eksperimen, dan chain internal. Imbalannya: hampir tidak ada yang menahan spam.',
+    },
+    'high-throughput': {
+      name: 'Throughput tinggi',
+      desc: 'Lima kali lebih banyak transaksi per blok (gasLimit 60 juta, bukan 12 juta). Cocok untuk game, bursa, dan apa pun dengan aliran transaksi kecil yang stabil. Imbalannya: blok lebih berat, dan siapa pun yang menjalankan node untuk chain ini butuh mesin lebih kuat.',
+    },
+    mintable: {
+      name: 'Pasokan dapat dicetak',
+      desc: 'Pemilik dapat mencetak token native tambahan kapan saja lewat precompile 0x0200000000000000000000000000000000000001. Pasokan TIDAK tetap — siapa pun yang memakai chain ini harus tahu itu.',
+    },
+    'owner-deploy-only': {
+      name: 'Hanya pemilik yang boleh men-deploy kontrak',
+      desc: 'Orang lain tetap bisa mengirim transaksi dan memakai kontrak yang ada, tetapi tidak bisa men-deploy kontrak sendiri. Pemilik memberikan hak itu kepada siapa pun lewat precompile 0x0200000000000000000000000000000000000000.',
+    },
+    permissioned: {
+      name: 'Berizin (hanya pengirim yang disetujui)',
+      desc: 'Hanya alamat terdaftar yang bisa MENGIRIM transaksi. Cocok untuk chain internal perusahaan. ⚠️ Ini preset paling ketat: dompet asing yang tiba di sini tidak bisa berbuat apa-apa.',
+    },
+  },
+  steps: {
+    genesis: 'Membangun genesis',
+    subnet: 'Membuat subnet + blockchain di P-Chain',
+    rpc: 'Menunggu RPC L1 menjawab',
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',

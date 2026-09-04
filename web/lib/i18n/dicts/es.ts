@@ -33,6 +33,38 @@ export const es: Dict = {
     stepPending: ' — pendiente',
   },
 
+  presets: {
+    standard: {
+      name: 'Estándar',
+      desc: 'Una cadena EVM normal. El propietario recibe todos los tokens del génesis y el derecho a cambiar las comisiones.',
+    },
+    'zero-fee': {
+      name: 'Comisiones casi nulas',
+      desc: 'baseFee = 1 wei, así que una transacción paga exactamente ese mínimo (una transferencia cuesta 0,000000000000021 LOVE9). Ideal para juegos, experimentos y cadenas internas. A cambio: casi nada frena el spam.',
+    },
+    'high-throughput': {
+      name: 'Alto rendimiento',
+      desc: 'Cinco veces más transacciones por bloque (gasLimit de 60 millones en vez de 12). Ideal para juegos, exchanges y cualquier cosa con un flujo constante de transacciones pequeñas. A cambio: bloques más pesados, y quien opere un nodo de esta cadena necesita una máquina más potente.',
+    },
+    mintable: {
+      name: 'Suministro acuñable',
+      desc: 'El propietario puede acuñar más token nativo en cualquier momento mediante el precompilado 0x0200000000000000000000000000000000000001. El suministro NO es fijo: quien use esta cadena debe saberlo.',
+    },
+    'owner-deploy-only': {
+      name: 'Despliegue de contratos solo por el propietario',
+      desc: 'Los demás pueden seguir enviando transacciones y usar los contratos existentes, pero no desplegar los suyos. El propietario concede ese derecho a quien quiera mediante el precompilado 0x0200000000000000000000000000000000000000.',
+    },
+    permissioned: {
+      name: 'Con permisos (solo remitentes aprobados)',
+      desc: 'Solo las direcciones de la lista pueden ENVIAR transacciones. Adecuado para la cadena interna de una empresa. ⚠️ Es el preajuste más estricto: un monedero desconocido que llegue aquí no puede hacer nada.',
+    },
+  },
+  steps: {
+    genesis: 'Construyendo el génesis',
+    subnet: 'Creando la subred y la cadena en la P-Chain',
+    rpc: 'Esperando a que responda el RPC de la L1',
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',

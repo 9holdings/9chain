@@ -33,6 +33,38 @@ export const tl: Dict = {
     stepPending: ' — naghihintay',
   },
 
+  presets: {
+    standard: {
+      name: 'Karaniwan',
+      desc: 'Isang karaniwang EVM chain. Natatanggap ng may-ari ang lahat ng genesis token at ang karapatang baguhin ang mga bayarin.',
+    },
+    'zero-fee': {
+      name: 'Halos walang bayarin',
+      desc: 'baseFee = 1 wei, kaya eksaktong ganoong pinakamababa lang ang binabayaran ng isang transaksyon (0.000000000000021 LOVE9 ang isang paglilipat). Angkop sa mga laro, eksperimento at panloob na chain. Ang kapalit: halos walang pumipigil sa spam.',
+    },
+    'high-throughput': {
+      name: 'Mataas na throughput',
+      desc: 'Limang beses na mas maraming transaksyon bawat block (gasLimit na 60 milyon sa halip na 12 milyon). Angkop sa mga laro, exchange at anumang may tuloy-tuloy na daloy ng maliliit na transaksyon. Ang kapalit: mas mabibigat na block, at mas malakas na makina ang kailangan ng magpapatakbo ng node para sa chain na ito.',
+    },
+    mintable: {
+      name: 'Supply na maaaring dagdagan',
+      desc: 'Maaaring mag-mint ang may-ari ng dagdag na native token anumang oras sa pamamagitan ng precompile 0x0200000000000000000000000000000000000001. HINDI nakapirmi ang supply — dapat itong malaman ng sinumang gumagamit ng chain na ito.',
+    },
+    'owner-deploy-only': {
+      name: 'May-ari lang ang maaaring mag-deploy ng kontrata',
+      desc: 'Maaari pa ring magpadala ng transaksyon at gumamit ng mga umiiral na kontrata ang iba, pero hindi sila makapag-deploy ng sarili nila. Ibinibigay ng may-ari ang karapatang iyon kaninuman sa pamamagitan ng precompile 0x0200000000000000000000000000000000000000.',
+    },
+    permissioned: {
+      name: 'May pahintulot (aprubadong nagpapadala lang)',
+      desc: 'Mga nakalistang address lang ang maaaring MAGPADALA ng transaksyon. Angkop sa panloob na chain ng isang kumpanya. ⚠️ Ito ang pinakamahigpit na preset: walang magagawa ang hindi kilalang wallet na darating dito.',
+    },
+  },
+  steps: {
+    genesis: 'Binubuo ang genesis',
+    subnet: 'Ginagawa ang subnet + blockchain sa P-Chain',
+    rpc: 'Hinihintay ang sagot ng L1 RPC',
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',

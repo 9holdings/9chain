@@ -33,6 +33,38 @@ export const de: Dict = {
     stepPending: ' — offen',
   },
 
+  presets: {
+    standard: {
+      name: 'Standard',
+      desc: 'Eine gewöhnliche EVM-Chain. Der Eigentümer erhält alle Genesis-Token und das Recht, die Gebühren zu ändern.',
+    },
+    'zero-fee': {
+      name: 'Nahezu keine Gebühren',
+      desc: 'baseFee = 1 wei, eine Transaktion zahlt genau diese Untergrenze (eine Überweisung kostet 0,000000000000021 LOVE9). Gut für Spiele, Experimente und interne Chains. Der Preis: fast nichts hält Spam auf.',
+    },
+    'high-throughput': {
+      name: 'Hoher Durchsatz',
+      desc: 'Fünfmal so viele Transaktionen pro Block (gasLimit 60 Millionen statt 12 Millionen). Gut für Spiele, Börsen und alles mit einem stetigen Strom kleiner Transaktionen. Der Preis: schwerere Blöcke, und wer einen Node für diese Chain betreibt, braucht eine stärkere Maschine.',
+    },
+    mintable: {
+      name: 'Nachprägbares Angebot',
+      desc: 'Der Eigentümer kann jederzeit über das Precompile 0x0200000000000000000000000000000000000001 weitere native Token prägen. Das Angebot ist NICHT fest – jeder, der diese Chain nutzt, muss das wissen.',
+    },
+    'owner-deploy-only': {
+      name: 'Vertragsbereitstellung nur durch den Eigentümer',
+      desc: 'Alle anderen können weiterhin Transaktionen senden und bestehende Verträge nutzen, aber keine eigenen bereitstellen. Der Eigentümer vergibt dieses Recht über das Precompile 0x0200000000000000000000000000000000000000 an beliebige Adressen.',
+    },
+    permissioned: {
+      name: 'Zugangsbeschränkt (nur freigegebene Absender)',
+      desc: 'Nur gelistete Adressen können Transaktionen SENDEN. Geeignet für eine firmeninterne Chain. ⚠️ Das strengste Preset: Eine unbekannte Wallet kann hier gar nichts tun.',
+    },
+  },
+  steps: {
+    genesis: 'Genesis wird gebaut',
+    subnet: 'Subnet + Blockchain werden auf der P-Chain angelegt',
+    rpc: 'Warten auf Antwort des L1-RPC',
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',

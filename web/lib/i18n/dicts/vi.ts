@@ -85,6 +85,38 @@ export const vi: Dict = {
     stepPending: ' — chờ',
   },
 
+  presets: {
+    standard: {
+      name: 'Tiêu chuẩn',
+      desc: 'Một chain EVM thường. Chủ chain nhận toàn bộ token genesis và quyền chỉnh phí.',
+    },
+    'zero-fee': {
+      name: 'Phí gần bằng 0',
+      desc: 'baseFee = 1 wei, giao dịch trả đúng mức sàn đó (một lượt chuyển tốn 0,000000000000021 LOVE9). Hợp cho game, thử nghiệm và chain nội bộ. Đổi lại: gần như không có gì cản spam.',
+    },
+    'high-throughput': {
+      name: 'Thông lượng cao',
+      desc: 'Mỗi block chứa gấp năm lần số giao dịch (gasLimit 60 triệu thay vì 12 triệu). Hợp cho game, sàn giao dịch, mọi thứ có dòng giao dịch nhỏ đều đặn. Đổi lại: block nặng hơn, và ai chạy node cho chain này cần máy mạnh hơn.',
+    },
+    mintable: {
+      name: 'Cung có thể in thêm',
+      desc: 'Chủ chain có thể in thêm token gốc bất cứ lúc nào qua precompile 0x0200000000000000000000000000000000000001. Tổng cung KHÔNG cố định — ai dùng chain này cần biết điều đó.',
+    },
+    'owner-deploy-only': {
+      name: 'Chỉ chủ chain được triển khai hợp đồng',
+      desc: 'Mọi người khác vẫn gửi được giao dịch và dùng hợp đồng có sẵn, nhưng không triển khai hợp đồng riêng được. Chủ chain cấp quyền đó cho bất kỳ ai qua precompile 0x0200000000000000000000000000000000000000.',
+    },
+    permissioned: {
+      name: 'Có kiểm soát (chỉ ví được duyệt mới gửi)',
+      desc: 'Chỉ địa chỉ trong danh sách mới GỬI được giao dịch. Hợp cho chain nội bộ của công ty. ⚠️ Đây là kiểu chặt nhất: một ví lạ vào đây không làm được gì cả.',
+    },
+  },
+  steps: {
+    genesis: 'Đang dựng genesis',
+    subnet: 'Đang tạo subnet + blockchain trên P-Chain',
+    rpc: 'Đang chờ RPC của L1 trả lời',
+  },
+
   /**
    * ═══ BẢN CÔNG BỐ SAU NGÀY G — VIẾT SẴN 2026-08-27, DÙNG NGÀY 01/09 ═══
    * (Đ1-12 W0. Đây chính là "bản nháp công bố" mà chú thích đầu `re-genesis/page.tsx`

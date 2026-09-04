@@ -33,6 +33,38 @@ export const ms: Dict = {
     stepPending: ' — menunggu',
   },
 
+  presets: {
+    standard: {
+      name: 'Standard',
+      desc: 'Rantaian EVM biasa. Pemilik menerima semua token genesis dan hak untuk menukar yuran.',
+    },
+    'zero-fee': {
+      name: 'Yuran hampir sifar',
+      desc: 'baseFee = 1 wei, jadi transaksi membayar tepat pada paras minimum itu (satu pemindahan berharga 0.000000000000021 LOVE9). Sesuai untuk permainan, eksperimen dan rantaian dalaman. Timbal baliknya: hampir tiada apa yang menghalang spam.',
+    },
+    'high-throughput': {
+      name: 'Daya pemprosesan tinggi',
+      desc: 'Lima kali ganda transaksi setiap blok (gasLimit 60 juta, bukan 12 juta). Sesuai untuk permainan, bursa dan apa sahaja dengan aliran transaksi kecil yang berterusan. Timbal baliknya: blok lebih berat, dan sesiapa yang menjalankan nod untuk rantaian ini memerlukan mesin yang lebih kuat.',
+    },
+    mintable: {
+      name: 'Bekalan boleh dicetak',
+      desc: 'Pemilik boleh mencetak lebih banyak token asli pada bila-bila masa melalui precompile 0x0200000000000000000000000000000000000001. Bekalan TIDAK tetap — sesiapa yang menggunakan rantaian ini perlu tahu perkara itu.',
+    },
+    'owner-deploy-only': {
+      name: 'Hanya pemilik boleh melancarkan kontrak',
+      desc: 'Orang lain masih boleh menghantar transaksi dan menggunakan kontrak sedia ada, tetapi tidak boleh melancarkan kontrak sendiri. Pemilik memberikan hak itu kepada sesiapa sahaja melalui precompile 0x0200000000000000000000000000000000000000.',
+    },
+    permissioned: {
+      name: 'Berkebenaran (hanya penghantar yang diluluskan)',
+      desc: 'Hanya alamat yang disenaraikan boleh MENGHANTAR transaksi. Sesuai untuk rantaian dalaman syarikat. ⚠️ Ini pratetap paling ketat: dompet asing yang tiba di sini tidak boleh berbuat apa-apa.',
+    },
+  },
+  steps: {
+    genesis: 'Membina genesis',
+    subnet: 'Mencipta subnet + blockchain di P-Chain',
+    rpc: 'Menunggu RPC L1 menjawab',
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',

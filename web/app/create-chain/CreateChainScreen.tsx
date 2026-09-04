@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Field, Badge, Skeleton, ErrorState, Note, Copyable, Steps, type Step } from '@/components/ui';
 import { shortenAddress } from '@/lib/eip55';
 import { OpenInWallet } from '@/components/OpenInWallet';
+import { presetText, localiseSteps } from '@/lib/serverText';
 import { symbolOf } from '@/lib/l1-symbol';
 import { interpolate, useT } from '@/lib/i18n';
 import { describeFailure } from '@/lib/net';
@@ -270,7 +271,7 @@ export function CreateChainScreen() {
                   >
                     {state.presets.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name}
+                        {presetText(t, p.id, p).name}
                       </option>
                     ))}
                   </select>
@@ -280,7 +281,7 @@ export function CreateChainScreen() {
                 {presetHienTai?.desc && (
                   // The description shows DIRECTLY UNDER the picker: genesis is immutable, so the
                   // user gets exactly one chance to read it.
-                  <p className="text-sm text-body-2">{presetHienTai.desc}</p>
+                  <p className="text-sm text-body-2">{presetText(t, presetHienTai.id, presetHienTai).desc}</p>
                 )}
               </div>
             </div>
@@ -314,7 +315,7 @@ export function CreateChainScreen() {
             <dl className="mt-5 flex flex-col gap-3">
               {[
                 { k: t.launch.reviewName, v: tenSach },
-                { k: t.launch.reviewType, v: presetHienTai?.name ?? preset },
+                { k: t.launch.reviewType, v: presetText(t, preset, presetHienTai).name },
                 { k: t.launch.reviewOwner, v: session?.diaChi ?? '' },
               ].map((x) => (
                 <div key={x.k} className="flex flex-col gap-1 border-b border-line-soft pb-3 last:border-0">
@@ -343,7 +344,7 @@ export function CreateChainScreen() {
             <div className="mt-5">
               {progress?.steps?.length ? (
                 <Steps
-                  steps={progress.steps}
+                  steps={localiseSteps(t, progress.steps)}
                   footnote={
                     progress.etaSeconds
                       ? interpolate(t.launch.etaRemaining, { minutes: Math.max(1, Math.ceil(progress.etaSeconds / 60)) })

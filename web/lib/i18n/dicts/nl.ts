@@ -33,6 +33,38 @@ export const nl: Dict = {
     stepPending: ' — wachtend',
   },
 
+  presets: {
+    standard: {
+      name: 'Standaard',
+      desc: 'Een gewone EVM-chain. De eigenaar ontvangt alle genesis-tokens en het recht om de kosten te wijzigen.',
+    },
+    'zero-fee': {
+      name: 'Vrijwel geen kosten',
+      desc: 'baseFee = 1 wei, dus een transactie betaalt precies dat minimum (een overboeking kost 0,000000000000021 LOVE9). Goed voor games, experimenten en interne chains. De prijs: bijna niets houdt spam tegen.',
+    },
+    'high-throughput': {
+      name: 'Hoge doorvoer',
+      desc: 'Vijf keer zoveel transacties per blok (gasLimit 60 miljoen in plaats van 12 miljoen). Goed voor games, beurzen en alles met een gestage stroom kleine transacties. De prijs: zwaardere blokken, en wie een node voor deze chain draait heeft een sterkere machine nodig.',
+    },
+    mintable: {
+      name: 'Bijmuntbaar aanbod',
+      desc: 'De eigenaar kan op elk moment meer native token munten via precompile 0x0200000000000000000000000000000000000001. Het aanbod ligt NIET vast — iedereen die deze chain gebruikt moet dat weten.',
+    },
+    'owner-deploy-only': {
+      name: 'Alleen de eigenaar zet contracten uit',
+      desc: 'Anderen kunnen nog steeds transacties sturen en bestaande contracten gebruiken, maar geen eigen contracten uitrollen. De eigenaar geeft dat recht aan wie hij wil via precompile 0x0200000000000000000000000000000000000000.',
+    },
+    permissioned: {
+      name: 'Met toestemming (alleen goedgekeurde verzenders)',
+      desc: 'Alleen adressen op de lijst kunnen transacties VERSTUREN. Geschikt voor een interne bedrijfschain. ⚠️ Dit is de strengste preset: een onbekende wallet kan hier helemaal niets.',
+    },
+  },
+  steps: {
+    genesis: 'Genesis wordt gebouwd',
+    subnet: 'Subnet + blockchain worden op de P-Chain aangemaakt',
+    rpc: 'Wachten tot de RPC van de L1 antwoordt',
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',

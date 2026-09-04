@@ -32,6 +32,38 @@ export const sw: Dict = {
     stepPending: ' — inasubiri',
   },
 
+  presets: {
+    standard: {
+      name: 'Kawaida',
+      desc: 'Mnyororo wa kawaida wa EVM. Mmiliki anapokea tokeni zote za genesis na haki ya kubadilisha ada.',
+    },
+    'zero-fee': {
+      name: 'Ada karibu sifuri',
+      desc: 'baseFee = 1 wei, hivyo muamala hulipa kiwango hicho cha chini kabisa (uhamisho mmoja hugharimu 0.000000000000021 LOVE9). Inafaa kwa michezo, majaribio na minyororo ya ndani. Gharama yake: karibu hakuna kinachozuia taka.',
+    },
+    'high-throughput': {
+      name: 'Upitishaji wa juu',
+      desc: 'Miamala mara tano zaidi kwa kila bloku (gasLimit milioni 60 badala ya milioni 12). Inafaa kwa michezo, soko za kubadilishana na chochote chenye mtiririko wa kudumu wa miamala midogo. Gharama yake: bloku nzito zaidi, na anayeendesha nodi ya mnyororo huu anahitaji mashine yenye nguvu zaidi.',
+    },
+    mintable: {
+      name: 'Ugavi unaoweza kuongezwa',
+      desc: 'Mmiliki anaweza kutengeneza tokeni asili zaidi wakati wowote kupitia precompile 0x0200000000000000000000000000000000000001. Ugavi HAUJAWEKWA thabiti — kila anayetumia mnyororo huu anapaswa kujua hilo.',
+    },
+    'owner-deploy-only': {
+      name: 'Mmiliki pekee ndiye huweka mikataba',
+      desc: 'Wengine bado wanaweza kutuma miamala na kutumia mikataba iliyopo, lakini hawawezi kuweka yao. Mmiliki hutoa haki hiyo kwa yeyote kupitia precompile 0x0200000000000000000000000000000000000000.',
+    },
+    permissioned: {
+      name: 'Ya ruhusa (watumaji walioidhinishwa pekee)',
+      desc: 'Anwani zilizoorodheshwa pekee ndizo zinaweza KUTUMA miamala. Inafaa kwa mnyororo wa ndani wa kampuni. ⚠️ Hii ndiyo mipangilio kali zaidi: pochi isiyojulikana ikifika hapa haiwezi kufanya chochote.',
+    },
+  },
+  steps: {
+    genesis: 'Inajenga genesis',
+    subnet: 'Inaunda subnet + blockchain kwenye P-Chain',
+    rpc: 'Inasubiri RPC ya L1 ijibu',
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',

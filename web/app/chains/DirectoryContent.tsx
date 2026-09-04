@@ -23,6 +23,9 @@ import {
   ownerOf,
   parseHash,
   presetOf,
+} from '@/lib/directoryModel';
+import { presetText, presetLabelOf } from '@/lib/serverText';
+import {
   runPool,
   serializeHash,
   sortEntries,
@@ -355,7 +358,9 @@ export function DirectoryContent() {
         // what a reader pastes into a wallet.
         return key ? (first ? ownerOf(first.record) : key) : t.home.systemDefault;
       case 'type':
-        return key ? key : d.groupNoType;
+        // The key is the preset id; the reader sees its translation (or the record's own
+        // English name for an id the dictionary does not know yet).
+        return key ? presetText(t, key, { name: first?.record.presetName ?? first?.record.presetTen }).name : d.groupNoType;
       case 'status':
         return describeVerdict(t, { verdict: key as Verdict, record: MAIN_RECORD, key, isMain: false, revoked: key === 'revoked' })[1];
       default:
@@ -461,7 +466,7 @@ export function DirectoryContent() {
                   <option value="">{d.filterTypeAll}</option>
                   {types.map((ty) => (
                     <option key={ty} value={ty}>
-                      {ty}
+                      {presetText(t, ty).name}
                     </option>
                   ))}
                 </Select>
@@ -667,7 +672,7 @@ function ChainRow({ e, open, toggle, code }: { e: Entry; open: boolean; toggle: 
   const d = t.directory;
   const [tone, label, why] = describeVerdict(t, e);
   const owner = ownerOf(e.record);
-  const preset = presetOf(e.record);
+  const preset = presetLabelOf(t, e.record);
   const created = toDate(e.record.createdAt);
   const revokedAt = toDate(e.record.revokedAt ?? e.record.thuHoiLuc);
   const symbol = symbolOf(e.record);

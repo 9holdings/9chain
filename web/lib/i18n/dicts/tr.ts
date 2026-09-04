@@ -33,6 +33,38 @@ export const tr: Dict = {
     stepPending: ' — bekliyor',
   },
 
+  presets: {
+    standard: {
+      name: 'Standart',
+      desc: 'Sıradan bir EVM zinciri. Sahibi tüm genesis tokenlarını ve ücretleri değiştirme hakkını alır.',
+    },
+    'zero-fee': {
+      name: 'Neredeyse sıfır ücret',
+      desc: 'baseFee = 1 wei; işlem tam olarak bu tabanı öder (bir transfer 0,000000000000021 LOVE9 tutar). Oyunlar, deneyler ve iç zincirler için uygundur. Bedeli: spam’i engelleyen neredeyse hiçbir şey yok.',
+    },
+    'high-throughput': {
+      name: 'Yüksek işlem hacmi',
+      desc: 'Blok başına beş kat fazla işlem (gasLimit 12 milyon yerine 60 milyon). Oyunlar, borsalar ve sürekli küçük işlem akışı olan her şey için uygundur. Bedeli: daha ağır bloklar; bu zincir için düğüm çalıştıran daha güçlü bir makineye ihtiyaç duyar.',
+    },
+    mintable: {
+      name: 'Basılabilir arz',
+      desc: 'Sahibi, 0x0200000000000000000000000000000000000001 önderlemesi üzerinden istediği zaman daha fazla yerel token basabilir. Arz sabit DEĞİLDİR — bu zinciri kullanan herkes bunu bilmelidir.',
+    },
+    'owner-deploy-only': {
+      name: 'Sözleşme dağıtımı yalnızca sahibine açık',
+      desc: 'Diğerleri yine işlem gönderebilir ve mevcut sözleşmeleri kullanabilir, ancak kendi sözleşmelerini dağıtamaz. Sahibi bu hakkı 0x0200000000000000000000000000000000000000 önderlemesi üzerinden dilediğine verir.',
+    },
+    permissioned: {
+      name: 'İzinli (yalnızca onaylı göndericiler)',
+      desc: 'Yalnızca listedeki adresler işlem GÖNDEREBİLİR. Bir şirketin iç zinciri için uygundur. ⚠️ En katı ön ayardır: buraya gelen tanınmayan bir cüzdan hiçbir şey yapamaz.',
+    },
+  },
+  steps: {
+    genesis: 'Genesis oluşturuluyor',
+    subnet: 'P-Chain üzerinde alt ağ + blokzincir oluşturuluyor',
+    rpc: 'L1 RPC’nin yanıtı bekleniyor',
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',

@@ -33,6 +33,38 @@ export const it: Dict = {
     stepPending: ' — in attesa',
   },
 
+  presets: {
+    standard: {
+      name: 'Standard',
+      desc: 'Una chain EVM normale. Il proprietario riceve tutti i token del genesis e il diritto di modificare le commissioni.',
+    },
+    'zero-fee': {
+      name: 'Commissioni quasi nulle',
+      desc: 'baseFee = 1 wei, quindi una transazione paga esattamente quel minimo (un trasferimento costa 0,000000000000021 LOVE9). Adatta a giochi, esperimenti e chain interne. In cambio: quasi nulla frena lo spam.',
+    },
+    'high-throughput': {
+      name: 'Alto throughput',
+      desc: 'Cinque volte più transazioni per blocco (gasLimit 60 milioni invece di 12). Adatta a giochi, exchange e a tutto ciò che ha un flusso costante di piccole transazioni. In cambio: blocchi più pesanti, e chi gestisce un nodo per questa chain ha bisogno di una macchina più potente.',
+    },
+    mintable: {
+      name: 'Offerta coniabile',
+      desc: "Il proprietario può coniare altro token nativo in qualsiasi momento tramite il precompilato 0x0200000000000000000000000000000000000001. L'offerta NON è fissa: chiunque usi questa chain deve saperlo.",
+    },
+    'owner-deploy-only': {
+      name: 'Deploy dei contratti riservato al proprietario',
+      desc: 'Gli altri possono ancora inviare transazioni e usare i contratti esistenti, ma non fare il deploy dei propri. Il proprietario concede quel diritto a chiunque tramite il precompilato 0x0200000000000000000000000000000000000000.',
+    },
+    permissioned: {
+      name: 'Con permessi (solo mittenti approvati)',
+      desc: "Solo gli indirizzi in elenco possono INVIARE transazioni. Adatta alla chain interna di un'azienda. ⚠️ È il preset più rigido: un wallet sconosciuto che arriva qui non può fare nulla.",
+    },
+  },
+  steps: {
+    genesis: 'Costruzione del genesis',
+    subnet: 'Creazione di subnet e blockchain sulla P-Chain',
+    rpc: "In attesa della risposta dell'RPC della L1",
+  },
+
   rebuildDone: {
     archiveUrl: '',
     archiveSha256: '',
