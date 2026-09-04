@@ -41,7 +41,7 @@ export function LoadTestBanner() {
         <span>{interpolate(t.loadTest.banner, { tps: formatNumber(tps, code) })}</span>
         <a
           href="/live/"
-          className="font-semibold text-gold-ink-strong underline underline-offset-2 hover:no-underline"
+          className="tap-target font-semibold text-gold-ink-strong underline underline-offset-2 hover:no-underline"
         >
           {t.loadTest.bannerLink}
         </a>
