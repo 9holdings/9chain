@@ -8748,3 +8748,79 @@ phía web là **từ chối đúng dạng nhiều công cụ phát ra**. (Cùng 
 **Luật rút ra:** một cổng đếm **nợ** không thấy được một **lỗ đang chảy**. Muốn biết người dùng đọc gì thì
 phải **hỏi sản phẩm và đọc câu nó trả về** — và cách rẻ nhất để làm việc đó hoá ra là **viết tài liệu bằng
 cách đo**, chứ không bằng cách đọc mã.
+
+---
+
+## D-188 — **P-59: thư viện hợp đồng trong genesis — KHÔNG STORAGE, tuỳ chọn TẮT mặc định, và nghiệm thu bằng cách CHẠY nó trong chính EVM của subnet-evm** (`2026-09-04` đêm, M4)
+
+Mốc M4. David chọn **bản không-storage** ở ngã ba của kế hoạch.
+
+**Vì sao không-storage, và đây là quyết định chứ không phải cắt xén.** Bản gốc của P-59 nói *"ERC-20 đã
+mint sẵn"*. Làm thế phải tự tính slot `keccak256(abi.encode(holder, 0))` rồi ghi thẳng vào `alloc[...].storage`,
+và **sai một slot là một token chết vĩnh viễn trong một genesis bất biến, không có đường sửa**. Thứ *đáng*
+nằm trong genesis không phải một **thể hiện** của token (nó thuộc về một người, một lúc) mà là **khuôn để
+đúc ra nó**. Nên genesis mang **CODE, không mang STATE**: chủ chain đúc token thật của mình bằng một giao
+dịch sau khi chain đã chạy.
+
+**Ba hợp đồng** (`local-net/contracts/genesis-lib/`, solc `0.8.26` ghim trong Docker, artifact commit vào
+`local-net/lib/l1-contracts.mjs`):
+
+| Địa chỉ | Hợp đồng | Byte |
+|---|---|---|
+| `0x0900…0001` | `Erc20` — bản dựng mẫu, `initialize` một lần cho mỗi storage | 2.177 |
+| `0x0900…0002` | `TokenFactory` — clone EIP-1167 + `create2`, `predict()` trả địa chỉ TRƯỚC khi tiêu gì | 1.118 |
+| `0x0900…0003` | `Multicall3` — gộp nhiều `eth_call` làm một | 3.466 |
+
+Dải `0x09…` là của 9Chain và **không thể đụng** precompile của EVM (`0x00…01-0a`) hay của subnet-evm (`0x0200…`).
+
+🔴 **TẮT MẶC ĐỊNH.** Bật cho tất cả sẽ thêm 6,7 KB và ba tài khoản vĩnh viễn vào mọi chain, và — phần quyết
+định — làm một genesis *"không tuỳ chọn gì"* **khác** với **11 chain đang sống**. Luật cả tệp `l1-options.mjs`
+theo là *tuỳ chọn vắng thì tái tạo đúng byte cũ* (P-56); chỗ này không có lý do gì để được miễn.
+Nhận `true`/`false`, **từ chối danh sách từng hợp đồng**: `TokenFactory` không có `Erc20` thì clone ra hư
+không, nên một tuỳ chọn mà cấu hình sai lại im lặng vô dụng thì tệ hơn là không có.
+
+**🔴 `constant` chứ KHÔNG `immutable`, và đây là cái bẫy đắt nhất của mốc này.** Genesis `alloc` cài **CODE**
+và **không chạy constructor**. `immutable` được ghi vào bytecode **BỞI** constructor ⇒ một factory đặt vào
+genesis với `immutable` sẽ mang một ô **toàn số 0**: mọi clone nó đẻ ra `delegatecall` vào **địa chỉ 0**,
+giao dịch **THÀNH CÔNG**, token là một cái vỏ trước hư không, và chain **không bao giờ sửa được**. `constant`
+được compiler nội tuyến sẵn nên không cần constructor. Cùng lý do đó: artifact mang **`bin-runtime`**, không
+bao giờ `bin`.
+
+**Nghiệm thu: `scripts/check-genesis-contracts.mjs` — 18 đạt · 0 đỏ, KHÔNG tiêu chỗ nào.**
+`local-net/tools/genesis-exec/main.go` dựng state từ `alloc` rồi **chạy các lời gọi trong chính EVM của
+subnet-evm**: `getChainId` · `implementation()` · `predict()` · `createToken` → `name/symbol/decimals/
+totalSupply/balanceOf` → `transfer` → cộng lại hai bên.
+
+🔴 **Và EVM làm mọi thứ nguy hiểm hơn: gọi vào một địa chỉ KHÔNG CÓ MÃ thì THÀNH CÔNG và trả về rỗng.** Nên
+*"không revert"* ở đây **không chứng minh gì**. Mọi khẳng định đọc **GIÁ TRỊ TRẢ VỀ**, và ca **R0** bỏ hẳn thư
+viện khỏi genesis để chứng minh các dấu xanh **không phải cho không** — R0 còn khẳng định luôn rằng lượt gọi
+đó **không** revert, tức nêu thẳng lý do vì sao phải đọc giá trị trả về.
+Ba ca ngược khác trên **cùng một state**: người lạ không `initialize` lại được token đang sống · chuyển quá
+số dư thì revert · cùng một `salt` không dùng lại được.
+
+**🔴 Ba lần đỏ vì SAI LÝ DO trong lượt này — mỗi lần là một bài học, không phải một lỗi gõ:**
+1. **Đối chứng "địa chỉ có nằm trong bytecode không" đỏ trên một bản build ĐÚNG.** Địa chỉ này có 17 byte 0
+   đầu ⇒ optimizer phát PUSH ngắn, 20 byte **không hề nằm trong mã** dưới dạng ấy. Đã đổi thành phép so ở
+   **NGUỒN**, còn phép đo *"mã có thật sự trỏ đúng đó không"* chuyển sang chỗ đo được: **gọi
+   `implementation()` trong EVM**.
+2. **Mọi lời gọi chết vì `invalid opcode: PUSH0`.** Harness đặt `Time = genesis.Timestamp + 1`, tức **1970**,
+   nên Shanghai chưa bật; solc 0.8.26 phát PUSH0. Hợp đồng **không sai gì**. Cùng hình dạng với bẫy
+   Warp/Durango của D-185: **bộ luật là hàm của THỜI GIAN**, và harness phải đứng đúng chỗ chain đứng ⇒ mặc
+   định là **BÂY GIỜ**.
+3. **Cổng in "7 đạt" trong lúc chưa có gì chạy cả.** `predict()` trả `null`, mọi `to` sau đó rỗng, và ca
+   *"createToken rơi đúng chỗ predict nói"* **so null với null rồi xanh**. Nay cổng **DỪNG** khi `predict()`
+   không trả địa chỉ, thay vì báo những dấu xanh so sánh **hai sự vắng mặt**.
+
+**Một điều khai thẳng thay vì để người khác phát hiện:** `Multicall3` ở đây **tương thích ABI**, biên dịch từ
+nguồn trong repo này, ở **địa chỉ của 9Chain**. Nó **KHÔNG trùng byte** với bản triển khai chính thống và
+**KHÔNG** ở `0xcA11bde0…` — địa chỉ đó được tái lập bằng cách phát lại một giao dịch đã ký, việc mà một
+genesis không làm được. Công cụ nào cắm cứng địa chỉ chính thống sẽ **không tìm thấy nó**. Câu này nằm trong
+`description.cannot` — tức **trên đúng màn hình người dùng ký**, không phải chỉ trong tài liệu.
+
+**Số đo:** `check-genesis-contracts` **18/0** · `check-genesis-verify` **21 → 23/0** (thêm genesis có thư
+viện) · `l1-options --self-test` **73 → 83/0** · `options-e2e` **46 → 56/0** (nhóm 6 đi **đường sản phẩm**) ·
+7 bộ kiểm console đều xanh · `check-deploy-imports` **bắt đúng** rằng console nhập `l1-contracts.mjs` mà
+manifest chưa mang — deploy lúc đó sẽ đẩy một console **không khởi động nổi**; đã thêm vào manifest.
+
+**Luật rút ra:** genesis cài **CODE** thì đừng bao giờ cho nó thứ cần **CONSTRUCTOR**; và với một tài sản bất
+biến, phép đo đáng tin duy nhất là **chạy nó**, ở nơi chạy được mà không tiêu gì.

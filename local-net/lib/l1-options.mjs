@@ -426,7 +426,28 @@ export function rewardModeOf(cfg) {
  * `console-chains.json` (an ADDED key, safe for `/chains/`). Everything in it is already public
  * in the genesis; this is the same information in a shape a directory page can show.
  */
-export function effectiveOptions(cfg, allocation) {
+/**
+ * P-59 — the genesis contract library, opt-in.
+ *
+ * 🔴 DEFAULT OFF, and that is a decision. Turning it on for everyone would add ~6.7 KB of code and
+ * three permanent accounts to every chain, and — the part that decides it — would make a genesis
+ * built with no options DIFFERENT from the eleven chains already alive. The rule the rest of this
+ * file follows is that absent options reproduce the old bytes exactly (P-56); nothing here earns an
+ * exception to that.
+ *
+ * Accepts `true` (the whole library) or `false`/absent (nothing). A list of individual contracts is
+ * deliberately NOT offered: `TokenFactory` is useless without `Erc20`, so the only combination worth
+ * having is all of it, and an option whose wrong settings are silently useless is worse than none.
+ *
+ * @returns {boolean} whether the library goes in
+ */
+export function parseContractLibrary(raw) {
+  if (raw === undefined || raw === null || raw === false) return false;
+  if (raw === true) return true;
+  throw new Error(`contracts must be true or false (got ${JSON.stringify(raw)}). The library goes in whole or not at all — TokenFactory without Erc20 would clone nothing.`);
+}
+
+export function effectiveOptions(cfg, allocation, contractLibrary = false) {
   const fc = cfg.feeConfig;
   return {
     fees: {
@@ -440,6 +461,7 @@ export function effectiveOptions(cfg, allocation) {
     ...(rewardModeOf(cfg) ? { rewardManager: rewardModeOf(cfg) } : {}),
     allocations: allocation.recipients,
     totalTokens: allocation.totalTokens,
+    ...(contractLibrary ? { contracts: true } : {}),
   };
 }
 
@@ -454,7 +476,7 @@ const GAS_PER_TRANSFER = 21_000;
  * person reads is what the node will run. `can` and `cannot` are separate lists on purpose:
  * the second list is the one people skip, and it is the one that matters for an immutable chain.
  */
-export function describeChain({ cfg, allocation, symbol, chainId, name }) {
+export function describeChain({ cfg, allocation, symbol, chainId, name, contractLibrary = false }) {
   const fc = cfg.feeConfig;
   const perBlock = Math.floor(Number(fc.gasLimit) / GAS_PER_TRANSFER);
   const perSecond = Math.floor(perBlock / Number(fc.targetBlockRate));
@@ -478,6 +500,15 @@ export function describeChain({ cfg, allocation, symbol, chainId, name }) {
   else if (reward.mode === "allowFeeRecipients") can.push("Validators keep the fees of the blocks they produce.");
   else can.push(`All transaction fees go to ${reward.rewardAddress}; the owner can change that later.`);
   if (cfg[PRECOMPILE_KEYS.warp]) can.push("Warp messaging is on — this chain can exchange signed messages with other 9Chain L1s.");
+
+  if (contractLibrary) {
+    can.push("A token factory and a Multicall3 are already installed, so the owner can create ERC-20 tokens with one transaction and indexers can batch their reads from the first block.");
+    // The honest half, in the list people skip, because a name is not a measurement: this is not
+    // the canonical Multicall3 deployment and tools that hard-code its address will not find it.
+    cannot.push("The installed Multicall3 is ABI-compatible but is NOT the canonical deployment and is NOT at 0xcA11bde0…; tools that hard-code that address will not find it here.");
+  } else {
+    cannot.push("No contracts are installed in the genesis. Anything the chain needs — a token, a multicall — has to be deployed after it is running, and cannot be added to the genesis later.");
+  }
 
   cannot.push("After creation nothing here can be changed except through the precompiles above: chain ID, name, genesis allocation and the set of enabled precompiles are permanent.");
   cannot.push("The chain occupies one of the network's 15 permanent L1 slots; revoking it frees the slot but never the name or chain ID.");
@@ -563,6 +594,26 @@ if (process.argv[1]?.endsWith("l1-options.mjs") && process.argv.includes("--self
   throwsWith("🔴 a mistyped key is refused, naming the right one", () => applyFees(fb, { gaslimit: 12000000 }), 'did you mean "gasLimit"');
   throwsWith("🔴 a non-integer", () => applyFees(fb, { gasLimit: 12000000.5 }), "whole number");
   throwsWith("🔴 fees given as a list", () => applyFees(fb, [1]), "must be an object");
+
+  console.log("\n── P-59 contract library (opt-in) ──");
+  ok("absent ⇒ off, so a genesis with no options is unchanged", parseContractLibrary(undefined) === false);
+  ok("false ⇒ off", parseContractLibrary(false) === false);
+  ok("true ⇒ on", parseContractLibrary(true) === true);
+  throwsWith("🔴 a list is refused — the library goes in whole or not at all", () => parseContractLibrary(["erc20"]), "whole or not at all");
+  throwsWith('🔴 the string "true" is not true', () => parseContractLibrary("true"), "must be true or false");
+  ok("off ⇒ effectiveOptions carries no `contracts` key at all (not `false`)",
+    !("contracts" in effectiveOptions(freshCfg(), { recipients: [], totalTokens: 0n }, false)));
+  ok("on ⇒ effectiveOptions records it", effectiveOptions(freshCfg(), { recipients: [], totalTokens: 0n }, true).contracts === true);
+  {
+    const args = { cfg: freshCfg(), allocation: { recipients: [{ address: A, tokens: "1" }], totalTokens: 1n }, symbol: "T", chainId: 1, name: "T" };
+    const off = describeChain(args);
+    const on = describeChain({ ...args, contractLibrary: true });
+    ok("🔴 off ⇒ CANNOT says the genesis carries no contracts and none can be added later",
+      off.cannot.some((s) => s.includes("No contracts are installed")));
+    ok("on ⇒ CAN names the factory and the multicall", on.can.some((s) => s.includes("token factory")));
+    ok("🔴 on ⇒ CANNOT admits the Multicall3 is not the canonical one — the honest half, in the list people skip",
+      on.cannot.some((s) => s.includes("NOT the canonical deployment")));
+  }
 
   console.log("\n── verifyFeeConfig — port of commontype/fee_config.go ──");
   ok("the template passes", verifyFeeConfig(freshCfg().feeConfig) === true);

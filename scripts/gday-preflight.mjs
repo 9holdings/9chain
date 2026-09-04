@@ -176,6 +176,12 @@ const GATES = [
   // paid transaction on one of 15 permanent slots. Exits 2 when Docker or the fork tree is absent,
   // so a missing toolchain reads as "could not run", never as "passed".
   { group: "2 · REPO GATES", name: "console genesis survives the real Genesis.Verify()", ...node("scripts/check-genesis-verify.mjs") },
+  // 🔴 P-59. `Genesis.Verify()` says a document is acceptable; it says nothing about whether the
+  // CONTRACTS in `alloc` work. And the EVM answers a call to an empty account with success and
+  // empty data, so "it did not revert" proves nothing either. This one builds the genesis state
+  // and RUNS the library — create a token, read it back, move a balance — in subnet-evm's own EVM,
+  // with a control that removes the library to prove the greens are not free (D-188).
+  { group: "2 · REPO GATES", name: "the genesis contract library actually works from block zero", ...node("scripts/check-genesis-contracts.mjs") },
   // Documentation drift. The counter-check half is offline and lives here; the half that MEASURES
   // is in group 3, because deciding a number is dead requires asking the running chain what is
   // alive — never a constant copied into the gate (D-110).

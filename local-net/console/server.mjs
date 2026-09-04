@@ -18,9 +18,10 @@ import { parseEvmAddress } from "../lib/eip55.mjs";
 import { parseAllowlist, mayCreateL1 } from "../lib/l1-allowlist.mjs";
 import { apDungPreset, danhSachPreset } from "../lib/presets.mjs";
 import { validateSymbol, symbolFromName } from "../lib/l1-symbol.mjs";
+import { libraryAlloc, CONTRACTS as GENESIS_CONTRACTS } from "../lib/l1-contracts.mjs";
 import {
   parseAllocations, applyFees, applyPrecompiles, verifyFeeConfig, assertPresetCompatible,
-  effectiveOptions, describeChain, LIMITS, SELECTABLE_PRECOMPILES, REWARD_MODES,
+  effectiveOptions, describeChain, parseContractLibrary, LIMITS, SELECTABLE_PRECOMPILES, REWARD_MODES,
 } from "../lib/l1-options.mjs";
 import {
   planUpgrade, activePrecompiles, upgradeShape, encodeReadAllowList, decodeRole, ownerTransferVerdict,
@@ -955,7 +956,7 @@ async function createChain(tham) {
  * queue so nothing changes between the two, but preview runs outside it, and a plan must never be
  * launched later from a stale read — the plan is not a reservation.
  */
-async function planChain({ name, chainId, admin, preset, symbol, allocations, fees, precompiles }) {
+async function planChain({ name, chainId, admin, preset, symbol, allocations, fees, precompiles, contracts }) {
   // Cổng thứ hai, ngay sau cổng rẻ nhất: console có đang đứng đúng thế hệ mạng
   // không. Đặt TRƯỚC mọi phép kiểm tên/hạn mức/khoá vì một chainId phát nhầm thế
   // hệ là thứ **không thu hồi được** — thu hồi chain không trả lại số nhận dạng.
@@ -1145,10 +1146,22 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
   // a non-zero balance, or nobody could ever govern the chain.
   const allocation = parseAllocations(allocations, ADMIN, parseEvmAddress);
   tpl.alloc = allocation.alloc;
-  const options = effectiveOptions(tpl.config, allocation);
+  // P-59: the contract library, opt-in. It is merged AFTER the user's allocation on purpose — the
+  // library's three addresses are in a 0x09… range no wallet can hold a key for, so a collision is
+  // impossible, but merging in this order means a future collision would be visible as an
+  // overwrite here rather than as a silently missing contract on a chain nobody can fix.
+  const withLibrary = parseContractLibrary(contracts);
+  if (withLibrary) {
+    for (const [addr, entry] of Object.entries(libraryAlloc())) {
+      if (tpl.alloc[addr]) throw new Error(`contracts: address 0x${addr} is both a genesis recipient and a library contract — refusing to overwrite one with the other.`);
+      tpl.alloc[addr] = entry;
+    }
+  }
+  const options = effectiveOptions(tpl.config, allocation, withLibrary);
   const description = describeChain({
     cfg: tpl.config, allocation, chainId, name,
     symbol: SYMBOL ?? symbolFromName(name),
+    contractLibrary: withLibrary,
   });
 
   return { name, chainId, ADMIN, SYMBOL, presetDaAp, tpl, options, description };
@@ -1713,6 +1726,9 @@ const server = http.createServer(async (req, res) => {
         limits: JSON.parse(JSON.stringify(LIMITS, (_, v) => typeof v === "bigint" ? v.toString() : v)),
         selectablePrecompiles: SELECTABLE_PRECOMPILES,
         rewardModes: REWARD_MODES,
+        // P-59: what `contracts: true` would install, so a page can name the addresses and the
+        // size instead of hard-coding them. `bytes` is the honest cost of the option.
+        contractLibrary: Object.fromEntries(Object.entries(GENESIS_CONTRACTS).map(([k, c]) => [k, { address: c.address, bytes: c.bytes }])),
       });
     }
 
