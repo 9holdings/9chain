@@ -8,8 +8,8 @@ giữ nguyên bên dưới nó.
 🔴 **`2026-09-04`: `official/main` ĐÃ ĐƯỢC LỌC LẠI LỊCH SỬ (`fbfb3ff → 7f25b34`, 436 → 428 commit) — `git push official`
 TỪ NAY HỎNG non-fast-forward, và ĐỪNG force-push** (force là đưa cả runbook vận hành trở lại Internet). David chốt:
 repo công khai không mang `local-net/deploy/**`, `docs/DEPLOY-KSGAME.md`, `"$A1_SSH_HOST"`, `"$A1_SSH_KEY"`.
-Đường công bố duy nhất: `bash local-net/deploy/publish-official.sh <nhánh đích> [ref nguồn]` — script ở nhánh `web-home`,
-**chưa có trên `main`**. `main` cục bộ (`34e04cd`, 20 commit chưa công bố) không còn tổ tiên chung với `official/main`:
+Đường công bố duy nhất: `bash local-net/deploy/publish-official.sh <nhánh đích> [ref nguồn]` — **nay có trên `main`**
+(bản Anh, bảng thay thế ở `publish-official.replace.txt`). ✅ **Đã công bố `04/09`: `7f25b34..4e0438e`, 21 commit, fast-forward** (D-182). `main` không có tổ tiên chung với `official/main`:
 **đừng `git pull official`**. `origin` (riêng tư) giữ nguyên; ref công khai cũ ở `origin/backup/official-*-20260904`.
 Đối chứng `04/09` từ phiên này: `official/main` 0 commit đụng `local-net/deploy`, 0 blob có chuỗi ssh; `main` còn 12 tệp.
 Trước đó **2026-09-02** chiều — 🟢🟢 **CHẶN SỐ 1 HẾT CHẶN: `genesis.json` NAY TẢI ĐƯỢC TỪ NGOÀI**
