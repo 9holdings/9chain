@@ -22,6 +22,41 @@ Cổng mới thường trực trong `web-deploy.sh`: mọi tài nguyên HTML tha
 `?dpl=` phải có · **`check-server-text.mjs`** đo dữ liệu danh bạ SỐNG (console ở `main` deploy
 riêng, `web/` không thấy nó đổi) · số tệp khớp. Test **176, đỏ 1** — vẫn là vân tay token cũ.
 
+### ✅ TRANG 404 SỐNG LẠI `2026-09-04` (đêm) — Caddy `a577ef8` · công khai `847ec80`
+
+**Trang 404 mang thương hiệu đã CHẾT LẶNG từ ngày Blockscout bị gỡ**, và chết theo một
+cách đáng nhớ hơn cả cái chết.
+
+| | |
+|---|---|
+| Đo trên server | **không gì nghe ở `127.0.0.1:8100`** · `docker ps -a` **không còn container Blockscout nào** (bị XOÁ, không phải dừng) |
+| Đo từ ngoài | `/khong-co-trang-nay/` · `/abc` · `/tx/<hash>` đều **502 text/plain**, trong khi `/404.html` vẫn **200** |
+| 🔴 Vì sao | Trang 404 nằm TRONG `handle_response @loi404` của `reverse_proxy` gốc. **`handle_response` chỉ chạy khi upstream CÓ TRẢ LỜI** — upstream không tồn tại thì Caddy hỏng ở bước nối, trả 502, và nhánh dựng trang 404 không bao giờ tới lượt |
+
+🔴 **Bài học, đắt hơn cái lỗi:** một trang lỗi **không được là nhánh trong lời đáp của
+dịch vụ khác** — nó chết cùng dịch vụ đó. Trang lỗi phải là đường **ít phụ thuộc nhất**
+trên site. Và cả bộ test của chính trang này vẫn xanh suốt, vì chúng đọc **nội dung** tệp
+mà không ai đọc **hình dạng**.
+
+**Đã sửa:** gốc tự `respond … 404`, không nối đi đâu. `/api/*` + `/socket/*` cũng vậy,
+nhưng trả **JSON 404** khai đường mới (`a1.9scan.org`) — 502 nói "hỏng, thử lại sau" nên
+một client tử tế sẽ **thử lại mãi** vào một endpoint không bao giờ quay lại.
+
+**Cổng mới thay cổng cũ:** bài kiểm cũ đòi `@loi404 status 404` — tức đòi **đúng cái cơ
+chế đã hỏng**. Nay là bài cấm trang 404 bị lồng lại vào `reverse_proxy`/`handle_response`.
+Đã thấy **ĐỎ đúng lý do** (nhét lại vào là đỏ, kèm câu giải thích), rồi xanh.
+
+Nghiệm thu sau deploy: đường lạ + `/tx/` + `/address/` ra 404 mang thương hiệu · `/api/v2/*`
+ra JSON 404 · và **13 đường không được hỏng** (`/` faucet chains create-chain my-chains
+compare live re-genesis 404.html version.txt robots.txt `/chains/data/*.json`
+`/faucet/api/info`) đều còn 200. Trang 404 ở 375px: 0 tràn, 3 nút đều **45px**.
+
+⚠️ `caddy-deploy.sh` vẫn báo ✗ cho `testnet-a1.*` (525) — **tên miền cũ chết từ trước**,
+không do lượt này. `A1_ROOT_UPSTREAM` trong `caddy.env` nay là **biến mồ côi**.
+
+💡 Chưa làm, để David quyết: `a1.9chain.org/tx/<hash>` hiện ra trang 404 của mình; có thể
+redirect thẳng sang `a1.9scan.org{uri}` để cứu liên kết explorer cũ đã phát ra ngoài.
+
 ### ✅ LƯỢT QUÉT + TỐI ƯU MOBILE `2026-09-04` (đêm) — deploy `8822f8b`
 
 Đo trước, sửa sau, đo lại — **320 px và 375 px · 9 trang · sáng + tối · một bản RTL ·
