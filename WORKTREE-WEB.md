@@ -2,6 +2,62 @@
 
 ---
 
+## ▶ TRẠNG THÁI — `2026-09-04` (chốt phiên đêm). ĐỌC KHỐI NÀY LÀ ĐỦ ĐỂ TIẾP.
+
+**TL;DR.** Site `8822f8b` · Caddy `a577ef8` · công khai `official` = `fde39a1` · `origin` =
+`e2456ca` · cây **sạch**. Phiên này làm 5 việc, **đều đã lên sóng và đo lại từ ngoài**: ô
+địa chỉ faucet tự điền từ ví · lượt quét + tối ưu mobile toàn site · trang 404 sống lại
+(đang 502 nhiều ngày) · duyệt giọng hết chuỗi VI tồn · đưa lên repo công khai.
+
+| Việc | Chốt ở |
+|---|---|
+| Ô địa chỉ **tự điền từ ví**, gõ tay một ký tự là khoá lại | `430e06d` · **David đã thử trên iPhone thật: ✓** |
+| **Mobile**: 8/8 trang 0 vùng chạm <40px · 0 tràn ngang (320+375px, sáng/tối, RTL, chữ 1,25×) | `f7a9ee5` `bacaf26` `8822f8b` |
+| **Trang 404** hết 502; `/api/*` trả JSON 404 khai đường sang 9Scan | `a577ef8` (Caddy) |
+| **Duyệt giọng**: KHÔNG còn chuỗi VI nào chờ duyệt | `7d26920` `a577ef8` |
+| Lên `official` | `fde39a1` — đo lại: 0 tệp `local-net/deploy/`, 0 Caddyfile |
+
+**Test 176/177.** Đỏ duy nhất **có chủ ý**: vân tay token (chờ 9Scan chốt bộ chữ). Đừng sửa
+cho xanh — chạy `sync-tokens.mjs` là **đổi bộ chữ của cả site**, đó là quyết định thương hiệu.
+
+### 🔴 Phiên sau bắt đầu từ đâu
+
+1. **`[human]` David chưa trả lời một câu:** `a1.9chain.org/tx/<hash>` nay ra trang 404 của
+   mình — có redirect thẳng sang `a1.9scan.org{uri}` để cứu liên kết explorer cũ không?
+   Đổi lại: 9Scan không có đường đó thì khách gặp 404 của họ. (~10 phút kể cả đo.)
+2. **CHƯA AI ĐO:** deep link `metamask.app.link` có mở app MetaMask **đúng trang faucet**
+   không. Lượt thử iPhone vừa rồi **không đi qua chặng Branch** — đừng đọc "ok rồi" rộng hơn.
+3. **`[human]` `archiveUrl` + `archiveSha256`** của bản lưu ngày G → dán vào `rebuildDone`
+   (30 tệp), mục bản lưu tự hiện. Không phải viết chữ nào.
+4. Console thêm preset mới ⇒ thêm vào `en.ts` `presets` + 29 dicts, quên thì
+   `check-server-text.mjs` chặn deploy.
+
+### 🔴 Ba bẫy đắt nhất của phiên (chi tiết ở các mục bên dưới)
+
+- **Trang lỗi không được là NHÁNH trong lời đáp của dịch vụ khác.** Trang 404 nằm trong
+  `handle_response` của proxy gốc ⇒ Blockscout bị xoá là nó chết theo, im lặng, **trong khi
+  bộ test riêng của nó vẫn xanh** (chúng đọc nội dung tệp, không ai đọc hình dạng).
+- **Một class tiện ích được DÙNG mà chưa bao giờ được ĐỊNH NGHĨA.** `.tap-target` có mặt
+  trong 2 component, không có trong CSS ⇒ hứa vùng chạm 44px, giao đúng con số không.
+- **Bản dựng cục bộ nói dối về trang có dữ liệu.** `/chains/` cục bộ 0 hàng ⇒ chấm "0 vùng
+  chạm nhỏ"; site sống 11 hàng ⇒ **15**. Trang render theo dữ liệu phải đo ở nơi CÓ dữ liệu.
+
+### Lệnh hữu ích
+
+```bash
+cd web && pnpm typecheck && pnpm test && pnpm build && cd .. && bash local-net/deploy/web-deploy.sh
+```
+
+```bash
+scp -i "$A1_SSH_KEY" local-net/deploy/Caddyfile "$A1_SSH_HOST":~/9chain-a1/Caddyfile.new && ssh -i "$A1_SSH_KEY" "$A1_SSH_HOST" 'bash ~/9chain-a1/caddy-deploy.sh'
+```
+
+```bash
+bash local-net/deploy/publish-official.sh web-home
+```
+
+---
+
 ## HANDOFF — cập nhật 2026-09-04 (tối) — BA LỚP LỖI "KHÁCH THẤY KHÁC MÌNH THẤY"
 
 **TL;DR.** Deploy cuối `6fae9bd`, cây sạch, `version.txt` công khai khớp. Ba việc trong phiên,
