@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Field, Badge, Skeleton, ErrorState, Note, Copyable, EmptyState, Steps, type Step } from '@/components/ui';
 import { shortenAddress } from '@/lib/eip55';
+import { symbolOf } from '@/lib/l1-symbol';
 import { rpcOrigin } from '@/lib/chain';
 import { interpolate, useT } from '@/lib/i18n';
 import { fetchJson, describeFailure, READ_TIMEOUT_MS } from '@/lib/net';
@@ -10,7 +11,7 @@ import { getWallet, connectWallet, siweSignIn, callConsole, addL1ToWallet, waitF
 
 type Chain = {
   name: string; chainId: number; subnetID: string; blockchainID: string;
-  admin?: string; presetName?: string; presetTen?: string; rpc?: string;
+  admin?: string; presetName?: string; presetTen?: string; rpc?: string; symbol?: string;
 };
 type TrangThai = { tran: number; chains: Chain[]; retired: Chain[]; viDangNhap: string | null };
 type Progress = { running: boolean; steps: Step[]; etaSeconds: number };
@@ -300,7 +301,8 @@ export function MyChainsScreen() {
                         variant="ghost"
                         onClick={async () => {
                           try {
-                            await addL1ToWallet({ chainIdHex: '0x' + c.chainId.toString(16), name: c.name, rpc: c.rpc!, kyHieu: 'LOVE9' });
+                            // P-55: the L1's OWN ticker, never `LOVE9` — see `lib/l1-symbol.ts`.
+                            await addL1ToWallet({ chainIdHex: '0x' + c.chainId.toString(16), name: c.name, rpc: c.rpc!, kyHieu: symbolOf(c) });
                             setAddedToWallet((s) => ({ ...s, [c.chainId]: { finished: true } }));
                           } catch (e) {
                             const l = readWalletError(e);

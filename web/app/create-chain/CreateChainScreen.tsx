@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Field, Badge, Skeleton, ErrorState, Note, Copyable, Steps, type Step } from '@/components/ui';
 import { shortenAddress } from '@/lib/eip55';
+import { symbolOf } from '@/lib/l1-symbol';
 import { interpolate, useT } from '@/lib/i18n';
 import { describeFailure } from '@/lib/net';
 import {
@@ -38,7 +39,7 @@ type TrangThai = {
   dangNhap: string;
   viDangNhap: string | null;
 };
-type KetQua = { name: string; chainId: number; rpc: string; blockchainID: string; luuY?: { title: string; cachLam: string } };
+type KetQua = { name: string; chainId: number; rpc: string; blockchainID: string; symbol?: string; luuY?: { title: string; cachLam: string } };
 type Progress = { running: boolean; name: string | null; steps: Step[]; error: string | null; etaSeconds: number };
 
 type Pha = 'vi' | 'nhap' | 'soat' | 'chay' | 'xong';
@@ -399,7 +400,9 @@ export function CreateChainScreen() {
                       chainIdHex: '0x' + result.chainId.toString(16),
                       name: result.name,
                       rpc: result.rpc,
-                      kyHieu: 'LOVE9',
+                      // P-55: the L1's OWN ticker — `LOVE9` here made MetaMask print "50.00M LOVE9"
+                      // for a freshly launched chain's test balance. See `lib/l1-symbol.ts`.
+                      kyHieu: symbolOf(result),
                     });
                     setWalletAdded(true);
                   } catch (e) {

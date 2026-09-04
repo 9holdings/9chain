@@ -3,19 +3,26 @@
 import { useEffect, useState } from 'react';
 import { Card, Skeleton, ErrorState, EmptyState, Badge } from '@/components/ui';
 import { shortenAddress } from '@/lib/eip55';
-import { useT } from '@/lib/i18n';
-import { readDirectory } from '@/lib/directory';
+import { useT, useLanguage } from '@/lib/i18n';
+import { interpolate } from '@/lib/i18n/interpolate';
+import { formatNumber } from '@/lib/numbers';
+import { readDirectory, type ChainRecord } from '@/lib/directory';
+import { sortEntries, type Entry } from '@/lib/directoryModel';
+import { symbolOf } from '@/lib/l1-symbol';
 
 /**
- * The list of existing L1s, read from the `console-chains.json` data contract.
+ * The list of existing L1s on the HOME page, read from the `console-chains.json` data contract.
  *
  * 🔴 A MISSING KEY IS A VALID STATE, NOT AN ERROR. Chains launched before the console had an
  * `admin`/`presetName` field simply do not have those two keys (OmegaChain is one). The old
  * hand-written directory page used to let `undefined` reach the user's screen. Here: no owner ⇒
  * "system default"; no type ⇒ leave it blank, do not invent one.
  *
- * ⚠️ This page is READ-ONLY. The full directory (measuring alive/dead by a subnet's validator
- * count) belongs to 9Scan-A1 — A1 does not encroach, it only borrows the data to guide users.
+ * ⚠️ This page is READ-ONLY and shows only the NEWEST few (2026-09-04). With 108+ L1s the home
+ * page cannot carry the whole list — that is what `/chains/` is for: live state per chain,
+ * search, filters, grouping and paging. The home table is the invitation; the directory is
+ * the directory. The link under the table always says how many chains there are in total,
+ * so the number here never reads as "that is all of them".
  */
 /**
  * `presetTen` is the OLD key, written by the console before the English naming pass (2026-08-26).
@@ -23,11 +30,14 @@ import { readDirectory } from '@/lib/directory';
  * — so read both. The old branch can go once no pre-cutoff record remains, but remember that
  * restoring an old backup brings them back.
  */
-type Chain = { name: string; chainId: number; admin?: string; presetName?: string; presetTen?: string };
-type TT = { phase: 'tai' } | { phase: 'xong'; list: Chain[] } | { phase: 'hong' };
+type TT = { phase: 'tai' } | { phase: 'xong'; list: ChainRecord[]; total: number } | { phase: 'hong' };
+
+/** How many rows the home page shows. Nine, in keeping with the project's number. */
+const HOME_ROWS = 9;
 
 export function ChainTable() {
   const t = useT();
+  const { code } = useLanguage();
   const [state, setState] = useState<TT>({ phase: 'tai' });
   const [round, setRound] = useState(0);
 
@@ -41,7 +51,13 @@ export function ChainTable() {
     readDirectory()
       .then((j) => {
         if (cancelled) return;
-        setState({ phase: 'xong', list: Array.isArray(j?.chains) ? j.chains : [] });
+        const all = Array.isArray(j?.chains) ? j.chains : [];
+        // Newest first, same rule as the directory's default sort — one ordering for both surfaces.
+        const entries: Entry[] = all.map((r) => ({ key: String(r.chainId), record: r, isMain: false, revoked: false, verdict: 'measuring' }));
+        const list = sortEntries(entries, 'newest')
+          .slice(0, HOME_ROWS)
+          .map((e) => e.record);
+        setState({ phase: 'xong', list, total: all.length });
       })
       .catch(() => {
         if (!cancelled) setState({ phase: 'hong' });
@@ -123,6 +139,7 @@ export function ChainTable() {
               <tr key={c.chainId} className="border-b border-line-soft last:border-0">
                 <th scope="row" className="px-4 py-3 text-start font-semibold text-ink">
                   {c.name}
+                  <span className="ms-2 rounded-chip border border-line px-1.5 font-mono text-[11px] font-semibold text-body-2">{symbolOf(c)}</span>
                   <span className="ms-2 font-mono text-xs font-normal text-muted">#{c.chainId}</span>
                 </th>
                 <td className="px-4 py-3 text-body-2">
@@ -141,6 +158,11 @@ export function ChainTable() {
         </table>
       </div>
       </Card>
+      <p className="mt-3 text-sm">
+        <a href="/chains/" className="font-semibold text-ink underline decoration-line-strong underline-offset-4 hover:decoration-gold">
+          {interpolate(t.home.moreChains, { count: formatNumber(state.total, code) })}
+        </a>
+      </p>
     </>
   );
 }

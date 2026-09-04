@@ -1,0 +1,1200 @@
+{
+ "chains": [
+  {
+   "name": "Adam Chain",
+   "subnetID": "2oQ2wXQBb7zQGTGMTXL3fHx9cnmEtAY3VuoFkUhtwzTDc44kjs",
+   "blockchainID": "29XqgUUsFsMiQyjFPfpWuAPaGDk2i3wmFoyGWU5SVASwj99kf7",
+   "chainId": 9001000000,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "rpc": "https://rpc-a1.9chain.org/ext/bc/29XqgUUsFsMiQyjFPfpWuAPaGDk2i3wmFoyGWU5SVASwj99kf7/rpc",
+   "createdAt": 1788420621865
+  },
+  {
+   "name": "Eva Chain",
+   "subnetID": "bUB6XHXUB6qwyQwUPzNsDUvGbpS9Lw6yGp1SoxBuMAW4P67J6",
+   "blockchainID": "23BxEFszT4grcPCZjYrAZs6Ga2FKfe5P4xpg8dix7TRdD1xbFF",
+   "chainId": 9001000001,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "rpc": "https://rpc-a1.9chain.org/ext/bc/23BxEFszT4grcPCZjYrAZs6Ga2FKfe5P4xpg8dix7TRdD1xbFF/rpc",
+   "createdAt": 1788421132165
+  },
+  {
+   "name": "9S Union",
+   "subnetID": "2vWbLHgyNf9mgRf7AVC7D7UAdxH5NNFrba9ia434fyYZ6YznRu",
+   "blockchainID": "KRC3hNXfZ4TR5aETxS6XcLNCxkrEM4WEDYkE1oxn8QXXQ9qnm",
+   "chainId": 9001000002,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "rpc": "https://rpc-a1.9chain.org/ext/bc/KRC3hNXfZ4TR5aETxS6XcLNCxkrEM4WEDYkE1oxn8QXXQ9qnm/rpc",
+   "createdAt": 1788441708460
+  },
+  {
+   "name": "BBWay Chain",
+   "subnetID": "CDDrduyYeLd5d5Uc3zQvAcZP3a89endDGLiojrRHXPGcbcPsU",
+   "blockchainID": "2SY6Pjg2Ua9YLeUu8Yfb29XBwKQyB1rwnPxQGHQT4Y9vf8pYc7",
+   "chainId": 9001000003,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "rpc": "https://rpc-a1.9chain.org/ext/bc/2SY6Pjg2Ua9YLeUu8Yfb29XBwKQyB1rwnPxQGHQT4Y9vf8pYc7/rpc",
+   "createdAt": 1788448899156
+  },
+  {
+   "name": "9Mall Chain",
+   "subnetID": "Vao4JP6zkf22aBrj2cYH8Zu7jbrouLPJL8q19jSJcpF4MBJT4",
+   "blockchainID": "2V6sKi77FpBBDHvj5XntE5THJx4qTwpjkmEWz1wPocnpcBpqKr",
+   "chainId": 9001000004,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "rpc": "https://rpc-a1.9chain.org/ext/bc/2V6sKi77FpBBDHvj5XntE5THJx4qTwpjkmEWz1wPocnpcBpqKr/rpc",
+   "createdAt": 1788449299681
+  },
+  {
+   "name": "9Cashback Chain",
+   "subnetID": "3UA4mHah1yG2EYmGfwcEMPh21FSC4P4ThWmq637vzo1QxE9BZ",
+   "blockchainID": "HNqDXg6tQV3P8qJCev2JFL3Wk6ZZ7txSLQHEu7ePCyuefQ8DN",
+   "chainId": 9001000005,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "rpc": "https://rpc-a1.9chain.org/ext/bc/HNqDXg6tQV3P8qJCev2JFL3Wk6ZZ7txSLQHEu7ePCyuefQ8DN/rpc",
+   "createdAt": 1788451721500
+  },
+  {
+   "name": "OLA Chain",
+   "subnetID": "f654GtUmdPwtsGQAyf4RL2kTjJgDAjDxSrZ7YYohZmoRgj9xE",
+   "blockchainID": "iSQp5vYKK3EFYc8oHB4m8W5pA55FZVGSVpHmfa5RGYPo83Den",
+   "chainId": 9001000006,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "rpc": "https://rpc-a1.9chain.org/ext/bc/iSQp5vYKK3EFYc8oHB4m8W5pA55FZVGSVpHmfa5RGYPo83Den/rpc",
+   "createdAt": 1788512749378
+  },
+  {
+   "name": "ROI Chain",
+   "subnetID": "hPW7KG66ujeatF2pDLyZyYRw6rKx9fJkXmWdSTMgerfhLdDR2",
+   "blockchainID": "2GnKBi6Mu5vZanUnT9KxjDQkRQmKfkUqsqjLxZKPgDtwK6w2yi",
+   "chainId": 9001000007,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "rpc": "https://rpc-a1.9chain.org/ext/bc/2GnKBi6Mu5vZanUnT9KxjDQkRQmKfkUqsqjLxZKPgDtwK6w2yi/rpc",
+   "createdAt": 1788513302689
+  },
+  {
+   "name": "Lotus Chain",
+   "subnetID": "fx0SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000100,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788566400000,
+   "symbol": "T0K"
+  },
+  {
+   "name": "Saigon Orchid Chain",
+   "subnetID": "fx1SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx1BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000101,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1788584400000
+  },
+  {
+   "name": "Mekong Zenith Chain",
+   "subnetID": "fx2SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx2BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000102,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1788602400000
+  },
+  {
+   "name": "Hanoi Saigon Chain",
+   "subnetID": "fx3SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx3BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000103,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1788620400000
+  },
+  {
+   "name": "Delta Tiger Chain",
+   "subnetID": "fx4SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx4BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000104,
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788638400000
+  },
+  {
+   "name": "Phoenix Atlas Chain",
+   "subnetID": "fx5SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx5BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000105,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788656400000
+  },
+  {
+   "name": "Bamboo Mekong Chain",
+   "subnetID": "fx6SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx6BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000106,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788674400000
+  },
+  {
+   "name": "Orchid Pearl Chain",
+   "subnetID": "fx7SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx7BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000107,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1788692400000
+  },
+  {
+   "name": "Tiger Vector Chain",
+   "subnetID": "fx8SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx8BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000108,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1788710400000
+  },
+  {
+   "name": "Pearl Hanoi Chain",
+   "subnetID": "fx9SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx9BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000109,
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1788728400000,
+   "symbol": "T9K"
+  },
+  {
+   "name": "Summit Chain",
+   "subnetID": "fx10SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx10BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000110,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788746400000
+  },
+  {
+   "name": "Harbor Prism Chain",
+   "subnetID": "fx11SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx11BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000111,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788764400000
+  },
+  {
+   "name": "Aurora Delta Chain",
+   "subnetID": "fx12SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx12BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000112,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788782400000
+  },
+  {
+   "name": "Nova Harbor Chain",
+   "subnetID": "fx13SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx13BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000113,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1788800400000
+  },
+  {
+   "name": "Zenith Quartz Chain",
+   "subnetID": "fx14SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx14BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000114,
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1788818400000
+  },
+  {
+   "name": "Atlas Phoenix Chain",
+   "subnetID": "fx15SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx15BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000115,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1788836400000
+  },
+  {
+   "name": "Vector Aurora Chain",
+   "subnetID": "fx16SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx16BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000116,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788854400000
+  },
+  {
+   "name": "Prism Ember Chain",
+   "subnetID": "fx17SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000117,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788872400000
+  },
+  {
+   "name": "Quartz Bamboo Chain",
+   "subnetID": "fx18SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx18BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000118,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788890400000,
+   "symbol": "T18K"
+  },
+  {
+   "name": "Ember Nova Chain",
+   "subnetID": "fx19SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx19BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000119,
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1788908400000
+  },
+  {
+   "name": "Lotus Chain",
+   "subnetID": "fx20SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx20BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000120,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1788926400000
+  },
+  {
+   "name": "Saigon Orchid Chain",
+   "subnetID": "fx21SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx21BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000121,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1788944400000
+  },
+  {
+   "name": "Mekong Zenith Chain",
+   "subnetID": "fx22SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx22BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000122,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788962400000
+  },
+  {
+   "name": "Hanoi Saigon Chain",
+   "subnetID": "fx23SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx23BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000123,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788980400000
+  },
+  {
+   "name": "Delta Tiger Chain",
+   "subnetID": "fx24SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx24BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000124,
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1788998400000
+  },
+  {
+   "name": "Phoenix Atlas Chain",
+   "subnetID": "fx25SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx25BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000125,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1789016400000
+  },
+  {
+   "name": "Bamboo Mekong Chain",
+   "subnetID": "fx26SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx26BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000126,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1789034400000
+  },
+  {
+   "name": "Orchid Pearl Chain",
+   "subnetID": "fx27SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx27BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000127,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1789052400000,
+   "symbol": "T27K"
+  },
+  {
+   "name": "Tiger Vector Chain",
+   "subnetID": "fx28SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx28BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000128,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789070400000
+  },
+  {
+   "name": "Pearl Hanoi Chain",
+   "subnetID": "fx29SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx29BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000129,
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789088400000
+  },
+  {
+   "name": "Summit Chain",
+   "subnetID": "fx30SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx30BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000130,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789106400000
+  },
+  {
+   "name": "Harbor Prism Chain",
+   "subnetID": "fx31SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx31BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000131,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1789124400000
+  },
+  {
+   "name": "Aurora Delta Chain",
+   "subnetID": "fx32SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx32BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000132,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1789142400000
+  },
+  {
+   "name": "Nova Harbor Chain",
+   "subnetID": "fx33SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx33BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000133,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1789160400000
+  },
+  {
+   "name": "Zenith Quartz Chain",
+   "subnetID": "fx34SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000134,
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789178400000
+  },
+  {
+   "name": "Atlas Phoenix Chain",
+   "subnetID": "fx35SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx35BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000135,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789196400000
+  },
+  {
+   "name": "Vector Aurora Chain",
+   "subnetID": "fx36SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx36BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000136,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789214400000,
+   "symbol": "T36K"
+  },
+  {
+   "name": "Prism Ember Chain",
+   "subnetID": "fx37SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx37BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000137,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1789232400000
+  },
+  {
+   "name": "Quartz Bamboo Chain",
+   "subnetID": "fx38SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx38BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000138,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1789250400000
+  },
+  {
+   "name": "Ember Nova Chain",
+   "subnetID": "fx39SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx39BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000139,
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1789268400000
+  },
+  {
+   "name": "Lotus Chain",
+   "subnetID": "fx40SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx40BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000140,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789286400000
+  },
+  {
+   "name": "Saigon Orchid Chain",
+   "subnetID": "fx41SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx41BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000141,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789304400000
+  },
+  {
+   "name": "Mekong Zenith Chain",
+   "subnetID": "fx42SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx42BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000142,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789322400000
+  },
+  {
+   "name": "Hanoi Saigon Chain",
+   "subnetID": "fx43SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx43BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000143,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1789340400000
+  },
+  {
+   "name": "Delta Tiger Chain",
+   "subnetID": "fx44SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx44BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000144,
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1789358400000
+  },
+  {
+   "name": "Phoenix Atlas Chain",
+   "subnetID": "fx45SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx45BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000145,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1789376400000,
+   "symbol": "T45K"
+  },
+  {
+   "name": "Bamboo Mekong Chain",
+   "subnetID": "fx46SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx46BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000146,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789394400000
+  },
+  {
+   "name": "Orchid Pearl Chain",
+   "subnetID": "fx47SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx47BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000147,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789412400000
+  },
+  {
+   "name": "Tiger Vector Chain",
+   "subnetID": "fx48SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx48BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000148,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789430400000
+  },
+  {
+   "name": "Pearl Hanoi Chain",
+   "subnetID": "fx49SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx49BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000149,
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1789448400000
+  },
+  {
+   "name": "Summit Network",
+   "subnetID": "fx50SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx50BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000150,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1789466400000
+  },
+  {
+   "name": "Harbor Prism Network",
+   "subnetID": "fx51SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000151,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1789484400000
+  },
+  {
+   "name": "Aurora Delta Network",
+   "subnetID": "fx52SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx52BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000152,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789502400000
+  },
+  {
+   "name": "Nova Harbor Network",
+   "subnetID": "fx53SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx53BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000153,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789520400000
+  },
+  {
+   "name": "Zenith Quartz Network",
+   "subnetID": "fx54SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx54BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000154,
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789538400000,
+   "symbol": "T54K"
+  },
+  {
+   "name": "Atlas Phoenix Network",
+   "subnetID": "fx55SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx55BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000155,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1789556400000
+  },
+  {
+   "name": "Vector Aurora Network",
+   "subnetID": "fx56SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx56BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000156,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1789574400000
+  },
+  {
+   "name": "Prism Ember Network",
+   "subnetID": "fx57SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx57BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000157,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1789592400000
+  },
+  {
+   "name": "Quartz Bamboo Network",
+   "subnetID": "fx58SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx58BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000158,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789610400000
+  },
+  {
+   "name": "Ember Nova Network",
+   "subnetID": "fx59SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx59BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000159,
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789628400000
+  },
+  {
+   "name": "Lotus Network",
+   "subnetID": "fx60SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx60BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000160,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789646400000
+  },
+  {
+   "name": "Saigon Orchid Network",
+   "subnetID": "fx61SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx61BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000161,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1789664400000
+  },
+  {
+   "name": "Mekong Zenith Network",
+   "subnetID": "fx62SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx62BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000162,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1789682400000
+  },
+  {
+   "name": "Hanoi Saigon Network",
+   "subnetID": "fx63SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx63BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000163,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1789700400000,
+   "symbol": "T63K"
+  },
+  {
+   "name": "Delta Tiger Network",
+   "subnetID": "fx64SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx64BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000164,
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789718400000
+  },
+  {
+   "name": "Phoenix Atlas Network",
+   "subnetID": "fx65SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx65BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000165,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789736400000
+  },
+  {
+   "name": "Bamboo Mekong Network",
+   "subnetID": "fx66SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx66BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000166,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789754400000
+  },
+  {
+   "name": "Orchid Pearl Network",
+   "subnetID": "fx67SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx67BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000167,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1789772400000
+  },
+  {
+   "name": "Tiger Vector Network",
+   "subnetID": "fx68SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000168,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1789790400000
+  },
+  {
+   "name": "Pearl Hanoi Network",
+   "subnetID": "fx69SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx69BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000169,
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1789808400000
+  },
+  {
+   "name": "Summit Network",
+   "subnetID": "fx70SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx70BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000170,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789826400000
+  },
+  {
+   "name": "Harbor Prism Network",
+   "subnetID": "fx71SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx71BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000171,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789844400000
+  },
+  {
+   "name": "Aurora Delta Network",
+   "subnetID": "fx72SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx72BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000172,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789862400000,
+   "symbol": "T72K"
+  },
+  {
+   "name": "Nova Harbor Network",
+   "subnetID": "fx73SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx73BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000173,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1789880400000
+  },
+  {
+   "name": "Zenith Quartz Network",
+   "subnetID": "fx74SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx74BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000174,
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1789898400000
+  },
+  {
+   "name": "Atlas Phoenix Network",
+   "subnetID": "fx75SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx75BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000175,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1789916400000
+  },
+  {
+   "name": "Vector Aurora Network",
+   "subnetID": "fx76SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx76BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000176,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789934400000
+  },
+  {
+   "name": "Prism Ember Network",
+   "subnetID": "fx77SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx77BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000177,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789952400000
+  },
+  {
+   "name": "Quartz Bamboo Network",
+   "subnetID": "fx78SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx78BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000178,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1789970400000
+  },
+  {
+   "name": "Ember Nova Network",
+   "subnetID": "fx79SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx79BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000179,
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1789988400000
+  },
+  {
+   "name": "Lotus Network",
+   "subnetID": "fx80SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx80BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000180,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1790006400000
+  },
+  {
+   "name": "Saigon Orchid Network",
+   "subnetID": "fx81SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx81BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000181,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1790024400000,
+   "symbol": "T81K"
+  },
+  {
+   "name": "Mekong Zenith Network",
+   "subnetID": "fx82SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx82BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000182,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1790042400000
+  },
+  {
+   "name": "Hanoi Saigon Network",
+   "subnetID": "fx83SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx83BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000183,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1790060400000
+  },
+  {
+   "name": "Delta Tiger Network",
+   "subnetID": "fx84SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx84BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000184,
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1790078400000
+  },
+  {
+   "name": "Phoenix Atlas Network",
+   "subnetID": "fx85SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000185,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1790096400000
+  },
+  {
+   "name": "Bamboo Mekong Network",
+   "subnetID": "fx86SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx86BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000186,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1790114400000
+  },
+  {
+   "name": "Orchid Pearl Network",
+   "subnetID": "fx87SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx87BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000187,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1790132400000
+  },
+  {
+   "name": "Tiger Vector Network",
+   "subnetID": "fx88SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx88BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000188,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1790150400000
+  },
+  {
+   "name": "Pearl Hanoi Network",
+   "subnetID": "fx89SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx89BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000189,
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1790168400000
+  },
+  {
+   "name": "Summit Network",
+   "subnetID": "fx90SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx90BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000190,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1790186400000,
+   "symbol": "T90K"
+  },
+  {
+   "name": "Harbor Prism Network",
+   "subnetID": "fx91SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx91BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000191,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1790204400000
+  },
+  {
+   "name": "Aurora Delta Network",
+   "subnetID": "fx92SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx92BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000192,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1790222400000
+  },
+  {
+   "name": "Nova Harbor Network",
+   "subnetID": "fx93SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx93BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000193,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1790240400000
+  },
+  {
+   "name": "Zenith Quartz Network",
+   "subnetID": "fx94SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx94BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000194,
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1790258400000
+  },
+  {
+   "name": "Atlas Phoenix Network",
+   "subnetID": "fx95SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx95BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000195,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1790276400000
+  },
+  {
+   "name": "Vector Aurora Network",
+   "subnetID": "fx96SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx96BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000196,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "preset": "standard",
+   "presetName": "Standard",
+   "createdAt": 1790294400000
+  },
+  {
+   "name": "Prism Ember Network",
+   "subnetID": "fx97SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx97BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000197,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "preset": "gaming",
+   "presetName": "Gaming",
+   "createdAt": 1790312400000
+  },
+  {
+   "name": "Quartz Bamboo Network",
+   "subnetID": "fx98SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx98BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000198,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "preset": "defi",
+   "presetName": "DeFi",
+   "createdAt": 1790330400000
+  },
+  {
+   "name": "Ember Nova Network",
+   "subnetID": "fx99SubnetIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "fx99BlockchainIdxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000199,
+   "preset": "community",
+   "presetName": "Community",
+   "createdAt": 1790348400000,
+   "symbol": "T99K"
+  }
+ ],
+ "retired": [
+  {
+   "name": "Old Lotus Chain",
+   "subnetID": "rx0Subnetxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "rx0Blockchainxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000900,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "presetName": "Standard",
+   "createdAt": 1788566400000,
+   "revokedAt": 1788566400000
+  },
+  {
+   "name": "Old Saigon Chain",
+   "subnetID": "rx1Subnetxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "rx1Blockchainxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000901,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "presetName": "Gaming",
+   "createdAt": 1788480000000,
+   "revokedAt": 1788652800000
+  },
+  {
+   "name": "Old Mekong Chain",
+   "subnetID": "rx2Subnetxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "rx2Blockchainxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000902,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "presetName": "DeFi",
+   "createdAt": 1788393600000,
+   "revokedAt": 1788739200000
+  },
+  {
+   "name": "Old Hanoi Chain",
+   "subnetID": "rx3Subnetxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "rx3Blockchainxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000903,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "presetName": "Community",
+   "createdAt": 1788307200000,
+   "revokedAt": 1788825600000
+  },
+  {
+   "name": "Old Delta Chain",
+   "subnetID": "rx4Subnetxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "rx4Blockchainxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000904,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "presetName": "Standard",
+   "createdAt": 1788220800000,
+   "revokedAt": 1788912000000
+  },
+  {
+   "name": "Old Phoenix Chain",
+   "subnetID": "rx5Subnetxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "rx5Blockchainxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000905,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "presetName": "Standard",
+   "createdAt": 1788134400000,
+   "revokedAt": 1788998400000
+  },
+  {
+   "name": "Old Bamboo Chain",
+   "subnetID": "rx6Subnetxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "rx6Blockchainxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000906,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "presetName": "Standard",
+   "createdAt": 1788048000000,
+   "revokedAt": 1789084800000
+  },
+  {
+   "name": "Old Orchid Chain",
+   "subnetID": "rx7Subnetxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "rx7Blockchainxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000907,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "presetName": "Gaming",
+   "createdAt": 1787961600000,
+   "revokedAt": 1789171200000
+  },
+  {
+   "name": "Old Tiger Chain",
+   "subnetID": "rx8Subnetxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "rx8Blockchainxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000908,
+   "admin": "0x1e8c889B6b3b32017680E72549583EA1b1d3292C",
+   "presetName": "DeFi",
+   "createdAt": 1787875200000,
+   "revokedAt": 1789257600000
+  },
+  {
+   "name": "Old Pearl Chain",
+   "subnetID": "rx9Subnetxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "rx9Blockchainxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000909,
+   "admin": "0xcD0D354A1DD2C105c85B45Dd2D7F38f1465Bd84C",
+   "presetName": "Community",
+   "createdAt": 1787788800000,
+   "revokedAt": 1789344000000
+  },
+  {
+   "name": "Old Summit Chain",
+   "subnetID": "rx10Subnetxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "rx10Blockchainxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000910,
+   "admin": "0x3f2A1b9C4d5E6f708192A3b4C5d6E7F8A9B0C1D2",
+   "presetName": "Standard",
+   "createdAt": 1787702400000,
+   "revokedAt": 1789430400000
+  },
+  {
+   "name": "Old Harbor Chain",
+   "subnetID": "rx11Subnetxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "blockchainID": "rx11Blockchainxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "chainId": 9001000911,
+   "admin": "0x9A8b7C6d5E4f30211203A4B5c6D7e8F9A0b1C2d3",
+   "presetName": "Standard",
+   "createdAt": 1787616000000,
+   "revokedAt": 1789516800000
+  }
+ ]
+}

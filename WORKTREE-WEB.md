@@ -2,6 +2,70 @@
 
 ---
 
+## HANDOFF — cập nhật 2026-09-04 (chiều) — `/chains/` thiết kế lại cho 108+ L1
+
+**TL;DR.** Trang danh bạ L1 không còn là "mỗi chain một thẻ, đo hết mỗi 10 giây". Nay là
+một **danh bạ**: 4 ô tổng kết · thanh công cụ (tìm · trạng thái · loại · gom · sắp) có
+trạng thái nằm trong **hash URL** (dán được vào chat) · bảng đặc 24 hàng một trang,
+mỗi hàng mở được chi tiết · và một **lượt quét** (pool 4 luồng, đo cái đang trên màn
+hình trước, nghỉ 30 s giữa hai lượt). Mọi luật nằm ở `web/lib/directoryModel.ts`
+(không React) và được `test/directory-model.test.ts` đo. **CHƯA commit, CHƯA deploy.**
+
+### Đã đo trên bản dựng tĩnh với **fixture 108 chain + 12 thu hồi**
+
+| | |
+|---|---|
+| 10 cổng `postbuild` | xanh · trang nặng nhất `/chains/` **143,9 KB gz** (trần 160, trước 128,1) |
+| test | **170/171** — đỏ duy nhất vẫn là vân tay token · thêm 24 ca cho model |
+| tìm `adam` | hash `#q=adam` · đúng 1 hàng, `RUNNING · 9 validators` (đo RPC thật) |
+| lọc + gom | `#q=adam&status=attention&group=owner` ⇒ "No chain matches" + nút xoá bộ lọc |
+| gom theo chủ | 5 nhóm, tiêu đề khai `5 of 20` khi nhóm bị trang cắt |
+| di động 375 px | sáng + tối, `scrollWidth == innerWidth` (không tràn ngang), bảng cuộn trong thẻ |
+| RTL (ar) | bố cục lật đúng, không sửa dòng nào |
+| trang chủ | bảng **9 hàng mới nhất** + "See all 108 chains in the directory" |
+
+**Fixture:** `web/test/fixtures/directory-108.json` = 8 chain thật g1 + 100 chain bịa
+(blockchainID giả ⇒ `NOT ANSWERING`, 6 bản thiếu blockchainID ⇒ `UNCLEAR`) + 12 thu hồi.
+Xem bằng cấu hình mới **`web-out-108`** trong `.claude/launch.json` — `serve-out.mjs`
+nhận `--fixture=<tệp>` (hoặc `A1_DIRECTORY_FIXTURE`) và CHỈ máy chủ đo đọc nó; bản
+xuất tĩnh không biết gì.
+
+### Kèm theo, vì cùng chạm một chỗ
+
+- **P-55 XONG** (ký hiệu token của chain con): `web/lib/l1-symbol.ts` chép đúng luật
+  fallback của console (`BBWay Chain → BBWAY`, `9S Union → 9SUNIO`, có test ghim), và
+  **cả ba** chỗ `addL1ToWallet` (danh bạ · `/my-chains/` · màn "xong" của `/create-chain/`)
+  đưa ký hiệu đó thay vì `LOVE9`.
+- Phán quyết mới **`mismatch`** (`WRONG CHAIN`): RPC trả lời nhưng `eth_chainId` ≠ sổ.
+  Bản cũ in số sai cạnh tên đúng và gọi là RUNNING. Router RPC của kế hoạch 108 L1
+  sinh ra đúng lỗi này.
+- Hợp đồng dữ liệu `console-chains.json` **mở về phía trước**: mọi khoá đều tuỳ chọn,
+  khoá lạ bị bỏ qua — chỗ để console thêm phân công node / trạng thái ngủ đông sau.
+- Hai primitive mới trong bộ kit: `Select` (native, có nhãn) và `Chip` (`aria-pressed`).
+
+### 🔴 Phiên sau / `[human]`
+
+1. **`[human]` 45 chuỗi tiếng Việt mới chưa duyệt giọng** — bảng ở cuối
+   `docs/WEB-PROGRESS.md`. 29 bản kia là máy dịch (đã khai).
+2. **`[human]` commit + deploy** — tôi không commit hộ. Đường: `git add -A && git commit`,
+   rồi `bash local-net/deploy/web-deploy.sh` (4 cổng chặn trước khi chép).
+3. Khi console ghi thêm khoá (node phục vụ RPC, trạng thái ngủ đông), chỉ cần thêm cột
+   ở `ChainRow` + một phán quyết ở `verdictOf`; đừng làm lại bảng.
+
+### Gotchas của phiên này
+
+- **Ảnh chụp Browser pane TRẮNG khi trang đã cuộn** — không phải trang chết (`rows=48`,
+  `scrollY=1883` đo bằng JS). Cách đo: `resize_window` cao (1200×2600) để cả trang lọt
+  một ảnh, hoặc đọc DOM bằng JS.
+- **Khoá gom ≠ nhãn gom.** Khoá chủ sở hữu hạ chữ thường để một ví là một nhóm; nhãn
+  phải lấy checksum-case từ bản ghi đầu, nếu không người đọc dán địa chỉ thường vào ví.
+- `button[aria-expanded]` đầu tiên trên trang là nút menu của header — hỏi `tbody
+  button[aria-expanded]` mới trúng hàng.
+- JSON-RPC **batch** (một POST, mảng 2 lời gọi) chạy được trên RPC L1 công khai — đo
+  `04/09` trên Adam Chain. Giảm một nửa số request mỗi lượt quét.
+
+---
+
 ## HANDOFF — cập nhật 2026-09-04 (site nói đúng thì · repo công khai hết runbook · web/ hết tiếng Việt)
 
 **TL;DR.** Site đã deploy `674a93f`, nói đúng sự thật về validator và đã chuyển

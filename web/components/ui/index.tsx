@@ -12,7 +12,15 @@
  * cost an extra trip through a directory — and that is precisely the moment somebody gives up
  * and writes loose one-off styles.
  */
-import { useEffect, useId, useState, type ReactNode, type ButtonHTMLAttributes, type InputHTMLAttributes } from 'react';
+import {
+  useEffect,
+  useId,
+  useState,
+  type ReactNode,
+  type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
+  type SelectHTMLAttributes,
+} from 'react';
 import { useT } from '@/lib/i18n';
 // `cx` lives in `lib/cx.ts` (outside the client boundary) and is re-exported here for
 // convenience — see the comment in that file for why it is not defined in place.
@@ -151,6 +159,67 @@ export function Field({
         </p>
       )}
     </div>
+  );
+}
+
+/* ───────────────────────────────────────────────────────────────── Select */
+
+/**
+ * A labelled native `<select>`. Native on purpose: it is keyboard-complete, screen-reader-
+ * complete and touch-complete for free, and the directory's three pickers (type, grouping,
+ * sort) have no need a custom listbox would meet. Same border/height vocabulary as `Field`
+ * and the chain-type picker in `CreateChainScreen`, so the four read as one set.
+ */
+export function Select({
+  label,
+  id,
+  className,
+  children,
+  ...rest
+}: SelectHTMLAttributes<HTMLSelectElement> & { label: string }) {
+  const auto = useId();
+  const idThat = id ?? auto;
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <label htmlFor={idThat} className="text-xs font-semibold uppercase tracking-wide text-muted">
+        {label}
+      </label>
+      <select
+        {...rest}
+        id={idThat}
+        className={cx('h-11 min-w-0 rounded-btn border border-line-strong bg-surface px-3 text-sm text-ink', className)}
+      >
+        {children}
+      </select>
+    </div>
+  );
+}
+
+/* ───────────────────────────────────────────────────────────────── Chip */
+
+/**
+ * A toggle chip for a filter group. `aria-pressed` carries the state — the colour alone
+ * does not reach a screen reader, and a colour-blind reader cannot tell navy from grey.
+ */
+export function Chip({
+  pressed,
+  className,
+  children,
+  ...rest
+}: ButtonHTMLAttributes<HTMLButtonElement> & { pressed: boolean }) {
+  return (
+    <button
+      type="button"
+      {...rest}
+      aria-pressed={pressed}
+      className={cx(
+        'inline-flex h-9 items-center gap-1.5 rounded-chip border px-3 text-sm font-semibold transition-colors',
+        pressed ? 'border-navy bg-navy text-on-dark' : 'border-line-strong bg-surface text-body hover:bg-surface-alt',
+        className,
+      )}
+    >
+      {children}
+    </button>
   );
 }
 

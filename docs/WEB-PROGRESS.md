@@ -387,3 +387,33 @@ Xem `docs/WEB-UPGRADE-2026-08-27.md` §2. Mục đắt nhất: **B1+B2 (cụm fo
 cần 9Scan gật, nhưng **B1 không được LÊN TRƯỚC B2**; ràng buộc là THỨ TỰ, không phải
 quyền quyết. Và B1 lên là phải chỉnh trần `check-budget.mjs` (129 KB + font ~144 KB
 vượt trần 160).
+
+---
+
+## Chuỗi tiếng Việt mới `2026-09-04` — chờ David duyệt giọng (danh bạ 108 L1)
+
+Bản Anh ở `web/lib/i18n/en.ts` (`directory.*`, `home.moreChains`). 29 bản khác là máy
+dịch từ tiếng Anh, đã khai `review: 'machine'`. Bản Việt dưới đây là bản tôi viết —
+**chưa qua duyệt giọng**; sửa xong thì chạy `node scripts/check-dict-values.mjs --accept`.
+
+| Khoá | Tiếng Việt đang chạy |
+|---|---|
+| `home.moreChains` | Xem đủ {count} chain trong danh bạ |
+| `directory.tileTotal` / `.tileRunning` / `.tileAttention` / `.tileRevoked` | L1 trong danh bạ · Đo được đang chạy · Cần để ý · Đã thu hồi |
+| `directory.sweepProgress` | Đã đo {done}/{total} |
+| `directory.measuringDesc` | Đang xếp hàng chờ đo. |
+| `directory.howToToggle` | Đọc danh sách này thế nào |
+| `directory.searchLabel` / `.searchPlaceholder` | Tìm · Tên, Chain ID, chủ sở hữu hoặc blockchain ID |
+| `directory.filterStatus` / `.filterAll` / `.filterRunning` / `.filterAttention` / `.filterRevoked` | Trạng thái · Tất cả · Đang chạy · Cần để ý · Đã thu hồi |
+| `directory.filterType` / `.filterTypeAll` | Loại · Mọi loại |
+| `directory.groupBy` / `.groupNone` / `.groupOwner` / `.groupType` / `.groupStatus` | Gom theo · Không gom · Chủ sở hữu · Loại · Trạng thái |
+| `directory.groupNoType` / `.groupCount` | Chưa ghi loại · {shown}/{total} |
+| `directory.sortBy` / `.sortNewest` / `.sortOldest` / `.sortName` / `.sortChainId` / `.sortBlocks` | Sắp xếp · Mới nhất trước · Cũ nhất trước · Tên · Chain ID · Nhiều block nhất |
+| `directory.refresh` | Đo lại |
+| `directory.listCaption` | Các chain trên A1, kèm trạng thái đo được của từng chain *(chỉ trình đọc màn hình nghe)* |
+| `directory.showing` / `.showMore` | Hiện {shown}/{total} · Hiện thêm {count} |
+| `directory.noMatchTitle` / `.noMatchDesc` / `.clearFilters` | Không chain nào khớp · Thử từ khoá khác, hoặc xoá bộ lọc. · Xoá bộ lọc |
+| `directory.showDetails` / `.hideDetails` / `.detailsOf` | Chi tiết · Thu gọn · Chi tiết của {name} *(nhãn a11y)* |
+| `directory.nativeToken` | Token gốc |
+| `directory.mismatch` 🔴 | SAI CHAIN |
+| `directory.mismatchDesc` 🔴 | RPC trả lời với Chain ID {got} thay vì {expected} — nhiều khả năng là lỗi định tuyến, không phải chain này. |

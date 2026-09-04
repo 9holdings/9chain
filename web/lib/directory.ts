@@ -26,6 +26,15 @@ export type ChainRecord = {
   admin?: string;
   presetName?: string;
   presetTen?: string;
+  /** The preset id (`standard`…). Written since 2026-08-26; display uses `presetName`. */
+  preset?: string;
+  /**
+   * The owner's ticker for the L1's native token (P-54). Only present when the owner chose
+   * one — readers apply the fallback in `lib/l1-symbol.ts` for records without it.
+   */
+  symbol?: string;
+  /** The public RPC URL the console recorded. Newer records only. */
+  rpc?: string;
   /**
    * Fields the directory page needs and `ChainTable` does not. Optional because a
    * record written before the console emitted them simply lacks the key — a MISSING
@@ -35,20 +44,33 @@ export type ChainRecord = {
    */
   subnetID?: string | null;
   blockchainID?: string;
-  createdAt?: string;
+  /** ISO string OR epoch milliseconds — the console has written both shapes. `new Date()` reads either. */
+  createdAt?: string | number;
   /** Written by the console when a chain is revoked. `thuHoiLuc` is the pre-2026-08-26 name. */
-  revokedAt?: string;
-  thuHoiLuc?: string;
+  revokedAt?: string | number;
+  thuHoiLuc?: string | number;
 };
 
-let inFlight: Promise<{ chains?: ChainRecord[] }> | null = null;
+/**
+ * The file's shape. `retired` is an ADDED key — files written before it existed do not
+ * have it, and its absence is a valid state ("nothing revoked yet"), not an error.
+ *
+ * ⚠️ FORWARD-COMPATIBLE BY CONSTRUCTION. The 108-L1 plan (`docs/PLAN-108-L1-LOAD-TEST.md`
+ * §4) has the console assigning each chain to a subset of nodes and recording which
+ * node serves its RPC; the sovereign-L1 proposal adds nursery/dormant states. Those
+ * keys will land in THIS file first. Readers must therefore tolerate keys they do not
+ * know, and treat every key they do know as optional — which is what this type says.
+ */
+export type DirectoryFile = { chains?: ChainRecord[]; retired?: ChainRecord[] };
 
-export function readDirectory(): Promise<{ chains?: ChainRecord[] }> {
+let inFlight: Promise<DirectoryFile> | null = null;
+
+export function readDirectory(): Promise<DirectoryFile> {
   if (inFlight) return inFlight;
   // Timeout is deliberate and matches what both callers passed before: this is a short
   // read of a static file, and without a limit a hung connection leaves the table on
   // skeletons forever with nothing for the reader to press.
-  const p = fetchJson<{ chains?: ChainRecord[] }>('/chains/data/console-chains.json', {}, READ_TIMEOUT_MS / 1000);
+  const p = fetchJson<DirectoryFile>('/chains/data/console-chains.json', {}, READ_TIMEOUT_MS / 1000);
   inFlight = p;
   // 🔴 Clear on BOTH outcomes, and clear via a detached `finally` so the rejection
   // still reaches every caller. Clearing only on success would pin a failed promise

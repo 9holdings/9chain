@@ -212,6 +212,9 @@ export const EN = {
     systemDefault: 'system default',
     emptyTitle: 'No L1 is running yet',
     emptyDesc: 'You would be the first. The directory updates as soon as your chain is up.',
+    // The home table shows only the newest few — the full list, with live state, search and
+    // filters, is the directory. Added 2026-09-04 with the 108-L1 redesign of `/chains/`.
+    moreChains: 'See all {count} chains in the directory',
 
     disclosure: '9 of the 10 validators run on the same server, with the same provider; the tenth joined from elsewhere and is online only intermittently — decentralised at the protocol level, not yet at the infrastructure level.',
     idleBlocksNote: 'Avalanche does not produce empty blocks, so a block height that stays still while nobody is transacting is normal. The liveness measure is the validator count next to it.',
@@ -292,6 +295,60 @@ export const EN = {
     footSummary: '{count} L1 running + the main network',
     footRevoked: '{count} revoked',
     footUpdated: 'updated at {time}',
+
+    /**
+     * 2026-09-04 — the redesign for 108+ L1s. Summary tiles, the sweep line, the toolbar
+     * (search · status · type · grouping · sort), the paged table and the `mismatch` verdict.
+     * Badge labels stay in CAPS like `running`/`revoked` above; tile and filter labels are
+     * sentence case because they sit in running text.
+     */
+    tileTotal: 'L1s in the directory',
+    tileRunning: 'Measured running',
+    tileAttention: 'Need attention',
+    tileRevoked: 'Revoked',
+    sweepProgress: 'Measured {done} of {total}',
+    measuringDesc: 'Queued for measurement.',
+    howToToggle: 'How to read this list',
+
+    searchLabel: 'Search',
+    searchPlaceholder: 'Name, Chain ID, owner or blockchain ID',
+    filterStatus: 'Status',
+    filterAll: 'All',
+    filterRunning: 'Running',
+    filterAttention: 'Needs attention',
+    filterRevoked: 'Revoked',
+    filterType: 'Type',
+    filterTypeAll: 'All types',
+    groupBy: 'Group by',
+    groupNone: 'No grouping',
+    groupOwner: 'Owner',
+    groupType: 'Type',
+    groupStatus: 'Status',
+    groupNoType: 'No type recorded',
+    groupCount: '{shown} of {total}',
+    sortBy: 'Sort',
+    sortNewest: 'Newest first',
+    sortOldest: 'Oldest first',
+    sortName: 'Name',
+    sortChainId: 'Chain ID',
+    sortBlocks: 'Most blocks',
+    refresh: 'Measure again',
+
+    listCaption: 'Chains on A1, with the state measured for each',
+    showing: 'Showing {shown} of {total}',
+    showMore: 'Show {count} more',
+    noMatchTitle: 'No chain matches',
+    noMatchDesc: 'Try another search term, or clear the filters.',
+    clearFilters: 'Clear filters',
+    showDetails: 'Details',
+    hideDetails: 'Hide',
+    detailsOf: 'Details of {name}',
+    nativeToken: 'Native token',
+
+    mismatch: 'WRONG CHAIN',
+    mismatchDesc:
+      'The RPC answered with Chain ID {got} instead of {expected} — most likely a routing fault, ' +
+      'not this chain.',
   },
 
 

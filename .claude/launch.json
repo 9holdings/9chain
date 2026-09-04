@@ -6,6 +6,12 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["scripts/serve-out.mjs"],
       "port": 3902
+    },
+    {
+      "name": "web-out-108",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/serve-out.mjs", "--fixture=web/test/fixtures/directory-108.json"],
+      "port": 3902
     }
   ]
 }
