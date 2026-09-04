@@ -29,6 +29,14 @@ cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang g
       ✅ **Đo trên sản phẩm** (PID `2657315`, drift 23/0/0): `LOVE9` · `BBWAY` · `cash9` · `CA<NBSP>SH`
       đỏ đúng câu; `CASH9` đi qua tới chốt `chainId -1`; sổ công khai **6 chain, không đổi**.
       ⚠️ Người dùng **vẫn thấy LOVE9** cho tới khi P-55 xong — nửa console là điều kiện cần.
+- [x] **P-67 — hợp đồng API giao cho `web-home` (gỡ chặn P-55 · P-60 · P-62)** — ✅ `04/09` đêm (D-187, M5)
+      `docs/API-CONSOLE-L1.md`: mọi endpoint, mọi rào, **bảng câu lỗi nguyên văn**, ba việc còn nợ kèm
+      thứ tự đề nghị (**P-55 → P-62 → P-60**), và mục *"API CHƯA có gì — đừng vẽ nút cho nó"*.
+      🔴 Hình dạng **ĐO từ console thật**, không chép từ mã (tạo chain: console tạm; quản trị: PID
+      `2776958` qua GET + đường chạy khô).
+      🔴 Lượt đo bắt được **câu lỗi tiếng Việt đang trả ra trình duyệt** từ `lib/eip55.mjs` — cổng ngôn
+      ngữ đếm **dòng mã**, không đếm **câu người dùng đọc**. Đã dịch trọn tệp (nợ §0 **5709 → 5671**,
+      đã hạ mốc) + đối chứng ngôn ngữ trong chính tệp, có ca đỏ được.
 - [ ] **P-55 — ký hiệu token: phía `web-home`** (luật cứng #4 — A1 không đụng `web/`)
       Ô nhập ký hiệu trên trang launch (mặc định gợi ý từ tên chain) · `addChain` dùng
       `symbol` của bản ghi thay cho `'LOVE9'` cứng (`CreateChainScreen.tsx:401`, `wallet.ts:433`) ·
