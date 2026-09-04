@@ -2,35 +2,54 @@
 
 ---
 
-## ▶ TRẠNG THÁI — `2026-09-04` (chốt phiên đêm). ĐỌC KHỐI NÀY LÀ ĐỦ ĐỂ TIẾP.
+## ▶ TRẠNG THÁI — `2026-09-04` (chốt phiên đêm muộn). ĐỌC KHỐI NÀY LÀ ĐỦ ĐỂ TIẾP.
 
-**TL;DR.** Site `8822f8b` · Caddy `a577ef8` · công khai `official` = `fde39a1` · `origin` =
-`e2456ca` · cây **sạch**. Phiên này làm 5 việc, **đều đã lên sóng và đo lại từ ngoài**: ô
-địa chỉ faucet tự điền từ ví · lượt quét + tối ưu mobile toàn site · trang 404 sống lại
-(đang 502 nhiều ngày) · duyệt giọng hết chuỗi VI tồn · đưa lên repo công khai.
+**TL;DR.** Site `8822f8b` · Caddy **`9d85487`** (đang chạy, `md5 581c09a3…`) · công khai
+`official` = `847ec80` · `origin` = `9d85487` · cây **sạch**. Lượt sau cùng: **liên kết
+explorer cũ `/tx/<hash>` nay về được 9Scan** thay vì chết ở trang 404 — David chốt và đã
+lên sóng, đo lại từ ngoài.
 
 | Việc | Chốt ở |
 |---|---|
+| **Liên kết explorer cũ → 9Scan** (`/tx/` · `/address/` · `/block/<số>`) | `9d85487` · đo sống: 3/3 đi hết chặng ra **200** ở `9scan.org/detail/?…` |
 | Ô địa chỉ **tự điền từ ví**, gõ tay một ký tự là khoá lại | `430e06d` · **David đã thử trên iPhone thật: ✓** |
 | **Mobile**: 8/8 trang 0 vùng chạm <40px · 0 tràn ngang (320+375px, sáng/tối, RTL, chữ 1,25×) | `f7a9ee5` `bacaf26` `8822f8b` |
 | **Trang 404** hết 502; `/api/*` trả JSON 404 khai đường sang 9Scan | `a577ef8` (Caddy) |
 | **Duyệt giọng**: KHÔNG còn chuỗi VI nào chờ duyệt | `7d26920` `a577ef8` |
-| Lên `official` | `fde39a1` — đo lại: 0 tệp `local-net/deploy/`, 0 Caddyfile |
 
-**Test 176/177.** Đỏ duy nhất **có chủ ý**: vân tay token (chờ 9Scan chốt bộ chữ). Đừng sửa
+**Test 180/181.** Đỏ duy nhất **có chủ ý**: vân tay token (chờ 9Scan chốt bộ chữ). Đừng sửa
 cho xanh — chạy `sync-tokens.mjs` là **đổi bộ chữ của cả site**, đó là quyết định thương hiệu.
+
+⚠️ `caddy-deploy.sh` vẫn **thoát mã 1** mỗi lượt vì `testnet-a1.*` trả 525 — **tên miền cũ
+chết từ trước**, không phải lỗi của lượt deploy nào. Đọc từng dòng `✗` chứ đừng đọc mã thoát.
 
 ### 🔴 Phiên sau bắt đầu từ đâu
 
-1. **`[human]` David chưa trả lời một câu:** `a1.9chain.org/tx/<hash>` nay ra trang 404 của
-   mình — có redirect thẳng sang `a1.9scan.org{uri}` để cứu liên kết explorer cũ không?
-   Đổi lại: 9Scan không có đường đó thì khách gặp 404 của họ. (~10 phút kể cả đo.)
-2. **CHƯA AI ĐO:** deep link `metamask.app.link` có mở app MetaMask **đúng trang faucet**
+1. **CHƯA AI ĐO:** deep link `metamask.app.link` có mở app MetaMask **đúng trang faucet**
    không. Lượt thử iPhone vừa rồi **không đi qua chặng Branch** — đừng đọc "ok rồi" rộng hơn.
-3. **`[human]` `archiveUrl` + `archiveSha256`** của bản lưu ngày G → dán vào `rebuildDone`
+2. **`[human]` `archiveUrl` + `archiveSha256`** của bản lưu ngày G → dán vào `rebuildDone`
    (30 tệp), mục bản lưu tự hiện. Không phải viết chữ nào.
-4. Console thêm preset mới ⇒ thêm vào `en.ts` `presets` + 29 dicts, quên thì
+3. **`[human]` Ba quyết định còn mở** (không cái nào chặn cái nào):
+   **(a)** có bật log truy cập không — chặn ở **D4**, là *đổi trạng thái* (bắt đầu giữ IP
+   người thật, chưa có thông báo, chưa có hạn lưu); nếu bật thì **cấm ghi query string/body**.
+   **(b)** kênh liên hệ thật cho chân trang (**D2**) — không có câu trả lời thì **KHÔNG
+   LÀM**, tuyệt đối không bịa. **(c)** đổi bộ chữ cả site theo 9Scan (Manrope + Inter) —
+   xem `[blocked]` cuối `docs/WEB-PROGRESS.md`.
+4. **`[human]` một lượt đăng nhập Cloudflare, hai việc:** tắt Managed robots.txt (**B-10**
+   — đo lại `04/09`: **vẫn còn**, `/robots.txt` trả bản Content Signals của CF với
+   `cf-cache-status: MISS` trong khi origin có tệp thật), và xem Analytics zone `9chain.org`
+   từ `25/08` (**Đ1-10 mục 1** — trả lời được cả **những ngày đã qua**, thứ không phép đo
+   nào bật hôm nay làm được).
+5. Chưa lên `official` từ `847ec80`. `bash local-net/deploy/publish-official.sh web-home`.
+6. Console thêm preset mới ⇒ thêm vào `en.ts` `presets` + 29 dicts, quên thì
    `check-server-text.mjs` chặn deploy.
+
+### ✅ Hai mục chờ David đã TỰ HẾT — đo lại `04/09`, đừng quyết lại
+
+| Mục chờ từ `28/08` | Đo lại |
+|---|---|
+| **C1** · `/faucet/api/supply` đang 404 | **200**, `source: "measured"` qua `platform.getCurrentSupply` ⇒ faucet đã deploy bản mới; câu khai nguồn cung trỏ được vào đường sống |
+| **C2** · 9Scan còn công bố `networkID 9001` | `<title>… · **999999998**</title>`, **0 lần** chuỗi `9001` ⇒ họ đã deploy g1 |
 
 ### 🔴 Ba bẫy đắt nhất của phiên (chi tiết ở các mục bên dưới)
 
@@ -55,6 +74,83 @@ scp -i "$A1_SSH_KEY" local-net/deploy/Caddyfile "$A1_SSH_HOST":~/9chain-a1/Caddy
 ```bash
 bash local-net/deploy/publish-official.sh web-home
 ```
+
+---
+
+## ✅ LIÊN KẾT EXPLORER CŨ VỀ ĐƯỢC NHÀ MỚI `2026-09-04` (đêm muộn) — `9d85487`
+
+**David chốt mục 1.** `a1.9chain.org/tx/<hash>` là hình dạng mọi liên kết Blockscout từng
+phát ra ngoài khi nó còn ngồi ở gốc tên miền này — chúng nằm trong chat, tài liệu, ảnh
+chụp, và **không thu hồi được**. Từ khi gốc thôi proxy, chúng rơi vào trang 404 mang thương
+hiệu: đúng kỹ thuật, vẫn là ngõ cụt cho người đang cầm một hash.
+
+🔴 **Bản bàn giao trước ghi ngờ *"9Scan không có đường đó thì khách gặp 404 của họ"*. Đo
+trước khi quyết thì thấy ngược lại — đường của họ SỐNG**, và đó là điều biến câu hỏi này
+từ một lượt tung đồng xu thành một quyết định có phép đo:
+
+| Hình dạng | 9Scan | Xử lý |
+|---|---|---|
+| `/tx/<64 hex>` | 301 → `/detail/?tx=…` → **200** | giao đi |
+| `/address/<40 hex>` | 301 → `/detail/?address=…` → **200** | giao đi |
+| `/block/<số>` | 301 → `/detail/?block=…` → **200** | giao đi |
+| `/block/<hash>` · hash cụt | **404 bên họ** | **giữ ở trang 404 của mình** |
+
+Trailing slash, query string và hex chữ hoa: 9Scan nuốt hết (đã đo từng cái).
+
+🔴 **Vì thế regex ghim ĐÚNG độ dài hex.** Nới thành `0x[0-9a-fA-F]+` đọc như một lượt dọn
+dẹp nhưng là **đổi trang 404 của mình lấy trang 404 của người lạ** — khách vẫn cụt đường,
+nay cụt ở nơi mình không kiểm soát chữ nghĩa lẫn đường quay lại.
+
+🔴 **302, không phải 301 — và đây là một quyết định, không phải lỡ tay.** Cả file này dùng
+301 cho URL cũ. Nhưng 301 được trình duyệt cache **vô hạn** và **không gỡ được từ phía máy
+chủ** — đúng lớp lỗi repo này đã trả 28 giờ để học (`404 immutable`, `7d56529`). Ở đây có
+hai lý do thật để nó có thể phải đổi: chú thích khối gốc còn để ngỏ cửa cho explorer quay
+về, và sơ đồ `/detail/?tx=` thuộc **một dự án khác**. Giá của 302 là một lượt hỏi lại trên
+một đường dẫn di sản hiếm dùng; giá của 301 sai là không sửa được.
+
+**Nghiệm thu trên site sống:** 3 hình dạng đi hết chặng ra **200** ở `9scan.org/detail/?…`
+(kể cả có `/` cuối và có query) · 6 hình dạng sai **ở lại 404 của mình** · **13 đường không
+được hỏng** đều còn 200.
+
+### Cổng — hai nửa, mỗi nửa đã được nhìn thấy lúc ĐỎ
+
+| Nửa | Đo gì | Thấy đỏ bằng cách |
+|---|---|---|
+| **Tĩnh** `web/test/404-caddy.test.ts` | luật còn không · độ dài hex còn ghim không · không bị lồng trong upstream · **đứng trước khối bắt-tất-cả** | gỡ luật (4/4 đỏ) · nới regex · cho `/block/` nhận hash · đẩy khối xuống dưới `handle {` · lồng vào `reverse_proxy` |
+| **Sống** `caddy-deploy.sh` | đi **hết chặng** tới 200 thật ở 9Scan + chiều ngược | deploy một Caddyfile **không có** khối redirect ⇒ 3 dòng ✗ kèm câu chỉ đúng hai nghi phạm |
+
+🔴 **Vì sao nửa sống phải đi hết chặng:** đích nằm ở **dự án khác**. Ngày 9Scan đổi sơ đồ
+URL, Caddy bên mình vẫn phát 302 hoàn hảo — một cổng chỉ hỏi *"mình có phát 302 không"* sẽ
+**xanh mãi mãi** trong khi mọi liên kết di sản đổ vào trang lỗi của người lạ.
+
+### 🔴 Ba thứ tốn giờ, học trong phiên
+
+- **Hai cổng mới ĐỎ VÌ SAI LÝ DO, và chỉ lộ ra khi chạy chúng — không phải khi đọc chúng.**
+  (a) bài kiểm thứ tự bắt nhầm khối `handle {` bắt-tất-cả **của site block `rpc-a1`**, nên
+  nó đỏ trên một cấu hình đúng; (b) bài kiểm "không lồng trong upstream" khớp trúng chữ
+  `reverse_proxy` / `handle_response` **nằm trong chú thích** — file này có nhiều văn xuôi
+  hơn cấu hình, nên mọi khẳng định về *cấu trúc* đo trên văn bản thô đều đang đo văn xuôi.
+  Nay: khoanh theo site block, và **lọc bỏ dòng chú thích trước khi phân tích**.
+  ⚠️ **Bài `does not hide the 404 page inside a handle_response branch` (có sẵn) vẫn mang
+  đúng điểm yếu (b)** — nó đang xanh, nhưng xanh nhờ vị trí hiện tại chứ không nhờ phép đo.
+- 🔴 **`caddy-deploy.sh` `exit 1` giữa chừng ⇒ MỌI cổng viết sau nó chưa từng chạy một
+  lần.** `testnet-a1.*` trả 525 từ trước, đỏ mỗi lượt deploy — nên cổng liên kết explorer
+  vừa thêm **bị bỏ qua trọn vẹn ở lượt deploy đầu tiên**: chưa từng xanh, chưa từng đỏ,
+  chỉ là không tồn tại, trong khi trong mã nó đọc như đã được canh. Nay gom lỗi, chạy hết,
+  thoát **một lần** ở cuối; mã thoát không đổi.
+- 🔴 **`git checkout -- <tệp>` để "khôi phục" một sửa đổi CHƯA COMMIT là XOÁ chính nó.**
+  Mốc khôi phục của `git checkout` là **HEAD**, không phải cây làm việc. Dùng nó làm bước
+  dọn trong vòng lặp thử-làm-hỏng đã thổi bay nguyên khối Caddyfile vừa viết, **im lặng và
+  báo "sạch"**. Muốn thử làm hỏng thì `cp` ra một mốc thật trước, và **đối chứng bằng
+  md5 sau mỗi lượt khôi phục**.
+
+### Gotchas nhỏ
+
+- `MSYS_NO_PATHCONV=1` bắt buộc khi `docker run -v` trên Git Bash, không thì đường dẫn
+  bị dịch thành `C:/Program Files/Git/...` và Caddy báo "no such file".
+- Lọc đầu ra vitest phải **gỡ mã màu ANSI trước** (`sed 's/\x1b\[[0-9;]*m//g'`); grep
+  thẳng vào bản có màu thì trượt hết dòng `×`. Và khi một `toContain` thất bại trên nội
+  dung cả tệp, vitest in nguyên tệp ra — dễ tưởng là lỗi khác.
 
 ---
 
