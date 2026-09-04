@@ -1,9 +1,14 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-04** — 🟢 **PREFLIGHT `50 đạt · 0 đỏ`** · hai cổng nay đo **bộ sáng lập** (D-180) · hướng dẫn validator
-**tự xoá danh tính** người đọc, đã sửa + đối chứng trên image (D-181) · bài toán **108 L1** + phân tích **"một chain
-cho mỗi người"** hai bản (đối chiếu thế giới 2026) · **`main` ĐÃ CÔNG BỐ** `official/main 4e0438e` qua script (D-182).
-🔴 Hướng phiên sau (David): **tiếp tục nghiên cứu hướng phát triển công nghệ** — đọc mục **CHỐT PHIÊN `2026-09-04`** ngay dưới.
+Cập nhật: **2026-09-04 tối** — 🟢 **MỐC `L1-CUSTOM`: TUỲ CHỈNH SÂU KHI TẠO CHAIN (D-183) + QUẢN TRỊ L1 ĐÃ TẠO (D-184)**
+— cả hai **đã deploy** (console PID `2776958`, drift 27/0/0) và đo trên `a1.9chain.org`. Console nay nhận `allocations · fees ·
+precompiles`, có `/api/preview`, `/api/governance`, `/api/upgrade(-preview)`, `/api/transfer-owner`. 🔴 **10 tệp CHƯA COMMIT.**
+Sổ chain **10** (ví mời tự tạo `Agape Chain`), còn **5/15 chỗ**. Đọc hai mục **`2026-09-04` tối** ngay dưới.
+Trước đó cùng ngày chiều — 🔵 **PHIÊN CHIẾN LƯỢC**: David chốt **tầm nhìn 9 năm · 9 tỷ chain**, xương sống
+*"từ năm thứ 5 (2031) ai dùng AI cũng cần L1 riêng"*; **11 tài liệu** trong `docs/` (4 đã commit `b602a08`, **7 chưa
+commit**) + tuyên ngôn cho cộng đồng VI/EN + **2 PDF**. Mạng, server, mã: **không đổi**. Đọc mục **CHỐT PHIÊN
+`2026-09-04` CHIỀU** ngay dưới.
+Trước đó cùng ngày sáng: preflight `50 đạt · 0 đỏ` · D-180 · D-181 · 108 L1 · `main` công bố `official/main 4e0438e` (D-182).
 Trước đó: **2026-09-03 tối** — Blockscout nghỉ hẳn · 6 L1 · ký hiệu token (P-54) · 10 validator, cái thứ 10 là người ngoài.
 *(Bản `03/09`:)* 🟢 **BLOCKSCOUT ĐÃ NGHỈ HẲN · 6 L1 · console nhận KÝ HIỆU TOKEN (P-54) ·
 10 validator, cái thứ 10 là người ngoài.** Node-1 từ `435 → 9,8` gọi/s. Còn **9/15 chỗ**. 🔴 **14 commit
@@ -87,6 +92,137 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 > `HANDOFF.md` thắng về **số đo**. Backlog: [`PROGRESS.md`](PROGRESS.md).
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
+
+### 🆕 `2026-09-04` tối (2) — QUẢN TRỊ L1 ĐÃ TẠO: P-61 NÂNG CẤP SAU GENESIS + ĐỔI CHỦ + `/api/governance` — ĐÃ DEPLOY (D-184)
+
+David: *"tiếp tục"* · *"có thể thay đổi địa chỉ owner của Chain được không?"* — có: trên chain chủ tự `setAdmin`/`setNone`
+qua MetaMask; sổ console nay có `POST /api/transfer-owner` **đo chain trước rồi mới ghi**.
+
+```
+lib      : local-net/lib/l1-upgrade.mjs (55 đối chứng) · console/governance-e2e-test.mjs (42 ca, có đường LÙI)
+console  : GET /api/governance?name= · POST /api/upgrade-preview · POST /api/upgrade (+confirm, hàng đợi chung) · POST /api/transfer-owner (+confirm)
+           rollout nhận {requireChain} ⇒ đo health CỦA CHAIN trên từng node (chainSanSang) · lỗi mang daXong/hong ⇒ hoanTacNangCap
+           sổ chain thêm khoá `upgrades[]` · `previousAdmins[]` · tiến trình kind `upgrade`
+server   : console PID 2776958 · drift 27/0/0 · sổ chain 10 (Agape Chain mới, do ví mời tạo qua planChain — có `options`) · còn 5/15
+đo công khai: /governance SBull ⇒ adminRoles.feeManager=admin · upgrade-preview txAllowList ⇒ 200, mốc 14:26Z (now+15′)
+           feeManager ⇒ 400 · transfer-owner thiếu confirm ⇒ 400 (không đọc chain) · KHÔNG chạy nâng cấp/đổi chủ thật
+git      : CHƯA COMMIT (cộng dồn với khối dưới): server.mjs · console-deploy.sh · manifest · 4 tệp mới (2 lib, 2 test)
+```
+
+#### ⚠️ Việc tiếp — ai làm
+- **[human] một lượt nâng cấp THẬT** trên một chain của mình (gợi ý: `deployerAllowList enable` trên chain ít người dùng): xem trước
+  bằng `/api/upgrade-preview` cùng thân, rồi `/api/upgrade` với `confirm`. ~5 phút rollout; nếu gãy ở node thứ k>1 thì đường lùi
+  restart lại các node đã nhận — đó là ca **chưa đo**. Sau mốc, đo `eth_getChainConfig` và gọi precompile.
+- **[web-home] P-60**: trang "quản trị chain của tôi" đọc `/api/governance`, hai màn xem trước (`/api/upgrade-preview`,
+  `/api/preview`), nút `setAdmin`/`setNone`/`setFeeConfig`/`mint` qua MetaMask (địa chỉ có trong `addresses`), rồi `transfer-owner`.
+- **[A1]** cổng canh `upgrade.json` đĩa ↔ node cho MỌI chain (nay chỉ kiểm khi có yêu cầu) · `Genesis.Verify()` Go ở bước khô.
+
+#### 🔴 GOTCHAS phiên này
+1. **"Node khoẻ" không nói gì về chain con**: `upgrade.json` hỏng ⇒ VM chain không khởi tạo (`vm.go:544`) mà P/X/C vẫn xanh.
+   Rollout cho một chain phải đo **chain đó** (`health.health` tag subnetID ⇒ check khoá theo blockchainID).
+2. **Node trả `adminAddresses` viết thường**, tệp đĩa viết checksum ⇒ so đĩa ↔ node phải so **hình dạng** (khoá@mốc!disable), không so byte.
+3. **`eth_getChainConfig` trả `upgrades: {}`** khi không có tệp — khoá luôn có, mảng thì không; đọc `?.precompileUpgrades ?? []`.
+4. **Selector `readAllowList(address)` = `0xeb54dae1`**, đã đo trả `2` (Admin) cho chủ SBull Chain; self-test tính lại từ keccak.
+
+### 🆕 `2026-09-04` tối — TUỲ CHỈNH SÂU KHI TẠO CHAIN (P-56 · P-57 · P-58) + `/api/preview` — ĐÃ DEPLOY (D-183)
+
+David: *"hãy làm trước cho phần tạo chain."* Console nay nhận thêm ba nhóm tuỳ chọn và có bản xem trước khô.
+
+```
+lib      : local-net/lib/l1-options.mjs (70 đối chứng) · console/options-e2e-test.mjs (46 ca, đường sản phẩm)
+console  : createChain = planChain (kiểm + genesis trong bộ nhớ) → launchChain (tiêu tiền) · POST /api/preview
+           bản ghi sổ chain thêm khoá `options` · /api/status thêm limits · selectablePrecompiles · rewardModes
+server   : console PID 2762156 (console-deploy.sh, 7 bài kiểm xanh, drift 25/0/0) · sổ chain 9, không đổi
+đo công khai: /console/api/preview 200 (chainId 9001000009 · 2 người nhận · 60M gas · minter + allowFeeRecipients)
+           minBaseFee 0 ⇒ 400 "dead at birth" · zero-fee + fees ⇒ 400 "cannot be combined"
+           token vận hành + bảng thiếu ví A1_L1_ADMIN ⇒ 400 "owner receives nothing" (đỏ ĐÚNG luật, không cố ý)
+git      : CHƯA COMMIT — 4 tệp sửa + 2 tệp mới (xem `git status`)
+```
+
+**Hình dạng API mới (mọi trường tuỳ chọn, `web-home` hiện gửi `{name, preset}` vẫn chạy y nguyên):**
+`allocations: [{address, tokens}]` · `fees: {gasLimit, targetBlockRate, minBaseFee, baseFeeChangeDenominator}` ·
+`precompiles: {nativeMinter, deployerAllowList, txAllowList, rewardManager: "burn"|"allowFeeRecipients"|{mode:"rewardAddress", rewardAddress}}`.
+Rào và tên khoá: đọc đầu `l1-options.mjs`. Preset ≠ `standard` + tuỳ chọn tường minh ⇒ **từ chối** (câu lỗi in cách viết tương đương).
+
+#### ⚠️ Việc tiếp — ai làm
+- **[human] commit**: `git add local-net/lib/l1-options.mjs local-net/console/options-e2e-test.mjs local-net/console/server.mjs local-net/deploy/console-deploy.sh local-net/deploy/manifest-deploy.json DECISIONS.md PROGRESS.md HANDOFF.md` — commit MÃ, không `[skip ci]`, là ngọn hợp lệ để `publish-official.sh`.
+- **[human] tạo một chain THẬT với `allocations` nhiều địa chỉ** — phép đo còn thiếu (đường `launchChain` là mã cũ nguyên vẹn, nhưng chưa lượt tạo thật nào chạy qua `planChain`). Tiêu một chỗ vĩnh viễn ⇒ David bấm. Gợi ý: xem trước bằng `/api/preview` cùng thân trước.
+- **[web-home] P-62 nửa web**: màn xem trước gọi `/api/preview`, hiện `facts/can/cannot`, câu ký dưới `cannot`; ô nhập cho ba nhóm tuỳ chọn, rào đọc từ `/api/status.limits`; trang Done hiện `options`.
+- **[A1]** P-59 (thư viện hợp đồng trong `alloc`) · P-61 (`upgrade.json`) · chạy `Genesis.Verify()` Go thật ở bước khô (nay chỉ có bản chép JS).
+
+#### 🔴 GOTCHAS phiên này
+1. **`*/` trong chú thích khối**: viết `precompile/contracts/*/module.go` trong `/** … */` là đóng chú thích sớm ⇒ `SyntaxError` ở dòng vô can. Viết `<name>` thay `*`.
+2. **`eip55.mjs` đã từ chối địa chỉ 0** (câu tiếng Việt, nợ §0) — phép kiểm địa chỉ 0 của thư viện mới phải đứng **trước** parser thì câu tiếng Anh mới là câu người dùng đọc.
+3. **Console đọc `index.html` và `9chain-a1-config/` theo `cwd`**, còn sổ chainId theo vị trí module ⇒ chạy console trong thư mục tạm là cô lập được sổ chain (rỗng) mà vẫn giữ sổ chặn thật. Chép đúng hai thứ: khuôn genesis + `index.html`.
+4. **`ls -la | tail -n +2 | wc -l` đếm cả `.` và `..`** — "66 → 64" trông như xem trước xoá tệp; thật ra không đổi. Đếm trước/sau bằng **cùng một lệnh**.
+5. **Token trong `C:\Users\abc\9chain-a1-keys\console-token.txt` KHÔNG khớp token server đang chạy** (401 trên bề mặt công khai). Bẫy 8 CLAUDE.md trỏ vào tệp đó — nay nguồn đúng là `A1_CONSOLE_TOKEN` trong `~/9chain-a1/console.env` trên server. Chưa sửa tệp cục bộ (việc David).
+
+### 🆕 `2026-09-04` tối — THÊM VÍ THỨ HAI VÀO DANH SÁCH MỜI TẠO CHAIN
+
+David: *"thêm địa chỉ ví này vào danh sách được tạo chain"*. Việc VẬN HÀNH, không đụng mã/repo.
+
+```
+console.env : A1_L1_ALLOWLIST=0x1e8c889B6b3b32017680E72549583EA1b1d3292C,0x5eE9233D2452fdf85f62edbb80035339F1e93a39
+console     : PID 2657315 → 2757843 (console-restart.sh, PID mới ≠ cũ) · /proc/<pid>/environ khai ĐỦ 2 ví
+banner log  : "mời tạo : ✉️  2 ví trong danh sách" (dòng 1158, trước đó 1 ví ở 1115)
+đo từ ngoài : reopen-chain-creation --probe 4/4 ✓ · sổ chain công khai 9 sống · 0 thu hồi · /create-chain/ 200
+```
+
+- Địa chỉ mới đã qua **đúng bộ kiểm EIP-55 của console** (`parseEvmAddress`) TRƯỚC khi ghi lên server — một
+  checksum sai là console **chết lúc khởi động** (parse ở cấp module, `server.mjs:295`), không phải bị bỏ qua.
+- Bản lưu: `~/9chain-a1/console.env.bak-<UTC>` cùng thư mục.
+- ⚠️ Sổ chain công khai nay **9 L1** (phiên khác đẻ thêm sau bản `03/09`) ⇒ còn **6/15 chỗ**.
+
+### 🆕 CHỐT PHIÊN `2026-09-04` CHIỀU — TẦM NHÌN 9 NĂM · 9 TỶ CHAIN · XƯƠNG SỐNG "AI HÀNH ĐỘNG CẦN L1 RIÊNG"
+
+**TL;DR:** Phiên toàn tài liệu, **không đụng mạng/server/mã**. David chốt hai chỉ dẫn: ① *phân tích đứng trên **lõi
+avalanchego** và công nghệ hiện có, không trên hiện trạng testnet* (trần 15/một máy là vận hành, không phải giao thức);
+② **tầm nhìn chiến lược**: *từ năm thứ 5 (2031) hầu như ai dùng AI cũng cần một L1 riêng*. Bản tổng hợp
+`docs/MASTER-9CHAIN-9-YEARS.md` **thắng về kế hoạch** khi mâu thuẫn với các bản khác. Git: `main b602a08` (4 doc đã
+commit) + **7 tệp chưa commit** (xem dưới). `origin/main` còn ở `4639c0b` — **chưa đẩy**. Sổ điều phối cho thấy phiên
+`web-home` cùng ngày đã deploy `/chains/` + P-55 và ghi nhận **khách validator thứ hai** — không thuộc phiên này.
+
+#### Đã xong (11 tài liệu + 2 PDF, mỗi cái có artifact; cổng `check-doc-drift` + `check-english-code` xanh sau từng tệp)
+| Tệp | Là gì | Commit |
+|---|---|---|
+| `docs/ANALYSIS-MOBILE-VALIDATORS.md` | điện thoại KHÔNG làm validator toàn phần (OS/mạng/uptime chặn, không phải CPU); điện thoại cũ cắm sạc = node ARM64; điện thoại là **mảnh khoá chỉ khi chain con chạy Simplex** (phiếu Snowman là gói tin) — fork `1.14.2` đã có Simplex theo subnet | `b602a08` |
+| `docs/ROADMAP-2026-2029.md` | sáu mùa; ba tường (1 máy · **validator sáng lập hết hạn 07–09/2027** · console track-all); sản phẩm là tầng 2 | `b602a08` |
+| `docs/VISION-PERSONAL-L1-REAL-LIFE.md` | viết **từ lõi**: `ConvertSubnetToL1Tx` đòi ≥ 1 validator + cấm gỡ validator cuối; phí L1 **Target 10k / Capacity 20k** (`genesis_9chain_a1.go:104–107`); bảy precompile; "sở hữu" = năm quyền; pha A/B; chain = sổ quyền, không kho dữ liệu | `b602a08` |
+| `docs/PROJECTION-BILLIONS-OF-L1.md` | vật lý ~8 PB/năm; chặn thật = sổ đăng ký + danh tính; ba đường vượt 20k; bốn bậc 10¹→10⁹; 9 tỷ là GIAO THỨC nhiều gốc | `b602a08` |
+| `docs/VISION-9-YEARS-9-BILLION.md` | 9 năm (Block Adam 09/09/2026 → 09/09/2035), 9 tỷ = dân số 2035; **9 tỷ là bài toán KÊNH PHÂN PHỐI** (Aadhaar/UPI/WhatsApp); bốn kênh; 9Chain = chuẩn bên dưới | ❌ chưa |
+| `docs/STRATEGY-AI-USERS-NEED-PERSONAL-L1.md` | luận điểm năm 5: sáu lực; L1 riêng vs tài khoản nền tảng; loại suy HTTPS; sáu điều kiện; đối thủ thật = "sổ nội bộ đủ tốt" của nền tảng; chiến lược 4 năm đầu (hiến pháp agent như chuẩn + giao diện công cụ kiểu MCP) | ❌ chưa |
+| `docs/MASTER-9CHAIN-9-YEARS.md` | **bản tổng hợp**: 4+1+4 năm; bốn dòng việc A/B/C/D; chín bất biến/thước đo; chín rủi ro; **quyết định mới: A (sổ cá nhân) trước B (console L1 chủ quyền) khi phải chọn** | ❌ chưa |
+| `docs/9CHAIN-NINE-YEARS-MANIFESTO.md` / `.en.md` | tuyên ngôn cho cộng đồng, giọng truyền cảm hứng, rủi ro → "chín thách thức"; KHÔNG chứa chi tiết vận hành nội bộ | ❌ chưa |
+| `docs/9CHAIN-NINE-YEARS-MANIFESTO.vi.pdf` / `.en.pdf` | A4, 8 trang mỗi bản, in bằng Edge headless từ HTML in (scratchpad), font nhúng đủ dấu, đã xem 16 trang | ❌ chưa |
+
+Memory đã ghi: `9chain-su-menh-mot-chain-moi-nguoi.md` (cập nhật 6 lần, trỏ tới mọi tài liệu) ·
+`a1-phan-tich-tu-loi-khong-tu-testnet.md` (feedback mới). Kho `kb.py`: 2 decision + 2 gotcha. Sổ `coord.py`: 1 decision + 1 task.
+
+#### ⚠️ Việc tiếp — ai làm
+- **[human] commit 7 tệp** (David chưa bảo): `git add docs/VISION-9-YEARS-9-BILLION.md docs/STRATEGY-AI-USERS-NEED-PERSONAL-L1.md docs/MASTER-9CHAIN-9-YEARS.md docs/9CHAIN-NINE-YEARS-MANIFESTO.md docs/9CHAIN-NINE-YEARS-MANIFESTO.en.md docs/9CHAIN-NINE-YEARS-MANIFESTO.vi.pdf docs/9CHAIN-NINE-YEARS-MANIFESTO.en.pdf` — hook tự gắn `[skip ci]`; rồi `git push origin main` (kiểm `check-remotes` trước). `official` chỉ qua `publish-official.sh`, và ngọn phải là commit MÃ (gotcha 5 phiên sáng).
+- **[human] sáu quyết định** ở `MASTER` mục 10: mục tiêu validator L1 và V (đề xuất 10k / V=5) · lịch mainnet + ai quyết (chốt `02/2028`) · ba vai người + tiền · tái cọc hay re-genesis cho `07/2027` · pháp lý (VN 91/2025 + NQ 05/2025 + EU AI Act) · **A trước B**.
+- **[human]** duyệt giọng tuyên ngôn VI/EN trước khi chia sẻ; artifact đang riêng tư.
+- **[A1, mùa 1 — theo MASTER dòng A]** mẫu genesis sổ cá nhân (bảy precompile + ví thông minh + hợp đồng hiến pháp + hợp đồng neo) trên một L1 hiện có; **giao diện công cụ cho agent** (`request_permission` / `log_receipt` / `check_mandate`); điều kiện qua: agent thật trả một hoá đơn thật, hiến pháp **từ chối đúng một lần**.
+- **[A1, mùa 1 — dòng B, băng tập]** ACP-77 + Simplex (đo `maxNetworkDelay` với 1 node trễ 500 ms, tắt 1/5) · một Android cũ join 7 ngày · IPv6 kép. Đây vẫn là mục 1–2 backlog của phiên sáng, chỉ đổi thứ tự ưu tiên sau A.
+- **[nợ, A1]** `ROADMAP-2026-2029.md` mùa 1–2 còn viết từ hiện trạng testnet; MASTER đã sửa thứ tự, ROADMAP chưa sửa theo.
+
+#### 🔴 GOTCHAS phiên này
+1. **Phân tích tầm nhìn từ hiện trạng testnet là đo sai đại lượng** (David chỉnh giữa lượt): trần 15, một máy, track-all là *vận hành*; giới hạn thật của lõi là **20.000 validator L1/P-Chain** và **16 subnet/node**. Trích `đường dẫn:dòng` của lõi trước, số testnet chỉ để định cỡ chi phí.
+2. **Snowman vs Simplex đổi hẳn câu trả lời DVT**: phiếu Snowman là gói tin trên TLS (chia khoá không giúp gì), phiếu Simplex là chữ ký BLS (chia ngưỡng được). Mục "DVT cho signer.key" phải đổi thành "đo Simplex trước".
+3. **Edge headless không kịp nạp Archivo từ Google Fonts** (biến thể nhiều subset) dù `--virtual-time-budget=20000`; Be Vietnam Pro và Plex Mono thì kịp. Tải woff2 về, khai `@font-face` local với `unicode-range` chép từ CSS Google, in với `--allow-file-access-from-files`. `pypdf` liệt kê font **không thấy** Archivo dù đã nhúng — kiểm bằng ảnh trang (`pypdfium2`), không bằng danh sách font.
+4. **`pdftoppm` không có** trên máy này ⇒ `Read` PDF theo trang lỗi; dùng `pypdfium2` render PNG + ghép contact sheet để xem 16 trang trong 2 ảnh.
+5. **Trình duyệt trong app không mở tệp ngoài thư mục dự án** (gotcha 8 phiên sáng lặp lại) — screenshot artifact HTML trong scratchpad thất bại; đừng mất lượt.
+6. **Phiên chỉ giữ tối đa 5 artifact watch**; từ artifact thứ 6 sẽ không được theo dõi tự động — không ảnh hưởng nội dung/URL.
+7. **Tài liệu cho cộng đồng phải lọc chi tiết vận hành** (máy chủ, khoá, hạn validator, mã D-/B-) và **không hứa số chưa đo** (D-161) — bảng chín chặng viết ở giọng kế hoạch, không phải cam kết.
+8. 🔴 **`HANDOFF.md` là tệp TRỘN (154 dòng CRLF / 2.321 LF) và công cụ `Edit` đổi CẢ TỆP sang LF** (gotcha 7 phiên `02/09` lặp lại): `git diff --stat` nhảy 359 dòng cho hai chỗ sửa. **Và `git show HEAD:file > tmp` trong PowerShell tái mã hoá (UTF-16/BOM)** ⇒ script "khôi phục đuôi dòng" dựa trên tệp đó làm hỏng thêm (2.373/2.324). Đường đúng: `git checkout HEAD -- HANDOFF.md`, rồi ghi bằng Python **nhị phân**, chuỗi thay thế đổi `\n`→`\r\n`. Luôn xem `git diff --stat` ngay sau mỗi lượt `Edit` vào tệp `.md` gốc.
+
+#### Lệnh hữu ích
+```bash
+node scripts/check-doc-drift.mjs && node scripts/check-english-code.mjs   # chay sau moi tep docs/ moi
+git diff --stat -- HANDOFF.md DECISIONS.md                                 # sau MOI luot Edit vao tep goc (CRLF)
+# in PDF tu HTML (scratchpad co print-vi.html / print-en.html + fonts/):
+# "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --headless=new --disable-gpu --allow-file-access-from-files --no-pdf-header-footer --virtual-time-budget=20000 --print-to-pdf="<out.pdf>" "file:///<path>/print-vi.html"
+```
 
 ### 🆕 CHỐT PHIÊN `2026-09-04` — CỔNG ĐO BỘ SÁNG LẬP · P-64 · 108 L1 · SỨ MỆNH BA TẦNG · CÔNG BỐ QUA SCRIPT
 

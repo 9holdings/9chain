@@ -17,7 +17,15 @@ import { clientIp, rateLimit, requireToken, requireSecret, requireInt, serialQue
 import { parseEvmAddress } from "../lib/eip55.mjs";
 import { parseAllowlist, mayCreateL1 } from "../lib/l1-allowlist.mjs";
 import { apDungPreset, danhSachPreset } from "../lib/presets.mjs";
-import { validateSymbol } from "../lib/l1-symbol.mjs";
+import { validateSymbol, symbolFromName } from "../lib/l1-symbol.mjs";
+import {
+  parseAllocations, applyFees, applyPrecompiles, verifyFeeConfig, assertPresetCompatible,
+  effectiveOptions, describeChain, LIMITS, SELECTABLE_PRECOMPILES, REWARD_MODES,
+} from "../lib/l1-options.mjs";
+import {
+  planUpgrade, activePrecompiles, encodeReadAllowList, decodeRole, ownerTransferVerdict,
+  PRECOMPILE_ADDRESS, UPGRADABLE_PRECOMPILES, MIN_LEAD_SECONDS, MAX_LEAD_SECONDS,
+} from "../lib/l1-upgrade.mjs";
 import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
 import { siwe } from "./siwe.mjs";
 
@@ -55,6 +63,11 @@ const limitRead = rateLimit({ max: 120, windowMs: 60 * 1000, name: "read" });
 // Hạn mức RIÊNG (không dùng chung khoá với create): gộp chung thì một người đẻ 3 chain
 // là hết quyền dọn chính mấy chain đó, tức là hạn mức tự khoá đường sửa sai.
 const limitRevoke = rateLimit({ max: requireInt("A1_LIMIT_REVOKE", 3), windowMs: 60 * 60 * 1000, name: "revoke" });
+// A post-genesis upgrade is a nine-node rolling restart like create/revoke, and it is the owner
+// changing the rules of a chain other people use — the same budget, its own bucket (P-61).
+// Transferring ownership touches only the ledger, but it is rare and irreversible for the sender.
+const limitUpgrade = rateLimit({ max: requireInt("A1_LIMIT_UPGRADE", 3), windowMs: 60 * 60 * 1000, name: "upgrade" });
+const limitTransfer = rateLimit({ max: 3, windowMs: 60 * 60 * 1000, name: "transfer" });
 // Xin lời mời ký là thao tác RẺ nhưng chiếm chỗ trong kho nonce — hạn mức rộng tay
 // hơn create/revoke nhiều, nhưng không để mở toang.
 const limitNonce = rateLimit({ max: 30, windowMs: 10 * 60 * 1000, name: "nonce" });
@@ -651,7 +664,43 @@ function dongTienTrinh(loi) {
   }
 }
 
-async function trackSubnetsLanLuot(trackList) {
+/**
+ * Is the L1 itself (not just P/X/C) healthy again on this node?
+ *
+ * 🔴 WHY A SECOND CHECK EXISTS (P-61, 2026-09-04). A node with an unparsable `upgrade.json`
+ * never initialises that chain's VM (`plugin/evm/vm.go:544`) while its PRIMARY network is
+ * perfectly healthy. `nodeSanSang` reads P/X/C only — correct for create/revoke, where the L1
+ * is new or gone — so an upgrade rollout guarded by it alone would restart nine nodes and leave
+ * the L1 dead on every one, all green. `health.health` tagged with the subnetID answers with a
+ * check keyed by the blockchainID (measured on SBull Chain, 2026-09-04); that key absent or
+ * carrying `error` is the signal.
+ */
+async function chainSanSang(svc, subnetID, blockchainID) {
+  let out;
+  try {
+    out = await docker([...COMPOSE, "exec", "-T", svc, "curl", "-sf", "-m", "5",
+      "-X", "POST", "-H", "content-type:application/json",
+      "--data", `{"jsonrpc":"2.0","id":1,"method":"health.health","params":{"tags":["${subnetID}"]}}`,
+      "http://127.0.0.1:9650/ext/health"]);
+  } catch {
+    return { ok: false, vi: "API not answering" };
+  }
+  let checks;
+  try { checks = JSON.parse(out.slice(out.indexOf("{"), out.lastIndexOf("}") + 1))?.result?.checks; } catch { return { ok: false, vi: "health not parseable" }; }
+  const c = checks?.[blockchainID];
+  if (!c) return { ok: false, vi: `no health check for chain ${blockchainID} yet` };
+  if (c.error) return { ok: false, vi: `chain ${blockchainID}: ${typeof c.error === "string" ? c.error : JSON.stringify(c.error)}` };
+  return { ok: true, vi: "chain check clean" };
+}
+
+/**
+ * @param {string} trackList   comma-separated subnetIDs every node must track
+ * @param {{requireChain?: {subnetID:string, blockchainID:string}}} opts
+ *   `requireChain` — ALSO wait for this chain's own health check on each node (upgrade rollouts).
+ * On failure the thrown error carries `daXong` (the services already restarted) so the caller
+ * can undo them; the text lists them too, for a human reading the log.
+ */
+async function trackSubnetsLanLuot(trackList, { requireChain } = {}) {
   // `docker()` gộp stdout VỚI stderr, mà compose hay in cảnh báo kiểu
   //   WARN[0000] The "A1_TRACK_SUBNETS" variable is not set. Defaulting to ...
   // Nhận nguyên si từng dòng làm tên service thì lệnh kế sẽ thành
@@ -712,15 +761,37 @@ async function trackSubnetsLanLuot(trackList) {
       if (sanSang.ok) break;
       await new Promise(r => setTimeout(r, 2000));
     }
-    const ms = Date.now() - t0;
     if (!sanSang?.ok) {
-      throw new Error(
+      const err = new Error(
         `${svc} chưa phục vụ lại được mạng chính sau 90s (${sanSang?.vi}) — ĐÃ DỪNG, ` +
         `các node còn lại chưa bị đụng tới. ` +
         `Đã xong: ${nhatKy.map(n => n.svc).join(", ") || "(chưa node nào)"}. ` +
         `Kiểm tra: docker logs ${svc} --tail 50`
       );
+      err.daXong = nhatKy.map(n => n.svc);
+      err.hong = svc;
+      throw err;
     }
+    if (requireChain) {
+      // The L1 bootstraps AFTER the primary network; give it the same budget again.
+      let chainOk = null;
+      for (let i = 0; i < 45; i++) {
+        chainOk = await chainSanSang(svc, requireChain.subnetID, requireChain.blockchainID);
+        if (chainOk.ok) break;
+        await new Promise(r => setTimeout(r, 2000));
+      }
+      if (!chainOk?.ok) {
+        const err = new Error(
+          `${svc} is back on the primary network but the L1 ${requireChain.blockchainID} is NOT healthy on it after 90s ` +
+          `(${chainOk?.vi}) — STOPPED, the remaining nodes were not touched. ` +
+          `Done: ${nhatKy.map(n => n.svc).join(", ") || "(none)"}. Check: docker logs ${svc} --tail 50`
+        );
+        err.daXong = nhatKy.map(n => n.svc);
+        err.hong = svc;
+        throw err;
+      }
+    }
+    const ms = Date.now() - t0;
     nhatKy.push({ svc, ms });
     buocXong(`node:${svc}`, ms);
     console.log(`  ✓ ${svc} track xong, mạng chính phục vụ lại sau ${(ms / 1000).toFixed(1)}s`);
@@ -840,7 +911,7 @@ function ghiChainConfig(blockchainID) {
   return dich;
 }
 
-async function createChain({ name, chainId, admin, preset, symbol }) {
+async function createChain(tham) {
   // 🔴 CỔNG ĐẺ CHAIN — MẶC ĐỊNH ĐÓNG (D-087).
   //
   // Ngày G `01/09` **xoá sạch mọi L1 người dùng**. Mở cửa từ giờ tới đó nghĩa là mỗi chain
@@ -864,6 +935,27 @@ async function createChain({ name, chainId, admin, preset, symbol }) {
       "already know we cannot keep. It reopens after the rebuild.");
   }
 
+  const plan = await planChain(tham);
+  return await launchChain(plan);
+}
+
+/**
+ * ═══ PLAN vs LAUNCH (milestone L1-CUSTOM, 2026-09-04) ═══
+ *
+ * `planChain` runs EVERY check and builds the whole genesis IN MEMORY, and spends nothing: no
+ * file written, no P-Chain transaction, no node touched, no progress opened. `launchChain` takes
+ * a plan and does the expensive, irreversible half.
+ *
+ * The split exists for `/api/preview` (P-62): a person about to spend one of 15 permanent slots
+ * on an IMMUTABLE genesis deserves to read exactly what the node will run — and "exactly" means
+ * the same code path, not a second implementation that drifts. Every refusal `createChain` would
+ * make, `preview` makes first, in the same words.
+ *
+ * ⚠️ `planChain` reads the ledger; `launchChain` reads it AGAIN. Creation runs inside the serial
+ * queue so nothing changes between the two, but preview runs outside it, and a plan must never be
+ * launched later from a stale read — the plan is not a reservation.
+ */
+async function planChain({ name, chainId, admin, preset, symbol, allocations, fees, precompiles }) {
   // Cổng thứ hai, ngay sau cổng rẻ nhất: console có đang đứng đúng thế hệ mạng
   // không. Đặt TRƯỚC mọi phép kiểm tên/hạn mức/khoá vì một chainId phát nhầm thế
   // hệ là thứ **không thu hồi được** — thu hồi chain không trả lại số nhận dạng.
@@ -1014,6 +1106,59 @@ async function createChain({ name, chainId, admin, preset, symbol }) {
     chainId = capChainIdTuDong(new Set([...taken, ...chainIdDaCap]), chainIdDaChiem, GOC_DAI_CHAINID);
   }
 
+  // 1) genesis EVM cho L1 này — IN MEMORY. Nothing is written until `launchChain`.
+  const tpl = JSON.parse(readFileSync(L1_TEMPLATE, "utf8"));
+  tpl.config.chainId = chainId;
+  tpl.config.feeManagerConfig = { adminAddresses: [ADMIN], blockTimestamp: 0 };
+  // ═══ DEEP OPTIONS (L1-CUSTOM: P-56 · P-57 · P-58) ═══
+  // A non-standard preset and explicit fees/precompiles are refused TOGETHER (l1-options.mjs,
+  // hard rule 3): with an immutable genesis, "which one wins" must never be answered in silence.
+  assertPresetCompatible(preset, { fees, precompiles });
+  // Preset áp SAU feeManagerConfig và không đụng vào nó — chủ chain giữ quyền
+  // chỉnh phí ở mọi kiểu chain. Preset sai tên thì NÉM LỖI ở đây, trước khi tiêu
+  // tiền và trước khi đụng node: subnet-evm bỏ qua khoá lạ trong im lặng, nên nếu
+  // để lọt thì chain ra đời thiếu đúng thứ người dùng chọn mà không ai biết.
+  const presetDaAp = apDungPreset(tpl.config, preset, ADMIN);
+  // `gasLimit` nằm ở HAI chỗ trong genesis và subnet-evm ĐÒI chúng bằng nhau:
+  // `core/genesis.go:456` `Genesis.Verify()` so `feeConfig.gasLimit` với `gasLimit`
+  // ở gốc và trả lỗi nếu lệch. Đồng bộ tại đây ⇒ **`feeConfig` là nguồn sự thật
+  // duy nhất**, và preset nào đổi thông lượng cũng chỉ cần sửa một chỗ.
+  //
+  // Không để preset tự lo hai chỗ: `apDungPreset` chỉ nhận phần `config`, nên một
+  // preset muốn đổi gasLimit sẽ hoặc không với tới gốc, hoặc phải được trao cả
+  // genesis — mở rộng quyền của preset lên toàn bộ thứ bất biến để giải một bài
+  // toán một dòng. (Lỗi này ít nhất báo TO: chain không khởi động được và câu lỗi
+  // nói thẳng hai con số — khác hẳn bẫy `minBaseFee` ở D-028.)
+  // Explicit fees are applied AFTER the preset and inside the rails; `targetGas` is re-derived
+  // from the final gasLimit either way (5×, the template ratio). Precompiles chosen one by one
+  // all get the owner as admin — the library refuses anything else.
+  tpl.config.feeConfig = applyFees(tpl.config.feeConfig, fees);
+  applyPrecompiles(tpl.config, precompiles, ADMIN, parseEvmAddress);
+  // 🔴 LAST LINE BEFORE THE GENESIS EXISTS: a port of subnet-evm's `FeeConfig.Verify()` plus the
+  // project's own `minBaseFee ≥ 1` (D-028), run on the FINAL config whatever produced it. The
+  // node runs the real Verify() too — this one runs before a P-Chain fee is paid.
+  verifyFeeConfig(tpl.config.feeConfig);
+  tpl.gasLimit = "0x" + BigInt(tpl.config.feeConfig.gasLimit).toString(16);
+  // Khoá của `alloc` là hex TRẦN (không `0x`); dùng chữ thường cho đúng quy ước.
+  // P-56: the owner's 50,000,000 is now the DEFAULT of `parseAllocations`, byte-identical to the
+  // constant that stood here before (its self-test asserts that); the owner must always receive
+  // a non-zero balance, or nobody could ever govern the chain.
+  const allocation = parseAllocations(allocations, ADMIN, parseEvmAddress);
+  tpl.alloc = allocation.alloc;
+  const options = effectiveOptions(tpl.config, allocation);
+  const description = describeChain({
+    cfg: tpl.config, allocation, chainId, name,
+    symbol: SYMBOL ?? symbolFromName(name),
+  });
+
+  return { name, chainId, ADMIN, SYMBOL, presetDaAp, tpl, options, description };
+}
+
+/** The irreversible half — see `planChain`. Runs inside the serial queue only. */
+async function launchChain(plan) {
+  const { name, chainId, ADMIN, SYMBOL, presetDaAp, tpl, options } = plan;
+  const state = loadState();
+
   // Mở tiến trình NGAY SAU khi mọi phép kiểm rẻ đã qua — trước đó mà hỏng thì
   // người dùng nhận lỗi tức thì, không cần màn tiến trình nào.
   // 🔴 IT GOES OUT ON THE WIRE ⇒ IT IS ENGLISH. These three labels were Vietnamese and USERS SAW
@@ -1037,28 +1182,6 @@ async function createChain({ name, chainId, admin, preset, symbol }) {
   ]);
   buocChay("genesis");
 
-  // 1) genesis EVM cho L1 này
-  const tpl = JSON.parse(readFileSync(L1_TEMPLATE, "utf8"));
-  tpl.config.chainId = chainId;
-  tpl.config.feeManagerConfig = { adminAddresses: [ADMIN], blockTimestamp: 0 };
-  // Preset áp SAU feeManagerConfig và không đụng vào nó — chủ chain giữ quyền
-  // chỉnh phí ở mọi kiểu chain. Preset sai tên thì NÉM LỖI ở đây, trước khi tiêu
-  // tiền và trước khi đụng node: subnet-evm bỏ qua khoá lạ trong im lặng, nên nếu
-  // để lọt thì chain ra đời thiếu đúng thứ người dùng chọn mà không ai biết.
-  const presetDaAp = apDungPreset(tpl.config, preset, ADMIN);
-  // `gasLimit` nằm ở HAI chỗ trong genesis và subnet-evm ĐÒI chúng bằng nhau:
-  // `core/genesis.go:456` `Genesis.Verify()` so `feeConfig.gasLimit` với `gasLimit`
-  // ở gốc và trả lỗi nếu lệch. Đồng bộ tại đây ⇒ **`feeConfig` là nguồn sự thật
-  // duy nhất**, và preset nào đổi thông lượng cũng chỉ cần sửa một chỗ.
-  //
-  // Không để preset tự lo hai chỗ: `apDungPreset` chỉ nhận phần `config`, nên một
-  // preset muốn đổi gasLimit sẽ hoặc không với tới gốc, hoặc phải được trao cả
-  // genesis — mở rộng quyền của preset lên toàn bộ thứ bất biến để giải một bài
-  // toán một dòng. (Lỗi này ít nhất báo TO: chain không khởi động được và câu lỗi
-  // nói thẳng hai con số — khác hẳn bẫy `minBaseFee` ở D-028.)
-  tpl.gasLimit = "0x" + BigInt(tpl.config.feeConfig.gasLimit).toString(16);
-  // Khoá của `alloc` là hex TRẦN (không `0x`); dùng chữ thường cho đúng quy ước.
-  tpl.alloc = { [ADMIN.slice(2).toLowerCase()]: { balance: "0x295BE96E64066972000000" } };
   const fname = `${name.replace(/ /g, "_")}.json`;
   writeFileSync(path.join(TMP_DIR, fname), JSON.stringify(tpl, null, 2));
   const inContainer = `/9chain-a1/config/console-tmp/${fname}`;
@@ -1131,6 +1254,12 @@ async function createChain({ name, chainId, admin, preset, symbol }) {
     // owner chose one; a missing key means "apply the fallback rule", never "LOVE9". Another
     // ADDED key, so `/chains/` and `check-chain-ledger` keep working unchanged.
     ...(SYMBOL ? { symbol: SYMBOL } : {}),
+    // `options` — the effective deep options (L1-CUSTOM), read back from the FINAL genesis
+    // config: fee numbers, enabled precompiles, reward mode, genesis recipients. All of it is
+    // already public in the genesis; this is the same facts in a shape `/chains/` can show.
+    // Another ADDED key — chains created before it have none, and readers must treat a
+    // missing key as "the template defaults", never as `undefined` on a page.
+    options,
   };
   state.chains.push(chain); saveState(state);
   // Nhật ký restart trả cho người gọi làm bằng chứng, nhưng KHÔNG ghi vào state:
@@ -1251,6 +1380,234 @@ async function thuHoiChain({ name, xacNhan }) {
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// GOVERNING AN L1 THAT EXISTS — P-61 post-genesis upgrades · owner transfer · governance view
+// (milestone L1-CUSTOM, 2026-09-04). The decisions live in `lib/l1-upgrade.mjs`; this block is
+// the side effects: reading the node, the file on disk, the rollout, the ledger.
+// ═══════════════════════════════════════════════════════════════════════════
+
+function upgradeFilePath(blockchainID) { return path.join(CHAIN_CFG_DIR, blockchainID, "upgrade.json"); }
+
+/** The upgrade list on disk for a chain — `[]` when there is no file, an ERROR when there is a broken one. */
+function docUpgradeFile(blockchainID) {
+  const p = upgradeFilePath(blockchainID);
+  if (!existsSync(p)) return { list: [], exists: false };
+  let j;
+  try { j = JSON.parse(readFileSync(p, "utf8")); }
+  catch (e) {
+    // 🔴 Not "treat as empty": a file that does not parse stops this chain's VM on every node that
+    // reads it (plugin/evm/vm.go:544). Extending it would hide that under a fresh timestamp.
+    throw new Error(`upgrade.json for ${blockchainID} on disk is not valid JSON (${e.message}) — every node would refuse to start this chain; fix the file by hand before scheduling anything`);
+  }
+  if (!Array.isArray(j?.precompileUpgrades)) {
+    throw new Error(`upgrade.json for ${blockchainID} has no precompileUpgrades list — this console did not write it; refusing to extend a file it does not understand`);
+  }
+  return { list: j.precompileUpgrades, exists: true };
+}
+
+/** Write the file atomically, keeping the previous version beside it so a failed rollout can undo. */
+function ghiUpgradeFile(blockchainID, upgradeConfig) {
+  const p = upgradeFilePath(blockchainID);
+  mkdirSync(path.dirname(p), { recursive: true });
+  let prev = null;
+  if (existsSync(p)) {
+    prev = `${p}.prev-${new Date().toISOString().replace(/[:.]/g, "-")}`;
+    writeFileSync(prev, readFileSync(p));
+  }
+  const tmp = p + ".tmp";
+  writeFileSync(tmp, JSON.stringify(upgradeConfig, null, 2) + "\n");
+  renameSync(tmp, p);
+  return { path: p, prev };
+}
+
+function chuChain(state, name) {
+  const ten = String(name || "").trim();
+  if (!ten) throw new Error("Missing the chain name");
+  const chain = state.chains.find(c => c.name === ten);
+  if (!chain) {
+    throw new Error(state.retired.some(c => c.name === ten)
+      ? `"${ten}" has been revoked — nothing to govern.`
+      : `No L1 named "${ten}" in the directory.`);
+  }
+  if (chain.thuHoi) throw new Error(`"${ten}" is being revoked right now.`);
+  return chain;
+}
+
+/** A wallet may govern only its own chain; the operator token may govern any. */
+function kiemChuSoHuu(chain, ai) {
+  if (ai?.kieu === "vanHanh") return;
+  if (ai?.kieu !== "vi" || typeof ai.diaChi !== "string") { const e = new Error("not authenticated"); e.status = 401; throw e; }
+  const chu = typeof chain.admin === "string" ? chain.admin.trim() : "";
+  if (!chu || chu.toLowerCase() !== ai.diaChi.toLowerCase()) {
+    const e = new Error(chu
+      ? `"${chain.name}" belongs to ${chu}, not to the wallet signed in (${ai.diaChi}).`
+      : `"${chain.name}" is a system chain — only the operator can govern it.`);
+    e.status = 403;
+    throw e;
+  }
+}
+
+/** `readAllowList(address)` on one precompile, decoded. */
+async function docVaiTro(rpcPath, precompileAddress, address) {
+  const hex = await rpc(rpcPath, "eth_call", [{ to: precompileAddress, data: encodeReadAllowList(address) }, "latest"]);
+  return decodeRole(hex);
+}
+
+/** Only the parts a node echoes back verbatim: key, timestamp, disable. Admin casing differs between disk and node. */
+const hinhDangUpgrade = (list) => (list ?? []).map(en => { const k = Object.keys(en)[0]; return `${k}@${en[k]?.blockTimestamp}${en[k]?.disable ? "!" : ""}`; }).join(" ");
+
+/**
+ * Everything an upgrade needs decided, with no side effect — shared by `/api/upgrade-preview`
+ * and `/api/upgrade` (same shape as planChain/launchChain, same reason).
+ */
+async function planUpgradeForChain({ name, precompile, action, rewardManager, leadSeconds }, ai) {
+  const state = loadState();
+  const chain = chuChain(state, name);
+  kiemChuSoHuu(chain, ai);
+  const rpcPath = `/ext/bc/${chain.blockchainID}/rpc`;
+  // The genesis truth comes from the NODE, not from the template in the repo: a chain created by
+  // an older console, or with a preset, has a config this process never saw.
+  const cfg = await rpc(rpcPath, "eth_getChainConfig");
+  const disk = docUpgradeFile(chain.blockchainID);
+  // The file on disk and the file the node runs must agree before either is extended: a
+  // mismatch means a rollout never finished, or someone edited the file — both refuse.
+  const trenNode = hinhDangUpgrade(cfg?.upgrades?.precompileUpgrades);
+  const trenDia = hinhDangUpgrade(disk.list);
+  if (trenNode !== trenDia) {
+    throw new Error(`the upgrade.json on disk (${trenDia || "empty"}) is not what the public node runs (${trenNode || "empty"}) — a rollout is missing or the file was edited; refusing to extend it`);
+  }
+  const lead = leadSeconds === undefined || leadSeconds === null || leadSeconds === "" ? undefined : Number(leadSeconds);
+  const plan = planUpgrade({
+    chainConfig: cfg, existingUpgrades: disk.list, precompile, action, admin: chain.admin, rewardManager,
+    nowSeconds: Math.floor(Date.now() / 1000), leadSeconds: lead,
+  }, parseEvmAddress);
+  return { chain, plan, rpcPath, cfg };
+}
+
+/**
+ * Undo a rollout that stopped part-way: put the previous file back (or remove the new one) and
+ * restart the nodes that already took the new file, so no validator is left to activate a rule
+ * set the others do not carry. Best effort — it reports, it does not throw.
+ */
+async function hoanTacNangCap(chain, filePath, prev, daXong, hong) {
+  const steps = [];
+  try {
+    if (prev) { writeFileSync(filePath, readFileSync(prev)); steps.push(`restored ${path.basename(prev)}`); }
+    else { renameSync(filePath, filePath + ".failed-" + Date.now()); steps.push("removed the new upgrade.json (there was none before)"); }
+  } catch (e) { steps.push(`could NOT restore the file: ${e.message}`); return steps.join("; "); }
+  const trackList = loadState().chains.map(c => c.subnetID).join(",");
+  for (const svc of [...daXong, ...(hong ? [hong] : [])]) {
+    try {
+      await docker([...COMPOSE, "up", "-d", "--no-deps", svc], { A1_TRACK_SUBNETS: trackList });
+      let ok = null;
+      for (let i = 0; i < 45; i++) { ok = await nodeSanSang(svc); if (ok.ok) break; await new Promise(r => setTimeout(r, 2000)); }
+      steps.push(`${svc} restarted on the old file${ok?.ok ? "" : " (primary network NOT healthy after 90s — check it)"}`);
+    } catch (e) { steps.push(`${svc} restart FAILED: ${e.message}`); }
+  }
+  return steps.join("; ");
+}
+
+async function napCapChain(tham, ai) {
+  const { chain, plan, rpcPath } = await planUpgradeForChain(tham, ai);
+  if (String(tham.confirm ?? "") !== chain.name) {
+    throw new Error(
+      `Upgrading "${chain.name}" restarts all validators and changes the chain's rules at ${plan.activateAtIso}. ` +
+      `Send "confirm":"${chain.name}" to proceed.`);
+  }
+  moTienTrinh("nangCap", chain.name, [{ ma: "file", nhan: "Writing upgrade.json" }]);
+  buocChay("file");
+  const { path: filePath, prev } = ghiUpgradeFile(chain.blockchainID, plan.upgradeConfig);
+  buocXong("file");
+
+  // Same track list as today — the rollout exists only so every node re-reads the chain dir.
+  const trackList = loadState().chains.map(c => c.subnetID).join(",");
+  let nhatKy;
+  try {
+    nhatKy = await trackSubnetsLanLuot(trackList, { requireChain: { subnetID: chain.subnetID, blockchainID: chain.blockchainID } });
+  } catch (e) {
+    const undo = await hoanTacNangCap(chain, filePath, prev, e.daXong ?? [], e.hong);
+    throw new Error(`${e.message} — UNDONE: ${undo}. Nothing was recorded; the chain keeps its previous rules.`);
+  }
+
+  // ═══ VERIFY, DO NOT TRUST ═══ "every node restarted" is not "every node read the file". The
+  // public node's own chain config must list the new entry before the ledger says so.
+  const cfg = await rpc(rpcPath, "eth_getChainConfig");
+  const daVao = hinhDangUpgrade(cfg?.upgrades?.precompileUpgrades);
+  const mongDoi = hinhDangUpgrade(plan.upgradeConfig.precompileUpgrades);
+  if (daVao !== mongDoi) {
+    throw new Error(`all nodes restarted but the public node's eth_getChainConfig shows "${daVao || "empty"}", expected "${mongDoi}" — the file it read is not the file written (${filePath}). Nothing recorded.`);
+  }
+
+  const st = loadState();
+  const idx = st.chains.findIndex(c => c.name === chain.name);
+  const rec = {
+    precompile: tham.precompile, action: tham.action, activateAt: plan.activateAt, activateAtIso: plan.activateAtIso,
+    appliedAt: Date.now(), by: ai.kieu === "vi" ? ai.diaChi : "operator",
+  };
+  // `upgrades` — an ADDED key on the public record: what changed after genesis, and when.
+  if (idx >= 0) { st.chains[idx] = { ...st.chains[idx], upgrades: [...(st.chains[idx].upgrades ?? []), rec] }; saveState(st); }
+  console.log(`  ✓ upgrade "${chain.name}": ${rec.action} ${rec.precompile} at ${rec.activateAtIso}`);
+  return { name: chain.name, ...rec, entry: plan.entry, description: plan.description, restart: nhatKy };
+}
+
+/**
+ * Transfer the RECORDED owner — after measuring that the chain already agrees (l1-upgrade.mjs
+ * header: chain first, ledger second). No rollout: nothing on the nodes changes.
+ */
+async function doiChu({ name, newAdmin, confirm }, ai) {
+  const state = loadState();
+  const chain = chuChain(state, name);
+  kiemChuSoHuu(chain, ai);
+  const moi = parseEvmAddress(newAdmin, "newAdmin");
+  if (String(confirm ?? "") !== chain.name) {
+    throw new Error(`Transferring "${chain.name}" to ${moi} cannot be undone by this console. Send "confirm":"${chain.name}" to proceed.`);
+  }
+  const rpcPath = `/ext/bc/${chain.blockchainID}/rpc`;
+  const cfg = await rpc(rpcPath, "eth_getChainConfig");
+  const disk = docUpgradeFile(chain.blockchainID);
+  const active = activePrecompiles(cfg, disk.list, Math.floor(Date.now() / 1000));
+  const roles = { feeManager: await docVaiTro(rpcPath, PRECOMPILE_ADDRESS.feeManager, moi) };
+  for (const n of UPGRADABLE_PRECOMPILES) if (active[n].enabled) roles[n] = await docVaiTro(rpcPath, PRECOMPILE_ADDRESS[n], moi);
+  const verdict = ownerTransferVerdict({ newAdmin: moi, currentAdmin: chain.admin, roles });
+  if (!verdict.ok) throw new Error(verdict.why);
+  const cuConAdmin = (await docVaiTro(rpcPath, PRECOMPILE_ADDRESS.feeManager, chain.admin)).code === 2;
+
+  const st = loadState();
+  const idx = st.chains.findIndex(c => c.name === chain.name);
+  if (idx < 0) throw new Error(`"${chain.name}" vanished from the ledger while checking the chain — nothing changed`);
+  const truoc = st.chains[idx].admin;
+  st.chains[idx] = {
+    ...st.chains[idx], admin: moi,
+    previousAdmins: [...(st.chains[idx].previousAdmins ?? []), { address: truoc, until: Date.now(), stillAdminOnChain: cuConAdmin, by: ai.kieu === "vi" ? ai.diaChi : "operator" }],
+  };
+  saveState(st);
+  console.log(`  ✓ owner of "${chain.name}": ${truoc} → ${moi}`);
+  return {
+    name: chain.name, admin: moi, previousAdmin: truoc, previousStillAdminOnChain: cuConAdmin,
+    checked: Object.keys(roles), why: verdict.why,
+    note: cuConAdmin ? `${truoc} still holds Admin on FeeManager; call setNone(${truoc}) there (and on each precompile) if the hand-over is meant to be complete.` : undefined,
+  };
+}
+
+/** Read-only picture for a "govern my chain" page: what is on, what is pending, who holds Admin. */
+async function quanTri(name) {
+  const state = loadState();
+  const chain = chuChain(state, name);
+  const rpcPath = `/ext/bc/${chain.blockchainID}/rpc`;
+  const cfg = await rpc(rpcPath, "eth_getChainConfig");
+  const disk = docUpgradeFile(chain.blockchainID);
+  const now = Math.floor(Date.now() / 1000);
+  const precompiles = activePrecompiles(cfg, disk.list, now);
+  const adminRoles = { feeManager: (await docVaiTro(rpcPath, PRECOMPILE_ADDRESS.feeManager, chain.admin)).name };
+  for (const n of UPGRADABLE_PRECOMPILES) if (precompiles[n].enabled) adminRoles[n] = (await docVaiTro(rpcPath, PRECOMPILE_ADDRESS[n], chain.admin)).name;
+  return {
+    name: chain.name, chainId: chain.chainId, admin: chain.admin, adminRoles, precompiles,
+    addresses: PRECOMPILE_ADDRESS, upgradable: UPGRADABLE_PRECOMPILES,
+    upgradeFile: disk.list, upgrades: chain.upgrades ?? [], previousAdmins: chain.previousAdmins ?? [],
+    lead: { min: MIN_LEAD_SECONDS, max: MAX_LEAD_SECONDS }, now,
+  };
+}
+
 const PAGE = readFileSync(path.join(ROOT, "local-net/console/index.html"), "utf8");
 function send(res, code, obj) {
   // Socket có thể đã bị huỷ (vd body vượt hạn -> req.destroy()). Ghi tiếp lên đó
@@ -1353,6 +1710,12 @@ const server = http.createServer(async (req, res) => {
         // sau khi bị từ chối: trần này là trần giao thức, không nới được.
         tran: MAX_L1, tranGiaoThuc: TRAN_SUBNET_GIAO_THUC,
         presets: danhSachPreset(),
+        // Deep options (L1-CUSTOM): the rails and the choices, served from the SAME constants
+        // the create path enforces, so a front-end never carries a second copy that drifts.
+        // bigint rails go out as decimal strings.
+        limits: JSON.parse(JSON.stringify(LIMITS, (_, v) => typeof v === "bigint" ? v.toString() : v)),
+        selectablePrecompiles: SELECTABLE_PRECOMPILES,
+        rewardModes: REWARD_MODES,
       });
     }
 
@@ -1383,7 +1746,7 @@ const server = http.createServer(async (req, res) => {
       const ai = blockedByAuth(req, res);
       if (!ai) return;
       const conBuoc = tienTrinh.buoc.filter(b => b.trangThai === "cho" || b.trangThai === "chay").length;
-      const KIND = { tao: "create", thuHoi: "revoke" };
+      const KIND = { tao: "create", thuHoi: "revoke", nangCap: "upgrade" };
       const STATUS = { cho: "pending", chay: "running", xong: "done", hong: "failed" };
       return send(res, 200, {
         running: tienTrinh.dangChay,
@@ -1427,6 +1790,97 @@ const server = http.createServer(async (req, res) => {
       } catch (e) {
         return send(res, 401, { error: String(e.message || e) });
       }
+    }
+
+    /**
+     * ═══ PREVIEW — the dry run of `/api/create` (P-62, console half) ═══
+     *
+     * Same body as `/api/create`, same code path (`planChain`), same refusals in the same words —
+     * and it spends nothing: no file, no P-Chain transaction, no node restart, no progress, no
+     * slot. Returns the genesis the node WOULD run, the effective options, and the plain
+     * sentences "this chain can / cannot" that a person should read before signing under an
+     * immutable artefact.
+     *
+     * Open to every authenticated identity, invited or not: a wallet that is not on the invite
+     * list may still want to see what it would get, and the invite gate is applied at CREATE,
+     * where it matters. A wallet's own address is forced as `admin` exactly as at create time,
+     * so the preview shows the owner the chain would really have. Read-rate limited: it makes
+     * two cheap RPC calls (the generation check) and no more.
+     *
+     * ⚠️ A preview is not a reservation. The chainId it shows is the one that is free NOW.
+     */
+    if (req.method === "POST" && req.url === "/api/preview") {
+      if (blockedByRate(req, res, limitRead)) return;
+      const ai = blockedByAuth(req, res);
+      if (!ai) return;
+      try {
+        const tham = JSON.parse((await docBody(req)) || "{}");
+        if (ai.kieu === "vi") tham.admin = ai.diaChi;
+        const plan = await planChain(tham);
+        return send(res, 200, {
+          preview: true,
+          name: plan.name, chainId: plan.chainId, admin: plan.ADMIN,
+          symbol: plan.SYMBOL ?? symbolFromName(plan.name),
+          symbolIsFallback: !plan.SYMBOL,
+          preset: plan.presetDaAp.id, presetName: plan.presetDaAp.name,
+          options: plan.options,
+          description: plan.description,
+          genesis: plan.tpl,
+        });
+      } catch (e) {
+        return send(res, 400, { error: String(e.message || e) });
+      }
+    }
+
+    // ═══ GOVERNANCE OF AN EXISTING L1 (P-61 · owner transfer · governance view) ═══
+    if (req.method === "GET" && req.url.startsWith("/api/governance")) {
+      if (blockedByRate(req, res, limitRead)) return;
+      if (!blockedByAuth(req, res)) return;
+      try {
+        const name = new URL(req.url, "http://x").searchParams.get("name");
+        return send(res, 200, await quanTri(name));
+      } catch (e) { return send(res, e.status ?? 400, { error: String(e.message || e) }); }
+    }
+
+    // Dry run of `/api/upgrade` — same body, same plan, nothing written, nothing restarted.
+    if (req.method === "POST" && req.url === "/api/upgrade-preview") {
+      if (blockedByRate(req, res, limitRead)) return;
+      const ai = blockedByAuth(req, res);
+      if (!ai) return;
+      try {
+        const tham = JSON.parse((await docBody(req)) || "{}");
+        const { chain, plan } = await planUpgradeForChain(tham, ai);
+        return send(res, 200, { preview: true, name: chain.name, chainId: chain.chainId, admin: chain.admin, ...plan });
+      } catch (e) { return send(res, e.status ?? 400, { error: String(e.message || e) }); }
+    }
+
+    // The real thing: writes upgrade.json, rolls every node, verifies on the public node,
+    // records. Shares the serial queue with create/revoke — it IS a rolling restart.
+    if (req.method === "POST" && req.url === "/api/upgrade") {
+      if (blockedByRate(req, res, limitFlood)) return;
+      const ai = blockedByAuth(req, res);
+      if (!ai) return;
+      if (ai.kieu === "vi" && blockedByRate(req, res, limitUpgrade, `vi:${ai.diaChi}`)) return;
+      try {
+        const tham = JSON.parse((await docBody(req)) || "{}");
+        let kq;
+        try { kq = await queue.run(() => napCapChain(tham, ai)); }
+        catch (e) { dongTienTrinh(e); throw e; }
+        dongTienTrinh(null);
+        return send(res, 200, kq);
+      } catch (e) { return send(res, e.status ?? 400, { error: String(e.message || e) }); }
+    }
+
+    // Ledger follows the chain: accepted only after readAllowList(newAdmin) says Admin everywhere.
+    if (req.method === "POST" && req.url === "/api/transfer-owner") {
+      if (blockedByRate(req, res, limitFlood)) return;
+      const ai = blockedByAuth(req, res);
+      if (!ai) return;
+      if (ai.kieu === "vi" && blockedByRate(req, res, limitTransfer, `vi:${ai.diaChi}`)) return;
+      try {
+        const tham = JSON.parse((await docBody(req)) || "{}");
+        return send(res, 200, await doiChu(tham, ai));
+      } catch (e) { return send(res, e.status ?? 400, { error: String(e.message || e) }); }
     }
 
     // Đẻ chain và thu hồi chain đi chung một cửa: cả hai đều restart lần lượt cả

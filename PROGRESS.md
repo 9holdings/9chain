@@ -34,26 +34,27 @@ cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang g
       `symbol` của bản ghi thay cho `'LOVE9'` cứng (`CreateChainScreen.tsx:401`, `wallet.ts:433`) ·
       trang "Done" nói rõ *"50M này là xăng của chain riêng, không phải LOVE9 mạng chính"* ·
       `/chains/` hiện ký hiệu. Chain cũ không có khoá ⇒ suy từ tên, **không** rơi về `LOVE9`.
-- [ ] **P-56 — số token cấp ban đầu + nhiều địa chỉ nhận genesis**
+- [x] **P-56 — số token cấp ban đầu + nhiều địa chỉ nhận genesis** — ✅ `04/09` (D-183): `allocations[]`, ≤ 50 địa chỉ, tổng ≤ 9 tỷ, chủ phải nhận > 0, vắng ⇒ 50M trùng byte hằng cũ
       Hôm nay cứng `0x295BE96E64066972000000` (50M) cho ví admin. Mở: số cấp (có trần), danh sách
       địa chỉ + số, EIP-55, không trùng. Tổng phải hiện trên trang "Done".
-- [ ] **P-57 — bộ phí sâu, có rào**: `gasLimit` 12M–60M với `targetGas` **tự đồng bộ** 5× ·
+- [x] **P-57 — bộ phí sâu, có rào** — ✅ `04/09` (D-183; `Genesis.Verify()` Go CHƯA chạy khô, mới có bản chép JS `verifyFeeConfig`): `gasLimit` 12M–60M với `targetGas` **tự đồng bộ** 5× ·
       `minBaseFee ≥ 1` (cấm 0 bằng mã) · `targetBlockRate` 1–10 s · `baseFeeChangeDenominator`.
       Chạy `Genesis.Verify()` của subnet-evm ở bước KHÔ trước khi tiêu tiền. Ưu tiên thấp: chủ chain
       đã sửa được phí **sau** genesis qua Fee Manager.
-- [ ] **P-58 — precompile chọn từng cái thay vì một preset**: mint · deployer allowlist · tx
+- [x] **P-58 — precompile chọn từng cái thay vì một preset** — ✅ `04/09` (D-183; preset ≠ standard + tuỳ chọn tường minh ⇒ TỪ CHỐI, không trộn): mint · deployer allowlist · tx
       allowlist · reward manager (đốt / trả về địa chỉ) · `allowFeeRecipients`. Luật cứng: ví chủ
       **luôn** là admin của mọi precompile bật; tổ hợp cấm ⇒ lỗi trước khi đụng node.
 - [ ] **P-59 — Warp + thư viện hợp đồng cài sẵn trong genesis** (`alloc` mang mã + storage):
       Teleporter/registry, ERC-20, multisig — chọn từ bộ đã kiểm, không tự deploy. Đây là thứ tạo
       khác biệt thật: các L1 nói chuyện được với nhau và với C-Chain.
-- [ ] **P-60 — trang "Quản trị chain của tôi"**: gọi precompile qua MetaMask (đổi phí, mint, thêm
+- [~] **P-60 — trang "Quản trị chain của tôi"** — ✅ nửa console `04/09` (D-184: `GET /api/governance` đo vai trò + precompile đang bật/chờ) · ⏳ `web-home`: gọi precompile qua MetaMask (đổi phí, mint, thêm
       bớt quyền, đổi nơi nhận phí, chuyển admin sang ví khác/multisig). Không đụng console — chủ
       chain đã có quyền, chỉ thiếu giao diện. Chủ yếu là việc `web-home`.
-- [ ] **P-61 — bật precompile SAU genesis qua `upgrade.json`** (rollout 9 node, việc console):
+- [x] **P-61 — bật precompile SAU genesis qua `upgrade.json`** — ✅ `04/09` (D-184: `/api/upgrade-preview` + `/api/upgrade`, mốc = now+15′, rollout đo sức khoẻ CỦA CHAIN từng node, đường lùi; ⚠️ lượt nâng cấp THẬT trên mạng chưa chạy — David bấm) (rollout 9 node, việc console):
       để chain "lớn lên" thay vì phải chọn hết lúc launch.
-- [ ] **P-62 — bản xem trước genesis + câu "chain này làm được / không làm được gì" để ký** —
+- [~] **P-62 — bản xem trước genesis + câu "chain này làm được / không làm được gì" để ký** — ✅ nửa console `04/09` (D-183: `POST /api/preview`, cùng đường mã với create, trả `genesis + options + facts/can/cannot`, không ghi gì; đo `200` trên `a1.9chain.org`) · ⏳ nửa `web-home`: màn hình + câu ký —
       chặn cuối trước khi tiêu một chỗ vĩnh viễn.
+- [x] **P-65 — đổi chủ chain trong sổ, SAU KHI chain đã đổi** — ✅ `04/09` (D-184): `POST /api/transfer-owner` đo `readAllowList(new)` trên FeeManager + mọi precompile đang bật, đủ Admin mới sửa `admin`, giữ `previousAdmins[]`; trên chain chủ tự `setAdmin`/`setNone` bằng MetaMask, không cần console.
 
 ---
 
