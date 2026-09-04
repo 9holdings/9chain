@@ -2,6 +2,63 @@
 
 ---
 
+## HANDOFF — cập nhật 2026-09-04 (tối) — BA LỚP LỖI "KHÁCH THẤY KHÁC MÌNH THẤY"
+
+**TL;DR.** Deploy cuối `6fae9bd`, cây sạch, `version.txt` công khai khớp. Ba việc trong phiên,
+đều là *cái David thấy ổn còn khách thì không*: (1) khách **không bấm được nút nào** 28 giờ vì
+Cloudflare giữ một **404 `immutable`** cho chunk khởi động React; (2) khách **dùng điện thoại**
+không nối được ví; (3) khách xem **tiếng Việt** vẫn thấy tên/mô tả kiểu chain bằng tiếng Anh.
+
+### Đã xong (đều đo trên site sống, không phải chỉ trong repo)
+
+| Commit | Việc | Đo |
+|---|---|---|
+| `7d56529` | **404 `immutable`**: `next.config` `deploymentId` ⇒ mọi URL mang `?dpl=<sha>` · Caddy `/_next/*` chỉ `immutable` cho 2xx, 4xx/5xx `no-store` · `web-deploy.sh` chép `_next/` trước, cổng gọi **MỌI** tài nguyên + chunk bịa phải 404 không `immutable` | cổng đã **ĐỎ** trên site sống trước khi vá; sau vá: 12/12 tài nguyên 200, chunk bịa `no-store` |
+| `142a1c3` | **Điện thoại**: `components/OpenInWallet.tsx` — deep link `metamask.app.link/dapp/<host><path>` mở trang trong app MetaMask; nối vào faucet · launch · my-chains; desktop giữ câu cũ | Browser pane preset mobile: link đúng, câu desktop ẩn; desktop 0 link |
+| `8f66214` | **Chữ máy chủ gửi ra**: `lib/serverText.ts` dịch **theo MÃ** (`preset` id, step `code`), mã lạ ⇒ giữ tiếng Anh của server. `presets` (6) + `steps` (3) × 30 ngôn ngữ. Danh bạ nay khoá theo id ⇒ `#type=standard` không đổi theo ngôn ngữ | trên site: VI ra *Thông lượng cao · Phí gần bằng 0 · Tiêu chuẩn*, **0 chuỗi Anh sót**; EN vẫn đúng |
+| `6fae9bd` | **Cổng đếm tệp**: lượt xoá rác cũ lọc danh sách **với chính nó** ⇒ chưa bao giờ xoá gì; server ôm 199 tệp cho bản dựng 116 | cổng mới `bản dựng 116 · server 116`, đã thấy ĐỎ ở 199≠116 |
+
+Cổng mới thường trực trong `web-deploy.sh`: mọi tài nguyên HTML tham chiếu · chunk bịa ·
+`?dpl=` phải có · **`check-server-text.mjs`** đo dữ liệu danh bạ SỐNG (console ở `main` deploy
+riêng, `web/` không thấy nó đổi) · số tệp khớp. Test **176, đỏ 1** — vẫn là vân tay token cũ.
+
+### 🔴 Phiên sau / `[human]`
+
+1. **`[human]` duyệt giọng 9 chuỗi VI mới** (2 chuỗi ví điện thoại + 6 preset + 3 step) — bảng
+   cuối `docs/WEB-PROGRESS.md`. 29 bản kia là máy dịch, đã khai. **Đang lên sóng.**
+2. **`[human]` có đưa lên `official` không** — `bash local-net/deploy/publish-official.sh web-home`.
+   Đã push `origin` (sao lưu riêng tư) tới `6fae9bd`.
+3. **`[human]` thử deep link trên điện thoại thật có app MetaMask** — mới đo bằng giả lập UA.
+4. Console thêm preset mới ⇒ thêm vào `en.ts` `presets` + 29 dicts, nếu quên thì
+   `check-server-text.mjs` chặn lượt deploy.
+
+### Gotchas (trả giá thật trong phiên)
+
+- 🔴 **`immutable` là lời khai về NỘI DUNG, không phải về URL.** Gắn theo path là gắn cả lên
+  404. Một 404 cache một năm **không tự lành** — chỉ chết khi URL đổi (nên mới cần `?dpl=`).
+- 🔴 **"Máy tôi được, máy khách không" = cache.** Đo bằng máy lạ, đọc `Age` + `cf-cache-status`,
+  rồi lách cache bằng `?x=` để tách "origin hỏng" khỏi "biên giữ bản hỏng".
+- 🔴 **Cổng gọi "một chunk đại diện" không đại diện cho gì** — chunk hỏng là chunk bất kỳ.
+- 🔴 **`grep -f /dev/stdin` cuối một ống đọc ỐNG, không đọc stdin của ssh** ⇒ danh sách tự lọc
+  chính nó, khớp hết, **xoá 0 tệp, không lỗi nào**. Danh sách phải vào tệp trước.
+- 🔴 **Biên dịch có hai nửa: ENUM và CHỮ TỰ DO.** Console dịch `status` (enum) rồi thả `label`
+  (chữ) đi thẳng — nửa sau lộ ra người dùng. Chữ máy chủ gửi phải dịch **theo mã**, ở client.
+- `?dpl=` làm `check-budget.mjs` tra tệp trượt ⇒ in `js = 0.0` cho mọi trang mà vẫn **xanh**.
+  Nay "tệp không có" là ĐỎ. Cùng họ: cổng đếm 0 rồi tuyên bố đạt.
+- Ảnh chụp Browser pane hay timeout sau `resize_window`; đo bằng DOM/JS chắc hơn.
+
+### Lệnh hữu ích
+
+```bash
+cd web && pnpm build && cd .. && bash local-net/deploy/web-deploy.sh
+```
+
+```bash
+node web/scripts/check-server-text.mjs https://a1.9chain.org
+```
+
+---
+
 ## HANDOFF — cập nhật 2026-09-04 (tối) — KHÁCH KHÔNG BẤM ĐƯỢC NÚT NÀO suốt 28 giờ
 
 **TL;DR.** David hướng dẫn khách nhận LOVE9: máy David bấm "Thêm mạng vào ví" được, đổi
