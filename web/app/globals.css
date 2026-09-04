@@ -28,6 +28,35 @@ html[data-theme='dark'] {
 }
 
 /* =====================================================================
+   MONOSPACE WAS DEAD ON EVERY SCREEN — measured 2026-09-04, fixed here.
+
+   Measured on the built site: `--font-mono` computes to the EMPTY STRING, and
+   every `.font-mono` element — the faucet address field, chain IDs, RPC URLs,
+   the language code in the header — renders in the default sans stack. The
+   cause is the `@theme` chain in `tokens.css`: `--font-mono: var(--font-jetbrains), …`
+   is resolved at `:root`, while `next/font` defines `--font-jetbrains` on `<body>`,
+   one level below. `--font-jetbrains` itself measures fine ("JetBrains Mono, …") —
+   so this is not a missing font, it is a variable read one level too high.
+
+   🔴 THIS IS NOT B1, AND MUST NOT BE MISTAKEN FOR IT. B1 is the same fault on
+   `--font-sans` / `--font-display`, and fixing that ACTIVATES Sora and Instrument
+   Sans, neither of which has a Vietnamese cut — which is why B1 is blocked behind
+   B2 (choosing a typeface). This line touches only the MONO stack, and deliberately
+   points at SYSTEM monospace rather than at JetBrains Mono: mono here carries hex
+   addresses and chain IDs (ASCII), a phone should not download a webfont to show
+   them, and a 42-character address is only checkable digit-by-digit in a font where
+   the digits line up.
+
+   ⚠️ WHEN B1 LANDS, DELETE THIS BLOCK. With the variables read at the right level
+   it becomes a silent override that keeps JetBrains Mono off the site.
+   Unlayered on purpose — `tokens.css` is a byte-copy of 9Scan-A1's tokens and
+   carries a drift fingerprint, so the override belongs here, not in that file.
+   ===================================================================== */
+:root {
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+/* =====================================================================
    Nền chung. Mọi MÀU nằm ở `tokens.css` (chép từ 9Scan-A1) — file này chỉ
    dựng hành vi nền, không khai một mã hex nào (trừ khối logo ngay trên).
    ===================================================================== */
@@ -101,6 +130,54 @@ html[data-theme-switching] *,
 html[data-theme-switching] *::before,
 html[data-theme-switching] *::after {
   transition: none !important;
+}
+
+/* =====================================================================
+   TOUCH SCREENS — `pointer: coarse` ONLY, deliberately.
+
+   Everything in this block is invisible on a laptop. That is the point: the
+   desktop layout was reviewed as it is, and "easier to hit with a thumb" must not
+   turn into "emptier on a desktop" as a side effect nobody asked for.
+
+   Unlayered for the same reason as the blocks above: Tailwind utilities live in
+   `@layer utilities`, so a layered `text-sm` on an input would otherwise win
+   against an element selector here.
+   ===================================================================== */
+@media (pointer: coarse) {
+  /* 🔴 iOS SAFARI ZOOMS THE WHOLE PAGE IN when a field it focuses has text under
+     16px — and it does not zoom back out afterwards. Measured on the live build:
+     the faucet address field was 14px. That field is the ONE thing people type on
+     this site from a phone, and David walks guests through it by hand. 16px is not
+     a taste here, it is the threshold Safari compares against. */
+  input:not([type='range']):not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  /* 🔴 `.tap-target` WAS USED IN TWO COMPONENTS AND DEFINED NOWHERE. A class that
+     names a hit area and delivers nothing is worse than no class: it reads as done,
+     so nobody measures it. Measured before this line existed: the language button
+     was 34×30, the copy buttons 26 tall, the footer links 19.
+     44px is WCAG 2.5.5 / Apple HIG. */
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* Only for elements whose display would otherwise ignore `min-height`. Applied by
+     tag rather than blanket, so a `flex w-full` element that also wants a floor
+     (the nav drawer links) keeps its own layout. */
+  a.tap-target,
+  button.tap-target,
+  summary.tap-target {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* A 16px-tall slider cannot be dragged with a thumb. `/compare/` has ten of them. */
+  input[type='range'] {
+    height: 44px;
+  }
 }
 
 /* =====================================================================

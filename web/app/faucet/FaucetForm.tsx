@@ -251,7 +251,7 @@ export function FaucetForm() {
             <button
               type="button"
               onClick={xinDiaChi}
-              className="mt-1.5 text-sm font-semibold text-gold-ink-strong underline"
+              className="tap-target mt-1.5 text-sm font-semibold text-gold-ink-strong underline"
             >
               {t.faucet.useWalletAddress}
             </button>
@@ -289,7 +289,7 @@ export function FaucetForm() {
               })}
             </p>
             <a
-              className="mt-2 inline-block text-sm font-semibold text-gold-ink-strong underline"
+              className="tap-target mt-2 inline-block text-sm font-semibold text-gold-ink-strong underline"
               href={`${explorerOrigin()}/tx/${result.txHash}`}
               target="_blank"
               rel="noreferrer"
@@ -323,7 +323,7 @@ function HanMuc({ quota, onRetry }: { quota: TrangThaiTin; onRetry: () => void }
   }
   if (quota.phase === 'hong') {
     return (
-      <button type="button" onClick={onRetry} className="text-sm text-muted underline">
+      <button type="button" onClick={onRetry} className="tap-target text-sm text-muted underline">
         {t.faucet.quotaUnreadable}
       </button>
     );
@@ -375,7 +375,7 @@ function ThongSoMang() {
               href={explorerOrigin()}
               target="_blank"
               rel="noreferrer"
-              className="text-sm font-semibold text-gold-ink-strong underline"
+              className="tap-target text-sm font-semibold text-gold-ink-strong underline"
             >
               9Scan-A1 ↗
             </a>

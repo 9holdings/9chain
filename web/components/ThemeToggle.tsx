@@ -47,7 +47,7 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={label}
       title={label}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-btn border border-line-dark text-on-dark-2 hover:text-on-dark hover:bg-navy-hover"
+      className="tap-target inline-flex h-10 w-10 items-center justify-center rounded-btn border border-line-dark text-on-dark-2 hover:text-on-dark hover:bg-navy-hover"
     >
       <span aria-hidden="true">{dark ? '☀' : '☾'}</span>
     </button>

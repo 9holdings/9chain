@@ -85,13 +85,13 @@ export function RebuildContent() {
             The existing rule stands: this is a READING page, and every wallet-invoking action
             belongs on a screen that has the error handling for it. */}
         <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-base">
-          <a href="/faucet/" className="font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
+          <a href="/faucet/" className="tap-target font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
             {t.nav.faucet}
           </a>
-          <a href="/create-chain/" className="font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
+          <a href="/create-chain/" className="tap-target font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
             {t.nav.launch}
           </a>
-          <a href="/my-chains/" className="font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
+          <a href="/my-chains/" className="tap-target font-semibold text-ink underline underline-offset-4 hover:text-gold-ink">
             {t.nav.myChains}
           </a>
         </p>
@@ -103,7 +103,7 @@ export function RebuildContent() {
           <p className="flex flex-col gap-1 break-all font-mono text-sm">
             <a
               href={t.rebuildDone.archiveUrl}
-              className="font-semibold text-ink underline underline-offset-4 hover:text-gold-ink"
+              className="tap-target font-semibold text-ink underline underline-offset-4 hover:text-gold-ink"
             >
               {t.rebuildDone.archiveUrl}
             </a>

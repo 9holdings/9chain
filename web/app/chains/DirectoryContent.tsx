@@ -395,7 +395,7 @@ export function DirectoryContent() {
       {/* ── how to read — collapsed, because with 100 rows the explanation must not push the
              list below the fold, but it must still be one click away. ── */}
       <details className="mt-4 rounded-card border border-line bg-surface-alt px-4 py-3 text-sm text-body">
-        <summary className="cursor-pointer font-semibold text-ink">{d.howToToggle}</summary>
+        <summary className="tap-target cursor-pointer font-semibold text-ink">{d.howToToggle}</summary>
         <p className="mt-3">
           <strong>{d.howToTitle}</strong> {d.howToBody}
         </p>

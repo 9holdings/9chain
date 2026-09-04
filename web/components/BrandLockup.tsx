@@ -100,8 +100,16 @@ export function BrandLockup({ background = 'auto', height = 30, className, label
         fill={mauChu}
         textAnchor="start"
         dominantBaseline="central"
+        // 🔴 `direction: ltr` IS LOAD-BEARING, NOT TIDINESS (measured 2026-09-04, Arabic at 375px).
+        // `text-anchor: start` means "the start edge in the CURRENT writing direction". The three
+        // RTL locales (`ar`, `ur`, `fa`) put `dir="rtl"` on `<html>`, SVG text inherits it, and
+        // `start` becomes the RIGHT edge — so the wordmark was drawn LEFTWARDS from x=144, straight
+        // across the mark. The logo read "C✳ain" on every page, in three languages, and nothing
+        // could see it: axe does not judge drawings, and the site's logical-property gate reads
+        // CSS, not the meaning of an SVG attribute. "9Chain" is a proper noun in Latin script; it
+        // does not mirror in any language, so the direction is pinned here rather than inherited.
         // See the comment at the top of this file: set directly in `style`, never through a CSS variable.
-        style={{ fontFamily: outfit.style.fontFamily }}
+        style={{ fontFamily: outfit.style.fontFamily, direction: 'ltr' }}
       >
         9Chain
       </text>

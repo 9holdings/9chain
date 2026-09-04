@@ -332,7 +332,10 @@ export function Copyable({ value, label, className }: { value: string; label?: s
         }
       }}
       className={cx(
-        'inline-flex max-w-full items-center gap-2 rounded-chip border border-line px-2 py-1',
+        // `tap-target`: this is a BUTTON that copies, and it was 26px tall — on a phone the
+        // reader is aiming at a strip a third of a fingertip high, next to text they might
+        // want to select instead. 44px on touch, unchanged on a desktop.
+        'tap-target inline-flex max-w-full items-center gap-2 rounded-chip border border-line px-2 py-1',
         'font-mono text-xs text-body hover:bg-surface-alt',
         className,
       )}

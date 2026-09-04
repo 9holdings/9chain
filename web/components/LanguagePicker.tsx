@@ -65,7 +65,16 @@ export function LanguagePicker() {
         {loading && <span className="sr-only">{t.common.loading}</span>}
       </summary>
 
-      <div className="absolute end-0 z-50 mt-2 max-h-[70vh] w-64 overflow-y-auto rounded-card border border-line bg-surface p-1.5 shadow-card">
+      {/* 🔴 ON A PHONE THIS PANEL IS ANCHORED TO THE SCREEN, NOT TO ITS BUTTON.
+          Measured at 320px: the button's own right edge sits at x=196, so an `end-0` panel 16rem
+          wide ran from −60 to 196 — the first characters of all 30 language names were off the
+          left of the screen, on the one menu a reader opens precisely BECAUSE they cannot read the
+          language they are looking at. Capping the WIDTH does not fix that: the panel is pinned to
+          a narrow button, so it stays hung off the edge, only narrower. It has to be pinned to the
+          viewport instead. Same at 1.25× OS text (rem grows, the button does not move right).
+          `top-16` is in rem on purpose — it tracks the header, which also grows with text size.
+          From `sm` up, the desktop behaviour is exactly what it was: dropped under the button. */}
+      <div className="fixed inset-x-3 top-16 z-50 max-h-[70vh] overflow-y-auto rounded-card border border-line bg-surface p-1.5 shadow-card sm:absolute sm:inset-x-auto sm:end-0 sm:top-auto sm:mt-2 sm:w-64">
         <ul>
           {LANGUAGES.map((n) => {
             const co = hasDictionary(n.code);

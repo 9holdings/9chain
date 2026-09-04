@@ -31,7 +31,7 @@ import { BrandLockup } from './BrandLockup';
 function NgoaiTrang({ href, children }: { href: string; children: React.ReactNode }) {
   const t = useT();
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="hover:text-ink hover:underline">
+    <a href={href} target="_blank" rel="noopener noreferrer" className="tap-target hover:text-ink hover:underline">
       {children}
       <span className="sr-only"> {t.footer.opensNewTab}</span>
     </a>
@@ -90,7 +90,10 @@ export function SiteFooter() {
                       {'ngoai' in m && m.external ? (
                         <NgoaiTrang href={m.href}>{m.label}</NgoaiTrang>
                       ) : (
-                        <a href={m.href} className="hover:text-ink hover:underline">
+                        // `tap-target` (see `globals.css`) gives these 44px of height on a
+                        // touch screen and nothing at all on a desktop — measured at 19px tall
+                        // before, i.e. under half a fingertip, in a two-column grid.
+                        <a href={m.href} className="tap-target hover:text-ink hover:underline">
                           {m.label}
                         </a>
                       )}

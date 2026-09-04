@@ -145,7 +145,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               no manual step; see `components/LoadTestBanner.tsx`. */}
           <LoadTestBanner />
           <SiteHeader />
-          <main id="noi-dung" className="flex-1">
+          {/* `scroll-mt-20`: the header is `sticky top-0` and ~65px tall, so following the skip
+              link landed the start of the content UNDERNEATH it — the one link whose entire job is
+              to put the reader at the top of the content. Costs nothing on any other screen. */}
+          <main id="noi-dung" className="flex-1 scroll-mt-20">
             {children}
           </main>
           <SiteFooter />

@@ -82,7 +82,7 @@ export function SiteHeader() {
             used to hand-assemble `◆` + the word; that was reworking the logo).
             This bar is always `bg-navy` in BOTH themes ⇒ always the dark-background version.
             The "A1" chip stays: it is a network version label, not part of the logo. */}
-        <a href="/" className="flex items-center gap-2">
+        <a href="/" className="tap-target flex items-center gap-2">
           {/* 🔴 HEIGHT 28 → 36 (`2026-09-03`, David: "the logo is too small, it looks broken").
               A measured number, not taste: the main site `www.9chain.org` places its lockup at
               **104 × 27 px** inside a 57 px bar. Here the bar is 64 px (`h-16`), and the kit's
@@ -132,7 +132,7 @@ export function SiteHeader() {
             aria-expanded={drawerOpen}
             aria-controls="ngan-dieu-huong"
             aria-label={drawerOpen ? t.common.closeMenu : t.common.openMenu}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-btn border border-line-dark text-on-dark-2 hover:bg-navy-hover md:hidden"
+            className="tap-target inline-flex h-10 w-10 items-center justify-center rounded-btn border border-line-dark text-on-dark-2 hover:bg-navy-hover md:hidden"
           >
             <span aria-hidden="true">{drawerOpen ? '✕' : '☰'}</span>
           </button>
