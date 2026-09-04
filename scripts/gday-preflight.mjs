@@ -168,6 +168,14 @@ const GATES = [
   // The L1 genesis TEMPLATE still carries chainId 9100 and the public ewoq key. Nothing may
   // ship it raw; this gate proves the builder still strips all three (D-114).
   { group: "2 · REPO GATES", name: "L1 genesis builder strips the template defaults", ...node("scripts/make-l1-genesis.mjs", "--self-test") },
+  // 🔴 Every genesis the console is WILLING TO BUILD, put through subnet-evm's own Genesis.Verify()
+  // — the real Go function compiled against the fork tree, not the JS port of it that runs in the
+  // dry step. Until 2026-09-04 the dry step was green about ITS COPY, which is §2 exactly. The
+  // first run found the copy missing `checkByteLens()`. Slower than its neighbours (it builds Go
+  // in Docker); it earns the minute by being the only thing standing between a wrong genesis and a
+  // paid transaction on one of 15 permanent slots. Exits 2 when Docker or the fork tree is absent,
+  // so a missing toolchain reads as "could not run", never as "passed".
+  { group: "2 · REPO GATES", name: "console genesis survives the real Genesis.Verify()", ...node("scripts/check-genesis-verify.mjs") },
   // Documentation drift. The counter-check half is offline and lives here; the half that MEASURES
   // is in group 3, because deciding a number is dead requires asking the running chain what is
   // alive — never a constant copied into the gate (D-110).

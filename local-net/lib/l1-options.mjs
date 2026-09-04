@@ -291,6 +291,20 @@ export function verifyFeeConfig(fc) {
   if (big("minBlockGasCost") > big("maxBlockGasCost")) throw new Error(`feeConfig: minBlockGasCost cannot be greater than maxBlockGasCost`);
   if (big("blockGasCostStep") < 0n) throw new Error(`feeConfig: blockGasCostStep cannot be less than 0`);
   if (big("maxBlockGasCost") > (1n << 64n) - 1n) throw new Error(`feeConfig: maxBlockGasCost is not a valid uint64`);
+  // `checkByteLens()` (fee_config.go:151-178), the LAST statement of the real Verify(). It runs
+  // after every value check above, in Go and here, so a field that is both wrong and wide still
+  // reports the wrong-value sentence first.
+  //
+  // 🔴 This block was missing until 2026-09-04, and nothing noticed for a reason worth keeping:
+  // the API's own LIMITS cap every one of these fields far below 32 bytes, so the gap was
+  // unreachable from outside. "Unreachable through today's front door" is not "closed" — it was
+  // true by accident, and one widened cap would have made a genesis the port blessed and the node
+  // refused, discovered after the P-Chain transaction was paid, on a permanent slot.
+  // `scripts/check-genesis-verify.mjs` control R3 measures this boundary against the real Go
+  // function; it is what found the omission.
+  for (const k of need) {
+    if (big(k) >> 256n) throw new Error(`feeConfig: ${k} exceeds 32 bytes`);
+  }
   // 🔴 The project's own rule on top of Go's: zero is legal to Verify() and fatal to the chain.
   if (big("minBaseFee") < 1n) throw new Error(`feeConfig: minBaseFee must be at least 1 wei (D-028 — a 0 floor makes every block unbuildable)`);
   return true;
@@ -556,6 +570,12 @@ if (process.argv[1]?.endsWith("l1-options.mjs") && process.argv.includes("--self
   throwsWith("🔴 a nil field", () => verifyFeeConfig({ ...freshCfg().feeConfig, targetGas: undefined }), "targetGas cannot be nil");
   throwsWith("🔴 minBaseFee 0 — legal to Go, fatal to the chain, refused here", () => verifyFeeConfig({ ...freshCfg().feeConfig, minBaseFee: 0 }), "at least 1 wei");
   throwsWith("🔴 maxBlockGasCost beyond uint64", () => verifyFeeConfig({ ...freshCfg().feeConfig, maxBlockGasCost: "18446744073709551616" }), "not a valid uint64");
+  // checkByteLens — added 2026-09-04 after `scripts/check-genesis-verify.mjs` measured the real Go
+  // function refusing a document this port had blessed. Both sides of the boundary, because a rule
+  // that rejects one byte too much is a different bug from one that rejects nothing.
+  throwsWith("🔴 minBaseFee 33 bytes wide — the last statement of the real Verify()", () => verifyFeeConfig({ ...freshCfg().feeConfig, minBaseFee: (2n ** 256n).toString() }), "minBaseFee exceeds 32 bytes");
+  throwsWith("🔴 gasLimit 33 bytes wide", () => verifyFeeConfig({ ...freshCfg().feeConfig, gasLimit: (2n ** 300n).toString() }), "gasLimit exceeds 32 bytes");
+  ok("exactly 32 bytes is still legal (the check is width, not magnitude)", verifyFeeConfig({ ...freshCfg().feeConfig, minBaseFee: (2n ** 256n - 1n).toString() }) === true);
 
   console.log("\n── P-58 precompiles ──");
   {

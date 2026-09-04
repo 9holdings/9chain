@@ -37,7 +37,7 @@ cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang g
 - [x] **P-56 — số token cấp ban đầu + nhiều địa chỉ nhận genesis** — ✅ `04/09` (D-183): `allocations[]`, ≤ 50 địa chỉ, tổng ≤ 9 tỷ, chủ phải nhận > 0, vắng ⇒ 50M trùng byte hằng cũ
       Hôm nay cứng `0x295BE96E64066972000000` (50M) cho ví admin. Mở: số cấp (có trần), danh sách
       địa chỉ + số, EIP-55, không trùng. Tổng phải hiện trên trang "Done".
-- [x] **P-57 — bộ phí sâu, có rào** — ✅ `04/09` (D-183; `Genesis.Verify()` Go CHƯA chạy khô, mới có bản chép JS `verifyFeeConfig`): `gasLimit` 12M–60M với `targetGas` **tự đồng bộ** 5× ·
+- [x] **P-57 — bộ phí sâu, có rào** — ✅ `04/09` (D-183) · ✅ **`Genesis.Verify()` Go NAY CHẠY THẬT** `04/09` đêm (D-185: `local-net/tools/genesis-verify/main.go` + cổng `scripts/check-genesis-verify.mjs`, 21/0, 4 đối chứng ngược đã đỏ; lần chạy đầu bắt được bản chép JS **thiếu `checkByteLens()`** — đã vá, tự kiểm 70→73): `gasLimit` 12M–60M với `targetGas` **tự đồng bộ** 5× ·
       `minBaseFee ≥ 1` (cấm 0 bằng mã) · `targetBlockRate` 1–10 s · `baseFeeChangeDenominator`.
       Chạy `Genesis.Verify()` của subnet-evm ở bước KHÔ trước khi tiêu tiền. Ưu tiên thấp: chủ chain
       đã sửa được phí **sau** genesis qua Fee Manager.
