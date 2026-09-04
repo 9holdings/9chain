@@ -23,7 +23,7 @@ import {
   effectiveOptions, describeChain, LIMITS, SELECTABLE_PRECOMPILES, REWARD_MODES,
 } from "../lib/l1-options.mjs";
 import {
-  planUpgrade, activePrecompiles, encodeReadAllowList, decodeRole, ownerTransferVerdict,
+  planUpgrade, activePrecompiles, upgradeShape, encodeReadAllowList, decodeRole, ownerTransferVerdict,
   PRECOMPILE_ADDRESS, UPGRADABLE_PRECOMPILES, MIN_LEAD_SECONDS, MAX_LEAD_SECONDS,
 } from "../lib/l1-upgrade.mjs";
 import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
@@ -1453,9 +1453,6 @@ async function docVaiTro(rpcPath, precompileAddress, address) {
   return decodeRole(hex);
 }
 
-/** Only the parts a node echoes back verbatim: key, timestamp, disable. Admin casing differs between disk and node. */
-const hinhDangUpgrade = (list) => (list ?? []).map(en => { const k = Object.keys(en)[0]; return `${k}@${en[k]?.blockTimestamp}${en[k]?.disable ? "!" : ""}`; }).join(" ");
-
 /**
  * Everything an upgrade needs decided, with no side effect — shared by `/api/upgrade-preview`
  * and `/api/upgrade` (same shape as planChain/launchChain, same reason).
@@ -1471,8 +1468,8 @@ async function planUpgradeForChain({ name, precompile, action, rewardManager, le
   const disk = docUpgradeFile(chain.blockchainID);
   // The file on disk and the file the node runs must agree before either is extended: a
   // mismatch means a rollout never finished, or someone edited the file — both refuse.
-  const trenNode = hinhDangUpgrade(cfg?.upgrades?.precompileUpgrades);
-  const trenDia = hinhDangUpgrade(disk.list);
+  const trenNode = upgradeShape(cfg?.upgrades?.precompileUpgrades);
+  const trenDia = upgradeShape(disk.list);
   if (trenNode !== trenDia) {
     throw new Error(`the upgrade.json on disk (${trenDia || "empty"}) is not what the public node runs (${trenNode || "empty"}) — a rollout is missing or the file was edited; refusing to extend it`);
   }
@@ -1532,8 +1529,8 @@ async function napCapChain(tham, ai) {
   // ═══ VERIFY, DO NOT TRUST ═══ "every node restarted" is not "every node read the file". The
   // public node's own chain config must list the new entry before the ledger says so.
   const cfg = await rpc(rpcPath, "eth_getChainConfig");
-  const daVao = hinhDangUpgrade(cfg?.upgrades?.precompileUpgrades);
-  const mongDoi = hinhDangUpgrade(plan.upgradeConfig.precompileUpgrades);
+  const daVao = upgradeShape(cfg?.upgrades?.precompileUpgrades);
+  const mongDoi = upgradeShape(plan.upgradeConfig.precompileUpgrades);
   if (daVao !== mongDoi) {
     throw new Error(`all nodes restarted but the public node's eth_getChainConfig shows "${daVao || "empty"}", expected "${mongDoi}" — the file it read is not the file written (${filePath}). Nothing recorded.`);
   }

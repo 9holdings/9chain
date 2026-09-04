@@ -181,6 +181,11 @@ const GATES = [
   // alive — never a constant copied into the gate (D-110).
   { group: "2 · REPO GATES", name: "doc drift — dead generation stated as current (counter-check)", ...node("scripts/check-doc-drift.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "push targets can still do their job (counter-check)", ...node("scripts/check-remotes.mjs", "--self-test") },
+  // L1 upgrade state (D-186). Split the same way as doc-drift: the comparison RULES are offline
+  // and belong here; the half that MEASURES needs the server and lives in group 3. Its cases
+  // include the one that matters most — nine nodes that all fail to answer agree perfectly, and
+  // must never read as a clean chain.
+  { group: "2 · REPO GATES", name: "L1 upgrade comparison rules (counter-check)", ...node("scripts/check-l1-upgrades.mjs", "--self-test") },
   // The other half of D-150, in DATA rather than in prose: the public chain directory is JSON,
   // so the document gate never reads it, and `check-deploy-drift` puts it OUT OF SCOPE on purpose
   // because the console writes it. Two gates, each correct about its own quantity, and the gap
@@ -218,6 +223,11 @@ const GATES = [
   // Both directions: in the generation's chainId block AND the advertised RPC answers with the id
   // it claims — either one alone passes a chain that is in-band but dead, or live under a wrong id.
   { group: "3 · REAL WORLD", needsNetwork: true, name: "public chain directory — every advertised chain is real", ...node("scripts/check-chain-ledger.mjs") },
+  // 🔴 For EVERY L1: upgrade.json on disk ↔ what each of the nine nodes actually loaded ↔ the
+  // ledger. A node reads that file once, at start-up, so a rollout that stopped at node k leaves
+  // a consensus split with a timer on it, and nothing else in this list can see it (D-186). Its
+  // own counter-check runs on the live wire in the same pass.
+  { group: "3 · REAL WORLD", needsNetwork: true, name: "L1 upgrade.json — disk ↔ 9 nodes ↔ ledger", ...node("scripts/check-l1-upgrades.mjs") },
   // 🔴 G-2 and G-3, both measured against the chain rather than against this repo's opinion.
   // check-live-page is expected RED until the web-home worktree ships: the footer on /, /faucet/
   // and /create-chain/ still prints networkID 999999999, a generation that died at 09:26Z on

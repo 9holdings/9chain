@@ -8646,3 +8646,61 @@ còn giá là một **mặt lệch mới**: một binary trên server phải đ�
 
 **Luật rút ra:** một *"port"* tự khai là port thì **phải có phép đo so nó với bản gốc**, nếu không lời tự khai đó
 chỉ là chú thích. Và trước khi tin một cái đỏ: hỏi *nó đỏ vì đại lượng ta đang hỏi, hay vì ta gọi sai cách?*
+
+---
+
+## D-186 — **`upgrade.json` cho MỌI chain: đĩa ↔ 9 node ↔ sổ, và luật "im lặng KHÔNG phải đồng thuận"** (`2026-09-04` đêm, M3)
+
+Mốc M3 của kế hoạch. `POST /api/upgrade` có so đĩa ↔ node — nhưng **chỉ cho chain đang nâng cấp, và chỉ
+trong lúc có người bấm**. Không gì canh các chain khác, và không gì canh chính chain đó **sau đó**. Đúng
+khe đã để sổ chain công khai phát 2 chain g0 chết suốt hai ngày (D-154): tệp do console tự ghi nên
+`check-deploy-drift` **cố ý** để ngoài tầm, và không cổng nào khác biết nó tồn tại.
+
+**Ba kiểu hỏng lặng mà không phép đo nào đang có nhìn thấy** (node đọc `upgrade.json` **một lần, lúc khởi
+động**):
+1. tệp đã ghi mà chưa rollout ⇒ node giữ luật cũ tới khi **tình cờ** restart, rồi đổi hành vi vào lúc
+   không ai chọn;
+2. rollout dừng ở node thứ k ⇒ k node một bộ luật, 9−k node bộ khác — **một lượt tách đồng thuận có hẹn
+   giờ**, nổ đúng mốc kích hoạt;
+3. tệp bị **xoá sau khi đã nạp** ⇒ mọi node đang chạy vẫn đúng, mọi lần restart sau đều sai.
+Cả ba đều **vô hình** với `/ext/health`, với sổ, và với giao diện console.
+
+**Đã làm — `scripts/check-l1-upgrades.mjs`**, đo **trên server** qua ssh (chỉ ĐỌC: `cat`, `ls`,
+`docker exec … curl`), vì cả hai đại lượng đều nằm ở đó. Đọc repo là trả lời **câu hỏi khác** — đúng câu
+hỏi đã xanh trong lúc sản phẩm sai.
+
+🔴 **Luật cứng của cổng này: chín node cùng không trả lời thì "đồng thuận" hoàn hảo.** Nên một chain chỉ
+được đem so **sau khi từng node đã chứng minh nó ĐANG PHỤC VỤ chain đó**; node câm là **một phát hiện**,
+không bao giờ là một lượt bỏ qua. Đây là bẫy §2 ở dạng thuần nhất: **đồng thuận giữa những kẻ im lặng
+không đo gì cả.**
+
+**So bằng HÌNH DẠNG, không bằng byte** — `upgradeShape` (`key@mốc!disable`). Node trả `adminAddresses`
+**viết thường**, tệp đĩa mang checksum EIP-55 ⇒ so byte thì **đỏ trên mọi chain, mãi mãi**, tức một cổng
+không mang tin (D-153). Hàm này **chuyển về `lib/l1-upgrade.mjs`** làm nguồn duy nhất (trước đó nằm riêng
+trong `server.mjs` với tên tiếng Việt `hinhDangUpgrade`) — nay hai nơi hỏi cùng câu hỏi và một trong hai
+là cổng; bản chép thứ hai là đúng cách để cả hai cùng lệch mà cùng xanh (D-113). Trả kèm một dòng nợ §0.
+
+**Đối chứng ngược — HAI tầng, vì hai thứ khác nhau có thể hỏng:**
+- **Luật, ngoại tuyến** (`--self-test`, **18 ca**): cả ba kiểu hỏng lặng đã thấy đỏ và **gọi đúng tên hậu
+  quả** ("splits consensus", "the next restart reverts") · một node câm ⇒ phát hiện · **cả chín câm ⇒ nói
+  "không đo được gì", KHÔNG báo chain sạch** · casing checksum ≠ khác biệt, mà **lệch một giây thì có** ·
+  `upgrades: {}` (thứ node thật trả về khi không có tệp) đọc thành "đang phục vụ, không nâng cấp".
+- 🔴 **Dây thật, mỗi lượt chạy**: cổng hỏi node-1 về một `blockchainID` **không thể tồn tại** và **bắt buộc**
+  câu trả lời phải đọc ra `ok:false`. Bộ tự kiểm chứng minh **luật**; nó không nói gì về **đường ống** biến
+  câu trả lời thành `ok:false`. Nếu đường ống đó đọc một câu không-trả-lời thành *"chain này không có nâng
+  cấp"* thì **mọi chain qua miễn phí, mãi mãi** — cổng khi đó **tệ hơn là không có**. Id dùng là một id thật
+  đổi hai ký tự cuối: **đúng hình dạng, trỏ vào hư không** — id sai hình dạng có thể bị parser chặn từ trước
+  khi tra chain, và thế là xanh vì sai lý do (D-106b).
+
+**Số đo `04/09` đêm:** tự kiểm **18/0**. Trên mạng sống: **11 chain · 9 node · 0 tệp `upgrade.json`** ⇒
+**12 đạt · 0 đỏ · 0 phát hiện**. Đo tay khẳng định hai điều cổng dựa vào: id không tồn tại trả `UNREACHABLE`,
+và chain thật trả `upgrades = {}`.
+
+**Hệ quả phải khai:** cổng nay vào `gday-preflight` **hai chỗ** (luật ở nhóm 2, phép ĐO ở nhóm 3 — cùng cách
+tách của `check-doc-drift`), và vì lượt này sửa `server.mjs` + `l1-upgrade.mjs` + `l1-options.mjs` nên
+**`check-deploy-drift` nay ĐỎ: 24 khớp · 3 lệch**. Đó là ba tệp phiên này sửa, không phải gì khác. Deploy là
+việc có người bấm (§4) — cho tới lúc đó, **console trên server không mang D-185 và D-186**.
+
+**Luật rút ra:** trước khi tin một lượt "đồng thuận", hỏi *có ai thật sự đã trả lời không?* Và một cổng đo
+qua dây thì phải có **đối chứng ngược chạy trên chính dây đó, mỗi lượt** — bộ tự kiểm ngoại tuyến chứng minh
+luật, không chứng minh đường ống.

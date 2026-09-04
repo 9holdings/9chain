@@ -85,6 +85,26 @@ function tsOf(cfg, where) {
 }
 
 /**
+ * The comparable SHAPE of an upgrade list: `key@timestamp` per entry, `!` when disabling.
+ *
+ * 🔴 Deliberately NOT the bytes. A node echoes `adminAddresses` back in lower case while the file
+ * on disk carries EIP-55 checksum casing, so a byte comparison between disk and node reports a
+ * difference on every single chain — a gate that is red always is a gate that carries no
+ * information (D-153). What must match is the part a node reproduces verbatim: which precompile,
+ * at which timestamp, enabling or disabling.
+ *
+ * One source, because there are now two callers with the same question and one of them is a gate:
+ * `server.mjs` (rollout and the disk-vs-node check inside /api/upgrade) and
+ * `scripts/check-l1-upgrades.mjs`. A second copy of this rule is how the two would drift and both
+ * stay green (D-113).
+ */
+export const upgradeShape = (list) =>
+  (list ?? []).map((entry) => {
+    const key = Object.keys(entry)[0];
+    return `${key}@${entry[key]?.blockTimestamp}${entry[key]?.disable ? "!" : ""}`;
+  }).join(" ");
+
+/**
  * Which precompiles are ON at time `at`, reading genesis config + the upgrade list the way the
  * node does (`GetActivePrecompileConfig`: last config whose timestamp ≤ at wins).
  * `chainConfig` is what `eth_getChainConfig` returns (its `upgrades.precompileUpgrades` is
