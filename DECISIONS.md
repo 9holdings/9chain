@@ -8704,3 +8704,47 @@ việc có người bấm (§4) — cho tới lúc đó, **console trên server 
 **Luật rút ra:** trước khi tin một lượt "đồng thuận", hỏi *có ai thật sự đã trả lời không?* Và một cổng đo
 qua dây thì phải có **đối chứng ngược chạy trên chính dây đó, mỗi lượt** — bộ tự kiểm ngoại tuyến chứng minh
 luật, không chứng minh đường ống.
+
+---
+
+## D-187 — **Hợp đồng API giao cho `web-home`, đo từ console THẬT; và lượt đo đó bắt được một câu lỗi tiếng Việt đang trả ra trình duyệt** (`2026-09-04` đêm, M5)
+
+Mốc M5 của kế hoạch. Nửa console của **P-55 · P-60 · P-62** đã xong từ D-183/D-184, nhưng nửa `web-home`
+chưa có — nghĩa là **người dùng thật vẫn thấy `LOVE9` cho mọi L1 trong MetaMask**. Luật cứng #4: A1 không
+đụng `web/`. Thứ A1 giao được là **một hợp đồng API đủ để làm mà không phải đọc `server.mjs`**.
+
+**Đã làm:** `docs/API-CONSOLE-L1.md` — xác thực · `/api/status` (rào, preset, precompile chọn được) ·
+`/api/preview` · `/api/create` + `/api/progress` · **bảng câu lỗi nguyên văn** · `/api/governance` ·
+`/api/upgrade-preview` → `/api/upgrade` · `/api/transfer-owner` · ba việc còn nợ kèm **thứ tự đề nghị** ·
+và mục *"API CHƯA có gì — đừng vẽ nút cho nó"*.
+
+🔴 **Mọi hình dạng trong đó được ĐO, không chép từ mã.** Phần tạo chain: một console tạm chạy đúng
+`server.mjs` của repo. Phần quản trị: **console đang chạy thật** (PID `2776958`) qua `GET` và qua đường
+**chạy khô** — không lượt nào ghi gì. Chép từ mã là làm ra một tài liệu **đúng với mã và sai với sản phẩm**,
+đúng lớp lỗi §2 mà repo này đã trả giá nhiều lần.
+
+**🔴 Và lượt đo đó tìm ra một lỗi trên đường sản phẩm:** `POST /api/preview` với
+`precompiles.rewardManager: { mode: "rewardAddress" }` thiếu địa chỉ trả về
+`precompiles.rewardManager.rewardAddress phải là chuỗi` — **một câu tiếng Việt đi thẳng ra trình duyệt**,
+từ `lib/eip55.mjs`. Vi phạm §0 ngay trên bề mặt tính năng đang hoàn thiện. Không cổng nào bắt được: cổng
+ngôn ngữ đếm **dòng mã**, không đếm **câu người dùng đọc** — nó thấy `eip55.mjs` là nợ cũ và cho qua vì nợ
+**không phình**. Nợ cũ và **lỗ đang chảy ra sản phẩm** là hai đại lượng khác nhau.
+⇒ Dịch trọn `eip55.mjs` (147 dòng, 41 dòng tiếng Việt), nợ §0 **5709 → 5671** (đã hạ mốc). Thêm đối chứng
+**trong chính tệp đó**: mọi câu lỗi phải **không chứa chữ cái tiếng Việt**, kèm ca chứng minh phép kiểm
+**đỏ được** trên đúng câu tệp này từng ném.
+⚠️ Bản đầu của đối chứng đó chấm bằng **ASCII** và **đỏ trên gạch ngang `—`** trong một câu tiếng Anh hoàn
+toàn hợp lệ — **đo một đại lượng khác với luật**, tức §2 thu nhỏ. Luật là *tiếng Anh*, không phải *ASCII*.
+
+**Một điều tưởng là lỗ mà không phải, ghi lại để không ai "sửa" nó:** địa chỉ viết **toàn chữ thường** được
+**chấp nhận** và chuẩn hoá về EIP-55. Đúng: EIP-55 giấu checksum trong **cách viết hoa/thường**, nên địa chỉ
+một-kiểu-chữ **không mang checksum để mà sai**; chỉ hoa/thường lẫn lộn mới bắt buộc khớp. Bắt buộc checksum ở
+phía web là **từ chối đúng dạng nhiều công cụ phát ra**. (Cùng bài học *"cách trình bày ≠ danh tính"* của
+đường đăng nhập.)
+
+**Số đo sau lượt sửa:** `eip55 --self-test` **đạt** (thêm 7 ca ngôn ngữ) · 7 bộ kiểm console **đều xanh**
+(`siwe` 21/21 · `auth-e2e` 32/32 · `chainid` 38/0 · `generation` 13/0 · `symbol` 30/0 · `options-e2e` 46/0 ·
+`governance-e2e` 42/0) · `check-doc-drift` xanh trên 34 tài liệu · `check-english-code` xanh sau khi hạ mốc.
+
+**Luật rút ra:** một cổng đếm **nợ** không thấy được một **lỗ đang chảy**. Muốn biết người dùng đọc gì thì
+phải **hỏi sản phẩm và đọc câu nó trả về** — và cách rẻ nhất để làm việc đó hoá ra là **viết tài liệu bằng
+cách đo**, chứ không bằng cách đọc mã.
