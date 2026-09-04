@@ -464,11 +464,14 @@ export function DirectoryContent() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
                 <Select label={d.filterType} value={list.type} onChange={(e) => setList({ type: e.target.value })}>
                   <option value="">{d.filterTypeAll}</option>
-                  {types.map((ty) => (
-                    <option key={ty} value={ty}>
-                      {presetText(t, ty).name}
-                    </option>
-                  ))}
+                  {/* Keys are ids; the reader sees labels, so the order follows the LABELS in their language. */}
+                  {[...types]
+                    .sort((a, b) => presetText(t, a).name.localeCompare(presetText(t, b).name))
+                    .map((ty) => (
+                      <option key={ty} value={ty}>
+                        {presetText(t, ty).name}
+                      </option>
+                    ))}
                 </Select>
                 <Select label={d.groupBy} value={list.group} onChange={(e) => setList({ group: e.target.value as ListState['group'] })}>
                   <option value="none">{d.groupNone}</option>
