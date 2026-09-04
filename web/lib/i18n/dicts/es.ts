@@ -491,6 +491,8 @@ export const es: Dict = {
     title: 'Obtener tokens de prueba',
     desc: 'LOVE9 en la testnet A1 no tiene valor real: existe para que puedas pagar gas mientras pruebas. Introduce una dirección de monedero y te enviamos enseguida.',
     addressLabel: 'Tu dirección de monedero',
+    addressFromWallet: 'Rellenado desde la cartera que conectaste. Cámbialo si los tokens deben ir a otra dirección.',
+    useWalletAddress: 'Usar la dirección de mi cartera',
     addressPlaceholder: '0x… (40 caracteres hexadecimales)',
     requestCta: 'Envíame tokens',
     sending: 'Enviando…',

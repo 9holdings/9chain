@@ -722,6 +722,8 @@ export const vi: Dict = {
       'LOVE9 trên testnet A1 không có giá trị thật — nó chỉ để bạn trả phí gas khi thử. ' +
       'Nhập địa chỉ ví, chúng tôi gửi ngay.',
     addressLabel: 'Địa chỉ ví của bạn',
+    addressFromWallet: 'Điền sẵn từ ví bạn đã nối. Sửa lại nếu muốn token vào một địa chỉ khác.',
+    useWalletAddress: 'Dùng địa chỉ ví của tôi',
     addressPlaceholder: '0x… (40 ký tự hex)',
     requestCta: 'Gửi token cho tôi',
     sending: 'Đang gửi…',

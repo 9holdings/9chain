@@ -495,6 +495,8 @@ export const fr: Dict = {
     title: 'Obtenir des jetons de test',
     desc: 'Le LOVE9 sur le testnet A1 n’a aucune valeur réelle — il existe pour que vous puissiez payer le gaz pendant vos tests. Saisissez une adresse de portefeuille, nous envoyons aussitôt.',
     addressLabel: 'Votre adresse de portefeuille',
+    addressFromWallet: 'Rempli depuis le portefeuille que vous avez connecté. Modifiez-le si les jetons doivent aller à une autre adresse.',
+    useWalletAddress: 'Utiliser l’adresse de mon portefeuille',
     addressPlaceholder: '0x… (40 caractères hexadécimaux)',
     requestCta: 'Envoyez-moi des jetons',
     sending: 'Envoi…',

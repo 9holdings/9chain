@@ -490,6 +490,8 @@ export const de: Dict = {
     title: 'Test-Token holen',
     desc: 'LOVE9 im A1-Testnetz hat keinen realen Wert — es existiert, damit Sie beim Testen Gas bezahlen können. Geben Sie eine Wallet-Adresse ein, wir senden sofort.',
     addressLabel: 'Ihre Wallet-Adresse',
+    addressFromWallet: 'Aus der verbundenen Wallet übernommen. Ändere sie, wenn die Token an eine andere Adresse gehen sollen.',
+    useWalletAddress: 'Meine Wallet-Adresse verwenden',
     addressPlaceholder: '0x… (40 Hex-Zeichen)',
     requestCta: 'Schickt mir Token',
     sending: 'Wird gesendet…',

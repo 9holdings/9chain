@@ -1,12 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Field, Badge, Skeleton, ErrorState, Copyable, Note } from '@/components/ui';
-import { checkAddress, shortenAddress } from '@/lib/eip55';
+import { checkAddress, shortenAddress, toChecksumAddress } from '@/lib/eip55';
 import { CHAIN, faucetOrigin, rpcCChain, explorerOrigin, addNetworkParams } from '@/lib/chain';
 import { interpolate, useT } from '@/lib/i18n';
 import { fetchJson, READ_TIMEOUT_MS } from '@/lib/net';
-import { getWallet, readWalletError } from '@/lib/wallet';
+import {
+  connectWallet,
+  getWallet,
+  readWalletAccount,
+  readWalletError,
+  watchWalletAccount,
+} from '@/lib/wallet';
 import { OpenInWallet, useMobileNoWallet } from '@/components/OpenInWallet';
 
 type ThongTin = {
@@ -37,6 +43,63 @@ export function FaucetForm() {
   // On a phone with no wallet, "install MetaMask and reload" is a dead end — `<OpenInWallet />`
   // below offers the deep link instead, and the desktop sentence is suppressed.
   const mobileNoWallet = useMobileNoWallet();
+
+  /**
+   * ═══ THE ADDRESS FIELD FILLS ITSELF FROM THE WALLET (David, 2026-09-04, from his phone) ═══
+   * He had just pressed "Add network to wallet", the button already read "Added to wallet" — and
+   * the page still asked him to paste the address of the very wallet he was standing inside.
+   * Inside the MetaMask app's browser, typing a 42-character address by hand is also the single
+   * most error-prone thing this page can ask for.
+   *
+   * Two rules hold it honest:
+   * ① **Never overwrite the person.** `daSuaTay` latches the moment the user types, and from
+   *    then on nothing — not a wallet connecting, not an account switch — touches the field.
+   *    The faucet sends to whatever this field holds; a field that rewrites itself under the
+   *    reader would send tokens somewhere they never chose.
+   * ② **Never prompt unasked.** Page load uses the silent `eth_accounts`; the popup only ever
+   *    follows a press (`themMang`, or the button under the field).
+   */
+  const [viDiaChi, datViDiaChi] = useState<string | null>(null);
+  const [coVi, datCoVi] = useState(false);
+  // A ref, not state: it is read inside a callback that must see the LATEST value, and it must
+  // not schedule a render of its own. (Reading it from a `useState` updater would fire a setState
+  // inside a reducer — which StrictMode runs twice.)
+  const daSuaTay = useRef(false);
+
+  const dienTuVi = useCallback((dc: string | null) => {
+    if (!dc) return;
+    // Checksummed, because that is the form the field validates against and the form a person
+    // can compare against their wallet screen character by character.
+    const chuan = toChecksumAddress(dc);
+    datViDiaChi(chuan);
+    if (!daSuaTay.current) datDiaChi(chuan);
+  }, []);
+
+  useEffect(() => {
+    let song = true;
+    // The account watcher is re-attached on every read, because the wallet it should listen to
+    // may not have existed at the first one.
+    let thoiTheoDoi = () => {};
+    const doc = (cho = 0) => {
+      if (!song) return;
+      datCoVi(!!getWallet());
+      thoiTheoDoi();
+      thoiTheoDoi = watchWalletAccount((dc) => song && dienTuVi(dc));
+      void readWalletAccount(cho).then((dc) => song && dienTuVi(dc));
+    };
+    doc(1200);
+    // 🔴 A wallet may announce itself LATER than any deadline we pick — the user unlocks it, or
+    // the extension is simply slow. Waiting once and concluding "no wallet" is how the manual
+    // button below would end up permanently hidden for exactly the people who need it. Listening
+    // costs nothing and has no deadline to get wrong.
+    const khiKhai = () => doc(0);
+    window.addEventListener('eip6963:announceProvider', khiKhai);
+    return () => {
+      song = false;
+      window.removeEventListener('eip6963:announceProvider', khiKhai);
+      thoiTheoDoi();
+    };
+  }, [dienTuVi]);
 
   // Only validate once the user has typed something — flashing red at an empty field they have
   // not touched is scolding before asking.
@@ -79,9 +142,28 @@ export function FaucetForm() {
    * Reading the error code has moved into `readWalletError()` in `lib/wallet.ts` — three other
    * buttons on the site need exactly this shape, and before that they had an empty `catch {}`.
    */
+  /**
+   * Ask the wallet for its address. Prompts — so it only ever runs from a press.
+   *
+   * 🔴 A refusal here is NOT an error and must not paint one: declining to share an address is
+   * an ordinary answer, and the user can still type an address by hand. It also must not stop
+   * whatever the press was really about — adding the network does not need an account at all.
+   */
+  async function xinDiaChi() {
+    try {
+      dienTuVi(await connectWallet());
+    } catch {
+      /* declined, or no wallet — the field stays the user's to fill */
+    }
+  }
+
   async function themMang() {
     const v = getWallet();
     if (!v) return setWalletState('khongCo');
+    // Ask for the address as part of THIS press rather than as a second errand later: the user
+    // is already looking at their wallet, and it is what makes "Added to wallet" mean the field
+    // below is filled. If they decline, the network is still added.
+    if (!viDiaChi) await xinDiaChi();
     try {
       await v.request({ method: 'wallet_addEthereumChain', params: [addNetworkParams()] });
       setWalletState('xong');
@@ -147,13 +229,33 @@ export function FaucetForm() {
             desc={t.faucet.addressHelp}
             placeholder={t.faucet.addressPlaceholder}
             value={diaChi}
-            onChange={(e) => datDiaChi(e.target.value)}
+            onChange={(e) => {
+              // The latch. From the first keystroke the field belongs to the user, and no wallet
+              // event writes into it again.
+              daSuaTay.current = true;
+              datDiaChi(e.target.value);
+            }}
             spellCheck={false}
             autoComplete="off"
             inputMode="text"
             failure={check && !check.ok ? interpolate(CHECK_MSG[check.code], { label: t.faucet.addressLabel }) : undefined}
             hint={check && !check.ok && check.hint ? check.hint : undefined}
           />
+          {/* Say WHERE the address came from. An input that fills itself without a word is a
+              field the reader has to double-check anyway — the note is what makes it a saved
+              step instead of one more thing to verify. */}
+          {viDiaChi && diaChi === viDiaChi && !daSuaTay.current && (
+            <p className="mt-1.5 text-sm text-muted">{t.faucet.addressFromWallet}</p>
+          )}
+          {coVi && !diaChi.trim() && (
+            <button
+              type="button"
+              onClick={xinDiaChi}
+              className="mt-1.5 text-sm font-semibold text-gold-ink-strong underline"
+            >
+              {t.faucet.useWalletAddress}
+            </button>
+          )}
         </div>
 
         {hetSuat && (

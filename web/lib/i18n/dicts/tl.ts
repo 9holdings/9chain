@@ -530,6 +530,8 @@ export const tl: Dict = {
       'Walang tunay na halaga ang LOVE9 sa testnet ng A1 — umiiral ito para makabayad ka ng gas habang ' +
       'sumusubok. Maglagay ng address ng wallet at agad kaming magpapadala.',
     addressLabel: 'Address ng iyong wallet',
+    addressFromWallet: 'Kinuha mula sa wallet na ikinonekta mo. Palitan kung sa ibang address dapat mapunta ang mga token.',
+    useWalletAddress: 'Gamitin ang address ng wallet ko',
     addressPlaceholder: '0x… (40 hex na karakter)',
     requestCta: 'Padalhan ako ng token',
     sending: 'Ipinapadala…',

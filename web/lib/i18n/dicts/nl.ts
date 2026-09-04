@@ -527,6 +527,8 @@ export const nl: Dict = {
       'LOVE9 op het A1-testnet heeft geen echte waarde — het bestaat zodat je gas kunt betalen tijdens ' +
       'het testen. Voer een walletadres in en we sturen meteen wat.',
     addressLabel: 'Jouw walletadres',
+    addressFromWallet: 'Ingevuld vanuit de wallet die je hebt verbonden. Pas het aan als de tokens naar een ander adres moeten.',
+    useWalletAddress: 'Mijn walletadres gebruiken',
     addressPlaceholder: '0x… (40 hextekens)',
     requestCta: 'Stuur me tokens',
     sending: 'Versturen…',

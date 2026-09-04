@@ -486,6 +486,8 @@ export const pt: Dict = {
     title: 'Obter tokens de teste',
     desc: 'O LOVE9 na testnet A1 não tem valor real — ele existe para você pagar gas enquanto testa. Informe um endereço de carteira e enviamos na hora.',
     addressLabel: 'Seu endereço de carteira',
+    addressFromWallet: 'Preenchido a partir da carteira que você conectou. Altere se os tokens devem ir para outro endereço.',
+    useWalletAddress: 'Usar o endereço da minha carteira',
     addressPlaceholder: '0x… (40 caracteres hexadecimais)',
     requestCta: 'Envie tokens para mim',
     sending: 'Enviando…',

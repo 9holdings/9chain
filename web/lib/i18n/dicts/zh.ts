@@ -465,6 +465,8 @@ export const zh: Dict = {
     title: '领取测试代币',
     desc: 'A1 测试网上的 LOVE9 没有实际价值 —— 它的存在是为了让您在测试时支付 gas。输入钱包地址，我们会立即发送。',
     addressLabel: '您的钱包地址',
+    addressFromWallet: '已从你连接的钱包自动填入。如果代币要发到其他地址，请修改。',
+    useWalletAddress: '使用我的钱包地址',
     addressPlaceholder: '0x…（40 个十六进制字符）',
     requestCta: '给我发送代币',
     sending: '发送中…',

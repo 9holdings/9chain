@@ -526,6 +526,8 @@ export const it: Dict = {
       'LOVE9 sulla testnet A1 non ha valore reale — esiste perché tu possa pagare il gas durante le ' +
       'prove. Inserisci un indirizzo wallet e te ne inviamo subito un po’.',
     addressLabel: 'Il tuo indirizzo wallet',
+    addressFromWallet: 'Compilato dal portafoglio che hai collegato. Modificalo se i token devono andare a un altro indirizzo.',
+    useWalletAddress: 'Usa l’indirizzo del mio portafoglio',
     addressPlaceholder: '0x… (40 caratteri esadecimali)',
     requestCta: 'Inviami i token',
     sending: 'Invio…',

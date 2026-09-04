@@ -517,6 +517,8 @@ export const tr: Dict = {
       'A1 test ağındaki LOVE9’un gerçek bir değeri yoktur — test ederken gaz ödeyebilesiniz diye ' +
       'vardır. Bir cüzdan adresi girin, hemen bir miktar gönderelim.',
     addressLabel: 'Cüzdan adresiniz',
+    addressFromWallet: 'Bağladığınız cüzdandan dolduruldu. Tokenler başka bir adrese gidecekse değiştirin.',
+    useWalletAddress: 'Cüzdan adresimi kullan',
     addressPlaceholder: '0x… (40 onaltılık karakter)',
     requestCta: 'Bana jeton gönder',
     sending: 'Gönderiliyor…',

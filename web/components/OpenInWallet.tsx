@@ -20,7 +20,17 @@ import { getWallet, isMobileBrowser, metamaskDeepLink } from '@/lib/wallet';
 export function useMobileNoWallet(): boolean {
   const [yes, setYes] = useState(false);
   useEffect(() => {
-    setYes(isMobileBrowser() && !getWallet());
+    // 🔴 ASKED AGAIN ON EVERY ANNOUNCEMENT, not once at mount (2026-09-04). EIP-6963 wallets
+    // announce themselves whenever they are ready, which can be after this effect has run — and
+    // the first version concluded "no wallet on this phone" from that one early look. Seen on a
+    // real page: a wallet arrived 2s late, and the banner telling the reader to go and open the
+    // page inside MetaMask stayed on screen INSIDE MetaMask, above a form that was already
+    // talking to that very wallet. The gap is small; it is also exactly the gap a slow phone
+    // widens. Re-reading is free.
+    const doc = () => setYes(isMobileBrowser() && !getWallet());
+    doc();
+    window.addEventListener('eip6963:announceProvider', doc);
+    return () => window.removeEventListener('eip6963:announceProvider', doc);
   }, []);
   return yes;
 }

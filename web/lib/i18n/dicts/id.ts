@@ -529,6 +529,8 @@ export const id: Dict = {
       'LOVE9 di testnet A1 tidak punya nilai nyata — ia ada agar Anda bisa membayar gas saat menguji. ' +
       'Masukkan alamat dompet dan kami langsung mengirimkan sebagian.',
     addressLabel: 'Alamat dompet Anda',
+    addressFromWallet: 'Diisi dari dompet yang Anda hubungkan. Ubah jika token harus dikirim ke alamat lain.',
+    useWalletAddress: 'Pakai alamat dompet saya',
     addressPlaceholder: '0x… (40 karakter heksadesimal)',
     requestCta: 'Kirimkan token',
     sending: 'Mengirim…',

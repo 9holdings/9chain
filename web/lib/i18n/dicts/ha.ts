@@ -523,6 +523,8 @@ export const ha: Dict = {
       'LOVE9 a hanyar gwaji ta A1 ba shi da daraja ta gaske — yana nan ne domin ka iya biyan gas yayin ' +
       'gwaji. Shigar da adireshin walat, mu kuwa mu aika maka wasu nan take.',
     addressLabel: 'Adireshin walat ɗinka',
+    addressFromWallet: 'An cika shi daga walat ɗin da ka haɗa. Ka canza shi idan tokens ɗin za su je wata adireshi.',
+    useWalletAddress: 'Yi amfani da adireshin walat ɗina',
     addressPlaceholder: '0x… (haruffa hex 40)',
     requestCta: 'Aiko min da alamu',
     sending: 'Ana aikawa…',

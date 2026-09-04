@@ -33,6 +33,9 @@ export const CONSOLE_TIMEOUT_S = 15;
 
 export type BrowserWallet = {
   request(a: { method: string; params?: unknown[] }): Promise<unknown>;
+  /** EIP-1193 events. Optional: a wallet is allowed not to have them, so always guard. */
+  on?(event: string, handler: (...args: unknown[]) => void): void;
+  removeListener?(event: string, handler: (...args: unknown[]) => void): void;
 };
 
 export type WalletInfo = { uuid: string; name: string; rdns: string; icon?: string };
@@ -163,6 +166,60 @@ export async function connectWallet(): Promise<string> {
   const list = (await v.request({ method: 'eth_requestAccounts' })) as string[];
   if (!list?.length) throw new Error('KHONG_CHON_VI');
   return list[0];
+}
+
+/**
+ * The address this page is **already allowed** to see — `eth_accounts`, which NEVER prompts.
+ *
+ * ═══ WHY A SECOND, SILENT READ NEXT TO `connectWallet()` ═══
+ * `connectWallet()` calls `eth_requestAccounts`, which opens a wallet popup. That is correct for
+ * a button the user pressed, and wrong for page load: a site that throws a permission dialog at
+ * a reader who has only just arrived teaches them to dismiss dialogs without reading — the exact
+ * habit that makes every LATER prompt (a signature, a network switch) dangerous.
+ * `eth_accounts` answers with what the user has ALREADY granted this site, and answers `[]` —
+ * not an error — when they have granted nothing. So it can run unasked.
+ *
+ * `waitMs` exists because of EIP-6963: wallets ANNOUNCE themselves, and a wallet that announces
+ * a beat after mount is a real wallet the first `getWallet()` cannot see. Asking once at mount
+ * and concluding "no wallet" is a race this page would lose intermittently — and the failure is
+ * invisible, because "no address" looks exactly like "not connected yet".
+ */
+export async function readWalletAccount(waitMs = 1200): Promise<string | null> {
+  const until = Date.now() + waitMs;
+  for (;;) {
+    const v = getWallet();
+    if (v) {
+      try {
+        const list = (await v.request({ method: 'eth_accounts' })) as string[];
+        return list?.length ? list[0] : null;
+      } catch {
+        // A wallet that refuses to answer a question that cannot be refused is telling us
+        // nothing we can act on. Same answer as no wallet: leave the field to the user.
+        return null;
+      }
+    }
+    if (Date.now() >= until) return null;
+    await new Promise((r) => setTimeout(r, 150));
+  }
+}
+
+/**
+ * Fires when the user switches account (or disconnects) IN the wallet, while the page stays open.
+ * Returns its own unsubscribe, so an effect can clean up after itself.
+ *
+ * 🔴 Whoever consumes this must not overwrite something the user typed by hand. An address field
+ * that silently rewrites itself under the reader is worse than one that never fills in: the
+ * faucet sends tokens to whatever the field holds, and a wallet can switch accounts at any moment.
+ */
+export function watchWalletAccount(cb: (address: string | null) => void): () => void {
+  const v = getWallet();
+  if (!v?.on) return () => {};
+  const handler = (...args: unknown[]) => {
+    const list = args[0] as string[] | undefined;
+    cb(list?.length ? list[0] : null);
+  };
+  v.on('accountsChanged', handler);
+  return () => v.removeListener?.('accountsChanged', handler);
 }
 
 export async function siweSignIn(diaChi: string): Promise<WalletSession> {

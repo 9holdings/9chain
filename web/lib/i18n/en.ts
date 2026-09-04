@@ -628,6 +628,8 @@ export const EN = {
       'LOVE9 on the A1 testnet has no real value — it exists so you can pay gas while testing. ' +
       'Enter a wallet address and we send some straight away.',
     addressLabel: 'Your wallet address',
+    addressFromWallet: 'Filled in from the wallet you connected. Change it if the tokens should go to a different address.',
+    useWalletAddress: 'Use my wallet address',
     addressPlaceholder: '0x… (40 hex characters)',
     requestCta: 'Send me tokens',
     sending: 'Sending…',

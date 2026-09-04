@@ -488,6 +488,8 @@ export const ja: Dict = {
     title: 'テスト用トークンを取得',
     desc: 'A1 テストネットの LOVE9 に実際の価値はありません。テスト中にガスを払えるようにするためのものです。ウォレットアドレスを入力すれば、すぐ送ります。',
     addressLabel: 'あなたのウォレットアドレス',
+    addressFromWallet: '接続したウォレットから自動で入力しました。別のアドレスに送る場合は書き換えてください。',
+    useWalletAddress: '自分のウォレットアドレスを使う',
     addressPlaceholder: '0x…（16 進数 40 文字）',
     requestCta: 'トークンを送ってもらう',
     sending: '送信中…',

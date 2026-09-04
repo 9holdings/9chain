@@ -515,6 +515,8 @@ export const ko: Dict = {
       'A1 테스트넷의 LOVE9에는 실제 가치가 없습니다 — 시험하는 동안 가스를 낼 수 있도록 존재합니다. ' +
       '지갑 주소를 입력하시면 바로 보내 드립니다.',
     addressLabel: '내 지갑 주소',
+    addressFromWallet: '연결한 지갑에서 자동으로 입력했습니다. 다른 주소로 받으려면 수정하세요.',
+    useWalletAddress: '내 지갑 주소 사용',
     addressPlaceholder: '0x… (16진수 40자)',
     requestCta: '토큰 보내 주세요',
     sending: '보내는 중…',

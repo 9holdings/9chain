@@ -521,6 +521,8 @@ export const sw: Dict = {
       'LOVE9 kwenye mtandao wa majaribio wa A1 haina thamani halisi — ipo ili uweze kulipia gesi ' +
       'unapojaribu. Weka anwani ya pochi nasi tutatuma kiasi mara moja.',
     addressLabel: 'Anwani ya pochi yako',
+    addressFromWallet: 'Imejazwa kutoka kwa pochi uliyounganisha. Ibadilishe kama tokeni zinapaswa kwenda anwani nyingine.',
+    useWalletAddress: 'Tumia anwani ya pochi yangu',
     addressPlaceholder: '0x… (herufi 40 za hex)',
     requestCta: 'Nitumie tokeni',
     sending: 'Inatuma…',

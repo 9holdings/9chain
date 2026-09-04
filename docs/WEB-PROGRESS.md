@@ -394,6 +394,22 @@ vượt trần 160).
 
 ---
 
+## 🔴 Chuỗi tiếng Việt `2026-09-04` (lô sau) — **CHỜ DUYỆT GIỌNG**
+
+Sinh ra từ lượt "ô địa chỉ tự điền từ ví" (David báo từ điện thoại, xem `WORKTREE-WEB.md`).
+29 bản kia là máy dịch từ tiếng Anh, đã khai `review: 'machine'`.
+
+| Khoá | Tiếng Việt đang chạy |
+|---|---|
+| `faucet.addressFromWallet` | Điền sẵn từ ví bạn đã nối. Sửa lại nếu muốn token vào một địa chỉ khác. |
+| `faucet.useWalletAddress` | Dùng địa chỉ ví của tôi |
+
+⚠️ `faucet.addressHelp` (*"Dán địa chỉ ví bạn muốn nhận token…"*) **giữ nguyên**, dù nay ô
+thường đã có sẵn chữ. Nó vẫn đúng cho người không có ví, và đổi nó là đụng 30 bản dịch đã
+duyệt để lấy một sắc thái — nếu David thấy chướng thì nói, sửa sau cũng được.
+
+---
+
 ## ✅ Chuỗi tiếng Việt `2026-09-04` — **DAVID ĐÃ DUYỆT GIỌNG `2026-09-04`**
 
 Bản Anh ở `web/lib/i18n/en.ts` (`directory.*`, `home.moreChains`). 29 bản khác là máy

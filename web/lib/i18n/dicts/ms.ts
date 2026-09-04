@@ -529,6 +529,8 @@ export const ms: Dict = {
       'LOVE9 pada rangkaian ujian A1 tiada nilai sebenar — ia wujud supaya anda boleh membayar gas ' +
       'semasa menguji. Masukkan alamat dompet dan kami hantar sedikit dengan segera.',
     addressLabel: 'Alamat dompet anda',
+    addressFromWallet: 'Diisi daripada dompet yang anda sambungkan. Ubah jika token perlu pergi ke alamat lain.',
+    useWalletAddress: 'Guna alamat dompet saya',
     addressPlaceholder: '0x… (40 aksara heksadesimal)',
     requestCta: 'Hantar token kepada saya',
     sending: 'Menghantar…',

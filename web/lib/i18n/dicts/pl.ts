@@ -520,6 +520,8 @@ export const pl: Dict = {
       'LOVE9 w sieci testowej A1 nie ma realnej wartości — istnieje po to, żebyś mógł płacić za gaz ' +
       'podczas testów. Podaj adres portfela, a od razu coś wyślemy.',
     addressLabel: 'Twój adres portfela',
+    addressFromWallet: 'Wypełnione z podłączonego portfela. Zmień, jeśli tokeny mają trafić na inny adres.',
+    useWalletAddress: 'Użyj adresu mojego portfela',
     addressPlaceholder: '0x… (40 znaków szesnastkowych)',
     requestCta: 'Wyślij mi tokeny',
     sending: 'Wysyłanie…',
