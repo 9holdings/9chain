@@ -103,9 +103,19 @@ Nhận **đúng cùng thân** với `/api/create`, đi **đúng cùng đường 
   "precompiles": {                   // vắng ⇒ không bật gì thêm
     "nativeMinter": true, "deployerAllowList": false, "txAllowList": true,
     "rewardManager": "burn" | "allowFeeRecipients" | { "mode": "rewardAddress", "rewardAddress": "0x…" }
-  }
+  },
+  "contracts": true                  // P-59, vắng ⇒ FALSE. Chỉ true/false, không nhận danh sách
 }
 ```
+
+🔴 **`contracts` (P-59) — một ô chọn, không phải nhiều ô.** Bật thì genesis mang thêm ba hợp đồng
+(6.761 byte): `Erc20` mẫu · `TokenFactory` (đúc token bằng **một giao dịch**, có `predict()` trả địa chỉ
+trước khi tiêu gì) · `Multicall3`. Địa chỉ và số byte đọc từ `/api/status.contractLibrary` — **đừng cắm
+cứng**. Gửi một danh sách (`["erc20"]`) bị **từ chối**: `TokenFactory` không có `Erc20` thì clone ra hư
+không, nên nó vào cả bộ hoặc không vào.
+🔴 Và câu **phải hiện trên màn ký**: `Multicall3` này **tương thích ABI** nhưng **không** trùng byte với bản
+chính thống và **không** ở `0xcA11bde0…`. Console đã tự đưa câu đó vào `description.cannot` — hiện nguyên văn,
+đừng viết lại nhẹ đi.
 
 **Trả về `200`:**
 
@@ -292,8 +302,11 @@ giao diện.
 
 ## 7. Cái mà API **chưa** có — đừng vẽ nút cho nó
 
-- **P-59** — thư viện hợp đồng cài sẵn trong genesis (`alloc` mang mã + storage): Teleporter/registry,
-  ERC-20, multisig. **Chưa làm.** Warp precompile và `warp-api-enabled` thì **đã bật sẵn** từ khuôn.
+- **P-59 — làm MỘT NỬA.** Thư viện **không storage** đã có (`contracts: true`, xem 3.1) và đã đo chạy thật
+  trong EVM của subnet-evm. **Chưa có**: Teleporter/registry (lớn, nhạy phiên bản) và multisig. Warp
+  precompile + `warp-api-enabled` thì **đã bật sẵn** từ khuôn cho mọi chain.
+  ⏳ Việc `web-home`: một ô bật thư viện ở màn tạo chain (đọc `/api/status.contractLibrary` để hiện địa chỉ
+  và **số byte nó thêm vào**), và trang Done hiện `options.contracts`.
 - **Chưa có lượt nâng cấp THẬT nào chạy trên mạng** (`04/09`: 11 chain, **0 tệp `upgrade.json`** trên đĩa —
   đo bằng `scripts/check-l1-upgrades.mjs`). Đường mã đã có đối chứng, nhưng ca *"gãy ở node thứ k > 1 rồi
   chạy đường lùi"* **chưa ai đo trên mạng thật**. Giao diện đừng hứa điều gì mạnh hơn thế.

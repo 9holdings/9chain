@@ -52,9 +52,19 @@ cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang g
 - [x] **P-58 — precompile chọn từng cái thay vì một preset** — ✅ `04/09` (D-183; preset ≠ standard + tuỳ chọn tường minh ⇒ TỪ CHỐI, không trộn): mint · deployer allowlist · tx
       allowlist · reward manager (đốt / trả về địa chỉ) · `allowFeeRecipients`. Luật cứng: ví chủ
       **luôn** là admin của mọi precompile bật; tổ hợp cấm ⇒ lỗi trước khi đụng node.
-- [ ] **P-59 — Warp + thư viện hợp đồng cài sẵn trong genesis** (`alloc` mang mã + storage):
-      Teleporter/registry, ERC-20, multisig — chọn từ bộ đã kiểm, không tự deploy. Đây là thứ tạo
-      khác biệt thật: các L1 nói chuyện được với nhau và với C-Chain.
+- [~] **P-59 — thư viện hợp đồng cài sẵn trong genesis** — ✅ bản **KHÔNG STORAGE** `04/09` đêm (D-188, M4)
+      Warp precompile + `warp-api-enabled` vốn **đã bật sẵn** từ khuôn (D-031). Nay `alloc` mang thêm
+      **mã** (không state): `Erc20` mẫu `0x0900…0001` · `TokenFactory` (clone EIP-1167 + `create2` +
+      `predict()`) `0x0900…0002` · `Multicall3` `0x0900…0003` — 6.761 byte, solc `0.8.26` ghim trong
+      Docker, artifact commit ở `local-net/lib/l1-contracts.mjs`.
+      🔴 **TẮT MẶC ĐỊNH** (`contracts: true` để bật) — genesis không tuỳ chọn vẫn trùng byte như 11
+      chain đang sống. Danh sách từng hợp đồng bị **từ chối**: vào cả bộ hoặc không vào.
+      🔴 **`constant` chứ không `immutable`** — `alloc` cài mã và KHÔNG chạy constructor.
+      ✅ Nghiệm thu `scripts/check-genesis-contracts.mjs` **18/0**, chạy trong **chính EVM của
+      subnet-evm** (`local-net/tools/genesis-exec/main.go`), **không tiêu chỗ nào**; ca **R0** bỏ thư
+      viện ra để chứng minh dấu xanh không phải cho không (gọi vào địa chỉ rỗng **thành công + trả rỗng**).
+      ⏳ **Còn lại**: Teleporter/registry (lớn, nhạy phiên bản — chưa đo bản nào khớp fork `1.14.2`) ·
+      multisig · nửa `web-home` (ô bật thư viện + hiện `options.contracts` trên trang Done).
 - [~] **P-60 — trang "Quản trị chain của tôi"** — ✅ nửa console `04/09` (D-184: `GET /api/governance` đo vai trò + precompile đang bật/chờ) · ⏳ `web-home`: gọi precompile qua MetaMask (đổi phí, mint, thêm
       bớt quyền, đổi nơi nhận phí, chuyển admin sang ví khác/multisig). Không đụng console — chủ
       chain đã có quyền, chỉ thiếu giao diện. Chủ yếu là việc `web-home`.

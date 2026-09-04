@@ -215,6 +215,36 @@ console.log("\n── 5. /api/status publishes the rails the create path enforce
   ok("limits present, with the same numbers", j.limits?.gasLimit?.min === 12000000 && j.limits?.gasLimit?.max === 60000000 && j.limits?.minBaseFee?.min === "1" && j.limits?.totalTokens === "9000000000");
   ok("selectable precompiles + reward modes listed",
     Array.isArray(j.selectablePrecompiles) && j.selectablePrecompiles.includes("rewardManager") && j.rewardModes?.includes("allowFeeRecipients"));
+  ok("the contract library's addresses and cost are published, so a page need not hard-code them",
+    !!j.contractLibrary?.tokenFactory?.address && j.contractLibrary?.multicall3?.bytes > 0);
+}
+
+console.log("\n── 6. P-59 the contract library reaches `alloc` through the PRODUCT path ──");
+{
+  const { CONTRACTS } = await import("../lib/l1-contracts.mjs");
+  const addrs = Object.values(CONTRACTS).map((c) => c.address.slice(2).toLowerCase());
+
+  const off = await preview({ name: "Library Off" });
+  ok("default: no library in alloc", off.status === 200 && addrs.every((a) => !(a in off.j.genesis.alloc)));
+  // 🔴 The rule the rest of this file lives by: absent options reproduce the old bytes. Eleven
+  // chains are already alive with a genesis built the old way, and a default that quietly changed
+  // would make every one of them different from the next one created.
+  ok("🔴 default: `options` carries no `contracts` key at all", off.status === 200 && !("contracts" in (off.j.options ?? {})));
+
+  const on = await preview({ name: "Library On", contracts: true });
+  ok("contracts:true ⇒ all three addresses are in alloc", on.status === 200 && addrs.every((a) => a in on.j.genesis.alloc), String(on.j?.error));
+  ok("…each with real code, not an empty account",
+    on.status === 200 && addrs.every((a) => typeof on.j.genesis.alloc[a]?.code === "string" && on.j.genesis.alloc[a].code.length > 100));
+  ok("…and `options.contracts` records it for the public ledger", on.j?.options?.contracts === true);
+  ok("…and the signing text admits the Multicall3 is not the canonical one",
+    (on.j?.description?.cannot ?? []).some((s) => s.includes("NOT the canonical deployment")));
+  ok("the owner's own allocation is still there beside the library",
+    on.status === 200 && OWNER.slice(2).toLowerCase() in on.j.genesis.alloc);
+
+  const bad = await preview({ name: "Library Bad", contracts: ["erc20"] });
+  ok("🔴 a list is refused on the product path, with the sentence the library throws",
+    bad.status === 400 && String(bad.j?.error || "").includes("whole or not at all"), `${bad.status} ${String(bad.j?.error || "").slice(0, 110)}`);
+  ok("nothing written by any of it", nothingWritten());
 }
 
 console.log(`\n${fail ? "✗" : "✅"} ${pass} passed · ${fail} failed`);

@@ -210,6 +210,10 @@ try {
     { id: "precompiles-all-burn", body: { name: "Verify Burn", precompiles: { nativeMinter: true, deployerAllowList: true, txAllowList: true, rewardManager: "burn" } } },
     { id: "reward-fee-recipients", body: { name: "Verify Recipients", precompiles: { rewardManager: "allowFeeRecipients" } } },
     { id: "reward-address", body: { name: "Verify Reward Addr", precompiles: { rewardManager: { mode: "rewardAddress", rewardAddress: OTHER } } } },
+    // P-59: a genesis carrying contract CODE in `alloc`. Whether the contracts WORK is a different
+    // question, answered by `check-genesis-contracts.mjs` in a real EVM; what belongs here is that
+    // adding ~6.7 KB of code to `alloc` does not make the document itself unacceptable to the node.
+    { id: "contract-library", body: { name: "Verify Library", contracts: true } },
   ];
 
   const cases = [];   // { id, file, expectOk, why }
