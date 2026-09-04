@@ -710,7 +710,7 @@ function ChainRow({ e, open, toggle, code }: { e: Entry; open: boolean; toggle: 
             aria-controls={detailsId}
             aria-label={interpolate(d.detailsOf, { name: e.record.name })}
             onClick={() => toggle(e.key)}
-            className="inline-flex h-8 items-center gap-1 rounded-chip border border-line-strong bg-surface px-2.5 text-xs font-semibold text-body hover:bg-surface-alt"
+            className="tap-target inline-flex h-8 items-center gap-1 rounded-chip border border-line-strong bg-surface px-2.5 text-xs font-semibold text-body hover:bg-surface-alt"
           >
             {open ? d.hideDetails : d.showDetails}
             <span aria-hidden="true">{open ? '▴' : '▾'}</span>

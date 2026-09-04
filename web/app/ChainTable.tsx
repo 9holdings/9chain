@@ -160,7 +160,7 @@ export function ChainTable() {
       </div>
       </Card>
       <p className="mt-3 text-sm">
-        <a href="/chains/" className="font-semibold text-ink underline decoration-line-strong underline-offset-4 hover:decoration-gold">
+        <a href="/chains/" className="tap-target font-semibold text-ink underline decoration-line-strong underline-offset-4 hover:decoration-gold">
           {interpolate(t.home.moreChains, { count: formatNumber(state.total, code) })}
         </a>
       </p>

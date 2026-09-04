@@ -213,7 +213,7 @@ export function Chip({
       {...rest}
       aria-pressed={pressed}
       className={cx(
-        'inline-flex h-9 items-center gap-1.5 rounded-chip border px-3 text-sm font-semibold transition-colors',
+        'tap-target inline-flex h-9 items-center gap-1.5 rounded-chip border px-3 text-sm font-semibold transition-colors',
         pressed ? 'border-navy bg-navy text-on-dark' : 'border-line-strong bg-surface text-body hover:bg-surface-alt',
         className,
       )}
