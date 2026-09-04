@@ -9,6 +9,24 @@ Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
 C-Chain — xem ngay mục dưới. Binary trên server **vẫn là bản cũ**; patch 0013 lên cùng lượt
 sinh lại mạng ngày G.
 
+🔴 **ĐỪNG `git push official` — DÙNG SCRIPT** (đổi `2026-09-04`, David chốt).
+Repo công khai `9holdings/9chain` không còn mang runbook vận hành. Lịch sử **cả hai** nhánh
+công khai đã được viết lại để gỡ `local-net/deploy/**`, `docs/DEPLOY-KSGAME.md`, mẫu SSH
+(`ubuntu@…` + đường dẫn khoá → `$A1_SSH_HOST` / `$A1_SSH_KEY`) và bảng cấu hình máy
+(hostname, khối IPv6, phiên bản OS chính xác, model CPU). Repo riêng tư `origin` và cây làm
+việc **giữ nguyên đầy đủ**.
+
+⇒ `git push official <nhánh>` nay **hỏng non-fast-forward**. Đó là lưới an toàn, không phải
+sự cố. Đường đúng:
+
+```bash
+bash local-net/deploy/publish-official.sh <nhánh đích> [ref nguồn]
+```
+
+⚠️ **Force-push thẳng là đưa toàn bộ runbook đó trở lại Internet công khai.** Nếu buộc phải
+hoà tay, đọc đầu `publish-official.sh` trước — trong đó ghi cả những thứ việc này **không**
+làm được (IP máy chủ thì `info.peers` tự phát, git không thu hồi được).
+
 ## ▶ Phiên sau bắt đầu ở đâu
 
 ✅ **David đã chốt B-13(a) + B-14 (`2026-08-27`) — cả hai ĐÃ VÁ VÀ NGHIỆM THU trong phiên.**
