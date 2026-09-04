@@ -93,11 +93,12 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
-### 🆕 `2026-09-04` đêm — KẾ HOẠCH HOÀN THIỆN TẠO/QUẢN TRỊ CHAIN: 4/5 MỐC XONG (D-185 · D-186 · D-187)
+### 🆕 `2026-09-04` đêm — KẾ HOẠCH HOÀN THIỆN TẠO/QUẢN TRỊ CHAIN: **5/5 MỐC XONG** (D-185 · D-186 · D-187 · D-188)
 
 David: *"đọc HANDOFF và lên kế hoạch triển khai các phần tiếp theo để hoàn thiện tính năng tạo chain,
-quản trị chain"* → chốt thứ tự **M1→M2→M3→M5→M4**. Bốn mốc đầu **xong**; **M4 (P-59) chưa bắt đầu** và
-có một ngã ba cần David chọn (dưới cùng mục này).
+quản trị chain"* → chốt thứ tự **M1→M2→M3→M5→M4**, rồi ở ngã ba của M4 chốt **bản không-storage**.
+**Cả năm mốc xong.** Mỗi cổng mới **tìm ra một lỗi thật ngay lần chạy đầu** — đó là lý do dựng chúng
+thay vì tin vào mã chúng canh.
 
 ```
 M1 nợ git : 12 tệp đã commit (904f666 mã + 2370e76 tài liệu chiến lược). KHÔNG đẩy remote nào.
@@ -112,9 +113,21 @@ M3 D-186  : scripts/check-l1-upgrades.mjs — đĩa ↔ 9 node ↔ sổ cho MỌ
             Đo thật: 11 chain · 9 node · 0 tệp upgrade.json ⇒ 12/0.
 M5 D-187  : docs/API-CONSOLE-L1.md — hợp đồng gỡ chặn web-home. Hình dạng ĐO từ console thật.
             🔴 Bắt được câu lỗi TIẾNG VIỆT ra trình duyệt (eip55.mjs) ⇒ dịch trọn, nợ §0 5709→5671.
-preflight : 34 → 37 mục (genesis-verify · l1-upgrades ×2).
-git       : 4 commit mới, cây SẠCH, origin/main vẫn 4639c0b — CHƯA ĐẨY GÌ.
+M4 D-188  : P-59 bản KHÔNG STORAGE — genesis mang CODE, không mang STATE.
+            Erc20 mẫu 0x0900…0001 · TokenFactory (clone EIP-1167 + create2 + predict) …0002 ·
+            Multicall3 …0003. 6.761 byte, solc 0.8.26 ghim trong Docker, artifact commit.
+            🔴 TẮT MẶC ĐỊNH (`contracts: true`) ⇒ genesis không tuỳ chọn vẫn trùng byte 11 chain sống.
+            🔴 `constant` chứ KHÔNG `immutable`: alloc cài mã và KHÔNG chạy constructor.
+            Nghiệm thu check-genesis-contracts 18/0 — chạy trong EVM của subnet-evm, KHÔNG tiêu chỗ.
+preflight : 34 → 38 mục (genesis-verify · genesis-contracts · l1-upgrades ×2).
+git       : 6 commit mới, cây SẠCH, origin/main vẫn 4639c0b — CHƯA ĐẨY GÌ.
 ```
+
+**Mỗi cổng mới đỏ ngay lần đầu, vì một lỗi thật:**
+- bản chép JS của `FeeConfig.Verify()` **thiếu `checkByteLens()`**;
+- `/api/preview` trả **một câu tiếng Việt ra trình duyệt**;
+- `check-deploy-imports` bắt console nhập `l1-contracts.mjs` mà **manifest chưa mang** — deploy lúc đó
+  sẽ đẩy một console **không khởi động nổi**.
 
 #### 🔴 VIỆC DAVID — theo thứ tự
 1. **Deploy console.** `check-deploy-drift` nay **24 khớp · 3 lệch**: `server.mjs` · `l1-options.mjs` ·
@@ -126,13 +139,19 @@ git       : 4 commit mới, cây SẠCH, origin/main vẫn 4639c0b — CHƯA Đ�
 4. **Một chain THẬT có `allocations` nhiều địa chỉ** — đường `launchChain` chưa lượt tạo thật nào đi qua
    `planChain`. Xem trước bằng `/api/preview` cùng thân trước. ⚠️ Còn **4/15 chỗ** (11 chain sống).
 
-#### ⏳ M4 — P-59 CHƯA BẮT ĐẦU, và có một ngã ba
-Thư viện hợp đồng cài sẵn trong `alloc`. Điều kiện đã đo là **đủ**: `ethereum/solc:0.8.26` có ·
-`core/vm/runtime` của subnet-evm cho phép **chạy bytecode trên state genesis mà KHÔNG cần mạng** ·
-`local-net/contracts/compile.mjs` đã có sẵn nếp *"biên dịch ở máy dev, commit artifact"*.
-🔴 Ngã ba: **hợp đồng CÓ STORAGE lúc genesis** (ERC-20 đã mint sẵn — phải tự tính slot mapping bằng
-keccak, sai một slot là token chết vĩnh viễn trong genesis bất biến) **vs hợp đồng KHÔNG STORAGE**
-(factory/implementation + Multicall3 — chỉ cần `code`, chủ chain tự deploy bản của mình sau).
+#### ⏳ P-59 còn NỬA SAU
+Đã có: `Erc20` + `TokenFactory` + `Multicall3`. **Chưa có**: Teleporter/registry (lớn, nhạy phiên bản —
+chưa đo được bản nào khớp fork `1.14.2`) và multisig. Nửa `web-home`: một ô bật thư viện ở màn tạo chain,
+đọc `/api/status.contractLibrary` để hiện địa chỉ **và số byte nó thêm vào**; trang Done hiện
+`options.contracts`. Chi tiết ở [`docs/API-CONSOLE-L1.md`](docs/API-CONSOLE-L1.md) §3.1 và §7.
+
+#### 🔵 RPC CÔNG KHAI CHẬP CHỜN — đo được, chưa kết luận được
+`rpc-a1.9chain.org` qua Cloudflare trả **200** nhưng **11 s · 2 s · 24 s** (ba lượt liên tiếp), đủ để
+`check-doc-drift` (timeout 20 s) trả **mã 2 "không đo được"** — câu trả lời trung thực, không phải xanh giả.
+**Không phải node**: hỏi cùng câu đó ngay trên server, từng node trả trong **0,3 ms**. Máy 8 nhân, **56–69 %
+rảnh**, không iowait; 9 `avalanchego` mỗi cái ~26 %. Độ trễ nằm **trên đường từ Internet vào origin**. Một
+lượt thử đo thẳng vào origin (bỏ qua Cloudflare) **không trả về mã HTTP** nên chưa tách được biên/gốc.
+Ba mẫu curl là quá mỏng để khai một sự cố — nếu còn lặp lại thì đây là chỗ bắt đầu.
 
 #### 🔴 GOTCHAS phiên này
 1. **`Genesis.Verify()` KHÔNG phải hàm thuần của tài liệu.** Gọi thẳng trên JSON vừa parse thì khuôn
@@ -152,6 +171,16 @@ keccak, sai một slot là token chết vĩnh viễn trong genesis bất biến)
    Dùng heredoc `<<'EOF'`.
 8. **Docker + Git Bash nuốt đường dẫn**: `-w /src/...` bị đổi thành `C:/Program Files/Git/src/...`.
    Đặt `MSYS_NO_PATHCONV=1`.
+9. 🔴 **Genesis `alloc` cài MÃ và KHÔNG chạy constructor** ⇒ `immutable` trong hợp đồng đặt vào genesis là
+   một ô toàn 0, clone `delegatecall` vào **địa chỉ 0**, giao dịch **THÀNH CÔNG**, chain không sửa được.
+   Dùng `constant`. Và artifact phải là **`bin-runtime`**, không bao giờ `bin`.
+10. 🔴 **Gọi vào một địa chỉ KHÔNG CÓ MÃ thì EVM trả THÀNH CÔNG + rỗng.** *"Không revert"* không chứng minh
+   gì — mọi khẳng định phải đọc **giá trị trả về**, và phải có ca bỏ hẳn thứ đang kiểm ra để chứng minh dấu
+   xanh không phải cho không.
+11. **Optimizer nén địa chỉ nhiều số 0 đầu** thành PUSH ngắn ⇒ tìm 20 byte đó trong bytecode là phép đo
+   **sai**, đỏ trên bản build đúng.
+12. **Thời gian block quyết định OPCODE nào tồn tại.** Chạy ở `timestamp` 1970 thì `PUSH0` là opcode không
+   hợp lệ và mọi hợp đồng solc ≥ 0.8.20 "hỏng". Harness phải đứng đúng chỗ chain đứng.
 
 ### `2026-09-04` tối (2) — QUẢN TRỊ L1 ĐÃ TẠO: P-61 NÂNG CẤP SAU GENESIS + ĐỔI CHỦ + `/api/governance` — ĐÃ DEPLOY (D-184)
 
