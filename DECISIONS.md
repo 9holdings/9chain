@@ -8586,3 +8586,63 @@ gọi precompile qua MetaMask + hai màn xem trước · [A1] `Genesis.Verify()`
 từng node; (b) tệp cấu hình mà node chỉ đọc lúc khởi động là **một phần của bộ luật đồng thuận** — mọi
 validator phải mang cùng bản trước mốc, nên mốc là **hàm của thời gian rollout**, không phải tuỳ chọn;
 (c) sổ mô tả quyền thì phải **đo quyền** trước khi ghi.
+
+---
+
+## D-185 — **Bước khô của console đo BẢN CHÉP, không đo LUẬT: gọi `Genesis.Verify()` THẬT của subnet-evm, và lần chạy đầu tiên bắt được bản chép thiếu một luật** (`2026-09-04` đêm, M2)
+
+David: *"lên kế hoạch triển khai các phần tiếp theo để hoàn thiện tính năng tạo chain, quản trị chain"*.
+Mốc M2 của kế hoạch: đóng lỗ mà `PROGRESS.md` P-57 đã khai từ đầu — *"Chạy `Genesis.Verify()` của subnet-evm
+ở bước KHÔ trước khi tiêu tiền"* — và tới `04/09` mới chỉ có **bản chép JS** (`verifyFeeConfig`, tự khai
+trong chú thích của chính nó là một port).
+
+**Vì sao đây là §2 chứ không phải "thiếu một tính năng":** cổng bước khô xanh vì nó tự nhất quán với **con số
+ta vừa chép vào chính nó**. Không phép đo nào hỏi *bản chép còn khớp luật không*. Cái giá của lệch: một genesis
+bản chép nhận mà node từ chối chỉ lộ ra **sau khi giao dịch P-Chain đã trả tiền**, trên một chain không khởi
+động nổi, giữ **một trong 15 chỗ vĩnh viễn** mãi mãi.
+
+**Đã làm:**
+
+| Thứ | Ở đâu | Là gì |
+|---|---|---|
+| `local-net/tools/genesis-verify/main.go` | repo (theo dõi bởi git) | gọi `core.Genesis.Verify()` THẬT; vào stdin là genesis, ra stdout là phán quyết JSON; nhận thêm `-upgrade` để áp `upgrade.json` đúng cách VM áp |
+| `scripts/check-genesis-verify.mjs` | cổng, đã vào `gday-preflight` | dựng console tạm → `/api/preview` 7 bộ tuỳ chọn ở **rìa** của `LIMITS` → đưa từng genesis cho Go |
+
+**🔴 Ba bài học, mỗi bài là một lượt đỏ vì đúng/sai lý do:**
+
+1. **`Verify()` KHÔNG phải hàm thuần của tài liệu.** Gọi thẳng trên JSON vừa parse trả
+   `warp cannot be activated before Durango` cho **khuôn đã đẻ ra 10 chain sống**. Genesis không sai; **người
+   gọi** sai. VM làm bốn việc trước (`plugin/evm/vm.go:537-561`), và việc cắn là
+   `configExtra.SetDefaults(ctx.NetworkUpgrades)` — genesis không mang `durangoTimestamp` nên mọi `IsDurango(t)`
+   là false cho tới khi bước đó chạy. Con số `1607144400` trong khuôn **chính là** `upgrade.InitiallyActiveTime`
+   (D-031). Bỏ bước 2 là **đỏ vì sai lý do** — đúng thứ D-106b nói.
+2. **Bản chép THIẾU MỘT LUẬT: `checkByteLens()`** (`commontype/fee_config.go:151-178`), câu lệnh **cuối cùng**
+   của `Verify()` thật. `minBaseFee` rộng hơn 32 byte đi qua bản chép và bị node từ chối. `LIMITS` của API chặn
+   trường đó thấp hơn ngưỡng rất nhiều ⇒ **cửa trước hôm nay không với tới được** — nhưng *"không với tới được
+   qua cửa trước hôm nay"* **không phải** *"đã đóng"*: nó đúng do **tình cờ**, và một lần nới trần là biến nó
+   thành một giao dịch đã trả tiền. Đã **đóng**: `verifyFeeConfig` nay mang phép kiểm, kèm 3 đối chứng mới trong
+   bộ tự kiểm của thư viện (70 → 73), có cả **ca biên** 32 byte vẫn hợp lệ.
+3. **Ca đối chứng đầu của R3 XANH mà không chứng minh gì.** Nó thử giá trị **hex**, và hex bị **cả hai bên** từ
+   chối vì lý do chẳng liên quan tới độ rộng (bản chép chỉ nhận chữ số; decoder của Go chặn hex ở 256 bit). Một
+   cái đỏ vì sai lý do **mặc áo của một cái xanh**. Ca thật phải là **số hệ mười trần** 78 chữ số, ghép vào văn
+   bản JSON sau khi serialize vì `JSON.stringify` không mang nổi.
+
+**Số đo:** cổng **21 đạt · 0 đỏ**, gồm 7 genesis từ đường sản phẩm và **4 ca đối chứng ngược đã thấy đỏ**
+(lệch gasLimit header ↔ feeConfig · `minBlockGasCost > maxBlockGasCost` · minBaseFee 33 byte · Warp trước
+Durango). `l1-options --self-test` **73/0**. `options-e2e` 46/0. `check-english-code` nợ không phình.
+
+**Hai quyết định phụ, khai ra thay vì làm lặng lẽ:**
+- **Build trong Docker, không trên host.** Windows không có cgo và nửa cây phụ thuộc này là cgo. Dùng đúng
+  `golang:1.25.10-bookworm` mà `local-net/Dockerfile` dùng. Nguồn nằm trong repo, cổng **chép vào module fork**
+  để thừa hưởng `go.mod`/`go.sum` của nó **nguyên vẹn** — không có bộ phụ thuộc riêng để lệch.
+- **Cổng ĐỘNG vào cây fork, nên nó phải chứng minh đã đặt lại y nguyên** (luật cứng 3): **từ chối chạy** nếu
+  cây fork bẩn, xoá bản chép trong `finally`, và **khẳng định `write-tree` không đổi** trước khi báo cáo. Một
+  cổng để lại cây fork khác lúc nó tới là đã làm hỏng thứ đắt hơn thứ nó đi kiểm.
+
+**Chưa làm, và đây là quyết định chứ không phải bỏ sót:** **không** đưa binary Go lên server để `planChain` gọi
+lúc chạy. Lợi thêm là nhỏ (bản chép nay mang đủ luật, và cổng chứng minh sự đồng thuận trên cả rìa của `LIMITS`),
+còn giá là một **mặt lệch mới**: một binary trên server phải được ghim theo cây fork, và không cổng nào đang canh
+điều đó. Nếu sau này mở trần `LIMITS`, xét lại quyết định này **trước**.
+
+**Luật rút ra:** một *"port"* tự khai là port thì **phải có phép đo so nó với bản gốc**, nếu không lời tự khai đó
+chỉ là chú thích. Và trước khi tin một cái đỏ: hỏi *nó đỏ vì đại lượng ta đang hỏi, hay vì ta gọi sai cách?*
