@@ -1,6 +1,11 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-03 tối** — 🟢 **BLOCKSCOUT ĐÃ NGHỈ HẲN · 6 L1 · console nhận KÝ HIỆU TOKEN (P-54) ·
+Cập nhật: **2026-09-04** — 🟢 **PREFLIGHT `50 đạt · 0 đỏ`** · hai cổng nay đo **bộ sáng lập** (D-180) · hướng dẫn validator
+**tự xoá danh tính** người đọc, đã sửa + đối chứng trên image (D-181) · bài toán **108 L1** + phân tích **"một chain
+cho mỗi người"** hai bản (đối chiếu thế giới 2026) · **`main` ĐÃ CÔNG BỐ** `official/main 4e0438e` qua script (D-182).
+🔴 Hướng phiên sau (David): **tiếp tục nghiên cứu hướng phát triển công nghệ** — đọc mục **CHỐT PHIÊN `2026-09-04`** ngay dưới.
+Trước đó: **2026-09-03 tối** — Blockscout nghỉ hẳn · 6 L1 · ký hiệu token (P-54) · 10 validator, cái thứ 10 là người ngoài.
+*(Bản `03/09`:)* 🟢 **BLOCKSCOUT ĐÃ NGHỈ HẲN · 6 L1 · console nhận KÝ HIỆU TOKEN (P-54) ·
 10 validator, cái thứ 10 là người ngoài.** Node-1 từ `435 → 9,8` gọi/s. Còn **9/15 chỗ**. 🔴 **14 commit
 CHƯA ĐẨY**. 🔴 Cho `web-home`: trang 404 công khai đang **502** (P-52) và MetaMask vẫn in **LOVE9** cho
 L1 (P-55). Đọc mục **CHỐT PHIÊN `2026-09-03` CHIỀU→TỐI** ngay dưới; mục **BA L1 SỐNG** (sáng cùng ngày)
@@ -82,6 +87,78 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 > `HANDOFF.md` thắng về **số đo**. Backlog: [`PROGRESS.md`](PROGRESS.md).
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
+
+### 🆕 CHỐT PHIÊN `2026-09-04` — CỔNG ĐO BỘ SÁNG LẬP · P-64 · 108 L1 · SỨ MỆNH BA TẦNG · CÔNG BỐ QUA SCRIPT
+
+**TL;DR:** Preflight **50 đạt · 0 đỏ** (đo `03/09 20:2xZ`). `main` = `221fa0f`, **công khai** `official/main 4e0438e`
+(21 commit, fast-forward, qua `publish-official.sh`), sao lưu `origin` đủ. Mạng g1 bình thường: 9 sáng lập uptime
+99,99 %, 1 khách (`NodeID-DZJum…`) uptime ~14 % vì mất danh tính — kẹt tới `2026-09-17`.
+🔴 **Phiên sau: nghiên cứu hướng phát triển công nghệ** theo hai tài liệu phân tích (mục "Việc tiếp").
+
+```
+git      : main 221fa0f · official/main 4e0438e (lịch sử ĐÃ LỌC, không tổ tiên chung) · origin/main 221fa0f
+server   : không đổi trong phiên (chỉ đọc qua ssh: (model không công bố) 4 nhân/8 luồng · 64 GB · đĩa còn 343 GB)
+```
+
+#### Đã xong (D-180 → D-182, mỗi mục có nghiệm thu thật)
+- **D-180** `watch-network` + `check-outsider-bootstrap` đo **bộ sáng lập** (`initialStakers` genesis, thư viện
+  `local-net/lib/genesis-stakers.mjs`), khách được kể, vàng khi uptime < 80 %. +11 / 26→34 đối chứng. Preflight 47·3 → 50·0.
+- **D-181 (P-64)** `RUN-A-VALIDATOR.md` mount `./staking` vào đường node không đọc + "Starting over" xoá volume ⇒ đổi
+  NodeID. Sửa mount về `/root/.avalanchego/staking`, mục "Your identity is three files", "Behind NAT", 2 dòng bảng.
+  **Đối chứng thật trên image g1** (Docker cục bộ, 0 peer): mount mới giữ NodeID qua `volume rm`; mount cũ đổi.
+- **Bài toán 108 L1**: `docs/PLAN-108-L1-LOAD-TEST.md` — trần là giao thức (16 subnet/node) trước khi là máy; `108×V ≤ N×15`;
+  đề xuất V=5 → 36 node, ~€750–850/tháng, băng tập; cái vỡ đầu tiên là console track-all.
+- **Sứ mệnh "một chain cho mỗi người"**: `docs/PROPOSAL-FREE-L1-DISTRIBUTED-VALIDATORS.md` (ba mô hình, ACP-77 xương sống,
+  **mô hình ba tầng**) + `docs/ANALYSIS-WORLD-EVIDENCE-FREE-L1.md` (đối chiếu Avalanche/L2/Saga/Cosmos/Polkadot/DVT/DePIN/
+  ATProto/AP2/ZK, bốn kết luận đổi). Artifact cả ba.
+- **D-182** script công bố sang `main` (Anh, bảng thay thế `publish-official.replace.txt` = đầu vào SHA), `check-remotes`
+  nói "no common ancestor" thay vì "behind N". Công bố xong, nghiệm thu từ phía công khai: 0 `local-net/deploy`, 0 SSH, 0 IP khách.
+
+#### ⚠️ Việc tiếp — ai làm
+- **[nghiên cứu, phiên sau]** theo thứ tự đã đề xuất ở hai tài liệu:
+  1. Thử **`ConvertSubnetToL1Tx` + PoA Validator Manager (ACP-99)** trên **băng tập** (`A1IDTap`): chain sống với validator
+     **không cọc mạng mẹ**, node `--partial-sync-primary-network` — ra số "node nhẹ tốn bao nhiêu". Đây là số quyết định cả hướng.
+  2. **DVT cho validator chain con**: `signer.key` BLS12-381 của avalanchego chia ngưỡng được không (Obol/SSV-style)?
+     Điều kiện qua: 1 validator tập = 4 máy, tắt 1, uptime không đổi.
+  3. **Tầng 2 nguyên mẫu**: kho ký Merkle theo mẫu ATProto cho một người + hợp đồng hiến pháp (allowlist/hạn mức/thu hồi)
+     trên một chain tầng 1 + neo gộp; sửa lịch sử kho ⇒ neo lệch ⇒ phát hiện từ ngoài.
+  4. **Ánh xạ chuẩn**: AP2 mandate (VC) · ERC-8004 · ERC-7715/7710 · x402 → nguyên thuỷ nào đã có trong subnet-evm/L1-CUSTOM.
+  5. Console: **phân công validator ≤ 15/node** (dùng chung cho 108 L1 và ACP-77) · luật **ngủ đông có đường rút**.
+- **[human]** `CLAUDE.md` §4 ghi luật đẩy mới (chỉ qua script; force = runbook lên Internet) · chốt **V** và **mục tiêu validator
+  L1** (⇒ số chain cộng đồng công bố) · cho phép **pha 0** đo `c_tx` bằng ví admin L1 · P-55 (`web-home`) · 09/09 · xoá bind
+  data Blockscout · khách `DZJum…` kẹt tới 17/09 (kênh duy nhất: issue tracker công khai).
+- **[nợ, A1]** `check-key-leaks` **PASS** nhưng mất ~20 phút (quét 9 gốc kể cả `%TEMP%`) và liệt kê rác khoá mạng tập ở
+  `9Chain-A1-audit/upstream` + scratchpad MetaChain cũ — dọn rác hoặc thu phạm vi, không thì cổng thành giấy dán tường.
+
+#### 🔴 GOTCHAS phiên này
+1. **Cổng đo "mọi validator" khi nghĩa là "node A1 chạy"**: khách đầu tiên vào là preflight đỏ hai lần. Dân số của phép đo
+   phải là `initialStakers` genesis, đọc từ tệp, vắng tệp ⇒ THROW.
+2. **Hướng dẫn có cổng canh SỐ nó trích, không cổng nào canh LỆNH nó bảo gõ.** Một dòng `-v` trỏ sai đường trông y hệt dòng
+   đúng. Đối chứng cho lệnh trong tài liệu = chạy lệnh đó trên image thật, cả hai chiều.
+3. **Đặt cờ `--staking-tls-*` mà tệp chưa có ⇒ node từ chối chạy** (`config.go:733`); muốn khoá ra host thì mount vào đúng
+   đường mặc định `/root/.avalanchego/staking`.
+4. **"8 lõi" của máy OVH là 8 LUỒNG / 4 nhân** ((model không công bố)) — D-178 ngoại suy sát hơn đã nghĩ.
+5. **`filter-repo` cắt commit rỗng "empty tip"**, và commit chỉ chạm `local-net/deploy` biến mất ⇒ ngọn bản công bố phải
+   là commit chạm mã NGOÀI thư mục lọc, không thì hook `pre-push` chặn vì `[skip ci]`.
+6. **Bảng thay thế của script là đầu vào SHA**: sửa một dòng cũ = viết lại lịch sử công khai; thêm dòng chỉ an toàn khi
+   literal không có trong blob cũ (đã làm với IP khách, fast-forward giữ được).
+7. **Git Bash đổi `/9chain-a1/...` thành `C:/Program Files/Git/...`** khi truyền vào docker: `MSYS_NO_PATHCONV=1` +
+   `cygpath -m` cho phía host; và khi đặt biến đó thì `/c/...` không còn được git hiểu — dùng `C:/...`.
+8. **Trình duyệt trong app không mở artifact riêng tư** (chưa đăng nhập) và không render tệp ngoài thư mục dự án; kiểm máy
+   tính JS bằng stub DOM trong node thay vì screenshot.
+9. **`check-remotes` "behind 456" trên hai lịch sử không liên quan** là số vô nghĩa đọc như lời mời push — đã sửa thành
+   câu nêu tên lịch sử viết lại.
+
+#### Lệnh hữu ích
+```bash
+node scripts/gday-preflight.mjs                                  # 50 dat · 0 do (03/09 20:2xZ)
+node scripts/watch-network.mjs                                    # founders 9/9 · guests + uptime
+node scripts/check-outsider-bootstrap.mjs                         # founders 100% open; guests reported
+bash local-net/deploy/publish-official.sh main                    # CONG BO — ngon phai la commit MA, khong [skip ci]
+node scripts/check-remotes.mjs                                    # official: "no common ancestor" la binh thuong
+bash "$SCRATCH/p64-check.sh"                                      # (mau) doi chung danh tinh node tren image g1
+```
+
 
 ### 🆕 CHỐT PHIÊN `2026-09-03` CHIỀU→TỐI — BLOCKSCOUT NGHỈ, 6 L1, KÝ HIỆU TOKEN, ĐO TẢI
 
