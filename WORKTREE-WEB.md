@@ -9,7 +9,21 @@ một **danh bạ**: 4 ô tổng kết · thanh công cụ (tìm · trạng thá
 trạng thái nằm trong **hash URL** (dán được vào chat) · bảng đặc 24 hàng một trang,
 mỗi hàng mở được chi tiết · và một **lượt quét** (pool 4 luồng, đo cái đang trên màn
 hình trước, nghỉ 30 s giữa hai lượt). Mọi luật nằm ở `web/lib/directoryModel.ts`
-(không React) và được `test/directory-model.test.ts` đo. **CHƯA commit, CHƯA deploy.**
+(không React) và được `test/directory-model.test.ts` đo.
+
+✅ **ĐÃ DEPLOY `2026-09-04 12:37Z`** — `2567fb9` (danh bạ) + `30d8c40` (câu tự-tố). Đo lại
+độc lập sau deploy: `version.txt` công khai = `30d8c406f4b0 · uncommitted=no` · chunk trang
+có `dir-search`/`aria-expanded` · chunk dùng chung `5430-…` có chuỗi mới · mở
+`https://a1.9chain.org/chains/` bằng Chrome: 8/8 chain `ĐANG CHẠY`, ô tổng kết 8·8·0·0.
+Đã `git push origin web-home` (sao lưu riêng tư). **Chưa lên `official`** — đường duy nhất
+là `publish-official.sh`, và đó là quyết định của David.
+
+🔴 **Cổng `check-decentralisation-claim` CHẶN lượt deploy đầu — đúng việc của nó.** Mạng có
+**11 validator (10 connected)**: 9 sáng lập một máy OVH + **hai** khách ngoài mỗi khách 81
+LOVE9 — khách 03/09 (`DZJum…`) uptime **3%**, offline; khách **mới 04/09** (`NVvk1…`,
+`207.148.127.9`) uptime **100%**, đang nối. `home.disclosure` nay *"9 trong 11 … hai còn lại
+từ nơi khác, chỉ một đang trực tuyến"* × 30 ngôn ngữ. Cổng chỉ đo SỐ; vế "nhà cung cấp"
+vẫn là người kiểm. `info.peers` còn thấy `5.192.123.212` là peer không stake.
 
 ### Đã đo trên bản dựng tĩnh với **fixture 108 chain + 12 thu hồi**
 
@@ -45,10 +59,9 @@ xuất tĩnh không biết gì.
 
 ### 🔴 Phiên sau / `[human]`
 
-1. **`[human]` 45 chuỗi tiếng Việt mới chưa duyệt giọng** — bảng ở cuối
-   `docs/WEB-PROGRESS.md`. 29 bản kia là máy dịch (đã khai).
-2. **`[human]` commit + deploy** — tôi không commit hộ. Đường: `git add -A && git commit`,
-   rồi `bash local-net/deploy/web-deploy.sh` (4 cổng chặn trước khi chép).
+1. **`[human]` 46 chuỗi tiếng Việt mới chưa duyệt giọng** (45 danh bạ + câu tự-tố mới) —
+   bảng ở cuối `docs/WEB-PROGRESS.md`. 29 bản kia là máy dịch (đã khai). Đang **lên sóng**.
+2. **`[human]` có đưa lên `official` không** — `bash local-net/deploy/publish-official.sh web-home`.
 3. Khi console ghi thêm khoá (node phục vụ RPC, trạng thái ngủ đông), chỉ cần thêm cột
    ở `ChainRow` + một phán quyết ở `verdictOf`; đừng làm lại bảng.
 
