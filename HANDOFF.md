@@ -93,7 +93,67 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
-### 🆕 `2026-09-04` tối (2) — QUẢN TRỊ L1 ĐÃ TẠO: P-61 NÂNG CẤP SAU GENESIS + ĐỔI CHỦ + `/api/governance` — ĐÃ DEPLOY (D-184)
+### 🆕 `2026-09-04` đêm — KẾ HOẠCH HOÀN THIỆN TẠO/QUẢN TRỊ CHAIN: 4/5 MỐC XONG (D-185 · D-186 · D-187)
+
+David: *"đọc HANDOFF và lên kế hoạch triển khai các phần tiếp theo để hoàn thiện tính năng tạo chain,
+quản trị chain"* → chốt thứ tự **M1→M2→M3→M5→M4**. Bốn mốc đầu **xong**; **M4 (P-59) chưa bắt đầu** và
+có một ngã ba cần David chọn (dưới cùng mục này).
+
+```
+M1 nợ git : 12 tệp đã commit (904f666 mã + 2370e76 tài liệu chiến lược). KHÔNG đẩy remote nào.
+            check-single-source ĐANG ĐỎ trên main từ trước → khai ngoại lệ có lý do cho
+            publish-official.sh (nó LÀ bộ dò rò rỉ hai chuỗi ssh đó); đối chứng ngược đã chạy.
+            🔴 CLAUDE.md bẫy 8 trỏ SAI nguồn A1_CONSOLE_TOKEN từ 28/08 → đã sửa.
+M2 D-185  : Genesis.Verify() Go THẬT — local-net/tools/genesis-verify/main.go +
+            cổng scripts/check-genesis-verify.mjs (21/0, 4 đối chứng ngược đã đỏ).
+            🔴 Lần chạy đầu bắt bản chép JS THIẾU checkByteLens() ⇒ đã vá (tự kiểm 70→73).
+M3 D-186  : scripts/check-l1-upgrades.mjs — đĩa ↔ 9 node ↔ sổ cho MỌI chain, đo trên server
+            qua ssh (chỉ đọc). Tự kiểm 18/0 + MỘT đối chứng chạy trên dây thật mỗi lượt.
+            Đo thật: 11 chain · 9 node · 0 tệp upgrade.json ⇒ 12/0.
+M5 D-187  : docs/API-CONSOLE-L1.md — hợp đồng gỡ chặn web-home. Hình dạng ĐO từ console thật.
+            🔴 Bắt được câu lỗi TIẾNG VIỆT ra trình duyệt (eip55.mjs) ⇒ dịch trọn, nợ §0 5709→5671.
+preflight : 34 → 37 mục (genesis-verify · l1-upgrades ×2).
+git       : 4 commit mới, cây SẠCH, origin/main vẫn 4639c0b — CHƯA ĐẨY GÌ.
+```
+
+#### 🔴 VIỆC DAVID — theo thứ tự
+1. **Deploy console.** `check-deploy-drift` nay **24 khớp · 3 lệch**: `server.mjs` · `l1-options.mjs` ·
+   `l1-upgrade.mjs` — đúng ba tệp phiên này sửa. **Tới lúc deploy, console trên server KHÔNG mang D-185
+   và D-186.** Lệnh: `bash local-net/deploy/console-deploy.sh`.
+2. **Đẩy git** — 4 commit đang chỉ nằm ở máy dev. `origin` (riêng tư) trước, `official` **hỏi trước** (§4).
+3. **Một lượt nâng cấp THẬT** (`deployerAllowList enable` trên một chain ít người dùng). Ca *"gãy ở node
+   thứ k>1 rồi chạy đường lùi"* **chưa ai đo**. Nay đã có `check-l1-upgrades.mjs` để đo trước và sau.
+4. **Một chain THẬT có `allocations` nhiều địa chỉ** — đường `launchChain` chưa lượt tạo thật nào đi qua
+   `planChain`. Xem trước bằng `/api/preview` cùng thân trước. ⚠️ Còn **4/15 chỗ** (11 chain sống).
+
+#### ⏳ M4 — P-59 CHƯA BẮT ĐẦU, và có một ngã ba
+Thư viện hợp đồng cài sẵn trong `alloc`. Điều kiện đã đo là **đủ**: `ethereum/solc:0.8.26` có ·
+`core/vm/runtime` của subnet-evm cho phép **chạy bytecode trên state genesis mà KHÔNG cần mạng** ·
+`local-net/contracts/compile.mjs` đã có sẵn nếp *"biên dịch ở máy dev, commit artifact"*.
+🔴 Ngã ba: **hợp đồng CÓ STORAGE lúc genesis** (ERC-20 đã mint sẵn — phải tự tính slot mapping bằng
+keccak, sai một slot là token chết vĩnh viễn trong genesis bất biến) **vs hợp đồng KHÔNG STORAGE**
+(factory/implementation + Multicall3 — chỉ cần `code`, chủ chain tự deploy bản của mình sau).
+
+#### 🔴 GOTCHAS phiên này
+1. **`Genesis.Verify()` KHÔNG phải hàm thuần của tài liệu.** Gọi thẳng trên JSON vừa parse thì khuôn
+   đã đẻ 10 chain sống bị từ chối *"warp cannot be activated before Durango"*. Phải chạy đúng bốn bước
+   VM chạy trước (`plugin/evm/vm.go:537-561`), và bước cắn là `SetDefaults(ctx.NetworkUpgrades)`.
+2. **`eth_getChainConfig` luôn có khoá `upgrades`, và nó là `{}` khi không có tệp** — `precompileUpgrades`
+   mới là thứ vắng. Đọc `?.precompileUpgrades ?? []`.
+3. **Chín node cùng không trả lời thì "đồng thuận" hoàn hảo.** Mọi phép so giữa các node phải chứng minh
+   từng node **ĐANG PHỤC VỤ** chain đó trước.
+4. **Cổng đếm NỢ không thấy được LỖ ĐANG CHẢY.** `check-english-code` xanh suốt trong lúc `/api/preview`
+   trả một câu tiếng Việt ra trình duyệt.
+5. **Đối chứng phải đo đúng đại lượng của LUẬT.** Phép kiểm ngôn ngữ bản đầu chấm bằng **ASCII** và đỏ
+   trên gạch ngang `—` của một câu tiếng Anh hoàn hảo.
+6. **Địa chỉ toàn chữ thường được chấp nhận là ĐÚNG** — EIP-55 giấu checksum trong cách viết hoa/thường.
+   Đừng "sửa".
+7. **Bash tool ≠ PowerShell**: here-string `@'…'@` trong Bash biến `@` thành dòng đầu commit message.
+   Dùng heredoc `<<'EOF'`.
+8. **Docker + Git Bash nuốt đường dẫn**: `-w /src/...` bị đổi thành `C:/Program Files/Git/src/...`.
+   Đặt `MSYS_NO_PATHCONV=1`.
+
+### `2026-09-04` tối (2) — QUẢN TRỊ L1 ĐÃ TẠO: P-61 NÂNG CẤP SAU GENESIS + ĐỔI CHỦ + `/api/governance` — ĐÃ DEPLOY (D-184)
 
 David: *"tiếp tục"* · *"có thể thay đổi địa chỉ owner của Chain được không?"* — có: trên chain chủ tự `setAdmin`/`setNone`
 qua MetaMask; sổ console nay có `POST /api/transfer-owner` **đo chain trước rồi mới ghi**.
