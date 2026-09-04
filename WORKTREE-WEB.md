@@ -112,6 +112,11 @@ một đường dẫn di sản hiếm dùng; giá của 301 sai là không sửa
 (kể cả có `/` cuối và có query) · 6 hình dạng sai **ở lại 404 của mình** · **13 đường không
 được hỏng** đều còn 200.
 
+🔴 **Và đo bằng một GIAO DỊCH CÓ THẬT, mở trong trình duyệt** — vì `200` trên một trang tĩnh
+mới chỉ chứng minh *đường tồn tại*, không chứng minh *khách thấy giao dịch của mình*. Lấy
+hash thật từ block `0x109ee` qua RPC rồi mở `a1.9chain.org/tx/<hash>`: trang 9Scan render
+đủ **TX HASH · Success · block 68 078 · from/to · value**. Khoảng trống đó nay đã đóng.
+
 ### Cổng — hai nửa, mỗi nửa đã được nhìn thấy lúc ĐỎ
 
 | Nửa | Đo gì | Thấy đỏ bằng cách |
