@@ -93,6 +93,57 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
+### 🆕 `2026-09-04` tối muộn — LƯỢT NÂNG CẤP L1 **THẬT** ĐẦU TIÊN, VÀ HAI LỖI NÓ MOI RA (D-189 · D-190 · D-191)
+
+David: *"1 hãy làm. 2 làm luôn"* → đẩy sao lưu + chạy lượt nâng cấp thật mà D-184 để lại làm việc `[human]`.
+**Chạy thật một lượt tìm ra nhiều lỗi hơn cả ngày dựng cổng** — hai lỗi, cả hai trên bề mặt người dùng.
+
+```
+đẩy      : origin (RIÊNG TƯ) 4639c0b..0449322. official CHƯA đẩy — vẫn hỏi David.
+           kiểm TRƯỚC khi đẩy: check-remotes (origin PRIVATE·ADMIN) · check-history-secrets 4435 object sạch.
+           hook chặn vì ngọn là [skip ci] ⇒ thêm commit rỗng, đúng nếp repo.
+nâng cấp : SBull Chain · deployerAllowList enable · 9 node × ~33 s · tổng 299 s · mốc 17:05:00Z
+           check-l1-upgrades 12/0 · sổ có upgrades[] · console PID 2822798 → (deploy lần 3)
+deploy   : 3 lượt trong phiên này, drift 28/0/0 sau mỗi lượt
+```
+
+#### 🔴 LỖI 1 (D-189) — rollout báo 9 node restart mà KHÔNG node nào restart
+`compose up -d --no-deps` chỉ dựng lại container khi **cấu hình đổi**. Tạo chain thì `A1_TRACK_SUBNETS`
+đổi ⇒ restart thật (~32 s/node). Nâng cấp thì danh sách **y hệt** ⇒ compose **không làm gì** (0,4 s/node),
+`.State.StartedAt` đứng yên ở `14:16:10Z`, `upgrade.json` nằm trên đĩa **không ai đọc**. Mọi phép kiểm sức
+khoẻ qua ngay — vì node **chưa từng xuống**.
+✅ Vá: `forceRestart` + `--force-recreate` **và đo `.State.StartedAt` phải đổi** (`restartProven` trong
+`lib/l1-upgrade.mjs`, 7 đối chứng). Ca then chốt: **hai mốc KHÔNG ĐỌC ĐƯỢC thì bằng nhau**, mà "bằng nhau"
+viết theo cách hiển nhiên lại có nghĩa *"restart đúng rồi"* ⇒ vắng mặt phải là **thất bại**, viết tường minh.
+⚠️ Tệp còn lại sau lượt hỏng là **bom hẹn giờ** (node nào restart lẻ sẽ nạp nó một mình ⇒ tách đồng thuận).
+Đã gỡ LIỆT KÊ → XOÁ → ĐỐI CHỨNG; bản sao ở `~/9chain-a1/upgrade-sbull-FAILED-20260904T161132Z.json`.
+
+#### 🔴 LỖI 2 (D-191) — `/api/governance` trả **400** trên chính chain vừa nâng cấp
+Sau mốc `17:05Z`, console coi precompile đã bật (theo **đồng hồ server**), hỏi vai trò, nhận `0x`, ném.
+Sự thật: precompile kích hoạt trong **block đầu tiên có MỐC đạt tới mốc kích hoạt**, mà subnet-evm **chỉ dựng
+block khi có giao dịch** ⇒ trên L1 im lìm, đồng hồ đi qua còn chain **đứng yên**. Đối chứng sạch cùng node:
+FeeManager trả `0x…02`, deployerAllowList trả `0x`, đầu chain là **block 1 lúc `12:47:53Z`**.
+✅ Vá: đo theo **`chainHead.timestamp`**, trả **cả hai đồng hồ**, thêm trạng thái có tên `waitingForABlock`;
+và 🔴 **đổi nguồn sự thật từ tệp ĐĨA sang danh sách NODE đã nạp** (đĩa là *ý định*, node là *sẽ chạy* — hai
+cái khác nhau đúng lúc có chuyện, tức lỗi 1), kèm cờ `diskDiffersFromNode`. 8 ca mới (42 → 50).
+
+#### ⚠️ Việc tiếp
+- **[human] `official`** — 6 commit mới chỉ ở `origin`. Chỉ đi qua `publish-official.sh`, và **hỏi trước**.
+- **[human] một giao dịch bất kỳ trên SBull Chain** để đẩy đầu chain qua `17:05:00Z`; khi đó
+  `deployerAllowList` mới thật sự sống. Cần khoá của ví `0x1e8c…292C` — A1 không có và không nên có.
+- **[chưa đo] rollout gãy ở node thứ k > 1 rồi chạy đường lùi.** Lượt thật đi trơn cả 9 node. Có 50 đối chứng
+  nhưng **chưa lần nào chạy trên mạng thật**.
+- **[web-home] P-60 phải hiện BA trạng thái**, không phải hai — xem `docs/API-CONSOLE-L1.md` §5.1.
+
+#### 🔴 GOTCHAS
+13. **`bash` trong PowerShell là WSL** (`C:\WINDOWS\system32\bash.exe`), `HOME` khác ⇒ không thấy
+   `known_hosts` **lẫn khoá riêng** `"$A1_SSH_KEY"`. Dùng **Git Bash** (`C:\Program Files\Git\bin\bash.exe`).
+   Và `ssh` hỏi khoá máy chủ **bên trong** một script thì stdin không phải TTY — gõ `yes` mãi không dứt.
+14. **`confirm` của `/api/upgrade` và `/api/transfer-owner` là TÊN CHAIN**, không phải `true`.
+15. 🔴 **L1 im lìm KHÔNG đẻ block** ⇒ nâng cấp theo mốc thời gian có thể "đã tới giờ" mà **chưa có hiệu lực
+   vô thời hạn**. Lối thoát: một giao dịch bất kỳ.
+16. **Gọi một precompile chưa sống trả `0x`** — không phải lỗi mã hoá. Đừng đi tìm bug encoding.
+
 ### 🆕 `2026-09-04` đêm — KẾ HOẠCH HOÀN THIỆN TẠO/QUẢN TRỊ CHAIN: **5/5 MỐC XONG** (D-185 · D-186 · D-187 · D-188)
 
 David: *"đọc HANDOFF và lên kế hoạch triển khai các phần tiếp theo để hoàn thiện tính năng tạo chain,
