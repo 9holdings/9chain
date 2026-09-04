@@ -1231,7 +1231,7 @@ Env dùng tiền tố `A1_*` (tên biến không được bắt đầu bằng s�
   `host.docker.internal:19650` bị **403**. Cách chạy được: đặt **ssh tunnel NẰM TRONG
   chính container** rồi trỏ `WALLET_URI=http://127.0.0.1:9650`. Lợi ích kèm theo: khoá
   quỹ không bao giờ rời máy dev.
-- 🔴 **Lệnh rsync trong `docs/DEPLOY-KSGAME.md` sẽ ĐẨY `keys.txt` LÊN SERVER.** Nó chỉ
+- 🔴 **Lệnh rsync trong `docs/DEPLOY-KSGAME.md` (repo riêng tư) sẽ ĐẨY `keys.txt` LÊN SERVER.** Nó chỉ
   loại trừ `local-net/net`, trong khi khoá quỹ nằm ở `local-net/net-public/`. Phải là
   `--exclude 'local-net/net-*'`. Máy dev này **không có rsync** nên tôi dùng
   `tar -czf - --exclude=.git | ssh 'tar -xzf -'` — cũng an toàn hơn vì liệt kê rõ.
@@ -1812,4 +1812,4 @@ Kiểm toàn vẹn bản backup bất cứ lúc nào:
 cd /c/PROJECTS/9Chain-backups/9chain-a1-backup-20260825-064053 && sha256sum -c <(grep -E '^[0-9a-f]{64} ' MANIFEST.txt)
 ```
 
-Tài liệu: `docs/PROGRESS.md` (nhật ký chi tiết) · `docs/DEPLOY-KSGAME.md` (runbook server) · `docs/TOKENOMICS.md` · `docs/DEPLOY-TESTNET.md` (đa VPS, đường lên mainnet) · `docs/ARCHITECTURE.md`.
+Tài liệu: `docs/PROGRESS.md` (nhật ký chi tiết) · `docs/DEPLOY-KSGAME.md` (runbook server — **repo riêng tư**, không có trên bản công khai) · `docs/TOKENOMICS.md` · `docs/DEPLOY-TESTNET.md` (đa VPS, đường lên mainnet) · `docs/ARCHITECTURE.md`.
