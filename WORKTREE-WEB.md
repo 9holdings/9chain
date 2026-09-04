@@ -22,6 +22,41 @@ Cổng mới thường trực trong `web-deploy.sh`: mọi tài nguyên HTML tha
 `?dpl=` phải có · **`check-server-text.mjs`** đo dữ liệu danh bạ SỐNG (console ở `main` deploy
 riêng, `web/` không thấy nó đổi) · số tệp khớp. Test **176, đỏ 1** — vẫn là vân tay token cũ.
 
+### ✅ LƯỢT QUÉT + TỐI ƯU MOBILE `2026-09-04` (đêm) — deploy `8822f8b`
+
+Đo trước, sửa sau, đo lại — **320 px và 375 px · 9 trang · sáng + tối · một bản RTL ·
+chữ lớn 1,25×**. Năm lỗi, bốn cái không cổng nào trong cây này thấy được.
+
+| Lỗi | Đo được trước khi sửa |
+|---|---|
+| 🔴 **`.tap-target` được dùng ở 2 component và KHÔNG ĐỊNH NGHĨA Ở ĐÂU** | một class hứa vùng chạm mà không làm gì — tệ hơn không có, vì nó đọc như đã xong. Chân trang **19px** · nút chép **26** · nút ngôn ngữ **34×30** · thanh trượt `/compare/` **16** · nút "Chi tiết" mỗi hàng danh bạ **32** |
+| 🔴 **iOS phóng to cả trang khi chạm ô nhập** | ô địa chỉ faucet **14px**; Safari phóng khi chữ < 16px và **không lùi lại**. Đúng cái ô duy nhất người ta gõ trên điện thoại |
+| 🔴 **Chữ đơn cách CHẾT toàn site** | `--font-mono` ra **chuỗi rỗng** ⇒ địa chỉ, chainId, RPC đều là chữ thường. `--font-jetbrains` thì có thật ⇒ không phải thiếu font, mà là **đọc biến cao hơn một tầng** (`@theme` ở `:root`, `next/font` gắn ở `<body>`) |
+| 🔴 **Bảng chọn ngôn ngữ tràn ra ngoài mép trái** | ở 320px: `end-0` neo vào **chính cái nút** (mép phải x=196) ⇒ bảng 16rem chạy từ **−60 tới 196**, mất chữ đầu của cả 30 tên ngôn ngữ — trên đúng cái menu người ta mở VÌ không đọc được ngôn ngữ hiện tại. Chặn bề rộng KHÔNG cứu được |
+| 🔴 **Logo đọc thành "C✳ain" ở `ar` · `ur` · `fa`** | `text-anchor: start` là "mép đầu **theo hướng viết hiện tại**" ⇒ dưới `dir="rtl"` chữ được vẽ **ngược sang trái**, đè lên dấu sao. 3/30 ngôn ngữ, mọi trang |
+
+**Sau khi vá, đo trên SITE SỐNG (không đo bản cục bộ):** 8/8 trang **0 vùng chạm dưới
+40px · 0 tràn ngang**; ô nhập 16px + chữ đơn cách thật; bảng ngôn ngữ nằm trọn trong màn
+(320px `l=12 r=308`; chữ lớn 1,25× `l=15 r=305`).
+
+🔴 **Đối chứng ngược — desktop PHẢI không đổi**, đo ở 1280px: `pointer: coarse` = false ·
+chân trang về **19px** · nút chép **26** · ô nhập **14px** · bảng ngôn ngữ 256px thẳng
+hàng mép phải nút. Mọi thứ chạm nằm sau `@media (pointer: coarse)` — "dễ bấm bằng ngón
+tay" không được âm thầm thành "trống trải trên laptop".
+
+⚠️ **Bản cục bộ nói dối về `/chains/`.** Nó không có dữ liệu danh bạ ⇒ 0 hàng ⇒ cổng đo
+ra **0 vùng chạm nhỏ**; site sống có 11 hàng ⇒ **15**. Cùng họ với "đo một danh sách rỗng
+rồi tuyên bố đạt" — trang nào render theo dữ liệu thì phải đo ở nơi CÓ dữ liệu.
+
+🔴 **Còn mở, KHÔNG do lượt này:** mọi đường dẫn lạ trên site công khai trả **502 text/plain
+của Cloudflare**, không phải trang 404 của dự án (`/404.html` vẫn 200). Gốc Caddy còn trỏ
+vào upstream Blockscout đã chết. Khách gõ sai URL trên điện thoại thấy một trang 502 trần.
+Sửa là đụng Caddyfile + `caddy-deploy.sh` (ghi đè toàn bộ tệp, chỉ một phiên được deploy)
+nên tôi **không tự làm trong một lượt việc giao diện**.
+
+⚠️ Chưa làm, cố ý: badge `A1` cạnh logo là **11px** (< 12). Nó là nhãn thương hiệu cạnh
+một logo đã có `aria-label`, nên tôi để nguyên thay vì đổi 30 bản dịch/nhiều chỗ dùng.
+
 ### ✅ David chốt ba mục `2026-09-04` (tối muộn) — `7d26920`
 
 | Mục | Kết quả |
