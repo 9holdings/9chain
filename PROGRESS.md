@@ -74,6 +74,7 @@ cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang g
       container khi cấu hình đổi, mà lúc nâng cấp danh sách track **y hệt**. Mọi phép kiểm sức khoẻ qua
       ngay vì node **chưa từng xuống**. Đã vá: `forceRestart` + `--force-recreate` **và đo
       `.State.StartedAt` phải đổi** (`restartProven`, 7 đối chứng, 55 → 62).
+      ✅ **CÓ HIỆU LỰC THẬT trên chain** (D-192): sau một giao dịch, SBull block 2 `19:10:39Z` ⇒ chủ `readAllowList` = **2 Admin**, người lạ = **0 None**, `/api/governance` `enabled:true`. Ca người-lạ-bị-chặn mới là ca mang tin.
       ⏳ Ca **chưa đo**: gãy ở node thứ k > 1 rồi chạy **đường lùi** — lượt thật đi trơn cả 9 node. (rollout 9 node, việc console):
       để chain "lớn lên" thay vì phải chọn hết lúc launch.
 - [~] **P-62 — bản xem trước genesis + câu "chain này làm được / không làm được gì" để ký** — ✅ nửa console `04/09` (D-183: `POST /api/preview`, cùng đường mã với create, trả `genesis + options + facts/can/cannot`, không ghi gì; đo `200` trên `a1.9chain.org`) · ⏳ nửa `web-home`: màn hình + câu ký —

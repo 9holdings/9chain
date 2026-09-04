@@ -8922,3 +8922,39 @@ im lìm, trạng thái giữa có thể kéo dài **vô hạn** — và lối th
 **Luật rút ra:** khi hỏi *"cái này đã có hiệu lực chưa"*, phải hỏi **đúng đồng hồ**, và đồng hồ đó là **của
 thứ đang được hỏi**, không phải của cái máy đang đứng hỏi. Cùng một họ với D-189 (*"đã restart chưa"* thay vì
 *"còn khoẻ không"*) và D-186 (*"có ai thật sự trả lời không"*).
+
+---
+
+## D-192 — **Vòng nâng cấp L1 KHÉP TRỌN: precompile có hiệu lực thật trên chain, đo bằng người-lạ-bị-từ-chối** (`2026-09-04` tối muộn)
+
+Nối tiếp D-190/D-191. Sau khi David gửi một giao dịch trên SBull Chain, chain đẻ **block 2 lúc `19:10:39Z`**
+— qua mốc kích hoạt **7.539 giây**. Đây là mảnh cuối: từ *"tệp đã lên 9 validator"* thành *"luật của chain
+đã đổi"*.
+
+| Phép đo | Trước block 2 | Sau block 2 |
+|---|---|---|
+| `readAllowList(chủ 0x1e8c…292C)` | `0x` — precompile không tồn tại | **`0x…02` = Admin** |
+| `readAllowList(người lạ, ewoq)` | `0x` | **`0x…00` = None** |
+| `/api/governance` | HTTP **400** (D-191) | `enabled:true` · `since:1788541500` · `pending:null` |
+| `adminRoles` | chỉ `feeManager` | `feeManager` **+ `deployerAllowList: admin`** |
+| `waitingForABlock` | `["deployerAllowList"]` | `[]` |
+
+🔴 **Ca người-lạ-trả-về-0 là ca mang tin, không phải ca chủ-trả-về-2.** *"Chủ chain là Admin"* có thể đúng
+vì nhiều lý do vô can; *"một địa chỉ không được duyệt trả về None trên đúng precompile ấy"* chỉ đúng khi
+precompile **thật sự đang chi phối chain**. Đo cái thứ hai mới là đo điều ta quan tâm.
+
+**Kèm một lượt đo nhầm mạng, và nó cũng là một số đo.** Hai giao dịch đầu David gửi rơi vào **Lumina Chain**
+(block 2 lúc `19:08:56Z`) trong khi nâng cấp nằm ở **SBull Chain** — MetaMask không nói cho ai biết rằng
+"mạng đang chọn" khác "chain vừa nâng cấp". Nó chứng minh cơ chế đúng ngay lần đầu (giao dịch ⇒ block), chỉ
+là đúng ở nhầm chỗ. **Bài học cho P-60:** trang quản trị phải in **chainId và RPC của chain đang xem** ngay
+cạnh nút, để "mạng trong ví" và "chain trong trang" không bao giờ là hai thứ người dùng phải tự đối chiếu.
+
+**Số đo cuối:** `check-l1-upgrades` **12 đạt · 0 đỏ · 0 phát hiện** trên cả 11 chain. Chi phí thật của lượt
+giao dịch: SBull dùng preset `zero-fee` ⇒ `gasPrice` **2 wei** ⇒ **42.000 wei** cho một lượt chuyển.
+
+**Trạng thái vĩnh viễn nay đúng như đã ký:** trên SBull Chain, **chỉ ví chủ và những ví nó duyệt mới deploy
+được hợp đồng**. Đảo lại phải bằng **một lượt nâng cấp thứ hai** (`action: "disable"`), không sửa được lượt
+này — đúng câu `description.wont` đã in ra trước khi bấm.
+
+**Luật rút ra:** một thay đổi luật chỉ được coi là XONG khi có **một hành động bị nó CHẶN**, đo được. Trước
+đó ta mới chứng minh được tệp đã tới nơi, chứ chưa chứng minh được gì về hành vi của chain.
