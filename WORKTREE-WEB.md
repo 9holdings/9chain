@@ -22,15 +22,42 @@ Cổng mới thường trực trong `web-deploy.sh`: mọi tài nguyên HTML tha
 `?dpl=` phải có · **`check-server-text.mjs`** đo dữ liệu danh bạ SỐNG (console ở `main` deploy
 riêng, `web/` không thấy nó đổi) · số tệp khớp. Test **176, đỏ 1** — vẫn là vân tay token cũ.
 
+### ✅ David chốt ba mục `2026-09-04` (tối muộn) — `7d26920`
+
+| Mục | Kết quả |
+|---|---|
+| **1 · Duyệt giọng** | ✅ **ĐÃ DUYỆT** cả hai lô VI: danh bạ (`directory.*` 68 khoá · `home.moreChains` · `home.disclosure`) và lô `04/09` (`common.noWalletMobile` · `.openInMetaMask` · `presets.*` 6 · `steps.*` 3). Lời khai ở đầu `dicts/vi.ts` + cạnh `vi` trong `languages.ts`; 28 bản máy dịch **không đụng tới** |
+| **2 · Lên `official`** | ✅ **ĐÃ LÊN** — `71048bc` (fast-forward `663a3e7`), 3 cổng của script xanh. Đo lại độc lập bằng `git ls-tree` trên `FETCH_HEAD`: **0 tệp** `local-net/deploy/` · **0** `DEPLOY-KSGAME` · lời khai duyệt có mặt. `origin` giữ `7d26920` |
+| **3 · Deep link** | Đo hết phần máy đo được (xem dưới). 🔴 **Còn đúng một nửa là việc của tay người** |
+
+**Đối chứng lúc duyệt** — không duyệt bằng cách đọc lại chính bảng tài liệu: chữ trong bảng
+khớp `vi.ts`; sổ giá trị **11.340 chuỗi/30 ngôn ngữ**, 0 khoá treo; và `home.disclosure` được
+duyệt **kèm phép đo cùng ngày** (`check-decentralisation-claim`: 11 validator, 10 connected).
+🔴 Lời duyệt đó **không theo mạng**: khách thứ ba stake là câu sai dù chữ không ai đụng.
+
+**Deep link — đo `04/09 16:02Z` trên site SỐNG (trước đây chỉ đo bản dựng cục bộ):**
+
+| Đo | Kết quả |
+|---|---|
+| 3 trang, UA Android, không ví | `faucet/` · `create-chain/` · `my-chains/` đều ra đúng `metamask.app.link/dapp/a1.9chain.org<path>` |
+| đối chứng ngược desktop | **0 link**, giữ câu cũ |
+| `metamask.app.link` với UA Android | **307** → `Location: intent://open?…;scheme=metamask;package=io.metamask;end` ⇒ Branch còn sống và đang giao intent mở app |
+| với UA iPhone | **307** → App Store `id1438144202`; `apple-app-site-association` **200 JSON** ⇒ máy đã cài app thì iOS bắt universal link trước, không đi tới App Store |
+
+🔴 **Thứ vẫn CHƯA ai đo, và curl không đo được:** intent chỉ mang `link_click_id`, **đường dẫn
+`/faucet/` nằm trong dữ liệu Branch chứ không nằm trong intent** ⇒ "app mở lên" đã chắc, còn
+"app mở lên **đúng trang** và ví nối được" thì phải **bấm thật trên một chiếc điện thoại có
+MetaMask**. Nếu app mở ra trang chủ MetaMask thay vì trang faucet, lỗi nằm ở chặng đó, không
+phải ở trang.
+
 ### 🔴 Phiên sau / `[human]`
 
-1. **`[human]` duyệt giọng 9 chuỗi VI mới** (2 chuỗi ví điện thoại + 6 preset + 3 step) — bảng
-   cuối `docs/WEB-PROGRESS.md`. 29 bản kia là máy dịch, đã khai. **Đang lên sóng.**
-2. **`[human]` có đưa lên `official` không** — `bash local-net/deploy/publish-official.sh web-home`.
-   Đã push `origin` (sao lưu riêng tư) tới `6fae9bd`.
-3. **`[human]` thử deep link trên điện thoại thật có app MetaMask** — mới đo bằng giả lập UA.
-4. Console thêm preset mới ⇒ thêm vào `en.ts` `presets` + 29 dicts, nếu quên thì
+1. **`[human]` bấm thử trên điện thoại thật** — mở `https://a1.9chain.org/faucet/` bằng
+   Chrome/Safari trên máy có app MetaMask rồi bấm *"Mở trong app MetaMask"*. Cần biết: app có
+   mở đúng `/faucet/` không, và trong app có nối ví được không.
+2. Console thêm preset mới ⇒ thêm vào `en.ts` `presets` + 29 dicts, nếu quên thì
    `check-server-text.mjs` chặn lượt deploy.
+3. Chuỗi VI viết sau lượt duyệt `04/09` lại là chuỗi **chưa duyệt** — luật `[?]` không bị bãi.
 
 ### Gotchas (trả giá thật trong phiên)
 
