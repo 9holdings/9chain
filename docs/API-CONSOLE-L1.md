@@ -249,7 +249,12 @@ làm thế là từ chối đúng dạng nhiều công cụ phát ra.
 ### 5.3 `POST /api/upgrade-preview` → `POST /api/upgrade` — bật precompile SAU genesis
 
 Thân: `{ "name": "SBull Chain", "precompile": "deployerAllowList", "action": "enable" | "disable" }`
-(`/api/upgrade` cần thêm `"confirm": true`).
+
+🔴 **`/api/upgrade` cần `"confirm": "<TÊN CHAIN>"`, KHÔNG phải `true`.** Người bấm phải **gõ lại đúng
+tên chain**, kiểu GitHub bắt gõ tên repo trước khi xoá — vì lượt này restart cả 9 validator và đổi luật
+của chain tại một mốc **không dời được**. `"confirm": true` bị **từ chối 400**, và câu lỗi in sẵn chuỗi
+cần gửi. `/api/transfer-owner` **cùng luật** (`server.mjs:1592` và `:1648`).
+*(Tài liệu này ghi `true` cho tới `04/09` — sai, và chỉ lộ ra khi chạy thật một lượt.)*
 
 `upgrade-preview` **chạy khô, không ghi gì**, trả:
 
@@ -274,7 +279,7 @@ Và `facts` nói rõ cái giá vận hành:
 
 ### 5.4 `POST /api/transfer-owner` — sổ đi **SAU** chain
 
-`{ "name": "…", "newAdmin": "0x…", "confirm": true }`
+`{ "name": "…", "newAdmin": "0x…", "confirm": "<TÊN CHAIN>" }` — cùng luật gõ-lại-tên như `/api/upgrade`.
 
 🔴 **Thứ tự là bắt buộc và giao diện phải dạy đúng thứ tự:**
 1. Chủ **hiện tại** gọi `setAdmin(newAdmin)` trên **mọi precompile đang bật** — bằng MetaMask, không qua console;
