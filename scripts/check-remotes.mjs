@@ -135,6 +135,14 @@ function behindCount(remote, localTip) {
   try {
     execFileSync("git", ["cat-file", "-e", `${sha}^{commit}`], { cwd: ROOT, stdio: "ignore" });
   } catch { return { sha, count: null }; }
+  // 🔴 A remote whose history was REWRITTEN (2026-09-04: `official/main` filtered with
+  // git filter-repo to drop the operations runbook) shares no ancestor with local `main`.
+  // `rev-list --count sha..main` then returns the size of ALL of main — "behind 456" — a number
+  // that is true of nothing and reads as an invitation to `git push`, which is exactly the push
+  // that must never happen there. Name the situation instead of counting it.
+  try {
+    execFileSync("git", ["merge-base", "main", sha], { cwd: ROOT, stdio: "ignore" });
+  } catch { return { sha, count: null, unrelated: true }; }
   return { sha, count: Number(git(["rev-list", "--count", `${sha}..main`])) };
 }
 
@@ -175,6 +183,9 @@ export function judge(remotes, facts, lag, roles = ROLES) {
       }
       const l = lag[r.name] ?? { sha: null, count: null };
       if (!l.sha) red(r.name, "has no `main` branch — nothing has ever reached it");
+      else if (l.unrelated) warn(r.name, "its `main` shares NO common ancestor with local main — the remote history was "
+        + "rewritten (filtered). A plain push fails; a forced push would overwrite the filtered history. "
+        + "Publish only through local-net/deploy/publish-official.sh");
       else if (l.count === null) warn(r.name, "lag UNKNOWN (its tip is not in the local object database) — not the same as up to date");
       else if (l.count > 0) {
         const stuck = f.archived || !PERMS_THAT_CAN_WRITE.has(f.permission);
@@ -235,6 +246,16 @@ function selfTest() {
     ["being behind a WRITABLE remote is a warning, not a failure (unpushed work is normal)",
       (() => { const r = run(rem("origin"), { origin: ok }, { origin: { sha: "a", count: 7 } });
         return r.findings.length === 0 && r.warnings.length === 1; })()],
+
+    // 2026-09-04: `official/main` was rewritten with git filter-repo. The old code counted
+    // "behind 456" (all of main) and the sentence read as "push it". The warning must name the
+    // rewrite and the publish script, and must not print a number.
+    ["🔴 a remote with NO common ancestor is a warning that names the publish script, not a count",
+      (() => { const r = run(rem("official"), { official: { ...ok, visibility: "PUBLIC" } },
+        { official: { sha: "z", count: null, unrelated: true } });
+        return r.findings.length === 0 && r.warnings.length === 1
+          && /NO common ancestor/.test(r.warnings[0].msg) && /publish-official\.sh/.test(r.warnings[0].msg)
+          && !/\d+ commit/.test(r.warnings[0].msg); })()],
 
     ["🔴 being behind an ARCHIVED remote IS a failure — the gap can never close",
       /gap is permanent/.test(reds(run(rem("origin"), { origin: { ...ok, archived: true } }, { origin: { sha: "a", count: 49 } })))],
