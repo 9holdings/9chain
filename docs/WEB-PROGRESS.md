@@ -313,9 +313,13 @@ danh sách trong tài liệu.
 cách đúng khi tôi **thật sự không chắc** về giọng — lúc đó thà chặn build còn hơn đẩy
 một câu mình không tin ra cho người lạ đọc.
 
-### Chuỗi mới / đã đổi, chờ David soát lại
+### Chuỗi lô `2026-08-27` — ✅ đã duyệt, và nay là **BẢNG LỊCH SỬ**
 
-*(cập nhật theo từng lô; nguyên văn để đọc không cần mở mã)*
+*(nguyên văn để đọc không cần mở mã)*
+
+⚠️ Bảng này khoá theo tên cũ (`trangChu.*`, `chanTrang.*`) — **0 khoá trong đó còn tồn
+tại**; lượt đổi tên Việt→Anh `03/09` đã chuyển hết sang `home.*` / `footer.*`. Giữ lại
+làm hồ sơ lượt duyệt `27/08`, đừng đọc nó như danh sách việc đang chờ.
 
 | Khoá | Nội dung |
 |---|---|
@@ -390,11 +394,28 @@ vượt trần 160).
 
 ---
 
-## Chuỗi tiếng Việt mới `2026-09-04` — chờ David duyệt giọng (danh bạ 108 L1)
+## ✅ Chuỗi tiếng Việt `2026-09-04` — **DAVID ĐÃ DUYỆT GIỌNG `2026-09-04`**
 
 Bản Anh ở `web/lib/i18n/en.ts` (`directory.*`, `home.moreChains`). 29 bản khác là máy
-dịch từ tiếng Anh, đã khai `review: 'machine'`. Bản Việt dưới đây là bản tôi viết —
-**chưa qua duyệt giọng**; sửa xong thì chạy `node scripts/check-dict-values.mjs --accept`.
+dịch từ tiếng Anh, đã khai `review: 'machine'` — **lượt duyệt này không chạm tới chúng**.
+Bản Việt dưới đây là bản đã duyệt; nó cũng là bản **đang chạy** trên `a1.9chain.org`
+(deploy `6fae9bd`), tức duyệt ở đây là **bắt kịp lời khai**, không phải mở cổng.
+
+Đối chứng lúc duyệt — không duyệt bằng cách đọc chính bảng này:
+
+| Đo | Kết quả |
+|---|---|
+| chữ trong bảng ↔ chữ trong `vi.ts` | khớp (`presets` · `steps` · `common.*` · `directory.*` 68 khoá) |
+| sổ giá trị `check-dict-values.mjs` | **11.340 chuỗi/30 ngôn ngữ khớp**, 0 khoá treo ngoài sổ |
+| `home.disclosure` ↔ mạng thật | `check-decentralisation-claim.mjs`: **11 validator, 10 connected** ✓ |
+
+🔴 **`home.disclosure` được duyệt KÈM phép đo, nên lời duyệt hết hạn khi mạng đổi.**
+Khách thứ ba stake, hay khách cũ lên lại, là câu đó **sai** dù không ai đụng vào chữ.
+Đừng viện "David đã duyệt" để giữ nó — cổng phải đỏ và câu phải viết lại.
+
+Sửa chữ sau lượt duyệt này thì phải chạy `node scripts/check-dict-values.mjs --accept`
+(sổ chống trôi lệch — nó **không** phải lời khai duyệt giọng; lời khai nằm ở đầu
+`web/lib/i18n/dicts/vi.ts` và ở `languages.ts` cạnh `vi`).
 
 | Khoá | Tiếng Việt đang chạy |
 |---|---|

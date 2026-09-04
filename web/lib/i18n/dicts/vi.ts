@@ -12,6 +12,21 @@
  * ═══ 2026-08-27 — DAVID ĐÃ DUYỆT TOÀN BỘ 57 CHUỖI ĐANG TỒN, LUẬT VẪN NGUYÊN ═══
  * Luật `[?]` KHÔNG bị bãi bỏ. Chuỗi MỚI viết từ nay vẫn phải mang dấu.
  *
+ * ═══ 2026-09-04 — DAVID DUYỆT LÔ THỨ HAI (danh bạ + điện thoại + chữ máy chủ) ═══
+ * Hai lô, nguyên văn ở cuối `docs/WEB-PROGRESS.md`:
+ *   • danh bạ 108 L1 — `directory.*` (68 khoá) · `home.moreChains` · `home.disclosure`
+ *   • đợt `04/09` — `common.noWalletMobile` · `common.openInMetaMask` ·
+ *     `presets.*` (6 kiểu × tên + mô tả) · `steps.*` (3 bước)
+ * Cả hai lô **đã lên sóng trước khi được duyệt** — duyệt ở đây là bắt kịp lời khai, không
+ * phải mở cổng cho chúng ra. 28 bản máy dịch vẫn `review: 'machine'`, không đổi.
+ *
+ * 🔴 `home.disclosure` là chuỗi DUY NHẤT trong lô khai một sự thật VỀ MẠNG, nên nó được
+ * duyệt KÈM PHÉP ĐO của đúng ngày duyệt — `check-decentralisation-claim.mjs` `04/09`:
+ * mạng báo **11 validator, 10 connected**, khớp câu "9 trong số 11 … chỉ một trong hai
+ * đang trực tuyến". ⚠️ Lời duyệt này KHÔNG theo mạng: khách thứ ba vào, hoặc khách cũ
+ * lên lại, là câu SAI dù chữ chưa ai đụng. Cổng đó phải đỏ, và câu phải viết lại — đừng
+ * viện "David đã duyệt" để giữ một câu đã hết đúng.
+ *
  * 🔴 VÌ SAO ĐỢT DUYỆT NÀY GẤP: 57 dấu đó không nằm im trong mã — chúng **đang hiển
  * thị ra cho người đọc** trên mạng công khai. Đo `27/08`: `/re-genesis/` mang **64**
  * dấu (gồm cả `<h1>` và mọi `<h2>`), 5 trang còn lại mỗi trang 6 dấu từ dải banner.

@@ -80,7 +80,11 @@ export const LANGUAGES: readonly Language[] = [
   { code: 'bn', ten: 'বাংলা', englishName: 'Bengali', dir: 'ltr', review: 'machine' },
   { code: 'pt', ten: 'Português', englishName: 'Portuguese', dir: 'ltr', review: 'machine' },
   // ── POSITION 9 — David's decision. See decision ③ at the top of this file. ───────
-  // The ONLY translation reviewed by a person: David approved all of it on 2026-08-27.
+  // The ONLY translation reviewed by a person: David approved the 57 strings that existed on
+  // 2026-08-27, and the two later batches (the 108-L1 directory, and the 2026-09-04 phone-wallet
+  // and server-text strings) on 2026-09-04. The approved wording is at the foot of
+  // `docs/WEB-PROGRESS.md`; the reasoning, and the one string whose approval is tied to a
+  // measurement of the live network, is at the top of `dicts/vi.ts`.
   // ⚠️ The old comment here called `vi` "the SOURCE all the others are translated from".
   // That is WRONG, and wrong in the direction that misleads whoever comes next: `en.ts`
   // is the source of the keys, and it says so plainly — *"Every other translation is made
