@@ -6,7 +6,8 @@ như sứ mệnh này, tính thêm các yếu tố công nghệ sẽ phát tri�
 
 Đây là phân tích, không phải quyết định. Mọi số đo ghi nguồn; mọi giả định ghi là giả định. Tài liệu
 anh em: `PLAN-108-L1-LOAD-TEST.md` (bài toán máy), D-174 (trần 15), D-178 (chi phí mỗi L1), D-180 và D-181
-(khách đầu tiên và bẫy hướng dẫn).
+(khách đầu tiên và bẫy hướng dẫn). **Bản hai**, kiểm từng giả định ở đây bằng số liệu thế giới `2026` và
+sửa bốn chỗ: `ANALYSIS-WORLD-EVIDENCE-FREE-L1.md`.
 
 ---
 
