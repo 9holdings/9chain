@@ -112,3 +112,20 @@ export function nanoToLove9(nano: string | null): number | null {
   if (!Number.isFinite(n)) return null;
   return n / 1e9;
 }
+
+/**
+ * How many faucet requests actually fund a bond.
+ *
+ * 🔴 IT IS NOT `bond / perRequest`, AND THAT IS THE WHOLE POINT. Nine requests of 9 LOVE9
+ * come to exactly 81, and exactly 81 is not enough: the C→X→P transfers and the stake
+ * submission are paid out of the SAME balance. The honest answer is one request more.
+ *
+ * Caught on the live page 2026-09-05: the paragraph said "budget ten requests" while the
+ * line of arithmetic under it rendered `9 × 9 = 81 ≥ 81` — the page retracting a claim in
+ * prose and re-making it in symbols, three centimetres apart. Symbols win that argument
+ * with a reader who is skimming to find the number.
+ */
+export function faucetRequestsNeeded(bondLove9: number | null, perRequest: number | null): number | null {
+  if (bondLove9 === null || perRequest === null || !(perRequest > 0)) return null;
+  return Math.ceil(bondLove9 / perRequest) + 1;
+}

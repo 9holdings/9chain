@@ -6,7 +6,7 @@ import { useLanguage, useT } from '@/lib/i18n';
 import { formatNumber } from '@/lib/numbers';
 import { fetchJson, READ_TIMEOUT_MS } from '@/lib/net';
 import { faucetOrigin, CHAIN } from '@/lib/chain';
-import { nanoToLove9, useValidatorSet } from '@/lib/validators';
+import { faucetRequestsNeeded, nanoToLove9, useValidatorSet } from '@/lib/validators';
 
 /**
  * Body of `/validators/`.
@@ -85,7 +85,7 @@ export function ValidatorsContent() {
   // unreadable the sentence still stands on its own — it is about the SHAPE of the trap, not
   // about the two numbers — so the paragraph is never hidden, only its figures are.
   const perRequest = faucet && faucet !== 'loading' ? Number(faucet.amount) : null;
-  const soLuot = perRequest && bond ? Math.ceil(bond / perRequest) : null;
+  const soLuot = faucetRequestsNeeded(bond, perRequest);
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 md:py-14">
@@ -122,8 +122,11 @@ export function ValidatorsContent() {
       <p className="mt-2 text-sm text-body">{t.validators.faucetDesc}</p>
       {perRequest !== null && bond !== null && soLuot !== null ? (
         <p className="mt-3 font-mono text-sm text-ink">
+          {/* 🔴 `>`, NOT `≥`. The strict sign is the sentence above rendered in symbols: you
+              need MORE than the bond, because the fees come out of the same balance. With
+              `≥` and nine requests this line said the opposite of the paragraph over it. */}
           {formatNumber(perRequest, code)} {CHAIN.kyHieu} × {formatNumber(soLuot, code)} ={' '}
-          {formatNumber(perRequest * soLuot, code)} {CHAIN.kyHieu} ≥ {bondText}
+          {formatNumber(perRequest * soLuot, code)} {CHAIN.kyHieu} &gt; {bondText}
         </p>
       ) : null}
 
