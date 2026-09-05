@@ -82,7 +82,7 @@ export function CeremonyContent() {
           </div>
         ) : null}
 
-        <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+        <dl className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[repeat(2,minmax(0,1fr))]">
           {ZONES.map((z) => (
             <div key={z.id}>
               <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{z.label}</dt>
@@ -106,7 +106,12 @@ export function CeremonyContent() {
 
       {/* ── The three blocks ──────────────────────────────────────────────────── */}
       <h2 className="mt-10 font-display text-xl font-bold text-ink">{t.ceremony.blocksTitle}</h2>
-      <div className="mt-4 grid gap-3">
+      {/* 🔴 `grid-cols-[minmax(0,1fr)]`, not a bare `grid` — measured at 375 px on the live
+          page: a grid item's default `min-width: auto` lets it grow to fit unbreakable
+          content, so one 64-character sha256 made the card 533 px wide and the whole
+          document scrolled sideways. `max-w-full` on the button inside cannot help, because
+          the container it is "full" of had already grown. */}
+      <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-3">
         {BLOCKS.map((b) => (
           <Card key={b.id} className="p-4 md:p-5">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -125,7 +130,12 @@ export function CeremonyContent() {
       {/* ── The bytes ─────────────────────────────────────────────────────────── */}
       <h2 className="mt-10 font-display text-xl font-bold text-ink">{t.ceremony.messagesTitle}</h2>
       <p className="mt-2 text-sm text-muted">{t.ceremony.messagesDesc}</p>
-      <div className="mt-4 grid gap-3">
+      {/* 🔴 `grid-cols-[minmax(0,1fr)]`, not a bare `grid` — measured at 375 px on the live
+          page: a grid item's default `min-width: auto` lets it grow to fit unbreakable
+          content, so one 64-character sha256 made the card 533 px wide and the whole
+          document scrolled sideways. `max-w-full` on the button inside cannot help, because
+          the container it is "full" of had already grown. */}
+      <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-3">
         {MESSAGES.map((m) => (
           <Card key={m.id} className="p-4 md:p-5">
             <p className="text-sm text-ink">“{m.text}”</p>
@@ -158,7 +168,7 @@ export function CeremonyContent() {
       {/* ── What was recorded ─────────────────────────────────────────────────── */}
       <h2 className="mt-10 font-display text-xl font-bold text-ink">{t.ceremony.resultTitle}</h2>
       {phase === 'after' ? (
-        <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+        <dl className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[repeat(2,minmax(0,1fr))]">
           <div>
             <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{t.ceremony.resultBlock}</dt>
             <dd className="mt-1 font-mono text-sm text-ink">
