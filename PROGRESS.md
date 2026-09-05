@@ -116,7 +116,7 @@ cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang g
       **node đọc `upgrade.*` bằng GLOB**: một tệp lạ thì bị nạp, hai tệp thì node **không boot** (bản lưu `.prev-` của console = bom cho
       lượt nâng cấp thứ hai). Sửa: undo chứng minh restart + chain + **hình dạng đã nạp trong node**; lịch sử ra `upgrade-history/`;
       `chainDirVerdict` ở preview/upgrade/governance + quét khởi động; `check-l1-upgrades` áp cùng luật. Lượt 3 (mã mới) ✅ 424 s.
-      ⚠️ **[human] deploy console TRƯỚC lượt nâng cấp kế tiếp của bất kỳ chain nào.** (rollout 9 node, việc console):
+      ✅ **Console đã deploy `05/09 16:43Z`** (PID 2972548 · drift 28/0/0 · khoá deploy trong kịch bản chạy thật lần đầu). (rollout 9 node, việc console):
       để chain "lớn lên" thay vì phải chọn hết lúc launch.
 - [~] **P-62 — bản xem trước genesis + câu "chain này làm được / không làm được gì" để ký** — ✅ nửa console `04/09` (D-183: `POST /api/preview`, cùng đường mã với create, trả `genesis + options + facts/can/cannot`, không ghi gì; đo `200` trên `a1.9chain.org`) · ⏳ nửa `web-home`: màn hình + câu ký —
       chặn cuối trước khi tiêu một chỗ vĩnh viễn.
