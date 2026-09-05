@@ -14,8 +14,9 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 `Caddyfile` lệch 1.733 dòng); `CLAUDE.md` trên `web-home` thiếu 234 dòng luật; 3 commit mồ côi. David: *"làm theo thứ tự
 trên, bắt đầu bước 2"*. Chi tiết và số đo: D-193.
 
-- [human] **WT-1 — merge `main → web-home`** (đưa 296 commit + luật `CLAUDE.md` sang). Worktree web đang có phiên khác
-      với 9 tệp chưa commit ⇒ **hỏi phiên web trước**, không tự merge (§4).
+- [human] **WT-1 — merge `main → web-home`** (đưa 296+ commit + luật `CLAUDE.md` sang). Phiên web đã commit xong lượt
+      của họ (`web-home` = `a33be0b`, cây sạch lúc `05/09` ~09:50Z) — vẫn là việc của phiên giữ nhánh đó, không tự merge (§4).
+      Nhánh cứu `web-rescue-orphans-20260905` (`629c674`) đã rebase lên đúng đỉnh ấy, ff-thuần: `git merge --ff-only` là đủ.
 - [x] **WT-2 — cứu ba commit mồ côi** (D-193, `05/09`)
       ✅ `main`: `local-net/deploy/check-heartbeat-stopped.mjs` + nối vào `gday-preflight` nhóm 3 (39 mục) + dòng T−10
       trong `CEREMONY-2026-09-09.md`. Chạy thật trên server: **đỏ đúng lý do** (bơm đang chạy có chủ ý tới `09/09`).
@@ -32,8 +33,14 @@ trên, bắt đầu bước 2"*. Chi tiết và số đo: D-193.
       thả chỉ bởi người giữ + ghi `deployed/<bề mặt>.json`. Self-test **15 ca** (đã thấy đỏ). Nối vào `console-deploy.sh`.
       ⏳ [human] lượt `console-deploy.sh` kế tiếp là lần **acquire thật đầu tiên** trên server.
       ⏳ [web-home] nối vào `caddy-deploy.sh` + `web-deploy.sh` sau khi merge `main`.
-- [ ] **WT-5 — dọn**: xoá worktree `gday` + nhánh (1 commit đã cứu), xoá hai `.claude/worktrees/*` + nhánh `claude/*`
-      (2 commit đã cứu sang nhánh web), giữ `audit`.
+- [x] **WT-5 — dọn** (`05/09`): worktree `gday` + 2 `.claude/worktrees/*` gỡ (`git worktree remove`, KHÔNG `--force` — cây bẩn
+      phải tự từ chối, cả ba sạch); nhánh `gday-heartbeat-gate` · `claude/*` xoá cục bộ; byte gốc còn ở `refs/archive/*`
+      (3 ref, không phải branch/tag). `origin/gday-heartbeat-gate` còn trên remote — xoá là một lượt push ⇒ [human].
+      Còn **3 worktree**: `main` · `web-home` · `audit`. Worktree cứu trong scratchpad đã gỡ (junction `node_modules` tháo
+      trước, đếm thư mục đích trước/sau bằng nhau), nhánh còn nguyên.
+      ⚠️ Trên Windows `git worktree remove` gỡ mục đăng ký nhưng ĐỂ LẠI `.claude/worktrees/*/web/` (vật liệu build bị ignore,
+      538 tệp mỗi cái; không `.git`, không còn trong `git worktree list`). Lượt xoá tay bị từ chối quyền ⇒ [human] xoá hai
+      thư mục đó.
 
 ## 🔵 MỐC `L1-CUSTOM` — TUỲ CHỈNH CHAIN SÂU HƠN (David chốt `2026-09-03` chiều)
 

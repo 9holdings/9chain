@@ -1,6 +1,9 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-04 tối muộn** — 🟢 **VÒNG NÂNG CẤP L1 ĐẦU TIÊN KHÉP TRỌN (D-189→D-192) · KẾ HOẠCH 5 MỐC XONG (D-185→D-188)**.
+Cập nhật: **2026-09-05 sáng** — 🔵 **CẤU TRÚC WORKTREE (D-193 · D-194)**: David hỏi *"cấu trúc worktree độc lập sao cho tối ưu"* → đo → năm bước, **bước 2→5 xong**, bước 1 là việc phiên web.
+Còn **3 worktree** (`main` · `web-home` · `audit`); **3 commit mồ côi cứu về** — một trong ba là cảnh báo *"chain sẽ bị xoá 01/09"* **vẫn đang render trên site** ở màn soát `/create-chain/`, nằm chờ ở nhánh `web-rescue-orphans-20260905` (ff-thuần từ `web-home a33be0b`);
+luật cứng #4 nay là **bảng** `scripts/worktree-ownership.json` + cổng `check-worktree-ownership` (0/1/2) + khoá deploy `deploy-lock.sh` trên server (nối vào `console-deploy.sh`). Preflight: **56 đạt · 1 đỏ (cổng bơm — đỏ CÓ CHỦ Ý tới 05:39Z 09/09) · 0 không chạy được · 8 việc tay** (mục mới: 2 sở hữu + 1 bơm). `main` = **`b9c784c`**, CHƯA đẩy remote nào. Đọc mục **`2026-09-05` sáng** ngay dưới.
+Trước đó — cập nhật: **2026-09-04 tối muộn** — 🟢 **VÒNG NÂNG CẤP L1 ĐẦU TIÊN KHÉP TRỌN (D-189→D-192) · KẾ HOẠCH 5 MỐC XONG (D-185→D-188)**.
 `official/main` = **`f729d2c`** (công bố qua `publish-official.sh`, fast-forward, nghiệm thu độc lập: 0 tệp `local-net/deploy/`,
 0 blob ssh/575 commit) · `origin` = **`46b8c33`** = local · console PID **`2822798`+** (3 lượt deploy, drift **28/0/0**) ·
 preflight **34 → 38 mục** · sổ chain **11**, còn **4/15 chỗ** · SBull Chain có `deployerAllowList` **sống thật** (block 2, người lạ = None).
@@ -94,6 +97,68 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 > `HANDOFF.md` thắng về **số đo**. Backlog: [`PROGRESS.md`](PROGRESS.md).
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
+
+### 🆕 `2026-09-05` sáng — CẤU TRÚC WORKTREE: BA COMMIT MỒ CÔI, BẢNG SỞ HỮU, KHOÁ DEPLOY (D-193 · D-194)
+
+David: *"hãy đọc HANDOFF ⇒ nên cấu trúc các worktree độc lập làm sao cho làm việc tối ưu nhất?"* → đề xuất năm bước →
+*"làm theo thứ tự trên, bắt đầu bước 2"*. Mạng, server, console: **không đổi** (chỉ đọc qua ssh). Mốc `WORKTREES` trong `PROGRESS.md`.
+
+```
+đo trước  : 6 worktree (2 sống) · 9 tệp cả hai nhánh cùng sửa (5 là deploy) · CLAUDE.md trên web-home thiếu 234 dòng
+            3 commit mồ côi: gday 6793fb4 (cổng bơm) · claude/* 6490592 (prebuild tsc) · 10e19c4 (/re-genesis/ + màn soát)
+bước 2    : main b96bf6a — check-heartbeat-stopped.mjs + preflight nhóm 3 + T−10 trong CEREMONY; chạy thật: ĐỎ đúng lý do
+            (bơm đang chạy có chủ ý tới 05:39:09Z 09/09). Lời khuyên nó in sửa cho khớp main (D-153).
+            nhánh web-rescue-orphans-20260905 629c674 (rebase lên web-home a33be0b, ff-thuần): prebuild tsc · networkErrorOf()
+            · GỠ cảnh báo màn soát · W3 đo đúng ngôn ngữ · mục W-luu. 3 đối chứng đỏ; pnpm build đầy đủ exit 0.
+            🔴 KHÔNG ff vào web-home: worktree đó có phiên khác (bài 04/09) và prebuild sẽ làm build của họ đỏ ngay.
+bước 3    : main b9c784c — scripts/worktree-ownership.json + check-worktree-ownership.mjs (24 ca self-test; đỏ thật trên main
+            với tệp untracked trong web/; từ worktree detached ⇒ mã 2). Đo lịch sử: main sửa 4 tệp của web, web-home sửa 5 của chain.
+bước 4    : cùng commit — local-net/deploy/deploy-lock.sh (15 ca, thấy đỏ; chưa acquire thật trên server) nối vào console-deploy.sh
+bước 5    : worktree gday + 2 .claude/worktrees/* gỡ, nhánh xoá cục bộ, byte gốc ở refs/archive/* (3 ref). Còn 3 worktree.
+preflight : 56 đạt · 1 đỏ (cổng bơm — đỏ CÓ CHỦ Ý tới 05:39Z 09/09) · 0 không chạy được · 8 việc tay
+git       : main b9c784c (4 commit phiên này), CHƯA đẩy origin/official. web-home KHÔNG đụng.
+```
+
+#### 🔴 Việc tiếp — ai làm
+- **[web-home] WT-1 + nhận nhánh cứu:** `git merge --ff-only web-rescue-orphans-20260905` rồi merge `main` (đưa luật `CLAUDE.md`
+  + hai cổng sang), rồi deploy web. Nghiệm thu sau deploy: `.reviewRebuild` **vắng** trong chunk `app/create-chain/page-*.js` đang
+  phục vụ (hôm nay = 1). Sau đó: nối `deploy-lock` vào `caddy-deploy.sh`/`web-deploy.sh`, dời tệp web trong `local-net/deploy/`
+  ra thư mục riêng (bảng `_contested_2026-09-05`).
+- **[human] đẩy `origin`** (kiểm `check-remotes` trước). `official` **hỏi trước**, qua `publish-official.sh`.
+- **[human] hook `pre-commit` global** (`C:/PROJECTS/claude-config/githooks`) chưa gọi `check-worktree-ownership` ⇒ commit sai nhánh
+  chưa bị chặn. Nối hook global → hook cục bộ là việc trên repo `claude-config`.
+- **[human] xoá hai thư mục sót** `.claude/worktrees/objective-cori-f15780/web/` · `…/practical-mclean-ecf6fe/web/` (vật liệu build
+  bị ignore; không còn là worktree; lượt `rm -rf` của phiên này bị từ chối quyền). Và `origin/gday-heartbeat-gate` trên remote (xoá = push).
+- **[human] lượt `console-deploy.sh` kế tiếp** là lần acquire khoá thật đầu tiên — đọc dòng `✓ deploy lock` và kiểm
+  `~/9chain-a1/deployed/console.json` sau đó.
+
+#### 🔴 GOTCHAS phiên này
+1. **Cổng lấy gốc từ VỊ TRÍ TỆP SCRIPT thì đo nhầm worktree.** Bản đầu `check-worktree-ownership` chạy từ worktree detached mà in ✓ về
+   `main`. Gốc phải là `git rev-parse --show-toplevel` của **nơi đứng**. Đúng lớp §2 — bắt được vì chạy thật ở đúng chỗ.
+2. **Grep một câu trong bundle không đo được "có render không":** 30 chunk từ điển mang câu đó dù không trang nào hiện. Đo bằng
+   **truy cập thuộc tính** (`.reviewRebuild`) trong chunk trang. Suýt ghi một số đo sai vào tài liệu.
+3. **Thứ tự trong bảng không phải độ ưu tiên:** `scripts/**` của `main` che literal `scripts/serve-out.mjs` của `web-home` cho tới
+   khi có luật *cụ thể nhất thắng*.
+4. **`[IO.File]::ReadAllText` trong PowerShell dùng cwd của tiến trình .NET, không phải `Set-Location`** ⇒ đọc/ghi nhầm thư mục
+   (ở đây: đọc hụt, may không ghi đè gì). Dùng đường tuyệt đối, hoặc Bash.
+5. **`git worktree remove` trên Windows gỡ đăng ký nhưng để lại thư mục** khi bên trong có vật liệu build bị ignore (`web/out`,
+   `.next`). `git worktree list` sạch mà đĩa vẫn còn 538 tệp — kiểm bằng `ls`, không chỉ bằng git.
+6. **Junction `node_modules` vào worktree tạm phải tháo bằng `rmdir` (cmd) TRƯỚC `git worktree remove --force`** — xoá đệ quy qua
+   junction có thể ăn vào thư mục đích. Đếm mục thư mục đích trước/sau (10 = 10).
+7. **`CLAUDE.md` là LF, `HANDOFF/DECISIONS/PROGRESS/BLOCKERS` là CRLF** — script vá phải dò EOL của từng tệp, đừng giả định. Và
+   `grep -c $'\r$'` trong Git Bash **không đáng tin** cho câu hỏi này (báo 234/234 CRLF cho một tệp 0 CR).
+8. **Bánh cóc tiếng Anh bắt đúng lượt này** một dòng `echo` tiếng Việt tôi viết vào `console-deploy.sh` — cổng làm việc; đừng
+   `--update-baseline` cho nợ mình vừa tạo.
+
+#### Lệnh hữu ích
+```bash
+node scripts/check-worktree-ownership.mjs                        # worktree đang đứng
+node scripts/check-worktree-ownership.mjs --deploy console       # nhánh này được deploy bề mặt này không
+node scripts/check-worktree-ownership.mjs --range main...web-home --branch web-home   # lịch sử một nhánh
+bash local-net/deploy/deploy-lock.sh --self-test
+node local-net/deploy/check-heartbeat-stopped.mjs                # hỏi server; đỏ có chủ ý tới 09/09
+git for-each-ref refs/archive                                    # byte gốc của các commit mồ côi đã cứu
+```
 
 ### 🆕 `2026-09-04` tối muộn — LƯỢT NÂNG CẤP L1 **THẬT** ĐẦU TIÊN, VÀ HAI LỖI NÓ MOI RA (D-189 · D-190 · D-191)
 

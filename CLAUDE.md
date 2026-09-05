@@ -120,6 +120,11 @@ node scripts/check-history-secrets.mjs --all-objects  # 🔴 LỊCH SỬ git có
                                              #    không xoá object; đã clone là mất
 node scripts/wallet-over-tunnel.mjs --check           # ví ký không chạm server (M11.10)
 bash scripts/h6b-backup.sh --check           # bản sao lưu có dựng lại được mạng không
+node scripts/check-worktree-ownership.mjs    # 🔴 NHÁNH NÀY được sửa đường này không (D-194) — luật cứng #4 thành BẢNG
+                                             #    đo WORKTREE ĐANG ĐỨNG · `--deploy <bề mặt>` · `--range A..B` cho lịch sử
+                                             #    nhánh detached / `claude/*` = mã 2, KHÔNG BAO GIỜ 0 (ba commit đã mất ở đó, D-193)
+bash local-net/deploy/deploy-lock.sh --self-test   # khoá deploy trên server: một phiên một bề mặt (D-194)
+node local-net/deploy/check-heartbeat-stopped.mjs  # bơm 9 tx/s ĐÃ DỪNG THẬT chưa — hỏi SERVER; đỏ có chủ ý tới 09/09
 node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
 ```
 
@@ -171,6 +176,7 @@ tệp trước khi dựng cổng cho nó** — chính `web/public/robots.txt` đ
 | **Quét-và-thay "trên mọi tệp văn bản"** | `patches/` và `docs/evidence/**` phải **loại trừ TƯỜNG MINH**. Đã cháy **hai lần trong một phiên** (`28/08`): một lần patch 0006 (cổng bắt được), một lần gói vật chứng (**không cổng nào bắt**, 9/9 → 7/9 im lặng) |
 | Sinh lại `MANIFEST.txt` / `SHA256SUMS.txt` cho một gói vật chứng | làm thế là **xoá đúng thứ tạo ra giá trị** của gói. Gói lệch hash thì **khôi phục byte gốc**, không sinh lại manifest |
 | Xoá một thư mục `local-net/net*` | 🔴 chạy `check-net-dirs.mjs` trước: **khoá đang giữ tiền nằm trong thư mục tự khai là đồ chết** (B-19) |
+| **Rời một worktree tạm (`.claude/worktrees/*`, `EnterWorktree`) mà chưa merge về nhánh mẹ** | 🔴 Ba commit đã làm xong, đã đối chứng, **đã mất** ở đúng chỗ đó (`03/09`, tìm thấy `05/09` — D-193): một cổng typecheck, một sửa trang công khai vẫn đang sai. Worktree tạm phải kết thúc bằng merge về nhánh mẹ **trong cùng phiên**; `check-worktree-ownership` trả mã **2** cho nhánh detached/`claude/*` để không ai làm việc ở đó mà tưởng mình được tính. Và **sửa đường của nhánh khác** (bảng `scripts/worktree-ownership.json`) là đỏ, kể cả khi merge sạch |
 | **Chép khoá quỹ ra thư mục tạm để dựng ca đối chứng** | Đã cháy: bản **trùng byte** của bộ g0 nằm trong `%TEMP%\claude\…\scratchpad\` **20 giờ**, ngoài tầm cả ba cổng. Và bản *"làm hỏng"* cố ý **vẫn chứa đủ khoá riêng thật**. Dọn bằng `shred -u -n 3` **ngay trong phiên tạo ra nó**; canh bằng `check-key-leaks.mjs` (D-117) |
 
 ## 5. Bẫy phải biết trước (bản rút gọn — bản đầy đủ ở `HANDOFF.md` §GOTCHAS)
