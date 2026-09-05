@@ -2,7 +2,7 @@
 
 Cập nhật: **2026-09-05 sáng** — 🔵 **CẤU TRÚC WORKTREE (D-193 · D-194)**: David hỏi *"cấu trúc worktree độc lập sao cho tối ưu"* → đo → năm bước, **bước 2→5 xong**, bước 1 là việc phiên web.
 Còn **3 worktree** (`main` · `web-home` · `audit`); **3 commit mồ côi cứu về** — cảnh báo *"chain sẽ bị xoá 01/09"* ở màn soát `/create-chain/` đang render trên site lúc đo, và **phiên web tự sửa cùng buổi sáng** (`c0159c4`, cổng theo ngày); phần còn lại (cổng `prebuild: tsc` + helper + hai tài liệu) chờ ở nhánh `web-rescue-orphans-20260905` = `b73a97c` (merge sạch vào `web-home a6b11fb`, dry-run; không còn ff vì nhánh kia đi liên tục);
-luật cứng #4 nay là **bảng** `scripts/worktree-ownership.json` + cổng `check-worktree-ownership` (0/1/2) + khoá deploy `deploy-lock.sh` trên server (nối vào `console-deploy.sh`). Preflight: **56 đạt · 1 đỏ (cổng bơm — đỏ CÓ CHỦ Ý tới 05:39Z 09/09) · 0 không chạy được · 8 việc tay** (mục mới: 2 sở hữu + 1 bơm). `main` = **`b9c784c`**, CHƯA đẩy remote nào. Đọc mục **`2026-09-05` sáng** ngay dưới.
+luật cứng #4 nay là **bảng** `scripts/worktree-ownership.json` + cổng `check-worktree-ownership` (0/1/2) + khoá deploy `deploy-lock.sh` trên server (nối vào `console-deploy.sh`). Preflight: **56 đạt · 1 đỏ (cổng bơm — đỏ CÓ CHỦ Ý tới 05:39Z 09/09) · 0 không chạy được · 8 việc tay** (mục mới: 2 sở hữu + 1 bơm). `main` = **`5a23426`**; `origin` (riêng tư) = `2a86f36` (đẩy `09:1xZ`, `check-remotes` + `check-history-secrets` xanh trước), còn **1 commit tài liệu chưa đẩy**; `official` KHÔNG đẩy. Sau đó cùng buổi: **ví thứ ba vào `A1_L1_ALLOWLIST`** trên server (PID `2931280`), lần acquire khoá deploy thật đầu tiên. Đọc hai mục **`2026-09-05` sáng** ngay dưới.
 Trước đó — cập nhật: **2026-09-04 tối muộn** — 🟢 **VÒNG NÂNG CẤP L1 ĐẦU TIÊN KHÉP TRỌN (D-189→D-192) · KẾ HOẠCH 5 MỐC XONG (D-185→D-188)**.
 `official/main` = **`f729d2c`** (công bố qua `publish-official.sh`, fast-forward, nghiệm thu độc lập: 0 tệp `local-net/deploy/`,
 0 blob ssh/575 commit) · `origin` = **`46b8c33`** = local · console PID **`2822798`+** (3 lượt deploy, drift **28/0/0**) ·
@@ -135,7 +135,7 @@ bước 3    : main b9c784c — scripts/worktree-ownership.json + check-worktree
 bước 4    : cùng commit — local-net/deploy/deploy-lock.sh (15 ca, thấy đỏ; chưa acquire thật trên server) nối vào console-deploy.sh
 bước 5    : worktree gday + 2 .claude/worktrees/* gỡ, nhánh xoá cục bộ, byte gốc ở refs/archive/* (3 ref). Còn 3 worktree.
 preflight : 56 đạt · 1 đỏ (cổng bơm — đỏ CÓ CHỦ Ý tới 05:39Z 09/09) · 0 không chạy được · 8 việc tay
-git       : main b9c784c (4 commit phiên này), CHƯA đẩy origin/official. web-home KHÔNG đụng.
+git       : main 5a23426 (7 commit phiên này) · origin/main 2a86f36 (đã đẩy) · official KHÔNG đẩy · web-home KHÔNG đụng.
 ```
 
 #### 🔴 Việc tiếp — ai làm
