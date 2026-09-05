@@ -212,6 +212,7 @@ export const id: Dict = {
     directory: 'Direktori L1',
     explorer: 'Explorer',
     explorerAria: 'Buka 9Scan-A1 di tab baru',
+    ceremony: "Upacara",
   },
 
   home: {
@@ -313,6 +314,37 @@ export const id: Dict = {
     mismatch: 'CHAIN SALAH',
     mismatchDesc: 'RPC menjawab dengan Chain ID {got}, bukan {expected} — kemungkinan besar kesalahan routing, bukan chain ini.',
   },
+  ceremony: {
+    badge: "Upacara",
+    title: "Upacara 9S Union",
+    desc: "Pada satu detik yang tepat, jaringan menulis tiga blok bernama. Halaman ini menjelaskan apa yang akan terjadi, apa yang dibawa blok-blok itu, dan bagaimana Anda memeriksanya sendiri setelahnya tanpa bertanya kepada kami.",
+    momentLabel: "Saat itu",
+    countdownLabel: "Sisa waktu",
+    days: "hari",
+    hours: "jam",
+    minutes: "mnt",
+    seconds: "dtk",
+    yourZone: "Zona waktu Anda",
+    blocksTitle: "Tiga blok",
+    adamDesc: "Blok PERTAMA yang stempel waktunya mencapai saat itu — ditentukan oleh waktu, bukan oleh tinggi. Siapa pun yang menghasilkan blok itu, dialah yang menghasilkannya.",
+    evaDesc: "Blok tepat setelah Adam, menurut tinggi.",
+    unionDesc: "Sepuluh blok setelah Adam. Di sinilah pesan 9S Union ditambatkan.",
+    messagesTitle: "Apa yang dibawa blok-blok itu",
+    messagesDesc: "Adam dan Eva membawa dua kalimat yang sudah ditulis ke blok 0 saat jaringan dibuat — upacara menunjuk ke berkas yang sama, sehingga keduanya tidak mungkin menyimpang. Setiap ringkasan di bawah dibekukan pada 2026-09-03, sebelum upacara, dan dapat direproduksi dengan sha256 atas byte mentahnya.",
+    quietTitle: "Satu menit hening",
+    quietDesc: "C-Chain tidak menghasilkan blok kosong, jadi lalu lintas sintetis yang kami umumkan di halaman langsung dihentikan sesaat sebelum saat itu. Tanpa itu, upacara harus berlomba dengan pengirim otomatis memperebutkan jendela dua detik. Harganya satu menit hening; yang dibeli adalah blok-blok ini milik upacara, bukan milik bot.",
+    strangerTitle: "Orang asing bisa mengambil blok itu, dan catatannya tetap sahih",
+    strangerDesc: "A1 adalah jaringan uji publik dan siapa pun boleh mengirim transaksi pada detik itu. Catatan ditambatkan pada hash transaksi upacara, bukan pada tinggi blok — jadi jika blok orang lain mencapai saat itu lebih dulu, apa yang tertulis tetap benar; upacara saja yang tidak menghasilkan blok tersebut.",
+    checkTitle: "Periksa sendiri",
+    checkDesc: "Minta blok pada saat itu ke node A1 mana pun dan baca stempel waktunya. Tidak ada di halaman ini yang harus diterima begitu saja.",
+    resultTitle: "Apa yang tercatat",
+    resultPending: "Belum diterbitkan. Berkas bukti — saat itu, offset yang dipakai, lalu lintas latar, tiga hash transaksi, nomor blok, dan hasil membaca ulang byte dari rantai — diterbitkan di sini setelah upacara.",
+    resultBlock: "Block Adam",
+    resultTimestamp: "Stempel waktunya",
+    resultBundle: "Berkas bukti",
+    reachedNote: "Saat itu sudah lewat. Catatannya belum diterbitkan di sini — itu terjadi setelah byte dibaca ulang dari rantai dan dicocokkan dengan ringkasan yang dibekukan.",
+  },
+
 
 
   loadTest: {

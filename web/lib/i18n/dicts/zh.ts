@@ -181,6 +181,7 @@ export const zh: Dict = {
     directory: 'L1 目录',
     explorer: '区块浏览器',
     explorerAria: '在新标签页中打开 9Scan-A1',
+    ceremony: "仪式",
   },
 
   home: {
@@ -280,6 +281,37 @@ export const zh: Dict = {
     mismatch: '链不符',
     mismatchDesc: 'RPC 返回的 Chain ID 是 {got} 而非 {expected} — 很可能是路由故障，而不是这条链的问题。',
   },
+  ceremony: {
+    badge: "仪式",
+    title: "9S Union 仪式",
+    desc: "在某一精确的一秒，网络会写下三个具名区块。本页说明将会发生什么、这些区块承载什么，以及事后你如何自行核验，而无需询问我们。",
+    momentLabel: "时刻",
+    countdownLabel: "剩余时间",
+    days: "天",
+    hours: "小时",
+    minutes: "分",
+    seconds: "秒",
+    yourZone: "你所在的时区",
+    blocksTitle: "三个区块",
+    adamDesc: "时间戳达到该时刻的第一个区块 —— 由时间定义，而非由高度定义。谁产出那个区块，就是谁产出的。",
+    evaDesc: "按高度紧接在 Adam 之后的那个区块。",
+    unionDesc: "Adam 之后第十个区块。9S Union 的讯息锚定在此。",
+    messagesTitle: "区块承载什么",
+    messagesDesc: "Adam 与 Eva 承载的，正是网络创建时就写入第 0 区块的那两句话 —— 仪式指向的是同一批文件，因此两者不可能各自漂移。下列每个摘要都在 2026-09-03 冻结，早于仪式，任何人都能对原始字节做 sha256 复现。",
+    quietTitle: "安静的一分钟",
+    quietDesc: "C-Chain 不产出空区块，所以我们在实时页面上公开的合成流量会在时刻前不久停止。若不停，仪式就要与一个自动发送程序抢夺约两秒的窗口。代价是一分钟的安静；换来的是这些区块属于仪式，而不属于机器人。",
+    strangerTitle: "陌生人可以拿走那个区块，记录依然成立",
+    strangerDesc: "A1 是公开测试网络，任何人都可以在那一秒发送交易。记录锚定于仪式的交易哈希，而非区块高度 —— 因此若别人的区块先达到该时刻，已写下的内容依然为真；只是那个区块并非由仪式产出。",
+    checkTitle: "自己核验",
+    checkDesc: "向任意 A1 节点索取该时刻的区块并读取其时间戳。本页没有任何一处需要你凭信任接受。",
+    resultTitle: "记录下了什么",
+    resultPending: "尚未公布。证据包 —— 时刻、所用偏移、背景流量、三个交易哈希、区块号，以及把字节从链上读回的结果 —— 将在仪式后发布于此。",
+    resultBlock: "Block Adam",
+    resultTimestamp: "它的时间戳",
+    resultBundle: "证据包",
+    reachedNote: "时刻已过。记录尚未在此公布 —— 那要等到字节已从链上读回，并与冻结的摘要核对之后。",
+  },
+
 
 
   loadTest: {

@@ -52,6 +52,7 @@ export const TITLE_BY_PATH: Record<string, (t: Dict) => string | null> = {
   '/compare/': (t) => t.compare.title,
   '/chains/': (t) => t.nav.directory,
   '/live/': (t) => t.loadTest.title,
+  '/ceremony/': (t) => t.ceremony.title,
   '/re-genesis/': (t) => interpolate(t.rebuildDone.title, { date: t.rebuild.date }),
 };
 

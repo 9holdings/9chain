@@ -206,6 +206,7 @@ export const pl: Dict = {
     directory: 'Katalog L1',
     explorer: 'Eksplorator',
     explorerAria: 'Otwórz 9Scan-A1 w nowej karcie',
+    ceremony: "Ceremonia",
   },
 
   home: {
@@ -307,6 +308,37 @@ export const pl: Dict = {
     mismatch: 'ZŁY ŁAŃCUCH',
     mismatchDesc: 'RPC odpowiedział Chain ID {got} zamiast {expected} — najpewniej błąd routingu, nie tego łańcucha.',
   },
+  ceremony: {
+    badge: "Ceremonia",
+    title: "Ceremonia 9S Union",
+    desc: "W jednej dokładnej sekundzie sieć zapisuje trzy nazwane bloki. Ta strona mówi, co się wydarzy, co niosą te bloki i jak sprawdzić to potem samodzielnie, bez pytania nas.",
+    momentLabel: "Moment",
+    countdownLabel: "Pozostały czas",
+    days: "dni",
+    hours: "godz.",
+    minutes: "min",
+    seconds: "s",
+    yourZone: "Twoja strefa czasowa",
+    blocksTitle: "Trzy bloki",
+    adamDesc: "PIERWSZY blok, którego znacznik czasu sięga momentu — definiowany przez czas, nie przez wysokość. Kto wyprodukuje ten blok, ten go wyprodukował.",
+    evaDesc: "Blok bezpośrednio po Adamie, według wysokości.",
+    unionDesc: "Dziesięć bloków po Adamie. Tutaj zakotwiczona jest wiadomość 9S Union.",
+    messagesTitle: "Co niosą bloki",
+    messagesDesc: "Adam i Eva niosą te same dwa zdania, które zapisano w bloku 0 przy tworzeniu sieci — ceremonia wskazuje na te same pliki, więc nie mogą się rozejść. Każdy skrót poniżej zamrożono 2026-09-03, przed ceremonią, i można go odtworzyć przez sha256 na surowych bajtach.",
+    quietTitle: "Jedna cicha minuta",
+    quietDesc: "C-Chain nie produkuje pustych bloków, dlatego ruch syntetyczny, o którym otwarcie piszemy na stronie na żywo, jest zatrzymywany krótko przed momentem. Inaczej ceremonia ścigałaby się z automatycznym nadawcą o dwusekundowe okno. Ceną jest minuta ciszy; kupuje ona to, że te bloki należą do ceremonii, a nie do bota.",
+    strangerTitle: "Ktoś obcy może zabrać ten blok, a zapis i tak się broni",
+    strangerDesc: "A1 to publiczna sieć testowa i w tej sekundzie każdy może wysłać transakcję. Zapis jest zakotwiczony w haszu transakcji ceremonii, nigdy w wysokości bloku — jeśli więc cudzy blok pierwszy sięgnie momentu, to, co zapisano, pozostaje prawdą; ceremonia po prostu nie wyprodukowała tego bloku.",
+    checkTitle: "Sprawdź samodzielnie",
+    checkDesc: "Poproś dowolny węzeł A1 o blok w tym momencie i odczytaj jego znacznik czasu. Nic na tej stronie nie wymaga wiary na słowo.",
+    resultTitle: "Co zostało zapisane",
+    resultPending: "Jeszcze nieopublikowane. Pakiet dowodowy — moment, użyte przesunięcie, ruch tła, trzy hasze transakcji, numery bloków i wynik odczytania bajtów z łańcucha — zostanie opublikowany tutaj po ceremonii.",
+    resultBlock: "Block Adam",
+    resultTimestamp: "Jego znacznik czasu",
+    resultBundle: "Pakiet dowodowy",
+    reachedNote: "Moment minął. Zapis nie jest tu jeszcze opublikowany — nastąpi to po odczytaniu bajtów z łańcucha i porównaniu ich z zamrożonymi skrótami.",
+  },
+
 
 
   loadTest: {

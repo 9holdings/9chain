@@ -76,6 +76,15 @@ function host(): string {
 
 /** The public RPC origin, derived from whichever domain is open. */
 export function rpcOrigin(): string {
+  // 🔴 THE `window` GUARD BELONGS HERE, NOT IN EVERY CALLER — measured 2026-09-05.
+  // `host()` above is server-safe, so this function LOOKED server-safe; the last line was
+  // not, and the build only fell over the day a component read the RPC URL during render
+  // instead of inside an effect (`/ceremony/`, which prints the URL as documentation).
+  // The failure is a hard prerender crash — `ReferenceError: window is not defined` — so
+  // it is loud when it happens; the danger is that the shape invites every future caller
+  // to rediscover it. Returning the public origin when there is no window is also the
+  // right answer on its own terms: the static HTML is built for the public domain.
+  if (typeof window === 'undefined') return `https://rpc-${DEFAULT_HOST}`;
   const h = host();
   // Local dev: there is no `rpc-localhost`, so go straight out to the public network.
   if (h === 'localhost' || h === '127.0.0.1' || h.endsWith('.local')) {

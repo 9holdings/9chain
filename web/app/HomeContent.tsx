@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui';
 import { NetworkStats } from '@/components/NetworkStats';
+import { CeremonyCallout } from '@/components/CeremonyCallout';
 import { ChainTable } from './ChainTable';
 import { useT } from '@/lib/i18n';
 
@@ -39,6 +40,10 @@ export function HomeContent() {
             <p>{t.home.disclosure}</p>
             <p>{t.home.idleBlocksNote}</p>
           </div>
+          {/* Time-limited by construction: it removes itself once the ceremony's record is
+              published. See the comment in the component for why nothing here waits on a
+              human to remember. */}
+          <CeremonyCallout />
         </div>
       </section>
 

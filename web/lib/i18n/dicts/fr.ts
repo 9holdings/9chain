@@ -204,6 +204,7 @@ export const fr: Dict = {
     directory: 'Annuaire des L1',
     explorer: 'Explorateur',
     explorerAria: 'Ouvrir 9Scan-A1 dans un nouvel onglet',
+    ceremony: "Cérémonie",
   },
 
   home: {
@@ -303,6 +304,37 @@ export const fr: Dict = {
     mismatch: 'MAUVAISE CHAÎNE',
     mismatchDesc: 'Le RPC a répondu avec le Chain ID {got} au lieu de {expected} — très probablement une erreur de routage, pas cette chaîne.',
   },
+  ceremony: {
+    badge: "Cérémonie",
+    title: "La cérémonie 9S Union",
+    desc: "À une seconde précise, le réseau écrit trois blocs nommés. Cette page dit ce qui va se passer, ce que portent ces blocs, et comment le vérifier ensuite sans nous le demander.",
+    momentLabel: "L'instant",
+    countdownLabel: "Temps restant",
+    days: "jours",
+    hours: "heures",
+    minutes: "min",
+    seconds: "sec",
+    yourZone: "Votre fuseau horaire",
+    blocksTitle: "Les trois blocs",
+    adamDesc: "Le PREMIER bloc dont l'horodatage atteint l'instant — défini par le temps, non par la hauteur. Quiconque produit ce bloc le produit.",
+    evaDesc: "Le bloc qui suit immédiatement Adam, par hauteur.",
+    unionDesc: "Dix blocs après Adam. C'est là qu'est ancré le message de 9S Union.",
+    messagesTitle: "Ce que portent les blocs",
+    messagesDesc: "Adam et Eva portent les deux phrases déjà écrites dans le bloc 0 à la création du réseau : la cérémonie pointe vers ces mêmes fichiers, ils ne peuvent donc pas diverger. Chaque empreinte ci-dessous a été gelée le 2026-09-03, avant la cérémonie, et se reproduit par sha256 sur les octets bruts.",
+    quietTitle: "Une minute de silence",
+    quietDesc: "La C-Chain ne produit pas de blocs vides : le trafic synthétique que nous publions sur la page en direct est donc arrêté peu avant l'instant. Sans cela, la cérémonie disputerait une fenêtre de deux secondes à un émetteur automatique. Le prix est une minute de silence ; ce qu'il achète, c'est que ces blocs appartiennent à la cérémonie et non à un robot.",
+    strangerTitle: "Un inconnu peut prendre le bloc, et le relevé tient toujours",
+    strangerDesc: "A1 est un réseau de test public et n'importe qui peut envoyer une transaction à cette seconde. Le relevé est ancré au hash de la transaction de la cérémonie, jamais à une hauteur de bloc : si le bloc de quelqu'un d'autre atteint l'instant en premier, ce qui a été écrit reste vrai ; la cérémonie n'a simplement pas produit ce bloc.",
+    checkTitle: "Vérifiez vous-même",
+    checkDesc: "Demandez à n'importe quel nœud A1 le bloc à l'instant et lisez son horodatage. Rien ici ne demande d'être cru sur parole.",
+    resultTitle: "Ce qui a été enregistré",
+    resultPending: "Pas encore publié. Le dossier de preuves — l'instant, le décalage utilisé, le trafic de fond, les trois hashs de transaction, les numéros de bloc et le résultat de la relecture des octets depuis la chaîne — sera publié ici après la cérémonie.",
+    resultBlock: "Block Adam",
+    resultTimestamp: "Son horodatage",
+    resultBundle: "Dossier de preuves",
+    reachedNote: "L'instant est passé. Le relevé n'est pas encore publié ici : cela se fait une fois les octets relus depuis la chaîne et comparés aux empreintes gelées.",
+  },
+
 
 
   loadTest: {

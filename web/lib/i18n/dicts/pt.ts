@@ -201,6 +201,7 @@ export const pt: Dict = {
     directory: 'Diretório de L1',
     explorer: 'Explorador',
     explorerAria: 'Abrir 9Scan-A1 em uma nova aba',
+    ceremony: "Cerimónia",
   },
 
   home: {
@@ -300,6 +301,37 @@ export const pt: Dict = {
     mismatch: 'CHAIN ERRADA',
     mismatchDesc: 'O RPC respondeu com o Chain ID {got} em vez de {expected} — quase certamente uma falha de roteamento, não desta chain.',
   },
+  ceremony: {
+    badge: "Cerimónia",
+    title: "A cerimónia 9S Union",
+    desc: "Num segundo exato a rede escreve três blocos com nome. Esta página diz o que vai acontecer, o que os blocos transportam e como o verificar depois sem nos perguntar.",
+    momentLabel: "O momento",
+    countdownLabel: "Tempo restante",
+    days: "dias",
+    hours: "horas",
+    minutes: "min",
+    seconds: "seg",
+    yourZone: "O seu fuso horário",
+    blocksTitle: "Os três blocos",
+    adamDesc: "O PRIMEIRO bloco cujo carimbo temporal alcança o momento — definido pelo tempo, não pela altura. Quem produzir esse bloco, produziu-o.",
+    evaDesc: "O bloco imediatamente a seguir a Adam, por altura.",
+    unionDesc: "Dez blocos depois de Adam. É aqui que a mensagem 9S Union fica ancorada.",
+    messagesTitle: "O que os blocos transportam",
+    messagesDesc: "Adam e Eva transportam as duas frases já escritas no bloco 0 quando a rede foi criada — a cerimónia aponta para esses mesmos ficheiros, por isso não podem divergir. Cada resumo abaixo foi congelado a 2026-09-03, antes da cerimónia, e pode ser reproduzido com sha256 sobre os bytes em bruto.",
+    quietTitle: "Um minuto de silêncio",
+    quietDesc: "A C-Chain não produz blocos vazios, por isso o tráfego sintético que publicamos na página ao vivo é parado pouco antes do momento. Sem isso, a cerimónia estaria a disputar uma janela de dois segundos com um emissor automático. O custo é um minuto de silêncio; o que compra é que estes blocos pertençam à cerimónia e não a um bot.",
+    strangerTitle: "Um desconhecido pode ficar com o bloco, e o registo mantém-se",
+    strangerDesc: "A1 é uma rede de teste pública e qualquer pessoa pode enviar uma transação nesse segundo. O registo está ancorado ao hash da transação da cerimónia, nunca a uma altura de bloco — por isso, se o bloco de outra pessoa alcançar o momento primeiro, o que foi escrito continua verdadeiro; a cerimónia é que não produziu esse bloco.",
+    checkTitle: "Verifique você mesmo",
+    checkDesc: "Peça a qualquer nó A1 o bloco no momento e leia o carimbo temporal. Nada nesta página tem de ser aceite por confiança.",
+    resultTitle: "O que ficou registado",
+    resultPending: "Ainda não publicado. O pacote de provas — o momento, o desvio usado, o tráfego de fundo, os três hashes de transação, os números de bloco e o resultado da releitura dos bytes na cadeia — é publicado aqui depois da cerimónia.",
+    resultBlock: "Block Adam",
+    resultTimestamp: "O seu carimbo temporal",
+    resultBundle: "Pacote de provas",
+    reachedNote: "O momento já passou. O registo ainda não está publicado aqui — isso acontece depois de os bytes serem relidos da cadeia e conferidos com os resumos congelados.",
+  },
+
 
 
   loadTest: {

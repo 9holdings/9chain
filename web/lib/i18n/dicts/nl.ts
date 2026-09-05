@@ -211,6 +211,7 @@ export const nl: Dict = {
     directory: 'L1-lijst',
     explorer: 'Explorer',
     explorerAria: 'Open 9Scan-A1 in een nieuw tabblad',
+    ceremony: "Ceremonie",
   },
 
   home: {
@@ -312,6 +313,37 @@ export const nl: Dict = {
     mismatch: 'VERKEERDE CHAIN',
     mismatchDesc: 'De RPC antwoordde met Chain ID {got} in plaats van {expected} — vrijwel zeker een routeringsfout, niet deze chain.',
   },
+  ceremony: {
+    badge: "Ceremonie",
+    title: "De 9S Union-ceremonie",
+    desc: "Op één exacte seconde schrijft het netwerk drie blokken met een naam. Deze pagina vertelt wat er gaat gebeuren, wat die blokken dragen en hoe u het daarna zelf kunt controleren zonder het ons te vragen.",
+    momentLabel: "Het moment",
+    countdownLabel: "Resterende tijd",
+    days: "dagen",
+    hours: "uur",
+    minutes: "min",
+    seconds: "sec",
+    yourZone: "Uw tijdzone",
+    blocksTitle: "De drie blokken",
+    adamDesc: "Het EERSTE blok waarvan het tijdstempel het moment bereikt — bepaald door tijd, niet door hoogte. Wie dat blok produceert, produceert het.",
+    evaDesc: "Het blok direct na Adam, naar hoogte.",
+    unionDesc: "Tien blokken na Adam. Hier is het 9S Union-bericht verankerd.",
+    messagesTitle: "Wat de blokken dragen",
+    messagesDesc: "Adam en Eva dragen de twee zinnen die bij het ontstaan van het netwerk al in blok 0 zijn geschreven — de ceremonie wijst naar diezelfde bestanden, dus ze kunnen niet uit elkaar lopen. Elke digest hieronder is op 2026-09-03 bevroren, vóór de ceremonie, en is te reproduceren met sha256 over de ruwe bytes.",
+    quietTitle: "Eén stille minuut",
+    quietDesc: "De C-Chain produceert geen lege blokken, dus het synthetische verkeer dat we op de live-pagina openbaar maken wordt kort voor het moment gestopt. Anders zou de ceremonie met een automatische verzender wedijveren om een venster van twee seconden. De prijs is een stille minuut; wat het oplevert is dat deze blokken van de ceremonie zijn en niet van een bot.",
+    strangerTitle: "Een vreemde kan het blok pakken, en de vastlegging houdt stand",
+    strangerDesc: "A1 is een openbaar testnetwerk en iedereen mag op die seconde een transactie sturen. De vastlegging is verankerd aan de transactiehash van de ceremonie, nooit aan een blokhoogte — bereikt het blok van iemand anders het moment eerst, dan blijft wat er geschreven is waar; de ceremonie heeft dat blok dan alleen niet geproduceerd.",
+    checkTitle: "Controleer het zelf",
+    checkDesc: "Vraag een willekeurige A1-node om het blok op het moment en lees het tijdstempel. Niets op deze pagina hoeft u op ons woord aan te nemen.",
+    resultTitle: "Wat is vastgelegd",
+    resultPending: "Nog niet gepubliceerd. Het bewijspakket — het moment, de gebruikte verschuiving, het achtergrondverkeer, de drie transactiehashes, de bloknummers en het resultaat van het teruglezen van de bytes uit de keten — verschijnt hier na de ceremonie.",
+    resultBlock: "Block Adam",
+    resultTimestamp: "Het tijdstempel",
+    resultBundle: "Bewijspakket",
+    reachedNote: "Het moment is voorbij. De vastlegging is hier nog niet gepubliceerd — dat gebeurt zodra de bytes uit de keten zijn teruggelezen en tegen de bevroren digests zijn gecontroleerd.",
+  },
+
 
 
   loadTest: {

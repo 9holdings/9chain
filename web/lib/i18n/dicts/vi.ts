@@ -353,6 +353,7 @@ export const vi: Dict = {
     directory: 'Danh bạ L1',
     explorer: 'Explorer',
     explorerAria: 'Mở 9Scan-A1 ở tab mới',
+    ceremony: "Nghi lễ",
   },
 
   home: {
@@ -500,6 +501,37 @@ export const vi: Dict = {
     mismatch: 'SAI CHAIN',
     mismatchDesc: 'RPC trả lời với Chain ID {got} thay vì {expected} — nhiều khả năng là lỗi định tuyến, không phải chain này.',
   },
+  ceremony: {
+    badge: "Nghi lễ",
+    title: "Nghi lễ 9S Union",
+    desc: "Vào đúng một giây đã định, mạng ghi ba block có tên. Trang này nói trước điều gì sẽ xảy ra, ba block ấy mang gì, và sau đó bạn tự kiểm lại bằng cách nào mà không phải hỏi ai.",
+    momentLabel: "Mốc",
+    countdownLabel: "Còn lại",
+    days: "ngày",
+    hours: "giờ",
+    minutes: "phút",
+    seconds: "giây",
+    yourZone: "Múi giờ của bạn",
+    blocksTitle: "Ba block",
+    adamDesc: "Block ĐẦU TIÊN có dấu thời gian chạm tới mốc — định nghĩa bằng THỜI GIAN, không phải bằng chiều cao. Ai đẻ ra block đó cũng được.",
+    evaDesc: "Block ngay sau Adam, tính theo chiều cao.",
+    unionDesc: "Mười block sau Adam. Thông điệp 9S Union neo ở đây.",
+    messagesTitle: "Ba block mang gì",
+    messagesDesc: "Adam và Eva mang đúng hai câu đã được khắc vào block 0 lúc sinh mạng — nghi lễ trỏ thẳng vào chính những tệp đó, nên hai bên không thể trôi lệch khỏi nhau. Mỗi vân tay dưới đây được đóng băng ngày 2026-09-03, trước nghi lễ, và ai cũng dựng lại được bằng sha256 trên byte gốc.",
+    quietTitle: "Một phút yên tĩnh",
+    quietDesc: "C-Chain không đẻ block rỗng, nên luồng giao dịch tổng hợp mà chúng tôi công bố ở trang trực tiếp sẽ dừng trước mốc một quãng. Không dừng thì nghi lễ phải đua với một bộ gửi tự động trong cửa sổ chỉ hai giây. Cái giá là một phút yên tĩnh; thứ mua được là ba block này thuộc về nghi lễ chứ không thuộc về một con bot.",
+    strangerTitle: "Người lạ có thể lấy mất block đó, và bản ghi vẫn đứng vững",
+    strangerDesc: "A1 là mạng thử nghiệm công khai, giây đó ai cũng có quyền gửi giao dịch. Bản ghi neo vào HASH GIAO DỊCH của nghi lễ, không bao giờ neo vào chiều cao block — nên nếu block của người khác chạm mốc trước, thứ đã ghi vẫn đúng; chỉ là nghi lễ không đẻ ra block ấy.",
+    checkTitle: "Tự kiểm lấy",
+    checkDesc: "Hỏi bất kỳ node A1 nào về block tại mốc rồi đọc dấu thời gian của nó. Không có dòng nào ở trang này buộc bạn phải tin suông.",
+    resultTitle: "Đã ghi được gì",
+    resultPending: "Chưa công bố. Gói vật chứng — mốc, lượng bù đã dùng, lưu lượng nền, ba hash giao dịch, số block, và kết quả đọc ngược byte từ chain — sẽ đăng ở đây sau nghi lễ.",
+    resultBlock: "Block Adam",
+    resultTimestamp: "Dấu thời gian của nó",
+    resultBundle: "Gói vật chứng",
+    reachedNote: "Mốc đã qua. Bản ghi chưa công bố ở đây — việc đó chỉ làm sau khi byte đã được đọc ngược từ chain và đối chiếu với vân tay đã đóng băng.",
+  },
+
 
 
   loadTest: {

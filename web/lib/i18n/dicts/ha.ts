@@ -210,6 +210,7 @@ export const ha: Dict = {
     directory: 'Jerin L1',
     explorer: 'Mai bincike',
     explorerAria: 'Buɗe 9Scan-A1 a sabon shafi',
+    ceremony: "Bikin",
   },
 
   home: {
@@ -311,6 +312,37 @@ export const ha: Dict = {
     mismatch: 'SARƘAR DA BA DAIDAI BA',
     mismatchDesc: 'RPC ya amsa da Chain ID {got} maimakon {expected} — mai yiwuwa kuskuren tura hanya ne, ba wannan sarƙar ba.',
   },
+  ceremony: {
+    badge: "Biki",
+    title: "Bikin 9S Union",
+    desc: "A cikin daƙiƙa guda cikakkiya hanyar sadarwa tana rubuta tubalan uku masu suna. Wannan shafi yana faɗin abin da zai faru, abin da waɗannan tubalan ke ɗauka, da yadda za ka tabbatar da hakan da kanka daga baya ba tare da tambayar mu ba.",
+    momentLabel: "Lokacin",
+    countdownLabel: "Sauran lokaci",
+    days: "kwanaki",
+    hours: "sa'o'i",
+    minutes: "min",
+    seconds: "daƙ",
+    yourZone: "Yankin lokacinka",
+    blocksTitle: "Tubalan uku",
+    adamDesc: "Tubali na FARKO wanda alamar lokacinsa ta kai wannan lokacin — an ayyana shi da lokaci, ba da tsayi ba. Duk wanda ya samar da wannan tubalin, shi ne ya samar da shi.",
+    evaDesc: "Tubalin da ke bin Adam kai tsaye, bisa tsayi.",
+    unionDesc: "Tubalai goma bayan Adam. Nan ne aka ɗaure saƙon 9S Union.",
+    messagesTitle: "Abin da tubalan ke ɗauka",
+    messagesDesc: "Adam da Eva suna ɗauke da jimloli biyu da aka riga aka rubuta a tubali 0 lokacin da aka ƙirƙiri hanyar sadarwa — bikin yana nuni ga waɗannan fayilolin guda, don haka ba za su iya rabuwa ba. An daskarar da kowane taƙaitaccen sa hannu a ƙasa a 2026-09-03, kafin bikin, kuma ana iya sake samar da shi da sha256 a kan ɗanyen bytes.",
+    quietTitle: "Minti ɗaya na shiru",
+    quietDesc: "C-Chain ba ta samar da tubalan da babu komai a ciki, don haka ana dakatar da zirga-zirgar wucin gadi da muke sanarwa a shafin kai tsaye jim kaɗan kafin lokacin. In ba haka ba, bikin zai yi gasa da na'urar aikawa ta atomatik kan taga na daƙiƙa biyu. Kuɗin shi ne minti ɗaya na shiru; abin da ake saya shi ne waɗannan tubalan su zama na bikin, ba na wata na'ura ba.",
+    strangerTitle: "Baƙo na iya ɗaukar wannan tubalin, kuma bayanin ya kasance daidai",
+    strangerDesc: "A1 hanyar sadarwa ce ta gwaji a bainar jama'a kuma duk wanda ya so zai iya aika ma'amala a wannan daƙiƙar. An ɗaure bayanin da hash ɗin ma'amalar bikin, ba da tsayin tubali ba — don haka idan tubalin wani ya fara kai wannan lokacin, abin da aka rubuta ya kasance gaskiya; sai dai bikin bai samar da wannan tubalin ba.",
+    checkTitle: "Tabbatar da kanka",
+    checkDesc: "Nemi kowace kulli ta A1 ta ba ka tubalin wannan lokacin sannan ka karanta alamar lokacinsa. Babu abin da ke wannan shafin da ake buƙatar amincewa da shi kawai.",
+    resultTitle: "Abin da aka rubuta",
+    resultPending: "Ba a buga ba tukuna. Kunshin shaida — lokacin, gyaran da aka yi amfani da shi, zirga-zirgar bango, hash ɗin ma'amaloli uku, lambobin tubalan, da sakamakon sake karanta bytes daga sarƙar — za a buga shi a nan bayan bikin.",
+    resultBlock: "Block Adam",
+    resultTimestamp: "Alamar lokacinsa",
+    resultBundle: "Kunshin shaida",
+    reachedNote: "Lokacin ya wuce. Ba a buga bayanin a nan ba tukuna — hakan yana faruwa ne bayan an sake karanta bytes daga sarƙar sannan aka gwada su da taƙaitattun sa hannun da aka daskarar.",
+  },
+
 
 
   loadTest: {

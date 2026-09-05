@@ -215,6 +215,7 @@ export const tl: Dict = {
     directory: 'Direktoryo ng L1',
     explorer: 'Explorer',
     explorerAria: 'Buksan ang 9Scan-A1 sa bagong tab',
+    ceremony: "Seremonya",
   },
 
   home: {
@@ -316,6 +317,37 @@ export const tl: Dict = {
     mismatch: 'MALING CHAIN',
     mismatchDesc: 'Sumagot ang RPC ng Chain ID {got} sa halip na {expected} — malamang na routing fault, hindi ang chain na ito.',
   },
+  ceremony: {
+    badge: "Seremonya",
+    title: "Ang seremonyang 9S Union",
+    desc: "Sa isang eksaktong segundo, sumusulat ang network ng tatlong pinangalanang block. Sinasabi ng pahinang ito kung ano ang mangyayari, kung ano ang dala ng mga block, at kung paano mo ito matitiyak pagkatapos nang hindi kami tinatanong.",
+    momentLabel: "Ang sandali",
+    countdownLabel: "Natitirang oras",
+    days: "araw",
+    hours: "oras",
+    minutes: "min",
+    seconds: "seg",
+    yourZone: "Ang iyong time zone",
+    blocksTitle: "Ang tatlong block",
+    adamDesc: "Ang UNANG block na ang timestamp ay umaabot sa sandaling iyon — tinutukoy ng oras, hindi ng taas. Sinuman ang makagawa ng block na iyon, siya ang nakagawa.",
+    evaDesc: "Ang block na kasunod agad ng Adam, ayon sa taas.",
+    unionDesc: "Sampung block pagkatapos ng Adam. Dito nakaangkla ang mensaheng 9S Union.",
+    messagesTitle: "Ano ang dala ng mga block",
+    messagesDesc: "Dala ng Adam at Eva ang dalawang pangungusap na nakasulat na sa block 0 noong likhain ang network — ang seremonya ay tumuturo sa mismong mga file na iyon, kaya hindi sila maaaring maghiwalay. Ang bawat digest sa ibaba ay pinagyelo noong 2026-09-03, bago ang seremonya, at maaaring ulitin gamit ang sha256 sa hilaw na bytes.",
+    quietTitle: "Isang tahimik na minuto",
+    quietDesc: "Hindi gumagawa ng walang lamang block ang C-Chain, kaya't ang synthetic na trapikong inilalathala namin sa live na pahina ay pinapatigil bago mismo ang sandaling iyon. Kung hindi, makikipagkarera ang seremonya sa isang awtomatikong nagpapadala para sa dalawang segundong bintana. Ang halaga ay isang minutong katahimikan; ang nabibili nito ay ang mga block na ito ay pag-aari ng seremonya at hindi ng isang bot.",
+    strangerTitle: "Maaaring makuha ng estranghero ang block, at nananatiling totoo ang tala",
+    strangerDesc: "Ang A1 ay pampublikong test network at sinuman ay maaaring magpadala ng transaksyon sa segundong iyon. Nakaangkla ang tala sa transaction hash ng seremonya, hindi sa taas ng block — kaya kung ang block ng iba ang unang umabot sa sandaling iyon, nananatiling totoo ang naisulat; hindi lang ginawa ng seremonya ang block na iyon.",
+    checkTitle: "Tiyakin mo mismo",
+    checkDesc: "Hingin sa kahit anong A1 node ang block sa sandaling iyon at basahin ang timestamp nito. Walang anuman sa pahinang ito ang kailangang tanggapin sa tiwala lamang.",
+    resultTitle: "Ano ang naitala",
+    resultPending: "Hindi pa nailalathala. Ang bundle ng ebidensya — ang sandali, ang ginamit na offset, ang trapiko sa likuran, ang tatlong transaction hash, ang mga numero ng block, at ang resulta ng muling pagbasa ng bytes mula sa chain — ay ilalathala rito pagkatapos ng seremonya.",
+    resultBlock: "Block Adam",
+    resultTimestamp: "Ang timestamp nito",
+    resultBundle: "Bundle ng ebidensya",
+    reachedNote: "Lumipas na ang sandali. Hindi pa nailalathala rito ang tala — mangyayari iyon kapag nabasa nang muli ang bytes mula sa chain at naitugma sa mga pinagyelong digest.",
+  },
+
 
 
   loadTest: {

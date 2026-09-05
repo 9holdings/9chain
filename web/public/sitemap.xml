@@ -53,4 +53,11 @@
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
+  <!-- The ceremony page keeps a high priority AFTER 2026-09-09 on purpose: it turns into
+       the record of what was written, which is the half a stranger would search for. -->
+  <url>
+    <loc>https://a1.9chain.org/ceremony/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

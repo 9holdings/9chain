@@ -205,6 +205,7 @@ export const tr: Dict = {
     directory: 'L1 dizini',
     explorer: 'Gezgin',
     explorerAria: '9Scan-A1’i yeni sekmede aç',
+    ceremony: "Tören",
   },
 
   home: {
@@ -306,6 +307,37 @@ export const tr: Dict = {
     mismatch: 'YANLIŞ ZİNCİR',
     mismatchDesc: 'RPC, {expected} yerine Chain ID {got} ile yanıt verdi — büyük olasılıkla bir yönlendirme hatası, bu zincirin değil.',
   },
+  ceremony: {
+    badge: "Tören",
+    title: "9S Union töreni",
+    desc: "Tam olarak belirlenmiş bir saniyede ağ, adı olan üç blok yazar. Bu sayfa neyin olacağını, blokların ne taşıdığını ve sonrasında bize sormadan bunu nasıl doğrulayacağınızı anlatır.",
+    momentLabel: "An",
+    countdownLabel: "Kalan süre",
+    days: "gün",
+    hours: "saat",
+    minutes: "dk",
+    seconds: "sn",
+    yourZone: "Sizin saat diliminiz",
+    blocksTitle: "Üç blok",
+    adamDesc: "Zaman damgası o ana ulaşan İLK blok — yükseklikle değil, zamanla tanımlanır. O bloğu kim üretirse üretmiş olur.",
+    evaDesc: "Yüksekliğe göre Adam'dan hemen sonraki blok.",
+    unionDesc: "Adam'dan on blok sonra. 9S Union mesajı buraya bağlanır.",
+    messagesTitle: "Bloklar ne taşıyor",
+    messagesDesc: "Adam ve Eva, ağ kurulurken blok 0'a yazılmış olan iki cümleyi taşır — tören aynı dosyaları gösterir, bu yüzden ikisi birbirinden ayrılamaz. Aşağıdaki her özet, törenden önce 2026-09-03'te dondurulmuştur ve ham baytlar üzerinde sha256 ile yeniden üretilebilir.",
+    quietTitle: "Bir dakikalık sessizlik",
+    quietDesc: "C-Chain boş blok üretmez; bu yüzden canlı sayfada açıkça duyurduğumuz sentetik trafik, andan kısa süre önce durdurulur. Aksi hâlde tören, iki saniyelik bir pencere için otomatik bir gönderici ile yarışırdı. Bedeli bir dakikalık sessizlik; karşılığında bu bloklar bir bota değil, törene ait olur.",
+    strangerTitle: "Bir yabancı o bloğu alabilir, kayıt yine de geçerlidir",
+    strangerDesc: "A1 herkese açık bir test ağıdır ve o saniyede herkes işlem gönderebilir. Kayıt, blok yüksekliğine değil, törenin işlem hash'ine bağlıdır — başkasının bloğu o ana önce ulaşırsa yazılan yine doğrudur; yalnızca o bloğu tören üretmemiştir.",
+    checkTitle: "Kendiniz doğrulayın",
+    checkDesc: "Herhangi bir A1 düğümünden o andaki bloğu isteyin ve zaman damgasını okuyun. Bu sayfada güvene dayalı kabul edilmesi gereken hiçbir şey yok.",
+    resultTitle: "Ne kaydedildi",
+    resultPending: "Henüz yayımlanmadı. Kanıt paketi — an, kullanılan kaydırma, arka plan trafiği, üç işlem hash'i, blok numaraları ve baytların zincirden geri okunmasının sonucu — törenden sonra burada yayımlanır.",
+    resultBlock: "Block Adam",
+    resultTimestamp: "Zaman damgası",
+    resultBundle: "Kanıt paketi",
+    reachedNote: "An geçti. Kayıt burada henüz yayımlanmadı — bu, baytlar zincirden geri okunup dondurulmuş özetlerle karşılaştırıldıktan sonra olur.",
+  },
+
 
 
   loadTest: {

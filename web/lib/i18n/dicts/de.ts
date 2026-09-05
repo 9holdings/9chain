@@ -201,6 +201,7 @@ export const de: Dict = {
     directory: 'L1-Verzeichnis',
     explorer: 'Explorer',
     explorerAria: '9Scan-A1 in neuem Tab öffnen',
+    ceremony: "Zeremonie",
   },
 
   home: {
@@ -300,6 +301,37 @@ export const de: Dict = {
     mismatch: 'FALSCHE CHAIN',
     mismatchDesc: 'Der RPC antwortete mit Chain ID {got} statt {expected} — sehr wahrscheinlich ein Routing-Fehler, nicht diese Chain.',
   },
+  ceremony: {
+    badge: "Zeremonie",
+    title: "Die 9S-Union-Zeremonie",
+    desc: "In einer exakten Sekunde schreibt das Netzwerk drei benannte Blöcke. Diese Seite sagt, was passieren wird, was die Blöcke tragen und wie Sie es danach selbst prüfen können, ohne uns zu fragen.",
+    momentLabel: "Der Zeitpunkt",
+    countdownLabel: "Verbleibende Zeit",
+    days: "Tage",
+    hours: "Std.",
+    minutes: "Min.",
+    seconds: "Sek.",
+    yourZone: "Ihre Zeitzone",
+    blocksTitle: "Die drei Blöcke",
+    adamDesc: "Der ERSTE Block, dessen Zeitstempel den Zeitpunkt erreicht — definiert über die Zeit, nicht über die Höhe. Wer diesen Block erzeugt, erzeugt ihn.",
+    evaDesc: "Der Block unmittelbar nach Adam, nach Höhe.",
+    unionDesc: "Zehn Blöcke nach Adam. Hier ist die 9S-Union-Nachricht verankert.",
+    messagesTitle: "Was die Blöcke tragen",
+    messagesDesc: "Adam und Eva tragen die beiden Sätze, die bei der Entstehung des Netzwerks bereits in Block 0 geschrieben wurden — die Zeremonie verweist auf dieselben Dateien, sie können also nicht auseinanderdriften. Jeder Digest unten wurde am 2026-09-03 eingefroren, vor der Zeremonie, und lässt sich mit sha256 über die Rohbytes reproduzieren.",
+    quietTitle: "Eine stille Minute",
+    quietDesc: "Die C-Chain erzeugt keine leeren Blöcke, deshalb wird der synthetische Verkehr, den wir auf der Live-Seite offenlegen, kurz vor dem Zeitpunkt gestoppt. Sonst müsste die Zeremonie mit einem automatischen Sender um ein Zwei-Sekunden-Fenster wettlaufen. Der Preis ist eine stille Minute; gekauft wird damit, dass diese Blöcke der Zeremonie gehören und nicht einem Bot.",
+    strangerTitle: "Ein Fremder kann den Block bekommen, und der Eintrag gilt trotzdem",
+    strangerDesc: "A1 ist ein öffentliches Testnetz, und in dieser Sekunde darf jeder eine Transaktion senden. Der Eintrag ist am Transaktions-Hash der Zeremonie verankert, nie an einer Blockhöhe — erreicht der Block einer anderen Person den Zeitpunkt zuerst, bleibt das Geschriebene wahr; die Zeremonie hat diesen Block dann nur nicht erzeugt.",
+    checkTitle: "Selbst nachprüfen",
+    checkDesc: "Fragen Sie irgendeinen A1-Knoten nach dem Block zum Zeitpunkt und lesen Sie dessen Zeitstempel. Nichts auf dieser Seite muss man uns glauben.",
+    resultTitle: "Was festgehalten wurde",
+    resultPending: "Noch nicht veröffentlicht. Das Beweispaket — der Zeitpunkt, der verwendete Versatz, der Hintergrundverkehr, die drei Transaktions-Hashes, die Blocknummern und das Ergebnis des Zurücklesens der Bytes aus der Kette — erscheint nach der Zeremonie hier.",
+    resultBlock: "Block Adam",
+    resultTimestamp: "Sein Zeitstempel",
+    resultBundle: "Beweispaket",
+    reachedNote: "Der Zeitpunkt ist vorbei. Der Eintrag ist hier noch nicht veröffentlicht — das geschieht, sobald die Bytes aus der Kette zurückgelesen und gegen die eingefrorenen Digests geprüft sind.",
+  },
+
 
 
   loadTest: {

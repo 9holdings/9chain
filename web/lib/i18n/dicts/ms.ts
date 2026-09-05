@@ -213,6 +213,7 @@ export const ms: Dict = {
     directory: 'Direktori L1',
     explorer: 'Penjelajah',
     explorerAria: 'Buka 9Scan-A1 dalam tab baharu',
+    ceremony: "Istiadat",
   },
 
   home: {
@@ -314,6 +315,37 @@ export const ms: Dict = {
     mismatch: 'RANTAIAN SALAH',
     mismatchDesc: 'RPC menjawab dengan Chain ID {got} dan bukan {expected} — berkemungkinan besar ralat penghalaan, bukan rantaian ini.',
   },
+  ceremony: {
+    badge: "Istiadat",
+    title: "Istiadat 9S Union",
+    desc: "Pada satu saat yang tepat, rangkaian menulis tiga blok bernama. Halaman ini menerangkan apa yang akan berlaku, apa yang dibawa blok-blok itu, dan bagaimana anda memeriksanya sendiri selepas itu tanpa bertanya kepada kami.",
+    momentLabel: "Saat itu",
+    countdownLabel: "Baki masa",
+    days: "hari",
+    hours: "jam",
+    minutes: "min",
+    seconds: "saat",
+    yourZone: "Zon waktu anda",
+    blocksTitle: "Tiga blok",
+    adamDesc: "Blok PERTAMA yang cap masanya mencapai saat itu — ditakrifkan oleh masa, bukan oleh ketinggian. Sesiapa yang menghasilkan blok itu, dialah yang menghasilkannya.",
+    evaDesc: "Blok sejurus selepas Adam, mengikut ketinggian.",
+    unionDesc: "Sepuluh blok selepas Adam. Di sinilah mesej 9S Union disauhkan.",
+    messagesTitle: "Apa yang dibawa blok",
+    messagesDesc: "Adam dan Eva membawa dua ayat yang sudah tertulis dalam blok 0 ketika rangkaian dicipta — istiadat menunjuk kepada fail yang sama, jadi kedua-duanya tidak boleh menyimpang. Setiap ringkasan di bawah dibekukan pada 2026-09-03, sebelum istiadat, dan boleh dihasilkan semula dengan sha256 ke atas bait mentah.",
+    quietTitle: "Satu minit sunyi",
+    quietDesc: "C-Chain tidak menghasilkan blok kosong, jadi trafik sintetik yang kami umumkan di halaman langsung dihentikan sebentar sebelum saat itu. Tanpa itu, istiadat terpaksa berlumba dengan penghantar automatik untuk tetingkap dua saat. Harganya satu minit sunyi; hasilnya blok-blok ini milik istiadat, bukan milik bot.",
+    strangerTitle: "Orang asing boleh mengambil blok itu, dan rekod tetap sah",
+    strangerDesc: "A1 ialah rangkaian ujian awam dan sesiapa sahaja boleh menghantar transaksi pada saat itu. Rekod disauhkan pada hash transaksi istiadat, bukan pada ketinggian blok — jadi jika blok orang lain mencapai saat itu dahulu, apa yang ditulis kekal benar; cuma istiadat tidak menghasilkan blok tersebut.",
+    checkTitle: "Periksa sendiri",
+    checkDesc: "Minta mana-mana nod A1 blok pada saat itu dan baca cap masanya. Tiada apa-apa di halaman ini yang perlu diterima atas dasar percaya.",
+    resultTitle: "Apa yang direkodkan",
+    resultPending: "Belum diterbitkan. Bungkusan bukti — saat itu, ofset yang digunakan, trafik latar, tiga hash transaksi, nombor blok dan hasil membaca semula bait daripada rantai — diterbitkan di sini selepas istiadat.",
+    resultBlock: "Block Adam",
+    resultTimestamp: "Cap masanya",
+    resultBundle: "Bungkusan bukti",
+    reachedNote: "Saat itu sudah berlalu. Rekod belum diterbitkan di sini — ia berlaku setelah bait dibaca semula daripada rantai dan disemak dengan ringkasan yang dibekukan.",
+  },
+
 
 
   loadTest: {

@@ -207,6 +207,7 @@ export const sw: Dict = {
     directory: 'Orodha ya L1',
     explorer: 'Kichunguzi',
     explorerAria: 'Fungua 9Scan-A1 kwenye kichupo kipya',
+    ceremony: "Sherehe",
   },
 
   home: {
@@ -308,6 +309,37 @@ export const sw: Dict = {
     mismatch: 'CHAIN ISIYO SAHIHI',
     mismatchDesc: 'RPC ilijibu kwa Chain ID {got} badala ya {expected} — kuna uwezekano mkubwa ni hitilafu ya uelekezaji, si chain hii.',
   },
+  ceremony: {
+    badge: "Sherehe",
+    title: "Sherehe ya 9S Union",
+    desc: "Katika sekunde moja kamili mtandao huandika vitalu vitatu vyenye majina. Ukurasa huu unaeleza kitakachotokea, vitalu hivyo hubeba nini, na jinsi utakavyoweza kuthibitisha mwenyewe baadaye bila kutuuliza.",
+    momentLabel: "Wakati huo",
+    countdownLabel: "Muda uliobaki",
+    days: "siku",
+    hours: "saa",
+    minutes: "dak",
+    seconds: "sek",
+    yourZone: "Saa za eneo lako",
+    blocksTitle: "Vitalu vitatu",
+    adamDesc: "Kitalu cha KWANZA ambacho alama yake ya muda hufikia wakati huo — hufafanuliwa kwa muda, si kwa urefu. Yeyote atakayezalisha kitalu hicho, ndiye aliyekizalisha.",
+    evaDesc: "Kitalu kinachofuata mara baada ya Adam, kwa urefu.",
+    unionDesc: "Vitalu kumi baada ya Adam. Hapa ndipo ujumbe wa 9S Union unatiwa nanga.",
+    messagesTitle: "Vitalu hubeba nini",
+    messagesDesc: "Adam na Eva hubeba sentensi zilezile mbili zilizoandikwa katika kitalu 0 wakati mtandao uliundwa — sherehe inaelekeza kwenye faili hizohizo, hivyo haziwezi kutofautiana. Kila muhtasari hapa chini uligandishwa tarehe 2026-09-03, kabla ya sherehe, na unaweza kurudiwa kwa sha256 juu ya baiti ghafi.",
+    quietTitle: "Dakika moja ya utulivu",
+    quietDesc: "C-Chain haizalishi vitalu vitupu, hivyo trafiki bandia tunayoitangaza kwenye ukurasa wa moja kwa moja husimamishwa muda mfupi kabla ya wakati huo. Bila hivyo, sherehe ingelazimika kushindana na kitumaji otomatiki kwa dirisha la sekunde mbili. Gharama ni dakika moja ya ukimya; kinachonunuliwa ni kwamba vitalu hivi ni mali ya sherehe, si ya roboti.",
+    strangerTitle: "Mgeni anaweza kuchukua kitalu hicho, na kumbukumbu ikabaki kweli",
+    strangerDesc: "A1 ni mtandao wa majaribio wa umma na yeyote anaweza kutuma muamala sekunde hiyo. Kumbukumbu imetiwa nanga kwenye hashi ya muamala wa sherehe, si kwenye urefu wa kitalu — hivyo kama kitalu cha mtu mwingine kitafika wakati huo kwanza, kilichoandikwa kinabaki kweli; ni kwamba tu sherehe haikuzalisha kitalu hicho.",
+    checkTitle: "Thibitisha mwenyewe",
+    checkDesc: "Omba nodi yoyote ya A1 ikupe kitalu cha wakati huo kisha soma alama yake ya muda. Hakuna kitu katika ukurasa huu kinachohitaji kuaminiwa tu.",
+    resultTitle: "Nini kilirekodiwa",
+    resultPending: "Bado hakijachapishwa. Kifurushi cha ushahidi — wakati huo, kipimo cha marekebisho kilichotumika, trafiki ya usuli, hashi tatu za miamala, namba za vitalu, na matokeo ya kusoma tena baiti kutoka kwenye mnyororo — kitachapishwa hapa baada ya sherehe.",
+    resultBlock: "Block Adam",
+    resultTimestamp: "Alama yake ya muda",
+    resultBundle: "Kifurushi cha ushahidi",
+    reachedNote: "Wakati huo umepita. Kumbukumbu bado haijachapishwa hapa — hilo hufanyika baada ya baiti kusomwa tena kutoka kwenye mnyororo na kulinganishwa na muhtasari uliogandishwa.",
+  },
+
 
 
   loadTest: {
