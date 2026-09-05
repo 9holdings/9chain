@@ -61,6 +61,7 @@ export function SiteFooter() {
       title: t.footer.about,
       items: [
         { href: 'https://9chain.org/', label: t.footer.mainSite, external: true },
+        { href: '/validators/', label: t.validators.title },
         { href: '/ceremony/', label: t.nav.ceremony },
         { href: '/re-genesis/', label: t.footer.rebuildPlan },
       ],

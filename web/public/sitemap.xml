@@ -53,6 +53,13 @@
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
+  <!-- The one page that asks the reader to do something FOR the network rather than with
+       it. Same priority as the product pages, on purpose. -->
+  <url>
+    <loc>https://a1.9chain.org/validators/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <!-- The ceremony page keeps a high priority AFTER 2026-09-09 on purpose: it turns into
        the record of what was written, which is the half a stranger would search for. -->
   <url>
