@@ -111,7 +111,12 @@ cấm bằng mã, không bằng chú thích**. Thứ tự làm: rẻ và đang g
       ngay vì node **chưa từng xuống**. Đã vá: `forceRestart` + `--force-recreate` **và đo
       `.State.StartedAt` phải đổi** (`restartProven`, 7 đối chứng, 55 → 62).
       ✅ **CÓ HIỆU LỰC THẬT trên chain** (D-192): sau một giao dịch, SBull block 2 `19:10:39Z` ⇒ chủ `readAllowList` = **2 Admin**, người lạ = **0 None**, `/api/governance` `enabled:true`. Ca người-lạ-bị-chặn mới là ca mang tin.
-      ⏳ Ca **chưa đo**: gãy ở node thứ k > 1 rồi chạy **đường lùi** — lượt thật đi trơn cả 9 node. (rollout 9 node, việc console):
+      ✅ **Ca gãy ở node k>1 rồi chạy đường lùi — ĐÃ ĐO THẬT `05/09` trên băng tập 9 node** (D-195, `scripts/drill-upgrade-rollback.mjs`):
+      lượt 1 (mã cũ) 🔴 undo **không restart** node nào mà khai *"restarted on the old file"* ×3 — node-2/3 còn tệp MỚI; kèm lỗi thứ hai
+      **node đọc `upgrade.*` bằng GLOB**: một tệp lạ thì bị nạp, hai tệp thì node **không boot** (bản lưu `.prev-` của console = bom cho
+      lượt nâng cấp thứ hai). Sửa: undo chứng minh restart + chain + **hình dạng đã nạp trong node**; lịch sử ra `upgrade-history/`;
+      `chainDirVerdict` ở preview/upgrade/governance + quét khởi động; `check-l1-upgrades` áp cùng luật. Lượt 3 (mã mới) ✅ 424 s.
+      ⚠️ **[human] deploy console TRƯỚC lượt nâng cấp kế tiếp của bất kỳ chain nào.** (rollout 9 node, việc console):
       để chain "lớn lên" thay vì phải chọn hết lúc launch.
 - [~] **P-62 — bản xem trước genesis + câu "chain này làm được / không làm được gì" để ký** — ✅ nửa console `04/09` (D-183: `POST /api/preview`, cùng đường mã với create, trả `genesis + options + facts/can/cannot`, không ghi gì; đo `200` trên `a1.9chain.org`) · ⏳ nửa `web-home`: màn hình + câu ký —
       chặn cuối trước khi tiêu một chỗ vĩnh viễn.

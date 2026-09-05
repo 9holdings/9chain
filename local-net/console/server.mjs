@@ -10,7 +10,7 @@
 // Chạy:  node local-net/console/server.mjs   (cwd = gốc dự án)  hoặc  9chain-a1 console
 import http from "node:http";
 import { execFile } from "node:child_process";
-import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, readdirSync } from "node:fs";
 import { promisify } from "node:util";
 import path from "node:path";
 import { clientIp, rateLimit, requireToken, requireSecret, requireInt, serialQueue } from "../lib/guard.mjs";
@@ -25,6 +25,7 @@ import {
 } from "../lib/l1-options.mjs";
 import {
   planUpgrade, activePrecompiles, upgradeShape, restartProven, encodeReadAllowList, decodeRole, ownerTransferVerdict,
+  chainDirVerdict,
   PRECOMPILE_ADDRESS, UPGRADABLE_PRECOMPILES, MIN_LEAD_SECONDS, MAX_LEAD_SECONDS,
 } from "../lib/l1-upgrade.mjs";
 import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
@@ -695,12 +696,56 @@ async function chainSanSang(svc, subnetID, blockchainID) {
 }
 
 /**
- * @param {string} trackList   comma-separated subnetIDs every node must track
- * @param {{requireChain?: {subnetID:string, blockchainID:string}}} opts
- *   `requireChain` — ALSO wait for this chain's own health check on each node (upgrade rollouts).
- * On failure the thrown error carries `daXong` (the services already restarted) so the caller
- * can undo them; the text lists them too, for a human reading the log.
+ * What THIS node loaded for the chain: the `upgradeShape` of its own `eth_getChainConfig`, asked
+ * inside the container. `{ ok:false }` when the chain does not answer there.
+ *
+ * 🔴 WHY A PER-NODE READ EXISTS (drill 2026-09-05, `scripts/drill-upgrade-rollback.mjs`). A restart
+ * proves the node went down; the chain's health check proves the VM came up; neither says WHICH
+ * file it came up with. The undo path used to report "restarted on the old file" for nodes whose
+ * `eth_getChainConfig` still listed the new upgrade — the quantity that decides whether the network
+ * forks at the activation timestamp was never read. This reads it.
  */
+async function shapeOnNode(svc, blockchainID) {
+  let out;
+  try {
+    out = await docker([...COMPOSE, "exec", "-T", svc, "curl", "-sf", "-m", "5",
+      "-X", "POST", "-H", "content-type:application/json",
+      "--data", `{"jsonrpc":"2.0","id":1,"method":"eth_getChainConfig","params":[]}`,
+      `http://127.0.0.1:9650/ext/bc/${blockchainID}/rpc`]);
+  } catch {
+    return { ok: false, vi: "chain RPC not answering on this node" };
+  }
+  let j;
+  try { j = JSON.parse(out.slice(out.indexOf("{"), out.lastIndexOf("}") + 1)); } catch { return { ok: false, vi: "eth_getChainConfig not parseable" }; }
+  if (j?.error) return { ok: false, vi: `eth_getChainConfig: ${j.error.message ?? JSON.stringify(j.error)}` };
+  // `upgrades` is always present and `precompileUpgrades` is not (D-186 gotcha 2).
+  return { ok: true, shape: upgradeShape(j?.result?.upgrades?.precompileUpgrades ?? []) };
+}
+
+/**
+ * Wait until the chain is healthy on `svc` AND, when `expectShape` is a string, until the node
+ * reports exactly that upgrade shape. Same 90 s budget the primary-network wait has.
+ * Returns `{ ok, vi }` — `vi` names what was still wrong when the budget ran out.
+ */
+async function waitChainOnNode(svc, { subnetID, blockchainID, expectShape }) {
+  let last = { ok: false, vi: "not checked" };
+  for (let i = 0; i < 45; i++) {
+    const health = await chainSanSang(svc, subnetID, blockchainID);
+    if (health.ok) {
+      if (typeof expectShape !== "string") return { ok: true, vi: "chain check clean" };
+      const loaded = await shapeOnNode(svc, blockchainID);
+      if (loaded.ok && loaded.shape === expectShape) return { ok: true, vi: `chain check clean, runs "${expectShape || "empty"}"` };
+      last = loaded.ok
+        ? { ok: false, vi: `chain healthy but it loaded "${loaded.shape || "empty"}", expected "${expectShape || "empty"}"` }
+        : { ok: false, vi: loaded.vi };
+    } else {
+      last = health;
+    }
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  return last;
+}
+
 /**
  * When did this container's process last start? Used to prove a restart HAPPENED.
  *
@@ -844,17 +889,15 @@ async function trackSubnetsLanLuot(trackList, { requireChain, forceRestart = fal
       throw err;
     }
     if (requireChain) {
-      // The L1 bootstraps AFTER the primary network; give it the same budget again.
-      let chainOk = null;
-      for (let i = 0; i < 45; i++) {
-        chainOk = await chainSanSang(svc, requireChain.subnetID, requireChain.blockchainID);
-        if (chainOk.ok) break;
-        await new Promise(r => setTimeout(r, 2000));
-      }
-      if (!chainOk?.ok) {
+      // The L1 bootstraps AFTER the primary network; give it the same budget again. When the
+      // caller says which upgrade shape the node must have LOADED (`expectShape`), a node that is
+      // healthy on a different file is a failure too — "healthy" and "runs the file we wrote" are
+      // two quantities, and only the second one decides whether nine validators agree.
+      const chainOk = await waitChainOnNode(svc, requireChain);
+      if (!chainOk.ok) {
         const err = new Error(
-          `${svc} is back on the primary network but the L1 ${requireChain.blockchainID} is NOT healthy on it after 90s ` +
-          `(${chainOk?.vi}) — STOPPED, the remaining nodes were not touched. ` +
+          `${svc} is back on the primary network but the L1 ${requireChain.blockchainID} is NOT as required on it after 90s ` +
+          `(${chainOk.vi}) — STOPPED, the remaining nodes were not touched. ` +
           `Done: ${nhatKy.map(n => n.svc).join(", ") || "(none)"}. Check: docker logs ${svc} --tail 50`
         );
         err.daXong = nhatKy.map(n => n.svc);
@@ -1471,8 +1514,38 @@ async function thuHoiChain({ name, xacNhan }) {
 
 function upgradeFilePath(blockchainID) { return path.join(CHAIN_CFG_DIR, blockchainID, "upgrade.json"); }
 
+/**
+ * Where previous versions and failed files of `upgrade.json` go — OUTSIDE `chains/`.
+ *
+ * 🔴 Until 2026-09-05 they were written beside the file, as `upgrade.json.prev-<ts>` and
+ * `upgrade.json.failed-<ts>`. avalanchego reads a chain directory with `Glob("upgrade.*")`
+ * (`config/config.go:1144` → `storage_common.go:28`): one match is loaded whatever its name, two
+ * matches stop the whole node at boot. Both were measured on the drill network that day — a node
+ * loaded the "removed" `.failed-` file, and a node with a `.prev-` beside `upgrade.json` never
+ * started. See `nodeWouldLoad` in `lib/l1-upgrade.mjs`.
+ */
+function upgradeHistoryDir(blockchainID) { return path.join(CFG_DIR, "upgrade-history", blockchainID); }
+
+/** The entries of a chain's config directory, `[]` when it does not exist yet. */
+function chainDirEntries(blockchainID) {
+  const dir = path.join(CHAIN_CFG_DIR, blockchainID);
+  return existsSync(dir) ? readdirSync(dir) : [];
+}
+
+/**
+ * Refuse to touch a chain directory that is not in the one state the node reads the way the
+ * console assumes: `upgrade.json` alone, or no upgrade file at all.
+ */
+function assertChainDirReadable(blockchainID) {
+  const verdict = chainDirVerdict(chainDirEntries(blockchainID));
+  if (verdict) throw new Error(`upgrade directory for ${blockchainID}: ${verdict}`);
+}
+
 /** The upgrade list on disk for a chain — `[]` when there is no file, an ERROR when there is a broken one. */
 function docUpgradeFile(blockchainID) {
+  // 🔴 Ask what the NODE would read, not whether upgrade.json exists: a directory holding only
+  // `upgrade.json.failed-…` has no upgrade.json and still upgrades every node that restarts.
+  assertChainDirReadable(blockchainID);
   const p = upgradeFilePath(blockchainID);
   if (!existsSync(p)) return { list: [], exists: false };
   let j;
@@ -1488,16 +1561,23 @@ function docUpgradeFile(blockchainID) {
   return { list: j.precompileUpgrades, exists: true };
 }
 
-/** Write the file atomically, keeping the previous version beside it so a failed rollout can undo. */
+/**
+ * Write the file atomically, keeping the previous version in `upgrade-history/` so a failed
+ * rollout can undo. Nothing but `upgrade.json` is ever created inside the chain directory — the
+ * temporary file is named so the node's glob cannot match it either.
+ */
 function ghiUpgradeFile(blockchainID, upgradeConfig) {
+  assertChainDirReadable(blockchainID);
   const p = upgradeFilePath(blockchainID);
   mkdirSync(path.dirname(p), { recursive: true });
   let prev = null;
   if (existsSync(p)) {
-    prev = `${p}.prev-${new Date().toISOString().replace(/[:.]/g, "-")}`;
+    mkdirSync(upgradeHistoryDir(blockchainID), { recursive: true });
+    prev = path.join(upgradeHistoryDir(blockchainID), `upgrade.json.prev-${new Date().toISOString().replace(/[:.]/g, "-")}`);
     writeFileSync(prev, readFileSync(p));
   }
-  const tmp = p + ".tmp";
+  // `.upgrade.json.tmp`: a leading dot keeps it outside `upgrade.*` for the instant it exists.
+  const tmp = path.join(path.dirname(p), ".upgrade.json.tmp");
   writeFileSync(tmp, JSON.stringify(upgradeConfig, null, 2) + "\n");
   renameSync(tmp, p);
   return { path: p, prev };
@@ -1567,24 +1647,84 @@ async function planUpgradeForChain({ name, precompile, action, rewardManager, le
 /**
  * Undo a rollout that stopped part-way: put the previous file back (or remove the new one) and
  * restart the nodes that already took the new file, so no validator is left to activate a rule
- * set the others do not carry. Best effort — it reports, it does not throw.
+ * set the others do not carry. It reports, it does not throw — but it reports what it MEASURED.
+ *
+ * ═══ 🔴 MEASURED ON THE DRILL NETWORK, 2026-09-05 (`scripts/drill-upgrade-rollback.mjs`) ═══
+ *
+ * With the fault injected into the third node of the order, the first version of this function
+ * answered: "node-2 restarted on the old file; node-3 restarted on the old file; node-4 restarted
+ * on the old file". `docker inspect` showed none of the three had restarted (`.State.StartedAt`
+ * unchanged), and `eth_getChainConfig` inside node-2 and node-3 still listed the new upgrade —
+ * they would have activated it alone at the scheduled minute. Same cause as D-189, in the branch
+ * that exists to undo D-189's damage: `compose up -d` without `--force-recreate` does nothing when
+ * the config is unchanged, and the sentence was written before anything was checked.
+ *
+ * So every node here must PROVE three things, in order, or be listed as NOT undone:
+ *   1. it restarted           — `.State.StartedAt` moved (`restartProven`)
+ *   2. the chain came back    — its own health check, not P/X/C
+ *   3. it runs the OLD file   — `eth_getChainConfig` inside the container reduces to the shape of
+ *                               the file put back (empty when there was none)
+ *
+ * @returns {{ text: string, notUndone: string[], oldShape: string }}
  */
 async function hoanTacNangCap(chain, filePath, prev, daXong, hong) {
   const steps = [];
+  const notUndone = [];
+  let oldShape = "";
   try {
-    if (prev) { writeFileSync(filePath, readFileSync(prev)); steps.push(`restored ${path.basename(prev)}`); }
-    else { renameSync(filePath, filePath + ".failed-" + Date.now()); steps.push("removed the new upgrade.json (there was none before)"); }
-  } catch (e) { steps.push(`could NOT restore the file: ${e.message}`); return steps.join("; "); }
+    if (prev) {
+      writeFileSync(filePath, readFileSync(prev));
+      try { oldShape = upgradeShape(JSON.parse(readFileSync(prev, "utf8")).precompileUpgrades); } catch { oldShape = null; }
+      steps.push(`restored ${path.basename(prev)}`);
+    } else {
+      // 🔴 Out of the chain directory, not renamed inside it: a lone `upgrade.json.failed-…` is
+      // what the node's glob loads (measured 2026-09-05, drill node-2).
+      mkdirSync(upgradeHistoryDir(chain.blockchainID), { recursive: true });
+      renameSync(filePath, path.join(upgradeHistoryDir(chain.blockchainID), `upgrade.json.failed-${Date.now()}`));
+      steps.push("removed the new upgrade.json (there was none before; the failed file is in upgrade-history/)");
+    }
+  } catch (e) {
+    steps.push(`could NOT restore the file: ${e.message}`);
+    return { text: steps.join("; "), notUndone: [...daXong, ...(hong ? [hong] : [])].map((svc) => ({ svc, state: "new-file", why: "the file could not be restored" })), oldShape };
+  }
   const trackList = loadState().chains.map(c => c.subnetID).join(",");
   for (const svc of [...daXong, ...(hong ? [hong] : [])]) {
+    const before = await nodeStartedAt(svc);
     try {
-      await docker([...COMPOSE, "up", "-d", "--no-deps", svc], { A1_TRACK_SUBNETS: trackList });
-      let ok = null;
-      for (let i = 0; i < 45; i++) { ok = await nodeSanSang(svc); if (ok.ok) break; await new Promise(r => setTimeout(r, 2000)); }
-      steps.push(`${svc} restarted on the old file${ok?.ok ? "" : " (primary network NOT healthy after 90s — check it)"}`);
-    } catch (e) { steps.push(`${svc} restart FAILED: ${e.message}`); }
+      // 🔴 `--force-recreate`: the config is identical to a minute ago, so without it compose does
+      // nothing and the node keeps the NEW file in memory (measured, see header).
+      await docker([...COMPOSE, "up", "-d", "--no-deps", "--force-recreate", svc], { A1_TRACK_SUBNETS: trackList });
+    } catch (e) {
+      steps.push(`${svc}: compose up FAILED (${e.message}) — it still carries the NEW file`);
+      notUndone.push({ svc, state: "new-file", why: e.message });
+      continue;
+    }
+    const after = await nodeStartedAt(svc);
+    if (!restartProven(before, after)) {
+      steps.push(`${svc}: did NOT restart (.State.StartedAt before=${before}, after=${after}) — it still carries the NEW file`);
+      notUndone.push({ svc, state: "new-file", why: "restart not proven" });
+      continue;
+    }
+    let primary = null;
+    for (let i = 0; i < 45; i++) { primary = await nodeSanSang(svc); if (primary.ok) break; await new Promise(r => setTimeout(r, 2000)); }
+    if (!primary?.ok) {
+      steps.push(`${svc}: restarted (${before} → ${after}) but the primary network is NOT healthy after 90s (${primary?.vi}) — check it`);
+      notUndone.push({ svc, state: "unknown", why: primary?.vi });
+      continue;
+    }
+    // `oldShape === null` means the previous file could not be reduced to a shape; then health is
+    // all that can be checked, and the report says so instead of claiming the file.
+    const chainOk = await waitChainOnNode(svc, { subnetID: chain.subnetID, blockchainID: chain.blockchainID, expectShape: oldShape === null ? undefined : oldShape });
+    if (!chainOk.ok) {
+      steps.push(`${svc}: restarted (${before} → ${after}) but the L1 is NOT back on the old file after 90s (${chainOk.vi}) — a person must look at this node`);
+      // A chain that answers with the wrong shape still carries the new file; a chain that does not
+      // answer is down. The caller words the two differently.
+      notUndone.push({ svc, state: /it loaded/.test(chainOk.vi) ? "new-file" : "not-serving", why: chainOk.vi });
+      continue;
+    }
+    steps.push(`${svc}: restarted (${before} → ${after}), ${chainOk.vi}`);
   }
-  return steps.join("; ");
+  return { text: steps.join("; "), notUndone, oldShape };
 }
 
 async function napCapChain(tham, ai) {
@@ -1601,25 +1741,45 @@ async function napCapChain(tham, ai) {
 
   // Same track list as today — the rollout exists only so every node re-reads the chain dir.
   const trackList = loadState().chains.map(c => c.subnetID).join(",");
+  const mongDoi = upgradeShape(plan.upgradeConfig.precompileUpgrades);
   let nhatKy;
   try {
     // 🔴 `forceRestart` is NOT optional here. This rollout exists to make nine nodes re-read
     // `upgrade.json`; without it compose sees an unchanged config and does nothing, and every node
     // reports success in under a second (measured on the live network, 2026-09-04 16:09Z).
+    // `expectShape`: each node must also report the shape just written, read inside that node —
+    // a node that is healthy on some other file is a split, not a success.
     nhatKy = await trackSubnetsLanLuot(trackList, {
-      requireChain: { subnetID: chain.subnetID, blockchainID: chain.blockchainID },
+      requireChain: { subnetID: chain.subnetID, blockchainID: chain.blockchainID, expectShape: mongDoi },
       forceRestart: true,
     });
   } catch (e) {
     const undo = await hoanTacNangCap(chain, filePath, prev, e.daXong ?? [], e.hong);
-    throw new Error(`${e.message} — UNDONE: ${undo}. Nothing was recorded; the chain keeps its previous rules.`);
+    if (undo.notUndone.length) {
+      // 🔴 Not a sentence to soften, and two different sentences: a node that still carries the
+      // NEW file in memory will activate a rule set the others do not, with a countdown to
+      // `plan.activateAtIso`; a node whose chain is DOWN validates nothing until a person fixes it.
+      // Both need a human, for different reasons, and the reader must be told which.
+      const onNewFile = undo.notUndone.filter((n) => n.state === "new-file").map((n) => n.svc);
+      const down = undo.notUndone.filter((n) => n.state !== "new-file").map((n) => n.svc);
+      console.error(`  🔴 upgrade "${chain.name}" UNDO INCOMPLETE — on the new file: ${onNewFile.join(", ") || "none"} · chain down: ${down.join(", ") || "none"} (activation ${plan.activateAtIso})`);
+      throw new Error(
+        `${e.message} — UNDO INCOMPLETE: ${undo.text}. ` +
+        (onNewFile.length
+          ? `🔴 ${onNewFile.join(", ")} still carry the NEW rules and will activate them alone at ${plan.activateAtIso}; the file on disk is already the old one, so restart those nodes by hand before then (compose up -d --no-deps --force-recreate <node>). `
+          : "") +
+        (down.length
+          ? `🔴 ${down.join(", ")} do not serve this chain at all after the restart — a person must read their logs (docker logs <node> --tail 50). `
+          : "") +
+        `Confirm with scripts/check-l1-upgrades.mjs. Nothing was recorded.`);
+    }
+    throw new Error(`${e.message} — UNDONE: ${undo.text}. Nothing was recorded; the chain keeps its previous rules.`);
   }
 
   // ═══ VERIFY, DO NOT TRUST ═══ "every node restarted" is not "every node read the file". The
   // public node's own chain config must list the new entry before the ledger says so.
   const cfg = await rpc(rpcPath, "eth_getChainConfig");
   const daVao = upgradeShape(cfg?.upgrades?.precompileUpgrades);
-  const mongDoi = upgradeShape(plan.upgradeConfig.precompileUpgrades);
   if (daVao !== mongDoi) {
     throw new Error(`all nodes restarted but the public node's eth_getChainConfig shows "${daVao || "empty"}", expected "${mongDoi}" — the file it read is not the file written (${filePath}). Nothing recorded.`);
   }
@@ -2131,6 +2291,20 @@ server.listen(PORT, HOST, () => {
     if (t.trangThai === "khop") console.log(`  thế hệ : ✅ khớp node đang chạy — ${t.vi}`);
     else console.warn(`  thế hệ : 🔴 ${t.trangThai.toUpperCase()} — ĐẺ CHAIN SẼ BỊ TỪ CHỐI.\n           ${t.vi}`);
   });
+  // Every chain directory, once, at start-up: a stray `upgrade.*` file is a node that will not
+  // boot (two matches) or a silent upgrade (one match with the wrong name) on the next restart of
+  // ANY validator — not only during a rollout. Operators only; the API refuses per request.
+  try {
+    const stray = existsSync(CHAIN_CFG_DIR)
+      ? readdirSync(CHAIN_CFG_DIR).map((bc) => [bc, chainDirVerdict(chainDirEntries(bc))]).filter(([, v]) => v)
+      : [];
+    if (stray.length) {
+      console.warn(`  upgrade: 🔴 ${stray.length} chain director${stray.length === 1 ? "y is" : "ies are"} NOT in a state the node reads safely:`);
+      for (const [bc, v] of stray) console.warn(`           ${bc}: ${v}`);
+    } else {
+      console.log(`  upgrade: ✓ every chain directory holds upgrade.json alone or nothing (node reads "upgrade.*")`);
+    }
+  } catch (e) { console.warn(`  upgrade: ⚠️  could not scan ${CHAIN_CFG_DIR}: ${e.message}`); }
   console.log(`  auth   : token vận hành (Bearer <A1_CONSOLE_TOKEN>) HOẶC chữ ký ví (SIWE)`);
   console.log(`  ví     : /api/siwe/nonce → /api/siwe/login · domain ${SIWE_DOMAIN}`);
   console.log(`           đăng nhập bằng ví thì admin bị ÉP = địa chỉ ký (không ai gõ tay)`);

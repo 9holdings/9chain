@@ -195,11 +195,35 @@ console.log("\n── 4. /api/upgrade: confirm gate, then the UNDO path ──")
   const b = await upgrade({ name: "Gov Chain", precompile: "txAllowList", action: "enable", confirm: "Gov Chain" });
   ok("🔴 with confirm the rollout starts and fails on the missing compose (by design) ⇒ 400", b.status === 400, String(b.status));
   ok("🔴 the error says the file was put back", /UNDONE/.test(b.j?.error) && /removed the new upgrade\.json/.test(b.j?.error), String(b.j?.error).slice(0, 200));
-  ok("🔴 upgrade.json is gone (renamed .failed-*)", !existsSync(UPGRADE_FILE) && readdirSync(path.join(CFG, "chains", BC)).some((f) => f.startsWith("upgrade.json.failed-")));
+  // 🔴 The failed file must leave the chain DIRECTORY, not just lose its name: avalanchego reads
+  // that directory with Glob("upgrade.*"), so a lone `upgrade.json.failed-…` is what a restarted
+  // node loads as the upgrade (measured on the drill network, 2026-09-05 — drill-upgrade-rollback).
+  const chainDirNow = readdirSync(path.join(CFG, "chains", BC));
+  ok("🔴 upgrade.json is gone AND nothing named upgrade.* is left in the chain directory",
+    !existsSync(UPGRADE_FILE) && !chainDirNow.some((f) => f.startsWith("upgrade.")), chainDirNow.join(","));
+  const hist = existsSync(path.join(CFG, "upgrade-history", BC)) ? readdirSync(path.join(CFG, "upgrade-history", BC)) : [];
+  ok("🔴 the failed file is kept in upgrade-history/<blockchainID>/ (outside the node's glob)", hist.some((f) => f.startsWith("upgrade.json.failed-")), hist.join(","));
   ok("🔴 the ledger recorded nothing", readLedger().chains[0].upgrades === undefined);
   const p = await call("/api/progress");
   ok("progress closed with the error, kind 'upgrade'", p.j?.running === false && p.j?.kind === "upgrade" && /UNDONE/.test(p.j?.error));
   for (const f of readdirSync(path.join(CFG, "chains", BC))) rmSync(path.join(CFG, "chains", BC, f));
+}
+
+console.log("\n── 🔴 what the NODE reads: Glob(\"upgrade.*\"), not upgrade.json ──");
+{
+  // Two states a chain directory can be in that the console used to CREATE, and that the node
+  // reads in a way nobody had checked. Both must be refused before anything is written or rolled out.
+  const dir = path.join(CFG, "chains", BC);
+  writeFileSync(path.join(dir, "upgrade.json.failed-1"), JSON.stringify({ precompileUpgrades: [] }));
+  const a = await preview({ name: "Gov Chain", precompile: "txAllowList", action: "enable" });
+  ok("🔴 a lone upgrade.json.failed-<ts> ⇒ refused: the node would LOAD it", a.status === 400 && /LOADS that file/.test(a.j?.error) && /upgrade\.json\.failed-1/.test(a.j?.error), String(a.j?.error).slice(0, 200));
+  writeFileSync(UPGRADE_FILE, JSON.stringify({ precompileUpgrades: [] }));
+  const b = await preview({ name: "Gov Chain", precompile: "txAllowList", action: "enable" });
+  ok("🔴 upgrade.json + another upgrade.* ⇒ refused: the NODE would not start", b.status === 400 && /refuses to START THE NODE/.test(b.j?.error) && /2 files/.test(b.j?.error), String(b.j?.error).slice(0, 200));
+  const g = await call("/api/governance?name=" + encodeURIComponent("Gov Chain"));
+  ok("🔴 …and the governance view says so too instead of pretending the directory is fine", g.status === 400 && /upgrade\.\*/.test(g.j?.error), `${g.status} ${String(g.j?.error).slice(0, 120)}`);
+  for (const f of readdirSync(dir)) rmSync(path.join(dir, f));
+  ok("nothing written by the refusals", !existsSync(UPGRADE_FILE));
 }
 
 console.log("\n── 5. disk ↔ node agreement, and a pending entry ──");

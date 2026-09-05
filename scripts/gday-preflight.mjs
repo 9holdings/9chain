@@ -198,6 +198,11 @@ const GATES = [
   // include the one that matters most — nine nodes that all fail to answer agree perfectly, and
   // must never read as a clean chain.
   { group: "2 · REPO GATES", name: "L1 upgrade comparison rules (counter-check)", ...node("scripts/check-l1-upgrades.mjs", "--self-test") },
+  // The undo path of an upgrade rollout, judged the way the drill judges it (D-195): every node
+  // the rollout touched must be back on the OLD file, measured inside the node, and a node that
+  // does not answer is a finding. The full drill needs the drill network (`--run`); its verdict
+  // rules are offline and belong here.
+  { group: "2 · REPO GATES", name: "upgrade rollback drill — verdict rules (counter-check)", ...node("scripts/drill-upgrade-rollback.mjs", "--self-test") },
   // The other half of D-150, in DATA rather than in prose: the public chain directory is JSON,
   // so the document gate never reads it, and `check-deploy-drift` puts it OUT OF SCOPE on purpose
   // because the console writes it. Two gates, each correct about its own quantity, and the gap

@@ -130,6 +130,56 @@ export const upgradeShape = (list) =>
   }).join(" ");
 
 /**
+ * Which file in a chain's config directory the NODE will read as its upgrade file — a port of
+ * `utils/storage/storage_common.go:28 ReadFileWithName(chainDir, "upgrade")`, which avalanchego
+ * calls for every chain directory at start-up (`config/config.go:1144`).
+ *
+ * ═══ 🔴 THE RULE IS A GLOB, NOT A FILENAME — measured on the drill network, 2026-09-05 ═══
+ *
+ *   filepath.Glob(chainDir + "/upgrade.*")
+ *     0 matches  → no upgrade
+ *     1 match    → THAT file is read, whatever its extension
+ *     2+ matches → error "too many files matched" → the NODE DOES NOT START (not the chain: the
+ *                  whole node, `couldn't load node config`, container restart loop)
+ *
+ * Two consequences the console had wrong until this date:
+ *   · `upgrade.json.failed-<ts>` left beside a removed `upgrade.json` is not a removal — a
+ *     restarted node loaded it (node-2 on the drill network, 15:55Z) and reported the upgrade;
+ *   · `upgrade.json.prev-<ts>` written beside `upgrade.json` on a second upgrade would take every
+ *     restarted validator down at boot (node-4 on the drill network, 16:08Z).
+ * So backups and failed files live OUTSIDE the chain directory (`upgrade-history/`), and every
+ * reader of the directory decides through this function what the node would do.
+ *
+ * @param {string[]} fileNames  entries of the chain directory (names only)
+ * @returns {{ kind: "none" } | { kind: "one", file: string } | { kind: "too-many", files: string[] }}
+ */
+export function nodeWouldLoad(fileNames) {
+  const matches = (fileNames ?? []).filter((f) => typeof f === "string" && f.startsWith("upgrade.") && f.length > "upgrade.".length).sort();
+  if (matches.length === 0) return { kind: "none" };
+  if (matches.length === 1) return { kind: "one", file: matches[0] };
+  return { kind: "too-many", files: matches };
+}
+
+/** Every `upgrade.*` entry that is not the one file the console writes. */
+export const strayUpgradeFiles = (fileNames) =>
+  (fileNames ?? []).filter((f) => typeof f === "string" && f.startsWith("upgrade.") && f !== "upgrade.json").sort();
+
+/**
+ * The sentence for a chain directory that is not in the one state the console understands
+ * (`upgrade.json` alone, or nothing). `null` when the directory is fine.
+ */
+export function chainDirVerdict(fileNames) {
+  const load = nodeWouldLoad(fileNames);
+  if (load.kind === "too-many") {
+    return `the chain directory holds ${load.files.length} files matching "upgrade.*" (${load.files.join(", ")}) — avalanchego reads that directory with a glob and refuses to START THE NODE when more than one matches (storage_common.go:34); every node that restarts goes down. Move everything but upgrade.json out of the directory first.`;
+  }
+  if (load.kind === "one" && load.file !== "upgrade.json") {
+    return `the chain directory has no upgrade.json but holds "${load.file}", and avalanchego reads "upgrade.*" — a restarted node LOADS that file as the upgrade. Move it out of the directory (or rename it to upgrade.json if it is meant to apply).`;
+  }
+  return null;
+}
+
+/**
  * Which precompiles are ON at time `at`, reading genesis config + the upgrade list the way the
  * node does (`GetActivePrecompileConfig`: last config whose timestamp ≤ at wins).
  * `chainConfig` is what `eth_getChainConfig` returns (its `upgrades.precompileUpgrades` is
@@ -519,6 +569,22 @@ if (process.argv[1]?.endsWith("l1-upgrade.mjs") && process.argv.includes("--self
   ok("🔴 after unknown ⇒ NOT proven", restartProven("2026-09-04T14:16:10.8Z", null) === false);
   ok("🔴 empty strings ⇒ NOT proven (docker printing nothing is not a timestamp)", restartProven("", "") === false);
   ok("🔴 a non-string ⇒ NOT proven", restartProven(0, 1) === false);
+
+  console.log("\n── 🔴 nodeWouldLoad — port of ReadFileWithName(chainDir, \"upgrade\") ──");
+  {
+    ok("upgrade.json alone ⇒ the node reads it", nodeWouldLoad(["config.json", "upgrade.json"]).file === "upgrade.json");
+    ok("nothing but config.json ⇒ no upgrade", nodeWouldLoad(["config.json"]).kind === "none");
+    ok("🔴 a lone upgrade.json.failed-<ts> IS LOADED by the node (measured: node-2, drill 2026-09-05 15:55Z)",
+      nodeWouldLoad(["config.json", "upgrade.json.failed-1788623533663"]).file === "upgrade.json.failed-1788623533663");
+    const two = nodeWouldLoad(["config.json", "upgrade.json", "upgrade.json.prev-2026-09-05T16-00-00Z"]);
+    ok("🔴 upgrade.json + upgrade.json.prev-<ts> ⇒ too many ⇒ the NODE does not start (measured: node-4, 16:08Z)", two.kind === "too-many" && two.files.length === 2);
+    ok("a subdirectory named upgrade-history does not match the glob (no dot after 'upgrade')", nodeWouldLoad(["upgrade-history", "upgrade.json"]).file === "upgrade.json");
+    ok("the bare name 'upgrade.' with nothing after the dot is not a match either", nodeWouldLoad(["upgrade."]).kind === "none");
+    ok("strayUpgradeFiles lists everything but upgrade.json", strayUpgradeFiles(["upgrade.json", "upgrade.json.prev-a", "upgrade.json.failed-b", "config.json"]).join(",") === "upgrade.json.failed-b,upgrade.json.prev-a");
+    ok("chainDirVerdict: clean ⇒ null", chainDirVerdict(["config.json", "upgrade.json"]) === null && chainDirVerdict(["config.json"]) === null);
+    ok("🔴 chainDirVerdict names the boot failure for two files", /refuses to START THE NODE/.test(chainDirVerdict(["upgrade.json", "upgrade.json.prev-x"]) ?? ""));
+    ok("🔴 chainDirVerdict names the stray load for a lone renamed file", /LOADS that file/.test(chainDirVerdict(["upgrade.json.failed-x"]) ?? ""));
+  }
 
   console.log("\n── ownerTransferVerdict ──");
   {

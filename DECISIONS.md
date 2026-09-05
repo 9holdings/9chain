@@ -9058,3 +9058,66 @@ tiếng Việt do chính lượt này viết** vào `console-deploy.sh` (`"==> q
 chạy ở preflight và ở deploy, **chưa chặn được một commit sai nhánh**. Nối hook global → hook cục bộ là việc trên repo
 `claude-config` (David). Phiên web: merge `main`, nối `deploy-lock` vào hai kịch bản deploy web, dời tệp web ra
 `local-net/deploy/web/`.
+
+## D-195 — **Đường LÙI nâng cấp L1 khi gãy ở node k>1: đo thật trên băng tập, moi ra HAI lỗi — undo không restart (D-189 ở nhánh lùi) và `upgrade.*` là GLOB của node** (`2026-09-05` chiều)
+
+**Vì sao đo.** D-190 để lại đúng một ca chưa chạy: *"gãy ở node thứ k>1 rồi chạy đường lùi"*. Lượt thật đi trơn 9 node, còn
+`governance-e2e-test` chỉ chạm nhánh lùi khi rollout chết ở lệnh docker **đầu tiên** — chưa node nào nhận tệp mới, nên nhánh
+lùi chưa từng phải *làm* gì. Mạng tập dựng lại trên máy dev: `local-net/net-tap-g1/` (netgen 9 node · `networkID 899999998` ·
+image `9chain-a1/node:g1` · cổng 9750), L1 **Drill Chain** (`wC9k33WG…`, chainId `8990000001`) tạo bằng `9chain-a1-cli`
+trong container vì cổng thế hệ của console **từ chối đẻ** trên băng tập (đúng việc của nó — và nó **không** chặn `/api/upgrade`,
+cũng đúng). Console cục bộ chạy đúng mã sản phẩm, cwd là thư mục tạm, compose là compose của băng tập.
+
+**Cách tiêm lỗi.** `scripts/drill-upgrade-rollback.mjs --run --fail-at 9chain-a1-tap-node-4`: node thứ **3** trong hàng (thứ tự
+rollout: 2 → 3 → 4 → … → 9 → 1) được mount đè `chains/<bc>/` bằng một thư mục có `upgrade.json` **không phải JSON**. Mọi node
+khác giữ thư mục chung. Khi rollout recreate node-4: mạng chính lên xanh, VM của L1 từ chối khởi tạo (`vm.go:544`), đúng loại
+lỗi mà phép kiểm `requireChain` sinh ra để bắt. Đại lượng đo: `eth_getChainConfig` **bên trong từng container** (`docker exec`),
+rút về `upgradeShape` — không phải tệp trên đĩa, không phải `StartedAt`, không phải lời khai của console.
+
+**Lỗi 1 — undo KHÔNG restart, và khai là có (lượt 1, mã cũ).** Console trả `400` sau 211 s, câu lỗi: *"UNDONE: … node-2
+restarted on the old file; node-3 restarted on the old file; node-4 restarted on the old file"*. Đo: `.State.StartedAt` của cả ba
+**không đổi** so với lúc rollout; node-2 và node-3 vẫn khai `txAllowListConfig@1788624240` — chúng sẽ kích hoạt txAllowList
+**một mình** lúc `16:24Z`. Nguyên nhân y hệt D-189: `compose up -d` không `--force-recreate` thì cấu hình không đổi ⇒ compose
+không làm gì; và câu *"restarted on the old file"* được viết **trước khi** kiểm bất cứ thứ gì.
+
+**Lỗi 2 — node đọc thư mục chain bằng GLOB `upgrade.*`, không phải tên `upgrade.json`.** Lượt heal sau lượt 1: node-2 được
+recreate THẬT (StartedAt đổi) với `upgrade.json` **đã vắng** trên đĩa, mà log node in *"Upgrade Config: {txAllowList…}"* và
+`eth_getChainConfig` vẫn khai upgrade. Lần theo mã: `config/config.go:1144` → `storage_common.go:28 ReadFileWithName(chainDir,
+"upgrade")` = `filepath.Glob("upgrade.*")`: **1 tệp ⇒ nạp tệp đó bất kể đuôi** (node-2 nạp `upgrade.json.failed-1788623533663`
+mà undo để lại); **≥2 tệp ⇒ `too many files matched` ⇒ NODE KHÔNG BOOT** (đo `16:08Z`: chép thêm `upgrade.json.prev-test` cạnh
+tệp kia, recreate node-4 ⇒ `couldn't load node config`, container restart loop — cả node, không chỉ chain). Hệ quả trên mạng
+thật: `ghiUpgradeFile` ghi bản lưu `upgrade.json.prev-<ts>` **ngay cạnh** `upgrade.json` ⇒ lượt nâng cấp **THỨ HAI** trên SBull
+Chain (chain duy nhất đang có `upgrade.json`) sẽ hạ từng validator nó restart, và mọi lượt restart tay sau đó cũng chết cho tới khi
+có người dọn tệp. Server hôm nay **sạch** (`qPJ5cvq1…/`: `config.json upgrade.json`; tệp hỏng `04/09` đã được dời ra `~/9chain-a1/`).
+
+**Quyết định.**
+1. `hoanTacNangCap` (console) phải **chứng minh** ba điều cho từng node, không thì ghi vào `notUndone`: restart (`--force-recreate`
+   + `restartProven`) · chain lên (`chainSanSang`) · **chạy đúng tệp cũ** (`shapeOnNode` = `eth_getChainConfig` trong container,
+   so với hình dạng của tệp đã trả lại). Câu trả về tách hai trạng thái: *"còn mang tệp MỚI, sẽ kích hoạt một mình lúc T"* và
+   *"chain CHẾT trên node, người phải đọc log"*. Rollout xuôi cũng đo hình dạng từng node (`requireChain.expectShape`), không chỉ
+   node công khai ở cuối.
+2. Bản lưu và tệp hỏng **ra khỏi** thư mục chain: `9chain-a1-config/upgrade-history/<blockchainID>/`; tệp tạm là `.upgrade.json.tmp`
+   (dấu chấm đầu, ngoài glob). `nodeWouldLoad` / `chainDirVerdict` (`lib/l1-upgrade.mjs`) là bản chép luật của `ReadFileWithName`,
+   dùng ở `docUpgradeFile` (preview · upgrade · governance ⇒ `400` nêu đúng tệp và đúng hậu quả), ở `ghiUpgradeFile`, và quét
+   **mọi** thư mục chain lúc console khởi động.
+3. `check-l1-upgrades.mjs` liệt kê thư mục từng chain trên server (`@@FILES`) và áp cùng luật: hai tệp ⇒ *"refuses to START THE
+   NODE"*, một tệp lạ ⇒ *"LOADS that file"*. Đo thật `05/09`: 11 chain · 9 node · **12/0, 0 phát hiện**.
+4. `scripts/drill-upgrade-rollback.mjs`: `--self-test` (15 ca, vào preflight nhóm 2) · `--measure` · `--run` · `--heal`. **Từ chối
+   mọi node có networkID ngoài băng 899999000–899999999** — nó tiêm lỗi, không được phép chạm mạng thật.
+
+**Đã thấy đỏ, rồi thấy xanh — trên dây thật.** Lượt 1 (mã cũ): 🔴 2 phát hiện (node-2, node-3 còn tệp mới). Lượt 3 (mã mới,
+424 s): ✅ node-2 và node-3 restart có chứng cứ (`16:22:17 → 16:25:46`, `16:22:51 → 16:26:20`), `chain check clean, runs "empty"`
+đo bên trong node; node-4 được **gọi tên** là *chain chết, người phải xem*; đĩa `absent → absent`; sổ `0 → 0`; tệp hỏng nằm ở
+`upgrade-history/`. `--heal` gỡ mount ⇒ 9/9 về `"empty"`. Đối chứng ngoại tuyến: `l1-upgrade --self-test` **74** · `governance-e2e`
+**50 → 55** (tệp hỏng phải rời thư mục; thư mục có tệp lạ ⇒ từ chối ở preview lẫn governance) · `check-l1-upgrades --self-test`
+**18 → 22** · drill **15**.
+
+**Bẫy ghi lại.** (a) `fetch` của Node cắt ở **300 s chờ header** (`UND_ERR_HEADERS_TIMEOUT`), không theo `AbortSignal` — lượt 2 mất
+phần "after" vì thế; drill dùng `node:http`. (b) `a && b && c &` trong bash đưa **cả chuỗi** ra nền — biến gán trong đó không
+tồn tại ở shell ngoài; console lần đầu không lên vì vậy. (c) Mount lồng (bind mount đè lên một thư mục con của bind mount khác)
+là cách tiêm lỗi **định trước** cho một node; xoá mount là lành lại, không phải sửa tay.
+
+**Chưa làm, và ai làm.** [human] **deploy console** (`console-deploy.sh`; `check-deploy-drift` sẽ lệch `server.mjs` ·
+`l1-upgrade.mjs` · `governance-e2e-test.mjs`) — **trước** lượt nâng cấp kế tiếp của bất kỳ chain nào: chủ SBull tự gọi được
+`/api/upgrade`, và lượt thứ hai của họ với mã đang chạy trên server là lỗi 2. [human] đẩy `origin`. [main] netgen nên in khối
+chainId L1 **riêng** cho băng tập (kit K1 đã ghi, vẫn chưa làm).

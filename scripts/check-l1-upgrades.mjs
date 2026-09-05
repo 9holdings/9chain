@@ -49,7 +49,7 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { upgradeShape } from "../local-net/lib/l1-upgrade.mjs";
+import { upgradeShape, chainDirVerdict } from "../local-net/lib/l1-upgrade.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
@@ -98,8 +98,19 @@ export function readNodeAnswer(node, body) {
   return { node, ok: true, upgrades: j.result?.upgrades?.precompileUpgrades ?? [] };
 }
 
-export function compareChain({ name, disk, nodes, ledger }) {
+export function compareChain({ name, disk, nodes, ledger, files }) {
   const findings = [];
+
+  // 0 · What the NODE would read from the directory. avalanchego opens a chain directory with
+  //     Glob("upgrade.*") (config.go:1144 → storage_common.go:28): one match is loaded whatever it
+  //     is called, two matches stop the node at boot. Measured on the drill network 2026-09-05:
+  //     a lone `upgrade.json.failed-…` was loaded as the upgrade; `upgrade.json` beside a
+  //     `.prev-…` copy left the node in a restart loop. Neither is visible in the file this gate
+  //     reads as "disk", so the directory listing is a quantity of its own.
+  if (Array.isArray(files)) {
+    const verdict = chainDirVerdict(files);
+    if (verdict) findings.push(`"${name}": ${verdict}`);
+  }
 
   // 1 · Silence is not agreement. Every node must be serving this chain before anything else here
   //     means anything at all.
@@ -217,6 +228,16 @@ if (SELF_TEST) {
   ok("🔴 neither result nor error ⇒ not serving (never a silent empty list)",
     readNodeAnswer("n1", "{}").ok === false);
 
+  console.log("\n── 🔴 the directory the node reads: Glob(\"upgrade.*\") ──");
+  r = compareChain({ name: "TwoFiles", disk: { precompileUpgrades: one }, nodes: nodesAll(one), ledger: undefined, files: ["config.json", "upgrade.json", "upgrade.json.prev-2026-09-04T17-00-00Z"] });
+  ok("🔴 upgrade.json + a .prev- copy beside it ⇒ every restarting node fails to BOOT (measured: drill node-4)", has(r, "refuses to START THE NODE") && has(r, "upgrade.json.prev-2026-09-04T17-00-00Z"), r.findings.join(" | "));
+  r = compareChain({ name: "StrayOnly", disk: null, nodes: nodesAll([]), ledger: undefined, files: ["config.json", "upgrade.json.failed-1788623533663"] });
+  ok("🔴 a lone renamed file ⇒ the node LOADS it on the next restart (measured: drill node-2)", has(r, "LOADS that file") && has(r, "upgrade.json.failed-1788623533663"), r.findings.join(" | "));
+  r = compareChain({ name: "CleanDir", disk: { precompileUpgrades: one }, nodes: nodesAll(one), ledger: undefined, files: ["config.json", "upgrade.json"] });
+  ok("upgrade.json alone ⇒ nothing to report", r.findings.length === 0, r.findings.join(" | "));
+  r = compareChain({ name: "NoListing", disk: { precompileUpgrades: one }, nodes: nodesAll(one), ledger: undefined });
+  ok("no listing given ⇒ the directory rule is skipped, the other rules still run", r.findings.length === 0, r.findings.join(" | "));
+
   console.log("\n── the ledger, checked last ──");
   r = compareChain({ name: "LedgerOnly", disk: null, nodes: nodesAll([]), ledger: [{ entry: entry("txAllowListConfig", 1800000000) }] });
   ok("🔴 ledger records an upgrade that never reached disk", has(r, "no upgrade.json on disk"), r.findings.join(" | "));
@@ -275,6 +296,10 @@ for d in "$CFG"/chains/*/; do
     echo
   fi
 done
+echo "@@FILES"
+for d in "$CFG"/chains/*/; do
+  echo "--$(basename "$d") $(ls -1A "$d" | tr '\\n' ' ')"
+done
 echo "@@NODES"
 for bc in $(python3 -c "import json,sys; d=json.load(open('$CFG/console-chains.json')); print(' '.join(c['blockchainID'] for c in d.get('chains',[])))" 2>/dev/null); do
   for n in ${NODES.join(" ")}; do
@@ -308,11 +333,17 @@ const chains = ledger?.chains ?? [];
 if (chains.length === 0) cannotRun("the ledger lists no live chains", "Nothing to compare. If chains exist, the ledger path in this gate is wrong.");
 
 const disks = new Map();
-for (const block of cut("@@DISK", "@@NODES").split("\n--").slice(1)) {
+for (const block of cut("@@DISK", "@@FILES").split("\n--").slice(1)) {
   const nl = block.indexOf("\n");
   const bc = block.slice(0, nl).trim();
   try { disks.set(bc, JSON.parse(block.slice(nl).trim())); }
   catch { disks.set(bc, { __unparseable: true }); }
+}
+// The directory listing per chain — what the node's glob sees, not what the console meant.
+const listings = new Map();
+for (const line of cut("@@FILES", "@@NODES").split("\n")) {
+  const m = line.match(/^--(\S+)\s*(.*)$/);
+  if (m) listings.set(m[1], m[2].trim().split(/\s+/).filter(Boolean));
 }
 
 const nodeAnswers = new Map();   // blockchainID -> [{node, ok, upgrades, why}]
@@ -348,6 +379,7 @@ for (const chain of chains) {
     disk: diskRaw,
     nodes: nodeAnswers.get(bc) ?? NODES.map((node) => ({ node, ok: false, why: "not queried", upgrades: [] })),
     ledger: chain.upgrades,
+    files: listings.get(bc),
   });
   ok(`${chain.name} (${bc.slice(0, 8)}…): disk ↔ 9 nodes ↔ ledger agree`, findings.length === 0,
     findings.join("\n      · "));

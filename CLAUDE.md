@@ -125,6 +125,9 @@ node scripts/check-worktree-ownership.mjs    # 🔴 NHÁNH NÀY được sửa �
                                              #    nhánh detached / `claude/*` = mã 2, KHÔNG BAO GIỜ 0 (ba commit đã mất ở đó, D-193)
 bash local-net/deploy/deploy-lock.sh --self-test   # khoá deploy trên server: một phiên một bề mặt (D-194)
 node local-net/deploy/check-heartbeat-stopped.mjs  # bơm 9 tx/s ĐÃ DỪNG THẬT chưa — hỏi SERVER; đỏ có chủ ý tới 09/09
+node scripts/drill-upgrade-rollback.mjs --self-test  # 🔴 đường LÙI nâng cấp L1 khi gãy ở node k>1 (D-195) — luật chấm;
+                                             #    `--run` tiêm lỗi vào MẠNG TẬP (từ chối mọi networkID ngoài băng 899999xxx),
+                                             #    đo eth_getChainConfig BÊN TRONG từng node; `--heal` trả mạng tập về 9/9
 node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
 ```
 
