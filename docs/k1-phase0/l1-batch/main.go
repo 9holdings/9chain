@@ -134,6 +134,16 @@ func main() {
 		err = cmdFund(os.Args[2:])
 	case "topup":
 		err = cmdTopup(os.Args[2:])
+	case "keygen":
+		err = cmdKeygen(os.Args[2:])
+	case "compose":
+		err = cmdCompose(os.Args[2:])
+	case "workers":
+		err = cmdWorkers(os.Args[2:])
+	case "router":
+		err = cmdRouter(os.Args[2:])
+	case "measure":
+		err = cmdMeasure(os.Args[2:])
 	case "help", "-h", "--help":
 		usage()
 	default:
@@ -147,7 +157,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, `l1-batch <plan|fund|apply|render|status|pump> [flags]   (run each with -h for flags)`)
+	fmt.Fprintln(os.Stderr, `l1-batch <plan|fund|workers|apply|render|status|pump|topup|keygen|compose|router|measure> [flags]   (run each with -h for flags)`)
 }
 
 // ── topup ────────────────────────────────────────────────────────────────────────────────────
@@ -247,6 +257,7 @@ func cmdFund(args []string) error {
 func cmdPlan(args []string) error {
 	fs := flag.NewFlagSet("plan", flag.ExitOnError)
 	nodes := fs.String("nodes", "", "comma-separated node API URIs, in node order (node1 first)")
+	invPath := fs.String("inventory", "", "derive the host-node list from an inventory instead of -nodes (K1)")
 	services := fs.String("services", "9chain-a1-tap-node-", "compose service name prefix; node i → prefix+i")
 	count := fs.Int("count", 30, "number of ledgers")
 	perNode := fs.Int("per-node", 14, "max ledgers per node (16 is the protocol wall; 15 leaves one for the community chain)")
@@ -262,20 +273,28 @@ func cmdPlan(args []string) error {
 	networkID := fs.Uint("network-id", 899999998, "drill band networkID, recorded in the plan")
 	fs.Parse(args)
 
-	if *nodes == "" {
-		return errors.New("-nodes is required")
+	if *nodes == "" && *invPath == "" {
+		return errors.New("-nodes or -inventory is required")
 	}
 	lo, hi, err := parseRange(*forbid)
 	if err != nil {
 		return err
 	}
 	var refs []NodeRef
-	for i, u := range strings.Split(*nodes, ",") {
-		u = strings.TrimSpace(u)
-		if u == "" {
-			continue
+	if *invPath != "" {
+		inv, err := readInventory(*invPath)
+		if err != nil {
+			return err
 		}
-		refs = append(refs, NodeRef{Name: fmt.Sprintf("node%d", i+1), URI: u, Service: fmt.Sprintf("%s%d", *services, i+1)})
+		refs = nodesFromInventory(inv)
+	} else {
+		for i, u := range strings.Split(*nodes, ",") {
+			u = strings.TrimSpace(u)
+			if u == "" {
+				continue
+			}
+			refs = append(refs, NodeRef{Name: fmt.Sprintf("node%d", i+1), URI: u, Service: fmt.Sprintf("%s%d", *services, i+1)})
+		}
 	}
 	if len(refs)**perNode < *count {
 		return fmt.Errorf("%d nodes × %d per node = %d slots < %d ledgers", len(refs), *perNode, len(refs)**perNode, *count)
@@ -412,18 +431,43 @@ func cmdApply(args []string) error {
 	weight := fs.Uint64("weight", 100, "validator weight")
 	limit := fs.Int("limit", 0, "stop after this many NEW ledgers (0 = all)")
 	timeout := fs.Duration("tx-timeout", 90*time.Second, "per-transaction timeout")
+	workers := fs.Int("workers", 1, "parallel issuers; > 1 needs -workers-file from `workers` (one UTXO chain per key)")
+	workersFile := fs.String("workers-file", "out/plan/workers.json", "worker keys from `workers`")
 	fs.Parse(args)
 
 	plan, err := readPlan(*planPath)
 	if err != nil {
 		return err
 	}
-	if *keyStr == "" {
-		return errors.New("-key (or K1_FUND_KEY) is required: a PrivateKey-<cb58> holding LOVE9 on the drill P-Chain (keys.txt from netgen)")
-	}
-	fundKey, err := parseKey(*keyStr)
-	if err != nil {
-		return err
+	var keys []*secp256k1.PrivateKey
+	if *workers > 1 {
+		b, err := os.ReadFile(*workersFile)
+		if err != nil {
+			return fmt.Errorf("-workers %d needs %s: %w", *workers, *workersFile, err)
+		}
+		var wk workerKeys
+		if err := json.Unmarshal(b, &wk); err != nil {
+			return err
+		}
+		if len(wk.Keys) < *workers {
+			return fmt.Errorf("%s has %d keys, -workers is %d", *workersFile, len(wk.Keys), *workers)
+		}
+		for _, ks := range wk.Keys[:*workers] {
+			k, err := parseKey(ks)
+			if err != nil {
+				return err
+			}
+			keys = append(keys, k)
+		}
+	} else {
+		if *keyStr == "" {
+			return errors.New("-key (or K1_FUND_KEY) is required: a PrivateKey-<cb58> holding LOVE9 on the drill P-Chain (keys.txt from netgen)")
+		}
+		fundKey, err := parseKey(*keyStr)
+		if err != nil {
+			return err
+		}
+		keys = []*secp256k1.PrivateKey{fundKey}
 	}
 	if *uri == "" {
 		*uri = plan.Nodes[0].URI
@@ -449,8 +493,6 @@ func cmdApply(args []string) error {
 		nodeByName[n.Name] = n
 	}
 	planDir := filepath.Dir(*planPath)
-	kc := secp256k1fx.NewKeychain(fundKey)
-	subnetOwner := &secp256k1fx.OutputOwners{Threshold: 1, Addrs: []ids.ShortID{fundKey.Address()}}
 	pops := &popCache{m: map[string]nodeIdentity{}}
 
 	f, err := os.OpenFile(*outPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
@@ -459,100 +501,147 @@ func cmdApply(args []string) error {
 	}
 	defer f.Close()
 
-	newCount := 0
-	fmt.Printf("apply: %d ledgers in plan, %d already converted, issuing through %s\n", len(plan.Ledgers), len(done), *uri)
+	// the work list, then dealt round-robin to workers — each worker is one key = one UTXO chain
+	var todo []Ledger
 	for _, l := range plan.Ledgers {
 		if doneByName[l.Name] {
 			continue
 		}
-		if *limit > 0 && newCount >= *limit {
+		if *limit > 0 && len(todo) >= *limit {
 			break
 		}
-		node, ok := nodeByName[l.Node]
-		if !ok {
-			return fmt.Errorf("%s assigned to unknown node %s", l.Name, l.Node)
-		}
-		ident, err := pops.get(node.URI)
-		if err != nil {
-			return fmt.Errorf("%s: info.getNodeID on %s: %w", l.Name, node.URI, err)
-		}
-		genesis, err := os.ReadFile(filepath.Join(planDir, l.Genesis))
-		if err != nil {
-			return err
-		}
-		ownerShort, err := ids.ShortFromString(l.OwnerP)
-		if err != nil {
-			return fmt.Errorf("%s ownerP: %w", l.Name, err)
-		}
-		rec := ChainRecord{Name: l.Name, ChainID: l.ChainID, Node: node.Name, NodeURI: node.URI, NodeID: ident.NodeID.String()}
-
-		// 1) subnet
-		ctx, cancel := context.WithTimeout(context.Background(), *timeout)
-		t0 := time.Now()
-		w, err := primary.MakePWallet(ctx, *uri, kc, primary.WalletConfig{})
-		if err != nil {
-			cancel()
-			return fmt.Errorf("%s: wallet: %w", l.Name, err)
-		}
-		subnetTx, err := w.IssueCreateSubnetTx(subnetOwner)
-		cancel()
-		if err != nil {
-			return fmt.Errorf("%s: CreateSubnetTx: %w", l.Name, err)
-		}
-		subnetID := subnetTx.ID()
-		rec.SubnetID = subnetID.String()
-		rec.SubnetMs = time.Since(t0).Milliseconds()
-
-		// 2) chain (the wallet must know the subnet to sign with its auth)
-		ctx, cancel = context.WithTimeout(context.Background(), *timeout)
-		t1 := time.Now()
-		w, err = primary.MakePWallet(ctx, *uri, kc, primary.WalletConfig{SubnetIDs: []ids.ID{subnetID}})
-		if err != nil {
-			cancel()
-			return fmt.Errorf("%s: wallet(subnet): %w", l.Name, err)
-		}
-		// CreateChainTx accepts letters, digits and spaces only ("illegal name character" on the
-		// drill for "so-0001" — that run left subnet gHip8K…VsA orphaned, the first real orphan).
-		chainTx, err := w.IssueCreateChainTx(subnetID, genesis, vmID, nil, strings.ReplaceAll(l.Name, "-", " "))
-		if err != nil {
-			cancel()
-			return fmt.Errorf("%s: CreateChainTx (subnet %s is now ORPHANED): %w", l.Name, subnetID, err)
-		}
-		blockchainID := chainTx.ID()
-		rec.BlockchainID = blockchainID.String()
-		rec.ChainMs = time.Since(t1).Milliseconds()
-
-		// 3) convert — one validator, the assigned node; owners = the ledger owner
-		t2 := time.Now()
-		pOwner := message.PChainOwner{Threshold: 1, Addresses: []ids.ShortID{ownerShort}}
-		vdr := &txs.ConvertSubnetToL1Validator{
-			NodeID:                ident.NodeID.Bytes(),
-			Weight:                *weight,
-			Balance:               l.BalanceNLove9,
-			Signer:                *ident.POP,
-			RemainingBalanceOwner: pOwner,
-			DeactivationOwner:     pOwner,
-		}
-		convertTx, err := w.IssueConvertSubnetToL1Tx(subnetID, blockchainID, managerBytes, []*txs.ConvertSubnetToL1Validator{vdr})
-		cancel()
-		if err != nil {
-			return fmt.Errorf("%s: ConvertSubnetToL1Tx (subnet %s + chain %s created, NOT converted): %w", l.Name, subnetID, blockchainID, err)
-		}
-		rec.ConvertTx = convertTx.ID().String()
-		rec.ValidationID = subnetID.Append(0).String() // executor: tx.Subnet.Append(uint32(i)) for validator i
-		rec.ConvertMs = time.Since(t2).Milliseconds()
-		rec.At = time.Now().UTC()
-
-		line, _ := json.Marshal(rec)
-		if _, err := f.Write(append(line, '\n')); err != nil {
-			return err
-		}
-		newCount++
-		fmt.Printf("✓ %s chainId=%d node=%s subnet=%s chain=%s validation=%s  (%d+%d+%d ms)\n",
-			l.Name, l.ChainID, node.Name, rec.SubnetID, rec.BlockchainID, rec.ValidationID, rec.SubnetMs, rec.ChainMs, rec.ConvertMs)
+		todo = append(todo, l)
 	}
-	fmt.Printf("apply: %d new, %d total converted → %s\n", newCount, len(done)+newCount, *outPath)
-	return nil
+	fmt.Printf("apply: %d ledgers in plan, %d already converted, %d to do, %d worker(s), issuing through %s\n",
+		len(plan.Ledgers), len(done), len(todo), len(keys), *uri)
+
+	var (
+		mu       sync.Mutex
+		wg       sync.WaitGroup
+		newCount int
+		firstErr error
+	)
+	tStart := time.Now()
+	for wi, key := range keys {
+		wg.Add(1)
+		go func(wi int, key *secp256k1.PrivateKey) {
+			defer wg.Done()
+			kc := secp256k1fx.NewKeychain(key)
+			subnetOwner := &secp256k1fx.OutputOwners{Threshold: 1, Addrs: []ids.ShortID{key.Address()}}
+			for i := wi; i < len(todo); i += len(keys) {
+				l := todo[i]
+				node, ok := nodeByName[l.Node]
+				if !ok {
+					mu.Lock()
+					if firstErr == nil {
+						firstErr = fmt.Errorf("%s assigned to unknown node %s", l.Name, l.Node)
+					}
+					mu.Unlock()
+					return
+				}
+				rec, err := convertLedger(l, node, planDir, kc, subnetOwner, pops, *uri, vmID, managerBytes, *weight, *timeout)
+				mu.Lock()
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "✗ worker %d: %v\n", wi, err)
+					if firstErr == nil {
+						firstErr = err
+					}
+					mu.Unlock()
+					return
+				}
+				line, _ := json.Marshal(rec)
+				if _, werr := f.Write(append(line, '\n')); werr != nil && firstErr == nil {
+					firstErr = werr
+				}
+				newCount++
+				fmt.Printf("✓ %s chainId=%d node=%s subnet=%s chain=%s validation=%s  (%d+%d+%d ms, w%d)\n",
+					l.Name, l.ChainID, node.Name, rec.SubnetID, rec.BlockchainID, rec.ValidationID, rec.SubnetMs, rec.ChainMs, rec.ConvertMs, wi)
+				mu.Unlock()
+			}
+		}(wi, key)
+	}
+	wg.Wait()
+	fmt.Printf("apply: %d new, %d total converted → %s  (%s, %.1f s/ledger wall-clock)\n",
+		newCount, len(done)+newCount, *outPath, time.Since(tStart).Round(time.Second), time.Since(tStart).Seconds()/float64(max(newCount, 1)))
+	return firstErr
+}
+
+// convertLedger issues the three P-Chain transactions for one ledger. A failure between steps
+// leaves an orphan on P-Chain (subnet without chain, or subnet+chain without conversion); the
+// error names it so it can be counted — phase 0 produced two that way.
+func convertLedger(l Ledger, node NodeRef, planDir string, kc *secp256k1fx.Keychain, subnetOwner *secp256k1fx.OutputOwners,
+	pops *popCache, uri string, vmID ids.ID, managerBytes []byte, weight uint64, timeout time.Duration) (ChainRecord, error) {
+	ident, err := pops.get(node.URI)
+	if err != nil {
+		return ChainRecord{}, fmt.Errorf("%s: info.getNodeID on %s: %w", l.Name, node.URI, err)
+	}
+	genesis, err := os.ReadFile(filepath.Join(planDir, l.Genesis))
+	if err != nil {
+		return ChainRecord{}, err
+	}
+	ownerShort, err := ids.ShortFromString(l.OwnerP)
+	if err != nil {
+		return ChainRecord{}, fmt.Errorf("%s ownerP: %w", l.Name, err)
+	}
+	rec := ChainRecord{Name: l.Name, ChainID: l.ChainID, Node: node.Name, NodeURI: node.URI, NodeID: ident.NodeID.String()}
+
+	// 1) subnet
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	t0 := time.Now()
+	w, err := primary.MakePWallet(ctx, uri, kc, primary.WalletConfig{})
+	if err != nil {
+		cancel()
+		return rec, fmt.Errorf("%s: wallet: %w", l.Name, err)
+	}
+	subnetTx, err := w.IssueCreateSubnetTx(subnetOwner)
+	cancel()
+	if err != nil {
+		return rec, fmt.Errorf("%s: CreateSubnetTx: %w", l.Name, err)
+	}
+	subnetID := subnetTx.ID()
+	rec.SubnetID = subnetID.String()
+	rec.SubnetMs = time.Since(t0).Milliseconds()
+
+	// 2) chain (the wallet must know the subnet to sign with its auth)
+	ctx, cancel = context.WithTimeout(context.Background(), timeout)
+	t1 := time.Now()
+	w, err = primary.MakePWallet(ctx, uri, kc, primary.WalletConfig{SubnetIDs: []ids.ID{subnetID}})
+	if err != nil {
+		cancel()
+		return rec, fmt.Errorf("%s: wallet(subnet): %w", l.Name, err)
+	}
+	// CreateChainTx accepts letters, digits and spaces only ("illegal name character" on the
+	// drill for "so-0001" — that run left subnet gHip8K…VsA orphaned, the first real orphan).
+	chainTx, err := w.IssueCreateChainTx(subnetID, genesis, vmID, nil, strings.ReplaceAll(l.Name, "-", " "))
+	if err != nil {
+		cancel()
+		return rec, fmt.Errorf("%s: CreateChainTx (subnet %s is now ORPHANED): %w", l.Name, subnetID, err)
+	}
+	blockchainID := chainTx.ID()
+	rec.BlockchainID = blockchainID.String()
+	rec.ChainMs = time.Since(t1).Milliseconds()
+
+	// 3) convert — one validator, the assigned node; owners = the ledger owner
+	t2 := time.Now()
+	pOwner := message.PChainOwner{Threshold: 1, Addresses: []ids.ShortID{ownerShort}}
+	vdr := &txs.ConvertSubnetToL1Validator{
+		NodeID:                ident.NodeID.Bytes(),
+		Weight:                weight,
+		Balance:               l.BalanceNLove9,
+		Signer:                *ident.POP,
+		RemainingBalanceOwner: pOwner,
+		DeactivationOwner:     pOwner,
+	}
+	convertTx, err := w.IssueConvertSubnetToL1Tx(subnetID, blockchainID, managerBytes, []*txs.ConvertSubnetToL1Validator{vdr})
+	cancel()
+	if err != nil {
+		return rec, fmt.Errorf("%s: ConvertSubnetToL1Tx (subnet %s + chain %s created, NOT converted): %w", l.Name, subnetID, blockchainID, err)
+	}
+	rec.ConvertTx = convertTx.ID().String()
+	rec.ValidationID = subnetID.Append(0).String() // executor: tx.Subnet.Append(uint32(i)) for validator i
+	rec.ConvertMs = time.Since(t2).Milliseconds()
+	rec.At = time.Now().UTC()
+	return rec, nil
 }
 
 func (c *popCache) get(uri string) (nodeIdentity, error) {
@@ -704,6 +793,7 @@ func cmdStatus(args []string) error {
 	planPath := fs.String("plan", "out/plan/plan.json", "plan.json")
 	chainsPath := fs.String("chains", "out/plan/chains.jsonl", "chains.jsonl")
 	uri := fs.String("uri", "", "P-Chain API URI (default: first node)")
+	warnSeconds := fs.Uint64("warn-seconds", 0, "fee-runway gate: flag validators whose balance/price < this many seconds (K1: 172800 = 2 days); exit 2 if any")
 	fs.Parse(args)
 
 	plan, err := readPlan(*planPath)
@@ -726,6 +816,17 @@ func cmdStatus(args []string) error {
 		return fmt.Errorf("platform.getValidatorFeeState: %w", err)
 	}
 	fmt.Printf("P-Chain validator fee: price=%s nLOVE9/s excess=%s at %s\n", fee.Price, fee.Excess, fee.Timestamp)
+	price, _ := strconv.ParseUint(fee.Price.String(), 10, 64)
+	if price == 0 {
+		price = 1
+	}
+	// Fee runway gate (DEEP-DIVE §3): a validator that runs dry goes inactive silently — its weight
+	// stays in the quorum denominator, so on a multi-validator chain Warp dies before anyone notices.
+	lowRunway := 0
+	if *warnSeconds > 0 {
+		// price is per second at the current excess; balance/price is the floor of the runway
+		fmt.Printf("fee runway gate: warn below %d s (%.1f days) at price %d nLOVE9/s\n", *warnSeconds, float64(*warnSeconds)/86400, price)
+	}
 
 	bad := 0
 	fmt.Printf("%-8s %-11s %-6s %-8s %-14s %-8s %s\n", "ledger", "chainId", "node", "weight", "balance", "active", "eth_chainId")
@@ -758,15 +859,26 @@ func cmdStatus(args []string) error {
 			mark = "✗"
 			bad++
 		}
+		if *warnSeconds > 0 && verr == nil {
+			bal, _ := strconv.ParseUint(v.Balance.String(), 10, 64)
+			if bal/price < *warnSeconds {
+				mark = "⚠"
+				lowRunway++
+			}
+		}
 		w, bal := v.Weight.String(), v.Balance.String()
 		if verr != nil {
 			w, bal = "err", short(verr.Error(), 14)
 		}
 		fmt.Printf("%s%-7s %-11d %-6s %-8s %-14s %-8s %s\n", mark, c.Name, c.ChainID, c.Node, w, bal, active, ethStr)
 	}
-	fmt.Printf("%d chains, %d problems\n", len(chains), bad)
+	fmt.Printf("%d chains, %d problems, %d below fee runway\n", len(chains), bad, lowRunway)
 	if bad > 0 {
 		return fmt.Errorf("%d chains not as recorded", bad)
+	}
+	if lowRunway > 0 {
+		fmt.Fprintf(os.Stderr, "⚠ %d validator(s) will go dormant within %d s — top up BEFORE any node restart (EVIDENCE 0.4d)\n", lowRunway, *warnSeconds)
+		os.Exit(2)
 	}
 	return nil
 }

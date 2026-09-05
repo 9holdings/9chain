@@ -74,6 +74,31 @@ scripts/down.sh && scripts/up.sh --k1      # restart MỘT lần với --track-s
 scripts/l1.sh status                # 5/5 eth_chainId đúng · getL1Validator đúng node · phí giá 1
 ```
 
+## Đường K1 thật — 72 node trên 9 máy (sau khi máy lên)
+
+```bash
+# 0 · mạng mẹ băng tập 9 node (netgen N=9 → out/net9, xem lệnh ở trên với N=9, SUBNET_PREFIX=172.32.0)
+scripts/l1.sh keygen  -inventory hosts/inventory.json -out out/hosts            # 72 identity, không ghi đè
+scripts/l1.sh compose -inventory hosts/inventory.json -net out/net9 -hosts out/hosts -chains /dev/null -out out/deploy
+for m in k1-m0{1..9}; do scripts/push-host.sh $m hosts/inventory.json; done      # rsync + image + compose up (chưa track gì)
+scripts/hosts-run.sh hosts/inventory.json 14-startclose.sh                        # 81 node, peers ≈ 80, 0 StartClose
+scripts/l1.sh plan -inventory hosts/inventory.json -count 1000 -per-node 14 -chain-id-base 8990000001 -dormant-first 300 -dormant-balance 200000
+K1_FUND_KEY=… scripts/l1.sh fund -uri http://<m01>:9800 -amount 100000000000        # 100 LOVE9 X→P
+K1_FUND_KEY=… scripts/l1.sh workers -uri http://<m01>:9800 -n 10 -each 5000000000
+scripts/l1.sh apply -uri http://<m01>:9800 -workers 10                              # ≈ 5 phút cho 1.000 sổ
+scripts/l1.sh render -solo-snow=false                                                # config/chains + assignment.json
+scripts/l1.sh compose -inventory hosts/inventory.json -net out/net9 -hosts out/hosts -out out/deploy   # nay có AVAGO_TRACK_SUBNETS
+for m in k1-m0{1..9}; do scripts/push-host.sh $m hosts/inventory.json; done      # restart MỘT lần mỗi node có sổ
+scripts/l1.sh status -uri http://<m01>:9800 -warn-seconds 172800                  # 1.000/1.000 + cổng phí
+scripts/l1.sh router -assignment out/plan/assignment.json -out out/router/Caddyfile  # đẩy lên VM router
+scripts/l1.sh measure -nodes out/deploy/nodes.json -out out/measure                  # đẩy lên VM đo
+scripts/l1.sh pump -rate 1 -seconds 604800                                            # từ 3 VM sinh tải, chia -only
+```
+
+Cổng trên máy: host node `--staking-port` 9651…9658 và API 9650…9720; node mẹ 9661…9663 và API 9800…9820
+(API mẹ **không** ở 9700: trùng h06–h08, bắt được khi đọc compose sinh ra). Beacon cùng máy = IP Docker nội bộ,
+khác máy = IP công khai (Docker không hairpin, patch 0024).
+
 ## Bảy phép đo — lệnh, điều kiện qua, ca đỏ
 
 | # | Đo | Lệnh | Qua khi | Ca đỏ |

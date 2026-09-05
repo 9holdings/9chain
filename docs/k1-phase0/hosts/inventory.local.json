@@ -1,0 +1,8 @@
+{
+  "_doc": "LOCAL TEST inventory: one pretend machine with two ledger-host nodes joining the phase-0 drill cluster (k1p0_a1net, beacons = the three running mother nodes). No mother nodes here on purpose: they already run. Use with: compose -inventory hosts/inventory.local.json -external-network k1p0_a1net -ip-prefix 172.31.0 -ip-base 100 -beacons <NodeID>@172.31.0.11:9651,...",
+  "provider": "local-docker",
+  "machines": [
+    { "name": "mlocal", "dc": "dev", "ip": "127.0.0.1", "hostNodes": 2, "motherNodes": 0 }
+  ],
+  "vms": []
+}

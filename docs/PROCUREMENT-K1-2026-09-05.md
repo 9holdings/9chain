@@ -73,7 +73,7 @@ m04–m06 FSN · m07–m09 HEL    8 host nodes mỗi máy (h25–h72)
 | Cổng trên mỗi máy | Node | Mở ra Internet? |
 |---|---|---|
 | 9651–9658 (8 host) · 9661–9663 (3 mẹ, m01–m03) | `--staking-port` riêng từng node (`A1_STAKING_PORT_BASE`) | **Có** — P2P |
-| 9650, 9660, … (API) | `--http-port` từng node | **Không** — chỉ từ IP router + IP máy đo + IP máy `l1-batch` (nftables) |
+| 9650, 9660, … 9720 (API host) · 9800, 9810, 9820 (API mẹ) | cổng host-side, trong container vẫn 9650 | **Không** — chỉ từ IP router + IP máy đo + IP máy `l1-batch` (nftables). *(Bản đầu để API mẹ ở 9700 — trùng h06–h08; bắt được khi đọc compose sinh ra.)* |
 | 22 | SSH | chỉ khoá; đổi cổng không cần |
 
 `ipv4port` (patch 0024): **chỉ beacon** khai `--public-ip`; node cùng máy giữ địa chỉ Docker nội bộ; node máy khác
@@ -113,6 +113,13 @@ Tôi **không** làm bước 1–3 và 6: đó là tài khoản, tiền và cam 
 | 6 | `bootstrap-host.sh` + `accept-host.sh` chạy thử trên **một VM** trước khi máy dedicated tới | kit `hosts/` (viết hôm nay) | 0,5 |
 
 Tổng ~6 ngày, khớp cửa sổ giao máy dedicated (thường 1–7 ngày).
+
+**✅ Làm xong `05/09` trong kit `docs/k1-phase0/` (không đụng `main`), đo trên cụm băng tập — chi tiết
+`EVIDENCE-2026-09-05.md` mục "Sáu việc":** (1) `keygen` + `compose` đa máy — thử cục bộ 2 node chủ sổ nối cụm, partial-sync,
+theo chain sổ tới cùng chiều cao; hình 9 máy 81 node sinh ra và đọc lại, bắt và sửa lỗi trùng cổng API mẹ 9700 ↔ h06–h08 ·
+(2) `workers` + `apply -workers` — 0,9 s/sổ · (3) `router` — Caddy, 404 JSON cho id lạ · (4) `measure` (81 target Prometheus)
++ `hosts-run.sh` (fan-out SSH) · (5) `status -warn-seconds` — thấy xanh và đỏ · (6) `bootstrap-host.sh` dry-run, `accept-host.sh`
+thấy đỏ. Còn chờ máy thật: SSH fan-out, `push-host.sh`, và bài `accept-host.sh` trên VM có systemd.
 
 ---
 

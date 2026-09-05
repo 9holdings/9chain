@@ -43,7 +43,7 @@ write_files:
           ip protocol icmp accept
           tcp dport 22 accept
           tcp dport 9651-9670 accept                      # staking / P2P, every node its own port
-          ip saddr $ADMIN tcp dport 9650-9700 accept      # HTTP API only from admin hosts
+          ip saddr $ADMIN tcp dport 9650-9830 accept      # HTTP API only from admin hosts (hosts 9650…9720, mothers 9800…9820)
         }
         chain forward { type filter hook forward priority 0; policy accept; }
         chain output  { type filter hook output  priority 0; policy accept; }
