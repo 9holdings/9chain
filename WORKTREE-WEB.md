@@ -25,6 +25,24 @@ số cũ "~170 s" là thời 5 node)* · **trần 15 chỗ nay hiện CÔNG KHAI
 **Cổng mới:** `web/scripts/check-slots.mjs` (trong `web-deploy.sh`) hỏi danh bạ SỐNG và đối
 chiếu với hằng số `L1_SLOTS`; in `11/15 · 4 left`, **đã thấy ĐỎ** khi hạ trần xuống 3.
 
+### Đã thêm sau khối trên (cùng phiên `05/09`)
+
+| Việc | Đo được |
+|---|---|
+| **`/validators/`** — trang trả lời câu tự-tố của trang chủ | Sống. Số đọc từ chain: **11 validator · 10 nối · cọc tối thiểu 81 LOVE9 · 2 đang cọc ở mức tối thiểu**. Hai liên kết ra GitHub đã fetch thật (200, hướng dẫn công khai 0 placeholder). 375px: 0 tràn |
+| 🔴 **Phép tính faucet tự mâu thuẫn** — bắt được SAU khi deploy | Đoạn văn nói "chín lượt không đủ", dòng phép tính ngay dưới in `9 × 9 = 81 ≥ 81`. Nay `faucetRequestsNeeded()` (+1 lượt cho phí) và dấu `>` chặt: `9 × 10 = 90 > 81`. Test ghim công thức ngây thơ là thứ KHÔNG được trả về |
+| **`/chains/` hết `Loading…`** | HTML không-JS: **1 chữ → 6.466 ký tự**, đủ 11 tên chain; trang chủ 2.043 → 2.708. Nguồn: `lib/directorySnapshot.ts` (chép vào repo, **không** fetch lúc build) |
+| **Cổng mới `check-prerender.mjs`** | Trong `postbuild`, sàn ký tự theo từng trang. **Đã thấy ĐỎ đúng lỗi gốc**: body thay bằng `Loading…` ⇒ `10 chars, floor 6000` + câu "renders a loading state and nothing else without JavaScript" |
+
+🔴 **Ba luật giữ cho ảnh chụp không nói dối:** snapshot **không mang trạng thái** (trạng thái là
+phép ĐO, ảnh chụp là TRÍ NHỚ) · hai ô "Measured running"/"Need attention" hiện **gạch ngang chứ
+không phải 0** khi chưa đo gì · dòng thời gian in **ngày đầy đủ** cho ảnh chụp và **giờ** cho lượt
+đọc sống — *"updated at 14:32"* trên dữ liệu ba ngày tuổi là đúng loại nói dối trông như thật.
+
+⚠️ `gen-directory-snapshot.mjs` **từ chối** ghi ảnh chụp > 24 KB JSON, kèm lời dặn **đừng nới
+trần**: kế hoạch 108 L1 sẽ đi qua đúng đường này, và nhét cả trăm bản ghi vào bundle là sai cách —
+lúc đó ảnh chụp MỘT TRANG + tổng số thật.
+
 ### 🔴 Phiên sau
 
 1. **`[human]` David duyệt giọng 28 chuỗi VI mới + 3 chuỗi đổi** — bảng ở cuối
