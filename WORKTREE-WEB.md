@@ -35,11 +35,35 @@ chết từ trước**, không phải lỗi của lượt deploy nào. Đọc t�
    **(b)** kênh liên hệ thật cho chân trang (**D2**) — không có câu trả lời thì **KHÔNG
    LÀM**, tuyệt đối không bịa. **(c)** đổi bộ chữ cả site theo 9Scan (Manrope + Inter) —
    xem `[blocked]` cuối `docs/WEB-PROGRESS.md`.
-4. **`[human]` một lượt đăng nhập Cloudflare, hai việc:** tắt Managed robots.txt (**B-10**
-   — đo lại `04/09`: **vẫn còn**, `/robots.txt` trả bản Content Signals của CF với
-   `cf-cache-status: MISS` trong khi origin có tệp thật), và xem Analytics zone `9chain.org`
-   từ `25/08` (**Đ1-10 mục 1** — trả lời được cả **những ngày đã qua**, thứ không phép đo
-   nào bật hôm nay làm được).
+4. **`[human]` Cloudflare Analytics** — mở dashboard zone `9chain.org`, xem `a1.9chain.org`
+   từ `25/08` (**Đ1-10 mục 1**). 5 phút, 0 dòng mã, trả lời được cả **những ngày đã qua** —
+   thứ không phép đo nào bật hôm nay làm được.
+   🔴 **KHÔNG phải làm gì cho B-10.** Xem đính chính ngay dưới.
+
+### 🔴 ĐÍNH CHÍNH `04/09` — B-10 KHÔNG phải một lỗ, và tôi đã báo sai một lần nữa
+
+Tôi đo `/robots.txt`, thấy khối Content Signals của Cloudflare ở **đầu tệp** + `cf-cache-status:
+MISS`, và kết luận "CF vẫn che robots.txt của A1". **Sai.** Đọc hết 5.367 byte thì tệp của A1
+**còn nguyên bên dưới** — kết bằng chính `Disallow:` của mình và `Sitemap:
+https://a1.9chain.org/sitemap.xml`. Cloudflare **CHÈN THÊM VÀO ĐẦU, không THAY**.
+
+🔴 Đây là lần **thứ ba** cùng một lỗi trên cùng một tệp: `27/08`, `02/09` (D-106b), và nay.
+Cả ba lần đều **đọc dòng đầu rồi phán** — tức **đo VỊ TRÍ trong khi tưởng mình đo NỘI DUNG**.
+`cf-cache-status` đúng, nhưng nó nói về **đường đi**, không nói về **nội dung**.
+⚠️ Và lần này cái giá cụ thể hơn: nó suýt gửi David vào dashboard Cloudflare để sửa một thứ
+không hỏng. **Xanh sai làm người ta ngồi yên; đỏ sai làm người ta ra tay.**
+
+Phép chấm đúng đã được viết sẵn **trong chính `web/public/robots.txt`** từ lâu — *"đo NỘI DUNG
+mà không phụ thuộc VỊ TRÍ"*, kèm nguyên câu lệnh ở dòng 92 của tệp đó:
+
+```bash
+curl -sS https://a1.9chain.org/robots.txt | grep -q 'Sitemap: https://a1.9chain.org/sitemap.xml'
+```
+
+💡 Ghi chú nhỏ, không chặn ai: `robots.txt` vẫn `Disallow: /tx/ /address/ /block/` với lý do
+*"Explorer (Blockscout) ở gốc đẻ ra vô số URL"*. Blockscout đã nghỉ và ba đường đó nay **302
+sang 9Scan** — luật vẫn đúng (không nên để bot bò theo), nhưng **lý do ghi trong chú thích đã
+hết hạn**.
 5. Chưa lên `official` từ `847ec80`. `bash local-net/deploy/publish-official.sh web-home`.
 6. Console thêm preset mới ⇒ thêm vào `en.ts` `presets` + 29 dicts, quên thì
    `check-server-text.mjs` chặn deploy.
