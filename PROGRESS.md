@@ -15,14 +15,15 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 trên, bắt đầu bước 2"*. Chi tiết và số đo: D-193.
 
 - [human] **WT-1 — merge `main → web-home`** (đưa 296+ commit + luật `CLAUDE.md` sang). Phiên web đã commit xong lượt
-      của họ (`web-home` = `a33be0b`, cây sạch lúc `05/09` ~09:50Z) — vẫn là việc của phiên giữ nhánh đó, không tự merge (§4).
-      Nhánh cứu `web-rescue-orphans-20260905` (`629c674`) đã rebase lên đúng đỉnh ấy, ff-thuần: `git merge --ff-only` là đủ.
+      của họ (`web-home` đi liên tục: `a33be0b` → `a6b11fb` trong 40 phút) — vẫn là việc của phiên giữ nhánh đó, không tự merge (§4).
+      Nhánh cứu `web-rescue-orphans-20260905` (`b73a97c`, trên `b2ccdd7`): merge dry-run **sạch** với `a6b11fb`, không còn ff.
 - [x] **WT-2 — cứu ba commit mồ côi** (D-193, `05/09`)
       ✅ `main`: `local-net/deploy/check-heartbeat-stopped.mjs` + nối vào `gday-preflight` nhóm 3 (39 mục) + dòng T−10
       trong `CEREMONY-2026-09-09.md`. Chạy thật trên server: **đỏ đúng lý do** (bơm đang chạy có chủ ý tới `09/09`).
-      ✅ nhánh `web-rescue-orphans-20260905` (từ `web-home` `3c67172`): `prebuild: tsc` · `networkErrorOf()` · gỡ cảnh báo
-      *"chain sẽ bị xoá 01/09"* ở màn soát (**đang render trên site**) · W3 đo đúng ngôn ngữ · mục W-luu. Ba đối chứng
-      đỏ, `pnpm build` đầy đủ xanh. **KHÔNG ff vào `web-home`** — việc phiên web: `git merge --ff-only` rồi deploy.
+      ✅ nhánh `web-rescue-orphans-20260905` (`b73a97c`): `prebuild: tsc` · `networkErrorOf()` · W3 đo đúng ngôn ngữ · mục W-luu.
+      Ba đối chứng đỏ, `pnpm build` đầy đủ xanh; sau rebase: tsc 0, 109 test xanh. Cảnh báo *"chain sẽ bị xoá 01/09"* ở màn soát
+      (**đang render trên site lúc đo**) — **phiên web tự sửa cùng buổi** (`c0159c4`, cổng theo ngày), rebase giữ bản của họ.
+      **KHÔNG ff vào `web-home`** — việc phiên web: `git merge` (dry-run sạch) rồi deploy.
 - [x] **WT-3 — bảng sở hữu + cổng `check-worktree-ownership.mjs`** (D-194, `05/09`)
       ✅ `scripts/worktree-ownership.json` (3 nhánh · `shared` · 9 tệp tranh chấp có chủ) + cổng 0/1/2 đo **worktree đang đứng**,
       `--range` lịch sử (ba chấm), `--deploy <bề mặt>`. Self-test **24 ca**; đỏ thật trên `main` (tệp untracked trong `web/`);

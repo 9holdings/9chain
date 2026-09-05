@@ -1,7 +1,7 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
 Cập nhật: **2026-09-05 sáng** — 🔵 **CẤU TRÚC WORKTREE (D-193 · D-194)**: David hỏi *"cấu trúc worktree độc lập sao cho tối ưu"* → đo → năm bước, **bước 2→5 xong**, bước 1 là việc phiên web.
-Còn **3 worktree** (`main` · `web-home` · `audit`); **3 commit mồ côi cứu về** — một trong ba là cảnh báo *"chain sẽ bị xoá 01/09"* **vẫn đang render trên site** ở màn soát `/create-chain/`, nằm chờ ở nhánh `web-rescue-orphans-20260905` (ff-thuần từ `web-home a33be0b`);
+Còn **3 worktree** (`main` · `web-home` · `audit`); **3 commit mồ côi cứu về** — cảnh báo *"chain sẽ bị xoá 01/09"* ở màn soát `/create-chain/` đang render trên site lúc đo, và **phiên web tự sửa cùng buổi sáng** (`c0159c4`, cổng theo ngày); phần còn lại (cổng `prebuild: tsc` + helper + hai tài liệu) chờ ở nhánh `web-rescue-orphans-20260905` = `b73a97c` (merge sạch vào `web-home a6b11fb`, dry-run; không còn ff vì nhánh kia đi liên tục);
 luật cứng #4 nay là **bảng** `scripts/worktree-ownership.json` + cổng `check-worktree-ownership` (0/1/2) + khoá deploy `deploy-lock.sh` trên server (nối vào `console-deploy.sh`). Preflight: **56 đạt · 1 đỏ (cổng bơm — đỏ CÓ CHỦ Ý tới 05:39Z 09/09) · 0 không chạy được · 8 việc tay** (mục mới: 2 sở hữu + 1 bơm). `main` = **`b9c784c`**, CHƯA đẩy remote nào. Đọc mục **`2026-09-05` sáng** ngay dưới.
 Trước đó — cập nhật: **2026-09-04 tối muộn** — 🟢 **VÒNG NÂNG CẤP L1 ĐẦU TIÊN KHÉP TRỌN (D-189→D-192) · KẾ HOẠCH 5 MỐC XONG (D-185→D-188)**.
 `official/main` = **`f729d2c`** (công bố qua `publish-official.sh`, fast-forward, nghiệm thu độc lập: 0 tệp `local-net/deploy/`,
@@ -108,9 +108,12 @@ David: *"hãy đọc HANDOFF ⇒ nên cấu trúc các worktree độc lập là
             3 commit mồ côi: gday 6793fb4 (cổng bơm) · claude/* 6490592 (prebuild tsc) · 10e19c4 (/re-genesis/ + màn soát)
 bước 2    : main b96bf6a — check-heartbeat-stopped.mjs + preflight nhóm 3 + T−10 trong CEREMONY; chạy thật: ĐỎ đúng lý do
             (bơm đang chạy có chủ ý tới 05:39:09Z 09/09). Lời khuyên nó in sửa cho khớp main (D-153).
-            nhánh web-rescue-orphans-20260905 629c674 (rebase lên web-home a33be0b, ff-thuần): prebuild tsc · networkErrorOf()
-            · GỠ cảnh báo màn soát · W3 đo đúng ngôn ngữ · mục W-luu. 3 đối chứng đỏ; pnpm build đầy đủ exit 0.
-            🔴 KHÔNG ff vào web-home: worktree đó có phiên khác (bài 04/09) và prebuild sẽ làm build của họ đỏ ngay.
+            nhánh web-rescue-orphans-20260905 b73a97c (rebase 3 lượt theo web-home; nay trên b2ccdd7): prebuild tsc · networkErrorOf()
+            · W3 đo đúng ngôn ngữ · mục W-luu. 3 đối chứng đỏ; pnpm build đầy đủ exit 0 (bản 629c674); bản b73a97c: tsc 0, 109 test xanh.
+            🔴 Cảnh báo màn soát: PHIÊN WEB TỰ SỬA cùng buổi (c0159c4, `conCanhBaoDungLai(rebuild.date)` — hiện chỉ khi ngày còn ở
+            phía trước, có test rebuild-notice). Rebase giữ bản của họ, bỏ bản gỡ hẳn của tôi. Hệ quả: phép đo `.reviewRebuild`
+            trong chunk trang KHÔNG còn phân biệt được (vẫn = 1 sau sửa) — nghiệm thu phải là hành vi, đã ghi vào W3.
+            🔴 KHÔNG ff vào web-home: worktree đó có phiên khác đang commit liên tục (4 lượt trong 40 phút); merge dry-run SẠCH.
 bước 3    : main b9c784c — scripts/worktree-ownership.json + check-worktree-ownership.mjs (24 ca self-test; đỏ thật trên main
             với tệp untracked trong web/; từ worktree detached ⇒ mã 2). Đo lịch sử: main sửa 4 tệp của web, web-home sửa 5 của chain.
 bước 4    : cùng commit — local-net/deploy/deploy-lock.sh (15 ca, thấy đỏ; chưa acquire thật trên server) nối vào console-deploy.sh
@@ -120,9 +123,9 @@ git       : main b9c784c (4 commit phiên này), CHƯA đẩy origin/official. w
 ```
 
 #### 🔴 Việc tiếp — ai làm
-- **[web-home] WT-1 + nhận nhánh cứu:** `git merge --ff-only web-rescue-orphans-20260905` rồi merge `main` (đưa luật `CLAUDE.md`
-  + hai cổng sang), rồi deploy web. Nghiệm thu sau deploy: `.reviewRebuild` **vắng** trong chunk `app/create-chain/page-*.js` đang
-  phục vụ (hôm nay = 1). Sau đó: nối `deploy-lock` vào `caddy-deploy.sh`/`web-deploy.sh`, dời tệp web trong `local-net/deploy/`
+- **[web-home] WT-1 + nhận nhánh cứu:** `git merge web-rescue-orphans-20260905` (dry-run sạch với `a6b11fb`; không còn ff) rồi merge
+  `main` (đưa luật `CLAUDE.md` + hai cổng sang), rồi deploy web. Nghiệm thu: `pnpm typecheck` chạy trong `prebuild` (cố ý cắm một
+  lỗi kiểu ⇒ build dừng trước `next build`). Sau đó: nối `deploy-lock` vào `caddy-deploy.sh`/`web-deploy.sh`, dời tệp web trong `local-net/deploy/`
   ra thư mục riêng (bảng `_contested_2026-09-05`).
 - **[human] đẩy `origin`** (kiểm `check-remotes` trước). `official` **hỏi trước**, qua `publish-official.sh`.
 - **[human] hook `pre-commit` global** (`C:/PROJECTS/claude-config/githooks`) chưa gọi `check-worktree-ownership` ⇒ commit sai nhánh
