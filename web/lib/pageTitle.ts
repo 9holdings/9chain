@@ -55,6 +55,7 @@ export const TITLE_BY_PATH: Record<string, (t: Dict) => string | null> = {
   '/ceremony/': (t) => t.ceremony.title,
   '/validators/': (t) => t.validators.title,
   '/docs/': (t) => t.docs.title,
+  '/nine-years/': (t) => t.nineYears.title,
   '/re-genesis/': (t) => interpolate(t.rebuildDone.title, { date: t.rebuild.date }),
 };
 

@@ -44,6 +44,8 @@ const SAN = {
   'index.html': 2500,
   'validators/index.html': 4000,
   'ceremony/index.html': 3000,
+  // The mission page: if this drops, the argument has stopped shipping in the HTML.
+  'nine-years/index.html': 4500,
 };
 const SAN_MAC_DINH = 1500;
 
