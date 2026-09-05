@@ -4,7 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, Field, Badge, Skeleton, ErrorState, Copyable, Note } from '@/components/ui';
 import { checkAddress, shortenAddress, toChecksumAddress } from '@/lib/eip55';
 import { CHAIN, faucetOrigin, rpcCChain, explorerOrigin, addNetworkParams } from '@/lib/chain';
-import { interpolate, useT } from '@/lib/i18n';
+import { interpolate, usePageT } from '@/lib/i18n';
+import { EN_FAUCET } from '@/lib/i18n/en/faucet';
+import { PageHeader } from '@/components/PageHeader';
 import { fetchJson, READ_TIMEOUT_MS } from '@/lib/net';
 import {
   connectWallet,
@@ -31,7 +33,7 @@ type TrangThaiTin = { phase: 'tai' } | { phase: 'xong'; quota: ThongTin } | { ph
 // launch screen to another, and neither screen tells the user. One source; see lib/wallet.
 
 export function FaucetForm() {
-  const t = useT();
+  const t = usePageT(EN_FAUCET);
   const [diaChi, datDiaChi] = useState('');
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ txHash: string; amount: string } | null>(null);
@@ -106,7 +108,7 @@ export function FaucetForm() {
   const check = diaChi.trim() ? checkAddress(diaChi) : null;
   // 🔴 The wording is looked up HERE, not inside `lib/eip55.ts`. A pure function cannot call
   // `useT()`, so every sentence it builds itself is frozen in one language — see the comment on
-  // the `errors` block in `lib/i18n/en.ts`.
+  // the `errors` block in `lib/i18n/en/core.ts`.
   const CHECK_MSG = {
     empty: t.errors.addressEmpty,
     format: t.errors.addressFormat,
@@ -201,6 +203,8 @@ export function FaucetForm() {
   const hetSuat = quota.phase === 'xong' && quota.quota.perIp.remaining === 0;
 
   return (
+    <>
+    <PageHeader title={t.faucet.title} desc={t.faucet.desc} />
     <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <Card className="p-5 md:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -308,11 +312,12 @@ export function FaucetForm() {
 
       <ThongSoMang />
     </div>
+    </>
   );
 }
 
 function HanMuc({ quota, onRetry }: { quota: TrangThaiTin; onRetry: () => void }) {
-  const t = useT();
+  const t = usePageT(EN_FAUCET);
   if (quota.phase === 'tai') {
     return (
       <span className="flex items-center gap-2">
@@ -340,7 +345,7 @@ function HanMuc({ quota, onRetry }: { quota: TrangThaiTin; onRetry: () => void }
 }
 
 function ThongSoMang() {
-  const t = useT();
+  const t = usePageT(EN_FAUCET);
   // Derived from `location` at runtime — NOT hard-coded. A public page with `localhost` in it
   // has the visitor's browser resolve that to their own machine; both this project's explorer
   // and its dashboard hit exactly that fault.

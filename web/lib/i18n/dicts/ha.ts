@@ -211,6 +211,12 @@ export const ha: Dict = {
     explorer: 'Mai bincike',
     explorerAria: 'Buɗe 9Scan-A1 a sabon shafi',
     ceremony: "Bikin",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "Gudanar da mai tabbatarwa",
+    docs: "Takardun bayani",
+    nineYears: "Shekaru tara, biliyan tara",
   },
 
   home: {

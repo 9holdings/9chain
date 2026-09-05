@@ -207,6 +207,12 @@ export const mr: Dict = {
     explorer: 'एक्सप्लोरर',
     explorerAria: '9Scan-A1 नवीन टॅबमध्ये उघडा',
     ceremony: "सोहळा",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "एक व्हॅलिडेटर चालवा",
+    docs: "दस्तऐवज",
+    nineYears: "नऊ वर्षे, नऊ अब्ज",
   },
 
   home: {

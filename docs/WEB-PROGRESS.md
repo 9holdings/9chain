@@ -594,3 +594,19 @@ mỗi trang mới bị trả giá ở **mọi** trang.
 tiếng Anh theo từng trang thành chunk riêng. Ghi ở đây để phiên sau thừa hưởng **phép đo**,
 không phải sự ngạc nhiên.
 
+### ✅ ĐÃ TÁCH `2026-09-05` (tối) — tiếng Anh theo trang
+
+`web/lib/i18n/en.ts` → thư mục `web/lib/i18n/en/`: `core.ts` (7 nhóm mọi trang đọc) + 12 tệp
+theo màn hình; provider chỉ nhập `core`, màn hình nhập tệp của mình qua `usePageT()`; `index.ts`
+ghép `EN` đầy đủ cho server + test. Cổng mới `scripts/check-en-split.mjs` trong `postbuild`.
+
+| KB gz (trần 160) | trước | sau |
+|---|--:|--:|
+| `/chains/` | 156,6 | **149,3** |
+| `/404/` — sàn chung | 139,9 | **128,0** |
+
+Cổng mới thấy ĐỎ trên `out/` cũ (16/16 nhóm trên 13/13 trang) rồi xanh (15/15, mỗi nhóm 1–4
+trang). Sổ giá trị khớp 14.820 chuỗi (không câu nào đổi); 90 khoá mới `nav.validators/docs/nineYears`
+× 30 — **chuỗi VI là bản chép nguyên văn của `*.title` đã duyệt, không có câu mới**.
+Chi tiết + gotchas: khối đầu `WORKTREE-WEB.md`.
+

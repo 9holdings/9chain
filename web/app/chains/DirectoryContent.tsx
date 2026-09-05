@@ -3,9 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SlotsLeft } from '@/components/SlotsLeft';
 import { Card, Badge, Copyable, Button, ErrorState, EmptyState, Skeleton, Select, Chip } from '@/components/ui';
-import { useT, useLanguage } from '@/lib/i18n';
+import { usePageT, useLanguage } from '@/lib/i18n';
 import { interpolate } from '@/lib/i18n/interpolate';
-import type { Dict } from '@/lib/i18n/en';
+import type { Core } from '@/lib/i18n/en/core';
+import { EN_DIRECTORY } from '@/lib/i18n/en/directory';
+import { EN_HOME } from '@/lib/i18n/en/home';
+import { EN_LAUNCH } from '@/lib/i18n/en/launch';
+import { EN_MY_CHAINS } from '@/lib/i18n/en/my-chains';
+import { EN_SERVER_TEXT } from '@/lib/i18n/en/server-text';
 import { formatNumber } from '@/lib/numbers';
 import { shortenAddress } from '@/lib/eip55';
 import { CHAIN, rpcOrigin } from '@/lib/chain';
@@ -161,8 +166,16 @@ function rpcUrlOf(r: ChainRecord): string {
 
 type Tone = 'good' | 'bad' | 'warn' | 'neutral';
 
+/**
+ * This page's English: its own group plus the keys it deliberately REUSES from the home table,
+ * the launch screen and My chains (see the note at the top of `en/directory.ts`), and the
+ * console's preset text. A module constant — `usePageT` memoises on its identity.
+ */
+const SECTIONS = { ...EN_DIRECTORY, ...EN_HOME, ...EN_LAUNCH, ...EN_MY_CHAINS, ...EN_SERVER_TEXT };
+type PageDict = Core & typeof SECTIONS;
+
 /** Badge + one-line reason for a verdict. The verdict decides; this only names it. */
-function describeVerdict(t: Dict, e: Entry): [Tone, string, string] {
+function describeVerdict(t: PageDict, e: Entry): [Tone, string, string] {
   const d = t.directory;
   switch (e.verdict) {
     case 'main':
@@ -199,7 +212,7 @@ function toDate(v: string | number | undefined): Date | null {
 type Dir = { phase: 'loading' } | { phase: 'done'; chains: ChainRecord[]; retired: ChainRecord[]; error: string | null };
 
 export function DirectoryContent() {
-  const t = useT();
+  const t = usePageT(SECTIONS);
   const { code } = useLanguage();
 
   /**
@@ -639,7 +652,7 @@ function Row({ k, children }: { k: string; children: React.ReactNode }) {
 
 /** The C-Chain, pinned above the list. Never part of the filters — it is the network, not a row. */
 function MainCard({ entry, code }: { entry: Entry; code: string }) {
-  const t = useT();
+  const t = usePageT(SECTIONS);
   const [tone, label, why] = describeVerdict(t, entry);
   const rpc = rpcUrlOf(entry.record);
   return (
@@ -676,7 +689,7 @@ function ChainRows({
   code: string;
   caption: string;
 }) {
-  const t = useT();
+  const t = usePageT(SECTIONS);
   const th = 'px-3 py-2.5 text-start text-xs font-semibold uppercase tracking-wide text-muted';
   return (
     <Card className="overflow-hidden">
@@ -721,7 +734,7 @@ function ChainRows({
 }
 
 function ChainRow({ e, open, toggle, code }: { e: Entry; open: boolean; toggle: (key: string) => void; code: string }) {
-  const t = useT();
+  const t = usePageT(SECTIONS);
   const d = t.directory;
   const [tone, label, why] = describeVerdict(t, e);
   const owner = ownerOf(e.record);
@@ -799,7 +812,7 @@ function ChainRow({ e, open, toggle, code }: { e: Entry; open: boolean; toggle: 
 }
 
 function AddToWallet({ record, rpc, symbol }: { record: ChainRecord; rpc: string; symbol: string }) {
-  const t = useT();
+  const t = usePageT(SECTIONS);
   const [msg, setMsg] = useState<string | null>(null);
   return (
     <>

@@ -182,6 +182,12 @@ export const zh: Dict = {
     explorer: '区块浏览器',
     explorerAria: '在新标签页中打开 9Scan-A1',
     ceremony: "仪式",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "运行一个验证节点",
+    docs: "文档",
+    nineYears: "九年，九十亿",
   },
 
   home: {

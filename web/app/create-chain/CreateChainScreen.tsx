@@ -6,7 +6,11 @@ import { shortenAddress } from '@/lib/eip55';
 import { OpenInWallet } from '@/components/OpenInWallet';
 import { presetText, localiseSteps } from '@/lib/serverText';
 import { symbolOf } from '@/lib/l1-symbol';
-import { interpolate, useT } from '@/lib/i18n';
+import { interpolate, usePageT } from '@/lib/i18n';
+import { EN_LAUNCH } from '@/lib/i18n/en/launch';
+import { EN_REBUILD } from '@/lib/i18n/en/rebuild';
+import { EN_SERVER_TEXT } from '@/lib/i18n/en/server-text';
+import { PageHeader } from '@/components/PageHeader';
 import { describeFailure } from '@/lib/net';
 import { conCanhBaoDungLai } from '@/lib/rebuildNotice';
 import { SlotsLeft } from '@/components/SlotsLeft';
@@ -54,8 +58,27 @@ type Progress = { running: boolean; name: string | null; steps: Step[]; error: s
 type Pha = 'vi' | 'nhap' | 'soat' | 'chay' | 'xong';
 const TEN_HOP_LE = /^[A-Za-z0-9 ]{2,32}$/;
 
+/** This screen's English — the launch groups, `rebuild.date` for the review step, and the console's preset/step text. A module constant: `usePageT` memoises on its identity. */
+const SECTIONS = { ...EN_LAUNCH, ...EN_REBUILD, ...EN_SERVER_TEXT };
+
+/**
+ * The header sits OUTSIDE the body on purpose: the body below has several early returns (the
+ * wallet phase, the loading state), and a header placed inside the main `return` was measured
+ * missing from the prerendered HTML — `check-prerender` went red on `/create-chain/` (1454
+ * chars, floor 1500) the first time the header moved in here from `page.tsx`.
+ */
 export function CreateChainScreen() {
-  const t = useT();
+  const t = usePageT(SECTIONS);
+  return (
+    <>
+      <PageHeader title={t.launch.title} desc={t.launch.desc} />
+      <CreateChainBody />
+    </>
+  );
+}
+
+function CreateChainBody() {
+  const t = usePageT(SECTIONS);
   const [phase, setPhase] = useState<Pha>('vi');
   const [session, setSession] = useState<WalletSession | null>(null);
   const [walletFailure, setWalletFailure] = useState<string | null>(null);

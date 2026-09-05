@@ -3,7 +3,8 @@
 import { useNetworkStats } from '@/lib/stats';
 import { Skeleton, Badge } from './ui';
 import { cx } from '@/lib/cx';
-import { useT, useLanguage } from '@/lib/i18n';
+import { usePageT, useLanguage } from '@/lib/i18n';
+import { EN_HOME } from '@/lib/i18n/en/home';
 import { formatNumber } from '@/lib/numbers';
 
 /**
@@ -16,7 +17,7 @@ import { formatNumber } from '@/lib/numbers';
  * it fails, fall back to one line of muted text, do not build an error screen.
  */
 export function NetworkStats({ on = 'light' }: { on?: 'light' | 'dark' }) {
-  const t = useT();
+  const t = usePageT(EN_HOME);
   const { code } = useLanguage();
   const { state, reload } = useNetworkStats();
   const dark = on === 'dark';

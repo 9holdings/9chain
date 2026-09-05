@@ -178,7 +178,14 @@ if (process.env.A1_SAU_NGAY_G === '1') {
          stayed green even with the old banner still on every page.
      Reading the phrases from the dictionary means the gate cannot drift from the words, and a
      reworded announcement updates the measurement instead of silently disabling it. */
-  const EN_SRC = readFileSync(path.join(GOC, 'lib', 'i18n', 'en.ts'), 'utf8');
+  // English is a folder since 2026-09-05; the files keep the old text shape, so their
+  // concatenation IS the old `en.ts` as far as the regex below is concerned.
+  const EN_DIR = path.join(GOC, 'lib', 'i18n', 'en');
+  const EN_SRC = readdirSync(EN_DIR)
+    .filter((f) => f.endsWith('.ts'))
+    .sort()
+    .map((f) => readFileSync(path.join(EN_DIR, f), 'utf8'))
+    .join('\n');
   const khoa = (nhom, ten) => {
     const m = new RegExp(`^  ${nhom}: \\{[\\s\\S]*?^    ${ten}: '((?:[^'\\\\]|\\\\.)*)'`, 'm').exec(EN_SRC);
     return m ? m[1] : null;

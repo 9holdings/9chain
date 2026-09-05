@@ -5,7 +5,8 @@ import { NetworkStats } from '@/components/NetworkStats';
 import { CeremonyCallout } from '@/components/CeremonyCallout';
 import { SlotsLeft } from '@/components/SlotsLeft';
 import { ChainTable } from './ChainTable';
-import { useT } from '@/lib/i18n';
+import { usePageT } from '@/lib/i18n';
+import { EN_HOME } from '@/lib/i18n/en/home';
 
 /**
  * The home page body — split out of `page.tsx` because `page.tsx` has to be a server
@@ -14,7 +15,7 @@ import { useT } from '@/lib/i18n';
  * `components/PageHeader.tsx`.
  */
 export function HomeContent() {
-  const t = useT();
+  const t = usePageT(EN_HOME);
   return (
     <>
       <section className="bg-navy">

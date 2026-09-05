@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { Card, Note, Skeleton } from '@/components/ui';
-import { useLanguage, useT } from '@/lib/i18n';
+import { useLanguage, usePageT } from '@/lib/i18n';
+import { EN_VALIDATORS } from '@/lib/i18n/en/validators';
+import { EN_HOME } from '@/lib/i18n/en/home';
 import { formatNumber } from '@/lib/numbers';
 import { fetchJson, READ_TIMEOUT_MS } from '@/lib/net';
 import { faucetOrigin, CHAIN } from '@/lib/chain';
@@ -68,8 +70,11 @@ function Stat({ label, value, note }: { label: string; value: string | null | un
   );
 }
 
+/** Its own groups, plus `home.disclosure` — the one sentence about decentralisation, kept in ONE place so the deploy gate that measures it against the network has one key to read. */
+const SECTIONS = { ...EN_VALIDATORS, ...EN_HOME };
+
 export function ValidatorsContent() {
-  const t = useT();
+  const t = usePageT(SECTIONS);
   const { code } = useLanguage();
   const set = useValidatorSet();
   const faucet = useFaucetInfo();

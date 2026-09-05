@@ -2,7 +2,14 @@
 
 import { useT } from '@/lib/i18n';
 
-/** The 404 page body — split out of `not-found.tsx` (a server component, which keeps `metadata` + `noindex`). */
+/**
+ * The 404 page body — split out of `not-found.tsx` (a server component, which keeps `metadata` + `noindex`).
+ *
+ * `notFound` is a CORE group (`lib/i18n/en/core.ts`), not a page file: Next mounts the not-found
+ * boundary into every page's shared bundle (the `/_not-found` route's first load is exactly the
+ * shared chunks plus 126 B), so `check-en-split` measured this group on all 13 pages when it had
+ * its own file. Putting it in the core says what is true instead of arguing with the bundler.
+ */
 export function NotFoundContent() {
   const t = useT().notFound;
   return (

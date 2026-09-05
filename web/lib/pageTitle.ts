@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { useT } from './i18n';
+import { useFullDict } from './i18n';
 import type { Dict } from './i18n/en';
 import { interpolate } from './i18n/interpolate';
-import { composeTitle, composeHomeTitle } from './seo';
+import { composeTitle, composeHomeTitle } from './titleShape';
 
 /**
  * `<title>` follows the language the reader chose.
@@ -69,12 +69,38 @@ const NOT_FOUND_TITLE = (t: Dict) => t.notFound.title;
  * site re-runs the hook with the new path, and leaving the site means the tab is no longer
  * ours. A `return () => { document.title = cu }` here would run BEFORE the new assignment
  * and make the title flicker twice.
+ *
+ * ═══ 🔴 IN ENGLISH THIS HOOK HAS NO DICTIONARY TO READ — AND DOES NOT NEED ONE (2026-09-05) ═══
+ * The table above reads a group of EVERY page (`t.faucet`, `t.ceremony`, …). Since English was
+ * split per page (`lib/i18n/en/`), the layout — where this hook runs — holds only the core in
+ * English; the faucet's groups exist only in the faucet's chunk. Reading all twelve groups here
+ * would pull all twelve files into every page and undo the split from inside the layout.
+ *
+ * It is not needed: in English the `<title>` in the HTML is ALREADY this table's answer — both
+ * come from `composeTitle()` over the same `EN` strings (`pageMeta()` at build time). So the
+ * hook captures that build-time title on its first run, and RESTORES it whenever the reader is
+ * back in English (e.g. after switching away and back with the picker). Every other language is
+ * a full dictionary, loaded whole, and goes through the table exactly as before.
+ *
+ * ⚠️ The capture relies on the first effect running while the title is still the build-time
+ * one. That holds by construction: the provider starts in English and only changes language
+ * in an effect of its own, and React runs a child's effects before its parent's.
  */
 export function useLocalisedTitle(): void {
-  const t = useT();
+  const full = useFullDict();
   const urlPath = usePathname();
+  const buildTimeTitle = useRef<string | null>(null);
 
   useEffect(() => {
+    if (buildTimeTitle.current === null) buildTimeTitle.current = document.title;
+
+    if (full === null) {
+      // English: the HTML's own title is the right one. Put it back if a translation replaced it.
+      if (document.title !== buildTimeTitle.current) document.title = buildTimeTitle.current;
+      return;
+    }
+    const t = full;
+
     // `usePathname()` may return a path WITHOUT a trailing slash depending on how the page was
     // entered, while the table is written for `trailingSlash: true` from `next.config.ts`.
     // Normalise once here, instead of declaring two keys per page.
@@ -121,5 +147,5 @@ export function useLocalisedTitle(): void {
     });
     canh.observe(the, { childList: true, characterData: true, subtree: true });
     return () => canh.disconnect();
-  }, [t, urlPath]);
+  }, [full, urlPath]);
 }

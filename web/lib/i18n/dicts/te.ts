@@ -207,6 +207,12 @@ export const te: Dict = {
     explorer: 'ఎక్స్‌ప్లోరర్',
     explorerAria: '9Scan-A1ని కొత్త ట్యాబ్‌లో తెరవండి',
     ceremony: "వేడుక",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "ఒక వాలిడేటర్ నడపండి",
+    docs: "డాక్యుమెంటేషన్",
+    nineYears: "తొమ్మిది సంవత్సరాలు, తొమ్మిది వందల కోట్లు",
   },
 
   home: {

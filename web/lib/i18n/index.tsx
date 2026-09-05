@@ -9,7 +9,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { EN, type Dict } from './en';
+import { EN_CORE, type Core } from './en/core';
+import type { Dict } from './en';
 export { interpolate } from './interpolate';
 import { guessLanguage, STORAGE_KEY, isValidCode, DEFAULT_CODE, LANGUAGES, lookup, type Language } from './languages';
 
@@ -36,15 +37,34 @@ import { guessLanguage, STORAGE_KEY, isValidCode, DEFAULT_CODE, LANGUAGES, looku
  *    **264 kB to 528 kB**. Our ceiling is 160 KB gzip and the heaviest page sits at 130 KB.
  *
  * ═══ WHY ENGLISH TRAVELS IN THE BUNDLE AND THE OTHER 29 DO NOT ═══
- * `EN` is **the source of truth for the keys** and the fallback whenever a key is missing or
+ * English is **the source of truth for the keys** and the fallback whenever a key is missing or
  * a chunk fails to load. It has to be present from the very first frame, without waiting on
  * the network.
+ *
+ * ═══ 🔴 BUT ONLY THE CORE OF ENGLISH RIDES IN THE SHARED BUNDLE (2026-09-05) ═══
+ * This file imports `EN_CORE` — the groups every page reads — and NOTHING ELSE from `en/`.
+ * Each screen imports its own English (`en/faucet.ts`, `en/directory.ts`, …) and hands it to
+ * `usePageT()` below, so the bundler places those sentences in that page's chunk alone.
+ * Measured before the split: every page carried every sentence of every other page, and the
+ * heaviest page sat 3.4 KB under the ceiling with each new page costing ~2 KB on ALL pages.
+ *
+ * The other 29 languages are untouched by this: they still load whole, as one chunk each,
+ * only when chosen. Splitting THEM would be 29 × 14 files for a download nobody makes by
+ * default; the budget gate measures the first load, and the first load is English.
+ *
+ * 🔴 DO NOT import `EN` (from `./en`) here or in any other `'use client'` module. It is the
+ * full assembly for the server and the tests; one client import of it puts all 14 files back
+ * into the shared bundle, and the code keeps working, so nothing but the size would tell you.
+ * `scripts/check-en-split.mjs` measures the built pages for exactly that.
  */
 
 type BoiCanh = {
   code: string;
   language: Language;
-  t: Dict;
+  /** The core groups, always present. When a translation is loaded this IS that translation. */
+  t: Core;
+  /** The whole dictionary of a loaded translation; `null` while English (only the core is in memory). */
+  full: Dict | null;
   /** `true` while a non-EN chunk is loading. Used to avoid text flashing. */
   loading: boolean;
   setLanguage: (code: string) => void;
@@ -153,7 +173,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // HTML, React reports a hydration mismatch and throws the whole tree away. Reading the
   // choice in a `useEffect` — i.e. AFTER hydration — is the only correct approach here.
   const [code, setCode] = useState<string>(DEFAULT_CODE);
-  const [dict, setDict] = useState<Dict>(EN);
+  // `null` = English: only the core is in memory, each screen brings its own groups (`usePageT`).
+  const [full, setFull] = useState<Dict | null>(null);
   const [loading, datDangNap] = useState(false);
 
   useEffect(() => {
@@ -164,28 +185,28 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     if (code === DEFAULT_CODE) {
-      setDict(EN);
+      setFull(null);
       datDangNap(false);
       return;
     }
     const nap = LOADERS[code];
     if (!nap) {
       // Registry drift — `checkLoaders()` should have caught this in dev. Fall back to EN rather than a blank page.
-      setDict(EN);
+      setFull(null);
       return;
     }
     datDangNap(true);
     nap()
       .then((m) => {
         if (cancelled) return;
-        setDict(m.default);
+        setFull(m.default);
         datDangNap(false);
       })
       .catch(() => {
         // The chunk failed to load (network dropped, stale deploy). Keep EN — being readable
         // in another language still beats staring at an empty page.
         if (!cancelled) {
-          setDict(EN);
+          setFull(null);
           datDangNap(false);
         }
       });
@@ -217,23 +238,58 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<BoiCanh>(
-    () => ({ code, language: lookup(code), t: dict, loading, setLanguage }),
-    [code, dict, loading, setLanguage],
+    () => ({ code, language: lookup(code), t: full ?? EN_CORE, full, loading, setLanguage }),
+    [code, full, loading, setLanguage],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
 /**
- * Get the dictionary in use.
+ * Get the core groups in the language in use — what the layout, the UI kit and every shared
+ * component read. A screen that needs its own groups calls `usePageT()` instead.
  *
- * ⚠️ Called OUTSIDE the provider it falls back to EN rather than throwing. The reason:
+ * ⚠️ Called OUTSIDE the provider it falls back to English rather than throwing. The reason:
  * places like the 404 page, or a component mounted on its own in a test, do not necessarily
  * have a provider, and blanking the page over a missing context trades a text problem for
  * a dead page.
  */
-export function useT(): Dict {
-  return useContext(Ctx)?.t ?? EN;
+export function useT(): Core {
+  return useContext(Ctx)?.t ?? EN_CORE;
+}
+
+/**
+ * The core PLUS the groups a screen brought with it.
+ *
+ * `sections` is the screen's own English — `EN_FAUCET`, or a module-level merge of several
+ * files (`const SECTIONS = { ...EN_DIRECTORY, ...EN_LAUNCH }`). It must be a MODULE CONSTANT,
+ * not built inside the component: the merge below is memoised on its identity, and an object
+ * literal in the render body is a new identity every render.
+ *
+ * In English the result is `core + sections`, assembled synchronously from what the page's own
+ * chunk already holds — so the first frame is complete, no second beat, no flash (the two
+ * constraints at the top of this file are kept). In any other language the loaded translation
+ * is the whole dictionary, a superset of `Core & S`, and is returned as is.
+ *
+ * 🔴 The return type is `Core & S` and NOT `Dict`. That is the compile-time half of the split:
+ * a component that reads `t.directory.*` without having imported `en/directory.ts` is red under
+ * `tsc` — instead of reading `undefined` at runtime in English and the right text in the other
+ * 29 languages, which is the exact shape of bug this dictionary's tests exist to prevent.
+ */
+export function usePageT<S extends object>(sections: S): Core & S {
+  const c = useContext(Ctx);
+  const full = c?.full ?? null;
+  const core = c?.t ?? EN_CORE;
+  return useMemo(() => (full as (Core & S) | null) ?? ({ ...core, ...sections } as Core & S), [full, core, sections]);
+}
+
+/**
+ * The whole dictionary of a loaded translation, or `null` while English is showing.
+ * For the one reader that needs every page's group at once — the tab-title table in
+ * `lib/pageTitle.ts` — and that, in English, has a build-time value to fall back on.
+ */
+export function useFullDict(): Dict | null {
+  return useContext(Ctx)?.full ?? null;
 }
 
 /** Language state — for the picker and for anywhere that needs the writing direction. */

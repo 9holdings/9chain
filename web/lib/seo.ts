@@ -39,30 +39,12 @@ import { EN } from '@/lib/i18n/en';
  * Do not retype the strings at the call site — pass the same variable used for `title`.
  */
 /**
- * Strip the `[?]` voice-review mark. See the reason in the comment on `pageMeta`.
- * Exported so the client-side path uses THIS one function rather than copying the regex.
+ * The title shape and the `[?]` stripper live in `lib/titleShape.ts` (no dictionary import) so
+ * the client-side title hook can share them WITHOUT pulling the full `EN` below into every
+ * page's bundle. Re-exported here so build-time callers keep one import.
  */
-export const stripReviewMark = (s: string) => s.replace(/ \[\?\]/g, '');
-
-/**
- * THE PAGE TITLE SHAPE — **the single source**, used by BOTH paths:
- *   • `pageMeta()` just below, running at BUILD time, always with `EN`
- *   • `useTieuDeTrang()` in `lib/pageTitle.ts`, running IN THE BROWSER with the reader's
- *     chosen dictionary
- *
- * 🔴 WHY THIS HAS TO BE A FUNCTION AND NOT TWO IDENTICAL-LOOKING CONCATENATIONS:
- * two independent concatenations drift the first time someone changes a dash or the order —
- * and at that point the title **jumps** on hydration (the tab changes its text in front of the
- * user) with no error reported, because both strings are "correct". One function cannot drift.
- */
-export function composeTitle(tieuDeTran: string, tenSanPham: string): string {
-  return `${stripReviewMark(tieuDeTran)} — ${tenSanPham}`;
-}
-
-/** The HOME PAGE title shape — different from the sub-pages: the product name comes FIRST. */
-export function composeHomeTitle(tenSanPham: string, tagTitle: string): string {
-  return `${stripReviewMark(tenSanPham)} — ${stripReviewMark(tagTitle)}`;
-}
+import { composeTitle, stripReviewMark } from './titleShape';
+export { composeTitle, composeHomeTitle, stripReviewMark } from './titleShape';
 
 export function pageMeta({
   title,

@@ -16,7 +16,7 @@
  * asks the running product which ids actually exist. It has been seen red: run it with a
  * fixture whose record carries `"preset": "not-a-real-preset"`.
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -25,12 +25,19 @@ const args = process.argv.slice(2);
 const fixture = args.find((a) => a.startsWith('--fixture='))?.slice('--fixture='.length);
 const origin = args.find((a) => /^https?:\/\//.test(a));
 
-// The dictionary's preset ids, read from `en.ts` as TEXT: the file is TypeScript and this
-// script must not depend on a build. Keys are quoted (`'zero-fee'`) or bare (`standard`).
-const en = readFileSync(path.join(WEB, 'lib/i18n/en.ts'), 'utf8');
+// The dictionary's preset ids, read from the English folder as TEXT: the files are TypeScript
+// and this script must not depend on a build. Keys are quoted (`'zero-fee'`) or bare (`standard`).
+// English is a folder since 2026-09-05 (`lib/i18n/en/*.ts`); the files keep the old text
+// shape, so their concatenation reads exactly like the old single file.
+const EN_DIR = path.join(WEB, 'lib/i18n/en');
+const en = readdirSync(EN_DIR)
+  .filter((f) => f.endsWith('.ts'))
+  .sort()
+  .map((f) => readFileSync(path.join(EN_DIR, f), 'utf8'))
+  .join('\n');
 const block = en.match(/\n  presets: \{([\s\S]*?)\n  \},/)?.[1];
 if (!block) {
-  console.log('✗ could not find the `presets` block in lib/i18n/en.ts');
+  console.log('✗ could not find the `presets` block in lib/i18n/en/');
   process.exit(2);
 }
 const known = new Set([...block.matchAll(/^\s{4}'?([A-Za-z0-9-]+)'?: \{/gm)].map((m) => m[1]));

@@ -2,7 +2,8 @@
 
 import { Note } from '@/components/ui';
 import { CHAIN } from '@/lib/chain';
-import { interpolate, useT } from '@/lib/i18n';
+import { interpolate, usePageT } from '@/lib/i18n';
+import { EN_REBUILD } from '@/lib/i18n/en/rebuild';
 
 /**
  * The re-genesis page body — split out of `page.tsx` (a server component, which keeps `metadata`).
@@ -25,7 +26,7 @@ import { interpolate, useT } from '@/lib/i18n';
  * about which day it was.
  *
  * 🔴 Every comment about WHY each sentence is worded as it is lives in the `rebuildDone` block in
- * `lib/i18n/dicts/vi.ts` and `lib/i18n/en.ts`. Read there before editing the words.
+ * `lib/i18n/dicts/vi.ts` and `lib/i18n/en/rebuild.ts`. Read there before editing the words.
  */
 function Item({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -37,7 +38,7 @@ function Item({ title, children }: { title: string; children: React.ReactNode })
 }
 
 export function RebuildContent() {
-  const t = useT();
+  const t = usePageT(EN_REBUILD);
   const ngay = t.rebuild.date;
 
   // The archive section only exists once both values are real. That was the plan from the day

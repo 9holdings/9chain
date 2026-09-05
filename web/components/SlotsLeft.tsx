@@ -1,7 +1,8 @@
 'use client';
 
 import { Badge } from '@/components/ui';
-import { interpolate, useT } from '@/lib/i18n';
+import { interpolate, usePageT } from '@/lib/i18n';
+import { EN_LAUNCH } from '@/lib/i18n/en/launch';
 import { useNetworkStats } from '@/lib/stats';
 import { L1_SLOTS } from '@/lib/chain';
 
@@ -22,7 +23,10 @@ import { L1_SLOTS } from '@/lib/chain';
  * would be said precisely when we know nothing. Same rule as the stat tiles (Đ1-8).
  */
 export function SlotsLeft({ className }: { className?: string }) {
-  const t = useT();
+  // Reads two `launch.*` keys, so it brings the launch group with it wherever it is mounted
+  // (home, directory, launch). Moving those two keys into `common` would spare the home page
+  // ~1 KB gzip; it is a key move across 30 dictionaries, left for a later pass.
+  const t = usePageT(EN_LAUNCH);
   const { state } = useNetworkStats();
 
   const used = state.phase === 'done' ? state.numbers.l1Count : null;

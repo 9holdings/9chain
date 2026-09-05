@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Card, Copyable, Note, Badge } from '@/components/ui';
-import { useLanguage, useT } from '@/lib/i18n';
+import { useLanguage, usePageT } from '@/lib/i18n';
+import { EN_CEREMONY } from '@/lib/i18n/en/ceremony';
 import { formatNumber } from '@/lib/numbers';
 import { rpcCChain } from '@/lib/chain';
 import {
@@ -30,7 +31,7 @@ import {
  * So the first render deliberately shows nothing, and the clock appears in an effect.
  */
 export function CeremonyContent() {
-  const t = useT();
+  const t = usePageT(EN_CEREMONY);
   const { code } = useLanguage();
   const [now, setNow] = useState<number | null>(null);
 

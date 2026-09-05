@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useLanguage, useT } from '@/lib/i18n';
+import { useLanguage, usePageT } from '@/lib/i18n';
+import { EN_CEREMONY } from '@/lib/i18n/en/ceremony';
 import { formatNumber } from '@/lib/numbers';
 import { MOMENT_ISO, phaseAt, remainingAt } from '@/lib/ceremony';
 
@@ -24,7 +25,9 @@ import { MOMENT_ISO, phaseAt, remainingAt } from '@/lib/ceremony';
  * and a hydration mismatch on top.
  */
 export function CeremonyCallout() {
-  const t = useT();
+  // Reads four `ceremony.*` keys, so the home page carries the ceremony group until the
+  // callout removes itself after the moment. Same trade as `SlotsLeft`.
+  const t = usePageT(EN_CEREMONY);
   const { code } = useLanguage();
   const [now, setNow] = useState<number | null>(null);
 

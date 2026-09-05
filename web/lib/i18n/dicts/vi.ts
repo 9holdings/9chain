@@ -354,6 +354,12 @@ export const vi: Dict = {
     explorer: 'Explorer',
     explorerAria: 'Mở 9Scan-A1 ở tab mới',
     ceremony: "Nghi lễ",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "Chạy một validator",
+    docs: "Tài liệu",
+    nineYears: "Chín năm, chín tỷ",
   },
 
   home: {

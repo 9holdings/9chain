@@ -44,7 +44,7 @@ function layGiaTri(o: unknown, urlPath: string): unknown {
 
 const KHOA_EN = betKhoa(EN).sort();
 
-/** Keys DELIBERATELY left empty — filled in on G-day itself. See `reGenesisXong` in `en.ts`. */
+/** Keys DELIBERATELY left empty — filled in on G-day itself. See `rebuildDone` in `lib/i18n/en/rebuild.ts`. */
 const DUOC_RONG = new Set(['rebuildDone.archiveUrl', 'rebuildDone.archiveSha256', 'myChains.colActions']);
 
 describe('the language registry', () => {

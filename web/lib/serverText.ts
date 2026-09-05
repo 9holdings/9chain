@@ -1,4 +1,10 @@
-import type { Dict } from '@/lib/i18n/en';
+import type { EN_SERVER_TEXT } from '@/lib/i18n/en/server-text';
+
+/**
+ * Only the two groups this file reads — `presets` and `steps` — so a screen has to import
+ * `en/server-text.ts` (and hand it to `usePageT`) to call these, and `tsc` says so.
+ */
+type Dict = typeof EN_SERVER_TEXT;
 
 /**
  * ═══ TEXT THAT ARRIVES FROM THE CONSOLE API — TRANSLATED HERE, BY ITS STABLE CODE ═══

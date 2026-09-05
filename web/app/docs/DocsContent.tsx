@@ -1,7 +1,8 @@
 'use client';
 
 import { Card, Note } from '@/components/ui';
-import { useT } from '@/lib/i18n';
+import { usePageT } from '@/lib/i18n';
+import { EN_DOCS } from '@/lib/i18n/en/docs';
 import { LANGUAGES } from '@/lib/i18n/languages';
 import { DOCS, type DocLang } from '@/lib/docs';
 
@@ -18,7 +19,7 @@ function tenNgonNgu(code: DocLang): string {
 }
 
 function Ngoai({ href, children }: { href: string; children: React.ReactNode }) {
-  const t = useT();
+  const t = usePageT(EN_DOCS);
   return (
     <a
       href={href}
@@ -33,7 +34,7 @@ function Ngoai({ href, children }: { href: string; children: React.ReactNode }) 
 }
 
 export function DocsContent() {
-  const t = useT();
+  const t = usePageT(EN_DOCS);
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 md:py-14">

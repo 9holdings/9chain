@@ -205,6 +205,12 @@ export const bn: Dict = {
     explorer: 'এক্সপ্লোরার',
     explorerAria: '9Scan-A1 নতুন ট্যাবে খুলুন',
     ceremony: "অনুষ্ঠান",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "একটি ভ্যালিডেটর চালান",
+    docs: "ডকুমেন্টেশন",
+    nineYears: "নয় বছর, নয়শো কোটি",
   },
 
   home: {

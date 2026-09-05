@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import { Card, Skeleton, ErrorState, EmptyState, Badge } from '@/components/ui';
 import { shortenAddress } from '@/lib/eip55';
-import { useT, useLanguage } from '@/lib/i18n';
+import { usePageT, useLanguage } from '@/lib/i18n';
+import { EN_HOME } from '@/lib/i18n/en/home';
+import { EN_SERVER_TEXT } from '@/lib/i18n/en/server-text';
 import { interpolate } from '@/lib/i18n/interpolate';
 import { formatNumber } from '@/lib/numbers';
 import { readDirectory, type ChainRecord } from '@/lib/directory';
@@ -37,8 +39,11 @@ type TT = { phase: 'tai' } | { phase: 'xong'; list: ChainRecord[]; total: number
 /** How many rows the home page shows. Nine, in keeping with the project's number. */
 const HOME_ROWS = 9;
 
+/** The home table's English: the `home.*` labels and the console's preset names. A module constant — `usePageT` memoises on its identity. */
+const SECTIONS = { ...EN_HOME, ...EN_SERVER_TEXT };
+
 export function ChainTable() {
-  const t = useT();
+  const t = usePageT(SECTIONS);
   const { code } = useLanguage();
   /**
    * Seeded from the committed ledger snapshot, so the home page's table is IN the exported

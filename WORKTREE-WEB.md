@@ -2,6 +2,62 @@
 
 ---
 
+## ▶ TRẠNG THÁI SỐNG — `2026-09-05` (tối) — TIẾNG ANH ĐÃ TÁCH THEO TRANG
+
+**Mục 1 của khối bàn giao sáng ĐÃ XONG.** `en.ts` (một object 51 KB, đi trong bundle chung của
+mọi trang) nay là thư mục **`web/lib/i18n/en/`**: `core.ts` (nhóm mọi trang đọc — `common` ·
+`nav` · `footer` · `langPicker` · `errors` · `loadTest` · `notFound`) và **12 tệp theo màn hình**.
+Provider chỉ nhập `core`; mỗi màn hình nhập tệp của mình rồi đưa vào **`usePageT(SECTIONS)`**
+(đồng bộ, không nhịp thứ hai; kiểu trả về `Core & S` nên đọc nhóm chưa nhập là `tsc` đỏ).
+`index.ts` ghép `EN` đầy đủ **chỉ cho server + test** — một module `'use client'` nhập nó là
+tách hỏng lặng lẽ, và **`scripts/check-en-split.mjs`** (trong `postbuild`) đo `out/` để bắt đúng
+điều đó. 29 ngôn ngữ kia **không đổi** (vẫn một chunk lười mỗi ngôn ngữ).
+
+| Đo trên bản dựng (KB gz, trần 160) | trước | sau |
+|---|--:|--:|
+| `/chains/` (nặng nhất) | 156,6 | **149,3** |
+| `/404/` (= sàn chung của mọi trang) | 139,9 | **128,0** |
+| `/ceremony/` · `/faucet/` · `/re-genesis/` | 146,5 · 147,0 · 141,4 | 135,9 · 135,8 · 131,8 |
+
+Quan trọng hơn con số: **một trang mới nay chỉ trả giá ở chính nó**. Cổng mới đã được thấy ĐỎ
+trên `out/` cũ (16/16 nhóm trên cả 13 trang) trước khi xanh (15/15 nhóm, mỗi nhóm 1–4 trang). Sổ
+giá trị `check-dict-values` khớp **14.820 chuỗi** ⇒ không một câu tiếng Anh nào đổi qua lượt tách;
+90 khoá mới là `nav.validators/docs/nineYears` × 30 (chân trang từng đọc `validators.title`… của
+ba trang, tức kéo ba mục lớn vào mọi trang) — **chuỗi VI là bản chép nguyên văn của tiêu đề đã
+duyệt, không có câu mới cần duyệt**.
+
+Đã kiểm trên Browser pane (bản dựng tĩnh): `/faucet/` EN → VI (tiêu đề tab, h1, `lang`, chân
+trang) → EN (tiêu đề khôi phục đúng bản dựng); trang chủ và `/chains/` không lỗi console mới.
+Test **201/201** · typecheck sạch · 12 cổng `postbuild` xanh.
+
+### Gotchas trả giá trong lượt này
+
+- 🔴 **Header dời vào màn hình có `return` sớm thì mất khỏi HTML tĩnh.** `PageHeader` từng nhận
+  tên nhóm từ `page.tsx` (server) — sau khi tách phải nhận chuỗi từ màn hình (client). Dời vào
+  `return` chính của `/create-chain/` ⇒ `check-prerender` đỏ (1454 < 1500): pha "chưa nối ví"
+  `return` trước. Nay màn hình xuất = `<PageHeader/> + <Body/>`.
+- 🔴 **Mốc đo phải không nằm trong lõi.** Cổng mới báo `nineYears` trên 13/13 trang vì mốc là
+  `nineYears.title`, vừa được chép vào `nav.nineYears`. Đỏ vì SAI lý do — nay lọc mốc qua `core.ts`.
+- **`notFound` là lõi thật**: Next gắn ranh giới not-found vào bundle chung (route `/_not-found`
+  = phần chung + 126 B). Tách riêng là cãi nhau với bundler; cổng đo ra sự thật đó.
+- **5 cổng đọc `en` như VĂN BẢN** (`check-dict-values` · `check-interpolate` · `check-links` ·
+  `check-server-text` · `check-decentralisation-claim` ở `local-net/deploy`). Mọi tệp trong `en/`
+  giữ đúng hình `  nhóm: {` … `  },` để chúng đọc **ghép** các tệp y như tệp cũ. **Đổi thụt lề là
+  năm cổng câm cùng lúc.**
+- `seo.ts` nhập `EN` đầy đủ mà `pageTitle.ts` (client, layout) nhập `composeTitle` từ đó ⇒ một
+  cạnh import kéo cả 14 tệp vào bundle chung. Cắt bằng `lib/titleShape.ts`.
+- Tiêu đề tab khi ở tiếng Anh: hook **khôi phục tiêu đề lúc build** (đúng theo cấu trúc) thay
+  vì đọc 12 nhóm của 12 trang trong layout.
+
+### Việc để lại (không chặn)
+
+- `loadTest` cả nhóm nằm lõi vì dải trong layout đọc 3 khoá; `SlotsLeft` (2 khoá `launch`) và
+  `CeremonyCallout` (4 khoá `ceremony`) kéo hai nhóm đó lên trang chủ. Dời vài khoá sang
+  `common` = key move × 30 từ điển, được ~1–3 KB trang chủ. Chỉ làm khi cần.
+- 29 bản dịch vẫn nạp nguyên khối (~65 KB nguồn mỗi ngôn ngữ) — ngoài ngân sách lượt tải đầu.
+
+---
+
 ## ▶ K1 · 1.000 SỔ MỘT VALIDATOR — chuỗi phân tích + pha 0 ĐÃ CHẠY THẬT (`2026-09-05`, phiên soát)
 
 **TL;DR.** Từ câu hỏi "tối ưu web tới đâu" đi tới tầm nhìn 9 tỷ chain, đọc lõi hai lượt, lập K1, **chạy pha 0

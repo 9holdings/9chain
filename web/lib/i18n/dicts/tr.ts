@@ -206,6 +206,12 @@ export const tr: Dict = {
     explorer: 'Gezgin',
     explorerAria: '9Scan-A1’i yeni sekmede aç',
     ceremony: "Tören",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "Bir doğrulayıcı çalıştır",
+    docs: "Belgeler",
+    nineYears: "Dokuz yıl, dokuz milyar",
   },
 
   home: {

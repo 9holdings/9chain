@@ -86,7 +86,7 @@ export const LANGUAGES: readonly Language[] = [
   // wording is at the foot of `docs/WEB-PROGRESS.md`; the reasoning, and the one string whose
   // approval is tied to a measurement of the live network, is at the top of `dicts/vi.ts`.
   // ⚠️ The old comment here called `vi` "the SOURCE all the others are translated from".
-  // That is WRONG, and wrong in the direction that misleads whoever comes next: `en.ts`
+  // That is WRONG, and wrong in the direction that misleads whoever comes next: `en/`
   // is the source of the keys, and it says so plainly — *"Every other translation is made
   // FROM HERE, not from `vi.ts`"* — because translating through two layers doubles the
   // places meaning can drift. `vi` is the first translation, and the reviewed one, not the source.

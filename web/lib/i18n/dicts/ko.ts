@@ -207,6 +207,12 @@ export const ko: Dict = {
     explorer: '익스플로러',
     explorerAria: '9Scan-A1을 새 탭에서 열기',
     ceremony: "의식",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "검증 노드를 운영하기",
+    docs: "문서",
+    nineYears: "9년, 90억",
   },
 
   home: {

@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { Card, Badge, Skeleton, Note, cx } from '@/components/ui';
 import { useNetworkStats } from '@/lib/stats';
-import { useT, useLanguage } from '@/lib/i18n';
+import { usePageT, useLanguage } from '@/lib/i18n';
+import { EN_COMPARE } from '@/lib/i18n/en/compare';
+import { PageHeader } from '@/components/PageHeader';
 import { formatNumber } from '@/lib/numbers';
 
 /**
@@ -53,7 +55,7 @@ const GOC: Criterion[] = [
 ];
 
 export function ComparisonTable() {
-  const t = useT();
+  const t = usePageT(EN_COMPARE);
   // Looked up by `id`. The key is CONCATENATED so `tsc` cannot check it, and `i18n-shape` is
   // blind too — it compares the 30 dictionaries WITH EACH OTHER, so "all 30 missing it" is
   // valid to it. What actually guards this is `test/compare-criteria.test.ts`, joining the
@@ -69,6 +71,8 @@ export function ComparisonTable() {
   const tong = diemA + diemC || 1;
 
   return (
+    <>
+    <PageHeader title={t.compare.title} desc={t.compare.desc} width="wide" />
     <div className="mt-8 flex flex-col gap-6">
       <Note tone="warn">
         <strong className="block font-semibold">{t.compare.selfScoreTitle}</strong>
@@ -191,5 +195,6 @@ export function ComparisonTable() {
         </div>
       </Card>
     </div>
+    </>
   );
 }

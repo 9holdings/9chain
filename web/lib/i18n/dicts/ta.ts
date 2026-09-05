@@ -212,6 +212,12 @@ export const ta: Dict = {
     explorer: 'ஆய்வாளர்',
     explorerAria: '9Scan-A1-ஐப் புதிய தாவலில் திற',
     ceremony: "விழா",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "ஒரு வேலிடேட்டரை இயக்குங்கள்",
+    docs: "ஆவணங்கள்",
+    nineYears: "ஒன்பது ஆண்டுகள், ஒன்பது பில்லியன்",
   },
 
   home: {

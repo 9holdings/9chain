@@ -200,6 +200,12 @@ export const ru: Dict = {
     explorer: 'Обозреватель',
     explorerAria: 'Открыть 9Scan-A1 в новой вкладке',
     ceremony: "Церемония",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "Запустить валидатор",
+    docs: "Документация",
+    nineYears: "Девять лет, девять миллиардов",
   },
 
   home: {

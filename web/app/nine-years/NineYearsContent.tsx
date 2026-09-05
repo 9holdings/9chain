@@ -1,7 +1,9 @@
 'use client';
 
 import { Card, Note } from '@/components/ui';
-import { useT } from '@/lib/i18n';
+import { usePageT } from '@/lib/i18n';
+import { EN_NINE_YEARS } from '@/lib/i18n/en/nine-years';
+import { EN_DOCS } from '@/lib/i18n/en/docs';
 import { MOMENT_ISO } from '@/lib/ceremony';
 import { DOCS } from '@/lib/docs';
 
@@ -12,7 +14,7 @@ import { DOCS } from '@/lib/docs';
  * The manifesto's argument, in the reader's own language, ending with the manifesto itself.
  * The document is 190 lines and exists in two languages; this is its spine in thirty. Nothing
  * here is invented for the web — every section is one of the document's own, condensed, and
- * `lib/i18n/en.ts` says so where a translator might otherwise soften it.
+ * `lib/i18n/en/nine-years.ts` says so where a translator might otherwise soften it.
  *
  * 🔴 THE FULL DOCUMENT IS LINKED FROM `lib/docs.ts`, NOT RETYPED HERE. One catalogue of where
  * the documents live; a second copy of those URLs on this page would be a second thing to keep
@@ -31,8 +33,11 @@ const STAGES: { year: string; key: 'stage2027' | 'stage2028' | 'stage2029' | 'st
   { year: '2035', key: 'stage2035' },
 ];
 
+/** Its own groups, plus `docs.*` for the link to the full manifesto document. The page links are labelled from `nav.*` (core). */
+const SECTIONS = { ...EN_NINE_YEARS, ...EN_DOCS };
+
 export function NineYearsContent() {
-  const t = useT();
+  const t = usePageT(SECTIONS);
   const n = t.nineYears;
   const manifesto = DOCS.find((d) => d.id === 'manifesto');
 
@@ -125,7 +130,7 @@ export function NineYearsContent() {
           href="/validators/"
           className="inline-flex h-13 items-center justify-center rounded-btn-lg bg-gold px-6 text-base font-semibold text-navy shadow-cta hover:bg-gold-hover"
         >
-          {t.validators.title}
+          {t.nav.validators}
         </a>
         <a
           href="/create-chain/"
@@ -137,7 +142,7 @@ export function NineYearsContent() {
           href="/docs/"
           className="inline-flex h-13 items-center justify-center rounded-btn-lg border border-line-strong px-6 text-base font-semibold text-ink hover:bg-surface-alt"
         >
-          {t.docs.title}
+          {t.nav.docs}
         </a>
       </div>
 

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { EN } from '@/lib/i18n/en';
-import { PageHeader } from '@/components/PageHeader';
 import { pageMeta } from '@/lib/seo';
 import { MyChainsScreen } from './MyChainsScreen';
 
@@ -13,7 +12,7 @@ export const metadata: Metadata = pageMeta({
 export default function TrangChainCuaToi() {
   return (
     <div className="khung py-10 md:py-14">
-      <PageHeader group="myChains" />
+      {/* The `<h1>` header is rendered INSIDE the screen since 2026-09-05 — see `components/PageHeader.tsx`. */}
       <MyChainsScreen />
     </div>
   );

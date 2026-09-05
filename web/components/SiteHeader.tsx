@@ -5,7 +5,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { LanguagePicker } from './LanguagePicker';
 import { BrandLockup } from './BrandLockup';
 import { useT } from '@/lib/i18n';
-import type { Dict } from '@/lib/i18n/en';
+import type { Core } from '@/lib/i18n/en/core';
 import { explorerOrigin } from '@/lib/chain';
 import { cx } from './ui';
 
@@ -31,7 +31,7 @@ type Item = { label: string; href: string; external?: boolean };
 // a silent trap: change language and THE WHOLE PAGE flips while the nav bar alone stays in
 // English — with no error reported, because the code still runs correctly.
 // The paths do NOT change with language (each page has one URL), so only the text takes `t`.
-function buildItems(t: Dict): Item[] {
+function buildItems(t: Core): Item[] {
   return [
     { label: t.nav.home, href: '/' },
     { label: t.nav.faucet, href: '/faucet/' },

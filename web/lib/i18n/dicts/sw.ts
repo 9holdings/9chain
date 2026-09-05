@@ -208,6 +208,12 @@ export const sw: Dict = {
     explorer: 'Kichunguzi',
     explorerAria: 'Fungua 9Scan-A1 kwenye kichupo kipya',
     ceremony: "Sherehe",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "Endesha kithibitishaji",
+    docs: "Nyaraka",
+    nineYears: "Miaka tisa, bilioni tisa",
   },
 
   home: {

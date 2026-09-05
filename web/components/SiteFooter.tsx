@@ -65,9 +65,13 @@ export function SiteFooter() {
       title: t.footer.about,
       items: [
         { href: 'https://9chain.org/', label: t.footer.mainSite, external: true },
-        { href: '/nine-years/', label: t.nineYears.title },
-        { href: '/docs/', label: t.docs.title },
-        { href: '/validators/', label: t.validators.title },
+        // 🔴 `nav.*`, NOT `nineYears.title` / `docs.title` / `validators.title` (2026-09-05).
+        // The footer is on every page; reading a page's own group here would carry that whole
+        // page's English into every other page's bundle — the exact thing the per-page split
+        // of `lib/i18n/en/` removes. The three labels were copied into `nav` in all 30 dictionaries.
+        { href: '/nine-years/', label: t.nav.nineYears },
+        { href: '/docs/', label: t.nav.docs },
+        { href: '/validators/', label: t.nav.validators },
         { href: '/ceremony/', label: t.nav.ceremony },
         { href: '/re-genesis/', label: t.footer.rebuildPlan },
       ],

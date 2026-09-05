@@ -202,6 +202,12 @@ export const ja: Dict = {
     explorer: 'エクスプローラ',
     explorerAria: '9Scan-A1 を新しいタブで開く',
     ceremony: "セレモニー",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "バリデータを動かす",
+    docs: "ドキュメント",
+    nineYears: "九年、九十億",
   },
 
   home: {

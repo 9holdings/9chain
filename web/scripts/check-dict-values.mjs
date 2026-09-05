@@ -122,18 +122,30 @@ if (!existsSync(DICTS)) {
   cannotMeasure(`cannot find ${path.relative(WEB, DICTS)}`);
   process.exit(process.exitCode);
 }
+// 🔴 ENGLISH IS A FOLDER, NOT A FILE (2026-09-05): `lib/i18n/en/*.ts`, one file per group of
+// readers, so each page's bundle carries only its own English. Every file keeps the same text
+// shape as the old single file (`  group: {` … `  },`), so the reader below works unchanged on
+// each of them; their values are merged under `en`. `index.ts` only assembles the others and
+// holds no strings — a file that yields nothing is fine HERE, as long as the merge is not empty.
+const EN_DIR = path.join(I18N, 'en');
 const files = [
-  ['en', path.join(I18N, 'en.ts')],
+  ['en', readdirSync(EN_DIR).filter((f) => f.endsWith('.ts')).sort().map((f) => path.join(EN_DIR, f))],
   ...readdirSync(DICTS)
     .filter((f) => f.endsWith('.ts'))
-    .map((f) => [f.slice(0, -3), path.join(DICTS, f)]),
+    .map((f) => [f.slice(0, -3), [path.join(DICTS, f)]]),
 ];
 
 const now = {};
 let tongSkipped = 0;
 let tongKey = 0;
-for (const [lang, file] of files) {
-  const { values, skipped } = readDict(file);
+for (const [lang, paths] of files) {
+  const values = {};
+  let skipped = 0;
+  for (const file of paths) {
+    const r = readDict(file);
+    Object.assign(values, r.values);
+    skipped += r.skipped;
+  }
   if (Object.keys(values).length === 0) {
     cannotMeasure(`${lang}: read 0 strings — the reader does not understand this file`);
     process.exit(process.exitCode);
@@ -151,7 +163,7 @@ if (ACCEPT) {
     for (const k of Object.keys(now[lang]).sort()) lock[lang][k] = short(now[lang][k]);
   }
   writeFileSync(LOCK, JSON.stringify(lock, null, 1) + '\n', 'utf8');
-  console.log(`✓ ledger written to ${path.relative(WEB, LOCK)} — ${files.length} languages · ${tongKey} strings`);
+    console.log(`✓ ledger written to ${path.relative(WEB, LOCK)} — ${files.length} languages · ${tongKey} strings`);
   process.exit(0);
 }
 

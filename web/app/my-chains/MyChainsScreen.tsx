@@ -7,7 +7,11 @@ import { OpenInWallet } from '@/components/OpenInWallet';
 import { presetLabelOf, localiseSteps } from '@/lib/serverText';
 import { symbolOf } from '@/lib/l1-symbol';
 import { rpcOrigin } from '@/lib/chain';
-import { interpolate, useT } from '@/lib/i18n';
+import { interpolate, usePageT } from '@/lib/i18n';
+import { EN_MY_CHAINS } from '@/lib/i18n/en/my-chains';
+import { EN_LAUNCH } from '@/lib/i18n/en/launch';
+import { EN_SERVER_TEXT } from '@/lib/i18n/en/server-text';
+import { PageHeader } from '@/components/PageHeader';
 import { fetchJson, describeFailure, READ_TIMEOUT_MS } from '@/lib/net';
 import { getWallet, connectWallet, siweSignIn, callConsole, addL1ToWallet, waitForProgress, readWalletError, ConsoleError, NO_WALLET, type WalletSession, CONSOLE_TIMEOUT_S} from '@/lib/wallet';
 
@@ -48,8 +52,26 @@ async function demValidator(subnetID: string): Promise<number> {
   return (j.result?.validators ?? []).length;
 }
 
+/** This screen's English — its own groups plus the launch and console-text keys it reuses. A module constant: `usePageT` memoises on its identity. */
+const SECTIONS = { ...EN_MY_CHAINS, ...EN_LAUNCH, ...EN_SERVER_TEXT };
+
+/**
+ * The header sits OUTSIDE the body on purpose: the body has several early returns (no wallet,
+ * loading, load error), and a header inside the main `return` is absent from the prerendered
+ * HTML — measured on `/create-chain/`, same shape, the day the header moved in from `page.tsx`.
+ */
 export function MyChainsScreen() {
-  const t = useT();
+  const t = usePageT(SECTIONS);
+  return (
+    <>
+      <PageHeader title={t.myChains.title} desc={t.myChains.desc} />
+      <MyChainsBody />
+    </>
+  );
+}
+
+function MyChainsBody() {
+  const t = usePageT(SECTIONS);
   const [session, setSession] = useState<WalletSession | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [walletFailure, setWalletFailure] = useState<string | null>(null);

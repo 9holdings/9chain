@@ -207,6 +207,12 @@ export const fa: Dict = {
     explorer: 'کاوشگر',
     explorerAria: 'باز کردن 9Scan-A1 در زبانهٔ جدید',
     ceremony: "مراسم",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "یک اعتبارسنج اجرا کنید",
+    docs: "مستندات",
+    nineYears: "نُه سال، نُه میلیارد",
   },
 
   home: {

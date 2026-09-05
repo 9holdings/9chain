@@ -31,16 +31,24 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const EN = path.join(GOC, 'lib', 'i18n', 'en.ts');
+// 🔴 English is a FOLDER since 2026-09-05 (`lib/i18n/en/*.ts`, one file per group of readers).
+// Each file keeps the old single file's text shape (`  group: {` … `  },`), so reading the
+// files CONCATENATED is reading the old file. `index.ts` holds no strings and is skipped.
+const EN_DIR = path.join(GOC, 'lib', 'i18n', 'en');
 
-if (!existsSync(EN)) {
-  console.log('   ✗ cannot find lib/i18n/en.ts');
+if (!existsSync(EN_DIR)) {
+  console.log('   ✗ cannot find lib/i18n/en/');
+  process.exit(2);
+}
+const EN_FILES = readdirSync(EN_DIR).filter((f) => f.endsWith('.ts') && f !== 'index.ts').sort();
+if (EN_FILES.length === 0) {
+  console.log('   ✗ lib/i18n/en/ has no dictionary files');
   process.exit(2);
 }
 
-/** Read `en.ts` into a `path.key` -> string map. Enough to extract the `{…}`. */
+/** Read the English folder into a `path.key` -> string map. Enough to extract the `{…}`. */
 function docEn() {
-  const src = readFileSync(EN, 'utf8');
+  const src = EN_FILES.map((f) => readFileSync(path.join(EN_DIR, f), 'utf8')).join('\n');
   const ra = new Map();
   let nhom = null;
   for (const dong of src.split('\n')) {
@@ -105,7 +113,7 @@ let boQua = 0;
 for (const goc of ['app', 'components', 'lib']) {
   for (const p of tep(path.join(GOC, goc))) {
     const rel = path.relative(GOC, p).replace(/\\/g, '/');
-    if (rel === 'lib/i18n/en.ts' || rel === 'lib/i18n/interpolate.ts') continue;
+    if (rel.startsWith('lib/i18n/en/') || rel === 'lib/i18n/interpolate.ts') continue;
     const src = readFileSync(p, 'utf8');
     // `interpolate(<key path>, { a: …, b: … })`
     const re = /interpolate\(\s*(?:t|EN)\.([A-Za-z0-9.]+)\s*,\s*\{([^{}]*)\}/g;

@@ -206,6 +206,12 @@ export const gu: Dict = {
     explorer: 'એક્સપ્લોરર',
     explorerAria: '9Scan-A1 નવા ટૅબમાં ખોલો',
     ceremony: "સમારંભ",
+    // Footer / cross-page labels for the three "About" pages — copied from each page's own
+    // `title` on 2026-09-05, when English was split per page: the footer must not read a
+    // page's group, or that page's whole text rides in every other page's bundle.
+    validators: "એક વેલિડેટર ચલાવો",
+    docs: "દસ્તાવેજો",
+    nineYears: "નવ વર્ષ, નવ અબજ",
   },
 
   home: {
