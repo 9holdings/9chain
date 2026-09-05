@@ -1012,3 +1012,20 @@ pnpm build                       # ✓ + postbuild: static-export, [?]-gate, axe
 git -C C:\PROJECTS\9Chain-A1 worktree remove C:\PROJECTS\9Chain-A1-web
 git -C C:\PROJECTS\9Chain-A1 branch -d web-home
 ```
+
+---
+
+## 🔴 LUẬT `git add` GIỮA HAI PHIÊN — sửa sau một lần cắn thật (`2026-09-05`)
+
+**Đã xảy ra:** commit `eea5264` (trang `/nine-years/`) nuốt luôn
+`docs/ANALYSIS-CORE-TOWARD-9-BILLION-2026-09-05.md` — tệp **chưa commit của một phiên khác**
+đang làm trong CÙNG worktree này. Nguyên nhân: `git add -A`. Không hỏng gì (nội dung đúng là
+bản họ muốn lưu), nhưng một tệp phân tích của người khác nay nằm trong lịch sử dưới một
+commit nói về trang tuyên ngôn — tức là **thông điệp commit nói dối về nội dung của nó**,
+và người đọc `git log` sau này sẽ tìm tệp đó ở nhầm chỗ.
+
+⇒ **Luật:** trong worktree này, **`git add <đường dẫn của mình>`**, không bao giờ `git add -A`
+/ `git add .`. Rẻ hơn nhiều so với việc gỡ một tệp ra khỏi lịch sử sau đó.
+
+⚠️ Kiểm lại cả 10 commit khác của phiên `05/09`: **chỉ đúng một lượt này** dính. Không lượt
+nào khác chạm tệp của phiên soát.
