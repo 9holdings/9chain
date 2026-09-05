@@ -220,7 +220,7 @@ export const nl: Dict = {
     secondaryCta: 'Haal eerst testtokens',
 
     title: 'Start je eigen chain op A1',
-    subtitle: 'Een eigen L1, in bezit van de wallet waarmee je ondertekent, die echt draait op het testnetwerk. Duurt ongeveer drie minuten.',
+    subtitle: 'Een eigen L1, in bezit van de wallet waarmee je ondertekent, die echt draait op het testnetwerk. Duurt ongeveer vijf minuten.',
     tableCaption: 'Elke rij is een echte chain die op A1 draait, met een eigen eigenaar.',
     colChain: 'Chain',
     colType: 'Type',
@@ -372,7 +372,7 @@ export const nl: Dict = {
     title: 'Start je chain',
     desc:
       'Een eigen L1, in bezit van je wallet. Je tekent één keer om te bewijzen wie je bent, je ' +
-      'controleert alles, en het netwerk bouwt de chain in ongeveer drie minuten.',
+      'controleert alles, en het netwerk bouwt de chain in ongeveer vijf minuten.',
 
     connectWallet: 'Wallet verbinden',
     connecting: 'Verbinden…',
@@ -485,7 +485,7 @@ export const nl: Dict = {
     revokeNameMismatch: 'Dat komt niet overeen met de naam van de chain.',
     revokeConfirm: 'Definitief intrekken',
     revokeCancel: 'Annuleren',
-    revoking: '“{name}" wordt ingetrokken — ongeveer drie minuten',
+    revoking: '“{name}" wordt ingetrokken — ongeveer vijf minuten',
     revokeDone: '“{name}" ingetrokken. {left}/{total} plekken over.',
     revokeError: 'Kon niet intrekken. {detail}',
     revokeUnknown: 'De chain staat na afloop nog steeds in de lijst.',

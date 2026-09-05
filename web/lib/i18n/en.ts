@@ -245,7 +245,7 @@ export const EN = {
     secondaryCta: 'Get test tokens first',
 
     title: 'Launch your own chain on A1',
-    subtitle: 'An L1 of your own, owned by the wallet you sign with, running for real on the test network. Takes about three minutes.',
+    subtitle: 'An L1 of your own, owned by the wallet you sign with, running for real on the test network. Takes about five minutes.',
     tableCaption: 'Each row is a real chain running on A1, with its own owner.',
     colChain: 'Chain',
     colType: 'Type',
@@ -516,7 +516,7 @@ export const EN = {
     title: 'Launch your chain',
     desc:
       'A dedicated L1, owned by your wallet. You sign once to prove who you are, review, ' +
-      'and the network builds the chain in about three minutes.',
+      'and the network builds the chain in about five minutes.',
 
     connectWallet: 'Connect wallet',
     connecting: 'Connecting…',
@@ -626,7 +626,7 @@ export const EN = {
     revokeNameMismatch: 'That does not match the chain name.',
     revokeConfirm: 'Revoke permanently',
     revokeCancel: 'Cancel',
-    revoking: 'Revoking “{name}” — about three minutes',
+    revoking: 'Revoking “{name}” — about five minutes',
     revokeDone: 'Revoked “{name}”. {left}/{total} slots left.',
     revokeError: 'Could not revoke. {detail}',
     revokeUnknown: 'The chain is still in the directory after the run finished.',

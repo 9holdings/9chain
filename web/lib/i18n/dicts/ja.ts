@@ -209,7 +209,7 @@ export const ja: Dict = {
     primaryCta: '自分のチェーンを立ち上げる',
     secondaryCta: 'まずテスト用トークンを取得',
     title: 'A1 で自分専用のチェーンを立ち上げる',
-    subtitle: '署名に使うウォレットが所有する、あなた専用の L1。テストネットワーク上で実際に動きます。所要時間は約 3 分です。',
+    subtitle: '署名に使うウォレットが所有する、あなた専用の L1。テストネットワーク上で実際に動きます。所要時間は約 5 分です。',
     tableCaption: '各行は A1 上で実際に動いているチェーンで、それぞれに所有者がいます。',
     colChain: 'チェーン',
     colType: '種類',
@@ -358,7 +358,7 @@ export const ja: Dict = {
 
   launch: {
     title: '自分のチェーンを立ち上げる',
-    desc: 'あなたのウォレットが所有する専用 L1。本人確認のために一度署名し、内容を確認すると、ネットワークが約 3 分でチェーンを構築します。',
+    desc: 'あなたのウォレットが所有する専用 L1。本人確認のために一度署名し、内容を確認すると、ネットワークが約 5 分でチェーンを構築します。',
     connectWallet: 'ウォレットを接続',
     connecting: '接続中…',
     signIn: '署名してログイン',
@@ -454,7 +454,7 @@ export const ja: Dict = {
     revokeNameMismatch: 'チェーン名と一致しません。',
     revokeConfirm: '恒久的に取り消す',
     revokeCancel: 'キャンセル',
-    revoking: '「{name}」を取り消し中 — 約 3 分',
+    revoking: '「{name}」を取り消し中 — 約 5 分',
     revokeDone: '「{name}」を取り消しました。残り {left}/{total} 枠。',
     revokeError: '取り消せませんでした。{detail}',
     revokeUnknown: '処理の終了後もチェーンはディレクトリに残っています。',

@@ -209,7 +209,7 @@ export const pt: Dict = {
     primaryCta: 'Lance sua cadeia',
     secondaryCta: 'Pegue tokens de teste primeiro',
     title: 'Lance sua própria cadeia na A1',
-    subtitle: 'Uma L1 sua, de propriedade da carteira com que você assina, rodando de verdade na rede de testes. Leva cerca de três minutos.',
+    subtitle: 'Uma L1 sua, de propriedade da carteira com que você assina, rodando de verdade na rede de testes. Leva cerca de cinco minutos.',
     tableCaption: 'Cada linha é uma cadeia real rodando na A1, com dono próprio.',
     colChain: 'Cadeia',
     colType: 'Tipo',
@@ -358,7 +358,7 @@ export const pt: Dict = {
 
   launch: {
     title: 'Lance sua cadeia',
-    desc: 'Uma L1 dedicada, de propriedade da sua carteira. Você assina uma vez para provar quem é, revisa, e a rede constrói a cadeia em cerca de três minutos.',
+    desc: 'Uma L1 dedicada, de propriedade da sua carteira. Você assina uma vez para provar quem é, revisa, e a rede constrói a cadeia em cerca de cinco minutos.',
     connectWallet: 'Conectar carteira',
     connecting: 'Conectando…',
     signIn: 'Assinar para entrar',
@@ -453,7 +453,7 @@ export const pt: Dict = {
     revokeNameMismatch: 'Isso não confere com o nome da cadeia.',
     revokeConfirm: 'Revogar permanentemente',
     revokeCancel: 'Cancelar',
-    revoking: 'Revogando “{name}” — cerca de três minutos',
+    revoking: 'Revogando “{name}” — cerca de cinco minutos',
     revokeDone: '“{name}” revogada. Restam {left}/{total} vagas.',
     revokeError: 'Não foi possível revogar. {detail}',
     revokeUnknown: 'A cadeia ainda está no diretório depois que a execução terminou.',

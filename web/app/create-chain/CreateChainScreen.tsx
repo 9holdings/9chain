@@ -8,6 +8,8 @@ import { presetText, localiseSteps } from '@/lib/serverText';
 import { symbolOf } from '@/lib/l1-symbol';
 import { interpolate, useT } from '@/lib/i18n';
 import { describeFailure } from '@/lib/net';
+import { conCanhBaoDungLai } from '@/lib/rebuildNotice';
+import { SlotsLeft } from '@/components/SlotsLeft';
 import {
   getWallet, connectWallet, siweSignIn, callConsole, addL1ToWallet, activateChain, waitForProgress, ConsoleError,
   readWalletError, NO_WALLET, type WalletSession, CONSOLE_TIMEOUT_S} from '@/lib/wallet';
@@ -16,9 +18,14 @@ import {
  * The chain-launch screen — the hardest screen in M10, and three PRODUCT truths force its
  * shape, not aesthetics:
  *
- * 1. 🔴 **One run takes ~170 seconds, and that is DELIBERATE** (5 nodes restart one at a
+ * 1. 🔴 **One run takes MINUTES, and that is DELIBERATE** (the validators restart one at a
  *    time so the network never loses quorum; in exchange the public RPC is interrupted for
  *    0.5s instead of 6.0s).
+ *    ⚠️ The number in this comment used to be "~170 seconds", measured when the network had
+ *    FIVE nodes. The last real measurement is **305.5 s to create · 293.4 s to revoke**, on
+ *    the nine-node network (2026-08-26) — restarting nine nodes one at a time costs roughly
+ *    twice as long as five. The user-facing copy said "about three minutes" for another ten
+ *    days because it was written from this comment. If you measure it again, change BOTH.
  *    ⇒ **progress shown as STEPS**, not a spinner. A 170-second spinner reads as "it broke",
  *    and the retry is a surplus chain eating one of the 15 slots.
  * 2. 🔴 **Genesis is IMMUTABLE** ⇒ this is a **one-way door**, so there must be a review step.
@@ -205,6 +212,11 @@ export function CreateChainScreen() {
             <ErrorState title={walletFailure} desc="" onRetry={vao} />
           </div>
         )}
+        {/* The ceiling BEFORE the wallet gate, not after it. `state` needs a session, so the
+            public number comes from the same public directory file the home page reads. */}
+        <div className="mt-4">
+          <SlotsLeft />
+        </div>
         {!getWallet() && (
           <div className="mt-4">
             <OpenInWallet fallback={<Note tone="warn">{t.launch.noWallet}</Note>} />
@@ -214,9 +226,14 @@ export function CreateChainScreen() {
     );
   }
 
-  const soChain = state?.chains?.length ?? 0;
-  const tran = state?.tran ?? 15;
-  const hetCho = soChain >= tran;
+  // 🔴 NO FALLBACK NUMBER HERE — fixed 2026-09-05. This used to read
+  // `state?.chains?.length ?? 0` and `state?.tran ?? 15`, so a failed `/api/status` rendered
+  // the badge "15/15 slots left": the most inviting sentence this screen can produce, shown
+  // exactly when it knows nothing, to someone about to spend a permanent slot. Unknown is a
+  // dash (Đ1-8), and the server stays the authority on the ceiling when we do have it.
+  const soChain = state?.chains?.length ?? null;
+  const tran = state?.tran ?? null;
+  const hetCho = soChain !== null && tran !== null && soChain >= tran;
   const tenSach = ten.trim();
   const tenOk = TEN_HOP_LE.test(tenSach);
   const presetHienTai = state?.presets?.find((p) => p.id === preset);
@@ -230,7 +247,11 @@ export function CreateChainScreen() {
               <h2 className="font-display text-lg font-bold text-ink">{t.launch.title}</h2>
               {/* 🔴 Show the ceiling BEFORE someone invests effort, not when they are refused. */}
               <Badge tone={hetCho ? 'warn' : 'good'}>
-                {hetCho ? t.launch.slotsFull : interpolate(t.launch.slotsLeft, { left: tran - soChain, total: tran })}
+                {hetCho
+                  ? t.launch.slotsFull
+                  : soChain === null || tran === null
+                    ? '—'
+                    : interpolate(t.launch.slotsLeft, { left: tran - soChain, total: tran })}
               </Badge>
             </div>
 
@@ -305,12 +326,23 @@ export function CreateChainScreen() {
             <h2 className="font-display text-lg font-bold text-ink">{t.launch.reviewTitle}</h2>
             <div className="mt-3 flex flex-col gap-3">
               <Note tone="warn">{t.launch.reviewDesc}</Note>
-              {/* The re-genesis warning sits HERE and not only in the strip at the top of
-                  the page: this is the last second before a one-way door, and the one place we
-                  know for certain the user is reading. Remove it together with the banner strip after G-day. */}
-              <Note tone="warn">
-                {interpolate(t.launch.reviewRebuild, { date: t.rebuild.date })}
-              </Note>
+              {/* The rebuild warning sits HERE and not only in a strip at the top of the page:
+                  this is the last second before a one-way door, and the one place we know for
+                  certain the user is reading.
+                  🔴 AND IT ONLY APPEARS WHILE THE DATE IS STILL AHEAD — fixed 2026-09-05.
+                  The rebuild ran on 2026-09-01. For the four days after that, this screen told
+                  everyone reviewing a launch that their chain would be erased on a date already
+                  in the past, while `/re-genesis/` on the same site said the rebuild HAD
+                  happened. A warning that describes a past event as coming teaches the reader
+                  that the warnings on this site are decoration — which is expensive here,
+                  because the sentence above it (a one-way door) is true and has to be believed.
+                  If another rebuild is scheduled, moving `rebuild.date` forward brings this
+                  back on its own. */}
+              {conCanhBaoDungLai(t.rebuild.date) && (
+                <Note tone="warn">
+                  {interpolate(t.launch.reviewRebuild, { date: t.rebuild.date })}
+                </Note>
+              )}
             </div>
             <dl className="mt-5 flex flex-col gap-3">
               {[

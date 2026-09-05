@@ -219,7 +219,7 @@ export const ha: Dict = {
     secondaryCta: 'Fara da karɓar alamun gwaji',
 
     title: 'Ƙaddamar da sarƙarka a A1',
-    subtitle: 'L1 naka, mallakin walat ɗin da kake sa hannu da shi, tana gudana da gaske a hanyar gwaji. Tana ɗaukar kusan minti uku.',
+    subtitle: 'L1 naka, mallakin walat ɗin da kake sa hannu da shi, tana gudana da gaske a hanyar gwaji. Tana ɗaukar kusan minti biyar.',
     tableCaption: 'Kowane layi sarƙa ce ta gaske da ke gudana a A1, tare da mai ita.',
     colChain: 'Sarƙa',
     colType: 'Nau’i',
@@ -371,7 +371,7 @@ export const ha: Dict = {
     title: 'Ƙaddamar da sarƙarka',
     desc:
       'L1 keɓaɓɓe, mallakin walat ɗinka. Kana sa hannu sau ɗaya don tabbatar da wanene kai, ka duba, ' +
-      'sannan hanyar sadarwa tana gina sarƙar cikin kusan minti uku.',
+      'sannan hanyar sadarwa tana gina sarƙar cikin kusan minti biyar.',
 
     connectWallet: 'Haɗa walat',
     connecting: 'Ana haɗawa…',
@@ -481,7 +481,7 @@ export const ha: Dict = {
     revokeNameMismatch: 'Wannan bai dace da sunan sarƙar ba.',
     revokeConfirm: 'Janye har abada',
     revokeCancel: 'Soke',
-    revoking: 'Ana janye “{name}” — kusan minti uku',
+    revoking: 'Ana janye “{name}” — kusan minti biyar',
     revokeDone: 'An janye “{name}”. Sauran wurare {left}/{total}.',
     revokeError: 'Ba a iya janyewa ba. {detail}',
     revokeUnknown: 'Sarƙar na nan a jerin bayan aikin ya kammala.',

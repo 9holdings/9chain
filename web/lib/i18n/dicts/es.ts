@@ -210,7 +210,7 @@ export const es: Dict = {
     primaryCta: 'Lanza tu cadena',
     secondaryCta: 'Consigue primero tokens de prueba',
     title: 'Lanza tu propia cadena en A1',
-    subtitle: 'Una L1 tuya, propiedad del monedero con el que firmas, funcionando de verdad en la red de pruebas. Tarda unos tres minutos.',
+    subtitle: 'Una L1 tuya, propiedad del monedero con el que firmas, funcionando de verdad en la red de pruebas. Tarda unos cinco minutos.',
     tableCaption: 'Cada fila es una cadena real funcionando en A1, con su propio propietario.',
     colChain: 'Cadena',
     colType: 'Tipo',
@@ -359,7 +359,7 @@ export const es: Dict = {
 
   launch: {
     title: 'Lanza tu cadena',
-    desc: 'Una L1 dedicada, propiedad de tu monedero. Firmas una vez para probar quién eres, revisas, y la red construye la cadena en unos tres minutos.',
+    desc: 'Una L1 dedicada, propiedad de tu monedero. Firmas una vez para probar quién eres, revisas, y la red construye la cadena en unos cinco minutos.',
     connectWallet: 'Conectar monedero',
     connecting: 'Conectando…',
     signIn: 'Firmar para entrar',
@@ -456,7 +456,7 @@ export const es: Dict = {
     revokeNameMismatch: 'No coincide con el nombre de la cadena.',
     revokeConfirm: 'Revocar permanentemente',
     revokeCancel: 'Cancelar',
-    revoking: 'Revocando «{name}»: unos tres minutos',
+    revoking: 'Revocando «{name}»: unos cinco minutos',
     revokeDone: '«{name}» revocada. Quedan {left}/{total} plazas.',
     revokeError: 'No se pudo revocar. {detail}',
     revokeUnknown: 'La cadena sigue en el directorio después de terminar la ejecución.',

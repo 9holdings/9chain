@@ -212,7 +212,7 @@ export const fr: Dict = {
     primaryCta: 'Lancez votre chaîne',
     secondaryCta: 'Obtenez d’abord des jetons de test',
     title: 'Lancez votre propre chaîne sur A1',
-    subtitle: 'Une L1 à vous, détenue par le portefeuille avec lequel vous signez, qui tourne réellement sur le réseau de test. Environ trois minutes.',
+    subtitle: 'Une L1 à vous, détenue par le portefeuille avec lequel vous signez, qui tourne réellement sur le réseau de test. Environ cinq minutes.',
     tableCaption: 'Chaque ligne est une chaîne réelle qui tourne sur A1, avec son propre propriétaire.',
     colChain: 'Chaîne',
     colType: 'Type',
@@ -361,7 +361,7 @@ export const fr: Dict = {
 
   launch: {
     title: 'Lancez votre chaîne',
-    desc: 'Une L1 dédiée, détenue par votre portefeuille. Vous signez une fois pour prouver qui vous êtes, vous vérifiez, et le réseau construit la chaîne en trois minutes environ.',
+    desc: 'Une L1 dédiée, détenue par votre portefeuille. Vous signez une fois pour prouver qui vous êtes, vous vérifiez, et le réseau construit la chaîne en cinq minutes environ.',
     connectWallet: 'Connecter le portefeuille',
     connecting: 'Connexion…',
     signIn: 'Signer pour se connecter',
@@ -460,7 +460,7 @@ export const fr: Dict = {
     revokeNameMismatch: 'Cela ne correspond pas au nom de la chaîne.',
     revokeConfirm: 'Révoquer définitivement',
     revokeCancel: 'Annuler',
-    revoking: 'Révocation de « {name} » — environ trois minutes',
+    revoking: 'Révocation de « {name} » — environ cinq minutes',
     revokeDone: '« {name} » révoquée. {left}/{total} places restantes.',
     revokeError: 'Révocation impossible. {detail}',
     revokeUnknown: 'La chaîne est toujours dans l’annuaire après la fin de l’exécution.',

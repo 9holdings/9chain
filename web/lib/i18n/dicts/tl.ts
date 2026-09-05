@@ -224,7 +224,7 @@ export const tl: Dict = {
     secondaryCta: 'Kumuha muna ng test token',
 
     title: 'Ilunsad ang sarili mong chain sa A1',
-    subtitle: 'Sarili mong L1, pag-aari ng wallet na ipinanglagda mo, talagang tumatakbo sa test network. Umaabot ng mga tatlong minuto.',
+    subtitle: 'Sarili mong L1, pag-aari ng wallet na ipinanglagda mo, talagang tumatakbo sa test network. Umaabot ng mga limang minuto.',
     tableCaption: 'Ang bawat hanay ay tunay na chain na tumatakbo sa A1, na may sariling may-ari.',
     colChain: 'Chain',
     colType: 'Uri',
@@ -376,7 +376,7 @@ export const tl: Dict = {
     title: 'Ilunsad ang iyong chain',
     desc:
       'Isang nakalaang L1, pag-aari ng iyong wallet. Isang beses kang lalagda para patunayan kung sino ' +
-      'ka, susuriin mo, at itatayo ng network ang chain sa loob ng mga tatlong minuto.',
+      'ka, susuriin mo, at itatayo ng network ang chain sa loob ng mga limang minuto.',
 
     connectWallet: 'Ikonekta ang wallet',
     connecting: 'Kumokonekta…',
@@ -488,7 +488,7 @@ export const tl: Dict = {
     revokeNameMismatch: 'Hindi ito tumutugma sa pangalan ng chain.',
     revokeConfirm: 'Bawiin nang permanente',
     revokeCancel: 'Kanselahin',
-    revoking: 'Binabawi ang “{name}” — mga tatlong minuto',
+    revoking: 'Binabawi ang “{name}” — mga limang minuto',
     revokeDone: 'Nabawi ang “{name}”. {left}/{total} puwang ang natitira.',
     revokeError: 'Hindi nabawi. {detail}',
     revokeUnknown: 'Nasa direktoryo pa rin ang chain pagkatapos matapos ang proseso.',

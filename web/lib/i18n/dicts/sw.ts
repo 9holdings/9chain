@@ -216,7 +216,7 @@ export const sw: Dict = {
     secondaryCta: 'Pata tokeni za majaribio kwanza',
 
     title: 'Zindua mnyororo wako mwenyewe kwenye A1',
-    subtitle: 'L1 yako mwenyewe, inayomilikiwa na pochi unayotumia kusaini, ikiendeshwa kikweli kwenye mtandao wa majaribio. Huchukua takriban dakika tatu.',
+    subtitle: 'L1 yako mwenyewe, inayomilikiwa na pochi unayotumia kusaini, ikiendeshwa kikweli kwenye mtandao wa majaribio. Huchukua takriban dakika tano.',
     tableCaption: 'Kila safu ni mnyororo halisi unaoendeshwa kwenye A1, wenye mmiliki wake.',
     colChain: 'Mnyororo',
     colType: 'Aina',
@@ -368,7 +368,7 @@ export const sw: Dict = {
     title: 'Zindua mnyororo wako',
     desc:
       'L1 maalum, inayomilikiwa na pochi yako. Unasaini mara moja kuthibitisha wewe ni nani, unakagua, ' +
-      'na mtandao hujenga mnyororo ndani ya takriban dakika tatu.',
+      'na mtandao hujenga mnyororo ndani ya takriban dakika tano.',
 
     connectWallet: 'Unganisha pochi',
     connecting: 'Inaunganisha…',
@@ -479,7 +479,7 @@ export const sw: Dict = {
     revokeNameMismatch: 'Hilo halilingani na jina la mnyororo.',
     revokeConfirm: 'Batilisha kabisa',
     revokeCancel: 'Ghairi',
-    revoking: 'Inabatilisha “{name}” — takriban dakika tatu',
+    revoking: 'Inabatilisha “{name}” — takriban dakika tano',
     revokeDone: '“{name}” imebatilishwa. Nafasi {left}/{total} zimebaki.',
     revokeError: 'Haikuweza kubatilishwa. {detail}',
     revokeUnknown: 'Mnyororo bado uko kwenye orodha baada ya kazi kukamilika.',

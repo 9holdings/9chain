@@ -215,7 +215,7 @@ export const ko: Dict = {
     secondaryCta: '먼저 테스트 토큰 받기',
 
     title: 'A1에서 나만의 체인을 실행하세요',
-    subtitle: '서명에 사용하는 지갑이 소유하는 나만의 L1이 테스트 네트워크에서 실제로 돌아갑니다. 약 3분 걸립니다.',
+    subtitle: '서명에 사용하는 지갑이 소유하는 나만의 L1이 테스트 네트워크에서 실제로 돌아갑니다. 약 5분 걸립니다.',
     tableCaption: '각 행은 A1에서 실제로 돌아가는 체인이며, 저마다 소유자가 있습니다.',
     colChain: '체인',
     colType: '유형',
@@ -367,7 +367,7 @@ export const ko: Dict = {
     title: '내 체인 실행하기',
     desc:
       '지갑이 소유하는 전용 L1입니다. 본인임을 증명하기 위해 한 번 서명하고, 내용을 확인하면 ' +
-      '네트워크가 약 3분 만에 체인을 만들어 줍니다.',
+      '네트워크가 약 5분 만에 체인을 만들어 줍니다.',
 
     connectWallet: '지갑 연결',
     connecting: '연결 중…',
@@ -475,7 +475,7 @@ export const ko: Dict = {
     revokeNameMismatch: '체인 이름과 일치하지 않습니다.',
     revokeConfirm: '영구히 철회',
     revokeCancel: '취소',
-    revoking: '“{name}” 철회 중 — 약 3분',
+    revoking: '“{name}” 철회 중 — 약 5분',
     revokeDone: '“{name}”을(를) 철회했습니다. {left}/{total}개 자리 남음.',
     revokeError: '철회하지 못했습니다. {detail}',
     revokeUnknown: '작업이 끝난 뒤에도 체인이 목록에 남아 있습니다.',

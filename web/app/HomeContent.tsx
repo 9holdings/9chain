@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui';
 import { NetworkStats } from '@/components/NetworkStats';
 import { CeremonyCallout } from '@/components/CeremonyCallout';
+import { SlotsLeft } from '@/components/SlotsLeft';
 import { ChainTable } from './ChainTable';
 import { useT } from '@/lib/i18n';
 
@@ -49,7 +50,12 @@ export function HomeContent() {
 
       <section className="khung py-10 md:py-14">
         <ChainTable />
-        <div className="mt-8 flex flex-wrap gap-3">
+        {/* The ceiling next to the button that spends one. Before this, a visitor learned
+            how many permanent slots were left only AFTER connecting a wallet and signing. */}
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <SlotsLeft />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-3">
           <a
             href="/create-chain/"
             className="inline-flex h-13 items-center justify-center rounded-btn-lg bg-gold px-6 text-base font-semibold text-navy shadow-cta hover:bg-gold-hover"

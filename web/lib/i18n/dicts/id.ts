@@ -221,7 +221,7 @@ export const id: Dict = {
     secondaryCta: 'Ambil token uji dulu',
 
     title: 'Luncurkan rantai Anda sendiri di A1',
-    subtitle: 'Sebuah L1 milik Anda sendiri, dimiliki oleh dompet yang Anda pakai menandatangani, berjalan sungguhan di jaringan uji. Perlu sekitar tiga menit.',
+    subtitle: 'Sebuah L1 milik Anda sendiri, dimiliki oleh dompet yang Anda pakai menandatangani, berjalan sungguhan di jaringan uji. Perlu sekitar lima menit.',
     tableCaption: 'Setiap baris adalah rantai nyata yang berjalan di A1, dengan pemiliknya sendiri.',
     colChain: 'Rantai',
     colType: 'Jenis',
@@ -373,7 +373,7 @@ export const id: Dict = {
     title: 'Luncurkan rantai Anda',
     desc:
       'Sebuah L1 khusus, dimiliki oleh dompet Anda. Anda menandatangani sekali untuk membuktikan ' +
-      'siapa Anda, meninjau, lalu jaringan membangun rantainya dalam sekitar tiga menit.',
+      'siapa Anda, meninjau, lalu jaringan membangun rantainya dalam sekitar lima menit.',
 
     connectWallet: 'Hubungkan dompet',
     connecting: 'Menghubungkan…',
@@ -487,7 +487,7 @@ export const id: Dict = {
     revokeNameMismatch: 'Itu tidak cocok dengan nama rantai.',
     revokeConfirm: 'Cabut permanen',
     revokeCancel: 'Batal',
-    revoking: 'Mencabut “{name}” — sekitar tiga menit',
+    revoking: 'Mencabut “{name}” — sekitar lima menit',
     revokeDone: '“{name}” dicabut. {left}/{total} slot tersisa.',
     revokeError: 'Tidak dapat mencabut. {detail}',
     revokeUnknown: 'Rantai masih ada di direktori setelah proses selesai.',

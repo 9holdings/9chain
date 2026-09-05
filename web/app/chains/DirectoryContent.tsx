@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { SlotsLeft } from '@/components/SlotsLeft';
 import { Card, Badge, Copyable, Button, ErrorState, EmptyState, Skeleton, Select, Chip } from '@/components/ui';
 import { useT, useLanguage } from '@/lib/i18n';
 import { interpolate } from '@/lib/i18n/interpolate';
@@ -371,7 +372,12 @@ export function DirectoryContent() {
   return (
     <>
       <header className="max-w-2xl">
-        <h1 className="font-display text-2xl font-extrabold text-ink md:text-3xl">{t.nav.directory}</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="font-display text-2xl font-extrabold text-ink md:text-3xl">{t.nav.directory}</h1>
+          {/* A directory of eleven chains says nothing about how many more can exist. The
+              ceiling is the fact that changes what a reader does next. */}
+          <SlotsLeft />
+        </div>
         <p className="mt-3 text-base text-body">{d.lede}</p>
       </header>
 

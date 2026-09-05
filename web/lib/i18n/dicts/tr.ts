@@ -214,7 +214,7 @@ export const tr: Dict = {
     secondaryCta: 'Önce test jetonu alın',
 
     title: 'A1 üzerinde kendi zincirinizi başlatın',
-    subtitle: 'Size ait bir L1; sahibi imza attığınız cüzdan, test ağında gerçekten çalışıyor. Yaklaşık üç dakika sürer.',
+    subtitle: 'Size ait bir L1; sahibi imza attığınız cüzdan, test ağında gerçekten çalışıyor. Yaklaşık beş dakika sürer.',
     tableCaption: 'Her satır A1 üzerinde çalışan gerçek bir zincirdir ve kendi sahibi vardır.',
     colChain: 'Zincir',
     colType: 'Tür',
@@ -366,7 +366,7 @@ export const tr: Dict = {
     title: 'Zincirinizi başlatın',
     desc:
       'Cüzdanınıza ait özel bir L1. Kim olduğunuzu kanıtlamak için bir kez imzalarsınız, gözden ' +
-      'geçirirsiniz ve ağ zinciri yaklaşık üç dakikada kurar.',
+      'geçirirsiniz ve ağ zinciri yaklaşık beş dakikada kurar.',
 
     connectWallet: 'Cüzdanı bağla',
     connecting: 'Bağlanıyor…',
@@ -476,7 +476,7 @@ export const tr: Dict = {
     revokeNameMismatch: 'Bu, zincir adıyla eşleşmiyor.',
     revokeConfirm: 'Kalıcı olarak iptal et',
     revokeCancel: 'Vazgeç',
-    revoking: '“{name}” iptal ediliyor — yaklaşık üç dakika',
+    revoking: '“{name}” iptal ediliyor — yaklaşık beş dakika',
     revokeDone: '“{name}” iptal edildi. {left}/{total} yuva kaldı.',
     revokeError: 'İptal edilemedi. {detail}',
     revokeUnknown: 'İşlem bittikten sonra zincir hâlâ dizinde.',

@@ -222,7 +222,7 @@ export const ms: Dict = {
     secondaryCta: 'Dapatkan token ujian dahulu',
 
     title: 'Lancarkan rantaian anda sendiri di A1',
-    subtitle: 'Sebuah L1 milik anda sendiri, dimiliki oleh dompet yang anda gunakan untuk menandatangani, benar-benar berjalan pada rangkaian ujian. Mengambil masa kira-kira tiga minit.',
+    subtitle: 'Sebuah L1 milik anda sendiri, dimiliki oleh dompet yang anda gunakan untuk menandatangani, benar-benar berjalan pada rangkaian ujian. Mengambil masa kira-kira lima minit.',
     tableCaption: 'Setiap baris ialah rantaian sebenar yang berjalan di A1, dengan pemiliknya sendiri.',
     colChain: 'Rantaian',
     colType: 'Jenis',
@@ -374,7 +374,7 @@ export const ms: Dict = {
     title: 'Lancarkan rantaian anda',
     desc:
       'Sebuah L1 khusus, dimiliki oleh dompet anda. Anda menandatangani sekali untuk membuktikan siapa ' +
-      'anda, menyemak, dan rangkaian membina rantaian itu dalam kira-kira tiga minit.',
+      'anda, menyemak, dan rangkaian membina rantaian itu dalam kira-kira lima minit.',
 
     connectWallet: 'Sambungkan dompet',
     connecting: 'Menyambung…',
@@ -487,7 +487,7 @@ export const ms: Dict = {
     revokeNameMismatch: 'Ia tidak sepadan dengan nama rantaian.',
     revokeConfirm: 'Batalkan secara kekal',
     revokeCancel: 'Batal',
-    revoking: 'Membatalkan “{name}” — kira-kira tiga minit',
+    revoking: 'Membatalkan “{name}” — kira-kira lima minit',
     revokeDone: '“{name}” dibatalkan. {left}/{total} slot berbaki.',
     revokeError: 'Tidak dapat membatalkan. {detail}',
     revokeUnknown: 'Rantaian masih ada dalam direktori selepas proses selesai.',

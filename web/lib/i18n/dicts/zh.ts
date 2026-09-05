@@ -189,7 +189,7 @@ export const zh: Dict = {
     primaryCta: '启动您的链',
     secondaryCta: '先领取测试代币',
     title: '在 A1 上启动属于您自己的链',
-    subtitle: '一条属于您的 L1，由您签名的钱包拥有，在测试网络上真实运行。大约需要三分钟。',
+    subtitle: '一条属于您的 L1，由您签名的钱包拥有，在测试网络上真实运行。大约需要五分钟。',
     tableCaption: '每一行都是一条在 A1 上真实运行的链，各有其所有者。',
     colChain: '链',
     colType: '类型',
@@ -338,7 +338,7 @@ export const zh: Dict = {
 
   launch: {
     title: '启动您的链',
-    desc: '一条专属 L1，由您的钱包拥有。您签名一次以证明身份，确认后网络将在约三分钟内构建该链。',
+    desc: '一条专属 L1，由您的钱包拥有。您签名一次以证明身份，确认后网络将在约五分钟内构建该链。',
     connectWallet: '连接钱包',
     connecting: '连接中…',
     signIn: '签名登录',
@@ -432,7 +432,7 @@ export const zh: Dict = {
     revokeNameMismatch: '与链名称不符。',
     revokeConfirm: '永久撤销',
     revokeCancel: '取消',
-    revoking: '正在撤销 “{name}” —— 大约三分钟',
+    revoking: '正在撤销 “{name}” —— 大约五分钟',
     revokeDone: '已撤销 “{name}”。剩余 {left}/{total} 个名额。',
     revokeError: '无法撤销。{detail}',
     revokeUnknown: '运行结束后，该链仍在目录中。',

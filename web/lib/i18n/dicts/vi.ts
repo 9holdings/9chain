@@ -375,7 +375,7 @@ export const vi: Dict = {
     // trạng thái đầy lẫn rỗng); câu "mỗi dòng là một chain thật" hạ xuống làm chú
     // thích NGAY TRÊN bảng, nơi nó chỉ xuất hiện khi bảng có dòng.
     title: 'Đẻ chain riêng của bạn trên A1',
-    subtitle: 'Một L1 của riêng bạn, có chủ là ví bạn ký, chạy thật trên mạng thử nghiệm. Mất khoảng ba phút.',
+    subtitle: 'Một L1 của riêng bạn, có chủ là ví bạn ký, chạy thật trên mạng thử nghiệm. Mất khoảng năm phút.',
     // Chỉ hiện khi bảng CÓ dòng — xem `ChainTable`.
     tableCaption: 'Mỗi dòng là một chain thật đang chạy trên A1, có chủ riêng.',
     colChain: 'Chain',
@@ -560,7 +560,7 @@ export const vi: Dict = {
     title: 'Đẻ chain của bạn',
     desc:
       'Một L1 riêng, do ví của bạn làm chủ. Bạn ký một lần để chứng minh mình là ai, ' +
-      'soát lại, rồi mạng dựng chain trong khoảng ba phút.',
+      'soát lại, rồi mạng dựng chain trong khoảng năm phút.',
 
     // ── bước 1: ví
     connectWallet: 'Kết nối ví',
@@ -677,7 +677,7 @@ export const vi: Dict = {
     revokeNameMismatch: 'Chưa khớp tên chain.',
     revokeConfirm: 'Thu hồi vĩnh viễn',
     revokeCancel: 'Hủy',
-    revoking: 'Đang thu hồi “{name}” — khoảng ba phút',
+    revoking: 'Đang thu hồi “{name}” — khoảng năm phút',
     revokeDone: 'Đã thu hồi “{name}”. Còn {left}/{total} chỗ.',
     revokeError: 'Không thu hồi được. {detail}',
     revokeUnknown: 'Chain vẫn còn trong danh bạ sau khi lượt chạy kết thúc.',

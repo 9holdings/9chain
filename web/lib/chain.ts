@@ -50,6 +50,37 @@ export const CHAIN = {
   networkId: 999999998,
 } as const;
 
+/**
+ * How many L1s this network can carry AT ALL. Not a policy, not a plan — a protocol ceiling.
+ *
+ * Every validator tracks every L1, and a node that declares more than 16 subnets is dropped
+ * by the P2P layer, so the usable number is 15 and it cannot be raised by configuration.
+ * Revoking a chain returns the SLOT; it never returns the name or the chainId, which stay
+ * spent forever. That is why this number belongs on the public pages and not only behind a
+ * wallet signature: a visitor deciding whether to invest ten minutes in launching something
+ * is entitled to know how much room is left before they start.
+ *
+ * 🔴 THE SERVER IS THE AUTHORITY, THIS IS THE PUBLIC FALLBACK. `/api/status` returns `tran`
+ * (and `tranGiaoThuc`), and any screen that has an authenticated session must prefer it —
+ * see `CreateChainScreen`. This constant exists because `console-chains.json` is public and
+ * `/api/status` is not, so an anonymous visitor can be told the count but could otherwise
+ * not be told the ceiling. A hand-copied constant is exactly the shape this project has been
+ * burned by twice (networkID), so it is kept next to those and measured from two sides:
+ * `test/slots.test.ts` pins the number and the arithmetic, and `scripts/check-slots.mjs`
+ * asks the LIVE directory before every deploy — a chain count above the ceiling is the
+ * observable that would prove this constant wrong, and it blocks the deploy that carries it.
+ */
+export const L1_SLOTS = 15;
+
+/**
+ * Slots left, given how many chains exist. `null` in, `null` out — "we could not read the
+ * directory" must stay distinguishable from "there is room", all the way to the screen.
+ */
+export function slotsLeft(used: number | null): number | null {
+  if (used === null || !Number.isFinite(used)) return null;
+  return Math.max(0, L1_SLOTS - used);
+}
+
 /** Default domain when `location` cannot be read (during the static build). */
 const DEFAULT_HOST = 'a1.9chain.org';
 

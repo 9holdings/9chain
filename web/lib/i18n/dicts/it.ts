@@ -220,7 +220,7 @@ export const it: Dict = {
     secondaryCta: 'Prima ottieni token di test',
 
     title: 'Avvia la tua catena su A1',
-    subtitle: 'Una L1 tutta tua, di proprietà del wallet con cui firmi, che gira davvero sulla rete di test. Richiede circa tre minuti.',
+    subtitle: 'Una L1 tutta tua, di proprietà del wallet con cui firmi, che gira davvero sulla rete di test. Richiede circa cinque minuti.',
     tableCaption: 'Ogni riga è una catena reale in funzione su A1, con un proprietario suo.',
     colChain: 'Catena',
     colType: 'Tipo',
@@ -372,7 +372,7 @@ export const it: Dict = {
     title: 'Avvia la tua catena',
     desc:
       'Una L1 dedicata, di proprietà del tuo wallet. Firmi una volta per dimostrare chi sei, ' +
-      'controlli, e la rete costruisce la catena in circa tre minuti.',
+      'controlli, e la rete costruisce la catena in circa cinque minuti.',
 
     connectWallet: 'Collega il wallet',
     connecting: 'Collegamento…',
@@ -484,7 +484,7 @@ export const it: Dict = {
     revokeNameMismatch: 'Non corrisponde al nome della catena.',
     revokeConfirm: 'Revoca definitivamente',
     revokeCancel: 'Annulla',
-    revoking: 'Revoca di “{name}” — circa tre minuti',
+    revoking: 'Revoca di “{name}” — circa cinque minuti',
     revokeDone: '“{name}” revocata. {left}/{total} posti liberi.',
     revokeError: 'Impossibile revocare. {detail}',
     revokeUnknown: 'La catena è ancora nell’elenco al termine dell’operazione.',

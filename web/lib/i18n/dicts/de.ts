@@ -209,7 +209,7 @@ export const de: Dict = {
     primaryCta: 'Starten Sie Ihre Chain',
     secondaryCta: 'Holen Sie sich zuerst Test-Token',
     title: 'Starten Sie Ihre eigene Chain auf A1',
-    subtitle: 'Eine eigene L1, im Besitz der Wallet, mit der Sie signieren, die wirklich im Testnetz läuft. Dauert etwa drei Minuten.',
+    subtitle: 'Eine eigene L1, im Besitz der Wallet, mit der Sie signieren, die wirklich im Testnetz läuft. Dauert etwa fünf Minuten.',
     tableCaption: 'Jede Zeile ist eine echte Chain, die auf A1 läuft, mit eigenem Besitzer.',
     colChain: 'Chain',
     colType: 'Typ',
@@ -358,7 +358,7 @@ export const de: Dict = {
 
   launch: {
     title: 'Starten Sie Ihre Chain',
-    desc: 'Eine eigene L1, im Besitz Ihrer Wallet. Sie signieren einmal, um zu belegen, wer Sie sind, prüfen — und das Netzwerk baut die Chain in etwa drei Minuten.',
+    desc: 'Eine eigene L1, im Besitz Ihrer Wallet. Sie signieren einmal, um zu belegen, wer Sie sind, prüfen — und das Netzwerk baut die Chain in etwa fünf Minuten.',
     connectWallet: 'Wallet verbinden',
     connecting: 'Verbinden…',
     signIn: 'Zum Anmelden signieren',
@@ -456,7 +456,7 @@ export const de: Dict = {
     revokeNameMismatch: 'Das stimmt nicht mit dem Chain-Namen überein.',
     revokeConfirm: 'Endgültig widerrufen',
     revokeCancel: 'Abbrechen',
-    revoking: '„{name}" wird widerrufen — etwa drei Minuten',
+    revoking: '„{name}" wird widerrufen — etwa fünf Minuten',
     revokeDone: '„{name}" widerrufen. Noch {left}/{total} Plätze.',
     revokeError: 'Widerruf nicht möglich. {detail}',
     revokeUnknown: 'Nach Abschluss des Laufs steht die Chain weiterhin im Verzeichnis.',

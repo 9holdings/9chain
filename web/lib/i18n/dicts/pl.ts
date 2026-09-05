@@ -215,7 +215,7 @@ export const pl: Dict = {
     secondaryCta: 'Najpierw weź tokeny testowe',
 
     title: 'Uruchom własny łańcuch na A1',
-    subtitle: 'Własna sieć L1, należąca do portfela, którym podpisujesz, działająca naprawdę w sieci testowej. Zajmuje około trzech minut.',
+    subtitle: 'Własna sieć L1, należąca do portfela, którym podpisujesz, działająca naprawdę w sieci testowej. Zajmuje około pięciu minut.',
     tableCaption: 'Każdy wiersz to prawdziwy łańcuch działający na A1, z własnym właścicielem.',
     colChain: 'Łańcuch',
     colType: 'Typ',
@@ -367,7 +367,7 @@ export const pl: Dict = {
     title: 'Uruchom swój łańcuch',
     desc:
       'Dedykowana sieć L1, należąca do twojego portfela. Podpisujesz raz, żeby udowodnić, kim jesteś, ' +
-      'sprawdzasz dane, a sieć buduje łańcuch w około trzy minuty.',
+      'sprawdzasz dane, a sieć buduje łańcuch w około pięć minut.',
 
     connectWallet: 'Połącz portfel',
     connecting: 'Łączenie…',
@@ -478,7 +478,7 @@ export const pl: Dict = {
     revokeNameMismatch: 'To nie zgadza się z nazwą łańcucha.',
     revokeConfirm: 'Cofnij trwale',
     revokeCancel: 'Anuluj',
-    revoking: 'Cofanie „{name}" — około trzech minut',
+    revoking: 'Cofanie „{name}" — około pięciu minut',
     revokeDone: 'Cofnięto „{name}". Pozostało miejsc: {left}/{total}.',
     revokeError: 'Nie udało się cofnąć. {detail}',
     revokeUnknown: 'Po zakończeniu operacji łańcuch nadal jest w katalogu.',
