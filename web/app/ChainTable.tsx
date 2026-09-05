@@ -7,6 +7,7 @@ import { useT, useLanguage } from '@/lib/i18n';
 import { interpolate } from '@/lib/i18n/interpolate';
 import { formatNumber } from '@/lib/numbers';
 import { readDirectory, type ChainRecord } from '@/lib/directory';
+import { SNAPSHOT } from '@/lib/directorySnapshot';
 import { presetLabelOf } from '@/lib/serverText';
 import { sortEntries, type Entry } from '@/lib/directoryModel';
 import { symbolOf } from '@/lib/l1-symbol';
@@ -39,7 +40,17 @@ const HOME_ROWS = 9;
 export function ChainTable() {
   const t = useT();
   const { code } = useLanguage();
-  const [state, setState] = useState<TT>({ phase: 'tai' });
+  /**
+   * Seeded from the committed ledger snapshot, so the home page's table is IN the exported
+   * HTML rather than arriving after hydration. See `lib/directorySnapshot.ts`: it carries the
+   * ledger only — no statuses — and the effect below replaces it with a live read at once.
+   */
+  const [state, setState] = useState<TT>(() => {
+    const all = SNAPSHOT.chains ?? [];
+    if (all.length === 0) return { phase: 'tai' };
+    const entries: Entry[] = all.map((r) => ({ key: String(r.chainId), record: r, isMain: false, revoked: false, verdict: 'measuring' }));
+    return { phase: 'xong', list: sortEntries(entries, 'newest').slice(0, HOME_ROWS).map((e) => e.record), total: all.length };
+  });
   const [round, setRound] = useState(0);
 
   useEffect(() => {

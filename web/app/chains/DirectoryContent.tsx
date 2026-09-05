@@ -12,6 +12,7 @@ import { CHAIN, rpcOrigin } from '@/lib/chain';
 import { fetchJson, READ_TIMEOUT_MS } from '@/lib/net';
 import { addL1ToWallet, readWalletError } from '@/lib/wallet';
 import { readDirectory, type ChainRecord } from '@/lib/directory';
+import { SNAPSHOT, SNAPSHOT_AT } from '@/lib/directorySnapshot';
 import { symbolOf } from '@/lib/l1-symbol';
 import {
   ATTENTION,
@@ -201,11 +202,38 @@ export function DirectoryContent() {
   const t = useT();
   const { code } = useLanguage();
 
-  const [dir, setDir] = useState<Dir>({ phase: 'loading' });
+  /**
+   * 🔴 SEEDED FROM A BUILD-TIME SNAPSHOT, NOT EMPTY — this is what puts real content in the
+   * exported HTML. Before 2026-09-05 the whole page rendered the word "Loading…" until
+   * hydration, so a crawler, an AI reader, a slow phone and anyone without JavaScript saw a
+   * blank page on the one page whose job is to show the chains.
+   *
+   * The snapshot is the LEDGER only. It carries no statuses, `probes` starts empty, and every
+   * row therefore reads as awaiting measurement until the browser has measured it — which is
+   * the honest thing to say about a list captured some days ago. The effect below re-reads
+   * the live directory immediately and replaces this.
+   */
+  const [dir, setDir] = useState<Dir>({
+    phase: 'done',
+    chains: SNAPSHOT.chains ?? [],
+    retired: SNAPSHOT.retired ?? [],
+    error: null,
+  });
   const [probes, setProbes] = useState<ReadonlyMap<string, Probe>>(new Map());
   const probesRef = useRef<Map<string, Probe>>(new Map());
   const [sweep, setSweep] = useState<{ done: number; total: number; running: boolean }>({ done: 0, total: 0, running: false });
-  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  /**
+   * When the list on screen was read — and WHETHER it was read live.
+   *
+   * 🔴 The two cases must not print the same sentence. A live read shows a time ("updated at
+   * 14:32") because it happened seconds ago; the seeded snapshot shows a full DATE, because
+   * "updated at 14:32" on data captured three days ago is exactly the kind of true-looking
+   * falsehood this project keeps paying for.
+   */
+  const [updatedAt, setUpdatedAt] = useState<{ at: Date; live: boolean } | null>({
+    at: new Date(SNAPSHOT_AT),
+    live: false,
+  });
   const [round, setRound] = useState(0);
 
   const [list, setListRaw] = useState<ListState>(DEFAULT_STATE);
@@ -273,7 +301,7 @@ export function DirectoryContent() {
       );
       if (cancelled) return;
       setSweep({ done, total: order.length, running: false });
-      setUpdatedAt(new Date());
+      setUpdatedAt({ at: new Date(), live: true });
       // 3. Pause, then go round again — chained from the END of the sweep, never on an
       //    interval: an interval on a slow network stacks sweeps on top of each other.
       timer = setTimeout(cycle, SWEEP_PAUSE_MS);
@@ -311,6 +339,9 @@ export function DirectoryContent() {
   useEffect(() => {
     visibleRef.current = new Set(visibleSet);
   }, [visibleSet]);
+
+  /** Has anything been measured yet? Seeded-from-snapshot renders have an empty probe map. */
+  const daDo = probes.size > 0;
 
   const counts = useMemo(() => {
     const live = entries.filter((e) => !e.isMain && !e.revoked);
@@ -384,8 +415,13 @@ export function DirectoryContent() {
       {/* ── summary tiles ── */}
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Tile label={d.tileTotal} value={formatNumber(counts.total, code)} />
-        <Tile label={d.tileRunning} value={formatNumber(counts.running, code)} tone={counts.running > 0 ? 'good' : undefined} />
-        <Tile label={d.tileAttention} value={formatNumber(counts.attention, code)} tone={counts.attention > 0 ? 'bad' : undefined} />
+        {/* 🔴 A DASH, NOT A ZERO, BEFORE ANYTHING HAS BEEN MEASURED. These two tiles report
+            measurements; with the page now seeded from a snapshot they would otherwise render
+            "Measured running: 0" in the exported HTML — which reads as "no chain is running"
+            to exactly the readers who cannot run the measurement (crawlers, JS off). Same
+            rule as the home page stat strip (Đ1-8): an absent reading is a dash. */}
+        <Tile label={d.tileRunning} value={daDo ? formatNumber(counts.running, code) : '—'} tone={counts.running > 0 ? 'good' : undefined} />
+        <Tile label={d.tileAttention} value={daDo ? formatNumber(counts.attention, code) : '—'} tone={counts.attention > 0 ? 'bad' : undefined} />
         <Tile label={d.tileRevoked} value={formatNumber(counts.revoked, code)} />
       </div>
       {/* The sweep line is a live region: a screen-reader user hears "measured 40 of 108"
@@ -394,7 +430,11 @@ export function DirectoryContent() {
         {sweep.running
           ? interpolate(d.sweepProgress, { done: sweep.done, total: sweep.total })
           : updatedAt
-            ? interpolate(d.footUpdated, { time: updatedAt.toLocaleTimeString(code) })
+            ? interpolate(d.footUpdated, {
+                // A live read is minutes old at most, so the time alone is unambiguous; the
+                // seeded snapshot needs its date, or "updated at 14:32" reads as today.
+                time: updatedAt.live ? updatedAt.at.toLocaleTimeString(code) : updatedAt.at.toLocaleString(code),
+              })
             : ''}
       </p>
 
@@ -555,7 +595,11 @@ export function DirectoryContent() {
       <p className="mt-8 font-mono text-xs text-muted">
         {interpolate(d.footSummary, { count: chains.length })}
         {retired.length > 0 ? ` · ${interpolate(d.footRevoked, { count: retired.length })}` : ''}
-        {updatedAt ? ` · ${interpolate(d.footUpdated, { time: updatedAt.toLocaleTimeString(code) })}` : ''}
+        {updatedAt
+          ? ` · ${interpolate(d.footUpdated, {
+              time: updatedAt.live ? updatedAt.at.toLocaleTimeString(code) : updatedAt.at.toLocaleString(code),
+            })}`
+          : ''}
         {` · ${t.launch.doneRpc}: ${rpcOrigin()}`}
       </p>
     </>
