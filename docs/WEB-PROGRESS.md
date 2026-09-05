@@ -535,3 +535,29 @@ một câu chữ.
 🔴 Ba khoá `honest*` là thứ biến trang này thành lời mời trung thực chứ không phải lời chiêu
 mộ. Dịch nhẹ đi là lấy mất đúng phần khiến nó đáng tin.
 
+---
+
+## Lô chuỗi VI `2026-09-05` (lượt 3) — trang `/docs/` — CHỜ DAVID DUYỆT GIỌNG
+
+Chỉ **8 khoá** (phần khung trang). 🔴 **Tiêu đề và mô tả từng tài liệu CỐ Ý không dịch** —
+chúng mô tả những tài liệu mỗi cái chỉ tồn tại ở MỘT ngôn ngữ; đặt một câu tiếng Việt lên trên
+một hướng dẫn tiếng Anh là hứa một bản dịch không có. Mỗi dòng tự khai ngôn ngữ của nó.
+
+| Khoá | Tiếng Việt đang chạy |
+|---|---|
+| `docs.title` | Tài liệu |
+| `docs.desc` | Mọi thứ đã được viết ra về việc dùng A1: đẻ một chain thế nào, chạy một validator thế nào, và dự án này để làm gì. Mỗi tài liệu được trỏ tới đúng nơi nó thật sự nằm, nên thứ bạn đọc là bản đang được sửa. |
+| `docs.langNote` 🔴 | Mỗi tài liệu nằm ở ngôn ngữ ghi trên dòng của nó, và chúng tôi không dịch chính các tài liệu. Một bản dịch chỉ còn đúng cho tới khi ai đó sửa một câu lệnh trong bản gốc — và bản không ai sửa mới là bản sai. |
+| `docs.langLabel` / `.alsoIn` / `.pdfLabel` | Ngôn ngữ · Còn có bản · PDF |
+| `docs.onSiteLabel` / `.opensGithub` | Trên trang này · Mở trên GitHub |
+
+## 🔴 Việc cho phiên chain — `TOKENOMICS.md` công khai đang tự khai là SAI
+
+`docs/TOKENOMICS.md` trên repo công khai mở đầu bằng: *"FILE NÀY ĐÃ CŨ TỪ 2026-08-26 — MỤC 1 VÀ
+MỤC 2 KHÔNG CÒN ĐÚNG VỚI MẠNG ĐANG CHẠY"* — nó vẫn tả **720 triệu · 40/20/20/5/15** trong khi
+mạng đã sinh lại sang **9.000.000.000 · 40/30/12/9/9**.
+
+⇒ Trang `/docs/` **cố ý không liệt kê nó** (lý do ghi ngay trong `web/lib/docs.ts`): tokenomics
+là một trong những thứ người lạ tra đầu tiên, dẫn tới một tài liệu mình BIẾT là sai thì tệ hơn
+là thiếu một dòng. Nhưng chỗ sửa nằm ở tệp đó, không nằm ở trang này — **việc của phiên chain**.
+
