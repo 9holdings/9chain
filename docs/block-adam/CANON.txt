@@ -1,0 +1,254 @@
+# 9CHAIN-A1 — BLOCK ADAM CANON
+#
+# The message anchored on-chain by the Block Adam ceremony (D-070). This is NOT the genesis
+# engraving: the genesis canon lives in docs/engrave/CANON.txt, is sealed inside block 0 of
+# 9chain-a1-g1, and cannot be added to. This one is anchored by the hash of a ceremonial
+# TRANSACTION, so it lives at block 1 or later.
+#
+# 🔴 WHY THIS FILE EXISTS AT ALL, AND WHY IT WAS WRITTEN BEFORE THE CEREMONY:
+# David sent this text at 10:01Z on G-day, thirty-five minutes after the network was born and
+# eight minutes before the announcement. It could not go into genesis without destroying and
+# regenerating a live network, and he chose (correctly) to keep the network and anchor the text
+# by transaction instead. The bytes were frozen immediately, in the same minute, because the
+# genesis engraving taught this project exactly one thing about text: a sentence that is going
+# to be hashed must stop moving BEFORE anyone needs it, not at the moment they need it. A comma
+# added later is a different hash, and by then the hash is what people quote.
+#
+# sha256 is over the RAW BYTES OF THE FILE. No normalisation of any kind: no NFC/NFD, no
+# line-ending translation, no BOM, and NO TRAILING NEWLINE. Verified at freeze time: first byte
+# 0x48 ('H'), last byte 0x21 ('!'), 182 bytes, 182 characters (pure ASCII, so they match).
+#
+# Verify without trusting this file:
+#   sha256sum docs/block-adam/9s-union-message.txt
+
+9s_union_message  84846f452db83644231895a65f75706d3a435df827b88a1b18852ec4670d5b78  182 bytes  en
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ADAM AND EVA — David decided 2026-09-03: THE SAME BYTES ALREADY IN GENESIS
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# The content of the Adam and Eva transactions was written down nowhere until now; the ceremony
+# script said so itself and defaulted to empty. David chose the two dedications already engraved
+# into block 0, so Block Adam and Block Eva carry the same sentences the genesis carries.
+#
+# 🔴 THERE IS NO SECOND COPY OF THESE BYTES, AND THAT IS THE DESIGN. The files below are the
+# ENGRAVED files themselves — `--adam-data docs/engrave/dedication.txt`. Copying them here would
+# have created two files that must be kept identical by somebody remembering to, and this project
+# has paid for that shape repeatedly (CLAUDE.md section 6). Pointing at the originals makes the
+# identity STRUCTURAL: there is one set of bytes, so it cannot drift.
+#
+# 🔴 The digests below are DELIBERATELY the same as the ones in `docs/engrave/CANON.txt`, and that
+# duplication is the proof rather than a smell: two independent canons asserting one digest means
+# a change to either file is caught by the other. If these ever disagree, the engraved text and
+# the ceremonial text have parted — which is exactly the thing worth being unable to do quietly.
+#
+# Verify without trusting this file:
+#   sha256sum docs/engrave/dedication.txt docs/engrave/dedication_eva.txt
+
+adam_message  19f90a317851933e88fb288949a44b18f87103b2d7947b80d557f05d425a236c  25 bytes  en
+eva_message  747ebe59ab6a152e962a2c3f215f46a8a30a82265210cb4fd6ee4bd31ffc97df  45 bytes  en
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# WHERE IT GETS ANCHORED — David, 2026-09-01 10:10Z
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+#   "neo vào sau 9 block kể từ block Eva"
+#
+#   2026-09-09T06:09:09Z   ceremony: tx Adam, then tx Eva
+#                          block Eva = the block carrying the Eva tx
+#   block(Eva) + 9         <- the 9S Union message is anchored HERE
+#
+# Block Eva does not exist yet. The block number is only knowable after the ceremony, so this
+# is a 2026-09-09 task and cannot be pre-computed.
+#
+# 🔴 THE MECHANIC THAT WILL BREAK THIS IF NOBODY PLANS FOR IT: the C-Chain does not produce
+# empty blocks. It makes a block when there is something to put in one. The chain sat at block 0
+# from genesis (09:20Z) until 10:05Z, when a single faucet drip created block 1 — and it will sit
+# at block 1 until the next transaction. So "nine blocks after Eva" does NOT arrive on its own;
+# on a quiet chain it may not arrive for days. Two ways were open when this was written:
+#
+# 🔴 DECIDED 2026-09-01 — D-149 CHOSE (b), THE QUIET WINDOW. This paragraph kept saying "decide
+# before the ceremony" for two days after the decision, and on 2026-09-03 that stale sentence was
+# read back as an open question and put in front of David as a choice he had already made. A
+# decided question left written as open does not read as history — it reads as a decision nobody
+# has taken yet, and the next person re-takes it. Same failure class as D-150, inside a canon file.
+# ⇒ (a) is NOT an option for the ceremony window: `ceremony-9s-union.mjs` hard-checks
+#   `evaTx.blockNumber === Adam + 1`, which is deterministic ONLY because a quiet chain makes one
+#   block per transaction. With the pump running, blocks form every ~2s regardless, and the script
+#   names the pump by name as a thing that loses the anchor slot (`abort: slot-lost`).
+# ⇒ The pump MAY run in the days BEFORE the window — D-149 governs the window, not the week. See
+#   docs/CEREMONY-2026-09-09.md section 1 for the exact command set and its four counter-checks.
+#
+#   (a) Restart the heartbeat pump before 09/09 so blocks are produced continuously. ⚠️ It will
+#       refuse to start until HEARTBEAT_STOP_AFTER is moved — the value is 2026-09-01T00:00:00Z,
+#       already in the past, and the process exits(1) at startup before it reads anything else.
+#   (b) Send nine deliberate filler transactions: nine transactions, nine blocks, then the
+#       declaration. More fitting ceremonially, but it has to be scripted in advance.
+#
+# This is the same risk the plan already wrote down about Block Adam itself: "if nothing is done,
+# what happens on 09/09 is that nobody knows which block Block Adam is."
+#
+# 🔴 AND THE OFFSET STILL HAS TO BE MEASURED FIRST (B-13(b)). The 2026-08-27 drill at 0 ms offset
+# scored 7 pass / 1 FAIL: the Adam transaction's block landed with ts EXACTLY ON the mark, and
+# the rule says "the first block to CROSS", so Block Adam would have been Eva's block. +3000 ms
+# scored 9/0. The whole distance between hitting and missing is one strict-vs-loose comparison.
+# ⚠️ Measure the skew while the chain is PRODUCING BLOCKS: on an idle chain block age dominates
+# the measurement (a ~10s-old block reads as -10,136 ms, nearly all of it age, not skew).
+# ⚠️ Adam and Eva do NOT land in the same block even when broadcast milliseconds apart — the
+# drill measured them two seconds and one block apart. No ceremony script may assume otherwise.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# THE SCRIPT THAT PERFORMS THIS — added 2026-09-01, eight days ahead
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+#   node local-net/faucet/ceremony-9s-union.mjs --plan        # measures, sends nothing
+#   node local-net/faucet/ceremony-9s-union.mjs --self-test    # 8 reverse controls
+#
+# It performs option (b) above — Adam, Eva, eight deliberate fillers, then the message — and
+# refuses rather than improvises. Written now because "nine deliberate filler transactions […]
+# has to be scripted in advance" and 09/09 has no second attempt.
+#
+# What it will NOT do, each refusal exercised and each exiting 2:
+#   · --send without --offset-ms          B-13(b) is unmeasured; the 08-27 drill scored 7/1 at 0 ms
+#   · --send when the mark is in the past
+#   · --send with no wallet key
+#   · run at all if 9s-union-message.txt no longer matches the digest frozen above
+#   · run at all if eth_chainId is not 9000000009
+#   · --send on a chain where blocks are being produced by someone else, unless --allow-busy-chain
+#
+# 🔴 AND THE ONE IT CANNOT SOLVE, ONLY REPORT: block numbers cannot be reserved. If another
+# transaction takes block(Eva)+9 while the script walks towards it, the run STOPS and sends
+# nothing further — because "close enough" would put a false claim on a permanent record. A retry
+# is not a retry: it means a new Adam and a new Eva.
+#
+# ⚠️ STILL OPEN, and both are decisions rather than code:
+#   1. THE CONTENT OF THE ADAM AND EVA TRANSACTIONS IS NOWHERE SPECIFIED. The script sends them
+#      empty unless --adam-data/--eva-data are given. If they are meant to carry text, freeze the
+#      bytes the way this message was frozen — before the day, not on it.
+#   2. B-13(b) must be measured while the chain is PRODUCING BLOCKS. Measured 2026-09-01 10:51Z on
+#      an idle chain: head was block 8, and the "skew" read -443s, nearly all of it the age of a
+#      seven-minute-old block. That number is not a skew and must not be used as one.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# WHAT C1 PUBLISHED, AND WHICH PARTS A1 TOOK — 2026-09-01, David
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# C1's engraving page carries the three documents A1 engraved, and the sha256 printed there for
+# each one is byte-identical to docs/engrave/CANON.txt:
+#
+#   genesis_inscription  7e89adee122f2679…   dedication  19f90a3178519339…   dedication_eva  747ebe59ab6a152e…
+#
+# ⇒ Two sovereign chains are carrying the SAME BYTES, and either can be verified against the
+# other without trusting either page. Nothing to take there; it is already one text.
+#
+# What C1 states that A1 had NOT written down anywhere — and A1 now implements:
+#
+#   Block Adam   the FIRST block whose timestamp is 2026-09-09T06:09:09Z or later.
+#                "Defined by time, not by height."
+#   Block Eva    the block IMMEDIATELY AFTER Block Adam — one block, about three seconds.
+#
+# Two consequences, both of which corrected real mistakes in ceremony-9s-union.mjs the same day:
+#   1. Block Adam is NOT "the block holding our transaction". A stranger's transaction can
+#      produce it. Our ceremony transaction is the MECHANISM that makes such a block exist on an
+#      idle chain — not the definition. (D-070 is untouched: the engraving anchors on the
+#      ceremonial transaction HASH, which is precisely why the ceremony survives losing that race.)
+#   2. Block Eva is Adam+1 BY HEIGHT, so the anchor slot is Adam+10 and is known the moment Block
+#      Adam is known. It does not depend on where the Eva transaction lands.
+#
+# ✅ RESOLVED THE SAME DAY — David, 2026-09-01: "dùng luật bao gồm đi, C1 đã công bố rồi."
+#    THE RULE IS INCLUSIVE (ts >= mark). See D-147. The disagreement it settles, kept because the
+#    reasoning is the whole point:
+#
+# 🔴 THE DISAGREEMENT (settled above, do not re-open by accident):
+#
+#   C1 publishes "from 06:09:09Z onward"      => INCLUSIVE  (ts >= mark)
+#   A1's 2026-08-27 drill scored "the first block to CROSS" => STRICT (ts > mark)
+#
+# This is not a hypothetical: the drill failed 1 of 8 cases on exactly this boundary — the
+# ceremonial block was sealed with a timestamp EXACTLY on the mark, so under STRICT, Block Adam
+# would have been Eva's block. Two chains telling one story must not use two comparisons.
+# ceremony-9s-union.mjs now RULES inclusive and reports whenever the two rules would disagree for
+# the run in front of it; `--boundary strict` survives only to measure the retired reading.
+# block-adam-drill.mjs was moved to `>=` in the same pass. ⚠️ The 7/1 score in the 2026-08-27
+# evidence stays as it is — it was made under the strict rule, and it is a statement about the
+# past, not a bug to fix. Nothing on C1's side has to change: A1 adopted what C1 had published.
+#
+# Also worth taking, but it belongs to the web worktree and A1 does not touch it: C1's page
+# re-hashes each document IN THE READER'S BROWSER and compares against what the chain declares —
+# "you do not have to trust this page". That is the strongest form of the claim A1 already makes.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# THE QUIET WINDOW — WHO CAN STILL PRODUCE A BLOCK ON 2026-09-09, MEASURED
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# The ceremony's arithmetic is block numbers, and any transaction from anyone produces a block.
+# So "can this party produce a block during the window" has to be answered per producer, not by
+# a feeling that the chain is quiet.
+#
+#   9Scan-A1 explorer   ✅ CANNOT. Measured by that team 2026-09-01: grep for
+#                       eth_sendRawTransaction / eth_sendTransaction / personal_ / avm.send /
+#                       platform.add / issueTx across lib/ indexer/ app/ components/ returns 0;
+#                       all 27 RPC calls it emits are reads; it holds no key and has no wallet;
+#                       its nginx blocks /ext/admin and /ext/keystore. They also wrote the
+#                       "add no write calls" constraint into their own docs so a later session
+#                       does not undo it with one convenient button.
+#
+#   heartbeat pump      🔴 CAN, and would make the ceremony impossible — it is ~9 tx/s, i.e. a
+#                       block every couple of seconds, so the anchor slot could never be walked
+#                       to. It is STOPPED (container stopped 2026-09-01 07:03Z; the process had
+#                       already exited on its own HEARTBEAT_STOP_AFTER deadline).
+#                       🔴 THE TRAP IS THE OTHER DIRECTION: B-13(b) needs the skew measured on a
+#                       chain that IS producing blocks, and the pump is the obvious way to do
+#                       that. If it is started for the measurement, HEARTBEAT_STOP_AFTER must be
+#                       moved to start it AND it must be stopped again before the window — and
+#                       stopping it is not `touch heartbeat.stop` (that file is read in a loop the
+#                       process never reaches when the deadline check fires first). Set the
+#                       deadline BEFORE the ceremony window and let it stop itself, or
+#                       `docker stop` the container and confirm restartCount stops moving.
+#                       ⚠️ CANON's option (a) — "restart the pump so blocks are produced
+#                       continuously" — is therefore RULED OUT once option (b) was scripted.
+#                       The two options are mutually exclusive, and (b) is what exists.
+#
+#   the faucet          🔴 CAN, and CANNOT BE LOCKED. It is public and it is the point. Every drip
+#                       is a transaction, i.e. a block. This is the residual risk the sequencer
+#                       reports rather than removes: it measures background production before
+#                       sending and refuses on a busy chain, and it stops without anchoring if
+#                       the slot is taken mid-walk. Whether to pause the faucet for the window is
+#                       a decision for David; nothing in the software makes it for him.
+#
+#   chain creation      ✅ CLOSED since 2026-08-31 (A1_DE_CHAIN_MO), reopened only by hand.
+#
+#   anyone on earth     🔴 CAN. It is a public testnet. That is the design, not a defect.
+#
+# ⇒ The inference to avoid: "9Scan cannot produce a block" is NOT "the chain will be quiet". One
+# producer measured silent is one producer, and this project has paid for that shape of reasoning
+# more than once.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IF ANY A1 SURFACE PUBLISHES BLOCK ADAM: A CONSTRAINT ON LABELS, NOT ON NUMBERS
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Raised by the 9Scan-A1 team 2026-09-01 about their own page, and it lands on A1 the same way.
+#
+# Both projects have a reflex — print DECLARED next to READ-FROM-CHAIN and flag any difference.
+# It is the right reflex; it is how a page stops being something you have to trust. Applied to
+# Block Adam it produces a permanent false alarm:
+#
+#   declared   2026-09-09T06:09:09Z          <- the mark
+#   measured   2026-09-09T06:09:12Z          <- the timestamp Block Adam actually carries
+#   => MISMATCH, forever, on something entirely correct
+#
+# The two numbers do not contradict each other. Under D-147 (`ts >= mark`) the second is a
+# CONSEQUENCE of the definition: the mark is an instant, a block is sealed whenever it is sealed,
+# and the offset (B-13(b)) deliberately pushes the ceremonial transaction PAST the mark because
+# that is the safe side. Block Adam arriving a few seconds late is the design working.
+#
+# ⇒ Constraint, and it is about wording:
+#     · label them "mark" and "first block at or past the mark" — never "declared" / "measured"
+#     · never compute a difference between them and present it as drift
+#     · a page that prints the mark and the block timestamp side by side is correct; a page that
+#       calls their difference an error teaches its readers to ignore drift markers, which is the
+#       one thing those markers exist for
+#
+# The engraved bytes carry no timestamp at all ("Adam — the first human." is 25 bytes), so this is
+# a constraint on PAGES and on evidence records, not on the canon.

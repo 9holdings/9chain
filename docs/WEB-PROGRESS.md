@@ -235,25 +235,36 @@ tin nó). Ba mục A đã đóng trong phiên; phần dưới là phần còn l�
 
 ### Chờ người `[human]`
 
-- [human] **Đ1-10 mục 1 · Cloudflare Analytics** — David mở dashboard zone
-  `9chain.org`, xem `a1.9chain.org` từ 25/08. 5 phút, 0 dòng mã. Có thể trả lời câu
-  hỏi lớn nhất tuần **cho cả những ngày đã qua** — thứ không phép đo nào bật hôm nay
-  làm được.
+- [x] **Đ1-10 mục 1 · Cloudflare Analytics** — David mở `05/09`. Hai phát hiện:
+  **(a)** *DNS → Analytics* KHÔNG đếm người: 990 lượt hỏi tên/24h, cột nhọn 220 lúc
+  ~13:00Z `04/09` trùng lượt deploy + cổng gọi mọi tài nguyên — tức là chính mình.
+  **(b)** *Analytics → Web analytics* CÓ số vì Cloudflare **đang chèn beacon** (xem D4
+  dưới): 24h qua **60 lượt ghé · 287 lượt xem**, thứ tự trang `/` · `/create-chain/` ·
+  `/faucet/` · `/chains/` · `/live/`. Số này gồm cả máy David và các lượt đo site sống
+  bằng Browser pane. 🔴 **Còn chưa đọc:** khoảng `25/08 → nay` + tab Country/Browser
+  để tách người ngoài khỏi mình.
 - [human] **Đ1-10 mục 2–3 · Bật log** — chặn ở **D4** (chính sách log/riêng tư).
   Bật log là **đổi trạng thái**: bắt đầu giữ IP người thật, không thông báo, không hạn
   lưu. Chủ đề này chưa từng được cân nhắc ở đâu — không phải bị bác.
   🔴 Nếu bật: CẤM ghi query string và body (`/api/siwe/nonce?address=0x…` mang địa chỉ ví).
+  ⚠️ **Đo `05/09`: site ĐÃ có một đường dữ liệu người thật đi ra ngoài** — Cloudflare
+  chèn `static.cloudflareinsights.com/beacon.min.js` (Web Analytics, RUM) vào mọi trang
+  HTML **chỉ khi UA là trình duyệt**; UA `guest`/`curl` không thấy ⇒ **mọi cổng trong cây
+  này mù với nó**, và nó không nằm trong repo. Beacon gửi URL, thời gian tải, Core Web
+  Vitals; Cloudflare khai không cookie, không lưu IP. **David chốt `05/09`: GIỮ** — đó là
+  phép đo duy nhất về người thật. Hệ quả cho D4: khi có trang riêng tư thì phải khai nó.
+  Phát hiện lại bằng: `curl -s -A "Mozilla/5.0 Chrome/128" https://a1.9chain.org/ | grep -c cloudflareinsights`
+  (phải ra `1`; với `-A guest` phải ra `0`).
 - [human] **Đ1-12 điều 8 GO/NO-GO** — cần phiên chain/BOD thêm vào danh sách.
 - [human] **D2 · Kênh liên hệ thật** — chặn phần chân trang của Đ1-13.
   🔴 Không có câu trả lời thì **KHÔNG LÀM** — tuyệt đối không bịa địa chỉ.
 
 ### Kẹt `[blocked]`
 
-- [blocked] **Đồng bộ token** — 9Scan đổi `--font-display`→Manrope,
-  `--font-sans`→Inter (không token màu nào đổi). Cổng vân tay đang **đỏ có chủ ý**.
-  Chờ họ xác nhận: đã chốt chưa · đã khai `next/font` với subset `vietnamese` chưa ·
-  đã deploy chưa. Đồng bộ một bản còn dở còn tệ hơn để đỏ.
-  *Không chặn việc khác* — đồng bộ xong cũng không đổi gì trên site A1 cho tới khi vá B1.
+- [x] ~~**Đồng bộ token**~~ — **HẾT KẸT `05/09`**: B1 (lớp biến lên `<html>`) + B2
+  (Manrope + Inter + JetBrains Mono, tiếng Việt vẽ bằng font thương hiệu) lên cùng một
+  commit `2f11ae8`, deploy `3c67172`. Vân tay token **xanh vì hết lệch**, không phải sửa
+  kỳ vọng. Test 181/181. Trần ngân sách không đổi (146,0/160 KB gz).
 
 ---
 

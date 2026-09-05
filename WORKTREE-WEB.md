@@ -2,6 +2,29 @@
 
 ---
 
+## ▶ ĐÍNH KÈM `2026-09-05` (sáng) — ba thứ đã đổi sau khối `04/09` bên dưới
+
+| | Chốt ở |
+|---|---|
+| **Font B1+B2 XONG, đã lên sóng** — Manrope + Inter + JetBrains Mono, lớp biến ở `<html>`, tiếng Việt vẽ bằng font thương hiệu; vân tay token xanh vì hết lệch; test 181/181 | `2f11ae8` · deploy **`3c67172`** (`version.txt` công khai khớp, 05:14Z) |
+| **Deep link MetaMask đo bằng điện thoại thật** — mở đúng `/faucet/` trong app và nối được ví. Mục 1 "CHƯA AI ĐO" dưới đây ĐÃ ĐO | David, `05/09` |
+| **Cloudflare Analytics đã mở** — DNS Analytics không đếm người; Web Analytics có số vì CF **chèn beacon RUM** vào mọi trang (chỉ cho UA trình duyệt ⇒ mọi cổng `curl` mù). **David chốt GIỮ.** Chi tiết + lệnh phát hiện ở `docs/WEB-PROGRESS.md` mục D4 | `05/09` |
+
+🔴 **Trang `/ceremony/` (B-4 của `docs/WEB-UPGRADE-2026-09-04.md`) đang được MỘT PHIÊN KHÁC
+dựng trong CHÍNH worktree này** (`web/app/ceremony/`, `CeremonyCallout.tsx`, `test/ceremony.test.ts`,
+Caddyfile `@trangmoi` + `@trangHTML` + redir, sitemap, chân trang, `pageTitle.ts`). David chốt
+`05/09`: phiên đó làm tiếp. Phiên này chỉ chép **6 tệp canon từ `main`** để họ có nguồn tại chỗ:
+`docs/CEREMONY-2026-09-09.md` · `docs/block-adam/{CANON.txt,9s-union-message.txt}` ·
+`docs/engrave/{CANON.txt,dedication.txt,dedication_eva.txt}` — chép bằng `git cat-file blob`
+(byte nguyên vẹn, PowerShell `>` sẽ thêm BOM) và **đã băm đối chứng**: 3 sha256 khớp từng byte
+với `MESSAGES[].sha256` trong `web/lib/ceremony.ts`. `main` đi trước 296 commit, **chưa hoà**.
+Luật CANON cho trang: ghi *"mốc"* và *"block đầu tiên ở hoặc sau mốc"*, không bao giờ in
+"khai báo/đo được" rồi gọi chênh lệch là trôi.
+
+`official` = `847ec80`, chậm 4 commit so với `web-home`. Vẫn chỉ đi qua `publish-official.sh`.
+
+---
+
 ## ▶ TRẠNG THÁI — `2026-09-04` (chốt phiên đêm muộn). ĐỌC KHỐI NÀY LÀ ĐỦ ĐỂ TIẾP.
 
 **TL;DR.** Site `8822f8b` · Caddy **`9d85487`** (đang chạy, `md5 581c09a3…`) · công khai
