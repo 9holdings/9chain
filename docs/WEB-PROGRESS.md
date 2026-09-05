@@ -510,3 +510,28 @@ bộ chữ). 29 bản còn lại là **máy dịch, đã khai** — chỉ bản 
 chain thật**: danh bạ còn **4/15 chỗ vĩnh viễn**, đo kiểu đó tiêu 25% số chỗ còn lại để sửa
 một câu chữ.
 
+---
+
+## Lô chuỗi VI `2026-09-05` (lượt 2) — trang `/validators/` — CHỜ DAVID DUYỆT GIỌNG
+
+31 khoá `validators.*`. 29 bản còn lại là **máy dịch, đã khai**.
+
+| Khoá | Tiếng Việt đang chạy |
+|---|---|
+| `validators.title` | Chạy một validator |
+| `validators.desc` | Câu trên trang chủ của chúng tôi — chín validator chạy trên cùng một máy, cùng một nhà cung cấp — là điểm yếu thật của mạng này, và người ngoài có một cái máy rảnh là thứ duy nhất sửa được nó. Trang này nói việc đó tốn gì, và không trả lại gì. |
+| `validators.liveTitle` … `.liveAtMinimum` | Bộ validator lúc này · Validator · Đang nối · Cọc tối thiểu · Đang cọc ở mức tối thiểu |
+| `validators.measuredNote` | Đọc từ mạng lúc trang này tải, không phải gõ tay. Mức cọc tối thiểu nằm trong binary của node — nó còn là 25.000 cho tới vài giờ trước khi mạng này sinh ra… |
+| `validators.costTitle` / `.costMachine` / `.costBond` | Tốn những gì · (máy chạy liên tục + cổng 9651 mở từ ngoài; không đơn từ, không danh sách duyệt) · (tự cọc, khoá theo kỳ hạn 24 giờ–365 ngày) |
+| `validators.faucetTitle` / `.faucetDesc` 🔴 | LOVE9 lấy ở đâu, và cái bẫy nằm trong phép tính · …chín lượt xin ra ĐÚNG bằng mức cọc, và đúng bằng mức cọc là KHÔNG đủ… |
+| `validators.getTitle` / `.getRewards` / `.getEnd` / `.getPrivacy` | Bạn nhận được gì · 80% trực tuyến · kỳ hạn hết, không tự gia hạn · không bắt mở RPC |
+| `validators.honestTitle` 🔴 | Việc này KHÔNG trả cho bạn cái gì |
+| `validators.honest1` 🔴 **đừng làm nhẹ** | LOVE9 là token thử nghiệm. Nó không có giá trị ở đây và cũng không có giá trị ở đâu khác, không ai mua nó… |
+| `validators.honest2` 🔴 **đừng làm nhẹ** | A1 là mạng thử nghiệm và đã bị sinh lại từ block 0 hai lần. Nếu chuyện đó xảy ra lần nữa thì cọc, phần thưởng và danh tính node của bạn đi theo… |
+| `validators.honest3` 🔴 **đừng làm nhẹ** | Sau một router ở nhà, node vẫn khởi động và validate được bằng chính những kết nối nó tự mở ra… validator đầu tiên từ bên ngoài kết thúc một kỳ hạn với 14% uptime và không nhận được gì. Hãy chuyển tiếp cổng 9651… |
+| `validators.stepsTitle` + `step1`…`step6` | Đường đi, sáu bước (dựng lại fork · dựng image · genesis + bootstrap · chạy node · xác nhận đúng chain · chuyển sang P-Chain rồi cọc) |
+| `validators.guideCta` / `.issuesCta` / `.issuesNote` | Hướng dẫn đầy đủ, từng lệnh một · Báo lỗi · (issue tracker là kênh, công khai có chủ ý; kể cái ĐO ĐƯỢC, không kể kết luận) |
+
+🔴 Ba khoá `honest*` là thứ biến trang này thành lời mời trung thực chứ không phải lời chiêu
+mộ. Dịch nhẹ đi là lấy mất đúng phần khiến nó đáng tin.
+
