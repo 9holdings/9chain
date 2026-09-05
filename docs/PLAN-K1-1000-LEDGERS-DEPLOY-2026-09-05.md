@@ -14,7 +14,7 @@ Số **đo** ghi nguồn; số **ước** ghi rõ; nhãn **[lõi] [phải xây] 
 | **Là gì** | 1.000 L1 kiểu ACP-77, **mỗi L1 một validator**, trên **băng tập** `A1IDTap` (`899999999 − A1Gen`, tên `9chain-a1-tap-g1`, HRP `love9` chung — `network_ids.go:72–109`). Diễn tập **pha A** của tầm nhìn |
 | **Cụm** | 9 node mạng mẹ băng tập (3 máy) · **72 node "chủ sổ"** không cọc, `--partial-sync-primary-network`, mỗi node track ≤ 14 sổ (18 máy, 4 node/máy) · 1 chain cộng đồng "9S Union tập" V = 5 nhận neo · 1 router RPC · 1 máy đo · 10–28 VM sinh tải |
 | **Điều kiện tiên quyết** | công cụ **`l1-batch`** [phải xây]: tạo 1.000 subnet/chain/convert trên P-Chain **trước**, gán sổ → node, mỗi node **khởi động một lần** với đủ subnet. Không đi qua console |
-| **Phát hiện đổi thiết kế** | subnet-evm mặc định `trie-clean-cache 512 · trie-dirty-cache 512 · snapshot-cache 256` MB **mỗi plugin** (`plugin/evm/config/default_config.go:34–38`) ⇒ 15 chain/node có thể lên **19 GB** dưới tải, không phải 2,7 GB. Phải hạ bằng `chain-config-dir/<blockchainID>/config.json` và **đo trước khi thuê máy** |
+| **Phát hiện đổi thiết kế** | subnet-evm mặc định `trie-clean-cache 512 · trie-dirty-cache 512 · snapshot-cache 256` MB **mỗi plugin** (`plugin/evm/config/default_config.go:34–38`) ⇒ lo 15 chain/node lên **19 GB**. **Đã đo pha 0 (`docs/k1-phase0/EVIDENCE-2026-09-05.md` 0.1d):** ở 3 tx/s × 300 s cache mặc định **không** phình — 59–62 MiB/plugin, bằng knob 16/16/8; 512 MB là trần chỉ đầy khi trạng thái chain lớn. Knob giữ làm **nắp an toàn**; cỡ node có thể **hạ**: 15 sổ ≈ 1 GB RAM · 0,3 nhân ⇒ 8 node/máy AX52 ⇒ **9 máy** thay 18 |
 | **Tiền** | **~€1.500–1.750/tháng** (r = 1–3 tx/s), một tháng; ~€60 phí thuê lần đầu mỗi máy [ước, giá Hetzner công khai] |
 | **Thời gian** | 10 ngày dựng phần mềm + đo trên máy dev · 2 ngày dựng cụm · 7 ngày tải · 3 ngày ngủ đông + rút điện · 1 ngày báo cáo = **~23 ngày** |
 | **Điều kiện qua** | 1.000/1.000 đẻ block ở nhịp 7 ngày · 0 `StartClose` · `platform.getValidatorFeeState` giá **= 1 nLOVE9** suốt · 300 sổ cạn phí ngủ và 100 thức lại đúng · một máy rút điện ⇒ 56 sổ ngủ, 944 chạy, máy lên thì thức · xác minh Warp từ sổ lạ dưới ngưỡng đo ở pha 0 |
@@ -240,7 +240,8 @@ khác 9650" đã trả giá.
 | **`chain-config-dir` theo blockchainID** chưa biết trước | cấu hình thiếu ⇒ plugin chạy knob mặc định | bước D bắt buộc trước E; cổng "mọi blockchainID có tệp" | vận hành |
 | **`ulimit nofile`**: 15 plugin + gRPC mỗi node | `too many open files` | cloud-init đặt 1 M; đo 0.7 | vận hành |
 | **Bão bootstrap** 72 node × 14 chain cùng lúc | CPU máy mẹ | chain rỗng nên rẻ; lệch 30 s giữa các máy nếu 0.7 nói cần | đo |
-| **`txDB` P-Chain phình** | genesis > 10 KB lọt | cổng bước A | lõi |
+| **`txDB` P-Chain phình** | genesis > 10 KB lọt | cổng bước A. Đo pha 0: +18 KiB/sổ ở 1,5 KB, **+633 KiB/sổ ở 199 KB**; trần codec thật **256 KiB/tx** | lõi |
+| **Sổ ngủ + node restart = kẹt bootstrap** (đo pha 0: RPC 503, nạp phí sau không gỡ trong 120 s) | node có sổ ngủ phải restart | nạp phí **trước** restart; sau restart kiểm `info.isBootstrapped` từng sổ | lõi + vận hành |
 | **Trộn băng tập vào máy g1** | tệp `net-*` lẫn | máy tách hẳn; `check-net-dirs.mjs` | vận hành |
 | **1.000 tên lọt vào sổ g1** | `chainid-issued.json` đổi | không chạy `gen-chainid-issued.mjs` trỏ vào băng tập; cổng so hash sổ trước/sau | vận hành |
 | Xác minh Warp từ sổ lạ chậm khi P-Chain đầy diff | 4c | đây là **phép đo**, không phải lỗi; ghi số cho ACP (c) | lõi |

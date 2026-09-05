@@ -111,6 +111,13 @@ fork của mọi sổ. Đề xuất: đường có sẵn trước, precompile kh
 
 ## 6. Genesis trên P-Chain — cái giá của pha A
 
+> **Đính chính đo được `05/09` (pha 0, `docs/k1-phase0/EVIDENCE-2026-09-05.md`):** trần thật của một genesis là
+> **~256 KiB**, không phải 1 MiB. `txs.Codec = codec.NewDefaultManager()` (`vms/platformvm/txs/codec.go:55`,
+> `codec/manager.go:19`) giới hạn **cả giao dịch** ở 256 KiB; genesis 505 KB bị `packer has insufficient length`
+> trước khi `MaxGenesisLen` kịp kiểm. Và mỗi KB genesis làm txDB của **mọi** node lớn ~3,2 KB: sổ genesis 199 KB
+> = +633 KiB/node, sổ genesis 1,5 KB = +18 KiB/node. Các bảng dưới giữ con số 1 MiB làm trần lý thuyết; định cỡ
+> dùng 256 KiB.
+
 - `writeTXs` (`state.go:3130–3149`) lưu byte của **mọi** tx đã chấp nhận; `CreateChainTx.GenesisData` (≤ 1 MiB) nằm
   trong đó. `chainDB` chỉ giữ chainID (`:3271–3276`), nhưng tx thì ở `txDB` **mãi mãi**.
 - `vms/platformvm` không có `StateSyncEnabled` ⇒ mọi node (kể cả thiết bị `--partial-sync-primary-network`) **tải và

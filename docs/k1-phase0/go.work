@@ -1,0 +1,15 @@
+go 1.25.10
+
+// The phase-0 kit builds against the sovereign fork IN PLACE, read-only: nothing here is
+// copied into upstream/, and nothing in upstream/ is modified. The relative paths assume
+// the two worktrees sit side by side under C:/PROJECTS (9Chain-A1 and 9Chain-A1-web).
+use (
+	./l1-batch
+	../../../9Chain-A1/upstream/avalanchego
+	../../../9Chain-A1/upstream/avalanchego/graft/coreth
+	../../../9Chain-A1/upstream/avalanchego/graft/evm
+	../../../9Chain-A1/upstream/avalanchego/graft/subnet-evm
+)
+
+// Mirrors the fork's own go.work: see the comment there about the 2023 genproto split.
+replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20230526161137-0005af68ea54
