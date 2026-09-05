@@ -2,56 +2,77 @@
 
 ---
 
-## ▶ TRẠNG THÁI SỐNG — `2026-09-05 10:0xZ`. ĐỌC KHỐI NÀY TRƯỚC.
+## ▶ TRẠNG THÁI SỐNG — `2026-09-05` (chốt phiên). ĐỌC KHỐI NÀY LÀ ĐỦ ĐỂ TIẾP.
 
-**Site đang phục vụ `c0159c40ea22`** (`version.txt` công khai khớp) · **Caddy `md5 68596c7a…`**
-(`@explorer_cu` + `/ceremony/*`) · test **196/196**, **0 đỏ có chủ ý còn lại** · 10/10 cổng dựng.
+**Site `eea5264d29cc`** · **Caddy `md5 ef02b874…`** · `origin` = `8511f67` ·
+**`official` = `6591085`** (ngang bằng site) · cây **sạch** · test **201/201, 0 đỏ** ·
+11 cổng dựng + 14 trang qua cổng prerender.
 
-Ba mốc David chốt trong phiên `05/09` — **cả ba đã lên sóng và đo lại từ ngoài**:
+Phiên `05/09` giao 6 mốc, **cả 6 đã lên sóng và đo lại từ ngoài**:
 
-| Mốc | Đo được sau khi deploy |
+| Mốc | Đo được sau deploy |
 |---|---|
-| **A-4 · liên kết explorer cũ → 9Scan** | `/tx/<64hex>` `/address/<40hex>` `/block/<số>` → **302 → 9Scan → 200**; `/tx/0x123` và `/block/<64hex>` **giữ 404 của mình**; 14 đường không hỏng. Cổng nằm trong `caddy-deploy.sh`, đo tới tận đầu bên kia |
-| **D-1 · bộ chữ (B1+B2 cùng lượt)** | Trên site sống: **9 mặt chữ được nạp** (trước: **1**), `--font-sans` = Inter · `--font-display` = Manrope · `--font-mono` = JetBrains Mono. Đối chứng ngược tại chỗ: trả 3 lớp về `<body>` ⇒ `--font-sans` rỗng lại, h1 về font hệ thống |
-| **B-4 · `/ceremony/`** | Trang sống, 30 ngôn ngữ, đếm ngược + 4 múi giờ (UTC 06:09:09 · Jerusalem 09:09:09 · VN 13:09:09), 3 vân tay **khớp CANON từng byte** (phiên kia đo độc lập). 375 px: `scrollWidth == 375`, 0 tràn |
+| **A-4** liên kết explorer cũ → 9Scan | `/tx/<64hex>` `/address/<40hex>` `/block/<số>` → 302 → 9Scan → **200**; hash cụt giữ 404 của mình |
+| **D-1** bộ chữ (B1+B2 cùng lượt) | **9 mặt chữ nạp** (trước: 1); tiếng Việt vẽ bằng font thương hiệu. Đối chứng ngược: trả lớp về `<body>` ⇒ biến rỗng lại |
+| **B-4** `/ceremony/` | Đếm ngược + 4 múi giờ + 3 vân tay **khớp CANON từng byte**. 🔴 Tên đúng là **“Nghi lễ Block Adam”** (canon), không phải 9S Union — đã sửa 30 ngôn ngữ |
+| **A-1·A-2·A-3** ba câu sai | Cảnh báo bằng ngày đã qua · “ba phút” → **“năm phút”** ×30 · trần **4/15 chỗ** nay hiện trước cổng ví; `?? 15` → gạch ngang |
+| **B-2** `/validators/` | 11 validator · 10 nối · cọc 81 LOVE9 · **mọi số đọc từ chain**. Bắt được lỗi tự mâu thuẫn: văn xuôi nói 10 lượt faucet, phép tính in `9×9=81≥81` ⇒ nay `9×10=90>81` |
+| **D-2** prerender `/chains/` | HTML không-JS: **1 chữ → 6.466 ký tự**, đủ 11 tên chain |
+| **B-1** `/docs/` · **B-3** `/nine-years/` | Lần đầu có địa chỉ nghĩa là “tài liệu 9Chain” (`9chain.org/docs/` vẫn 404) · và site nói được nó tồn tại để làm gì, 30 ngôn ngữ |
 
-**Kèm theo, cùng lớp lỗi "câu chữ trôi khỏi mạng"** (`c0159c4`):
-màn duyệt `/create-chain/` **thôi cảnh báo bằng ngày đã qua** (`01/09`, sai suốt 4 ngày) ·
-**"ba phút" → "năm phút"** × 30 ngôn ngữ *(đo: 305,5 s đẻ · 293,4 s thu hồi trên mạng 9 node;
-số cũ "~170 s" là thời 5 node)* · **trần 15 chỗ nay hiện CÔNG KHAI** trước cổng ví
-(trang chủ · danh bạ · trang đẻ chain) và `state?.tran ?? 15` — thứ in **"15/15 slots left"**
-đúng lúc `/api/status` hỏng — đã thành gạch ngang.
+**Bốn cổng mới, mỗi cổng đã được nhìn thấy lúc ĐỎ:** `check-slots.mjs` (trần 15 chỗ vs danh bạ
+sống) · `check-prerender.mjs` (sàn ký tự trong HTML tĩnh) · `check-doc-links.mjs` (đo **tệp**,
+không đo mã HTTP) · khối explorer trong `caddy-deploy.sh` (đi hết chặng tới 200 ở đầu bên kia).
 
-**Cổng mới:** `web/scripts/check-slots.mjs` (trong `web-deploy.sh`) hỏi danh bạ SỐNG và đối
-chiếu với hằng số `L1_SLOTS`; in `11/15 · 4 left`, **đã thấy ĐỎ** khi hạ trần xuống 3.
+### 🔴 Phiên sau bắt đầu từ đâu
 
-### Đã thêm sau khối trên (cùng phiên `05/09`)
+1. ⚠️ **LÀM TRƯỚC MỌI TRANG MỚI: tách bundle tiếng Anh theo trang.** Đo được:
+   `/chains/` **143,9 → 154,4 → 156,7 KB gz**, trần **160**. `en.ts` đi trong bundle chung nên
+   mỗi trang mới bị trả giá ở MỌI trang ⇒ **thêm ~2 trang là vỡ**. Khi vỡ, **đừng nới trần**.
+2. **`[human]` David duyệt giọng 4 lô chuỗi VI** sinh hôm nay (ceremony 28 · validators 31 ·
+   docs 8 · nine-years 43) — bảng ở cuối `docs/WEB-PROGRESS.md`. Đang **lên sóng**.
+3. **`[human]` sau nghi lễ `09/09`:** dán `adamTx` · `evaTx` · `unionTx` · `adamBlock` ·
+   `adamTimestamp` · `bundleUrl` vào `EVIDENCE` trong `web/lib/ceremony.ts` — trang tự đổi thì.
+4. **`[human]` việc của phiên chain:** `docs/TOKENOMICS.md` công khai **tự khai là SAI** từ
+   `2026-08-26` (vẫn tả 720 triệu · 40/20/20/5/15). Vì thế `/docs/` **cố ý không liệt kê nó**.
+5. Còn lại theo `docs/WEB-UPGRADE-2026-09-04.md` §7: **P-62** (màn xem trước — chặn cuối trước
+   4 chỗ vĩnh viễn) · **D-3 hreflang** (29 bản dịch vẫn vô hình với công cụ tìm kiếm) ·
+   **B-5 `/supply/`** (`/faucet/api/supply` nay **200**, chặn cũ đã hết) · **B-6 `/status/`**.
 
-| Việc | Đo được |
-|---|---|
-| **`/validators/`** — trang trả lời câu tự-tố của trang chủ | Sống. Số đọc từ chain: **11 validator · 10 nối · cọc tối thiểu 81 LOVE9 · 2 đang cọc ở mức tối thiểu**. Hai liên kết ra GitHub đã fetch thật (200, hướng dẫn công khai 0 placeholder). 375px: 0 tràn |
-| 🔴 **Phép tính faucet tự mâu thuẫn** — bắt được SAU khi deploy | Đoạn văn nói "chín lượt không đủ", dòng phép tính ngay dưới in `9 × 9 = 81 ≥ 81`. Nay `faucetRequestsNeeded()` (+1 lượt cho phí) và dấu `>` chặt: `9 × 10 = 90 > 81`. Test ghim công thức ngây thơ là thứ KHÔNG được trả về |
-| **`/chains/` hết `Loading…`** | HTML không-JS: **1 chữ → 6.466 ký tự**, đủ 11 tên chain; trang chủ 2.043 → 2.708. Nguồn: `lib/directorySnapshot.ts` (chép vào repo, **không** fetch lúc build) |
-| **Cổng mới `check-prerender.mjs`** | Trong `postbuild`, sàn ký tự theo từng trang. **Đã thấy ĐỎ đúng lỗi gốc**: body thay bằng `Loading…` ⇒ `10 chars, floor 6000` + câu "renders a loading state and nothing else without JavaScript" |
+### Gotchas trả giá trong phiên này
 
-🔴 **Ba luật giữ cho ảnh chụp không nói dối:** snapshot **không mang trạng thái** (trạng thái là
-phép ĐO, ảnh chụp là TRÍ NHỚ) · hai ô "Measured running"/"Need attention" hiện **gạch ngang chứ
-không phải 0** khi chưa đo gì · dòng thời gian in **ngày đầy đủ** cho ảnh chụp và **giờ** cho lượt
-đọc sống — *"updated at 14:32"* trên dữ liệu ba ngày tuổi là đúng loại nói dối trông như thật.
+- 🔴 **`git add -A` trong worktree dùng chung nuốt tệp chưa commit của phiên khác** (`eea5264`).
+  Luật: `git add <đường dẫn của mình>`. Xem khối cuối tệp này.
+- 🔴 **Ảnh chụp Browser pane khi pane bị ẩn ⇒ `clientWidth = 0` ⇒ MỌI phần tử báo tràn.**
+  “304 phần tử tràn” là đo sai đại lượng, không phải 304 lỗi. `resize_window` trước khi đo.
+- 🔴 **Trang mới render theo dữ liệu phải kiểm `grid-cols-[minmax(0,1fr)]`** — mặc định
+  `min-width:auto` của grid item cho một chuỗi sha256 kéo rộng cả trang (đo 375px: 549 > 375).
+- **`rpcOrigin()` từng chỉ an toàn ở nửa đầu**: `host()` có guard, dòng cuối đọc
+  `window.location.protocol` ⇒ trang đầu tiên gọi nó lúc render làm **đổ cả lượt export**.
+- **Cổng đếm/guard phải khớp KHỐI, không khớp CHỮ**: `s.includes('validators:')` trúng
+  `stats.validators` ⇒ script bỏ qua cả 29 tệp mà vẫn in "✓".
+- **Apostrophe ASCII trong chuỗi TS**: `п'яти` (uk) làm hỏng tệp; dùng `’` (U+2019).
+- **`pre-push` chặn cụm có mã mà HEAD mang `[skip ci]`** ⇒ thêm `git commit --allow-empty -m "ci: …"`.
+- `caddy-deploy.sh` **luôn thoát 1** vì `testnet-a1.*` trả 525 (tên miền chết từ trước) — đọc
+  từng dòng `✗`, đừng đọc mã thoát.
 
-⚠️ `gen-directory-snapshot.mjs` **từ chối** ghi ảnh chụp > 24 KB JSON, kèm lời dặn **đừng nới
-trần**: kế hoạch 108 L1 sẽ đi qua đúng đường này, và nhét cả trăm bản ghi vào bundle là sai cách —
-lúc đó ảnh chụp MỘT TRANG + tổng số thật.
+### Lệnh hữu ích
 
-### 🔴 Phiên sau
+```bash
+cd web && pnpm typecheck && pnpm test && npx next build && npm run postbuild
+```
 
-1. **`[human]` David duyệt giọng 28 chuỗi VI mới + 3 chuỗi đổi** — bảng ở cuối
-   `docs/WEB-PROGRESS.md`. Đang **lên sóng**.
-2. **`[human]` sau nghi lễ `09/09`:** dán `adamTx` · `evaTx` · `unionTx` · `adamBlock` ·
-   `adamTimestamp` · `bundleUrl` vào `EVIDENCE` trong `web/lib/ceremony.ts` — trang tự đổi
-   sang thì quá khứ, không phải viết chữ nào.
-3. Việc còn lại xếp theo thứ tự ở **`docs/WEB-UPGRADE-2026-09-04.md`** §7: B-2 `/validators/` ·
-   D-2 prerender `/chains/` (HTML tĩnh nay vẫn chỉ có chữ `Loading…`) · B-1 `/docs/` · P-62.
+```bash
+bash local-net/deploy/web-deploy.sh          # deploy web (Caddy phải đi TRƯỚC nếu đổi route)
+```
+
+```bash
+node web/scripts/gen-directory-snapshot.mjs  # làm mới ảnh chụp sổ L1 cho prerender
+```
+
+```bash
+bash local-net/deploy/publish-official.sh web-home   # ĐƯỜNG DUY NHẤT lên repo công khai
+```
 
 ---
 
