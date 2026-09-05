@@ -378,6 +378,17 @@ export const ms: Dict = {
     issuesCta: "Laporkan masalah",
     issuesNote: "Penjejak isu ialah salurannya, dan ia awam dengan sengaja: masalah pengesah hampir selalu masalah yang akan dihadapi orang lain, dan jawapan yang diberi secara peribadi hanya membantu seorang. Beritahu kami apa yang anda ukur, bukan apa yang anda simpulkan.",
   },
+  docs: {
+    title: "Dokumentasi",
+    desc: "Segala yang ditulis tentang menggunakan A1: cara melancarkan rantaian, cara menjalankan pengesah, dan untuk apa projek ini wujud. Setiap dokumen dipaut ke tempat sebenarnya, jadi apa yang anda baca ialah salinan yang disunting.",
+    langNote: "Setiap dokumen dalam bahasa yang tertera pada barisnya, dan kami tidak menterjemah dokumen itu sendiri. Salinan terjemahan kekal betul hanya sehingga seseorang membetulkan satu arahan dalam yang asal — dan salinan yang tiada siapa sunting itulah yang menjadi salah.",
+    langLabel: "Bahasa",
+    alsoIn: "Juga dalam",
+    pdfLabel: "PDF",
+    onSiteLabel: "Di laman ini",
+    opensGithub: "Dibuka di GitHub",
+  },
+
 
 
 

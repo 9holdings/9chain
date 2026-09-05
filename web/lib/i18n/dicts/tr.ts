@@ -370,6 +370,17 @@ export const tr: Dict = {
     issuesCta: "Sorun bildir",
     issuesNote: "Sorun takipçisi kanaldır ve bilerek herkese açıktır: bir doğrulayıcı sorunu neredeyse her zaman başkasının da karşılaşacağı bir sorundur, özelde verilen yanıt ise tek kişiye yarar. Bize vardığınız sonucu değil, ölçtüğünüzü anlatın.",
   },
+  docs: {
+    title: "Belgeler",
+    desc: "A1 üzerinde çalışmaya dair yazılmış her şey: nasıl zincir başlatılır, nasıl doğrulayıcı çalıştırılır ve bu proje ne için var. Her belge gerçekte durduğu yere bağlanır; yani okuduğunuz, düzenlenen kopyadır.",
+    langNote: "Her belge satırında yazan dildedir ve belgelerin kendisini çevirmiyoruz. Çevrilmiş bir kopya, biri aslında bir komutu düzeltene kadar doğru kalır — ve yanlışa düşen, kimsenin düzenlemediği kopyadır.",
+    langLabel: "Dil",
+    alsoIn: "Ayrıca",
+    pdfLabel: "PDF",
+    onSiteLabel: "Bu sitede",
+    opensGithub: "GitHub'da açılır",
+  },
+
 
 
 

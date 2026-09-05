@@ -564,6 +564,17 @@ export const vi: Dict = {
     issuesCta: "Báo lỗi",
     issuesNote: "Trang issue là kênh liên hệ, và nó công khai có chủ ý: một vấn đề của validator gần như luôn là vấn đề người khác cũng sẽ gặp, còn câu trả lời đưa riêng chỉ giúp được một người. Hãy kể cái bạn ĐO ĐƯỢC, đừng kể kết luận.",
   },
+  docs: {
+    title: "Tài liệu",
+    desc: "Mọi thứ đã được viết ra về việc dùng A1: đẻ một chain thế nào, chạy một validator thế nào, và dự án này để làm gì. Mỗi tài liệu được trỏ tới đúng nơi nó thật sự nằm, nên thứ bạn đọc là bản đang được sửa.",
+    langNote: "Mỗi tài liệu nằm ở ngôn ngữ ghi trên dòng của nó, và chúng tôi không dịch chính các tài liệu. Một bản dịch chỉ còn đúng cho tới khi ai đó sửa một câu lệnh trong bản gốc — và bản không ai sửa mới là bản sai.",
+    langLabel: "Ngôn ngữ",
+    alsoIn: "Còn có bản",
+    pdfLabel: "PDF",
+    onSiteLabel: "Trên trang này",
+    opensGithub: "Mở trên GitHub",
+  },
+
 
 
 

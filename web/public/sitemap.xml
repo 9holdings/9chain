@@ -53,6 +53,11 @@
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://a1.9chain.org/docs/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <!-- The one page that asks the reader to do something FOR the network rather than with
        it. Same priority as the product pages, on purpose. -->
   <url>

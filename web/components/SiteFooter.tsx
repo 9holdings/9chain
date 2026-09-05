@@ -13,7 +13,11 @@ import { BrandLockup } from './BrandLockup';
  * 🔴 ONLY LINKS MEASURED TO BE ALIVE. Measured `27/08`:
  *     https://a1.9scan.org      → 200
  *     https://9chain.org/       → 200
- *     https://9chain.org/docs/  → 404  ⇒ DELIBERATELY no documentation entry here
+ *     https://9chain.org/docs/  → 404  ⇒ no documentation entry pointed THERE
+ * ✅ `2026-09-05`: there is now a documentation entry, and it points at `/docs/` on this
+ * site — a catalogue of the real guides, whose every outbound URL is fetched by
+ * `scripts/check-doc-links.mjs` before each deploy. The 404 above is still a 404; what
+ * changed is that the project finally has an address of its own for this.
  * A footer full of broken links is worse than an empty one: it makes a promise and breaks it on
  * the spot. (The 9Scan-A1 home page currently has exactly two dead links into `/docs/` — they
  * have been told, and it is not being copied here.)
@@ -61,6 +65,7 @@ export function SiteFooter() {
       title: t.footer.about,
       items: [
         { href: 'https://9chain.org/', label: t.footer.mainSite, external: true },
+        { href: '/docs/', label: t.docs.title },
         { href: '/validators/', label: t.validators.title },
         { href: '/ceremony/', label: t.nav.ceremony },
         { href: '/re-genesis/', label: t.footer.rebuildPlan },

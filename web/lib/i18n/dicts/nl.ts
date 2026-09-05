@@ -376,6 +376,17 @@ export const nl: Dict = {
     issuesCta: "Een probleem melden",
     issuesNote: "De issue-tracker is het kanaal, en die is bewust openbaar: een validatorprobleem is bijna altijd een probleem dat iemand anders ook tegenkomt, en een antwoord in privé helpt één persoon. Vertel ons wat je gemeten hebt, niet wat je concludeerde.",
   },
+  docs: {
+    title: "Documentatie",
+    desc: "Alles wat is opgeschreven over werken op A1: hoe je een chain start, hoe je een validator draait en waar dit project voor is. Elk document verwijst naar waar het echt staat, dus je leest de versie die wordt bewerkt.",
+    langNote: "Elk document staat in de taal die op zijn regel vermeld is, en de documenten zelf vertalen we niet. Een vertaalde kopie klopt alleen totdat iemand een commando in het origineel verbetert — en fout wordt de kopie die niemand bewerkt.",
+    langLabel: "Taal",
+    alsoIn: "Ook in",
+    pdfLabel: "PDF",
+    onSiteLabel: "Op deze site",
+    opensGithub: "Opent op GitHub",
+  },
+
 
 
 

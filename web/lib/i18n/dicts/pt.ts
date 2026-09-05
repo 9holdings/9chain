@@ -364,6 +364,17 @@ export const pt: Dict = {
     issuesCta: "Reportar um problema",
     issuesNote: "O rastreador de problemas é o canal, e é público de propósito: um problema de validador é quase sempre um que outra pessoa vai ter, e uma resposta dada em privado ajuda uma só pessoa. Diga-nos o que mediu, não o que concluiu.",
   },
+  docs: {
+    title: "Documentação",
+    desc: "Tudo o que está escrito sobre usar a A1: como lançar uma cadeia, como correr um validador e para que serve o projeto. Cada documento é ligado onde realmente vive, por isso o que lê é a cópia que é editada.",
+    langNote: "Cada documento está na língua indicada na sua linha, e não traduzimos os documentos em si. Uma cópia traduzida só está certa até alguém corrigir um comando no original — e a cópia que ninguém edita é a que fica errada.",
+    langLabel: "Idioma",
+    alsoIn: "Também em",
+    pdfLabel: "PDF",
+    onSiteLabel: "Neste site",
+    opensGithub: "Abre no GitHub",
+  },
+
 
 
 

@@ -371,6 +371,17 @@ export const pl: Dict = {
     issuesCta: "Zgłoś problem",
     issuesNote: "Tracker zgłoszeń jest kanałem i jest publiczny celowo: problem walidatora niemal zawsze spotka też kogoś innego, a odpowiedź udzielona prywatnie pomaga jednej osobie. Napisz, co zmierzyłeś, a nie co z tego wywnioskowałeś.",
   },
+  docs: {
+    title: "Dokumentacja",
+    desc: "Wszystko, co spisano o pracy na A1: jak uruchomić łańcuch, jak postawić walidatora i po co ten projekt istnieje. Każdy dokument prowadzi tam, gdzie naprawdę mieszka, więc czytasz tę kopię, którą się edytuje.",
+    langNote: "Każdy dokument jest w języku podanym w jego wierszu, a samych dokumentów nie tłumaczymy. Przetłumaczona kopia jest poprawna tylko do chwili, gdy ktoś poprawi polecenie w oryginale — a błędna staje się ta kopia, której nikt nie edytuje.",
+    langLabel: "Język",
+    alsoIn: "Także w",
+    pdfLabel: "PDF",
+    onSiteLabel: "Na tej stronie",
+    opensGithub: "Otwiera się na GitHubie",
+  },
+
 
 
 

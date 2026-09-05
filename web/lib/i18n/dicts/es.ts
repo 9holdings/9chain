@@ -365,6 +365,17 @@ export const es: Dict = {
     issuesCta: "Informar de un problema",
     issuesNote: "El gestor de incidencias es el canal, y es público a propósito: un problema de validador casi siempre lo tendrá alguien más, y una respuesta dada en privado ayuda a una sola persona. Cuéntanos lo que mediste, no lo que concluiste.",
   },
+  docs: {
+    title: "Documentación",
+    desc: "Todo lo escrito sobre trabajar en A1: cómo lanzar una cadena, cómo ejecutar un validador y para qué existe el proyecto. Cada documento enlaza donde realmente vive, así que lo que lees es la copia que se edita.",
+    langNote: "Cada documento está en el idioma marcado en su fila, y no traducimos los documentos. Una copia traducida solo es correcta hasta que alguien corrige un comando en el original — y la copia que nadie edita es la que acaba equivocada.",
+    langLabel: "Idioma",
+    alsoIn: "También en",
+    pdfLabel: "PDF",
+    onSiteLabel: "En este sitio",
+    opensGithub: "Se abre en GitHub",
+  },
+
 
 
 

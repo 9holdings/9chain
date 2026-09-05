@@ -380,6 +380,17 @@ export const tl: Dict = {
     issuesCta: "Mag-ulat ng problema",
     issuesNote: "Ang issue tracker ang tanging daan, at sadyang pampubliko ito: ang problema ng isang validator ay halos palaging problemang mararanasan din ng iba, at ang sagot na ibinibigay nang pribado ay isang tao lang ang natutulungan. Sabihin sa amin ang sinukat mo, hindi ang konklusyon mo.",
   },
+  docs: {
+    title: "Dokumentasyon",
+    desc: "Lahat ng naisulat tungkol sa paggamit ng A1: paano maglunsad ng chain, paano magpatakbo ng validator, at para saan ang proyektong ito. Ang bawat dokumento ay naka-link kung saan ito talaga nakatira, kaya ang binabasa mo ang mismong kopyang ineedit.",
+    langNote: "Ang bawat dokumento ay nasa wikang nakasaad sa hanay nito, at hindi namin isinasalin ang mismong mga dokumento. Tama lang ang isinaling kopya hanggang may magwasto ng utos sa orihinal — at ang kopyang walang umeedit ang siyang nagiging mali.",
+    langLabel: "Wika",
+    alsoIn: "Nasa",
+    pdfLabel: "PDF",
+    onSiteLabel: "Sa site na ito",
+    opensGithub: "Bubukas sa GitHub",
+  },
+
 
 
 

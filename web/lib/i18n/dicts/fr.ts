@@ -367,6 +367,17 @@ export const fr: Dict = {
     issuesCta: "Signaler un problème",
     issuesNote: "Le suivi des tickets est le canal, et il est public à dessein : un problème de validateur est presque toujours celui que quelqu'un d'autre rencontrera, et une réponse donnée en privé n'aide qu'une personne. Dites-nous ce que vous avez mesuré, pas ce que vous en avez conclu.",
   },
+  docs: {
+    title: "Documentation",
+    desc: "Tout ce qui est écrit sur l'utilisation d'A1 : comment lancer une chaîne, comment faire tourner un validateur, et à quoi sert ce projet. Chaque document renvoie là où il vit réellement, donc ce que vous lisez est la copie que l'on modifie.",
+    langNote: "Chaque document est dans la langue indiquée sur sa ligne, et nous ne traduisons pas les documents eux-mêmes. Une copie traduite reste juste jusqu'à ce que quelqu'un corrige une commande dans l'original — et la copie que personne ne modifie est celle qui devient fausse.",
+    langLabel: "Langue",
+    alsoIn: "Aussi en",
+    pdfLabel: "PDF",
+    onSiteLabel: "Sur ce site",
+    opensGithub: "S'ouvre sur GitHub",
+  },
+
 
 
 

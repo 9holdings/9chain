@@ -377,6 +377,17 @@ export const id: Dict = {
     issuesCta: "Laporkan masalah",
     issuesNote: "Pelacak isu adalah salurannya, dan sengaja dibuat publik: masalah seorang validator hampir selalu masalah yang akan dialami orang lain, dan jawaban yang diberikan secara pribadi hanya menolong satu orang. Ceritakan apa yang Anda ukur, bukan kesimpulan Anda.",
   },
+  docs: {
+    title: "Dokumentasi",
+    desc: "Semua yang tertulis tentang menggunakan A1: cara meluncurkan rantai, cara menjalankan validator, dan untuk apa proyek ini ada. Setiap dokumen ditautkan ke tempatnya yang sebenarnya, jadi yang Anda baca adalah salinan yang disunting.",
+    langNote: "Setiap dokumen berbahasa sesuai yang tertera pada barisnya, dan kami tidak menerjemahkan dokumennya sendiri. Salinan terjemahan tetap benar hanya sampai seseorang memperbaiki satu perintah di aslinya — dan salinan yang tak pernah disunting itulah yang menjadi salah.",
+    langLabel: "Bahasa",
+    alsoIn: "Tersedia juga dalam",
+    pdfLabel: "PDF",
+    onSiteLabel: "Di situs ini",
+    opensGithub: "Terbuka di GitHub",
+  },
+
 
 
 

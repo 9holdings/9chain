@@ -375,6 +375,17 @@ export const ha: Dict = {
     issuesCta: "Bayar da rahoton matsala",
     issuesNote: "Mai bin diddigin matsaloli shi ne hanyar sadarwa, kuma a fili yake da gangan: matsalar mai tabbatarwa kusan kullum matsala ce da wani ma zai fuskanta, kuma amsar da aka bayar a asirce tana taimaka wa mutum ɗaya kawai. Ka gaya mana abin da ka auna, ba abin da ka kammala ba.",
   },
+  docs: {
+    title: "Takardun bayani",
+    desc: "Duk abin da aka rubuta game da amfani da A1: yadda ake ƙirƙirar sarƙa, yadda ake gudanar da mai tabbatarwa, da kuma manufar wannan aikin. Ana haɗa kowace takarda daga inda take a zahiri, don haka abin da kake karantawa shi ne kwafin da ake gyarawa.",
+    langNote: "Kowace takarda tana cikin yaren da aka rubuta a jerinta, kuma ba ma fassara takardun kansu. Kwafin da aka fassara yana daidai ne kawai har sai wani ya gyara wani umarni a asali — kuma kwafin da babu wanda ke gyarawa shi ne wanda ke zama kuskure.",
+    langLabel: "Harshe",
+    alsoIn: "Haka kuma da",
+    pdfLabel: "PDF",
+    onSiteLabel: "A wannan shafin",
+    opensGithub: "Yana buɗewa a GitHub",
+  },
+
 
 
 

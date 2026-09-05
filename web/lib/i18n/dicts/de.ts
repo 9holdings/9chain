@@ -364,6 +364,17 @@ export const de: Dict = {
     issuesCta: "Ein Problem melden",
     issuesNote: "Der Issue-Tracker ist der Kanal, und er ist absichtlich öffentlich: ein Validator-Problem ist fast immer eines, das jemand anderes auch treffen wird, und eine privat gegebene Antwort hilft einer einzigen Person. Sagen Sie uns, was Sie gemessen haben, nicht, was Sie geschlossen haben.",
   },
+  docs: {
+    title: "Dokumentation",
+    desc: "Alles, was über die Arbeit mit A1 aufgeschrieben ist: wie man eine Chain startet, wie man einen Validator betreibt und wozu dieses Projekt da ist. Jedes Dokument ist dort verlinkt, wo es wirklich liegt — Sie lesen also die Fassung, die bearbeitet wird.",
+    langNote: "Jedes Dokument ist in der Sprache, die in seiner Zeile steht, und die Dokumente selbst übersetzen wir nicht. Eine übersetzte Kopie bleibt nur so lange richtig, bis jemand im Original einen Befehl korrigiert — und falsch wird die Kopie, die niemand bearbeitet.",
+    langLabel: "Sprache",
+    alsoIn: "Auch auf",
+    pdfLabel: "PDF",
+    onSiteLabel: "Auf dieser Seite",
+    opensGithub: "Öffnet auf GitHub",
+  },
+
 
 
 

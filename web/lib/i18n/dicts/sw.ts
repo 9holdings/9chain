@@ -372,6 +372,17 @@ export const sw: Dict = {
     issuesCta: "Ripoti tatizo",
     issuesNote: "Kifuatiliaji cha masuala ndiyo njia, na ni cha wazi kwa makusudi: tatizo la kithibitishaji karibu daima ni tatizo ambalo mtu mwingine pia atakumbana nalo, na jibu linalotolewa faraghani humsaidia mtu mmoja tu. Tuambie ulichopima, si ulichohitimisha.",
   },
+  docs: {
+    title: "Nyaraka",
+    desc: "Kila kilichoandikwa kuhusu kutumia A1: jinsi ya kuanzisha mnyororo, jinsi ya kuendesha kithibitishaji, na mradi huu ni wa nini. Kila hati imeunganishwa mahali inapoishi kweli, hivyo unachosoma ndicho nakala inayohaririwa.",
+    langNote: "Kila hati iko katika lugha iliyoandikwa kwenye mstari wake, na hatutafsiri hati zenyewe. Nakala iliyotafsiriwa hubaki sahihi hadi mtu arekebishe amri fulani kwenye asili — na nakala ambayo hakuna anayeihariri ndiyo inayokosea.",
+    langLabel: "Lugha",
+    alsoIn: "Pia kwa",
+    pdfLabel: "PDF",
+    onSiteLabel: "Kwenye tovuti hii",
+    opensGithub: "Hufunguka kwenye GitHub",
+  },
+
 
 
 
