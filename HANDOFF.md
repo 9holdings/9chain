@@ -130,6 +130,7 @@ git       : main 7d616fe (mã + D-195 + PROGRESS + CLAUDE.md) + commit HANDOFF n
 - **[human] DEPLOY CONSOLE TRƯỚC lượt nâng cấp kế tiếp của BẤT KỲ chain nào** — `bash local-net/deploy/console-deploy.sh` (lần đầu qua
   `deploy-lock` thật trong kịch bản). `check-deploy-drift` lệch: `server.mjs` · `lib/l1-upgrade.mjs` · `governance-e2e-test.mjs`.
   Lý do khẩn: chủ SBull tự gọi được `/api/upgrade`; lượt thứ hai của họ với mã đang chạy trên server = lỗi 2 (node chết lúc boot).
+- **[web-home hoặc main — CHƯA KẾT LUẬN] `check-live-page` đỏ trên `/chains/`: 11 khai sai kiểu *"states Chain ID 9001000010 — the chain answers 9000000009"*.** Nghi là cổng **đo sai đại lượng** (so chainId của từng L1 trong danh bạ với `eth_chainId` của C-Chain mẹ) sau khi trang `/chains/` 108-chain lên site — sáng nay preflight chỉ 1 đỏ. Cổng thuộc `main` (`scripts/check-live-page.mjs`), trang thuộc `web-home`: đọc cổng trước khi đổi trang (luật cứng #2, vế 3: đỏ phải đỏ VÌ ĐÚNG LÝ DO).
 - **[human] đẩy `origin`** (kiểm `check-remotes` trước). `official` hỏi trước, qua `publish-official.sh`.
 - **[main]** netgen in khối chainId L1 riêng cho băng tập (kit K1 đã ghi) · dọn `local-net/net-tap-g1/docker-compose.multinode.yml.pre-drill`
   + `drill-broken-*/` khi không cần drill nữa (gitignore, vô hại).
