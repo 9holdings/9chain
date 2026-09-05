@@ -22,10 +22,16 @@ trên, bắt đầu bước 2"*. Chi tiết và số đo: D-193.
       ✅ nhánh `web-rescue-orphans-20260905` (từ `web-home` `3c67172`): `prebuild: tsc` · `networkErrorOf()` · gỡ cảnh báo
       *"chain sẽ bị xoá 01/09"* ở màn soát (**đang render trên site**) · W3 đo đúng ngôn ngữ · mục W-luu. Ba đối chứng
       đỏ, `pnpm build` đầy đủ xanh. **KHÔNG ff vào `web-home`** — việc phiên web: `git merge --ff-only` rồi deploy.
-- [ ] **WT-3 — bảng sở hữu + cổng `check-worktree-ownership.mjs`**: nhánh nào sửa thư mục nào; đỏ khi diff ra ngoài;
-      phải thấy đỏ trước khi tin.
-- [ ] **WT-4 — khoá deploy trên server** (`deploy.lock`: bề mặt · nhánh · SHA · máy · giờ) — biến luật cứng #4 thành cổng đỏ được.
-      Ghi lên server là việc có người bấm ⇒ phần mã ở repo, phần cài là `[human]`.
+- [x] **WT-3 — bảng sở hữu + cổng `check-worktree-ownership.mjs`** (D-194, `05/09`)
+      ✅ `scripts/worktree-ownership.json` (3 nhánh · `shared` · 9 tệp tranh chấp có chủ) + cổng 0/1/2 đo **worktree đang đứng**,
+      `--range` lịch sử (ba chấm), `--deploy <bề mặt>`. Self-test **24 ca**; đỏ thật trên `main` (tệp untracked trong `web/`);
+      chạy từ worktree detached ⇒ **2**. Đo lịch sử: `main` sửa 4 tệp của web, `web-home` sửa 5 tệp của chain.
+      Vào `gday-preflight` nhóm 2 (2 mục ⇒ 41). ⚠️ Chưa chặn commit: hook `pre-commit` là global (`claude-config`) — [human].
+- [~] **WT-4 — khoá deploy trên server** (D-194, `05/09`)
+      ✅ `local-net/deploy/deploy-lock.sh`: sở hữu trước mạng · `mkdir` nguyên tử · người giữ + TTL 30′ · vào lại cùng người ·
+      thả chỉ bởi người giữ + ghi `deployed/<bề mặt>.json`. Self-test **15 ca** (đã thấy đỏ). Nối vào `console-deploy.sh`.
+      ⏳ [human] lượt `console-deploy.sh` kế tiếp là lần **acquire thật đầu tiên** trên server.
+      ⏳ [web-home] nối vào `caddy-deploy.sh` + `web-deploy.sh` sau khi merge `main`.
 - [ ] **WT-5 — dọn**: xoá worktree `gday` + nhánh (1 commit đã cứu), xoá hai `.claude/worktrees/*` + nhánh `claude/*`
       (2 commit đã cứu sang nhánh web), giữ `audit`.
 

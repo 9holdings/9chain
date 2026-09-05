@@ -102,6 +102,12 @@ const GATES = [
   { group: "1 · FORK TREE", name: `replay ${PATCH_COUNT} patches → tree ${TREE_FORK.slice(0, 8)}`, custom: replayFork },
 
   // ── 2. Repo gates — cheap, offline, run first so failures surface early ──
+  // 🔴 Hard rule #4 ("only ONE session deploys") as a table instead of a sentence (D-194). Nine
+  // files had been edited on both `main` and `web-home` before anything measured it, and on
+  // 2026-09-04 two sessions deployed Caddy fifteen minutes apart. The working-tree run is the
+  // real one; it is green on a clean tree, so the self-test is the counter-check that matters.
+  { group: "2 · REPO GATES", name: "worktree ownership — branch ↔ paths ↔ deploy surfaces (counter-check)", ...node("scripts/check-worktree-ownership.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "worktree ownership — this working tree", ...node("scripts/check-worktree-ownership.mjs") },
   { group: "2 · REPO GATES", name: "tokenomics arithmetic + Go↔JS identifiers", ...node("scripts/check-consistency.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "chainId issuance (chainid-test)", ...node("local-net/console/chainid-test.mjs") },
   { group: "2 · REPO GATES", name: "cb58 self-test", ...node("local-net/lib/cb58.mjs", "--self-test") },

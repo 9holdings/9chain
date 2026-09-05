@@ -1,0 +1,126 @@
+{
+  "_doc": [
+    "worktree-ownership.json — WHICH BRANCH MAY TOUCH WHICH PATH, and which deploy surface each branch may push.",
+    "",
+    "Why this file exists (measured 2026-09-05, D-194): `main` and `web-home` forked on 2026-08-27 and by",
+    "2026-09-05 nine files had been edited on BOTH sides — five of them deploy scripts (Caddyfile 1,733 lines",
+    "apart, caddy-deploy.sh, web-deploy.sh, publish-official.sh, heartbeat-pump.mjs). Hard rule #4 ('only ONE",
+    "session deploys') existed only as a sentence people had to remember; on 2026-09-04 two sessions deployed",
+    "Caddy fifteen minutes apart and were saved by luck (byte-identical output), not by any mechanism.",
+    "",
+    "How it is read: `scripts/check-worktree-ownership.mjs`. A path is allowed on a branch when it matches one",
+    "of that branch's `owns` globs, or one of the `shared` globs, or — for the `defaultOwner` only — when no",
+    "other branch owns it. A path that matches ANOTHER branch's `owns` is a violation, whatever else it matches.",
+    "`deploys` lists the surfaces a branch may push to the server; deploy scripts ask the gate with `--deploy`.",
+    "",
+    "Glob rules: `**` crosses directories, `*` and `?` do not; a pattern with no `/` matches a file name in any",
+    "directory. Branch names are matched to a table entry by `branchAliases` (regex → entry) when not literal.",
+    "",
+    "Changing this table is a DECISION about who owns a surface, not a way to make the gate green: write the",
+    "reason in DECISIONS.md. The self-test also refuses a table in which two branches claim the same literal",
+    "path, because an ambiguous table is a table nobody can be red against."
+  ],
+  "defaultOwner": "main",
+  "shared": {
+    "_note": "Editable from every branch. Merges will still conflict textually here — that is the price of a shared notebook, not a hazard on the product path.",
+    "globs": [
+      "*.md",
+      "docs/**",
+      ".claude/**",
+      ".vscode/**",
+      ".gitignore",
+      ".gitattributes",
+      ".dockerignore",
+      "LICENSE",
+      "NOTICE",
+      "local-net/deploy/check-html.mjs"
+    ],
+    "_why_check_html": "console-deploy.sh (main) parse-checks console/index.html with it and web-deploy.sh (web-home) parse-checks the site with it. One file, two callers, both legitimate — so it is shared on purpose, and whoever edits it must run BOTH callers."
+  },
+  "branchAliases": {
+    "^web(-|$)": "web-home",
+    "^audit(-|$)": "audit",
+    "^(main|master)$": "main"
+  },
+  "branches": {
+    "main": {
+      "worktree": "C:/PROJECTS/9Chain-A1",
+      "_surface": "the chain: fork + patches, console, faucet, node images, the gates, and the publication script",
+      "owns": [
+        "patches/**",
+        "upstream/**",
+        "scripts/**",
+        "9chain-a1-config/**",
+        "explorer-full/**",
+        "local-net/console/**",
+        "local-net/lib/**",
+        "local-net/faucet/**",
+        "local-net/tools/**",
+        "local-net/contracts/**",
+        "local-net/9chain-a1/**",
+        "local-net/dashboard/**",
+        "local-net/explorer/**",
+        "local-net/deploy-test/**",
+        "local-net/Dockerfile",
+        "local-net/docker-compose.yml",
+        "local-net/docker-compose.drill.yml",
+        "local-net/create-l1.sh",
+        "local-net/gen-network.sh",
+        "local-net/network-id.sh",
+        "local-net/up-all.sh",
+        "local-net/down-all.sh",
+        "local-net/deploy/console-deploy.sh",
+        "local-net/deploy/console-restart.sh",
+        "local-net/deploy/manifest-deploy.json",
+        "local-net/deploy/publish-official.sh",
+        "local-net/deploy/publish-official.replace.txt",
+        "local-net/deploy/server-env.sh",
+        "local-net/deploy/deploy-lock.sh",
+        "local-net/deploy/check-heartbeat-stopped.mjs",
+        "local-net/deploy/heartbeat-deploy.sh",
+        "local-net/deploy/check-ports.sh",
+        "local-net/deploy/ksgame-bootstrap.sh",
+        "local-net/deploy/node.compose.yml",
+        "local-net/deploy/multinode.compose.yml",
+        "local-net/deploy/wallet-tunnel/**",
+        "local-net/deploy/vi-qua-ham/**"
+      ],
+      "deploys": ["console", "node-image", "heartbeat", "publish-official"]
+    },
+    "web-home": {
+      "worktree": "C:/PROJECTS/9Chain-A1-web",
+      "_surface": "the public site and the edge in front of it: Next.js export, the /chains/ directory page, Caddy",
+      "owns": [
+        "web/**",
+        "scripts/serve-out.mjs",
+        "local-net/chains/**",
+        "local-net/chains-nginx/**",
+        "local-net/deploy/Caddyfile",
+        "local-net/deploy/caddy-deploy.sh",
+        "local-net/deploy/caddy.compose.yml",
+        "local-net/deploy/web-deploy.sh",
+        "local-net/deploy/check-routes.mjs",
+        "local-net/deploy/check-chain-id.mjs",
+        "local-net/deploy/check-decentralisation-claim.mjs"
+      ],
+      "deploys": ["web", "caddy"]
+    },
+    "audit": {
+      "worktree": "C:/PROJECTS/9Chain-A1-audit",
+      "_surface": "read-only review; its core is pinned to one SHA and it never deploys (see its own CLAUDE.md)",
+      "owns": [],
+      "deploys": []
+    }
+  },
+  "_contested_2026-09-05": {
+    "_note": "Files both branches had edited when this table was written. The owner named here wins; the other side's future edits go red. Moving the web-owned deploy files into local-net/deploy/web/ is the web session's job after it merges main (a rename on main would collide with 1,733 lines of Caddyfile changes on web-home).",
+    "local-net/deploy/Caddyfile": "web-home — the running Caddyfile comes from that branch (hard rule #4)",
+    "local-net/deploy/caddy-deploy.sh": "web-home",
+    "local-net/deploy/web-deploy.sh": "web-home",
+    "local-net/deploy/publish-official.sh": "main — publication is a main-side act; web-home receives it by merge",
+    "local-net/faucet/heartbeat-pump.mjs": "main — the pump's source lives in faucet/ and the ceremony runbook on main drives it",
+    "local-net/chains/index.html": "web-home — it is the /chains/ page",
+    "local-net/deploy/check-html.mjs": "shared — two callers, see shared._why_check_html",
+    "docs/DEPLOY-KSGAME.md · BLOCKERS.md · HANDOFF.md": "shared notebooks"
+  }
+}

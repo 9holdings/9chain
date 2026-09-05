@@ -9009,3 +9009,52 @@ rồi deploy web; nghiệm thu sau deploy: `.reviewRebuild` trong chunk trang `/
 
 **Luật rút ra:** một worktree tạm của Claude phải kết thúc bằng **merge về nhánh mẹ trong cùng phiên**; commit
 chỉ nằm trên `claude/*` là việc đã mất. `git worktree list` thành phép đo (bước 3 của kế hoạch worktree).
+
+## D-194 — **Luật cứng #4 thành BẢNG + hai cổng: sở hữu theo nhánh (`check-worktree-ownership`) và khoá deploy trên server (`deploy-lock.sh`)** (`2026-09-05` sáng)
+
+**Vấn đề đo được.** *"Chỉ MỘT phiên được deploy"* là một câu người ta phải nhớ. Từ điểm rẽ `27/08` tới `05/09`:
+`main` sửa **4 tệp của web** (`Caddyfile` · `caddy-deploy.sh` · `web-deploy.sh` · `chains/index.html`), `web-home` sửa
+**5 tệp của chain** (`publish-official.sh` · `heartbeat-pump.mjs` · `fund-heartbeat-wallets.mjs` · `heartbeat-deploy.sh` ·
+`check-heartbeat-stopped.mjs`) — đo bằng chính cổng mới, `--range` ba chấm, mỗi chiều một lượt. Và `04/09` hai phiên deploy
+Caddy cách nhau 15 phút, thoát nhờ trùng byte.
+
+**Quyết định 1 — bảng sở hữu `scripts/worktree-ownership.json`.** Mỗi nhánh khai `owns` (glob) và `deploys` (bề mặt).
+`main` = lõi/patches/console/faucet/scripts/publish; `web-home` = `web/**`, `/chains/`, Caddy + kịch bản deploy web;
+`audit` = không sở hữu gì, không deploy. `shared` = sổ tay `*.md`, `docs/**`, `.claude/**` và **một** tệp deploy dùng
+chung có lý do (`check-html.mjs`: hai kịch bản deploy cùng gọi). Đường không ai khai thuộc `defaultOwner` (`main`).
+Bảng có mục `_contested_2026-09-05` ghi 9 tệp tranh chấp và ai thắng. **Dời tệp web trong `local-net/deploy/` sang thư mục
+riêng là việc của phiên web sau khi merge `main`** — đổi tên trên `main` sẽ va vào 1.733 dòng Caddyfile bên kia.
+
+**Quyết định 2 — cổng `scripts/check-worktree-ownership.mjs`** (mã 0/1/2). Mặc định đo **cây làm việc như nó đang có**
+(staged + unstaged + untracked) của **worktree đang đứng** (`--show-toplevel`, không phải nơi tệp script nằm); `--range A..B`
+đo lịch sử (ba chấm); `--deploy <bề mặt>` trả lời *"nhánh này được đẩy bề mặt này không"*. Nhánh không có trong bảng (detached,
+`claude/*`) là **mã 2**, không bao giờ 0 — đó chính là loại worktree đã làm mất ba commit (D-193). Mẫu **cụ thể nhất thắng**
+(literal > glob dài > glob ngắn), không phải nhánh đứng trước trong bảng.
+
+**Quyết định 3 — `local-net/deploy/deploy-lock.sh`.** `deploy_lock_acquire <bề mặt>`: (1) hỏi cổng sở hữu `--deploy` **trước
+mọi lượt mạng** — sai worktree thì chết trong 100 ms trên máy dev; (2) `mkdir` một thư mục khoá trên server (nguyên tử), ghi
+người giữ `host|user|branch|sha` + mốc; giữ tươi ⇒ **từ chối và in tên người giữ**; cùng người giữ ⇒ vào lại (thử lại sau lỗi
+không phải va chạm); quá TTL 30 phút ⇒ chiếm lại và nói rõ; thư mục khoá không có hồ sơ ⇒ mã 2. `deploy_lock_release`:
+chỉ người giữ được thả, và ghi `~/9chain-a1/deployed/<bề mặt>.json` (nhánh · SHA · máy · giờ) — nửa mà `check-deploy-drift`
+chưa từng có cho mặt web. Nối vào **`console-deploy.sh`** (đầu: acquire; cuối, SAU cổng drift: release). `caddy-deploy.sh` /
+`web-deploy.sh` thuộc `web-home` ⇒ phiên web nối sau khi merge.
+
+**Đã thấy đỏ, mỗi cổng theo đúng cách của nó:**
+- sở hữu: self-test **24 ca** (12 cặp nhánh/đường, 3 nhánh lạ ⇒ 2, 5 bề mặt deploy, 1 bảng mơ hồ bị từ chối, 1 quét 398 đường
+  đang theo dõi — 76 là bản chép cũ của web mà `main` mang) · đỏ thật trên `main` với một tệp untracked `web/zz….ts` · chạy
+  **từ trong** worktree detached ⇒ mã 2 · worktree cứu (`web-rescue-…`) ⇒ 0 · `--deploy caddy` trên `main` ⇒ 1.
+  🔴 Bản đầu của cổng lấy gốc từ **vị trí tệp script** ⇒ chạy từ worktree detached mà đo `main` và in ✓ về một worktree nó
+  chưa nhìn — đúng lớp §2, bắt được vì chạy thật ở đúng chỗ, sửa sang `--show-toplevel`.
+  🔴 Bản đầu cũng để `scripts/**` của `main` che literal `scripts/serve-out.mjs` của `web-home` vì thứ tự bảng — thêm luật
+  cụ-thể-nhất-thắng và hai ca self-test.
+- khoá: self-test **15 ca** trong thư mục tạm (`A1_DEPLOY_LOCK_LOCAL`): giữ ⇒ từ chối · người khác không thả được · thả ghi
+  hồ sơ · thả khi chưa khoá là lỗi · quá TTL ⇒ chiếm · thiếu hồ sơ ⇒ 2 · `acquire caddy` trên `main` chết ở bước sở hữu và
+  **không tạo khoá**. Chưa có lượt acquire thật trên server: lượt `console-deploy.sh` kế tiếp (việc có người bấm) là lần đầu.
+
+**Kèm:** `gday-preflight` nhóm 2 thêm 2 mục (self-test + cây làm việc) ⇒ **41 mục**. `check-english-code` bắt **một dòng
+tiếng Việt do chính lượt này viết** vào `console-deploy.sh` (`"==> quyền deploy + khoá…"`) — sửa ngay; cổng bánh cóc làm đúng việc.
+
+**Chưa làm, và ai làm:** hook `pre-commit` là **global** (`claude-config/githooks`), không gọi cổng cục bộ ⇒ cổng sở hữu mới
+chạy ở preflight và ở deploy, **chưa chặn được một commit sai nhánh**. Nối hook global → hook cục bộ là việc trên repo
+`claude-config` (David). Phiên web: merge `main`, nối `deploy-lock` vào hai kịch bản deploy web, dời tệp web ra
+`local-net/deploy/web/`.
