@@ -2,6 +2,72 @@
 
 ---
 
+## ▶ K1 · 1.000 SỔ MỘT VALIDATOR — chuỗi phân tích + pha 0 ĐÃ CHẠY THẬT (`2026-09-05`, phiên soát)
+
+**TL;DR.** Từ câu hỏi "tối ưu web tới đâu" đi tới tầm nhìn 9 tỷ chain, đọc lõi hai lượt, lập K1, **chạy pha 0
+thật** trên băng tập (40 L1 một validator trên 3 node `g1-81`), viết bảng mua máy và làm xong 6 việc phần mềm
+chờ máy. Mọi thứ nằm trong `docs/` của nhánh này vì bảng sở hữu chỉ cho `web-home` ghi `web/**` + `docs/**`;
+**chỗ đúng của kit là `local-net/tools/k1/` trên `main`** — chuyển khi David hoà nhánh. Cụm băng tập trên máy dev
+**đã dọn** (`down.sh --wipe`), `out/` (gitignore) còn giữ plan/keys/compose để đối chiếu.
+
+| Tài liệu (commit trên `web-home`) | Nội dung một câu |
+|---|---|
+| `docs/ANALYSIS-WEB-TOWARD-9-BILLION-2026-09-05.md` | site là bề mặt bậc 0+2; 4 điểm vỡ trước 10⁴ chain; P-60 = "bảng hiến pháp" là chỗ chạm dòng A sớm nhất |
+| `docs/ANALYSIS-CORE-TOWARD-9-BILLION-2026-09-05.md` | bản đồ năng lực lõi theo 4 bậc, đường dẫn:dòng |
+| `docs/ANALYSIS-CORE-DEEP-DIVE-2026-09-05.md` | 6 đính chính: trần bền 10.000; ngủ đông giữ trọng số trong quorum; neo phải gộp; genesis vĩnh viễn trong txDB + **trần codec 256 KiB** (đo); Simplex n=4; EVM Cancun không BLS/P-256 |
+| `docs/PLAN-1000-L1-TEST-2026-09-05.md` · `docs/PLAN-K1-1000-LEDGERS-DEPLOY-2026-09-05.md` | K1 (V=1) trước K2 (V=5); cấp phát theo lô; 72 node chủ sổ không cọc |
+| `docs/k1-phase0/` — `README.md` · `EVIDENCE-2026-09-05.md` · `l1-batch/` · `scripts/` · `hosts/` | kit + bằng chứng pha 0 + 6 việc phần mềm |
+| `docs/PROCUREMENT-K1-2026-09-05.md` | 9 máy AX42 × 8 node + 5 VM ≈ €550–650/tháng (ước); **đĩa** quyết định số máy |
+
+**Số đo pha 0 đáng nhớ:** 3,0 s/sổ tuần tự → **0,9 s/sổ** với 3 ví · 10 sổ/node có tải 3 tx/s = cgroup 0,39 GB · 0,2 nhân
+(cache mặc định **không** phình — đính chính dự đoán 19 GB) · plugin idle 48 MiB · pebble cấp sẵn **290 MB/chain**,
+**~900 B/tx/node** · 10 chain bootstrap 11 s · phí `price 1 · excess 0` ở 40 validator · txDB +18 KiB/sổ (genesis 1,5 KB)
+vs **+633 KiB/sổ** (199 KB) · L1 một validator chạy với snow **mặc định**.
+
+### 🔴 Phiên sau / `[human]`
+
+1. **`[human]` David quyết 5 điều của PROCUREMENT §7** (r = 1 hay 3; 9×8 hay 18×4; Hetzner một nhà; thời điểm; ai cầm
+   tài khoản) rồi **tự đặt máy** (Robot + Cloud, dự án `k1-drill`, khoá SSH mới) và gửi lại `hosts/inventory.json` (chỉ IP).
+2. Khi máy lên: `docs/k1-phase0/README.md` mục "Đường K1 thật" — `bootstrap-host.sh` → `accept-host.sh` (phải xanh
+   9/9) → netgen N=9 → `keygen` → `compose` → `push-host.sh` → `plan/fund/workers/apply -workers 10` → `render` →
+   `compose`+`push` lần hai → `status -warn-seconds 172800` → `router` → `measure` → `pump`.
+3. **Ba thứ chỉ kiểm được trên máy thật:** `hosts-run.sh` qua SSH, `push-host.sh`, `accept-host.sh` trên VM có systemd.
+4. **Việc cho `main`** (netgen): `SUBNET_PREFIX` phải kết thúc `.0` không có cổng bắt · băng tập mặc định mang chainId
+   C-Chain thật (cổng 0015 chỉ cảnh báo) · dòng định danh in khối L1 `9001000000–…` cho cả băng tập, trùng Adam Chain.
+5. **Hoà `web-home` ↔ `main`** trước K1 thật: kit + 6 tài liệu phân tích cần sang `main`.
+
+### Gotchas (trả giá thật trong phiên)
+
+- 🔴 **Sổ một validator đã ngủ (hết phí) mà node restart ⇒ kẹt bootstrap** (RPC 503); `topup` sau đó **không** gỡ trong
+  120 s; **restart lần hai** sau khi nạp ⇒ lên ngay (15 tx treo được đóng). Luật: nạp phí **trước** restart.
+- 🔴 **Trần genesis thật ~256 KiB** (`txs.Codec = codec.NewDefaultManager()`), không phải `MaxGenesisLen` 1 MiB; vượt ⇒
+  `packer has insufficient length` **sau** CreateSubnet ⇒ subnet mồ côi.
+- **Quỹ netgen nằm trên X-Chain**, P-Chain rỗng ⇒ `l1-batch fund` X→P trước mọi thứ.
+- **Tên chain cấm gạch nối** (`illegal name character`, cũng sau CreateSubnet ⇒ mồ côi). Kit gửi `so 0001`.
+- **avalanchego không build được trên Windows** (blst cgo, `storage.AvailableBytes`) ⇒ kit dựng trong `golang:1.25.10`
+  và chạy binary trong `debian:bookworm-slim` trên mạng compose; `go.work` trỏ vào fork bằng đường tương đối.
+- **Cổng API node mẹ 9700 trùng h06–h08** trong compose 9 máy — bắt được khi **đọc tệp sinh ra**, không cổng nào báo.
+  Nay 9800+. Luật: đọc một compose sinh ra trước khi tin bộ sinh.
+- **Cache subnet-evm 512/512/256 MB là trần**, chỉ đầy khi trạng thái lớn — knob 16/16/8 là nắp an toàn, không phải điều
+  kiện sống chết. Đo 7 ngày ở K1 mới kết luận cuối.
+- `avalanche_network_tracked_subnets` đếm subnet node **biết** (36 khi track 10) — gate dùng **log** `too many tracked subnets`.
+- **`du` trên chainData nói dối về byte thật**: pebble cấp trước WAL 288 MB/chain, apparent 836 KiB — định cỡ đĩa vẫn phải
+  tính là thật.
+- Worktree dùng chung: **tệp chưa commit là tệp sẽ bị phiên khác `git add -A` nuốt** (đã xảy ra với
+  `ANALYSIS-CORE-TOWARD`); viết xong commit ngay theo đường dẫn.
+
+### Lệnh hữu ích
+
+```bash
+cd docs/k1-phase0 && scripts/up.sh && scripts/l1.sh build && scripts/l1.sh status -warn-seconds 172800
+```
+
+```bash
+K1_HOSTS_LOCAL=1 bash docs/k1-phase0/scripts/hosts-run.sh docs/k1-phase0/hosts/inventory.local.json 14-startclose.sh
+```
+
+---
+
 ## ▶ TRẠNG THÁI SỐNG — `2026-09-05` (chốt phiên). ĐỌC KHỐI NÀY LÀ ĐỦ ĐỂ TIẾP.
 
 **Site `eea5264d29cc`** · **Caddy `md5 ef02b874…`** · `origin` = `8511f67` ·

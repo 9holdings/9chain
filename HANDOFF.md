@@ -1,5 +1,9 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
+> **`2026-09-05` (nhánh `web-home`):** chuỗi phân tích tầm nhìn 9 tỷ chain (web · lõi × 2 · K1 · mua máy) và **pha 0
+> của K1 đã chạy thật** trên băng tập — đọc khối **▶ K1** ở đầu `WORKTREE-WEB.md`, bằng chứng ở
+> `docs/k1-phase0/EVIDENCE-2026-09-05.md`. Bản HANDOFF này bên dưới là của lõi/`main`, mốc `2026-08-27`.
+
 Cập nhật: **2026-08-27** (đợt 14 — **AUTOPILOT 5/5 MỐC ĐƯỜNG GĂNG NGÀY G**) — mạng công khai vẫn là bản
 re-genesis của `26/08` (**9 node**, phát hành genesis 5.400.000.000, **lượt diễn tập**).
 Tên miền `a1.9chain.org` / `rpc-a1.9chain.org`. M6 + M10 đóng.
