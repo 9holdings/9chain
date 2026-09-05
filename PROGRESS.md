@@ -32,7 +32,8 @@ trên, bắt đầu bước 2"*. Chi tiết và số đo: D-193.
 - [~] **WT-4 — khoá deploy trên server** (D-194, `05/09`)
       ✅ `local-net/deploy/deploy-lock.sh`: sở hữu trước mạng · `mkdir` nguyên tử · người giữ + TTL 30′ · vào lại cùng người ·
       thả chỉ bởi người giữ + ghi `deployed/<bề mặt>.json`. Self-test **15 ca** (đã thấy đỏ). Nối vào `console-deploy.sh`.
-      ⏳ [human] lượt `console-deploy.sh` kế tiếp là lần **acquire thật đầu tiên** trên server.
+      ✅ Lần acquire thật đầu tiên trên server: `05/09 09:16Z`, bọc lượt thêm ví thứ ba vào `A1_L1_ALLOWLIST` — acquired →
+      release, `deployed/console.json` ghi `main 2a86f36`. (Qua `deploy_lock_*` gọi tay; `console-deploy.sh` chưa chạy lượt nào.)
       ⏳ [web-home] nối vào `caddy-deploy.sh` + `web-deploy.sh` sau khi merge `main`.
 - [x] **WT-5 — dọn** (`05/09`): worktree `gday` + 2 `.claude/worktrees/*` gỡ (`git worktree remove`, KHÔNG `--force` — cây bẩn
       phải tự từ chối, cả ba sạch); nhánh `gday-heartbeat-gate` · `claude/*` xoá cục bộ; byte gốc còn ở `refs/archive/*`

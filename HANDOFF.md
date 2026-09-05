@@ -98,6 +98,22 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
 
+### 🆕 `2026-09-05` sáng (2) — THÊM VÍ THỨ BA VÀO DANH SÁCH MỜI TẠO CHAIN · LƯỢT KHOÁ DEPLOY THẬT ĐẦU TIÊN
+
+David: *"0x29B0864c86ab39051178D63C4c7E8c70D4b36F71 thêm ví này vào danh sách được tạo chain l1"*. Việc VẬN HÀNH, không đụng mã.
+Cùng thủ tục `04/09`, thêm khoá deploy D-194 bọc ngoài.
+
+```
+kiểm trước  : parseEvmAddress (bộ kiểm EIP-55 của console) nhận địa chỉ · /api/progress running:false (không lượt đẻ/thu hồi dở)
+khoá        : deploy_lock_acquire console → "acquired — holder daviddo|abc|main|2a86f36" (LẦN ĐẦU trên server thật)
+console.env : A1_L1_ALLOWLIST 2 → 3 ví; bản lưu ~/9chain-a1/console.env.bak-20260905T091618Z
+restart     : console-restart.sh — PID 2842268 → 2931280, nghe 8091 sau 2s
+đối chứng   : /proc/2931280/environ khai ĐỦ 3 ví · banner log "mời tạo : ✉️  3 ví trong danh sách"
+              reopen-chain-creation --probe 4/4 ✓ (sổ 5/5 khớp · 11 chain sống · factory 998,99 LOVE9 · cửa MỞ)
+              /api/status trả 401 không token — ĐÚNG hình dạng (đứng sau blockedByAuth), không phải hỏng (bẫy 8)
+thả khoá    : ~/9chain-a1/deployed/console.json = {branch main · sha 2a86f36 · host daviddo · 09:16:32Z}
+```
+
 ### 🆕 `2026-09-05` sáng — CẤU TRÚC WORKTREE: BA COMMIT MỒ CÔI, BẢNG SỞ HỮU, KHOÁ DEPLOY (D-193 · D-194)
 
 David: *"hãy đọc HANDOFF ⇒ nên cấu trúc các worktree độc lập làm sao cho làm việc tối ưu nhất?"* → đề xuất năm bước →
