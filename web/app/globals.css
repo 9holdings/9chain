@@ -28,33 +28,21 @@ html[data-theme='dark'] {
 }
 
 /* =====================================================================
-   MONOSPACE WAS DEAD ON EVERY SCREEN — measured 2026-09-04, fixed here.
+   THE MONO OVERRIDE THAT USED TO LIVE HERE IS GONE — B1 landed 2026-09-04.
 
-   Measured on the built site: `--font-mono` computes to the EMPTY STRING, and
-   every `.font-mono` element — the faucet address field, chain IDs, RPC URLs,
-   the language code in the header — renders in the default sans stack. The
-   cause is the `@theme` chain in `tokens.css`: `--font-mono: var(--font-jetbrains), …`
-   is resolved at `:root`, while `next/font` defines `--font-jetbrains` on `<body>`,
-   one level below. `--font-jetbrains` itself measures fine ("JetBrains Mono, …") —
-   so this is not a missing font, it is a variable read one level too high.
+   Between 2026-09-04 (day) and 2026-09-04 (night) this file pinned
+   `--font-mono` to the system monospace stack, because the real value in
+   `tokens.css` (`var(--font-jetbrains), …`) resolved to the empty string:
+   the font variables were declared on `<body>` while `@theme` reads them at
+   `:root`. That was a patch for the SYMPTOM on one stack.
 
-   🔴 THIS IS NOT B1, AND MUST NOT BE MISTAKEN FOR IT. B1 is the same fault on
-   `--font-sans` / `--font-display`, and fixing that ACTIVATES Sora and Instrument
-   Sans, neither of which has a Vietnamese cut — which is why B1 is blocked behind
-   B2 (choosing a typeface). This line touches only the MONO stack, and deliberately
-   points at SYSTEM monospace rather than at JetBrains Mono: mono here carries hex
-   addresses and chain IDs (ASCII), a phone should not download a webfont to show
-   them, and a 42-character address is only checkable digit-by-digit in a font where
-   the digits line up.
-
-   ⚠️ WHEN B1 LANDS, DELETE THIS BLOCK. With the variables read at the right level
-   it becomes a silent override that keeps JetBrains Mono off the site.
-   Unlayered on purpose — `tokens.css` is a byte-copy of 9Scan-A1's tokens and
-   carries a drift fingerprint, so the override belongs here, not in that file.
+   `app/layout.tsx` now declares all three variables on `<html>`, so the
+   cause is gone and `--font-mono` resolves to JetBrains Mono on its own.
+   Keeping the override would have been worse than the bug it replaced: an
+   unlayered `:root` rule beats `@theme`, so it would have quietly held the
+   brand mono face OFF the site while every measurement of the CAUSE said
+   the fault was fixed.
    ===================================================================== */
-:root {
-  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-}
 
 /* =====================================================================
    Nền chung. Mọi MÀU nằm ở `tokens.css` (chép từ 9Scan-A1) — file này chỉ

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Sora, Instrument_Sans, JetBrains_Mono } from 'next/font/google';
+import { Manrope, Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { SiteHeader } from '@/components/SiteHeader';
 import { LoadTestBanner } from '@/components/LoadTestBanner';
@@ -12,23 +12,39 @@ import { LanguageProvider } from '@/lib/i18n';
 import { SkipToContent } from '@/components/SkipToContent';
 import { CHAIN } from '@/lib/chain';
 
-// The same three fonts and the same variable names as 9Scan-A1 — `tokens.css` points at
-// `--font-sora/--font-instrument/--font-jetbrains`, and renaming them here drops all the
-// text back to system fonts with no error reported anywhere.
-// 🔴 MEASURED 2026-08-27, DO NOT TRY AGAIN: `subsets: ['latin','vietnamese']` does NOT work.
-// `next/font` says so outright: "Unknown subset `vietnamese` for font `Sora` / `Instrument
-// Sans`. Available subsets: `latin`, `latin-ext`". These two typefaces simply HAVE no
-// Vietnamese cut on Google Fonts — this is not a missing declaration, it is a font that does not cover it.
+// ═══════════════════════════════════════════════════════════════════════════════════
+// 🔴 B1 + B2 LANDED TOGETHER, 2026-09-04 — David decided the typeface (D-web-3).
 //
-// What that does live today: `latin-ext` covers 1e00–1e9f and 1ef2–1eff but MISSES 1ea0–1ef1,
-// exactly the range holding ạ ả ấ ầ ậ ắ ẻ ế ề ệ ị ọ ố ồ ộ ớ ờ ợ ụ ứ ừ ự. The browser
-// substitutes character by character ⇒ the FONT CHANGES MID-WORD, on every heading of every page.
-// Only JetBrains Mono carries that range (measured by grepping 1ea0 in the exported CSS).
+// Until today NOT ONE brand face was drawing a single character on the public site.
+// Measured on the live site before the change: 30 `@font-face` rules declared, exactly
+// ONE loaded (Outfit 700, the logo lettering), and `getComputedStyle(:root)` returned
+// the EMPTY STRING for both `--font-sans` and `--font-display`. Body and every heading
+// fell back to `ui-sans-serif`.
 //
-// ⇒ Fixing it means CHANGING THE TYPEFACE, and these three fonts are shared with 9Scan-A1
-// (see the comment below), so that is a two-project brand decision, not something to change here alone.
-const sora = Sora({ subsets: ['latin'], weight: ['600', '700', '800'], variable: '--font-sora', display: 'swap' });
-const instrument = Instrument_Sans({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-instrument', display: 'swap' });
+// Two separate faults had to be fixed in the SAME release, and the order is the whole
+// point — either one alone makes the site worse:
+//
+//   B1 — the variables were declared on `<body>` while `@theme` resolves them at
+//        `:root` (`<html>`), one level ABOVE. `var(--font-instrument)` was therefore
+//        guaranteed-invalid at the point of use, so `--font-sans` computed to nothing.
+//        Fixed by moving the classes onto `<html>` (see the element below) — the same
+//        arrangement 9Scan-A1 has always had.
+//
+//   B2 — Sora and Instrument Sans have NO Vietnamese cut on Google Fonts at all, so
+//        fixing B1 alone would have switched the brand faces on for 30 languages and
+//        broken Vietnamese (and Russian and Ukrainian: no Cyrillic either) the same
+//        day. Manrope and Inter carry vietnamese AND cyrillic, and they are what
+//        9Scan-A1 moved to on 2026-08-27 — so this also puts the two surfaces of one
+//        product back on one type system, and turns the token fingerprint green.
+//
+// 🔴 `subsets` CONTROLS PRELOAD, NOT WHAT THE FONT CAN DRAW. Do not "fix" Vietnamese
+// by adding `'vietnamese'` here. Measured by 9Scan (two builds, reading the real
+// `@font-face` rules in `out/_next/static/css/*.css`): next/font emits a rule for
+// EVERY subset the family has; `subsets` only picks which ones get `<link rel=preload>`.
+// Declaring `vietnamese` changes not one rendered character — it adds ~5.7 kB of
+// preload to EVERY page including the 29 languages that never need it.
+const manrope = Manrope({ subsets: ['latin'], weight: ['600', '700', '800'], variable: '--font-manrope', display: 'swap' });
+const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-inter', display: 'swap' });
 const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jetbrains', display: 'swap' });
 
 export const metadata: Metadata = {
@@ -113,12 +129,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // overrides both `lang` and `dir` on `<html>` as soon as hydration finishes, following the
     // reader's saved choice. `suppressHydrationWarning` was already here (originally for the
     // theme), so that override does not produce a mismatch warning.
-    <html lang="en" dir="ltr" suppressHydrationWarning>
+    // 🔴 THE FONT VARIABLE CLASSES BELONG ON `<html>`, NOT ON `<body>` — that is B1.
+    // `@theme` publishes `--font-sans: var(--font-inter), …` into `:root`, which IS this
+    // element. A custom property is substituted where it is DECLARED, so a `--font-inter`
+    // defined one level lower on `<body>` is not in scope there: the value is
+    // guaranteed-invalid and `--font-sans` computes to the empty string, silently, for the
+    // whole document. Moving these three classes down to `<body>` again would put every
+    // brand face back to sleep with no error anywhere — `test/token.test.ts` and the live
+    // font measurement in the deploy notes are what stand between that and production.
+    <html
+      lang="en"
+      dir="ltr"
+      suppressHydrationWarning
+      className={`${manrope.variable} ${inter.variable} ${jetbrains.variable}`}
+    >
       <head>
         <ThemeScript />
         <EarlyHints />
       </head>
-      <body className={`${sora.variable} ${instrument.variable} ${jetbrains.variable} flex min-h-dvh flex-col`}>
+      <body className="flex min-h-dvh flex-col">
         {/* 🔴 THE PROVIDER WRAPS THE WHOLE <body>, NOT INDIVIDUAL SECTIONS.
             If each region loaded its own dictionary they would change state on different
             beats, and the user would see a page that is HALF ENGLISH, HALF VIETNAMESE for a

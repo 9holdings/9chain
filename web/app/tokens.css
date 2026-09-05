@@ -2,7 +2,7 @@
    tokens.css — CHÉP TỪ 9Scan-A1, ĐỪNG SỬA TAY.
 
    Nguồn : 9Scan-A1/app/globals.css  (khối @theme + html[data-theme='dark'])
-   Vân tay: 535cbf6329efb6d0
+   Vân tay: 9151b7c580d0f36b
    Dựng lại: node web/scripts/sync-tokens.mjs
 
    Sửa màu ở đây là làm hai bề mặt của cùng một sản phẩm lệch nhau — đúng thứ
@@ -72,9 +72,21 @@
   --color-dev-ink: #7a5e00;
   --color-dev-line: #f0df9e;
 
-  /* --- Type --------------------------------------------------------- */
-  --font-display: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  /* --- Type ---------------------------------------------------------
+     🔴 ĐỔI BỘ CHỮ 2026-08-27: `--font-sora` → `--font-manrope`,
+     `--font-instrument` → `--font-inter`. Lý do đo được nằm ở `app/layout.tsx`
+     (tóm tắt: Sora và Instrument Sans không có mặt chữ cho tiếng Việt LẪN Cyrillic
+     ⇒ `vi`, `ru`, `uk` đang đọc bằng font hệ thống).
+
+     ⚠️ ĐỔI TÊN chứ không giữ tên cũ trỏ font mới: một biến tên `--font-sora` mang
+     Manrope là một lời khai sai nằm ngay trong mã, và nó sẽ sống lâu.
+
+     🔴 KHỐI `@theme` NÀY BỊ REPO `9Chain-A1` ĐỌC. `web/scripts/sync-tokens.mjs` và
+     `web/test/token.test.ts` bên đó đọc THẲNG file này và so vân tay. Đổi ở đây ⇒
+     test bên họ ĐỎ, và KHÔNG có gì tự báo cho ta. Đã nhắn phiên A1 chạy lại
+     `sync-tokens.mjs` cho lượt này. Xem mục "hai điểm chạm" ở `HANDOFF.md`. */
+  --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 
   /* --- Shape -------------------------------------------------------- */
