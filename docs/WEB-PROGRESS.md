@@ -475,3 +475,38 @@ Sửa chữ sau lượt duyệt này thì phải chạy `node scripts/check-dict
 | `presets.owner-deploy-only` | Chỉ chủ chain được triển khai hợp đồng · Mọi người khác vẫn gửi được giao dịch và dùng hợp đồng có sẵn, nhưng không triển khai hợp đồng riêng được. Chủ chain cấp quyền đó cho bất kỳ ai qua precompile 0x02…00. |
 | `presets.permissioned` | Có kiểm soát (chỉ ví được duyệt mới gửi) · Chỉ địa chỉ trong danh sách mới GỬI được giao dịch. Hợp cho chain nội bộ của công ty. ⚠️ Đây là kiểu chặt nhất: một ví lạ vào đây không làm được gì cả. |
 | `steps.genesis` / `.subnet` / `.rpc` | Đang dựng genesis · Đang tạo subnet + blockchain trên P-Chain · Đang chờ RPC của L1 trả lời |
+
+---
+
+## Lô chuỗi VI mới `2026-09-05` — CHỜ DAVID DUYỆT GIỌNG
+
+Sinh trong lượt autopilot `05/09` (David chốt ba mốc: chuyển hướng `/tx/`, trang nghi lễ,
+bộ chữ). 29 bản còn lại là **máy dịch, đã khai** — chỉ bản VI dưới đây cần người đọc.
+
+**28 khoá mới của `ceremony.*`** (trang `/ceremony/`) — nguyên văn đang chạy:
+
+| Khoá | Tiếng Việt đang chạy |
+|---|---|
+| `nav.ceremony` · `ceremony.badge` | Nghi lễ |
+| `ceremony.title` | Nghi lễ 9S Union |
+| `ceremony.desc` | Vào đúng một giây đã định, mạng ghi ba block có tên. Trang này nói trước điều gì sẽ xảy ra, ba block ấy mang gì, và sau đó bạn tự kiểm lại bằng cách nào mà không phải hỏi ai. |
+| `ceremony.momentLabel` / `.countdownLabel` | Mốc · Còn lại |
+| `ceremony.days` / `.hours` / `.minutes` / `.seconds` / `.yourZone` | ngày · giờ · phút · giây · Múi giờ của bạn |
+| `ceremony.blocksTitle` | Ba block |
+| `ceremony.adamDesc` 🔴 | Block ĐẦU TIÊN có dấu thời gian chạm tới mốc — định nghĩa bằng THỜI GIAN, không phải bằng chiều cao. Ai đẻ ra block đó cũng được. |
+| `ceremony.evaDesc` / `.unionDesc` | Block ngay sau Adam, tính theo chiều cao. · Mười block sau Adam. Thông điệp 9S Union neo ở đây. |
+| `ceremony.messagesTitle` / `.messagesDesc` | Ba block mang gì · Adam và Eva mang đúng hai câu đã được khắc vào block 0 lúc sinh mạng — nghi lễ trỏ thẳng vào chính những tệp đó, nên hai bên không thể trôi lệch khỏi nhau. Mỗi vân tay dưới đây được đóng băng ngày 2026-09-03, trước nghi lễ, và ai cũng dựng lại được bằng sha256 trên byte gốc. |
+| `ceremony.quietTitle` / `.quietDesc` | Một phút yên tĩnh · C-Chain không đẻ block rỗng, nên luồng giao dịch tổng hợp mà chúng tôi công bố ở trang trực tiếp sẽ dừng trước mốc một quãng. Không dừng thì nghi lễ phải đua với một bộ gửi tự động trong cửa sổ chỉ hai giây. Cái giá là một phút yên tĩnh; thứ mua được là ba block này thuộc về nghi lễ chứ không thuộc về một con bot. |
+| `ceremony.strangerTitle` 🔴 | Người lạ có thể lấy mất block đó, và bản ghi vẫn đứng vững |
+| `ceremony.strangerDesc` 🔴 **đừng làm nhẹ đi** | A1 là mạng thử nghiệm công khai, giây đó ai cũng có quyền gửi giao dịch. Bản ghi neo vào HASH GIAO DỊCH của nghi lễ, không bao giờ neo vào chiều cao block — nên nếu block của người khác chạm mốc trước, thứ đã ghi vẫn đúng; chỉ là nghi lễ không đẻ ra block ấy. |
+| `ceremony.checkTitle` / `.checkDesc` | Tự kiểm lấy · Hỏi bất kỳ node A1 nào về block tại mốc rồi đọc dấu thời gian của nó. Không có dòng nào ở trang này buộc bạn phải tin suông. |
+| `ceremony.resultTitle` / `.resultPending` | Đã ghi được gì · Chưa công bố. Gói vật chứng — mốc, lượng bù đã dùng, lưu lượng nền, ba hash giao dịch, số block, và kết quả đọc ngược byte từ chain — sẽ đăng ở đây sau nghi lễ. |
+| `ceremony.resultBlock` / `.resultTimestamp` / `.resultBundle` | Block Adam · Dấu thời gian của nó · Gói vật chứng |
+| `ceremony.reachedNote` | Mốc đã qua. Bản ghi chưa công bố ở đây — việc đó chỉ làm sau khi byte đã được đọc ngược từ chain và đối chiếu với vân tay đã đóng băng. |
+
+**3 chuỗi CŨ đã sửa** — *"ba phút" → "năm phút"* (`home.subtitle`, `launch.desc`,
+`myChains.revoking`). Căn cứ: phép đo gần nhất **305,5 s đẻ · 293,4 s thu hồi** trên mạng
+9 node (`26/08`). Số cũ "~170 s" là thời mạng **5 node**. 🔴 **Không đo lại bằng cách đẻ một
+chain thật**: danh bạ còn **4/15 chỗ vĩnh viễn**, đo kiểu đó tiêu 25% số chỗ còn lại để sửa
+một câu chữ.
+
