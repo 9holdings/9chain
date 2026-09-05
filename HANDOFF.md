@@ -1,6 +1,7 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-05 sáng** — 🔵 **CẤU TRÚC WORKTREE (D-193 · D-194)**: David hỏi *"cấu trúc worktree độc lập sao cho tối ưu"* → đo → năm bước, **bước 2→5 xong**, bước 1 là việc phiên web.
+Cập nhật: **2026-09-05 chiều** — 🔴 **ĐƯỜNG LÙI NÂNG CẤP k>1 ĐO THẬT (D-195): HAI LỖI TRONG CONSOLE ĐANG CHẠY TRÊN SERVER** — undo **không restart** node nào mà khai có (D-189 ở nhánh lùi), và node đọc `chains/<bc>/upgrade.*` bằng **GLOB**: một tệp lạ thì nạp, hai tệp thì **cả node không boot** — bản lưu `.prev-` console ghi cạnh tệp = **bom cho lượt nâng cấp THỨ HAI** (SBull là chain có `upgrade.json`). Đo trên **băng tập 9 node local** (`net-tap-g1`, 899999998) bằng `scripts/drill-upgrade-rollback.mjs`: lượt 1 🔴 2 phát hiện · lượt 3 (mã mới) ✅ 424 s. Sửa: undo chứng minh restart + chain + hình dạng đã nạp **trong node**; lịch sử → `upgrade-history/`; `chainDirVerdict` khắp nơi; `check-l1-upgrades` áp luật thư mục (server 12/0). 🔴 **[human] DEPLOY CONSOLE TRƯỚC lượt nâng cấp kế tiếp của bất kỳ chain nào.** Preflight (58 mục): **55 đạt · 3 đỏ · 0 không chạy được · 8 việc tay** — ba đỏ: drift console (do chính lượt này, đóng bằng deploy) · bơm (có chủ ý tới 05:39Z 09/09) · `check-live-page` `/chains/` 11 khai sai (**việc web-home**, luật cứng #4). Đọc mục **`2026-09-05` chiều** ngay dưới.
+Trước đó — cập nhật: **2026-09-05 sáng** — 🔵 **CẤU TRÚC WORKTREE (D-193 · D-194)**: David hỏi *"cấu trúc worktree độc lập sao cho tối ưu"* → đo → năm bước, **bước 2→5 xong**, bước 1 là việc phiên web.
 Còn **3 worktree** (`main` · `web-home` · `audit`); **3 commit mồ côi cứu về** — cảnh báo *"chain sẽ bị xoá 01/09"* ở màn soát `/create-chain/` đang render trên site lúc đo, và **phiên web tự sửa cùng buổi sáng** (`c0159c4`, cổng theo ngày); phần còn lại (cổng `prebuild: tsc` + helper + hai tài liệu) chờ ở nhánh `web-rescue-orphans-20260905` = `b73a97c` (merge sạch vào `web-home a6b11fb`, dry-run; không còn ff vì nhánh kia đi liên tục);
 luật cứng #4 nay là **bảng** `scripts/worktree-ownership.json` + cổng `check-worktree-ownership` (0/1/2) + khoá deploy `deploy-lock.sh` trên server (nối vào `console-deploy.sh`). Preflight: **56 đạt · 1 đỏ (cổng bơm — đỏ CÓ CHỦ Ý tới 05:39Z 09/09) · 0 không chạy được · 8 việc tay** (mục mới: 2 sở hữu + 1 bơm). `main` = **`5a23426`**; `origin` (riêng tư) = `2a86f36` (đẩy `09:1xZ`, `check-remotes` + `check-history-secrets` xanh trước), còn **1 commit tài liệu chưa đẩy**; `official` KHÔNG đẩy. Sau đó cùng buổi: **ví thứ ba vào `A1_L1_ALLOWLIST`** trên server (PID `2931280`), lần acquire khoá deploy thật đầu tiên. Đọc hai mục **`2026-09-05` sáng** ngay dưới.
 Trước đó — cập nhật: **2026-09-04 tối muộn** — 🟢 **VÒNG NÂNG CẤP L1 ĐẦU TIÊN KHÉP TRỌN (D-189→D-192) · KẾ HOẠCH 5 MỐC XONG (D-185→D-188)**.
@@ -97,6 +98,58 @@ testnet công khai (D-116→D-122) và soát chỗ hở ngày G (`docs/GDAY-G1-G
 > `HANDOFF.md` thắng về **số đo**. Backlog: [`PROGRESS.md`](PROGRESS.md).
 
 ## 🔵 PHIÊN SAU BẮT ĐẦU TỪ ĐÂY
+
+### 🆕 `2026-09-05` chiều — ĐƯỜNG LÙI NÂNG CẤP k>1 ĐO THẬT TRÊN BĂNG TẬP: HAI LỖI, MỘT LÀ BOM CHO LƯỢT NÂNG CẤP THỨ HAI (D-195)
+
+David: *"những việc nào code làm trước"* → *"bắt đầu từ mục 1"* (ca D-190 để lại: gãy ở node k>1 rồi chạy đường lùi). Mạng thật,
+server, console công khai: **không đổi** (chỉ đọc qua ssh). Toàn bộ chạy trên **băng tập 9 node dựng lại trên máy dev**.
+
+```
+băng tập  : local-net/net-tap-g1/ (netgen 9 node · 899999998 · image g1 · cổng 9750 · gitignore) — ĐÃ HẠ (`down`, giữ volume)
+            L1 "Drill Chain" wC9k33WG… tạo bằng xp-wallet X→P + 9chain-a1-cli trong node-1 (console TỪ CHỐI đẻ trên băng tập —
+            cổng thế hệ, đúng — nhưng KHÔNG chặn /api/upgrade, cũng đúng); console cục bộ cwd = scratchpad, mã sản phẩm y nguyên
+drill     : scripts/drill-upgrade-rollback.mjs --run --fail-at 9chain-a1-tap-node-4 (node thứ 3 trong hàng; mount lồng thư mục
+            chain với upgrade.json không phải JSON). Đo eth_getChainConfig BÊN TRONG từng node, không đo lời khai console.
+lượt 1    : mã cũ — 🔴 console khai "node-2/3/4 restarted on the old file", StartedAt KHÔNG đổi, node-2/3 vẫn chạy
+            txAllowListConfig@… ⇒ kích hoạt một mình lúc 16:24Z. = D-189 ở nhánh lùi (compose up thiếu --force-recreate).
+lỗi 2     : heal node-2 (recreate THẬT, upgrade.json ĐÃ VẮNG) vẫn nạp upgrade ⇒ lần theo: avalanchego đọc chainDir bằng
+            Glob("upgrade.*") (config.go:1144 → storage_common.go:28): 1 tệp ⇒ nạp bất kể đuôi (nạp upgrade.json.failed-…);
+            ≥2 tệp ⇒ "too many files matched" ⇒ CẢ NODE KHÔNG BOOT (đo 16:08Z, restart loop). Console ghi .prev- CẠNH tệp
+            ⇒ lượt nâng cấp THỨ HAI trên SBull sẽ hạ từng validator nó restart. Server hôm nay SẠCH (qPJ5cvq1…: config.json upgrade.json).
+sửa       : undo chứng minh restart + chain + HÌNH DẠNG ĐÃ NẠP trong node (shapeOnNode), báo cáo tách "còn tệp mới"/"chain chết";
+            rollout xuôi cũng đo hình dạng từng node (expectShape); lịch sử → 9chain-a1-config/upgrade-history/<bc>/, tmp có dấu chấm đầu;
+            nodeWouldLoad/chainDirVerdict (lib) ở preview·upgrade·governance + quét khởi động; check-l1-upgrades liệt kê thư mục (@@FILES)
+lượt 3    : mã mới — ✅ 424 s: node-2/3 restart có chứng cứ, "runs empty" đo trong node; node-4 gọi tên "chain chết, người phải xem";
+            đĩa absent→absent; sổ 0→0; tệp hỏng ở upgrade-history/. --heal ⇒ 9/9 "empty".
+đối chứng : l1-upgrade 74 · governance-e2e 50→55 · check-l1-upgrades 18→22 (đo server thật: 11 chain · 12/0) · drill 15 (preflight nhóm 2)
+preflight : 58 mục — 55 đạt · 3 đỏ (drift console: lượt này · bơm: có chủ ý · check-live-page /chains/ 11 khai sai: WEB-HOME) · 0 không chạy được · 8 việc tay
+git       : main 7d616fe (mã + D-195 + PROGRESS + CLAUDE.md) + commit HANDOFF này · origin/main 2a86f36 (3 commit chưa đẩy) · official KHÔNG đẩy · web-home KHÔNG đụng
+```
+
+#### 🔴 Việc tiếp — ai làm
+- **[human] DEPLOY CONSOLE TRƯỚC lượt nâng cấp kế tiếp của BẤT KỲ chain nào** — `bash local-net/deploy/console-deploy.sh` (lần đầu qua
+  `deploy-lock` thật trong kịch bản). `check-deploy-drift` lệch: `server.mjs` · `lib/l1-upgrade.mjs` · `governance-e2e-test.mjs`.
+  Lý do khẩn: chủ SBull tự gọi được `/api/upgrade`; lượt thứ hai của họ với mã đang chạy trên server = lỗi 2 (node chết lúc boot).
+- **[human] đẩy `origin`** (kiểm `check-remotes` trước). `official` hỏi trước, qua `publish-official.sh`.
+- **[main]** netgen in khối chainId L1 riêng cho băng tập (kit K1 đã ghi) · dọn `local-net/net-tap-g1/docker-compose.multinode.yml.pre-drill`
+  + `drill-broken-*/` khi không cần drill nữa (gitignore, vô hại).
+
+#### 🔴 GOTCHAS phiên này
+1. **`upgrade.*` là GLOB.** Mọi thứ đặt vào `chains/<bc>/` phải hỏi `nodeWouldLoad` trước. Đừng bao giờ "đổi tên để vô hiệu" trong thư mục đó.
+2. **`fetch` của Node cắt ở 300 s chờ header** (`UND_ERR_HEADERS_TIMEOUT`), KHÔNG theo `AbortSignal.timeout` ⇒ POST dài (rollout+undo
+   ~7 phút) dùng `node:http`. Lượt 2 mất phần "after" vì thế; console vẫn chạy tiếp ở nền, đọc lại qua `/api/progress`.
+3. **`a && b && c &` đưa CẢ CHUỖI ra nền** — biến gán trong đó không tồn tại ở shell ngoài. Dùng script launcher.
+4. **Cổng thế hệ chặn đẻ chain trên băng tập nhưng không chặn nâng cấp** — đúng thiết kế; tạo L1 bằng CLI rồi ghi tay sổ.
+5. **Mount lồng** (bind mount đè thư mục con của bind mount khác) là cách tiêm lỗi định trước cho MỘT node; gỡ mount là lành.
+
+#### Lệnh hữu ích
+```bash
+node scripts/drill-upgrade-rollback.mjs --self-test
+cd local-net/net-tap-g1 && MSYS_NO_PATHCONV=1 docker compose -f docker-compose.multinode.yml up -d   # dựng lại băng tập (volume còn)
+node scripts/drill-upgrade-rollback.mjs --measure --compose <compose băng tập> --chain "Drill Chain" --console http://127.0.0.1:8511 --token … --config-dir <cfg>
+node scripts/drill-upgrade-rollback.mjs --run     … --fail-at 9chain-a1-tap-node-4      # tiêm lỗi + đo; rồi --heal
+node scripts/check-l1-upgrades.mjs                # server thật: nay có luật thư mục (@@FILES)
+```
 
 ### 🆕 `2026-09-05` sáng (2) — THÊM VÍ THỨ BA VÀO DANH SÁCH MỜI TẠO CHAIN · LƯỢT KHOÁ DEPLOY THẬT ĐẦU TIÊN
 
