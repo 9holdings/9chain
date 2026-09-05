@@ -1,0 +1,62 @@
+#cloud-config
+# K1 host bootstrap — Hetzner dedicated (installimage → Ubuntu 24.04) or cloud VM.
+# Paste as cloud-init user-data (cloud) or run `hosts/bootstrap-host.sh` after installimage (dedicated:
+# Robot's installimage does not run cloud-init; the script below applies the same steps).
+#
+# What a K1 host needs and why (every line traces to a phase-0 number in EVIDENCE-2026-09-05.md):
+#   - Docker CE + compose v2 ≥ 2.24 : the l1-batch override uses the `!override` YAML tag.
+#   - nofile 1,048,576             : 15 plugins/node × 8 nodes ≈ 5,000 fds; the default 1,024 would not do.
+#   - chrony                      : block timestamps are the proposer's clock; the real network's gate wants < 1 s skew.
+#   - nftables                    : P2P ports open to the world, API ports only to the router/measure/l1-batch hosts.
+#   - vm.max_map_count, somaxconn  : pebble + 11 processes per machine; cheap to set, expensive to discover.
+package_update: true
+package_upgrade: false
+packages: [ca-certificates, curl, gnupg, chrony, nftables, jq, htop]
+
+write_files:
+  - path: /etc/sysctl.d/90-k1.conf
+    content: |
+      vm.max_map_count = 1048576
+      net.core.somaxconn = 4096
+      net.ipv4.ip_local_port_range = 10240 65000
+      fs.file-max = 4194304
+  - path: /etc/systemd/system/docker.service.d/override.conf
+    content: |
+      [Service]
+      LimitNOFILE=1048576
+      LimitNPROC=infinity
+  - path: /etc/docker/daemon.json
+    content: |
+      { "log-driver": "json-file", "log-opts": { "max-size": "50m", "max-file": "5" },
+        "default-ulimits": { "nofile": { "Name": "nofile", "Hard": 1048576, "Soft": 1048576 } } }
+  - path: /etc/nftables.conf
+    content: |
+      #!/usr/sbin/nft -f
+      # K1: P2P open, API closed except from K1_ADMIN_CIDRS (fill in before enabling).
+      flush ruleset
+      define ADMIN = { 127.0.0.1 }          # ← replace with router, measure and l1-batch host IPs
+      table inet k1 {
+        chain input {
+          type filter hook input priority 0; policy drop;
+          ct state established,related accept
+          iif lo accept
+          ip protocol icmp accept
+          tcp dport 22 accept
+          tcp dport 9651-9670 accept                      # staking / P2P, every node its own port
+          ip saddr $ADMIN tcp dport 9650-9700 accept      # HTTP API only from admin hosts
+        }
+        chain forward { type filter hook forward priority 0; policy accept; }
+        chain output  { type filter hook output  priority 0; policy accept; }
+      }
+
+runcmd:
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - sh -c 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list'
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  - sysctl --system
+  - systemctl daemon-reload
+  - systemctl enable --now docker chrony
+  - mkdir -p /opt/k1
+  # nftables is written but NOT enabled here: enable only after ADMIN is filled, from accept-host.sh.

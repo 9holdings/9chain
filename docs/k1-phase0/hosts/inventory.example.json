@@ -1,0 +1,22 @@
+{
+  "_doc": "What David sends back after the machines are up: names and public IPs only. No keys here, ever. Ports follow PROCUREMENT-K1 §3: host nodes 9651-9658, mother nodes 9661-9663 on m01-m03, APIs 9650/9660/... closed to the world.",
+  "provider": "hetzner",
+  "machines": [
+    { "name": "k1-m01", "dc": "FSN1", "ip": "203.0.113.11", "hostNodes": 8, "motherNodes": 3 },
+    { "name": "k1-m02", "dc": "FSN1", "ip": "203.0.113.12", "hostNodes": 8, "motherNodes": 3 },
+    { "name": "k1-m03", "dc": "HEL1", "ip": "203.0.113.13", "hostNodes": 8, "motherNodes": 3 },
+    { "name": "k1-m04", "dc": "FSN1", "ip": "203.0.113.14", "hostNodes": 8, "motherNodes": 0, "communityChain": true },
+    { "name": "k1-m05", "dc": "FSN1", "ip": "203.0.113.15", "hostNodes": 8, "motherNodes": 0, "communityChain": true },
+    { "name": "k1-m06", "dc": "FSN1", "ip": "203.0.113.16", "hostNodes": 8, "motherNodes": 0, "communityChain": true },
+    { "name": "k1-m07", "dc": "HEL1", "ip": "203.0.113.17", "hostNodes": 8, "motherNodes": 0, "communityChain": true },
+    { "name": "k1-m08", "dc": "HEL1", "ip": "203.0.113.18", "hostNodes": 8, "motherNodes": 0, "communityChain": true },
+    { "name": "k1-m09", "dc": "HEL1", "ip": "203.0.113.19", "hostNodes": 8, "motherNodes": 0 }
+  ],
+  "vms": [
+    { "name": "k1-load-1", "role": "pump", "ip": "203.0.113.21" },
+    { "name": "k1-load-2", "role": "pump", "ip": "203.0.113.22" },
+    { "name": "k1-load-3", "role": "pump", "ip": "203.0.113.23" },
+    { "name": "k1-router", "role": "router", "ip": "203.0.113.24" },
+    { "name": "k1-measure", "role": "measure", "ip": "203.0.113.25" }
+  ]
+}
