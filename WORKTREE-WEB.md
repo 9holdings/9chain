@@ -21,7 +21,11 @@ với `MESSAGES[].sha256` trong `web/lib/ceremony.ts`. `main` đi trước 296 c
 Luật CANON cho trang: ghi *"mốc"* và *"block đầu tiên ở hoặc sau mốc"*, không bao giờ in
 "khai báo/đo được" rồi gọi chênh lệch là trôi.
 
-`official` = `847ec80`, chậm 4 commit so với `web-home`. Vẫn chỉ đi qua `publish-official.sh`.
+✅ **`official` = `1f09d5c`** (lên `05/09` ~05:45Z từ `5e25c2f`, David chốt "lên official đi"): 310 → 290
+commit sau lọc, 3 cổng của script xanh, đối chứng độc lập bằng `git ls-tree` trên `official/web-home`:
+0 tệp `local-net/deploy/`, trang `web/app/ceremony/` có mặt. Bản công khai nay **mang commit trang
+nghi lễ của phiên kia** (29 từ điển + page + test) dù trang đó có thể chưa deploy — mã nguồn công
+khai đi trước site sống là chấp nhận được, ngược lại thì không.
 
 ---
 
