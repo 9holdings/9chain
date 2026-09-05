@@ -8,6 +8,27 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 
 ---
 
+## 🔵 MỐC `WORKTREES` — CẤU TRÚC WORKTREE ĐỘC LẬP (David chốt `2026-09-05` sáng)
+
+Đo trước khi đề xuất: 6 worktree, 2 sống, 4 chết; 9 tệp bị cả `main` lẫn `web-home` cùng sửa (5 là kịch bản deploy,
+`Caddyfile` lệch 1.733 dòng); `CLAUDE.md` trên `web-home` thiếu 234 dòng luật; 3 commit mồ côi. David: *"làm theo thứ tự
+trên, bắt đầu bước 2"*. Chi tiết và số đo: D-193.
+
+- [human] **WT-1 — merge `main → web-home`** (đưa 296 commit + luật `CLAUDE.md` sang). Worktree web đang có phiên khác
+      với 9 tệp chưa commit ⇒ **hỏi phiên web trước**, không tự merge (§4).
+- [x] **WT-2 — cứu ba commit mồ côi** (D-193, `05/09`)
+      ✅ `main`: `local-net/deploy/check-heartbeat-stopped.mjs` + nối vào `gday-preflight` nhóm 3 (39 mục) + dòng T−10
+      trong `CEREMONY-2026-09-09.md`. Chạy thật trên server: **đỏ đúng lý do** (bơm đang chạy có chủ ý tới `09/09`).
+      ✅ nhánh `web-rescue-orphans-20260905` (từ `web-home` `3c67172`): `prebuild: tsc` · `networkErrorOf()` · gỡ cảnh báo
+      *"chain sẽ bị xoá 01/09"* ở màn soát (**đang render trên site**) · W3 đo đúng ngôn ngữ · mục W-luu. Ba đối chứng
+      đỏ, `pnpm build` đầy đủ xanh. **KHÔNG ff vào `web-home`** — việc phiên web: `git merge --ff-only` rồi deploy.
+- [ ] **WT-3 — bảng sở hữu + cổng `check-worktree-ownership.mjs`**: nhánh nào sửa thư mục nào; đỏ khi diff ra ngoài;
+      phải thấy đỏ trước khi tin.
+- [ ] **WT-4 — khoá deploy trên server** (`deploy.lock`: bề mặt · nhánh · SHA · máy · giờ) — biến luật cứng #4 thành cổng đỏ được.
+      Ghi lên server là việc có người bấm ⇒ phần mã ở repo, phần cài là `[human]`.
+- [ ] **WT-5 — dọn**: xoá worktree `gday` + nhánh (1 commit đã cứu), xoá hai `.claude/worktrees/*` + nhánh `claude/*`
+      (2 commit đã cứu sang nhánh web), giữ `audit`.
+
 ## 🔵 MỐC `L1-CUSTOM` — TUỲ CHỈNH CHAIN SÂU HƠN (David chốt `2026-09-03` chiều)
 
 David, sau khi thấy MetaMask in *"50.00M LOVE9"* trên chain vừa đẻ: *"sao không cho tuỳ chọn các thông

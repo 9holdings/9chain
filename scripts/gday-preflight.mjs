@@ -213,6 +213,20 @@ const GATES = [
   // ── 3. The real world — the running network and the server ──
   { group: "3 · REAL WORLD", needsNetwork: true, name: "the running network (watch-network)", ...node("scripts/watch-network.mjs") },
   { group: "3 · REAL WORLD", needsNetwork: true, name: "repo ↔ server drift + orphan files", ...node("scripts/check-deploy-drift.mjs") },
+  // 🔴 The disclosed 9 tx/s load test must be STOPPED before any re-genesis and before the
+  // 2026-09-09 quiet window (D-149): a running pump keeps publishing `running: true`, so the
+  // public site advertises a live load test for a chain that no longer exists, spends against
+  // wallets whose balances are gone, and fills the exact window in which a new genesis — or the
+  // ceremony's Adam+1 slot — is being measured. The pump carries its own deadline
+  // (`HEARTBEAT_STOP_AFTER`); this gate is the counter-check on that deadline, over ssh, on the
+  // server, in one round trip, with absence-of-docker and absence-of-the-tree both reported as
+  // 2 (unknown), never 0 — the two ways its first draft was green while the pump ran.
+  // ⚠️ Expected RED while the pump is deliberately ON (David, 2026-09-03: pump runs in the days
+  // before the ceremony and self-stops at 05:39:09Z on 09/09). Red here says "the pump is
+  // running", which is true and intended today; it must be GREEN before `--send` on 09/09 and
+  // before any `down -v`. Written for G-day on the `gday-heartbeat-gate` branch (2026-08-29),
+  // left orphaned there, rescued to `main` 2026-09-05.
+  { group: "3 · REAL WORLD", needsNetwork: true, name: "load-test pump is stopped (and does not claim otherwise)", ...node("local-net/deploy/check-heartbeat-stopped.mjs") },
   // 🔴 Documents were the ONE published surface no gate had ever read. Found hours after the
   // repository went public: `docs/ALLOCATION-PUBLIC.md` handed out six fund addresses under a
   // networkID that had died that morning. Dead addresses do not error — they hold zero and say

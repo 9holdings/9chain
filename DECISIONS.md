@@ -8958,3 +8958,54 @@ này — đúng câu `description.wont` đã in ra trước khi bấm.
 
 **Luật rút ra:** một thay đổi luật chỉ được coi là XONG khi có **một hành động bị nó CHẶN**, đo được. Trước
 đó ta mới chứng minh được tệp đã tới nơi, chứ chưa chứng minh được gì về hành vi của chain.
+
+
+## D-193 — **Ba commit mồ côi (hai worktree tạm của Claude + nhánh `gday` ngủ): cứu về, và một trong ba đang SAI trên bề mặt công khai** (`2026-09-05` sáng)
+
+**Bối cảnh.** David hỏi *"nên cấu trúc các worktree độc lập làm sao cho tối ưu"*. Đo trước khi trả lời:
+**6 worktree**, 2 sống (`main`, `web-home`), 4 chết (`audit` ngủ từ `30/08`, `gday-heartbeat-gate` ngủ từ
+`29/08`, hai `.claude/worktrees/*` detached từ `03/09`). Ba commit **không nằm trên nhánh nào** ngoài chính
+nhánh sinh ra chúng — việc đã làm xong, đã đối chứng, và **đã mất** mà không cổng nào kêu. David chốt thứ tự
+năm bước (merge `main→web-home` · cứu mồ côi · bảng sở hữu + cổng · khoá deploy · dọn) và bảo *"bắt đầu bước 2"*.
+
+| Commit | Viết | Nội dung | Đã có ở đâu chưa (đo `05/09`) | Cứu về |
+|---|---|---|---|---|
+| `6793fb4` (`gday`, `29/08`) | cổng `check-heartbeat-stopped.mjs` + nối vào preflight + 4 tệp bơm | 4 tệp bơm **trùng byte** với `web-home`; `main` có `heartbeat-pump.mjs` **mới hơn 51 dòng** (D-165) | **`main`**: CHỈ cổng + dòng nối, không đụng bơm/manifest |
+| `6490592` (`03/09`) | `prebuild: tsc --noEmit` + helper khẳng định *"có ném, ném đúng lớp"* | `web-home` **không có** `prebuild`; tsc xanh chỉ vì mẫu đã đổi thành `(…) as NetworkError` — `as` **dập màu đỏ**, nửa runtime vẫn hở | nhánh **`web-rescue-orphans-20260905`** |
+| `10e19c4` (`03/09`) | `/re-genesis/` sang thì quá khứ + gỡ cảnh báo màn soát + sửa W3 + mục W-luu | trang đã được `web-home` làm lại (`674a93f`) — **nhưng ba mảnh kia thì chưa** | nhánh **`web-rescue-orphans-20260905`** |
+
+### Cổng bơm về `main` — chạy thật, đỏ đúng lý do
+`node local-net/deploy/check-heartbeat-stopped.mjs` hỏi **server** qua ssh (chỉ đọc), một lượt: `docker 29.7.2
+answered` · `✗ pump container is RUNNING` · `✓ no stray process` · `✗ heartbeat.json still says running:true` ⇒
+mã **1**. Đỏ này **đúng và có chủ ý**: David chốt `03/09` bơm chạy tới `05:39:09Z 09/09` rồi tự dừng (D-149).
+Cổng nay nằm ở nhóm 3 của `gday-preflight` (38 → **39 mục**, có ghi *expected RED* và ngày nó phải xanh) và ở
+dòng **T−10 phút** trong `docs/CEREMONY-2026-09-09.md` — trước `--send`, mã 0 mới đi tiếp, mã 2 là *"không đo
+được"* chứ không phải *"đã dừng"*. 🔴 Lời khuyên nó in đã sửa cho khớp `main`: bản gốc bảo chạy
+`heartbeat-deploy.sh stop`, tệp **không có ở `main`** — đúng lớp D-153, cổng đỏ mà remedy trỏ vào thứ không tồn tại.
+
+### Nhánh cứu cho web — ba đối chứng đỏ, một bản dựng đầy đủ xanh
+Dựng trong worktree **tạm** (scratchpad, `node_modules` là junction sang worktree web, chỉ đọc), **không chạm**
+`C:\PROJECTS\9Chain-A1-web` — ở đó một phiên khác đang có **9 tệp chưa commit** (trang nghi lễ), và bài `04/09`
+(hai phiên một worktree) còn mới.
+- `networkErrorOf()` thay ba ca `(await …catch((x) => x)) as NetworkError`. Đối chứng: cho lượt gọi **resolve** ⇒
+  đỏ *"should have THROWN a NetworkError, but it resolved normally"* · ném **object trần đúng hình dạng** ⇒ đỏ
+  *"threw something else (object)"* — mẫu `as` cũ **XANH** ở cả hai ca.
+- `prebuild: tsc --noEmit`. Đối chứng: một `TS2322` trong `test/` ⇒ `npm run build` **dừng ở prebuild, exit 2**,
+  `next build` không chạy.
+- 🔴 **Cảnh báo màn soát vẫn RENDER trên site `05/09`**: câu *"chain bạn đẻ hôm nay sẽ bị xoá cùng mạng cũ (01/09)"*
+  ở giây cuối trước cửa một chiều. Đo ở **mức render**, không grep câu (30 chunk từ điển mang câu đó dù có render
+  hay không): chunk `app/create-chain/page-bd4b637e….js` đang phục vụ chứa truy cập thuộc tính `.reviewRebuild`
+  **1** lần; bản dựng nhánh cứu: **0** chunk, 30 chunk từ điển vẫn giữ khoá (`i18n-shape` không đổi).
+- W3 trong `NGAY-G-A1-CON-LAI.md` đo grep **tiếng Việt** trên HTML prerender **tiếng Anh** ⇒ đỏ trên deploy đúng;
+  sửa sang chuỗi tiếng Anh, và ghi rõ W3 **không thấy** màn soát (chỉ render sau khi bấm).
+- Bản dựng đầy đủ `pnpm build` (prebuild + build + 9 cổng postbuild) **exit 0** trên nhánh cứu.
+
+### Vì sao KHÔNG fast-forward vào `web-home`
+`§4`: *merge `web-home` thuộc worktree khác đang sống*. Nhánh cứu là ff thuần từ `web-home` HEAD (`3c67172`), nhưng
+đẩy nó vào khi phiên kia đang dở là đúng cơ chế `04/09` — và `prebuild` sẽ làm `pnpm build` của họ đỏ ngay
+(cây bẩn của họ đang 30 lỗi tsc: khoá `ceremony` mới có ở `en.ts`, chưa có ở 30 từ điển — chính thứ cổng này
+sinh ra để bắt, nhưng là việc của họ). **Việc phiên web/David:** `git merge --ff-only web-rescue-orphans-20260905`
+rồi deploy web; nghiệm thu sau deploy: `.reviewRebuild` trong chunk trang `/create-chain/` = **0**.
+
+**Luật rút ra:** một worktree tạm của Claude phải kết thúc bằng **merge về nhánh mẹ trong cùng phiên**; commit
+chỉ nằm trên `claude/*` là việc đã mất. `git worktree list` thành phép đo (bước 3 của kế hoạch worktree).
