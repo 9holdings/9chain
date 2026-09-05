@@ -316,7 +316,7 @@ export const id: Dict = {
   },
   ceremony: {
     badge: "Upacara",
-    title: "Upacara 9S Union",
+    title: "Upacara Block Adam",
     desc: "Pada satu detik yang tepat, jaringan menulis tiga blok bernama. Halaman ini menjelaskan apa yang akan terjadi, apa yang dibawa blok-blok itu, dan bagaimana Anda memeriksanya sendiri setelahnya tanpa bertanya kepada kami.",
     momentLabel: "Saat itu",
     countdownLabel: "Sisa waktu",

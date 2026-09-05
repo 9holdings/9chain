@@ -303,7 +303,7 @@ export const ja: Dict = {
   },
   ceremony: {
     badge: "セレモニー",
-    title: "9S Union セレモニー",
+    title: "Block Adam セレモニー",
     desc: "ある正確な一秒に、ネットワークは名前を持つ三つのブロックを書きます。このページは、何が起きるのか、そのブロックが何を運ぶのか、そして後から私たちに尋ねずに自分で確かめる方法を記します。",
     momentLabel: "その瞬間",
     countdownLabel: "残り時間",

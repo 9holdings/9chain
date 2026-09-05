@@ -317,7 +317,7 @@ export const ms: Dict = {
   },
   ceremony: {
     badge: "Istiadat",
-    title: "Istiadat 9S Union",
+    title: "Istiadat Block Adam",
     desc: "Pada satu saat yang tepat, rangkaian menulis tiga blok bernama. Halaman ini menerangkan apa yang akan berlaku, apa yang dibawa blok-blok itu, dan bagaimana anda memeriksanya sendiri selepas itu tanpa bertanya kepada kami.",
     momentLabel: "Saat itu",
     countdownLabel: "Baki masa",

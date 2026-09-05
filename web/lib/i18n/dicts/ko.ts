@@ -310,7 +310,7 @@ export const ko: Dict = {
   },
   ceremony: {
     badge: "의식",
-    title: "9S Union 의식",
+    title: "Block Adam 의식",
     desc: "정확히 어느 한 초에 네트워크가 이름을 가진 블록 세 개를 씁니다. 이 페이지는 무슨 일이 일어날지, 그 블록들이 무엇을 담는지, 그리고 나중에 우리에게 묻지 않고 직접 확인하는 방법을 알려 줍니다.",
     momentLabel: "그 순간",
     countdownLabel: "남은 시간",

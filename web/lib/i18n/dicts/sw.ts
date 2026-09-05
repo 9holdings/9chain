@@ -311,7 +311,7 @@ export const sw: Dict = {
   },
   ceremony: {
     badge: "Sherehe",
-    title: "Sherehe ya 9S Union",
+    title: "Sherehe ya Block Adam",
     desc: "Katika sekunde moja kamili mtandao huandika vitalu vitatu vyenye majina. Ukurasa huu unaeleza kitakachotokea, vitalu hivyo hubeba nini, na jinsi utakavyoweza kuthibitisha mwenyewe baadaye bila kutuuliza.",
     momentLabel: "Wakati huo",
     countdownLabel: "Muda uliobaki",

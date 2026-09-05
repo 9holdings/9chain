@@ -319,7 +319,7 @@ export const tl: Dict = {
   },
   ceremony: {
     badge: "Seremonya",
-    title: "Ang seremonyang 9S Union",
+    title: "Ang seremonyang Block Adam",
     desc: "Sa isang eksaktong segundo, sumusulat ang network ng tatlong pinangalanang block. Sinasabi ng pahinang ito kung ano ang mangyayari, kung ano ang dala ng mga block, at kung paano mo ito matitiyak pagkatapos nang hindi kami tinatanong.",
     momentLabel: "Ang sandali",
     countdownLabel: "Natitirang oras",

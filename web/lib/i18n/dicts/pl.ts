@@ -310,7 +310,7 @@ export const pl: Dict = {
   },
   ceremony: {
     badge: "Ceremonia",
-    title: "Ceremonia 9S Union",
+    title: "Ceremonia Block Adam",
     desc: "W jednej dokładnej sekundzie sieć zapisuje trzy nazwane bloki. Ta strona mówi, co się wydarzy, co niosą te bloki i jak sprawdzić to potem samodzielnie, bez pytania nas.",
     momentLabel: "Moment",
     countdownLabel: "Pozostały czas",

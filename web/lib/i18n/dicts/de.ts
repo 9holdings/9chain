@@ -303,7 +303,7 @@ export const de: Dict = {
   },
   ceremony: {
     badge: "Zeremonie",
-    title: "Die 9S-Union-Zeremonie",
+    title: "Die Block-Adam-Zeremonie",
     desc: "In einer exakten Sekunde schreibt das Netzwerk drei benannte Blöcke. Diese Seite sagt, was passieren wird, was die Blöcke tragen und wie Sie es danach selbst prüfen können, ohne uns zu fragen.",
     momentLabel: "Der Zeitpunkt",
     countdownLabel: "Verbleibende Zeit",

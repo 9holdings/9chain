@@ -303,7 +303,7 @@ export const pt: Dict = {
   },
   ceremony: {
     badge: "Cerimónia",
-    title: "A cerimónia 9S Union",
+    title: "A cerimónia Block Adam",
     desc: "Num segundo exato a rede escreve três blocos com nome. Esta página diz o que vai acontecer, o que os blocos transportam e como o verificar depois sem nos perguntar.",
     momentLabel: "O momento",
     countdownLabel: "Tempo restante",

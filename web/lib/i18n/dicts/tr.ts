@@ -309,7 +309,7 @@ export const tr: Dict = {
   },
   ceremony: {
     badge: "Tören",
-    title: "9S Union töreni",
+    title: "Block Adam töreni",
     desc: "Tam olarak belirlenmiş bir saniyede ağ, adı olan üç blok yazar. Bu sayfa neyin olacağını, blokların ne taşıdığını ve sonrasında bize sormadan bunu nasıl doğrulayacağınızı anlatır.",
     momentLabel: "An",
     countdownLabel: "Kalan süre",

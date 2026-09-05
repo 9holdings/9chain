@@ -315,7 +315,7 @@ export const nl: Dict = {
   },
   ceremony: {
     badge: "Ceremonie",
-    title: "De 9S Union-ceremonie",
+    title: "De Block Adam-ceremonie",
     desc: "Op één exacte seconde schrijft het netwerk drie blokken met een naam. Deze pagina vertelt wat er gaat gebeuren, wat die blokken dragen en hoe u het daarna zelf kunt controleren zonder het ons te vragen.",
     momentLabel: "Het moment",
     countdownLabel: "Resterende tijd",

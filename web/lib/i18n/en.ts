@@ -406,7 +406,7 @@ export const EN = {
    * "the network is busy" is not a softer wording, it is a false claim.
    */
   /**
-   * The 9S Union ceremony, 2026-09-09. Constants (the moment, block names, digests, the
+   * The Block Adam ceremony, 2026-09-09. Constants (the moment, block names, digests, the
    * three messages) live in `lib/ceremony.ts` and are NOT translated — they are values a
    * reader compares against an explorer and an RPC reply.
    *
@@ -417,7 +417,7 @@ export const EN = {
    */
   ceremony: {
     badge: 'Ceremony',
-    title: 'The 9S Union ceremony',
+    title: 'The Block Adam ceremony',
     desc:
       'At one exact second the network writes three named blocks. This page says what will ' +
       'happen, what the blocks carry, and how to check it afterwards without asking us.',

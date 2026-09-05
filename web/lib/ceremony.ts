@@ -1,5 +1,14 @@
 /**
- * The 9S Union ceremony — `2026-09-09T06:09:09Z`.
+ * The Block Adam ceremony — `2026-09-09T06:09:09Z`.
+ *
+ * 🔴 THE NAME. The public pages call this the **Block Adam ceremony**, because that is what
+ * `docs/block-adam/CANON.txt` calls it (D-070) — the event is defined by the FIRST block to
+ * reach the mark, and that block is Adam. This file and the page were first written as "the
+ * 9S Union ceremony", taken from the runbook's script name (`ceremony-9s-union.mjs`), which
+ * is named after the THIRD block. That is a real distinction and not a matter of taste: 9S
+ * Union is the name of one block, of the message it anchors, and of the group whose greeting
+ * that message is. Naming the whole event after it renames the ceremony after its last step.
+ * `9S Union` below stays exactly where it belongs — as the name of Adam + 10.
  *
  * Every constant here is COPIED FROM A FROZEN SOURCE in the chain repo, and the source is
  * named next to each one. Nothing on this page may be a number someone typed from memory:

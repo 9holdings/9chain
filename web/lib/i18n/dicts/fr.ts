@@ -306,7 +306,7 @@ export const fr: Dict = {
   },
   ceremony: {
     badge: "Cérémonie",
-    title: "La cérémonie 9S Union",
+    title: "La cérémonie Block Adam",
     desc: "À une seconde précise, le réseau écrit trois blocs nommés. Cette page dit ce qui va se passer, ce que portent ces blocs, et comment le vérifier ensuite sans nous le demander.",
     momentLabel: "L'instant",
     countdownLabel: "Temps restant",

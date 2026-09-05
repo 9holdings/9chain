@@ -283,7 +283,7 @@ export const zh: Dict = {
   },
   ceremony: {
     badge: "仪式",
-    title: "9S Union 仪式",
+    title: "Block Adam 仪式",
     desc: "在某一精确的一秒，网络会写下三个具名区块。本页说明将会发生什么、这些区块承载什么，以及事后你如何自行核验，而无需询问我们。",
     momentLabel: "时刻",
     countdownLabel: "剩余时间",

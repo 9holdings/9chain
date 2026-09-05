@@ -314,7 +314,7 @@ export const ha: Dict = {
   },
   ceremony: {
     badge: "Biki",
-    title: "Bikin 9S Union",
+    title: "Bikin Block Adam",
     desc: "A cikin daƙiƙa guda cikakkiya hanyar sadarwa tana rubuta tubalan uku masu suna. Wannan shafi yana faɗin abin da zai faru, abin da waɗannan tubalan ke ɗauka, da yadda za ka tabbatar da hakan da kanka daga baya ba tare da tambayar mu ba.",
     momentLabel: "Lokacin",
     countdownLabel: "Sauran lokaci",

@@ -503,7 +503,7 @@ export const vi: Dict = {
   },
   ceremony: {
     badge: "Nghi lễ",
-    title: "Nghi lễ 9S Union",
+    title: "Nghi lễ Block Adam",
     desc: "Vào đúng một giây đã định, mạng ghi ba block có tên. Trang này nói trước điều gì sẽ xảy ra, ba block ấy mang gì, và sau đó bạn tự kiểm lại bằng cách nào mà không phải hỏi ai.",
     momentLabel: "Mốc",
     countdownLabel: "Còn lại",
