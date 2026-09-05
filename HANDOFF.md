@@ -1,10 +1,12 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
-Cập nhật: **2026-09-04 tối** — 🟢 **MỐC `L1-CUSTOM`: TUỲ CHỈNH SÂU KHI TẠO CHAIN (D-183) + QUẢN TRỊ L1 ĐÃ TẠO (D-184)**
-— cả hai **đã deploy** (console PID `2776958`, drift 27/0/0) và đo trên `a1.9chain.org`. Console nay nhận `allocations · fees ·
-precompiles`, có `/api/preview`, `/api/governance`, `/api/upgrade(-preview)`, `/api/transfer-owner`. 🔴 **10 tệp CHƯA COMMIT.**
-Sổ chain **10** (ví mời tự tạo `Agape Chain`), còn **5/15 chỗ**. Đọc hai mục **`2026-09-04` tối** ngay dưới.
-Trước đó cùng ngày chiều — 🔵 **PHIÊN CHIẾN LƯỢC**: David chốt **tầm nhìn 9 năm · 9 tỷ chain**, xương sống
+Cập nhật: **2026-09-04 tối muộn** — 🟢 **VÒNG NÂNG CẤP L1 ĐẦU TIÊN KHÉP TRỌN (D-189→D-192) · KẾ HOẠCH 5 MỐC XONG (D-185→D-188)**.
+`official/main` = **`f729d2c`** (công bố qua `publish-official.sh`, fast-forward, nghiệm thu độc lập: 0 tệp `local-net/deploy/`,
+0 blob ssh/575 commit) · `origin` = **`46b8c33`** = local · console PID **`2822798`+** (3 lượt deploy, drift **28/0/0**) ·
+preflight **34 → 38 mục** · sổ chain **11**, còn **4/15 chỗ** · SBull Chain có `deployerAllowList` **sống thật** (block 2, người lạ = None).
+🔴 Đọc mục **`2026-09-04` tối muộn** và **`2026-09-04` đêm** ngay dưới. Việc còn lại: rollout gãy ở node k>1 (chưa đo, làm được
+trên băng tập) · nửa sau P-59 (Teleporter/multisig) · `web-home` P-55→P-62→P-60 theo `docs/API-CONSOLE-L1.md` (P-60: **BA trạng thái**).
+Trước đó cùng ngày tối: D-183 + D-184 (tuỳ chỉnh sâu khi tạo chain · quản trị L1 đã tạo). Trước đó cùng ngày chiều — 🔵 **PHIÊN CHIẾN LƯỢC**: David chốt **tầm nhìn 9 năm · 9 tỷ chain**, xương sống
 *"từ năm thứ 5 (2031) ai dùng AI cũng cần L1 riêng"*; **11 tài liệu** trong `docs/` (4 đã commit `b602a08`, **7 chưa
 commit**) + tuyên ngôn cho cộng đồng VI/EN + **2 PDF**. Mạng, server, mã: **không đổi**. Đọc mục **CHỐT PHIÊN
 `2026-09-04` CHIỀU** ngay dưới.
