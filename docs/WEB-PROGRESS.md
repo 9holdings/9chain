@@ -561,3 +561,36 @@ mạng đã sinh lại sang **9.000.000.000 · 40/30/12/9/9**.
 là một trong những thứ người lạ tra đầu tiên, dẫn tới một tài liệu mình BIẾT là sai thì tệ hơn
 là thiếu một dòng. Nhưng chỗ sửa nằm ở tệp đó, không nằm ở trang này — **việc của phiên chain**.
 
+---
+
+## Lô chuỗi VI `2026-09-05` (lượt 4) — trang `/nine-years/` — CHỜ DAVID DUYỆT GIỌNG
+
+**43 khoá `nineYears.*`** — luận điểm của tuyên ngôn, không phải bản sao tài liệu. Mọi câu đều
+là câu CỦA tuyên ngôn, cô lại; không có câu nào được nghĩ ra riêng cho web.
+
+🔴 **Năm khoá `commit1…commit5` không được dịch nhẹ đi.** Đó là những lời hứa đã viết ra:
+*không giữ dữ liệu · không đòi giấy tờ · không xoá · không bắt mua token · không làm AI riêng*.
+Dịch cho êm tai là lấy mất đúng cái khiến một lời hứa đáng đọc.
+
+| Khoá | Tiếng Việt đang chạy (trích) |
+|---|---|
+| `nineYears.title` / `.lede` | Chín năm, chín tỷ · Ngày 2026-09-09, hai câu được khắc vào block đầu tiên của 9Chain… |
+| `nineYears.oneLine` 🔴 | AI của tôi phải xin phép — và có một nơi ghi lại rằng nó đã xin. Nơi đó là của tôi. |
+| `nineYears.what1/2/3` | Hơn một tỷ người dùng AI mỗi tuần… · …ai giữ bằng chứng? · Một câu lệnh “đừng tiêu quá hai mươi đô” không phải một giới hạn… |
+| `nineYears.promise1…5` + `.promiseNot` | Chủ quyền · Bền lâu · Kiểm chứng được · Mang đi được · Nối được với nhau · (KHÔNG hứa chain chạy mãi mãi) |
+| `nineYears.constitutionTitle/Desc/Std` | Một bản hiến pháp, không phải một câu lệnh… |
+| `nineYears.treeTitle/Desc` + `treeRoot/Trunk/Branch/Leaf` | Một cái cây, không phải một cái tháp · Gốc · Thân · Cành · Lá |
+| `nineYears.stage2027…stage2035` + `.stagesNote` | Chín chặng theo năm; ghi chú “bốn năm dựng · năm thứ năm thế giới bắt buộc · bốn năm người khác mang đi xa hơn” |
+| `nineYears.commit1…5` 🔴 **đừng làm nhẹ** | Chúng tôi không giữ dữ liệu của bạn… / …không đòi giấy tờ… / …không xoá… / …không bắt mua token… / …không làm AI của riêng mình… |
+| `nineYears.joinTitle/joinDesc/fullDoc` | Chín năm bắt đầu từ những người đầu tiên · … · Bản đầy đủ |
+
+## ⚠️ NGÂN SÁCH — con số cần theo dõi, đã đo
+
+`/chains/` (trang nặng nhất) qua ba trang mới hôm nay: **143,9 → 154,4 → 156,7 KB gz**, trần
+**160**. Tiếng Anh đi TRONG bundle dùng chung (29 ngôn ngữ kia là chunk lười), nên chuỗi của
+mỗi trang mới bị trả giá ở **mọi** trang.
+
+🔴 **Thêm hai trang cỡ này là vỡ trần.** Cách sửa lúc đó **không phải nới trần** — mà là tách
+tiếng Anh theo từng trang thành chunk riêng. Ghi ở đây để phiên sau thừa hưởng **phép đo**,
+không phải sự ngạc nhiên.
+
