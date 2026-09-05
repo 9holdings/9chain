@@ -123,7 +123,7 @@ lượt 3    : mã mới — ✅ 424 s: node-2/3 restart có chứng cứ, "runs
             đĩa absent→absent; sổ 0→0; tệp hỏng ở upgrade-history/. --heal ⇒ 9/9 "empty".
 đối chứng : l1-upgrade 74 · governance-e2e 50→55 · check-l1-upgrades 18→22 (đo server thật: 11 chain · 12/0) · drill 15 (preflight nhóm 2)
 preflight : 58 mục — 55 đạt · 3 đỏ (drift console: lượt này · bơm: có chủ ý · check-live-page /chains/ 11 khai sai: WEB-HOME) · 0 không chạy được · 8 việc tay
-git       : main 7d616fe (mã + D-195 + PROGRESS + CLAUDE.md) + commit HANDOFF này · origin/main 2a86f36 (3 commit chưa đẩy) · official KHÔNG đẩy · web-home KHÔNG đụng
+git       : main = origin/main e1812e1 (ĐÃ ĐẨY 16:5xZ, check-remotes + check-history-secrets xanh trước; 7 commit: 7d616fe mã D-195 · 3 HANDOFF · ci tip) · official KHÔNG đẩy · official KHÔNG đẩy · web-home KHÔNG đụng
 ```
 
 #### 🔴 Việc tiếp — ai làm
