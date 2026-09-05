@@ -183,20 +183,30 @@ export function retiredHostsIn(html, hosts = RETIRED_HOSTS) {
 
 /**
  * @param pages [{path, html}] @param chain {networkID, chainId, validatorCount}
+ * @param l1ChainIds  Set of the chainIds in the PUBLIC chain directory (live and retired)
  *
  * 🔴 `validators` is compared as "not more than measured". A page saying 9 when 9 run is right; a
  * page saying 10 is the S-3 defect. A page saying fewer is stale but not a lie that costs anyone a
  * node, so it is reported at the same level rather than excused — the reader still deserves it.
+ *
+ * 🔴 "Chain ID" ON A PAGE IS NOT ALWAYS ABOUT THE PRIMARY NETWORK — measured 2026-09-05. The
+ * /chains/ directory prints "Chain ID 9001000000" … "9001000010" once per L1, one label per row,
+ * and every one of those numbers is the chainId of a live L1 in the public ledger. The first
+ * version of this rule compared each of them with the C-Chain's `eth_chainId` and reported the
+ * page as telling visitors eleven wrong things — the §2 trap, in the gate that was built to catch
+ * §2 on the site. A labelled chainId that the public chain directory itself lists is a RECORD of
+ * an L1, not a claim about the running network; one that neither the chain nor the directory
+ * knows is still a defect (a visitor told of a chain that does not exist).
  */
-export function judge(pages, chain) {
+export function judge(pages, chain, l1ChainIds = new Set()) {
   const reds = [];
   for (const p of pages) {
     for (const c of extractClaims(p.html)) {
       if (c.kind === "networkID" && c.value !== chain.networkID) {
         reds.push({ path: p.path, reason: `states networkID ${c.value} — the chain answers ${chain.networkID}`, near: c.near });
       }
-      if (c.kind === "chainId" && c.value !== chain.chainId) {
-        reds.push({ path: p.path, reason: `states Chain ID ${c.value} — the chain answers ${chain.chainId}`, near: c.near });
+      if (c.kind === "chainId" && c.value !== chain.chainId && !l1ChainIds.has(c.value)) {
+        reds.push({ path: p.path, reason: `states Chain ID ${c.value} — the chain answers ${chain.chainId}, and no L1 in the public chain directory carries that id either`, near: c.near });
       }
       if (c.kind === "validators" && c.value !== chain.validatorCount) {
         reds.push({ path: p.path, reason: `states ${c.value} validators — the chain has ${chain.validatorCount}`, near: c.near });
@@ -248,7 +258,23 @@ async function main() {
     return 2;
   }
 
-  const reds = judge(pages, chain);
+  // The public chain directory, from the SAME surface the pages come from: the set of chainIds a
+  // page may legitimately label "Chain ID" without talking about the primary network. Unreadable
+  // is inconclusive, never "no L1 exists" — the second reading would redden every directory row.
+  let l1ChainIds;
+  try {
+    const r = await request(`${SITE}/chains/data/console-chains.json`);
+    if (r.status !== 200) throw new Error(`HTTP ${r.status}`);
+    const j = JSON.parse(r.body);
+    l1ChainIds = new Set([...(j.chains ?? []), ...(j.retired ?? [])].map((c) => Number(c.chainId)).filter(Number.isSafeInteger));
+    console.log(`   public chain directory: ${(j.chains ?? []).length} live · ${(j.retired ?? []).length} retired L1 chainId(s)   ⇦ MEASURED`);
+  } catch (e) {
+    console.log(`   🔴 could not read the public chain directory (/chains/data/console-chains.json): ${e.message}`);
+    console.log(`   ⁇ INCONCLUSIVE — without it, an L1 row's "Chain ID" cannot be told from a wrong claim about the network.`);
+    return 2;
+  }
+
+  const reds = judge(pages, chain, l1ChainIds);
   for (const p of pages) {
     const n = reds.filter((r) => r.path === p.path).length;
     const claims = extractClaims(p.html).length;
@@ -326,6 +352,21 @@ async function selfTest() {
   ok("CONTROL — the same sentence in the BODY is still judged",
     j(`<p>getCurrentValidators still returns 5 validators</p>`).length === 1, "missed");
   ok("…and a footer next to a script is still read", j(`${realFooter}<script>var x=1</script>`).length === 1, "missed");
+
+  console.log("\n── 8. 🔴 \"Chain ID\" on a directory row is an L1's id, not a claim about the network ──");
+  // The real /chains/ shape on 2026-09-05: one "Chain ID" label per L1 row. Eleven rows, eleven ids,
+  // all in the public ledger — and the first version of this rule reported all eleven as wrong.
+  const rows = [9001000000, 9001000001, 9001000010].map((id) => `<li>Adam Chain · Chain ID <!-- -->${id}</li>`).join("");
+  const directory = new Set([9001000000, 9001000001, 9001000010]);
+  const jd = (html, ids) => judge([{ path: "/chains/", html }], CHAIN, ids);
+  ok("🔴 L1 rows whose ids are in the public chain directory are clean", jd(rows, directory).length === 0, JSON.stringify(jd(rows, directory)));
+  ok("🔴 CONTROL — the same rows with NO directory known are still red (the rule is not a blanket pass)", jd(rows, new Set()).length === 3, String(jd(rows, new Set()).length));
+  const ghost = jd(`${rows}<li>Ghost · Chain ID <!-- -->9001000999</li>`, directory);
+  ok("🔴 an id that neither the chain nor the directory knows => RED, naming the directory as the second witness",
+    ghost.length === 1 && /9001000999/.test(ghost[0].reason) && /public chain directory/.test(ghost[0].reason), JSON.stringify(ghost));
+  ok("🔴 the primary chainId is clean without any directory", jd(`<p>Chain ID <!-- -->9000000009</p>`, new Set()).length === 0, "red");
+  ok("🔴 a dead-generation networkID is still red even beside a valid L1 id",
+    jd(`<li>Chain ID 9001000000 · networkID 999999999</li>`, directory).length === 1, JSON.stringify(jd(`<li>Chain ID 9001000000 · networkID 999999999</li>`, directory)));
 
   console.log("\n── 7. The chain is measured, never assumed ──");
   const stub = (net, cid, vals) => async (url, opt) => {

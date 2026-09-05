@@ -9121,3 +9121,21 @@ là cách tiêm lỗi **định trước** cho một node; xoá mount là lành 
 `l1-upgrade.mjs` · `governance-e2e-test.mjs`) — **trước** lượt nâng cấp kế tiếp của bất kỳ chain nào: chủ SBull tự gọi được
 `/api/upgrade`, và lượt thứ hai của họ với mã đang chạy trên server là lỗi 2. [human] đẩy `origin`. [main] netgen nên in khối
 chainId L1 **riêng** cho băng tập (kit K1 đã ghi, vẫn chưa làm).
+
+## D-196 — **`check-live-page` đỏ trên `/chains/` là CỔNG đo sai đại lượng, không phải trang sai: "Chain ID" của một hàng L1 không phải lời khai về mạng mẹ** (`2026-09-05` tối)
+
+**Đo trước khi kết luận** (luật cứng #2 vế 3 — đỏ phải đỏ VÌ ĐÚNG LÝ DO). Preflight chiều `05/09` đỏ *"/chains/ — 14 labelled
+claim(s), 11 wrong"*, kiểu *"states Chain ID 9001000010 — the chain answers 9000000009"*. Lấy đủ 11 số bị chấm sai và đối chiếu
+với `/chains/data/console-chains.json` trên cùng bề mặt: **đúng 11 chainId của 11 L1 đang sống** (`9001000000 … 9001000010`),
+0 chain thu hồi. Trang `/chains/` 108-chain của `web-home` in một nhãn "Chain ID" **cho từng hàng L1** — viết đúng. Cổng thì đem
+mọi "Chain ID" so với `eth_chainId` của **C-Chain mẹ**. Đây là lớp lỗi §2 nằm ngay trong cổng được dựng để bắt §2 trên site.
+
+**Quyết định.** `judge(pages, chain, l1ChainIds)`: một lời khai "Chain ID" là đúng khi bằng chainId mẹ **hoặc** nằm trong sổ chain
+công khai (sống + thu hồi — bản ghi vẫn là bản ghi). Sổ đọc từ **cùng bề mặt** (`/chains/data/console-chains.json`, thứ
+`check-chain-ledger` đã canh); **không đọc được sổ ⇒ mã 2**, không phải xanh và không phải "không có L1 nào". Số không mẹ, không
+sổ nào biết (id ma) **vẫn đỏ**, và câu lỗi nêu cả hai nhân chứng. `networkID` và số validator không đổi luật.
+
+**Đã thấy đỏ.** Self-test 20 → **25**: 3 hàng L1 có trong sổ ⇒ sạch · cùng 3 hàng **không có sổ** ⇒ vẫn đỏ 3 (luật không phải
+đèn xanh cả gói) · id ma ⇒ đỏ nêu sổ · chainId mẹ sạch không cần sổ · networkID chết cạnh id L1 hợp lệ vẫn đỏ. Đo thật sau sửa:
+4 trang · `/chains/` 14 lời khai ✓ · sổ 11 sống/0 thu hồi · **PASS**. Đỏ này xuất hiện sau khi trang `/chains/` mới lên site
+(sáng `05/09` preflight còn 1 đỏ); không phải việc `web-home` phải sửa — không đụng `web/`.
