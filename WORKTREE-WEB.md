@@ -37,7 +37,7 @@ chiếu với hằng số `L1_SLOTS`; in `11/15 · 4 left`, **đã thấy ĐỎ*
 
 ---
 
-## ▶ ĐÍNH KÈM `2026-09-05` (sáng) — ba thứ đã đổi sau khối `04/09` bên dưới
+### Ba thứ phiên `a5` đo cùng ngày (gộp vào đây `05/09` — một ngày MỘT khối)
 
 | | Chốt ở |
 |---|---|
@@ -45,22 +45,21 @@ chiếu với hằng số `L1_SLOTS`; in `11/15 · 4 left`, **đã thấy ĐỎ*
 | **Deep link MetaMask đo bằng điện thoại thật** — mở đúng `/faucet/` trong app và nối được ví. Mục 1 "CHƯA AI ĐO" dưới đây ĐÃ ĐO | David, `05/09` |
 | **Cloudflare Analytics đã mở** — DNS Analytics không đếm người; Web Analytics có số vì CF **chèn beacon RUM** vào mọi trang (chỉ cho UA trình duyệt ⇒ mọi cổng `curl` mù). **David chốt GIỮ.** Chi tiết + lệnh phát hiện ở `docs/WEB-PROGRESS.md` mục D4 | `05/09` |
 
-🔴 **Trang `/ceremony/` (B-4 của `docs/WEB-UPGRADE-2026-09-04.md`) đang được MỘT PHIÊN KHÁC
-dựng trong CHÍNH worktree này** (`web/app/ceremony/`, `CeremonyCallout.tsx`, `test/ceremony.test.ts`,
-Caddyfile `@trangmoi` + `@trangHTML` + redir, sitemap, chân trang, `pageTitle.ts`). David chốt
-`05/09`: phiên đó làm tiếp. Phiên này chỉ chép **6 tệp canon từ `main`** để họ có nguồn tại chỗ:
-`docs/CEREMONY-2026-09-09.md` · `docs/block-adam/{CANON.txt,9s-union-message.txt}` ·
-`docs/engrave/{CANON.txt,dedication.txt,dedication_eva.txt}` — chép bằng `git cat-file blob`
-(byte nguyên vẹn, PowerShell `>` sẽ thêm BOM) và **đã băm đối chứng**: 3 sha256 khớp từng byte
-với `MESSAGES[].sha256` trong `web/lib/ceremony.ts`. `main` đi trước 296 commit, **chưa hoà**.
-Luật CANON cho trang: ghi *"mốc"* và *"block đầu tiên ở hoặc sau mốc"*, không bao giờ in
-"khai báo/đo được" rồi gọi chênh lệch là trôi.
+**Nguồn canon cho trang nghi lễ nằm sẵn trong cây** (phiên `a5` chép từ `main` ở `429313c`,
+bằng `git cat-file blob` để giữ nguyên byte — PowerShell `>` sẽ thêm BOM): `docs/CEREMONY-2026-09-09.md` ·
+`docs/block-adam/{CANON.txt,9s-union-message.txt}` · `docs/engrave/{CANON.txt,dedication.txt,dedication_eva.txt}`.
+**Đã băm đối chứng độc lập: 3 sha256 khớp từng byte** với `MESSAGES[].sha256` trong
+`web/lib/ceremony.ts` (182/25/45 byte). `main` đi trước ~296 commit, **chưa hoà**.
+
+🔴 **Luật CANON cho câu chữ của trang:** chỉ ghi *"mốc"* và *"block đầu tiên ở hoặc sau mốc"* —
+không bao giờ in "khai báo/đo được" rồi gọi chênh lệch là trôi. Trang hiện tuân thủ; giữ vậy.
 
 ✅ **`official` = `1f09d5c`** (lên `05/09` ~05:45Z từ `5e25c2f`, David chốt "lên official đi"): 310 → 290
 commit sau lọc, 3 cổng của script xanh, đối chứng độc lập bằng `git ls-tree` trên `official/web-home`:
 0 tệp `local-net/deploy/`, trang `web/app/ceremony/` có mặt. Bản công khai nay **mang commit trang
-nghi lễ của phiên kia** (29 từ điển + page + test) dù trang đó có thể chưa deploy — mã nguồn công
-khai đi trước site sống là chấp nhận được, ngược lại thì không.
+nghi lễ** (29 từ điển + page + test). ⚠️ `1f09d5c` chụp từ `5e25c2f`, tức **trước** `092778c`
+(vá tràn ngang) và `c0159c4` (ba câu sai) — bản công khai đang **cũ hơn site sống hai commit**.
+Mã nguồn công khai đi SAU site sống là chấp nhận được; đi trước thì không.
 
 ---
 
