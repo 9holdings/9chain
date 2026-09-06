@@ -2,6 +2,8 @@
 
 ## Local automation — 2026-09-06
 
+- [~] D-209: production managed-node transport verified with actual isolated Compose/curl containers; removing curl's own deadline fails because requests survive the killed client. Normal timeout/cancellation/protocol checks and fifteen local checks pass. Read-only Adam Chain observations match on all nine public nodes; new-chain rollout and deployment remain pending.
+
 - [~] D-208: creation checks tagged L1 health and chain ID on every managed node after full rollout. Original code falsely returned HTTP 200 for a wrong non-RPC node. Sixteen creation scenarios and fifteen local checks pass; actual 90-second missing-L1 probe preserves reservation across retry/restart. Public rollout acceptance pending.
 
 - [x] D-207 local build verification: 26/27 patch anchor and full replay match; two cold Linux builds produce five byte-identical binaries; fresh node version runs in isolated Debian. Selected core tests pass: 16 packages, 195 top-level tests, 218 subtest pass events. No live network or capacity claim. See `docs/BUILD-VERIFICATION-2026-09-06.md`.

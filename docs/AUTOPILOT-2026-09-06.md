@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 18:57:23 UTC** (D-208 milestone).
+repetition. Last user-facing progress update: **2026-09-06 19:13:42 UTC** (D-209 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -82,12 +82,15 @@ archival. Ten actual-console synthetic RPC/Docker scenarios and journal file tes
 pass; twelve local checks pass. Read `docs/CREATION-RECOVERY.md` before further work.
 No real public submission, restart or recovery was performed.
 
-Next priority after D-208: validate the managed-node read-only transport/health
-observations against real local containers or an explicitly read-only server probe,
-and prepare a concrete public rollout/recovery acceptance plan. Inspect existing
-helpers and credentials handling before SSH; never print secret values. Do not
-change public services or existing validator/genesis/data. New-chain bootstrap
-still needs a real integration acceptance; synthetic Docker tests do not prove it.
+Next priority after D-209: audit and prepare the public console deployment and
+recovery acceptance procedure. Read-only drift shows 26 matching files, two changed
+files, seven missing new files, no undeclared orphans. Existing console-deploy.sh
+copies files before checking busy state, fails open when that check cannot answer,
+and ships only the console group before checking drift across every group. Review
+these concrete hazards and fix/test locally before proposing deployment. SSH works
+with existing credentials; never print secret values. Do not change public services
+or existing validator/genesis/data. New-chain bootstrap still needs real integration
+acceptance; synthetic Docker tests do not prove it.
 Do not add blind resume/retry/discard endpoints. Recovery must establish
 what P-chain already accepted and preserve all artifacts before mutation.
 Preserve the public ledger/API contract. Matching chain ID does not prove block
@@ -149,3 +152,14 @@ restart; it also passes. Logs: `work/node-readiness-full-profile.log` and
 `work/node-readiness-slow.log`. No checks are still running. Public deployment and
 real managed-validator rollout acceptance remain pending. Read D-208 and API/recovery
 docs before further work. Do not move the new-L1 check into the per-node restart loop.
+
+D-209 validates the extracted production Docker RPC transport using real isolated
+Compose/curl containers and synthetic RPC. Correct/wrong identities, protocol errors,
+stderr, client deadline (~1.52s), explicit abort after server entry and no stranded
+curl pass. Removing curl's independent timeout fails on the still-active request.
+Evidence: `work/managed-rpc-QGfRSp` positive, `work/managed-rpc-yMQIED` negative,
+`work/managed-rpc-full-profile.log` (15 local checks). Containers are stopped and
+retained. SSH-only reads found existing Adam Chain healthy with the right ID on 9/9
+nodes at 19:08 UTC; `work/managed-nodes-live-20260906.json`. Public drift is expected:
+26 matching, 2 changed, 7 missing files. No public changes. See D-209; next priority
+above is the deployment path, especially fail-open busy checks and group coverage.

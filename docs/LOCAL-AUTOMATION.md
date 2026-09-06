@@ -53,6 +53,26 @@ node local-net/console/create-rpc-e2e-test.mjs --slow-readiness
 This takes roughly 90 seconds with a synthetic node/Docker fixture. It verifies
 timeout and retained reservation; it does not run an actual validator network.
 
+To exercise the production managed-node transport through actual Docker Compose
+and the node image's curl, run the optional integration check:
+
+```powershell
+node scripts/check-managed-node-rpc.mjs --runtime-image 9chain-a1/node:autopilot-20260906
+```
+
+It requires the selected node runtime image and the pinned Go 1.25.10 builder image
+already present locally. It builds a standard-library-only synthetic RPC server
+with networking disabled, then starts three isolated containers with no exposed
+ports, no validator data and no keys. The runtime containers have read-only roots,
+128 MiB each and 0.5 CPU each; the build has 2 GiB/2 CPUs and a three-minute deadline.
+It verifies correct/wrong node identities, JSON/protocol errors, real process stderr
+separation, Docker client timeout, cancellation after the request reached the server,
+and termination of curl inside the container after the client is gone. Containers
+are stopped on completion/failure and retained with evidence in ignored `work/`.
+The explicit test-only environment variable `A1_TEST_REMOVE_CURL_TIMEOUT=1` removes
+curl's bound in the test executor; the same check must fail because the in-container
+request remains alive. This does not change production code or prove validator boot.
+
 This is a local baseline, not a full release gate. It does not build the fork,
 replay patches, run a blockchain, prove recovery, inspect live server state, or
 authorize deployment. Keep using the existing release and deployment gates for
@@ -65,7 +85,9 @@ contact public services or require SSH.
 - Docker client/engine 29.6.2; Docker Desktop Linux engine reachable after tool approval.
 - Git Bash exists at `C:/Program Files/Git/bin/bash.exe`; the default `bash` command
   resolves to the Windows system executable, so shell scripts must select Bash explicitly.
-- SSH executable exists; server authentication has not been verified by this setup.
+- SSH authentication verified at 19:05 UTC using existing configuration. Read-only
+  health/chain-ID observations succeeded on all nine nodes for an existing L1 at
+  19:08 UTC; no public service changes were performed.
 - Git emits a sandbox permission warning reading the user's global ignore file.
 
 ## Next integration stages

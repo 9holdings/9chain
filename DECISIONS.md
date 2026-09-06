@@ -9454,3 +9454,44 @@ or VM binary integrity. The Docker/RPC transport and new-chain bootstrap behavio
 still need acceptance against real validators before public rollout. No public
 mutation or validator/genesis change was performed. See `docs/CREATION-RECOVERY.md`
 and `docs/API-CONSOLE-L1.md`; status remains local implementation pending deployment.
+
+### D-209 — Measure managed-node RPC over real Compose transport (2026-09-06)
+
+Extracted the existing bounded, stdout-only Docker RPC call into
+`local-net/lib/managed-node-rpc.mjs`; the console imports and uses that exact helper.
+The deploy manifest includes it (24 console import-reachable files). Added an optional
+Docker integration script and a standard-library-only Go loopback RPC fixture.
+Three synthetic runtime containers use the actual node image's curl, network none,
+read-only roots, no ports, no keys/data, 128 MiB/0.5 CPU each. A pinned Go 1.25.10
+builder compiles the fixture offline under 2 GiB/2 CPUs, a 170-second in-container
+limit and a three-minute Docker-client deadline.
+
+The final real-transport run passed tagged health and identity on two nodes,
+refusal of a wrong third node, malformed JSON, unrelated response ID and HTTP error.
+A fixture wrapper emits a diagnostic on real process stderr before executing the
+unchanged runtime curl, proving that stdout remains parseable through Docker.
+An initial harness assumed Compose's obsolete-version warning would appear on exec;
+measurement showed it appears only on setup here. That unrelated red was corrected,
+not used as a production negative control. Docker top also requires PID in its
+requested output fields; the final process check includes PID and command.
+
+The Docker client's 1.5-second timeout returned in approximately 1.52 seconds.
+Explicit cancellation happened only after logs proved the request reached the
+container server. Both hanging connections closed and no curl remained after its
+own five-second bound. The meaningful negative control removes only curl's `-m 5`
+in the test executor: normal protocol checks still pass, then the check fails because
+the in-container request survives the killed Docker client. Production code is not
+modified by that control. Exited containers and local fixtures are retained:
+`work/managed-rpc-QGfRSp` (pass), `work/managed-rpc-yMQIED` (expected failure), with
+`evidence.json`, `work/managed-rpc-positive.log` and `work/managed-rpc-negative.log`.
+Fifteen local checks still pass: `work/managed-rpc-full-profile.log`. English debt
+remains 5663 lines/107 files; ownership/import/diff checks pass.
+
+Existing SSH authentication works without new credentials. A separate read-only
+server measurement at 19:08:44–45 UTC found Adam Chain's tagged health and chain ID
+9001000000 on all nine nodes (`work/managed-nodes-live-20260906.json`). It did not
+restart nodes, create chains, send transactions, alter genesis/validators or prove
+new-chain bootstrap. Read-only deployment drift remains red as expected: 26 matching,
+two changed, seven missing new files, zero undeclared orphans
+(`work/deploy-drift-20260906.log`). Local transport acceptance is complete; public
+deployment, real new-chain rollout and interrupted-job recovery remain unperformed.

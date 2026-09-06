@@ -30,11 +30,12 @@ import {
 } from "../lib/l1-upgrade.mjs";
 import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
 import { siwe } from "./siwe.mjs";
-import { requestRpc, rpcResult, RpcResponseError } from "../lib/rpc-client.mjs";
+import { requestRpc } from "../lib/rpc-client.mjs";
 import { CreationJournal, creationGenesisText } from "../lib/creation-journal.mjs";
 import { writeLedger, assertNoPendingLedgerWrite } from "../lib/ledger-write.mjs";
 import { readLedger } from "../lib/ledger-read.mjs";
 import { waitForChainNodes } from "../lib/chain-readiness.mjs";
+import { createManagedNodeRpc } from "../lib/managed-node-rpc.mjs";
 
 const PORT = Number(process.env.PORT || 8091);
 // Mặc định CHỈ nghe loopback. Console điều phối docker trên host — mở ra ngoài
@@ -335,6 +336,7 @@ const CLI_KEY = requireSecret("A1_CLI_KEY", {
 });
 
 const run = promisify(execFile);
+const rpcOnManagedNode = createManagedNodeRpc({ cwd: ROOT, compose: COMPOSE, run });
 if (!existsSync(TMP_DIR)) mkdirSync(TMP_DIR, { recursive: true });
 if (!existsSync(CHAIN_CFG_DIR)) mkdirSync(CHAIN_CFG_DIR, { recursive: true });
 
@@ -907,25 +909,6 @@ async function docker(args, env = {}) {
     err.stderr = scrub(e.stderr);
     throw err;
   }
-}
-
-/** Read a node's own RPC with a bounded Docker client and bounded in-container curl. */
-async function rpcOnManagedNode(svc, segment, method, params, { signal, timeoutMs }) {
-  const args = [...COMPOSE, "exec", "-T", svc, "curl", "-fsS", "-m", "5",
-    "-X", "POST", "-H", "content-type:application/json",
-    "--data", JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-    `http://127.0.0.1:9650${segment}`];
-  let stdout;
-  try {
-    ({ stdout } = await run("docker", args, { cwd: ROOT, env: process.env,
-      signal, timeout: timeoutMs, killSignal: "SIGKILL", maxBuffer: 1 << 24 }));
-  } catch { throw new Error(`${svc} ${method} is not answering within the readiness probe deadline`); }
-  let message;
-  try { message = JSON.parse(stdout); }
-  catch { throw new RpcResponseError(`${svc} returned invalid ${method} JSON`); }
-  // Keep compose diagnostics on stderr separate from the JSON-RPC response.
-  try { return rpcResult(message, method); }
-  catch (error) { error.message = `${svc}: ${error.message}`; throw error; }
 }
 
 /**

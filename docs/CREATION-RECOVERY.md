@@ -1,6 +1,6 @@
 # Recovering an interrupted chain creation
 
-Local implementation: D-203 through D-208. No public deployment or recovery mutation yet.
+Local implementation: D-203 through D-209. No public deployment or recovery mutation yet.
 
 The console reserves one creation in `9chain-a1-config/creation-journal/pending.json`
 before writing genesis or calling the CLI. It records the complete public plan,
@@ -88,6 +88,16 @@ These checks do not establish block production, canonical block agreement, VM bi
 integrity or future availability. Local HTTP/fake-Docker tests include a wrong
 non-RPC node, wrong response ID and a real 90-second missing-L1 deadline. A real
 new-chain rollout on the public validators remains pending owner-reviewed acceptance.
+
+D-209 separately verifies the shared production transport with actual local Compose
+containers and the node runtime's curl, while RPC answers remain synthetic. Both
+Docker-client cancellation and curl's independent deadline are necessary: removing
+the latter leaves the in-container request alive after its caller is gone, and the
+negative check fails on that exact condition. The normal check bounds the client
+near 1.52 seconds and observes both hanging connections closed with no curl left
+after its five-second limit. Read-only server observations at 2026-09-06 19:08 UTC
+also found tagged L1 health and chain ID 9001000000 on all nine Adam Chain nodes.
+These existing-chain observations do not establish new-chain rollout acceptance.
 
 ## Read-only inspection (D-206)
 
