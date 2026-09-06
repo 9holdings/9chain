@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Wallet } from 'ethers';
 import { NETWORK_ID, TEN_MANG } from '../lib/chainid.mjs';
+import { controlMaintenance } from '../deploy/console-maintenance.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 mkdirSync(path.join(root, 'work'), { recursive: true });
@@ -155,6 +156,12 @@ try {
   dropped.destroy(); await droppedError;
   await until(async () => (await call('/api/maintenance')).body.readyForRestart === true,
     'A dropped incomplete body must release admission without leaving the console stuck');
+  const observed = await controlMaintenance({ url: base, token, action: 'status', timeoutMs: 2000 });
+  const identity = { instanceId: observed.instanceId, maintenanceId: observed.maintenanceId };
+  assert.equal((await controlMaintenance({ url: base, token, action: 'assert-paused', ...identity, timeoutMs: 2000 })).readyForRestart, true);
+  assert.equal((await controlMaintenance({ url: base, token, action: 'resume', ...identity, timeoutMs: 2000 })).paused, false);
+  assert.equal((await controlMaintenance({ url: base, token, action: 'pause-and-wait', timeoutMs: 2000 })).readyForRestart, true);
+  console.log('PASS: production operator client reads, verifies, resumes and pauses the real isolated console');
   assert.equal(existsSync(path.join(config, 'console-chains.json')), false);
   assert.deepEqual(readdirSync(path.join(config, 'console-tmp')), []);
   console.log('PASS: body-reading admission, dropped body, stale/malformed resume refusal, no ledger or genesis writes');

@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 19:27:00 UTC** (D-210 milestone).
+repetition. Last user-facing progress update: **2026-09-06 19:41:28 UTC** (D-211 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -82,7 +82,7 @@ archival. Ten actual-console synthetic RPC/Docker scenarios and journal file tes
 pass; twelve local checks pass. Read `docs/CREATION-RECOVERY.md` before further work.
 No real public submission, restart or recovery was performed.
 
-Next priority after D-210: integrate the maintenance protocol into the deployment
+Next priority after D-211: integrate the maintenance protocol into the deployment
 path and prepare owner-reviewed bootstrap/rollback for the current legacy server.
 Read `docs/CONSOLE-MAINTENANCE.md`: the new API is local, deployment script is still
 unchanged and unsafe to assume updated. It copies before checking busy state, fails
@@ -92,6 +92,12 @@ require pause/drain before release copy, retain pause through restart and read-o
 validation, and fail closed on legacy/unreadable state. Prepare and test locally;
 do not run public mutations. SSH works with existing credentials, never print them.
 New-chain bootstrap still needs real integration acceptance.
+The standalone client now exists at local-net/deploy/console-maintenance.mjs and
+runs over SSH stdin, so no helper copy is required before pause. Default --status
+is read-only; pause-and-wait validates and drains, assert-paused checks identity,
+resume requires current UUIDs and never retries uncertain POST. Use this shared
+client instead of shell grep/JSON fragments. Actual SSH status returned HTTP 404
+at 19:39 UTC: the public process is legacy and automatic bootstrap must refuse.
 Do not add blind resume/retry/discard endpoints. Recovery must establish
 what P-chain already accepted and preserve all artifacts before mutation.
 Preserve the public ledger/API contract. Matching chain ID does not prove block
@@ -174,3 +180,18 @@ isolated Linux. Seventeen local checks pass (`work/maintenance-full-profile.log`
 Linux log `work/maintenance-linux.log`; container exited, no ongoing jobs. Console
 manifest reaches 25 dependencies. Legacy deploy integration still outstanding;
 new API alone does not make that script safe. No public mutations.
+
+D-211: standalone maintenance client passed 32 actual local CLI/HTTP scenarios
+including stdin. A copied negative client without readiness/count consistency
+failed on contradictory success. Read-only SSH confirms HTTP 404 refusal on legacy
+server, no changes. Logs `work/maintenance-client-full-profile.log`,
+`work/maintenance-client-negative.log`, `work/maintenance-live-read.json`.
+Client is included in the operator manifest. Eighteen local checks; deployment
+script integration and exact reviewed release/rollback still next. Do not call
+pause/resume publicly until the complete proposed deployment is approved.
+The production client also passes the actual isolated console API integration
+(`work/maintenance-client-console.log`). Before wiring the legacy deploy script,
+prepare frozen release bytes and hashes from the console/operator manifest groups;
+the existing deploy script currently checks drift across all groups while shipping
+console only. Keep source/state backups outside running code, include the real
+restart helper, and prove ordering with actual Bash plus stubbed SSH/SCP effects.

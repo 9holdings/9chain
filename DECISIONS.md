@@ -9541,3 +9541,41 @@ bootstrap for a legacy server without these endpoints. Scope is a single console
 process; it cannot observe external Docker jobs or another console instance and does
 not reconcile a pending creation. See `docs/CONSOLE-MAINTENANCE.md`. No public writes,
 restart, deploy, transactions, validator/genesis changes or operational-data deletion.
+
+### D-211 — Validate maintenance over the actual operator CLI and SSH stdin (2026-09-06)
+
+Added a standalone built-ins-only client, runnable as a file or over SSH stdin.
+It uses the server-side environment token and accepts only loopback HTTP origins.
+Default is read-only status. Explicit actions pause-and-wait, assert-paused and
+resume check process/pause identity and the complete maintenance contract, not
+HTTP status alone. It rejects inconsistent readiness/counts, wrong types/UUIDs,
+HTTP failures, redirects, non-JSON or oversized responses. Body and headers share
+each request deadline inside a monotonic action budget. Drain cannot silently
+switch processes or pauses; a restart assertion must see a different instance.
+Resume first reads the exact current paused/drained state, sends one POST and never
+retries after uncertain completion. Failures emit no success receipt or credentials.
+
+Thirty-two actual CLI scenarios with synthetic HTTP pass, including stdin execution,
+contradictory readiness, hung headers/body, stale identities and loss of a resume
+reply after the server applied it. Negative control copies only the client and
+test into ignored scratch and removes readiness/count consistency: the same CLI
+suite fails specifically because `readyForRestart=true` with two active operations
+returns success. Production source is untouched by the control. Logs:
+`work/maintenance-client-full-profile.log`, `work/maintenance-client-negative.log`;
+negative scratch `work/maintenance-client-negative-KcdIsi`.
+The same production client also reads/verifies/resumes/pauses an actual isolated
+console process successfully (`work/maintenance-client-console.log`), closing the
+contract gap between the independent client fixture and the real server handler.
+
+A separate read-only run over actual SSH used the existing token only inside the
+server process. At 19:39 UTC the legacy server returned HTTP 404 and the client
+exited 1 with no stdout, exactly the refusal required before automated deployment.
+Evidence: `work/maintenance-live-read.json`. No pause, resume, remote file copy,
+restart, transaction or other public mutation occurred. The operator manifest now
+includes the standalone client; the full local profile has eighteen checks.
+
+The legacy console-deploy.sh is still unchanged. Next work is wiring the client
+into a prepared release workflow, with all local validation before server mutations,
+pause/drain before code replacement, code/state backup, verification while paused
+and a controlled resume. Old-server bootstrap remains separately owner-reviewed;
+404 is evidence to stop, never authorization to bypass maintenance.

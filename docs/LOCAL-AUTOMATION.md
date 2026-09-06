@@ -46,6 +46,9 @@ It also verifies maintenance admission/persistence with real local files and HTT
 processes: queued, preflight and disconnected requests; restart persistence; stale
 resume refusal. See `CONSOLE-MAINTENANCE.md` for the scope and deployment integration
 still required. The synthetic tests never pause the public console.
+The standalone maintenance client is also exercised via real CLI and stdin against
+synthetic loopback HTTP, including contradictory readiness, identities, bounded
+responses/timeouts and a lost resume response that must not be retried.
 The profile checks post-rollout L1 readiness on managed nodes, including response
 identity, concurrent probes, fresh observation rounds and cancellation. For the
 longer actual-console timeout probe, run separately:

@@ -82,6 +82,37 @@ memory. External marker removal also never reopens an already paused process.
 
 ## Required deployment integration
 
+D-211 supplies the standalone operator client
+`local-net/deploy/console-maintenance.mjs`. It runs on the server with the existing
+`A1_CONSOLE_TOKEN` loaded from the server's environment, never passed as a command
+argument. Default action is read-only status; the default loopback port comes from
+`PORT` or 8091. The client also runs as `node --input-type=module -` over SSH stdin,
+so it does not need to be installed before requesting a pause.
+
+```bash
+node local-net/deploy/console-maintenance.mjs --status
+node local-net/deploy/console-maintenance.mjs --pause-and-wait --timeout-ms 600000
+node local-net/deploy/console-maintenance.mjs --assert-paused --instance-id CURRENT_PROCESS_UUID --maintenance-id CURRENT_PAUSE_UUID
+node local-net/deploy/console-maintenance.mjs --assert-paused --previous-instance-id OLD_PROCESS_UUID
+node local-net/deploy/console-maintenance.mjs --resume --instance-id NEW_PROCESS_UUID --maintenance-id NEW_PAUSE_UUID
+```
+
+Use actual UUIDs from verified responses, not the placeholders above. These are
+operator actions; pause/resume on the public server require the approved deployment
+procedure. `--url` accepts only a loopback HTTP origin without credentials/path/query.
+The client requires HTTP 200, JSON content type, valid UUIDs, booleans/count and a
+consistent readiness statement. It refuses redirects and limits bodies to 64 KiB.
+Requests have at most ten seconds inside one monotonic action deadline (maximum
+15 minutes). Drain must keep the same process and pause IDs throughout. Resume
+reads and validates the current paused state before its single POST; it never
+retries that POST after an uncertain response. Exit 0 emits a normalized JSON
+receipt; errors emit only a reason on stderr and a nonzero exit, never the token.
+
+Read-only execution over actual SSH at 2026-09-06 19:39 UTC returned **HTTP 404**
+from the legacy server and exit 1 as required (`work/maintenance-live-read.json`).
+It performed no pause/resume/copy/restart. This confirms the need for the separately
+reviewed first-deployment bootstrap; it does not authorize a fail-open bypass.
+
 The next deployment script must perform local checks before touching the server,
 acquire the existing deployment lock, pause admissions, and wait for a stable
 process/pause identity with `persistent=true`, `activeOperations=0` and
@@ -118,3 +149,14 @@ Public deployment/restart and any public transaction remain owner-approved actio
 
 Tests are included in `node scripts/check-local.mjs --console`. Evidence logs:
 `work/maintenance-full-profile.log` and `work/maintenance-linux.log`.
+
+D-211 adds 32 actual standalone CLI scenarios against synthetic local HTTP, including
+stdin execution, state/identity conflicts, HTTP/JSON/redirect errors, bounded hung
+headers/body, draining, stale restart/resume and lost resume response. Removing only
+the readiness/count consistency check makes the same CLI gate fail on accepting
+`readyForRestart=true` while two operations remain. Evidence:
+`work/maintenance-client-full-profile.log`, `work/maintenance-client-negative.log`,
+negative scratch `work/maintenance-client-negative-KcdIsi`.
+The production client also successfully reads, verifies, resumes and pauses the
+actual isolated console in `maintenance-e2e-test.mjs`, with synthetic credentials
+and no public calls (`work/maintenance-client-console.log`).
