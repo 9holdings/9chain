@@ -37,6 +37,11 @@ pass on Windows/Linux and two removed-check negatives fail correctly. Public rea
 23:16 UTC aligns13 registrations =2 C/X+11 active,0 unlisted; selected public ledger
 bytes stayed stable. This does not measure pending/subnet-only operations or legacy
 admission drain. See `docs/CHAIN-INVENTORY.md`; local profile now27 groups.
+Actual-rootadb64e3 acceptance23:23 UTC passes45 commands with report/log hashes
+independently verified. Public exploratory reads found66 retained console-tmp
+genesis candidates;11 current-band files match exact committed genesis bytes and55
+are outside-band history. No artifact modified/copied raw. Prepare tested artifact
+tooling and a first-adoption rehearsal; see `docs/CONSOLE-FIRST-ADOPTION.md`.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
 

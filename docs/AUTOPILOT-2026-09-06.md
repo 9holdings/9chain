@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 23:16:47 UTC** (D-220 inventory tests and public read-only13/11 comparison).
+repetition. Last user-facing progress update: **2026-09-06 23:23:50 UTC** (D-220 exact-source acceptance and legacy genesis comparison; final status follows).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -504,3 +504,37 @@ unrecorded legacy genesis artifacts and actual old process drain are still unpro
 Next useful work: bounded read-only inventory of legacy console-tmp artifacts and
 concrete first-adoption/recovery packet; do not infer that aligned means safe to
 restart/resume. Existing API404/orphan blockers remain. No automatic bootstrap bypass.
+
+D-220 implementationadb64e3c45727f2077b52ecd13386d9eecd00a70,
+tree476e77c54be49edd60c97991c447bac9f2171f42. Actual-root acceptance completed
+23:19:30–23:23:23 UTC:44 files/626859 bytes,35 Node syntax+1 Bash+9 acceptance=45
+commands passed, including27 local groups and33 Docker deployment scenarios.
+Package work/console-releases/adb64e3c4572-Wa9mjy, SHA
+6bfd98ed8f4a5de454eab5eabe1839d8eed98b957e68a70bf34959a995832397.
+Validation work/console-validations/adb64e3c4572-aIQ3BG, SHA
+9b6360552b4f355597a3324ddf40a3709364d9477792343f6e499402570cd560.
+Independent verification of report/all45 log hashes/zero exits and local default
+plan passed23:23:50 UTC. Container a1-deployment-console-deployment-gevg7e exited0/noOOM.
+Receipts work/d220-release-real.json, work/d220-validation-result.json,
+work/d220-evidence-verification.json, work/d220-deployment-plan.json;
+runners work/run-d220-validation.mjs and work/verify-d220-evidence.mjs. As before,
+recording docs advances HEAD; this is historical implementation acceptance, not
+the final approved/current-source public package. Do not repackage docs alone.
+
+Exploratory read-only legacy artifact probe23:21:39 UTC:66 regular candidate genesis
+JSON files in server console-tmp,85617bytes, repeated directory/file hashes stable.
+Only names/metadata/digests/declared chain IDs/allocation counts returned; no raw
+genesis/allocations/credentials copied.11 files in current user ID band;55 outside.
+RPC comparison23:23:07 UTC matched all11 to exact committed genesis bytes, public
+ledger chain/subnet/name and embedded EVM ID. This is stronger candidate evidence,
+not proof of legacy drain, mempool emptiness or subnet-only transactions. Source CLI
+creates subnet, then validators, then blockchain; both final IDs print only at end.
+Scripts work/legacy-artifact-probe.mjs and work/legacy-genesis-match.mjs; receipts
+work/legacy-artifact-live.json and work/legacy-genesis-match.json. Prototype evidence,
+not reusable tested recovery tooling; all66 files retained on-server. No mutation.
+
+First-adoption preparation now in docs/CONSOLE-FIRST-ADOPTION.md. Next bounded work:
+turn artifact inventory/genesis comparison into tested read-only operator tooling
+and refine the exact controlled-transition/recovery rehearsal. Current backup omits
+console-tmp, and routine33-case deployment rehearsal is not a legacy bootstrap.
+Never add synthetic maintenance receipts or a force fallback. About3h remained.
