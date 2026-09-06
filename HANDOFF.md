@@ -2,7 +2,7 @@
 
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
-for current evidence and next work. D-197 through D-218: local console reliability,
+for current evidence and next work. D-197 through D-219: local console reliability,
 read-only creation inspection, cold-build/replay, core tests, managed-node transport
 and persistent operator maintenance, frozen releases, targeted paused restart and
 per-invocation deployment exclusion without TTL takeover (`docs/DEPLOYMENT-LOCK.md`).
@@ -19,6 +19,13 @@ targeted restart; inner public/product gates are placeholders for orchestration.
 The 33-case maintenance client closes HTTP connections across restart. The deployment
 drill is now required by release validation; public legacy adoption remains pending;
 see `docs/CONSOLE-MAINTENANCE.md` before preparing any public rollout.
+D-219 binds24 startup environment inputs to phase receipts and actual process
+readiness before paused acceptance/resume. Fresh RPC checks exact A1 network/parent,
+strict ledger and journal checks block unresolved state; client checks drained UUIDs.
+40 client and31 actual-console checks pass on Windows/Linux,22 RPC and33 Linux
+deployment cases pass; two copied-source negatives fail at the intended assertions.
+Current local profile has26 groups. See `docs/CONSOLE-READINESS.md` for evidence and
+limits: no config-file/binary attestation or consensus/capacity claim.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
 

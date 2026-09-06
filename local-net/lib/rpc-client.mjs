@@ -7,8 +7,9 @@ export class RpcResponseError extends Error {
   }
 }
 
-export async function requestRpc(url, method, params = [], { timeoutMs = 10_000 } = {}) {
+export async function requestRpc(url, method, params = [], { timeoutMs = 10_000, maxResponseBytes = 16 * 1024 * 1024 } = {}) {
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1) throw new RangeError('RPC timeout must be a positive integer');
+  if (!Number.isSafeInteger(maxResponseBytes) || maxResponseBytes < 1 || maxResponseBytes > 64 * 1024 * 1024) throw new RangeError('RPC response bound must be 1 through 64 MiB');
   const signal = AbortSignal.timeout(timeoutMs);
   let response, message;
   try {
@@ -20,7 +21,18 @@ export async function requestRpc(url, method, params = [], { timeoutMs = 10_000 
       await response.body?.cancel();
       throw new RpcResponseError(`RPC ${method} returned HTTP ${response.status}`, true);
     }
-    try { message = await response.json(); } catch (error) {
+    const reader = response.body?.getReader();
+    if (!reader) throw new RpcResponseError(`RPC ${method} returned no response body`);
+    const chunks = []; let size = 0;
+    for (;;) {
+      const { value, done } = await reader.read(); if (done) break;
+      size += value.length;
+      if (size > maxResponseBytes) {
+        await reader.cancel(); throw new RpcResponseError(`RPC ${method} response exceeds its ${maxResponseBytes}-byte bound`);
+      }
+      chunks.push(value);
+    }
+    try { message = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch (error) {
       if (signal.aborted) throw error;
       throw new RpcResponseError(`RPC ${method} returned invalid JSON`);
     }

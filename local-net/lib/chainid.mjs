@@ -23,6 +23,8 @@
 // chainId nó tính được ở MỖI lượt sinh mạng, và runbook ngày G đối chiếu dòng đó với
 // `chainid-test.mjs`. Đừng sửa số này một mình.
 export const A1_GEN = 1;
+// The parent C-Chain EVM id is stable across A1 generations.
+export const A1_PARENT_EVM_CHAIN_ID = 9_000_000_009;
 
 // ─── Ba thứ dẫn xuất từ thế hệ — KHAI Ở ĐÂY, đừng chép lẻ ra chỗ khác ───
 //

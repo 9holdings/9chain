@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 22:26:11 UTC** (D-218 real-root acceptance; final status follows).
+repetition. Last user-facing progress update: **2026-09-06 23:00:04 UTC** (D-219 Windows/Linux readiness; preparing exact-source acceptance).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -428,3 +428,23 @@ work is D-219 readiness/environment binding; notes in work/d219-design.md. Curre
 controller proves source/deps/process/selected-state integrity, not independently
 that the restarted process loaded the intended configuration or is connected to
 the expected node. Public first adoption remains separately review-gated.
+
+D-219 completed locally: operator readiness captures immutable startup identity for
+24 explicit environment settings, checks four fresh RPC identities/format within
+3s/64KiB each, reads strict ledger/journal and reports maintenance state. The client
+requires nonce/expected configuration/exact drained process IDs,200JSON and5s/64KiB,
+no redirects/retries. Deployment binds intended on-server configuration from backup
+through every phase and requires actual replacement readiness before success/resume.
+Old maintenance-capable versions can upgrade; old public API404 is still a blocker.
+
+40 client and31 actual-console tests pass on Windows/Linux,22 RPC cases pass,33
+actual Docker deployment CLI cases pass including configuration drift after backup/
+restart, wrong loaded setting and wrong network/parent. Full26-group profile passes.
+Two copied-source negative controls fail at the intended configuration/startup
+assertions. See docs/CONSOLE-READINESS.md for logs, scratch paths and limitations.
+Containers a1-autopilot-readiness-linux-20260906 and
+a1-deployment-console-deployment-qokggt both exited0/noOOM, verified22:57 UTC.
+
+Next: commit D-219, freeze and validate that actual commit once; then prepare the
+public first-adoption/recovery review packet. Do not claim live readiness, binary
+attestation, consensus or capacity from this local work. No public mutation.

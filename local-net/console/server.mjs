@@ -28,7 +28,7 @@ import {
   chainDirVerdict,
   PRECOMPILE_ADDRESS, UPGRADABLE_PRECOMPILES, MIN_LEAD_SECONDS, MAX_LEAD_SECONDS,
 } from "../lib/l1-upgrade.mjs";
-import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
+import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG, A1_PARENT_EVM_CHAIN_ID } from "../lib/chainid.mjs";
 import { siwe } from "./siwe.mjs";
 import { requestRpc } from "../lib/rpc-client.mjs";
 import { CreationJournal, creationGenesisText } from "../lib/creation-journal.mjs";
@@ -37,6 +37,9 @@ import { readLedger } from "../lib/ledger-read.mjs";
 import { waitForChainNodes } from "../lib/chain-readiness.mjs";
 import { createManagedNodeRpc } from "../lib/managed-node-rpc.mjs";
 import { MaintenanceGate } from "../lib/maintenance.mjs";
+import { consoleConfigurationFingerprint, probeConsoleReadiness } from "../lib/console-readiness.mjs";
+
+const STARTUP_CONFIGURATION_SHA256 = consoleConfigurationFingerprint(process.env);
 
 const PORT = Number(process.env.PORT || 8091);
 // Mặc định CHỈ nghe loopback. Console điều phối docker trên host — mở ra ngoài
@@ -92,7 +95,7 @@ const SIWE_URI = process.env.A1_CONSOLE_URI || `https://${SIWE_DOMAIN}/console`;
 const dangNhapVi = siwe({
   domain: SIWE_DOMAIN,
   uri: SIWE_URI,
-  chainId: Number(process.env.A1_EVM_CHAIN_ID || 9000000009),
+  chainId: Number(process.env.A1_EVM_CHAIN_ID || A1_PARENT_EVM_CHAIN_ID),
 });
 
 // ═══ GỐC DẢI chainId CHO L1 NGƯỜI DÙNG — David chốt `2026-08-27` (D-069, B-14) ═══
@@ -2024,6 +2027,23 @@ const server = http.createServer(async (req, res) => {
     // Nếu ở đây luôn ra IP của Caddy thì rate-limit vô dụng (gom chung 1 khoá).
     if (req.method === "GET" && req.url === "/whoami") {
       return send(res, 200, { ip: clientIp(req, TRUST_PROXY), trustProxy: TRUST_PROXY });
+    }
+
+    if (req.method === "GET" && req.url.split("?")[0] === "/api/maintenance/readiness") {
+      res.setHeader("cache-control", "no-store");
+      if (blockedByRate(req, res, limitRead)) return;
+      const identity = blockedByAuth(req, res);
+      if (!identity) return;
+      if (identity.kieu !== "vanHanh") return send(res, 403, { error: "Console readiness requires the operator token" });
+      const query = new URL(req.url, "http://127.0.0.1").searchParams;
+      const probeId = query.get("probeId");
+      if ([...query.keys()].length !== 1 || !/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(probeId ?? "")) {
+        return send(res, 400, { error: "Readiness requires exactly one fresh probeId UUID" });
+      }
+      const result = await probeConsoleReadiness({ probeId, configurationSha256: STARTUP_CONFIGURATION_SHA256, rpc,
+        readState: () => { assertNoPendingLedgerWrite(STATE); return loadState(); },
+        readPending: () => creationJournal.summary(), maintenance: () => maintenance.snapshot() });
+      return send(res, result.healthy ? 200 : 503, result);
     }
 
     if ((req.method === "GET" && req.url === "/api/maintenance") ||

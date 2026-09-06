@@ -32,6 +32,7 @@ const server = createServer(async (req, res) => {
     return;
   }
   res.writeHead(responseMode === 'httpError' ? 503 : 200, { 'content-type': 'application/json' });
+  if (responseMode === 'large') { res.end(JSON.stringify({ jsonrpc: '2.0', id: 1, result: 'x'.repeat(65536) })); return; }
   res.end(responseMode === 'invalidJson' ? '{broken' : JSON.stringify(replies[responseMode] ?? replies.ok));
 });
 server.listen(0, '127.0.0.1');
@@ -72,6 +73,12 @@ try {
     cases++;
   }
   await assert.rejects(requestRpc(url, 'test', [], { timeoutMs: 0 }), /positive integer/); cases++;
+  for (const maxResponseBytes of [0, 1.5, 64 * 1024 * 1024 + 1]) {
+    await assert.rejects(requestRpc(url, 'test', [], { maxResponseBytes }), /response bound/); cases++;
+  }
+  responseMode = 'large';
+  await assert.rejects(requestRpc(url, 'test', [], { maxResponseBytes: 65536 }), /exceeds its 65536-byte bound/); cases++;
+  assert.equal((await requestRpc(url, 'test', [], { maxResponseBytes: 131072 })).length, 65536); cases++;
   responseMode = 'ok';
   assert.equal(await requestRpc(url, 'test'), 7); cases++;
   console.log(`PASS: ${cases} RPC transport/envelope cases, including header/body deadlines and slow controls`);

@@ -23,6 +23,8 @@ const consoleChecks = [
   ['local-net/deploy/console-maintenance-test.mjs'],
   ['local-net/lib/maintenance-test.mjs'],
   ['local-net/console/maintenance-e2e-test.mjs'],
+  ['local-net/lib/console-readiness-test.mjs'],
+  ['local-net/console/readiness-e2e-test.mjs'],
   ['local-net/lib/chain-readiness-test.mjs'],
   ['scripts/inspect-creation-test.mjs'],
   ['local-net/lib/ledger-write-test.mjs'],

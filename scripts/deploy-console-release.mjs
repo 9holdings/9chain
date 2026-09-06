@@ -42,7 +42,7 @@ function readPausedReceipt(file, expected, options, bundle) {
   if (result.schema !== 1 || result.kind !== '9chain-console-deployment' || result.outcome !== 'paused' ||
       !uuid(result.actor?.runId) || result.actor.commit !== bundle.source.commit || result.releaseSha256 !== bundle.sha256 ||
       result.host !== options.host || result.sourceDirectory !== options.sourceDirectory ||
-      !['backupSha256', 'dependenciesSha256', 'installSha256', 'restartSha256'].every(key => validHash(result[key]))) throw new Error('Paused receipt is incomplete or belongs to another release/target');
+      !['backupSha256', 'dependenciesSha256', 'installSha256', 'restartSha256', 'configurationSha256'].every(key => validHash(result[key]))) throw new Error('Paused receipt is incomplete or belongs to another release/target');
   paused(result.state); return result;
 }
 
@@ -71,7 +71,7 @@ export async function deployConsoleRelease(options) {
   const evidence = fs.mkdtempSync(path.join(work, actor.runId + '-'));
   const report = { schema: 1, kind: '9chain-console-deployment', action, actor, releaseSha256: bundle.sha256,
     host, sourceDirectory, startedAt: new Date().toISOString(), outcome: 'running', events: [],
-    ...(previous ? Object.fromEntries(['state', 'backupSha256', 'dependenciesSha256', 'installSha256', 'restartSha256'].map(key => [key, previous[key]])) : {}) };
+    ...(previous ? Object.fromEntries(['state', 'backupSha256', 'dependenciesSha256', 'installSha256', 'restartSha256', 'configurationSha256'].map(key => [key, previous[key]])) : {}) };
   function event(phase, value) {
     const record = { phase, observedAt: new Date().toISOString(), value };
     const receipt = writeReceipt(evidence, String(report.events.length + 1).padStart(2, '0') + '-' + phase + '.json', record);
@@ -79,7 +79,7 @@ export async function deployConsoleRelease(options) {
     process.stderr.write(`PASS: ${phase}\n`); return value;
   }
   const phaseRequest = action => ({ action, state: report.state, backupSha256: report.backupSha256,
-    dependenciesSha256: report.dependenciesSha256, installSha256: report.installSha256, restartSha256: report.restartSha256 });
+    dependenciesSha256: report.dependenciesSha256, installSha256: report.installSha256, restartSha256: report.restartSha256, configurationSha256: report.configurationSha256 });
   let phase = 'local-validation';
   try {
     const validation = validateConsoleRelease({ directory: bundle.directory, expectedHash: bundle.sha256, root });
@@ -100,8 +100,9 @@ export async function deployConsoleRelease(options) {
       phase = 'upload'; event(phase, transport.upload(stage.stage));
       phase = 'verify-package'; event(phase, transport.verifyPackage(actor));
       phase = 'backup'; const backup = event(phase, transport.phase(actor, phaseRequest(phase)));
-      if (!validHash(backup.backup?.sha256)) throw new Error('Backup did not return its independently verified hash');
+      if (!validHash(backup.backup?.sha256) || !validHash(backup.configurationSha256)) throw new Error('Backup did not return its verified hash and intended configuration identity');
       report.backupSha256 = backup.backup.sha256;
+      report.configurationSha256 = backup.configurationSha256;
       for (const name of ['dependencies', 'install', 'restart']) {
         phase = name; const result = event(name, transport.phase(actor, phaseRequest(name)));
         if (!validHash(result.sha256)) throw new Error('Installation phase did not return its receipt hash');

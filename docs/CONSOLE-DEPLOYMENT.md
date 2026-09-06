@@ -56,7 +56,9 @@ Application proceeds in this order:
    dependencies into place. No recursive deletion or dependency cleanup.
 8. Verify installed bytes and unchanged runtime, then invoke targeted restart.
    A different verified listener starts persistently paused. Verify source,
-   dependencies, runtime and process identity again.
+   dependencies, runtime and process identity again. D-219 also requires fresh
+   readiness from the replacement: exact A1 network, readable ledger, no unresolved
+   creation, drained maintenance and the intended captured startup configuration.
 9. Return hashed local deployment.json with outcome paused. Maintenance and the
    invocation lock remain held; success here does not reopen admissions.
 
@@ -72,6 +74,8 @@ bash local-net/deploy/console-deploy.sh \
 Resume binds receipt/release/target/invocation, repeats local validation, verifies
 the lock, backup, phase receipts, installed bytes, runtime and replacement process,
 and runs exact remote audit plus existing public drift and chain-ledger gates.
+The intended configuration digest from backup must remain stable through every
+phase; actual process readiness is repeated before resume (CONSOLE-READINESS.md).
 Only then does it send one resume operation and release its lock with a receipt.
 It uses `--ssh-key` for drift, fixing the old `--key` typo. A public-gate failure
 keeps the original paused receipt usable for a later reviewed attempt. An uncertain
@@ -92,8 +96,9 @@ values. Existing console.env is loaded silently on-server. Hashes are not signat
 or approval. Dependency inventory accepts regular files/real directories only,
 <=10000files/256MiB; links require a reviewed policy. Backup limits/exclusions are
 in CONSOLE-BACKUP.md. Retained dependencies are not a portable full-node backup.
-Environment stability, application/network readiness and recovery beyond selected
-files require separate evidence.
+D-219 binds24 explicit environment inputs and probes application/network readiness;
+see CONSOLE-READINESS.md for its scope. Referenced configuration-file contents, binary
+attestation, consensus liveness and recovery beyond selected files remain separate.
 
 SSH/SCP, package-manager and helper children have finite deadlines. Local validation
 still has a ten-minute ceiling. Ordinary checks get <=120s; the deployment drill
@@ -123,12 +128,13 @@ console keeps its process. Docker has no network, ports or socket, read-only roo
 2GiB/2CPU and bounded executable tmpfs. Only selected source/synthetic fixtures enter.
 Image preparation uses a Dockerfile/package-lock-only context and package registries.
 
-28 CLI scenarios pass: local plan/noSSH, foreign-controller-root refusal, local-check failure, full paused install,
+33 CLI scenarios pass: local plan/noSSH, foreign-controller-root refusal, local-check failure, full paused install,
 bad receipt, failed public gate, installed drift, resume, orphan/nonselected drift/
 link/401/404/pre-existing pause/held lock, failed/altered upload, backup/npm failure,
 source/dependency changes after backup, partial copy, refused restart, hanging SSH,
 changed frozen client before SSH, and real resume with its response deliberately
-lost. No automatic resume/replay or unrelated-console restart. Inner product and
+lost, configuration drift after backup/restart, wrong loaded configuration, wrong
+network and wrong parent chain. No automatic resume/replay or unrelated-console restart. Inner product and
 public gates are explicit placeholders for ordering, not public acceptance evidence.
 The real repository's product suite remains separately required.
 
@@ -144,3 +150,9 @@ work/console-deployment-2A3qzZ/evidence (28 cases, exited0/noOOM).
 Earlier failing runs exposed the connection race and a fixture-only executable-tmpfs
 requirement; both were corrected before acceptance. The drill is now required by
 release validation. Full24-group profile passes in work/console-deployment-full-profile.log.
+
+D-219 expands the profile to26 groups and deployment drill to33 cases. Current
+logs: work/console-readiness-full-profile.log, work/console-readiness-deployment.log;
+deployment evidence work/console-deployment-qOKgGt/evidence, exited0/noOOM. Separate
+actual-console and readiness-client tests pass on Windows and Linux; see
+CONSOLE-READINESS.md for negative controls and limits.

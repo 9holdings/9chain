@@ -49,9 +49,11 @@ if(fault==='ssh-hang'&&phase==='status') {setInterval(()=>{},1000); await new Pr
 if(fault==='backup-failure'&&phase==='backup') fs.writeFileSync(process.env.A1_FIXTURE_SOURCE+'/9chain-a1-config/creation-journal/unexpected-file','synthetic');
 if(fault==='source-drift'&&phase==='install') fs.appendFileSync(process.env.A1_FIXTURE_SOURCE+'/local-net/console/server.mjs','// source drift after backup');
 if(fault==='dependency-drift'&&phase==='install') fs.appendFileSync(process.env.A1_FIXTURE_SOURCE+'/../console-deployments/'+request.actor.runId+'/dependencies/node_modules/ethers/package.json',' ');
+if(fault==='configuration-drift'&&phase==='dependencies') fs.appendFileSync(process.env.A1_FIXTURE_SOURCE+'/../console.env','\\nA1_MAX_L1=14\\n');
 if(fault==='frozen-client-drift'&&phase==='audit') fs.appendFileSync(process.env.A1_FIXTURE_PACKAGE+'/payload/local-net/deploy/console-maintenance.mjs','// source drift before SSH execution');
 if(fault==='copy-failure'&&phase==='install') fs.chmodSync(process.env.A1_FIXTURE_SOURCE+'/local-net/lib',0o500);
 const result=spawnSync('/bin/bash',['-c',command],{input,encoding:'utf8',env:process.env,timeout:160000,maxBuffer:2<<20});
+if(fault==='configuration-after-restart'&&phase==='restart'&&result.status===0) fs.appendFileSync(process.env.A1_FIXTURE_SOURCE+'/../console.env','\\nA1_MAX_L1=14\\n');
 if(result.status!==0) fs.appendFileSync(process.env.A1_FIXTURE_LOG,JSON.stringify({phase:'remote-failure',during:phase,status:result.status,stderr:result.stderr,error:result.error?.code})+'\\n');
 if(fault==='lost-resume'&&phase==='resume') process.exit(74);
 process.stdout.write(result.stdout||''); process.stderr.write(result.stderr||''); process.exit(result.status??96);
@@ -73,12 +75,15 @@ if(process.env.A1_FIXTURE_FAULT==='npm-failure') process.exit(19);
 const r=spawnSync('/usr/local/bin/npm',args,{stdio:'inherit',env:process.env}); process.exit(r.status??96);
 `, 0o755);
 put(bin + '/ss', `#!/bin/sh\nif [ "\$A1_FIXTURE_FAULT" = 'restart-failure' ]; then exit 21; fi\nexec /sbin/ss "\$@"\n`, 0o755);
+put(bin + '/setsid', `#!/bin/sh\nif [ "\$A1_FIXTURE_FAULT" = 'wrong-startup' ]; then export A1_MAX_L1=14; fi\nexec /usr/bin/setsid "\$@"\n`, 0o755);
 const envBase = { ...process.env, PATH: bin + ':' + process.env.PATH,
   npm_config_cache: lab + '/npm-cache', npm_config_offline: 'true', npm_config_update_notifier: 'false' };
 const rpc = createServer(async (req, res) => {
   let body = ''; for await (const part of req) body += part;
   const { id, method } = JSON.parse(body);
-  const result = method === 'info.getNetworkID' ? { networkID: '999999998' } : method === 'info.getNetworkName' ? { networkName: '9chain-a1' } : method === 'info.getNodeVersion' ? { version: '9chaingo/1.14.2' } : '0x218711a09';
+  const result = method === 'info.getNetworkID' ? { networkID: req.url.includes('/wrong-network/') ? '999999997' : '999999998' } :
+    method === 'info.getNetworkName' ? { networkName: '9chain-a1-g1' } : method === 'info.getNodeVersion' ? { version: '9chaingo/1.14.2' } :
+    req.url.includes('/wrong-chain/') ? '0x1' : '0x218711a09';
   res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ jsonrpc: '2.0', id, result }));
 });
 rpc.listen(18999, '127.0.0.1'); await once(rpc, 'listening');
@@ -96,7 +101,7 @@ async function fixture(name, fault = '') {
   const env = { ...envBase, A1_FIXTURE_SOURCE: source, A1_FIXTURE_LOG: log, A1_FIXTURE_FAULT: fault,
     A1_FIXTURE_PACKAGE: bundle.directory,
     PORT: String(port), A1_CONSOLE_TOKEN: token, A1_CONSOLE_HOST: '127.0.0.1', A1_CONSOLE_START_PAUSED: '0',
-    NODE_URI: 'http://127.0.0.1:18999', A1_CLI_KEY: 'PrivateKey-invalid-synthetic-only',
+    NODE_URI: 'http://127.0.0.1:18999' + (['wrong-network', 'wrong-chain'].includes(fault) ? '/' + fault : ''), A1_CLI_KEY: 'PrivateKey-invalid-synthetic-only',
     A1_DE_CHAIN_MO: '1', A1_COMPOSE_FILE: root + '/absent-compose.yml' };
   const names = ['PORT', 'A1_CONSOLE_TOKEN', 'A1_CONSOLE_HOST', 'A1_CONSOLE_START_PAUSED', 'NODE_URI', 'A1_CLI_KEY', 'A1_DE_CHAIN_MO', 'A1_COMPOSE_FILE'];
   put(root + '/console.env', names.map(key => key + "='" + env[key] + "'").join('\n') + '\n# ' + secret + '\n');
@@ -147,6 +152,7 @@ try {
   const good = await fixture('good');
   const applied = (await cli(good, ['--apply'])).report;
   assert.equal(applied.outcome, 'paused'); assert.equal((await state(good)).paused, true);
+  assert.match(applied.configurationSha256, /^[a-f0-9]{64}$/);
   assert.notEqual(applied.state.instanceId, good.initial.instanceId); assert.equal((await state(other)).instanceId, other.initial.instanceId);
   const order = phases(good).map(entry => entry.phase);
   for (const [first, second] of [['audit', 'lock'], ['pause', 'upload'], ['backup', 'npm'], ['npm', 'install'], ['install', 'restart'], ['restart', 'verify']]) assert.ok(order.indexOf(first) < order.indexOf(second), first + ' must precede ' + second);
@@ -183,6 +189,8 @@ try {
     ['tampered-upload', 'tampered-upload', 'verify-package'], ['backup-failure', 'backup-failure', 'backup'],
     ['npm-failure', 'npm-failure', 'dependencies'], ['source-drift', 'source-drift', 'install'], ['dependency-drift', 'dependency-drift', 'install'],
     ['copy-failure', 'copy-failure', 'install'], ['restart-failure', 'restart-failure', 'restart'],
+    ['configuration-drift', 'configuration-drift', 'dependencies'], ['configuration-after-restart', 'configuration-after-restart', 'verify-installed'],
+    ['wrong-startup', 'wrong-startup', 'restart'], ['wrong-network', 'wrong-network', 'restart'], ['wrong-chain', 'wrong-chain', 'restart'],
     ['ssh-hang', 'ssh-hang', 'maintenance-status'],
   ]) {
     const item = await fixture(name, fault);
@@ -199,8 +207,12 @@ try {
     if (['source-audit', 'maintenance-status'].includes(expectedPhase)) { noPhase(item, 'lock'); noPhase(item, 'upload'); assert.equal((await state(item)).paused, name === 'already-paused'); }
     else if (expectedPhase === 'lock-acquire') { noPhase(item, 'pause'); noPhase(item, 'upload'); assert.equal((await state(item)).paused, false); }
     else { assert.equal((await state(item)).paused, true); assert.equal(fs.existsSync(item.root + '/deploy-locks/console.lock/holder.json'), true); }
-    if (!['install', 'restart'].includes(expectedPhase)) unchangedCode(item);
-    if (expectedPhase !== 'restart') noPhase(item, 'restart');
+    if (!['install', 'restart', 'verify-installed'].includes(expectedPhase)) unchangedCode(item);
+    if (!['restart', 'verify-installed'].includes(expectedPhase)) noPhase(item, 'restart');
+    const failure = phases(item).find(entry => entry.phase === 'remote-failure');
+    if (name.startsWith('configuration-')) assert.match(failure.stderr, /configuration changed since backup/);
+    if (name === 'wrong-startup') assert.match(failure.stderr, /different startup configuration/);
+    if (['wrong-network', 'wrong-chain'].includes(name)) assert.match(failure.stderr, /readiness returned HTTP 503/);
     assert.equal((await state(other)).instanceId, other.initial.instanceId);
     await stop(item); console.log('PASS: ' + name + ' stops at ' + expectedPhase + ' with no automatic resume');
   }

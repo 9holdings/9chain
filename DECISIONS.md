@@ -9822,3 +9822,28 @@ Full24 local groups pass; deployment drill becomes required release acceptance w
 a360s child ceiling inside the600s total and a180s container watchdog. English debt
 shrinks109lines to5411/104. No public deployment. Legacy API404 and undeclared helper
 ownership remain explicit blockers. See docs/CONSOLE-DEPLOYMENT.md and its limits.
+
+### D-219 — Verify actual loaded configuration and fresh console readiness (2026-09-06)
+
+A restarted listener and matching source/dependency bytes do not prove the console
+loaded the intended environment or points at the right network. Integration fixtures
+previously tolerated the wrong network name. Added an operator-only nonce-bound
+readiness observation from the actual process: exact g1 network/name/parent C-chain,
+well-formed reported node version, readable ledger, no unresolved creation and the
+maintenance state. Four fresh RPCs are each bounded to3s/64KiB. Generic RPC responses
+now have a16MiB default limit, configurable up to64MiB; existing semantics remain.
+
+Capture an immutable versioned digest of24 explicit environment settings at startup,
+without returning raw settings or credentials. Exclude forced START_PAUSED and prove
+maintenance separately. Every installation phase binds the intended digest sourced
+on-server at backup; require actual replacement readiness after restart, verify and
+before reviewed resume. Old maintenance-capable code may upgrade without readiness;
+the replacement must support it. Legacy maintenance API404 still blocks routine apply.
+
+40 actual client cases and31 real-console HTTP cases pass on Windows/Linux;22 RPC
+cases and33 actual Linux deployment scenarios pass. Two copied-source negatives
+prove configuration mismatch is refused and request-time environment hashing cannot
+substitute for the loaded startup identity. Full26 groups pass. Linux containers
+exited0/noOOM, no public mutation. Exact logs and scope in docs/CONSOLE-READINESS.md.
+This does not attest binary/fork provenance, referenced config-file contents,
+consensus liveness, capacity or whole-server state. Public first adoption is pending.
