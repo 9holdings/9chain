@@ -44,7 +44,12 @@ data; Git intentionally ignores them. Restore and reconcile them with the ledger
 
 Validation so far: real isolated console processes, synthetic RPC and intercepted
 Docker; repeated requests and fresh-process retries after RPC/CLI failure do not
-submit again. File writes are flushed, with directory fsync on POSIX. These tests
+submit again. D-204 also forcibly kills the actual console process while its CLI
+submission is unresolved: the client loses its socket, the `submitting` journal
+survives, and a fresh process refuses duplicate creation, revocation and upgrade.
+Removing the fixture's CLI pause makes this test fail at the required crash
+boundary, rather than silently testing an already completed HTTP request.
+File writes are flushed, with directory fsync on POSIX. These tests
 establish process-restart behavior, not full power-loss durability: Windows directory
 fsync is unavailable here and the existing chain ledger writer is not fsynced.
 Multi-host orchestration and public recovery remain separate work.

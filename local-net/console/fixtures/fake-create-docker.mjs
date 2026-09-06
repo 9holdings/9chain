@@ -37,6 +37,13 @@ function output(file, args) {
 function fakeExecFile(file, args, options, callback) {
   try { callback(null, output(file, args), ''); } catch (error) { callback(error); }
 }
-fakeExecFile[promisify.custom] = async (file, args) => ({ stdout: output(file, args), stderr: '' });
+fakeExecFile[promisify.custom] = async (file, args) => {
+  const stdout = output(file, args);
+  if (args.includes('l1') && args.includes('create') && process.env.A1_TEST_CREATE_PAUSE === '1') {
+    // Intent and the synthetic submission are recorded, but the CLI never returns.
+    await new Promise(() => {});
+  }
+  return { stdout, stderr: '' };
+};
 childProcess.execFile = fakeExecFile;
 syncBuiltinESMExports();

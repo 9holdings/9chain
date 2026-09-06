@@ -2,6 +2,8 @@
 
 ## Local automation — 2026-09-06
 
+- [x] D-204: real local console process killed during unresolved synthetic CLI submission; persisted reservation blocks duplicates and other chain mutations after restart. Eleven creation HTTP scenarios pass; removing the fixture pause fails the crash-boundary assertion. No live transaction or power-loss durability claim.
+
 - [~] D-203: persistent creation reservation prevents blind retries across console restart. Ten HTTP fixture scenarios + journal file controls pass; twelve local checks pass. Public deployment/recovery drill and automatic reconciliation remain unfinished. See `docs/CREATION-RECOVERY.md`.
 
 - [~] D-202: RPC deadline and HTTP/JSON-RPC envelope checks implemented locally. Seventeen transport tests, options 105/105, RPC creation 9/9, governance 55/55; eleven-check profile passes. Hung-node queue releases at ~10s. Read-only live network/version accepted; deployment pending.

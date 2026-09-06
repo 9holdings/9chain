@@ -82,10 +82,18 @@ archival. Ten actual-console synthetic RPC/Docker scenarios and journal file tes
 pass; twelve local checks pass. Read `docs/CREATION-RECOVERY.md` before further work.
 No real public submission, restart or recovery was performed.
 
-Next priorities: read-only reconciliation/inspection for pending jobs, crash during
-in-flight submission, and atomic ledger write durability (ledger currently has no
+Next priorities: read-only reconciliation/inspection for pending jobs and atomic
+ledger write durability (ledger currently has no
 fsync). Do not add blind resume/retry/discard endpoints. Recovery must establish
 what P-chain already accepted and preserve all artifacts before mutation.
 Preserve the public ledger/API contract. Matching chain ID does not prove block
 production or all-validator readiness. Full cold build, patch replay and live
 consensus remain separate unverified items. No public create/upgrade in tests.
+
+D-204 now tests a hard process crash during unresolved CLI submission. All eleven
+creation HTTP scenarios pass. Disabling the fixture pause gives exactly one failure:
+the client request had already settled, so it is not the required crash boundary.
+The killed process leaves a `submitting` reservation; fresh processes block a second
+submission and other chain mutations. Evidence: `work/create-hard-crash-negative.log`.
+This proves the local process-crash case, not actual CLI acceptance on P-chain or
+power-loss recovery. No runtime behavior changed in this test-only follow-up.

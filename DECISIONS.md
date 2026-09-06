@@ -9276,3 +9276,21 @@ No automatic resume/discard operation is supplied: a submission timeout cannot
 prove non-acceptance. Public recovery must reconcile chain state first and be
 approved. Follow-up: read-only recovery planning and ledger durability. Scope and
 operator procedure in `docs/CREATION-RECOVERY.md`; public deployment still pending.
+
+### D-204 — Exercise a hard crash while creation submission is unresolved (2026-09-06)
+
+D-203 restarted the console after a failed HTTP response. That did not establish
+behavior when the process dies before the CLI response or exception reaches it.
+The test-only Docker preload can now record a synthetic submission and leave its
+promise unresolved. The actual console is forcibly killed only after the journal
+records `submitting`, with no ledger record and an outstanding HTTP request.
+The client must lose its socket before its own deadline; the new console process
+must retain the same job and refuse creation, revocation and upgrade before another
+CLI call. The existing success/RPC/error scenarios remain in the same HTTP suite.
+
+Validation: eleven scenarios pass. Negative control temporarily removes the fixture
+pause: ten scenarios pass and the new test fails specifically because the request
+has already settled, proving that the crash boundary is observed. Original fixture
+bytes were restored. Log: `work/create-hard-crash-negative.log`. This is a test-only
+extension, with synthetic RPC and intercepted Docker; it does not establish real
+P-chain transaction acceptance, cross-host coordination or full power-loss durability.

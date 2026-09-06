@@ -51,7 +51,7 @@ const nodeUrl = `http://127.0.0.1:${node.address().port}`;
 mkdirSync(path.join(root, 'work'), { recursive: true });
 let pass = 0, fail = 0;
 
-async function check(label, result, succeeds, errorPattern, failuresBeforeSuccess = 0, cliFailure = false) {
+async function check(label, result, succeeds, errorPattern, failuresBeforeSuccess = 0, cliFailure = false, crashDuringSubmission = false) {
   reported = result;
   chainQueries = 0;
   failuresRemaining = failuresBeforeSuccess;
@@ -76,6 +76,7 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
       A1_CONSOLE_TOKEN: token, A1_CLI_KEY: 'PrivateKey-synthetic-not-valid',
       A1_DE_CHAIN_MO: '1', A1_NODE_CONTAINER: 'test-node', NODE_URI: nodeUrl,
       A1_TEST_REQUIRE_JOURNAL: '1', A1_TEST_CREATE_FAILURE: cliFailure ? '1' : '0',
+      A1_TEST_CREATE_PAUSE: crashDuringSubmission ? '1' : '0',
       A1_COMPOSE_FILE: path.join(scratch, 'no-real-compose.yml'),
       A1_PUBLIC_RPC_BASE: nodeUrl },
   };
@@ -88,9 +89,9 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
     child.on('error', error => { spawnError = error; });
     child.stdout.resume(); child.stderr.resume();
   }
-  async function stopChild() {
-    if (child.exitCode === null && !spawnError) {
-      const exited = once(child, 'exit'); child.kill(); await exited;
+  async function stopChild(signal = 'SIGTERM') {
+    if (child.exitCode === null && child.signalCode === null && !spawnError) {
+      const exited = once(child, 'exit'); child.kill(signal); await exited;
     }
     children.delete(child);
   }
@@ -112,11 +113,37 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
   }
   try {
     await waitReady();
-    const response = await fetch(base + '/api/create', { method: 'POST', headers,
-      body: JSON.stringify({ name: 'RPC Identity Test', chainId: expected }), signal: AbortSignal.timeout(10000) });
-    const body = await response.json();
-    assert.equal(response.status, succeeds ? 200 : 400, `${label}: ${body.error ?? 'unexpected success'}`);
     const ledger = path.join(config, 'console-chains.json');
+    let settled = false;
+    const submission = fetch(base + '/api/create', { method: 'POST', headers,
+      body: JSON.stringify({ name: 'RPC Identity Test', chainId: expected }), signal: AbortSignal.timeout(10000) })
+      .then(response => { settled = true; return { response }; }, error => { settled = true; return { error }; });
+    let body;
+    if (crashDuringSubmission) {
+      const commandLog = path.join(scratch, 'fake-docker.log');
+      for (let attempt = 0; attempt < 100 && !existsSync(commandLog) && !settled; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      assert.equal(settled, false, 'the HTTP request must still be waiting when the console is killed');
+      assert.deepEqual(readFileSync(commandLog, 'utf8').trim().split('\n'), ['create'],
+        'kill only after the synthetic CLI submission, before tracking or RPC verification');
+      const interrupted = JSON.parse(readFileSync(path.join(config, 'creation-journal/pending.json'), 'utf8'));
+      assert.equal(interrupted.phase, 'submitting');
+      assert.equal(existsSync(ledger), false);
+      await stopChild('SIGKILL');
+      const outcome = await submission;
+      assert.equal(outcome.response, undefined, 'a killed console must not have acknowledged creation');
+      assert.equal(outcome.error?.name, 'TypeError', 'the socket must close before the client timeout');
+      startChild();
+      await waitReady();
+      assert.equal(JSON.parse(readFileSync(path.join(config, 'creation-journal/pending.json'), 'utf8')).id,
+        interrupted.id, 'the fresh process must preserve the interrupted reservation');
+    } else {
+      const { response, error } = await submission;
+      if (error) throw error;
+      body = await response.json();
+      assert.equal(response.status, succeeds ? 200 : 400, `${label}: ${body.error ?? 'unexpected success'}`);
+    }
     if (succeeds) {
       assert.equal(body.chainId, expected);
       assert.equal(JSON.parse(readFileSync(ledger, 'utf8')).chains[0].chainId, expected);
@@ -125,19 +152,22 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
       assert.equal(readdirSync(history).length, 1);
       assert.equal(JSON.parse(readFileSync(path.join(history, readdirSync(history)[0]), 'utf8')).phase, 'complete');
     } else {
-      assert.match(body.error, errorPattern);
-      assert.equal(existsSync(ledger), false, 'a mismatched RPC must not publish a successful ledger entry');
+      if (!crashDuringSubmission) assert.match(body.error, errorPattern);
+      assert.equal(existsSync(ledger), false, 'an unverified creation must not publish a successful ledger entry');
     }
-    assert.equal(chainQueries, cliFailure ? 0 : failuresBeforeSuccess + 1, 'only transient failures may be retried');
+    const submissionUnconfirmed = cliFailure || crashDuringSubmission;
+    assert.equal(chainQueries, submissionUnconfirmed ? 0 : failuresBeforeSuccess + 1, 'only transient failures may be retried');
     assert.deepEqual(readFileSync(path.join(scratch, 'fake-docker.log'), 'utf8').trim().split('\n'),
-      cliFailure ? ['create'] : ['create', 'services', 'restart', 'health'], 'the expected launch stages must execute');
-    const progress = await (await fetch(base + '/api/progress', { headers })).json();
-    assert.equal(progress.running, false);
-    assert.equal(progress.steps.find(step => step.code === (cliFailure ? 'subnet' : 'rpc')).status, succeeds ? 'done' : 'failed');
+      submissionUnconfirmed ? ['create'] : ['create', 'services', 'restart', 'health'], 'the expected launch stages must execute');
+    if (!crashDuringSubmission) {
+      const progress = await (await fetch(base + '/api/progress', { headers })).json();
+      assert.equal(progress.running, false);
+      assert.equal(progress.steps.find(step => step.code === (cliFailure ? 'subnet' : 'rpc')).status, succeeds ? 'done' : 'failed');
+    }
     if (!succeeds) {
       const pendingFile = path.join(config, 'creation-journal/pending.json');
       const pending = JSON.parse(readFileSync(pendingFile, 'utf8'));
-      assert.equal(pending.phase, cliFailure ? 'submitting' : 'created');
+      assert.equal(pending.phase, submissionUnconfirmed ? 'submitting' : 'created');
       assert.equal(pending.plan.chainId, expected);
       assert.equal(pending.genesisSha256, createHash('sha256')
         .update(readFileSync(path.join(config, 'console-tmp/RPC_Identity_Test.json'))).digest('hex'),
@@ -192,6 +222,7 @@ try {
   await check('object result instead of a hex quantity', {}, false, /invalid eth_chainId/);
   await check('malformed hexadecimal result', '0xwrong', false, /invalid eth_chainId/);
   await check('lost CLI response remains reserved across restart', null, false, /Synthetic lost CLI response/, 0, true);
+  await check('hard crash during unresolved CLI submission blocks duplicates after restart', null, false, undefined, 0, false, true);
 } finally {
   await new Promise(resolve => node.close(resolve));
 }
