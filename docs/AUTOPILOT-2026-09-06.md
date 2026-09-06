@@ -12,6 +12,12 @@
 
 ## Priorities
 
+Reporting preference updated by the owner: send a brief Vietnamese progress report
+roughly hourly (completed/current work, test results, blockers/approvals), plus
+significant milestones or actionable failures. Combine nearby updates to avoid
+repetition. Last user-facing progress update: **2026-09-06 16:57:29 UTC**.
+Keep this timestamp current across scheduled runs; the work deadline is unchanged.
+
 1. Verify build inputs and reproducible local validation before new features.
 2. Review console creation/recovery for lost state, duplicate operations and stale RPC readiness.
 3. Implement bounded fixes with HTTP/local integration tests and negative controls.
