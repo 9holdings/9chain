@@ -1,5 +1,10 @@
 # PROGRESS — 9Chain-A1 (phần CHAIN)
 
+## Local automation — 2026-09-06
+
+- [x] Repository-only runner `node scripts/check-local.mjs`: six checks passed on the actual checkout; runner negative controls include a real child exiting 7. This verifies the developer command, not the public blockchain.
+- [~] Environment readiness: Node, Go, Git and Docker engine detected. Full fork build, SSH authentication and local network integration remain unverified. See `docs/LOCAL-AUTOMATION.md` and D-197.
+
 Backlog autopilot. Explorer là dự án khác (`C:\PROJECTS\9Scan-A1`) — **không làm ở đây**.
 Nhật ký chi tiết lịch sử: `docs/PROGRESS.md`. Bàn giao: `HANDOFF.md`.
 

@@ -9139,3 +9139,14 @@ sổ nào biết (id ma) **vẫn đỏ**, và câu lỗi nêu cả hai nhân ch�
 đèn xanh cả gói) · id ma ⇒ đỏ nêu sổ · chainId mẹ sạch không cần sổ · networkID chết cạnh id L1 hợp lệ vẫn đỏ. Đo thật sau sửa:
 4 trang · `/chains/` 14 lời khai ✓ · sổ 11 sống/0 thu hồi · **PASS**. Đỏ này xuất hiện sau khi trang `/chains/` mới lên site
 (sáng `05/09` preflight còn 1 đỏ); không phải việc `web-home` phải sửa — không đụng `web/`.
+# D-197 — Local automation boundary (2026-09-06)
+
+The owner authorized autonomous local development and commits, while reserving
+public deployment/publication, validator/genesis changes and deletion for review.
+Added `scripts/check-local.mjs` as a repository-only entry point instead of invoking
+the live preflight implicitly. Six checks pass in the actual checkout. Negative
+controls cover nonzero/inconclusive exits, signals, launch errors and a real child
+process exiting 7; failures stop subsequent checks. Docker engine is reachable
+after tool approval. Full fork build, SSH authentication, network integration and
+public acceptance are not claimed. Scope and environment are recorded in
+`docs/LOCAL-AUTOMATION.md`; existing ownership and deployment rules stay in force.
