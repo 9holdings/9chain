@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 21:39:28 UTC** (owner status reply, D-217 backup progress).
+repetition. Last user-facing progress update: **2026-09-06 22:10:43 UTC** (D-218 deployment drill and connection-reuse fix).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -367,3 +367,39 @@ Packager26 regression passed after shared-library extraction; full24-group profi
 passes in work/console-backup-full-profile.log. Operator import closure now10,
 console25/faucet3 unchanged. Next replace legacy deploy orchestration. Do not run
 the old deployment script publicly or bypass the known live maintenance API404.
+
+D-218: legacy console-deploy.sh is now a six-line English wrapper for
+scripts/deploy-console-release.mjs. Default plan is local/read-only. Explicit apply
+requires exact-source acceptance before SSH, audits source/orphans, requires open
+compatible maintenance, locks, pauses/drains, stages/independently verifies a frozen
+package, backs up, installs frozen lockfile dependencies separately, verifies/replaces
+selected source/deps and performs targeted paused restart. Remote console-install.mjs
+requires lock/identity and hash-bound phase records; exclusive attempt markers refuse
+retries. Resume is separately reviewed and repeats acceptance, exact remote audit,
+public drift/ledger gates, then one resume and lock release. No public action taken.
+
+28 actual Linux controller CLI cases pass with real consoles, files, offline npm ci
+and restart. Inner product/public acceptance programs are explicit placeholders for
+ordering, not live acceptance. Other console survives. Matrix includes401/404,
+orphan/nonselected drift/links/pre-existing pause/held lock, upload tampering/failure,
+backup/npm/copy/restart failures, source/dependency drift, hanging SSH, frozen client
+tampering before streaming, failed resume gates and actual lost resume response.
+Logs work/console-deployment-linux.log; latest accepted evidence
+work/console-deployment-2A3qzZ/evidence, exited0/noOOM, isolated2GiB/2CPU/no network,
+ports or socket. Runner now builds from node:24-alpine with only Dockerfile/package
+inputs; no dependency on a manually prepared local image. Container watchdog180s.
+
+Repeated tests exposed an old HTTP pooled connection reused after restart. The
+maintenance client now requests Connection: close;33 CLI cases pass. A deterministic
+peer drops a reused connection; removing only the header fails that case with the
+connection error. work/maintenance-connection-negative.log and
+work/maintenance-connection-negative-DFMNic. Initial fixture noexec-tmpfs issue fixed;
+two pre-fix restart failures were not counted as acceptance. Full24 groups pass in
+work/console-deployment-full-profile.log. Operator closure11; English debt5411/104.
+
+Release validation now includes the Docker deployment drill as a ninth acceptance
+command, <=360s for that command within600s overall; other direct checks remain120s.
+Run real-root freeze/validation after committing implementation/docs. Current public
+legacy API404 still blocks normal apply; undeclared heartbeat-deploy.sh still needs
+exact review. Next useful work: bind startup/environment and actual console/network
+readiness before reviewed resume, then prepare final public adoption/recovery packet.

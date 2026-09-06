@@ -2,7 +2,7 @@
 
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
-for current evidence and next work. D-197 through D-217: local console reliability,
+for current evidence and next work. D-197 through D-218: local console reliability,
 read-only creation inspection, cold-build/replay, core tests, managed-node transport
 and persistent operator maintenance, frozen releases, targeted paused restart and
 per-invocation deployment exclusion without TTL takeover (`docs/DEPLOYMENT-LOCK.md`).
@@ -12,7 +12,12 @@ Exact-source validation now binds the package to clean main and source bytes bef
 and after local acceptance; current profile has 23 checks (`docs/CONSOLE-RELEASE.md`).
 Selected console source/state backup now passes 33 actual CLI cases on Windows
 and Linux plus file/directory failure controls (`docs/CONSOLE-BACKUP.md`). It
-preserves evidence and does not restore. Deployment-script integration is still pending;
+preserves evidence and does not restore. D-218 replaces the legacy deploy script
+with explicit plan/apply/reviewed-resume phases (`docs/CONSOLE-DEPLOYMENT.md`).
+28 actual Linux CLI scenarios pass with real consoles, files, offline npm ci and
+targeted restart; inner public/product gates are placeholders for orchestration.
+The 33-case maintenance client closes HTTP connections across restart. The deployment
+drill is now required by release validation; public legacy adoption remains pending;
 see `docs/CONSOLE-MAINTENANCE.md` before preparing any public rollout.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.

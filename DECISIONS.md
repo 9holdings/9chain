@@ -9787,3 +9787,38 @@ root, 512 MiB/one CPU and no ports/socket. Evidence work/console-backup-test.log
 work/console-backup-linux.log; inputs work/backup-linux-GklNBk. Packager26 and the
 full24-group local console profile pass (work/console-backup-full-profile.log).
 See docs/CONSOLE-BACKUP.md. Public deployment integration remains the next step.
+
+### D-218 — Reviewed staged deployment with separate resume (2026-09-06)
+
+The old script copied live code before asking whether work was running and treated
+failed progress queries as permission to continue. Replaced it with a local-default
+plan and explicit apply/resume controller. Exact clean source acceptance comes
+before SSH. Read-only source/orphan audit allows intended selected changes but blocks
+unrelated manifest drift and undeclared extras. Compatible open maintenance, an
+invocation lock and stable drain precede staging and any source replacement.
+
+Frozen-package upload is verified before executing staged helpers. Lock/maintenance
+bytes streamed from local packaging are rehashed immediately before use. Preserve
+old code/state with D-217, install frozen dependencies separately using npm ci without
+lifecycle scripts, inventory/verify them, replace each source file with flushed
+atomic rename, retain previous dependencies, then targeted restart into maintenance.
+Apply returns paused and keeps its lock. A separate hash-bound reviewed resume
+revalidates source/server/phase state and public drift/ledger gates before one resume
+and lock release. Exclusive started markers and retained partial evidence prevent
+blind retries, automatic recovery, cleanup or stale-lock takeover.
+
+28 actual Linux CLI scenarios pass in work/console-deployment-2A3qzZ/evidence;
+work/console-deployment-linux.log. Real consoles/files/offline npm ci/restart, synthetic
+SSH/SCP with no network fallback. Inner public/product acceptance programs are
+placeholders to prove ordering, not public correctness. Tests observe every failure
+gate red, preserve the unrelated console and prove no replay after a lost resume
+response. Network-none/read-only-root2GiB/2CPU container exited0/noOOM.
+
+Repeated real restart tests exposed pooled HTTP reuse of the old listener. Added
+Connection: close to the operator client. Its 33 CLI cases include a reused-connection
+trap; removing only the header fails for that connection error. Evidence
+work/maintenance-connection-negative.log, work/maintenance-connection-negative-DFMNic.
+Full24 local groups pass; deployment drill becomes required release acceptance with
+a360s child ceiling inside the600s total and a180s container watchdog. English debt
+shrinks109lines to5411/104. No public deployment. Legacy API404 and undeclared helper
+ownership remain explicit blockers. See docs/CONSOLE-DEPLOYMENT.md and its limits.

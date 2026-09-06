@@ -196,3 +196,10 @@ survival assertion. Both containers exited without OOM. Evidence:
 The HTTP suite also verifies forced paused boot from an absent marker and refusal
 of malformed startup policy. Full local profile: nineteen checks pass in
 `work/console-restart-full-profile.log`. These are local measurements only.
+
+D-218 integrates the helpers into CONSOLE-DEPLOYMENT.md's reviewed controller.
+Apply ends paused with its lock retained; resume is separately reviewed after
+acceptance. First legacy adoption still needs a separate plan; HTTP404 is not
+bypassed. The operator client closes each HTTP connection to avoid reusing an old
+listener socket across restart. 33 CLI cases include a deterministic reused-socket
+failure control, and the actual deployment drill passes 28 cases. No public apply.

@@ -59,8 +59,9 @@ node local-net/deploy/console-backup.mjs \
   missing empty directories and self-consistent invalid metadata are rejected.
 
 This is not a full-node backup, dependency rollback or tested restore procedure.
-Restoring operational state needs a separate reviewed recovery plan. The old
-deployment script remains unsafe until its orchestration is replaced.
+Restoring operational state needs a separate reviewed recovery plan. The D-218
+controller in CONSOLE-DEPLOYMENT.md consumes this backup; public rollout and any
+operational-state restore still require separate review.
 
 ## Evidence, 2026-09-06
 

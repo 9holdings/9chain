@@ -16,6 +16,7 @@ if(Object.keys(CONTRACTS).length!==3 || Object.values(CONTRACTS).some(c=>!/^0x[0
 console.log('PASS: three nonempty contract artifacts; execution is a separate gate');`;
 export const CONSOLE_RELEASE_CHECKS = [
   ['scripts/check-local.mjs', '--console'],
+  ['scripts/check-console-deployment.mjs'],
   ['local-net/deploy/check-html.mjs', 'local-net/console/index.html'],
   ['local-net/console/generation-test.mjs'],
   ['local-net/console/symbol-test.mjs'],
@@ -60,8 +61,9 @@ export function validateConsoleRelease({ directory, expectedHash, root = default
       const remaining = Math.floor(deadline - performance.now());
       if (remaining <= 0) throw new Error('Console release validation exceeded its deadline');
       const started = performance.now();
+      const commandLimit = args[0] === 'scripts/check-console-deployment.mjs' ? 360_000 : 120_000;
       const result = spawnSync(command, args, { cwd: root, encoding: 'utf8', windowsHide: true,
-        timeout: Math.min(120_000, remaining), maxBuffer: 4 << 20 });
+        timeout: Math.min(commandLimit, remaining), maxBuffer: 4 << 20 });
       const logName = String(report.checks.length + 1).padStart(2, '0') + '.log';
       const log = (result.stdout ?? '') + (result.stderr ?? '');
       fs.writeFileSync(path.join(output, logName), log, { flag: 'wx' });

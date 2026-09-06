@@ -145,8 +145,10 @@ live service/consensus and public approval remain separate acceptance evidence.
 The generation HTTP test now uses its own scratch state rather than the caller's
 operational ledger. Its existing fixed ports must be available.
 
-The overall default ceiling is ten minutes, with at most two minutes for one
-direct child check. `--timeout-ms N` may shorten the overall bound (1–600000).
+The overall default ceiling is ten minutes, with at most two minutes for ordinary
+direct checks. D-218 adds the required isolated deployment drill, allowed up to six
+minutes including image preparation; its container has a three-minute watchdog.
+`--timeout-ms N` may shorten the overall bound (1–600000).
 The tool stops after a failed child, signal, spawn/output error or timeout and
 never records a pass when source/package integrity changed during testing. Child
 tests retain responsibility for their own spawned-service teardown; the short
@@ -185,3 +187,9 @@ This is a preliminary tooling candidate. Later code or even documentation commit
 advance HEAD, so a final candidate must be prepared after all tracked changes finish.
 Keep final result receipts in ignored work/user outputs rather than changing the
 tracked source again merely to record the result. No deployment approval is implied.
+
+D-218 requires scripts/check-console-deployment.mjs as a ninth acceptance command.
+It exercises actual deployment CLI against real isolated consoles; inner product,
+recursive and public gates are placeholders solely for ordering. See
+CONSOLE-DEPLOYMENT.md for plan/apply/resume and current public blockers. Historical
+cef4e43 measurements above remain historical; the acceptance inventory has changed.
