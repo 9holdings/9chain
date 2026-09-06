@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 21:10:44 UTC** (D-216 real-root acceptance).
+repetition. Last user-facing progress update: **2026-09-06 21:39:28 UTC** (owner status reply, D-217 backup progress).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -350,3 +350,20 @@ its review receipts only into ignored work or user outputs. Do not create an end
 repackage cycle by committing result receipts after every successful validation.
 Next bounded implementation is deployment orchestration/backup; prerequisites
 D-210 through D-216 are now tested. No public mutation has occurred.
+
+D-217: selected old source/state backup is implemented, with shared release
+inventory/verification extracted into local-net/lib/console-release.mjs. CLI defaults
+to inspection; creation requires a verified proposed release and empty marker,
+plus external invocation lock and drained process proof. Bounded copies outside
+live src preserve absences, raw corrupt state and original modes. Exact independent
+tree/hash/topology verification rejects incomplete or tampered evidence. No restore,
+delete, restart or network. See docs/CONSOLE-BACKUP.md for scope and limitations.
+
+Windows33 CLI +4 real-file fault controls and Linux33+5 pass. Logs
+work/console-backup-test.log and work/console-backup-linux.log; Windows scratch
+work/console-backup-test-wyVgOn, Linux inputs work/backup-linux-GklNBk. Container
+a1-autopilot-console-backup-linux-20260906 exited0/noOOM, isolated512MiB/1CPU.
+Packager26 regression passed after shared-library extraction; full24-group profile
+passes in work/console-backup-full-profile.log. Operator import closure now10,
+console25/faucet3 unchanged. Next replace legacy deploy orchestration. Do not run
+the old deployment script publicly or bypass the known live maintenance API404.

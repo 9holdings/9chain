@@ -9761,3 +9761,29 @@ public changes. See `docs/CONSOLE-RELEASE.md`; controller integration remains ne
 Full local profile: 23 groups pass in `work/validation-full-profile.log`. The final
 deadline accounting includes the source precondition and final integrity check;
 the actual hung-child CLI control remains red as intended within its shorter budget.
+
+### D-217 — Preserve selected console bytes before a reviewed release (2026-09-06)
+
+Added console-backup.mjs and extracted shared release integrity/inventory rules
+into local-net/lib/console-release.mjs, preserving the packager API. Read-only
+inspection is default. Explicit creation requires a verified release and empty
+maintenance marker, while the caller must hold its invocation lock and prove
+stable drained process state. A marker alone is not proof of drain.
+
+Copies old release-named source files and selected console ledger/journal/upgrade
+state into an exclusive sibling backup, recording original modes and absences.
+Credentials, validator data, node_modules and other services are outside scope.
+Unknown selected subtree material, links, per-file/total/entry limits stop copying.
+Files and POSIX directories are flushed; source observations must match before and
+after. Independent verification checks exact tree, topology, required observations,
+metadata binding and payload hashes. No restore, cleanup, restart or network action.
+Partial evidence is retained; this is not an atomic snapshot or a restore drill.
+
+33 actual CLI checks pass on Windows and Linux. Four/five real-file fault controls
+observe source drift after copy, destination corruption, disk-full and file/directory
+flush failures, all refusing success for the intended reason. Linux container
+a1-autopilot-console-backup-linux-20260906 exited0/noOOM with network none, read-only
+root, 512 MiB/one CPU and no ports/socket. Evidence work/console-backup-test.log,
+work/console-backup-linux.log; inputs work/backup-linux-GklNBk. Packager26 and the
+full24-group local console profile pass (work/console-backup-full-profile.log).
+See docs/CONSOLE-BACKUP.md. Public deployment integration remains the next step.

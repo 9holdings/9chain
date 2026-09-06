@@ -2,6 +2,7 @@
 
 ## Local automation — 2026-09-06
 
+- [x] D-217 local backup tooling: proposed-release-bound old code and selected console state, absence/topology records, bounded exclusive copies and independent verification. 33 actual CLI cases pass on Windows/Linux; four/five real-file failure controls retain incomplete evidence. No public backup, restore or deployment; controller integration pending.
 - [x] D-216 local release tooling: exact-source validation requires matching frozen SHA, clean main commit/tree/bytes and no hidden Git index flags, before/after acceptance. 22 actual CLI controls plus packager 26/26 and full 23-check profile pass. Real main cef4e43 package39 files/564557 bytes passed all39 validation commands at21:09 UTC; hashes independently verified. Preliminary tooling evidence; deployment/consensus remain separate.
 - [x] D-215 local acceptance tooling: authentication HTTP tests use synthetic owned/system chains, dynamic ports and a child-process deny preload, with no skipped ownership cases. 60 checks pass on Windows/Linux; bypassed ownership and wrong cwd both fail the intended assertions. SIWE 21/21 and full 22-check profile pass. This tests local behavior and does not close public product issues.
 - [~] D-214: per-invocation deploy lock replaces same-checkout reentry/TTL takeover. Eight real competing processes yield one winner; actual legacy clients cannot steal new locks. 38 CLI/wrapper checks plus 32 Linux backend checks and 20 local checks pass. No public locks changed; deployment controller still pending.

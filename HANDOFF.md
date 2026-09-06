@@ -2,7 +2,7 @@
 
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
-for current evidence and next work. D-197 through D-216: local console reliability,
+for current evidence and next work. D-197 through D-217: local console reliability,
 read-only creation inspection, cold-build/replay, core tests, managed-node transport
 and persistent operator maintenance, frozen releases, targeted paused restart and
 per-invocation deployment exclusion without TTL takeover (`docs/DEPLOYMENT-LOCK.md`).
@@ -10,7 +10,9 @@ Authentication acceptance now uses synthetic ledgers, dynamic ports and blocked
 child processes; 60 HTTP checks plus cryptographic tests join the 22-check profile.
 Exact-source validation now binds the package to clean main and source bytes before
 and after local acceptance; current profile has 23 checks (`docs/CONSOLE-RELEASE.md`).
-Deployment-script integration is still pending;
+Selected console source/state backup now passes 33 actual CLI cases on Windows
+and Linux plus file/directory failure controls (`docs/CONSOLE-BACKUP.md`). It
+preserves evidence and does not restore. Deployment-script integration is still pending;
 see `docs/CONSOLE-MAINTENANCE.md` before preparing any public rollout.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
