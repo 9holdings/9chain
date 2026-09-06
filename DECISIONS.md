@@ -9870,3 +9870,28 @@ negatives fail on unlisted registrations and changing inventory. Actual public r
 ledger bytes stable/DYNAMIC before and after. Exact logs, digests and limits in
 docs/CHAIN-INVENTORY.md. The underlying GetBlockchains API is deprecated in this
 fork; compatibility was measured on current A1 only. Legacy API404 remains a blocker.
+
+### D-221 — Inspect retained genesis evidence without reconstructing intent (2026-09-06)
+
+Legacy console-tmp files are useful evidence but not a durable job journal. Added
+an explicit-directory read-only inspector for selected state metadata and direct
+genesis candidates. Use bounded regular-file reads, real paths, descriptor identity,
+exact hashes and repeated snapshots; preserve every unknown/invalid/unresolved item
+in the verdict. Current-band candidates require one ledger identity, exact committed
+P-chain genesis bytes and matching transaction/network/subnet/name when RPC is chosen.
+Equivalent JSON is insufficient; an unconfirmed transaction never means unsubmitted.
+Outside-band files remain evidence, not cleanup candidates or released identifiers.
+
+Limits:4MiB/file,128MiB/read snapshot,1024 temporary/ledger entries,128 RPC candidates,
+six parallel reads and30s total RPC budget. A shared inspection-rpc.mjs now enforces
+strict bounded200JSON/no redirects and six read methods for D-220/D-221. D-22074-case
+behavior remains verified. No new console transport policy or public mutation.
+
+93 Windows/94 Linux controls pass, including valid input beyond bounds, actual read
+failure, FIFO on Linux, selected-tree preservation and a real30s exhaustion case.
+Copied-source removal of genesis/snapshot comparison or extending the total deadline
+causes the intended failure. Tested code streamed over SSH23:41 UTC matches11 current
+on-server artifacts and11 active committed genesis records;55 outside-band files
+retained and before/after hashes identical. Exact logs/digests in LEGACY-ARTIFACTS.md.
+No raw artifact/credential transfer, installation, backup, retry, import or deletion.
+This does not establish legacy drain, pending/subnet-only completion or safe bootstrap.

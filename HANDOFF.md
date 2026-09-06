@@ -2,7 +2,7 @@
 
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
-for current evidence and next work. D-197 through D-220: local console reliability,
+for current evidence and next work. D-197 through D-221: local console reliability,
 read-only creation inspection, cold-build/replay, core tests, managed-node transport
 and persistent operator maintenance, frozen releases, targeted paused restart and
 per-invocation deployment exclusion without TTL takeover (`docs/DEPLOYMENT-LOCK.md`).
@@ -42,6 +42,13 @@ independently verified. Public exploratory reads found66 retained console-tmp
 genesis candidates;11 current-band files match exact committed genesis bytes and55
 are outside-band history. No artifact modified/copied raw. Prepare tested artifact
 tooling and a first-adoption rehearsal; see `docs/CONSOLE-FIRST-ADOPTION.md`.
+D-221 now supplies tested legacy artifact inventory/exact genesis comparison:
+93 Windows/94 Linux controls, three copied-source negatives and real30s RPC budget.
+Read-only in-memory execution on-server23:41 UTC matches11 current genesis/ledger
+entries,55 outside-band files retained and stable selected snapshot. D-22074 controls
+still pass after extracting strict shared read RPC. See `docs/LEGACY-ARTIFACTS.md`.
+Local profile now28 groups. Next close the known console-tmp backup-coverage gap;
+this inspection does not itself preserve backup bytes or establish legacy drain.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
 

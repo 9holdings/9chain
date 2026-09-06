@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { parseLedger } from '../local-net/lib/ledger-read.mjs';
 import { cb58Decode } from '../local-net/lib/cb58.mjs';
 import { NETWORK_ID, TEN_MANG } from '../local-net/lib/chainid.mjs';
-import { rpcResult } from '../local-net/lib/rpc-client.mjs';
+import { inspectionOrigin, inspectionRpc } from '../local-net/lib/inspection-rpc.mjs';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const byteLimit = 4 * 1024 * 1024, entryLimit = 10000;
@@ -17,13 +17,6 @@ const id = value => {
 };
 const name = value => typeof value === 'string' && value.trim().length > 0 && Buffer.byteLength(value) <= 128;
 const primary = value => cb58Decode(value).every(byte => byte === 0);
-function originOf(value) {
-  let url; try { url = new URL(value); } catch { throw new Error('An explicit HTTP(S) RPC origin is required'); }
-  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
-    throw new Error('RPC origin must have no credentials, path, query or fragment');
-  }
-  return url.origin;
-}
 function readInput(file) {
   const stat = fs.lstatSync(file);
   if (!stat.isFile() || stat.isSymbolicLink() || fs.realpathSync(file) !== path.resolve(file) || stat.size > byteLimit) throw new Error('Invalid ledger input');
@@ -49,27 +42,10 @@ function inventoryOf(value) {
     return { blockchainID: entry.id, name: entry.name, subnetID: entry.subnetID, vmID: entry.vmID };
   }).sort((left, right) => left.blockchainID < right.blockchainID ? -1 : left.blockchainID > right.blockchainID ? 1 : 0);
 }
-async function readRpc(origin, method, params, timeoutMs) {
-  const segment = method.startsWith('info.') ? '/ext/info' : '/ext/bc/P';
-  const response = await fetch(origin + segment, { method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(timeoutMs),
-    headers: { 'content-type': 'application/json', connection: 'close' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) });
-  try {
-    if (response.status !== 200 || !/^application\/json(?:\s*;|$)/i.test(response.headers.get('content-type') ?? '')) throw new Error('RPC HTTP or content type refused');
-    const reader = response.body?.getReader(); if (!reader) throw new Error('RPC body absent');
-    const chunks = []; let count = 0;
-    for (;;) {
-      const { value, done } = await reader.read(); if (done) break;
-      count += value.length; if (count > byteLimit) { await reader.cancel(); throw new Error('RPC reply exceeded its bound'); }
-      chunks.push(value);
-    }
-    return rpcResult(JSON.parse(Buffer.concat(chunks).toString('utf8')), method);
-  } finally { await response.body?.cancel().catch(() => {}); }
-}
 
 export async function inspectChainInventory({ ledgerFile, rpcUrl, timeoutMs = 5000 } = {}) {
   if (typeof ledgerFile !== 'string' || !ledgerFile) throw new Error('An explicit --ledger-file is required');
-  const origin = originOf(rpcUrl), file = path.resolve(ledgerFile);
+  const origin = inspectionOrigin(rpcUrl), file = path.resolve(ledgerFile);
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 10000) throw new Error('Timeout must be 1 through 10000 milliseconds');
   const report = { schema: 1, kind: '9chain-ledger-inventory', observedAt: new Date().toISOString(),
     rpcOrigin: origin, expectedNetworkID: NETWORK_ID, recoveryAuthorized: false, checks: [],
@@ -95,7 +71,7 @@ export async function inspectChainInventory({ ledgerFile, rpcUrl, timeoutMs = 50
   const deadline = Date.now() + 30000;
   const rpc = async (method, params = {}) => {
     const remaining = deadline - Date.now(); if (remaining <= 0) throw new Error('Inspection deadline exhausted');
-    return readRpc(origin, method, params, Math.min(timeoutMs, remaining));
+    return inspectionRpc(origin, method, params, { timeoutMs: Math.min(timeoutMs, remaining), maxResponseBytes: byteLimit });
   };
   async function identity() {
     const results = await Promise.allSettled([rpc('info.getNetworkID'), rpc('info.getNetworkName'),

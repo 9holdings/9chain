@@ -61,7 +61,9 @@ export function validateConsoleRelease({ directory, expectedHash, root = default
       const remaining = Math.floor(deadline - performance.now());
       if (remaining <= 0) throw new Error('Console release validation exceeded its deadline');
       const started = performance.now();
-      const commandLimit = args[0] === 'scripts/check-console-deployment.mjs' ? 360_000 : 120_000;
+      // Aggregate profiles include multiple bounded child checks and real deadline drills.
+      const commandLimit = args[0] === 'scripts/check-console-deployment.mjs' ? 360_000
+        : args[0] === 'scripts/check-local.mjs' ? 240_000 : 120_000;
       const result = spawnSync(command, args, { cwd: root, encoding: 'utf8', windowsHide: true,
         timeout: Math.min(commandLimit, remaining), maxBuffer: 4 << 20 });
       const logName = String(report.checks.length + 1).padStart(2, '0') + '.log';

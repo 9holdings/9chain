@@ -101,8 +101,9 @@ see CONSOLE-READINESS.md for its scope. Referenced configuration-file contents, 
 attestation, consensus liveness and recovery beyond selected files remain separate.
 
 SSH/SCP, package-manager and helper children have finite deadlines. Local validation
-still has a ten-minute ceiling. Ordinary checks get <=120s; the deployment drill
-gets <=360s for image preparation and its bounded run. Its container has an independent
+still has a ten-minute ceiling. Individual checks get <=120s; the aggregate console
+profile gets <=240s (D-221 includes a real30s deadline drill), and deployment gets
+<=360s for image preparation and its bounded run. Its container has an independent
 180s watchdog even if the parent is interrupted; no general process-tree cancellation claim.
 
 ## Current public blockers

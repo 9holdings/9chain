@@ -49,6 +49,13 @@ work/legacy-genesis-match.json. They are observations for planning, not yet the
 tested reusable artifact-preservation/legacy transition tooling. They do not prove
 atomicity across those timestamps, absence of pending transactions or complete drain.
 
+D-221 now adds tested reusable read-only artifact inspection (LEGACY-ARTIFACTS.md).
+Actual in-memory execution on-server23:41 UTC matches11 exact committed genesis
+candidates against the selected server ledger, with55 outside-band files retained
+and identical before/after snapshots.93 Windows/94 Linux controls and three negative
+controls support that inspector. Preservation/backup and first-transition rehearsal
+remain separate work; this does not fill the console-tmp backup gap by itself.
+
 ## What the first transition still has to establish
 
 The old console lacks durable creation reservations and complete admission counting.

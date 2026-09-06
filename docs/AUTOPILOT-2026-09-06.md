@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 23:23:50 UTC** (D-220 exact-source acceptance and legacy genesis comparison; final status follows).
+repetition. Last user-facing progress update: **2026-09-06 23:47:02 UTC** (D-221 controls and read-only on-server exact genesis match; committing next).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -538,3 +538,33 @@ turn artifact inventory/genesis comparison into tested read-only operator toolin
 and refine the exact controlled-transition/recovery rehearsal. Current backup omits
 console-tmp, and routine33-case deployment rehearsal is not a legacy bootstrap.
 Never add synthetic maintenance receipts or a force fallback. About3h remained.
+
+D-221 ready for commit: inspect-legacy-artifacts.mjs provides explicit-directory
+selected-state/genesis metadata, strict bounded reads and exact optional P-chain
+genesis matching. Shared inspection-rpc.mjs extracts D-220 strict HTTP reader,
+adds a six-read-method allowlist and permits bounded8MiB replies for4MiB decoded
+genesis. D-220 retains4MiB and all74 cases pass. No generic console RPC policy change.
+93 Windows/94 Linux controls pass, including the actual30s total RPC deadline;
+Linux adds FIFO refusal. Three copied-source negative controls fail on exact genesis,
+snapshot stability and extended total deadline. Latest logs/fixtures are listed in
+docs/LEGACY-ARTIFACTS.md. Profile28 groups; operator import closure16, console26/faucet3.
+
+Tested module/dependency bytes streamed in memory over SSH23:41:46 UTC, with no file
+installation or raw artifact transfer. Selected real server ledger/artifact snapshot
+unchanged;11 current-band genesis candidates all match committed P-chain genesis,
+55 outside-band files retained,0 retired, no conflict/unknown checks. Receipt
+work/legacy-artifacts-live-evidence.json, report work/legacy-artifacts-live.json,
+source hashes work/legacy-artifacts-remote-source.json; runner
+work/legacy-artifacts-remote.mjs. Recovery authorization remains false. Commit then
+run exact-source acceptance. Next bounded task: include console-tmp bytes in the
+reviewed bounded backup scope, with real copy/verification and negative controls.
+This is local tooling work; do not back up, mutate or deploy on public server yet.
+
+D-220's real aggregate profile measured107233ms. D-221 adds a real30s budget drill
+and other controls, so validator allowance for aggregate check-local is now240s;
+individual leaf checks remain120s, deployment360s, overall600s. Re-run the existing
+22-case validation CLI regression (including actual hung child and shorter overall
+deadline) and real-root acceptance. This is a scoped aggregate allowance, not a
+disabled timeout or a test skip.
+The22 actual validator CLI controls now pass after this adjustment:
+work/legacy-artifacts-validation-regression.log, work/release-validation-test-fHiEOI.
