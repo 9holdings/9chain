@@ -170,3 +170,18 @@ The package regression suite remains 26/26 in `work/validation-packager-regressi
 The complete local profile passes 23 groups in `work/validation-full-profile.log`.
 Real-root packaging/validation must follow the implementation commit; its result
 will be recorded separately and does not approve public deployment.
+
+Real-root acceptance on `cef4e4356ff5d04b7adb0c9a094fb1ebbdcf47dd` completed
+2026-09-06 21:08:07–21:09:14 UTC. Package: 39 files/564557 bytes in
+`work/console-releases/cef4e4356ff5-nvpHVp`, metadata SHA
+`8b4b5c1faaf5a36f808c4b4aae152107cf8a13092f4c12259dd50f5b9490a79e`.
+All 39 commands passed: 30 Node syntax, one Bash syntax and eight acceptance
+commands, including the full 23-group console profile. Source integrity still
+matched after tests. Report: `work/console-validations/cef4e4356ff5-EGloFf`, SHA
+`4f93de11f59b74e024323fa7b7320ec042fc362de92e731017e12b9e7d530f93`.
+Independent verification checked that report hash, all 39 log hashes and zero exits.
+
+This is a preliminary tooling candidate. Later code or even documentation commits
+advance HEAD, so a final candidate must be prepared after all tracked changes finish.
+Keep final result receipts in ignored work/user outputs rather than changing the
+tracked source again merely to record the result. No deployment approval is implied.

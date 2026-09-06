@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 21:06:44 UTC** (D-216 milestone).
+repetition. Last user-facing progress update: **2026-09-06 21:10:44 UTC** (D-216 real-root acceptance).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -328,3 +328,25 @@ preliminary tooling candidate until deployment-controller integration is complet
 Next: consume frozen validated inputs, pause/drain, preserve code/state outside
 live directories, verify copy, targeted paused restart and controlled resume.
 Use D-214 lock backend; do not run legacy console-deploy.sh or bypass live API404.
+
+Real-root acceptance after implementation commit cef4e43 succeeded at
+21:08:07–21:09:14 UTC. Source commit cef4e4356ff5d04b7adb0c9a094fb1ebbdcf47dd,
+tree fdc3b03afdcefef7c6e7e265457192d3ea242ade. Package39 files/564557 bytes:
+`work/console-releases/cef4e4356ff5-nvpHVp`, metadata SHA
+8b4b5c1faaf5a36f808c4b4aae152107cf8a13092f4c12259dd50f5b9490a79e.
+Validation39 commands =30 Node syntax +1 Bash syntax +8 acceptance commands
+(including the 23-group console profile), all pass; source still matched afterwards.
+`work/console-validations/cef4e4356ff5-EGloFf`, validation SHA
+4f93de11f59b74e024323fa7b7320ec042fc362de92e731017e12b9e7d530f93.
+An independent read verified that SHA and all39 log hashes/zero exits at21:10 UTC.
+Receipts: `work/validated-release-real.json`, `work/validation-real-result.json`;
+runner `work/run-real-validation.mjs`. No checks are still running.
+
+This remains tooling evidence, not the final approved deployment candidate. The
+documentation commit recording this evidence advances HEAD; exact-source validation
+deliberately refuses to reuse the old package at a different HEAD. For the FINAL
+candidate, finish tracked code/docs first, commit, then freeze/validate and write
+its review receipts only into ignored work or user outputs. Do not create an endless
+repackage cycle by committing result receipts after every successful validation.
+Next bounded implementation is deployment orchestration/backup; prerequisites
+D-210 through D-216 are now tested. No public mutation has occurred.
