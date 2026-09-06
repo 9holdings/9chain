@@ -26,6 +26,12 @@ strict ledger and journal checks block unresolved state; client checks drained U
 deployment cases pass; two copied-source negatives fail at the intended assertions.
 Current local profile has26 groups. See `docs/CONSOLE-READINESS.md` for evidence and
 limits: no config-file/binary attestation or consensus/capacity claim.
+Actual-root7283720 acceptance23:04 UTC passes44 commands (26 local groups and33
+Docker deployment cases); all report/log hashes independently verified. Fresh
+read-only source audit still blocks undeclared heartbeat-deploy.sh; maintenance
+still404. Next: first-adoption inventory/reconciliation/rehearsal; working notes
+work/first-adoption-review-notes.md. This package is historical evidence after
+recording documentation, not a final approved/current-source deployment release.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
 

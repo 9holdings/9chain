@@ -1,8 +1,9 @@
 # Frozen console release package
 
-D-212 adds a local packager. **It does not deploy, run tests, authorize a release or
-make the legacy deployment script safe.** Use it to identify exact bytes for review
-and later deployment. Public deployment/bootstrap remains owner-reviewed.
+D-212 adds a local packager. **Packaging does not deploy, run tests or authorize a
+release.** D-218 now consumes the frozen package through reviewed staged deployment
+(CONSOLE-DEPLOYMENT.md); D-219 adds actual process readiness. Public deployment and
+first adoption of the legacy server remain owner-reviewed.
 
 D-216 adds separate exact-source local validation, described below. Packaging
 alone remains an integrity check and never substitutes for acceptance.
@@ -89,12 +90,12 @@ cases assert a nonzero CLI exit and the specific refusal reason. Included in the
 local runner; nineteen checks pass in the console profile. Evidence:
 `work/console-release-full-profile.log` and synthetic `work/console-release-test-*`.
 
-Next: consume this reviewed package in the deployment script, run the required
-checks against its exact source revision, acquire the existing lock, pause/drain
-before any replacement, retain rollback source/state outside running code, verify
-remote hashes and the new paused process, then explicitly resume. A failed phase
-must keep maintenance and evidence. Current legacy bootstrap needs a separately
-reviewed transition; `CONSOLE-MAINTENANCE.md` documents the confirmed HTTP 404.
+D-218/D-219 now consume this package: exact-source acceptance, invocation lock,
+pause/drain, verified staging, selected backup and dependency preservation, targeted
+paused restart, actual process/configuration readiness and separately reviewed
+resume. Failures keep maintenance and evidence. See CONSOLE-DEPLOYMENT.md. Current
+legacy bootstrap still needs a separately reviewed transition;
+CONSOLE-MAINTENANCE.md documents the confirmed HTTP404.
 
 Post-commit tooling acceptance on real main `0ae39f1`: 38 files /560601 bytes,
 metadata SHA `542d5bfc737383a3a023234f303981f22b52b2de29408fed4f580362d3b8ba7b`,

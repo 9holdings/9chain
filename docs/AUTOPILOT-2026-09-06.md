@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 23:00:04 UTC** (D-219 Windows/Linux readiness; preparing exact-source acceptance).
+repetition. Last user-facing progress update: **2026-09-06 23:04:36 UTC** (D-219 exact-source44-command acceptance; final status follows).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -448,3 +448,35 @@ a1-deployment-console-deployment-qokggt both exited0/noOOM, verified22:57 UTC.
 Next: commit D-219, freeze and validate that actual commit once; then prepare the
 public first-adoption/recovery review packet. Do not claim live readiness, binary
 attestation, consensus or capacity from this local work. No public mutation.
+
+D-219 implementation commit72837200eb8956379283f0e5d98e89059a799fda,
+tree831ff679d8bce82b9d7350603f87785d7c9e7cb3. Actual-root acceptance completed
+23:00:55–23:04:23 UTC:43 files/615481 bytes,34 Node syntax +1 Bash syntax +9
+acceptance commands =44 passed, including26 local groups and33 actual Docker
+deployment scenarios. Source still matched after tests. Package
+work/console-releases/72837200eb89-1oO0Ur, SHA
+50aea5bea19d35c0df3bf23d64fb45caa15f9528410b350e1179679bb61281b6.
+Validation work/console-validations/72837200eb89-0rGh3k, SHA
+aa13c918a42bad5887b6ae802a9ab7b48467c565c66b120ca29b1148e56eab1c.
+Independent verification checked report/all44 log hashes/zero exits23:04:36 UTC,
+then the actual controller default local plan passed with no SSH or deployment state.
+Container a1-deployment-console-deployment-x1hrum exited0/noOOM. Receipts
+work/d219-release-real.json, work/d219-validation-result.json,
+work/d219-evidence-verification.json, work/d219-deployment-plan.json;
+runners work/run-d219-validation.mjs, work/verify-d219-evidence.mjs.
+
+Fresh read-only transport23:01:43 UTC against this release still blocks on
+undeclared local-net/deploy/heartbeat-deploy.sh and maintenance HTTP404.
+work/d219-live-read.json records both refusals; no mutation was attempted. The
+audit throws on blockers, so this receipt does not contain a complete source count.
+Do not reuse earlier counts as current. The current first-adoption analysis is in
+work/first-adoption-review-notes.md. Key gap: old process has no complete admission
+or durable creation journal; closing ingress or seeing running:false cannot prove
+drain, and D-217's selected backup excludes old console-tmp creation artifacts.
+Prepare exact artifact inventory/reconciliation and a rehearsed transition before
+presenting executable public adoption. Do not bypass normal deployment with a
+synthetic maintenance receipt or claim the33-case routine drill covers bootstrap.
+
+Recording acceptance advances HEAD; this package is historical evidence for the
+implementation commit, not the final approved/current-source release. Finish next
+code/docs before freezing another candidate. About3h18m remained at23:04:36 UTC.
