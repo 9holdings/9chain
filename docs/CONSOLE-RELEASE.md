@@ -92,3 +92,17 @@ before any replacement, retain rollback source/state outside running code, verif
 remote hashes and the new paused process, then explicitly resume. A failed phase
 must keep maintenance and evidence. Current legacy bootstrap needs a separately
 reviewed transition; `CONSOLE-MAINTENANCE.md` documents the confirmed HTTP 404.
+
+Post-commit tooling acceptance on real main `0ae39f1`: 38 files /560601 bytes,
+metadata SHA `542d5bfc737383a3a023234f303981f22b52b2de29408fed4f580362d3b8ba7b`,
+retained in `work/console-releases/0ae39f1929eb-CRIO7B`. A separate CLI verification
+with this expected SHA passes. This preliminary package still contains the legacy
+restart helper and is not a final approved deployment candidate.
+
+Expanded read-only server drift also revealed the historical
+`local-net/deploy/heartbeat-deploy.sh` outside main's inventory. Its 8973 bytes hash
+exactly to the existing web-home copy (`31fe596208459f714976591be7fff60d27609ff3a466ec2fb41e20a14b3e7ae6`).
+D-193 explains why main imported only its stop gate, and D-194 assigns ownership to
+main. It was neither run, deleted, restored nor exempted during this investigation.
+Its intended retention needs a precise decision before a clean public release can
+be claimed; see `work/deploy-drift-release-20260906.log`.

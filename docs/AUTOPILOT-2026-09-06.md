@@ -210,3 +210,23 @@ and passed synthetic signing/recovery; container a1-autopilot-console-lock-20260
 exited 0/no OOM (`work/console-lock-check.log`). No public changes. The package tool
 must be committed before real-root preparation because it requires a clean main;
 such a preliminary package is tooling evidence, not a final approved deployment.
+
+Real-root packaging after commit 0ae39f1 succeeded: 38 files, 560601 bytes,
+`work/console-releases/0ae39f1929eb-CRIO7B`, metadata SHA-256
+`542d5bfc737383a3a023234f303981f22b52b2de29408fed4f580362d3b8ba7b`.
+Independent CLI verification with that expected hash also passes. Receipt:
+`work/console-release-real.json`. This is a preliminary tooling package, not the
+final deployment candidate; later controller changes require a newly prepared one.
+
+Expanded read-only drift at about 20:00 UTC now covers 39 files: 27 matching, 2
+changed, 10 missing, **1 undeclared orphan** (plus 4 declared /19 outside coverage).
+Log `work/deploy-drift-release-20260906.log`. The orphan is
+`local-net/deploy/heartbeat-deploy.sh`: 8973 bytes, SHA-256
+`31fe596208459f714976591be7fff60d27609ff3a466ec2fb41e20a14b3e7ae6`, exactly matching
+the existing file in web-home. D-193 intentionally imported only the pump STOP gate
+from orphan commit 6793fb4, not its four pump files; main's pump is newer. D-194
+assigns this helper to main, but it is still absent here. Do not delete/run/restore
+it blindly or exempt a whole directory just to get green. Resolve its intended
+retention/ownership with a precise reviewed decision before public deployment.
+All server actions so far remain read-only; no source or secret contents were
+copied for this investigation, only hashes/size and existing Git history compared.
