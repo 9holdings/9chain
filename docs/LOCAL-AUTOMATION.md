@@ -29,7 +29,7 @@ import coverage, and chain ID allocation. Patch/import gates include their own
 negative controls. It uses the current Node executable and resolves the repository
 from the script path, so it does not depend on the caller's working directory.
 
-The optional `--console` profile adds four real local HTTP console suites:
+The optional `--console` profile adds RPC transport tests plus four real local HTTP console suites:
 paused creation, RPC identity at creation, deep options and governance. Their nodes/credentials are fake
 and their operational state is isolated; they do not create public chains.
 The RPC suite intercepts Docker in a test-only preload and never calls the actual

@@ -9223,3 +9223,27 @@ readiness. Creation may already exist on P-chain when this gate refuses; the err
 advises contacting the operator before retrying. Durable creation recovery remains
 unfinished. The existing RPC helper also still needs a bounded timeout and stricter
 HTTP/envelope handling. Public deployment has not been performed.
+
+### D-202 — Bounded RPC transport and matching response envelopes (2026-09-06)
+
+The console's RPC helper had no timeout and ignored HTTP status, JSON-RPC version
+and response ID. The actual preview route accepted HTTP 503 with a valid-looking
+body and responses for the wrong request/version (three failures reproduced).
+Introduced `rpc-client.mjs`: 10-second default deadline covers headers and body;
+non-success HTTP responses, malformed JSON/envelopes and ambiguous result/error
+fields cannot become results. Null remains valid for methods that use it.
+
+The post-create wait now uses a 150-second wall deadline with at most five seconds
+per probe and bounded sleeps. Definite protocol errors fail immediately; temporary
+HTTP/RPC errors remain retryable. This is still only the RPC phase, not a deadline
+for CLI creation or rolling restarts. Full 150-second exhaustion was not separately
+timed in this change; per-request deadlines and recovery were measured.
+
+Validation: 17 transport/envelope cases against real local HTTP, including stalled
+headers/body with independent slow controls. Actual console create queue times out
+at about 10 seconds on a hanging node and accepts a subsequent request after
+recovery. Options suite 105/105, creation RPC fixture 9/9, governance 55/55; all
+eleven local checks pass. The new dependency is in the deployment manifest (19
+console import files covered). Read-only public RPC with the new helper also
+accepts the live network/version responses: 999999998, 9chaingo/1.14.2,
+9chain-a1-g1-27patch-38723877. This is not a public console deployment.

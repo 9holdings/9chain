@@ -58,12 +58,26 @@ const LEDGER = path.join(CFG, "console-chains.json");
 const TMP = path.join(CFG, "console-tmp");
 
 // ═══ fake node: answers only the generation check ═══
+let rpcFault = null;
 const fakeNode = createServer((req, res) => {
   let b = "";
   req.on("data", (d) => { b += d; });
   req.on("end", () => {
     let method = "";
     try { method = JSON.parse(b).method; } catch { /* malformed body */ }
+    if (rpcFault === 'hang') return;
+    if (rpcFault === 'http') {
+      res.writeHead(503, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ jsonrpc: '2.0', id: 1, result: { networkID: String(NETWORK_ID), networkName: TEN_MANG } }));
+      return;
+    }
+    if (rpcFault === 'wrong-id' || rpcFault === 'wrong-version') {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ jsonrpc: rpcFault === 'wrong-version' ? '1.0' : '2.0',
+        id: rpcFault === 'wrong-id' ? 99 : 1,
+        result: { networkID: String(NETWORK_ID), networkName: TEN_MANG } }));
+      return;
+    }
     const key = method === "info.getNetworkID" ? "networkID" : method === "info.getNetworkName" ? "networkName" : null;
     const answer = { networkID: String(NETWORK_ID), networkName: TEN_MANG };
     res.writeHead(200, { "content-type": "application/json" });
@@ -247,7 +261,32 @@ console.log("\n── 6. P-59 the contract library reaches `alloc` through the P
   ok("nothing written by any of it", nothingWritten());
 }
 
-console.log("\n── 7. corrupt state must never masquerade as an empty ledger ──");
+console.log("\n── 7. HTTP errors and unrelated RPC envelopes cannot pass the generation gate ──");
+{
+  for (const fault of ['http', 'wrong-id', 'wrong-version']) {
+    rpcFault = fault;
+    const result = await preview({ name: 'RPC Envelope Test' });
+    ok(`RPC ${fault} refuses preview rather than trusting its valid-looking result`,
+      result.status === 400 && /RPC/.test(result.j?.error ?? ''), `${result.status}: ${result.j?.error}`);
+    ok(`RPC ${fault} writes nothing`, nothingWritten());
+  }
+  rpcFault = null;
+  ok('healthy RPC envelope restores preview', (await preview({ name: 'RPC Envelope Test' })).status === 200);
+  rpcFault = 'hang';
+  const started = Date.now();
+  const timedOut = await create({ name: '!!' });
+  const elapsed = Date.now() - started;
+  ok('a hanging node releases the actual create queue with a timeout error',
+    timedOut.status === 400 && /RPC.*timed out after 10000ms/.test(timedOut.j?.error ?? ''), timedOut.j?.error);
+  ok('the real console RPC deadline is observed at about 10 seconds', elapsed >= 9000 && elapsed < 15000, `${elapsed}ms`);
+  rpcFault = null;
+  const afterTimeout = await create({ name: '!!' });
+  ok('the next queued operation can reach name validation after RPC recovery',
+    afterTimeout.status === 400 && /only letters, digits and spaces/.test(afterTimeout.j?.error ?? ''));
+  ok('timeout and recovery write nothing', nothingWritten());
+}
+
+console.log("\n── 8. corrupt state must never masquerade as an empty ledger ──");
 {
   const corruptions = [
     ['truncated JSON', '{"chains":['],

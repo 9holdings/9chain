@@ -30,6 +30,7 @@ import {
 } from "../lib/l1-upgrade.mjs";
 import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
 import { siwe } from "./siwe.mjs";
+import { requestRpc } from "../lib/rpc-client.mjs";
 
 const PORT = Number(process.env.PORT || 8091);
 // Mặc định CHỈ nghe loopback. Console điều phối docker trên host — mở ra ngoài
@@ -382,14 +383,8 @@ function saveState(s) {
   renameSync(tmp, STATE);
 }
 
-async function rpc(pathSeg, method, params = []) {
-  const r = await fetch(API + pathSeg, {
-    method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-  });
-  const j = await r.json();
-  if (j.error) throw new Error(j.error.message);
-  return j.result;
+async function rpc(pathSeg, method, params = [], options) {
+  return requestRpc(API + pathSeg, method, params, options);
 }
 
 /** Xoá khoá bí mật khỏi mọi chuỗi trước khi log hoặc trả về client. */
@@ -1349,10 +1344,17 @@ async function launchChain(plan) {
   buocChay("rpc");
   const rpcPath = `/ext/bc/${blockchainID}/rpc`;
   let live = false;
-  for (let i = 0; i < 30; i++) {
+  const rpcDeadline = Date.now() + 150_000;
+  while (Date.now() < rpcDeadline) {
     let reportedChainId;
-    try { reportedChainId = await rpc(rpcPath, "eth_chainId"); } catch {
-      await new Promise(r => setTimeout(r, 5000));
+    try {
+      reportedChainId = await rpc(rpcPath, "eth_chainId", [], {
+        timeoutMs: Math.max(1, Math.min(5_000, rpcDeadline - Date.now())),
+      });
+    } catch (error) {
+      if (error.retryable === false) throw error;
+      const remaining = rpcDeadline - Date.now();
+      if (remaining > 0) await new Promise(r => setTimeout(r, Math.min(5_000, remaining)));
       continue;
     }
     // A responding endpoint may belong to a different chain or return no result.

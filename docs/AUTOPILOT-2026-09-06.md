@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 17:03:36 UTC** (D-201 milestone).
+repetition. Last user-facing progress update: **2026-09-06 17:18:23 UTC** (D-202 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -67,9 +67,16 @@ matching IDs, transient error recovery and six invalid/mismatched responses.
 The six bad responses were false successes before the fix. All ten local checks
 pass; log `work/check-local-console-20260906.log`. Not deployed.
 
-Next priorities: the shared `rpc()` helper has no request deadline or strict
-HTTP/JSON-RPC envelope validation. Then durable launch reservation/journaling
-(P-chain creation is irreversible and currently precedes successful ledger write).
+D-202 adds the shared RPC helper with a 10-second deadline for headers/body and
+HTTP/JSON-RPC envelope checks; creation RPC wait uses a 150-second wall deadline
+with at most five seconds per probe. Seventeen local transport cases pass; real
+console hung-node queue times out near 10s and recovers. Options 105/105, RPC
+creation 9/9, governance 55/55; eleven local checks pass. New runtime dependency
+is in the deploy manifest. Read-only live network/version calls succeed too;
+public console remains unchanged. Full 150-second exhaustion not yet timed.
+
+Next priority: durable launch reservation/journaling (P-chain creation is
+irreversible and currently precedes successful ledger write).
 Preserve the public ledger/API contract. Matching chain ID does not prove block
 production or all-validator readiness. Full cold build, patch replay and live
 consensus remain separate unverified items. No public create/upgrade in tests.
