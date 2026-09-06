@@ -15,6 +15,8 @@ const checks = [
   ['local-net/console/chainid-test.mjs'],
 ];
 const consoleChecks = [
+  ['local-net/console/siwe-test.mjs'],
+  ['local-net/console/auth-e2e-test.mjs'],
   ['local-net/deploy/deploy-lock-test.mjs'],
   ['local-net/deploy/console-maintenance-test.mjs'],
   ['local-net/lib/maintenance-test.mjs'],

@@ -9693,3 +9693,34 @@ Logs: `work/deploy-lock-bash-self-test.log`, `work/deploy-lock-linux.log`,
 changed. Deployment controller and reviewed legacy bootstrap remain next.
 See `docs/DEPLOYMENT-LOCK.md`; D-194's reentry/TTL design is historical, superseded
 for main's wrapper by this decision.
+
+### D-215 — Authentication acceptance with isolated ledgers and complete owner cases (2026-09-06)
+
+The deploy's old auth-e2e-test.mjs launched console processes in the caller's cwd,
+read its operational ledger, used fixed ports and skipped owner checks for empty
+ledgers. A nonexistent Compose file stopped validator commands but did not isolate
+ledger writes or make missing coverage visible. Rewrote this acceptance test in
+English before relying on it in exact-source release validation.
+
+Each invocation creates unique scratch roots, synthetic wallet-owned/system-owned
+chains, dynamic loopback ports, fake RPC and its own synthetic token. An import
+preload refuses child-process execution before the console module loads. Both
+owner categories are always tested; exact refusal statuses, confirmation, signer
+binding, replay/wrong signer, per-wallet quota and operator exemption are required.
+Afterwards original ledger bytes, empty genesis/config directories, absent pending
+journal/backups and absence of any attempted subprocess launch are asserted. All
+children are awaited at shutdown, and only synthetic evidence remains in work.
+
+Sixty actual HTTP checks pass on Windows and isolated Linux; existing SIWE tests
+pass 21/21. Two copied-source controls: bypassing only the ownership conditional
+fails on foreign-wallet refusal, and changing only cwd to a synthetic sentinel
+ledger fails on exact fixture ledger identity. Evidence `work/auth-negative-If3xiq`,
+`work/auth-negative.log`; no original source, operational state or real key was used
+by those negative copies. Linux: network none, no ports/socket, read-only inputs/root,
+512 MiB/1 CPU, tmpfs and 60s deadline, exited0/noOOM (`work/auth-linux.log`).
+
+The local console profile includes both suites and now passes 22 groups
+(`work/auth-full-profile.log`). English debt drops 109 lines to 5520/105. This is
+local authentication/authorization acceptance, not live consensus or deployment.
+The deployment controller still needs to bind these tests to the exact frozen
+source and integrate maintenance/backup/restart. No public changes occurred.

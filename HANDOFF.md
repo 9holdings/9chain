@@ -2,10 +2,12 @@
 
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
-for current evidence and next work. D-197 through D-214: local console reliability,
+for current evidence and next work. D-197 through D-215: local console reliability,
 read-only creation inspection, cold-build/replay, core tests, managed-node transport
 and persistent operator maintenance, frozen releases, targeted paused restart and
 per-invocation deployment exclusion without TTL takeover (`docs/DEPLOYMENT-LOCK.md`).
+Authentication acceptance now uses synthetic ledgers, dynamic ports and blocked
+child processes; 60 HTTP checks plus cryptographic tests join the 22-check profile.
 Deployment-script integration is still pending;
 see `docs/CONSOLE-MAINTENANCE.md` before preparing any public rollout.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators

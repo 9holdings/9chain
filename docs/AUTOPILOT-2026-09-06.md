@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 20:33:22 UTC** (D-214 milestone).
+repetition. Last user-facing progress update: **2026-09-06 20:48:14 UTC** (D-215 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -280,3 +280,24 @@ No public lock was acquired/released, no remote files changed. Current code stil
 needs frozen-source deployment orchestration and a separately reviewed legacy
 bootstrap. Do not run legacy console-deploy.sh. Next work should integrate these
 components, preserving local validation before server mutations and gate beforecopy.
+
+D-215: rewrote auth-e2e-test.mjs in English because the deploy's old auth test read
+the real cwd ledger, used fixed ports and skipped owner checks when empty. It now
+uses synthetic owned/system chains in unique scratch roots, dynamic loopback ports,
+fake RPC, unique synthetic operator token and an import preload blocking every
+child-process launch. Tests exact 401/403/400/429 boundaries, signing/replay/wrong
+signer, recovered identity, confirmation, per-wallet quotas and operator bypass;
+asserts original ledger bytes/no outputs/no process launches. All 60 HTTP checks
+pass with no ownership skips; existing SIWE 21/21 also included in local runner.
+
+Copied-source negatives disable only owner check or switch only cwd to a separate
+synthetic sentinel ledger; both fail the intended assertions. No real operational
+ledger/keys used. `work/auth-negative-If3xiq`, `work/auth-negative.log`; runner
+`work/auth-negative.mjs`. Positive `work/auth-isolated.log`; Linux also 60/60 in
+network-none, read-only-root/source, 512 MiB/1 CPU, synthetic tmpfs with 60s deadline;
+`work/auth-linux.log`, inputs `work/auth-linux-N9ZV9Z`; container
+a1-autopilot-auth-linux-20260906 exited0/noOOM. Initial Windows preload used a path
+where Node --import needs a file URL; fixed with pathToFileURL before acceptance.
+Full `work/auth-full-profile.log`: 22 checks pass. English debt down 109 lines to
+5520/105. No public changes. Next bind local validation to release source identity,
+then integrate pause/backup/copy/restart/verification using D-211 through D-214.

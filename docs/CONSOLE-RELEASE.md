@@ -106,3 +106,12 @@ D-193 explains why main imported only its stop gate, and D-194 assigns ownership
 main. It was neither run, deleted, restored nor exempted during this investigation.
 Its intended retention needs a precise decision before a clean public release can
 be claimed; see `work/deploy-drift-release-20260906.log`.
+
+D-215 strengthens the local acceptance suite before deployment wiring. The old
+authentication test read its caller's real ledger and skipped ownership cases when
+empty. It now creates two isolated consoles with synthetic ledgers, allocated
+loopback ports, fake RPC and blocked subprocess execution. Sixty HTTP checks pass
+on Windows and Linux; copied-source owner bypass and wrong cwd both fail for the
+intended reason. SIWE 21/21 and the full 22-check console profile pass in
+`work/auth-full-profile.log`. These checks still need to be bound to the exact
+prepared release's clean source revision before a deployment can claim validation.

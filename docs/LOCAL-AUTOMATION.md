@@ -91,6 +91,19 @@ contact public services or require SSH.
 
 ## Optional Linux restart integration
 
+Authentication acceptance now runs in the console profile: 21 cryptographic SIWE
+checks and 60 actual HTTP checks against two isolated consoles. Each invocation
+creates its own synthetic ledger, wallet-owned and system-owned chains, dynamic
+loopback ports, fake RPC and an import preload that refuses every child-process
+launch. It never reads the working source tree's operational ledger, skips ownership
+because a ledger is empty, or relies on fixed test ports. Exact status/identity,
+signature/replay, owner checks, confirmation, secret omission, unauthenticated
+quota exclusion, per-wallet quota and operator bypass are measured. Ledger bytes
+and empty configuration/output directories are verified afterwards; state remains
+under ignored work. Evidence: `work/auth-isolated.log`, `work/auth-linux.log`,
+`work/auth-full-profile.log` (22 groups). Copied-source ownership bypass and wrong
+cwd controls fail their specific assertions in `work/auth-negative-If3xiq`.
+
 The console profile includes deployment lock CLI/process tests. The existing
 `bash local-net/deploy/deploy-lock.sh --self-test` entry point also runs them.
 It uses synthetic retained state and a local wrapper transport, never live SSH.
