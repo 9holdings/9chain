@@ -173,6 +173,8 @@ listener immediately before sending SIGTERM to that PID, then waits at most ten
 seconds for exit and port release. It never matches/kills by process name or force
 kills a stuck console. An exclusive deployment lock is still required around the
 larger operation; this helper cannot serialize independent operators by itself.
+Use the D-214 per-invocation lock described in `DEPLOYMENT-LOCK.md`; the original
+same-host/branch/commit identity allowed two separate runs to reenter one lock.
 
 The replacement starts with `A1_CONSOLE_START_PAUSED=1`; the server persists its
 own maintenance gate before listening even if the original marker was lost.

@@ -91,6 +91,13 @@ contact public services or require SSH.
 
 ## Optional Linux restart integration
 
+The console profile includes deployment lock CLI/process tests. The existing
+`bash local-net/deploy/deploy-lock.sh --self-test` entry point also runs them.
+It uses synthetic retained state and a local wrapper transport, never live SSH.
+Eight concurrent processes must yield one winner; separate Bash invocations must
+not share a lock simply because their checkout is identical. See
+`DEPLOYMENT-LOCK.md` for controls, protocol migration and recovery limits.
+
 ```powershell
 node scripts/check-console-restart.mjs
 node scripts/check-console-restart.mjs --negative-legacy

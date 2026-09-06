@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 20:20:26 UTC** (D-213 milestone).
+repetition. Last user-facing progress update: **2026-09-06 20:33:22 UTC** (D-214 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -256,3 +256,27 @@ public legacy API 404 cannot safely use this path without separate reviewed firs
 bootstrap. The old deploy script still invokes an unverified root-level helper;
 do not run it. No public changes made. Preserve the unexplained-to-manifest helper
 drift noted above until a precise ownership/retention decision is reviewable.
+
+D-214: replaced same-host/branch/commit lock reentry and automatic TTL takeover
+with a unique invocation UUID, strict atomic acquisition and explicit assert/release.
+Standalone Node backend travels over SSH stdin (only tested locally so far),
+base64 JSON coordinates prevent shell path interpolation. New holder.json/schema2
+deliberately omits legacy holder: actual old clients refuse it and cannot take
+over or release it. New client refuses legacy/incomplete/corrupt/extra material,
+old age and retries. Release atomically records exact original actor/optional release
+SHA before removing only its record and empty directory; errors preserve evidence,
+including incomplete states. No automatic lock recovery. Operator manifest includes
+backend. Read `docs/DEPLOYMENT-LOCK.md` before wiring the deploy controller.
+
+Evidence: old actual Bash helper from a9167c5 lets a second independent process
+acquire; correct negative assertion in `work/deploy-lock-negative.log`, scratch
+`work/deploy-lock-P9ErMw`. New: 38 CLI/wrapper checks, eight concurrent contenders
+produce exactly one winner; wrapper self-test also passes in
+`work/deploy-lock-bash-self-test.log` / `work/deploy-lock-07vugT`. Twenty local checks
+pass in `work/deploy-lock-full-profile.log`. Linux backend 32 checks pass with
+real POSIX directory flushes, network-none/read-only-source/tmpfs, 512 MiB/1 CPU:
+`work/deploy-lock-linux.log`; a1-autopilot-deploy-lock-linux-20260906 exited0/noOOM.
+No public lock was acquired/released, no remote files changed. Current code still
+needs frozen-source deployment orchestration and a separately reviewed legacy
+bootstrap. Do not run legacy console-deploy.sh. Next work should integrate these
+components, preserving local validation before server mutations and gate beforecopy.

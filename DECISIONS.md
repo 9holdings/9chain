@@ -9655,3 +9655,41 @@ it does not bypass legacy API 404, perform backups or claim release/ledger recov
 The legacy deploy controller still needs replacement before a public rollout can
 be submitted for review. Its old root-level helper invocation is not this verified
 source-tree path. See `docs/CONSOLE-MAINTENANCE.md`.
+
+### D-214 — One deployment invocation per lock, without age-based takeover (2026-09-06)
+
+The existing lock called host/user/branch/commit a holder. Two independent shells
+on the same checkout therefore both acquired it: the second was treated as a retry.
+Actual old Bash code from a9167c5 reproduced this with two processes, and the new
+exclusion assertion failed for that reason (`work/deploy-lock-negative.log`,
+`work/deploy-lock-P9ErMw`). Its automatic age-based takeover also offered no proof
+that the previous deployment's remote work had ended.
+
+The wrapper now creates a UUID per invocation and captures its original actor
+and commit. Standalone Node backend uses atomic mkdir and holder.json/schema2,
+flushed file/directory writes, strict ownership assertions and no reentry/expiry.
+It refuses old-format, incomplete/corrupt/extra material and linked paths. Legacy
+clients see no old holder file and also refuse; actual legacy acquire/release
+against the new format were tested. Local ownership still precedes any lock write
+or SSH call. The backend transmits through SSH stdin with bounded base64 JSON data;
+it is included in the operator release manifest. No public transport was run.
+
+Release atomically records the initial actor and optional exact release metadata
+SHA, rechecks ownership, then removes only its holder file and empty lock directory.
+No recursive deletion or automatic recovery. Failures can leave incomplete evidence
+and require review. The receipt records a caller's completion declaration; it does
+not itself validate release bytes, service readiness or consensus. Scope is one
+surface among cooperating tools, not arbitrary manual SSH writes.
+
+Thirty-eight CLI/Bash/process checks pass; eight actual concurrent processes yield
+exactly one winner. Includes wrong actor, reentry, expired timestamp, stdin,
+legacy/corrupt/incomplete/extra material, malformed requests, linked source, failed
+receipt and ownership-before-write. Real Bash --self-test passes. Thirty-two
+backend checks also pass on Linux with real directory fsync in a network-disabled,
+read-only-source/root, synthetic tmpfs container (512 MiB/1 CPU/90-second deadline),
+exited0/noOOM. This is not a hardware power-loss drill. Twenty local checks pass.
+Logs: `work/deploy-lock-bash-self-test.log`, `work/deploy-lock-linux.log`,
+`work/deploy-lock-full-profile.log`. No public lock, source, validator or genesis
+changed. Deployment controller and reviewed legacy bootstrap remain next.
+See `docs/DEPLOYMENT-LOCK.md`; D-194's reentry/TTL design is historical, superseded
+for main's wrapper by this decision.

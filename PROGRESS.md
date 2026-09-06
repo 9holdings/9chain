@@ -2,6 +2,7 @@
 
 ## Local automation — 2026-09-06
 
+- [~] D-214: per-invocation deploy lock replaces same-checkout reentry/TTL takeover. Eight real competing processes yield one winner; actual legacy clients cannot steal new locks. 38 CLI/wrapper checks plus 32 Linux backend checks and 20 local checks pass. No public locks changed; deployment controller still pending.
 - [~] D-213: restart only the verified paused listener in its expected source tree; force replacement startup paused. Two real Linux consoles survive correctly; old helper negative actually kills the unrelated console. Open/busy/stale/foreign-tree restarts refused; startup-policy HTTP tests and 19 local checks pass. Public deployment/controller integration pending.
 - [~] D-212: freeze console/operator source bytes with commit/tree and SHA-256 inventory; reject dirty sources, tampering, extra/unsafe paths and symlink payloads. Twenty-six release CLI checks and nineteen local checks pass. Manifest includes lock/restart helper; fresh Linux lockfile installation and signature round trip pass. Deploy integration remains pending; see `docs/CONSOLE-RELEASE.md`.
 
