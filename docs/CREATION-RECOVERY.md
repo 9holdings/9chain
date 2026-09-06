@@ -1,6 +1,6 @@
 # Recovering an interrupted chain creation
 
-Local implementation: D-203 through D-205. Not deployed or rehearsed on the public network yet.
+Local implementation: D-203 through D-206. No public deployment or recovery mutation yet.
 
 The console reserves one creation in `9chain-a1-config/creation-journal/pending.json`
 before writing genesis or calling the CLI. It records the complete public plan,
@@ -68,3 +68,54 @@ container, including failures after backup/primary directory rename on Linux.
 Linux test files use tmpfs; this validates syscall/error behavior, not disk hardware
 or full power-loss recovery. Windows directory fsync is unavailable here.
 Multi-host orchestration and public recovery remain separate work.
+
+## Read-only inspection (D-206)
+
+Run the operator tool against the intended config directory or a preserved copy of
+its specific journal/ledger artifacts. The repository's development ledger is not
+evidence of the current server. No token, signing key, Docker access or SSH is needed.
+
+```powershell
+node scripts/inspect-creation.mjs --config-dir C:\path\to\preserved-config
+node scripts/inspect-creation.mjs --config-dir C:\path\to\preserved-config --rpc http://127.0.0.1:9650
+```
+
+The first command is offline. `--rpc` accepts an HTTP(S) origin without credentials,
+path, query or fragment. Use the origin for the saved network. Requests have a
+five-second timeout by default; `--timeout-ms` accepts 1 through 30000. A wrong or
+unreadable network ID stops all subsequent chain lookups.
+
+For a known blockchain ID the tool asks only `platform.getTxStatus`, `platform.getTx`
+with JSON encoding, and (after transaction identity/commit checks) `eth_chainId`.
+It compares returned transaction ID, network, P-chain parent, chain name, any recorded
+subnet ID and SHA-256 of the exact decoded genesis bytes. It reports the VM ID but
+does not establish VM binary integrity. These are observations from one RPC source,
+not independent cryptographic proofs or evidence that every validator is ready.
+
+An unresolved submission may lack an ID. The tool does not scan by name or replay
+creation: names are non-unique in the fork. If operator evidence supplies a candidate,
+add `--blockchain-id ID`; it must be CB58, must not disagree with an existing recorded
+ID, and still requires the saved plan for comparison. Matching a candidate does not
+prove that no second matching chain was created elsewhere.
+
+JSON output includes hashes/sizes for six known artifact paths, the pending job's
+identity summary and per-check results. It omits the complete genesis/plan, raw
+transactions and credentials. It rechecks artifact hashes at the end; concurrent
+changes make the result inconclusive. It writes no files and has no mutation mode.
+
+| Exit | Verdict | Meaning |
+|---|---|---|
+| 0 | no_pending | No pending job or blocking artifact was found in this selected directory; not a deployment or creation-readiness gate |
+| 1 | review_required | A reservation or conflict needs operator review; matching all RPC checks still returns 1 |
+| 2 | inconclusive | Required evidence is unreadable, invalid, changing or unavailable; malformed CLI arguments also return 2 |
+
+`recoveryAuthorized` is always false. Do not use a zero exit code or matching checks
+to clear files, archive a job or send transactions automatically. Prepare the exact
+reconciliation and obtain owner approval using the procedure above.
+
+Validation includes actual CLI subprocesses with synthetic local files/RPC and
+negative controls. Read-only public compatibility was also checked on Adam Chain
+at 2026-09-06 18:12 UTC: a clearly synthetic local reservation built from its public
+creation transaction matched network 999999998, Committed status, genesis and EVM
+chain ID 9001000000. This was neither a real interrupted server job nor a recovery
+drill. Evidence is retained in ignored `work/inspect-live-reference-z8G9AB`.

@@ -33,6 +33,7 @@ import { siwe } from "./siwe.mjs";
 import { requestRpc } from "../lib/rpc-client.mjs";
 import { CreationJournal, creationGenesisText } from "../lib/creation-journal.mjs";
 import { writeLedger, assertNoPendingLedgerWrite } from "../lib/ledger-write.mjs";
+import { readLedger } from "../lib/ledger-read.mjs";
 
 const PORT = Number(process.env.PORT || 8091);
 // Mặc định CHỈ nghe loopback. Console điều phối docker trên host — mở ra ngoài
@@ -339,28 +340,7 @@ if (!existsSync(CHAIN_CFG_DIR)) mkdirSync(CHAIN_CFG_DIR, { recursive: true });
 // A missing initial ledger is empty; an unreadable or corrupt ledger is not.
 // Legacy files may omit `retired`, but present fields must have the right shape.
 function loadState() {
-  let text;
-  try { text = readFileSync(STATE, "utf8"); } catch (error) {
-    if (error.code === "ENOENT") {
-      if (existsSync(STATE + ".bak") || existsSync(STATE + ".tmp") || existsSync(STATE + ".bak.tmp")) {
-        throw new Error("Chain ledger is missing but recovery files exist. Restore the ledger before continuing.");
-      }
-      return { chains: [], retired: [] };
-    }
-    throw new Error("Chain ledger cannot be read. Restore access before continuing.");
-  }
-  let s;
-  try { s = JSON.parse(text); } catch {
-    throw new Error("Chain ledger contains invalid JSON. Restore the ledger before continuing.");
-  }
-  const entriesValid = entries => Array.isArray(entries) && entries.every(entry =>
-    entry && typeof entry === "object" && !Array.isArray(entry) &&
-    typeof entry.name === "string" && entry.name.trim().length > 0);
-  if (!s || typeof s !== "object" || Array.isArray(s) || !entriesValid(s.chains) ||
-      (s.retired !== undefined && !entriesValid(s.retired))) {
-    throw new Error("Chain ledger has invalid structure. Restore the ledger before continuing.");
-  }
-  return { ...s, retired: s.retired ?? [] };
+  return readLedger(STATE);
 }
 
 /**

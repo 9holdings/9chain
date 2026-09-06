@@ -9329,3 +9329,53 @@ rollback: retain the journal until the operator reconciles it. This still does n
 provide durable journals for upgrade/revoke operations or multi-host coordination.
 New runtime module is included in the deployment manifest. Recovery instructions
 are in `docs/CREATION-RECOVERY.md`; public rollout remains pending approval.
+
+### D-206 — Inspect interrupted creation without authorizing replay (2026-09-06)
+
+The persisted reservation prevents blind retry but leaves operators needing evidence.
+Added `scripts/inspect-creation.mjs`: explicit config directory, offline by default,
+optional bounded read-only RPC and candidate blockchain ID. It hashes only known
+journal/ledger artifact paths, shares the console's ledger/journal parsers, checks
+ledger identity overlaps and rechecks local hashes for concurrent changes. No complete
+plan/genesis, raw transaction or credentials are printed; no repair, retry, archive,
+file deletion, signing or Docker mode exists. Deployment manifest includes the tool
+and all transitive imports in its operator group; console parser extraction is also
+included in its runtime group.
+
+Verified the fork's actual JSON schema in `platformvm/service.go`, `txs/tx.go`,
+`txs/create_chain_tx.go` and `components/avax/base_tx.go`. A chain name is non-unique.
+The tool gates further RPC calls on the saved network identity, then compares the
+creation transaction's ID, network, P-chain parent, name, recorded subnet and exact
+genesis-byte hash; Committed status is required before probing EVM identity. An
+unknown status or missing response never proves non-acceptance. A candidate must
+agree with any already recorded ID and still needs the saved plan. Matching all
+checks remains `review_required` (exit 1), never recovery authorization. Invalid,
+unavailable or changing evidence is inconclusive (exit 2). No pending evidence in
+the selected directory is exit 0, not a creation-readiness assertion.
+
+The actual CLI fixture exercises matching/foreign identities, wrong genesis, wrong
+transaction/parent/network/subnet/name, incomplete JSON, bad base64, RPC timeout,
+concurrent local change, corrupt files, lost-response candidates, stranded writes,
+missing/duplicate/retired ledger entries, credential URLs and unsupported mutation
+flags. Every non-concurrent case verifies all fixture file hashes remain unchanged.
+Negative control removes the genesis hash comparison: the wrong-genesis case loses
+its required conflict (recorded in `work/inspect-creation-negative.log`). An early
+fixture assertion accidentally expected RPC in an offline stranded-write case;
+corrected it before judging the negative control. Import gate initially caught four
+dependencies missing from the operator group; all were added before acceptance.
+
+Read-only public compatibility: 2026-09-06 18:12 UTC, Adam Chain #9001000000,
+blockchain `29XqgUUsFsMiQyjFPfpWuAPaGDk2i3wmFoyGWU5SVASwj99kf7`, network 999999998.
+A synthetic local reservation built from public transaction bytes matched Committed
+status, exact genesis SHA-256 and EVM ID; verdict stayed review_required. Evidence:
+`work/inspect-live-reference-z8G9AB/inspection.json` and
+`work/inspect-creation-live-profile.log`. This verifies response compatibility with
+the live fork, not recovery of an interrupted production job or consensus liveness.
+Public deployment, all-validator inspection and operator-approved reconciliation
+remain unfinished. No public state was changed.
+
+Final local acceptance: 29 actual CLI scenarios plus credential-URL/mutation-flag
+refusals pass; the full fourteen-check local profile passes, including console
+creation 12/12, options 116/116 and governance 55/55. Shared parser extraction
+preserves existing HTTP behavior. Deployment import graph: console 22 files,
+operator tools 6 files, all shipped. Log: `work/inspect-creation-profile.log`.

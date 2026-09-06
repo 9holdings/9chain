@@ -39,6 +39,9 @@ The profile also verifies persistent creation journals and ledger flush/backup
 failure handling, including a console process killed during unresolved submission.
 These use real local files/processes with synthetic external effects. Pending-job operation and
 recovery boundaries are documented in `CREATION-RECOVERY.md`.
+The profile also runs the read-only creation inspector through actual CLI subprocesses,
+including conflicting identities and unchanged-artifact checks. Public RPC access
+is optional in the operator tool and is never used by this local test profile.
 
 This is a local baseline, not a full release gate. It does not build the fork,
 replay patches, run a blockchain, prove recovery, inspect live server state, or

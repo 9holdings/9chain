@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 17:59:59 UTC** (D-205 milestone).
+repetition. Last user-facing progress update: **2026-09-06 18:16:53 UTC** (D-206 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -82,7 +82,9 @@ archival. Ten actual-console synthetic RPC/Docker scenarios and journal file tes
 pass; twelve local checks pass. Read `docs/CREATION-RECOVERY.md` before further work.
 No real public submission, restart or recovery was performed.
 
-Next priority: read-only reconciliation/inspection for pending jobs.
+Next priority after D-206: inspect existing local network/build resources and prepare
+a bounded integration or cold-build run, keeping existing validator/genesis/data
+untouched. The read-only pending inspector is now implemented.
 Do not add blind resume/retry/discard endpoints. Recovery must establish
 what P-chain already accepted and preserve all artifacts before mutation.
 Preserve the public ledger/API contract. Matching chain ID does not prove block
@@ -107,3 +109,18 @@ successfully after real-file fault tests including directory sync failures. It h
 network disabled and synthetic scratch inputs; test data is tmpfs, not a hardware
 power-loss test. No public operations. Read D-205 and recovery documentation for
 the visibility-after-rename limitation. Ledger schema remains unchanged.
+
+D-206 adds `scripts/inspect-creation.mjs` (offline unless `--rpc` supplied), with
+read-only CLI fault tests and shared console parsers. It never authorizes recovery;
+all matching pending jobs still return exit 1. Wrong network gates chain reads;
+transaction/genesis/EVM evidence and artifact changes are checked. Read-only live
+compatibility succeeded on a synthetic reservation for Adam Chain, not a real server
+pending job. Logs: `work/inspect-creation-profile.log`, `work/inspect-creation-negative.log`,
+`work/inspect-creation-live-profile.log`. Read D-206 and recovery docs for limitations.
+Final verification: 29 CLI scenarios plus unsafe-argument controls pass; fourteen
+local checks pass (creation 12/12, options 116/116, governance 55/55). Console imports
+22 files; operator tool group imports 6, all present in their manifest groups.
+Resource inventory at approximately 18:15 UTC: Docker has 24 CPUs and ~31.2 GiB
+memory; Windows reports ~23.3 GiB free. No A1 validator node containers appeared in
+the running name-filtered inventory; faucet/dashboard/explorer and other projects
+remain active. Verify disk space and source/build scripts before a bounded cold build.

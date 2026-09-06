@@ -8,6 +8,22 @@ const phases = new Set(['prepared', 'submitting', 'created', 'complete']);
 const nextPhase = { prepared: 'submitting', submitting: 'created', created: 'complete' };
 export const creationGenesisText = plan => JSON.stringify(plan.tpl, null, 2);
 const genesisHash = plan => createHash('sha256').update(creationGenesisText(plan)).digest('hex');
+export function parseCreationJob(text) {
+  let job;
+  try { job = JSON.parse(text); } catch {
+    throw new Error('Pending creation journal contains invalid JSON. Operator recovery is required before chain changes.');
+  }
+  if (!job || job.version !== 1 || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(job.id ?? '') ||
+      !phases.has(job.phase) || typeof job.plan?.name !== 'string' ||
+      !Number.isSafeInteger(job.networkID) || !Number.isSafeInteger(job.plan.chainId) ||
+      job.plan.chainId <= 0 || job.plan.tpl?.config?.chainId !== job.plan.chainId ||
+      !/^[0-9a-f]{64}$/.test(job.genesisSha256 ?? '') || genesisHash(job.plan) !== job.genesisSha256 ||
+      (['created', 'complete'].includes(job.phase) &&
+        (!/^[A-Za-z0-9]+$/.test(job.subnetID ?? '') || !/^[A-Za-z0-9]+$/.test(job.blockchainID ?? '')))) {
+    throw new Error('Pending creation journal has invalid structure. Operator recovery is required before chain changes.');
+  }
+  return job;
+}
 function syncDirectory(directory) {
   // Windows does not expose directory fsync through Node. File contents are flushed
   // on both platforms; power-loss durability on Windows is not asserted here.
@@ -32,20 +48,7 @@ export class CreationJournal {
       if (error.code === 'ENOENT' && !existsSync(this.pendingFile + '.tmp')) return null;
       throw new Error('Pending creation journal cannot be read. Operator recovery is required before chain changes.');
     }
-    let job;
-    try { job = JSON.parse(text); } catch {
-      throw new Error('Pending creation journal contains invalid JSON. Operator recovery is required before chain changes.');
-    }
-    if (!job || job.version !== 1 || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(job.id ?? '') ||
-        !phases.has(job.phase) || typeof job.plan?.name !== 'string' ||
-        !Number.isSafeInteger(job.networkID) || !Number.isSafeInteger(job.plan.chainId) ||
-        job.plan.chainId <= 0 || job.plan.tpl?.config?.chainId !== job.plan.chainId ||
-        !/^[0-9a-f]{64}$/.test(job.genesisSha256 ?? '') || genesisHash(job.plan) !== job.genesisSha256 ||
-        (['created', 'complete'].includes(job.phase) &&
-          (!/^[A-Za-z0-9]+$/.test(job.subnetID ?? '') || !/^[A-Za-z0-9]+$/.test(job.blockchainID ?? '')))) {
-      throw new Error('Pending creation journal has invalid structure. Operator recovery is required before chain changes.');
-    }
-    return job;
+    return parseCreationJob(text);
   }
   assertClear() {
     const job = this.read();
