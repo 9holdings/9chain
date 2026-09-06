@@ -45,6 +45,11 @@
 
 ## Next work item
 
+D-200 completed locally: corrupt/unreadable ledger now blocks operations; missing
+ledger with backup or pending write also requires recovery. Legacy `retired`
+omission still works. Options HTTP suite 94/94; governance 55/55; nine local checks
+pass. Negative control on the original implementation: 25 failures. Not deployed.
+
 Review `launchChain` in `local-net/console/server.mjs`: it submits P-chain creation,
 then restarts nodes and waits for RPC, and only afterwards calls `saveState`.
 Investigate durable recovery/reservation before irreversible operations; do not

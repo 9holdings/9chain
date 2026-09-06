@@ -332,21 +332,31 @@ const run = promisify(execFile);
 if (!existsSync(TMP_DIR)) mkdirSync(TMP_DIR, { recursive: true });
 if (!existsSync(CHAIN_CFG_DIR)) mkdirSync(CHAIN_CFG_DIR, { recursive: true });
 
-/**
- * Đọc danh bạ + chuẩn hoá hình dạng.
- *
- * `retired` là khoá THÊM (2026-08-25, M4.4) chứa các L1 đã thu hồi. Chuẩn hoá ở
- * đây để mọi chỗ dùng khỏi phải `|| []` rải rác — thiếu một chỗ là ném
- * `undefined.map` giữa lúc đang restart node, tức là hỏng ở đúng đoạn đắt nhất.
- * File cũ (chưa có khoá này) vẫn hợp lệ: thêm khoá là an toàn với hợp đồng dữ liệu.
- */
+// A missing initial ledger is empty; an unreadable or corrupt ledger is not.
+// Legacy files may omit `retired`, but present fields must have the right shape.
 function loadState() {
+  let text;
+  try { text = readFileSync(STATE, "utf8"); } catch (error) {
+    if (error.code === "ENOENT") {
+      if (existsSync(STATE + ".bak") || existsSync(STATE + ".tmp")) {
+        throw new Error("Chain ledger is missing but recovery files exist. Restore the ledger before continuing.");
+      }
+      return { chains: [], retired: [] };
+    }
+    throw new Error("Chain ledger cannot be read. Restore access before continuing.");
+  }
   let s;
-  try { s = JSON.parse(readFileSync(STATE, "utf8")); } catch { s = {}; }
-  if (!s || typeof s !== "object") s = {};
-  if (!Array.isArray(s.chains)) s.chains = [];
-  if (!Array.isArray(s.retired)) s.retired = [];
-  return s;
+  try { s = JSON.parse(text); } catch {
+    throw new Error("Chain ledger contains invalid JSON. Restore the ledger before continuing.");
+  }
+  const entriesValid = entries => Array.isArray(entries) && entries.every(entry =>
+    entry && typeof entry === "object" && !Array.isArray(entry) &&
+    typeof entry.name === "string" && entry.name.trim().length > 0);
+  if (!s || typeof s !== "object" || Array.isArray(s) || !entriesValid(s.chains) ||
+      (s.retired !== undefined && !entriesValid(s.retired))) {
+    throw new Error("Chain ledger has invalid structure. Restore the ledger before continuing.");
+  }
+  return { ...s, retired: s.retired ?? [] };
 }
 
 /**
@@ -357,9 +367,8 @@ function loadState() {
  * chủ sở hữu, chainId, URL RPC đều nằm trong đây và không dựng lại được từ
  * P-Chain (P-Chain biết subnetID/blockchainID, không biết ai đặt tên gì).
  *
- * Ghi qua file tạm rồi rename: ghi thẳng mà tiến trình chết giữa chừng là còn
- * lại JSON cụt — `loadState()` bắt lỗi rồi trả `{chains: []}`, tức là **danh bạ
- * rỗng trông như hợp lệ**, và lượt tạo chain kế tiếp sẽ ghi đè lên đó.
+ * Atomic replacement avoids a truncated file after an interrupted write.
+ * The reader also refuses corrupt state; atomic writes do not repair existing damage.
  */
 function saveState(s) {
   const noiDung = JSON.stringify(s, null, 2);

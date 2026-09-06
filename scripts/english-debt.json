@@ -1,9 +1,9 @@
 {
   "_doc": "Known Vietnamese-language debt in source code. See CLAUDE.md §0 and scripts/check-english-code.mjs. This list may only SHRINK: `--update-baseline` refuses to record growth.",
   "recordedOn": "2026-08-28",
-  "total": 5671,
+  "total": 5663,
   "files": {
-    "local-net/console/server.mjs": 558,
+    "local-net/console/server.mjs": 550,
     "local-net/faucet/block-adam-drill.mjs": 237,
     "local-net/faucet/preset-test.mjs": 216,
     "scripts/export-chain.mjs": 202,

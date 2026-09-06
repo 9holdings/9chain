@@ -24,7 +24,7 @@
  */
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
-import { mkdirSync, mkdtempSync, copyFileSync, existsSync, readdirSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, copyFileSync, existsSync, readdirSync, rmSync, writeFileSync, readFileSync, renameSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -245,6 +245,54 @@ console.log("\n── 6. P-59 the contract library reaches `alloc` through the P
   ok("🔴 a list is refused on the product path, with the sentence the library throws",
     bad.status === 400 && String(bad.j?.error || "").includes("whole or not at all"), `${bad.status} ${String(bad.j?.error || "").slice(0, 110)}`);
   ok("nothing written by any of it", nothingWritten());
+}
+
+console.log("\n── 7. corrupt state must never masquerade as an empty ledger ──");
+{
+  const corruptions = [
+    ['truncated JSON', '{"chains":['],
+    ['null root', 'null'],
+    ['array root', '[]'],
+    ['missing live array', '{}'],
+    ['wrong live type', '{"chains":{}}'],
+    ['wrong retired type', '{"chains":[],"retired":{}}'],
+    ['null live entry', '{"chains":[null],"retired":[]}'],
+    ['invalid retired entry', '{"chains":[],"retired":[42]}'],
+  ];
+  for (const [label, text] of corruptions) {
+    writeFileSync(LEDGER, text);
+    const p = await preview({ name: 'Ledger Guard Test' });
+    ok(`corrupt ${label}: preview refuses with a ledger error`,
+      p.status === 400 && /Chain ledger/.test(p.j?.error ?? ''), `${p.status}: ${p.j?.error}`);
+    // Invalid fees are an independent stop before Docker even on the old broken reader.
+    // The ledger error must take precedence; no test sends a valid create to a real node.
+    const c = await create({ name: 'Ledger Guard Test', fees: { minBaseFee: 0 } });
+    ok(`corrupt ${label}: create refuses for the ledger reason`,
+      c.status === 400 && /Chain ledger/.test(c.j?.error ?? ''), `${c.status}: ${c.j?.error}`);
+    const s = await call('/api/status');
+    ok(`corrupt ${label}: status cannot claim an empty directory`,
+      s.status === 500 && /Chain ledger/.test(s.j?.error ?? ''));
+    ok(`corrupt ${label}: original bytes retained, no genesis or backup written`,
+      readFileSync(LEDGER, 'utf8') === text && readdirSync(TMP).length === 0 && !existsSync(LEDGER + '.bak'));
+  }
+  const legacy = JSON.stringify({ chains: [], metadata: 'legacy fixture without retired' });
+  writeFileSync(LEDGER, legacy);
+  const legacyPreview = await preview({ name: 'Legacy Ledger Test' });
+  ok('legacy ledger without retired remains readable', legacyPreview.status === 200);
+  ok('normalizing a legacy ledger does not rewrite its bytes', readFileSync(LEDGER, 'utf8') === legacy);
+  renameSync(LEDGER, LEDGER + '.bak');
+  const recoverable = await preview({ name: 'Missing Ledger Test' });
+  ok('missing ledger with a backup requires recovery instead of restarting allocation',
+    recoverable.status === 400 && /Chain ledger is missing but recovery files exist/.test(recoverable.j?.error ?? ''));
+  ok('missing-ledger refusal preserves the backup bytes', readFileSync(LEDGER + '.bak', 'utf8') === legacy);
+  renameSync(LEDGER + '.bak', LEDGER + '.tmp');
+  const interrupted = await preview({ name: 'Interrupted Ledger Test' });
+  ok('missing ledger with a pending atomic write also requires recovery',
+    interrupted.status === 400 && /Chain ledger is missing but recovery files exist/.test(interrupted.j?.error ?? ''));
+  mkdirSync(LEDGER);
+  const unreadable = await preview({ name: 'Unreadable Ledger Test' });
+  ok('existing but unreadable path refuses as an IO error, never empty state',
+    unreadable.status === 400 && /Chain ledger cannot be read/.test(unreadable.j?.error ?? ''));
 }
 
 console.log(`\n${fail ? "✗" : "✅"} ${pass} passed · ${fail} failed`);

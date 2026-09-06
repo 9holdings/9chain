@@ -2,6 +2,8 @@
 
 ## Local automation — 2026-09-06
 
+- [~] D-200: corrupt/unreadable ledger no longer becomes empty state. Real local HTTP regression: 25 failures before fix; options 94/94 and governance 55/55 after. Deployment pending; durable launch journal is still needed.
+
 - [~] D-199: stale rebuild/erasure message removed from closed creation response; local HTTP regression red before/green after. Nine local checks pass via `--console`. Public deployment still pending approval.
 - [x] Existing Dockerfile builds with the restricted context using cached compiler layers; isolated binary version matches expected fork. Cold compiler run and network consensus are not verified by this check.
 

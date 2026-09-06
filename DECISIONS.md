@@ -9178,3 +9178,24 @@ initially failed due to a missing HTML fixture; that was fixed before recording
 the meaningful negative control. Added an opt-in `--console` profile to the local
 runner; all nine checks pass, including options 56/56 and governance 55/55.
 Public deployment has not happened and must be approved separately.
+
+### D-200 — Corrupt chain ledgers fail closed (2026-09-06)
+
+While reviewing creation recovery, found `loadState()` caught every IO/JSON error
+and normalized invalid arrays into empty state. A truncated ledger could therefore
+remove all previously allocated names/IDs from the console's checks. Atomic writes
+alone do not protect against pre-existing corruption or unreadable storage.
+
+Only a missing initial file without `.bak`/`.tmp` recovery artifacts is now empty.
+Read failures, invalid JSON/root/arrays/entries and a missing primary file with
+recovery artifacts block ledger-dependent operations with explicit errors. Older
+valid files may omit `retired`; normalization remains in memory. No automatic
+backup restore is attempted because its freshness must be verified first.
+
+Actual isolated console HTTP: the new regression exposed 25 failures before the
+fix. Options suite now passes 94/94; governance 55/55 and the full nine-check local
+profile pass. Covers preview/create/status on eight corrupt shapes, unreadable
+path, legacy compatibility and missing state with backup/pending write. Corrupt
+bytes remain unchanged. This does not reconstruct a lost ledger, validate every
+chain field, or distinguish first start from deletion with no recovery artifacts.
+Local fix only; public deployment and live acceptance remain pending review.
