@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 19:13:42 UTC** (D-209 milestone).
+repetition. Last user-facing progress update: **2026-09-06 19:27:00 UTC** (D-210 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -82,15 +82,16 @@ archival. Ten actual-console synthetic RPC/Docker scenarios and journal file tes
 pass; twelve local checks pass. Read `docs/CREATION-RECOVERY.md` before further work.
 No real public submission, restart or recovery was performed.
 
-Next priority after D-209: audit and prepare the public console deployment and
-recovery acceptance procedure. Read-only drift shows 26 matching files, two changed
-files, seven missing new files, no undeclared orphans. Existing console-deploy.sh
-copies files before checking busy state, fails open when that check cannot answer,
-and ships only the console group before checking drift across every group. Review
-these concrete hazards and fix/test locally before proposing deployment. SSH works
-with existing credentials; never print secret values. Do not change public services
-or existing validator/genesis/data. New-chain bootstrap still needs real integration
-acceptance; synthetic Docker tests do not prove it.
+Next priority after D-210: integrate the maintenance protocol into the deployment
+path and prepare owner-reviewed bootstrap/rollback for the current legacy server.
+Read `docs/CONSOLE-MAINTENANCE.md`: the new API is local, deployment script is still
+unchanged and unsafe to assume updated. It copies before checking busy state, fails
+open on unreadable progress, and ships console only before checking all groups
+(operator inspector is missing on server). Move local tests before network writes,
+require pause/drain before release copy, retain pause through restart and read-only
+validation, and fail closed on legacy/unreadable state. Prepare and test locally;
+do not run public mutations. SSH works with existing credentials, never print them.
+New-chain bootstrap still needs real integration acceptance.
 Do not add blind resume/retry/discard endpoints. Recovery must establish
 what P-chain already accepted and preserve all artifacts before mutation.
 Preserve the public ledger/API contract. Matching chain ID does not prove block
@@ -163,3 +164,13 @@ retained. SSH-only reads found existing Adam Chain healthy with the right ID on 
 nodes at 19:08 UTC; `work/managed-nodes-live-20260906.json`. Public drift is expected:
 26 matching, 2 changed, 7 missing files. No public changes. See D-209; next priority
 above is the deployment path, especially fail-open busy checks and group coverage.
+
+D-210 adds persistent maintenance admission, counting authenticated mutation
+handlers from before body reading through preflight/queue/execution/finally. Pause
+persists across restart, stale observations cannot reopen, file/sync errors fail
+closed. Actual HTTP negative proved rollout progress false while two mutations
+were already admitted. HTTP and real-file tests pass, also POSIX sync faults in
+isolated Linux. Seventeen local checks pass (`work/maintenance-full-profile.log`),
+Linux log `work/maintenance-linux.log`; container exited, no ongoing jobs. Console
+manifest reaches 25 dependencies. Legacy deploy integration still outstanding;
+new API alone does not make that script safe. No public mutations.

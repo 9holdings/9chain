@@ -2,8 +2,10 @@
 
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
-for current evidence and next work. D-197 through D-207: local console reliability,
-read-only creation inspection, cold-build/replay and selected core-test evidence.
+for current evidence and next work. D-197 through D-210: local console reliability,
+read-only creation inspection, cold-build/replay, core tests, managed-node transport
+and persistent operator maintenance. Deployment-script integration is still pending;
+see `docs/CONSOLE-MAINTENANCE.md` before preparing any public rollout.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
 

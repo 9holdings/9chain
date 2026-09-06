@@ -9495,3 +9495,49 @@ new-chain bootstrap. Read-only deployment drift remains red as expected: 26 matc
 two changed, seven missing new files, zero undeclared orphans
 (`work/deploy-drift-20260906.log`). Local transport acceptance is complete; public
 deployment, real new-chain rollout and interrupted-job recovery remain unperformed.
+
+### D-210 — Persist maintenance and count admitted mutations before restart (2026-09-06)
+
+Review of console deployment found its idle probe after code copy and explicitly
+fail-open on unavailable/unauthorized/old-server responses. More fundamentally,
+`progress.running` observes rollout, not all admitted work. A real local HTTP test
+held the first creation in generation RPC and queued another: running was false
+while both requests remained unresolved. The admission assertion failed for this
+exact gap (`work/maintenance-before.log`), not because a fake Docker call failed.
+
+Added `MaintenanceGate` and operator-token-only GET state / POST pause / POST resume
+endpoints. Creation, revocation, upgrade and ownership-transfer requests acquire
+admission after authentication and before body parsing; release is in the handler's
+finally, after preflight, queue and execution finish. A disconnected client does
+not release unresolved work. New mutations receive 503 while paused. Read views
+remain available. Status/progress add the measured maintenance object, preserving
+the existing rollout fields and public ledger schema.
+
+Pause closes admission synchronously and persists an empty runtime marker directory.
+Startup sees it and stays paused. POSIX syncs marker and parent; Windows has no
+directory-sync promise. Ready-for-restart requires confirmed persistence and zero
+admitted handlers for this instance. Failed marker creation/sync remains paused and
+unconfirmed. Stale process/pause IDs cannot resume; identifiers change on restart
+or a subsequent distinct pause. Resume removes only the empty marker, never
+recursively deletes data. Failed sync after removal can leave the marker absent;
+the current process stays paused, but this is not rollback or power-loss proof.
+Malformed/unreadable/symlink/nonempty markers are refused and retained.
+
+HTTP tests exercise operator versus SIWE authorization, all four blocked routes,
+queued and disconnected execution, partially read and dropped bodies, persisted
+pause across actual process restart, stale/malformed resume and no ledger/genesis
+writes. Real-file fault tests also pass on Linux in network-disabled read-only-source
+container `a1-autopilot-maintenance-linux-20260906`, 256 MiB/1 CPU, synthetic tmpfs,
+including both pause directory-sync failures and visibility after release failure.
+Container exited. Seventeen local checks pass (creation 16, options 116, governance
+55); English debt remains 5663/107, console dependency graph 25 files. Evidence:
+`work/maintenance-full-profile.log`, `work/maintenance-linux.log`.
+
+This is an admission protocol, not completed deployment automation. The legacy
+deployment script is unchanged in this commit and must not be assumed safe because
+the new API exists. Next work: integrate fail-closed pause/drain before any release
+copy, preserve paused state through restart/validation, and prepare owner-reviewed
+bootstrap for a legacy server without these endpoints. Scope is a single console
+process; it cannot observe external Docker jobs or another console instance and does
+not reconcile a pending creation. See `docs/CONSOLE-MAINTENANCE.md`. No public writes,
+restart, deploy, transactions, validator/genesis changes or operational-data deletion.

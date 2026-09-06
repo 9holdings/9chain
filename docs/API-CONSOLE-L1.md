@@ -17,6 +17,13 @@ within a successful observation round; they do not prove consensus liveness or
 ongoing availability. The public ledger schema is unchanged. Continue polling
 progress across proxy timeouts and never resubmit based on a missing HTTP response.
 
+Update 2026-09-06 (D-210, **local only; not deployed**): authenticated status/progress
+add `maintenance` with `instanceId`, `maintenanceId`, `paused`, `activeOperations`,
+`persistent` and `readyForRestart`. New mutations receive 503 during operator
+maintenance; existing work and read-only views continue. `running=false` alone does
+not establish that requests have finished. Operator-only maintenance endpoints and
+their measured contract are documented in [`CONSOLE-MAINTENANCE.md`](CONSOLE-MAINTENANCE.md).
+
 > **Mục đích:** để phiên `web-home` làm **P-55** (ký hiệu token), **P-60** (trang "quản trị chain của
 > tôi") và **P-62** (màn xem trước + câu ký) **mà không phải đọc `server.mjs`**.
 >

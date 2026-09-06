@@ -36,6 +36,7 @@ import { writeLedger, assertNoPendingLedgerWrite } from "../lib/ledger-write.mjs
 import { readLedger } from "../lib/ledger-read.mjs";
 import { waitForChainNodes } from "../lib/chain-readiness.mjs";
 import { createManagedNodeRpc } from "../lib/managed-node-rpc.mjs";
+import { MaintenanceGate } from "../lib/maintenance.mjs";
 
 const PORT = Number(process.env.PORT || 8091);
 // Mặc định CHỈ nghe loopback. Console điều phối docker trên host — mở ra ngoài
@@ -339,6 +340,7 @@ const run = promisify(execFile);
 const rpcOnManagedNode = createManagedNodeRpc({ cwd: ROOT, compose: COMPOSE, run });
 if (!existsSync(TMP_DIR)) mkdirSync(TMP_DIR, { recursive: true });
 if (!existsSync(CHAIN_CFG_DIR)) mkdirSync(CHAIN_CFG_DIR, { recursive: true });
+const maintenance = new MaintenanceGate(CFG_DIR);
 
 // A missing initial ledger is empty; an unreadable or corrupt ledger is not.
 // Legacy files may omit `retired`, but present fields must have the right shape.
@@ -2005,6 +2007,7 @@ function blockedByAuth(req, res) {
 }
 
 const server = http.createServer(async (req, res) => {
+  let releaseMutation;
   try {
     // Trang UI để mở — nó không làm gì nếu không có token; mọi hành động đều
     // đi qua /api/* và đều bị chặn.
@@ -2016,6 +2019,20 @@ const server = http.createServer(async (req, res) => {
     // Nếu ở đây luôn ra IP của Caddy thì rate-limit vô dụng (gom chung 1 khoá).
     if (req.method === "GET" && req.url === "/whoami") {
       return send(res, 200, { ip: clientIp(req, TRUST_PROXY), trustProxy: TRUST_PROXY });
+    }
+
+    if ((req.method === "GET" && req.url === "/api/maintenance") ||
+        (req.method === "POST" && ["/api/maintenance/pause", "/api/maintenance/resume"].includes(req.url))) {
+      if (blockedByRate(req, res, limitRead)) return;
+      const identity = blockedByAuth(req, res);
+      if (!identity) return;
+      if (identity.kieu !== "vanHanh") return send(res, 403, { error: "Console maintenance requires the operator token" });
+      if (req.method === "GET") return send(res, 200, maintenance.snapshot());
+      if (req.url.endsWith("/pause")) return send(res, 200, maintenance.pause());
+      let observation;
+      try { observation = JSON.parse((await docBody(req)) || "{}"); }
+      catch { return send(res, 400, { error: "Console maintenance resume requires valid JSON" }); }
+      return send(res, 200, maintenance.resume(observation));
     }
 
     if (req.method === "GET" && req.url === "/api/status") {
@@ -2031,6 +2048,7 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, {
         node: ver, cChainId: cid, defaultAdmin: L1_ADMIN,
         pendingCreation: creationJournal.summary(),
+        maintenance: maintenance.snapshot(),
         chains: st.chains, retired: st.retired,
         // Giao diện phải nói rõ người dùng đang là AI. Đăng nhập bằng ví thì ô
         // admin không còn ý nghĩa (bị ép bằng địa chỉ ký) — hiện nhầm là mời họ
@@ -2083,6 +2101,7 @@ const server = http.createServer(async (req, res) => {
       const STATUS = { cho: "pending", chay: "running", xong: "done", hong: "failed" };
       return send(res, 200, {
         running: tienTrinh.dangChay,
+        maintenance: maintenance.snapshot(),
         kind: tienTrinh.loai ? (KIND[tienTrinh.loai] ?? tienTrinh.loai) : null,
         name: tienTrinh.ten,
         secondsElapsed: tienTrinh.batDau ? Math.round((Date.now() - tienTrinh.batDau) / 1000) : 0,
@@ -2193,6 +2212,7 @@ const server = http.createServer(async (req, res) => {
       if (blockedByRate(req, res, limitFlood)) return;
       const ai = blockedByAuth(req, res);
       if (!ai) return;
+      releaseMutation = maintenance.enter();
       if (ai.kieu === "vi" && blockedByRate(req, res, limitUpgrade, `vi:${ai.diaChi}`)) return;
       try {
         const tham = JSON.parse((await docBody(req)) || "{}");
@@ -2209,6 +2229,7 @@ const server = http.createServer(async (req, res) => {
       if (blockedByRate(req, res, limitFlood)) return;
       const ai = blockedByAuth(req, res);
       if (!ai) return;
+      releaseMutation = maintenance.enter();
       if (ai.kieu === "vi" && blockedByRate(req, res, limitTransfer, `vi:${ai.diaChi}`)) return;
       try {
         const tham = JSON.parse((await docBody(req)) || "{}");
@@ -2225,6 +2246,7 @@ const server = http.createServer(async (req, res) => {
       if (blockedByRate(req, res, limitFlood)) return;
       const ai = blockedByAuth(req, res);
       if (!ai) return;
+      releaseMutation = maintenance.enter();
       // Đăng nhập bằng ví ⇒ đếm theo VÍ. Người vận hành thì vẫn theo IP (họ không
       // có ví, và họ là một người duy nhất). Tiền tố `vi:` để hai không gian khoá
       // không đụng nhau — một địa chỉ IPv6 và một địa chỉ EVM đều là chuỗi hex.
@@ -2300,7 +2322,8 @@ const server = http.createServer(async (req, res) => {
       }
     }
     send(res, 404, { error: "not found" });
-  } catch (e) { send(res, 500, { error: String(e.message || e) }); }
+  } catch (e) { send(res, e.status ?? 500, { error: String(e.message || e) }); }
+  finally { releaseMutation?.(); }
 });
 
 server.listen(PORT, HOST, () => {

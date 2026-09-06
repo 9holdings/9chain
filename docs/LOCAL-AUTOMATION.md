@@ -42,6 +42,10 @@ recovery boundaries are documented in `CREATION-RECOVERY.md`.
 The profile also runs the read-only creation inspector through actual CLI subprocesses,
 including conflicting identities and unchanged-artifact checks. Public RPC access
 is optional in the operator tool and is never used by this local test profile.
+It also verifies maintenance admission/persistence with real local files and HTTP
+processes: queued, preflight and disconnected requests; restart persistence; stale
+resume refusal. See `CONSOLE-MAINTENANCE.md` for the scope and deployment integration
+still required. The synthetic tests never pause the public console.
 The profile checks post-rollout L1 readiness on managed nodes, including response
 identity, concurrent probes, fresh observation rounds and cancellation. For the
 longer actual-console timeout probe, run separately:
