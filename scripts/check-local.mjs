@@ -15,6 +15,7 @@ const checks = [
 ];
 const consoleChecks = [
   ['local-net/console/paused-e2e-test.mjs'],
+  ['local-net/console/create-rpc-e2e-test.mjs'],
   ['local-net/console/options-e2e-test.mjs'],
   ['local-net/console/governance-e2e-test.mjs'],
 ];

@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 16:57:29 UTC**.
+repetition. Last user-facing progress update: **2026-09-06 17:03:36 UTC** (D-201 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -59,8 +59,17 @@ pass. Negative control on the original implementation: 25 failures. Not deployed
 Review `launchChain` in `local-net/console/server.mjs`: it submits P-chain creation,
 then restarts nodes and waits for RPC, and only afterwards calls `saveState`.
 Investigate durable recovery/reservation before irreversible operations; do not
-blindly retry CLI transactions on uncertain outcomes. RPC readiness currently
-accepts any successful `eth_chainId` response without comparing the returned ID.
-Start with a reproducible local failure and a small fix, preserving the public
-ledger/API contract. Full cold build, patch replay and live consensus remain
-separate unverified items. Do not trigger public create/upgrade while testing.
+blindly retry CLI transactions on uncertain outcomes.
+
+D-201 now verifies the returned hexadecimal chain ID matches the plan. Nine
+actual-console HTTP fixture cases pass (synthetic node, intercepted Docker):
+matching IDs, transient error recovery and six invalid/mismatched responses.
+The six bad responses were false successes before the fix. All ten local checks
+pass; log `work/check-local-console-20260906.log`. Not deployed.
+
+Next priorities: the shared `rpc()` helper has no request deadline or strict
+HTTP/JSON-RPC envelope validation. Then durable launch reservation/journaling
+(P-chain creation is irreversible and currently precedes successful ledger write).
+Preserve the public ledger/API contract. Matching chain ID does not prove block
+production or all-validator readiness. Full cold build, patch replay and live
+consensus remain separate unverified items. No public create/upgrade in tests.

@@ -2,6 +2,8 @@
 
 ## Local automation — 2026-09-06
 
+- [~] D-201: creation checks RPC chain ID before saving success; real console + synthetic node/Docker fixture 9/9 (six false successes reproduced before fix), ten-check local profile passes. Public deployment pending; this does not prove consensus liveness.
+
 - [~] D-200: corrupt/unreadable ledger no longer becomes empty state. Real local HTTP regression: 25 failures before fix; options 94/94 and governance 55/55 after. Deployment pending; durable launch journal is still needed.
 
 - [~] D-199: stale rebuild/erasure message removed from closed creation response; local HTTP regression red before/green after. Nine local checks pass via `--console`. Public deployment still pending approval.

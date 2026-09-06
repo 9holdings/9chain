@@ -9199,3 +9199,27 @@ path, legacy compatibility and missing state with backup/pending write. Corrupt
 bytes remain unchanged. This does not reconstruct a lost ledger, validate every
 chain field, or distinguish first start from deletion with no recovery artifacts.
 Local fix only; public deployment and live acceptance remain pending review.
+
+### D-201 — Creation must verify the RPC chain identity (2026-09-06)
+
+`launchChain` used to accept any non-throwing `eth_chainId` call and save a success
+record without examining the result. A wrong chain ID, missing/null result or
+malformed quantity could therefore publish a chain that was never verified.
+The gate now requires a hexadecimal quantity equal to the planned ID (BigInt
+comparison). Definite invalid/mismatched identities stop immediately; RPC failures
+still retry. The progress step becomes done only after the gate succeeds.
+
+New actual-console HTTP launch fixture intercepts all Docker commands in a
+test-only preload, serves a synthetic node, and uses a separate scratch ledger per
+case. Two valid controls passed and six invalid-result cases incorrectly succeeded
+before the fix. After: nine cases pass, including transient RPC failure/recovery,
+ledger absence on refusal, and the failed RPC progress step. All ten local checks
+pass. No real Docker command, validator restart or public transaction occurs in
+this fixture. Early fixture mistakes (unmodeled status RPC and counting C-chain
+queries) were corrected before recording the meaningful negative control.
+
+Limits: matching `eth_chainId` proves neither block production nor every validator's
+readiness. Creation may already exist on P-chain when this gate refuses; the error
+advises contacting the operator before retrying. Durable creation recovery remains
+unfinished. The existing RPC helper also still needs a bounded timeout and stricter
+HTTP/envelope handling. Public deployment has not been performed.

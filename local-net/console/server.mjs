@@ -1350,15 +1350,31 @@ async function launchChain(plan) {
   const rpcPath = `/ext/bc/${blockchainID}/rpc`;
   let live = false;
   for (let i = 0; i < 30; i++) {
-    try { await rpc(rpcPath, "eth_chainId"); live = true; break; } catch { await new Promise(r => setTimeout(r, 5000)); }
+    let reportedChainId;
+    try { reportedChainId = await rpc(rpcPath, "eth_chainId"); } catch {
+      await new Promise(r => setTimeout(r, 5000));
+      continue;
+    }
+    // A responding endpoint may belong to a different chain or return no result.
+    // Retry transport failures, but stop on a definite invalid identity response.
+    if (typeof reportedChainId !== "string" || !/^0x[0-9a-f]+$/i.test(reportedChainId)) {
+      throw new Error(`L1 ${blockchainID} returned an invalid eth_chainId result. ` +
+        `Expected chain ID ${chainId}; creation was not recorded as successful. Contact the operator before retrying.`);
+    }
+    if (BigInt(reportedChainId) !== BigInt(chainId)) {
+      throw new Error(`L1 ${blockchainID} RPC chain ID mismatch: expected ${chainId}, ` +
+        `received ${BigInt(reportedChainId)}. Creation was not recorded as successful. Contact the operator before retrying.`);
+    }
+    live = true;
+    break;
   }
-  buocXong("rpc");
   if (!live) {
     throw new Error(
       `L1 ${blockchainID} không lên RPC sau 150s. Thường là node chưa track subnet — ` +
       `kiểm tra compose có đọc AVAGO_TRACK_SUBNETS=\${A1_TRACK_SUBNETS} ở MỌI node chưa.`
     );
   }
+  buocXong("rpc");
   // URL trả cho người dùng phải là URL họ gọi được, không phải URL của server.
   //
   // `API` là địa chỉ console dùng để điều phối (`http://localhost:9650`). Đưa
