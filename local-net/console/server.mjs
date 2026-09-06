@@ -1044,9 +1044,7 @@ async function createChain(tham) {
     //    tells a stranger what the switch is called. How to open it belongs in the startup log
     //    (operators only) and in `docs/`.
     throw new Error(
-      "Chain creation is paused. The public network is being rebuilt on 2026-09-01 and every " +
-      "user L1 will be erased with it — opening the door now would be promising something we " +
-      "already know we cannot keep. It reopens after the rebuild.");
+      "Chain creation is paused. Please try again later or contact the network operator for an update.");
   }
 
   const plan = await planChain(tham);

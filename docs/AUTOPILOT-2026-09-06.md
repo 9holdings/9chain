@@ -31,5 +31,25 @@
   3 required paths included, 11 unrelated paths excluded. Removing the policy
   exposes synthetic operational files as expected. Evidence in ignored
   `work/node-context-MMRsDJ`; no real keys used.
-- Next: commit the verified context policy, then run a bounded Linux fork
-  build without overwriting existing image tags or altering genesis/validator state.
+- Context policy committed as `ef47b96`.
+- Full Dockerfile build completed using cached compilation layers. New local tag:
+  `9chain-a1/node:autopilot-20260906`, digest
+  `sha256:aec9636e4d1d6ed45bbab0a1338b2d3aab08d07ae139958015a7512c746e267f`.
+  Context transfer: 53.80 MB. This is not a fresh uncached compiler run.
+- Isolated version container (`a1-autopilot-version-20260906`, exited, network none,
+  read-only, 1 CPU/256 MB): `9chaingo/1.14.2`, rpcchainvm 45,
+  commit `9chain-a1-g1-27patch-38723877`, Go 1.25.10. No node network started.
+- D-199 local console fix: pause response no longer promises the retired 01/09
+  rebuild/erasure. Real HTTP regression was red on the old text and passes now.
+  `node scripts/check-local.mjs --console`: all nine checks pass. Public deployment pending.
+
+## Next work item
+
+Review `launchChain` in `local-net/console/server.mjs`: it submits P-chain creation,
+then restarts nodes and waits for RPC, and only afterwards calls `saveState`.
+Investigate durable recovery/reservation before irreversible operations; do not
+blindly retry CLI transactions on uncertain outcomes. RPC readiness currently
+accepts any successful `eth_chainId` response without comparing the returned ID.
+Start with a reproducible local failure and a small fix, preserving the public
+ledger/API contract. Full cold build, patch replay and live consensus remain
+separate unverified items. Do not trigger public create/upgrade while testing.

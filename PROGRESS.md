@@ -2,6 +2,9 @@
 
 ## Local automation — 2026-09-06
 
+- [~] D-199: stale rebuild/erasure message removed from closed creation response; local HTTP regression red before/green after. Nine local checks pass via `--console`. Public deployment still pending approval.
+- [x] Existing Dockerfile builds with the restricted context using cached compiler layers; isolated binary version matches expected fork. Cold compiler run and network consensus are not verified by this check.
+
 - [x] Node Docker context isolation (D-198): actual Docker build on synthetic inputs includes three required source paths, excludes eleven unrelated paths; unrestricted negative control exposes fake operational files. Does not claim a full node build.
 - [~] Ten-hour autonomous development window configured, ending 2026-09-07 02:23:12 UTC. Continuation record: `docs/AUTOPILOT-2026-09-06.md`.
 

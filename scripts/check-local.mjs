@@ -13,6 +13,11 @@ const checks = [
   ['scripts/check-deploy-imports.mjs'],
   ['local-net/console/chainid-test.mjs'],
 ];
+const consoleChecks = [
+  ['local-net/console/paused-e2e-test.mjs'],
+  ['local-net/console/options-e2e-test.mjs'],
+  ['local-net/console/governance-e2e-test.mjs'],
+];
 
 export function runChecks(entries, execute) {
   for (const args of entries) {
@@ -43,11 +48,12 @@ if (args.length === 1 && args[0] === '--self-test') {
   assert.equal(negative.status, 7);
   assert.equal(negative.ok, false);
   console.log('PASS: success, fail-fast, inconclusive, signal, spawn error, real child failure');
-} else if (args.length) {
-  console.error('Usage: node scripts/check-local.mjs [--self-test]');
+} else if (args.length && !(args.length === 1 && args[0] === '--console')) {
+  console.error('Usage: node scripts/check-local.mjs [--self-test | --console]');
   process.exitCode = 2;
 } else {
-  const result = runChecks(checks, childArgs => {
+  const selected = args[0] === '--console' ? [...checks, ...consoleChecks] : checks;
+  const result = runChecks(selected, childArgs => {
     console.log(`\nRUN node ${childArgs.join(' ')}`);
     return spawnSync(process.execPath, childArgs, {
       cwd: root, stdio: 'inherit', timeout: 120_000, shell: false,
@@ -57,6 +63,6 @@ if (args.length === 1 && args[0] === '--self-test') {
     console.error(`FAIL: ${result.failed}: ${result.reason}`);
     process.exitCode = 1;
   } else {
-    console.log(`PASS: ${checks.length} repository checks. Live deployment and fork build are NOT verified.`);
+    console.log(`PASS: ${selected.length} local checks. Live deployment and fork build are NOT verified.`);
   }
 }

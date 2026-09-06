@@ -16,6 +16,7 @@ Run from the repository:
 ```powershell
 node scripts/check-local.mjs --self-test
 node scripts/check-local.mjs
+node scripts/check-local.mjs --console
 ```
 
 With Docker running, `node scripts/check-node-build-context.mjs` verifies the
@@ -27,6 +28,10 @@ check. It checks worktree ownership, patch documentation consistency, deployment
 import coverage, and chain ID allocation. Patch/import gates include their own
 negative controls. It uses the current Node executable and resolves the repository
 from the script path, so it does not depend on the caller's working directory.
+
+The optional `--console` profile adds three real local HTTP console suites:
+paused creation, deep options and governance. Their nodes/credentials are fake
+and their operational state is isolated; they do not create public chains.
 
 This is a local baseline, not a full release gate. It does not build the fork,
 replay patches, run a blockchain, prove recovery, inspect live server state, or

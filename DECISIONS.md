@@ -9166,3 +9166,15 @@ unignored its children; explicit child exclusions fixed that behavior. Removing
 the policy admits fake key/env files, proving the negative control detects the
 actual failure. No real secrets are copied and synthetic evidence is retained
 under ignored `work/`. Full node image build remains a separate measurement.
+
+### D-199 — A pause is not a scheduled network erasure (2026-09-06)
+
+The closed `/api/create` path still promised a rebuild on 2026-09-01 and erasure
+of every user L1. That is false as a generic pause response after the ceremony.
+Changed only the message; manual gate and authentication behavior are unchanged.
+New isolated real-HTTP test failed on that dated promise before the change and
+passes afterwards, still requiring HTTP 400 and no ledger creation. Test startup
+initially failed due to a missing HTML fixture; that was fixed before recording
+the meaningful negative control. Added an opt-in `--console` profile to the local
+runner; all nine checks pass, including options 56/56 and governance 55/55.
+Public deployment has not happened and must be approved separately.
