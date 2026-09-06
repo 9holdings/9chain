@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 18:16:53 UTC** (D-206 milestone).
+repetition. Last user-facing progress update: **2026-09-06 18:34:10 UTC** (D-207 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -82,14 +82,18 @@ archival. Ten actual-console synthetic RPC/Docker scenarios and journal file tes
 pass; twelve local checks pass. Read `docs/CREATION-RECOVERY.md` before further work.
 No real public submission, restart or recovery was performed.
 
-Next priority after D-206: inspect existing local network/build resources and prepare
-a bounded integration or cold-build run, keeping existing validator/genesis/data
-untouched. The read-only pending inspector is now implemented.
+Next priority after D-207: review creation rollout's final L1 readiness across nodes.
+Current create only verifies the public-facing RPC's chain ID; `requireChain` is
+used on upgrade paths. Do not blindly wait for a new L1 on the first node before
+rolling the others: bootstrap/quorum dependencies may require all nodes to track
+first. Inspect the fork behavior and reproduce a meaningful false-success case
+before changing the creation acceptance path. Preserve existing validator/genesis/data.
 Do not add blind resume/retry/discard endpoints. Recovery must establish
 what P-chain already accepted and preserve all artifacts before mutation.
 Preserve the public ledger/API contract. Matching chain ID does not prove block
-production or all-validator readiness. Full cold build, patch replay and live
-consensus remain separate unverified items. No public create/upgrade in tests.
+production or all-validator readiness. Cold build and patch replay are now measured
+in D-207; live multi-node consensus remains unverified in this window. No public
+create/upgrade in tests.
 
 D-204 now tests a hard process crash during unresolved CLI submission. All eleven
 creation HTTP scenarios pass. Disabling the fixture pause gives exactly one failure:
@@ -124,3 +128,13 @@ Resource inventory at approximately 18:15 UTC: Docker has 24 CPUs and ~31.2 GiB
 memory; Windows reports ~23.3 GiB free. No A1 validator node containers appeared in
 the running name-filtered inventory; faucet/dashboard/explorer and other projects
 remain active. Verify disk space and source/build scripts before a bounded cold build.
+
+D-207 completed local source/build baseline: full and minus-one patch replay match.
+Two independent fresh-cache Linux builds pass and all five binaries compare
+byte-identical. The node starts for version reporting in isolated Debian. Selected
+Go core tests pass in a network-disabled container: 16 packages, 195 top-level tests,
+218 subtest pass events, 0 failures; eight packages have no tests. All build/test
+containers have exited successfully; none needs ongoing polling. No original fork,
+patch, validator/genesis or public state changed. Read the detailed build report
+for paths, hashes, limits and the distinction between a binary build and network
+acceptance. Artifact directories, build volumes and scratch replay clone are retained.

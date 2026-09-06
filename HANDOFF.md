@@ -2,8 +2,9 @@
 
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
-for current evidence and next work. D-197/198/199: local runner, restricted node
-build context, local pause-message fix. Public deployment/genesis/validators
+for current evidence and next work. D-197 through D-207: local console reliability,
+read-only creation inspection, cold-build/replay and selected core-test evidence.
+See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
 
 Cập nhật: **2026-09-05 chiều → tối** (chốt phiên `19:4xZ`, `main` = `origin/main` = `a616eef`, console ĐÃ deploy PID `2972548`, preflight chỉ còn 1 đỏ có chủ ý là bơm) — 🔴 **ĐƯỜNG LÙI NÂNG CẤP k>1 ĐO THẬT (D-195): HAI LỖI TRONG CONSOLE ĐANG CHẠY TRÊN SERVER** — undo **không restart** node nào mà khai có (D-189 ở nhánh lùi), và node đọc `chains/<bc>/upgrade.*` bằng **GLOB**: một tệp lạ thì nạp, hai tệp thì **cả node không boot** — bản lưu `.prev-` console ghi cạnh tệp = **bom cho lượt nâng cấp THỨ HAI** (SBull là chain có `upgrade.json`). Đo trên **băng tập 9 node local** (`net-tap-g1`, 899999998) bằng `scripts/drill-upgrade-rollback.mjs`: lượt 1 🔴 2 phát hiện · lượt 3 (mã mới) ✅ 424 s. Sửa: undo chứng minh restart + chain + hình dạng đã nạp **trong node**; lịch sử → `upgrade-history/`; `chainDirVerdict` khắp nơi; `check-l1-upgrades` áp luật thư mục (server 12/0). ✅ **Console ĐÃ DEPLOY `16:43Z`** (PID `2972548`, drift 28/0/0, khoá deploy trong kịch bản chạy trót lọt lần đầu). Preflight (58 mục, đo TRƯỚC deploy): **55 đạt · 3 đỏ · 0 không chạy được · 8 việc tay** — ba đỏ: drift console (do chính lượt này, đóng bằng deploy) · bơm (có chủ ý tới 05:39Z 09/09) · `check-live-page` `/chains/` 11 khai sai — **đã kết luận tối `05/09`: cổng đo sai đại lượng, đã sửa, PASS (D-196)**. Đọc mục **`2026-09-05` chiều** ngay dưới.

@@ -9379,3 +9379,34 @@ refusals pass; the full fourteen-check local profile passes, including console
 creation 12/12, options 116/116 and governance 55/55. Shared parser extraction
 preserves existing HTTP behavior. Deployment import graph: console 22 files,
 operator tools 6 files, all shipped. Log: `work/inspect-creation-profile.log`.
+
+### D-207 — Establish cold-build and selected core-test evidence (2026-09-06)
+
+The earlier Docker build reused compiled layers, so it could not establish that a
+fresh compiler/module cache can build the current fork. Captured a Git source archive
+from clean commit `66e57766dccd98b2dbc214cf3edff7483ef41c07`, tree `38723877`. Separately
+replayed the unchanged 27 patches in a retained scratch clone: 26/27 reached the
+independent `60a61707` anchor and all 27 reached the exact current tree. The original
+fork stayed clean. Rebrand on the extracted archive changed no source bytes.
+
+Two separate new Docker volumes, pinned Go 1.25.10 Bookworm image, fresh Go build
+and module caches, 4 CPUs/6 GiB each: complete node, L1 VM and three overlay tools
+built successfully in about 3m17s and 4m15s. No ports exposed, no OOM, two-hour timeout
+per build. A synthetic corrupt archive failed checksum verification before build.
+Verified both output manifests and compared all five binaries with `cmp`: identical
+bytes. This holds for the measured same-image/same-path Linux amd64 environment;
+it does not promise every platform or rebuild all third-party origin artifacts.
+
+Fresh node `--version` also ran in a network-isolated read-only Debian slim runtime:
+9chaingo/1.14.2, rpcchainvm 45, commit 9chain-a1-g1-27patch-38723877. Selected existing
+consensus/Snowman-engine/chain-manager tests ran with networking disabled after
+dependency preparation: 16 tested packages, 195 top-level tests, 218 subtest pass
+events, zero failures; eight other packages have no test files. Ordinary tests,
+not race mode. Source checksums stayed intact. This verifies compilation, repeatable
+binary bytes and selected local tests, not network boot, live consensus or capacity.
+
+All names, timestamps, hashes, resource limits, commands and artifact locations are
+recorded in `docs/BUILD-VERIFICATION-2026-09-06.md`. Inputs, outputs, logs, scratch
+clone, exited containers and build volumes are retained. No public deployment,
+transaction, validator/genesis change, original source edit or operational-data
+deletion. No required approval was used as a reason to stop independent local work.

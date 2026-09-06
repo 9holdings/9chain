@@ -2,6 +2,8 @@
 
 ## Local automation — 2026-09-06
 
+- [x] D-207 local build verification: 26/27 patch anchor and full replay match; two cold Linux builds produce five byte-identical binaries; fresh node version runs in isolated Debian. Selected core tests pass: 16 packages, 195 top-level tests, 218 subtest pass events. No live network or capacity claim. See `docs/BUILD-VERIFICATION-2026-09-06.md`.
+
 - [~] D-206: read-only creation inspection compares persisted artifacts, P-chain transaction/genesis and EVM identity. Twenty-nine CLI scenarios + argument controls and fourteen local checks pass; public RPC compatibility verified on a synthetic Adam Chain reservation. No automatic recovery or real interrupted-server drill; see `docs/CREATION-RECOVERY.md`.
 
 - [~] D-205: flush backup/primary ledger before confirming persistence; retain journal and unfinished writes on failure. Thirteen local checks pass (creation 12, options 116, governance 55); real-file fault tests also pass in isolated Linux. Negative control reproduces false HTTP 200 without durable writer. Public deployment and power-loss drill pending.
