@@ -9579,3 +9579,44 @@ into a prepared release workflow, with all local validation before server mutati
 pause/drain before code replacement, code/state backup, verification while paused
 and a controlled resume. Old-server bootstrap remains separately owner-reviewed;
 404 is evidence to stop, never authorization to bypass maintenance.
+
+### D-212 — Freeze reviewable console/operator release bytes (2026-09-06)
+
+Added a local-only release packager/verifier. The inventory comes from the union
+of console and operator manifest groups plus the manifest itself; shared files
+deduplicate. The manifest now explicitly includes package-lock.json and its declared
+console restart helper. This closes the dependency-lock omission and provides the
+actual helper for a later deploy, rather than assuming an old root-level copy.
+Faucet is not part of this release. No deployed files have been changed.
+
+Preparation requires clean committed main, tracked/regular/source-scoped paths,
+complete groups and the lock/restart helper. It snapshots actual checkout bytes,
+then rechecks source revision/status/hashes before creating metadata and its SHA-256.
+Unique directories under ignored work are retained, including incomplete attempts.
+Verification compares exact inventory with the bundled manifest, all bytes/hashes,
+metadata, and the full tree. An externally supplied expected metadata SHA is the
+review anchor; internal hash agreement alone is explicitly not a signature or
+proof of authorized/tested source. Runtime state, validator genesis, credentials
+paths and node_modules are outside the package scope.
+
+Twenty-six actual CLI checks in synthetic Git repositories pass. Negative cases
+really alter files/metadata or manifests and assert the specific nonzero refusal:
+corrupted source bytes, extra files/directories, recomputed-but-unapproved metadata,
+duplicate/traversal/missing inventory, linked payload, unsafe runtime/credential
+paths, missing operator/lock/restart, ignored entries, dirty/other/detached source.
+A previously frozen package still verifies after source edits and later commits.
+Nineteen local checks pass (`work/console-release-full-profile.log`); dependency
+graph stays console 25/operator 7, English debt unchanged at 5663/107.
+
+Also installed the actual tracked console package+lock afresh in a 512 MiB/1 CPU
+read-only-source Node Alpine container with temporary app/cache and a 90-second
+in-container deadline. npm ci with lifecycle scripts disabled added nine packages;
+ethers 6.17.0 matched package.json and synthetic signing/recovery passed. Registry
+downloads only, no ports or blockchain calls. Container
+`a1-autopilot-console-lock-20260906` exited 0/no OOM; `work/console-lock-check.log`.
+This does not test lifecycle scripts or every architecture.
+
+The packager does not run tests, contact a server, deploy or approve anything.
+Legacy deployment integration, exact-source validation, paused cutover, backup
+and rollback are next. See `docs/CONSOLE-RELEASE.md`; a first public bootstrap still
+requires a concrete owner-reviewed procedure because the live server lacks D-210.

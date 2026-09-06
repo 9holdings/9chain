@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 19:41:28 UTC** (D-211 milestone).
+repetition. Last user-facing progress update: **2026-09-06 19:52:49 UTC** (D-212 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -82,7 +82,7 @@ archival. Ten actual-console synthetic RPC/Docker scenarios and journal file tes
 pass; twelve local checks pass. Read `docs/CREATION-RECOVERY.md` before further work.
 No real public submission, restart or recovery was performed.
 
-Next priority after D-211: integrate the maintenance protocol into the deployment
+Next priority after D-212: integrate the maintenance protocol into the deployment
 path and prepare owner-reviewed bootstrap/rollback for the current legacy server.
 Read `docs/CONSOLE-MAINTENANCE.md`: the new API is local, deployment script is still
 unchanged and unsafe to assume updated. It copies before checking busy state, fails
@@ -98,6 +98,13 @@ is read-only; pause-and-wait validates and drains, assert-paused checks identity
 resume requires current UUIDs and never retries uncertain POST. Use this shared
 client instead of shell grep/JSON fragments. Actual SSH status returned HTTP 404
 at 19:39 UTC: the public process is legacy and automatic bootstrap must refuse.
+The release packager is now scripts/prepare-console-release.mjs. It freezes the
+console/operator manifest union (including lock, restart helper and manifest) from
+clean committed main, verifies hashes and exact inventory, and accepts an external
+expected SHA for review. See docs/CONSOLE-RELEASE.md. It does not run acceptance
+tests or deploy; a package is not automatically approved. Use frozen bytes for the
+next deployment script, not changing working-tree files. Legacy script still uses
+npm install and the old root-level restart helper; both need integration work.
 Do not add blind resume/retry/discard endpoints. Recovery must establish
 what P-chain already accepted and preserve all artifacts before mutation.
 Preserve the public ledger/API contract. Matching chain ID does not prove block
@@ -195,3 +202,11 @@ prepare frozen release bytes and hashes from the console/operator manifest group
 the existing deploy script currently checks drift across all groups while shipping
 console only. Keep source/state backups outside running code, include the real
 restart helper, and prove ordering with actual Bash plus stubbed SSH/SCP effects.
+
+D-212: local frozen release tool, 26 actual Git/CLI/file controls; nineteen local
+checks pass (`work/console-release-full-profile.log`). Manifest gained tracked npm
+lock and restart helper. Fresh npm ci in isolated Node Alpine loaded ethers 6.17.0
+and passed synthetic signing/recovery; container a1-autopilot-console-lock-20260906
+exited 0/no OOM (`work/console-lock-check.log`). No public changes. The package tool
+must be committed before real-root preparation because it requires a clean main;
+such a preliminary package is tooling evidence, not a final approved deployment.

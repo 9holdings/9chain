@@ -28,6 +28,9 @@ check. It checks worktree ownership, patch documentation consistency, deployment
 import coverage, and chain ID allocation. Patch/import gates include their own
 negative controls. It uses the current Node executable and resolves the repository
 from the script path, so it does not depend on the caller's working directory.
+The default profile also tests frozen console release preparation/verification
+through actual Git repositories and CLI processes. Packaging is local only and
+does not imply test acceptance or deployment approval; see `CONSOLE-RELEASE.md`.
 
 The optional `--console` profile adds RPC transport tests plus four real local HTTP console suites:
 paused creation, RPC identity at creation, deep options and governance. Their nodes/credentials are fake
