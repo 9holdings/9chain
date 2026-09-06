@@ -9,7 +9,7 @@ per-invocation deployment exclusion without TTL takeover (`docs/DEPLOYMENT-LOCK.
 Authentication acceptance now uses synthetic ledgers, dynamic ports and blocked
 child processes; 60 HTTP checks plus cryptographic tests join the 22-check profile.
 Exact-source validation now binds the package to clean main and source bytes before
-and after local acceptance; current profile has 23 checks (`docs/CONSOLE-RELEASE.md`).
+and after local acceptance; current profile has24 checks (`docs/CONSOLE-RELEASE.md`).
 Selected console source/state backup now passes 33 actual CLI cases on Windows
 and Linux plus file/directory failure controls (`docs/CONSOLE-BACKUP.md`). It
 preserves evidence and does not restore. D-218 replaces the legacy deploy script

@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 22:10:43 UTC** (D-218 deployment drill and connection-reuse fix).
+repetition. Last user-facing progress update: **2026-09-06 22:26:11 UTC** (D-218 real-root acceptance; final status follows).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -403,3 +403,28 @@ Run real-root freeze/validation after committing implementation/docs. Current pu
 legacy API404 still blocks normal apply; undeclared heartbeat-deploy.sh still needs
 exact review. Next useful work: bind startup/environment and actual console/network
 readiness before reviewed resume, then prepare final public adoption/recovery packet.
+
+D-218 implementation committed as dcd3f758cbc493ad776a44c58fdcd8716cfb4e47,
+tree f9ea9bb67c371d16e0bbe6b652f737afe64925c5. Actual-root acceptance completed
+22:21:27–22:24:07 UTC:42 files/604082 bytes,33 Node syntax +1 Bash syntax +9
+acceptance commands =43 passed, including the full24-group console profile and
+actual28-case Docker deployment drill. Container a1-deployment-console-deployment-pqclen
+exited0/noOOM. Source still matched after tests. Package
+work/console-releases/dcd3f758cbc4-WjWEKX, SHA
+4e516f8b847c2ea0d915bcfcd29fd8ce4ffb8dee61c771f33d6bd4b34a37f478.
+Validation work/console-validations/dcd3f758cbc4-VArsyz, SHA
+3efccdf1afcaebb0efd9bd778c5aa40b8e4b93113d38dd6ecce7c39584094c0b.
+Independent verification checked the report and all43 log hashes/zero exits at
+22:26:11 UTC, then ran the real controller's local default plan successfully.
+Receipts work/d218-release-real.json, work/d218-validation-result.json,
+work/d218-evidence-verification.json, work/d218-deployment-plan.json;
+runner work/run-d218-validation.mjs. No processes from this acceptance remain running.
+
+This is a preliminary integration candidate, not the final approved public release.
+Recording its evidence advances HEAD and therefore intentionally makes the old
+package ineligible for current-source application. Do not repackage documentation
+alone repeatedly. Finish further code/docs before the final freeze. Next bounded
+work is D-219 readiness/environment binding; notes in work/d219-design.md. Current
+controller proves source/deps/process/selected-state integrity, not independently
+that the restarted process loaded the intended configuration or is connected to
+the expected node. Public first adoption remains separately review-gated.
