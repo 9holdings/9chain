@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 23:47:02 UTC** (D-221 controls and read-only on-server exact genesis match; committing next).
+repetition. Last user-facing progress update: **2026-09-06 23:56:42 UTC** (D-221 exact-source47-command acceptance; final status follows).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -568,3 +568,31 @@ deadline) and real-root acceptance. This is a scoped aggregate allowance, not a
 disabled timeout or a test skip.
 The22 actual validator CLI controls now pass after this adjustment:
 work/legacy-artifacts-validation-regression.log, work/release-validation-test-fHiEOI.
+
+D-221 implementationc00dde288ed2d94c61216d3f7e607fe68b82cb23,
+treefc949a700009246b3adf87c025f736d1421960d0. Actual-root acceptance completed
+23:52:04–23:56:12 UTC:46 files/642113bytes,37 Node syntax+1 Bash+9 acceptance=47
+commands passed, including28 local groups and33 Docker deployment scenarios.
+Aggregate profile took125432ms, deployment119525ms; the profile exceeded the old120s
+aggregate limit, while all current bounded checks passed. Package
+work/console-releases/c00dde288ed2-MnrYMH, SHA
+f73a7139004b49ccbf9d3d1b4160557276762d139959cfcb1e159d1804fe26d9.
+Validation work/console-validations/c00dde288ed2-yty9Qy, SHA
+aa01ccfe2650a81a9fb481f73607b950df8ba3b41192212a5b5702ce40a338cd.
+Independent report/all47 log hash/zero-exit verification and actual default local
+plan passed23:56:42 UTC. Container a1-deployment-console-deployment-icrapd exited0/noOOM.
+Receipts work/d221-release-real.json, work/d221-validation-result.json,
+work/d221-evidence-verification.json, work/d221-deployment-plan.json;
+runners work/run-d221-validation.mjs, work/verify-d221-evidence.mjs. Recording docs
+advances HEAD as before; historical acceptance, not the final frozen public candidate.
+
+Next D-222 design: work/d222-backup-design.md. Add exact console-tmp byte preservation
+and required root observations; distinguish new backup scope from legacy schema.
+Do not treat an old backup lacking this material as current coverage. Preserve
+unknown/corrupt/history evidence and test actual copying/failure/verification.
+Broader remaining-window plan in work/remaining-window-plan.md: after backup, assess
+a bounded fresh isolated private-network/resource drill if time permits; only fresh
+synthetic identities, no existing validator/genesis/key modifications. Reserve final
+20–30minutes for final clean source/docs, acceptance and review handoff. Record final
+freeze receipts in ignored work/outputs without advancing HEAD afterwards. Hard stop
+02:23:12 UTC unchanged; roughly2h26 remained. No public mutation in this window.

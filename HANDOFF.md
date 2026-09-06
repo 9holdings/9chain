@@ -49,6 +49,11 @@ entries,55 outside-band files retained and stable selected snapshot. D-22074 con
 still pass after extracting strict shared read RPC. See `docs/LEGACY-ARTIFACTS.md`.
 Local profile now28 groups. Next close the known console-tmp backup-coverage gap;
 this inspection does not itself preserve backup bytes or establish legacy drain.
+Actual-rootc00dde2 acceptance23:56 UTC passes47 commands (28 local groups/33 Docker
+deployment cases); independent report/log verification and local plan pass. Snapshot
+and receipt paths are in AUTOPILOT. Next plan work/d222-backup-design.md, then the
+bounded remaining-window priorities in work/remaining-window-plan.md. About2h26 left;
+final20–30minutes are reserved for a clean final freeze and owner handoff.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
 
