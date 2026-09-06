@@ -1,0 +1,16 @@
+# Only the two COPY inputs of local-net/Dockerfile may enter this build context.
+# Dockerfile-specific rules take precedence over the root .dockerignore.
+**
+!upstream/
+upstream/**
+!upstream/avalanchego/
+!upstream/avalanchego/**
+!scripts/
+scripts/**
+!scripts/rebrand.sh
+
+# Source repositories and generated binaries are not build inputs.
+upstream/**/.git
+upstream/**/.git/**
+upstream/avalanchego/build/
+upstream/avalanchego/graft/subnet-evm/build/

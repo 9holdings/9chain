@@ -9150,3 +9150,19 @@ process exiting 7; failures stop subsequent checks. Docker engine is reachable
 after tool approval. Full fork build, SSH authentication, network integration and
 public acceptance are not claimed. Scope and environment are recorded in
 `docs/LOCAL-AUTOMATION.md`; existing ownership and deployment rules stay in force.
+
+### D-198 — Keep operational files out of the node build context (2026-09-06)
+
+The node Dockerfile only copies the fork and the rebrand script, but the root
+ignore policy did not exclude operational directories or dependency trees.
+Added `local-net/Dockerfile.dockerignore` with only those two inputs allowed;
+the existing root policy is unchanged for other Dockerfiles. This reduces what
+may be sent to the builder; it is not evidence of a previous secret disclosure.
+
+`check-node-build-context.mjs` uses Docker itself on synthetic files: three
+required source paths survive and eleven unrelated paths are absent from the
+exported filesystem. The first test failed because unignoring `scripts/` also
+unignored its children; explicit child exclusions fixed that behavior. Removing
+the policy admits fake key/env files, proving the negative control detects the
+actual failure. No real secrets are copied and synthetic evidence is retained
+under ignored `work/`. Full node image build remains a separate measurement.

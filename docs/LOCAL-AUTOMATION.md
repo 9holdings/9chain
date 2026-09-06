@@ -18,6 +18,10 @@ node scripts/check-local.mjs --self-test
 node scripts/check-local.mjs
 ```
 
+With Docker running, `node scripts/check-node-build-context.mjs` verifies the
+node Dockerfile's source-only context using synthetic fixtures and a deliberately
+unrestricted negative control. It retains evidence under ignored `work/`.
+
 The runner stops on the first failed, inconclusive, timed-out, or unlaunchable
 check. It checks worktree ownership, patch documentation consistency, deployment
 import coverage, and chain ID allocation. Patch/import gates include their own

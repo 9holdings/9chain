@@ -2,6 +2,9 @@
 
 ## Local automation — 2026-09-06
 
+- [x] Node Docker context isolation (D-198): actual Docker build on synthetic inputs includes three required source paths, excludes eleven unrelated paths; unrestricted negative control exposes fake operational files. Does not claim a full node build.
+- [~] Ten-hour autonomous development window configured, ending 2026-09-07 02:23:12 UTC. Continuation record: `docs/AUTOPILOT-2026-09-06.md`.
+
 - [x] Repository-only runner `node scripts/check-local.mjs`: six checks passed on the actual checkout; runner negative controls include a real child exiting 7. This verifies the developer command, not the public blockchain.
 - [~] Environment readiness: Node, Go, Git and Docker engine detected. Full fork build, SSH authentication and local network integration remain unverified. See `docs/LOCAL-AUTOMATION.md` and D-197.
 

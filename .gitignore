@@ -33,3 +33,6 @@ local-net/console/node_modules/
 # (vi du `npm install --no-save solc` de sinh lai artifact hop dong).
 # Khong co dong nay thi mot lan cai tam la 9,4 MB vendor di thang vao git.
 node_modules/
+
+# Local automation scratch data and build outputs.
+/work/
