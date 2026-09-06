@@ -160,3 +160,37 @@ negative scratch `work/maintenance-client-negative-KcdIsi`.
 The production client also successfully reads, verifies, resumes and pauses the
 actual isolated console in `maintenance-e2e-test.mjs`, with synthetic credentials
 and no public calls (`work/maintenance-client-console.log`).
+
+## Verified single-process restart (D-213)
+
+The source-tree helper `local-net/deploy/console-restart.sh` requires
+`--instance-id UUID --maintenance-id UUID`. It resolves its own source tree and
+loads the operator environment from the parent directory's console.env without
+printing it. It requires node, ss, readlink and setsid on Linux, a single visible
+listener PID, the expected source-tree cwd, Node executable and console entry
+argument. It validates the stable persisted/drained API state twice, rechecks the
+listener immediately before sending SIGTERM to that PID, then waits at most ten
+seconds for exit and port release. It never matches/kills by process name or force
+kills a stuck console. An exclusive deployment lock is still required around the
+larger operation; this helper cannot serialize independent operators by itself.
+
+The replacement starts with `A1_CONSOLE_START_PAUSED=1`; the server persists its
+own maintenance gate before listening even if the original marker was lost.
+Only 0, 1 or an absent variable are valid. Value 0 does not override an existing
+pause marker. Invalid values or failed persistence refuse startup. Restart then
+requires a different process instance and listener PID in the expected tree,
+with persistent/drained maintenance. It never resumes admissions, even on success.
+Failure leaves the evidence/log for review and does not print potentially sensitive
+historical console logs. It does not perform backups, release/hash verification,
+ledger recovery or public acceptance; those belong to the deployment controller.
+
+Actual two-console Linux test: open admission, active partial request bodies,
+stale process/pause IDs and another source-tree listener all refuse restart before
+stop. A valid paused restart changes only the target process and keeps the new
+console paused; no ledger/genesis output. Running the legacy helper from 34da214
+in the same isolated fixture kills the second console with SIGTERM and fails the
+survival assertion. Both containers exited without OOM. Evidence:
+`work/console-restart-linux.log`, `work/console-restart-negative.log`.
+The HTTP suite also verifies forced paused boot from an absent marker and refusal
+of malformed startup policy. Full local profile: nineteen checks pass in
+`work/console-restart-full-profile.log`. These are local measurements only.

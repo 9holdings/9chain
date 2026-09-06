@@ -43,18 +43,26 @@ async function until(check, message) {
   for (let attempt = 0; attempt < 60; attempt++) { if (await check()) return; await delay(25); }
   throw new Error(message);
 }
-async function start() {
+async function start(startPaused = '0', expectFailure = false) {
+  logs = '';
   const port = portServer(); port.listen(0, '127.0.0.1'); await once(port, 'listening');
   const number = port.address().port; await new Promise(resolve => port.close(resolve));
   base = `http://127.0.0.1:${number}`;
   child = spawn(process.execPath, [path.join(root, 'local-net/console/server.mjs')], {
     cwd: scratch, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env,
       PORT: String(number), A1_CONSOLE_HOST: '127.0.0.1', A1_CONSOLE_TOKEN: token,
+      A1_CONSOLE_START_PAUSED: startPaused,
       A1_CLI_KEY: 'PrivateKey-invalid-synthetic-only', A1_DE_CHAIN_MO: '1',
       NODE_URI: `http://127.0.0.1:${rpc.address().port}`,
       A1_COMPOSE_FILE: path.join(scratch, 'does-not-exist.yml') },
   });
   child.stdout.on('data', data => { logs += data; }); child.stderr.on('data', data => { logs += data; });
+  if (expectFailure) {
+    await until(() => child.exitCode !== null, 'Invalid startup policy must refuse to start');
+    assert.notEqual(child.exitCode, 0);
+    assert.match(logs, /A1_CONSOLE_START_PAUSED must be 0 or 1/);
+    return;
+  }
   await until(async () => {
     if (child.exitCode !== null) throw new Error(`Console exited ${child.exitCode}`);
     try { return (await call('/api/progress')).status === 200; } catch { return false; }
@@ -162,6 +170,18 @@ try {
   assert.equal((await controlMaintenance({ url: base, token, action: 'resume', ...identity, timeoutMs: 2000 })).paused, false);
   assert.equal((await controlMaintenance({ url: base, token, action: 'pause-and-wait', timeoutMs: 2000 })).readyForRestart, true);
   console.log('PASS: production operator client reads, verifies, resumes and pauses the real isolated console');
+  const beforePolicy = await controlMaintenance({ url: base, token });
+  await controlMaintenance({ url: base, token, action: 'resume',
+    instanceId: beforePolicy.instanceId, maintenanceId: beforePolicy.maintenanceId });
+  assert.equal(existsSync(path.join(config, 'console-maintenance')), false);
+  await stop(); await start('1');
+  const forced = await controlMaintenance({ url: base, token, action: 'assert-paused' });
+  assert.notEqual(forced.instanceId, beforePolicy.instanceId);
+  assert.equal((await call('/api/create', { method: 'POST', body: {} })).status, 503);
+  await controlMaintenance({ url: base, token, action: 'resume',
+    instanceId: forced.instanceId, maintenanceId: forced.maintenanceId });
+  await stop(); await start('invalid', true);
+  console.log('PASS: explicit paused startup creates its own durable gate; invalid startup policy refuses to listen');
   assert.equal(existsSync(path.join(config, 'console-chains.json')), false);
   assert.deepEqual(readdirSync(path.join(config, 'console-tmp')), []);
   console.log('PASS: body-reading admission, dropped body, stale/malformed resume refusal, no ledger or genesis writes');

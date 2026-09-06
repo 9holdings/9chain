@@ -9620,3 +9620,38 @@ The packager does not run tests, contact a server, deploy or approve anything.
 Legacy deployment integration, exact-source validation, paused cutover, backup
 and rollback are next. See `docs/CONSOLE-RELEASE.md`; a first public bootstrap still
 requires a concrete owner-reviewed procedure because the live server lacks D-210.
+
+### D-213 — Restart only the verified paused console listener (2026-09-06)
+
+The previous helper used pkill against the console entry name. Two legitimate
+console processes on one machine therefore both received SIGTERM, even though
+only one was being upgraded. This was reproduced using the actual previous helper
+from commit 34da214 and two actual Node consoles in an isolated Linux container:
+the assertion protecting the second console failed specifically on SIGTERM.
+Negative evidence: `work/console-restart-yR7MR3`, `work/console-restart-negative.log`.
+
+Rewrote the helper in English. It takes exact process/pause UUIDs, resolves its own
+deployed tree and operator environment, verifies persisted/drained maintenance,
+one ss listener PID, expected cwd/Node executable/entry argument, then rechecks
+before SIGTERM to that PID only. Requires exit and port release, never force kills.
+Replacement startup explicitly persists a pause before listening; malformed startup
+policy fails. A new process/instance in the expected tree must confirm durable
+drained pause before success. No resume or historical-log dumping occurs.
+
+Positive actual Linux test refuses open/busy/stale-ID/foreign-cwd restart, replaces
+only the target, preserves the second console and retains paused admissions; no
+ledger/genesis writes. Scratch `work/console-restart-so0QC8`, log
+`work/console-restart-linux.log`. Runtime: network none, read-only root/source,
+512 MiB/1 CPU, synthetic temporary state, no ports/socket/operational keys, bounded
+120 seconds; both positive/negative containers exited, no OOM. Image dependencies
+were installed from registries into a source-only fixture build context.
+
+The actual HTTP suite additionally proves forced pause when no marker existed
+and malformed-policy startup refusal. Nineteen local checks pass in
+`work/console-restart-full-profile.log`. English debt shrinks by 34 lines to
+5629 lines/106 files. No public deployment or other mutation occurred. This helper
+requires the modern API and an exclusive deployment lock around the larger flow;
+it does not bypass legacy API 404, perform backups or claim release/ledger recovery.
+The legacy deploy controller still needs replacement before a public rollout can
+be submitted for review. Its old root-level helper invocation is not this verified
+source-tree path. See `docs/CONSOLE-MAINTENANCE.md`.

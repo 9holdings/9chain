@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 19:52:49 UTC** (D-212 milestone).
+repetition. Last user-facing progress update: **2026-09-06 20:20:26 UTC** (D-213 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -230,3 +230,29 @@ it blindly or exempt a whole directory just to get green. Resolve its intended
 retention/ownership with a precise reviewed decision before public deployment.
 All server actions so far remain read-only; no source or secret contents were
 copied for this investigation, only hashes/size and existing Git history compared.
+
+D-213: console-restart.sh now requires exact paused process/pause UUIDs, identifies
+one listener with ss, validates Node executable/cwd/entry argument, rechecks before
+SIGTERM to that PID only. Waits for exit and free port; no force kill. Replacement
+starts with A1_CONSOLE_START_PAUSED=1, persists its own gate before listening, must
+have a different instance/PID in the expected tree and remain ready/paused.
+No automatic resume. Malformed startup policy refuses boot.
+
+Two actual consoles tested in bounded network-none Linux container with synthetic
+credentials and source-only inputs. Positive scratch `work/console-restart-so0QC8`:
+open/busy/stale IDs/foreign cwd refused, target replaced, unrelated process survives,
+no ledger/genesis writes. Legacy helper from 34da214 actually sends SIGTERM to the
+unrelated process; same survival assertion fails for that reason in
+`work/console-restart-yR7MR3`. Logs: `work/console-restart-linux.log`,
+`work/console-restart-negative.log`, `work/console-restart-full-profile.log` (19 pass).
+Both containers exited, no OOM or jobs to poll. New optional reusable check:
+`node scripts/check-console-restart.mjs [--negative-legacy]`. Fixture image builds
+with registry access; runtime has no networking/ports/socket/operational data.
+
+Next: replace the legacy console-deploy.sh flow using frozen union release,
+local validation before server changes, stable pause before copy, retained backup,
+hash/import checks, this source-tree restart helper and controlled resume. Current
+public legacy API 404 cannot safely use this path without separate reviewed first
+bootstrap. The old deploy script still invokes an unverified root-level helper;
+do not run it. No public changes made. Preserve the unexplained-to-manifest helper
+drift noted above until a precise ownership/retention decision is reviewable.

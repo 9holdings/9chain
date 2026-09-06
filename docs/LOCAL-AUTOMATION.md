@@ -89,6 +89,23 @@ authorize deployment. Keep using the existing release and deployment gates for
 those purposes. Review scripts before adding them: some existing preflight checks
 contact public services or require SSH.
 
+## Optional Linux restart integration
+
+```powershell
+node scripts/check-console-restart.mjs
+node scripts/check-console-restart.mjs --negative-legacy
+```
+
+The positive run must pass; the explicit legacy negative must exit nonzero because
+the old name-based helper signals the unrelated console. The runner copies only
+the console/operator release inventory and synthetic fixture. It builds a small
+Node Alpine test image from the actual npm lock (registry access during image
+build), then runs two real console processes with networking disabled, no host
+ports or Docker socket, read-only root and temporary state, 512 MiB/1 CPU and a
+120-second in-container deadline. Containers stop and evidence remains under work.
+This is separate from the default local checks because it requires Docker and
+image build dependencies; it never uses real console.env or operational data.
+
 ## Environment observed on 2026-09-06
 
 - Node.js 24.16.0; Go 1.26.4 windows/amd64; Git 2.54.0.windows.1.

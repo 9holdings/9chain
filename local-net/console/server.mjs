@@ -341,6 +341,11 @@ const rpcOnManagedNode = createManagedNodeRpc({ cwd: ROOT, compose: COMPOSE, run
 if (!existsSync(TMP_DIR)) mkdirSync(TMP_DIR, { recursive: true });
 if (!existsSync(CHAIN_CFG_DIR)) mkdirSync(CHAIN_CFG_DIR, { recursive: true });
 const maintenance = new MaintenanceGate(CFG_DIR);
+const startPaused = process.env.A1_CONSOLE_START_PAUSED;
+if (startPaused !== undefined && !["0", "1"].includes(startPaused)) {
+  throw new Error("A1_CONSOLE_START_PAUSED must be 0 or 1");
+}
+if (startPaused === "1") maintenance.pause();
 
 // A missing initial ledger is empty; an unreadable or corrupt ledger is not.
 // Legacy files may omit `retired`, but present fields must have the right shape.
