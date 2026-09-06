@@ -2,6 +2,8 @@
 
 ## Local automation — 2026-09-06
 
+- [~] D-205: flush backup/primary ledger before confirming persistence; retain journal and unfinished writes on failure. Thirteen local checks pass (creation 12, options 116, governance 55); real-file fault tests also pass in isolated Linux. Negative control reproduces false HTTP 200 without durable writer. Public deployment and power-loss drill pending.
+
 - [x] D-204: real local console process killed during unresolved synthetic CLI submission; persisted reservation blocks duplicates and other chain mutations after restart. Eleven creation HTTP scenarios pass; removing the fixture pause fails the crash-boundary assertion. No live transaction or power-loss durability claim.
 
 - [~] D-203: persistent creation reservation prevents blind retries across console restart. Ten HTTP fixture scenarios + journal file controls pass; twelve local checks pass. Public deployment/recovery drill and automatic reconciliation remain unfinished. See `docs/CREATION-RECOVERY.md`.

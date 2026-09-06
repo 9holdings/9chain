@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 17:42:14 UTC** (D-203 milestone).
+repetition. Last user-facing progress update: **2026-09-06 17:59:59 UTC** (D-205 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -82,9 +82,8 @@ archival. Ten actual-console synthetic RPC/Docker scenarios and journal file tes
 pass; twelve local checks pass. Read `docs/CREATION-RECOVERY.md` before further work.
 No real public submission, restart or recovery was performed.
 
-Next priorities: read-only reconciliation/inspection for pending jobs and atomic
-ledger write durability (ledger currently has no
-fsync). Do not add blind resume/retry/discard endpoints. Recovery must establish
+Next priority: read-only reconciliation/inspection for pending jobs.
+Do not add blind resume/retry/discard endpoints. Recovery must establish
 what P-chain already accepted and preserve all artifacts before mutation.
 Preserve the public ledger/API contract. Matching chain ID does not prove block
 production or all-validator readiness. Full cold build, patch replay and live
@@ -97,3 +96,14 @@ The killed process leaves a `submitting` reservation; fresh processes block a se
 submission and other chain mutations. Evidence: `work/create-hard-crash-negative.log`.
 This proves the local process-crash case, not actual CLI acceptance on P-chain or
 power-loss recovery. No runtime behavior changed in this test-only follow-up.
+
+D-205 flushes both backup and replacement ledger, with POSIX directory sync, before
+creation intent can be archived. Unfinished writes block new mutations and remain
+untouched. Actual-console injection proves a failed ledger flush leaves the journal
+and blocks retry across restart; buffered-write negative control falsely returns
+HTTP 200. Thirteen local checks pass (creation 12/12, options 116/116, governance
+55/55). Linux `node:24-alpine` container `a1-autopilot-ledger-linux-20260906` exited
+successfully after real-file fault tests including directory sync failures. It has
+network disabled and synthetic scratch inputs; test data is tmpfs, not a hardware
+power-loss test. No public operations. Read D-205 and recovery documentation for
+the visibility-after-rename limitation. Ledger schema remains unchanged.

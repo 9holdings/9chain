@@ -3,12 +3,28 @@ import childProcess from 'node:child_process';
 import { syncBuiltinESMExports } from 'node:module';
 import { promisify } from 'node:util';
 import { appendFileSync, readFileSync } from 'node:fs';
+import fs from 'node:fs';
 import path from 'node:path';
 
 if (!path.basename(process.cwd()).startsWith('create-rpc-')) {
   throw new Error('The Docker fixture requires an isolated create-rpc scratch directory');
 }
 const record = action => appendFileSync('fake-docker.log', action + '\n');
+if (process.env.A1_TEST_LEDGER_SYNC_FAILURE === '1') {
+  const originalOpen = fs.openSync, originalClose = fs.closeSync, originalSync = fs.fsyncSync;
+  const descriptors = new Map();
+  fs.openSync = (file, ...args) => {
+    const fd = originalOpen(file, ...args); descriptors.set(fd, String(file)); return fd;
+  };
+  fs.closeSync = fd => { descriptors.delete(fd); return originalClose(fd); };
+  fs.fsyncSync = fd => {
+    if (descriptors.get(fd)?.endsWith('console-chains.json.tmp')) {
+      record('ledger-sync-failed');
+      throw new Error('Synthetic primary ledger flush failure');
+    }
+    return originalSync(fd);
+  };
+}
 function output(file, args) {
   if (file !== 'docker') throw new Error('Unexpected executable in the Docker fixture');
   if (args.includes('l1') && args.includes('create')) {

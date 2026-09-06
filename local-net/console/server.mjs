@@ -32,6 +32,7 @@ import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN
 import { siwe } from "./siwe.mjs";
 import { requestRpc } from "../lib/rpc-client.mjs";
 import { CreationJournal, creationGenesisText } from "../lib/creation-journal.mjs";
+import { writeLedger, assertNoPendingLedgerWrite } from "../lib/ledger-write.mjs";
 
 const PORT = Number(process.env.PORT || 8091);
 // Mặc định CHỈ nghe loopback. Console điều phối docker trên host — mở ra ngoài
@@ -341,7 +342,7 @@ function loadState() {
   let text;
   try { text = readFileSync(STATE, "utf8"); } catch (error) {
     if (error.code === "ENOENT") {
-      if (existsSync(STATE + ".bak") || existsSync(STATE + ".tmp")) {
+      if (existsSync(STATE + ".bak") || existsSync(STATE + ".tmp") || existsSync(STATE + ".bak.tmp")) {
         throw new Error("Chain ledger is missing but recovery files exist. Restore the ledger before continuing.");
       }
       return { chains: [], retired: [] };
@@ -374,15 +375,8 @@ function loadState() {
  * The reader also refuses corrupt state; atomic writes do not repair existing damage.
  */
 function saveState(s) {
-  const noiDung = JSON.stringify(s, null, 2);
-  try {
-    if (existsSync(STATE)) writeFileSync(STATE + ".bak", readFileSync(STATE));
-  } catch (e) {
-    console.warn(`  ⚠️  không sao lưu được state cũ: ${e.message}`);
-  }
-  const tmp = STATE + ".tmp";
-  writeFileSync(tmp, noiDung);
-  renameSync(tmp, STATE);
+  // Propagate persistence failures so creation intent cannot be archived on error.
+  writeLedger(STATE, s);
 }
 
 async function rpc(pathSeg, method, params = [], options) {
@@ -1122,6 +1116,7 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
   const ADMIN = adminGiven ? parseEvmAddress(admin, "Địa chỉ admin") : L1_ADMIN;
 
   const state = loadState();
+  assertNoPendingLedgerWrite(STATE);
   // Chain ĐÃ THU HỒI vẫn giữ chỗ tên và chainId của nó.
   //
   // Thu hồi chỉ gỡ chain khỏi danh bạ và khỏi danh sách track — nó KHÔNG xoá được
@@ -1288,6 +1283,7 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
 /** The irreversible half — see `planChain`. Runs inside the serial queue only. */
 async function launchChain(plan) {
   loadState();
+  assertNoPendingLedgerWrite(STATE);
   const job = creationJournal.begin(plan, NETWORK_ID);
   // Keep the journal on every failure, including a lost CLI response. A failure
   // does not prove that the P-chain transaction was never submitted.
@@ -1471,6 +1467,7 @@ async function executeChainLaunch(plan, job) {
  */
 async function thuHoiChain({ name, xacNhan }) {
   creationJournal.assertClear();
+  assertNoPendingLedgerWrite(STATE);
   name = String(name || "").trim();
   if (!name) throw new Error("Missing the name of the chain to revoke");
 
@@ -1769,6 +1766,7 @@ async function hoanTacNangCap(chain, filePath, prev, daXong, hong) {
 
 async function napCapChain(tham, ai) {
   creationJournal.assertClear();
+  assertNoPendingLedgerWrite(STATE);
   const { chain, plan, rpcPath } = await planUpgradeForChain(tham, ai);
   if (String(tham.confirm ?? "") !== chain.name) {
     throw new Error(
@@ -1843,6 +1841,7 @@ async function napCapChain(tham, ai) {
  */
 async function doiChu({ name, newAdmin, confirm }, ai) {
   creationJournal.assertClear();
+  assertNoPendingLedgerWrite(STATE);
   const state = loadState();
   const chain = chuChain(state, name);
   kiemChuSoHuu(chain, ai);

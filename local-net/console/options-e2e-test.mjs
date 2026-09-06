@@ -319,6 +319,25 @@ console.log("\n── 8. corrupt state must never masquerade as an empty ledger 
   const legacyPreview = await preview({ name: 'Legacy Ledger Test' });
   ok('legacy ledger without retired remains readable', legacyPreview.status === 200);
   ok('normalizing a legacy ledger does not rewrite its bytes', readFileSync(LEDGER, 'utf8') === legacy);
+  for (const suffix of ['.tmp', '.bak.tmp']) {
+    const evidence = 'Synthetic interrupted ledger write';
+    writeFileSync(LEDGER + suffix, evidence);
+    const stalled = await preview({ name: 'Stranded Ledger Test' });
+    ok(`valid primary with ${suffix} blocks new creation planning`,
+      stalled.status === 400 && /unfinished write/.test(stalled.j?.error ?? ''));
+    for (const [route, body] of [
+      ['/api/create', { name: 'Stranded Ledger Test' }],
+      ['/api/revoke', { name: 'Stranded Ledger Test', xacNhan: 'Stranded Ledger Test' }],
+      ['/api/upgrade', { name: 'Stranded Ledger Test', confirm: 'Stranded Ledger Test' }],
+    ]) {
+      const blocked = await call(route, { method: 'POST', body });
+      ok(`${suffix}: ${route} refuses before attempting a chain mutation`,
+        blocked.status === 400 && /unfinished write/.test(blocked.j?.error ?? ''));
+    }
+    ok(`${suffix}: refusal preserves primary and interrupted bytes`,
+      readFileSync(LEDGER, 'utf8') === legacy && readFileSync(LEDGER + suffix, 'utf8') === evidence);
+    renameSync(LEDGER + suffix, LEDGER + suffix + '.test-evidence');
+  }
   renameSync(LEDGER, LEDGER + '.bak');
   const recoverable = await preview({ name: 'Missing Ledger Test' });
   ok('missing ledger with a backup requires recovery instead of restarting allocation',
@@ -328,6 +347,10 @@ console.log("\n── 8. corrupt state must never masquerade as an empty ledger 
   const interrupted = await preview({ name: 'Interrupted Ledger Test' });
   ok('missing ledger with a pending atomic write also requires recovery',
     interrupted.status === 400 && /Chain ledger is missing but recovery files exist/.test(interrupted.j?.error ?? ''));
+  renameSync(LEDGER + '.tmp', LEDGER + '.bak.tmp');
+  const backupInterrupted = await preview({ name: 'Interrupted Backup Test' });
+  ok('missing ledger with an interrupted backup also requires recovery',
+    backupInterrupted.status === 400 && /Chain ledger is missing but recovery files exist/.test(backupInterrupted.j?.error ?? ''));
   mkdirSync(LEDGER);
   const unreadable = await preview({ name: 'Unreadable Ledger Test' });
   ok('existing but unreadable path refuses as an IO error, never empty state',

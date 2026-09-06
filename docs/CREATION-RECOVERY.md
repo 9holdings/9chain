@@ -1,6 +1,6 @@
 # Recovering an interrupted chain creation
 
-Local implementation: D-203. Not deployed or rehearsed on the public network yet.
+Local implementation: D-203 through D-205. Not deployed or rehearsed on the public network yet.
 
 The console reserves one creation in `9chain-a1-config/creation-journal/pending.json`
 before writing genesis or calling the CLI. It records the complete public plan,
@@ -21,7 +21,7 @@ before treating it as interrupted.
 | prepared | Intent and genesis bytes recorded; the new launch code has not entered submission | Verify the deployed code and inspect any artifacts before abandoning the reservation |
 | submitting | CLI was about to run; its result may have been lost | Determine whether P-chain accepted a subnet, a blockchain, both or neither; never replay based on a timeout |
 | created | CLI returned both identifiers; rollout or RPC verification may still have failed | Verify the identifiers, genesis, per-node tracking and RPC against the recorded plan |
-| complete | Ledger was written; archive may have failed | Verify the ledger record and existing chain before archiving the reservation |
+| complete | Ledger write and file flush returned; archive may have failed | Verify the ledger record and existing chain before archiving the reservation |
 
 Operator preparation, before any public mutation:
 
@@ -42,6 +42,17 @@ empty live ledger as proof that the pending transaction was never accepted.
 Backup coverage must explicitly include the journal and history as operational
 data; Git intentionally ignores them. Restore and reconcile them with the ledger.
 
+D-205 flushes the previous ledger into an atomic backup before replacing the primary
+ledger, then flushes the new primary before acknowledging persistence. POSIX also
+flushes the containing directory after each rename. Backup/flush/rename failures
+stop creation before its journal is archived. Failure after a rename can leave the
+new primary visible; an error does not promise rollback. Compare the primary,
+`.bak`, `.tmp` and `.bak.tmp` with the journal and chain evidence before recovery.
+Do not remove or overwrite unfinished writes just to retry. Their presence blocks
+new creation planning and chain mutations. An intact primary remains readable;
+if it is absent and recovery files exist, status/ledger views report a recovery
+error instead of an empty directory. The journal remains available on disk.
+
 Validation so far: real isolated console processes, synthetic RPC and intercepted
 Docker; repeated requests and fresh-process retries after RPC/CLI failure do not
 submit again. D-204 also forcibly kills the actual console process while its CLI
@@ -49,7 +60,11 @@ submission is unresolved: the client loses its socket, the `submitting` journal
 survives, and a fresh process refuses duplicate creation, revocation and upgrade.
 Removing the fixture's CLI pause makes this test fail at the required crash
 boundary, rather than silently testing an already completed HTTP request.
-File writes are flushed, with directory fsync on POSIX. These tests
-establish process-restart behavior, not full power-loss durability: Windows directory
-fsync is unavailable here and the existing chain ledger writer is not fsynced.
+File writes are flushed, with directory fsync on POSIX. The isolated real console
+also refuses an injected ledger flush failure and retains the creation journal
+across restart. Removing the durable writer reproduces a false HTTP 200 success.
+Separate real-file fault probes run on Windows and a network-isolated Linux Node
+container, including failures after backup/primary directory rename on Linux.
+Linux test files use tmpfs; this validates syscall/error behavior, not disk hardware
+or full power-loss recovery. Windows directory fsync is unavailable here.
 Multi-host orchestration and public recovery remain separate work.

@@ -51,7 +51,8 @@ const nodeUrl = `http://127.0.0.1:${node.address().port}`;
 mkdirSync(path.join(root, 'work'), { recursive: true });
 let pass = 0, fail = 0;
 
-async function check(label, result, succeeds, errorPattern, failuresBeforeSuccess = 0, cliFailure = false, crashDuringSubmission = false) {
+async function check(label, result, succeeds, errorPattern,
+  { failuresBeforeSuccess = 0, cliFailure = false, crashDuringSubmission = false, ledgerFailure = false } = {}) {
   reported = result;
   chainQueries = 0;
   failuresRemaining = failuresBeforeSuccess;
@@ -77,6 +78,7 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
       A1_DE_CHAIN_MO: '1', A1_NODE_CONTAINER: 'test-node', NODE_URI: nodeUrl,
       A1_TEST_REQUIRE_JOURNAL: '1', A1_TEST_CREATE_FAILURE: cliFailure ? '1' : '0',
       A1_TEST_CREATE_PAUSE: crashDuringSubmission ? '1' : '0',
+      A1_TEST_LEDGER_SYNC_FAILURE: ledgerFailure ? '1' : '0',
       A1_COMPOSE_FILE: path.join(scratch, 'no-real-compose.yml'),
       A1_PUBLIC_RPC_BASE: nodeUrl },
   };
@@ -104,7 +106,7 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
       if (spawnError) throw spawnError;
       if (child.exitCode !== null) throw new Error(`Console exited ${child.exitCode}`);
       try {
-        const response = await fetch(base + '/api/status', { headers, signal: AbortSignal.timeout(500) });
+        const response = await fetch(base + '/api/progress', { headers, signal: AbortSignal.timeout(500) });
         if (response.status === 200) { ready = true; break; }
       } catch { /* wait for this console */ }
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -158,11 +160,13 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
     const submissionUnconfirmed = cliFailure || crashDuringSubmission;
     assert.equal(chainQueries, submissionUnconfirmed ? 0 : failuresBeforeSuccess + 1, 'only transient failures may be retried');
     assert.deepEqual(readFileSync(path.join(scratch, 'fake-docker.log'), 'utf8').trim().split('\n'),
-      submissionUnconfirmed ? ['create'] : ['create', 'services', 'restart', 'health'], 'the expected launch stages must execute');
+      submissionUnconfirmed ? ['create'] : ['create', 'services', 'restart', 'health', ...(ledgerFailure ? ['ledger-sync-failed'] : [])],
+      'the expected launch stages must execute');
     if (!crashDuringSubmission) {
       const progress = await (await fetch(base + '/api/progress', { headers })).json();
       assert.equal(progress.running, false);
-      assert.equal(progress.steps.find(step => step.code === (cliFailure ? 'subnet' : 'rpc')).status, succeeds ? 'done' : 'failed');
+      assert.equal(progress.steps.find(step => step.code === (cliFailure ? 'subnet' : 'rpc')).status,
+        succeeds || ledgerFailure ? 'done' : 'failed');
     }
     if (!succeeds) {
       const pendingFile = path.join(config, 'creation-journal/pending.json');
@@ -173,6 +177,12 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
         .update(readFileSync(path.join(config, 'console-tmp/RPC_Identity_Test.json'))).digest('hex'),
         'the journal digest must match the exact genesis bytes passed to the CLI');
       assert.equal(readFileSync(pendingFile, 'utf8').includes('PrivateKey-'), false, 'the journal must not contain the CLI key');
+      if (ledgerFailure) {
+        assert.equal(existsSync(path.join(config, 'creation-journal/history')), false,
+          'unconfirmed ledger persistence must never archive creation intent');
+        assert.equal(JSON.parse(readFileSync(ledger + '.tmp', 'utf8')).chains[0].chainId, expected,
+          'retain the attempted ledger as evidence, without claiming it was committed');
+      }
       // A good RPC on the next request must not trigger a second irreversible CLI call.
       reported = '0x' + expected.toString(16);
       const retry = await fetch(base + '/api/create', { method: 'POST', headers,
@@ -186,7 +196,8 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
       startChild();
       await waitReady();
       const status = await (await fetch(base + '/api/status', { headers })).json();
-      assert.equal(status.pendingCreation.jobId, pending.id, 'a fresh process must expose the persisted job');
+      if (ledgerFailure) assert.match(status.error, /ledger is missing but recovery files exist/);
+      else assert.equal(status.pendingCreation.jobId, pending.id, 'a fresh process must expose the persisted job');
       const afterRestart = await fetch(base + '/api/create', { method: 'POST', headers,
         body: JSON.stringify({ name: 'Retry After Restart', chainId: expected + 2 }) });
       assert.equal(afterRestart.status, 400);
@@ -214,15 +225,17 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
 try {
   await check('matching hexadecimal chain ID', '0x' + expected.toString(16), true);
   await check('matching uppercase digits', '0x' + expected.toString(16).toUpperCase(), true);
-  await check('transient RPC failure then matching identity', '0x' + expected.toString(16), true, undefined, 1);
+  await check('transient RPC failure then matching identity', '0x' + expected.toString(16), true, undefined, { failuresBeforeSuccess: 1 });
   await check('wrong chain ID', '0x1', false, /chain ID mismatch/);
   await check('missing result', undefined, false, /invalid eth_chainId/);
   await check('null result', null, false, /invalid eth_chainId/);
   await check('numeric result instead of a hex quantity', expected, false, /invalid eth_chainId/);
   await check('object result instead of a hex quantity', {}, false, /invalid eth_chainId/);
   await check('malformed hexadecimal result', '0xwrong', false, /invalid eth_chainId/);
-  await check('lost CLI response remains reserved across restart', null, false, /Synthetic lost CLI response/, 0, true);
-  await check('hard crash during unresolved CLI submission blocks duplicates after restart', null, false, undefined, 0, false, true);
+  await check('lost CLI response remains reserved across restart', null, false, /Synthetic lost CLI response/, { cliFailure: true });
+  await check('hard crash during unresolved CLI submission blocks duplicates after restart', null, false, undefined, { crashDuringSubmission: true });
+  await check('ledger flush failure preserves the creation reservation', '0x' + expected.toString(16), false,
+    /ledger persistence could not be confirmed/, { ledgerFailure: true });
 } finally {
   await new Promise(resolve => node.close(resolve));
 }

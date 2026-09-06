@@ -9294,3 +9294,38 @@ has already settled, proving that the crash boundary is observed. Original fixtu
 bytes were restored. Log: `work/create-hard-crash-negative.log`. This is a test-only
 extension, with synthetic RPC and intercepted Docker; it does not establish real
 P-chain transaction acceptance, cross-host coordination or full power-loss durability.
+
+### D-205 — Confirm ledger persistence before archiving creation intent (2026-09-06)
+
+The previous ledger writer renamed a buffered file and then allowed the creation
+journal to be archived. It also logged backup failure and proceeded. The new shared
+writer flushes an exact previous-byte backup through `.bak.tmp` before replacement,
+then flushes the primary `.tmp`; each rename is followed by directory fsync on
+POSIX. Windows has file fsync only. No persistence acknowledgment follows a failed
+backup, write, flush or rename. Artifacts are preserved and exclusive temporary
+creation prevents a retry overwriting an unfinished write. Mutation entry points
+check these artifacts before their side effects; valid primary read views remain
+available. Missing primary plus `.bak.tmp` is now also a recovery error.
+
+Actual console HTTP fault injection fails the primary ledger flush after successful
+RPC identity verification. The route refuses success, leaves the ledger temporary
+and `created` journal, and blocks retries/mutations after process restart. A control
+that reinstates buffered write/rename returns a false HTTP 200 (eleven other cases
+pass, one failure for the expected reason). Logs: `work/ledger-flush-negative.log`.
+
+Validation: thirteen local checks pass (`work/ledger-full-profile.log`): creation
+12/12, options 116/116, governance 55/55 plus repository/transport/journal/writer
+checks. Real-file tests inject backup/primary flush and rename failures, verify
+original bytes and stranded artifacts survive, and refuse retry. An isolated
+`node:24-alpine` container also exercises POSIX directory flushes and failures after
+both renames (`work/ledger-linux-profile.log`). Test data is on tmpfs; this proves
+syscall/error handling, not actual disk power-loss durability. The initial container
+mount failed because its read-only input lacked the work mountpoint; adding that
+scratch directory allowed the same container to run successfully. No public deploy,
+validator change, transaction or existing operational-data deletion was performed.
+
+Failure after primary rename can leave the new primary visible. Do not claim
+rollback: retain the journal until the operator reconciles it. This still does not
+provide durable journals for upgrade/revoke operations or multi-host coordination.
+New runtime module is included in the deployment manifest. Recovery instructions
+are in `docs/CREATION-RECOVERY.md`; public rollout remains pending approval.
