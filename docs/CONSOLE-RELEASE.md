@@ -4,6 +4,9 @@ D-212 adds a local packager. **It does not deploy, run tests, authorize a releas
 make the legacy deployment script safe.** Use it to identify exact bytes for review
 and later deployment. Public deployment/bootstrap remains owner-reviewed.
 
+D-216 adds separate exact-source local validation, described below. Packaging
+alone remains an integrity check and never substitutes for acceptance.
+
 ## Prepare and verify
 
 After committing the intended source on a clean `main` working tree:
@@ -115,3 +118,55 @@ on Windows and Linux; copied-source owner bypass and wrong cwd both fail for the
 intended reason. SIWE 21/21 and the full 22-check console profile pass in
 `work/auth-full-profile.log`. These checks still need to be bound to the exact
 prepared release's clean source revision before a deployment can claim validation.
+
+## Validate the exact source (D-216)
+
+After preparation, while main is still at the package's source commit/tree:
+
+```powershell
+node scripts/validate-console-release.mjs --release C:\path\to\release --expected-sha256 REVIEWED_SHA256
+```
+
+The expected metadata SHA is mandatory. The validator requires a clean main,
+matching commit/tree and actual source bytes matching every payload hash, before
+any acceptance process starts and again after all checks. Both preparation and
+validation refuse assume-unchanged/skip-worktree index flags, including flags on
+test files. Git status alone cannot reveal such hidden inputs. A self-consistent
+package that claims the current commit but contains different source bytes also
+fails. These checks use the current local checkout and installed dependencies;
+they are not an attestation against a compromised compiler or developer machine.
+
+Each packaged module receives Node syntax checking; each packaged shell receives
+actual Bash syntax checking and must already use LF endings. The tool then runs
+the console profile, console-only HTML syntax, generation, symbol, option/upgrade
+rules, issued-chain ledger consistency and the existing three-contract bytecode
+presence check. Contract execution, fresh dependency installation, fork builds,
+live service/consensus and public approval remain separate acceptance evidence.
+The generation HTTP test now uses its own scratch state rather than the caller's
+operational ledger. Its existing fixed ports must be available.
+
+The overall default ceiling is ten minutes, with at most two minutes for one
+direct child check. `--timeout-ms N` may shorten the overall bound (1–600000).
+The tool stops after a failed child, signal, spawn/output error or timeout and
+never records a pass when source/package integrity changed during testing. Child
+tests retain responsibility for their own spawned-service teardown; the short
+timeout control measures a hung direct child, not arbitrary descendant processes.
+
+Evidence is retained under `work/console-validations/`: per-check stdout/stderr
+logs and hashes, `validation.json` and its SHA-256. The report binds the release
+hash, initial source, platform/Node, deadlines, exit/signal status and outcome.
+Precondition failure exits 1 without running acceptance; later failure exits 1
+with a failed evidence record. Successful CLI exit is 0 with outcome pass. The
+receipt/hash is not a signature, deployment authorization or a live network claim.
+
+Twenty-two actual CLI scenarios in synthetic Git repositories verify the wiring:
+clean source/order/log hashes, relative package paths, wrong revisions/branches,
+hidden index entries, differing package/source bytes, failed/hung checks, changes
+during tests, JS/Bash syntax, CRLF, missing bytecode and invalid/repeated arguments.
+The synthetic suite intentionally replaces product checks with small programs;
+it proves orchestration, while real-root validation runs the actual product suite.
+Evidence: `work/validation-cli.log`, `work/release-validation-test-obYH34`.
+The package regression suite remains 26/26 in `work/validation-packager-regression.log`.
+The complete local profile passes 23 groups in `work/validation-full-profile.log`.
+Real-root packaging/validation must follow the implementation commit; its result
+will be recorded separately and does not approve public deployment.

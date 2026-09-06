@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 20:48:14 UTC** (D-215 milestone).
+repetition. Last user-facing progress update: **2026-09-06 21:06:44 UTC** (D-216 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -301,3 +301,30 @@ where Node --import needs a file URL; fixed with pathToFileURL before acceptance
 Full `work/auth-full-profile.log`: 22 checks pass. English debt down 109 lines to
 5520/105. No public changes. Next bind local validation to release source identity,
 then integrate pause/backup/copy/restart/verification using D-211 through D-214.
+
+D-216: exact-source release validator now requires expected package SHA, clean main
+at the same commit/tree and actual runtime source hashes before/after acceptance.
+Packager and validator reject assume-unchanged/skip-worktree flags, including on
+tests; main has zero such flags. Checks Node/Bash syntax on actual payload, requires
+LF shell bytes, runs the 23-check console profile and preserved HTML/generation/
+symbol/options/upgrade/issued-ledger/artifact gates. The generation fixture now
+keeps its state in scratch (13/13), though its fixed ports remain. No public calls.
+
+Twenty-two actual validation CLI cases use synthetic repositories/programs and
+prove wiring, not product behavior: precise source identity, expected hash,
+ordered checks and hashed logs, hidden inputs, altered self-consistent package,
+failure, a real hung child, source/package edits during checks, syntax/CRLF/bad
+artifact and CLI refusal. `work/validation-cli.log`, scratch
+`work/release-validation-test-obYH34`. Package regression26/26; local profile23/23:
+`work/validation-packager-regression.log`, `work/validation-full-profile.log`.
+Overall budget starts before source checks and is checked after final integrity;
+direct children have <=120s within <=600s overall. A shorter CLI timeout is allowed
+but cannot skip checks. Nested tests own their service teardown; no arbitrary
+process-tree cancellation claim. Reports/log hashes retained under work/console-validations.
+
+Commit this implementation before real-root packaging/validation, which requires
+clean main. Record the actual package/report hashes afterwards; it is still a
+preliminary tooling candidate until deployment-controller integration is complete.
+Next: consume frozen validated inputs, pause/drain, preserve code/state outside
+live directories, verify copy, targeted paused restart and controlled resume.
+Use D-214 lock backend; do not run legacy console-deploy.sh or bypass live API404.

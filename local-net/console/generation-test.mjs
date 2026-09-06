@@ -23,12 +23,22 @@
  */
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
+import { mkdirSync, mkdtempSync, copyFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { NETWORK_ID, TEN_MANG, A1_GEN } from "../lib/chainid.mjs";
 
 const PORT = 8497;
 const PORT_NODE_GIA = 8498;
 const GOC = `http://127.0.0.1:${PORT}`;
 const TOKEN = "token-van-hanh-chi-song-trong-bai-kiem";
+
+// The generation fixture must never use the caller's operational ledger/state.
+const SOURCE_ROOT = fileURLToPath(new URL('../../', import.meta.url));
+mkdirSync(path.join(SOURCE_ROOT, 'work'), { recursive: true });
+const FIXTURE_ROOT = mkdtempSync(path.join(SOURCE_ROOT, 'work/generation-console-'));
+mkdirSync(path.join(FIXTURE_ROOT, 'local-net/console'), { recursive: true });
+copyFileSync(path.join(SOURCE_ROOT, 'local-net/console/index.html'), path.join(FIXTURE_ROOT, 'local-net/console/index.html'));
 
 let dat = 0, hong = 0;
 const kiem = (ten, ok, chiTiet = "") => {
@@ -58,11 +68,12 @@ const nodeGia = createServer((req, res) => {
 });
 await new Promise((r) => nodeGia.listen(PORT_NODE_GIA, "127.0.0.1", r));
 
-const con = spawn(process.execPath, ["local-net/console/server.mjs"], {
-  cwd: process.cwd(),
+const con = spawn(process.execPath, [path.join(SOURCE_ROOT, 'local-net/console/server.mjs')], {
+  cwd: FIXTURE_ROOT,
   env: {
     ...process.env,
     PORT: String(PORT),
+    A1_CONSOLE_START_PAUSED: '0',
     A1_CONSOLE_HOST: "127.0.0.1",
     A1_CONSOLE_TOKEN: TOKEN,
     A1_CLI_KEY: "PrivateKey-khoa-gia-chi-de-console-chiu-khoi-dong",

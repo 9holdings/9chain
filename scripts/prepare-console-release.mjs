@@ -46,6 +46,9 @@ function cleanHead(root) {
   if (actual !== fs.realpathSync(root)) throw new Error('Release source must be the Git repository root');
   if (git(root, 'branch', '--show-current') !== 'main') throw new Error('Console release preparation requires the main branch');
   if (git(root, 'status', '--porcelain=v1', '--untracked-files=all')) throw new Error('Console release preparation requires a clean committed working tree');
+  if (git(root, 'ls-files', '-v', '-z').split('\0').some(entry => /^[a-zS] /.test(entry))) {
+    throw new Error('Release source index hides tracked files with assume-unchanged or skip-worktree flags');
+  }
   return { commit: git(root, 'rev-parse', 'HEAD'), tree: git(root, 'rev-parse', 'HEAD^{tree}'), branch: 'main' };
 }
 function sourceBytes(root, name) {
@@ -136,6 +139,22 @@ export function verifyConsoleRelease(directory, expectedHash) {
   return { directory, sha256: digest, source: release.source, groups, files: names.length, bytes,
     expectedHashVerified: expectedHash !== undefined,
     scope: 'Local source package integrity; not test acceptance, a signature or deployment authorization.' };
+}
+
+export function verifyConsoleReleaseSource(directory, expectedHash, root = defaultRoot) {
+  if (!validHash(expectedHash)) throw new Error('Exact-source validation requires an expected release SHA-256');
+  const verified = verifyConsoleRelease(directory, expectedHash);
+  const current = cleanHead(path.resolve(root));
+  if (['commit', 'tree', 'branch'].some(key => current[key] !== verified.source[key])) {
+    throw new Error('Validation source revision does not match the frozen release');
+  }
+  const release = JSON.parse(sourceBytes(path.resolve(directory), 'release.json'));
+  for (const record of release.files) {
+    if (sha(sourceBytes(path.resolve(root), record.path)) !== record.sha256) {
+      throw new Error(`Validation source bytes do not match the frozen release: ${record.path}`);
+    }
+  }
+  return verified;
 }
 
 function main(args) {

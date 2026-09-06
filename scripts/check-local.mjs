@@ -12,6 +12,7 @@ const checks = [
   ['scripts/check-deploy-imports.mjs', '--self-test'],
   ['scripts/check-deploy-imports.mjs'],
   ['scripts/prepare-console-release-test.mjs'],
+  ['scripts/validate-console-release-test.mjs'],
   ['local-net/console/chainid-test.mjs'],
 ];
 const consoleChecks = [

@@ -91,6 +91,13 @@ contact public services or require SSH.
 
 ## Optional Linux restart integration
 
+Exact-source release validation is separate from an ordinary local check run:
+`node scripts/validate-console-release.mjs --release DIRECTORY --expected-sha256 HASH`.
+It requires the package's clean committed main and matching source bytes before
+and after checks, refuses hidden index flags, records check logs/hashes and fails
+on any incomplete or timed-out check. See `CONSOLE-RELEASE.md`. It has no deployment
+actions or skip-tests switch; the CLI wiring tests are included in the local runner.
+
 Authentication acceptance now runs in the console profile: 21 cryptographic SIWE
 checks and 60 actual HTTP checks against two isolated consoles. Each invocation
 creates its own synthetic ledger, wallet-owned and system-owned chains, dynamic

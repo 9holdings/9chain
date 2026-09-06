@@ -9724,3 +9724,40 @@ The local console profile includes both suites and now passes 22 groups
 local authentication/authorization acceptance, not live consensus or deployment.
 The deployment controller still needs to bind these tests to the exact frozen
 source and integrate maintenance/backup/restart. No public changes occurred.
+
+### D-216 — Bind local release acceptance to exact source and package identity (2026-09-06)
+
+The frozen source package alone did not prove that local tests ran against its
+source revision. Added verifyConsoleReleaseSource and validate-console-release.mjs:
+require the expected package SHA, clean committed main, matching commit/tree and
+all selected source bytes before and after acceptance. Preparation/validation
+also refuse assume-unchanged/skip-worktree index flags, including on tests; those
+flags can make Git status clean while concealing code changes. Package identity
+and current source bytes are checked separately, not inferred from a commit label.
+
+Validation runs Node/Bash syntax against actual payload files, requires LF shell
+bytes, then the console profile plus preserved HTML/generation/symbol/options/
+upgrade/issued-ledger/artifact checks. The generation fixture now keeps state in
+its own scratch directory. Direct checks have bounded execution within a maximum
+ten-minute overall budget; short timeouts fail rather than skip validation. Nested
+test service teardown remains each test harness's responsibility.
+
+Successful and failed post-start evidence includes source/release identity,
+platform/Node, check exits/signals, timing and log SHA-256, with a hashed report.
+Precondition failure starts no tests; incomplete/failed runs cannot be accepted.
+This validates local source with current installed dependencies, not fresh package
+installation, compiled fork/contract execution, public deployment or consensus.
+
+Twenty-two actual CLI scenarios in synthetic Git repositories pass: valid order
+and hashes, relative paths, stale/dirty/detached/other source, hidden flags, differing
+source/package bytes despite consistent package hashes, failed/hung direct child,
+source/package edits during tests, JS/Bash syntax, CRLF, bytecode shape and invalid
+arguments. Logs `work/validation-cli.log`, scratch
+`work/release-validation-test-obYH34`. These use synthetic acceptance programs to
+prove orchestration; real-root acceptance is a separate post-commit measurement.
+Packager regression remains 26/26 (`work/validation-packager-regression.log`), and
+the isolated generation test remains 13/13 (`work/generation-isolated.log`). No
+public changes. See `docs/CONSOLE-RELEASE.md`; controller integration remains next.
+Full local profile: 23 groups pass in `work/validation-full-profile.log`. The final
+deadline accounting includes the source precondition and final integrity check;
+the actual hung-child CLI control remains red as intended within its shorter budget.
