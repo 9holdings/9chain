@@ -31,6 +31,7 @@ import {
 import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
 import { siwe } from "./siwe.mjs";
 import { requestRpc } from "../lib/rpc-client.mjs";
+import { CreationJournal, creationGenesisText } from "../lib/creation-journal.mjs";
 
 const PORT = Number(process.env.PORT || 8091);
 // Mặc định CHỈ nghe loopback. Console điều phối docker trên host — mở ra ngoài
@@ -233,6 +234,7 @@ const TMP_DIR = path.join(CFG_DIR, "console-tmp");
 // mọi node cùng đọc. Xem ghiChainConfig().
 const CHAIN_CFG_DIR = path.join(CFG_DIR, "chains");
 const STATE = path.join(CFG_DIR, "console-chains.json");
+const creationJournal = new CreationJournal(CFG_DIR);
 // Khuôn genesis cho mọi L1. JSON không chứa được chú thích, mà trong đó có đúng một
 // con số không tự giải thích nổi — `warpConfig.blockTimestamp: 1607144400`:
 //
@@ -1072,6 +1074,7 @@ async function createChain(tham) {
  * launched later from a stale read — the plan is not a reservation.
  */
 async function planChain({ name, chainId, admin, preset, symbol, allocations, fees, precompiles, contracts }) {
+  creationJournal.assertClear();
   // Cổng thứ hai, ngay sau cổng rẻ nhất: console có đang đứng đúng thế hệ mạng
   // không. Đặt TRƯỚC mọi phép kiểm tên/hạn mức/khoá vì một chainId phát nhầm thế
   // hệ là thứ **không thu hồi được** — thu hồi chain không trả lại số nhận dạng.
@@ -1284,6 +1287,14 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
 
 /** The irreversible half — see `planChain`. Runs inside the serial queue only. */
 async function launchChain(plan) {
+  loadState();
+  const job = creationJournal.begin(plan, NETWORK_ID);
+  // Keep the journal on every failure, including a lost CLI response. A failure
+  // does not prove that the P-chain transaction was never submitted.
+  return executeChainLaunch(plan, job);
+}
+
+async function executeChainLaunch(plan, job) {
   const { name, chainId, ADMIN, SYMBOL, presetDaAp, tpl, options } = plan;
   const state = loadState();
 
@@ -1311,13 +1322,14 @@ async function launchChain(plan) {
   buocChay("genesis");
 
   const fname = `${name.replace(/ /g, "_")}.json`;
-  writeFileSync(path.join(TMP_DIR, fname), JSON.stringify(tpl, null, 2));
+  writeFileSync(path.join(TMP_DIR, fname), creationGenesisText(plan));
   const inContainer = `/9chain-a1/config/console-tmp/${fname}`;
 
   buocXong("genesis");
   buocChay("subnet");
 
   // 2) đẻ subnet + chain qua 9chain-a1-cli (in SUBNET_ID=/BLOCKCHAIN_ID= ra stdout)
+  creationJournal.update(job, { phase: "submitting" });
   const out = await docker([...COMPOSE, "exec", "-T",
     "-e", `A1_CLI_KEY=${CLI_KEY}`, NODE_CONTAINER,
     "/9chain-a1/build/9chain-a1-cli", "l1", "create",
@@ -1325,6 +1337,7 @@ async function launchChain(plan) {
   const subnetID = (out.match(/SUBNET_ID=([A-Za-z0-9]+)/) || [])[1];
   const blockchainID = (out.match(/BLOCKCHAIN_ID=([A-Za-z0-9]+)/) || [])[1];
   if (!subnetID || !blockchainID) throw new Error("could not parse the IDs out of the CLI output:\n" + out);
+  creationJournal.update(job, { phase: "created", subnetID, blockchainID });
 
   buocXong("subnet");
 
@@ -1413,6 +1426,7 @@ async function launchChain(plan) {
     options,
   };
   state.chains.push(chain); saveState(state);
+  creationJournal.complete(job);
   // Nhật ký restart trả cho người gọi làm bằng chứng, nhưng KHÔNG ghi vào state:
   // `console-chains.json` là hợp đồng dữ liệu với trang /chains/ công khai, chỉ
   // nên chứa thông tin về chain — không phải chi tiết vận hành của server.
@@ -1456,6 +1470,7 @@ async function launchChain(plan) {
  * chứng cho người vào dọn biết chuyện gì đã xảy ra.
  */
 async function thuHoiChain({ name, xacNhan }) {
+  creationJournal.assertClear();
   name = String(name || "").trim();
   if (!name) throw new Error("Missing the name of the chain to revoke");
 
@@ -1753,6 +1768,7 @@ async function hoanTacNangCap(chain, filePath, prev, daXong, hong) {
 }
 
 async function napCapChain(tham, ai) {
+  creationJournal.assertClear();
   const { chain, plan, rpcPath } = await planUpgradeForChain(tham, ai);
   if (String(tham.confirm ?? "") !== chain.name) {
     throw new Error(
@@ -1826,6 +1842,7 @@ async function napCapChain(tham, ai) {
  * header: chain first, ledger second). No rollout: nothing on the nodes changes.
  */
 async function doiChu({ name, newAdmin, confirm }, ai) {
+  creationJournal.assertClear();
   const state = loadState();
   const chain = chuChain(state, name);
   kiemChuSoHuu(chain, ai);
@@ -2024,6 +2041,7 @@ const server = http.createServer(async (req, res) => {
       const st = loadState();
       return send(res, 200, {
         node: ver, cChainId: cid, defaultAdmin: L1_ADMIN,
+        pendingCreation: creationJournal.summary(),
         chains: st.chains, retired: st.retired,
         // Giao diện phải nói rõ người dùng đang là AI. Đăng nhập bằng ví thì ô
         // admin không còn ý nghĩa (bị ép bằng địa chỉ ký) — hiện nhầm là mời họ

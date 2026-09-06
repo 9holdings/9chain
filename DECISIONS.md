@@ -9247,3 +9247,32 @@ eleven local checks pass. The new dependency is in the deployment manifest (19
 console import files covered). Read-only public RPC with the new helper also
 accepts the live network/version responses: 999999998, 9chaingo/1.14.2,
 9chain-a1-g1-27patch-38723877. This is not a public console deployment.
+
+### D-203 — Persist creation intent before irreversible submission (2026-09-06)
+
+After a failed launch, the old console left no reservation in its public ledger.
+The next create could submit again and rebuild tracking from a ledger that omitted
+the unresolved subnet. Reproduced six such retries on the real local HTTP path.
+
+Added a single pending journal aligned with the serial orchestrator. Exclusive
+file creation happens before genesis output/CLI; phase transitions are flushed
+before submission and before rollout. Store public plan, network identity, exact
+genesis-byte hash and returned IDs; never keys or raw CLI output. Success archives
+the reservation after saving the public ledger; failure keeps it. Creation and
+other mutation entry points refuse pending state, including after process restart.
+The status API exposes only a summary; the existing public chain ledger is unchanged.
+
+Validation: ten actual-console fixture scenarios pass, including lost CLI response,
+fresh-process retries, RPC errors, blocked revocation/upgrade and successful archive.
+The fake CLI checks that `submitting` was already on disk before its first call.
+The journal hash matches actual CLI genesis bytes. Separate file tests cover phase
+ordering, ownership, exclusive reservation, archival, corrupt files, modified genesis
+and stranded writes. Twelve-check local profile passes; deployment imports cover
+20 console files. These are local processes with synthetic node/Docker, not live
+transactions or an on-chain recovery drill. Full power-loss durability is not
+claimed (Windows directory fsync and existing ledger writer limitations).
+
+No automatic resume/discard operation is supplied: a submission timeout cannot
+prove non-acceptance. Public recovery must reconcile chain state first and be
+approved. Follow-up: read-only recovery planning and ledger durability. Scope and
+operator procedure in `docs/CREATION-RECOVERY.md`; public deployment still pending.

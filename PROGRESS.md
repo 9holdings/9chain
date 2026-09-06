@@ -2,6 +2,8 @@
 
 ## Local automation — 2026-09-06
 
+- [~] D-203: persistent creation reservation prevents blind retries across console restart. Ten HTTP fixture scenarios + journal file controls pass; twelve local checks pass. Public deployment/recovery drill and automatic reconciliation remain unfinished. See `docs/CREATION-RECOVERY.md`.
+
 - [~] D-202: RPC deadline and HTTP/JSON-RPC envelope checks implemented locally. Seventeen transport tests, options 105/105, RPC creation 9/9, governance 55/55; eleven-check profile passes. Hung-node queue releases at ~10s. Read-only live network/version accepted; deployment pending.
 
 - [~] D-201: creation checks RPC chain ID before saving success; real console + synthetic node/Docker fixture 9/9 (six false successes reproduced before fix), ten-check local profile passes. Public deployment pending; this does not prove consensus liveness.

@@ -1,0 +1,50 @@
+# Recovering an interrupted chain creation
+
+Local implementation: D-203. Not deployed or rehearsed on the public network yet.
+
+The console reserves one creation in `9chain-a1-config/creation-journal/pending.json`
+before writing genesis or calling the CLI. It records the complete public plan,
+network identity, SHA-256 of the exact genesis bytes, timestamps and the last
+confirmed stage. It never records the CLI signing key. The file remains after
+failure or process restart. Successful creation moves it into `history/<jobId>.json`
+only after writing the normal public chain ledger.
+
+While pending, new creation/preview, revocation, upgrade execution and owner
+transfer are refused. Read-only chain/governance views remain available. Authenticated
+`GET /api/status` adds `pendingCreation`, either null or a summary containing jobId,
+name, chainId, phase, createdAt and any known subnetID/blockchainID. It does not
+expose the genesis plan. A pending job may still be running; consult progress
+before treating it as interrupted.
+
+| Persisted phase | What is known | What must be established before recovery |
+|---|---|---|
+| prepared | Intent and genesis bytes recorded; the new launch code has not entered submission | Verify the deployed code and inspect any artifacts before abandoning the reservation |
+| submitting | CLI was about to run; its result may have been lost | Determine whether P-chain accepted a subnet, a blockchain, both or neither; never replay based on a timeout |
+| created | CLI returned both identifiers; rollout or RPC verification may still have failed | Verify the identifiers, genesis, per-node tracking and RPC against the recorded plan |
+| complete | Ledger was written; archive may have failed | Verify the ledger record and existing chain before archiving the reservation |
+
+Operator preparation, before any public mutation:
+
+1. Preserve the journal, existing ledger, recovery files and relevant non-secret
+   artifacts. Confirm network identity and job identity.
+2. Read P-chain state and compare identifiers and creation data with the exact
+   saved plan. A missing HTTP response is not evidence that nothing was created.
+3. Inspect each validator's actual tracking and chain state. Matching `eth_chainId`
+   alone does not prove block production or agreement across validators.
+4. Prepare the specific reconciliation: which existing chain record to restore,
+   which tracking configuration needs adjustment, or why an unsubmitted reservation
+   can be archived. Keep all evidence; do not overwrite history or reuse identifiers.
+5. Obtain owner approval for public writes, restarts, transactions or removal of
+   recovery state. No automatic retry, reset, resume or discard endpoint is provided.
+
+Do not manually remove the pending file just to reopen the API. Do not treat an
+empty live ledger as proof that the pending transaction was never accepted.
+Backup coverage must explicitly include the journal and history as operational
+data; Git intentionally ignores them. Restore and reconcile them with the ledger.
+
+Validation so far: real isolated console processes, synthetic RPC and intercepted
+Docker; repeated requests and fresh-process retries after RPC/CLI failure do not
+submit again. File writes are flushed, with directory fsync on POSIX. These tests
+establish process-restart behavior, not full power-loss durability: Windows directory
+fsync is unavailable here and the existing chain ledger writer is not fsynced.
+Multi-host orchestration and public recovery remain separate work.

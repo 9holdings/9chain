@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 17:18:23 UTC** (D-202 milestone).
+repetition. Last user-facing progress update: **2026-09-06 17:42:14 UTC** (D-203 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -75,8 +75,17 @@ creation 9/9, governance 55/55; eleven local checks pass. New runtime dependency
 is in the deploy manifest. Read-only live network/version calls succeed too;
 public console remains unchanged. Full 150-second exhaustion not yet timed.
 
-Next priority: durable launch reservation/journaling (P-chain creation is
-irreversible and currently precedes successful ledger write).
+D-203 implements a single persisted pending creation before CLI submission.
+Keeps plan, exact genesis-byte hash, phase and IDs; blocks retries and other chain
+mutations after failure/restart. Successful ledger writes are followed by journal
+archival. Ten actual-console synthetic RPC/Docker scenarios and journal file tests
+pass; twelve local checks pass. Read `docs/CREATION-RECOVERY.md` before further work.
+No real public submission, restart or recovery was performed.
+
+Next priorities: read-only reconciliation/inspection for pending jobs, crash during
+in-flight submission, and atomic ledger write durability (ledger currently has no
+fsync). Do not add blind resume/retry/discard endpoints. Recovery must establish
+what P-chain already accepted and preserve all artifacts before mutation.
 Preserve the public ledger/API contract. Matching chain ID does not prove block
 production or all-validator readiness. Full cold build, patch replay and live
 consensus remain separate unverified items. No public create/upgrade in tests.

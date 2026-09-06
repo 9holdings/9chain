@@ -14,6 +14,7 @@ const checks = [
   ['local-net/console/chainid-test.mjs'],
 ];
 const consoleChecks = [
+  ['local-net/lib/creation-journal-test.mjs'],
   ['local-net/lib/rpc-client-test.mjs'],
   ['local-net/console/paused-e2e-test.mjs'],
   ['local-net/console/create-rpc-e2e-test.mjs'],

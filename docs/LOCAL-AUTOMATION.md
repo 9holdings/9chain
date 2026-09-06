@@ -35,6 +35,8 @@ and their operational state is isolated; they do not create public chains.
 The RPC suite intercepts Docker in a test-only preload and never calls the actual
 Docker executable. It exercises success/refusal after simulated CLI creation and
 restart; it does not prove live blockchain behavior.
+The profile also verifies persistent creation journals. Pending-job operation and
+recovery boundaries are documented in `CREATION-RECOVERY.md`.
 
 This is a local baseline, not a full release gate. It does not build the fork,
 replay patches, run a blockchain, prove recovery, inspect live server state, or

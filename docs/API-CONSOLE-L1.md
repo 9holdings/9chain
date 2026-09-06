@@ -1,5 +1,10 @@
 # API console L1 — hợp đồng bàn giao cho `web-home`
 
+Update 2026-09-06 (D-203, **local only; not deployed**): authenticated `/api/status`
+now includes `pendingCreation` (null or a persisted-job summary). Pending jobs
+block further chain mutations even after console restart. See
+[`CREATION-RECOVERY.md`](CREATION-RECOVERY.md) for measured behavior and limits.
+
 > **Mục đích:** để phiên `web-home` làm **P-55** (ký hiệu token), **P-60** (trang "quản trị chain của
 > tôi") và **P-62** (màn xem trước + câu ký) **mà không phải đọc `server.mjs`**.
 >

@@ -2,7 +2,7 @@
 import childProcess from 'node:child_process';
 import { syncBuiltinESMExports } from 'node:module';
 import { promisify } from 'node:util';
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 if (!path.basename(process.cwd()).startsWith('create-rpc-')) {
@@ -12,7 +12,12 @@ const record = action => appendFileSync('fake-docker.log', action + '\n');
 function output(file, args) {
   if (file !== 'docker') throw new Error('Unexpected executable in the Docker fixture');
   if (args.includes('l1') && args.includes('create')) {
+    if (process.env.A1_TEST_REQUIRE_JOURNAL === '1') {
+      const pending = JSON.parse(readFileSync('9chain-a1-config/creation-journal/pending.json', 'utf8'));
+      if (pending.phase !== 'submitting') throw new Error('Journal must record intent before CLI submission');
+    }
     record('create');
+    if (process.env.A1_TEST_CREATE_FAILURE === '1') throw new Error('Synthetic lost CLI response after submission');
     return 'SUBNET_ID=TestSubnet111\nBLOCKCHAIN_ID=TestBlockchain111\n';
   }
   if (args.includes('config') && args.includes('--services')) {

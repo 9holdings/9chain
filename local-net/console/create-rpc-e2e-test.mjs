@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 // Real console HTTP creation path; synthetic node and intercepted Docker calls.
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { createServer as httpServer } from 'node:http';
 import { createServer as netServer } from 'node:net';
-import { mkdirSync, mkdtempSync, copyFileSync, readFileSync, existsSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, copyFileSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { NETWORK_ID, TEN_MANG } from '../lib/chainid.mjs';
@@ -50,7 +51,7 @@ const nodeUrl = `http://127.0.0.1:${node.address().port}`;
 mkdirSync(path.join(root, 'work'), { recursive: true });
 let pass = 0, fail = 0;
 
-async function check(label, result, succeeds, errorPattern, failuresBeforeSuccess = 0) {
+async function check(label, result, succeeds, errorPattern, failuresBeforeSuccess = 0, cliFailure = false) {
   reported = result;
   chainQueries = 0;
   failuresRemaining = failuresBeforeSuccess;
@@ -66,24 +67,37 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
   const port = reservation.address().port;
   await new Promise(resolve => reservation.close(resolve));
   const token = `synthetic-operator-token-${port}`;
-  const child = spawn(process.execPath, ['--import',
+  const childArgs = ['--import',
     pathToFileURL(path.join(root, 'local-net/console/fixtures/fake-create-docker.mjs')).href,
-    path.join(root, 'local-net/console/server.mjs')], {
+    path.join(root, 'local-net/console/server.mjs')];
+  const childOptions = {
     cwd: scratch, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, PORT: String(port), A1_CONSOLE_HOST: '127.0.0.1',
       A1_CONSOLE_TOKEN: token, A1_CLI_KEY: 'PrivateKey-synthetic-not-valid',
       A1_DE_CHAIN_MO: '1', A1_NODE_CONTAINER: 'test-node', NODE_URI: nodeUrl,
+      A1_TEST_REQUIRE_JOURNAL: '1', A1_TEST_CREATE_FAILURE: cliFailure ? '1' : '0',
       A1_COMPOSE_FILE: path.join(scratch, 'no-real-compose.yml'),
       A1_PUBLIC_RPC_BASE: nodeUrl },
-  });
-  children.add(child);
+  };
+  let child;
   let spawnError;
-  child.on('error', error => { spawnError = error; });
-  child.stdout.resume();
-  child.stderr.resume();
+  function startChild() {
+    spawnError = undefined;
+    child = spawn(process.execPath, childArgs, childOptions);
+    children.add(child);
+    child.on('error', error => { spawnError = error; });
+    child.stdout.resume(); child.stderr.resume();
+  }
+  async function stopChild() {
+    if (child.exitCode === null && !spawnError) {
+      const exited = once(child, 'exit'); child.kill(); await exited;
+    }
+    children.delete(child);
+  }
+  startChild();
   const base = `http://127.0.0.1:${port}`;
   const headers = { authorization: `Bearer ${token}`, 'content-type': 'application/json' };
-  try {
+  async function waitReady() {
     let ready = false;
     for (let attempt = 0; attempt < 40; attempt++) {
       if (spawnError) throw spawnError;
@@ -95,6 +109,9 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     assert.ok(ready, 'console startup');
+  }
+  try {
+    await waitReady();
     const response = await fetch(base + '/api/create', { method: 'POST', headers,
       body: JSON.stringify({ name: 'RPC Identity Test', chainId: expected }), signal: AbortSignal.timeout(10000) });
     const body = await response.json();
@@ -103,26 +120,65 @@ async function check(label, result, succeeds, errorPattern, failuresBeforeSucces
     if (succeeds) {
       assert.equal(body.chainId, expected);
       assert.equal(JSON.parse(readFileSync(ledger, 'utf8')).chains[0].chainId, expected);
+      assert.equal(existsSync(path.join(config, 'creation-journal/pending.json')), false);
+      const history = path.join(config, 'creation-journal/history');
+      assert.equal(readdirSync(history).length, 1);
+      assert.equal(JSON.parse(readFileSync(path.join(history, readdirSync(history)[0]), 'utf8')).phase, 'complete');
     } else {
       assert.match(body.error, errorPattern);
       assert.equal(existsSync(ledger), false, 'a mismatched RPC must not publish a successful ledger entry');
     }
-    assert.equal(chainQueries, failuresBeforeSuccess + 1, 'only transient failures may be retried');
+    assert.equal(chainQueries, cliFailure ? 0 : failuresBeforeSuccess + 1, 'only transient failures may be retried');
     assert.deepEqual(readFileSync(path.join(scratch, 'fake-docker.log'), 'utf8').trim().split('\n'),
-      ['create', 'services', 'restart', 'health'], 'the full launch path must reach the RPC gate');
+      cliFailure ? ['create'] : ['create', 'services', 'restart', 'health'], 'the expected launch stages must execute');
     const progress = await (await fetch(base + '/api/progress', { headers })).json();
     assert.equal(progress.running, false);
-    assert.equal(progress.steps.find(step => step.code === 'rpc').status, succeeds ? 'done' : 'failed');
+    assert.equal(progress.steps.find(step => step.code === (cliFailure ? 'subnet' : 'rpc')).status, succeeds ? 'done' : 'failed');
+    if (!succeeds) {
+      const pendingFile = path.join(config, 'creation-journal/pending.json');
+      const pending = JSON.parse(readFileSync(pendingFile, 'utf8'));
+      assert.equal(pending.phase, cliFailure ? 'submitting' : 'created');
+      assert.equal(pending.plan.chainId, expected);
+      assert.equal(pending.genesisSha256, createHash('sha256')
+        .update(readFileSync(path.join(config, 'console-tmp/RPC_Identity_Test.json'))).digest('hex'),
+        'the journal digest must match the exact genesis bytes passed to the CLI');
+      assert.equal(readFileSync(pendingFile, 'utf8').includes('PrivateKey-'), false, 'the journal must not contain the CLI key');
+      // A good RPC on the next request must not trigger a second irreversible CLI call.
+      reported = '0x' + expected.toString(16);
+      const retry = await fetch(base + '/api/create', { method: 'POST', headers,
+        body: JSON.stringify({ name: 'Retry After Failure', chainId: expected + 1 }), signal: AbortSignal.timeout(10000) });
+      const retryBody = await retry.json();
+      assert.equal(retry.status, 400);
+      assert.match(retryBody.error, /chain creation is pending/i,
+        'an unresolved creation must block subsequent creation before the CLI');
+      assert.equal(readFileSync(path.join(scratch, 'fake-docker.log'), 'utf8').split('\n').filter(x => x === 'create').length, 1);
+      await stopChild();
+      startChild();
+      await waitReady();
+      const status = await (await fetch(base + '/api/status', { headers })).json();
+      assert.equal(status.pendingCreation.jobId, pending.id, 'a fresh process must expose the persisted job');
+      const afterRestart = await fetch(base + '/api/create', { method: 'POST', headers,
+        body: JSON.stringify({ name: 'Retry After Restart', chainId: expected + 2 }) });
+      assert.equal(afterRestart.status, 400);
+      assert.match((await afterRestart.json()).error, /chain creation is pending/i);
+      const blockedRevoke = await fetch(base + '/api/revoke', { method: 'POST', headers,
+        body: JSON.stringify({ name: 'RPC Identity Test', xacNhan: 'RPC Identity Test' }) });
+      assert.equal(blockedRevoke.status, 400);
+      assert.match((await blockedRevoke.json()).error, /chain creation is pending/i,
+        'revocation must not remove the unresolved subnet from the track list');
+      const blockedUpgrade = await fetch(base + '/api/upgrade', { method: 'POST', headers,
+        body: JSON.stringify({ name: 'RPC Identity Test', confirm: 'RPC Identity Test' }) });
+      assert.equal(blockedUpgrade.status, 400);
+      assert.match((await blockedUpgrade.json()).error, /chain creation is pending/i);
+      assert.equal(readFileSync(path.join(scratch, 'fake-docker.log'), 'utf8').split('\n').filter(x => x === 'create').length, 1);
+    }
     pass++;
     console.log(`PASS: ${label}`);
   } catch (error) {
     fail++;
     console.error(`FAIL: ${label}: ${error.message}`);
   } finally {
-    if (child.exitCode === null && !spawnError) {
-      const exited = once(child, 'exit'); child.kill(); await exited;
-    }
-    children.delete(child);
+    await stopChild();
   }
 }
 try {
@@ -135,6 +191,7 @@ try {
   await check('numeric result instead of a hex quantity', expected, false, /invalid eth_chainId/);
   await check('object result instead of a hex quantity', {}, false, /invalid eth_chainId/);
   await check('malformed hexadecimal result', '0xwrong', false, /invalid eth_chainId/);
+  await check('lost CLI response remains reserved across restart', null, false, /Synthetic lost CLI response/, 0, true);
 } finally {
   await new Promise(resolve => node.close(resolve));
 }
