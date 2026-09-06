@@ -27,6 +27,7 @@ const consoleChecks = [
   ['local-net/console/readiness-e2e-test.mjs'],
   ['local-net/lib/chain-readiness-test.mjs'],
   ['scripts/inspect-creation-test.mjs'],
+  ['scripts/inspect-chain-inventory-test.mjs'],
   ['local-net/lib/ledger-write-test.mjs'],
   ['local-net/lib/creation-journal-test.mjs'],
   ['local-net/lib/rpc-client-test.mjs'],

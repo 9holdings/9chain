@@ -2,7 +2,7 @@
 
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
-for current evidence and next work. D-197 through D-219: local console reliability,
+for current evidence and next work. D-197 through D-220: local console reliability,
 read-only creation inspection, cold-build/replay, core tests, managed-node transport
 and persistent operator maintenance, frozen releases, targeted paused restart and
 per-invocation deployment exclusion without TTL takeover (`docs/DEPLOYMENT-LOCK.md`).
@@ -32,6 +32,11 @@ read-only source audit still blocks undeclared heartbeat-deploy.sh; maintenance
 still404. Next: first-adoption inventory/reconciliation/rehearsal; working notes
 work/first-adoption-review-notes.md. This package is historical evidence after
 recording documentation, not a final approved/current-source deployment release.
+D-220 adds read-only bidirectional ledger/P-chain inventory.74 CLI/file/HTTP cases
+pass on Windows/Linux and two removed-check negatives fail correctly. Public read
+23:16 UTC aligns13 registrations =2 C/X+11 active,0 unlisted; selected public ledger
+bytes stayed stable. This does not measure pending/subnet-only operations or legacy
+admission drain. See `docs/CHAIN-INVENTORY.md`; local profile now27 groups.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
 

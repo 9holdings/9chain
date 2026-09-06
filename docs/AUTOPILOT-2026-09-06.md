@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 23:04:36 UTC** (D-219 exact-source44-command acceptance; final status follows).
+repetition. Last user-facing progress update: **2026-09-06 23:16:47 UTC** (D-220 inventory tests and public read-only13/11 comparison).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -480,3 +480,27 @@ synthetic maintenance receipt or claim the33-case routine drill covers bootstrap
 Recording acceptance advances HEAD; this package is historical evidence for the
 implementation commit, not the final approved/current-source release. Finish next
 code/docs before freezing another candidate. About3h18m remained at23:04:36 UTC.
+
+D-220 implemented local/read-only bidirectional ledger/P-chain inventory. Explicit
+file and RPC origin, strict bounded file/HTTP/RPC identities, actual C/X aliases,
+two matching normalized inventories, repeated network identity and unchanged input
+file. At most10 fixed read calls/30s RPC budget,4MiB/10000 entries. Exposes unlisted,
+mismatched and duplicate identities; retired registrations remain accounted for.
+Never contacts ledger-provided URLs, writes state, imports chains or authorizes recovery.
+
+74 actual CLI/file/HTTP cases pass Windows/Linux. Two copied-source negatives fail
+the actual unlisted/unstable CLI assertions. Docs/CHAIN-INVENTORY.md lists exact logs
+and limits. Linux a1-autopilot-inventory-linux-20260906 exited0/noOOM, verified23:16.
+Actual public read23:16:05–23:16:11 UTC aligned13 registered=2 primary+11 active,
+0 retired/unlisted. Public ledger before/after was DYNAMIC and byte-identical. Receipt
+work/chain-inventory-live-evidence.json/report work/chain-inventory-live.json; runner
+work/inventory-live.mjs. Initial scratch probe used RPC origin for the ledger route
+and was refused; corrected to the existing publicLedgerUrl() site source before the
+accepted measurement. No secrets/public mutation. Operator import closure14, console26,
+faucet3; local profile now27 groups. Commit and exact-source acceptance next.
+
+This fills registration comparison only: subnet-only creation, mempool/pending work,
+unrecorded legacy genesis artifacts and actual old process drain are still unproven.
+Next useful work: bounded read-only inventory of legacy console-tmp artifacts and
+concrete first-adoption/recovery packet; do not infer that aligned means safe to
+restart/resume. Existing API404/orphan blockers remain. No automatic bootstrap bypass.

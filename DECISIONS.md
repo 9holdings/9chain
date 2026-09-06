@@ -9847,3 +9847,26 @@ substitute for the loaded startup identity. Full26 groups pass. Linux containers
 exited0/noOOM, no public mutation. Exact logs and scope in docs/CONSOLE-READINESS.md.
 This does not attest binary/fork provenance, referenced config-file contents,
 consensus liveness, capacity or whole-server state. Public first adoption is pending.
+
+### D-220 — Compare P-chain registrations back to the console ledger (2026-09-06)
+
+The public-ledger gate verifies advertised chains but cannot find a registration the
+console omitted after interruption. Added an explicitly read-only inspector with
+mandatory selected file/RPC origin. Validate the ledger, exact A1 network and C/X
+aliases, compare two normalized P-chain inventories, repeat network identity and
+re-read exact ledger bytes. At most10 fixed read calls,30s RPC budget,4MiB and10000
+entry limits; strict200JSON/no redirects/body deadlines. No per-chain ledger URLs.
+
+Primary recognition requires alias ID and primary subnet, never a name heuristic.
+Compare every active identity, account for retired registrations and expose every
+unlisted registration, including a same-name chain. Duplicates and conflicts require
+review; malformed/unavailable/changing data is inconclusive. Recovery authorization
+is always false. No import/retry/restore/deletion. This does not inspect subnet-only
+operations, pending transactions or genesis, and cannot prove legacy admission drain.
+
+74 actual CLI/file/HTTP tests pass on Windows/Linux. Two copied-source removed-check
+negatives fail on unlisted registrations and changing inventory. Actual public read
+23:16 UTC aligns13 registrations with2 primary+11 active,0 retired/unlisted; public
+ledger bytes stable/DYNAMIC before and after. Exact logs, digests and limits in
+docs/CHAIN-INVENTORY.md. The underlying GetBlockchains API is deprecated in this
+fork; compatibility was measured on current A1 only. Legacy API404 remains a blocker.
