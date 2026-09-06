@@ -30,10 +30,11 @@ import {
 } from "../lib/l1-upgrade.mjs";
 import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG } from "../lib/chainid.mjs";
 import { siwe } from "./siwe.mjs";
-import { requestRpc } from "../lib/rpc-client.mjs";
+import { requestRpc, rpcResult, RpcResponseError } from "../lib/rpc-client.mjs";
 import { CreationJournal, creationGenesisText } from "../lib/creation-journal.mjs";
 import { writeLedger, assertNoPendingLedgerWrite } from "../lib/ledger-write.mjs";
 import { readLedger } from "../lib/ledger-read.mjs";
+import { waitForChainNodes } from "../lib/chain-readiness.mjs";
 
 const PORT = Number(process.env.PORT || 8091);
 // Mặc định CHỈ nghe loopback. Console điều phối docker trên host — mở ra ngoài
@@ -908,6 +909,25 @@ async function docker(args, env = {}) {
   }
 }
 
+/** Read a node's own RPC with a bounded Docker client and bounded in-container curl. */
+async function rpcOnManagedNode(svc, segment, method, params, { signal, timeoutMs }) {
+  const args = [...COMPOSE, "exec", "-T", svc, "curl", "-fsS", "-m", "5",
+    "-X", "POST", "-H", "content-type:application/json",
+    "--data", JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+    `http://127.0.0.1:9650${segment}`];
+  let stdout;
+  try {
+    ({ stdout } = await run("docker", args, { cwd: ROOT, env: process.env,
+      signal, timeout: timeoutMs, killSignal: "SIGKILL", maxBuffer: 1 << 24 }));
+  } catch { throw new Error(`${svc} ${method} is not answering within the readiness probe deadline`); }
+  let message;
+  try { message = JSON.parse(stdout); }
+  catch { throw new RpcResponseError(`${svc} returned invalid ${method} JSON`); }
+  // Keep compose diagnostics on stderr separate from the JSON-RPC response.
+  try { return rpcResult(message, method); }
+  catch (error) { error.message = `${svc}: ${error.message}`; throw error; }
+}
+
 /**
  * Lời dặn về GIAO DỊCH ĐẦU TIÊN của một chain vừa đẻ (M5.4).
  *
@@ -1294,6 +1314,7 @@ async function executeChainLaunch(plan, job) {
     { ma: "genesis", nhan: "Building genesis" },
     { ma: "subnet", nhan: "Creating subnet + blockchain on P-Chain" },
     { ma: "rpc", nhan: "Waiting for the L1 RPC to answer" },
+    { ma: "readiness", nhan: "Checking the L1 on every managed node" },
   ]);
   buocChay("genesis");
 
@@ -1366,6 +1387,12 @@ async function executeChainLaunch(plan, job) {
     );
   }
   buocXong("rpc");
+  // A new L1 may need its validator peers to bootstrap. Roll out all nodes first,
+  // then observe their own L1 health and identity, rather than only the public RPC.
+  buocChay("readiness");
+  const nodeReadiness = await waitForChainNodes(nhatKyRestart.map(node => node.svc),
+    { subnetID, blockchainID, chainId }, rpcOnManagedNode);
+  buocXong("readiness");
   // URL trả cho người dùng phải là URL họ gọi được, không phải URL của server.
   //
   // `API` là địa chỉ console dùng để điều phối (`http://localhost:9650`). Đưa
@@ -1410,7 +1437,7 @@ async function executeChainLaunch(plan, job) {
   // `luuY` cũng chỉ trả về, không ghi vào state, và cùng một lý do ở dạng khác: nó
   // là lời dặn cho người VỪA đẻ chain và hết giá trị ngay khi chain có block đầu.
   // Ghi vào danh bạ là để một cảnh báo nhất thời sống vĩnh viễn cạnh dữ liệu chain.
-  return { ...chain, restart: nhatKyRestart, notes: LUU_Y_GIAO_DICH_DAU };
+  return { ...chain, restart: nhatKyRestart, nodeReadiness, notes: LUU_Y_GIAO_DICH_DAU };
 }
 
 /**

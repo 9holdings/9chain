@@ -28,6 +28,10 @@ export async function requestRpc(url, method, params = [], { timeoutMs = 10_000 
     if (signal.aborted) throw new RpcResponseError(`RPC ${method} timed out after ${timeoutMs}ms`, true);
     throw error;
   }
+  return rpcResult(message, method);
+}
+
+export function rpcResult(message, method) {
   const invalid = reason => new RpcResponseError(`RPC returned an invalid ${method} response: ${reason}`);
   if (!message || typeof message !== 'object' || Array.isArray(message) ||
       message.jsonrpc !== '2.0' || message.id !== 1) {

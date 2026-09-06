@@ -9410,3 +9410,47 @@ recorded in `docs/BUILD-VERIFICATION-2026-09-06.md`. Inputs, outputs, logs, scra
 clone, exited containers and build volumes are retained. No public deployment,
 transaction, validator/genesis change, original source edit or operational-data
 deletion. No required approval was used as a reason to stop independent local work.
+
+### D-208 — Require fresh L1 readiness from every managed node after rollout (2026-09-06)
+
+Creation waited for P/X/C after each restart and checked only the public-facing L1
+RPC before recording success. A new two-node actual-console fixture showed HTTP 200
+even when the other managed node would report a different L1 chain ID (twelve prior
+scenarios pass, one meaningful failure: `work/node-readiness-before.log`).
+
+After the full managed rollout and public RPC check, creation now verifies subnet-
+tagged L1 health and `eth_chainId` inside every managed container. It records success
+only after all nodes pass one fresh observation round. Source rationale for order:
+`chains/manager.go` supplies a startup-weight threshold, and Snowman bootstrap waits
+for `StartupTracker.ShouldStart()`. Waiting for a brand-new L1 on the first node
+before rolling the rest can prevent necessary peers from becoming available.
+Existing upgrade/revoke rollout behavior is unchanged.
+
+The new phase uses a shared 90-second monotonic deadline, three concurrent probes,
+five seconds per probe, bounded in-container curl and an abortable/time-limited
+Docker client. Stdout is parsed separately from compose stderr and uses the same
+JSON-RPC envelope validator as HTTP. Missing/unhealthy checks can retry; malformed
+protocol or conflicting identities stop immediately. A probe that ignores its
+abort signal still cannot hold the outer wait open, and a late health response
+cannot trigger another RPC after cancellation. Earlier successes are rechecked
+on subsequent rounds: a control that retained them accepted disjoint healthy
+periods and failed the required rejection (`work/node-readiness-stale-negative.log`).
+
+Successful create adds `nodeReadiness` summaries and progress adds `readiness`.
+The ledger schema is unchanged; observations are not stored as durable proof.
+Failure leaves the persisted creation reservation, never archives it or retries the
+CLI. Tests exercise the actual local console HTTP path with intercepted Docker:
+single/multiple nodes, non-RPC mismatch, wrong request ID, diagnostic stderr,
+retained reservation and blocked retries/restart. Sixteen scenarios pass; the full
+fifteen-check local profile passes (options 116/116, governance 55/55). Separate
+`--slow-readiness` runs the actual 90-second deadline with a permanently missing
+non-RPC L1, verifies refusal and retained intent, and passes. Logs:
+`work/node-readiness-after.log`, `work/node-readiness-full-profile.log`,
+`work/node-readiness-slow.log`. Deployment graph covers 23 console files.
+
+Scope: managed nodes from the completed rollout, observed in one successful round.
+This does not prove sustained availability, block production, canonical agreement,
+or VM binary integrity. The Docker/RPC transport and new-chain bootstrap behavior
+still need acceptance against real validators before public rollout. No public
+mutation or validator/genesis change was performed. See `docs/CREATION-RECOVERY.md`
+and `docs/API-CONSOLE-L1.md`; status remains local implementation pending deployment.

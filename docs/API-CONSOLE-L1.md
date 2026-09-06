@@ -5,6 +5,18 @@ now includes `pendingCreation` (null or a persisted-job summary). Pending jobs
 block further chain mutations even after console restart. See
 [`CREATION-RECOVERY.md`](CREATION-RECOVERY.md) for measured behavior and limits.
 
+Update 2026-09-06 (D-208, **local only; not deployed**): successful `POST /api/create`
+adds `nodeReadiness: [{ svc, chainId, checkedAt }]`, where `checkedAt` is Unix time in
+milliseconds. The actual local HTTP fixture verifies this field for one and two
+managed nodes. Progress adds code `readiness`, label "Checking the L1 on every
+managed node". Treat it as a separate phase after the public RPC check. The new
+phase has a shared 90-second budget and occurs after rolling out the full node list.
+Failure keeps the creation reservation and does not write a success ledger entry.
+The observations prove tagged L1 health and chain identity on the managed nodes
+within a successful observation round; they do not prove consensus liveness or
+ongoing availability. The public ledger schema is unchanged. Continue polling
+progress across proxy timeouts and never resubmit based on a missing HTTP response.
+
 > **Mục đích:** để phiên `web-home` làm **P-55** (ký hiệu token), **P-60** (trang "quản trị chain của
 > tôi") và **P-62** (màn xem trước + câu ký) **mà không phải đọc `server.mjs`**.
 >

@@ -52,7 +52,8 @@ mkdirSync(path.join(root, 'work'), { recursive: true });
 let pass = 0, fail = 0;
 
 async function check(label, result, succeeds, errorPattern,
-  { failuresBeforeSuccess = 0, cliFailure = false, crashDuringSubmission = false, ledgerFailure = false } = {}) {
+  { failuresBeforeSuccess = 0, cliFailure = false, crashDuringSubmission = false, ledgerFailure = false,
+    nodeMode = '', requestTimeoutMs = 10000 } = {}) {
   reported = result;
   chainQueries = 0;
   failuresRemaining = failuresBeforeSuccess;
@@ -79,6 +80,7 @@ async function check(label, result, succeeds, errorPattern,
       A1_TEST_REQUIRE_JOURNAL: '1', A1_TEST_CREATE_FAILURE: cliFailure ? '1' : '0',
       A1_TEST_CREATE_PAUSE: crashDuringSubmission ? '1' : '0',
       A1_TEST_LEDGER_SYNC_FAILURE: ledgerFailure ? '1' : '0',
+      A1_TEST_NODE_MODE: nodeMode, A1_TEST_EXPECTED_CHAIN_ID: String(expected),
       A1_COMPOSE_FILE: path.join(scratch, 'no-real-compose.yml'),
       A1_PUBLIC_RPC_BASE: nodeUrl },
   };
@@ -118,7 +120,7 @@ async function check(label, result, succeeds, errorPattern,
     const ledger = path.join(config, 'console-chains.json');
     let settled = false;
     const submission = fetch(base + '/api/create', { method: 'POST', headers,
-      body: JSON.stringify({ name: 'RPC Identity Test', chainId: expected }), signal: AbortSignal.timeout(10000) })
+      body: JSON.stringify({ name: 'RPC Identity Test', chainId: expected }), signal: AbortSignal.timeout(requestTimeoutMs) })
       .then(response => { settled = true; return { response }; }, error => { settled = true; return { error }; });
     let body;
     if (crashDuringSubmission) {
@@ -148,6 +150,8 @@ async function check(label, result, succeeds, errorPattern,
     }
     if (succeeds) {
       assert.equal(body.chainId, expected);
+      assert.deepEqual(body.nodeReadiness.map(node => node.svc), nodeMode ? ['worker-node', 'test-node'] : ['test-node']);
+      assert.ok(body.nodeReadiness.every(node => node.chainId === expected && Number.isSafeInteger(node.checkedAt)));
       assert.equal(JSON.parse(readFileSync(ledger, 'utf8')).chains[0].chainId, expected);
       assert.equal(existsSync(path.join(config, 'creation-journal/pending.json')), false);
       const history = path.join(config, 'creation-journal/history');
@@ -159,14 +163,27 @@ async function check(label, result, succeeds, errorPattern,
     }
     const submissionUnconfirmed = cliFailure || crashDuringSubmission;
     assert.equal(chainQueries, submissionUnconfirmed ? 0 : failuresBeforeSuccess + 1, 'only transient failures may be retried');
-    assert.deepEqual(readFileSync(path.join(scratch, 'fake-docker.log'), 'utf8').trim().split('\n'),
-      submissionUnconfirmed ? ['create'] : ['create', 'services', 'restart', 'health', ...(ledgerFailure ? ['ledger-sync-failed'] : [])],
-      'the expected launch stages must execute');
+    const commandLog = readFileSync(path.join(scratch, 'fake-docker.log'), 'utf8').trim().split('\n');
+    const rolloutPrefix = submissionUnconfirmed ? ['create']
+      : ['create', 'services', ...(nodeMode ? ['restart', 'health', 'restart', 'health'] : ['restart', 'health'])];
+    assert.deepEqual(commandLog.slice(0, rolloutPrefix.length), rolloutPrefix, 'the expected launch stages must execute');
+    if (succeeds || ledgerFailure || nodeMode) {
+      const actions = readFileSync(path.join(scratch, 'fake-node-actions.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
+      const lastRestart = actions.findLastIndex(action => action.action === 'restart');
+      const firstL1 = actions.findIndex(action => action.action === 'l1-health');
+      assert.ok(firstL1 > lastRestart, 'new L1 readiness must be checked only after all nodes rolled out');
+      assert.ok(commandLog.includes('l1-health'));
+      if (succeeds || ledgerFailure) {
+        assert.equal(commandLog.filter(action => action === 'l1-id').length, nodeMode ? 2 : 1);
+      }
+      if (ledgerFailure) assert.equal(commandLog.at(-1), 'ledger-sync-failed');
+    } else assert.equal(commandLog.length, rolloutPrefix.length, 'no per-node checks before the public RPC identity succeeds');
     if (!crashDuringSubmission) {
       const progress = await (await fetch(base + '/api/progress', { headers })).json();
       assert.equal(progress.running, false);
       assert.equal(progress.steps.find(step => step.code === (cliFailure ? 'subnet' : 'rpc')).status,
-        succeeds || ledgerFailure ? 'done' : 'failed');
+        succeeds || ledgerFailure || nodeMode ? 'done' : 'failed');
+      if (nodeMode) assert.equal(progress.steps.find(step => step.code === 'readiness').status, succeeds ? 'done' : 'failed');
     }
     if (!succeeds) {
       const pendingFile = path.join(config, 'creation-journal/pending.json');
@@ -223,6 +240,12 @@ async function check(label, result, succeeds, errorPattern,
   }
 }
 try {
+  if (process.argv.includes('--slow-readiness')) {
+    const started = Date.now();
+    await check('missing chain on a non-RPC node exhausts the actual readiness deadline', '0x' + expected.toString(16), false,
+      /readiness was not confirmed within 90000ms.*worker-node/, { nodeMode: 'missing', requestTimeoutMs: 110000 });
+    if (!fail) assert.ok(Date.now() - started >= 89000, 'the slow probe must exercise the real 90-second budget');
+  } else {
   await check('matching hexadecimal chain ID', '0x' + expected.toString(16), true);
   await check('matching uppercase digits', '0x' + expected.toString(16).toUpperCase(), true);
   await check('transient RPC failure then matching identity', '0x' + expected.toString(16), true, undefined, { failuresBeforeSuccess: 1 });
@@ -236,6 +259,15 @@ try {
   await check('hard crash during unresolved CLI submission blocks duplicates after restart', null, false, undefined, { crashDuringSubmission: true });
   await check('ledger flush failure preserves the creation reservation', '0x' + expected.toString(16), false,
     /ledger persistence could not be confirmed/, { ledgerFailure: true });
+  await check('non-RPC node with a wrong L1 identity must refuse creation', '0x' + expected.toString(16), false,
+    /worker-node.*chain ID mismatch/, { nodeMode: 'wrong-id' });
+  await check('all managed nodes report the planned L1 identity', '0x' + expected.toString(16), true,
+    undefined, { nodeMode: 'good' });
+  await check('managed-node response ID must match its request', '0x' + expected.toString(16), false,
+    /worker-node.*invalid health.health response/, { nodeMode: 'bad-envelope' });
+  await check('compose stderr cannot corrupt node RPC JSON', '0x' + expected.toString(16), true,
+    undefined, { nodeMode: 'stderr' });
+  }
 } finally {
   await new Promise(resolve => node.close(resolve));
 }

@@ -1,6 +1,6 @@
 # Recovering an interrupted chain creation
 
-Local implementation: D-203 through D-206. No public deployment or recovery mutation yet.
+Local implementation: D-203 through D-208. No public deployment or recovery mutation yet.
 
 The console reserves one creation in `9chain-a1-config/creation-journal/pending.json`
 before writing genesis or calling the CLI. It records the complete public plan,
@@ -68,6 +68,26 @@ container, including failures after backup/primary directory rename on Linux.
 Linux test files use tmpfs; this validates syscall/error behavior, not disk hardware
 or full power-loss recovery. Windows directory fsync is unavailable here.
 Multi-host orchestration and public recovery remain separate work.
+
+D-208 also verifies the new L1 on every node returned by the managed rollout before
+writing the ledger. It first completes rollout for the whole group and validates the
+public RPC identity, then checks subnet-tagged health and `eth_chainId` inside each
+container. This order respects bootstrap peer dependencies; do not move the new-L1
+gate ahead of rolling out the remaining nodes. At most three probes run concurrently,
+each with a five-second budget for both reads and an abortable Docker client; curl
+also has its own bound. The group has one 90-second monotonic deadline. Malformed
+protocol/identity results stop immediately; missing/unhealthy chains may retry.
+
+All managed nodes must pass in the same observation round. An earlier success is
+rechecked when another node needs a later round; successes from disjoint healthy
+periods are not combined. A failed readiness phase preserves the `created` journal
+and any completed rollout. It does not automatically undo tracking or resubmit.
+The response's `nodeReadiness` observations are not added to the public ledger or
+persisted as a recovery proof; remeasure actual nodes when preparing reconciliation.
+These checks do not establish block production, canonical block agreement, VM binary
+integrity or future availability. Local HTTP/fake-Docker tests include a wrong
+non-RPC node, wrong response ID and a real 90-second missing-L1 deadline. A real
+new-chain rollout on the public validators remains pending owner-reviewed acceptance.
 
 ## Read-only inspection (D-206)
 

@@ -42,6 +42,16 @@ recovery boundaries are documented in `CREATION-RECOVERY.md`.
 The profile also runs the read-only creation inspector through actual CLI subprocesses,
 including conflicting identities and unchanged-artifact checks. Public RPC access
 is optional in the operator tool and is never used by this local test profile.
+The profile checks post-rollout L1 readiness on managed nodes, including response
+identity, concurrent probes, fresh observation rounds and cancellation. For the
+longer actual-console timeout probe, run separately:
+
+```powershell
+node local-net/console/create-rpc-e2e-test.mjs --slow-readiness
+```
+
+This takes roughly 90 seconds with a synthetic node/Docker fixture. It verifies
+timeout and retained reservation; it does not run an actual validator network.
 
 This is a local baseline, not a full release gate. It does not build the fork,
 replay patches, run a blockchain, prove recovery, inspect live server state, or

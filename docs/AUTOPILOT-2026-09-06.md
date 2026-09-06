@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 18:34:10 UTC** (D-207 milestone).
+repetition. Last user-facing progress update: **2026-09-06 18:57:23 UTC** (D-208 milestone).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -82,12 +82,12 @@ archival. Ten actual-console synthetic RPC/Docker scenarios and journal file tes
 pass; twelve local checks pass. Read `docs/CREATION-RECOVERY.md` before further work.
 No real public submission, restart or recovery was performed.
 
-Next priority after D-207: review creation rollout's final L1 readiness across nodes.
-Current create only verifies the public-facing RPC's chain ID; `requireChain` is
-used on upgrade paths. Do not blindly wait for a new L1 on the first node before
-rolling the others: bootstrap/quorum dependencies may require all nodes to track
-first. Inspect the fork behavior and reproduce a meaningful false-success case
-before changing the creation acceptance path. Preserve existing validator/genesis/data.
+Next priority after D-208: validate the managed-node read-only transport/health
+observations against real local containers or an explicitly read-only server probe,
+and prepare a concrete public rollout/recovery acceptance plan. Inspect existing
+helpers and credentials handling before SSH; never print secret values. Do not
+change public services or existing validator/genesis/data. New-chain bootstrap
+still needs a real integration acceptance; synthetic Docker tests do not prove it.
 Do not add blind resume/retry/discard endpoints. Recovery must establish
 what P-chain already accepted and preserve all artifacts before mutation.
 Preserve the public ledger/API contract. Matching chain ID does not prove block
@@ -138,3 +138,14 @@ containers have exited successfully; none needs ongoing polling. No original for
 patch, validator/genesis or public state changed. Read the detailed build report
 for paths, hashes, limits and the distinction between a binary build and network
 acceptance. Artifact directories, build volumes and scratch replay clone are retained.
+
+D-208 now checks every managed node's L1 health and chain ID after the full rollout
+and public RPC check. One fresh round must pass for all; stale successes are not
+combined. Shared 90-second deadline, concurrency three, bounded/abortable node probes.
+Original code returned false HTTP 200 on a wrong non-RPC node; regression now passes.
+Sixteen actual-console fixture scenarios and fifteen local checks pass. A separate
+real 90-second missing-L1 fixture preserves the journal and blocks retry after
+restart; it also passes. Logs: `work/node-readiness-full-profile.log` and
+`work/node-readiness-slow.log`. No checks are still running. Public deployment and
+real managed-validator rollout acceptance remain pending. Read D-208 and API/recovery
+docs before further work. Do not move the new-L1 check into the per-node restart loop.
