@@ -36,6 +36,7 @@ import { writeLedger, assertNoPendingLedgerWrite } from "../lib/ledger-write.mjs
 import { readLedger } from "../lib/ledger-read.mjs";
 import { waitForChainNodes } from "../lib/chain-readiness.mjs";
 import { createManagedNodeRpc, MANAGED_NODE_API } from "../lib/managed-node-rpc.mjs";
+import { assignValidators, nodeLoad } from "../lib/validator-assignment.mjs";
 import { MaintenanceGate } from "../lib/maintenance.mjs";
 import { consoleConfigurationFingerprint, probeConsoleReadiness } from "../lib/console-readiness.mjs";
 
@@ -502,6 +503,19 @@ const TRAN_SUBNET_GIAO_THUC = 16;
 // not a loose ceiling, it is NO ceiling (every `>=` against NaN is false). See guard.mjs.
 const MAX_L1 = Math.min(requireInt("A1_MAX_L1", 15, { min: 1, max: TRAN_SUBNET_GIAO_THUC }), TRAN_SUBNET_GIAO_THUC);
 
+// ═══ VALIDATORS PER CHAIN — V (P-82, D-233 / D-235) ═══
+//
+// Absent ⇒ `null` ⇒ the model every chain on the live network was created under: every managed
+// node validates and tracks every L1, and MAX_L1 is a GLOBAL count. Byte-identical behaviour.
+//
+// Present (`A1_L1_VALIDATORS_PER_CHAIN=5`) ⇒ each new chain is placed on V nodes chosen by
+// `lib/validator-assignment.mjs`, the record carries `validators[]`, and MAX_L1 becomes a cap
+// PER NODE. That is the arithmetic that gets past 15 chains: `chains × V ≤ nodes × 15`.
+// `requireInt` refuses a mistyped value (a NaN "V" would be no V at all — see guard.mjs).
+const V_PER_CHAIN = process.env.A1_L1_VALIDATORS_PER_CHAIN === undefined || String(process.env.A1_L1_VALIDATORS_PER_CHAIN).trim() === ""
+  ? null
+  : requireInt("A1_L1_VALIDATORS_PER_CHAIN", 0, { min: 1, max: 10_000 });
+
 /**
  * Node đã phục vụ lại được MẠNG CHÍNH chưa (P, X, C)?
  *
@@ -817,24 +831,20 @@ async function nodeStartedAt(svc) {
  * success. It recorded nothing, which is why nothing was corrupted — but nine "done" lines for nine
  * no-ops is exactly the report that gets believed.
  */
-async function trackSubnetsLanLuot(trackList, { requireChain, forceRestart = false } = {}) {
+/**
+ * The managed node services, in ROLLOUT ORDER: every node sorted by name, the public-RPC node
+ * (`A1_NODE_CONTAINER`) last. Read from compose on every call, never cached — a node added to
+ * the compose file must be seen by the next rollout, not by the next console restart.
+ *
+ * Extracted from `trackSubnetsLanLuot` for P-82: validator assignment needs this list BEFORE a
+ * P-Chain fee is paid, i.e. in `planChain`, and the two must read the same list the same way.
+ */
+async function readManagedServices() {
   // `docker()` gộp stdout VỚI stderr, mà compose hay in cảnh báo kiểu
   //   WARN[0000] The "A1_TRACK_SUBNETS" variable is not set. Defaulting to ...
   // Nhận nguyên si từng dòng làm tên service thì lệnh kế sẽ thành
   // `compose up -d --no-deps WARN[0000]` — hỏng theo kiểu rất khó đoán.
   // Nên lọc theo hình dạng tên service, rồi ĐỐI CHIẾU với node đã biết.
-  // Chốt chặn cuối, ngay TRƯỚC lúc đưa danh sách vào node. Kiểm ở đây chứ không
-  // chỉ ở createChain vì đây là chỗ con số thật sự đi vào giao thức — mọi đường
-  // gọi khác (CLI, lượt sửa tay) đều phải qua cửa này.
-  const soSubnet = trackList.split(",").filter(Boolean).length;
-  if (soSubnet > TRAN_SUBNET_GIAO_THUC) {
-    throw new Error(
-      `TỪ CHỐI: ${soSubnet} subnet vượt trần giao thức ${TRAN_SUBNET_GIAO_THUC}. ` +
-      `Node khai quá ${TRAN_SUBNET_GIAO_THUC} subnet lúc bắt tay sẽ bị MỌI peer cắt kết nối ` +
-      `(network/peer/peer.go:882) — mạng vỡ, không phải chậm đi.`
-    );
-  }
-
   const raw = await docker([...COMPOSE, "config", "--services"]);
   const services = raw.split("\n").map(s => s.trim())
     .filter(s => /^[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(s));
@@ -847,15 +857,27 @@ async function trackSubnetsLanLuot(trackList, { requireChain, forceRestart = fal
       `kiểm tra A1_COMPOSE_FILE có trỏ đúng compose không`
     );
   }
-
   // Node phục vụ RPC công khai xuống CUỐI hàng; phần còn lại sắp xếp theo tên để
   // thứ tự lặp lại được giữa các lần chạy. `compose config --services` KHÔNG giữ
   // thứ tự trong file (lần đo đầu nó trả node-4 lên trước), mà thứ tự ngẫu nhiên
   // làm sự cố không tái hiện được.
-  const thuTu = [
-    ...services.filter(s => s !== NODE_CONTAINER).sort(),
-    NODE_CONTAINER,
-  ];
+  return [...services.filter(s => s !== NODE_CONTAINER).sort(), NODE_CONTAINER];
+}
+
+async function trackSubnetsLanLuot(trackList, { requireChain, forceRestart = false } = {}) {
+  // Chốt chặn cuối, ngay TRƯỚC lúc đưa danh sách vào node. Kiểm ở đây chứ không
+  // chỉ ở createChain vì đây là chỗ con số thật sự đi vào giao thức — mọi đường
+  // gọi khác (CLI, lượt sửa tay) đều phải qua cửa này.
+  const soSubnet = trackList.split(",").filter(Boolean).length;
+  if (soSubnet > TRAN_SUBNET_GIAO_THUC) {
+    throw new Error(
+      `TỪ CHỐI: ${soSubnet} subnet vượt trần giao thức ${TRAN_SUBNET_GIAO_THUC}. ` +
+      `Node khai quá ${TRAN_SUBNET_GIAO_THUC} subnet lúc bắt tay sẽ bị MỌI peer cắt kết nối ` +
+      `(network/peer/peer.go:882) — mạng vỡ, không phải chậm đi.`
+    );
+  }
+
+  const thuTu = await readManagedServices();
   const nhatKy = [];
 
   // Ghim TRƯỚC khi restart: nếu console chết giữa chừng, người vào dọn bằng tay
@@ -1196,12 +1218,23 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
   const SYMBOL = symbolGiven ? validateSymbol(symbol, daDung) : undefined;
 
   // Chặn SỚM, trước khi tiêu tiền và trước khi đụng vào node. Xem TRAN_SUBNET_GIAO_THUC.
-  if (state.chains.length >= MAX_L1) {
-    throw new Error(
-      `Đã đạt trần ${MAX_L1} L1. Mô hình hiện tại cho MỌI validator track MỌI L1, ` +
-      `mà giao thức P2P cắt kết nối node khai quá ${TRAN_SUBNET_GIAO_THUC} subnet. ` +
-      `Vượt trần phải đổi kiến trúc (tập validator riêng cho từng L1 / ACP-77), không phải nới số.`
-    );
+  //
+  // P-82: with V set, the ceiling is PER NODE and the chain is placed on V nodes right here —
+  // `assignValidators` refuses (naming the full nodes) before any P-Chain fee is paid. Without V
+  // the global count stands, unchanged: every node carries every chain, so "15 chains" and
+  // "15 per node" are the same number.
+  let validators;
+  if (V_PER_CHAIN === null) {
+    if (state.chains.length >= MAX_L1) {
+      throw new Error(
+        `Đã đạt trần ${MAX_L1} L1. Mô hình hiện tại cho MỌI validator track MỌI L1, ` +
+        `mà giao thức P2P cắt kết nối node khai quá ${TRAN_SUBNET_GIAO_THUC} subnet. ` +
+        `Vượt trần phải đổi kiến trúc (tập validator riêng cho từng L1 / ACP-77), không phải nới số.`
+      );
+    }
+  } else {
+    const nodes = await readManagedServices();
+    ({ validators } = assignValidators({ nodes, chains: state.chains, perChain: V_PER_CHAIN, capPerNode: MAX_L1 }));
   }
 
   // chainId: chặn số không hợp lệ thay vì để nó lặng lẽ thành genesis hỏng.
@@ -1311,7 +1344,8 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
     contractLibrary: withLibrary,
   });
 
-  return { name, chainId, ADMIN, SYMBOL, presetDaAp, tpl, options, description };
+  // `validators` is undefined under the old model (no key on the record, "every node").
+  return { name, chainId, ADMIN, SYMBOL, presetDaAp, tpl, options, description, ...(validators ? { validators } : {}) };
 }
 
 /** The irreversible half — see `planChain`. Runs inside the serial queue only. */
@@ -1401,7 +1435,7 @@ async function executeChainLaunch(plan, job) {
  * same list, and the checks read, not write.
  */
 async function finishChainLaunch(plan, job, state, { subnetID, blockchainID }) {
-  const { name, chainId, ADMIN, SYMBOL, presetDaAp, options } = plan;
+  const { name, chainId, ADMIN, SYMBOL, presetDaAp, options, validators } = plan;
   // 2b) cấu hình VM của chain — PHẢI ghi trước đợt restart ở bước 3, vì node đọc
   //     nó đúng lúc dựng chain (tức là trong đợt restart đó). Xem ghiChainConfig.
   ghiChainConfig(blockchainID);
@@ -1492,6 +1526,10 @@ async function finishChainLaunch(plan, job, state, { subnetID, blockchainID }) {
     // Another ADDED key — chains created before it have none, and readers must treat a
     // missing key as "the template defaults", never as `undefined` on a page.
     options,
+    // `validators` — the managed nodes that validate and track this chain (P-82). ADDED key:
+    // absent on every chain created under the every-node model, and readers treat absence as
+    // "every node" (`lib/validator-assignment.mjs`), never as an empty list.
+    ...(validators ? { validators } : {}),
   };
   state.chains.push(chain); saveState(state);
   creationJournal.complete(job);
@@ -2387,6 +2425,8 @@ const server = http.createServer(async (req, res) => {
           options: plan.options,
           description: plan.description,
           genesis: plan.tpl,
+          // P-82: the nodes this chain WOULD be placed on (null under the every-node model).
+          validators: plan.validators ?? null,
         });
       } catch (e) {
         return send(res, 400, { error: String(e.message || e) });

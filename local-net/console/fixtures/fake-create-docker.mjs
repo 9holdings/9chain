@@ -10,8 +10,18 @@ if (!path.basename(process.cwd()).startsWith('create-rpc-')) {
   throw new Error('The Docker fixture requires an isolated create-rpc scratch directory');
 }
 const record = action => appendFileSync('fake-docker.log', action + '\n');
-const services = process.env.A1_TEST_NODE_MODE ? ['worker-node', 'test-node'] : ['test-node'];
+// A1_TEST_SERVICES (comma-separated) models a multi-node compose file (P-82 assignment tests);
+// without it the fixture keeps its original one- or two-node shape.
+const services = process.env.A1_TEST_SERVICES ? process.env.A1_TEST_SERVICES.split(',').map(s => s.trim()).filter(Boolean)
+  : process.env.A1_TEST_NODE_MODE ? ['worker-node', 'test-node'] : ['test-node'];
 const restarted = new Set();
+// A1_TEST_UNIQUE_IDS=1: every synthetic creation gets its own subnet/blockchain ids and answers
+// eth_chainId from the genesis file the console handed to the CLI, so a test can create SEVERAL
+// chains through one console. Default: the fixed ids the single-creation tests assert on.
+let created = 0;
+let lastChainIdHex = null;
+const uniqueIds = process.env.A1_TEST_UNIQUE_IDS === '1';
+const idsFor = n => uniqueIds ? { subnet: `TestSubnet${n}`, blockchain: `TestBlockchain${n}` } : { subnet: 'TestSubnet111', blockchain: 'TestBlockchain111' };
 const nodeAction = (action, svc) => appendFileSync('fake-node-actions.jsonl', JSON.stringify({ action, svc }) + '\n');
 if (process.env.A1_TEST_LEDGER_SYNC_FAILURE === '1') {
   const originalOpen = fs.openSync, originalClose = fs.closeSync, originalSync = fs.fsyncSync;
@@ -37,7 +47,14 @@ function output(file, args) {
     }
     record('create');
     if (process.env.A1_TEST_CREATE_FAILURE === '1') throw new Error('Synthetic lost CLI response after submission');
-    return 'SUBNET_ID=TestSubnet111\nBLOCKCHAIN_ID=TestBlockchain111\n';
+    created++;
+    if (uniqueIds) {
+      const genesis = args[args.indexOf('--genesis') + 1];
+      const chainId = JSON.parse(readFileSync(path.join('9chain-a1-config/console-tmp', path.basename(genesis)), 'utf8')).config.chainId;
+      lastChainIdHex = '0x' + Number(chainId).toString(16);
+    }
+    const ids = idsFor(created);
+    return `SUBNET_ID=${ids.subnet}\nBLOCKCHAIN_ID=${ids.blockchain}\n`;
   }
   if (args.includes('config') && args.includes('--services')) {
     record('services');
@@ -51,18 +68,19 @@ function output(file, args) {
     const request = JSON.parse(args[args.indexOf('--data') + 1]);
     const svc = args[args.indexOf('curl') - 1];
     const badNode = svc === 'worker-node';
-    if (request.method === 'health.health' && request.params?.tags?.includes('TestSubnet111')) {
+    const tag = request.params?.tags?.find(t => /^TestSubnet/.test(t));
+    if (request.method === 'health.health' && tag) {
       if (restarted.size !== services.length) throw new Error('All nodes must roll out before new-L1 readiness is checked');
       record('l1-health'); nodeAction('l1-health', svc);
       const missing = badNode && process.env.A1_TEST_NODE_MODE === 'missing';
       return JSON.stringify({ jsonrpc: '2.0', id: badNode && process.env.A1_TEST_NODE_MODE === 'bad-envelope' ? 7 : 1,
-        result: { healthy: true, checks: missing ? {} : { TestBlockchain111: {} } } });
+        result: { healthy: true, checks: missing ? {} : { [tag.replace('TestSubnet', 'TestBlockchain')]: {} } } });
     }
     if (request.method === 'eth_chainId') {
       record('l1-id'); nodeAction('l1-id', svc);
       const wrong = badNode && process.env.A1_TEST_NODE_MODE === 'wrong-id';
       return JSON.stringify({ jsonrpc: '2.0', id: 1,
-        result: wrong ? '0x1' : '0x' + Number(process.env.A1_TEST_EXPECTED_CHAIN_ID).toString(16) });
+        result: wrong ? '0x1' : uniqueIds ? lastChainIdHex : '0x' + Number(process.env.A1_TEST_EXPECTED_CHAIN_ID).toString(16) });
     }
     if (request.method === 'health.health') {
       nodeAction('primary-health', svc);

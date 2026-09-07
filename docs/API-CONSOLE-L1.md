@@ -170,9 +170,15 @@ chính thống và **không** ở `0xcA11bde0…`. Console đã tự đưa câu 
     "totalTokens": "1500000"
   },
   "description": { "facts": [...], "can": [...], "cannot": [...] },   // 🔴 câu để KÝ
-  "genesis": { "config": {...}, "alloc": {...}, … }                   // genesis đầy đủ
+  "genesis": { "config": {...}, "alloc": {...}, … },                  // genesis đầy đủ
+  "validators": ["9chain-a1-node-2", …] | null                        // P-82: node sẽ mang chain; null = mô hình cũ (mọi node)
 }
 ```
+
+**`validators[]` (P-82, D-235).** Khi console chạy với `A1_L1_VALIDATORS_PER_CHAIN=V`, mỗi chain mới được đặt lên V node ít
+chain nhất (hoà ⇒ theo tên), bản ghi trong `console-chains.json` mang thêm khoá `validators` (tên service), và trần `A1_MAX_L1`
+thành trần **mỗi node**. Vắng biến ⇒ hành vi cũ trùng byte: không có khoá, mọi node mang mọi chain. Bản ghi **không có khoá** =
+"mọi node" (đừng đọc là danh sách rỗng). Node đầy ⇒ `/api/create` trả `400` **trước khi** chạy CLI, câu lỗi nêu tên node.
 
 🔴 **`description` là văn bản cho P-62, đã viết sẵn, đã kiểm.** Đừng viết lại bằng tay ở TSX — nó suy ra
 từ **chính genesis vừa dựng**, nên nó không thể nói sai về chain. Ba nhóm:

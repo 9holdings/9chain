@@ -114,12 +114,20 @@ khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn 
       sản phẩm: console không cờ ⇒ LỆCH THẾ HỆ + gợi ý; console có cờ trỏ `rpc-a1.9chain.org` ⇒ từ chối nêu cờ.
       🔴 Lỗi thật lộ ra: CLI trong container nhận `--uri` = `NODE_URI` (địa chỉ phía host `:9750`) ⇒ connection refused; sửa dùng
       `MANAGED_NODE_API` (server sản xuất chưa lộ vì hai chuỗi trùng). netgen KHÔNG sửa (là `patches/`), ghi README kit.
-- [ ] **P-82 — Sổ mang phân công: `validators[]` + trần MỖI NODE** — `A1_L1_VALIDATORS_PER_CHAIN` (V; vắng ⇒ = số node ⇒ hành vi
+- [x] **P-82 — Sổ mang phân công: `validators[]` + trần MỖI NODE** — `A1_L1_VALIDATORS_PER_CHAIN` (V; vắng ⇒ = số node ⇒ hành vi
       cũ); chọn V node **ít chain nhất**, tie ⇒ tên nhỏ nhất; `MAX_L1` thành trần **mỗi node**, chặn TRƯỚC khi tiêu tiền (thay
       `state.chains.length >= MAX_L1` ở `server.mjs`); chain cũ không có khoá ⇒ đọc là *"mọi node"*. Khoá thêm vào
       `console-chains.json` là thao tác an toàn với `/chains/` và `check-chain-ledger` (ghi vào `docs/API-CONSOLE-L1.md`).
       **Qua khi:** `create-rpc-e2e-test` + fixture `fake-create-docker.mjs`: 9 node, V=5, 27 chain ⇒ bộ đếm 15/15/15/15/15/15/15/15/15
       không ai quá 15. Ca đỏ: fixture node-1 đã 15 chain, V=9 ⇒ chain 16 **bị từ chối trước khi gọi CLI** (đếm lệnh docker = 0).
+      ✅ `07/09` đêm (autopilot, D-235): `lib/validator-assignment.mjs` thuần (`validatorsOf` · `nodeLoad` · `assignValidators` ·
+      `trackListsByNode`); `server.mjs`: `V_PER_CHAIN` (vắng ⇒ null ⇒ trùng byte hành vi cũ), `readManagedServices()` tách ra dùng
+      chung, `planChain` phân công + từ chối TRƯỚC CLI, bản ghi + `preview` mang `validators`; fixture docker giả thêm `A1_TEST_SERVICES`
+      / `A1_TEST_UNIQUE_IDS`. **Đo:** `validator-assignment-test` 23 — 27×5 = 9×15 vừa khít, chain 28 bị từ chối nêu node đầy ·
+      `assignment-e2e-test` 20 trên console thật: 3 chain ⇒ tải b..g=2, h/i/test-node=1; node đầy ⇒ 400 nêu `test-node`, log docker giả
+      **không có `create`** (chỉ `services`); 15 chain cũ ⇒ V=1 từ chối; 14 ⇒ V=9 vừa; không biến ⇒ không khoá. Hồi quy create-rpc 17 ·
+      options 116 · readiness 31 · generation 31. ⏳ Ca 27 chain qua CONSOLE và lượt đẻ V<N trên băng tập chờ P-83/P-84 (rollout/CLI
+      còn "mọi node" — bản ghi V=5 lúc này sẽ nói dối).
 - [ ] **P-83 — Track THEO NODE** — compose đọc `AVAGO_TRACK_SUBNETS` từ biến riêng mỗi service (`A1_TRACK_SUBNETS_<n>`;
       `local-net/deploy/multinode.compose.yml` + băng tập); `ghimTrackVaoEnv` ghim từng node; `trackSubnetsLanLuot` nhận bảng
       `node → [subnet]`, **chỉ** restart node có danh sách đổi, restart phải **chứng minh** bằng `StartedAt` (D-189).

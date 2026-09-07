@@ -14,8 +14,10 @@ const checks = [
   ['scripts/prepare-console-release-test.mjs'],
   ['scripts/validate-console-release-test.mjs'],
   ['local-net/console/chainid-test.mjs'],
+  ['local-net/lib/validator-assignment-test.mjs'],
 ];
 const consoleChecks = [
+  ['local-net/console/assignment-e2e-test.mjs'],
   ['local-net/console/siwe-test.mjs'],
   ['local-net/console/auth-e2e-test.mjs'],
   ['local-net/deploy/deploy-lock-test.mjs'],

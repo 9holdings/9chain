@@ -10315,3 +10315,38 @@ từ D-227. Sửa: `--uri MANAGED_NODE_API`. Creation dở (phase `submitting`, 
 
 **Hệ quả.** `check-deploy-drift` sẽ đỏ (server còn `038e1ab`) cho tới lượt deploy `[human]` — đúng thiết kế; bản deploy kế
 tiếp mang cả sửa `--uri` (vô hại trên server: hai chuỗi trùng). Mọi mục P-82 → P-89 nay đo được trên đường sản phẩm băng tập.
+
+## D-235 — **Sổ chain mang `validators[]`, trần `A1_MAX_L1` thành trần MỖI NODE khi `A1_L1_VALIDATORS_PER_CHAIN` được đặt; phân công là thư viện thuần, từ chối TRƯỚC khi tiêu phí P-Chain** (`2026-09-07` đêm, P-82)
+
+**Bối cảnh.** D-233 đo ba chỗ mã cùng giả định "mọi validator track mọi L1"; P-82 là chỗ đầu tiên: console **không biết** node nào
+mang chain nào, nên trần 15 là trần **mạng**. `108 × V ≤ N × 15` cần một sổ phân công và một bộ đếm theo node.
+
+**Quyết định.**
+1. **`lib/validator-assignment.mjs` — thuần, không docker, không tệp** (cùng kỷ luật `chainid.mjs`): `validatorsOf` · `nodeLoad` ·
+   `assignValidators` · `trackListsByNode`. Console đưa vào danh sách service đọc từ compose và sổ đọc từ đĩa, nhận về quyết định
+   hoặc câu từ chối. Bài kiểm chạy trên fixture; **27 × 5 = 135 = 9 × 15** chứng minh bằng số, chain thứ 28 bị từ chối nêu tên node đầy.
+2. **Bản ghi KHÔNG có khoá `validators` = "mọi node"** — sổ là hợp đồng dữ liệu công khai, không viết lại bản ghi cũ; **danh sách
+   rỗng là hỏng, không phải "không node nào"** (rỗng sẽ trả lại mọi chỗ nó đang giữ). Khoá thêm ⇒ `/chains/` và `check-chain-ledger`
+   không đổi.
+3. **`A1_L1_VALIDATORS_PER_CHAIN` vắng ⇒ `null` ⇒ hành vi cũ trùng byte** (`state.chains.length >= MAX_L1`, không đọc compose trước
+   CLI — đối chứng: thứ tự trong log docker giả `create` rồi mới `services`). Đặt ⇒ `planChain` đọc `readManagedServices()` (tách từ
+   `trackSubnetsLanLuot`, cùng một cách đọc), gọi `assignValidators` — từ chối **trước** P-Chain, câu lỗi nêu node đầy và dẫn
+   `peer.go`. `requireInt` từ chối giá trị gõ sai (NaN = không có V).
+4. **Chọn node ít chain nhất, hoà ⇒ theo tên**, thứ tự danh sách đầu vào không đổi kết quả — một lượt phân công không phát lại được
+   thì không soát được.
+5. **`preview` trả `validators` (null ở mô hình cũ)**; kế hoạch mang `validators` đi qua creation-journal (schema không đổi, `plan`
+   lưu nguyên); `adopt` dùng lại đúng kế hoạch. `A1_L1_VALIDATORS_PER_CHAIN` vào `CONSOLE_CONFIGURATION_KEYS`; thư viện vào
+   `manifest-deploy.json` nhóm console.
+6. **Fixture docker giả** học hai cờ: `A1_TEST_SERVICES` (compose nhiều node) · `A1_TEST_UNIQUE_IDS=1` (mỗi lượt đẻ một cặp id, trả
+   `eth_chainId` đọc từ chính genesis console đưa cho CLI) — để một console tạo NHIỀU chain trong một bài. Bài cũ (`create-rpc` 17)
+   giữ nguyên hình dạng mặc định.
+
+**Cái P-82 CHƯA làm, cố ý (P-83/P-84):** rollout vẫn restart **mọi** node và CLI vẫn đăng ký **mọi** validator; nên chưa đẻ chain
+V<N nào trên băng tập — bản ghi sẽ khai 5 trong khi 9 node validate, là một bản ghi nói dối. Ca "27 chain trên console" cũng chờ
+P-83: cửa `trackSubnetsLanLuot` chặn 17 subnet trên một danh sách chung, đúng việc của nó.
+
+**Đối chứng.** `validator-assignment-test` **23** (đỏ: rỗng/không chuỗi ⇒ throw · 28 bị từ chối · 4 node trống không chứa V=5 · 15
+chain cũ lấp đầy ⇒ V=1 cũng từ chối · V > N · trùng tên · V=0 · node biến khỏi compose vẫn ĐẾM) · `assignment-e2e-test` **20** trên
+console thật + fixture (3 chain: b..g=2, h/i/test-node=1; node đầy ⇒ 400 nêu `test-node`, log docker **không** có `create`; 15 chain
+cũ ⇒ V=1 từ chối; 14 ⇒ V=9 vừa; không biến ⇒ không khoá, `services` đọc SAU `create`) · hồi quy: create-rpc 17 · options 116 ·
+readiness 31 · generation 31 · deploy-imports · english. Cả hai bài vào `check-local`.
