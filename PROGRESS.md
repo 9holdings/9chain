@@ -71,6 +71,77 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 
 ---
 
+## 🔵 MỐC `L1-108` — PHÂN CÔNG VALIDATOR ĐỂ VƯỢT TRẦN 15 (David giao `2026-09-07` đêm; batch nạp cho autopilot — D-233)
+
+David: *"phân tích xem cần code gì để tối ưu code theo mục tiêu 108 chain layer 1 ban đầu"* → phân tích ở D-233. Tóm tắt:
+108 L1 chặn ở **ba chỗ trong mã cùng giả định "mọi validator track mọi L1"** (D-009): compose 9 service đọc **một** biến
+`A1_TRACK_SUBNETS` · `trackSubnetsLanLuot` nhận **một** danh sách và restart **cả 9** · `9chain-a1-cli l1 create` đăng ký **mọi**
+validator mạng mẹ. `108 × V ≤ N × 15` ⇒ V=5 cần ≥ 36 node. Phần lớn phần mềm PLAN-108 §4 **đã có** trong kit K1
+(`web-home:docs/k1-phase0/l1-batch`, 1.713 dòng Go) nhưng nằm sai nhánh và là công cụ chạy lô; việc của mốc này là đem nó về
+`main` và nối nửa **phân công** vào console. Kế hoạch gốc: `docs/PLAN-108-L1-LOAD-TEST.md`.
+
+🔴 **Luật của mốc (guardrail cho autopilot):** MỌI thứ chạy trên **băng tập** `899999998` (`local-net/net-tap-g1/`, dựng lại từ
+volume còn — lệnh ở HANDOFF `05/09` chiều). **Không** đụng g1 công khai, server, `patches/`, `web/`, Caddyfile. Mã mới 100 % tiếng
+Anh (§0). Chế độ chia validator chỉ bật khi `V < N`; mặc định giữ **hành vi cũ trùng byte** cho 11 chain sống trên server (deploy là
+việc `[human]`, `check-deploy-drift` sẽ đỏ tới lúc đó — đúng thiết kế). Giả định chưa chốt (ghi ở D-233): V=5 · r=1 tx/s · mạng công
+khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn tường minh, **không push**.
+
+- [ ] **P-80 — Đưa kit K1 về `main`** tại `local-net/tools/k1/` (chép từ `C:\PROJECTS\9Chain-A1-web\docs\k1-phase0`, bỏ `out/`;
+      `go.work` trỏ `../../../upstream/avalanchego`; README dịch sang tiếng Anh vì `local-net/**` không được miễn §0).
+      **Qua khi:** sha256 từng tệp `.go`/`.sh`/`.json` trùng bản ở `web-home` (ghi bảng vào commit) · `scripts/l1.sh build` dựng được
+      trong `golang:1.25.10-bookworm` · `check-english-code` nợ không phình · `check-worktree-ownership` 0. Ca đỏ: sửa 1 byte
+      `main.go` ⇒ bảng sha256 lệch. ⚠️ **Không xoá** bản bên `web-home` (§4) — ghi việc `[web-home]` gỡ sau khi merge WT-1.
+- [ ] **P-81 — Console đẻ chain được trên BĂNG TẬP cùng thế hệ khi `A1_DRILL_BAND=1`** (`kiemTheHeMang` chấp nhận
+      `A1IDTap = 899999999 − A1_GEN` + tên `9chain-a1-tap-g<gen>`; khối chainId **riêng** cho băng tập trong `lib/chainid.mjs`,
+      không chạm `9001000000+` của g1 — kit đang phải né bằng `8990000001+`; netgen in đúng khối đó, việc `[main]` HANDOFF `05/09`).
+      **Qua khi:** console cục bộ trỏ `net-tap-g1` đẻ 1 chain qua `POST /api/create` đường sản phẩm · `check-consistency` biết
+      `A1IDTap`. Ca đỏ (cả hai chiều): không cờ ⇒ vẫn *"LỆCH THẾ HỆ"* · có cờ mà node khai `999999998` ⇒ từ chối, câu lỗi nêu rõ
+      *"cờ băng tập bật trên mạng thật"*.
+- [ ] **P-82 — Sổ mang phân công: `validators[]` + trần MỖI NODE** — `A1_L1_VALIDATORS_PER_CHAIN` (V; vắng ⇒ = số node ⇒ hành vi
+      cũ); chọn V node **ít chain nhất**, tie ⇒ tên nhỏ nhất; `MAX_L1` thành trần **mỗi node**, chặn TRƯỚC khi tiêu tiền (thay
+      `state.chains.length >= MAX_L1` ở `server.mjs`); chain cũ không có khoá ⇒ đọc là *"mọi node"*. Khoá thêm vào
+      `console-chains.json` là thao tác an toàn với `/chains/` và `check-chain-ledger` (ghi vào `docs/API-CONSOLE-L1.md`).
+      **Qua khi:** `create-rpc-e2e-test` + fixture `fake-create-docker.mjs`: 9 node, V=5, 27 chain ⇒ bộ đếm 15/15/15/15/15/15/15/15/15
+      không ai quá 15. Ca đỏ: fixture node-1 đã 15 chain, V=9 ⇒ chain 16 **bị từ chối trước khi gọi CLI** (đếm lệnh docker = 0).
+- [ ] **P-83 — Track THEO NODE** — compose đọc `AVAGO_TRACK_SUBNETS` từ biến riêng mỗi service (`A1_TRACK_SUBNETS_<n>`;
+      `local-net/deploy/multinode.compose.yml` + băng tập); `ghimTrackVaoEnv` ghim từng node; `trackSubnetsLanLuot` nhận bảng
+      `node → [subnet]`, **chỉ** restart node có danh sách đổi, restart phải **chứng minh** bằng `StartedAt` (D-189).
+      **Qua khi (băng tập 9 node, V=5):** đẻ 1 chain ⇒ đúng 5 node `StartedAt` đổi, 4 node **không đổi**; `eth_chainId` trả đúng
+      trên 5 node và **404** trên 4 node kia (đo trong container, `shapeOnNode` kiểu) · `check-l1-upgrades` vẫn 0 lệch. Ca đỏ: ép
+      bảng có node track 16 ⇒ throw ở cửa `trackSubnetsLanLuot` như hôm nay.
+- [ ] **P-84 — Đăng ký ĐÚNG V validator, KHÔNG chạm fork** — `l1-batch create -mode classic -validators <NodeID,…>` (thêm
+      `AddSubnetValidatorTx` cho V node vào kit, in `SUBNET_ID=`/`BLOCKCHAIN_ID=` cùng hình dạng CLI); console gọi nó thay
+      `9chain-a1-cli` **khi và chỉ khi** `V < N` (binary dựng một lần, mount vào node-1; `check-deploy-imports` + manifest biết tệp).
+      Lý do không sửa CLI trong fork: đó là `patches/` (luật cứng 3) — sinh lại cả bộ + tree + image chỉ để thêm một cờ. NodeID từng
+      service đọc `info.getNodeID` qua compose exec. **Qua khi:** `platform.getCurrentValidators({subnetID})` trả **đúng V** NodeID,
+      không hơn. Ca đỏ: `-validators` rỗng ⇒ từ chối **trước** `CreateSubnetTx` (không đẻ subnet mồ côi — bài K1 0.3).
+- [ ] **P-85 — Thu hồi theo phân công** — `revoke` gỡ subnet **chỉ** khỏi V node của chain, trả slot cho đúng node; chain cũ
+      không có `validators[]` ⇒ gỡ khỏi mọi node (hành vi cũ). **Qua khi:** bộ đếm node giảm đúng chỗ; `tienTrinh` không chạy lùi
+      (bài `25/08`). Ca đỏ: thu hồi chain của node-3 mà node-7 restart ⇒ test đỏ.
+- [ ] **P-86 — Hợp đồng ROUTER RPC** — console xuất `assignment.json` (`blockchainID → {node, uri, chainId, name}`) cạnh sổ, đúng
+      hình dạng `l1-batch render` để `l1-batch router` sinh Caddyfile không sửa; trường `rpc` của chain trong sổ trỏ URL **node
+      phục vụ** (`A1_PUBLIC_RPC_BASE_<n>` hoặc router). `check-chain-ledger` thêm chiều: **`rpc` của từng chain trả `eth_chainId`
+      đúng**. **Qua khi (băng tập):** router container sinh từ `assignment.json` ⇒ mọi chain trong sổ trả đúng chainId qua router.
+      Ca đỏ: blockchainID lạ ⇒ 404 JSON; sửa `rpc` một chain sang node không track ⇒ `check-chain-ledger` đỏ đúng chain đó.
+      Caddyfile công khai là việc `[web-home]` — hợp đồng là **tệp**, không phải mã chung.
+- [ ] **P-87 — Bơm THEO CHAIN + heartbeat mỗi chain + cổng "mọi chain đẻ block"** — dùng `l1-batch pump -only`, nonce cục bộ
+      (bẫy `a1-bay-lech-nonce`), xuất `heartbeat-<chainId>.json`; cổng mới `scripts/check-chains-producing.mjs` đọc sổ, đo mọi
+      chain: block ≤ 2,5 s nhịp, tx vào khối ≥ 90 % mục tiêu; vào preflight nhóm 3 **chỉ khi** `A1_DRILL_BAND` (không đủ tư cách chặn g1).
+      **Qua khi:** 15 chain × 1 tx/s, 30 phút, 15/15 xanh. Ca đỏ: dừng bơm **một** chain ⇒ cổng đỏ **đúng chain đó**, không đỏ cả bảng.
+- [ ] **P-88 — Cổng đội tàu liên máy** — `scripts/check-startclose.mjs` (log `too many tracked subnets` = 0 + peers đủ trên mọi node,
+      nhận `nodes.json` của `l1-batch compose`) · `measure-node-load.sh` nhận danh sách host qua ssh thay vì giả định cùng host.
+      **Qua khi:** băng tập 9 node 0/0; đo được RAM theo giờ. Ca đỏ: fixture log có dòng `too many tracked subnets` ⇒ đỏ, nêu node.
+- [ ] **P-89 — PHA 1 "một máy đầy" trên băng tập** (sau P-81→P-88): 9 node local, **15 L1, V=5, 1 tx/s mỗi chain, ≥ 6 h**, ghi số
+      theo giờ vào `docs/EVIDENCE-L1-108-PHASE1-<ngày>.md` (nguồn lệnh kèm). **Qua khi:** CPU host < 70 % · block mọi chain ≤ 2,5 s ·
+      0 `StartClose` · RAM phẳng sau ~6 h · `c_tx` đo được thay số ước 0,02 ở PLAN-108 §2c. Ca đỏ: rút một node (`docker stop`) ⇒
+      chain có node đó vẫn đẻ block (V=5 chịu 1 chết), cổng P-87 vẫn xanh.
+- [human] **Bốn quyết định** (đến pha 2 mới cần, mã trên không phụ thuộc): **V** (giả định 5) · **r** (1 tx/s theo đĩa K1, hay 3
+      như PLAN-108) · **H-2 ACP-77 hay subnet cổ điển** cho mạng công khai (mã trên đi cổ điển; ACP-77 = thêm `-mode l1` vào P-84,
+      kit đã có `ConvertSubnetToL1Tx`) · **merge WT-1** rồi `[web-home]` gỡ bản kit của họ + Caddyfile router.
+- [human] **Pha 2 (3 máy · 36 L1) và pha 3 (108 L1, 9 máy AX42 ≈ €550–650/tháng)** — mua máy, `inventory.json`, David tự đặt
+      (`web-home:docs/k1-phase0/PROCUREMENT-K1-2026-09-05.md`). Kit `compose`/`push-host` đã sẵn.
+
+
 ## 🔵 MỐC `WORKTREES` — CẤU TRÚC WORKTREE ĐỘC LẬP (David chốt `2026-09-05` sáng)
 
 Đo trước khi đề xuất: 6 worktree, 2 sống, 4 chết; 9 tệp bị cả `main` lẫn `web-home` cùng sửa (5 là kịch bản deploy,

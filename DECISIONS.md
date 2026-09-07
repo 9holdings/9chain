@@ -10213,3 +10213,51 @@ bằng cách gửi lại đúng `holder.json` + `releaseSha256` qua `deploy-lock
 **Hiệu lực.** Tức thì cho web: họ `source` tệp trên **cây làm việc** của `main`, không qua merge. Đây là lớp lỗi §2 ở đúng chỗ D-194 vừa dựng để
 chống nó: cổng đo một đại lượng, biên nhận ghi đại lượng khác, và cả hai xanh.
 
+
+## D-233 — **108 L1: cái chặn là ba chỗ mã cùng giả định "track tất cả", không phải máy — mốc `L1-108` nạp cho autopilot, chạy trên băng tập, không chạm fork** (`2026-09-07` đêm)
+
+**Bối cảnh.** David (phiên **9Chain A1 core**): *"đọc HANDOFF ⇒ phân tích xem cần code gì để tối ưu code theo mục tiêu 108 chain layer 1
+ban đầu"*, rồi `/feed-autopilot`. Đo trên mã hiện tại (không suy từ tài liệu):
+
+| Chỗ | Hôm nay | Hệ quả |
+|---|---|---|
+| `local-net/deploy/multinode.compose.yml` (5 dòng `AVAGO_TRACK_SUBNETS=${A1_TRACK_SUBNETS:-}`) | cả 9 service đọc **một** biến | mọi node track mọi L1 ⇒ trần 16 của handshake (D-009) là trần **mạng** |
+| `server.mjs` `trackSubnetsLanLuot` | **một** danh sách, restart **cả 9** node, ~170 s/lượt | 108 lượt ≈ 5 h; không có khái niệm "node này track gì" |
+| fork `9chain-a1-tools/9chain-a1-cli` `addSubnetValidators` | đăng ký **mọi** validator mạng mẹ | V luôn = N |
+| `server.mjs` `state.chains.length >= MAX_L1` | trần **toàn cục** 15 | đúng cho mô hình cũ, sai cho phân công |
+
+Mạng g1 dùng 11/15 chỗ. `108 × V ≤ N × 15` ⇒ V=5 cần ≥ 36 node (PLAN-108 §0). Trong khi đó kit K1 (`web-home:docs/k1-phase0/l1-batch`,
+`344c505`→`f7b5d40`, 1.713 dòng Go) **đã có** gần đủ PLAN-108 §4: `plan` (node ít chain nhất, từ chối cái thứ 16 **trước** khi tiêu tiền),
+`apply` (`CreateSubnetTx → CreateChainTx → ConvertSubnetToL1Tx`, 1 validator), `render` (track theo node + `assignment.json`), `compose`
+(đa máy, `--partial-sync-primary-network`), `router` (Caddyfile theo blockchainID), `pump`, `measure`, `status -warn-seconds`. Nó nằm ở
+`docs/` của `web-home` vì phiên viết ngồi nhầm worktree; `main` có **0 tệp** của nó.
+
+**Quyết định.**
+1. **Mốc `L1-108` (P-80 → P-89) nạp vào `PROGRESS.md`** theo skill `feed-autopilot`: có việc phần mềm thật (phân công validator — D-009 ghi
+   *"chưa làm"* từ `25/08`), không phải nạp cho bận. Thứ tự: kit về `main` → console đẻ được trên băng tập → sổ mang `validators[]` +
+   trần **mỗi node** → track theo node → đăng ký đúng V → thu hồi theo phân công → hợp đồng router → bơm/cổng theo chain → cổng đội
+   tàu → pha 1. Mỗi mục có điều kiện qua đo được và ca đỏ (luật cứng #2).
+2. **Không sửa CLI trong fork.** Thêm một cờ `--validators` vào `9chain-a1-cli` là sửa `patches/` (luật cứng 3): sinh lại 27 patch, đổi
+   tree `38723877`, dựng lại image ở hai máy — để thêm một cờ. Thay vào đó `l1-batch` (ngoài fork, `go.work` trỏ vào fork) nhận
+   `create -mode classic -validators …` và console gọi nó **khi và chỉ khi** `V < N`. Đường cũ qua CLI giữ nguyên byte cho mạng công khai.
+3. **Mạng công khai đi subnet cổ điển; ACP-77 vẫn là H-2.** Mã phân công độc lập với loại giao dịch: `-mode l1` (kit đã có
+   `ConvertSubnetToL1Tx`) thêm sau khi David chốt kinh tế. Không tự quyết H-2 bằng mã.
+4. **Giả định để mã không chờ người:** V=5 (PLAN-108 ⭐A), r=1 tx/s (đĩa quyết định — K1 đo 288 MB/chain cấp trước + 900 B/tx/node;
+   PLAN-108 đề 3 tx/s, David chưa chốt), pha 1 chạy ≥ 6 h trên máy dev thay vì 24 h. Cả ba ghi `[human]` trong mốc; đổi số không đổi mã.
+5. **Chỉ băng tập.** `A1_DRILL_BAND=1` mở đẻ chain trên `A1IDTap = 899999999 − A1_GEN` và **phải từ chối** khi node khai networkID thật
+   (P-81, ca đỏ hai chiều). Khối chainId băng tập tách khỏi `9001000000+` (kit đang né bằng `8990000001+`; netgen in nhầm khối — việc
+   `[main]` HANDOFF `05/09`). Sổ chainId chỉ phình (D-069): 108 tên thử nghiệm không được vào sổ g1.
+6. **Mặc định trùng byte.** `A1_L1_VALIDATORS_PER_CHAIN` vắng ⇒ V = N ⇒ console trên server hành xử y hệt cho 11 chain sống; chain cũ
+   không có `validators[]` ⇒ đọc là "mọi node". `check-deploy-drift` sẽ đỏ sau khi mã vào `main` cho tới lượt deploy `[human]` — đúng
+   thiết kế của cổng đó, không phải lỗi.
+7. **Kit chép sang `main`, không merge, không xoá bên `web-home`** (§4: không đụng worktree khác). Bảng sha256 trong commit là đối
+   chứng "trùng byte"; README dịch sang tiếng Anh vì `local-net/**` không được miễn §0. Gỡ bản `docs/k1-phase0` là việc `[web-home]`
+   sau WT-1.
+
+**Vì sao không nạp thêm việc khác.** Còn lại trong `PROGRESS.md` là 32 `[human]` · 24 `[~]` (đa số chờ `web-home`/deploy/David) ·
+16 `[ ]` cũ (web, DNS, nợ ngôn ngữ). Không có việc mã nào khác vừa nằm trong tầm nhìn đã chốt (`docs/MASTER-9CHAIN-9-YEARS.md`) vừa
+kiểm chứng được mà không cần máy hoặc quyết định của David.
+
+**Đối chứng của chính quyết định này.** Ba con số trên đo từ mã ngày `07/09`: `grep -c 'AVAGO_TRACK_SUBNETS' multinode.compose.yml`
+= 5 · `trackSubnetsLanLuot` restart theo `compose config --services` (9) · `addSubnetValidators` lặp `platform.getCurrentValidators`
+không lọc. Kit: `git -C ../9Chain-A1-web log --oneline -3 -- docs/k1-phase0` = 3 commit; `git ls-files docs/k1-phase0` trên `main` = 0.
