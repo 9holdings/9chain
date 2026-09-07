@@ -10,8 +10,10 @@ D-230. `main` = `origin/main` = **`f016fdf`** (đã đẩy sau `check-remotes` +
 - Bơm heartbeat — có chủ ý tới `09/09` (D-149).
 - `check-clock-skew` — **nhấp nháy khi bơm chạy**: nguồn `block.timestamp` độ phân giải giây, ngưỡng = −lệch + 2×biên, block cũ thêm 1 s là vượt sàn
   3000. Chạy riêng hai lần xanh (2621 · ~2870). Chỉ ổn định trên chain yên tĩnh = đúng lúc `09/09`. Đừng đi tìm đồng hồ trôi. Chưa quyết sửa.
-- `/` khai **11** validator, chain có **12** (Hetzner stake `07/09`) — byte trên site đã deploy ⇒ **web-home** (luật cứng #4). ĐÃ NHẮN phiên
-  "9Chain-A1-web handoff" qua `send_message` `07/09` ~13:5xZ; nghiệm thu là `check-live-page` PASS 4/4 sau khi họ deploy.
+- ✅ `/` khai **11** validator, chain có **12** — **ĐÃ ĐÓNG bởi web-home** (site `40dc62b`, deploy ~15:20Z) và **đo lại từ main: `check-live-page`
+  PASS 4/4**. Là CHỮ CỨNG (`home.disclosure`, EN + 29 dict), cổng `check-decentralisation-claim.mjs` trong `web-deploy.sh` so số lớn nhất
+  trong câu với `platform.getCurrentValidators` — chặn đúng lượt deploy hôm nay. 🔴 Nó SẼ đỏ lại khi hai node lạ hết hạn **17/09** và
+  **18/09** (tổng 12 → 10): preflight main đỏ ở `check-live-page` cho tới khi web-home rebuild + deploy — báo họ ngay khi validator rụng.
 
 **Việc tiếp:** ba mục `[human]` của khối dưới còn nguyên (ssh stdin có nằm trong §4 · `heartbeat-deploy.sh` nhập hay nghỉ · 2 đỏ đã biết).
 
