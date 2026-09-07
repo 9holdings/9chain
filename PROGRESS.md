@@ -128,12 +128,19 @@ khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn 
       **không có `create`** (chỉ `services`); 15 chain cũ ⇒ V=1 từ chối; 14 ⇒ V=9 vừa; không biến ⇒ không khoá. Hồi quy create-rpc 17 ·
       options 116 · readiness 31 · generation 31. ⏳ Ca 27 chain qua CONSOLE và lượt đẻ V<N trên băng tập chờ P-83/P-84 (rollout/CLI
       còn "mọi node" — bản ghi V=5 lúc này sẽ nói dối).
-- [ ] **P-83 — Track THEO NODE** — compose đọc `AVAGO_TRACK_SUBNETS` từ biến riêng mỗi service (`A1_TRACK_SUBNETS_<n>`;
+- [x] **P-83 — Track THEO NODE** — compose đọc `AVAGO_TRACK_SUBNETS` từ biến riêng mỗi service (`A1_TRACK_SUBNETS_<n>`;
       `local-net/deploy/multinode.compose.yml` + băng tập); `ghimTrackVaoEnv` ghim từng node; `trackSubnetsLanLuot` nhận bảng
       `node → [subnet]`, **chỉ** restart node có danh sách đổi, restart phải **chứng minh** bằng `StartedAt` (D-189).
       **Qua khi (băng tập 9 node, V=5):** đẻ 1 chain ⇒ đúng 5 node `StartedAt` đổi, 4 node **không đổi**; `eth_chainId` trả đúng
       trên 5 node và **404** trên 4 node kia (đo trong container, `shapeOnNode` kiểu) · `check-l1-upgrades` vẫn 0 lệch. Ca đỏ: ép
       bảng có node track 16 ⇒ throw ở cửa `trackSubnetsLanLuot` như hôm nay.
+      ✅ `07/09` đêm (autopilot, D-236): console ghi compose OVERRIDE `9chain-a1-track.override.yml` (JSON, mỗi service một
+      `AVAGO_TRACK_SUBNETS`) cạnh compose và đi `-f nền -f override` (`composeArgs()`); `trackSubnetsLanLuot` nhận `Map<node, subnet[]>`,
+      cửa 16 chấm TỪNG node, chỉ restart node có danh sách đổi và ĐÒI `StartedAt` dời, node để yên đo `startedAtStable`; `only` cho nâng
+      cấp; `.env` trống ở chế độ V; mô hình cũ trùng byte. **Đo (fixture, console thật):** chain 1 ⇒ đúng 5 restart + 4 untouched ổn định
+      · 27 chain = **135 restart, mỗi node track đúng 15**, chain 28 từ chối · mô hình cũ 9 restart/không override. Lỗi bắt được: subnet
+      của chính lượt tạo bị `pendingSubnetIDs()` rải lên mọi node (16/16/16/16). Hồi quy governance 55 · create-rpc 17 · single-source ·
+      english (nợ 5411 → 5403). ⏳ Đo trên băng tập gộp với P-84 (cần CLI đăng ký đúng V trước, không thì chain 9-validator-5-track).
 - [ ] **P-84 — Đăng ký ĐÚNG V validator, KHÔNG chạm fork** — `l1-batch create -mode classic -validators <NodeID,…>` (thêm
       `AddSubnetValidatorTx` cho V node vào kit, in `SUBNET_ID=`/`BLOCKCHAIN_ID=` cùng hình dạng CLI); console gọi nó thay
       `9chain-a1-cli` **khi và chỉ khi** `V < N` (binary dựng một lần, mount vào node-1; `check-deploy-imports` + manifest biết tệp).

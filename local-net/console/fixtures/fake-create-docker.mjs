@@ -15,6 +15,12 @@ const record = action => appendFileSync('fake-docker.log', action + '\n');
 const services = process.env.A1_TEST_SERVICES ? process.env.A1_TEST_SERVICES.split(',').map(s => s.trim()).filter(Boolean)
   : process.env.A1_TEST_NODE_MODE ? ['worker-node', 'test-node'] : ['test-node'];
 const restarted = new Set();
+// `docker inspect --format {{.State.StartedAt}}`: a synthetic start time per service that moves
+// on every `up` of that service, so the console's restart proof (restartProven) can be measured
+// against the fixture the way it is measured against a real container (P-83).
+const startedAt = new Map();
+let clock = 0;
+const startedAtOf = svc => { if (!startedAt.has(svc)) startedAt.set(svc, `2026-01-01T00:00:00.${String(clock++).padStart(6, '0')}Z`); return startedAt.get(svc); };
 // A1_TEST_UNIQUE_IDS=1: every synthetic creation gets its own subnet/blockchain ids and answers
 // eth_chainId from the genesis file the console handed to the CLI, so a test can create SEVERAL
 // chains through one console. Default: the fixed ids the single-creation tests assert on.
@@ -62,7 +68,12 @@ function output(file, args) {
   }
   if (args.includes('up')) {
     const svc = args.at(-1); restarted.add(svc); nodeAction('restart', svc);
+    startedAtOf(svc); startedAt.set(svc, `2026-01-01T00:00:00.${String(clock++).padStart(6, '0')}Z`);
     record('restart'); return '';
+  }
+  if (args[0] === 'inspect') {
+    const svc = args.at(-1);
+    return startedAtOf(svc) + '\n';
   }
   if (args.includes('curl')) {
     const request = JSON.parse(args[args.indexOf('--data') + 1]);
@@ -70,7 +81,9 @@ function output(file, args) {
     const badNode = svc === 'worker-node';
     const tag = request.params?.tags?.find(t => /^TestSubnet/.test(t));
     if (request.method === 'health.health' && tag) {
-      if (restarted.size !== services.length) throw new Error('All nodes must roll out before new-L1 readiness is checked');
+      // A node is asked about a new L1 only after IT rolled out (every-node model: all of them;
+      // per-node model: the chain's validators). Asking an untouched node is the bug this guards.
+      if (!restarted.has(svc)) throw new Error(`${svc} was asked about a new L1 before it rolled out`);
       record('l1-health'); nodeAction('l1-health', svc);
       const missing = badNode && process.env.A1_TEST_NODE_MODE === 'missing';
       return JSON.stringify({ jsonrpc: '2.0', id: badNode && process.env.A1_TEST_NODE_MODE === 'bad-envelope' ? 7 : 1,

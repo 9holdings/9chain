@@ -103,9 +103,17 @@ async function startConsole({ perChain, ledger } = {}) {
   const create = async (name, chainId) => { currentChainIdHex = '0x' + chainId.toString(16); return call('/api/create', { name, chainId }); };
   const dockerLog = () => existsSync(path.join(scratch, 'fake-docker.log')) ? readFileSync(path.join(scratch, 'fake-docker.log'), 'utf8').trim().split('\n') : [];
   const readLedger = () => JSON.parse(readFileSync(path.join(config, 'console-chains.json'), 'utf8'));
+  // P-83 evidence: which services the fixture restarted (in order), the compose override the
+  // console wrote next to the compose file, and the shared `.env` variable.
+  const actionsFile = path.join(scratch, 'fake-node-actions.jsonl');
+  const restarts = () => existsSync(actionsFile) ? readFileSync(actionsFile, 'utf8').trim().split('\n').map(l => JSON.parse(l)).filter(a => a.action === 'restart').map(a => a.svc) : [];
+  const overrideFile = path.join(scratch, '9chain-a1-track.override.yml');
+  const readOverride = () => existsSync(overrideFile) ? JSON.parse(readFileSync(overrideFile, 'utf8')) : null;
+  const envTrack = () => { const f = path.join(scratch, '.env'); if (!existsSync(f)) return null; const l = readFileSync(f, 'utf8').split(/\r?\n/).find(x => x.startsWith('A1_TRACK_SUBNETS=')); return l === undefined ? null : l.slice('A1_TRACK_SUBNETS='.length); };
   const stop = async () => { if (child.exitCode === null) { const exited = once(child, 'exit'); child.kill('SIGTERM'); await exited; } children.delete(child); };
-  return { call, create, dockerLog, readLedger, stop, log: () => log };
+  return { call, create, dockerLog, readLedger, restarts, readOverride, envTrack, stop, log: () => log };
 }
+const listOf = (override, svc) => (override?.services?.[svc]?.environment ?? []).map(e => e.replace('AVAGO_TRACK_SUBNETS=', '')).join('').split(',').filter(Boolean);
 
 console.log('═══ ASSIGNMENT ON THE PRODUCT PATH — 9 synthetic services, cap 15 per node ═══');
 
@@ -116,10 +124,19 @@ console.log('\n── 1. V = 5: records carry validators, placement is determini
   ok('preview names the 5 nodes the chain WOULD go to', preview.status === 200 && JSON.stringify(preview.j.validators) === JSON.stringify(['node-b', 'node-c', 'node-d', 'node-e', 'node-f']), JSON.stringify(preview.j.validators ?? preview.j.error));
   ok('preview wrote nothing', !existsSync(path.join(path.dirname(c.readLedger.toString()), 'x')) && c.dockerLog().every(l => l !== 'create'));
   const r1 = await c.create('Assign One', 9001000101);
-  ok('chain 1 created (fixture CLI + 9 fake restarts)', r1.status === 200 && r1.j.chainId === 9001000101, JSON.stringify(r1.j).slice(0, 120));
+  ok('chain 1 created (fixture CLI + fake restarts)', r1.status === 200 && r1.j.chainId === 9001000101, JSON.stringify(r1.j).slice(0, 120));
   ok('chain 1 record carries validators = the 5 lowest names', JSON.stringify(r1.j.validators) === JSON.stringify(['node-b', 'node-c', 'node-d', 'node-e', 'node-f']), JSON.stringify(r1.j.validators));
+  // ── P-83: per-node tracking ──
+  ok('🔴 P-83: ONLY the 5 validators restarted (fixture actions, in rollout order)', JSON.stringify(c.restarts()) === JSON.stringify(['node-b', 'node-c', 'node-d', 'node-e', 'node-f']), c.restarts().join(','));
+  ok('P-83: the 4 untouched nodes are reported with a stable StartedAt', r1.j.untouched?.length === 4 && r1.j.untouched.every(u => u.startedAtStable) && r1.j.untouched.map(u => u.svc).join() === 'node-g,node-h,node-i,test-node', JSON.stringify(r1.j.untouched));
+  ok('P-83: the readiness log covers exactly the restarted nodes', JSON.stringify((r1.j.restart ?? []).map(x => x.svc)) === JSON.stringify(r1.j.validators) && r1.j.nodeReadiness?.length === 5);
+  const o1 = c.readOverride();
+  ok('P-83: the compose override lists every service — validators track the new subnet, the rest track nothing', o1 && Object.keys(o1.services).length === 9 && listOf(o1, 'node-b').join() === 'TestSubnet1' && listOf(o1, 'node-g').length === 0, JSON.stringify(o1).slice(0, 160));
+  ok('P-83: the shared .env variable is BLANK under the per-node model', c.envTrack() === '', JSON.stringify(c.envTrack()));
   const r2 = await c.create('Assign Two', 9001000102);
   ok('chain 2 goes to the 4 idle nodes + the lowest loaded name', JSON.stringify(r2.j.validators) === JSON.stringify(['node-g', 'node-h', 'node-i', 'test-node', 'node-b']), JSON.stringify(r2.j.validators ?? r2.j.error));
+  ok('P-83: chain 2 restarted only ITS validators (the 5 whose list changed)', JSON.stringify(c.restarts().slice(5)) === JSON.stringify(['node-b', 'node-g', 'node-h', 'node-i', 'test-node']), c.restarts().slice(5).join(','));
+  ok('P-83: node-b now tracks both subnets, node-c only the first', listOf(c.readOverride(), 'node-b').join() === 'TestSubnet1,TestSubnet2' && listOf(c.readOverride(), 'node-c').join() === 'TestSubnet1');
   const r3 = await c.create('Assign Three', 9001000103);
   ok('chain 3 lands on c,d,e,f,g (ties by name after b took a second)', JSON.stringify(r3.j.validators) === JSON.stringify(['node-c', 'node-d', 'node-e', 'node-f', 'node-g']), JSON.stringify(r3.j.validators ?? r3.j.error));
   const ledger = c.readLedger();
@@ -129,6 +146,22 @@ console.log('\n── 1. V = 5: records carry validators, placement is determini
   const status = await c.call('/api/status');
   ok('/api/status exposes validators on every chain', status.j.chains.every(x => x.validators?.length === 5));
   ok('the journal accepted a plan carrying validators (3 creates, 0 pending)', status.j.pendingCreation === null && c.dockerLog().filter(l => l === 'create').length === 3);
+
+  // ── the arithmetic on the PRODUCT PATH: 27 × 5 = 135 = 9 × 15 ──
+  let failedAt = null;
+  for (let i = 4; i <= 27 && !failedAt; i++) {
+    const r = await c.create(`Assign ${i}`, 9001000100 + i);
+    if (r.status !== 200) failedAt = { i, error: r.j.error };
+  }
+  ok('🔴 P-82/P-83: 27 chains created through the console, none refused', failedAt === null, JSON.stringify(failedAt));
+  const full = c.readLedger();
+  const loadFull = nodeLoad(full.chains, SERVICES);
+  ok('every node carries exactly 15 chains (ledger)', full.chains.length === 27 && [...loadFull.values()].every(n => n === 15), [...loadFull.values()].join('/'));
+  const oFull = c.readOverride();
+  ok('every node TRACKS exactly 15 subnets (compose override) — never 16', SERVICES.every(s => listOf(oFull, s).length === 15), SERVICES.map(s => listOf(oFull, s).length).join('/'));
+  ok('27 chains cost 135 node restarts, not 243', c.restarts().length === 135, String(c.restarts().length));
+  const r28 = await c.create('Assign 28', 9001000199);
+  ok('🔴 the 28th is refused before the CLI, naming every node as full', r28.status === 400 && /At capacity/.test(r28.j.error) && SERVICES.every(s => r28.j.error.includes(s)) && c.dockerLog().filter(l => l === 'create').length === 27, (r28.j.error ?? '').slice(0, 100));
   await c.stop();
 }
 
@@ -170,6 +203,7 @@ console.log('\n── 4. without the variable nothing changes (the model every l
   const r = await c.create('Old Model', 9001000401);
   ok('the record has NO validators key', r.status === 200 && !('validators' in r.j) && !('validators' in c.readLedger().chains[0]), JSON.stringify(Object.keys(r.j)));
   ok('the service list was not consulted before the CLI (old path reads it only at rollout)', c.dockerLog().indexOf('create') < c.dockerLog().indexOf('services'), c.dockerLog().join(','));
+  ok('P-83: every-node model restarts all 9 nodes, writes NO override, pins the union into .env', c.restarts().length === 9 && c.readOverride() === null && c.envTrack() === 'TestSubnet1', `${c.restarts().length} restarts · override ${c.readOverride() !== null} · env ${JSON.stringify(c.envTrack())}`);
   await c.stop();
 }
 

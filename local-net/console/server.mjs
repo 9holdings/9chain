@@ -36,7 +36,7 @@ import { writeLedger, assertNoPendingLedgerWrite } from "../lib/ledger-write.mjs
 import { readLedger } from "../lib/ledger-read.mjs";
 import { waitForChainNodes } from "../lib/chain-readiness.mjs";
 import { createManagedNodeRpc, MANAGED_NODE_API } from "../lib/managed-node-rpc.mjs";
-import { assignValidators, nodeLoad } from "../lib/validator-assignment.mjs";
+import { assignValidators, nodeLoad, validatorsOf, trackListsByNode } from "../lib/validator-assignment.mjs";
 import { MaintenanceGate } from "../lib/maintenance.mjs";
 import { consoleConfigurationFingerprint, probeConsoleReadiness } from "../lib/console-readiness.mjs";
 
@@ -239,6 +239,21 @@ const ROOT = process.cwd(); // phải là gốc dự án
 const COMPOSE_FILE = process.env.A1_COMPOSE_FILE || "local-net/docker-compose.yml";
 const NODE_CONTAINER = process.env.A1_NODE_CONTAINER || "9chain-a1-node";
 const COMPOSE = ["compose", "-f", COMPOSE_FILE];
+// ═══ PER-NODE TRACK LISTS — the compose OVERRIDE (P-83, D-236) ═══
+//
+// The base compose file gives every node the same `AVAGO_TRACK_SUBNETS=${A1_TRACK_SUBNETS}` —
+// that is the "every node tracks every L1" model in one line, and it is the line the 16-subnet
+// handshake limit turns into a 15-chain network. It cannot be edited per node from here: on the
+// drill band the file is netgen output (fork territory, hard rule #3), on the server it is the
+// deploy compose. So the console writes a SECOND compose file next to it, one `environment`
+// entry per service, and passes both `-f` flags. Compose merges per service, the override wins,
+// and a node whose entry did not change is not recreated — which is exactly the rollout rule.
+//
+// The override is written as JSON (valid YAML) so it can be read back without a YAML parser.
+// It exists ONLY when the console runs with A1_L1_VALIDATORS_PER_CHAIN: under the every-node
+// model nothing changes on disk, and `.env` keeps carrying the shared list as it always has.
+const TRACK_OVERRIDE_FILE = path.join(path.dirname(path.resolve(COMPOSE_FILE)), "9chain-a1-track.override.yml");
+const composeArgs = () => [...COMPOSE, ...(existsSync(TRACK_OVERRIDE_FILE) ? ["-f", TRACK_OVERRIDE_FILE] : [])];
 const CFG_DIR = path.join(ROOT, "9chain-a1-config");
 const TMP_DIR = path.join(CFG_DIR, "console-tmp");
 // Cấu hình riêng của từng chain: `<CHAIN_CFG_DIR>/<blockchainID>/config.json`.
@@ -547,7 +562,7 @@ const V_PER_CHAIN = process.env.A1_L1_VALIDATORS_PER_CHAIN === undefined || Stri
 async function nodeSanSang(svc) {
   let out;
   try {
-    out = await docker([...COMPOSE, "exec", "-T", svc, "curl", "-sf", "-m", "5",
+    out = await docker([...composeArgs(), "exec", "-T", svc, "curl", "-sf", "-m", "5",
       "-X", "POST", "-H", "content-type:application/json",
       "--data", `{"jsonrpc":"2.0","id":1,"method":"health.health","params":{"tags":["${PRIMARY_SUBNET}"]}}`,
       `${MANAGED_NODE_API}/ext/health`]);
@@ -612,6 +627,44 @@ async function nodeSanSang(svc) {
  * Ghi qua file tạm rồi rename: `.env` hỏng giữa chừng là MỌI lệnh compose chết,
  * kể cả lệnh để sửa lỗi.
  */
+/**
+ * Write the per-node override (P-83): `{ services: { <svc>: { environment: ["AVAGO_TRACK_SUBNETS=…"] } } }`
+ * for EVERY managed service, idle ones with an empty list — a service missing from the override
+ * would fall back to the base file's shared variable, i.e. to the every-node model, silently.
+ * tmp + rename, same reason as `.env`.
+ */
+function writeTrackOverride(lists) {
+  const services = {};
+  for (const [svc, subnets] of [...lists.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+    services[svc] = { environment: [`AVAGO_TRACK_SUBNETS=${subnets.join(",")}`] };
+  }
+  const tmp = TRACK_OVERRIDE_FILE + ".tmp";
+  writeFileSync(tmp, JSON.stringify({ services }, null, 2) + "\n");
+  renameSync(tmp, TRACK_OVERRIDE_FILE);
+}
+
+/**
+ * What every node tracks RIGHT NOW according to disk: the override when there is one, else the
+ * shared `.env` list on every node (the every-node model). This is the "before" a rollout diffs
+ * against to decide which nodes must restart.
+ */
+function readTrackLists(services) {
+  const lists = new Map(services.map((s) => [s, []]));
+  if (existsSync(TRACK_OVERRIDE_FILE)) {
+    const j = JSON.parse(readFileSync(TRACK_OVERRIDE_FILE, "utf8"));
+    for (const [svc, def] of Object.entries(j?.services ?? {})) {
+      const line = (def?.environment ?? []).find((e) => String(e).startsWith("AVAGO_TRACK_SUBNETS="));
+      lists.set(svc, line ? String(line).slice("AVAGO_TRACK_SUBNETS=".length).split(",").filter(Boolean) : []);
+    }
+    return lists;
+  }
+  const envPath = path.join(path.dirname(path.resolve(COMPOSE_FILE)), ".env");
+  const line = existsSync(envPath) ? readFileSync(envPath, "utf8").split(/\r?\n/).find((d) => /^\s*A1_TRACK_SUBNETS\s*=/.test(d)) : null;
+  const shared = line ? line.replace(/^\s*A1_TRACK_SUBNETS\s*=/, "").trim().split(",").filter(Boolean) : [];
+  for (const s of services) lists.set(s, [...shared]);
+  return lists;
+}
+
 function ghimTrackVaoEnv(trackList) {
   const envPath = path.join(path.dirname(path.resolve(COMPOSE_FILE)), ".env");
   try {
@@ -722,7 +775,7 @@ function dongTienTrinh(loi) {
 async function chainSanSang(svc, subnetID, blockchainID) {
   let out;
   try {
-    out = await docker([...COMPOSE, "exec", "-T", svc, "curl", "-sf", "-m", "5",
+    out = await docker([...composeArgs(), "exec", "-T", svc, "curl", "-sf", "-m", "5",
       "-X", "POST", "-H", "content-type:application/json",
       "--data", `{"jsonrpc":"2.0","id":1,"method":"health.health","params":{"tags":["${subnetID}"]}}`,
       `${MANAGED_NODE_API}/ext/health`]);
@@ -750,7 +803,7 @@ async function chainSanSang(svc, subnetID, blockchainID) {
 async function shapeOnNode(svc, blockchainID) {
   let out;
   try {
-    out = await docker([...COMPOSE, "exec", "-T", svc, "curl", "-sf", "-m", "5",
+    out = await docker([...composeArgs(), "exec", "-T", svc, "curl", "-sf", "-m", "5",
       "-X", "POST", "-H", "content-type:application/json",
       "--data", `{"jsonrpc":"2.0","id":1,"method":"eth_getChainConfig","params":[]}`,
       `${MANAGED_NODE_API}/ext/bc/${blockchainID}/rpc`]);
@@ -840,12 +893,12 @@ async function nodeStartedAt(svc) {
  * P-Chain fee is paid, i.e. in `planChain`, and the two must read the same list the same way.
  */
 async function readManagedServices() {
-  // `docker()` gộp stdout VỚI stderr, mà compose hay in cảnh báo kiểu
+  // `docker()` merges stdout WITH stderr, and compose likes to print warnings such as
   //   WARN[0000] The "A1_TRACK_SUBNETS" variable is not set. Defaulting to ...
-  // Nhận nguyên si từng dòng làm tên service thì lệnh kế sẽ thành
-  // `compose up -d --no-deps WARN[0000]` — hỏng theo kiểu rất khó đoán.
-  // Nên lọc theo hình dạng tên service, rồi ĐỐI CHIẾU với node đã biết.
-  const raw = await docker([...COMPOSE, "config", "--services"]);
+  // Taking every line verbatim as a service name turns the next command into
+  // `compose up -d --no-deps WARN[0000]` — a failure that is very hard to predict.
+  // So filter by the SHAPE of a service name, then cross-check against the node we know.
+  const raw = await docker([...composeArgs(), "config", "--services"]);
   const services = raw.split("\n").map(s => s.trim())
     .filter(s => /^[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(s));
   if (!services.length) throw new Error("could not read the service list from compose");
@@ -864,46 +917,98 @@ async function readManagedServices() {
   return [...services.filter(s => s !== NODE_CONTAINER).sort(), NODE_CONTAINER];
 }
 
-async function trackSubnetsLanLuot(trackList, { requireChain, forceRestart = false } = {}) {
-  // Chốt chặn cuối, ngay TRƯỚC lúc đưa danh sách vào node. Kiểm ở đây chứ không
-  // chỉ ở createChain vì đây là chỗ con số thật sự đi vào giao thức — mọi đường
-  // gọi khác (CLI, lượt sửa tay) đều phải qua cửa này.
-  const soSubnet = trackList.split(",").filter(Boolean).length;
-  if (soSubnet > TRAN_SUBNET_GIAO_THUC) {
-    throw new Error(
-      `TỪ CHỐI: ${soSubnet} subnet vượt trần giao thức ${TRAN_SUBNET_GIAO_THUC}. ` +
-      `Node khai quá ${TRAN_SUBNET_GIAO_THUC} subnet lúc bắt tay sẽ bị MỌI peer cắt kết nối ` +
-      `(network/peer/peer.go:882) — mạng vỡ, không phải chậm đi.`
-    );
-  }
+/** The nodes the last rollout deliberately left alone, with proof they stayed up (P-83). */
+let lastRolloutUntouched = [];
 
+/**
+ * @param {string | Map<string,string[]>} target
+ *   a comma-separated list every node must track (the every-node model, unchanged), OR a
+ *   per-node map `service → subnetIDs` (P-83) — then only nodes whose list CHANGED restart
+ * @param {object} opts
+ *   `requireChain`  — ALSO wait for this chain's own health check on each restarted node
+ *   `forceRestart`  — 🔴 REQUIRED whenever the point of the rollout is to make nodes RE-READ A FILE
+ *   `only`          — restart just these services (an upgrade touches the chain's validators, not the fleet)
+ *
+ * ═══ 🔴 WHY `forceRestart` EXISTS (measured on the live network, 2026-09-04 16:09Z) ═══
+ * (unchanged — see the block above `readManagedServices`)
+ *
+ * ═══ PER-NODE ROLLOUT (P-83, D-236) ═══
+ * With a map, the console writes the compose override, diffs it against what disk said before,
+ * and restarts ONLY the nodes whose list changed — and for those it DEMANDS proof of the restart
+ * (`.State.StartedAt` moved), because a changed environment must recreate the container; a node
+ * that "rolled out" without restarting is the D-189 lie again. Nodes left alone are measured too:
+ * their StartedAt must NOT move, and the result records that.
+ */
+async function trackSubnetsLanLuot(target, { requireChain, forceRestart = false, only } = {}) {
   const thuTu = await readManagedServices();
+  const legacy = typeof target === "string";
+  const lists = legacy
+    ? new Map(thuTu.map((s) => [s, target.split(",").filter(Boolean)]))
+    : new Map(target);
+  for (const svc of lists.keys()) {
+    if (!thuTu.includes(svc)) {
+      throw new Error(`the ledger names validator "${svc}", which is not a service in ${COMPOSE_FILE} (${thuTu.join(", ")}) — fix the compose file or the record before any rollout`);
+    }
+  }
+  for (const svc of thuTu) if (!lists.has(svc)) lists.set(svc, []);
+  // The last gate, right BEFORE the list goes into a node. Checked here and not only in
+  // createChain because this is where the number really enters the protocol — every other
+  // caller (CLI, a hand edit) must pass through this door too. Per NODE now (P-83).
+  for (const [svc, subnets] of lists) {
+    if (subnets.length > TRAN_SUBNET_GIAO_THUC) {
+      throw new Error(
+        `TỪ CHỐI: ${svc} would track ${subnets.length} subnets, over the protocol wall of ${TRAN_SUBNET_GIAO_THUC}. ` +
+        `Node khai quá ${TRAN_SUBNET_GIAO_THUC} subnet lúc bắt tay sẽ bị MỌI peer cắt kết nối ` +
+        `(network/peer/peer.go:882) — mạng vỡ, không phải chậm đi.`
+      );
+    }
+  }
+  const truoc = readTrackLists(thuTu);
+  const same = (a, b) => a.length === b.length && [...a].sort().every((x, i) => x === [...b].sort()[i]);
+  const changed = new Set(thuTu.filter((svc) => !same(truoc.get(svc) ?? [], lists.get(svc))));
   const nhatKy = [];
 
   // Ghim TRƯỚC khi restart: nếu console chết giữa chừng, người vào dọn bằng tay
   // vẫn có danh sách đúng để dựng lại.
-  ghimTrackVaoEnv(trackList);
+  // Every-node model: the shared `.env` list, exactly as before. Per-node model: the override
+  // carries the lists and the shared variable is BLANKED — a hand-run `compose up` without the
+  // override then tracks nothing (visible at readiness) instead of the union of every chain,
+  // which past 16 would get the node cut by every peer.
+  const trackEnv = legacy ? target : "";
+  if (legacy) ghimTrackVaoEnv(target);
+  else { writeTrackOverride(lists); ghimTrackVaoEnv(""); }
+
+  // Which nodes this rollout touches. `only` (an upgrade: the chain's validators) wins; the
+  // every-node model keeps rolling every node as it always did (compose skips the unchanged
+  // ones itself); the per-node model touches exactly the nodes whose list changed.
+  const chon = only ? thuTu.filter((s) => only.includes(s)) : legacy ? thuTu : thuTu.filter((s) => changed.has(s));
+  const boQua = thuTu.filter((s) => !chon.includes(s));
+  const startedBefore = new Map();
+  for (const svc of boQua) startedBefore.set(svc, await nodeStartedAt(svc));
 
   // Số node chỉ biết được SAU khi đọc compose, nên các bước này thêm vào lúc chạy.
   // Giao diện nhờ vậy hiện được "node 2/5" thay vì một vòng xoay không biết bao lâu.
-  for (const svc of thuTu) themBuoc(`node:${svc}`, svc);
+  for (const svc of chon) themBuoc(`node:${svc}`, svc);
 
-  for (const svc of thuTu) {
+  for (const svc of chon) {
     const t0 = Date.now();
     buocChay(`node:${svc}`);
+    // A changed environment MUST recreate the container; prove it the same way a forced restart is
+    // proven. Under the every-node model the proof stays opt-in (forceRestart), unchanged.
+    const mustRestart = forceRestart || (!legacy && changed.has(svc));
     // 🔴 Read this BEFORE touching the container: it is the only evidence that the restart below
     // was real. `null` means docker could not answer, and the check further down refuses to accept
     // a comparison between two unknowns.
-    const truocKhiRestart = forceRestart ? await nodeStartedAt(svc) : null;
+    const truocKhiRestart = mustRestart ? await nodeStartedAt(svc) : null;
     // `--no-deps`: chỉ đụng đúng service này, không kéo theo service khác.
     // `--force-recreate` only when the point is to make the node re-read a file on disk — see the
     // header. Adding it unconditionally would recreate nine containers on every chain creation for
     // no reason, which is a slower and riskier rollout, not a safer one.
     await docker([
-      ...COMPOSE, "up", "-d", "--no-deps", ...(forceRestart ? ["--force-recreate"] : []), svc,
-    ], { A1_TRACK_SUBNETS: trackList });
+      ...composeArgs(), "up", "-d", "--no-deps", ...(forceRestart ? ["--force-recreate"] : []), svc,
+    ], { A1_TRACK_SUBNETS: trackEnv });
 
-    if (forceRestart) {
+    if (mustRestart) {
       // The container has a new start time, or the "restart" did not happen. Nine no-ops reported
       // as nine successes is how a rollout lies (measured 2026-09-04).
       const sauKhiRestart = await nodeStartedAt(svc);
@@ -960,6 +1065,15 @@ async function trackSubnetsLanLuot(trackList, { requireChain, forceRestart = fal
     buocXong(`node:${svc}`, ms);
     console.log(`  ✓ ${svc} track xong, mạng chính phục vụ lại sau ${(ms / 1000).toFixed(1)}s`);
   }
+  // The nodes left alone must have STAYED alone: a StartedAt that moved on a node this rollout
+  // never touched is a fact the caller must see (a crash, another operator, a restart loop).
+  lastRolloutUntouched = [];
+  for (const svc of boQua) {
+    const after = await nodeStartedAt(svc);
+    const before = startedBefore.get(svc);
+    lastRolloutUntouched.push({ svc, startedAtStable: before !== null && after !== null && before === after });
+  }
+  if (!legacy) console.log(`  ✓ rollout touched ${chon.length} node(s) [${chon.join(", ") || "none"}], left ${boQua.length} untouched`);
   return nhatKy;
 }
 
@@ -1406,14 +1520,14 @@ async function executeChainLaunch(plan, job) {
   // 2) đẻ subnet + chain qua 9chain-a1-cli (in SUBNET_ID=/BLOCKCHAIN_ID= ra stdout)
   //
   // 🔴 `--uri` is the node's address AS SEEN FROM INSIDE THE CONTAINER, i.e. `MANAGED_NODE_API`
-  // (127.0.0.1:9650), never `API` (NODE_URI, the console's own host-side address). The two were
+  // (declared once in managed-node-rpc.mjs), never `API` (NODE_URI, the host-side address). The two were
   // the same string on the production server (both `localhost:9650`), which is the only reason
   // passing `API` ever worked. Measured 2026-09-07 on the drill band, where the host publishes the
   // node on 9750: the CLI ran inside node-1, dialled 127.0.0.1:9750 THERE, and got "connection
   // refused" — the first console creation on the drill band failed before any transaction (P-81).
   // Every other in-container call in this file already uses MANAGED_NODE_API.
   creationJournal.update(job, { phase: "submitting" });
-  const out = await docker([...COMPOSE, "exec", "-T",
+  const out = await docker([...composeArgs(), "exec", "-T",
     "-e", `A1_CLI_KEY=${CLI_KEY}`, NODE_CONTAINER,
     "/9chain-a1/build/9chain-a1-cli", "l1", "create",
     "--uri", MANAGED_NODE_API, "--genesis", inContainer, "--name", name]);
@@ -1440,19 +1554,36 @@ async function finishChainLaunch(plan, job, state, { subnetID, blockchainID }) {
   //     nó đúng lúc dựng chain (tức là trong đợt restart đó). Xem ghiChainConfig.
   ghiChainConfig(blockchainID);
 
-  // 3) cho node track TẤT CẢ subnet đã tạo — lần lượt, xem trackSubnetsLanLuot
+  // 3) cho node track subnet mới — lần lượt, xem trackSubnetsLanLuot.
+  //    Every-node model: the union of every subnet on every node, as always. Per-node model
+  //    (P-83): each node's own list from the ledger plus this chain's validators; only the nodes
+  //    whose list changed restart.
   const allSubnets = [...new Set([...state.chains.map(c => c.subnetID), subnetID])];
-  const nhatKyRestart = await trackSubnetsLanLuot(allSubnets.join(","));
+  // 🔴 The journal already holds THIS creation (phase `created`), so `pendingSubnetIDs()` names its
+  // subnet — which is placed by `validators`, not by every node. Left in, it lands on all nine
+  // lists, every node restarts, and each node tracks one subnet more than its records say
+  // (measured with the fixture: 16/16/16/16 on a fleet whose ledger said 15). Filter it out.
+  const nhatKyRestart = await trackSubnetsLanLuot(validators
+    ? trackListsByNode({ chains: [...state.chains, { subnetID, validators }], nodes: await readManagedServices(),
+        pendingSubnetIDs: creationJournal.pendingSubnetIDs().filter((s) => s !== subnetID) })
+    : allSubnets.join(","));
 
   // 4) chờ RPC L1 — và BÁO LỖI nếu không lên.
   //
   // Bản trước lặp 30 lần rồi đi tiếp bất kể kết quả, nên khi node không track
   // được subnet thì console vẫn trả về một chain trông hợp lệ (có đủ ID, có URL
   // RPC) mà thực ra chết. Người dùng thêm vào MetaMask rồi mới phát hiện.
+  //
+  // P-83: under the per-node model the public node (`A1_NODE_CONTAINER`) is not necessarily a
+  // validator of this chain, and then it will NEVER answer this RPC — that is not a failure, it
+  // is the model. The per-node readiness in step 5 asks each validator inside its container
+  // instead. Routing the public RPC to a serving node is P-86.
   buocChay("rpc");
   const rpcPath = `/ext/bc/${blockchainID}/rpc`;
   let live = false;
-  const rpcDeadline = Date.now() + 150_000;
+  const publicNodeServes = !validators || validators.includes(NODE_CONTAINER);
+  if (!publicNodeServes) console.log(`  ℹ️  ${NODE_CONTAINER} is not a validator of "${name}" — skipping the public RPC wait, readiness is measured on ${validators.join(", ")}`);
+  const rpcDeadline = Date.now() + (publicNodeServes ? 150_000 : 0);
   while (Date.now() < rpcDeadline) {
     let reportedChainId;
     try {
@@ -1478,7 +1609,7 @@ async function finishChainLaunch(plan, job, state, { subnetID, blockchainID }) {
     live = true;
     break;
   }
-  if (!live) {
+  if (!live && publicNodeServes) {
     throw new Error(
       `L1 ${blockchainID} did not answer RPC within 150s. Usually the nodes are not tracking the subnet yet — ` +
       `check that compose reads AVAGO_TRACK_SUBNETS=\${A1_TRACK_SUBNETS} on EVERY node. ` +
@@ -1540,7 +1671,8 @@ async function finishChainLaunch(plan, job, state, { subnetID, blockchainID }) {
   // `luuY` cũng chỉ trả về, không ghi vào state, và cùng một lý do ở dạng khác: nó
   // là lời dặn cho người VỪA đẻ chain và hết giá trị ngay khi chain có block đầu.
   // Ghi vào danh bạ là để một cảnh báo nhất thời sống vĩnh viễn cạnh dữ liệu chain.
-  return { ...chain, restart: nhatKyRestart, nodeReadiness, notes: LUU_Y_GIAO_DICH_DAU };
+  // `untouched` (P-83): the nodes this rollout deliberately left alone, each with proof it stayed up.
+  return { ...chain, restart: nhatKyRestart, untouched: lastRolloutUntouched, nodeReadiness, notes: LUU_Y_GIAO_DICH_DAU };
 }
 
 /**
@@ -1616,8 +1748,12 @@ async function thuHoiChain({ name, xacNhan }) {
   const conLai = [...state.chains.filter((_, i) => i !== idx).map(c => c.subnetID), ...creationJournal.pendingSubnetIDs()];
   // Thu hồi cũng là một đợt rolling restart ~163 giây — cũng cần tiến trình theo
   // bước, và cần tiến trình RIÊNG để không đụng vào lượt đẻ vừa xong.
+  // Per-node model (P-83/P-85): the remaining chains' lists; only the revoked chain's validators
+  // see their list change, so only they restart and only their slots are returned.
   moTienTrinh("thuHoi", name, []);
-  const nhatKyRestart = await trackSubnetsLanLuot(conLai.join(","));
+  const nhatKyRestart = await trackSubnetsLanLuot(V_PER_CHAIN !== null
+    ? trackListsByNode({ chains: state.chains.filter((_, i) => i !== idx), nodes: await readManagedServices(), pendingSubnetIDs: creationJournal.pendingSubnetIDs() })
+    : conLai.join(","));
 
   // ═══ KIỂM CHỨNG, KHÔNG TIN ═══
   // "Đã restart" không chứng minh "đã bỏ track". Bằng chứng duy nhất đáng tin là
@@ -1920,13 +2056,15 @@ async function hoanTacNangCap(chain, filePath, prev, daXong, hong) {
     steps.push(`could NOT restore the file: ${e.message}`);
     return { text: steps.join("; "), notUndone: [...daXong, ...(hong ? [hong] : [])].map((svc) => ({ svc, state: "new-file", why: "the file could not be restored" })), oldShape };
   }
-  const trackList = loadState().chains.map(c => c.subnetID).join(",");
+  // Per-node model: the override on disk already carries every node's list and the shared
+  // variable must stay blank (see trackSubnetsLanLuot); every-node model: the union, as before.
+  const trackList = V_PER_CHAIN !== null ? "" : loadState().chains.map(c => c.subnetID).join(",");
   for (const svc of [...daXong, ...(hong ? [hong] : [])]) {
     const before = await nodeStartedAt(svc);
     try {
       // 🔴 `--force-recreate`: the config is identical to a minute ago, so without it compose does
       // nothing and the node keeps the NEW file in memory (measured, see header).
-      await docker([...COMPOSE, "up", "-d", "--no-deps", "--force-recreate", svc], { A1_TRACK_SUBNETS: trackList });
+      await docker([...composeArgs(), "up", "-d", "--no-deps", "--force-recreate", svc], { A1_TRACK_SUBNETS: trackList });
     } catch (e) {
       steps.push(`${svc}: compose up FAILED (${e.message}) — it still carries the NEW file`);
       notUndone.push({ svc, state: "new-file", why: e.message });
@@ -1974,20 +2112,29 @@ async function napCapChain(tham, ai) {
   const { path: filePath, prev } = ghiUpgradeFile(chain.blockchainID, plan.upgradeConfig);
   buocXong("file");
 
-  // Same track list as today — the rollout exists only so every node re-reads the chain dir.
-  // Plus any subnet held by an unresolved creation, which this rollout must not untrack.
-  const trackList = [...loadState().chains.map(c => c.subnetID), ...creationJournal.pendingSubnetIDs()].join(",");
+  // Same track lists as today — the rollout exists only so the chain's validators re-read the
+  // chain dir. Plus any subnet held by an unresolved creation, which this rollout must not untrack.
+  // Per-node model (P-83): every node's own list, and `only` the chain's validators restart —
+  // a node that does not track the chain has nothing to re-read.
   const mongDoi = upgradeShape(plan.upgradeConfig.precompileUpgrades);
   let nhatKy;
   try {
+    // Inside the try on purpose: the file above is already written, so a compose that cannot be
+    // read must take the same undo path as a rollout that failed (governance-e2e measures this).
+    const services = await readManagedServices();
+    const st0 = loadState();
+    const trackTarget = V_PER_CHAIN !== null
+      ? trackListsByNode({ chains: st0.chains, nodes: services, pendingSubnetIDs: creationJournal.pendingSubnetIDs() })
+      : [...st0.chains.map(c => c.subnetID), ...creationJournal.pendingSubnetIDs()].join(",");
     // 🔴 `forceRestart` is NOT optional here. This rollout exists to make nine nodes re-read
     // `upgrade.json`; without it compose sees an unchanged config and does nothing, and every node
     // reports success in under a second (measured on the live network, 2026-09-04 16:09Z).
     // `expectShape`: each node must also report the shape just written, read inside that node —
     // a node that is healthy on some other file is a split, not a success.
-    nhatKy = await trackSubnetsLanLuot(trackList, {
+    nhatKy = await trackSubnetsLanLuot(trackTarget, {
       requireChain: { subnetID: chain.subnetID, blockchainID: chain.blockchainID, expectShape: mongDoi },
       forceRestart: true,
+      only: validatorsOf(chain, services),
     });
   } catch (e) {
     const undo = await hoanTacNangCap(chain, filePath, prev, e.daXong ?? [], e.hong);

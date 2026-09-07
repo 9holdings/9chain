@@ -10350,3 +10350,44 @@ chain cũ lấp đầy ⇒ V=1 cũng từ chối · V > N · trùng tên · V=0 
 console thật + fixture (3 chain: b..g=2, h/i/test-node=1; node đầy ⇒ 400 nêu `test-node`, log docker **không** có `create`; 15 chain
 cũ ⇒ V=1 từ chối; 14 ⇒ V=9 vừa; không biến ⇒ không khoá, `services` đọc SAU `create`) · hồi quy: create-rpc 17 · options 116 ·
 readiness 31 · generation 31 · deploy-imports · english. Cả hai bài vào `check-local`.
+
+## D-236 — **Track THEO NODE bằng một compose OVERRIDE do console ghi; chỉ node có danh sách đổi mới restart, và restart đó phải được CHỨNG MINH** (`2026-09-07` đêm, P-83)
+
+**Bối cảnh.** Compose nền cho mọi service cùng một dòng `AVAGO_TRACK_SUBNETS=${A1_TRACK_SUBNETS}` — chính là mô hình "mọi node track
+mọi L1" gói trong một dòng. Không sửa được theo node từ console: trên băng tập tệp là đầu ra netgen (fork, luật cứng 3), trên server
+là compose deploy. P-82 đã có `validators[]`; P-83 phải đưa nó vào node.
+
+**Quyết định.**
+1. **Override thay vì sửa compose nền.** Console ghi `9chain-a1-track.override.yml` cạnh compose (JSON — là YAML hợp lệ, đọc lại không
+   cần parser), mỗi service một `environment: AVAGO_TRACK_SUBNETS=…`, **kể cả node rỗng** (service thiếu trong override sẽ rơi về biến
+   chung = mô hình cũ, im lặng). Mọi lệnh compose của console đi qua `composeArgs()` = `-f nền` + `-f override` khi tệp tồn tại.
+   Compose gộp theo service, override thắng, service không đổi thì không recreate — đúng luật rollout. Kit K1 `render` đã làm y hệt.
+2. **Chỉ tồn tại ở chế độ V.** Không biến ⇒ không override, `.env` vẫn ghim danh sách chung, restart cả 9 như trước (trùng byte; đối
+   chứng: 9 restart · override null · `.env` = union). Chế độ V ⇒ override + **`.env` A1_TRACK_SUBNETS để TRỐNG**: ai gõ tay
+   `compose up` không kèm override thì node track **rỗng** (lộ ra ở readiness) chứ không track hợp của mọi chain — thứ quá 16 sẽ bị
+   mọi peer cắt. Biến env truyền cho `up` cũng rỗng ở chế độ V, cùng lý do.
+3. **`trackSubnetsLanLuot(target)` nhận chuỗi (mô hình cũ) HOẶC `Map<service, subnetID[]>`.** Với Map: cửa 16 chấm **từng node**;
+   tên node lạ trong sổ ⇒ throw; đọc "trước" từ override (hoặc `.env` cho mọi node) và **chỉ restart node có danh sách đổi**; node đổi
+   **phải chứng minh** `StartedAt` dời (env đổi ⇒ compose bắt buộc recreate; không dời = lời nói dối D-189); node để yên được đo
+   `StartedAt` trước/sau và báo `untouched[{svc, startedAtStable}]` trong kết quả tạo chain. `only` cho đường nâng cấp: chỉ validator
+   của chain re-read tệp (node không track thì không có gì để đọc lại).
+4. **Tạo chain:** danh sách = `trackListsByNode(sổ + chain mới)`; node công khai không phải validator ⇒ **bỏ chờ RPC công khai**
+   (không phải lỗi, là mô hình; readiness đo trong từng validator; định tuyến RPC là P-86). **Thu hồi:** danh sách của phần còn lại ⇒ chỉ
+   validator của chain thu hồi đổi ⇒ chỉ chúng restart (P-85 đo). **Hoàn tác nâng cấp:** env rỗng ở chế độ V.
+5. 🔴 **Lỗi bắt được bằng fixture, không bằng suy luận:** lượt đầu mọi node đều restart và mỗi node track **16** trong khi sổ nói 15 —
+   `pendingSubnetIDs()` trả chính subnet đang tạo (journal ở phase `created`) và nó được rải lên **mọi** node. Lọc subnet của chính lượt
+   tạo ra khỏi danh sách chờ; subnet chờ của lượt KHÁC vẫn lên mọi node (không rollout nào được bỏ track nó).
+6. **Fixture docker giả** học `inspect` (StartedAt giả dời mỗi lượt `up`) và chỉ cho hỏi health L1 trên node **đã** restart (mô hình cũ:
+   tất cả; chế độ V: validator). Manifest drift khai override là vật liệu chạy (`knownExtra`), trước lượt deploy chế độ V đầu tiên.
+7. **Trả 8 dòng nợ tiếng Việt** ở hai khối chú thích được tách hàm (bánh cóc 5411 → 5403, baseline cập nhật).
+
+**Hồi quy bắt được lúc chạy bộ kiểm:** `composeArgs` tự gọi chính nó (replace-all trúng dòng khai) ⇒ preview nổ stack — lỗi của lượt
+sửa, thấy ngay; đường nâng cấp gọi `readManagedServices()` NGOÀI `try` ⇒ compose hỏng thì tệp `upgrade.json` không được hoàn tác
+(governance-e2e 4 đỏ) — dời vào trong `try`; chú thích `--uri` chép nguyên chuỗi địa chỉ ⇒ `check-single-source` đỏ — viết lại câu.
+
+**Đối chứng.** `assignment-e2e-test` 20 → **33** trên console thật: chain 1 ⇒ **đúng 5** node restart (theo thứ tự), 4 node
+`startedAtStable` · override 9 service, validator track subnet mới, node khác rỗng · `.env` trống · chain 2 ⇒ chỉ 5 validator của nó ·
+**27 chain qua console: 135 restart chứ không phải 243, mỗi node track ĐÚNG 15, chain 28 từ chối nêu đủ 9 node** · mô hình cũ: 9
+restart, không override, `.env` = union. Hồi quy: governance 55 · create-rpc 17 · english (nợ co) · single-source 5 · drift self-test
+12 · deploy-imports. ⏳ Đo trên băng tập (5 `StartedAt` đổi / 4 không, `eth_chainId` trên 5 node, 404 trên 4) gộp vào P-84: đẻ chain
+V<N trước khi CLI đăng ký đúng V validator sẽ để lại một chain 9 validator mà 5 track — chain đó có thể không đẻ block.
