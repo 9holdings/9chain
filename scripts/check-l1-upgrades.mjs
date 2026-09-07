@@ -47,12 +47,9 @@
  *   node scripts/check-l1-upgrades.mjs --self-test  # the comparison rules, offline, with fixtures
  */
 import { spawnSync } from "node:child_process";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { upgradeShape, chainDirVerdict } from "../local-net/lib/l1-upgrade.mjs";
+import { SSH_HOST, SSH_KEY, SRC_DIR } from "../local-net/lib/server.mjs";
 
-const HERE = path.dirname(fileURLToPath(import.meta.url));
-const REPO = path.resolve(HERE, "..");
 const SELF_TEST = process.argv.includes("--self-test");
 const NODES = Array.from({ length: 9 }, (_, i) => `9chain-a1-node-${i + 1}`);
 
@@ -251,12 +248,16 @@ if (SELF_TEST) {
 // ═══════════════════════════════════════════════════════════════════════════
 // MEASURE — on the server, read-only.
 // ═══════════════════════════════════════════════════════════════════════════
-const env = (() => {
-  const r = spawnSync("bash", ["-c", `source "${path.join(REPO, "local-net", "deploy", "server-env.sh").split(path.sep).join("/")}" && echo "$A1_SSH_HOST" && echo "$A1_SSH_KEY" && echo "$A1_SRC_DIR"`], { encoding: "utf8" });
-  if (r.status !== 0) cannotRun("cannot read local-net/deploy/server-env.sh", r.stderr?.trim() || "bash could not source it");
-  const [host, key, src] = r.stdout.trim().split("\n");
-  return { host, key, src };
-})();
+// The server's coordinates come from `local-net/lib/server.mjs`, the same single source every
+// other ssh gate reads. Until 2026-09-07 this block `source`d `server-env.sh` through `bash`
+// instead, and that broke in two different ways on Windows depending on which `bash` PATH
+// resolved to: WSL's cannot open a `C:/…` path at all, and Git's returns the key path under
+// `$HOME` as `/c/Users/…`, a POSIX path that the Windows `ssh.exe` this script then spawns
+// cannot open.
+// Either way the gate reported "could not run" while `check-deploy-drift`, which imports the
+// constants, was green on the same machine. A gate that depends on which shell happens to be
+// first on PATH is not measuring the server.
+const env = { host: SSH_HOST, key: SSH_KEY, src: SRC_DIR };
 
 const ssh = (remote, timeoutMs = 120000) => spawnSync(
   "ssh", ["-i", env.key, "-o", "BatchMode=yes", "-o", "ConnectTimeout=15", env.host, remote],
