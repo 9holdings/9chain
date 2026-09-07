@@ -1,4 +1,18 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
+## CHỐT PHIÊN 2026-09-07 ĐÊM (Claude, 9Chain A1 core) — preflight 57/1/0 · đẩy `origin` xong · không đổi gì trên mạng/server
+
+**TL;DR.** Phiên ngắn, ba việc: đọc HANDOFF · preflight · đẩy `origin`. Preflight từ PowerShell (lượt không cắt ống, mã thoát 1): **57 đạt · 1 đỏ · 0 không chạy được · 8 việc tay**
+(tối cùng ngày: 56/2/0). Đỏ duy nhất là bơm heartbeat — có chủ ý tới `2026-09-09` (D-149). `check-clock-skew` lượt này XANH: đúng như dự đoán, nó chỉ nhấp nháy khi bơm chạy.
+Không cổng nào xanh → đỏ. **git:** `main` = `origin/main` = **`2a1e6bf`** (đẩy sau `check-remotes` 3/3 + `check-history-secrets --all-objects` 6480 object · 0 khoá; David bấm).
+`official` KHÔNG đẩy (lineage `cc2cd9f`, chỉ qua `publish-official.sh`). Mạng, server, console, patches: **không đổi**. Commit HANDOFF này đứng trên `2a1e6bf`, chưa đẩy.
+
+**Việc tiếp:** y nguyên hai khối `07/09` dưới — toàn `[human]`: `17/09`·`18/09` hai node lạ hết hạn, `21/09 13:14Z` node Hetzner hết hạn (trang chủ 12 → đỏ, báo web-home) ·
+`95.217.60.140` còn chạy g0 trần · ssh stdin có nằm trong §4 · `heartbeat-deploy.sh` nhập hay nghỉ · README công khai nói lineage mới.
+
+**Gotchas phiên này:** `git rev-parse --short main origin/main` (hai ref một lệnh) trả `fatal: Needed a single revision` trong PowerShell — gọi từng ref. `git push` thành công vẫn
+in ra luồng lỗi; đọc dòng `a..b main -> main` rồi `git fetch` đối chứng.
+
+
 
 ## CHỐT PHIÊN 2026-09-07 TỐI (2) (Claude, 9Chain A1 core) — preflight 56/2/0 · `deploy-lock.sh` khai danh tính sai worktree (D-232)
 
