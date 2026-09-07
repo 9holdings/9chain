@@ -2,6 +2,8 @@
 
 ## Soát lượt GPT 6 Astra — 2026-09-07
 
+- [x] D-230 `check-l1-upgrades` chạy được từ **PowerShell** (`8b65888`): toạ độ server import từ `server.mjs` thay vì `source server-env.sh` qua `bash` (WSL không mở đường `C:/`; Git Bash trả `/c/Users/…` cho `ssh.exe` Windows). Đo trên server 11 chain · 12/0 · self-test 22/22 · single-source 5/5; đỏ mã 2 thấy trước khi sửa. Cùng lượt preflight `07/09` chiều: **54 đạt · 3 đỏ · 1 không chạy được** — bơm (có chủ ý) · clock-skew nhấp nháy khi bơm chạy, chạy riêng xanh · `/` khai 11 validator mà chain có 12 (**web-home**) · cái không chạy được là cổng này, nay xanh.
+
 - [x] D-228 **ĐÃ DEPLOY** console `038e1ab` lên `a1.9chain.org` qua `--apply --bootstrap-legacy` + `--resume` (David bấm, 07/09 ~11:57Z). Đo trên sản phẩm: `check-deploy-drift` 47/47 · 0 lệch · 0 thiếu · 0 mồ côi; sổ chain 11/11; PID mới `3139842`, khoá trả, dấu bảo trì gỡ, sao lưu giữ. Route `/api/maintenance`, `/api/creation/resolve`, readiness nay SỐNG trên server.
 
 - [x] D-227b `heartbeat-deploy.sh` khai vào `knownExtra` (byte trùng web-home `0097f7d`; D-194 giao main nhưng chưa nhập) — audit orphan của deployer hết chặn; đường lên: `--apply --bootstrap-legacy` → `--resume`.

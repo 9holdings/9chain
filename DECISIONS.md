@@ -10094,3 +10094,30 @@ cho phép deploy console có duyệt lần đầu, điều repo chưa làm đư�
 3. BẮT BUỘC chạy `node scripts/gday-preflight.mjs` cuối lượt và dán kết quả; mọi `[x]` của nó chỉ là "xong ở repo".
 4. Mọi gói vật chứng phải qua `check-evidence` (nay hiểu `manifest.json`); biên nhận muốn được viện dẫn thì phải vào repo.
 5. Lượt kế tiếp bắt đầu bằng soát (như D-227) trước khi tin bất kỳ mục nào.
+
+### D-230 — Cổng `check-l1-upgrades` "không chạy được" từ PowerShell trên Windows: nó đo `bash` nào đứng đầu PATH, không đo server (`2026-09-07` chiều)
+
+**Phát hiện.** Preflight chạy từ PowerShell: **54 đạt · 3 đỏ · 1 không chạy được**. Cái không chạy được là `check-l1-upgrades` (nhóm 3, đo
+server). Nó là cổng ssh **DUY NHẤT** lấy toạ độ server bằng cách `source local-net/deploy/server-env.sh` qua `bash` rồi đọc `echo`; mọi
+cổng ssh khác import từ `local-net/lib/server.mjs`. Hai cách hỏng, cùng một máy: (a) `bash` trong PowerShell là **WSL** ⇒ không mở được
+đường `C:/…` ⇒ *No such file*; (b) đẩy Git Bash lên đầu PATH thì `source` chạy, nhưng trả đường khoá dạng `/c/Users/…` và giao cho
+`ssh.exe` của **Windows** (thứ `spawnSync("ssh")` gọi) ⇒ *Identity file not accessible* ⇒ *Permission denied (publickey)*. Phiên `05/09`
+đo cổng này 12/0 vì chạy từ Git Bash, nơi `bash` và `ssh` cùng một họ — **xanh nhờ môi trường, không nhờ mã**. Đúng §2: cổng đo
+"shell nào đứng đầu PATH" thay vì đo server, và cùng lúc `check-deploy-drift` (import hằng) xanh trên cùng máy.
+
+**Sửa (`8b65888`).** Import `SSH_HOST · SSH_KEY · SRC_DIR` từ `server.mjs`; gỡ `path` · `fileURLToPath` · `HERE` · `REPO` chết theo.
+Đối chứng: **đỏ mã 2 TRƯỚC khi sửa** (preflight đầu phiên, và lượt chạy tay với Git Bash đầu PATH) · sau sửa, từ PowerShell, đo thật
+trên server **11 chain · 9 node · 12/0 · 0 finding**, counter-check trên dây chạy trong cùng lượt · self-test 22/22 · `check-single-source`
+5/5 · `check-english-code` nợ không phình · `check-worktree-ownership` đúng nhánh `main`.
+
+**Bẫy gặp lúc sửa.** `check-single-source` đỏ **ngay lần đầu** vì chú thích tôi viết mang chuỗi đường khoá ssh theo nghĩa đen — cổng bắt
+đúng thứ nó canh. Viết lại chú thích cho không mang chuỗi đó; **không** thêm ngoại lệ vào CONSTRAINTS.
+
+**Kèm, cùng lượt preflight — KHÔNG sửa, ghi để phiên sau khỏi đi tìm nhầm:**
+- Bơm heartbeat: đỏ có chủ ý tới `09/09` (D-149).
+- `check-clock-skew`: đỏ trong preflight, **chạy riêng hai lần đều xanh** (cần `2621` và ~`2870` ms so sàn `3000`). Khi bơm chạy, nguồn
+  là `block.timestamp` (độ phân giải giây, sàn 2 s/block); ngưỡng = −lệch + 2×biên ⇒ block cũ thêm **một giây** là vượt sàn. Chú thích
+  trong cổng nói block cũ "nghiêng về phía an toàn vì mua bù lớn hơn", nhưng bù lớn hơn **chính là điều kiện đỏ** — hai câu mâu thuẫn
+  khi chain sản xuất block liên tục. Cổng chỉ ổn định trên chain **yên tĩnh**, tức đúng lúc `09/09`. Chưa quyết sửa.
+- `check-live-page` trên `/`: trang khai **11** validator, chain có **12** (Hetzner stake `07/09`). Byte nằm trên site đã deploy ⇒ việc
+  `web-home` (luật cứng #4); phiên web cần xem trang chủ in số cứng hay đọc `heartbeat.json`.
