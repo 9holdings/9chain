@@ -10031,3 +10031,12 @@ Tám rủi ro tìm thấy và cách đóng — mỗi cái có đối chứng ng�
 
 Nguyên tắc rút ra: một reservation không ai đóng được là một console không ai dùng được; và một cổng KHÔNG THỂ xanh trên server thật
 (faucet lệch, legacy 404) không phải cổng — nó là lý do người ta tắt cổng.
+
+### D-227b — `heartbeat-deploy.sh` khai vào `knownExtra` (David, `2026-09-07`)
+
+Tệp mồ côi duy nhất chặn audit của bộ deploy console. Đo: 8973 byte, sha256 `31fe5962…3e7ae6`, TRÙNG BYTE với bản ở
+worktree `web-home` (commit `0097f7d`, 29/08, cùng lượt công bố bơm 9 tx/s). D-194 giao đường này cho `main` nhưng chưa ai
+nhập tệp (D-193 chỉ nhập cổng STOP từ commit mồ côi `6793fb4`) ⇒ mồ côi vì THIẾU, không phải vì lạ. David quyết: **khai**,
+kèm sự thật là nó không an toàn để chạy mù (`HEARTBEAT_STOP_AFTER` đã qua, mount `/hostfs`, D-138). Nhập vào `main` hay
+cho nghỉ là quyết định RIÊNG, chưa chốt. Đối chứng: `check-deploy-drift` live — dòng mồ côi chuyển 🟡 "đã khai", các dòng
+lệch/thiếu vẫn đỏ vì console chưa deploy (đúng đại lượng).

@@ -2,6 +2,8 @@
 
 ## Soát lượt GPT 6 Astra — 2026-09-07
 
+- [x] D-227b `heartbeat-deploy.sh` khai vào `knownExtra` (byte trùng web-home `0097f7d`; D-194 giao main nhưng chưa nhập) — audit orphan của deployer hết chặn; đường lên: `--apply --bootstrap-legacy` → `--resume`.
+
 - [x] D-227 tám rủi ro đã đóng theo thứ tự: (1) creation dở chỉ chặn chính chain đó + `POST /api/creation/resolve` (discard/retire/adopt) · (2) `--start-paused` tường minh, log trạng thái bảo trì · (3) `--bootstrap-legacy` qua `--legacy-idle`, lệch ngoài release không chặn · (4) `check-chain-ledger` chạy bộ đọc của console lên sổ công khai (đo sống PASS) · (5) `check-evidence` hiểu `manifest.json` (4/4 gói) · (6) `check-single-source` 5 hằng · (7) `deploy-lock abandon` + `--unwind` · (8) số D lệch, test nhấp nháy, `work/` và Docker dọn. Đối chứng: create-rpc 17/17 · journal · lock 42 · evidence 14 · single-source 12 · ledger 26 · maintenance client 34 · restart Docker · deployment Docker (legacy thật `7d616fe`). CHƯA deploy; server còn bản 05/09.
 
 ## Local automation — 2026-09-06
