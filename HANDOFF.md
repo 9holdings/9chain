@@ -1,5 +1,12 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
+**2026-09-07 (Claude, soát lượt GPT 6 Astra — D-227):** 37 commit `a616eef..a5b852a` KHÔNG push/deploy/chạm patches; có SSH đọc + chạy mã qua stdin trên server.
+Tám rủi ro đã sửa (xem D-227): creation dở chỉ chặn chính nó + `/api/creation/resolve` · restart không còn ép pause · deployer có `--bootstrap-legacy` và `--unwind`,
+lệch faucet không chặn · `check-chain-ledger` chạy bộ đọc console lên sổ công khai · `check-evidence` hiểu `manifest.json` · `check-single-source` 5 hằng ·
+`deploy-lock abandon` · số D lệch/`work/`/Docker dọn. Server vẫn chạy console 05/09 (`7d616fe`); đường lên nay là `--apply --bootstrap-legacy` rồi `--resume`,
+SAU KHI David khai `heartbeat-deploy.sh` (mồ côi) vào `knownExtra` — không thì audit orphan vẫn chặn đúng theo B-17.
+
+
 Latest local checkpoint,2026-09-07 01:28 UTC: D-225 source792fada passed47 exact-source
 validation commands01:15:49; report/log hashes and local-only plan independently
 verified01:19:02. D-226 adds bounded remote audit enumeration.34 real isolated Linux
@@ -57,7 +64,7 @@ tooling and a first-adoption rehearsal; see `docs/CONSOLE-FIRST-ADOPTION.md`.
 D-221 now supplies tested legacy artifact inventory/exact genesis comparison:
 93 Windows/94 Linux controls, three copied-source negatives and real30s RPC budget.
 Read-only in-memory execution on-server23:41 UTC matches11 current genesis/ledger
-entries,55 outside-band files retained and stable selected snapshot. D-22074 controls
+entries,55 outside-band files retained and stable selected snapshot. D-220 74 controls
 still pass after extracting strict shared read RPC. See `docs/LEGACY-ARTIFACTS.md`.
 Local profile now28 groups. Next close the known console-tmp backup-coverage gap;
 this inspection does not itself preserve backup bytes or establish legacy drain.

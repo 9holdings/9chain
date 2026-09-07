@@ -130,6 +130,12 @@ async function main() {
     console.log(`   ⁇ INCONCLUSIVE — "could not read" is not "nothing is advertised".`);
     return 2;
   }
+  if (v.stage === "console-reader") {
+    console.log(`   🔴 the CONSOLE's own ledger reader refuses this file: ${v.error}`);
+    console.log(`\n🔴 FAIL — the next console boot would answer 500 to everyone (\`local-net/lib/ledger-read.mjs\`).`);
+    console.log(`   Fix the ledger on the SERVER before deploying a console that carries that reader.`);
+    return 1;
+  }
   if (v.stage === "shape") {
     console.log(`   🔴 ${v.fatal}`);
     console.log(`   ⁇ INCONCLUSIVE — the ledger's shape is not the shape this gate knows how to judge.`);
@@ -237,6 +243,20 @@ async function selfTest() {
   ok("🔴 the retired domain is a FOREIGN host, not a near-enough one",
     !sameHostAsRpc("https://rpc-testnet-a1.9chain.org/rpc", "https://rpc-a1.9chain.org"), "true");
   ok("🔴 garbage in the `rpc` field is refused, not thrown on", !sameHostAsRpc("not a url", "https://rpc-a1.9chain.org"), "true");
+
+  console.log("\n── 5b. The console's OWN reader judges the public file (D-227) ──");
+  // The quantity: not "does this gate like the JSON" but "will the console boot on it".
+  const askFor = (ledgerBody) => async (url) => url.endsWith("/ext/info")
+    ? { status: 200, body: JSON.stringify({ result: { networkID: "999999998" } }) }
+    : { status: 200, body: ledgerBody };
+  const nameless = await assessPublicLedger({ ledgerUrl: "https://x/ledger.json", rpcBase: "https://rpc-a1.9chain.org",
+    ask: askFor(JSON.stringify({ chains: [{ chainId: 9_001_000_000, rpc: "https://rpc-a1.9chain.org/ext/bc/x/rpc" }], retired: [] })) });
+  ok("🔴 an entry without a name is RED with code 1 — the console reader refuses it, this gate must not wave it through",
+    nameless.stage === "console-reader" && nameless.code === 1, JSON.stringify({ stage: nameless.stage, code: nameless.code }));
+  const legacyShape = await assessPublicLedger({ ledgerUrl: "https://x/ledger.json", rpcBase: "https://rpc-a1.9chain.org",
+    ask: askFor(JSON.stringify({ chains: [] })) });
+  ok("CONTROL — a legacy file without `retired` passes the reader (the console tolerates it)",
+    legacyShape.stage !== "console-reader", legacyShape.stage);
 
   console.log("\n── 6. The measurement that decides the block is never guessed ──");
   const okId = await measureLiveNetworkId(async () => ({ status: 200, body: JSON.stringify({ result: { networkID: "999999998" } }) }));

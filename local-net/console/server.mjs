@@ -35,7 +35,7 @@ import { CreationJournal, creationGenesisText } from "../lib/creation-journal.mj
 import { writeLedger, assertNoPendingLedgerWrite } from "../lib/ledger-write.mjs";
 import { readLedger } from "../lib/ledger-read.mjs";
 import { waitForChainNodes } from "../lib/chain-readiness.mjs";
-import { createManagedNodeRpc } from "../lib/managed-node-rpc.mjs";
+import { createManagedNodeRpc, MANAGED_NODE_API } from "../lib/managed-node-rpc.mjs";
 import { MaintenanceGate } from "../lib/maintenance.mjs";
 import { consoleConfigurationFingerprint, probeConsoleReadiness } from "../lib/console-readiness.mjs";
 
@@ -501,7 +501,7 @@ async function nodeSanSang(svc) {
     out = await docker([...COMPOSE, "exec", "-T", svc, "curl", "-sf", "-m", "5",
       "-X", "POST", "-H", "content-type:application/json",
       "--data", `{"jsonrpc":"2.0","id":1,"method":"health.health","params":{"tags":["${PRIMARY_SUBNET}"]}}`,
-      "http://127.0.0.1:9650/ext/health"]);
+      `${MANAGED_NODE_API}/ext/health`]);
   } catch {
     return { ok: false, vi: "API chưa trả lời" };   // node còn đang khởi động
   }
@@ -676,7 +676,7 @@ async function chainSanSang(svc, subnetID, blockchainID) {
     out = await docker([...COMPOSE, "exec", "-T", svc, "curl", "-sf", "-m", "5",
       "-X", "POST", "-H", "content-type:application/json",
       "--data", `{"jsonrpc":"2.0","id":1,"method":"health.health","params":{"tags":["${subnetID}"]}}`,
-      "http://127.0.0.1:9650/ext/health"]);
+      `${MANAGED_NODE_API}/ext/health`]);
   } catch {
     return { ok: false, vi: "API not answering" };
   }
@@ -704,7 +704,7 @@ async function shapeOnNode(svc, blockchainID) {
     out = await docker([...COMPOSE, "exec", "-T", svc, "curl", "-sf", "-m", "5",
       "-X", "POST", "-H", "content-type:application/json",
       "--data", `{"jsonrpc":"2.0","id":1,"method":"eth_getChainConfig","params":[]}`,
-      `http://127.0.0.1:9650/ext/bc/${blockchainID}/rpc`]);
+      `${MANAGED_NODE_API}/ext/bc/${blockchainID}/rpc`]);
   } catch {
     return { ok: false, vi: "chain RPC not answering on this node" };
   }
@@ -1278,13 +1278,23 @@ async function launchChain(plan) {
   loadState();
   assertNoPendingLedgerWrite(STATE);
   const job = creationJournal.begin(plan, NETWORK_ID);
-  // Keep the journal on every failure, including a lost CLI response. A failure
-  // does not prove that the P-chain transaction was never submitted.
-  return executeChainLaunch(plan, job);
+  try {
+    return await executeChainLaunch(plan, job);
+  } catch (e) {
+    // Keep the journal on every failure AFTER the CLI was started, including a lost CLI
+    // response: a failure does not prove the P-chain transaction was never submitted.
+    // BEFORE the CLI (phase still `prepared`) nothing left this machine, so holding the
+    // reservation would only trap the console behind a genesis-file or spawn error.
+    const current = creationJournal.read();
+    if (current?.id === job.id && current.phase === "prepared") {
+      creationJournal.resolve(job, "discarded", { by: "console", reason: String(e.message || e).slice(0, 500) });
+    }
+    throw e;
+  }
 }
 
 async function executeChainLaunch(plan, job) {
-  const { name, chainId, ADMIN, SYMBOL, presetDaAp, tpl, options } = plan;
+  const { name } = plan;
   const state = loadState();
 
   // Mở tiến trình NGAY SAU khi mọi phép kiểm rẻ đã qua — trước đó mà hỏng thì
@@ -1330,13 +1340,25 @@ async function executeChainLaunch(plan, job) {
   creationJournal.update(job, { phase: "created", subnetID, blockchainID });
 
   buocXong("subnet");
+  return finishChainLaunch(plan, job, state, { subnetID, blockchainID });
+}
 
+/**
+ * Everything AFTER the P-chain holds the subnet: VM config, rollout, RPC identity, per-node
+ * readiness, ledger. Split from `executeChainLaunch` so an operator can ADOPT a creation that
+ * failed here (the subnet exists, the slot is spent, only the console's record is missing) by
+ * re-running exactly this half instead of a hand-written imitation of it. Every step is
+ * idempotent on re-run: the config file is rewritten byte-identical, the rollout re-tracks the
+ * same list, and the checks read, not write.
+ */
+async function finishChainLaunch(plan, job, state, { subnetID, blockchainID }) {
+  const { name, chainId, ADMIN, SYMBOL, presetDaAp, options } = plan;
   // 2b) cấu hình VM của chain — PHẢI ghi trước đợt restart ở bước 3, vì node đọc
   //     nó đúng lúc dựng chain (tức là trong đợt restart đó). Xem ghiChainConfig.
   ghiChainConfig(blockchainID);
 
   // 3) cho node track TẤT CẢ subnet đã tạo — lần lượt, xem trackSubnetsLanLuot
-  const allSubnets = [...state.chains.map(c => c.subnetID), subnetID];
+  const allSubnets = [...new Set([...state.chains.map(c => c.subnetID), subnetID])];
   const nhatKyRestart = await trackSubnetsLanLuot(allSubnets.join(","));
 
   // 4) chờ RPC L1 — và BÁO LỖI nếu không lên.
@@ -1375,8 +1397,9 @@ async function executeChainLaunch(plan, job) {
   }
   if (!live) {
     throw new Error(
-      `L1 ${blockchainID} không lên RPC sau 150s. Thường là node chưa track subnet — ` +
-      `kiểm tra compose có đọc AVAGO_TRACK_SUBNETS=\${A1_TRACK_SUBNETS} ở MỌI node chưa.`
+      `L1 ${blockchainID} did not answer RPC within 150s. Usually the nodes are not tracking the subnet yet — ` +
+      `check that compose reads AVAGO_TRACK_SUBNETS=\${A1_TRACK_SUBNETS} on EVERY node. ` +
+      `The subnet exists on the P-chain; resolve this creation via POST /api/creation/resolve (adopt once the RPC answers, or retire).`
     );
   }
   buocXong("rpc");
@@ -1466,10 +1489,13 @@ async function executeChainLaunch(plan, job) {
  * chứng cho người vào dọn biết chuyện gì đã xảy ra.
  */
 async function thuHoiChain({ name, xacNhan }) {
-  creationJournal.assertClear();
-  assertNoPendingLedgerWrite(STATE);
   name = String(name || "").trim();
   if (!name) throw new Error("Missing the name of the chain to revoke");
+  // Only the chain under creation is off limits — see `assertNotPendingFor`. Blocking every
+  // revocation behind one stuck creation would contradict the invariant at the top of
+  // `createChain`: closing the door must not trap the people already inside.
+  creationJournal.assertNotPendingFor(name);
+  assertNoPendingLedgerWrite(STATE);
 
   const state = loadState();
   const idx = state.chains.findIndex(c => c.name === name);
@@ -1497,7 +1523,10 @@ async function thuHoiChain({ name, xacNhan }) {
 
   // Danh sách track mới = mọi chain còn lại. Rỗng cũng hợp lệ (thu hồi chain cuối
   // cùng) — khi đó node chỉ chạy Primary Network, đúng như mạng lúc mới dựng.
-  const conLai = state.chains.filter((_, i) => i !== idx).map(c => c.subnetID);
+  // A creation the P-chain already accepted but the console has not recorded yet stays on the
+  // list: this rollout must not untrack it, or resolving that creation later finds a subnet no
+  // node serves.
+  const conLai = [...state.chains.filter((_, i) => i !== idx).map(c => c.subnetID), ...creationJournal.pendingSubnetIDs()];
   // Thu hồi cũng là một đợt rolling restart ~163 giây — cũng cần tiến trình theo
   // bước, và cần tiến trình RIÊNG để không đụng vào lượt đẻ vừa xong.
   moTienTrinh("thuHoi", name, []);
@@ -1541,6 +1570,86 @@ async function thuHoiChain({ name, xacNhan }) {
     thuHoi: true, dangTrack: state.chains.length, tran: MAX_L1,
     restart: nhatKyRestart,
   };
+}
+
+/**
+ * ═══ RESOLVING AN INTERRUPTED CREATION — operator only, serial queue only ═══
+ *
+ * A creation that failed after the CLI ran leaves `creation-journal/pending.json` behind on
+ * purpose (D-203): the console must not guess whether the P-chain accepted the transaction.
+ * But a reservation nobody can close is a console nobody can use. This is the one door out,
+ * and what it allows depends on how far the creation got:
+ *
+ *   prepared    — the CLI never ran ⇒ `discard` (the console does this itself on failure)
+ *   submitting  — the CLI ran, outcome unknown ⇒ `retire`/`adopt` WITH the identifiers the
+ *                 operator read off the P-chain (`scripts/inspect-creation.mjs`), or `discard`
+ *                 with `confirmNotSubmitted:true` after establishing that nothing was accepted
+ *   created     — the P-chain holds the subnet ⇒ `retire` (name + chainId stay reserved, as for
+ *                 any revoked chain — D-014) or `adopt` (re-run the second half of creation and
+ *                 record it as live). `discard` is refused: it would hand the same name and
+ *                 chainId to the next person while a chain with them exists.
+ *
+ * Nothing here retries the CLI. Nothing here deletes evidence: every outcome moves the journal
+ * to `history/` with the decision written into it.
+ */
+async function resolveCreation({ jobId, action, subnetID, blockchainID, confirmNotSubmitted }) {
+  const job = creationJournal.read();
+  if (!job) throw Object.assign(new Error("No chain creation is pending."), { status: 409 });
+  if (String(jobId ?? "") !== job.id) {
+    throw Object.assign(new Error(
+      `The pending creation is ${job.id} ("${job.plan.name}", phase ${job.phase}); send that jobId.`), { status: 409 });
+  }
+  if (!["discard", "retire", "adopt"].includes(action)) throw new Error("action must be discard, retire or adopt");
+  const { name, chainId } = job.plan;
+  if (action === "discard") {
+    if (job.phase === "created") {
+      throw new Error(`The P-chain already holds subnet ${job.subnetID} for "${name}"; discarding would ` +
+        `re-issue its name and chainId. Use retire (keep them reserved) or adopt (record the chain).`);
+    }
+    if (job.phase === "submitting" && confirmNotSubmitted !== true) {
+      throw new Error(`"${name}" was handed to the CLI and its outcome is unknown. Establish on the P-chain ` +
+        `(scripts/inspect-creation.mjs) that nothing was accepted, then send "confirmNotSubmitted":true — ` +
+        `or retire/adopt it with the subnetID and blockchainID you found.`);
+    }
+    creationJournal.resolve(job, "discarded", { by: "operator", phase: job.phase, confirmNotSubmitted: job.phase === "submitting" });
+    return { resolved: "discarded", jobId: job.id, name, chainId, phase: job.phase };
+  }
+  if (job.phase === "prepared") {
+    throw new Error(`"${name}" never reached the CLI (phase prepared); there is nothing on the P-chain to ${action}. Use discard.`);
+  }
+  // retire and adopt both write the ledger; a stranded ledger write must be reconciled first.
+  assertNoPendingLedgerWrite(STATE);
+  const ids = job.phase === "created"
+    ? { subnetID: job.subnetID, blockchainID: job.blockchainID }
+    : { subnetID, blockchainID };
+  for (const [key, value] of Object.entries(ids)) {
+    if (!/^[A-Za-z0-9]+$/.test(String(value ?? ""))) {
+      throw new Error(`${action} of a creation in phase ${job.phase} requires the ${key} the P-chain accepted ` +
+        `(read it with scripts/inspect-creation.mjs).`);
+    }
+  }
+  if (action === "retire") {
+    const state = loadState();
+    // Same shape as a revoked chain, so `/chains/` and `check-chain-ledger` read it unchanged.
+    state.retired.push({
+      name, chainId, ...ids, admin: job.plan.ADMIN,
+      preset: job.plan.presetDaAp?.id, presetName: job.plan.presetDaAp?.name,
+      ...(job.plan.SYMBOL ? { symbol: job.plan.SYMBOL } : {}),
+      createdAt: job.createdAt, thuHoiLuc: Date.now(),
+      creationUnresolved: { jobId: job.id, phase: job.phase },
+    });
+    saveState(state);
+    creationJournal.resolve(job, "retired", { by: "operator", phase: job.phase, ...ids });
+    return { resolved: "retired", jobId: job.id, name, chainId, ...ids };
+  }
+  // adopt — finish what `executeChainLaunch` would have done after the CLI.
+  const current = job.phase === "submitting" ? creationJournal.update(job, { phase: "created", ...ids }) : job;
+  moTienTrinh("tao", name, [
+    { ma: "rpc", nhan: "Waiting for the L1 RPC to answer" },
+    { ma: "readiness", nhan: "Checking the L1 on every managed node" },
+  ]);
+  const chain = await finishChainLaunch(job.plan, current, loadState(), ids);
+  return { resolved: "adopted", jobId: job.id, ...chain };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1765,7 +1874,7 @@ async function hoanTacNangCap(chain, filePath, prev, daXong, hong) {
 }
 
 async function napCapChain(tham, ai) {
-  creationJournal.assertClear();
+  creationJournal.assertNotPendingFor(tham?.name);
   assertNoPendingLedgerWrite(STATE);
   const { chain, plan, rpcPath } = await planUpgradeForChain(tham, ai);
   if (String(tham.confirm ?? "") !== chain.name) {
@@ -1779,7 +1888,8 @@ async function napCapChain(tham, ai) {
   buocXong("file");
 
   // Same track list as today — the rollout exists only so every node re-reads the chain dir.
-  const trackList = loadState().chains.map(c => c.subnetID).join(",");
+  // Plus any subnet held by an unresolved creation, which this rollout must not untrack.
+  const trackList = [...loadState().chains.map(c => c.subnetID), ...creationJournal.pendingSubnetIDs()].join(",");
   const mongDoi = upgradeShape(plan.upgradeConfig.precompileUpgrades);
   let nhatKy;
   try {
@@ -1840,7 +1950,7 @@ async function napCapChain(tham, ai) {
  * header: chain first, ledger second). No rollout: nothing on the nodes changes.
  */
 async function doiChu({ name, newAdmin, confirm }, ai) {
-  creationJournal.assertClear();
+  creationJournal.assertNotPendingFor(name);
   assertNoPendingLedgerWrite(STATE);
   const state = loadState();
   const chain = chuChain(state, name);
@@ -2058,6 +2168,25 @@ const server = http.createServer(async (req, res) => {
       try { observation = JSON.parse((await docBody(req)) || "{}"); }
       catch { return send(res, 400, { error: "Console maintenance resume requires valid JSON" }); }
       return send(res, 200, maintenance.resume(observation));
+    }
+
+    // The only way out of an interrupted creation — see `resolveCreation`. Operator token only:
+    // every branch either spends a permanent slot (adopt), reserves a name forever (retire) or
+    // returns one to circulation (discard), and a wallet has no standing to decide any of them.
+    if (req.method === "POST" && req.url === "/api/creation/resolve") {
+      if (blockedByRate(req, res, limitFlood)) return;
+      const ai = blockedByAuth(req, res);
+      if (!ai) return;
+      if (ai.kieu !== "vanHanh") return send(res, 403, { error: "Resolving a creation requires the operator token" });
+      releaseMutation = maintenance.enter();
+      try {
+        const tham = JSON.parse((await docBody(req)) || "{}");
+        let kq;
+        try { kq = await queue.run(() => resolveCreation(tham)); }
+        catch (e) { if (tienTrinh.dangChay) dongTienTrinh(e); throw e; }
+        if (tienTrinh.dangChay) dongTienTrinh(null);
+        return send(res, 200, kq);
+      } catch (e) { return send(res, e.status ?? 400, { error: String(e.message || e) }); }
     }
 
     if (req.method === "GET" && req.url === "/api/status") {
@@ -2358,6 +2487,19 @@ server.listen(PORT, HOST, () => {
   console.log(DE_CHAIN_MO
     ? `  đẻ chain: 🔓 MỞ (A1_DE_CHAIN_MO=1)`
     : `  đẻ chain: 🔒 ĐÓNG — mọi lượt tạo bị từ chối. Mở sau ngày G bằng A1_DE_CHAIN_MO=1 (D-087)`);
+  // Same rule for the maintenance gate. A persisted pause outlives the deployment that set it,
+  // so a console can come up CLOSED days later with every read endpoint answering 200 — the
+  // one place that says so in words is this log line (review of the 2026-09-06 run, D-227).
+  {
+    const m = maintenance.snapshot();
+    console.log(m.paused
+      ? `  maintenance: 🔒 PAUSED (${startPaused === "1" ? "A1_CONSOLE_START_PAUSED=1" : "marker 9chain-a1-config/console-maintenance/ is still on disk"}) — create/revoke/upgrade/transfer answer 503 until POST /api/maintenance/resume`
+      : `  maintenance: ✓ open — no pause marker on disk`);
+  }
+  {
+    const pending = creationJournal.summary();
+    if (pending) console.warn(`  creation: 🔴 UNRESOLVED — "${pending.name}" #${pending.chainId} (job ${pending.jobId}, phase ${pending.phase}). Only this chain is blocked; close it with POST /api/creation/resolve`);
+  }
   // Same rule, for the invite list: print the STATE, not only the interesting half. An empty
   // list is the fail-closed default and it is indistinguishable from a forgotten variable
   // anywhere except here — so here it says so in words.

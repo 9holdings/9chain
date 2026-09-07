@@ -34,12 +34,16 @@ Application proceeds in this order:
 
 1. Exact-source local validation, including the isolated deployment drill.
 2. Read-only server audit of manifest files and direct entries in manifest-derived
-   directories. Selected-file differences are planned. Other manifest-group
-   differences, undeclared orphans, links or incomplete scans block. Exclusions
-   and tracked files outside the manifest remain visible; this is not a whole-server audit.
+   directories. Selected-file differences are planned. Differences in files of OTHER
+   manifest groups (faucet, operator tools) are recorded as `driftOutsideRelease`
+   and do not block (D-227: no faucet deployer exists, so a gate on them could never
+   go green; `check-deploy-drift` still measures them at resume). Undeclared orphans,
+   links or incomplete scans block. Exclusions and tracked files outside the manifest
+   remain visible; this is not a whole-server audit.
 3. Compatible open maintenance API, exclusive invocation lock, another process/
    maintenance observation, then persistent pause and admission drain. A pre-existing
-   pause is never adopted. HTTP401/404, timeout and contradictory/changed state stop.
+   pause is never adopted. HTTP401, timeout and contradictory/changed state stop.
+   HTTP404 stops too, unless `--bootstrap-legacy` was given — see below.
 4. Exclusive `console-deployments/<run UUID>` beside live src. Upload the whole
    frozen package into `release`. Hash its shared verifier against the independent
    local anchor before importing it, then verify the exact package. Rehash locally
@@ -81,6 +85,56 @@ It uses `--ssh-key` for drift, fixing the old `--key` typo. A public-gate failur
 keeps the original paused receipt usable for a later reviewed attempt. An uncertain
 resume is never retried.
 
+## Bootstrapping the legacy console (D-227)
+
+The console the public server runs (commit `7d616fe`, deployed 2026-09-05) has no
+maintenance API, so the standard apply stops at `maintenance-status` with HTTP404.
+The one-time replacement is explicit:
+
+```sh
+bash local-net/deploy/console-deploy.sh \
+  --release /absolute/frozen-package --expected-sha256 REVIEWED_RELEASE_SHA --apply --bootstrap-legacy
+```
+
+The flag is refused on a console that answers the maintenance API. On a legacy
+console the pause/drain step is replaced by `console-maintenance.mjs --legacy-idle`:
+`/api/maintenance` must be 404, `/api/progress.running` must be false and
+`/api/status` must report a ledger. It runs before and after the lock and again
+inside every installation phase; it is weaker than the admission count (a queued
+request is invisible to it) and the bootstrap accepts that one such request may be
+refused by the restart rather than interrupted. Before the backup the maintenance
+marker directory is written beside the legacy console (it never reads it), so the
+backup records the state the replacement boots into. The restart uses
+`console-restart.sh --legacy-bootstrap`, which verifies the listener identity the
+same way and starts the replacement paused. From there the run is a normal paused
+apply: verify, then a separately reviewed `--resume`.
+
+The isolated drill runs this against the real legacy `server.mjs` taken from
+commit `7d616fe`, not a 404 stub, and checks the refusal without the flag, the
+phase order (audit → idle probe → lock → idle probe → upload → … → restart →
+verify), that no pause phase runs, that the replacement is paused and resumable,
+and that the flag is refused on a modern console.
+
+## Unwinding a failed apply (D-227)
+
+An apply that fails after `lock-acquire` and before `install` has changed nothing
+on the server except its own lock and, if it got that far, its own pause. Nothing
+freed those before; the console stayed closed and the lock stayed held with no tool.
+
+```sh
+bash local-net/deploy/console-deploy.sh \
+  --release /absolute/frozen-package --expected-sha256 REVIEWED_RELEASE_SHA \
+  --unwind --receipt /absolute/deployment.json --expected-receipt-sha256 FAILED_RECEIPT_SHA
+```
+
+It binds the failed receipt to release/target/invocation, asserts the lock is this
+invocation's, resumes the console if it is paused and drained (the lock is the proof
+the pause is ours), then abandons the lock **without** writing a `deployed/` receipt.
+It never restarts, restores or copies. A failure at `install` or later is refused:
+the source has changed, and going back is a reviewed restore from the backup, after
+which `--resume` applies once `verify-installed` passes. A second unwind finds no
+lock and changes nothing.
+
 ## Failure and evidence
 
 Each mutating remote phase first creates an exclusive started record. Reusing a
@@ -109,10 +163,11 @@ profile gets <=240s (D-221 includes a real30s deadline drill), and deployment ge
 ## Current public blockers
 
 The last read-only maintenance probe returned HTTP404 on the legacy public console.
-The new routine refuses that starting point. First adoption needs a separate reviewed
-plan to close ingress, establish old work has drained and install maintenance-capable
-code. Old running:false does not prove zero admitted/queued work. Caddy/web changes
-belong to web-home; this controller does not edit them.
+The standard routine refuses that starting point; `--apply --bootstrap-legacy`
+(above, D-227) is the reviewed path for it. Old running:false does not prove zero
+admitted/queued work, which is why the idle probe runs three times and the bootstrap
+is documented as able to refuse one queued request. Caddy/web changes belong to
+web-home; this controller does not edit them.
 
 The last drift inventory also found undeclared local-net/deploy/heartbeat-deploy.sh.
 Resolve it with an exact ownership/retention decision, not a broad exemption,

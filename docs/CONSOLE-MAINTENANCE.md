@@ -176,10 +176,31 @@ larger operation; this helper cannot serialize independent operators by itself.
 Use the D-214 per-invocation lock described in `DEPLOYMENT-LOCK.md`; the original
 same-host/branch/commit identity allowed two separate runs to reenter one lock.
 
-The replacement starts with `A1_CONSOLE_START_PAUSED=1`; the server persists its
-own maintenance gate before listening even if the original marker was lost.
+The replacement starts with `A1_CONSOLE_START_PAUSED=1` **only when the caller passes
+`--start-paused`** (D-227; the deployment controller does, because its next phase is
+a reviewed resume). Without the flag the replacement reads the on-disk marker the
+pause above already persisted and stays paused for that reason alone. The server
+persists its own maintenance gate before listening either way.
 Only 0, 1 or an absent variable are valid. Value 0 does not override an existing
-pause marker. Invalid values or failed persistence refuse startup. Restart then
+pause marker. Invalid values or failed persistence refuse startup.
+
+### Reopening by hand (D-227)
+
+A pause outlives the deployment that set it: the marker directory survives every
+restart and every reboot. A console that comes up days later therefore comes up
+CLOSED — creates, revokes, upgrades and transfers answer 503 while every read
+endpoint answers 200. The startup log now prints this state on its own line
+(`bảo trì: 🔒 ĐANG PAUSE …`), and `/api/status` carries it under `maintenance`.
+To reopen without a deployment, on the server:
+
+```bash
+cd ~/9chain-a1/src && set -a && . ../console.env && set +a
+node local-net/deploy/console-maintenance.mjs --status
+node local-net/deploy/console-maintenance.mjs --resume --instance-id <instanceId from status> --maintenance-id <maintenanceId from status>
+```
+
+Never remove `9chain-a1-config/console-maintenance/` by hand: the running process
+stays paused in memory and the next restart is the only thing that would reopen it. Restart then
 requires a different process instance and listener PID in the expected tree,
 with persistent/drained maintenance. It never resumes admissions, even on success.
 Failure leaves the evidence/log for review and does not print potentially sensitive

@@ -9884,7 +9884,7 @@ Outside-band files remain evidence, not cleanup candidates or released identifie
 
 Limits:4MiB/file,128MiB/read snapshot,1024 temporary/ledger entries,128 RPC candidates,
 six parallel reads and30s total RPC budget. A shared inspection-rpc.mjs now enforces
-strict bounded200JSON/no redirects and six read methods for D-220/D-221. D-22074-case
+strict bounded200JSON/no redirects and six read methods for D-220/D-221. D-220 74-case
 behavior remains verified. No new console transport policy or public mutation.
 
 93 Windows/94 Linux controls pass, including valid input beyond bounds, actual read
@@ -9998,3 +9998,36 @@ personal-ledger/shared-execution/dedicated-L1 split is a proposed trust/cost con
 not implemented shared scheduling or evidence for billions of active L1s. No current
 allocator/genesis/validator policy changed. Public approval is premature while legacy
 drain, helper provenance handling and a tested first-transition recovery remain open.
+
+### D-227 — Soát lượt GPT 6 Astra (06–07/09): tám rủi ro, sửa theo thứ tự (`2026-09-07`)
+
+Lượt tự trị 37 commit `a616eef..a5b852a` (D-197…D-226) được soát bằng ba agent + toàn bộ cổng. KHÔNG push, KHÔNG deploy,
+KHÔNG chạm `patches/`/`web/`/genesis; có SSH đọc và **chạy mã qua stdin trên server** (chỉ đọc) — §4 chưa gọi tên hành vi này, David quyết.
+Tám rủi ro tìm thấy và cách đóng — mỗi cái có đối chứng ngược đã thấy ĐỎ:
+
+1. **Một creation hỏng khoá CẢ console.** `assertClear()` chặn revoke/upgrade/transfer của MỌI chain, trái bất biến ở đầu `createChain`
+   ("đóng cửa không được nhốt người đã ở trong"). Nay `assertNotPendingFor(name)` chỉ chặn đúng chain đang dở; subnet của job `created`
+   được giữ trên danh sách track của mọi lượt rollout khác (`pendingSubnetIDs()`); phase `prepared` (CLI chưa chạy) tự discard.
+   Cửa ra DUY NHẤT: `POST /api/creation/resolve` (token vận hành, hàng đợi tuần tự) — `discard` (prepared; submitting cần `confirmNotSubmitted`),
+   `retire` (giữ tên+chainId vĩnh viễn như D-014), `adopt` (chạy lại đúng nửa sau của `executeChainLaunch`, nay tách thành `finishChainLaunch`).
+   Nhật ký được đóng bằng `history/<id>.json` mang `resolution`, ghi history TRƯỚC rồi mới xoá pending. 17/17 e2e (`create-rpc-e2e-test`).
+2. **Console khởi động ĐÓNG.** `console-restart.sh` ép `A1_CONSOLE_START_PAUSED=1` mọi lượt. Nay cờ `--start-paused` tường minh (chỉ bộ điều khiển
+   deploy truyền); restart trần đọc dấu trên đĩa. Log khởi động in trạng thái bảo trì + creation dở; `CONSOLE-MAINTENANCE.md` có mục mở lại bằng tay.
+3. **Deployer không bootstrap được server thật** (bản legacy trả 404 `/api/maintenance`) và **kiểm nguồn coi faucet lệch là chặn** (cổng không bao giờ xanh).
+   Nay: lệch ngoài release là `driftOutsideRelease` (ghi nhận, không chặn; `check-deploy-drift` vẫn đo ở resume); `--apply --bootstrap-legacy`
+   đi qua `--legacy-idle` (đo `/api/progress` + `/api/status`, HAI lần quanh khoá) → `console-restart.sh --legacy-bootstrap` → kết thúc PAUSED
+   → resume như thường. Fixture Docker chạy ĐÚNG `server.mjs` của commit `7d616fe` (bản đang chạy công khai), không phải stub 404.
+4. **Bộ đọc sổ chặt hơn có thể 500 trên sổ thật.** Đo: sổ công khai 11/11 có `name`, không có `.tmp` trên server. Cổng `check-chain-ledger`
+   nay chạy `parseLedger` của console lên đúng byte công khai (stage `console-reader`, mã 1) — 26/26 self-test, đo sống PASS.
+5. **Gói vật chứng `manifest.json` ngoài tầm `check-evidence`** (D-125 tái diễn). Nay hiểu `manifest.json`+`manifest.sha256`; sidecar niêm phong
+   manifest (viết lại manifest cho khớp tệp đã sửa vẫn ĐỎ). 4/4 gói, 14/14 self-test.
+6. **Hằng số chép lần hai.** `A1_PARENT_EVM_CHAIN_ID` và `127.0.0.1:9650` vào `check-single-source` (5 hằng); số học có/không gạch dưới là opt-in
+   `anySpelling` để KHÔNG nới phạm vi luật networkID cũ; `MANAGED_NODE_API` khai một nơi; `smoke-l1` import thay vì chép.
+7. **Khoá deploy đổi hợp đồng + kẹt sau apply hỏng.** `deploy-lock.mjs` thêm `abandon` (không ghi biên nhận `deployed/`), thứ tự release:
+   dựng biên nhận → gỡ khoá → công bố biên nhận (hết ca "biên nhận nói đã deploy mà khoá còn giữ"). `--unwind --receipt` cho apply hỏng
+   TRƯỚC `install`: resume pause của chính nó, abandon khoá, không biên nhận; hỏng SAU install thì từ chối (khôi phục có duyệt). 42/42 lock.
+8. **Rác và số liệu lệch.** `D-22074`/`D-22547`/`D-22634` = "D-220 74-case"… (mất dấu cách) đã sửa; `paused-e2e-test` nhấp nháy vì ngân sách
+   khởi động lạnh 24 s → 120 s; e2e dọn scratch khi đạt; `work/` 5,2 GB → chỉ giữ biên nhận/vật chứng; container/volume/tag của lượt chạy đã gỡ.
+
+Nguyên tắc rút ra: một reservation không ai đóng được là một console không ai dùng được; và một cổng KHÔNG THỂ xanh trên server thật
+(faucet lệch, legacy 404) không phải cổng — nó là lý do người ta tắt cổng.

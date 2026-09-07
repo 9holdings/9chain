@@ -108,7 +108,7 @@ these accepted controls; a syntax failure was not counted as evidence.
 Windows: work/legacy-artifacts-tests.log, work/legacy-artifacts-test-Ju7bLZ. Linux:
 work/legacy-artifacts-linux.log, inputs work/legacy-artifacts-linux-ZO8zKW; isolated
 768MiB/1CPU,256MiB tmpfs, network-none/read-only-root container
-a1-autopilot-legacy-final-linux-20260906. D-22074 controls also pass in that container.
+a1-autopilot-legacy-final-linux-20260906. D-220 74 controls also pass in that container.
 Negative log work/legacy-artifacts-negative.log; copied fixtures
 work/legacy-negative-genesis-BZO7i9, work/legacy-negative-stability-zg4dLm and
 work/legacy-negative-budget-8wptPL. The last three controls preceded test-only

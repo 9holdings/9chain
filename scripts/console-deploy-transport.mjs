@@ -29,7 +29,7 @@ async function remoteBootstrap(request) {
     const selected = new Set(request.selected), tracked = new Set(request.tracked);
     const declared = new Set(request.files.map(file => file.path));
     const ignored = name => request.ignore.some(rule => new RegExp(rule.pattern).test(name));
-    const blocked = [], observations = [], knownExtra = [], outsideScope = [];
+    const blocked = [], observations = [], knownExtra = [], outsideScope = [], driftOutsideRelease = [];
     for (const entry of request.files) {
       const target = path.join(source, entry.path), info = stat(target);
       let hash = null;
@@ -38,7 +38,14 @@ async function remoteBootstrap(request) {
         hash = createHash('sha256').update(fs.readFileSync(target)).digest('hex');
       }
       observations.push({ path: entry.path, sha256: hash, bytes: info?.size ?? null });
-      if (hash !== entry.sha256 && (request.exact || !selected.has(entry.path))) blocked.push({ path: entry.path, reason: hash ? 'source differs' : 'source missing' });
+      if (hash === entry.sha256) continue;
+      // A file this release SHIPS is allowed to differ before install and must match after
+      // (`exact`). A file of ANOTHER service (faucet, operator tools) is reported, never a
+      // reason to refuse: the first version blocked the console release on faucet drift, and
+      // since no faucet deployer exists that gate could never go green (D-227). The repo-wide
+      // measurement of that drift is `scripts/check-deploy-drift.mjs`, run at resume.
+      if (selected.has(entry.path)) { if (request.exact) blocked.push({ path: entry.path, reason: hash ? 'source differs' : 'source missing' }); }
+      else driftOutsideRelease.push({ path: entry.path, reason: hash ? 'source differs' : 'source missing' });
     }
     const directories = [...new Set(request.files.map(entry => path.posix.dirname(entry.path)))];
     let scannedEntries = 0;
@@ -61,7 +68,7 @@ async function remoteBootstrap(request) {
         }
       } finally { directory.closeSync(); }
     }
-    return { sourceDirectory: source, observations, blocked, knownExtra, outsideScope, scannedEntries,
+    return { sourceDirectory: source, observations, blocked, knownExtra, outsideScope, driftOutsideRelease, scannedEntries,
       scope: 'Direct files in manifest-derived directories, with declared exclusions; not a whole-server audit.' };
   }
   if (!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(request.actor?.runId ?? '')) throw new Error('A staging invocation UUID is required');
@@ -134,12 +141,13 @@ export function consoleDeployTransport({ root, bundle, host, key, sourceDirector
       const tracked = execFileSync('git', ['-C', root, 'ls-files', '-z'], { encoding: 'utf8', timeout: 10000, maxBuffer: 4 << 20, windowsHide: true }).split('\0').filter(Boolean);
       const result = bootstrap({ action: 'audit', files: [...files.values()], selected: metadata.files.map(file => file.path),
         tracked, knownExtra: manifest.knownExtra ?? [], ignore: manifest.ignore ?? [], exact });
-      if (!Array.isArray(result.blocked) || !Array.isArray(result.observations) || result.observations.length !== files.size) throw new Error('Remote source audit is incomplete');
+      if (!Array.isArray(result.blocked) || !Array.isArray(result.observations) || !Array.isArray(result.driftOutsideRelease) || result.observations.length !== files.size) throw new Error('Remote source audit is incomplete');
       if (result.blocked.length) throw new Error('Remote source audit blocks deployment: ' + result.blocked.map(item => item.path + ' (' + item.reason + ')').join(', '));
       return result;
     },
     maintenance(action, state = {}) {
-      const flags = { status: [], 'pause-and-wait': ['--pause-and-wait'], 'assert-paused': ['--assert-paused'] }[action];
+      const flags = { status: [], 'pause-and-wait': ['--pause-and-wait'], 'assert-paused': ['--assert-paused'],
+        resume: ['--resume'], 'legacy-idle': ['--legacy-idle'] }[action];
       if (!flags) throw new Error('Unknown transport maintenance action');
       for (const [key, flag] of [['instanceId', '--instance-id'], ['maintenanceId', '--maintenance-id']]) if (state[key]) flags.push(flag, state[key]);
       flags.push('--timeout-ms', action === 'pause-and-wait' ? '600000' : '5000');

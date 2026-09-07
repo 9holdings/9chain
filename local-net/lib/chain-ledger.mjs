@@ -22,6 +22,7 @@ import { readFileSync } from "node:fs";
 import https from "node:https";
 import http from "node:http";
 import { NETWORK_ID, GOC_DAI_CHAINID, TRAN_DAI_CHAINID, TEN_MANG } from "./chainid.mjs";
+import { parseLedger } from "./ledger-read.mjs";
 
 /**
  * Where the public is served the chain directory. Declared once: two readers compose the same URL,
@@ -202,12 +203,22 @@ export async function assessPublicLedger({ ledgerUrl, ledgerFile = null, rpcBase
   }
   const band = { floor: GOC_DAI_CHAINID, ceiling: TRAN_DAI_CHAINID };
 
-  let ledger;
+  let ledger, raw;
   try {
-    const raw = ledgerFile ? readFileSync(ledgerFile, "utf8") : (await ask(ledgerUrl)).body;
+    raw = ledgerFile ? readFileSync(ledgerFile, "utf8") : (await ask(ledgerUrl)).body;
     ledger = JSON.parse(raw);
   } catch (e) {
     return { code: 2, stage: "fetch", liveId, band, error: e.message, reds: [], unknowns: [], entries: [], live: [], retired: [] };
+  }
+
+  // 🔴 The CONSOLE's own reader must accept the file the public is served (D-227). The reader
+  // got stricter on 2026-09-06 (every entry needs a name; recovery files block) — and a ledger
+  // this gate calls fine while the console refuses it on its next boot is a console that
+  // answers 500 to everyone, with this gate green. Same bytes, the console's parser, here.
+  try {
+    parseLedger(raw);
+  } catch (e) {
+    return { code: 1, stage: "console-reader", liveId, band, error: e.message, reds: [], unknowns: [], entries: [], live: [], retired: [] };
   }
 
   const { fatal, problems, live, retired } = judgeLedgerShape(ledger, band);

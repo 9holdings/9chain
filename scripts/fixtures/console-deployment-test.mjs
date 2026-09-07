@@ -55,7 +55,7 @@ if(process.env.A1_ISOLATED_FIXTURE!=='console-deployment'||host!=='fixture.inval
 const match=input.match(/const request=JSON.parse\\(Buffer.from\\('([^']+)'/);
 let request=match?JSON.parse(Buffer.from(match[1],'base64')):null;
 let phase=request?.action==='phase'?request.phase.action:request?.action;
-if(!phase) phase=command.includes('--pause-and-wait')?'pause':command.includes('--request')?'lock':'status';
+if(!phase) phase=command.includes('--pause-and-wait')?'pause':command.includes('--request')?'lock':command.includes('--legacy-idle')?'legacy-idle':command.includes('--resume')?'client-resume':'status';
 fs.appendFileSync(process.env.A1_FIXTURE_LOG,JSON.stringify({phase,command:phase==='status'?'maintenance':undefined})+'\\n');
 const fault=process.env.A1_FIXTURE_FAULT;
 if(fault==='audit-enumeration'&&phase==='audit') {
@@ -107,11 +107,20 @@ const legacyApi = createServer((req, res) => { res.writeHead(404, { 'content-typ
 legacyApi.listen(19000, '127.0.0.1'); await once(legacyApi, 'listening');
 let serial = 0, checks = 0; const fixtures = [];
 async function state(item) { return controlMaintenance({ url: 'http://127.0.0.1:' + item.port, token, timeoutMs: 1500 }); }
-async function fixture(name, fault = '') {
+async function legacyReady(item) {
+  // The legacy console has no maintenance API; its readiness signal is the progress view.
+  const response = await fetch('http://127.0.0.1:' + item.port + '/api/progress', { headers: { authorization: 'Bearer ' + token }, signal: AbortSignal.timeout(1500) });
+  if (response.status !== 200) throw new Error('legacy console not ready');
+  return response.json();
+}
+async function fixture(name, fault = '', { legacy = false } = {}) {
   const root = lab + '/' + name, source = root + '/src', port = 18100 + serial++;
   fs.cpSync('/inputs/src', source, { recursive: true });
   fs.cpSync('/opt/deployment-fixture/node_modules', source + '/local-net/console/node_modules', { recursive: true });
-  fs.appendFileSync(source + '/local-net/console/server.mjs', '\n// Synthetic previous release byte.\n');
+  // A legacy fixture runs the console program the public server ran before the maintenance
+  // API existed — the real file, so the bootstrap replaces what it will really replace.
+  if (legacy) fs.copyFileSync('/inputs/legacy-server.mjs', source + '/local-net/console/server.mjs');
+  else fs.appendFileSync(source + '/local-net/console/server.mjs', '\n// Synthetic previous release byte.\n');
   fs.mkdirSync(source + '/9chain-a1-config/creation-journal', { recursive: true });
   const log = root + '/transport.ndjson'; put(log, '');
   const env = { ...envBase, A1_FIXTURE_SOURCE: source, A1_FIXTURE_LOG: log, A1_FIXTURE_FAULT: fault,
@@ -123,9 +132,9 @@ async function fixture(name, fault = '') {
   put(root + '/console.env', names.map(key => key + "='" + env[key] + "'").join('\n') + '\n# ' + secret + '\n');
   const descriptor = fs.openSync(root + '/console.log', 'a', 0o600);
   const child = spawn(process.execPath, ['local-net/console/server.mjs'], { cwd: source, env, stdio: ['ignore', descriptor, descriptor] }); fs.closeSync(descriptor);
-  const item = { name, root, source, port, env, child, log }; fixtures.push(item);
+  const item = { name, root, source, port, env, child, log, legacy }; fixtures.push(item);
   for (let count = 0; count < 100; count++) {
-    try { item.initial = await state(item); return item; } catch { if (child.exitCode !== null) throw new Error('Fixture console exited: ' + fs.readFileSync(root + '/console.log')); await delay(30); }
+    try { item.initial = legacy ? await legacyReady(item) : await state(item); return item; } catch { if (child.exitCode !== null) throw new Error('Fixture console exited: ' + fs.readFileSync(root + '/console.log')); await delay(30); }
   }
   throw new Error('Fixture console failed to listen');
 }
@@ -153,6 +162,9 @@ async function stop(item) {
   }
   if (item.child.exitCode === null) item.child.kill('SIGTERM');
   await delay(80);
+  // Reclaim the tmpfs: a stopped fixture's dependency trees (three copies per applied fixture)
+  // are what ran the lab out of space at the 26th console (D-227). Logs and receipts stay.
+  for (const tree of [item.source + '/local-net/console/node_modules', item.root + '/console-deployments']) fs.rmSync(tree, { recursive: true, force: true });
 }
 function unchangedCode(item) { assert.equal(fs.readFileSync(item.source + '/local-net/console/server.mjs', 'utf8').endsWith('// Synthetic previous release byte.\n'), true); }
 function noPhase(item, phase) { assert.equal(phases(item).some(entry => entry.phase === phase), false, 'Unexpected phase: ' + phase); }
@@ -198,9 +210,22 @@ try {
   await stop(good);
   console.log('PASS: real frozen upload, backup, offline npm ci, source/dependency replacement and targeted paused restart; separate gated resume releases only its lock');
 
+  // Drift in a file this release does NOT ship (the faucet) is reported, never a reason to refuse
+  // (D-227): no faucet deployer exists, so a gate on it could never go green on the real server.
+  const drifted = await fixture('nonselected-drift');
+  fs.appendFileSync(drifted.source + '/local-net/faucet/server.mjs', '// different service version');
+  const driftedApply = (await cli(drifted, ['--apply'])).report;
+  assert.equal(driftedApply.outcome, 'paused');
+  const auditEvent = driftedApply.events.find(entry => entry.phase === 'source-audit');
+  const auditValue = JSON.parse(fs.readFileSync(auditEvent.path)).value;
+  assert.deepEqual(auditValue.driftOutsideRelease.map(item => item.path), ['local-net/faucet/server.mjs']);
+  assert.equal(auditValue.blocked.length, 0);
+  await stop(drifted);
+  console.log('PASS: drift outside the release is recorded in the audit receipt and does not block the console apply');
+
   for (const [name, fault, expectedPhase] of [
     ['orphan', '', 'source-audit'], ['audit-enumeration', 'audit-enumeration', 'source-audit'],
-    ['nonselected-drift', '', 'source-audit'], ['linked-source', '', 'source-audit'],
+    ['linked-source', '', 'source-audit'],
     ['unauthorized', '', 'maintenance-status'], ['legacy-api', '', 'maintenance-status'], ['already-paused', '', 'maintenance-status'],
     ['lock-held', '', 'lock-acquire'], ['upload-failure', 'upload-failure', 'upload'],
     ['tampered-upload', 'tampered-upload', 'verify-package'], ['backup-failure', 'backup-failure', 'backup'],
@@ -215,7 +240,6 @@ try {
     if (name === 'audit-enumeration') {
       for (let index = 0; index < 20020; index++) put(item.source + '/local-net/deploy/audit-entry-' + index + '.txt', 'synthetic');
     }
-    if (name === 'nonselected-drift') fs.appendFileSync(item.source + '/local-net/faucet/server.mjs', '// different service version');
     if (name === 'linked-source') { fs.renameSync(item.source + '/local-net/faucet/server.mjs', item.root + '/linked-target.mjs'); fs.symlinkSync(item.root + '/linked-target.mjs', item.source + '/local-net/faucet/server.mjs'); }
     if (name === 'unauthorized') fs.writeFileSync(item.root + '/console.env', fs.readFileSync(item.root + '/console.env', 'utf8').replace(token, 'synthetic-wrong-operator-token'));
     if (name === 'legacy-api') fs.writeFileSync(item.root + '/console.env', fs.readFileSync(item.root + '/console.env', 'utf8').replace("PORT='" + item.port + "'", "PORT='19000'"));
@@ -264,6 +288,62 @@ try {
   assert.equal(phases(lost).filter(entry => entry.phase === 'resume').length, 1, 'An uncertain resume must not be repeated');
   await stop(lost);
   console.log('PASS: actual resume followed by a lost SSH response is reported uncertain and never replayed');
+
+  // ═══ D-227: unwind a failed apply that never changed the source ═══
+  const stuck = await fixture('unwind', 'upload-failure');
+  const stuckApply = (await cli(stuck, ['--apply'], 1)).report;
+  assert.equal(stuckApply.failedPhase, 'upload'); assert.equal((await state(stuck)).paused, true);
+  assert.equal(fs.existsSync(stuck.root + '/deploy-locks/console.lock/holder.json'), true);
+  const unwindArgs = ['--unwind', '--receipt', stuckApply.receipt.path, '--expected-receipt-sha256', stuckApply.receipt.sha256];
+  const wrongHash = [...unwindArgs]; wrongHash[wrongHash.length - 1] = 'f'.repeat(64);
+  await cli(stuck, wrongHash, 1); assert.equal((await state(stuck)).paused, true, 'a wrong receipt hash unwinds nothing');
+  const unwound = (await cli(stuck, unwindArgs)).report;
+  assert.equal(unwound.outcome, 'unwound', unwound.failure);
+  assert.equal((await state(stuck)).paused, false, 'the pause this apply set is released');
+  assert.equal(fs.existsSync(stuck.root + '/deploy-locks/console.lock'), false, 'the lock this apply held is abandoned');
+  assert.equal(fs.existsSync(stuck.root + '/deployed/console.json'), false, 'nothing was deployed, so no receipt says it was');
+  assert.equal((await state(stuck)).instanceId, stuck.initial.instanceId, 'unwind never restarts the console');
+  unchangedCode(stuck);
+  assert.equal(phases(stuck).filter(entry => entry.phase === 'client-resume').length, 1);
+  await cli(stuck, unwindArgs, 1); assert.equal(phases(stuck).filter(entry => entry.phase === 'client-resume').length, 1, 'a second unwind finds no lock and changes nothing');
+  await stop(stuck);
+  const late = await fixture('unwind-late', 'source-drift');
+  const lateApply = (await cli(late, ['--apply'], 1)).report;
+  assert.equal(lateApply.failedPhase, 'install');
+  const latePhases = phases(late).length;
+  await cli(late, ['--unwind', '--receipt', lateApply.receipt.path, '--expected-receipt-sha256', lateApply.receipt.sha256], 1);
+  assert.equal(phases(late).length, latePhases, 'a failure after the source changed is never unwound automatically');
+  assert.equal((await state(late)).paused, true); assert.equal(fs.existsSync(late.root + '/deploy-locks/console.lock/holder.json'), true);
+  await stop(late);
+  console.log('PASS: unwind releases pause and lock of a pre-install failure only, writes no deployed receipt, refuses post-install failures');
+
+  // ═══ D-227: bootstrap the console the server really runs (no maintenance API) ═══
+  const legacy = await fixture('legacy', '', { legacy: true });
+  const refusedLegacy = (await cli(legacy, ['--apply'], 1)).report;
+  assert.equal(refusedLegacy.failedPhase, 'maintenance-status'); noPhase(legacy, 'lock'); noPhase(legacy, 'upload');
+  assert.equal((await legacyReady(legacy)).running, false, 'the legacy console is untouched by a refused apply');
+  const bootstrapped = (await cli(legacy, ['--apply', '--bootstrap-legacy'])).report;
+  assert.equal(bootstrapped.outcome, 'paused', bootstrapped.failure); assert.equal(bootstrapped.legacy, true);
+  const legacyOrder = phases(legacy).map(entry => entry.phase);
+  for (const [first, second] of [['audit', 'legacy-idle'], ['legacy-idle', 'lock'], ['lock', 'upload'], ['backup', 'npm'], ['npm', 'install'], ['install', 'restart'], ['restart', 'verify']]) assert.ok(legacyOrder.indexOf(first) < legacyOrder.indexOf(second), first + ' must precede ' + second);
+  assert.ok(legacyOrder.filter(phase => phase === 'legacy-idle').length >= 2, 'the idle probe runs before and after the lock');
+  noPhase(legacy, 'pause');
+  const replaced = await state(legacy);
+  assert.equal(replaced.paused, true); assert.equal(replaced.readyForRestart, true);
+  assert.equal(fs.existsSync(legacy.root + '/deploy-locks/console.lock/holder.json'), true);
+  assert.equal(fs.readFileSync(legacy.source + '/local-net/console/server.mjs', 'utf8'), fs.readFileSync('/inputs/src/local-net/console/server.mjs', 'utf8'), 'the release replaced the legacy program');
+  const legacyResume = ['--resume', '--receipt', bootstrapped.receipt.path, '--expected-receipt-sha256', bootstrapped.receipt.sha256];
+  const legacyResumed = (await cli(legacy, legacyResume)).report;
+  assert.equal(legacyResumed.outcome, 'resumed', legacyResumed.failure); assert.equal((await state(legacy)).paused, false);
+  assert.equal(fs.existsSync(legacy.root + '/deploy-locks/console.lock'), false);
+  assert.equal((await state(other)).instanceId, other.initial.instanceId);
+  await stop(legacy);
+  const modern = await fixture('not-legacy');
+  const wrongFlag = (await cli(modern, ['--apply', '--bootstrap-legacy'], 1)).report;
+  assert.equal(wrongFlag.failedPhase, 'maintenance-status'); assert.match(wrongFlag.failure, /drop --bootstrap-legacy/);
+  noPhase(modern, 'lock'); assert.equal((await state(modern)).paused, false); unchangedCode(modern);
+  await stop(modern);
+  console.log('PASS: the real legacy console is replaced only with --bootstrap-legacy, through the idle probe, ending paused and resumable; the flag is refused on a modern console');
   console.log('PASS: ' + checks + ' actual deployment CLI scenarios; product acceptance placeholders and public gates are synthetic, consoles/files/npm/restart are real');
 } catch (error) { console.error('FAIL: ' + error.stack); process.exitCode = 1; }
 finally {

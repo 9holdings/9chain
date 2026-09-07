@@ -90,7 +90,7 @@ quá khứ hay sẽ được xuất bản?*
 ```bash
 node scripts/gday-preflight.mjs              # 34 cổng + 40 VIỆC TAY, một lệnh (~4 phút)
 node scripts/check-net-dirs.mjs              # thư mục net* nào thuộc thế hệ nào · thư mục nào giữ TIỀN
-node scripts/check-evidence.mjs              # gói vật chứng còn tự nghiệm thu được không
+node scripts/check-evidence.mjs              # gói vật chứng còn tự nghiệm thu được không (MANIFEST.txt · SHA256SUMS.txt · manifest.json+manifest.sha256 — D-227)
 node scripts/check-single-source.mjs         # một hằng số, MỘT nơi khai
 node scripts/check-english-code.mjs          # mã nguồn chỉ có tiếng Anh (bánh cóc, §0)
 node scripts/make-l1-genesis.mjs --self-test  # khuôn L1 KHÔNG được dùng nguyên xi (D-114)
@@ -123,7 +123,8 @@ bash scripts/h6b-backup.sh --check           # bản sao lưu có dựng lại �
 node scripts/check-worktree-ownership.mjs    # 🔴 NHÁNH NÀY được sửa đường này không (D-194) — luật cứng #4 thành BẢNG
                                              #    đo WORKTREE ĐANG ĐỨNG · `--deploy <bề mặt>` · `--range A..B` cho lịch sử
                                              #    nhánh detached / `claude/*` = mã 2, KHÔNG BAO GIỜ 0 (ba commit đã mất ở đó, D-193)
-bash local-net/deploy/deploy-lock.sh --self-test   # khoá deploy trên server: một phiên một bề mặt (D-194)
+bash local-net/deploy/deploy-lock.sh --self-test   # khoá deploy trên server: một phiên một bề mặt (D-194; từ D-214 là vỏ bash của `deploy-lock.mjs` schema 2,
+                                             #    không TTL; apply hỏng TRƯỚC install thì gỡ bằng `deploy-console-release.mjs --unwind` — D-227)
 node local-net/deploy/check-heartbeat-stopped.mjs  # bơm 9 tx/s ĐÃ DỪNG THẬT chưa — hỏi SERVER; đỏ có chủ ý tới 09/09
 node scripts/drill-upgrade-rollback.mjs --self-test  # 🔴 đường LÙI nâng cấp L1 khi gãy ở node k>1 (D-195) — luật chấm;
                                              #    `--run` tiêm lỗi vào MẠNG TẬP (từ chối mọi networkID ngoài băng 899999xxx),

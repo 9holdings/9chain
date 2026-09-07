@@ -27,6 +27,7 @@
 //     set -a; . ~/9chain-a1/console.env; set +a
 //     cd ~/9chain-a1/src && node local-net/faucet/smoke-l1.mjs --create-chain
 import { ethers } from "ethers";
+import { A1_PARENT_EVM_CHAIN_ID } from "../lib/chainid.mjs";
 
 const args = process.argv.slice(2);
 const co = t => args.includes("--" + t);
@@ -38,7 +39,7 @@ const CONSOLE = opt("console", "http://127.0.0.1:8091");
 const TOKEN = process.env.A1_CONSOLE_TOKEN || "";
 const DE_CHAIN = co("create-chain");
 const GIU = co("giu");            // giữ lại chain vừa đẻ, không thu hồi
-const CHAIN_ID_C = 9000000009;
+const CHAIN_ID_C = A1_PARENT_EVM_CHAIN_ID;
 
 const ket = [];
 let hong = 0;

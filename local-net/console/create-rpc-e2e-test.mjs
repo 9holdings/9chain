@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { createServer as httpServer } from 'node:http';
 import { createServer as netServer } from 'node:net';
-import { mkdirSync, mkdtempSync, copyFileSync, readFileSync, existsSync, readdirSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, copyFileSync, readFileSync, existsSync, readdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { NETWORK_ID, TEN_MANG } from '../lib/chainid.mjs';
@@ -53,11 +53,13 @@ let pass = 0, fail = 0;
 
 async function check(label, result, succeeds, errorPattern,
   { failuresBeforeSuccess = 0, cliFailure = false, crashDuringSubmission = false, ledgerFailure = false,
-    nodeMode = '', requestTimeoutMs = 10000 } = {}) {
+    nodeMode = '', requestTimeoutMs = 10000, resolution = 'retire' } = {}) {
   reported = result;
   chainQueries = 0;
   failuresRemaining = failuresBeforeSuccess;
+  let keepScratch = false;
   const scratch = mkdtempSync(path.join(root, 'work/create-rpc-'));
+  const createCount = () => readFileSync(path.join(scratch, 'fake-docker.log'), 'utf8').split('\n').filter(x => x === 'create').length;
   const config = path.join(scratch, '9chain-a1-config');
   mkdirSync(config);
   mkdirSync(path.join(scratch, 'local-net/console'), { recursive: true });
@@ -223,20 +225,113 @@ async function check(label, result, succeeds, errorPattern,
         body: JSON.stringify({ name: 'RPC Identity Test', xacNhan: 'RPC Identity Test' }) });
       assert.equal(blockedRevoke.status, 400);
       assert.match((await blockedRevoke.json()).error, /chain creation is pending/i,
-        'revocation must not remove the unresolved subnet from the track list');
+        'the chain under creation itself stays off limits until resolved');
       const blockedUpgrade = await fetch(base + '/api/upgrade', { method: 'POST', headers,
         body: JSON.stringify({ name: 'RPC Identity Test', confirm: 'RPC Identity Test' }) });
       assert.equal(blockedUpgrade.status, 400);
       assert.match((await blockedUpgrade.json()).error, /chain creation is pending/i);
-      assert.equal(readFileSync(path.join(scratch, 'fake-docker.log'), 'utf8').split('\n').filter(x => x === 'create').length, 1);
+      assert.equal(createCount(), 1);
+      // 🔴 Other chains are NOT trapped behind one stuck creation (D-227). The first journal blocked
+      // every mutation, so one slow bootstrap closed revocation for everyone while /api/status
+      // stayed 200. There is no other chain in this ledger, so the refusal must be "no such chain",
+      // never "creation is pending".
+      const otherRevoke = await fetch(base + '/api/revoke', { method: 'POST', headers,
+        body: JSON.stringify({ name: 'Some Other Chain', xacNhan: 'Some Other Chain' }) });
+      assert.equal(otherRevoke.status, 400);
+      assert.doesNotMatch((await otherRevoke.json()).error, /chain creation is pending/i,
+        'revoking another chain must not be blocked by the reservation');
+      const otherTransfer = await fetch(base + '/api/transfer-owner', { method: 'POST', headers,
+        body: JSON.stringify({ name: 'Some Other Chain', newAdmin: '0x000000000000000000000000000000000000dEaD', confirm: 'Some Other Chain' }) });
+      assert.doesNotMatch((await otherTransfer.json()).error ?? '', /chain creation is pending/i);
+      assert.equal(createCount(), 1);
+
+      // ═══ The one door out: /api/creation/resolve ═══
+      const resolve = body => fetch(base + '/api/creation/resolve', { method: 'POST', headers, body: JSON.stringify(body) });
+      const wrongJob = await resolve({ jobId: '00000000-0000-4000-8000-000000000000', action: 'discard' });
+      assert.equal(wrongJob.status, 409, 'a stale or guessed jobId must not resolve anything');
+      assert.match((await wrongJob.json()).error, new RegExp(pending.id));
+      const badAction = await resolve({ jobId: pending.id, action: 'delete' });
+      assert.equal(badAction.status, 400);
+      assert.equal(existsSync(pendingFile), true, 'refused resolutions keep the reservation');
+      const history = path.join(config, 'creation-journal/history');
+      if (ledgerFailure) {
+        const stranded = await resolve({ jobId: pending.id, action: 'retire' });
+        assert.equal(stranded.status, 400);
+        assert.match((await stranded.json()).error, /unfinished write/, 'a stranded ledger write blocks resolution too');
+        assert.equal(existsSync(pendingFile), true);
+      } else if (submissionUnconfirmed) {
+        const needsIds = await resolve({ jobId: pending.id, action: 'retire' });
+        assert.equal(needsIds.status, 400);
+        assert.match((await needsIds.json()).error, /requires the subnetID the P-chain accepted/);
+        const needsConfirm = await resolve({ jobId: pending.id, action: 'discard' });
+        assert.equal(needsConfirm.status, 400);
+        assert.match((await needsConfirm.json()).error, /outcome is unknown/);
+        assert.equal(existsSync(pendingFile), true, 'an uncertain submission is never discarded by default');
+        if (resolution === 'retire-with-ids') {
+          const retiredBody = await (await resolve({ jobId: pending.id, action: 'retire', subnetID: 'OperatorReadSubnet', blockchainID: 'OperatorReadChain' })).json();
+          assert.equal(retiredBody.resolved, 'retired', JSON.stringify(retiredBody));
+          const retiredLedger = JSON.parse(readFileSync(ledger, 'utf8'));
+          assert.equal(retiredLedger.chains.length, 0);
+          assert.equal(retiredLedger.retired[0].chainId, expected);
+          assert.equal(retiredLedger.retired[0].subnetID, 'OperatorReadSubnet');
+          assert.equal(retiredLedger.retired[0].creationUnresolved.phase, 'submitting');
+        } else {
+          const discardedBody = await (await resolve({ jobId: pending.id, action: 'discard', confirmNotSubmitted: true })).json();
+          assert.equal(discardedBody.resolved, 'discarded', JSON.stringify(discardedBody));
+          assert.equal(existsSync(ledger), false, 'discarding writes nothing to the ledger');
+          assert.equal(JSON.parse(readFileSync(path.join(history, `${pending.id}.json`), 'utf8')).resolution, 'discarded');
+          // The door is open again: the next creation reaches the CLI (and, in this fixture,
+          // fails there again — a second, independent reservation, not the old one).
+          const again = await fetch(base + '/api/create', { method: 'POST', headers,
+            body: JSON.stringify({ name: 'After Discard', chainId: expected + 3 }), signal: AbortSignal.timeout(10000) });
+          assert.equal(again.status, 400);
+          assert.equal(createCount(), 2, 'after discard the CLI runs again');
+          assert.notEqual(JSON.parse(readFileSync(pendingFile, 'utf8')).id, pending.id);
+        }
+        assert.equal(existsSync(pendingFile) && JSON.parse(readFileSync(pendingFile, 'utf8')).id === pending.id, false);
+      } else {
+        // phase `created`: the P-chain holds the subnet, so discard is refused outright.
+        const refused = await resolve({ jobId: pending.id, action: 'discard' });
+        assert.equal(refused.status, 400);
+        assert.match((await refused.json()).error, /already holds subnet TestSubnet111/);
+        assert.equal(existsSync(pendingFile), true);
+        if (resolution === 'adopt') {
+          reported = '0x' + expected.toString(16);
+          const adopted = await (await resolve({ jobId: pending.id, action: 'adopt' })).json();
+          assert.equal(adopted.resolved, 'adopted', JSON.stringify(adopted));
+          assert.equal(adopted.chainId, expected);
+          assert.equal(JSON.parse(readFileSync(ledger, 'utf8')).chains[0].blockchainID, 'TestBlockchain111');
+          assert.equal(JSON.parse(readFileSync(path.join(history, `${pending.id}.json`), 'utf8')).phase, 'complete');
+          assert.ok(readFileSync(path.join(scratch, 'fake-docker.log'), 'utf8').includes('l1-health'), 'adoption re-runs the rollout and readiness half');
+        } else {
+          const retiredBody = await (await resolve({ jobId: pending.id, action: 'retire' })).json();
+          assert.equal(retiredBody.resolved, 'retired', JSON.stringify(retiredBody));
+          const retiredLedger = JSON.parse(readFileSync(ledger, 'utf8'));
+          assert.equal(retiredLedger.retired[0].chainId, expected);
+          assert.equal(retiredLedger.retired[0].blockchainID, 'TestBlockchain111');
+          assert.equal(JSON.parse(readFileSync(path.join(history, `${pending.id}.json`), 'utf8')).resolution, 'retired');
+          // Retired keeps the name and chainId reserved forever (D-014), exactly like a revoked chain.
+          const reuse = await fetch(base + '/api/create', { method: 'POST', headers,
+            body: JSON.stringify({ name: 'RPC Identity Test', chainId: expected }) });
+          assert.equal(reuse.status, 400);
+          const reuseError = (await reuse.json()).error;
+          // Refused because of the NAME (the retired entry quotes it), not because anything is pending.
+          assert.match(reuseError, /"RPC Identity Test"/);
+          assert.doesNotMatch(reuseError, /chain creation is pending/i);
+        }
+        assert.equal(existsSync(pendingFile), false, 'a resolved creation leaves no reservation');
+        assert.equal(createCount(), 1, 'resolution never runs the CLI again');
+      }
     }
     pass++;
     console.log(`PASS: ${label}`);
   } catch (error) {
     fail++;
     console.error(`FAIL: ${label}: ${error.message}`);
+    keepScratch = true;
   } finally {
     await stopChild();
+    if (!keepScratch) rmSync(scratch, { recursive: true, force: true });
   }
 }
 try {
@@ -249,14 +344,17 @@ try {
   await check('matching hexadecimal chain ID', '0x' + expected.toString(16), true);
   await check('matching uppercase digits', '0x' + expected.toString(16).toUpperCase(), true);
   await check('transient RPC failure then matching identity', '0x' + expected.toString(16), true, undefined, { failuresBeforeSuccess: 1 });
-  await check('wrong chain ID', '0x1', false, /chain ID mismatch/);
+  await check('wrong chain ID, then adopted once the RPC answers correctly', '0x1', false, /chain ID mismatch/, { resolution: 'adopt' });
   await check('missing result', undefined, false, /invalid eth_chainId/);
   await check('null result', null, false, /invalid eth_chainId/);
   await check('numeric result instead of a hex quantity', expected, false, /invalid eth_chainId/);
   await check('object result instead of a hex quantity', {}, false, /invalid eth_chainId/);
   await check('malformed hexadecimal result', '0xwrong', false, /invalid eth_chainId/);
-  await check('lost CLI response remains reserved across restart', null, false, /Synthetic lost CLI response/, { cliFailure: true });
-  await check('hard crash during unresolved CLI submission blocks duplicates after restart', null, false, undefined, { crashDuringSubmission: true });
+  await check('lost CLI response remains reserved across restart, then discarded with explicit confirmation', null, false, /Synthetic lost CLI response/, { cliFailure: true, resolution: 'discard' });
+  await check('lost CLI response retired with operator-read P-chain identifiers', null, false, /Synthetic lost CLI response/, { cliFailure: true, resolution: 'retire-with-ids' });
+  // The synthetic CLI never returns in this fixture, so "the door is open again" cannot be shown by
+  // a second creation here; the retire path shows the reservation closing instead.
+  await check('hard crash during unresolved CLI submission blocks duplicates after restart', null, false, undefined, { crashDuringSubmission: true, resolution: 'retire-with-ids' });
   await check('ledger flush failure preserves the creation reservation', '0x' + expected.toString(16), false,
     /ledger persistence could not be confirmed/, { ledgerFailure: true });
   await check('non-RPC node with a wrong L1 identity must refuse creation', '0x' + expected.toString(16), false,

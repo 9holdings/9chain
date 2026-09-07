@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-07 01:28 UTC** (D-22547-command exact-source acceptance verified; D-22634 deployment scenarios pass including real bounded directory enumeration; preparing final freeze and owner handoff).
+repetition. Last user-facing progress update: **2026-09-07 01:28 UTC** (D-225 47-command exact-source acceptance verified; D-226 34 deployment scenarios pass including real bounded directory enumeration; preparing final freeze and owner handoff).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 Final candidate checkpoint D-226: required fresh source-bound validation and its

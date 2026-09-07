@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { createServer } from 'node:net';
-import { mkdirSync, mkdtempSync, existsSync, copyFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, existsSync, copyFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -32,7 +32,10 @@ child.on('error', error => { spawnError = error; });
 const base = `http://127.0.0.1:${port}`;
 try {
   let ready = false;
-  for (let attempt = 0; attempt < 40; attempt++) {
+  // A cold start (ethers not yet in the OS file cache) took longer than the original 40
+  // attempts on 2026-09-07 and the gate went red for a reason it was not measuring. The budget
+  // is generous on purpose; the child's exit is still caught on every attempt.
+  for (let attempt = 0; attempt < 200; attempt++) {
     if (spawnError) throw spawnError;
     if (child.exitCode !== null) throw new Error(`Console exited ${child.exitCode}`);
     try {
@@ -65,4 +68,5 @@ try {
     child.kill();
     await exited;
   }
+  if (!process.exitCode) rmSync(scratch, { recursive: true, force: true });
 }

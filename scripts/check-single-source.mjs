@@ -86,7 +86,62 @@ export const CONSTRAINTS = [
       { file: "local-net/console/chainid-test.mjs", why: "🔴 DELIBERATE — a test must state its EXPECTED value literally. If it imported the same source as the thing under test, it would prove nothing." },
     ],
   },
+  // ── Two constants added by the 2026-09-06 run without registering them here (D-227) ──
+  {
+    name: "parent C-Chain EVM chainId",
+    literal: "9_000_000_009",
+    // Opt-in: this constant is spelled both ways in the tree. The networkID constraint above
+    // keeps its original underscore-only scope — widening it would pull thirteen files of the
+    // DEAD generation's number under a rule written for the live one, a different decision.
+    anySpelling: true,
+    allowedIn: [
+      { file: "local-net/lib/chainid.mjs", why: "SOURCE — `A1_PARENT_EVM_CHAIN_ID`, stable across generations (D-047)" },
+      { file: "local-net/console/server.mjs", why: "COMMENTS ONLY — the D-069 derivation of the L1 range is explained in prose there; the code imports the constant" },
+      { file: "local-net/console/chainid-test.mjs", why: "🔴 DELIBERATE — a test states its expected value literally" },
+      { file: "local-net/console/siwe-test.mjs", why: "🔴 DELIBERATE — the SIWE fixture states the chainId a wallet would sign, literally" },
+      { file: "local-net/console/readiness-e2e-test.mjs", why: "🔴 DELIBERATE — asserts the exported constant IS this number, and feeds it as a wrong-typed RPC answer" },
+      { file: "scripts/check-chain-ledger.mjs", why: "🔴 DELIBERATE — self-test states the decimal the hex `0x218711a09` must parse to" },
+      { file: "scripts/check-live-page.mjs", why: "🔴 DELIBERATE — self-test fixtures reproduce the footer the public page prints, byte for byte" },
+      { file: "scripts/check-chainid.mjs", why: "the public-registry gate (G4): it lists the ids it must look up by name, and explains the neighbourhood it scans" },
+      { file: "local-net/faucet/ceremony-9s-union.mjs", why: "an operator INPUT (`--expect-chainid` default) and its self-test stub — the ceremony must not silently follow a repo constant on the night" },
+      { file: "local-net/lib/console-readiness-test.mjs", why: "🔴 DELIBERATE — the readiness fixture states the parentChainId the console must report" },
+      { file: "scripts/gday-preflight.mjs", why: "MANUAL-TASK prose: names the number a person must read off a page on G-day" },
+      { file: "web/app/re-genesis/page.tsx", why: "web-home worktree — not editable from `main` (hard rule #4); `check-live-page` measures the served value against the chain" },
+      { file: "web/lib/chain.ts", why: "web-home worktree — same; it is the web's own declared copy, measured by `check-live-page`" },
+      { file: "web/lib/i18n/vi.ts", why: "Vietnamese UI text of the web-home worktree; the number appears in a sentence, not as a constant" },
+      { file: "web/scripts/gen-og.mjs", why: "web-home worktree — the Open Graph image renders the number as text" },
+    ],
+  },
+  {
+    name: "node API inside a managed container",
+    literal: "127.0.0.1:9650",
+    allowedIn: [
+      { file: "local-net/lib/managed-node-rpc.mjs", why: "SOURCE — `MANAGED_NODE_API`; the console's `compose exec … curl` calls import it" },
+      { file: "local-net/faucet/heartbeat-pump.mjs", why: "a DIFFERENT quantity that happens to spell the same: the host-side default of one node's mapped port, overridable by env" },
+      { file: "local-net/faucet/probe-net.mjs", why: "usage comment only" },
+      { file: "scripts/export-chain.mjs", why: "host-side CLI default (`--rpc`), the O2 export runs on the server host" },
+      { file: "scripts/check-l1-upgrades.mjs", why: "a bash probe rendered INTO a container over `docker exec`; it cannot import an ESM constant" },
+      { file: "scripts/drill-upgrade-rollback.mjs", why: "the training-band drill's in-container curl; kept literal so the drill cannot be redirected by editing one shared constant" },
+      { file: "local-net/tools/stake-validator/run-over-tunnel.sh", why: "an ssh -L tunnel spec (local:remote), bash" },
+      { file: "scripts/wallet-over-tunnel.mjs", why: "comment describing the tunnel (M11.10)" },
+      { file: "local-net/deploy/caddy.compose.yml", why: "belongs to the web-home worktree; comment only" },
+      { file: "local-net/deploy/Caddyfile", why: "belongs to the web-home worktree (hard rule #4); the reverse-proxy upstream, which IS the host-side mapped port" },
+      { file: "explorer-full/9chain-a1-server.override.yml", why: "comment only, explorer stack" },
+    ],
+  },
 ];
+
+/**
+ * A NUMERIC literal is matched on digit boundaries. With `anySpelling`, digit-group underscores
+ * are optional: `9000000009` and `9_000_000_009` are the same copy of the same constant, and
+ * the first version of this gate only saw the spelling it was given (D-227).
+ */
+export function literalPattern(literal, anySpelling = false) {
+  if (!/^[\d_]+$/.test(literal)) return null;
+  const digits = literal.replace(/_/g, "");
+  const body = anySpelling ? digits.split("").join("_?") : literal;
+  return new RegExp(`(?<![\\d_])${body}(?![\\d_])`);
+}
 
 /**
  * Scope: executable code. `--cached --others` so files that are NEW and not yet `git add`ed
@@ -111,8 +166,7 @@ export function scan(constraint, files) {
   // A NUMERIC constant must match on boundaries: `999_999_999` is a substring of
   // `9_999_999_999` (the L1 range ceiling) ⇒ a plain substring match raises a false alarm in
   // `check-chainid.mjs`. This was hit while building the gate.
-  const isNumeric = /^[\d_]+$/.test(constraint.literal);
-  const rx = isNumeric ? new RegExp(`(?<![\\d_])${constraint.literal}(?![\\d_])`) : null;
+  const rx = literalPattern(constraint.literal, constraint.anySpelling === true);
   const found = [];
   for (const f of files) {
     let s;
@@ -177,6 +231,16 @@ function selfTest() {
   const c2 = { ...c, allowedIn: [...c.allowedIn, { file: "does-not-exist.mjs", why: "x" }] };
   ok("🔴 a stale allow-list entry is REPORTED (but does not block)",
     scanFake(c2).stale.includes("does-not-exist.mjs"), JSON.stringify(scanFake(c2).stale));
+
+  console.log("\n── numeric spellings (D-227) ──");
+  const nine = literalPattern("9_000_000_009", true);
+  ok("🔴 `9000000009` (no underscores) IS the same constant", nine.test("const x = 9000000009;"), "no match");
+  ok("`9_000_000_009` still matches", nine.test("chainId: 9_000_000_009"), "no match");
+  ok("🔴 `9000000010` (the L1 range floor) is NOT a copy of it", !nine.test("goc = 9000000010"), "matched");
+  ok("🔴 `19000000009` is NOT a copy of it (boundary)", !nine.test("x = 19000000009"), "matched");
+  ok("without opt-in the original spelling-exact scope is kept (the networkID rule must not widen by accident)",
+    !literalPattern("999_999_999").test("id = 999999999") && literalPattern("999_999_999").test("id = 999_999_999"), "widened");
+  ok("a non-numeric literal has no pattern (substring match is used)", literalPattern("127.0.0.1:9650") === null, "pattern");
 
   // The real case, and the most expensive one: someone re-copying the IP into a backup script.
   const files = listFiles();

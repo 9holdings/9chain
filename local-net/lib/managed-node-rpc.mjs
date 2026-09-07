@@ -5,6 +5,13 @@ import { rpcResult, RpcResponseError } from './rpc-client.mjs';
 
 const execute = promisify(execFile);
 
+/**
+ * Where a managed node answers INSIDE its own container. Every `docker compose exec <svc> curl`
+ * in the console targets this, and it is declared once (D-227; `check-single-source`): the
+ * same string on the host means the mapped port of ONE node, a different quantity.
+ */
+export const MANAGED_NODE_API = 'http://127.0.0.1:9650';
+
 export function createManagedNodeRpc({ cwd, compose, run = execute }) {
   return async function rpcOnManagedNode(svc, segment, method, params, { signal, timeoutMs }) {
     // The in-container deadline matters too: killing a Docker client does not
@@ -12,7 +19,7 @@ export function createManagedNodeRpc({ cwd, compose, run = execute }) {
     const args = [...compose, 'exec', '-T', svc, 'curl', '-fsS', '-m', '5',
       '-X', 'POST', '-H', 'content-type:application/json',
       '--data', JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-      `http://127.0.0.1:9650${segment}`];
+      `${MANAGED_NODE_API}${segment}`];
     let stdout;
     try {
       ({ stdout } = await run('docker', args, { cwd, env: process.env,

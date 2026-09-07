@@ -9,12 +9,16 @@ confirmed stage. It never records the CLI signing key. The file remains after
 failure or process restart. Successful creation moves it into `history/<jobId>.json`
 only after writing the normal public chain ledger.
 
-While pending, new creation/preview, revocation, upgrade execution and owner
-transfer are refused. Read-only chain/governance views remain available. Authenticated
+While pending, new creation/preview is refused, and so is revocation, upgrade or
+owner transfer **of the chain under creation**. Other chains keep their doors
+(D-227: the first version blocked every mutation, so one slow bootstrap closed
+revocation for everyone); a rollout for another chain keeps a `created` subnet on
+its track list. Read-only chain/governance views remain available. Authenticated
 `GET /api/status` adds `pendingCreation`, either null or a summary containing jobId,
 name, chainId, phase, createdAt and any known subnetID/blockchainID. It does not
 expose the genesis plan. A pending job may still be running; consult progress
-before treating it as interrupted.
+before treating it as interrupted. The startup log prints an unresolved job on its
+own line.
 
 | Persisted phase | What is known | What must be established before recovery |
 |---|---|---|
@@ -35,7 +39,25 @@ Operator preparation, before any public mutation:
    which tracking configuration needs adjustment, or why an unsubmitted reservation
    can be archived. Keep all evidence; do not overwrite history or reuse identifiers.
 5. Obtain owner approval for public writes, restarts, transactions or removal of
-   recovery state. No automatic retry, reset, resume or discard endpoint is provided.
+   recovery state. No automatic retry or reset exists; the only exit is the
+   operator endpoint below, and what it permits depends on the persisted phase.
+
+## `POST /api/creation/resolve` (operator token only, D-227)
+
+Body: `{ "jobId": "<pending job id>", "action": "discard" | "retire" | "adopt",
+"subnetID"?, "blockchainID"?, "confirmNotSubmitted"? }`. A wrong `jobId` answers 409
+and names the pending one. Every outcome moves the journal to `history/<jobId>.json`
+with the decision written into it (`resolution`); the history file is written before
+the reservation is removed, and never overwritten.
+
+| Phase | discard | retire | adopt |
+|---|---|---|---|
+| prepared | yes — nothing left this machine (the console does this itself on failure) | refused | refused |
+| submitting | only with `confirmNotSubmitted:true` after inspecting the P-chain | with the `subnetID`/`blockchainID` the P-chain accepted | with the same identifiers; then as `created` |
+| created | refused — the subnet exists, its name and chainId must stay reserved | yes (same record shape as a revoked chain, D-014) | yes — re-runs the second half of creation (config, rollout, RPC identity, per-node readiness) and records the chain |
+
+`retire`/`adopt` also refuse while an unfinished ledger write (`.tmp`) exists. Use
+`scripts/inspect-creation.mjs` to establish what the P-chain holds before choosing.
 
 Do not manually remove the pending file just to reopen the API. Do not treat an
 empty live ledger as proof that the pending transaction was never accepted.

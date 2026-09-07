@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execFile } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -24,6 +24,11 @@ for (const name of files) {
   fs.mkdirSync(path.dirname(target), { recursive: true }); fs.copyFileSync(source, target);
 }
 fs.copyFileSync(path.join(root, 'scripts/fixtures/console-deployment-test.mjs'), path.join(inputs, 'test.mjs'));
+// The console the public server actually runs (deployed 2026-09-05, before the maintenance API):
+// the bootstrap path is only proven if it replaces THAT program, not a stub answering 404.
+const LEGACY_CONSOLE_COMMIT = '7d616fe';
+fs.writeFileSync(path.join(inputs, 'legacy-server.mjs'),
+  execFileSync('git', ['show', `${LEGACY_CONSOLE_COMMIT}:local-net/console/server.mjs`], { cwd: root, encoding: 'utf8', maxBuffer: 8 << 20, windowsHide: true }));
 for (const name of ['package.json', 'package-lock.json']) fs.copyFileSync(path.join(root, 'local-net/console', name), path.join(build, name));
 fs.writeFileSync(path.join(build, 'Dockerfile'), 'FROM node:24-alpine\nRUN timeout 90 apk add --no-cache bash iproute2 util-linux coreutils procps git\nWORKDIR /opt/deployment-fixture\nCOPY package.json package-lock.json ./\nRUN timeout 90 npm ci --ignore-scripts --no-audit --no-fund\n');
 const run = promisify(execFile), transcript = [];
@@ -37,12 +42,12 @@ const name = 'a1-deployment-' + path.basename(scratch).toLowerCase(); let create
 try {
   await command('docker', ['build', '-t', '9chain-a1/console-deployment-fixture:node24', build], 120000);
   await command('docker', ['create', '--name', name, '--network', 'none', '--read-only', '--cap-drop=ALL', '--security-opt', 'no-new-privileges:true',
-    '--memory', '2g', '--cpus', '2', '--pids-limit', '150', '--tmpfs', '/tmp:rw,exec,nosuid,size=1g',
+    '--memory', '3g', '--cpus', '2', '--pids-limit', '150', '--tmpfs', '/tmp:rw,exec,nosuid,size=1536m',
     '--mount', `type=bind,source=${inputs},target=/inputs,readonly`, '-e', 'A1_ISOLATED_FIXTURE=console-deployment',
     '--mount', `type=bind,source=${evidence},target=/evidence`,
-    '9chain-a1/console-deployment-fixture:node24', 'timeout', '180', 'node', '/inputs/test.mjs']);
+    '9chain-a1/console-deployment-fixture:node24', 'timeout', '330', 'node', '/inputs/test.mjs']);
   created = true; console.log('Running actual isolated deployment CLI in ' + name);
-  console.log((await command('docker', ['start', '-a', name], 195000)).trim());
+  console.log((await command('docker', ['start', '-a', name], 345000)).trim());
   const state = JSON.parse(await command('docker', ['inspect', '--format', '{{json .State}}', name]));
   if (state.ExitCode !== 0 || state.OOMKilled) throw new Error('Deployment fixture did not exit cleanly');
 } catch (error) {

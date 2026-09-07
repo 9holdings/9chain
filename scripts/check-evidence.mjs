@@ -48,6 +48,14 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SELF_TEST = process.argv.includes("--self-test");
 const MANIFEST_NAMES = new Set(["MANIFEST.txt", "SHA256SUMS.txt"]);
+/**
+ * The second manifest shape (D-227). `docs/evidence/private-network-20260907/` was sealed with
+ * `manifest.json` + a `manifest.sha256` sidecar — and this gate reported "3 bundles" while there
+ * were four, exactly the D-125 failure: frozen bytes with no gate on the bytes. A bare
+ * `manifest.json` is not a bundle (the name is common); the sidecar is what marks one.
+ */
+const JSON_MANIFEST = "manifest.json";
+const JSON_SIDECAR = "manifest.sha256";
 
 const sha256 = (p) => createHash("sha256").update(readFileSync(p)).digest("hex");
 
@@ -57,14 +65,35 @@ export function findManifests(root) {
   const walk = (dir) => {
     let entries;
     try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    const names = new Set(entries.map((e) => e.name));
     for (const e of entries) {
       const full = path.join(dir, e.name);
       if (e.isDirectory()) walk(full);
       else if (MANIFEST_NAMES.has(e.name)) out.push(full);
+      else if (e.name === JSON_MANIFEST && names.has(JSON_SIDECAR)) out.push(full);
     }
   };
   walk(root);
   return out.sort();
+}
+
+/**
+ * Parse the JSON shape: `{ entries: [{ path, sha256, bytes }] }`. The sidecar must hold the
+ * sha256 of `manifest.json` itself — a manifest that can be rewritten to match tampered files
+ * is not a seal. Returns `{ rows, sealed }`; `sealed:false` means the sidecar disagrees.
+ */
+export function parseJsonManifest(manifestPath) {
+  const dir = path.dirname(manifestPath);
+  const bytes = readFileSync(manifestPath);
+  const doc = JSON.parse(bytes.toString("utf8"));
+  if (!Array.isArray(doc?.entries)) throw new Error("manifest.json has no `entries` array");
+  const rows = doc.entries.map((e) => {
+    if (typeof e?.path !== "string" || !/^[0-9a-fA-F]{64}$/.test(e?.sha256 ?? "")) throw new Error("manifest.json entry without path/sha256");
+    return { hash: e.sha256.toLowerCase(), file: e.path.replace(/\\/g, "/") };
+  });
+  const sidecar = readFileSync(path.join(dir, JSON_SIDECAR), "utf8").trim().slice(0, 64).toLowerCase();
+  const sealed = /^[0-9a-f]{64}$/.test(sidecar) && sidecar === createHash("sha256").update(bytes).digest("hex");
+  return { rows, sealed };
 }
 
 /**
@@ -86,14 +115,18 @@ export function parseManifest(text) {
 /** Verify one bundle. Returns {ok, missing, mismatch, total}. */
 export function verifyBundle(manifestPath) {
   const dir = path.dirname(manifestPath);
-  const rows = parseManifest(readFileSync(manifestPath, "utf8"));
+  let rows, sealed = true;
+  if (path.basename(manifestPath) === JSON_MANIFEST) ({ rows, sealed } = parseJsonManifest(manifestPath));
+  else rows = parseManifest(readFileSync(manifestPath, "utf8"));
   const missing = [], mismatch = [];
   for (const r of rows) {
     const f = path.join(dir, r.file);
     if (!existsSync(f) || !statSync(f).isFile()) { missing.push(r.file); continue; }
     if (sha256(f) !== r.hash) mismatch.push(r.file);
   }
-  return { ok: rows.length - missing.length - mismatch.length, missing, mismatch, total: rows.length };
+  // An unsealed manifest counts as a mismatch on the manifest itself: nothing under it is proven.
+  if (!sealed) mismatch.push(JSON_MANIFEST + " (sidecar " + JSON_SIDECAR + " disagrees)");
+  return { ok: rows.length - missing.length - mismatch.length + (sealed ? 0 : 1), missing, mismatch, total: rows.length };
 }
 
 function main() {
@@ -175,6 +208,33 @@ function selfTest() {
     ok("🔴 DELETE ONE FILE ⇒ reports FILE GONE", r3.missing.includes("sub/b.txt"), JSON.stringify(r3.missing));
 
     ok("manifests in subdirectories are found", findManifests(tmp).length === 1, String(findManifests(tmp).length));
+
+    console.log("\n── 3. The JSON shape (manifest.json + manifest.sha256) — D-227 ──");
+    const j = path.join(tmp, "json-bundle");
+    mkdirSync(path.join(j, "reports"), { recursive: true });
+    writeFileSync(path.join(j, "reports", "r.json"), "{\"a\":1}\n");
+    const seal = (entries) => {
+      const bytes = Buffer.from(JSON.stringify({ schema: 1, entries }, null, 2) + "\n");
+      writeFileSync(path.join(j, "manifest.json"), bytes);
+      writeFileSync(path.join(j, "manifest.sha256"), createHash("sha256").update(bytes).digest("hex") + "\n");
+    };
+    ok("🔴 a bare manifest.json WITHOUT a sidecar is NOT a bundle (the name is too common to trust)",
+      (() => { writeFileSync(path.join(j, "manifest.json"), "{\"entries\":[]}"); return findManifests(tmp).length === 1; })(), String(findManifests(tmp).length));
+    seal([{ path: "reports/r.json", sha256: h(path.join(j, "reports", "r.json")), bytes: 8 }]);
+    ok("with the sidecar it is found — the real bundle was invisible to this gate for a day",
+      findManifests(tmp).length === 2, String(findManifests(tmp).length));
+    const jm = path.join(j, "manifest.json");
+    ok("an intact JSON bundle matches", (() => { const r = verifyBundle(jm); return r.ok === 1 && !r.mismatch.length && !r.missing.length; })(), JSON.stringify(verifyBundle(jm)));
+    writeFileSync(path.join(j, "reports", "r.json"), "{\"a\":2}\n");
+    ok("🔴 MODIFY ONE FILE ⇒ HASH DIFFERS", verifyBundle(jm).mismatch.includes("reports/r.json"), JSON.stringify(verifyBundle(jm)));
+    // Rewriting the manifest to match the tampered file must NOT make it green: the sidecar seals it.
+    writeFileSync(jm, JSON.stringify({ schema: 1, entries: [{ path: "reports/r.json", sha256: h(path.join(j, "reports", "r.json")), bytes: 8 }] }));
+    const resealed = verifyBundle(jm);
+    ok("🔴 a REWRITTEN manifest.json is caught by the sidecar (tampering with the seal is a mismatch)",
+      resealed.mismatch.some((m) => m.startsWith("manifest.json")) && resealed.ok === 1, JSON.stringify(resealed));
+    rmSync(path.join(j, "reports", "r.json"));
+    seal([{ path: "reports/r.json", sha256: "0".repeat(64), bytes: 8 }]);
+    ok("🔴 DELETE ONE FILE ⇒ FILE GONE", verifyBundle(jm).missing.includes("reports/r.json"), JSON.stringify(verifyBundle(jm)));
   } finally { rmSync(tmp, { recursive: true, force: true }); }
 
   console.log(`\n${fail === 0 ? "✅" : "🔴"} ${pass} passed · ${fail} failed`);

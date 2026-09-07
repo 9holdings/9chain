@@ -24,6 +24,11 @@ maintenance; existing work and read-only views continue. `running=false` alone d
 not establish that requests have finished. Operator-only maintenance endpoints and
 their measured contract are documented in [`CONSOLE-MAINTENANCE.md`](CONSOLE-MAINTENANCE.md).
 
+Update 2026-09-07 (D-227, local only): an unresolved creation (`pendingCreation` non-null)
+blocks only its own chain; revoke/upgrade/transfer of other chains proceed. Operator-only
+`POST /api/creation/resolve` closes it (`discard` / `retire` / `adopt`, rules in
+[`CREATION-RECOVERY.md`](CREATION-RECOVERY.md)); a wallet gets 403. Not a button for `web-home`.
+
 > **Mục đích:** để phiên `web-home` làm **P-55** (ký hiệu token), **P-60** (trang "quản trị chain của
 > tôi") và **P-62** (màn xem trước + câu ký) **mà không phải đọc `server.mjs`**.
 >
