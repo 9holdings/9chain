@@ -220,8 +220,16 @@ const GATES = [
   { group: "2 · REPO GATES", name: "validator onboarding — faucet vs bond vs guide (counter-check)", ...node("scripts/check-validator-onboarding.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "outsider bootstrap — announced vs dialable (counter-check)", ...node("scripts/check-outsider-bootstrap.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "Block Adam offset arithmetic (counter-check)", ...node("scripts/check-clock-skew.mjs", "--self-test") },
+  // Per-chain block production (P-87, D-240): the verdict rules are offline and belong here. The
+  // measurement reads a ledger's chains over a window through the RPC that serves them; it is
+  // a DRILL-band instrument (the public network runs no pump per L1) and joins group 3 only when
+  // A1_DRILL_BAND=1 names the drill ledger and RPC (A1_CHAINS_LEDGER, A1_CHAINS_RPC).
+  { group: "2 · REPO GATES", name: "every chain produces blocks — verdict rules (counter-check)", ...node("scripts/check-chains-producing.mjs", "--self-test") },
 
   // ── 3. The real world — the running network and the server ──
+  ...(process.env.A1_DRILL_BAND === "1" && process.env.A1_CHAINS_RPC
+    ? [{ group: "3 · REAL WORLD", needsNetwork: true, name: "every chain in the drill ledger produces blocks at the target rate", ...node("scripts/check-chains-producing.mjs") }]
+    : []),
   { group: "3 · REAL WORLD", needsNetwork: true, name: "the running network (watch-network)", ...node("scripts/watch-network.mjs") },
   { group: "3 · REAL WORLD", needsNetwork: true, name: "repo ↔ server drift + orphan files", ...node("scripts/check-deploy-drift.mjs") },
   // 🔴 The disclosed 9 tx/s load test must be STOPPED before any re-genesis and before the

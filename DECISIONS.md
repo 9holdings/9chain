@@ -10453,3 +10453,37 @@ subnet; sổ: 2 sống · `retired` Band Test Two/5 validator.
 c/d/e/f stable; override node-g mất subnet 2; bộ đếm b=1 c..f=2 g=1 h/i/test-node=0; chain kế tiếp rơi vào đúng chỗ vừa trả
 (h,i,test-node,b,g); tiến trình không chạy lùi; mô hình cũ: thu hồi restart 9, `validators: null`, `.env` rỗng. Hồi quy create-rpc 17 ·
 governance 55 · english · single-source.
+
+## D-239 — **Hợp đồng ROUTER là một TỆP: console ghi `assignment.json`, kit sinh Caddyfile, `check-chain-ledger` học băng tập — đo qua router thật trên băng tập, ca đỏ đúng chain** (`2026-09-07` đêm, P-86)
+
+**Bối cảnh.** Ở mô hình chia, node chỉ trả RPC cho chain nó track; "node RPC công khai" không còn là một node. Caddyfile thuộc
+`web-home` (luật cứng 4) ⇒ hợp đồng giữa console (chain nào ở node nào) và router (đường nào tới đâu) phải là **tệp**, không phải mã
+chung. PLAN-108 §4.2 gọi nó là "sổ chain mang node phục vụ".
+
+**Quyết định.**
+1. **`9chain-a1-config/assignment.json`** — console ghi cạnh sổ mỗi lần lưu sổ (và lúc khởi động) **chỉ ở chế độ V**:
+   `{ <blockchainID>: { node, uri, chainId, name, subnetID, validators } }`. `node` = node công khai nếu nó là validator (chain
+   như cũ không đổi gì), không thì validator đầu theo thứ tự rollout; `uri` = tên service + cổng trong container (một nguồn:
+   `MANAGED_NODE_API`) — chính là địa chỉ một container router trên cùng mạng compose gọi được. Chain không có `validators` ⇒
+   node công khai.
+2. **`l1-batch router`** đọc đúng tệp đó (cùng hình dạng `render` sinh cho K1), thêm `-fallback <upstream>` cho mọi đường không
+   phải `/ext/bc/<id>/*` (info/health/P/X/C) ⇒ router là **một** cửa cho cả mạng mẹ lẫn L1; `/ext/bc/<id lạ>` ⇒ **JSON 404 của
+   router** (khác 404 của một node lạ: "router không biết" ≠ "chain chết").
+3. **`check-chain-ledger --drill`** (`assessPublicLedger({drill})`): so networkID với băng tập và chấm khối tập; cờ bật mà node là
+   mạng thật ⇒ vẫn "generation", mã 2 — cờ **nêu tên** một băng, không nới gì (3 ca self-test mới, 26 → 29).
+4. Bản ghi `rpc` của chain mới mang `A1_PUBLIC_RPC_BASE` = router; hai bản ghi tạo **trước** router (rpc trỏ thẳng node-1:9750)
+   bị cổng chấm **"FOREIGN host"** — đúng: có router rồi thì sổ trỏ thẳng một node là lỗi thật, và "Drill Chain" (viết tay 05/09,
+   `8990000001`) bị chấm **ngoài khối tập** — cũng đúng (D-234 đặt khối `8_001_000_000+`). Không sửa tay hai bản ghi đó: chúng là bản
+   ghi lịch sử của băng tập; cổng đỏ vì sổ nói sai, không vì cổng sai.
+
+**Đo trên băng tập** (router `caddy:2` trên mạng `net-tap-g1_a1net`, cổng host 8545, Caddyfile sinh từ `assignment.json` thật):
+- "Band Test Three" `8001000002` tạo với V=5, `rpc` = `http://127.0.0.1:8545/ext/bc/2rwQCJ…/rpc`; `assignment.json` 3 mục, chain mới
+  → `9chain-a1-tap-node-1` (node công khai nằm trong 5 validator).
+- Qua router: **3/3** chain trả đúng chainId; id lạ ⇒ **404 JSON của router**; `/ext/info` qua fallback ⇒ `899999998`.
+- `check-chain-ledger --drill --rpc router`: Band Test Three ✓; 3 đỏ đúng lý do (mục 4).
+- **Ca đỏ:** bản sao `assignment.json` trỏ Band Test Three sang `node-6` (không track) ⇒ router mới ⇒ cổng đỏ **đúng chain đó**
+  (*"HTTP 404 · body: 404 page not found"*), khôi phục router ⇒ ✓ lại.
+
+**Đối chứng fixture** (`assignment-e2e-test` 46 → **50**): `assignment.json` ghi node phục vụ đúng luật (chain 1 → node-b, chain 2 →
+test-node), `uri` = `http://node-b:9650`, mang chainId/name/subnetID/validators; thu hồi ⇒ mục biến mất; mô hình cũ ⇒ **không**
+tệp. Drift `knownExtra` khai tệp là vật liệu chạy. Việc `[web-home]`: Caddyfile công khai đọc tệp này (hoặc gọi `l1-batch router`).

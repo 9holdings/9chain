@@ -894,7 +894,23 @@ func cmdPump(args []string) error {
 	rate := fs.Float64("rate", 1, "tx/s per ledger")
 	seconds := fs.Int("seconds", 60, "how long to run")
 	only := fs.String("only", "", "comma-separated ledger names (default: all converted)")
+	// Console-ledger mode (P-87): chains from console-chains.json, one key for all of them, a
+	// heartbeat file per chain. See pump_ledger.go.
+	ledgerPath := fs.String("ledger", "", "console-chains.json: pump every live chain in it with -key via -rpc-base (instead of plan/chains)")
+	rpcBase := fs.String("rpc-base", "http://127.0.0.1:8545", "RPC base serving every chain (the router), used with -ledger")
+	keyStr := fs.String("key", firstNonEmpty(os.Getenv("A1_CLI_KEY"), os.Getenv("K1_FUND_KEY")), "PrivateKey-<cb58> whose EVM address owns the chains (with -ledger)")
+	heartbeatDir := fs.String("heartbeat-dir", "", "write heartbeat-<chainId>.json here every 5 s (with -ledger)")
 	fs.Parse(args)
+
+	if *ledgerPath != "" {
+		want := map[string]bool{}
+		for _, n := range strings.Split(*only, ",") {
+			if n = strings.TrimSpace(n); n != "" {
+				want[n] = true
+			}
+		}
+		return pumpLedger(*ledgerPath, *rpcBase, *keyStr, *rate, *seconds, want, *heartbeatDir)
+	}
 
 	plan, err := readPlan(*planPath)
 	if err != nil {

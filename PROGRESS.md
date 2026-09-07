@@ -163,12 +163,18 @@ khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn 
       **Đo trên băng tập:** thu hồi "Band Test Two" **2 phút 49 s**, đúng 5 validator restart, 4 node `startedAtStable`, `eth_chainId` 404
       trên 9/9 node, override về 2 subnet. **Fixture:** revoke "Rev Two" ⇒ chỉ g,h,i,test-node,b restart; bộ đếm b=1 c..f=2 g=1 h/i/t=0;
       chain kế tiếp lấy đúng chỗ vừa trả; mô hình cũ 9 restart, `validators: null`. Hồi quy xanh.
-- [ ] **P-86 — Hợp đồng ROUTER RPC** — console xuất `assignment.json` (`blockchainID → {node, uri, chainId, name}`) cạnh sổ, đúng
+- [x] **P-86 — Hợp đồng ROUTER RPC** — console xuất `assignment.json` (`blockchainID → {node, uri, chainId, name}`) cạnh sổ, đúng
       hình dạng `l1-batch render` để `l1-batch router` sinh Caddyfile không sửa; trường `rpc` của chain trong sổ trỏ URL **node
       phục vụ** (`A1_PUBLIC_RPC_BASE_<n>` hoặc router). `check-chain-ledger` thêm chiều: **`rpc` của từng chain trả `eth_chainId`
       đúng**. **Qua khi (băng tập):** router container sinh từ `assignment.json` ⇒ mọi chain trong sổ trả đúng chainId qua router.
       Ca đỏ: blockchainID lạ ⇒ 404 JSON; sửa `rpc` một chain sang node không track ⇒ `check-chain-ledger` đỏ đúng chain đó.
       Caddyfile công khai là việc `[web-home]` — hợp đồng là **tệp**, không phải mã chung.
+      ✅ `07/09` đêm (autopilot, D-239): console ghi `9chain-a1-config/assignment.json` (`blockchainID → {node, uri, chainId, name,
+      subnetID, validators}`) mỗi lần lưu sổ ở chế độ V; `l1-batch router` đọc tệp đó + `-fallback` cho mạng mẹ, id lạ ⇒ 404 JSON của
+      router; `check-chain-ledger --drill` chấm băng tập (3 ca self-test, cờ không nới). **Đo trên băng tập:** router caddy trên mạng
+      compose, 3/3 chain trả đúng chainId qua router, id lạ 404 JSON, info qua fallback; cổng `--drill --rpc router`: chain mới ✓, 2 bản ghi
+      trước-router "FOREIGN host" + Drill Chain ngoài khối tập (đỏ đúng, không sửa tay). **Ca đỏ:** assignment trỏ Band Test Three sang
+      node-6 ⇒ cổng đỏ đúng chain đó; khôi phục ⇒ ✓. Fixture 50/50. ⏳ `[web-home]` Caddyfile công khai đọc `assignment.json`.
 - [ ] **P-87 — Bơm THEO CHAIN + heartbeat mỗi chain + cổng "mọi chain đẻ block"** — dùng `l1-batch pump -only`, nonce cục bộ
       (bẫy `a1-bay-lech-nonce`), xuất `heartbeat-<chainId>.json`; cổng mới `scripts/check-chains-producing.mjs` đọc sổ, đo mọi
       chain: block ≤ 2,5 s nhịp, tx vào khối ≥ 90 % mục tiêu; vào preflight nhóm 3 **chỉ khi** `A1_DRILL_BAND` (không đủ tư cách chặn g1).
