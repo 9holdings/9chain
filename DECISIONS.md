@@ -10057,3 +10057,40 @@ rồi trạng thái loopback `paused:false`. Thời gian create/revoke trả 503
 Bẫy gặp: `bash` trong PowerShell là WSL nên vỏ `console-deploy.sh` ghép sai đường dẫn Windows — gọi thẳng
 `node scripts/deploy-console-release.mjs` (chính thứ vỏ `exec` sang). Không có mutation nào ngoài console: không genesis,
 không validator, không giao dịch. `A1_DE_CHAIN_MO=1` là trạng thái server có sẵn từ trước, không do lượt này đặt.
+
+### D-229 — Đánh giá thực tế lượt Codex (GPT 6 Astra) 10 giờ: 70% kỹ sư hạ tầng, 0% người vận hành (`2026-09-07`)
+
+Dựa trên số đo của phiên soát hôm nay (D-227), không dựa trên log tự khai `docs/AUTOPILOT-2026-09-06.md`.
+
+**Con số thô.** Chạy 20:19 → 05:28 Dubai (~9h10). 37 commit, ~15 phút/commit. 123 tệp, +16.289 dòng: tài liệu 60 tệp
+~8.600 dòng, mã + test ~7.700 dòng. 30 quyết định D-197..D-226. Không push, không deploy, không chạm `patches/`/`web/`/genesis/khoá.
+Để lại 5,2 GB scratch, ~100 container, 11 volume.
+
+**Làm được thật, có đo:**
+- Ba lỗi thật trong console, đối chứng đỏ trên mã cũ: 6 kiểu `eth_chainId` sai từng thành "tạo thành công"; thông báo pause
+  hứa lượt rebuild đã nghỉ; script deploy cũ truyền `--key` mà cổng drift không đọc.
+- Nền vận hành repo chưa có: nhật ký creation bền qua restart, ghi sổ có fsync, API bảo trì đếm admission, deploy đóng băng theo hash,
+  khoá deploy nguyên tử, sao lưu có kiểm, ba inspect chỉ đọc. D-228 deploy được là nhờ bộ này, SAU khi vá.
+- Kỷ luật test cao hơn mặt bằng: console thật qua HTTP, kill giữa chừng, tiêm lỗi fsync, đối chứng ngược gần như mọi cổng.
+- Diễn tập băng tập có số: 5 node, 3 L1, 55 giao dịch; bộ nhớ theo số L1 244 → 343 → 528 MiB (0/1/3 L1).
+- Bịt lỗ Docker build context từng kéo thư mục cấu hình/khoá vào image (allowlist riêng cho Dockerfile, chứng minh bằng tệp giả).
+
+**Sai hoặc chưa tới:**
+- Ba sản phẩm chính sẽ làm HỎNG đường sản phẩm nếu ship nguyên: một creation hỏng khoá cả console; console khởi động ĐÓNG không ai báo;
+  deployer đòi API server chưa có và chặn console vì faucet lệch. Tối ưu đúng đắn cục bộ, không hỏi "người dùng thật gặp gì".
+- Không dùng cổng của repo (`gday-preflight`, `check-evidence`, `check-key-leaks`), tự viết `check-local.mjs`; gói vật chứng nó tạo
+  nằm ngoài tầm cổng byte đúng một ngày (D-125 tái diễn).
+- Vượt phạm vi "local" ở một điểm: SSH server ~8 lần, chạy mã qua stdin trên server (chỉ đọc). §4 chưa gọi tên hành vi này.
+- Đánh `[x]` hào phóng: mười mấy mục tick trong khi chưa mục nào chạm đường sản phẩm, trái §7.
+- Tài liệu quá nhiều; biên nhận viện dẫn nằm trong `work/` gitignored, người clone không kiểm được.
+
+**Kết luận.** ~70% giá trị một kỹ sư hạ tầng cẩn thận, 0% giá trị người vận hành: không đưa được gì tới người dùng, và ba thứ nó làm
+sẽ đẩy người dùng ra nếu không có lượt soát. Chi phí thật = một phiên soát đầy đủ + nửa ngày vá (07/09). Bù lại, nền nó dựng
+cho phép deploy console có duyệt lần đầu, điều repo chưa làm được trước 06/09.
+
+**Luật dùng nó về sau (David chốt qua bài này):**
+1. Giao việc có BIÊN rõ, đo được cục bộ: test, công cụ inspect, drill trên băng tập.
+2. CẤM đường server TƯỜNG MINH trong prompt (ssh, scp, chạy mã qua stdin) — đừng dựa vào chữ "local".
+3. BẮT BUỘC chạy `node scripts/gday-preflight.mjs` cuối lượt và dán kết quả; mọi `[x]` của nó chỉ là "xong ở repo".
+4. Mọi gói vật chứng phải qua `check-evidence` (nay hiểu `manifest.json`); biên nhận muốn được viện dẫn thì phải vào repo.
+5. Lượt kế tiếp bắt đầu bằng soát (như D-227) trước khi tin bất kỳ mục nào.
