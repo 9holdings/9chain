@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-07 00:49 UTC** (D-22247-command acceptance and D-2235-node/3L1 experiment complete; evidence/commit preparation).
+repetition. Last user-facing progress update: **2026-09-07 00:58 UTC** (D-223committed; D-224actual enumeration negatives and Windows/Linux controls passed; final acceptance/handoff next).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -641,3 +641,21 @@ do not delete or re-submit completed operations. Experimental sources are not a
 supported installer. Next: verify/archive/commit evidence and prepare final handoff
 and bounded remaining work; keep final20–30minutes for clean freeze/validation.
 Hard stop02:23:12 UTC unchanged, about1h34 remained at documentation preparation.
+
+D-223 committed44a35a8. Independent archive verification00:50:39 checks41file hashes,
+15source syntax checks,55signed-transfer observations and all5clean node shutdowns;
+receipt work/d223-evidence-verification.json. No full console retest was necessary
+for only this documentation/frozen-evidence commit; D-224 below changes backup code.
+
+D-224 closes an observed boundedness gap: readdirSync allocated the entire source/
+backup directory before applying entry limits. Use bufferSize1 iterators and finally
+closure in source and independent verification walks. The actual4096-file source
+was red before/green after; a4096-extra backup rejects on the first extra, and restoring
+the old verification walk fails that control.43 CLI cases plus8/9file-fault and2new
+enumeration controls pass on Windows/Linux. Evidence in CONSOLE-BACKUP.md; Linux
+a1-autopilot-d224-backup-linux-20260907 exited0/noOOM. Scope/schema2 remain unchanged.
+Commit then exact-source acceptance using work/run-d224-validation.mjs and
+work/verify-d224-evidence.mjs; receipts stay in work. Prepare final owner report and
+remaining next-stage work without publishing or deploying. Avoid advancing HEAD after
+the final frozen candidate merely to record its own receipt; use work/user outputs.
+Automation remains active until the unchanged02:23:12 UTC work cutoff; pause it then.

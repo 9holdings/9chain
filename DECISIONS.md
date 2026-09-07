@@ -9940,3 +9940,18 @@ receipts; do not count failed setup as passing acceptance. No public or pre-exis
 operational keys/genesis/data involved. Detailed evidence and next proposed acceptance
 work in docs/PRIVATE-NETWORK-VERIFICATION-2026-09-07.md. First public adoption remains
 separate from this experiment and requires the previously documented prerequisites.
+
+### D-224 — Apply backup bounds during directory enumeration (2026-09-07)
+
+The backup entry limit was checked after readdirSync allocated every directory
+entry. Switch source traversal and independent tree verification to bufferSize1
+directory iterators, with finally-based closure. Existing sorted snapshot records,
+schema2, byte/count limits, scope and approval/restore boundaries remain unchanged.
+
+Actual4096-file history reproduces the old over-enumeration failure. New source
+traversal stops before consuming the full history and closes its handle. Independent
+verification of a backup with4096 extras stops at the first extra (at most5 root
+entries), closing its handle. A copied-source old verification loop fails that
+specific assertion.43 CLI tests,8 Windows/9 Linux real-file fault controls and these
+two enumeration controls pass; noOOM/exit0 on the isolated Linux fixture. Evidence in
+CONSOLE-BACKUP.md. This bounds user-space enumeration, not filesystem syscall latency.

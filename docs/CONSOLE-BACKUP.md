@@ -108,3 +108,28 @@ work/d222-backup-checks.log, inputs work/d222-backup-linux-btVSZM. Linux contain
 a1-autopilot-d222-backup-linux-20260907 exited0/noOOM with network none, read-only root,
 512MiB/1CPU and256MiB tmpfs. Uses the existing self-contained deployment fixture image.
 No public backup, mutation, restore, power-loss experiment or first-adoption rehearsal.
+
+## Bounded directory enumeration, D-224
+
+An entry-count limit applied after readdirSync still allocates the whole directory
+listing first. Both source snapshot traversal and independent backup-tree verification
+now use a synchronous directory iterator with bufferSize1 and close the handle in
+finally. Snapshot collection stops at the remaining4096-record budget; verification
+stops at the first unlisted entry. Successful records retain their existing final
+sorted order and schema2; no backup scope, byte limit or restoration policy changed.
+
+Actual Windows history with4096 files reproduced the old full-listing behavior:
+work/d224-backup-before.log, work/console-backup-test-elNJ79. The new reader stops
+before consuming the entire history and closes its handle. A separate real backup
+with4096 extra root files is refused after at most5 returned entries (four legitimate
+root entries plus the first extra), also closing the handle. Restoring only the old
+verification walk in copied source fails that assertion; fixture
+work/backup-negative-verification-enumeration-IP5ruo.
+
+43 CLI cases and8 Windows/9 Linux real-file fault controls still pass, plus the two
+new enumeration controls. Windows log work/d224-backup-final.log, fixture
+work/console-backup-test-JjRBrI. Linux/negative log work/d224-backup-checks.log,
+inputs work/d224-backup-linux-AatSz3; network-none/read-only-root512MiB/1CPU container
+a1-autopilot-d224-backup-linux-20260907 exited0/noOOM. These controls count entries
+returned by the actual filesystem iterator, not kernel cache behavior or wall-clock
+limits for a stalled filesystem. Public installation remains pending.

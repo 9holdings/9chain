@@ -2,7 +2,7 @@
 
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
-for current evidence and next work. D-197 through D-223: local console reliability,
+for current evidence and next work. D-197 through D-224: local console reliability,
 read-only creation inspection, cold-build/replay, core tests, managed-node transport
 and persistent operator maintenance, frozen releases, targeted paused restart and
 per-invocation deployment exclusion without TTL takeover (`docs/DEPLOYMENT-LOCK.md`).
@@ -67,6 +67,12 @@ absent and full catch-up. Median total memory across5 nodes:244.32MiB baseline,
 Byzantine proof. Exact binaries/genesis verified inside all5; all stopped0/noOOM
 at00:44 UTC. Sources/evidence and setup faults are in
 docs/PRIVATE-NETWORK-VERIFICATION-2026-09-07.md. Public first-adoption blockers remain.
+D-223 evidence committed44a35a8;41archived files/15source syntax checks and55signed
+transfers independently checked00:50:39 UTC. D-224 now bounds backup directory
+enumeration before full-list allocation, with actual4096-entry controls and source/
+verification negatives;43 CLI/8–9 file-fault controls pass on Windows/Linux.
+Next exact-source acceptance and final owner packet; avoid advancing HEAD after the
+final freeze unless a material correction requires another validated candidate.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
 
