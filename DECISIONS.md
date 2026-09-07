@@ -10040,3 +10040,20 @@ nhập tệp (D-193 chỉ nhập cổng STOP từ commit mồ côi `6793fb4`) �
 kèm sự thật là nó không an toàn để chạy mù (`HEARTBEAT_STOP_AFTER` đã qua, mount `/hostfs`, D-138). Nhập vào `main` hay
 cho nghỉ là quyết định RIÊNG, chưa chốt. Đối chứng: `check-deploy-drift` live — dòng mồ côi chuyển 🟡 "đã khai", các dòng
 lệch/thiếu vẫn đỏ vì console chưa deploy (đúng đại lượng).
+
+### D-228 — Console `038e1ab` LÊN SERVER bằng đường bootstrap-legacy, David bấm (`2026-09-07` ~11:51–11:57Z)
+
+Lượt deploy console đầu tiên qua bộ điều khiển có duyệt, và là lượt đầu thay một console KHÔNG có API bảo trì.
+Release đóng băng `work/console-releases/038e1ab1c2ca-vKFgm1`, sha256 `1d60d70c…59b09`, 46 tệp (console + vantoc).
+Thăm dò chỉ đọc trước: PID legacy `2972548`, cwd `~/9chain-a1/src`, `node local-net/console/server.mjs`, Node 22, không dấu
+bảo trì, không creation dở, không khoá. `--apply --bootstrap-legacy`: 15 pha xanh (audit → legacy-idle → khoá → legacy-idle →
+stage → upload → verify → backup → npm ci → install → restart → verify-installed), biên nhận `paused`, run
+`74684365-1626-4138-8048-ac36e8546217`. `--resume`: 6 pha xanh (kiểm nghiệm cục bộ + drill Docker, audit chính xác,
+`check-deploy-drift`, `check-chain-ledger`, resume, trả khoá). Đo lại ĐỘC LẬP sau đó, trên sản phẩm:
+`check-deploy-drift` **47 khớp · 0 lệch · 0 thiếu · 0 mồ côi** (lần đầu xanh kể từ 05/09) · sổ chain công khai 11/11 ✓ ·
+PID mới `3139842` cwd đúng, PID cũ chết · dấu bảo trì gỡ · khoá trả · biên nhận `deployed/console.json` · sao lưu
+`console-backups/<run>` giữ · sha256 `server.mjs` trên server = HEAD (`9cec8cb9…`) · log khởi động in `maintenance: PAUSED`
+rồi trạng thái loopback `paused:false`. Thời gian create/revoke trả 503: từ restart tới resume (~6 phút, do drill Docker chạy lại).
+Bẫy gặp: `bash` trong PowerShell là WSL nên vỏ `console-deploy.sh` ghép sai đường dẫn Windows — gọi thẳng
+`node scripts/deploy-console-release.mjs` (chính thứ vỏ `exec` sang). Không có mutation nào ngoài console: không genesis,
+không validator, không giao dịch. `A1_DE_CHAIN_MO=1` là trạng thái server có sẵn từ trước, không do lượt này đặt.

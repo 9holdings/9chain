@@ -1,5 +1,8 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
+**2026-09-07 ~11:57Z (D-228): CONSOLE `038e1ab` ĐÃ LÊN SERVER** qua bootstrap-legacy rồi resume; `check-deploy-drift` 47/47 xanh lần đầu từ 05/09. Từ giờ deploy console là `prepare-console-release` → `deploy-console-release.mjs --apply` (KHÔNG cần `--bootstrap-legacy` nữa: server đã có API bảo trì) → `--resume`. Gọi thẳng `node scripts/deploy-console-release.mjs`, đừng qua `bash` trong PowerShell (WSL).
+
+
 **2026-09-07 (Claude, soát lượt GPT 6 Astra — D-227):** 37 commit `a616eef..a5b852a` KHÔNG push/deploy/chạm patches; có SSH đọc + chạy mã qua stdin trên server.
 Tám rủi ro đã sửa (xem D-227): creation dở chỉ chặn chính nó + `/api/creation/resolve` · restart không còn ép pause · deployer có `--bootstrap-legacy` và `--unwind`,
 lệch faucet không chặn · `check-chain-ledger` chạy bộ đọc console lên sổ công khai · `check-evidence` hiểu `manifest.json` · `check-single-source` 5 hằng ·
