@@ -1,5 +1,45 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
+## CHỐT PHIÊN 2026-09-07 TỐI (Claude, phiên worktree web-home làm việc HẠ TẦNG) — validator Hetzner, đọc khối này là đủ
+
+**TL;DR.** Máy `144.76.165.85` (Hetzner, cũ là `archive2` chuỗi C1 chết) **đã reset và là validator thứ 12 của g1**:
+`NodeID-G5tZWvku6qLRkicFJa2MdBH52UdBEYTpr`, 81 LOVE9, `2026-09-07 13:13Z → 2026-09-21 13:14Z`, txID `23C9CXTpmWndgf5HveEc3ke5yjAUQK3JQBzuHj2a5axHu9Wq8v`.
+Đi ĐÚNG `docs/RUN-A-VALIDATOR.md`; David tự bấm chặng tiền (§4). **Trang công khai sai 3 chỗ, đã sửa** (D-231). `official` = **`cc2cd9f`**
+(David chốt công bố cả `main`, 66 commit) — 🔴 **KHÔNG fast-forward**, xem gotcha. `main` = `origin/main` = `5c4fc5a`.
+
+**Đã xong (mọi số đo trên mạng đang chạy hoặc trên chính máy):**
+- Reset: service/image/`/opt/9chain` (2,9 GB)/user `ninechain` xoá; `apt full-upgrade` + reboot; hostname `a1-validator-hetzner`; ufw `9651 ALLOW`.
+  Bản lưu config node cũ (28 KB) ở scratchpad phiên `1f60abbe…/old-c1-archive2-backup/`.
+- Image `9chain-a1/node:g1` chở từ Docker Desktop (`docker save`), 3 mỏ neo trên máy: `27patch-38723877` · sha256 `2f733249…b57480` · g0=0/g1=4/LOVE9=2.
+- Node `a1-node` (`/opt/9chain-a1/run-node.sh`, `--network host`, API loopback); bootstrap P/X/C ~16 phút; node9 OVH (không beacon) thấy nó.
+- Danh tính `/opt/9chain-a1/staking/` sao lưu 3/3 sha256 khớp tại `C:\Users\abc\9chain-a1-keys\vdr-hetzner-144.76\staking\`; ví stake `validator.key` cùng chỗ
+  (C `0x5Dc0f321…6419`, X/P `…love91sd2cwy8j…35het`), còn C 0,99 · X 3,998 · P 3,99996.
+- **Lần đầu `c-to-x --issue` chạy thật** (89 → X nhận 88,999). `xp-wallet x-to-p 85`. `stake-validator --issue` với `--uri` VÀ `--node-rpc` = node mình qua tunnel.
+- `ingress=0` sau stake (D-121) **tách nghĩa bằng `docker restart`**: 90 s sau có 1 kết nối vào từ `139.99.145.13`, `healthy:true`. Uptime trên chain 99,94.
+- `docs/RUN-A-VALIDATOR.md` 5 chỗ + D-231 (`80547c6`, đổi số `4a4bc3d`); `check-doc-drift` 47 tài liệu xanh; `FILL-ON-G[-]DAY`=0.
+
+**Việc tiếp:**
+- **[human]** `17/09`–`18/09` hai node lạ hết hạn, `21/09 13:14Z` node Hetzner hết hạn ⇒ trang chủ 12 → đỏ; stake lại trước đó nếu muốn giữ (P còn 3,99 —
+  phải faucet lại, 10 lượt).
+- **[human]** máy Hetzner cũ `95.217.60.140`: tiến trình `avalanchego` trần g0 (PID 34489, từ 29/08) VẪN chạy, giữ 9651 — dừng hay dựng lại như 144.76.
+- **[main]** ai clone `official` từ 04/09–07/09 phải clone lại (lineage mới). Cân nhắc ghi vào README công khai.
+
+**Gotchas phiên này:**
+- 🔴 **`publish-official.sh` KHÔNG fast-forward dù bộ lọc không đổi**: public cũ/mới chỉ chung tới `d54a6f2` (D-091); 259 commit công khai cũ bị thay bằng 326.
+  Nguyên nhân là **lịch sử `main` riêng tư đã bị viết lại sau 04/09** ở cặp "Nhật báo cáo soát từ nhánh audit" (`5fbaefb` vs `6c07b09`, cùng nội dung
+  khác SHA). `filter-repo` tất định trên ĐẦU VÀO — đầu vào đổi thì lineage đổi. Trước khi công bố: `git merge-base <main-equiv của official tip> main` phải ra chính nó.
+- **Số D trùng**: lượt Astra đặt D-197..D-230 bằng tiêu đề `###`; `grep "^## D-"` không thấy nên tôi đã lấy D-197. Dò số bằng `grep -o "^##* .\{0,4\}D-[0-9]\{3\}"`.
+- **Bash cwd tự đặt lại về worktree `web`** giữa các lệnh: `ls scripts`/`git ls-files` "không thấy" `check-remotes.mjs` vì đang ở nhánh `web-home`. Mọi lệnh cho main đi kèm `cd /c/PROJECTS/9Chain-A1` hoặc `git -C`.
+- Edit tool trên `DECISIONS.md` đổi EOL của 557 dòng ⇒ dựng lại từ `git show HEAD:` + node; đối chứng `git diff --stat` có/không `--ignore-all-space` phải bằng nhau.
+- Máy Hetzner: ufw `22 LIMIT` chặn ~1 phút khi ssh dồn dập (6/30 s) — gộp lệnh một phiên ssh. Khoá vào: `~/.ssh/id_ed25519` (Windows, mới thêm) hoặc `id_ed25519_newvps` trong WSL.
+- Tools Go từ máy dev: PowerShell 5.1 không có `&&`; Git Bash cần `MSYS_NO_PATHCONV=1` (không thì `-w /src` thành `C:/Program Files/Git/src`). `--amount` phải chừa phí: 89/85/81.
+- `platform.getPendingValidators` **không tồn tại** sau Etna — validator vào ngay khi tx Committed; "không có trong tập hiện tại" = chưa có tx.
+
+**Lệnh hữu ích:**
+- Đo validator: `curl -s -X POST -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"platform.getCurrentValidators","params":{"nodeIDs":["NodeID-G5tZWvku6qLRkicFJa2MdBH52UdBEYTpr"]}}' https://rpc-a1.9chain.org/ext/bc/P`
+- Trên máy: `ssh root@144.76.165.85 'docker ps; curl -s -X POST -H content-type:application/json --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"health.health\"}" http://127.0.0.1:9650/ext/health | head -c 300'`
+- Khởi động lại node: `ssh root@144.76.165.85 bash /opt/9chain-a1/run-node.sh` (giữ `/opt/9chain-a1/staking/`, volume `a1-data` xoá được).
+
 ## CHỐT PHIÊN 2026-09-07 CHIỀU (Claude) — đọc khối này rồi khối dưới là đủ
 
 **TL;DR.** Phiên ngắn, chỉ đọc server. Preflight từ PowerShell: **54 đạt · 3 đỏ · 1 không chạy được**. Cái không chạy được là lỗi mã
