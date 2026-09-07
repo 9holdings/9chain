@@ -9,6 +9,7 @@ nhắn: `deploy-lock.sh` (tệp của main) ghi biên nhận Caddy `branch: main
 **worktree chứa script**, cổng sở hữu đo **cwd**: hai đại lượng. **Đã sửa (D-232)**: actor đo từ cwd, ngoài worktree ⇒ mã 2, luật MỘT shell ghi
 đầu tệp; self-test 42 → 45 ca, thấy đỏ đúng lý do. Hiệu lực tức thì cho web (họ `source` tệp trên cây làm việc của main). Server, mạng: **không đổi**.
 Tên gọi từ nay: repo này/nhánh `main` = **9Chain A1 core**, worktree `web-home` = **9Chain A1 web** (David chốt).
+**git lúc chốt (`2026-09-07` ~21:xxZ):** `main` = `origin/main` = **`58a4e67`** (D-232; đẩy `origin` sau `check-remotes` 3/3 + `check-history-secrets` xanh, David bấm). `official` KHÔNG đẩy (lineage mới `cc2cd9f`, chỉ qua `publish-official.sh`). Commit HANDOFF này đứng trên `58a4e67`, **chưa đẩy**.
 
 **Việc tiếp:** các mục `[human]` của hai khối dưới còn nguyên. Biên nhận `~/9chain-a1/deployed/caddy.json` trên server còn ghi `main` — bản ghi
 lịch sử, lượt deploy Caddy kế tiếp của web sẽ ghi đúng; không sửa tay.
