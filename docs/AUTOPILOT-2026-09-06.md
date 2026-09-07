@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-06 23:56:42 UTC** (D-221 exact-source47-command acceptance; final status follows).
+repetition. Last user-facing progress update: **2026-09-07 00:12 UTC** (D-222 Windows/Linux backup and removed-scope negative passed; exact-source acceptance next).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -596,3 +596,13 @@ synthetic identities, no existing validator/genesis/key modifications. Reserve f
 20–30minutes for final clean source/docs, acceptance and review handoff. Record final
 freeze receipts in ignored work/outputs without advancing HEAD afterwards. Hard stop
 02:23:12 UTC unchanged; roughly2h26 remained. No public mutation in this window.
+
+D-222 now closes the local temporary-genesis backup gap. Schema2 preserves exact
+console-tmp candidate bytes, including corrupt and outside-band files, plus required
+root presence/absence. New verifier explicitly refuses legacy schema1; no migration
+or overwrite. Existing bounded copy/fsync/stability/topology/exclusions remain.
+43 CLI checks pass on Windows/Linux with8/9 real-file fault controls. Removed-scope
+negative omits actual genesis and fails expected-copy; logs/fixtures in
+docs/CONSOLE-BACKUP.md. Linux container a1-autopilot-d222-backup-linux-20260907
+exited0/noOOM. Commit and run exact-source acceptance including33 deployment cases.
+Then assess fresh private-network drill; no public backup, restore or legacy adoption.

@@ -9895,3 +9895,22 @@ on-server artifacts and11 active committed genesis records;55 outside-band files
 retained and before/after hashes identical. Exact logs/digests in LEGACY-ARTIFACTS.md.
 No raw artifact/credential transfer, installation, backup, retry, import or deletion.
 This does not establish legacy drain, pending/subnet-only completion or safe bootstrap.
+
+### D-222 — Preserve temporary genesis as versioned backup evidence (2026-09-07)
+
+The measured legacy console retains66 temporary genesis files, but the original
+selected backup omitted that root. Add console-tmp and direct ASCII JSON filenames
+to snapshot and independent verification; preserve current, outside-band and corrupt
+bytes without parsing chain identity. Unknown/nested/linked entries require review.
+Keep existing16MiB/file,128MiB total,4096-entry bounds and required absence/topology.
+
+Expanded backups use schema2. Explicitly refuse schema1 in the new verifier; retain
+old bytes and use their original frozen verifier only for historical integrity.
+No migration, overwrite, restore or automatic installer fallback. External lock and
+proven drain remain mandatory; API404 cannot be bypassed by creating a marker.
+
+43 actual CLI cases pass on Windows/Linux with8/9 real-file fault controls. Genesis
+source drift, corrupt destination, ENOSPC and fsync failures retain incomplete copies
+without a verified backup. Rehashed structural omissions and missing/changed payload
+are refused. Removing scope in copied source omits real genesis and fails the expected
+copy assertion. Evidence in docs/CONSOLE-BACKUP.md. No public backup or mutation.

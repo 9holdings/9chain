@@ -2,7 +2,7 @@
 
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
-for current evidence and next work. D-197 through D-221: local console reliability,
+for current evidence and next work. D-197 through D-222: local console reliability,
 read-only creation inspection, cold-build/replay, core tests, managed-node transport
 and persistent operator maintenance, frozen releases, targeted paused restart and
 per-invocation deployment exclusion without TTL takeover (`docs/DEPLOYMENT-LOCK.md`).
@@ -54,6 +54,11 @@ deployment cases); independent report/log verification and local plan pass. Snap
 and receipt paths are in AUTOPILOT. Next plan work/d222-backup-design.md, then the
 bounded remaining-window priorities in work/remaining-window-plan.md. About2h26 left;
 final20–30minutes are reserved for a clean final freeze and owner handoff.
+D-222 closes that local backup-scope gap: schema2 preserves temporary genesis bytes
+and required root absence, explicitly refuses legacy schema1 and retains all evidence.
+43 actual CLI cases and8/9 real-file fault controls pass on Windows/Linux; removing
+scope fails an actual genesis-copy assertion. No public backup or legacy transition.
+Next: exact-source acceptance, then bounded fresh private-network/resource drill.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
 

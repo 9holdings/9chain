@@ -26,6 +26,11 @@ validator data, keys, environment files, logs, nested trees or journal history.
 Backups/journals are metadata observations here, not validated recovery documents;
 use the existing creation inspector for its separate journal semantics.
 
+D-222 separately extends bounded backup schema2 to preserve selected console-tmp
+bytes, including corrupt and outside-band files. See CONSOLE-BACKUP.md. Inspection
+and backup have different bounds and purposes; this command remains read-only and
+does not establish quiescence or authorize a public backup/restore.
+
 The inspector opens only regular unlinked files with real parents. File descriptors
 must match the observed inode/device; Linux also uses O_NOFOLLOW. Bounded reads and
 post-read size/time checks refuse files changed during reading. A second complete

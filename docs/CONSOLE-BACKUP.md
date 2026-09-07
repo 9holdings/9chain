@@ -1,6 +1,6 @@
 # Console source and state backup
 
-D-217 is local tooling, not a public backup or deployment. The helper preserves
+D-217/D-222 are local tooling, not a public backup or deployment. The helper preserves
 the old files named by a verified proposed release and selected console runtime
 state before a reviewed upgrade. It never restores, deletes, restarts or calls a
 network. A backup hash is an integrity anchor, not deployment approval.
@@ -39,10 +39,15 @@ node local-net/deploy/console-backup.mjs \
 - Old source bytes or explicit absence for every file in the proposed release.
 - Console chain ledger and its backup/temp files; creation pending/history files;
   per-chain config/upgrade files and upgrade history; empty maintenance marker.
+- D-222 adds the required console-tmp root observation and direct ASCII filenames
+  matching `[A-Za-z0-9_-]{1,80}.json`. Preserve every selected file byte-for-byte,
+  including outside-current-band and corrupt genesis; do not parse/filter by chain ID.
+  Unknown names, nested directories and linked entries require review before copying.
 - Original file modes, sizes, SHA-256, directory and required absence observations.
   Corrupt ledger/journal bytes are preserved without interpretation or repair.
 - No blanket scan of the operational config root. Credentials, `console.env`,
-  validator/genesis data, node_modules, logs and other services are outside scope.
+  validator keys and primary-network genesis, node_modules, logs and other services
+  are outside scope. The declared L1 template and selected temporary L1 genesis are included.
   This filename policy is not a scanner that detects secrets embedded in allowed
   files. Do not publish backup artifacts.
 - Source/destination parents and files must be real paths without links/junctions.
@@ -63,6 +68,12 @@ Restoring operational state needs a separate reviewed recovery plan. The D-218
 controller in CONSOLE-DEPLOYMENT.md consumes this backup; public rollout and any
 operational-state restore still require separate review.
 
+New backups use schema2. Verification explicitly refuses legacy schema1, which did
+not require temporary genesis observations. Retain old bytes and use their original
+frozen verifier for historical integrity only; do not migrate or overwrite them.
+There is no automatic fallback in the installer. Schema2 does not prove legacy drain
+or authorize making a maintenance marker on a legacy server to bypass missing APIs.
+
 ## Evidence, 2026-09-06
 
 Actual CLI tests use synthetic Git/source/state in scratch, with no real keys or
@@ -78,3 +89,22 @@ Linux: `work/console-backup-linux.log`, inputs `work/backup-linux-GklNBk`, conta
 one CPU, no published ports or Docker socket). Image adds Git to the existing
 Node fixture using a Dockerfile-only context. Shared release verification was
 extracted without changing the packager API; its 26 CLI regression cases pass.
+
+## Expanded-scope evidence, 2026-09-07
+
+D-222:43 actual CLI cases pass on Windows/Linux, with8 Windows/9 Linux real-file
+fault controls. Current, outside-band and corrupt temporary genesis bytes and hashes
+match the originals, which remain unchanged. Missing root is explicitly recorded;
+unknown/nested/linked input refuses before destination creation. Independently
+rehashed metadata still fails for missing required observations/topology, unlisted
+payload and legacy schema. Missing/changed copied genesis fails verification.
+Actual source drift, corrupt copy, ENOSPC and fsync failures during genesis copying
+retain incomplete evidence without a verified backup. Existing bounds still pass.
+
+Removing only console-tmp from the copied implementation omits actual genesis bytes
+and fails the expected-copy assertion. Negative fixture work/backup-negative-scope-UcrjbT.
+Windows fixture work/console-backup-test-GoQPxQ; Linux/negative log
+work/d222-backup-checks.log, inputs work/d222-backup-linux-btVSZM. Linux container
+a1-autopilot-d222-backup-linux-20260907 exited0/noOOM with network none, read-only root,
+512MiB/1CPU and256MiB tmpfs. Uses the existing self-contained deployment fixture image.
+No public backup, mutation, restore, power-loss experiment or first-adoption rehearsal.

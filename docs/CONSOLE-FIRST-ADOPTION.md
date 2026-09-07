@@ -70,12 +70,16 @@ only at the end. A failure before the last step can leave a subnet/validator ope
 without a blockchain registration. The inventory therefore cannot rule out partial
 CLI work, pending transactions or acceptance after an interrupted HTTP/CLI response.
 
-D-217 selected backup excludes console-tmp. Legacy files there may be the only link
-to a submitted genesis. Before an actual first-adoption mutation, prepare bounded
-preservation of those exact artifacts on-server, plus the relevant request/transaction/
+D-217 originally excluded console-tmp; D-222 schema2 now preserves its selected exact
+bytes and required root observation (CONSOLE-BACKUP.md). Legacy schema1 is explicitly
+refused by the new verifier. Legacy files may be the only link to a submitted genesis.
+Before an actual first-adoption mutation, arrange reviewed on-server preservation
+with proven quiescence, plus the relevant request/transaction/
 rollout records, without a blanket copy of credentials or validator data. Treat a
 filename or declared EVM ID only as a candidate; exact bytes and immutable transaction
 identities are stronger evidence. New journals cannot reconstruct old operations.
+No public backup has been made. A locally tested expanded backup scope does not
+establish legacy drain or permit fabricating a maintenance marker to bypass API404.
 
 Rehearse the exact legacy-to-new transition with synthetic credentials and real old/
 new consoles, including held request bodies/preflight/queue work, uncertain submitted
