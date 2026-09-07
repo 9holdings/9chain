@@ -51,6 +51,9 @@ const RPC = flag("--rpc", process.env.A1_CHAINS_RPC || "");
 const WINDOW = Number(flag("--window", 30));
 const TARGET_RATE = Number(flag("--target-rate", 1));
 const MAX_GAP = Number(flag("--max-gap", 2.5));
+// `--only a,b`: judge only these chain names (a partial pump run); every other live chain is
+// still listed, as "skipped", so a reader sees what was NOT measured.
+const ONLY = flag("--only", null) ? new Set(flag("--only").split(",").map((s) => s.trim()).filter(Boolean)) : null;
 
 const hexNum = (h) => Number(BigInt(h));
 
@@ -130,7 +133,10 @@ async function main() {
   const ledger = parseLedger(readFileSync(path.resolve(ROOT, LEDGER_FILE), "utf8"));
   console.log(`\n══ CHAINS PRODUCING — ${ledger.chains.length} live chain(s) in ${LEDGER_FILE}, via ${RPC}, window ${WINDOW}s, target ${TARGET_RATE} tx/s, max gap ${MAX_GAP}s ══\n`);
   if (ledger.chains.length === 0) { console.log("✅ PASS — the ledger advertises no live chain (nothing to produce)"); return 0; }
-  const results = await measureLedger({ chains: ledger.chains, rpcBase: RPC, window: WINDOW, targetRate: TARGET_RATE, maxGap: MAX_GAP });
+  const chains = ONLY ? ledger.chains.filter((c) => ONLY.has(c.name)) : ledger.chains;
+  if (ONLY) for (const c of ledger.chains.filter((c) => !ONLY.has(c.name))) console.log(`  · ${c.name} #${c.chainId} — skipped (not in --only)`);
+  if (chains.length === 0) { console.log("🔴 --only names no live chain of this ledger"); return 2; }
+  const results = await measureLedger({ chains, rpcBase: RPC, window: WINDOW, targetRate: TARGET_RATE, maxGap: MAX_GAP });
   for (const r of results) console.log(`  ${MARKS[r.verdict]} ${r.label} — ${r.detail}`);
   const reds = results.filter((r) => MARKS[r.verdict] === "🔴");
   const unknown = results.filter((r) => r.verdict === "unreachable");

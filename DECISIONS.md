@@ -10509,3 +10509,32 @@ log của nó sạch, chỉ log **peer** ghi *"too many tracked subnets"* và s�
 mỗi node. Máy chủ thật (chỉ đọc, cửa sổ 10 s, `--no-ledger`): **9 node · 3,07 lõi · 21.263 MiB · tuổi 73 h · loadavg 4,37/8** với 11 L1
 và bơm đang chạy — so D-178 (`2,28` lõi · `4.103` MiB lúc node 75 phút tuổi): CPU +35 %, **RAM ×5 theo tuổi** — đúng chiều D-178
 cảnh báo, và là con số pha 1 phải nhìn.
+
+## D-240 — **Bơm THEO CHAIN đọc thẳng sổ console, heartbeat từng chain, cổng "mọi chain đẻ block" chấm bằng block của chính chain; và câu hỏi treo được trả lời: chain 5 validator ĐẺ BLOCK** (`2026-09-07` đêm, P-87)
+
+**Bối cảnh.** `load-test.mjs` nhắm C-Chain, `heartbeat.json` là một tệp cho cả mạng; kit K1 có `pump` nhưng chỉ cho sổ K1 (khoá bơm
+trong `plan.json`). Chain do console đẻ không có khoá bơm — genesis cấp toàn bộ cho **chủ** (`A1_L1_ADMIN`).
+
+**Quyết định.**
+1. **`l1-batch pump -ledger <console-chains.json> -rpc-base <router> -key <cb58> -heartbeat-dir <dir>`** (`pump_ledger.go`): một
+   khoá ký cho mọi chain sống trong sổ (chủ của chúng), nonce **cục bộ** mỗi chain (resync chỉ khi lỗi "nonce" — bẫy `a1-bay-lech-nonce`),
+   kiểm số dư trước khi bơm (khoá không sở hữu ⇒ ghi `lastError`, không bơm). `heartbeat-<chainId>.json` mỗi 5 s và lúc kết thúc
+   `running:false` (chainId · name · running · sent · failed · headBlock · headTimestamp · targetRate · from).
+2. **`scripts/check-chains-producing.mjs`**: chấm TỪNG chain bằng **block của chính nó** qua RPC phục vụ nó (router): hai lần đọc head
+   cách `--window` s, đọc mọi block ở giữa; đỏ khi **không block** · **khoảng cách** hai block liền > `--max-gap` (2,5 s) · tx vào khối
+   < 90 % `--target-rate` × window · **sai chainId**; không hỏi được ⇒ 2. 🔴 Mục tiêu là **kỳ vọng của người vận hành** (`--target-rate`),
+   không đọc từ heartbeat — bơm dừng thì heartbeat khai `running:false` và tha đúng chain cổng phải bắt. `--only` cho lượt bơm một phần
+   (chain bị bỏ vẫn liệt "skipped"). Self-test 11 (4 kiểu đỏ + 3 đối chứng + đội tàu đỏ đúng một chain). Vào preflight nhóm 2; nhóm 3 chỉ
+   khi `A1_DRILL_BAND=1` + `A1_CHAINS_RPC` (dụng cụ băng tập, không chặn ngày G).
+3. 🔴 **Chủ chain băng tập phải là khoá băng tập.** Ba chain đầu (Drill Chain, Band Test One/Three) mang admin `0x1212…` — địa chỉ
+   Foundation THẬT chép từ `start-console.sh` cũ — khoá đó không ở đây (và không được ở đây) ⇒ không bơm được: heartbeat ghi
+   `balance … 0x0 — this key does not own the chain`. Từ nay console băng tập chạy `A1_L1_ADMIN=0x6c7F94E9…` (EVM của khoá foundation
+   băng tập, `keys.txt`). Không sửa ba chain cũ; chúng ở lại sổ như bản ghi.
+
+**Đo trên băng tập** (router, "Band Test Four" validators node-6..9,1 · "Band Test Five", cả hai V=5, chủ `0x6c7F…`):
+- Bơm 1 tx/s × 110 s: **220 gửi · 0 hỏng**, head 55 mỗi chain; cổng cửa sổ 30 s: **15 block · 30 tx = 1,00 tx/s · gap tối đa 2 s**, 2/2 ✓.
+- **Ca đỏ:** chỉ bơm Four ⇒ cổng đỏ **đúng Band Test Five** (*"no block in 30s, head still 56"*), Four vẫn ✓. Lượt hai có 1 tx "nonce too
+  low" ở giây đầu (nonce đọc `latest` ngay sau lượt trước) — resync một lần rồi chạy tiếp, đúng thiết kế.
+- ⇒ **Chain 5 validator (trong 9) đẻ block ở nhịp 2 s với tx vào khối** — câu hỏi để ngỏ từ D-237 đã có số.
+- Tải VM (`measure-node-load.sh --local`, P-89 prep): 9 node · 5 L1 · 2 chain bơm 1 tx/s ⇒ **0,72 lõi · 1.252 MiB**; lượt đo trong lúc
+  rollout ra số âm ⇒ script nay khai INVALID khi container bị tạo lại trong cửa sổ, mã 1.

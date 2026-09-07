@@ -42,6 +42,8 @@
 #                                                        #   server-env.sh — a fleet loop (hosts-run.sh style)
 #                                                        #   calls this once per machine
 #   bash scripts/measure-node-load.sh --no-ledger        # skip the public-ledger L1 count (drill fleets)
+#   bash scripts/measure-node-load.sh --local --name-filter 9chain-a1-tap-node- --expect 9 --no-ledger
+#                                                        # P-89: the drill band on the dev machine (Docker Desktop VM)
 
 set -u
 
@@ -55,6 +57,7 @@ NAME_FILTER="9chain-a1-node-"
 LEDGER_URL="https://a1.9chain.org/chains/data/console-chains.json"
 
 NO_LEDGER=0
+LOCAL=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --seconds) SECONDS_WINDOW="$2"; shift 2 ;;
@@ -65,6 +68,8 @@ while [ $# -gt 0 ]; do
     --host) A1_SSH_HOST="$2"; shift 2 ;;
     --ssh-key) A1_SSH_KEY="$2"; shift 2 ;;
     --no-ledger) NO_LEDGER=1; shift ;;
+    # P-89: the dev machine's Docker Desktop VM (drill band) — cgroup files read from a helper container.
+    --local) LOCAL=1; shift ;;
     -h|--help) sed -n '2,50p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -115,6 +120,8 @@ total_cores=0; total_mib=0
 printf "%-18s %8s %9s %10s\n" "container" "cores" "RAM MiB" "age"
 for i in "${!rows[@]}"; do
   d="$CG/docker-${ids[$i]}.scope"
+  # Recreated during the window (a rollout) ⇒ the sample is invalid, never a negative core count.
+  if [ ! -r "$d/cpu.stat" ]; then echo "INVALID: ${names[$i]} was recreated during the window — measure again when no rollout is running" >&2; exit 1; fi
   cpu1="$(awk "/^usage_usec/ {print \$2}" "$d/cpu.stat")"
   mem="$(cat "$d/memory.current")"
   cores=$(awk -v a="${cpu0[$i]}" -v b="$cpu1" -v e="$elapsed_us" "BEGIN {printf \"%.3f\", (b-a)/e}")
@@ -139,9 +146,66 @@ echo "window ${start_iso}..${end_iso} (${elapsed_us}us) · host loadavg $load on
 echo "JSON {\"measuredAt\":\"$end_iso\",\"windowSec\":$WINDOW,\"nodes\":$n,\"cpuCores\":$total_cores,\"ramMiB\":$total_mib,\"youngestNodeAgeSec\":$min_age_s,\"hostLoadavg\":\"$load\",\"hostCpus\":$ncpu,\"heartbeat\":\"$hb\"}"
 '
 
+# ═══ --local (P-88/P-89): the Docker Desktop VM on the dev machine ═══
+# Windows has no /sys/fs/cgroup; the VM does, with the same `system.slice/docker-<id>.scope`
+# layout (probed 2026-09-07). The container list is taken HERE with the docker CLI and handed to a
+# helper container that only reads cgroup files — no bash+docker image needed inside.
+local_script='
+set -u
+WINDOW="$1"; EXPECT="$2"; ROWS="$3"
+# Two layouts seen in the Docker Desktop VM (probed 2026-09-07): containers started by compose sit
+# under /sys/fs/cgroup/docker/<id>, others under system.slice/docker-<id>.scope. Try both.
+cgdir() { if [ -d "/sys/fs/cgroup/docker/$1" ]; then echo "/sys/fs/cgroup/docker/$1"; else echo "/sys/fs/cgroup/system.slice/docker-$1.scope"; fi; }
+start_iso="$(date -u +%FT%TZ)"
+declare -a ids names cpu0 started
+n=0
+while read -r id name st; do
+  [ -n "$id" ] || continue
+  f="$(cgdir "$id")/cpu.stat"
+  if [ ! -r "$f" ]; then echo "INVALID: $f not readable (cgroup layout changed?)" >&2; exit 1; fi
+  ids[$n]="$id"; names[$n]="$name"; started[$n]="$st"; cpu0[$n]="$(awk "/^usage_usec/ {print \$2}" "$f")"
+  n=$((n+1))
+done <<<"$ROWS"
+if [ "$n" -lt "$EXPECT" ]; then echo "INVALID: expected $EXPECT node containers, found $n" >&2; exit 1; fi
+t0=$(date +%s%N); sleep "$WINDOW"; t1=$(date +%s%N)
+elapsed_us=$(( (t1 - t0) / 1000 ))
+now_s=$(date +%s); total_cores=0; total_mib=0; min_age_s=""
+printf "%-24s %8s %9s %10s\n" "container" "cores" "RAM MiB" "age"
+invalid=0
+for i in $(seq 0 $((n-1))); do
+  d="$(cgdir "${ids[$i]}")"
+  # A container recreated DURING the window (a rollout) takes its cgroup with it: the sample is
+  # invalid, not a negative number of cores. Say so and exit 1 at the end.
+  if [ ! -r "$d/cpu.stat" ]; then printf "%-24s %8s %9s %10s\n" "${names[$i]}" "?" "?" "RESTARTED during the window"; invalid=1; continue; fi
+  cpu1="$(awk "/^usage_usec/ {print \$2}" "$d/cpu.stat")"; mem="$(cat "$d/memory.current")"
+  cores=$(awk -v a="${cpu0[$i]}" -v b="$cpu1" -v e="$elapsed_us" "BEGIN {printf \"%.3f\", (b-a)/e}")
+  mib=$(( mem / 1048576 ))
+  st_s=$(date -u -d "${started[$i]}" +%s 2>/dev/null || echo "$now_s"); age_s=$(( now_s - st_s ))
+  printf "%-24s %8s %9s %7dm%02ds\n" "${names[$i]}" "$cores" "$mib" $(( age_s / 60 )) $(( age_s % 60 ))
+  total_cores=$(awk -v t="$total_cores" -v c="$cores" "BEGIN {printf \"%.3f\", t + c}"); total_mib=$(( total_mib + mib ))
+  if [ -z "$min_age_s" ] || [ "$age_s" -lt "$min_age_s" ]; then min_age_s=$age_s; fi
+done
+load="$(cut -d" " -f1-3 /proc/loadavg)"; ncpu="$(nproc)"; end_iso="$(date -u +%FT%TZ)"
+printf "%-24s %8s %9s\n" "TOTAL ($n nodes)" "$total_cores" "$total_mib"
+echo "window ${start_iso}..${end_iso} (${elapsed_us}us) · VM loadavg $load on $ncpu cpus · youngest node ${min_age_s}s"
+if [ "$invalid" = "1" ]; then echo "INVALID: a node was recreated during the window — measure again when no rollout is running" >&2; exit 1; fi
+echo "JSON {\"measuredAt\":\"$end_iso\",\"windowSec\":$WINDOW,\"nodes\":$n,\"cpuCores\":$total_cores,\"ramMiB\":$total_mib,\"youngestNodeAgeSec\":$min_age_s,\"hostLoadavg\":\"$load\",\"hostCpus\":$ncpu,\"heartbeat\":\"local\"}"
+'
+
+if [ "${LOCAL:-0}" = "1" ]; then
+  rows=""
+  for short in $(docker ps --filter "name=$NAME_FILTER" --format '{{.ID}}'); do
+    rows+="$(docker inspect -f '{{.Id}} {{.Name}} {{.State.StartedAt}}' "$short" | sed 's#^\([^ ]*\) /#\1 #')"$'\n'
+  done
+  out="$(MSYS_NO_PATHCONV=1 docker run --rm -i -v /sys/fs/cgroup:/sys/fs/cgroup:ro debian:bookworm-slim \
+    bash -s -- "$SECONDS_WINDOW" "$EXPECT" "$rows" <<<"$local_script" 2>&1)"
+  rc=$?
+  [ $rc -eq 125 ] && rc=255
+else
 out="$(ssh -i "$A1_SSH_KEY" -o ConnectTimeout=20 -o BatchMode=yes "$A1_SSH_HOST" \
   bash -s -- "$SECONDS_WINDOW" "$EXPECT" "$NAME_FILTER" <<<"$remote_script" 2>&1)"
 rc=$?
+fi
 
 if [ $rc -eq 255 ]; then
   echo "CANNOT MEASURE: ssh to $A1_SSH_HOST failed" >&2

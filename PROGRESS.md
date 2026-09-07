@@ -175,10 +175,16 @@ khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn 
       compose, 3/3 chain trả đúng chainId qua router, id lạ 404 JSON, info qua fallback; cổng `--drill --rpc router`: chain mới ✓, 2 bản ghi
       trước-router "FOREIGN host" + Drill Chain ngoài khối tập (đỏ đúng, không sửa tay). **Ca đỏ:** assignment trỏ Band Test Three sang
       node-6 ⇒ cổng đỏ đúng chain đó; khôi phục ⇒ ✓. Fixture 50/50. ⏳ `[web-home]` Caddyfile công khai đọc `assignment.json`.
-- [ ] **P-87 — Bơm THEO CHAIN + heartbeat mỗi chain + cổng "mọi chain đẻ block"** — dùng `l1-batch pump -only`, nonce cục bộ
+- [x] **P-87 — Bơm THEO CHAIN + heartbeat mỗi chain + cổng "mọi chain đẻ block"** — dùng `l1-batch pump -only`, nonce cục bộ
       (bẫy `a1-bay-lech-nonce`), xuất `heartbeat-<chainId>.json`; cổng mới `scripts/check-chains-producing.mjs` đọc sổ, đo mọi
       chain: block ≤ 2,5 s nhịp, tx vào khối ≥ 90 % mục tiêu; vào preflight nhóm 3 **chỉ khi** `A1_DRILL_BAND` (không đủ tư cách chặn g1).
       **Qua khi:** 15 chain × 1 tx/s, 30 phút, 15/15 xanh. Ca đỏ: dừng bơm **một** chain ⇒ cổng đỏ **đúng chain đó**, không đỏ cả bảng.
+      ✅ `07/09` đêm (autopilot, D-240): `l1-batch pump -ledger … -rpc-base <router> -key -heartbeat-dir` (một khoá chủ, nonce cục bộ,
+      `heartbeat-<chainId>.json` 5 s/lần) · `scripts/check-chains-producing.mjs` (block của chính chain: no-blocks/gap/under-rate/wrong-id,
+      `--target-rate` là kỳ vọng người vận hành, `--only`; self-test 11; preflight nhóm 2, nhóm 3 khi `A1_DRILL_BAND`). **Đo trên băng tập:**
+      Four+Five (V=5, chủ = khoá băng tập `0x6c7F…`) bơm 1 tx/s 110 s ⇒ 220/0 hỏng; cổng 30 s: 15 block · 30 tx = 1,00 tx/s · gap 2 s, 2/2 ✓;
+      **ca đỏ:** không bơm Five ⇒ đỏ đúng Five. ⇒ **chain 5 validator đẻ block**. Bài học: 3 chain cũ mang admin `0x1212…` (khoá thật, không
+      có ở đây) ⇒ không bơm được — console băng tập nay `A1_L1_ADMIN=0x6c7F…`. ⏳ 15 chain × 30 phút gộp vào P-89.
 - [x] **P-88 — Cổng đội tàu liên máy** — `scripts/check-startclose.mjs` (log `too many tracked subnets` = 0 + peers đủ trên mọi node,
       nhận `nodes.json` của `l1-batch compose`) · `measure-node-load.sh` nhận danh sách host qua ssh thay vì giả định cùng host.
       **Qua khi:** băng tập 9 node 0/0; đo được RAM theo giờ. Ca đỏ: fixture log có dòng `too many tracked subnets` ⇒ đỏ, nêu node.

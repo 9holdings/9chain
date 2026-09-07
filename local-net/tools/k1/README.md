@@ -42,6 +42,20 @@ subnet exists is fatal and names the orphaned subnet. The console (`A1_L1_VALIDA
 inside node-1 from `<config dir>/bin/l1-batch` (`A1_L1_BATCH_BIN`, the config directory is mounted at `/9chain-a1/config`
 on every node): copy `out/l1-batch` there after `scripts/l1.sh build`. `-mode l1` (ConvertSubnetToL1Tx) is reserved until H-2.
 
+## `l1-batch pump -ledger` and `router` — load and routing for console-created chains (P-86/P-87)
+
+```bash
+l1-batch router -assignment <config>/assignment.json -out out/router/Caddyfile -fallback http://<public-node>:9650 -listen :8545
+l1-batch pump -ledger <config>/console-chains.json -rpc-base http://<router>:8545 -rate 1 -seconds 3600 -heartbeat-dir <config>/heartbeat
+node scripts/check-chains-producing.mjs --file <config>/console-chains.json --rpc http://127.0.0.1:8545 --window 30 --target-rate 1
+```
+
+`assignment.json` is the console's router contract (written under `A1_L1_VALIDATORS_PER_CHAIN`, D-239). The pump signs with
+ONE key — the chains' owner (`A1_CLI_KEY` / `K1_FUND_KEY`, on the drill band the foundation key whose EVM address is
+`0x6c7F…`; create drill chains with `A1_L1_ADMIN` set to it, or the pump has nothing to spend) — with a local nonce per chain
+and a `heartbeat-<chainId>.json` per chain. The gate judges each chain by its own blocks; the target rate is the operator's
+expectation, never the heartbeat's (D-240).
+
 ## Why the tool runs inside a container
 
 `go build` fails on Windows at blst (cgo) and `storage.AvailableBytes` (no Windows implementation). The fork is
