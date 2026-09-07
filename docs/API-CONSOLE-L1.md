@@ -82,6 +82,8 @@ Trả về (rút gọn, tên khoá **nguyên văn**):
 ```jsonc
 {
   "tran": 15, "tranGiaoThuc": 16,
+  "band": "real" | "drill", "networkId": 999999998,             // P-81: băng console đang phục vụ
+  "chainIdBlock": { "floor": 9001000000, "ceiling": 9001999999 }, //   và khối chainId nó cấp (băng tập: 8001000000+)
   "defaultAdmin": "0x…",
   "chains": [...], "retired": [...],
   "dangNhap": "vanHanh" | "vi", "viDangNhap": "0x…" | null,
@@ -105,6 +107,11 @@ Trả về (rút gọn, tên khoá **nguyên văn**):
 đừng qua `parseInt` — và đừng `JSON.stringify` một `BigInt`.
 
 Sáu preset: `standard` · `zero-fee` · `high-throughput` · `mintable` · `owner-deploy-only` · `permissioned`.
+
+**Băng tập (P-81, D-233).** Console phục vụ đúng MỘT băng, chọn lúc khởi động: mặc định băng THẬT; `A1_DRILL_BAND=1` ⇒ băng
+tập cùng thế hệ (`899999999 − A1Gen`, tên `9chain-a1-tap-g<gen>`), cấp chainId từ khối riêng `8_00g_000_000–…999_999`. Cờ bật
+mà node khai mạng THẬT ⇒ **từ chối** (câu lỗi nêu tên cờ); cờ tắt mà node là băng tập ⇒ vẫn từ chối như trước, kèm gợi ý bật cờ.
+chainId gõ tay thuộc không gian của băng kia ⇒ từ chối cả hai chiều. Trang công khai không bao giờ thấy `band: "drill"`.
 
 ---
 

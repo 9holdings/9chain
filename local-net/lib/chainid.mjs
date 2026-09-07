@@ -76,6 +76,81 @@ export const TRAN_TOAN_DAI = 9_999_999_999;
 // nhiều), nhưng nó vẫn canh **đường người dùng TỰ NHẬP** ở `server.mjs`.
 export const TRAN_EIP2294 = Number.MAX_SAFE_INTEGER;
 
+// ═══ DRILL BAND — same generation, a network that can never handshake with the real one ═══
+//
+// Go declares TWO bands (`utils/constants/network_ids.go`): the REAL band counts down from
+// `A1IDGoc`, the DRILL band from `A1IDGocTap`, so every drill of this generation runs on
+// `A1IDTap = 899999999 − A1Gen`. Until 2026-09-07 the console knew only the real band: on the
+// drill band it refused to create chains ("generation mismatch", correctly), and drills had to
+// create L1s with the CLI and hand-write the ledger (HANDOFF 2026-09-05). P-81 (D-233) gives the
+// console the drill band as an explicit, opt-in mode — `A1_DRILL_BAND=1` — that is refused when
+// the node turns out to be the real network.
+//
+// The drill band gets its OWN chainId space, `8_000_000_000 + gen × 1_000_000`, mirroring the real
+// one (`9_000_000_000 + gen × 1_000_000`: 1000 generations, one million numbers each). A drill
+// chain whose chainId sat inside the real range would be a chain MetaMask cannot tell apart from a
+// real one — EIP-155 binds signatures to chainId, never to networkID. The three safety properties
+// of the real space hold here as well: 10 digits, above uint32, above every networkID.
+export const A1_ID_GOC_TAP = 899_999_999; // ⇦ must match `constants.A1IDGocTap`
+export const NETWORK_ID_TAP = A1_ID_GOC_TAP - A1_GEN;
+export const TEN_MANG_TAP = `9chain-a1-tap-g${A1_GEN}`;
+export const GOC_DAI_CHAINID_TAP = 8_000_000_000 + A1_GEN * 1_000_000;
+export const TRAN_DAI_CHAINID_TAP = GOC_DAI_CHAINID_TAP + 999_999;
+// The whole drill space and the whole real L1 space (D-069 / D-076): a hand-typed chainId from
+// the OTHER space is refused whichever band the console serves.
+export const DRILL_CHAINID_SPACE = Object.freeze({ floor: 8_000_000_000, ceiling: 8_999_999_999 });
+export const REAL_CHAINID_SPACE = Object.freeze({ floor: 9_000_000_010, ceiling: TRAN_TOAN_DAI });
+
+/**
+ * The band a console serves: the numbers it compares the running node against and the chainId
+ * block it allocates from. `drill` is the ONLY input, so a console can never be half on one band.
+ *
+ * @param {boolean} drill
+ */
+export function bandFor(drill) {
+  return drill
+    ? Object.freeze({ label: "drill", networkId: NETWORK_ID_TAP, name: TEN_MANG_TAP, floor: GOC_DAI_CHAINID_TAP, ceiling: TRAN_DAI_CHAINID_TAP })
+    : Object.freeze({ label: "real", networkId: NETWORK_ID, name: TEN_MANG, floor: GOC_DAI_CHAINID, ceiling: TRAN_DAI_CHAINID });
+}
+
+/**
+ * Which band a MEASURED networkID belongs to, for error messages that must name what they saw:
+ * "real" (this generation's live network) · "drill" (this generation's drill band) · "other".
+ *
+ * @param {number} networkId
+ */
+export function bandOfNetworkId(networkId) {
+  if (networkId === NETWORK_ID) return "real";
+  if (networkId === NETWORK_ID_TAP) return "drill";
+  return "other";
+}
+
+/**
+ * A hand-typed chainId that lives in the OTHER band's space. Returns the refusal, or `null`.
+ *
+ * Both directions are refused on purpose. A real chainId on the drill band is the obvious one
+ * (a drill chain indistinguishable from a real one in a wallet). A drill chainId on the real
+ * network is the quiet one: it would spend a permanent slot on a number that every drill tool
+ * treats as disposable.
+ *
+ * @param {number} n
+ * @param {boolean} drill  the band the console serves
+ * @returns {string|null}
+ */
+export function wrongBandChainIdError(n, drill) {
+  if (drill && n >= REAL_CHAINID_SPACE.floor && n <= REAL_CHAINID_SPACE.ceiling) {
+    return `Chain ID ${n} lies inside the REAL network's L1 range ${REAL_CHAINID_SPACE.floor}–${REAL_CHAINID_SPACE.ceiling}. ` +
+      `This console serves the drill band (A1_DRILL_BAND=1); a drill chain must never carry a number a wallet ` +
+      `could mistake for a real one. Use a number in ${GOC_DAI_CHAINID_TAP}–${TRAN_DAI_CHAINID_TAP}, or leave it blank.`;
+  }
+  if (!drill && n >= DRILL_CHAINID_SPACE.floor && n <= DRILL_CHAINID_SPACE.ceiling) {
+    return `Chain ID ${n} lies inside the DRILL band's chainId space ${DRILL_CHAINID_SPACE.floor}–${DRILL_CHAINID_SPACE.ceiling}. ` +
+      `Drill tools treat those numbers as disposable; a real chain must not spend a permanent slot on one. ` +
+      `Use a number in ${GOC_DAI_CHAINID}–${TRAN_DAI_CHAINID}, or leave it blank.`;
+  }
+  return null;
+}
+
 /**
  * Số trống đầu tiên từ gốc dải, bỏ qua CẢ HAI sổ.
  *

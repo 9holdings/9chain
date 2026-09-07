@@ -42,8 +42,12 @@ network** `k1p0_a1net`, so node addresses are `172.31.0.11–13:9650` (internal)
 2. The default drill band carries the **real network's C-Chain chainId** (`9000000009`); netgen warns and still
    generates. Set `A1_CHAIN_ID=9000000909`. Patch 0015's gate is doing its job: it **reports**, a person must **read**.
 3. netgen's identity line prints *"L1 chainId block 9001000000–9001999999"* for **the drill band too** — the same
-   block as real g1 (Adam Chain is `9001000000`). The kit does **not** use that block: drill L1s take
-   `8990000001+`. 🔴 Open item for `main` (P-81): netgen should print a **separate** L1 block for the drill band.
+   block as real g1 (Adam Chain is `9001000000`). The kit does **not** use that block: its `plan` defaults to
+   `8990000001+`. Since P-81 (D-234) the console itself, started with `A1_DRILL_BAND=1`, allocates drill chainIds
+   from the generation's drill block `8_00g_000_000–…999_999` (`8001000000+` on g1) and refuses any number in the
+   real range; the kit's default base still lives outside that block and can move onto it when the pump joins the
+   console (P-87). netgen's printed line is informational only and lives in the fork, so it is left alone
+   (changing it is a `patches/` regeneration, hard rule #3).
 
 ## Four things the first run taught (fixed in the kit)
 

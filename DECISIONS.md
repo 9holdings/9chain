@@ -10261,3 +10261,57 @@ kiểm chứng được mà không cần máy hoặc quyết định của David
 **Đối chứng của chính quyết định này.** Ba con số trên đo từ mã ngày `07/09`: `grep -c 'AVAGO_TRACK_SUBNETS' multinode.compose.yml`
 = 5 · `trackSubnetsLanLuot` restart theo `compose config --services` (9) · `addSubnetValidators` lặp `platform.getCurrentValidators`
 không lọc. Kit: `git -C ../9Chain-A1-web log --oneline -3 -- docs/k1-phase0` = 3 commit; `git ls-files docs/k1-phase0` trên `main` = 0.
+
+## D-234 — **Console phục vụ được BĂNG TẬP cùng thế hệ (`A1_DRILL_BAND=1`), khối chainId riêng `8_00g_000_000+`, cờ kiểm HAI CHIỀU — và lượt đẻ chain đầu tiên trên băng tập lộ ra `--uri` của CLI trỏ sai nơi** (`2026-09-07` đêm, P-81)
+
+**Bối cảnh.** Tới hôm nay console chỉ biết băng THẬT: `kiemTheHeMang` so node với `NETWORK_ID`/`TEN_MANG`, nên trên băng tập
+`899999998` nó từ chối đẻ chain (*"LỆCH THẾ HỆ"*, đúng), và mọi diễn tập phải tạo L1 bằng CLI rồi **ghi tay sổ** (HANDOFF `05/09`).
+Mốc `L1-108` (D-233) cần chạy đường sản phẩm (`/api/create`) trên băng tập cho 15→108 chain — không có P-81 thì P-82→P-89 chỉ
+kiểm được bằng fixture.
+
+**Quyết định.**
+1. **Băng là lựa chọn lúc khởi động, MỘT đầu vào:** `A1_DRILL_BAND=1` ⇒ `bandFor(true)` = `{ networkID 899999999−A1Gen,
+   tên 9chain-a1-tap-g<gen>, khối chainId }`. Cùng một đối tượng quyết định **cả** phép so với node **lẫn** khối cấp chainId,
+   nên console không thể "nửa băng này nửa băng kia". Không có công tắc lúc chạy.
+2. **Khối chainId băng tập = `8_000_000_000 + gen × 1_000_000`** (g1: `8001000000–8001999999`), soi gương khối thật
+   `9_000_000_000 + gen × 1_000_000` — 1000 thế hệ, mỗi thế hệ một triệu số, giữ đủ ba tính chất an toàn (10 chữ số ·
+   vượt uint32 · trên mọi networkID) và **nằm dưới sàn dải thật `9000000010`** ⇒ chain tập không bao giờ mang số ví có thể
+   nhầm với chain thật (EIP-155 buộc chữ ký vào chainId). Kit K1 mặc định `8990000001+` và bản ghi tay *Drill Chain*
+   `8990000001` nằm ngoài khối này — không đụng, dời khi bơm nhập console (P-87).
+3. **Cờ kiểm hai chiều.** Cờ bật + node khai mạng THẬT ⇒ từ chối bằng câu **nêu tên cờ** và cách sửa (bỏ cờ / trỏ node
+   tập), **không** rơi vào câu "sửa A1_GEN" — đó là cách sửa ngược. Cờ tắt + node tập ⇒ vẫn từ chối như trước, thêm một câu
+   gợi ý bật cờ (chỉ khi node đúng là băng tập cùng thế hệ; node thế hệ khác KHÔNG được gợi ý).
+4. **chainId gõ tay thuộc không gian băng kia ⇒ từ chối cả hai chiều** (`wrongBandChainIdError`): số thật trên console
+   tập là chuyện hiển nhiên; số tập trên console thật là chuyện lặng — tiêu một chỗ vĩnh viễn cho một số mọi công cụ tập
+   coi là dùng xong rồi bỏ.
+5. **Cổng đọc theo băng:** `probeConsoleReadiness` nhận `expected` (mặc định băng thật); `/api/status` khai `band` ·
+   `networkId` · `chainIdBlock`; `creation-journal` ghi networkID của băng. `A1_DRILL_BAND` vào
+   `CONSOLE_CONFIGURATION_KEYS` (readiness-e2e bắt mọi `process.env.*` chưa khai — đúng thiết kế D-219).
+6. **`check-consistency` nối băng tập vào Go:** `A1_ID_GOC_TAP` ↔ `A1IDGocTap` · `NETWORK_ID_TAP` suy từ Go ·
+   `TEN_MANG_TAP` ↔ `A1NameTap` · khối tập suy từ thế hệ, dưới dải thật, ba tính chất. Bốn ca đối chứng ngược mới, đều đỏ.
+7. **netgen KHÔNG sửa.** Dòng *"khối chainId L1 9001000000–…"* nó in cho băng tập là sai nhưng chỉ là thông tin; sửa là sinh
+   lại `patches/` (luật cứng 3). Console mới là nơi cấp số, và nó đã đúng. Ghi ở README kit.
+
+**🔴 Lỗi có thật lộ ra khi chạy đường sản phẩm (không phải từ test):** lượt `/api/create` đầu tiên trên băng tập chết ở CLI:
+`dial tcp 127.0.0.1:9750: connection refused` — `executeChainLaunch` truyền **`API`** (= `NODE_URI`, địa chỉ node nhìn từ
+HOST, `:9750`) làm `--uri` cho `9chain-a1-cli` chạy **BÊN TRONG** container node-1, nơi node nghe `:9650`. Trên server sản
+xuất hai chuỗi trùng nhau (`localhost:9650`) nên chưa bao giờ lộ; mọi `exec curl` khác trong tệp đã dùng `MANAGED_NODE_API`
+từ D-227. Sửa: `--uri MANAGED_NODE_API`. Creation dở (phase `submitting`, chưa có tx) đóng bằng `/api/creation/resolve`
+`discard` + `confirmNotSubmitted` — đúng đường D-227 (1) thiết kế, chạy thật lần đầu.
+
+**Đối chứng (luật cứng #2, cả ba vế).**
+- `chainid-test` 37 → **53** ca (khối tập lùi từ số ra thế hệ · hai chiều gõ tay + hai ca đối chứng thuận) ·
+  `check-consistency --self-test` 21 → **23** đạt, **+4 ca đỏ** (đỉnh băng gõ lại · tên lệch · khối chồng dải thật · khối
+  thế hệ cũ) · `generation-test` 13 → **31** (console thứ hai có cờ; mục 8 cờ bật + node THẬT ⇒ từ chối nêu cờ; mục 9 cờ
+  tắt + node tập ⇒ vẫn chặn + gợi ý, node thế hệ khác KHÔNG gợi ý; mục 10 `/api/preview` cấp `8001000000` vs `9001000000`)
+  · `readiness-e2e` 31 · `check-local --console` 28 nhóm · english/single-source/deploy-imports xanh.
+- **Trên sản phẩm (băng tập 9 node `net-tap-g1`, console cục bộ):** không cờ ⇒ `/api/create` trả câu LỆCH THẾ HỆ + gợi ý ·
+  cờ bật trỏ `rpc-a1.9chain.org` (mạng thật, chỉ đọc) ⇒ từ chối nêu cờ · cờ bật trỏ băng tập ⇒ **`/api/create` "Band Test
+  One" THÀNH CÔNG sau 5 phút 09 s** (`16:11:32Z → 16:16:42Z`): subnet `2oTBVTLF…`, blockchain `2mPJJQxH…`, chainId
+  **`8001000000`** = số đầu khối tập, `eth_chainId` đo qua host `0x1dce59240` ✓, sổ ghi kèm `symbol BAND1`, `.env` băng tập
+  ghim 2 subnet. **Số nền cho P-83/P-84 (mô hình cũ):** `StartedAt` đổi ở **9/9** node, ~33 s mỗi node; `platform.
+  getCurrentValidators(subnet)` = **9** validator. Lượt đầu (trước khi sửa `--uri`) chết trong 0,4 s với 0 node restart — ca
+  đỏ có thật, đúng lý do.
+
+**Hệ quả.** `check-deploy-drift` sẽ đỏ (server còn `038e1ab`) cho tới lượt deploy `[human]` — đúng thiết kế; bản deploy kế
+tiếp mang cả sửa `--uri` (vô hại trên server: hai chuỗi trùng). Mọi mục P-82 → P-89 nay đo được trên đường sản phẩm băng tập.

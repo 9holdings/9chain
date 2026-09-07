@@ -4,7 +4,7 @@ import { A1_GEN, NETWORK_ID, TEN_MANG, A1_PARENT_EVM_CHAIN_ID } from './chainid.
 
 export const CONSOLE_CONFIGURATION_KEYS = Object.freeze([
   'PORT', 'NODE_URI', 'A1_CONSOLE_HOST', 'A1_CONSOLE_TOKEN', 'A1_CLI_KEY', 'A1_TRUST_PROXY',
-  'A1_CONSOLE_DOMAIN', 'A1_CONSOLE_URI', 'A1_EVM_CHAIN_ID', 'A1_DE_CHAIN_MO', 'A1_COMPOSE_FILE',
+  'A1_CONSOLE_DOMAIN', 'A1_CONSOLE_URI', 'A1_EVM_CHAIN_ID', 'A1_DE_CHAIN_MO', 'A1_DRILL_BAND', 'A1_COMPOSE_FILE',
   'A1_NODE_CONTAINER', 'LOVE9EVM_VMID', 'A1_L1_ADMIN', 'A1_L1_ALLOWLIST', 'A1_PUBLIC_RPC_BASE',
   'A1_LIMIT_CREATE', 'A1_LIMIT_REVOKE', 'A1_LIMIT_UPGRADE', 'A1_MAX_L1',
   'NODE_OPTIONS', 'NODE_PATH', 'NODE_EXTRA_CA_CERTS', 'NODE_TLS_REJECT_UNAUTHORIZED',
@@ -20,9 +20,15 @@ const uuid = value => typeof value === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-4[a
 const hash = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 const version = value => typeof value === 'string' && /^(?:9chaingo|avalanchego)\/[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$/.test(value) && value.length <= 100;
 
-export async function probeConsoleReadiness({ probeId, configurationSha256, rpc, readState, readPending, maintenance }) {
+// `expected` is the band the console serves (P-81): the real network by default, the drill band of
+// the same generation when the console runs with A1_DRILL_BAND=1. The probe compares the node
+// against what the console was STARTED for, never against a constant the console may not be on.
+export const EXPECTED_REAL_NETWORK = Object.freeze({ generation: A1_GEN, networkId: NETWORK_ID, networkName: TEN_MANG, parentChainId: A1_PARENT_EVM_CHAIN_ID });
+
+export async function probeConsoleReadiness({ probeId, configurationSha256, rpc, readState, readPending, maintenance, expected = EXPECTED_REAL_NETWORK }) {
   if (!uuid(probeId) || !hash(configurationSha256)) throw new Error('Readiness requires a probe UUID and startup configuration identity');
-  const reasons = [], network = { generation: A1_GEN, networkId: null, networkName: null, parentChainId: null, nodeVersion: null };
+  if (!Number.isSafeInteger(expected?.networkId) || typeof expected.networkName !== 'string' || !Number.isSafeInteger(expected.parentChainId)) throw new Error('Readiness requires the expected network identity');
+  const reasons = [], network = { generation: expected.generation, networkId: null, networkName: null, parentChainId: null, nodeVersion: null };
   const replies = await Promise.allSettled([
     rpc('/ext/info', 'info.getNetworkID', [], { timeoutMs: 3000, maxResponseBytes: 65536 }),
     rpc('/ext/info', 'info.getNetworkName', [], { timeoutMs: 3000, maxResponseBytes: 65536 }),
@@ -34,12 +40,12 @@ export async function probeConsoleReadiness({ probeId, configurationSha256, rpc,
     const value = result.value;
     if (index === 0) {
       const id = value?.networkID;
-      if ((typeof id === 'number' && Number.isSafeInteger(id) || typeof id === 'string' && /^[0-9]{1,10}$/.test(id)) && Number(id) === NETWORK_ID) network.networkId = Number(id);
+      if ((typeof id === 'number' && Number.isSafeInteger(id) || typeof id === 'string' && /^[0-9]{1,10}$/.test(id)) && Number(id) === expected.networkId) network.networkId = Number(id);
       else reasons.push('network-id-mismatch');
     } else if (index === 1) {
-      if (value?.networkName === TEN_MANG) network.networkName = value.networkName; else reasons.push('network-name-mismatch');
+      if (value?.networkName === expected.networkName) network.networkName = value.networkName; else reasons.push('network-name-mismatch');
     } else if (index === 2) {
-      if (typeof value === 'string' && /^0x[0-9a-f]{1,16}$/i.test(value) && BigInt(value) === BigInt(A1_PARENT_EVM_CHAIN_ID)) network.parentChainId = A1_PARENT_EVM_CHAIN_ID;
+      if (typeof value === 'string' && /^0x[0-9a-f]{1,16}$/i.test(value) && BigInt(value) === BigInt(expected.parentChainId)) network.parentChainId = expected.parentChainId;
       else reasons.push('parent-chain-mismatch');
     } else if (version(value?.version)) network.nodeVersion = value.version;
     else reasons.push('node-version-invalid');

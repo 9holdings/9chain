@@ -98,12 +98,22 @@ khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn 
       Đo: `scripts/l1.sh build` trong `golang:1.25.10-bookworm` từ chỗ mới **28,7 s**, binary 45 MB chạy usage từ mount mới ·
       `check-english-code` nợ 5411 không phình · `check-worktree-ownership` 0 (25 đường đều của `main`) · `check-single-source` 5/5.
       Ca đỏ: lật 1 bit bản chép `main.go` ⇒ sha256 `00fbe6f9…` → `ed2e4ab6…`, bảng lệch. ⏳ `[web-home]` gỡ `docs/k1-phase0/` (trừ EVIDENCE) sau WT-1.
-- [ ] **P-81 — Console đẻ chain được trên BĂNG TẬP cùng thế hệ khi `A1_DRILL_BAND=1`** (`kiemTheHeMang` chấp nhận
+- [x] **P-81 — Console đẻ chain được trên BĂNG TẬP cùng thế hệ khi `A1_DRILL_BAND=1`** (`kiemTheHeMang` chấp nhận
       `A1IDTap = 899999999 − A1_GEN` + tên `9chain-a1-tap-g<gen>`; khối chainId **riêng** cho băng tập trong `lib/chainid.mjs`,
       không chạm `9001000000+` của g1 — kit đang phải né bằng `8990000001+`; netgen in đúng khối đó, việc `[main]` HANDOFF `05/09`).
       **Qua khi:** console cục bộ trỏ `net-tap-g1` đẻ 1 chain qua `POST /api/create` đường sản phẩm · `check-consistency` biết
       `A1IDTap`. Ca đỏ (cả hai chiều): không cờ ⇒ vẫn *"LỆCH THẾ HỆ"* · có cờ mà node khai `999999998` ⇒ từ chối, câu lỗi nêu rõ
       *"cờ băng tập bật trên mạng thật"*.
+      ✅ `07/09` đêm (autopilot, D-234): `lib/chainid.mjs` thêm băng tập (`A1_ID_GOC_TAP` · `NETWORK_ID_TAP` · `TEN_MANG_TAP` · khối
+      `8_00g_000_000+`, `bandFor` · `wrongBandChainIdError`); `server.mjs` chọn băng MỘT lần lúc khởi động (`A1_DRILL_BAND=1`), cổng
+      thế hệ kiểm HAI chiều, chainId gõ tay sai băng bị từ chối, `/api/status` khai `band`/`networkId`/`chainIdBlock`; `console-readiness`
+      nhận `expected`; `check-consistency` nối `A1IDTap`/`A1NameTap`/khối tập vào Go (+4 ca đỏ). Đối chứng: chainid-test 53 ·
+      generation-test 13→31 (console thứ hai có cờ; cờ+node THẬT ⇒ từ chối nêu cờ; không cờ+node tập ⇒ chặn + gợi ý) · readiness 31 ·
+      check-local --console 28. **Trên sản phẩm (băng tập `net-tap-g1`):** `/api/create` "Band Test One" **THÀNH CÔNG 5 phút 09 s**,
+      chainId `8001000000` (`eth_chainId 0x1dce59240` qua host), 9/9 node restart, 9 validator — số nền cho P-83/P-84. Hai ca đỏ trên
+      sản phẩm: console không cờ ⇒ LỆCH THẾ HỆ + gợi ý; console có cờ trỏ `rpc-a1.9chain.org` ⇒ từ chối nêu cờ.
+      🔴 Lỗi thật lộ ra: CLI trong container nhận `--uri` = `NODE_URI` (địa chỉ phía host `:9750`) ⇒ connection refused; sửa dùng
+      `MANAGED_NODE_API` (server sản xuất chưa lộ vì hai chuỗi trùng). netgen KHÔNG sửa (là `patches/`), ghi README kit.
 - [ ] **P-82 — Sổ mang phân công: `validators[]` + trần MỖI NODE** — `A1_L1_VALIDATORS_PER_CHAIN` (V; vắng ⇒ = số node ⇒ hành vi
       cũ); chọn V node **ít chain nhất**, tie ⇒ tên nhỏ nhất; `MAX_L1` thành trần **mỗi node**, chặn TRƯỚC khi tiêu tiền (thay
       `state.chains.length >= MAX_L1` ở `server.mjs`); chain cũ không có khoá ⇒ đọc là *"mọi node"*. Khoá thêm vào

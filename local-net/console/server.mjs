@@ -28,7 +28,7 @@ import {
   chainDirVerdict,
   PRECOMPILE_ADDRESS, UPGRADABLE_PRECOMPILES, MIN_LEAD_SECONDS, MAX_LEAD_SECONDS,
 } from "../lib/l1-upgrade.mjs";
-import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG, A1_PARENT_EVM_CHAIN_ID } from "../lib/chainid.mjs";
+import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, GOC_DAI_CHAINID, A1_GEN, NETWORK_ID, TEN_MANG, A1_PARENT_EVM_CHAIN_ID, bandFor, bandOfNetworkId, wrongBandChainIdError } from "../lib/chainid.mjs";
 import { siwe } from "./siwe.mjs";
 import { requestRpc } from "../lib/rpc-client.mjs";
 import { CreationJournal, creationGenesisText } from "../lib/creation-journal.mjs";
@@ -92,10 +92,14 @@ const limitNonce = rateLimit({ max: 30, windowMs: 10 * 60 * 1000, name: "nonce" 
 // cả — gỡ hẳn lớp lỗi "gõ nhầm một ký tự ⇒ chain vô chủ vĩnh viễn".
 const SIWE_DOMAIN = process.env.A1_CONSOLE_DOMAIN || "a1.9chain.org";
 const SIWE_URI = process.env.A1_CONSOLE_URI || `https://${SIWE_DOMAIN}/console`;
+// The parent (C-Chain) EVM id this console expects: the real one by default; on the drill band it
+// is whatever netgen was given as `A1_CHAIN_ID`, handed to the console as A1_EVM_CHAIN_ID (P-81).
+// One constant, read by SIWE and by the readiness probe, so the two cannot disagree.
+const PARENT_EVM_CHAIN_ID = Number(process.env.A1_EVM_CHAIN_ID || A1_PARENT_EVM_CHAIN_ID);
 const dangNhapVi = siwe({
   domain: SIWE_DOMAIN,
   uri: SIWE_URI,
-  chainId: Number(process.env.A1_EVM_CHAIN_ID || A1_PARENT_EVM_CHAIN_ID),
+  chainId: PARENT_EVM_CHAIN_ID,
 });
 
 // ═══ GỐC DẢI chainId CHO L1 NGƯỜI DÙNG — David chốt `2026-08-27` (D-069, B-14) ═══
@@ -409,6 +413,20 @@ const PRIMARY_SUBNET = "11111111111111111111111111111111LpoYY";
 // số. So bằng `===` với số là cổng ĐỎ VĨNH VIỄN; so bằng `==` là cổng lỏng.
 // Đo thật `28/08` trên `rpc-a1.9chain.org` trước khi viết dòng này.
 //
+// ═══ WHICH BAND THIS CONSOLE SERVES (P-81, D-233) ═══
+//
+// Two bands exist per generation (`lib/chainid.mjs`, mirroring `network_ids.go`): the REAL network
+// and the DRILL band that can never handshake with it. The console serves exactly one, chosen at
+// start-up by `A1_DRILL_BAND=1`, and the choice decides BOTH what the node must report below AND
+// which chainId block `planChain` allocates from — one input, so the two can never disagree.
+//
+// 🔴 The flag is opt-in and it is checked in BOTH directions. Without it, a drill node is refused
+// (as it always was); WITH it, a node that turns out to be the real network is refused too, in
+// words that name the flag — a drill console pointed at production must fail loudly, not allocate
+// a drill chainId onto an immutable real genesis.
+const DRILL_BAND = process.env.A1_DRILL_BAND === "1";
+const BAND = bandFor(DRILL_BAND);
+
 // Đo MỖI LƯỢT, không cache: một kết quả "khớp" nhớ từ lúc khởi động sẽ sống sót
 // qua đúng thứ nó sinh ra để bắt — một lượt sinh lại mạng dưới chân console.
 async function kiemTheHeMang() {
@@ -431,17 +449,34 @@ async function kiemTheHeMang() {
       vi: `node trả networkID không đọc được thành số: ${JSON.stringify(doDuoc)}`,
     };
   }
-  if (doDuoc !== NETWORK_ID || (tenDo && tenDo !== TEN_MANG)) {
+  // 🔴 The drill flag against the REAL network is its own refusal, named as such. It must not
+  // fall through to the generic mismatch below: that message tells the operator to fix A1_GEN,
+  // and the fix here is the opposite — unset the flag, or point the console at a drill node.
+  if (DRILL_BAND && bandOfNetworkId(doDuoc) === "real") {
     return {
       trangThai: "lech",
-      vi: `LỆCH THẾ HỆ. Console dựng cho thế hệ g${A1_GEN} (networkID ${NETWORK_ID}, "${TEN_MANG}") ` +
-        `nhưng node đang chạy khai networkID ${doDuoc}, "${tenDo}". Khối chainId của console ` +
-        `bắt đầu ở ${GOC_DAI_CHAINID} — cấp số từ khối đó lên mạng này là phát nhầm thế hệ, ` +
-        `và chainId nằm trong genesis BẤT BIẾN. Sửa: cập nhật A1_GEN trong local-net/lib/chainid.mjs ` +
-        `cho khớp constants.A1Gen bên Go rồi deploy lại console (scripts/check-deploy-drift.mjs).`,
+      vi: `A1_DRILL_BAND=1 is set, but the node at ${API} reports the REAL network of this generation ` +
+        `(networkID ${doDuoc}, "${tenDo}"). A drill console must never allocate chainIds onto the live network: ` +
+        `it would write drill numbers (${BAND.floor}–${BAND.ceiling}) into immutable real genesis files. ` +
+        `Refusing. Unset A1_DRILL_BAND for the real network, or point NODE_URI at a drill-band node (networkID ${BAND.networkId}).`,
     };
   }
-  return { trangThai: "khop", vi: `g${A1_GEN} · networkID ${doDuoc} · "${tenDo}"` };
+  if (doDuoc !== BAND.networkId || (tenDo && tenDo !== BAND.name)) {
+    // A drill node seen by a REAL console is the one mismatch with a cheap, correct remedy;
+    // every other mismatch keeps the generation-bump instructions.
+    const drillHint = !DRILL_BAND && bandOfNetworkId(doDuoc) === "drill"
+      ? ` Hint: this node IS the drill band of generation g${A1_GEN}; start the console with A1_DRILL_BAND=1 to serve it (drill chainIds come from a separate block).`
+      : "";
+    return {
+      trangThai: "lech",
+      vi: `LỆCH THẾ HỆ. Console dựng cho thế hệ g${A1_GEN} (networkID ${BAND.networkId}, "${BAND.name}") ` +
+        `nhưng node đang chạy khai networkID ${doDuoc}, "${tenDo}". Khối chainId của console ` +
+        `bắt đầu ở ${BAND.floor} — cấp số từ khối đó lên mạng này là phát nhầm thế hệ, ` +
+        `và chainId nằm trong genesis BẤT BIẾN. Sửa: cập nhật A1_GEN trong local-net/lib/chainid.mjs ` +
+        `cho khớp constants.A1Gen bên Go rồi deploy lại console (scripts/check-deploy-drift.mjs).` + drillHint,
+    };
+  }
+  return { trangThai: "khop", vi: `g${A1_GEN} · networkID ${doDuoc} · "${tenDo}"${DRILL_BAND ? " · DRILL BAND (A1_DRILL_BAND=1)" : ""}` };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1179,6 +1214,10 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
   if (chainId !== undefined && chainId !== null && String(chainId).trim() !== "") {
     const n = Number(chainId);
     if (!Number.isSafeInteger(n) || n <= 0) throw new Error("The EVM chain ID must be a positive integer");
+    // P-81: a number from the OTHER band's space is refused before any ledger is consulted — the
+    // ledgers only know what was issued, not which network a number belongs to.
+    const wrongBand = wrongBandChainIdError(n, DRILL_BAND);
+    if (wrongBand) throw new Error(wrongBand);
     if (taken.has(n)) {
       const cu = daDung.find(c => c.chainId === n);
       throw new Error(state.chains.includes(cu)
@@ -1210,7 +1249,9 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
     // 9000000010 nằm cách 9100–9201 rất xa nên hợp này không đổi kết quả — nhưng phép cấp
     // không được phụ thuộc vào khoảng cách đó: đổi `A1_GEN` là khối dải dịch đi, và một
     // cổng chỉ đúng nhờ "may là chưa chạm" thì không phải cổng.
-    chainId = capChainIdTuDong(new Set([...taken, ...chainIdDaCap]), chainIdDaChiem, GOC_DAI_CHAINID);
+    // The block is the BAND's block (P-81): on the drill band that is `8_00g_000_000+`, so a drill
+    // can never hand out a number the real network will issue later.
+    chainId = capChainIdTuDong(new Set([...taken, ...chainIdDaCap]), chainIdDaChiem, BAND.floor, BAND.ceiling);
   }
 
   // 1) genesis EVM cho L1 này — IN MEMORY. Nothing is written until `launchChain`.
@@ -1277,7 +1318,7 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
 async function launchChain(plan) {
   loadState();
   assertNoPendingLedgerWrite(STATE);
-  const job = creationJournal.begin(plan, NETWORK_ID);
+  const job = creationJournal.begin(plan, BAND.networkId);
   try {
     return await executeChainLaunch(plan, job);
   } catch (e) {
@@ -1329,11 +1370,19 @@ async function executeChainLaunch(plan, job) {
   buocChay("subnet");
 
   // 2) đẻ subnet + chain qua 9chain-a1-cli (in SUBNET_ID=/BLOCKCHAIN_ID= ra stdout)
+  //
+  // 🔴 `--uri` is the node's address AS SEEN FROM INSIDE THE CONTAINER, i.e. `MANAGED_NODE_API`
+  // (127.0.0.1:9650), never `API` (NODE_URI, the console's own host-side address). The two were
+  // the same string on the production server (both `localhost:9650`), which is the only reason
+  // passing `API` ever worked. Measured 2026-09-07 on the drill band, where the host publishes the
+  // node on 9750: the CLI ran inside node-1, dialled 127.0.0.1:9750 THERE, and got "connection
+  // refused" — the first console creation on the drill band failed before any transaction (P-81).
+  // Every other in-container call in this file already uses MANAGED_NODE_API.
   creationJournal.update(job, { phase: "submitting" });
   const out = await docker([...COMPOSE, "exec", "-T",
     "-e", `A1_CLI_KEY=${CLI_KEY}`, NODE_CONTAINER,
     "/9chain-a1/build/9chain-a1-cli", "l1", "create",
-    "--uri", API, "--genesis", inContainer, "--name", name]);
+    "--uri", MANAGED_NODE_API, "--genesis", inContainer, "--name", name]);
   const subnetID = (out.match(/SUBNET_ID=([A-Za-z0-9]+)/) || [])[1];
   const blockchainID = (out.match(/BLOCKCHAIN_ID=([A-Za-z0-9]+)/) || [])[1];
   if (!subnetID || !blockchainID) throw new Error("could not parse the IDs out of the CLI output:\n" + out);
@@ -2152,7 +2201,10 @@ const server = http.createServer(async (req, res) => {
       }
       const result = await probeConsoleReadiness({ probeId, configurationSha256: STARTUP_CONFIGURATION_SHA256, rpc,
         readState: () => { assertNoPendingLedgerWrite(STATE); return loadState(); },
-        readPending: () => creationJournal.summary(), maintenance: () => maintenance.snapshot() });
+        readPending: () => creationJournal.summary(), maintenance: () => maintenance.snapshot(),
+        // The band this console was started for (P-81). On the drill band the parent C-Chain id is
+        // whatever netgen was given (`A1_CHAIN_ID`), which reaches the console as A1_EVM_CHAIN_ID.
+        expected: { generation: A1_GEN, networkId: BAND.networkId, networkName: BAND.name, parentChainId: PARENT_EVM_CHAIN_ID } });
       return send(res, result.healthy ? 200 : 503, result);
     }
 
@@ -2201,6 +2253,9 @@ const server = http.createServer(async (req, res) => {
       const st = loadState();
       return send(res, 200, {
         node: ver, cChainId: cid, defaultAdmin: L1_ADMIN,
+        // P-81: which band this console serves and the chainId block it allocates from, so a page
+        // (and a drill operator) can tell a drill console from the real one at a glance.
+        band: BAND.label, networkId: BAND.networkId, chainIdBlock: { floor: BAND.floor, ceiling: BAND.ceiling },
         pendingCreation: creationJournal.summary(),
         maintenance: maintenance.snapshot(),
         chains: st.chains, retired: st.retired,
@@ -2509,6 +2564,9 @@ server.listen(PORT, HOST, () => {
   // Đo thế hệ NGAY lúc khởi động để người vận hành thấy, nhưng KHÔNG dùng kết quả
   // này làm quyết định: `createChain` đo lại mỗi lượt. Một con số nhớ từ lúc boot
   // sống sót qua đúng thứ nó sinh ra để bắt.
+  console.log(DRILL_BAND
+    ? `  band   : 🧪 DRILL (A1_DRILL_BAND=1) — expects networkID ${BAND.networkId} "${BAND.name}" · chainIds from ${BAND.floor}–${BAND.ceiling} · a REAL node is refused`
+    : `  band   : real — expects networkID ${BAND.networkId} "${BAND.name}" · chainIds from ${BAND.floor}–${BAND.ceiling}`);
   kiemTheHeMang().then((t) => {
     if (t.trangThai === "khop") console.log(`  thế hệ : ✅ khớp node đang chạy — ${t.vi}`);
     else console.warn(`  thế hệ : 🔴 ${t.trangThai.toUpperCase()} — ĐẺ CHAIN SẼ BỊ TỪ CHỐI.\n           ${t.vi}`);

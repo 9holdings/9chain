@@ -26,11 +26,15 @@ import { createServer } from "node:http";
 import { mkdirSync, mkdtempSync, copyFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { NETWORK_ID, TEN_MANG, A1_GEN } from "../lib/chainid.mjs";
+import { NETWORK_ID, TEN_MANG, A1_GEN, NETWORK_ID_TAP, TEN_MANG_TAP, GOC_DAI_CHAINID, GOC_DAI_CHAINID_TAP, TRAN_DAI_CHAINID_TAP } from "../lib/chainid.mjs";
 
 const PORT = 8497;
 const PORT_NODE_GIA = 8498;
+// A SECOND console, started with A1_DRILL_BAND=1, against the SAME fake node (P-81). Two
+// processes, because the band is a start-up choice by design — there is no runtime switch.
+const PORT_TAP = 8495;
 const GOC = `http://127.0.0.1:${PORT}`;
+const GOC_TAP = `http://127.0.0.1:${PORT_TAP}`;
 const TOKEN = "token-van-hanh-chi-song-trong-bai-kiem";
 
 // The generation fixture must never use the caller's operational ledger/state.
@@ -39,6 +43,10 @@ mkdirSync(path.join(SOURCE_ROOT, 'work'), { recursive: true });
 const FIXTURE_ROOT = mkdtempSync(path.join(SOURCE_ROOT, 'work/generation-console-'));
 mkdirSync(path.join(FIXTURE_ROOT, 'local-net/console'), { recursive: true });
 copyFileSync(path.join(SOURCE_ROOT, 'local-net/console/index.html'), path.join(FIXTURE_ROOT, 'local-net/console/index.html'));
+// The genesis template, so `/api/preview` (same code path as create, spends nothing) can show
+// which chainId BLOCK each console allocates from — the quantity the band decides (section 8).
+mkdirSync(path.join(FIXTURE_ROOT, '9chain-a1-config/console-tmp'), { recursive: true });
+copyFileSync(path.join(SOURCE_ROOT, '9chain-a1-config/l1-evm-genesis.json'), path.join(FIXTURE_ROOT, '9chain-a1-config/l1-evm-genesis.json'));
 
 let dat = 0, hong = 0;
 const kiem = (ten, ok, chiTiet = "") => {
@@ -68,30 +76,39 @@ const nodeGia = createServer((req, res) => {
 });
 await new Promise((r) => nodeGia.listen(PORT_NODE_GIA, "127.0.0.1", r));
 
+const ENV_CHUNG = {
+  ...process.env,
+  A1_CONSOLE_START_PAUSED: '0',
+  A1_CONSOLE_HOST: "127.0.0.1",
+  A1_CONSOLE_TOKEN: TOKEN,
+  A1_CLI_KEY: "PrivateKey-khoa-gia-chi-de-console-chiu-khoi-dong",
+  NODE_URI: `http://127.0.0.1:${PORT_NODE_GIA}`,
+  // Cổng thế hệ nằm SAU cổng `A1_DE_CHAIN_MO`, nên phải mở cửa đó mới chạm tới nó.
+  A1_DE_CHAIN_MO: "1",
+  // ═══ CHỐT CHẶN AN TOÀN — ĐỪNG BỎ (cùng lý do với auth-e2e-test.mjs) ═══
+  // Mọi lượt tạo ở đây ĐƯỢC THIẾT KẾ để bị từ chối. "Được thiết kế" không phải
+  // bảo đảm: trỏ compose vào đường không tồn tại để một lỗ logic cũng chỉ chết
+  // vì thiếu file, chứ không restart validator của mạng thật.
+  A1_COMPOSE_FILE: "/khong-ton-tai/an-toan-cho-bai-kiem.yml",
+  A1_LIMIT_CREATE: "99",
+};
 const con = spawn(process.execPath, [path.join(SOURCE_ROOT, 'local-net/console/server.mjs')], {
   cwd: FIXTURE_ROOT,
-  env: {
-    ...process.env,
-    PORT: String(PORT),
-    A1_CONSOLE_START_PAUSED: '0',
-    A1_CONSOLE_HOST: "127.0.0.1",
-    A1_CONSOLE_TOKEN: TOKEN,
-    A1_CLI_KEY: "PrivateKey-khoa-gia-chi-de-console-chiu-khoi-dong",
-    NODE_URI: `http://127.0.0.1:${PORT_NODE_GIA}`,
-    // Cổng thế hệ nằm SAU cổng `A1_DE_CHAIN_MO`, nên phải mở cửa đó mới chạm tới nó.
-    A1_DE_CHAIN_MO: "1",
-    // ═══ CHỐT CHẶN AN TOÀN — ĐỪNG BỎ (cùng lý do với auth-e2e-test.mjs) ═══
-    // Mọi lượt tạo ở đây ĐƯỢC THIẾT KẾ để bị từ chối. "Được thiết kế" không phải
-    // bảo đảm: trỏ compose vào đường không tồn tại để một lỗ logic cũng chỉ chết
-    // vì thiếu file, chứ không restart validator của mạng thật.
-    A1_COMPOSE_FILE: "/khong-ton-tai/an-toan-cho-bai-kiem.yml",
-    A1_LIMIT_CREATE: "99",
-  },
+  env: { ...ENV_CHUNG, PORT: String(PORT) },
   stdio: ["ignore", "pipe", "pipe"],
 });
 let logCon = "";
 con.stdout.on("data", (d) => { logCon += d; });
 con.stderr.on("data", (d) => { logCon += d; });
+// The drill-band console: same fixture, same fake node, one flag more.
+const conTap = spawn(process.execPath, [path.join(SOURCE_ROOT, 'local-net/console/server.mjs')], {
+  cwd: FIXTURE_ROOT,
+  env: { ...ENV_CHUNG, PORT: String(PORT_TAP), A1_DRILL_BAND: "1" },
+  stdio: ["ignore", "pipe", "pipe"],
+});
+let logConTap = "";
+conTap.stdout.on("data", (d) => { logConTap += d; });
+conTap.stderr.on("data", (d) => { logConTap += d; });
 // 🔴 Phải CHỐNG GỌI HAI LẦN. `dong()` được gọi cả ở cuối bài lẫn ở `process.on("exit")`;
 // đóng lần thứ hai một handle đang đóng làm libuv ném assertion **sau khi** bài đã in
 // "✅ 13 đạt" — tức bài xanh mà tiến trình chết, và mã thoát thành mã của một vụ sập.
@@ -100,10 +117,10 @@ con.stderr.on("data", (d) => { logCon += d; });
 // "✅ 13 đạt": bài xanh, tiến trình sập, và mã thoát thành mã của một vụ sập (127).
 // Cổng nào cũng vô dụng nếu thứ gọi nó đọc nhầm mã thoát. Ở đây chỉ giết tiến trình
 // con (việc bắt buộc nếu bài chết sớm); server đóng ở cuối, bằng đường bình thường.
-process.on("exit", () => { try { con.kill(); } catch { /* đã chết */ } });
+process.on("exit", () => { try { con.kill(); } catch { /* đã chết */ } try { conTap.kill(); } catch { /* already gone */ } });
 
-async function goi(duong, { method = "GET", body } = {}) {
-  const r = await fetch(GOC + duong, {
+async function goi(duong, { method = "GET", body, goc = GOC } = {}) {
+  const r = await fetch(goc + duong, {
     method,
     headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}` },
     body: body ? JSON.stringify(body) : undefined,
@@ -119,9 +136,16 @@ for (let i = 0; i < 50; i++) {
   try { await goi("/whoami"); len = true; break; } catch { await new Promise((r) => setTimeout(r, 200)); }
 }
 if (!len) { console.log("✗ console KHÔNG khởi động được. Log:\n" + logCon); process.exit(1); }
+let lenTap = false;
+for (let i = 0; i < 50; i++) {
+  try { await goi("/whoami", { goc: GOC_TAP }); lenTap = true; break; } catch { await new Promise((r) => setTimeout(r, 200)); }
+}
+if (!lenTap) { console.log("✗ the drill-band console did not start. Log:\n" + logConTap); process.exit(1); }
 
 /** Gửi một lượt đẻ chain và trả về câu lỗi. Tên CỐ Ý SAI ở mọi ca. */
 const thu = async (ten = "!!") => (await goi("/api/create", { method: "POST", body: { name: ten } })).j?.error || "";
+/** Same, against the drill-band console. The name is deliberately invalid in every case. */
+const thuTap = async (ten = "!!") => (await goi("/api/create", { method: "POST", body: { name: ten }, goc: GOC_TAP })).j?.error || "";
 
 console.log(`\n══ CỔNG THẾ HỆ — console dựng cho g${A1_GEN} (networkID ${NETWORK_ID}, "${TEN_MANG}") ══`);
 
@@ -189,9 +213,79 @@ console.log("\n── 6. ĐỐI CHỨNG: cổng KHÔNG chặn bừa ──");
   kiem("⇒ ba trạng thái PHÂN BIỆT ĐƯỢC, không phải chặn tất", true);
 }
 
+// ═══ DRILL BAND (P-81, D-233) — the flag is checked in BOTH directions ═══
+//
+// Every case below sends a deliberately invalid name, exactly like sections 1–6: "the gate let it
+// through" is proven by the NEXT check's error, never by a chain being created.
+console.log(`\n══ DRILL BAND — second console started with A1_DRILL_BAND=1 (expects networkID ${NETWORK_ID_TAP}, "${TEN_MANG_TAP}") ══`);
+
+console.log("\n── 7. flag ON + drill node → the gate must OPEN ──");
+{
+  traLoi = { networkID: String(NETWORK_ID_TAP), networkName: TEN_MANG_TAP };
+  const loi = await thuTap();
+  // Asserted on the NEXT check's error and on the absence of the flag's name: the generation
+  // message itself is Vietnamese, and this file must not grow the language debt (CLAUDE.md §0).
+  kiem("not a band/generation refusal (the drill gate opened)", !/A1_DRILL_BAND|chainid\.mjs/.test(loi), loi.slice(0, 60));
+  kiem("reached the NEXT check (invalid name)", /only letters, digits and spaces|2-32 characters long/.test(loi), loi.slice(0, 60));
+}
+
+console.log("\n── 8. 🔴 flag ON + REAL node → must REFUSE, naming the flag ──");
+{
+  traLoi = { networkID: String(NETWORK_ID), networkName: TEN_MANG };
+  const loi = await thuTap("TenHopLe");
+  kiem("🔴 refused when the node is the live network", /A1_DRILL_BAND=1 is set/.test(loi), loi.slice(0, 90));
+  kiem("the refusal names BOTH networkIDs (seen and expected)", loi.includes(String(NETWORK_ID)) && loi.includes(String(NETWORK_ID_TAP)));
+  kiem("the refusal points at the remedy (unset the flag / point at a drill node)", /Unset A1_DRILL_BAND/.test(loi));
+  kiem("…and NOT at the generation-bump remedy (that would be the wrong fix)", !/A1Gen/.test(loi));
+}
+
+console.log("\n── 9. flag OFF + drill node → still refused, with the one-line remedy ──");
+{
+  traLoi = { networkID: String(NETWORK_ID_TAP), networkName: TEN_MANG_TAP };
+  const loi = await thu("TenHopLe");
+  // The mismatch branch is recognised by its remedy line (`chainid.mjs` / `A1Gen`), the same
+  // fragment section 3 asserts on — and by NOT reaching the name check.
+  kiem("🔴 the real console still refuses the drill band", /chainid\.mjs/.test(loi) && !/only letters/.test(loi), loi.slice(0, 60));
+  kiem("the hint names the flag to start the console with", /A1_DRILL_BAND=1/.test(loi));
+  // The hint is for THIS case only: a node of another generation must not be told to use the flag.
+  traLoi = { networkID: String(NETWORK_ID - 1), networkName: `9chain-a1-g${A1_GEN + 1}` };
+  kiem("CONTROL — a node of another generation gets NO drill hint", !/A1_DRILL_BAND/.test(await thu("TenHopLe")));
+}
+
+console.log("\n── 10. the band decides the chainId BLOCK (/api/preview, same code path as create, spends nothing) ──");
+{
+  traLoi = { networkID: String(NETWORK_ID_TAP), networkName: TEN_MANG_TAP };
+  const tap = (await goi("/api/preview", { method: "POST", body: { name: "Drill Band Preview" }, goc: GOC_TAP })).j || {};
+  kiem("drill console allocates from the DRILL block",
+    Number.isInteger(tap.chainId) && tap.chainId >= GOC_DAI_CHAINID_TAP && tap.chainId <= TRAN_DAI_CHAINID_TAP, String(tap.chainId ?? tap.error));
+  traLoi = { networkID: String(NETWORK_ID), networkName: TEN_MANG };
+  const that = (await goi("/api/preview", { method: "POST", body: { name: "Real Band Preview" } })).j || {};
+  kiem("CONTROL — real console allocates from the REAL block", Number.isInteger(that.chainId) && that.chainId >= GOC_DAI_CHAINID, String(that.chainId ?? that.error));
+  kiem("⇒ the two blocks are disjoint", Number.isInteger(tap.chainId) && Number.isInteger(that.chainId) && tap.chainId < GOC_DAI_CHAINID);
+  // Hand-typed numbers from the other band, both directions, plus the control that a matching one passes.
+  traLoi = { networkID: String(NETWORK_ID_TAP), networkName: TEN_MANG_TAP };
+  const tapSaiBang = (await goi("/api/preview", { method: "POST", body: { name: "Drill Typed Real", chainId: GOC_DAI_CHAINID + 777 }, goc: GOC_TAP })).j || {};
+  kiem("🔴 a REAL chainId typed on the drill console is refused", /REAL network's L1 range/.test(tapSaiBang.error || ""), (tapSaiBang.error || "").slice(0, 70));
+  const tapDungBang = (await goi("/api/preview", { method: "POST", body: { name: "Drill Typed Drill", chainId: GOC_DAI_CHAINID_TAP + 777 }, goc: GOC_TAP })).j || {};
+  kiem("CONTROL — a DRILL chainId typed on the drill console passes", tapDungBang.chainId === GOC_DAI_CHAINID_TAP + 777, String(tapDungBang.chainId ?? tapDungBang.error));
+  traLoi = { networkID: String(NETWORK_ID), networkName: TEN_MANG };
+  const thatSaiBang = (await goi("/api/preview", { method: "POST", body: { name: "Real Typed Drill", chainId: GOC_DAI_CHAINID_TAP + 777 } })).j || {};
+  kiem("🔴 a DRILL chainId typed on the real console is refused", /DRILL band's chainId space/.test(thatSaiBang.error || ""), (thatSaiBang.error || "").slice(0, 70));
+}
+
+console.log("\n── 11. /api/status says which band it serves ──");
+{
+  const tap = (await goi("/api/status", { goc: GOC_TAP })).j || {};
+  const that = (await goi("/api/status")).j || {};
+  kiem("drill console: band=drill, drill networkID, drill block", tap.band === "drill" && tap.networkId === NETWORK_ID_TAP && tap.chainIdBlock?.floor === GOC_DAI_CHAINID_TAP, JSON.stringify({ band: tap.band, networkId: tap.networkId }));
+  kiem("real console: band=real, real networkID, real block", that.band === "real" && that.networkId === NETWORK_ID && that.chainIdBlock?.floor === GOC_DAI_CHAINID, JSON.stringify({ band: that.band, networkId: that.networkId }));
+  kiem("drill console announces the band at start-up", /band\s*: 🧪 DRILL \(A1_DRILL_BAND=1\)/.test(logConTap));
+}
+
 console.log(`\n${hong ? "✗" : "✅"} ${dat} đạt · ${hong} hỏng`);
 // Không `process.exit()`: đặt mã thoát rồi để vòng lặp sự kiện tự cạn. `exit()` cắt
 // ngang lúc tiến trình con và server còn đang tháo gỡ — xem chú thích ở `process.on("exit")`.
 process.exitCode = hong ? 1 : 0;
 con.kill();
+conTap.kill();
 nodeGia.close();

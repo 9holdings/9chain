@@ -38,6 +38,13 @@ import {
   GOC_DAI_CHAINID,
   TRAN_DAI_CHAINID,
   TRAN_TOAN_DAI,
+  // Drill band (P-81): the console's second band, which must derive from the SAME Go constants.
+  A1_ID_GOC_TAP,
+  NETWORK_ID_TAP,
+  TEN_MANG_TAP,
+  GOC_DAI_CHAINID_TAP,
+  TRAN_DAI_CHAINID_TAP,
+  REAL_CHAINID_SPACE,
 } from "../local-net/lib/chainid.mjs";
 
 const U64_MAX = (1n << 64n) - 1n;
@@ -167,6 +174,13 @@ function ganDinhDanh() {
       gocDai: GOC_DAI_CHAINID,
       tranDai: TRAN_DAI_CHAINID,
       tranToanDai: TRAN_TOAN_DAI,
+      // drill band — every one of these is a JS copy of a Go fact, or derived from one
+      idGocTap: A1_ID_GOC_TAP,
+      netIDTap: NETWORK_ID_TAP,
+      tenTap: TEN_MANG_TAP,
+      gocDaiTap: GOC_DAI_CHAINID_TAP,
+      tranDaiTap: TRAN_DAI_CHAINID_TAP,
+      sanDaiThat: REAL_CHAINID_SPACE.floor,
     },
   };
 }
@@ -272,6 +286,35 @@ function chayDinhDanh(d) {
   dat(
     String(netID).length < String(d.js.gocDai).length,
     `networkID ${String(netID).length} chữ số < chainId L1 ${String(d.js.gocDai).length} chữ số (không nhìn nhầm nhau)`,
+  );
+
+  // 7. DRILL BAND (P-81). The console serves it with A1_DRILL_BAND=1, comparing the node against
+  //    THESE numbers and allocating chainIds from THIS block. They are copies of Go facts, so they
+  //    are checked the same way the real band is: against Go, and against each other.
+  dat(
+    d.js.idGocTap === d.go.idGocTap,
+    `drill band top matches: Go \`A1IDGocTap\` = ${K(d.go.idGocTap)} · JS \`A1_ID_GOC_TAP\` = ${K(d.js.idGocTap)}`,
+  );
+  dat(
+    d.js.netIDTap === netIDTap,
+    `JS \`NETWORK_ID_TAP\` = ${K(d.js.netIDTap)} = drill networkID derived from Go (${K(netIDTap)})`,
+  );
+  dat(
+    d.js.tenTap === d.go.tenTap,
+    `JS \`TEN_MANG_TAP\` = "${d.js.tenTap}" matches Go \`A1NameTap\` = "${d.go.tenTap}"`,
+  );
+  const gocTapDung = 8_000_000_000 + d.js.gen * 1_000_000;
+  dat(
+    d.js.gocDaiTap === gocTapDung && d.js.tranDaiTap === gocTapDung + 999_999,
+    `drill chainId block = ${K(d.js.gocDaiTap)}–${K(d.js.tranDaiTap)} (derived from A1_GEN ${K(d.js.gen)} must be ${K(gocTapDung)}–${K(gocTapDung + 999_999)})`,
+  );
+  dat(
+    d.js.tranDaiTap < d.js.sanDaiThat,
+    `drill block stays BELOW the real L1 range (${K(d.js.tranDaiTap)} < ${K(d.js.sanDaiThat)}) — a drill chain can never carry a real number`,
+  );
+  dat(
+    d.js.gocDaiTap > TRAN_U32 && String(d.js.gocDaiTap).length === 10 && netIDTap < d.js.gocDaiTap,
+    `drill block keeps the three safety properties: above uint32, 10 digits, above the drill networkID ${K(netIDTap)}`,
   );
 
   return { ok, loi };
@@ -515,6 +558,11 @@ function tuKiemDinhDanh() {
     // console nobody remembered to redeploy.
     ["🔴 console mang networkID của thế hệ TRƯỚC (số console so với node)", (d) => { d.js.netID = d.js.netID + 1; }],
     ["JS TEN_MANG lệch A1Name của Go", (d) => { d.js.ten = "9chain-a1"; }],
+    // Drill band (P-81): the same three ways of drifting, on the second band.
+    ["drill: JS A1_ID_GOC_TAP retyped to another number", (d) => { d.js.idGocTap = 899_999_000; d.js.netIDTap = 899_999_000 - d.js.gen; }],
+    ["drill: JS TEN_MANG_TAP differs from Go A1NameTap", (d) => { d.js.tenTap = "9chain-a1-tap"; }],
+    ["drill: chainId block overlaps the REAL L1 range", (d) => { d.js.gocDaiTap = 9_000_500_000; d.js.tranDaiTap = d.js.gocDaiTap + 999_999; }],
+    ["drill: block kept from the previous generation", (d) => { d.js.gocDaiTap -= 1_000_000; d.js.tranDaiTap -= 1_000_000; }],
     ["không đọc được network_ids.go", (d) => { d.go = { loiDoc: "ca thử" }; }],
     ["Go đổi cách khai A1Gen (regex hết khớp)", (d) => { d.go.gen = null; }],
   ];

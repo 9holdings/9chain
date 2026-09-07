@@ -11,7 +11,11 @@
 // (luật cứng #1/#2 của repo).
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, A1_GEN, GOC_DAI_CHAINID, TRAN_DAI_CHAINID, TRAN_TOAN_DAI, TRAN_EIP2294 } from "../lib/chainid.mjs";
+import {
+  capChainIdTuDong, loiChainIdDaCap, loiTenDaCap, A1_GEN, GOC_DAI_CHAINID, TRAN_DAI_CHAINID, TRAN_TOAN_DAI, TRAN_EIP2294,
+  NETWORK_ID, NETWORK_ID_TAP, TEN_MANG_TAP, GOC_DAI_CHAINID_TAP, TRAN_DAI_CHAINID_TAP, DRILL_CHAINID_SPACE, REAL_CHAINID_SPACE,
+  bandFor, bandOfNetworkId, wrongBandChainIdError,
+} from "../lib/chainid.mjs";
 
 const THU_MUC = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const chan = JSON.parse(readFileSync(path.join(THU_MUC, "chainid-taken.json"), "utf8"));
@@ -207,6 +211,40 @@ ok("🔴 an empty live ledger is backed by a release declaration",
   `${daCapId.size} blocked · ${daTha.chainIds} released across ${daTha.releases} declaration(s)`);
 ok("the live ledger names at least one source (it was merged, not hand-written)",
   (daCapFile.sources ?? []).length > 0, String((daCapFile.sources ?? []).length));
+
+// ═══ 9. DRILL BAND (P-81, D-233) — the console's second band ═══
+//
+// Same discipline as section 7: properties of the block recovered BACKWARDS from the numbers,
+// never the formula restated. The band is what `A1_DRILL_BAND=1` makes the console serve.
+console.log("\n─── 9. Drill band — its own networkID, name and chainId block ───");
+ok("drill networkID counts down from the drill top, one per generation",
+  NETWORK_ID_TAP === 899_999_999 - A1_GEN && NETWORK_ID_TAP !== NETWORK_ID, String(NETWORK_ID_TAP));
+ok("drill network name carries the generation", TEN_MANG_TAP === `9chain-a1-tap-g${A1_GEN}`, TEN_MANG_TAP);
+ok(`🔴 drill chainId block is the block of generation ${A1_GEN}`,
+  Math.floor((TRAN_DAI_CHAINID_TAP - 8_000_000_000) / 1_000_000) === A1_GEN && TRAN_DAI_CHAINID_TAP % 1_000_000 === 999_999,
+  `${GOC_DAI_CHAINID_TAP}–${TRAN_DAI_CHAINID_TAP}`);
+ok("drill block is one million numbers wide", TRAN_DAI_CHAINID_TAP - GOC_DAI_CHAINID_TAP + 1 === 1_000_000);
+ok("🔴 drill block lies BELOW the real L1 range — a drill chain can never carry a real number",
+  TRAN_DAI_CHAINID_TAP < REAL_CHAINID_SPACE.floor && DRILL_CHAINID_SPACE.ceiling < REAL_CHAINID_SPACE.floor);
+ok("drill block keeps the three safety properties (10 digits · above uint32 · above every networkID)",
+  String(GOC_DAI_CHAINID_TAP).length === 10 && GOC_DAI_CHAINID_TAP > 4_294_967_295 && NETWORK_ID_TAP < GOC_DAI_CHAINID_TAP && NETWORK_ID < GOC_DAI_CHAINID_TAP);
+ok("bandFor(true) is the drill band, bandFor(false) the real one — and they share nothing",
+  bandFor(true).networkId === NETWORK_ID_TAP && bandFor(true).floor === GOC_DAI_CHAINID_TAP &&
+  bandFor(false).networkId === NETWORK_ID && bandFor(false).floor === GOC_DAI_CHAINID &&
+  bandFor(true).ceiling < bandFor(false).floor);
+ok("bandOfNetworkId names real · drill · other",
+  bandOfNetworkId(NETWORK_ID) === "real" && bandOfNetworkId(NETWORK_ID_TAP) === "drill" && bandOfNetworkId(9001) === "other");
+ok("self-issue on the drill band starts at the drill floor, not the real one",
+  capChainIdTuDong(new Set(), daChiem, GOC_DAI_CHAINID_TAP, TRAN_DAI_CHAINID_TAP) === GOC_DAI_CHAINID_TAP);
+// Both directions of the hand-typed refusal, each with its control.
+ok("🔴 a REAL chainId typed on the drill band is refused", wrongBandChainIdError(GOC_DAI_CHAINID, true) !== null);
+ok("🔴 a DRILL chainId typed on the real network is refused", wrongBandChainIdError(GOC_DAI_CHAINID_TAP, false) !== null);
+ok("CONTROL — a drill chainId on the drill band passes", wrongBandChainIdError(GOC_DAI_CHAINID_TAP, true) === null);
+ok("CONTROL — a real chainId on the real network passes", wrongBandChainIdError(GOC_DAI_CHAINID, false) === null);
+ok("CONTROL — a number outside both spaces is nobody's business here (other gates judge it)",
+  wrongBandChainIdError(9100, true) === null && wrongBandChainIdError(9100, false) === null);
+ok("the refusal names the flag and the block to use",
+  /A1_DRILL_BAND=1/.test(wrongBandChainIdError(GOC_DAI_CHAINID, true)) && wrongBandChainIdError(GOC_DAI_CHAINID, true).includes(String(GOC_DAI_CHAINID_TAP)));
 
 console.log(`\n${hong === 0 ? "✅" : "🔴"} ${dat} đạt · ${hong} hỏng`);
 process.exit(hong === 0 ? 0 : 1);
