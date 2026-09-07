@@ -4488,6 +4488,8 @@ listen `*:9651`, ufw cho phép. ⇒ Cổng **thông**; con số 0 phản ánh *c
 vào*, không phải *không gọi được* — avalanchego **không phân biệt hai điều đó**.
 ⚠️ Vẫn phải theo dõi: uptime của validator tính theo kết nối, nên nếu ngày G node ngoài vẫn
 `ingress=0` thì đó là chuyện thật, không phải nhiễu.
+→ **Đã tách được hai nghĩa đó `2026-09-07` (D-197): restart node.** Kết nối ra bị cắt, peer biết
+địa chỉ tự gọi vào trong ~90 s. Số 0 sau khi stake là *"không ai cần gọi"*, không phải *"không gọi được"*.
 
 **4. ✅ Không thao tác nào hôm nay đẻ ra rò rỉ khoá mới.** `check-key-leaks` đỏ đúng **một** tệp,
 và đó là `verify1/console.env` từ `24/08` mà David **chưa duyệt xoá** — không phải hệ quả của
@@ -10121,3 +10123,59 @@ trên server **11 chain · 9 node · 12/0 · 0 finding**, counter-check trên d�
   khi chain sản xuất block liên tục. Cổng chỉ ổn định trên chain **yên tĩnh**, tức đúng lúc `09/09`. Chưa quyết sửa.
 - `check-live-page` trên `/`: trang khai **11** validator, chain có **12** (Hetzner stake `07/09`). Byte nằm trên site đã deploy ⇒ việc
   `web-home` (luật cứng #4); phiên web cần xem trang chủ in số cứng hay đọc `heartbeat.json`.
+
+---
+
+## D-197 — **Validator ngoài thứ ba, trên máy đã reset (`144.76.165.85`): đường công khai đi hết lần đầu với `c-to-x --issue`, và `ingress=0` của D-121 tách nghĩa được bằng một lượt restart** (`2026-09-07`)
+
+**Bối cảnh.** David yêu cầu reset máy Hetzner `144.76.165.85` (tới lúc đó là `archive2` của chuỗi C1 cũ
+`love9_999999999-1`, chết từ `25/08`) và dựng validator A1 trên đó. Đi **đúng `docs/RUN-A-VALIDATOR.md`**
+chứ không đi runbook nội bộ — theo đúng lý do `GDAY-NODE10-HETZNER.md` §"Trạng thái hôm nay" nêu: mỗi
+chỗ lệch là một lỗi trong tài liệu người lạ đang cầm. Phần phần mềm (reset · image · genesis · node · khoá)
+do phiên làm; **chặng tiền David tự bấm** (CLAUDE.md §4: faucet · gửi giao dịch không được tự làm).
+
+**Số đo, theo thứ tự, đều trên mạng đang chạy:**
+
+| | đo được |
+|---|---|
+| image trên chính máy | `commit=9chain-a1-g1-27patch-38723877` · sha256 `2f733249…b57480` (trùng byte image OVH) · `g0`=0 `g1`=4 `LOVE9`=2, đối chứng ống 283/0 |
+| genesis từ URL công khai | `4de8caa5…0f6ee6`, `networkID 999999998` |
+| bootstrap trên máy mới | P/X/C `true` sau **~16 phút** (C-Chain 148.608 khối); node9 OVH (không phải beacon) thấy `publicIP 144.76.165.85:9651` |
+| faucet | 10 lượt = 90 LOVE9 (9 lượt/IP/giờ ⇒ lượt 10 chờ sang giờ sau, đúng D-161) |
+| **`c-to-x --amount 89 --issue`** | 🔴 **lần ĐẦU TIÊN ai chạy `--issue`**; export C + import X trót lọt, X nhận `88,999` (phí import 0,001) |
+| `xp-wallet /api/x-to-p 85` | P nhận `84,99999173` |
+| `stake-validator --stake 81 --days 14 --issue`, `--uri` VÀ `--node-rpc` cùng trỏ node của mình qua tunnel | txID `23C9CXTpmWndgf5HveEc3ke5yjAUQK3JQBzuHj2a5axHu9Wq8v` **Committed**; `getCurrentValidators` ⇒ **12**, `NodeID-G5tZWvku6qLRkicFJa2MdBH52UdBEYTpr` weight 81, `07/09 13:13Z → 21/09 13:14Z`; P còn `3,999964` |
+
+**Ba chỗ tài liệu SAI mà đường đi này bắt được — đã sửa trong `RUN-A-VALIDATOR.md` cùng lượt:**
+
+1. **Số tiền phải chừa phí ở TỪNG chặng: 89 → 85 → 81.** Trang cũ bảo `x-to-p {"amount":"81"}` — chuyển
+   đúng 81 sang P thì giao dịch stake **không có phí để trả**. Công cụ `c-to-x` đã từ chối `--amount 90`
+   trên số dư 90 vì đúng lý do đó.
+2. **`stake-validator --uri` phải là node của mình, không phải RPC công khai.** Ví gọi `<uri>/ext/P`; RPC
+   công khai cố ý không phục vụ (M11.10). Trang cũ in `--uri https://rpc-a1.9chain.org` — ai chép nguyên
+   sẽ chết ở đúng bước cuối. `run-over-tunnel.sh` đã biết điều này từ D-091 nhưng trang công khai chưa.
+3. **Câu *"chưa ai chạy `--issue`"* nay thành quá khứ**, và được viết lại ở thì quá khứ kèm ngày, không xoá.
+
+**`ingress=0` của D-121 — tách được hai nghĩa bằng phép đo rẻ nhất.** Ngay sau stake:
+`primaryNetworkValidator=true`, `ingressConnectionCount=0`, `healthy=false` *"no inbound connections"*,
+cổng 9651 đo từ ngoài là **mở**. Theo dõi 30 phút vẫn 0. Cơ chế: node mình đã **chủ động nối ra cả 10
+peer**, nên không peer nào có lý do gọi vào; con số này chỉ tăng khi có kết nối mới. ⇒ `docker restart
+a1-node`: kết nối ra bị cắt, các node OVH (biết địa chỉ của một validator) **tự gọi vào** — sau 90 s có
+**1 kết nối inbound từ `139.99.145.13`**, `healthy: true`, cảnh báo biến mất, P/X/C bootstrap lại dưới
+90 s, uptime trên chain `99,94` (rớt vài giây, sàn thưởng 80). **D-121 hôm `29/08` chỉ chờ nhiều giờ và
+không kết luận được; lượt này kết luận được trong 90 giây.** Ghi vào trang công khai mục "Watch
+`ingressConnectionCount`".
+
+**Hai bẫy shell trên máy dev, đã dính cả hai:** PowerShell 5.1 không có `&&` (lệnh viết cho Git Bash chết
+ở ký tự thứ 26); Git Bash không có `MSYS_NO_PATHCONV=1` thì `-w /src/...` bị dịch thành
+`C:/Program Files/Git/src/...` và docker từ chối. Cùng một lệnh cần **hai bản** tuỳ shell.
+
+**Máy `144.76.165.85` sau lượt này:** hostname `a1-validator-hetzner`, Ubuntu 22.04 (đã `full-upgrade` +
+reboot), ufw `22 LIMIT` + `9651 ALLOW`, container `a1-node` (`--network host`, API loopback,
+`--restart unless-stopped`), `/opt/9chain-a1/run-node.sh` là lệnh khởi động, danh tính ở
+`/opt/9chain-a1/staking/` — bản lưu 3/3 sha256 khớp ở máy dev, ngoài repo. ⚠️ ufw `LIMIT` cổng 22 chặn
+~1 phút khi ssh dồn dập (6 kết nối/30 s) — gộp lệnh vào một phiên ssh.
+
+**Còn lại, không thuộc lượt này:** trang chủ khai **11** validator trong khi chain có **12** (đã ghi ở cuối
+D-196, việc `web-home`); tiến trình `avalanchego` trần thế hệ g0 (PID 34489) trên máy Hetzner cũ
+`95.217.60.140` vẫn chạy.

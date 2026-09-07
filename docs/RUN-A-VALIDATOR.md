@@ -42,6 +42,12 @@ transaction fee measured `0.001 LOVE9`, and P-Chain fees have been dynamic since
 page does not quote a number it cannot measure); the problem was never the size of the fee, it
 was that nine requests leave **zero** margin for one.
 
+**Budget the fees per hop, not once.** Measured on 2026-09-07 by the first outside validator to
+walk this whole page: with 90 LOVE9 from ten faucet requests, move **89** C→X (the import fee
+took 0.001), then **85** X→P, then stake **81**. Every hop pays its fee out of the balance it is
+moving, so moving exactly the bond forward leaves the next transaction unable to pay for itself.
+The C→X tool refuses `--amount 90` on a 90 balance for exactly this reason.
+
 <!-- stale-ok: past tense, and it names its date -->
 *(Until 2026-09-01 this barrier was 25,000 LOVE9. At 10 LOVE9 per request that was roughly 500
 hours of uninterrupted asking — not a slow path, no path at all. The number is compiled into the
@@ -331,17 +337,24 @@ C, then an import on X. If the export lands and the import does not, your LOVE9 
 X-Chain's shared memory — **not lost**. Re-run with `--issue`: the import consumes whatever is
 waiting. **Do not re-run the export to "try again".**
 
-⚠️ **Honest status:** the tool compiles, and its refusal path was exercised against the live public
-RPC. **The money path has not been run by anyone yet** — the first person to pass `--issue` is the
-first. Dry-run first, read every line it prints, and tell us what happened.
+✅ **The money path has been run, once, on the live network.** 2026-09-07, from a fresh Hetzner
+machine that had joined the way this page describes: `--amount 89 --issue` against the node's own
+RPC through an SSH tunnel. Both legs landed on the first try; the X-Chain balance read back
+`88.999` (the import fee is 0.001). Until that day this paragraph said *"nobody has run this
+yet"*, and it was true. Dry-run first anyway, and read every line it prints — one successful run
+is a measurement, not a guarantee.
 
 ### Hop 2 · X→P — this one is shipped and verified
 
 `xp-wallet`, inside the node image:
 
 ```
-POST /api/x-to-p   {"amount":"81"}
+POST /api/x-to-p   {"amount":"85"}
 ```
+
+⚠️ **Move more than the bond.** The stake transaction pays its fee from the P-Chain balance, so
+81 on P-Chain is 81 you cannot stake. Measured 2026-09-07: 85 moved, `84.99999173` arrived, the
+stake left `3.999964` behind. Earlier versions of this page said `81` here.
 
 ⚠️ `x-to-p` exports to `owner()` — the key the wallet is running. It can only ever pay **itself**
 on P-Chain, so run it with the key that is going to stake.
@@ -375,12 +388,18 @@ using it never changes the patch set you verified in Step 1.
 stake-validator \
   --key <your key file> \
   --node-rpc http://127.0.0.1:9650/ext/info \
-  --uri https://rpc-a1.9chain.org \
+  --uri http://127.0.0.1:9650 \
   --stake 81 \
   --days 14 \
   --delegation-fee 20000
 # add --issue to actually sign and spend
 ```
+
+🔴 **`--uri` is your own node, not the public RPC.** The wallet calls `<uri>/ext/P`, which the
+public endpoint does not serve (it serves `/ext/bc/*` and `/ext/info` only — a boundary, not an
+outage). Your bootstrapped node serves it on loopback. Measured 2026-09-07: with both flags on the
+node's own `9650`, the dry run read the real P-Chain balance and `--issue` was accepted into the
+validator set within one block. Earlier versions of this page put the public RPC here.
 
 It **dry-runs by default** and refuses to issue a transaction that cannot succeed — it measures
 your real P-Chain balance first. A dry run that only prints intentions is a dry run that lies.
@@ -424,6 +443,15 @@ provably reachable while this counter sat at **0** for hours. avalanchego cannot
 "nobody dialled in" from "unreachable", but validator uptime is measured over connections, so a
 lasting 0 is a real problem even when your port tests open.
 
+**You can tell the two apart in ninety seconds: restart your node.** Right after you stake, your
+node already holds an outbound connection to every peer, so nobody has a reason to dial you and
+the counter stays at 0 — `health.health` goes `false` with *"primary network validator has no
+inbound connections"*. Restarting drops those connections; the other validators know your
+announced address and dial *you*. Measured 2026-09-07 on a node that had sat at 0 for thirty
+minutes: 90 s after `docker restart`, one inbound connection from the launch cluster, `healthy:
+true`, the warning gone, all three chains bootstrapped again. If the counter is still 0 after
+that, your address really is undialable — check `--public-ip` and the port forward.
+
 **Behind NAT.** A node behind a home router can bootstrap and validate — every connection it holds
 is one it opened itself. But nobody can open one *to* you: if your outbound connections drop, nothing
 brings you back, `ingressConnectionCount` stays at 0, and the network's own reachability check lists
@@ -448,6 +476,9 @@ port 9650 at all.
 | asking for `AVAX` | fails on purpose; the asset is `LOVE9` |
 | publishing port 9650 | Docker's DNAT bypasses `ufw`; your admin API is exposed while the firewall says it is not |
 | expecting to stake from X-Chain balance | staking is on P-Chain; export first |
+| moving exactly 81 to P-Chain | the stake transaction pays its fee from that balance; move 85, stake 81 (measured 2026-09-07) |
+| `--uri https://rpc-a1.9chain.org` on `stake-validator` | the wallet needs `/ext/P`, which the public RPC does not serve; point it at your own node |
+| reading `ingressConnectionCount: 0` as "unreachable" | restart the node: peers that know your address dial in within ~90 s if they can |
 | judging bootstrap at 30 s | measured: ~50 s to bootstrap, ~70 s before non-beacon peers see you |
 | trusting HTTP 200 | a status code is the weakest evidence there is. Read the body. |
 
