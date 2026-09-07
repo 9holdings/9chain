@@ -9976,3 +9976,25 @@ the fixed-ewoq create-l1 dev binary from9chain-a1-cli, per-chain genesis constru
 primary/subnet validator registration, persistent console reservations and all-node
 execution checks. The private experiment is not the public network. No core/validator/
 genesis change or public mutation was made by this correction.
+
+### D-226 — Bound remote audit enumeration and define the next acceptance stages (2026-09-07)
+
+The remote source audit checked its20000-entry ceiling after readdirSync delivered
+a whole directory. Use bufferSize1 iterators and finally-based closure while keeping
+the same direct-directory scope, exclusions, provenance rules and refusal-before-
+mutation behavior. An actual20020-extra-file fixture observes20046 delivered entries
+on old code and fails at the intended assertion. New code observes20001 total,
+both opened readers closed, all files retained and no lock/pause/stage or later
+mutation.34 real Linux deployment CLI scenarios pass; see CONSOLE-DEPLOYMENT.md.
+
+D-225 exact-source acceptance passed47 commands01:15:49 UTC; independent report/log
+hash verification and default local plan passed01:19:02. That is now historical
+acceptance. Freeze and validate the D-226 final source before handing off a candidate.
+Do not advance HEAD solely to store receipts after that freeze.
+
+The next-stage plan in A1-NEXT-ACCEPTANCE.md ties the proposed three-year direction to
+measurable first-adoption, recovery, resource, operator and product-use gates. The
+personal-ledger/shared-execution/dedicated-L1 split is a proposed trust/cost contract,
+not implemented shared scheduling or evidence for billions of active L1s. No current
+allocator/genesis/validator policy changed. Public approval is premature while legacy
+drain, helper provenance handling and a tested first-transition recovery remain open.

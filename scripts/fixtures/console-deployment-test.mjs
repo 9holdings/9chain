@@ -34,10 +34,23 @@ git('init', '-b', 'main'); git('config', 'user.name', 'Synthetic Deployment'); g
 git('add', '--', '.gitignore', '.gitattributes', 'local-net', 'scripts', '9chain-a1-config'); git('commit', '-m', 'Prepare isolated deployment fixture');
 const bundle = prepareConsoleRelease(repo);
 fs.cpSync('/root/.npm/_cacache', lab + '/npm-cache/_cacache', { recursive: true });
+put(bin + '/audit-prelude.txt', String.raw`import auditFs from 'node:fs';
+const auditCounts = { entries: 0, opened: 0, closed: 0 };
+const auditRead = auditFs.readdirSync.bind(auditFs), auditOpen = auditFs.opendirSync.bind(auditFs);
+auditFs.readdirSync = (...args) => { const entries = auditRead(...args); auditCounts.entries += entries.length; return entries; };
+auditFs.opendirSync = (...args) => {
+  const dir = auditOpen(...args), read = dir.readSync.bind(dir), close = dir.closeSync.bind(dir);
+  auditCounts.opened++;
+  dir.readSync = () => { const entry = read(); if (entry) auditCounts.entries++; return entry; };
+  dir.closeSync = () => { try { return close(); } finally { auditCounts.closed++; } };
+  return dir;
+};
+process.on('exit', () => auditFs.appendFileSync(process.env.A1_FIXTURE_LOG, JSON.stringify({ phase: 'audit-enumeration-counts', ...auditCounts }) + '\n'));
+`);
 // The stubs have no network fallback and only execute inside this isolated /tmp lab.
 put(bin + '/ssh', `#!/usr/bin/env node
 import fs from 'node:fs'; import {spawnSync} from 'node:child_process';
-const args=process.argv.slice(2), host=args.at(-2), command=args.at(-1), input=fs.readFileSync(0,'utf8');
+const args=process.argv.slice(2), host=args.at(-2), command=args.at(-1); let input=fs.readFileSync(0,'utf8');
 if(process.env.A1_ISOLATED_FIXTURE!=='console-deployment'||host!=='fixture.invalid') process.exit(97);
 const match=input.match(/const request=JSON.parse\\(Buffer.from\\('([^']+)'/);
 let request=match?JSON.parse(Buffer.from(match[1],'base64')):null;
@@ -45,6 +58,9 @@ let phase=request?.action==='phase'?request.phase.action:request?.action;
 if(!phase) phase=command.includes('--pause-and-wait')?'pause':command.includes('--request')?'lock':'status';
 fs.appendFileSync(process.env.A1_FIXTURE_LOG,JSON.stringify({phase,command:phase==='status'?'maintenance':undefined})+'\\n');
 const fault=process.env.A1_FIXTURE_FAULT;
+if(fault==='audit-enumeration'&&phase==='audit') {
+  input = fs.readFileSync('${bin}/audit-prelude.txt', 'utf8') + input;
+}
 if(fault==='ssh-hang'&&phase==='status') {setInterval(()=>{},1000); await new Promise(()=>{});}
 if(fault==='backup-failure'&&phase==='backup') fs.writeFileSync(process.env.A1_FIXTURE_SOURCE+'/9chain-a1-config/creation-journal/unexpected-file','synthetic');
 if(fault==='source-drift'&&phase==='install') fs.appendFileSync(process.env.A1_FIXTURE_SOURCE+'/local-net/console/server.mjs','// source drift after backup');
@@ -183,7 +199,8 @@ try {
   console.log('PASS: real frozen upload, backup, offline npm ci, source/dependency replacement and targeted paused restart; separate gated resume releases only its lock');
 
   for (const [name, fault, expectedPhase] of [
-    ['orphan', '', 'source-audit'], ['nonselected-drift', '', 'source-audit'], ['linked-source', '', 'source-audit'],
+    ['orphan', '', 'source-audit'], ['audit-enumeration', 'audit-enumeration', 'source-audit'],
+    ['nonselected-drift', '', 'source-audit'], ['linked-source', '', 'source-audit'],
     ['unauthorized', '', 'maintenance-status'], ['legacy-api', '', 'maintenance-status'], ['already-paused', '', 'maintenance-status'],
     ['lock-held', '', 'lock-acquire'], ['upload-failure', 'upload-failure', 'upload'],
     ['tampered-upload', 'tampered-upload', 'verify-package'], ['backup-failure', 'backup-failure', 'backup'],
@@ -195,6 +212,9 @@ try {
   ]) {
     const item = await fixture(name, fault);
     if (name === 'orphan') put(item.source + '/local-net/deploy/unexpected-helper.sh', '# synthetic orphan\n');
+    if (name === 'audit-enumeration') {
+      for (let index = 0; index < 20020; index++) put(item.source + '/local-net/deploy/audit-entry-' + index + '.txt', 'synthetic');
+    }
     if (name === 'nonselected-drift') fs.appendFileSync(item.source + '/local-net/faucet/server.mjs', '// different service version');
     if (name === 'linked-source') { fs.renameSync(item.source + '/local-net/faucet/server.mjs', item.root + '/linked-target.mjs'); fs.symlinkSync(item.root + '/linked-target.mjs', item.source + '/local-net/faucet/server.mjs'); }
     if (name === 'unauthorized') fs.writeFileSync(item.root + '/console.env', fs.readFileSync(item.root + '/console.env', 'utf8').replace(token, 'synthetic-wrong-operator-token'));
@@ -204,6 +224,17 @@ try {
       actor: { runId: randomUUID(), host: 'synthetic-other-host', user: 'fixture', branch: 'main', commit: bundle.source.commit } });
     const result = (await cli(item, ['--apply'], 1)).report;
     assert.equal(result.failedPhase, expectedPhase, result.failure); noPhase(item, 'resume');
+    if (name === 'audit-enumeration') {
+      const counts = phases(item).filter(entry => entry.phase === 'audit-enumeration-counts');
+      assert.equal(counts.length, 1);
+      const refused = phases(item).find(entry => entry.phase === 'remote-failure' && entry.during === 'audit');
+      assert.match(refused?.stderr ?? '', /Remote source directory scan exceeds 20000 entries/);
+      assert.equal(counts[0].entries, 20001, 'Audit must stop reading at its global entry limit');
+      assert.ok(counts[0].opened > 0, 'Audit must enumerate through bounded directory readers');
+      assert.equal(counts[0].closed, counts[0].opened, 'All audit directory readers close on refusal');
+      assert.equal(fs.readdirSync(item.source + '/local-net/deploy').filter(name => name.startsWith('audit-entry-')).length, 20020);
+      assert.equal(phases(item).some(entry => ['lock', 'pause', 'stage', 'upload', 'backup', 'install', 'restart', 'resume'].includes(entry.phase)), false);
+    }
     if (['source-audit', 'maintenance-status'].includes(expectedPhase)) { noPhase(item, 'lock'); noPhase(item, 'upload'); assert.equal((await state(item)).paused, name === 'already-paused'); }
     else if (expectedPhase === 'lock-acquire') { noPhase(item, 'pause'); noPhase(item, 'upload'); assert.equal((await state(item)).paused, false); }
     else { assert.equal((await state(item)).paused, true); assert.equal(fs.existsSync(item.root + '/deploy-locks/console.lock/holder.json'), true); }

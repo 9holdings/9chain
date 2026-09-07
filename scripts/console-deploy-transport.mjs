@@ -44,18 +44,22 @@ async function remoteBootstrap(request) {
     let scannedEntries = 0;
     for (const relative of directories) {
       const target = path.join(source, relative); if (!stat(target)) continue; plain(target);
-      for (const entry of fs.readdirSync(target, { withFileTypes: true })) {
-        if (++scannedEntries > 20000) throw new Error('Remote source directory scan exceeds 20000 entries');
-        const name = relative + '/' + entry.name;
-        if (ignored(name) || declared.has(name)) continue;
-        if (entry.isSymbolicLink()) { blocked.push({ path: name, reason: 'unexpected link' }); continue; }
-        if (entry.isDirectory()) continue;
-        if (!entry.isFile()) { blocked.push({ path: name, reason: 'unexpected file type' }); continue; }
-        if (tracked.has(name)) { outsideScope.push(name); continue; }
-        const rule = request.knownExtra.find(rule => new RegExp(rule.pattern).test(name));
-        if (rule && typeof rule.reason === 'string' && rule.reason.trim()) knownExtra.push(name);
-        else blocked.push({ path: name, reason: 'undeclared orphan' });
-      }
+      const directory = fs.opendirSync(target, { bufferSize: 1 });
+      try {
+        let entry;
+        while ((entry = directory.readSync()) !== null) {
+          if (++scannedEntries > 20000) throw new Error('Remote source directory scan exceeds 20000 entries');
+          const name = relative + '/' + entry.name;
+          if (ignored(name) || declared.has(name)) continue;
+          if (entry.isSymbolicLink()) { blocked.push({ path: name, reason: 'unexpected link' }); continue; }
+          if (entry.isDirectory()) continue;
+          if (!entry.isFile()) { blocked.push({ path: name, reason: 'unexpected file type' }); continue; }
+          if (tracked.has(name)) { outsideScope.push(name); continue; }
+          const rule = request.knownExtra.find(rule => new RegExp(rule.pattern).test(name));
+          if (rule && typeof rule.reason === 'string' && rule.reason.trim()) knownExtra.push(name);
+          else blocked.push({ path: name, reason: 'undeclared orphan' });
+        }
+      } finally { directory.closeSync(); }
     }
     return { sourceDirectory: source, observations, blocked, knownExtra, outsideScope, scannedEntries,
       scope: 'Direct files in manifest-derived directories, with declared exclusions; not a whole-server audit.' };

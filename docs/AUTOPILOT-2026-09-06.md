@@ -15,8 +15,20 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-07 01:10 UTC** (D-224full validation caught a timing-dependent assertion; D-22534-case Windows/Linux correction and false-drain negative pass; no production timeout relaxation).
+repetition. Last user-facing progress update: **2026-09-07 01:28 UTC** (D-22547-command exact-source acceptance verified; D-22634 deployment scenarios pass including real bounded directory enumeration; preparing final freeze and owner handoff).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
+
+Final candidate checkpoint D-226: required fresh source-bound validation and its
+independent log/hash check use work/run-d226-validation.mjs and
+work/verify-d226-evidence.mjs. Receipts are work/d226-release-real.json,
+work/d226-validation-result.json, work/d226-evidence-verification.json and
+work/d226-deployment-plan.json. These receipts, if successful and still bound to the
+clean HEAD, supersede earlier source acceptance. Preserve failed historical runs.
+After acceptance, focus on the owner handoff and read-only checks; do not advance
+HEAD merely to copy receipt hashes into tracked documentation. Final user-facing
+deliverables belong in the configured outputs directory. At02:23:12 UTC stop code/
+build work, report measured completion/limits and pause the existing heartbeat via
+the automation tool. Do not disturb the separately authorized public traffic pump.
 
 1. Verify build inputs and reproducible local validation before new features.
 2. Review console creation/recovery for lost state, duplicate operations and stale RPC readiness.

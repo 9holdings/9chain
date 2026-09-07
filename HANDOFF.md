@@ -1,5 +1,17 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
+Latest local checkpoint,2026-09-07 01:28 UTC: D-225 source792fada passed47 exact-source
+validation commands01:15:49; report/log hashes and local-only plan independently
+verified01:19:02. D-226 adds bounded remote audit enumeration.34 real isolated Linux
+deployment scenarios pass; a20020-extra-file fixture reads exactly20001 entries and
+closes every reader, before any mutation. Old code reads20046 and fails the intended
+assertion. Public helper ownership/API404 blockers remain unchanged. See
+docs/CONSOLE-DEPLOYMENT.md and docs/A1-NEXT-ACCEPTANCE.md for the concrete first-adoption,
+recovery, private-runner, cost-matrix and low-cost-ledger acceptance sequence.
+Next freeze this clean source and rerun required acceptance, then retain final
+receipts in work/owner outputs without advancing HEAD merely to record hashes.
+Hard work cutoff remains02:23:12 UTC; no new authorization is implied by this plan.
+
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
 for current evidence and next work. D-197 through D-225: local console reliability,

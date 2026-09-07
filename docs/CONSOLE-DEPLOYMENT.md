@@ -120,6 +120,34 @@ execution, deletion or silent restoration. Existing authorized heartbeat traffic
 not be stopped for this upgrade. The new audit has not yet been run against the live
 server with this final package.
 
+D-225 read-only recheck01:02 UTC still found the same orphan and maintenance404;
+see work/final-live-read.json. D-226 subsequently bounds the audit's directory
+enumeration without changing these refusal/ownership rules. No source adoption,
+public lock or deployment was performed. Next acceptance stages and the exact
+observed helper provenance are in A1-NEXT-ACCEPTANCE.md.
+
+## D-226 directory enumeration acceptance, 2026-09-07
+
+The remote audit now opens each selected directory with bufferSize1 and reads at
+most20001 entries across the entire scan:20000 permitted entries plus the first
+overflow entry. Every directory handle closes in finally, including on refusal.
+This bounds user-space enumeration, not filesystem syscall latency. Exclusions,
+known-extra classification, direct-directory scope and audit-before-mutation order
+remain unchanged; it is not a recursive whole-server scan.
+
+The actual isolated Bash/controller/SSH-bootstrap fixture creates20020 extra files.
+The old implementation delivers20046 entries before refusal and fails the intended
+bounded-enumeration assertion. The new code delivers exactly20001, opens/closes both
+visited directories and retains all20020 files. No lock/pause/stage/upload/backup/
+installation/restart/resume occurs and the old console and unrelated console remain
+healthy. The existing failure-stage checks also apply.34 actual CLI scenarios pass.
+
+Evidence: work/d226-audit-negative.log and work/console-deployment-nBB5xb;
+work/d226-audit-pass.log and work/console-deployment-Tbxrb9/evidence. The passing
+container exits0/noOOM. Earlier fixture-only escaping and diagnostic-selection
+errors are retained in work/d226-audit-before.log and
+work/d226-audit-before-corrected-fixture.log; neither is a product negative control.
+
 ## Local evidence, 2026-09-06
 
 `node scripts/check-console-deployment.mjs` exercises the actual Bash/controller CLI,
