@@ -37,6 +37,11 @@
 #   bash scripts/measure-node-load.sh --name-filter X    # docker name filter (default 9chain-a1-node-)
 #                                                        #   a filter matching nothing ⇒ exit 1 — the
 #                                                        #   reverse control for this gate
+#   bash scripts/measure-node-load.sh --host root@1.2.3.4 --ssh-key ~/.ssh/k1 --name-filter k1- --expect 8
+#                                                        # P-88: ANY machine, not only the server named in
+#                                                        #   server-env.sh — a fleet loop (hosts-run.sh style)
+#                                                        #   calls this once per machine
+#   bash scripts/measure-node-load.sh --no-ledger        # skip the public-ledger L1 count (drill fleets)
 
 set -u
 
@@ -49,23 +54,33 @@ EXPECT=9
 NAME_FILTER="9chain-a1-node-"
 LEDGER_URL="https://a1.9chain.org/chains/data/console-chains.json"
 
+NO_LEDGER=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --seconds) SECONDS_WINDOW="$2"; shift 2 ;;
     --expect) EXPECT="$2"; shift 2 ;;
     --name-filter) NAME_FILTER="$2"; shift 2 ;;
     --ledger-url) LEDGER_URL="$2"; shift 2 ;;
-    -h|--help) sed -n '2,45p' "$0"; exit 0 ;;
+    # P-88: measure a machine other than the one server-env.sh names (a K1/drill fleet host).
+    --host) A1_SSH_HOST="$2"; shift 2 ;;
+    --ssh-key) A1_SSH_KEY="$2"; shift 2 ;;
+    --no-ledger) NO_LEDGER=1; shift ;;
+    -h|--help) sed -n '2,50p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
 
 # Context that lives OUTSIDE the server: how many L1s the public ledger lists right now.
 # Fetched locally so the measurement does not depend on the server being able to reach its own
-# public hostname through Cloudflare.
-L1_COUNT="$(curl -sL --max-time 20 "$LEDGER_URL" 2>/dev/null \
-  | tr -d '\r\n ' | grep -o '"chainId":' | wc -l | tr -d ' ')"
-[ -n "$L1_COUNT" ] || L1_COUNT="?"
+# public hostname through Cloudflare. A drill fleet has no public ledger: --no-ledger prints "?".
+# Unknown is JSON `null`, never a bare `?`: the JSON line is what a fleet loop parses.
+if [ "$NO_LEDGER" = "1" ]; then
+  L1_COUNT="null"
+else
+  L1_COUNT="$(curl -sL --max-time 20 "$LEDGER_URL" 2>/dev/null \
+    | tr -d '\r\n ' | grep -o '"chainId":' | wc -l | tr -d ' ')"
+  [ -n "$L1_COUNT" ] || L1_COUNT="null"
+fi
 
 # Everything below runs on the server. Arguments are passed positionally to `bash -s`.
 remote_script='

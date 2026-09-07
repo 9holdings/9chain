@@ -225,6 +225,9 @@ const GATES = [
   // a DRILL-band instrument (the public network runs no pump per L1) and joins group 3 only when
   // A1_DRILL_BAND=1 names the drill ledger and RPC (A1_CHAINS_LEDGER, A1_CHAINS_RPC).
   { group: "2 · REPO GATES", name: "every chain produces blocks — verdict rules (counter-check)", ...node("scripts/check-chains-producing.mjs", "--self-test") },
+  // "0 StartClose" is the hard pass condition of every 108-chain phase (PLAN-108 §5): a node cut
+  // for announcing > 16 subnets shows only in its PEERS' logs and its peer count (P-88, D-241).
+  { group: "2 · REPO GATES", name: "no node cut for too many subnets — verdict rules (counter-check)", ...node("scripts/check-startclose.mjs", "--self-test") },
 
   // ── 3. The real world — the running network and the server ──
   ...(process.env.A1_DRILL_BAND === "1" && process.env.A1_CHAINS_RPC

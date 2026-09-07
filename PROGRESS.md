@@ -179,9 +179,14 @@ khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn 
       (bẫy `a1-bay-lech-nonce`), xuất `heartbeat-<chainId>.json`; cổng mới `scripts/check-chains-producing.mjs` đọc sổ, đo mọi
       chain: block ≤ 2,5 s nhịp, tx vào khối ≥ 90 % mục tiêu; vào preflight nhóm 3 **chỉ khi** `A1_DRILL_BAND` (không đủ tư cách chặn g1).
       **Qua khi:** 15 chain × 1 tx/s, 30 phút, 15/15 xanh. Ca đỏ: dừng bơm **một** chain ⇒ cổng đỏ **đúng chain đó**, không đỏ cả bảng.
-- [ ] **P-88 — Cổng đội tàu liên máy** — `scripts/check-startclose.mjs` (log `too many tracked subnets` = 0 + peers đủ trên mọi node,
+- [x] **P-88 — Cổng đội tàu liên máy** — `scripts/check-startclose.mjs` (log `too many tracked subnets` = 0 + peers đủ trên mọi node,
       nhận `nodes.json` của `l1-batch compose`) · `measure-node-load.sh` nhận danh sách host qua ssh thay vì giả định cùng host.
       **Qua khi:** băng tập 9 node 0/0; đo được RAM theo giờ. Ca đỏ: fixture log có dòng `too many tracked subnets` ⇒ đỏ, nêu node.
+      ✅ `07/09` đêm (autopilot, D-241): `scripts/check-startclose.mjs` (`--compose` cục bộ | `--nodes nodes.json` qua ssh; phán quyết
+      `cut`/`isolated`/`unreachable`/`ok` từng node, `--with-load` in RAM; self-test 9 — fixture có dòng `too many tracked subnets`
+      ⇒ đỏ nêu node; log không đọc được ⇒ unreachable, không ok) · `measure-node-load.sh --host/--ssh-key/--no-ledger`, `l1Count` null
+      thay `?`. **Đo:** băng tập 9/9 `0 cuts · 8 peers`, RAM 111–127 MiB/node; máy chủ thật 9 node 3,07 lõi · 21,3 GB ở tuổi 73 h (RAM
+      ×5 so D-178 lúc 75 phút — đúng chiều cảnh báo). Vào preflight nhóm 2.
 - [ ] **P-89 — PHA 1 "một máy đầy" trên băng tập** (sau P-81→P-88): 9 node local, **15 L1, V=5, 1 tx/s mỗi chain, ≥ 6 h**, ghi số
       theo giờ vào `docs/EVIDENCE-L1-108-PHASE1-<ngày>.md` (nguồn lệnh kèm). **Qua khi:** CPU host < 70 % · block mọi chain ≤ 2,5 s ·
       0 `StartClose` · RAM phẳng sau ~6 h · `c_tx` đo được thay số ước 0,02 ở PLAN-108 §2c. Ca đỏ: rút một node (`docker stop`) ⇒

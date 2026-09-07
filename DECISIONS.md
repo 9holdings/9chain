@@ -10487,3 +10487,25 @@ chung. PLAN-108 §4.2 gọi nó là "sổ chain mang node phục vụ".
 **Đối chứng fixture** (`assignment-e2e-test` 46 → **50**): `assignment.json` ghi node phục vụ đúng luật (chain 1 → node-b, chain 2 →
 test-node), `uri` = `http://node-b:9650`, mang chainId/name/subnetID/validators; thu hồi ⇒ mục biến mất; mô hình cũ ⇒ **không**
 tệp. Drift `knownExtra` khai tệp là vật liệu chạy. Việc `[web-home]`: Caddyfile công khai đọc tệp này (hoặc gọi `l1-batch router`).
+
+## D-241 — **Cổng đội tàu: `check-startclose.mjs` đọc log của TỪNG node (cục bộ hay qua ssh) và số peer của nó; `measure-node-load.sh` đo được máy bất kỳ** (`2026-09-07` đêm, P-88)
+
+**Bối cảnh.** "0 `StartClose`" là điều kiện qua cứng của mọi pha 108 chain (PLAN-108 §5). Node khai quá 16 subnet không tự báo gì —
+log của nó sạch, chỉ log **peer** ghi *"too many tracked subnets"* và số peer của nó tụt. Kit K1 có `14-startclose.sh` cho một máy;
+`measure-node-load.sh` cắm cứng máy chủ trong `server-env.sh` và giả định 9 container cùng host.
+
+**Quyết định.**
+1. **`scripts/check-startclose.mjs`** — mỗi node một phán quyết: `cut` (có dòng *too many tracked subnets* / `maxNumTrackedSubnets`
+   trong `docker logs`) · `isolated` (peer < mong đợi, mặc định N−1) · `unreachable` (không đọc được log hoặc `info.peers`) · `ok`.
+   Đầu vào: `--compose <tệp>` (container cục bộ) hoặc `--nodes nodes.json` của `l1-batch compose` (từng máy qua ssh). `--with-load`
+   in RAM (`docker stats` — tức thời, đủ cho "RAM theo giờ" trên băng tập; số CPU thì KHÔNG lấy từ đó, D-176). Luật đọc: `cut` chấm
+   **trước** peer (node bị cắt vẫn có thể còn peer); log không đọc được là `unreachable`, không bao giờ `ok` — im lặng không phải log sạch.
+   Self-test 9 ca (đỏ nêu tên node; dòng `StartClose` chung chung không phải lý do subnet thì đếm nhưng không đỏ).
+2. **`measure-node-load.sh --host <user@ip> --ssh-key <k> --no-ledger`** — đo máy bất kỳ (vòng `hosts-run.sh` gọi từng máy),
+   không cần sổ công khai; `l1Count` vắng là JSON `null` (trước đây in `?` trần ⇒ dòng JSON hỏng).
+3. Vào preflight nhóm 2 (self-test). Phép đo nhóm 3 là dụng cụ băng tập/đội tàu, không chặn ngày G.
+
+**Đo.** Băng tập 9 node sau P-81→P-86 (5 lượt đẻ, 1 thu hồi, hàng chục restart): **9/9** `0 cuts · 0 StartClose · 8 peer`, RAM 111–127 MiB
+mỗi node. Máy chủ thật (chỉ đọc, cửa sổ 10 s, `--no-ledger`): **9 node · 3,07 lõi · 21.263 MiB · tuổi 73 h · loadavg 4,37/8** với 11 L1
+và bơm đang chạy — so D-178 (`2,28` lõi · `4.103` MiB lúc node 75 phút tuổi): CPU +35 %, **RAM ×5 theo tuổi** — đúng chiều D-178
+cảnh báo, và là con số pha 1 phải nhìn.
