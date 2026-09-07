@@ -1,5 +1,31 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
+## CHỐT PHIÊN 2026-09-07 CHIỀU (Claude) — đọc khối này rồi khối dưới là đủ
+
+**TL;DR.** Phiên ngắn, chỉ đọc server. Preflight từ PowerShell: **54 đạt · 3 đỏ · 1 không chạy được**. Cái không chạy được là lỗi mã
+(`check-l1-upgrades` đo *shell nào đứng đầu PATH* thay vì đo server) — **đã sửa `8b65888`, thấy đỏ trước, xanh 12/0 trên server sau**,
+D-230. `main` = `origin/main` = **`f016fdf`** (đã đẩy sau `check-remotes` + `check-history-secrets`). `official` không đẩy. Server không đổi.
+
+**Ba đỏ còn lại, không cái nào là việc mã của main:**
+- Bơm heartbeat — có chủ ý tới `09/09` (D-149).
+- `check-clock-skew` — **nhấp nháy khi bơm chạy**: nguồn `block.timestamp` độ phân giải giây, ngưỡng = −lệch + 2×biên, block cũ thêm 1 s là vượt sàn
+  3000. Chạy riêng hai lần xanh (2621 · ~2870). Chỉ ổn định trên chain yên tĩnh = đúng lúc `09/09`. Đừng đi tìm đồng hồ trôi. Chưa quyết sửa.
+- `/` khai **11** validator, chain có **12** (Hetzner stake `07/09`) — byte trên site đã deploy ⇒ **web-home** (luật cứng #4). ĐÃ NHẮN phiên
+  "9Chain-A1-web handoff" qua `send_message` `07/09` ~13:5xZ; nghiệm thu là `check-live-page` PASS 4/4 sau khi họ deploy.
+
+**Việc tiếp:** ba mục `[human]` của khối dưới còn nguyên (ssh stdin có nằm trong §4 · `heartbeat-deploy.sh` nhập hay nghỉ · 2 đỏ đã biết).
+
+**Gotchas phiên này:**
+- Cổng ssh nào tự `source server-env.sh` qua `bash` là cổng phụ thuộc môi trường: WSL không mở đường `C:/`, Git Bash trả `/c/Users/…` cho
+  `ssh.exe` Windows. Mọi cổng ssh phải import `local-net/lib/server.mjs`. Xanh ở phiên trước là nhờ chạy từ Git Bash, không nhờ mã.
+- `check-single-source` bắt cả chuỗi đường khoá ssh trong **chú thích** — viết lại câu, đừng thêm ngoại lệ.
+- Sổ (`DECISIONS/PROGRESS/HANDOFF`) trộn CRLF/LF: chèn bằng script node đọc byte, dò EOL của dòng kề chỗ chèn, rồi `git diff --numstat` phải ra `N 0`.
+- `git commit -F -` với here-string PowerShell KHÔNG đi vào stdin ⇒ ghi thông điệp ra tệp rồi `-F <tệp>`. `git push 2>&1` trong PowerShell in
+  NativeCommandError dù push thành công — đọc dòng `a..b main -> main` và `git fetch` lại.
+
+**Lệnh hữu ích:** `node scripts/gday-preflight.mjs` (từ PowerShell nay đủ 58 mục) · `node scripts/check-l1-upgrades.mjs` · `node scripts/check-clock-skew.mjs` (chạy riêng khi thấy nhấp nháy) · `node scripts/check-live-page.mjs`.
+
+
 ## CHỐT PHIÊN 2026-09-07 (Claude) — đọc khối này là đủ để tiếp tục
 
 **TL;DR.** Lượt GPT 6 Astra (37 commit, D-197..D-226) đã soát; 8 rủi ro đã đóng (D-227); `heartbeat-deploy.sh` đã khai
