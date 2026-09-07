@@ -9955,3 +9955,24 @@ entries), closing its handle. A copied-source old verification loop fails that
 specific assertion.43 CLI tests,8 Windows/9 Linux real-file fault controls and these
 two enumeration controls pass; noOOM/exit0 on the isolated Linux fixture. Evidence in
 CONSOLE-BACKUP.md. This bounds user-space enumeration, not filesystem syscall latency.
+
+### D-225 — Assert busy timeout safety instead of one timing-dependent error (2026-09-07)
+
+D-224 exact-source validation failed because the200ms busy-drain case reached its
+deadline during a final request. The existing client correctly refused with request
+timeout, while the test allowed only pre-request/drain deadline text. Production
+behavior is unchanged. Accept all three legitimate timeout positions, while requiring
+nonzero exit, no success receipt, one pause, no other mutation and both simulated
+active operations still present under persistent pause. A deterministic1300ms partial
+poll response covers the request-timeout branch, with a3500ms test ceiling.
+
+34 actual CLI scenarios pass on Windows/Linux. A copied-source change that converts
+that timeout into false drained state fails the intended case with false exit0.
+Logs/negative copy in CONSOLE-MAINTENANCE.md. Failed7c193eb validation remains evidence,
+not a passing candidate. Final acceptance must bind the corrected test source.
+
+Also refreshed ARCHITECTURE.md against the current console/netgen/CLI code: distinguish
+the fixed-ewoq create-l1 dev binary from9chain-a1-cli, per-chain genesis construction,
+primary/subnet validator registration, persistent console reservations and all-node
+execution checks. The private experiment is not the public network. No core/validator/
+genesis change or public mutation was made by this correction.

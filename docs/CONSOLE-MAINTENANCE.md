@@ -203,3 +203,24 @@ acceptance. First legacy adoption still needs a separate plan; HTTP404 is not
 bypassed. The operator client closes each HTTP connection to avoid reusing an old
 listener socket across restart. 33 CLI cases include a deterministic reused-socket
 failure control, and the actual deployment drill passes 28 cases. No public apply.
+
+D-225 corrects a timing-sensitive acceptance assertion; the production maintenance
+client is unchanged. Exact-source D-224 validation7c193eb stopped in the synthetic
+busy-drain case because a final poll timed out inside the overall deadline. The test
+accepted pre-request/drain deadline errors but omitted the equally fail-closed request
+timeout. Failed evidence: work/console-validations/7c193eb008ea-8Yt0Fe/39.log.
+
+Both deadline positions must exit nonzero, emit no success receipt, pause only once,
+send no resume/other mutation and leave the synthetic endpoint paused with both active
+operations unchanged. A new deterministic partial-response poll uses a1300ms overall
+budget and checks that same behavior, with a3500ms test ceiling.34 actual CLI scenarios
+replace33. A copied-source negative converts that timed-out poll into false drained
+state; the new case rejects its false exit0. This tests the client protocol; actual
+admission/work lifetime remains covered by the separate console maintenance tests.
+
+34 cases pass on Windows and isolated Linux. Logs work/d225-maintenance-windows.log
+and work/d225-maintenance-checks.log; negative copy
+work/maintenance-negative-false-drain-AV8fiC, Linux inputs
+work/d225-maintenance-linux-7dWqv6. Container a1-autopilot-d225-maintenance-linux-20260907
+exited0/noOOM, network none/read-only root,256MiB/1CPU. No timeout bypass or automatic
+resume was added to production code.

@@ -2,7 +2,7 @@
 
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
-for current evidence and next work. D-197 through D-224: local console reliability,
+for current evidence and next work. D-197 through D-225: local console reliability,
 read-only creation inspection, cold-build/replay, core tests, managed-node transport
 and persistent operator maintenance, frozen releases, targeted paused restart and
 per-invocation deployment exclusion without TTL takeover (`docs/DEPLOYMENT-LOCK.md`).
@@ -73,6 +73,15 @@ enumeration before full-list allocation, with actual4096-entry controls and sour
 verification negatives;43 CLI/8–9 file-fault controls pass on Windows/Linux.
 Next exact-source acceptance and final owner packet; avoid advancing HEAD after the
 final freeze unless a material correction requires another validated candidate.
+D-224 exact-source acceptance stopped01:00 UTC at a timing-sensitive maintenance
+test assertion; this candidate was NOT accepted. D-225 corrects the acceptance
+contract while preserving production fail-closed behavior:34 CLI cases pass on
+Windows/Linux, including deterministic stalled-poll refusal and a false-drain negative.
+See CONSOLE-MAINTENANCE.md. ARCHITECTURE.md now identifies the legacy fixed-ewoq
+create-l1 path as historical dev material rather than current A1 operation guidance.
+Fresh read-only public checks01:02 UTC still align13registrations/11active chains and
+match11current genesis artifacts, with55outside-band files retained. Source audit
+still blocks undeclared heartbeat-deploy.sh; legacy maintenance remains404. No mutation.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
 

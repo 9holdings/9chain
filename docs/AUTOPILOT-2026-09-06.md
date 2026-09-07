@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-07 00:58 UTC** (D-223committed; D-224actual enumeration negatives and Windows/Linux controls passed; final acceptance/handoff next).
+repetition. Last user-facing progress update: **2026-09-07 01:10 UTC** (D-224full validation caught a timing-dependent assertion; D-22534-case Windows/Linux correction and false-drain negative pass; no production timeout relaxation).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -659,3 +659,35 @@ work/verify-d224-evidence.mjs; receipts stay in work. Prepare final owner report
 remaining next-stage work without publishing or deploying. Avoid advancing HEAD after
 the final frozen candidate merely to record its own receipt; use work/user outputs.
 Automation remains active until the unchanged02:23:12 UTC work cutoff; pause it then.
+
+D-224 committed7c193eb008ea6050e3f0dd8c02e5e7217c7066da, tree
+3726e86126cd9d3ce1b7ee6cca03d964bee937e2. Its exact-source validationFAILED01:00:15 UTC
+at the synthetic busy-drain maintenance test: request timed out inside the overall
+deadline, but the expected regex allowed only pre-request/drain timeout. Backup43CLI
+and both enumeration controls had already passed. Failed package
+work/console-releases/7c193eb008ea-vYBAec, SHA
+15779ea7a8194158d8d89de473cfc09b12a6d6fc4441692b76b4ae21e8f928e3; failedvalidation
+work/console-validations/7c193eb008ea-8Yt0Fe, SHA
+682d698ee307088501144cc1bd4b5fedc68ceecb308f8ae7dc2671a0f4efd3ba. Do not treat it
+as accepted. Records work/d224-release-real.json / d224-validation-result.json.
+
+D-225 leaves production maintenance unchanged and strengthens the assertion around
+the actual safety contract. Busy/deferred-response deadlines must exit1, emit no
+receipt, issue only one pause and no other mutation, and leave the two simulated
+operations active. Added a deterministic1300ms partial-body poll;34CLI cases pass
+Windows/Linux with a false-drain negative. Logs and fixture names in
+CONSOLE-MAINTENANCE.md. Linux a1-autopilot-d225-maintenance-linux-20260907 exited0/noOOM.
+ARCHITECTURE.md also refreshed against current code to remove obsolete factory/key
+guidance. Commit then rerun exact-source acceptance. Stop broad code changes after
+the validated candidate; prioritize the final owner packet and remaining bounded
+analysis. Keep receipts in ignored work/outputs, not a receipt-only HEAD advance.
+
+Fresh public read-only observations01:01:58–01:02:05 UTC:13registrations =2primary+
+11active,0unlisted; public ledger unchanged SHA6998dfd8ca934c6b2ba83e4f41332550ddafeeaed2283c20028aee15df72be0d.
+Tested artifact inspector streamed in-memory on-server01:02:03 matches11current
+artifacts/active chains,55outside-band retained, selected snapshot unchanged
+7a05dfaeaba9a2f3d502ddc8441b90e704d60d338eb34ad6f73bad1b8f32cbe7. No raw artifact
+transfer, install or operational write. Source audit still blocks undeclared
+heartbeat-deploy.sh; maintenance404. Receipts work/final-chain-inventory-live-evidence.json,
+work/final-legacy-artifacts-live-evidence.json and work/final-live-read.json.
+Original earlier observations were preserved under their prior filenames.

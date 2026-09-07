@@ -1,5 +1,11 @@
 # Kiến trúc 9Chain-A1 (sovereign fork của Avalanche)
 
+Cập nhật luồng tạo chain `2026-09-07`: phân biệt mã console hiện có trong repo với
+bản đang chạy công khai. Các thay đổi tự chủ D-197–D-224 chưa được deploy lên A1.
+Bằng chứng mạng riêng5node/3L1 nằm trong
+[PRIVATE-NETWORK-VERIFICATION-2026-09-07.md](PRIVATE-NETWORK-VERIFICATION-2026-09-07.md);
+điều kiện chuyển bản công khai nằm trong [CONSOLE-FIRST-ADOPTION.md](CONSOLE-FIRST-ADOPTION.md).
+
 ## 1. Vì sao chỉ cần fork 1 repo
 
 Avalanche là nhiều repo, nhưng "network of blockchains" nằm ở **`avalanchego`**. Bản mới đã **graft** (nhúng) coreth và subnet-evm vào monorepo:
@@ -35,40 +41,59 @@ Khách hàng của bạn tạo **L1 riêng** trên P-Chain, mỗi L1 chạy `gra
 
 VMID của L1 EVM 9Chain-A1 = `love9evm` (`pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf`), build từ `graft/subnet-evm` và nhúng vào node tại `build/plugins/<VMID>`.
 
-Quy trình 2 pha (đã tự động hoá trong `local-net/create-l1.sh`):
+Luồng factory hiện tại của console:
 
 ```
-[1] create-l1 (wallet SDK, khoá ewoq)
-      IssueCreateSubnetTx      -> SUBNET_ID
-      IssueCreateChainTx(vmID=love9evm, genesis=l1-evm-genesis.json) -> BLOCKCHAIN_ID
-[2] restart node với AVAGO_TRACK_SUBNETS=SUBNET_ID + --plugin-dir=.../plugins
-      -> node nạp plugin love9evm, khởi tạo chain, mở RPC:
-         http://<node>/ext/bc/<BLOCKCHAIN_ID>/rpc  (JSON-RPC EVM chuẩn)
+[1] Tạo genesis riêng: chainId + admin + phân bổ riêng, không dùng nguyên khuôn.
+    Ghi reservation bền vững trước khi gọi CLI (mã mới trong repo).
+[2] 9chain-a1-cli l1 create, dùng A1_CLI_KEY của operator có tiền thanh khoản trên P:
+      IssueCreateSubnetTx -> SUBNET_ID
+      đăng ký validator primary vào subnet
+      IssueCreateChainTx(vmID=love9evm, genesis=genesis-riêng) -> BLOCKCHAIN_ID
+[3] Cho mọi node được quản lý theo dõi subnet, rollout rồi kiểm tra đúng L1 trên
+    từng node và RPC công khai; chỉ xác nhận sau khi lưu ledger bền vững.
+    RPC của L1: http://<node>/ext/bc/<BLOCKCHAIN_ID>/rpc
 ```
 
-Mỗi L1 có **genesis riêng** (`l1-evm-genesis.json`): `chainId`, `feeConfig`, precompile
+`9chain-a1-config/l1-evm-genesis.json` chỉ là **khuôn**. Giá trị mẫu không phải định
+danh, admin hay phân bổ để dùng trực tiếp. Mỗi L1 có **genesis riêng**: `chainId`, `feeConfig`, precompile
 (vd `feeManagerConfig` cho phép chủ L1 chỉnh phí runtime), và cấp phát token gas.
 → Mỗi khách hàng = 1 genesis = 1 L1 độc lập, chạy trên cùng mạng 9Chain-A1.
+
+Hai binary không cùng mức hỗ trợ: `9chain-a1-cli` nhận `A1_CLI_KEY`, còn binary
+`create-l1` cũ vẫn dùng khóa ewoq cố định. Script `local-net/create-l1.sh` vẫn gọi
+binary cũ; đây là đường dev lịch sử, không phải hướng dẫn vận hành A1 công khai.
+CLI cũng chưa có journal độc lập của console. Khi kết quả gửi giao dịch không rõ,
+giữ nguyên bằng chứng và đối chiếu theo [CREATION-RECOVERY.md](CREATION-RECOVERY.md).
+
+Việc một subnet có đăng ký trên P chưa chứng minh L1 đang thực thi: phép thử D-223
+đã quan sát cả5 node primary khỏe nhưng L1 trả404 trước khi theo dõi subnet. Mô hình
+factory hiện tại dùng validator primary; chưa triển khai bộ lập lịch thực thi dùng
+chung hoặc cơ chế ngủ đông cho hàng tỷ sổ cá nhân.
 
 ## 2c. Mạng nhiều node thật (Milestone 2)
 
 Tool [`netgen`](../upstream/avalanchego/9chain-a1-tools/netgen/main.go) sinh mọi thứ cho 1 mạng chủ quyền thật:
 
 ```
-treasury (secp256k1)  -> cấp phát genesis (X/P + C-Chain EVM), là reward/stake owner
+các quỹ riêng (secp256k1) -> phân bổ theo netgen/allocation.go
+self-bond -> stake ban đầu; foundation -> địa chỉ nhận thưởng
 mỗi node:
   staking TLS cert+key -> NodeID (ids.NodeIDFromCert)
   BLS secret key       -> ProofOfPossession (signer.NewProofOfPossession)
 genesis.json:
   networkID 999999998 (BẮT BUỘC khai — mặc định cũ đã chết cùng thế hệ của nó),
   startTime = now-60 (ĐỘNG — tránh stake hết hạn),
-  initialStakers = N node, initialStakedFunds = treasury (khoá locked chia đều)
+  initialStakers = N node, initialStakedFunds = quỹ self-bond riêng (chia đều)
 docker-compose.multinode.yml:
   static IP (avalanchego cần IP, không hostname), node1 = beacon,
   node2.. --bootstrap-ids/--bootstrap-ips trỏ node1
 ```
 
-Đã kiểm chứng: 5 node, `sybil-protection` bật, `getCurrentValidators` = 5 (connected, weight 20e15 mỗi node), node non-beacon bootstrap thành công. **Không dùng ewoq.**
+Đo mới D-223:5 node với Sybil protection mặc định; mỗi validator primary có trọng
+số1799998200000000nLOVE9. Các subnet thử có5validator, trọng số100 mỗi validator.
+Node ngoài beacon bootstrap được; khóa đều mới sinh trong fixture riêng, không dùng
+ewoq. Các số này là của mạng thử riêng; không mô tả bộ validator công khai.
 
 > Vì sao cần `startTime` động: genesis local Avalanche cắm cứng `startTime=1721016000` (2024) + stake 1 năm → so với hiện tại đã hết hạn → mạng chết. netgen dùng `time.Now()`.
 
@@ -95,7 +120,7 @@ Vì tên biến/hàm/field giữ nguyên, khi `git merge upstream` Git chỉ th�
 - Build cần CGO (blst, zstd, libevm) → build trong Linux container có `gcc`.
 
 ## 5. Ranh giới PoC ↔ Production
-Code rebrand xong **không tạo ra một blockchain an toàn**. Phần nặng còn lại là **vận hành + kinh tế**, xem [PROGRESS.md](PROGRESS.md):
+Code rebrand xong **không tạo ra một blockchain an toàn**. Phần nặng còn lại là **vận hành + kinh tế**, xem [PROGRESS.md](../PROGRESS.md):
 - Validator độc lập, phi tập trung (không thì mạng không có bảo mật thật).
 - Tokenomics genesis (allocation, staking reward, phí) — sai là hỏng vĩnh viễn.
 - Tái sinh khoá/địa chỉ genesis thật (không dùng khoá test ewoq công khai).
