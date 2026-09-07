@@ -1,5 +1,34 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
+## CHỐT PHIÊN 2026-09-07 (Claude) — đọc khối này là đủ để tiếp tục
+
+**TL;DR.** Lượt GPT 6 Astra (37 commit, D-197..D-226) đã soát; 8 rủi ro đã đóng (D-227); `heartbeat-deploy.sh` đã khai
+(D-227b); **console `038e1ab` ĐÃ LÊN SERVER** qua bootstrap-legacy rồi resume (D-228); `origin/main` = local `main` = `9160b74`.
+Server nay có API bảo trì + `/api/creation/resolve`; `check-deploy-drift` 47/47 · 0 lệch · 0 mồ côi.
+
+**Đã xong (đều có đối chứng đã thấy đỏ):**
+- Creation dở chỉ chặn chính chain đó; cửa ra `POST /api/creation/resolve` (discard/retire/adopt) — `docs/CREATION-RECOVERY.md`; `create-rpc-e2e-test` 17/17.
+- `console-restart.sh --start-paused|--legacy-bootstrap`; `deploy-console-release.mjs --apply [--bootstrap-legacy]` · `--resume` · `--unwind`; drill Docker 44 kịch bản chạy ĐÚNG console legacy `7d616fe`.
+- `check-evidence` hiểu `manifest.json`+`manifest.sha256` (4/4 gói) · `check-single-source` 5 hằng · `check-chain-ledger` chạy bộ đọc của console lên sổ công khai.
+- `work/` 5,5 GB → 0,47 GB; 93 container + 10 volume + tag image của lượt GPT đã gỡ (1 volume `a1-autopilot-cold-build-20260906` còn bị container lạ giữ).
+
+**Việc tiếp:**
+- [human] Quyết: chạy mã qua ssh stdin trên server sản xuất có nằm trong §4 không (lượt GPT đã làm, chỉ đọc).
+- [human] `heartbeat-deploy.sh`: nhập vào `main` (D-194 giao) hay cho nghỉ — nay chỉ mới KHAI trong `knownExtra`.
+- [human] Preflight còn 2 đỏ đã biết (bơm heartbeat tới 09/09; "lệch đồng hồ" đỏ nhấp nháy ở một lượt, chạy riêng thì xanh).
+- Deploy console từ giờ: `node scripts/prepare-console-release.mjs` → `node scripts/deploy-console-release.mjs --release <dir> --expected-sha256 <sha> --apply` → `--resume --receipt … --expected-receipt-sha256 …`. KHÔNG cần `--bootstrap-legacy` nữa.
+
+**Gotchas phiên này:**
+- `bash` trong PowerShell là WSL: vỏ `console-deploy.sh` ghép sai đường dẫn Windows → gọi thẳng `node scripts/deploy-console-release.mjs`.
+- Tool Edit đổi line-ending CẢ TỆP trên HANDOFF/PROGRESS/DECISIONS (CRLF/LF trộn) → sửa notebook bằng script node giữ byte, chỉ chạm dòng cần chạm.
+- Cổng tiếng Anh bắt cả regex trong test (`/thu hồi/`) — viết assert bằng dấu hiệu khác, đừng escape unicode để lách.
+- Hook pre-push chặn cụm có mã mà HEAD là `[skip ci]` → thêm commit rỗng `ci: …` rồi push (đừng amend).
+- Drill Docker deploy hết tmpfs ở console thứ 26 → fixture nay xoá `node_modules` của console đã dừng; runner 3g RAM / 1536m tmpfs / 330s.
+- `--legacy-idle` chỉ đo `progress.running`, yếu hơn đếm admission (D-210) — chấp nhận một request xếp hàng có thể bị từ chối lúc restart; chỉ dùng cho bootstrap, nay đã qua.
+
+**Lệnh hữu ích:** `node scripts/gday-preflight.mjs` · `node scripts/check-deploy-drift.mjs` · `node scripts/check-local.mjs --console` · `node scripts/check-console-deployment.mjs` (Docker, ~6 phút).
+
+
 **2026-09-07 ~11:57Z (D-228): CONSOLE `038e1ab` ĐÃ LÊN SERVER** qua bootstrap-legacy rồi resume; `check-deploy-drift` 47/47 xanh lần đầu từ 05/09. Từ giờ deploy console là `prepare-console-release` → `deploy-console-release.mjs --apply` (KHÔNG cần `--bootstrap-legacy` nữa: server đã có API bảo trì) → `--resume`. Gọi thẳng `node scripts/deploy-console-release.mjs`, đừng qua `bash` trong PowerShell (WSL).
 
 
