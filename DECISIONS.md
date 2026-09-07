@@ -10179,3 +10179,37 @@ reboot), ufw `22 LIMIT` + `9651 ALLOW`, container `a1-node` (`--network host`, A
 **Còn lại, không thuộc lượt này:** trang chủ khai **11** validator trong khi chain có **12** (đã ghi ở cuối
 D-196, việc `web-home`); tiến trình `avalanchego` trần thế hệ g0 (PID 34489) trên máy Hetzner cũ
 `95.217.60.140` vẫn chạy.
+
+## D-232 — **`deploy-lock.sh` khai danh tính của worktree CHỨA SCRIPT, không phải worktree ĐANG ĐỨNG: biên nhận Caddy ghi `main` cho một lượt deploy mà `main` không được làm** (`2026-09-07` tối)
+
+**Bối cảnh.** Phiên **9Chain A1 web** (`web-home`) deploy Caddy tối `07/09` bằng cách `source` `local-net/deploy/deploy-lock.sh` của `main`
+từ cwd là worktree web (`C:\PROJECTS\9Chain-A1-web`). Cổng sở hữu (`check-worktree-ownership --deploy caddy`, gọi trong `deploy_lock_acquire`)
+đo từ **cwd** ⇒ *"web-home may deploy caddy"* ✓, đúng. Nhưng `_DL_ACTOR` chạy `git -C $_DL_ROOT` — `_DL_ROOT` suy từ **vị trí tệp script** ⇒
+`holder.json` trên server và biên nhận `~/9chain-a1/deployed/caddy.json` ghi `branch: main · commit d61b879`. **Hai phép đo, hai đại lượng** (§2):
+biên nhận nói `main` deploy Caddy trong khi bảng `worktree-ownership.json` cấm `main` làm đúng việc đó. Phát hiện **đến từ phiên web**, không từ
+cổng nào — self-test 42 ca của D-194 luôn chạy từ cwd = root nên không phân biệt được hai đại lượng. Cùng lượt web dính thêm: mỗi `source` sinh
+`runId` mới (cố ý, D-194), nên acquire và release ở **hai lệnh shell khác nhau** ⇒ `different invocation`, khoá `caddy.lock` treo; họ trả tay
+bằng cách gửi lại đúng `holder.json` + `releaseSha256` qua `deploy-lock.mjs` stdin.
+
+**Quyết định.**
+1. Actor đo **từ cwd** (`git branch --show-current` · `git rev-parse HEAD`, không `-C`): đúng đại lượng cổng sở hữu đo ở dòng ngay dưới. Một
+   biên nhận phải kể về worktree đã **được phép** deploy, tức worktree người bấm đang đứng.
+2. Đứng **ngoài mọi worktree** ⇒ mã **2** với câu `… is not inside a git worktree`, không đoán. (Bản cũ đứng ngoài worktree vẫn khai `main d61b879`
+   — đo thật.)
+3. Ghi luật **MỘT shell** ngay đầu tệp: acquire → deploy → release trong cùng một `source`. Không đổi thiết kế runId-mỗi-lượt (nó là thứ D-194
+   dựng để hai lượt deploy không nhận nhầm khoá của nhau).
+4. **Không** sửa tay biên nhận `deployed/caddy.json` trên server: đó là bản ghi lịch sử, web đã ghi lại ở `WORKTREE-WEB.md` (`5709f4d`); lượt
+   deploy Caddy kế tiếp ghi đúng.
+
+**Đối chứng (luật cứng #2, cả ba vế).**
+- Test mới trong `deploy-lock-test.mjs`: source helper từ một repo fixture nhánh `fixture-branch` ⇒ actor phải khai `fixture-branch` + HEAD của
+  fixture, và **không** được bằng HEAD của repo chứa script; source từ thư mục không phải repo (`GIT_CEILING_DIRECTORIES`) ⇒ mã 2. 42 → **45 ca**.
+- 🔴 Lượt đỏ đầu **đỏ SAI lý do**: `run()` của fixture cắm cứng `cwd: root`, nên bản cũ lẫn bản mới đều khai `main` — bắt được vì **bản đã sửa vẫn
+  đỏ**. Sửa fixture, rồi mới thấy đúng: bản cũ (đặt CẠNH tệp thật, vì nó tính `_DL_ROOT` từ vị trí tệp) đứng ở fixture khai `main d61b879`, đứng
+  ngoài worktree cũng `main d61b879`; bản mới: `fixture-branch` + HEAD fixture · đứng ở `9Chain-A1-web` khai `web-home 5709f4d` · ngoài worktree mã 2.
+- Cổng kèm: `check-english-code` (nợ không phình) · `check-single-source` 5 hằng · `check-worktree-ownership` 2 đường đều của `main`. Tệp
+  `.sh` giữ 0 CR.
+
+**Hiệu lực.** Tức thì cho web: họ `source` tệp trên **cây làm việc** của `main`, không qua merge. Đây là lớp lỗi §2 ở đúng chỗ D-194 vừa dựng để
+chống nó: cổng đo một đại lượng, biên nhận ghi đại lượng khác, và cả hai xanh.
+

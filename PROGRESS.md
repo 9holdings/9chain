@@ -98,6 +98,9 @@ trên, bắt đầu bước 2"*. Chi tiết và số đo: D-193.
       ✅ Lần acquire thật đầu tiên trên server: `05/09 09:16Z`, bọc lượt thêm ví thứ ba vào `A1_L1_ALLOWLIST` — acquired →
       release, `deployed/console.json` ghi `main 2a86f36`. (Qua `deploy_lock_*` gọi tay; `console-deploy.sh` chưa chạy lượt nào.)
       ⏳ [web-home] nối vào `caddy-deploy.sh` + `web-deploy.sh` sau khi merge `main`.
+      ✅ `07/09` tối (D-232): actor của `deploy-lock.sh` đo từ **cwd** như cổng sở hữu (trước: worktree CHỨA SCRIPT ⇒ biên nhận Caddy của web ghi
+      `main d61b879`); ngoài mọi worktree ⇒ mã 2; luật MỘT shell (acquire → deploy → release) ghi đầu tệp. Self-test 42 → 45 ca, thấy đỏ đúng lý do.
+      Web đã dùng `deploy_lock_acquire caddy` thật tối `07/09` (source tệp của main từ cwd web) — nửa còn lại của dòng ⏳ là việc của họ.
 - [x] **WT-5 — dọn** (`05/09`): worktree `gday` + 2 `.claude/worktrees/*` gỡ (`git worktree remove`, KHÔNG `--force` — cây bẩn
       phải tự từ chối, cả ba sạch); nhánh `gday-heartbeat-gate` · `claude/*` xoá cục bộ; byte gốc còn ở `refs/archive/*`
       (3 ref, không phải branch/tag). `origin/gday-heartbeat-gate` còn trên remote — xoá là một lượt push ⇒ [human].

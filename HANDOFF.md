@@ -1,5 +1,28 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
 
+## CHỐT PHIÊN 2026-09-07 TỐI (2) (Claude, 9Chain A1 core) — preflight 56/2/0 · `deploy-lock.sh` khai danh tính sai worktree (D-232)
+
+**TL;DR.** Preflight từ PowerShell: **56 đạt · 2 đỏ · 0 không chạy được · 8 việc tay** (chiều cùng ngày: 54/3/1). Hai đỏ đều đã biết:
+bơm (có chủ ý tới `09/09`) · lệch đồng hồ **nhấp nháy** — chạy riêng ngay sau đó hai lần xanh (sàn 2849 · 2396 < 3000). Hai mục chuyển đỏ → xanh
+đúng như dự kiến: `check-l1-upgrades` (D-230) · `check-live-page` (web đóng số validator trang chủ, site `40dc62b`). Rồi phiên **9Chain A1 web**
+nhắn: `deploy-lock.sh` (tệp của main) ghi biên nhận Caddy `branch: main · commit d61b879` dù deploy từ `web-home` — actor đo `git -C`
+**worktree chứa script**, cổng sở hữu đo **cwd**: hai đại lượng. **Đã sửa (D-232)**: actor đo từ cwd, ngoài worktree ⇒ mã 2, luật MỘT shell ghi
+đầu tệp; self-test 42 → 45 ca, thấy đỏ đúng lý do. Hiệu lực tức thì cho web (họ `source` tệp trên cây làm việc của main). Server, mạng: **không đổi**.
+Tên gọi từ nay: repo này/nhánh `main` = **9Chain A1 core**, worktree `web-home` = **9Chain A1 web** (David chốt).
+
+**Việc tiếp:** các mục `[human]` của hai khối dưới còn nguyên. Biên nhận `~/9chain-a1/deployed/caddy.json` trên server còn ghi `main` — bản ghi
+lịch sử, lượt deploy Caddy kế tiếp của web sẽ ghi đúng; không sửa tay.
+
+**Gotchas phiên này:**
+- 🔴 **HEAD dời `5c4fc5a → d61b879` giữa phiên**: phiên khác commit + đẩy `origin` trong CÙNG worktree này. `git status` và `git log` phải chạy LẠI
+  ngay trước khi ghi sổ và commit; commit bằng đường dẫn tường minh. Lúc chốt `git log origin/main..main` = 0 trước lượt commit của tôi.
+- **Ca đối chứng đầu đỏ SAI lý do**: fixture `run()` cắm cứng `cwd: root` nên bản cũ lẫn bản mới đều khai `main` — luật cứng #2 vế 3 bắt được vì
+  **bản đã sửa vẫn đỏ**. Bản cũ chép ra scratch cũng gãy sai chỗ (tính `_DL_ROOT` từ vị trí tệp): phải đặt bản cũ CẠNH tệp thật mới thấy nó khai `main`.
+- `Select-Object -First N` trên ống node đóng ống sớm ⇒ `$LASTEXITCODE` = −1 dù cổng xanh; đọc mã thoát bằng lượt chạy không cắt.
+
+**Lệnh hữu ích:** `node local-net/deploy/deploy-lock-test.mjs` (45 ca) · `node scripts/check-clock-skew.mjs` (chạy riêng khi thấy nhấp nháy).
+
+
 ## CHỐT PHIÊN 2026-09-07 TỐI (Claude, phiên worktree web-home làm việc HẠ TẦNG) — validator Hetzner, đọc khối này là đủ
 
 **TL;DR.** Máy `144.76.165.85` (Hetzner, cũ là `archive2` chuỗi C1 chết) **đã reset và là validator thứ 12 của g1**:
