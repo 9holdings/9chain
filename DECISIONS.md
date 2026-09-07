@@ -4488,7 +4488,7 @@ listen `*:9651`, ufw cho phép. ⇒ Cổng **thông**; con số 0 phản ánh *c
 vào*, không phải *không gọi được* — avalanchego **không phân biệt hai điều đó**.
 ⚠️ Vẫn phải theo dõi: uptime của validator tính theo kết nối, nên nếu ngày G node ngoài vẫn
 `ingress=0` thì đó là chuyện thật, không phải nhiễu.
-→ **Đã tách được hai nghĩa đó `2026-09-07` (D-197): restart node.** Kết nối ra bị cắt, peer biết
+→ **Đã tách được hai nghĩa đó `2026-09-07` (D-231): restart node.** Kết nối ra bị cắt, peer biết
 địa chỉ tự gọi vào trong ~90 s. Số 0 sau khi stake là *"không ai cần gọi"*, không phải *"không gọi được"*.
 
 **4. ✅ Không thao tác nào hôm nay đẻ ra rò rỉ khoá mới.** `check-key-leaks` đỏ đúng **một** tệp,
@@ -10126,7 +10126,7 @@ trên server **11 chain · 9 node · 12/0 · 0 finding**, counter-check trên d�
 
 ---
 
-## D-197 — **Validator ngoài thứ ba, trên máy đã reset (`144.76.165.85`): đường công khai đi hết lần đầu với `c-to-x --issue`, và `ingress=0` của D-121 tách nghĩa được bằng một lượt restart** (`2026-09-07`)
+## D-231 — **Validator ngoài thứ ba, trên máy đã reset (`144.76.165.85`): đường công khai đi hết lần đầu với `c-to-x --issue`, và `ingress=0` của D-121 tách nghĩa được bằng một lượt restart** (`2026-09-07`)
 
 **Bối cảnh.** David yêu cầu reset máy Hetzner `144.76.165.85` (tới lúc đó là `archive2` của chuỗi C1 cũ
 `love9_999999999-1`, chết từ `25/08`) và dựng validator A1 trên đó. Đi **đúng `docs/RUN-A-VALIDATOR.md`**
