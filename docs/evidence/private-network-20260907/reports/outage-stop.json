@@ -1,0 +1,31 @@
+{
+  "node": "a1-private-c3bb2102-node5",
+  "startedAt": "2026-09-07T00:40:53.858Z",
+  "completedAt": "2026-09-07T00:40:54.379Z",
+  "before": {
+    "Status": "running",
+    "Running": true,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 92426,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-07T00:37:31.380688648Z",
+    "FinishedAt": "0001-01-01T00:00:00Z"
+  },
+  "after": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-09-07T00:37:31.380688648Z",
+    "FinishedAt": "2026-09-07T00:40:53.988600905Z"
+  }
+}

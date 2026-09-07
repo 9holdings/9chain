@@ -1,0 +1,234 @@
+{
+  "startedAt": "2026-09-07T00:44:01.009Z",
+  "network": "a1-private-c3bb2102-net",
+  "internal": true,
+  "nodes": [
+    {
+      "name": "a1-private-c3bb2102-node1",
+      "binaryHashes": {
+        "avalanchego": "d27ad07d03ea61da71e45ca2fe7fc7c487dce3cc32b9c043418d03a252c88cd0",
+        "create-l1": "f63eb8e344dc14c53de701e0d406fa494ed6749fbd787749845afbf504dfa124",
+        "9chain-a1-cli": "bcbc657e79d263de971f560eb19b056ce89e1c2ec2b28dd1146767c623704eb6",
+        "xp-wallet": "d9b02981fcc32e1b3314cca47c8479979a817d6348c0059116a5a41556393fb8",
+        "plugins/pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "099718d9502c7fa824eac5e3855e814ee5c39486403be53fb5a373894f19fdf2"
+      },
+      "genesisSha256": "8b2bbbe4fa9c3aaa24a8ddc6779628b261386c43ecbd3b2a66a5f11828e0f845",
+      "stateDiskKiB": 580,
+      "before": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 91454,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-09-07T00:37:26.760802568Z",
+        "FinishedAt": "0001-01-01T00:00:00Z"
+      },
+      "after": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-09-07T00:37:26.760802568Z",
+        "FinishedAt": "2026-09-07T00:44:07.108050288Z"
+      }
+    },
+    {
+      "name": "a1-private-c3bb2102-node2",
+      "binaryHashes": {
+        "avalanchego": "d27ad07d03ea61da71e45ca2fe7fc7c487dce3cc32b9c043418d03a252c88cd0",
+        "create-l1": "f63eb8e344dc14c53de701e0d406fa494ed6749fbd787749845afbf504dfa124",
+        "9chain-a1-cli": "bcbc657e79d263de971f560eb19b056ce89e1c2ec2b28dd1146767c623704eb6",
+        "xp-wallet": "d9b02981fcc32e1b3314cca47c8479979a817d6348c0059116a5a41556393fb8",
+        "plugins/pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "099718d9502c7fa824eac5e3855e814ee5c39486403be53fb5a373894f19fdf2"
+      },
+      "genesisSha256": "8b2bbbe4fa9c3aaa24a8ddc6779628b261386c43ecbd3b2a66a5f11828e0f845",
+      "stateDiskKiB": 580,
+      "before": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 91693,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-09-07T00:37:27.921349304Z",
+        "FinishedAt": "0001-01-01T00:00:00Z"
+      },
+      "after": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-09-07T00:37:27.921349304Z",
+        "FinishedAt": "2026-09-07T00:44:07.640718805Z"
+      }
+    },
+    {
+      "name": "a1-private-c3bb2102-node3",
+      "binaryHashes": {
+        "avalanchego": "d27ad07d03ea61da71e45ca2fe7fc7c487dce3cc32b9c043418d03a252c88cd0",
+        "create-l1": "f63eb8e344dc14c53de701e0d406fa494ed6749fbd787749845afbf504dfa124",
+        "9chain-a1-cli": "bcbc657e79d263de971f560eb19b056ce89e1c2ec2b28dd1146767c623704eb6",
+        "xp-wallet": "d9b02981fcc32e1b3314cca47c8479979a817d6348c0059116a5a41556393fb8",
+        "plugins/pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "099718d9502c7fa824eac5e3855e814ee5c39486403be53fb5a373894f19fdf2"
+      },
+      "genesisSha256": "8b2bbbe4fa9c3aaa24a8ddc6779628b261386c43ecbd3b2a66a5f11828e0f845",
+      "stateDiskKiB": 580,
+      "before": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 91936,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-09-07T00:37:29.040531651Z",
+        "FinishedAt": "0001-01-01T00:00:00Z"
+      },
+      "after": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-09-07T00:37:29.040531651Z",
+        "FinishedAt": "2026-09-07T00:44:08.17909334Z"
+      }
+    },
+    {
+      "name": "a1-private-c3bb2102-node4",
+      "binaryHashes": {
+        "avalanchego": "d27ad07d03ea61da71e45ca2fe7fc7c487dce3cc32b9c043418d03a252c88cd0",
+        "create-l1": "f63eb8e344dc14c53de701e0d406fa494ed6749fbd787749845afbf504dfa124",
+        "9chain-a1-cli": "bcbc657e79d263de971f560eb19b056ce89e1c2ec2b28dd1146767c623704eb6",
+        "xp-wallet": "d9b02981fcc32e1b3314cca47c8479979a817d6348c0059116a5a41556393fb8",
+        "plugins/pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "099718d9502c7fa824eac5e3855e814ee5c39486403be53fb5a373894f19fdf2"
+      },
+      "genesisSha256": "8b2bbbe4fa9c3aaa24a8ddc6779628b261386c43ecbd3b2a66a5f11828e0f845",
+      "stateDiskKiB": 560,
+      "before": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 92283,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-09-07T00:37:30.208542906Z",
+        "FinishedAt": "0001-01-01T00:00:00Z"
+      },
+      "after": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-09-07T00:37:30.208542906Z",
+        "FinishedAt": "2026-09-07T00:44:08.696687446Z"
+      }
+    },
+    {
+      "name": "a1-private-c3bb2102-node5",
+      "binaryHashes": {
+        "avalanchego": "d27ad07d03ea61da71e45ca2fe7fc7c487dce3cc32b9c043418d03a252c88cd0",
+        "create-l1": "f63eb8e344dc14c53de701e0d406fa494ed6749fbd787749845afbf504dfa124",
+        "9chain-a1-cli": "bcbc657e79d263de971f560eb19b056ce89e1c2ec2b28dd1146767c623704eb6",
+        "xp-wallet": "d9b02981fcc32e1b3314cca47c8479979a817d6348c0059116a5a41556393fb8",
+        "plugins/pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "099718d9502c7fa824eac5e3855e814ee5c39486403be53fb5a373894f19fdf2"
+      },
+      "genesisSha256": "8b2bbbe4fa9c3aaa24a8ddc6779628b261386c43ecbd3b2a66a5f11828e0f845",
+      "stateDiskKiB": 828,
+      "before": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 37684,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-09-07T00:42:53.830271383Z",
+        "FinishedAt": "2026-09-07T00:40:53.988600905Z"
+      },
+      "after": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-09-07T00:42:53.830271383Z",
+        "FinishedAt": "2026-09-07T00:44:09.209865082Z"
+      }
+    }
+  ],
+  "helpers": [
+    {
+      "name": "a1-private-c3bb2102-wallet",
+      "after": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 124,
+        "Error": "",
+        "StartedAt": "2026-09-07T00:22:58.905566947Z",
+        "FinishedAt": "2026-09-07T00:42:58.959132676Z"
+      }
+    },
+    {
+      "name": "a1-private-c3bb2102-foundation-wallet",
+      "after": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 143,
+        "Error": "",
+        "StartedAt": "2026-09-07T00:30:02.335428226Z",
+        "FinishedAt": "2026-09-07T00:44:10.197224371Z"
+      }
+    }
+  ],
+  "volumesRetained": true,
+  "containersRetained": true,
+  "finishedAt": "2026-09-07T00:44:10.612Z"
+}

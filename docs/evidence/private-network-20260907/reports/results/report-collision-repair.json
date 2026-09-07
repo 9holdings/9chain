@@ -1,0 +1,8 @@
+{
+  "repairedAt": "2026-09-07T00:28:08.183Z",
+  "fixture": "a1-private-c3bb2102",
+  "overwrittenReportSha256": "f47aa001f23f52d0cc1dd9ad422a0be3e6daea0073414b7b884ae2d25ccdc41a",
+  "restoredExactGeneratedGenesisSha256": "8b2bbbe4fa9c3aaa24a8ddc6779628b261386c43ecbd3b2a66a5f11828e0f845",
+  "cause": "Prototype result filename collided with synthetic parent genesis; reports now use a separate directory and before/after genesis hash assertions.",
+  "publicOrExistingOperationalDataTouched": false
+}

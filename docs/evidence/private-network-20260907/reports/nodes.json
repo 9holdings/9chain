@@ -1,0 +1,36 @@
+{
+  "id": "c3bb2102",
+  "prefix": "a1-private-c3bb2102",
+  "directory": "C:\\PROJECTS\\9Chain-A1\\work\\private-network-KSW52y",
+  "volume": "a1-private-c3bb2102-material",
+  "builder": "a1-private-c3bb2102-netgen",
+  "network": "a1-private-c3bb2102-net",
+  "subnet": "172.29.207.0/24",
+  "nodes": 5,
+  "networkID": 899999998,
+  "parentChainID": 9000000909,
+  "startedAt": "2026-09-07T00:16:31.354Z",
+  "genesisSha256": "8b2bbbe4fa9c3aaa24a8ddc6779628b261386c43ecbd3b2a66a5f11828e0f845",
+  "nodeIDs": [
+    "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+    "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+    "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+    "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+    "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb"
+  ],
+  "runtimeImage": "sha256:aec9636e4d1d6ed45bbab0a1338b2d3aab08d07ae139958015a7512c746e267f",
+  "containers": [
+    "a1-private-c3bb2102-node1",
+    "a1-private-c3bb2102-node2",
+    "a1-private-c3bb2102-node3",
+    "a1-private-c3bb2102-node4",
+    "a1-private-c3bb2102-node5"
+  ],
+  "stateVolumes": [
+    "a1-private-c3bb2102-state1",
+    "a1-private-c3bb2102-state2",
+    "a1-private-c3bb2102-state3",
+    "a1-private-c3bb2102-state4",
+    "a1-private-c3bb2102-state5"
+  ]
+}

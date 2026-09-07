@@ -1,0 +1,153 @@
+{
+  "completedAt": "2026-09-07T00:37:31.774Z",
+  "records": [
+    {
+      "name": "PrivateL11",
+      "chainID": 8999900001,
+      "subnetID": "2NWoTRUZYbST7TcmFzhyMpancbh6rLzt9vTjTmTchAsYSqCekX",
+      "blockchainID": "2Y2JyG7nxc9thmhGSB6EBBiV4gPqj95yjEF9gtSUhxKxsJRdUL",
+      "container": "a1-private-c3bb2102-create-l1-1",
+      "startedAt": "2026-09-07T00:31:11.900Z",
+      "completedAt": "2026-09-07T00:31:18.295Z",
+      "genesisSha256": "cee36ecb4fad066e3889f2d1909ca4ebe6a4d3f80fa15940a9e6b8c1231a1b97",
+      "scope": "Actual CLI registration on the new isolated network; all five primary validators selected; tracking and execution are separate checks."
+    },
+    {
+      "name": "PrivateL12",
+      "chainID": 8999900002,
+      "subnetID": "21PfY91VmHzT2v3H3Qx664q6co3fToRFsBmpDdAmxVExsU1xRS",
+      "blockchainID": "vxJR5xNDNS4ptHzXBRCuJq3NRFopR5fDBwaSeM9Ssy3B6untG",
+      "container": "a1-private-c3bb2102-create-l1-2",
+      "startedAt": "2026-09-07T00:36:04.525Z",
+      "completedAt": "2026-09-07T00:36:11.331Z",
+      "genesisSha256": "b02ebe42a983f3c7e1981ad109bde188c79aacac8a3324566e813df7b7434869",
+      "scope": "Actual CLI registration on the new isolated network; all five primary validators selected; tracking and execution are separate checks."
+    },
+    {
+      "name": "PrivateL13",
+      "chainID": 8999900003,
+      "subnetID": "dk9VmRTzKzfWHxzS2m73KWWxRoDk3wp5itdEkVbpZs2HnQ38L",
+      "blockchainID": "2NXGXGHGzAwZm6UzV1xuCZuG1rXtyiG1km6BmtCVuRkLFJHRxy",
+      "container": "a1-private-c3bb2102-create-l1-3",
+      "startedAt": "2026-09-07T00:37:11.042Z",
+      "completedAt": "2026-09-07T00:37:17.304Z",
+      "genesisSha256": "a37b75dd5aafbfa47b57359176920fac97e77ed8332519a2a60f0940248a9525",
+      "scope": "Actual CLI registration on the new isolated network; all five primary validators selected; tracking and execution are separate checks."
+    }
+  ],
+  "nodes": [
+    {
+      "name": "/a1-private-c3bb2102-node1",
+      "startedAt": "2026-09-07T00:37:26.760802568Z",
+      "cmd": [
+        "./avalanchego",
+        "--network-id=899999998",
+        "--genesis-file=/genesis.json",
+        "--data-dir=/state",
+        "--plugin-dir=/9chain-a1/build/plugins",
+        "--chain-config-dir=/config/chains",
+        "--staking-tls-cert-file=/node/staker.crt",
+        "--staking-tls-key-file=/node/staker.key",
+        "--staking-signer-key-file=/node/signer.key",
+        "--http-host=0.0.0.0",
+        "--http-allowed-hosts=*",
+        "--public-ip=172.29.207.11",
+        "--bootstrap-ids=",
+        "--bootstrap-ips=",
+        "--log-level=info",
+        "--track-subnets=2NWoTRUZYbST7TcmFzhyMpancbh6rLzt9vTjTmTchAsYSqCekX,21PfY91VmHzT2v3H3Qx664q6co3fToRFsBmpDdAmxVExsU1xRS,dk9VmRTzKzfWHxzS2m73KWWxRoDk3wp5itdEkVbpZs2HnQ38L"
+      ]
+    },
+    {
+      "name": "/a1-private-c3bb2102-node2",
+      "startedAt": "2026-09-07T00:37:27.921349304Z",
+      "cmd": [
+        "./avalanchego",
+        "--network-id=899999998",
+        "--genesis-file=/genesis.json",
+        "--data-dir=/state",
+        "--plugin-dir=/9chain-a1/build/plugins",
+        "--chain-config-dir=/config/chains",
+        "--staking-tls-cert-file=/node/staker.crt",
+        "--staking-tls-key-file=/node/staker.key",
+        "--staking-signer-key-file=/node/signer.key",
+        "--http-host=0.0.0.0",
+        "--http-allowed-hosts=*",
+        "--public-ip=172.29.207.12",
+        "--bootstrap-ids=NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+        "--bootstrap-ips=172.29.207.11:9651",
+        "--log-level=info",
+        "--track-subnets=2NWoTRUZYbST7TcmFzhyMpancbh6rLzt9vTjTmTchAsYSqCekX,21PfY91VmHzT2v3H3Qx664q6co3fToRFsBmpDdAmxVExsU1xRS,dk9VmRTzKzfWHxzS2m73KWWxRoDk3wp5itdEkVbpZs2HnQ38L"
+      ]
+    },
+    {
+      "name": "/a1-private-c3bb2102-node3",
+      "startedAt": "2026-09-07T00:37:29.040531651Z",
+      "cmd": [
+        "./avalanchego",
+        "--network-id=899999998",
+        "--genesis-file=/genesis.json",
+        "--data-dir=/state",
+        "--plugin-dir=/9chain-a1/build/plugins",
+        "--chain-config-dir=/config/chains",
+        "--staking-tls-cert-file=/node/staker.crt",
+        "--staking-tls-key-file=/node/staker.key",
+        "--staking-signer-key-file=/node/signer.key",
+        "--http-host=0.0.0.0",
+        "--http-allowed-hosts=*",
+        "--public-ip=172.29.207.13",
+        "--bootstrap-ids=NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+        "--bootstrap-ips=172.29.207.11:9651",
+        "--log-level=info",
+        "--track-subnets=2NWoTRUZYbST7TcmFzhyMpancbh6rLzt9vTjTmTchAsYSqCekX,21PfY91VmHzT2v3H3Qx664q6co3fToRFsBmpDdAmxVExsU1xRS,dk9VmRTzKzfWHxzS2m73KWWxRoDk3wp5itdEkVbpZs2HnQ38L"
+      ]
+    },
+    {
+      "name": "/a1-private-c3bb2102-node4",
+      "startedAt": "2026-09-07T00:37:30.208542906Z",
+      "cmd": [
+        "./avalanchego",
+        "--network-id=899999998",
+        "--genesis-file=/genesis.json",
+        "--data-dir=/state",
+        "--plugin-dir=/9chain-a1/build/plugins",
+        "--chain-config-dir=/config/chains",
+        "--staking-tls-cert-file=/node/staker.crt",
+        "--staking-tls-key-file=/node/staker.key",
+        "--staking-signer-key-file=/node/signer.key",
+        "--http-host=0.0.0.0",
+        "--http-allowed-hosts=*",
+        "--public-ip=172.29.207.14",
+        "--bootstrap-ids=NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+        "--bootstrap-ips=172.29.207.11:9651",
+        "--log-level=info",
+        "--track-subnets=2NWoTRUZYbST7TcmFzhyMpancbh6rLzt9vTjTmTchAsYSqCekX,21PfY91VmHzT2v3H3Qx664q6co3fToRFsBmpDdAmxVExsU1xRS,dk9VmRTzKzfWHxzS2m73KWWxRoDk3wp5itdEkVbpZs2HnQ38L"
+      ]
+    },
+    {
+      "name": "/a1-private-c3bb2102-node5",
+      "startedAt": "2026-09-07T00:37:31.380688648Z",
+      "cmd": [
+        "./avalanchego",
+        "--network-id=899999998",
+        "--genesis-file=/genesis.json",
+        "--data-dir=/state",
+        "--plugin-dir=/9chain-a1/build/plugins",
+        "--chain-config-dir=/config/chains",
+        "--staking-tls-cert-file=/node/staker.crt",
+        "--staking-tls-key-file=/node/staker.key",
+        "--staking-signer-key-file=/node/signer.key",
+        "--http-host=0.0.0.0",
+        "--http-allowed-hosts=*",
+        "--public-ip=172.29.207.15",
+        "--bootstrap-ids=NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+        "--bootstrap-ips=172.29.207.11:9651",
+        "--log-level=info",
+        "--track-subnets=2NWoTRUZYbST7TcmFzhyMpancbh6rLzt9vTjTmTchAsYSqCekX,21PfY91VmHzT2v3H3Qx664q6co3fToRFsBmpDdAmxVExsU1xRS,dk9VmRTzKzfWHxzS2m73KWWxRoDk3wp5itdEkVbpZs2HnQ38L"
+      ]
+    }
+  ],
+  "oldContainersRetained": true,
+  "stateVolumesRetained": true,
+  "scope": "Fresh replacement containers use identical synthetic identities/genesis/state with added tracked subnets; execution must be measured separately."
+}

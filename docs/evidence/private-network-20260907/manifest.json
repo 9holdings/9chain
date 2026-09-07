@@ -1,0 +1,217 @@
+{
+  "schema": 1,
+  "kind": "9chain-private-experiment-evidence",
+  "recordedAt": "2026-09-07T00:46:12.901Z",
+  "fixture": "a1-private-c3bb2102",
+  "forkCommit": "66e57766dccd98b2dbc214cf3edff7483ef41c07",
+  "forkTree": "387238778dda96d58cabe6f9ddd7097e208b69e9",
+  "mainCommit": "205def06398217ea1520d3ac8a8f2ea49163b491",
+  "entries": [
+    {
+      "path": "sources/private-netgen.sh",
+      "bytes": 717,
+      "sha256": "5dadf06b8e197418bdfdde94faddbfe6a413feb73329e412e141a3c802df59f7"
+    },
+    {
+      "path": "sources/start-private-material.mjs",
+      "bytes": 2055,
+      "sha256": "d03dc242e4443e6d1353c87b268075099309951722754892697e024624cd1dd8"
+    },
+    {
+      "path": "sources/start-private-nodes.mjs",
+      "bytes": 4813,
+      "sha256": "45c490400930a862ece643d62786abd50dac7d749793161861b58113f1333fbc"
+    },
+    {
+      "path": "sources/private-network-client.mjs",
+      "bytes": 16779,
+      "sha256": "c8fb9d3f5e870e99c9cf7171c74eb557c6db2fe34439a762c1a4e062329d362c"
+    },
+    {
+      "path": "sources/run-private-client.mjs",
+      "bytes": 3303,
+      "sha256": "3d414389a430c8fa55df480da05284a8b057eb72a425d8baf2fc0bd4ae7a2a0e"
+    },
+    {
+      "path": "sources/private-stats.mjs",
+      "bytes": 1183,
+      "sha256": "ebc5d26e5ec48d21865c8e75dfac11596f7f649bd08bf727fa728610efa3c2a5"
+    },
+    {
+      "path": "sources/private-node-outage.mjs",
+      "bytes": 1541,
+      "sha256": "a53b31d838cff9c1b354b91c24ae3de295ad6e5c0ed215a475c30ef09fcc9a24"
+    },
+    {
+      "path": "sources/private-wallet.sh",
+      "bytes": 298,
+      "sha256": "56d99fa7ba4ee2815ecc1301f4e6e5bdbfd3b860025301b24afeaa8b9d20db32"
+    },
+    {
+      "path": "sources/start-private-wallet.mjs",
+      "bytes": 1264,
+      "sha256": "63b1ceef089bea5d3b62e7620efe5b91a21f65ee8666f93303a68e22bef485d1"
+    },
+    {
+      "path": "sources/private-create-l1.sh",
+      "bytes": 555,
+      "sha256": "33fdebbf18e69c38fca39fd81be5f9e1c4b43c52f2b22a0b40a77bae8860838f"
+    },
+    {
+      "path": "sources/private-create-l1.mjs",
+      "bytes": 3261,
+      "sha256": "4ee3d8c98842fe893128f0972c76b8f8200802cbfe53e78ae632597487458627"
+    },
+    {
+      "path": "sources/private-track-l1.mjs",
+      "bytes": 2927,
+      "sha256": "2b50338d5c0a7de560ab54e9b15084f50269133cb08106e48139ce81fe81682f"
+    },
+    {
+      "path": "sources/finish-private-drill.mjs",
+      "bytes": 3529,
+      "sha256": "6f8fc136209155bc0beace2a4c0c493ab31d1cf3063e2441b10eea3828949b3e"
+    },
+    {
+      "path": "sources/summarize-private-network.mjs",
+      "bytes": 2637,
+      "sha256": "6de916dc071e82128b0fe6d8df4600a1a24dba95b3ec871fbffe258d05ea4740"
+    },
+    {
+      "path": "sources/repair-private-report-collision.mjs",
+      "bytes": 2022,
+      "sha256": "8d378ed7f0ede211f035a63d3257955d705b84d1bb138a35943e8891abcc31c6"
+    },
+    {
+      "path": "reports/nodes.json",
+      "bytes": 1222,
+      "sha256": "8fd3b25c6e8d1e2719dfb337ffbe2bd5e1a2242a458c7349a9014585d7a3fcd9"
+    },
+    {
+      "path": "reports/isolation.json",
+      "bytes": 1434,
+      "sha256": "eeacc8ad63fab3142821fd64c4e7633f8a7f2ffe1a4586e7331f62a590bc966d"
+    },
+    {
+      "path": "reports/ready.json",
+      "bytes": 7054,
+      "sha256": "5b0706b09110c49607cf9665541ab81684a5e58ec387a43b546b16269c1b6a00"
+    },
+    {
+      "path": "reports/transfer.json",
+      "bytes": 11179,
+      "sha256": "607cd3cfebdb0b69b5ccc1cff543dc102f54435166d226e2c94da491af9affc9"
+    },
+    {
+      "path": "reports/transfer-outage.json",
+      "bytes": 9705,
+      "sha256": "d05e42e3b1f57ea1f8abcb3e3d2a977b0d3259cc689cced46b0326db7ae780c2"
+    },
+    {
+      "path": "reports/recover.json",
+      "bytes": 10537,
+      "sha256": "fb5fa7b8e418f1fe11514ba76f60bd7ecfdce5803bc60683b58ec776b18af8e7"
+    },
+    {
+      "path": "reports/outage-stop.json",
+      "bytes": 735,
+      "sha256": "b122d4765988449c7e9c514ee165c41d11a0eaa52dd0fc85c0727f4c0e6e25ca"
+    },
+    {
+      "path": "reports/outage-start.json",
+      "bytes": 745,
+      "sha256": "4006d2522c0de82044cf8626c09c903ccd4e770c363884423bae348112d6f47e"
+    },
+    {
+      "path": "reports/stats-baseline.json",
+      "bytes": 11096,
+      "sha256": "c735c98e1bbed7cf7604170b2c7d5ae6e095b4a0d15f52f27f7d59f60398ac2e"
+    },
+    {
+      "path": "reports/stats-one-l1.json",
+      "bytes": 11119,
+      "sha256": "4fecd16bed82a5100cb134ca5e489636a740e49162dbe608a8630b5d49b4eb7d"
+    },
+    {
+      "path": "reports/stats-three-l1.json",
+      "bytes": 11112,
+      "sha256": "aed8d33f1941918bb58bacdf1bfd79b6c0e9538a80661e618530808e2e2245bd"
+    },
+    {
+      "path": "reports/results/l1-untracked.json",
+      "bytes": 7623,
+      "sha256": "a48af5bcbb1ce42fa00132fd284721bd20e292c87598550ec1cea5b0322e9454"
+    },
+    {
+      "path": "reports/results/l1-transfer.json",
+      "bytes": 20229,
+      "sha256": "0b6942317c3371f8eaf5528a82c0823c6f926a7671791c2412ee2e49cb2102d9"
+    },
+    {
+      "path": "reports/results/l1-transfer-outage.json",
+      "bytes": 17928,
+      "sha256": "418d86502fbfb3ed7f9c9c16ba0667259084198dc52faacf357c46bdf619e833"
+    },
+    {
+      "path": "reports/results/l1-recover.json",
+      "bytes": 18924,
+      "sha256": "05081f4741225f8ca2f1b36916097f80bda0dcd3a1eec10b51ade85e4ff0d6b2"
+    },
+    {
+      "path": "reports/results/inventory.json",
+      "bytes": 8701,
+      "sha256": "c61c3a58f05e4591d8e3741948e43d8b7622a880ee56a025db242bf5f250f8d3"
+    },
+    {
+      "path": "reports/results/fund-status.json",
+      "bytes": 8279,
+      "sha256": "49b636f005ba7ef5f63da9ee0ca2a01096a6791bcdbeaac5bc54230a85e85173"
+    },
+    {
+      "path": "reports/results/create-l1-1.json",
+      "bytes": 566,
+      "sha256": "3dcf6fce907dc43d20648902a5b56d8da2b780e46bc4c281b7967a5c07c84c46"
+    },
+    {
+      "path": "reports/results/create-l1-2.json",
+      "bytes": 565,
+      "sha256": "06196b38e1f992969140f731685bb780dacf258f88c0eeb259ca6def5dabb96d"
+    },
+    {
+      "path": "reports/results/create-l1-3.json",
+      "bytes": 565,
+      "sha256": "4b0abd5d57820955d2c6652857e81e89285e3a958af1a723aa9d493a80ef6d87"
+    },
+    {
+      "path": "reports/results/track-1.json",
+      "bytes": 5026,
+      "sha256": "9acaf0f33cad3c2722c805e22abc5738aa781bc21bee326c3cb2ef6d6812486e"
+    },
+    {
+      "path": "reports/results/track-3.json",
+      "bytes": 6751,
+      "sha256": "15b8ced9682a86b360d2dbbda2edd881c949875e18554cf234b00696261e52c1"
+    },
+    {
+      "path": "reports/results/shutdown.json",
+      "bytes": 8158,
+      "sha256": "45a86c863712f7494ac875fd4c1866a627b8a404af7a87ff8dd01b60622ee027"
+    },
+    {
+      "path": "reports/results/measurement-summary.json",
+      "bytes": 3076,
+      "sha256": "2ef160863cd27b0a89945edde5fe02636f90a433fc75a83be7d7b2f0df7b43d8"
+    },
+    {
+      "path": "reports/results/report-collision-repair.json",
+      "bytes": 499,
+      "sha256": "9cbedf2bfc6c4772474979b1246716067254afcf9351e595e7f898342081eca5"
+    },
+    {
+      "path": "reports/results/a1-private-c3bb2102-l1-transfer-1788741267695.json",
+      "bytes": 13268,
+      "sha256": "fae4b8f28af583587e12f84e608a5ad9e5537586d36edc21e3419c95656eea95"
+    }
+  ],
+  "scope": "Selected synthetic experiment reports and final manually driven prototype sources. Sources evolved during setup; early runs are not an acceptance claim for one immutable end-to-end installer. No keys, environment files, validator material or raw genesis included."
+}

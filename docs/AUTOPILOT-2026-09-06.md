@@ -15,7 +15,7 @@
 Reporting preference updated by the owner: send a brief Vietnamese progress report
 roughly hourly (completed/current work, test results, blockers/approvals), plus
 significant milestones or actionable failures. Combine nearby updates to avoid
-repetition. Last user-facing progress update: **2026-09-07 00:12 UTC** (D-222 Windows/Linux backup and removed-scope negative passed; exact-source acceptance next).
+repetition. Last user-facing progress update: **2026-09-07 00:49 UTC** (D-22247-command acceptance and D-2235-node/3L1 experiment complete; evidence/commit preparation).
 Keep this timestamp current across scheduled runs; the work deadline is unchanged.
 
 1. Verify build inputs and reproducible local validation before new features.
@@ -606,3 +606,38 @@ negative omits actual genesis and fails expected-copy; logs/fixtures in
 docs/CONSOLE-BACKUP.md. Linux container a1-autopilot-d222-backup-linux-20260907
 exited0/noOOM. Commit and run exact-source acceptance including33 deployment cases.
 Then assess fresh private-network drill; no public backup, restore or legacy adoption.
+
+D-222 implementation205def06398217ea1520d3ac8a8f2ea49163b491,
+treeafa57007b1e7d20d3d2771c3357030022bf1b740. Exact-source acceptance00:12:35–00:16:47:
+46files642424bytes,47commands (37Node+1Bash+9acceptance),28local groups and33Docker
+deployment scenarios pass. Package work/console-releases/205def063982-X78uV7, SHA
+d3907eed5559670d62f8d04385fa096831b538c45a89a9022200bb1e656dc927. Validation
+work/console-validations/205def063982-HHc8ic, SHA
+dcd34c84efc3100cc580237ff3f6abef7b539929e944a038ed9a28dc38049046. Independent report,
+all47log hashes/zero-exit and default local plan verified00:17:20 UTC. Receipts
+work/d222-release-real.json, validation-result.json, evidence-verification.json and
+deployment-plan.json (each filename prefixed d222-). Recording later docs advances
+HEAD; this is historical accepted source, not final/current-source deployment approval.
+
+D-223 completed real private experiment00:18–00:44 UTC. New synthetic material only,
+5capped nodes, internal Docker network/no published ports, frozen cold-build binaries,
+default Sybil/consensus and distinct network/C-chain identity. Existing CLI created3
+L1s.55signed EVM transfers checked across nodes; actual missing-node and untracked-L1
+readiness negatives pass. Four active nodes process C/L1 transactions; returnednode5
+catches all receipts/balances. Final inventory and exact L1 genesis match onall5.
+Actual binary/genesis hashes match insideall5; all exit0/noOOM and data retained.
+Short6-sample memory medians(total5nodes):244.32/342.605/528.40MiB at0/1/3L1s. Not
+capacity, independent-operator, WAN/Byzantine or public acceptance. Prototype setup
+faults and exact synthetic-genesis restoration/read-only funding reconciliation are
+documented without treating failures as passes. No existing operational/public data
+was touched. See docs/PRIVATE-NETWORK-VERIFICATION-2026-09-07.md.
+
+Frozen evidence docs/evidence/private-network-20260907 contains41selected source/report
+files242980bytes plus manifest/hash, manifest SHA
+34c84238fa5c14d7a503d32ffd3582eb6d0371ec4588e239ec5234c0fea52dee. Fuller scratch is
+work/private-network-KSW52y; prototype scripts/continuation in work/private-drill-checkpoint.md.
+All fixture nodes/wallets are stopped. Labeled network/volumes/old containers remain;
+do not delete or re-submit completed operations. Experimental sources are not a
+supported installer. Next: verify/archive/commit evidence and prepare final handoff
+and bounded remaining work; keep final20–30minutes for clean freeze/validation.
+Hard stop02:23:12 UTC unchanged, about1h34 remained at documentation preparation.

@@ -9914,3 +9914,29 @@ source drift, corrupt destination, ENOSPC and fsync failures retain incomplete c
 without a verified backup. Rehashed structural omissions and missing/changed payload
 are refused. Removing scope in copied source omits real genesis and fails the expected
 copy assertion. Evidence in docs/CONSOLE-BACKUP.md. No public backup or mutation.
+
+### D-223 — Measure a small real multi-chain network before extrapolating cost (2026-09-07)
+
+Used newly generated synthetic identities, a distinct private network/C-chain ID,
+an internal Docker bridge without published ports and independently cold-built
+frozen27-patch binaries. Five real nodes retain default Sybil/consensus behavior.
+The existing CLI created3 permissioned subnets with all5 primary validators each.
+55 EVM transfers were checked through receipts, block hashes and destination balances;
+actual missing-node/untracked-L1 negatives refused readiness. Four active nodes kept
+processing; the returned fifth node caught up on C and all3 L1s. Final inventory and
+exact registered genesis bytes agree onall5; every node's actual binary/genesis hashes
+match. All5 nodes stopped0/noOOM at00:44 UTC, retaining data and predecessor containers.
+
+Six short resource samples per phase show median total node-cgroup memory244.32MiB
+with0 L1s,342.605MiB with1,528.40MiB with3. Different phase histories, shared host and
+tiny workloads prohibit marginal-cost, throughput, WAN/Byzantine or billion-chain
+claims. Protocol fees measured in synthetic tokens are not operating costs.
+
+Keep this as experimental evidence, not a supported one-command installer. Setup
+faults included temporary build storage, subnet-prefix input, report/genesis filename
+collision inside only the fresh fixture, wrong synthetic funding account and an
+overly strict post-fee assertion. Preserve failures and exact restoration/reconciliation
+receipts; do not count failed setup as passing acceptance. No public or pre-existing
+operational keys/genesis/data involved. Detailed evidence and next proposed acceptance
+work in docs/PRIVATE-NETWORK-VERIFICATION-2026-09-07.md. First public adoption remains
+separate from this experiment and requires the previously documented prerequisites.

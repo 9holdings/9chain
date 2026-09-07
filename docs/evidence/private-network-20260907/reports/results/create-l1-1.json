@@ -1,0 +1,11 @@
+{
+  "name": "PrivateL11",
+  "chainID": 8999900001,
+  "subnetID": "2NWoTRUZYbST7TcmFzhyMpancbh6rLzt9vTjTmTchAsYSqCekX",
+  "blockchainID": "2Y2JyG7nxc9thmhGSB6EBBiV4gPqj95yjEF9gtSUhxKxsJRdUL",
+  "container": "a1-private-c3bb2102-create-l1-1",
+  "startedAt": "2026-09-07T00:31:11.900Z",
+  "completedAt": "2026-09-07T00:31:18.295Z",
+  "genesisSha256": "cee36ecb4fad066e3889f2d1909ca4ebe6a4d3f80fa15940a9e6b8c1231a1b97",
+  "scope": "Actual CLI registration on the new isolated network; all five primary validators selected; tracking and execution are separate checks."
+}

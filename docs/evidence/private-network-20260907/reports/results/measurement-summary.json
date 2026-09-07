@@ -1,0 +1,130 @@
+{
+  "generatedAt": "2026-09-07T00:43:05.284Z",
+  "fixture": "a1-private-c3bb2102",
+  "resources": [
+    {
+      "label": "baseline",
+      "startedAt": "2026-09-07T00:20:37.527Z",
+      "finishedAt": "2026-09-07T00:21:37.795Z",
+      "totalNodeMemoryMiB": {
+        "samples": 6,
+        "min": 242.16,
+        "median": 244.32,
+        "max": 247.21999999999997
+      },
+      "totalNodeCpuPercentOfOneCore": {
+        "samples": 6,
+        "min": 10.98,
+        "median": 13.134999999999998,
+        "max": 13.870000000000001
+      },
+      "totalNodePids": {
+        "samples": 6,
+        "min": 41,
+        "median": 42.5,
+        "max": 43
+      }
+    },
+    {
+      "label": "one-l1",
+      "startedAt": "2026-09-07T00:34:44.515Z",
+      "finishedAt": "2026-09-07T00:35:44.028Z",
+      "totalNodeMemoryMiB": {
+        "samples": 6,
+        "min": 338.01,
+        "median": 342.605,
+        "max": 348.59
+      },
+      "totalNodeCpuPercentOfOneCore": {
+        "samples": 6,
+        "min": 16.13,
+        "median": 17.415,
+        "max": 18.1
+      },
+      "totalNodePids": {
+        "samples": 6,
+        "min": 81,
+        "median": 82,
+        "max": 82
+      }
+    },
+    {
+      "label": "three-l1",
+      "startedAt": "2026-09-07T00:39:27.859Z",
+      "finishedAt": "2026-09-07T00:40:27.416Z",
+      "totalNodeMemoryMiB": {
+        "samples": 6,
+        "min": 519.9000000000001,
+        "median": 528.4000000000001,
+        "max": 534.3
+      },
+      "totalNodeCpuPercentOfOneCore": {
+        "samples": 6,
+        "min": 24.979999999999997,
+        "median": 27.02,
+        "max": 29.45
+      },
+      "totalNodePids": {
+        "samples": 6,
+        "min": 163,
+        "median": 163.5,
+        "max": 164
+      }
+    }
+  ],
+  "latencies": [
+    {
+      "name": "C-all-five",
+      "count": 10,
+      "confirmationNodes": [
+        5
+      ],
+      "broadcastToObservedReceiptsMs": {
+        "samples": 10,
+        "min": 269,
+        "median": 2041,
+        "max": 2050
+      }
+    },
+    {
+      "name": "C-four-active",
+      "count": 10,
+      "confirmationNodes": [
+        4
+      ],
+      "broadcastToObservedReceiptsMs": {
+        "samples": 10,
+        "min": 260,
+        "median": 2042.5,
+        "max": 10197
+      }
+    },
+    {
+      "name": "three-L1s-all-five",
+      "count": 15,
+      "confirmationNodes": [
+        5
+      ],
+      "broadcastToObservedReceiptsMs": {
+        "samples": 15,
+        "min": 259,
+        "median": 2047,
+        "max": 2070
+      }
+    },
+    {
+      "name": "three-L1s-four-active",
+      "count": 15,
+      "confirmationNodes": [
+        4
+      ],
+      "broadcastToObservedReceiptsMs": {
+        "samples": 15,
+        "min": 259,
+        "median": 2049,
+        "max": 9217
+      }
+    }
+  ],
+  "scope": "Six short, correlated Docker stats samples per phase on one shared host. Includes node cgroups and VM children, excludes host overhead and client/wallet helpers. Different lifecycle/load histories; no throughput maximum, WAN/Byzantine test, marginal-cost isolation or billion-chain extrapolation."
+}

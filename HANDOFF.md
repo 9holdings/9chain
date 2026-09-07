@@ -2,7 +2,7 @@
 
 Autopilot update **2026-09-06**: owner authorized ten hours of autonomous local
 development until **2026-09-07 02:23:12 UTC**. Read `docs/AUTOPILOT-2026-09-06.md`
-for current evidence and next work. D-197 through D-222: local console reliability,
+for current evidence and next work. D-197 through D-223: local console reliability,
 read-only creation inspection, cold-build/replay, core tests, managed-node transport
 and persistent operator maintenance, frozen releases, targeted paused restart and
 per-invocation deployment exclusion without TTL takeover (`docs/DEPLOYMENT-LOCK.md`).
@@ -59,6 +59,14 @@ and required root absence, explicitly refuses legacy schema1 and retains all evi
 43 actual CLI cases and8/9 real-file fault controls pass on Windows/Linux; removing
 scope fails an actual genesis-copy assertion. No public backup or legacy transition.
 Next: exact-source acceptance, then bounded fresh private-network/resource drill.
+D-222 exact-source205def0 acceptance00:16:47 UTC passes47 commands; package/report
+and all logs independently verified00:17:20. D-223 then ran5 real private nodes and3
+new L1s:55 signed EVM transfers, normal-readiness negatives, operation with one node
+absent and full catch-up. Median total memory across5 nodes:244.32MiB baseline,
+342.605MiB with1L1,528.40MiB with3L1s. Small co-located experiment, not capacity/WAN/
+Byzantine proof. Exact binaries/genesis verified inside all5; all stopped0/noOOM
+at00:44 UTC. Sources/evidence and setup faults are in
+docs/PRIVATE-NETWORK-VERIFICATION-2026-09-07.md. Public first-adoption blockers remain.
 See `docs/BUILD-VERIFICATION-2026-09-06.md`. Public deployment/genesis/validators
 remain review-gated. Historical measurements below are preserved.
 

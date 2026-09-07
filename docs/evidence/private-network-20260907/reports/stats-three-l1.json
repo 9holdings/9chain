@@ -1,0 +1,366 @@
+{
+  "label": "three-l1",
+  "scope": "Six Docker stats samples, five co-located capped nodes; not a capacity benchmark.",
+  "samples": [
+    {
+      "measuredAt": "2026-09-07T00:39:27.859Z",
+      "records": [
+        {
+          "BlockIO": "0B / 225kB",
+          "CPUPerc": "5.55%",
+          "Container": "a1-private-c3bb2102-node1",
+          "ID": "b40a15df0b23",
+          "MemPerc": "5.17%",
+          "MemUsage": "106MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node1",
+          "NetIO": "3.58MB / 3.64MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 205kB",
+          "CPUPerc": "5.19%",
+          "Container": "a1-private-c3bb2102-node2",
+          "ID": "1f5f4d39f15c",
+          "MemPerc": "5.04%",
+          "MemUsage": "103.3MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node2",
+          "NetIO": "3.28MB / 3.28MB",
+          "PIDs": "32"
+        },
+        {
+          "BlockIO": "0B / 213kB",
+          "CPUPerc": "5.66%",
+          "Container": "a1-private-c3bb2102-node3",
+          "ID": "3a11ec73b9f0",
+          "MemPerc": "5.03%",
+          "MemUsage": "103MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node3",
+          "NetIO": "3.34MB / 3.44MB",
+          "PIDs": "32"
+        },
+        {
+          "BlockIO": "0B / 197kB",
+          "CPUPerc": "4.92%",
+          "Container": "a1-private-c3bb2102-node4",
+          "ID": "955ce691c966",
+          "MemPerc": "5.05%",
+          "MemUsage": "103.4MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node4",
+          "NetIO": "2.81MB / 2.8MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 188kB",
+          "CPUPerc": "5.50%",
+          "Container": "a1-private-c3bb2102-node5",
+          "ID": "e3da40e7f814",
+          "MemPerc": "5.09%",
+          "MemUsage": "104.2MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node5",
+          "NetIO": "3.39MB / 3.41MB",
+          "PIDs": "33"
+        }
+      ]
+    },
+    {
+      "measuredAt": "2026-09-07T00:39:39.359Z",
+      "records": [
+        {
+          "BlockIO": "0B / 225kB",
+          "CPUPerc": "6.60%",
+          "Container": "a1-private-c3bb2102-node1",
+          "ID": "b40a15df0b23",
+          "MemPerc": "5.25%",
+          "MemUsage": "107.6MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node1",
+          "NetIO": "3.88MB / 3.94MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 205kB",
+          "CPUPerc": "5.34%",
+          "Container": "a1-private-c3bb2102-node2",
+          "ID": "1f5f4d39f15c",
+          "MemPerc": "5.15%",
+          "MemUsage": "105.4MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node2",
+          "NetIO": "3.55MB / 3.54MB",
+          "PIDs": "32"
+        },
+        {
+          "BlockIO": "0B / 213kB",
+          "CPUPerc": "5.42%",
+          "Container": "a1-private-c3bb2102-node3",
+          "ID": "3a11ec73b9f0",
+          "MemPerc": "5.01%",
+          "MemUsage": "102.6MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node3",
+          "NetIO": "3.62MB / 3.73MB",
+          "PIDs": "32"
+        },
+        {
+          "BlockIO": "0B / 197kB",
+          "CPUPerc": "4.78%",
+          "Container": "a1-private-c3bb2102-node4",
+          "ID": "955ce691c966",
+          "MemPerc": "5.06%",
+          "MemUsage": "103.7MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node4",
+          "NetIO": "3.01MB / 3MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 188kB",
+          "CPUPerc": "4.83%",
+          "Container": "a1-private-c3bb2102-node5",
+          "ID": "e3da40e7f814",
+          "MemPerc": "5.14%",
+          "MemUsage": "105.3MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node5",
+          "NetIO": "3.65MB / 3.67MB",
+          "PIDs": "33"
+        }
+      ]
+    },
+    {
+      "measuredAt": "2026-09-07T00:39:51.543Z",
+      "records": [
+        {
+          "BlockIO": "0B / 225kB",
+          "CPUPerc": "6.34%",
+          "Container": "a1-private-c3bb2102-node1",
+          "ID": "b40a15df0b23",
+          "MemPerc": "5.30%",
+          "MemUsage": "108.5MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node1",
+          "NetIO": "4.17MB / 4.23MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 205kB",
+          "CPUPerc": "5.61%",
+          "Container": "a1-private-c3bb2102-node2",
+          "ID": "1f5f4d39f15c",
+          "MemPerc": "5.18%",
+          "MemUsage": "106MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node2",
+          "NetIO": "3.82MB / 3.81MB",
+          "PIDs": "32"
+        },
+        {
+          "BlockIO": "0B / 213kB",
+          "CPUPerc": "5.28%",
+          "Container": "a1-private-c3bb2102-node3",
+          "ID": "3a11ec73b9f0",
+          "MemPerc": "5.09%",
+          "MemUsage": "104.2MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node3",
+          "NetIO": "3.91MB / 4.03MB",
+          "PIDs": "32"
+        },
+        {
+          "BlockIO": "0B / 197kB",
+          "CPUPerc": "5.37%",
+          "Container": "a1-private-c3bb2102-node4",
+          "ID": "955ce691c966",
+          "MemPerc": "5.18%",
+          "MemUsage": "106MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node4",
+          "NetIO": "3.26MB / 3.24MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 188kB",
+          "CPUPerc": "5.70%",
+          "Container": "a1-private-c3bb2102-node5",
+          "ID": "e3da40e7f814",
+          "MemPerc": "5.20%",
+          "MemUsage": "106.5MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node5",
+          "NetIO": "3.94MB / 3.96MB",
+          "PIDs": "33"
+        }
+      ]
+    },
+    {
+      "measuredAt": "2026-09-07T00:40:03.821Z",
+      "records": [
+        {
+          "BlockIO": "0B / 225kB",
+          "CPUPerc": "6.14%",
+          "Container": "a1-private-c3bb2102-node1",
+          "ID": "b40a15df0b23",
+          "MemPerc": "5.22%",
+          "MemUsage": "106.8MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node1",
+          "NetIO": "4.45MB / 4.51MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 205kB",
+          "CPUPerc": "5.30%",
+          "Container": "a1-private-c3bb2102-node2",
+          "ID": "1f5f4d39f15c",
+          "MemPerc": "5.14%",
+          "MemUsage": "105.3MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node2",
+          "NetIO": "4.08MB / 4.06MB",
+          "PIDs": "32"
+        },
+        {
+          "BlockIO": "0B / 213kB",
+          "CPUPerc": "5.49%",
+          "Container": "a1-private-c3bb2102-node3",
+          "ID": "3a11ec73b9f0",
+          "MemPerc": "5.08%",
+          "MemUsage": "104MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node3",
+          "NetIO": "4.18MB / 4.3MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 197kB",
+          "CPUPerc": "6.73%",
+          "Container": "a1-private-c3bb2102-node4",
+          "ID": "955ce691c966",
+          "MemPerc": "5.08%",
+          "MemUsage": "104MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node4",
+          "NetIO": "3.47MB / 3.45MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 188kB",
+          "CPUPerc": "5.79%",
+          "Container": "a1-private-c3bb2102-node5",
+          "ID": "e3da40e7f814",
+          "MemPerc": "5.15%",
+          "MemUsage": "105.5MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node5",
+          "NetIO": "4.24MB / 4.25MB",
+          "PIDs": "33"
+        }
+      ]
+    },
+    {
+      "measuredAt": "2026-09-07T00:40:15.323Z",
+      "records": [
+        {
+          "BlockIO": "0B / 225kB",
+          "CPUPerc": "5.56%",
+          "Container": "a1-private-c3bb2102-node1",
+          "ID": "b40a15df0b23",
+          "MemPerc": "5.27%",
+          "MemUsage": "107.9MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node1",
+          "NetIO": "4.74MB / 4.81MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 205kB",
+          "CPUPerc": "4.87%",
+          "Container": "a1-private-c3bb2102-node2",
+          "ID": "1f5f4d39f15c",
+          "MemPerc": "5.23%",
+          "MemUsage": "107MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node2",
+          "NetIO": "4.34MB / 4.32MB",
+          "PIDs": "32"
+        },
+        {
+          "BlockIO": "0B / 213kB",
+          "CPUPerc": "5.67%",
+          "Container": "a1-private-c3bb2102-node3",
+          "ID": "3a11ec73b9f0",
+          "MemPerc": "5.16%",
+          "MemUsage": "105.6MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node3",
+          "NetIO": "4.46MB / 4.59MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 197kB",
+          "CPUPerc": "5.30%",
+          "Container": "a1-private-c3bb2102-node4",
+          "ID": "955ce691c966",
+          "MemPerc": "5.16%",
+          "MemUsage": "105.7MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node4",
+          "NetIO": "3.69MB / 3.67MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 188kB",
+          "CPUPerc": "5.67%",
+          "Container": "a1-private-c3bb2102-node5",
+          "ID": "e3da40e7f814",
+          "MemPerc": "5.28%",
+          "MemUsage": "108.1MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node5",
+          "NetIO": "4.52MB / 4.54MB",
+          "PIDs": "33"
+        }
+      ]
+    },
+    {
+      "measuredAt": "2026-09-07T00:40:27.416Z",
+      "records": [
+        {
+          "BlockIO": "0B / 225kB",
+          "CPUPerc": "5.14%",
+          "Container": "a1-private-c3bb2102-node1",
+          "ID": "b40a15df0b23",
+          "MemPerc": "5.26%",
+          "MemUsage": "107.7MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node1",
+          "NetIO": "5.05MB / 5.12MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 205kB",
+          "CPUPerc": "4.52%",
+          "Container": "a1-private-c3bb2102-node2",
+          "ID": "1f5f4d39f15c",
+          "MemPerc": "5.21%",
+          "MemUsage": "106.8MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node2",
+          "NetIO": "4.61MB / 4.59MB",
+          "PIDs": "32"
+        },
+        {
+          "BlockIO": "0B / 213kB",
+          "CPUPerc": "4.93%",
+          "Container": "a1-private-c3bb2102-node3",
+          "ID": "3a11ec73b9f0",
+          "MemPerc": "5.14%",
+          "MemUsage": "105.3MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node3",
+          "NetIO": "4.74MB / 4.88MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 197kB",
+          "CPUPerc": "4.88%",
+          "Container": "a1-private-c3bb2102-node4",
+          "ID": "955ce691c966",
+          "MemPerc": "5.14%",
+          "MemUsage": "105.3MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node4",
+          "NetIO": "3.93MB / 3.9MB",
+          "PIDs": "33"
+        },
+        {
+          "BlockIO": "0B / 188kB",
+          "CPUPerc": "5.51%",
+          "Container": "a1-private-c3bb2102-node5",
+          "ID": "e3da40e7f814",
+          "MemPerc": "5.24%",
+          "MemUsage": "107.3MiB / 2GiB",
+          "Name": "a1-private-c3bb2102-node5",
+          "NetIO": "4.79MB / 4.8MB",
+          "PIDs": "33"
+        }
+      ]
+    }
+  ]
+}

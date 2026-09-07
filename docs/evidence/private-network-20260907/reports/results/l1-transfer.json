@@ -1,0 +1,525 @@
+{
+  "mode": "l1-transfer",
+  "observedAt": "2026-09-07T00:38:27.499Z",
+  "result": {
+    "initial": {
+      "elapsedMs": 4284,
+      "rounds": 5,
+      "nodes": [
+        {
+          "node": "a1-private-c3bb2102-node1",
+          "nodeID": "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+          "networkID": 899999998,
+          "networkName": "9chain-a1-tap-g1",
+          "version": {
+            "version": "9chaingo/1.14.2",
+            "databaseVersion": "v1.4.5",
+            "rpcProtocolVersion": "45",
+            "gitCommit": "9chain-a1-g1-27patch-38723877",
+            "vmVersions": {
+              "avm": "9chaingo/1.14.2",
+              "evm": "v1.14.2",
+              "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "v1.14.2",
+              "platform": "9chaingo/1.14.2"
+            }
+          },
+          "chainID": 9000000909,
+          "validators": [
+            {
+              "nodeID": "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+              "weight": "1799998200000000"
+            }
+          ],
+          "bootstrapped": true
+        },
+        {
+          "node": "a1-private-c3bb2102-node2",
+          "nodeID": "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+          "networkID": 899999998,
+          "networkName": "9chain-a1-tap-g1",
+          "version": {
+            "version": "9chaingo/1.14.2",
+            "databaseVersion": "v1.4.5",
+            "rpcProtocolVersion": "45",
+            "gitCommit": "9chain-a1-g1-27patch-38723877",
+            "vmVersions": {
+              "avm": "9chaingo/1.14.2",
+              "evm": "v1.14.2",
+              "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "v1.14.2",
+              "platform": "9chaingo/1.14.2"
+            }
+          },
+          "chainID": 9000000909,
+          "validators": [
+            {
+              "nodeID": "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+              "weight": "1799998200000000"
+            }
+          ],
+          "bootstrapped": true
+        },
+        {
+          "node": "a1-private-c3bb2102-node3",
+          "nodeID": "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+          "networkID": 899999998,
+          "networkName": "9chain-a1-tap-g1",
+          "version": {
+            "version": "9chaingo/1.14.2",
+            "databaseVersion": "v1.4.5",
+            "rpcProtocolVersion": "45",
+            "gitCommit": "9chain-a1-g1-27patch-38723877",
+            "vmVersions": {
+              "avm": "9chaingo/1.14.2",
+              "evm": "v1.14.2",
+              "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "v1.14.2",
+              "platform": "9chaingo/1.14.2"
+            }
+          },
+          "chainID": 9000000909,
+          "validators": [
+            {
+              "nodeID": "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+              "weight": "1799998200000000"
+            }
+          ],
+          "bootstrapped": true
+        },
+        {
+          "node": "a1-private-c3bb2102-node4",
+          "nodeID": "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+          "networkID": 899999998,
+          "networkName": "9chain-a1-tap-g1",
+          "version": {
+            "version": "9chaingo/1.14.2",
+            "databaseVersion": "v1.4.5",
+            "rpcProtocolVersion": "45",
+            "gitCommit": "9chain-a1-g1-27patch-38723877",
+            "vmVersions": {
+              "avm": "9chaingo/1.14.2",
+              "evm": "v1.14.2",
+              "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "v1.14.2",
+              "platform": "9chaingo/1.14.2"
+            }
+          },
+          "chainID": 9000000909,
+          "validators": [
+            {
+              "nodeID": "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+              "weight": "1799998200000000"
+            }
+          ],
+          "bootstrapped": true
+        },
+        {
+          "node": "a1-private-c3bb2102-node5",
+          "nodeID": "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb",
+          "networkID": 899999998,
+          "networkName": "9chain-a1-tap-g1",
+          "version": {
+            "version": "9chaingo/1.14.2",
+            "databaseVersion": "v1.4.5",
+            "rpcProtocolVersion": "45",
+            "gitCommit": "9chain-a1-g1-27patch-38723877",
+            "vmVersions": {
+              "avm": "9chaingo/1.14.2",
+              "evm": "v1.14.2",
+              "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "v1.14.2",
+              "platform": "9chaingo/1.14.2"
+            }
+          },
+          "chainID": 9000000909,
+          "validators": [
+            {
+              "nodeID": "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+              "weight": "1799998200000000"
+            }
+          ],
+          "bootstrapped": true
+        }
+      ]
+    },
+    "l1": {
+      "elapsedMs": 12,
+      "chains": [
+        {
+          "name": "PrivateL11",
+          "chainID": 8999900001,
+          "subnetID": "2NWoTRUZYbST7TcmFzhyMpancbh6rLzt9vTjTmTchAsYSqCekX",
+          "blockchainID": "2Y2JyG7nxc9thmhGSB6EBBiV4gPqj95yjEF9gtSUhxKxsJRdUL",
+          "container": "a1-private-c3bb2102-create-l1-1",
+          "startedAt": "2026-09-07T00:31:11.900Z",
+          "completedAt": "2026-09-07T00:31:18.295Z",
+          "genesisSha256": "cee36ecb4fad066e3889f2d1909ca4ebe6a4d3f80fa15940a9e6b8c1231a1b97",
+          "scope": "Actual CLI registration on the new isolated network; all five primary validators selected; tracking and execution are separate checks.",
+          "observations": [
+            {
+              "node": "a1-private-c3bb2102-node1",
+              "chainID": 8999900001,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            },
+            {
+              "node": "a1-private-c3bb2102-node2",
+              "chainID": 8999900001,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            },
+            {
+              "node": "a1-private-c3bb2102-node3",
+              "chainID": 8999900001,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            },
+            {
+              "node": "a1-private-c3bb2102-node4",
+              "chainID": 8999900001,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            },
+            {
+              "node": "a1-private-c3bb2102-node5",
+              "chainID": 8999900001,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            }
+          ]
+        },
+        {
+          "name": "PrivateL12",
+          "chainID": 8999900002,
+          "subnetID": "21PfY91VmHzT2v3H3Qx664q6co3fToRFsBmpDdAmxVExsU1xRS",
+          "blockchainID": "vxJR5xNDNS4ptHzXBRCuJq3NRFopR5fDBwaSeM9Ssy3B6untG",
+          "container": "a1-private-c3bb2102-create-l1-2",
+          "startedAt": "2026-09-07T00:36:04.525Z",
+          "completedAt": "2026-09-07T00:36:11.331Z",
+          "genesisSha256": "b02ebe42a983f3c7e1981ad109bde188c79aacac8a3324566e813df7b7434869",
+          "scope": "Actual CLI registration on the new isolated network; all five primary validators selected; tracking and execution are separate checks.",
+          "observations": [
+            {
+              "node": "a1-private-c3bb2102-node1",
+              "chainID": 8999900002,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            },
+            {
+              "node": "a1-private-c3bb2102-node2",
+              "chainID": 8999900002,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            },
+            {
+              "node": "a1-private-c3bb2102-node3",
+              "chainID": 8999900002,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            },
+            {
+              "node": "a1-private-c3bb2102-node4",
+              "chainID": 8999900002,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            },
+            {
+              "node": "a1-private-c3bb2102-node5",
+              "chainID": 8999900002,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            }
+          ]
+        },
+        {
+          "name": "PrivateL13",
+          "chainID": 8999900003,
+          "subnetID": "dk9VmRTzKzfWHxzS2m73KWWxRoDk3wp5itdEkVbpZs2HnQ38L",
+          "blockchainID": "2NXGXGHGzAwZm6UzV1xuCZuG1rXtyiG1km6BmtCVuRkLFJHRxy",
+          "container": "a1-private-c3bb2102-create-l1-3",
+          "startedAt": "2026-09-07T00:37:11.042Z",
+          "completedAt": "2026-09-07T00:37:17.304Z",
+          "genesisSha256": "a37b75dd5aafbfa47b57359176920fac97e77ed8332519a2a60f0940248a9525",
+          "scope": "Actual CLI registration on the new isolated network; all five primary validators selected; tracking and execution are separate checks.",
+          "observations": [
+            {
+              "node": "a1-private-c3bb2102-node1",
+              "chainID": 8999900003,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            },
+            {
+              "node": "a1-private-c3bb2102-node2",
+              "chainID": 8999900003,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            },
+            {
+              "node": "a1-private-c3bb2102-node3",
+              "chainID": 8999900003,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            },
+            {
+              "node": "a1-private-c3bb2102-node4",
+              "chainID": 8999900003,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            },
+            {
+              "node": "a1-private-c3bb2102-node5",
+              "chainID": 8999900003,
+              "genesisBlockHash": "0xa02d940adfc38f78925644af600d55acc8c50cefeb44d48b7b7d5b644cb32309",
+              "validatorCount": 5
+            }
+          ]
+        }
+      ]
+    },
+    "chains": [
+      {
+        "name": "PrivateL11",
+        "chainID": 8999900001,
+        "recipient": "0xe8550da2Ca161f99192556e92CF8dB758401E3ac",
+        "records": [
+          {
+            "transactionHash": "0x2f1972f9999c6cf4da59e31a06e8e8cb077e6d54e8e1d3b4a04e46a9d50c36f8",
+            "blockHash": "0xe4a5392e8daddeb96f0e0af5a0ffc807b18edd76299b95be721d11ce58dc5a84",
+            "blockNumber": "0x6",
+            "confirmedBy": 5,
+            "elapsedMs": 259,
+            "broadcastToAllReceiptsMs": 261
+          },
+          {
+            "transactionHash": "0x78c28b7d7d81a32a64d2d1f2f32bbd396ecb9f575a08b5b62930220de0de730e",
+            "blockHash": "0xae32df933c2ed1aaf0ad2cee18706b2cf6457d8f6751f8a305d035a25878d150",
+            "blockNumber": "0x7",
+            "confirmedBy": 5,
+            "elapsedMs": 1795,
+            "broadcastToAllReceiptsMs": 1797
+          },
+          {
+            "transactionHash": "0xe0f59aa36028cc627d66485ea61a17b405c1e1b5eb4b0dc8793876b82be8b9cd",
+            "blockHash": "0x1a692a7ce44bfffa5ac737965955ed97c62da3cb61c49ef12cb44666bfd46640",
+            "blockNumber": "0x8",
+            "confirmedBy": 5,
+            "elapsedMs": 2054,
+            "broadcastToAllReceiptsMs": 2057
+          },
+          {
+            "transactionHash": "0x57f1200e8fd083794cc8c595d20e434e2b2a29e960b074c8a0d33197d3b60d1b",
+            "blockHash": "0xea5559e78186b8c2e970db283c99e503acc0b611f767d49ccd16afff56407884",
+            "blockNumber": "0x9",
+            "confirmedBy": 5,
+            "elapsedMs": 2068,
+            "broadcastToAllReceiptsMs": 2070
+          },
+          {
+            "transactionHash": "0x70590dbad31ef4a104984a90905e2d3d09578e5ff800a77fca832961800157d3",
+            "blockHash": "0xbff06dea88ca4f34a1093b260225b38d7e3d1884056c04ae16cf428c55673370",
+            "blockNumber": "0xa",
+            "confirmedBy": 5,
+            "elapsedMs": 2055,
+            "broadcastToAllReceiptsMs": 2057
+          }
+        ],
+        "balances": [
+          "0x12a05f200",
+          "0x12a05f200",
+          "0x12a05f200",
+          "0x12a05f200",
+          "0x12a05f200"
+        ],
+        "totalWei": "5000000000"
+      },
+      {
+        "name": "PrivateL12",
+        "chainID": 8999900002,
+        "recipient": "0x20D049BEaC3bEb65Fe59D19fEdAacb84b71F8470",
+        "records": [
+          {
+            "transactionHash": "0xfd9d260ad4444a60ae82215127e4e3d52504f603f2c0fd3f73cd6f5554efb814",
+            "blockHash": "0x86d939768551e8e63ad18981c904d3284b8b99f9a1d1c6aa747b6ac86f2a50bd",
+            "blockNumber": "0x1",
+            "confirmedBy": 5,
+            "elapsedMs": 262,
+            "broadcastToAllReceiptsMs": 264
+          },
+          {
+            "transactionHash": "0x32c06f2067af5eb1b0968de2af99b4f7283c6fb27684f27b5c1b7483e38773ab",
+            "blockHash": "0x72e1d0f52b3e23291f06edac8fbfba998fd6f224eca9cfd181917f492f618c56",
+            "blockNumber": "0x2",
+            "confirmedBy": 5,
+            "elapsedMs": 1797,
+            "broadcastToAllReceiptsMs": 1804
+          },
+          {
+            "transactionHash": "0x51bcb3753f2ef330b88a73c8cde6ba8deb1cee2da8e5b59b648b27239c88e9a6",
+            "blockHash": "0xd1a89513d8aea39fa0e22e402cc114ab11fdbe25db647114dacd08584fa58177",
+            "blockNumber": "0x3",
+            "confirmedBy": 5,
+            "elapsedMs": 2046,
+            "broadcastToAllReceiptsMs": 2049
+          },
+          {
+            "transactionHash": "0x4ae571be2230ca3b104bb8ae8eb018f0ac06fac3c8ccc34c9a81537292a59e25",
+            "blockHash": "0x90004f82be211f7b6209e8650e47d10253b6ae55f96dbd311933b3fec1d04c7e",
+            "blockNumber": "0x4",
+            "confirmedBy": 5,
+            "elapsedMs": 2054,
+            "broadcastToAllReceiptsMs": 2056
+          },
+          {
+            "transactionHash": "0x97d65173563a9c6236dc24e669c0b9898585a6f3be447eef6194a611548a63a1",
+            "blockHash": "0x54e250d83e5b790c2bd77f7c96a8f7c6289d2337345b39445705e0db54dc0848",
+            "blockNumber": "0x5",
+            "confirmedBy": 5,
+            "elapsedMs": 2045,
+            "broadcastToAllReceiptsMs": 2047
+          }
+        ],
+        "balances": [
+          "0x12a05f200",
+          "0x12a05f200",
+          "0x12a05f200",
+          "0x12a05f200",
+          "0x12a05f200"
+        ],
+        "totalWei": "5000000000"
+      },
+      {
+        "name": "PrivateL13",
+        "chainID": 8999900003,
+        "recipient": "0x11D6023176Eb8AC7ca3CF35Cc0392b3c52c20489",
+        "records": [
+          {
+            "transactionHash": "0x8b3c905a7463bac93c8d85f983a109d11be452821609ca84986b079ddf664986",
+            "blockHash": "0xf38993004e67d71a46da1f31a784934eecdef3fd849a28727fe84aacb8878d6f",
+            "blockNumber": "0x1",
+            "confirmedBy": 5,
+            "elapsedMs": 258,
+            "broadcastToAllReceiptsMs": 259
+          },
+          {
+            "transactionHash": "0xdef908f3e9a2b503c74d38f3e55e4c251092720dc23e97438b9849a0131087f6",
+            "blockHash": "0x2888428d72d827a39db7213dce10b1b45f7dd69f21b841cd1cf5d1ff4224f7d9",
+            "blockNumber": "0x2",
+            "confirmedBy": 5,
+            "elapsedMs": 1790,
+            "broadcastToAllReceiptsMs": 1793
+          },
+          {
+            "transactionHash": "0xe46d3dc7841fd5e6f4d2d42506079d6de9a9279930795409cca2914e467f0862",
+            "blockHash": "0x1253bb40df216be6f935870c364ea77e763b314aa428fe89d291b214125dfcc4",
+            "blockNumber": "0x3",
+            "confirmedBy": 5,
+            "elapsedMs": 2053,
+            "broadcastToAllReceiptsMs": 2055
+          },
+          {
+            "transactionHash": "0x8107f4080219d906a9a5ea00cc4d65a9547d5f9825b3f65eeaa95151ee454af7",
+            "blockHash": "0xd49c613bad53869c92b15a26fab32204060da0164a03a711a39fa6fd54c4d288",
+            "blockNumber": "0x4",
+            "confirmedBy": 5,
+            "elapsedMs": 2050,
+            "broadcastToAllReceiptsMs": 2052
+          },
+          {
+            "transactionHash": "0x932196ceb37bfb87df7feab387dfa9015ebd7674f3666fb97d2391d5d1cd31fa",
+            "blockHash": "0xbaf7eede8a60830a64f5201e6f77b94e8e6512ba32ef5332411479018d02c3e8",
+            "blockNumber": "0x5",
+            "confirmedBy": 5,
+            "elapsedMs": 2044,
+            "broadcastToAllReceiptsMs": 2046
+          }
+        ],
+        "balances": [
+          "0x12a05f200",
+          "0x12a05f200",
+          "0x12a05f200",
+          "0x12a05f200",
+          "0x12a05f200"
+        ],
+        "totalWei": "5000000000"
+      }
+    ],
+    "activeNodes": 5,
+    "scope": "Five sequential transfers per private L1, every receipt and recipient balance compared on the explicitly measured active nodes; not a throughput or hostile-network benchmark."
+  }
+}

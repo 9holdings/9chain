@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+const current=JSON.parse(fs.readFileSync('work/private-network-current.json'));
+const config=JSON.parse(fs.readFileSync(path.join(current.directory,'nodes.json')));
+const name=config.prefix+'-foundation-wallet';
+const args=['run','-d','--name',name,'--label','9chain.private-drill='+config.id,'--network',config.network,'--read-only','--cap-drop=ALL','--security-opt','no-new-privileges:true','--memory','512m','--cpus','1','--pids-limit','60','--tmpfs','/tmp:rw,nosuid,size=32m','--mount','type=volume,source=a1-autopilot-cold-build-20260906,target=/9chain-a1/build,volume-subpath=artifacts,readonly','--mount','type=volume,source='+config.volume+',target=/material,volume-subpath=material,readonly','--mount','type=bind,source='+path.join(process.cwd(),'work/private-wallet.sh')+',target=/wallet.sh,readonly','-e','WALLET_URI=http://'+config.containers[0]+':9650','-e','PORT=8090',config.runtimeImage,'sh','/wallet.sh'];
+const result=spawnSync('docker',args,{encoding:'utf8',timeout:20000,windowsHide:true});assert.equal(result.status,0,result.stderr);
+console.log('Started internal-only synthetic X/P wallet: '+name);

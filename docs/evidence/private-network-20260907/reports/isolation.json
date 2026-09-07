@@ -1,0 +1,57 @@
+{
+  "internal": true,
+  "network": "a1-private-c3bb2102-net",
+  "genesisSha256": "8b2bbbe4fa9c3aaa24a8ddc6779628b261386c43ecbd3b2a66a5f11828e0f845",
+  "nodes": [
+    {
+      "name": "/a1-private-c3bb2102-node1",
+      "startedAt": "2026-09-07T00:18:10.9555421Z",
+      "ports": {},
+      "networks": [
+        "a1-private-c3bb2102-net"
+      ],
+      "memoryLimit": 2147483648,
+      "nanoCpus": 1000000000
+    },
+    {
+      "name": "/a1-private-c3bb2102-node2",
+      "startedAt": "2026-09-07T00:18:11.474914613Z",
+      "ports": {},
+      "networks": [
+        "a1-private-c3bb2102-net"
+      ],
+      "memoryLimit": 2147483648,
+      "nanoCpus": 1000000000
+    },
+    {
+      "name": "/a1-private-c3bb2102-node3",
+      "startedAt": "2026-09-07T00:18:11.973269531Z",
+      "ports": {},
+      "networks": [
+        "a1-private-c3bb2102-net"
+      ],
+      "memoryLimit": 2147483648,
+      "nanoCpus": 1000000000
+    },
+    {
+      "name": "/a1-private-c3bb2102-node4",
+      "startedAt": "2026-09-07T00:18:12.47287661Z",
+      "ports": {},
+      "networks": [
+        "a1-private-c3bb2102-net"
+      ],
+      "memoryLimit": 2147483648,
+      "nanoCpus": 1000000000
+    },
+    {
+      "name": "/a1-private-c3bb2102-node5",
+      "startedAt": "2026-09-07T00:18:12.980810419Z",
+      "ports": {},
+      "networks": [
+        "a1-private-c3bb2102-net"
+      ],
+      "memoryLimit": 2147483648,
+      "nanoCpus": 1000000000
+    }
+  ]
+}

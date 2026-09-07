@@ -1,0 +1,315 @@
+{
+  "mode": "transfer",
+  "observedAt": "2026-09-07T00:22:27.345Z",
+  "result": {
+    "initial": {
+      "elapsedMs": 154,
+      "rounds": 1,
+      "nodes": [
+        {
+          "node": "a1-private-c3bb2102-node1",
+          "nodeID": "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+          "networkID": 899999998,
+          "networkName": "9chain-a1-tap-g1",
+          "version": {
+            "version": "9chaingo/1.14.2",
+            "databaseVersion": "v1.4.5",
+            "rpcProtocolVersion": "45",
+            "gitCommit": "9chain-a1-g1-27patch-38723877",
+            "vmVersions": {
+              "avm": "9chaingo/1.14.2",
+              "evm": "v1.14.2",
+              "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "v1.14.2",
+              "platform": "9chaingo/1.14.2"
+            }
+          },
+          "chainID": 9000000909,
+          "validators": [
+            {
+              "nodeID": "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+              "weight": "1799998200000000"
+            }
+          ],
+          "bootstrapped": true
+        },
+        {
+          "node": "a1-private-c3bb2102-node2",
+          "nodeID": "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+          "networkID": 899999998,
+          "networkName": "9chain-a1-tap-g1",
+          "version": {
+            "version": "9chaingo/1.14.2",
+            "databaseVersion": "v1.4.5",
+            "rpcProtocolVersion": "45",
+            "gitCommit": "9chain-a1-g1-27patch-38723877",
+            "vmVersions": {
+              "avm": "9chaingo/1.14.2",
+              "evm": "v1.14.2",
+              "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "v1.14.2",
+              "platform": "9chaingo/1.14.2"
+            }
+          },
+          "chainID": 9000000909,
+          "validators": [
+            {
+              "nodeID": "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+              "weight": "1799998200000000"
+            }
+          ],
+          "bootstrapped": true
+        },
+        {
+          "node": "a1-private-c3bb2102-node3",
+          "nodeID": "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+          "networkID": 899999998,
+          "networkName": "9chain-a1-tap-g1",
+          "version": {
+            "version": "9chaingo/1.14.2",
+            "databaseVersion": "v1.4.5",
+            "rpcProtocolVersion": "45",
+            "gitCommit": "9chain-a1-g1-27patch-38723877",
+            "vmVersions": {
+              "avm": "9chaingo/1.14.2",
+              "evm": "v1.14.2",
+              "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "v1.14.2",
+              "platform": "9chaingo/1.14.2"
+            }
+          },
+          "chainID": 9000000909,
+          "validators": [
+            {
+              "nodeID": "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+              "weight": "1799998200000000"
+            }
+          ],
+          "bootstrapped": true
+        },
+        {
+          "node": "a1-private-c3bb2102-node4",
+          "nodeID": "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+          "networkID": 899999998,
+          "networkName": "9chain-a1-tap-g1",
+          "version": {
+            "version": "9chaingo/1.14.2",
+            "databaseVersion": "v1.4.5",
+            "rpcProtocolVersion": "45",
+            "gitCommit": "9chain-a1-g1-27patch-38723877",
+            "vmVersions": {
+              "avm": "9chaingo/1.14.2",
+              "evm": "v1.14.2",
+              "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "v1.14.2",
+              "platform": "9chaingo/1.14.2"
+            }
+          },
+          "chainID": 9000000909,
+          "validators": [
+            {
+              "nodeID": "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+              "weight": "1799998200000000"
+            }
+          ],
+          "bootstrapped": true
+        },
+        {
+          "node": "a1-private-c3bb2102-node5",
+          "nodeID": "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb",
+          "networkID": 899999998,
+          "networkName": "9chain-a1-tap-g1",
+          "version": {
+            "version": "9chaingo/1.14.2",
+            "databaseVersion": "v1.4.5",
+            "rpcProtocolVersion": "45",
+            "gitCommit": "9chain-a1-g1-27patch-38723877",
+            "vmVersions": {
+              "avm": "9chaingo/1.14.2",
+              "evm": "v1.14.2",
+              "pkqXszJe86D3xLomib9bLpXPfW7gr7FPhDAbg46p5iNjrn4mf": "v1.14.2",
+              "platform": "9chaingo/1.14.2"
+            }
+          },
+          "chainID": 9000000909,
+          "validators": [
+            {
+              "nodeID": "NodeID-MJzsxNChyw8bpE8kNeCbSYVkaDirstmvb",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-8UCH6cPm2g1bed21yL4H7XmRBXqbkQkne",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-DqgWgDAA5ZHucnwBsJKfSvzViKH1MFF7o",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-CoVGEHhC3XD3xSaXJrRAov8ZrjzEC2yi9",
+              "weight": "1799998200000000"
+            },
+            {
+              "nodeID": "NodeID-FC6EMUhKsQh5frsS93hQQnepwM3QFspxw",
+              "weight": "1799998200000000"
+            }
+          ],
+          "bootstrapped": true
+        }
+      ]
+    },
+    "recipient": "0x5c9cCf36dA10ab807a3d8Dc9F41ba04D2A90709b",
+    "amountWei": "1000000000",
+    "totalWei": "10000000000",
+    "records": [
+      {
+        "transactionHash": "0xbd5203cf1c106a2983e9cdb2b65465275b14b423a7db06a1a86f5c1fb9455bd2",
+        "blockHash": "0x25afc05cf8195e58960b7fd22ef350dcbfc84510fba5547437279917fe18515b",
+        "blockNumber": "0x1",
+        "confirmedBy": 5,
+        "elapsedMs": 265,
+        "broadcastToAllReceiptsMs": 269
+      },
+      {
+        "transactionHash": "0xcb99969123dea2ab078435332b647c3c8cbd70d6dbda0e162fb96e42dda2c0cd",
+        "blockHash": "0xf3c64a9e538cfc0a10e6222a0248a00feee1e824fe7c29f934a4e62228e5dc19",
+        "blockNumber": "0x2",
+        "confirmedBy": 5,
+        "elapsedMs": 1786,
+        "broadcastToAllReceiptsMs": 1790
+      },
+      {
+        "transactionHash": "0x51909887b9f35b50f9b1158b9ad8c15fbda606d9a17dda13ec6f9b8a68cb22cb",
+        "blockHash": "0x3d933d09ae24b9134699b056f21f840b8c9ae477fcdc13ea90e6bdbad5dd358d",
+        "blockNumber": "0x3",
+        "confirmedBy": 5,
+        "elapsedMs": 2042,
+        "broadcastToAllReceiptsMs": 2043
+      },
+      {
+        "transactionHash": "0x6e2d80efe2fb437d6212cb001921a38028b92a2df32562fac7bf285fac71d3ad",
+        "blockHash": "0x4da42cb54238b7a227807a24029624d191c5cc55a8522a369ea5b8c16ea02b90",
+        "blockNumber": "0x4",
+        "confirmedBy": 5,
+        "elapsedMs": 2041,
+        "broadcastToAllReceiptsMs": 2043
+      },
+      {
+        "transactionHash": "0x5778bc871d29dd7a166e5cdacefb206ae5ab3bdbca52e14af574419da0b5e1b7",
+        "blockHash": "0x32a9ac46542b930552232457ad9e0683c2517f8eb42722a989f73ae5101961fc",
+        "blockNumber": "0x5",
+        "confirmedBy": 5,
+        "elapsedMs": 2041,
+        "broadcastToAllReceiptsMs": 2043
+      },
+      {
+        "transactionHash": "0x1708fc3c2c1b4bd1427e68f1df48e6ab2a730bc137a0efc979f42fd2d96e225c",
+        "blockHash": "0x348def3467b1e6af2f0bedcc4faca0a3d0db491114964d7a14df82743395a866",
+        "blockNumber": "0x6",
+        "confirmedBy": 5,
+        "elapsedMs": 2046,
+        "broadcastToAllReceiptsMs": 2050
+      },
+      {
+        "transactionHash": "0x5a219d75c083a37635e1bb47d15cb9ef8c12ca0dcee6d55aaf00ab3525196940",
+        "blockHash": "0x915913b87688dd0ec8d0f04eb59deb737649c00baa5a8cf6d32af931f622f51c",
+        "blockNumber": "0x7",
+        "confirmedBy": 5,
+        "elapsedMs": 1782,
+        "broadcastToAllReceiptsMs": 1784
+      },
+      {
+        "transactionHash": "0xbc831a0b657243618aa250f0a99d8e54b9d235fdd5b11817741d2320e54ccbbc",
+        "blockHash": "0x7c2397cef7ea4f510e2195556c327bd0657f1383f9e57b88e9aff5a4552e1163",
+        "blockNumber": "0x8",
+        "confirmedBy": 5,
+        "elapsedMs": 2034,
+        "broadcastToAllReceiptsMs": 2036
+      },
+      {
+        "transactionHash": "0x4fd1ec7760e04015fe9303a360370ca48cfecb975b3e935db1548f0f86c4f7eb",
+        "blockHash": "0xa063938e7e6e73ebed555caac440bac82a8ed729a3d899b157eae50b489f82c6",
+        "blockNumber": "0x9",
+        "confirmedBy": 5,
+        "elapsedMs": 2044,
+        "broadcastToAllReceiptsMs": 2046
+      },
+      {
+        "transactionHash": "0x11f68c90cb591abf6e7f4fe289abfabcc2585da5766d43fab2cc0872638b0d7c",
+        "blockHash": "0x5a728dbfb1ac2f1ec51dae4a9573a368c6e4d63ce2b4d7bd0d6e76cf9aea70f2",
+        "blockNumber": "0xa",
+        "confirmedBy": 5,
+        "elapsedMs": 2037,
+        "broadcastToAllReceiptsMs": 2039
+      }
+    ],
+    "balances": [
+      "0x2540be400",
+      "0x2540be400",
+      "0x2540be400",
+      "0x2540be400",
+      "0x2540be400"
+    ],
+    "scope": "Ten sequential private transfers; observed confirmation latency, not throughput capacity."
+  }
+}
