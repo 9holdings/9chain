@@ -183,6 +183,8 @@ thành trần **mỗi node**. Vắng biến ⇒ hành vi cũ trùng byte: không
 node có danh sách đổi mới restart (kết quả tạo có `untouched[]`), và (P-84, D-237) đăng ký **đúng V** validator trên P-Chain qua
 `l1-batch create` (kit K1, `A1_L1_BATCH_BIN`, mặc định `/9chain-a1/config/bin/l1-batch` trong container) thay cho CLI của fork.
 Node công khai không phải validator của chain ⇒ RPC công khai `/ext/bc/<id>/rpc` **không** trả lời cho tới khi có router (P-86).
+Thu hồi (P-85, `POST /api/revoke`) ở chế độ này chỉ restart validator của chain đó, đo **trong từng container** rằng RPC đã thôi trả
+lời, trả `validators` (node được trả chỗ) + `untouched`; bản ghi `retired` giữ nguyên `validators[]`.
 
 🔴 **`description` là văn bản cho P-62, đã viết sẵn, đã kiểm.** Đừng viết lại bằng tay ở TSX — nó suy ra
 từ **chính genesis vừa dựng**, nên nó không thể nói sai về chain. Ba nhóm:

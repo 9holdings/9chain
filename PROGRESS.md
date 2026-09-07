@@ -155,9 +155,14 @@ khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn 
       4 node `startedAtStable` · `eth_chainId` **200 trong node-1..5, 404 ở node-6..9** · override đúng từng node, `.env` trống. Ca đỏ trên
       công cụ thật trong node-1: NodeID lạ ⇒ từ chối trước `CreateSubnetTx`; danh sách rỗng ⇒ từ chối; `getSubnets` 4 → 4. Fixture:
       `assignment-e2e-test` 36 (V ⇒ `create-batch:5`, mô hình cũ ⇒ CLI). Hồi quy create-rpc 17 · readiness 31 · english · single-source.
-- [ ] **P-85 — Thu hồi theo phân công** — `revoke` gỡ subnet **chỉ** khỏi V node của chain, trả slot cho đúng node; chain cũ
+- [x] **P-85 — Thu hồi theo phân công** — `revoke` gỡ subnet **chỉ** khỏi V node của chain, trả slot cho đúng node; chain cũ
       không có `validators[]` ⇒ gỡ khỏi mọi node (hành vi cũ). **Qua khi:** bộ đếm node giảm đúng chỗ; `tienTrinh` không chạy lùi
       (bài `25/08`). Ca đỏ: thu hồi chain của node-3 mà node-7 restart ⇒ test đỏ.
+      ✅ `07/09` đêm (autopilot, D-238): chế độ V đo "đã thôi phục vụ" **trong từng validator cũ** (`servedOnNode`), throw nêu tên node còn
+      track; trả `validators` + `untouched`; `retired` giữ `validators[]`; fixture trả lời RPC trong container theo override/.env.
+      **Đo trên băng tập:** thu hồi "Band Test Two" **2 phút 49 s**, đúng 5 validator restart, 4 node `startedAtStable`, `eth_chainId` 404
+      trên 9/9 node, override về 2 subnet. **Fixture:** revoke "Rev Two" ⇒ chỉ g,h,i,test-node,b restart; bộ đếm b=1 c..f=2 g=1 h/i/t=0;
+      chain kế tiếp lấy đúng chỗ vừa trả; mô hình cũ 9 restart, `validators: null`. Hồi quy xanh.
 - [ ] **P-86 — Hợp đồng ROUTER RPC** — console xuất `assignment.json` (`blockchainID → {node, uri, chainId, name}`) cạnh sổ, đúng
       hình dạng `l1-batch render` để `l1-batch router` sinh Caddyfile không sửa; trường `rpc` của chain trong sổ trỏ URL **node
       phục vụ** (`A1_PUBLIC_RPC_BASE_<n>` hoặc router). `check-chain-ledger` thêm chiều: **`rpc` của từng chain trả `eth_chainId`

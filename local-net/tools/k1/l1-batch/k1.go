@@ -565,9 +565,10 @@ func cmdWorkers(args []string) error {
 
 func cmdRouter(args []string) error {
 	fs := flag.NewFlagSet("router", flag.ExitOnError)
-	assignmentPath := fs.String("assignment", "out/plan/assignment.json", "from `render`")
+	assignmentPath := fs.String("assignment", "out/plan/assignment.json", "from `render`, or the console's 9chain-a1-config/assignment.json (P-86)")
 	listen := fs.String("listen", ":8545", "Caddy listen address")
 	out := fs.String("out", "out/router/Caddyfile", "Caddyfile to write")
+	fallback := fs.String("fallback", "", "upstream for everything that is not /ext/bc/<id>/* (info, P, X, C-Chain): the public node, e.g. http://9chain-a1-node-1:9650. Empty = JSON 404")
 	fs.Parse(args)
 	b, err := os.ReadFile(*assignmentPath)
 	if err != nil {
@@ -598,7 +599,16 @@ func cmdRouter(args []string) error {
 		up := strings.TrimPrefix(strings.TrimPrefix(a.URI, "http://"), "https://")
 		fmt.Fprintf(&sb, "\t# %s chainId %d on %s\n\thandle /ext/bc/%s/* {\n\t\treverse_proxy %s\n\t}\n", a.Name, a.ChainID, a.Node, id, up)
 	}
-	sb.WriteString("\thandle {\n\t\theader Content-Type application/json\n\t\trespond `{\"error\":\"unknown chain\",\"detail\":\"this blockchainID is not in the K1 assignment table\"}` 404\n\t}\n}\n")
+	// An L1 id that is not in the table is answered by the ROUTER, in JSON, never by a stranger's
+	// upstream: a 404 from some node reads as "the chain is dead", a 404 from here reads as "the
+	// router does not know it" — two different things to fix.
+	sb.WriteString("\thandle /ext/bc/* {\n\t\theader Content-Type application/json\n\t\trespond `{\"error\":\"unknown chain\",\"detail\":\"this blockchainID is not in the assignment table\"}` 404\n\t}\n")
+	if *fallback != "" {
+		// Everything else (info, health, P, X, C) is the primary network: one public node serves it.
+		fmt.Fprintf(&sb, "\thandle {\n\t\treverse_proxy %s\n\t}\n}\n", strings.TrimPrefix(strings.TrimPrefix(*fallback, "http://"), "https://"))
+	} else {
+		sb.WriteString("\thandle {\n\t\theader Content-Type application/json\n\t\trespond `{\"error\":\"unknown chain\",\"detail\":\"this blockchainID is not in the K1 assignment table\"}` 404\n\t}\n}\n")
+	}
 	if err := os.MkdirAll(filepath.Dir(*out), 0o755); err != nil {
 		return err
 	}

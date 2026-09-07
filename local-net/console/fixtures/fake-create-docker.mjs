@@ -28,6 +28,20 @@ let created = 0;
 let lastChainIdHex = null;
 const uniqueIds = process.env.A1_TEST_UNIQUE_IDS === '1';
 const idsFor = n => uniqueIds ? { subnet: `TestSubnet${n}`, blockchain: `TestBlockchain${n}` } : { subnet: 'TestSubnet111', blockchain: 'TestBlockchain111' };
+// What a service tracks, from the files the console writes: the override (per-node model) or
+// the shared `.env` variable (every-node model). No file at all = a fresh fleet tracking nothing.
+function tracks(svc, subnet) {
+  if (fs.existsSync('9chain-a1-track.override.yml')) {
+    const j = JSON.parse(readFileSync('9chain-a1-track.override.yml', 'utf8'));
+    const line = (j.services?.[svc]?.environment ?? []).find(e => e.startsWith('AVAGO_TRACK_SUBNETS='));
+    return line ? line.slice('AVAGO_TRACK_SUBNETS='.length).split(',').includes(subnet) : false;
+  }
+  if (fs.existsSync('.env')) {
+    const line = readFileSync('.env', 'utf8').split(/\r?\n/).find(l => l.startsWith('A1_TRACK_SUBNETS='));
+    return line ? line.slice('A1_TRACK_SUBNETS='.length).split(',').includes(subnet) : false;
+  }
+  return false;
+}
 const nodeAction = (action, svc) => appendFileSync('fake-node-actions.jsonl', JSON.stringify({ action, svc }) + '\n');
 if (process.env.A1_TEST_LEDGER_SYNC_FAILURE === '1') {
   const originalOpen = fs.openSync, originalClose = fs.closeSync, originalSync = fs.fsyncSync;
@@ -101,6 +115,13 @@ function output(file, args) {
         result: { healthy: true, checks: missing ? {} : { [tag.replace('TestSubnet', 'TestBlockchain')]: {} } } });
     }
     if (request.method === 'eth_chainId') {
+      // In-container RPC of an L1 answers only where the node TRACKS its subnet (P-85): read the
+      // console's own compose override (per-node model) or the shared .env list (every-node model).
+      const bc = (args.at(-1).match(/\/ext\/bc\/(TestBlockchain\d+)\/rpc$/) || [])[1];
+      if (bc && !tracks(svc, bc.replace('TestBlockchain', 'TestSubnet'))) {
+        nodeAction('l1-not-served', svc);
+        throw new Error(`curl: (22) ${svc} does not track the subnet of ${bc}`);
+      }
       record('l1-id'); nodeAction('l1-id', svc);
       const wrong = badNode && process.env.A1_TEST_NODE_MODE === 'wrong-id';
       return JSON.stringify({ jsonrpc: '2.0', id: 1,

@@ -21,7 +21,7 @@
 import { readFileSync } from "node:fs";
 import https from "node:https";
 import http from "node:http";
-import { NETWORK_ID, GOC_DAI_CHAINID, TRAN_DAI_CHAINID, TEN_MANG } from "./chainid.mjs";
+import { bandFor } from "./chainid.mjs";
 import { parseLedger } from "./ledger-read.mjs";
 
 /**
@@ -182,7 +182,7 @@ export function sameHostAsRpc(rpcUrl, rpcBase) {
  * 🔴 `code 2` is never "clean". A caller that treats it as a pass has rebuilt the exact defect
  * this file was written for: a surface nobody measured, reported as a surface that is fine.
  */
-export async function assessPublicLedger({ ledgerUrl, ledgerFile = null, rpcBase, ask = request } = {}) {
+export async function assessPublicLedger({ ledgerUrl, ledgerFile = null, rpcBase, ask = request, drill = false } = {}) {
   let liveId;
   try {
     liveId = await measureLiveNetworkId(ask, rpcBase);
@@ -195,13 +195,18 @@ export async function assessPublicLedger({ ledgerUrl, ledgerFile = null, rpcBase
   // purpose, and judging the ledger with a block from a generation that does not exist yet would
   // condemn every correct entry. That is D-134 in this file's terms: a constant meaning "some
   // other generation" walking into the live slot.
-  if (liveId !== NETWORK_ID) {
+  //
+  // `drill` (P-86): judge a DRILL-band ledger against the drill band of the same generation —
+  // its own networkID and its own chainId block (D-234). The real network is refused then, the
+  // way the drill band is refused without the flag: the caller states which band it means.
+  const expected = bandFor(drill);
+  if (liveId !== expected.networkId) {
     return {
-      code: 2, stage: "generation", liveId, repoNetworkId: NETWORK_ID, repoNetworkName: TEN_MANG,
+      code: 2, stage: "generation", liveId, repoNetworkId: expected.networkId, repoNetworkName: expected.name,
       reds: [], unknowns: [], entries: [], live: [], retired: [],
     };
   }
-  const band = { floor: GOC_DAI_CHAINID, ceiling: TRAN_DAI_CHAINID };
+  const band = { floor: expected.floor, ceiling: expected.ceiling };
 
   let ledger, raw;
   try {

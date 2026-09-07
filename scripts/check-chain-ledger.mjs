@@ -96,6 +96,9 @@ const LEDGER_URL = flag("--url", publicLedgerUrl());
 const LEDGER_FILE = flag("--file", null);
 const RPC = flag("--rpc", RPC_URL);
 const SELF_TEST = argv.includes("--self-test");
+// `--drill` (P-86): judge a drill-band ledger (networkID 899999999−gen, chainIds 8_00g_000_000+)
+// against the drill band. Without it a drill node is refused as a generation mismatch, correctly.
+const DRILL = argv.includes("--drill");
 
 /** One printed line per advertised chain. Entries refused before any request are not printed. */
 const MARKS = { unreachable: "⁇", refused: "🔴", "wrong-id": "🔴", ok: "✓" };
@@ -109,7 +112,9 @@ async function main() {
     ledgerUrl: LEDGER_URL,
     ledgerFile: LEDGER_FILE ? path.resolve(ROOT, LEDGER_FILE) : null,
     rpcBase: RPC,
+    drill: DRILL,
   });
+  if (DRILL) console.log(`   band: DRILL (--drill) — the drill band of this generation is the expected network`);
 
   if (v.stage === "network") {
     console.log(`   🔴 could not measure the running network on ${RPC}: ${v.error}`);
@@ -257,6 +262,18 @@ async function selfTest() {
     ask: askFor(JSON.stringify({ chains: [] })) });
   ok("CONTROL — a legacy file without `retired` passes the reader (the console tolerates it)",
     legacyShape.stage !== "console-reader", legacyShape.stage);
+
+  console.log("\n── 5c. The drill band is a band of its own (P-86) ──");
+  const askDrill = (ledgerBody) => async (url) => url.endsWith("/ext/info")
+    ? { status: 200, body: JSON.stringify({ result: { networkID: "899999998" } }) }
+    : { status: 200, body: ledgerBody };
+  const drillLedger = JSON.stringify({ chains: [], retired: [] });
+  const drillJudged = await assessPublicLedger({ ledgerUrl: "https://x/ledger.json", rpcBase: "https://rpc-a1.9chain.org", ask: askDrill(drillLedger), drill: true });
+  ok("with --drill a drill node is judged, against the DRILL block", drillJudged.stage === "complete" && drillJudged.band.floor === 8_001_000_000, JSON.stringify({ stage: drillJudged.stage, band: drillJudged.band }));
+  const drillRefused = await assessPublicLedger({ ledgerUrl: "https://x/ledger.json", rpcBase: "https://rpc-a1.9chain.org", ask: askDrill(drillLedger) });
+  ok("🔴 without --drill the same node is a generation mismatch (INCONCLUSIVE, never clean)", drillRefused.stage === "generation" && drillRefused.code === 2, drillRefused.stage);
+  const realUnderDrill = await assessPublicLedger({ ledgerUrl: "https://x/ledger.json", rpcBase: "https://rpc-a1.9chain.org", ask: askFor(drillLedger), drill: true });
+  ok("🔴 with --drill the REAL network is refused too (the flag names a band, it does not loosen anything)", realUnderDrill.stage === "generation", realUnderDrill.stage);
 
   console.log("\n── 6. The measurement that decides the block is never guessed ──");
   const okId = await measureLiveNetworkId(async () => ({ status: 200, body: JSON.stringify({ result: { networkID: "999999998" } }) }));

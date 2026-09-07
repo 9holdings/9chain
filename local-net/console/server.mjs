@@ -390,6 +390,41 @@ function loadState() {
 function saveState(s) {
   // Propagate persistence failures so creation intent cannot be archived on error.
   writeLedger(STATE, s);
+  if (V_PER_CHAIN !== null) writeAssignment(s);
+}
+
+/**
+ * ═══ THE ROUTER CONTRACT — `assignment.json` (P-86, D-239) ═══
+ *
+ * Under the per-node model a node answers RPC only for the chains it tracks, so "the public RPC
+ * node" stops being one node: something in front (the K1 kit's `l1-batch router`, a Caddyfile)
+ * has to send `/ext/bc/<blockchainID>/*` to a node that serves it. That something is on the other
+ * side of hard rule #4 (Caddy belongs to the web worktree), so the contract between the two is a
+ * FILE, not shared code: written here next to the ledger on every save, read by the router
+ * generator unchanged (`local-net/tools/k1/l1-batch/k1.go`, `cmdRouter`).
+ *
+ *   { "<blockchainID>": { node, uri, chainId, name, subnetID, validators } }
+ *
+ * `node` is the serving node: the public node when it validates the chain (nothing changes for
+ * such chains), else the first validator in rollout order. `uri` is that node's API as another
+ * container on the compose network reaches it (service name + the in-container port). A chain
+ * without `validators` (every-node model) is served by the public node, as it always was.
+ *
+ * Written only under the per-node model, so nothing new appears on a server running the
+ * every-node model (`check-deploy-drift` knows the name for the day it does).
+ */
+const ASSIGNMENT_FILE = path.join(CFG_DIR, "assignment.json");
+function writeAssignment(s) {
+  const port = new URL(MANAGED_NODE_API).port || "9650";
+  const assignment = {};
+  for (const c of s.chains) {
+    const validators = Array.isArray(c.validators) ? c.validators : null;
+    const node = !validators || validators.includes(NODE_CONTAINER) ? NODE_CONTAINER : validators[0];
+    assignment[c.blockchainID] = { node, uri: `http://${node}:${port}`, chainId: c.chainId, name: c.name, subnetID: c.subnetID, validators };
+  }
+  const tmp = ASSIGNMENT_FILE + ".tmp";
+  writeFileSync(tmp, JSON.stringify(assignment, null, 2) + "\n");
+  renameSync(tmp, ASSIGNMENT_FILE);
 }
 
 async function rpc(pathSeg, method, params = [], options) {
@@ -842,6 +877,21 @@ async function waitChainOnNode(svc, { subnetID, blockchainID, expectShape }) {
     await new Promise(r => setTimeout(r, 2000));
   }
   return last;
+}
+
+/**
+ * Does this node still serve the chain's RPC, asked INSIDE its container (P-85)? A node that
+ * untracked the subnet routes nothing at /ext/bc/<id>/rpc and curl -f fails; anything else that
+ * fails (API down) is also "not serving", which is the safe reading for a revocation.
+ */
+async function servedOnNode(svc, blockchainID) {
+  try {
+    const out = await docker([...composeArgs(), "exec", "-T", svc, "curl", "-sf", "-m", "5",
+      "-X", "POST", "-H", "content-type:application/json",
+      "--data", `{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}`,
+      `${MANAGED_NODE_API}/ext/bc/${blockchainID}/rpc`]);
+    return /"result"\s*:\s*"0x/.test(out);
+  } catch { return false; }
 }
 
 /**
@@ -1792,21 +1842,41 @@ async function thuHoiChain({ name, xacNhan }) {
   // mất khỏi danh bạ nhưng slot track thì không được trả lại — đúng kiểu hỏng mà
   // dự án này đã trả giá vài lần: mọi dấu hiệu bề ngoài đều xanh.
   const rpcPath = `/ext/bc/${chain.blockchainID}/rpc`;
-  let conPhucVu = true;
-  for (let i = 0; i < 10 && conPhucVu; i++) {
-    try {
-      await rpc(rpcPath, "eth_chainId");
-      await new Promise(r => setTimeout(r, 2000));
-    } catch {
-      conPhucVu = false;
+  // Per-node model (P-85): the public node may never have served this chain, so "the public RPC
+  // stopped answering" proves nothing there. The evidence is read INSIDE each former validator:
+  // its own /ext/bc/<id>/rpc must stop answering, one node at a time, each named on failure.
+  const formerValidators = V_PER_CHAIN !== null ? validatorsOf(chain, await readManagedServices()) : null;
+  if (formerValidators) {
+    for (const svc of formerValidators) {
+      let served = true;
+      for (let i = 0; i < 10 && served; i++) {
+        served = await servedOnNode(svc, chain.blockchainID);
+        if (served) await new Promise(r => setTimeout(r, 2000));
+      }
+      if (served) {
+        throw new Error(
+          `${svc} restarted but STILL serves ${chain.blockchainID} after 20s — it did not untrack the subnet, so its slot was not returned. ` +
+          `The ledger keeps the "thuHoi" mark on "${name}"; check ${TRACK_OVERRIDE_FILE} for ${svc} and run the revocation again.`
+        );
+      }
     }
-  }
-  if (conPhucVu) {
-    throw new Error(
-      `Đã restart hết node nhưng ${chain.blockchainID} VẪN phục vụ RPC sau 20s — node chưa bỏ track. ` +
-      `Slot track chưa được trả lại. State đang giữ dấu "thuHoi" cho "${name}"; ` +
-      `kiểm tra A1_TRACK_SUBNETS trong .env cạnh ${COMPOSE_FILE} rồi chạy lại.`
-    );
+  } else {
+    let conPhucVu = true;
+    for (let i = 0; i < 10 && conPhucVu; i++) {
+      try {
+        await rpc(rpcPath, "eth_chainId");
+        await new Promise(r => setTimeout(r, 2000));
+      } catch {
+        conPhucVu = false;
+      }
+    }
+    if (conPhucVu) {
+      throw new Error(
+        `Đã restart hết node nhưng ${chain.blockchainID} VẪN phục vụ RPC sau 20s — node chưa bỏ track. ` +
+        `Slot track chưa được trả lại. State đang giữ dấu "thuHoi" cho "${name}"; ` +
+        `kiểm tra A1_TRACK_SUBNETS trong .env cạnh ${COMPOSE_FILE} rồi chạy lại.`
+      );
+    }
   }
 
   // Chuyển sang `retired`, bỏ dấu tiến trình. Giữ nguyên mọi khoá cũ (name,
@@ -1822,6 +1892,9 @@ async function thuHoiChain({ name, xacNhan }) {
     name, subnetID: chain.subnetID, blockchainID: chain.blockchainID, chainId: chain.chainId,
     thuHoi: true, dangTrack: state.chains.length, tran: MAX_L1,
     restart: nhatKyRestart,
+    // P-85: the nodes whose slot this revocation returned (null under the every-node model) and
+    // the nodes it deliberately left alone, each with proof it stayed up.
+    validators: formerValidators, untouched: lastRolloutUntouched,
   };
 }
 
@@ -2784,6 +2857,14 @@ server.listen(PORT, HOST, () => {
   console.log(DRILL_BAND
     ? `  band   : 🧪 DRILL (A1_DRILL_BAND=1) — expects networkID ${BAND.networkId} "${BAND.name}" · chainIds from ${BAND.floor}–${BAND.ceiling} · a REAL node is refused`
     : `  band   : real — expects networkID ${BAND.networkId} "${BAND.name}" · chainIds from ${BAND.floor}–${BAND.ceiling}`);
+  // Per-node model: say so, and refresh the router contract from the ledger as it stands now
+  // (a console restarted on a ledger written by hand or by an older console must still export it).
+  if (V_PER_CHAIN !== null) {
+    try { writeAssignment(loadState()); console.log(`  model  : per-node — ${V_PER_CHAIN} validator(s) per chain, cap ${MAX_L1} per node · router contract ${ASSIGNMENT_FILE}`); }
+    catch (e) { console.warn(`  model  : per-node — could not write ${ASSIGNMENT_FILE}: ${e.message}`); }
+  } else {
+    console.log(`  model  : every node validates and tracks every chain (set A1_L1_VALIDATORS_PER_CHAIN to place chains on V nodes)`);
+  }
   kiemTheHeMang().then((t) => {
     if (t.trangThai === "khop") console.log(`  thế hệ : ✅ khớp node đang chạy — ${t.vi}`);
     else console.warn(`  thế hệ : 🔴 ${t.trangThai.toUpperCase()} — ĐẺ CHAIN SẼ BỊ TỪ CHỐI.\n           ${t.vi}`);

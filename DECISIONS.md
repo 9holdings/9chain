@@ -10431,3 +10431,25 @@ NodeID trong đúng 5 container; mô hình cũ vẫn CLI, 0 lượt đọc. Fixt
 
 **Còn lại của mốc.** Chain V=5 chưa được chứng minh **đẻ block** (cần giao dịch — P-87 bơm theo chain sẽ đo); RPC công khai cho
 chain không có node-1 là P-86; thu hồi theo phân công (mã đã có ở D-236) đo ở P-85.
+
+## D-238 — **Thu hồi theo phân công: chỉ validator của chain restart, bằng chứng "đã thôi phục vụ" đọc TRONG từng container — đo thật 2 phút 49 s trên băng tập** (`2026-09-07` đêm, P-85)
+
+**Bối cảnh.** Cơ chế đã có từ D-236 (danh sách của phần còn lại ⇒ chỉ node đổi mới restart). Còn thiếu phép **kiểm chứng**: bản cũ
+đo "RPC công khai thôi trả lời" trên node-1 — ở mô hình chia, node-1 có thể **chưa bao giờ** phục vụ chain đó, nên "thôi trả lời"
+không chứng minh gì; và ngược lại một validator chưa bỏ track sẽ không bị bắt.
+
+**Quyết định.**
+1. **Chế độ V:** sau rollout, hỏi `eth_chainId` **bên trong từng validator cũ** (`servedOnNode`, tối đa 20 s mỗi node); node nào còn trả
+   lời ⇒ throw **nêu tên node** và trỏ vào override; mô hình cũ giữ nguyên phép đo RPC công khai. Trả về `validators` (node được trả chỗ,
+   `null` ở mô hình cũ) và `untouched`. Bản ghi `retired` giữ nguyên `validators[]` — bản ghi lịch sử giữ hình dạng của nó.
+2. **Fixture** trả lời `eth_chainId` trong container theo **tệp console viết** (override, hoặc `.env` ở mô hình cũ): node không track thì
+   curl hỏng — nhờ vậy bài kiểm đo đúng đại lượng "node còn track không", không phải "console có gọi không".
+
+**Đo trên băng tập** (`Band Test Two`, validators node-1..5, `17:48:28Z → 17:51:17Z`, **2 phút 49 s**): restart đúng **5** node theo thứ tự
+rollout, `StartedAt` đổi 5/9, node-6..9 `startedAtStable`; sau đó `eth_chainId` **404 trên cả 9 node**; override node-1 và node-6 về **2**
+subnet; sổ: 2 sống · `retired` Band Test Two/5 validator.
+
+**Đối chứng fixture** (`assignment-e2e-test` 36 → 46 → 50 với P-86): thu hồi "Rev Two" (g,h,i,test-node,b) ⇒ đúng 5 node ấy restart,
+c/d/e/f stable; override node-g mất subnet 2; bộ đếm b=1 c..f=2 g=1 h/i/test-node=0; chain kế tiếp rơi vào đúng chỗ vừa trả
+(h,i,test-node,b,g); tiến trình không chạy lùi; mô hình cũ: thu hồi restart 9, `validators: null`, `.env` rỗng. Hồi quy create-rpc 17 ·
+governance 55 · english · single-source.

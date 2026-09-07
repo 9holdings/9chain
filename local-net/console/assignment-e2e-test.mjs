@@ -24,6 +24,9 @@ import { nodeLoad } from '../lib/validator-assignment.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const SERVICES = ['node-b', 'node-c', 'node-d', 'node-e', 'node-f', 'node-g', 'node-h', 'node-i', 'test-node'];
 let currentChainIdHex = '0x0';
+// Blockchain ids the test has revoked: the public RPC (this synthetic node) stops answering for
+// them, which is what the every-node revocation path measures (P-85).
+const revoked = new Set();
 const children = new Set();
 process.on('exit', () => { for (const child of children) child.kill(); });
 let pass = 0, fail = 0;
@@ -42,7 +45,10 @@ const node = httpServer(async (request, response) => {
   else if (method === 'info.getNetworkName') result = { networkName: TEN_MANG };
   else if (method === 'info.getNodeVersion') result = { version: '9chaingo/1.14.2', rpcProtocolVersion: '45' };
   else if (method === 'eth_chainId' && request.url === '/ext/bc/C/rpc') result = '0x218711a09';
-  else if (method === 'eth_chainId' && /^\/ext\/bc\/TestBlockchain\d+\/rpc$/.test(request.url)) result = currentChainIdHex;
+  else if (method === 'eth_chainId' && /^\/ext\/bc\/TestBlockchain\d+\/rpc$/.test(request.url)) {
+    if (revoked.has(request.url.split('/')[3])) { response.writeHead(404); response.end('chain not served here'); return; }
+    result = currentChainIdHex;
+  }
   else {
     response.writeHead(200, { 'content-type': 'application/json' });
     response.end(JSON.stringify({ jsonrpc: '2.0', id, error: { message: `Not simulated: ${method}` } }));
@@ -111,9 +117,11 @@ async function startConsole({ perChain, ledger } = {}) {
   const nodeIdReads = () => actions('node-id');
   const overrideFile = path.join(scratch, '9chain-a1-track.override.yml');
   const readOverride = () => existsSync(overrideFile) ? JSON.parse(readFileSync(overrideFile, 'utf8')) : null;
+  const assignmentFile = path.join(config, 'assignment.json');
+  const readAssignment = () => existsSync(assignmentFile) ? JSON.parse(readFileSync(assignmentFile, 'utf8')) : null;
   const envTrack = () => { const f = path.join(scratch, '.env'); if (!existsSync(f)) return null; const l = readFileSync(f, 'utf8').split(/\r?\n/).find(x => x.startsWith('A1_TRACK_SUBNETS=')); return l === undefined ? null : l.slice('A1_TRACK_SUBNETS='.length); };
   const stop = async () => { if (child.exitCode === null) { const exited = once(child, 'exit'); child.kill('SIGTERM'); await exited; } children.delete(child); };
-  return { call, create, dockerLog, readLedger, restarts, nodeIdReads, readOverride, envTrack, stop, log: () => log };
+  return { call, create, dockerLog, readLedger, restarts, nodeIdReads, readOverride, readAssignment, envTrack, stop, log: () => log };
 }
 const listOf = (override, svc) => (override?.services?.[svc]?.environment ?? []).map(e => e.replace('AVAGO_TRACK_SUBNETS=', '')).join('').split(',').filter(Boolean);
 
@@ -142,6 +150,10 @@ console.log('\n── 1. V = 5: records carry validators, placement is determini
   ok('chain 2 goes to the 4 idle nodes + the lowest loaded name', JSON.stringify(r2.j.validators) === JSON.stringify(['node-g', 'node-h', 'node-i', 'test-node', 'node-b']), JSON.stringify(r2.j.validators ?? r2.j.error));
   ok('P-83: chain 2 restarted only ITS validators (the 5 whose list changed)', JSON.stringify(c.restarts().slice(5)) === JSON.stringify(['node-b', 'node-g', 'node-h', 'node-i', 'test-node']), c.restarts().slice(5).join(','));
   ok('P-83: node-b now tracks both subnets, node-c only the first', listOf(c.readOverride(), 'node-b').join() === 'TestSubnet1,TestSubnet2' && listOf(c.readOverride(), 'node-c').join() === 'TestSubnet1');
+  // ── P-86: the router contract next to the ledger ──
+  const a = c.readAssignment();
+  ok('P-86: assignment.json names a serving node per chain — the public node when it validates, else the first validator', a && a.TestBlockchain1?.node === 'node-b' && a.TestBlockchain2?.node === 'test-node', JSON.stringify(a && { one: a.TestBlockchain1?.node, two: a.TestBlockchain2?.node }));
+  ok('P-86: the uri is the service name on the in-container port, and the record carries chainId/name/subnetID/validators', a?.TestBlockchain1?.uri === 'http://node-b:9650' && a.TestBlockchain1.chainId === 9001000101 && a.TestBlockchain1.subnetID === 'TestSubnet1' && a.TestBlockchain1.validators?.length === 5, JSON.stringify(a?.TestBlockchain1));
   const r3 = await c.create('Assign Three', 9001000103);
   ok('chain 3 lands on c,d,e,f,g (ties by name after b took a second)', JSON.stringify(r3.j.validators) === JSON.stringify(['node-c', 'node-d', 'node-e', 'node-f', 'node-g']), JSON.stringify(r3.j.validators ?? r3.j.error));
   const ledger = c.readLedger();
@@ -200,6 +212,30 @@ console.log('\n── 3. 🔴 legacy records (no key) count on EVERY node ──
   await d.stop();
 }
 
+console.log('\n── 5. P-85: revocation returns slots on the revoked chain\'s validators ONLY ──');
+{
+  const c = await startConsole({ perChain: 5 });
+  await c.create('Rev One', 9001000501); await c.create('Rev Two', 9001000502); await c.create('Rev Three', 9001000503);
+  const before = c.restarts().length;
+  const two = c.readLedger().chains.find(x => x.name === 'Rev Two');
+  ok('setup: Rev Two sits on g,h,i,test-node,b', JSON.stringify(two.validators) === JSON.stringify(['node-g', 'node-h', 'node-i', 'test-node', 'node-b']), JSON.stringify(two.validators));
+  const r = await c.call('/api/revoke', { name: 'Rev Two', xacNhan: 'Rev Two' });
+  ok('revoke answered 200 and names the validators whose slots came back', r.status === 200 && JSON.stringify(r.j.validators) === JSON.stringify(two.validators), JSON.stringify(r.j).slice(0, 160));
+  ok('🔴 ONLY those 5 restarted (no node-c/d/e/f)', JSON.stringify(c.restarts().slice(before)) === JSON.stringify(['node-b', 'node-g', 'node-h', 'node-i', 'test-node']), c.restarts().slice(before).join(','));
+  ok('the 4 untouched nodes are reported stable', r.j.untouched?.length === 4 && r.j.untouched.every(u => u.startedAtStable) && r.j.untouched.map(u => u.svc).join() === 'node-c,node-d,node-e,node-f', JSON.stringify(r.j.untouched));
+  const o = c.readOverride();
+  ok('override: node-g no longer tracks TestSubnet2, node-b keeps TestSubnet1 only', !listOf(o, 'node-g').includes('TestSubnet2') && listOf(o, 'node-b').join() === 'TestSubnet1' && listOf(o, 'node-c').join() === 'TestSubnet1,TestSubnet3', `${listOf(o, 'node-g')} · ${listOf(o, 'node-b')}`);
+  const ledger = c.readLedger();
+  ok('ledger: Rev Two moved to retired WITH its validators (a historical record keeps its shape)', ledger.chains.length === 2 && ledger.retired.length === 1 && JSON.stringify(ledger.retired[0].validators) === JSON.stringify(two.validators));
+  ok('P-86: the router contract dropped the revoked chain and keeps the live two', c.readAssignment() && !('TestBlockchain2' in c.readAssignment()) && Object.keys(c.readAssignment()).length === 2, JSON.stringify(Object.keys(c.readAssignment() ?? {})));
+  const load = nodeLoad(ledger.chains, SERVICES);
+  ok('counters: b=1 c..f=2 g=1 h/i/test-node=0 (slots returned on exactly those five)', JSON.stringify([...load].map(([k, v]) => `${k}:${v}`)) === JSON.stringify(['node-b:1', 'node-c:2', 'node-d:2', 'node-e:2', 'node-f:2', 'node-g:1', 'node-h:0', 'node-i:0', 'test-node:0']), JSON.stringify([...load]));
+  const n = await c.create('Rev Four', 9001000504);
+  ok('the next chain lands on the freed slots first (h,i,test-node, then b,g by name)', JSON.stringify(n.j.validators) === JSON.stringify(['node-h', 'node-i', 'test-node', 'node-b', 'node-g']), JSON.stringify(n.j.validators ?? n.j.error));
+  ok('progress never ran backwards: kind of the last run is create, and no step is "hong"', (await c.call('/api/progress')).j.kind === 'create');
+  await c.stop();
+}
+
 console.log('\n── 4. without the variable nothing changes (the model every live chain was created under) ──');
 {
   const c = await startConsole();
@@ -210,6 +246,11 @@ console.log('\n── 4. without the variable nothing changes (the model every l
   ok('the service list was not consulted before the CLI (old path reads it only at rollout)', c.dockerLog().indexOf('create') < c.dockerLog().indexOf('services'), c.dockerLog().join(','));
   ok('P-83: every-node model restarts all 9 nodes, writes NO override, pins the union into .env', c.restarts().length === 9 && c.readOverride() === null && c.envTrack() === 'TestSubnet1', `${c.restarts().length} restarts · override ${c.readOverride() !== null} · env ${JSON.stringify(c.envTrack())}`);
   ok('P-84: every-node model still creates through the fork CLI (no l1-batch, no NodeID reads)', c.dockerLog().includes('create') && !c.dockerLog().some(l => l.startsWith('create-batch')) && c.nodeIdReads().length === 0, c.dockerLog().filter(l => /create/.test(l)).join(','));
+  // P-85 under the every-node model: revoke rolls every node and empties the shared list.
+  revoked.add(r.j.blockchainID);
+  const rv = await c.call('/api/revoke', { name: 'Old Model', xacNhan: 'Old Model' });
+  ok('P-85: every-node revoke restarts all 9 again, validators: null, .env union emptied', rv.status === 200 && rv.j.validators === null && c.restarts().length === 18 && c.envTrack() === '' && c.readOverride() === null, `${rv.status} ${JSON.stringify(rv.j.error ?? rv.j.validators)} · ${c.restarts().length} · ${JSON.stringify(c.envTrack())}`);
+  ok('P-86: every-node model writes NO assignment.json', c.readAssignment() === null);
   await c.stop();
 }
 
