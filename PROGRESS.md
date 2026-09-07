@@ -86,11 +86,18 @@ Anh (§0). Chế độ chia validator chỉ bật khi `V < N`; mặc định gi�
 việc `[human]`, `check-deploy-drift` sẽ đỏ tới lúc đó — đúng thiết kế). Giả định chưa chốt (ghi ở D-233): V=5 · r=1 tx/s · mạng công
 khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn tường minh, **không push**.
 
-- [ ] **P-80 — Đưa kit K1 về `main`** tại `local-net/tools/k1/` (chép từ `C:\PROJECTS\9Chain-A1-web\docs\k1-phase0`, bỏ `out/`;
+- [x] **P-80 — Đưa kit K1 về `main`** tại `local-net/tools/k1/` (chép từ `C:\PROJECTS\9Chain-A1-web\docs\k1-phase0`, bỏ `out/`;
       `go.work` trỏ `../../../upstream/avalanchego`; README dịch sang tiếng Anh vì `local-net/**` không được miễn §0).
       **Qua khi:** sha256 từng tệp `.go`/`.sh`/`.json` trùng bản ở `web-home` (ghi bảng vào commit) · `scripts/l1.sh build` dựng được
       trong `golang:1.25.10-bookworm` · `check-english-code` nợ không phình · `check-worktree-ownership` 0. Ca đỏ: sửa 1 byte
       `main.go` ⇒ bảng sha256 lệch. ⚠️ **Không xoá** bản bên `web-home` (§4) — ghi việc `[web-home]` gỡ sau khi merge WT-1.
+      ✅ `07/09` đêm (autopilot, D-233): 23 tệp chép về `local-net/tools/k1/` (bỏ `out/`), sha256 **21/23 trùng byte** với
+      `web-home:docs/k1-phase0` — hai tệp lệch ĐÚNG là hai tệp phải đổi đường dẫn: `go.work` (`../../../upstream/avalanchego`) và
+      `scripts/l1.sh` (FORK suy từ vị trí kit, mount `/w/9chain-a1/...`); mọi `.go`/`.json`/`.sh` khác trùng. README viết lại tiếng Anh;
+      `EVIDENCE-2026-09-05.md` chép NGUYÊN BYTE sang `docs/k1-phase0/` (bản ghi, cùng đường với web-home để WT-1 merge sạch).
+      Đo: `scripts/l1.sh build` trong `golang:1.25.10-bookworm` từ chỗ mới **28,7 s**, binary 45 MB chạy usage từ mount mới ·
+      `check-english-code` nợ 5411 không phình · `check-worktree-ownership` 0 (25 đường đều của `main`) · `check-single-source` 5/5.
+      Ca đỏ: lật 1 bit bản chép `main.go` ⇒ sha256 `00fbe6f9…` → `ed2e4ab6…`, bảng lệch. ⏳ `[web-home]` gỡ `docs/k1-phase0/` (trừ EVIDENCE) sau WT-1.
 - [ ] **P-81 — Console đẻ chain được trên BĂNG TẬP cùng thế hệ khi `A1_DRILL_BAND=1`** (`kiemTheHeMang` chấp nhận
       `A1IDTap = 899999999 − A1_GEN` + tên `9chain-a1-tap-g<gen>`; khối chainId **riêng** cho băng tập trong `lib/chainid.mjs`,
       không chạm `9001000000+` của g1 — kit đang phải né bằng `8990000001+`; netgen in đúng khối đó, việc `[main]` HANDOFF `05/09`).

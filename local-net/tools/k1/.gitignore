@@ -1,0 +1,8 @@
+out/
+*.log
+# generated txDB-growth fixtures (see README "0.6"); regenerate, do not commit 700 KB of fake alloc
+config/l1-evm-genesis-fat.json
+config/l1-evm-genesis-200k.json
+# rendered per-chain runtime configs are per-run outputs of `l1-batch render`
+config/chains/
+config/subnets/

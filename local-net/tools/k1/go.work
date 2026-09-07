@@ -1,0 +1,16 @@
+go 1.25.10
+
+// The phase-0 kit builds against the sovereign fork IN PLACE, read-only: nothing here is
+// copied into upstream/, and nothing in upstream/ is modified. The relative paths are
+// resolved from local-net/tools/k1/ inside this repository (the kit was moved here from
+// docs/k1-phase0 on the web-home worktree, D-233 / P-80).
+use (
+	./l1-batch
+	../../../upstream/avalanchego
+	../../../upstream/avalanchego/graft/coreth
+	../../../upstream/avalanchego/graft/evm
+	../../../upstream/avalanchego/graft/subnet-evm
+)
+
+// Mirrors the fork's own go.work: see the comment there about the 2023 genproto split.
+replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20230526161137-0005af68ea54
