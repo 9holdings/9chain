@@ -120,6 +120,8 @@ func main() {
 	}
 	var err error
 	switch os.Args[1] {
+	case "create":
+		err = cmdCreate(os.Args[2:])
 	case "plan":
 		err = cmdPlan(os.Args[2:])
 	case "apply":
@@ -157,7 +159,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, `l1-batch <plan|fund|workers|apply|render|status|pump|topup|keygen|compose|router|measure> [flags]   (run each with -h for flags)`)
+	fmt.Fprintln(os.Stderr, `l1-batch <create|plan|fund|workers|apply|render|status|pump|topup|keygen|compose|router|measure> [flags]   (run each with -h for flags)`)
 }
 
 // ── topup ────────────────────────────────────────────────────────────────────────────────────

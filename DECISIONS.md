@@ -10391,3 +10391,43 @@ sửa, thấy ngay; đường nâng cấp gọi `readManagedServices()` NGOÀI `
 restart, không override, `.env` = union. Hồi quy: governance 55 · create-rpc 17 · english (nợ co) · single-source 5 · drift self-test
 12 · deploy-imports. ⏳ Đo trên băng tập (5 `StartedAt` đổi / 4 không, `eth_chainId` trên 5 node, 404 trên 4) gộp vào P-84: đẻ chain
 V<N trước khi CLI đăng ký đúng V validator sẽ để lại một chain 9 validator mà 5 track — chain đó có thể không đẻ block.
+
+## D-237 — **Đăng ký ĐÚNG V validator bằng `l1-batch create` chạy trong container node — không chạm fork; và phép đo đầu tiên trên băng tập của mô hình chia validator: 5 node, 2 phút 57 s** (`2026-09-07` đêm, P-84 + số đo P-83)
+
+**Bối cảnh.** CLI của fork (`9chain-a1-cli l1 create`) đăng ký **mọi** validator mạng mẹ lên subnet mới. Với `validators[]` (P-82) và
+track theo node (P-83), một chain khai 5 mà P-Chain khai 9 là **bản ghi nói dối**, và 4 validator không track là trọng số chết trong mọi
+lượt bỏ phiếu. Thêm cờ vào CLI = sinh lại `patches/` (luật cứng 3, D-233 §2).
+
+**Quyết định.**
+1. **`l1-batch create` trong kit K1** (`local-net/tools/k1/l1-batch/create.go`, dựng ngoài fork qua `go.work`):
+   `CreateSubnetTx` → một `AddSubnetValidatorTx` cho **từng** NodeID được nêu → `CreateChainTx`; in `SUBNET_ID=`/`BLOCKCHAIN_ID=`
+   cùng hình dạng CLI (+ `VALIDATORS=n`). **Mọi từ chối xảy ra TRƯỚC giao dịch đầu**: danh sách rỗng · NodeID hỏng/lặp · node không
+   phải validator mạng mẹ hiện tại · còn dưới 24 h · genesis > 256 KiB (codec, bài K1). Sau khi subnet tồn tại, một `AddSubnetValidatorTx`
+   hỏng là **fatal** (CLI thì bỏ qua) và câu lỗi nêu subnet mồ côi để đếm được. `-mode l1` (ConvertSubnetToL1Tx) giữ chỗ tới H-2.
+2. **Console chạy binary đó BÊN TRONG node-1** qua `compose exec`, cùng địa chỉ trong container (`MANAGED_NODE_API`, bài D-234), từ
+   `<config dir>/bin/l1-batch` — thư mục config đã mount `/9chain-a1/config` trên mọi node (băng tập lẫn server); `A1_L1_BATCH_BIN`
+   đổi đường. Image node là `debian:12-slim`, kit chạy trong `bookworm-slim`: cùng nền. Chỉ khi `plan.validators` có; mô hình cũ vẫn
+   CLI (đối chứng: log docker giả `create` không `create-batch`, 0 lượt đọc NodeID).
+3. **NodeID đọc từ chính container của từng validator** (`info.getNodeID` trong container) **trước** khi journal sang `submitting`:
+   là phép đọc, node không trả lời thì dừng khi chưa tiêu gì. Sổ nêu tên service, P-Chain nêu NodeID — không đoán.
+4. Binary là sản phẩm build (45 MB), không vào repo; khai `knownExtra` `^9chain-a1-config/bin/l1-batch$` để cổng drift đọc nó là vật
+   liệu chạy khi deploy chế độ V. Cái mất: cổng không so byte của nó với gì — dựng lại từ nguồn là chứng thực duy nhất.
+
+**Đo trên băng tập `net-tap-g1` (9 node), console `A1_DRILL_BAND=1 A1_L1_VALIDATORS_PER_CHAIN=5`, chain "Band Test Two"
+`8001000001` (`17:41:20Z → 17:44:18Z`, 2 phút 57 s so với 5 phút 09 s của mô hình 9 node):**
+- `platform.getCurrentValidators(subnet 2roNpF4g…)` = **5** NodeID, đúng 5 service trong bản ghi (node-1..5, node-1 cuối theo thứ tự rollout).
+- `StartedAt` đổi ở **5/9** node; `untouched` = node-6..9, cả 4 `startedAtStable: true` (đo ngoài console bằng `docker inspect`: 5).
+- `eth_chainId` hỏi **trong** từng container: **200** ở node-1..5, **404** ở node-6..9 — đúng mô hình, không phải lỗi.
+- Override `9chain-a1-track.override.yml` cạnh compose: node-1..5 track 3 subnet (2 chain cũ mọi-node + chain mới), node-6..9 track 2;
+  `.env` `A1_TRACK_SUBNETS=` trống.
+- Ca đỏ trên công cụ thật, trong node-1: NodeID không phải validator mạng mẹ ⇒ từ chối trước `CreateSubnetTx`; danh sách rỗng ⇒ từ
+  chối; `platform.getSubnets` **4 → 4**. Lượt gọi đầu của kịch bản đo hỏng vì Git Bash đổi `/9chain-a1/...` thành
+  `C:/Program Files/Git/...` (`MSYS_NO_PATHCONV=1`, bẫy đã ghi HANDOFF 04/09) — chạy lại đúng.
+
+**Đối chứng fixture.** `assignment-e2e-test` 33 → **36**: chế độ V chạy `l1-batch create -validators` với **5** NodeID (không CLI), đọc
+NodeID trong đúng 5 container; mô hình cũ vẫn CLI, 0 lượt đọc. Fixture học `info.getNodeID` và `-genesis` (cờ Go) bên cạnh
+`--genesis` (CLI) — lượt đầu ENOENT vì chỉ biết cờ CLI. Hồi quy: create-rpc 17 · readiness 31 · english · single-source ·
+`check-local --console` (nền).
+
+**Còn lại của mốc.** Chain V=5 chưa được chứng minh **đẻ block** (cần giao dịch — P-87 bơm theo chain sẽ đo); RPC công khai cho
+chain không có node-1 là P-86; thu hồi theo phân công (mã đã có ở D-236) đo ở P-85.

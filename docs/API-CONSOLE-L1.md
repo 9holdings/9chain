@@ -179,6 +179,10 @@ chính thống và **không** ở `0xcA11bde0…`. Console đã tự đưa câu 
 chain nhất (hoà ⇒ theo tên), bản ghi trong `console-chains.json` mang thêm khoá `validators` (tên service), và trần `A1_MAX_L1`
 thành trần **mỗi node**. Vắng biến ⇒ hành vi cũ trùng byte: không có khoá, mọi node mang mọi chain. Bản ghi **không có khoá** =
 "mọi node" (đừng đọc là danh sách rỗng). Node đầy ⇒ `/api/create` trả `400` **trước khi** chạy CLI, câu lỗi nêu tên node.
+Ở chế độ này (P-83, D-236) console ghi `9chain-a1-track.override.yml` cạnh compose (mỗi node một `AVAGO_TRACK_SUBNETS`), chỉ
+node có danh sách đổi mới restart (kết quả tạo có `untouched[]`), và (P-84, D-237) đăng ký **đúng V** validator trên P-Chain qua
+`l1-batch create` (kit K1, `A1_L1_BATCH_BIN`, mặc định `/9chain-a1/config/bin/l1-batch` trong container) thay cho CLI của fork.
+Node công khai không phải validator của chain ⇒ RPC công khai `/ext/bc/<id>/rpc` **không** trả lời cho tới khi có router (P-86).
 
 🔴 **`description` là văn bản cho P-62, đã viết sẵn, đã kiểm.** Đừng viết lại bằng tay ở TSX — nó suy ra
 từ **chính genesis vừa dựng**, nên nó không thể nói sai về chain. Ba nhóm:

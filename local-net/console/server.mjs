@@ -530,6 +530,9 @@ const MAX_L1 = Math.min(requireInt("A1_MAX_L1", 15, { min: 1, max: TRAN_SUBNET_G
 const V_PER_CHAIN = process.env.A1_L1_VALIDATORS_PER_CHAIN === undefined || String(process.env.A1_L1_VALIDATORS_PER_CHAIN).trim() === ""
   ? null
   : requireInt("A1_L1_VALIDATORS_PER_CHAIN", 0, { min: 1, max: 10_000 });
+// The K1 kit's `l1-batch` binary AS SEEN INSIDE a node container (P-84): the config directory is
+// mounted at /9chain-a1/config on every node, so `<config>/bin/l1-batch` on the host is this path.
+const L1_BATCH_BIN = process.env.A1_L1_BATCH_BIN || "/9chain-a1/config/bin/l1-batch";
 
 /**
  * Node đã phục vụ lại được MẠNG CHÍNH chưa (P, X, C)?
@@ -839,6 +842,21 @@ async function waitChainOnNode(svc, { subnetID, blockchainID, expectShape }) {
     await new Promise(r => setTimeout(r, 2000));
   }
   return last;
+}
+
+/**
+ * The NodeID of a managed node, asked INSIDE its container (P-84). A node's identity is the one
+ * thing the assignment must not guess: the ledger names services, the P-Chain names NodeIDs.
+ */
+async function nodeIdOf(svc) {
+  const out = await docker([...composeArgs(), "exec", "-T", svc, "curl", "-sf", "-m", "5",
+    "-X", "POST", "-H", "content-type:application/json",
+    "--data", `{"jsonrpc":"2.0","id":1,"method":"info.getNodeID","params":{}}`,
+    `${MANAGED_NODE_API}/ext/info`]);
+  let id;
+  try { id = JSON.parse(out.slice(out.indexOf("{"), out.lastIndexOf("}") + 1))?.result?.nodeID; } catch { id = undefined; }
+  if (!/^NodeID-[A-Za-z0-9]+$/.test(id ?? "")) throw new Error(`${svc}: info.getNodeID did not return a NodeID (${String(out).slice(0, 120)}) — creation stopped before any transaction`);
+  return id;
 }
 
 /**
@@ -1526,11 +1544,23 @@ async function executeChainLaunch(plan, job) {
   // node on 9750: the CLI ran inside node-1, dialled 127.0.0.1:9750 THERE, and got "connection
   // refused" — the first console creation on the drill band failed before any transaction (P-81).
   // Every other in-container call in this file already uses MANAGED_NODE_API.
+  //
+  // ═══ WHICH TOOL CREATES THE CHAIN (P-84, D-237) ═══
+  // Every-node model: the fork's CLI, which registers EVERY primary validator — unchanged.
+  // Per-node model (`plan.validators`): `l1-batch create` from the K1 kit, run inside the same
+  // container with the same in-container address, registering EXACTLY the assigned nodes. The
+  // fork is not touched (hard rule #3); the binary is built by `local-net/tools/k1/scripts/l1.sh
+  // build` and placed under the config directory every node mounts (`A1_L1_BATCH_BIN`).
+  // NodeIDs are read from each assigned node's own `info.getNodeID` BEFORE the journal moves to
+  // `submitting`: they are reads, and a node that cannot answer must stop the creation while
+  // nothing has been spent.
+  const nodeIds = plan.validators ? await Promise.all(plan.validators.map(nodeIdOf)) : null;
   creationJournal.update(job, { phase: "submitting" });
   const out = await docker([...composeArgs(), "exec", "-T",
     "-e", `A1_CLI_KEY=${CLI_KEY}`, NODE_CONTAINER,
-    "/9chain-a1/build/9chain-a1-cli", "l1", "create",
-    "--uri", MANAGED_NODE_API, "--genesis", inContainer, "--name", name]);
+    ...(nodeIds
+      ? [L1_BATCH_BIN, "create", "-mode", "classic", "-uri", MANAGED_NODE_API, "-genesis", inContainer, "-name", name, "-validators", nodeIds.join(",")]
+      : ["/9chain-a1/build/9chain-a1-cli", "l1", "create", "--uri", MANAGED_NODE_API, "--genesis", inContainer, "--name", name])]);
   const subnetID = (out.match(/SUBNET_ID=([A-Za-z0-9]+)/) || [])[1];
   const blockchainID = (out.match(/BLOCKCHAIN_ID=([A-Za-z0-9]+)/) || [])[1];
   if (!subnetID || !blockchainID) throw new Error("could not parse the IDs out of the CLI output:\n" + out);

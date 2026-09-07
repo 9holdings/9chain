@@ -46,7 +46,17 @@ if (process.env.A1_TEST_LEDGER_SYNC_FAILURE === '1') {
 }
 function output(file, args) {
   if (file !== 'docker') throw new Error('Unexpected executable in the Docker fixture');
-  if (args.includes('l1') && args.includes('create')) {
+  // Two creation tools (P-84): the fork CLI (`… l1 create`, every-node model) and the kit's
+  // `l1-batch create -validators …` (per-node model). Both are recorded, the second with its
+  // validator count, so a test can assert WHICH ran and with how many NodeIDs.
+  const batchCreate = args.includes('create') && args.includes('-validators');
+  if ((args.includes('l1') && args.includes('create')) || batchCreate) {
+    if (batchCreate) {
+      const list = args[args.indexOf('-validators') + 1].split(',').filter(Boolean);
+      if (list.length === 0) throw new Error('l1-batch create refuses an empty -validators list before CreateSubnetTx');
+      if (!list.every(id => /^NodeID-[A-Za-z0-9]+$/.test(id))) throw new Error('l1-batch create: malformed NodeID');
+      record(`create-batch:${list.length}`);
+    }
     if (process.env.A1_TEST_REQUIRE_JOURNAL === '1') {
       const pending = JSON.parse(readFileSync('9chain-a1-config/creation-journal/pending.json', 'utf8'));
       if (pending.phase !== 'submitting') throw new Error('Journal must record intent before CLI submission');
@@ -55,7 +65,8 @@ function output(file, args) {
     if (process.env.A1_TEST_CREATE_FAILURE === '1') throw new Error('Synthetic lost CLI response after submission');
     created++;
     if (uniqueIds) {
-      const genesis = args[args.indexOf('--genesis') + 1];
+      // `--genesis` for the fork CLI, `-genesis` for l1-batch (Go flag syntax).
+      const genesis = args[(args.includes('--genesis') ? args.indexOf('--genesis') : args.indexOf('-genesis')) + 1];
       const chainId = JSON.parse(readFileSync(path.join('9chain-a1-config/console-tmp', path.basename(genesis)), 'utf8')).config.chainId;
       lastChainIdHex = '0x' + Number(chainId).toString(16);
     }
@@ -94,6 +105,11 @@ function output(file, args) {
       const wrong = badNode && process.env.A1_TEST_NODE_MODE === 'wrong-id';
       return JSON.stringify({ jsonrpc: '2.0', id: 1,
         result: wrong ? '0x1' : uniqueIds ? lastChainIdHex : '0x' + Number(process.env.A1_TEST_EXPECTED_CHAIN_ID).toString(16) });
+    }
+    if (request.method === 'info.getNodeID') {
+      // A synthetic identity per service; base58-looking so the console's NodeID check passes.
+      nodeAction('node-id', svc);
+      return JSON.stringify({ jsonrpc: '2.0', id: 1, result: { nodeID: 'NodeID-' + svc.replace(/[^A-Za-z0-9]/g, '') + 'Fixture' } });
     }
     if (request.method === 'health.health') {
       nodeAction('primary-health', svc);

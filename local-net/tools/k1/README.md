@@ -28,6 +28,20 @@ local-net/tools/k1/
   out/  (gitignored)       net/ (netgen output) · plan/ (plan.json, chains.jsonl, compose override) · l1-batch
 ```
 
+## `l1-batch create` — the console's creation step under the per-node model (P-84, D-237)
+
+```bash
+l1-batch create -mode classic -uri http://127.0.0.1:9650 -genesis <file> -name "My Chain" \
+                -validators NodeID-…,NodeID-…      # exactly these; env A1_CLI_KEY (or K1_FUND_KEY) pays
+```
+
+`CreateSubnetTx` → one `AddSubnetValidatorTx` per named node → `CreateChainTx`, printing `SUBNET_ID=` / `BLOCKCHAIN_ID=` /
+`VALIDATORS=` like the fork CLI. Every refusal (empty list, unknown NodeID, a node that is not a current primary validator,
+under 24 h left, genesis over 256 KiB) happens **before the first transaction**; a failed validator registration after the
+subnet exists is fatal and names the orphaned subnet. The console (`A1_L1_VALIDATORS_PER_CHAIN` set) runs this binary
+inside node-1 from `<config dir>/bin/l1-batch` (`A1_L1_BATCH_BIN`, the config directory is mounted at `/9chain-a1/config`
+on every node): copy `out/l1-batch` there after `scripts/l1.sh build`. `-mode l1` (ConvertSubnetToL1Tx) is reserved until H-2.
+
 ## Why the tool runs inside a container
 
 `go build` fails on Windows at blst (cgo) and `storage.AvailableBytes` (no Windows implementation). The fork is

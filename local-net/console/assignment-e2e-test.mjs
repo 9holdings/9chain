@@ -106,12 +106,14 @@ async function startConsole({ perChain, ledger } = {}) {
   // P-83 evidence: which services the fixture restarted (in order), the compose override the
   // console wrote next to the compose file, and the shared `.env` variable.
   const actionsFile = path.join(scratch, 'fake-node-actions.jsonl');
-  const restarts = () => existsSync(actionsFile) ? readFileSync(actionsFile, 'utf8').trim().split('\n').map(l => JSON.parse(l)).filter(a => a.action === 'restart').map(a => a.svc) : [];
+  const actions = kind => existsSync(actionsFile) ? readFileSync(actionsFile, 'utf8').trim().split('\n').map(l => JSON.parse(l)).filter(a => a.action === kind).map(a => a.svc) : [];
+  const restarts = () => actions('restart');
+  const nodeIdReads = () => actions('node-id');
   const overrideFile = path.join(scratch, '9chain-a1-track.override.yml');
   const readOverride = () => existsSync(overrideFile) ? JSON.parse(readFileSync(overrideFile, 'utf8')) : null;
   const envTrack = () => { const f = path.join(scratch, '.env'); if (!existsSync(f)) return null; const l = readFileSync(f, 'utf8').split(/\r?\n/).find(x => x.startsWith('A1_TRACK_SUBNETS=')); return l === undefined ? null : l.slice('A1_TRACK_SUBNETS='.length); };
   const stop = async () => { if (child.exitCode === null) { const exited = once(child, 'exit'); child.kill('SIGTERM'); await exited; } children.delete(child); };
-  return { call, create, dockerLog, readLedger, restarts, readOverride, envTrack, stop, log: () => log };
+  return { call, create, dockerLog, readLedger, restarts, nodeIdReads, readOverride, envTrack, stop, log: () => log };
 }
 const listOf = (override, svc) => (override?.services?.[svc]?.environment ?? []).map(e => e.replace('AVAGO_TRACK_SUBNETS=', '')).join('').split(',').filter(Boolean);
 
@@ -126,6 +128,9 @@ console.log('\n── 1. V = 5: records carry validators, placement is determini
   const r1 = await c.create('Assign One', 9001000101);
   ok('chain 1 created (fixture CLI + fake restarts)', r1.status === 200 && r1.j.chainId === 9001000101, JSON.stringify(r1.j).slice(0, 120));
   ok('chain 1 record carries validators = the 5 lowest names', JSON.stringify(r1.j.validators) === JSON.stringify(['node-b', 'node-c', 'node-d', 'node-e', 'node-f']), JSON.stringify(r1.j.validators));
+  // ── P-84: the P-Chain registration goes through l1-batch with EXACTLY the assigned NodeIDs ──
+  ok('🔴 P-84: creation ran `l1-batch create -validators` with 5 NodeIDs, not the fork CLI', c.dockerLog().includes('create-batch:5') && c.dockerLog().filter(l => l === 'create').length === 1, c.dockerLog().filter(l => /create/.test(l)).join(','));
+  ok('P-84: the NodeIDs were read inside the 5 assigned containers (info.getNodeID), and only those', JSON.stringify(c.nodeIdReads()) === JSON.stringify(['node-b', 'node-c', 'node-d', 'node-e', 'node-f']), c.nodeIdReads().join(','));
   // ── P-83: per-node tracking ──
   ok('🔴 P-83: ONLY the 5 validators restarted (fixture actions, in rollout order)', JSON.stringify(c.restarts()) === JSON.stringify(['node-b', 'node-c', 'node-d', 'node-e', 'node-f']), c.restarts().join(','));
   ok('P-83: the 4 untouched nodes are reported with a stable StartedAt', r1.j.untouched?.length === 4 && r1.j.untouched.every(u => u.startedAtStable) && r1.j.untouched.map(u => u.svc).join() === 'node-g,node-h,node-i,test-node', JSON.stringify(r1.j.untouched));
@@ -204,6 +209,7 @@ console.log('\n── 4. without the variable nothing changes (the model every l
   ok('the record has NO validators key', r.status === 200 && !('validators' in r.j) && !('validators' in c.readLedger().chains[0]), JSON.stringify(Object.keys(r.j)));
   ok('the service list was not consulted before the CLI (old path reads it only at rollout)', c.dockerLog().indexOf('create') < c.dockerLog().indexOf('services'), c.dockerLog().join(','));
   ok('P-83: every-node model restarts all 9 nodes, writes NO override, pins the union into .env', c.restarts().length === 9 && c.readOverride() === null && c.envTrack() === 'TestSubnet1', `${c.restarts().length} restarts · override ${c.readOverride() !== null} · env ${JSON.stringify(c.envTrack())}`);
+  ok('P-84: every-node model still creates through the fork CLI (no l1-batch, no NodeID reads)', c.dockerLog().includes('create') && !c.dockerLog().some(l => l.startsWith('create-batch')) && c.nodeIdReads().length === 0, c.dockerLog().filter(l => /create/.test(l)).join(','));
   await c.stop();
 }
 

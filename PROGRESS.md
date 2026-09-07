@@ -141,12 +141,20 @@ khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn 
       · 27 chain = **135 restart, mỗi node track đúng 15**, chain 28 từ chối · mô hình cũ 9 restart/không override. Lỗi bắt được: subnet
       của chính lượt tạo bị `pendingSubnetIDs()` rải lên mọi node (16/16/16/16). Hồi quy governance 55 · create-rpc 17 · single-source ·
       english (nợ 5411 → 5403). ⏳ Đo trên băng tập gộp với P-84 (cần CLI đăng ký đúng V trước, không thì chain 9-validator-5-track).
-- [ ] **P-84 — Đăng ký ĐÚNG V validator, KHÔNG chạm fork** — `l1-batch create -mode classic -validators <NodeID,…>` (thêm
+- [x] **P-84 — Đăng ký ĐÚNG V validator, KHÔNG chạm fork** — `l1-batch create -mode classic -validators <NodeID,…>` (thêm
       `AddSubnetValidatorTx` cho V node vào kit, in `SUBNET_ID=`/`BLOCKCHAIN_ID=` cùng hình dạng CLI); console gọi nó thay
       `9chain-a1-cli` **khi và chỉ khi** `V < N` (binary dựng một lần, mount vào node-1; `check-deploy-imports` + manifest biết tệp).
       Lý do không sửa CLI trong fork: đó là `patches/` (luật cứng 3) — sinh lại cả bộ + tree + image chỉ để thêm một cờ. NodeID từng
       service đọc `info.getNodeID` qua compose exec. **Qua khi:** `platform.getCurrentValidators({subnetID})` trả **đúng V** NodeID,
       không hơn. Ca đỏ: `-validators` rỗng ⇒ từ chối **trước** `CreateSubnetTx` (không đẻ subnet mồ côi — bài K1 0.3).
+      ✅ `07/09` đêm (autopilot, D-237): `local-net/tools/k1/l1-batch/create.go` — `l1-batch create -mode classic -validators …`,
+      mọi từ chối TRƯỚC giao dịch đầu, `AddSubnetValidatorTx` hỏng sau subnet = fatal nêu subnet mồ côi, in `SUBNET_ID=`/`BLOCKCHAIN_ID=`;
+      console chạy nó trong node-1 từ `/9chain-a1/config/bin/l1-batch` (`A1_L1_BATCH_BIN`) khi có `plan.validators`, NodeID đọc trong
+      từng container validator trước `submitting`; fixture học `info.getNodeID` + cờ `-genesis`. **Đo trên băng tập (kiêm P-83):** chain
+      "Band Test Two" `8001000001`, **2 phút 57 s** (mô hình 9 node: 5 phút 09 s) · P-Chain **đúng 5** validator · `StartedAt` đổi **5/9**,
+      4 node `startedAtStable` · `eth_chainId` **200 trong node-1..5, 404 ở node-6..9** · override đúng từng node, `.env` trống. Ca đỏ trên
+      công cụ thật trong node-1: NodeID lạ ⇒ từ chối trước `CreateSubnetTx`; danh sách rỗng ⇒ từ chối; `getSubnets` 4 → 4. Fixture:
+      `assignment-e2e-test` 36 (V ⇒ `create-batch:5`, mô hình cũ ⇒ CLI). Hồi quy create-rpc 17 · readiness 31 · english · single-source.
 - [ ] **P-85 — Thu hồi theo phân công** — `revoke` gỡ subnet **chỉ** khỏi V node của chain, trả slot cho đúng node; chain cũ
       không có `validators[]` ⇒ gỡ khỏi mọi node (hành vi cũ). **Qua khi:** bộ đếm node giảm đúng chỗ; `tienTrinh` không chạy lùi
       (bài `25/08`). Ca đỏ: thu hồi chain của node-3 mà node-7 restart ⇒ test đỏ.
