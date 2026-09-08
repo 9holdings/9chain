@@ -419,3 +419,26 @@ image). ⇒ **Không tự làm.** Ghi lại như một lựa chọn có số kè
   với 15 chain là **3,1 GB → 0,6 GB**.
 - Cái giá chưa đo: block bị đuổi khỏi bộ đệm phải đọc lại từ đĩa. Ở nhịp 2 s và chain vừa mới ghi, tỉ lệ trúng có thể vẫn cao —
   **nhưng đó là một phép đo, không phải một suy đoán**, và nó thuộc pha 2.
+
+### 5f. Xác nhận trực tiếp: một plugin ĐANG bão hoà, đo bằng 7 điểm
+
+Bộ hồ sơ liên tục **giữ các bản xoay vòng**, nên trên đĩa đã có sẵn một chuỗi 15 phút/điểm cho cùng một plugin — không cần chạy
+thêm gì:
+
+| giờ (UTC) | heap sống | tăng so với điểm trước |
+|---|---|---|
+| 11:12:55 | 17,62 MB | — |
+| 11:27:55 | 24,63 MB | **+7,01** |
+| 11:42:55 | 29,09 MB | **+4,46** |
+| 11:57:55 | 32,69 MB | **+3,60** |
+| 12:12:55 | 35,42 MB | **+2,73** |
+| 12:27:55 | 37,75 MB | **+2,33** |
+| 12:42:55 | 39,38 MB | **+1,63** |
+
+Các bước co lại với tỉ lệ khá đều (**~0,76** mỗi bước) — hình dạng của một bộ đệm đang đầy, **không phải** một đường thẳng. Ngoại
+suy cấp số nhân từ bước cuối: còn ~5 MB nữa, tiệm cận **~44–45 MB**. Trừ mức nền lúc 11:12 (17,6 MB, phần lớn là bộ nhớ khởi
+động), phần tăng tiệm cận **~27 MB** so với trần bộ đệm đọc từ mã là **20 MiB** — cùng bậc, phần dư là thứ không thuộc bộ đệm.
+
+⚠️ **Đính chính con số của chính §5c:** *"plugin đầy sau ~1,1 h"* tính bằng **tốc độ trung bình**, mà đường này **tiệm cận** chứ
+không tuyến tính. Câu đúng: **đi được phần lớn quãng đường trong ~1 giờ, rồi bò dần**. Cùng lý do, *"`avalanchego` đầy sau ~24 h"*
+cũng là **cận dưới của thời gian**, không phải một mốc sắc.
