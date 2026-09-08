@@ -323,3 +323,7 @@ lúc khởi động** — đọc nó rồi kết luận *"đây là thứ đang 
 
 **Bật API admin là mở một bề mặt GHI được** ⇒ chỉ trên băng tập, chỉ một node, và API của node vốn chỉ nghe trong mạng compose.
 Mạng thật **không** đụng tới.
+
+**Chính bộ hồ sơ có làm lệch thứ nó đo không?** Bộ hồ sơ CPU của subnet-evm chạy **liên tục**, nên câu hỏi là thật. Đo lúc
+`11:04Z`, cùng tải, cùng số plugin: node-5 (**có** hồ sơ) **295 MiB** so với bốn node cùng 8 plugin ở **287–291 MiB**. ⇒ chi phí
+riêng của bộ hồ sơ **~5 MiB, 1,7 %** — đủ nhỏ để node-5 vẫn đại diện, và **con số đó được ghi ra** thay vì giả định là 0.
