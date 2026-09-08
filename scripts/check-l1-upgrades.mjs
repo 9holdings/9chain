@@ -49,6 +49,10 @@
 import { spawnSync } from "node:child_process";
 import { upgradeShape, chainDirVerdict } from "../local-net/lib/l1-upgrade.mjs";
 import { SSH_HOST, SSH_KEY, SRC_DIR } from "../local-net/lib/server.mjs";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--self-test']);
 
 const SELF_TEST = process.argv.includes("--self-test");
 const NODES = Array.from({ length: 9 }, (_, i) => `9chain-a1-node-${i + 1}`);

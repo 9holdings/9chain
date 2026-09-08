@@ -17,6 +17,11 @@
 // coming back from `/api/preview` in Vietnamese on the product path.
 //
 // Self-test:  node local-net/lib/eip55.mjs --self-test
+import { guardEntry } from "./cli.mjs";
+
+// 🔴 A mistyped flag is exit 2 — "could not run", never a verdict (D-244). Without this,
+// `--self-tset` runs the module for its side effects, prints nothing, and exits 0.
+guardEntry(import.meta.url, ["--self-test"]);
 
 const RC = [
   0x0000000000000001n, 0x0000000000008082n, 0x800000000000808An, 0x8000000080008000n,

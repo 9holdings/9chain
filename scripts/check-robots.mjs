@@ -29,6 +29,10 @@
  *   node scripts/check-robots.mjs
  *   node scripts/check-robots.mjs --self-test
  */
+import { guardEntry } from "../local-net/lib/cli.mjs";
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ["--self-test"]);
 
 const TEN_MIEN = process.env.A1_TEN_MIEN || "a1.9chain.org";
 const HET_GIO = 15000;

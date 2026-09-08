@@ -44,6 +44,10 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--branch', '--deploy', '--range', '--self-test']);
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TABLE_PATH = path.join(HERE, "worktree-ownership.json");

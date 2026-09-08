@@ -5,6 +5,11 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, readdirSync } from
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 This gate takes NO flags. One handed to it is exit 2 — "could not run", not a verdict (D-244).
+guardEntry(import.meta.url, []);
+
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const work = path.join(root, 'work');

@@ -95,6 +95,10 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { guardEntry } from '../lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--adam-data', '--allow-busy-chain', '--at', '--boundary', '--eva-data', '--expect-chainid', '--json', '--lead-ms', '--offset-ms', '--quiet-probe-s', '--rpc', '--self-test', '--send', '--wallet-key']);
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../..");

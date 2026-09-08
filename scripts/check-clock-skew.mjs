@@ -73,6 +73,11 @@
  *   node scripts/check-clock-skew.mjs
  *   node scripts/check-clock-skew.mjs --self-test
  */
+import { guardEntry } from "../local-net/lib/cli.mjs";
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ["--offset-ms", "--rpc", "--samples", "--self-test", "--target"]);
+
 const argv = process.argv.slice(2);
 const lay = (co, mac) => { const i = argv.indexOf(co); return i >= 0 && argv[i + 1] ? argv[i + 1] : mac; };
 const DICH = lay("--target", "https://rpc-a1.9chain.org/ext/info");

@@ -42,6 +42,11 @@ import { fileURLToPath } from "node:url";
 import { keccak256, toChecksumAddress } from "../local-net/lib/eip55.mjs";
 import { CONTRACTS, SOLC_VERSION, libraryAlloc } from "../local-net/lib/l1-contracts.mjs";
 import { NETWORK_ID } from "../local-net/lib/chainid.mjs";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 This gate takes NO flags. One handed to it is exit 2 — "could not run", not a verdict (D-244).
+guardEntry(import.meta.url, []);
+
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");

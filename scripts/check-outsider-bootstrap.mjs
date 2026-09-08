@@ -84,6 +84,10 @@
 import net from "node:net";
 import { request } from "../local-net/lib/chain-ledger.mjs";
 import { genesisStakerIDs, partitionByFounding } from "../local-net/lib/genesis-stakers.mjs";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--rpc', '--self-test']);
 
 const ARGV = process.argv.slice(2);
 const SELF_TEST = ARGV.includes("--self-test");

@@ -3,9 +3,17 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--console', '--self-test']);
+
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const checks = [
+  ['local-net/lib/cli-test.mjs'],
+  ['scripts/check-flag-guards.mjs', '--self-test'],
+  ['scripts/check-flag-guards.mjs'],
   ['scripts/check-worktree-ownership.mjs'],
   ['scripts/check-patch-count.mjs', '--self-test'],
   ['scripts/check-patch-count.mjs'],

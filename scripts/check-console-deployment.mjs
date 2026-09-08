@@ -5,6 +5,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFile, execFileSync } from 'node:child_process';
 import { promisify } from 'node:util';
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 This gate takes NO flags. One handed to it is exit 2 — "could not run", not a verdict (D-244).
+guardEntry(import.meta.url, []);
+
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 if (process.argv.length !== 2) { console.error('Usage: node scripts/check-console-deployment.mjs'); process.exit(2); }

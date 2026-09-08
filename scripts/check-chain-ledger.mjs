@@ -85,6 +85,10 @@ import {
   publicLedgerUrl,
 } from "../local-net/lib/chain-ledger.mjs";
 import { RPC_URL } from "../local-net/lib/server.mjs";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--drill', '--file', '--rpc', '--self-test', '--url']);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);

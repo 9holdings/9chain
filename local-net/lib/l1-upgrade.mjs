@@ -50,6 +50,10 @@
  *   node local-net/lib/l1-upgrade.mjs --self-test
  */
 import { PRECOMPILE_KEYS, SELECTABLE_PRECOMPILES, REWARD_MODES } from "./l1-options.mjs";
+import { guardEntry } from './cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--self-test']);
 
 export const MIN_LEAD_SECONDS = 15 * 60;
 export const MAX_LEAD_SECONDS = 7 * 24 * 3600;

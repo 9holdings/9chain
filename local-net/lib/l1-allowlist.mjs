@@ -31,6 +31,12 @@
  * Usage:
  *   node local-net/lib/l1-allowlist.mjs --self-test
  */
+import { guardEntry } from "./cli.mjs";
+
+// 🔴 A mistyped flag is exit 2 — "could not run", never a verdict (D-244). `guardEntry` is a
+// no-op on import, which matters here more than anywhere: the whole point of this file's header
+// is that importing it must not run its gate.
+guardEntry(import.meta.url, ["--self-test"]);
 
 /**
  * Parse `A1_L1_ALLOWLIST` into a set of lowercased addresses.

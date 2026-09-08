@@ -29,6 +29,10 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 // The node's API as seen INSIDE its container — declared once (check-single-source).
 import { MANAGED_NODE_API } from "../local-net/lib/managed-node-rpc.mjs";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--compose', '--data', '--expect-peers', '--no-stream', '--nodes', '--self-test', '--services', '--ssh-key', '--ssh-user', '--tail', '--with-load']);
 
 const argv = process.argv.slice(2);
 const flag = (name, fallback) => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] !== undefined && !argv[i + 1].startsWith("--") ? argv[i + 1] : fallback; };

@@ -59,6 +59,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { NETWORK_ID, TEN_MANG } from "../local-net/lib/chainid.mjs";
 import { verifyFeeConfig } from "../local-net/lib/l1-options.mjs";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 This gate takes NO flags. One handed to it is exit 2 — "could not run", not a verdict (D-244).
+guardEntry(import.meta.url, []);
+
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");

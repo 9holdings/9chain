@@ -70,6 +70,10 @@
  * Usage:
  *   node local-net/lib/l1-options.mjs --self-test
  */
+import { guardEntry } from "./cli.mjs";
+
+// 🔴 A mistyped flag is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ["--self-test"]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants

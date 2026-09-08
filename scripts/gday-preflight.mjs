@@ -48,6 +48,10 @@ import { fileURLToPath } from "node:url";
 // a second copy, and check-single-source is right to say so: the day this host moves, a hand
 // note that still names the old machine is worse than no note - people trust the runbook.
 import { SSH_HOST } from "../local-net/lib/server.mjs";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--all-manual', '--no-network']);
 
 const SERVER_IP = SSH_HOST.split("@").pop();
 
@@ -167,6 +171,13 @@ const GATES = [
   { group: "2 · REPO GATES", name: "evidence gate knows how to go red (counter-check)", ...node("scripts/check-evidence.mjs", "--self-test") },
   // One constant, ONE place it is declared (D-113).
   { group: "2 · REPO GATES", name: "no constant has a second copy", ...node("scripts/check-single-source.mjs") },
+  // 🔴 A gate handed a flag it does not know must REFUSE, not measure something else and say
+  // PASS (D-244). Measured 2026-09-08: `check-chain-ledger.mjs --dril` printed PASS, exit 0,
+  // while not being in drill mode. This belongs in the G-day run for the same reason the
+  // language ratchet does — the flags in these runbooks are typed by a person under time
+  // pressure, and a typo used to produce a green line that meant nothing.
+  { group: "2 · REPO GATES", name: "flag-guard verdict rules (counter-check)", ...node("scripts/check-flag-guards.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "every gate refuses a flag it does not know", ...node("scripts/check-flag-guards.mjs") },
   // Language rule (CLAUDE.md §0, decided 2026-08-28): new code must be English; existing
   // debt may only shrink. Included in the G-day run because that is the most rushed moment,
   // and rushing is exactly when someone types a non-English comment into a new file.

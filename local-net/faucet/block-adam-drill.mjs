@@ -52,6 +52,10 @@
 //   --json <tệp>      ghi toàn bộ số đo ra JSON để lưu làm vật chứng.
 import { ethers } from "ethers";
 import { writeFileSync } from "node:fs";
+import { guardEntry } from '../lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--at', '--counter-check', '--json', '--lead-ms', '--no-send', '--offset-ms', '--rpc', '--settle-s', '--wallet-key']);
 
 // ───────────────────────────── tham số ─────────────────────────────
 function cờ(tên, mặcĐịnh = undefined) {

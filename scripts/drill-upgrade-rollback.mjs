@@ -53,6 +53,10 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, readd
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { upgradeShape } from "../local-net/lib/l1-upgrade.mjs";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--action', '--chain', '--compose', '--config-dir', '--console', '--data', '--fail-at', '--heal', '--measure', '--precompile', '--run', '--self-test', '--services', '--token']);
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ARGS = process.argv.slice(2);

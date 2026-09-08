@@ -9,6 +9,11 @@ import { fileURLToPath } from 'node:url';
 import { performance } from 'node:perf_hooks';
 import { createManagedNodeRpc } from '../local-net/lib/managed-node-rpc.mjs';
 import { waitForChainNodes } from '../local-net/lib/chain-readiness.mjs';
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--runtime-image']);
+
 
 const execute = promisify(execFile);
 const root = fileURLToPath(new URL('../', import.meta.url));

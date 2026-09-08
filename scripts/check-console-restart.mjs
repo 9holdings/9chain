@@ -6,6 +6,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { consoleReleaseFiles } from './prepare-console-release.mjs';
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--negative-legacy']);
+
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const args = process.argv.slice(2);

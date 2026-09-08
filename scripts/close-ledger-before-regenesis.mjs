@@ -39,6 +39,10 @@ import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { SSH_HOST, SSH_KEY } from "../local-net/lib/server.mjs";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--at', '--compact', '--host', '--out', '--pull', '--self-test', '--server-ledger', '--ssh-key']);
 
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);

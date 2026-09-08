@@ -15,6 +15,10 @@
  * KHÔNG có node_modules, thêm một import lạ là console chết lúc khởi động.
  */
 import { createHash } from "node:crypto";
+import { guardEntry } from './cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--self-test']);
 
 // Bảng của Bitcoin (bỏ 0 O I l). Gõ nhầm một ký tự ở đây là mọi ID lệch một cách
 // im lặng, nên bảng này được nghiệm thu bằng ID THẬT của mạng — xem selfTest().

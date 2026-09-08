@@ -38,6 +38,10 @@ import { readFileSync, writeFileSync, existsSync, statSync, unlinkSync } from "n
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { tmpdir } from "node:os";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--counter-check', '--keep-html']);
 
 const argv = process.argv.slice(2);
 const SRC = argv.find((a) => !a.startsWith("--"));

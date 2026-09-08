@@ -70,6 +70,10 @@ import { SSH_HOST, SSH_KEY, SRC_DIR, RPC_URL } from "../local-net/lib/server.mjs
 import { A1_GEN, NETWORK_ID } from "../local-net/lib/chainid.mjs";
 import { VI_FACTORY_THEO_THE_HE } from "../local-net/lib/factory-wallets.mjs";
 import { assessPublicLedger, publicLedgerUrl, summariseLedger } from "../local-net/lib/chain-ledger.mjs";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--probe', '--self-test']);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);

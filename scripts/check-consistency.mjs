@@ -27,6 +27,10 @@
  */
 
 import { readFileSync } from "node:fs";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--self-test']);
 // 🔴 `import` chứ không chép: đây là ĐÚNG mô-đun console dùng để cấp chainId cho
 // L1 người dùng. Chép bảng số sang đây là tái phạm lỗi mà chính tệp này đã dính
 // một lần với `SupplyCap` (xem khối chú thích ngay dưới).

@@ -51,6 +51,10 @@
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync, appendFileSync } from "node:fs";
 import { basename, join, posix } from "node:path";
+import { guardEntry } from '../local-net/lib/cli.mjs';
+
+// 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
+guardEntry(import.meta.url, ['--add-evm', '--attach', '--check', '--max-blocks', '--out', '--rpc']);
 
 function cờ(tên, mặcĐịnh = undefined) {
   const i = process.argv.indexOf(tên);
