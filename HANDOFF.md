@@ -1,4 +1,72 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
+## CHỐT PHIÊN 2026-09-08 ~10:2xZ (Claude, 9Chain A1 core — autopilot, pha 1b của mốc `L1-108`) — P-90→P-94 XONG, "RAM không phẳng" của pha 1 đã có lời giải, và nó KHÔNG phải rò rỉ
+
+**TL;DR.** Mở **pha 1b** (D-243) vì phát hiện duy nhất còn chặn 108 chain — *"RAM không phẳng"* của P-89 — **trả lời được ngay trên
+băng tập đang chạy**, không cần máy mới. Sáu mục P-90 → P-95; **P-90 · P-91 · P-92a · P-92 · P-93 · P-94 xong**, P-95 nạp vào
+backlog. Kết luận đổi hẳn hình dạng bài toán: **RAM đi theo GIAO DỊCH, không theo đồng hồ**; nó là **heap SỐNG**; **restart trả lại
+87 %**; và **`GOMEMLIMIT` không phải câu trả lời** — nó hạ RAM 40 % nhưng CPU 9 node đi **2,1 → 20,4 lõi** và **không tự khỏi khi
+hết tải**. ⇒ Đơn mua **giữ nguyên 9 × AX42**; thứ phải thêm là **lịch khởi động lại**, dùng rollout theo node đã có từ P-83.
+Mạng g1 công khai, server, `patches/`, `web/`: **không đổi**. Băng tập đã **trả về cấu hình cũ** và đo lại đúng mốc nghỉ của pha 1.
+`main` = `509810e`, **trước `origin` 45 commit, chưa đẩy** (David bấm sau `check-remotes` + `check-history-secrets`).
+Bằng chứng: `docs/EVIDENCE-L1-108-PHASE1B-2026-09-08.md`; cỡ máy ở `docs/PLAN-108-L1-LOAD-TEST.md` **§2d**.
+
+**Số đo, tất cả trên `net-tap-g1` (15 L1 · V=5 · 1 tx/s), đại lượng là `anon`:**
+
+| | mức |
+|---|---|
+| Nghỉ tải 3 h 48 | dốc **âm nhẹ**, tổng đội đứng yên ⇒ không rò rỉ theo đồng hồ |
+| Có tải, tuổi tiến trình 1–3 h | **296 MiB/node/giờ** · tuổi 8–9 h: **138–210** |
+| Quy về giao dịch | **52,8 · 53,5 · 54,7 KiB/tx** toàn đội — 3 cửa sổ, 2 phiên, lệch < 2 % |
+| Một lượt restart trả lại | **87 %** (1.939 → 242 MiB/node) |
+| `GOMEMLIMIT` 250 MiB (P-92) | RAM **296 → 179** (−40 %) · CPU **2,1 → 20,4 lõi** · loadavg **3,8 → 87,8**/24 |
+| …tắt bơm 90 s sau | **vẫn 20,57 lõi**, 0 giao dịch ⇒ vòng xoáy **tự nuôi** |
+| Bỏ trần + restart | **0,974 lõi** · loadavg 6,6 — khớp mốc nghỉ pha 1 (0,931) |
+
+**Việc tiếp:**
+- **[human] đẩy `origin`** 45 commit. `official` hỏi trước qua `publish-official.sh`.
+- **[human] bốn quyết định của mốc** vẫn nguyên (V · r · H-2 ACP-77 · WT-1) — pha 1b **không** đụng tới chúng.
+- **[human] deploy console** — vẫn là lý do `check-deploy-drift` đỏ, đúng thiết kế từ `07/09`.
+- **[main] P-95** — tìm **thứ đang giữ** bộ nhớ bằng hồ sơ heap. API admin của băng tập trả `404`
+  (`--api-admin-enabled` tắt) ⇒ bật cho **một** node, bơm ≥ 2 h, lấy `admin.memoryProfile` **hai lần** rồi so `-base`. Nếu tìm ra
+  và sửa được thì cả chuyện lịch restart thành thừa.
+- **[main] pha 2 khi có máy**: **đỉnh RAM sau 24 h** (pha 1b chạy 9 h, **chưa thấy trần** — mọi lịch restart lúc này là ngoại suy) ·
+  r = 3 tx/s · gossip liên máy · bootstrap node mới vào 15 chain.
+- Băng tập **đang chạy, cấu hình cũ, không tải** (9 node + `k1-drill-router`; `k1-drill-pump` đã dừng). Dừng hẳn:
+  `docker rm -f k1-drill-router k1-drill-pump` · `cd local-net/net-tap-g1 && MSYS_NO_PATHCONV=1 A1_CONFIG_DIR=<cfg> docker compose -f docker-compose.multinode.yml -f 9chain-a1-track.override.yml down` (giữ volume).
+
+**Gotchas phiên này — bốn cái đầu là lỗi ĐO của chính phiên, và chúng đáng nhớ hơn số:**
+- 🔴 **Chia cho số MÁY thay vì số NODE**: D-243 bản đầu viết *"pha 3 = 60 chain/node"*; đúng là **15** (PLAN-108 §0: `N ≥ 7,2 × V`
+  ⇒ 36 node trên 9 máy). Mọi tỉ số *"gấp N lần"* phải viết kèm **cả tử và mẫu có đơn vị**.
+- 🔴 **Cộng `VmRSS` thay vì `RssAnon`**: 9 plugin cùng ánh xạ **một** binary 65 MB ⇒ RSS đếm chín lần, ~390 MiB **không có thật**
+  trên node mới. Đại lượng đúng là **`anon`**; đối chứng: cgroup `anon` 253 = tổng `RssAnon` 253, cgroup `file` = 0.
+- 🔴 **So hai TỐC ĐỘ để đoán tác dụng của thứ chặn MỨC**: dự đoán *"trần chỉ với tới 20 %"* bị chính phép đo bác bỏ (40 %) — mức khi
+  không trần do `GOGC=100` đặt ở **gấp đôi heap sống**, ghim mức là bỏ luôn cú nhân đôi.
+- 🔴 **Đọc chi phí GC quá SỚM**: ở tuổi 2 h nó là 0,4 s/giờ và trông vô hại; ở tuổi 3 h là **9 lần CPU**. Đo một đại lượng có ngưỡng
+  thì phải đo **muộn**, không phải đo sớm rồi kết luận.
+- 🔴 **`GOMEMLIMIT` đặt ở compose KHÔNG tới plugin**: tiến trình plugin mang **đúng một biến**
+  (`AVALANCHE_VM_RUNTIME_ENGINE_ADDR`); `rpcchainvm/runtime/subprocess/runtime.go:76-82` dựng env **từ rỗng**, chỉ chuyển tiếp
+  `GRPC_*` và `GODEBUG`. Vỏ bọc mang **đúng tên VM ID** + `--plugin-dir` là đường sửa **không đụng `patches/`**.
+- 🔴 **Thư mục vỏ bọc chỉ được chứa vỏ bọc** (`vms/registry/vm_getter.go:86` ⇒ tên lạ = lỗi cứng = **node không boot**), và **giá trị
+  trần sai là CHẾT ngay lúc khởi động** (`fatal error: malformed GOMEMLIMIT`) — `1.5.5MiB` lọt cú pháp mà runtime từ chối.
+- 🔴 **Khi trần đang chặn thì `next_gc/2` THÔI là heap sống** (Go hạ đích GC để tôn trọng trần: đo `next_gc` 199 dưới trần 250).
+- **`MSYS_NO_PATHCONV=1` cũng chặn `/c/...` → `C:/...`** ⇒ node đọc `C:\c\PROJECTS\…` rồi ENOENT. Dấu hiệu: đường dẫn có **hai** ổ đĩa.
+- **Hai cổng console thừa kế `A1_DRILL_BAND` và chấm nhầm mạng** — `generation-test` hỏng 12/31, `check-genesis-verify` không khởi
+  động nổi. Biến mà test đang khẳng định về nó thì phải **đặt tường minh cho từng tiến trình con**, kể cả trường hợp tắt.
+- Chỉ **node-1** công bố cổng 9650 ra host ⇒ mọi phép hỏi sức khoẻ phải `docker exec … curl` **bên trong**. Và tiêu chí sẵn sàng nên
+  là *"đã bootstrap xong mọi chain"*, không phải `healthy:true`: node-9 khai `healthy:false` chỉ vì **không có kết nối vào** (D-121).
+- Chuỗi đo mất một node thì **không sinh dòng nào** ⇒ mẫu thiếu, tổng tụt, đọc thành *"RAM giảm"*. Trên dữ liệu thật, bản chưa vá
+  cho dốc **−4.382 MiB/node/giờ**.
+
+**Lệnh hữu ích:**
+```bash
+node scripts/measure-memory-split.mjs --compose local-net/net-tap-g1/docker-compose.multinode.yml --once   # sống / rác / ngoài Go
+node scripts/check-plugin-memlimit.mjs --compose <compose> [--expect 250MiB --expect-plugin 80MiB]
+node scripts/check-node-memory.mjs --compose <compose> --base 800 --per-chain 220 [--series <jsonl> --max-slope 20]
+bash local-net/tools/k1/scripts/16-memory-series.sh out/memory.jsonl 21600 300     # chuỗi đo, ở trong repo
+node local-net/tools/k1/scripts/17-memory-report.mjs out/memory.jsonl --since <ISO>
+bash local-net/tools/k1/scripts/15-plugin-memlimit.sh --out <dir> --limit 80MiB    # vỏ bọc, có tự kiểm giá trị
+```
+
 ## CHỐT PHIÊN 2026-09-08 ~01:40Z (Claude, 9Chain A1 core — autopilot mốc `L1-108`) — P-80→P-89 XONG, pha 1 đo 6 h 20 trên băng tập, 12 commit chưa đẩy
 
 **TL;DR.** David giao *"tối ưu code theo mục tiêu 108 chain L1"* → D-233 nạp mốc `L1-108` (10 mục) → autopilot chạy hết **P-80 → P-89**
