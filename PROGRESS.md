@@ -289,6 +289,17 @@ g1 công khai / server / `patches/` / `web/`.
       trung bình 132 so với 131,5", node-2 "riêng avalanchego 825 so với 800"), node-3 `1980` vẫn đạt · siết `--max-slope 0,5` ⇒
       chỉ **node-8** bị nêu, 8 node kia đạt. Container lạ ⇒ **mã 2**, không phải 0. Vào preflight nhóm 2 (self-test) và nhóm 3 khi
       có `A1_DRILL_BAND` + `A1_DRILL_COMPOSE`.
+- [ ] **P-95 — TÌM thứ đang GIỮ bộ nhớ, bằng hồ sơ heap** (mở `08/09` sau P-92; đây là mục biến kết luận thành việc sửa được).
+      P-92a + P-92 chỉ ra ~**79 MiB/node/giờ là heap SỐNG** — tức có cấu trúc nào đó trong `avalanchego`/subnet-evm **giữ tham
+      chiếu** theo số block/giao dịch đã xử lý, và không GC nào chạm tới. Biết *"bao nhiêu"* mà không biết *"chỗ nào"* thì chỉ còn
+      cách khởi động lại theo lịch. **Đo `08/09`: API admin của băng tập trả `404`** (`--api-admin-enabled` mặc định tắt), nên
+      `admin.memoryProfile` chưa dùng được — và bật nó là **thêm một lượt restart**, không làm giữa cửa sổ đo được.
+      **Cách làm (contained):** bật `--api-admin-enabled` cho **MỘT** node của băng tập, dựng lại riêng node đó qua override, bơm
+      như cũ ≥ 2 giờ, rồi lấy `admin.memoryProfile` **hai lần cách nhau ≥ 1 giờ** và so `-base` để thấy phần **tăng thêm**, không
+      phải phần nền. **Qua khi:** nêu được **tên hàm/kiểu giữ nhiều nhất** trong phần tăng, kèm số MiB, và nói rõ nó thuộc
+      `avalanchego` hay plugin. Ca đỏ: hồ sơ lấy **một lần** (không `-base`) sẽ chỉ ra bộ nhớ nền lúc khởi động — phải cho thấy hai
+      cách đọc ra kết luận khác nhau, để lần sau không ai đọc nhầm.
+      🔴 Chỉ bật trên băng tập. API admin trên mạng thật là bề mặt ghi được, không nằm trong phạm vi mốc này.
 - [ ] **P-94 — Kết luận cỡ máy vào `docs/PLAN-108-L1-LOAD-TEST.md` §2 + soát lại đơn mua** — trả lời bằng số đo: 60 chain/node có nằm
       trong 64 GB của AX42 không, và **biên** còn bao nhiêu. **Qua khi:** §2 có bảng RAM/chain/node **đo được** (không phải ước), và
       một câu **kết luận có hướng** cho `PROCUREMENT-K1`: giữ 9 máy · đổi cấu hình · hay đổi V. Ca đỏ: nếu số đo nói AX42 **không** đủ
