@@ -33,6 +33,8 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { setTimeout as sleep } from "node:timers/promises";
+// The node's API as seen INSIDE its container — declared once (check-single-source).
+import { MANAGED_NODE_API } from "../local-net/lib/managed-node-rpc.mjs";
 
 const argv = process.argv.slice(2);
 const flag = (name, fallback) => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] !== undefined && !argv[i + 1].startsWith("--") ? argv[i + 1] : fallback; };
@@ -85,7 +87,7 @@ function docker(args, timeout = 60_000) {
 /** One node, one moment: anonymous memory from /proc and the Go figures from the node's own metrics. */
 function sample(svc) {
   const rss = docker(["exec", svc, "sh", "-c", RSS_PROBE]);
-  const metrics = docker(["exec", svc, "curl", "-sf", "-m", "20", "http://127.0.0.1:9650/ext/metrics"]);
+  const metrics = docker(["exec", svc, "curl", "-sf", "-m", "20", `${MANAGED_NODE_API}/ext/metrics`]);
   if (!rss || !metrics) return null;
   const [n, p, c] = rss.trim().split(/\s+/).map(Number);
   if (![n, p, c].every(Number.isFinite) || c === 0) return null;
