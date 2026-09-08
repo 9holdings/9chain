@@ -10810,3 +10810,50 @@ gần như **không bao giờ** được nêu; **(2)** không cổng nào bị b
 cũng đỏ"* — thứ bản tuần tự chưa bao giờ biết. Ca đỏ thật: con chậm thoát 0 **sau cùng**, con nhanh thoát 3
 **trước** ⇒ vẫn nêu đúng con thứ hai. Đầu ra **hứng lại rồi in theo thứ tự danh sách**: chín tiến trình cùng ghi
 một terminal ra thứ trông như hỏng dữ liệu, mà HANDOFF thì trích nguyên văn các dòng này.
+
+---
+
+## D-247 — **P-102 bị THU HẸP bằng số đo: nửa mã thoát không có nợ nào để trả, nửa "một bộ in cho mọi cổng" bị chính điều kiện qua của nó bác bỏ** (`2026-09-08` chiều, P-102)
+
+**Mục P-102 đặt ra hai việc. Đo trước khi làm, và số đo đổi cả hai.**
+
+**(a) Nửa mã thoát: KHÔNG có nợ.** Đo `08/09`: **7/7** chỗ trong repo in *"CANNOT RUN"* đều đã gọi
+`process.exit(2)` (`check-genesis-contracts` · `check-genesis-published` · `check-genesis-verify` ·
+`check-l1-upgrades` · `check-outsider-bootstrap` · `check-validator-onboarding` · `drill-upgrade-rollback`).
+Không có trôi dạt để sửa. Nửa có giá trị nhất của mục này **đã được làm sẵn** bởi những người viết các cổng đó —
+và nếu tôi không đo, tôi đã đi "sửa" một thứ không hỏng.
+
+**(b) Nửa "một bộ in dùng chung cho ≥20 cổng": BỊ BÁC BỎ, và thứ bác bỏ nó là điều kiện qua tôi tự viết cho nó.**
+Điều kiện đó là *"hình dạng dòng ra trùng byte với bản cũ"*, và lý do nó có mặt là đúng: `HANDOFF.md`,
+`PROGRESS.md` và các runbook **trích nguyên văn** dòng phán quyết của cổng. Nhưng hai vế không cùng tồn tại được:
+một bộ in làm 23 cổng đồng nhất thì **hoặc** đổi những chuỗi người ta đang dùng để nhận ra một lượt chạy,
+**hoặc** phải tham số hoá tới mức không tiết kiệm gì. Các cổng trả lời **những câu hỏi khác nhau**; dòng tổng kết
+của chúng nói thứ khác nhau **có chủ ý**, không phải vì thiếu kỷ luật.
+
+🔴 **Và §6 không nói cái mà mục này tưởng nó nói.** §6 nói về một **LUẬT** hoặc một **HẰNG SỐ** có bản khai thứ
+hai âm thầm lệch bản đầu — hai chỗ khai `A1Gen`, hai chỗ khai một tree hash. Một hàm `ok(label, cond)` **năm
+dòng** không thuộc lớp đó: hai bản của nó không thể "bất đồng" về một sự thật nào cả. Áp §6 vào mọi đoạn lặp là
+làm loãng chính §6 ở chỗ nó thật sự cần.
+
+**(c) Nửa CÓ giá trị — và bằng chứng đến từ chính phiên này, không từ lý thuyết.** Bốn cổng mới viết trong ngày
+`08/09` — `cli-test` · `check-flag-guards` · `check-fetch-timeouts` · `check-fixed-ports` — **gõ lại đúng một
+hàm `ok()` bốn lần**, cùng bộ đếm, cùng dòng tổng kết. Lần thứ năm là lý do `scripts/lib/report.mjs` tồn tại:
+`EXIT` (đóng băng, để không cổng nào định nghĩa lại nghĩa của **2**) · `counter()` · `cannotRun()`.
+`report-test.mjs` **19 ca**. `check-fixed-ports` đã dùng nó **trên đường thật**: mã thoát **không đổi**, dòng ra
+chỉ **thêm** số ca. Nó là **lời mời, không phải mệnh lệnh** — cổng cũ giữ cách in của chúng cho tới khi có lý do
+khác để sửa.
+
+🔴 **`finish()` TRẢ VỀ mã thoát, không gọi `process.exit()`.** Bẫy Windows/undici mà chính phiên này đã dính ở
+`http-test.mjs`: gọi `process.exit()` khi `fetch` còn handle mở làm tiến trình abort với
+`Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` và shell thấy **mã 127** — **sau khi mọi ca đã in ✓**.
+Một cổng đạt rồi khai 127 thì không phân biệt được với một cú sập. Đã ghi sẵn ở `local-net/lib/chain-ledger.mjs:36`;
+đo lại `08/09`.
+
+**🔴 Lỗi §0 của chính lượt này, và cổng bắt nó trong vòng một phút.** Bản đầu của khối chú thích trong
+`report.mjs` **trích nguyên văn dòng tổng kết preflight bằng tiếng Việt** để làm ví dụ cho lập luận *"các dòng
+này đang bị trích dẫn"*. `check-english-code` đỏ ngay: nợ **5406 → 5407**, một tệp sạch nay có tiếng Việt.
+**Trích dẫn đầu ra không phải một ngoại lệ của §0** — ba ngoại lệ của §0 là tệp dịch VI, `docs/**` + `*.md` gốc,
+và `docs/evidence/**`; một chú thích trong `scripts/lib/` không nằm trong số đó. Bánh cóc làm đúng việc của nó
+lên chính người vừa viết cổng cho nó.
+
+**Số đo sau mục:** `check-local` **18 cổng / 19,4 s** · `check-flag-guards` 56/56 · nợ §0 trở lại **5406, không phình**.

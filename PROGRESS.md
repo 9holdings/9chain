@@ -143,12 +143,29 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       lên là **rút ngắn** một hạn đã chọn có chủ ý, và nó sẽ báo "timeout", tức đọc thành *"console chậm"*.
       Ba miễn trừ, mỗi cái có LÝ DO (hai ca đối chứng bare-fetch + chính cổng này, vì fixture của nó là mã trong chuỗi).
       Đo sau: `check-local --console` **36 cổng / 55 ca** xanh · nợ §0 không phình. `http.mjs` khai vào manifest deploy.
-- [ ] **P-102 — Một bộ in phán quyết + mã thoát dùng chung** (`scripts/lib/report.mjs`, mới). Đo `08/09`: **23 tệp**
+- [x] **P-102 — Một bộ in phán quyết + mã thoát dùng chung** — **THU HẸP CÓ CHỦ Ý, xem số đo** (`scripts/lib/report.mjs`, mới). Đo `08/09`: **23 tệp**
       tự viết ok/fail, **76 tệp** tự phân tích `process.argv`. Cùng một logic, nhiều bản, và mỗi bản là một cơ hội
       lệch quy ước 0/1/2.
       **Qua khi:** ≥ 20 cổng dùng chung bộ in · hình dạng dòng ra **trùng byte** với bản cũ (so bằng ảnh chụp stdout
       trước/sau, giữ trong `scripts/fixtures/`) — vì HANDOFF và runbook đang trích dẫn nguyên văn các dòng đó.
       **Ca đỏ:** một cổng trả mã 1 khi nó chỉ *không chạy được* ⇒ self-test đỏ (đó là mã 2).
+      🔵 `08/09` chiều (autopilot, D-247) — **hai nửa của mục này, một nửa đã xong sẵn, một nửa bị BÁC BỎ bằng số đo:**
+      🔴 **Nửa mã thoát KHÔNG có nợ nào để trả.** Đo: **7/7** chỗ trong repo khai *"CANNOT RUN"* đều đã
+      `process.exit(2)`. Không có trôi dạt để sửa — người viết những cổng này đã làm đúng từ đầu.
+      🔴 **Nửa "một bộ in dùng chung cho ≥20 cổng" bị BÁC BỎ**, và điều kiện qua tôi tự viết cho nó
+      (*"dòng ra trùng byte với bản cũ"*) chính là thứ bác bỏ nó: `HANDOFF.md`, `PROGRESS.md` và runbook
+      **trích nguyên văn** dòng phán quyết (*"✅ PASS — no new Vietnamese…"*, *"31 đạt · 3 đỏ"*). Một bộ in làm
+      chúng đồng nhất thì hoặc **đổi chuỗi người ta đang dùng để nhận ra một lượt chạy**, hoặc phải tham số hoá
+      tới mức không tiết kiệm gì. Các cổng trả lời **câu hỏi khác nhau** và dòng tổng kết của chúng nói thứ khác
+      nhau **có chủ ý**. §6 nói về một **LUẬT** hay một **HẰNG SỐ** có bản khai thứ hai âm thầm lệch bản đầu —
+      một hàm `ok(label, cond)` năm dòng không thuộc lớp đó.
+      ✅ **Nửa CÓ giá trị, và bằng chứng đến từ chính phiên này:** bốn cổng mới viết `08/09` (`cli-test` ·
+      `check-flag-guards` · `check-fetch-timeouts` · `check-fixed-ports`) **gõ lại đúng một hàm `ok()` bốn lần**.
+      `scripts/lib/report.mjs` (`EXIT` đóng băng · `counter()` · `cannotRun()`) + `report-test.mjs` **19 ca**;
+      `check-fixed-ports` đã dùng nó trên đường thật, mã thoát **không đổi**, dòng ra chỉ **thêm** số ca.
+      🔴 `finish()` **trả về** mã thay vì `process.exit()` — bẫy Windows/undici (`UV_HANDLE_CLOSING`, mã **127**
+      sau khi mọi ca đã in ✓) mà chính phiên này đã dính ở `http-test.mjs`.
+      ⏳ Còn lại là **mời, không ép**: cổng cũ giữ nguyên cách in của chúng cho tới khi có lý do khác để sửa.
 - [x] **P-103 — `check-local.mjs` chạy song song** (nền: **34,9 s** tuần tự, 23 ca).
       **Qua khi:** ≤ **15 s** trên cùng máy, cùng danh sách, đo 3 lượt lấy trung vị · tập ca chạy **y hệt**.
       **Ca đỏ:** fixture một ca hỏng ⇒ cả lượt vẫn đỏ và **nêu đúng tên script hỏng** (không phải script chạy cuối).

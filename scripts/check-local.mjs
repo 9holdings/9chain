@@ -13,6 +13,7 @@ guardEntry(import.meta.url, ['--console', '--self-test']);
 const root = fileURLToPath(new URL('../', import.meta.url));
 const checks = [
   ['local-net/lib/cli-test.mjs'],
+  ['scripts/lib/report-test.mjs'],
   ['local-net/lib/http-test.mjs'],
   ['scripts/check-fetch-timeouts.mjs', '--self-test'],
   ['scripts/check-fetch-timeouts.mjs'],

@@ -37,6 +37,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { guardEntry } from "../local-net/lib/cli.mjs";
 import { blankComments, blankStrings, lineAt } from "./lib/source-scan.mjs";
+import { counter } from "./lib/report.mjs";
 
 // 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
 guardEntry(import.meta.url, ["--self-test", "--list"]);
@@ -164,13 +165,9 @@ function main() {
 /* ─────────────────────────── counter-check (--self-test) ─────────────────────────── */
 
 function selfTest() {
-  let failures = 0;
-  const ok = (what, cond, detail = "") => {
-    if (cond) console.log(`  ✓ ${what}`);
-    else { failures += 1; console.log(`  🔴 ${what}${detail ? `\n      ${detail}` : ""}`); }
-  };
-
-  console.log("══ COUNTER-CHECK — what counts as a claim, and what counts as a clash ══\n");
+  // The shared tally (D-247). Same lines, same codes — it exists because this exact five-line
+  // helper was typed out four times on 2026-09-08, in the four gates written that day.
+  const { ok, finish } = counter("COUNTER-CHECK — what counts as a claim, and what counts as a clash");
 
   ok("a named port constant is a claim", scanPorts("const PORT = 8501;")[0].port === 8501);
   ok("a suffixed name counts too", scanPorts("const PORT_FAKE_NODE = 8502;")[0].port === 8502);
@@ -197,10 +194,7 @@ function selfTest() {
   ok(`the repository itself is clean (${real.length} conflict(s))`, real.length === 0,
     real.map((c) => `port ${c.port}: ${[...new Set(c.users.map((u) => u.rel))].join(" · ")}`).join("\n      "));
 
-  console.log(failures === 0
-    ? "\n✅ PASS — a claim is a claim, a timeout is not, and one file may repeat itself."
-    : `\n🔴 FAIL — ${failures} case(s).`);
-  return failures === 0 ? 0 : 1;
+  return finish("a claim is a claim, a timeout is not, and one file may repeat itself");
 }
 
 process.exitCode = process.argv.includes("--self-test") ? selfTest() : main();
