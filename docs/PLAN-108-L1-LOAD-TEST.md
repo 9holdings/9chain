@@ -86,6 +86,41 @@ của **4 nhân**. Sát hơn đã nghĩ: hyper-threading cho ~1,3× nhân, khôn
 | Băng thông gossip liên máy | hôm nay 9 node cùng máy, 0 byte ra Internet | đo ở pha 2 |
 | Thời gian bootstrap một node vào 15 chain | rolling restart hôm nay là 9 node cùng máy | đo ở pha 1 |
 
+### 2d. 🔴 RAM — đo thật ở pha 1 và 1b (`2026-09-07/08`, băng tập, D-242 · D-243)
+
+Bảng §2b đo **chain im**. Dưới tải thì đại lượng đổi hẳn, và bảng dưới là số đo trên **15 L1 · V=5 · 1 tx/s mỗi chain**, 9 node
+một máy. Đại lượng chấm là **`anon`** (cgroup `anon`, bằng đúng tổng `RssAnon`) — **không phải tổng RSS**: cả 9 plugin cùng ánh
+xạ MỘT binary 65 MB, nên cộng RSS đếm chỗ đó chín lần (~390 MiB không có thật trên một node vừa khởi động).
+
+| Đại lượng | Số | Điều kiện |
+|---|---|---|
+| RAM lên mỗi node | **296 MiB/giờ** ở tuổi tiến trình 1–3 h · **138–210** ở tuổi 8–9 h | 8,3 chain/node (15 × V5 ÷ 9) |
+| Quy về giao dịch | **52,8 · 53,5 · 54,7 KiB/tx** toàn đội (3 cửa sổ, 2 phiên, lệch < 2 %) | ⇒ ~10,7 KiB/tx/node lúc trẻ, **4,7 lúc già** |
+| Khi **KHÔNG có tải** | dốc **âm nhẹ**; tổng đội đứng yên qua 3 h 48 | RAM đi theo **giao dịch**, không theo đồng hồ |
+| Một lượt **restart** trả lại | **87 %** (`anon`/node 1.939 → 242 MiB) | bộ nhớ gắn với **vòng đời tiến trình** |
+| Mức đạt sau 6,3 h | **1.736 MiB/node** | pha 1, 8,3 chain/node |
+
+🔴 **Tải này KHÔNG sinh trạng thái** — bơm gửi chuyển tiền cho chính mình (`pump_ledger.go:166`), mỗi tx chạm đúng một tài khoản.
+Thứ lớn lên là **lịch sử**, không phải trạng thái. ⇒ mọi con số trên là **SÀN**; mạng thật cộng thêm phần trạng thái.
+
+**`GOMEMLIMIT` KHÔNG phải câu trả lời — đã thử và đo (P-92):** trần 250 MiB trên `avalanchego` hạ dốc **296 → 179 MiB/node/giờ**
+(**−40 %**), nhưng CPU 9 node đi **2,1 → 20,4 lõi** và loadavg **3,8 → 87,8** trên 24 cpu, vì heap **sống** vượt trần trong chưa
+đầy 3 giờ (`heap_sys` 288 > trần 250, 46.946 lượt GC). **Dừng tải không cứu được**: 90 s sau khi tắt bơm vẫn 20,57 lõi với 0 giao
+dịch. Heap sống lớn không có trần ⇒ **mọi** trần cố định rồi cũng bị vượt, và từ đó node đốt CPU thay vì đốt RAM.
+
+**⇒ Kết luận cho §3 và cho đơn mua (P-94):**
+
+1. **Cỡ máy KHÔNG phải chỗ nghẽn.** Suy sang pha 3 (**15 chain/node**, tức ×1,8 tải mỗi node): ~3,1 GB/node sau 6 h, **4 node/máy
+   ⇒ ~12,5 GB** trên máy 64 GB. `AX42` **đủ, không cần đổi**. Mô hình §3 (`RAM/node ≈ 0,4 + 0,15·L` GB) khớp mức **lúc chain im**;
+   dưới tải phải cộng thêm phần theo giao dịch ở bảng trên.
+2. **Chỗ nghẽn là bộ nhớ KHÔNG BAO GIỜ TRẢ LẠI khi tiến trình còn sống.** Vận hành 9 tỷ chain trên nền này cần **lịch khởi động
+   lại**, không cần máy to hơn — và cơ chế đã có sẵn từ P-83: rollout theo node, chỉ restart node cần restart, có chứng minh
+   `StartedAt`. Khởi động lại mỗi ngày là **quá đủ** so với dốc đo được.
+3. **Đừng đặt `GOMEMLIMIT` cố định** trên node mạng thật. Nếu vẫn muốn dùng, nó là **van an toàn** đặt CAO (trên mức đỉnh giữa hai
+   lượt restart), không phải công cụ tiết kiệm RAM.
+4. Số còn thiếu để chốt lịch restart: **đỉnh sau 24 h** — pha 1b chỉ chạy tới 9 h và **chưa thấy trần**. Đó là phép đo đầu tiên
+   của pha 2, cùng với P-95 (tìm thứ đang giữ bộ nhớ; nếu tìm ra và sửa được thì cả mục này thành thừa).
+
 ---
 
 ## 3. Mô hình tính — thay số là ra
