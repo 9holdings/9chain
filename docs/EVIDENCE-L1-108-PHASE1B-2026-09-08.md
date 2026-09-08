@@ -199,7 +199,23 @@ tức tuổi **1,2 h → 3,05 h**, 1,87 h — chọn 1–3 h vì chuỗi đo phi
 - Dốc rơi **sâu hơn nhiều** (vd < 220) ⇒ mô hình **sai**, phải viết lại §3c.
 - Dốc **không đổi** (~308) ⇒ trần không có tác dụng nào đo được, và câu trả lời nằm hoàn toàn ngoài heap Go.
 
-Ngưỡng đặt: `avalanchego` **450 MiB**, mỗi plugin **80 MiB** — chọn để **chạm trần trong lúc chạy** (heap Go sau restart leo
-~94 MiB/node/giờ) mà vẫn để GC ~1,8 lần heap sống, không ép vào vòng quay chết.
+### 4b. Ngưỡng — và vì sao lượt đầu phải làm lại
 
-(số đo điền khi chạy xong)
+Lượt đầu đặt `avalanchego` **450 MiB** · plugin **80 MiB**, chọn theo `heap_sys` **trước** restart (743 và ~102/plugin). Áp xong
+mới lộ ra rằng đó là sai đại lượng: **restart trả lại gần hết bộ nhớ**, node-1 từ `heap_sys` 743 xuống **76 MiB**. Từ 76 MiB leo
+~88 MiB/giờ thì trần 450 phải hơn **4 giờ** mới chạm — tức **ngoài cửa sổ đo tuổi 1–3 h**. Thí nghiệm sẽ cho *"không khác gì"* vì
+trần **chưa từng chặn**, không phải vì trần vô dụng. Đặt lại: **`avalanchego` 250 MiB**.
+
+| tiến trình | `heap_sys` ngay sau restart | trần | chạm trần sau | trần / heap sống lúc đó |
+|---|---|---|---|---|
+| `avalanchego` | 76 MiB (node-1) | **250 MiB** | ~1,8 h | ~2,0 × |
+| mỗi plugin | 18 MiB | **80 MiB** | ~44 h — **cố ý không chạm** | — |
+
+🔴 **Trần của plugin CỐ Ý không chặn, và đó là một phép đo chứ không phải sự lười.** Heap Go của plugin lên **1,2 MiB/giờ** trong
+khi RSS của nó lên **15–17 MiB/giờ**: ép trần plugin chặn được thì phải hạ xuống sát heap sống (~6 MiB), vừa nguy hiểm vừa **không
+kiểm thêm điều gì** — vì con số trên đã nói phần phình của plugin **không nằm trong heap Go**. Nửa `avalanchego` là nửa duy nhất
+mà một trần Go còn có chỗ để chặn, nên nó là nửa được đem ra thử.
+
+### 4c. Số đo
+
+(điền khi cửa sổ tuổi 1–3 h khép)
