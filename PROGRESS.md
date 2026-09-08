@@ -295,13 +295,26 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       theo memory *"xoá trên server"* · `check-key-leaks` xanh trước và sau · đo lại thời gian nó chạy.
       🔴 Trước khi xoá bất cứ thư mục `work/*` nào: chạy `check-key-leaks` để chắc không có vật liệu khoá trong đó —
       nếu có thì **`shred -u -n 3`**, không phải `rm` (D-117).
-- [ ] **P-109 — Dựng sẵn phép đo cho quyết định P-95 (KHÔNG sinh lại `patches/`).** David chốt: *"không đụng — chỉ
+- [x] **P-109 — Dựng sẵn phép đo cho quyết định P-95 (KHÔNG sinh lại `patches/`).** David chốt: *"không đụng — chỉ
       chuẩn bị phép đo"*. Cái giá chưa ai đo của việc hạ `64+64+64 MiB/chain` xuống `10+5+5` là **tỉ lệ trúng bộ đệm
       khi block bị đuổi sớm**.
       **Qua khi:** có công cụ đọc được tỉ lệ trúng/trượt bộ đệm block từ một node đang chạy, **tự kiểm bằng `--self-test`**,
       chạy được ngay khi có máy pha 2 · viết vào `docs/PLAN-108-L1-LOAD-TEST.md` cách chạy · **không byte nào của
       `patches/` đổi** (`check-patch-count` + tree fork xanh).
       **Ca đỏ:** `--self-test` với chuỗi đếm giả đi lùi ⇒ từ chối, không nội suy thành tỉ lệ.
+      ✅ `08/09` tối (autopilot, D-253): `scripts/measure-block-cache.mjs`, **16 ca**, không cần mạng để tự kiểm.
+      Số đo có sẵn để lấy: `chain.State` đăng ký bốn bộ đệm qua `NewMeteredState`
+      (`vms/components/chain/state.go:102`) ⇒ `<cache>_get_count{result="hit"|"miss"}` + `<cache>_portion_filled`.
+      🔴 **Ba thứ dụng cụ TỪ CHỐI làm, và đó là phần đáng đọc:** (1) lấy **HAI** mẫu — bộ đếm **luỹ kế từ boot**
+      nên một lượt đọc trả lời câu *"tỉ lệ kể từ khi node khởi động"*, bị **bootstrap** thống trị (trượt hết ở
+      **mọi** cỡ bộ đệm); câu P-95 hỏi là **trạng thái dừng**, tức hiệu số — cùng hình dạng sai với D-246 ·
+      (2) bộ đếm **đi lùi ⇒ mã thoát 2**: counter chỉ tăng, thấp hơn nghĩa là **restart giữa hai mẫu**, nội suy qua
+      đó cho một tỉ lệ tính từ **hai vòng đời** in ra với vẻ tự tin y như thật · (3) `portion_filled` in **cạnh mọi
+      tỉ lệ**, chỉ dòng `✓` mới là bằng chứng — *tỉ lệ trúng của bộ đệm 3 % đầy không nói gì về bộ đệm nhỏ hơn*.
+      Chạy thật trên đường tôi có: self-test 16/16 · node không tới được ⇒ **exit 2, khai "nothing was measured"** ·
+      cờ lạ ⇒ exit 2. **`patches/` không đổi một byte** (`check-patch-count` xanh · `git status patches/` rỗng).
+      ⏳ **Chưa chạy trên node sống** — cần băng tập, nằm ngoài phạm vi David chốt cho mốc này; thủ tục pha 2 ghi ở
+      `docs/PLAN-108-L1-LOAD-TEST.md` §2e.
 
 ---
 

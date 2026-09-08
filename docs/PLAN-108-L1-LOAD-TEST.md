@@ -133,6 +133,39 @@ dịch. Heap sống lớn không có trần ⇒ **mọi** trần cố định r�
    trúng bộ đệm khi block bị đuổi sớm hơn — **phép đo của pha 2**, không phải suy đoán. Bằng chứng đầy đủ:
    `docs/EVIDENCE-L1-108-PHASE1B-2026-09-08.md` §5.
 
+### 2e. 🔴 DỤNG CỤ ĐO CÁI GIÁ ĐÓ ĐÃ SẴN SÀNG — `measure-block-cache.mjs` (D-253, `2026-09-08`)
+
+David chốt `08/09`: **không đụng `patches/`, chỉ dựng phép đo.** Dụng cụ đã có, tự kiểm **16 ca**, chạy được
+ngay khi có máy pha 2 — nó **không** sửa gì và **không** cần băng tập để tự kiểm.
+
+```bash
+node scripts/measure-block-cache.mjs --self-test                    # 16 ca, không cần mạng
+node scripts/measure-block-cache.mjs --url http://127.0.0.1:9650/ext/metrics --seconds 300
+node scripts/measure-block-cache.mjs --compose <compose> --service node-1 --seconds 300
+```
+
+Số đo lấy từ bốn bộ đệm `chain.State` khai ở `vms/components/chain/state.go:102` —
+`decided_cache` · `unverified_cache` · `bytes_to_id_cache` · `missing_cache` — qua
+`<cache>_get_count{result="hit"|"miss"}` và `<cache>_portion_filled`.
+
+**Ba điều dụng cụ này TỪ CHỐI làm, và đó là phần đáng đọc:**
+
+1. 🔴 **Nó lấy HAI mẫu, không phải một.** Bộ đếm là **luỹ kế từ lúc boot**, nên một lượt đọc trả lời câu
+   *"tỉ lệ trúng kể từ khi node khởi động"* — con số đó bị **bootstrap** thống trị (hàng nghìn lượt lấy block
+   tuần tự, trượt hết, và sẽ trượt hết ở **mọi** cỡ bộ đệm). Câu P-95 hỏi là câu về **trạng thái dừng**, tức
+   **hiệu số** giữa hai lượt đọc. Cùng hình dạng sai với D-246: một con số đúng số học, trả lời câu khác.
+2. 🔴 **Bộ đếm ĐI LÙI ⇒ từ chối, mã thoát 2.** Counter chỉ tăng; thấp hơn nghĩa là tiến trình **restart giữa hai
+   mẫu**, và khoảng đó không còn mô tả một lượt chạy liền mạch. Nội suy qua đó cho ra một tỉ lệ tính từ **hai
+   vòng đời khác nhau**, in ra với đúng vẻ tự tin như một tỉ lệ thật.
+3. 🔴 **Tỉ lệ trúng của một bộ đệm CHƯA ĐẦY không phải bằng chứng về một bộ đệm NHỎ HƠN.** Chưa có gì bị đuổi thì
+   thu nhỏ nó không đổi điều gì phép đo này thấy được. Nên `portion_filled` in **cạnh mọi tỉ lệ**, và chỉ dòng
+   đánh dấu `✓` mới được dùng để lập luận. *Đọc một tỉ lệ trúng cao trên một bộ đệm rỗng rồi kết luận "bộ đệm
+   đang làm việc tốt" là để phép đo tâng bốc quyết định, không phải để nó chống đỡ quyết định.*
+
+**Cách dùng ở pha 2:** chạy trên băng tập ở **cỡ hiện tại**, ghi lại các dòng `✓`; rồi (nếu David quyết sinh lại
+`patches/`) chạy lại ở cỡ plugin và so **đúng những dòng đó**. Chênh lệch tỉ lệ trúng trên các dòng có `✓` chính
+là **cái giá**, và nó là con số duy nhất còn thiếu để quyết `3,1 GB → 0,6 GB`.
+
 ---
 
 ## 3. Mô hình tính — thay số là ra

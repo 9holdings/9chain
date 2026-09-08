@@ -191,6 +191,9 @@ const GATES = [
   // gate did not finish inside 600 s; after pruning to 1.1 GB it ran in 4 m 18 s (D-252).
   { group: "2 · REPO GATES", name: "work/ retention rules (counter-check)", ...node("scripts/check-work-retention.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "work/ stays small enough for the leak gate to run", ...node("scripts/check-work-retention.mjs") },
+  // The cost side of the P-95 decision. The tool does not change anything; this gate only proves
+  // its verdict rules still hold — a restart is refused, an empty cache is not evidence (D-253).
+  { group: "2 · REPO GATES", name: "block-cache measurement rules (counter-check)", ...node("scripts/measure-block-cache.mjs", "--self-test") },
   // Language rule (CLAUDE.md §0, decided 2026-08-28): new code must be English; existing
   // debt may only shrink. Included in the G-day run because that is the most rushed moment,
   // and rushing is exactly when someone types a non-English comment into a new file.

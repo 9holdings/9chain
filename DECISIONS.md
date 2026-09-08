@@ -10945,3 +10945,39 @@ khẳng định rằng phép quét rộng luôn là **tập cha** — nới rộ
 
 **Số đo:** `readiness-e2e-test` **31 → 32 ca**, xanh · `check-deploy-imports` self-test 13 ca + đường thật xanh ·
 `check-local --console` **39 cổng / 55 ca trong 63,0 s** (nền tuần tự trước P-103: 2 phút 31) · nợ §0 không phình.
+
+---
+
+## D-253 — **P-109: dựng phép đo cho quyết định P-95, và ba thứ dụng cụ TỪ CHỐI làm** (`2026-09-08` tối)
+
+**David chốt `08/09`:** *"không đụng — chỉ chuẩn bị phép đo"*. `patches/` **không đổi một byte**
+(`check-patch-count` xanh, `git status patches/` rỗng).
+
+**Thứ chưa ai đo là CÁI GIÁ.** P-95 tìm ra trần: `avalanchego` giữ **64+64+64 MiB** block đã phân tích mỗi chain
+(`vms/rpcchainvm/vm_client.go:61-64`) trong khi plugin giữ **10+5+5** (`graft/subnet-evm/plugin/evm/vm.go:107`)
+⇒ mỗi node `chain × 212 MiB`, **~3,1 GB** ở 15 chain; hạ về mức plugin thành `chain × 40 MiB`, **0,6 GB**. Thứ
+chưa đo là **đuổi block sớm hơn thì tỉ lệ trúng bộ đệm tụt bao nhiêu**. Số đo đã có sẵn để lấy: `chain.State`
+đăng ký bốn bộ đệm qua `NewMeteredState` (`vms/components/chain/state.go:102`).
+
+**🔴 Ba thứ dụng cụ TỪ CHỐI làm — đó mới là nội dung của nó:**
+
+**(1) Lấy HAI mẫu, không phải một.** `<cache>_get_count` là **luỹ kế từ lúc boot**. Một lượt đọc trả lời câu
+*"tỉ lệ trúng kể từ khi node khởi động"*, và con số đó bị **bootstrap** thống trị — hàng nghìn lượt lấy block
+tuần tự, trượt hết, và sẽ trượt hết ở **MỌI** cỡ bộ đệm. Câu P-95 hỏi là câu về **trạng thái dừng**, tức
+**hiệu số** giữa hai lượt đọc. **Cùng hình dạng sai với D-246**: một con số đúng số học, trả lời câu khác.
+
+**(2) Bộ đếm đi LÙI ⇒ mã thoát 2.** Counter chỉ tăng. Thấp hơn nghĩa là tiến trình **restart giữa hai mẫu**, và
+khoảng đó không còn mô tả một lượt chạy liền mạch. Nội suy qua đó cho ra một tỉ lệ tính từ **hai vòng đời khác
+nhau**, in ra với đúng vẻ tự tin như một tỉ lệ thật.
+
+**(3) `portion_filled` in cạnh MỌI tỉ lệ, và chỉ dòng `✓` mới là bằng chứng.** Tỉ lệ trúng của một bộ đệm **3 %
+đầy** không nói gì về một bộ đệm **nhỏ hơn**: chưa có gì bị đuổi thì thu nhỏ nó không đổi điều gì phép đo này
+thấy được. *Đọc một tỉ lệ trúng cao trên một bộ đệm rỗng rồi kết luận "bộ đệm đang làm việc tốt" là để phép đo
+**tâng bốc** quyết định, không phải để nó **chống đỡ** quyết định.*
+
+**Đo trên đường tôi thật sự chạy được:** self-test **16/16** (không cần mạng) · node không tới được ⇒ **exit 2**
+kèm câu *"nothing was measured"* · cờ lạ ⇒ exit 2.
+⏳ **CHƯA chạy trên node sống** — cần băng tập, nằm ngoài phạm vi David chốt cho mốc này. Thủ tục pha 2:
+`docs/PLAN-108-L1-LOAD-TEST.md` §2e. Cách dùng: chạy ở cỡ hiện tại, ghi các dòng `✓`; nếu David quyết sinh lại
+`patches/` thì chạy lại ở cỡ plugin và so **đúng những dòng đó** — chênh lệch chính là **cái giá**, con số duy
+nhất còn thiếu để quyết `3,1 GB → 0,6 GB`.
