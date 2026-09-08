@@ -187,6 +187,10 @@ const GATES = [
   // runners never started them together. That is a property of the schedule, not the code (D-246).
   { group: "2 · REPO GATES", name: "fixed-port conflict rules (counter-check)", ...node("scripts/check-fixed-ports.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "no two files claim the same fixed port", ...node("scripts/check-fixed-ports.mjs") },
+  // 🔴 work/ sits inside the repo, so check-key-leaks reads all of it every run. At 4.2 GB that
+  // gate did not finish inside 600 s; after pruning to 1.1 GB it ran in 4 m 18 s (D-252).
+  { group: "2 · REPO GATES", name: "work/ retention rules (counter-check)", ...node("scripts/check-work-retention.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "work/ stays small enough for the leak gate to run", ...node("scripts/check-work-retention.mjs") },
   // Language rule (CLAUDE.md §0, decided 2026-08-28): new code must be English; existing
   // debt may only shrink. Included in the G-day run because that is the most rushed moment,
   // and rushing is exactly when someone types a non-English comment into a new file.

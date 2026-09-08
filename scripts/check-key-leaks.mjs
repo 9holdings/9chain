@@ -62,6 +62,7 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { guardEntry } from '../local-net/lib/cli.mjs';
+import { KEY_MARKER, KEY_PATTERN, MAX_SCAN_BYTES } from '../local-net/lib/key-material.mjs';
 
 // 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
 guardEntry(import.meta.url, ['--fund-set', '--root', '--self-test']);
@@ -82,9 +83,13 @@ const HOME = homedir();
  * separates a real key from `PrivateKey-*` written in a sentence — the false positive that made
  * the first version of this gate report two git-tracked documents as leaks.
  */
-const KEY_RE = /PrivateKey-[1-9A-HJ-NP-Za-km-z]{40,}/g;
-const MARKER = "PrivateKey-";
-const MAX_BYTES = 200_000;
+// 🔴 What a key LOOKS LIKE is declared once, in local-net/lib/key-material.mjs (D-252). A second
+// copy of that rule would not fail loudly when the two disagreed — it would fail by one of them
+// QUIETLY MISSING a key, which is the failure that costs money. The reasoning behind the pattern
+// (why 40+ characters, why cb58, why 200 KB) moved there with it.
+const KEY_RE = KEY_PATTERN;
+const MARKER = KEY_MARKER;
+const MAX_BYTES = MAX_SCAN_BYTES;
 
 /**
  * 🔴 THE BASELINE IS NOT ONE FILE, AND ASSUMING IT WAS COST A REAL MISS.
