@@ -184,16 +184,20 @@ mọi tác dụng của trần.
 ⇒ So với **cùng tuổi**: pha 1 có sẵn một đoạn sau restart (`21:18Z` restart → mẫu `22:19Z→01:22Z`, tức tuổi 1 h → 4 h), **cùng
 cache nhỏ, KHÔNG có `GOMEMLIMIT`**:
 
-| cơ sở (pha 1, tuổi 1–4 h sau restart, không trần) | mức |
-|---|---|
-| cgroup | **+299 MiB/node/giờ** |
-| `avalanchego` RSS | +123 MiB/node/giờ |
-| plugin RSS | +15,6 MiB/plugin/giờ |
+Tính lại từ **chuỗi thô** của pha 1 trên đúng khoảng tuổi sẽ dùng cho lượt áp thuốc (restart `21:18Z`; mẫu `22:29Z → 00:21Z`,
+tức tuổi **1,2 h → 3,05 h**, 1,87 h — chọn 1–3 h vì chuỗi đo phiên này dừng `10:39Z`):
 
-**Điều kiện phán quyết, viết ra trước:** lượt áp thuốc đo ở **cùng tuổi 1–4 h sau restart**.
-- Dốc cgroup rơi xuống quanh **~254 MiB/node/giờ** (giảm ~15 %) ⇒ mô hình §3c **đúng**: trần chỉ với tới phần rác trong heap Go.
-- Dốc rơi **sâu hơn nhiều** (vd < 200) ⇒ mô hình **sai**, phải viết lại §3c.
-- Dốc **không đổi** (~299) ⇒ trần không có tác dụng nào đo được, và câu trả lời nằm hoàn toàn ngoài heap Go.
+| cơ sở (pha 1, cùng tuổi, cache nhỏ, **không** trần) | mức |
+|---|---|
+| cgroup | **+308 MiB/node/giờ** |
+| anon | +296 MiB/node/giờ |
+| `avalanchego` RSS | +112 MiB/node/giờ |
+| plugin RSS | +17,1 MiB/plugin/giờ |
+
+**Điều kiện phán quyết, viết ra trước:** lượt áp thuốc đo ở **cùng tuổi 1–3 h sau restart**.
+- Dốc cgroup rơi xuống quanh **~262 MiB/node/giờ** (giảm ~15 %) ⇒ mô hình §3c **đúng**: trần chỉ với tới phần rác trong heap Go.
+- Dốc rơi **sâu hơn nhiều** (vd < 220) ⇒ mô hình **sai**, phải viết lại §3c.
+- Dốc **không đổi** (~308) ⇒ trần không có tác dụng nào đo được, và câu trả lời nằm hoàn toàn ngoài heap Go.
 
 Ngưỡng đặt: `avalanchego` **450 MiB**, mỗi plugin **80 MiB** — chọn để **chạm trần trong lúc chạy** (heap Go sau restart leo
 ~94 MiB/node/giờ) mà vẫn để GC ~1,8 lần heap sống, không ép vào vòng quay chết.
