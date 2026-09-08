@@ -1,4 +1,60 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
+## CHỐT PHIÊN 2026-09-08 ~01:40Z (Claude, 9Chain A1 core — autopilot mốc `L1-108`) — P-80→P-89 XONG, pha 1 đo 6 h 20 trên băng tập, 12 commit chưa đẩy
+
+**TL;DR.** David giao *"tối ưu code theo mục tiêu 108 chain L1"* → D-233 nạp mốc `L1-108` (10 mục) → autopilot chạy hết **P-80 → P-89**
+(D-234 → D-242), mọi mục có ca đỏ và **đo thật trên băng tập `net-tap-g1`** (9 node, `899999998`). Console nay **chia validator**
+(`A1_L1_VALIDATORS_PER_CHAIN=V`): sổ mang `validators[]`, trần 15 **mỗi node**, track theo node qua compose override, đăng ký đúng V
+trên P-Chain bằng `l1-batch create` (không chạm fork), thu hồi/nâng cấp theo phân công, `assignment.json` → router, bơm theo chain +
+hai cổng mới. **Pha 1** (15 L1 · V=5 · 1 tx/s · 6 h 20): 4/5 điều kiện qua, **RAM không phẳng** là phát hiện (+2–3 GB/giờ cả
+`avalanchego` lẫn plugin), `c_tx` = 0,016, V=5 chịu một node chết về tính sống nhưng block 5–10 s. Mạng thật, server, `patches/`:
+**không đổi**. `main` = `bf48d8f`, **trước `origin` 12 commit, chưa đẩy** (David bấm sau `check-remotes` + `check-history-secrets`).
+`check-deploy-drift` sẽ đỏ tới lượt deploy `[human]` — đúng thiết kế. Bằng chứng: `docs/EVIDENCE-L1-108-PHASE1-2026-09-07.md`.
+
+**Đã xong (mỗi mục có D và số đo trong PROGRESS/DECISIONS):**
+- P-80 kit K1 → `local-net/tools/k1/` (21/23 trùng byte; `go.work`, `l1.sh` đổi đường) · P-81 `A1_DRILL_BAND=1` + khối chainId tập
+  `8_00g_000_000+`, cờ kiểm hai chiều; **bug thật**: CLI trong container nhận `--uri` phía host (D-234) · P-82 `lib/validator-assignment.mjs`
+  (27×5=9×15, chain 28 từ chối trước CLI) · P-83 override `9chain-a1-track.override.yml`, chỉ node đổi mới restart + chứng minh `StartedAt`
+  (bug bắt bằng fixture: subnet đang tạo bị rải lên mọi node) · P-84 `l1-batch create -validators` trong node-1: đẻ chain V=5 **2′57″**, 5 restart/4
+  không, P-Chain đúng 5 · P-85 thu hồi đo trong từng validator, 2′49″ · P-86 `assignment.json` + `l1-batch router -fallback`,
+  `check-chain-ledger --drill`, ca đỏ đúng chain · P-87 `l1-batch pump -ledger` + `check-chains-producing.mjs`; **chain 5/9 validator đẻ block
+  2 s** · P-88 `check-startclose.mjs`, `measure-node-load.sh --host/--local` · P-89 pha 1 (trên).
+- Fixture `assignment-e2e-test` **52** ca; `check-local --console` xanh (28 nhóm) ở P-84; nợ tiếng Việt 5411 → 5406.
+
+**Việc tiếp:**
+- **[human] đẩy `origin`** 12 commit (`git log origin/main..main`), `official` hỏi trước qua `publish-official.sh`.
+- **[human] 4 quyết định** (PROGRESS mốc L1-108): V (đo được với 5; SLO 2 s cần V ≥ 6 hoặc trạng thái "suy giảm") · r (1 tx/s đã đo) ·
+  H-2 ACP-77 (`-mode l1` giữ chỗ) · WT-1 rồi `[web-home]` gỡ `docs/k1-phase0`, Caddyfile công khai đọc `assignment.json`.
+- **[human] deploy console** — mã mới trùng byte hành vi cũ khi không đặt `A1_L1_VALIDATORS_PER_CHAIN` (kèm sửa `--uri`, vô hại trên server);
+  cache nhỏ cho chain công khai là quyết định riêng (D-242 §2).
+- **[main] pha 2** khi có máy: chạy 24 h tìm mức bão hoà RAM (thử `GOMEMLIMIT`), r = 3 tx/s, gossip liên máy, bootstrap node mới vào 15 chain.
+- Băng tập **đang chạy** (9 node + `k1-drill-router`; bơm `k1-drill-pump` tự dừng 01:39Z; chuỗi RSS tự dừng ~01:49Z). Dừng khi không cần:
+  `docker rm -f k1-drill-router k1-drill-pump` · `cd local-net/net-tap-g1 && MSYS_NO_PATHCONV=1 docker compose -f docker-compose.multinode.yml -f 9chain-a1-track.override.yml down`
+  (giữ volume). Console băng tập cwd = scratchpad phiên `16a63219…/tap-console` (config dir là mount của compose), binary kit ở `<cfg>/bin/l1-batch`.
+
+**Gotchas phiên này (đủ mới để ghi):**
+- 🔴 Chain băng tập tạo với admin `0x1212…` (địa chỉ Foundation THẬT chép từ `start-console.sh` cũ) **không bơm được** — khoá băng tập là
+  foundation trong `net-tap-g1/keys.txt`, EVM `0x6c7F94E9…`; đặt `A1_L1_ADMIN` bằng nó.
+- Timestamp block là **giây nguyên**: nhịp 2 s hiện 1/2/3 s — cổng chấm gap phải +1 s dung sai (đã sửa).
+- V=5 với một validator câm: chain **sống** nhưng 5–10 s/block cho tới khi nó về — vòng đồng thuận chờ peer.
+- RAM phình ở **cả** `avalanchego` (+123 MiB/node/h) lẫn plugin (+15,6 MiB/plugin/h), cache trie nhỏ chỉ hạ mức không hạ dốc.
+- Tác vụ nền của tool bị cắt 10 phút: việc dài chạy `Start-Process bash -ArgumentList @(script) -RedirectStandardOutput` (Git Bash không `setsid`);
+  theo dõi bằng `Monitor` tail tệp + `ScheduleWakeup`.
+- `docker exec … /9chain-a1/...` từ Git Bash bị đổi thành `C:/Program Files/Git/...` — `MSYS_NO_PATHCONV=1`; `l1.sh build | tail` che mã thoát compile.
+- `measure-node-load.sh --local`: cgroup của Docker Desktop ở `/sys/fs/cgroup/docker/<id>` (compose) hoặc `system.slice/docker-<id>.scope`;
+  container bị tạo lại trong cửa sổ ⇒ INVALID, không phải số âm.
+- Rolling restart bằng tay với health-check lỏng = 9 node restart gần đồng thời — dùng rollout của console.
+
+**Lệnh hữu ích:**
+```bash
+node local-net/console/assignment-e2e-test.mjs                  # 52 ca: phân công · track theo node · l1-batch · thu hồi · router · cache nhỏ
+node scripts/check-chains-producing.mjs --file <ledger> --rpc http://127.0.0.1:8545 --window 30 --target-rate 1
+node scripts/check-startclose.mjs --compose local-net/net-tap-g1/docker-compose.multinode.yml --with-load
+bash scripts/measure-node-load.sh --local --name-filter 9chain-a1-tap-node- --expect 9 --seconds 60 --no-ledger
+node scripts/check-chain-ledger.mjs --drill --file <ledger> --rpc http://127.0.0.1:8545
+cd local-net/tools/k1 && scripts/l1.sh build                    # đọc log build, đừng tin `| tail`
+```
+
+
 ## CHỐT PHIÊN 2026-09-07 ĐÊM (Claude, 9Chain A1 core) — preflight 57/1/0 · đẩy `origin` xong · không đổi gì trên mạng/server
 
 **TL;DR.** Phiên ngắn, ba việc: đọc HANDOFF · preflight · đẩy `origin`. Preflight từ PowerShell (lượt không cắt ống, mã thoát 1): **57 đạt · 1 đỏ · 0 không chạy được · 8 việc tay**
