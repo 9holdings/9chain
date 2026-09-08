@@ -40,6 +40,7 @@ import { assignValidators, nodeLoad, validatorsOf, trackListsByNode } from "../l
 import { MaintenanceGate } from "../lib/maintenance.mjs";
 import { consoleConfigurationFingerprint, probeConsoleReadiness } from "../lib/console-readiness.mjs";
 import { OperationJournal } from "./operation-journal.mjs";
+import { createUpgradeFiles } from "./upgrade-files.mjs";
 
 const STARTUP_CONFIGURATION_SHA256 = consoleConfigurationFingerprint(process.env);
 
@@ -1937,76 +1938,13 @@ async function resolveCreation({ jobId, action, subnetID, blockchainID, confirmN
 // the side effects: reading the node, the file on disk, the rollout, the ledger.
 // ═══════════════════════════════════════════════════════════════════════════
 
-function upgradeFilePath(blockchainID) { return path.join(CHAIN_CFG_DIR, blockchainID, "upgrade.json"); }
-
-/**
- * Where previous versions and failed files of `upgrade.json` go — OUTSIDE `chains/`.
- *
- * 🔴 Until 2026-09-05 they were written beside the file, as `upgrade.json.prev-<ts>` and
- * `upgrade.json.failed-<ts>`. avalanchego reads a chain directory with `Glob("upgrade.*")`
- * (`config/config.go:1144` → `storage_common.go:28`): one match is loaded whatever its name, two
- * matches stop the whole node at boot. Both were measured on the drill network that day — a node
- * loaded the "removed" `.failed-` file, and a node with a `.prev-` beside `upgrade.json` never
- * started. See `nodeWouldLoad` in `lib/l1-upgrade.mjs`.
- */
-function upgradeHistoryDir(blockchainID) { return path.join(CFG_DIR, "upgrade-history", blockchainID); }
-
-/** The entries of a chain's config directory, `[]` when it does not exist yet. */
-function chainDirEntries(blockchainID) {
-  const dir = path.join(CHAIN_CFG_DIR, blockchainID);
-  return existsSync(dir) ? readdirSync(dir) : [];
-}
-
-/**
- * Refuse to touch a chain directory that is not in the one state the node reads the way the
- * console assumes: `upgrade.json` alone, or no upgrade file at all.
- */
-function assertChainDirReadable(blockchainID) {
-  const verdict = chainDirVerdict(chainDirEntries(blockchainID));
-  if (verdict) throw new Error(`upgrade directory for ${blockchainID}: ${verdict}`);
-}
-
-/** The upgrade list on disk for a chain — `[]` when there is no file, an ERROR when there is a broken one. */
-function docUpgradeFile(blockchainID) {
-  // 🔴 Ask what the NODE would read, not whether upgrade.json exists: a directory holding only
-  // `upgrade.json.failed-…` has no upgrade.json and still upgrades every node that restarts.
-  assertChainDirReadable(blockchainID);
-  const p = upgradeFilePath(blockchainID);
-  if (!existsSync(p)) return { list: [], exists: false };
-  let j;
-  try { j = JSON.parse(readFileSync(p, "utf8")); }
-  catch (e) {
-    // 🔴 Not "treat as empty": a file that does not parse stops this chain's VM on every node that
-    // reads it (plugin/evm/vm.go:544). Extending it would hide that under a fresh timestamp.
-    throw new Error(`upgrade.json for ${blockchainID} on disk is not valid JSON (${e.message}) — every node would refuse to start this chain; fix the file by hand before scheduling anything`);
-  }
-  if (!Array.isArray(j?.precompileUpgrades)) {
-    throw new Error(`upgrade.json for ${blockchainID} has no precompileUpgrades list — this console did not write it; refusing to extend a file it does not understand`);
-  }
-  return { list: j.precompileUpgrades, exists: true };
-}
-
-/**
- * Write the file atomically, keeping the previous version in `upgrade-history/` so a failed
- * rollout can undo. Nothing but `upgrade.json` is ever created inside the chain directory — the
- * temporary file is named so the node's glob cannot match it either.
- */
-function ghiUpgradeFile(blockchainID, upgradeConfig) {
-  assertChainDirReadable(blockchainID);
-  const p = upgradeFilePath(blockchainID);
-  mkdirSync(path.dirname(p), { recursive: true });
-  let prev = null;
-  if (existsSync(p)) {
-    mkdirSync(upgradeHistoryDir(blockchainID), { recursive: true });
-    prev = path.join(upgradeHistoryDir(blockchainID), `upgrade.json.prev-${new Date().toISOString().replace(/[:.]/g, "-")}`);
-    writeFileSync(prev, readFileSync(p));
-  }
-  // `.upgrade.json.tmp`: a leading dot keeps it outside `upgrade.*` for the instant it exists.
-  const tmp = path.join(path.dirname(p), ".upgrade.json.tmp");
-  writeFileSync(tmp, JSON.stringify(upgradeConfig, null, 2) + "\n");
-  renameSync(tmp, p);
-  return { path: p, prev };
-}
+// The on-disk half of an upgrade moved to `./upgrade-files.mjs` on 2026-09-08 (D-250): the
+// chain-directory rules are about what avalanchego's Glob("upgrade.*") finds, and they can only
+// be proved against a REAL directory — which they now are, in 23 counter-checks.
+const upgradeFiles = createUpgradeFiles({ chainConfigDir: CHAIN_CFG_DIR, configDir: CFG_DIR });
+const { upgradeFilePath, upgradeHistoryDir, chainDirEntries, assertChainDirReadable } = upgradeFiles;
+const docUpgradeFile = upgradeFiles.readUpgradeFile;
+const ghiUpgradeFile = upgradeFiles.writeUpgradeFile;
 
 function chuChain(state, name) {
   const ten = String(name || "").trim();
