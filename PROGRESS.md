@@ -232,7 +232,7 @@ g1 công khai / server / `patches/` / `web/`.
       ⇒ `set -- $rss $cg` **trượt trường**, số cgroup rơi vào ô RSS. Vá `ram-report.mjs`: chỉ tính dốc trên mẫu **đủ số node của
       mẫu đầy nhất**, và `plugins > 100` là INVALID. Đối chứng trên dữ liệu thật: bỏ node-3 khỏi mẫu cuối ⇒ bản chưa vá cho dốc
       **−4.382 MiB/node/giờ** (bịa hoàn toàn), bản đã vá **loại mẫu đó và nêu tên nó**.
-- [ ] **P-91 — `GOMEMLIMIT` tới được PLUGIN, không chỉ tới node** — 🔴 đo `08/09`: environ của tiến trình plugin có **đúng một biến**
+- [x] **P-91 — `GOMEMLIMIT` tới được PLUGIN, không chỉ tới node** — 🔴 đo `08/09`: environ của tiến trình plugin có **đúng một biến**
       (`AVALANCHE_VM_RUNTIME_ENGINE_ADDR`); `upstream/…/rpcchainvm/runtime/subprocess/runtime.go:76-82` dựng env plugin **từ rỗng** và
       chỉ chuyển tiếp `GRPC_*` + `GODEBUG`. ⇒ đặt `GOMEMLIMIT` ở compose là **xanh giả**: nó tới `avalanchego` (628 MiB/node) mà
       không tới 8 plugin (923 MiB) — nửa lớn hơn. Sửa **không đụng fork** (luật cứng 3): vỏ bọc cho binary plugin trong thư mục
@@ -240,6 +240,19 @@ g1 công khai / server / `patches/` / `web/`.
       **Qua khi:** cổng đọc `/proc/<pid>/environ` **của từng tiến trình plugin** trên 9 node và thấy `GOMEMLIMIT` ở **8/8 mỗi node**.
       Ca đỏ: đặt `GOMEMLIMIT` **chỉ ở compose** ⇒ cổng phải **ĐỎ** và nêu "node có, plugin không" (chứng minh cổng đo plugin, không
       đo container).
+      ✅ `08/09` 06:4xZ (autopilot, D-243): `scripts/check-plugin-memlimit.mjs` đọc `/proc/<pid>/environ` **từng tiến trình** trong
+      từng container, phân biệt node với plugin bằng `readlink /proc/<pid>/exe` (không cắm cứng VM ID). Self-test **15 ca**, gồm ca
+      bẫy *"compose có, plugin không"* và `math.MaxInt64` phải đọc là **không có trần**. **Thấy ĐỎ đúng lý do trên băng tập trước
+      khi sửa:** 0/9 node, số plugin 9/9/9/8/8/8/8/8/8 khớp 15 chain × V=5. **Sau khi áp: 9/9 node, `avalanchego 450MiB · 9/9
+      plugin 80MiB`**, và **hai dụng cụ độc lập khớp nhau** — `environ` nói biến đã đặt, `/ext/metrics` nói `gomemlimit_bytes` mà
+      **runtime thật sự áp** (trước đó là `math.MaxInt64`).
+      Vỏ bọc: `local-net/tools/k1/scripts/15-plugin-memlimit.sh` sinh một tệp **mang đúng tên VM ID**, `export` rồi `exec` binary
+      thật; node chạy với `--plugin-dir` trỏ vào thư mục đó qua override compose (cờ CLI thắng `AVAGO_PLUGIN_DIR`, nên phải chép
+      lại cả `command`). **Không đụng `patches/`.** Hai luật generator tự canh, cả hai học bằng giá: thư mục vỏ bọc **chỉ được**
+      chứa vỏ bọc (`vm_getter.go:86` biến tên lạ thành lỗi cứng ⇒ node **không boot**), và **giá trị sai là chết ngay lúc khởi
+      động** (`fatal error: malformed GOMEMLIMIT`) nên generator **hỏi chính binary** trước khi ghi — `1.5.5MiB` lọt cú pháp mà
+      runtime từ chối, và nó **từ chối trước khi ghi**, vỏ bọc cũ còn nguyên.
+      Đo trên sản phẩm: 9 node dựng lại **cuốn chiếu**, mỗi node sẵn sàng trong **30 s** trước khi động vào node kế.
 - [x] **P-92a — ĐỐI CHỨNG TRƯỚC KHI CHỮA: bơm lại mà KHÔNG đổi gì.** Thêm `08/09` 05:0xZ sau khi đọc `PLAN-108` §3. Lý do: mô hình
       của §3 (`RAM/node ≈ 0,4 + 0,15·L` GB) khớp mức đang đo (node-9, 8 chain: mô hình 1,6 GB · đo 1,55 GB), và tổng đội **01:22Z là
       16.253 MiB, 05:00Z là 16.211 MiB** — đứng yên. ⇒ *"RAM không phẳng"* của pha 1 có thể chỉ là **hâm nóng tới mức bão hoà sau lượt
