@@ -278,3 +278,24 @@ hơn trần. Đó đúng là ca đỏ P-92 đặt ra từ đầu (*"đặt trầ
 không xuống được là phần **đang sống**, không phải phần rác do tải sinh ra.
 
 **Chain vẫn sống suốt:** 15/15 đẻ block, gap 2–3 s. Nên hậu quả là **đắt, không phải chết** — ở quy mô này.
+
+### 4d. Trả băng tập về trạng thái cũ — và đó cũng là số đo cuối
+
+Sau khi cửa sổ khép, 9 node được dựng lại **không có lớp override bộ nhớ** (cuốn chiếu, mỗi node chứng minh sẵn sàng trong 30 s):
+
+| | có trần, tải đã tắt (`10:03Z`) | sau khi bỏ trần (`10:13Z`) |
+|---|---|---|
+| CPU 9 node | **20,57 lõi** | **0,974 lõi** |
+| VM loadavg | **90,1** | **6,6** |
+| RAM 9 node | 11.633 MiB | 3.333 MiB |
+| cổng P-91 | 9/9 mang trần | 0/9 — đúng trạng thái muốn có |
+
+0,974 lõi lúc nghỉ khớp đúng mốc nghỉ của pha 1 (**0,931 lõi**), nên băng tập đã về đúng chỗ nó đứng trước lượt thử.
+
+⚠️ Lượt bỏ trần **kèm một lượt restart**, nên nó không tách bạch được *"bỏ trần"* với *"tiến trình trẻ lại"*. Việc quy công đã xong
+ở §4c bằng đường khác và chắc hơn: **cùng máy, cùng tải, cùng lượt restart**, plugin có trần **không chặn** thì 234 lượt GC còn
+`avalanchego` có trần **chặn** thì 46.946. Mục này chỉ khai rằng băng tập đã lành.
+
+🔴 **Hệ quả cho cổng:** cổng P-91 nay **đỏ đúng** khi băng tập không có trần — vì không có trần **là** trạng thái mong muốn sau kết
+luận này. Nên đăng ký nhóm 3 của nó trong preflight đã đổi: chỉ chấm khi `A1_MEM_LIMIT_NODE` **khai** giá trị mong đợi. Một cổng
+đòi hỏi thứ mà phép đo vừa khuyên đừng làm thì không phải cổng, nó là một cái bẫy.
