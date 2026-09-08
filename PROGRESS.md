@@ -217,10 +217,21 @@ g1 công khai / server / `patches/` / `web/`.
 *(🔴 Bản đầu của đoạn này viết "60 chain/node, gấp 7,2 lần" — chia 108 × 5 cho số **máy** thay vì số **node**. Sửa cùng ngày, xem
 đuôi D-243.)*
 
-- [ ] **P-90 — Dốc RAM khi KHÔNG có tải, đo bằng ĐÚNG dụng cụ của pha 1** (chuỗi `p89-rss.sh`, cùng đại lượng: RSS `avalanchego` ·
+- [x] **P-90 — Dốc RAM khi KHÔNG có tải, đo bằng ĐÚNG dụng cụ của pha 1** (chuỗi `p89-rss.sh`, cùng đại lượng: RSS `avalanchego` ·
       tổng RSS plugin · cgroup `anon`). Băng tập nghỉ bơm từ `01:39Z` ⇒ phép đo này **đang tự chạy**, chỉ cần lấy đúng cách.
       **Qua khi:** ≥ 4 mẫu cách nhau ≥ 10 phút trên 9 node, kết luận nêu **hai dốc** (nghỉ vs tải) cùng đơn vị MiB/node/giờ.
       Ca đỏ: trỏ chuỗi đo vào một container **đã dừng** ⇒ phải ra `null`/INVALID, **không** ra 0 (bài `measure-node-load --local`).
+      ✅ `08/09` 04:39–05:10Z (autopilot, D-243): **4 mẫu × 9 node**, cùng dụng cụ pha 1. Dốc khi **nghỉ**: `avalanchego`
+      **−3,9 MiB/node/giờ** · plugin **−2,5 MiB/plugin/giờ** · cgroup **−89 MiB/node/giờ** — RAM **đang được trả lại**, không giữ.
+      Đối chiếu cùng đơn vị khi **có tải** (pha 1, đoạn `22:19Z→01:22Z`): **+123** và **+15,6**. Thêm một mỏ neo xuyên phiên:
+      tổng đội `01:22Z` = 16.253 MiB, `05:10Z` = 16.155 MiB ⇒ **đứng yên qua 3 h 48 nghỉ**. ⇒ **Dốc đi theo GIAO DỊCH, không theo
+      đồng hồ** — nhưng một mình nó **chưa** phân biệt được "bão hoà" với "tăng theo tx", vì cả hai đều dự đoán phẳng khi nghỉ.
+      Đó là lý do P-92a tồn tại.
+      🔴 **Ca đỏ tìm ra một lỗ THẬT trong bộ đọc, không phải trong node.** Hai chế độ hỏng đều đo được: container **mất tích** ⇒
+      chuỗi đo `continue` và **không sinh dòng nào** (mẫu còn 8 node, tổng tụt — đọc thành *"RAM giảm"*); container không có `bash`
+      ⇒ `set -- $rss $cg` **trượt trường**, số cgroup rơi vào ô RSS. Vá `ram-report.mjs`: chỉ tính dốc trên mẫu **đủ số node của
+      mẫu đầy nhất**, và `plugins > 100` là INVALID. Đối chứng trên dữ liệu thật: bỏ node-3 khỏi mẫu cuối ⇒ bản chưa vá cho dốc
+      **−4.382 MiB/node/giờ** (bịa hoàn toàn), bản đã vá **loại mẫu đó và nêu tên nó**.
 - [ ] **P-91 — `GOMEMLIMIT` tới được PLUGIN, không chỉ tới node** — 🔴 đo `08/09`: environ của tiến trình plugin có **đúng một biến**
       (`AVALANCHE_VM_RUNTIME_ENGINE_ADDR`); `upstream/…/rpcchainvm/runtime/subprocess/runtime.go:76-82` dựng env plugin **từ rỗng** và
       chỉ chuyển tiếp `GRPC_*` + `GODEBUG`. ⇒ đặt `GOMEMLIMIT` ở compose là **xanh giả**: nó tới `avalanchego` (628 MiB/node) mà
