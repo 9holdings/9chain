@@ -46,6 +46,7 @@ import { createHttpPlumbing, readJsonBody, sendJson } from "./http-plumbing.mjs"
 import { assertChainOwner, createRoleReader, findGovernableChain } from "./chain-ownership.mjs";
 import { judgeChainConfig, judgeChainHealth, judgePrimaryHealth, judgeWaitStep, servesChain } from "./node-health.mjs";
 import { judgeGeneration } from "./generation-gate.mjs";
+import { buildAssignment, redactSecret } from "./console-state.mjs";
 
 const STARTUP_CONFIGURATION_SHA256 = consoleConfigurationFingerprint(process.env);
 
@@ -400,35 +401,15 @@ function saveState(s) {
   if (V_PER_CHAIN !== null) writeAssignment(s);
 }
 
-/**
- * ═══ THE ROUTER CONTRACT — `assignment.json` (P-86, D-239) ═══
- *
- * Under the per-node model a node answers RPC only for the chains it tracks, so "the public RPC
- * node" stops being one node: something in front (the K1 kit's `l1-batch router`, a Caddyfile)
- * has to send `/ext/bc/<blockchainID>/*` to a node that serves it. That something is on the other
- * side of hard rule #4 (Caddy belongs to the web worktree), so the contract between the two is a
- * FILE, not shared code: written here next to the ledger on every save, read by the router
- * generator unchanged (`local-net/tools/k1/l1-batch/k1.go`, `cmdRouter`).
- *
- *   { "<blockchainID>": { node, uri, chainId, name, subnetID, validators } }
- *
- * `node` is the serving node: the public node when it validates the chain (nothing changes for
- * such chains), else the first validator in rollout order. `uri` is that node's API as another
- * container on the compose network reaches it (service name + the in-container port). A chain
- * without `validators` (every-node model) is served by the public node, as it always was.
- *
- * Written only under the per-node model, so nothing new appears on a server running the
- * every-node model (`check-deploy-drift` knows the name for the day it does).
- */
+// The router contract and its reasoning moved to `./console-state.mjs` on 2026-09-08 (D-258),
+// with 22 counter-checks. Getting that map wrong does not throw — it builds a router that
+// sends requests to a node which does not serve the chain, and the symptom is a chain that
+// looks absent from outside while being perfectly healthy inside.
 const ASSIGNMENT_FILE = path.join(CFG_DIR, "assignment.json");
 function writeAssignment(s) {
-  const port = new URL(MANAGED_NODE_API).port || "9650";
-  const assignment = {};
-  for (const c of s.chains) {
-    const validators = Array.isArray(c.validators) ? c.validators : null;
-    const node = !validators || validators.includes(NODE_CONTAINER) ? NODE_CONTAINER : validators[0];
-    assignment[c.blockchainID] = { node, uri: `http://${node}:${port}`, chainId: c.chainId, name: c.name, subnetID: c.subnetID, validators };
-  }
+  const assignment = buildAssignment(s.chains, {
+    nodeContainer: NODE_CONTAINER, port: new URL(MANAGED_NODE_API).port || "9650",
+  });
   const tmp = ASSIGNMENT_FILE + ".tmp";
   writeFileSync(tmp, JSON.stringify(assignment, null, 2) + "\n");
   renameSync(tmp, ASSIGNMENT_FILE);
@@ -438,9 +419,9 @@ async function rpc(pathSeg, method, params = [], options) {
   return requestRpc(API + pathSeg, method, params, options);
 }
 
-/** Xoá khoá bí mật khỏi mọi chuỗi trước khi log hoặc trả về client. */
+/** Remove the operator key from any string before it is logged or returned to a client. */
 function scrub(s) {
-  return String(s ?? "").split(CLI_KEY).join("<A1_CLI_KEY>");
+  return redactSecret(s, CLI_KEY, "<A1_CLI_KEY>");
 }
 
 // Subnet của Primary Network (P/X/C). `ids.Empty` in ra chuỗi này.
