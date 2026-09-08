@@ -44,13 +44,14 @@
  * empty cache and concluding "the cache is working" is how a measurement flatters a decision.
  *
  * Usage:
- *   node scripts/measure-block-cache.mjs --url http://127.0.0.1:9650/ext/metrics --seconds 60
+ *   node scripts/measure-block-cache.mjs --url <node>/ext/metrics --seconds 60
  *   node scripts/measure-block-cache.mjs --compose <file> --service node-1 --seconds 300
  *   node scripts/measure-block-cache.mjs --self-test
  */
 import { spawnSync } from "node:child_process";
 import { guardEntry } from "../local-net/lib/cli.mjs";
 import { fetchWithDeadline } from "../local-net/lib/http.mjs";
+import { MANAGED_NODE_API } from "../local-net/lib/managed-node-rpc.mjs";
 import { counter, EXIT } from "./lib/report.mjs";
 
 guardEntry(import.meta.url, ["--self-test", "--url", "--compose", "--service", "--seconds", "--json"]);
@@ -170,8 +171,14 @@ async function readOnce() {
   const service = flag("--service", "node-1");
   if (!compose) throw new Error("give --url, or --compose <file> [--service <name>]");
   // Only node-1 publishes its API to the host in this project, so the general path asks INSIDE.
+  //
+  // 🔴 `MANAGED_NODE_API` is IMPORTED, not spelled out. The first version wrote the address
+  // literally and `check-single-source` went red on it the same run — that constant has one
+  // declaration (local-net/lib/managed-node-rpc.mjs) precisely so a second copy cannot drift
+  // from it silently. A measurement tool pointing at a stale address would produce numbers about
+  // nothing, which is worse than producing none.
   const r = spawnSync("docker", ["compose", "-f", compose, "exec", "-T", service,
-    "curl", "-sf", "-m", "15", "http://127.0.0.1:9650/ext/metrics"], { encoding: "utf8", timeout: 60_000 });
+    "curl", "-sf", "-m", "15", `${MANAGED_NODE_API}/ext/metrics`], { encoding: "utf8", timeout: 60_000 });
   if (r.status !== 0) throw new Error(`docker compose exec ${service}: ${(r.stderr || "").trim().split("\n")[0]}`);
   return r.stdout;
 }
