@@ -118,8 +118,20 @@ dịch. Heap sống lớn không có trần ⇒ **mọi** trần cố định r�
    `StartedAt`. Khởi động lại mỗi ngày là **quá đủ** so với dốc đo được.
 3. **Đừng đặt `GOMEMLIMIT` cố định** trên node mạng thật. Nếu vẫn muốn dùng, nó là **van an toàn** đặt CAO (trên mức đỉnh giữa hai
    lượt restart), không phải công cụ tiết kiệm RAM.
-4. Số còn thiếu để chốt lịch restart: **đỉnh sau 24 h** — pha 1b chỉ chạy tới 9 h và **chưa thấy trần**. Đó là phép đo đầu tiên
-   của pha 2, cùng với P-95 (tìm thứ đang giữ bộ nhớ; nếu tìm ra và sửa được thì cả mục này thành thừa).
+4. 🔴 **P-95 (cùng ngày) đã tìm ra CƠ CHẾ, nên trần không còn là ngoại suy.** Thứ giữ bộ nhớ là **bộ đệm block đã phân tích** của
+   `vms/components/chain.State`, và nó **có trần đặt cho MỖI CHAIN**: `avalanchego` 64+64+64 = **192 MiB/chain**
+   (`vms/rpcchainvm/vm_client.go:61-64`), plugin subnet-evm 10+5+5 = **20 MiB/chain**
+   (`graft/subnet-evm/plugin/evm/vm.go:107-110`). Một `chain.State` cho **mỗi VMClient**, mỗi chain một VMClient, và plugin có
+   `chain.State` riêng ⇒ **mỗi block được đệm hai lần**, phía `avalanchego` rộng gấp 10.
+
+   ⇒ **Trần mỗi node = `số chain × 212 MiB` + phần nền.** Với 15 chain/node: **~3,1 GB** — trùng con số bảng trên ngoại suy từ
+   đường cong 6 giờ, nay có cơ chế chứ không phải khớp đường. Thời gian đầy ở tải 1 tx/s: phía plugin **~1,1 h**, phía
+   `avalanchego` **~24 h** (đo 8,0 MB/chain/giờ) — đó là lý do 9 giờ chạy không nhìn thấy trần nào.
+
+   ⏳ **Nút bấm có thật nhưng nằm trong `patches/`** (luật cứng 3 — **không tự làm**): hạ ba hằng số phía `avalanchego` xuống mức
+   của plugin kéo trần từ `chain × 212 MiB` xuống `chain × 40 MiB`, tức **3,1 GB → 0,6 GB** ở 15 chain. Cái giá chưa đo là tỉ lệ
+   trúng bộ đệm khi block bị đuổi sớm hơn — **phép đo của pha 2**, không phải suy đoán. Bằng chứng đầy đủ:
+   `docs/EVIDENCE-L1-108-PHASE1B-2026-09-08.md` §5.
 
 ---
 
