@@ -1249,6 +1249,22 @@ function ghiChainConfig(blockchainID) {
     // nhớ — cùng lý do với tên khoá precompile ở presets.mjs: khoá lạ bị bỏ qua
     // TRONG IM LẶNG, nên gõ sai một chữ là API không bật mà không ai báo gì.
     "warp-api-enabled": true,
+    // ═══ SMALL CACHES UNDER THE PER-NODE MODEL (P-89, D-242) ═══
+    // subnet-evm's defaults are trie-clean 512 + trie-dirty 512 + snapshot 256 MiB PER PLUGIN
+    // (`plugin/evm/config/default_config.go`). One node carrying 15 chains is 15 plugins, and
+    // phase 1 measured the consequence on the drill band: 9 nodes × ~8 chains at 1 tx/s grew
+    // +3.3 GB of anonymous memory per hour (2.4 → 6.3 → 9.6 GB in two hours) — a 32 GB machine
+    // would be out of memory before the six-hour mark. The K1 kit already ran 10 ledgers per
+    // node on 16/16/8 MiB with no loss at 3 tx/s (a1-k1-pha0-bang-tap). Every-node model: left
+    // exactly as it was, so the chains the public network runs today are not touched by this
+    // line; applying it to them is a separate decision (D-242).
+    ...(V_PER_CHAIN !== null ? {
+      "trie-clean-cache": 16,
+      "trie-dirty-cache": 16,
+      "snapshot-cache": 8,
+      "pruning-enabled": true,
+      "metrics-expensive-enabled": false,
+    } : {}),
   };
   const dich = path.join(dir, "config.json");
   const tmp = dich + ".tmp";

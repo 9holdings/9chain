@@ -76,7 +76,10 @@ export function judgeChain({ chainId, answeredId, headBefore, blocks, window, ta
   let maxSeen = 0;
   let prev = headBefore.timestamp;
   for (const b of blocks) { maxSeen = Math.max(maxSeen, b.timestamp - prev); prev = b.timestamp; }
-  if (blocks.length && maxSeen > maxGap) return { verdict: "gap", detail: `${maxSeen}s between consecutive blocks (max ${maxGap}s)`, maxGap: maxSeen };
+  // 🔴 Block timestamps are WHOLE SECONDS. Two blocks 2.02 s apart can read 10 and 13 (a "3 s
+  // gap"), so a gap is judged against maxGap PLUS one second of rounding — measured 2026-09-07
+  // h1: "Phase One A — 3s between consecutive blocks" while its last 30 blocks were 2 s apart.
+  if (blocks.length && maxSeen > maxGap + 1) return { verdict: "gap", detail: `${maxSeen}s between consecutive blocks (max ${maxGap}s + 1 s clock rounding)`, maxGap: maxSeen };
   const txs = blocks.reduce((a, b) => a + b.txs, 0);
   const rate = txs / window;
   if (targetRate > 0 && rate < 0.9 * targetRate) {
@@ -170,6 +173,9 @@ async function selfTest() {
   console.log("\n── 3. controls: the rule is 90 % and the gap is strict ──");
   ok("CONTROL — exactly 90 % of the target passes", judgeChain({ ...base, blocks: steady.map((b, i) => ({ ...b, txs: i < 12 ? 2 : 1 })) }).verdict === "ok", "under-rate");
   ok("CONTROL — a 2.5 s spacing is not a gap", judgeChain({ ...base, headBefore: blk(10, 1000, 1), blocks: Array.from({ length: 12 }, (_, i) => blk(11 + i, 1002.5 + 2.5 * i, 3)) }).verdict === "ok", "gap");
+  // Whole-second timestamps: a 2 s cadence reads as 1/2/3 s. One reading of 3 is rounding, not a hole.
+  ok("CONTROL — a single 3 s reading on whole-second timestamps is rounding, not a gap", judgeChain({ ...base, blocks: [blk(11, 1003, 2), ...Array.from({ length: 14 }, (_, i) => blk(12 + i, 1005 + 2 * i, 2))] }).verdict === "ok", "gap");
+  ok("🔴 a 4 s reading is a gap (rounding cannot explain it)", judgeChain({ ...base, blocks: [blk(11, 1004, 2), ...Array.from({ length: 14 }, (_, i) => blk(12 + i, 1006 + 2 * i, 2))] }).verdict === "gap", "ok");
   ok("CONTROL — with target 0 an idle chain is ok (nothing was expected)", judgeChain({ ...base, targetRate: 0, blocks: [] }).verdict === "ok", "red");
   ok("🔴 unreachable is 2-shaped, never ok", judgeChain({ ...base, answeredId: null, headBefore: null, blocks: [] }).verdict === "unreachable", "ok");
   console.log("\n── 4. the fleet verdict names ONLY the failing chain (measured through a fake RPC) ──");

@@ -121,7 +121,7 @@ async function startConsole({ perChain, ledger } = {}) {
   const readAssignment = () => existsSync(assignmentFile) ? JSON.parse(readFileSync(assignmentFile, 'utf8')) : null;
   const envTrack = () => { const f = path.join(scratch, '.env'); if (!existsSync(f)) return null; const l = readFileSync(f, 'utf8').split(/\r?\n/).find(x => x.startsWith('A1_TRACK_SUBNETS=')); return l === undefined ? null : l.slice('A1_TRACK_SUBNETS='.length); };
   const stop = async () => { if (child.exitCode === null) { const exited = once(child, 'exit'); child.kill('SIGTERM'); await exited; } children.delete(child); };
-  return { call, create, dockerLog, readLedger, restarts, nodeIdReads, readOverride, readAssignment, envTrack, stop, log: () => log };
+  return { call, create, dockerLog, readLedger, restarts, nodeIdReads, readOverride, readAssignment, envTrack, stop, log: () => log, configDir: config };
 }
 const listOf = (override, svc) => (override?.services?.[svc]?.environment ?? []).map(e => e.replace('AVAGO_TRACK_SUBNETS=', '')).join('').split(',').filter(Boolean);
 
@@ -146,6 +146,9 @@ console.log('\n── 1. V = 5: records carry validators, placement is determini
   const o1 = c.readOverride();
   ok('P-83: the compose override lists every service — validators track the new subnet, the rest track nothing', o1 && Object.keys(o1.services).length === 9 && listOf(o1, 'node-b').join() === 'TestSubnet1' && listOf(o1, 'node-g').length === 0, JSON.stringify(o1).slice(0, 160));
   ok('P-83: the shared .env variable is BLANK under the per-node model', c.envTrack() === '', JSON.stringify(c.envTrack()));
+  // ── P-89 (D-242): the chain config written for a per-node chain carries SMALL caches ──
+  const cfg1 = JSON.parse(readFileSync(path.join(c.configDir, 'chains', 'TestBlockchain1', 'config.json'), 'utf8'));
+  ok('P-89: per-node chains get the small subnet-evm caches (16/16/8 MiB, pruning on) beside warp', cfg1['trie-clean-cache'] === 16 && cfg1['trie-dirty-cache'] === 16 && cfg1['snapshot-cache'] === 8 && cfg1['pruning-enabled'] === true && cfg1['warp-api-enabled'] === true, JSON.stringify(cfg1));
   const r2 = await c.create('Assign Two', 9001000102);
   ok('chain 2 goes to the 4 idle nodes + the lowest loaded name', JSON.stringify(r2.j.validators) === JSON.stringify(['node-g', 'node-h', 'node-i', 'test-node', 'node-b']), JSON.stringify(r2.j.validators ?? r2.j.error));
   ok('P-83: chain 2 restarted only ITS validators (the 5 whose list changed)', JSON.stringify(c.restarts().slice(5)) === JSON.stringify(['node-b', 'node-g', 'node-h', 'node-i', 'test-node']), c.restarts().slice(5).join(','));
@@ -243,6 +246,8 @@ console.log('\n── 4. without the variable nothing changes (the model every l
   ok('preview says validators: null', preview.status === 200 && preview.j.validators === null, JSON.stringify(preview.j.validators));
   const r = await c.create('Old Model', 9001000401);
   ok('the record has NO validators key', r.status === 200 && !('validators' in r.j) && !('validators' in c.readLedger().chains[0]), JSON.stringify(Object.keys(r.j)));
+  const cfgOld = JSON.parse(readFileSync(path.join(c.configDir, 'chains', 'TestBlockchain1', 'config.json'), 'utf8'));
+  ok('P-89: the every-node model still writes ONLY warp-api-enabled (byte-identical to production)', JSON.stringify(cfgOld) === JSON.stringify({ 'warp-api-enabled': true }), JSON.stringify(cfgOld));
   ok('the service list was not consulted before the CLI (old path reads it only at rollout)', c.dockerLog().indexOf('create') < c.dockerLog().indexOf('services'), c.dockerLog().join(','));
   ok('P-83: every-node model restarts all 9 nodes, writes NO override, pins the union into .env', c.restarts().length === 9 && c.readOverride() === null && c.envTrack() === 'TestSubnet1', `${c.restarts().length} restarts · override ${c.readOverride() !== null} · env ${JSON.stringify(c.envTrack())}`);
   ok('P-84: every-node model still creates through the fork CLI (no l1-batch, no NodeID reads)', c.dockerLog().includes('create') && !c.dockerLog().some(l => l.startsWith('create-batch')) && c.nodeIdReads().length === 0, c.dockerLog().filter(l => /create/.test(l)).join(','));

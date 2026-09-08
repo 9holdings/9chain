@@ -193,10 +193,16 @@ khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn 
       ⇒ đỏ nêu node; log không đọc được ⇒ unreachable, không ok) · `measure-node-load.sh --host/--ssh-key/--no-ledger`, `l1Count` null
       thay `?`. **Đo:** băng tập 9/9 `0 cuts · 8 peers`, RAM 111–127 MiB/node; máy chủ thật 9 node 3,07 lõi · 21,3 GB ở tuổi 73 h (RAM
       ×5 so D-178 lúc 75 phút — đúng chiều cảnh báo). Vào preflight nhóm 2.
-- [ ] **P-89 — PHA 1 "một máy đầy" trên băng tập** (sau P-81→P-88): 9 node local, **15 L1, V=5, 1 tx/s mỗi chain, ≥ 6 h**, ghi số
+- [x] **P-89 — PHA 1 "một máy đầy" trên băng tập** (sau P-81→P-88): 9 node local, **15 L1, V=5, 1 tx/s mỗi chain, ≥ 6 h**, ghi số
       theo giờ vào `docs/EVIDENCE-L1-108-PHASE1-<ngày>.md` (nguồn lệnh kèm). **Qua khi:** CPU host < 70 % · block mọi chain ≤ 2,5 s ·
       0 `StartClose` · RAM phẳng sau ~6 h · `c_tx` đo được thay số ước 0,02 ở PLAN-108 §2c. Ca đỏ: rút một node (`docker stop`) ⇒
       chain có node đó vẫn đẻ block (V=5 chịu 1 chết), cổng P-87 vẫn xanh.
+      ✅ `07–08/09` (autopilot, D-242): chạy THẬT 6 h 20 phút trên `net-tap-g1` — 3 thu hồi + 13 lượt đẻ V=5 qua console, router 15 tuyến,
+      bơm 15 × 1 tx/s: **343.021 tx, 17 hỏng** (lúc restart). Mỗi giờ: CPU 2,09–2,17 lõi (9 % VM 24 cpu) ✅ · 15/15 chain đẻ block ở nhịp 2 s
+      (h1 14/15 do cổng chấm timestamp nguyên giây, đã sửa +1 s) ✅ · 0 `StartClose` 9/9 ✅ · **`c_tx` = 0,016** ✅ · **RAM KHÔNG phẳng** ❌:
+      2,4 → 15,6 GB (+2–3,8 GB/h, giảm dần), `avalanchego` +123 MiB/node/h, plugin +15,6 MiB/plugin/h kể cả sau khi đổi cache nhỏ ở h2 —
+      ngân sách ≥ 4 GB/node 15 chain, pha 2 chạy 24 h + `GOMEMLIMIT`. **Ca đỏ:** dừng node-9 ⇒ 8 chain có nó vẫn đẻ block nhưng 5–10 s/block,
+      lên lại ⇒ 15/15 sau 3 phút (sống ✅, độ trễ ⚠️). Console nay ghi cache nhỏ ở chế độ V. Bằng chứng `docs/EVIDENCE-L1-108-PHASE1-2026-09-07.md`.
 - [human] **Bốn quyết định** (đến pha 2 mới cần, mã trên không phụ thuộc): **V** (giả định 5) · **r** (1 tx/s theo đĩa K1, hay 3
       như PLAN-108) · **H-2 ACP-77 hay subnet cổ điển** cho mạng công khai (mã trên đi cổ điển; ACP-77 = thêm `-mode l1` vào P-84,
       kit đã có `ConvertSubnetToL1Tx`) · **merge WT-1** rồi `[web-home]` gỡ bản kit của họ + Caddyfile router.

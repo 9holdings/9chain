@@ -10538,3 +10538,34 @@ trong `plan.json`). Chain do console đẻ không có khoá bơm — genesis c�
 - ⇒ **Chain 5 validator (trong 9) đẻ block ở nhịp 2 s với tx vào khối** — câu hỏi để ngỏ từ D-237 đã có số.
 - Tải VM (`measure-node-load.sh --local`, P-89 prep): 9 node · 5 L1 · 2 chain bơm 1 tx/s ⇒ **0,72 lõi · 1.252 MiB**; lượt đo trong lúc
   rollout ra số âm ⇒ script nay khai INVALID khi container bị tạo lại trong cửa sổ, mã 1.
+
+## D-242 — **Pha 1 của L1-108 đo thật 6 h 20 phút trên băng tập: 15 L1 · V=5 · 1 tx/s — 4/5 điều kiện qua, RAM KHÔNG phẳng là phát hiện; `c_tx` = 0,016; V=5 chịu một node chết về tính sống nhưng block chậm ×2,5–5; console ghi cache nhỏ ở chế độ V** (`2026-09-08` 01:3xZ, P-89)
+
+**Bối cảnh.** PLAN-108 §5 pha 1: "một máy đầy", 15 L1, mọi chain 1 tx/s (David chưa chốt r; K1 đề 1), ≥ 6 h, ca đỏ rút một node.
+Toàn bộ chạy trên `net-tap-g1` (9 node, VM Docker Desktop 24 cpu / 32 GB) bằng đúng đường sản phẩm sau P-80→P-88. Bằng chứng:
+`docs/EVIDENCE-L1-108-PHASE1-2026-09-07.md` (log setup, mẫu mỗi giờ, chuỗi RSS 10 phút, ca đỏ, kết luận); raw ở scratchpad phiên.
+
+**Số đo.** Setup: 3 thu hồi (2 mô hình cũ 9 restart, 1 chế độ V 5 restart) + 13 lượt đẻ V=5 (~2′56″ mỗi lượt, 5 restart) = 15 chain sống,
+router 15 tuyến, baseline nhàn rỗi **0,931 lõi · 2.139 MiB**. Bơm 15 × 1 tx/s: **343.021 tx gửi · 17 hỏng** (cả 17 lúc restart 21:18Z).
+Mỗi giờ: CPU **2,09–2,17 lõi** ổn định (9 % của VM) · chain đẻ block **15/15** ở h0, h2–h6 (h1 14/15 vì cổng chấm 2,5 s trên timestamp
+nguyên giây — sửa: +1 s dung sai, self-test 13) · `StartClose` **0/9** mọi mẫu · RAM cgroup **2.448 → 15.621 MiB** (+3,3 · +3,3 · +3,0 ·
++2,6 · +2,0 GB/giờ, giảm dần chưa dừng). Chuỗi RSS 3 h: `avalanchego` **+123 MiB/node/giờ**, plugin **+15,6 MiB/plugin/giờ**.
+
+**Quyết định.**
+1. **`c_tx` = (2,122 − 0,931)/9/(8,33 chain·tx/s) = 0,016 lõi mỗi (tx/s) mỗi chain mỗi node** — thay số ước 0,02 ở PLAN-108 §2c. CPU
+   không phải trần trên phần cứng này.
+2. **RAM là bức tường pha 1 tìm ra.** Ở h2 (9,6 GB, +3,3 GB/h, cache mặc định 512/512/256 MiB mỗi plugin) tôi can thiệp: ghi
+   `config.json` cache nhỏ (16/16/8, giá trị kit K1 đã đo) cho 15 chain và tạo lại 9 node (⚠️ script của tôi chấm "khoẻ" lỏng nên 9 node
+   restart cách nhau 1–3 s — băng tập vẫn hồi, 17 tx hỏng; đường đúng là rollout của console). Mức RAM giảm nửa (9,6 → 4,1 GB) nhưng
+   **độ dốc giữ +2–3 GB/h** thêm 4 giờ — phình ở cả `avalanchego` lẫn plugin, không phải cache trie. Máy chủ thật (11 chain, 73 h) ở 2,4
+   GB/node gợi ý bão hoà ~**230 MiB/chain/node**; **ngân sách ≥ 4 GB cho node 15 chain** (PLAN-108 §3 ghi 2,7). Pha 2 phải chạy 24 h
+   và thử `GOMEMLIMIT`. **Console nay ghi cache nhỏ ở chế độ V** (`ghiChainConfig`); mô hình cũ trùng byte, áp cho chain công khai là
+   quyết định riêng (`[human]`).
+3. **Ca đỏ có tin:** `docker stop node-9` 3 phút ⇒ đúng **8 chain có node-9** vẫn đẻ block nhưng **5–10 s/block** (7 chain kia 2 s);
+   3 phút sau khi lên lại: 15/15 ở 2 s, peers 9/9. V=5 chịu một validator chết về **tính sống**, không về **độ trễ** — vòng đồng thuận
+   chờ peer câm. SLO "block 2 s" cần V ≥ 6 kèm đường gỡ validator nhanh, hoặc trạng thái "suy giảm" trên trang chain.
+4. **Cổng producing: +1 s dung sai làm tròn** (timestamp nguyên giây; 2,02 s hiện thành 3) — đo trực tiếp 30 block chain A đều 2 s trước khi sửa.
+5. Pha 1 **đạt 4/5** điều kiện; điều kiện "RAM phẳng" **không đạt và được ghi là phát hiện**, không nới. Pha 2/3 chờ máy (`[human]`).
+
+**Dụng cụ mới trong lượt:** `p89-setup.sh` · `p89-sampler.mjs` · `p89-rss.sh` (scratchpad) · `measure-node-load.sh --local` (cgroup VM qua
+container phụ, INVALID khi có rollout) · bẫy: tác vụ nền > 10 phút phải `Start-Process bash -ArgumentList @(script) -RedirectStandardOutput`.
