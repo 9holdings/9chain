@@ -42,6 +42,7 @@ import { consoleConfigurationFingerprint, probeConsoleReadiness } from "../lib/c
 import { OperationJournal } from "./operation-journal.mjs";
 import { createUpgradeFiles } from "./upgrade-files.mjs";
 import { createTrackFiles } from "./track-files.mjs";
+import { createHttpPlumbing, readJsonBody, sendJson } from "./http-plumbing.mjs";
 
 const STARTUP_CONFIGURATION_SHA256 = consoleConfigurationFingerprint(process.env);
 
@@ -2238,71 +2239,14 @@ async function quanTri(name) {
 }
 
 const PAGE = readFileSync(path.join(ROOT, "local-net/console/index.html"), "utf8");
-function send(res, code, obj) {
-  // Socket có thể đã bị huỷ (vd body vượt hạn -> req.destroy()). Ghi tiếp lên đó
-  // ném lỗi ở tầng ngoài và biến một request rác thành một stack trace lạ.
-  if (res.writableEnded || res.destroyed) return;
-  res.writeHead(code, { "content-type": "application/json" });
-  res.end(JSON.stringify(obj));
-}
-
-/** Đọc body JSON, chặn body khổng lồ trước cả khi parse (cạn RAM). */
-function docBody(req, gioiHan = 256 * 1024) {
-  return new Promise((resolve, reject) => {
-    let body = "", qua = false;
-    req.on("data", c => {
-      body += c;
-      if (body.length > gioiHan && !qua) {
-        qua = true;
-        req.destroy();
-        reject(new Error(`body vượt ${gioiHan} byte`));
-      }
-    });
-    req.on("end", () => { if (!qua) resolve(body); });
-    req.on("error", e => { if (!qua) reject(e); });
-  });
-}
-
-/**
- * Chặn nếu vượt hạn mức; trả true nghĩa là ĐÃ trả lời lỗi, caller dừng lại.
- *
- * `khoa` cho phép đếm theo thứ khác IP. Với người đăng nhập bằng ví thì **địa chỉ
- * ví mới là danh tính thật**, còn IP thì vừa quá rộng vừa quá hẹp cùng lúc: quá
- * rộng vì cả một văn phòng / một nhà mạng di động dùng chung một IP nên họ chặn
- * lẫn nhau; quá hẹp vì đổi IP là chuyện rẻ tiền nên kẻ muốn lách thì lách được.
- */
-function blockedByRate(req, res, limiter, khoa = null) {
-  const r = limiter(khoa || clientIp(req, TRUST_PROXY));
-  if (r.ok) return false;
-  res.writeHead(429, { "content-type": "application/json", "retry-after": String(r.retryAfter) });
-  res.end(JSON.stringify({ error: `rate limit exceeded (${r.name}), try again in ${r.retryAfter}s` }));
-  return true;
-}
-
-/**
- * Ai đang gọi? Trả `{kieu:"vanHanh"}` · `{kieu:"vi", diaChi}` · hoặc `null`.
- *
- * Hai đường đi qua CÙNG một header `Authorization: Bearer`. Thử token vận hành
- * trước vì nó là một phép so duy nhất; phiên ví phải duyệt kho nên đắt hơn.
- */
-function danhTinh(req) {
-  if (checkToken(req)) return { kieu: "vanHanh" };
-  const diaChi = dangNhapVi.diaChiCuaPhien(req);
-  return diaChi ? { kieu: "vi", diaChi } : null;
-}
-
-/** Chặn nếu chưa xác thực. Trả `null` nghĩa là ĐÃ trả lời lỗi, caller dừng lại. */
-function blockedByAuth(req, res) {
-  const ai = danhTinh(req);
-  if (ai) return ai;
-  // 401 kèm WWW-Authenticate để client biết cách gửi lại.
-  res.writeHead(401, { "content-type": "application/json", "www-authenticate": "Bearer" });
-  res.end(JSON.stringify({
-    error: "not authenticated — use the operator token (Authorization: Bearer <A1_CONSOLE_TOKEN>) " +
-           "or sign in with a wallet via /api/siwe/nonce then /api/siwe/login",
-  }));
-  return null;
-}
+// The five things every route does first moved to `./http-plumbing.mjs` on 2026-09-08 (D-254),
+// with 24 counter-checks — including the body limit driven against a REAL server, because the
+// property under test is that `req.destroy()` actually stops the upload.
+const { blockedByRate, blockedByAuth } = createHttpPlumbing({
+  trustProxy: TRUST_PROXY, clientIp, checkToken, walletSession: dangNhapVi,
+});
+const send = sendJson;
+const docBody = readJsonBody;
 
 const server = http.createServer(async (req, res) => {
   let releaseMutation;

@@ -242,13 +242,13 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       −949 ms · peer −174 ms ⇒ **775 ms là tuổi block**) — và nói thẳng khi riêng tuổi block đã gần hết ngân sách.
       🔴 **`[human]`: có siết ngưỡng 30 s không là quyết định về ĐẠI LƯỢNG NÀO nghi lễ tin**, nó đã là câu hỏi mở
       trong việc tay `09/09` (*"đo lại trên chain ĐANG ĐẺ BLOCK"*), và **không phải việc tôi tự quyết**.
-- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 3 lượt xong (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
+- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 4 lượt xong (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
       **vòng đời chain / theo dõi node / nhật ký tiến trình / định tuyến HTTP**. Hành vi phải **không đổi**.
       **Qua khi:** `check-local --console` xanh đủ 28 nhóm · `assignment-e2e` 52 ca · `create-rpc` · `options` ·
       `governance` · `maintenance` · `readiness` · `auth` · `paused` **đều xanh** · `check-deploy-imports` xanh
       (nó chính là cổng bắt mô-đun mới không được đóng gói khi deploy) · không tệp nào > 800 dòng.
       **Ca đỏ:** quên khai một mô-đun mới trong `manifest-deploy.json` ⇒ `check-deploy-imports` **đỏ và nêu tên tệp**.
-      🔵 `08/09` chiều (autopilot, D-249 · D-250 · D-251) — **2.927 → 2.754 dòng**, ba lượt tách, **mỗi lượt có ca đỏ thật**
+      🔵 `08/09` chiều→tối (autopilot, D-249 → D-254) — **2.927 → 2.698 dòng**, bốn lượt tách, **mỗi lượt có ca đỏ thật**
       (cả ba lần `check-deploy-imports` đỏ vì mô-đun mới chưa khai — đúng ca đỏ mục này tự dự đoán).
       🔴 **Điều kiện tiên quyết P-106a, và nó suýt làm hỏng cả mốc:** `readiness-e2e-test.mjs` **đọc `server.mjs`
       như VĂN BẢN** để bắt mọi lượt đọc biến môi trường phải nằm trong dấu vân cấu hình. Nhấc một dòng env sang
@@ -280,8 +280,20 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       🔴 **Một chú thích 28 dòng về đúng chỗ của nó**: nó mô tả `trackSubnetsLanLuot` (rolling restart · sự cố RPC
       công khai **6,0 s** đo `24/08` · vì sao node phục vụ RPC đi cuối) mà lại ngồi trên **ba hàm khác**, cách hàm
       nó nói tới **300 dòng**. Nợ §0: 5374 → **5363**.
+      ✅ **Lượt 4 — `http-plumbing.mjs`** (năm thứ mọi route làm đầu tiên, **24 ca**). Hai tính chất ở đây
+      **vô hình cho tới lúc chúng tính tiền**: (1) hạn body cắn **TRONG LÚC** byte đang tới, không phải sau —
+      đệm một body vô hạn rồi mới kết luận "quá lớn" là cách một endpoint công khai làm cạn RAM, vì lúc đó RAM đã
+      tiêu rồi; ca kiểm chạy trên **server http THẬT**, vì thứ đang kiểm là `req.destroy()` có **thật sự** dừng
+      lượt tải lên hay không, và một `req` giả chỉ khẳng định mô hình của tôi về socket · (2) bộ hạn mức đếm được
+      **theo ví** thay vì theo IP — IP vừa **quá rộng** (cả một văn phòng dùng chung, họ chặn lẫn nhau) vừa **quá
+      hẹp** (đổi IP là chuyện rẻ) cùng lúc.
+      🔴 **Thứ CỐ Ý không đổi tên:** `{kieu, diaChi}` + giá trị `"vanHanh"`/`"vi"` — `l1-allowlist.mjs` và test của
+      nó, bộ auth, bộ governance đều đọc ⇒ đó là **HỢP ĐỒNG GIỮA CÁC MÔ-ĐUN**, không phải biến cục bộ. Đổi nó phải
+      **dời mọi kẻ đọc trong MỘT bước** kèm ca đỏ riêng, nếu không là **âm thầm chẻ đôi** phép kiểm quyết định ai
+      được tiêu một slot chain vĩnh viễn. Vẫn là nợ §0, **ghi ra chứ không lặng lẽ bỏ lại**.
+      Nợ §0: 5363 → **5348**.
       ⏳ Còn: cụm quản trị chain (~340 dòng, đã có banner riêng) · vòng đời tạo chain (~700 dòng) · dò sức khoẻ
-      node (~230 dòng, cần tiêm `docker()`) · ống HTTP. Mục tiêu ≤ 800 dòng/tệp.
+      node (~230 dòng, cần tiêm `docker()`). Mục tiêu ≤ 800 dòng/tệp.
 - [ ] **P-107 — Trả nợ §0 trong `server.mjs`: 545 → mục tiêu < 100.** Đổi tên định danh lẫn hai ngôn ngữ
       (`kiemTheHeMang` · `nodeSanSang` · `moTienTrinh` · `thuHoiChain` · `napCapChain` · `doiChu` · `quanTri` ·
       `ghiChainConfig` · `docBody`…) và dịch chú thích. 🔴 **Chú thích là tài sản đắt nhất** (§0) — dịch **giữ nguyên
