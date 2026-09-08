@@ -63,6 +63,11 @@ while [ "$(date +%s)" -lt "$end" ]; do
         const [pn, pp, pc] = (process.env.PROC || "").trim().split(/\s+/).map(Number);
         const sys = pick("go_memstats_heap_sys_bytes");
         const gc = pick("go_memstats_next_gc_bytes");
+        // Recorded so the reader can tell whether next_gc still stands in for the live set: once a
+        // GOMEMLIMIT binds, Go lowers the heap goal to respect it and next_gc/2 stops meaning
+        // "twice the live heap". Measured 2026-09-08: node-1 next_gc 199 MiB under a 250 MiB limit.
+        const lim = pick("go_gc_gomemlimit_bytes");
+        const unset = 9223372036854775807 / 2;
         const cg = process.env.CG === "" ? null : Number(process.env.CG);
         const ok = Number.isFinite(pn) && Number.isFinite(pc) && pc > 0 && sys.node !== null && gc.n > 0;
         process.stdout.write(JSON.stringify({
@@ -71,6 +76,8 @@ while [ "$(date +%s)" -lt "$end" ]; do
           anonCgroup: Number.isFinite(cg) ? cg : null,
           heapSysNode: MiB(sys.node), heapSysPlugins: sys.n ? MiB(sys.plugins) : null,
           nextGcNode: MiB(gc.node), nextGcPlugins: gc.n ? MiB(gc.plugins) : null,
+          limitNode: lim.node !== null && lim.node < unset ? MiB(lim.node) : null,
+          limitPlugin: lim.n && lim.plugins / lim.n < unset ? MiB(lim.plugins / lim.n) : null,
         }) + "\n");
       });' >> "$OUT" 2>/dev/null
   done

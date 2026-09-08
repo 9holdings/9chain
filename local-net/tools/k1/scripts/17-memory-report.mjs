@@ -43,6 +43,10 @@ const table = times.map((t) => {
     heapSys: sum(g, "heapSysNode") + sum(g, "heapSysPlugins"),
     live: (sum(g, "nextGcNode") + sum(g, "nextGcPlugins")) / 2,
     plugins: sum(g, "plugins"),
+    // 🔴 next_gc/2 approximates the live heap only while NO limit is in force. Once a GOMEMLIMIT
+    // binds, Go lowers the heap goal to respect it and the number stops meaning what the column
+    // header says. Measured 2026-09-08: node-1 reported next_gc 199 MiB under a 250 MiB limit.
+    limited: g.some((r) => r.limitNode !== null && r.limitNode !== undefined),
   };
 });
 if (!table.length) { console.log("no samples in that window"); process.exit(0); }
@@ -75,9 +79,14 @@ if (usable.length >= 2) {
   const anon = per(a.anon, b.anon), sys = per(a.heapSys, b.heapSys), live = per(a.live, b.live);
   console.log(`\nover ${h.toFixed(2)} h, MiB per node per hour:`);
   console.log(`  anon ${anon.toFixed(0)} · Go heap ${sys.toFixed(0)} · live ${live.toFixed(0)} · outside Go ${(anon - sys).toFixed(0)}`);
-  const reclaimable = sys - live;
-  console.log(`  a Go memory limit reaches at most ${reclaimable.toFixed(0)} of ${anon.toFixed(0)} MiB/node/h` +
-    (anon > 0 ? ` — ${((reclaimable / anon) * 100).toFixed(0)}%` : "") + "; the rest is live or outside Go.");
+  if (usable.some((r) => r.limited)) {
+    console.log("  ⚠️  a GOMEMLIMIT is in force in this window, so the `live` column is NOT the live");
+    console.log("     heap: Go lowers next_gc to respect the limit. Read `anon` and `Go heap` only.");
+  } else {
+    const reclaimable = sys - live;
+    console.log(`  a Go memory limit reaches at most ${reclaimable.toFixed(0)} of ${anon.toFixed(0)} MiB/node/h` +
+      (anon > 0 ? ` — ${((reclaimable / anon) * 100).toFixed(0)}%` : "") + "; the rest is live or outside Go.");
+  }
 
   if (marginals.length >= 4) {
     const mean = (xs) => xs.reduce((s, x) => s + x, 0) / xs.length;
