@@ -44,6 +44,7 @@ import { createUpgradeFiles } from "./upgrade-files.mjs";
 import { createTrackFiles } from "./track-files.mjs";
 import { createHttpPlumbing, readJsonBody, sendJson } from "./http-plumbing.mjs";
 import { assertChainOwner, createRoleReader, findGovernableChain } from "./chain-ownership.mjs";
+import { judgeChainConfig, judgeChainHealth, judgePrimaryHealth, judgeWaitStep, servesChain } from "./node-health.mjs";
 
 const STARTUP_CONFIGURATION_SHA256 = consoleConfigurationFingerprint(process.env);
 
@@ -610,23 +611,9 @@ async function nodeSanSang(svc) {
       "--data", `{"jsonrpc":"2.0","id":1,"method":"health.health","params":{"tags":["${PRIMARY_SUBNET}"]}}`,
       `${MANAGED_NODE_API}/ext/health`]);
   } catch {
-    return { ok: false, vi: "API chưa trả lời" };   // node còn đang khởi động
+    return { ok: false, why: "node API not answering yet" };   // still starting up
   }
-  let checks;
-  try {
-    checks = JSON.parse(out.slice(out.indexOf("{"), out.lastIndexOf("}") + 1))?.result?.checks;
-  } catch {
-    return { ok: false, vi: "không parse được health" };
-  }
-  if (!checks) return { ok: false, vi: "health thiếu checks" };
-
-  // Đọc TỪNG check của mạng chính thay vì tin cờ tổng — cờ tổng gộp cả subnet mới.
-  for (const ten of ["P", "X", "C"]) {
-    const c = checks[ten];
-    if (!c) return { ok: false, vi: `chưa có check ${ten}` };
-    if (c.error) return { ok: false, vi: `${ten}: ${c.error}` };
-  }
-  return { ok: true, vi: "P/X/C sạch lỗi" };
+  return judgePrimaryHealth(out);
 }
 
 // The two files that record what each node tracks moved to `./track-files.mjs` on 2026-09-08
@@ -682,14 +669,9 @@ async function chainSanSang(svc, subnetID, blockchainID) {
       "--data", `{"jsonrpc":"2.0","id":1,"method":"health.health","params":{"tags":["${subnetID}"]}}`,
       `${MANAGED_NODE_API}/ext/health`]);
   } catch {
-    return { ok: false, vi: "API not answering" };
+    return { ok: false, why: "node API not answering" };
   }
-  let checks;
-  try { checks = JSON.parse(out.slice(out.indexOf("{"), out.lastIndexOf("}") + 1))?.result?.checks; } catch { return { ok: false, vi: "health not parseable" }; }
-  const c = checks?.[blockchainID];
-  if (!c) return { ok: false, vi: `no health check for chain ${blockchainID} yet` };
-  if (c.error) return { ok: false, vi: `chain ${blockchainID}: ${typeof c.error === "string" ? c.error : JSON.stringify(c.error)}` };
-  return { ok: true, vi: "chain check clean" };
+  return judgeChainHealth(out, blockchainID);
 }
 
 /**
@@ -710,13 +692,9 @@ async function shapeOnNode(svc, blockchainID) {
       "--data", `{"jsonrpc":"2.0","id":1,"method":"eth_getChainConfig","params":[]}`,
       `${MANAGED_NODE_API}/ext/bc/${blockchainID}/rpc`]);
   } catch {
-    return { ok: false, vi: "chain RPC not answering on this node" };
+    return { ok: false, why: "chain RPC not answering on this node" };
   }
-  let j;
-  try { j = JSON.parse(out.slice(out.indexOf("{"), out.lastIndexOf("}") + 1)); } catch { return { ok: false, vi: "eth_getChainConfig not parseable" }; }
-  if (j?.error) return { ok: false, vi: `eth_getChainConfig: ${j.error.message ?? JSON.stringify(j.error)}` };
-  // `upgrades` is always present and `precompileUpgrades` is not (D-186 gotcha 2).
-  return { ok: true, shape: upgradeShape(j?.result?.upgrades?.precompileUpgrades ?? []) };
+  return judgeChainConfig(out, upgradeShape);
 }
 
 /**
@@ -725,19 +703,12 @@ async function shapeOnNode(svc, blockchainID) {
  * Returns `{ ok, vi }` — `vi` names what was still wrong when the budget ran out.
  */
 async function waitChainOnNode(svc, { subnetID, blockchainID, expectShape }) {
-  let last = { ok: false, vi: "not checked" };
+  let last = { ok: false, why: "not checked" };
   for (let i = 0; i < 45; i++) {
     const health = await chainSanSang(svc, subnetID, blockchainID);
-    if (health.ok) {
-      if (typeof expectShape !== "string") return { ok: true, vi: "chain check clean" };
-      const loaded = await shapeOnNode(svc, blockchainID);
-      if (loaded.ok && loaded.shape === expectShape) return { ok: true, vi: `chain check clean, runs "${expectShape || "empty"}"` };
-      last = loaded.ok
-        ? { ok: false, vi: `chain healthy but it loaded "${loaded.shape || "empty"}", expected "${expectShape || "empty"}"` }
-        : { ok: false, vi: loaded.vi };
-    } else {
-      last = health;
-    }
+    const loaded = health.ok && typeof expectShape === "string" ? await shapeOnNode(svc, blockchainID) : null;
+    last = judgeWaitStep(health, loaded, expectShape);
+    if (last.ok) return last;
     await new Promise(r => setTimeout(r, 2000));
   }
   return last;
@@ -750,11 +721,10 @@ async function waitChainOnNode(svc, { subnetID, blockchainID, expectShape }) {
  */
 async function servedOnNode(svc, blockchainID) {
   try {
-    const out = await docker([...composeArgs(), "exec", "-T", svc, "curl", "-sf", "-m", "5",
+    return servesChain(await docker([...composeArgs(), "exec", "-T", svc, "curl", "-sf", "-m", "5",
       "-X", "POST", "-H", "content-type:application/json",
       "--data", `{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}`,
-      `${MANAGED_NODE_API}/ext/bc/${blockchainID}/rpc`]);
-    return /"result"\s*:\s*"0x/.test(out);
+      `${MANAGED_NODE_API}/ext/bc/${blockchainID}/rpc`]));
   } catch { return false; }
 }
 
@@ -994,10 +964,13 @@ async function trackSubnetsLanLuot(target, { requireChain, forceRestart = false,
     }
     if (!sanSang?.ok) {
       const err = new Error(
-        `${svc} chưa phục vụ lại được mạng chính sau 90s (${sanSang?.vi}) — ĐÃ DỪNG, ` +
-        `các node còn lại chưa bị đụng tới. ` +
-        `Đã xong: ${nhatKy.map(n => n.svc).join(", ") || "(chưa node nào)"}. ` +
-        `Kiểm tra: docker logs ${svc} --tail 50`
+        // 🔴 Translated with the reason it interpolates (D-256). Leaving this Vietnamese while
+        // `sanSang.why` became English would produce ONE sentence in two languages — worse than
+        // either, because the reader cannot tell which half is the machine and which is the note.
+        `${svc} did not serve the primary network again within 90s (${sanSang?.why}) — STOPPED, ` +
+        `the remaining nodes were not touched. ` +
+        `Done so far: ${nhatKy.map(n => n.svc).join(", ") || "(no node yet)"}. ` +
+        `Check it with: docker logs ${svc} --tail 50`
       );
       err.daXong = nhatKy.map(n => n.svc);
       err.hong = svc;
@@ -1012,7 +985,7 @@ async function trackSubnetsLanLuot(target, { requireChain, forceRestart = false,
       if (!chainOk.ok) {
         const err = new Error(
           `${svc} is back on the primary network but the L1 ${requireChain.blockchainID} is NOT as required on it after 90s ` +
-          `(${chainOk.vi}) — STOPPED, the remaining nodes were not touched. ` +
+          `(${chainOk.why}) — STOPPED, the remaining nodes were not touched. ` +
           `Done: ${nhatKy.map(n => n.svc).join(", ") || "(none)"}. Check: docker logs ${svc} --tail 50`
         );
         err.daXong = nhatKy.map(n => n.svc);
@@ -1213,6 +1186,10 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
   // không. Đặt TRƯỚC mọi phép kiểm tên/hạn mức/khoá vì một chainId phát nhầm thế
   // hệ là thứ **không thu hồi được** — thu hồi chain không trả lại số nhận dạng.
   const theHe = await kiemTheHeMang();
+  // ⚠️ `.vi`, not `.why`. `kiemTheHeMang` is NOT part of the node-health extraction and still
+  // returns `{ trangThai, vi }`. A rename scoped by VARIABLE NAME reached this line and left it
+  // reading undefined, which would have emptied the generation-mismatch error — the one sentence
+  // that tells an operator the console is pointed at the wrong network (D-256).
   if (theHe.trangThai !== "khop") throw new Error(theHe.vi);
 
   name = String(name || "").trim();
@@ -2001,21 +1978,21 @@ async function hoanTacNangCap(chain, filePath, prev, daXong, hong) {
     let primary = null;
     for (let i = 0; i < 45; i++) { primary = await nodeSanSang(svc); if (primary.ok) break; await new Promise(r => setTimeout(r, 2000)); }
     if (!primary?.ok) {
-      steps.push(`${svc}: restarted (${before} → ${after}) but the primary network is NOT healthy after 90s (${primary?.vi}) — check it`);
-      notUndone.push({ svc, state: "unknown", why: primary?.vi });
+      steps.push(`${svc}: restarted (${before} → ${after}) but the primary network is NOT healthy after 90s (${primary?.why}) — check it`);
+      notUndone.push({ svc, state: "unknown", why: primary?.why });
       continue;
     }
     // `oldShape === null` means the previous file could not be reduced to a shape; then health is
     // all that can be checked, and the report says so instead of claiming the file.
     const chainOk = await waitChainOnNode(svc, { subnetID: chain.subnetID, blockchainID: chain.blockchainID, expectShape: oldShape === null ? undefined : oldShape });
     if (!chainOk.ok) {
-      steps.push(`${svc}: restarted (${before} → ${after}) but the L1 is NOT back on the old file after 90s (${chainOk.vi}) — a person must look at this node`);
+      steps.push(`${svc}: restarted (${before} → ${after}) but the L1 is NOT back on the old file after 90s (${chainOk.why}) — a person must look at this node`);
       // A chain that answers with the wrong shape still carries the new file; a chain that does not
       // answer is down. The caller words the two differently.
-      notUndone.push({ svc, state: /it loaded/.test(chainOk.vi) ? "new-file" : "not-serving", why: chainOk.vi });
+      notUndone.push({ svc, state: /it loaded/.test(chainOk.why) ? "new-file" : "not-serving", why: chainOk.why });
       continue;
     }
-    steps.push(`${svc}: restarted (${before} → ${after}), ${chainOk.vi}`);
+    steps.push(`${svc}: restarted (${before} → ${after}), ${chainOk.why}`);
   }
   return { text: steps.join("; "), notUndone, oldShape };
 }

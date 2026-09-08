@@ -242,13 +242,13 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       −949 ms · peer −174 ms ⇒ **775 ms là tuổi block**) — và nói thẳng khi riêng tuổi block đã gần hết ngân sách.
       🔴 **`[human]`: có siết ngưỡng 30 s không là quyết định về ĐẠI LƯỢNG NÀO nghi lễ tin**, nó đã là câu hỏi mở
       trong việc tay `09/09` (*"đo lại trên chain ĐANG ĐẺ BLOCK"*), và **không phải việc tôi tự quyết**.
-- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 5 lượt xong (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
+- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 6 lượt xong (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
       **vòng đời chain / theo dõi node / nhật ký tiến trình / định tuyến HTTP**. Hành vi phải **không đổi**.
       **Qua khi:** `check-local --console` xanh đủ 28 nhóm · `assignment-e2e` 52 ca · `create-rpc` · `options` ·
       `governance` · `maintenance` · `readiness` · `auth` · `paused` **đều xanh** · `check-deploy-imports` xanh
       (nó chính là cổng bắt mô-đun mới không được đóng gói khi deploy) · không tệp nào > 800 dòng.
       **Ca đỏ:** quên khai một mô-đun mới trong `manifest-deploy.json` ⇒ `check-deploy-imports` **đỏ và nêu tên tệp**.
-      🔵 `08/09` chiều→tối (autopilot, D-249 → D-255) — **2.927 → 2.673 dòng**, năm lượt tách, **mỗi lượt có ca đỏ thật**
+      🔵 `08/09` chiều→tối (autopilot, D-249 → D-256) — **2.927 → 2.643 dòng**, sáu lượt tách, **mỗi lượt có ca đỏ thật**
       (cả ba lần `check-deploy-imports` đỏ vì mô-đun mới chưa khai — đúng ca đỏ mục này tự dự đoán).
       🔴 **Điều kiện tiên quyết P-106a, và nó suýt làm hỏng cả mốc:** `readiness-e2e-test.mjs` **đọc `server.mjs`
       như VĂN BẢN** để bắt mọi lượt đọc biến môi trường phải nằm trong dấu vân cấu hình. Nhấc một dòng env sang
@@ -306,8 +306,24 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       checksum, không phải danh tính — từ chối một ví đúng vì kiểu chữ là **khoá chủ ra khỏi chain của chính họ**).
       Ba câu từ chối *"không tìm thấy"* giữ **ba câu khác nhau**, và điều đó được khẳng định: gộp thành *"not found"*
       tiết kiệm một dòng và lấy mất manh mối duy nhất người đọc có.
-      ⏳ Còn: phần còn lại của khối quản trị (~300 dòng, có side effect) · vòng đời tạo chain (~700 dòng) · dò sức
-      khoẻ node (~230 dòng, cần tiêm `docker()`). Mục tiêu ≤ 800 dòng/tệp.
+      ✅ **Lượt 6 — `node-health.mjs`** (đọc câu trả lời của node **nghĩa là gì**, **30 ca**; lời gọi docker ở lại
+      console). Hai luật ở đây sinh từ hỏng thật và **chưa có test**: (1) phán quyết mạng chính đọc **TỪNG** check
+      P/X/C thay vì tin cờ tổng — **cờ tổng gộp cả subnet đang được tạo**, tức nó sai **đúng trong lúc** thao tác
+      mà nó canh · (2) một chain có thể **KHOẺ mà vẫn đang chạy SAI tệp**; diễn tập `05/09` bắt được đường lùi khai
+      *"đã restart trên tệp cũ"* cho những node mà `eth_getChainConfig` vẫn liệt kê nâng cấp mới — **đại lượng
+      quyết định mạng có fork ở mốc kích hoạt hay không chưa bao giờ được đọc**.
+      🔴 **Phát hiện §0 trên ĐƯỜNG SẢN PHẨM:** các chuỗi lý do của phép dò mạng chính là **tiếng Việt**, và chúng
+      được **nội suy thẳng vào câu lỗi người dùng đọc**. Một trong hai câu mang chúng đã là tiếng Anh, câu kia thì
+      không — **tệ hơn cả hai**, vì nó làm ngôn ngữ của một lỗi phụ thuộc vào nhánh nào sinh ra nó. Repo đã trả giá
+      đúng hình dạng này khi `eip55.mjs` bị bắt trả câu tiếng Việt từ `/api/preview`.
+      🔴 **Hai lỗi của tôi, giữ lại:** đổi trường `.vi` → `.why` bằng regex **theo TÊN BIẾN**, mà `kiemTheHeMang`
+      (ngoài phạm vi) được đọc chỗ này là `theHe`, chỗ kia là `t` ⇒ chỗ đầu bị đổi và nay đọc `undefined`, **làm
+      RỖNG câu lỗi lệch thế hệ** — câu duy nhất nói cho người vận hành biết console đang trỏ nhầm mạng · và **cả
+      hai tệp mới đều đỏ bánh cóc §0**, vì header **trích** câu tiếng Việt làm ví dụ còn test thì **đánh vần cả bảng
+      chữ cái tiếng Việt** để bắt chúng. **Lần thứ ba trong phiên**: trích thứ đang bị kiểm là cách đưa nó vào tệp.
+      Nợ §0: 5348 → **5343**.
+      ⏳ Còn: phần còn lại của khối quản trị (~300 dòng, có side effect) · vòng đời tạo chain (~700 dòng).
+      Mục tiêu ≤ 800 dòng/tệp.
 - [ ] **P-107 — Trả nợ §0 trong `server.mjs`: 545 → mục tiêu < 100.** Đổi tên định danh lẫn hai ngôn ngữ
       (`kiemTheHeMang` · `nodeSanSang` · `moTienTrinh` · `thuHoiChain` · `napCapChain` · `doiChu` · `quanTri` ·
       `ghiChainConfig` · `docBody`…) và dịch chú thích. 🔴 **Chú thích là tài sản đắt nhất** (§0) — dịch **giữ nguyên
