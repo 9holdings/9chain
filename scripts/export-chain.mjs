@@ -52,6 +52,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync, appendFileSync } from "node:fs";
 import { basename, join, posix } from "node:path";
 import { guardEntry } from '../local-net/lib/cli.mjs';
+import { fetchWithDeadline } from '../local-net/lib/http.mjs';
 
 // 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
 guardEntry(import.meta.url, ['--add-evm', '--attach', '--check', '--max-blocks', '--out', '--rpc']);
@@ -131,7 +132,7 @@ if (existsSync(RA) && readdirSync(RA).length) {
 }
 
 async function gọi(đường, method, params = {}) {
-  const r = await fetch(`${RPC}${đường}`, {
+  const r = await fetchWithDeadline(`${RPC}${đường}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),

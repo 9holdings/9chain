@@ -10,6 +10,7 @@
  * node_modules. Đừng import nó từ console: gốc dự án trên server không có ethers.
  */
 import { ethers } from "ethers";
+import { fetchWithDeadline } from "../lib/http.mjs";
 
 /** Địa chỉ precompile Warp (`precompile/contracts/warp/module.go`). */
 export const WARP = "0x0200000000000000000000000000000000000005";
@@ -161,7 +162,7 @@ export async function phaiRevert(chu, tx) {
 export async function apiWarpDaBat(rpcUrl, idBiaCb58) {
   let j;
   try {
-    const r = await fetch(rpcUrl, {
+    const r = await fetchWithDeadline(rpcUrl, {
       method: "POST", headers: { "content-type": "application/json" },
       body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "warp_getMessage", params: [idBiaCb58] }),
     });
@@ -219,7 +220,7 @@ export async function thaoTacDai({ consoleUrl, token, danhBaUrl, loai, ten, body
   const duong = loai === "create" ? "/api/create" : "/api/revoke";
   let loiPost = null;
   try {
-    const r = await fetch(consoleUrl + duong, {
+    const r = await fetchWithDeadline(consoleUrl + duong, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
       body: JSON.stringify(body),
@@ -235,7 +236,7 @@ export async function thaoTacDai({ consoleUrl, token, danhBaUrl, loai, ten, body
   const t0 = Date.now();
   while (Date.now() - t0 < hanGio) {
     try {
-      const r = await fetch(consoleUrl + "/api/progress", {
+      const r = await fetchWithDeadline(consoleUrl + "/api/progress", {
         headers: { authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(15_000),
       });
@@ -245,7 +246,7 @@ export async function thaoTacDai({ consoleUrl, token, danhBaUrl, loai, ten, body
     await new Promise(s => setTimeout(s, 5_000));
   }
 
-  const rd = await fetch(`${danhBaUrl}?t=${Date.now()}`, { cache: "no-store", signal: AbortSignal.timeout(20_000) });
+  const rd = await fetchWithDeadline(`${danhBaUrl}?t=${Date.now()}`, { cache: "no-store", signal: AbortSignal.timeout(20_000) });
   const d = await rd.json();
   const chains = d.chains || [], retired = d.retired || [];
   if (loai === "create") {

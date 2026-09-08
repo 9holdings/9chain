@@ -10,6 +10,7 @@ import { mkdirSync, mkdtempSync, copyFileSync, readFileSync, existsSync, readdir
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { NETWORK_ID, TEN_MANG } from '../lib/chainid.mjs';
+import { fetchWithDeadline } from '../lib/http.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const expected = 9001000899;
@@ -110,7 +111,7 @@ async function check(label, result, succeeds, errorPattern,
       if (spawnError) throw spawnError;
       if (child.exitCode !== null) throw new Error(`Console exited ${child.exitCode}`);
       try {
-        const response = await fetch(base + '/api/progress', { headers, signal: AbortSignal.timeout(500) });
+        const response = await fetchWithDeadline(base + '/api/progress', { headers, signal: AbortSignal.timeout(500) });
         if (response.status === 200) { ready = true; break; }
       } catch { /* wait for this console */ }
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -121,7 +122,7 @@ async function check(label, result, succeeds, errorPattern,
     await waitReady();
     const ledger = path.join(config, 'console-chains.json');
     let settled = false;
-    const submission = fetch(base + '/api/create', { method: 'POST', headers,
+    const submission = fetchWithDeadline(base + '/api/create', { method: 'POST', headers,
       body: JSON.stringify({ name: 'RPC Identity Test', chainId: expected }), signal: AbortSignal.timeout(requestTimeoutMs) })
       .then(response => { settled = true; return { response }; }, error => { settled = true; return { error }; });
     let body;
@@ -181,7 +182,7 @@ async function check(label, result, succeeds, errorPattern,
       if (ledgerFailure) assert.equal(commandLog.at(-1), 'ledger-sync-failed');
     } else assert.equal(commandLog.length, rolloutPrefix.length, 'no per-node checks before the public RPC identity succeeds');
     if (!crashDuringSubmission) {
-      const progress = await (await fetch(base + '/api/progress', { headers })).json();
+      const progress = await (await fetchWithDeadline(base + '/api/progress', { headers })).json();
       assert.equal(progress.running, false);
       assert.equal(progress.steps.find(step => step.code === (cliFailure ? 'subnet' : 'rpc')).status,
         succeeds || ledgerFailure || nodeMode ? 'done' : 'failed');
@@ -204,7 +205,7 @@ async function check(label, result, succeeds, errorPattern,
       }
       // A good RPC on the next request must not trigger a second irreversible CLI call.
       reported = '0x' + expected.toString(16);
-      const retry = await fetch(base + '/api/create', { method: 'POST', headers,
+      const retry = await fetchWithDeadline(base + '/api/create', { method: 'POST', headers,
         body: JSON.stringify({ name: 'Retry After Failure', chainId: expected + 1 }), signal: AbortSignal.timeout(10000) });
       const retryBody = await retry.json();
       assert.equal(retry.status, 400);
@@ -214,19 +215,19 @@ async function check(label, result, succeeds, errorPattern,
       await stopChild();
       startChild();
       await waitReady();
-      const status = await (await fetch(base + '/api/status', { headers })).json();
+      const status = await (await fetchWithDeadline(base + '/api/status', { headers })).json();
       if (ledgerFailure) assert.match(status.error, /ledger is missing but recovery files exist/);
       else assert.equal(status.pendingCreation.jobId, pending.id, 'a fresh process must expose the persisted job');
-      const afterRestart = await fetch(base + '/api/create', { method: 'POST', headers,
+      const afterRestart = await fetchWithDeadline(base + '/api/create', { method: 'POST', headers,
         body: JSON.stringify({ name: 'Retry After Restart', chainId: expected + 2 }) });
       assert.equal(afterRestart.status, 400);
       assert.match((await afterRestart.json()).error, /chain creation is pending/i);
-      const blockedRevoke = await fetch(base + '/api/revoke', { method: 'POST', headers,
+      const blockedRevoke = await fetchWithDeadline(base + '/api/revoke', { method: 'POST', headers,
         body: JSON.stringify({ name: 'RPC Identity Test', xacNhan: 'RPC Identity Test' }) });
       assert.equal(blockedRevoke.status, 400);
       assert.match((await blockedRevoke.json()).error, /chain creation is pending/i,
         'the chain under creation itself stays off limits until resolved');
-      const blockedUpgrade = await fetch(base + '/api/upgrade', { method: 'POST', headers,
+      const blockedUpgrade = await fetchWithDeadline(base + '/api/upgrade', { method: 'POST', headers,
         body: JSON.stringify({ name: 'RPC Identity Test', confirm: 'RPC Identity Test' }) });
       assert.equal(blockedUpgrade.status, 400);
       assert.match((await blockedUpgrade.json()).error, /chain creation is pending/i);
@@ -235,18 +236,18 @@ async function check(label, result, succeeds, errorPattern,
       // every mutation, so one slow bootstrap closed revocation for everyone while /api/status
       // stayed 200. There is no other chain in this ledger, so the refusal must be "no such chain",
       // never "creation is pending".
-      const otherRevoke = await fetch(base + '/api/revoke', { method: 'POST', headers,
+      const otherRevoke = await fetchWithDeadline(base + '/api/revoke', { method: 'POST', headers,
         body: JSON.stringify({ name: 'Some Other Chain', xacNhan: 'Some Other Chain' }) });
       assert.equal(otherRevoke.status, 400);
       assert.doesNotMatch((await otherRevoke.json()).error, /chain creation is pending/i,
         'revoking another chain must not be blocked by the reservation');
-      const otherTransfer = await fetch(base + '/api/transfer-owner', { method: 'POST', headers,
+      const otherTransfer = await fetchWithDeadline(base + '/api/transfer-owner', { method: 'POST', headers,
         body: JSON.stringify({ name: 'Some Other Chain', newAdmin: '0x000000000000000000000000000000000000dEaD', confirm: 'Some Other Chain' }) });
       assert.doesNotMatch((await otherTransfer.json()).error ?? '', /chain creation is pending/i);
       assert.equal(createCount(), 1);
 
       // ═══ The one door out: /api/creation/resolve ═══
-      const resolve = body => fetch(base + '/api/creation/resolve', { method: 'POST', headers, body: JSON.stringify(body) });
+      const resolve = body => fetchWithDeadline(base + '/api/creation/resolve', { method: 'POST', headers, body: JSON.stringify(body) });
       const wrongJob = await resolve({ jobId: '00000000-0000-4000-8000-000000000000', action: 'discard' });
       assert.equal(wrongJob.status, 409, 'a stale or guessed jobId must not resolve anything');
       assert.match((await wrongJob.json()).error, new RegExp(pending.id));
@@ -282,7 +283,7 @@ async function check(label, result, succeeds, errorPattern,
           assert.equal(JSON.parse(readFileSync(path.join(history, `${pending.id}.json`), 'utf8')).resolution, 'discarded');
           // The door is open again: the next creation reaches the CLI (and, in this fixture,
           // fails there again — a second, independent reservation, not the old one).
-          const again = await fetch(base + '/api/create', { method: 'POST', headers,
+          const again = await fetchWithDeadline(base + '/api/create', { method: 'POST', headers,
             body: JSON.stringify({ name: 'After Discard', chainId: expected + 3 }), signal: AbortSignal.timeout(10000) });
           assert.equal(again.status, 400);
           assert.equal(createCount(), 2, 'after discard the CLI runs again');
@@ -311,7 +312,7 @@ async function check(label, result, succeeds, errorPattern,
           assert.equal(retiredLedger.retired[0].blockchainID, 'TestBlockchain111');
           assert.equal(JSON.parse(readFileSync(path.join(history, `${pending.id}.json`), 'utf8')).resolution, 'retired');
           // Retired keeps the name and chainId reserved forever (D-014), exactly like a revoked chain.
-          const reuse = await fetch(base + '/api/create', { method: 'POST', headers,
+          const reuse = await fetchWithDeadline(base + '/api/create', { method: 'POST', headers,
             body: JSON.stringify({ name: 'RPC Identity Test', chainId: expected }) });
           assert.equal(reuse.status, 400);
           const reuseError = (await reuse.json()).error;

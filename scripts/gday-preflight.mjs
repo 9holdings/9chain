@@ -178,6 +178,11 @@ const GATES = [
   // pressure, and a typo used to produce a green line that meant nothing.
   { group: "2 · REPO GATES", name: "flag-guard verdict rules (counter-check)", ...node("scripts/check-flag-guards.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "every gate refuses a flag it does not know", ...node("scripts/check-flag-guards.mjs") },
+  // 🔴 A request with no deadline does not go red — it never returns, and a run that never
+  // returns is read as a slow machine rather than as a measurement that never happened (D-244).
+  // On G-day that is the difference between "the console is busy" and "we do not know".
+  { group: "2 · REPO GATES", name: "request-deadline scanner (counter-check)", ...node("scripts/check-fetch-timeouts.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "every outbound request can give up", ...node("scripts/check-fetch-timeouts.mjs") },
   // Language rule (CLAUDE.md §0, decided 2026-08-28): new code must be English; existing
   // debt may only shrink. Included in the G-day run because that is the most rushed moment,
   // and rushing is exactly when someone types a non-English comment into a new file.

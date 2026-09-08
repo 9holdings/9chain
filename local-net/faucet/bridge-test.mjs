@@ -29,6 +29,7 @@
 import { ethers } from "ethers";
 import { hex32ToCb58, cb58ToHex } from "../lib/cb58.mjs";
 import { CAU_TAI_SAN_ABI, CAU_TAI_SAN_BIN, CAU_TAI_SAN_VAN_TAY_NGUON } from "../lib/asset-bridge.mjs";
+import { fetchWithDeadline } from "../lib/http.mjs";
 import {
   WARP, guiVoiNonce, chot, napHopDong, moBlock1,
   goiPredicate, bocLogWarp, apiWarpDaBat, xinChuKy, phaiRevert,
@@ -55,7 +56,7 @@ function kiem(ten, dat, chiTiet = "") {
 }
 function sach(s) { const t = String(s ?? ""); return TOKEN ? t.split(TOKEN).join("<TOKEN>") : t; }
 async function api(duong, body) {
-  const r = await fetch(CONSOLE + duong, {
+  const r = await fetchWithDeadline(CONSOLE + duong, {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}` },
     body: JSON.stringify(body),

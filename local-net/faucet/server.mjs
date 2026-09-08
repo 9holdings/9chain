@@ -11,6 +11,7 @@ import http from "node:http";
 import { readFileSync } from "node:fs";
 import { ethers } from "ethers";
 import { clientIp, rateLimit, requireInt, serialQueue } from "../lib/guard.mjs";
+import { fetchWithDeadline } from "../lib/http.mjs";
 
 const RPC = process.env.FAUCET_RPC || "http://localhost:9650/ext/bc/C/rpc";
 const AMOUNT = process.env.FAUCET_AMOUNT || "10";
@@ -113,7 +114,7 @@ try {
 }
 
 async function rpcP(method, params = {}) {
-  const r = await fetch(PCHAIN_RPC, {
+  const r = await fetchWithDeadline(PCHAIN_RPC, {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
   });

@@ -83,6 +83,7 @@ import { fileURLToPath } from "node:url";
 import { A1_ID_GOC, A1_GEN, TEN_MANG } from "../local-net/lib/chainid.mjs";
 import { RPC_URL } from "../local-net/lib/server.mjs";
 import { guardEntry } from '../local-net/lib/cli.mjs';
+import { fetchWithDeadline } from '../local-net/lib/http.mjs';
 
 // 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
 guardEntry(import.meta.url, ['--offline', '--rpc', '--self-test']);
@@ -222,7 +223,7 @@ export function readNetDir(dir, live = liveNetworkId) {
 }
 
 async function rpc(chainPath, method, params) {
-  const res = await fetch(`${RPC}${chainPath}`, {
+  const res = await fetchWithDeadline(`${RPC}${chainPath}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),

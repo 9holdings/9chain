@@ -23,6 +23,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { guardEntry } from '../local-net/lib/cli.mjs';
+import { fetchWithDeadline } from '../local-net/lib/http.mjs';
 
 // 🔴 A flag this gate does not know is exit 2 — "could not run", never a verdict (D-244).
 guardEntry(import.meta.url, ['--add', '--file', '--gen-blocklist', '--range', '--save']);
@@ -74,7 +75,7 @@ if (TEP) {
   thô = readFileSync(TEP);
   nguồnMôTả = `tệp cục bộ ${TEP}`;
 } else {
-  const r = await fetch(NGUON);
+  const r = await fetchWithDeadline(NGUON);
   if (!r.ok) { console.error(`🔴 ${NGUON} trả HTTP ${r.status}`); process.exit(2); }
   thô = Buffer.from(await r.arrayBuffer());
   nguồnMôTả = NGUON;
