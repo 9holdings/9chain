@@ -10,7 +10,8 @@ Mạng g1 công khai, server, `patches/`, `web/`: **không đổi**. Băng tập
 **Preflight cuối phiên (cờ băng tập bật): `61 đạt · 2 đỏ · 0 không chạy được · 8 việc tay`** — hai đỏ đều đã biết và **không cái nào
 là việc mã của `main`**: `check-deploy-drift` (console chưa deploy, `[human]`, đúng thiết kế từ `07/09`) và cổng bơm g1 (đỏ **có chủ
 ý** tới `09/09`, D-149). `check-clock-skew` lượt này **xanh** — đúng như đã ghi, nó chỉ nhấp nháy khi có bơm chạy.
-`main` = `0df9a41`, **trước `origin` 46 commit, chưa đẩy** (David bấm sau `check-remotes` + `check-history-secrets`).
+`main` đứng trên `origin/main` **48 commit, chưa đẩy** (commit HANDOFF này là cái cuối; David bấm sau `check-remotes` +
+`check-history-secrets --all-objects`). Đếm lại bằng `git log --oneline origin/main..main | wc -l` chứ đừng tin con số chép tay.
 Bằng chứng: `docs/EVIDENCE-L1-108-PHASE1B-2026-09-08.md`; cỡ máy ở `docs/PLAN-108-L1-LOAD-TEST.md` **§2d**.
 
 **Số đo, tất cả trên `net-tap-g1` (15 L1 · V=5 · 1 tx/s), đại lượng là `anon`:**
