@@ -242,13 +242,14 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       −949 ms · peer −174 ms ⇒ **775 ms là tuổi block**) — và nói thẳng khi riêng tuổi block đã gần hết ngân sách.
       🔴 **`[human]`: có siết ngưỡng 30 s không là quyết định về ĐẠI LƯỢNG NÀO nghi lễ tin**, nó đã là câu hỏi mở
       trong việc tay `09/09` (*"đo lại trên chain ĐANG ĐẺ BLOCK"*), và **không phải việc tôi tự quyết**.
-- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 2/≥4 lượt (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
+- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 3 lượt xong (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
       **vòng đời chain / theo dõi node / nhật ký tiến trình / định tuyến HTTP**. Hành vi phải **không đổi**.
       **Qua khi:** `check-local --console` xanh đủ 28 nhóm · `assignment-e2e` 52 ca · `create-rpc` · `options` ·
       `governance` · `maintenance` · `readiness` · `auth` · `paused` **đều xanh** · `check-deploy-imports` xanh
       (nó chính là cổng bắt mô-đun mới không được đóng gói khi deploy) · không tệp nào > 800 dòng.
       **Ca đỏ:** quên khai một mô-đun mới trong `manifest-deploy.json` ⇒ `check-deploy-imports` **đỏ và nêu tên tệp**.
-      🔵 `08/09` chiều (autopilot, D-249 · D-250) — **2.927 → 2.802 dòng**, hai lượt tách, mỗi lượt có ca đỏ thật.
+      🔵 `08/09` chiều (autopilot, D-249 · D-250 · D-251) — **2.927 → 2.754 dòng**, ba lượt tách, **mỗi lượt có ca đỏ thật**
+      (cả ba lần `check-deploy-imports` đỏ vì mô-đun mới chưa khai — đúng ca đỏ mục này tự dự đoán).
       🔴 **Điều kiện tiên quyết P-106a, và nó suýt làm hỏng cả mốc:** `readiness-e2e-test.mjs` **đọc `server.mjs`
       như VĂN BẢN** để bắt mọi lượt đọc biến môi trường phải nằm trong dấu vân cấu hình. Nhấc một dòng env sang
       mô-đun khác ⇒ nó **thôi nhìn thấy**, dấu vân **thôi bao**, và test **VẪN XANH**. Tách mà không đóng cái này
@@ -267,7 +268,20 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       chứ không phải hệ tệp giả — luật ở đây nói về thứ `Glob("upgrade.*")` của avalanchego **tìm thấy**, và một
       hệ tệp giả chỉ khẳng định mô hình của tôi về thư mục). Phủ **cả hai** cách làm node chết đã đo `05/09`.
       Nợ §0: **5406 → 5374** (`server.mjs` 545 → 513), mốc bánh cóc đã hạ.
-      ⏳ Còn: cụm theo dõi node/rollout (~650 dòng) · cụm quản trị chain · vòng đời tạo chain. Mục tiêu ≤ 800 dòng/tệp.
+      ✅ **Lượt 3 — `track-files.mjs`** (hai tệp khai node nào track subnet nào, **20 ca**, thư mục THẬT).
+      🔴 Tính chất đáng có test nhất ở đây **nhìn từ ngoài không thấy**: một service **VẮNG MẶT** trong override
+      không phải là "không track gì" — compose rơi về biến chung của tệp gốc, tức về **mô hình mọi-node**. Nên
+      node rảnh được ghi **danh sách rỗng**, không phải bỏ trống. `.env` cũng cùng lớp lý do: console **không đọc**
+      nó, nó tồn tại cho người sau gõ `docker compose up -d` bằng tay — người đó sẽ nhận giá trị rỗng và đẩy một
+      node ra khỏi track **trong im lặng** (dự án đã dính đúng hình dạng này với `--http-allowed-hosts`).
+      🔴 Ghim `.env` là thao tác **KHÔNG được làm hỏng lượt chạy**: env đã truyền rồi. Mô-đun nay **ném lỗi** và
+      console **cảnh báo** — quyết định *"không huỷ lượt"* nằm ở chỗ gọi, đọc được, thay vì chôn trong một `catch`
+      cách đó ba trăm dòng.
+      🔴 **Một chú thích 28 dòng về đúng chỗ của nó**: nó mô tả `trackSubnetsLanLuot` (rolling restart · sự cố RPC
+      công khai **6,0 s** đo `24/08` · vì sao node phục vụ RPC đi cuối) mà lại ngồi trên **ba hàm khác**, cách hàm
+      nó nói tới **300 dòng**. Nợ §0: 5374 → **5363**.
+      ⏳ Còn: cụm quản trị chain (~340 dòng, đã có banner riêng) · vòng đời tạo chain (~700 dòng) · dò sức khoẻ
+      node (~230 dòng, cần tiêm `docker()`) · ống HTTP. Mục tiêu ≤ 800 dòng/tệp.
 - [ ] **P-107 — Trả nợ §0 trong `server.mjs`: 545 → mục tiêu < 100.** Đổi tên định danh lẫn hai ngôn ngữ
       (`kiemTheHeMang` · `nodeSanSang` · `moTienTrinh` · `thuHoiChain` · `napCapChain` · `doiChu` · `quanTri` ·
       `ghiChainConfig` · `docBody`…) và dịch chú thích. 🔴 **Chú thích là tài sản đắt nhất** (§0) — dịch **giữ nguyên
