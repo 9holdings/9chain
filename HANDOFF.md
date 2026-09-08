@@ -1,4 +1,115 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
+
+## CHỐT PHIÊN 2026-09-08 chiều→tối (Claude, 9Chain A1 core — autopilot mốc `OPT-CORE`) — 8 CỔNG MỚI, 8 mô-đun tách khỏi console, và **bảy lỗi thật** moi ra bằng chính chúng
+
+**TL;DR.** David giao *"quét toàn diện core + web → tối ưu code → autopilot 10 giờ"*. Lượt quét mở đầu tìm ra
+một lỗ §2 chưa ai canh (**gõ sai một cờ ⇒ cổng đo THỨ KHÁC và khai ✅**) → D-244 nạp mốc `OPT-CORE` 10 mục →
+autopilot chạy **8 mục xong, 2 đang làm**, **26 commit, KHÔNG push, KHÔNG deploy, KHÔNG đụng `patches/`/`web/`**.
+*(Đếm bằng `git log --oneline 1c5b71d..HEAD | wc -l`; bản nháp của tôi chép tay **30** — sai. `main` nay đứng
+trước `origin` **85 commit**, cộng dồn từ các phiên trước.)*
+Mạng g1 công khai, server: **không đổi một byte**.
+
+🔴 **Thứ đáng đọc nhất phiên này KHÔNG phải số dòng giảm — là bảy lỗi thật mà các cổng mới moi ra**, và **tám lần
+chính tôi đo sai trước khi đo đúng** (ghi hết ở D-244 → D-261, mỗi cái nằm trong header của cổng liên quan).
+
+### Bảy lỗi THẬT tìm ra
+
+| # | lỗi | vì sao nó nguy hiểm |
+|---|---|---|
+| 1 | **Không cổng nào từ chối cờ lạ.** `check-chain-ledger --dril` in `✅ PASS` exit 0 **không ở chế độ băng tập**; `check-net-dirs --self-tset` in `✅ PASS` **chạy mạng THẬT** | đúng lớp lỗi §2, và nó **khai xanh**. Một cú gõ nhầm trong runbook ngày G = một dòng ✅ vô nghĩa |
+| 2 | **`check-key-leaks` KHÔNG chạy xong trong 600 giây** vì `work/` phình 2,4 → 4,2 GB **trong một phiên** | cổng canh **quyền tiêu tiền trên mạng sống**; chậm tới mức bị bỏ qua = không canh gì |
+| 3 | **`Number(null) === 0`** trong cổng thế hệ ⇒ node trả `null` được đọc thành **"mạng số 0"** ⇒ ra **"LỆCH THẾ HỆ"** | sai phán quyết + sai cách sửa, trên đúng cổng đứng giữa một cú gõ nhầm và **một chainId vĩnh viễn** |
+| 4 | **8 chuỗi tiếng Việt ĐI RA DÂY**, gồm `notes` của `/api/create` và 7 câu lỗi trên đường tạo/thu hồi chain | **lần thứ ba** cùng lớp lỗi (03/09 nhãn tiến trình · 04/09 lỗi địa chỉ), mỗi lần tìm ra bằng **tình cờ** |
+| 5 | **`check-clock-skew` là một cú TUNG ĐỒNG XU**: 20 lượt = **10 đỏ / 10 xanh**, bơm đã dừng | HANDOFF có sẵn lời giải thích (*"chỉ nhấp nháy khi có bơm"*) — **nó chưa bao giờ là một phép đo** |
+| 6 | **Hai cổng cùng chiếm port 8501/8502**, chưa va **chỉ vì** hai runner không bao giờ chạy cùng lúc | tính chất của **LỊCH CHẠY**, không phải của mã; hết hiệu lực khi có hai phiên |
+| 7 | **8 số D-nnn dẫn từ 26 chỗ trong mã KHÔNG TỒN TẠI** trong `DECISIONS.md` | con trỏ ấy là **đường DUY NHẤT** từ mã tới lý lẽ |
+
+🔴 **Nguyên nhân của #7 đáng hơn con số:** các mục đang được nối vào sổ **trong cùng lệnh shell với commit**; lệnh
+đó **hỏng vì lỗi trích dẫn**, nên phần ghi sổ không chạy — rồi tôi chạy lại **chỉ phần commit**. *Commit trông
+sạch, mọi cổng xanh, lý lẽ lặng lẽ không được ghi.*
+
+### Tám cổng mới (mỗi cái có self-test và đã được nhìn thấy ĐỎ đúng lý do)
+
+```bash
+node scripts/check-flag-guards.mjs        # 60 cổng phải TỪ CHỐI cờ lạ — chạy THẬT từng cổng, không grep mã
+node scripts/check-fetch-timeouts.mjs     # mọi lời gọi ra ngoài có hạn giờ (đọc trọn lời gọi, không cửa sổ dòng)
+node scripts/check-fixed-ports.mjs        # không hai tệp cùng chiếm một port cố định
+node scripts/check-work-retention.mjs     # work/ đủ nhỏ để cổng khoá quỹ chạy nổi  (--prune để dọn)
+node scripts/check-decision-refs.mjs      # mọi D-nnn trong mã phải giải được
+node scripts/check-wire-language.mjs      # chữ console GỬI ĐI phải là tiếng Anh
+node scripts/check-route-guards.mjs       # mọi route công khai có hạn mức + xác thực
+node scripts/measure-block-cache.mjs      # DỤNG CỤ cho quyết định P-95 (chưa chạy trên node sống)
+```
+
+### Số đo trước / sau
+
+| | trước | sau |
+|---|---|---|
+| `check-local` | 34,9 s · 23 ca | **19,0 s** |
+| `check-local --console` | 2 ph 31 · 33 cổng | **~64 s · 56 cổng** |
+| preflight, lô offline | 31,7 s · 46 cổng | **19,8 s · 59 cổng** |
+| preflight, tổng | `61 đạt · 2 đỏ · 0 không chạy được` | **`73 đạt · 2 đỏ · 2 KHÔNG CHẠY ĐƯỢC`** ⚠️ xem `[human]` 1 |
+| `check-key-leaks` | **> 600 s, KHÔNG XONG** | **4 ph 18 s** |
+| `work/` | 4,2 GB · 609 mục | **1,70 GB · 389 mục** — trần **2 GB** |
+| `console/server.mjs` | 2.927 dòng | **2.594** (8 mô-đun tách ra, **238 ca kiểm** chúng chưa từng có) |
+| nợ §0 | 5.406 | **5.335** |
+
+🔴 **Đọc kỹ dòng `work/`: sau lượt dọn nó là 1,0 GB, cuối phiên đã là 1,70 GB — mọc lại 0,7 GB TRONG MỘT BUỔI
+TỐI**, chỉ vì chạy chính các cổng. ⇒ **Dọn một lượt không phải cách sửa; trần có khoảng thở mới là.** Đó cũng là
+lý do trần phải đặt **2 GB chứ không phải 1**: một trần thấp hơn cái giá bình thường của việc chạy cổng sẽ **đỏ
+vĩnh viễn trên trạng thái ĐÚNG**, và một cổng như thế bị người ta học cách bỏ qua.
+
+### 🔴 Việc `[human]` sinh ra từ phiên này
+
+1. 🔴 **MỘT DÒNG, và nó là thứ DUY NHẤT phiên này làm xấu đi — cây fork đang bẩn, hai cổng genesis
+   `KHÔNG CHẠY ĐƯỢC` (`0 → 2`):**
+   ```bash
+   rm -rf upstream/avalanchego/graft/subnet-evm/cmd/a1-genesis-exec
+   ```
+   Đó là **bản trùng byte** của `local-net/tools/genesis-exec/main.go` (sha256 `7dc7a8c6…`) —
+   `check-genesis-contracts` **chép nó vào cây fork để build**, và lượt tôi thăm dò cờ lạ bị `SIGTERM` giết
+   **trước bước dọn**. Lệnh `rm` trong `upstream/` bị **chặn quyền hai lần** ⇒ tôi dừng, không thử lại.
+   ⚠️ Không có gì bị mất: bản gốc vẫn ở `local-net/tools/`, và cây fork **không thuộc bộ patch**.
+   🔴 Nhưng chừng nào còn nó, **hai cổng genesis không nói được gì** — mà theo D-116 *"không chạy được"*
+   **không phải một phán quyết**, nên đừng đọc `73 đạt` như *"73 điều đã được chứng minh"*.
+2. **`D-189` là tham chiếu treo CÓ SẴN**, dẫn 3 lần từ `console/server.mjs`. Thất bại nó gọi tên được **kể bên
+   trong D-190** nhưng chưa có tiêu đề riêng. **Tôi không bịa một mục cho nó.** Tách khỏi D-190, hay trỏ lại ba
+   lượt dẫn — anh quyết.
+3. **`/whoami` không có hạn mức.** Đã khai miễn trừ **có lý do** (không đọc state, không chạm node, trả về chính
+   IP người gọi, và **tồn tại để bị gõ lặp lại**). Đặt nó sau một hạn mức là **đổi hành vi trên console đã
+   deploy** ⇒ quyết định của anh.
+4. **`check-clock-skew` còn nhấp nháy 2/20**, và cơ chế nay đã rõ: ngưỡng *"block còn tươi"* là **30 s** trong khi
+   ngân sách bù là **3 s** ⇒ trên chain nhàn rỗi, cổng đang trả lời câu *"chain đẻ block dày hay thưa"* dưới nhãn
+   *"lệch đồng hồ"*. **Có siết ngưỡng 30 s không là quyết định về ĐẠI LƯỢNG NÀO nghi lễ `09/09` tin** — không
+   phải việc tôi tự quyết.
+5. **Đổi BỀ MẶT DEPLOY:** `manifest-deploy.json` nay khai thêm 10 tệp cho `console`/`faucet`/`vantoc`
+   (`cli.mjs` · `http.mjs` · 8 mô-đun console). `eip55.mjs` với tay tới `cli.mjs`, `faucet/server.mjs` tới
+   `http.mjs` ⇒ **thiếu chúng thì console không khởi động nổi**. Lượt deploy tới phải mang đủ.
+6. **Đẩy `origin`** — `git log --oneline origin/main..main | wc -l`, đếm bằng lệnh chứ đừng tin số chép tay.
+
+### Gotchas phiên này — tám lần tôi tự đo sai, giữ lại vì chúng lặp
+
+- 🔴 **`exit 2` một mình KHÔNG phải bằng chứng**: hai cổng genesis thoát 2 **mỗi khi cây fork bẩn**, có cờ hay
+  không ⇒ chúng xanh **vì lý do khác**. Nay đòi exit 2 **VÀ** câu lỗi phải **nêu tên cờ**.
+- 🔴 **Cửa sổ N dòng đo CÁCH TRÌNH BÀY, không đo tính chất**: đếm `fetch` không hạn giờ ra **28**, số thật là
+  **18** · và quét 12 dòng quanh route khai `/api/create` **không có chốt bảo mật nào** — sai, tôi **suýt báo một
+  lỗ không có thật**. Cả hai sửa bằng **đọc trọn lời gọi / trọn khối** (cân bằng ngoặc).
+- 🔴 **Một cổng đọc mã sẽ tìm thấy FIXTURE của chính nó** (3 lần). Sửa bằng **xoá trắng chuỗi/chú thích**, KHÔNG
+  bằng miễn trừ: *một cổng được miễn trừ khỏi luật của chính nó đã thôi canh thứ nó sinh ra để canh.*
+- 🔴 **TRÍCH DẪN THỨ ĐANG BỊ KIỂM LÀ CÁCH ĐƯA NÓ VÀO TỆP** — bánh cóc §0 bắt tôi **BỐN lần**, lần cuối trong
+  chính ca kiểm dựng ra để **phát hiện** tiếng Việt. Đổi sang từ tiếng Pháp cũng không thoát (`é` là chữ cái tiếng
+  Việt) ⇒ **dựng ký tự lúc chạy** từ code point.
+- 🔴 **Đổi tên bằng regex theo TÊN BIẾN bỏ sót cùng một đối tượng dưới tên khác**: `theHe` đổi, `t` không ⇒ **câu
+  lỗi lệch thế hệ thành RỖNG**.
+- 🔴 **Ngưỡng làm một phép QUÉT nhanh chính là ngưỡng làm một phép XOÁ không an toàn**: prune đầu **283 xoá ·
+  0,04 GB · 30 TỪ CHỐI**, vì tôi dùng lại ngưỡng 200 KB — nó chặn **đúng** những thư mục tạo nên 4 GB.
+- 🔴 **Import một mô-đun `process.exit()` lúc khởi động thì `try` không cứu được**: cổng ngôn ngữ bản đầu **tự
+  giết mình** khi import `server.mjs`.
+- 🔴 **Trần đặt thấp hơn cái giá của chính sách = cổng đỏ vĩnh viễn trên trạng thái ĐÚNG** — trần `work/` phải là
+  2 GB, không phải 1.
+- 🔴 **Đảo chiều phụ thuộc**: `scripts/` vốn import **từ** `local-net/lib/`, và `local-net/lib/**` **được deploy**
+  ⇒ đặt helper vào `scripts/` rồi cho lib đã deploy import ngược là **kéo bộ đo lên máy chủ**. `check-deploy-imports`
+  bắt ngay lượt đầu.
 ## CHỐT PHIÊN 2026-09-08 ~12:5xZ (Claude, 9Chain A1 core — autopilot, pha 1b của mốc `L1-108`) — P-90→P-95 XONG, "RAM không phẳng" của pha 1 nay có CƠ CHẾ và có TRẦN TÍNH ĐƯỢC
 
 băng tập đang chạy**, không cần máy mới. Sáu mục **P-90 → P-95, XONG CẢ SÁU**. Kết luận đổi hẳn hình dạng bài toán: **RAM đi theo

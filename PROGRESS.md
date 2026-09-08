@@ -405,12 +405,26 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       Pháp **cũng không thoát** (`é` là chữ cái tiếng Việt) ⇒ **dựng ký tự lúc chạy** từ code point.
       **Bài học: TRÍCH DẪN THỨ ĐANG BỊ KIỂM LÀ CÁCH ĐƯA NÓ VÀO TỆP.**
       Nợ §0: 5342 → **5335**. ⏳ Còn 460 dòng chú thích — giá trị dài hạn, **không** ở trên đường sản phẩm.
-- [ ] **P-108 — Vệ sinh cây làm việc.** `work/` = **2,4 GB · 463 thư mục** rác phiên cũ (đã ignore, nhưng
+- [x] **P-108 — Vệ sinh cây làm việc.** `work/` = **2,4 GB · 463 thư mục** rác phiên cũ (đã ignore, nhưng
       `check-key-leaks` phải quét qua nó mỗi lượt); một thư mục `-p/` rỗng sinh từ `mkdir -p` gõ hỏng `28/08`.
       **Qua khi:** chính sách giữ lại viết thành cổng (`work/` chỉ giữ N ngày gần nhất) · **LIỆT KÊ → XOÁ → ĐỐI CHỨNG**
       theo memory *"xoá trên server"* · `check-key-leaks` xanh trước và sau · đo lại thời gian nó chạy.
       🔴 Trước khi xoá bất cứ thư mục `work/*` nào: chạy `check-key-leaks` để chắc không có vật liệu khoá trong đó —
       nếu có thì **`shred -u -n 3`**, không phải `rm` (D-117).
+      ✅ `08/09` tối (autopilot, D-252, commit `ba9fa45`): `scripts/check-work-retention.mjs`, **trần 2 GB**.
+      🔴 **Con số trong đầu đề mục này đã LẠC HẬU ngay lúc tôi đọc nó**: mô tả ghi `2,4 GB · 463 thư mục`, đo thật
+      lúc bắt tay là **4,2 GB · 609** — nó phình **1,8 GB trong đúng phiên đang đọc nó**. Và cái giá không phải đĩa:
+      **`check-key-leaks` KHÔNG chạy xong trong 600 giây** ⇒ cổng canh **quyền tiêu tiền trên mạng sống** đã thôi
+      chạy được, im lặng. Sau dọn: **4 ph 18 s**.
+      🔴 **Chính sách giữ lại không thể là "N ngày gần nhất" — đó là phép đo sai đại lượng.** Rác ở đây sinh theo
+      **LƯỢT CHẠY**, không theo ngày: một buổi tối đẻ 90 thư mục cùng hình dạng, tất cả đều "mới". Nên quy tắc là
+      **tuổi HOẶC giữ 2 bản mới nhất MỖI HÌNH DẠNG** — cửa sổ thời gian một mình **không bao giờ** thấy nhóm này.
+      🔴 **Ca đỏ + ba thứ `--prune` TỪ CHỐI làm:** bất cứ thứ gì **có hình dạng khoá** (quét base58 tới 64 MiB) ·
+      bất cứ thứ gì **chưa đọc được** · và nó **LIỆT KÊ trước, XOÁ sau, ĐỐI CHỨNG cuối**. Lượt prune đầu của tôi
+      xoá **283 mục nhưng chỉ 0,04 GB, 30 TỪ CHỐI** — vì tôi dùng lại ngưỡng quét 200 KB, và nó chặn **đúng**
+      những thư mục làm nên 4 GB. **Ngưỡng làm một phép QUÉT nhanh chính là ngưỡng làm một phép XOÁ không an toàn.**
+      ⏳ Đo lại cuối phiên: **1,70 GB · 389 mục** — mọc lại 0,7 GB trong một buổi tối **chỉ vì chạy các cổng**.
+      Dọn một lượt không phải cách sửa; **trần có khoảng thở** mới là, và đó là lý do trần là 2 GB chứ không phải 1.
 - [x] **P-109 — Dựng sẵn phép đo cho quyết định P-95 (KHÔNG sinh lại `patches/`).** David chốt: *"không đụng — chỉ
       chuẩn bị phép đo"*. Cái giá chưa ai đo của việc hạ `64+64+64 MiB/chain` xuống `10+5+5` là **tỉ lệ trúng bộ đệm
       khi block bị đuổi sớm**.
