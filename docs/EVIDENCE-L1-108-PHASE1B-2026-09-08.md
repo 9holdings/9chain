@@ -299,3 +299,27 @@ Sau khi cửa sổ khép, 9 node được dựng lại **không có lớp overri
 🔴 **Hệ quả cho cổng:** cổng P-91 nay **đỏ đúng** khi băng tập không có trần — vì không có trần **là** trạng thái mong muốn sau kết
 luận này. Nên đăng ký nhóm 3 của nó trong preflight đã đổi: chỉ chấm khi `A1_MEM_LIMIT_NODE` **khai** giá trị mong đợi. Một cổng
 đòi hỏi thứ mà phép đo vừa khuyên đừng làm thì không phải cổng, nó là một cái bẫy.
+
+## 5. P-95 — TÌM thứ đang giữ bộ nhớ (hồ sơ heap)
+
+§3 và §4 nói **bao nhiêu** và **loại gì** (heap sống, ~79 MiB/node/giờ). Mục này đi tìm **chỗ nào**. Biết bao nhiêu mà không biết
+chỗ nào thì chỉ còn cách khởi động lại theo lịch; biết chỗ nào thì có thể sửa.
+
+### 5a. Cách đo, và ba lựa chọn có lý do
+
+**Một node, không phải chín.** Cấu hình hồ sơ chỉ áp cho `9chain-a1-tap-node-5` qua một lớp override riêng
+(`9chain-a1-p95.override.yml`) và một thư mục cấu hình chain **riêng của nó** (`p95-chains/`, chép từ thư mục dùng chung, **chỉ**
+thêm ba khoá bộ hồ sơ). Tám node kia giữ nguyên cấu hình mà mọi số đo trước đã đo — nên nếu số của node-5 lệch, ta biết vì sao.
+
+**Hồ sơ CẢ HAI nửa.** `admin.memoryProfile` chỉ hồ sơ `avalanchego`; ở tiến trình trẻ, **plugin mới là hai phần ba** mức phình
+(§4c: plugin ~24 MiB/plugin/giờ × 8 so với `avalanchego` ~88 MiB/giờ). Nếu chỉ hồ sơ `avalanchego` thì trả lời được một phần ba
+câu hỏi mà tưởng là trả lời hết. Plugin có `continuous-profiler-dir` (đọc ra từ chính binary — không có cửa pprof HTTP), nên bật
+nó trong cấu hình chain **của riêng node này**, nhịp 15 phút.
+
+🔴 **Hai ảnh chụp, và ĐỌC BẰNG HIỆU.** `admin.memoryProfile` chạy `runtime.GC()` rồi ghi hồ sơ `inuse` ra **một tên tệp cố định**
+(`utils/profiler/profiler.go:103`) ⇒ phải chép ra ngay, lượt sau ghi đè. Một hồ sơ đơn lẻ trên tiến trình trẻ **phần lớn là bộ nhớ
+lúc khởi động** — đọc nó rồi kết luận *"đây là thứ đang rò"* là sai. Phần **tăng thêm** mới là thứ cần, và nó chỉ hiện ra khi so
+`-base`. §5c in **cả hai cách đọc** để chỗ khác nhau nằm trên giấy, không nằm trong trí nhớ ai.
+
+**Bật API admin là mở một bề mặt GHI được** ⇒ chỉ trên băng tập, chỉ một node, và API của node vốn chỉ nghe trong mạng compose.
+Mạng thật **không** đụng tới.
