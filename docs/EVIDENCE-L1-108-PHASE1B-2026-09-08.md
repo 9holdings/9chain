@@ -199,15 +199,23 @@ tức tuổi **1,2 h → 3,05 h**, 1,87 h — chọn 1–3 h vì chuỗi đo phi
 
 | cơ sở (pha 1, cùng tuổi, cache nhỏ, **không** trần) | mức |
 |---|---|
-| cgroup | **+308 MiB/node/giờ** |
-| anon | +296 MiB/node/giờ |
+| **`anon`** ⇦ đại lượng phán quyết | **+296 MiB/node/giờ** |
+| cgroup `memory.current` | +308 MiB/node/giờ |
 | `avalanchego` RSS | +112 MiB/node/giờ |
 | plugin RSS | +17,1 MiB/plugin/giờ |
 
+*(Hai dòng RSS giữ lại để đối chiếu với bảng của pha 1; **phán quyết chấm bằng `anon`** — lý do ở §3c.)*
+
 **Điều kiện phán quyết, viết ra trước:** lượt áp thuốc đo ở **cùng tuổi 1–3 h sau restart**.
-- Dốc cgroup rơi xuống quanh **~262 MiB/node/giờ** (giảm ~15 %) ⇒ mô hình §3c **đúng**: trần chỉ với tới phần rác trong heap Go.
-- Dốc rơi **sâu hơn nhiều** (vd < 220) ⇒ mô hình **sai**, phải viết lại §3c.
-- Dốc **không đổi** (~308) ⇒ trần không có tác dụng nào đo được, và câu trả lời nằm hoàn toàn ngoài heap Go.
+- Dốc `anon` rơi xuống quanh **~237 MiB/node/giờ** (giảm ~20 %, đúng phần §3c tính được) ⇒ mô hình §3c **đúng**: trần chỉ với tới
+  phần rác trong heap Go.
+- Dốc rơi **sâu hơn nhiều** (vd < 200) ⇒ mô hình **sai**, phải viết lại §3c.
+- Dốc **không đổi** (~296) ⇒ trần không có tác dụng nào đo được.
+
+🔴 **Một cạm bẫy phải nêu trước, nếu không lượt đọc sẽ tự lừa mình:** khi trần **đang chặn**, `next_gc` **thôi là** thước đo heap
+sống — Go hạ đích GC xuống để tôn trọng trần. Đo `08:03Z`: `avalanchego` khai `next_gc` **199 MiB dưới trần 250**. Đọc 199/2 thành
+*"heap sống"* sẽ khiến trần trông như đã giải phóng thứ nó chưa hề giải phóng. Trong lượt áp trần, **chỉ `anon` và `heap_sys` còn
+giữ nguyên nghĩa**; `17-memory-report.mjs` từ chối in cột heap sống khi thấy có trần.
 
 ### 4b. Ngưỡng — và vì sao lượt đầu phải làm lại
 
