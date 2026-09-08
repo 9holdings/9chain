@@ -752,8 +752,8 @@ async function readManagedServices() {
     // Không có node phục vụ RPC công khai trong danh sách = ta đang hiểu sai
     // compose. Dừng lại thay vì restart mò một loạt container lạ.
     throw new Error(
-      `danh sách service (${services.join(", ")}) không chứa A1_NODE_CONTAINER=${NODE_CONTAINER} — ` +
-      `kiểm tra A1_COMPOSE_FILE có trỏ đúng compose không`
+      `the service list (${services.join(", ")}) does not contain A1_NODE_CONTAINER=${NODE_CONTAINER} — ` +
+      `check that A1_COMPOSE_FILE points at the right compose file`
     );
   }
   // Node phục vụ RPC công khai xuống CUỐI hàng; phần còn lại sắp xếp theo tên để
@@ -831,9 +831,9 @@ async function trackSubnetsLanLuot(target, { requireChain, forceRestart = false,
   for (const [svc, subnets] of lists) {
     if (subnets.length > TRAN_SUBNET_GIAO_THUC) {
       throw new Error(
-        `TỪ CHỐI: ${svc} would track ${subnets.length} subnets, over the protocol wall of ${TRAN_SUBNET_GIAO_THUC}. ` +
-        `Node khai quá ${TRAN_SUBNET_GIAO_THUC} subnet lúc bắt tay sẽ bị MỌI peer cắt kết nối ` +
-        `(network/peer/peer.go:882) — mạng vỡ, không phải chậm đi.`
+        `REFUSED: ${svc} would track ${subnets.length} subnets, over the protocol wall of ${TRAN_SUBNET_GIAO_THUC}. ` +
+        `A node that declares more than ${TRAN_SUBNET_GIAO_THUC} subnets during the handshake is dropped by ` +
+        `EVERY peer (network/peer/peer.go:882) — the network breaks, it does not slow down.`
       );
     }
   }
@@ -1002,15 +1002,20 @@ async function docker(args, env = {}) {
  * `probe-l1.mjs` vốn đã làm đúng việc này, nên ai chạy bài kiểm chứng theo hướng
  * dẫn thì đã vô tình thoát bẫy — chỉ người đi thẳng vào precompile mới dính.
  */
+// 🔴 THIS GOES OUT ON THE WIRE. It is returned as `notes` in the `/api/create` response, so the
+// person who just created a chain reads it — on a site that has an English mode. It was
+// Vietnamese until 2026-09-08 (D-260), which is the THIRD time this session that user-facing text
+// in this console turned out to be in a language the reader did not choose: the progress step
+// labels (fixed 2026-09-03), the eip55 address errors (2026-09-04), and this.
 export const LUU_Y_GIAO_DICH_DAU = {
-  title: "Giao dịch ĐẦU TIÊN trên chain mới: đừng tin ước lượng gas",
+  title: "The FIRST transaction on a new chain: do not trust the gas estimate",
   body:
-    "eth_estimateGas ước lượng THIẾU cho giao dịch đầu tiên của một chain vừa đẻ. " +
-    "Giao dịch sẽ hết gas và trả về status 0 KHÔNG KÈM LÝ DO — trông hệt như " +
-    "'tính năng không được bật'. Từ block 2 trở đi ước lượng chuẩn lại.",
+    "eth_estimateGas UNDER-estimates the first transaction on a freshly created chain. " +
+    "The transaction runs out of gas and returns status 0 WITH NO REASON GIVEN — which looks " +
+    "exactly like 'that feature is not enabled'. From block 2 onward the estimate is correct again.",
   how:
-    "Mở block 1 bằng một giao dịch chuyển tiền thường (tốn đúng 21000 gas, cố định, " +
-    "không cần ước lượng). Sau đó gọi precompile hay deploy hợp đồng đều bình thường.",
+    "Open block 1 with an ordinary transfer (it costs exactly 21000 gas, a fixed number that " +
+    "needs no estimate). After that, calling a precompile or deploying a contract behaves normally.",
   command: "node local-net/faucet/probe-l1.mjs <RPC> <PRIVKEY>",
   safeGasLimit: 300000,
 };
@@ -1203,8 +1208,8 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
   const trung = daDung.find(c => c.name.toLowerCase() === name.toLowerCase());
   if (trung) {
     throw new Error(state.chains.includes(trung)
-      ? "Tên đã tồn tại"
-      : `Tên "${name}" từng thuộc một L1 đã thu hồi — chọn tên khác để lịch sử không bị nhập nhằng`);
+      ? "That name is already taken"
+      : `The name "${name}" belonged to an L1 that was revoked — pick another one so the history stays unambiguous`);
   }
   // 🔴 Sổ NHÀ ở trên chỉ nhớ được **thế hệ mạng hiện tại** — nó bị xoá sạch mỗi lượt
   // re-genesis. Sổ "A1 đã từng cấp" nhớ xuyên thế hệ. Không có nó thì sau mỗi lượt sinh
@@ -1234,9 +1239,10 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
   if (V_PER_CHAIN === null) {
     if (state.chains.length >= MAX_L1) {
       throw new Error(
-        `Đã đạt trần ${MAX_L1} L1. Mô hình hiện tại cho MỌI validator track MỌI L1, ` +
-        `mà giao thức P2P cắt kết nối node khai quá ${TRAN_SUBNET_GIAO_THUC} subnet. ` +
-        `Vượt trần phải đổi kiến trúc (tập validator riêng cho từng L1 / ACP-77), không phải nới số.`
+        `The ceiling of ${MAX_L1} L1s has been reached. In the current model EVERY validator tracks ` +
+        `EVERY L1, and the P2P protocol drops any node that declares more than ${TRAN_SUBNET_GIAO_THUC} ` +
+        `subnets. Going past this needs an architecture change (a separate validator set per L1, or ` +
+        `ACP-77) — it is not a number that can be raised.`
       );
     }
   } else {
@@ -1261,17 +1267,17 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
     if (taken.has(n)) {
       const cu = daDung.find(c => c.chainId === n);
       throw new Error(state.chains.includes(cu)
-        ? `Chain ID ${n} đã dùng cho chain khác (${cu.name})`
-        : `Chain ID ${n} thuộc về "${cu.name}" — L1 đã thu hồi. Số nhận dạng KHÔNG được cấp lại: ` +
-          `ví của người từng dùng chain cũ sẽ coi chain mới là cùng một mạng.`);
+        ? `Chain ID ${n} is already used by another chain (${cu.name})`
+        : `Chain ID ${n} belonged to "${cu.name}", an L1 that was revoked. An identifier is NEVER ` +
+          `reissued: the wallet of anyone who used the old chain would treat the new one as the same network.`);
     }
     // Câu lỗi tách riêng khỏi câu trên: hai chỗ trùng là hai thứ khác nhau và cách gỡ
     // cũng khác. Trùng sổ NHÀ ⇒ đổi số hoặc hỏi chủ cũ. Trùng sổ CÔNG KHAI ⇒ không ai
     // hỏi được ai, chỉ có đường chọn số khác.
     if (chainIdDaChiem.has(n)) {
       throw new Error(`Chain ID ${n} already belongs to "${chainIdDaChiem.get(n)}" in the public chainId registry ` +
-        `(chainid.network, tra ${chainIdChiemNgayTra}). Ví đọc chainId chứ không đọc tên mạng, ` +
-        `nên chain của bạn sẽ không phân biệt được với chuỗi đó trong MetaMask. Chọn số khác.`);
+        `(chainid.network, looked up ${chainIdChiemNgayTra}). Wallets read the chainId, not the network name, ` +
+        `so your chain would be indistinguishable from that one in MetaMask. Choose a different number.`);
     }
     // 🔴 SỔ THỨ BA, và là lỗ mà §5c để hở: chính A1 đã cấp số này ở một thế hệ TRƯỚC.
     // Sổ nhà bên trên không bắt được vì nó bị xoá mỗi lượt re-genesis. Đây đúng là đường
@@ -1628,8 +1634,8 @@ async function thuHoiChain({ name, xacNhan }) {
   const idx = state.chains.findIndex(c => c.name === name);
   if (idx < 0) {
     throw new Error(state.retired.some(c => c.name === name)
-      ? `"${name}" đã được thu hồi trước đó — không còn gì để làm.`
-      : `Không có L1 nào tên "${name}" trong danh bạ.`);
+      ? `"${name}" was already revoked — there is nothing left to do.`
+      : `No L1 named "${name}" in the directory.`);
   }
 
   // Bắt gõ lại đúng tên chain. Thu hồi làm một chain biến mất khỏi danh bạ công
@@ -1638,8 +1644,8 @@ async function thuHoiChain({ name, xacNhan }) {
   // để giết chain của người khác.
   if (String(xacNhan ?? "") !== name) {
     throw new Error(
-      `Thu hồi "${name}" sẽ gỡ nó khỏi danh bạ công khai và ngừng phục vụ RPC ngay lập tức. ` +
-      `Gửi kèm "xacNhan":"${name}" để xác nhận.`
+      `Revoking "${name}" removes it from the public directory and stops serving its RPC immediately. ` +
+      `Send "xacNhan":"${name}" to confirm.`
     );
   }
 
@@ -1700,9 +1706,9 @@ async function thuHoiChain({ name, xacNhan }) {
     }
     if (conPhucVu) {
       throw new Error(
-        `Đã restart hết node nhưng ${chain.blockchainID} VẪN phục vụ RPC sau 20s — node chưa bỏ track. ` +
-        `Slot track chưa được trả lại. State đang giữ dấu "thuHoi" cho "${name}"; ` +
-        `kiểm tra A1_TRACK_SUBNETS trong .env cạnh ${COMPOSE_FILE} rồi chạy lại.`
+        `Every node was restarted but ${chain.blockchainID} is STILL serving RPC after 20s — a node has ` +
+        `not stopped tracking it, so the tracking slot has not been given back. The ledger still holds the ` +
+        `"thuHoi" mark on "${name}"; check A1_TRACK_SUBNETS in the .env beside ${COMPOSE_FILE} and run it again.`
       );
     }
   }

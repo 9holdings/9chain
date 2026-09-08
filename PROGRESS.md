@@ -367,13 +367,31 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       bản xung quanh là đặt vào sổ những chữ không ai đo. David quyết: tách khỏi D-190, hay trỏ lại ba lượt dẫn.
       ⏳ Còn: phần còn lại của khối quản trị (~300 dòng, có side effect) · vòng đời tạo chain (~700 dòng).
       Mục tiêu ≤ 800 dòng/tệp.
-- [ ] **P-107 — Trả nợ §0 trong `server.mjs`: 545 → mục tiêu < 100.** Đổi tên định danh lẫn hai ngôn ngữ
+- [~] **P-107 — Trả nợ §0 trong `server.mjs`** — **ĐỔI CÁCH LÀM bằng số đo, xem dưới** Đổi tên định danh lẫn hai ngôn ngữ
       (`kiemTheHeMang` · `nodeSanSang` · `moTienTrinh` · `thuHoiChain` · `napCapChain` · `doiChu` · `quanTri` ·
       `ghiChainConfig` · `docBody`…) và dịch chú thích. 🔴 **Chú thích là tài sản đắt nhất** (§0) — dịch **giữ nguyên
       nội dung cái bẫy**, không rút gọn cho đẹp.
       **Qua khi:** `check-english-code` nợ **co lại** (bánh cóc từ chối phình) · toàn bộ bộ e2e ở P-106 vẫn xanh ·
       không khoá JSON / cờ CLI / đường API nào đổi (đó là **dữ liệu đã ghi ra đĩa** — bẫy §5.12).
       **Ca đỏ:** đổi nhầm một khoá của `console-chains.json` ⇒ `check-chain-ledger` hoặc e2e đỏ.
+      🔵 `08/09` tối (autopilot, D-260) — **một phép đo đổi cách làm mục này.** Nợ còn lại trong `server.mjs`
+      chia làm hai nhóm rất khác nhau: **460 dòng là CHÚ THÍCH** (chỉ người đóng góp đọc) · **62 dòng nằm trong
+      CHUỖI**. Chỉ nhóm sau **tới được người dùng**, và đó mới là nhóm gấp. Đuổi theo con số 545 → 100 là đuổi
+      theo một tổng gộp hai thứ có mức khẩn khác nhau **hàng bậc**.
+      🔴 **Lớp lỗi này đã xảy ra BA lần, mỗi lần tìm ra bằng TÌNH CỜ:** nhãn bước `/api/progress` (`03/09`, đo trên
+      trang đặt *"EN English"*) · câu lỗi địa chỉ của `eip55.mjs` trả từ `/api/preview` (`04/09`) ·
+      `LUU_Y_GIAO_DICH_DAU` — trường `notes` của `/api/create`, **ba trường tiếng Việt trao thẳng cho người vừa đẻ
+      chain** (`08/09`). **Không lần nào để lại thứ gì bắt được lần sau.**
+      ✅ `scripts/check-wire-language.mjs` (**15 ca**) nay bắt, và nó **moi thêm BẢY câu** tôi chưa biết — **tất cả
+      trên đường tạo/thu hồi chain**, đường người dùng chạm nhiều nhất. Đã dịch cả tám, giữ nguyên nội dung.
+      Cổng **nói thẳng cái nó KHÔNG đo được** (chuỗi dựng lúc chạy, đường tới dây không ai khai): *một cổng vờ phủ
+      hết tệ hơn một cổng nói rõ nó dừng ở đâu.*
+      🔴 **Bản đầu của cổng tự giết mình:** nó **import** `server.mjs` để đọc hằng thật, mà tệp đó `process.exit(1)`
+      ở phạm vi mô-đun khi thiếu token — **`process.exit` không bắt được bằng `try`**. Đọc từ **mã nguồn** mới chạy được.
+      🔴 **Bánh cóc §0 bắt tôi LẦN THỨ TƯ, trong chính ca kiểm dựng ra để PHÁT HIỆN tiếng Việt.** Đổi sang từ tiếng
+      Pháp **cũng không thoát** (`é` là chữ cái tiếng Việt) ⇒ **dựng ký tự lúc chạy** từ code point.
+      **Bài học: TRÍCH DẪN THỨ ĐANG BỊ KIỂM LÀ CÁCH ĐƯA NÓ VÀO TỆP.**
+      Nợ §0: 5342 → **5335**. ⏳ Còn 460 dòng chú thích — giá trị dài hạn, **không** ở trên đường sản phẩm.
 - [ ] **P-108 — Vệ sinh cây làm việc.** `work/` = **2,4 GB · 463 thư mục** rác phiên cũ (đã ignore, nhưng
       `check-key-leaks` phải quét qua nó mỗi lượt); một thư mục `-p/` rỗng sinh từ `mkdir -p` gõ hỏng `28/08`.
       **Qua khi:** chính sách giữ lại viết thành cổng (`work/` chỉ giữ N ngày gần nhất) · **LIỆT KÊ → XOÁ → ĐỐI CHỨNG**

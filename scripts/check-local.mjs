@@ -23,6 +23,8 @@ const checks = [
   ['scripts/check-work-retention.mjs'],
   ['scripts/check-decision-refs.mjs', '--self-test'],
   ['scripts/check-decision-refs.mjs'],
+  ['scripts/check-wire-language.mjs', '--self-test'],
+  ['scripts/check-wire-language.mjs'],
   ['scripts/measure-block-cache.mjs', '--self-test'],
   ['scripts/check-flag-guards.mjs', '--self-test'],
   ['scripts/check-flag-guards.mjs'],

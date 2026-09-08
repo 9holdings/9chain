@@ -11234,3 +11234,44 @@ khỏi D-190, hay trỏ lại ba lượt dẫn.
 **Bài học quy trình, cho chính tôi:** *một lệnh compound mà một nửa hỏng thì nửa kia vẫn có thể thành công, và
 lượt chạy lại sửa đúng nửa nhìn thấy được.* Sổ phải được ghi **bằng một lượt riêng**, và **được đối chứng** —
 điều mà cổng này nay làm thay.
+
+---
+
+## D-260 — **Chữ console GỬI ĐI phải là ngôn ngữ người đọc — lớp lỗi này đã xảy ra BA lần, mỗi lần tìm ra bằng tình cờ; nay có cổng, và nó moi thêm BẢY câu nữa** (`2026-09-08` tối, P-107)
+
+**§0 là luật về NGƯỜI ĐỌC TƯƠNG LAI.** Không đâu nó cắn mạnh hơn ở **chữ console GỬI ĐI**: một câu lỗi và một
+ghi chú trong API response được đọc bởi người **không chọn ngôn ngữ nội bộ của dự án này**, và thường đang nhìn
+một trang tiếng Anh trong lúc đọc.
+
+**Ba lần, mỗi lần tìm ra bằng TÌNH CỜ, không lần nào để lại thứ gì bắt được lần sau:**
+
+| ngày | chỗ |
+|---|---|
+| `03/09` | ba nhãn bước của `/api/progress`, đo trên `/create-chain/` đặt *"EN English"* — mọi câu xung quanh tiếng Anh, ba bước thì không |
+| `04/09` | `lib/eip55.mjs` trả câu lỗi địa chỉ **tiếng Việt** từ `/api/preview`, tìm ra bằng cách **dump** các câu lỗi của chính console |
+| `08/09` | `LUU_Y_GIAO_DICH_DAU` — trường `notes` của response `/api/create`: **ba trường tiếng Việt trao thẳng cho người vừa đẻ chain** |
+
+**Phân tách nợ §0 còn lại trong `server.mjs` đổi cách làm P-107:** **460 dòng là CHÚ THÍCH** (chỉ người đóng góp
+đọc) · **62 dòng nằm trong CHUỖI**. Chỉ nhóm sau mới có thể tới người dùng, và đó mới là nhóm gấp.
+
+**`scripts/check-wire-language.mjs` (15 ca) — và nó moi ra BẢY câu nữa tôi chưa biết**, tất cả trên đường
+**tạo/thu hồi chain**, tức đường người dùng chạm nhiều nhất: tên đã tồn tại · tên từng thuộc L1 đã thu hồi · đã
+đạt trần L1 · chainId đã dùng · chainId đã bị chiếm trong sổ công khai · chain đã thu hồi trước đó · câu xác nhận
+thu hồi · *"đã restart hết node nhưng vẫn phục vụ RPC"*. Đã dịch cả bảy, **giữ nguyên nội dung**.
+
+**Cổng đo cái gì, và nó nói thẳng cái nó KHÔNG đo được:** ✔ mọi `throw new Error(...)` trong console và thư viện
+của nó — một câu ném ra **trở thành trường `error` của response**, và đọc được tĩnh nhờ cân bằng ngoặc · ✔ các
+hằng được khai là đi ra dây, đọc **từ mã nguồn** · ✘ **không** thấy được chuỗi dựng lúc chạy từ nhiều mảnh, hay
+chuỗi tới dây qua một đường không ai khai. *Một cổng vờ phủ hết sẽ tệ hơn một cổng nói rõ nó dừng ở đâu.*
+
+🔴 **Bản đầu của cổng tự giết mình.** Nó **import** `server.mjs` để đọc hằng thật; tệp đó gọi `requireSecret` ở
+phạm vi mô-đun và `process.exit(1)` khi thiếu token — **`process.exit` không bắt được bằng `try`**. Cổng in ra
+dòng FATAL của chính console rồi chết **trước khi kiểm được gì**. Hình dạng đó đã ghi ở đầu
+`local-net/lib/l1-allowlist.mjs`, về đúng tệp này. Đọc object literal **từ mã nguồn** kém trực tiếp hơn, và là
+bản **chạy được**.
+
+🔴 **Bánh cóc §0 bắt tôi LẦN THỨ TƯ trong phiên, và lần này trong chính ca kiểm dựng ra để PHÁT HIỆN tiếng Việt.**
+Fixture đánh vần chữ có dấu ⇒ tệp viết ra để tìm nợ lại **thêm nợ**. Đổi sang một từ tiếng Pháp **cũng không
+thoát**: `é` là chữ cái tiếng Việt. Cách đúng: **dựng ký tự lúc chạy** từ code point
+(`String.fromCharCode(0xE9)`), để mã nguồn giữ **thuần ASCII** mà vẫn kiểm đúng đường mã.
+**Bài học rút gọn: TRÍCH DẪN THỨ ĐANG BỊ KIỂM LÀ CÁCH ĐƯA NÓ VÀO TỆP.**

@@ -198,6 +198,10 @@ const GATES = [
   // eight of them led nowhere on 2026-09-08 — written the same afternoon they were cited (D-259).
   { group: "2 · REPO GATES", name: "decision-reference rules (counter-check)", ...node("scripts/check-decision-refs.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "every D-nnn the code cites exists in DECISIONS.md", ...node("scripts/check-decision-refs.mjs") },
+  // 🔴 Text the console SENDS is read by someone who did not choose this project's internal
+  // language. Three separate instances were found by accident before this existed (D-260).
+  { group: "2 · REPO GATES", name: "wire-language rules (counter-check)", ...node("scripts/check-wire-language.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "text the console sends is the reader's language", ...node("scripts/check-wire-language.mjs") },
   // Language rule (CLAUDE.md §0, decided 2026-08-28): new code must be English; existing
   // debt may only shrink. Included in the G-day run because that is the most rushed moment,
   // and rushing is exactly when someone types a non-English comment into a new file.
