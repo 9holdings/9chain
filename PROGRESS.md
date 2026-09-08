@@ -95,7 +95,7 @@ phạm vi **CHỈ `scripts/` + `local-net/`** trên nhánh `main`. **Không** đ
 Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. Thứ tự ưu tiên David chốt:
 **an toàn phép đo TRƯỚC, tốc độ SAU**.
 
-- [ ] **P-100 — Cờ lạ phải ĐỎ, không được đi tiếp im lặng** (`scripts/lib/cli.mjs`, mới).
+- [x] **P-100 — Cờ lạ phải ĐỎ, không được đi tiếp im lặng** (`local-net/lib/cli.mjs`, mới — xem lỗi vị trí ở dưới).
       🔴 Lý do có bằng chứng, không phải suy đoán — đo `08/09`: `node scripts/check-chain-ledger.mjs --dril` in
       `✅ PASS` **exit 0** trong khi **không** ở chế độ băng tập; `node scripts/check-net-dirs.mjs --self-tset` in
       `✅ PASS` **exit 0** trong khi **chạy mạng thật, không self-test**. Đây đúng lớp lỗi §2 (*đo sai đại lượng*)
@@ -105,13 +105,44 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       **Qua khi:** `--dril` và `--self-tset` cho mã **2** + nêu đúng cờ gần nhất · mọi cổng trong `GATES` của preflight
       và trong `check-local` nhận đủ cờ tài liệu hoá của nó · preflight sau đổi vẫn **59/3**, không cổng nào xanh→đỏ.
       **Ca đỏ:** bỏ hàng rào ở đúng một cổng ⇒ self-test của `cli.mjs` đỏ và **nêu tên cổng đó**.
-- [ ] **P-101 — `fetch` có timeout, khai ở MỘT nơi** (`local-net/lib/http.mjs`, mới) + cổng canh
+      ✅ `08/09` chiều (autopilot, D-244): `local-net/lib/cli.mjs` (`guardEntry` · `findUnknownFlags` ·
+      `nearestFlag`) + `cli-test.mjs` **18 ca**; hàng rào gắn vào **54 cổng**; `check-flag-guards.mjs`
+      chứng minh bằng **CHẠY THẬT** từng cổng với `--zzz-this-flag-does-not-exist`, không grep mã.
+      Đo: `--dril` và `--self-tset` nay **exit 2** + gợi ý đúng cờ · `check-local` 12/12 · `--console`
+      **36 cổng / 55 ca** · nợ §0 không phình · ownership 0. **Ba lỗi của chính lượt này, giữ lại vì chúng lặp:**
+      🔴 bản đầu đặt `cli.mjs` trong `scripts/` ⇒ **đảo chiều phụ thuộc** (lib được deploy import ngược vào
+      thư mục công cụ) — `check-deploy-imports` bắt được, dời sang `local-net/lib/` và khai vào manifest ·
+      🔴 `guardFlags` chạy lúc **import** sẽ đọc argv của **kẻ import** và giết preflight ⇒ `guardEntry`
+      chỉ chạy khi là entry module · 🔴 **exit 2 KHÔNG đủ làm bằng chứng**: `check-genesis-contracts` và
+      `check-genesis-verify` exit 2 mỗi khi cây fork bẩn, có cờ hay không — chúng xanh **vì lý do khác**;
+      nay đòi exit 2 **VÀ** câu lỗi phải NÊU TÊN cờ. Phụ: dò một cổng chưa có hàng rào là **CHẠY** nó thật —
+      lượt đầu để lại `a1-genesis-exec/` trong cây fork; sau khi mọi cổng có hàng rào, lượt dò **37,6 s → 3,3 s**,
+      và chính con số đó là bằng chứng không còn cổng nào bị chạy.
+      ⏳ `[human]` một dòng: `rm -rf upstream/avalanchego/graft/subnet-evm/cmd/a1-genesis-exec`
+      (trùng byte `local-net/tools/genesis-exec/main.go`, sha256 `7dc7a8c6…`; lệnh xoá trong `upstream/`
+      bị chặn quyền hai lần, không tự làm). Tới lúc đó preflight khai **2 "không chạy được"** — đúng hai cổng đó.
+- [x] **P-101 — `fetch` có timeout, khai ở MỘT nơi** (`local-net/lib/http.mjs`, mới) + cổng canh
       `scripts/check-fetch-timeouts.mjs`. Đo `08/09`: **29 / 64** chỗ `await fetch(` không có `signal` nào trong 3 dòng
       quanh nó (đỉnh: `create-rpc-e2e-test` 8 · `check-clock-skew` 2 · `smoke-l1` 2 · `warp-common` 2). Một fetch treo
       không làm cổng đỏ — nó làm cổng **không bao giờ trả lời**, và cái đó đọc thành *"máy chậm"*.
       **Qua khi:** dựng server cục bộ **nhận kết nối rồi không bao giờ trả lời**; cổng đi qua nó phải **đỏ trong ≤ 15 s**,
       đo bằng đồng hồ thật, không phải bằng test đơn vị · 29 chỗ về 0 · preflight vẫn 59/3.
       **Ca đỏ:** trả một chỗ về `fetch` trần ⇒ `check-fetch-timeouts` đỏ và **nêu đúng tệp:dòng**.
+      ✅ `08/09` chiều (autopilot, D-244): `local-net/lib/http.mjs` (`fetchWithDeadline` · `fetchJson` ·
+      `RequestTimeoutError`, mặc định **15 s** khai một nơi) + `http-test.mjs` **11 ca** dựng **server thật
+      nhận kết nối rồi câm** · `scripts/check-fetch-timeouts.mjs` (+ self-test 18 ca) · 18 chỗ đã dời.
+      🔴 **Con số 28 của lượt quét mở đầu SAI, và cái sai đó là bài học:** nó grep 3 dòng sau mỗi
+      `await fetch(` — `console-maintenance.mjs` và `smoke-l1.mjs` **đã có** hạn, chỉ là `signal:` nằm ở
+      dòng thứ **tư** vì khối tuỳ chọn dài. Cửa sổ dòng đo **cách trình bày**, không đo tính chất. Số thật: **18**.
+      Bộ quét nay đọc trọn lời gọi bằng **cân bằng ngoặc**, và nó tự bắt thêm hai lỗi của chính mình:
+      🔴 nó tố `http.mjs:6` — một **câu trong chú thích** của chính tệp đó · 🔴 nó tố `console-maintenance.mjs:53`
+      là *"ngoặc không cân"* vì chú thích bên trong lời gọi có chữ `listener's`, và dấu nháy mở một chuỗi
+      không bao giờ đóng. ⇒ xoá trắng chú thích trước khi quét, giữ nguyên vị trí byte và số dòng.
+      🔴 **Mặc định 15 s KHÔNG áp khi người gọi đã mang `signal` của mình** — ở đây có ngân sách cố ý dài
+      (`create-rpc-e2e-test.mjs:342` chờ **110 000 ms** vì 9 node restart lần lượt mất ~355 s); chồng mặc định
+      lên là **rút ngắn** một hạn đã chọn có chủ ý, và nó sẽ báo "timeout", tức đọc thành *"console chậm"*.
+      Ba miễn trừ, mỗi cái có LÝ DO (hai ca đối chứng bare-fetch + chính cổng này, vì fixture của nó là mã trong chuỗi).
+      Đo sau: `check-local --console` **36 cổng / 55 ca** xanh · nợ §0 không phình. `http.mjs` khai vào manifest deploy.
 - [ ] **P-102 — Một bộ in phán quyết + mã thoát dùng chung** (`scripts/lib/report.mjs`, mới). Đo `08/09`: **23 tệp**
       tự viết ok/fail, **76 tệp** tự phân tích `process.argv`. Cùng một logic, nhiều bản, và mỗi bản là một cơ hội
       lệch quy ước 0/1/2.

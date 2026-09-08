@@ -10671,3 +10671,66 @@ nên P-100…P-102 đứng trước P-103…P-104, và không được đổi ru
 
 **Web:** quét chỉ-đọc, `web-home` sạch tại `9db90cc`, cổng riêng của nó (`check-budget` · `check-a11y` · `check-static-export`)
 đầy đủ và tài liệu hoá kỹ. **Không sửa một byte nào** — đó là worktree của phiên khác (§4). Không có việc web trong mốc này.
+
+---
+
+## D-245 — **P-100 · P-101: hàng rào cờ và hạn giờ cho mọi lời gọi ra ngoài — và BA phép đo mà chính lượt này làm sai trước khi làm đúng** (`2026-09-08` chiều, mốc `OPT-CORE`)
+
+**Quyết định 1 — cờ ngoài từ vựng ⇒ mã thoát 2, không phải 1, không phải 0.** Bằng chứng mở mốc ở D-244.
+`local-net/lib/cli.mjs` khai một hàm `guardEntry(import.meta.url, [cờ…])`; 54 cổng gọi nó **trên mọi thứ khác**,
+nên một cờ gõ sai không tới nổi lời gọi mạng, `docker exec`, hay lượt ghi tệp nào. Mã **2** vì D-116: cổng đó
+**chưa hề tới một phán quyết**; trả 1 là đặt một câu "KHÔNG" bịa vào runbook đúng như cách mã 0 đã đặt một câu
+"CÓ" bịa vào đó.
+
+**Quyết định 2 — cổng canh phải CHẠY từng cổng, không được grep mã.** `check-flag-guards.mjs` đưa cho từng cổng
+một cờ không thể tồn tại và đọc thứ quay về. Kiểm tĩnh (*"tệp có chứa chữ `guardEntry` không"*) chỉ chứng minh
+**câu lệnh đã được gõ ra**, không chứng minh nó **chạy** — nó vẫn xanh nếu lời gọi nằm sau phần việc mạng, trong
+một nhánh không bao giờ tới, hay dưới một `process.exit` sớm. Dự án đã trả giá cho đúng hình dạng đó:
+`console-deploy.sh` hỏng **từ chính commit vá nó**, vì chưa ai nhìn nó chạy.
+
+**Quyết định 3 — hạn giờ mặc định 15 s khai một nơi, và nó KHÔNG áp khi người gọi mang `signal` của mình.**
+Ở repo này có ngân sách cố ý dài: `create-rpc-e2e-test.mjs:342` chờ **110 000 ms** vì rolling restart 9 node
+mất ~355 s. Chồng một mặc định 15 s lên đó là **rút ngắn một hạn đã chọn có chủ ý**, và tệ hơn: nó rút ngắn
+bằng cách báo *"timeout"*, tức đọc thành *"console chậm"* chứ không đọc thành *"một hàm trợ giúp vừa ghi đè
+ngân sách của tôi"*. Thêm hạn giờ không bao giờ được **làm ngắn** một hạn có sẵn.
+
+**🔴 Ba lỗi ĐO của chính lượt này. Chúng đáng ghi hơn ba quyết định trên, vì cả ba đều là §2 ở một tầng cao hơn.**
+
+**(a) `exit 2` một mình không phải bằng chứng.** Bản đầu của `check-flag-guards` chấm đạt khi cổng thoát 2.
+Hai cổng xanh theo đường đó trong khi **bỏ qua cờ hoàn toàn**: `check-genesis-contracts` và
+`check-genesis-verify` thoát 2 **mỗi khi cây fork bẩn**, có cờ hay không. Cổng đang đọc *"exit 2"* rồi khai
+*"đã từ chối cờ"* — đúng lớp lỗi nó được viết ra để bắt, lùi lại một tầng. Nay đòi exit 2 **VÀ** câu lỗi phải
+**nêu tên cờ**: một phán quyết phải nói về đúng thứ ta hỏi.
+
+**(b) Con số 28 chỗ `fetch` không hạn giờ là SAI; số thật là 18.** Phép đo mở mốc grep **3 dòng** sau mỗi
+`await fetch(`. `console-maintenance.mjs` và `smoke-l1.mjs` **đã có** hạn — `signal:` chỉ nằm ở dòng thứ **tư**,
+vì khối tuỳ chọn dài. **Một cửa sổ dòng đo cách trình bày, không đo tính chất.** Bộ quét nay đọc trọn lời gọi
+bằng cân bằng ngoặc; và nó lập tức tự bắt thêm hai lỗi của mình: nó tố `http.mjs:6` — một **câu trong chú thích**
+của chính tệp đó, tức một cổng tìm thấy mình trong tài liệu của mình — và nó tố `console-maintenance.mjs:53` là
+*"ngoặc không cân"* vì chú thích bên trong lời gọi viết `an old listener's pooled connection`, và **dấu nháy
+trong chữ `listener's`** mở một chuỗi không bao giờ đóng. ⇒ xoá trắng chú thích trước khi quét.
+
+**(c) Một CỔNG vừa gây tác dụng phụ lên thứ mọi phép đo khác neo vào.** Dò một cổng **chưa có** hàng rào nghĩa
+là **chạy** nó — đó chính là điều đang được chứng minh. Lượt đầu khởi động `check-genesis-contracts`, thứ **chép
+một tệp vào `upstream/avalanchego`**; hạn 30 s giết nó bằng `SIGTERM` trước khi `process.on("exit")` kịp dọn, và
+cây fork ở lại **bẩn**. Không hỏng gì — bản để lại trùng byte `local-net/tools/genesis-exec/main.go`
+(sha256 `7dc7a8c6…`) — nhưng **cây fork là thứ mọi phép đo khác neo vào**, và một phép KIỂM không được phép dời
+nó. Sau khi mọi cổng có hàng rào, lượt dò đi từ **37,6 s xuống 3,3 s**: con số đó chính là bằng chứng rằng
+không còn thân cổng nào bị chạy nữa. ⏳ Dọn còn lại là `[human]` một dòng — lệnh `rm` trong `upstream/` bị chặn
+quyền hai lần và tôi **không lặp lại nó**; tới lúc đó preflight khai **2 "không chạy được"**, đúng hai cổng đó.
+
+**Một lỗi kiến trúc, do cổng có sẵn bắt.** Bản đầu đặt `cli.mjs` dưới `scripts/`. Nhưng `scripts/` vốn import
+**từ** `local-net/lib/`, và `local-net/lib/**` là thứ **được deploy lên server** — nên một mô-đun đã deploy
+import ngược vào thư mục công cụ sẽ **kéo bộ đo lên máy chủ**. `check-deploy-imports` đỏ ngay lượt đầu. Hai tệp
+mới nằm ở `local-net/lib/` và được khai vào `manifest-deploy.json` cho `console` · `faucet` · `vantoc`:
+`eip55.mjs` với tay tới `cli.mjs`, `faucet/server.mjs` với tay tới `http.mjs` ⇒ thiếu chúng thì console **không
+khởi động nổi**. 🔴 Đây là **đổi bề mặt deploy**, David cần biết trước lượt deploy tới.
+
+**Và một điều `guardEntry` phải làm mới dùng được ở đây:** nhiều cổng trong repo **đồng thời là thư viện**
+(`check-supply` xuất `measureChain`; console import năm mô-đun `local-net/lib`). Một hàng rào chạy lúc **import**
+sẽ đọc `process.argv` của **kẻ import** và giết nó vì những cờ chưa bao giờ dành cho nó — đúng hình dạng mà
+`local-net/lib/l1-allowlist.mjs` đã ghi ở đầu tệp từ trước. Nên `guardEntry` **không làm gì cả** trừ khi tệp
+chính là entry module.
+
+**Số đo sau cả hai mục:** `check-local` 12/12 · `check-local --console` **36 cổng / 55 ca** · cổng cờ 54/54 ·
+cổng hạn giờ xanh với 3 miễn trừ có lý do · nợ §0 **không phình** · `check-worktree-ownership` 0.
