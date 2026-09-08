@@ -1,8 +1,11 @@
 # HANDOFF — 9Chain Testnet A1 (Avalanche)
-## CHỐT PHIÊN 2026-09-08 ~10:2xZ (Claude, 9Chain A1 core — autopilot, pha 1b của mốc `L1-108`) — P-90→P-94 XONG, "RAM không phẳng" của pha 1 đã có lời giải, và nó KHÔNG phải rò rỉ
+## CHỐT PHIÊN 2026-09-08 ~12:5xZ (Claude, 9Chain A1 core — autopilot, pha 1b của mốc `L1-108`) — P-90→P-95 XONG, "RAM không phẳng" của pha 1 nay có CƠ CHẾ và có TRẦN TÍNH ĐƯỢC
 
-**TL;DR.** Mở **pha 1b** (D-243) vì phát hiện duy nhất còn chặn 108 chain — *"RAM không phẳng"* của P-89 — **trả lời được ngay trên
-băng tập đang chạy**, không cần máy mới. Sáu mục P-90 → P-95; **P-90 · P-91 · P-92a · P-92 · P-93 · P-94 xong**, P-95 nạp vào
+băng tập đang chạy**, không cần máy mới. Sáu mục **P-90 → P-95, XONG CẢ SÁU**. Kết luận đổi hẳn hình dạng bài toán: **RAM đi theo
+GIAO DỊCH, không theo đồng hồ**; nó là **heap SỐNG**; **restart trả lại 87 %**; **`GOMEMLIMIT` không phải câu trả lời** — nó hạ RAM
+40 % nhưng CPU 9 node đi **2,1 → 20,4 lõi** và **không tự khỏi khi hết tải**; và **P-95 tìm ra thứ đang giữ**: **bộ đệm block đã
+phân tích của `chain.State`**, có **trần đặt cho mỗi chain** ⇒ **trần mỗi node = `số chain × 212 MiB`**, tức **~3,1 GB ở 15
+chain/node**. ⇒ Đơn mua **giữ nguyên 9 × AX42**; thứ phải thêm là **lịch khởi động lại**, và nay lịch đó **không còn là ngoại suy**.
 backlog. Kết luận đổi hẳn hình dạng bài toán: **RAM đi theo GIAO DỊCH, không theo đồng hồ**; nó là **heap SỐNG**; **restart trả lại
 87 %**; và **`GOMEMLIMIT` không phải câu trả lời** — nó hạ RAM 40 % nhưng CPU 9 node đi **2,1 → 20,4 lõi** và **không tự khỏi khi
 hết tải**. ⇒ Đơn mua **giữ nguyên 9 × AX42**; thứ phải thêm là **lịch khởi động lại**, dùng rollout theo node đã có từ P-83.
@@ -25,16 +28,20 @@ Bằng chứng: `docs/EVIDENCE-L1-108-PHASE1B-2026-09-08.md`; cỡ máy ở `doc
 | `GOMEMLIMIT` 250 MiB (P-92) | RAM **296 → 179** (−40 %) · CPU **2,1 → 20,4 lõi** · loadavg **3,8 → 87,8**/24 |
 | …tắt bơm 90 s sau | **vẫn 20,57 lõi**, 0 giao dịch ⇒ vòng xoáy **tự nuôi** |
 | Bỏ trần + restart | **0,974 lõi** · loadavg 6,6 — khớp mốc nghỉ pha 1 (0,931) |
+| **P-95 — thứ đang giữ** | `chain.(*State).ParseBlock` ở **CẢ HAI** phía gRPC: 17,5 MB/79,6 của `avalanchego`, **11,3 MB/21,7 (52 %)** của plugin |
+| **P-95 — trần, đọc từ mã** | `avalanchego` **192 MiB/chain** · plugin **20 MiB/chain** ⇒ **`số chain × 212 MiB` mỗi node** |
+| **P-95 — thời gian đầy** | plugin ~1 h (đo 7 điểm: bước +7,0 → +1,6 MB, tỉ lệ ~0,76) · `avalanchego` **~24 h** |
 
 **Việc tiếp:**
 - **[human] đẩy `origin`** 45 commit. `official` hỏi trước qua `publish-official.sh`.
 - **[human] bốn quyết định của mốc** vẫn nguyên (V · r · H-2 ACP-77 · WT-1) — pha 1b **không** đụng tới chúng.
 - **[human] deploy console** — vẫn là lý do `check-deploy-drift` đỏ, đúng thiết kế từ `07/09`.
-- **[main] P-95** — tìm **thứ đang giữ** bộ nhớ bằng hồ sơ heap. API admin của băng tập trả `404`
-  (`--api-admin-enabled` tắt) ⇒ bật cho **một** node, bơm ≥ 2 h, lấy `admin.memoryProfile` **hai lần** rồi so `-base`. Nếu tìm ra
-  và sửa được thì cả chuyện lịch restart thành thừa.
-- **[main] pha 2 khi có máy**: **đỉnh RAM sau 24 h** (pha 1b chạy 9 h, **chưa thấy trần** — mọi lịch restart lúc này là ngoại suy) ·
-  r = 3 tx/s · gossip liên máy · bootstrap node mới vào 15 chain.
+- **[human] MỘT quyết định mới, có số sẵn (P-95):** ba hằng số bộ đệm block phía `avalanchego` là **64+64+64 MiB mỗi chain**
+  (`vms/rpcchainvm/vm_client.go:61-64`) trong khi phía plugin đã là **10+5+5**. Hạ phía `avalanchego` xuống mức plugin kéo trần
+  mỗi node từ `chain × 212 MiB` xuống `chain × 40 MiB` — **15 chain: 3,1 GB → 0,6 GB**. 🔴 Tệp đó thuộc `patches/` (luật cứng 3)
+  ⇒ **không tự làm**. Cái giá chưa đo là tỉ lệ trúng bộ đệm khi block bị đuổi sớm — phép đo của pha 2.
+- **[main] pha 2 khi có máy**: xác nhận trần **24 h** trên thực tế (P-95 suy ra từ tốc độ 8,0 MB/chain/giờ và trần 192 MiB, chưa
+  chạy đủ 24 h để thấy) · r = 3 tx/s · gossip liên máy · bootstrap node mới vào 15 chain.
 - Băng tập **đang chạy, cấu hình cũ, không tải** (9 node + `k1-drill-router`; `k1-drill-pump` đã dừng). Dừng hẳn:
   `docker rm -f k1-drill-router k1-drill-pump` · `cd local-net/net-tap-g1 && MSYS_NO_PATHCONV=1 A1_CONFIG_DIR=<cfg> docker compose -f docker-compose.multinode.yml -f 9chain-a1-track.override.yml down` (giữ volume).
 
@@ -60,6 +67,12 @@ Bằng chứng: `docs/EVIDENCE-L1-108-PHASE1B-2026-09-08.md`; cỡ máy ở `doc
   là *"đã bootstrap xong mọi chain"*, không phải `healthy:true`: node-9 khai `healthy:false` chỉ vì **không có kết nối vào** (D-121).
 - Chuỗi đo mất một node thì **không sinh dòng nào** ⇒ mẫu thiếu, tổng tụt, đọc thành *"RAM giảm"*. Trên dữ liệu thật, bản chưa vá
   cho dốc **−4.382 MiB/node/giờ**.
+- 🔴 **Một hồ sơ heap ĐƠN LẺ trả lời câu khác với hiệu số.** Ở t1, `reflect.mapassign0` · `runtime.allocm` · `leveldb/memdb.New`
+  nằm trong **top-10** và **tăng bằng 0** — chúng là bộ nhớ khởi động. Luôn đọc bằng `-base`; `admin.memoryProfile` ghi ra **một
+  tên tệp cố định** nên phải chép ra ngay sau mỗi lượt.
+- **Hồ sơ chỉ `avalanchego` là hồ sơ một phần ba câu hỏi.** `admin.memoryProfile` không chạm plugin; plugin dùng
+  `continuous-profiler-dir` trong cấu hình chain (đọc ra từ chính binary — **không** có cửa pprof HTTP), và nó **giữ bản xoay
+  vòng**, nên chuỗi theo thời gian đã nằm sẵn trên đĩa.
 
 **Lệnh hữu ích:**
 ```bash
