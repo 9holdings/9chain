@@ -242,7 +242,7 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       −949 ms · peer −174 ms ⇒ **775 ms là tuổi block**) — và nói thẳng khi riêng tuổi block đã gần hết ngân sách.
       🔴 **`[human]`: có siết ngưỡng 30 s không là quyết định về ĐẠI LƯỢNG NÀO nghi lễ tin**, nó đã là câu hỏi mở
       trong việc tay `09/09` (*"đo lại trên chain ĐANG ĐẺ BLOCK"*), và **không phải việc tôi tự quyết**.
-- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 8 lượt xong (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
+- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 8 lượt tách + 1 lượt sửa sổ (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
       **vòng đời chain / theo dõi node / nhật ký tiến trình / định tuyến HTTP**. Hành vi phải **không đổi**.
       **Qua khi:** `check-local --console` xanh đủ 28 nhóm · `assignment-e2e` 52 ca · `create-rpc` · `options` ·
       `governance` · `maintenance` · `readiness` · `auth` · `paused` **đều xanh** · `check-deploy-imports` xanh
@@ -349,6 +349,22 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       vào một kẻ gọi nó không nhìn thấy thì chỉ cách một lượt tái dùng là sai.
       🔴 **`check-work-retention` ĐỎ THẬT ngay trong lượt này** ở 2,25 GB — cổng viết chiều nay đang bắt đúng thứ
       nó sinh ra để bắt, mà không cần ai nhớ. Dọn 175 mục · 1,25 GB · 0 từ chối · về 1,01 GB.
+      🔴 **Lượt 9 — SỔ, không phải mã (D-259).** Kiểm §7 và phát hiện lỗ **của chính tôi**: **TÁM số quyết định
+      được dẫn từ 26 chỗ trong mã KHÔNG TỒN TẠI** trong `DECISIONS.md`. Nguyên nhân đáng giá hơn con số: các mục
+      đang được nối vào sổ **trong cùng một lệnh shell với lượt commit**, một lệnh như thế **hỏng vì lỗi trích dẫn
+      shell**, nên `cat >> DECISIONS.md` không chạy — rồi tôi chạy lại **chỉ phần commit**. **Commit trông sạch,
+      mọi cổng xanh, lý lẽ lặng lẽ không được ghi.** Đúng hình dạng lỗi dự án gặp đi gặp lại: *vật chứng nói đúng
+      thứ cần nói, còn thứ nó trỏ tới thì không có ở đó.*
+      Đã viết đủ **D-250 → D-258**, và `scripts/check-decision-refs.mjs` (**19 ca**) làm nó không lặp lại được:
+      **257 mục khai · 253 lượt dẫn qua 188 tệp**, mọi lượt dẫn phải giải được.
+      🔴 **Cổng đó tự mắc ĐÚNG lớp lỗi nó sinh ra để bắt, HAI lần:** chỉ nhận tiêu đề `##` trong khi sổ dùng ba mức
+      (134/275 tiêu đề ở `###`) ⇒ khai **41 tham chiếu treo**, phần lớn giải được ở một mức thấp hơn — *đúng số
+      học, sai đại lượng: nó đo ĐỘ LỒNG MARKDOWN* · và nó **tự tìm thấy fixture của chính mình** (`"D-500"`,
+      `"D-999"` trong chuỗi) ⇒ sửa bằng xoá trắng chuỗi, **không** bằng miễn trừ; chú thích thì **KHÔNG** xoá, vì
+      lượt dẫn trong chú thích chính là thứ cần kiểm.
+      ⏳ **`[human]` D-189**: tham chiếu treo **CÓ SẴN**, dẫn 3 lần từ `server.mjs`; thất bại nó gọi tên được **kể
+      bên trong D-190** (*"xem D-189"*) nhưng chưa có tiêu đề riêng. **Tôi không bịa một mục cho nó** — dựng từ văn
+      bản xung quanh là đặt vào sổ những chữ không ai đo. David quyết: tách khỏi D-190, hay trỏ lại ba lượt dẫn.
       ⏳ Còn: phần còn lại của khối quản trị (~300 dòng, có side effect) · vòng đời tạo chain (~700 dòng).
       Mục tiêu ≤ 800 dòng/tệp.
 - [ ] **P-107 — Trả nợ §0 trong `server.mjs`: 545 → mục tiêu < 100.** Đổi tên định danh lẫn hai ngôn ngữ

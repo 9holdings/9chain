@@ -10981,3 +10981,256 @@ kèm câu *"nothing was measured"* · cờ lạ ⇒ exit 2.
 `docs/PLAN-108-L1-LOAD-TEST.md` §2e. Cách dùng: chạy ở cỡ hiện tại, ghi các dòng `✓`; nếu David quyết sinh lại
 `patches/` thì chạy lại ở cỡ plugin và so **đúng những dòng đó** — chênh lệch chính là **cái giá**, con số duy
 nhất còn thiếu để quyết `3,1 GB → 0,6 GB`.
+
+---
+
+## D-250 — **Tách `console/server.mjs`, lượt 1 và 2: nhật ký tiến trình và nửa-trên-đĩa của một lượt nâng cấp** (`2026-09-08` chiều, P-106 bước 1–2)
+
+**Lượt 1 — `operation-journal.mjs` (27 ca).** Ca quan trọng nhất là ca **chưa từng có test** suốt thời gian nó nằm
+trong tệp 2.927 dòng: **nhật ký đã đóng phải bỏ qua MỌI lượt ghi**. Không có cửa đó thì lượt **thu hồi** — gọi
+chung mã rollout — ghi đè lên tiến trình của lượt **đẻ vừa xong**; đo `25/08`: ngay sau khi lượt đẻ đóng ở 8/8,
+lượt thu hồi kéo bước `node-2` từ *"xong"* về *"chạy"*, và người vừa đẻ chain **nhìn thanh tiến trình chạy lùi**.
+
+🔴 **Bảng dịch bị XOÁ, không phải chuyển chỗ.** `/api/progress` từng mang hai bảng `KIND`/`STATUS` dịch state
+tiếng Việt sang tiếng Anh lúc ra dây — hai bảng phải giữ đồng bộ với một đối tượng cách đó **1.800 dòng**. Chú
+thích ở đó tự khai *"đổi hết định danh là một cuộc mổ khác hẳn, rủi ro hơn nhiều, và David không yêu cầu"*; David
+**đã yêu cầu `28/08`** (§0). Nay nhật ký nói tiếng Anh **tại nguồn**. *Một bảng ánh xạ ở một chỗ vẫn là một chỗ
+hai thứ có thể lệch nhau; một bảng **không tồn tại** thì không.*
+
+🔴 **KHÔNG đổi:** `thuHoi` · `thuHoiLuc` trong `console-chains.json` — **khoá đã ghi ra đĩa** trên server thật
+(§5 bẫy 12). Giá trị `loai` của nhật ký chỉ nằm trong bộ nhớ, nên nó đổi được.
+
+**Lượt 2 — `upgrade-files.mjs` (23 ca, chạy trên thư mục THẬT).** Luật ở đây nói về thứ `Glob("upgrade.*")` của
+avalanchego **tìm thấy** trong một thư mục chain, và **một hệ tệp giả chỉ khẳng định mô hình của tôi về thư mục**.
+Phủ **cả hai** cách làm node chết đo `05/09`: một tệp *"đã gỡ"* bằng cách đổi tên thành `upgrade.json.failed-…`
+**vẫn được nạp**, và một `upgrade.json.prev-…` nằm **cạnh** `upgrade.json` cho glob hai kết quả ⇒ **node không
+boot**. Nên **không gì ngoài `upgrade.json`** được phép nằm trong thư mục chain.
+
+**Ca đỏ của cả hai lượt, xảy ra thật:** quên khai mô-đun mới trong `manifest-deploy.json` ⇒ `check-deploy-imports`
+**đỏ và nêu đúng tên tệp**. Đúng ca đỏ mục P-106 tự dự đoán.
+
+---
+
+## D-251 — **Tách lượt 3: hai tệp khai node nào track subnet nào — và một chú thích 28 dòng về đúng chỗ của nó** (`2026-09-08` chiều, P-106 bước 3)
+
+**`track-files.mjs` (20 ca, thư mục thật).** Tính chất đáng có test nhất ở đây **nhìn từ ngoài không thấy**: một
+service **VẮNG MẶT** trong file override không phải là *"không track gì"* — compose **rơi về biến chung** của tệp
+gốc, tức về **mô hình mọi-node**. Nên node rảnh được ghi **danh sách rỗng**, không phải bỏ trống.
+
+`.env` cùng lớp lý do: console **không đọc** nó. Nó tồn tại cho người sau gõ `docker compose up -d` bằng tay —
+người đó nhận giá trị rỗng và đẩy một node ra khỏi track **trong im lặng**; chain vẫn *"sống"* theo mọi dấu hiệu,
+chỉ mỏng đi một validator. Dự án đã dính đúng hình dạng này với `--http-allowed-hosts`.
+
+🔴 **Ghim `.env` là thao tác KHÔNG được làm hỏng lượt chạy**: env đã truyền qua tiến trình rồi, nên lượt đang chạy
+đúng dù ghim có hỏng; thứ hỏng là **lưới đỡ cho một lượt chạy tay sau**. Mô-đun nay **ném lỗi** và console **cảnh
+báo** — quyết định *"không huỷ lượt"* nằm ở **chỗ gọi**, đọc được, thay vì chôn trong một `catch` cách đó ba trăm dòng.
+
+🔴 **Một chú thích 28 dòng về đúng chỗ của nó.** Nó mô tả `trackSubnetsLanLuot` — rolling restart, sự cố RPC công
+khai **6,0 giây** đo `24/08`, vì sao node phục vụ RPC restart **cuối cùng** — mà lại ngồi trên **ba hàm ghi tệp
+không liên quan**, cách hàm nó nói tới **300 dòng**.
+
+---
+
+## D-252 — **`work/` phình 2,4 → 4,2 GB TRONG MỘT PHIÊN, và cái giá không phải đĩa: cổng canh khoá quỹ KHÔNG CHẠY XONG trong 600 giây** (`2026-09-08` tối, P-108)
+
+**Đo hai lần, cách nhau ba giờ, cùng một phiên:** `463 mục · 2,4 GB` → `609 mục · 4,2 GB`. Không có gì bất thường
+ở giữa — bộ test chạy vài chục lượt, và vài bài **cố ý giữ vật chứng**. Giữ vật chứng là đúng; giữ vật chứng của
+**mọi lượt, mãi mãi** là thứ biến một thư mục nháp thành 4 GB.
+
+🔴 **Cái giá không nằm ở đĩa.** `work/` nằm **trong repo**, `check-key-leaks.mjs` quét repo ⇒ mỗi lượt chạy cổng
+canh **khoá quỹ bị rò** phải đọc hết chỗ đó. Đo: cổng ấy **không chạy xong trong 600 giây**. *Một cổng chậm tới
+mức người ta bỏ qua là cổng không canh gì cả*, và cổng này canh **quyền tiêu tiền trên mạng đang sống**.
+
+**Chính sách theo TUỔI là sai đại lượng, và công cụ tự tố:** `work/` **4,0 GB** với **KHÔNG một mục nào quá 7
+ngày**. 12 thư mục `console-backup-test-*` × 167 MB = **một nửa `work/`**, tất cả từ **một buổi chiều**. Nó không
+**CŨ**, nó **LẶP** ⇒ luật thứ hai: bỏ được khi quá cửa sổ **hoặc** khi đã có `keep` mục mới hơn **cùng hình dạng**.
+
+**Sửa tại nguồn:** `console-backup-test.mjs` giữ 167 MB **dù đạt hay hỏng**. Giữ lại vốn là để **xem một lượt
+HỎNG**; một lượt **đạt** không có gì để xem ⇒ hỏng giữ, đạt xoá.
+
+🔴 **Lỗi thiết kế của tôi, do lượt chạy thật tố ra:** prune đầu **283 xoá · 0,04 GB · 30 TỪ CHỐI**, mọi từ chối là
+*"không đọc được"* vì tôi dùng lại ngưỡng **200 KB** của cổng rò. **Ngưỡng làm một phép QUÉT nhanh chính là ngưỡng
+làm một phép XOÁ không an toàn**: luật *"không đọc được thì không xoá"* đúng, nhưng ghép với 200 KB thì nó chặn
+**đúng những thư mục tạo nên 4 GB**. Prune **không phải một cổng** — nó chạy khi có người bấm, một lần — nên nó
+đọc tới **64 MB** và trả giá bằng thời gian. Sau sửa: **30 xoá · 2,95 GB · 0 từ chối**.
+
+| | trước | sau |
+|---|---|---|
+| `work/` | **4,2 GB · 609 mục** | **1,1 GB · 296 mục** |
+| `check-key-leaks` | **> 600 s, KHÔNG XONG** | **4 phút 18 giây, exit 0** |
+
+🔴 **Trần 1 GB là con số SAI**, phát hiện bằng chính lượt chạy: thứ **CÒN LẠI** sau prune đúng bằng thứ chính sách
+nói phải giữ = **1,1 GB** ⇒ trần 1 GB **đỏ vĩnh viễn trên một trạng thái đúng**. Cổng không bao giờ xanh được thì
+không mang tin. **Trần 2 GB.**
+
+**Một luật §6 gỡ kèm:** *"một khoá trông như thế nào"* nay khai **một nơi** (`local-net/lib/key-material.mjs`).
+Hai bản của luật đó **không kêu to khi lệch nhau** — nó hỏng bằng cách một bản **âm thầm BỎ SÓT** một khoá.
+
+---
+
+## D-254 — **Tách lượt 4: năm thứ mọi route làm đầu tiên; và một hợp đồng CỐ Ý không đổi tên** (`2026-09-08` tối, P-106 bước 4)
+
+**`http-plumbing.mjs` (24 ca).** Hai tính chất **vô hình cho tới lúc chúng tính tiền**:
+
+1. **Hạn body cắn TRONG LÚC byte đang tới**, không phải sau. Đệm một body vô hạn rồi mới kết luận *"quá lớn"* là
+   cách một endpoint công khai làm cạn RAM — lúc đó RAM **đã tiêu rồi**. Ca kiểm chạy trên **server http THẬT**,
+   vì thứ đang kiểm là `req.destroy()` có **thật sự** dừng lượt tải lên hay không, và một `req` giả chỉ khẳng định
+   mô hình của tôi về socket.
+2. **Bộ hạn mức đếm được theo VÍ** thay vì theo IP. Một IP vừa **quá rộng** (cả một văn phòng dùng chung ⇒ họ chặn
+   lẫn nhau) vừa **quá hẹp** (đổi IP là chuyện rẻ) **cùng lúc**.
+
+Kèm: ghi vào một response **đã bị huỷ** là no-op chứ không ném (socket đó chính là thứ một body quá hạn để lại) ·
+token vận hành thử **trước** khi duyệt kho phiên · token **SAI** không bị hạ ngầm thành danh tính vô danh · 401
+mang `WWW-Authenticate` để client biết **CÁCH** xác thực chứ không chỉ biết là hỏng · không câu trả lời nào **vọng
+lại** token hay địa chỉ.
+
+🔴 **CỐ Ý không đổi tên: `{kieu, diaChi}` + `"vanHanh"`/`"vi"`.** `lib/l1-allowlist.mjs` đọc chúng, và cả ba bộ
+kiểm auth/governance/allowlist cũng vậy ⇒ đó là **HỢP ĐỒNG GIỮA CÁC MÔ-ĐUN**, không phải biến cục bộ. Đổi một hợp
+đồng phải **dời mọi kẻ đọc trong MỘT bước** kèm ca đỏ riêng, nếu không là **âm thầm chẻ đôi** phép kiểm quyết định
+ai được tiêu một slot chain vĩnh viễn. Nó vẫn là nợ §0 và **được ghi ra**, không lặng lẽ bỏ lại.
+
+---
+
+## D-255 — **Tách lượt 5: ai được quản trị chain nào — 25 dòng, và là luật không có test** (`2026-09-08` tối, P-106 bước 5)
+
+**`chain-ownership.mjs` (22 ca).** Lý do dời **không phải** số dòng. Mọi thứ khác trong khối quản trị đều **ghi
+tệp, restart node, hoặc nối sổ**; hai hàm này thì không. Chúng là **phần DUY NHẤT** của câu trả lời *"ví này có
+được đổi phí chain này không"* kiểm được độc lập — và là phần **không có test**, vì trong một tệp 2.927 dòng cách
+duy nhất chạm tới chúng là **dựng cả một console**. `lib/l1-allowlist.mjs` đã viết đúng lập luận đó ở đầu tệp nó.
+
+🔴 Đây là **quyền tiêu một tài nguyên vĩnh viễn**, nên ca kiểm là các **lượt TỪ CHỐI**: *một cổng sở hữu chỉ từng
+được kiểm với chính chủ là cổng chỉ từng được kiểm với người duy nhất nó không định chặn.*
+- ví khác ⇒ **403**, câu lỗi nêu **cả** chủ thật lẫn ví hỏi;
+- **không** danh tính ⇒ **401, KHÔNG phải 403** — *"tôi không biết anh là ai"* và *"tôi biết, và đây không phải
+  chain của anh"* là **hai sự thật khác nhau**, và client không phân biệt được thì không biết đăng nhập lại có ích không;
+- hình dạng danh tính lạ ⇒ **từ chối**, không cho qua;
+- chain **không có admin** ⇒ chỉ operator: **chủ rỗng không phải "mọi người"**;
+- 🔴 **chữ hoa/thường KHÔNG quyết định sở hữu** — EIP-55 là **checksum**, không phải danh tính; từ chối một ví
+  đúng vì kiểu chữ là **khoá chủ ra khỏi chain của chính họ**.
+
+Ba câu từ chối *"không tìm thấy"* giữ **ba câu khác nhau**, và điều đó được khẳng định: gộp chúng thành *"not
+found"* tiết kiệm một dòng và **lấy mất manh mối duy nhất** người đọc có.
+
+---
+
+## D-256 — **Tách lượt 6: đọc một node; và các câu lỗi của nó thôi nửa Việt nửa Anh** (`2026-09-08` tối, P-106 bước 6)
+
+**`node-health.mjs` (30 ca).** Lời gọi docker ở lại console; thứ chuyển đi là phần **quyết định câu trả lời của
+node NGHĨA LÀ GÌ**. Hai luật sinh từ hỏng thật và **chưa có test**:
+
+1. Phán quyết mạng chính đọc **TỪNG** check P/X/C thay vì tin **cờ tổng** — cờ tổng **gộp cả subnet đang được
+   tạo**, tức nó sai **đúng trong lúc** thao tác mà nó canh.
+2. Một chain có thể **KHOẺ mà vẫn đang chạy SAI tệp**. Diễn tập `05/09` bắt được đường lùi khai *"đã restart trên
+   tệp cũ"* cho những node mà `eth_getChainConfig` **vẫn liệt kê nâng cấp mới** — **đại lượng quyết định mạng có
+   fork ở mốc kích hoạt hay không chưa bao giờ được đọc**.
+
+🔴 **§0 trên ĐƯỜNG SẢN PHẨM:** các chuỗi lý do của phép dò mạng chính là **tiếng Việt**, và chúng được **nội suy
+thẳng** vào câu lỗi người dùng đọc. Một trong hai câu mang chúng đã là tiếng Anh, câu kia thì không — **tệ hơn cả
+hai**, vì nó làm **ngôn ngữ của một lỗi phụ thuộc vào nhánh nào sinh ra nó**. Repo đã trả giá đúng hình dạng này
+khi `eip55.mjs` bị bắt trả câu tiếng Việt từ `/api/preview` (`04/09`).
+
+🔴 **Hai lỗi của tôi:** đổi trường `.vi` → `.why` bằng regex **theo TÊN BIẾN**, mà `kiemTheHeMang` (ngoài phạm vi)
+được đọc chỗ này là `theHe`, chỗ kia là `t` ⇒ chỗ đầu bị đổi và **đọc `undefined`**, làm **RỖNG câu lỗi lệch thế
+hệ** — câu duy nhất nói cho người vận hành biết console đang trỏ nhầm mạng · và **cả hai tệp mới đều đỏ bánh cóc
+§0**, vì header **trích** câu tiếng Việt làm ví dụ còn test thì **đánh vần cả bảng chữ cái tiếng Việt**.
+
+---
+
+## D-257 — **Tách lượt 7: cổng thế hệ — và `Number(null) === 0` là một lỗi THẬT trên cổng đứng giữa một cú gõ nhầm và một chainId vĩnh viễn** (`2026-09-08` tối, P-106 bước 7)
+
+**`generation-gate.mjs` (22 ca).** Cổng này là lý do một chainId không bị cấp nhầm thế hệ. Một chainId nằm trong
+một genesis **BẤT BIẾN**, nên cấp từ khối của g1 lên mạng g0 là thứ **không ai hoàn tác được** — không console,
+không người vận hành, không cả chủ chain. Ba trong bốn phán quyết là **từ chối**.
+
+🔴 **Ca kiểm moi ra một lỗi thật, chép nguyên từ `server.mjs`:**
+
+```
+Number(null) === 0     và     Number.isSafeInteger(0) === true
+```
+
+Một node trả `null` cho networkID — tức **không nói gì cả** — **lọt qua** cửa *"có phải số không"* dưới dạng
+**networkID 0**, bị đem so với băng, và quay về thành **"LỆCH THẾ HỆ: node khai networkID 0"**. **Sai phán quyết,
+sai cách sửa, nói với vẻ hoàn toàn chắc chắn.** Nay kiểm **hình dạng trước khi ép kiểu**; `""` và `[]` cùng ca.
+
+🔴 **Một chẩn đoán đúng mang cách sửa SAI cũng là một lỗi.** Console băng tập trỏ vào mạng THẬT **không được** rơi
+xuống câu lệch chung: câu chung bảo sửa `A1_GEN`, còn ở đây cách sửa là **ngược lại** — bỏ cờ, hoặc trỏ vào node
+băng tập. Nó có câu từ chối **riêng**, và có ca khẳng định câu đó **không** nhắc `A1_GEN`.
+
+**§0:** hai trong bốn phán quyết là tiếng Việt, **cả bốn do người vận hành đọc**. Đổi cả bốn và ba giá trị trạng
+thái — an toàn **chính vì** cả hai kẻ đọc đều trong `server.mjs`, khác hợp đồng `{kieu, diaChi}` (D-254).
+`generation-test.mjs` đỏ **5/31** vì nó khẳng định trên **văn bản tiếng Việt**: hành vi còn nguyên, chỉ chữ dời.
+Cập nhật năm khẳng định, **không nới lỏng cái nào**.
+
+Kèm: một chú thích trong `server.mjs` vẫn **mô tả bảng dịch `/api/progress` như thể nó còn tồn tại** — lượt 1 đã
+xoá nó. *Một chú thích tả một cơ chế không còn là một cái bẫy cho người đọc kế tiếp.*
+
+---
+
+## D-258 — **Tách lượt 8: hợp đồng router và lọc bí mật — cả hai hỏng trong IM LẶNG** (`2026-09-08` tối, P-106 bước 8)
+
+**`console-state.mjs` (22 ca).** Lý do dời: **không cái nào ném lỗi khi nó sai**.
+
+**Bản đồ phân công sai** dựng một router gửi `/ext/bc/<id>/*` tới node **không phục vụ** chain đó; triệu chứng là
+một chain *"không tồn tại"* nhìn từ ngoài trong khi **bên trong hoàn toàn khoẻ**. Bản đồ ấy là một **TỆP** chứ
+không phải mã dùng chung, **chính vì** đầu kia của nó — Caddy — nằm sau **luật cứng #4**. Hai luật quyết định một
+dòng nay có ca: node công khai phục vụ **mọi chain nó validate** (nên không có gì phải dời khi không cần), còn lại
+là **validator ĐẦU TIÊN theo thứ tự rollout** — thứ tự, không phải sắp xếp.
+
+🔴 **`redactSecret` TỪ CHỐI một bí mật rỗng** thay vì lọc không có gì:
+
+```
+"abc".split("").join("<K>")   ===   "a<K>b<K>c"
+```
+
+**Kim rỗng không khớp KHÔNG GÌ — nó khớp GIỮA MỌI KÝ TỰ**, và câu log thành rác **đúng lúc** có người đang đọc nó
+để tìm lỗi. Trong console hôm nay điều đó **không xảy ra được** (`requireSecret` thoát nếu chuỗi < 16 ký tự) —
+nhưng bảo đảm ấy nằm **cách lời gọi ba trăm dòng**, và *một hàm mà độ an toàn phụ thuộc vào một kẻ gọi nó không
+nhìn thấy thì chỉ cách một lượt tái dùng là sai*. Bảo đảm nay được khai **ở đúng chỗ phép cắt xảy ra**.
+
+🔴 **`check-work-retention` ĐỎ THẬT ngay trong lượt này** ở **2,25 GB** — cổng viết chiều cùng ngày đang bắt đúng
+thứ nó sinh ra để bắt, **không cần ai nhớ**. Dọn 175 mục · 1,25 GB · 0 từ chối · về 1,01 GB.
+
+---
+
+## D-259 — **Tám số quyết định được dẫn từ 26 chỗ trong mã KHÔNG TỒN TẠI, và nguyên nhân đáng giá hơn con số: một lệnh shell hỏng, chỉ commit được chạy lại** (`2026-09-08` tối, P-106 bước 9)
+
+**Chú thích là tài sản đắt nhất của repo này** (§0 nói thẳng ra điều đó), và rất nhiều chú thích kết bằng một con
+trỏ: *"(D-117)"*, *"(D-186 gotcha 2)"*. **Con trỏ ấy là đường DUY NHẤT từ mã tới lý lẽ.**
+
+**Đo `08/09`: TÁM số quyết định được dẫn từ 26 chỗ trong `scripts/` và `local-net/` mà không hề có trong
+`DECISIONS.md`.** Cả tám đều do **chính phiên này** viết, trong một buổi chiều, **trong đúng cái mốc về kỷ luật
+phép đo**.
+
+🔴 **Nguyên nhân đáng giá hơn con số.** Các mục quyết định đang được nối vào `DECISIONS.md` **trong cùng một lệnh
+shell với lượt commit**. Một lệnh như thế **hỏng vì lỗi trích dẫn shell** — heredoc gặp một dấu `\"` trong thông
+điệp — nên `cat >> DECISIONS.md` **không bao giờ chạy**; rồi tôi chạy lại **chỉ phần commit**, từ tệp, và nó thành
+công. **Commit trông sạch, mọi cổng xanh, và lý lẽ đã lặng lẽ không được ghi.** Không thứ gì trong repo nói được
+điều đó.
+
+⇒ Một `D-nnn` treo **chính là** hình dạng lỗi dự án này gặp đi gặp lại: **vật chứng nói đúng thứ cần nói, còn thứ
+nó trỏ tới thì không có ở đó.** `scripts/check-decision-refs.mjs` đóng nó: 256 mục khai · **525 lượt dẫn qua 188
+tệp** · mọi lượt dẫn phải giải được.
+
+**🔴 Và cổng ấy tự mắc ĐÚNG lớp lỗi nó sinh ra để bắt, hai lần, trước khi nó đúng:**
+
+1. **Bản đầu chỉ nhận tiêu đề `##`.** `DECISIONS.md` dùng **ba mức** (`#`, `##`, `###`) — **134 trong 275** tiêu
+   đề nằm ở `###`, và các mục con như `D-117b` treo dưới `###`. Nó khai **41 tham chiếu treo**, phần lớn giải được
+   hoàn hảo ở một mức tiêu đề thấp hơn. Đúng số học, **sai đại lượng**: nó đo **ĐỘ LỒNG MARKDOWN** chứ không đo
+   *"quyết định có được ghi ra không"*. Một cổng kêu oan 41 lần sẽ được đọc **đúng một lần** rồi bị bỏ qua — tệ
+   hơn là không có nó.
+2. **Nó tự tìm thấy fixture của chính mình.** Self-test giữ `"D-500"` và `"D-999"` **trong chuỗi**, và cổng khai cả
+   hai là treo. Sửa bằng **xoá trắng nội dung chuỗi** (`blankStrings`, dùng lại từ `source-scan.mjs`) — **không**
+   bằng miễn trừ. 🔴 Chú thích thì **KHÔNG** xoá: một lượt dẫn **nằm trong chú thích** chính là thứ cổng này sinh
+   ra để kiểm.
+
+**Kèm `D-008` ≡ `D-8`:** số 0 đứng đầu là cách trình bày, không phải danh tính.
+
+**🔴 Một tham chiếu treo CÓ SẴN, không phải của tôi: `D-189`, dẫn 3 lần từ `console/server.mjs`.** Thất bại nó gọi
+tên — một lượt rollout **báo thành công cho một node chưa hề restart** — được **kể bên trong D-190** (*"xem
+D-189"*) nhưng chưa bao giờ có tiêu đề riêng. Tôi **KHÔNG bịa** một mục cho nó: dựng một mục từ văn bản xung quanh
+là **đặt vào sổ những chữ không ai đo**. Khai miễn trừ **có lý do**, và ⏳ **`[human]` David quyết**: tách nó ra
+khỏi D-190, hay trỏ lại ba lượt dẫn.
+
+**Bài học quy trình, cho chính tôi:** *một lệnh compound mà một nửa hỏng thì nửa kia vẫn có thể thành công, và
+lượt chạy lại sửa đúng nửa nhìn thấy được.* Sổ phải được ghi **bằng một lượt riêng**, và **được đối chứng** —
+điều mà cổng này nay làm thay.

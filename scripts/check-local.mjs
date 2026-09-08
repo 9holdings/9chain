@@ -21,6 +21,8 @@ const checks = [
   ['scripts/check-fixed-ports.mjs'],
   ['scripts/check-work-retention.mjs', '--self-test'],
   ['scripts/check-work-retention.mjs'],
+  ['scripts/check-decision-refs.mjs', '--self-test'],
+  ['scripts/check-decision-refs.mjs'],
   ['scripts/measure-block-cache.mjs', '--self-test'],
   ['scripts/check-flag-guards.mjs', '--self-test'],
   ['scripts/check-flag-guards.mjs'],
