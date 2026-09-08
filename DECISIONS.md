@@ -10734,3 +10734,79 @@ chính là entry module.
 
 **Số đo sau cả hai mục:** `check-local` 12/12 · `check-local --console` **36 cổng / 55 ca** · cổng cờ 54/54 ·
 cổng hạn giờ xanh với 3 miễn trừ có lý do · nợ §0 **không phình** · `check-worktree-ownership` 0.
+
+---
+
+## D-246 — **Cổng lệch đồng hồ là một cú TUNG ĐỒNG XU, và lời giải thích trong HANDOFF chưa bao giờ là phép đo; kèm hai cổng cùng chiếm một port và `check-local` song song** (`2026-09-08` chiều, P-103 · P-103a · P-105)
+
+**Bối cảnh.** `check-clock-skew` đỏ **bên trong** preflight rồi `exit 0` khi chạy riêng ngay sau đó — nhiều phiên liền.
+HANDOFF có sẵn một câu giải thích: *"nó chỉ nhấp nháy khi có bơm chạy"*. Câu đó đã được chép lại nhiều lần và
+**chưa ai từng chạy cổng N lượt để xem phân bố**. Bơm đã dừng từ `01:39Z`.
+
+**Phép đo. 20 lượt liên tiếp, không đổi gì khác: `10 ĐỎ · 10 XANH`.**
+
+**Cơ chế — và nó không dính gì tới bơm.** Trong **MỘT lượt chạy vài giây**, các mẫu trải **~2.300 ms**
+(lượt 1: `−63 … −2.091` · lượt 12: `−5 … −2.399` · lượt 20: `0 … −2.371`), trong khi **mẫu tốt nhất của mọi
+lượt đều nằm ở 0–47 ms**. **Một đồng hồ không trôi 2,3 giây trong mười giây.** Cái trải đó là **TUỔI BLOCK**:
+chain đẻ block mỗi ~2 s, `block.timestamp` có độ phân giải **giây nguyên**, nên một mẫu lấy muộn trong chu kỳ
+trông y hệt một node chậm hai giây.
+
+**Và đây là chỗ đau: chính tệp đó đã lập luận ĐÚNG cho RTT rồi áp NGƯỢC cho block.** Đầu tệp viết
+*"Lọc kiểu NTP: lấy mẫu có RTT NHỎ NHẤT — nó có biên chặt nhất"*. Nhiễm bẩn tuổi block cũng **một chiều** y như
+độ trễ mạng: nó **chỉ** làm node trông chậm hơn, không bao giờ nhanh hơn. Vậy mẫu sạch nhất là mẫu có `lech`
+**LỚN NHẤT**. Mã cũ lấy `mau[0]` = **RTT nhỏ nhất**, còn tuổi block của mẫu ấy thì tuỳ may rủi ⇒ số bù ra
+**bất kỳ đâu trong 3000–3821 ms**, và phán quyết chỉ là *nó rơi bên nào của con 3000*.
+
+🔴 **Bộ ước lượng cũ còn KHÔNG HỘI TỤ.** Lấy MAX của N mẫu một đại lượng nhiễu bị chặn thì **càng nhiều mẫu càng
+xấu**. Tăng `--samples` làm cổng **đỏ hơn** mà thế giới không đổi một chút nào. Một cổng mà độ đỏ là hàm của
+số mẫu nó tự chọn thì không đo thế giới, nó đo chính nó.
+
+**Đo lại sau khi sửa, cùng điều kiện, 20 lượt: `18 XANH · 2 ĐỎ`.**
+
+🔴 **Sửa này KHÔNG hạ con số bù, và đó là điểm quan trọng nhất của nó.** Kết quả ra **3000** — đúng cái sàn David
+đã chọn `02/09` và đã ghi vào runbook nghi lễ. Nó làm cổng **thôi mâu thuẫn** với quyết định đang đứng, chứ
+không lập một quyết định mới. Nếu nó hạ con số bù thì tôi đã dừng lại và hỏi.
+
+**Hai đỏ còn lại: có cơ chế, và nó là câu hỏi của David, không phải của tôi.** Ngưỡng *"block còn tươi"* là
+**30 s** (`NGUONG_TUOI_BLOCK_MS`) trong khi **ngân sách bù là 3 s**. Một block chỉ **2,3 s** tuổi đã đẩy yêu cầu
+vượt sàn. Trên một chain **đang nhàn rỗi** — mà g1 thì đang nhàn rỗi, có chủ ý, theo D-149 — phán quyết của cổng
+là một câu nói về **chain đẻ block dày hay thưa**, đeo nhãn *"lệch đồng hồ"*. Cổng nay **in ra phép phân tách**:
+nguồn block ↔ nguồn peer đọc **cùng một đồng hồ**, nên **hiệu số của chúng CHÍNH LÀ tuổi block** — đo, không suy.
+Một lượt thật: `block −949 ms · peer −174 ms ⇒ 775 ms là tuổi block, ~174 ms mới là đồng hồ`. Khi riêng tuổi
+block đã gần hết ngân sách, cổng nói thẳng ra điều đó. ⏳ **`[human]` trước `09/09`:** có siết ngưỡng 30 s không
+là quyết định về **đại lượng nào nghi lễ tin**; nó đã là câu hỏi mở trong việc tay `09/09`
+(*"đo lại trên chain ĐANG ĐẺ BLOCK và ưu tiên nguồn `block.timestamp`"*), và nó **không phải việc tôi tự quyết**.
+
+**🔴 Lỗi đo của chính lượt này, lần thứ tư trong ngày.** Script đo 20 lượt của tôi viết
+`node ... > file; off=$(grep ...); echo "exit=$?"` — `$?` ở đó là mã thoát của **`grep`**, không phải của `node`.
+Bảng đầu tiên in ra `exit=0` cho cả những lượt có `offset=4094`. Bắt được vì **hai cột mâu thuẫn nhau**:
+một lượt đòi 4094 mà lại khai "đạt" là vô lý. Verdict thật phải suy từ `offset > 3000`. Bài học lặp lại nguyên
+văn từ memory *"pipefail = cổng nói dối"*: **lệnh cuối ống quyết định `$?`**, và một cột "exit" không ai đối
+chứng thì không phải phép đo.
+
+---
+
+**P-103a — hai cổng cùng chiếm một port, và chúng chỉ chưa bao giờ được khởi động cùng lúc.**
+`scripts/check-genesis-verify.mjs` và `local-net/console/governance-e2e-test.mjs` **cùng khai 8501 và 8502**.
+Tệp sau là bản chép của tệp trước — cùng hai port, cùng địa chỉ OWNER, cùng hình dạng — và bản chép giữ nguyên số.
+Chưa bao giờ va, vì **hai runner khác nhau không bao giờ khởi động chúng cùng lúc**. Đó là tính chất của **LỊCH
+CHẠY**, không phải của mã: nó hết hiệu lực ngay khi có hai phiên (repo này đã dính) hoặc khi cổng chạy song song.
+Lỗi sẽ tới dưới dạng `EADDRINUSE` **bên trong một cổng**, và đọc thành *"cổng hỏng"* chứ không thành *"hai cổng
+muốn cùng một port"*. Đã dời `check-genesis-verify` sang 8503/8504; `scripts/check-fixed-ports.mjs` canh từ nay,
+và nó **đã được nhìn thấy ĐỎ trên bản trùng thật** trước khi sửa.
+
+**Hai lỗi của chính cổng đó, giữ lại làm ca kiểm:** 🔴 mẫu `[A-Za-z_$][\w$]*PORT[\w$]*` đòi có ít nhất một ký tự
+**trước** chữ "PORT" ⇒ nó **trượt sạch** mọi hằng tên đúng là `PORT` — chính tả của **cả hai** tệp nó sinh ra để
+bắt; lượt đầu khai "4 port, 0 trùng" · 🔴 nó đếm cả **fixture của chính mình** (khai báo port nằm trong chuỗi).
+Sửa bằng **xoá trắng nội dung chuỗi**, KHÔNG bằng miễn trừ: *một cổng được miễn trừ khỏi luật của chính nó thì đã
+thôi canh thứ nó sinh ra để canh.*
+
+**P-103 — `check-local` song song: 17 cổng trong 19,0 s** (nền tuần tự ~35 s), 4 tiến trình một lúc.
+🔴 **Sàn là MỘT cổng**: `validate-console-release-test` một mình **19,2 s / 34,8 s** ⇒ song song không thể xuống
+dưới nó, và tệp đó là cổng phát hành console — không đụng. `verdictOf()` tách riêng và **thuần**, vì chạy song
+song đổi hai thứ quan trọng hơn đồng hồ: **(1)** lỗi được nêu phải là lỗi đầu tiên **theo THỨ TỰ DANH SÁCH**,
+không phải cái **về trước** — nếu không, cùng một repo hỏng sẽ nêu tên script khác nhau mỗi lượt, và cổng 19,2 s
+gần như **không bao giờ** được nêu; **(2)** không cổng nào bị bỏ qua nữa, nên tổng kết nói được *"và N cổng khác
+cũng đỏ"* — thứ bản tuần tự chưa bao giờ biết. Ca đỏ thật: con chậm thoát 0 **sau cùng**, con nhanh thoát 3
+**trước** ⇒ vẫn nêu đúng con thứ hai. Đầu ra **hứng lại rồi in theo thứ tự danh sách**: chín tiến trình cùng ghi
+một terminal ra thứ trông như hỏng dữ liệu, mà HANDOFF thì trích nguyên văn các dòng này.

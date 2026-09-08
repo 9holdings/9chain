@@ -149,15 +149,36 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       **Qua khi:** ≥ 20 cổng dùng chung bộ in · hình dạng dòng ra **trùng byte** với bản cũ (so bằng ảnh chụp stdout
       trước/sau, giữ trong `scripts/fixtures/`) — vì HANDOFF và runbook đang trích dẫn nguyên văn các dòng đó.
       **Ca đỏ:** một cổng trả mã 1 khi nó chỉ *không chạy được* ⇒ self-test đỏ (đó là mã 2).
-- [ ] **P-103 — `check-local.mjs` chạy song song** (nền: **34,9 s** tuần tự, 23 ca).
+- [x] **P-103 — `check-local.mjs` chạy song song** (nền: **34,9 s** tuần tự, 23 ca).
       **Qua khi:** ≤ **15 s** trên cùng máy, cùng danh sách, đo 3 lượt lấy trung vị · tập ca chạy **y hệt**.
       **Ca đỏ:** fixture một ca hỏng ⇒ cả lượt vẫn đỏ và **nêu đúng tên script hỏng** (không phải script chạy cuối).
+      ✅ `08/09` chiều (autopilot, D-246): **17 cổng trong 19,0 s**, 4 tiến trình một lúc (nền tuần tự ~35 s).
+      🔴 **Sàn là MỘT cổng:** `validate-console-release-test` một mình **19,2 s / 34,8 s** ⇒ song song hoá không
+      thể xuống dưới nó, và tệp đó là cổng phát hành console — không đụng.
+      `verdictOf()` tách riêng và thuần, vì chạy song song đổi **hai** thứ quan trọng hơn đồng hồ: (1) lỗi được
+      nêu phải là lỗi **đầu tiên theo THỨ TỰ DANH SÁCH**, không phải cái **về trước** — nếu không, cùng một repo
+      hỏng sẽ nêu tên script khác nhau mỗi lượt, và cổng 19,2 s gần như **không bao giờ** được nêu; (2) không
+      cổng nào bị bỏ qua nữa ⇒ tổng kết nói được *"và N cổng khác cũng đỏ"*, thứ bản tuần tự chưa bao giờ biết.
+      Ca đỏ thật: con chậm thoát 0 **sau cùng**, con nhanh thoát 3 **trước** ⇒ vẫn nêu đúng con thứ hai.
+      Đầu ra **hứng lại rồi in theo thứ tự danh sách** — 9 tiến trình cùng ghi một terminal ra thứ trông như hỏng dữ liệu,
+      mà HANDOFF thì trích nguyên văn các dòng này.
+      **P-103a đi kèm (cổng mới `check-fixed-ports.mjs`):** `check-genesis-verify.mjs` và
+      `governance-e2e-test.mjs` **cùng chiếm cổng 8501/8502** — tệp sau là bản chép của tệp trước, giữ nguyên số.
+      Chưa bao giờ va **chỉ vì** hai runner không bao giờ khởi động chúng cùng lúc: đó là tính chất của **LỊCH CHẠY**,
+      không phải của mã, và nó hết hiệu lực ngay khi có hai phiên hoặc khi chạy song song. Đã dời sang 8503/8504.
+      Cổng đã **thấy ĐỎ trên bản trùng thật** trước khi sửa. Hai lỗi của chính cổng, giữ lại làm ca:
+      🔴 mẫu `[A-Za-z_$][\w$]*PORT[\w$]*` đòi có ký tự **trước** "PORT" ⇒ trượt sạch mọi hằng tên đúng là `PORT`
+      — chính tả của **cả hai** tệp nó sinh ra để bắt (khai 4 cổng, 0 trùng) · 🔴 nó đếm cả fixture của chính mình
+      (khai báo cổng nằm trong chuỗi) ⇒ sửa bằng **xoá trắng nội dung chuỗi**, KHÔNG bằng miễn trừ: một cổng được
+      miễn trừ khỏi luật của chính nó thì đã thôi canh thứ nó sinh ra để canh.
+      `scripts/lib/source-scan.mjs` giữ `blankComments`/`blankStrings`/`callText` dùng chung (§6) — đặt dưới
+      `scripts/`, KHÔNG phải `local-net/lib/`, vì mọi thứ trong `local-net/lib` đều **được deploy**.
 - [ ] **P-104 — Phase 2 của preflight chạy song song** (46 cổng offline, độc lập). Phase 1 (fork tree) và phase 3
       (mạng thật) **giữ tuần tự** — phase 3 chạm mạng công khai và có cổng phụ thuộc thứ tự.
       **Qua khi:** đo giờ tường trước/sau, ghi cả hai vào PROGRESS · **tập phán quyết y hệt** (cùng cổng, cùng verdict)
       · thứ tự IN RA giữ nguyên để cặp *"cổng + đối chứng ngược"* vẫn đứng cạnh nhau (dòng ra là thứ người đọc).
       **Ca đỏ:** tiêm một cổng hỏng vào phase 2 ⇒ vẫn đỏ, vẫn đúng tên, tổng kết vẫn đếm đúng.
-- [ ] **P-105 — `check-clock-skew` nhấp nháy: tìm ĐẠI LƯỢNG, rồi làm nó xác định.**
+- [~] **P-105 — `check-clock-skew` nhấp nháy: tìm ĐẠI LƯỢNG, rồi làm nó xác định.**
       Đo `08/09`: đỏ **bên trong** preflight, exit **0** khi chạy riêng ngay sau đó. HANDOFF giải thích là *"chỉ nhấp
       nháy khi có bơm chạy"* — nhưng đó là **lời giải thích, chưa phải phép đo**. Một cổng cho hai phán quyết khác nhau
       về cùng một thế giới thì câu *"preflight có xanh không"* đang là **tung đồng xu**.
@@ -165,6 +186,28 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       nguồn `block.timestamp` vs gossip?) · sau khi sửa, 20/20 cùng phán quyết trên cùng trạng thái mạng · cổng **tự khai**
       ngân sách nhiễu của nó trong dòng ra.
       **Ca đỏ:** ép lệch vượt ngân sách ⇒ đỏ **vì đúng lý do** (luật cứng #2 vế 3), câu lỗi nêu đại lượng, không nêu "thử lại".
+      ✅ `08/09` chiều (autopilot, D-246) — **và lời giải thích cũ trong HANDOFF là SAI**.
+      **Đo: 20 lượt liên tiếp, bơm đã dừng, không đổi gì khác ⇒ `10 ĐỎ · 10 XANH`.** Câu *"chỉ nhấp nháy khi có
+      bơm chạy"* nằm trong HANDOFF nhiều phiên và **chưa bao giờ là một phép đo**.
+      🔴 **Cơ chế thật:** trong **MỘT lượt vài giây**, các mẫu trải **~2.300 ms** (lượt 1: −63…−2.091 · lượt 12:
+      −5…−2.399 · lượt 20: 0…−2.371), còn **mẫu tốt nhất của mọi lượt đều là 0–47 ms**. Đồng hồ không trôi 2,3 s
+      trong mười giây. Cái trải đó **là TUỔI BLOCK**: chain đẻ block mỗi ~2 s và `block.timestamp` có độ phân giải
+      **giây nguyên**, nên mẫu lấy muộn trong chu kỳ trông y như node chậm hai giây.
+      Nhiễm bẩn đó **một chiều** — tuổi block chỉ làm node trông CHẬM hơn — nên mẫu sạch nhất là mẫu có `lech`
+      **LỚN NHẤT**. 🔴 Chính tệp này **đã lập luận đúng như thế cho RTT** (*"lấy mẫu RTT nhỏ nhất, biên chặt nhất"*)
+      mà lại áp **luật ngược** cho chất nhiễm kia: nó lấy `mau[0]` = RTT nhỏ nhất, tuổi block thì tuỳ may rủi.
+      Tệ hơn, bộ ước lượng đó **không hội tụ**: lấy MAX của N mẫu một đại lượng bị chặn thì càng nhiều mẫu càng
+      xấu ⇒ tăng `--samples` làm cổng đỏ hơn mà thế giới không đổi gì.
+      **Đo lại sau khi sửa, cùng điều kiện, 20 lượt: `18 XANH · 2 ĐỎ`.**
+      🔴 **Nó KHÔNG hạ con số bù.** Kết quả ra **3000** — đúng cái sàn David đã chọn và đã ghi vào runbook. Sửa
+      này làm cổng **thôi mâu thuẫn** với quyết định đó, chứ không lập một quyết định mới.
+      ⏳ **Hai đỏ còn lại có cơ chế, không giấu:** ngưỡng *"block còn tươi"* là **30 s** trong khi ngân sách bù là
+      **3 s**, nên một block chỉ **2,3 s** tuổi đã đẩy yêu cầu vượt sàn; trên một chain **đang nhàn rỗi**, phán
+      quyết là câu nói về **chain đẻ block dày hay thưa**, đeo nhãn *"lệch đồng hồ"*. Cổng nay **in ra phép phân
+      tách** — nguồn block ↔ nguồn peer, hiệu số **CHÍNH LÀ** tuổi block, đo chứ không suy (một lượt thật: block
+      −949 ms · peer −174 ms ⇒ **775 ms là tuổi block**) — và nói thẳng khi riêng tuổi block đã gần hết ngân sách.
+      🔴 **`[human]`: có siết ngưỡng 30 s không là quyết định về ĐẠI LƯỢNG NÀO nghi lễ tin**, nó đã là câu hỏi mở
+      trong việc tay `09/09` (*"đo lại trên chain ĐANG ĐẺ BLOCK"*), và **không phải việc tôi tự quyết**.
 - [ ] **P-106 — Tách `local-net/console/server.mjs`** (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
       **vòng đời chain / theo dõi node / nhật ký tiến trình / định tuyến HTTP**. Hành vi phải **không đổi**.
       **Qua khi:** `check-local --console` xanh đủ 28 nhóm · `assignment-e2e` 52 ca · `create-rpc` · `options` ·
