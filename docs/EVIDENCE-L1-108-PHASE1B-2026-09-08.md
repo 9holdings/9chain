@@ -76,6 +76,25 @@ Chế độ thứ nhất nguy hơn vì nó **không để lại dấu**: bỏ no
 nó**: *"1 sample(s) covered fewer than 9 node(s)"*. Bài học cùng lớp với §2 `CLAUDE.md`: một phép đo thiếu mẫu không kêu, nó chỉ
 trả lời sai.
 
+### 2c. Đọc lại số pha 1 theo GIAO DỊCH thay vì theo giờ
+
+Nếu dốc đi theo giao dịch (§2), thì *"MiB mỗi giờ"* là đơn vị sai — nó chỉ đúng với đúng một mức tải. Tính lại từ **chuỗi thô**
+của pha 1 (`p89-rss.jsonl`, chỉ mẫu đủ 9 node, dùng cgroup `anon`) ghép với số tx của bảng theo giờ:
+
+| cửa sổ | tx thêm | anon thêm | **KiB / tx (cả đội)** | KiB / tx / node validate |
+|---|---|---|---|---|
+| 22:15→23:24 | 61.875 | 3.231 MiB | **53,5** | 10,7 |
+| 23:24→00:26 | 55.650 | 2.974 MiB | **54,7** | 10,9 |
+| 00:26→01:28 | 55.725 | 1.962 MiB | **36,1** | 7,2 |
+
+Mỗi tx đi vào **5 node** (V = 5), nên cột cuối là chi phí thật trên một node.
+
+🔴 **Vì sao con số này quan trọng hơn "MiB/giờ":** nó đổi câu hỏi mua máy từ *"node sống được bao lâu"* sang *"node nuốt được bao
+nhiêu giao dịch"*. Lấy thẳng: ngân sách 4 GB/node ÷ 10 KiB/tx ≈ **400.000 tx** trước khi đầy. Ở 15 chain × 1 tx/s (mỗi node
+15 tx/s) đó là **~7,4 giờ** — khớp đúng thứ pha 1 đã thấy. Nếu quan hệ này thật sự tuyến tính và không có trần thì **không cỡ máy
+nào cứu được**, chỉ có khởi động lại theo lịch; nếu nó thoải dần (cửa sổ cuối đã tụt 54,7 → 36,1) thì có trần và trần đó là số
+P-94 cần. §3 là phép đo phân biệt hai khả năng đó.
+
 ## 3. P-92a — đối chứng: bơm lại mà KHÔNG đổi gì
 
 Bơm khởi động lại `05:10:28Z` bằng **đúng container của pha 1** (`docker start k1-drill-pump`, cùng lệnh, cùng khoá — không chép
