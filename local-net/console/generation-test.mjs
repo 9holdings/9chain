@@ -183,11 +183,16 @@ console.log("\n── 2. 🔴 BẪY ĐÃ ĐO: node trả networkID là CHUỖI, 
   kiem("dạng CHUỖI vẫn khớp (dạng node thật trả về)", !/THẾ HỆ/i.test(await thu()));
 }
 
+// ⚠️ The strings asserted in sections 3-5 became ENGLISH on 2026-09-08 (D-257). All four verdicts
+// of the generation gate are read by an OPERATOR, and two of the four used to be Vietnamese while
+// the other two were English — so the language of a refusal depended on which branch produced it.
+// The BEHAVIOUR is unchanged: every case below still refuses, for the same reason, with the same
+// remedy. Only the words moved.
 console.log("\n── 3. LỆCH THẾ HỆ → phải CHẶN ──");
 {
   traLoi = { networkID: String(NETWORK_ID - 1), networkName: `9chain-a1-g${A1_GEN + 1}` };
   const loi = await thu("TenHopLe");
-  kiem("🔴 chặn khi node thuộc thế hệ SAU", /LỆCH THẾ HỆ/.test(loi));
+  kiem("🔴 chặn khi node thuộc thế hệ SAU", /GENERATION MISMATCH/.test(loi));
   kiem("câu lỗi nêu CẢ HAI số", loi.includes(String(NETWORK_ID)) && loi.includes(String(NETWORK_ID - 1)), loi.slice(0, 90));
   kiem("câu lỗi chỉ đúng chỗ sửa", /chainid\.mjs/.test(loi) && /A1Gen/.test(loi));
 }
@@ -196,18 +201,18 @@ console.log("\n── 4. networkID đúng nhưng TÊN mạng lệch → vẫn ph
 {
   // Hai phép đo độc lập của cùng một sự thật. Chỉ kiểm một là bỏ nửa kia.
   traLoi = { networkID: String(NETWORK_ID), networkName: "9chain-a1-tap-g0" };
-  kiem("chặn khi tên mạng lệch (mạng TẬP đội lốt)", /LỆCH THẾ HỆ/.test(await thu("TenHopLe")));
+  kiem("chặn khi tên mạng lệch (mạng TẬP đội lốt)", /GENERATION MISMATCH/.test(await thu("TenHopLe")));
 }
 
 console.log("\n── 5. KHÔNG ĐO ĐƯỢC → cũng phải chặn (rỗng ≡ hỏng) ──");
 {
   song = false;
   const loi = await thu("TenHopLe");
-  kiem("🔴 chặn khi không hỏi được node", /không hỏi được node/.test(loi), loi.slice(0, 80));
-  kiem("nói rõ vì sao từ chối, không im lặng", /vĩnh viễn/.test(loi));
+  kiem("🔴 chặn khi không hỏi được node", /could not ask the running node/.test(loi), loi.slice(0, 80));
+  kiem("nói rõ vì sao từ chối, không im lặng", /permanent/.test(loi));
   song = true;
   traLoi = { networkID: "khong-phai-so", networkName: TEN_MANG };
-  kiem("chặn khi node trả networkID không đọc được thành số", /không đọc được thành số/.test(await thu("TenHopLe")));
+  kiem("chặn khi node trả networkID không đọc được thành số", /not a number/.test(await thu("TenHopLe")));
 }
 
 console.log("\n── 6. ĐỐI CHỨNG: cổng KHÔNG chặn bừa ──");

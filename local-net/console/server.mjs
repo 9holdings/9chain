@@ -45,6 +45,7 @@ import { createTrackFiles } from "./track-files.mjs";
 import { createHttpPlumbing, readJsonBody, sendJson } from "./http-plumbing.mjs";
 import { assertChainOwner, createRoleReader, findGovernableChain } from "./chain-ownership.mjs";
 import { judgeChainConfig, judgeChainHealth, judgePrimaryHealth, judgeWaitStep, servesChain } from "./node-health.mjs";
+import { judgeGeneration } from "./generation-gate.mjs";
 
 const STARTUP_CONFIGURATION_SHA256 = consoleConfigurationFingerprint(process.env);
 
@@ -487,53 +488,15 @@ const BAND = bandFor(DRILL_BAND);
 // Đo MỖI LƯỢT, không cache: một kết quả "khớp" nhớ từ lúc khởi động sẽ sống sót
 // qua đúng thứ nó sinh ra để bắt — một lượt sinh lại mạng dưới chân console.
 async function kiemTheHeMang() {
-  let doDuoc, tenDo;
+  let reading;
   try {
-    const r = await rpc("/ext/info", "info.getNetworkID");
-    const t = await rpc("/ext/info", "info.getNetworkName");
-    doDuoc = Number(r?.networkID);
-    tenDo = t?.networkName;
+    const id = await rpc("/ext/info", "info.getNetworkID");
+    const name = await rpc("/ext/info", "info.getNetworkName");
+    reading = { networkId: id?.networkID, networkName: name?.networkName };
   } catch (e) {
-    return {
-      trangThai: "chuaDo",
-      vi: `không hỏi được node đang chạy (${API}): ${e.message}. Console từ chối đẻ chain khi ` +
-        `chưa biết mình đang ở thế hệ mạng nào — một chainId phát nhầm thế hệ là vĩnh viễn.`,
-    };
+    reading = { error: e.message };
   }
-  if (!Number.isSafeInteger(doDuoc)) {
-    return {
-      trangThai: "chuaDo",
-      vi: `node trả networkID không đọc được thành số: ${JSON.stringify(doDuoc)}`,
-    };
-  }
-  // 🔴 The drill flag against the REAL network is its own refusal, named as such. It must not
-  // fall through to the generic mismatch below: that message tells the operator to fix A1_GEN,
-  // and the fix here is the opposite — unset the flag, or point the console at a drill node.
-  if (DRILL_BAND && bandOfNetworkId(doDuoc) === "real") {
-    return {
-      trangThai: "lech",
-      vi: `A1_DRILL_BAND=1 is set, but the node at ${API} reports the REAL network of this generation ` +
-        `(networkID ${doDuoc}, "${tenDo}"). A drill console must never allocate chainIds onto the live network: ` +
-        `it would write drill numbers (${BAND.floor}–${BAND.ceiling}) into immutable real genesis files. ` +
-        `Refusing. Unset A1_DRILL_BAND for the real network, or point NODE_URI at a drill-band node (networkID ${BAND.networkId}).`,
-    };
-  }
-  if (doDuoc !== BAND.networkId || (tenDo && tenDo !== BAND.name)) {
-    // A drill node seen by a REAL console is the one mismatch with a cheap, correct remedy;
-    // every other mismatch keeps the generation-bump instructions.
-    const drillHint = !DRILL_BAND && bandOfNetworkId(doDuoc) === "drill"
-      ? ` Hint: this node IS the drill band of generation g${A1_GEN}; start the console with A1_DRILL_BAND=1 to serve it (drill chainIds come from a separate block).`
-      : "";
-    return {
-      trangThai: "lech",
-      vi: `LỆCH THẾ HỆ. Console dựng cho thế hệ g${A1_GEN} (networkID ${BAND.networkId}, "${BAND.name}") ` +
-        `nhưng node đang chạy khai networkID ${doDuoc}, "${tenDo}". Khối chainId của console ` +
-        `bắt đầu ở ${BAND.floor} — cấp số từ khối đó lên mạng này là phát nhầm thế hệ, ` +
-        `và chainId nằm trong genesis BẤT BIẾN. Sửa: cập nhật A1_GEN trong local-net/lib/chainid.mjs ` +
-        `cho khớp constants.A1Gen bên Go rồi deploy lại console (scripts/check-deploy-drift.mjs).` + drillHint,
-    };
-  }
-  return { trangThai: "khop", vi: `g${A1_GEN} · networkID ${doDuoc} · "${tenDo}"${DRILL_BAND ? " · DRILL BAND (A1_DRILL_BAND=1)" : ""}` };
+  return judgeGeneration(reading, { gen: A1_GEN, band: BAND, drillBand: DRILL_BAND, api: API, bandOfNetworkId });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1186,11 +1149,7 @@ async function planChain({ name, chainId, admin, preset, symbol, allocations, fe
   // không. Đặt TRƯỚC mọi phép kiểm tên/hạn mức/khoá vì một chainId phát nhầm thế
   // hệ là thứ **không thu hồi được** — thu hồi chain không trả lại số nhận dạng.
   const theHe = await kiemTheHeMang();
-  // ⚠️ `.vi`, not `.why`. `kiemTheHeMang` is NOT part of the node-health extraction and still
-  // returns `{ trangThai, vi }`. A rename scoped by VARIABLE NAME reached this line and left it
-  // reading undefined, which would have emptied the generation-mismatch error — the one sentence
-  // that tells an operator the console is pointed at the wrong network (D-256).
-  if (theHe.trangThai !== "khop") throw new Error(theHe.vi);
+  if (theHe.status !== "match") throw new Error(theHe.why);
 
   name = String(name || "").trim();
   /**
@@ -1445,11 +1404,14 @@ async function executeChainLaunch(plan, job) {
   // THEM: measured 2026-09-03 on `/create-chain/` set to `EN English` — every sentence around
   // them in English, the three progress steps in Vietnamese.
   //
-  // The translation boundary is already declared at `/api/progress` and was applied to exactly
-  // HALF of what crosses it: `trangThai` is translated through `STATUS[...]` because it is an
-  // enum the client switches on, and then `nhan` is passed straight through. Whoever wrote it
-  // thought about ENUMS and missed FREE TEXT — the same shape as every other defect found this
-  // day: the rule is right and it was applied to one half.
+  // The translation boundary at `/api/progress` used to be applied to exactly HALF of what
+  // crossed it: the step STATUS was mapped through a table because it is an enum the client
+  // switches on, and the step LABEL was passed straight through. Whoever wrote it thought about
+  // ENUMS and missed FREE TEXT — the rule was right and applied to one half.
+  //
+  // ⚠️ That table no longer exists: `./operation-journal.mjs` speaks English at the source since
+  // 2026-09-08 (D-250), so there is nothing left to translate and nothing left to half-apply.
+  // The lesson is kept because the SHAPE recurs; the mechanism it describes is gone.
   //
   // ⚠️ Real localisation belongs to the client, not here. The API already ships `code`
   // (`genesis`/`subnet`/`rpc`) beside the label, so `web/` can translate from the code without
@@ -2605,8 +2567,8 @@ server.listen(PORT, HOST, () => {
     console.log(`  model  : every node validates and tracks every chain (set A1_L1_VALIDATORS_PER_CHAIN to place chains on V nodes)`);
   }
   kiemTheHeMang().then((t) => {
-    if (t.trangThai === "khop") console.log(`  thế hệ : ✅ khớp node đang chạy — ${t.vi}`);
-    else console.warn(`  thế hệ : 🔴 ${t.trangThai.toUpperCase()} — ĐẺ CHAIN SẼ BỊ TỪ CHỐI.\n           ${t.vi}`);
+    if (t.status === "match") console.log(`  generation : ✅ matches the running node — ${t.why}`);
+    else console.warn(`  generation : 🔴 ${t.status.toUpperCase()} — CHAIN CREATION WILL BE REFUSED.\n               ${t.why}`);
   });
   // Every chain directory, once, at start-up: a stray `upgrade.*` file is a node that will not
   // boot (two matches) or a silent upgrade (one match with the wrong name) on the next restart of

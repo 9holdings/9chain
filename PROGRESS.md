@@ -242,13 +242,13 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       −949 ms · peer −174 ms ⇒ **775 ms là tuổi block**) — và nói thẳng khi riêng tuổi block đã gần hết ngân sách.
       🔴 **`[human]`: có siết ngưỡng 30 s không là quyết định về ĐẠI LƯỢNG NÀO nghi lễ tin**, nó đã là câu hỏi mở
       trong việc tay `09/09` (*"đo lại trên chain ĐANG ĐẺ BLOCK"*), và **không phải việc tôi tự quyết**.
-- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 6 lượt xong (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
+- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 7 lượt xong (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
       **vòng đời chain / theo dõi node / nhật ký tiến trình / định tuyến HTTP**. Hành vi phải **không đổi**.
       **Qua khi:** `check-local --console` xanh đủ 28 nhóm · `assignment-e2e` 52 ca · `create-rpc` · `options` ·
       `governance` · `maintenance` · `readiness` · `auth` · `paused` **đều xanh** · `check-deploy-imports` xanh
       (nó chính là cổng bắt mô-đun mới không được đóng gói khi deploy) · không tệp nào > 800 dòng.
       **Ca đỏ:** quên khai một mô-đun mới trong `manifest-deploy.json` ⇒ `check-deploy-imports` **đỏ và nêu tên tệp**.
-      🔵 `08/09` chiều→tối (autopilot, D-249 → D-256) — **2.927 → 2.643 dòng**, sáu lượt tách, **mỗi lượt có ca đỏ thật**
+      🔵 `08/09` chiều→tối (autopilot, D-249 → D-257) — **2.927 → 2.609 dòng**, bảy lượt tách, **mỗi lượt có ca đỏ thật**
       (cả ba lần `check-deploy-imports` đỏ vì mô-đun mới chưa khai — đúng ca đỏ mục này tự dự đoán).
       🔴 **Điều kiện tiên quyết P-106a, và nó suýt làm hỏng cả mốc:** `readiness-e2e-test.mjs` **đọc `server.mjs`
       như VĂN BẢN** để bắt mọi lượt đọc biến môi trường phải nằm trong dấu vân cấu hình. Nhấc một dòng env sang
@@ -322,6 +322,21 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       hai tệp mới đều đỏ bánh cóc §0**, vì header **trích** câu tiếng Việt làm ví dụ còn test thì **đánh vần cả bảng
       chữ cái tiếng Việt** để bắt chúng. **Lần thứ ba trong phiên**: trích thứ đang bị kiểm là cách đưa nó vào tệp.
       Nợ §0: 5348 → **5343**.
+      ✅ **Lượt 7 — `generation-gate.mjs`** (cổng quyết định console CÓ ĐƯỢC đẻ gì không, **22 ca**).
+      🔴 **Ca kiểm moi ra một lỗi THẬT chép nguyên từ `server.mjs`:** `Number(null) === 0` và
+      `Number.isSafeInteger(0) === true` ⇒ một node trả `null` cho networkID — tức **không nói gì** — lọt qua cửa
+      *"có phải số không"* dưới dạng **networkID 0**, bị đem so với băng, và quay về thành **"LỆCH THẾ HỆ:
+      node khai networkID 0"**. Sai phán quyết, sai cách sửa, nói với vẻ hoàn toàn chắc chắn — **trên đúng cái cổng
+      đứng giữa một cú gõ nhầm và một chainId vĩnh viễn**. Nay kiểm **hình dạng trước khi ép kiểu**; `""` và `[]`
+      cùng một ca.
+      🔴 **§0:** hai trong bốn phán quyết là tiếng Việt còn hai cái kia là tiếng Anh, và **cả bốn đều do người vận
+      hành đọc** — một câu ở lúc console khởi động, một câu là lỗi chặn lượt đẻ chain. Đổi cả bốn (và ba giá trị
+      trạng thái), an toàn **chính vì** cả hai kẻ đọc đều nằm trong `server.mjs` — khác với hợp đồng `{kieu, diaChi}`
+      mà `l1-allowlist.mjs` cũng đọc (D-254).
+      `generation-test.mjs` khẳng định trên **văn bản tiếng Việt** ⇒ 5/31 ca đỏ: **hành vi còn nguyên, chỉ chữ dời**.
+      Đã cập nhật năm khẳng định, **không nới lỏng cái nào**.
+      🔴 Kèm: một chú thích trong `server.mjs` vẫn **mô tả bảng dịch `/api/progress` như thể nó còn tồn tại** — lượt 1
+      đã xoá nó. *Một chú thích tả một cơ chế không còn là một cái bẫy cho người đọc kế tiếp.*
       ⏳ Còn: phần còn lại của khối quản trị (~300 dòng, có side effect) · vòng đời tạo chain (~700 dòng).
       Mục tiêu ≤ 800 dòng/tệp.
 - [ ] **P-107 — Trả nợ §0 trong `server.mjs`: 545 → mục tiêu < 100.** Đổi tên định danh lẫn hai ngôn ngữ
