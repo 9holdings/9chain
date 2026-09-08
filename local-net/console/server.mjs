@@ -43,6 +43,7 @@ import { OperationJournal } from "./operation-journal.mjs";
 import { createUpgradeFiles } from "./upgrade-files.mjs";
 import { createTrackFiles } from "./track-files.mjs";
 import { createHttpPlumbing, readJsonBody, sendJson } from "./http-plumbing.mjs";
+import { assertChainOwner, createRoleReader, findGovernableChain } from "./chain-ownership.mjs";
 
 const STARTUP_CONFIGURATION_SHA256 = consoleConfigurationFingerprint(process.env);
 
@@ -1899,38 +1900,12 @@ const { upgradeFilePath, upgradeHistoryDir, chainDirEntries, assertChainDirReada
 const docUpgradeFile = upgradeFiles.readUpgradeFile;
 const ghiUpgradeFile = upgradeFiles.writeUpgradeFile;
 
-function chuChain(state, name) {
-  const ten = String(name || "").trim();
-  if (!ten) throw new Error("Missing the chain name");
-  const chain = state.chains.find(c => c.name === ten);
-  if (!chain) {
-    throw new Error(state.retired.some(c => c.name === ten)
-      ? `"${ten}" has been revoked — nothing to govern.`
-      : `No L1 named "${ten}" in the directory.`);
-  }
-  if (chain.thuHoi) throw new Error(`"${ten}" is being revoked right now.`);
-  return chain;
-}
-
-/** A wallet may govern only its own chain; the operator token may govern any. */
-function kiemChuSoHuu(chain, ai) {
-  if (ai?.kieu === "vanHanh") return;
-  if (ai?.kieu !== "vi" || typeof ai.diaChi !== "string") { const e = new Error("not authenticated"); e.status = 401; throw e; }
-  const chu = typeof chain.admin === "string" ? chain.admin.trim() : "";
-  if (!chu || chu.toLowerCase() !== ai.diaChi.toLowerCase()) {
-    const e = new Error(chu
-      ? `"${chain.name}" belongs to ${chu}, not to the wallet signed in (${ai.diaChi}).`
-      : `"${chain.name}" is a system chain — only the operator can govern it.`);
-    e.status = 403;
-    throw e;
-  }
-}
-
-/** `readAllowList(address)` on one precompile, decoded. */
-async function docVaiTro(rpcPath, precompileAddress, address) {
-  const hex = await rpc(rpcPath, "eth_call", [{ to: precompileAddress, data: encodeReadAllowList(address) }, "latest"]);
-  return decodeRole(hex);
-}
+// Which chain, and may you — moved to `./chain-ownership.mjs` on 2026-09-08 (D-255), with 22
+// counter-checks. They are the only part of "may this wallet change this chain" that has no
+// side effect, and inside a 2,927-line file the only way to reach them was to start a console.
+const chuChain = findGovernableChain;
+const kiemChuSoHuu = assertChainOwner;
+const docVaiTro = createRoleReader({ rpc, encodeReadAllowList, decodeRole });
 
 /**
  * Everything an upgrade needs decided, with no side effect — shared by `/api/upgrade-preview`

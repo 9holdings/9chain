@@ -242,13 +242,13 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       −949 ms · peer −174 ms ⇒ **775 ms là tuổi block**) — và nói thẳng khi riêng tuổi block đã gần hết ngân sách.
       🔴 **`[human]`: có siết ngưỡng 30 s không là quyết định về ĐẠI LƯỢNG NÀO nghi lễ tin**, nó đã là câu hỏi mở
       trong việc tay `09/09` (*"đo lại trên chain ĐANG ĐẺ BLOCK"*), và **không phải việc tôi tự quyết**.
-- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 4 lượt xong (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
+- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 5 lượt xong (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
       **vòng đời chain / theo dõi node / nhật ký tiến trình / định tuyến HTTP**. Hành vi phải **không đổi**.
       **Qua khi:** `check-local --console` xanh đủ 28 nhóm · `assignment-e2e` 52 ca · `create-rpc` · `options` ·
       `governance` · `maintenance` · `readiness` · `auth` · `paused` **đều xanh** · `check-deploy-imports` xanh
       (nó chính là cổng bắt mô-đun mới không được đóng gói khi deploy) · không tệp nào > 800 dòng.
       **Ca đỏ:** quên khai một mô-đun mới trong `manifest-deploy.json` ⇒ `check-deploy-imports` **đỏ và nêu tên tệp**.
-      🔵 `08/09` chiều→tối (autopilot, D-249 → D-254) — **2.927 → 2.698 dòng**, bốn lượt tách, **mỗi lượt có ca đỏ thật**
+      🔵 `08/09` chiều→tối (autopilot, D-249 → D-255) — **2.927 → 2.673 dòng**, năm lượt tách, **mỗi lượt có ca đỏ thật**
       (cả ba lần `check-deploy-imports` đỏ vì mô-đun mới chưa khai — đúng ca đỏ mục này tự dự đoán).
       🔴 **Điều kiện tiên quyết P-106a, và nó suýt làm hỏng cả mốc:** `readiness-e2e-test.mjs` **đọc `server.mjs`
       như VĂN BẢN** để bắt mọi lượt đọc biến môi trường phải nằm trong dấu vân cấu hình. Nhấc một dòng env sang
@@ -292,8 +292,22 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       **dời mọi kẻ đọc trong MỘT bước** kèm ca đỏ riêng, nếu không là **âm thầm chẻ đôi** phép kiểm quyết định ai
       được tiêu một slot chain vĩnh viễn. Vẫn là nợ §0, **ghi ra chứ không lặng lẽ bỏ lại**.
       Nợ §0: 5363 → **5348**.
-      ⏳ Còn: cụm quản trị chain (~340 dòng, đã có banner riêng) · vòng đời tạo chain (~700 dòng) · dò sức khoẻ
-      node (~230 dòng, cần tiêm `docker()`). Mục tiêu ≤ 800 dòng/tệp.
+      ✅ **Lượt 5 — `chain-ownership.mjs`** (chain nào, và anh có được phép không, **22 ca**). Chỉ 25 dòng, và
+      lý do dời **không phải** số dòng: mọi thứ khác trong khối quản trị đều **ghi tệp, restart node, hoặc nối
+      sổ**; hai hàm này thì không. Chúng là **phần DUY NHẤT** của câu trả lời *"ví này có được đổi phí chain này
+      không"* kiểm được độc lập — và là phần **không có test**, vì trong một tệp 2.927 dòng cách duy nhất chạm tới
+      chúng là dựng cả một console. `lib/l1-allowlist.mjs` đã viết đúng lập luận đó ở đầu tệp nó, về đúng loại luật này.
+      🔴 Đây là **quyền tiêu một tài nguyên vĩnh viễn**, nên ca kiểm là các **lượt TỪ CHỐI**: *một cổng sở hữu chỉ
+      từng được kiểm với chính chủ là cổng chỉ từng được kiểm với người duy nhất nó không định chặn.* Ví khác ⇒ **403**
+      nêu **cả** chủ thật lẫn ví hỏi · **không** danh tính ⇒ **401, KHÔNG phải 403** (*"tôi không biết anh là ai"* và
+      *"tôi biết, và đây không phải chain của anh"* là hai sự thật khác nhau; client không phân biệt được thì không
+      biết đăng nhập lại có ích không) · hình dạng danh tính lạ ⇒ từ chối, không cho qua · chain **không có admin**
+      ⇒ chỉ operator (**chủ rỗng không phải "mọi người"**) · **chữ hoa/thường KHÔNG quyết định sở hữu** (EIP-55 là
+      checksum, không phải danh tính — từ chối một ví đúng vì kiểu chữ là **khoá chủ ra khỏi chain của chính họ**).
+      Ba câu từ chối *"không tìm thấy"* giữ **ba câu khác nhau**, và điều đó được khẳng định: gộp thành *"not found"*
+      tiết kiệm một dòng và lấy mất manh mối duy nhất người đọc có.
+      ⏳ Còn: phần còn lại của khối quản trị (~300 dòng, có side effect) · vòng đời tạo chain (~700 dòng) · dò sức
+      khoẻ node (~230 dòng, cần tiêm `docker()`). Mục tiêu ≤ 800 dòng/tệp.
 - [ ] **P-107 — Trả nợ §0 trong `server.mjs`: 545 → mục tiêu < 100.** Đổi tên định danh lẫn hai ngôn ngữ
       (`kiemTheHeMang` · `nodeSanSang` · `moTienTrinh` · `thuHoiChain` · `napCapChain` · `doiChu` · `quanTri` ·
       `ghiChainConfig` · `docBody`…) và dịch chú thích. 🔴 **Chú thích là tài sản đắt nhất** (§0) — dịch **giữ nguyên
