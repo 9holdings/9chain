@@ -41,6 +41,7 @@ import { MaintenanceGate } from "../lib/maintenance.mjs";
 import { consoleConfigurationFingerprint, probeConsoleReadiness } from "../lib/console-readiness.mjs";
 import { OperationJournal } from "./operation-journal.mjs";
 import { createUpgradeFiles } from "./upgrade-files.mjs";
+import { createTrackFiles } from "./track-files.mjs";
 
 const STARTUP_CONFIGURATION_SHA256 = consoleConfigurationFingerprint(process.env);
 
@@ -626,100 +627,23 @@ async function nodeSanSang(svc) {
   return { ok: true, vi: "P/X/C sạch lỗi" };
 }
 
-/**
- * Cho MỌI node track thêm subnet mới — LẦN LƯỢT từng node, không đồng loạt.
- *
- * ═══ VÌ SAO ═══
- * Bản trước gọi thẳng `docker compose up -d` (không nêu tên service). Biến
- * A1_TRACK_SUBNETS đổi ⇒ compose recreate MỌI container dùng biến đó = cả 5
- * validator cùng lúc. Không còn node nào giữ mạng, consensus dừng, và RPC công
- * khai (Caddy → node-1) chết theo.
- *
- * ĐO THẬT trên testnet công khai 2026-08-24, đẻ 1 chain:
- *     C-Chain RPC chết 6.0 giây · 12/25 lượt gọi hỏng (48%)
- *     ngay sau đó cả 5 container đều "Up 25 seconds" — CÙNG một con số
- *
- * MetaMask poll RPC mỗi ~4s nên cửa sổ 6s trúng ít nhất một nhịp poll của MỌI ví
- * đang mở, và MetaMask GIỮ banner "Unable to connect" tới khi người dùng tự đổi
- * mạng qua lại. Tức là một người lạ bấm nút để lại banner lỗi dính trên ví của
- * tất cả người khác — chi phí O(số lượt bấm nút) giáng lên người không liên quan.
- *
- * ═══ NODE PHỤC VỤ RPC CÔNG KHAI ĐI CUỐI CÙNG ═══
- * Chỉ node-1 mở API ra host, nên Caddy → node-1 → nó CHÍNH LÀ RPC công khai.
- * Restart nó sau cùng nghĩa là: (1) 4 node kia đã track subnet mới và đang khoẻ,
- * (2) node-1 quay lại một mạng đang sống để đồng bộ, thay vì cả 5 cùng lạnh máy.
- *
- * ═══ HỎNG THÌ DỪNG, KHÔNG ĐI TIẾP ═══
- * Một node không khoẻ lại trong hạn ⇒ NÉM LỖI, không đụng node kế. Hạ thêm node
- * nữa chỉ làm mạng mỏng đi trong khi vấn đề chưa rõ. Thà dừng với vài node chưa
- * track (báo lỗi rõ) còn hơn hạ cả mạng một cách âm thầm.
- */
-/**
- * Ghim danh sách subnet vào `.env` cạnh file compose.
- *
- * Console truyền A1_TRACK_SUBNETS qua env lúc chạy, nên bản thân nó không cần
- * file này. Nhưng BẤT KỲ ai sau đó gõ `docker compose up -d` bằng tay — để sửa
- * một node, để nâng image — sẽ lấy giá trị rỗng và node đó **âm thầm thôi track
- * mọi L1**. Chain vẫn "sống" theo mọi dấu hiệu bề ngoài, chỉ là mỏng đi một
- * validator mà không ai biết. Dự án này đã dính đúng lớp lỗi đó một lần với
- * `--http-allowed-hosts` (console `up` làm nó tụt về `*` trên node công khai).
- *
- * Ghi qua file tạm rồi rename: `.env` hỏng giữa chừng là MỌI lệnh compose chết,
- * kể cả lệnh để sửa lỗi.
- */
-/**
- * Write the per-node override (P-83): `{ services: { <svc>: { environment: ["AVAGO_TRACK_SUBNETS=…"] } } }`
- * for EVERY managed service, idle ones with an empty list — a service missing from the override
- * would fall back to the base file's shared variable, i.e. to the every-node model, silently.
- * tmp + rename, same reason as `.env`.
- */
-function writeTrackOverride(lists) {
-  const services = {};
-  for (const [svc, subnets] of [...lists.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
-    services[svc] = { environment: [`AVAGO_TRACK_SUBNETS=${subnets.join(",")}`] };
-  }
-  const tmp = TRACK_OVERRIDE_FILE + ".tmp";
-  writeFileSync(tmp, JSON.stringify({ services }, null, 2) + "\n");
-  renameSync(tmp, TRACK_OVERRIDE_FILE);
-}
+// The two files that record what each node tracks moved to `./track-files.mjs` on 2026-09-08
+// (D-251), with 20 counter-checks against a real directory. The 28-line comment that used to
+// stand here documents `trackSubnetsLanLuot` and now stands above it, 300 lines further down.
+const trackFiles = createTrackFiles({ overrideFile: TRACK_OVERRIDE_FILE, composeFile: COMPOSE_FILE });
+const { writeTrackOverride, readTrackLists } = trackFiles;
 
 /**
- * What every node tracks RIGHT NOW according to disk: the override when there is one, else the
- * shared `.env` list on every node (the every-node model). This is the "before" a rollout diffs
- * against to decide which nodes must restart.
+ * Pin the list into `.env`, and never fail the operation over it.
+ *
+ * The console already passed the value through the environment, so the run in progress is
+ * correct either way. What a failure breaks is the safety net for some LATER manual
+ * `docker compose up -d` — worth a warning, not worth aborting a chain creation that has
+ * already spent money. The warning is the whole point: a silently missing net is the failure.
  */
-function readTrackLists(services) {
-  const lists = new Map(services.map((s) => [s, []]));
-  if (existsSync(TRACK_OVERRIDE_FILE)) {
-    const j = JSON.parse(readFileSync(TRACK_OVERRIDE_FILE, "utf8"));
-    for (const [svc, def] of Object.entries(j?.services ?? {})) {
-      const line = (def?.environment ?? []).find((e) => String(e).startsWith("AVAGO_TRACK_SUBNETS="));
-      lists.set(svc, line ? String(line).slice("AVAGO_TRACK_SUBNETS=".length).split(",").filter(Boolean) : []);
-    }
-    return lists;
-  }
-  const envPath = path.join(path.dirname(path.resolve(COMPOSE_FILE)), ".env");
-  const line = existsSync(envPath) ? readFileSync(envPath, "utf8").split(/\r?\n/).find((d) => /^\s*A1_TRACK_SUBNETS\s*=/.test(d)) : null;
-  const shared = line ? line.replace(/^\s*A1_TRACK_SUBNETS\s*=/, "").trim().split(",").filter(Boolean) : [];
-  for (const s of services) lists.set(s, [...shared]);
-  return lists;
-}
-
 function ghimTrackVaoEnv(trackList) {
-  const envPath = path.join(path.dirname(path.resolve(COMPOSE_FILE)), ".env");
-  try {
-    const cu = existsSync(envPath) ? readFileSync(envPath, "utf8") : "";
-    const giu = cu.split(/\r?\n/).filter(d => !/^\s*A1_TRACK_SUBNETS\s*=/.test(d));
-    while (giu.length && giu.at(-1).trim() === "") giu.pop();
-    giu.push(`A1_TRACK_SUBNETS=${trackList}`, "");
-    const tmp = envPath + ".tmp";
-    writeFileSync(tmp, giu.join("\n"));
-    renameSync(tmp, envPath);
-  } catch (e) {
-    // Không ghim được thì vẫn đi tiếp: console truyền env lúc chạy nên lượt tạo
-    // này vẫn đúng. Chỉ là lưới đỡ cho lần chạy tay sau bị thủng — phải kêu lên.
-    console.warn(`  ⚠️  không ghim được A1_TRACK_SUBNETS vào ${envPath}: ${e.message}`);
-  }
+  try { trackFiles.pinTrackListToEnv(trackList); }
+  catch (e) { console.warn(`  ⚠️  could not pin A1_TRACK_SUBNETS into ${trackFiles.envPath()}: ${e.message}`); }
 }
 
 /**
@@ -944,6 +868,34 @@ let lastRolloutUntouched = [];
  * (`.State.StartedAt` moved), because a changed environment must recreate the container; a node
  * that "rolled out" without restarting is the D-189 lie again. Nodes left alone are measured too:
  * their StartedAt must NOT move, and the result records that.
+ */
+/**
+ * Cho MỌI node track thêm subnet mới — LẦN LƯỢT từng node, không đồng loạt.
+ *
+ * ═══ VÌ SAO ═══
+ * Bản trước gọi thẳng `docker compose up -d` (không nêu tên service). Biến
+ * A1_TRACK_SUBNETS đổi ⇒ compose recreate MỌI container dùng biến đó = cả 5
+ * validator cùng lúc. Không còn node nào giữ mạng, consensus dừng, và RPC công
+ * khai (Caddy → node-1) chết theo.
+ *
+ * ĐO THẬT trên testnet công khai 2026-08-24, đẻ 1 chain:
+ *     C-Chain RPC chết 6.0 giây · 12/25 lượt gọi hỏng (48%)
+ *     ngay sau đó cả 5 container đều "Up 25 seconds" — CÙNG một con số
+ *
+ * MetaMask poll RPC mỗi ~4s nên cửa sổ 6s trúng ít nhất một nhịp poll của MỌI ví
+ * đang mở, và MetaMask GIỮ banner "Unable to connect" tới khi người dùng tự đổi
+ * mạng qua lại. Tức là một người lạ bấm nút để lại banner lỗi dính trên ví của
+ * tất cả người khác — chi phí O(số lượt bấm nút) giáng lên người không liên quan.
+ *
+ * ═══ NODE PHỤC VỤ RPC CÔNG KHAI ĐI CUỐI CÙNG ═══
+ * Chỉ node-1 mở API ra host, nên Caddy → node-1 → nó CHÍNH LÀ RPC công khai.
+ * Restart nó sau cùng nghĩa là: (1) 4 node kia đã track subnet mới và đang khoẻ,
+ * (2) node-1 quay lại một mạng đang sống để đồng bộ, thay vì cả 5 cùng lạnh máy.
+ *
+ * ═══ HỎNG THÌ DỪNG, KHÔNG ĐI TIẾP ═══
+ * Một node không khoẻ lại trong hạn ⇒ NÉM LỖI, không đụng node kế. Hạ thêm node
+ * nữa chỉ làm mạng mỏng đi trong khi vấn đề chưa rõ. Thà dừng với vài node chưa
+ * track (báo lỗi rõ) còn hơn hạ cả mạng một cách âm thầm.
  */
 async function trackSubnetsLanLuot(target, { requireChain, forceRestart = false, only } = {}) {
   const thuTu = await readManagedServices();
