@@ -11,10 +11,10 @@
  * (a Go limit cannot see it)? The three have completely different fixes, and the number that
  * separates them is not in `docker stats`.
  *
- *   RSS               /proc/<pid>/VmRSS, summed over avalanchego and every VM plugin
+ *   anon              /proc/<pid>/RssAnon over avalanchego and every plugin — NOT VmRSS, see below
  *   Go heap_sys       what Go took from the OS      — /ext/metrics
  *   live ≈ next_gc/2  reachable at GOGC=100         — /ext/metrics
- *   RSS − heap_sys    outside the Go allocator      — a Go memory limit cannot touch this
+ *   anon − heap_sys   outside the Go allocator      — a Go memory limit cannot touch this
  *   heap_sys − live   the only part a limit reclaims
  *
  * 🔴 The plugins report their own Go runtime under a `chain="…"` label and avalanchego reports its
@@ -43,11 +43,15 @@ const ONCE = argv.includes("--once");
 const JSON_OUT = argv.includes("--json");
 const MiB = (b) => b / 1048576;
 
+// 🔴 RssAnon, never VmRSS. All nine plugin processes map the SAME 65 MB plugin binary, so summing
+// VmRSS counts those file-backed pages once per plugin — about 390 MiB of memory that does not
+// exist, on a node that has just started. Measured 2026-09-08: cgroup `anon` 253 MiB equals the sum
+// of RssAnon exactly, while cgroup `file` is 0. Anonymous memory is the quantity that has to fit.
 const RSS_PROBE = [
   "n=0; p=0; c=0",
   "for d in /proc/[0-9]*; do",
   '  e=$(readlink "$d/exe" 2>/dev/null) || continue',
-  '  r=$(sed -n "s/^VmRSS:[[:space:]]*\\([0-9]*\\) kB/\\1/p" "$d/status" 2>/dev/null)',
+  '  r=$(sed -n "s/^RssAnon:[[:space:]]*\\([0-9]*\\) kB/\\1/p" "$d/status" 2>/dev/null)',
   '  [ -n "$r" ] || continue',
   '  r=$((r / 1024))',
   '  case "$e" in */plugins/*) p=$((p + r)); c=$((c + 1)); continue;; esac',
@@ -78,7 +82,7 @@ function docker(args, timeout = 60_000) {
   catch { return null; }
 }
 
-/** One node, one moment: RSS from /proc and the Go figures from the node's own metrics endpoint. */
+/** One node, one moment: anonymous memory from /proc and the Go figures from the node's own metrics. */
 function sample(svc) {
   const rss = docker(["exec", svc, "sh", "-c", RSS_PROBE]);
   const metrics = docker(["exec", svc, "curl", "-sf", "-m", "20", "http://127.0.0.1:9650/ext/metrics"]);
@@ -130,7 +134,7 @@ async function main() {
   const shown = first.filter(Boolean);
   const limits = [...new Set(shown.map((s) => `${s.limitNode === null ? "unset" : Math.round(s.limitNode) + " MiB"} · plugin ${s.limitPlugin === null ? "unset" : Math.round(s.limitPlugin) + " MiB"}`))];
   console.log(`\nGOMEMLIMIT the runtime applied: ${limits.join(" | ")}`);
-  console.log("\nnow (MiB per node)      RSS   Go heap_sys (avago+plug)   live   outside Go");
+  console.log("\nnow (MiB per node)     anon   Go heap_sys (avago+plug)   live   outside Go");
   for (const s of shown) console.log(`  ${s.svc.padEnd(22)}${String(Math.round(s.rss)).padStart(5)}${String(Math.round(s.heapSys)).padStart(11)} (${String(Math.round(s.heapSysNode)).padStart(3)}+${String(Math.round(s.heapSysPlugins)).padStart(4)})${String(Math.round(s.live)).padStart(8)}${String(Math.round(s.rss - s.heapSys)).padStart(13)}`);
 
   if (ONCE) { if (JSON_OUT) console.log(JSON.stringify(shown, null, 2)); process.exit(unreadable.length ? 2 : 0); }
@@ -150,12 +154,12 @@ async function main() {
       live: (second[i].live - first[i].live) / h,
     });
   }
-  console.log("\ngrowth (MiB per node per hour)   RSS   Go heap   live   outside Go   reclaimable");
+  console.log("\ngrowth (MiB per node per hour)  anon   Go heap   live   outside Go   reclaimable");
   for (const r of rows) console.log(`  ${r.svc.padEnd(22)}${r.rss.toFixed(0).padStart(9)}${r.heapSys.toFixed(0).padStart(10)}${r.live.toFixed(0).padStart(7)}${(r.rss - r.heapSys).toFixed(0).padStart(13)}${(r.heapSys - r.live).toFixed(0).padStart(14)}`);
   if (rows.length) {
     const mean = (k) => rows.reduce((a, r) => a + r[k], 0) / rows.length;
     const rss = mean("rss"), sys = mean("heapSys"), live = mean("live");
-    console.log(`\n  mean of ${rows.length} node(s): RSS ${rss.toFixed(0)} · Go heap ${sys.toFixed(0)} · live ${live.toFixed(0)} · outside Go ${(rss - sys).toFixed(0)}`);
+    console.log(`\n  mean of ${rows.length} node(s): anon ${rss.toFixed(0)} · Go heap ${sys.toFixed(0)} · live ${live.toFixed(0)} · outside Go ${(rss - sys).toFixed(0)}`);
     const reclaimable = sys - live;
     console.log(`  A Go memory limit can reclaim at most ${reclaimable.toFixed(0)} of ${rss.toFixed(0)} MiB per node per hour` +
       (rss > 0 ? ` — ${((reclaimable / rss) * 100).toFixed(0)}% of the growth.` : "."));
