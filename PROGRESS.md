@@ -318,10 +318,20 @@ g1 công khai / server / `patches/` / `web/`.
       `avalanchego` hay plugin. Ca đỏ: hồ sơ lấy **một lần** (không `-base`) sẽ chỉ ra bộ nhớ nền lúc khởi động — phải cho thấy hai
       cách đọc ra kết luận khác nhau, để lần sau không ai đọc nhầm.
       🔴 Chỉ bật trên băng tập. API admin trên mạng thật là bề mặt ghi được, không nằm trong phạm vi mốc này.
-- [ ] **P-94 — Kết luận cỡ máy vào `docs/PLAN-108-L1-LOAD-TEST.md` §2 + soát lại đơn mua** — trả lời bằng số đo: 60 chain/node có nằm
+- [x] **P-94 — Kết luận cỡ máy vào `docs/PLAN-108-L1-LOAD-TEST.md` §2 + soát lại đơn mua** — trả lời bằng số đo: 60 chain/node có nằm
       trong 64 GB của AX42 không, và **biên** còn bao nhiêu. **Qua khi:** §2 có bảng RAM/chain/node **đo được** (không phải ước), và
       một câu **kết luận có hướng** cho `PROCUREMENT-K1`: giữ 9 máy · đổi cấu hình · hay đổi V. Ca đỏ: nếu số đo nói AX42 **không** đủ
       thì mục này phải kết thúc bằng *"đổi đơn hàng"*, không phải bằng một câu trấn an.
+      ✅ `08/09` (autopilot, D-243): `docs/PLAN-108-L1-LOAD-TEST.md` **§2d mới** — bảng RAM **đo được** dưới tải (§2b cũ chỉ đo
+      chain im), chấm bằng **`anon`** kèm lý do vì sao không dùng tổng RSS. **Kết luận có hướng: GIỮ 9 máy AX42, không đổi cấu
+      hình, không đổi V — và thêm LỊCH KHỞI ĐỘNG LẠI.** Suy sang pha 3 (15 chain/node, ×1,8 tải): ~3,1 GB/node sau 6 h ⇒ **~12,5 GB
+      cho máy 4 node**, thoải mái trong 64 GB. **Chỗ nghẽn không phải cỡ máy mà là bộ nhớ không bao giờ trả lại khi tiến trình còn
+      sống** (restart trả lại 87 %), và cơ chế restart theo node **đã có sẵn từ P-83**, có chứng minh `StartedAt`.
+      Ghi thêm: **đừng đặt `GOMEMLIMIT` cố định** trên node thật — theo P-92 nó là van an toàn đặt CAO, không phải cách tiết kiệm.
+      🔴 **Số còn thiếu để CHỐT lịch:** đỉnh sau **24 h**. Pha 1b chạy 9 h và **chưa thấy trần**, nên mọi lịch lúc này là ngoại suy.
+      Đó là phép đo đầu tiên của pha 2, cùng P-95 — nếu P-95 tìm ra và sửa được chỗ giữ bộ nhớ thì cả mục lịch restart thành thừa.
+      ⏳ `PROCUREMENT-K1-2026-09-05.md` nằm ở worktree **`web-home`** (luật cứng #4) ⇒ kết luận ghi trên `main` ở §2d; việc
+      `[web-home]` là chép câu kết luận đó sang tài liệu mua máy khi họ đụng tới nó.
 
 
 ## 🔵 MỐC `WORKTREES` — CẤU TRÚC WORKTREE ĐỘC LẬP (David chốt `2026-09-05` sáng)
