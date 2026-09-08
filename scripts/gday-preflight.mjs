@@ -242,7 +242,14 @@ const GATES = [
     : []),
   ...(process.env.A1_DRILL_BAND === "1" && process.env.A1_DRILL_COMPOSE
     ? [
-        { group: "3 · REAL WORLD", needsNetwork: true, name: "every drill-band node and plugin carries its Go memory limit", ...node("scripts/check-plugin-memlimit.mjs", "--compose", process.env.A1_DRILL_COMPOSE) },
+        // 🔴 Only when a limit is DECLARED (A1_MEM_LIMIT_NODE). P-92 measured what a fixed
+        // GOMEMLIMIT costs once the live set passes it — 40 % less memory for 9x the CPU, and the
+        // spiral does not stop when the load does. So "a limit is set" is not a standing pass
+        // condition; it is a thing to verify only where an operator meant to set one. The gate
+        // itself stays: it is the only way to see that a limit reached the PLUGINS.
+        ...(process.env.A1_MEM_LIMIT_NODE
+          ? [{ group: "3 · REAL WORLD", needsNetwork: true, name: "every drill-band node and plugin carries the declared Go memory limit", ...node("scripts/check-plugin-memlimit.mjs", "--compose", process.env.A1_DRILL_COMPOSE, "--expect", process.env.A1_MEM_LIMIT_NODE, ...(process.env.A1_MEM_LIMIT_PLUGIN ? ["--expect-plugin", process.env.A1_MEM_LIMIT_PLUGIN] : [])) }]
+          : []),
         { group: "3 · REAL WORLD", needsNetwork: true, name: "every drill-band node is inside its per-chain memory budget", ...node("scripts/check-node-memory.mjs", "--compose", process.env.A1_DRILL_COMPOSE, "--base", process.env.A1_MEM_BASE_MIB ?? "800", "--per-chain", process.env.A1_MEM_PER_CHAIN_MIB ?? "220") },
       ]
     : []),
