@@ -142,4 +142,34 @@ Cộng với một quan sát của §2: trong 3,6 giờ nghỉ, `anon` **không 
    chỗ khác (giới hạn cache theo BYTE, cắt lịch sử, hoặc khởi động lại theo lịch), và biết điều đó **trước khi mua máy** rẻ hơn
    nhiều so với biết sau.
 
+### 3c. 🔴 Bộ nhớ đó nằm ở đâu — và vì sao `GOMEMLIMIT` chỉ với tới được một góc
+
+`/ext/metrics` của node phát **số liệu Go runtime của TỪNG tiến trình**: chuỗi không nhãn là `avalanchego`, chuỗi có nhãn
+`chain="…"` là từng plugin. Đó là dụng cụ mạnh hơn `/proc/<pid>/environ` — nó đọc giá trị runtime **thật sự áp**, kể cả
+`gomemlimit_bytes` (đang là `math.MaxInt64`, tức chưa đặt, đúng như cổng P-91 khai).
+
+Với `GOGC = 100`, `next_gc ≈ 2 × heap sống`, nên `next_gc` là proxy rẻ nhất cho *"bao nhiêu bộ nhớ còn đang được tham chiếu"*.
+Đo trên cùng cửa sổ đối chứng (heap 06:03→06:18, RSS 05:20→06:21):
+
+| đại lượng, **mỗi node mỗi giờ** | mức |
+|---|---|
+| RSS tiến trình (`avalanchego` + plugin) | **+224 MiB** |
+| Go `heap_sys` (Go xin của HĐH) | +98 MiB |
+| **heap SỐNG** (`next_gc` / 2) | **+72 MiB** |
+| ⇒ rác thu hồi được **trong** heap Go | **+25 MiB** |
+
+Hai điều đọc ra, và cả hai đều ngược với kỳ vọng ban đầu của mốc:
+
+1. **74 % phần phình của heap Go là heap SỐNG.** Không giới hạn nào thu hồi được phần đang được tham chiếu; đặt trần dưới nó chỉ
+   làm GC quay liên tục mà không hạ được gì.
+2. **56 % phần phình nằm NGOÀI heap Go** (224 − 98). `GOMEMLIMIT` **không quản gì** ở đó — trần bộ nhớ của Go chỉ nói về bộ cấp
+   phát của Go. Riêng plugin còn lệch hơn: RSS +16,7 MiB/plugin/giờ trong khi `heap_sys` của chúng chỉ +1,2.
+
+⇒ **Dự đoán định lượng cho P-92, và nó bác bỏ được:** áp `GOMEMLIMIT` lên cả hai nửa chỉ được phép hạ dốc RSS **tối đa ~25 trên
+224 MiB/node/giờ, tức ~11 %**. Nếu dốc đo được sau khi áp **thấp hơn ~199 MiB/node/giờ đáng kể**, thì mô hình ở đây sai và phải
+viết lại. Nếu nó nằm quanh 200, thì `GOMEMLIMIT` **không phải câu trả lời** và chỗ phải chặn nằm ngoài heap Go — nghĩa là ngân
+sách bộ nhớ của mốc `L1-108` là bài toán cấu hình tầng cơ sở dữ liệu và vòng đời tiến trình, không phải bài toán cờ Go.
+
+Đo bằng: `node <scratchpad>/heap-trend.mjs <scratchpad>/heap.jsonl` (chuỗi 5 phút/mẫu do `heap-series.sh` ghi).
+
 (dốc cuối cửa sổ 1,5 h điền khi khép)
