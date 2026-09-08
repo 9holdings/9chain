@@ -10857,3 +10857,43 @@ và `docs/evidence/**`; một chú thích trong `scripts/lib/` không nằm tron
 lên chính người vừa viết cổng cho nó.
 
 **Số đo sau mục:** `check-local` **18 cổng / 19,4 s** · `check-flag-guards` 56/56 · nợ §0 trở lại **5406, không phình**.
+
+---
+
+## D-248 — **Phase 2 của preflight: 50 cổng offline, `31,7 s → 16,0 s`; và ba thứ không được đổi khi làm việc đó** (`2026-09-08` chiều, P-104)
+
+**Bối cảnh.** `gday-preflight.mjs` là công cụ đứng giữa dự án và câu hỏi *"có tin được không"*. Phần lớn thời gian
+của nó nằm ở **phase 2: 50 cổng đọc repo, không chạm gì bên ngoài**, chạy trong một
+`for (const gate of GATES) spawnSync(...)`.
+
+**Số đo.** Lô offline: **31,7 s tuần tự → 16,0 s** với 4 tiến trình một lúc (lượt có mạng: 18,1 s).
+
+**Đối chứng, và nó dùng chính công cụ đó làm thước.** `A1_PREFLIGHT_CONCURRENCY=1` chạy lại **đúng như hành vi
+cũ**, nên hai danh sách phán quyết so được **trên cùng một máy, cách nhau vài phút**: **trùng từng dòng, cùng thứ
+tự, cùng verdict** (`51 đạt · 0 đỏ · 2 không chạy được · 15 bỏ qua`, cả hai lượt). Biến môi trường đó tồn tại
+**cho ca đối chứng**, không phải để tinh chỉnh: *một lượt tăng tốc chưa ai chứng minh là giữ nguyên câu trả lời
+thì không phải một lượt tăng tốc, nó là một lượt đổi chủ đề.*
+
+**Ca đỏ, chạy thật rồi gỡ.** Tiêm một cổng `process.exit(1)` vào **giữa** lô: nó hiện **đúng vị trí trong danh
+sách** (ngay sau cổng đứng trước nó), mang theo dòng chi tiết `deliberate failure`, tổng kết đếm `51 đạt · 1 đỏ`,
+mã thoát 1. Gỡ tiêm, `grep INJECTED` = 0, `node --check` xanh.
+
+**🔴 Ba thứ không được đổi — đây là lý do việc này không phải sửa một dòng.**
+
+**(1) Thứ tự in.** Gần như mọi cổng ở phase 2 đứng **cạnh ca đối chứng ngược của chính nó**, và người đọc đọc
+theo **cặp**. Kết quả được hứng song song rồi **in theo thứ tự GỐC**; log ra trùng byte với bản tuần tự, trừ đúng
+một dòng thời gian.
+
+**(2) Hai cổng GHI vào `upstream/avalanchego`.** `check-genesis-contracts` và `check-genesis-verify` **cùng** chép
+một tệp vào `graft/subnet-evm/cmd/a1-genesis-exec` rồi xoá đi. Chạy cùng lúc là **đua trên một thư mục**, và kẻ
+thua sẽ đỏ **vì một lý do chẳng liên quan gì tới thứ nó đo** — đúng lớp lỗi §2, lần này do chính lượt tối ưu đẻ
+ra. Hai cổng đó mang `serial: true` và đứng ngoài lô. *(Chúng cũng từng cùng chiếm port 8501/8502 — một lỗi thật
+riêng, tìm ra và sửa cùng ngày, D-246. Hai cái ràng buộc khác nhau, cùng một cặp tệp, và cả hai chỉ lộ ra khi có
+ai đó định cho chúng chạy song song.)*
+
+**(3) Phase 1 và phase 3 giữ tuần tự.** Phase 1 replay bộ patch vào một **worktree git tạm của fork**; phase 3
+nói chuyện với **mạng công khai và server**, nơi thứ tự lẫn sự lịch sự đều có ý nghĩa. Chỉ khúc offline ở giữa
+được song song.
+
+**Đồng thời 4, không phải "bằng số lõi".** Một cổng trong lô — `check-flag-guards` — **tự nó đẻ 56 tiến trình
+con**; một cổng khác đọc **trọn** kho object của git. Nhân số lõi lên ở đây là mua lại đúng cái nghẽn vừa gỡ.

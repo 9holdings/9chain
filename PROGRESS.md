@@ -190,11 +190,28 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       miễn trừ khỏi luật của chính nó thì đã thôi canh thứ nó sinh ra để canh.
       `scripts/lib/source-scan.mjs` giữ `blankComments`/`blankStrings`/`callText` dùng chung (§6) — đặt dưới
       `scripts/`, KHÔNG phải `local-net/lib/`, vì mọi thứ trong `local-net/lib` đều **được deploy**.
-- [ ] **P-104 — Phase 2 của preflight chạy song song** (46 cổng offline, độc lập). Phase 1 (fork tree) và phase 3
+- [x] **P-104 — Phase 2 của preflight chạy song song** (46 cổng offline, độc lập). Phase 1 (fork tree) và phase 3
       (mạng thật) **giữ tuần tự** — phase 3 chạm mạng công khai và có cổng phụ thuộc thứ tự.
       **Qua khi:** đo giờ tường trước/sau, ghi cả hai vào PROGRESS · **tập phán quyết y hệt** (cùng cổng, cùng verdict)
       · thứ tự IN RA giữ nguyên để cặp *"cổng + đối chứng ngược"* vẫn đứng cạnh nhau (dòng ra là thứ người đọc).
       **Ca đỏ:** tiêm một cổng hỏng vào phase 2 ⇒ vẫn đỏ, vẫn đúng tên, tổng kết vẫn đếm đúng.
+      ✅ `08/09` chiều (autopilot, D-248): **50 cổng offline · 31,7 s → 16,0 s**, 4 tiến trình một lúc.
+      **Đối chứng bằng chính công cụ:** `A1_PREFLIGHT_CONCURRENCY=1` chạy lại **đúng như trước** ⇒ so hai danh
+      sách phán quyết trên cùng máy cách nhau vài phút: **TRÙNG TỪNG DÒNG, cùng thứ tự, cùng verdict**
+      (`51 đạt · 0 đỏ · 2 không chạy được · 15 bỏ qua` cả hai lượt). Biến đó tồn tại **cho ca đối chứng**, không
+      phải để tinh chỉnh: *một lượt tăng tốc chưa ai chứng minh là giữ nguyên câu trả lời thì không phải tăng tốc,
+      nó là đổi chủ đề.*
+      **Ca đỏ đã chạy thật:** tiêm một cổng `exit 1` vào giữa lô ⇒ hiện **đúng vị trí trong danh sách** (ngay sau
+      cổng đứng trước nó), mang theo dòng chi tiết, tổng kết `51 đạt · 1 đỏ`, mã thoát 1. Đã gỡ tiêm, `grep` = 0.
+      🔴 **Ba thứ KHÔNG được đổi, và chúng là lý do đây không phải sửa một dòng:** (1) **thứ tự in** — gần như
+      mọi cổng đứng cạnh ca đối chứng của chính nó và người ta đọc theo cặp ⇒ hứng kết quả song song rồi in theo
+      thứ tự GỐC · (2) 🔴 **hai cổng GHI vào `upstream/avalanchego`** (`check-genesis-contracts` ·
+      `check-genesis-verify`, cùng chép/xoá `graft/subnet-evm/cmd/a1-genesis-exec`) ⇒ chạy cùng lúc là **đua trên
+      một thư mục**, kẻ thua đỏ vì lý do chẳng liên quan gì tới thứ nó đo; hai cổng này mang `serial: true`, đứng
+      ngoài lô. *(Chúng cũng từng cùng chiếm một port — lỗi thật riêng, sửa cùng ngày, D-246.)* · (3) **phase 1
+      và phase 3 giữ tuần tự**: phase 1 dựng worktree tạm của fork, phase 3 chạm mạng công khai và server.
+      Đồng thời **4**, không phải "bằng số lõi": một cổng trong lô (`check-flag-guards`) tự nó đẻ **56** tiến
+      trình con, một cổng khác đọc **trọn** kho object của git.
 - [~] **P-105 — `check-clock-skew` nhấp nháy: tìm ĐẠI LƯỢNG, rồi làm nó xác định.**
       Đo `08/09`: đỏ **bên trong** preflight, exit **0** khi chạy riêng ngay sau đó. HANDOFF giải thích là *"chỉ nhấp
       nháy khi có bơm chạy"* — nhưng đó là **lời giải thích, chưa phải phép đo**. Một cổng cho hai phán quyết khác nhau

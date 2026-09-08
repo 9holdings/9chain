@@ -39,7 +39,7 @@
  *   node scripts/gday-preflight.mjs --no-network    # skip every gate needing network/ssh
  *   node scripts/gday-preflight.mjs --all-manual    # print the retired tasks too, with reasons
  */
-import { spawnSync, execFileSync } from "node:child_process";
+import { spawn, spawnSync, execFileSync } from "node:child_process";
 import { existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -201,13 +201,13 @@ const GATES = [
   // in Docker); it earns the minute by being the only thing standing between a wrong genesis and a
   // paid transaction on one of 15 permanent slots. Exits 2 when Docker or the fork tree is absent,
   // so a missing toolchain reads as "could not run", never as "passed".
-  { group: "2 · REPO GATES", name: "console genesis survives the real Genesis.Verify()", ...node("scripts/check-genesis-verify.mjs") },
+  { group: "2 · REPO GATES", serial: true, name: "console genesis survives the real Genesis.Verify()", ...node("scripts/check-genesis-verify.mjs") },
   // 🔴 P-59. `Genesis.Verify()` says a document is acceptable; it says nothing about whether the
   // CONTRACTS in `alloc` work. And the EVM answers a call to an empty account with success and
   // empty data, so "it did not revert" proves nothing either. This one builds the genesis state
   // and RUNS the library — create a token, read it back, move a balance — in subnet-evm's own EVM,
   // with a control that removes the library to prove the greens are not free (D-188).
-  { group: "2 · REPO GATES", name: "the genesis contract library actually works from block zero", ...node("scripts/check-genesis-contracts.mjs") },
+  { group: "2 · REPO GATES", serial: true, name: "the genesis contract library actually works from block zero", ...node("scripts/check-genesis-contracts.mjs") },
   // Documentation drift. The counter-check half is offline and lives here; the half that MEASURES
   // is in group 3, because deciding a number is dead requires asking the running chain what is
   // alive — never a constant copied into the gate (D-110).
@@ -515,12 +515,74 @@ function replayFork() {
   }
 }
 
+/** The one place a child's exit code becomes a verdict. Shared by the sequential and batch paths. */
+function judgeChild({ error, status, stdout }) {
+  if (error || status === null) return { code: 2, detail: `could not run: ${error?.message || "timed out"}` };
+  const out = `${stdout || ""}`.trim().split("\n").filter(Boolean);
+  return { code: status === 0 ? 0 : status === 2 ? 2 : 1, detail: out[out.length - 1]?.slice(0, 96) ?? "" };
+}
+
 function run(gate) {
   if (gate.custom) return gate.custom();
-  const r = spawnSync(gate.cmd, gate.args, { cwd: ROOT, encoding: "utf8", timeout: 240_000 });
-  if (r.error || r.status === null) return { code: 2, detail: `could not run: ${r.error?.message || "timed out"}` };
-  const out = `${r.stdout || ""}`.trim().split("\n").filter(Boolean);
-  return { code: r.status === 0 ? 0 : r.status === 2 ? 2 : 1, detail: out[out.length - 1]?.slice(0, 96) ?? "" };
+  return judgeChild(spawnSync(gate.cmd, gate.args, { cwd: ROOT, encoding: "utf8", timeout: 240_000 }));
+}
+
+/**
+ * ═══ THE OFFLINE BATCH (D-248, P-104) ═══
+ *
+ * Group 2 is 52 gates that read the repository and touch nothing outside it. They were run one
+ * after another, and that is most of the time this tool takes before anyone learns anything.
+ *
+ * 🔴 THREE THINGS THAT MUST NOT CHANGE, and each is why this is not a one-line edit:
+ *
+ * 1. **The printed order.** Nearly every gate here sits next to its own counter-check, and the
+ *    pair is read as a pair. Results are collected concurrently and then printed in the ORIGINAL
+ *    order — the log is byte-identical to the sequential one apart from the timing line.
+ *
+ * 2. **Two gates write into `upstream/avalanchego`.** `check-genesis-contracts` and
+ *    `check-genesis-verify` both copy a file into `graft/subnet-evm/cmd/a1-genesis-exec` and
+ *    remove it afterwards. Run together they would race on one directory, and the loser would
+ *    fail for a reason that has nothing to do with what it measures. They carry `serial: true`
+ *    and stay outside the batch. (They also both bind fixed ports; that collision was a separate
+ *    real bug, fixed the same day — D-246.)
+ *
+ * 3. **Group 1 and group 3 stay sequential.** Group 1 replays the patch set into a temporary git
+ *    worktree of the fork; group 3 talks to the live network and the server, where order and
+ *    politeness both matter. Only the offline middle is parallel.
+ *
+ * Concurrency is 4, not "as many as there are cores": one of these gates (`check-flag-guards`)
+ * itself spawns 56 children, and another reads the entire git object database.
+ */
+/**
+ * 4, and overridable with `A1_PREFLIGHT_CONCURRENCY` — which exists for the counter-check, not
+ * for tuning: setting it to 1 runs the batch exactly as this tool ran before, so the two verdict
+ * lists can be compared on the same machine minutes apart. A speed-up nobody proved kept the same
+ * answers is not a speed-up, it is a change of subject.
+ */
+const BATCH_CONCURRENCY = Math.max(1, Number(process.env.A1_PREFLIGHT_CONCURRENCY) || 4);
+
+function runOneAsync(gate) {
+  return new Promise((resolve) => {
+    const child = spawn(gate.cmd, gate.args, { cwd: ROOT, timeout: 240_000 });
+    let stdout = "";
+    child.stdout.on("data", (d) => { stdout += d; });
+    child.stderr.on("data", () => { /* the verdict is the last stdout line, as in the sync path */ });
+    child.on("error", (error) => resolve(judgeChild({ error })));
+    child.on("close", (status) => resolve(judgeChild({ status, stdout })));
+  });
+}
+
+async function runBatch(gates, concurrency = BATCH_CONCURRENCY) {
+  const results = new Array(gates.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(concurrency, gates.length) }, async () => {
+    for (;;) {
+      const i = next; next += 1;
+      if (i >= gates.length) return;
+      results[i] = await runOneAsync(gates[i]);
+    }
+  }));
+  return new Map(gates.map((g, i) => [g, results[i]]));
 }
 
 console.log(`\n╔═══ G-DAY PREFLIGHT ═══ ${new Date().toISOString()}`);
@@ -528,12 +590,28 @@ console.log(`║ fork tree: ${PATCH_COUNT} patches · tree ${TREE_FORK.slice(0, 
 if (NO_NETWORK) console.log("║ ⚠️  --no-network: network/ssh gates skipped — THEY DO NOT COUNT AS 'PASSED'");
 console.log("╚" + "═".repeat(60));
 
+const REPO_GROUP = "2 · REPO GATES";
+
 let currentGroup = "";
 let red = 0, cannotRun = 0, passed = 0, skipped = 0;
+const batched = new Map();
+
 for (const gate of GATES) {
-  if (gate.group !== currentGroup) { currentGroup = gate.group; console.log(`\n── ${currentGroup} ──`); }
+  if (gate.group !== currentGroup) {
+    currentGroup = gate.group;
+    console.log(`\n── ${currentGroup} ──`);
+    if (currentGroup === REPO_GROUP) {
+      // Launch the whole offline group at once, then print its results in list order below.
+      const batch = GATES.filter((g) => g.group === REPO_GROUP && !g.custom && !g.serial);
+      const t0 = Date.now();
+      for (const [g, r] of await runBatch(batch)) batched.set(g, r);
+      const seconds = ((Date.now() - t0) / 1000).toFixed(1);
+      console.log(`  · ${batch.length} offline gates ran ${BATCH_CONCURRENCY} at a time in ${seconds}s`
+        + `  (${GATES.filter((g) => g.group === REPO_GROUP && g.serial).length} kept serial: they write into upstream/)`);
+    }
+  }
   if (gate.needsNetwork && NO_NETWORK) { skipped++; console.log(`  ⏭️  ${gate.name}  — SKIPPED (not "passed")`); continue; }
-  const { code, detail } = run(gate);
+  const { code, detail } = batched.get(gate) ?? run(gate);
   if (code === 0) { passed++; console.log(`  ✓ ${gate.name}`); }
   else if (code === 2) { cannotRun++; console.log(`  🟡 ${gate.name}\n       COULD NOT RUN — ${detail}`); }
   else { red++; console.log(`  🔴 ${gate.name}\n       ${detail}`); }
