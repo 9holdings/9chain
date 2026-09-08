@@ -56,6 +56,34 @@ ONE key — the chains' owner (`A1_CLI_KEY` / `K1_FUND_KEY`, on the drill band t
 and a `heartbeat-<chainId>.json` per chain. The gate judges each chain by its own blocks; the target rate is the operator's
 expectation, never the heartbeat's (D-240).
 
+
+## `15-plugin-memlimit.sh` — a Go memory limit that actually reaches the plugins (P-91, D-243)
+
+```bash
+scripts/15-plugin-memlimit.sh --out <host dir> --limit 150MiB --container <a running node>
+# then run the nodes with that directory mounted read-only and --plugin-dir pointing at it,
+# and GOMEMLIMIT in the container environment for avalanchego itself:
+node ../../../scripts/check-plugin-memlimit.mjs --compose <compose file> --expect 700MiB --expect-plugin 150MiB
+```
+
+🔴 **A limit set on the container does not reach a VM plugin.** avalanchego builds the plugin subprocess's environment from
+empty and forwards only `GRPC_*` and `GODEBUG` (`vms/rpcchainvm/runtime/subprocess/runtime.go:76-82`), so a plugin process
+carries exactly one variable, `AVALANCHE_VM_RUNTIME_ENGINE_ADDR`. The plugins are the larger half of a node's memory
+(drill band 2026-09-08: 9,502 MiB across 75 plugins against 6,768 MiB for nine avalanchego processes), so "the variable is
+set in the container" is a green answer to a question nobody asked.
+
+The wrapper is named exactly like the plugin, exports the limit and `exec`s the real binary, so no extra process survives and
+`/proc/<pid>/exe` still points into the image's plugins directory. Two rules the generator enforces, both learned the
+expensive way:
+
+- **The wrapper directory must hold nothing else.** `vms/registry/vm_getter.go:86` turns any filename that is not a valid VM
+  ID into a hard error, and the node then does not start at all.
+- **A malformed limit is fatal, not degraded.** The Go runtime aborts before `main` with `malformed GOMEMLIMIT`, so one typo
+  takes every chain down on every node at once. Character checks are not enough — `1.5.5MiB` passes them — so the generator
+  asks the real plugin binary to accept the value before it writes a single wrapper.
+
+Fixing `runtime.go` to forward `GO*` would be the tidier fix and is deliberately not taken: it is `patches/`, and hard rule 3
+makes that a regeneration of the whole patch set, the fork tree and the image.
 ## Why the tool runs inside a container
 
 `go build` fails on Windows at blst (cgo) and `storage.AvailableBytes` (no Windows implementation). The fork is
