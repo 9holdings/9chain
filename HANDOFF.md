@@ -7,7 +7,10 @@ backlog. Kết luận đổi hẳn hình dạng bài toán: **RAM đi theo GIAO 
 87 %**; và **`GOMEMLIMIT` không phải câu trả lời** — nó hạ RAM 40 % nhưng CPU 9 node đi **2,1 → 20,4 lõi** và **không tự khỏi khi
 hết tải**. ⇒ Đơn mua **giữ nguyên 9 × AX42**; thứ phải thêm là **lịch khởi động lại**, dùng rollout theo node đã có từ P-83.
 Mạng g1 công khai, server, `patches/`, `web/`: **không đổi**. Băng tập đã **trả về cấu hình cũ** và đo lại đúng mốc nghỉ của pha 1.
-`main` = `509810e`, **trước `origin` 45 commit, chưa đẩy** (David bấm sau `check-remotes` + `check-history-secrets`).
+**Preflight cuối phiên (cờ băng tập bật): `61 đạt · 2 đỏ · 0 không chạy được · 8 việc tay`** — hai đỏ đều đã biết và **không cái nào
+là việc mã của `main`**: `check-deploy-drift` (console chưa deploy, `[human]`, đúng thiết kế từ `07/09`) và cổng bơm g1 (đỏ **có chủ
+ý** tới `09/09`, D-149). `check-clock-skew` lượt này **xanh** — đúng như đã ghi, nó chỉ nhấp nháy khi có bơm chạy.
+`main` = `0df9a41`, **trước `origin` 46 commit, chưa đẩy** (David bấm sau `check-remotes` + `check-history-secrets`).
 Bằng chứng: `docs/EVIDENCE-L1-108-PHASE1B-2026-09-08.md`; cỡ máy ở `docs/PLAN-108-L1-LOAD-TEST.md` **§2d**.
 
 **Số đo, tất cả trên `net-tap-g1` (15 L1 · V=5 · 1 tx/s), đại lượng là `anon`:**
