@@ -71,6 +71,98 @@ phần, phần còn lại ghi rõ ngay trong mục · `[blocked]` kẹt · `[hum
 
 ---
 
+## 🔵 MỐC `OPT-CORE` — ĐƯA MÃ CORE VỀ TRẠNG THÁI TỐI ƯU (David giao `2026-09-08` chiều; batch nạp cho autopilot 10 giờ — D-244)
+
+David: *"quét lại toàn diện hạ tầng core và web của A1 → phân tích và đưa ra các hướng để tối ưu code và triển khai
+autopilot liên tục trong 10 giờ"*. Lượt quét mở đầu phiên (số đo thật, không chép):
+
+| Phép đo | Số nền `2026-09-08` |
+|---|---|
+| `gday-preflight.mjs` (không cờ băng tập) | **59 đạt · 3 đỏ · 0 không chạy được · 8 việc tay** |
+| `check-local.mjs` | 23 ca ✓ · **34,9 s** |
+| `scripts/` | 61 tệp · 16.890 dòng |
+| `local-net/**/*.mjs` | 74 tệp · 18.339 dòng |
+| Nợ tiếng Việt (§0) | **5.406 dòng · 104 tệp**, đỉnh `console/server.mjs` **545** |
+| Cổng phase 2 của preflight | **46**, offline, độc lập, chạy **tuần tự** |
+
+Ba đỏ: `check-deploy-drift` (`[human]`) · bơm heartbeat (đỏ **có chủ ý** tới `09/09`, D-149) · `check-clock-skew`
+— cái thứ ba **chạy riêng ngay sau đó thì exit 0**, tức nó **nhấp nháy** (mục P-105).
+
+🔴 **Luật của mốc (guardrail cho autopilot, David chốt bằng câu hỏi lúc giao việc):**
+phạm vi **CHỈ `scripts/` + `local-net/`** trên nhánh `main`. **Không** đụng `patches/` · `web/` · Caddyfile ·
+`docs/evidence/**`; **không** deploy · **không** `git push` · **không** gửi giao dịch · **không** dựng băng tập
+(David không chọn mục đó) ⇒ mọi phép đo phải làm được **offline / fixture / self-test / đường sản phẩm cục bộ**.
+Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. Thứ tự ưu tiên David chốt:
+**an toàn phép đo TRƯỚC, tốc độ SAU**.
+
+- [ ] **P-100 — Cờ lạ phải ĐỎ, không được đi tiếp im lặng** (`scripts/lib/cli.mjs`, mới).
+      🔴 Lý do có bằng chứng, không phải suy đoán — đo `08/09`: `node scripts/check-chain-ledger.mjs --dril` in
+      `✅ PASS` **exit 0** trong khi **không** ở chế độ băng tập; `node scripts/check-net-dirs.mjs --self-tset` in
+      `✅ PASS` **exit 0** trong khi **chạy mạng thật, không self-test**. Đây đúng lớp lỗi §2 (*đo sai đại lượng*)
+      và nó khai xanh. Một cú gõ nhầm trong runbook ngày G là một dòng xanh vô nghĩa.
+      Mỗi cổng khai **từ vựng cờ của chính nó**; cờ ngoài từ vựng ⇒ **mã thoát 2** (theo D-116: *công cụ hỏng ≠ phán quyết*),
+      câu lỗi in ra danh sách cờ được nhận.
+      **Qua khi:** `--dril` và `--self-tset` cho mã **2** + nêu đúng cờ gần nhất · mọi cổng trong `GATES` của preflight
+      và trong `check-local` nhận đủ cờ tài liệu hoá của nó · preflight sau đổi vẫn **59/3**, không cổng nào xanh→đỏ.
+      **Ca đỏ:** bỏ hàng rào ở đúng một cổng ⇒ self-test của `cli.mjs` đỏ và **nêu tên cổng đó**.
+- [ ] **P-101 — `fetch` có timeout, khai ở MỘT nơi** (`local-net/lib/http.mjs`, mới) + cổng canh
+      `scripts/check-fetch-timeouts.mjs`. Đo `08/09`: **29 / 64** chỗ `await fetch(` không có `signal` nào trong 3 dòng
+      quanh nó (đỉnh: `create-rpc-e2e-test` 8 · `check-clock-skew` 2 · `smoke-l1` 2 · `warp-common` 2). Một fetch treo
+      không làm cổng đỏ — nó làm cổng **không bao giờ trả lời**, và cái đó đọc thành *"máy chậm"*.
+      **Qua khi:** dựng server cục bộ **nhận kết nối rồi không bao giờ trả lời**; cổng đi qua nó phải **đỏ trong ≤ 15 s**,
+      đo bằng đồng hồ thật, không phải bằng test đơn vị · 29 chỗ về 0 · preflight vẫn 59/3.
+      **Ca đỏ:** trả một chỗ về `fetch` trần ⇒ `check-fetch-timeouts` đỏ và **nêu đúng tệp:dòng**.
+- [ ] **P-102 — Một bộ in phán quyết + mã thoát dùng chung** (`scripts/lib/report.mjs`, mới). Đo `08/09`: **23 tệp**
+      tự viết ok/fail, **76 tệp** tự phân tích `process.argv`. Cùng một logic, nhiều bản, và mỗi bản là một cơ hội
+      lệch quy ước 0/1/2.
+      **Qua khi:** ≥ 20 cổng dùng chung bộ in · hình dạng dòng ra **trùng byte** với bản cũ (so bằng ảnh chụp stdout
+      trước/sau, giữ trong `scripts/fixtures/`) — vì HANDOFF và runbook đang trích dẫn nguyên văn các dòng đó.
+      **Ca đỏ:** một cổng trả mã 1 khi nó chỉ *không chạy được* ⇒ self-test đỏ (đó là mã 2).
+- [ ] **P-103 — `check-local.mjs` chạy song song** (nền: **34,9 s** tuần tự, 23 ca).
+      **Qua khi:** ≤ **15 s** trên cùng máy, cùng danh sách, đo 3 lượt lấy trung vị · tập ca chạy **y hệt**.
+      **Ca đỏ:** fixture một ca hỏng ⇒ cả lượt vẫn đỏ và **nêu đúng tên script hỏng** (không phải script chạy cuối).
+- [ ] **P-104 — Phase 2 của preflight chạy song song** (46 cổng offline, độc lập). Phase 1 (fork tree) và phase 3
+      (mạng thật) **giữ tuần tự** — phase 3 chạm mạng công khai và có cổng phụ thuộc thứ tự.
+      **Qua khi:** đo giờ tường trước/sau, ghi cả hai vào PROGRESS · **tập phán quyết y hệt** (cùng cổng, cùng verdict)
+      · thứ tự IN RA giữ nguyên để cặp *"cổng + đối chứng ngược"* vẫn đứng cạnh nhau (dòng ra là thứ người đọc).
+      **Ca đỏ:** tiêm một cổng hỏng vào phase 2 ⇒ vẫn đỏ, vẫn đúng tên, tổng kết vẫn đếm đúng.
+- [ ] **P-105 — `check-clock-skew` nhấp nháy: tìm ĐẠI LƯỢNG, rồi làm nó xác định.**
+      Đo `08/09`: đỏ **bên trong** preflight, exit **0** khi chạy riêng ngay sau đó. HANDOFF giải thích là *"chỉ nhấp
+      nháy khi có bơm chạy"* — nhưng đó là **lời giải thích, chưa phải phép đo**. Một cổng cho hai phán quyết khác nhau
+      về cùng một thế giới thì câu *"preflight có xanh không"* đang là **tung đồng xu**.
+      **Qua khi:** chạy cổng **N ≥ 20 lượt liên tiếp**, ghi phân bố; xác định biến làm nó lật (tải máy? cửa sổ đo?
+      nguồn `block.timestamp` vs gossip?) · sau khi sửa, 20/20 cùng phán quyết trên cùng trạng thái mạng · cổng **tự khai**
+      ngân sách nhiễu của nó trong dòng ra.
+      **Ca đỏ:** ép lệch vượt ngân sách ⇒ đỏ **vì đúng lý do** (luật cứng #2 vế 3), câu lỗi nêu đại lượng, không nêu "thử lại".
+- [ ] **P-106 — Tách `local-net/console/server.mjs`** (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
+      **vòng đời chain / theo dõi node / nhật ký tiến trình / định tuyến HTTP**. Hành vi phải **không đổi**.
+      **Qua khi:** `check-local --console` xanh đủ 28 nhóm · `assignment-e2e` 52 ca · `create-rpc` · `options` ·
+      `governance` · `maintenance` · `readiness` · `auth` · `paused` **đều xanh** · `check-deploy-imports` xanh
+      (nó chính là cổng bắt mô-đun mới không được đóng gói khi deploy) · không tệp nào > 800 dòng.
+      **Ca đỏ:** quên khai một mô-đun mới trong `manifest-deploy.json` ⇒ `check-deploy-imports` **đỏ và nêu tên tệp**.
+- [ ] **P-107 — Trả nợ §0 trong `server.mjs`: 545 → mục tiêu < 100.** Đổi tên định danh lẫn hai ngôn ngữ
+      (`kiemTheHeMang` · `nodeSanSang` · `moTienTrinh` · `thuHoiChain` · `napCapChain` · `doiChu` · `quanTri` ·
+      `ghiChainConfig` · `docBody`…) và dịch chú thích. 🔴 **Chú thích là tài sản đắt nhất** (§0) — dịch **giữ nguyên
+      nội dung cái bẫy**, không rút gọn cho đẹp.
+      **Qua khi:** `check-english-code` nợ **co lại** (bánh cóc từ chối phình) · toàn bộ bộ e2e ở P-106 vẫn xanh ·
+      không khoá JSON / cờ CLI / đường API nào đổi (đó là **dữ liệu đã ghi ra đĩa** — bẫy §5.12).
+      **Ca đỏ:** đổi nhầm một khoá của `console-chains.json` ⇒ `check-chain-ledger` hoặc e2e đỏ.
+- [ ] **P-108 — Vệ sinh cây làm việc.** `work/` = **2,4 GB · 463 thư mục** rác phiên cũ (đã ignore, nhưng
+      `check-key-leaks` phải quét qua nó mỗi lượt); một thư mục `-p/` rỗng sinh từ `mkdir -p` gõ hỏng `28/08`.
+      **Qua khi:** chính sách giữ lại viết thành cổng (`work/` chỉ giữ N ngày gần nhất) · **LIỆT KÊ → XOÁ → ĐỐI CHỨNG**
+      theo memory *"xoá trên server"* · `check-key-leaks` xanh trước và sau · đo lại thời gian nó chạy.
+      🔴 Trước khi xoá bất cứ thư mục `work/*` nào: chạy `check-key-leaks` để chắc không có vật liệu khoá trong đó —
+      nếu có thì **`shred -u -n 3`**, không phải `rm` (D-117).
+- [ ] **P-109 — Dựng sẵn phép đo cho quyết định P-95 (KHÔNG sinh lại `patches/`).** David chốt: *"không đụng — chỉ
+      chuẩn bị phép đo"*. Cái giá chưa ai đo của việc hạ `64+64+64 MiB/chain` xuống `10+5+5` là **tỉ lệ trúng bộ đệm
+      khi block bị đuổi sớm**.
+      **Qua khi:** có công cụ đọc được tỉ lệ trúng/trượt bộ đệm block từ một node đang chạy, **tự kiểm bằng `--self-test`**,
+      chạy được ngay khi có máy pha 2 · viết vào `docs/PLAN-108-L1-LOAD-TEST.md` cách chạy · **không byte nào của
+      `patches/` đổi** (`check-patch-count` + tree fork xanh).
+      **Ca đỏ:** `--self-test` với chuỗi đếm giả đi lùi ⇒ từ chối, không nội suy thành tỉ lệ.
+
+---
+
 ## 🔵 MỐC `L1-108` — PHÂN CÔNG VALIDATOR ĐỂ VƯỢT TRẦN 15 (David giao `2026-09-07` đêm; batch nạp cho autopilot — D-233)
 
 David: *"phân tích xem cần code gì để tối ưu code theo mục tiêu 108 chain layer 1 ban đầu"* → phân tích ở D-233. Tóm tắt:

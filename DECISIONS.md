@@ -10620,3 +10620,54 @@ chain/node (108 × 5 ÷ 9), gấp 7,2 lần"*. Sai: **9 là số MÁY, không ph
 Đáng ghi vì đây là **cùng lớp lỗi §2 mà quyết định này được lập ra để tránh**: một con số đúng đơn vị nhưng sai đại lượng (máy ↔
 node), lọt vào sổ trong chính lượt viết ra cảnh báo về nó. Nó cũng đổi kết luận về mức độ khẩn: câu hỏi RAM vẫn phải trả lời, nhưng
 biên an toàn rộng hơn nhiều so với câu chữ ban đầu. Cách bắt: mọi tỉ số "gấp N lần" phải viết kèm **cả tử và mẫu có đơn vị**.
+
+---
+
+## D-244 — **Mốc `OPT-CORE`: lượt quét toàn diện mở ra một lỗ §2 mà không cổng nào canh — GÕ SAI MỘT CỜ THÌ CỔNG ĐO THỨ KHÁC VÀ KHAI ✅** (`2026-09-08` chiều, mở mốc)
+
+**Bối cảnh.** David giao: *"quét lại toàn diện hạ tầng core và web của A1 → phân tích và đưa ra các hướng để tối ưu code và
+triển khai autopilot liên tục trong 10 giờ"*. Lượt quét chạy trước khi đề xuất bất cứ gì, và mọi số dưới đây là **đo trong phiên**,
+không chép từ HANDOFF.
+
+**Số nền `2026-09-08`.** `gday-preflight`: **59 đạt · 3 đỏ · 0 không chạy được · 8 việc tay** · `check-local`: 23 ca ✓ **34,9 s** ·
+`scripts/` 61 tệp/16.890 dòng · `local-net/**/*.mjs` 74 tệp/18.339 dòng · nợ §0 **5.406 dòng / 104 tệp** · web (`web-home` sạch,
+`9db90cc`) 216 tệp `.ts/.tsx` / 49.751 dòng.
+
+**Phát hiện 1 — và nó là lý do mốc này tồn tại.** Không cổng nào từ chối một cờ nó không hiểu. Đo thật:
+
+```
+node scripts/check-chain-ledger.mjs --dril     → "✅ PASS"  exit 0   (KHÔNG ở chế độ băng tập)
+node scripts/check-net-dirs.mjs   --self-tset  → "✅ PASS"  exit 0   (chạy MẠNG THẬT, không self-test)
+```
+
+Đây **đúng** lớp lỗi đắt nhất của dự án (§2: *cổng đo sai đại lượng*), và lần này nó xanh. `CLAUDE.md` §3 liệt kê hàng chục lệnh
+có cờ (`--drill` · `--self-test` · `--all-objects` · `--check` · `--probe` · `--update-baseline` · `--range` · `--deploy`); một cú
+gõ nhầm trong runbook ngày G sinh ra một dòng ✅ **không nói gì cả**. Quyết định: cờ ngoài từ vựng ⇒ **mã thoát 2**, theo D-116
+(*công cụ hỏng ≠ phán quyết*) — mã 1 là sai, vì cổng không hề tuyên bố "hỏng", nó chỉ **chưa chạy được điều được yêu cầu**.
+
+**Phát hiện 2 — `check-clock-skew` cho hai phán quyết về cùng một thế giới.** Đỏ **bên trong** preflight, `exit 0` khi chạy riêng
+ngay sau đó. HANDOFF đã có câu giải thích (*"chỉ nhấp nháy khi có bơm chạy"*) và câu đó đã được ghi lại nhiều phiên — nhưng nó là
+**lời giải thích, không phải phép đo**: chưa ai chạy cổng N lượt để xem phân bố. Chừng nào chưa đo, câu *"preflight có xanh không"*
+là tung đồng xu, và đó là thứ đứng giữa dự án với ngày `09/09`.
+
+**Phát hiện 3 — 29/64 chỗ `await fetch(` không có timeout.** Một fetch treo **không** làm cổng đỏ; nó làm cổng không bao giờ trả
+lời, và cái đó đọc thành *"máy chậm"*, không đọc thành *"chưa đo được"*.
+
+**Phát hiện 4 — thiếu lớp dùng chung.** 76 tệp tự phân tích `process.argv`, 23 tệp tự viết ok/fail, không có `scripts/lib/`.
+Một logic, nhiều bản; và phát hiện 1 chính là hậu quả trực tiếp của việc đó.
+
+**Phát hiện 5 — vòng đo chậm vì tuần tự.** Phase 2 của preflight là **46 cổng offline, độc lập**, chạy trong một
+`for (const gate of GATES) spawnSync(...)` (`gday-preflight.mjs:513`). `check-local` cũng vậy: 34,9 s cho 23 ca.
+
+**Điểm mạnh — ghi ra để không ai đi sửa nhầm.** Core JS có **0 phụ thuộc bên thứ ba** (toàn stdlib Node — cố ý, và nó làm mọi cổng
+chạy được trên một máy trắng) · **0** `catch {}` nuốt lỗi · mỗi cổng đều có ca đối chứng ngược. Nền tốt; thứ thiếu là **lớp dùng
+chung** và **tốc độ vòng đo**, không phải kỷ luật.
+
+**Ranh giới của mốc, David chốt bằng ba câu hỏi lúc giao việc.** (1) Phạm vi **chỉ `scripts/` + `local-net/`** trên `main` —
+không `patches/`, không `web/`, không deploy, không push, và **không dựng băng tập** (David không chọn mục đó) ⇒ mọi phép đo phải
+làm được offline/fixture/đường sản phẩm cục bộ. (2) Ba hằng số bộ đệm block phía `avalanchego` (P-95): **không đụng**, chỉ **dựng
+sẵn phép đo** cho tỉ lệ trúng bộ đệm — cái giá chưa ai đo. (3) Ưu tiên khi phải chọn: **an toàn phép đo trước, tốc độ sau** —
+nên P-100…P-102 đứng trước P-103…P-104, và không được đổi runner (P-104) khi cổng còn nhận cờ lạ im lặng (P-100).
+
+**Web:** quét chỉ-đọc, `web-home` sạch tại `9db90cc`, cổng riêng của nó (`check-budget` · `check-a11y` · `check-static-export`)
+đầy đủ và tài liệu hoá kỹ. **Không sửa một byte nào** — đó là worktree của phiên khác (§4). Không có việc web trong mốc này.
