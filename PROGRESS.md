@@ -240,13 +240,24 @@ g1 công khai / server / `patches/` / `web/`.
       **Qua khi:** cổng đọc `/proc/<pid>/environ` **của từng tiến trình plugin** trên 9 node và thấy `GOMEMLIMIT` ở **8/8 mỗi node**.
       Ca đỏ: đặt `GOMEMLIMIT` **chỉ ở compose** ⇒ cổng phải **ĐỎ** và nêu "node có, plugin không" (chứng minh cổng đo plugin, không
       đo container).
-- [ ] **P-92a — ĐỐI CHỨNG TRƯỚC KHI CHỮA: bơm lại mà KHÔNG đổi gì.** Thêm `08/09` 05:0xZ sau khi đọc `PLAN-108` §3. Lý do: mô hình
+- [x] **P-92a — ĐỐI CHỨNG TRƯỚC KHI CHỮA: bơm lại mà KHÔNG đổi gì.** Thêm `08/09` 05:0xZ sau khi đọc `PLAN-108` §3. Lý do: mô hình
       của §3 (`RAM/node ≈ 0,4 + 0,15·L` GB) khớp mức đang đo (node-9, 8 chain: mô hình 1,6 GB · đo 1,55 GB), và tổng đội **01:22Z là
       16.253 MiB, 05:00Z là 16.211 MiB** — đứng yên. ⇒ *"RAM không phẳng"* của pha 1 có thể chỉ là **hâm nóng tới mức bão hoà sau lượt
       restart 21:18Z**, không phải rò rỉ. Nếu áp `GOMEMLIMIT` ngay rồi thấy phẳng, ta **ghi công cho sai nguyên nhân** — đúng lớp lỗi §2.
       **Qua khi:** bơm chạy lại ≥ 1,5 h từ trạng thái ấm, **không** restart, **không** cờ nào mới; kết luận nói rõ RAM có leo tiếp từ
       16,2 GB hay không. Ca đỏ ở đây là chính kết quả: nếu nó **leo tiếp** thì mức 16,2 GB không phải trần và P-92 có việc; nếu nó
       **phẳng** thì `GOMEMLIMIT` là bảo hiểm chứ không phải thuốc chữa, và P-94 phải viết đúng như vậy.
+      ✅ `08/09` 05:10–06:41Z (autopilot, D-243): bơm lại **đúng container pha 1** (`docker start k1-drill-pump`, cùng lệnh cùng
+      khoá), không restart, không cờ mới. Tải xác nhận thật: 15/15 chain, 1,07 tx/s, gap ≤ 2 s. **RAM leo lại ngay:**
+      `avalanchego` **+80,9 MiB/node/giờ** · plugin **+16,7 MiB/plugin/giờ** · cgroup **+279 MiB/node/giờ** — đối lại dốc **âm** khi
+      nghỉ. ⇒ **16,2 GB KHÔNG phải trần; "phẳng khi nghỉ" chỉ có nghĩa là không có giao dịch.** Quy về giao dịch: **52,8 KiB/tx toàn
+      đội**, so với **53,5** và **54,7** của pha 1 — ba phép đo, hai phiên, nguội và ấm, lệch dưới 2 %.
+      🔴 **Và đối chứng này đổi luôn câu trả lời của P-92, trước khi P-92 chạy.** `/ext/metrics` phát số liệu Go runtime **từng tiến
+      trình**; đo trên **cùng cửa sổ, cùng node**: RSS **+135**, Go `heap_sys` **+94**, heap **sống** (`next_gc`/2) **+74**, ngoài
+      heap Go **+41** MiB/node/giờ. ⇒ `GOMEMLIMIT` chỉ với tới **20 trên 135 MiB/node/giờ, ~15 %**: phần lớn phần phình hoặc là heap
+      **sống** (không trần nào thu hồi được) hoặc **nằm ngoài bộ cấp phát của Go** (trần của Go không nhìn thấy). Dự đoán định lượng
+      giao cho P-92: dốc sau khi áp **không được thấp hơn ~115 MiB/node/giờ**; thấp hơn nhiều thì mô hình này sai.
+      Bơm gửi **chuyển tiền cho chính mình** (`pump_ledger.go:166`) ⇒ **không sinh trạng thái**, nên 10,7 KiB/tx/node là **sàn**.
 - [ ] **P-92 — Chạy lại tải 15 chain × 1 tx/s CÓ `GOMEMLIMIT`, so dốc với pha 1** (đoạn cache nhỏ `22:19Z→01:22Z` là mốc đối chiếu:
       +123 MiB/node/h · +15,6 MiB/plugin/h). **Qua khi:** ≥ 3 giờ, 15/15 chain vẫn đẻ block ≤ 2,5 s, 0 OOM, 0 restart ngoài ý muốn,
       và dốc RAM ghi ra **một con số so được** với hai số trên. Ca đỏ: đặt `GOMEMLIMIT` thấp phi lý (vd 256 MiB) ⇒ phải thấy hậu quả
