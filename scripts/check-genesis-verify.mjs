@@ -171,6 +171,12 @@ try {
       // than of restarting a validator (the belt options-e2e-test.mjs wears).
       A1_COMPOSE_FILE: "/does-not-exist/safe-for-this-gate.yml",
       A1_LIMIT_CREATE: "99",
+      // 🔴 This console must be a REAL-network one, so the flag is cleared rather than inherited.
+      // The fake node below reports the real network; with A1_DRILL_BAND=1 left in the ambient
+      // environment the console refuses to start and this gate goes red for a reason that has
+      // nothing to do with genesis. A verdict that depends on the operator's shell can be green
+      // for the wrong reason just as easily as red.
+      A1_DRILL_BAND: "",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

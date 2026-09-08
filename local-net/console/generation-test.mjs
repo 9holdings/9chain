@@ -91,6 +91,12 @@ const ENV_CHUNG = {
   // vì thiếu file, chứ không restart validator của mạng thật.
   A1_COMPOSE_FILE: "/khong-ton-tai/an-toan-cho-bai-kiem.yml",
   A1_LIMIT_CREATE: "99",
+  // 🔴 The band each console serves is set BELOW, per console — never inherited. This test starts
+  // one real console and one drill console and compares them, so an ambient A1_DRILL_BAND=1 turns
+  // the "real" one into a second drill console and 12 cases fail for a reason outside the test.
+  // Clearing it here also means the pair can never both be drill by accident, which is the way
+  // this test could have been green for the wrong reason.
+  A1_DRILL_BAND: "",
 };
 const con = spawn(process.execPath, [path.join(SOURCE_ROOT, 'local-net/console/server.mjs')], {
   cwd: FIXTURE_ROOT,
