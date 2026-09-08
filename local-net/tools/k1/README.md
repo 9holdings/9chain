@@ -84,6 +84,31 @@ expensive way:
 
 Fixing `runtime.go` to forward `GO*` would be the tidier fix and is deliberately not taken: it is `patches/`, and hard rule 3
 makes that a regeneration of the whole patch set, the fork tree and the image.
+
+## `16-memory-series.sh` and `17-memory-report.mjs` — the memory measurement, kept where it can be found
+
+```bash
+scripts/16-memory-series.sh out/memory.jsonl 21600 300      # sample 9 nodes every 5 min for 6 h
+node scripts/17-memory-report.mjs out/memory.jsonl --since <ISO> --label "phase 2 run"
+```
+
+Phase 1 left its sampler in a session scratch directory, and phase 1b had to go and find it in another
+session's temp folder to get numbers that could be compared at all. These live here for that reason.
+
+One row per node per sample carries both halves of the question: anonymous memory (what has to fit in
+the machine) and the Go heap figures (what any memory limit could ever reclaim). The reader turns them
+into three answers — the growth per node per hour, the share a Go limit can reach, and whether the
+slope is flattening.
+
+🔴 Two ways this measurement lies, both met for real on 2026-09-08:
+
+- **Summing `VmRSS` instead of `RssAnon`.** All nine plugin processes map the SAME 65 MB plugin binary,
+  so a VmRSS sum counts those pages nine times — about 390 MiB of memory that does not exist, on a node
+  that has just started. `cgroup anon` (253 MiB) equalled the sum of `RssAnon` exactly while `cgroup
+  file` was 0, which is why both are recorded: one checks the other.
+- **A container that vanished leaving no row.** The sample then covers fewer nodes, the total falls, and
+  it reads as memory being released. On real data that turned a +138 MiB/node/h slope into −4,382. The
+  series writes `ok:false` instead of skipping, and the reader drops short samples and says so.
 ## Why the tool runs inside a container
 
 `go build` fails on Windows at blst (cgo) and `storage.AvailableBytes` (no Windows implementation). The fork is

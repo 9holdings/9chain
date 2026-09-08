@@ -122,6 +122,7 @@ export const CONSTRAINTS = [
       { file: "scripts/export-chain.mjs", why: "host-side CLI default (`--rpc`), the O2 export runs on the server host" },
       { file: "scripts/check-l1-upgrades.mjs", why: "a bash probe rendered INTO a container over `docker exec`; it cannot import an ESM constant" },
       { file: "scripts/drill-upgrade-rollback.mjs", why: "the training-band drill's in-container curl; kept literal so the drill cannot be redirected by editing one shared constant" },
+      { file: "local-net/tools/k1/scripts/16-memory-series.sh", why: "the K1 kit's in-container curl, bash — it cannot import an ESM constant, and a measurement must not be redirectable by editing one shared value" },
       { file: "local-net/tools/stake-validator/run-over-tunnel.sh", why: "an ssh -L tunnel spec (local:remote), bash" },
       { file: "scripts/wallet-over-tunnel.mjs", why: "comment describing the tunnel (M11.10)" },
       { file: "local-net/deploy/caddy.compose.yml", why: "belongs to the web-home worktree; comment only" },
