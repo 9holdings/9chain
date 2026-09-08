@@ -209,6 +209,36 @@ khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn 
 - [human] **Pha 2 (3 máy · 36 L1) và pha 3 (108 L1, 9 máy AX42 ≈ €550–650/tháng)** — mua máy, `inventory.json`, David tự đặt
       (`web-home:docs/k1-phase0/PROCUREMENT-K1-2026-09-05.md`). Kit `compose`/`push-host` đã sẵn.
 
+🔴 **PHA 1b — RAM: mở `2026-09-08` sáng (autopilot, D-243).** Phát hiện của P-89 là thứ **duy nhất** còn chặn 108 chain, và nó
+**trả lời được ngay trên băng tập đang chạy** — không cần máy mới. Vì sao gấp: pha 1 đo **8,3 chain/node** (15 L1 × V=5 ÷ 9 node);
+pha 3 là **60 chain/node** (108 × 5 ÷ 9), gấp **7,2 lần**. Ngân sách RAM sai ở đây là sai **đơn hàng €550–650/tháng**. Luật của mốc
+giữ nguyên: băng tập `899999998`, không đụng g1 công khai / server / `patches/` / `web/`.
+
+- [ ] **P-90 — Dốc RAM khi KHÔNG có tải, đo bằng ĐÚNG dụng cụ của pha 1** (chuỗi `p89-rss.sh`, cùng đại lượng: RSS `avalanchego` ·
+      tổng RSS plugin · cgroup `anon`). Băng tập nghỉ bơm từ `01:39Z` ⇒ phép đo này **đang tự chạy**, chỉ cần lấy đúng cách.
+      **Qua khi:** ≥ 4 mẫu cách nhau ≥ 10 phút trên 9 node, kết luận nêu **hai dốc** (nghỉ vs tải) cùng đơn vị MiB/node/giờ.
+      Ca đỏ: trỏ chuỗi đo vào một container **đã dừng** ⇒ phải ra `null`/INVALID, **không** ra 0 (bài `measure-node-load --local`).
+- [ ] **P-91 — `GOMEMLIMIT` tới được PLUGIN, không chỉ tới node** — 🔴 đo `08/09`: environ của tiến trình plugin có **đúng một biến**
+      (`AVALANCHE_VM_RUNTIME_ENGINE_ADDR`); `upstream/…/rpcchainvm/runtime/subprocess/runtime.go:76-82` dựng env plugin **từ rỗng** và
+      chỉ chuyển tiếp `GRPC_*` + `GODEBUG`. ⇒ đặt `GOMEMLIMIT` ở compose là **xanh giả**: nó tới `avalanchego` (628 MiB/node) mà
+      không tới 8 plugin (923 MiB) — nửa lớn hơn. Sửa **không đụng fork** (luật cứng 3): vỏ bọc cho binary plugin trong thư mục
+      `plugins/` (`exec` binary thật sau khi `export`), kit K1 ghi vỏ đó.
+      **Qua khi:** cổng đọc `/proc/<pid>/environ` **của từng tiến trình plugin** trên 9 node và thấy `GOMEMLIMIT` ở **8/8 mỗi node**.
+      Ca đỏ: đặt `GOMEMLIMIT` **chỉ ở compose** ⇒ cổng phải **ĐỎ** và nêu "node có, plugin không" (chứng minh cổng đo plugin, không
+      đo container).
+- [ ] **P-92 — Chạy lại tải 15 chain × 1 tx/s CÓ `GOMEMLIMIT`, so dốc với pha 1** (đoạn cache nhỏ `22:19Z→01:22Z` là mốc đối chiếu:
+      +123 MiB/node/h · +15,6 MiB/plugin/h). **Qua khi:** ≥ 3 giờ, 15/15 chain vẫn đẻ block ≤ 2,5 s, 0 OOM, 0 restart ngoài ý muốn,
+      và dốc RAM ghi ra **một con số so được** với hai số trên. Ca đỏ: đặt `GOMEMLIMIT` thấp phi lý (vd 256 MiB) ⇒ phải thấy hậu quả
+      THẬT (GC quay liên tục hoặc OOM) chứ không phải "không đổi gì" — nếu không đổi gì thì cờ **chưa hề có hiệu lực**.
+- [ ] **P-93 — Cổng ngân sách RAM mỗi node** `scripts/check-node-memory.mjs`: đọc cgroup + RSS theo tiến trình, chấm theo **ngân sách
+      trên mỗi chain đã track** (không phải hằng số), in dốc khi có ≥ 2 mẫu. Vào preflight nhóm 3 **chỉ khi** `A1_DRILL_BAND` (không
+      đủ tư cách chặn g1 — như P-87). **Qua khi:** self-test có ca dương và ca âm; chạy thật trên 9 node băng tập.
+      Ca đỏ: fixture một node vượt ngân sách ⇒ đỏ **nêu đúng node đó**, không đỏ cả bảng.
+- [ ] **P-94 — Kết luận cỡ máy vào `docs/PLAN-108-L1-LOAD-TEST.md` §2 + soát lại đơn mua** — trả lời bằng số đo: 60 chain/node có nằm
+      trong 64 GB của AX42 không, và **biên** còn bao nhiêu. **Qua khi:** §2 có bảng RAM/chain/node **đo được** (không phải ước), và
+      một câu **kết luận có hướng** cho `PROCUREMENT-K1`: giữ 9 máy · đổi cấu hình · hay đổi V. Ca đỏ: nếu số đo nói AX42 **không** đủ
+      thì mục này phải kết thúc bằng *"đổi đơn hàng"*, không phải bằng một câu trấn an.
+
 
 ## 🔵 MỐC `WORKTREES` — CẤU TRÚC WORKTREE ĐỘC LẬP (David chốt `2026-09-05` sáng)
 

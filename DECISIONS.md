@@ -10569,3 +10569,44 @@ nguyên giây — sửa: +1 s dung sai, self-test 13) · `StartClose` **0/9** m�
 
 **Dụng cụ mới trong lượt:** `p89-setup.sh` · `p89-sampler.mjs` · `p89-rss.sh` (scratchpad) · `measure-node-load.sh --local` (cgroup VM qua
 container phụ, INVALID khi có rollout) · bẫy: tác vụ nền > 10 phút phải `Start-Process bash -ArgumentList @(script) -RedirectStandardOutput`.
+
+## D-243 — **Mở pha 1b (RAM) của `L1-108` trên băng tập thay vì chờ máy; và `GOMEMLIMIT` KHÔNG tới plugin nếu chỉ đặt ở compose** (`2026-09-08` 04:3xZ, P-90→P-94)
+
+**Bối cảnh.** P-89 đóng pha 1 với 4/5 điều kiện qua; điều kiện trượt là *"RAM phẳng sau ~6 h"*. HANDOFF xếp việc này vào **pha 2 "khi
+có máy"**. Đo lại sáng `08/09` cho thấy **xếp thế là sai chỗ**: câu hỏi RAM không cần máy mới — băng tập 9 node vẫn đang chạy 15 L1,
+và bơm đã dừng `01:39Z`, tức **phép đo nghỉ-tải đang tự chạy 3 giờ mà không ai lấy**.
+
+**Quyết định 1 — tách pha 1b, làm ngay, 5 mục P-90→P-94.** Lý do có số: pha 1 đo **8,3 chain/node** (15 × 5 ÷ 9); pha 3 là **60
+chain/node** (108 × 5 ÷ 9), gấp **7,2 lần**. Ngân sách RAM trên mỗi chain là thứ **quyết định đơn mua 9 × AX42 (64 GB) ≈ €550–650 mỗi
+tháng**; chốt đơn trước khi đo là đặt tiền lên một con số ước.
+
+**Số đo mở mốc (cùng dụng cụ pha 1, `p89-rss.sh`).** node-9, giữa mẫu cuối pha 1 `01:42:45Z` và mẫu đầu pha 1b `04:39:35Z` — nghỉ tải
+2 h 57:
+
+| đại lượng | 01:42Z | 04:39Z | dốc khi NGHỈ | dốc khi CÓ TẢI (pha 1) |
+|---|---|---|---|---|
+| `avalanchego` RSS | 622 MiB | 628 MiB | **+2 MiB/node/giờ** | +123 MiB/node/giờ |
+| tổng RSS 8 plugin | 943 MiB | 923 MiB | **−7 MiB/node/giờ** | +15,6 MiB/plugin/giờ |
+| cgroup `anon` | 1.328 MiB | 1.315 MiB | −4 MiB/giờ | — |
+
+⇒ **Dốc RAM đi theo GIAO DỊCH, không theo đồng hồ.** Đây là tin tốt cho câu hỏi *"có rò rỉ theo thời gian không"* (không có), và là
+tin xấu cho cỡ máy: nó tỉ lệ với lượng tx phục vụ, mà 108 chain sinh ra chính là để phục vụ tx. Số này cũng khớp với hiện trạng máy
+chủ thật (11 chain, tuổi 73 h, 2,4 GB/node) — nơi tải thật thấp hơn băng tập nhiều.
+
+**Quyết định 2 — `GOMEMLIMIT` phải chứng minh Ở TRONG PLUGIN, không ở container.** 🔴 Đo trên node-9 `08/09`: environ của tiến trình
+plugin có **đúng một biến**, `AVALANCHE_VM_RUNTIME_ENGINE_ADDR`. Nguồn: `vms/rpcchainvm/runtime/subprocess/runtime.go:76-82` —
+`cmd.Env` dựng **từ rỗng**, rồi chỉ chuyển tiếp biến bắt đầu bằng `GRPC_` hoặc `GODEBUG`. `GOMEMLIMIT` và `GOGC` **không nằm trong
+danh sách đó**.
+
+Hệ quả đúng lớp lỗi §2: đặt `GOMEMLIMIT` vào `environment:` của compose rồi đo *"biến đã có trong container"* là **cổng xanh chứng
+minh sai đại lượng** — nó tới `avalanchego` (628 MiB trên node-9) và **không** tới 8 plugin (923 MiB, nửa lớn hơn). Cổng của P-91 vì
+thế đo `/proc/<pid>/environ` **của từng plugin**, và ca đỏ bắt buộc là *"chỉ đặt ở compose ⇒ ĐỎ"*.
+
+**Đường sửa chọn: vỏ bọc binary plugin, KHÔNG sửa fork.** Sửa `runtime.go` để chuyển tiếp `GO*` là đúng về kỹ thuật nhưng đụng
+`patches/` (luật cứng 3: sinh lại cả bộ 27 patch + tree + image + bump thế hệ). Vỏ bọc trong thư mục `plugins/` đạt cùng kết quả ở
+tầng vận hành, đảo ngược được, và không chạm đường tái lập fork. Ghi nhận đánh đổi: vỏ bọc là **thứ phải nhớ khi dựng máy mới** — nên
+nó thuộc kit K1 và phải có cổng canh, không được là một việc tay.
+
+**Giả định (David bác được):** V = 5 giữ nguyên cho pha 1b · `GOMEMLIMIT` thử ở mức ~85 % ngân sách mỗi tiến trình, theo bài của C1
+`22/07` (Go **không đọc** cgroup limit, không đặt là OOM chắc chắn chứ không phải rủi ro; đặt xong RSS 1.069 → 191 MB) · băng tập tiếp
+tục chạy, **không** `down -v`.
