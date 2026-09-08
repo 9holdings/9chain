@@ -238,6 +238,43 @@ khi RSS của nó lên **15–17 MiB/giờ**: ép trần plugin chặn được 
 kiểm thêm điều gì** — vì con số trên đã nói phần phình của plugin **không nằm trong heap Go**. Nửa `avalanchego` là nửa duy nhất
 mà một trần Go còn có chỗ để chặn, nên nó là nửa được đem ra thử.
 
-### 4c. Số đo
+### 4c. Số đo — mô hình §3c BỊ BÁC BỎ, và cái giá không nằm ở bộ nhớ
 
-(điền khi cửa sổ tuổi 1–3 h khép)
+Lượt áp trần: 9 node dựng lại cuốn chiếu `06:49→06:54Z` (mỗi node chứng minh sẵn sàng trong 30 s trước khi động vào node kế),
+bơm lại `06:54:50Z` bằng đúng container cũ. Cổng P-91 xanh 9/9 trước khi bơm chạy; `check-chains-producing` xanh 15/15 sau đó.
+
+**Bộ nhớ — so cùng tuổi tiến trình, cùng độ dài cửa sổ (1,87 h, tuổi 1,2 → 3,05 h), cùng dụng cụ:**
+
+| | `anon`/node đầu → cuối | dốc |
+|---|---|---|
+| pha 1, **không trần** (`22:29→00:21Z`) | 790 → 1.342 MiB | **296 MiB/node/giờ** |
+| P-92, **trần 250 MiB** (`08:03→09:55Z`) | 671 → 1.005 MiB | **179 MiB/node/giờ** |
+
+⇒ **giảm 40 %.** Điều kiện viết trước ở §4a nói *"dưới ~200 thì mô hình §3c sai"*. **179 < 200 ⇒ mô hình sai.**
+
+**Vì sao nó sai, và bài học dùng lại được:** §3c tính *"trần với tới được"* bằng hiệu **hai TỐC ĐỘ** (`heap_sys` lên 106, heap sống
+lên 79 ⇒ còn 27). Nhưng trần không chặn tốc độ, nó chặn **MỨC** — và mức khi không có trần do `GOGC=100` đặt ở **gấp đôi heap
+sống**. Ghim mức lại là bỏ luôn cú nhân đôi ấy, chứ không phải chỉ bỏ phần chênh tốc độ. **So hai tốc độ để suy ra tác dụng của một
+thứ chặn mức là sai loại đại lượng** — cùng lớp lỗi §2, lần này ở dạng tinh vi hơn.
+
+**Nhưng cái giá không nằm ở bộ nhớ, và nó lớn:**
+
+| | pha 1 (không trần) | P-92 (trần 250) |
+|---|---|---|
+| CPU 9 node | **2,09–2,17 lõi** | **20,39 lõi** |
+| VM loadavg / 24 cpu | 3,8 – 9,7 | **87,8** |
+| lượt GC của `avalanchego` | — | **46.946**, tốn 33,8 s |
+| `heap_sys` của nó | — | **288 MiB, VƯỢT trần 250** |
+
+`heap_sys` **vượt** trần nghĩa là Go **không xuống được** — nó thu gom liên tục mà không giải phóng nổi, vì phần đang giữ đã lớn
+hơn trần. Đó đúng là ca đỏ P-92 đặt ra từ đầu (*"đặt trần thấp phi lý ⇒ phải thấy hậu quả THẬT"*), chỉ khác là tôi tưởng 250 MiB
+đã chừa gấp đôi heap sống — heap sống vượt qua nó trong **chưa đầy 3 giờ**.
+
+**Quy công sạch:** plugin cùng lúc ở **68 MiB trên trần 80**, chỉ **234 lượt GC** và **0,09 s** mỗi cái. Toàn bộ cái giá là của
+`avalanchego`; trần plugin **chưa bao giờ chặn**, đúng như §4b nói trước.
+
+🔴 **Và đây là điều biến nó từ "đắt" thành "sai đường": DỪNG TẢI KHÔNG CỨU ĐƯỢC.** Bơm tắt `10:00:50Z`; đo lại 90 giây sau:
+**20,57 lõi · loadavg 90,1**. Không một giao dịch nào nữa mà 9 node vẫn đốt hơn 20 lõi. Vòng xoáy **tự nuôi**, vì thứ giữ trần
+không xuống được là phần **đang sống**, không phải phần rác do tải sinh ra.
+
+**Chain vẫn sống suốt:** 15/15 đẻ block, gap 2–3 s. Nên hậu quả là **đắt, không phải chết** — ở quy mô này.
