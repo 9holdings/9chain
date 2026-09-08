@@ -60,6 +60,8 @@ import https from "node:https";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+// Band bases only — the GENERATION always comes from the running node, never from these.
+import { A1_ID_GOC, A1_ID_GOC_TAP } from "../local-net/lib/chainid.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -154,6 +156,13 @@ async function measureLive(rpcBase) {
  * because a gate that says only "line 41" teaches people to delete the line rather than fix it.
  */
 function buildChecks(live) {
+  // The drill band is a SECOND live network, on purpose: `A1IDTap = A1IDGocTap − A1Gen`, the band
+  // the K1 kit and every 108-chain rehearsal run on. Reading its id as a dead generation made this
+  // gate one that could never go green for a kit document — the D-153 shape. Its generation is
+  // taken from the RUNNING network rather than from the repo, so a half-finished generation bump
+  // (Go moved, JS not) still shows up as drift instead of being waved through.
+  const gen = A1_ID_GOC - live.networkID;
+  const drill = { networkID: A1_ID_GOC_TAP - gen, networkName: `9chain-a1-tap-g${gen}` };
   return [
     {
       id: "dead-networkid",
@@ -161,15 +170,22 @@ function buildChecks(live) {
       re: /network\s*id[^0-9]{0,4}(\d{4,10})|networkID[^0-9]{0,4}(\d{4,10})/gi,
       test: (m) => {
         const n = Number(m[1] ?? m[2]);
-        return Number.isFinite(n) && n !== live.networkID;
+        return Number.isFinite(n) && n !== live.networkID && n !== drill.networkID;
       },
-      why: (m) => `networkID ${m[1] ?? m[2]} is not the running network (${live.networkID})`,
+      why: (m) => `networkID ${m[1] ?? m[2]} is neither the running network (${live.networkID}) nor its drill band (${drill.networkID})`,
     },
     {
       id: "dead-network-name",
-      re: /9chain-a1-g(\d+)/g,
+      // `9chain-a1-tap-g1` must not match here — the drill name has its own check below.
+      re: /(?<!-tap)-?\b9chain-a1-g(\d+)/g,
       test: (m) => `9chain-a1-g${m[1]}` !== live.networkName,
       why: (m) => `network name 9chain-a1-g${m[1]} is not the running network (${live.networkName})`,
+    },
+    {
+      id: "dead-drill-network-name",
+      re: /9chain-a1-tap-g(\d+)/g,
+      test: (m) => `9chain-a1-tap-g${m[1]}` !== drill.networkName,
+      why: (m) => `drill-band name 9chain-a1-tap-g${m[1]} is not the drill band of the running network (${drill.networkName})`,
     },
     {
       id: "retired-hostname",
@@ -260,6 +276,19 @@ function selfTest() {
       scan("the network answers 9chain-a1-g0").some((f) => f.id === "dead-network-name")],
     ["the live generation name is not a finding",
       scan("the network answers 9chain-a1-g1").length === 0],
+    // The drill band is a second LIVE network of the same generation, not a dead one — but only
+    // the band of THIS generation. Both halves are tested, because accepting the whole 8999999xx
+    // band would turn a real half-done generation bump into a green line.
+    ["🔴 the drill band of THIS generation is not a finding",
+      scan("the drill band runs networkID 899999998").length === 0],
+    ["🔴 …but the drill band of a DEAD generation still is",
+      scan("the drill band runs networkID 899999999").some((f) => f.id === "dead-networkid")],
+    ["the drill-band name of this generation is not a finding",
+      scan("the band answers 9chain-a1-tap-g1").length === 0],
+    ["a dead drill-band NAME is caught",
+      scan("the band answers 9chain-a1-tap-g0").some((f) => f.id === "dead-drill-network-name")],
+    ["🔴 a drill-band name is not read as a dead main-network name",
+      scan("the band answers 9chain-a1-tap-g1").some((f) => f.id === "dead-network-name") === false],
     ["a retired hostname is caught",
       scan("point your wallet at rpc-testnet-a1.9chain.org").some((f) => f.id === "retired-hostname")],
     ["the live hostname is not a finding",
