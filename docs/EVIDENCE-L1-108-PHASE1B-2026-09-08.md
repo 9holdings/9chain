@@ -327,3 +327,95 @@ Mạng thật **không** đụng tới.
 **Chính bộ hồ sơ có làm lệch thứ nó đo không?** Bộ hồ sơ CPU của subnet-evm chạy **liên tục**, nên câu hỏi là thật. Đo lúc
 `11:04Z`, cùng tải, cùng số plugin: node-5 (**có** hồ sơ) **295 MiB** so với bốn node cùng 8 plugin ở **287–291 MiB**. ⇒ chi phí
 riêng của bộ hồ sơ **~5 MiB, 1,7 %** — đủ nhỏ để node-5 vẫn đại diện, và **con số đó được ghi ra** thay vì giả định là 0.
+
+### 5b. Kết quả — cả hai nửa phình ở CÙNG một chỗ, và chỗ đó CÓ TRẦN
+
+Hai ảnh chụp `11:20:08Z` và `12:35:20Z` (75 phút), node-5, 8 chain, tải 1 tx/s mỗi chain.
+
+**`avalanchego` — tăng 79,6 MB heap sống:**
+
+| thứ giữ | tăng | phần |
+|---|---|---|
+| `protobuf/internal/impl.consumeBytesNoZero` | **22,0 MB** | 27,7 % |
+| `vms/components/chain.(*State).ParseBlock` | **17,5 MB** (cum) | 22,0 % |
+| `goleveldb/util.(*BufferPool).Get` | 8,8 MB | 11,1 % |
+| `utils/linked.Hashmap[…, lru.sizedElement[…]].Put` ×3 | 5,5 MB | 6,9 % |
+| `rpcchainvm.(*VMClient).parseBlock` | 1,5 MB | 1,9 % |
+
+**mỗi plugin subnet-evm — tăng 21,7 MB:**
+
+| thứ giữ | tăng | phần |
+|---|---|---|
+| `vms/components/chain.(*State).ParseBlock` | **11,3 MB** (cum) | **51,8 %** |
+| `libevm/core/types.(*Transaction).DecodeRLP` | 4,1 MB (cum) | 18,8 % |
+| `libevm/rlp.decodeBigInt` · `types.CopyHeader` | 4,1 MB | 18,8 % |
+
+⇒ **Thứ đang giữ bộ nhớ là BỘ ĐỆM BLOCK ĐÃ PHÂN TÍCH của `chain.State`**, ở **cả hai** phía ranh giới gRPC. Những tên nằm dưới nó
+chỉ là hình dạng của thứ được đệm: `consumeBytesNoZero` là byte block giải mã từ protobuf mà block đã đệm còn trỏ vào,
+`DecodeRLP`/`decodeBigInt`/`CopyHeader` là giao dịch và header bên trong block, `linked.Hashmap[…lru.sizedElement…]` là **ruột của
+chính cái LRU**.
+
+🔴 **Và bộ đệm đó CÓ TRẦN — trần là hằng số trong mã, đặt cho MỖI CHAIN:**
+
+| phía | decided | unverified | bytesToID | **mỗi chain** | nguồn |
+|---|---|---|---|---|---|
+| `avalanchego` | 64 MiB | 64 MiB | 64 MiB | **192 MiB** | `vms/rpcchainvm/vm_client.go:61-64` |
+| plugin subnet-evm | 10 MiB | 5 MiB | 5 MiB | **20 MiB** | `graft/subnet-evm/plugin/evm/vm.go:107-110` |
+
+`chain.State` được dựng **cho từng VMClient** (`vm_client.go:239`), mà **mỗi chain một VMClient** ⇒ trần nhân theo số chain. Plugin
+cũng có `chain.State` của riêng nó ⇒ **mỗi block được đệm HAI LẦN**, hai bên gRPC, và **phía `avalanchego` rộng gấp 10 lần phía
+plugin**.
+
+### 5c. Ba câu hỏi cũ, nay trả lời được bằng một cơ chế
+
+| quan sát trước đây | lời giải |
+|---|---|
+| RAM đi theo **giao dịch**, không theo đồng hồ | block mới mới nhét thêm vào LRU; chain im thì không có gì để nhét |
+| là heap **SỐNG**, GC không đụng được | mục trong LRU **đang được tham chiếu** — đúng nghĩa sống |
+| nghỉ tải **không nhả** | LRU chỉ đuổi khi có mục MỚI chen vào, không đuổi vì rảnh |
+| restart trả lại **87 %** | bộ đệm khởi động lại từ rỗng |
+| dốc **chậm dần** | tiệm cận trần, đúng hình dạng của một cache đang đầy |
+| **9 giờ chưa thấy trần** | ở tải này, phía plugin đầy sau **~1,1 h**, phía `avalanchego` cần **~24 h** — xem dưới |
+
+Ghép tốc độ đo được với trần đọc từ mã:
+
+| | tăng đo được | trần | đầy sau |
+|---|---|---|---|
+| `avalanchego`, mỗi chain | **8,0 MB/giờ** | 192 MiB | **~24 giờ** |
+| mỗi plugin | **17,4 MB/giờ** | 20 MiB | **~1,1 giờ** |
+
+🔴 Điều này giải một mâu thuẫn đã ghi trong phiên mà chưa có lời: plugin đo **24 MiB/giờ** lúc trẻ (§4c) nhưng chỉ **1,2 MiB/giờ**
+trên tiến trình 9 giờ tuổi (§4b). Không phải hai phép đo cãi nhau — **bộ đệm plugin đã bão hoà sau hơn một giờ**, còn bộ đệm
+`avalanchego` thì chưa.
+
+**⇒ Trần cho mỗi node TÍNH ĐƯỢC: `số chain × 212 MiB` bộ đệm block, cộng phần nền.** Với pha 3 (**15 chain/node**): **~3,1 GB** bộ
+đệm — khớp con số ~3,1 GB mà §2d của `PLAN-108` ngoại suy từ đường cong 6 giờ, nhưng nay có **cơ chế** chứ không phải khớp đường.
+
+### 5d. Ca đỏ — một hồ sơ đơn lẻ trả lời câu khác
+
+Điều kiện qua đòi chứng minh hai cách đọc cho hai kết luận khác nhau. In cùng lúc:
+
+| | hồ sơ ĐƠN ở t1 (top) | HIỆU t0 → t1 (top) |
+|---|---|---|
+| tổng | 135,8 MB | **79,6 MB** |
+| 1 | `consumeBytesNoZero` 29,5 | `consumeBytesNoZero` 22,0 |
+| 2 | `ParseBlock` 23,0 | `ParseBlock` 17,5 |
+| … | **`reflect.mapassign0` 7,3** | *không có trong phần tăng* |
+| … | **`runtime.allocm` 6,5** | *không có trong phần tăng* |
+| … | **`leveldb/memdb.New` 6,0** | *không có trong phần tăng* |
+
+Ba dòng in đậm nằm trong **10 mục lớn nhất** của hồ sơ đơn lẻ và **không tăng chút nào** — chúng là bộ nhớ lúc khởi động. Đọc hồ sơ
+đơn lẻ rồi đi tối ưu `reflect.mapassign0` là bỏ ba giờ cho một thứ đứng yên. **Phần tăng chỉ hiện ra khi so `-base`.**
+
+### 5e. Nút bấm có thật — nhưng nó nằm trong `patches/`
+
+`decidedCacheSize` · `unverifiedCacheSize` · `bytesToIDCacheSize` là **hằng số trong `vms/rpcchainvm/vm_client.go`**, không phải
+tuỳ chọn cấu hình. Hạ chúng là hạ trần theo tỉ lệ — nhưng sửa tệp đó là **sửa fork** (luật cứng 3: sinh lại cả bộ patch, tree,
+image). ⇒ **Không tự làm.** Ghi lại như một lựa chọn có số kèm theo, để David quyết:
+
+- Phía plugin **đã** là 10/5/5, tức nhỏ hơn phía `avalanchego` **10 lần**. Chênh lệch đó gợi ý mặc định 64/64/64 được chọn cho một
+  node chạy **vài** chain, không phải cho một node track **15**.
+- Hạ phía `avalanchego` xuống mức của plugin (20 MiB/chain) sẽ kéo trần mỗi node từ `chain × 212 MiB` xuống `chain × 40 MiB` —
+  với 15 chain là **3,1 GB → 0,6 GB**.
+- Cái giá chưa đo: block bị đuổi khỏi bộ đệm phải đọc lại từ đĩa. Ở nhịp 2 s và chain vừa mới ghi, tỉ lệ trúng có thể vẫn cao —
+  **nhưng đó là một phép đo, không phải một suy đoán**, và nó thuộc pha 2.
