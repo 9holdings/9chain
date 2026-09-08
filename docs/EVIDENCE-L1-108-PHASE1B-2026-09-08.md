@@ -101,4 +101,45 @@ Bơm khởi động lại `05:10:28Z` bằng **đúng container của pha 1** (`
 khoá ra tệp nào). Không restart node, không cờ mới, không đổi cache. Tải xác nhận là thật lúc `05:1xZ`:
 `check-chains-producing --window 30 --target-rate 1` ⇒ **15/15 chain**, 1,07 tx/s, gap tối đa **2 s**.
 
-(số đo điền khi cửa sổ khép)
+### 3a. Kết quả — 16,2 GB KHÔNG phải trần
+
+| giờ (UTC) | node | `avalanchego` | plugin (số) | cgroup | anon |
+|---|---|---|---|---|---|
+| 05:20:18 | 9 | 6.768 MiB | 10.554 (75) | 15.818 | 14.982 |
+| 05:30:29 | 9 | 6.844 MiB | 10.729 (75) | 16.125 | 15.227 |
+| 05:40:40 | 9 | 7.038 MiB | 11.688 (75) | 17.700 | 16.362 |
+| 05:50:50 | 9 | 7.202 MiB | 11.557 (75) | 17.903 | 16.400 |
+
+| dốc | NGHỈ (§2) | **ĐỐI CHỨNG (ấm, không đổi gì)** | pha 1 (nguội, có tải) |
+|---|---|---|---|
+| `avalanchego` | −3,9 MiB/node/giờ | **+94,8** | +123 |
+| plugin | −2,5 MiB/plugin/giờ | **+26,3** | +15,6 |
+| `anon` toàn đội | ≈ 0 | **+2,8 GB/giờ** | +2,0…+2,7 GB/giờ |
+
+⇒ **Lời giải B ở §0 đúng: dốc đi theo giao dịch, và 16,2 GB không phải mức bão hoà.** Phẳng khi nghỉ chỉ có nghĩa là *"không có
+giao dịch"*. Nếu áp `GOMEMLIMIT` trước rồi thấy phẳng, ta đã ghi công cho sai nguyên nhân — đây là lý do P-92a tồn tại.
+
+**Và con số quy về giao dịch tái lập được:** 27.480 tx trong cửa sổ này, `anon` +1.418 MiB ⇒ **52,8 KiB/tx toàn đội · 10,6 KiB
+mỗi node validate**. Pha 1 cho **53,5** và **54,7** ở hai cửa sổ đầu. Ba phép đo, hai phiên, một bên nguội một bên ấm, cách nhau
+3,6 giờ nghỉ — lệch dưới 2 %. Cửa sổ **36,1** của pha 1 nay trông như ngoại lệ, không phải xu hướng, nên **hy vọng "sắp thoải ra"
+chưa có gì đỡ**.
+
+### 3b. 🔴 Không phải trạng thái chain lớn lên — tải này không sinh trạng thái
+
+Bơm gửi **chuyển tiền cho chính mình**: `types.LegacyTx{… Gas: 21000, To: &from, Value: 1}`
+(`local-net/tools/k1/l1-batch/pump_ledger.go:166`). Mỗi giao dịch chạm **đúng một tài khoản** và **không tạo tài khoản mới** ⇒
+trie trạng thái của mỗi chain gần như đứng yên; thứ lớn lên là **lịch sử** (block, receipt, sổ sách đồng thuận), không phải trạng
+thái.
+
+Cộng với một quan sát của §2: trong 3,6 giờ nghỉ, `anon` **không nhả một MiB nào** (14.084 → 14.083). Go ép một lượt thu gom mỗi
+2 phút, nên thứ này **đang được tham chiếu**, không phải rác chờ dọn.
+
+⇒ Hai điều theo sau, và chúng đổi hình dạng câu hỏi:
+
+1. **10,6 KiB/tx/node là SÀN, không phải trần.** Một mạng thật còn cộng thêm phần trạng thái mà tải này cố tình không sinh ra.
+2. **Nếu bộ nhớ đó thật sự sống thì `GOMEMLIMIT` sẽ KHÔNG hạ được nó** — nó chỉ làm GC quay liên tục rồi tiến trình chết. Chính vì
+   vậy P-92 là phép đo có ích **theo cả hai chiều**: trần giữ được ⇒ đó là bộ đệm thu hồi được; trần không giữ được ⇒ phải chặn ở
+   chỗ khác (giới hạn cache theo BYTE, cắt lịch sử, hoặc khởi động lại theo lịch), và biết điều đó **trước khi mua máy** rẻ hơn
+   nhiều so với biết sau.
+
+(dốc cuối cửa sổ 1,5 h điền khi khép)
