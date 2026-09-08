@@ -271,10 +271,28 @@ g1 công khai / server / `patches/` / `web/`.
       **sống** (không trần nào thu hồi được) hoặc **nằm ngoài bộ cấp phát của Go** (trần của Go không nhìn thấy). Dự đoán định lượng
       giao cho P-92: dốc sau khi áp **không được thấp hơn ~115 MiB/node/giờ**; thấp hơn nhiều thì mô hình này sai.
       Bơm gửi **chuyển tiền cho chính mình** (`pump_ledger.go:166`) ⇒ **không sinh trạng thái**, nên 10,7 KiB/tx/node là **sàn**.
-- [ ] **P-92 — Chạy lại tải 15 chain × 1 tx/s CÓ `GOMEMLIMIT`, so dốc với pha 1** (đoạn cache nhỏ `22:19Z→01:22Z` là mốc đối chiếu:
+- [x] **P-92 — Chạy lại tải 15 chain × 1 tx/s CÓ `GOMEMLIMIT`, so dốc với pha 1** (đoạn cache nhỏ `22:19Z→01:22Z` là mốc đối chiếu:
       +123 MiB/node/h · +15,6 MiB/plugin/h). **Qua khi:** ≥ 3 giờ, 15/15 chain vẫn đẻ block ≤ 2,5 s, 0 OOM, 0 restart ngoài ý muốn,
       và dốc RAM ghi ra **một con số so được** với hai số trên. Ca đỏ: đặt `GOMEMLIMIT` thấp phi lý (vd 256 MiB) ⇒ phải thấy hậu quả
       THẬT (GC quay liên tục hoặc OOM) chứ không phải "không đổi gì" — nếu không đổi gì thì cờ **chưa hề có hiệu lực**.
+      ✅ `08/09` 06:54–09:56Z (autopilot, D-243). Trần `avalanchego` **250 MiB** · plugin **80 MiB** (plugin cố ý KHÔNG chặn — heap
+      Go của nó chỉ lên 1,2 MiB/giờ trong khi RSS lên 15, nên ép chặn phải hạ sát heap sống mà chẳng kiểm thêm gì). Cổng P-91 xanh
+      9/9 trước khi bơm; `check-chains-producing` 15/15 sau đó, gap 2–3 s **suốt lượt chạy**.
+      **So CÙNG TUỔI tiến trình (1,2 → 3,05 h sau restart, cùng 1,87 h, cùng dụng cụ):** `anon` **296 → 179 MiB/node/giờ**, tức
+      **giảm 40 %**. Điều kiện viết trước ở §4a của bằng chứng nói *"dưới 200 ⇒ mô hình sai"* ⇒ **mô hình §3c BỊ BÁC BỎ**, và lý do
+      dùng lại được: §3c suy tác dụng của trần bằng hiệu **hai TỐC ĐỘ**, nhưng trần chặn **MỨC**, mà mức khi không trần do `GOGC=100`
+      đặt ở **gấp đôi heap sống** — ghim mức là bỏ luôn cú nhân đôi. **So hai tốc độ để đoán tác dụng của một thứ chặn mức là sai
+      loại đại lượng.**
+      🔴 **Nhưng cái giá không nằm ở bộ nhớ:** CPU 9 node **2,09–2,17 → 20,39 lõi**, VM loadavg **3,8–9,7 → 87,8** trên 24 cpu,
+      `avalanchego` **46.946 lượt GC / 33,8 s**, `heap_sys` **288 MiB VƯỢT trần 250** — Go không xuống nổi vì phần đang giữ đã lớn
+      hơn trần. Quy công sạch: plugin cùng lúc ở **68/80 MiB**, **234 lượt GC · 0,09 s**. Và 🔴 **dừng tải KHÔNG cứu được**: 90 s
+      sau khi tắt bơm vẫn **20,57 lõi · loadavg 90,1** với 0 giao dịch — vòng xoáy tự nuôi, vì thứ giữ trần là phần **sống**.
+      ⇒ **Trần cố định là món MUA THỜI GIAN, không phải cách chữa.** Heap sống lớn không có trần ⇒ **mọi** trần cố định rồi sẽ bị
+      vượt, và từ lúc đó node đốt CPU thay vì đốt RAM. Việc phải làm nằm ở P-95 (tìm thứ đang giữ) hoặc ở lịch khởi động lại.
+      Ca đỏ của mục này **đã xảy ra thật và đúng như đặt ra** (*"trần thấp phi lý ⇒ thấy hậu quả THẬT"*) — chỉ khác là tôi tưởng
+      250 MiB đã chừa gấp đôi heap sống; heap sống vượt qua nó trong **chưa đầy 3 giờ**.
+      Băng tập đã **trả về cấu hình cũ** (bỏ lớp override bộ nhớ) sau khi cửa sổ khép. Cổng trần trong preflight nay **chỉ chấm khi
+      `A1_MEM_LIMIT_NODE` khai giá trị mong đợi** — không còn đòi trần như một điều kiện thường trực.
 - [x] **P-93 — Cổng ngân sách RAM mỗi node** `scripts/check-node-memory.mjs`: đọc cgroup + RSS theo tiến trình, chấm theo **ngân sách
       trên mỗi chain đã track** (không phải hằng số), in dốc khi có ≥ 2 mẫu. Vào preflight nhóm 3 **chỉ khi** `A1_DRILL_BAND` (không
       đủ tư cách chặn g1 — như P-87). **Qua khi:** self-test có ca dương và ca âm; chạy thật trên 9 node băng tập.
