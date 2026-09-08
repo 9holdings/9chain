@@ -317,8 +317,10 @@ g1 công khai / server / `patches/` / `web/`.
       cho máy 4 node**, thoải mái trong 64 GB. **Chỗ nghẽn không phải cỡ máy mà là bộ nhớ không bao giờ trả lại khi tiến trình còn
       sống** (restart trả lại 87 %), và cơ chế restart theo node **đã có sẵn từ P-83**, có chứng minh `StartedAt`.
       Ghi thêm: **đừng đặt `GOMEMLIMIT` cố định** trên node thật — theo P-92 nó là van an toàn đặt CAO, không phải cách tiết kiệm.
-      🔴 **Số còn thiếu để CHỐT lịch:** đỉnh sau **24 h**. Pha 1b chạy 9 h và **chưa thấy trần**, nên mọi lịch lúc này là ngoại suy.
-      Đó là phép đo đầu tiên của pha 2, cùng P-95 — nếu P-95 tìm ra và sửa được chỗ giữ bộ nhớ thì cả mục lịch restart thành thừa.
+      🔴 **Cập nhật sau P-95 (cùng ngày):** câu *"chưa thấy trần"* ở trên **không còn đúng** — P-95 tìm ra trần và nó **tính được**:
+      bộ đệm block của `chain.State`, **`số chain × 212 MiB` mỗi node**, đầy sau **~24 h** ở tải 1 tx/s. Vậy **lịch khởi động lại
+      không còn là suy đoán**, và với 15 chain/node đỉnh là **~3,1 GB** — đúng con số §2d đã ngoại suy. Nếu David hạ ba hằng số
+      trong `patches/` (P-95) thì trần xuống `chain × 40 MiB` và **mục lịch restart thành thừa**.
       ⏳ `PROCUREMENT-K1-2026-09-05.md` nằm ở worktree **`web-home`** (luật cứng #4) ⇒ kết luận ghi trên `main` ở §2d; việc
       `[web-home]` là chép câu kết luận đó sang tài liệu mua máy khi họ đụng tới nó.
 
@@ -329,7 +331,7 @@ g1 công khai / server / `patches/` / `web/`.
 `Caddyfile` lệch 1.733 dòng); `CLAUDE.md` trên `web-home` thiếu 234 dòng luật; 3 commit mồ côi. David: *"làm theo thứ tự
 trên, bắt đầu bước 2"*. Chi tiết và số đo: D-193.
 
-- [ ] **P-95 — TÌM thứ đang GIỮ bộ nhớ, bằng hồ sơ heap** (mở `08/09` sau P-92; đây là mục biến kết luận thành việc sửa được).
+- [x] **P-95 — TÌM thứ đang GIỮ bộ nhớ, bằng hồ sơ heap** (mở `08/09` sau P-92; đây là mục biến kết luận thành việc sửa được).
       P-92a + P-92 chỉ ra ~**79 MiB/node/giờ là heap SỐNG** — tức có cấu trúc nào đó trong `avalanchego`/subnet-evm **giữ tham
       chiếu** theo số block/giao dịch đã xử lý, và không GC nào chạm tới. Biết *"bao nhiêu"* mà không biết *"chỗ nào"* thì chỉ còn
       cách khởi động lại theo lịch. **Đo `08/09`: API admin của băng tập trả `404`** (`--api-admin-enabled` mặc định tắt), nên
@@ -340,6 +342,27 @@ trên, bắt đầu bước 2"*. Chi tiết và số đo: D-193.
       `avalanchego` hay plugin. Ca đỏ: hồ sơ lấy **một lần** (không `-base`) sẽ chỉ ra bộ nhớ nền lúc khởi động — phải cho thấy hai
       cách đọc ra kết luận khác nhau, để lần sau không ai đọc nhầm.
       🔴 Chỉ bật trên băng tập. API admin trên mạng thật là bề mặt ghi được, không nằm trong phạm vi mốc này.
+      ✅ `08/09` 11:20–12:35Z (autopilot, D-243). Hồ sơ **CẢ HAI nửa** trên **một** node (node-5): `avalanchego` qua
+      `admin.memoryProfile`, plugin qua `continuous-profiler-dir` trong thư mục cấu hình chain **riêng của node đó** — tám node kia
+      giữ nguyên. Chi phí của chính bộ hồ sơ **đo ra và ghi lại**: node-5 295 MiB so với 287–291 của peer cùng 8 plugin, tức ~1,7 %.
+      **Thứ đang giữ bộ nhớ: BỘ ĐỆM BLOCK ĐÃ PHÂN TÍCH của `vms/components/chain.State`, ở CẢ HAI phía ranh giới gRPC.**
+      `avalanchego` tăng **79,6 MB**/75 phút: `protobuf…consumeBytesNoZero` **22,0** · `chain.(*State).ParseBlock` **17,5** (cum) ·
+      `goleveldb BufferPool.Get` 8,8 · ba `linked.Hashmap[…lru.sizedElement…].Put` 5,5. Mỗi plugin tăng **21,7 MB**, trong đó
+      `ParseBlock` **11,3 (51,8 %)**, dưới nó là `Transaction.DecodeRLP` · `rlp.decodeBigInt` · `CopyHeader` — tức **hình dạng của
+      thứ được đệm**, không phải chỗ rò riêng biệt.
+      🔴 **Và bộ đệm đó CÓ TRẦN, trần là hằng số MỖI CHAIN:** `avalanchego` 64+64+64 = **192 MiB/chain**
+      (`vms/rpcchainvm/vm_client.go:61-64`), plugin 10+5+5 = **20 MiB/chain** (`graft/subnet-evm/plugin/evm/vm.go:107-110`); một
+      `chain.State` cho **mỗi VMClient**, mỗi chain một VMClient, và plugin có `chain.State` của nó ⇒ **mỗi block đệm HAI LẦN**,
+      phía `avalanchego` rộng **gấp 10**. ⇒ **trần mỗi node TÍNH ĐƯỢC: `số chain × 212 MiB`** — pha 3 (15 chain/node) là **~3,1 GB**,
+      khớp con số §2d `PLAN-108` ngoại suy từ đường cong 6 giờ, nhưng nay **có cơ chế** thay vì khớp đường.
+      Ghép tốc độ với trần: `avalanchego` **8,0 MB/chain/giờ ⇒ đầy sau ~24 h**; plugin **17,4 MB/giờ ⇒ đầy sau ~1,1 h**. Điều này
+      giải mâu thuẫn còn treo trong phiên: plugin đo 24 MiB/h lúc trẻ mà chỉ 1,2 lúc 9 giờ tuổi — **nó đã bão hoà**, còn
+      `avalanchego` thì chưa. Và nó trả lời luôn *"đỉnh sau 24 h"* mà P-94 khai là còn thiếu.
+      **Ca đỏ đạt:** hồ sơ ĐƠN ở t1 có `reflect.mapassign0` 7,3 · `runtime.allocm` 6,5 · `leveldb/memdb.New` 6,0 trong top-10 —
+      **cả ba tăng bằng 0** trong hiệu số. Đọc hồ sơ đơn lẻ là đi tối ưu thứ đứng yên.
+      ⏳ `[human]` **Nút bấm nằm trong `patches/`** (luật cứng 3, KHÔNG tự làm): hạ ba hằng số phía `avalanchego` xuống mức của
+      plugin kéo trần từ `chain × 212 MiB` xuống `chain × 40 MiB` — 15 chain là **3,1 GB → 0,6 GB**. Cái giá chưa đo là tỉ lệ trúng
+      bộ đệm khi block bị đuổi sớm; đó là **phép đo của pha 2**, không phải suy đoán.
 - [human] **WT-1 — merge `main → web-home`** (đưa 296+ commit + luật `CLAUDE.md` sang). Phiên web đã commit xong lượt
       của họ (`web-home` đi liên tục: `a33be0b` → `a6b11fb` trong 40 phút) — vẫn là việc của phiên giữ nhánh đó, không tự merge (§4).
       Nhánh cứu `web-rescue-orphans-20260905` (`b73a97c`, trên `b2ccdd7`): merge dry-run **sạch** với `a6b11fb`, không còn ff.
