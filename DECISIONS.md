@@ -10897,3 +10897,51 @@ nói chuyện với **mạng công khai và server**, nơi thứ tự lẫn sự
 
 **Đồng thời 4, không phải "bằng số lõi".** Một cổng trong lô — `check-flag-guards` — **tự nó đẻ 56 tiến trình
 con**; một cổng khác đọc **trọn** kho object của git. Nhân số lõi lên ở đây là mua lại đúng cái nghẽn vừa gỡ.
+
+---
+
+## D-249 — **Trước khi tách `server.mjs`: một bài kiểm QUÉT MÃ NGUỒN không đi theo mã khi mã chuyển chỗ — và nó sẽ vẫn XANH** (`2026-09-08` chiều, P-106a)
+
+**Phát hiện, và nó chặn P-106 lại trước khi tôi động vào tệp.** `local-net/console/readiness-e2e-test.mjs` **đọc
+`server.mjs` như văn bản**: nó quét mọi lượt đọc biến môi trường và khẳng định từng biến phải nằm trong
+`CONSOLE_CONFIGURATION_KEYS` — tức là trong **dấu vân cấu hình** mà console dùng để chứng minh một lượt restart
+không lặng lẽ đổi hành vi.
+
+🔴 **Một phép quét MỘT tệp làm tính chất an toàn đó phụ thuộc vào chỗ mã ngồi.** Nhấc đúng một lượt đọc env sang
+một mô-đun trợ giúp: bài kiểm **thôi nhìn thấy nó**, dấu vân **thôi bao nó**, và bài kiểm **vẫn xanh**. Tách một
+tệp 2.927 dòng mà không đóng chuyện này trước là **thu hẹp một tính chất an toàn trong im lặng, trong khi mọi
+cổng đều báo đạt**. Đúng CLAUDE.md §2, và lần này nó sẽ do chính lượt tối ưu gây ra.
+
+**Quyết định — quét theo ĐỒ THỊ IMPORT từ `server.mjs`, không quét một tệp.**
+
+**Và bộ đi đồ thị đang bị khoá bên trong một cổng.** `relativeImports` · `opaqueImports` · `resolveGraph` được
+`export` từ `scripts/check-deploy-imports.mjs`, nhưng **không ai dùng được**: tệp đó kết bằng
+`process.exit(main())` ở phạm vi mô-đun, nên import nó để mượn một hàm là **chạy cả cổng rồi giết kẻ import**.
+Bài học đó đã nằm sẵn ở đầu `local-net/lib/l1-allowlist.mjs` từ `03/09` — lần trước, cổng thứ hai cần helper đã
+phải **CHÉP** nó, và đó là cách một luật có bản khai thứ hai (§6). Ba hàm nay ở
+`local-net/lib/import-graph.mjs`; `check-deploy-imports` import lại từ đó và re-export, self-test 13 ca xanh.
+⚠️ Đặt ở `local-net/lib/` chứ không `scripts/lib/` vì kẻ gọi là một tệp console **được deploy**, và mô-đun được
+deploy không được import ngược vào bộ công cụ — lỗi đã mắc sáng cùng ngày với `cli.mjs` (D-245).
+
+**🔴 Cái bẫy nhỏ ăn ngay: `export { x } from "..."` KHÔNG tạo ràng buộc cục bộ.** Bản đầu chỉ re-export, và
+self-test của chính `check-deploy-imports` ném `ReferenceError: relativeImports is not defined` ở ca đầu tiên.
+Phải `import` **và** `export`.
+
+**Hai lượt đỏ mà phép quét rộng moi ra, cả hai đều là chú thích.**
+- Chú thích **tôi vừa viết** trong bài kiểm đánh vần một lượt đọc env nguyên văn ⇒ chính nó bị tố. Đã viết lại.
+- `local-net/lib/guard.mjs:174` có sẵn một câu tương tự từ trước. Đã viết lại, **giữ nguyên nghĩa**, kèm dòng nói
+  rõ vì sao cách đánh vần ở đó là cố ý.
+⚠️ Bộ quét **đọc cả chú thích, và điều đó giữ nguyên có chủ ý**: một biến nêu trong chú thích tốn một lượt đỏ giả
+người ta gỡ trong vài giây, còn một biến **bỏ sót** tốn một console có dấu vân không bao nó. Cùng một đánh đổi
+`relativeImports` đã chọn.
+
+**🔴 Ca đối chứng đầu tiên tôi viết cho việc này SAI, và cái sai đáng ghi.** Tôi khẳng định *"đi đồ thị phải tìm
+ra biến mà riêng `server.mjs` không có"*. Nó đỏ — **đúng**: hôm nay **mọi** lượt đọc env vẫn còn trong
+`server.mjs`, nên phép quét rộng chưa thêm được cái TÊN nào. Nó là **bảo hiểm mua trước lượt tách**, không phải
+vùng phủ đã có. Thứ phải chứng minh bây giờ là **CƠ CHẾ**, và nó được chứng minh trên **cây giả** đi qua đúng
+`resolveGraph` đó (`readFile` tiêm được tồn tại chính vì việc này): tệp entry đọc `PORT`, mô-đun con đọc
+`A1_MOVED_INTO_A_HELPER`; quét riêng entry **không** thấy biến thứ hai, quét theo đồ thị **có**. Cộng thêm một
+khẳng định rằng phép quét rộng luôn là **tập cha** — nới rộng được phép thêm vùng phủ, **không bao giờ** bớt.
+
+**Số đo:** `readiness-e2e-test` **31 → 32 ca**, xanh · `check-deploy-imports` self-test 13 ca + đường thật xanh ·
+`check-local --console` **39 cổng / 55 ca trong 63,0 s** (nền tuần tự trước P-103: 2 phút 31) · nợ §0 không phình.

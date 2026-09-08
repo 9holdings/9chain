@@ -58,50 +58,16 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MANIFEST = path.join(ROOT, "local-net/deploy/manifest-deploy.json");
 const SELF_TEST = process.argv.slice(2).includes("--self-test");
 
-/**
- * Every relative specifier a source file imports.
- *
- * 🔴 Deliberately simple and deliberately NOISY-SAFE: it over-reports rather than under-reports.
- * A specifier found inside a comment costs a false red that a human resolves in seconds; a
- * specifier missed costs a dead service. Where those two are the options, over-report.
- */
-export function relativeImports(source) {
-  const out = new Set();
-  // `import x from "./y"` · `import "./y"` · `export … from "./y"` · `await import("./y")`
-  for (const m of source.matchAll(/(?:^|[^A-Za-z0-9_$])(?:import|export)\s*(?:[\s\S]{0,200}?\sfrom\s*|\s*)["'](\.[^"']+)["']/g)) out.add(m[1]);
-  for (const m of source.matchAll(/\bimport\s*\(\s*["'](\.[^"']+)["']\s*\)/g)) out.add(m[1]);
-  return [...out];
-}
-
-/** Dynamic imports whose path is computed — invisible to static reading, so they are reported. */
-export function opaqueImports(source) {
-  return [...source.matchAll(/\bimport\s*\(\s*(?!["'])/g)].length;
-}
-
-/**
- * Walk one group's entry files and return every repo-relative file they reach.
- *
- * `readFile` is injected so `--self-test` can drive it over a fake tree: a gate about missing
- * files whose own tests need the real filesystem can only be tested by breaking the real thing.
- */
-export function resolveGraph(entries, readFile, seen = new Set()) {
-  const missing = [];
-  const opaque = [];
-  const walk = (rel) => {
-    if (seen.has(rel)) return;
-    seen.add(rel);
-    const src = readFile(rel);
-    if (src === null) { missing.push(rel); return; }
-    if (opaqueImports(src)) opaque.push(rel);
-    for (const spec of relativeImports(src)) {
-      // Resolve relative to the importing file, then normalise to repo-relative POSIX form.
-      const abs = path.posix.normalize(path.posix.join(path.posix.dirname(rel), spec));
-      walk(abs);
-    }
-  };
-  for (const e of entries) walk(e);
-  return { reached: seen, missing, opaque };
-}
+// 🔴 relativeImports · opaqueImports · resolveGraph moved to local-net/lib/import-graph.mjs
+// on 2026-09-08 (D-249). They were exported from here and unusable: this file ends with
+// `process.exit(main())` at module scope, so importing it to borrow one function ran the
+// whole gate and killed the importer. They are re-exported below so nothing that already
+// imports them from here breaks.
+// ⚠️ Imported AND re-exported, not `export … from`: that form re-exports without creating a
+// local binding, so this file's own self-test lost `relativeImports` and threw at the first case.
+import { relativeImports, opaqueImports, resolveGraph as walkGraph } from "../local-net/lib/import-graph.mjs";
+export { relativeImports, opaqueImports };
+export { resolveGraph } from "../local-net/lib/import-graph.mjs";
 
 /** The comparison this gate exists for: what the code reaches vs what the manifest ships. */
 export function assessGroup(name, files, graph) {
@@ -141,7 +107,7 @@ function main() {
     const files = group.files ?? [];
     // Entries are the JS the server actually runs; JSON and HTML in the list are data, not code.
     const entries = files.filter((f) => /\.mjs$/.test(f));
-    const graph = resolveGraph(entries, readFile);
+    const graph = walkGraph(entries, readFile);
     const a = assessGroup(name, files, graph);
     console.log(`  ${a.verdict === "ok" ? "✓" : "🔴"} ${name}\n       ${a.why}`);
     if (graph.opaque.length) {
@@ -184,21 +150,21 @@ function selfTest() {
   const read = (rel) => (rel in tree ? tree[rel] : null);
 
   ok("🔴 THE REAL CASE — server shipped, its dependency NOT in the manifest ⇒ FAIL",
-    assessGroup("x", ["a/server.mjs"], resolveGraph(["a/server.mjs"], read)).verdict, "fail");
+    assessGroup("x", ["a/server.mjs"], walkGraph(["a/server.mjs"], read)).verdict, "fail");
   ok("…and listing the dependency makes it pass",
-    assessGroup("x", ["a/server.mjs", "b/dep.mjs"], resolveGraph(["a/server.mjs"], read)).verdict, "ok");
+    assessGroup("x", ["a/server.mjs", "b/dep.mjs"], walkGraph(["a/server.mjs"], read)).verdict, "ok");
   ok("🔴 an import of a file that does not exist in the repo at all ⇒ FAIL",
-    assessGroup("x", ["a/only.mjs"], resolveGraph(["a/only.mjs"],
+    assessGroup("x", ["a/only.mjs"], walkGraph(["a/only.mjs"],
       (r) => (r === "a/only.mjs" ? 'import "./gone.mjs";' : null))).verdict, "fail");
   ok("🔴 transitive: A imports B imports C, and C unlisted ⇒ FAIL",
-    assessGroup("x", ["a/1.mjs", "a/2.mjs"], resolveGraph(["a/1.mjs"], (r) => ({
+    assessGroup("x", ["a/1.mjs", "a/2.mjs"], walkGraph(["a/1.mjs"], (r) => ({
       "a/1.mjs": 'import "./2.mjs";', "a/2.mjs": 'import "./3.mjs";', "a/3.mjs": "export const c=1;",
     }[r] ?? null))).verdict, "fail");
   ok("a file importing nothing is fine",
-    assessGroup("x", ["a/solo.mjs"], resolveGraph(["a/solo.mjs"], () => "export const x=1;")).verdict, "ok");
+    assessGroup("x", ["a/solo.mjs"], walkGraph(["a/solo.mjs"], () => "export const x=1;")).verdict, "ok");
   ok("🔴 shipping MORE than is reached is not an error — data files belong in the list too",
     assessGroup("x", ["a/server.mjs", "b/dep.mjs", "c/data.json"],
-      resolveGraph(["a/server.mjs"], read)).verdict, "ok");
+      walkGraph(["a/server.mjs"], read)).verdict, "ok");
 
   console.log(`\n${fail === 0 ? "✅" : "🔴"} ${pass} passed · ${fail} failed`);
   return fail === 0 ? 0 : 1;

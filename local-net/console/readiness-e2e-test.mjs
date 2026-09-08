@@ -14,6 +14,7 @@ import { consoleConfigurationFingerprint, readConsoleReadiness, CONSOLE_CONFIGUR
   CONSOLE_CONFIGURATION_EXCLUSIONS } from '../lib/console-readiness.mjs';
 import { A1_PARENT_EVM_CHAIN_ID } from '../lib/chainid.mjs';
 import { CreationJournal } from '../lib/creation-journal.mjs';
+import { resolveGraph } from '../lib/import-graph.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 fs.mkdirSync(path.join(root, 'work'), { recursive: true });
@@ -76,7 +77,53 @@ try {
     await delay(30);
   }
   assert.equal(A1_PARENT_EVM_CHAIN_ID, 9000000009); checks++;
-  const source = fs.readFileSync(path.join(root, 'local-net/console/server.mjs'), 'utf8');
+  // 🔴 EVERY file the console reaches, not just server.mjs (D-249).
+  //
+  // This scan is what keeps the configuration fingerprint honest: every environment variable the
+  // console reads must be declared in CONSOLE_CONFIGURATION_KEYS, so a restart that changes
+  // behaviour cannot look identical. Reading ONE file made that property depend on where the code
+  // happens to live — lift a single environment read into a helper module and this test stops
+  // seeing it, the fingerprint silently stops covering it, and the test STAYS GREEN.
+  //
+  // That mattered on 2026-09-08, when server.mjs (2 927 lines) was about to be split. A source
+  // scan does not follow the code when the code moves, and nothing would have said so.
+  //
+  // ⚠️ The scan reads COMMENTS as code, and that is left alone on purpose: a variable named in a
+  // comment costs a false red a person clears in seconds, while a variable missed costs a console
+  // whose fingerprint does not cover it. Same trade as relativeImports. (This very comment caused
+  // one: an earlier draft spelled out an environment read inline and the scan duly reported it.)
+  const reachedFiles = [...resolveGraph(['local-net/console/server.mjs'],
+    (rel) => { try { return fs.readFileSync(path.join(root, rel), 'utf8'); } catch { return null; } }).reached];
+  const source = reachedFiles
+    .map((rel) => { try { return fs.readFileSync(path.join(root, rel), 'utf8'); } catch { return ''; } })
+    .join('\n');
+  assert.ok(reachedFiles.length > 10, `the console reaches ${reachedFiles.length} files — the walk failed`);
+  // 🔴 The counter-check for the widening itself. Scanning only server.mjs must find STRICTLY
+  // FEWER environment reads than scanning the graph — if the two sets were equal, this change
+  // would be decoration, and the day someone moved a read out of server.mjs it would go quiet
+  // again with nothing to show for it.
+  const envNames = (text) => new Set([...text.matchAll(/process\.env\.([A-Z0-9_]+)|require(?:Secret|Int)\(["']([A-Z0-9_]+)["']/g)]
+    .map(match => match[1] || match[2]));
+  const serverOnly = envNames(fs.readFileSync(path.join(root, 'local-net/console/server.mjs'), 'utf8'));
+  const wholeGraph = envNames(source);
+  assert.ok([...serverOnly].every(name => wholeGraph.has(name)),
+    'the wider scan must be a SUPERSET: widening may add coverage, never remove it');
+  // Today every environment read still lives in server.mjs, so the walk adds no NAMES yet — it is
+  // insurance taken out before the split, not coverage already gained. What has to be proved now
+  // is the MECHANISM: that a read living one module away really is found. Proved over a fake tree
+  // through the same resolveGraph, which is what its injectable readFile exists for.
+  const fakeTree = {
+    'a/entry.mjs': 'import { helper } from "./helper.mjs";\nconst port = process.env.PORT;\n',
+    'a/helper.mjs': 'export const helper = () => process.env.A1_MOVED_INTO_A_HELPER;\n',
+  };
+  const fakeReached = [...resolveGraph(['a/entry.mjs'], (rel) => fakeTree[rel] ?? null).reached];
+  const fakeWhole = envNames(fakeReached.map((rel) => fakeTree[rel] ?? '').join('\n'));
+  assert.ok(!envNames(fakeTree['a/entry.mjs']).has('A1_MOVED_INTO_A_HELPER'),
+    'the control is broken: the entry file must NOT contain the moved read');
+  assert.ok(fakeWhole.has('A1_MOVED_INTO_A_HELPER'),
+    '🔴 a read moved one module away was NOT found — this is the exact silent gap D-249 closes');
+  assert.deepEqual(fakeReached.sort(), ['a/entry.mjs', 'a/helper.mjs']);
+  checks++;
   const referenced = new Set([...source.matchAll(/process\.env\.([A-Z0-9_]+)|require(?:Secret|Int)\(["']([A-Z0-9_]+)["']/g)].map(match => match[1] || match[2]));
   const missing = text => [...new Set([...text.matchAll(/process\.env\.([A-Z0-9_]+)|require(?:Secret|Int)\(["']([A-Z0-9_]+)["']/g)].map(match => match[1] || match[2]))]
     .filter(name => !CONSOLE_CONFIGURATION_KEYS.includes(name) && !CONSOLE_CONFIGURATION_EXCLUSIONS.includes(name));

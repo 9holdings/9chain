@@ -171,7 +171,11 @@ export function suggestToken() {
  *
  * ═══ 🔴 WHY THIS EXISTS — the pattern it replaces fails OPEN ═══
  *
- * Every numeric knob in this project was written as `Number(process.env.X || <default>)`.
+ * Every numeric knob in this project was written as `Number(<the variable> || <default>)`.
+ * ⚠️ The spelling is deliberate: `readiness-e2e-test.mjs` scans every file the console reaches
+ * for environment reads and asserts each is declared in the configuration fingerprint. It reads
+ * comments too — on purpose, since missing a real variable is worse than a false red — so prose
+ * here must not spell an environment access out literally (D-249).
  * That is safe when the variable is absent, and silently catastrophic when it is present and
  * mistyped: `A1_MAX_L1=fifteen` yields `NaN`, and **every comparison against NaN is false** —
  *
