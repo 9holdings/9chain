@@ -6,14 +6,11 @@ GIAO DỊCH, không theo đồng hồ**; nó là **heap SỐNG**; **restart tr�
 40 % nhưng CPU 9 node đi **2,1 → 20,4 lõi** và **không tự khỏi khi hết tải**; và **P-95 tìm ra thứ đang giữ**: **bộ đệm block đã
 phân tích của `chain.State`**, có **trần đặt cho mỗi chain** ⇒ **trần mỗi node = `số chain × 212 MiB`**, tức **~3,1 GB ở 15
 chain/node**. ⇒ Đơn mua **giữ nguyên 9 × AX42**; thứ phải thêm là **lịch khởi động lại**, và nay lịch đó **không còn là ngoại suy**.
-backlog. Kết luận đổi hẳn hình dạng bài toán: **RAM đi theo GIAO DỊCH, không theo đồng hồ**; nó là **heap SỐNG**; **restart trả lại
-87 %**; và **`GOMEMLIMIT` không phải câu trả lời** — nó hạ RAM 40 % nhưng CPU 9 node đi **2,1 → 20,4 lõi** và **không tự khỏi khi
-hết tải**. ⇒ Đơn mua **giữ nguyên 9 × AX42**; thứ phải thêm là **lịch khởi động lại**, dùng rollout theo node đã có từ P-83.
 Mạng g1 công khai, server, `patches/`, `web/`: **không đổi**. Băng tập đã **trả về cấu hình cũ** và đo lại đúng mốc nghỉ của pha 1.
 **Preflight cuối phiên (cờ băng tập bật, đo lại sau P-95): `61 đạt · 2 đỏ · 0 không chạy được · 8 việc tay`** — hai đỏ đều đã biết và **không cái nào
 là việc mã của `main`**: `check-deploy-drift` (console chưa deploy, `[human]`, đúng thiết kế từ `07/09`) và cổng bơm g1 (đỏ **có chủ
 ý** tới `09/09`, D-149). `check-clock-skew` lượt này **xanh** — đúng như đã ghi, nó chỉ nhấp nháy khi có bơm chạy.
-`main` đứng trên `origin/main` **48 commit, chưa đẩy** (commit HANDOFF này là cái cuối; David bấm sau `check-remotes` +
+`main` đứng trên `origin/main` **~59 commit, chưa đẩy** (commit HANDOFF này là cái cuối; David bấm sau `check-remotes` +
 `check-history-secrets --all-objects`). Đếm lại bằng `git log --oneline origin/main..main | wc -l` chứ đừng tin con số chép tay.
 Bằng chứng: `docs/EVIDENCE-L1-108-PHASE1B-2026-09-08.md`; cỡ máy ở `docs/PLAN-108-L1-LOAD-TEST.md` **§2d**.
 
@@ -33,7 +30,8 @@ Bằng chứng: `docs/EVIDENCE-L1-108-PHASE1B-2026-09-08.md`; cỡ máy ở `doc
 | **P-95 — thời gian đầy** | plugin ~1 h (đo 7 điểm: bước +7,0 → +1,6 MB, tỉ lệ ~0,76) · `avalanchego` **~24 h** |
 
 **Việc tiếp:**
-- **[human] đẩy `origin`** 45 commit. `official` hỏi trước qua `publish-official.sh`.
+- **[human] đẩy `origin`** — đếm bằng `git log --oneline origin/main..main | wc -l` (lúc chốt: **59**). `official` hỏi trước qua
+  `publish-official.sh`.
 - **[human] bốn quyết định của mốc** vẫn nguyên (V · r · H-2 ACP-77 · WT-1) — pha 1b **không** đụng tới chúng.
 - **[human] deploy console** — vẫn là lý do `check-deploy-drift` đỏ, đúng thiết kế từ `07/09`.
 - **[human] MỘT quyết định mới, có số sẵn (P-95):** ba hằng số bộ đệm block phía `avalanchego` là **64+64+64 MiB mỗi chain**
