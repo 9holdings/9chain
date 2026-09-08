@@ -251,10 +251,20 @@ g1 công khai / server / `patches/` / `web/`.
       +123 MiB/node/h · +15,6 MiB/plugin/h). **Qua khi:** ≥ 3 giờ, 15/15 chain vẫn đẻ block ≤ 2,5 s, 0 OOM, 0 restart ngoài ý muốn,
       và dốc RAM ghi ra **một con số so được** với hai số trên. Ca đỏ: đặt `GOMEMLIMIT` thấp phi lý (vd 256 MiB) ⇒ phải thấy hậu quả
       THẬT (GC quay liên tục hoặc OOM) chứ không phải "không đổi gì" — nếu không đổi gì thì cờ **chưa hề có hiệu lực**.
-- [ ] **P-93 — Cổng ngân sách RAM mỗi node** `scripts/check-node-memory.mjs`: đọc cgroup + RSS theo tiến trình, chấm theo **ngân sách
+- [x] **P-93 — Cổng ngân sách RAM mỗi node** `scripts/check-node-memory.mjs`: đọc cgroup + RSS theo tiến trình, chấm theo **ngân sách
       trên mỗi chain đã track** (không phải hằng số), in dốc khi có ≥ 2 mẫu. Vào preflight nhóm 3 **chỉ khi** `A1_DRILL_BAND` (không
       đủ tư cách chặn g1 — như P-87). **Qua khi:** self-test có ca dương và ca âm; chạy thật trên 9 node băng tập.
       Ca đỏ: fixture một node vượt ngân sách ⇒ đỏ **nêu đúng node đó**, không đỏ cả bảng.
+      ✅ `08/09` (autopilot, D-243): ngân sách là `base + perChain × số plugin ĐO ĐƯỢC trên node` — hằng số phẳng không chấm nổi cả
+      pha 1 (8,3 chain/node) lẫn pha 3 (15 chain/node). Có `--series` thì chấm thêm **dốc** và in **biên còn mấy giờ**: node nằm
+      trong ngân sách mà đang leo thì chưa phải "đạt", chỉ là "chưa hỏng". Self-test **15 ca** (gồm: cùng mức dùng + nhiều chain hơn
+      ⇒ đạt · dốc âm không bao giờ là "đang leo" · mẫu `null` không đọc thành 0 · **không có plugin ⇒ `unreachable`, không phải
+      `ok`**). Một ca kỳ vọng của tôi sai số học và test bắt được (19 chứ không phải 12).
+      **Chạy thật:** 9/9 node trong ngân sách `800 + 220`; node-1 `1987 MiB / 2780` với 9 plugin, node-9 `1551 / 2560` với 8.
+      **Hai ca đỏ trên node thật:** siết `--per-chain 131,5` ⇒ đỏ **đúng node-1 và node-2**, nêu **nửa nào nặng** (node-1 "plugin
+      trung bình 132 so với 131,5", node-2 "riêng avalanchego 825 so với 800"), node-3 `1980` vẫn đạt · siết `--max-slope 0,5` ⇒
+      chỉ **node-8** bị nêu, 8 node kia đạt. Container lạ ⇒ **mã 2**, không phải 0. Vào preflight nhóm 2 (self-test) và nhóm 3 khi
+      có `A1_DRILL_BAND` + `A1_DRILL_COMPOSE`.
 - [ ] **P-94 — Kết luận cỡ máy vào `docs/PLAN-108-L1-LOAD-TEST.md` §2 + soát lại đơn mua** — trả lời bằng số đo: 60 chain/node có nằm
       trong 64 GB của AX42 không, và **biên** còn bao nhiêu. **Qua khi:** §2 có bảng RAM/chain/node **đo được** (không phải ước), và
       một câu **kết luận có hướng** cho `PROCUREMENT-K1`: giữ 9 máy · đổi cấu hình · hay đổi V. Ca đỏ: nếu số đo nói AX42 **không** đủ
