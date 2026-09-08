@@ -39,6 +39,7 @@ import { createManagedNodeRpc, MANAGED_NODE_API } from "../lib/managed-node-rpc.
 import { assignValidators, nodeLoad, validatorsOf, trackListsByNode } from "../lib/validator-assignment.mjs";
 import { MaintenanceGate } from "../lib/maintenance.mjs";
 import { consoleConfigurationFingerprint, probeConsoleReadiness } from "../lib/console-readiness.mjs";
+import { OperationJournal } from "./operation-journal.mjs";
 
 const STARTUP_CONFIGURATION_SHA256 = consoleConfigurationFingerprint(process.env);
 
@@ -721,83 +722,19 @@ function ghimTrackVaoEnv(trackList) {
 }
 
 /**
- * ═══ TIẾN TRÌNH ĐANG CHẠY — vì sao cần một cái riêng ═══
+ * The running operation, for `/api/progress`.
  *
- * Một lượt đẻ chain mất **~170 giây**, và đó là CHỦ Ý: các node restart lần lượt để
- * mạng không mất quorum, đổi lại RPC công khai chỉ gián đoạn 0,5s thay vì 6,0s
- * (D-008). Nhưng với người bấm nút thì một vòng xoay 170 giây đọc là **"hỏng rồi"** —
- * họ tải lại trang, bấm lại, và lần bấm thứ hai là một chain thừa ăn mất một slot
- * trong trần 15.
+ * A chain creation takes ~170 seconds, and that is DELIBERATE: nodes restart one at a time so
+ * the network keeps quorum, which costs 0.5s of public RPC interruption instead of 6.0s (D-008).
+ * To the person who pressed the button, a 170-second spinner reads as "it broke" — they reload,
+ * press again, and the second press is a surplus chain eating one of the 15 permanent slots.
+ * `/api/create` returns its restart log AFTER it finishes, which is exactly when nobody needs it
+ * any more; what was missing was reading progress DURING.
  *
- * `/api/create` trả về nhật ký `restart` **sau khi xong**, tức đúng lúc không còn ai
- * cần nó nữa. Cái thiếu là đọc được tiến trình **giữa chừng**.
- *
- * ═══ VÌ SAO MỘT BIẾN TOÀN CỤC LÀ ĐỦ (VÀ ĐÚNG) ═══
- * Console chạy MỘT tiến trình, và `create`/`revoke` đi chung một **hàng đợi tuần
- * tự** — theo thiết kế, vì hai đợt rollout chồng nhau sẽ restart giữa chừng nhau và
- * hỏng cả hai. Nên tại mọi thời điểm có **nhiều nhất một** lượt đang chạy. Dựng một
- * bảng job có id cho một thứ không bao giờ có hai là thêm trạng thái để giữ đồng bộ
- * mà không mua được gì.
- *
- * Giữ lại lượt VỪA XONG (không xoá ngay) để người dùng tải lại trang muộn vài giây
- * vẫn thấy kết quả thay vì một màn trống.
+ * Moved to `./operation-journal.mjs` on 2026-09-08 (D-250) — the reasoning, the 2026-08-25
+ * measurement behind the closed-journal guard, and 27 counter-checks now live with the code.
  */
-const tienTrinh = {
-  dangChay: false,
-  loai: null,      // "tao" | "thuHoi"
-  ten: null,
-  batDau: 0,
-  buoc: [],        // [{ ma, nhan, trangThai: "cho"|"chay"|"xong"|"hong", ms }]
-  loi: null,
-};
-
-/**
- * 🔴 BA HÀM DƯỚI ĐÂY ĐỀU IM LẶNG BỎ QUA KHI KHÔNG CÓ LƯỢT NÀO ĐANG CHẠY.
- *
- * Không có cửa chặn đó thì lượt **thu hồi** (cũng gọi `trackSubnetsLanLuot`) sẽ ghi
- * đè lên tiến trình của lượt **đẻ vừa xong** — đo được 2026-08-25: ngay sau khi
- * lượt đẻ đóng ở 8/8, lượt thu hồi kéo bước `node-2` từ "xong" về "chay" và giao
- * diện của người vừa đẻ chain thấy tiến trình **chạy lùi**. Hỏng theo kiểu tệ: hai
- * thao tác khác nhau dùng chung một bảng trạng thái mà không ai khai điều đó.
- */
-function moTienTrinh(loai, ten, buoc) {
-  tienTrinh.dangChay = true;
-  tienTrinh.loai = loai;
-  tienTrinh.ten = ten;
-  tienTrinh.batDau = Date.now();
-  tienTrinh.loi = null;
-  tienTrinh.buoc = buoc.map(b => ({ ...b, trangThai: "cho", ms: 0 }));
-}
-
-/** Đánh dấu một bước bắt đầu chạy; bước trước đó (nếu còn "chay") coi như xong. */
-function buocChay(ma, nhan) {
-  if (!tienTrinh.dangChay) return;
-  const b = tienTrinh.buoc.find(x => x.ma === ma);
-  if (b) { b.trangThai = "chay"; b.batDau = Date.now(); if (nhan) b.nhan = nhan; }
-}
-
-function buocXong(ma, ms) {
-  if (!tienTrinh.dangChay) return;
-  const b = tienTrinh.buoc.find(x => x.ma === ma);
-  if (b) { b.trangThai = "xong"; b.ms = ms ?? (b.batDau ? Date.now() - b.batDau : 0); }
-}
-
-/** Thêm bước phát hiện lúc chạy (số node chỉ biết sau khi đọc compose). */
-function themBuoc(ma, nhan) {
-  if (!tienTrinh.dangChay) return;
-  if (!tienTrinh.buoc.some(x => x.ma === ma)) {
-    tienTrinh.buoc.push({ ma, nhan, trangThai: "cho", ms: 0 });
-  }
-}
-
-function dongTienTrinh(loi) {
-  tienTrinh.dangChay = false;
-  tienTrinh.loi = loi ? String(loi.message || loi) : null;
-  if (loi) {
-    const b = tienTrinh.buoc.find(x => x.trangThai === "chay");
-    if (b) b.trangThai = "hong";
-  }
-}
+const journal = new OperationJournal();
 
 /**
  * Is the L1 itself (not just P/X/C) healthy again on this node?
@@ -1056,11 +993,11 @@ async function trackSubnetsLanLuot(target, { requireChain, forceRestart = false,
 
   // Số node chỉ biết được SAU khi đọc compose, nên các bước này thêm vào lúc chạy.
   // Giao diện nhờ vậy hiện được "node 2/5" thay vì một vòng xoay không biết bao lâu.
-  for (const svc of chon) themBuoc(`node:${svc}`, svc);
+  for (const svc of chon) journal.addStep(`node:${svc}`, svc);
 
   for (const svc of chon) {
     const t0 = Date.now();
-    buocChay(`node:${svc}`);
+    journal.stepRunning(`node:${svc}`);
     // A changed environment MUST recreate the container; prove it the same way a forced restart is
     // proven. Under the every-node model the proof stays opt-in (forceRestart), unchanged.
     const mustRestart = forceRestart || (!legacy && changed.has(svc));
@@ -1130,7 +1067,7 @@ async function trackSubnetsLanLuot(target, { requireChain, forceRestart = false,
     }
     const ms = Date.now() - t0;
     nhatKy.push({ svc, ms });
-    buocXong(`node:${svc}`, ms);
+    journal.stepDone(`node:${svc}`, ms);
     console.log(`  ✓ ${svc} track xong, mạng chính phục vụ lại sau ${(ms / 1000).toFixed(1)}s`);
   }
   // The nodes left alone must have STAYED alone: a StartedAt that moved on a node this rollout
@@ -1586,20 +1523,20 @@ async function executeChainLaunch(plan, job) {
   // (`genesis`/`subnet`/`rpc`) beside the label, so `web/` can translate from the code without
   // the console changing anything. The console does NOT guess the user's language — it does not
   // know it, and guessing wrong is this same bug pointing the other way.
-  moTienTrinh("tao", name, [
-    { ma: "genesis", nhan: "Building genesis" },
-    { ma: "subnet", nhan: "Creating subnet + blockchain on P-Chain" },
-    { ma: "rpc", nhan: "Waiting for the L1 RPC to answer" },
-    { ma: "readiness", nhan: "Checking the L1 on every managed node" },
+  journal.open("create", name, [
+    { code: "genesis", label: "Building genesis" },
+    { code: "subnet", label: "Creating subnet + blockchain on P-Chain" },
+    { code: "rpc", label: "Waiting for the L1 RPC to answer" },
+    { code: "readiness", label: "Checking the L1 on every managed node" },
   ]);
-  buocChay("genesis");
+  journal.stepRunning("genesis");
 
   const fname = `${name.replace(/ /g, "_")}.json`;
   writeFileSync(path.join(TMP_DIR, fname), creationGenesisText(plan));
   const inContainer = `/9chain-a1/config/console-tmp/${fname}`;
 
-  buocXong("genesis");
-  buocChay("subnet");
+  journal.stepDone("genesis");
+  journal.stepRunning("subnet");
 
   // 2) đẻ subnet + chain qua 9chain-a1-cli (in SUBNET_ID=/BLOCKCHAIN_ID= ra stdout)
   //
@@ -1632,7 +1569,7 @@ async function executeChainLaunch(plan, job) {
   if (!subnetID || !blockchainID) throw new Error("could not parse the IDs out of the CLI output:\n" + out);
   creationJournal.update(job, { phase: "created", subnetID, blockchainID });
 
-  buocXong("subnet");
+  journal.stepDone("subnet");
   return finishChainLaunch(plan, job, state, { subnetID, blockchainID });
 }
 
@@ -1674,7 +1611,7 @@ async function finishChainLaunch(plan, job, state, { subnetID, blockchainID }) {
   // validator of this chain, and then it will NEVER answer this RPC — that is not a failure, it
   // is the model. The per-node readiness in step 5 asks each validator inside its container
   // instead. Routing the public RPC to a serving node is P-86.
-  buocChay("rpc");
+  journal.stepRunning("rpc");
   const rpcPath = `/ext/bc/${blockchainID}/rpc`;
   let live = false;
   const publicNodeServes = !validators || validators.includes(NODE_CONTAINER);
@@ -1712,13 +1649,13 @@ async function finishChainLaunch(plan, job, state, { subnetID, blockchainID }) {
       `The subnet exists on the P-chain; resolve this creation via POST /api/creation/resolve (adopt once the RPC answers, or retire).`
     );
   }
-  buocXong("rpc");
+  journal.stepDone("rpc");
   // A new L1 may need its validator peers to bootstrap. Roll out all nodes first,
   // then observe their own L1 health and identity, rather than only the public RPC.
-  buocChay("readiness");
+  journal.stepRunning("readiness");
   const nodeReadiness = await waitForChainNodes(nhatKyRestart.map(node => node.svc),
     { subnetID, blockchainID, chainId }, rpcOnManagedNode);
-  buocXong("readiness");
+  journal.stepDone("readiness");
   // URL trả cho người dùng phải là URL họ gọi được, không phải URL của server.
   //
   // `API` là địa chỉ console dùng để điều phối (`http://localhost:9650`). Đưa
@@ -1846,7 +1783,7 @@ async function thuHoiChain({ name, xacNhan }) {
   // bước, và cần tiến trình RIÊNG để không đụng vào lượt đẻ vừa xong.
   // Per-node model (P-83/P-85): the remaining chains' lists; only the revoked chain's validators
   // see their list change, so only they restart and only their slots are returned.
-  moTienTrinh("thuHoi", name, []);
+  journal.open("revoke", name, []);
   const nhatKyRestart = await trackSubnetsLanLuot(V_PER_CHAIN !== null
     ? trackListsByNode({ chains: state.chains.filter((_, i) => i !== idx), nodes: await readManagedServices(), pendingSubnetIDs: creationJournal.pendingSubnetIDs() })
     : conLai.join(","));
@@ -1986,9 +1923,9 @@ async function resolveCreation({ jobId, action, subnetID, blockchainID, confirmN
   }
   // adopt — finish what `executeChainLaunch` would have done after the CLI.
   const current = job.phase === "submitting" ? creationJournal.update(job, { phase: "created", ...ids }) : job;
-  moTienTrinh("tao", name, [
-    { ma: "rpc", nhan: "Waiting for the L1 RPC to answer" },
-    { ma: "readiness", nhan: "Checking the L1 on every managed node" },
+  journal.open("create", name, [
+    { code: "rpc", label: "Waiting for the L1 RPC to answer" },
+    { code: "readiness", label: "Checking the L1 on every managed node" },
   ]);
   const chain = await finishChainLaunch(job.plan, current, loadState(), ids);
   return { resolved: "adopted", jobId: job.id, ...chain };
@@ -2226,10 +2163,10 @@ async function napCapChain(tham, ai) {
       `Upgrading "${chain.name}" restarts all validators and changes the chain's rules at ${plan.activateAtIso}. ` +
       `Send "confirm":"${chain.name}" to proceed.`);
   }
-  moTienTrinh("nangCap", chain.name, [{ ma: "file", nhan: "Writing upgrade.json" }]);
-  buocChay("file");
+  journal.open("upgrade", chain.name, [{ code: "file", label: "Writing upgrade.json" }]);
+  journal.stepRunning("file");
   const { path: filePath, prev } = ghiUpgradeFile(chain.blockchainID, plan.upgradeConfig);
-  buocXong("file");
+  journal.stepDone("file");
 
   // Same track lists as today — the rollout exists only so the chain's validators re-read the
   // chain dir. Plus any subnet held by an unresolved creation, which this rollout must not untrack.
@@ -2539,8 +2476,8 @@ const server = http.createServer(async (req, res) => {
         const tham = JSON.parse((await docBody(req)) || "{}");
         let kq;
         try { kq = await queue.run(() => resolveCreation(tham)); }
-        catch (e) { if (tienTrinh.dangChay) dongTienTrinh(e); throw e; }
-        if (tienTrinh.dangChay) dongTienTrinh(null);
+        catch (e) { if (journal.running) journal.close(e); throw e; }
+        if (journal.running) journal.close(null);
         return send(res, 200, kq);
       } catch (e) { return send(res, e.status ?? 400, { error: String(e.message || e) }); }
     }
@@ -2594,35 +2531,35 @@ const server = http.createServer(async (req, res) => {
      * chỉ đếm bước — mà "còn bao lâu" mới là câu người bấm nút thật sự hỏi.
      */
     /**
-     * 🔴 RANH GIỚI DỊCH THUẬT — KHOÁ JSON TIẾNG ANH, ĐỊNH DANH MÃ NGUỒN TIẾNG VIỆT.
+     * 🔴 THERE IS NO TRANSLATION HERE ANY MORE, AND THAT IS THE POINT (D-250).
      *
-     * David chốt 2026-08-26: URL, tên tệp và **khoá JSON** phải là tiếng Anh. Nhưng
-     * `tienTrinh` là state NỘI BỘ, và mã nguồn dự án này vốn đặt tên bằng tiếng Việt
-     * — đổi hết định danh là một cuộc mổ khác hẳn, rủi ro hơn nhiều, và David không
-     * yêu cầu. Nên chỗ dịch nằm ĐÚNG ở đây, một chỗ duy nhất: state giữ tên cũ, thứ
-     * đi ra dây là tiếng Anh.
+     * This route used to hold a translation boundary: the journal state carried Vietnamese field
+     * names and enum values, and the route mapped them to English on the way out — two tables,
+     * `KIND` and `STATUS`, that had to stay in step with a state object 1 800 lines above.
      *
-     * Giá trị enum cũng dịch, không chỉ khoá: `"cho"|"chay"|"xong"|"hong"` là thứ
-     * client `switch` lên, để nguyên thì hợp đồng vẫn nửa Việt nửa Anh.
+     * The comment that stood here said renaming the identifiers was "a different operation,
+     * riskier, and David has not asked for it". He asked on 2026-08-28 (CLAUDE.md section 0), so
+     * the journal speaks English at the source and the tables are gone. A mapping that exists in
+     * one place is still a place two things can disagree; a mapping that does not exist cannot.
+     *
+     * `maintenance` is added here rather than by the journal: it comes from a different object,
+     * and the journal has no business knowing about maintenance. The field ORDER is written out
+     * by hand to keep the response byte-identical to the version this replaced.
      */
     if (req.method === "GET" && req.url === "/api/progress") {
       if (blockedByRate(req, res, limitRead)) return;
       const ai = blockedByAuth(req, res);
       if (!ai) return;
-      const conBuoc = tienTrinh.buoc.filter(b => b.trangThai === "cho" || b.trangThai === "chay").length;
-      const KIND = { tao: "create", thuHoi: "revoke", nangCap: "upgrade" };
-      const STATUS = { cho: "pending", chay: "running", xong: "done", hong: "failed" };
+      const progress = journal.snapshot();
       return send(res, 200, {
-        running: tienTrinh.dangChay,
+        running: progress.running,
         maintenance: maintenance.snapshot(),
-        kind: tienTrinh.loai ? (KIND[tienTrinh.loai] ?? tienTrinh.loai) : null,
-        name: tienTrinh.ten,
-        secondsElapsed: tienTrinh.batDau ? Math.round((Date.now() - tienTrinh.batDau) / 1000) : 0,
-        steps: tienTrinh.buoc.map(({ ma, nhan, trangThai, ms }) => ({
-          code: ma, label: nhan, status: STATUS[trangThai] ?? trangThai, ms,
-        })),
-        error: tienTrinh.loi,
-        etaSeconds: tienTrinh.dangChay ? conBuoc * 33 : 0,
+        kind: progress.kind,
+        name: progress.name,
+        secondsElapsed: progress.secondsElapsed,
+        steps: progress.steps,
+        error: progress.error,
+        etaSeconds: progress.etaSeconds,
       });
     }
 
@@ -2733,8 +2670,8 @@ const server = http.createServer(async (req, res) => {
         const tham = JSON.parse((await docBody(req)) || "{}");
         let kq;
         try { kq = await queue.run(() => napCapChain(tham, ai)); }
-        catch (e) { dongTienTrinh(e); throw e; }
-        dongTienTrinh(null);
+        catch (e) { journal.close(e); throw e; }
+        journal.close(null);
         return send(res, 200, kq);
       } catch (e) { return send(res, e.status ?? 400, { error: String(e.message || e) }); }
     }
@@ -2827,10 +2764,10 @@ const server = http.createServer(async (req, res) => {
         try {
           kq = await queue.run(() => laThuHoi ? thuHoiChain(tham) : createChain(tham));
         } catch (e) {
-          dongTienTrinh(e);
+          journal.close(e);
           throw e;
         }
-        dongTienTrinh(null);
+        journal.close(null);
         return send(res, 200, kq);
       } catch (e) {
         return send(res, 400, { error: String(e.message || e) });

@@ -32,6 +32,7 @@ const checks = [
   ['local-net/lib/validator-assignment-test.mjs'],
 ];
 const consoleChecks = [
+  ['local-net/console/operation-journal-test.mjs'],
   ['local-net/console/assignment-e2e-test.mjs'],
   ['local-net/console/siwe-test.mjs'],
   ['local-net/console/auth-e2e-test.mjs'],
