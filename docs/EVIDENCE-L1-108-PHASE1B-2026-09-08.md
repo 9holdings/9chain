@@ -92,9 +92,13 @@ Mỗi tx đi vào **5 node** (V = 5), nên cột cuối là chi phí thật trê
 
 🔴 **Vì sao con số này quan trọng hơn "MiB/giờ":** nó đổi câu hỏi mua máy từ *"node sống được bao lâu"* sang *"node nuốt được bao
 nhiêu giao dịch"*. Lấy thẳng: ngân sách 4 GB/node ÷ 10 KiB/tx ≈ **400.000 tx** trước khi đầy. Ở 15 chain × 1 tx/s (mỗi node
-15 tx/s) đó là **~7,4 giờ** — khớp đúng thứ pha 1 đã thấy. Nếu quan hệ này thật sự tuyến tính và không có trần thì **không cỡ máy
-nào cứu được**, chỉ có khởi động lại theo lịch; nếu nó thoải dần (cửa sổ cuối đã tụt 54,7 → 36,1) thì có trần và trần đó là số
-P-94 cần. §3 là phép đo phân biệt hai khả năng đó.
+15 tx/s) đó là **~7,4 giờ** — khớp đúng thứ pha 1 đã thấy.
+
+⚠️ **Nhưng ĐỪNG trích con số này như một hằng số, và phép tính trên là cận DƯỚI của thời gian đầy.** Chi phí biên **giảm theo tuổi
+tiến trình**: đo trong lượt đối chứng, cửa sổ sớm (05:20→06:21) cho **10,7 KiB/tx/node**, cửa sổ muộn hơn (06:03→06:41) cho
+**4,7**. Cùng chiều với cửa sổ cuối của pha 1 (54,7 → 36,1 KiB/tx toàn đội). Đọc theo dốc: **309 → 145 MiB/node/giờ** trong 1,2 giờ
+đối chứng, tức **giảm còn một nửa**. Sau 9 giờ vẫn **chưa thấy trần**, nên câu đúng là *"chậm dần nhưng chưa dừng"* — và §4 là chỗ
+lấy chuỗi đủ dài để nói được nó dừng ở đâu.
 
 ## 3. P-92a — đối chứng: bơm lại mà KHÔNG đổi gì
 
