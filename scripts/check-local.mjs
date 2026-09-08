@@ -15,6 +15,8 @@ const checks = [
   ['local-net/lib/http-test.mjs'],
   ['scripts/check-fetch-timeouts.mjs', '--self-test'],
   ['scripts/check-fetch-timeouts.mjs'],
+  ['scripts/check-fixed-ports.mjs', '--self-test'],
+  ['scripts/check-fixed-ports.mjs'],
   ['scripts/check-flag-guards.mjs', '--self-test'],
   ['scripts/check-flag-guards.mjs'],
   ['scripts/check-worktree-ownership.mjs'],

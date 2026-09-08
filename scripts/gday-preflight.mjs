@@ -183,6 +183,10 @@ const GATES = [
   // On G-day that is the difference between "the console is busy" and "we do not know".
   { group: "2 · REPO GATES", name: "request-deadline scanner (counter-check)", ...node("scripts/check-fetch-timeouts.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "every outbound request can give up", ...node("scripts/check-fetch-timeouts.mjs") },
+  // 🔴 Two files claimed ports 8501/8502 until 2026-09-08 and had never collided, because their
+  // runners never started them together. That is a property of the schedule, not the code (D-246).
+  { group: "2 · REPO GATES", name: "fixed-port conflict rules (counter-check)", ...node("scripts/check-fixed-ports.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "no two files claim the same fixed port", ...node("scripts/check-fixed-ports.mjs") },
   // Language rule (CLAUDE.md §0, decided 2026-08-28): new code must be English; existing
   // debt may only shrink. Included in the G-day run because that is the most rushed moment,
   // and rushing is exactly when someone types a non-English comment into a new file.

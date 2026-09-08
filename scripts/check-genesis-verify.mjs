@@ -75,8 +75,14 @@ const SOURCE = path.join(REPO, "local-net", "tools", "genesis-verify", "main.go"
 const GO_IMAGE = "golang:1.25.10-bookworm";
 const MOD_CACHE_VOLUME = "a1-gomodcache";
 
-const PORT = 8501;
-const PORT_FAKE_NODE = 8502;
+// 🔴 8503/8504, NOT 8501/8502. This gate is visibly a copy of
+// `local-net/console/governance-e2e-test.mjs` — same two ports, same OWNER, same shape — and the
+// copy kept that file's port numbers. It had never collided for one reason only: the two live in
+// different runners, so nothing had started them at the same time. That is a property of the
+// SCHEDULE, not of the code, and it ends the moment two sessions run at once or the checks go
+// parallel. `scripts/check-fixed-ports.mjs` now watches this namespace (D-246).
+const PORT = 8503;
+const PORT_FAKE_NODE = 8504;
 const BASE = `http://127.0.0.1:${PORT}`;
 const TOKEN = "operator-token-that-lives-only-in-this-gate";
 const OWNER = "0x1212b2445e74f788B30BfA9C42aa46f252345a0B";   // published foundation address
