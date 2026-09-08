@@ -261,6 +261,53 @@ export const NGUONG_TUOI_BLOCK_MS = 30_000;
  * the exact quantity the ceremony compares (`block.timestamp > mark`), where the peer reading is
  * a proxy for the same clock.
  */
+/**
+ * WHICH block sample is the clock reading — pure, so `--self-test` can pin it.
+ *
+ * ═══ 🔴 THE GATE WAS A COIN FLIP UNTIL 2026-09-08, AND THIS IS WHY (D-246) ═══
+ *
+ * Measured: 20 consecutive runs, nothing else changed, load pump stopped — **10 red, 10 green**.
+ * HANDOFF had an explanation on file ("it only flickers when the pump is running") and that
+ * explanation was never a measurement. The pump was not running.
+ *
+ * What the 20 runs actually show:
+ *
+ *   within ONE run of a few seconds, the samples span ~2 300 ms
+ *      (run 1: −63 … −2 091 · run 12: −5 … −2 399 · run 20: 0 … −2 371)
+ *   and the BEST sample of every run sits at 0–47 ms
+ *
+ * A clock cannot drift 2.3 s in ten seconds. The spread is not skew — it is **block age**: the
+ * chain builds a block every ~2 s and `block.timestamp` has WHOLE-SECOND resolution, so a sample
+ * taken late in the cycle looks like a node that is two seconds slow.
+ *
+ * That contamination is **one-sided**. Block age only ever makes the node look SLOWER; it can
+ * never make it look faster. So the sample with the LARGEST `lech` is the one taken closest to a
+ * fresh block, i.e. the least contaminated — the same NTP argument this file already makes for
+ * RTT ("take the smallest RTT, it has the tightest margin"), applied to the other contaminant.
+ *
+ * The old code took `mau[0]` — smallest RTT — whose block age is whatever it happened to be.
+ * The offset then came out anywhere in **3 000–3 821 ms** across those 20 runs, and the verdict
+ * was simply whether that landed above or below the chosen 3 000. Worse, the estimator does not
+ * converge: taking the WORST of N samples of a bounded nuisance gets worse as N grows, so a
+ * larger `--samples` makes the gate redder with no change in the world.
+ *
+ * 🔴 What this does NOT do: it does not lower the offset. On this data the answer becomes 3 000
+ * every time — the floor David already chose and already wrote into the runbook. The change makes
+ * the gate stop CONTRADICTING that decision half the time; it does not make a new one.
+ */
+export function pickBlockSample(samples) {
+  if (!samples?.length) return null;
+  // Largest `lech` = least block age baked in. Ties go to the tightest margin, i.e. lowest RTT.
+  return [...samples].sort((a, b) => (b.lech - a.lech) || (a.rtt - b.rtt))[0];
+}
+
+/** How far apart the samples of one run were — the size of the contamination, for the log. */
+export function sampleSpread(samples) {
+  if (!samples?.length) return null;
+  const values = samples.map((s) => s.lech);
+  return { min: Math.min(...values), max: Math.max(...values), spread: Math.max(...values) - Math.min(...values) };
+}
+
 export function chonNguon(block, peers) {
   const tuoi = block ? -block.lech : null;      // lech = ts - now, so age is its negation
   if (block && tuoi <= NGUONG_TUOI_BLOCK_MS) {
@@ -357,6 +404,36 @@ function tuKiem() {
   if (song.bu === SAN_BU_MS) console.log(`  ✓ measured +201ms ±649 ⇒ keep the ${SAN_BU_MS}ms floor (worst case: node 448ms slow, the floor covers it)`);
   else { console.log(`  ✗ measured +201ms ±649 ⇒ got ${song.bu}, wanted ${SAN_BU_MS}`); hong++; }
 
+  // ── 🔴 THE SAMPLE PICKER — pinned with the real readings of the 20-run measurement (D-246) ──
+  console.log("\n══ REVERSE CONTROL — which sample is the clock reading ══");
+  const s = (lech, rtt) => ({ lech, rtt, bien: Math.round(rtt / 2) + 500 });
+
+  // Run 1 of the 20, verbatim. Old code took mau[0] (smallest RTT) and got −1633; the offset came
+  // out 3091 and the gate went RED. The largest reading is the one taken closest to a fresh block.
+  const run1 = [s(-1633, 457), s(-2091, 458), s(-1631, 462), s(-1166, 476), s(-624, 608), s(-844, 1113), s(-1432, 1710)];
+  const cases = [
+    ["🔴 the least-aged sample is the LARGEST lech, not the smallest RTT", () => pickBlockSample(run1).lech === -624],
+    ["🔴 …and with it, run 1 keeps the floor instead of demanding 3091", () => {
+      const pick = pickBlockSample(run1);
+      return chonBu(pick.lech, pick.bien).bu === SAN_BU_MS;
+    }],
+    ["the OLD rule on the same data demanded more than the floor — this is what flipped the gate",
+      () => chonBu(run1[0].lech, run1[0].bien).bu > SAN_BU_MS],
+    ["ties on lech go to the tightest margin", () => pickBlockSample([s(-100, 900), s(-100, 300)]).rtt === 300],
+    ["one sample is still a sample", () => pickBlockSample([s(-7, 200)]).lech === -7],
+    ["🔴 no samples is null, never a zero", () => pickBlockSample([]) === null && pickBlockSample(null) === null],
+    ["the spread is reported so the reader can see the contamination",
+      () => sampleSpread(run1).spread === 1467 && sampleSpread(run1).min === -2091],
+    ["🔴 a 2.3 s spread inside one run is block age — the run-20 reading, kept as the shape to recognise",
+      () => sampleSpread([s(0, 400), s(-2371, 400)]).spread === 2371],
+  ];
+  for (const [ten, fn] of cases) {
+    let pass = false;
+    try { pass = fn() === true; } catch { pass = false; }
+    if (pass) console.log(`  ✓ ${ten}`);
+    else { console.log(`  ✗ ${ten}`); hong++; }
+  }
+
   return hong;
 }
 
@@ -380,7 +457,16 @@ console.log("\n  [2] info.peers lastReceived — the node's own clock, and it ad
 if (mauPeers.length === 0) console.log("      🟡 no sample");
 for (const m of mauPeers) inMau(m);
 
-const chon = chonNguon(mau[0] ?? null, mauPeers[0] ?? null);
+// 🔴 `pickBlockSample`, NOT `mau[0]`. `mau` is sorted by RTT, and the smallest-RTT sample carries
+// whatever block age it happened to have — which is what made this gate flip 10/20 (D-246).
+const chon = chonNguon(pickBlockSample(mau), mauPeers[0] ?? null);
+const doRong = sampleSpread(mau);
+if (doRong) {
+  console.log(`\n      spread across this run's block samples: ${doRong.min}ms … ${doRong.max}ms  (${doRong.spread}ms)`);
+  console.log("      🔴 That spread is BLOCK AGE, not clock drift — no clock moves that far in ten seconds.");
+  console.log("         Block age only ever makes the node look SLOWER, so the LARGEST reading is the");
+  console.log("         least contaminated one. Same NTP rule this file uses for RTT (D-246).");
+}
 console.log(`\n  ⇒ source for the offset: **${chon.nguon ?? "NONE"}** — ${chon.vi}`);
 if (chon.nguon === null) {
   console.log("\n🔴 REFUSING to pick an offset. A number formatted confidently out of the wrong");
@@ -389,7 +475,31 @@ if (chon.nguon === null) {
   process.exit(2);
 }
 const tot = chon.mau;
-console.log(`\n  mẫu tốt nhất (RTT nhỏ nhất, biên chặt nhất): **${tot.lech}ms ± ${tot.bien}ms**`);
+console.log(`\n  chosen sample (${chon.nguon === "block" ? "largest lech = least block age; ties on RTT" : "smallest RTT, tightest margin"}): **${tot.lech}ms ± ${tot.bien}ms**`);
+
+// ═══ 🔴 HOW MUCH OF THIS NUMBER IS THE CLOCK, AND HOW MUCH IS BLOCK AGE (D-246) ═══
+//
+// The block source and the peer source read the SAME clock. The block source additionally
+// carries however old the newest block happens to be, because `block.timestamp` is when the
+// block was BUILT, not when it was read. So the gap between the two is block age, measured
+// rather than argued.
+//
+// This matters because the freshness threshold is 30 s while the offset budget is 3 s: a block
+// only 2.3 s old already pushes the requirement past the 3 000 ms floor. On an idle chain that
+// makes the verdict a statement about CHAIN LIVENESS wearing the label "clock skew" — and it is
+// why 20 consecutive runs came back 10 red / 10 green on 2026-09-08 with nothing changing.
+if (chon.nguon === "block" && mauPeers.length) {
+  const peer = pickBlockSample(mauPeers);   // same one-sided argument applies to gossip age
+  const tuoiKhoi = peer.lech - tot.lech;    // both are (their clock − ours); the gap is block age
+  console.log(`\n  decomposition — the two sources read the same clock:`);
+  console.log(`      block source  ${String(tot.lech).padStart(7)}ms      peer source  ${String(peer.lech).padStart(7)}ms`);
+  console.log(`      difference    ${String(Math.round(tuoiKhoi)).padStart(7)}ms  = BLOCK AGE, not clock`);
+  if (tuoiKhoi > SAN_BU_MS - 500) {
+    console.log(`      🔴 block age alone is within ${SAN_BU_MS}ms of the whole offset budget. Whatever this`);
+    console.log("         gate says next is a statement about how often the chain builds blocks,");
+    console.log("         not about clocks. The chain is idle; see D-149 (the quiet window).");
+  }
+}
 
 // SECONDARY, and labelled as what it is. Kept because the gap between the two numbers is
 // itself informative: a large one usually means the edge and the origin disagree, not that the
