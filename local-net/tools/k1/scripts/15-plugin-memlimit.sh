@@ -38,7 +38,8 @@ done
 [ -n "$OUT" ] || { echo "--out <dir> is required" >&2; exit 2; }
 [ -n "$LIMIT" ] || { echo "--limit <value> is required, e.g. 300MiB" >&2; exit 2; }
 case "$LIMIT" in
-  *[!0-9BKMGTiB.]*|"") echo "--limit must be a Go memory limit such as 300MiB or 1GiB, got: $LIMIT" >&2; exit 2;;
+  ""|*[!0-9BKMGTiB.]*) echo "--limit must be a Go memory limit such as 300MiB or 1GiB, got: $LIMIT" >&2; exit 2;;
+  [!0-9]*) echo "--limit must start with a number, got: $LIMIT" >&2; exit 2;;
 esac
 
 # Read the plugin names from the image itself rather than hardcoding a VM ID: a fork that rebuilds
@@ -46,6 +47,16 @@ esac
 names=$(MSYS_NO_PATHCONV=1 docker exec "$CONTAINER" sh -c "ls -1 '$PLUGIN_DIR' 2>/dev/null") || {
   echo "could not list $PLUGIN_DIR inside $CONTAINER" >&2; exit 2; }
 [ -n "$names" ] || { echo "no plugin found in $PLUGIN_DIR inside $CONTAINER" >&2; exit 2; }
+
+# 🔴 A malformed value does not degrade anything — the Go runtime aborts before main with
+# "malformed GOMEMLIMIT", so a typo here would take every chain down on every node at once.
+# Ask the real binary whether it accepts this value before writing a single wrapper.
+first=$(printf '%s\n' "$names" | head -1)
+probe=$(MSYS_NO_PATHCONV=1 docker exec "$CONTAINER" sh -c "GOMEMLIMIT='$LIMIT' '$PLUGIN_DIR/$first' 2>&1 | head -2" 2>&1)
+case "$probe" in
+  *"malformed GOMEMLIMIT"*) echo "the Go runtime rejects --limit $LIMIT: $probe" >&2; exit 2;;
+esac
+echo "  limit accepted by $first (it then stops on the missing engine address, as it must)"
 
 mkdir -p "$OUT" || exit 2
 # Anything already in there that is not one of the plugins would stop the node from booting.
