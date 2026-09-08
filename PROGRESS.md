@@ -226,6 +226,13 @@ giữ nguyên: băng tập `899999998`, không đụng g1 công khai / server / 
       **Qua khi:** cổng đọc `/proc/<pid>/environ` **của từng tiến trình plugin** trên 9 node và thấy `GOMEMLIMIT` ở **8/8 mỗi node**.
       Ca đỏ: đặt `GOMEMLIMIT` **chỉ ở compose** ⇒ cổng phải **ĐỎ** và nêu "node có, plugin không" (chứng minh cổng đo plugin, không
       đo container).
+- [ ] **P-92a — ĐỐI CHỨNG TRƯỚC KHI CHỮA: bơm lại mà KHÔNG đổi gì.** Thêm `08/09` 05:0xZ sau khi đọc `PLAN-108` §3. Lý do: mô hình
+      của §3 (`RAM/node ≈ 0,4 + 0,15·L` GB) khớp mức đang đo (node-9, 8 chain: mô hình 1,6 GB · đo 1,55 GB), và tổng đội **01:22Z là
+      16.253 MiB, 05:00Z là 16.211 MiB** — đứng yên. ⇒ *"RAM không phẳng"* của pha 1 có thể chỉ là **hâm nóng tới mức bão hoà sau lượt
+      restart 21:18Z**, không phải rò rỉ. Nếu áp `GOMEMLIMIT` ngay rồi thấy phẳng, ta **ghi công cho sai nguyên nhân** — đúng lớp lỗi §2.
+      **Qua khi:** bơm chạy lại ≥ 1,5 h từ trạng thái ấm, **không** restart, **không** cờ nào mới; kết luận nói rõ RAM có leo tiếp từ
+      16,2 GB hay không. Ca đỏ ở đây là chính kết quả: nếu nó **leo tiếp** thì mức 16,2 GB không phải trần và P-92 có việc; nếu nó
+      **phẳng** thì `GOMEMLIMIT` là bảo hiểm chứ không phải thuốc chữa, và P-94 phải viết đúng như vậy.
 - [ ] **P-92 — Chạy lại tải 15 chain × 1 tx/s CÓ `GOMEMLIMIT`, so dốc với pha 1** (đoạn cache nhỏ `22:19Z→01:22Z` là mốc đối chiếu:
       +123 MiB/node/h · +15,6 MiB/plugin/h). **Qua khi:** ≥ 3 giờ, 15/15 chain vẫn đẻ block ≤ 2,5 s, 0 OOM, 0 restart ngoài ý muốn,
       và dốc RAM ghi ra **một con số so được** với hai số trên. Ca đỏ: đặt `GOMEMLIMIT` thấp phi lý (vd 256 MiB) ⇒ phải thấy hậu quả

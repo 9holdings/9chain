@@ -228,10 +228,23 @@ const GATES = [
   // "0 StartClose" is the hard pass condition of every 108-chain phase (PLAN-108 §5): a node cut
   // for announcing > 16 subnets shows only in its PEERS' logs and its peer count (P-88, D-241).
   { group: "2 · REPO GATES", name: "no node cut for too many subnets — verdict rules (counter-check)", ...node("scripts/check-startclose.mjs", "--self-test") },
+  // RAM is what phase 1 of L1-108 hit (D-242), and both of these judge it where it lives — inside
+  // the processes. A limit set on the container never reaches a VM plugin, and a budget stated as
+  // a flat number cannot span 8 chains per node and 60 (P-91, P-93, D-243). Drill-band
+  // instruments: they join group 3 only when A1_DRILL_BAND=1 names a compose file
+  // (A1_DRILL_COMPOSE), because neither can speak for the public network from this machine.
+  { group: "2 · REPO GATES", name: "Go memory limit inside every plugin — verdict rules (counter-check)", ...node("scripts/check-plugin-memlimit.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "memory budget per tracked chain — verdict rules (counter-check)", ...node("scripts/check-node-memory.mjs", "--self-test") },
 
   // ── 3. The real world — the running network and the server ──
   ...(process.env.A1_DRILL_BAND === "1" && process.env.A1_CHAINS_RPC
     ? [{ group: "3 · REAL WORLD", needsNetwork: true, name: "every chain in the drill ledger produces blocks at the target rate", ...node("scripts/check-chains-producing.mjs") }]
+    : []),
+  ...(process.env.A1_DRILL_BAND === "1" && process.env.A1_DRILL_COMPOSE
+    ? [
+        { group: "3 · REAL WORLD", needsNetwork: true, name: "every drill-band node and plugin carries its Go memory limit", ...node("scripts/check-plugin-memlimit.mjs", "--compose", process.env.A1_DRILL_COMPOSE) },
+        { group: "3 · REAL WORLD", needsNetwork: true, name: "every drill-band node is inside its per-chain memory budget", ...node("scripts/check-node-memory.mjs", "--compose", process.env.A1_DRILL_COMPOSE, "--base", process.env.A1_MEM_BASE_MIB ?? "800", "--per-chain", process.env.A1_MEM_PER_CHAIN_MIB ?? "220") },
+      ]
     : []),
   { group: "3 · REAL WORLD", needsNetwork: true, name: "the running network (watch-network)", ...node("scripts/watch-network.mjs") },
   { group: "3 · REAL WORLD", needsNetwork: true, name: "repo ↔ server drift + orphan files", ...node("scripts/check-deploy-drift.mjs") },
