@@ -10576,9 +10576,10 @@ container phụ, INVALID khi có rollout) · bẫy: tác vụ nền > 10 phút p
 có máy"**. Đo lại sáng `08/09` cho thấy **xếp thế là sai chỗ**: câu hỏi RAM không cần máy mới — băng tập 9 node vẫn đang chạy 15 L1,
 và bơm đã dừng `01:39Z`, tức **phép đo nghỉ-tải đang tự chạy 3 giờ mà không ai lấy**.
 
-**Quyết định 1 — tách pha 1b, làm ngay, 5 mục P-90→P-94.** Lý do có số: pha 1 đo **8,3 chain/node** (15 × 5 ÷ 9); pha 3 là **60
-chain/node** (108 × 5 ÷ 9), gấp **7,2 lần**. Ngân sách RAM trên mỗi chain là thứ **quyết định đơn mua 9 × AX42 (64 GB) ≈ €550–650 mỗi
-tháng**; chốt đơn trước khi đo là đặt tiền lên một con số ước.
+**Quyết định 1 — tách pha 1b, làm ngay, 5 mục P-90→P-94.** Lý do có số: pha 1 đo **8,3 chain/node** (15 × 5 ÷ 9); pha 3 theo
+PLAN-108 phương án A là **36 node** trên 9 máy (≈ 4 node/máy) ⇒ **15 chain/node**, tức **1,8 lần** mức đã đo, và đúng bằng trần
+giao thức 15. Ngân sách RAM trên mỗi chain là thứ **quyết định đơn mua 9 × AX42 (64 GB) ≈ €550–650 mỗi tháng**; chốt đơn trước khi
+đo là đặt tiền lên một con số ước.
 
 **Số đo mở mốc (cùng dụng cụ pha 1, `p89-rss.sh`).** node-9, giữa mẫu cuối pha 1 `01:42:45Z` và mẫu đầu pha 1b `04:39:35Z` — nghỉ tải
 2 h 57:
@@ -10610,3 +10611,12 @@ nó thuộc kit K1 và phải có cổng canh, không được là một việc 
 **Giả định (David bác được):** V = 5 giữ nguyên cho pha 1b · `GOMEMLIMIT` thử ở mức ~85 % ngân sách mỗi tiến trình, theo bài của C1
 `22/07` (Go **không đọc** cgroup limit, không đặt là OOM chắc chắn chứ không phải rủi ro; đặt xong RSS 1.069 → 191 MB) · băng tập tiếp
 tục chạy, **không** `down -v`.
+
+**🔴 Đính chính cùng ngày (05:0xZ), do chính lượt này bắt được khi đọc `PLAN-108` §0.** Bản đầu của quyết định 1 viết *"pha 3 là 60
+chain/node (108 × 5 ÷ 9), gấp 7,2 lần"*. Sai: **9 là số MÁY, không phải số NODE**. PLAN-108 §0 phương án A khai `N ≥ 7,2 × V` ⇒
+**36 node** trên 9 máy ở ~4 node/máy, và `PROCUREMENT-K1` cũng tính theo **15 sổ/node**. Con số đúng là **15 chain/node**, tức
+**1,8 lần** mức pha 1 đã đo, không phải 7,2 lần.
+
+Đáng ghi vì đây là **cùng lớp lỗi §2 mà quyết định này được lập ra để tránh**: một con số đúng đơn vị nhưng sai đại lượng (máy ↔
+node), lọt vào sổ trong chính lượt viết ra cảnh báo về nó. Nó cũng đổi kết luận về mức độ khẩn: câu hỏi RAM vẫn phải trả lời, nhưng
+biên an toàn rộng hơn nhiều so với câu chữ ban đầu. Cách bắt: mọi tỉ số "gấp N lần" phải viết kèm **cả tử và mẫu có đơn vị**.

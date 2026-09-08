@@ -210,9 +210,12 @@ khai giữ subnet cổ điển, ACP-77 chờ H-2. Commit bằng đường dẫn 
       (`web-home:docs/k1-phase0/PROCUREMENT-K1-2026-09-05.md`). Kit `compose`/`push-host` đã sẵn.
 
 🔴 **PHA 1b — RAM: mở `2026-09-08` sáng (autopilot, D-243).** Phát hiện của P-89 là thứ **duy nhất** còn chặn 108 chain, và nó
-**trả lời được ngay trên băng tập đang chạy** — không cần máy mới. Vì sao gấp: pha 1 đo **8,3 chain/node** (15 L1 × V=5 ÷ 9 node);
-pha 3 là **60 chain/node** (108 × 5 ÷ 9), gấp **7,2 lần**. Ngân sách RAM sai ở đây là sai **đơn hàng €550–650/tháng**. Luật của mốc
-giữ nguyên: băng tập `899999998`, không đụng g1 công khai / server / `patches/` / `web/`.
+**trả lời được ngay trên băng tập đang chạy** — không cần máy mới. Pha 1 đo **8,3 chain/node** (15 L1 × V=5 ÷ 9 node); pha 3 theo
+PLAN-108 phương án A là **36 node** trên 9 máy ⇒ **15 chain/node**, tức **1,8 lần** mức đã đo — và đúng bằng trần giao thức 15.
+Ngân sách RAM sai ở đây là sai **đơn hàng 9 × AX42 ≈ €550–650/tháng**. Luật của mốc giữ nguyên: băng tập `899999998`, không đụng
+g1 công khai / server / `patches/` / `web/`.
+*(🔴 Bản đầu của đoạn này viết "60 chain/node, gấp 7,2 lần" — chia 108 × 5 cho số **máy** thay vì số **node**. Sửa cùng ngày, xem
+đuôi D-243.)*
 
 - [ ] **P-90 — Dốc RAM khi KHÔNG có tải, đo bằng ĐÚNG dụng cụ của pha 1** (chuỗi `p89-rss.sh`, cùng đại lượng: RSS `avalanchego` ·
       tổng RSS plugin · cgroup `anon`). Băng tập nghỉ bơm từ `01:39Z` ⇒ phép đo này **đang tự chạy**, chỉ cần lấy đúng cách.
