@@ -11275,3 +11275,46 @@ Fixture đánh vần chữ có dấu ⇒ tệp viết ra để tìm nợ lại *
 thoát**: `é` là chữ cái tiếng Việt. Cách đúng: **dựng ký tự lúc chạy** từ code point
 (`String.fromCharCode(0xE9)`), để mã nguồn giữ **thuần ASCII** mà vẫn kiểm đúng đường mã.
 **Bài học rút gọn: TRÍCH DẪN THỨ ĐANG BỊ KIỂM LÀ CÁCH ĐƯA NÓ VÀO TỆP.**
+
+---
+
+## D-261 — **Cổng canh route công khai: mọi route phải có HẠN MỨC và XÁC THỰC — và tôi suýt báo một lỗ bảo mật KHÔNG CÓ THẬT** (`2026-09-08` tối, P-106 bước 10)
+
+**Vì sao tính chất này đáng một cổng.** Console mở ra Internet, và các route của nó **tiêu tài nguyên vĩnh viễn**:
+một trong **15 slot chain**, một **chainId không bao giờ được cấp lại**, một lượt **rolling restart 9 node**. Một
+route quên hạn mức **không phải một console chậm** — nó là một người lạ tiêu những thứ đó **bằng cách lặp lại**.
+Quên xác thực thì tệ hơn. Cả hai chốt chỉ **một dòng** mỗi cái, và cả hai **dễ bị bỏ sót ở một route MỚI** — đúng
+lúc không ai nhìn, vì thứ đang được nghĩ tới là chính cái route mới.
+
+**🔴 Phép đo đầu tiên của tôi SAI, và nó sai theo hướng nguy hiểm nhất: nó tố oan.** Bản đầu quét **12 dòng** sau
+mỗi route và khai `/api/create` **không có CẢ HAI** chốt. Đó sẽ là một báo cáo lỗ bảo mật gây hoảng, và nó **sai**:
+`/api/create` gọi đủ cả hai, chỉ là có một khối chú thích dài xen giữa — giải thích vì sao hạn mức theo **ví** chứ
+không theo IP. Cửa sổ quá hẹp ⇒ phép đo mô tả **MẬT ĐỘ CHÚ THÍCH** của handler, không mô tả chốt của nó.
+
+Nó được bắt bằng cách **đọc mã trước khi báo**. Đó **không phải một phương pháp — đó là may mắn.** Nên cổng nay
+đọc mỗi handler bằng **cân bằng ngoặc nhọn**, từ `if (req.url === …) {` tới `}` khớp với nó, dài bao nhiêu cũng đọc hết.
+
+**🔴 Rồi cổng lại sai thêm HAI lần nữa trước khi đúng, và cả hai đều đáng ghi:**
+
+1. **Một handler có thể phục vụ NHIỀU route.** `/api/create` và `/api/revoke` **dùng chung một thân**:
+   `if (… && (req.url === "/api/create" || req.url === "/api/revoke")) {`. Mẫu cũ neo vào **một** `req.url === "…"`
+   với `[^)]*` **tham lam** phía trước, nên phần tham lam **nhảy QUA route đầu** và cổng chỉ khai `/api/revoke`.
+   Chốt vẫn đọc đúng — cùng một thân — nhưng **`/api/create`, route tiêu một slot chain vĩnh viễn, biến mất khỏi
+   danh sách**. *Một cổng âm thầm bỏ sót đúng route nó sinh ra để canh còn tệ hơn một cổng báo sai về nó.*
+2. **`endsWith` không phải một route.** Bên trong handler `/api/maintenance` **đã được canh** có
+   `if (req.url.endsWith("/pause"))`; lấy mọi chuỗi đường dẫn trong điều kiện làm cổng khai `/pause` là một route
+   **không có chốt**. Đó là nhánh con trong một khối đã canh — **một đỏ giả trên một cổng BẢO MẬT, và đỏ giả trên
+   cổng bảo mật là cách cổng đó thôi được tin.**
+
+**Số đo cuối, sau khi đọc theo KHỐI và theo TRỌN điều kiện: 17 route, mọi route đều có chốt hoặc được khai.**
+
+**Một phát hiện thật, nhỏ: `/whoami` không có hạn mức.** Nó **không đọc state, không chạm node, không cấp phát gì**
+— nó trả về **chính IP của người gọi**, thứ người gọi đã biết. Và nó **tồn tại để bị gõ lặp lại**: người vận hành
+so nhiều lượt để xác nhận console thấy IP thật của khách chứ không phải IP của Caddy — **chính là thứ làm mọi hạn
+mức KHÁC có ý nghĩa**. Đặt hạn mức lên phép chẩn đoán là cản trở chính phép chẩn đoán. ⇒ **Khai miễn trừ, có lý
+do.** ⏳ `[human]` David: nếu muốn nó sau một hạn mức thì đó là **đổi hành vi trên console đã deploy**, tức quyết
+định của anh, không phải của phiên này.
+
+🔴 **Mọi miễn trừ đều phải mang LÝ DO**, và self-test khẳng định điều đó: *một lỗ chưa khai và một lỗ cố ý không
+được phép trông giống nhau.* Riêng hai route đăng nhập được miễn **XÁC THỰC** nhưng **KHÔNG** được miễn hạn mức —
+một endpoint đăng nhập không giới hạn là cách một phép kiểm chữ ký trở thành cách tiêu CPU của máy.

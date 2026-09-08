@@ -242,7 +242,7 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       −949 ms · peer −174 ms ⇒ **775 ms là tuổi block**) — và nói thẳng khi riêng tuổi block đã gần hết ngân sách.
       🔴 **`[human]`: có siết ngưỡng 30 s không là quyết định về ĐẠI LƯỢNG NÀO nghi lễ tin**, nó đã là câu hỏi mở
       trong việc tay `09/09` (*"đo lại trên chain ĐANG ĐẺ BLOCK"*), và **không phải việc tôi tự quyết**.
-- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 8 lượt tách + 1 lượt sửa sổ (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
+- [~] **P-106 — Tách `local-net/console/server.mjs`** — 8 lượt tách + 2 lượt CỔNG (sổ · route) (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
       **vòng đời chain / theo dõi node / nhật ký tiến trình / định tuyến HTTP**. Hành vi phải **không đổi**.
       **Qua khi:** `check-local --console` xanh đủ 28 nhóm · `assignment-e2e` 52 ca · `create-rpc` · `options` ·
       `governance` · `maintenance` · `readiness` · `auth` · `paused` **đều xanh** · `check-deploy-imports` xanh
@@ -365,6 +365,19 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       ⏳ **`[human]` D-189**: tham chiếu treo **CÓ SẴN**, dẫn 3 lần từ `server.mjs`; thất bại nó gọi tên được **kể
       bên trong D-190** (*"xem D-189"*) nhưng chưa có tiêu đề riêng. **Tôi không bịa một mục cho nó** — dựng từ văn
       bản xung quanh là đặt vào sổ những chữ không ai đo. David quyết: tách khỏi D-190, hay trỏ lại ba lượt dẫn.
+      🔴 **Lượt 10 — cổng canh ROUTE (D-261), và tôi SUÝT báo một lỗ bảo mật KHÔNG CÓ THẬT.** Phép đo đầu quét
+      **12 dòng** sau mỗi route và khai `/api/create` **không có CẢ HAI** chốt — sai, vì có một khối chú thích dài
+      xen giữa: nó đo **MẬT ĐỘ CHÚ THÍCH** của handler chứ không đo chốt. Bắt được bằng cách **đọc mã trước khi
+      báo** — *đó không phải phương pháp, đó là may mắn.* Cổng nay đọc theo **khối** (cân bằng ngoặc nhọn).
+      🔴 Rồi cổng **sai thêm hai lần nữa**: (1) một handler phục vụ **nhiều** route — `/api/create` và
+      `/api/revoke` dùng chung thân, mẫu tham lam **nhảy qua route đầu** ⇒ *route tiêu một slot chain vĩnh viễn
+      biến mất khỏi danh sách*; (2) `endsWith("/pause")` **bên trong** một khối đã canh bị khai thành route không
+      chốt — **đỏ giả trên một cổng BẢO MẬT là cách cổng đó thôi được tin**.
+      ✅ Số đo cuối: **17 route, tất cả có chốt hoặc được khai**, 14 ca.
+      ⏳ `[human]` **`/whoami` không có hạn mức** — nó không đọc state, không chạm node, không cấp phát gì, và nó
+      **tồn tại để bị gõ lặp lại** (người vận hành so nhiều lượt để xác nhận console thấy IP thật của khách, thứ
+      làm mọi hạn mức KHÁC có nghĩa). Đã khai miễn trừ có lý do; đặt nó sau một hạn mức là **đổi hành vi trên
+      console đã deploy** ⇒ David quyết.
       ⏳ Còn: phần còn lại của khối quản trị (~300 dòng, có side effect) · vòng đời tạo chain (~700 dòng).
       Mục tiêu ≤ 800 dòng/tệp.
 - [~] **P-107 — Trả nợ §0 trong `server.mjs`** — **ĐỔI CÁCH LÀM bằng số đo, xem dưới** Đổi tên định danh lẫn hai ngôn ngữ

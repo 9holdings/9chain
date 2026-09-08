@@ -202,6 +202,10 @@ const GATES = [
   // language. Three separate instances were found by accident before this existed (D-260).
   { group: "2 · REPO GATES", name: "wire-language rules (counter-check)", ...node("scripts/check-wire-language.mjs", "--self-test") },
   { group: "2 · REPO GATES", name: "text the console sends is the reader's language", ...node("scripts/check-wire-language.mjs") },
+  // 🔴 A console route without a rate limit is not a slow console — it is a stranger consuming a
+  // permanent chain slot by repetition. Easy to forget on a NEW route, which is when nobody looks.
+  { group: "2 · REPO GATES", name: "route-guard rules (counter-check)", ...node("scripts/check-route-guards.mjs", "--self-test") },
+  { group: "2 · REPO GATES", name: "every public route is rate-limited and authenticated", ...node("scripts/check-route-guards.mjs") },
   // Language rule (CLAUDE.md §0, decided 2026-08-28): new code must be English; existing
   // debt may only shrink. Included in the G-day run because that is the most rushed moment,
   // and rushing is exactly when someone types a non-English comment into a new file.

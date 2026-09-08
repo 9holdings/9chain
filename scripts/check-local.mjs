@@ -25,6 +25,8 @@ const checks = [
   ['scripts/check-decision-refs.mjs'],
   ['scripts/check-wire-language.mjs', '--self-test'],
   ['scripts/check-wire-language.mjs'],
+  ['scripts/check-route-guards.mjs', '--self-test'],
+  ['scripts/check-route-guards.mjs'],
   ['scripts/measure-block-cache.mjs', '--self-test'],
   ['scripts/check-flag-guards.mjs', '--self-test'],
   ['scripts/check-flag-guards.mjs'],
