@@ -172,4 +172,30 @@ sách bộ nhớ của mốc `L1-108` là bài toán cấu hình tầng cơ sở
 
 Đo bằng: `node <scratchpad>/heap-trend.mjs <scratchpad>/heap.jsonl` (chuỗi 5 phút/mẫu do `heap-series.sh` ghi).
 
-(dốc cuối cửa sổ 1,5 h điền khi khép)
+## 4. P-92 — áp `GOMEMLIMIT` lên CẢ HAI nửa
+
+### 4a. 🔴 Cơ sở so sánh, chốt TRƯỚC khi chạy
+
+`GOMEMLIMIT` chỉ đọc được lúc tiến trình khởi động, nên lượt áp thuốc **bắt buộc phải restart**. Điều đó tạo một cái bẫy: dốc RAM
+**giảm dần theo tuổi tiến trình**, nên một lượt chạy vừa restart luôn có dốc **cao hơn** một băng đã chạy 7 giờ. So dốc "sau khi
+áp" (tiến trình 1 giờ tuổi) với dốc đối chứng **135 MiB/node/giờ** (tiến trình 7 giờ tuổi) là **so lệch tuổi** — và nó sẽ che mất
+mọi tác dụng của trần.
+
+⇒ So với **cùng tuổi**: pha 1 có sẵn một đoạn sau restart (`21:18Z` restart → mẫu `22:19Z→01:22Z`, tức tuổi 1 h → 4 h), **cùng
+cache nhỏ, KHÔNG có `GOMEMLIMIT`**:
+
+| cơ sở (pha 1, tuổi 1–4 h sau restart, không trần) | mức |
+|---|---|
+| cgroup | **+299 MiB/node/giờ** |
+| `avalanchego` RSS | +123 MiB/node/giờ |
+| plugin RSS | +15,6 MiB/plugin/giờ |
+
+**Điều kiện phán quyết, viết ra trước:** lượt áp thuốc đo ở **cùng tuổi 1–4 h sau restart**.
+- Dốc cgroup rơi xuống quanh **~254 MiB/node/giờ** (giảm ~15 %) ⇒ mô hình §3c **đúng**: trần chỉ với tới phần rác trong heap Go.
+- Dốc rơi **sâu hơn nhiều** (vd < 200) ⇒ mô hình **sai**, phải viết lại §3c.
+- Dốc **không đổi** (~299) ⇒ trần không có tác dụng nào đo được, và câu trả lời nằm hoàn toàn ngoài heap Go.
+
+Ngưỡng đặt: `avalanchego` **450 MiB**, mỗi plugin **80 MiB** — chọn để **chạm trần trong lúc chạy** (heap Go sau restart leo
+~94 MiB/node/giờ) mà vẫn để GC ~1,8 lần heap sống, không ép vào vòng quay chết.
+
+(số đo điền khi chạy xong)
