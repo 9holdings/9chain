@@ -242,12 +242,32 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       −949 ms · peer −174 ms ⇒ **775 ms là tuổi block**) — và nói thẳng khi riêng tuổi block đã gần hết ngân sách.
       🔴 **`[human]`: có siết ngưỡng 30 s không là quyết định về ĐẠI LƯỢNG NÀO nghi lễ tin**, nó đã là câu hỏi mở
       trong việc tay `09/09` (*"đo lại trên chain ĐANG ĐẺ BLOCK"*), và **không phải việc tôi tự quyết**.
-- [ ] **P-106 — Tách `local-net/console/server.mjs`** (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
+- [~] **P-106 — Tách `local-net/console/server.mjs`** — ĐANG LÀM, 2/≥4 lượt (2.927 dòng, tệp lớn nhất của core) thành mô-đun theo trục
       **vòng đời chain / theo dõi node / nhật ký tiến trình / định tuyến HTTP**. Hành vi phải **không đổi**.
       **Qua khi:** `check-local --console` xanh đủ 28 nhóm · `assignment-e2e` 52 ca · `create-rpc` · `options` ·
       `governance` · `maintenance` · `readiness` · `auth` · `paused` **đều xanh** · `check-deploy-imports` xanh
       (nó chính là cổng bắt mô-đun mới không được đóng gói khi deploy) · không tệp nào > 800 dòng.
       **Ca đỏ:** quên khai một mô-đun mới trong `manifest-deploy.json` ⇒ `check-deploy-imports` **đỏ và nêu tên tệp**.
+      🔵 `08/09` chiều (autopilot, D-249 · D-250) — **2.927 → 2.802 dòng**, hai lượt tách, mỗi lượt có ca đỏ thật.
+      🔴 **Điều kiện tiên quyết P-106a, và nó suýt làm hỏng cả mốc:** `readiness-e2e-test.mjs` **đọc `server.mjs`
+      như VĂN BẢN** để bắt mọi lượt đọc biến môi trường phải nằm trong dấu vân cấu hình. Nhấc một dòng env sang
+      mô-đun khác ⇒ nó **thôi nhìn thấy**, dấu vân **thôi bao**, và test **VẪN XANH**. Tách mà không đóng cái này
+      trước là tự tay thu hẹp một tính chất an toàn trong im lặng. Nay quét theo **đồ thị import**; bộ đi đồ thị
+      chuyển từ trong lòng một cổng (`process.exit()` lúc import) sang `local-net/lib/import-graph.mjs`.
+      ✅ **Lượt 1 — `operation-journal.mjs`** (nhật ký tiến trình, **27 ca**): ca quan trọng nhất là ca chưa từng
+      có test suốt thời gian nó nằm trong tệp 2.927 dòng — **nhật ký đã đóng phải bỏ qua mọi lượt ghi**, vì lượt
+      **thu hồi** gọi chung mã rollout và sẽ kéo tiến trình của lượt **đẻ vừa xong** chạy lùi (đo `25/08`).
+      🔴 **Bảng dịch bị XOÁ chứ không phải chuyển chỗ:** `/api/progress` từng mang hai bảng `KIND`/`STATUS` dịch
+      state tiếng Việt sang tiếng Anh lúc ra dây. Chú thích ở đó tự khai *"đổi hết định danh là cuộc mổ khác hẳn…
+      và David không yêu cầu"* — **David đã yêu cầu `28/08`**. Nay nhật ký nói tiếng Anh **tại nguồn**; một bảng
+      ánh xạ ở một chỗ vẫn là một chỗ hai thứ có thể lệch nhau, một bảng **không tồn tại** thì không.
+      🔴 **KHÔNG đổi:** `thuHoi` · `thuHoiLuc` trong `console-chains.json` — **khoá đã ghi ra đĩa** trên server
+      thật (bẫy §5.12). `loai` của nhật ký chỉ nằm trong bộ nhớ, nên nó đổi được.
+      ✅ **Lượt 2 — `upgrade-files.mjs`** (sáu hàm hệ tệp sau `upgrade.json`, **23 ca**, chạy trên **thư mục THẬT**
+      chứ không phải hệ tệp giả — luật ở đây nói về thứ `Glob("upgrade.*")` của avalanchego **tìm thấy**, và một
+      hệ tệp giả chỉ khẳng định mô hình của tôi về thư mục). Phủ **cả hai** cách làm node chết đã đo `05/09`.
+      Nợ §0: **5406 → 5374** (`server.mjs` 545 → 513), mốc bánh cóc đã hạ.
+      ⏳ Còn: cụm theo dõi node/rollout (~650 dòng) · cụm quản trị chain · vòng đời tạo chain. Mục tiêu ≤ 800 dòng/tệp.
 - [ ] **P-107 — Trả nợ §0 trong `server.mjs`: 545 → mục tiêu < 100.** Đổi tên định danh lẫn hai ngôn ngữ
       (`kiemTheHeMang` · `nodeSanSang` · `moTienTrinh` · `thuHoiChain` · `napCapChain` · `doiChu` · `quanTri` ·
       `ghiChainConfig` · `docBody`…) và dịch chú thích. 🔴 **Chú thích là tài sản đắt nhất** (§0) — dịch **giữ nguyên
