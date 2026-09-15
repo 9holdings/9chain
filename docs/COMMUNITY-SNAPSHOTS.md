@@ -112,10 +112,13 @@ Measured 2026-09-15:
 | `--part-size 2048` | exit 2: not below the 2 GiB limit |
 | Last part one byte short (interrupted download) | exit 1: names `node-data.tar.part-001` |
 | `--self-test` | 23 cases, including a complete forgery (new data, re-sealed, re-packed) that rejoins cleanly without `--root` and is rejected with it |
+| Real upload: draft release on the private backup repository (8 assets, 279 MiB) | **4 min 46 s**; read back from GitHub: 8/8 names and sizes, small assets byte-identical |
+| Downloaded every asset back from GitHub, then `join --root` | 21 s download; rejoined root **equals** `50fba769…`; `verify --root --drill` restored 12/12 chains |
+| `upload` again with the same tag | exit 2: refuses to add to or overwrite an existing release |
 
-Not done: a real upload to GitHub. The first one should be a draft release on the private backup repository.
-GitHub may throttle heavy daily downloads, so Releases is best treated as one channel next to a torrent or
-object storage, not the only copy.
+Upload speed is the bottleneck from the machine that uploads (~1 MiB/s from the dev machine, not measured from
+the server). GitHub may throttle heavy daily downloads, so Releases is best treated as one channel next to a
+torrent or object storage, not the only copy.
 
 ## For the community — check one, keep one
 
@@ -220,7 +223,7 @@ separately.
 |---|---|
 | Run on the public network (daily job on a snapshot node) | Server work is a deploy: one session, a person presses the button (CLAUDE.md §1 #4). Needs a decision on **where** the snapshot node runs |
 | Live data size | Last known figure 651 MB (2026-08-25, g0). Unmeasured since 15 L1s and the 9 tx/s pump; decides cost and whether bundles need compression or deltas |
-| Distribution beyond GitHub Releases (object storage, a daily torrent, retention 7 daily / 4 weekly / 12 monthly) | Decision pending. Releases tooling exists, first real upload pending |
+| Distribution beyond GitHub Releases (object storage, a daily torrent, retention 7 daily / 4 weekly / 12 monthly) | Decision pending. Releases works end to end (draft on the private repository) |
 | Publishing the root outside the bundle | Mechanism pending (commit to `official`, the website, or both) |
 | Joining the **public** network from a public bundle | Measured on the drill band only (section above). A public bundle needs the snapshot node on the server |
 | Drill memory at hundreds of L1s | See lesson 2 |

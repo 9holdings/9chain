@@ -11542,3 +11542,10 @@ của gói" bắt; **giả mạo TRỌN VẸN** (dữ liệu khác, niêm lại,
 GitHub** so tên + kích thước mọi tài sản và tải về so byte các tệp nhỏ. ⏳ **Chưa chạy thật** — lượt đầu đề xuất là
 bản nháp trên repo **riêng tư** `origin`, chờ David cho phép (tải lên 279 MiB dữ liệu băng tập, bản nháp phải xoá tay
 sau đó). ⚠️ GitHub có thể hạn chế tải nặng hằng ngày ⇒ Releases là MỘT kênh, không phải bản duy nhất.
+
+**Bổ sung D-265, cùng đêm — `upload` ĐÃ CHẠY THẬT (David cho phép bản nháp trên `origin` riêng tư).** Kiểm
+`visibility = private` trước. Release nháp `a1-snapshot-drill-test-20260915`, 8 tệp 279 MiB: **4 phút 46 s**
+(~1 MiB/s từ máy dev — tốc độ tải LÊN là nút cổ chai; từ server chưa đo), công cụ đọc lại 8/8 tên + kích thước và
+byte các tệp nhỏ. Rồi **tải hết về từ GitHub** (21 s) → `join --root` khớp `50fba769…` → `verify --root --drill`
+khôi phục 12/12. Ca đỏ: upload lại cùng tag ⇒ exit 2 (không thêm, không ghi đè). ⏳ Bản nháp còn trên `origin`
+(https://github.com/daviddokrao/9chain-a1-backup/releases/tag/untagged-c72504dd79bc76b1bb2a) — David xoá tay.

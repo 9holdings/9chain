@@ -468,7 +468,9 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       thật 279 MiB cắt 3 phần → ghép lại **khớp ROOT gốc** + `verify --drill` khôi phục 12/12 · ghép bằng
       `cat`/`tar`/`sha256sum` cùng ROOT · gói tổng hợp **2,2 GiB** → 2 phần dưới 2 GiB, ghép khớp ROOT · ca đỏ:
       phần 2 GiB (exit 2), phần thiếu 1 byte (exit 1), giả mạo trọn vẹn chỉ `--root` bắt.
-      ⏳ `upload` lên GitHub **chưa chạy thật** — chờ David cho phép bản nháp trên repo riêng tư.
+      ✅ `upload` THẬT (David cho phép): release **nháp** trên `origin` riêng tư, 8 tệp 279 MiB, **4 phút 46 s**,
+      đọc lại 8/8 · **tải hết về từ GitHub → `join --root` khớp `50fba769…` → `verify --drill` 12/12** · upload lại
+      cùng tag ⇒ exit 2. ⏳ Bản nháp `a1-snapshot-drill-test-20260915` còn trên `origin` — David xoá tay.
 - [~] **P-111 — C-Chain băng tập kẹt ở block 0** (David giao `2026-09-15` tối). D-264.
       ✅ **Nguyên nhân đã đo:** không phải genesis băng tập (C-genesis trùng `net-g1` mọi trường fork; khác chainId ·
       `extraData` · alloc khắc chữ). Block 0 `timestamp 0` < AP3 ⇒ header **không `baseFee`**, còn `LondonBlock=0` ⇒
