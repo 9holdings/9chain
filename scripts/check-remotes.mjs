@@ -303,10 +303,15 @@ function selfTest() {
 function main() {
   if (SELF_TEST) return selfTest();
 
+  // 🔴 Ask the ACTIVE account a real question, not `gh auth status`. Measured 2026-09-15:
+  // `gh auth status` exits 1 when ANY stored account has an invalid token — here an inactive
+  // `9holdings` login — while the active account queried every repository fine. The gate then
+  // refused to run at all, right before a push it exists to guard. The quantity this gate needs is
+  // "can the account gh will use read the API", so that is what is measured.
   try {
-    execFileSync("gh", ["auth", "status"], { stdio: "ignore" });
+    execFileSync("gh", ["api", "user", "--jq", ".login"], { stdio: "ignore" });
   } catch {
-    console.log("⁇ `gh` is unavailable or not authenticated — COULD NOT MEASURE.");
+    console.log("⁇ `gh` is unavailable or its active account cannot query the API — COULD NOT MEASURE.");
     console.log("   Every verdict below would otherwise be a guess about a place work is pushed to.");
     return 2;
   }
