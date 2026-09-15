@@ -11549,3 +11549,4 @@ sau đó). ⚠️ GitHub có thể hạn chế tải nặng hằng ngày ⇒ Rel
 byte các tệp nhỏ. Rồi **tải hết về từ GitHub** (21 s) → `join --root` khớp `50fba769…` → `verify --root --drill`
 khôi phục 12/12. Ca đỏ: upload lại cùng tag ⇒ exit 2 (không thêm, không ghi đè). ⏳ Bản nháp còn trên `origin`
 (https://github.com/daviddokrao/9chain-a1-backup/releases/tag/untagged-c72504dd79bc76b1bb2a) — David xoá tay.
+✅ `16/09`: David đã xoá bản nháp. Đo lại bằng API đã đăng nhập (liệt kê cả nháp): `origin` **0 release · 0 tag** `a1-snapshot`; đường dẫn nháp trả 404.
