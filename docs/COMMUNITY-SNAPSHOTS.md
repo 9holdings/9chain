@@ -69,6 +69,54 @@ Whoever can change the bundle can also change `ROOT.txt` inside it.
 
 Exit codes: `0` pass · `1` the bundle is wrong · `2` could not run (not a verdict).
 
+## Distribution channel: GitHub Releases
+
+Tool: [`scripts/chain-snapshot-release.mjs`](../scripts/chain-snapshot-release.mjs). A GitHub release is a **flat**
+list of files and refuses any file of **2 GiB or more**, so a bundle travels as assets:
+
+```
+meta.tar                    every small file of the bundle (plain ustar, deterministic bytes)
+node-data.tar.part-000 …    the data tar in parts of 1,900 MiB (default; --part-size, always < 2 GiB)
+SHA256SUMS.txt · ROOT.txt   copied out of meta.tar, so the root can be checked without downloading gigabytes
+RELEASE.json                how the parts go back together
+RELEASE-SHA256SUMS.txt      sha256 of every asset
+```
+
+```bash
+node scripts/chain-snapshot-release.mjs pack <bundle> --out <assets>                       # operator
+node scripts/chain-snapshot-release.mjs upload <assets> --repo <owner/name>                # DRAFT release; --publish to publish
+node scripts/chain-snapshot-release.mjs join <downloaded assets> --out <bundle> --root <published root>   # community
+```
+
+Or with standard tools only:
+
+```bash
+sha256sum -c RELEASE-SHA256SUMS.txt
+cat node-data.tar.part-* > node-data.tar && tar -xf meta.tar && sha256sum -c SHA256SUMS.txt && sha256sum SHA256SUMS.txt
+```
+
+🔴 The asset checksums travel **inside** the release, so whoever can replace an asset can replace them too.
+They only make a failure specific ("part-001 is corrupt"). The verdict is the bundle's root, published
+outside the release, checked on the **rejoined** directory.
+
+`upload` refuses to add to an existing release. After uploading it reads the release back from GitHub, compares
+the name and size of every asset, and downloads the small ones to compare their bytes.
+
+Measured 2026-09-15:
+
+| Case | Result |
+|---|---|
+| Real drill bundle (279 MiB) at 100 MiB parts → 3 parts + meta | rejoined root **equals** `50fba769…`; `verify --root --drill` restored 12/12 chains again |
+| Same, rejoined with `cat` + `tar` + `sha256sum` only | same root |
+| Synthetic 2.2 GiB data tar at the default 1,900 MiB | 2 parts (1,992,294,400 + 369,937,613 bytes), rejoined root equals the original |
+| `--part-size 2048` | exit 2: not below the 2 GiB limit |
+| Last part one byte short (interrupted download) | exit 1: names `node-data.tar.part-001` |
+| `--self-test` | 23 cases, including a complete forgery (new data, re-sealed, re-packed) that rejoins cleanly without `--root` and is rejected with it |
+
+Not done: a real upload to GitHub. The first one should be a draft release on the private backup repository.
+GitHub may throttle heavy daily downloads, so Releases is best treated as one channel next to a torrent or
+object storage, not the only copy.
+
 ## For the community — check one, keep one
 
 ```bash
@@ -172,7 +220,7 @@ separately.
 |---|---|
 | Run on the public network (daily job on a snapshot node) | Server work is a deploy: one session, a person presses the button (CLAUDE.md §1 #4). Needs a decision on **where** the snapshot node runs |
 | Live data size | Last known figure 651 MB (2026-08-25, g0). Unmeasured since 15 L1s and the 9 tx/s pump; decides cost and whether bundles need compression or deltas |
-| Distribution (object storage + a daily torrent, retention 7 daily / 4 weekly / 12 monthly) | Decision pending |
+| Distribution beyond GitHub Releases (object storage, a daily torrent, retention 7 daily / 4 weekly / 12 monthly) | Decision pending. Releases tooling exists, first real upload pending |
 | Publishing the root outside the bundle | Mechanism pending (commit to `official`, the website, or both) |
 | Joining the **public** network from a public bundle | Measured on the drill band only (section above). A public bundle needs the snapshot node on the server |
 | Drill memory at hundreds of L1s | See lesson 2 |

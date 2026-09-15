@@ -11506,3 +11506,39 @@ thông tin cần tra).
 `0x8c18…0939`, khoá đọc tại chỗ vào biến môi trường, không in, không chép); 9/9 node `docker stop -t 120`, thoát mã 0.
 Ghi chú: thư mục `chain-config-dir` của băng tập đang mount từ **scratchpad của một phiên cũ**
 (`%TEMP%\claude\…\16a63219…\scratchpad\tap-console\9chain-a1-config`) — dọn `%TEMP%` là băng tập mất cấu hình chain.
+
+## D-265 — **Kênh GitHub Releases cho gói snapshot: cắt dưới 2 GiB, gom tệp nhỏ vào `meta.tar` — và phán quyết vẫn là ROOT trên thư mục GHÉP LẠI, không phải checksum của release** (`2026-09-15`, P-110)
+
+**Vì sao.** David chọn thêm kênh Releases. GitHub có **hai** giới hạn cắn gói, không phải một: mỗi tệp **dưới 2 GiB**,
+và release là danh sách **PHẲNG** (không thư mục) có **tối đa 1.000 tệp** — trong khi gói có
+`chain-configs/<chain>/…` lồng nhau, một chain một tệp, và sứ mệnh là hàng nghìn L1. Công cụ:
+`scripts/chain-snapshot-release.mjs` (`pack` · `join` · `upload` · `--self-test` 23 ca), tách khỏi
+`chain-snapshot.mjs` (đã >1.000 dòng) và **dùng lại** `seal`/`verifyFiles`/`parseSums` của nó — không chép logic.
+
+**Thiết kế.** Tài sản: `meta.tar` (mọi tệp nhỏ, ustar **tất định**: mtime 0, mode 0644 ⇒ đóng gói hai lần ra cùng
+sha) · `node-data.tar.part-NNN` (mặc định **1.900 MiB**, cờ `--part-size` bị từ chối nếu ≥ 2 GiB; số phần đệm 3
+chữ số để `cat part-*` giữ đúng thứ tự) · `SHA256SUMS.txt`/`ROOT.txt` chép ra ngoài để kiểm root mà không tải
+gigabyte · `RELEASE.json` · `RELEASE-SHA256SUMS.txt`. Trình đọc ustar **từ chối đường dẫn `..`/tuyệt đối/ổ đĩa**
+kể cả khi checksum header hợp lệ — tệp tải từ Internet là đầu vào.
+
+**🔴 Checksum của release KHÔNG phải phán quyết.** Chúng đi CÙNG tài sản ⇒ ai thay được tài sản thì thay được chúng.
+Thứ tự `join`: kiểm từng tài sản (để **gọi tên** phần hỏng) → phần phải là dãy liền mạch mà kích thước suy ra → ghép
+→ tar ghép phải khớp `SHA256SUMS.txt` **của chính gói** → `verifyFiles --root <số công bố>` trên thư mục ghép lại.
+Self-test chứng minh từng tầng bằng ca đỏ: thay một phần **và** sinh lại mọi checksum release ⇒ tầng "SHA256SUMS
+của gói" bắt; **giả mạo TRỌN VẸN** (dữ liệu khác, niêm lại, đóng gói lại) ⇒ ghép **sạch** khi không có `--root`,
+**đỏ** khi có. Phá có chủ ý hai chốt (liền mạch, SHA256SUMS của gói) ⇒ đúng hai ca tương ứng đỏ.
+
+**Số đo `15/09`:**
+
+| Ca | Kết quả |
+|---|---|
+| gói THẬT băng tập 279 MiB, phần 100 MiB ⇒ 3 phần + meta | ghép lại **khớp ROOT gốc** `50fba769…`; `verify --root --drill` khôi phục lại 12/12 chain |
+| ghép bằng `cat` + `tar` + `sha256sum` (không mã dự án) | cùng ROOT |
+| gói tổng hợp 2,2 GiB, phần mặc định 1.900 MiB | 2 phần 1.992.294.400 + 369.937.613 byte, ghép lại khớp ROOT |
+| `--part-size 2048` | exit 2 |
+| phần cuối thiếu 1 byte (tải dở) | exit 1, gọi tên `node-data.tar.part-001` |
+
+**`upload`:** tạo release **NHÁP** trừ khi có `--publish`; từ chối nếu tag đã tồn tại; sau khi đẩy **đọc lại từ
+GitHub** so tên + kích thước mọi tài sản và tải về so byte các tệp nhỏ. ⏳ **Chưa chạy thật** — lượt đầu đề xuất là
+bản nháp trên repo **riêng tư** `origin`, chờ David cho phép (tải lên 279 MiB dữ liệu băng tập, bản nháp phải xoá tay
+sau đó). ⚠️ GitHub có thể hạn chế tải nặng hằng ngày ⇒ Releases là MỘT kênh, không phải bản duy nhất.

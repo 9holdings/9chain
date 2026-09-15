@@ -135,6 +135,9 @@ node scripts/chain-snapshot.mjs --self-test  # 🔴 snapshot KHÔI PHỤC ĐƯ�
                                              #    KHÔNG làm được mức C (chain chạy tiếp khi mất hết validator) — xem docs/COMMUNITY-SNAPSHOTS.md
 node scripts/measure-snapshot-join.mjs --self-test  # node khôi phục từ gói JOIN mạng đang chạy (D-263) — chỉ băng tập; chấm bằng HASH cùng
                                              #    chiều cao; `--empty` là ĐỐI CHỨNG (gói không được dùng thì hai số bằng nhau)
+node scripts/chain-snapshot-release.mjs --self-test  # gói → tài sản GitHub Releases (phần < 2 GiB + meta.tar) và ghép lại (D-265)
+                                             #    🔴 checksum release đi CÙNG tài sản — phán quyết là `join --root` trên thư mục GHÉP LẠI
+                                             #    `upload` mặc định NHÁP; `--publish` là công bố
 ```
 
 ⚠️ `gday-preflight.mjs` gọi **34 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`
