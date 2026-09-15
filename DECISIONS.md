@@ -11550,3 +11550,48 @@ byte các tệp nhỏ. Rồi **tải hết về từ GitHub** (21 s) → `join -
 khôi phục 12/12. Ca đỏ: upload lại cùng tag ⇒ exit 2 (không thêm, không ghi đè). ⏳ Bản nháp còn trên `origin`
 (https://github.com/daviddokrao/9chain-a1-backup/releases/tag/untagged-c72504dd79bc76b1bb2a) — David xoá tay.
 ✅ `16/09`: David đã xoá bản nháp. Đo lại bằng API đã đăng nhập (liệt kê cả nháp): `origin` **0 release · 0 tag** `a1-snapshot`; đường dẫn nháp trả 404.
+
+## D-266 — **Bản sao VĨNH VIỄN trên Arweave: tìm lại bản mới nhất chỉ bằng Arweave — và vì ai cũng ghi được nhãn giống hệt, phán quyết là NGƯỜI KÝ + ROOT, không phải nhãn** (`2026-09-16`, P-110)
+
+**Vì sao.** David hỏi mạng lưu trữ phi tập trung *"kiểu vĩnh viễn để sau này dù gì cũng còn 1 bản gần nhất để khôi
+phục"*, rồi chốt **Arweave**. Trong nhóm phổ biến chỉ Arweave thiết kế **trả một lần, lưu vĩnh viễn**; Filecoin /
+IPFS pin / Storj / Sia / Swarm đều hết hạn khi ngừng trả. "Vĩnh viễn" là **thiết kế kinh tế** (quỹ dự trữ giả định
+chi phí lưu trữ giảm), không phải bảo đảm ⇒ Arweave là MỘT lớp cạnh Releases/torrent.
+
+**Công cụ** `local-net/tools/arweave-snapshot/` (`package.json` riêng theo quy ước `local-net/faucet`):
+`plan` · `upload` · `latest` · `download` · `--self-test` 16 ca · `e2e-arlocal-forgery.mjs`. Mỗi tài sản release =
+một giao dịch, cộng một manifest; nhãn `App-Name/Schema/Network-Id/Bundle-Root/Created-At/Kind` ⇒ **bản mới
+nhất tìm được bằng GraphQL của Arweave**, kể cả khi repo và website đã mất.
+
+**Ghim `arweave@1.15.7`, không `2.1.0`:** đo `16/09` bằng `npm view` — gói đúng của ArweaveTeam, nhưng `2.1.0`
+phát hành `08/09` (8 ngày), 2.x đầu tiên `01/09`. Major mới tinh là thứ sai để đặt lên đường ghi dữ liệu KHÔNG XOÁ
+ĐƯỢC. `npm audit`: 0 lỗ.
+
+**Bốn luật, mỗi luật một cách lưu vĩnh viễn hỏng:** (1) mặc định **chỉ tính giá**; gateway thật cần
+`--confirm-permanent` · (2) dữ liệu **băng tập bị từ chối** trên gateway thật **kể cả khi đã xác nhận** · (3) `latest`
+và `download` **bắt buộc `--owner`**, kiểm người ký của manifest **và từng tài sản** — nhãn không chứng minh ai
+tải lên · (4) ví trong repo bị từ chối; ví tạm trong bộ nhớ chỉ cho gateway cục bộ.
+Hàm "ví nằm trong repo" bản đầu tự viết rối (so chuỗi đường dẫn Windows) ⇒ thay bằng `relative()` + `isAbsolute`,
+self-test gồm thư mục anh em trùng tiền tố (`9Chain-A1-web`) và **ổ đĩa khác**.
+
+**Số đo `16/09`** — tài sản release của gói băng tập (8 tệp, 292,7 MB):
+
+| Ca | Kết quả |
+|---|---|
+| `plan` trên **arweave.net** (chỉ đọc) | **3,830 AR** ≈ **$9,5** (AR $2,49, CoinGecko) |
+| `upload` arweave.net thiếu xác nhận + dữ liệu tập + không ví | exit 2, đủ 3 lý do, không gửi gì |
+| `upload` **ArLocal** (Docker, ví tạm) | 8 tài sản + manifest, **10 phút** (ArLocal ~0,9 s/chunk 256 KiB) |
+| `latest --owner` (GraphQL) → `download` | tìm đúng manifest · 8/8 khớp sha + người ký · 42 s |
+| `join --root` trên bản tải về | **khớp `50fba769…`** |
+| giả mạo A: manifest của người lạ, nhãn GIỐNG HỆT, đào SAU | `latest` không liệt kê · `download` exit 1, gọi tên người ký |
+| giả mạo B: manifest chủ ký, trỏ tài sản do người khác ký | `download` exit 1, từ chối giao dịch lạ |
+| **phá có chủ ý** chốt người ký manifest | giả mạo A **được chấp nhận**, e2e ĐỎ ⇒ đúng chốt đó chặn |
+
+**🔴 ArLocal KHÔNG phải arweave.net** (luật 4 trong header công cụ). Chuỗi xanh trên chứng minh vòng đi-về và các
+lời từ chối của CÔNG CỤ, không chứng minh mạng thật nhận cùng giao dịch — lượt tải thật đầu tiên mới là phép đo đó,
+và nó tốn AR. **Mua AR / giữ ví là việc của David**, không phải của công cụ hay phiên này.
+
+**Chi phí theo nhịp** (giá `16/09`): 293 MB/ngày ≈ $3.500/năm · /tuần ≈ $500 · /tháng ≈ $115. Dung lượng DB mạng
+sống **chưa đo**. ⏳ Chờ David: ví Arweave + nạp AR · nhịp tải · gói của MẠNG CÔNG KHAI (cần node snapshot trên server).
+⚠️ Dọn tay: `%TEMP%\a1snap-forge-a-whpVJ9` (280 MB dữ liệu băng tập do lượt phá-chốt tải về) + 3 thư mục rỗng
+`a1snap-forge-*` — lệnh xoá bị từ chối trong phiên.

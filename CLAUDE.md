@@ -138,6 +138,9 @@ node scripts/measure-snapshot-join.mjs --self-test  # node khôi phục từ gó
 node scripts/chain-snapshot-release.mjs --self-test  # gói → tài sản GitHub Releases (phần < 2 GiB + meta.tar) và ghép lại (D-265)
                                              #    🔴 checksum release đi CÙNG tài sản — phán quyết là `join --root` trên thư mục GHÉP LẠI
                                              #    `upload` mặc định NHÁP; `--publish` là công bố
+node local-net/tools/arweave-snapshot/arweave-snapshot.mjs --self-test  # bản sao VĨNH VIỄN trên Arweave (D-266) — mặc định CHỈ TÍNH GIÁ;
+                                             #    gateway thật cần `--confirm-permanent`, dữ liệu băng tập bị TỪ CHỐI; `--owner` bắt buộc (nhãn ai cũng ghi được)
+                                             #    🔴 ArLocal xanh ≠ arweave.net nhận; ví + AR là việc của David
 ```
 
 ⚠️ `gday-preflight.mjs` gọi **34 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`

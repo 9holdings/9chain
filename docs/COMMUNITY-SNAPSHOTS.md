@@ -120,6 +120,59 @@ Upload speed is the bottleneck from the machine that uploads (~1 MiB/s from the 
 the server). GitHub may throttle heavy daily downloads, so Releases is best treated as one channel next to a
 torrent or object storage, not the only copy.
 
+## Permanent copy: Arweave
+
+Tool: [`local-net/tools/arweave-snapshot/`](../local-net/tools/arweave-snapshot/arweave-snapshot.mjs)
+(`npm ci` in that directory; `arweave` pinned at **1.15.7**. On 2026-09-16 the 2.x line was two weeks old,
+and a new major release is the wrong thing to put on a path that writes data forever.)
+
+Arweave is the one widely used decentralized store designed for **pay once, keep permanently**. Filecoin
+deals, IPFS pins, Storj/Sia contracts and Swarm stamps all lapse unless someone keeps paying. "Permanent" is
+an economic design (an endowment that assumes storage keeps getting cheaper), not a guarantee. Keep Arweave as
+one layer next to Releases and torrents.
+
+```bash
+node arweave-snapshot.mjs plan <release assets> --gateway https://arweave.net                     # price only
+node arweave-snapshot.mjs upload <release assets> --gateway https://arweave.net --wallet <jwk outside the repo> --confirm-permanent
+node arweave-snapshot.mjs latest --gateway https://arweave.net --owner <project address>          # newest manifest
+node arweave-snapshot.mjs download <manifest tx> --gateway https://arweave.net --owner <project address> --out <dir>
+node scripts/chain-snapshot-release.mjs join <dir> --out <bundle> --root <published root>
+```
+
+Each release asset becomes one transaction, plus one manifest transaction. Every transaction is tagged
+`App-Name: 9chain-a1-snapshot`, `Network-Id`, `Bundle-Root`, `Created-At` and `Kind`, so **the latest copy can
+be found with nothing but Arweave's GraphQL**, even if this repository and the website are gone.
+
+🔴 Rules the tool enforces, one per way permanent storage goes wrong:
+
+| Rule | Why |
+|---|---|
+| The default command only prices; a real gateway needs `--confirm-permanent` | nothing uploaded can ever be deleted |
+| Drill-band bundles (899999000–899999999) are refused on a real gateway, even with the confirmation | test data kept forever is permanent confusion about which network is real |
+| `latest` and `download` require `--owner`, and check the signer of the manifest **and** of every asset | anyone can write identical tags |
+| The wallet file is refused inside the repository; an in-memory wallet is only allowed for a local gateway | the wallet holds money |
+
+Measured 2026-09-16, the release assets of the drill bundle (8 assets, 292.7 MB, 100 MiB parts):
+
+| Case | Result |
+|---|---|
+| `plan` against **arweave.net** (read-only) | **3.830 AR** (~$9.5 at $2.49/AR), one payment |
+| `upload` to arweave.net without confirmation, drill data, no wallet | exit 2 with all three reasons; nothing sent |
+| `upload` to **ArLocal** (local emulator, in-memory wallet) | 8 assets + manifest in 10 min (ArLocal takes ~0.9 s per 256 KiB chunk) |
+| `latest --owner` via GraphQL | found the manifest |
+| `download` | 8/8 assets, sha256 and signer checked, 42 s |
+| `join --root` on the download | root **equals** `50fba769…` |
+| Forgery A: a stranger's manifest with identical tags, mined later | not listed by `latest`; `download` exit 1, names the signer |
+| Forgery B: an owner-signed manifest pointing at someone else's asset | `download` exit 1: refuses the foreign transaction |
+| Same run with the manifest-signer check removed on purpose | forgery A accepted, e2e red: the check is what stops it |
+
+🔴 **ArLocal is not arweave.net.** These runs prove the tool's round trip and its refusals. They do not prove
+that arweave.net accepts the same transactions; the first real upload is that measurement, and it costs AR.
+Buying AR and holding the wallet is a person's job, not this tool's.
+
+Cost depends on cadence: at today's price, 293 MB uploaded **daily** is about $3,500 a year, **weekly** about
+$500, **monthly** about $115. The live network's data size is not measured yet.
+
 ## For the community — check one, keep one
 
 ```bash

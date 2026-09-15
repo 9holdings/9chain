@@ -471,6 +471,11 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       ✅ `upload` THẬT (David cho phép): release **nháp** trên `origin` riêng tư, 8 tệp 279 MiB, **4 phút 46 s**,
       đọc lại 8/8 · **tải hết về từ GitHub → `join --root` khớp `50fba769…` → `verify --drill` 12/12** · upload lại
       cùng tag ⇒ exit 2. ✅ `16/09` David đã xoá bản nháp; đo lại bằng API đã đăng nhập: `origin` **0 release (kể cả nháp) · 0 tag**.
+      ✅ `16/09` — **bản sao VĨNH VIỄN trên Arweave** (David chốt, D-266, `local-net/tools/arweave-snapshot/`, `arweave@1.15.7`,
+      self-test 16 ca): giá thật arweave.net cho tài sản gói tập **3,830 AR ≈ $9,5** · ArLocal trọn vòng
+      upload → `latest --owner` (GraphQL) → download → `join --root` **khớp `50fba769…`** · giả mạo A (nhãn giống hệt,
+      người lạ ký) và B (tài sản người khác ký) đều bị từ chối; phá chốt người ký ⇒ A lọt, e2e ĐỎ.
+      ⏳ `[human]` ví Arweave + nạp AR + nhịp tải (David) · lượt tải thật đầu tiên lên arweave.net chưa có.
 - [~] **P-111 — C-Chain băng tập kẹt ở block 0** (David giao `2026-09-15` tối). D-264.
       ✅ **Nguyên nhân đã đo:** không phải genesis băng tập (C-genesis trùng `net-g1` mọi trường fork; khác chainId ·
       `extraData` · alloc khắc chữ). Block 0 `timestamp 0` < AP3 ⇒ header **không `baseFee`**, còn `LondonBlock=0` ⇒
