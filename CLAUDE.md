@@ -130,6 +130,9 @@ node scripts/drill-upgrade-rollback.mjs --self-test  # 🔴 đường LÙI nâng
                                              #    `--run` tiêm lỗi vào MẠNG TẬP (từ chối mọi networkID ngoài băng 899999xxx),
                                              #    đo eth_getChainConfig BÊN TRONG từng node; `--heal` trả mạng tập về 9/9
 node scripts/check-robots.mjs                 # robots.txt của A1 có tới người đọc không
+node scripts/chain-snapshot.mjs --self-test  # 🔴 snapshot KHÔI PHỤC ĐƯỢC cho cộng đồng (D-262) — `create` cần node ĐÃ DỪNG
+                                             #    (hoặc `--stop-start`); đỉnh đo trên BẢN KHÔI PHỤC; `verify --root --drill`
+                                             #    KHÔNG làm được mức C (chain chạy tiếp khi mất hết validator) — xem docs/COMMUNITY-SNAPSHOTS.md
 ```
 
 ⚠️ `gday-preflight.mjs` gọi **34 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`

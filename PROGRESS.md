@@ -445,6 +445,21 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       cờ lạ ⇒ exit 2. **`patches/` không đổi một byte** (`check-patch-count` xanh · `git status patches/` rỗng).
       ⏳ **Chưa chạy trên node sống** — cần băng tập, nằm ngoài phạm vi David chốt cho mốc này; thủ tục pha 2 ghi ở
       `docs/PLAN-108-L1-LOAD-TEST.md` §2e.
+- [~] **P-110 — Snapshot chain dữ liệu hằng ngày cho cộng đồng giữ, KHÔI PHỤC ĐƯỢC** (David giao `2026-09-15`:
+      *"backup để gửi cộng đồng lưu một bản dữ liệu blockchain mỗi ngày, dù gì vẫn phục dựng lại được như lúc backup"*;
+      chốt làm **phần không đụng server trước**). D-262 · `docs/COMMUNITY-SNAPSHOTS.md`.
+      **Qua khi (phần máy dev — ĐẠT):** một lệnh `create` đóng gói node đã dừng → khôi phục vào volume rỗng →
+      boot offline → đọc đỉnh 2 lần → niêm phong; `verify --root --drill` dựng lại ra **đúng** đỉnh; mọi chốt
+      **thấy ĐỎ trên đường thật**.
+      ✅ `15/09` băng tập g1 (`9chain-a1-tap-node-2`, đang tắt, không start): `scripts/chain-snapshot.mjs` · gói
+      **279 MiB / 11 s** · boot **3–13 s / ~350 MiB** · P 142 · X 1 · C 0 · 9 L1 ~23,1 nghìn block · reference
+      **node-3 (DB độc lập) 10 khớp / 0 lệch** · self-test **37 ca**.
+      **Ca đỏ đã thấy:** image 26-patch (hash binary+plugin) · root sai · subnet track mà không có dữ liệu (không
+      niêm) · `staker.key` trong `chainData/` · `tips.json` sửa rồi **niêm lại** (verify tệp XANH — đúng thiết kế —
+      `--drill` ĐỎ) · reference mạng khác (C block 0 lệch) · reference chết ⇒ exit 2 · đường Git Bash `/c/…` ⇒ exit 2.
+      ⏳ **Chưa làm (cần David / server):** chạy trên mạng công khai (node snapshot ở đâu) · đo dung lượng DB sống ·
+      kênh phân phối (R2 + torrent?) · nơi công bố ROOT · **chưa đo** node khôi phục **join mạng sống** ·
+      RAM phép diễn tập khi mạng có hàng trăm L1 · quyết định giữ danh tính validator (mức C).
 
 ---
 

@@ -11318,3 +11318,84 @@ do.** ⏳ `[human]` David: nếu muốn nó sau một hạn mức thì đó là 
 🔴 **Mọi miễn trừ đều phải mang LÝ DO**, và self-test khẳng định điều đó: *một lỗ chưa khai và một lỗ cố ý không
 được phép trông giống nhau.* Riêng hai route đăng nhập được miễn **XÁC THỰC** nhưng **KHÔNG** được miễn hạn mức —
 một endpoint đăng nhập không giới hạn là cách một phép kiểm chữ ký trở thành cách tiêu CPU của máy.
+
+## D-262 — **Snapshot KHÔI PHỤC ĐƯỢC cho cộng đồng: đỉnh chain đo trên BẢN KHÔI PHỤC, không đo trên node nguồn — và có dữ liệu chưa có nghĩa là chain chạy tiếp được** (`2026-09-15`, P-110)
+
+**Vì sao.** David: *"backup để gửi cộng đồng lưu một bản dữ liệu blockchain mỗi ngày, dù gì vẫn phục dựng lại
+được như lúc backup"*. Repo có hai thứ tên "backup", **không cái nào dựng lại được chain**: `h6b-backup.sh` là mã
+nguồn (0 byte dữ liệu chain), `export-chain.mjs` là **vật chứng** (tự khai không boot được node). Công cụ mới:
+`scripts/chain-snapshot.mjs` (`create` · `verify` · `--self-test`), tài liệu tiếng Anh cho cộng đồng
+`docs/COMMUNITY-SNAPSHOTS.md`.
+
+**🔴 Giới hạn nói TRƯỚC mọi thứ khác — David đã được trình ngày `15/09`:** gói làm được **A** (đọc/kiểm lịch sử) và
+**B** (chạy node từ đúng chiều cao đó). **Không** làm được **C** — chain ra block tiếp khi mọi validator đã chết —
+vì cần `staker.key`/`signer.key` đủ trọng số stake, và thứ đó **không bao giờ được công khai**. Mức C là **quyết
+định của David** (giữ danh tính validator riêng tư/chia khoá, hay chấp nhận hồi sinh = re-genesis), chưa chốt.
+
+**Thiết kế — mỗi đại lượng đo ở đâu (§2):**
+
+| Đại lượng | Đo trên |
+|---|---|
+| cờ node, image, bố cục dữ liệu | `docker inspect` **container nguồn** — không chép tay |
+| hash từng tệp dữ liệu | **bên trong volume nguồn**, trước tar; kiểm lại sau khi giải nén |
+| đỉnh (chiều cao, hash block, state root) | node **KHÔI PHỤC TỪ GÓI** — không phải node nguồn |
+| "đỉnh này là chain thật" | `--reference-rpc`: cùng chiều cao trên một node sống **độc lập** |
+| "gói không bị sửa" | `verify --root <số công bố>`: giá trị giữ **NGOÀI** gói (D-112) |
+
+Đỉnh đo trên bản khôi phục **có chủ ý**: đọc từ node nguồn trước khi dừng là đo một node có thể nhận thêm một
+block trước khi tắt; đọc từ gói là đo **đúng thứ người lạ nhận được**. Chép dữ liệu bằng **allowlist** (`db/`,
+`chainData/`, `<chain>/config.json|upgrade.json`), không bao giờ "cả thư mục trừ vài thứ".
+
+**🔴 Ba điều ĐO được trước khi viết mã (băng tập g1, node-2 đang tắt, không start):**
+
+1. **Node khôi phục boot offline KHÔNG BAO GIỜ xong bootstrap** khi sybil protection bật — P-Chain lặp *"bootstrapping
+   skipped: no provided bootstraps"*, mọi API trả *"not done bootstrapping"*, **trong khi log đã in DB nạp đúng**
+   (`lastAcceptedHeight 23101…`). ⇒ Phép diễn tập chạy `--sybil-protection-enabled=false` + `--network none`; tắt
+   sybil thì cùng bộ byte bootstrap trong vài giây và trả đúng chiều cao log đã in.
+2. **Node khôi phục TỰ SINH `staking/staker.key` trong thư mục dữ liệu.** Gói nguyên thư mục dữ liệu = phát tán
+   danh tính node cho mọi người khôi phục ⇒ allowlist, và **từ chối** cả lượt nếu có tệp dạng danh tính **bên trong**
+   thứ được chép.
+3. **Sybil TẮT thì node tạo MỌI chain trên P-Chain, track hay không** (`vms/platformvm/config/internal.go:98`).
+   🔴 **Tôi đã viết SAI điều này vào header trước khi đo:** probe thấy chain boot từ DB rỗng (*"from=<nil>"*) và tôi
+   đổ cho **bản chép thiếu dữ liệu**. Đo subnet của từng chain đó: **cả 6 đều KHÔNG được track** — bản chép đủ. Hệ
+   quả thật, và nó lớn hơn điều đã đoán: **RAM phép diễn tập tăng theo số chain TRÊN MẠNG, không theo số chain trong
+   gói** (một tiến trình plugin mỗi chain). Băng tập 21 chain: ~350 MiB. Hàng trăm L1: **phải đo trước khi chạy
+   hằng ngày trên mạng sống**. Nay ghi vào mọi gói ở `tips.json → drillCost`.
+
+**Số đo `15/09` (băng tập):** gói **279 MiB / 213 tệp / 11 s** · boot khôi phục **3–13 s** · P 142 · X 1 · C 0 ·
+9 L1 23.086–23.194 · đọc 2 lần không lệch · `verify --root --drill` dựng lại **12/12 đúng** · reference **node-3
+(DB độc lập, cùng mạng) 10 khớp · 0 lệch · 2 không kiểm được** (chain node-3 không track — xếp "unchecked", **không**
+tính khớp).
+
+**Ca đỏ — tất cả trên ĐƯỜNG THẬT (Docker + dữ liệu thật), mỗi ca đỏ VÌ ĐÚNG LÝ DO (D-106b):**
+
+| Ca | Kết quả |
+|---|---|
+| `verify --drill --image …g1-26patch-60a61707` | exit 1 · hash binary **và** plugin lệch |
+| `--root` sai | exit 1 |
+| container track thêm subnet không có dữ liệu | exit 1 · "Phase One L height 0 — NO DATA" · **không niêm** |
+| `staker.key` đặt **trong** `chainData/` | exit 1 · pack từ chối **trước khi tar chạy** |
+| sửa `tips.json` (23194 → 999999) rồi **kẻ tấn công niêm lại** | verify tệp **XANH** (đúng D-112 — không có `--root`) · `--drill` **ĐỎ** |
+| reference = node mới trên mạng khác | exit 1 · C block 0 lệch hash |
+| reference không tới được | exit 2 — "nothing about the live chain was measured" |
+
+**🔴 Bốn lần công cụ/ca đối chứng của chính tôi SAI trước khi đúng — ghi vì đây là phần đáng đọc:**
+
+1. **Ca R1 đầu tiên KHÔNG đỏ — và đó không phải lỗ hổng.** Tôi dựng container có `staking/` ở **gốc** thư mục dữ
+   liệu và chờ pack từ chối; nó **niêm phong**. Kiểm gói: **0** tệp danh tính, `staking` nằm trong
+   `leftOutOfDataDir`. Allowlist làm đúng việc; **ca đối chứng đo sai chỗ** — luật từ chối là cho tệp danh tính
+   **bên trong** `db/`/`chainData/`. Dựng lại đúng chỗ ⇒ đỏ đúng lý do.
+2. **Self-test in ✅ 32/32 với mã thoát 127** — libuv trên Windows abort (`UV_HANDLE_CLOSING`) vì `process.exit`
+   chạy khi server HTTP của ca kiểm còn đang đóng. Chữ và mã thoát nói ngược nhau; preflight đọc mã thoát.
+   Sửa: `await server.close` + `process.exitCode`. Ba lượt liền exit 0.
+3. **Phá mã có chủ ý để xem self-test đỏ: xoá luật `staking/` mà self-test vẫn XANH** — ba đường dẫn thử đều đuôi
+   `.key/.crt`, luật đuôi tệp **che** luật thư mục. Thêm ca `staking/bls-seed` ⇒ phá lại thì đỏ.
+4. **`MSYS_NO_PATHCONV=1` + đường `/c/Users/…` ⇒ Node trên Windows `resolve()` IM LẶNG thành `C:\c\Users\…`** —
+   hai gói (một đã niêm, 279 MiB, **0 khoá**) nằm ở thư mục không ai tìm. Nay đường ổ đĩa kiểu Git Bash trên
+   Windows ⇒ exit 2. ⏳ Hai thư mục đó (`C:\c\Users\abc\…\scratchpad\red-r1`, `red-r2`) **chưa xoá** — lệnh xoá
+   bị từ chối trong phiên; việc tay của David.
+
+**Không làm trong lượt này, có chủ ý:** không đụng server, không deploy, không ghi lên mạng công khai (luật cứng #4
+và §4). ⏳ **Chờ David:** node snapshot chạy ở đâu · SSH chỉ-đọc để đo dung lượng DB sống · kênh phân phối · nơi
+công bố ROOT · mức C. ⏳ **Chưa đo:** node khôi phục **join mạng sống** rồi đuổi kịp từ peer — phép đo kế tiếp, làm
+được trên băng tập.
