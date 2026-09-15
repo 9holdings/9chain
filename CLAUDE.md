@@ -133,6 +133,8 @@ node scripts/check-robots.mjs                 # robots.txt của A1 có tới ng
 node scripts/chain-snapshot.mjs --self-test  # 🔴 snapshot KHÔI PHỤC ĐƯỢC cho cộng đồng (D-262) — `create` cần node ĐÃ DỪNG
                                              #    (hoặc `--stop-start`); đỉnh đo trên BẢN KHÔI PHỤC; `verify --root --drill`
                                              #    KHÔNG làm được mức C (chain chạy tiếp khi mất hết validator) — xem docs/COMMUNITY-SNAPSHOTS.md
+node scripts/measure-snapshot-join.mjs --self-test  # node khôi phục từ gói JOIN mạng đang chạy (D-263) — chỉ băng tập; chấm bằng HASH cùng
+                                             #    chiều cao; `--empty` là ĐỐI CHỨNG (gói không được dùng thì hai số bằng nhau)
 ```
 
 ⚠️ `gday-preflight.mjs` gọi **34 cổng** (thêm `28/08`: `check-net-dirs`, `check-evidence`

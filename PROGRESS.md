@@ -458,8 +458,12 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       niêm) · `staker.key` trong `chainData/` · `tips.json` sửa rồi **niêm lại** (verify tệp XANH — đúng thiết kế —
       `--drill` ĐỎ) · reference mạng khác (C block 0 lệch) · reference chết ⇒ exit 2 · đường Git Bash `/c/…` ⇒ exit 2.
       ⏳ **Chưa làm (cần David / server):** chạy trên mạng công khai (node snapshot ở đâu) · đo dung lượng DB sống ·
-      kênh phân phối (R2 + torrent?) · nơi công bố ROOT · **chưa đo** node khôi phục **join mạng sống** ·
-      RAM phép diễn tập khi mạng có hàng trăm L1 · quyết định giữ danh tính validator (mức C).
+      kênh phân phối (R2 + torrent?) · nơi công bố ROOT · RAM phép diễn tập khi mạng có hàng trăm L1 · quyết định
+      giữ danh tính validator (mức C).
+      ✅ `15/09` tối — **join mạng đang chạy ĐÃ ĐO** (D-263, băng tập, `scripts/measure-snapshot-join.mjs`): node từ gói
+      bắt đầu ở **23.194** (log), 12/12 chain bootstrap + cùng hash ở đỉnh sau **15 s** trong lúc L1 đang chạy ·
+      đối chứng DB rỗng bắt đầu ở **0**, **187 s** · ca đỏ: beacon không tồn tại ⇒ exit 1, reference mạng khác ⇒ exit 2.
+      ⏳ Chưa phủ: P/C không được đẩy tiến lúc join (C-Chain băng tập từ chối mọi giao dịch — việc riêng).
 
 ---
 

@@ -11399,3 +11399,40 @@ tính khớp).
 và §4). ⏳ **Chờ David:** node snapshot chạy ở đâu · SSH chỉ-đọc để đo dung lượng DB sống · kênh phân phối · nơi
 công bố ROOT · mức C. ⏳ **Chưa đo:** node khôi phục **join mạng sống** rồi đuổi kịp từ peer — phép đo kế tiếp, làm
 được trên băng tập.
+
+## D-263 — **Node khôi phục từ gói JOIN mạng đang chạy: bắt đầu ở chiều cao của gói, đuổi kịp chain đang chạy trong 15 s — đối chứng DB rỗng 187 s** (`2026-09-15`, P-110)
+
+**Vì sao.** D-262 khai *"chưa đo node khôi phục join mạng sống"* — phép diễn tập của `chain-snapshot.mjs` chạy
+**offline, sybil TẮT**, tức không nói gì về cách cộng đồng thật sự dùng gói. David giao đo. Công cụ:
+`scripts/measure-snapshot-join.mjs` (từ chối mọi networkID ngoài băng tập 899999000–899999999; self-test 7 ca).
+
+**Đo ở đâu.** Băng tập g1, 9 node `net-tap-g1` bật lại từ trạng thái tắt (`docker start`, cấu hình lần chạy
+trước), node join chạy cờ **bình thường** (sybil BẬT, beacon node-1, danh tính tự sinh, `--track-subnets` của gói),
+chấm bằng **hash block cùng chiều cao** trên node-2 độc lập, trong lúc bộ bơm giữ L1 Band Test Five chạy ~1 tx/1,2 s.
+Trước khi join: `verify --reference-rpc` xác nhận mạng sống **vẫn chứa** gói (12/12 khớp), rồi đẩy L1 vượt gói
+(23.194 → 23.280).
+
+| | Từ gói | DB rỗng (đối chứng) |
+|---|---|---|
+| L1 theo dõi bắt đầu bootstrap từ (log node) | **23.194** | **0** |
+| 12/12 chain bootstrap | **15 s** lần đầu · ~2–5 s các lần sau | **187 s** |
+| Đuổi kịp (cùng hash ở đỉnh) | **15 s**, ở 23.297 khi chain đang chạy | **187 s**, ở 23.400 |
+| RAM ngay sau khi đuổi kịp | 225 MiB | 4,29 GiB |
+
+**Ca đỏ:** beacon không tồn tại ⇒ 0/12 bootstrap sau 90 s ⇒ exit 1 · reference mạng khác (`rpc-a1`, 999999998) ⇒
+exit 2 trước khi khởi động gì.
+
+**🔴 Ca đối chứng đầu tiên của tôi là một CUỘC ĐUA, không phải đối chứng.** "timeout 5 s" cho node từ gói: lượt
+một **xanh** (đuổi kịp ở 2 s), lượt hai **đỏ** — node từ gói nhanh hơn giới hạn lúc được lúc không. Tôi suýt đọc
+lượt xanh thành *"công cụ đo nhầm chỗ"*; in đủ từng lượt hỏi thì thấy node thật sự bootstrap trong 5 s. Thay bằng
+ca **tất định** (không có peer). Bài học cùng họ D-106b: *ca đỏ phải đỏ vì một điều kiện, không vì một đồng hồ.*
+
+**Đọc số cho đúng.** Chain tập chỉ ~23 nghìn block nhỏ mỗi chain (gói 279 MiB) nên đồng bộ từ đầu cũng chỉ 3 phút.
+Thứ đáng tin là **tỉ lệ và cơ chế** (chiều cao của gói được dùng thật; node theo chain đang chạy với hash trùng),
+không phải số giây — trên mạng công khai con số tuyệt đối sẽ lớn hơn.
+
+**Không phủ:** P-Chain và C-Chain không được đẩy tiến trong lúc join. **Phát hiện phụ:** C-Chain của băng tập
+**chưa từng ra block nào** và từ chối mọi giao dịch (`unsupported feature: eip1559`; đường legacy trả `method
+handler crashed`); C-Chain công khai trả `feeHistory`/`estimateGas` bình thường ⇒ lỗi riêng băng tập, tách thành
+việc riêng. Mạng tập đã tắt lại sạch (9/9 thoát mã 0); L1 Band Test Five để lại ở **23.511** (+317 block giao dịch
+tự gửi 1 wei, ví foundation băng tập — khoá đọc tại chỗ, không in, không chép).

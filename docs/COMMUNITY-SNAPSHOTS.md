@@ -114,6 +114,43 @@ Every guard was also seen **red**, on the real path:
 code on purpose: removing the `staking/` rule first stayed **green** (the `.key` rule hid it) until a dedicated
 case was added.
 
+## Measured: a restored node JOINS a live network (drill band, 2026-09-15)
+
+Tool: [`scripts/measure-snapshot-join.mjs`](../scripts/measure-snapshot-join.mjs). The node runs with **normal**
+flags: sybil protection on, a real beacon, its own fresh identity, the bundle's `--track-subnets`. It is judged
+by **block hash at the same height** on an independent reference node (node-2), while a load generator keeps
+the watched L1 (Band Test Five) moving at ~1 tx per 1.2 s.
+
+Setup: the 9-node drill network was started from its stopped state. The live chain was confirmed to still
+contain the bundle (`verify --reference-rpc`: 12/12 match). Then it was advanced past the bundle
+(23,194 → 23,280) before any node joined.
+
+| | Restored from bundle | Empty data dir (control) |
+|---|---|---|
+| Watched L1 started bootstrapping from (node log) | **23,194** (the bundle's height) | **0** |
+| All 12 chains bootstrapped | **15 s** first run · **~2–5 s** on repeat runs | **187 s** |
+| Caught up: same hash as the reference at the tip | **15 s**, at 23,297 while the chain moved | **187 s**, at 23,400 |
+| Memory right after catching up | 225 MiB | 4.29 GiB |
+
+Red controls on the same path:
+
+| Control | Result |
+|---|---|
+| Beacon address that does not exist (no peers) | exit 1: 0/12 bootstrapped after 90 s, never "caught up" |
+| Reference on another network (`rpc-a1.9chain.org`, 899999998 vs 999999998) | exit 2: refused before starting anything |
+| `--self-test` (hash differs at equal height, behind, not bootstrapped, reference missing the block) | 7 cases |
+
+⚠️ Read the numbers for what they are. The drill chains carry ~23 k small blocks each (a 279 MiB bundle), so
+even a full sync takes only 3 minutes. The **ratio** is the finding (the bundle's height was really used, and
+the node followed a moving chain with identical hashes); the absolute seconds will be larger on the public
+network. A first attempt at a "too short timeout" control was a race, not a control: the restored node was
+faster than the 5 s limit on one run and slower on the next. It was replaced by the unreachable-beacon case.
+
+Not covered: the P-Chain and C-Chain were not advanced during the join. The drill band's C-Chain has never
+produced a block and rejects every transaction (`unsupported feature: eip1559`; the legacy path returns
+"method handler crashed"). The public C-Chain answers normally, so this is a drill-band finding, tracked
+separately.
+
 ## Three things learned the hard way
 
 1. **An offline restored node never finishes bootstrapping** with sybil protection on: the P-Chain loops on
@@ -137,6 +174,6 @@ case was added.
 | Live data size | Last known figure 651 MB (2026-08-25, g0). Unmeasured since 15 L1s and the 9 tx/s pump; decides cost and whether bundles need compression or deltas |
 | Distribution (object storage + a daily torrent, retention 7 daily / 4 weekly / 12 monthly) | Decision pending |
 | Publishing the root outside the bundle | Mechanism pending (commit to `official`, the website, or both) |
-| **Joining the live network from a restored bundle** | Not measured. Only the offline drill was. Next measurement: restore a bundle into a node on the drill band and time it catching up from peers |
+| Joining the **public** network from a public bundle | Measured on the drill band only (section above). A public bundle needs the snapshot node on the server |
 | Drill memory at hundreds of L1s | See lesson 2 |
 | Validator identity custody (use C) | A decision for the project owner, not a tool |
