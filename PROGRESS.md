@@ -463,7 +463,17 @@ Mã mới 100 % tiếng Anh (§0). Commit bằng đường dẫn tường minh. 
       ✅ `15/09` tối — **join mạng đang chạy ĐÃ ĐO** (D-263, băng tập, `scripts/measure-snapshot-join.mjs`): node từ gói
       bắt đầu ở **23.194** (log), 12/12 chain bootstrap + cùng hash ở đỉnh sau **15 s** trong lúc L1 đang chạy ·
       đối chứng DB rỗng bắt đầu ở **0**, **187 s** · ca đỏ: beacon không tồn tại ⇒ exit 1, reference mạng khác ⇒ exit 2.
-      ⏳ Chưa phủ: P/C không được đẩy tiến lúc join (C-Chain băng tập từ chối mọi giao dịch — việc riêng).
+      ⏳ Chưa phủ: P/C không được đẩy tiến lúc join (C-Chain băng tập từ chối mọi giao dịch — việc riêng, **P-111**).
+- [~] **P-111 — C-Chain băng tập kẹt ở block 0** (David giao `2026-09-15` tối). D-264.
+      ✅ **Nguyên nhân đã đo:** không phải genesis băng tập (C-genesis trùng `net-g1` mọi trường fork; khác chainId ·
+      `extraData` · alloc khắc chữ). Block 0 `timestamp 0` < AP3 ⇒ header **không `baseFee`**, còn `LondonBlock=0` ⇒
+      `preCheck` so phí với `nil` ⇒ `eth_estimateGas`/`eth_call` có `gasPrice` **panic** (`state_transition.go:270`);
+      `cast` EIP-1559 từ chối vì header không có `baseFeePerGas`. **Mạng công khai crash y hệt** khi ghim `"0x0"` (đo
+      chỉ đọc) ⇒ sẽ đánh lại mọi re-genesis thật, từ genesis tới block C đầu tiên.
+      ✅ Ca đỏ → xanh trên băng tập: 3 lỗi ở block 0 · legacy `--gas-limit 21000 --gas-price 1` ra block 1 · sau đó
+      EIP-1559 và legacy không cờ gas đều qua (block 2, 3) · cùng lời gọi ghim block 0 **vẫn** crash.
+      ⏳ **Chờ David:** (1) bước *"mở C-Chain"* + cổng `eth_blockNumber(C) > 0` vào runbook ngày G / dựng băng tập ·
+      (2) có sửa đường RPC trong fork không (sinh lại bộ patch) · (3) báo upstream. `patches/` không đổi.
 
 ---
 

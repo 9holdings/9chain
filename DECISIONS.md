@@ -11436,3 +11436,73 @@ không phải số giây — trên mạng công khai con số tuyệt đối s�
 handler crashed`); C-Chain công khai trả `feeHistory`/`estimateGas` bình thường ⇒ lỗi riêng băng tập, tách thành
 việc riêng. Mạng tập đã tắt lại sạch (9/9 thoát mã 0); L1 Band Test Five để lại ở **23.511** (+317 block giao dịch
 tự gửi 1 wei, ví foundation băng tập — khoá đọc tại chỗ, không in, không chép).
+*(Câu "lỗi riêng băng tập" ở trên là **SAI** — đo lại ở D-264: đó là thuộc tính của **block 0** trên MỌI C-Chain
+A1, kể cả mạng công khai.)*
+
+## D-264 — **C-Chain "chết" ở block 0 không phải lỗi genesis băng tập: block 0 của MỌI C-Chain A1 không có `baseFee` mà luật London đã bật — mạng công khai cũng crash y hệt khi hỏi đúng block 0** (`2026-09-15` tối, P-111)
+
+**Triệu chứng (băng tập g1, 899999998).** C-Chain đứng ở block 0 từ genesis `05/09`. `cast send` (EIP-1559) ⇒
+`unsupported feature: eip1559`; `cast send --legacy` ⇒ `Failed to estimate gas: … -32603: method handler crashed`.
+L1 cùng mạng vẫn nhận giao dịch. D-263 đọc thành *"lỗi riêng băng tập"* vì C-Chain công khai trả lời bình thường.
+
+**So genesis (chỉ đọc).** `cChainGenesis` của `net-tap-g1` và `net-g1` **trùng mọi trường fork**
+(`homestead…muirGlacier` = block 0, `apricotPhase1/2BlockTimestamp` = 0, `"timestamp":"0x0"`, `gasLimit` như nhau).
+Chỉ khác: `chainId` (9000000909 vs 9000000009) · `extraData` (`0x00` vs hash khắc chữ) · alloc (băng tập không có
+hợp đồng khắc chữ `0x9000…0009`). Không trường nào trong đó chạm phí. Lịch fork: cả hai networkID nằm trong
+`LaMangA1` ⇒ cùng bảng `upgrade.A1` (mọi fork tới Granite = `InitiallyActiveTime` 2020-12-05, Helicon chưa lịch).
+Không patch nào đụng `state_transition.go` / `core/genesis.go` / `gasestimator`.
+
+**Nguyên nhân (panic trong `docker logs` node-2).**
+`RPC method eth_estimateGas crashed: nil pointer dereference` ←
+`math/big.(*Int).Cmp` ← `core.(*StateTransition).preCheck` `graft/coreth/core/state_transition.go:270` ←
+`gasestimator.run`. Ba mảnh ghép, **đều là mã upstream coreth**:
+1. Header block 0 lấy thời gian từ `"timestamp":"0x0"` (1970) **trước** ApricotPhase3 ⇒ `core/genesis.go` **không
+   gắn `BaseFee`** (`if confExtra.IsApricotPhase3(g.Timestamp)`). Đo: block 0 của **cả hai** mạng không có
+   `baseFeePerGas`.
+2. `LondonBlock = big.NewInt(0)` theo **số block** ⇒ `IsLondon(0)` = đúng ⇒ `preCheck` vào nhánh so phí.
+3. Có `gasPrice` (legacy — cast tự điền `eth_gasPrice` = 1) ⇒ không vào `skipCheck` ⇒
+   `msg.GasFeeCap.Cmp(nil)` ⇒ panic. Chính mã tự khai *"This will panic if baseFee is nil, but basefee presence is
+   verified as part of header validation"* — đúng cho block đã xác thực, **sai cho RPC chạy trên block 0**.
+   `cast` EIP-1559 thì dừng sớm hơn, tự nó: header mới nhất không có `baseFeePerGas` ⇒ "unsupported".
+
+**Đo đúng nơi — CẢ HAI mạng, ĐỎ rồi XANH.**
+
+| Phép đo | Kết quả |
+|---|---|
+| băng tập, block 0: `cast send` · `cast send --legacy` · `eth_call` có `gasPrice` | ĐỎ ×3 (hai lỗi y như báo cáo + crash) |
+| băng tập, block 0: `eth_estimateGas` **không** `gasPrice` | `0x5208` — nhánh `skipCheck`, nên RPC "trông như sống" |
+| băng tập: `cast send --legacy --gas-limit 21000 --gas-price 1` (không ước lượng) | **block 1**, status 1, `baseFee 0x1` |
+| băng tập sau block 1: `eth_estimateGas` có `gasPrice` @latest | `0x5208` |
+| … cùng lời gọi **ghim `"0x0"`** | **vẫn crash** ⇒ lỗi là của block 0, không của mạng |
+| băng tập sau block 1: `cast send` EIP-1559 · `cast send --legacy` không cờ gas | block 2 (type 2) · block 3 (type 0), status 1 |
+| **công khai** `rpc-a1` (chỉ đọc): `eth_estimateGas` có `gasPrice` **ghim `"0x0"`** | **`method handler crashed`** |
+| công khai: cùng lời gọi @latest · không `gasPrice` @`0x0` | `0x5208` · `0x5208` |
+
+Mạng công khai qua được cửa này ngày G chỉ vì **giao dịch C đầu tiên là legacy, `gasPrice` 1** (block 1,
+`10:04:13Z 01/09`, type `0x0`, từ `0x1466…9058`) — không phải vì genesis khác.
+
+**Kết luận.** **Không phải** đầu vào netgen (`A1_CHAIN_ID`, networkID, `extraData`): đó là **mã + lịch fork**, và nó
+**SẼ đánh lại mọi lượt re-genesis thật** trong khoảng từ genesis tới block C đầu tiên — đúng lúc nghi lễ ngày G
+cần C-Chain. Ví/công cụ mặc định (MetaMask, `cast`, ethers v6 với `getFeeData` + `estimateGas`) sẽ báo "mạng không hỗ
+trợ EIP-1559" hoặc "method handler crashed" cho tới khi **ai đó** ra được block 1 bằng đường không ước lượng.
+Phụ: `block-adam-drill.mjs` ký `type: 2` với `gasLimit` cố định và `getFeeData()` — **chưa đo** nó có qua được block 0
+không (EIP-1559 cần `baseFee` của header cha khi xác thực/đưa vào mempool; nếu nó từng chạy trước block 1 thì đó là
+thông tin cần tra).
+
+**Đề xuất sửa — KHÔNG làm trong lượt này (`patches/` không đổi một byte).**
+1. **Ngay, không đụng fork (khuyên dùng):** thêm vào runbook ngày G / dựng băng tập một bước *"mở C-Chain"*: gửi
+   **một** giao dịch legacy có `gasLimit` + `gasPrice` tường minh (hoặc một atomic import X/P→C) **trước** khi giao
+   RPC cho người/công cụ; và một cổng chỉ đọc `eth_blockNumber(C) > 0` trên mạng đích (đỏ ở block 0, đã có ca đỏ thật
+   là băng tập hôm nay). Nghi lễ nào cần giao dịch C đầu tiên mang ý nghĩa (Block Adam) thì chính nó phải là giao
+   dịch legacy tường minh đó — hoặc chấp nhận block 1 là giao dịch mở cửa.
+2. **Sửa mã, cần David duyệt + sinh lại cả bộ patch (luật cứng 3):** chặn `nil` ở đường RPC — trong
+   `gasestimator`/`DoCall` coi `header.BaseFee == nil` như `NoBaseFee` (hoặc trả lỗi thay vì panic). Không đổi
+   genesis hash, không đổi luật đồng thuận cho block đã xác thực. Nên báo upstream ava-labs: mainnet/Fuji cũng có
+   block 0 `timestamp 0`, chỉ là không ai hỏi block 0 của họ nữa.
+3. **Không khuyên:** đổi `"timestamp"` netgen sang `startTime` để block 0 có `baseFee` — đổi genesis hash, chạm trường
+   Etna/Cancun của header genesis mà chưa ai diễn tập; nếu muốn thì phải qua băng tập trước, chỉ ở re-genesis.
+
+**Trạng thái để lại.** Băng tập: C-Chain nay ở **block 3** (3 giao dịch 1 wei từ ví foundation băng tập tới
+`0x8c18…0939`, khoá đọc tại chỗ vào biến môi trường, không in, không chép); 9/9 node `docker stop -t 120`, thoát mã 0.
+Ghi chú: thư mục `chain-config-dir` của băng tập đang mount từ **scratchpad của một phiên cũ**
+(`%TEMP%\claude\…\16a63219…\scratchpad\tap-console\9chain-a1-config`) — dọn `%TEMP%` là băng tập mất cấu hình chain.
